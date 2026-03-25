@@ -5,6 +5,9 @@
 
 	// Styles
 	import '$/styles/fonts.css'
+	import '$/styles/colors.css'
+	import '$/styles/reset.css'
+	import '$/styles/components.css'
 
 
 	// State
