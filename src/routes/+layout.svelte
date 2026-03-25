@@ -3,6 +3,10 @@
 	import '$/polyfills.ts'
 
 
+	// Styles
+	import '$/styles/fonts.css'
+
+
 	// State
 	let {
 		children,

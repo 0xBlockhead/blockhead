@@ -30,6 +30,7 @@
 		"vitest-browser-svelte": "^2.0.2"
 	},
 	"dependencies": {
+		"@fontsource/ubuntu": "^5.2.8",
 		"map.prototype.getorinsertcomputed": "^1.0.1",
 		"weakmap.prototype.getorinsertcomputed": "^1.0.0"
 	}

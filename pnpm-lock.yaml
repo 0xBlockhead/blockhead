@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@fontsource/ubuntu':
+        specifier: ^5.2.8
+        version: 5.2.8
       map.prototype.getorinsertcomputed:
         specifier: ^1.0.1
         version: 1.0.1
@@ -215,6 +218,9 @@ packages:
     engines: {node: '>=18'}
     cpu: [x64]
     os: [win32]
+
+  '@fontsource/ubuntu@5.2.8':
+    resolution: {integrity: sha512-esSJCpgigwWOm4Ug9f7AMozUyBq5Iobea5C9QYsl2OlCb62wZABBUbXahHLdFv5Ru4lJCD9tUX6xEAeLwUTNBg==}
 
   '@jridgewell/gen-mapping@0.3.13':
     resolution: {integrity: sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA==}
@@ -1267,6 +1273,8 @@ snapshots:
 
   '@esbuild/win32-x64@0.27.4':
     optional: true
+
+  '@fontsource/ubuntu@5.2.8': {}
 
   '@jridgewell/gen-mapping@0.3.13':
     dependencies:
