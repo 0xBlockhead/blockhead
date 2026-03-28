@@ -17,14 +17,14 @@
 
 
 	// Components
-	import favicon from '$/assets/favicon.svg'
+	import { asset } from '$app/paths'
 </script>
 
 
 <svelte:head>
 	<link
 		rel="icon"
-		href={favicon}
+		href={asset('/favicon.svg')}
 	/>
 </svelte:head>
 
