@@ -10,6 +10,21 @@
 	import '$/styles/components.css'
 
 
+	// View transitions
+	import { browser } from '$app/environment'
+	import { onNavigate } from '$app/navigation'
+
+	if (browser && 'startViewTransition' in document)
+		onNavigate(navigation => (
+			new Promise(resolve => {
+				document.startViewTransition(async () => {
+					resolve()
+					await navigation.complete
+				})
+			})
+		))
+
+
 	// Context
 	import { useNavigationItems } from './navigationItems.svelte'
 
