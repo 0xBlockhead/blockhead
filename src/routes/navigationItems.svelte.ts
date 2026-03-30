@@ -1,8 +1,296 @@
-import type { NavigationItem } from '$/views/NavigationItem.ts'
+import type { NavigationItem } from '$/state/NavigationItem.ts'
 
 export const useNavigationItems = () => {
 	const navigationItems = $derived([
-		
+		{
+			id: 'local-dashboards',
+			title: 'Dashboards',
+			href: '/~/dashboards',
+			icon: '📊',
+			defaultIsOpen: true,
+			children: [],
+		},
+		{
+			id: 'local-accounts',
+			title: 'Accounts',
+			href: '/~/accounts',
+			icon: '🔑',
+			defaultIsOpen: true,
+			children: [
+				{
+					id: 'local-balances',
+					title: 'Balances',
+					href: '/~/accounts/balances',
+					icon: '🪙',
+				},
+				{
+					id: 'local-positions',
+					title: 'Positions',
+					href: '/~/accounts/positions',
+					icon: '📈',
+				},
+				{
+					id: 'local-transactions',
+					title: 'Transactions',
+					href: '/~/accounts/transactions',
+					icon: '🧾',
+				},
+			],
+		},
+		{
+			id: 'explore',
+			title: 'Explore',
+			href: '/explore',
+			icon: '🧭',
+			defaultIsOpen: true,
+			children: [
+				{
+					id: 'explore-networks',
+					title: 'Networks',
+					href: '/networks',
+					icon: '🌐',
+					defaultIsOpen: true,
+					children: [],
+				},
+				{
+					id: 'explore-contracts',
+					title: 'Contracts',
+					href: '/contracts',
+					icon: '📜',
+					defaultIsOpen: true,
+					children: [],
+				},
+				{
+					id: 'explore-ens',
+					title: 'ENS',
+					href: '/ens',
+					icon: '🪪',
+				},
+				{
+					id: 'explore-agents',
+					title: 'Agents',
+					href: '/agents',
+					icon: '🤖',
+				},
+				{
+					id: 'explore-proposals',
+					title: 'Proposals',
+					href: '/proposals',
+					icon: '🗳️',
+					defaultIsOpen: true,
+					children: [],
+				},
+				{
+					id: 'explore-forks',
+					title: 'Forks',
+					href: '/forks',
+					icon: '🔀',
+					defaultIsOpen: true,
+					children: [],
+				},
+				{
+					id: 'explore-evm',
+					title: 'EVM',
+					href: '/evm',
+					icon: '🛠️',
+					defaultIsOpen: false,
+					children: [
+						{
+							id: 'explore-evm-calldata',
+							title: 'Calldata',
+							href: '/evm/calldata',
+							icon: '📦',
+						},
+						{
+							id: 'explore-evm-selectors',
+							title: 'Selectors',
+							href: '/evm/selectors',
+							icon: '🎯',
+							children: [],
+						},
+						{
+							id: 'explore-evm-topics',
+							title: 'Topics',
+							href: '/evm/topics',
+							icon: '📑',
+							children: [],
+						},
+						{
+							id: 'explore-evm-errors',
+							title: 'Errors',
+							href: '/evm/errors',
+							icon: '⚠️',
+							children: [],
+						},
+					],
+				},
+			],
+		},
+		{
+			id: 'assets',
+			title: 'Assets',
+			href: '/assets',
+			icon: '💼',
+			defaultIsOpen: true,
+			children: [
+				{
+					id: 'assets-coins',
+					title: 'Coins',
+					href: '/coins',
+					icon: '🪙',
+					defaultIsOpen: true,
+					children: [],
+				},
+				{
+					id: 'assets-pools',
+					title: 'Pools',
+					href: '/pools',
+					icon: '🌊',
+				},
+				{
+					id: 'assets-vaults',
+					title: 'Vaults',
+					href: '/vaults',
+					icon: '📈',
+				},
+				{
+					id: 'assets-leverage',
+					title: 'Leverage',
+					href: '/leverage',
+					icon: '⚖️',
+				},
+				{
+					id: 'assets-channels',
+					title: 'Channels',
+					href: '/channels',
+					icon: '↔️',
+				},
+			],
+		},
+		{
+			id: 'agents',
+			title: 'Agents',
+			href: '/~/agents',
+			icon: '🤖',
+			defaultIsOpen: true,
+			children: [
+				{
+					id: 'agents-conversations',
+					title: 'Conversations',
+					href: '/~/agents/conversations',
+					icon: '🗨️',
+				},
+			],
+		},
+		{
+			id: 'social',
+			title: 'Social',
+			href: '/social',
+			icon: '👥',
+			defaultIsOpen: true,
+			children: [
+				{
+					id: 'social-xmtp',
+					title: 'XMTP',
+					href: '/xmtp',
+					icon: '💬',
+					defaultIsOpen: false,
+					children: [
+						{
+							id: 'social-xmtp-accounts',
+							title: 'Accounts',
+							href: '/xmtp/accounts',
+							icon: '👤',
+							children: [],
+						},
+					],
+				},
+				{
+					id: 'social-farcaster',
+					title: 'Farcaster',
+					href: '/farcaster',
+					icon: '🏛️',
+					defaultIsOpen: false,
+					children: [
+						{
+							id: 'social-farcaster-accounts',
+							title: 'Accounts',
+							href: '/farcaster/accounts',
+							icon: '👤',
+							children: [],
+						},
+						{
+							id: 'social-farcaster-feed',
+							title: 'Feed',
+							href: '/farcaster/feed',
+							icon: '📰',
+						},
+						{
+							id: 'social-farcaster-channels',
+							title: 'Channels',
+							href: '/farcaster/channels',
+							icon: '📺',
+						},
+						{
+							id: 'social-farcaster-users',
+							title: 'Users',
+							href: '/farcaster/users',
+							icon: '👥',
+						},
+					],
+				},
+			],
+		},
+		{
+			id: 'local-multiplayer',
+			title: 'Multiplayer',
+			href: '/~/multiplayer',
+			icon: '🤝',
+			defaultIsOpen: true,
+			children: [
+				{
+					id: 'local-multiplayer-rooms',
+					title: 'Rooms',
+					href: '/~/multiplayer/rooms',
+					icon: '🏘️',
+					children: [],
+				},
+				{
+					id: 'local-multiplayer-contacts',
+					title: 'Contacts',
+					href: '/~/multiplayer/contacts',
+					icon: '📇',
+					children: [],
+				},
+			],
+		},
+		{
+			id: 'local-manage',
+			title: 'Manage',
+			href: '/~/manage',
+			icon: '⚙️',
+			defaultIsOpen: true,
+			children: [
+				{
+					id: 'local-manage-profiles',
+					title: 'Profiles',
+					href: '/~/manage/profiles',
+					icon: '👤',
+				},
+				{
+					id: 'local-manage-sources',
+					title: 'Sources',
+					href: '/~/manage/sources',
+					icon: '📡',
+				},
+				{
+					id: 'local-manage-data',
+					title: 'Data',
+					href: '/~/manage/data',
+					icon: '🗄️',
+				},
+			],
+		},
 	] satisfies NavigationItem[])
 
 	return {

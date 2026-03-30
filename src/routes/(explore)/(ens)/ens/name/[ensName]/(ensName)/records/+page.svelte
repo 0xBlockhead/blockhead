@@ -1,0 +1,21 @@
+<script lang="ts">
+	// Context
+	import { resolve } from '$app/paths'
+
+	// State
+	let {
+		params,
+	} = $props()
+
+	// Components
+	import Page from '$/components/Page.svelte'
+	import EnsNameTextRecordsView from '$/views/EnsNameTextRecordsView.svelte'
+</script>
+
+
+<Page>
+	<EnsNameTextRecordsView
+		entityId={{ name: params.ensName }}
+		href={resolve(`/ens/name/${params.ensName}/records`)}
+	/>
+</Page>
