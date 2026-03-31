@@ -20,7 +20,7 @@ export enum BlockheadSocialPostSessionStatus {
 export default {
 	entityType: EntityType.BlockheadSocialPostSession,
 
-	label: 'Blockhead Social Post Session',
+	label: 'Social Post Session',
 
 	id: type({
 		id: 'string',
