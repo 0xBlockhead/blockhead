@@ -8,7 +8,7 @@ import { EntityType } from '$/schema/$EntityType.ts'
 export default {
 	entityType: EntityType.BlockheadSource,
 
-	label: 'Blockhead Source',
+	label: 'Source',
 
 	id: type({
 		id: 'string',
