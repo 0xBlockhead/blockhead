@@ -15,7 +15,7 @@ export enum BlockheadSessionSimulationStatus {
 export default {
 	entityType: EntityType.BlockheadSessionSimulation,
 
-	label: 'Blockhead Session Simulation',
+	label: 'Session Simulation',
 
 	id: type({
 		id: 'string',
