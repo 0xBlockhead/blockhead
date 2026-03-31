@@ -10,7 +10,7 @@ import { EntityType } from '$/schema/$EntityType.ts'
 export default {
 	entityType: EntityType.BlockheadWallet,
 
-	label: 'Blockhead Wallet',
+	label: 'Wallet',
 
 	id: type({
 		rdns: 'string',
