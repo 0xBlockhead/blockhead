@@ -16,7 +16,7 @@ export enum BlockheadSessionStatus {
 export default {
 	entityType: EntityType.BlockheadSession,
 
-	label: 'Blockhead Session',
+	label: 'Session',
 
 	id: type({
 		id: 'string',
