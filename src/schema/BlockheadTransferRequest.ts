@@ -17,7 +17,7 @@ const transferAllocationRow = type({
 export default {
 	entityType: EntityType.BlockheadTransferRequest,
 
-	label: 'Blockhead Transfer Request',
+	label: 'Transfer Request',
 
 	id: type({
 		id: 'string',
