@@ -18,7 +18,7 @@ export enum BlockheadConnectionStatus {
 export default {
 	entityType: EntityType.BlockheadWalletConnection,
 
-	label: 'Blockhead Wallet Connection',
+	label: 'Wallet Connection',
 
 	id: type({
 		$wallet: BlockheadWallet.id,
