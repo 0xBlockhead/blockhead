@@ -5,7 +5,7 @@ import { EntityType } from '$/schema/$EntityType.ts'
 export default {
 	entityType: EntityType.BlockheadPanelTree,
 
-	label: 'Blockhead Panel Tree',
+	label: 'Panel Tree',
 
 	id: type({
 		id: 'string',
