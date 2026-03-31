@@ -10,7 +10,7 @@ import { EntityType } from '$/schema/$EntityType.ts'
 export default {
 	entityType: EntityType.BlockheadRoom,
 
-	label: 'Blockhead Room',
+	label: 'Room',
 
 	id: type({
 		id: 'string',
