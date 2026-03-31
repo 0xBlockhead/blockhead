@@ -10,7 +10,7 @@ import { EntityType } from '$/schema/$EntityType.ts'
 export default {
 	entityType: EntityType.BlockheadSharedAddress,
 
-	label: 'Blockhead Shared Address',
+	label: 'Shared Address',
 
 	id: type({
 		id: 'string',
