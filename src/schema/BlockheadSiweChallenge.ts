@@ -10,7 +10,7 @@ import { EntityType } from '$/schema/$EntityType.ts'
 export default {
 	entityType: EntityType.BlockheadSiweChallenge,
 
-	label: 'Blockhead SIWE Challenge',
+	label: 'SIWE Challenge',
 
 	id: type({
 		id: 'string',
