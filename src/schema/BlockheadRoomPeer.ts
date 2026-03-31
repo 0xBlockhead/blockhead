@@ -10,7 +10,7 @@ import { EntityType } from '$/schema/$EntityType.ts'
 export default {
 	entityType: EntityType.BlockheadRoomPeer,
 
-	label: 'Blockhead Room Peer',
+	label: 'Room Peer',
 
 	id: type({
 		id: 'string',
