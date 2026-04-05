@@ -1,6 +1,7 @@
 import type { Type as ArktypeType } from 'arktype'
 import type { Entity, EntityId } from '$/schema/$schema.ts'
 import type { EntityType } from '$/schema/$EntityType.ts'
+import type { Source } from '$/sources/$Sources.ts'
 
 export enum EntityFieldType {
 	Primitive = 'Primitive',
@@ -30,18 +31,21 @@ export type EntityFieldDefinition = (
 		type: EntityFieldType.Primitive
 		primitiveType: ArktypeType
 		cardinality: EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne
+		defaultSources?: Source[]
 	}
 	| {
 		name: `$${string}`
 		type: EntityFieldType.EntityReference
 		entityType: EntityType
 		cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne
+		defaultSources?: Source[]
 	}
 	| {
 		name: `$$${string}`
 		type: EntityFieldType.EntitiesReference
 		entityType: EntityType
 		cardinality: EntityFieldCardinality.Zero | EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
+		defaultSources?: Source[]
 	}
 )
 
@@ -100,5 +104,12 @@ export type EntityFromDefinition<_EntityDefinition extends EntityDefinition> = (
 					never
 			)
 		]?: EntityFieldValue<_EntityFieldDefinition>
+	}
+)
+
+export type EntityWithSource<_Entity extends EntityFromDefinition<any>> = (
+	& _Entity
+	& {
+		$source: Source
 	}
 )

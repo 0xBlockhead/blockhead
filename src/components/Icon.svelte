@@ -19,8 +19,8 @@
 
 <script lang="ts">
 	// State
-	import type { SvelteHTMLElements } from 'svelte/elements'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { SvelteHTMLElements } from 'svelte/elements'
 
 	let {
 		class: className,
@@ -38,7 +38,7 @@
 		decoding = 'async',
 		fetchPriority = 'auto',
 		referrerPolicy = 'no-referrer',
-		...rootProps
+		...spanProps
 	}: WithRest<
 		{
 			class?: string
@@ -52,10 +52,10 @@
 			shape?: IconShape
 			backgroundColor?: string
 			subicon?: SubiconProps
-			loading?: SvelteHTMLElements['img']['loading']
-			decoding?: SvelteHTMLElements['img']['decoding']
-			fetchPriority?: SvelteHTMLElements['img']['fetchpriority']
-			referrerPolicy?: SvelteHTMLElements['img']['referrerpolicy']
+			loading?: import('svelte/elements').SvelteHTMLElements['img']['loading']
+			decoding?: import('svelte/elements').SvelteHTMLElements['img']['decoding']
+			fetchPriority?: import('svelte/elements').SvelteHTMLElements['img']['fetchpriority']
+			referrerPolicy?: import('svelte/elements').SvelteHTMLElements['img']['referrerpolicy']
 		},
 		SvelteHTMLElements['span']
 	> = $props()
@@ -71,7 +71,7 @@
 
 
 <span
-	{...rootProps}
+	{...spanProps}
 	class={`icon shape-${shape}${className ?
 		` ${className}`
 		: ''}`}

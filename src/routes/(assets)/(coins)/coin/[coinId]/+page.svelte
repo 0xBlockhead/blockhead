@@ -17,7 +17,7 @@
 	// (Derived)
 	const route = $derived.by(() => {
 		const param = params.coinId ?? ''
-		const coinId = coinById[param as CoinId] ? (param as CoinId) : null
+		const coinId = coinById.has(param as CoinId) ? (param as CoinId) : null
 		return { param, coinId }
 	})
 
@@ -30,7 +30,7 @@
 
 <svelte:head>
 	<title>
-		{route.coinId ? coinById[route.coinId]?.symbol ?? route.coinId : route.param || 'Coin'} – Coin
+		{route.coinId ? coinById.get(route.coinId)?.symbol ?? route.coinId : route.param || 'Coin'} – Coin
 	</title>
 </svelte:head>
 

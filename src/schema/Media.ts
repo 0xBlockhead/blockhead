@@ -27,8 +27,49 @@ export default {
 	}),
 
 	fields: [
-		
-	], as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: 'type',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(MediaType),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'hash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string.hex' as type.cast<`0x${string}`>),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$original',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.MediaObject,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$thumbnail',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.MediaObject,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$low',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.MediaObject,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$medium',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.MediaObject,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$high',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.MediaObject,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition
 
 export type Media<_MediaType extends MediaType = MediaType> = Extract<

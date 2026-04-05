@@ -24,6 +24,59 @@ export default {
 	}),
 
 	fields: [
-		
-	], as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$steps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BridgeRouteStep,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$fromNetwork',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$toNetwork',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'fromAmount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'toAmount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'toAmountMin',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'gasCostUsd',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'estimatedDurationSeconds',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'tags',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(BridgeRouteTag).array(),
+			cardinality: EntityFieldCardinality.One,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

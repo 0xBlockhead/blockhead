@@ -1,12 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import type { Snippet } from 'svelte'
 
 
 	// State
-	import type { Snippet } from 'svelte'
+	import { EntityType } from '$/schema/$EntityType.ts'
 
+
+	// Props
 	let {
 		children,
 		entityId,

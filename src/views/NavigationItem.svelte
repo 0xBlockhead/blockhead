@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import type { NavigationItem } from '$/state/NavigationItem'
+	import type { NavigationItem } from '$/routes/NavigationItem.ts'
 
 
 	// Context

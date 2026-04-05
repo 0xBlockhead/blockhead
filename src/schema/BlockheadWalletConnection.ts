@@ -25,6 +25,41 @@ export default {
 	}),
 
 	fields: [
-		
-	], as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: 'status',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(BlockheadConnectionStatus),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$$connectedActors',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Actor,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$activeActor',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Actor,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'selected',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'connectedAt',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

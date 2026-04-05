@@ -24,6 +24,59 @@ export default {
 	}),
 
 	fields: [
-		
-	], as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$network',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$tokenIn',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.CoinInstance,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$tokenOut',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.CoinInstance,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'amountIn',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'amountOut',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'priceImpact',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'route',
+			type: EntityFieldType.Primitive,
+			primitiveType: swapRouteRow.array(),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'gasEstimate',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'timestamp',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

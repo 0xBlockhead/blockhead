@@ -17,6 +17,11 @@ export default {
 	}),
 
 	fields: [
-		
-	], as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$farcasterUser',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.FarcasterUser,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

@@ -19,6 +19,23 @@ export default {
 	}),
 
 	fields: [
-		
-	], as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$deployer',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Actor,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'abi',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$verifiedSource',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmContractSource,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

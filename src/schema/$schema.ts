@@ -1,4 +1,8 @@
-import type { EntityDefinition, EntityFromDefinition, EntityIdFromDefinition } from '$/schema/$EntityDefinition.ts'
+import {
+	type EntityDefinition,
+	type EntityFromDefinition,
+	type EntityIdFromDefinition,
+} from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 
 export const schema = [
@@ -71,6 +75,12 @@ export const schema = [
 	(await import('$/schema/XmtpConversation.ts')).default,
 ] as const satisfies readonly EntityDefinition[]
 
+export type RegisteredEntityType = (typeof schema)[number]['entityType']
+
+export type EntitySchemaFieldName<_EntityType extends RegisteredEntityType> = (
+	Extract<(typeof schema)[number], { readonly entityType: _EntityType }>['fields'][number]['name']
+)
+
 export const entityDefinitionByType = (
 	Object.fromEntries(
 		schema
@@ -80,6 +90,10 @@ export const entityDefinitionByType = (
 			])
 	)
 )
+
+export const isRegisteredEntityType = (
+	entityType: EntityType,
+): entityType is RegisteredEntityType => entityType in entityDefinitionByType
 
 export type Entity<_EntityType extends EntityType = EntityType> = (
 	_EntityType extends keyof typeof entityDefinitionByType ?

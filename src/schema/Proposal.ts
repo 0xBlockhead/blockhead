@@ -1,5 +1,4 @@
 import { type } from 'arktype'
-import { Source } from '$/api/$Sources.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -7,18 +6,8 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-
-export enum ProposalType {
-	Eip = 'Eip',
-	Erc = 'Erc',
-	Ensip = 'Ensip',
-}
-
-export enum ProposalRealm {
-	ChainAgnostic = 'chain-agnostic',
-	Ens = 'ens',
-	Ethereum = 'ethereum',
-}
+import { ProposalRealm } from '$/constants/Proposal/ProposalRealm.ts'
+import { ProposalCategory } from '$/constants/Proposal/ProposalCategory.ts'
 
 export default {
 	entityType: EntityType.Proposal,
@@ -26,11 +15,23 @@ export default {
 	label: 'Proposal',
 
 	id: type({
-		kind: type.valueOf(ProposalType),
+		realm: type.valueOf(ProposalRealm),
+		category: type.valueOf(ProposalCategory),
 		number: 'number',
 	}),
 
 	fields: [
-		
-	], as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: 'category',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string | null'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'body',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string | null'),
+			cardinality: EntityFieldCardinality.One,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

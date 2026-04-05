@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Sources.ts'
 
 export default {
 	entityType: EntityType.EvmSelector,
@@ -17,6 +18,12 @@ export default {
 	}),
 
 	fields: [
-		
-	], as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: 'signatures',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string[]'),
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [Source.Openchain],
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

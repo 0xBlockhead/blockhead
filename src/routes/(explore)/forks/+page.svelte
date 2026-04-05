@@ -10,8 +10,10 @@
 
 
 <Page>
-	<NetworkForksView
-		href={resolve('/forks')}
-		id="forks"
-	/>
+	<section>
+		<NetworkForksView
+			href={resolve('/forks')}
+			id="forks"
+		/>
+	</section>
 </Page>

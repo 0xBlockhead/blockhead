@@ -21,10 +21,7 @@
 	generics="_Item"
 >
 	// Types/constants
-	import type { ListPagination } from '$/components/RefinableList.svelte.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { SvelteHTMLElements } from 'svelte/elements'
-	import type { Snippet } from 'svelte'
+	import type { ListPagination } from '$/components/RefinableList.svelte'
 	import { visibility } from '$/svelte/visibility.svelte.ts'
 
 
@@ -42,11 +39,11 @@
 	)
 
 
-	// Transitions/animations
-	import { createViewTransition } from '$/lib/viewTransition.ts'
-
-
 	// State
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { SvelteHTMLElements } from 'svelte/elements'
+	import type { Snippet } from 'svelte'
+
 	let {
 		items = $bindable(
 			new Set<_Item>()
@@ -116,8 +113,6 @@
 		SvelteHTMLElements['ol']
 	> = $props()
 
-
-	// Functions
 	const mergeRanges = (ranges: Iterable<[number, number] | readonly [number, number]>): [number, number][] => {
 		const sorted = [...ranges].sort((a, b) => (a[0] - b[0]))
 		if (sorted.length === 0) return []
@@ -153,8 +148,6 @@
 		return gaps
 	}
 
-
-	// (Derived)
 	const getNumberKey = (item: _Item) => (
 		Number(getKey(item))
 	)
@@ -210,7 +203,7 @@
 		:
 			r.range[1]
 	)
-	let allRows = $derived.by((): Row[] => (
+	let allRows = $derived.by(() => (
 		[...itemRows, ...rangeRows].sort((a, b) => (
 			sortDirection === SortDirection.Desc ?
 				orderKey(b) - orderKey(a)
@@ -218,6 +211,11 @@
 				orderKey(a) - orderKey(b)
 		))
 	))
+
+
+	// Transitions/animations
+	import { createViewTransition } from '$/lib/viewTransition.ts'
+
 	const allRowsViewTransition = createViewTransition()
 	let committedAllRows = $state(null as Row[] | null)
 	$effect(() => {

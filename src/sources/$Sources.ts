@@ -1,0 +1,16 @@
+export enum Source {
+	Local = 'Local',
+	NetworkDefault = 'NetworkDefault',
+	ChainList = 'ChainList',
+	Scan8004 = 'Scan8004',
+	Eips = 'Eips',
+	Caips = 'Caips',
+	Ensips = 'Ensips',
+	LiFi = 'LiFi',
+	NearIntents = 'NearIntents',
+	Openchain = 'Openchain',
+	Uniswap = 'Uniswap',
+	Farcaster = 'Farcaster',
+	Explorer = 'Explorer',
+	Voltaire = 'Voltaire',
+}

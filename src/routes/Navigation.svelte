@@ -5,7 +5,7 @@
 
 	// State
 	import type { Snippet } from 'svelte'
-	import type { NavigationItem } from '$/state/NavigationItem.ts'
+	import type { NavigationItem } from '$/routes/NavigationItem.ts'
 
 	let {
 		navigationItems,

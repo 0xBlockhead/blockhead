@@ -10,8 +10,10 @@
 
 
 <Page>
-	<NetworksView
-		href={resolve('/networks')}
-		id="networks"
-	/>
+	<section>
+		<NetworksView
+			href={resolve('/networks')}
+			id="networks"
+		/>
+	</section>
 </Page>

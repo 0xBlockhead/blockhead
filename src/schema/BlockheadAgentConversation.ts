@@ -17,6 +17,53 @@ export default {
 	}),
 
 	fields: [
-		
-	], as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: 'name',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string | null'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'pinned',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'systemPrompt',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'defaultConnectionId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string | null'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'defaultModelId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string | null'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$paymentWalletConnection',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.BlockheadWalletConnection,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'createdAt',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'updatedAt',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

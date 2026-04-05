@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { CollectionScope } from '$/collections/collectionIds.ts'
+	import { CollectionScope } from '$/data/collections/entityCollections.ts'
 
 	// Context
 	import { resolve } from '$app/paths'

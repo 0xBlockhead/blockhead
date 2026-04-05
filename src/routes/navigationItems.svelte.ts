@@ -1,4 +1,4 @@
-import type { NavigationItem } from '$/state/NavigationItem.ts'
+import type { NavigationItem } from '$/routes/NavigationItem.ts'
 
 export const useNavigationItems = () => {
 	const navigationItems = $derived([

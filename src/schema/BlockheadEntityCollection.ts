@@ -1,5 +1,5 @@
 import { type } from 'arktype'
-import { CollectionScope } from '$/collections/collectionIds.ts'
+import { CollectionScope } from '$/data/collections/entityCollections.ts'
 import type { EntityDefinition, EntityFieldDefinition } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 

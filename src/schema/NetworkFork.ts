@@ -37,6 +37,89 @@ export default {
 	}),
 
 	fields: [
-		
-	], as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: 'name',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'slug',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'activationBlock',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'activationTimestamp',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'activationEpoch',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'forkHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'kind',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(ForkScheduleKind),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'executionProtocol',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(ExecutionProtocol),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'consensusProtocol',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(ConsensusProtocol),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'linkEthereumOrg',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'linkExecutionDocs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'linkConsensusDocs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'linkForkcast',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$proposals',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Proposal,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

@@ -1,0 +1,5 @@
+/**
+ * Served from chainlist.org. CORS allows simple GETs — avoid non-simple headers (no preflight).
+ * @see https://chainlist.org/rpcs.json
+ */
+export const chainlistOrigin = 'https://chainlist.org'

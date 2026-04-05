@@ -1,5 +1,4 @@
 import { type } from 'arktype'
-import { Source } from '$/api/$Sources.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -18,6 +17,11 @@ export default {
 	}),
 
 	fields: [
-		
-	], as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: '$$farcasterChannels',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.FarcasterChannel,
+			cardinality: EntityFieldCardinality.Many,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

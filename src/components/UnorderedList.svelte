@@ -17,8 +17,10 @@
 	"
 >
 	// Types/constants
-	import type { ListPagination } from '$/components/RefinableList.svelte.ts'
+	import type { ListPagination } from '$/components/RefinableList.svelte'
 	import type { Match } from '$/lib/fuzzyMatch.ts'
+	import type { Snippet } from 'svelte'
+	import { SvelteMap, SvelteSet } from 'svelte/reactivity'
 
 
 	type ListRow = (
@@ -45,10 +47,9 @@
 
 
 	// State
-	import type { Snippet } from 'svelte'
-	import { createViewTransition } from '$/lib/viewTransition.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { SvelteHTMLElements } from 'svelte/elements'
 	import { untrack } from 'svelte'
-	import { SvelteMap, SvelteSet } from 'svelte/reactivity'
 
 	let {
 		items = $bindable(new SvelteSet()),
@@ -93,7 +94,7 @@
 			getGroupKey?: (item: _Item) => _GroupKey
 			getGroupLabel?: (groupKey: _GroupKey) => string
 			getGroupKeyForPlaceholder?: (key: _Key) => _GroupKey
-			
+
 			placeholderKeys: Set<_Key>
 			visiblePlaceholderKeys?: _Key[]
 			onLoadMorePlaceholders?: () => void
@@ -137,8 +138,6 @@
 		'list-item-' + String(key).replace(/^\d/, '_$&').replace(/[^a-zA-Z0-9_-]/g, '_')
 	)
 
-
-	// (Derived)
 	const sortedItems = $derived(
 		[...items].sort((itemA, itemB) => {
 			const sortValueA = getSortValue(itemA)
@@ -209,6 +208,10 @@
 			[]
 	)
 
+
+	// Transitions/animations
+	import { createViewTransition } from '$/lib/viewTransition.ts'
+
 	const matchOrderViewTransition = createViewTransition()
 	let committedMatchOrder = $state([] as _Item[])
 	$effect(() => {
@@ -222,7 +225,6 @@
 		sliceLimitProp ??
 			(onLoadMorePlaceholders ? 200 : 100),
 	)
-	// (Derived) — split steps, ~two inputs per derived
 	const summaryTotal = $derived.by(() => (
 		placeholderKeys.size > 0 ? placeholderKeys.size : undefined
 	))
@@ -244,7 +246,7 @@
 		}
 		return [...groupMap.entries()]
 	})
-	const itemRows = $derived.by((): ListRow[] =>
+	const itemRows = $derived.by(() =>
 		groupEntries
 			? groupEntries.flatMap(([groupKey, groupItems]): ListRow[] => [
 					{ type: UnorderedListRowType.Group, groupKey },
@@ -304,7 +306,7 @@
 			(ga, gb) => maxBlockInGroup(gb) - maxBlockInGroup(ga),
 		)
 	})
-	const allRows = $derived.by((): ListRow[] => {
+	const allRows = $derived.by(() => {
 		if (
 			getGroupKey &&
 			getGroupLabel &&

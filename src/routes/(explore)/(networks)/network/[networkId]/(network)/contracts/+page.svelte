@@ -2,10 +2,12 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+
 	// State
 	let {
 		params,
 	} = $props()
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -14,8 +16,10 @@
 
 
 <Page>
-	<EvmContractsView
-		href={resolve('/(explore)/(networks)/network/[networkId]/(network)/contracts', params)}
-		id="contracts"
-	/>
+	<section>
+		<EvmContractsView
+			href={resolve('/(explore)/(networks)/network/[networkId]/(network)/contracts', params)}
+			id="contracts"
+		/>
+	</section>
 </Page>

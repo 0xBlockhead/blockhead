@@ -1,8 +1,8 @@
 <script lang="ts">
 	// State
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { Snippet } from 'svelte'
 	import type { SvelteHTMLElements } from 'svelte/elements'
+	import type { Snippet } from 'svelte'
 
 	let {
 		open = $bindable(true),
@@ -19,7 +19,7 @@
 		{
 			open?: boolean
 			ontoggle?: (e: Event) => void
-			onclose?: (id?: typeof detailsProps.id) => void
+			onclose?: (id?: string) => void
 
 			Annotation?: Snippet<[{
 				open: boolean,
@@ -49,7 +49,7 @@
 	bind:open
 	ontoggle={(e) => {
 		if (!e.currentTarget.open && onclose) {
-			setTimeout(() => onclose(detailsProps.id), 300)
+			setTimeout(() => onclose(detailsProps.id ?? undefined), 300)
 		}
 		ontoggle?.(e)
 	}}

@@ -19,6 +19,41 @@ export default {
 	}),
 
 	fields: [
-		
-	], as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: 'stepType',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'tool',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$fromNetwork',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$toNetwork',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$fromToken',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.CoinInstance,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$toToken',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.CoinInstance,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

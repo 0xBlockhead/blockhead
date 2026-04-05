@@ -19,7 +19,7 @@
 		open?: boolean
 	} = $props()
 
-	const entityId = $derived.by((): EntityId<EntityType.BlockheadSource> => (
+	const entityId = $derived.by(() => (
 		{ id: sourceId }
 	))
 
@@ -33,7 +33,7 @@
 <EntityView
 	entityType={EntityType.BlockheadSource}
 	{entityId}
-	title={'Source'}
+	title="Source"
 	{href}
 	{open}
 >

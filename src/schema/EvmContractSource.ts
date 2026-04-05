@@ -23,6 +23,17 @@ export default {
 	id: EvmContract.id,
 
 	fields: [
-		
-	], as const satisfies readonly EntityFieldDefinition[],
+		{
+			name: 'metadata',
+			type: EntityFieldType.Primitive,
+			primitiveType: metadata,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'files',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.Record(type.string, type.string),
+			cardinality: EntityFieldCardinality.One,
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

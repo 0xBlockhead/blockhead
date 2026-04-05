@@ -30,7 +30,18 @@
 		"vitest-browser-svelte": "^2.0.2"
 	},
 	"dependencies": {
+		"@chenglou/pretext": "^0.0.4",
 		"@fontsource/ubuntu": "^5.2.8",
+		"@journeyapps/wa-sqlite": "1.5.0",
+		"@tanstack/browser-db-sqlite-persistence": "^0.1.5",
+		"@tanstack/query-core": "^5.90.0",
+		"@tanstack/query-db-collection": "^1.0.32",
+		"@tanstack/svelte-db": "^0.1.78",
+		"@tevm/voltaire": "^0.4.0",
+		"arkregex": "^0.0.5",
+		"arktype": "^2.2.0",
+		"bits-ui": "^2.16.5",
+		"devalue": "^5.6.2",
 		"map.prototype.getorinsertcomputed": "^1.0.1",
 		"weakmap.prototype.getorinsertcomputed": "^1.0.0"
 	}

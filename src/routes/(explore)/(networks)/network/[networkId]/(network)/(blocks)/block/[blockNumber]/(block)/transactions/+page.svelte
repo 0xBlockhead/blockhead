@@ -2,10 +2,12 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+
 	// State
 	let {
 		params,
 	} = $props()
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -14,11 +16,17 @@
 
 
 <Page>
-	<EvmTransactionsView
-		href={resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
-			params,
-		)}
-		id="transactions"
-	/>
+	<section>
+		<EvmTransactionsView
+			entityId={{
+				$network: { chainId: Number(params.networkId) },
+				blockNumber: BigInt(params.blockNumber),
+			}}
+			href={resolve(
+				'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
+				params,
+			)}
+			id="transactions"
+		/>
+	</section>
 </Page>
