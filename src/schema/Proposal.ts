@@ -13,6 +13,7 @@ export default {
 	entityType: EntityType.Proposal,
 
 	label: 'Proposal',
+	labelPlural: 'Proposals',
 
 	id: type({
 		realm: type.valueOf(ProposalRealm),

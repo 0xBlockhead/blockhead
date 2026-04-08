@@ -11,6 +11,7 @@ export default {
 	entityType: EntityType.Caip,
 
 	label: 'CAIP',
+	labelPlural: 'CAIPs',
 
 	id: type({
 		id: 'string',

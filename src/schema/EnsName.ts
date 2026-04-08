@@ -11,6 +11,7 @@ export default {
 	entityType: EntityType.EnsName,
 
 	label: 'ENS Name',
+	labelPlural: 'ENS Names',
 
 	id: type({
 		name: 'string',

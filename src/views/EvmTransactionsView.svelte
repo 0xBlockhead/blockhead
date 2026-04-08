@@ -1,23 +1,52 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
-	import { serializeEntityId } from '$/schema/$entityId.ts'
+	import {
+		type EntityId,
+		schema,
+	} from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Sources.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
+	// Functions
+	const evmTxListLink = (id: unknown) => {
+		if (typeof id !== 'object' || id === null) return undefined
+		if (!('$network' in id) || !('txHash' in id)) return undefined
+		const nw = Reflect.get(id, '$network')
+		if (typeof nw !== 'object' || nw === null || !('chainId' in nw)) return undefined
+		const chainId = Reflect.get(nw, 'chainId')
+		const txHash = Reflect.get(id, 'txHash')
+		return (
+			typeof chainId === 'number'
+			&& typeof txHash === 'string'
+			&& txHash.startsWith('0x') ?
+				{ chainId, txHash }
+			:
+				undefined
+		)
+	}
+
+	const evmTxRowSortKey = (row: { [EntityMetaKey.Id]: unknown }) => (
+		evmTxListLink(row[EntityMetaKey.Id])?.txHash
+		?? stringify(row[EntityMetaKey.Id])
+		?? ''
+	)
+
+
 	// State
-	import { entityCollections } from '$/data/collections/entityCollections.ts'
-	import { mergeEntityCollectionRows } from '$/data/tanstackDb/mergeEntityCollectionRows.ts'
-	import { sourcesForEntityBaseLiveQuery } from '$/data/tanstackDb/entityQuerySources.ts'
-	import { entityCollectionRowIdEqualsEntityIdByFields } from '$/data/tanstackDb/entityCollectionRowWhere.ts'
-	import { entityCollectionRow } from '$/schema/$EntityCollectionRow.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { and, inArray, useLiveQuery } from '@tanstack/svelte-db'
+	import { eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { entityFieldCollections } from '$/collections/$collections.ts'
 
 
 	// Props
@@ -31,7 +60,7 @@
 		...entitiesListProps
 	}: WithRest<
 		{
-			entityId: EntityId<EntityType.Network> | EntityId<EntityType.EvmBlock>
+			entityId: EntityId<typeof schema, EntityType.Network> | EntityId<typeof schema, EntityType.EvmBlock>
 			title?: string
 			open?: boolean
 		},
@@ -42,91 +71,65 @@
 	> = $props()
 
 
-	// (Derived)
-	const txListScopeBlock = (
-		id: EntityId<EntityType.Network> | EntityId<EntityType.EvmBlock>,
-	): id is EntityId<EntityType.EvmBlock> => (
-		'$network' in id &&
-		'blockNumber' in id
+	const parentKey = $derived(
+		stringify(entityId),
 	)
 
-	// @ts-expect-error TanStack live-query typings require a single builder result type per callback.
-	const txSourceQuery = useLiveQuery(
-		(q) => (
-			txListScopeBlock(entityId) ?
-				q
-					.from({
-						row: entityCollections[EntityType.EvmBlock],
-					})
-					.where(({ row }) =>
-						and(
-							entityCollectionRowIdEqualsEntityIdByFields(
-								row.$id,
-								entityId,
-								[
-									'$network.chainId',
-									'blockNumber',
-								],
-							),
-							inArray(
-								row[entityCollectionRow.source],
-								sourcesForEntityBaseLiveQuery(EntityType.EvmBlock),
-							),
+	const parentIsBlock = $derived(
+		'blockNumber' in entityId,
+	)
+
+	const transactionsQuery = useLiveQuery(
+		(queryBuilder) => (
+			parentIsBlock ?
+				queryBuilder
+					.from({ $$evmTransactions: entityFieldCollections[EntityType.EvmBlock]['$$evmTransactions']! })
+					.where(({ $$evmTransactions }) => (
+						eq(
+							$$evmTransactions[EntityMetaKey.ParentIdKey],
+							parentKey,
+						)
+					))
+					.where(({ $$evmTransactions }) => (
+						eq(
+							$$evmTransactions[EntityMetaKey.Source],
+							Source.Blockscout,
+						)
+					))
+					.select(({ $$evmTransactions }) => ({
+						[EntityMetaKey.Id]: (
+							$$evmTransactions[EntityMetaKey.Value][EntityMetaKey.Id]
 						),
-					)
-					.select(({ row }) => ({
-						scope: 'block',
-						row,
 					}))
-			:	q
-					.from({
-						row: entityCollections[EntityType.Network],
-					})
-					.where(({ row }) =>
-						and(
-							entityCollectionRowIdEqualsEntityIdByFields(
-								row.$id,
-								entityId,
-								['chainId'],
-							),
-							inArray(
-								row[entityCollectionRow.source],
-								sourcesForEntityBaseLiveQuery(EntityType.Network),
-							),
+			:
+				queryBuilder
+					.from({ $$evmTransactions: entityFieldCollections[EntityType.Network]['$$evmTransactions']! })
+					.where(({ $$evmTransactions }) => (
+						eq(
+							$$evmTransactions[EntityMetaKey.ParentIdKey],
+							parentKey,
+						)
+					))
+					.where(({ $$evmTransactions }) => (
+						eq(
+							$$evmTransactions[EntityMetaKey.Source],
+							Source.Blockscout,
+						)
+					))
+					.select(({ $$evmTransactions }) => ({
+						[EntityMetaKey.Id]: (
+							$$evmTransactions[EntityMetaKey.Value][EntityMetaKey.Id]
 						),
-					)
-					.select(({ row }) => ({
-						scope: 'network',
-						row,
 					}))
 		),
-		[() => entityId],
+		[() => parentKey, () => parentIsBlock],
 	)
-
-	const networkChainId = $derived(
-		txListScopeBlock(entityId) ?
-			entityId.$network.chainId
-		:	entityId.chainId,
-	)
-
-	const transactions = $derived.by(() => {
-		const packed = txSourceQuery.data ?? []
-		if (packed.length === 0) return []
-		const scopeRows = packed
-			.map((p) => (p as { row?: Record<string, unknown> }).row)
-			.filter((r): r is Record<string, unknown> => r != null)
-		const merged = mergeEntityCollectionRows(scopeRows)
-		const raw = merged?.['$$evmTransactions']
-		return Array.isArray(raw) ? raw : []
-	})
-
-	const listLoading = $derived(txSourceQuery.isLoading)
-	const listError = $derived(txSourceQuery.isError)
 
 
 	// Components
-	import Boundary from '$/components/Boundary.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 </script>
 
 
@@ -134,49 +137,50 @@
 	entityType={EntityType.EvmTransaction}
 	{title}
 	bind:open
+	query={transactionsQuery}
+	items={new SvelteSet(transactionsQuery.data ?? [])}
+	getKey={(row) => stringify(row[EntityMetaKey.Id]) ?? ''}
+	getSortValue={evmTxRowSortKey}
+	placeholderKeys={new SvelteSet()}
+	unorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListProps}
 >
-	{#snippet body()}
-		<Boundary>
-			{#snippet Failed(error, _retry)}
-				<p role="alert">
-					{String(error)}
-				</p>
-			{/snippet}
+	{#snippet Empty()}
+		<p data-text="muted">
+			No transactions in collections for this scope (resolve Blockscout / RPC).
+		</p>
+	{/snippet}
 
-			{#if listLoading}
-				<p data-text="muted">
-					Loading transactions…
-				</p>
-			{:else if listError}
-				<p role="alert">
-					Could not load transactions.
-				</p>
-			{:else if transactions.length === 0}
-				<p data-text="muted">
-					No transactions to show.
-				</p>
+	{#snippet Item({ item: row, isPlaceholder })}
+		{#if isPlaceholder}
+			<span data-placeholder>
+				…
+			</span>
+		{:else if row}
+			{@const link = evmTxListLink(row[EntityMetaKey.Id])}
+			{#if link != null}
+				<EvmTransactionView
+					entityId={{
+						$network: { chainId: link.chainId },
+						txHash: link.txHash,
+					}}
+					href={resolve(
+						'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+						{
+							networkId: String(link.chainId),
+							transactionId: link.txHash,
+						},
+					)}
+					layout={EntityLayout.Summary}
+					open={false}
+				/>
 			{:else}
-				<ul data-list>
-					{#each transactions as txRow (serializeEntityId((txRow as Entity<EntityType.EvmTransaction>).$id))}
-						<li>
-							<a
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
-									{
-										networkId: String(networkChainId),
-										transactionId: (txRow as Entity<EntityType.EvmTransaction>).$id.txHash,
-									},
-								)}
-							>
-								<code>
-									{(txRow as Entity<EntityType.EvmTransaction>).$id.txHash}
-								</code>
-							</a>
-						</li>
-					{/each}
-				</ul>
+				<span data-text="muted">
+					<code data-text="font-monospace">
+						{String(row[EntityMetaKey.Id])}
+					</code>
+				</span>
 			{/if}
-		</Boundary>
+		{/if}
 	{/snippet}
 </EntitiesList>

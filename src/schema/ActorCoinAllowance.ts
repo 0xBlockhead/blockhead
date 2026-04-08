@@ -8,13 +8,14 @@ import {
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import { type EntityId, schema } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 
 export default {
 	entityType: EntityType.ActorCoinAllowance,
 
 	label: 'Coin Allowance',
+	labelPlural: 'Coin Allowances',
 
 	id: type({
 		$actorCoin: ActorCoin.id,
@@ -55,7 +56,7 @@ export const toActorCoinAllowanceEntityId = (
 	address: `0x${string}`,
 	tokenContract: `0x${string}`,
 	spenderAddress: `0x${string}`,
-): EntityId<EntityType.ActorCoinAllowance> => ({
+): EntityId<typeof schema, EntityType.ActorCoinAllowance> => ({
 	$actorCoin: {
 		$actor: { $network: { chainId }, address },
 		$coinInstance: {

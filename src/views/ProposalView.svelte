@@ -1,16 +1,26 @@
 <script lang="ts">
 	// Types/constants
-	import type { Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { ComponentProps, Snippet } from 'svelte'
+	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import {
+		ProposalCategory,
+		proposalCategoryById,
+	} from '$/constants/Proposal/ProposalCategory.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { Source } from '$/sources/$Sources.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// State
-	import { entityCollections } from '$/data/collections/entityCollections.ts'
-	import { sourcesForEntityBaseLiveQuery } from '$/data/tanstackDb/entityQuerySources.ts'
-	import { entityCollectionRowIdEqualsEntityIdByFields } from '$/data/tanstackDb/entityCollectionRowWhere.ts'
-	import { entityCollectionRow } from '$/schema/$EntityCollectionRow.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { and, inArray, useLiveQuery } from '@tanstack/svelte-db'
+	import { eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { stringify } from 'devalue'
+
+	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
 
 
 	// Props
@@ -19,114 +29,178 @@
 		entityId,
 		href,
 		open = $bindable(true),
-	}: {
-		children?: Snippet
-		entityId: EntityId<EntityType.Proposal>
-		href: string
-		open?: boolean
-	} = $props()
+		...entityViewRest
+	}: WithRest<
+		{
+			children?: Snippet
+			entityId: EntityId<typeof schema, EntityType.Proposal>
+			href: string
+			open?: boolean
+		},
+		Omit<
+			ComponentProps<typeof EntityView>,
+			| 'entityType'
+			| 'entityId'
+			| 'href'
+			| 'open'
+			| 'title'
+			| 'Details'
+			| 'Summary'
+		>
+	> = $props()
 
 
-	// (Derived)
-	const proposalRowQuery = useLiveQuery(
-		(q) => (
-			q
-				.from({
-					p: entityCollections[EntityType.Proposal],
-				})
-				.where(({ p }) =>
-					and(
-						entityCollectionRowIdEqualsEntityIdByFields(
-							p.$id,
-							entityId,
-							[
-								'realm',
-								'kind',
-								'number',
-							],
-						),
-						inArray(
-							p[entityCollectionRow.source],
-							sourcesForEntityBaseLiveQuery(EntityType.Proposal),
-						),
-					),
-				)
-				.findOne()
-				.select(({ p }) => p)
-		),
-		[() => entityId],
+	const proposalIdKey = $derived(
+		stringify(entityId),
 	)
 
-	const row = $derived(proposalRowQuery.data)
-	const realm = $derived(entityId.realm)
-	const category = $derived(row?.category)
-	const body = $derived(row?.body)
+	const kindLabel = $derived(
+		proposalCategoryById[entityId.category]?.label ?? 'Proposal',
+	)
+
+	const proposalQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ row: entityCollectionByEntityType[EntityType.Proposal] })
+				.where(({ row }) => (
+					eq(
+						row[EntityMetaKey.IdKey],
+						proposalIdKey,
+					)
+				))
+				.select(({ row }) => ({ row }))
+		),
+		[() => proposalIdKey],
+	)
+
+	const proposalRow = $derived(
+		(
+			proposalQuery.data?.find(
+				({ row }) => row[EntityMetaKey.Source] === (
+					entityId.category === ProposalCategory.Ensip ?
+						Source.Ensips
+					:
+						Source.Eips
+				),
+			)?.row
+			?? proposalQuery.data?.[0]?.row
+		),
+	)
+
+	const proposalCategoryStr = $derived(
+		(() => {
+			const bag = proposalRow?.[EntityMetaKey.Fields]
+			if (bag == null || typeof bag !== 'object' || !('category' in bag)) return null
+			const c = (bag as { category: unknown }).category
+			return typeof c === 'string' ? c : null
+		})(),
+	)
+
+	const bodyText = $derived(
+		(() => {
+			const bag = proposalRow?.[EntityMetaKey.Fields]
+			if (bag == null || typeof bag !== 'object' || !('body' in bag)) return null
+			const v = (bag as { body: unknown }).body
+			return typeof v === 'string' ? v : null
+		})(),
+	)
 
 
 	// Components
-	import Boundary from '$/components/Boundary.svelte'
+	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import ProposalsView from '$/views/ProposalsView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.Proposal}
 	{entityId}
+	title={`${kindLabel} ${entityId.number}`}
 	{href}
 	{open}
+	{...entityViewRest}
 >
-	{#snippet Details()}
-		{#if children}
-			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.Proposal}
-				{entityId}
-			>
-				<Boundary>
-					{#snippet Failed(err, _retry)}
-						<p role="alert">
-							{String(err)}
-						</p>
-					{/snippet}
+	{#snippet SummaryContent()}
+		<dl data-definition-list="vertical">
+			<div>
+				<dt>Realm</dt>
+				<dd>{entityId.realm}</dd>
+			</div>
+			<div>
+				<dt>Category</dt>
+				<dd>{entityId.category}</dd>
+			</div>
+			{#if proposalCategoryStr != null}
+				<div>
+					<dt>Frontmatter</dt>
+					<dd>{proposalCategoryStr}</dd>
+				</div>
+			{/if}
+		</dl>
+	{/snippet}
 
-					{#if proposalRowQuery.isLoading}
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.Proposal}
+			{entityId}
+		>
+			<QueryBoundary
+				query={proposalQuery}
+			>
+
+				{#snippet children(proposalRows)}
+					{@const proposalRow = (
+						proposalRows?.find(
+							({ row }) => row[EntityMetaKey.Source] === (
+								entityId.category === ProposalCategory.Ensip ?
+									Source.Ensips
+								:
+									Source.Eips
+							),
+						)?.row
+						?? proposalRows?.[0]?.row
+					)}
+					{@const bodyText = (() => {
+						const bag = proposalRow?.[EntityMetaKey.Fields]
+						if (bag == null || typeof bag !== 'object' || !('body' in bag)) return null
+						const v = (bag as { body: unknown }).body
+						return typeof v === 'string' ? v : null
+					})()}
+					{#if bodyText == null}
 						<p data-text="muted">
-							Loading…
-						</p>
-					{:else if proposalRowQuery.isError}
-						<p role="alert">
-							Could not load proposal.
+							No body in collections yet (resolve EIPs / ENSIPs for this proposal).
 						</p>
 					{:else}
-						<dl data-column>
-							<dt data-text="annotation">
-								Realm
-							</dt>
-							<dd>
-								{String(realm)}
-							</dd>
-							<dt data-text="annotation">
-								Category
-							</dt>
-							<dd>
-								{category != null && category !== '' ? category : '–'}
-							</dd>
-							<dt data-text="annotation">
-								Body
-							</dt>
-							<dd>
-								{#if body != null && typeof body === 'string' && body.length > 0}
-									<pre data-scroll-container>{body}</pre>
-								{:else}
-									<span data-text="muted">–</span>
-								{/if}
-							</dd>
-						</dl>
+						<article
+							data-proposal-body
+						>
+							{bodyText}
+						</article>
 					{/if}
-				</Boundary>
-			</EntityDetails>
+				{/snippet}
+			</QueryBoundary>
+		</EntityDetails>
+
+		<ProposalsView
+			href={resolve('/proposals')}
+			id={`${proposalIdKey}:proposals`}
+			open={false}
+		/>
+
+		{#if children}
+			{@render children()}
 		{/if}
 	{/snippet}
 </EntityView>
+
+
+<style>
+	article[data-proposal-body] {
+		white-space: pre-wrap;
+		font-size: 0.9em;
+	}
+</style>

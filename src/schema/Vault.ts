@@ -12,6 +12,7 @@ export default {
 	entityType: EntityType.Vault,
 
 	label: 'Vault',
+	labelPlural: 'Vaults',
 
 	id: type({
 		$network: Network.id,

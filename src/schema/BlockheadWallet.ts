@@ -11,6 +11,7 @@ export default {
 	entityType: EntityType.BlockheadWallet,
 
 	label: 'Wallet',
+	labelPlural: 'Wallets',
 
 	id: type({
 		rdns: 'string',

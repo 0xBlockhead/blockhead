@@ -2,7 +2,7 @@
  * Ethereum mainnet forks. Activation blocks/timestamps/epochs per EIP-6953, execution-specs, consensus-specs, and fork meta EIPs (e.g. EIP-7600 Pectra, EIP-7607 Fusaka). Paris block from TTD. Links and proposalIds from ethereum.org/ethereum-forks and fork meta EIPs.
  */
 
-import type { Entity } from '$/schema/$schema.ts'
+import { type Entity, schema } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { Fork } from '$/constants/Forks/ForkTypes.ts'
 import { ethereumExecutionForkFromRow } from '$/constants/Forks/ForkTypes.ts'
@@ -475,6 +475,6 @@ const forkRows: readonly Fork<ForkId>[] = [
 
 const chainId = 1 as const
 
-export const ethereumExecutionForks: readonly Entity<EntityType.NetworkFork>[] = forkRows.map((row) => (
+export const ethereumExecutionForks: readonly Entity<typeof schema, EntityType.NetworkFork>[] = forkRows.map((row) => (
 	ethereumExecutionForkFromRow(chainId, row)
 ))

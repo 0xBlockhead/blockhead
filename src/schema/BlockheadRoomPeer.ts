@@ -11,6 +11,7 @@ export default {
 	entityType: EntityType.BlockheadRoomPeer,
 
 	label: 'Room Peer',
+	labelPlural: 'Room Peers',
 
 	id: type({
 		id: 'string',

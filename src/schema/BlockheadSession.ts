@@ -17,6 +17,7 @@ export default {
 	entityType: EntityType.BlockheadSession,
 
 	label: 'Session',
+	labelPlural: 'Sessions',
 
 	id: type({
 		id: 'string',

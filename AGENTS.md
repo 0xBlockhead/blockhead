@@ -1,6 +1,7 @@
 ## Git
 
 ### Commit changes
+
 - To make atomic commits across a given set of working files:
 	- `git add .; git stash -m "$(date +%s) before atomic commits"; git stash apply`
 	- list all diff hunks
@@ -58,14 +59,6 @@
 - Generic with > 1 type param: indent, one per line
 - Multiline expressions: indent, wrap in `()` UNLESS already exclusively wrapped in `[]` / `{}`
 - Multiline ternary expressions:
-	```ts
-	const exp = (
-		condition ?
-			a
-		:
-			b
-	)
-	```
 - Multiline binary expressions: operator begins line after line break
 - Import paths:
 	- `$/` for `src/`
@@ -83,7 +76,6 @@
 
 - Svelte 5 runes; NEVER legacy Svelte 4 (`$:`, `onMount`, `writable`)
 - Prefer single expressions and inline logic
-
 - File layout:
 	- two blank lines between:
 		- `<script module lang="ts">`
@@ -92,7 +84,6 @@
 		- `<svelte:head>`
 		- component markup
 		- `<style>`
-
 - `<script lang="ts">`
 	- Comment sections in this order when used:
 		- `// Polyfills` (`routes/+layout.svelte` only)
@@ -105,7 +96,7 @@
 			- imports for TypeScript types and enums
 			- imports from `src/constants`
 		- `// Context`
-			— App data / TanStack cache from `$/data/**`; colocate UI-only `*.svelte.ts` next to routes or contexts
+			— App data / TanStack collections from `$/collections/**`; colocate UI-only `*.svelte.ts` next to routes or contexts
 			— `get*` methods from `$/context/*.ts`
 			- Svelte `getContext()`
 		- `// State`
@@ -265,9 +256,11 @@
 	- one blank line between sibling elements and Svelte blocks spanning multiple lines
 
 ### Tools
+
 - sveltekit-adapter, devtools-json, mcp
 
 ### Svelte MCP
+
 - If unsure about Svelte syntax:
 	- Start with `list-sections` (pick relevant `use_cases` + `paths`)
 	- Use `get-documentation` for every relevant section after `list-sections`
@@ -289,6 +282,7 @@ Deep — Parent: `<parentItem>/[parentKey]/(<parentItem>)/`. Facet list: `/(<par
 Views / params — No hardcoded domain links on shared views; use `headingHref` / `headingLabel`. Params only (no placeholder IDs); parse to the right entity ID type; no cross-domain param coercion.
 
 Templates — `routes/.../` = any `src/routes/` prefix (incl. `<urlPrefix>`). Repeated placeholder = same folder name. `domainList`/`domainItem`/`[domainItemKey]` as above.
+
 ```txt
 # List (section)
 routes/(area)/+layout.svelte
@@ -346,66 +340,57 @@ routes/.../(<facetBranch>)/<facetInnerItem>/[<facetInnerKey>]/+page.svelte
 Anti-examples
 
 - Bad: `(area)/(<domainList>)/<domainList>/+page` (list doubled with parens). Good: `(area)/<domainList>/+page`; detail under `(<domainListGroup>)/<domainItem>/[…]` with `domainListGroup` ≈ `domainList`.
-
 - Bad: banning `(<hub>)/<hub>/` as if it were the list error. Good: hub repeat OK; wrong is only `(<domainList>)/<domainList>/+page`.
-
 - Bad: detail `+layout` on `<domainList>/[key]/` (inverted). Good: `(<domainListGroup>)/` then `<domainItem>/[domainItemKey]/+page` and optional `(<domainItem>)/+layout`.
-
 - Bad: hardcoded heading URL in a shared view. Good: `headingHref` / `headingLabel` from route.
-
 - Bad: placeholder IDs in detail pages. Good: real `params`, validated to entity ID type.
-
 - Bad: deep `(group)/` with one file, no shared chrome. Good: merge or give the layout several children / shared UI.
 
 Checks — New routes must not match any Bad row above.
 
-
-
-
 ## Import topology (`src/**`)
 
-**Default direction (outer → inner):** `routes` · `views` · `components` → `data/` → `resolvers/` → `sources/**/queries.ts` → `schema/` · `constants/` · `lib/` · `typescript/` · npm. **`lib/`** may use `schema/` / `constants/` for types and shared helpers; keep it free of `routes/`, `views/`, `data/`, `resolvers/`, and `sources/**/client.ts` so lower layers stay reusable.
+**Default direction (outer → inner):** `routes` · `views` · `components` → `collections/` → `resolvers/` → `sources/**/queries.ts` → `schema/` · `constants/` · `lib/` · `typescript/` · npm. `lib/` may use `schema/` / `constants/` for types and shared helpers; keep it free of `routes/`, `views/`, `collections/`, `resolvers/`, and `sources/**/client.ts` so lower layers stay reusable.
 
 **Intentional cross-links (not strict tiers):**
 
-- **`data/collections/`** calls **`resolveEntity` / `resolveRegisteredEntityField`** via **`$/resolvers/$resolveEntity.ts`** (and field types from **`$/resolvers/$EntityFieldResolver.ts`**). Collections sit “above” the resolver registry for cache population, not below it.
-- **`data/tanstackDb/`** is shared by **`resolvers/`** (subset + list slicing) and **`data/collections/`** + UI (load-subset → keys, live-query `where`). It does **not** import **`resolvers/`** or **`data/collections/`**.
+- `src/collections/$collections.ts` wires persisted query collections to `entityResolvers` / `entityFieldResolvers` from `$/resolvers/$resolvers.ts` (types from `$/resolvers/$defineEntityResolvers.ts`). Collections sit above resolver modules for cache population.
+- `parseLoadSubsetOptions` (from `@tanstack/svelte-db`) applies list metadata in `src/collections/$collections.ts` and route UIs. Resolver `resolve` returns the full row set from its `get*` calls; when `get*` in `src/sources/**/queries.ts` accepts provider pagination or filter parameters, pass the matching args from resolver `context` (see **Resolvers** → Load subset).
 
-**`$/` → `src/`**; full extensions on imports (TypeScript section).
+`$/` → `src/`; full extensions on imports (TypeScript section).
 
 ### Layers
 
-| Layer | Folder(s) | OK to import | Do not import |
-|-------|-----------|--------------|---------------|
-| Foundation | `constants/`, `schema/`, `typescript/`, `styles/`, `assets/` | Same layer, `lib/` | `routes/`, `views/`, `resolvers/`, **`data/`** — *except one case, see below* |
-| Transport | `sources/` | `lib/`, `constants/`, `schema/` (types) | `data/`, `resolvers/`, `views/`, `routes/`, `components/` — no `fetch` to sources from `.svelte` |
-| Domain | `resolvers/` | `sources/**/queries.ts`, `schema/`, `lib/`, **`data/tanstackDb/*`** | **`data/collections/`** (pulls `resolveEntity` — cycle risk), `routes/`, `views/` |
-| UI | `views/`, `components/` | `data/`, `schema/`, `constants/`, `lib/`, `context/` | **`sources/**/client.ts`** — use resolvers / collections |
-| Routes | `routes/` | `views/`, `components/`, `data/`, `context/`, `schema/`, `constants/`, `lib/` | Deep `sources/` except deliberate `+page.server` / `+layout.server` / server-only loads |
-| Glue | `context/`, `params/`, `hooks.client.ts`, `hooks.server.ts` | `data/`, `lib/`, `schema/`, `constants/` as needed | Ad-hoc `sources/**/client.ts` |
 
-### `data/` (split)
+| Layer			| Folder(s)																										| OK to import																																				 | Do not import																																													 |
+| ---------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| Foundation | `constants/`, `schema/`, `typescript/`, `styles/`, `assets/` | Same layer, `lib/`																																	 | `routes/`, `views/`, `resolvers/`, `collections/`																											 |
+| Transport	| `sources/`																									 | `lib/`, `constants/`, `schema/` (types)																							| `collections/`, `resolvers/`, `views/`, `routes/`, `components/` — no `fetch` to sources from `.svelte` |
+| Domain		 | `resolvers/`																								 | `sources/**/queries.ts`, `schema/`, `lib/`																					 | `src/collections/` (cycle risk), `routes/`, `views/`																									 |
+| UI				 | `views/`, `components/`																			| `collections/`, `schema/`, `constants/`, `lib/`, `context/`													| `sources/**/client.ts` — use resolvers / collections																										|
+| Routes		 | `routes/`																										| `views/`, `components/`, `collections/`, `context/`, `schema/`, `constants/`, `lib/` | Deep `sources/` except deliberate `+page.server` / `+layout.server` / server-only loads								 |
+| Glue			 | `context/`, `params/`, `hooks.client.ts`, `hooks.server.ts`	| `collections/`, `lib/`, `schema/`, `constants/` as needed														| Ad-hoc `sources/**/client.ts`																																					 |
 
-| Subfolder | Role | OK to import | Do not import |
-|-----------|------|--------------|---------------|
-| **`data/tanstackQuery/`** | `QueryClient` singleton; OPFS SQLite persistence init | npm, `$app/*` where required | `resolvers/`, `schema/` (not needed today) |
-| **`data/tanstackDb/`** | Load-subset parsing, entity keys, resolver list context, live-query `where` helpers | `schema/`, **`sources/$Sources.ts`** (`Source` / wire enums), **sibling `data/tanstackDb/*.ts`** | `resolvers/`, **`data/collections/`** |
-| **`data/collections/`** | `persistedQueryCollection`, `entityCollections`, `entityFieldCollections`, `resolveEntityField` | **`resolvers/$resolveEntity.ts`**, **`resolvers/$EntityFieldResolver.ts`** (types), `schema/`, **`sources/$Sources.ts`**, **`data/tanstackQuery/`**, **`data/tanstackDb/`**, **`data/collections/`** (internal) | `views/`, `routes/` |
 
-### `data/tanstackDb` files
+### `collections/` (split)
 
-| File | Consumers | Purpose |
-|------|-----------|---------|
-| `resolverLoadSubset.ts` | `resolvers/`, `entitySubsetFromLoadSubset.ts`, `routes/`, `views/` | `fieldPathKey`, `subsetParsed`, `loadSubsetFilters`, `ResolverLoadSubset`, `resolverContextFromLoadSubset`, filter helpers, `sliceRowsForResolverSubset` |
-| `entitySubsetFromLoadSubset.ts` | `resolvers/$resolveEntity.ts`, `data/collections/` | `entitySubsetFromLoadSubsetOptions`, `scopedEntityIdFromLoadSubsetOptions`, `entityFieldNamesFromLoadSubset`, `isGlobalScopeKey`, `emptyGlobalScopeKey` |
-| `entityCollectionRowWhere.ts` | `views/`, `routes/` | `entityCollectionRowIdEqualsEntityIdByFields` for `useLiveQuery` / `where` |
 
-### Schema → `data/` exception
+| Subfolder															 | Role																																																	 | OK to import																																																											| Do not import			 |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
+| `collections/` (`src/collections/`)	 | `$collections.ts`: persisted query collections, `parseLoadSubsetOptions`, TanStack Query client export | `resolvers/$resolvers.ts`, `resolvers/$defineEntityResolvers.ts`, `schema/`, `sources/$Sources.ts`, `@tanstack/*`									| `views/`, `routes/` |
 
-**`schema/BlockheadEntityCollection.ts`** imports **`CollectionScope`** from **`data/collections/entityCollections.ts`**. That is the only current **`schema/` → `data/`** edge. Prefer defining **`CollectionScope`** under **`schema/`** (or **`constants/`**) if you want a strict foundation boundary.
 
-If a **lower** layer imports a **higher** one (e.g. `sources/**/queries.ts` → `views/`), move the shared piece to **`lib/`**, **`schema/`**, or **`data/tanstackDb/`**.
+### `collections/` and load subset
 
+
+| File							| Role																																																						 |
+| ----------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `$collections.ts` | Registers collections, runs `parseLoadSubsetOptions` on query metadata, invokes resolvers to fill the store. |
+
+
+### Layer violations
+
+If a **lower** layer imports a **higher** one (e.g. `sources/**/queries.ts` → `views/`), move the shared piece to `lib/`, `schema/`, or `collections/`.
 
 ## Sources (`src/sources/**`)
 
@@ -418,14 +403,16 @@ src/sources/
 ├── $Sources.ts
 ├── <SharedTransport>/…/client.ts, queries.ts, types.ts
 └── <Provider>/
-    ├── api-type.ts
-    └── <Transport>/constants.ts, types.ts?, queries.ts
+		├── api-type.ts
+		└── <Transport>/constants.ts, types.ts?, queries.ts
 ```
 
-| Task | Where |
-|------|--------|
+
+| Task				 | Where																																						 |
+| ------------ | --------------------------------------------------------------------------------- |
 | New provider | `src/sources/<Provider>/<Transport>/` + optional `$/resolvers/<Provider>-Rest.ts` |
-| Env | `$env/*` / `import.meta.env` in resolver or server load |
+| Env					| `$env/*` / `import.meta.env` in resolver or server load													 |
+
 
 No barrels. No `fetch` in `.svelte` for resolver work.
 
@@ -433,35 +420,44 @@ No barrels. No `fetch` in `.svelte` for resolver work.
 
 `(EntityType, field)` → async value.
 
-| Module | Role |
-|--------|------|
-| `$/resolvers/$EntityFieldResolver.ts` | `EntityFieldResolver`; `EntityFieldResolverContext` |
-| `$/resolvers/$EntityResolver.ts` | `entityId` → partial row; no resolver-side waterfall |
-| `$/resolvers/$resolveEntity.ts` | Registry; `resolveEntity`, `resolveRegisteredEntityField` |
-| `$/data/tanstackDb/*` | Load-subset / resolver context / live-query `where` — see **Import topology** |
 
-Registry: flatten provider defaults; `entityResolvers` + `entityFieldResolvers` in `$/resolvers/$resolvers.ts`. `resolveEntity` alone merges entity partials (`Object.assign`), then runs `entityFieldResolvers` only for keys still missing — resolvers do not chain loads themselves. Raw `loadSubsetOptions` only at `resolveEntity` edge.
+| Module																	| Role																																													|
+| --------------------------------------- | --------------------------------------------------------------------------------------------- |
+| `$/resolvers/$defineEntityResolvers.ts` | `defineEntityResolver`, `defineEntityFieldResolver`, `ResolverLoadSubset`										 |
+| `$/resolvers/$resolvers.ts`						 | Aggregates provider modules; `entityResolvers`, `entityFieldResolvers` lookup maps						|
+| `$/collections/$collections.ts`				 | Query collections, `parseLoadSubsetOptions`, resolver orchestration — see **Import topology** |
 
-Modules: `export default { source, entityFieldResolvers, entityResolvers? }`; field entries `satisfies EntityFieldResolver<…>` when useful.
+
+Registry: `entityResolvers` + `entityFieldResolvers` in `$/resolvers/$resolvers.ts` (merged from per-provider defaults). Entity resolvers merge partial rows; field resolvers fill missing keys — resolvers do not chain loads themselves.
+
+Modules: `export default { entityFieldResolvers, entityResolvers? }` per provider; use `defineEntityFieldResolver` / `defineEntityResolver` from `$/resolvers/$defineEntityResolvers.ts`.
 
 Split: sources = transport + wire types; resolvers = `get*` from `$/sources/.../queries.ts` (+ optional wire `import type`), map to schema.
 
-`resolve`: logic in `resolve` or one fat helper; `await singleFlight(getQuery)(args)` per `get*` (stable import from `queries.ts`), not `singleFlight(async () => …)` at module scope.
+`resolve`: logic in `resolve` or one fat helper; `await singleFlight(getQuery)(args)` per `get*` (stable import from `queries.ts`).
 
-| Task | Where |
-|------|--------|
-| Register | `$/resolvers/$resolveEntity.ts` |
-| HTTP | `get*` in `queries.ts` |
-| Dedupe | `singleFlight(getQuery)(args)` |
-| List filters | `context?.loadSubset` + `$/data/tanstackDb/resolverLoadSubset.ts` |
+### Load subset (multi-row `$$` fields)
+
+- Resolver `resolve` returns every row produced by its `get*` calls.
+- `parseLoadSubsetOptions`, `$/collections/$collections.ts`, and `useLiveQuery` in `.svelte` apply filters, sort, and windows on the stored collection.
+- When `get*` in `src/sources/**/queries.ts` accepts provider pagination or filter parameters, pass the matching fields from `context?: ResolverLoadSubset` into that `get*`.
+
+
+| Task								 | Where																																														|
+| -------------------- | ------------------------------------------------------------------------------------------------ |
+| Register resolvers	 | `$/resolvers/$resolvers.ts` (import provider modules)																						|
+| HTTP / RPC I/O			 | `get*` in `queries.ts`																																					 |
+| Dedupe							 | `singleFlight(getQuery)(args)`																																	 |
+| List subset (client) | `parseLoadSubsetOptions` + `$/collections/$collections.ts`; `useLiveQuery` in `.svelte`					|
+| List subset (source) | `get*` in `src/sources/**/queries.ts` implements provider params; resolver forwards `context`		|
+
 
 No barrels. No resolver `client.ts` for provider I/O.
 
 ## Data
 
 - `useLiveQuery` only in `.svelte` (pages, layouts, `$/views/**`).
-- Layout of `data/tanstackQuery/`, `data/tanstackDb/`, `data/collections/` and module roles: **Import topology** → `data/` (split) + `data/tanstackDb` files.
-
+- Collections and query client: `src/collections/$collections.ts` — see **Import topology** → `collections/` and **Resolvers** → Load subset.
 
 ## User Preferences (Canonical)
 
@@ -497,16 +493,6 @@ No barrels. No resolver `client.ts` for provider I/O.
 - Format multiline ternaries like `if` / `else if` / `else`
 - Place `?` at line end and `:` on its own branch line
 - Use:
-	```ts
-	const x = (
-		condition1 ?
-			value1
-		: condition2 ?
-			value2
-		:
-			value3
-	)
-	```
 
 #### Multiline expression formatting
 
@@ -555,3 +541,4 @@ No barrels. No resolver `client.ts` for provider I/O.
 
 - Prefer `mv` + edit over recreate + delete
 - Avoid index files that only re-export
+

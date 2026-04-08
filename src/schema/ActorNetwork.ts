@@ -10,6 +10,7 @@ export default {
 	entityType: EntityType.ActorNetwork,
 
 	label: 'Network Actor',
+	labelPlural: 'Network Actors',
 
 	id: type({
 		$actor: Actor.id,

@@ -11,6 +11,7 @@ export default {
 	entityType: EntityType.StateChannelDeposit,
 
 	label: 'State Channel Deposit',
+	labelPlural: 'State Channel Deposits',
 
 	id: type({
 		id: 'string',

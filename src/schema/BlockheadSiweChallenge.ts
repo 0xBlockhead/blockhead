@@ -11,6 +11,7 @@ export default {
 	entityType: EntityType.BlockheadSiweChallenge,
 
 	label: 'SIWE Challenge',
+	labelPlural: 'SIWE Challenges',
 
 	id: type({
 		id: 'string',

@@ -9,6 +9,7 @@ export default {
 	entityType: EntityType.EvmCalldata,
 
 	label: 'EVM Calldata',
+	labelPlural: 'EVM Calldata',
 
 	id: type({
 		hex: 'string.hex' as type.cast<`0x${string}`>,

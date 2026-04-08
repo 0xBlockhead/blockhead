@@ -1,8 +1,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import { type EntityId, schema } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Sources.ts'
 
 
 	// Context
@@ -10,13 +13,10 @@
 
 
 	// State
-	import { entityCollections } from '$/data/collections/entityCollections.ts'
-	import { mergeEntityCollectionRows } from '$/data/tanstackDb/mergeEntityCollectionRows.ts'
-	import { sourcesForEntityBaseLiveQuery } from '$/data/tanstackDb/entityQuerySources.ts'
-	import { entityCollectionRowIdEqualsEntityIdByFields } from '$/data/tanstackDb/entityCollectionRowWhere.ts'
-	import { entityCollectionRow } from '$/schema/$EntityCollectionRow.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { and, inArray, useLiveQuery } from '@tanstack/svelte-db'
+	import { eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { stringify } from 'devalue'
+
+	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
 
 
 	// Props
@@ -29,7 +29,7 @@
 	}: WithRest<
 		{
 			children?: Snippet
-			entityId: EntityId<EntityType.EvmBlock>
+			entityId: EntityId<typeof schema, EntityType.EvmBlock>
 			href: string
 			open?: boolean
 		},
@@ -41,163 +41,197 @@
 			| 'open'
 			| 'title'
 			| 'Details'
+			| 'Summary'
 		>
 	> = $props()
 
 
-	// (Derived)
-	const blockRowQuery = useLiveQuery(
-		(q) => (
-			q
-				.from({
-					b: entityCollections[EntityType.EvmBlock],
-				})
-				.where(({ b }) =>
-					and(
-						entityCollectionRowIdEqualsEntityIdByFields(
-							b.$id,
-							entityId,
-							[
-								'$network.chainId',
-								'blockNumber',
-							],
-						),
-						inArray(
-							b[entityCollectionRow.source],
-							sourcesForEntityBaseLiveQuery(EntityType.EvmBlock),
-						),
-					),
-				)
-				.select(({ b }) => b)
-		),
-		[() => entityId],
+	const blockIdKey = $derived(
+		stringify(entityId),
 	)
 
-	const row = $derived(
-		mergeEntityCollectionRows(
-			(blockRowQuery.data ?? []) as Record<string, unknown>[],
-		) as Record<string, unknown> | undefined,
-	)
 	const chainId = $derived(
 		typeof entityId?.$network?.chainId === 'number' ?
 			entityId.$network.chainId
 		:	undefined,
 	)
-	const blockHash = $derived((row?.$id as { hash?: string } | undefined)?.hash ?? entityId.hash)
+
+	const blockHash = $derived(
+		entityId.hash,
+	)
+
+	const blockQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ row: entityCollectionByEntityType[EntityType.EvmBlock] })
+				.where(({ row }) => (
+					eq(
+						row[EntityMetaKey.IdKey],
+						blockIdKey,
+					)
+				))
+				.select(({ row }) => ({ row }))
+		),
+		[() => blockIdKey],
+	)
+
+	const blockRow = $derived(
+		(
+			blockQuery.data?.find(
+				(r) => r.row[EntityMetaKey.Source] === Source.Blockscout,
+			)?.row
+			?? blockQuery.data?.[0]?.row
+		)
+	)
+
+	const blockField = $derived(
+		(() => {
+			const bag = blockRow?.[EntityMetaKey.Fields]
+			if (bag == null || typeof bag !== 'object') return null
+			const b = bag as Record<string, unknown>
+			return {
+				timestamp: typeof b.timestamp === 'number' ? b.timestamp : undefined,
+				gasUsed: typeof b.gasUsed === 'bigint' ? b.gasUsed : undefined,
+				gasLimit: typeof b.gasLimit === 'bigint' ? b.gasLimit : undefined,
+				baseFeePerGas: typeof b.baseFeePerGas === 'bigint' ? b.baseFeePerGas : undefined,
+				transactionCount: typeof b.transactionCount === 'number' ? b.transactionCount : undefined,
+			}
+		})(),
+	)
+
+	const blockTitle = $derived(
+		`Block ${entityId.blockNumber}`,
+	)
 
 
 	// Components
-	import Boundary from '$/components/Boundary.svelte'
+	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.EvmBlock}
 	{entityId}
-	title="Block"
+	title={blockTitle}
 	{href}
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Details()}
+	{#snippet SummaryContent()}
+		{#if chainId != null}
+			<dl data-definition-list="vertical">
+				<div>
+					<dt>Chain ID</dt>
+					<dd>{String(chainId)}</dd>
+				</div>
+				<div>
+					<dt>Number</dt>
+					<dd>{String(entityId.blockNumber)}</dd>
+				</div>
+			</dl>
+		{/if}
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.EvmBlock}
+			{entityId}
+		>
+			<QueryBoundary
+				query={blockQuery}
+			>
+
+				{#snippet children(rows)}
+				{@const blockRow = (
+					rows?.find(
+						(r) => r.row[EntityMetaKey.Source] === Source.Blockscout,
+					)?.row
+					?? rows?.[0]?.row
+				)}
+				{#if blockRow == null}
+					<p data-text="muted">
+						No block row in collections yet (resolve Blockscout / RPC for this chain).
+					</p>
+				{:else}
+					<dl>
+						{#if blockField?.timestamp != null}
+							<div>
+								<dt>Timestamp</dt>
+								<dd>{String(blockField.timestamp)}</dd>
+							</div>
+						{/if}
+						{#if blockField?.gasUsed != null}
+							<div>
+								<dt>Gas used</dt>
+								<dd>{String(blockField.gasUsed)}</dd>
+							</div>
+						{/if}
+						{#if blockField?.gasLimit != null}
+							<div>
+								<dt>Gas limit</dt>
+								<dd>{String(blockField.gasLimit)}</dd>
+							</div>
+						{/if}
+						{#if blockField?.baseFeePerGas != null}
+							<div>
+								<dt>Base fee</dt>
+								<dd>{String(blockField.baseFeePerGas)}</dd>
+							</div>
+						{/if}
+						{#if blockField?.transactionCount != null}
+							<div>
+								<dt>Transactions</dt>
+								<dd>{String(blockField.transactionCount)}</dd>
+							</div>
+						{/if}
+					</dl>
+				{/if}
+				{/snippet}
+			</QueryBoundary>
+
+			<dl data-column>
+				<dt>
+					Hash
+				</dt>
+				<dd>
+					{#if typeof blockHash === 'string'}
+						<TruncatedValue
+							value={blockHash}
+							format={TruncatedValueFormat.Abbr}
+						/>
+					{:else}
+						–
+					{/if}
+				</dd>
+			</dl>
+		</EntityDetails>
+
+		{#if chainId != null}
+			<EvmTransactionsView
+				entityId={{
+					$network: { chainId },
+					blockNumber: entityId.blockNumber,
+				}}
+				href={resolve(
+					'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
+					{
+						networkId: String(chainId),
+						blockNumber: String(entityId.blockNumber),
+					},
+				)}
+				id={`${blockIdKey}:transactions`}
+				open={false}
+			/>
+		{/if}
+
 		{#if children}
 			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.EvmBlock}
-				{entityId}
-			>
-				<Boundary>
-					{#snippet Failed(err, _retry)}
-						<p role="alert">
-							{String(err)}
-						</p>
-					{/snippet}
-
-					{#if blockRowQuery.isLoading}
-						<p data-text="muted">
-							Loading…
-						</p>
-					{:else if row != null}
-						<dl data-column>
-							<dt>
-								Number
-							</dt>
-							<dd>
-								{String(row.number ?? '–')}
-							</dd>
-							<dt>
-								Hash
-							</dt>
-							<dd>
-								{#if typeof blockHash === 'string'}
-									<TruncatedValue
-										value={blockHash}
-										format={TruncatedValueFormat.Abbr}
-									/>
-								{:else}
-									–
-								{/if}
-							</dd>
-							<dt>
-								Timestamp
-							</dt>
-							<dd>
-								{typeof row.timestamp === 'number' ?
-									new Date(row.timestamp * 1000).toISOString()
-								:	'–'}
-							</dd>
-							<dt>
-								Transactions
-							</dt>
-							<dd>
-								{typeof row.transactionCount === 'number' ?
-									String(row.transactionCount)
-								:	'–'}
-							</dd>
-						</dl>
-
-						{#if chainId != null}
-							<nav data-column>
-								<p data-heading>
-									In this explorer
-								</p>
-								<ul data-list>
-									<li>
-										<a
-											href={resolve(
-												'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
-												{
-													networkId: String(chainId),
-													blockNumber: String(row.number ?? entityId.blockNumber),
-												},
-											)}
-										>
-											Transactions in this block
-										</a>
-									</li>
-									<li>
-										<a
-											href={resolve('/(explore)/(networks)/network/[networkId]/(network)/transactions', {
-												networkId: String(chainId),
-											})}
-										>
-											Recent transactions on this network
-										</a>
-									</li>
-								</ul>
-							</nav>
-						{/if}
-					{:else}
-						<p data-text="muted">
-							Block not found via RPC.
-						</p>
-					{/if}
-				</Boundary>
-			</EntityDetails>
 		{/if}
 	{/snippet}
 </EntityView>

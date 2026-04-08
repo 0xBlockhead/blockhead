@@ -9,6 +9,7 @@ export default {
 	entityType: EntityType.BlockheadSource,
 
 	label: 'Source',
+	labelPlural: 'Sources',
 
 	id: type({
 		id: 'string',

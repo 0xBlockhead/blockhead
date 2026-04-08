@@ -12,6 +12,7 @@ export default {
 	entityType: EntityType.EvmError,
 
 	label: 'EVM Error',
+	labelPlural: 'EVM Errors',
 
 	id: type({
 		hex: 'string.hex' as type.cast<`0x${string}`>,

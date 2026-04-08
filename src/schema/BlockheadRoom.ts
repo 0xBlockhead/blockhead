@@ -11,6 +11,7 @@ export default {
 	entityType: EntityType.BlockheadRoom,
 
 	label: 'Room',
+	labelPlural: 'Rooms',
 
 	id: type({
 		id: 'string',

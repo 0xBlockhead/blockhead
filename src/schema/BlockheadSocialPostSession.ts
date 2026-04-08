@@ -21,6 +21,7 @@ export default {
 	entityType: EntityType.BlockheadSocialPostSession,
 
 	label: 'Social Post Session',
+	labelPlural: 'Social Post Sessions',
 
 	id: type({
 		id: 'string',

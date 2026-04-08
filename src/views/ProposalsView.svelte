@@ -1,8 +1,21 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import {
+		type EntityId,
+		schema,
+	} from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import {
+		ProposalCategory,
+		proposalCategoryById,
+	} from '$/constants/Proposal/ProposalCategory.ts'
+	import {
+		ProposalRealm,
+		proposalRealmById,
+	} from '$/constants/Proposal/ProposalRealm.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { EntityId, EntitySchemaFieldName } from '$/schema/$schema.ts'
 
 
 	// Context
@@ -10,40 +23,85 @@
 
 
 	// State
-	import { entityFieldCollections } from '$/data/collections/entityFieldCollections.ts'
-	import { sourcesForEntityFieldLiveQuery } from '$/data/tanstackDb/entityQuerySources.ts'
-	import { serializeEntityId } from '$/schema/$entityId.ts'
-	import { entityCollectionRow } from '$/schema/$EntityCollectionRow.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import {
-		proposalRealmBySlug,
-	} from '$/constants/Proposal/ProposalRealm.ts'
-	import {
-		ProposalCategory,
-		proposalCategoryById,
-	} from '$/constants/Proposal/ProposalCategory.ts'
-	import { inArray, useLiveQuery } from '@tanstack/svelte-db'
+	import { eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
-	type ProposalCatalogField = Extract<
-		EntitySchemaFieldName<EntityType._Global>,
-		`$$proposals${string}`
-	>
+	import { entityFieldCollections } from '$/collections/$collections.ts'
+	import { Source } from '$/sources/$Sources.ts'
 
-	const proposalCatalogHeadings: Record<ProposalCatalogField, string> = {
-		$$proposalsEips: 'EIPs',
-		$$proposalsErc: 'ERCs',
-		$$proposalsEnsip: 'ENSIPs',
+
+	// Functions
+	const rowEntityId = (row: { [EntityMetaKey.Id]: unknown }) => row[EntityMetaKey.Id]
+
+	const caipCatalogSortKey = (row: { [EntityMetaKey.Id]: unknown }) => {
+		const caipId = rowEntityId(row)
+		return (
+			typeof caipId === 'object'
+			&& caipId != null
+			&& 'id' in caipId
+			&& typeof caipId.id === 'string' ?
+				caipId.id
+			:
+				''
+		)
 	}
 
-	const proposalCatalogFields: ProposalCatalogField[] = [
-		'$$proposalsEips',
-		'$$proposalsErc',
-		'$$proposalsEnsip',
-	]
+const isProposalRealm = (value: unknown): value is ProposalRealm => (
+	typeof value === 'string' && value in proposalRealmById
+)
 
-	const proposalCatalogHeading = (catalogField: ProposalCatalogField) => (
-		proposalCatalogHeadings[catalogField]
+const isProposalCategory = (value: unknown): value is ProposalCategory => (
+	typeof value === 'string' && value in proposalCategoryById
+)
+
+const proposalWireParts = (wire: unknown) => {
+	if (wire == null || typeof wire !== 'object') return null
+	const proposalWire = wire as Record<string, unknown>
+	return (
+		isProposalRealm(proposalWire.realm)
+		&& isProposalCategory(proposalWire.category)
+		&& typeof proposalWire.number === 'number'
+		&& Number.isFinite(proposalWire.number) ?
+			{
+				realm: proposalWire.realm,
+				category: proposalWire.category,
+				number: proposalWire.number,
+			}
+		:
+			null
 	)
+}
+
+const proposalHref = (wire: unknown) => {
+	const proposalIdParts = proposalWireParts(wire)
+	if (proposalIdParts == null) return resolve('/proposals')
+	return (
+		resolve(
+			'/(explore)/(proposals)/proposal/[proposalRealmId]/[proposalId]',
+			{
+				proposalRealmId: proposalRealmById[proposalIdParts.realm].slug,
+				proposalId: `${proposalCategoryById[proposalIdParts.category].slug}-${proposalIdParts.number}`,
+			},
+		)
+	)
+}
+
+	const proposalEntityIdOrNull = (
+		wire: unknown,
+	): EntityId<typeof schema, EntityType.Proposal> | null => {
+	const proposalIdParts = proposalWireParts(wire)
+	if (proposalIdParts == null) return null
+		return {
+		realm: proposalIdParts.realm,
+		category: proposalIdParts.category,
+		number: proposalIdParts.number,
+		}
+	}
+
+const proposalCatalogRowKey = (proposalCatalogRow: { [EntityMetaKey.Id]: unknown }) => (
+	stringify(proposalCatalogRow[EntityMetaKey.Id]) ?? ''
+)
 
 
 	// Props
@@ -69,131 +127,146 @@
 	> = $props()
 
 
+	const globalParentKey = stringify({})
+	const eipsQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ $$proposalsEips: entityFieldCollections[EntityType._Global]['$$proposalsEips']! })
+				.where(({ $$proposalsEips }) => (
+					eq(
+						$$proposalsEips[EntityMetaKey.ParentIdKey],
+						globalParentKey,
+					)
+				))
+				.where(({ $$proposalsEips }) => (
+					eq(
+						$$proposalsEips[EntityMetaKey.Source],
+						Source.Eips,
+					)
+				))
+				.select(({ $$proposalsEips }) => ({
+					[EntityMetaKey.Id]: $$proposalsEips[EntityMetaKey.Value][EntityMetaKey.Id],
+				}))
+		),
+		[],
+	)
+
+	const ercQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ $$proposalsErc: entityFieldCollections[EntityType._Global]['$$proposalsErc']! })
+				.where(({ $$proposalsErc }) => (
+					eq(
+						$$proposalsErc[EntityMetaKey.ParentIdKey],
+						globalParentKey,
+					)
+				))
+				.where(({ $$proposalsErc }) => (
+					eq(
+						$$proposalsErc[EntityMetaKey.Source],
+						Source.Eips,
+					)
+				))
+				.select(({ $$proposalsErc }) => ({
+					[EntityMetaKey.Id]: $$proposalsErc[EntityMetaKey.Value][EntityMetaKey.Id],
+				}))
+		),
+		[],
+	)
+
+	const ensipQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ $$proposalsEnsip: entityFieldCollections[EntityType._Global]['$$proposalsEnsip']! })
+				.where(({ $$proposalsEnsip }) => (
+					eq(
+						$$proposalsEnsip[EntityMetaKey.ParentIdKey],
+						globalParentKey,
+					)
+				))
+				.where(({ $$proposalsEnsip }) => (
+					eq(
+						$$proposalsEnsip[EntityMetaKey.Source],
+						Source.Ensips,
+					)
+				))
+				.select(({ $$proposalsEnsip }) => ({
+					[EntityMetaKey.Id]: $$proposalsEnsip[EntityMetaKey.Value][EntityMetaKey.Id],
+				}))
+		),
+		[],
+	)
+
+	const caipsQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ $$caips: entityFieldCollections[EntityType._Global]['$$caips']! })
+				.where(({ $$caips }) => (
+					eq(
+						$$caips[EntityMetaKey.ParentIdKey],
+						globalParentKey,
+					)
+				))
+				.where(({ $$caips }) => (
+					eq(
+						$$caips[EntityMetaKey.Source],
+						Source.Caips,
+					)
+				))
+				.select(({ $$caips }) => ({
+					[EntityMetaKey.Id]: $$caips[EntityMetaKey.Value][EntityMetaKey.Id],
+				}))
+		),
+		[],
+	)
+
+
 	// (Derived)
-	const [
-		proposalsEipsFieldName,
-		proposalsErcFieldName,
-		proposalsEnsipFieldName,
-	] = proposalCatalogFields
-
-	const proposalsEipsLiveQuery = useLiveQuery((q) => (
-		q
-			.from({
-				row: entityFieldCollections[EntityType._Global][proposalsEipsFieldName],
-			})
-			.where(({ row }) =>
-				inArray(
-					row[entityCollectionRow.source],
-					sourcesForEntityFieldLiveQuery(EntityType._Global, proposalsEipsFieldName),
-				),
-			)
-			.select(({ row: proposalRow }) => proposalRow)
-	))
-
-	const proposalsErcLiveQuery = useLiveQuery((q) => (
-		q
-			.from({
-				row: entityFieldCollections[EntityType._Global][proposalsErcFieldName],
-			})
-			.where(({ row }) =>
-				inArray(
-					row[entityCollectionRow.source],
-					sourcesForEntityFieldLiveQuery(EntityType._Global, proposalsErcFieldName),
-				),
-			)
-			.select(({ row: proposalRow }) => proposalRow)
-	))
-
-	const proposalsEnsipLiveQuery = useLiveQuery((q) => (
-		q
-			.from({
-				row: entityFieldCollections[EntityType._Global][proposalsEnsipFieldName],
-			})
-			.where(({ row }) =>
-				inArray(
-					row[entityCollectionRow.source],
-					sourcesForEntityFieldLiveQuery(EntityType._Global, proposalsEnsipFieldName),
-				),
-			)
-			.select(({ row: proposalRow }) => proposalRow)
-	))
-
-	const proposalCatalogSections: {
-		fieldName: ProposalCatalogField
-		liveQuery: typeof proposalsEipsLiveQuery
-	}[] = [
-		{
-			fieldName: proposalsEipsFieldName,
-			liveQuery: proposalsEipsLiveQuery,
-		},
-		{
-			fieldName: proposalsErcFieldName,
-			liveQuery: proposalsErcLiveQuery,
-		},
-		{
-			fieldName: proposalsEnsipFieldName,
-			liveQuery: proposalsEnsipLiveQuery,
-		},
-	]
-
-	const listLoading = $derived(
-		proposalCatalogSections.some((section) => section.liveQuery.isLoading),
+	const catalogsPending = $derived(
+		eipsQuery.isLoading
+		|| ercQuery.isLoading
+		|| ensipQuery.isLoading
+		|| caipsQuery.isLoading,
 	)
-	const listError = $derived(
-		proposalCatalogSections.some((section) => section.liveQuery.isError),
+	const hasAnyRows = $derived(
+		!!(eipsQuery.data?.length)
+		|| !!(ercQuery.data?.length)
+		|| !!(ensipQuery.data?.length)
+		|| !!(caipsQuery.data?.length),
 	)
-
-	const pathId = (id: EntityId<EntityType.Proposal>) => (
-		`${proposalCategoryById[id.kind].slug}-${id.number}`
+	const anyCatalogError = $derived(
+		eipsQuery.isError
+		|| ercQuery.isError
+		|| ensipQuery.isError
+		|| caipsQuery.isError,
 	)
-
-	const label = (id: EntityId<EntityType.Proposal>) => (
-		`${proposalCategoryById[id.kind].label}-${id.number}`
-	)
-
-	const proposalIdFromRow = (proposalRow: object) => {
-		const rowRecord = proposalRow as Record<string, unknown>
-		const proposalId = (
-			typeof rowRecord.$id === 'object' &&
-			rowRecord.$id != null &&
-			!Array.isArray(rowRecord.$id) ?
-				rowRecord.$id
-			:	proposalRow
-		) as Record<string, unknown>
-		const kind = proposalId.kind
-		const number = proposalId.number
-		const realm = proposalRealmBySlug[String(proposalId.realm)]?.id
-		return (
-			realm != null &&
-			(kind === ProposalCategory.Eip || kind === ProposalCategory.Erc || kind === ProposalCategory.Ensip) &&
-			typeof number === 'number' ?
+	const catalogsQuery = $derived(
+		(
+			anyCatalogError && !hasAnyRows ?
 				{
-					realm,
-					kind,
-					number,
+					data: null,
+					isLoading: false,
+					isError: true,
+					error: new Error('Failed to load proposal catalogs.'),
 				}
-			:	null
-		)
-	}
-
-	const proposalRowKey = (
-		proposalRow: object,
-		proposalIndex: number,
-	) => {
-		const rowRecord = proposalRow as Record<string, unknown>
-		const src = rowRecord[entityCollectionRow.source]
-		const proposalId = proposalIdFromRow(proposalRow)
-		return (
-			proposalId ?
-				`${String(src ?? '')}\0${serializeEntityId(proposalId)}`
-			:	`invalid-proposal-row-${proposalIndex}`
-		)
-	}
+			:
+				{
+					data: { catalogsReady: true },
+					isLoading: catalogsPending && !hasAnyRows,
+					isError: false,
+					error: undefined,
+				}
+		),
+	)
 
 
 	// Components
-	import Boundary from '$/components/Boundary.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import UnorderedList from '$/components/UnorderedList.svelte'
+	import CaipView from '$/views/CaipView.svelte'
+	import ProposalView from '$/views/ProposalView.svelte'
 </script>
 
 
@@ -206,59 +279,221 @@
 	{...EntitiesListProps}
 >
 	{#snippet body()}
-		<Boundary>
-			{#snippet Failed(error, _retry)}
-				<p role="alert">
-					{String(error)}
-				</p>
-			{/snippet}
+		<QueryBoundary
+			query={catalogsQuery}
+			placeholderText="Loading proposal catalogs…"
+		>
 
-			{#if listLoading}
-				<p data-text="muted">
-					Loading proposals…
-				</p>
-			{:else if listError}
-				<p role="alert">
-					Could not load proposals.
-				</p>
-			{:else}
-				<div data-column>
-					{#each proposalCatalogSections as { fieldName, liveQuery } (fieldName)}
-						{@const rows = liveQuery.data ?? []}
-						<section data-column>
-							<h3 data-heading>
-								{proposalCatalogHeading(fieldName)}
-							</h3>
-							{#if rows.length === 0}
-								<p data-text="muted">
-									No entries.
-								</p>
-							{:else}
-								<ul data-list>
-									{#each rows as proposalRow, proposalIndex (proposalRowKey(proposalRow, proposalIndex))}
-										{@const proposalId = proposalIdFromRow(proposalRow)}
-										{#if proposalId}
-											<li>
-												<a
-													href={resolve(
-														'/(explore)/(proposals)/proposal/[proposalRealmId]/[proposalId]',
-														{
-															proposalRealmId: proposalId.realm,
-															proposalId: pathId(proposalId),
-														},
-													)}
-												>
-													{label(proposalId)}
-												</a>
-											</li>
-										{/if}
-									{/each}
-								</ul>
-							{/if}
+			{#snippet children(gate)}
+				{#if gate?.catalogsReady}
+					<div data-column>
+						<section>
+							<p data-heading>
+								EIPs
+							</p>
+							<QueryBoundary query={eipsQuery}>
+								{#snippet Failed(_error, _retry)}
+									<p data-text="muted">
+										Failed to load EIP proposals.
+									</p>
+								{/snippet}
+
+								{#snippet children(eipCatalogRows)}
+									<UnorderedList
+										items={new SvelteSet(eipCatalogRows ?? [])}
+										getKey={proposalCatalogRowKey}
+										getSortValue={proposalCatalogRowKey}
+										placeholderKeys={new SvelteSet()}
+										data-column
+									>
+										{#snippet Item({ item: proposalCatalogRow, isPlaceholder })}
+											{#if isPlaceholder}
+												<span data-placeholder>
+													…
+												</span>
+											{:else if proposalCatalogRow}
+												{@const proposalIdWire = rowEntityId(proposalCatalogRow)}
+												{@const proposalEntityId = proposalEntityIdOrNull(proposalIdWire)}
+												{#if proposalEntityId != null}
+													<ProposalView
+														entityId={proposalEntityId}
+														href={proposalHref(proposalIdWire)}
+														layout={EntityLayout.Summary}
+														open={false}
+													/>
+												{:else}
+													<span data-text="muted">
+														Proposal
+													</span>
+												{/if}
+											{/if}
+										{/snippet}
+
+										{#snippet Empty()}
+											<p data-text="muted">
+												No EIP proposals in collections.
+											</p>
+										{/snippet}
+									</UnorderedList>
+								{/snippet}
+							</QueryBoundary>
 						</section>
-					{/each}
-				</div>
-			{/if}
-		</Boundary>
+
+						<section>
+							<p data-heading>
+								ERCs
+							</p>
+							<QueryBoundary query={ercQuery}>
+								{#snippet Failed(_error, _retry)}
+									<p data-text="muted">
+										Failed to load ERC proposals.
+									</p>
+								{/snippet}
+
+								{#snippet children(ercCatalogRows)}
+									<UnorderedList
+										items={new SvelteSet(ercCatalogRows ?? [])}
+										getKey={proposalCatalogRowKey}
+										getSortValue={proposalCatalogRowKey}
+										placeholderKeys={new SvelteSet()}
+										data-column
+									>
+										{#snippet Item({ item: proposalCatalogRow, isPlaceholder })}
+											{#if isPlaceholder}
+												<span data-placeholder>
+													…
+												</span>
+											{:else if proposalCatalogRow}
+												{@const proposalIdWire = rowEntityId(proposalCatalogRow)}
+												{@const proposalEntityId = proposalEntityIdOrNull(proposalIdWire)}
+												{#if proposalEntityId != null}
+													<ProposalView
+														entityId={proposalEntityId}
+														href={proposalHref(proposalIdWire)}
+														layout={EntityLayout.Summary}
+														open={false}
+													/>
+												{:else}
+													<span data-text="muted">
+														Proposal
+													</span>
+												{/if}
+											{/if}
+										{/snippet}
+
+										{#snippet Empty()}
+											<p data-text="muted">
+												No ERC proposals in collections.
+											</p>
+										{/snippet}
+									</UnorderedList>
+								{/snippet}
+							</QueryBoundary>
+						</section>
+
+						<section>
+							<p data-heading>
+								ENSIPs
+							</p>
+							<QueryBoundary query={ensipQuery}>
+								{#snippet Failed(_error, _retry)}
+									<p data-text="muted">
+										Failed to load ENSIP proposals.
+									</p>
+								{/snippet}
+
+								{#snippet children(ensipCatalogRows)}
+									<UnorderedList
+										items={new SvelteSet(ensipCatalogRows ?? [])}
+										getKey={proposalCatalogRowKey}
+										getSortValue={proposalCatalogRowKey}
+										placeholderKeys={new SvelteSet()}
+										data-column
+									>
+										{#snippet Item({ item: proposalCatalogRow, isPlaceholder })}
+											{#if isPlaceholder}
+												<span data-placeholder>
+													…
+												</span>
+											{:else if proposalCatalogRow}
+												{@const proposalIdWire = rowEntityId(proposalCatalogRow)}
+												{@const proposalEntityId = proposalEntityIdOrNull(proposalIdWire)}
+												{#if proposalEntityId != null}
+													<ProposalView
+														entityId={proposalEntityId}
+														href={proposalHref(proposalIdWire)}
+														layout={EntityLayout.Summary}
+														open={false}
+													/>
+												{:else}
+													<span data-text="muted">
+														Proposal
+													</span>
+												{/if}
+											{/if}
+										{/snippet}
+
+										{#snippet Empty()}
+											<p data-text="muted">
+												No ENSIP proposals in collections.
+											</p>
+										{/snippet}
+									</UnorderedList>
+								{/snippet}
+							</QueryBoundary>
+						</section>
+
+						<section>
+							<p data-heading>
+								CAIPs
+							</p>
+							<QueryBoundary query={caipsQuery}>
+								{#snippet Failed(_error, _retry)}
+									<p data-text="muted">
+										Failed to load CAIPs.
+									</p>
+								{/snippet}
+
+								{#snippet children(caipCatalogRows)}
+									<UnorderedList
+										items={new SvelteSet(caipCatalogRows ?? [])}
+										getKey={proposalCatalogRowKey}
+										getSortValue={caipCatalogSortKey}
+										placeholderKeys={new SvelteSet()}
+										data-column
+									>
+										{#snippet Item({ item: caipCatalogRow, isPlaceholder })}
+											{#if isPlaceholder}
+												<span data-placeholder>
+													…
+												</span>
+											{:else if caipCatalogRow}
+												{@const caipEntityId = rowEntityId(caipCatalogRow)}
+												{#if typeof caipEntityId === 'object' && caipEntityId != null && 'id' in caipEntityId && typeof caipEntityId.id === 'string' && caipEntityId.id.length}
+													<CaipView
+														entityId={{ id: caipEntityId.id }}
+														href={resolve('/(explore)/(proposals)/proposals/caip/[caipId]', {
+															caipId: caipEntityId.id,
+														})}
+														layout={EntityLayout.Summary}
+														open={false}
+													/>
+												{/if}
+											{/if}
+										{/snippet}
+
+										{#snippet Empty()}
+											<p data-text="muted">
+												No CAIPs in collections.
+											</p>
+										{/snippet}
+									</UnorderedList>
+								{/snippet}
+							</QueryBoundary>
+						</section>
+					</div>
+				{/if}
+			{/snippet}
+		</QueryBoundary>
 	{/snippet}
 </EntitiesList>

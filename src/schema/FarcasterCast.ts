@@ -13,6 +13,7 @@ export default {
 	entityType: EntityType.FarcasterCast,
 
 	label: 'Farcaster Cast',
+	labelPlural: 'Farcaster Casts',
 
 	id: type({
 		fid: 'number',

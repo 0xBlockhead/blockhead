@@ -16,7 +16,7 @@
 		open = $bindable(true),
 		recordKeys = [],
 	}: {
-		entityId: EntityId<EntityType.EnsName>
+		entityId: EntityId<typeof schema, EntityType.EnsName>
 		href: string
 		open?: boolean
 		recordKeys?: string[]
@@ -39,7 +39,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import UnorderedList from '$/components/UnorderedList.svelte'
-	import type { EntityId } from '$/schema/$schema'
+	import { type EntityId, schema } from '$/schema/$schema.ts'
 </script>
 
 

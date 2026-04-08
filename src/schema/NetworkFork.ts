@@ -30,6 +30,7 @@ export default {
 	entityType: EntityType.NetworkFork,
 
 	label: 'Network Fork',
+	labelPlural: 'Network Forks',
 
 	id: type({
 		$network: Network.id,

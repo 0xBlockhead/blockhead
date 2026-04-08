@@ -6,6 +6,7 @@ export default {
 	entityType: EntityType.BeaconEpoch,
 
 	label: 'Beacon Epoch',
+	labelPlural: 'Beacon Epochs',
 
 	id: type({
 		epoch: 'number',

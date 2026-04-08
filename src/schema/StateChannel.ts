@@ -11,6 +11,7 @@ export default {
 	entityType: EntityType.StateChannel,
 
 	label: 'State Channel',
+	labelPlural: 'State Channels',
 
 	id: type({
 		id: 'string',

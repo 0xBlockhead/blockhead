@@ -6,6 +6,7 @@ export default {
 	entityType: EntityType.BlockheadPanelTree,
 
 	label: 'Panel Tree',
+	labelPlural: 'Panel Trees',
 
 	id: type({
 		id: 'string',

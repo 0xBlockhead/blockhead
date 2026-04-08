@@ -18,6 +18,7 @@ export default {
 	entityType: EntityType.BlockheadTransferRequest,
 
 	label: 'Transfer Request',
+	labelPlural: 'Transfer Requests',
 
 	id: type({
 		id: 'string',

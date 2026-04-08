@@ -11,6 +11,7 @@ export default {
 	entityType: EntityType.FarcasterChannel,
 
 	label: 'Farcaster Channel',
+	labelPlural: 'Farcaster Channels',
 
 	id: type({
 		id: 'string',
@@ -42,6 +43,36 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'headerImageUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$lead',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.FarcasterUser,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$moderator',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.FarcasterUser,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$moderators',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.FarcasterUser,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: 'createdAt',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: 'followerCount',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
@@ -52,6 +83,42 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'pinnedCastHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'publicCasting',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'externalLinkTitle',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'externalLinkUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'followedAt',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$casts',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.FarcasterCast,
+			cardinality: EntityFieldCardinality.Many,
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

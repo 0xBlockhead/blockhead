@@ -22,7 +22,7 @@
 		getGroupLabel = (groupId: string) => groupId,
 		Before,
 		After,
-		Item: ItemSnippet,
+		Item: _Item,
 		children,
 		placeholder,
 		disabled,
@@ -253,8 +253,8 @@
 														{@render Before()}
 													{/if}
 
-													{#if ItemSnippet}
-														{@render ItemSnippet(item.item, selected)}
+													{#if _Item}
+														{@render _Item(item.item, selected)}
 													{:else}
 														{item.label}
 													{/if}
@@ -289,8 +289,8 @@
 												{@render Before()}
 											{/if}
 
-											{#if ItemSnippet}
-												{@render ItemSnippet(item.item, selected)}
+											{#if _Item}
+												{@render _Item(item.item, selected)}
 											{:else}
 												{item.label}
 											{/if}

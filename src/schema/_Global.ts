@@ -12,6 +12,7 @@ export default {
 	entityType: EntityType._Global,
 
 	label: 'Global',
+	labelPlural: 'Globals',
 
 	id: type({}),
 
@@ -21,14 +22,14 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.ChainList, Source.Explorer],
+			defaultSources: [Source.ChainList, Source.Blockscout],
 		},
 		{
 			name: '$$networkForks',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NetworkFork,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Explorer],
+			defaultSources: [Source._Constants],
 		},
 		{
 			name: '$$proposalsEips',
@@ -57,6 +58,44 @@ export default {
 			entityType: EntityType.Caip,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [Source.Caips],
+		},
+		{
+			name: '$$coins',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Coin,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source._Constants,
+				Source.Coingecko,
+				Source.CoinMarketCap,
+				Source.Coinpaprika,
+			],
+		},
+		{
+			name: '$$coinPrices',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.CoinPrice,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source._Constants,
+				Source.Coingecko,
+				Source.CoinMarketCap,
+				Source.Coinpaprika,
+			],
+		},
+		{
+			name: 'duneCreditsUsed',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [Source.Dune],
+		},
+		{
+			name: 'duneCreditsIncluded',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [Source.Dune],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

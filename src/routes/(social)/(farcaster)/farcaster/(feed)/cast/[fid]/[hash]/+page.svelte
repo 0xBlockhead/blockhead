@@ -15,7 +15,7 @@
 
 <Page>
 	<FarcasterCastView
-		variant={'feed'}
+		variant="feed"
 		entityId={{
 			fid: Number(params.fid),
 			hash: params.hash as `0x${string}`,

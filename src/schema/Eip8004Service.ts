@@ -12,6 +12,7 @@ export default {
 	entityType: EntityType.Eip8004Service,
 
 	label: 'EIP-8004 Service',
+	labelPlural: 'EIP-8004 Services',
 
 	id: type({
 		$network: Network.id,

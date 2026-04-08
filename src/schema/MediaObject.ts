@@ -5,13 +5,14 @@ import {
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
-import type { Entity } from '$/schema/$schema.ts'
+import { type Entity, schema } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 
 export default {
 	entityType: EntityType.MediaObject,
 
 	label: 'Media Object',
+	labelPlural: 'Media Objects',
 
 	id: type({
 		url: 'string',
@@ -45,4 +46,4 @@ export default {
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition
 
-export type MediaObject = Entity<EntityType.MediaObject>
+export type MediaObject = Entity<typeof schema, EntityType.MediaObject>

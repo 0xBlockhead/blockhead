@@ -19,6 +19,7 @@ export default {
 	entityType: EntityType.BlockheadWalletConnection,
 
 	label: 'Wallet Connection',
+	labelPlural: 'Wallet Connections',
 
 	id: type({
 		$wallet: BlockheadWallet.id,

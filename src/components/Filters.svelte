@@ -159,6 +159,7 @@
 	// Components
 	import Combobox from '$/components/Combobox.svelte'
 	import ComboboxMultiple from '$/components/ComboboxMultiple.svelte'
+	import Icon from '$/components/Icon.svelte'
 	import Select from '$/components/Select.svelte'
 	import SelectMultiple from '$/components/SelectMultiple.svelte'
 </script>
@@ -242,10 +243,10 @@
 							)}
 
 							{#if filter.icon}
-								<span
-									class="icon"
-									aria-hidden="true"
-								>{@html filter.icon}</span>
+								<Icon
+									html={filter.icon}
+									alt=""
+								/>
 							{/if}
 
 							{#if group.FilterLabelSnippet}
@@ -283,17 +284,17 @@
 							)}
 
 							{#if filter.icon}
-								<span
-									class="icon"
-									aria-hidden="true"
-								>{@html filter.icon}</span>
+								<Icon
+									html={filter.icon}
+									alt=""
+								/>
 							{/if}
 
 								{#if group.FilterLabelSnippet}
-									{@render group.FilterLabelSnippet(filter)}
-								{:else}
-									<span class="label">{filter.label}</span>
-								{/if}
+								{@render group.FilterLabelSnippet(filter)}
+							{:else}
+								<span class="label">{filter.label}</span>
+							{/if}
 								<span class="count">
 									<span hidden>(</span>{count}<span hidden>)</span>
 								</span>
@@ -333,10 +334,10 @@
 									}}
 								/>
 								{#if filter.icon}
-									<span
-										class="icon"
-										aria-hidden="true"
-									>{@html filter.icon}</span>
+									<Icon
+										html={filter.icon}
+										alt=""
+									/>
 								{/if}
 
 								{#if group.FilterLabelSnippet}
@@ -379,10 +380,10 @@
 							)}
 
 							{#if filter.icon}
-								<span
-									class="icon"
-									aria-hidden="true"
-								>{@html filter.icon}</span>
+								<Icon
+									html={filter.icon}
+									alt=""
+								/>
 							{/if}
 
 							{#if group.FilterLabelSnippet}
@@ -423,10 +424,10 @@
 							)}
 
 							{#if filter.icon}
-								<span
-									class="icon"
-									aria-hidden="true"
-								>{@html filter.icon}</span>
+								<Icon
+									html={filter.icon}
+									alt=""
+								/>
 							{/if}
 
 							{#if group.FilterLabelSnippet}
@@ -480,10 +481,10 @@
 									}}
 								/>
 								{#if filter.icon}
-									<span
-										class="icon"
-										aria-hidden="true"
-									>{@html filter.icon}</span>
+									<Icon
+										html={filter.icon}
+										alt=""
+									/>
 								{/if}
 
 								{#if group.FilterLabelSnippet}

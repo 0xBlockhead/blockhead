@@ -1181,6 +1181,28 @@ dl {
 	}
 }
 
+summary dl:not([data-definition-list~='horizontal']) {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5em 1.5em;
+	row-gap: 0.5em;
+	column-gap: 1.5em;
+
+	> div {
+		display: inline-flex;
+		gap: 0.35em;
+	}
+
+	dt {
+		grid-column: unset;
+		text-align: unset;
+	}
+
+	dd {
+		grid-column: unset;
+	}
+}
+
 /**
  * Scroll Container
  */

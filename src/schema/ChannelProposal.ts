@@ -6,6 +6,7 @@ export default {
 	entityType: EntityType.ChannelProposal,
 
 	label: 'Channel Proposal',
+	labelPlural: 'Channel Proposals',
 
 	id: type({
 		channelProposalId: 'string',

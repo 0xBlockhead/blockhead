@@ -12,6 +12,7 @@ export default {
 	entityType: EntityType.Leverage,
 
 	label: 'Leverage',
+	labelPlural: 'Leverage',
 
 	id: type({
 		$network: Network.id,

@@ -11,6 +11,7 @@ export default {
 	entityType: EntityType.CctpAllowance,
 
 	label: 'CCTP Allowance',
+	labelPlural: 'CCTP Allowances',
 
 	id: type({
 		apiHost: 'string',

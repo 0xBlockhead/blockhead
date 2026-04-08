@@ -23,7 +23,7 @@
 
 		Before,
 		After,
-		Item: ItemSnippet,
+		Item: _Item,
 		children,
 
 		placeholder,
@@ -206,8 +206,8 @@
 					data-badge="small"
 					data-row="gap-1"
 				>
-					{#if ItemSnippet}
-						{@render ItemSnippet(chip.item, false)}
+					{#if _Item}
+						{@render _Item(chip.item, false)}
 					{:else}
 						{chip.label}
 					{/if}
@@ -280,8 +280,8 @@
 										{#snippet children({ selected })}
 											<span data-row="start gap-1">
 												<span data-row-item="flexible">
-													{#if ItemSnippet}
-														{@render ItemSnippet(item.item, selected)}
+													{#if _Item}
+														{@render _Item(item.item, selected)}
 													{:else}
 														{item.label}
 													{/if}
@@ -312,8 +312,8 @@
 								{#snippet children({ selected })}
 									<span data-row="start gap-1">
 										<span data-row-item="flexible">
-											{#if ItemSnippet}
-												{@render ItemSnippet(item.item, selected)}
+											{#if _Item}
+												{@render _Item(item.item, selected)}
 											{:else}
 												{item.label}
 											{/if}

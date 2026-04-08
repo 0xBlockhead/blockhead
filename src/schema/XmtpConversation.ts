@@ -9,6 +9,7 @@ export default {
 	entityType: EntityType.XmtpConversation,
 
 	label: 'XMTP Conversation',
+	labelPlural: 'XMTP Conversations',
 
 	id: type({
 		id: 'string',

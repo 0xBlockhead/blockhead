@@ -1,0 +1,32 @@
+schema {
+	query: Query
+}
+
+enum OrderDirection {
+	asc
+	desc
+}
+
+enum Domain_orderBy {
+	createdAt
+	expiryDate
+	id
+	labelName
+	name
+}
+
+input Domain_filter {
+	name: String
+	name_contains: String
+	name_not: String
+	owner: String
+}
+
+type Query {
+	domains(
+		first: Int
+		orderBy: Domain_orderBy
+		orderDirection: OrderDirection
+		where: Domain_filter
+	): [Domain!]!
+}

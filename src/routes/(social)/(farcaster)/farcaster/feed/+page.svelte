@@ -2,20 +2,25 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import FarcasterCastView from '$/views/FarcasterCastView.svelte'
+	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 </script>
 
 
 <Page>
-	<FarcasterCastView
-		variant={'feed'}
-		entityId={{
-			fid: 0,
-			hash: '0x0',
-		}}
+	<FarcasterCastsView
+		id="feed"
+		title="Feed"
 		href={resolve('/farcaster/feed')}
+		limit={50}
+		parentEntityType={EntityType.FarcasterNetwork}
+		parentEntityId={{
+			scope: 'FarcasterNetwork',
+		}}
 	/>
 </Page>

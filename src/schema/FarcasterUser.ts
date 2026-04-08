@@ -11,6 +11,7 @@ export default {
 	entityType: EntityType.FarcasterUser,
 
 	label: 'Farcaster User',
+	labelPlural: 'Farcaster Users',
 
 	id: type({
 		fid: 'number',
@@ -52,6 +53,12 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$casts',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.FarcasterCast,
+			cardinality: EntityFieldCardinality.Many,
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

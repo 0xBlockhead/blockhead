@@ -40,7 +40,9 @@
   "workspace": {
     "packageJson": {
       "dependencies": [
+        "npm:@chenglou/pretext@^0.0.4",
         "npm:@fontsource/ubuntu@^5.2.8",
+        "npm:@gql.tada/cli-utils@^1.7.3",
         "npm:@journeyapps/wa-sqlite@1.5.0",
         "npm:@playwright/test@^1.58.2",
         "npm:@sveltejs/adapter-auto@7",
@@ -56,16 +58,22 @@
         "npm:arktype@^2.2.0",
         "npm:bits-ui@^2.16.5",
         "npm:devalue@^5.6.2",
+        "npm:gql.tada@^1.9.2",
+        "npm:graphql@^16.13.2",
         "npm:map.prototype.getorinsertcomputed@^1.0.1",
+        "npm:openapi-typescript@^7.13.0",
         "npm:playwright@^1.58.2",
         "npm:svelte-check@^4.4.2",
         "npm:svelte@^5.54.0",
+        "npm:swagger2openapi@^7.0.8",
+        "npm:tsx@^4.21.0",
         "npm:typescript@^5.9.3",
         "npm:vite-plugin-devtools-json@1",
         "npm:vite@^7.3.1",
         "npm:vitest-browser-svelte@^2.0.2",
         "npm:vitest@^4.1.0",
-        "npm:weakmap.prototype.getorinsertcomputed@1"
+        "npm:weakmap.prototype.getorinsertcomputed@1",
+        "npm:yaml@^2.8.3"
       ]
     }
   }

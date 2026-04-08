@@ -16,6 +16,7 @@ export default {
 	entityType: EntityType.CctpFee,
 
 	label: 'CCTP Fee',
+	labelPlural: 'CCTP Fees',
 
 	id: type({
 		apiHost: 'string',

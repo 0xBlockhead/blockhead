@@ -6,6 +6,7 @@ export default {
 	entityType: EntityType.BeaconSlot,
 
 	label: 'Beacon Slot',
+	labelPlural: 'Beacon Slots',
 
 	id: type({
 		slot: 'number',

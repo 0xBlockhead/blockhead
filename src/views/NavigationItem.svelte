@@ -8,11 +8,11 @@
 
 
 	// Functions
-	const navIconProps = (string: string) => (
-		/^data:|^\/\^http/.test(string) ?
-			{ src: string }
+	const navIconProps = (icon: string) => (
+		icon.startsWith('data:') || icon.startsWith('/') || icon.startsWith('http') ?
+			{ src: icon }
 		:
-			{ icon: string }
+			{ icon }
 	)
 
 
@@ -47,6 +47,7 @@
 	import Icon from '$/components/Icon.svelte'
 	import SearchableText from '$/components/SearchableText.svelte'
 	import Tree from '$/components/Tree.svelte'
+	import Address, { AddressFormat } from '$/views/Address.svelte'
 </script>
 
 
@@ -105,7 +106,7 @@
 	<Tree
 		{items}
 		getKey={(item) => item.id}
-		getChildren={(item) => item.children}
+		getChildren={(item) => item.children ?? item.allChildren}
 		getIsOpen={(item) => treeOpenState.get(item.id) ?? (item.defaultIsOpen ?? false)}
 		onIsOpenChange={(item, open) => {
 			treeOpenState.set(item.id, open)
@@ -113,7 +114,7 @@
 		getIsHidden={(item, getIsHidden) => (
 			!!searchQuery
 			&& !item.title.toLowerCase().includes(searchQuery)
-			&& (item.children?.every((child) => getIsHidden(child, getIsHidden)) ?? true)
+			&& ((item.children ?? item.allChildren)?.every((child) => getIsHidden(child, getIsHidden)) ?? true)
 		)}
 		listTag="menu"
 		listAttrs={{ 'data-column': 'gap-0' }}
@@ -143,17 +144,30 @@
 						{#if LabelSnippet}
 							{@render LabelSnippet({ node })}
 						{:else}
-							{#if node.icon}
+							{#if node.address}
+								<Address
+									actorId={node.address.network ?
+										{ $network: node.address.network, address: node.address.address }
+									: undefined}
+									network={node.address.network}
+									address={node.address.address}
+									format={AddressFormat.MiddleTruncated}
+									isLinked={false}
+									showAvatar={true}
+								/>
+							{:else if node.icon}
 								<Icon
 									{...navIconProps(node.icon)}
 									size="1em"
 								/>
 							{/if}
 
-							<SearchableText
-								text={node.title}
-								query={searchQuery}
-							/>
+							{#if !node.address}
+								<SearchableText
+									text={node.title}
+									query={searchQuery}
+								/>
+							{/if}
 						{/if}
 					</span>
 
@@ -194,17 +208,30 @@
 						{#if LabelSnippet}
 							{@render LabelSnippet({ node })}
 						{:else}
-							{#if node.icon}
+							{#if node.address}
+								<Address
+									actorId={node.address.network ?
+										{ $network: node.address.network, address: node.address.address }
+									: undefined}
+									network={node.address.network}
+									address={node.address.address}
+									format={AddressFormat.MiddleTruncated}
+									isLinked={false}
+									showAvatar={true}
+								/>
+							{:else if node.icon}
 								<Icon
 									{...navIconProps(node.icon)}
 									size="1em"
 								/>
 							{/if}
 
-							<SearchableText
-								text={node.title}
-								query={searchQuery}
-							/>
+							{#if !node.address}
+								<SearchableText
+									text={node.title}
+									query={searchQuery}
+								/>
+							{/if}
 						{/if}
 					</span>
 

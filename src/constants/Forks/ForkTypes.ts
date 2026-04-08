@@ -1,8 +1,9 @@
 /**
- * Fork source row shape (per-chain files) and row → `Entity<EntityType.NetworkFork>`.
+ * Fork source row shape (per-chain files) and row → `Entity<typeof schema, EntityType.NetworkFork>`.
  */
 
-import type { Entity } from '$/schema/$schema.ts'
+import { type Entity, schema } from '$/schema/$schema.ts'
+import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type {
 	ConsensusProtocol,
@@ -38,11 +39,11 @@ export type Fork<T extends string = string> = {
 
 
 // Functions
-/** `$id.forkId` is the stable fork name (`ForkId` value), not the URL slug. */
+/** `#id.forkId` is the stable fork name (`ForkId` value), not the URL slug. */
 export const ethereumExecutionForkFromRow = <T extends string>(
 	chainId: number,
 	row: Fork<T>,
-): Entity<EntityType.NetworkFork> => {
+): Entity<typeof schema, EntityType.NetworkFork> => {
 	const {
 		forkId,
 		slug: slugEntry,
@@ -52,7 +53,7 @@ export const ethereumExecutionForkFromRow = <T extends string>(
 		...rest
 	} = row
 	return {
-		$id: { $network: { chainId }, forkId },
+		[EntityMetaKey.Id]: { $network: { chainId }, forkId },
 		...rest,
 		name: forkId,
 		slug: slugEntry ?? String(forkId).toLowerCase().replace(/\s+/g, '-'),
@@ -66,15 +67,15 @@ export const ethereumExecutionForkFromRow = <T extends string>(
 		...(proposalIds != null && proposalIds.length > 0 ?
 			{
 				$$proposals: proposalIds.map((id) => ({
-					$id: {
+					[EntityMetaKey.Id]: {
 						realm: ProposalRealm.Ethereum,
-						kind: id.kind,
+						category: id.kind,
 						number: id.number,
 					},
 					category: null,
 					body: null,
-				} satisfies Entity<EntityType.Proposal>)),
+				})),
 			}
 		:	{}),
-	} as Entity<EntityType.NetworkFork>
+	} as Entity<typeof schema, EntityType.NetworkFork>
 }

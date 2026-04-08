@@ -68,7 +68,7 @@
 		}
 
 		const st = scrollTop
-		const vh = viewportHeight
+		const bottom = scrollTop + viewportHeight
 		let lo = 0
 		let hi = n - 1
 		while (
@@ -83,30 +83,40 @@
 			else hi = mid
 		}
 
-		let start = Math.max(
+		const start = Math.max(
 			0,
 			lo - overscan,
 		)
-		const bottom = st + vh
-		let end = lo
+		let last = lo
 		while (
-			end < n
-			&& os[end] < bottom
-		) end++
+			last < n - 1
+			&& os[last + 1] <= bottom
+		) last++
 
-		end = Math.min(
+		const end = Math.min(
 			n - 1,
-			end + overscan - 1,
+			last + overscan,
 		)
-		if (
-			end < start
-		) end = start
 
 		return {
 			start,
 			end,
 		}
 	})
+
+	const visibleIndices = $derived.by(() => (
+		visible.end < visible.start ?
+			[]
+		:
+			Array.from(
+				{
+					length: visible.end - visible.start + 1,
+				},
+				(_, k) => (
+					visible.start + k
+				),
+			)
+	))
 
 
 	// Functions
@@ -118,6 +128,99 @@
 		) return
 		scrollTop = viewportEl.scrollTop
 	}
+
+
+	$effect(() => {
+		if (
+			!browser
+			|| !viewportEl
+		) return
+
+		const el = viewportEl
+		const ro = new ResizeObserver((entries) => {
+			const cr = entries[0].contentRect
+			measureWidth = cr.width
+			viewportHeight = cr.height
+		})
+		ro.observe(el)
+		const r = el.getBoundingClientRect()
+		measureWidth = r.width
+		viewportHeight = r.height
+
+		return () => (
+			ro.disconnect()
+		)
+	})
+
+
+	$effect(() => {
+		if (
+			!browser
+		) return
+
+		void measureWidth
+		void items
+		void font
+		void lineHeight
+		void rowInsetBlock
+		void itemGap
+		void getMeasureText
+
+		const w = Math.max(
+			1,
+			measureWidth,
+		)
+		const nextHeights: number[] = []
+		const nextOffsets: number[] = [
+			0,
+		]
+		let acc = 0
+		for (
+			let i = 0;
+			i < items.length;
+			i++
+		) {
+			const text = getMeasureText(
+				items[i],
+				i,
+			)
+			const ck = `${font}\0${text}`
+			let p = preparedByKey.get(ck)
+			if (
+				!p
+			) {
+				p = prepare(
+					text,
+					font,
+				)
+				preparedByKey.set(
+					ck,
+					p,
+				)
+			}
+
+			const block = layout(
+				p,
+				w,
+				lineHeight,
+			).height + rowInsetBlock
+			const withGap = (
+				block + (
+					i < items.length - 1 ?
+						itemGap
+					:
+						0
+				)
+			)
+			nextHeights.push(withGap)
+			acc += withGap
+			nextOffsets.push(acc)
+		}
+
+		rowHeights = nextHeights
+		offsets = nextOffsets
+		totalHeight = acc
+	})
 </script>
 
 
@@ -146,144 +249,28 @@
 		onscroll={onScroll}
 		{...viewportProps}
 	>
-		{#if viewportEl}
-			<!-- svelte-ignore a11y_no_static_element_interactions -->
-			<div
-				use:resizeViewport={(w, h) => {
-					measureWidth = w
-					viewportHeight = h
-				}}
-			></div>
-		{/if}
-
-		{@const _ = (
-			void items,
-			void font,
-			void lineHeight,
-			void rowInsetBlock,
-			void itemGap,
-			void getMeasureText,
-			(() => {
-				const w = Math.max(
-					1,
-					measureWidth,
-				)
-				const nextHeights: number[] = []
-				const nextOffsets: number[] = [
-					0,
-				]
-				let acc = 0
-				for (
-					let i = 0;
-					i < items.length;
-					i++
-				) {
-					const text = getMeasureText(
-						items[i],
-						i,
-					)
-					const ck = `${font}\0${text}`
-					let p = preparedByKey.get(ck)
-					if (
-						!p
-					) {
-						p = prepare(
-							text,
-							font,
-						)
-						preparedByKey.set(
-							ck,
-							p,
-						)
-					}
-
-					const block = layout(
-						p,
-						w,
-						lineHeight,
-					).height + rowInsetBlock
-					const withGap = (
-						block + (
-							i < items.length - 1 ?
-								itemGap
-							:
-								0
-						)
-					)
-					nextHeights.push(withGap)
-					acc += withGap
-					nextOffsets.push(acc)
-				}
-
-				rowHeights = nextHeights
-				offsets = nextOffsets
-				totalHeight = acc
-			})()
-		)}
 		<div
 			class="virtual-list-sizer"
 			style:height="{totalHeight}px"
 		>
-			{#each Array.from(
-				{
-					length: visible.end - visible.start + 1,
-				},
-				(_, k) => (
-					visible.start + k
-				),
-			) as index (getKey(
-				items[index],
-				index,
+			{#each visibleIndices as rowIndex (getKey(
+				items[rowIndex],
+				rowIndex,
 			))}
 				<div
 					class="virtual-list-row"
-					style:top="{offsets[index]}px"
-					style:min-height="{rowHeights[index]}px"
+					style:top="{offsets[rowIndex]}px"
+					style:height="{rowHeights[rowIndex]}px"
 				>
 					{@render Item({
-						item: items[index],
-						index,
+						item: items[rowIndex],
+						index: rowIndex,
 					})}
 				</div>
 			{/each}
 		</div>
 	</div>
 {/if}
-
-
-<script lang="ts">
-	const resizeViewport = (
-		_el: HTMLDivElement,
-		setSize: (w: number, h: number) => void,
-	) => {
-		const parent = _el.parentElement
-		if (
-			!parent
-		) return {
-			destroy() {},
-		}
-
-		const ro = new ResizeObserver((entries) => {
-			const cr = entries[0].contentRect
-			setSize(
-				cr.width,
-				cr.height,
-			)
-		})
-		ro.observe(parent)
-		const r = parent.getBoundingClientRect()
-		setSize(
-			r.width,
-			r.height,
-		)
-
-		return {
-			destroy: () => (
-				ro.disconnect()
-			),
-		}
-	}
-</script>
 
 
 <style>

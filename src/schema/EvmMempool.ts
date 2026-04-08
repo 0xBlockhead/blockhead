@@ -7,6 +7,7 @@ export default {
 	entityType: EntityType.EvmMempool,
 
 	label: 'EVM Mempool',
+	labelPlural: 'EVM Mempools',
 
 	id: type({
 		$network: Network.id,

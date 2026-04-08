@@ -2,14 +2,13 @@
 	// Types/constants
 	import { resolve } from '$app/paths'
 	import { stringify } from 'devalue'
-	import type { LayoutProps } from './$types'
 
 
 	// State
 	let {
 		children,
 		params,
-	}: LayoutProps = $props()
+	} = $props()
 
 
 	// Components

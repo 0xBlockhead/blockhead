@@ -1,30 +1,78 @@
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { ComponentProps, Snippet } from 'svelte'
+	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 
 
 	// State
-	import type { Snippet } from 'svelte'
+	import { eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { stringify } from 'devalue'
 
+	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+
+
+	// Props
 	let {
 		children,
 		sourceId,
+		title = 'Source',
 		href,
 		open = $bindable(true),
-	}: {
-		children?: Snippet
-		sourceId: string
-		href: string
-		open?: boolean
-	} = $props()
+		...entityViewRest
+	}: WithRest<
+		{
+			children?: Snippet
+			sourceId: string
+			title?: string
+			href: string
+			open?: boolean
+		},
+		Omit<
+			ComponentProps<typeof EntityView>,
+			| 'entityType'
+			| 'entityId'
+			| 'href'
+			| 'open'
+			| 'title'
+			| 'Details'
+			| 'Summary'
+		>
+	> = $props()
 
-	const entityId = $derived.by(() => (
-		{ id: sourceId }
-	))
+
+	const entityId = $derived(
+		{ id: sourceId } satisfies EntityId<typeof schema, EntityType.BlockheadSource>,
+	)
+
+	const sourceIdKey = $derived(
+		stringify(entityId),
+	)
+
+	const sourceQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ row: entityCollectionByEntityType[EntityType.BlockheadSource] })
+				.where(({ row }) => (
+					eq(
+						row[EntityMetaKey.IdKey],
+						sourceIdKey,
+					)
+				))
+				.select(({ row }) => ({ row }))
+		),
+		[() => sourceIdKey],
+	)
+
+	const sourceRow = $derived(
+		sourceQuery.data?.[0]?.row,
+	)
 
 
 	// Components
+	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 </script>
@@ -33,11 +81,23 @@
 <EntityView
 	entityType={EntityType.BlockheadSource}
 	{entityId}
-	title="Source"
+	{title}
 	{href}
 	{open}
+	{...entityViewRest}
 >
-	{#snippet Details()}
+	{#snippet SummaryContent()}
+		<dl data-definition-list="vertical">
+			<div>
+				<dt>Source ID</dt>
+				<dd>{sourceId}</dd>
+			</div>
+		</dl>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
 		{#if children}
 			{@render children()}
 		{:else}
@@ -45,7 +105,22 @@
 				entityType={EntityType.BlockheadSource}
 				{entityId}
 			>
-				<p>–</p>
+				<QueryBoundary
+					query={sourceQuery}
+				>
+
+					{#snippet children(rows)}
+					{#if rows?.[0]?.row == null}
+						<p data-text="muted">
+							No source row in collections yet.
+						</p>
+					{:else}
+						<p data-text="muted">
+							Sources are identity-only in schema (no field resolvers yet).
+						</p>
+					{/if}
+					{/snippet}
+				</QueryBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

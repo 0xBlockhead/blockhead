@@ -12,6 +12,7 @@ export default {
 	entityType: EntityType.BridgeRouteStep,
 
 	label: 'Bridge Route Step',
+	labelPlural: 'Bridge Route Steps',
 
 	id: type({
 		$route: BridgeRoute.id,

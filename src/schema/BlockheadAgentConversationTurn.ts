@@ -19,6 +19,7 @@ export default {
 	entityType: EntityType.BlockheadAgentConversationTurn,
 
 	label: 'Agent Conversation Turn',
+	labelPlural: 'Agent Conversation Turns',
 
 	id: type({
 		id: 'string',

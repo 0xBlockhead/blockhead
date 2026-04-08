@@ -47,6 +47,7 @@
 	type EntityDefinitionTemplate = {
 		readonly entityType: string
 		readonly label: string
+		readonly labelPlural: string
 		readonly id: ObjectType<any, any>
 		readonly fields: readonly EntityFieldDefinitionTemplate[]
 	}
@@ -260,8 +261,8 @@
 		entityType,
 		queryClient,
 	}: {
-		entityDefinitionByType: { [_EntityType in EntityType<_Schema>]: EntityDefinitionForEntityType<_Schema, _EntityType> }
-		entityResolversByEntityType: { [_EntityType in EntityType<_Schema>]: EntityResolver<_Schema, _EntityType>[] }
+		entityDefinitionByType: { [_EntityType in EntityType<_Schema>]?: EntityDefinitionForEntityType<_Schema, _EntityType> }
+		entityResolversByEntityType: { [_EntityType in EntityType<_Schema>]?: EntityResolver<_Schema, _EntityType>[] }
 		entityType: _EntityType
 		queryClient: QueryClient
 	}) => {
@@ -326,11 +327,14 @@
 							entityIds.map(async (entityId) => (
 								Promise.all(
 									(
-										sources.size ?
-											entityResolversByEntityType[entityType]
-												.filter((entityResolver) => sources.has(entityResolver.source))
-										:
-											entityResolversByEntityType[entityType]
+										(
+											sources.size ?
+												entityResolversByEntityType[entityType]
+													?.filter((entityResolver) => sources.has(entityResolver.source))
+											:
+												entityResolversByEntityType[entityType]
+										)
+											?? []
 									)
 										.map(async (entityResolver) => {
 											const fields = await entityResolver.resolve(
@@ -388,30 +392,31 @@
 	const createEntityFieldCollection = <
 		_Schema extends Schema,
 		_EntityType extends EntityType<_Schema>,
-		_FieldName extends EntityFieldName<_Schema, _EntityType>,
+		_FieldDefinition extends EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number],
 	>({
-		entityDefinitionByType,
 		entityFieldResolversByEntityTypeAndFieldName,
 		entityType,
-		fieldName,
+		fieldDefinition,
 		queryClient,
 	}: {
-		entityDefinitionByType: { [_EntityType in EntityType<_Schema>]: EntityDefinitionForEntityType<_Schema, _EntityType> }
-		entityFieldResolversByEntityTypeAndFieldName: Record<
-			string,
-			Partial<
-				Record<string, EntityFieldResolver<_Schema, EntityType<_Schema>, string>[]>
-			>
-		>
+		entityFieldResolversByEntityTypeAndFieldName: {
+			[_ResolvedEntityType in EntityType<_Schema>]: {
+				[_ResolvedFieldName in EntityFieldName<_Schema, _ResolvedEntityType>]: EntityFieldResolver<
+					_Schema,
+					_ResolvedEntityType,
+					_ResolvedFieldName
+				>[]
+			}
+		}
 		entityType: _EntityType
-		fieldName: _FieldName
+		fieldDefinition: _FieldDefinition
 		queryClient: QueryClient
 	}) => {
 		const collection = createCollection(
-			queryCollectionOptions<EntityFieldCollectionItem<_Schema, _EntityType, _FieldName>>({
-				id: `EntityFieldCollection:${entityType}:${fieldName}`,
+			queryCollectionOptions<EntityFieldCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>>({
+				id: `EntityFieldCollection:${entityType}:${fieldDefinition.name}`,
 
-				queryKey: [`EntityFieldCollection:${entityType}`, fieldName],
+				queryKey: [`EntityFieldCollection:${entityType}`, fieldDefinition.name],
 
 				syncMode: 'on-demand',
 
@@ -422,10 +427,6 @@
 					const loadSubsetOptions = meta?.loadSubsetOptions
 
 					const { filters, sorts, limit } = parseLoadSubsetOptions(loadSubsetOptions)
-
-					const entityDefinition = entityDefinitionByType[entityType]
-
-					const entityFieldDefinition = entityDefinition.fields.find(field => field.name === fieldName)
 
 					const parentEntityIds = (
 						[
@@ -454,7 +455,7 @@
 					)
 
 					const resolve = async (parentEntityId: EntityId<_Schema, _EntityType>) => {
-						const entityFieldResolvers = entityFieldResolversByEntityTypeAndFieldName[entityType][fieldName] ?? []
+						const entityFieldResolvers = entityFieldResolversByEntityTypeAndFieldName[entityType][fieldDefinition.name] ?? []
 
 						const resultsPromise = Promise.allSettled(
 							entityFieldResolvers
@@ -465,18 +466,13 @@
 									)
 
 									return (
-										(
-											entityFieldDefinition.cardinality === EntityFieldCardinality.ZeroOrMany || entityFieldDefinition.cardinality === EntityFieldCardinality.Many ?
-												value
-											:
-												[value]
-										)
-											.map(value => ({
+										fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrMany || fieldDefinition.cardinality === EntityFieldCardinality.Many ?
+											value.map(value => ({
 												[EntityMetaKey.ParentId]: parentEntityId,
 												[EntityMetaKey.ParentIdKey]: stringify(parentEntityId),
 												[EntityMetaKey.Source]: fieldResolver.source,
 												[EntityMetaKey.Value]: (
-													entityFieldDefinition.type === EntityFieldType.EntityReference || entityFieldDefinition.type === EntityFieldType.EntitiesReference ?
+													fieldDefinition.type === EntityFieldType.EntityReference || fieldDefinition.type === EntityFieldType.EntitiesReference ?
 														{
 															...value,
 															[EntityMetaKey.IdKey]: stringify(value[EntityMetaKey.Id]),
@@ -485,6 +481,25 @@
 														value
 												),
 											}))
+										: value == null ?
+											[]
+										:
+											[
+												{
+													[EntityMetaKey.ParentId]: parentEntityId,
+													[EntityMetaKey.ParentIdKey]: stringify(parentEntityId),
+													[EntityMetaKey.Source]: fieldResolver.source,
+													[EntityMetaKey.Value]: (
+														fieldDefinition.type === EntityFieldType.EntityReference || fieldDefinition.type === EntityFieldType.EntitiesReference ?
+															{
+																...value,
+																[EntityMetaKey.IdKey]: stringify(value[EntityMetaKey.Id]),
+															}
+														:
+															value
+													),
+												},
+											]
 									)
 								})
 						)
@@ -622,7 +637,7 @@
 		Openchain = 'Openchain',
 		Uniswap = 'Uniswap',
 		Farcaster = 'Farcaster',
-		Explorer = 'Explorer',
+		Blockscout = 'Blockscout',
 		Voltaire = 'Voltaire',
 	}
 
@@ -644,6 +659,7 @@
 		{
 			entityType: BlockheadEntityType._Global,
 			label: 'Global',
+			labelPlural: 'Globals',
 			id: type({}),
 			fields: [
 				{
@@ -666,6 +682,7 @@
 		{
 			entityType: BlockheadEntityType.Proposal,
 			label: 'Proposal',
+			labelPlural: 'Proposals',
 			id: type({
 				realm: type.valueOf(ProposalRealm),
 				category: type.valueOf(ProposalCategory),
@@ -775,6 +792,7 @@
 		{
 			entityType: BlockheadEntityType.Network,
 			label: 'Network',
+			labelPlural: 'Networks',
 			id: type({
 				chainId: 'number',
 			}),
@@ -798,6 +816,7 @@
 		{
 			entityType: BlockheadEntityType.EvmBlock,
 			label: 'EVM Block',
+			labelPlural: 'EVM Blocks',
 			id: type({
 				$network: type({
 					chainId: 'number',
@@ -837,6 +856,7 @@
 		{
 			entityType: BlockheadEntityType.EvmTransaction,
 			label: 'EVM Transaction',
+			labelPlural: 'EVM Transactions',
 			id: type({
 				$network: {
 					chainId: 'number',
@@ -1040,7 +1060,7 @@
 				)
 
 				const match = regex(
-					'^\\s*(---\\s*\\n(?<frontmatterText>[\\s\\S]*?)\\n---\\s*\\n?)?(?<bodyText>[\\s\\S]*)',
+					'^\s*(---\s*\n(?<frontmatterText>[\s\S]*?)\n---\s*\n?)?(?<bodyText>[\s\S]*)',
 				).exec(markdownText)
 
 				const frontmatterText = match?.groups?.frontmatterText ?? ''
@@ -1350,21 +1370,16 @@
 		),
 	)
 
-	const entityFieldResolversByEntityTypeAndFieldName = (
-		Object.fromEntries(
-			Object.entries(entityFieldResolversByEntityType)
-				.map(([entityType, entityFieldResolvers]) => [
-					entityType,
-					Object.groupBy(
-						entityFieldResolvers,
-						fieldResolver => fieldResolver.fieldName,
-					),
-				]),
-		)
-	) as Record<
-		string,
-		Partial<Record<string, EntityFieldResolver<typeof schema, EntityType<typeof schema>, string>[]>>
-	>
+	const entityFieldResolversByEntityTypeAndFieldName = Object.fromEntries(
+		Object.entries(entityFieldResolversByEntityType)
+			.map(([entityType, entityFieldResolvers]) => [
+				entityType,
+				Object.groupBy(
+					entityFieldResolvers,
+					fieldResolver => fieldResolver.fieldName,
+				),
+			]),
+	)
 </script>
 
 
@@ -1394,13 +1409,12 @@
 		schema.map((definition) => [
 			definition.entityType,
 			Object.fromEntries(
-				definition.fields.map((field) => [
-					field.name,
+				definition.fields.map((fieldDefinition) => [
+					fieldDefinition.name,
 					createEntityFieldCollection({
-						entityDefinitionByType,
 						entityFieldResolversByEntityTypeAndFieldName,
 						entityType: definition.entityType,
-						fieldName: field.name,
+						fieldDefinition,
 						queryClient,
 					}),
 				] as const)
@@ -1930,15 +1944,15 @@
 							<p>Error</p>
 						{:else if entityQuery.data.length}
 							<ul class="collection-entities">
-								{#each entityQuery.data as item, index (
+								{#each entityQuery.data as entityRow (
 									[
-										String(item.entity[EntityMetaKey.Source] ?? ''),
-										String(item.entity[EntityMetaKey.IdKey] ?? ''),
+										String(entityRow.entity[EntityMetaKey.Source] ?? ''),
+										String(entityRow.entity[EntityMetaKey.IdKey] ?? ''),
 									].join('\0')
 								)}
 									<li>
 										<pre data-card>{JSON.stringify(
-											item.entity,
+											entityRow.entity,
 											(_key, inner) => (typeof inner === 'bigint' ? inner.toString() : inner),
 											2,
 										)}</pre>
@@ -1973,18 +1987,18 @@
 									<p>Error</p>
 								{:else if entityFieldQuery.data.length}
 									<ul class="collection-entity-fields">
-										{#each entityFieldQuery.data as item, index (
+										{#each entityFieldQuery.data as fieldRow (
 											[
-												String(item.entityField[EntityMetaKey.Source] ?? ''),
-												String(item.entityField[EntityMetaKey.ParentIdKey] ?? ''),
+												String(fieldRow.entityField[EntityMetaKey.Source] ?? ''),
+												String(fieldRow.entityField[EntityMetaKey.ParentIdKey] ?? ''),
 												String(
-													item.entityField[EntityMetaKey.Value]?.[EntityMetaKey.IdKey] ?? '',
+													fieldRow.entityField[EntityMetaKey.Value]?.[EntityMetaKey.IdKey] ?? '',
 												),
 											].join('\0')
 										)}
 											<li>
 												<pre data-card>{JSON.stringify(
-													item.entityField,
+													fieldRow.entityField,
 													(_key, inner) => (typeof inner === 'bigint' ? inner.toString() : inner),
 													2,
 												)}</pre>
@@ -2078,7 +2092,7 @@
 	.collection-entity-fields {
 		margin: 0.35rem 0 0.5rem 0;
 		padding-left: 1.1rem;
-		list-style: disc;
+	list-style: disc;
 	} */
 
 	pre {

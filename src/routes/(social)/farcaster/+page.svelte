@@ -5,15 +5,14 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import FarcasterCastView from '$/views/FarcasterCastView.svelte'
+	import FarcasterView from '$/views/FarcasterView.svelte'
 </script>
 
 
 <Page>
-	<FarcasterCastView
+	<FarcasterView
 		entityId={{
-			fid: 0,
-			hash: '0x0',
+			scope: 'FarcasterNetwork',
 		}}
 		href={resolve('/farcaster')}
 	/>

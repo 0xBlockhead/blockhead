@@ -11,6 +11,7 @@ export default {
 	entityType: EntityType.StateChannelTransfer,
 
 	label: 'State Channel Transfer',
+	labelPlural: 'State Channel Transfers',
 
 	id: type({
 		id: 'string',

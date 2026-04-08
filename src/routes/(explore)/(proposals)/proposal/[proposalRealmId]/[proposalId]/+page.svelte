@@ -28,7 +28,7 @@
 			return (
 				Number.isFinite(number) ?
 					{
-						kind,
+						category: kind,
 						number,
 					}
 				:	null
@@ -40,7 +40,7 @@
 		realm != null && parsedProposal != null ?
 			{
 				realm,
-				kind: parsedProposal.kind,
+				category: parsedProposal.category,
 				number: parsedProposal.number,
 			}
 		:	null,
@@ -48,6 +48,7 @@
 
 
 	// Components
+	import ProposalsView from '$/views/ProposalsView.svelte'
 	import ProposalView from '$/views/ProposalView.svelte'
 </script>
 
@@ -60,7 +61,16 @@
 			params,
 		)}
 		open
-	/>
+	>
+		{#snippet children()}
+			<section>
+				<ProposalsView
+					href={resolve('/proposals')}
+					id="proposals"
+				/>
+			</section>
+		{/snippet}
+	</ProposalView>
 {:else if realm == null}
 	<p role="alert">
 		Unknown or missing proposal realm.

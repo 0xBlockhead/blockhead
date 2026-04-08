@@ -19,6 +19,7 @@
 	import {
 		type EntityId,
 		entityDefinitionByType,
+		schema,
 	} from '$/schema/$schema.ts'
 
 
@@ -46,15 +47,19 @@
 		ontoggle,
 
 		Id,
-		Summary,
+		SummaryIcon,
+		SummaryHeading,
+		SummaryHeadingAfter,
+		SummaryContent,
+		Summary: _Summary,
 		CollapsibleProps,
-		Details,
+		Details: _Details,
 
 		...articleProps
 	}: WithRest<
 		{
 			entityType: _EntityType
-			entityId: EntityId<_EntityType>
+			entityId: EntityId<typeof schema, _EntityType>
 
 			title?: string
 			href?: string
@@ -65,6 +70,13 @@
 			ontoggle?: (e: Event) => void
 
 			Id?: Snippet
+			SummaryIcon?: Snippet
+			SummaryHeading?: Snippet
+			SummaryHeadingAfter?: Snippet
+			SummaryContent?: Snippet<[{
+				title: string
+				href?: string
+			}]>
 			Summary?: Snippet<[{
 				open: boolean,
 			}]>
@@ -92,8 +104,8 @@
 		{@render Id()}
 	{/if}
 {:else if layout === EntityLayout.Details}
-	{#if Details}
-		{@render Details({
+	{#if _Details}
+		{@render _Details({
 			open: true,
 		})}
 	{/if}
@@ -106,7 +118,7 @@
 		<Collapsible
 			bind:open
 			{ontoggle}
-			onclose={() => onNestedCollapsibleClose?.(stringify(entityId as EntityId))}
+			onclose={() => onNestedCollapsibleClose?.(stringify(entityId))}
 			{...{
 				'data-card': '',
 				...CollapsibleProps,
@@ -115,36 +127,63 @@
 			{#snippet Summary({
 				open,
 			})}
-				{#if Summary}
-					{@render Summary({
+				{#if _Summary}
+					{@render _Summary({
 						open,
 					})}
 				{:else}
-					<EntitySummary
-						{entityType}
-						{entityId}
-						{title}
-						{href}
-					/>
+					{#if SummaryContent}
+						<EntitySummary
+							{entityType}
+							{entityId}
+							{title}
+							{href}
+							Icon={SummaryIcon}
+							Heading={SummaryHeading}
+							HeadingAfter={SummaryHeadingAfter}
+						>
+							{#snippet children({
+								title,
+								href,
+							})}
+								{@render SummaryContent({
+									title,
+									href,
+								})}
+							{/snippet}
+						</EntitySummary>
+					{:else}
+						<EntitySummary
+							{entityType}
+							{entityId}
+							{title}
+							{href}
+							Icon={SummaryIcon}
+							Heading={SummaryHeading}
+							HeadingAfter={SummaryHeadingAfter}
+						/>
+					{/if}
 				{/if}
 			{/snippet}
 
 			{#snippet Annotation()}
-				<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
+				{#if !_Summary}
+					<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
+				{/if}
 			{/snippet}
 
 			{#snippet children({
 				open,
 			})}
 				{#if (
-					Details
+					_Details
 					&& (
 						(layout === EntityLayout.Summary && open)
 						|| (layout === EntityLayout.SummaryDetails)
 					)
 				)}
 					<div data-column>
-						{@render Details({
+						{@render _Details({
 							open,
 						})}
 					</div>

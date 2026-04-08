@@ -1,10 +1,26 @@
-import type { Entity } from '$/schema/$schema.ts'
+import {
+	type Entity,
+	type EntityFieldValue,
+	type EntityFieldValues,
+	schema,
+} from '$/schema/$schema.ts'
+import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type {
 	RpcBlockHeaderWire,
 	RpcReceiptWire,
 	RpcTxWire,
 } from '$/sources/Evm/JsonRpc/types.ts'
+
+type EvmBlockRow = (
+	Entity<typeof schema, EntityType.EvmBlock> &
+	Partial<EntityFieldValues<typeof schema, EntityType.EvmBlock>>
+)
+
+type EvmTransactionRow = (
+	Entity<typeof schema, EntityType.EvmTransaction> &
+	Partial<EntityFieldValues<typeof schema, EntityType.EvmTransaction>>
+)
 
 export const hexToBigInt = (hex: string | undefined) => (
 	hex != null && hex !== '' ?
@@ -26,12 +42,12 @@ export const mapBlockSummary = ({
 	chainId: number
 	blockNumber: bigint
 	wire: RpcBlockHeaderWire
-}): Entity<EntityType.EvmBlock> => {
+}): EvmBlockRow => {
 	const txs = wire.transactions
 	const txCount = Array.isArray(txs) ? txs.length : 0
 	const hash = wire.hash != null ? (wire.hash as `0x${string}`) : undefined
 	return {
-		$id: {
+		[EntityMetaKey.Id]: {
 			$network: { chainId },
 			blockNumber,
 			...(hash != null ? { hash } : {}),
@@ -47,7 +63,7 @@ export const mapBlockSummary = ({
 
 export const mapLogsFromRpcReceipt = (
 	logs: RpcReceiptWire['logs'] | undefined,
-): Entity<EntityType.EvmTransaction>['logs'] => (
+): EntityFieldValue<typeof schema, EntityType.EvmTransaction, 'logs'> => (
 	(logs ?? []).map((log) => ({
 		...(log.address != null ? { address: log.address as `0x${string}` } : {}),
 		...(log.topics != null ? { topics: log.topics } : {}),
@@ -69,42 +85,42 @@ export const mapTransactionEntityFromTxWire = ({
 	chainId: number
 	txHash: `0x${string}`
 	tx: RpcTxWire
-}): Entity<EntityType.EvmTransaction> => {
+}): EvmTransactionRow => {
 	const hash = (tx.hash as `0x${string}` | undefined) ?? txHash
 	const fromAddr = (tx.from ?? '') as `0x${string}`
 	const toAddr = tx.to != null ? (tx.to as `0x${string}`) : undefined
 	const blockNum = tx.blockNumber != null ? BigInt(tx.blockNumber) : undefined
 
 	return {
-		$id: {
+		[EntityMetaKey.Id]: {
 			$network: { chainId },
 			txHash: hash,
 		},
 		...(blockNum != null ?
 			{
 				$block: {
-					$id: {
+					[EntityMetaKey.Id]: {
 						$network: { chainId },
 						blockNumber: blockNum,
 					},
 					number: blockNum,
-				} as Entity<EntityType.EvmBlock>
+				} as Entity<typeof schema, EntityType.EvmBlock>
 			}
 		:	{}),
 		$from: {
-			$id: {
+			[EntityMetaKey.Id]: {
 				$network: { chainId },
 				address: fromAddr,
 			},
-		} as Entity<EntityType.Actor>,
+		} as Entity<typeof schema, EntityType.Actor>,
 		...(toAddr != null ?
 			{
 				$to: {
-					$id: {
+					[EntityMetaKey.Id]: {
 						$network: { chainId },
 						address: toAddr,
 					},
-				} as Entity<EntityType.Actor>,
+				} as Entity<typeof schema, EntityType.Actor>,
 			}
 		:	{}),
 		transactionIndex: hexToNumber(tx.transactionIndex),
@@ -114,7 +130,7 @@ export const mapTransactionEntityFromTxWire = ({
 		gas: hexToBigInt(tx.gas),
 		gasPrice: hexToBigInt(tx.gasPrice),
 		type: hexToNumber(tx.type),
-	} as Entity<EntityType.EvmTransaction>
+	}
 }
 
 /** Hash-only / id stubs for `$$evmTransactions` lists; full rows come from `resolveEntity`. */
@@ -126,7 +142,7 @@ export const stubEvmTransactionEntitiesFromBlockTransactions = ({
 	chainId: number
 	transactions: unknown[] | undefined
 	cap: number
-}): Entity<EntityType.EvmTransaction>[] => {
+}): EvmTransactionRow[] => {
 	const hashes: `0x${string}`[] = []
 	if (Array.isArray(transactions) && cap > 0) {
 		for (const t of transactions) {
@@ -142,9 +158,9 @@ export const stubEvmTransactionEntitiesFromBlockTransactions = ({
 		}
 	}
 	return hashes.map((txHash) => ({
-		$id: {
+		[EntityMetaKey.Id]: {
 			$network: { chainId },
 			txHash,
 		},
-	})) as Entity<EntityType.EvmTransaction>[]
+	}))
 }

@@ -7,6 +7,7 @@ export default {
 	entityType: EntityType.BeaconAction,
 
 	label: 'Beacon Action',
+	labelPlural: 'Beacon Actions',
 
 	id: type({
 		$network: Network.id,

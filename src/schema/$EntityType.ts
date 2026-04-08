@@ -11,7 +11,6 @@ export enum EntityType {
 	BeaconValidator = 'BeaconValidator',
 	BlockheadAgentConversation = 'BlockheadAgentConversation',
 	BlockheadAgentConversationTurn = 'BlockheadAgentConversationTurn',
-	BlockheadEntityCollection = 'BlockheadEntityCollection',
 	BlockheadFarcasterAccountConnection = 'BlockheadFarcasterAccountConnection',
 	BlockheadPanelTree = 'BlockheadPanelTree',
 	BlockheadRoom = 'BlockheadRoom',

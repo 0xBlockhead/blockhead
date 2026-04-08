@@ -23,8 +23,8 @@
 		open = $bindable(true),
 		ontoggle,
 
-		Summary,
-		children,
+		Summary: _Summary,
+		children: _children,
 
 		...CollapsibleProps
 	}: WithRest<
@@ -76,8 +76,8 @@
 	{#snippet Summary({
 		open,
 	})}
-		{#if Summary}
-			{@render Summary({
+		{#if _Summary}
+			{@render _Summary({
 				open,
 			})}
 		{:else}
@@ -97,8 +97,8 @@
 	{#snippet children({
 		open,
 	})}
-		{#if children}
-			{@render children({
+		{#if _children}
+			{@render _children({
 				open,
 			})}
 		{/if}

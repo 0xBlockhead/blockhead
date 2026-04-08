@@ -1,14 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import { resolve } from '$app/paths'
-	import type { LayoutProps } from './$types'
 
 
 	// State
 	let {
 		children,
 		params,
-	}: LayoutProps = $props()
+	} = $props()
 
 
 	// Components

@@ -8,6 +8,7 @@ export default {
 	entityType: EntityType.BridgeTransaction,
 
 	label: 'Bridge Transaction',
+	labelPlural: 'Bridge Transactions',
 
 	id: type({
 		$account: Actor.id,

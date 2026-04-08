@@ -13,6 +13,7 @@ export default {
 	entityType: EntityType.EvmBlock,
 
 	label: 'EVM Block',
+	labelPlural: 'EVM Blocks',
 
 	id: type({
 		$network: Network.id,
@@ -74,7 +75,7 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmTransaction,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [Source.Explorer, Source.Voltaire],
+			defaultSources: [Source.Blockscout, Source.Voltaire],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

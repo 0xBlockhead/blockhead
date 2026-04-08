@@ -18,6 +18,7 @@ export default {
 	entityType: EntityType.BridgeRoute,
 
 	label: 'Bridge Route',
+	labelPlural: 'Bridge Routes',
 
 	id: type({
 		id: 'string',

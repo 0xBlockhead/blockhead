@@ -7,11 +7,13 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Sources.ts'
 
 export default {
 	entityType: EntityType.Coin,
 
 	label: 'Coin',
+	labelPlural: 'Coins',
 
 	id: type({
 		coinId: type.valueOf(CoinId),
@@ -41,6 +43,13 @@ export default {
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$coinInstances',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.CoinInstance,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Coingecko],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

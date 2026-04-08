@@ -1,27 +1,65 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
-	import { serializeEntityId } from '$/schema/$entityId.ts'
+	import {
+		type EntityId,
+		schema,
+	} from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Sources.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
+	// Functions
+	const networkForkListItem = (fork: unknown) => {
+		if (typeof fork !== 'object' || fork === null) return undefined
+		if (!(EntityMetaKey.Id in fork)) return undefined
+		const id = Reflect.get(fork, EntityMetaKey.Id)
+		if (typeof id !== 'object' || id === null) return undefined
+		if (!('$network' in id) || !('forkId' in id)) return undefined
+		const nw = Reflect.get(id, '$network')
+		if (typeof nw !== 'object' || nw === null || !('chainId' in nw)) return undefined
+		const chainId = Reflect.get(nw, 'chainId')
+		const forkId = Reflect.get(id, 'forkId')
+		const name = (
+			'name' in fork
+			&& typeof Reflect.get(fork, 'name') === 'string'
+			&& String(Reflect.get(fork, 'name')).length > 0
+		) ?
+			String(Reflect.get(fork, 'name'))
+		:
+			undefined
+		const slug = (
+			'slug' in fork
+			&& typeof Reflect.get(fork, 'slug') === 'string'
+			&& String(Reflect.get(fork, 'slug')).length > 0
+		) ?
+			String(Reflect.get(fork, 'slug'))
+		:
+			undefined
+		return (
+			typeof chainId === 'number'
+			&& typeof forkId === 'string'
+			&& forkId.length ?
+				{ chainId, forkId, name, slug }
+			:
+				undefined
+		)
+	}
+
+
 	// State
-	import { entityFieldCollections } from '$/data/collections/entityFieldCollections.ts'
-	import { entityCollections } from '$/data/collections/entityCollections.ts'
-	import { mergeEntityCollectionRows } from '$/data/tanstackDb/mergeEntityCollectionRows.ts'
-	import {
-		sourcesForEntityBaseLiveQuery,
-		sourcesForEntityFieldLiveQuery,
-	} from '$/data/tanstackDb/entityQuerySources.ts'
-	import { entityCollectionRowIdEqualsEntityIdByFields } from '$/data/tanstackDb/entityCollectionRowWhere.ts'
-	import { entityCollectionRow } from '$/schema/$EntityCollectionRow.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { and, inArray, useLiveQuery } from '@tanstack/svelte-db'
+	import { eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { entityFieldCollections } from '$/collections/$collections.ts'
 
 
 	// Props
@@ -35,7 +73,7 @@
 		...entitiesListProps
 	}: WithRest<
 		{
-			entityId?: EntityId<EntityType.Network>
+			entityId?: EntityId<typeof schema, EntityType.Network>
 			title?: string
 			open?: boolean
 		},
@@ -45,73 +83,67 @@
 		>
 	> = $props()
 
-	// (Derived)
-	// @ts-expect-error TanStack live-query typings require a single builder result type per callback.
-	const forksQuery = useLiveQuery(
-		(q) => (
-			entityId != null ?
-				q
-					.from({
-						row: entityCollections[EntityType.Network],
-					})
-					.where(({ row }) =>
-						and(
-							entityCollectionRowIdEqualsEntityIdByFields(
-								row.$id,
-								entityId,
-								['chainId'],
-							),
-							inArray(
-								row[entityCollectionRow.source],
-								sourcesForEntityBaseLiveQuery(EntityType.Network),
-							),
-						),
-					)
-					.select(({ row }) => ({
-						kind: 'network',
-						row,
-					}))
-			:	q
-					.from({
-						row: entityFieldCollections[EntityType._Global]['$$networkForks'],
-					})
-					.where(({ row }) =>
-						inArray(
-							row[entityCollectionRow.source],
-							sourcesForEntityFieldLiveQuery(EntityType._Global, '$$networkForks'),
-						),
-					)
-					.select(({ row }) => ({
-						kind: 'global',
-						row,
-					}))
-		),
-		[() => entityId],
+
+	const forksScopeKey = $derived(
+		entityId == null ?
+			'global'
+		:
+			stringify(entityId),
 	)
 
-	const forks = $derived.by(() => {
-		const rows = forksQuery.data ?? []
-		if (rows.length === 0) return []
-		if ((rows[0] as { kind?: string }).kind === 'network') {
-			const networkRows = rows
-				.map((r) => (r as { row?: Record<string, unknown> }).row)
-				.filter((r): r is Record<string, unknown> => r != null)
-			const merged = mergeEntityCollectionRows(networkRows)
-			const raw = merged?.['$$forks']
-			return Array.isArray(raw) ? raw : []
-		}
-		return rows
-			.map((r) => (r as { row?: Entity<EntityType.NetworkFork> }).row)
-			.filter((row): row is Entity<EntityType.NetworkFork> => row != null)
-	})
+	const inactiveNetworkForkParentKey = stringify({ $inactiveNetworkForkParent: true })
 
-	const listLoading = $derived(forksQuery.isLoading)
-	const listError = $derived(forksQuery.isError)
+	const globalForksQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ $$networkForks: entityFieldCollections[EntityType._Global]['$$networkForks'] })
+				.where(({ $$networkForks }) => (
+					eq(
+						$$networkForks[EntityMetaKey.ParentIdKey],
+						stringify({}),
+					)
+				))
+				.where(({ $$networkForks }) => (
+					eq(
+						$$networkForks[EntityMetaKey.Source],
+						Source._Constants,
+					)
+				))
+				.select(({ $$networkForks }) => ({ fork: $$networkForks[EntityMetaKey.Value] }))
+		),
+		[() => forksScopeKey],
+	)
+
+	const networkForksQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ $$forks: entityFieldCollections[EntityType.Network]['$$forks'] })
+				.where(({ $$forks }) => (
+					eq(
+						$$forks[EntityMetaKey.ParentIdKey],
+						entityId == null ? inactiveNetworkForkParentKey : stringify(entityId),
+					)
+				))
+				.where(({ $$forks }) => (
+					eq(
+						$$forks[EntityMetaKey.Source],
+						Source._Constants,
+					)
+				))
+				.select(({ $$forks }) => ({ fork: $$forks[EntityMetaKey.Value] }))
+		),
+		[() => forksScopeKey],
+	)
+
+	const forksQuery = $derived(
+		entityId == null ? globalForksQuery : networkForksQuery,
+	)
 
 
 	// Components
-	import Boundary from '$/components/Boundary.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import NetworkForkView from '$/views/NetworkForkView.svelte'
 </script>
 
 
@@ -119,46 +151,48 @@
 	entityType={EntityType.NetworkFork}
 	{title}
 	bind:open
+	query={forksQuery}
+	items={new SvelteSet(forksQuery.data ?? [])}
+	getKey={(row) => stringify(row.fork[EntityMetaKey.Id]) ?? ''}
+	getSortValue={(row) => stringify(row.fork[EntityMetaKey.Id]) ?? ''}
+	placeholderKeys={new SvelteSet()}
+	unorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListProps}
 >
-	{#snippet body()}
-		<Boundary>
-			{#snippet Failed(error, _retry)}
-				<p role="alert">
-					{String(error)}
-				</p>
-			{/snippet}
+	{#snippet Empty()}
+		<p data-text="muted">
+			No forks in collections for this scope.
+		</p>
+	{/snippet}
 
-			{#if listLoading}
-				<p data-text="muted">
-					Loading forks…
-				</p>
-			{:else if listError}
-				<p role="alert">
-					Could not load forks.
-				</p>
-			{:else if forks.length === 0}
-				<p data-text="muted">
-					No fork metadata for this scope.
-				</p>
+	{#snippet Item({ item: row, isPlaceholder })}
+		{#if isPlaceholder}
+			<span data-placeholder>
+				…
+			</span>
+		{:else if row}
+			{@const item = networkForkListItem(row.fork)}
+			{#if item != null}
+				<NetworkForkView
+					entityId={{
+						$network: { chainId: item.chainId },
+						forkId: item.forkId,
+					}}
+					href={resolve(
+						'/(explore)/(networks)/network/[networkId]/(network)/(forks)/fork/[forkSlug]',
+						{
+							networkId: String(item.chainId),
+							forkSlug: item.forkId,
+						},
+					)}
+					layout={EntityLayout.Summary}
+					open={false}
+				/>
 			{:else}
-				<ul data-list>
-					{#each forks as forkRow (serializeEntityId(forkRow.$id))}
-						<li>
-							<a
-								href={resolve('/(explore)/(forks)/fork/[forkId]', {
-									forkId: `${forkRow.$id.$network.chainId}:${forkRow.$id.forkId}`,
-								})}
-							>
-								{forkRow.name}
-								<span data-text="muted">
-									· chain {forkRow.$id.$network.chainId}
-								</span>
-							</a>
-						</li>
-					{/each}
-				</ul>
+				<span data-text="muted">
+					{String(row.fork)}
+				</span>
 			{/if}
-		</Boundary>
+		{/if}
 	{/snippet}
 </EntitiesList>

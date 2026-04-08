@@ -1,7 +1,11 @@
 <script lang="ts">
 	// Types/constants
-	import type { Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { ComponentProps, Snippet } from 'svelte'
+	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Sources.ts'
 
 
 	// Context
@@ -9,13 +13,10 @@
 
 
 	// State
-	import { entityCollections } from '$/data/collections/entityCollections.ts'
-	import { mergeEntityCollectionRows } from '$/data/tanstackDb/mergeEntityCollectionRows.ts'
-	import { sourcesForEntityBaseLiveQuery } from '$/data/tanstackDb/entityQuerySources.ts'
-	import { entityCollectionRowIdEqualsEntityIdByFields } from '$/data/tanstackDb/entityCollectionRowWhere.ts'
-	import { entityCollectionRow } from '$/schema/$EntityCollectionRow.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { and, inArray, useLiveQuery } from '@tanstack/svelte-db'
+	import { eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { stringify } from 'devalue'
+
+	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
 
 
 	// Props
@@ -25,61 +26,84 @@
 		title = 'Transaction',
 		href,
 		open = $bindable(true),
-	}: {
-		children?: Snippet
-		entityId: EntityId<EntityType.EvmTransaction>
-		title?: string
-		href: string
-		open?: boolean
-	} = $props()
+		...entityViewRest
+	}: WithRest<
+		{
+			children?: Snippet
+			entityId: EntityId<typeof schema, EntityType.EvmTransaction>
+			title?: string
+			href: string
+			open?: boolean
+		},
+		Omit<
+			ComponentProps<typeof EntityView>,
+			| 'entityType'
+			| 'entityId'
+			| 'href'
+			| 'open'
+			| 'title'
+			| 'Details'
+			| 'Summary'
+		>
+	> = $props()
 
 
-	// (Derived)
-	const txRowQuery = useLiveQuery(
-		(q) => (
-			q
-				.from({
-					t: entityCollections[EntityType.EvmTransaction],
-				})
-				.where(({ t }) =>
-					and(
-						entityCollectionRowIdEqualsEntityIdByFields(
-							t.$id,
-							entityId,
-							[
-								'$network.chainId',
-								'txHash',
-							],
-						),
-						inArray(
-							t[entityCollectionRow.source],
-							sourcesForEntityBaseLiveQuery(EntityType.EvmTransaction),
-						),
-					),
-				)
-				.select(({ t }) => t)
-		),
-		[() => entityId],
+	const txIdKey = $derived(
+		stringify(entityId),
 	)
 
-	const row = $derived(
-		mergeEntityCollectionRows(
-			(txRowQuery.data ?? []) as Record<string, unknown>[],
-		) as Record<string, unknown> | undefined,
-	)
 	const chainId = $derived(
 		typeof entityId?.$network?.chainId === 'number' ?
 			entityId.$network.chainId
 		:	undefined,
 	)
 
-	const fromActor = $derived((row?.$from as { $id?: { address?: string } } | undefined)?.$id?.address)
-	const toActor = $derived((row?.$to as { $id?: { address?: string } } | undefined)?.$id?.address)
-	const blockLinkNumber = $derived((row?.$block as { $id?: { blockNumber?: bigint } } | undefined)?.$id?.blockNumber)
+	const transactionQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ row: entityCollectionByEntityType[EntityType.EvmTransaction] })
+				.where(({ row }) => (
+					eq(
+						row[EntityMetaKey.IdKey],
+						txIdKey,
+					)
+				))
+				.select(({ row }) => ({ row }))
+		),
+		[() => txIdKey],
+	)
+
+	const txRow = $derived(
+		(
+			transactionQuery.data?.find(
+				(r) => r.row[EntityMetaKey.Source] === Source.Blockscout,
+			)?.row
+			?? transactionQuery.data?.[0]?.row
+		)
+	)
+
+	const txField = $derived(
+		(() => {
+			const bag = txRow?.[EntityMetaKey.Fields]
+			if (bag == null || typeof bag !== 'object') return null
+			const b = bag as Record<string, unknown>
+			return {
+				value: typeof b.value === 'bigint' ? b.value : undefined,
+				nonce: typeof b.nonce === 'number' ? b.nonce : undefined,
+				transactionIndex: typeof b.transactionIndex === 'number' ? b.transactionIndex : undefined,
+				gas: typeof b.gas === 'bigint' ? b.gas : undefined,
+				gasPrice: typeof b.gasPrice === 'bigint' ? b.gasPrice : undefined,
+				type: typeof b.type === 'number' ? b.type : undefined,
+				status: typeof b.status === 'number' ? b.status : undefined,
+				gasUsed: typeof b.gasUsed === 'bigint' ? b.gasUsed : undefined,
+				effectiveGasPrice: typeof b.effectiveGasPrice === 'bigint' ? b.effectiveGasPrice : undefined,
+			}
+		})(),
+	)
 
 
 	// Components
-	import Boundary from '$/components/Boundary.svelte'
+	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -92,120 +116,114 @@
 	{title}
 	{href}
 	{open}
+	{...entityViewRest}
 >
-	{#snippet Details()}
+	{#snippet SummaryContent()}
+		<dl data-definition-list="vertical">
+			<div>
+				<dt>Hash</dt>
+				<dd>
+					<TruncatedValue
+						value={entityId.txHash}
+						format={TruncatedValueFormat.Abbr}
+					/>
+				</dd>
+			</div>
+			{#if chainId != null}
+				<div>
+					<dt>Chain ID</dt>
+					<dd>{String(chainId)}</dd>
+				</div>
+			{/if}
+		</dl>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.EvmTransaction}
+			{entityId}
+		>
+			<QueryBoundary
+				query={transactionQuery}
+			>
+
+				{#snippet children(rows)}
+				{@const txRow = (
+					rows?.find(
+						(r) => r.row[EntityMetaKey.Source] === Source.Blockscout,
+					)?.row
+					?? rows?.[0]?.row
+				)}
+				{#if txRow == null}
+					<p data-text="muted">
+						No transaction row in collections yet (resolve Blockscout / RPC for this hash).
+					</p>
+				{:else}
+					<dl>
+						{#if txField?.value != null}
+							<div>
+								<dt>Value</dt>
+								<dd>{String(txField.value)}</dd>
+							</div>
+						{/if}
+						{#if txField?.nonce != null}
+							<div>
+								<dt>Nonce</dt>
+								<dd>{String(txField.nonce)}</dd>
+							</div>
+						{/if}
+						{#if txField?.transactionIndex != null}
+							<div>
+								<dt>Index</dt>
+								<dd>{String(txField.transactionIndex)}</dd>
+							</div>
+						{/if}
+						{#if txField?.gas != null}
+							<div>
+								<dt>Gas</dt>
+								<dd>{String(txField.gas)}</dd>
+							</div>
+						{/if}
+						{#if txField?.gasPrice != null}
+							<div>
+								<dt>Gas price</dt>
+								<dd>{String(txField.gasPrice)}</dd>
+							</div>
+						{/if}
+						{#if txField?.type != null}
+							<div>
+								<dt>Type</dt>
+								<dd>{String(txField.type)}</dd>
+							</div>
+						{/if}
+						{#if txField?.status != null}
+							<div>
+								<dt>Status</dt>
+								<dd>{String(txField.status)}</dd>
+							</div>
+						{/if}
+						{#if txField?.gasUsed != null}
+							<div>
+								<dt>Gas used</dt>
+								<dd>{String(txField.gasUsed)}</dd>
+							</div>
+						{/if}
+						{#if txField?.effectiveGasPrice != null}
+							<div>
+								<dt>Effective gas price</dt>
+								<dd>{String(txField.effectiveGasPrice)}</dd>
+							</div>
+						{/if}
+					</dl>
+				{/if}
+				{/snippet}
+			</QueryBoundary>
+		</EntityDetails>
+
 		{#if children}
 			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.EvmTransaction}
-				{entityId}
-			>
-				<Boundary>
-					{#snippet Failed(err, _retry)}
-						<p role="alert">
-							{String(err)}
-						</p>
-					{/snippet}
-
-					{#if txRowQuery.isLoading}
-						<p data-text="muted">
-							Loading…
-						</p>
-					{:else if row != null}
-						<dl data-column>
-							<dt>
-								Hash
-							</dt>
-							<dd>
-								<TruncatedValue
-									value={entityId.txHash}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-							<dt>
-								From
-							</dt>
-							<dd>
-								{#if typeof fromActor === 'string'}
-									<TruncatedValue
-										value={fromActor}
-										format={TruncatedValueFormat.Abbr}
-									/>
-								{:else}
-									–
-								{/if}
-							</dd>
-							<dt>
-								To
-							</dt>
-							<dd>
-								{#if typeof toActor === 'string'}
-									<TruncatedValue
-										value={toActor}
-										format={TruncatedValueFormat.Abbr}
-									/>
-								{:else}
-									–
-								{/if}
-							</dd>
-							<dt>
-								Value (wei)
-							</dt>
-							<dd>
-								{String(row.value ?? '–')}
-							</dd>
-							<dt>
-								Status
-							</dt>
-							<dd>
-								{typeof row.status === 'number' ?
-									(row.status === 1 ? 'Success' : 'Reverted')
-								:	'–'}
-							</dd>
-						</dl>
-
-						{#if chainId != null}
-							<nav data-column>
-								<p data-heading>
-									In this explorer
-								</p>
-								<ul data-list>
-									{#if blockLinkNumber != null}
-										<li>
-											<a
-												href={resolve(
-													'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
-													{
-														networkId: String(chainId),
-														blockNumber: String(blockLinkNumber),
-													},
-												)}
-											>
-												Block
-												{String(blockLinkNumber)}
-											</a>
-										</li>
-									{/if}
-									<li>
-										<a
-											href={resolve('/(explore)/(networks)/network/[networkId]/(network)/transactions', {
-												networkId: String(chainId),
-											})}
-										>
-											Recent transactions on this network
-										</a>
-									</li>
-								</ul>
-							</nav>
-						{/if}
-					{:else}
-						<p data-text="muted">
-							Transaction not found via RPC.
-						</p>
-					{/if}
-				</Boundary>
-			</EntityDetails>
 		{/if}
 	{/snippet}
 </EntityView>

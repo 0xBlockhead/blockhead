@@ -12,6 +12,7 @@ export default {
 	entityType: EntityType.EvmContract,
 
 	label: 'EVM Contract',
+	labelPlural: 'EVM Contracts',
 
 	id: type({
 		$network: Network.id,

@@ -1,5 +1,6 @@
 // Types/constants
-import type { Entity } from '$/schema/$schema.ts'
+import { type Entity, schema } from '$/schema/$schema.ts'
+import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { ethereumExecutionForks as ethereumExecutionForks1 } from '$/constants/Forks/Chain1.ts'
 import { ethereumExecutionForks as ethereumExecutionForks10 } from '$/constants/Forks/Chain10.ts'
@@ -19,14 +20,14 @@ export const ethereumExecutionForks = [
 	...ethereumExecutionForks84532,
 	...ethereumExecutionForks11155111,
 	...ethereumExecutionForks11155420,
-] as const satisfies readonly Entity<EntityType.NetworkFork>[]
+] as const satisfies readonly Entity<typeof schema, EntityType.NetworkFork>[]
 
 
 // Lookups
 export const ethereumExecutionForkByChainIdAndForkId = Object.fromEntries(
 	ethereumExecutionForks
 		.map((row) => [
-			`${row.$id.$network.chainId}:${row.$id.forkId}`,
+			`${row[EntityMetaKey.Id].$network.chainId}:${row[EntityMetaKey.Id].forkId}`,
 			row,
 		])
 )

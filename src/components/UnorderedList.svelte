@@ -1,10 +1,7 @@
-<script module lang="ts">
-	export enum UnorderedListRowType {
-		Group = 'group',
-		Item = 'item',
-		Placeholder = 'placeholder',
-		Pagination = 'pagination',
-	}
+<script
+	module
+	lang="ts"
+>
 </script>
 
 
@@ -17,40 +14,51 @@
 	"
 >
 	// Types/constants
-	import type { ListPagination } from '$/components/RefinableList.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import { UnorderedListRowType } from '$/components/UnorderedListRowType.ts'
+	import type { ListPagination } from '$/components/RefinableList.types.ts'
 	import type { Match } from '$/lib/fuzzyMatch.ts'
+	import type { VirtualRowMeasurement } from '$/lib/virtualRows.ts'
 	import type { Snippet } from 'svelte'
+	import { browser } from '$app/environment'
+	import { untrack } from 'svelte'
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity'
 
+	import { getVisibleVirtualRange, measureVirtualRows } from '$/lib/virtualRows.ts'
+	import { visibility } from '$/lib/visibility.ts'
 
-	type ListRow = (
-		| {
-			type: UnorderedListRowType.Group;
-			groupKey: _GroupKey
-		}
-		| {
-			type: UnorderedListRowType.Item
-			key: _Key
-			item: _Item
-			isPlaceholder: false
-		}
-		| {
-			type: UnorderedListRowType.Placeholder
-			key: _Key;
-			isPlaceholder: true
-		}
-		| {
-			type: UnorderedListRowType.Pagination
-			key: '__pagination__'
-		}
-	)
+	type GroupRow = {
+		type: UnorderedListRowType.Group
+		groupKey: _GroupKey
+	}
+	type ItemRow = {
+		type: UnorderedListRowType.Item
+		key: _Key
+		item: _Item
+		isPlaceholder: false
+	}
+	type PlaceholderRow = {
+		type: UnorderedListRowType.Placeholder
+		key: _Key
+		isPlaceholder: true
+	}
+	type PaginationRow = {
+		type: UnorderedListRowType.Pagination
+		key: '__pagination__'
+	}
+	type PlaceholderSentinelRow = {
+		type: UnorderedListRowType.PlaceholderSentinel
+		key: '__placeholder_sentinel__'
+	}
+	type ListRow =
+		| GroupRow
+		| ItemRow
+		| PlaceholderRow
+		| PaginationRow
+		| PlaceholderSentinelRow
 
 
-	// State
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { SvelteHTMLElements } from 'svelte/elements'
-	import { untrack } from 'svelte'
-
+	// Props
 	let {
 		items = $bindable(new SvelteSet()),
 		getKey,
@@ -59,63 +67,49 @@
 		getGroupKey,
 		getGroupLabel,
 		getGroupKeyForPlaceholder,
-
 		placeholderKeys,
+		summary = $bindable({ loaded: 0, total: undefined as number | undefined }),
 		visiblePlaceholderKeys = $bindable([] as _Key[]),
 		onLoadMorePlaceholders,
 		sliceLimit: sliceLimitProp,
-
 		scrollPosition = 'Auto',
 		listElement = 'ul',
-
+		orientation = ListOrientation.Column,
 		pagination,
-
 		searchQuery = $bindable(''),
 		matchesForItem = $bindable(
 			new SvelteMap<_Item, SvelteSet<Match>>()
 		),
-
-		summary = $bindable({
-			loaded: 0,
-			total: undefined as number | undefined,
-		}),
-
+		virtual,
 		GroupHeader,
 		Item,
 		Empty,
-
-		...ulProps
-	}: WithRest<
-		{
-			items: Set<_Item>
-			getKey: (item: _Item) => _Key
-			getSortValue: (item: _Item) => number | string
-			getIsHidden?: (item: _Item) => boolean
-			getGroupKey?: (item: _Item) => _GroupKey
-			getGroupLabel?: (groupKey: _GroupKey) => string
-			getGroupKeyForPlaceholder?: (key: _Key) => _GroupKey
-
-			placeholderKeys: Set<_Key>
-			visiblePlaceholderKeys?: _Key[]
-			onLoadMorePlaceholders?: () => void
-			sliceLimit?: number
-
-			scrollPosition?: 'Start' | 'End' | 'Auto'
-			listElement?: 'ul' | 'ol'
-
-			pagination?: ListPagination
-
-			searchQuery?: string
-			matchesForItem?: SvelteMap<_Item, SvelteSet<Match>>
-
-			summary?: { loaded: number; total?: number }
-
-			GroupHeader?: Snippet<[{
-				groupKey: _GroupKey,
-			}]>
-			Item: Snippet<[
+		...rootProps
+	}: {
+		items: Set<_Item>
+		getKey: (item: _Item) => _Key
+		getSortValue: (item: _Item) => number | string
+		getIsHidden?: (item: _Item) => boolean
+		getGroupKey?: (item: _Item) => _GroupKey
+		getGroupLabel?: (groupKey: _GroupKey) => string
+		getGroupKeyForPlaceholder?: (key: _Key) => _GroupKey
+		placeholderKeys: Set<_Key>
+		summary?: { loaded: number; total?: number }
+		visiblePlaceholderKeys?: _Key[]
+		onLoadMorePlaceholders?: () => void
+		sliceLimit?: number
+		scrollPosition?: 'Start' | 'End' | 'Auto'
+		listElement?: 'ul' | 'ol'
+		orientation?: ListOrientation
+		pagination?: ListPagination
+		searchQuery?: string
+		matchesForItem?: SvelteMap<_Item, SvelteSet<Match>>
+		virtual?: VirtualRowMeasurement<ListRow>
+		GroupHeader?: Snippet<[{ groupKey: _GroupKey }]>
+		Item: Snippet<
+			[
 				{
-					key: _Key,
+					key: _Key
 				} & (
 					| {
 							item: _Item
@@ -125,19 +119,210 @@
 						}
 					| { item?: never; isPlaceholder: true }
 				),
-			]>
-			Empty?: Snippet
-		},
-		SvelteHTMLElements['ul']
-	> = $props()
+			]
+		>
+		Empty?: Snippet<[]>
+		[key: string]: unknown
+	} = $props()
 
-	const isPlaceholderKey = (key: _Key): boolean => (
-		placeholderKeys.has(key)
-	)
+
+	// Functions
+	const isPlaceholderKey = (key: _Key): boolean => placeholderKeys.has(key)
 	const viewTransitionName = (key: _Key): string => (
 		'list-item-' + String(key).replace(/^\d/, '_$&').replace(/[^a-zA-Z0-9_-]/g, '_')
 	)
+	const getRowKey = (row: ListRow): string => (
+		isGroupRow(row) ?
+			`group:${row.groupKey}`
+		:
+			String(row.key)
+	)
+	const getVirtualViewport = (element: HTMLElement) => {
+		const listRect = element.getBoundingClientRect()
+		const scrollContainer = element.closest('[data-scroll-container]')
+		return scrollContainer instanceof HTMLElement ?
+			{
+				measureWidth: listRect.width,
+				scrollTop: Math.max(
+					0,
+					scrollContainer.getBoundingClientRect().top - listRect.top,
+				),
+				viewportHeight: scrollContainer.clientHeight,
+				target: scrollContainer,
+			}
+		:
+			{
+				measureWidth: listRect.width,
+				scrollTop: Math.max(
+					0,
+					-listRect.top,
+				),
+				viewportHeight: window.innerHeight,
+				target: window,
+			}
+	}
+	const isGroupRow = (row: ListRow): row is GroupRow => (
+		row.type === UnorderedListRowType.Group
+	)
+	const isItemRow = (row: ListRow): row is ItemRow => (
+		row.type === UnorderedListRowType.Item
+	)
+	const isPlaceholderRow = (row: ListRow): row is PlaceholderRow => (
+		row.type === UnorderedListRowType.Placeholder
+	)
+	const isPaginationRow = (row: ListRow): row is PaginationRow => (
+		row.type === UnorderedListRowType.Pagination
+	)
+	const isPlaceholderSentinelRow = (row: ListRow): row is PlaceholderSentinelRow => (
+		row.type === UnorderedListRowType.PlaceholderSentinel
+	)
+	const buildGroupEntries = (rows: _Item[]) => {
+		if (!getGroupKey || !getGroupLabel) return null
+		const groupMap = new Map<_GroupKey, _Item[]>()
+		for (const item of rows) {
+			const groupKey = getGroupKey(item)
+			const groupItems = groupMap.get(groupKey)
+			if (groupItems) groupItems.push(item)
+			else groupMap.set(
+				groupKey,
+				[item],
+			)
+		}
+		return [...groupMap.entries()]
+	}
+	const buildPlaceholderRows = (itemKeys: Set<_Key>): ListRow[] => {
+		const rows: ListRow[] = []
+		for (const key of visiblePlaceholderKeys)
+			if (isPlaceholderKey(key) && !itemKeys.has(key))
+				rows.push({
+					type: UnorderedListRowType.Placeholder,
+					key,
+					isPlaceholder: true as const,
+				})
+		return rows
+	}
+	const buildRows = ({
+		groupEntries,
+		itemsToRender,
+		placeholderRows,
+		includePagination,
+		includePlaceholderSentinel,
+	}: {
+		groupEntries: [_GroupKey, _Item[]][] | null
+		itemsToRender: _Item[]
+		placeholderRows: ListRow[]
+		includePagination: boolean
+		includePlaceholderSentinel: boolean
+	}): ListRow[] => {
+		if (
+			getGroupKey &&
+			getGroupLabel &&
+			getGroupKeyForPlaceholder &&
+			groupEntries != null
+		) {
+			const placeholderByGroup = new Map<_GroupKey, _Key[]>()
+			for (const row of placeholderRows) {
+				if (!isPlaceholderRow(row)) continue
+				const groupKey = getGroupKeyForPlaceholder(row.key)
+				const groupPlaceholders = placeholderByGroup.get(groupKey)
+				if (groupPlaceholders) groupPlaceholders.push(row.key)
+				else placeholderByGroup.set(
+					groupKey,
+					[row.key],
+				)
+			}
+			const groupKeys = new Set<_GroupKey>([
+				...groupEntries.map(([groupKey]) => groupKey),
+				...placeholderByGroup.keys(),
+			])
+			const maxBlockInGroup = (groupKey: _GroupKey) => (
+				Math.max(
+					...(groupEntries.find(([currentGroupKey]) => currentGroupKey === groupKey)?.[1]?.map((item) => (
+						-Number(getSortValue(item))
+					)) ?? []),
+					...(placeholderByGroup.get(groupKey)?.map((key) => Number(key)) ?? []),
+				)
+			)
+			return [
+				...[...groupKeys]
+					.sort((groupKeyA, groupKeyB) => (
+						maxBlockInGroup(groupKeyB) - maxBlockInGroup(groupKeyA)
+					))
+					.flatMap((groupKey): ListRow[] => {
+						const placeholderRowsForGroup = (placeholderByGroup.get(groupKey) ?? [])
+							.sort((keyA, keyB) => Number(keyB) - Number(keyA))
+							.map((key): ListRow => ({
+								type: UnorderedListRowType.Placeholder,
+								key,
+								isPlaceholder: true as const,
+							}))
+						return [
+							{ type: UnorderedListRowType.Group, groupKey },
+							...(groupEntries.find(([currentGroupKey]) => currentGroupKey === groupKey)?.[1]?.map(
+								(item): ListRow => ({
+									type: UnorderedListRowType.Item,
+									key: getKey(item),
+									item,
+									isPlaceholder: false as const,
+								}),
+							) ?? []),
+							...placeholderRowsForGroup,
+						]
+					}),
+				...(
+					includePagination ?
+						[{ type: UnorderedListRowType.Pagination, key: '__pagination__' } satisfies ListRow]
+					:
+						[]
+				),
+				...(
+					includePlaceholderSentinel ?
+						[{ type: UnorderedListRowType.PlaceholderSentinel, key: '__placeholder_sentinel__' } satisfies ListRow]
+					:
+						[]
+				),
+			]
+		}
+		return [
+			...itemsToRender.map((item): ListRow => ({
+				type: UnorderedListRowType.Item,
+				key: getKey(item),
+				item,
+				isPlaceholder: false as const,
+			})),
+			...placeholderRows,
+			...(
+				includePagination ?
+					[{ type: UnorderedListRowType.Pagination, key: '__pagination__' } satisfies ListRow]
+				:
+					[]
+			),
+			...(
+				includePlaceholderSentinel ?
+					[{ type: UnorderedListRowType.PlaceholderSentinel, key: '__placeholder_sentinel__' } satisfies ListRow]
+				:
+					[]
+			),
+		]
+	}
 
+
+	// State
+	let listEl: HTMLElement | undefined = $state()
+	let virtualMeasureWidth = $state(0)
+	let virtualScrollTop = $state(0)
+	let virtualViewportHeight = $state(0)
+	let rowHeights = $state<number[]>([])
+	let offsets = $state<number[]>([
+		0,
+	])
+	let totalHeight = $state(0)
+
+
+	// (Derived)
+	const hasVirtual = $derived(
+		browser && virtual != null
+	)
 	const sortedItems = $derived(
 		[...items].sort((itemA, itemB) => {
 			const sortValueA = getSortValue(itemA)
@@ -156,49 +341,33 @@
 	const hasSearch = $derived(
 		!!searchQueryNormalized
 	)
-	$effect(() => {
-		const query = searchQueryNormalized
-		const _itemsSize = items.size
-		if (!query) {
-			untrack(() => matchesForItem.clear())
-			return
-		}
-		untrack(() => {
-			for (const item of sortedItems) {
-				if (!matchesForItem.has(item)) matchesForItem.set(item, new SvelteSet())
-			}
-		})
-	})
-	const itemsToShow = $derived(
-		sortedItems
-	)
 	const matchOrder = $derived(
 		hasSearch ?
 			(() => {
-				const score = (ms: SvelteSet<Match> | undefined) => {
-					if (!ms?.size) return { total: 0, spans: 0, minStart: Infinity, spread: Infinity }
-					const arr = [...ms]
-					const total = arr.reduce((s, m) => s + (m.end - m.start), 0)
-					const minStart = Math.min(...arr.map((m) => m.start))
-					const maxEnd = Math.max(...arr.map((m) => m.end))
+				const score = (matches: SvelteSet<Match> | undefined) => {
+					if (!matches?.size) return { total: 0, spans: 0, minStart: Infinity, spread: Infinity }
+					const rows = [...matches]
+					const total = rows.reduce((sum, match) => (sum + (match.end - match.start)), 0)
+					const minStart = Math.min(...rows.map((match) => match.start))
+					const maxEnd = Math.max(...rows.map((match) => match.end))
 					return {
 						total,
-						spans: ms.size,
+						spans: matches.size,
 						minStart,
 						spread: maxEnd - minStart,
 					}
 				}
 
-				return [...sortedItems].sort((a, b) => {
-					const sa = score(matchesForItem.get(a))
-					const sb = score(matchesForItem.get(b))
-					if (sb.total !== sa.total) return sb.total - sa.total
-					if (sa.spans !== sb.spans) return sa.spans - sb.spans
-					if (sa.minStart !== sb.minStart) return sa.minStart - sb.minStart
-					if (sa.spread !== sb.spread) return sa.spread - sb.spread
-					return getSortValue(a) < getSortValue(b) ?
+				return [...sortedItems].sort((itemA, itemB) => {
+					const scoreA = score(matchesForItem.get(itemA))
+					const scoreB = score(matchesForItem.get(itemB))
+					if (scoreB.total !== scoreA.total) return scoreB.total - scoreA.total
+					if (scoreA.spans !== scoreB.spans) return scoreA.spans - scoreB.spans
+					if (scoreA.minStart !== scoreB.minStart) return scoreA.minStart - scoreB.minStart
+					if (scoreA.spread !== scoreB.spread) return scoreA.spread - scoreB.spread
+					return getSortValue(itemA) < getSortValue(itemB) ?
 							-1
-						: getSortValue(a) > getSortValue(b) ?
+						: getSortValue(itemA) > getSortValue(itemB) ?
 							1
 						:
 							0
@@ -207,265 +376,332 @@
 		:
 			[]
 	)
-
-
-	// Transitions/animations
-	import { createViewTransition } from '$/lib/viewTransition.ts'
-
-	const matchOrderViewTransition = createViewTransition()
-	let committedMatchOrder = $state([] as _Item[])
-	$effect(() => {
-		const next = matchOrder
-		matchOrderViewTransition.schedule(() => {
-			committedMatchOrder = next
-		})
-	})
-
 	const sliceLimit = $derived(
-		sliceLimitProp ??
-			(onLoadMorePlaceholders ? 200 : 100),
+		sliceLimitProp ?? (onLoadMorePlaceholders ? 200 : 100)
 	)
 	const summaryTotal = $derived.by(() => (
 		placeholderKeys.size > 0 ? placeholderKeys.size : undefined
 	))
+	const itemKeys = $derived(
+		new Set(sortedItems.map((item) => getKey(item)))
+	)
+	const placeholderRows = $derived.by(() => (
+		buildPlaceholderRows(itemKeys)
+	))
+	const allRows = $derived.by(() => (
+		buildRows({
+			groupEntries: buildGroupEntries(sortedItems),
+			itemsToRender: sortedItems,
+			placeholderRows,
+			includePagination: !!pagination?.hasMore,
+			includePlaceholderSentinel: false,
+		})
+	))
+	const virtualItems = $derived.by(() => {
+		const baseItems = hasSearch ?
+			matchOrder.filter((item) => (
+				(matchesForItem.get(item)?.size ?? 0) > 0
+			))
+		:
+			sortedItems
+		return baseItems.filter((item) => (
+			getIsHidden ? !getIsHidden(item) : true
+		))
+	})
+	const virtualItemKeys = $derived(
+		new Set(virtualItems.map((item) => getKey(item)))
+	)
+	const virtualPlaceholderRows = $derived.by(() => (
+		buildPlaceholderRows(virtualItemKeys)
+	))
+	const virtualRows = $derived.by(() => (
+		buildRows({
+			groupEntries: buildGroupEntries(virtualItems),
+			itemsToRender: virtualItems,
+			placeholderRows: virtualPlaceholderRows,
+			includePagination: !!pagination?.hasMore,
+			includePlaceholderSentinel: !!onLoadMorePlaceholders,
+		})
+	))
+	const isEmpty = $derived(
+		allRows.filter((row) => !isPaginationRow(row)).length === 0
+	)
+	const virtualRange = $derived(
+		hasVirtual ?
+			getVisibleVirtualRange({
+				offsets,
+				scrollTop: virtualScrollTop,
+				viewportHeight: virtualViewportHeight,
+				overscan: virtual?.overscan,
+			})
+		:
+			{
+				start: 0,
+				end: -1,
+			}
+	)
+	const virtualVisibleIndices = $derived.by(() => (
+		virtualRange.end < virtualRange.start ?
+			[]
+		:
+			Array.from(
+				{
+					length: virtualRange.end - virtualRange.start + 1,
+				},
+				(_, index) => (
+					virtualRange.start + index
+				),
+			)
+	))
+	const topSpacerHeight = $derived(
+		virtualVisibleIndices.length > 0 ?
+			(offsets[virtualVisibleIndices[0]] ?? 0)
+		:
+			0
+	)
+	const bottomSpacerHeight = $derived(
+		virtualVisibleIndices.length > 0 ?
+			Math.max(
+				0,
+				totalHeight - (offsets[virtualVisibleIndices.at(-1)! + 1] ?? 0),
+			)
+		:
+			totalHeight
+	)
+
+	$effect(() => {
+		const query = searchQueryNormalized
+		const _itemsSize = items.size
+		if (!query) {
+			untrack(() => matchesForItem.clear())
+			return
+		}
+		untrack(() => {
+			for (const item of sortedItems)
+				if (!matchesForItem.has(item))
+					matchesForItem.set(
+						item,
+						new SvelteSet(),
+					)
+		})
+	})
 	$effect(() => {
 		summary = {
 			loaded: items.size,
 			total: summaryTotal,
 		}
 	})
-	const itemKeys = $derived(new Set(itemsToShow.map((item) => getKey(item))))
-	const groupEntries = $derived.by(() => {
-		if (!getGroupKey || !getGroupLabel) return null
-		const groupMap = new Map<_GroupKey, _Item[]>()
-		for (const item of itemsToShow) {
-			const g = getGroupKey(item)
-			let arr = groupMap.get(g)
-			if (!arr) groupMap.set(g, (arr = []))
-			arr.push(item)
-		}
-		return [...groupMap.entries()]
-	})
-	const itemRows = $derived.by(() =>
-		groupEntries
-			? groupEntries.flatMap(([groupKey, groupItems]): ListRow[] => [
-					{ type: UnorderedListRowType.Group, groupKey },
-					...(groupItems ?? []).map((item): ListRow => ({
-						type: UnorderedListRowType.Item,
-						key: getKey(item),
-						item,
-						isPlaceholder: false as const,
-					})),
-				])
-			: itemsToShow.map((item): ListRow => ({
-					type: UnorderedListRowType.Item,
-					key: getKey(item),
-					item,
-					isPlaceholder: false as const,
-				})),
-	)
-	const placeholderRows = $derived.by(() => {
-		const out: ListRow[] = []
-		for (const key of visiblePlaceholderKeys)
-			if (isPlaceholderKey(key) && !itemKeys.has(key))
-				out.push({
-					type: UnorderedListRowType.Placeholder,
-					key,
-					isPlaceholder: true as const,
-				})
-		return out
-	})
-	const isEmpty = $derived(
-		itemRows.length === 0 && placeholderRows.length === 0,
-	)
-	const placeholderByGroup = $derived.by(() => {
-		if (!getGroupKeyForPlaceholder) return new Map<_GroupKey, _Key[]>()
-		const map = new Map<_GroupKey, _Key[]>()
-		for (const row of placeholderRows) {
-			if (row.type !== UnorderedListRowType.Placeholder) continue
-			const g = getGroupKeyForPlaceholder(row.key)
-			const arr = map.get(g) ?? []
-			arr.push(row.key)
-			map.set(g, arr)
-		}
-		return map
-	})
-	const groupOrder = $derived.by(() => {
-		if (groupEntries == null) return []
-		const groupKeys = new Set<_GroupKey>([
-			...groupEntries.map(([k]) => k),
-			...placeholderByGroup.keys(),
-		])
-		const maxBlockInGroup = (g: _GroupKey) => (
-			Math.max(
-				...(groupEntries.find(([k]) => k === g)?.[1]?.map((i) => -Number(getSortValue(i))) ?? []),
-				...(placeholderByGroup.get(g)?.map((k) => Number(k)) ?? []),
-			)
-		)
-		return [...groupKeys].sort(
-			(ga, gb) => maxBlockInGroup(gb) - maxBlockInGroup(ga),
-		)
-	})
-	const allRows = $derived.by(() => {
+	$effect(() => {
 		if (
-			getGroupKey &&
-			getGroupLabel &&
-			getGroupKeyForPlaceholder &&
-			groupEntries != null
-		) {
-			return [
-				...groupOrder.flatMap((groupKey): ListRow[] => {
-					const placeholders = placeholderByGroup.get(groupKey) ?? []
-					const placeholderRowsForGroup: ListRow[] = placeholders
-						.sort((a, b) => Number(b) - Number(a))
-						.map(
-							(key): ListRow => ({
-								type: UnorderedListRowType.Placeholder,
-								key,
-								isPlaceholder: true as const,
-							}),
-						)
-					return [
-						{ type: UnorderedListRowType.Group, groupKey },
-						...(groupEntries.find(([k]) => k === groupKey)?.[1]?.map(
-							(item): ListRow => ({
-								type: UnorderedListRowType.Item,
-								key: getKey(item),
-								item,
-								isPlaceholder: false as const,
-							}),
-						) ?? []),
-						...placeholderRowsForGroup,
-					]
-				}),
-				...(
-					pagination?.hasMore ?
-						[{ type: UnorderedListRowType.Pagination, key: '__pagination__' } as ListRow]
-					: []
-				),
-			]
+			!hasVirtual
+			|| !listEl
+		) return
+
+		const updateViewport = () => {
+			if (!listEl) return
+			const nextViewport = getVirtualViewport(listEl)
+			virtualMeasureWidth = nextViewport.measureWidth
+			virtualScrollTop = nextViewport.scrollTop
+			virtualViewportHeight = nextViewport.viewportHeight
 		}
-		return [
-			...itemRows,
-			...placeholderRows,
-			...(
-				pagination?.hasMore ?
-					[{ type: UnorderedListRowType.Pagination, key: '__pagination__' } as ListRow]
-				: []
-			),
-		]
+		const { target } = getVirtualViewport(listEl)
+		const resizeObserver = new ResizeObserver(() => {
+			updateViewport()
+		})
+		resizeObserver.observe(listEl)
+		if (target instanceof HTMLElement)
+			resizeObserver.observe(target)
+		else
+			window.addEventListener(
+				'resize',
+				updateViewport,
+			)
+		target.addEventListener(
+			'scroll',
+			updateViewport,
+			{ passive: true },
+		)
+		updateViewport()
+
+		return () => {
+			resizeObserver.disconnect()
+			target.removeEventListener(
+				'scroll',
+				updateViewport,
+			)
+			if (!(target instanceof HTMLElement))
+				window.removeEventListener(
+					'resize',
+					updateViewport,
+				)
+		}
 	})
+	$effect(() => {
+		if (
+			!hasVirtual
+			|| !virtual
+		) return
 
-
-	// Functions
-	import { visibility } from '$/svelte/visibility.svelte.ts'
+		const next = measureVirtualRows({
+			rows: virtualRows,
+			width: virtualMeasureWidth,
+			measurement: virtual,
+		})
+		rowHeights = next.rowHeights
+		offsets = next.offsets
+		totalHeight = next.totalHeight
+	})
 </script>
 
 
+{#snippet RowItem(
+	row: ListRow,
+	index: number,
+	rowHeight: number | undefined = undefined,
+	useVisualFilters: boolean = false,
+)}
+	{#if isGroupRow(row)}
+		<li
+			data-list-item
+			data-sticky
+			data-scroll-item="snap-block-start"
+			style:--index={index}
+			style:min-block-size={rowHeight != null ? `${rowHeight}px` : undefined}
+		>
+			{#if GroupHeader}
+				{@render GroupHeader({ groupKey: row.groupKey })}
+			{:else}
+				{getGroupLabel!(row.groupKey)}
+			{/if}
+		</li>
+	{:else if isPlaceholderRow(row)}
+		<li
+			data-list-item
+			data-placeholder
+			data-scroll-item="snap-block-start"
+			style:--index={index}
+			style:min-block-size={rowHeight != null ? `${rowHeight}px` : undefined}
+		>
+			{@render Item({ key: row.key, isPlaceholder: true as const })}
+		</li>
+	{:else if isPaginationRow(row)}
+		<li
+			data-list-item
+			data-pagination
+			data-scroll-item="snap-block-start"
+			style:--index={index}
+			style:min-block-size={rowHeight != null ? `${rowHeight}px` : undefined}
+			{@attach visibility({ onVisible: pagination?.onLoadMore ?? (() => {}) })}
+		>
+			{#if pagination?.Placeholder}
+				{@render pagination.Placeholder({ loading: pagination.loading ?? false })}
+			{:else}
+				<code data-text="muted">
+					{(pagination?.loading ?? false) ?
+						'Loading…'
+					:
+						(pagination?.label ?? 'Load more')}
+				</code>
+			{/if}
+		</li>
+	{:else if isPlaceholderSentinelRow(row)}
+		<li
+			data-list-item
+			data-placeholder-sentinel
+			data-scroll-item="snap-block-start"
+			style:--index={index}
+			style:min-block-size={rowHeight != null ? `${rowHeight}px` : undefined}
+			{@attach visibility({ onVisible: onLoadMorePlaceholders ?? (() => {}) })}
+		>
+			<span aria-hidden="true">&nbsp;</span>
+		</li>
+	{:else}
+		{@const hasNoSearchMatches = useVisualFilters && hasSearch && (matchesForItem.get(row.item)?.size ?? 0) === 0}
+		{@const isHidden = useVisualFilters && getIsHidden ? getIsHidden(row.item) : false}
+		{@const visualOrder = useVisualFilters && hasSearch ? matchOrder.indexOf(row.item) + 1 : undefined}
+
+		<li
+			data-list-item
+			data-scroll-item="snap-block-start"
+			style:--index={index}
+			style={visualOrder != null ? `order: ${visualOrder}` : undefined}
+			style:min-block-size={rowHeight != null ? `${rowHeight}px` : undefined}
+			style:view-transition-name={viewTransitionName(row.key)}
+			{...(isHidden || hasNoSearchMatches) && {
+				hidden: true,
+				inert: true,
+			}}
+		>
+			{@render Item({
+				key: row.key,
+				item: row.item,
+				isPlaceholder: false as const,
+				searchQuery,
+				matches: matchesForItem.get(row.item),
+			})}
+		</li>
+	{/if}
+{/snippet}
+
+
 {#if isEmpty && Empty}
-	<div data-empty>
-		{@render Empty()}
-	</div>
+	{@render Empty()}
 {:else}
 	<svelte:element
 		this={listElement}
+		bind:this={listEl}
 		class="list anchor-{scrollPosition.toLowerCase()}"
-		class:many-items={allRows.length > 200}
+		class:many-items={!hasVirtual && allRows.length > 200}
+		class:virtual={hasVirtual}
+		data-row={orientation === ListOrientation.Row ? '' : undefined}
+		data-column={orientation === ListOrientation.Column ? '' : undefined}
 		data-list="unstyled"
 		data-sticky-container
-		{...ulProps}
+		{...rootProps}
 	>
-		{#each allRows.slice(0, sliceLimit) as item, index (
-			item.type === UnorderedListRowType.Group ?
-				`group:${item.groupKey}`
-			:
-				item.key
-		)}
-			{#if item.type === UnorderedListRowType.Group}
+		{#if hasVirtual}
+			{#if topSpacerHeight > 0}
 				<li
-					data-list-item
-					data-sticky
-					data-scroll-item="snap-block-start"
-					style:--index={index}
-				>
-					{#if GroupHeader}
-						{@render GroupHeader({
-							groupKey: item.groupKey,
-						})}
-					{:else}
-						{getGroupLabel!(item.groupKey)}
-					{/if}
-				</li>
-			{:else if item.type === UnorderedListRowType.Placeholder}
-				<li
-					data-list-item
-					data-placeholder
-					data-scroll-item="snap-block-start"
-					style:--index={index}
-				>
-					{@render Item({
-						key: item.key,
-						isPlaceholder: true as const,
-					})}
-				</li>
-			{:else if item.type === UnorderedListRowType.Pagination}
-				<li
-					data-list-item
-					data-pagination
-					data-scroll-item="snap-block-start"
-					style:--index={index}
-					{@attach visibility({ onVisible: pagination?.onLoadMore ?? (() => {}) })}
-				>
-					{#if pagination?.Placeholder}
-						{@render pagination.Placeholder({
-							loading: pagination.loading ?? false,
-						})}
-					{:else}
-						<code data-text="muted">
-							{(pagination?.loading ?? false) ?
-								'Loading…'
-							:
-								(pagination?.label ?? 'Load more')}
-						</code>
-					{/if}
-				</li>
-			{:else}
-				{@const hasNoSearchMatches = hasSearch && (matchesForItem.get(item.item)?.size ?? 0) === 0}
-
-				{@const isHidden = getIsHidden ? getIsHidden(item.item) : false}
-
-				{@const visualOrder = hasSearch ? committedMatchOrder.indexOf(item.item) + 1 : undefined}
-
-				<li
-					data-list-item
-					data-scroll-item="snap-block-start"
-					style:--index={index}
-					style={visualOrder != null ? `order: ${visualOrder}` : undefined}
-					style:view-transition-name={viewTransitionName(item.key)}
-					{...(isHidden || hasNoSearchMatches) && {
-						hidden: true,
-						inert: true,
-					}}
-				>
-					{@render Item({
-						key: item.key,
-						item: item.item,
-						isPlaceholder: false as const,
-						searchQuery,
-						matches: matchesForItem.get(item.item),
-					})}
-				</li>
+					aria-hidden="true"
+					class="virtual-spacer"
+					style:block-size={`${topSpacerHeight}px`}
+				></li>
 			{/if}
-		{/each}
-		{#if onLoadMorePlaceholders}
-			<li
-				data-list-item
-				data-placeholder-sentinel
-				data-scroll-item="snap-block-start"
-				{@attach visibility({ onVisible: onLoadMorePlaceholders ?? (() => {}) })}
-			>
-				<span aria-hidden="true">&nbsp;</span>
-			</li>
+
+			{#each virtualVisibleIndices as rowIndex (getRowKey(virtualRows[rowIndex]))}
+				{@render RowItem(
+					virtualRows[rowIndex],
+					rowIndex,
+					rowHeights[rowIndex],
+				)}
+			{/each}
+
+			{#if bottomSpacerHeight > 0}
+				<li
+					aria-hidden="true"
+					class="virtual-spacer"
+					style:block-size={`${bottomSpacerHeight}px`}
+				></li>
+			{/if}
+		{:else}
+			{#each allRows.slice(0, sliceLimit) as row, index (getRowKey(row))}
+				{@render RowItem(
+					row,
+					index,
+					undefined,
+					true,
+				)}
+			{/each}
+
+			{#if onLoadMorePlaceholders}
+				{@render RowItem(
+					{
+						type: UnorderedListRowType.PlaceholderSentinel,
+						key: '__placeholder_sentinel__',
+					},
+					allRows.length,
+				)}
+			{/if}
 		{/if}
 	</svelte:element>
 {/if}
@@ -473,9 +709,20 @@
 
 <style>
 	.list {
-		> li {
+		> li:not(.virtual-spacer) {
 			display: grid;
 			max-block-size: 80vh;
+		}
+
+		&.virtual {
+			gap: 0;
+		}
+
+		> li.virtual-spacer {
+			display: block;
+			max-block-size: none;
+			min-block-size: 0;
+			padding: 0;
 		}
 
 		&.anchor-start {

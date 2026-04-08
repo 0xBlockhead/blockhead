@@ -5,6 +5,7 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
+	import FarcasterView from '$/views/FarcasterView.svelte'
 	import GlobalView from '$/views/GlobalView.svelte'
 </script>
 
@@ -14,5 +15,17 @@
 		entityId={{}}
 		title={'Social'}
 		href={resolve('/social')}
-	/>
+	>
+		{#snippet children()}
+			<section>
+				<FarcasterView
+					entityId={{
+						scope: 'FarcasterNetwork',
+					}}
+					href={resolve('/farcaster')}
+					open={false}
+				/>
+			</section>
+		{/snippet}
+	</GlobalView>
 </Page>

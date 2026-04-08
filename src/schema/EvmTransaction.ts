@@ -21,6 +21,7 @@ export default {
 	entityType: EntityType.EvmTransaction,
 
 	label: 'EVM Transaction',
+	labelPlural: 'EVM Transactions',
 
 	id: type({
 		$network: Network.id,

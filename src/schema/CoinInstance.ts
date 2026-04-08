@@ -19,6 +19,7 @@ export default {
 	entityType: EntityType.CoinInstance,
 
 	label: 'Coin Instance',
+	labelPlural: 'Coin Instances',
 
 	id: type.or(
 		type({

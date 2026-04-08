@@ -11,6 +11,7 @@ export default {
 	entityType: EntityType.BlockheadSharedAddress,
 
 	label: 'Shared Address',
+	labelPlural: 'Shared Addresses',
 
 	id: type({
 		id: 'string',

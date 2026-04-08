@@ -12,6 +12,7 @@ export default {
 	entityType: EntityType.FarcasterCastEmbed,
 
 	label: 'Farcaster Cast Embed',
+	labelPlural: 'Farcaster Cast Embeds',
 
 	id: type({
 		$cast: FarcasterCast.id,
@@ -23,6 +24,12 @@ export default {
 			name: 'url',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$embeddedCast',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.FarcasterCast,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

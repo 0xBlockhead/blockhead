@@ -2,22 +2,48 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { Entity, EntityId } from '$/schema/$schema.ts'
-	import { serializeEntityId } from '$/schema/$entityId.ts'
+	import {
+		type EntityId,
+		schema,
+	} from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Sources.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
+	// Functions
+	const evmBlockListLink = (id: unknown) => {
+		if (typeof id !== 'object' || id === null) return undefined
+		if (!('$network' in id) || !('blockNumber' in id)) return undefined
+		const nw = Reflect.get(id, '$network')
+		if (typeof nw !== 'object' || nw === null || !('chainId' in nw)) return undefined
+		const chainId = Reflect.get(nw, 'chainId')
+		const blockNumber = Reflect.get(id, 'blockNumber')
+		return (
+			typeof chainId === 'number'
+			&& typeof blockNumber === 'bigint' ?
+				{ chainId, blockNumber }
+			:
+				undefined
+		)
+	}
+
+	const evmBlockRowNumberKey = (row: { [EntityMetaKey.Id]: unknown }) => {
+		const link = evmBlockListLink(row[EntityMetaKey.Id])
+		return link != null ? Number(link.blockNumber) : 0
+	}
+
+
 	// State
-	import { entityCollections } from '$/data/collections/entityCollections.ts'
-	import { mergeEntityCollectionRows } from '$/data/tanstackDb/mergeEntityCollectionRows.ts'
-	import { sourcesForEntityBaseLiveQuery } from '$/data/tanstackDb/entityQuerySources.ts'
-	import { entityCollectionRowIdEqualsEntityIdByFields } from '$/data/tanstackDb/entityCollectionRowWhere.ts'
-	import { entityCollectionRow } from '$/schema/$EntityCollectionRow.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { and, inArray, useLiveQuery } from '@tanstack/svelte-db'
+	import { eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { entityFieldCollections } from '$/collections/$collections.ts'
 
 
 	// Props
@@ -31,7 +57,7 @@
 		...entitiesListProps
 	}: WithRest<
 		{
-			entityId: EntityId<EntityType.Network>
+			entityId: EntityId<typeof schema, EntityType.Network>
 			title?: string
 			open?: boolean
 		},
@@ -43,47 +69,44 @@
 
 
 	// (Derived)
-	const networkRowQuery = useLiveQuery(
-		(q) => (
-			q
-				.from({
-					n: entityCollections[EntityType.Network],
-				})
-				.where(({ n }) =>
-					and(
-						entityCollectionRowIdEqualsEntityIdByFields(
-							n.$id,
-							entityId,
-							['chainId'],
-						),
-						inArray(
-							n[entityCollectionRow.source],
-							sourcesForEntityBaseLiveQuery(EntityType.Network),
-						),
+	const networkIdKey = $derived(
+		stringify(entityId),
+	)
+
+
+	const blocksQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ $$evmBlocks: entityFieldCollections[EntityType.Network]['$$evmBlocks']! })
+				.where(({ $$evmBlocks }) => (
+					eq(
+						$$evmBlocks[EntityMetaKey.ParentIdKey],
+						networkIdKey,
+					)
+				))
+				.where(({ $$evmBlocks }) => (
+					eq(
+						$$evmBlocks[EntityMetaKey.Source],
+						Source.Blockscout,
+					)
+				))
+				.select(({ $$evmBlocks }) => ({
+					[EntityMetaKey.Id]: (
+						$$evmBlocks[EntityMetaKey.Value][EntityMetaKey.Id]
 					),
-				)
-				.select(({ n }) => n)
+				}))
 		),
-		[() => entityId],
+		[() => networkIdKey],
 	)
-
-	const blocks = $derived(
-		(
-			mergeEntityCollectionRows(
-				(networkRowQuery.data ?? []) as Record<string, unknown>[],
-			)?.['$$evmBlocks'] as
-				| Entity<EntityType.EvmBlock>[]
-				| undefined ?? []
-		),
-	)
-
-	const listLoading = $derived(networkRowQuery.isLoading)
-	const listError = $derived(networkRowQuery.isError)
 
 
 	// Components
-	import Boundary from '$/components/Boundary.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import OrderedList from '$/components/OrderedList.svelte'
+	import EvmBlockView from '$/views/EvmBlockView.svelte'
 </script>
 
 
@@ -94,51 +117,56 @@
 	{...entitiesListProps}
 >
 	{#snippet body()}
-		<Boundary>
-			{#snippet Failed(error, _retry)}
-				<p role="alert">
-					{String(error)}
-				</p>
-			{/snippet}
+		<QueryBoundary
+			query={blocksQuery}
+			placeholderText="Loading blocks…"
+		>
 
-			{#if listLoading}
-				<p data-text="muted">
-					Loading blocks…
-				</p>
-			{:else if listError}
-				<p role="alert">
-					Could not load blocks.
-				</p>
-			{:else if blocks.length === 0}
-				<p data-text="muted">
-					No blocks (chain unavailable or RPC error).
-				</p>
-			{:else}
-				<ul data-list>
-					{#each blocks as blockRow (serializeEntityId(blockRow.$id as EntityId<EntityType.EvmBlock>))}
-						<li>
-							<a
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
-									{
-										networkId: String(entityId.chainId),
-										blockNumber: String(blockRow.number),
-									},
-								)}
-							>
-								Block
-								{String(blockRow.number)}
+			{#snippet children(blockRows)}
+				<OrderedList
+					items={new SvelteSet(blockRows ?? [])}
+					getKey={evmBlockRowNumberKey}
+					placeholderRanges={[]}
+					orientation={ListOrientation.Column}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No recent blocks in collections for this network (resolve Blockscout / RPC).
+						</p>
+					{/snippet}
+
+					{#snippet Item({ item: row, isPlaceholder })}
+						{#if isPlaceholder}
+							<span data-placeholder>
+								…
+							</span>
+						{:else if row}
+							{@const link = evmBlockListLink(row[EntityMetaKey.Id])}
+							{#if link != null}
+								<EvmBlockView
+									entityId={{
+										$network: { chainId: link.chainId },
+										blockNumber: link.blockNumber,
+									}}
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
+										{
+											networkId: String(link.chainId),
+											blockNumber: String(link.blockNumber),
+										},
+									)}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
+							{:else}
 								<span data-text="muted">
-									·
-									{typeof blockRow.transactionCount === 'number' ?
-										`${blockRow.transactionCount} txs`
-									:	'—'}
+									{String(row[EntityMetaKey.Id])}
 								</span>
-							</a>
-						</li>
-					{/each}
-				</ul>
-			{/if}
-		</Boundary>
+							{/if}
+						{/if}
+					{/snippet}
+				</OrderedList>
+			{/snippet}
+		</QueryBoundary>
 	{/snippet}
 </EntitiesList>

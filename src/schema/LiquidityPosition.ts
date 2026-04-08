@@ -12,6 +12,7 @@ export default {
 	entityType: EntityType.LiquidityPosition,
 
 	label: 'Liquidity Position',
+	labelPlural: 'Liquidity Positions',
 
 	id: type({
 		$network: Network.id,

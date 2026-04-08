@@ -1,8 +1,3 @@
-// Types
-import type { Entity } from '$/schema/$schema.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-
-
 // Constants
 export enum CoinId {
 	AAVE = 'AAVE',
@@ -170,7 +165,11 @@ export const coins = [
 		symbol: 'XDC',
 		color: '#254C81',
 	},
-] as const satisfies readonly Entity<EntityType.Coin>[]
+] as const satisfies readonly {
+	id: CoinId
+	symbol: string
+	color: string
+}[]
 
 
 // Lookups

@@ -7,6 +7,7 @@ export default {
 	entityType: EntityType.BeaconQueue,
 
 	label: 'Beacon Queue',
+	labelPlural: 'Beacon Queues',
 
 	id: type({
 		$network: Network.id,

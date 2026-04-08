@@ -78,7 +78,14 @@ export const useNavigationItems = () => {
 					href: '/proposals',
 					icon: '🗳️',
 					defaultIsOpen: true,
-					children: [],
+					children: [
+						{
+							id: 'explore-proposals-caips',
+							title: 'CAIPs',
+							href: '/proposals/caips',
+							icon: '📎',
+						},
+					],
 				},
 				{
 					id: 'explore-forks',

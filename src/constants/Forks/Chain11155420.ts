@@ -2,7 +2,7 @@
  * OP Sepolia (chain 11155420) forks.
  */
 
-import type { Entity } from '$/schema/$schema.ts'
+import { type Entity, schema } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { Fork } from '$/constants/Forks/ForkTypes.ts'
 import { ethereumExecutionForkFromRow } from '$/constants/Forks/ForkTypes.ts'
@@ -79,6 +79,6 @@ const forkRows: readonly Fork<ForkId>[] = [
 
 const chainId = 11155420 as const
 
-export const ethereumExecutionForks: readonly Entity<EntityType.NetworkFork>[] = forkRows.map((row) => (
+export const ethereumExecutionForks: readonly Entity<typeof schema, EntityType.NetworkFork>[] = forkRows.map((row) => (
 	ethereumExecutionForkFromRow(chainId, row)
 ))

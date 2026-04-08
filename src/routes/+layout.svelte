@@ -40,7 +40,6 @@
 
 
 	// Components
-	import Boundary from '$/components/Boundary.svelte'
 	import Navigation from './Navigation.svelte'
 	import { asset } from '$app/paths'
 </script>
@@ -77,23 +76,12 @@
 		data-sticky-container
 		data-column="layout-flex"
 	>
-		<Boundary>
-			{#snippet Pending()}
-				<main
-					data-column
-					class="layout-boundary-loading"
-				>
-					<p data-text="muted">Loading…</p>
-				</main>
-			{/snippet}
-
-			<div
-				id="layout"
-				data-column
-			>
-				{@render children()}
-			</div>
-		</Boundary>
+		<div
+			class="layout-main"
+			data-column
+		>
+			{@render children()}
+		</div>
 	</div>
 </div>
 
@@ -129,15 +117,16 @@
 		> #main {
 			--sticky-paddingInlineStart: clamp(1rem, 6cqi, 2rem);
 			--sticky-paddingInlineEnd: clamp(1rem, 6cqi, 2rem);
+			--sticky-paddingBlockStart: 1.5rem;
+			--sticky-paddingBlockEnd: 1.5rem;
 
 			align-self: stretch;
+			padding: 1.5rem;
 
-			> #layout {
+			> .layout-main {
 				view-transition-name: Main;
 
-				min-height: 100%;	
-
-				padding: 1.5rem;
+				min-height: calc(100% - 3rem);
 
 				> :global([data-scroll-container]:only-child) {
 					--scrollContainer-sizeBlock: calc(100cqb - 3rem);

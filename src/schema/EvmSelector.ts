@@ -12,6 +12,7 @@ export default {
 	entityType: EntityType.EvmSelector,
 
 	label: 'EVM Selector',
+	labelPlural: 'EVM Selectors',
 
 	id: type({
 		hex: 'string.hex' as type.cast<`0x${string}`>,

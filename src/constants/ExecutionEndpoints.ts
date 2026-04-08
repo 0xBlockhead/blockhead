@@ -664,4 +664,4 @@ export const executionEndpoints = [
 export const executionEndpointsByChainId = Object.groupBy(
 	executionEndpoints,
 	(e) => e.chainId,
-) as Partial<Record<ChainId, (typeof executionEndpoints)[number][]>>
+)

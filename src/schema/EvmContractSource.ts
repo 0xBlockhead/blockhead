@@ -19,6 +19,7 @@ export default {
 	entityType: EntityType.EvmContractSource,
 
 	label: 'EVM Contract Source',
+	labelPlural: 'EVM Contract Sources',
 
 	id: EvmContract.id,
 

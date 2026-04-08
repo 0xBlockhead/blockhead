@@ -7,6 +7,7 @@ export default {
 	entityType: EntityType.BeaconValidator,
 
 	label: 'Beacon Validator',
+	labelPlural: 'Beacon Validators',
 
 	id: type({
 		$network: Network.id,

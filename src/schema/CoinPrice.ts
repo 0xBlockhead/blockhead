@@ -13,6 +13,7 @@ export default {
 	entityType: EntityType.CoinPrice,
 
 	label: 'Coin Price',
+	labelPlural: 'Coin Prices',
 
 	id: type({
 		$coin: Coin.id,

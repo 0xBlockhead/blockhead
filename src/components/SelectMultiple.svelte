@@ -23,7 +23,7 @@
 
 		Before,
 		After,
-		Item: ItemSnippet,
+		Item: _Item,
 		children,
 
 		placeholder,
@@ -175,8 +175,8 @@
 													✓
 												</span>
 
-												{#if ItemSnippet}
-													{@render ItemSnippet(item.item, selected)}
+												{#if _Item}
+													{@render _Item(item.item, selected)}
 												{:else}
 													{item.label}
 												{/if}
@@ -203,8 +203,8 @@
 											✓
 										</span>
 
-										{#if ItemSnippet}
-											{@render ItemSnippet(item.item, selected)}
+										{#if _Item}
+											{@render _Item(item.item, selected)}
 										{:else}
 											{item.label}
 										{/if}

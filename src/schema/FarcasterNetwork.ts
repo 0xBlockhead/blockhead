@@ -11,12 +11,25 @@ export default {
 	entityType: EntityType.FarcasterNetwork,
 
 	label: 'Farcaster Network',
+	labelPlural: 'Farcaster Networks',
 
 	id: type({
 		scope: type.unit('FarcasterNetwork'),
 	}),
 
 	fields: [
+		{
+			name: '$$casts',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.FarcasterCast,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$farcasterUsers',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.FarcasterUser,
+			cardinality: EntityFieldCardinality.Many,
+		},
 		{
 			name: '$$farcasterChannels',
 			type: EntityFieldType.EntitiesReference,

@@ -13,6 +13,7 @@ export default {
 	entityType: EntityType.ActorCoin,
 
 	label: 'Balance',
+	labelPlural: 'Balances',
 
 	id: type({
 		$actor: Actor.id,

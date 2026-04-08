@@ -3,7 +3,7 @@
 	generics="_EntityType extends EntityType"
 >
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
+	import { type EntityId, schema } from '$/schema/$schema.ts'
 	import type { EntityType } from '$/schema/$EntityType.ts'
 
 
@@ -16,7 +16,7 @@
 		children,
 	}: {
 		entityType: _EntityType
-		entityId: EntityId<_EntityType>
+		entityId: EntityId<typeof schema, _EntityType>
 		children?: Snippet
 	} = $props()
 

@@ -12,6 +12,7 @@ export default {
 	entityType: EntityType.EvmTopic,
 
 	label: 'EVM Topic',
+	labelPlural: 'EVM Topics',
 
 	id: type({
 		hex: 'string.hex' as type.cast<`0x${string}`>,

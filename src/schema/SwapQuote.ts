@@ -18,6 +18,7 @@ export default {
 	entityType: EntityType.SwapQuote,
 
 	label: 'Swap Quote',
+	labelPlural: 'Swap Quotes',
 
 	id: type({
 		id: 'string',

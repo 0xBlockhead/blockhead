@@ -48,7 +48,7 @@
 		getGroupLabel = (groupId: string) => groupId,
 		Before,
 		After,
-		Item: ItemSnippet,
+		Item: _Item,
 		children,
 		placeholder,
 		disabled,
@@ -163,8 +163,8 @@
 				<optgroup label={group.label}>
 					{#each group.items as item (item.id)}
 						<option value={item.id} disabled={item.disabled}>
-							{#if ItemSnippet}
-								{@render ItemSnippet(item.item, item.id === valueStr)}
+							{#if _Item}
+								{@render _Item(item.item, item.id === valueStr)}
 							{:else}
 								{item.label}
 							{/if}
@@ -175,8 +175,8 @@
 		{:else}
 			{#each normalizedItems as item (item.id)}
 				<option value={item.id} disabled={item.disabled}>
-					{#if ItemSnippet}
-						{@render ItemSnippet(item.item, item.id === valueStr)}
+					{#if _Item}
+						{@render _Item(item.item, item.id === valueStr)}
 					{:else}
 						{item.label}
 					{/if}

@@ -1,20 +1,48 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Sources.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
+	// Functions
+	const networkListItem = (network: unknown) => {
+		if (typeof network !== 'object' || network === null) return undefined
+		if (!(EntityMetaKey.Id in network)) return undefined
+		const id = Reflect.get(network, EntityMetaKey.Id)
+		const chainId = (
+			typeof id === 'object'
+			&& id !== null
+			&& 'chainId' in id
+		) ?
+			Reflect.get(id, 'chainId')
+		:
+			undefined
+		const name = (
+			'name' in network
+			&& typeof Reflect.get(network, 'name') === 'string'
+			&& String(Reflect.get(network, 'name')).length > 0
+		) ?
+			String(Reflect.get(network, 'name'))
+		:
+			undefined
+		return typeof chainId === 'number' ? { chainId, name } : undefined
+	}
+
+
 	// State
-	import { entityFieldCollections } from '$/data/collections/entityFieldCollections.ts'
-	import { sourcesForEntityFieldLiveQuery } from '$/data/tanstackDb/entityQuerySources.ts'
-	import { serializeEntityId } from '$/schema/$entityId.ts'
-	import { entityCollectionRow } from '$/schema/$EntityCollectionRow.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { inArray, useLiveQuery } from '@tanstack/svelte-db'
+	import { eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { entityFieldCollections } from '$/collections/$collections.ts'
 
 
 	// Props
@@ -36,55 +64,35 @@
 	> = $props()
 
 
-	// (Derived)
-	const networksLiveQuery = useLiveQuery((q) => (
-		q
-			.from({
-				row: entityFieldCollections[EntityType._Global]['$$networks'],
-			})
-			.where(({ row }) =>
-				inArray(
-					row[entityCollectionRow.source],
-					sourcesForEntityFieldLiveQuery(EntityType._Global, '$$networks'),
-				),
-			)
-			.select(({ row: networkRow }) => networkRow)
-	))
-
-	const listLoading = $derived(networksLiveQuery.isLoading)
-	const listError = $derived(networksLiveQuery.isError)
-
-	const networkChainIdFromRow = (networkRow: object) => {
-		const rowRecord = networkRow as Record<string, unknown>
-		const idPart = rowRecord.$id
-		if (
-			typeof idPart !== 'object' ||
-			idPart == null ||
-			Array.isArray(idPart)
-		)
-			return null
-		const chainId = (idPart as { chainId?: unknown }).chainId
-		return typeof chainId === 'number' ? chainId : null
-	}
-
-	const networkRowKey = (
-		networkRow: object,
-		networkIndex: number,
-	) => {
-		const rowRecord = networkRow as Record<string, unknown>
-		const src = rowRecord[entityCollectionRow.source]
-		const chainId = networkChainIdFromRow(networkRow)
-		return (
-			chainId != null ?
-				`${String(src ?? '')}\0${serializeEntityId({ chainId })}`
-			:	`invalid-network-${networkIndex}`
-		)
-	}
+	const networksQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ $$networks: entityFieldCollections[EntityType._Global]['$$networks'] })
+				.where(({ $$networks }) => (
+					eq(
+						$$networks[EntityMetaKey.ParentIdKey],
+						stringify({}),
+					)
+				))
+				.where(({ $$networks }) => (
+					eq(
+						$$networks[EntityMetaKey.Source],
+						Source.ChainList,
+					)
+				))
+				.select(({ $$networks }) => (
+					{
+						network: $$networks[EntityMetaKey.Value],
+					}
+				))
+		),
+	)
 
 
 	// Components
-	import Boundary from '$/components/Boundary.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -92,45 +100,43 @@
 	entityType={EntityType.Network}
 	{title}
 	bind:open
+	query={networksQuery}
+	items={new SvelteSet(networksQuery.data ?? [])}
+	getKey={(row) => stringify(row.network[EntityMetaKey.Id]) ?? ''}
+	getSortValue={(row) => (
+		networkListItem(row.network)?.chainId ?? 0
+	)}
+	placeholderKeys={new SvelteSet()}
+	unorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
-	{#snippet body()}
-		<Boundary>
-			{#snippet Failed(error, _retry)}
-				<p role="alert">
-					{String(error)}
-				</p>
-			{/snippet}
+	{#snippet Empty()}
+			<p data-text="muted">
+				No networks in collections (load global $$networks from ChainList).
+			</p>
+	{/snippet}
 
-			{#if listLoading}
-				<p data-text="muted">
-					Loading networks…
-				</p>
-			{:else if listError}
-				<p role="alert">
-					Could not load networks.
-				</p>
+	{#snippet Item({ item: row, isPlaceholder })}
+		{#if isPlaceholder}
+			<span data-placeholder>
+				…
+			</span>
+		{:else if row}
+			{@const item = networkListItem(row.network)}
+			{#if item != null}
+				<NetworkView
+					entityId={{ chainId: item.chainId }}
+					href={resolve('/(explore)/(networks)/network/[networkId]', {
+						networkId: String(item.chainId),
+					})}
+					layout={EntityLayout.Summary}
+					open={false}
+				/>
 			{:else}
-				<ul data-list>
-					{#each (networksLiveQuery.data ?? []) as networkRow, networkIndex (networkRowKey(networkRow, networkIndex))}
-						{@const chainId = networkChainIdFromRow(networkRow)}
-						{#if chainId != null}
-							<li>
-								<a
-									href={resolve('/(explore)/(networks)/network/[networkId]', {
-										networkId: String(chainId),
-									})}
-								>
-									{String((networkRow as Record<string, unknown>).name ?? 'Unknown')}
-									<span data-text="muted">
-										(chain {chainId})
-									</span>
-								</a>
-							</li>
-						{/if}
-					{/each}
-				</ul>
+				<span data-text="muted">
+					Network
+				</span>
 			{/if}
-		</Boundary>
+		{/if}
 	{/snippet}
 </EntitiesList>
