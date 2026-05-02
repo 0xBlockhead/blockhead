@@ -1,13 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -34,24 +31,20 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
-
-	const chainId = $derived(
-		typeof entityId?.$network?.chainId === 'number' ?
-			entityId.$network.chainId
-		:	undefined,
+	// Functions
+	const evmHexAddress40 = (value: string): value is `0x${string}` => (
+		/^0x[a-fA-F0-9]{40}$/.test(value)
 	)
 
 	// Components
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import Address from '$/views/Address.svelte'
 	import Boundary from '$/components/Boundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -63,7 +56,7 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Address</dt>
@@ -74,12 +67,6 @@
 					/>
 				</dd>
 			</div>
-			{#if chainId != null}
-				<div>
-					<dt>Chain ID</dt>
-					<dd>{String(chainId)}</dd>
-				</div>
-			{/if}
 		</dl>
 	{/snippet}
 
@@ -98,30 +85,32 @@
 				{/snippet}
 
 				<p data-text="muted">
-					ENS name and avatar resolve via field resolvers when available.
+					ENS name and avatar load when available.
 				</p>
 
-				{#if entityId.interopAddress != null && entityId.interopAddress !== ''}
+				{#if entityId.interopAddress !== undefined && entityId.interopAddress !== ''}
 					<dl>
 						<div>
 							<dt>Interop</dt>
-							<dd>{entityId.interopAddress}</dd>
+							<dd>
+								{#if evmHexAddress40(entityId.interopAddress)}
+									<Address
+										network={entityId.$network}
+										address={entityId.interopAddress}
+										showAvatar={false}
+									/>
+								{:else}
+									<TruncatedValue
+										value={entityId.interopAddress}
+										format={TruncatedValueFormat.Visual}
+									/>
+								{/if}
+							</dd>
 						</div>
 					</dl>
 				{/if}
 			</Boundary>
 		</EntityDetails>
-
-		{#if chainId != null}
-			<NetworkView
-				entityId={{ chainId }}
-				href={resolve('/(explore)/(networks)/network/[networkId]', {
-					networkId: String(chainId),
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
 
 		{#if children}
 			{@render children()}

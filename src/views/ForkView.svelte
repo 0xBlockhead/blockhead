@@ -86,7 +86,7 @@
 	const forkField = $derived(
 		(() => {
 			const bag = forkRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			return {
 				name: typeof b.name === 'string' && b.name.length ? b.name : undefined,
@@ -98,10 +98,6 @@
 		})(),
 	)
 
-	const displayTitle = $derived(
-		forkField?.name ?? entityId.forkId,
-	)
-
 	type ForkExplorerNavLink = {
 		key: string
 		href: string
@@ -109,7 +105,7 @@
 	}
 
 	const forkExplorerNavItems = $derived(
-		chainId == null ?
+		chainId === undefined ?
 			new SvelteSet<ForkExplorerNavLink>()
 		:
 			new SvelteSet<ForkExplorerNavLink>([
@@ -156,7 +152,7 @@
 	{entityId}
 	{href}
 	{open}
-	title={displayTitle}
+	title={forkField?.name ?? entityId.forkId}
 >
 	{#snippet Details({
 		open: _open,
@@ -179,9 +175,9 @@
 						)?.forkRow
 						?? rows?.[0]?.forkRow
 					)}
-					{#if forkRow == null}
+					{#if forkRow === undefined}
 						<p data-text="muted">
-							No fork row in collections yet (resolve fork catalog for this network).
+							No fork data for this network yet.
 						</p>
 					{:else}
 						<dl>
@@ -189,25 +185,25 @@
 								<dt>Fork id</dt>
 								<dd>{entityId.forkId}</dd>
 							</div>
-							{#if forkField?.slug != null}
+							{#if forkField?.slug !== undefined}
 								<div>
 									<dt>Slug</dt>
 									<dd>{forkField.slug}</dd>
 								</div>
 							{/if}
-							{#if forkField?.activationBlock != null}
+							{#if forkField?.activationBlock !== undefined}
 								<div>
 									<dt>Activation block</dt>
 									<dd>{String(forkField.activationBlock)}</dd>
 								</div>
 							{/if}
-							{#if forkField?.activationEpoch != null}
+							{#if forkField?.activationEpoch !== undefined}
 								<div>
 									<dt>Activation epoch</dt>
 									<dd>{String(forkField.activationEpoch)}</dd>
 								</div>
 							{/if}
-							{#if forkField?.kind != null}
+							{#if forkField?.kind !== undefined}
 								<div>
 									<dt>Kind</dt>
 									<dd>{forkField.kind}</dd>

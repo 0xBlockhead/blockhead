@@ -7,7 +7,8 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Sources.ts'
+import { Source } from '$/sources/$Source.ts'
+
 
 export default {
 	entityType: EntityType.Coin,
@@ -49,7 +50,53 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.CoinInstance,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Coingecko],
+			defaultSources: [Source.Coingecko_Rest],
+		},
+		{
+			name: '$$marketsWithCoinAsBase',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Market,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Constants_Internal,
+				Source.Coingecko_Rest,
+				Source.CoinMarketCap_Rest,
+				Source.Coinpaprika_OpenApi,
+				Source.Defillama_Rest,
+			],
+		},
+		{
+			name: '$$marketsWithCoinAsQuote',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Market,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Constants_Internal,
+				Source.Coingecko_Rest,
+				Source.CoinMarketCap_Rest,
+				Source.Coinpaprika_OpenApi,
+				Source.Defillama_Rest,
+			],
+		},
+		{
+			name: '$$marketPrice',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.MarketPrice,
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Constants_Internal,
+				Source.Coingecko_Rest,
+				Source.CoinMarketCap_Rest,
+				Source.Coinpaprika_OpenApi,
+				Source.Defillama_Rest,
+			],
+		},
+		{
+			name: '$$marketPriceRanges',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.MarketPriceRange,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Coingecko_Rest],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

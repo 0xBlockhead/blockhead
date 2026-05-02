@@ -75,5 +75,41 @@ export default {
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
+		{
+			name: 'replyCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'threadHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$channel',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.FarcasterChannel,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$postedViaApp',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.FarcasterUser,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'mentionedProfileFids',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number[]'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'mentionedChannelIds',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string[]'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 
@@ -43,8 +44,8 @@
 			| 'href'
 			| 'open'
 			| 'title'
-			| 'SummaryIcon'
-			| 'SummaryContent'
+			| 'Icon'
+			| 'Content'
 			| 'Details'
 		>
 	> = $props()
@@ -67,7 +68,7 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet SummaryIcon()}
+	{#snippet Icon()}
 		{#if icon}
 			<Icon
 				src={icon}
@@ -76,7 +77,7 @@
 		{/if}
 	{/snippet}
 
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Status</dt>
@@ -100,7 +101,7 @@
 				</div>
 			{/if}
 
-			{#if chainId != null}
+			{#if chainId !== undefined}
 				<div>
 					<dt>Chain</dt>
 					<dd>{String(chainId)}</dd>

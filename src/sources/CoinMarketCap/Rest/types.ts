@@ -25,12 +25,21 @@ export type CoinMarketCapQuotesLatestResponse = {
 	data?: Record<string, CoinMarketCapQuote>
 }
 
+export type CoinMarketCapPlatform = {
+	id?: number
+	name?: string
+	symbol?: string
+	slug?: string
+	token_address?: string
+}
+
 export type CoinMarketCapInfo = {
 	id?: number
 	name?: string
 	symbol?: string
 	slug?: string
 	logo?: string
+	platform?: CoinMarketCapPlatform | null
 }
 
 export type CoinMarketCapInfoLatestResponse = {

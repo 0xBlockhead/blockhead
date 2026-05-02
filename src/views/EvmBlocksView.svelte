@@ -2,40 +2,14 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import {
-		type EntityId,
-		schema,
-	} from '$/schema/$schema.ts'
+	import { type EntityFieldReference } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Sources.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// Functions
-	const evmBlockListLink = (id: unknown) => {
-		if (typeof id !== 'object' || id === null) return undefined
-		if (!('$network' in id) || !('blockNumber' in id)) return undefined
-		const nw = Reflect.get(id, '$network')
-		if (typeof nw !== 'object' || nw === null || !('chainId' in nw)) return undefined
-		const chainId = Reflect.get(nw, 'chainId')
-		const blockNumber = Reflect.get(id, 'blockNumber')
-		return (
-			typeof chainId === 'number'
-			&& typeof blockNumber === 'bigint' ?
-				{ chainId, blockNumber }
-			:
-				undefined
-		)
-	}
-
-	const evmBlockRowNumberKey = (row: { [EntityMetaKey.Id]: unknown }) => {
-		const link = evmBlockListLink(row[EntityMetaKey.Id])
-		return link != null ? Number(link.blockNumber) : 0
-	}
 
 
 	// State
@@ -43,12 +17,12 @@
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import { entityFieldCollections } from '$/collections/$collections.ts'
+	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
 	// Props
 	let {
-		entityId,
+		entityFieldReference,
 
 		title = 'Blocks',
 
@@ -57,7 +31,7 @@
 		...entitiesListProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.Network>
+			entityFieldReference: EntityFieldReference<typeof EntityType.EvmBlock>
 			title?: string
 			open?: boolean
 		},
@@ -68,11 +42,33 @@
 	> = $props()
 
 
-	// (Derived)
-	const networkIdKey = $derived(
-		stringify(entityId),
+	const blockHeightQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ blockHeight: entityFieldCollections[EntityType.Network].blockHeight! })
+				.where(({ blockHeight }) => (
+					eq(
+						blockHeight[EntityMetaKey.ParentIdKey],
+						stringify(entityFieldReference.entityId),
+					)
+				))
+				.where(({ blockHeight }) => (
+					eq(
+						blockHeight[EntityMetaKey.Source],
+						Source.Voltaire_JsonRpc,
+					)
+				))
+				.select(({ blockHeight }) => ({
+					height: blockHeight[EntityMetaKey.Value],
+				}))
+				.findOne()
+		),
+		[
+			() => entityFieldReference.entityType,
+			() => entityFieldReference.fieldName,
+			() => stringify(entityFieldReference.entityId),
+		],
 	)
-
 
 	const blocksQuery = useLiveQuery(
 		(queryBuilder) => (
@@ -81,22 +77,33 @@
 				.where(({ $$evmBlocks }) => (
 					eq(
 						$$evmBlocks[EntityMetaKey.ParentIdKey],
-						networkIdKey,
+						stringify(entityFieldReference.entityId),
 					)
 				))
 				.where(({ $$evmBlocks }) => (
 					eq(
 						$$evmBlocks[EntityMetaKey.Source],
-						Source.Blockscout,
+						Source.Voltaire_JsonRpc,
 					)
 				))
-				.select(({ $$evmBlocks }) => ({
-					[EntityMetaKey.Id]: (
-						$$evmBlocks[EntityMetaKey.Value][EntityMetaKey.Id]
-					),
-				}))
+				.orderBy(({ $$evmBlocks }) => (
+					$$evmBlocks[EntityMetaKey.IdKey]
+				), 'desc')
+				.limit(16)
+				.select(({ $$evmBlocks }) => (
+					{
+						[EntityMetaKey.Id]: (
+							$$evmBlocks[EntityMetaKey.Value][EntityMetaKey.Id]
+						),
+					}
+				))
 		),
-		[() => networkIdKey],
+		[
+			() => entityFieldReference.entityType,
+			() => entityFieldReference.fieldName,
+			() => stringify(entityFieldReference.entityId),
+			() => blockHeightQuery.data?.height,
+		],
 	)
 
 
@@ -121,17 +128,22 @@
 			query={blocksQuery}
 			placeholderText="Loading blocks…"
 		>
-
-			{#snippet children(blockRows)}
+			{#snippet children(blocks)}
 				<OrderedList
-					items={new SvelteSet(blockRows ?? [])}
-					getKey={evmBlockRowNumberKey}
+					data-e2e="network-blocks-list"
+					items={new SvelteSet(blocks ?? [])}
+					getKey={(row) => (
+						Number(
+							row[EntityMetaKey.Id].blockNumber,
+						)
+					)}
+					getStableItemKey={(row) => stringify(row[EntityMetaKey.Id])}
 					placeholderRanges={[]}
 					orientation={ListOrientation.Column}
 				>
 					{#snippet Empty()}
 						<p data-text="muted">
-							No recent blocks in collections for this network (resolve Blockscout / RPC).
+							No recent blocks for this network yet. Try again shortly.
 						</p>
 					{/snippet}
 
@@ -140,29 +152,23 @@
 							<span data-placeholder>
 								…
 							</span>
-						{:else if row}
-							{@const link = evmBlockListLink(row[EntityMetaKey.Id])}
-							{#if link != null}
-								<EvmBlockView
-									entityId={{
-										$network: { chainId: link.chainId },
-										blockNumber: link.blockNumber,
-									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
-										{
-											networkId: String(link.chainId),
-											blockNumber: String(link.blockNumber),
-										},
-									)}
-									layout={EntityLayout.Summary}
-									open={false}
-								/>
-							{:else}
-								<span data-text="muted">
-									{String(row[EntityMetaKey.Id])}
-								</span>
-							{/if}
+					{:else if row}
+						<EvmBlockView
+							entityId={row[EntityMetaKey.Id]}
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
+								{
+									networkId: String(
+										row[EntityMetaKey.Id].$network.chainId,
+									),
+									blockNumber: String(
+										row[EntityMetaKey.Id].blockNumber,
+									),
+								},
+							)}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
 						{/if}
 					{/snippet}
 				</OrderedList>

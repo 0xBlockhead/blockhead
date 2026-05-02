@@ -22,7 +22,9 @@
 	import type { VirtualRowMeasurement } from '$/lib/virtualRows.ts'
 	import type { Snippet } from 'svelte'
 	import { browser } from '$app/environment'
+	import { tick } from 'svelte'
 	import { SvelteSet } from 'svelte/reactivity'
+	import { createSerialViewTransitionRunner, supportsViewTransitions, viewTransitionName } from '$/lib/viewTransition.ts'
 	import { getVisibleVirtualRange, measureVirtualRows } from '$/lib/virtualRows.ts'
 	import { visibility } from '$/lib/visibility.ts'
 
@@ -31,6 +33,8 @@
 	type ItemRow = {
 		type: OrderedListRowType.Item
 		key: number
+		/** Svelte #each + visibility; use `getStableItemKey` when `getKey` (sort) is not unique. */
+		stableKey: string
 		item: _Item
 	}
 	type RangeRow = {
@@ -48,6 +52,12 @@
 		| RangeRow
 		| PaginationRow
 		| PlaceholderSentinelRow
+	type RenderState = {
+		empty: boolean
+		hasVirtual: boolean
+		manyItems: boolean
+		rows: Row[]
+	}
 
 
 	// Functions
@@ -86,7 +96,7 @@
 	}
 	const getRowKey = (row: Row) => (
 		isItemRow(row) ?
-			String(row.key)
+			row.stableKey
 		: isRangeRow(row) ?
 			`range:${row.range[0]}-${row.range[1]}`
 		:
@@ -132,12 +142,54 @@
 	const isPlaceholderSentinelRow = (row: Row): row is PlaceholderSentinelRow => (
 		row.type === OrderedListRowType.PlaceholderSentinel
 	)
+	const getNextRenderState = (): RenderState => (
+		hasVirtual ?
+			{
+				empty: isEmpty,
+				hasVirtual: true,
+				manyItems: false,
+				rows: virtualRows,
+			}
+		:
+			{
+				empty: isEmpty,
+				hasVirtual: false,
+				manyItems: allRows.length > 200,
+				rows: [
+					...allRows.slice(
+						0,
+						sliceLimit,
+					),
+					...(
+						pagination?.hasMore ?
+							[{ type: OrderedListRowType.Pagination } satisfies Row]
+						:
+							[]
+					),
+					...(
+						onLoadMorePlaceholders ?
+							[{ type: OrderedListRowType.PlaceholderSentinel } satisfies Row]
+						:
+							[]
+					),
+				],
+			}
+	)
+	const getRenderFingerprint = (renderState: RenderState): string => (
+		[
+			renderState.hasVirtual ? 'v' : 'n',
+			renderState.empty ? 'e' : 'o',
+			renderState.manyItems ? 'm' : 's',
+			...renderState.rows.map(getRowKey),
+		].join('\u001f')
+	)
 
 
 	// Props
 	let {
 		items = $bindable(new Set<_Item>()),
 		getKey,
+		getStableItemKey: getStableItemKeyOption,
 		sortDirection = SortDirection.Desc,
 		placeholderRanges,
 		summary = $bindable({ loaded: 0, total: undefined as number | undefined }),
@@ -147,6 +199,7 @@
 		scrollPosition = 'Auto',
 		orientation = ListOrientation.Column,
 		pagination,
+		listViewTransition = false,
 		virtual,
 		Item,
 		PlaceholderRange,
@@ -164,6 +217,8 @@
 		scrollPosition?: 'Start' | 'End' | 'Auto'
 		orientation?: ListOrientation
 		pagination?: ListPagination
+		listViewTransition?: boolean
+		getStableItemKey?: (item: _Item) => string
 		virtual?: VirtualRowMeasurement<Row>
 		Item: Snippet<
 			[
@@ -187,6 +242,9 @@
 		[key: string]: unknown
 	} = $props()
 
+	const getStableItemKey = (item: _Item) => (
+		getStableItemKeyOption?.(item) ?? String(getNumberKey(item))
+	)
 
 	// State
 	let listEl: HTMLOListElement | undefined = $state()
@@ -198,14 +256,17 @@
 		0,
 	])
 	let totalHeight = $state(0)
-	let visibleItemKeys = new SvelteSet<number>()
+	let scheduledRenderFingerprint = $state(null as string | null)
+	let visibleItemKeys = new SvelteSet<string>()
 	let visibleRangeStarts = new SvelteSet<string>()
 	let visibleRangeEnds = new SvelteSet<string>()
+	let transitionsArmed = $state(false)
+	let transitionsArmScheduled = false
 
 
 	// (Derived)
 	const hasVirtual = $derived(
-		browser && virtual != null
+		browser && virtual !== undefined
 	)
 	const sortedItems = $derived(
 		[...items].sort((a, b) => {
@@ -235,6 +296,7 @@
 			(item): Row => ({
 				type: OrderedListRowType.Item,
 				key: getNumberKey(item),
+				stableKey: getStableItemKey(item),
 				item,
 			}),
 		),
@@ -284,8 +346,27 @@
 	const sliceLimit = $derived(
 		sliceLimitProp ?? (onLoadMorePlaceholders ? 200 : 100),
 	)
+	const nextRenderState = $derived.by(getNextRenderState)
+	const nextRenderFingerprint = $derived(
+		getRenderFingerprint(nextRenderState)
+	)
+	let committedRenderState = $state.raw(getNextRenderState())
+	let committedRenderFingerprint = $state(getRenderFingerprint(getNextRenderState()))
+	const renderRows = $derived(
+		committedRenderState.rows
+	)
+	const renderHasVirtual = $derived(
+		committedRenderState.hasVirtual
+	)
+	const renderIsEmpty = $derived(
+		committedRenderState.empty
+	)
+	const renderManyItems = $derived(
+		committedRenderState.manyItems
+	)
+	const viewTransitionRunner = createSerialViewTransitionRunner()
 	const virtualRange = $derived(
-		hasVirtual ?
+		renderHasVirtual ?
 			getVisibleVirtualRange({
 				offsets,
 				scrollTop: virtualScrollTop,
@@ -334,8 +415,55 @@
 		}
 	})
 	$effect(() => {
+		const _nextRenderFingerprint = nextRenderFingerprint
 		if (
-			!hasVirtual
+			transitionsArmed
+			|| transitionsArmScheduled
+		) return
+
+		transitionsArmScheduled = true
+		void tick()
+			.then(() => tick())
+			.then(() => {
+				committedRenderState = nextRenderState
+				committedRenderFingerprint = nextRenderFingerprint
+				transitionsArmed = true
+			})
+			.finally(() => {
+				transitionsArmScheduled = false
+			})
+	})
+	$effect.pre(() => {
+		const nextState = nextRenderState
+		const nextFingerprint = nextRenderFingerprint
+		if (nextFingerprint === committedRenderFingerprint) {
+			scheduledRenderFingerprint = null
+			return
+		}
+		if (scheduledRenderFingerprint === nextFingerprint) return
+
+		if (
+			!browser
+			|| !listViewTransition
+			|| !transitionsArmed
+			|| !supportsViewTransitions()
+		) {
+			committedRenderState = nextState
+			committedRenderFingerprint = nextFingerprint
+			scheduledRenderFingerprint = null
+			return
+		}
+
+		scheduledRenderFingerprint = nextFingerprint
+		void viewTransitionRunner.start(() => {
+			committedRenderState = nextState
+			committedRenderFingerprint = nextFingerprint
+			scheduledRenderFingerprint = null
+		})
+	})
+	$effect(() => {
+		if (
+			!renderHasVirtual
 			|| !listEl
 		) return
 
@@ -380,12 +508,12 @@
 	})
 	$effect(() => {
 		if (
-			!hasVirtual
+			!renderHasVirtual
 			|| !virtual
 		) return
 
 		const next = measureVirtualRows({
-			rows: virtualRows,
+			rows: renderRows,
 			width: virtualMeasureWidth,
 			measurement: virtual,
 		})
@@ -396,9 +524,9 @@
 
 
 	// Actions
-	const setItemVisible = (key: number, visible: boolean) => {
-		if (visible) visibleItemKeys.add(key)
-		else visibleItemKeys.delete(key)
+	const setItemVisible = (stableKey: string, visible: boolean) => {
+		if (visible) visibleItemKeys.add(stableKey)
+		else visibleItemKeys.delete(stableKey)
 	}
 </script>
 
@@ -413,16 +541,17 @@
 			data-list-item
 			data-scroll-item="snap-block-start"
 			style:--index={index}
-			style:min-block-size={rowHeight != null ? `${rowHeight}px` : undefined}
+			style:view-transition-name={viewTransitionName(row.stableKey)}
+			style:min-block-size={rowHeight !== undefined ? `${rowHeight}px` : undefined}
 			{@attach visibility({
-				onChange: (visible) => setItemVisible(row.key, visible),
+				onChange: (visible) => setItemVisible(row.stableKey, visible),
 			})}
 		>
 			{@render Item({
 				key: row.key,
 				item: row.item,
 				isPlaceholder: false as const,
-				isVisible: visibleItemKeys.has(row.key),
+				isVisible: visibleItemKeys.has(row.stableKey),
 			})}
 		</li>
 	{:else if isRangeRow(row)}
@@ -436,7 +565,10 @@
 			data-placeholder-range
 			data-scroll-item="snap-block-start"
 			style:--index={index}
-			style:min-block-size={rowHeight != null ? `${rowHeight}px` : undefined}
+			style:view-transition-name={viewTransitionName(
+				`r-${row.range[0]}-${row.range[1]}`,
+			)}
+			style:min-block-size={rowHeight !== undefined ? `${rowHeight}px` : undefined}
 			class="range-row"
 			{@attach visibility({
 				onVisible: () => {
@@ -462,7 +594,7 @@
 			data-pagination
 			data-scroll-item="snap-block-start"
 			style:--index={index}
-			style:min-block-size={rowHeight != null ? `${rowHeight}px` : undefined}
+			style:min-block-size={rowHeight !== undefined ? `${rowHeight}px` : undefined}
 			{@attach visibility({ onVisible: pagination?.onLoadMore ?? (() => {}) })}
 		>
 			{#if pagination?.Placeholder}
@@ -484,7 +616,7 @@
 			data-placeholder-sentinel
 			data-scroll-item="snap-block-start"
 			style:--index={index}
-			style:min-block-size={rowHeight != null ? `${rowHeight}px` : undefined}
+			style:min-block-size={rowHeight !== undefined ? `${rowHeight}px` : undefined}
 			{@attach visibility({ onVisible: onLoadMorePlaceholders ?? (() => {}) })}
 		>
 			<span aria-hidden="true">&nbsp;</span>
@@ -493,21 +625,21 @@
 {/snippet}
 
 
-{#if isEmpty && Empty}
+{#if renderIsEmpty && Empty}
 	{@render Empty()}
 {:else}
 	<ol
 		bind:this={listEl}
 		class="list anchor-{scrollPosition.toLowerCase()}"
-		class:many-items={!hasVirtual && allRows.length > 200}
-		class:virtual={hasVirtual}
+		class:many-items={renderManyItems}
+		class:virtual={renderHasVirtual}
 		data-row={orientation === ListOrientation.Row ? '' : undefined}
 		data-column={orientation === ListOrientation.Column ? '' : undefined}
 		data-list="unstyled"
 		data-sticky-container
 		{...rootProps}
 	>
-		{#if hasVirtual}
+		{#if renderHasVirtual}
 			{#if topSpacerHeight > 0}
 				<li
 					aria-hidden="true"
@@ -516,9 +648,9 @@
 				></li>
 			{/if}
 
-			{#each virtualVisibleIndices as rowIndex (getRowKey(virtualRows[rowIndex]))}
+			{#each virtualVisibleIndices as rowIndex (getRowKey(renderRows[rowIndex]))}
 				{@render RowItem(
-					virtualRows[rowIndex],
+					renderRows[rowIndex],
 					rowIndex,
 					rowHeights[rowIndex],
 				)}
@@ -532,23 +664,9 @@
 				></li>
 			{/if}
 		{:else}
-			{#each allRows.slice(0, sliceLimit) as row, index (getRowKey(row))}
+			{#each renderRows as row, index (getRowKey(row))}
 				{@render RowItem(row, index)}
 			{/each}
-
-			{#if pagination?.hasMore}
-				{@render RowItem(
-					{ type: OrderedListRowType.Pagination },
-					allRows.length,
-				)}
-			{/if}
-
-			{#if onLoadMorePlaceholders}
-				{@render RowItem(
-					{ type: OrderedListRowType.PlaceholderSentinel },
-					allRows.length + (pagination?.hasMore ? 1 : 0),
-				)}
-			{/if}
 		{/if}
 	</ol>
 {/if}
@@ -557,8 +675,6 @@
 <style>
 	.list {
 		> li:not(.virtual-spacer) {
-			view-transition-name: var(--index);
-
 			display: grid;
 			max-block-size: 80vh;
 		}

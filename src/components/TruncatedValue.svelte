@@ -61,12 +61,9 @@
 		{#if startLength}
 			<span>{value.slice(0, startLength)}</span>
 		{/if}
-		<span
-			class="middle"
-			style:--l={value.length - startLength - endLength}
-		>
-			{#each value.slice(startLength, -endLength || undefined) as char, i}
-				<span style:--i={i}>{char}</span>
+		<span class="middle">
+			{#each value.slice(startLength, -endLength || undefined) as char}
+				<span>{char}</span>
 			{/each}
 		</span>
 		{#if endLength}
@@ -157,7 +154,16 @@
 
 			&.middle {
 				> span {
-					--d: (1 - sin(var(--i) / (var(--l) - 1) * 180deg));
+					--d: (
+						1
+						- sin(
+							calc(
+								(sibling-index() - 1)
+								* 180deg
+								/ max(1, sibling-count() - 1)
+							)
+						)
+					);
 
 					--x: (pow(var(--d), var(--isTruncated) * 2.5));
 

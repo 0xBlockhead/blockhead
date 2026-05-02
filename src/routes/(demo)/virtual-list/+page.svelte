@@ -6,20 +6,6 @@
 	}
 
 
-	// State
-	const rows = Array.from(
-		{
-			length: 400,
-		},
-		(_, i) => (
-			{
-				id: String(i),
-				text: `Row ${i}: ${'Lorem ipsum dolor sit amet. '.repeat(2 + (i % 5))}`,
-			} satisfies Row
-		),
-	)
-
-
 	// Components
 	import VirtualList from '$/components/VirtualList.svelte'
 </script>
@@ -44,7 +30,17 @@
 
 	<VirtualList
 		class="virtual-list-demo-viewport"
-		items={rows}
+		items={Array.from(
+			{
+				length: 400,
+			},
+			(_, i) => (
+				{
+					id: String(i),
+					text: `Row ${i}: ${'Lorem ipsum dolor sit amet. '.repeat(2 + (i % 5))}`,
+				} satisfies Row
+			),
+		)}
 		font="16px Ubuntu, system-ui, sans-serif"
 		getKey={(row) => row.id}
 		getMeasureText={(row) => row.text}
@@ -57,7 +53,9 @@
 			index,
 		})}
 			<p class="virtual-list-demo-line">
-				<span data-text="annotation">{index}</span>
+				<span data-text="annotation">
+					{String(index)}
+				</span>
 				{item.text}
 			</p>
 		{/snippet}

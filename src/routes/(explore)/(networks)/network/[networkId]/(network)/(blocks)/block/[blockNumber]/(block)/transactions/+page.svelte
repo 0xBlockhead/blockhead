@@ -4,29 +4,26 @@
 
 
 	// State
-	let {
-		params,
-	} = $props()
+	let { params } = $props()
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
+	import EvmBlockView from '$/views/EvmBlockView.svelte'
 </script>
 
 
 <Page>
 	<section>
-		<EvmTransactionsView
+		<EvmBlockView
 			entityId={{
 				$network: { chainId: Number(params.networkId) },
 				blockNumber: BigInt(params.blockNumber),
 			}}
 			href={resolve(
-				'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
+				'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
 				params,
 			)}
-			id="transactions"
 		/>
 	</section>
 </Page>

@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.FarcasterNetwork,
@@ -19,19 +20,54 @@ export default {
 
 	fields: [
 		{
-			name: '$$casts',
+			name: 'protocolName',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [Source.Farcaster_Rest],
+		},
+		{
+			name: 'homeUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [Source.Farcaster_Rest],
+		},
+		{
+			name: 'docsUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [Source.Farcaster_Rest],
+		},
+		{
+			name: 'registryLabel',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [Source.Farcaster_Rest],
+		},
+		{
+			name: 'topology',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [Source.Farcaster_Rest],
+		},
+		{
+			name: '$$feeds',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.FarcasterCast,
+			entityType: EntityType.FarcasterFeed,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$$farcasterUsers',
+			name: '$$users',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FarcasterUser,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
-			name: '$$farcasterChannels',
+			name: '$$channels',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FarcasterChannel,
 			cardinality: EntityFieldCardinality.Many,

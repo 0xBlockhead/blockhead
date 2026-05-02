@@ -1,15 +1,15 @@
 import type { Type as ArktypeType } from 'arktype'
 import type { EntityType } from '$/schema/$EntityType.ts'
-import type { Source } from '$/sources/$Sources.ts'
+import type { Source } from '$/sources/index.ts'
 
 export enum EntityMetaKey {
-	ParentId = '#parentId',
-	ParentIdKey = '#parentIdKey',
-	Id = '#id',
-	IdKey = '#idKey',
-	Source = '#source',
-	Fields = '#fields',
-	Value = '#value',
+	ParentId = '__parentId',
+	ParentIdKey = '__parentIdKey',
+	Id = '__id',
+	IdKey = '__idKey',
+	Source = '__source',
+	Fields = '__fields',
+	Value = '__value',
 }
 
 export enum EntityFieldType {

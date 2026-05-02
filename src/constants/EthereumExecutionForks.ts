@@ -1,5 +1,6 @@
 // Types/constants
-import { type Entity, schema } from '$/schema/$schema.ts'
+import type { Entity } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { ethereumExecutionForks as ethereumExecutionForks1 } from '$/constants/Forks/Chain1.ts'
@@ -21,6 +22,29 @@ export const ethereumExecutionForks = [
 	...ethereumExecutionForks11155111,
 	...ethereumExecutionForks11155420,
 ] as const satisfies readonly Entity<typeof schema, EntityType.NetworkFork>[]
+
+
+// Functions
+export const networkForkIdFromChainIdAndUrlSegment = (
+	chainId: number,
+	segment: string,
+): string | undefined => (
+	ethereumExecutionForks.find((row) => {
+		const id = row[EntityMetaKey.Id]
+		if (id.$network.chainId !== chainId) return false
+		const slugRaw = row.slug
+		const slug = typeof slugRaw === 'string' && slugRaw.length ?
+			slugRaw
+		:	id.forkId.toLowerCase().replace(/\s+/g, '-')
+		const { forkId } = id
+		return (
+			segment === forkId
+			|| segment === slug
+			|| segment.toLowerCase() === forkId.toLowerCase()
+			|| segment.toLowerCase() === slug.toLowerCase()
+		)
+	})?.[EntityMetaKey.Id].forkId
+)
 
 
 // Lookups

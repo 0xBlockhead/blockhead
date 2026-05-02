@@ -2,11 +2,12 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Sources.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
@@ -18,7 +19,7 @@
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -132,11 +133,8 @@
 		const fields = row?.[EntityMetaKey.Fields]
 		const value = (
 			typeof fields === 'object'
-			&& fields != null ?
-				Reflect.get(
-					Object(fields),
-					fieldName,
-				)
+			&& fields !== undefined ?
+				(Object(fields) as Record<string, unknown>)[fieldName]
 			:
 				undefined
 		)
@@ -180,12 +178,12 @@
 					{#snippet children(rows)}
 						{@const globalRow = (
 							rows?.find(
-								(r) => r.row[EntityMetaKey.Source] === Source._User,
+								(r) => r.row[EntityMetaKey.Source] === Source.Local_Internal,
 							)?.row
 							?? rows?.[0]?.row
 						)}
 						{@const duneRow = rows?.find(
-							(r) => r.row[EntityMetaKey.Source] === Source.Dune,
+							(r) => r.row[EntityMetaKey.Source] === Source.Dune_Rest,
 						)?.row}
 						{@const duneCreditsUsed = fieldNumber({
 							row: duneRow,
@@ -195,24 +193,24 @@
 							row: duneRow,
 							fieldName: 'duneCreditsIncluded',
 						})}
-						{#if globalRow == null}
+						{#if globalRow === undefined}
 							<p data-text="muted">
-								No global row in collections yet (Local resolver seeds this scope).
+								Nothing loaded for this view yet. Try again shortly.
 							</p>
 						{:else}
 							<p data-text="muted">
 								Global scope row ({String(globalRow[EntityMetaKey.Source])}).
 							</p>
 						{/if}
-						{#if duneCreditsUsed != null || duneCreditsIncluded != null}
+						{#if duneCreditsUsed !== undefined || duneCreditsIncluded !== undefined}
 							<dl>
-								{#if duneCreditsUsed != null}
+								{#if duneCreditsUsed !== undefined}
 									<div>
 										<dt>Dune credits used</dt>
 										<dd>{String(duneCreditsUsed)}</dd>
 									</div>
 								{/if}
-								{#if duneCreditsIncluded != null}
+								{#if duneCreditsIncluded !== undefined}
 									<div>
 										<dt>Dune credits included</dt>
 										<dd>{String(duneCreditsIncluded)}</dd>

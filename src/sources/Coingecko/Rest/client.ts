@@ -1,24 +1,20 @@
 import {
-	coingeckoDemoBaseUrl,
-	coingeckoProBaseUrl,
+	optionalPublicEnvString,
+} from '$/lib/sources.ts'
+import { Source } from '$/sources/$Source.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import {
+	demoBaseUrl,
+	proBaseUrl,
 } from '$/sources/Coingecko/Rest/constants.ts'
 
-const coingeckoDemoApiKey = () => {
-	const value = import.meta.env.PUBLIC_COINGECKO_DEMO_API_KEY
-	return typeof value === 'string' && value.trim() !== '' ? value.trim() : undefined
-}
-
-const coingeckoProApiKey = () => {
-	const value = import.meta.env.PUBLIC_COINGECKO_PRO_API_KEY
-	return typeof value === 'string' && value.trim() !== '' ? value.trim() : undefined
-}
-
 export const coingeckoRestFetch = (
+	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
 	path: string,
 	init?: RequestInit,
 ): Promise<Response> => {
-	const proApiKey = coingeckoProApiKey()
-	const demoApiKey = coingeckoDemoApiKey()
+	const proApiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_COINGECKO_PRO_API_KEY')
+	const demoApiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_COINGECKO_DEMO_API_KEY')
 	const headers = new Headers({
 		Accept: 'application/json',
 	})
@@ -32,7 +28,7 @@ export const coingeckoRestFetch = (
 	}
 
 	return fetch(
-		`${proApiKey != null ? coingeckoProBaseUrl : coingeckoDemoBaseUrl}${path}`,
+		`${proApiKey != null ? proBaseUrl : demoBaseUrl}${path}`,
 		{
 			...init,
 			headers,

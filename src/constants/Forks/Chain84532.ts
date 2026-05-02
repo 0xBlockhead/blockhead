@@ -2,7 +2,8 @@
  * Base Sepolia (chain 84532) forks.
  */
 
-import { type Entity, schema } from '$/schema/$schema.ts'
+import type { Entity } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { Fork } from '$/constants/Forks/ForkTypes.ts'
 import { ethereumExecutionForkFromRow } from '$/constants/Forks/ForkTypes.ts'

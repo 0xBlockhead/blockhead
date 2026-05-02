@@ -1,87 +1,149 @@
-import { schema } from '$/schema/$schema.ts'
+import type { QueryClient } from '@tanstack/query-core'
+import { parseLoadSubsetOptions } from '@tanstack/svelte-db'
 
-import AlliumRestResolvers from '$/resolvers/Allium-Rest.ts'
-import BlockscoutRestResolvers from '$/resolvers/Blockscout-Rest.ts'
-import CaipsGithubResolvers from '$/resolvers/Caips-Github.ts'
-import ChainlistRestResolvers from '$/resolvers/Chainlist-Rest.ts'
-import CoingeckoRestResolvers from '$/resolvers/Coingecko-Rest.ts'
-import CoinMarketCapRestResolvers from '$/resolvers/CoinMarketCap-Rest.ts'
-import CoinpaprikaOpenApiResolvers from '$/resolvers/Coinpaprika-OpenApi.ts'
-import ConstantsResolvers from '$/resolvers/Constants.ts'
-import DexscreenerOpenApiResolvers from '$/resolvers/Dexscreener-OpenApi.ts'
-import DefillamaRestResolvers from '$/resolvers/Defillama-Rest.ts'
-import DuneRestResolvers from '$/resolvers/Dune-Rest.ts'
-import EnsipsGithubResolvers from '$/resolvers/Ensips-Github.ts'
-import EthereumEipsGithubResolvers from '$/resolvers/EthereumEips-Github.ts'
-import FarcasterRestResolvers from '$/resolvers/Farcaster-Rest.ts'
-import LifiRestResolvers from '$/resolvers/Lifi-Rest.ts'
-import LocalResolvers from '$/resolvers/Local.ts'
-import NeynarRestResolvers from '$/resolvers/Neynar-Rest.ts'
-import OpenchainRestResolvers from '$/resolvers/Openchain-Rest.ts'
-import SnapchainRestResolvers from '$/resolvers/Snapchain-Rest.ts'
-import SourcifyRestResolvers from '$/resolvers/Sourcify-Rest.ts'
-import VoltaireJsonRpcResolvers from '$/resolvers/Voltaire-JsonRpc.ts'
+import type {
+	EntityFieldValue,
+	EntityFieldValues,
+	EntityId,
+	EntityType,
+	Schema,
+} from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
+import type { Source } from '$/sources/$Source.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
 
-const resolverModules = [
-	LocalResolvers,
-	ConstantsResolvers,
-	AlliumRestResolvers,
-	CaipsGithubResolvers,
-	ChainlistRestResolvers,
-	CoingeckoRestResolvers,
-	CoinMarketCapRestResolvers,
-	CoinpaprikaOpenApiResolvers,
-	DexscreenerOpenApiResolvers,
-	DefillamaRestResolvers,
-	DuneRestResolvers,
-	EnsipsGithubResolvers,
-	EthereumEipsGithubResolvers,
-	BlockscoutRestResolvers,
-	LifiRestResolvers,
-	FarcasterRestResolvers,
-	NeynarRestResolvers,
-	SnapchainRestResolvers,
-	OpenchainRestResolvers,
-	SourcifyRestResolvers,
-	VoltaireJsonRpcResolvers,
-]
+export type ResolverLoadSubset<_Source extends Source = Source> = ReturnType<typeof parseLoadSubsetOptions> & {
+	/** Keys validated by provider+source env schemas for this resolver’s source (empty object when no env schema exists). */
+	publicEnv: SourcePublicEnvFor<_Source>
+}
 
-// const resolverModules = [
-// 	(await import('$/resolvers/Local.ts')).default,
-// 	(await import('$/resolvers/Caips-Github.ts')).default,
-// 	(await import('$/resolvers/Chainlist-Rest.ts')).default,
-// 	(await import('$/resolvers/Ensips-Github.ts')).default,
-// 	(await import('$/resolvers/EthereumEips-Github.ts')).default,
-// 	(await import('$/resolvers/Evm-JsonRpc.ts')).default,
-// 	(await import('$/resolvers/Openchain-Rest.ts')).default,
-// 	(await import('$/resolvers/Voltaire-JsonRpc.ts')).default,
-// ]
+/** `loadSubsetOptions.limit` from the live query (undefined when the query has no `LIMIT`). */
+export const resolverLoadSubsetRowLimit = (
+	context: ResolverLoadSubset | undefined,
+): number | undefined => context?.limit
 
-export const entityResolvers = (
-	resolverModules.flatMap((m) => [...m.entityResolvers])
+export const sourcePublicEnv = <_Source extends Source>(
+	context: ResolverLoadSubset | undefined,
+	_source: _Source,
+): SourcePublicEnvFor<_Source> => (
+	(context?.publicEnv ?? {}) as SourcePublicEnvFor<_Source>
 )
 
-export const entityFieldResolvers = (
-	resolverModules.flatMap((m) => [...m.entityFieldResolvers])
-)
+export type ResolveLiveContext<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = {
+	parentEntityId: EntityId<_Schema, _EntityType>
+	queryClient: QueryClient
+	signal: AbortSignal
+	invalidate: (
+		fieldNames: readonly string[],
+		options?: {
+			parentEntityIds?: readonly EntityId<_Schema, _EntityType>[]
+			sources?: readonly Source[]
+		},
+	) => void | Promise<void>
+	/**
+	 * Deletes entity-field rows for the given field whose parent matches `parentEntityIds`
+	 * (default: current `parentEntityId`) and optional `sources` filter.
+	 */
+	deleteEntityFieldRows: (
+		fieldName: string,
+		options?: {
+			parentEntityIds?: readonly EntityId<_Schema, _EntityType>[]
+			sources?: readonly Source[]
+		},
+	) => void
+	/** Direct TanStack DB query-collection upserts (no refetch). */
+	writeEntityFieldUpserts: (
+		fieldName: string,
+		rows: readonly {
+			parentEntityId?: EntityId<_Schema, _EntityType>
+			parentIdKey?: string
+			source: Source
+			value: unknown
+		}[],
+	) => void
+}
 
-export const entityResolversByEntityType = Object.groupBy(
-	entityResolvers,
-	(entityResolver) => entityResolver.entityType,
-)
+export type EntityLiveResolver<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = {
+	entityType: _EntityType
+	source: Source
+	resolveLive: (ctx: ResolveLiveContext<_Schema, _EntityType>) => (
+		void
+		| Promise<void>
+		| (() => void)
+		| Promise<() => void>
+	)
+}
 
-export const entityFieldResolversByEntityType = Object.groupBy(
-	entityFieldResolvers,
-	(fieldResolver) => fieldResolver.entityType,
-)
+export type EntityLiveResolverDefinition<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = Omit<EntityLiveResolver<_Schema, _EntityType>, 'source'>
 
-export const entityFieldResolversByEntityTypeAndFieldName = Object.fromEntries(
-	Object.entries(entityFieldResolversByEntityType)
-		.map(([entityType, entityFieldResolvers]) => [
-			entityType,
-			Object.groupBy(
-				entityFieldResolvers,
-				(fieldResolver) => fieldResolver.fieldName,
-			),
-		]),
-)
+export type EntityResolver<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = {
+	entityType: _EntityType
+	source: Source
+	resolve: (
+		entityId: EntityId<_Schema, _EntityType>,
+		context?: ResolverLoadSubset,
+	) => Promise<Partial<EntityFieldValues<_Schema, _EntityType>>>
+}
+
+export type EntityResolverDefinition<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = Omit<EntityResolver<_Schema, _EntityType>, 'source'>
+
+export type EntityFieldResolver<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_ResolverFieldKey extends string = string,
+> = {
+	entityType: _EntityType
+	fieldName: _ResolverFieldKey
+	source: Source
+	/** Long-running sync; wire via `useEntityFieldResolveLive` / `runEntityFieldResolveLiveForParent` in `$/lib/db/resolveLive.svelte.ts` (default field list: `entityFieldNamesWithResolveLiveByEntityType` from `$/resolvers/index.ts`). */
+	resolveLive?: (ctx: ResolveLiveContext<_Schema, _EntityType>) => (
+		void
+	| Promise<void>
+	| (() => void)
+	| Promise<() => void>
+	)
+	resolve: (
+		scopedEntityId: EntityId<_Schema, _EntityType>,
+		context?: ResolverLoadSubset,
+	) => Promise<EntityFieldValue<_Schema, _EntityType, _ResolverFieldKey>>
+}
+
+export type EntityFieldResolverDefinition<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_ResolverFieldKey extends string = string,
+> = Omit<EntityFieldResolver<_Schema, _EntityType, _ResolverFieldKey>, 'source'>
+
+export const defineEntityResolver = <_EntityType extends EntityType<typeof schema>>(
+	entityResolver: EntityResolverDefinition<typeof schema, _EntityType>,
+) => entityResolver
+
+export const defineEntityFieldResolver = <
+	_EntityType extends EntityType<typeof schema>,
+	_ResolverFieldKey extends string,
+>(
+	entityFieldResolver: EntityFieldResolverDefinition<
+		typeof schema,
+		_EntityType,
+		_ResolverFieldKey
+	>,
+) => entityFieldResolver
+
+export const defineEntityLiveResolver = <_EntityType extends EntityType<typeof schema>>(
+	entityLiveResolver: EntityLiveResolverDefinition<typeof schema, _EntityType>,
+) => entityLiveResolver

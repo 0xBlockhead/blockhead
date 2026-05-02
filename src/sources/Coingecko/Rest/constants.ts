@@ -1,62 +1,69 @@
 import { CoinId } from '$/constants/Coin.ts'
 
-export const coingeckoDemoBaseUrl = 'https://api.coingecko.com/api/v3'
+/** Demo vs pro API hosts (REST path {@link pathPrefix}). */
+export const demoOrigin = 'https://api.coingecko.com' as const
+export const proOrigin = 'https://pro-api.coingecko.com' as const
 
-export const coingeckoProBaseUrl = 'https://pro-api.coingecko.com/api/v3'
+export const pathPrefix = '/api/v3' as const
 
-const coingeckoCoinCatalog = [
-	{ coinId: CoinId.AAVE, coingeckoId: 'aave', decimals: 18 },
-	{ coinId: CoinId.ADA, coingeckoId: 'cardano', decimals: 6 },
-	{ coinId: CoinId.APT, coingeckoId: 'aptos', decimals: 8 },
-	{ coinId: CoinId.ARB, coingeckoId: 'arbitrum', decimals: 18 },
-	{ coinId: CoinId.AVAX, coingeckoId: 'avalanche-2', decimals: 18 },
-	{ coinId: CoinId.BNB, coingeckoId: 'binancecoin', decimals: 18 },
-	{ coinId: CoinId.BTC, coingeckoId: 'bitcoin', decimals: 8 },
-	{ coinId: CoinId.CELO, coingeckoId: 'celo', decimals: 18 },
-	{ coinId: CoinId.EDU, coingeckoId: 'open-campus', decimals: 18 },
-	{ coinId: CoinId.ETH, coingeckoId: 'ethereum', decimals: 18 },
-	{ coinId: CoinId.FIL, coingeckoId: 'filecoin', decimals: 18 },
-	{ coinId: CoinId.LINK, coingeckoId: 'chainlink', decimals: 18 },
-	{ coinId: CoinId.MATIC, coingeckoId: 'matic-network', decimals: 18 },
-	{ coinId: CoinId.MITO, coingeckoId: undefined, decimals: 18 },
-	{ coinId: CoinId.OP, coingeckoId: 'optimism', decimals: 18 },
-	{ coinId: CoinId.POL, coingeckoId: 'polygon-ecosystem-token', decimals: 18 },
-	{ coinId: CoinId.S, coingeckoId: undefined, decimals: 18 },
-	{ coinId: CoinId.SEI, coingeckoId: 'sei-network', decimals: 18 },
-	{ coinId: CoinId.SOL, coingeckoId: 'solana', decimals: 9 },
-	{ coinId: CoinId.STETH, coingeckoId: 'staked-ether', decimals: 18 },
-	{ coinId: CoinId.TAC, coingeckoId: undefined, decimals: 18 },
-	{ coinId: CoinId.UNI, coingeckoId: 'uniswap', decimals: 18 },
-	{ coinId: CoinId.USDC, coingeckoId: 'usd-coin', decimals: 6 },
-	{ coinId: CoinId.USDT, coingeckoId: 'tether', decimals: 6 },
-	{ coinId: CoinId.WBTC, coingeckoId: 'wrapped-bitcoin', decimals: 8 },
-	{ coinId: CoinId.XDC, coingeckoId: 'xdce', decimals: 18 },
+export const demoBaseUrl = `${demoOrigin}${pathPrefix}` as const
+
+export const proBaseUrl = `${proOrigin}${pathPrefix}` as const
+
+const catalog = [
+	{ coinId: CoinId.AAVE, wireId: 'aave', decimals: 18 },
+	{ coinId: CoinId.ADA, wireId: 'cardano', decimals: 6 },
+	{ coinId: CoinId.APT, wireId: 'aptos', decimals: 8 },
+	{ coinId: CoinId.ARB, wireId: 'arbitrum', decimals: 18 },
+	{ coinId: CoinId.AVAX, wireId: 'avalanche-2', decimals: 18 },
+	{ coinId: CoinId.BNB, wireId: 'binancecoin', decimals: 18 },
+	{ coinId: CoinId.BTC, wireId: 'bitcoin', decimals: 8 },
+	{ coinId: CoinId.CELO, wireId: 'celo', decimals: 18 },
+	{ coinId: CoinId.EDU, wireId: 'open-campus', decimals: 18 },
+	{ coinId: CoinId.ETH, wireId: 'ethereum', decimals: 18 },
+	{ coinId: CoinId.FIL, wireId: 'filecoin', decimals: 18 },
+	{ coinId: CoinId.LINK, wireId: 'chainlink', decimals: 18 },
+	{ coinId: CoinId.MATIC, wireId: 'matic-network', decimals: 18 },
+	{ coinId: CoinId.MITO, wireId: 'mitosis', decimals: 18 },
+	{ coinId: CoinId.OP, wireId: 'optimism', decimals: 18 },
+	{ coinId: CoinId.POL, wireId: 'polygon-ecosystem-token', decimals: 18 },
+	{ coinId: CoinId.S, wireId: 'sonic-3', decimals: 18 },
+	{ coinId: CoinId.SEI, wireId: 'sei-network', decimals: 18 },
+	{ coinId: CoinId.SOL, wireId: 'solana', decimals: 9 },
+	{ coinId: CoinId.STETH, wireId: 'staked-ether', decimals: 18 },
+	{ coinId: CoinId.TAC, wireId: 'tac', decimals: 18 },
+	{ coinId: CoinId.UNI, wireId: 'uniswap', decimals: 18 },
+	{ coinId: CoinId.USDC, wireId: 'usd-coin', decimals: 6 },
+	{ coinId: CoinId.USDT, wireId: 'tether', decimals: 6 },
+	{ coinId: CoinId.WBTC, wireId: 'wrapped-bitcoin', decimals: 8 },
+	{ coinId: CoinId.XDC, wireId: 'xdce', decimals: 18 },
 ] as const satisfies readonly {
 	coinId: CoinId
-	coingeckoId?: string
+	wireId?: string
 	decimals?: number
 }[]
 
-export const coingeckoIdByCoinId = Object.fromEntries(
-	coingeckoCoinCatalog
+/** CoinGecko coin id strings (`/coins/{id}` path segment). */
+export const idByCoinId = Object.fromEntries(
+	catalog
 		.flatMap((entry) => (
-			entry.coingeckoId == null ?
+			entry.wireId == null ?
 				[]
-			:	[[entry.coinId, entry.coingeckoId] as const]
+			:	[[entry.coinId, entry.wireId] as const]
 		)),
 ) as Partial<Record<CoinId, string>>
 
-export const coinIdByCoingeckoId = Object.fromEntries(
-	coingeckoCoinCatalog
+export const coinIdByWireId = Object.fromEntries(
+	catalog
 		.flatMap((entry) => (
-			entry.coingeckoId == null ?
+			entry.wireId == null ?
 				[]
-			:	[[entry.coingeckoId, entry.coinId] as const]
+			:	[[entry.wireId, entry.coinId] as const]
 		)),
 ) as Partial<Record<string, CoinId>>
 
-export const coinDecimalsByCoinId = Object.fromEntries(
-	coingeckoCoinCatalog
+export const decimalsByCoinId = Object.fromEntries(
+	catalog
 		.flatMap((entry) => (
 			entry.decimals == null ?
 				[]

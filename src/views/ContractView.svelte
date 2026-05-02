@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -14,8 +15,7 @@
 	// State
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -42,19 +42,11 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
-
 	const contractIdKey = $derived(
 		stringify(entityId),
-	)
-
-	const chainId = $derived(
-		typeof entityId?.$network?.chainId === 'number' ?
-			entityId.$network.chainId
-		:	undefined,
 	)
 
 	const contractQuery = useLiveQuery(
@@ -79,7 +71,7 @@
 	const contractField = $derived(
 		(() => {
 			const bag = contractRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			return {
 				abi: typeof b.abi === 'string' && b.abi.length ? b.abi : undefined,
@@ -105,7 +97,7 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Address</dt>
@@ -116,12 +108,6 @@
 					/>
 				</dd>
 			</div>
-			{#if chainId != null}
-				<div>
-					<dt>Chain ID</dt>
-					<dd>{String(chainId)}</dd>
-				</div>
-			{/if}
 		</dl>
 	{/snippet}
 
@@ -140,13 +126,13 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No contract row in collections yet (no resolver row for this address).
+							No contract data for this address yet.
 						</p>
 					{:else}
 						<dl>
-							{#if contractField?.abi != null}
+							{#if contractField?.abi !== undefined}
 								<div>
 									<dt>ABI</dt>
 									<dd>

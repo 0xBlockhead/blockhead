@@ -8,11 +8,11 @@
 
 
 	// Functions
-	const navIconProps = (icon: string) => (
-		icon.startsWith('data:') || icon.startsWith('/') || icon.startsWith('http') ?
-			{ src: icon }
+	const navIconProps = (string: string) => (
+		/^data:|^\/\^http/.test(string) ?
+			{ src: string }
 		:
-			{ icon }
+			{ icon: string }
 	)
 
 
@@ -271,13 +271,15 @@
 
 <style>
 	.nav-items {
-		:global(menu) {
-			gap: 2px;
-			list-style: none;
-			font-size: 0.975em;
+		:global {
+			menu {
+				gap: 2px;
+				list-style: none;
+				font-size: 0.975em;
 
-			li {
-				display: grid;
+				li {
+					display: grid;
+				}
 			}
 		}
 

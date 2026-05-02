@@ -1,18 +1,21 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { resolve } from '$app/paths'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
+
+	import { mergeEntityCollectionRowFields } from '$/collections/mergeEntityCollectionRowFields.ts'
 
 
 	// State
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -37,9 +40,9 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'SummaryIcon'
-			| 'SummaryHeadingAfter'
-			| 'SummaryContent'
+			| 'Icon'
+			| 'HeadingAfter'
+			| 'Content'
 		>
 	> = $props()
 
@@ -51,6 +54,12 @@
 	const farcasterUserIdKey = $derived(
 		stringify(entityId),
 	)
+
+	const farcasterUserMergeSourceOrder = [
+		Source.Neynar_Rest,
+		Source.Snapchain_Rest,
+		Source.Farcaster_Rest,
+	] as const
 
 	const userQuery = useLiveQuery(
 		(queryBuilder) => (
@@ -67,40 +76,24 @@
 		[() => farcasterUserIdKey],
 	)
 
-	const farcasterUserRow = $derived(
-		userQuery.data?.[0]?.row,
-	)
-
-	const userField = $derived(
-		(() => {
-			const bag = farcasterUserRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
-			const pick = (key: string) => {
-				const x = Reflect.get(b, key)
-				return typeof x === 'string' && x.length ? x : undefined
-			}
-			return {
-				username: pick('username'),
-				displayName: pick('displayName'),
-				pfpUrl: pick('pfpUrl'),
-				bio: pick('bio'),
-				url: pick('url'),
-				verifiedAddress: pick('verifiedAddress'),
-			}
-		})(),
+	const userFields = $derived(
+		mergeEntityCollectionRowFields(
+			EntityType.FarcasterUser,
+			userQuery.data,
+			farcasterUserMergeSourceOrder,
+		),
 	)
 
 	const displayTitle = $derived(
-		userField?.displayName
-		?? userField?.username
+		userFields.displayName
+		?? userFields.username
 		?? `FID ${String(entityId.fid)}`,
 	)
 
 	const verifiedIsEvmHex = $derived(
-		userField?.verifiedAddress != null
-		&& evmHexAddress40(userField.verifiedAddress) ?
-			userField.verifiedAddress
+		userFields.verifiedAddress !== undefined
+		&& evmHexAddress40(userFields.verifiedAddress) ?
+			userFields.verifiedAddress
 		:
 			undefined,
 	)
@@ -110,9 +103,10 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import Media from '$/components/Media.svelte'
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import Address from '$/views/Address.svelte'
-	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 </script>
 
 
@@ -124,40 +118,40 @@
 	{...entityViewRest}
 	title={displayTitle}
 >
-	{#snippet SummaryIcon()}
-		{#if userField?.pfpUrl != null}
+	{#snippet Icon()}
+		{#if userFields.pfpUrl !== undefined}
 			<Icon
 				shape={IconShape.Circle}
-				src={userField.pfpUrl}
+				src={userFields.pfpUrl}
 				alt=""
 			/>
 		{/if}
 	{/snippet}
 
-	{#snippet SummaryHeadingAfter()}
-		{#if userField?.username != null && userField.username !== displayTitle}
+	{#snippet HeadingAfter()}
+		{#if userFields.username !== undefined && userFields.username !== displayTitle}
 			<span data-text="muted">
-				@{userField.username}
+				@{userFields.username}
 			</span>
 		{/if}
 	{/snippet}
 
-	{#snippet SummaryContent()}
-		<div data-stack="tight">
-			{#if userField?.bio != null}
+	{#snippet Content()}
+		<div data-column>
+			{#if userFields.bio !== undefined}
 				<p data-text="muted">
-					{userField.bio}
+					{userFields.bio}
 				</p>
 			{/if}
-			{#if userField?.url != null}
+			{#if userFields.url !== undefined}
 				<p>
 					<a
-						href={userField.url}
+						href={userFields.url}
 						data-text="muted"
-					>{userField.url}</a>
+					>{userFields.url}</a>
 				</p>
 			{/if}
-			{#if verifiedIsEvmHex != null}
+			{#if verifiedIsEvmHex !== undefined}
 				<p data-row="inline wrap gap-2">
 					<span data-text="muted">Verified</span>
 					<Address
@@ -165,14 +159,19 @@
 						showAvatar={false}
 					/>
 				</p>
-			{:else if userField?.verifiedAddress != null}
+			{:else if userFields.verifiedAddress !== undefined}
 				<p data-text="muted">
-					{userField.verifiedAddress}
+					<TruncatedValue
+						value={userFields.verifiedAddress}
+						format={TruncatedValueFormat.Visual}
+					/>
 				</p>
 			{/if}
-			<p data-text="muted">
-				FID {String(entityId.fid)}
-			</p>
+			{#if displayTitle !== `FID ${String(entityId.fid)}`}
+				<p data-text="muted">
+					FID {String(entityId.fid)}
+				</p>
+			{/if}
 		</div>
 	{/snippet}
 
@@ -187,52 +186,48 @@
 				query={userQuery}
 			>
 
-				{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+				{#snippet children(farcasterUserResultRows)}
+					{#if farcasterUserResultRows == null || farcasterUserResultRows.length === 0}
 						<p data-text="muted">
-							No Farcaster user row in collections yet (no resolver for this FID).
-						</p>
-					{:else if userField == null}
-						<p data-text="muted">
-							FID {String(entityId.fid)}
+							No Farcaster profile for this id yet.
 						</p>
 					{:else}
-						<section data-stack="tight">
+						<section data-column>
 							<h3>Farcaster profile</h3>
 							<dl>
 								<div>
 									<dt>FID</dt>
 									<dd>{String(entityId.fid)}</dd>
 								</div>
-								{#if userField.displayName != null}
+								{#if userFields.displayName !== undefined}
 									<div>
 										<dt>Name</dt>
-										<dd>{userField.displayName}</dd>
+										<dd>{userFields.displayName}</dd>
 									</div>
 								{/if}
-								{#if userField.username != null}
+								{#if userFields.username !== undefined}
 									<div>
 										<dt>Username</dt>
 										<dd>
-											@{userField.username}
+											@{userFields.username}
 										</dd>
 									</div>
 								{/if}
-								{#if userField.bio != null}
+								{#if userFields.bio !== undefined}
 									<div>
 										<dt>Bio</dt>
-										<dd>{userField.bio}</dd>
+										<dd>{userFields.bio}</dd>
 									</div>
 								{/if}
-								{#if userField.url != null}
+								{#if userFields.url !== undefined}
 									<div>
 										<dt>Link</dt>
 										<dd>
-											<a href={userField.url}>{userField.url}</a>
+											<a href={userFields.url}>{userFields.url}</a>
 										</dd>
 									</div>
 								{/if}
-								{#if verifiedIsEvmHex != null}
+								{#if verifiedIsEvmHex !== undefined}
 									<div>
 										<dt>Verified address</dt>
 										<dd>
@@ -242,19 +237,23 @@
 											/>
 										</dd>
 									</div>
-								{:else if userField.verifiedAddress != null}
+								{:else if userFields.verifiedAddress !== undefined}
 									<div>
 										<dt>Verified address</dt>
-										<dd>{userField.verifiedAddress}</dd>
+										<dd>
+											<TruncatedValue
+												value={userFields.verifiedAddress}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</dd>
 									</div>
 								{/if}
 							</dl>
-							{#if userField.pfpUrl != null}
+							{#if userFields.pfpUrl !== undefined}
 								<p>
-									<Icon
-										src={userField.pfpUrl}
-										alt=""
-										size="6rem"
+									<Media
+										media={{ url: userFields.pfpUrl }}
+										alt={userFields.displayName ?? userFields.username ?? ''}
 									/>
 								</p>
 							{/if}
@@ -263,15 +262,6 @@
 				{/snippet}
 			</QueryBoundary>
 		</EntityDetails>
-
-		<FarcasterCastsView
-			href={resolve('/farcaster/feed')}
-			id={`${farcasterUserIdKey}:casts`}
-			open={false}
-			parentEntityType={EntityType.FarcasterUser}
-			parentEntityId={entityId}
-			title="Casts"
-		/>
 
 		{#if children}
 			{@render children()}

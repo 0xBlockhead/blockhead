@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -11,7 +12,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -36,7 +37,6 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
@@ -67,7 +67,7 @@
 	const stateChannelField = $derived(
 		(() => {
 			const bag = stateChannelRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			const bigString = (v: unknown) => (
 				typeof v === 'bigint' ?
@@ -91,22 +91,16 @@
 		})(),
 	)
 
-	const displayTitle = $derived(
-		stateChannelField?.status
-		?? (
-			stateChannelField?.turnNum != null ?
-				`Turn ${String(stateChannelField.turnNum)}`
-			: undefined
-		)
-		?? stateChannelField?.totalDeposited
-		?? `Channel ${entityId.id}`,
+	const stateChTs = $derived(
+		stateChannelField?.updatedAt
+		?? stateChannelField?.createdAt
 	)
-
 
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -116,18 +110,29 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
+	title={stateChannelField?.status ?? (stateChannelField?.turnNum !== undefined ? `Turn ${String(stateChannelField.turnNum)}` : undefined) ?? stateChannelField?.totalDeposited ?? `Channel ${entityId.id}`}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Channel id</dt>
 				<dd>{entityId.id}</dd>
 			</div>
-			{#if stateChannelField?.status != null}
+			{#if stateChannelField?.status !== undefined}
 				<div>
 					<dt>Status</dt>
 					<dd>{stateChannelField.status}</dd>
+				</div>
+			{/if}
+			{#if stateChTs !== undefined && typeof stateChTs === 'number' && Number.isFinite(stateChTs)}
+				<div>
+					<dt>Timestamp</dt>
+					<dd>
+						<Timestamp
+							timestamp={stateChTs}
+							format={TimestampFormat.Both}
+						/>
+					</dd>
 				</div>
 			{/if}
 		</dl>
@@ -148,52 +153,62 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No state channel row in collections yet (no resolver for this channel id).
+							No state channel data for this id yet.
 						</p>
 					{:else}
 						<dl>
-							{#if stateChannelField?.totalDeposited != null}
+							{#if stateChannelField?.totalDeposited !== undefined}
 								<div>
 									<dt>Total deposited</dt>
 									<dd>{stateChannelField.totalDeposited}</dd>
 								</div>
 							{/if}
-							{#if stateChannelField?.balance0 != null}
+							{#if stateChannelField?.balance0 !== undefined}
 								<div>
 									<dt>Balance 0</dt>
 									<dd>{stateChannelField.balance0}</dd>
 								</div>
 							{/if}
-							{#if stateChannelField?.balance1 != null}
+							{#if stateChannelField?.balance1 !== undefined}
 								<div>
 									<dt>Balance 1</dt>
 									<dd>{stateChannelField.balance1}</dd>
 								</div>
 							{/if}
-							{#if stateChannelField?.turnNum != null}
+							{#if stateChannelField?.turnNum !== undefined}
 								<div>
 									<dt>Turn</dt>
 									<dd>{String(stateChannelField.turnNum)}</dd>
 								</div>
 							{/if}
-							{#if stateChannelField?.status != null}
+							{#if stateChannelField?.status !== undefined}
 								<div>
 									<dt>Status</dt>
 									<dd>{stateChannelField.status}</dd>
 								</div>
 							{/if}
-							{#if stateChannelField?.createdAt != null}
+							{#if stateChannelField?.createdAt !== undefined && typeof stateChannelField.createdAt === 'number' && Number.isFinite(stateChannelField.createdAt)}
 								<div>
 									<dt>Created at</dt>
-									<dd>{String(stateChannelField.createdAt)}</dd>
+									<dd>
+										<Timestamp
+											timestamp={stateChannelField.createdAt}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
 								</div>
 							{/if}
-							{#if stateChannelField?.updatedAt != null}
+							{#if stateChannelField?.updatedAt !== undefined && typeof stateChannelField.updatedAt === 'number' && Number.isFinite(stateChannelField.updatedAt)}
 								<div>
 									<dt>Updated at</dt>
-									<dd>{String(stateChannelField.updatedAt)}</dd>
+									<dd>
+										<Timestamp
+											timestamp={stateChannelField.updatedAt}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
 								</div>
 							{/if}
 						</dl>

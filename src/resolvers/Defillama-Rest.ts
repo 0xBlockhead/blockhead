@@ -1,70 +1,180 @@
 import { CoinId } from '$/constants/Coin.ts'
-import { defineEntityResolver } from '$/resolvers/$defineEntityResolvers.ts'
+import { MarketAssetKind, MarketVenue } from '$/constants/Market.ts'
+import {
+	defineEntityFieldResolver,
+	defineEntityResolver,
+} from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import type { EntityId } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
+import { defillamaCurrentPriceIdByCoinId } from '$/sources/Defillama/Rest/constants.ts'
 import { getCurrentPrices } from '$/sources/Defillama/Rest/queries.ts'
-import { Source } from '$/sources/$Sources.ts'
-
-const coinIdToCoingeckoRef: Partial<Record<CoinId, string>> = {
-	[CoinId.AAVE]: 'coingecko:aave',
-	[CoinId.ADA]: 'coingecko:cardano',
-	[CoinId.APT]: 'coingecko:aptos',
-	[CoinId.ARB]: 'coingecko:arbitrum',
-	[CoinId.AVAX]: 'coingecko:avalanche-2',
-	[CoinId.BNB]: 'coingecko:binancecoin',
-	[CoinId.BTC]: 'coingecko:bitcoin',
-	[CoinId.CELO]: 'coingecko:celo',
-	[CoinId.EDU]: 'coingecko:open-campus',
-	[CoinId.ETH]: 'coingecko:ethereum',
-	[CoinId.FIL]: 'coingecko:filecoin',
-	[CoinId.LINK]: 'coingecko:chainlink',
-	[CoinId.MATIC]: 'coingecko:matic-network',
-	[CoinId.OP]: 'coingecko:optimism',
-	[CoinId.POL]: 'coingecko:polygon-ecosystem-token',
-	[CoinId.SEI]: 'coingecko:sei-network',
-	[CoinId.SOL]: 'coingecko:solana',
-	[CoinId.STETH]: 'coingecko:staked-ether',
-	[CoinId.UNI]: 'coingecko:uniswap',
-	[CoinId.USDC]: 'coingecko:usd-coin',
-	[CoinId.USDT]: 'coingecko:tether',
-	[CoinId.WBTC]: 'coingecko:wrapped-bitcoin',
-	[CoinId.XDC]: 'coingecko:xdce',
-}
 
 export default {
+	source: Source.Defillama_Rest,
+
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.CoinPrice,
-			source: Source.Defillama,
+			entityType: EntityType.MarketPrice,
 			resolve: async (entityId) => {
+				const coinId = (
+					entityId.$market.$base.kind === MarketAssetKind.Coin ?
+						entityId.$market.$base.$coin.coinId
+					:	undefined
+				)
 				const llamaId = (
-					typeof entityId.feedKey === 'string' && entityId.feedKey.trim() !== '' ?
+					entityId.feedKey?.trim() ?
 						entityId.feedKey.trim()
 					: entityId.$network != null ?
 						(
-							entityId.$coin.coinId === CoinId.ETH && entityId.$network.chainId === 1 ?
-								'coingecko:ethereum'
+							coinId === CoinId.ETH && entityId.$network.chainId === 1 ?
+								defillamaCurrentPriceIdByCoinId[CoinId.ETH]
 							:
 								undefined
 						)
+					: coinId != null ?
+						defillamaCurrentPriceIdByCoinId[coinId]
 					:
-						coinIdToCoingeckoRef[entityId.$coin.coinId]
+						undefined
 				)
-				if (llamaId == null) return {}
-				const data = await getCurrentPrices([llamaId])
-				const row = data.coins[llamaId]
-				if (row == null) return {}
-				const tsSec = row.timestamp
+				if (llamaId == null) throw new Error('Defillama_Rest: no price id')
+				const priceRow = (await getCurrentPrices([llamaId])).coins[llamaId]
+				if (priceRow == null) throw new Error('Defillama_Rest: price row missing')
+				const timestampSeconds = priceRow.timestamp
 				return {
 					[EntityMetaKey.Id]: entityId,
-					price: BigInt(Math.round(row.price * 1e8)),
-					timestampNs: BigInt(tsSec) * 1_000_000_000n,
-					updatedAt: tsSec * 1000,
+					price: BigInt(Math.round(priceRow.price * 1e8)),
+					timestampNs: BigInt(timestampSeconds) * 1_000_000_000n,
+					updatedAt: timestampSeconds * 1000,
 					transport: 'defillama-usd-1e8',
-					encodedAssetId: llamaId,
+					providerAssetId: llamaId,
 				}
 			},
 		}),
 	],
-	entityFieldResolvers: [],
+
+	entityFieldResolvers: [
+		defineEntityFieldResolver({
+			entityType: EntityType._Global,
+			fieldName: '$$markets',
+			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
+				Object.values(CoinId)
+					.flatMap((coinId) => (
+						defillamaCurrentPriceIdByCoinId[coinId] != null ?
+							[
+								{
+									[EntityMetaKey.Id]: {
+										$base: {
+											kind: MarketAssetKind.Coin,
+											$coin: { coinId },
+										},
+										$quote: {
+											kind: MarketAssetKind.Currency,
+											iso4217: 'USD',
+										},
+										venue: MarketVenue.SpotIndex,
+									} as const,
+								},
+							]
+						:
+							[]
+					))
+			),
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType._Global,
+			fieldName: '$$marketPrices',
+			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
+				Object.values(CoinId)
+					.flatMap((coinId) => (
+						defillamaCurrentPriceIdByCoinId[coinId] != null ?
+							[
+								{
+									[EntityMetaKey.Id]: {
+										$market: {
+											$base: {
+												kind: MarketAssetKind.Coin,
+												$coin: { coinId },
+											},
+											$quote: {
+												kind: MarketAssetKind.Currency,
+												iso4217: 'USD',
+											},
+											venue: MarketVenue.SpotIndex,
+										} as const,
+									},
+								},
+							]
+						:
+							[]
+					))
+			),
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.Coin,
+			fieldName: '$$marketsWithCoinAsBase',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => (
+				defillamaCurrentPriceIdByCoinId[entityId.coinId] != null ?
+					[
+						{
+							[EntityMetaKey.Id]: {
+								$base: {
+									kind: MarketAssetKind.Coin,
+									$coin: { coinId: entityId.coinId },
+								},
+								$quote: {
+									kind: MarketAssetKind.Currency,
+									iso4217: 'USD',
+								},
+								venue: MarketVenue.SpotIndex,
+							} as const,
+						},
+					]
+				:
+					[]
+			),
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.Coin,
+			fieldName: '$$marketsWithCoinAsQuote',
+			resolve: async () => (
+				[]
+			),
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.Coin,
+			fieldName: '$$marketPrice',
+			resolve: async (entityId) => (
+				defillamaCurrentPriceIdByCoinId[entityId.coinId] != null ?
+					{
+						[EntityMetaKey.Id]: {
+							$market: {
+								$base: {
+									kind: MarketAssetKind.Coin,
+									$coin: { coinId: entityId.coinId },
+								},
+								$quote: {
+									kind: MarketAssetKind.Currency,
+									iso4217: 'USD',
+								},
+								venue: MarketVenue.SpotIndex,
+							} as const,
+						},
+					}
+				:
+					undefined
+			),
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.MarketPrice,
+			fieldName: '$$parentMarket',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
+				{
+					[EntityMetaKey.Id]: entityId.$market,
+				}
+			),
+		}),
+	],
 }

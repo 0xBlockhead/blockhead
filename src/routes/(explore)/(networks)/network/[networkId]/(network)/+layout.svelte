@@ -1,7 +1,10 @@
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import { stringify } from 'devalue'
+	import { resolve } from '$app/paths'
+	import NetworkView from '$/views/NetworkView.svelte'
 
 
 	// State
@@ -9,17 +12,22 @@
 		children,
 		params,
 	} = $props()
-
-
-	// Components
-	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 </script>
 
 
-<ParentPageCollapsible
-	title={'Network'}
-	href={resolve('/(explore)/(networks)/network/[networkId]', params)}
-	id={stringify({ chainId: Number(params.networkId) })}
->
-	{@render children()}
-</ParentPageCollapsible>
+{#key params.networkId}
+	<ParentPageCollapsible
+		href={resolve('/(explore)/(networks)/network/[networkId]', params)}
+		id={stringify({ chainId: Number(params.networkId) })}
+	>
+		{#snippet Summary({ open: _open })}
+			<NetworkView
+				entityId={{ chainId: Number(params.networkId) }}
+				href={resolve('/(explore)/(networks)/network/[networkId]', params)}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/snippet}
+
+		{@render children()}
+	</ParentPageCollapsible>
+{/key}

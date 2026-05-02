@@ -1,4 +1,4 @@
-import { publicCoinsBaseUrl } from '$/sources/Defillama/Rest/constants.ts'
+import { coinsBaseUrl } from '$/sources/Defillama/Rest/constants.ts'
 import type { paths } from '$/sources/Defillama/OpenApi/openapi.d.ts'
 
 type CurrentPricesSuccess = (
@@ -38,7 +38,7 @@ export const getCurrentPricesJson = async ({
 		withSearchWidth(
 			new URL(
 				`/prices/current/${coins.join(',')}`,
-				publicCoinsBaseUrl,
+				coinsBaseUrl,
 			),
 			searchWidth,
 		),

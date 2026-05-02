@@ -1,57 +1,21 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
-} from '$/resolvers/$defineEntityResolvers.ts'
+} from '$/resolvers/$resolvers.ts'
+import { farcasterNetworkFieldValues } from '$/constants/Social/Farcaster.ts'
+import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import { schema } from '$/schema/$schema.ts'
-import type { Entity } from '$/schema/$schema.ts'
+import { type Entity } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import type { FarcasterChannelWire } from '$/sources/Farcaster/Rest/types.ts'
-import { Source } from '$/sources/$Sources.ts'
-
-const stringValue = (value: unknown) => (
-	typeof value === 'string' && value.trim() !== '' ? value.trim() : undefined
-)
-
-const userRefFromFid = (fid: number | undefined) => (
-	fid == null ?
-		undefined
-	:	{
-			[EntityMetaKey.Id]: {
-				fid,
-			},
-		} as Entity<typeof schema, EntityType.FarcasterUser>
-)
-
-const channelFieldsFromWire = (channel: FarcasterChannelWire) => ({
-	name: stringValue(channel.name) ?? channel.id,
-	url: stringValue(channel.url),
-	description: stringValue(channel.description),
-	imageUrl: stringValue(channel.imageUrl),
-	headerImageUrl: stringValue(channel.headerImageUrl),
-	$lead: userRefFromFid(channel.leadFid),
-	$moderator: userRefFromFid(channel.moderatorFids?.[0]),
-	$$moderators: (channel.moderatorFids ?? []).flatMap((fid) => {
-		const userRef = userRefFromFid(fid)
-		return userRef == null ? [] : [userRef]
-	}),
-	createdAt: channel.createdAt,
-	followerCount: channel.followerCount,
-	memberCount: channel.memberCount,
-	pinnedCastHash: stringValue(channel.pinnedCastHash),
-	publicCasting: channel.publicCasting,
-	externalLinkTitle: stringValue(channel.externalLink?.title),
-	externalLinkUrl: stringValue(channel.externalLink?.url),
-	followedAt: channel.followedAt,
-})
 
 export default {
+	source: 'Farcaster_Rest' satisfies import('$/sources/$Source.ts').Source,
+
 	entityResolvers: [
 		defineEntityResolver({
 			entityType: EntityType.FarcasterUser,
-			source: Source.Farcaster,
 			resolve: async (entityId) => {
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
 				const { getPrimaryAddress } = await import('$/sources/Farcaster/Rest/queries.ts')
 				const verifiedAddress = (
 					await singleFlight(getPrimaryAddress)({
@@ -64,43 +28,121 @@ export default {
 					})
 				)
 
-				return verifiedAddress == null ?
-					{}
-				:	{
-						verifiedAddress,
-					}
+				if (verifiedAddress == null) throw new Error('Farcaster_Rest: verified address not found')
+				return {
+					verifiedAddress,
+				}
 			},
 		}),
 		defineEntityResolver({
 			entityType: EntityType.FarcasterChannel,
-			source: Source.Farcaster,
 			resolve: async (entityId) => {
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
 				const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
+				const trimmedNonEmptyString = (value: string | undefined) => (
+					value?.trim() ? value.trim() : undefined
+				)
 				const channel = await singleFlight(getChannel)(entityId.id)
-				return channel == null ? {} : channelFieldsFromWire(channel)
+				if (channel == null) throw new Error('Farcaster_Rest: channel not found')
+				return {
+					name: trimmedNonEmptyString(channel.name) ?? channel.id,
+					url: trimmedNonEmptyString(channel.url),
+					description: trimmedNonEmptyString(channel.description),
+					imageUrl: trimmedNonEmptyString(channel.imageUrl),
+					headerImageUrl: trimmedNonEmptyString(channel.headerImageUrl),
+					$lead: (
+						channel.leadFid == null ?
+							undefined
+						:	({
+								[EntityMetaKey.Id]: { fid: channel.leadFid },
+							} satisfies Entity<typeof schema, EntityType.FarcasterUser>)
+					),
+					$moderator: (
+						channel.moderatorFids?.[0] == null ?
+							undefined
+						:	({
+								[EntityMetaKey.Id]: { fid: channel.moderatorFids[0] },
+							} satisfies Entity<typeof schema, EntityType.FarcasterUser>)
+					),
+					$$moderators: (channel.moderatorFids ?? []).flatMap((moderatorFid) => (
+						moderatorFid == null ?
+							[]
+						:	[{
+								[EntityMetaKey.Id]: { fid: moderatorFid },
+							} satisfies Entity<typeof schema, EntityType.FarcasterUser>]
+					)),
+					createdAt: ((rawCreatedAt) => (
+						typeof rawCreatedAt === 'number' && Number.isFinite(rawCreatedAt) ?
+							rawCreatedAt >= 1e12 ?
+								rawCreatedAt
+							:
+								rawCreatedAt * 1000
+						:
+							undefined
+					))(channel.createdAt),
+					followerCount: channel.followerCount,
+					memberCount: channel.memberCount,
+					pinnedCastHash: trimmedNonEmptyString(channel.pinnedCastHash),
+					publicCasting: channel.publicCasting,
+					externalLinkTitle: trimmedNonEmptyString(channel.externalLink?.title),
+					externalLinkUrl: trimmedNonEmptyString(channel.externalLink?.url),
+					followedAt: ((rawFollowedAt) => (
+						typeof rawFollowedAt === 'number' && Number.isFinite(rawFollowedAt) ?
+							rawFollowedAt >= 1e12 ?
+								rawFollowedAt
+							:
+								rawFollowedAt * 1000
+						:
+							undefined
+					))(channel.followedAt),
+				}
 			},
 		}),
 		defineEntityResolver({
 			entityType: EntityType.FarcasterNetwork,
-			source: Source.Farcaster,
-			resolve: async () => ({}),
+			resolve: async () => (
+				farcasterNetworkFieldValues
+			),
+		}),
+		defineEntityResolver({
+			entityType: EntityType.FarcasterFeed,
+			resolve: async (entityId) => (
+				entityId.variant === 'trending' ?
+					{ label: 'Trending' }
+				: entityId.variant === 'byUser' ?
+					{ label: `FID ${String(entityId.fid)}` }
+				: entityId.variant === 'byChannel' ?
+					{ label: entityId.channelId }
+				:
+					{ label: 'Following' }
+			),
 		}),
 	],
+
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
 			entityType: EntityType.FarcasterNetwork,
-			fieldName: '$$farcasterChannels',
-			source: Source.Farcaster,
+			fieldName: '$$feeds',
+			resolve: async () => (
+				[
+					{
+						[EntityMetaKey.Id]: {
+							variant: 'trending',
+						},
+					} satisfies Entity<typeof schema, EntityType.FarcasterFeed>,
+				]
+			),
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.FarcasterNetwork,
+			fieldName: '$$channels',
 			resolve: async () => {
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
 				const { getAllChannels } = await import('$/sources/Farcaster/Rest/queries.ts')
 				return (await singleFlight(getAllChannels)())
-					.map((channel) => ({
+					.map((farcasterChannel) => (({
 						[EntityMetaKey.Id]: {
-							id: channel.id,
+							id: farcasterChannel.id,
 						},
-					}) as Entity<typeof schema, EntityType.FarcasterChannel>)
+					}) satisfies Entity<typeof schema, EntityType.FarcasterChannel>))
 			},
 		}),
 	],

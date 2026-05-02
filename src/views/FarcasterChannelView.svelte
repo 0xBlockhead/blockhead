@@ -2,7 +2,8 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -12,7 +13,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -37,18 +38,17 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
-			| 'SummaryIcon'
+			| 'Icon'
 		>
 	> = $props()
 
 
 	const refUserFid = (ref: unknown) => (
-		ref != null
+		ref !== undefined
 		&& typeof ref === 'object'
 		&& EntityMetaKey.Id in ref
 		&& typeof (ref as { ['#id']?: { fid?: unknown } })[EntityMetaKey.Id] === 'object'
-		&& (ref as { ['#id']: { fid?: unknown } })[EntityMetaKey.Id] != null
+		&& (ref as { ['#id']: { fid?: unknown } })[EntityMetaKey.Id] !== undefined
 		&& typeof (ref as { ['#id']: { fid: number } })[EntityMetaKey.Id].fid === 'number' ?
 			(ref as { ['#id']: { fid: number } })[EntityMetaKey.Id].fid
 		:
@@ -81,7 +81,7 @@
 	const channelField = $derived(
 		(() => {
 			const bag = channelRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			const moderatorsRaw = b.$$moderators
 			const moderators = (
@@ -113,41 +113,13 @@
 		})(),
 	)
 
-	const displayTitle = $derived(
-		channelField?.name ?? entityId.id,
-	)
-
-	const createdAtLabel = $derived(
-		channelField?.createdAt == null ?
-			undefined
-		:
-			new Date(
-				channelField.createdAt > 1e12 ?
-					channelField.createdAt
-				:
-					channelField.createdAt * 1000,
-			).toISOString(),
-	)
-
-	const followedAtLabel = $derived(
-		channelField?.followedAt == null ?
-			undefined
-		:
-			new Date(
-				channelField.followedAt > 1e12 ?
-					channelField.followedAt
-				:
-					channelField.followedAt * 1000,
-			).toISOString(),
-	)
-
-
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import Media from '$/components/Media.svelte'
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 </script>
 
 
@@ -157,16 +129,15 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
+	title={channelField?.name ?? entityId.id}
 >
-	{#snippet SummaryContent()}
-		<div data-stack="tight">
-			{#if channelField?.headerImageUrl != null}
+	{#snippet Content()}
+		<div data-column>
+			{#if channelField?.headerImageUrl !== undefined}
 				<p>
-					<img
-						src={channelField.headerImageUrl}
-						alt=""
-						data-fit="cover"
+					<Media
+						media={{ url: channelField.headerImageUrl }}
+						fit="cover"
 					/>
 				</p>
 			{/if}
@@ -175,26 +146,37 @@
 					<dt>Channel id</dt>
 					<dd>{entityId.id}</dd>
 				</div>
-				{#if channelField?.followerCount != null}
+				{#if channelField?.followerCount !== undefined}
 					<div>
 						<dt>Followers</dt>
 						<dd>{String(channelField.followerCount)}</dd>
 					</div>
 				{/if}
-				{#if channelField?.memberCount != null}
+				{#if channelField?.memberCount !== undefined}
 					<div>
 						<dt>Members</dt>
 						<dd>{String(channelField.memberCount)}</dd>
 					</div>
 				{/if}
-				{#if channelField?.publicCasting != null}
+				{#if channelField?.publicCasting !== undefined}
 					<div>
 						<dt>Public casting</dt>
 						<dd>{channelField.publicCasting ? 'Yes' : 'No'}</dd>
 					</div>
 				{/if}
+				{#if channelField?.createdAt !== undefined && typeof channelField.createdAt === 'number' && Number.isFinite(channelField.createdAt)}
+					<div>
+						<dt>Timestamp</dt>
+						<dd>
+							<Timestamp
+								timestamp={channelField.createdAt}
+								format={TimestampFormat.Both}
+							/>
+						</dd>
+					</div>
+				{/if}
 			</dl>
-			{#if channelField?.description != null}
+			{#if channelField?.description !== undefined}
 				<p data-text="muted">
 					{channelField.description}
 				</p>
@@ -214,28 +196,27 @@
 			>
 
 				{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No channel row in collections yet (no resolver for this channel id).
+							No channel data for this id yet.
 						</p>
-					{:else if channelField == null}
+					{:else if channelField === undefined}
 						<p data-text="muted">
 							{entityId.id}
 						</p>
 					{:else}
-						<section data-stack="tight">
+						<section data-column>
 							<h3>Channel</h3>
-							{#if channelField.headerImageUrl != null}
+							{#if channelField.headerImageUrl !== undefined}
 								<p>
-									<img
-										src={channelField.headerImageUrl}
-										alt=""
-										data-fit="cover"
+									<Media
+										media={{ url: channelField.headerImageUrl }}
+										fit="cover"
 									/>
 								</p>
 							{/if}
 							<dl>
-								{#if channelField.name != null}
+								{#if channelField.name !== undefined}
 									<div>
 										<dt>Name</dt>
 										<dd>{channelField.name}</dd>
@@ -245,7 +226,7 @@
 									<dt>Channel id</dt>
 									<dd>{entityId.id}</dd>
 								</div>
-								{#if channelField.url != null}
+								{#if channelField.url !== undefined}
 									<div>
 										<dt>URL</dt>
 										<dd>
@@ -253,21 +234,25 @@
 										</dd>
 									</div>
 								{/if}
-								{#if channelField.description != null}
+								{#if channelField.description !== undefined}
 									<div>
 										<dt>Description</dt>
 										<dd>{channelField.description}</dd>
 									</div>
 								{/if}
-								{#if channelField.imageUrl != null}
+								{#if channelField.imageUrl !== undefined}
 									<div>
 										<dt>Image</dt>
-										<dd>
+										<dd data-column>
+											<Media
+												media={{ url: channelField.imageUrl }}
+												alt=""
+											/>
 											<a href={channelField.imageUrl}>{channelField.imageUrl}</a>
 										</dd>
 									</div>
 								{/if}
-								{#if channelField.leadFid != null}
+								{#if channelField.leadFid !== undefined}
 									<div>
 										<dt>Lead</dt>
 										<dd>
@@ -279,7 +264,7 @@
 										</dd>
 									</div>
 								{/if}
-								{#if channelField.moderatorFid != null}
+								{#if channelField.moderatorFid !== undefined}
 									<div>
 										<dt>Moderator</dt>
 										<dd>
@@ -291,7 +276,7 @@
 										</dd>
 									</div>
 								{/if}
-								{#if channelField.moderatorFids != null && channelField.moderatorFids.length}
+								{#if channelField.moderatorFids !== undefined && channelField.moderatorFids.length}
 									<div>
 										<dt>Moderators</dt>
 										<dd>
@@ -309,13 +294,18 @@
 										</dd>
 									</div>
 								{/if}
-								{#if createdAtLabel != null}
+								{#if channelField.createdAt !== undefined && typeof channelField.createdAt === 'number' && Number.isFinite(channelField.createdAt)}
 									<div>
 										<dt>Created</dt>
-										<dd>{createdAtLabel}</dd>
+										<dd>
+											<Timestamp
+												timestamp={channelField.createdAt}
+												format={TimestampFormat.Both}
+											/>
+										</dd>
 									</div>
 								{/if}
-								{#if channelField.pinnedCastHash != null}
+								{#if channelField.pinnedCastHash !== undefined}
 									<div>
 										<dt>Pinned cast</dt>
 										<dd>
@@ -330,13 +320,13 @@
 										</dd>
 									</div>
 								{/if}
-								{#if channelField.publicCasting != null}
+								{#if channelField.publicCasting !== undefined}
 									<div>
 										<dt>Public casting</dt>
 										<dd>{channelField.publicCasting ? 'Yes' : 'No'}</dd>
 									</div>
 								{/if}
-								{#if channelField.externalLinkUrl != null}
+								{#if channelField.externalLinkUrl !== undefined}
 									<div>
 										<dt>External link</dt>
 										<dd>
@@ -346,19 +336,24 @@
 										</dd>
 									</div>
 								{/if}
-								{#if followedAtLabel != null}
+								{#if channelField.followedAt !== undefined && typeof channelField.followedAt === 'number' && Number.isFinite(channelField.followedAt)}
 									<div>
 										<dt>Followed at</dt>
-										<dd>{followedAtLabel}</dd>
+										<dd>
+											<Timestamp
+												timestamp={channelField.followedAt}
+												format={TimestampFormat.Both}
+											/>
+										</dd>
 									</div>
 								{/if}
-								{#if channelField.followerCount != null}
+								{#if channelField.followerCount !== undefined}
 									<div>
 										<dt>Followers</dt>
 										<dd>{String(channelField.followerCount)}</dd>
 									</div>
 								{/if}
-								{#if channelField.memberCount != null}
+								{#if channelField.memberCount !== undefined}
 									<div>
 										<dt>Members</dt>
 										<dd>{String(channelField.memberCount)}</dd>
@@ -370,15 +365,6 @@
 				{/snippet}
 			</QueryBoundary>
 		</EntityDetails>
-
-		<FarcasterCastsView
-			href={resolve('/farcaster/feed')}
-			id={`${channelIdKey}:casts`}
-			open={false}
-			parentEntityType={EntityType.FarcasterChannel}
-			parentEntityId={entityId}
-			title="Casts"
-		/>
 
 		{#if children}
 			{@render children()}

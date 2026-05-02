@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -11,8 +12,7 @@
 	// State
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -37,19 +37,11 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
-
 	const actorCoinIdKey = $derived(
 		stringify(entityId),
-	)
-
-	const actorChainId = $derived(
-		typeof entityId?.$actor?.$network?.chainId === 'number' ?
-			entityId.$actor.$network.chainId
-		:	undefined,
 	)
 
 	const actorCoinQuery = useLiveQuery(
@@ -74,7 +66,7 @@
 	const actorCoinField = $derived(
 		(() => {
 			const bag = actorCoinRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			return {
 				symbol: typeof b.symbol === 'string' && b.symbol.length ? b.symbol : undefined,
@@ -83,11 +75,6 @@
 			}
 		})(),
 	)
-
-	const displayTitle = $derived(
-		actorCoinField?.symbol ?? 'Balance',
-	)
-
 
 	// Components
 	import Address from '$/views/Address.svelte'
@@ -103,9 +90,9 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
+	title={actorCoinField?.symbol ?? 'Balance'}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Owner</dt>
@@ -116,12 +103,6 @@
 					/>
 				</dd>
 			</div>
-			{#if actorChainId != null}
-				<div>
-					<dt>Chain ID</dt>
-					<dd>{String(actorChainId)}</dd>
-				</div>
-			{/if}
 			<div>
 				<dt>Asset</dt>
 				<dd>
@@ -137,7 +118,7 @@
 					{/if}
 				</dd>
 			</div>
-			{#if actorCoinField?.balance != null}
+			{#if actorCoinField?.balance !== undefined}
 				<div>
 					<dt>Balance</dt>
 					<dd>{String(actorCoinField.balance)}</dd>
@@ -161,25 +142,25 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No balance row in collections yet (no resolver for this actor + coin).
+							No balance data for this account and coin yet.
 						</p>
 					{:else}
 						<dl>
-							{#if actorCoinField?.symbol != null}
+							{#if actorCoinField?.symbol !== undefined}
 								<div>
 									<dt>Symbol</dt>
 									<dd>{actorCoinField.symbol}</dd>
 								</div>
 							{/if}
-							{#if actorCoinField?.decimals != null}
+							{#if actorCoinField?.decimals !== undefined}
 								<div>
 									<dt>Decimals</dt>
 									<dd>{String(actorCoinField.decimals)}</dd>
 								</div>
 							{/if}
-							{#if actorCoinField?.balance != null}
+							{#if actorCoinField?.balance !== undefined}
 								<div>
 									<dt>Balance (raw)</dt>
 									<dd>{String(actorCoinField.balance)}</dd>

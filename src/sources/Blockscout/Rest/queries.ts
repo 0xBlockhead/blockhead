@@ -1,7 +1,14 @@
+/**
+ * Blockscout REST v2 reads. `queries.ts` is the entry resolvers use; it composes
+ * `$/sources/Blockscout/Rest/client.ts` and wire normalization.
+ * @see https://docs.blockscout.com/devs/apis/rest
+ */
+
 import { getJson } from '$/sources/Blockscout/Rest/client.ts'
 import type {
 	BlockscoutBlockWire,
 	BlockscoutPaginatedWire,
+	BlockscoutSmartContractForListWire,
 	BlockscoutTransactionLogWire,
 	BlockscoutTransactionWire,
 } from '$/sources/Blockscout/Rest/types.ts'
@@ -24,7 +31,9 @@ const timestampHex = (timestamp: string | undefined) => {
 	return Number.isFinite(ts) ? `0x${BigInt(ts).toString(16)}` : undefined
 }
 
-const addressHash = (wire: string | BlockscoutBlockWire['miner'] | BlockscoutTransactionWire['from'] | BlockscoutTransactionWire['to'] | BlockscoutTransactionWire['created_contract'] | BlockscoutTransactionLogWire['address_hash'] | undefined) => (
+const addressHash = (
+	wire: string | BlockscoutBlockWire['miner'] | BlockscoutTransactionWire['from'] | BlockscoutTransactionWire['to'] | BlockscoutTransactionWire['created_contract'] | BlockscoutTransactionLogWire['address_hash'] | BlockscoutSmartContractForListWire['address_hash'] | undefined,
+) => (
 	typeof wire === 'string' ?
 		wire
 	:	wire?.hash
@@ -64,14 +73,17 @@ const blockscoutTransactionWireAsRpcTxWire = (
 const blockscoutTransactionLogWiresAsRpcReceiptLogs = (
 	logs: BlockscoutTransactionLogWire[],
 ): RpcLogWire[] => (
-	logs.map((log) => ({
-		...(addressHash(log.address_hash) != null ? { address: addressHash(log.address_hash) } : {}),
-		...(log.topics != null ? { topics: log.topics } : {}),
-		...(log.data != null ? { data: log.data } : {}),
-		...(log.block_number != null ? { blockNumber: `0x${log.block_number.toString(16)}` } : {}),
-		...(log.transaction_hash != null ? { transactionHash: log.transaction_hash } : {}),
-		...(log.index != null ? { logIndex: `0x${log.index.toString(16)}` } : {}),
-	}))
+	logs.map((log) => {
+		const logAddress = addressHash(log.address_hash)
+		return {
+			...(logAddress != null ? { address: logAddress } : {}),
+			...(log.topics != null ? { topics: log.topics } : {}),
+			...(log.data != null ? { data: log.data } : {}),
+			...(log.block_number != null ? { blockNumber: `0x${log.block_number.toString(16)}` } : {}),
+			...(log.transaction_hash != null ? { transactionHash: log.transaction_hash } : {}),
+			...(log.index != null ? { logIndex: `0x${log.index.toString(16)}` } : {}),
+		}
+	})
 )
 
 export const getBlockByNumberBlockscout = async ({
@@ -95,6 +107,7 @@ export const getBlockscoutBlocks = async ({
 	explorerOrigin: string
 	limit: number
 }): Promise<RpcBlockHeaderWire[]> => {
+	if (limit <= 0) return []
 	const wire = await getJson<BlockscoutPaginatedWire<BlockscoutBlockWire>>({
 		explorerOrigin,
 		path: '/blocks',
@@ -114,6 +127,7 @@ export const getBlockTransactionsBlockscout = async ({
 	blockNumber: bigint
 	limit: number
 }): Promise<RpcTxWire[]> => {
+	if (limit <= 0) return []
 	const wire = await getJson<BlockscoutPaginatedWire<BlockscoutTransactionWire>>({
 		explorerOrigin,
 		path: `/blocks/${blockNumber}/transactions`,
@@ -145,6 +159,7 @@ export const getBlockscoutTransactions = async ({
 	explorerOrigin: string
 	limit: number
 }): Promise<RpcTxWire[]> => {
+	if (limit <= 0) return []
 	const wire = await getJson<BlockscoutPaginatedWire<BlockscoutTransactionWire>>({
 		explorerOrigin,
 		path: '/transactions',
@@ -154,20 +169,6 @@ export const getBlockscoutTransactions = async ({
 	})
 	return wire.items.map(blockscoutTransactionWireAsRpcTxWire)
 }
-
-const getTransactionLogsPageBlockscout = async ({
-	explorerOrigin,
-	txHash,
-	nextPageParams,
-}: {
-	explorerOrigin: string
-	txHash: `0x${string}`
-	nextPageParams?: Record<string, string | number>
-}) => getJson<BlockscoutPaginatedWire<BlockscoutTransactionLogWire>>({
-	explorerOrigin,
-	path: `/transactions/${txHash}/logs`,
-	searchParams: nextPageParams,
-})
 
 export const getTransactionLogsBlockscout = async ({
 	explorerOrigin,
@@ -179,10 +180,10 @@ export const getTransactionLogsBlockscout = async ({
 	const logs: NonNullable<RpcReceiptWire['logs']> = []
 	let nextPageParams: Record<string, string | number> | undefined
 	do {
-		const wire = await getTransactionLogsPageBlockscout({
+		const wire = await getJson<BlockscoutPaginatedWire<BlockscoutTransactionLogWire>>({
 			explorerOrigin,
-			txHash,
-			nextPageParams,
+			path: `/transactions/${txHash}/logs`,
+			searchParams: nextPageParams,
 		})
 		logs.push(...blockscoutTransactionLogWiresAsRpcReceiptLogs(wire.items))
 		nextPageParams = wire.next_page_params
@@ -197,17 +198,15 @@ export const getTransactionReceiptBlockscout = async ({
 	explorerOrigin: string
 	txHash: `0x${string}`
 }): Promise<RpcReceiptWire | null> => {
-	const [tx, logs] = await Promise.all([
-		getJson<BlockscoutTransactionWire | null>({
-			explorerOrigin,
-			path: `/transactions/${txHash}`,
-		}),
-		getTransactionLogsBlockscout({
-			explorerOrigin,
-			txHash,
-		}),
-	])
+	const tx = await getJson<BlockscoutTransactionWire | null>({
+		explorerOrigin,
+		path: `/transactions/${txHash}`,
+	})
 	if (tx == null) return null
+	const logs = await getTransactionLogsBlockscout({
+		explorerOrigin,
+		txHash,
+	})
 	return {
 		status: tx.status === 'ok' ? '0x1' : tx.status === 'error' ? '0x0' : undefined,
 		gasUsed: quantityHex(tx.gas_used),
@@ -215,4 +214,30 @@ export const getTransactionReceiptBlockscout = async ({
 		logs,
 		contractAddress: addressHash(tx.created_contract),
 	}
+}
+
+export const evmAddressFromBlockscoutContractListWire = (
+	w: BlockscoutSmartContractForListWire,
+): `0x${string}` | null => {
+	const h = addressHash(w.address_hash)
+	if (h == null || h === '') return null
+	return (h.startsWith('0x') ? h : `0x${h}`) as `0x${string}`
+}
+
+export const getBlockscoutSmartContracts = async ({
+	explorerOrigin,
+	limit,
+}: {
+	explorerOrigin: string
+	limit: number
+}): Promise<BlockscoutSmartContractForListWire[]> => {
+	if (limit <= 0) return []
+	const wire = await getJson<BlockscoutPaginatedWire<BlockscoutSmartContractForListWire>>({
+		explorerOrigin,
+		path: '/smart-contracts',
+		searchParams: {
+			items_count: limit,
+		},
+	})
+	return wire.items
 }

@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -11,7 +12,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -36,7 +37,6 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
@@ -67,10 +67,10 @@
 	const ensNameField = $derived(
 		(() => {
 			const bag = ensNameRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			const raw = b.textRecords
-			if (raw == null || typeof raw !== 'object' || Array.isArray(raw)) {
+			if (raw === undefined || typeof raw !== 'object' || Array.isArray(raw)) {
 				return { textRecords: undefined as Record<string, string> | undefined }
 			}
 			const textRecords: Record<string, string> = {}
@@ -88,7 +88,7 @@
 	)
 
 	const textRecordEntries = $derived(
-		ensNameField?.textRecords == null ?
+		ensNameField?.textRecords === undefined ?
 			[]
 		:	(
 				Object.entries(ensNameField.textRecords)
@@ -97,11 +97,6 @@
 					))
 			),
 	)
-
-	const displayTitle = $derived(
-		entityId.name,
-	)
-
 
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
@@ -117,22 +112,8 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
+	title={entityId.name}
 >
-	{#snippet SummaryContent()}
-		<dl data-definition-list="vertical">
-			<div>
-				<dt>Name</dt>
-				<dd>
-					<TruncatedValue
-						value={entityId.name}
-						format={TruncatedValueFormat.Visual}
-					/>
-				</dd>
-			</div>
-		</dl>
-	{/snippet}
-
 	{#snippet Details({
 		open: _open,
 	})}
@@ -148,9 +129,9 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No ENS name row in collections yet (no resolver for this name).
+							No ENS name data for this name yet.
 						</p>
 					{:else if textRecordEntries.length === 0}
 						<p data-text="muted">

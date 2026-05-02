@@ -1,38 +1,39 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
-} from '$/resolvers/$defineEntityResolvers.ts'
+} from '$/resolvers/$resolvers.ts'
+import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Sources.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
+	source: Source.Sourcify_Rest,
+
 	entityResolvers: [
 		defineEntityResolver({
 			entityType: EntityType.EvmContract,
-			source: Source.Sourcify,
 			resolve: async (entityId) => {
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
 				const {
 					getSourcifyContractLookup,
 					sourcifyContractAbiString,
 					sourcifyContractDeployer,
 				} = await import('$/sources/Sourcify/Rest/queries.ts')
-				const wire = await singleFlight(getSourcifyContractLookup)({
+				const contractLookup = await singleFlight(getSourcifyContractLookup)({
 					chainId: entityId.$network.chainId,
 					address: entityId.address,
 				})
-				if (wire == null) return {}
-				const abi = sourcifyContractAbiString(wire)
-				const deployer = sourcifyContractDeployer(wire)
+				if (contractLookup == null) throw new Error('Sourcify_Rest: contract not verified')
+				const abi = sourcifyContractAbiString(contractLookup)
+				const deployer = sourcifyContractDeployer(contractLookup)
 				return {
 					...(abi != null ? { abi } : {}),
-					...(deployer != null ?
+					...(deployer != null && deployer.startsWith('0x') ?
 						{
 							$deployer: {
 								[EntityMetaKey.Id]: {
 									$network: entityId.$network,
-									address: deployer as `0x${string}`,
+									address: deployer,
 								},
 							},
 						}
@@ -45,56 +46,49 @@ export default {
 		}),
 		defineEntityResolver({
 			entityType: EntityType.EvmContractSource,
-			source: Source.Sourcify,
 			resolve: async (entityId) => {
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
 				const {
 					getSourcifyContractLookup,
 					sourcifyContractSourceFiles,
 					sourcifyContractSourceMetadata,
 				} = await import('$/sources/Sourcify/Rest/queries.ts')
-				const wire = await singleFlight(getSourcifyContractLookup)({
+				const contractLookup = await singleFlight(getSourcifyContractLookup)({
 					chainId: entityId.$network.chainId,
 					address: entityId.address,
 				})
-				if (wire == null) return {}
+				if (contractLookup == null) throw new Error('Sourcify_Rest: contract sources not verified')
 				return {
-					metadata: sourcifyContractSourceMetadata(wire),
-					files: sourcifyContractSourceFiles(wire),
+					metadata: sourcifyContractSourceMetadata(contractLookup),
+					files: sourcifyContractSourceFiles(contractLookup),
 				}
 			},
 		}),
 	],
+
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
 			entityType: EntityType.EvmContract,
 			fieldName: 'abi',
-			source: Source.Sourcify,
 			resolve: async (entityId) => {
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
-				const { getSourcifyContractLookup, sourcifyContractAbiString } = await import(
-					'$/sources/Sourcify/Rest/queries.ts',
-				)
-				const wire = await singleFlight(getSourcifyContractLookup)({
+				const { getSourcifyContractLookup, sourcifyContractAbiString } = await import('$/sources/Sourcify/Rest/queries.ts')
+				const contractLookup = await singleFlight(getSourcifyContractLookup)({
 					chainId: entityId.$network.chainId,
 					address: entityId.address,
 				})
-				if (wire == null) return undefined
-				return sourcifyContractAbiString(wire)
+				if (contractLookup == null) return undefined
+				return sourcifyContractAbiString(contractLookup)
 			},
 		}),
 		defineEntityFieldResolver({
 			entityType: EntityType.EvmContract,
 			fieldName: '$verifiedSource',
-			source: Source.Sourcify,
 			resolve: async (entityId) => {
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
 				const { getSourcifyContractLookup } = await import('$/sources/Sourcify/Rest/queries.ts')
-				const wire = await singleFlight(getSourcifyContractLookup)({
+				const contractLookup = await singleFlight(getSourcifyContractLookup)({
 					chainId: entityId.$network.chainId,
 					address: entityId.address,
 				})
-				if (wire == null) return undefined
+				if (contractLookup == null) return undefined
 				return {
 					[EntityMetaKey.Id]: entityId,
 				}

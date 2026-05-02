@@ -1,133 +1,274 @@
-import { coinById } from '$/constants/Coin.ts'
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
-} from '$/resolvers/$defineEntityResolvers.ts'
+} from '$/resolvers/$resolvers.ts'
+import type { CoinId } from '$/constants/Coin.ts'
+import { MarketAssetKind, MarketVenue } from '$/constants/Market.ts'
+import { caip19Erc20 } from '$/lib/caip19.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
+import type { EntityId } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
-import {
-	coinMarketCapIdByCoinId,
-} from '$/sources/CoinMarketCap/Rest/constants.ts'
-import {
-	getCoinMarketCapInfo,
-	getCoinMarketCapQuotesLatest,
-} from '$/sources/CoinMarketCap/Rest/queries.ts'
-import { Source } from '$/sources/$Sources.ts'
-
-const mediaEntityFromUrl = (url: string | undefined) => (
-	url == null || url.trim() === '' ?
-		undefined
-	:	{
-			[EntityMetaKey.Id]: { url },
-			type: MediaType.Image,
-		}
-)
-
-const firstRecord = <_Value>(value: Record<string, _Value> | undefined) => (
-	value == null ?
-		undefined
-	:	Object.values(value)[0]
-)
+import { schema } from '$/schema/index.ts'
+import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
+	source: Source.CoinMarketCap_Rest,
+
 	entityResolvers: [
 		defineEntityResolver({
 			entityType: EntityType.Coin,
-			source: Source.CoinMarketCap,
-			resolve: async (entityId) => {
-				const coinMarketCapId = coinMarketCapIdByCoinId[entityId.coinId]
-				if (coinMarketCapId == null) return {}
+			resolve: async (entityId, context) => {
+				const { sourcePublicEnv } = await import('$/resolvers/$resolvers.ts')
+				const { coinById } = await import('$/constants/Coin.ts')
+				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
+				const { getCoinMarketCapInfo } = await import('$/sources/CoinMarketCap/Rest/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.CoinMarketCap_Rest)
+				const coinMarketCapId = idByCoinId[entityId.coinId]
+				if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: coin not mapped')
 
-				const info = firstRecord(
-					(await getCoinMarketCapInfo({
-						id: coinMarketCapId,
-					})).data,
+				const infoResponse = await getCoinMarketCapInfo({
+					publicEnv,
+					id: coinMarketCapId,
+				})
+				const info = (
+					infoResponse.data == null ?
+						undefined
+					:	Object.values(infoResponse.data)[0]
 				)
-				if (info == null) return {}
+				if (info == null) throw new Error('CoinMarketCap_Rest: coin info not returned')
+
+				const logoUrl = info.logo
+				const logoMedia = (
+					logoUrl == null || logoUrl.trim() === '' ?
+						undefined
+					:	{
+							[EntityMetaKey.Id]: { url: logoUrl },
+							type: MediaType.Image,
+						}
+				)
 
 				return {
-					...(typeof info.name === 'string' && info.name.trim() !== '' ? { name: info.name } : {}),
-					...(typeof info.symbol === 'string' && info.symbol.trim() !== '' ?
-						{ symbol: info.symbol.toUpperCase() }
+					...(info.name.trim() !== '' ? { name: info.name.trim() } : {}),
+					...(info.symbol.trim() !== '' ?
+						{ symbol: info.symbol.trim().toUpperCase() }
 					: coinById[entityId.coinId] != null ?
 						{ symbol: coinById[entityId.coinId].symbol }
 					:	{}),
-					...(mediaEntityFromUrl(info.logo) != null ?
-						{ $logo: mediaEntityFromUrl(info.logo) }
+					...(logoMedia != null ?
+						{ $logo: logoMedia }
 					:	{}),
 				}
 			},
 		}),
 		defineEntityResolver({
-			entityType: EntityType.CoinPrice,
-			source: Source.CoinMarketCap,
-			resolve: async (entityId) => {
-				const coinMarketCapId = coinMarketCapIdByCoinId[entityId.$coin.coinId]
-				if (coinMarketCapId == null) return {}
+			entityType: EntityType.MarketPrice,
+			resolve: async (entityId, context) => {
+				const { sourcePublicEnv } = await import('$/resolvers/$resolvers.ts')
+				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
+				const publicEnv = sourcePublicEnv(context, Source.CoinMarketCap_Rest)
+				const coinId = (
+					entityId.$market.$base.kind === MarketAssetKind.Coin ?
+						entityId.$market.$base.$coin.coinId
+					:	undefined
+				)
+				if (coinId == null) throw new Error('CoinMarketCap_Rest: market base is not a catalog coin')
+				const coinMarketCapId = idByCoinId[coinId]
+				if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: coin price not mapped')
 
-				const quote = firstRecord(
-					(await getCoinMarketCapQuotesLatest({
+				const { getCoinMarketCapInfo, getCoinMarketCapQuotesLatest } = await import(
+					'$/sources/CoinMarketCap/Rest/queries.ts',
+				)
+				const [quoteResponse, infoResponse] = await Promise.all([
+					getCoinMarketCapQuotesLatest({
+						publicEnv,
 						id: coinMarketCapId,
-					})).data,
+					}),
+					getCoinMarketCapInfo({
+						publicEnv,
+						id: coinMarketCapId,
+					}),
+				])
+				const quote = (
+					quoteResponse.data == null ?
+						undefined
+					:	Object.values(quoteResponse.data)[0]
 				)
-				const usdQuote = quote?.quote?.USD
-				const price = usdQuote?.price
-				const lastUpdated = usdQuote?.last_updated
-				const updatedAt = (
-					typeof lastUpdated === 'string' ?
-						Date.parse(lastUpdated)
-					:	Number.NaN
-				)
-
-				if (typeof price !== 'number' || !Number.isFinite(price) || !Number.isFinite(updatedAt)) {
-					return {}
+				const price = quote?.quote?.USD?.price
+				const lastUpdated = quote?.quote?.USD?.last_updated
+				const updatedAt = Date.parse(lastUpdated ?? '')
+				if (!Number.isFinite(price) || !Number.isFinite(updatedAt)) {
+					throw new Error('CoinMarketCap_Rest: quote invalid')
 				}
+				const p = (
+					infoResponse.data == null
+						? undefined
+					:	Object.values(infoResponse.data)[0]
+				)?.platform
+				const caip19 = (
+					(p?.slug === 'ethereum' || p?.name === 'Ethereum')
+					&& p?.token_address != null
+					&& /^0x[a-fA-F0-9]{40}$/i.test(p.token_address.trim()) ?
+						caip19Erc20(1, p.token_address.trim().toLowerCase() as `0x${string}`)
+					:
+						undefined
+				)
 
 				return {
 					[EntityMetaKey.Id]: entityId,
 					price: BigInt(Math.round(price * 1e8)),
 					timestampNs: BigInt(updatedAt) * 1_000_000n,
 					updatedAt,
-					transport: 'coinmarketcap-usd-1e8',
-					encodedAssetId: String(coinMarketCapId),
+					transport: 'coinmarketcap-v2-quotes-and-info-usd-1e8',
+					providerAssetId: String(coinMarketCapId),
+					...(caip19 != null ? { caip19 } : {}),
 				}
 			},
 		}),
 	],
+
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$coins',
-			source: Source.CoinMarketCap,
-			resolve: async (_entityId) => (
-				Object.entries(coinMarketCapIdByCoinId)
-					.filter(([coinId]) => coinById[coinId as keyof typeof coinById] != null)
-					.map(([coinId]) => (
-						{
-							[EntityMetaKey.Id]: {
-								coinId,
-							},
-						}
-					))
-			),
+			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+				const { coinById } = await import('$/constants/Coin.ts')
+				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
+				return (
+					Object.entries(idByCoinId)
+						.filter(([coinId]) => coinById[coinId as keyof typeof coinById] != null)
+						.map(([coinId]) => (
+							{
+								[EntityMetaKey.Id]: {
+									coinId: coinId as CoinId,
+								},
+							}
+						))
+				)
+			},
 		}),
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$coinPrices',
-			source: Source.CoinMarketCap,
-			resolve: async (_entityId) => (
-				Object.entries(coinMarketCapIdByCoinId)
-					.filter(([coinId]) => coinById[coinId as keyof typeof coinById] != null)
-					.map(([coinId]) => (
+			fieldName: '$$markets',
+			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+				const { coinById } = await import('$/constants/Coin.ts')
+				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
+				return (
+					Object.entries(idByCoinId)
+						.filter(([coinId]) => coinById[coinId as keyof typeof coinById] != null)
+						.map(([coinId]) => (
+							{
+								[EntityMetaKey.Id]: {
+									$base: {
+										kind: MarketAssetKind.Coin,
+										$coin: { coinId: coinId as CoinId },
+									},
+									$quote: {
+										kind: MarketAssetKind.Currency,
+										iso4217: 'USD',
+									},
+									venue: MarketVenue.SpotIndex,
+								} as const,
+							}
+						))
+				)
+			},
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType._Global,
+			fieldName: '$$marketPrices',
+			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+				const { coinById } = await import('$/constants/Coin.ts')
+				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
+				return (
+					Object.entries(idByCoinId)
+						.filter(([coinId]) => coinById[coinId as keyof typeof coinById] != null)
+						.map(([coinId]) => (
+							{
+								[EntityMetaKey.Id]: {
+									$market: {
+										$base: {
+											kind: MarketAssetKind.Coin,
+											$coin: { coinId: coinId as CoinId },
+										},
+										$quote: {
+											kind: MarketAssetKind.Currency,
+											iso4217: 'USD',
+										},
+										venue: MarketVenue.SpotIndex,
+									} as const,
+								},
+							}
+						))
+				)
+			},
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.Coin,
+			fieldName: '$$marketsWithCoinAsBase',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
+				if (idByCoinId[entityId.coinId] == null) {
+					return []
+				}
+				return (
+					[
 						{
 							[EntityMetaKey.Id]: {
-								$coin: {
-									coinId,
+								$base: {
+									kind: MarketAssetKind.Coin,
+									$coin: { coinId: entityId.coinId },
 								},
-							},
-						}
-					))
+								$quote: {
+									kind: MarketAssetKind.Currency,
+									iso4217: 'USD',
+								},
+								venue: MarketVenue.SpotIndex,
+							} as const,
+						},
+					]
+				)
+			},
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.Coin,
+			fieldName: '$$marketsWithCoinAsQuote',
+			resolve: async () => (
+				[]
+			),
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.Coin,
+			fieldName: '$$marketPrice',
+			resolve: async (entityId) => {
+				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
+				if (idByCoinId[entityId.coinId] == null) return undefined
+				return (
+					{
+						[EntityMetaKey.Id]: {
+							$market: {
+								$base: {
+									kind: MarketAssetKind.Coin,
+									$coin: { coinId: entityId.coinId },
+								},
+								$quote: {
+									kind: MarketAssetKind.Currency,
+									iso4217: 'USD',
+								},
+								venue: MarketVenue.SpotIndex,
+							} as const,
+						},
+					}
+				)
+			},
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.MarketPrice,
+			fieldName: '$$parentMarket',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
+				{
+					[EntityMetaKey.Id]: entityId.$market,
+				}
 			),
 		}),
 	],

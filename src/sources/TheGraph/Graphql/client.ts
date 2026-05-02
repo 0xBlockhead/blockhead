@@ -3,10 +3,11 @@ import type {
 	TadaDocumentNode,
 } from 'gql.tada'
 
-const theGraphApiKey = () => {
-	const value = import.meta.env.PUBLIC_THEGRAPH_API_KEY
-	return typeof value === 'string' && value.trim() !== '' ? value.trim() : undefined
-}
+import {
+	optionalPublicEnvString,
+} from '$/lib/sources.ts'
+import { Source } from '$/sources/$Source.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
 
 export const queryTheGraph = async <
 	_Result extends {
@@ -18,13 +19,15 @@ export const queryTheGraph = async <
 >({
 	document,
 	endpointUrl,
+	publicEnv,
 	variables,
 }: {
 	document: TadaDocumentNode<_Result, _Variables>
 	endpointUrl: string
+	publicEnv: SourcePublicEnvFor<Source.TheGraph_Graphql>
 	variables?: _Variables
 }): Promise<_Result> => {
-	const apiKey = theGraphApiKey()
+	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_THEGRAPH_API_KEY')
 
 	if (
 		apiKey == null

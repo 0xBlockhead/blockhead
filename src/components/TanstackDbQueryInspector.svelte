@@ -1,12 +1,14 @@
 <script lang="ts">
 	import { useLiveQuery } from '@tanstack/svelte-db'
 
+	import NumberValue from '$/views/NumberValue.svelte'
+
 	import {
 		entityCollectionByEntityType,
 		entityFieldCollections,
-	} from '$/collections/$collections.ts'
+	} from '$/routes/+layout.svelte'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { schema } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 
 	const entityQueryByEntityType = Object.fromEntries(
 		schema.map((entityDefinition) => [
@@ -45,15 +47,9 @@
 
 <main data-column>
 	<section data-card>
-		<h2>Collection contents (entities + entityFields)</h2>
+		<h2>Local entity and field data</h2>
 		<p class="collection-overview-lead">
-			Nested
-			<code>details</code>
-			per
-			<code>schema</code>
-			entry; field collections follow each definition’s
-			<code>fields</code>
-			.
+			Grouped by type. Expand a type to see stored rows and each related field group.
 		</p>
 
 		{#each schema as entityDefinition (entityDefinition.entityType)}
@@ -68,7 +64,7 @@
 						<code>{entityDefinition.entityType}</code>
 					</h2>
 
-					{entityDefinition.label} entity collection
+					{entityDefinition.label}
 				</summary>
 
 				<div data-column>
@@ -79,7 +75,10 @@
 						<summary>
 							<h3>
 								Items
-								{#if entityQuery.data?.length}({entityQuery.data.length}){/if}
+								{#if entityQuery.data?.length}(<NumberValue
+									value={entityQuery.data.length}
+									options={{ maximumFractionDigits: 0 }}
+								/>){/if}
 							</h3>
 						</summary>
 
@@ -120,7 +119,10 @@
 								<h4>
 									<code>{field.name}</code>
 									{#if !entityFieldQuery.isLoading}
-										({entityFieldQuery.data.length})
+										(<NumberValue
+											value={entityFieldQuery.data.length}
+											options={{ maximumFractionDigits: 0 }}
+										/>)
 									{/if}
 								</h4>
 							</summary>

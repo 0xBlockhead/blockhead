@@ -1265,6 +1265,184 @@ summary dl:not([data-definition-list~='horizontal']) {
 		}
 	}
 
+	/**
+	 * Horizontal carousel: compose with `inline` (overflow-x, cqi) and set
+	 * `--carousel-basis` + `gap` on the element. Overrides `snap-inline` snap axis rules when both are present.
+	 */
+	&[data-scroll-container~='layout-carousel'] {
+		--carousel-button-inline-padding: 1.25em;
+
+		position: relative;
+
+		display: grid;
+		grid-auto-flow: column;
+		grid-auto-columns: var(--carousel-basis, 28ch);
+		padding-inline: var(--carousel-button-inline-padding);
+
+		overscroll-behavior-x: contain;
+
+		@media (prefers-reduced-motion: no-preference) {
+			scroll-behavior: smooth;
+		}
+
+		scroll-snap-type: x mandatory;
+
+		> * {
+			min-width: 0;
+		}
+
+		> :only-child {
+			scroll-snap-align: center;
+		}
+
+		> :first-child:not(:only-child) {
+			scroll-snap-align: start;
+		}
+
+		> :last-child:not(:only-child):not(:first-child) {
+			scroll-snap-align: end;
+		}
+
+		> :not(:first-child):not(:last-child) {
+			scroll-snap-align: center;
+		}
+
+		scroll-marker-group: after;
+
+		&::scroll-button(*) {
+			border: 0;
+			background: none;
+			cursor: pointer;
+			font-size: 1.5em;
+			line-height: 1;
+			opacity: 0.6;
+
+			position: absolute;
+			inset-block: 0;
+			margin-block: auto;
+			block-size: fit-content;
+			z-index: 1;
+		}
+
+		&::scroll-button(*):hover,
+		&::scroll-button(*):focus-visible {
+			opacity: 1;
+		}
+
+		&::scroll-button(*):disabled {
+			opacity: 0.15;
+			cursor: default;
+		}
+
+		&::scroll-button(inline-start) {
+			content: "‹";
+			inset-inline-start: 0;
+		}
+
+		&::scroll-button(inline-end) {
+			content: "›";
+			inset-inline-end: 0;
+		}
+
+		&::scroll-marker-group {
+			display: flex;
+			justify-content: center;
+			gap: 0.5em;
+		}
+
+		> *::scroll-marker {
+			content: "";
+			width: 0.6em;
+			aspect-ratio: 1;
+			border-radius: 50%;
+			border: 1.5px solid currentColor;
+			opacity: 0.4;
+		}
+
+		> *::scroll-marker:target-current {
+			opacity: 1;
+			background: currentColor;
+		}
+
+		> *::scroll-marker:hover,
+		> *::scroll-marker:focus-visible {
+			opacity: 0.8;
+		}
+
+		/**
+		 * Scroll markers as a tab strip (CSS Overflow scroll-marker-group).
+		 * Compose: `data-scroll-container="inline layout-carousel carousel-marker-tabs"`.
+		 */
+		&[data-scroll-container~='carousel-marker-tabs'] {
+			scroll-marker-group: before;
+
+			&::scroll-marker-group {
+				display: flex;
+				flex-direction: row;
+				flex-wrap: nowrap;
+				align-items: stretch;
+				justify-content: stretch;
+				gap: 1px;
+
+				inline-size: 100%;
+				margin-block-end: 0.5em;
+				padding-block: 0;
+				padding-inline: 0;
+
+				background: var(--color-border);
+				border-block-end: 1px solid var(--color-border);
+			}
+
+			> *::scroll-marker {
+				content: "";
+
+				flex: 1 1 0;
+				min-inline-size: 0;
+				inline-size: auto;
+				block-size: auto;
+				aspect-ratio: unset;
+
+				border: none;
+				border-radius: 0.35em 0.35em 0 0;
+				opacity: 1;
+
+				padding-block: 0.45em;
+				padding-inline: 0.5em;
+
+				background: color-mix(in oklch, canvas 88%, var(--color-border));
+			}
+
+			> :first-child::scroll-marker {
+				border-start-start-radius: 0.35em;
+			}
+
+			> :last-child::scroll-marker {
+				border-start-end-radius: 0.35em;
+			}
+
+			> *::scroll-marker:target-current {
+				position: relative;
+				z-index: 1;
+
+				margin-block-end: -1px;
+				padding-block-end: calc(0.45em + 1px);
+
+				background: canvas;
+				box-shadow: 0 1px 0 0 canvas;
+			}
+
+			> *::scroll-marker:hover,
+			> *::scroll-marker:focus-visible {
+				background: color-mix(in oklch, canvas 70%, var(--color-border));
+			}
+
+			> *::scroll-marker:target-current:hover,
+			> *::scroll-marker:target-current:focus-visible {
+				background: canvas;
+			}
+		}
+	}
+
 	/* Derived */
 	--sticky-level: 0;
 

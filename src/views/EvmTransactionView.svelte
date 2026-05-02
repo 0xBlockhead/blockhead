@@ -1,22 +1,18 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Sources.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// State
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -43,19 +39,11 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
-
 	const txIdKey = $derived(
 		stringify(entityId),
-	)
-
-	const chainId = $derived(
-		typeof entityId?.$network?.chainId === 'number' ?
-			entityId.$network.chainId
-		:	undefined,
 	)
 
 	const transactionQuery = useLiveQuery(
@@ -76,7 +64,7 @@
 	const txRow = $derived(
 		(
 			transactionQuery.data?.find(
-				(r) => r.row[EntityMetaKey.Source] === Source.Blockscout,
+				(r) => r.row[EntityMetaKey.Source] === Source.Blockscout_Rest,
 			)?.row
 			?? transactionQuery.data?.[0]?.row
 		)
@@ -85,7 +73,7 @@
 	const txField = $derived(
 		(() => {
 			const bag = txRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			return {
 				value: typeof b.value === 'bigint' ? b.value : undefined,
@@ -101,7 +89,6 @@
 		})(),
 	)
 
-
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
@@ -115,27 +102,20 @@
 	{entityId}
 	{title}
 	{href}
+	idDragPlainText={entityId.txHash}
 	{open}
 	{...entityViewRest}
 >
-	{#snippet SummaryContent()}
-		<dl data-definition-list="vertical">
-			<div>
-				<dt>Hash</dt>
-				<dd>
-					<TruncatedValue
-						value={entityId.txHash}
-						format={TruncatedValueFormat.Abbr}
-					/>
-				</dd>
-			</div>
-			{#if chainId != null}
-				<div>
-					<dt>Chain ID</dt>
-					<dd>{String(chainId)}</dd>
-				</div>
-			{/if}
-		</dl>
+	{#snippet Id()}
+		<span
+			data-text="font-monospace"
+			data-tx-hash={entityId.txHash}
+		>
+			<TruncatedValue
+				value={entityId.txHash}
+				format={TruncatedValueFormat.Abbr}
+			/>
+		</span>
 	{/snippet}
 
 	{#snippet Details({
@@ -152,65 +132,65 @@
 				{#snippet children(rows)}
 				{@const txRow = (
 					rows?.find(
-						(r) => r.row[EntityMetaKey.Source] === Source.Blockscout,
+						(r) => r.row[EntityMetaKey.Source] === Source.Blockscout_Rest,
 					)?.row
 					?? rows?.[0]?.row
 				)}
-				{#if txRow == null}
+				{#if txRow === undefined}
 					<p data-text="muted">
-						No transaction row in collections yet (resolve Blockscout / RPC for this hash).
+						No transaction data for this hash yet.
 					</p>
 				{:else}
 					<dl>
-						{#if txField?.value != null}
+						{#if txField?.value !== undefined}
 							<div>
 								<dt>Value</dt>
 								<dd>{String(txField.value)}</dd>
 							</div>
 						{/if}
-						{#if txField?.nonce != null}
+						{#if txField?.nonce !== undefined}
 							<div>
 								<dt>Nonce</dt>
 								<dd>{String(txField.nonce)}</dd>
 							</div>
 						{/if}
-						{#if txField?.transactionIndex != null}
+						{#if txField?.transactionIndex !== undefined}
 							<div>
 								<dt>Index</dt>
 								<dd>{String(txField.transactionIndex)}</dd>
 							</div>
 						{/if}
-						{#if txField?.gas != null}
+						{#if txField?.gas !== undefined}
 							<div>
 								<dt>Gas</dt>
 								<dd>{String(txField.gas)}</dd>
 							</div>
 						{/if}
-						{#if txField?.gasPrice != null}
+						{#if txField?.gasPrice !== undefined}
 							<div>
 								<dt>Gas price</dt>
 								<dd>{String(txField.gasPrice)}</dd>
 							</div>
 						{/if}
-						{#if txField?.type != null}
+						{#if txField?.type !== undefined}
 							<div>
 								<dt>Type</dt>
 								<dd>{String(txField.type)}</dd>
 							</div>
 						{/if}
-						{#if txField?.status != null}
+						{#if txField?.status !== undefined}
 							<div>
 								<dt>Status</dt>
 								<dd>{String(txField.status)}</dd>
 							</div>
 						{/if}
-						{#if txField?.gasUsed != null}
+						{#if txField?.gasUsed !== undefined}
 							<div>
 								<dt>Gas used</dt>
 								<dd>{String(txField.gasUsed)}</dd>
 							</div>
 						{/if}
-						{#if txField?.effectiveGasPrice != null}
+						{#if txField?.effectiveGasPrice !== undefined}
 							<div>
 								<dt>Effective gas price</dt>
 								<dd>{String(txField.effectiveGasPrice)}</dd>

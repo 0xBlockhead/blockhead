@@ -2,6 +2,8 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+	import { EntityType } from '$/schema/$EntityType.ts'
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -21,6 +23,11 @@
 		{#snippet children()}
 			<section>
 				<EvmTopicsView
+					entityFieldReference={{
+						entityType: EntityType._Global,
+						entityId: {},
+						fieldName: '$$evmTopics',
+					}}
 					href={resolve('/evm/topics')}
 					id="evm-topics"
 					open={false}
@@ -29,6 +36,11 @@
 
 			<section>
 				<EvmSelectorsView
+					entityFieldReference={{
+						entityType: EntityType._Global,
+						entityId: {},
+						fieldName: '$$evmSelectors',
+					}}
 					href={resolve('/evm/selectors')}
 					id="evm-selectors"
 					open={false}
@@ -37,6 +49,11 @@
 
 			<section>
 				<EvmErrorsView
+					entityFieldReference={{
+						entityType: EntityType._Global,
+						entityId: {},
+						fieldName: '$$evmErrors',
+					}}
 					href={resolve('/evm/errors')}
 					id="evm-errors"
 					open={false}

@@ -1,45 +1,48 @@
 import { CoinId } from '$/constants/Coin.ts'
 
-export const coinMarketCapApiBaseUrl = 'https://pro-api.coinmarketcap.com'
+export const origin = 'https://pro-api.coinmarketcap.com' as const
 
-const coinMarketCapCoinCatalog = [
-	{ coinId: CoinId.AAVE, coinMarketCapId: 7278 },
-	{ coinId: CoinId.ADA, coinMarketCapId: 2010 },
-	{ coinId: CoinId.APT, coinMarketCapId: 21794 },
-	{ coinId: CoinId.ARB, coinMarketCapId: 11841 },
-	{ coinId: CoinId.AVAX, coinMarketCapId: 5805 },
-	{ coinId: CoinId.BNB, coinMarketCapId: 1839 },
-	{ coinId: CoinId.BTC, coinMarketCapId: 1 },
-	{ coinId: CoinId.CELO, coinMarketCapId: 5567 },
-	{ coinId: CoinId.ETH, coinMarketCapId: 1027 },
-	{ coinId: CoinId.FIL, coinMarketCapId: 2280 },
-	{ coinId: CoinId.LINK, coinMarketCapId: 1975 },
-	{ coinId: CoinId.OP, coinMarketCapId: 11840 },
-	{ coinId: CoinId.SEI, coinMarketCapId: 23149 },
-	{ coinId: CoinId.SOL, coinMarketCapId: 5426 },
-	{ coinId: CoinId.STETH, coinMarketCapId: 8085 },
-	{ coinId: CoinId.UNI, coinMarketCapId: 7083 },
-	{ coinId: CoinId.USDC, coinMarketCapId: 3408 },
-	{ coinId: CoinId.USDT, coinMarketCapId: 825 },
-	{ coinId: CoinId.WBTC, coinMarketCapId: 3717 },
-	{ coinId: CoinId.XDC, coinMarketCapId: 2634 },
+export const baseUrl = origin
+
+const catalog = [
+	{ coinId: CoinId.AAVE, wireId: 7278 },
+	{ coinId: CoinId.ADA, wireId: 2010 },
+	{ coinId: CoinId.APT, wireId: 21794 },
+	{ coinId: CoinId.ARB, wireId: 11841 },
+	{ coinId: CoinId.AVAX, wireId: 5805 },
+	{ coinId: CoinId.BNB, wireId: 1839 },
+	{ coinId: CoinId.BTC, wireId: 1 },
+	{ coinId: CoinId.CELO, wireId: 5567 },
+	{ coinId: CoinId.ETH, wireId: 1027 },
+	{ coinId: CoinId.FIL, wireId: 2280 },
+	{ coinId: CoinId.LINK, wireId: 1975 },
+	{ coinId: CoinId.OP, wireId: 11840 },
+	{ coinId: CoinId.SEI, wireId: 23149 },
+	{ coinId: CoinId.SOL, wireId: 5426 },
+	{ coinId: CoinId.STETH, wireId: 8085 },
+	{ coinId: CoinId.UNI, wireId: 7083 },
+	{ coinId: CoinId.USDC, wireId: 3408 },
+	{ coinId: CoinId.USDT, wireId: 825 },
+	{ coinId: CoinId.WBTC, wireId: 3717 },
+	{ coinId: CoinId.XDC, wireId: 2634 },
 ] as const satisfies readonly {
 	coinId: CoinId
-	coinMarketCapId: number
+	wireId: number
 }[]
 
-export const coinMarketCapIdByCoinId = Object.fromEntries(
-	coinMarketCapCoinCatalog
+/** Numeric coin ids for `/v1/cryptocurrency/quotes/latest?id=…`. */
+export const idByCoinId = Object.fromEntries(
+	catalog
 		.map((entry) => [
 			entry.coinId,
-			entry.coinMarketCapId,
+			entry.wireId,
 		]),
 ) as Partial<Record<CoinId, number>>
 
-export const coinIdByCoinMarketCapId = Object.fromEntries(
-	coinMarketCapCoinCatalog
+export const coinIdByWireId = Object.fromEntries(
+	catalog
 		.map((entry) => [
-			entry.coinMarketCapId,
+			entry.wireId,
 			entry.coinId,
 		]),
 ) as Partial<Record<number, CoinId>>

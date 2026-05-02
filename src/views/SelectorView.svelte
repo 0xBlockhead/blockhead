@@ -1,22 +1,19 @@
 <script lang="ts">
 	// Types/constants
-	import {
-		type EntityId,
-		schema,
-	} from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Sources.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// State
-	import type { Snippet } from 'svelte'
-	import type { EntityViewProps } from '$/typescript/EntityViewProps.ts'
+	import type { ComponentProps, Snippet } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 	let {
 		children,
@@ -32,14 +29,13 @@
 			open?: boolean
 		},
 		Omit<
-			EntityViewProps,
+			ComponentProps<typeof EntityView>,
 			| 'entityType'
 			| 'entityId'
 			| 'href'
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
@@ -63,33 +59,30 @@
 		[() => idKey],
 	)
 
-	const row = $derived(
-		(
-			selectorQuery.data?.find(
-				(r) => r.row[EntityMetaKey.Source] === Source.Openchain,
-			)?.row
-			?? selectorQuery.data?.[0]?.row
-		)
-	)
-
-	const fieldBag = $derived(
-		row?.[EntityMetaKey.Fields],
-	)
-
 	const signatures = $derived(
 		(
-			fieldBag != null
-			&& typeof fieldBag === 'object'
-			&& 'signatures' in fieldBag
-			&& Array.isArray(fieldBag.signatures)
-		) ?
-			fieldBag.signatures.filter((x): x is string => typeof x === 'string')
-		:
-			undefined,
+			(
+				(fieldBag) => (
+					fieldBag !== undefined
+					&& typeof fieldBag === 'object'
+					&& 'signatures' in fieldBag
+					&& Array.isArray(fieldBag.signatures) ?
+						fieldBag.signatures.filter((x): x is string => typeof x === 'string')
+					: undefined
+				)
+			)(
+				(
+					selectorQuery.data?.find(
+						(r) => r.row[EntityMetaKey.Source] === Source.Openchain_Rest,
+					)?.row
+					?? selectorQuery.data?.[0]?.row
+				)?.[EntityMetaKey.Fields],
+			)
+		),
 	)
 
 	const label = $derived(
-		signatures != null && signatures.length > 0 ?
+		signatures !== undefined && signatures.length > 0 ?
 			signatures[0]!
 		:
 			entityId.hex,
@@ -111,7 +104,7 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Hex</dt>
@@ -135,11 +128,11 @@
 					{#snippet children(selectorRows)}
 					{@const selectorRow = (
 						selectorRows?.find(
-							(selectorRowEnvelope) => selectorRowEnvelope.row[EntityMetaKey.Source] === Source.Openchain,
+							(selectorRowEnvelope) => selectorRowEnvelope.row[EntityMetaKey.Source] === Source.Openchain_Rest,
 						)?.row
 						?? selectorRows?.[0]?.row
 					)}
-					{#if selectorRow == null}
+					{#if selectorRow === undefined}
 						<p data-text="muted">
 							No signatures found for this selector.
 						</p>
@@ -158,7 +151,7 @@
 										Signatures
 									</dt>
 									<dd>
-										{#if signatures != null && signatures.length > 0}
+										{#if signatures !== undefined && signatures.length > 0}
 											<ul>
 												{#each signatures as signature}
 													<li><code>{signature}</code></li>

@@ -78,7 +78,7 @@
 	data-row
 	style={`--icon-size: ${typeof size === 'number' ?
 		`${size}px`
-		: size}${backgroundColor != null ?
+		: size}${backgroundColor !== undefined ?
 		`; --icon-bg: ${backgroundColor}`
 		: ''}`}
 	aria-label={a11yLabel || undefined}

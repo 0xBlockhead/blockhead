@@ -1,4 +1,4 @@
-import { githubApiOrigin, githubRawContentOrigin } from '$/sources/Github/Rest/constants.ts'
+import { rawOrigin, restOrigin } from '$/sources/Github/Rest/constants.ts'
 
 const encodePathSegments = (pathInRepo: string) => (
 	pathInRepo
@@ -18,7 +18,7 @@ export const getGithubRestRepoContentsUrl = ({
 	pathInRepo: string
 	ref: string
 }) => (
-	`${githubApiOrigin}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodePathSegments(pathInRepo)}?ref=${encodeURIComponent(ref)}`
+	`${restOrigin}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodePathSegments(pathInRepo)}?ref=${encodeURIComponent(ref)}`
 )
 
 export const getGithubRawUserContentUrl = ({
@@ -32,5 +32,5 @@ export const getGithubRawUserContentUrl = ({
 	ref: string
 	pathInRepo: string
 }) => (
-	`${githubRawContentOrigin}/${owner}/${repo}/${ref}/${pathInRepo}`
+	`${rawOrigin}/${owner}/${repo}/${ref}/${pathInRepo}`
 )

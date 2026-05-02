@@ -8,7 +8,8 @@ import {
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
-import { type EntityId, schema } from '$/schema/$schema.ts'
+import type { EntityId } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 
 export default {

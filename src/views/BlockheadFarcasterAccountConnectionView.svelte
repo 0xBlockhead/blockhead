@@ -2,7 +2,8 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { resolve } from '$app/paths'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -12,7 +13,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 	const evmHexAddress40 = (value: string): value is `0x${string}` => (
 		/^0x[a-fA-F0-9]{40}$/.test(value)
@@ -41,10 +42,9 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
-			| 'SummaryIcon'
-			| 'SummaryHeadingAfter'
-			| 'SummaryContent'
+			| 'Icon'
+			| 'HeadingAfter'
+			| 'Content'
 		>
 	> = $props()
 
@@ -77,11 +77,12 @@
 	const connectionField = $derived(
 		(() => {
 			const bag = connectionRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
-			const verifications = Reflect.get(bag, 'verifications')
-			const signedAt = Reflect.get(bag, 'signedAt')
+			if (bag === undefined || typeof bag !== 'object') return null
+			const f = bag as Record<string, unknown>
+			const verifications = f['verifications']
+			const signedAt = f['signedAt']
 			const pick = (key: string) => {
-				const x = Reflect.get(bag, key)
+				const x = f[key]
 				return typeof x === 'string' && x.length ? x : undefined
 			}
 			return {
@@ -106,7 +107,7 @@
 	)
 
 	const custodyIsEvmHex = $derived(
-		connectionField?.custody != null
+		connectionField?.custody !== undefined
 		&& evmHexAddress40(connectionField.custody) ?
 			connectionField.custody
 		:
@@ -118,7 +119,9 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import Media from '$/components/Media.svelte'
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import Address from '$/views/Address.svelte'
 	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 </script>
@@ -132,8 +135,8 @@
 	{...entityViewRest}
 	title={displayTitle}
 >
-	{#snippet SummaryIcon()}
-		{#if connectionField?.pfpUrl != null}
+	{#snippet Icon()}
+		{#if connectionField?.pfpUrl !== undefined}
 			<Icon
 				shape={IconShape.Circle}
 				src={connectionField.pfpUrl}
@@ -142,22 +145,22 @@
 		{/if}
 	{/snippet}
 
-	{#snippet SummaryHeadingAfter()}
-		{#if connectionField?.username != null && connectionField.username !== displayTitle}
+	{#snippet HeadingAfter()}
+		{#if connectionField?.username !== undefined && connectionField.username !== displayTitle}
 			<span data-text="muted">
 				@{connectionField.username}
 			</span>
 		{/if}
 	{/snippet}
 
-	{#snippet SummaryContent()}
-		<div data-stack="tight">
-			{#if connectionField?.bio != null}
+	{#snippet Content()}
+		<div data-column>
+			{#if connectionField?.bio !== undefined}
 				<p data-text="muted">
 					{connectionField.bio}
 				</p>
 			{/if}
-			{#if custodyIsEvmHex != null}
+			{#if custodyIsEvmHex !== undefined}
 				<p data-row="inline wrap gap-2">
 					<span data-text="muted">Custody</span>
 					<Address
@@ -165,7 +168,7 @@
 						showAvatar={false}
 					/>
 				</p>
-			{:else if connectionField?.custody != null}
+			{:else if connectionField?.custody !== undefined}
 				<p data-text="muted">
 					{connectionField.custody}
 				</p>
@@ -173,6 +176,19 @@
 			<p data-text="muted">
 				FID {String(entityId.fid)}
 			</p>
+			{#if connectionField?.signedAt !== undefined && typeof connectionField.signedAt === 'number' && Number.isFinite(connectionField.signedAt)}
+				<dl data-definition-list="vertical">
+					<div>
+						<dt>Timestamp</dt>
+						<dd>
+							<Timestamp
+								timestamp={connectionField.signedAt}
+								format={TimestampFormat.Both}
+							/>
+						</dd>
+					</div>
+				</dl>
+			{/if}
 		</div>
 	{/snippet}
 
@@ -191,47 +207,47 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No Farcaster connection row in collections yet.
+							No Farcaster connection data yet.
 						</p>
-					{:else if connectionField == null}
+					{:else if connectionField === undefined}
 						<p data-text="muted">
 							FID {String(entityId.fid)}
 						</p>
 					{:else}
-						<section data-stack="tight">
+						<section data-column>
 							<h3>Connected Farcaster account</h3>
 							<dl>
 								<div>
 									<dt>FID</dt>
 									<dd>{String(entityId.fid)}</dd>
 								</div>
-								{#if connectionField.displayName != null}
+								{#if connectionField.displayName !== undefined}
 									<div>
 										<dt>Name</dt>
 										<dd>{connectionField.displayName}</dd>
 									</div>
 								{/if}
-								{#if connectionField.username != null}
+								{#if connectionField.username !== undefined}
 									<div>
 										<dt>Username</dt>
 										<dd>@{connectionField.username}</dd>
 									</div>
 								{/if}
-								{#if connectionField.bio != null}
+								{#if connectionField.bio !== undefined}
 									<div>
 										<dt>Bio</dt>
 										<dd>{connectionField.bio}</dd>
 									</div>
 								{/if}
-								{#if connectionField.authMethod != null}
+								{#if connectionField.authMethod !== undefined}
 									<div>
 										<dt>Sign-in</dt>
 										<dd>{connectionField.authMethod}</dd>
 									</div>
 								{/if}
-								{#if custodyIsEvmHex != null}
+								{#if custodyIsEvmHex !== undefined}
 									<div>
 										<dt>Custody</dt>
 										<dd>
@@ -241,29 +257,33 @@
 											/>
 										</dd>
 									</div>
-								{:else if connectionField.custody != null}
+								{:else if connectionField.custody !== undefined}
 									<div>
 										<dt>Custody</dt>
 										<dd>{connectionField.custody}</dd>
 									</div>
 								{/if}
-								{#if connectionField.signedAt != null}
+								{#if connectionField.signedAt !== undefined && typeof connectionField.signedAt === 'number' && Number.isFinite(connectionField.signedAt)}
 									<div>
 										<dt>Signed in</dt>
-										<dd>{new Date(connectionField.signedAt).toISOString()}</dd>
+										<dd>
+											<Timestamp
+												timestamp={connectionField.signedAt}
+												format={TimestampFormat.Both}
+											/>
+										</dd>
 									</div>
 								{/if}
 							</dl>
-							{#if connectionField.pfpUrl != null}
+							{#if connectionField.pfpUrl !== undefined}
 								<p>
-									<Icon
-										src={connectionField.pfpUrl}
-										alt=""
-										size="6rem"
+									<Media
+										media={{ url: connectionField.pfpUrl }}
+										alt={connectionField.displayName ?? connectionField.username ?? ''}
 									/>
 								</p>
 							{/if}
-							{#if connectionField.verifications != null && connectionField.verifications.length}
+							{#if connectionField.verifications !== undefined && connectionField.verifications.length}
 								<section data-stack="xs">
 									<h4>Verifications</h4>
 									<ul>
@@ -279,13 +299,17 @@
 				</QueryBoundary>
 
 				<FarcasterCastsView
-					id="casts"
-					title="Casts"
-					href={resolve('/farcaster/feed')}
-					parentEntityType={EntityType.FarcasterUser}
-					parentEntityId={{
-						fid: entityId.fid,
+					entityFieldReference={{
+						entityType: EntityType.FarcasterFeed,
+						entityId: {
+							variant: 'byUser',
+							fid: entityId.fid,
+						},
+						fieldName: '$$entries',
 					}}
+					id="casts"
+					title="Feed"
+					href={resolve(`/farcaster/feed/user/${String(entityId.fid)}`)}
 				/>
 			</EntityDetails>
 		{/if}

@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -11,7 +12,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -36,7 +37,6 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
@@ -67,14 +67,14 @@
 	const conversationField = $derived(
 		(() => {
 			const bag = conversationRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			const strOrNull = (key: string) => (
 				!(
 					key in b
 				) ?
 					undefined
-				: b[key] === null ?
+				: b[key] === undefined ?
 					null
 				: typeof b[key] === 'string' ?
 					(b[key] as string)
@@ -111,17 +111,16 @@
 		})(),
 	)
 
-	const displayTitle = $derived(
-		conversationField?.name != null && conversationField.name.length ?
-			conversationField.name
-		:	entityId.id,
+	const convTs = $derived(
+		conversationField?.updatedAt
+		?? conversationField?.createdAt
 	)
-
 
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
@@ -132,9 +131,9 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
+	title={conversationField?.name !== undefined && conversationField.name.length ? conversationField.name : entityId.id}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Conversation id</dt>
@@ -145,6 +144,17 @@
 					/>
 				</dd>
 			</div>
+			{#if convTs !== undefined && typeof convTs === 'number' && Number.isFinite(convTs)}
+				<div>
+					<dt>Timestamp</dt>
+					<dd>
+						<Timestamp
+							timestamp={convTs}
+							format={TimestampFormat.Both}
+						/>
+					</dd>
+				</div>
+			{/if}
 		</dl>
 	{/snippet}
 
@@ -163,9 +173,9 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No conversation row in collections yet (no resolver for this conversation).
+							No conversation data for this id yet.
 						</p>
 					{:else}
 						<dl>
@@ -183,7 +193,7 @@
 									<dd>{String(conversationField.pinned)}</dd>
 								</div>
 							{/if}
-							{#if conversationField?.systemPrompt != null}
+							{#if conversationField?.systemPrompt !== undefined}
 								<div>
 									<dt>System prompt</dt>
 									<dd>
@@ -198,7 +208,7 @@
 								<div>
 									<dt>Default connection id</dt>
 									<dd>
-										{#if conversationField.defaultConnectionId == null}
+										{#if conversationField.defaultConnectionId === undefined}
 											—
 										{:else}
 											<TruncatedValue
@@ -213,7 +223,7 @@
 								<div>
 									<dt>Default model id</dt>
 									<dd>
-										{#if conversationField.defaultModelId == null}
+										{#if conversationField.defaultModelId === undefined}
 											—
 										{:else}
 											<TruncatedValue
@@ -224,16 +234,26 @@
 									</dd>
 								</div>
 							{/if}
-							{#if conversationField?.createdAt != null}
+							{#if conversationField?.createdAt !== undefined && typeof conversationField.createdAt === 'number' && Number.isFinite(conversationField.createdAt)}
 								<div>
 									<dt>Created at</dt>
-									<dd>{String(conversationField.createdAt)}</dd>
+									<dd>
+										<Timestamp
+											timestamp={conversationField.createdAt}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
 								</div>
 							{/if}
-							{#if conversationField?.updatedAt != null}
+							{#if conversationField?.updatedAt !== undefined && typeof conversationField.updatedAt === 'number' && Number.isFinite(conversationField.updatedAt)}
 								<div>
 									<dt>Updated at</dt>
-									<dd>{String(conversationField.updatedAt)}</dd>
+									<dd>
+										<Timestamp
+											timestamp={conversationField.updatedAt}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
 								</div>
 							{/if}
 						</dl>

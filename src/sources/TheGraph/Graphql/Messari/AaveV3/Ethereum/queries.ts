@@ -1,3 +1,6 @@
+import { Source } from '$/sources/$Source.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import { messariAaveV3EthereumMarketsDefaultFirst } from '$/sources/TheGraph/Graphql/constants.ts'
 import { graphql, queryMessariAaveV3Ethereum } from '$/sources/TheGraph/Graphql/Messari/AaveV3/Ethereum/client.ts'
 
 const Token = graphql(`
@@ -43,9 +46,12 @@ const Market = graphql(`
 	InterestRate,
 ])
 
-export const getMessariAaveV3EthereumProtocol = async () => (
+export const getMessariAaveV3EthereumProtocol = async (
+	publicEnv: SourcePublicEnvFor<Source.TheGraph_Graphql>,
+) => (
 	(
 		await queryMessariAaveV3Ethereum(
+			publicEnv,
 			graphql(`
 				query MessariAaveV3EthereumProtocol {
 					lendingProtocols(
@@ -82,13 +88,17 @@ export const getMessariAaveV3EthereumProtocol = async () => (
 	).lendingProtocols[0]
 )
 
-export const getMessariAaveV3EthereumMarkets = async ({
-	first = 20,
-}: {
-	first?: number
-} = {}) => (
+export const getMessariAaveV3EthereumMarkets = async (
+	publicEnv: SourcePublicEnvFor<Source.TheGraph_Graphql>,
+	{
+		first = messariAaveV3EthereumMarketsDefaultFirst,
+	}: {
+		first?: number
+	} = {},
+) => (
 	(
 		await queryMessariAaveV3Ethereum(
+			publicEnv,
 			graphql(`
 				query MessariAaveV3EthereumMarkets(
 					$first: Int!
@@ -116,12 +126,15 @@ export const getMessariAaveV3EthereumMarkets = async ({
 )
 
 export const getMessariAaveV3EthereumMarket = async ({
+	publicEnv,
 	id,
 }: {
+	publicEnv: SourcePublicEnvFor<Source.TheGraph_Graphql>
 	id: string
 }) => (
 	(
 		await queryMessariAaveV3Ethereum(
+			publicEnv,
 			graphql(`
 				query MessariAaveV3EthereumMarket(
 					$id: Bytes!

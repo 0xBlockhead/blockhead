@@ -3,7 +3,8 @@
 	generics="_EntityType extends EntityType"
 >
 	// Types/constants
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { EntityType } from '$/schema/$EntityType.ts'
 
 

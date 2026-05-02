@@ -2,6 +2,8 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+	import { EntityType } from '$/schema/$EntityType.ts'
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -12,6 +14,11 @@
 <Page>
 	<section>
 		<NetworksView
+			entityFieldReference={{
+				entityType: EntityType._Global,
+				entityId: {},
+				fieldName: '$$networks',
+			}}
 			href={resolve('/networks')}
 			id="networks"
 		/>

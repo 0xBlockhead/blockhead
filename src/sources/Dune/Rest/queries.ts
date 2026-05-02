@@ -7,6 +7,8 @@
  */
 
 import { duneFetch } from '$/sources/Dune/Rest/client.ts'
+import { Source } from '$/sources/$Source.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import type {
 	DuneExecuteQueryBody,
 	DuneExecuteQueryResponse,
@@ -15,25 +17,48 @@ import type {
 	DuneQueryMetadata,
 } from '$/sources/Dune/Rest/types.ts'
 
+const appendDuneExecutionResultsSearchParams = (
+	searchParams: URLSearchParams,
+	params: DuneGetExecutionResultsParams,
+) => {
+	if (params.allow_partial_results !== undefined) {
+		searchParams.set('allow_partial_results', String(params.allow_partial_results))
+	}
+	if (params.columns !== undefined) searchParams.set('columns', params.columns)
+	if (params.filters !== undefined) searchParams.set('filters', params.filters)
+	if (params.ignore_max_credits_per_request !== undefined) {
+		searchParams.set('ignore_max_credits_per_request', String(params.ignore_max_credits_per_request))
+	}
+	if (params.limit !== undefined) searchParams.set('limit', String(params.limit))
+	if (params.offset !== undefined) searchParams.set('offset', String(params.offset))
+	if (params.sample_count !== undefined) searchParams.set('sample_count', String(params.sample_count))
+	if (params.sort_by !== undefined) searchParams.set('sort_by', params.sort_by)
+}
+
 /**
  * `GET /api/v1/query/{queryId}` — query metadata (requires plan with API access).
  */
 export async function getQuery(
+	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
 	queryId: number,
 	options?: { include_contributors?: boolean },
 ): Promise<DuneQueryMetadata> {
-	const q = options?.include_contributors ? '?include_contributors=true' : ''
-	return duneFetch<DuneQueryMetadata>(`/api/v1/query/${queryId}${q}`)
+	const contributorsQuerySuffix = options?.include_contributors ? '?include_contributors=true' : ''
+	return duneFetch<DuneQueryMetadata>(
+		publicEnv,
+		`/api/v1/query/${queryId}${contributorsQuerySuffix}`,
+	)
 }
 
 /**
  * `POST /api/v1/query/{query_id}/execute` — start run; returns `execution_id`.
  */
 export async function executeQuery(
+	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
 	queryId: number,
 	body?: DuneExecuteQueryBody,
 ): Promise<DuneExecuteQueryResponse> {
-	return duneFetch<DuneExecuteQueryResponse>(`/api/v1/query/${queryId}/execute`, {
+	return duneFetch<DuneExecuteQueryResponse>(publicEnv, `/api/v1/query/${queryId}/execute`, {
 		method: 'POST',
 		body: body != null ? JSON.stringify(body) : undefined,
 	})
@@ -43,27 +68,18 @@ export async function executeQuery(
  * `GET /api/v1/execution/{execution_id}/results` — rows + state.
  */
 export async function getExecutionResults(
+	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
 	executionId: string,
 	params?: DuneGetExecutionResultsParams,
 ): Promise<DuneExecutionResult> {
 	if (params == null) {
-		return duneFetch<DuneExecutionResult>(`/api/v1/execution/${executionId}/results`)
+		return duneFetch<DuneExecutionResult>(publicEnv, `/api/v1/execution/${executionId}/results`)
 	}
-	const q = new URLSearchParams()
-	if (params.allow_partial_results !== undefined) {
-		q.set('allow_partial_results', String(params.allow_partial_results))
-	}
-	if (params.columns !== undefined) q.set('columns', params.columns)
-	if (params.filters !== undefined) q.set('filters', params.filters)
-	if (params.ignore_max_credits_per_request !== undefined) {
-		q.set('ignore_max_credits_per_request', String(params.ignore_max_credits_per_request))
-	}
-	if (params.limit !== undefined) q.set('limit', String(params.limit))
-	if (params.offset !== undefined) q.set('offset', String(params.offset))
-	if (params.sample_count !== undefined) q.set('sample_count', String(params.sample_count))
-	if (params.sort_by !== undefined) q.set('sort_by', params.sort_by)
-	const search = q.toString()
+	const searchParams = new URLSearchParams()
+	appendDuneExecutionResultsSearchParams(searchParams, params)
+	const search = searchParams.toString()
 	return duneFetch<DuneExecutionResult>(
+		publicEnv,
 		`/api/v1/execution/${executionId}/results${search ? `?${search}` : ''}`,
 	)
 }
@@ -73,29 +89,20 @@ export async function getExecutionResults(
  * @see https://docs.dune.com/api-reference/executions/endpoint/get-query-result
  */
 export async function getLatestQueryResults(
+	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
 	queryId: number,
 	params?: DuneGetExecutionResultsParams,
 ): Promise<DuneExecutionResult> {
 	if (params == null) {
-		return duneFetch<DuneExecutionResult>(`/api/v1/query/${queryId}/results`)
+		return duneFetch<DuneExecutionResult>(publicEnv, `/api/v1/query/${queryId}/results`)
 	}
 
-	const q = new URLSearchParams()
-	if (params.allow_partial_results !== undefined) {
-		q.set('allow_partial_results', String(params.allow_partial_results))
-	}
-	if (params.columns !== undefined) q.set('columns', params.columns)
-	if (params.filters !== undefined) q.set('filters', params.filters)
-	if (params.ignore_max_credits_per_request !== undefined) {
-		q.set('ignore_max_credits_per_request', String(params.ignore_max_credits_per_request))
-	}
-	if (params.limit !== undefined) q.set('limit', String(params.limit))
-	if (params.offset !== undefined) q.set('offset', String(params.offset))
-	if (params.sample_count !== undefined) q.set('sample_count', String(params.sample_count))
-	if (params.sort_by !== undefined) q.set('sort_by', params.sort_by)
-	const search = q.toString()
+	const searchParams = new URLSearchParams()
+	appendDuneExecutionResultsSearchParams(searchParams, params)
+	const search = searchParams.toString()
 
 	return duneFetch<DuneExecutionResult>(
+		publicEnv,
 		`/api/v1/query/${queryId}/results${search ? `?${search}` : ''}`,
 	)
 }
@@ -104,11 +111,14 @@ export async function getLatestQueryResults(
  * `POST /api/v1/usage` — billing period credits (metadata; does not consume query credits).
  * @see https://docs.dune.com/api-reference/usage/endpoint/get-usage.md
  */
-export async function getUsage(body?: { start_date?: string; end_date?: string }) {
+export async function getUsage(
+	publicEnv: SourcePublicEnvFor<Source.Dune_Rest>,
+	body?: { start_date?: string; end_date?: string },
+) {
 	return duneFetch<{
 		billingPeriods?: { credits_used?: number; credits_included?: number }[]
 		billing_periods?: { credits_used?: number; credits_included?: number }[]
-	}>('/api/v1/usage', {
+	}>(publicEnv, '/api/v1/usage', {
 		method: 'POST',
 		body: JSON.stringify(body ?? {}),
 	})

@@ -40,6 +40,10 @@
 - File names only need to match `**/*.e2e.ts` — e.g. `proposals.e2e.ts` or `page.svelte.e2e.ts` (demo). Pick a name that identifies the route when many tests live nearby.
 - Invoking tests: prefer a stable fragment (e.g. `pnpm exec playwright test proposals.e2e`) so shells do not have to quote path segments with parentheses like `(explore)`.
 
+### Playwright E2E — `data-e2e`
+
+- Add `data-e2e="…"` **sparingly** for one-off nodes used only by E2E (not for layout/theme). Prefer `getByRole` / label / text / `#main` first. Existing hooks include e.g. `nav-menu` (`Navigation.svelte`), `networks-panel` (`explore/+page.svelte`), and on network summary `network-summary-head-block`, `network-carousel-blocks`, `network-carousel-transactions` (`NetworkView.svelte`).
+
 ### Playwright E2E — assertions
 
 - `<details>` / collapsed UI: Copy inside a closed `<details>` (or similar) is often attached but not visible to Playwright. For “data loaded” checks on that content, prefer `expect(locator).toBeAttached()` (optionally with a long `timeout`) instead of relying only on `toBeVisible()`.
@@ -212,7 +216,7 @@
 
 - Snippets:
 	- Types + `{@render}` + line breaks: `$props()` → Snippets above.
-	- `{#snippet Name()}` if the body needs no injected values; else `Name({ open })` or `Name(a, b)` to mirror `{@render}` (same multiline rule). Call sites often use `Summary()` while `EntityView` forwards `{ open }` into `Collapsible`.
+	- `{#snippet Name()}` if the body needs no injected values; else `Name({ open })` or `Name(a, b)` to mirror `{@render}` (same multiline rule). `Collapsible` and `ParentPageCollapsible` use a `Summary` snippet for the summary row; it receives `{ open }`.
 	- Snippet props: `{#snippet …}` as direct child of the component (no `{#if}` / `{#each}` / `{#key}` around it); put `{#if}` inside the snippet body.
 	- Passing local snippets by reference:
 		```svelte
@@ -271,7 +275,10 @@
 
 - Display truncation: use `<TruncatedValue>` / `<Address>` (manual truncation is only OK for non-display logic)
 
-## SvelteKit (`src/routes/**`)
+## SvelteKit routes and views (`src/routes/**`)
+
+`src/views/*.svelte` / `src/routes/**/*.svelte`:
+- NO TYPESCRIPT TYPE ASSERTIONS. EVER.
 
 URLs and nav: `src/routes/navigationItems.svelte.ts`. `(…)` = layout groups only (not URL). Add `+layout` only for shared chrome or multiple children; drop empty groups. Never colocate `+layout` + `+page` except under `routes/`. Shallow `routes/<segment>/+page.svelte` OK for hubs; same rules with a prefix: `routes/<urlPrefix>/(area)/…`.
 
@@ -350,114 +357,112 @@ Checks — New routes must not match any Bad row above.
 
 ## Import topology (`src/**`)
 
-**Default direction (outer → inner):** `routes` · `views` · `components` → `collections/` → `resolvers/` → `sources/**/queries.ts` → `schema/` · `constants/` · `lib/` · `typescript/` · npm. `lib/` may use `schema/` / `constants/` for types and shared helpers; keep it free of `routes/`, `views/`, `collections/`, `resolvers/`, and `sources/**/client.ts` so lower layers stay reusable.
+Keep dependencies mostly flowing inward:
 
-**Intentional cross-links (not strict tiers):**
+- `routes/` compose pages and layouts from `views/`, `components/`, route-local helpers, and shared code in `lib/`, `schema/`, and `constants/`
+- `views/` and `components/` render UI and can consume TanStack DB collections / live queries, but should not fetch provider data directly
+- `collections/` owns collection construction in `$/collections/$collections.ts` and shared live-query helpers such as `$/collections/$queries.svelte.ts`
+- `resolvers/` map source payloads into schema-shaped entity rows and entity-field rows
+- `sources/` contains provider transport code and external I/O
+- `schema/`, `constants/`, `lib/`, and `typescript/` are foundational and should stay reusable
 
-- `src/collections/$collections.ts` wires persisted query collections to `entityResolvers` / `entityFieldResolvers` from `$/resolvers/$resolvers.ts` (types from `$/resolvers/$defineEntityResolvers.ts`). Collections sit above resolver modules for cache population.
-- `parseLoadSubsetOptions` (from `@tanstack/svelte-db`) applies list metadata in `src/collections/$collections.ts` and route UIs. Resolver `resolve` returns the full row set from its `get*` calls; when `get*` in `src/sources/**/queries.ts` accepts provider pagination or filter parameters, pass the matching args from resolver `context` (see **Resolvers** → Load subset).
+Current repo-specific cross-links:
 
-`$/` → `src/`; full extensions on imports (TypeScript section).
+- `$/routes/+layout.svelte` creates and exports `entityCollectionByEntityType` and `entityFieldCollections`, and many views import those directly
+- `$/collections/$queries.svelte.ts` already centralizes some `useLiveQuery` helpers, so live queries are not limited to route files in this repo
+- `$/resolvers/index.ts` is the resolver registry, and `$/resolvers/$resolvers.ts` holds the shared resolver types and helpers
 
-### Layers
-
-
-| Layer			| Folder(s)																										| OK to import																																				 | Do not import																																													 |
-| ---------- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| Foundation | `constants/`, `schema/`, `typescript/`, `styles/`, `assets/` | Same layer, `lib/`																																	 | `routes/`, `views/`, `resolvers/`, `collections/`																											 |
-| Transport	| `sources/`																									 | `lib/`, `constants/`, `schema/` (types)																							| `collections/`, `resolvers/`, `views/`, `routes/`, `components/` — no `fetch` to sources from `.svelte` |
-| Domain		 | `resolvers/`																								 | `sources/**/queries.ts`, `schema/`, `lib/`																					 | `src/collections/` (cycle risk), `routes/`, `views/`																									 |
-| UI				 | `views/`, `components/`																			| `collections/`, `schema/`, `constants/`, `lib/`, `context/`													| `sources/**/client.ts` — use resolvers / collections																										|
-| Routes		 | `routes/`																										| `views/`, `components/`, `collections/`, `context/`, `schema/`, `constants/`, `lib/` | Deep `sources/` except deliberate `+page.server` / `+layout.server` / server-only loads								 |
-| Glue			 | `context/`, `params/`, `hooks.client.ts`, `hooks.server.ts`	| `collections/`, `lib/`, `schema/`, `constants/` as needed														| Ad-hoc `sources/**/client.ts`																																					 |
-
-
-### `collections/` (split)
-
-
-| Subfolder															 | Role																																																	 | OK to import																																																											| Do not import			 |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| `collections/` (`src/collections/`)	 | `$collections.ts`: persisted query collections, `parseLoadSubsetOptions`, TanStack Query client export | `resolvers/$resolvers.ts`, `resolvers/$defineEntityResolvers.ts`, `schema/`, `sources/$Sources.ts`, `@tanstack/*`									| `views/`, `routes/` |
-
-
-### `collections/` and load subset
-
-
-| File							| Role																																																						 |
-| ----------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `$collections.ts` | Registers collections, runs `parseLoadSubsetOptions` on query metadata, invokes resolvers to fill the store. |
-
-
-### Layer violations
-
-If a **lower** layer imports a **higher** one (e.g. `sources/**/queries.ts` → `views/`), move the shared piece to `lib/`, `schema/`, or `collections/`.
+If a lower layer starts importing a higher one, move the shared code down into `lib/`, `schema/`, `constants/`, or `collections/`.
 
 ## Sources (`src/sources/**`)
 
-Shared `client.ts`: `fetch`, `getJson` / `getText`, optional text helpers. No `res.ok` / `try/catch` — failures propagate.
+The repo uses `src/sources/**` for external I/O and source metadata registration.
 
-`Provider/<Transport>/`: `api-type.ts`, `constants.ts`, `queries.ts`, optional `types.ts`. `queries.ts`: `get…Url` + `get*` (calls `client`); re-export helpers resolvers need so one import path. Resolvers never import `client.ts` for provider I/O.
+Registry contract:
 
+- `$/sources/$SourceProvider.ts` exports `SourceProvider` enum and `SourceProviderDefinition`
+- `$/sources/$Source.ts` exports `Source` enum, `SourceDefinition`, and `SourcePublicEnvWire` (`Record<string, string>` — the wire shape for public env passed into ArkType)
+- `$/sources/*/index.ts` default-exports provider definitions (`SourceProviderDefinition`)
+- `$/sources/*/**/index.ts` default-exports transport/source definitions (`SourceDefinition` rows listed on the provider’s `sources` array)
+- `$/sources/index.ts` exports `Source`, `sourceProviders`, `sources`, `enabledSources`, `resolverPublicEnv`, and `resolverPublicEnvBySource` (`sourceProviders` is annotated `readonly SourceProviderDefinition[]` so the list is not inferred as a union of literal provider shapes, which would break `flatMap` / `filter` typing)
+
+**Env typing:** optional `env` on a provider or source is an ArkType `Type<SourcePublicEnvWire>`. Narrower object schemas are built with `import { type as arktype } from 'arktype'` and `arktype({ PUBLIC_*: 'string', … })`.
+
+**Gating (`$/sources/index.ts`):**
+
+1. Build `resolverPublicEnv` from `$env/dynamic/public`: every entry uses `value ?? ''` so values are strings; `satisfies SourcePublicEnvWire`.
+2. For each optional `env` schema, call the schema as a function with `resolverPublicEnv`. Reject if the result is `instanceof arktype.errors`, or if any **validated** string value is empty/whitespace (plain `.allows()` is insufficient because `''` still satisfies `'string'`).
+3. Keep providers and transports using `'env' in … ? ….env : undefined` for narrowing, same predicate as step 2.
+4. `resolverPublicEnvBySource` maps each enabled `Source` to either the full `resolverPublicEnv` (no `env` on that definition) or an object containing only the keys from that source’s validated env output.
+5. `enabledSources` is a `Set<Source>` of the `source` field on the filtered `SourceDefinition` list.
+
+If a provider’s `env` fails, none of its transports are included. If a transport’s own `env` fails, that row is dropped even when the provider passed.
+
+Provider definition shape:
+
+```ts
+{
+	provider: SourceProvider
+	label: string
+	env?: Type<SourcePublicEnvWire>
+	sources: readonly SourceDefinition[]
+}
 ```
-src/sources/
-├── $Sources.ts
-├── <SharedTransport>/…/client.ts, queries.ts, types.ts
-└── <Provider>/
-		├── api-type.ts
-		└── <Transport>/constants.ts, types.ts?, queries.ts
+
+Source definition shape:
+
+```ts
+{
+	provider: SourceProvider
+	source: Source
+	label: string
+	env?: Type<SourcePublicEnvWire>
+}
 ```
 
+`$/resolvers/index.ts` imports `enabledSources` and keeps only resolver modules whose exported `source` is in that set; it then attaches `source` onto each resolver entry when flattening `entityResolvers` / `entityFieldResolvers`.
 
-| Task				 | Where																																						 |
-| ------------ | --------------------------------------------------------------------------------- |
-| New provider | `src/sources/<Provider>/<Transport>/` + optional `$/resolvers/<Provider>-Rest.ts` |
-| Env					| `$env/*` / `import.meta.env` in resolver or server load													 |
-
-
-No barrels. No `fetch` in `.svelte` for resolver work.
+Transport folders continue to hold network code (`queries.ts`, optional `client.ts`, `constants.ts`, `types.ts`, generated schema files). `queries.ts` remains the stable entry point resolvers should import.
 
 ## Resolvers (`src/resolvers/**`)
 
-`(EntityType, field)` → async value.
+Resolvers are the bridge between `sources/` and the TanStack DB collections.
+
+- Each provider module exports `default { entityResolvers, entityFieldResolvers }`
+- Use `defineEntityResolver` / `defineEntityFieldResolver` from `$/resolvers/$resolvers.ts`
+- Register new modules in `$/resolvers/index.ts` (each default export includes `source: Source`; the list is filtered by `enabledSources` from `$/sources/index.ts`)
+- `resolve(...)` should return schema-shaped field data, not raw wire payloads
+- `ResolverLoadSubset` (from `$/resolvers/$resolvers.ts`) includes `publicEnv`: the per-source slice from `resolverPublicEnvBySource` (or full `resolverPublicEnv`). `$/collections/$collections.ts` passes it on every `resolve()` call; prefer reading API keys from `context.publicEnv` instead of `import.meta.env` so behavior matches gating.
+- Thread `context` into source queries when the upstream API supports filtering, sorting, or limits (`filters` / `sorts` / `limit`)
+- Entity **field** collections apply the same optional `Source` filter as entity collections when the live query includes a `Source` `in` clause, so field resolvers for disabled or filtered-out sources are not invoked
+- Optional **`resolveLive`** on an **`EntityFieldResolver`** (see `ResolveLiveContext` in `$/resolvers/$resolvers.ts`): push-driven refresh (WebSockets, streams). Keep **`resolve`** as the snapshot implementation; **`resolveLive`** typically calls **`invalidateEntityFieldQueries`** from `$/lib/db/resolveLive.svelte.ts` so the existing field-collection `queryFn` re-runs. **`runEntityFieldResolveLiveForParent`** in `$/lib/db/resolveLive.svelte.ts` discovers `resolveLive` hooks for a parent id + field list; routes mount it from `$effect` with an **`AbortSignal`** (see network `(network)/+layout.svelte`). One resolver may invalidate sibling fields (e.g. Voltaire `Network` `blockHeight` `resolveLive` also refreshes `$$evmBlocks` and `$$evmTransactions`).
+
+## Collections and data flow
+
+Current data flow:
+
+1. `$/schema/index.ts` registers entity definitions
+2. `$/resolvers/index.ts` aggregates resolver modules
+3. `$/routes/+layout.svelte` calls `createCollectionsFromSchema(...)` and exports the live collections
+4. `$/views/**`, `$/components/**`, routes, and `$/collections/$queries.svelte.ts` consume those collections via `useLiveQuery`
+
+Most live queries live in `.svelte` views, but there is also existing shared query state in `$/collections/$queries.svelte.ts`. Follow the nearest existing pattern instead of introducing a new abstraction layer just to satisfy a generic rule.
+
+## Adding a new provider
+
+Mirror an existing neighbor such as `$/sources/Coingecko/Rest/` + `$/resolvers/Coingecko-Rest.ts`:
+
+1. Create `$/sources/<Provider>/<Transport>/` with `queries.ts` and any `client.ts`, `constants.ts`, generated types, and `index.ts` default export
+2. Create/update `$/sources/<Provider>/index.ts` default export and include its transport definitions
+3. Ensure `SourceProvider.<Provider>` exists in `$/sources/$SourceProvider.ts`
+4. Ensure `Source.<Provider>_<Transport>` exists in `$/sources/$Source.ts`
+5. Add the provider’s default export to the `sourceProviders` array in `$/sources/index.ts` (filtered `sources` and `enabledSources` are derived from that list and env `.allows` checks)
+6. Add `$/resolvers/<Provider>-<Transport>.ts` that maps wire data into schema fields
+7. Register that resolver module in `$/resolvers/index.ts`
+8. Extend or add schema definitions in `$/schema/*.ts`, and register new entities in `$/schema/index.ts` if needed
+9. Verify with `pnpm run check` and exercise a route or view that hits the new resolver
 
 
-| Module																	| Role																																													|
-| --------------------------------------- | --------------------------------------------------------------------------------------------- |
-| `$/resolvers/$defineEntityResolvers.ts` | `defineEntityResolver`, `defineEntityFieldResolver`, `ResolverLoadSubset`										 |
-| `$/resolvers/$resolvers.ts`						 | Aggregates provider modules; `entityResolvers`, `entityFieldResolvers` lookup maps						|
-| `$/collections/$collections.ts`				 | Query collections, `parseLoadSubsetOptions`, resolver orchestration — see **Import topology** |
-
-
-Registry: `entityResolvers` + `entityFieldResolvers` in `$/resolvers/$resolvers.ts` (merged from per-provider defaults). Entity resolvers merge partial rows; field resolvers fill missing keys — resolvers do not chain loads themselves.
-
-Modules: `export default { entityFieldResolvers, entityResolvers? }` per provider; use `defineEntityFieldResolver` / `defineEntityResolver` from `$/resolvers/$defineEntityResolvers.ts`.
-
-Split: sources = transport + wire types; resolvers = `get*` from `$/sources/.../queries.ts` (+ optional wire `import type`), map to schema.
-
-`resolve`: logic in `resolve` or one fat helper; `await singleFlight(getQuery)(args)` per `get*` (stable import from `queries.ts`).
-
-### Load subset (multi-row `$$` fields)
-
-- Resolver `resolve` returns every row produced by its `get*` calls.
-- `parseLoadSubsetOptions`, `$/collections/$collections.ts`, and `useLiveQuery` in `.svelte` apply filters, sort, and windows on the stored collection.
-- When `get*` in `src/sources/**/queries.ts` accepts provider pagination or filter parameters, pass the matching fields from `context?: ResolverLoadSubset` into that `get*`.
-
-
-| Task								 | Where																																														|
-| -------------------- | ------------------------------------------------------------------------------------------------ |
-| Register resolvers	 | `$/resolvers/$resolvers.ts` (import provider modules)																						|
-| HTTP / RPC I/O			 | `get*` in `queries.ts`																																					 |
-| Dedupe							 | `singleFlight(getQuery)(args)`																																	 |
-| List subset (client) | `parseLoadSubsetOptions` + `$/collections/$collections.ts`; `useLiveQuery` in `.svelte`					|
-| List subset (source) | `get*` in `src/sources/**/queries.ts` implements provider params; resolver forwards `context`		|
-
-
-No barrels. No resolver `client.ts` for provider I/O.
-
-## Data
-
-- `useLiveQuery` only in `.svelte` (pages, layouts, `$/views/**`).
-- Collections and query client: `src/collections/$collections.ts` — see **Import topology** → `collections/` and **Resolvers** → Load subset.
 
 ## User Preferences (Canonical)
 

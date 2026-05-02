@@ -1,22 +1,25 @@
-export const alliumApiBaseUrl = 'https://api.allium.so'
+export const origin = 'https://api.allium.so' as const
 
-const alliumChains = [
-	{ chainId: 1, alliumChain: 'ethereum' },
-	{ chainId: 10, alliumChain: 'optimism' },
-	{ chainId: 56, alliumChain: 'bsc' },
-	{ chainId: 137, alliumChain: 'polygon' },
-	{ chainId: 8453, alliumChain: 'base' },
-	{ chainId: 42161, alliumChain: 'arbitrum' },
-	{ chainId: 43114, alliumChain: 'avalanche' },
+export const baseUrl = origin
+
+const chains = [
+	{ chainId: 1, apiChain: 'ethereum' },
+	{ chainId: 10, apiChain: 'optimism' },
+	{ chainId: 56, apiChain: 'bsc' },
+	{ chainId: 137, apiChain: 'polygon' },
+	{ chainId: 8453, apiChain: 'base' },
+	{ chainId: 42161, apiChain: 'arbitrum' },
+	{ chainId: 43114, apiChain: 'avalanche' },
 ] as const satisfies readonly {
 	chainId: number
-	alliumChain: string
+	apiChain: string
 }[]
 
-export const alliumChainByChainId = Object.fromEntries(
-	alliumChains
+/** Allium path segment `{chain}` → EVM **`chainId`**. */
+export const apiChainByChainId = Object.fromEntries(
+	chains
 		.map((entry) => [
 			entry.chainId,
-			entry.alliumChain,
+			entry.apiChain,
 		]),
 ) as Partial<Record<number, string>>

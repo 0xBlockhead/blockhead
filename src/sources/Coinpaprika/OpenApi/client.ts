@@ -1,19 +1,20 @@
 import {
-	coinpaprikaFreeApiBaseUrl,
-	coinpaprikaProApiBaseUrl,
+	optionalPublicEnvString,
+} from '$/lib/sources.ts'
+import { Source } from '$/sources/$Source.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import {
+	freeBaseUrl,
+	proBaseUrl,
 } from '$/sources/Coinpaprika/OpenApi/constants.ts'
 
-const coinpaprikaApiKey = () => {
-	const value = import.meta.env.PUBLIC_COINPAPRIKA_API_KEY
-	return typeof value === 'string' && value.trim() !== '' ? value.trim() : undefined
-}
-
-const coinpaprikaRequest = async <_Response>(
+export const getCoinpaprikaJson = async <_Response>(
+	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>,
 	pathAndQuery: string,
 ): Promise<_Response> => {
-	const apiKey = coinpaprikaApiKey()
+	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_COINPAPRIKA_API_KEY')
 	const response = await fetch(
-		`${apiKey == null ? coinpaprikaFreeApiBaseUrl : coinpaprikaProApiBaseUrl}${pathAndQuery}`,
+		`${apiKey == null ? freeBaseUrl : proBaseUrl}${pathAndQuery}`,
 		{
 			headers: {
 				Accept: 'application/json',
@@ -43,5 +44,3 @@ export type CoinpaprikaTicker = {
 	price_usd?: string
 	last_updated?: string
 }
-
-export const getCoinpaprikaJson = coinpaprikaRequest

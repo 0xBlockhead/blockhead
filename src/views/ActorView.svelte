@@ -1,13 +1,22 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
+
+
+	// State
+	import { eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { stringify } from 'devalue'
+	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -34,24 +43,66 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
-
-	const chainId = $derived(
-		typeof entityId?.$network?.chainId === 'number' ?
-			entityId.$network.chainId
-		:	undefined,
+	// Functions
+	const evmHexAddress40 = (value: string): value is `0x${string}` => (
+		/^0x[a-fA-F0-9]{40}$/.test(value)
 	)
 
+
+	// (Derived)
+	const actorParentIdKey = $derived(
+		stringify(entityId),
+	)
+
+	const ensOwnedQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({
+					field: entityFieldCollections[EntityType.Actor]['$$ensNamesOwned'],
+				})
+				.where(({ field }) => (
+					eq(
+						field[EntityMetaKey.ParentIdKey],
+						actorParentIdKey,
+					)
+				))
+				.where(({ field }) => (
+					eq(
+						field[EntityMetaKey.Source],
+						Source.TheGraph_Graphql,
+					)
+				))
+				.select(({ field }) => ({
+					value: field[EntityMetaKey.Value],
+				}))
+		),
+		[() => actorParentIdKey],
+	)
+
+	const ensOwnedNames = $derived(
+		(ensOwnedQuery.data ?? [])
+			.map((row) => {
+				const v = row.value as Record<string, unknown> | undefined
+				if (v === undefined) return null
+				const id = v[EntityMetaKey.Id] as Record<string, unknown> | undefined
+				const name = id?.name
+				return typeof name === 'string' && name !== '' ?
+						name
+					:	null
+			})
+			.filter((x): x is string => x !== undefined),
+	)
+
+
 	// Components
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import Address from '$/views/Address.svelte'
 	import Boundary from '$/components/Boundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -63,7 +114,7 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Address</dt>
@@ -74,12 +125,6 @@
 					/>
 				</dd>
 			</div>
-			{#if chainId != null}
-				<div>
-					<dt>Chain ID</dt>
-					<dd>{String(chainId)}</dd>
-				</div>
-			{/if}
 		</dl>
 	{/snippet}
 
@@ -98,29 +143,58 @@
 				{/snippet}
 
 				<p data-text="muted">
-					ENS name and avatar resolve via field resolvers when available.
+					ENS primary name and avatar resolve via Voltaire when available.
 				</p>
 
-				{#if entityId.interopAddress != null && entityId.interopAddress !== ''}
+				{#if entityId.interopAddress !== undefined && entityId.interopAddress !== ''}
 					<dl>
 						<div>
 							<dt>Interop</dt>
-							<dd>{entityId.interopAddress}</dd>
+							<dd>
+								{#if evmHexAddress40(entityId.interopAddress)}
+									<Address
+										network={entityId.$network}
+										address={entityId.interopAddress}
+										showAvatar={false}
+									/>
+								{:else}
+									<TruncatedValue
+										value={entityId.interopAddress}
+										format={TruncatedValueFormat.Visual}
+									/>
+								{/if}
+							</dd>
 						</div>
 					</dl>
 				{/if}
 			</Boundary>
 		</EntityDetails>
 
-		{#if chainId != null}
-			<NetworkView
-				entityId={{ chainId }}
-				href={resolve('/(explore)/(networks)/network/[networkId]', {
-					networkId: String(chainId),
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+		{#if ensOwnedNames.length > 0}
+			<EntityDetails
+				entityType={EntityType.Actor}
+				{entityId}
+			>
+				<dl>
+					<div>
+						<dt>ENS names (The Graph)</dt>
+						<dd>
+							<ul>
+								{#each ensOwnedNames as name (name)}
+									<li>
+										<a
+											data-link
+											href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
+												ensName: name,
+											})}
+										>{name}</a>
+									</li>
+								{/each}
+							</ul>
+						</dd>
+					</div>
+				</dl>
+			</EntityDetails>
 		{/if}
 
 		{#if children}

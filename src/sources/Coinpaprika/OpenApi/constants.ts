@@ -1,54 +1,60 @@
 import { CoinId } from '$/constants/Coin.ts'
 
-export const coinpaprikaFreeApiBaseUrl = 'https://api.coinpaprika.com/v1'
+/** Free vs bearer-auth hosts (REST path {@link pathPrefix}). */
+export const freeOrigin = 'https://api.coinpaprika.com' as const
+export const proOrigin = 'https://api-pro.coinpaprika.com' as const
 
-export const coinpaprikaProApiBaseUrl = 'https://api-pro.coinpaprika.com/v1'
+export const pathPrefix = '/v1' as const
 
-const coinpaprikaCoinCatalog = [
-	{ coinId: CoinId.AAVE, coinpaprikaId: 'aave-aave', decimals: 18 },
-	{ coinId: CoinId.ADA, coinpaprikaId: 'ada-cardano', decimals: 6 },
-	{ coinId: CoinId.APT, coinpaprikaId: 'apt-aptos', decimals: 8 },
-	{ coinId: CoinId.ARB, coinpaprikaId: 'arb-arbitrum', decimals: 18 },
-	{ coinId: CoinId.AVAX, coinpaprikaId: 'avax-avalanche', decimals: 18 },
-	{ coinId: CoinId.BNB, coinpaprikaId: 'bnb-binance-coin', decimals: 18 },
-	{ coinId: CoinId.BTC, coinpaprikaId: 'btc-bitcoin', decimals: 8 },
-	{ coinId: CoinId.CELO, coinpaprikaId: 'celo-celo', decimals: 18 },
-	{ coinId: CoinId.ETH, coinpaprikaId: 'eth-ethereum', decimals: 18 },
-	{ coinId: CoinId.FIL, coinpaprikaId: 'fil-filecoin', decimals: 18 },
-	{ coinId: CoinId.LINK, coinpaprikaId: 'link-chainlink', decimals: 18 },
-	{ coinId: CoinId.OP, coinpaprikaId: 'op-optimism', decimals: 18 },
-	{ coinId: CoinId.SEI, coinpaprikaId: 'sei-sei', decimals: 18 },
-	{ coinId: CoinId.SOL, coinpaprikaId: 'sol-solana', decimals: 9 },
-	{ coinId: CoinId.STETH, coinpaprikaId: 'steth-lido-staked-ether', decimals: 18 },
-	{ coinId: CoinId.UNI, coinpaprikaId: 'uni-uniswap', decimals: 18 },
-	{ coinId: CoinId.USDC, coinpaprikaId: 'usdc-usd-coin', decimals: 6 },
-	{ coinId: CoinId.USDT, coinpaprikaId: 'usdt-tether', decimals: 6 },
-	{ coinId: CoinId.WBTC, coinpaprikaId: 'wbtc-wrapped-bitcoin', decimals: 8 },
-	{ coinId: CoinId.XDC, coinpaprikaId: 'xdc-xdc-network', decimals: 18 },
+export const freeBaseUrl = `${freeOrigin}${pathPrefix}` as const
+
+export const proBaseUrl = `${proOrigin}${pathPrefix}` as const
+
+const catalog = [
+	{ coinId: CoinId.AAVE, wireId: 'aave-aave', decimals: 18 },
+	{ coinId: CoinId.ADA, wireId: 'ada-cardano', decimals: 6 },
+	{ coinId: CoinId.APT, wireId: 'apt-aptos', decimals: 8 },
+	{ coinId: CoinId.ARB, wireId: 'arb-arbitrum', decimals: 18 },
+	{ coinId: CoinId.AVAX, wireId: 'avax-avalanche', decimals: 18 },
+	{ coinId: CoinId.BNB, wireId: 'bnb-binance-coin', decimals: 18 },
+	{ coinId: CoinId.BTC, wireId: 'btc-bitcoin', decimals: 8 },
+	{ coinId: CoinId.CELO, wireId: 'celo-celo', decimals: 18 },
+	{ coinId: CoinId.ETH, wireId: 'eth-ethereum', decimals: 18 },
+	{ coinId: CoinId.FIL, wireId: 'fil-filecoin', decimals: 18 },
+	{ coinId: CoinId.LINK, wireId: 'link-chainlink', decimals: 18 },
+	{ coinId: CoinId.OP, wireId: 'op-optimism', decimals: 18 },
+	{ coinId: CoinId.SEI, wireId: 'sei-sei', decimals: 18 },
+	{ coinId: CoinId.SOL, wireId: 'sol-solana', decimals: 9 },
+	{ coinId: CoinId.STETH, wireId: 'steth-lido-staked-ether', decimals: 18 },
+	{ coinId: CoinId.UNI, wireId: 'uni-uniswap', decimals: 18 },
+	{ coinId: CoinId.USDC, wireId: 'usdc-usd-coin', decimals: 6 },
+	{ coinId: CoinId.USDT, wireId: 'usdt-tether', decimals: 6 },
+	{ coinId: CoinId.WBTC, wireId: 'wbtc-wrapped-bitcoin', decimals: 8 },
+	{ coinId: CoinId.XDC, wireId: 'xdc-xdc-network', decimals: 18 },
 ] as const satisfies readonly {
 	coinId: CoinId
-	coinpaprikaId: string
+	wireId: string
 	decimals: number
 }[]
 
-export const coinpaprikaIdByCoinId = Object.fromEntries(
-	coinpaprikaCoinCatalog
+export const idByCoinId = Object.fromEntries(
+	catalog
 		.map((entry) => [
 			entry.coinId,
-			entry.coinpaprikaId,
+			entry.wireId,
 		]),
 ) as Partial<Record<CoinId, string>>
 
-export const coinIdByCoinpaprikaId = Object.fromEntries(
-	coinpaprikaCoinCatalog
+export const coinIdByWireId = Object.fromEntries(
+	catalog
 		.map((entry) => [
-			entry.coinpaprikaId,
+			entry.wireId,
 			entry.coinId,
 		]),
 ) as Partial<Record<string, CoinId>>
 
-export const coinpaprikaDecimalsByCoinId = Object.fromEntries(
-	coinpaprikaCoinCatalog
+export const decimalsByCoinId = Object.fromEntries(
+	catalog
 		.map((entry) => [
 			entry.coinId,
 			entry.decimals,

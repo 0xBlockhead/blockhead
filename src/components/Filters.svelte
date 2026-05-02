@@ -127,13 +127,16 @@
 	const _toggleFilter = (filter: Filter<_Item, _FilterId>, forceExclusive = false) => {
 		const group = filterGroups.find((entry) => entry.filters.includes(filter))
 		if (!activeFilters.has(filter)) {
-			activeFilters = (
-				group && (forceExclusive || group.exclusive) ?
-					activeFilters.difference(new Set(group.filters))
-				:
-					activeFilters
+			const next = (
+				(
+					group && (forceExclusive || group.exclusive) ?
+						activeFilters.difference(new Set(group.filters))
+					:
+						activeFilters
+				)
+					.union(new Set([filter]))
 			)
-			activeFilters = activeFilters.union(new Set([filter]))
+			activeFilters = next
 			return
 		}
 		activeFilters = activeFilters.difference(new Set([filter]))
@@ -162,6 +165,7 @@
 	import Icon from '$/components/Icon.svelte'
 	import Select from '$/components/Select.svelte'
 	import SelectMultiple from '$/components/SelectMultiple.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
@@ -255,7 +259,10 @@
 								<span class="label">{filter.label}</span>
 							{/if}
 							<span class="count">
-								<span hidden>(</span>{count}<span hidden>)</span>
+								<span hidden>(</span><NumberValue
+									value={count}
+									options={{ maximumFractionDigits: 0 }}
+								/><span hidden>)</span>
 							</span>
 						{/snippet}
 					</Select>
@@ -296,7 +303,10 @@
 								<span class="label">{filter.label}</span>
 							{/if}
 								<span class="count">
-									<span hidden>(</span>{count}<span hidden>)</span>
+									<span hidden>(</span><NumberValue
+										value={count}
+										options={{ maximumFractionDigits: 0 }}
+									/><span hidden>)</span>
 								</span>
 						{/snippet}
 					</Combobox>
@@ -346,7 +356,10 @@
 									<span class="label">{filter.label}</span>
 								{/if}
 								<span class="count">
-									<span hidden>(</span>{count}<span hidden>)</span>
+									<span hidden>(</span><NumberValue
+										value={count}
+										options={{ maximumFractionDigits: 0 }}
+									/><span hidden>)</span>
 								</span>
 							</label>
 						{/each}
@@ -392,7 +405,10 @@
 								<span class="label">{filter.label}</span>
 							{/if}
 							<span class="count">
-								<span hidden>(</span>{count}<span hidden>)</span>
+								<span hidden>(</span><NumberValue
+									value={count}
+									options={{ maximumFractionDigits: 0 }}
+								/><span hidden>)</span>
 							</span>
 						{/snippet}
 					</SelectMultiple>
@@ -436,7 +452,10 @@
 								<span class="label">{filter.label}</span>
 							{/if}
 							<span class="count">
-								<span hidden>(</span>{count}<span hidden>)</span>
+								<span hidden>(</span><NumberValue
+									value={count}
+									options={{ maximumFractionDigits: 0 }}
+								/><span hidden>)</span>
 							</span>
 						{/snippet}
 					</ComboboxMultiple>
@@ -493,7 +512,10 @@
 									<span class="label">{filter.label}</span>
 								{/if}
 								<span class="count">
-									<span hidden>(</span>{count}<span hidden>)</span>
+									<span hidden>(</span><NumberValue
+										value={count}
+										options={{ maximumFractionDigits: 0 }}
+									/><span hidden>)</span>
 								</span>
 							</label>
 						{/each}

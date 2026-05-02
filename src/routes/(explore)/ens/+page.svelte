@@ -11,7 +11,7 @@
 
 <Page>
 	<EnsNameView
-		entityId={{ name: 'list' }}
+		entityId={{ name: 'vitalik.eth' }}
 		href={resolve('/ens')}
 		title={'ENS'}
 	/>

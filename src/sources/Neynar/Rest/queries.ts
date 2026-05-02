@@ -3,24 +3,26 @@
  * @see https://docs.neynar.com/reference
  */
 
+import { Source } from '$/sources/$Source.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { neynarFetch } from '$/sources/Neynar/Rest/client.ts'
+import { neynarFeedDefaultLimit, neynarFeedMaxLimit } from '$/sources/Neynar/Rest/constants.ts'
 import type {
 	NeynarBulkUsersResponse,
 	NeynarCastWire,
 	NeynarFeedResponse,
-	NeynarUserWire,
 } from '$/sources/Neynar/Rest/types.ts'
 
-const csv = (values: (number | string)[]) => values.join(',')
-
 export const getBulkUsers = async ({
+	publicEnv,
 	fids,
 }: {
+	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>
 	fids: number[]
 }): Promise<NeynarBulkUsersResponse | undefined> => {
 	if (fids.length === 0) return { users: [] }
-	const q = new URLSearchParams({ fids: csv(fids) })
-	return neynarFetch<NeynarBulkUsersResponse>(`/v2/farcaster/user/bulk/?${q}`)
+	const searchParams = new URLSearchParams({ fids: fids.join(',') })
+	return neynarFetch<NeynarBulkUsersResponse>(publicEnv, `/v2/farcaster/user/bulk/?${searchParams}`)
 }
 
 export type NeynarFeedQuery =
@@ -54,45 +56,65 @@ export type NeynarFeedQuery =
  * https://docs.neynar.com/reference/fetch-feed
  */
 export const getFeed = async (
+	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>,
 	query: NeynarFeedQuery,
 ): Promise<NeynarFeedResponse | undefined> => {
-	const q = new URLSearchParams()
-	q.set('feed_type', query.feedType)
-	q.set('filter_type', query.filterType)
+	const searchParams = new URLSearchParams()
+	searchParams.set('feed_type', query.feedType)
+	searchParams.set('filter_type', query.filterType)
 	if (query.filterType === 'fids' && query.fids.length > 0) {
-		q.set('fids', query.fids.join(','))
+		searchParams.set('fids', query.fids.join(','))
 	}
 	if (query.filterType === 'channel_id') {
-		q.set('channel_id', query.channelId)
+		searchParams.set('channel_id', query.channelId)
 		if (query.membersOnly != null) {
-			q.set('members_only', String(query.membersOnly))
+			searchParams.set('members_only', String(query.membersOnly))
 		}
 	}
-	const cap = Math.min(Math.max(query.limit ?? 25, 1), 100)
-	q.set('limit', String(cap))
+	const clampedFeedLimit = Math.min(
+		Math.max(query.limit ?? neynarFeedDefaultLimit, 1),
+		neynarFeedMaxLimit,
+	)
+	searchParams.set('limit', String(clampedFeedLimit))
 	if (query.cursor != null && query.cursor !== '') {
-		q.set('cursor', query.cursor)
+		searchParams.set('cursor', query.cursor)
 	}
 	if (query.viewerFid != null) {
-		q.set('viewer_fid', String(query.viewerFid))
+		searchParams.set('viewer_fid', String(query.viewerFid))
 	}
-	return neynarFetch<NeynarFeedResponse>(`/v2/farcaster/feed/?${q}`)
+	return neynarFetch<NeynarFeedResponse>(publicEnv, `/v2/farcaster/feed/?${searchParams}`)
 }
 
 export const getCastByHash = async (
+	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>,
 	hash: `0x${string}`,
 ): Promise<NeynarCastWire | undefined> => {
-	const q = new URLSearchParams({
+	const searchParams = new URLSearchParams({
 		identifier: hash,
 		type: 'hash',
 	})
-	const response = await neynarFetch<{ cast?: NeynarCastWire }>(`/v2/farcaster/cast/?${q}`)
+	const response = await neynarFetch<{ cast?: NeynarCastWire }>(
+		publicEnv,
+		`/v2/farcaster/cast/?${searchParams}`,
+	)
 	return response?.cast
 }
 
-export const pickUserByFid = (
-	users: NeynarUserWire[],
-	fid: number,
-) => (
-	users.find((user) => user.fid === fid)
-)
+/**
+ * Cast by Farcaster / Warpcast web URL — `type=url` per
+ * https://docs.neynar.com/reference/lookup-cast-by-hash-or-url
+ */
+export const getCastByClientUrl = async (
+	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>,
+	clientUrl: string,
+): Promise<NeynarCastWire | undefined> => {
+	const searchParams = new URLSearchParams({
+		identifier: clientUrl,
+		type: 'url',
+	})
+	const response = await neynarFetch<{ cast?: NeynarCastWire }>(
+		publicEnv,
+		`/v2/farcaster/cast/?${searchParams}`,
+	)
+	return response?.cast
+}

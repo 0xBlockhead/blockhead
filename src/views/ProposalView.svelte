@@ -1,26 +1,24 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import Markdown from '$/components/Markdown.svelte'
+	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import {
 		ProposalCategory,
 		proposalCategoryById,
-	} from '$/constants/Proposal/ProposalCategory.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { Source } from '$/sources/$Sources.ts'
+	} from '$/constants/Proposal.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import ProposalSchema from '$/schema/Proposal.ts'
+	import { Source } from '$/sources/$Source.ts'
 
-
-	// Context
-	import { resolve } from '$app/paths'
-
-
-	// State
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
 
 
 	// Props
@@ -33,7 +31,7 @@
 	}: WithRest<
 		{
 			children?: Snippet
-			entityId: EntityId<typeof schema, EntityType.Proposal>
+			entityId: typeof ProposalSchema.id.infer
 			href: string
 			open?: boolean
 		},
@@ -45,97 +43,98 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
-
-	const proposalIdKey = $derived(
-		stringify(entityId),
-	)
-
-	const kindLabel = $derived(
-		proposalCategoryById[entityId.category]?.label ?? 'Proposal',
-	)
-
-	const proposalQuery = useLiveQuery(
+	// (Derived)
+	const rowQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
 				.from({ row: entityCollectionByEntityType[EntityType.Proposal] })
 				.where(({ row }) => (
 					eq(
 						row[EntityMetaKey.IdKey],
-						proposalIdKey,
+						stringify(entityId),
 					)
 				))
 				.select(({ row }) => ({ row }))
 		),
-		[() => proposalIdKey],
+		[
+			() => stringify(entityId),
+		],
 	)
 
-	const proposalRow = $derived(
-		(
-			proposalQuery.data?.find(
-				({ row }) => row[EntityMetaKey.Source] === (
-					entityId.category === ProposalCategory.Ensip ?
-						Source.Ensips
-					:
-						Source.Eips
-				),
-			)?.row
-			?? proposalQuery.data?.[0]?.row
-		),
-	)
-
-	const proposalCategoryStr = $derived(
+	const fieldsBag = $derived(
 		(() => {
-			const bag = proposalRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object' || !('category' in bag)) return null
-			const c = (bag as { category: unknown }).category
-			return typeof c === 'string' ? c : null
+			const row = (
+				rowQuery.data?.find(
+					({ row }) => row[EntityMetaKey.Source] === (
+						entityId.category === ProposalCategory.Caip ?
+							Source.Caips_Github
+						:	entityId.category === ProposalCategory.Ensip ?
+								Source.Ensips_Github
+							:
+								Source.EthereumEips_Github
+					),
+				)?.row
+				?? rowQuery.data?.[0]?.row
+			)
+			const fields = row?.[EntityMetaKey.Fields]
+			return fields != null && typeof fields === 'object' ? fields : null
 		})(),
 	)
 
-	const bodyText = $derived(
-		(() => {
-			const bag = proposalRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object' || !('body' in bag)) return null
-			const v = (bag as { body: unknown }).body
-			return typeof v === 'string' ? v : null
-		})(),
+	type ProposalFields = {
+		documentBody?: unknown
+		documentStatus?: unknown
+		documentTitle?: unknown
+	}
+
+	const proposalFields = $derived(
+		fieldsBag as ProposalFields | null,
 	)
 
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import ProposalsView from '$/views/ProposalsView.svelte'
+	const headingTitle = $derived(
+		(() => {
+			const identifier = `${proposalCategoryById[entityId.category].label}-${entityId.number}`
+			const core = (
+				String(proposalFields?.documentTitle ?? '').trim() !== '' ?
+					String(proposalFields?.documentTitle).trim()
+				:	entityId.category === ProposalCategory.Ensip ?
+						String(proposalFields?.documentBody ?? '').match(/#\s*(ENSIP-\d+:\s*.+)/)?.[1]?.trim()
+						?? null
+					:	null
+			)
+			const title = String(core ?? '').trim()
+			return (
+				title === '' ?
+					identifier
+				:	new RegExp(
+						`^${identifier.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:`,
+						'i',
+					).test(title) ?
+						title
+					:	`${identifier.trim()}: ${title}`
+			)
+		})(),
+	)
 </script>
 
 
 <EntityView
 	entityType={EntityType.Proposal}
 	{entityId}
-	title={`${kindLabel} ${entityId.number}`}
+	title={headingTitle}
 	{href}
 	{open}
 	{...entityViewRest}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
-			<div>
-				<dt>Realm</dt>
-				<dd>{entityId.realm}</dd>
-			</div>
-			<div>
-				<dt>Category</dt>
-				<dd>{entityId.category}</dd>
-			</div>
-			{#if proposalCategoryStr != null}
+			{#if proposalFields?.documentStatus}
 				<div>
-					<dt>Frontmatter</dt>
-					<dd>{proposalCategoryStr}</dd>
+					<dt>Status</dt>
+					<dd>{proposalFields.documentStatus}</dd>
 				</div>
 			{/if}
 		</dl>
@@ -149,58 +148,47 @@
 			{entityId}
 		>
 			<QueryBoundary
-				query={proposalQuery}
+				query={rowQuery}
 			>
-
-				{#snippet children(proposalRows)}
-					{@const proposalRow = (
-						proposalRows?.find(
+				{#snippet children(rows)}
+					{@const detailRow = (
+						rows?.find(
 							({ row }) => row[EntityMetaKey.Source] === (
-								entityId.category === ProposalCategory.Ensip ?
-									Source.Ensips
-								:
-									Source.Eips
+								entityId.category === ProposalCategory.Caip ?
+									Source.Caips_Github
+								:	entityId.category === ProposalCategory.Ensip ?
+										Source.Ensips_Github
+									:
+										Source.EthereumEips_Github
 							),
 						)?.row
-						?? proposalRows?.[0]?.row
+						?? rows?.[0]?.row
 					)}
-					{@const bodyText = (() => {
-						const bag = proposalRow?.[EntityMetaKey.Fields]
-						if (bag == null || typeof bag !== 'object' || !('body' in bag)) return null
-						const v = (bag as { body: unknown }).body
-						return typeof v === 'string' ? v : null
-					})()}
-					{#if bodyText == null}
+					{#if detailRow === undefined}
 						<p data-text="muted">
-							No body in collections yet (resolve EIPs / ENSIPs for this proposal).
+							No proposal data for this item yet. Try again shortly.
 						</p>
 					{:else}
-						<article
-							data-proposal-body
-						>
-							{bodyText}
-						</article>
+						{@const detailFields = (
+							detailRow[EntityMetaKey.Fields] != null && typeof detailRow[EntityMetaKey.Fields] === 'object' ?
+								(detailRow[EntityMetaKey.Fields] as ProposalFields)
+							:
+								null
+						)}
+						{#if detailFields?.documentBody}
+							<Markdown content={String(detailFields.documentBody)} />
+						{:else}
+							<p data-text="muted">
+								No document body yet.
+							</p>
+						{/if}
 					{/if}
 				{/snippet}
 			</QueryBoundary>
 		</EntityDetails>
-
-		<ProposalsView
-			href={resolve('/proposals')}
-			id={`${proposalIdKey}:proposals`}
-			open={false}
-		/>
 
 		{#if children}
 			{@render children()}
 		{/if}
 	{/snippet}
 </EntityView>
-
-
-<style>
-	article[data-proposal-body] {
-		white-space: pre-wrap;
-		font-size: 0.9em;
-	}
-</style>

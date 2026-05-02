@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import { type EntityFieldReference } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Sources.ts'
+	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
 
@@ -17,7 +18,7 @@
 		const channelId = rowEntityId(row)
 		return (
 			typeof channelId === 'object'
-			&& channelId != null
+			&& channelId !== undefined
 			&& 'id' in channelId
 			&& typeof channelId.id === 'string' ?
 				channelId.id
@@ -31,16 +32,18 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import { entityFieldCollections } from '$/collections/$collections.ts'
+	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
 	// Props
 	let {
+		entityFieldReference,
 		id = 'channels',
 		href = resolve('/farcaster/channels'),
 		title = 'Channels',
 		open = $bindable(true),
 	}: {
+		entityFieldReference: EntityFieldReference<typeof EntityType.FarcasterChannel>
 		id?: string
 		href?: string
 		title?: string
@@ -48,29 +51,34 @@
 	} = $props()
 
 
-	const farcasterNetworkParentKey = stringify({ scope: 'FarcasterNetwork' })
-
 	const channelsQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ $$farcasterChannels: entityFieldCollections[EntityType.FarcasterNetwork]['$$farcasterChannels']! })
-				.where(({ $$farcasterChannels }) => (
+				.from({ $$channels: entityFieldCollections[EntityType.FarcasterNetwork]['$$channels']! })
+				.where(({ $$channels }) => (
 					eq(
-						$$farcasterChannels[EntityMetaKey.ParentIdKey],
-						farcasterNetworkParentKey,
+						$$channels[EntityMetaKey.ParentIdKey],
+						stringify(entityFieldReference.entityId),
 					)
 				))
-				.where(({ $$farcasterChannels }) => (
+				.where(({ $$channels }) => (
 					eq(
-						$$farcasterChannels[EntityMetaKey.Source],
-						Source.Farcaster,
+						$$channels[EntityMetaKey.Source],
+						Source.Farcaster_Rest,
 					)
 				))
-				.select(({ $$farcasterChannels }) => ({
-					[EntityMetaKey.Id]: $$farcasterChannels[EntityMetaKey.Value][EntityMetaKey.Id],
+				.select(({ $$channels }) => ({
+					[EntityMetaKey.Id]: (
+						// @ts-expect-error Farcaster channel field row Value holds entity id
+						$$channels[EntityMetaKey.Value]![EntityMetaKey.Id]
+					),
 				}))
 		),
-		[],
+		[
+			() => entityFieldReference.entityType,
+			() => entityFieldReference.fieldName,
+			() => stringify(entityFieldReference.entityId),
+		],
 	)
 
 
@@ -89,13 +97,13 @@
 	bind:open
 	query={channelsQuery}
 	items={new SvelteSet(channelsQuery.data ?? [])}
-	getKey={(row) => stringify(row[EntityMetaKey.Id]) ?? ''}
+	getKey={(row) => stringify(row[EntityMetaKey.Id])}
 	getSortValue={channelRowSortKey}
 	placeholderKeys={new SvelteSet<string>()}
 >
 	{#snippet Empty()}
 		<p data-text="muted">
-			No channels in collections (resolve Farcaster network `$$farcasterChannels` from Farcaster Client API).
+			No channels loaded for this network yet. Try again shortly.
 		</p>
 	{/snippet}
 
@@ -106,7 +114,7 @@
 			</span>
 		{:else if row}
 			{@const channelId = rowEntityId(row)}
-			{#if typeof channelId === 'object' && channelId != null && 'id' in channelId && typeof channelId.id === 'string' && channelId.id.length}
+			{#if typeof channelId === 'object' && channelId !== undefined && 'id' in channelId && typeof channelId.id === 'string' && channelId.id.length}
 				<FarcasterChannelView
 					entityId={{ id: channelId.id }}
 					href={resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {

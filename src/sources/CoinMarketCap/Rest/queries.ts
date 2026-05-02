@@ -4,6 +4,8 @@
  */
 
 import { coinMarketCapFetch } from '$/sources/CoinMarketCap/Rest/client.ts'
+import { Source } from '$/sources/$Source.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import type {
 	CoinMarketCapInfoLatestResponse,
 	CoinMarketCapQuotesLatestResponse,
@@ -13,11 +15,14 @@ import type {
  * `GET /v2/cryptocurrency/quotes/latest`
  */
 export const getCoinMarketCapQuotesLatest = async ({
+	publicEnv,
 	id,
 }: {
+	publicEnv: SourcePublicEnvFor<Source.CoinMarketCap_Rest>
 	id: number
 }) => (
 	await coinMarketCapFetch<CoinMarketCapQuotesLatestResponse>(
+		publicEnv,
 		`/v2/cryptocurrency/quotes/latest?id=${id}&convert=USD`,
 	)
 )
@@ -26,11 +31,14 @@ export const getCoinMarketCapQuotesLatest = async ({
  * `GET /v2/cryptocurrency/info`
  */
 export const getCoinMarketCapInfo = async ({
+	publicEnv,
 	id,
 }: {
+	publicEnv: SourcePublicEnvFor<Source.CoinMarketCap_Rest>
 	id: number
 }) => (
 	await coinMarketCapFetch<CoinMarketCapInfoLatestResponse>(
-		`/v2/cryptocurrency/info?id=${id}`,
+		publicEnv,
+		`/v2/cryptocurrency/info?id=${id}&aux=platform`,
 	)
 )

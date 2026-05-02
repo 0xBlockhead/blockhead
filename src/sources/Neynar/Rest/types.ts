@@ -26,18 +26,39 @@ export type NeynarUserWire = {
 
 export type NeynarCastEmbedWire = {
 	url?: string
+	metadata?: {
+		html?: {
+			ogTitle?: string
+			ogDescription?: string
+			ogImage?: { url?: string }[]
+		}
+	}
 	cast_id?: {
 		fid?: number
 		hash?: string
 	}
 	cast?: {
 		hash?: string
+		author?: {
+			fid?: number
+		}
+		text?: string
 	}
 }
 
 export type NeynarCastReactionsWire = {
 	likes_count?: number
 	recasts_count?: number
+}
+
+export type NeynarCastRepliesWire = {
+	count?: number
+}
+
+export type NeynarCastChannelWire = {
+	id?: string
+	name?: string
+	object?: string
 }
 
 export type NeynarCastWire = {
@@ -49,6 +70,7 @@ export type NeynarCastWire = {
 		fid?: number
 	}
 	author?: NeynarUserWire
+	app?: NeynarUserWire
 	text?: string
 	timestamp?: string
 	embeds?: NeynarCastEmbedWire[]
@@ -56,6 +78,11 @@ export type NeynarCastWire = {
 	likes?: number
 	recasts?: number
 	reactions?: NeynarCastReactionsWire
+	replies?: NeynarCastRepliesWire
+	thread_hash?: string | null
+	channel?: NeynarCastChannelWire | null
+	mentioned_profiles?: { fid?: number }[]
+	mentioned_channels?: { id?: string }[]
 }
 
 export type NeynarFeedResponse = {

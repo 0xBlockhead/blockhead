@@ -2,6 +2,8 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+	import { EntityType } from '$/schema/$EntityType.ts'
+
 
 	// State
 	let {
@@ -18,7 +20,11 @@
 <Page>
 	<section>
 		<NetworkForksView
-			entityId={{ chainId: Number(params.networkId) }}
+			entityFieldReference={{
+				entityType: EntityType.Network,
+				entityId: { chainId: Number(params.networkId) },
+				fieldName: '$$forks',
+			}}
 			href={resolve('/(explore)/(networks)/network/[networkId]/(network)/forks', params)}
 			id="forks"
 		/>

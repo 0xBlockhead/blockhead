@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -11,7 +12,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -38,7 +39,6 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
@@ -66,11 +66,6 @@
 		conversationQuery.data?.[0]?.row,
 	)
 
-	const displayTitle = $derived(
-		titleProp
-		?? 'Conversation',
-	)
-
 
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
@@ -86,9 +81,9 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
+	title={titleProp ?? 'Conversation'}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Conversation id</dt>
@@ -117,9 +112,9 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No conversation row in collections yet (no resolver for this id).
+							No conversation data for this id yet.
 						</p>
 					{:else}
 						<dl>
@@ -135,7 +130,7 @@
 						</dl>
 
 						<p data-text="muted">
-							XMTP conversations are identity-only in schema (no field resolvers yet).
+							Only basic conversation info is available here for now.
 						</p>
 					{/if}
 					{/snippet}

@@ -2,10 +2,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import { type EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Sources.ts'
+	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
 
@@ -13,36 +15,11 @@
 	import { resolve } from '$app/paths'
 
 
-	// Functions
-	const networkListItem = (network: unknown) => {
-		if (typeof network !== 'object' || network === null) return undefined
-		if (!(EntityMetaKey.Id in network)) return undefined
-		const id = Reflect.get(network, EntityMetaKey.Id)
-		const chainId = (
-			typeof id === 'object'
-			&& id !== null
-			&& 'chainId' in id
-		) ?
-			Reflect.get(id, 'chainId')
-		:
-			undefined
-		const name = (
-			'name' in network
-			&& typeof Reflect.get(network, 'name') === 'string'
-			&& String(Reflect.get(network, 'name')).length > 0
-		) ?
-			String(Reflect.get(network, 'name'))
-		:
-			undefined
-		return typeof chainId === 'number' ? { chainId, name } : undefined
-	}
-
-
 	// State
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import { entityFieldCollections } from '$/collections/$collections.ts'
+	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -51,11 +28,14 @@
 
 		open = $bindable(true),
 
+		entityFieldReference,
+
 		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
+			entityFieldReference: EntityFieldReference<typeof schema, typeof EntityType.Network>
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
@@ -65,27 +45,62 @@
 
 
 	const networksQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ $$networks: entityFieldCollections[EntityType._Global]['$$networks'] })
-				.where(({ $$networks }) => (
-					eq(
-						$$networks[EntityMetaKey.ParentIdKey],
-						stringify({}),
-					)
-				))
-				.where(({ $$networks }) => (
-					eq(
-						$$networks[EntityMetaKey.Source],
-						Source.ChainList,
-					)
-				))
-				.select(({ $$networks }) => (
-					{
-						network: $$networks[EntityMetaKey.Value],
-					}
-				))
-		),
+		(queryBuilder) => {
+			const pk = stringify(entityFieldReference.entityId)
+			const { entityType, fieldName } = entityFieldReference
+			if (entityType === EntityType._Global && fieldName === '$$networks') {
+				return (
+					queryBuilder
+						.from({ n: entityFieldCollections[EntityType._Global]['$$networks']! })
+						.where(({ n }) => (
+							eq(
+								n[EntityMetaKey.ParentIdKey],
+								pk,
+							)
+						))
+						.where(({ n }) => (
+							eq(
+								n[EntityMetaKey.Source],
+								Source.Chainlist_Rest,
+							)
+						))
+						.select(({ n }) => (
+							{ ...n[EntityMetaKey.Value] }
+						))
+				)
+			}
+			if (entityType === EntityType.Network && fieldName === '$$childNetworks') {
+				return (
+					queryBuilder
+						.from({ n: entityFieldCollections[EntityType.Network]['$$childNetworks']! })
+						.where(({ n }) => (
+							eq(
+								n[EntityMetaKey.ParentIdKey],
+								pk,
+							)
+						))
+						.where(({ n }) => (
+							eq(
+								n[EntityMetaKey.Source],
+								Source.Chainlist_Rest,
+							)
+						))
+						.select(({ n }) => (
+							{ ...n[EntityMetaKey.Value] }
+						))
+				)
+			}
+			return (
+				queryBuilder
+					.from({ n: entityFieldCollections[EntityType._Global]['$$networks']! })
+					.where(() => (false as unknown as boolean))
+			)
+		},
+		[
+			() => entityFieldReference.entityType,
+			() => entityFieldReference.fieldName,
+			() => stringify(entityFieldReference.entityId),
+		],
 	)
 
 
@@ -102,18 +117,18 @@
 	bind:open
 	query={networksQuery}
 	items={new SvelteSet(networksQuery.data ?? [])}
-	getKey={(row) => stringify(row.network[EntityMetaKey.Id]) ?? ''}
+	getKey={(row) => stringify(row[EntityMetaKey.Id])}
 	getSortValue={(row) => (
-		networkListItem(row.network)?.chainId ?? 0
+		row[EntityMetaKey.Id].chainId
 	)}
 	placeholderKeys={new SvelteSet()}
-	unorderedListProps={{ orientation: ListOrientation.Column }}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
 	{#snippet Empty()}
-			<p data-text="muted">
-				No networks in collections (load global $$networks from ChainList).
-			</p>
+		<p data-text="muted">
+			No networks to show yet. Check your connection and try again.
+		</p>
 	{/snippet}
 
 	{#snippet Item({ item: row, isPlaceholder })}
@@ -122,21 +137,15 @@
 				…
 			</span>
 		{:else if row}
-			{@const item = networkListItem(row.network)}
-			{#if item != null}
-				<NetworkView
-					entityId={{ chainId: item.chainId }}
-					href={resolve('/(explore)/(networks)/network/[networkId]', {
-						networkId: String(item.chainId),
-					})}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{:else}
-				<span data-text="muted">
-					Network
-				</span>
-			{/if}
+			{@const chainId = row[EntityMetaKey.Id].chainId}
+			<NetworkView
+				entityId={{ chainId }}
+				href={resolve('/(explore)/(networks)/network/[networkId]', {
+					networkId: String(chainId),
+				})}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
 		{/if}
 	{/snippet}
 </EntitiesList>

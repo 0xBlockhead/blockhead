@@ -3,7 +3,10 @@
  * @see https://docs.farcaster.xyz/reference/farcaster/api
  */
 
-import { farcasterApiBaseUrl } from '$/sources/Farcaster/Rest/constants.ts'
+import {
+	clientBaseUrl,
+	webBaseUrl,
+} from '$/sources/Farcaster/Rest/constants.ts'
 
 const toQueryString = (params?: Record<string, string | number | boolean | undefined>) => {
 	const searchParams = new URLSearchParams()
@@ -21,7 +24,8 @@ export async function farcasterGet<T>(
 	path: string,
 	params?: Record<string, string | number | boolean | undefined>,
 ): Promise<T> {
-	const res = await fetch(`${farcasterApiBaseUrl}${path}${toQueryString(params)}`)
+	const baseUrl = path.startsWith('/~api/') ? webBaseUrl : clientBaseUrl
+	const res = await fetch(`${baseUrl}${path}${toQueryString(params)}`)
 	if (!res.ok) throw new Error(`Farcaster API ${res.status}: ${await res.text()}`)
 	return res.json() as Promise<T>
 }

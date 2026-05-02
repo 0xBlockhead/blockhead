@@ -5,7 +5,8 @@ import {
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
-import { type Entity, schema } from '$/schema/$schema.ts'
+import type { Entity } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 
 

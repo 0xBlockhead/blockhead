@@ -1,34 +1,17 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
-} from '$/resolvers/$defineEntityResolvers.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import type {
-	Entity,
-	EntityFieldValues,
-	EntityId,
-} from '$/schema/$schema.ts'
-import { schema } from '$/schema/$schema.ts'
+	resolverLoadSubsetRowLimit,
+	sourcePublicEnv,
+} from '$/resolvers/$resolvers.ts'
+import { singleFlight } from '$/lib/singleFlight.ts'
 import type { CastHash } from '$/schema/FarcasterCast.ts'
-import {
-	getCastByHash,
-	getBulkUsers,
-	getFeed,
-	pickUserByFid,
-} from '$/sources/Neynar/Rest/queries.ts'
-import type {
-	NeynarCastEmbedWire,
-	NeynarCastWire,
-	NeynarUserWire,
-} from '$/sources/Neynar/Rest/types.ts'
-import { Source } from '$/sources/$Sources.ts'
+import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { schema } from '$/schema/index.ts'
+import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
 
-const stringValue = (value: unknown) => (
-	typeof value === 'string' && value.trim() !== '' ? value.trim() : undefined
-)
-
-const normalizeCastHash = (hash: string): CastHash => {
+const normalizeFarcasterCastHash = (hash: string): CastHash => {
 	const t = hash.trim()
 	const hex = (
 		t.startsWith('0x')
@@ -40,174 +23,233 @@ const normalizeCastHash = (hash: string): CastHash => {
 	return `0x${hex.toLowerCase()}` as CastHash
 }
 
-const userFieldsFromWire = (user: NeynarUserWire) => ({
-	username: stringValue(user.username),
-	displayName: stringValue(user.display_name),
-	pfpUrl: stringValue(user.pfp_url),
-	bio: stringValue(
-		typeof user.profile?.bio === 'string' ? user.profile.bio : user.profile?.bio?.text,
-	),
-	verifiedAddress: stringValue(
-		user.verified_addresses?.primary?.eth_address
-		?? user.verified_addresses?.eth_addresses?.[0]
-		?? user.verified_addresses?.primary?.sol_address
-		?? user.verified_addresses?.sol_addresses?.[0],
-	),
-})
+type NeynarCastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
+type NeynarUserEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterUser>
+type NeynarChannelEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterChannel>
+type NeynarCastWire = import('$/sources/Neynar/Rest/types.ts').NeynarCastWire
 
-const castIdFromWire = (fid: number, hash: string) => ({
-	fid,
-	hash: normalizeCastHash(hash),
-})
+const neynarNonEmptyString = (value: string | undefined | null) => (
+	value?.trim() ? value.trim() : undefined
+)
 
-const userRefFromFid = (
-	fid: number,
-): Entity<typeof schema, EntityType.FarcasterUser> => ({
-	[EntityMetaKey.Id]: {
-		fid,
-	},
-} as Entity<typeof schema, EntityType.FarcasterUser>)
-
-const castRefFromWire = (
+const neynarCastEntityRef = (
 	fid: number | undefined,
 	hash: string | undefined,
-): Entity<typeof schema, EntityType.FarcasterCast> | undefined => (
+): NeynarCastEntity | undefined => (
 	fid == null || hash == null || String(hash).trim() === '' ?
 		undefined
-	:	{
-			[EntityMetaKey.Id]: castIdFromWire(fid, String(hash)),
-		} as Entity<typeof schema, EntityType.FarcasterCast>
+	: {
+			[EntityMetaKey.Id]: {
+				fid,
+				hash: normalizeFarcasterCastHash(String(hash)),
+			},
+		} satisfies NeynarCastEntity
 )
 
-const castRefsFromFeedCasts = (
-	casts: NeynarCastWire[],
-): Entity<typeof schema, EntityType.FarcasterCast>[] => (
+const neynarCastRefsFromFeed = (casts: NeynarCastWire[]) => (
 	casts
-		.map((cast) => (
-			castRefFromWire(cast.author?.fid, cast.hash)
-		))
-		.filter((ref): ref is Entity<typeof schema, EntityType.FarcasterCast> => ref != null)
+		.map((cast) => neynarCastEntityRef(cast.author?.fid, cast.hash))
+		.filter((ref): ref is NeynarCastEntity => ref != null)
 )
-
-const castEmbedsFromWire = (
-	castId: EntityId<typeof schema, EntityType.FarcasterCast>,
-	embeds: NeynarCastEmbedWire[] | undefined,
-): Entity<typeof schema, EntityType.FarcasterCastEmbed>[] => (
-	(embeds ?? []).map((embed, index) => ({
-		[EntityMetaKey.Id]: {
-			$cast: castId,
-			index,
-		},
-		url: stringValue(embed.url),
-		$embeddedCast: (
-			embed.cast_id?.fid != null
-			&& embed.cast_id.hash != null
-		) ?
-			{
-				[EntityMetaKey.Id]: castIdFromWire(embed.cast_id.fid, embed.cast_id.hash),
-			} as Entity<typeof schema, EntityType.FarcasterCast>
-		:	undefined,
-	}) as Entity<typeof schema, EntityType.FarcasterCastEmbed>)
-)
-
-const castFieldsFromWire = (
-	castId: EntityId<typeof schema, EntityType.FarcasterCast>,
-	cast: NeynarCastWire,
-) => {
-	const timestamp = cast.timestamp == null ? undefined : Date.parse(cast.timestamp)
-	return {
-		$author: cast.author?.fid == null ? undefined : userRefFromFid(cast.author.fid),
-		text: stringValue(cast.text),
-		$parentCast: castRefFromWire(cast.parent_author?.fid, cast.parent_hash),
-		parentUrl: stringValue(cast.parent_url ?? cast.root_parent_url),
-		timestamp: Number.isNaN(timestamp) ? undefined : timestamp,
-		mentions: Array.isArray(cast.mentions) ? cast.mentions : undefined,
-		$$embeds: castEmbedsFromWire(castId, cast.embeds),
-		likeCount: cast.likes ?? cast.reactions?.likes_count,
-		recastCount: cast.recasts ?? cast.reactions?.recasts_count,
-	} as Partial<EntityFieldValues<typeof schema, EntityType.FarcasterCast>>
-}
 
 export default {
+	source: Source.Neynar_Rest,
+
 	entityResolvers: [
 		defineEntityResolver({
 			entityType: EntityType.FarcasterUser,
-			source: Source.Neynar,
-			resolve: async (entityId) => {
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
-				const user = pickUserByFid(
-					(await singleFlight(getBulkUsers)({
-						fids: [entityId.fid],
-					}))?.users ?? [],
-					entityId.fid,
-				)
-				if (user == null) return {}
+			resolve: async (entityId, context) => {
+				const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
+				const bulkUsers = await singleFlight(getBulkUsers)({
+					publicEnv,
+					fids: [entityId.fid],
+				})
+				const user = bulkUsers?.users?.find((neynarUser) => neynarUser.fid === entityId.fid)
+				if (user == null) throw new Error('Neynar_Rest: user not found')
+				const bioRaw = user.profile?.bio
 				return {
 					[EntityMetaKey.Id]: entityId,
-					...userFieldsFromWire(user),
+					username: neynarNonEmptyString(user.username),
+					displayName: neynarNonEmptyString(user.display_name),
+					pfpUrl: neynarNonEmptyString(user.pfp_url),
+					bio: neynarNonEmptyString(
+						typeof bioRaw === 'string' ? bioRaw : bioRaw?.text,
+					),
+					verifiedAddress: neynarNonEmptyString(
+						user.verified_addresses?.primary?.eth_address
+						?? user.verified_addresses?.eth_addresses?.[0]
+						?? user.verified_addresses?.primary?.sol_address
+						?? user.verified_addresses?.sol_addresses?.[0],
+					),
 				}
 			},
 		}),
 		defineEntityResolver({
 			entityType: EntityType.FarcasterCast,
-			source: Source.Neynar,
-			resolve: async (entityId) => {
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
-				const cast = await singleFlight(getCastByHash)(entityId.hash)
-				if (
-					cast == null
-					|| normalizeCastHash(cast.hash) !== entityId.hash
-				) return {}
+			resolve: async (entityId, context) => {
+				const { getCastByHash } = await import('$/sources/Neynar/Rest/queries.ts')
+				type CastEmbedEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCastEmbed>
+				type EntityIdCast = import('$/schema/$schema.ts').EntityId<typeof schema, EntityType.FarcasterCast>
+				type FieldValuesCast = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
+				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
+				const cast = await singleFlight(getCastByHash)(publicEnv, entityId.hash)
+				if (cast == null || normalizeFarcasterCastHash(cast.hash) !== entityId.hash) {
+					throw new Error('Neynar_Rest: cast not found')
+				}
+				const castId: EntityIdCast = entityId
+				const timestamp = Date.parse(cast.timestamp ?? '')
+				const mentionFids = (
+					(cast.mentioned_profiles ?? [])
+						.map((u) => u?.fid)
+						.filter((fidValue): fidValue is number => fidValue != null)
+				)
+				const mentionChIds = (
+					(cast.mentioned_channels ?? [])
+						.map((ch) => neynarNonEmptyString(ch?.id))
+						.filter((idValue): idValue is string => idValue != null)
+				)
+				const channelId = neynarNonEmptyString(cast.channel?.id)
 				return {
 					[EntityMetaKey.Id]: entityId,
-					...castFieldsFromWire(entityId, cast),
-				}
+					$author: (
+						cast.author?.fid == null ?
+							undefined
+						:	({
+								[EntityMetaKey.Id]: { fid: cast.author.fid },
+							} satisfies NeynarUserEntity)
+					),
+					$postedViaApp: (
+						cast.app?.fid == null ?
+							undefined
+						:	({
+								[EntityMetaKey.Id]: { fid: cast.app.fid },
+							} satisfies NeynarUserEntity)
+					),
+					text: neynarNonEmptyString(cast.text),
+					$parentCast: neynarCastEntityRef(cast.parent_author?.fid, cast.parent_hash),
+					parentUrl: neynarNonEmptyString(cast.parent_url ?? cast.root_parent_url),
+					timestamp: Number.isFinite(timestamp) ? timestamp : undefined,
+					mentions: cast.mentions,
+					mentionedProfileFids: mentionFids.length > 0 ? mentionFids : undefined,
+					mentionedChannelIds: mentionChIds.length > 0 ? mentionChIds : undefined,
+					$$embeds: (cast.embeds ?? []).map((embed, index) => {
+						const ogImages = embed.metadata?.html?.ogImage
+						return (({
+							[EntityMetaKey.Id]: {
+								$cast: castId,
+								index,
+							},
+							url: neynarNonEmptyString(embed.url),
+							$embeddedCast: (
+								embed.cast?.hash != null && embed.cast.author?.fid != null ?
+									neynarCastEntityRef(embed.cast.author.fid, embed.cast.hash)
+								: embed.cast_id?.fid != null && embed.cast_id.hash != null ?
+									neynarCastEntityRef(embed.cast_id.fid, embed.cast_id.hash)
+								:	undefined
+							),
+							title: neynarNonEmptyString(embed.metadata?.html?.ogTitle),
+							description: neynarNonEmptyString(embed.metadata?.html?.ogDescription),
+							imageUrl: neynarNonEmptyString(ogImages?.[0]?.url),
+							quotedPreviewText: neynarNonEmptyString(embed.cast?.text),
+						}) satisfies CastEmbedEntity)
+					}),
+					likeCount: cast.likes ?? cast.reactions?.likes_count,
+					recastCount: cast.recasts ?? cast.reactions?.recasts_count,
+					replyCount: cast.replies?.count,
+					threadHash: neynarNonEmptyString(cast.thread_hash),
+					$channel: (
+						channelId == null ? undefined : {
+							[EntityMetaKey.Id]: {
+								id: channelId,
+							},
+						} satisfies NeynarChannelEntity
+					),
+				} satisfies Partial<FieldValuesCast>
 			},
 		}),
 	],
+
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
-			entityType: EntityType.FarcasterNetwork,
-			fieldName: '$$casts',
-			source: Source.Neynar,
-			resolve: async (_entityId, context) => {
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
-				const page = await singleFlight(getFeed)({
-					feedType: 'filter',
-					filterType: 'global_trending',
-					limit: context?.limit ?? 25,
-				})
-				return castRefsFromFeedCasts(page?.casts ?? [])
+			entityType: EntityType.FarcasterFeed,
+			fieldName: '$$entries',
+			resolve: async (entityId, context) => {
+				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
+				const limit = resolverLoadSubsetRowLimit(context)
+				if (entityId.variant === 'trending') {
+					const page = await singleFlight(getFeed)(
+						publicEnv,
+						{
+							feedType: 'filter',
+							filterType: 'global_trending',
+							limit,
+						},
+					)
+					return neynarCastRefsFromFeed(page?.casts ?? [])
+				}
+				if (entityId.variant === 'byUser') {
+					const page = await singleFlight(getFeed)(
+						publicEnv,
+						{
+							feedType: 'filter',
+							filterType: 'fids',
+							fids: [entityId.fid],
+							limit,
+						},
+					)
+					return neynarCastRefsFromFeed(page?.casts ?? [])
+				}
+				if (entityId.variant === 'byChannel') {
+					const page = await singleFlight(getFeed)(
+						publicEnv,
+						{
+							feedType: 'filter',
+							filterType: 'channel_id',
+							channelId: entityId.channelId,
+							limit,
+						},
+					)
+					return neynarCastRefsFromFeed(page?.casts ?? [])
+				}
+				return []
 			},
 		}),
 		defineEntityFieldResolver({
 			entityType: EntityType.FarcasterUser,
 			fieldName: '$$casts',
-			source: Source.Neynar,
 			resolve: async (entityId, context) => {
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
-				const page = await singleFlight(getFeed)({
-					feedType: 'filter',
-					filterType: 'fids',
-					fids: [entityId.fid],
-					limit: context?.limit ?? 25,
-				})
-				return castRefsFromFeedCasts(page?.casts ?? [])
+				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
+				const page = await singleFlight(getFeed)(
+					publicEnv,
+					{
+						feedType: 'filter',
+						filterType: 'fids',
+						fids: [entityId.fid],
+						limit: resolverLoadSubsetRowLimit(context),
+					},
+				)
+				return neynarCastRefsFromFeed(page?.casts ?? [])
 			},
 		}),
 		defineEntityFieldResolver({
 			entityType: EntityType.FarcasterChannel,
 			fieldName: '$$casts',
-			source: Source.Neynar,
 			resolve: async (entityId, context) => {
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
-				const page = await singleFlight(getFeed)({
-					feedType: 'filter',
-					filterType: 'channel_id',
-					channelId: entityId.id,
-					limit: context?.limit ?? 25,
-				})
-				return castRefsFromFeedCasts(page?.casts ?? [])
+				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
+				const page = await singleFlight(getFeed)(
+					publicEnv,
+					{
+						feedType: 'filter',
+						filterType: 'channel_id',
+						channelId: entityId.id,
+						limit: resolverLoadSubsetRowLimit(context),
+					},
+				)
+				return neynarCastRefsFromFeed(page?.casts ?? [])
 			},
 		}),
 	],

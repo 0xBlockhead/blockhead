@@ -17,8 +17,8 @@
 
 
 	// Functions
-	import { serializeError } from '$/lib/serializeError.ts'
-	import { stringify } from '$/lib/stringify.ts'
+	import { serializeError } from '$/lib/errors.ts'
+	import { stringify } from '$/lib/json.ts'
 </script>
 
 

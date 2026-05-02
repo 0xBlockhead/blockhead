@@ -50,3 +50,32 @@ export type FarcasterPrimaryAddressWire = {
 export type FarcasterPrimaryAddressResponse = FarcasterPage<{
 	address?: FarcasterPrimaryAddressWire
 }>
+
+export type FarcasterThreadCastAuthorWire = {
+	fid?: number
+	username?: string
+}
+
+export type FarcasterThreadCastWire = {
+	hash?: string
+	threadHash?: string
+	author?: FarcasterThreadCastAuthorWire
+	text?: string
+	timestamp?: number
+	replies?: {
+		count?: number
+	}
+	reactions?: {
+		count?: number
+	}
+	recasts?: {
+		count?: number
+	}
+	quoteCount?: number
+}
+
+export type FarcasterUserThreadCastsResponse = {
+	result?: {
+		casts?: FarcasterThreadCastWire[]
+	}
+}

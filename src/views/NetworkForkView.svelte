@@ -1,14 +1,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import {
-		type EntityId,
-		schema,
-	} from '$/schema/$schema.ts'
+	import { type EntityId, schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Sources.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
@@ -19,7 +16,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -76,7 +73,7 @@
 	const forkRow = $derived(
 		(
 			forkQuery.data?.find(
-				(row) => row.forkRow[EntityMetaKey.Source] === Source._Constants,
+				(row) => row.forkRow[EntityMetaKey.Source] === Source.Constants_Internal,
 			)?.forkRow
 			?? forkQuery.data?.[0]?.forkRow
 		)
@@ -85,7 +82,7 @@
 	const forkField = $derived(
 		(() => {
 			const bag = forkRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			return {
 				name: typeof b.name === 'string' && b.name.length ? b.name : undefined,
@@ -97,18 +94,17 @@
 		})(),
 	)
 
-	const displayTitle = $derived(
-		forkField?.name ?? entityId.forkId,
+	const forkUrlSlug = $derived(
+		forkField?.slug ?? entityId.forkId,
 	)
 
 
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 	import EvmBlocksView from '$/views/EvmBlocksView.svelte'
-	import NetworkForksView from '$/views/NetworkForksView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
 </script>
 
 
@@ -118,7 +114,7 @@
 	{entityId}
 	{href}
 	{open}
-	title={displayTitle}
+	title={forkField?.name ?? entityId.forkId}
 >
 	{#snippet Details({
 		open: _open,
@@ -134,13 +130,13 @@
 				{#snippet children(rows)}
 				{@const forkRow = (
 					rows?.find(
-						(row) => row.forkRow[EntityMetaKey.Source] === Source._Constants,
+						(row) => row.forkRow[EntityMetaKey.Source] === Source.Constants_Internal,
 					)?.forkRow
 					?? rows?.[0]?.forkRow
 				)}
-				{#if forkRow == null}
+				{#if forkRow === undefined}
 					<p data-text="muted">
-						No fork row in collections yet (resolve fork catalog for this network).
+						No fork data for this network yet.
 					</p>
 				{:else}
 					<dl>
@@ -148,25 +144,25 @@
 							<dt>Fork id</dt>
 							<dd>{entityId.forkId}</dd>
 						</div>
-						{#if forkField?.slug != null}
+						{#if forkField?.slug !== undefined}
 							<div>
 								<dt>Slug</dt>
 								<dd>{forkField.slug}</dd>
 							</div>
 						{/if}
-						{#if forkField?.activationBlock != null}
+						{#if forkField?.activationBlock !== undefined}
 							<div>
 								<dt>Activation block</dt>
 								<dd>{String(forkField.activationBlock)}</dd>
 							</div>
 						{/if}
-						{#if forkField?.activationEpoch != null}
+						{#if forkField?.activationEpoch !== undefined}
 							<div>
 								<dt>Activation epoch</dt>
 								<dd>{String(forkField.activationEpoch)}</dd>
 							</div>
 						{/if}
-						{#if forkField?.kind != null}
+						{#if forkField?.kind !== undefined}
 							<div>
 								<dt>Kind</dt>
 								<dd>{forkField.kind}</dd>
@@ -178,37 +174,45 @@
 			</QueryBoundary>
 		</EntityDetails>
 
-		{#if chainId != null}
-			<EvmBlocksView
-				entityId={{ chainId }}
-				href={resolve(
-					'/(explore)/(networks)/network/[networkId]/(network)/(forks)/fork/[forkSlug]/(fork)/blocks',
-					{
-						networkId: String(chainId),
-						forkSlug: entityId.forkId,
-					},
-				)}
-				id={`${forkIdKey}:blocks`}
-				open={false}
-			/>
-
-			<NetworkView
-				entityId={{ chainId }}
-				href={resolve('/(explore)/(networks)/network/[networkId]', {
-					networkId: String(chainId),
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-
-			<NetworkForksView
-				entityId={{ chainId }}
-				href={resolve('/(explore)/(networks)/network/[networkId]/(network)/forks', {
-					networkId: String(chainId),
-				})}
-				id={`${forkIdKey}:network-forks`}
-				open={false}
-			/>
+		{#if chainId !== undefined}
+			<div
+				data-scroll-container="inline layout-carousel carousel-marker-tabs"
+				style="--carousel-basis: 40ch; gap: 0.5em"
+			>
+				<section>
+					<EvmBlocksView
+						entityFieldReference={{
+							entityType: EntityType.Network,
+							entityId: { chainId },
+							fieldName: '$$evmBlocks',
+						}}
+						href={resolve(
+							'/(explore)/(networks)/network/[networkId]/(network)/(forks)/fork/[forkSlug]/(fork)/blocks',
+							{
+								networkId: String(chainId),
+								forkSlug: forkUrlSlug,
+							},
+						)}
+						id={`${forkIdKey}:blocks`}
+					/>
+				</section>
+				<section>
+					<EvmTransactionsView
+						entityFieldReference={{
+							entityType: EntityType.Network,
+							entityId: { chainId },
+							fieldName: '$$evmTransactions',
+						}}
+						href={resolve(
+							'/(explore)/(networks)/network/[networkId]/(network)/transactions',
+							{
+								networkId: String(chainId),
+							},
+						)}
+						id={`${forkIdKey}:transactions`}
+					/>
+				</section>
+			</div>
 		{/if}
 
 		{#if children}

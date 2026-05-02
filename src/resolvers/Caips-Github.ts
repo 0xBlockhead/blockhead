@@ -1,79 +1,105 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
-} from '$/resolvers/$defineEntityResolvers.ts'
+} from '$/resolvers/$resolvers.ts'
+import { regex } from 'arkregex'
+import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import type { GhFile } from '$/sources/Github/Rest/types.ts'
-import { Source } from '$/sources/$Sources.ts'
+
+const caipMarkdownFilename = regex('^caip-(?<caipNumber>\\d+)\\.md$')
+
+const resolveCaipProposalRows = async () => {
+	const { ProposalCategory, ProposalRealm } = await import('$/constants/Proposal.ts')
+	const { getCaipsGithubContents } = await import('$/sources/Caips/Github/queries.ts')
+
+	const data = await singleFlight(getCaipsGithubContents)()
+	const markdownFiles = data.filter((entry) => entry.type === 'file' && entry.name.endsWith('.md'))
+	return [...markdownFiles
+		.flatMap((markdownFile) => {
+			const caipNumberRaw = caipMarkdownFilename.exec(markdownFile.name)?.groups?.caipNumber
+			const caipNumber = caipNumberRaw != null ? parseInt(caipNumberRaw, 10) : null
+			return caipNumber == null ?
+				[]
+			:	[{
+					[EntityMetaKey.Id]: {
+						realm: ProposalRealm.ChainAgnostic,
+						category: ProposalCategory.Caip,
+						number: caipNumber,
+					},
+				}]
+		})
+		.reduce((rowsByProposalKey, proposalRow) => (
+			rowsByProposalKey.set(
+				`${proposalRow[EntityMetaKey.Id].realm}:${proposalRow[EntityMetaKey.Id].category}:${proposalRow[EntityMetaKey.Id].number}`,
+				proposalRow,
+			)
+		), new Map())]
+		.map(([, proposalRow]) => proposalRow)
+		.sort((firstRow, secondRow) => (
+			firstRow[EntityMetaKey.Id].number - secondRow[EntityMetaKey.Id].number
+		))
+}
 
 export default {
+	source: 'Caips_Github' satisfies import('$/sources/$Source.ts').Source,
+
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.Caip,
-			source: Source.Caips,
+			entityType: EntityType.Proposal,
 			resolve: async (entityId) => {
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
+				const { ProposalCategory, ProposalRealm } = await import('$/constants/Proposal.ts')
 				const {
-					getCaipHumanDocUrl,
 					getCaipMarkdownTextForNumber,
 					parseFrontmatter,
 					stripFrontmatter,
 				} = await import('$/sources/Caips/Github/queries.ts')
-				const idStr = String(entityId.id)
-				const n = Number(idStr)
-				if (Number.isNaN(n)) return {}
-				const text = await singleFlight(getCaipMarkdownTextForNumber)({ number: n })
-				const fm = parseFrontmatter(text)
-				const caipNum = fm.caip != null ? parseInt(fm.caip, 10) : n
-				const createdRaw = fm.created?.trim()
-				const created = (
-					createdRaw != null && createdRaw !== '' ?
-						(createdRaw.split(',')[0]?.trim() ?? undefined)
-					:
-						undefined
-				)
+
+				if (
+					entityId.category !== ProposalCategory.Caip
+					|| entityId.realm !== ProposalRealm.ChainAgnostic
+				) throw new Error('Caips_Github: unsupported proposal id')
+				const text = await singleFlight(getCaipMarkdownTextForNumber)({ number: entityId.number })
 				const body = stripFrontmatter(text)
+				const frontmatter = parseFrontmatter(text)
+				const docCategory = frontmatter.type?.trim()
+				const docTitle = frontmatter.title?.trim()
+				const docStatus = frontmatter.status?.trim()
 				return {
-					number: caipNum,
-					title: fm.title ?? `caip-${caipNum}`,
-					status: fm.status ?? '',
-					type: fm.type ?? '',
-					url: getCaipHumanDocUrl({ number: caipNum }),
-					...(created != null && created !== '' ? { created } : {}),
-					body: body.length > 0 ? body : null,
+					documentCategory: docCategory != null && docCategory !== '' ? docCategory : null,
+					documentTitle: docTitle != null && docTitle !== '' ? docTitle : null,
+					documentStatus: docStatus != null && docStatus !== '' ? docStatus : null,
+					documentBody: body.length > 0 ? body : null,
 				}
 			},
 		}),
 	],
+
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$caips',
-			source: Source.Caips,
-			resolve: async (_entityId) => {
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
-				const {
-					getCaipsGithubContents,
-				} = await import('$/sources/Caips/Github/queries.ts')
-				const data = await singleFlight(getCaipsGithubContents)()
-				if (!Array.isArray(data)) throw new Error('GitHub (CAIPs): directory response is not an array')
-				const files = data.filter((f: GhFile) => f.type === 'file' && f.name.endsWith('.md'))
-				return [...files
-					.flatMap((f) => {
-						const nameMatch = f.name.match(/^caip-(\d+)\.md$/)
-						const number = nameMatch != null ? parseInt(nameMatch[1], 10) : null
-						return number == null ?
-							[]
-						:	[{
-								[EntityMetaKey.Id]: { id: String(number) },
-							}]
-					})
-					.reduce((rowsById, row) => (
-						rowsById.set(row[EntityMetaKey.Id].id, row)
-					), new Map())]
-					.map(([, row]) => row)
-					.sort((a, b) => Number(a[EntityMetaKey.Id].id) - Number(b[EntityMetaKey.Id].id))
+			fieldName: '$$proposals',
+			resolve: async () => resolveCaipProposalRows(),
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.ProposalRealm,
+			fieldName: '$$proposals',
+			resolve: async (entityId) => {
+				const { ProposalRealm } = await import('$/constants/Proposal.ts')
+				return entityId.realm === ProposalRealm.ChainAgnostic ? resolveCaipProposalRows() : []
+			},
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.ProposalKind,
+			fieldName: '$$proposals',
+			resolve: async (entityId) => {
+				const { ProposalCategory, ProposalRealm } = await import('$/constants/Proposal.ts')
+				return (
+					entityId.realm === ProposalRealm.ChainAgnostic && entityId.category === ProposalCategory.Caip ?
+						resolveCaipProposalRows()
+					:
+						[]
+				)
 			},
 		}),
 	],

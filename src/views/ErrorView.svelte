@@ -1,22 +1,20 @@
 <script lang="ts">
 	// Types/constants
-	import {
-		type EntityId,
-		schema,
-	} from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Sources.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// State
-	import type { Snippet } from 'svelte'
-	import type { EntityViewProps } from '$/typescript/EntityViewProps.ts'
+	import type { ComponentProps, Snippet } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { mergeEntityCollectionRowFields } from '$/collections/mergeEntityCollectionRowFields.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 	let {
 		children,
@@ -32,14 +30,13 @@
 			open?: boolean
 		},
 		Omit<
-			EntityViewProps,
+			ComponentProps<typeof EntityView>,
 			| 'entityType'
 			| 'entityId'
 			| 'href'
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
@@ -63,36 +60,20 @@
 		[() => idKey],
 	)
 
-	const row = $derived(
-		(
-			errorQuery.data?.find(
-				(r) => r.row[EntityMetaKey.Source] === Source.Openchain,
-			)?.row
-			?? errorQuery.data?.[0]?.row
-		)
-	)
+	const evmErrorMergeSourceOrder = [
+		Source.Openchain_Rest,
+	] as const
 
-	const fieldBag = $derived(
-		row?.[EntityMetaKey.Fields],
-	)
-
-	const signatures = $derived(
-		(
-			fieldBag != null
-			&& typeof fieldBag === 'object'
-			&& 'signatures' in fieldBag
-			&& Array.isArray(fieldBag.signatures)
-		) ?
-			fieldBag.signatures.filter((x): x is string => typeof x === 'string')
-		:
-			undefined,
+	const errorFields = $derived(
+		mergeEntityCollectionRowFields(
+			EntityType.EvmError,
+			errorQuery.data,
+			evmErrorMergeSourceOrder,
+		),
 	)
 
 	const label = $derived(
-		signatures != null && signatures.length > 0 ?
-			signatures[0]!
-		:
-			entityId.hex,
+		errorFields.signatures?.[0] ?? entityId.hex,
 	)
 
 
@@ -111,7 +92,7 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Hex</dt>
@@ -137,11 +118,11 @@
 					{#snippet children(rows)}
 					{@const row = (
 						rows?.find(
-							(r) => r.row[EntityMetaKey.Source] === Source.Openchain,
+							(r) => r.row[EntityMetaKey.Source] === Source.Openchain_Rest,
 						)?.row
 						?? rows?.[0]?.row
 					)}
-					{#if row == null}
+					{#if row === undefined}
 						<p data-text="muted">
 							No signatures found for this error selector.
 						</p>
@@ -160,7 +141,7 @@
 										Signatures
 									</dt>
 									<dd>
-										{#if signatures != null && signatures.length > 0}
+										{#if signatures !== undefined && signatures.length > 0}
 											<ul>
 												{#each signatures as sig}
 													<li><code>{sig}</code></li>

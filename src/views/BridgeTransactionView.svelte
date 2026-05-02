@@ -1,14 +1,15 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, entityDefinitionByType, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { entityDefinitionByType, schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import {
 		EntityFieldType,
 		EntityMetaKey,
 	} from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Sources.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
@@ -18,8 +19,7 @@
 	// State
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -46,19 +46,11 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
-
 	const bridgeIdKey = $derived(
 		stringify(entityId),
-	)
-
-	const chainId = $derived(
-		typeof entityId?.$sourceTx?.$network?.chainId === 'number' ?
-			entityId.$sourceTx.$network.chainId
-		:	undefined,
 	)
 
 	const bridgeQuery = useLiveQuery(
@@ -79,7 +71,7 @@
 	const bridgeRow = $derived(
 		(
 			bridgeQuery.data?.find(
-				(r) => r.row[EntityMetaKey.Source] === Source.Blockscout,
+				(r) => r.row[EntityMetaKey.Source] === Source.Blockscout_Rest,
 			)?.row
 			?? bridgeQuery.data?.[0]?.row
 		)
@@ -88,7 +80,7 @@
 	const bridgeFieldBag = $derived(
 		(() => {
 			const bag = bridgeRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			const out: Record<string, string> = {}
 			for (const def of entityDefinitionByType[EntityType.BridgeTransaction].fields) {
@@ -106,6 +98,7 @@
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
@@ -118,7 +111,7 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Source tx</dt>
@@ -129,16 +122,17 @@
 					/>
 				</dd>
 			</div>
-			{#if chainId != null}
+			{#if entityId.createdAt !== undefined && typeof entityId.createdAt === 'number' && Number.isFinite(entityId.createdAt)}
 				<div>
-					<dt>Chain ID</dt>
-					<dd>{String(chainId)}</dd>
+					<dt>Timestamp</dt>
+					<dd>
+						<Timestamp
+							timestamp={entityId.createdAt}
+							format={TimestampFormat.Both}
+						/>
+					</dd>
 				</div>
 			{/if}
-			<div>
-				<dt>Created at</dt>
-				<dd>{String(entityId.createdAt)}</dd>
-			</div>
 		</dl>
 	{/snippet}
 
@@ -156,17 +150,17 @@
 				{#snippet children(rows)}
 				{@const bridgeRow = (
 					rows?.find(
-						(r) => r.row[EntityMetaKey.Source] === Source.Blockscout,
+						(r) => r.row[EntityMetaKey.Source] === Source.Blockscout_Rest,
 					)?.row
 					?? rows?.[0]?.row
 				)}
-				{#if bridgeRow == null}
+				{#if bridgeRow === undefined}
 					<p data-text="muted">
-						No bridge transaction row in collections yet.
+						No bridge transaction data yet.
 					</p>
 				{:else}
 					<dl>
-						{#if bridgeFieldBag != null}
+						{#if bridgeFieldBag !== undefined}
 							{#each Object.entries(bridgeFieldBag) as [name, value] (name)}
 								<div>
 									<dt>{name}</dt>
@@ -174,10 +168,17 @@
 								</div>
 							{/each}
 						{/if}
-						<div>
-							<dt>Created at</dt>
-							<dd>{String(entityId.createdAt)}</dd>
-						</div>
+						{#if entityId.createdAt !== undefined && typeof entityId.createdAt === 'number' && Number.isFinite(entityId.createdAt)}
+							<div>
+								<dt>Timestamp</dt>
+								<dd>
+									<Timestamp
+										timestamp={entityId.createdAt}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
+							</div>
+						{/if}
 					</dl>
 				{/if}
 				{/snippet}

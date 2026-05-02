@@ -1,3 +1,5 @@
+import { Source } from '$/sources/$Source.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { graphql, queryEns } from '$/sources/TheGraph/Graphql/Ens/client.ts'
 
 const Domain = graphql(`
@@ -26,6 +28,7 @@ const Domain = graphql(`
 			addr {
 				id
 			}
+			contentHash
 			texts
 			coinTypes
 		}
@@ -33,16 +36,20 @@ const Domain = graphql(`
 		isMigrated
 		createdAt
 		expiryDate
+		subdomainCount
 	}
 `)
 
 export const getEnsName = async ({
+	publicEnv,
 	name,
 }: {
+	publicEnv: SourcePublicEnvFor<Source.TheGraph_Graphql>
 	name: string
 }) => (
 	(
 		await queryEns(
+			publicEnv,
 			graphql(`
 				query EnsName(
 					$name: String!
@@ -66,12 +73,15 @@ export const getEnsName = async ({
 )
 
 export const getEnsDomainsContaining = async ({
+	publicEnv,
 	query,
 }: {
+	publicEnv: SourcePublicEnvFor<Source.TheGraph_Graphql>
 	query: string
 }) => (
 	(
 		await queryEns(
+			publicEnv,
 			graphql(`
 				query EnsDomainsContaining(
 					$query: String!
@@ -98,12 +108,15 @@ export const getEnsDomainsContaining = async ({
 )
 
 export const getEnsDomainsByOwner = async ({
+	publicEnv,
 	owner,
 }: {
+	publicEnv: SourcePublicEnvFor<Source.TheGraph_Graphql>
 	owner: string
 }) => (
 	(
 		await queryEns(
+			publicEnv,
 			graphql(`
 				query EnsDomainsByOwner(
 					$owner: String!

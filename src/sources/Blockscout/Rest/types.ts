@@ -40,6 +40,13 @@ export type BlockscoutTransactionWire = {
 	value?: string
 }
 
+export type BlockscoutSmartContractForListWire = {
+	address_hash?: string | BlockscoutAddressWire
+	compiler_version?: string
+	language?: string
+	verified_at?: string
+}
+
 export type BlockscoutTransactionLogWire = {
 	address_hash?: BlockscoutAddressWire | string | null
 	block_number?: number

@@ -1,59 +1,67 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
-} from '$/resolvers/$defineEntityResolvers.ts'
+} from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import {
-	chainPrimaryExplorerUrl,
-	fetchRpcsJson,
-	isPublicRpcUrl,
-} from '$/sources/Chainlist/Rest/queries.ts'
-import {
-	findChainByChainId,
-	rpcUrlsWithoutHeavyTracking,
-} from '$/sources/Chainlist/Rest/rpcsJsonWire.ts'
-import { Source } from '$/sources/$Sources.ts'
-
-const networkFieldsFromChain = (chain: (Awaited<ReturnType<typeof fetchRpcsJson>>)[number]) => {
-	const rpcUrl = rpcUrlsWithoutHeavyTracking(chain).find(isPublicRpcUrl)
-	const explorer = chainPrimaryExplorerUrl(chain)
-	return {
-		name: chain.title ?? chain.name,
-		nativeSymbol: chain.nativeCurrency.symbol,
-		...(explorer != null ? { explorerOrigin: explorer } : {}),
-		...(rpcUrl != null ? { rpcUrl } : {}),
-	}
-}
+	childLayerChainIdsForParent,
+	networkFieldBagFromChain,
+} from '$/sources/Chainlist/Rest/networkFieldBagFromChain.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
+	source: Source.Chainlist_Rest,
+
 	entityResolvers: [
 		defineEntityResolver({
 			entityType: EntityType.Network,
-			source: Source.ChainList,
 			resolve: async (entityId) => {
+				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
+				const { findChainByChainId } = await import('$/sources/Chainlist/Rest/rpcsJsonWire.ts')
 				const chains = await fetchRpcsJson()
 				const chain = findChainByChainId(chains, entityId.chainId)
-				if (chain == null) return {}
-				return {
-					[EntityMetaKey.Id]: { chainId: chain.chainId },
-					...networkFieldsFromChain(chain),
-				}
+				if (chain == null) throw new Error('Chainlist_Rest: chain id not in rpcs.json')
+				return networkFieldBagFromChain(chain, chains)
 			},
 		}),
 	],
+
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$networks',
-			source: Source.ChainList,
 			resolve: async (_entityId) => {
+				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 				const chains = await fetchRpcsJson()
 				return (
-					chains.map((chain) => ({
-						[EntityMetaKey.Id]: { chainId: chain.chainId },
-						...networkFieldsFromChain(chain),
-					}))
+					chains.map((chain) => (
+						networkFieldBagFromChain(chain, chains)
+					))
+				)
+			},
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$childNetworks',
+			resolve: async (entityId) => {
+				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
+				const { findChainByChainId } = await import('$/sources/Chainlist/Rest/rpcsJsonWire.ts')
+				const chains = await fetchRpcsJson()
+				if (findChainByChainId(chains, entityId.chainId) == null) {
+					return []
+				}
+				return (
+					childLayerChainIdsForParent(chains, entityId.chainId)
+						.map((cid) => {
+							const chain = findChainByChainId(chains, cid)
+							return (
+								chain == null ?
+									null
+								:	networkFieldBagFromChain(chain, chains)
+							)
+						})
+						.filter((row) => row != null)
 				)
 			},
 		}),

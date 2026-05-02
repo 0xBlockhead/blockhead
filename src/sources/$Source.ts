@@ -1,0 +1,52 @@
+import type { Type } from 'arktype'
+
+import type { SourceProvider } from '$/sources/$SourceProvider.ts'
+
+/** String-keyed map of public env (matches `$env/dynamic/public` after coercing missing values to `''`). */
+export type SourcePublicEnvWire = Record<string, string>
+
+export enum Source {
+	Allium_Rest = 'Allium_Rest',
+	Atproto_Xrpc = 'Atproto_Xrpc',
+	Beacon_Rest = 'Beacon_Rest',
+	Blockscout_Rest = 'Blockscout_Rest',
+	Caips_Github = 'Caips_Github',
+	Chainlist_Rest = 'Chainlist_Rest',
+	Coingecko_Rest = 'Coingecko_Rest',
+	CoinMarketCap_Rest = 'CoinMarketCap_Rest',
+	Coinpaprika_OpenApi = 'Coinpaprika_OpenApi',
+	Constants_Internal = 'Constants_Internal',
+	Defillama_OpenApi = 'Defillama_OpenApi',
+	Defillama_Rest = 'Defillama_Rest',
+	Dexscreener_OpenApi = 'Dexscreener_OpenApi',
+	Dune_Rest = 'Dune_Rest',
+	Ensips_Github = 'Ensips_Github',
+	EthereumEips_Github = 'EthereumEips_Github',
+	EthereumLists_Rest = 'EthereumLists_Rest',
+	Etherscan_Rest = 'Etherscan_Rest',
+	Evm_JsonRpc = 'Evm_JsonRpc',
+	Explorer_Rest = 'Explorer_Rest',
+	Farcaster_Rest = 'Farcaster_Rest',
+	Github_Rest = 'Github_Rest',
+	Hypersnap_Rest = 'Hypersnap_Rest',
+	Ipfs_Rest = 'Ipfs_Rest',
+	Lens_Graphql = 'Lens_Graphql',
+	Lifi_Rest = 'Lifi_Rest',
+	Local_Internal = 'Local_Internal',
+	Mastodon_Rest = 'Mastodon_Rest',
+	Neynar_Rest = 'Neynar_Rest',
+	Openchain_Rest = 'Openchain_Rest',
+	Reddit_Rest = 'Reddit_Rest',
+	Snapchain_Rest = 'Snapchain_Rest',
+	Sourcify_Rest = 'Sourcify_Rest',
+	TheGraph_Graphql = 'TheGraph_Graphql',
+	Voltaire_JsonRpc = 'Voltaire_JsonRpc',
+	X_Rest = 'X_Rest',
+}
+
+export type SourceDefinition = {
+	provider: SourceProvider
+	source: Source
+	label: string
+	env?: Type<SourcePublicEnvWire>
+}

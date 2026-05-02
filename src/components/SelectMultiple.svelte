@@ -91,22 +91,6 @@
 					}))
 			: []
 	)
-	const triggerLabel = $derived(
-		(value ?? []).length === 0 ?
-			(placeholder ?? '')
-		:
-			(value ?? [])
-					.map((entry) => getItemId(entry))
-					.map((id) => normalizedItems.find((item) => item.id === id)?.label ?? '')
-					.join(', ')
-	)
-	const rootItems = $derived(
-		normalizedItems.map((item) => ({
-			value: item.id,
-			label: item.label,
-			disabled: item.disabled,
-		}))
-	)
 
 
 	// Components
@@ -131,7 +115,11 @@
 	{disabled}
 	{name}
 	{allowDeselect}
-	items={rootItems}
+	items={normalizedItems.map((item) => ({
+		value: item.id,
+		label: item.label,
+		disabled: item.disabled,
+	}))}
 >
 	{#if children}
 		{@render children()}
@@ -145,7 +133,13 @@
 					{@render Before()}
 				{/if}
 
-				<span>{triggerLabel}</span>
+				<span>{(value ?? []).length === 0 ?
+					(placeholder ?? '')
+				:
+					(value ?? [])
+						.map((entry) => getItemId(entry))
+						.map((id) => normalizedItems.find((item) => item.id === id)?.label ?? '')
+						.join(', ')}</span>
 				{#if After}
 					{@render After()}
 				{/if}

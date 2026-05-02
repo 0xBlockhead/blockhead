@@ -9,6 +9,7 @@ import {
 import { EntityType } from '$/schema/$EntityType.ts'
 import EvmContract from '$/schema/EvmContract.ts'
 import Network from '$/schema/Network.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export enum CoinInstanceType {
 	NativeCurrency = 'NativeCurrency',
@@ -18,8 +19,8 @@ export enum CoinInstanceType {
 export default {
 	entityType: EntityType.CoinInstance,
 
-	label: 'Coin Instance',
-	labelPlural: 'Coin Instances',
+	label: 'Coin deployment',
+	labelPlural: 'Coin deployments',
 
 	id: type.or(
 		type({
@@ -69,6 +70,20 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$marketsWithInstanceAsBase',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Market,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Constants_Internal, Source.Coingecko_Rest],
+		},
+		{
+			name: '$$marketsWithInstanceAsQuote',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Market,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Constants_Internal, Source.Coingecko_Rest],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

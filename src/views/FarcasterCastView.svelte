@@ -2,10 +2,8 @@
 	// Types/constants
 	import type { CastHash } from '$/schema/FarcasterCast.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
-	import {
-		type EntityId,
-		schema,
-	} from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -19,7 +17,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -46,9 +44,8 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
-			| 'SummaryIcon'
-			| 'SummaryHeadingAfter'
+			| 'Icon'
+			| 'HeadingAfter'
 		>
 	> = $props()
 
@@ -65,6 +62,18 @@
 		typeof value === 'string'
 		&& value.startsWith('0x')
 	)
+
+	const normalizeFarcasterCastHash = (hash: string): CastHash => {
+		const t = hash.trim()
+		const hex = (
+			t.startsWith('0x')
+			|| t.startsWith('0X') ?
+				t.slice(2)
+			:
+				t
+		)
+		return `0x${hex.toLowerCase()}` as CastHash
+	}
 
 	const castQuery = useLiveQuery(
 		(queryBuilder) => (
@@ -88,20 +97,26 @@
 	const castRefs = $derived(
 		(() => {
 			const bag = castRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') {
+			if (bag === undefined || typeof bag !== 'object') {
 				return {
 					authorId: undefined as EntityId<typeof schema, EntityType.FarcasterUser> | undefined,
 					parentCastId: undefined as EntityId<typeof schema, EntityType.FarcasterCast> | undefined,
+					postedViaAppId: undefined as EntityId<typeof schema, EntityType.FarcasterUser> | undefined,
+					channelId: undefined as string | undefined,
 					embeds: [] as {
 						url?: string
 						embeddedCastId?: EntityId<typeof schema, EntityType.FarcasterCast>
+						title?: string
+						description?: string
+						imageUrl?: string
+						quotedPreviewText?: string
 					}[],
 				}
 			}
 			const b = bag as Record<string, unknown>
 			const authorRef = b.$author
 			const authorId = (
-				authorRef != null
+				authorRef !== undefined
 				&& typeof authorRef === 'object'
 				&& EntityMetaKey.Id in authorRef ?
 					(authorRef as { ['#id']: EntityId<typeof schema, EntityType.FarcasterUser> })[EntityMetaKey.Id]
@@ -110,10 +125,28 @@
 			)
 			const parentRef = b.$parentCast
 			const parentCastId = (
-				parentRef != null
+				parentRef !== undefined
 				&& typeof parentRef === 'object'
 				&& EntityMetaKey.Id in parentRef ?
 					(parentRef as { ['#id']: EntityId<typeof schema, EntityType.FarcasterCast> })[EntityMetaKey.Id]
+				:
+					undefined
+			)
+			const postedViaRef = b.$postedViaApp
+			const postedViaAppId = (
+				postedViaRef !== undefined
+				&& typeof postedViaRef === 'object'
+				&& EntityMetaKey.Id in postedViaRef ?
+					(postedViaRef as { ['#id']: EntityId<typeof schema, EntityType.FarcasterUser> })[EntityMetaKey.Id]
+				:
+					undefined
+			)
+			const channelRef = b.$channel
+			const channelId = (
+				channelRef !== undefined
+				&& typeof channelRef === 'object'
+				&& EntityMetaKey.Id in channelRef ?
+					(channelRef as { ['#id']: { id: string } })[EntityMetaKey.Id]?.id
 				:
 					undefined
 			)
@@ -121,14 +154,18 @@
 			const embeds = (
 				Array.isArray(embedRefs) ?
 					embedRefs.map((raw) => {
-						if (raw == null || typeof raw !== 'object') {
+						if (raw === undefined || typeof raw !== 'object') {
 							return {}
 						}
 						const e = raw as Record<string, unknown>
-						const url = typeof e.url === 'string' && e.url.length ? e.url : undefined
+						const pickStr = (key: string) => {
+							const x = e[key]
+							return typeof x === 'string' && x.length ? x : undefined
+						}
+						const url = pickStr('url')
 						const emb = e.$embeddedCast
 						const embeddedCastId = (
-							emb != null
+							emb !== undefined
 							&& typeof emb === 'object'
 							&& EntityMetaKey.Id in emb ?
 								(emb as { ['#id']: EntityId<typeof schema, EntityType.FarcasterCast> })[EntityMetaKey.Id]
@@ -138,6 +175,10 @@
 						return {
 							url,
 							embeddedCastId,
+							title: pickStr('title'),
+							description: pickStr('description'),
+							imageUrl: pickStr('imageUrl'),
+							quotedPreviewText: pickStr('quotedPreviewText'),
 						}
 					})
 				:
@@ -146,13 +187,15 @@
 			return {
 				authorId,
 				parentCastId,
+				postedViaAppId,
+				channelId,
 				embeds,
 			}
 		})(),
 	)
 
 	const authorLookupKey = $derived(
-		castRefs.authorId == null ?
+		castRefs.authorId === undefined ?
 			'\u0000'
 		:
 			stringify(castRefs.authorId),
@@ -180,10 +223,10 @@
 	const authorField = $derived(
 		(() => {
 			const bag = authorRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			const pick = (key: string) => {
-				const x = Reflect.get(b, key)
+				const x = b[key]
 				return typeof x === 'string' && x.length ? x : undefined
 			}
 			return {
@@ -194,10 +237,51 @@
 		})(),
 	)
 
+	const postedViaLookupKey = $derived(
+		castRefs.postedViaAppId === undefined ?
+			'\u0000'
+		:	stringify(castRefs.postedViaAppId),
+	)
+
+	const postedViaAppQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ row: entityCollectionByEntityType[EntityType.FarcasterUser] })
+				.where(({ row }) => (
+					eq(
+						row[EntityMetaKey.IdKey],
+						postedViaLookupKey,
+					)
+				))
+				.select(({ row }) => ({ row }))
+		),
+		[() => postedViaLookupKey],
+	)
+
+	const postedViaAppRow = $derived(
+		postedViaAppQuery.data?.[0]?.row,
+	)
+
+	const postedViaAppField = $derived(
+		(() => {
+			const bag = postedViaAppRow?.[EntityMetaKey.Fields]
+			if (bag === undefined || typeof bag !== 'object') return null
+			const b = bag as Record<string, unknown>
+			const pick = (key: string) => {
+				const x = b[key]
+				return typeof x === 'string' && x.length ? x : undefined
+			}
+			return {
+				username: pick('username'),
+				displayName: pick('displayName'),
+			}
+		})(),
+	)
+
 	const castField = $derived(
 		(() => {
 			const bag = castRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			const text = typeof b.text === 'string' ? b.text : undefined
 			const timestamp = typeof b.timestamp === 'number' ? b.timestamp : undefined
@@ -205,6 +289,20 @@
 			const mentions = Array.isArray(b.mentions) ? b.mentions as unknown[] : undefined
 			const likeCount = typeof b.likeCount === 'number' ? b.likeCount : undefined
 			const recastCount = typeof b.recastCount === 'number' ? b.recastCount : undefined
+			const replyCount = typeof b.replyCount === 'number' ? b.replyCount : undefined
+			const threadHash = typeof b.threadHash === 'string' && b.threadHash.length ? b.threadHash : undefined
+			const mentionedProfileFids = (
+				Array.isArray(b.mentionedProfileFids) ?
+					(b.mentionedProfileFids as unknown[]).filter((fid): fid is number => typeof fid === 'number')
+				:
+					undefined
+			)
+			const mentionedChannelIds = (
+				Array.isArray(b.mentionedChannelIds) ?
+					(b.mentionedChannelIds as unknown[]).filter((id): id is string => typeof id === 'string' && id.length)
+				:
+					undefined
+			)
 			return {
 				text,
 				timestamp,
@@ -212,14 +310,47 @@
 				mentions,
 				likeCount,
 				recastCount,
+				replyCount,
+				threadHash,
+				mentionedProfileFids,
+				mentionedChannelIds,
 			}
 		})(),
+	)
+
+	const threadHashNormalized = $derived(
+		castField?.threadHash === undefined ?
+			undefined
+		:	normalizeFarcasterCastHash(castField.threadHash),
+	)
+
+	const warpcastThreadHref = $derived(
+		(
+			threadHashNormalized !== undefined
+			&& threadHashNormalized !== entityId.hash
+		) ?
+			`https://warpcast.com/~/conversations/${threadHashNormalized}`
+		:	undefined,
+	)
+
+	const farcasterWebCastHref = $derived(
+		authorField?.username !== undefined ?
+			`https://farcaster.xyz/${authorField.username}/${entityId.hash}`
+		:	undefined,
+	)
+
+	const channelPageHref = $derived(
+		castRefs.channelId === undefined ?
+			undefined
+		:	resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
+				channelId: castRefs.channelId,
+			}),
 	)
 
 	const displayTitle = $derived(
 		(() => {
 			const t = castField?.text
-			if (t == null || !t.trim()) {
+			if (t === undefined || !t.trim()) {
 				return 'Cast'
 			}
 			const line = t.trim().split('\n')[0] ?? ''
@@ -228,20 +359,18 @@
 		})(),
 	)
 
-	const timestampLabel = $derived(
-		castField?.timestamp == null ?
-			undefined
-		:
-			(
-				castField.timestamp > 1e12 ?
-					new Date(castField.timestamp).toISOString()
-				:
-					new Date(castField.timestamp * 1000).toISOString()
-			),
+	const castTimestampMs = $derived(
+		(() => {
+			const t = castField?.timestamp
+			if (t === undefined || typeof t !== 'number' || !Number.isFinite(t)) {
+				return undefined
+			}
+			return t
+		})(),
 	)
 
 	const parentCastHref = $derived(
-		castRefs.parentCastId == null ?
+		castRefs.parentCastId === undefined ?
 			undefined
 		:
 			resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
@@ -253,7 +382,7 @@
 	const summaryBody = $derived(
 		(() => {
 			const t = castField?.text
-			if (t == null || !t.trim()) return undefined
+			if (t === undefined || !t.trim()) return undefined
 			const trimmed = t.trim()
 			if (!isFeed) return trimmed
 			const max = 200
@@ -266,7 +395,9 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import Media from '$/components/Media.svelte'
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
@@ -279,8 +410,8 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet SummaryIcon()}
-		{#if isFeed && authorField?.pfpUrl != null}
+	{#snippet Icon()}
+		{#if isFeed && authorField?.pfpUrl !== undefined}
 			<Icon
 				shape={IconShape.Circle}
 				src={authorField.pfpUrl}
@@ -289,38 +420,59 @@
 		{/if}
 	{/snippet}
 
-	{#snippet SummaryHeadingAfter()}
-		{#if isFeed && authorField?.username != null}
+	{#snippet HeadingAfter()}
+		{#if isFeed && authorField?.username !== undefined}
 			<span data-text="muted">
 				@{authorField.username}
 			</span>
 		{/if}
 	{/snippet}
 
-	{#snippet SummaryContent()}
-		<div data-stack="tight">
-			{#if summaryBody != null}
+	{#snippet Content()}
+		<div data-column>
+			{#if summaryBody !== undefined}
 				<p>
 					{summaryBody}
 				</p>
 			{/if}
 			<dl data-definition-list="vertical">
-				{#if timestampLabel != null}
+				{#if castField?.timestamp !== undefined && typeof castField.timestamp === 'number' && Number.isFinite(castField.timestamp)}
 					<div>
-						<dt>Time</dt>
-						<dd>{timestampLabel}</dd>
+						<dt>Timestamp</dt>
+						<dd>
+							<Timestamp
+								timestamp={castField.timestamp}
+								format={TimestampFormat.Both}
+							/>
+						</dd>
 					</div>
 				{/if}
-				{#if castField?.likeCount != null}
+				{#if castField?.likeCount !== undefined}
 					<div>
 						<dt>Likes</dt>
 						<dd>{String(castField.likeCount)}</dd>
 					</div>
 				{/if}
-				{#if castField?.recastCount != null}
+				{#if castField?.recastCount !== undefined}
 					<div>
 						<dt>Recasts</dt>
 						<dd>{String(castField.recastCount)}</dd>
+					</div>
+				{/if}
+				{#if castField?.replyCount !== undefined}
+					<div>
+						<dt>Replies</dt>
+						<dd>{String(castField.replyCount)}</dd>
+					</div>
+				{/if}
+				{#if channelPageHref !== undefined && castRefs.channelId !== undefined}
+					<div>
+						<dt>Channel</dt>
+						<dd>
+							<a href={channelPageHref}>
+								/{castRefs.channelId}
+							</a>
+						</dd>
 					</div>
 				{/if}
 			</dl>
@@ -342,11 +494,11 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No cast row in collections yet.
+							No cast data yet.
 						</p>
-					{:else if castField == null}
+					{:else if castField === undefined}
 						<p data-text="muted">
 							FID {String(entityId.fid)} ·{' '}
 							<span data-text="font-monospace">
@@ -359,11 +511,11 @@
 							</span>
 						</p>
 					{:else}
-						<section data-stack="tight">
+						<section data-column>
 							<header data-row="wrap gap-4">
-								{#if authorField != null}
+								{#if authorField !== undefined}
 									<div data-row="inline wrap gap-2">
-										{#if authorField.pfpUrl != null}
+										{#if authorField.pfpUrl !== undefined}
 											<Icon
 												shape={IconShape.Circle}
 												src={authorField.pfpUrl}
@@ -371,11 +523,11 @@
 												size="2.5rem"
 											/>
 										{/if}
-										<div data-stack="tight">
+										<div data-column>
 											<strong>
 												{authorField.displayName ?? authorField.username ?? `FID ${String(castRefs.authorId?.fid ?? '')}`}
 											</strong>
-											{#if authorField.username != null && castRefs.authorId != null}
+											{#if authorField.username !== undefined && castRefs.authorId !== undefined}
 												<span data-text="muted">
 													<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
 														userId: String(castRefs.authorId.fid),
@@ -386,7 +538,7 @@
 											{/if}
 										</div>
 									</div>
-								{:else if castRefs.authorId != null}
+								{:else if castRefs.authorId !== undefined}
 									<p>
 										<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
 											userId: String(castRefs.authorId.fid),
@@ -395,14 +547,43 @@
 										</a>
 									</p>
 								{/if}
-								{#if timestampLabel != null}
+								{#if castTimestampMs !== undefined}
 									<p data-text="muted">
-										{timestampLabel}
+										<Timestamp
+											timestamp={castTimestampMs}
+											format={TimestampFormat.Absolute}
+										/>
+									</p>
+								{/if}
+								{#if postedViaAppField !== undefined && castRefs.postedViaAppId !== undefined}
+									<p data-text="muted">
+										Posted via{' '}
+										<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+											userId: String(castRefs.postedViaAppId.fid),
+										})}>
+											{postedViaAppField.displayName ?? postedViaAppField.username ?? `FID ${String(castRefs.postedViaAppId.fid)}`}
+										</a>
+									</p>
+								{:else if castRefs.postedViaAppId !== undefined}
+									<p data-text="muted">
+										Posted via{' '}
+										<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+											userId: String(castRefs.postedViaAppId.fid),
+										})}>
+											FID {String(castRefs.postedViaAppId.fid)}
+										</a>
+									</p>
+								{/if}
+								{#if channelPageHref !== undefined && castRefs.channelId !== undefined}
+									<p data-text="muted">
+										<a href={channelPageHref}>
+											/{castRefs.channelId}
+										</a>
 									</p>
 								{/if}
 							</header>
 
-							{#if castField.text != null}
+							{#if castField.text !== undefined}
 								<p>
 									{castField.text}
 								</p>
@@ -426,7 +607,7 @@
 										</span>
 									</dd>
 								</div>
-								{#if parentCastHref != null}
+								{#if parentCastHref !== undefined}
 									<div>
 										<dt>Parent cast</dt>
 										<dd>
@@ -434,7 +615,7 @@
 										</dd>
 									</div>
 								{/if}
-								{#if castField.parentUrl != null}
+								{#if castField.parentUrl !== undefined}
 									<div>
 										<dt>Parent URL</dt>
 										<dd>
@@ -442,7 +623,7 @@
 										</dd>
 									</div>
 								{/if}
-								{#if castField.mentions != null && castField.mentions.length}
+								{#if castField.mentions !== undefined && castField.mentions.length}
 									<div>
 										<dt>Mentions</dt>
 										<dd>
@@ -462,27 +643,123 @@
 										</dd>
 									</div>
 								{/if}
-								{#if castField.likeCount != null}
+								{#if castField.likeCount !== undefined}
 									<div>
 										<dt>Likes</dt>
 										<dd>{String(castField.likeCount)}</dd>
 									</div>
 								{/if}
-								{#if castField.recastCount != null}
+								{#if castField.recastCount !== undefined}
 									<div>
 										<dt>Recasts</dt>
 										<dd>{String(castField.recastCount)}</dd>
 									</div>
 								{/if}
+								{#if castField.replyCount !== undefined}
+									<div>
+										<dt>Replies</dt>
+										<dd>{String(castField.replyCount)}</dd>
+									</div>
+								{/if}
+								{#if channelPageHref !== undefined && castRefs.channelId !== undefined}
+									<div>
+										<dt>Channel</dt>
+										<dd>
+											<a href={channelPageHref}>
+												/{castRefs.channelId}
+											</a>
+										</dd>
+									</div>
+								{/if}
+								{#if farcasterWebCastHref !== undefined}
+									<div>
+										<dt>On web</dt>
+										<dd>
+											<a
+												href={farcasterWebCastHref}
+												rel="noreferrer"
+											>Open on Farcaster</a>
+										</dd>
+									</div>
+								{/if}
+								{#if warpcastThreadHref !== undefined}
+									<div>
+										<dt>Thread</dt>
+										<dd>
+											<a
+												href={warpcastThreadHref}
+												rel="noreferrer"
+											>Open thread on Warpcast</a>
+										</dd>
+									</div>
+								{/if}
 							</dl>
 
+							{#if castField.mentionedProfileFids !== undefined && castField.mentionedProfileFids.length}
+								<section data-column>
+									<h3>Mentioned profiles</h3>
+									<ul data-row="wrap gap-2">
+										{#each castField.mentionedProfileFids as mentionFid (String(mentionFid))}
+											<li>
+												<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+													userId: String(mentionFid),
+												})}>
+													FID {String(mentionFid)}
+												</a>
+											</li>
+										{/each}
+									</ul>
+								</section>
+							{/if}
+
+							{#if castField.mentionedChannelIds !== undefined && castField.mentionedChannelIds.length}
+								<section data-column>
+									<h3>Mentioned channels</h3>
+									<ul data-row="wrap gap-2">
+										{#each castField.mentionedChannelIds as mentionChId (mentionChId)}
+											<li>
+												<a href={resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
+													channelId: mentionChId,
+												})}>
+													/{mentionChId}
+												</a>
+											</li>
+										{/each}
+									</ul>
+								</section>
+							{/if}
+
 							{#if castRefs.embeds.length}
-								<section data-stack="tight">
+								<section data-column>
 									<h3>Embeds</h3>
-									<ul data-stack="tight">
+									<ul data-column>
 										{#each castRefs.embeds as embed, embedIndex (String(embedIndex))}
-											<li data-stack="tight">
-												{#if embed.url != null}
+											<li data-column>
+												{#if embed.imageUrl !== undefined}
+													<p>
+														<a
+															href={embed.url ?? embed.imageUrl}
+															rel="noreferrer"
+														>
+															<Media
+																media={{ url: embed.imageUrl }}
+																alt=""
+																loading="lazy"
+															/>
+														</a>
+													</p>
+												{/if}
+												{#if embed.title !== undefined}
+													<p>
+														<strong>{embed.title}</strong>
+													</p>
+												{/if}
+												{#if embed.description !== undefined}
+													<p data-text="muted">
+														{embed.description}
+													</p>
+												{/if}
+												{#if embed.url !== undefined}
 													<p>
 														<a
 															href={embed.url}
@@ -490,7 +767,14 @@
 														>{embed.url}</a>
 													</p>
 												{/if}
-												{#if embed.embeddedCastId != null && isCastHashStr(embed.embeddedCastId.hash)}
+												{#if embed.quotedPreviewText !== undefined}
+													<blockquote>
+														<p>
+															{embed.quotedPreviewText}
+														</p>
+													</blockquote>
+												{/if}
+												{#if embed.embeddedCastId !== undefined && isCastHashStr(embed.embeddedCastId.hash)}
 													<p>
 														<a href={resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
 															fid: String(embed.embeddedCastId.fid),

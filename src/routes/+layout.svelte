@@ -1,3 +1,43 @@
+<script module lang="ts">
+	import {
+		createBrowserWASQLitePersistence,
+		openBrowserWASQLiteOPFSDatabase,
+	} from '@tanstack/browser-db-sqlite-persistence'
+	import type { PersistedCollectionPersistence } from '@tanstack/db-sqlite-persistence-core'
+
+	import {
+		createCollectionsFromSchema,
+	} from '$/collections/$collections.ts'
+	import { BLOCKHEAD_WA_SQLITE_DATABASE_NAME } from '$/constants/Persistence.ts'
+	import {
+		entityFieldResolvers,
+		entityResolvers,
+	} from '$/resolvers/index.ts'
+	import { schema } from '$/schema/index.ts'
+
+	const persistence: PersistedCollectionPersistence<object, string | number> = createBrowserWASQLitePersistence({
+		database: await openBrowserWASQLiteOPFSDatabase({ databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME }),
+	})
+
+	const {
+		entityCollections: entityCollectionByEntityType,
+		entityFieldCollections,
+		queryClient: entityCollectionsQueryClient,
+	} = createCollectionsFromSchema({
+		schema,
+		entityResolvers,
+		entityFieldResolvers,
+		persistence,
+	})
+
+	export {
+		entityCollectionByEntityType,
+		entityFieldCollections,
+		entityCollectionsQueryClient,
+	}
+</script>
+
+
 <script lang="ts">
 	// Polyfills
 	import '$/polyfills.ts'
@@ -8,21 +48,6 @@
 	import '$/styles/colors.css'
 	import '$/styles/reset.css'
 	import '$/styles/components.css'
-
-
-	// View transitions
-	import { browser } from '$app/environment'
-	import { onNavigate } from '$app/navigation'
-
-	if (browser && 'startViewTransition' in document)
-		onNavigate(navigation => (
-			new Promise(resolve => {
-				document.startViewTransition(async () => {
-					resolve()
-					await navigation.complete
-				})
-			})
-		))
 
 
 	// Context

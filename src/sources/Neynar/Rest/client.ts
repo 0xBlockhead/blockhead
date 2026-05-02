@@ -1,34 +1,37 @@
 /**
- * Neynar REST client — `PUBLIC_NEYNAR_API_KEY` → `x-api-key`.
- * Missing or invalid keys resolve to `undefined` so Farcaster pages can degrade gracefully.
+ * Neynar REST client — `publicEnv.PUBLIC_NEYNAR_API_KEY` → `x-api-key`.
+ * Missing or invalid keys resolve to `undefined` headers so Farcaster pages can degrade gracefully.
  * @see https://docs.neynar.com/reference
  */
 
-import { neynarApiBaseUrl } from '$/sources/Neynar/Rest/constants.ts'
+import {
+	optionalPublicEnvString,
+} from '$/lib/sources.ts'
+import { Source } from '$/sources/$Source.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import { baseUrl } from '$/sources/Neynar/Rest/constants.ts'
 
-const neynarApiKey = () => {
-	const v = import.meta.env.PUBLIC_NEYNAR_API_KEY
-	return typeof v === 'string' && v.trim() !== '' ? v.trim() : undefined
-}
-
-export const neynarRequestHeaders = (): Record<string, string> | undefined => {
-	const apiKey = neynarApiKey()
+export const neynarRequestHeaders = (
+	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>,
+): Record<string, string> | undefined => {
+	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_NEYNAR_API_KEY')
 	return apiKey == null ?
-		undefined
-	:	{
-			Accept: 'application/json',
-			'Content-Type': 'application/json',
-			'x-api-key': apiKey,
-		}
+			undefined
+		:	{
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+				'x-api-key': apiKey,
+			}
 }
 
 export async function neynarFetch<T>(
+	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>,
 	path: string,
 	init?: RequestInit,
 ): Promise<T | undefined> {
-	const headers = neynarRequestHeaders()
+	const headers = neynarRequestHeaders(publicEnv)
 	if (headers == null) return undefined
-	const res = await fetch(`${neynarApiBaseUrl}${path}`, {
+	const res = await fetch(`${baseUrl}${path}`, {
 		...init,
 		headers: { ...headers, ...init?.headers },
 	})

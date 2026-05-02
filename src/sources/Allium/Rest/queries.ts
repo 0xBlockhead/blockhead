@@ -4,6 +4,8 @@
  * @see https://docs.allium.so/api/developer/tokens/get-tokens-by-chain-address.md
  */
 
+import { Source } from '$/sources/$Source.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { alliumFetch } from '$/sources/Allium/Rest/client.ts'
 import type {
 	AlliumLatestWalletBalancesEnvelope,
@@ -11,22 +13,25 @@ import type {
 } from '$/sources/Allium/Rest/types.ts'
 
 export const getAlliumLatestWalletBalances = async ({
+	publicEnv,
 	address,
-	alliumChain,
+	apiChain,
 	withLiquidityInfo = false,
 }: {
+	publicEnv: SourcePublicEnvFor<Source.Allium_Rest>
 	address: string
-	alliumChain: string
+	apiChain: string
 	withLiquidityInfo?: boolean
 }) => (
 	await alliumFetch<AlliumLatestWalletBalancesEnvelope>(
+		publicEnv,
 		`/api/v1/developer/wallet/balances?with_liquidity_info=${String(withLiquidityInfo)}`,
 		{
 			method: 'POST',
 			body: JSON.stringify([
 				{
 					address,
-					chain: alliumChain,
+					chain: apiChain,
 				},
 			]),
 		},
@@ -34,10 +39,12 @@ export const getAlliumLatestWalletBalances = async ({
 )
 
 export const getAlliumTokensByChainAddress = async ({
-	alliumChain,
+	publicEnv,
+	apiChain,
 	tokenAddress,
 }: {
-	alliumChain: string
+	publicEnv: SourcePublicEnvFor<Source.Allium_Rest>
+	apiChain: string
 	tokenAddress: string
 }) => (
 	await alliumFetch<(AlliumToken | {
@@ -45,12 +52,13 @@ export const getAlliumTokensByChainAddress = async ({
 		address: string
 		chain: string
 	})[]>(
+		publicEnv,
 		'/api/v1/developer/tokens/chain-address',
 		{
 			method: 'POST',
 			body: JSON.stringify([
 				{
-					chain: alliumChain,
+					chain: apiChain,
 					token_address: tokenAddress,
 				},
 			]),

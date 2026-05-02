@@ -2,11 +2,12 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Sources.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
@@ -18,7 +19,7 @@
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -121,13 +122,13 @@
 					{#snippet children(globalRows)}
 					{@const globalRow = (
 						globalRows?.find(
-							(globalRowEnvelope) => globalRowEnvelope.row[EntityMetaKey.Source] === Source._User,
+							(globalRowEnvelope) => globalRowEnvelope.row[EntityMetaKey.Source] === Source.Local_Internal,
 						)?.row
 						?? globalRows?.[0]?.row
 					)}
-					{#if globalRow == null}
+					{#if globalRow === undefined}
 						<p data-text="muted">
-							No global row in collections yet (Local resolver seeds this scope).
+							Nothing loaded for this view yet. Try again shortly.
 						</p>
 					{:else}
 						<p data-text="muted">

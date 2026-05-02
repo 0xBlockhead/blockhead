@@ -1,10 +1,10 @@
 <script lang="ts">
 	// Types/constants
-	import type { Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { ComponentProps, Snippet } from 'svelte'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import type { EntityViewProps } from '$/typescript/EntityViewProps.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -12,7 +12,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -30,14 +30,13 @@
 			open?: boolean
 		},
 		Omit<
-			EntityViewProps,
+			ComponentProps<typeof EntityView>,
 			| 'entityType'
 			| 'entityId'
 			| 'href'
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
@@ -68,7 +67,7 @@
 	const roomField = $derived(
 		(() => {
 			const bag = roomRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			return {
 				createdAt: typeof b.createdAt === 'number' && Number.isFinite(b.createdAt) ? b.createdAt : undefined,
@@ -78,15 +77,11 @@
 		})(),
 	)
 
-	const displayTitle = $derived(
-		roomField?.name ?? entityId.id,
-	)
-
-
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -96,18 +91,29 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
+	title={roomField?.name ?? entityId.id}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Room id</dt>
 				<dd>{entityId.id}</dd>
 			</div>
-			{#if roomField?.name != null}
+			{#if roomField?.name !== undefined}
 				<div>
 					<dt>Name</dt>
 					<dd>{roomField.name}</dd>
+				</div>
+			{/if}
+			{#if roomField?.createdAt !== undefined && typeof roomField.createdAt === 'number' && Number.isFinite(roomField.createdAt)}
+				<div>
+					<dt>Timestamp</dt>
+					<dd>
+						<Timestamp
+							timestamp={roomField.createdAt}
+							format={TimestampFormat.Both}
+						/>
+					</dd>
 				</div>
 			{/if}
 		</dl>
@@ -128,25 +134,30 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No room row in collections yet.
+							No room data yet.
 						</p>
 					{:else}
 						<dl>
-							{#if roomField?.createdAt != null}
+							{#if roomField?.createdAt !== undefined && typeof roomField.createdAt === 'number' && Number.isFinite(roomField.createdAt)}
 								<div>
 									<dt>Created at</dt>
-									<dd>{new Date(roomField.createdAt).toISOString()}</dd>
+									<dd>
+										<Timestamp
+											timestamp={roomField.createdAt}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
 								</div>
 							{/if}
-							{#if roomField?.createdBy != null}
+							{#if roomField?.createdBy !== undefined}
 								<div>
 									<dt>Created by</dt>
 									<dd>{roomField.createdBy}</dd>
 								</div>
 							{/if}
-							{#if roomField?.name != null}
+							{#if roomField?.name !== undefined}
 								<div>
 									<dt>Name</dt>
 									<dd>{roomField.name}</dd>

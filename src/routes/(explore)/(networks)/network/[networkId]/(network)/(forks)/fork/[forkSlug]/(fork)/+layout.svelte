@@ -1,5 +1,7 @@
 <script lang="ts">
 	// Types/constants
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { networkForkIdFromChainIdAndUrlSegment } from '$/constants/EthereumExecutionForks.ts'
 	import { resolve } from '$app/paths'
 	import { stringify } from 'devalue'
 
@@ -10,19 +12,44 @@
 		params,
 	} = $props()
 
+	const resolvedForkId = $derived(
+		networkForkIdFromChainIdAndUrlSegment(
+			Number(params.networkId),
+			params.forkSlug,
+		) ?? params.forkSlug,
+	)
 
 	// Components
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	import NetworkForkView from '$/views/NetworkForkView.svelte'
 </script>
 
 
 <ParentPageCollapsible
-	title={'Fork'}
 	href={resolve(
 		'/(explore)/(networks)/network/[networkId]/(network)/(forks)/fork/[forkSlug]',
 		{ networkId: params.networkId, forkSlug: params.forkSlug },
 	)}
-	id={stringify({ chainId: Number(params.networkId) })}
+	id={stringify({
+		$network: {
+			chainId: Number(params.networkId),
+		},
+		forkId: resolvedForkId,
+	})}
 >
+	{#snippet Summary({ open: _open })}
+		<NetworkForkView
+			entityId={{
+				$network: { chainId: Number(params.networkId) },
+				forkId: resolvedForkId,
+			}}
+			href={resolve(
+				'/(explore)/(networks)/network/[networkId]/(network)/(forks)/fork/[forkSlug]',
+				{ networkId: params.networkId, forkSlug: params.forkSlug },
+			)}
+			layout={EntityLayout.SummaryInline}
+		/>
+	{/snippet}
+
 	{@render children()}
 </ParentPageCollapsible>

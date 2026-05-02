@@ -1,13 +1,16 @@
-import { getJson as fetchGetJson, getText as fetchGetText } from '$/lib/fetch.ts'
-import { githubApiOrigin, githubRestHeaders } from '$/sources/Github/Rest/constants.ts'
+import { regex } from 'arkregex'
+import { getJson as fetchGetJson, getText as fetchGetText } from '$/lib/http.ts'
+import Github from '$/sources/Github/index.ts'
+import { restHeaders, restOrigin } from '$/sources/Github/Rest/constants.ts'
 
-const FRONTMATTER_RE = /^---\s*\n[\s\S]*?\n---\s*\n?/
+const stripFrontmatterPattern = regex('^---\\s*\\n[\\s\\S]*?\\n---\\s*\\n?')
+const frontmatterBlockPattern = regex('^---\\s*\\n(?<frontmatterBlock>[\\s\\S]*?)\\n---')
 
-const isGithubRestApiUrl = (url: string) => url.startsWith(githubApiOrigin)
+const isGithubRestApiUrl = (url: string) => url.startsWith(restOrigin)
 
 const githubInit = (url: string): RequestInit | undefined => (
 	isGithubRestApiUrl(url) ?
-		{ headers: githubRestHeaders }
+		{ headers: restHeaders }
 	:	undefined
 )
 
@@ -16,17 +19,22 @@ export const githubHttp = ({ url }: { url: string }): Promise<Response> => (
 )
 
 export const getJson = ({ url }: { url: string }): Promise<unknown> => (
-	fetchGetJson<unknown>(url, githubInit(url))
+	fetchGetJson<unknown>(url, {
+		origins: Github.origins,
+		init: githubInit(url),
+	})
 )
 
 export const getText = ({ url }: { url: string }): Promise<string> => (
-	fetchGetText(url, githubInit(url))
+	fetchGetText(url, {
+		origins: Github.origins,
+		init: githubInit(url),
+	})
 )
 
 export const parseFrontmatter = (text: string): Record<string, string> => {
-	const match = text.match(/^---\s*\n([\s\S]*?)\n---/)
-	if (match == null) return {}
-	const block = match[1]
+	const block = frontmatterBlockPattern.exec(text)?.groups?.frontmatterBlock
+	if (block == null) return {}
 	const out: Record<string, string> = {}
 	for (const line of block.split('\n')) {
 		const colon = line.indexOf(':')
@@ -39,5 +47,5 @@ export const parseFrontmatter = (text: string): Record<string, string> => {
 }
 
 export const stripFrontmatter = (text: string) => (
-	text.replace(FRONTMATTER_RE, '').trim()
+	text.replace(stripFrontmatterPattern, '').trim()
 )

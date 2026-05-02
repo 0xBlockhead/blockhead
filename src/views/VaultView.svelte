@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -11,7 +12,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -36,19 +37,11 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
-
 	const vaultIdKey = $derived(
 		stringify(entityId),
-	)
-
-	const chainId = $derived(
-		typeof entityId?.$network?.chainId === 'number' ?
-			entityId.$network.chainId
-		:	undefined,
 	)
 
 	const vaultQuery = useLiveQuery(
@@ -73,7 +66,7 @@
 	const vaultField = $derived(
 		(() => {
 			const bag = vaultRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			const num = (key: string) => (
 				typeof b[key] === 'number' && Number.isFinite(b[key] as number) ?
@@ -115,12 +108,9 @@
 		})(),
 	)
 
-	const displayTitle = $derived(
-		vaultField?.token0Symbol != null && vaultField?.token1Symbol != null ?
-			`${vaultField.token0Symbol} / ${vaultField.token1Symbol}`
-		:	entityId.id,
+	const titleIsTokenPair = $derived(
+		vaultField?.token0Symbol !== undefined && vaultField?.token1Symbol !== undefined,
 	)
-
 
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
@@ -136,26 +126,22 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
+	title={vaultField?.token0Symbol !== undefined && vaultField?.token1Symbol !== undefined ? `${vaultField.token0Symbol} / ${vaultField.token1Symbol}` : entityId.id}
 >
-	{#snippet SummaryContent()}
-		<dl data-definition-list="vertical">
-			<div>
-				<dt>Vault id</dt>
-				<dd>
-					<TruncatedValue
-						value={entityId.id}
-						format={TruncatedValueFormat.Visual}
-					/>
-				</dd>
-			</div>
-			{#if chainId != null}
+	{#snippet Content()}
+		{#if titleIsTokenPair}
+			<dl data-definition-list="vertical">
 				<div>
-					<dt>Chain ID</dt>
-					<dd>{String(chainId)}</dd>
+					<dt>Vault id</dt>
+					<dd>
+						<TruncatedValue
+							value={entityId.id}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</dd>
 				</div>
-			{/if}
-		</dl>
+			</dl>
+		{/if}
 	{/snippet}
 
 	{#snippet Details({
@@ -173,25 +159,25 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No vault row in collections yet (no resolver for this vault).
+							No vault data for this id yet.
 						</p>
 					{:else}
 						<dl>
-							{#if vaultField?.fee != null}
+							{#if vaultField?.fee !== undefined}
 								<div>
 									<dt>Fee</dt>
 									<dd>{String(vaultField.fee)}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.tickSpacing != null}
+							{#if vaultField?.tickSpacing !== undefined}
 								<div>
 									<dt>Tick spacing</dt>
 									<dd>{String(vaultField.tickSpacing)}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.v4PoolId != null}
+							{#if vaultField?.v4PoolId !== undefined}
 								<div>
 									<dt>v4 pool id</dt>
 									<dd>
@@ -202,55 +188,55 @@
 									</dd>
 								</div>
 							{/if}
-							{#if vaultField?.sqrtPriceX96 != null}
+							{#if vaultField?.sqrtPriceX96 !== undefined}
 								<div>
 									<dt>Sqrt price X96</dt>
 									<dd>{String(vaultField.sqrtPriceX96)}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.liquidity != null}
+							{#if vaultField?.liquidity !== undefined}
 								<div>
 									<dt>Liquidity</dt>
 									<dd>{String(vaultField.liquidity)}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.tick != null}
+							{#if vaultField?.tick !== undefined}
 								<div>
 									<dt>Tick</dt>
 									<dd>{String(vaultField.tick)}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.token0Symbol != null}
+							{#if vaultField?.token0Symbol !== undefined}
 								<div>
 									<dt>Token 0 symbol</dt>
 									<dd>{vaultField.token0Symbol}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.token1Symbol != null}
+							{#if vaultField?.token1Symbol !== undefined}
 								<div>
 									<dt>Token 1 symbol</dt>
 									<dd>{vaultField.token1Symbol}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.token0Decimals != null}
+							{#if vaultField?.token0Decimals !== undefined}
 								<div>
 									<dt>Token 0 decimals</dt>
 									<dd>{String(vaultField.token0Decimals)}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.token1Decimals != null}
+							{#if vaultField?.token1Decimals !== undefined}
 								<div>
 									<dt>Token 1 decimals</dt>
 									<dd>{String(vaultField.token1Decimals)}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.volumeUSD != null}
+							{#if vaultField?.volumeUSD !== undefined}
 								<div>
 									<dt>Volume USD</dt>
 									<dd>{String(vaultField.volumeUSD)}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.totalValueLockedUSD != null}
+							{#if vaultField?.totalValueLockedUSD !== undefined}
 								<div>
 									<dt>TVL USD</dt>
 									<dd>{String(vaultField.totalValueLockedUSD)}</dd>

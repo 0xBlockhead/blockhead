@@ -1,14 +1,22 @@
 <script lang="ts">
+	// Types/constants
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+
 	// Context
 	import { resolve } from '$app/paths'
 
-	// State
-	let {
-		params,
-	} = $props()
 
-	// Types/constants
-	import { EntityType } from '$/schema/$EntityType.ts'
+	// State
+	let { params } = $props()
+
+	const channelFeedId = $derived(
+		({
+			variant: 'byChannel' as const,
+			channelId: params.channelId,
+		}) satisfies EntityId<typeof schema, EntityType.FarcasterFeed>,
+	)
 
 
 	// Components
@@ -29,14 +37,15 @@
 		{#snippet children()}
 			<section>
 				<FarcasterCastsView
-					id="casts"
-					title="Casts"
-					href={resolve('/farcaster/feed')}
-					limit={50}
-					parentEntityType={EntityType.FarcasterChannel}
-					parentEntityId={{
-						id: params.channelId,
+					entityFieldReference={{
+						entityType: EntityType.FarcasterFeed,
+						entityId: channelFeedId,
+						fieldName: '$$entries',
 					}}
+					id="casts"
+					title="Feed"
+					href={resolve(`/farcaster/feed/channel/${encodeURIComponent(params.channelId)}`)}
+					limit={50}
 				/>
 			</section>
 		{/snippet}

@@ -7,7 +7,7 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import Network from '$/schema/Network.ts'
-import { Source } from '$/sources/$Sources.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.Actor,
@@ -27,21 +27,28 @@ export default {
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EnsName,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [Source.Voltaire],
+			defaultSources: [Source.Voltaire_JsonRpc],
 		},
 		{
 			name: 'avatarUrl',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [Source.Voltaire],
+			defaultSources: [Source.Voltaire_JsonRpc],
+		},
+		{
+			name: '$$ensNamesOwned',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EnsName,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [Source.TheGraph_Graphql],
 		},
 		{
 			name: '$$coins',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.ActorCoin,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [Source.Allium],
+			defaultSources: [Source.Allium_Rest],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

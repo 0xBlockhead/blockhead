@@ -5,7 +5,7 @@
  */
 
 import { singleFlight } from '$/lib/singleFlight.ts'
-import { lifiApiBaseUrl } from '$/sources/Lifi/Rest/constants.ts'
+import { baseUrl } from '$/sources/Lifi/Rest/constants.ts'
 import type {
 	LifiChainsResponse,
 	LifiTokensResponse,
@@ -30,13 +30,13 @@ export type FetchLifiTokensOptions = {
 export async function fetchLifiChains(
 	options?: FetchLifiChainsOptions,
 ): Promise<LifiChainsResponse> {
-	const base = options?.baseUrl ?? lifiApiBaseUrl
+	const base = options?.baseUrl ?? baseUrl
 	const params = new URLSearchParams()
 	if (options?.chainTypes != null && options.chainTypes !== '')
 		params.set('chainTypes', options.chainTypes)
-	const qs = params.toString()
+	const queryString = params.toString()
 	const res = await fetch(
-		`${base}/v1/chains${qs ? `?${qs}` : ''}`,
+		`${base}/v1/chains${queryString ? `?${queryString}` : ''}`,
 	)
 	if (!res.ok)
 		throw new Error(`LI.FI GET /v1/chains failed: ${res.status} ${res.statusText}`)
@@ -49,7 +49,7 @@ export async function fetchLifiChains(
 export async function fetchLifiTokens(
 	options?: FetchLifiTokensOptions,
 ): Promise<LifiTokensResponse> {
-	const base = options?.baseUrl ?? lifiApiBaseUrl
+	const base = options?.baseUrl ?? baseUrl
 	const params = new URLSearchParams()
 	if (options?.chains != null && options.chains !== '')
 		params.set('chains', options.chains)
@@ -58,9 +58,9 @@ export async function fetchLifiTokens(
 		params.set('chainTypes', options.chainTypes)
 	if (options?.minPriceUSD != null)
 		params.set('minPriceUSD', String(options.minPriceUSD))
-	const qs = params.toString()
+	const queryString = params.toString()
 	const res = await fetch(
-		`${base}/v1/tokens${qs ? `?${qs}` : ''}`,
+		`${base}/v1/tokens${queryString ? `?${queryString}` : ''}`,
 	)
 	if (!res.ok)
 		throw new Error(`LI.FI GET /v1/tokens failed: ${res.status} ${res.statusText}`)

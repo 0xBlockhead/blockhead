@@ -240,18 +240,16 @@
 				}}
 			>
 				{#snippet child({ props })}
-					{@const libOnInput = (
-						typeof props.oninput === 'function' ?
-							props.oninput
-						:
-							undefined
-					)}
-
 					<input
 						{...props}
 						oninput={(e) => {
 							onInput(e)
-							libOnInput?.(e)
+							;(
+								typeof props.oninput === 'function' ?
+									props.oninput
+								:
+									undefined
+							)?.(e)
 						}}
 					/>
 				{/snippet}

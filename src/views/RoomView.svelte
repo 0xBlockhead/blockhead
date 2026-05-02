@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -11,7 +12,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -38,7 +39,6 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
@@ -69,7 +69,7 @@
 	const roomPrimitives = $derived(
 		(() => {
 			const bag = roomRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object' || Array.isArray(bag)) return null
+			if (bag === undefined || typeof bag !== 'object' || Array.isArray(bag)) return null
 			const b = bag as Record<string, unknown>
 			const createdAt = b.createdAt
 			const createdBy = b.createdBy
@@ -97,17 +97,11 @@
 		})(),
 	)
 
-	const displayTitle = $derived(
-		titleProp
-		?? roomPrimitives?.name
-		?? entityId.id,
-	)
-
-
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -117,30 +111,35 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
+	title={titleProp ?? roomPrimitives?.name ?? entityId.id}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Room id</dt>
 				<dd>{entityId.id}</dd>
 			</div>
-			{#if roomPrimitives?.name != null}
+			{#if roomPrimitives?.name !== undefined}
 				<div>
 					<dt>Name</dt>
 					<dd>{roomPrimitives.name}</dd>
 				</div>
 			{/if}
-			{#if roomPrimitives?.createdBy != null}
+			{#if roomPrimitives?.createdBy !== undefined}
 				<div>
 					<dt>Created by</dt>
 					<dd>{roomPrimitives.createdBy}</dd>
 				</div>
 			{/if}
-			{#if roomPrimitives?.createdAt != null}
+			{#if roomPrimitives?.createdAt !== undefined && typeof roomPrimitives.createdAt === 'number' && Number.isFinite(roomPrimitives.createdAt)}
 				<div>
-					<dt>Created at</dt>
-					<dd>{String(roomPrimitives.createdAt)}</dd>
+					<dt>Timestamp</dt>
+					<dd>
+						<Timestamp
+							timestamp={roomPrimitives.createdAt}
+							format={TimestampFormat.Both}
+						/>
+					</dd>
 				</div>
 			{/if}
 		</dl>
@@ -161,9 +160,9 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No room row in collections yet.
+							No room data yet.
 						</p>
 					{:else}
 						<dl>
@@ -181,7 +180,16 @@
 							</div>
 							<div>
 								<dt>Created at</dt>
-								<dd>{roomPrimitives?.createdAt != null ? String(roomPrimitives.createdAt) : '–'}</dd>
+								<dd>
+									{#if roomPrimitives?.createdAt !== undefined && typeof roomPrimitives.createdAt === 'number' && Number.isFinite(roomPrimitives.createdAt)}
+										<Timestamp
+											timestamp={roomPrimitives.createdAt}
+											format={TimestampFormat.Both}
+										/>
+									{:else}
+										–
+									{/if}
+								</dd>
 							</div>
 						</dl>
 					{/if}

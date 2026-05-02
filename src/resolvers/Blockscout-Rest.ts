@@ -1,474 +1,497 @@
+import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
-} from '$/resolvers/$defineEntityResolvers.ts'
+	resolverLoadSubsetRowLimit,
+} from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import {
-	type Entity,
-	type EntityId,
-	schema,
-} from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
+import type { Entity } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Sources.ts'
+import { Source } from '$/sources/$Source.ts'
+import {
+	blockscoutExplorerOriginForChain,
+	blockscoutRestV2AtExplorerOrigin,
+} from '$/sources/Blockscout/Rest/constants.ts'
+import {
+	getBlockByNumberBlockscout,
+	getBlockscoutBlocks,
+	getBlockscoutSmartContracts,
+	getBlockscoutTransactions,
+	getBlockTransactionsBlockscout,
+	getTransactionByHashBlockscout,
+	getTransactionReceiptBlockscout,
+	evmAddressFromBlockscoutContractListWire,
+} from '$/sources/Blockscout/Rest/queries.ts'
+import type { RpcBlockHeaderWire } from '$/sources/Evm/JsonRpc/types.ts'
+import { Hex } from '@tevm/voltaire/Hex'
 
-const recentTxCap = 20
-const recentBlockCap = 12
-
-const explorerContextForChainId = async (chainId: number) => {
-	const { evmRpcNetworkByChainId } = await import('$/constants/EvmRpcNetwork.ts')
-	const {
-		chainPrimaryExplorerUrl,
-		chainlistRpcUrlForChainId,
-		fetchRpcsJson,
-	} = await import('$/sources/Chainlist/Rest/queries.ts')
-	const { findChainByChainId } = await import('$/sources/Chainlist/Rest/rpcsJsonWire.ts')
-	const rpcNet = evmRpcNetworkByChainId[String(chainId)]
-	const chains = await fetchRpcsJson()
-	const chain = findChainByChainId(chains, chainId)
-	const rpcUrl = rpcNet?.rpcUrl ?? await chainlistRpcUrlForChainId(chainId)
-	return {
-		explorerOrigin: (
-			chain != null ?
-				chainPrimaryExplorerUrl(chain) ?? rpcNet?.explorerOrigin
-			:	rpcNet?.explorerOrigin
-		),
-		rpcUrl,
-		name: chain != null ? rpcNet?.name ?? chain.name : rpcNet?.name,
-		nativeSymbol: chain != null ? rpcNet?.nativeSymbol ?? chain.nativeCurrency.symbol : rpcNet?.nativeSymbol,
-	}
+const explorerOriginForEntityOrSkip = (chainId: number): string | undefined => {
+	const origin = blockscoutExplorerOriginForChain(chainId)
+	if (origin == null) return undefined
+	if (!blockscoutRestV2AtExplorerOrigin(origin)) return undefined
+	return origin
 }
 
-const evmExplorerRpcUrl = async (chainId: number): Promise<string | undefined> => {
-	const ctx = await explorerContextForChainId(chainId)
-	return ctx.rpcUrl
-}
-
-const explorerReceiptForEvmTx = async (
-	entityId: EntityId<typeof schema, EntityType.EvmTransaction>,
-) => {
-	const { singleFlight } = await import('$/lib/singleFlight.ts')
-	const { getTransactionReceiptBlockscout } = await import(
-		'$/sources/Blockscout/Rest/queries.ts'
+const evmBlockEntityFromBlockscoutHeader = ({
+	chainId,
+	blockNumber,
+	wire,
+}: {
+	chainId: number
+	blockNumber: bigint
+	wire: RpcBlockHeaderWire
+}): Entity<typeof schema, EntityType.EvmBlock> => {
+	const parentBlockNumber = blockNumber > 0n ? blockNumber - 1n : undefined
+	const blockHash = (
+		typeof wire.hash === 'string' && Hex.isHex(wire.hash) && Hex.size(wire.hash) === 32 ?
+			wire.hash.toLowerCase() as `0x${string}`
+		:
+			undefined
 	)
-	const rpcUrl = await evmExplorerRpcUrl(entityId.$network.chainId)
-	const ctx = await explorerContextForChainId(entityId.$network.chainId)
-	if (ctx.explorerOrigin != null) {
-		try {
-			return await singleFlight(getTransactionReceiptBlockscout)({
-				explorerOrigin: ctx.explorerOrigin,
-				txHash: entityId.txHash,
-			})
-		} catch {
-			//
-		}
-	}
-	if (rpcUrl == null) return null
-	try {
-		const { ethGetTransactionReceipt } = await import('$/sources/Evm/JsonRpc/queries.ts')
-		return await singleFlight(ethGetTransactionReceipt)({
-			rpcUrl,
-			txHash: entityId.txHash,
-		})
-	} catch {
-		return null
-	}
-}
-
-const explorerTransactionForEvmTx = async (
-	entityId: EntityId<typeof schema, EntityType.EvmTransaction>,
-) => {
-	const { singleFlight } = await import('$/lib/singleFlight.ts')
-	const { getTransactionByHashBlockscout } = await import(
-		'$/sources/Blockscout/Rest/queries.ts'
+	const timestampSeconds = (
+		typeof wire.timestamp === 'string' ? ((parsed) => (
+			Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
+				parsed
+			:
+				NaN
+		))(Number(wire.timestamp)) : NaN
 	)
-	const rpcUrl = await evmExplorerRpcUrl(entityId.$network.chainId)
-	const ctx = await explorerContextForChainId(entityId.$network.chainId)
-	if (ctx.explorerOrigin != null) {
-		try {
-			return await singleFlight(getTransactionByHashBlockscout)({
-				explorerOrigin: ctx.explorerOrigin,
-				txHash: entityId.txHash,
-			})
-		} catch {
-			//
-		}
-	}
-	if (rpcUrl == null) return null
-	try {
-		const { ethGetTransactionByHash } = await import('$/sources/Evm/JsonRpc/queries.ts')
-		return await singleFlight(ethGetTransactionByHash)({
-			rpcUrl,
-			txHash: entityId.txHash,
-		})
-	} catch {
-		return null
-	}
-}
-
-const explorerBlockForEvmBlock = async (
-	entityId: EntityId<typeof schema, EntityType.EvmBlock>,
-) => {
-	const { singleFlight } = await import('$/lib/singleFlight.ts')
-	const {
-		getBlockByNumberBlockscout,
-		getBlockTransactionsBlockscout,
-	} = await import('$/sources/Blockscout/Rest/queries.ts')
-	const rpcUrl = await evmExplorerRpcUrl(entityId.$network.chainId)
-	const ctx = await explorerContextForChainId(entityId.$network.chainId)
-	if (ctx.explorerOrigin != null) {
-		try {
-			const wire = await singleFlight(getBlockByNumberBlockscout)({
-				explorerOrigin: ctx.explorerOrigin,
-				blockNumber: entityId.blockNumber,
-			})
-			if (wire == null) return null
-			const transactions = await singleFlight(getBlockTransactionsBlockscout)({
-				explorerOrigin: ctx.explorerOrigin,
-				blockNumber: entityId.blockNumber,
-				limit: recentTxCap,
-			})
-			const { mapBlockSummary, stubEvmTransactionEntitiesFromBlockTransactions } = await import(
-				'$/lib/evmEntityFromWire.ts'
-			)
-			const number = entityId.blockNumber
-			const parentNumber = number > 0n ? number - 1n : undefined
-			const base = mapBlockSummary({
-				chainId: entityId.$network.chainId,
-				blockNumber: number,
-				wire,
-			})
-			return {
-				...base,
-				$$evmTransactions: stubEvmTransactionEntitiesFromBlockTransactions({
-					chainId: entityId.$network.chainId,
-					transactions,
-					cap: recentTxCap,
-				}),
-				...(parentNumber != null ?
-					{
-						$parent: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
-								blockNumber: parentNumber,
-							},
-							number: parentNumber,
-						} as Entity<typeof schema, EntityType.EvmBlock>,
-					}
-				:	{}),
-				...(wire.miner != null ?
-					{
-						$miner: {
-							[EntityMetaKey.Id]: {
-								$network: entityId.$network,
-								address: wire.miner,
-							},
-						} as Entity<typeof schema, EntityType.Actor>,
-					}
-				:	{}),
+	const gasUsed = (
+		typeof wire.gasUsed === 'string' ? ((value) => (
+			value == null || value < 0n ? undefined : value
+		))((() => {
+			try {
+				return BigInt(wire.gasUsed)
+			} catch {
+				return undefined
 			}
-		} catch {
-			//
-		}
+		})()) : undefined
+	)
+	const gasLimit = (
+		typeof wire.gasLimit === 'string' ? ((value) => (
+			value == null || value < 0n ? undefined : value
+		))((() => {
+			try {
+				return BigInt(wire.gasLimit)
+			} catch {
+				return undefined
+			}
+		})()) : undefined
+	)
+	const baseFeePerGas = (
+		typeof wire.baseFeePerGas === 'string' ? ((value) => (
+			value == null || value < 0n ? undefined : value
+		))((() => {
+			try {
+				return BigInt(wire.baseFeePerGas)
+			} catch {
+				return undefined
+			}
+		})()) : undefined
+	)
+	const miner = (
+		typeof wire.miner === 'string' && Hex.isHex(wire.miner) && Hex.size(wire.miner) === 20 ?
+			wire.miner.toLowerCase() as `0x${string}`
+		:
+			undefined
+	)
+	const base = {
+		[EntityMetaKey.Id]: {
+			$network: { chainId },
+			blockNumber,
+			...(blockHash != null ? { hash: blockHash } : {}),
+		},
+		number: blockNumber,
+		timestamp: ((timestampSeconds) => (
+			Number.isFinite(timestampSeconds) ? timestampSeconds * 1000 : undefined
+		))(timestampSeconds),
+		gasUsed,
+		gasLimit,
+		baseFeePerGas,
+		transactionCount: (wire.transactions ?? []).length,
 	}
-	if (rpcUrl == null) return null
-	try {
-		const { mapBlockSummary, stubEvmTransactionEntitiesFromBlockTransactions } = await import(
-			'$/lib/evmEntityFromWire.ts'
-		)
-		const { ethGetBlockByNumber } = await import('$/sources/Evm/JsonRpc/queries.ts')
-		const wire = await singleFlight(ethGetBlockByNumber)({
-			rpcUrl,
-			blockNumber: entityId.blockNumber,
-			txObjects: false,
-		})
-		if (wire == null) return null
-		const number = entityId.blockNumber
-		const parentNumber = number > 0n ? number - 1n : undefined
-		const base = mapBlockSummary({
-			chainId: entityId.$network.chainId,
-			blockNumber: number,
-			wire,
-		})
-		const $$evmTransactions = stubEvmTransactionEntitiesFromBlockTransactions({
-			chainId: entityId.$network.chainId,
-			transactions: wire.transactions as unknown[],
-			cap: recentTxCap,
-		})
-		return {
-			...base,
-			$$evmTransactions,
-			...(parentNumber != null ?
-				{
-					$parent: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
-							blockNumber: parentNumber,
-						},
-						number: parentNumber,
-					} as Entity<typeof schema, EntityType.EvmBlock>,
-				}
-			:	{}),
-			...(wire.miner != null ?
-				{
-					$miner: {
-						[EntityMetaKey.Id]: {
-							$network: entityId.$network,
-							address: wire.miner as `0x${string}`,
-						},
-					} as Entity<typeof schema, EntityType.Actor>,
-				}
-			:	{}),
-		}
-	} catch {
-		return null
-	}
-}
-
-const explorerBlocksForNetwork = async (chainId: number) => {
-	const { singleFlight } = await import('$/lib/singleFlight.ts')
-	const { getBlockscoutBlocks } = await import('$/sources/Blockscout/Rest/queries.ts')
-	const ctx = await explorerContextForChainId(chainId)
-	if (ctx.explorerOrigin == null) return null
-	try {
-		return await singleFlight(getBlockscoutBlocks)({
-			explorerOrigin: ctx.explorerOrigin,
-			limit: recentBlockCap,
-		})
-	} catch {
-		return null
-	}
-}
-
-const explorerTransactionsForNetwork = async (chainId: number) => {
-	const { singleFlight } = await import('$/lib/singleFlight.ts')
-	const { getBlockscoutTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
-	const ctx = await explorerContextForChainId(chainId)
-	if (ctx.explorerOrigin == null) return null
-	try {
-		return await singleFlight(getBlockscoutTransactions)({
-			explorerOrigin: ctx.explorerOrigin,
-			limit: recentTxCap,
-		})
-	} catch {
-		return null
+	return {
+		...base,
+		...(parentBlockNumber != null ?
+			{
+				$parent: {
+					[EntityMetaKey.Id]: {
+						$network: { chainId },
+						blockNumber: parentBlockNumber,
+					},
+					number: parentBlockNumber,
+				} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+			}
+		:	{}),
+		...(miner != null ?
+			{
+				$miner: {
+					[EntityMetaKey.Id]: {
+						$network: { chainId },
+						address: miner,
+					} satisfies Entity<typeof schema, EntityType.Actor>,
+				},
+			}
+		:	{}),
 	}
 }
 
 export default {
+	source: Source.Blockscout_Rest,
+
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.Network,
-			source: Source.Blockscout,
-			resolve: async (entityId) => {
-				const ctx = await explorerContextForChainId(entityId.chainId)
-				return (
-					ctx.name != null ?
-						{
-							name: ctx.name,
-							nativeSymbol: ctx.nativeSymbol,
-							explorerOrigin: ctx.explorerOrigin,
-							rpcUrl: ctx.rpcUrl,
-						}
-					:	ctx.rpcUrl != null ?
-						{ rpcUrl: ctx.rpcUrl }
-					:
-						{}
-				)
-			},
-		}),
-		defineEntityResolver({
 			entityType: EntityType.EvmBlock,
-			source: Source.Blockscout,
 			resolve: async (entityId) => {
-				const rest = await explorerBlockForEvmBlock(entityId)
-				if (rest != null) return rest
-				return {}
+				const origin = explorerOriginForEntityOrSkip(entityId.$network.chainId)
+				if (origin == null) return {}
+				const header = await singleFlight(getBlockByNumberBlockscout)({
+					explorerOrigin: origin,
+					blockNumber: entityId.blockNumber,
+				})
+				if (header == null) return {}
+				return evmBlockEntityFromBlockscoutHeader({
+					chainId: entityId.$network.chainId,
+					blockNumber: entityId.blockNumber,
+					wire: header,
+				})
 			},
 		}),
 		defineEntityResolver({
 			entityType: EntityType.EvmTransaction,
-			source: Source.Blockscout,
 			resolve: async (entityId) => {
-				const { mapTransactionEntityFromTxWire } = await import('$/lib/evmEntityFromWire.ts')
-				const restTx = await explorerTransactionForEvmTx(entityId)
-				if (restTx != null) {
-					const receipt = await explorerReceiptForEvmTx(entityId)
-					const base = mapTransactionEntityFromTxWire({
-						chainId: entityId.$network.chainId,
-						txHash: entityId.txHash,
-						tx: restTx,
-					})
-					return {
-						...base,
-						...(receipt?.status != null ?
-							{ status: Number.parseInt(receipt.status, 16) }
-						:	{}),
-						...(receipt?.gasUsed != null ? { gasUsed: BigInt(receipt.gasUsed) } : {}),
-						...(receipt?.effectiveGasPrice != null ?
-							{ effectiveGasPrice: BigInt(receipt.effectiveGasPrice) }
-						:	{}),
-						...(receipt?.logs != null ? { logs: receipt.logs } : { logs: [] }),
-						...(receipt?.contractAddress != null ?
-							{
-								$contract: {
-									[EntityMetaKey.Id]: {
-										$network: entityId.$network,
-										address: receipt.contractAddress as `0x${string}`,
-									},
-								} as Entity<typeof schema, EntityType.EvmContract>,
+				const origin = explorerOriginForEntityOrSkip(entityId.$network.chainId)
+				if (origin == null) return {}
+				const jsonRpcTransaction = await singleFlight(getTransactionByHashBlockscout)({
+					explorerOrigin: origin,
+					txHash: entityId.txHash,
+				})
+				if (jsonRpcTransaction == null) return {}
+				const receipt = await getTransactionReceiptBlockscout({
+					explorerOrigin: origin,
+					txHash: entityId.txHash,
+				})
+				const networkChainId = entityId.$network.chainId
+				const containingBlockNumber = (
+					typeof jsonRpcTransaction.blockNumber === 'string' ? ((value) => (
+						value == null || value < 0n ? undefined : value
+					))((() => {
+						try {
+							return BigInt(jsonRpcTransaction.blockNumber)
+						} catch {
+							return undefined
+						}
+					})()) : undefined
+				)
+				const txHash = (
+					typeof jsonRpcTransaction.hash === 'string' && Hex.isHex(jsonRpcTransaction.hash) && Hex.size(jsonRpcTransaction.hash) === 32 ?
+						jsonRpcTransaction.hash.toLowerCase() as `0x${string}`
+					:
+						entityId.txHash
+				)
+				const from = (
+					typeof jsonRpcTransaction.from === 'string' && Hex.isHex(jsonRpcTransaction.from) && Hex.size(jsonRpcTransaction.from) === 20 ?
+						jsonRpcTransaction.from.toLowerCase() as `0x${string}`
+					:
+						undefined
+				)
+				const to = (
+					typeof jsonRpcTransaction.to === 'string' && Hex.isHex(jsonRpcTransaction.to) && Hex.size(jsonRpcTransaction.to) === 20 ?
+						jsonRpcTransaction.to.toLowerCase() as `0x${string}`
+					:
+						undefined
+				)
+				const base = {
+					[EntityMetaKey.Id]: {
+						$network: { chainId: networkChainId },
+						txHash,
+					},
+					...(containingBlockNumber != null ?
+						{
+							$block: {
+								[EntityMetaKey.Id]: {
+									$network: { chainId: networkChainId },
+									blockNumber: containingBlockNumber,
+								},
+								number: containingBlockNumber,
+							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+						}
+					:	{}),
+					...(from != null ?
+						{
+							$from: {
+								[EntityMetaKey.Id]: {
+									$network: { chainId: networkChainId },
+									address: from,
+								},
+							} satisfies Entity<typeof schema, EntityType.Actor>,
+						}
+					:	{}),
+					...(to != null ?
+						{
+							$to: {
+								[EntityMetaKey.Id]: {
+									$network: { chainId: networkChainId },
+									address: to,
+								},
+							} satisfies Entity<typeof schema, EntityType.Actor>,
+						}
+					:	{}),
+					transactionIndex: (
+						typeof jsonRpcTransaction.transactionIndex === 'string' ? ((parsed) => (
+							Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
+								parsed
+							:
+								undefined
+						))(Number(jsonRpcTransaction.transactionIndex)) : undefined
+					),
+					value: (
+						typeof jsonRpcTransaction.value === 'string' ? ((value) => (
+							value == null || value < 0n ? 0n : value
+						))((() => {
+							try {
+								return BigInt(jsonRpcTransaction.value)
+							} catch {
+								return undefined
 							}
-						:	{}),
-					}
+						})()) : 0n
+					),
+					nonce: (
+						typeof jsonRpcTransaction.nonce === 'string' ? ((parsed) => (
+							Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
+								parsed
+							:
+								undefined
+						))(Number(jsonRpcTransaction.nonce)) : undefined
+					),
+					...(jsonRpcTransaction.input != null ? { input: jsonRpcTransaction.input } : {}),
+					gas: (
+						typeof jsonRpcTransaction.gas === 'string' ? ((value) => (
+							value == null || value < 0n ? undefined : value
+						))((() => {
+							try {
+								return BigInt(jsonRpcTransaction.gas)
+							} catch {
+								return undefined
+							}
+						})()) : undefined
+					),
+					gasPrice: (
+						typeof jsonRpcTransaction.gasPrice === 'string' ? ((value) => (
+							value == null || value < 0n ? undefined : value
+						))((() => {
+							try {
+								return BigInt(jsonRpcTransaction.gasPrice)
+							} catch {
+								return undefined
+							}
+						})()) : undefined
+					),
+					type: (
+						typeof jsonRpcTransaction.type === 'string' ? ((parsed) => (
+							Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
+								parsed
+							:
+								undefined
+						))(Number(jsonRpcTransaction.type)) : undefined
+					),
+				} satisfies Entity<typeof schema, EntityType.EvmTransaction>
+				return {
+					...base,
+					...(typeof receipt?.status === 'string' ? ((parsed) => (
+						Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
+							{ status: parsed }
+						:
+							{}
+					))(Number(receipt.status)) : {}),
+					...(typeof receipt?.gasUsed === 'string' ? ((value) => (
+						value == null || value < 0n ? {} : { gasUsed: value }
+					))((() => {
+						try {
+							return BigInt(receipt.gasUsed)
+						} catch {
+							return undefined
+						}
+					})()) : {}),
+					...(typeof receipt?.effectiveGasPrice === 'string' ? ((value) => (
+						value == null || value < 0n ? {} : { effectiveGasPrice: value }
+					))((() => {
+						try {
+							return BigInt(receipt.effectiveGasPrice)
+						} catch {
+							return undefined
+						}
+					})()) : {}),
+					...(receipt?.logs != null ? { logs: receipt.logs } : { logs: [] }),
+					...(typeof receipt?.contractAddress === 'string' && Hex.isHex(receipt.contractAddress) && Hex.size(receipt.contractAddress) === 20 ?
+						{
+							$contract: {
+								[EntityMetaKey.Id]: {
+									$network: entityId.$network,
+									address: receipt.contractAddress.toLowerCase() as `0x${string}`,
+								},
+							} satisfies Entity<typeof schema, EntityType.EvmContract>,
+						}
+					:	{}),
 				}
-				const rpcUrl = await evmExplorerRpcUrl(entityId.$network.chainId)
-				if (rpcUrl == null) return {}
-				const { ethGetTransactionByHash } = await import('$/sources/Evm/JsonRpc/queries.ts')
-				const tx = await ethGetTransactionByHash({
-					rpcUrl,
-					txHash: entityId.txHash,
-				})
-				if (tx == null) return {}
-				return mapTransactionEntityFromTxWire({
-					chainId: entityId.$network.chainId,
-					txHash: entityId.txHash,
-					tx,
-				})
 			},
 		}),
 	],
+
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
 			entityType: EntityType.Network,
 			fieldName: '$$evmBlocks',
-			source: Source.Blockscout,
-			resolve: async (entityId) => {
-				const { mapBlockSummary } = await import('$/lib/evmEntityFromWire.ts')
-				const rest = await explorerBlocksForNetwork(entityId.chainId)
-				if (rest != null) {
-					return rest.map((wire) => (
-						mapBlockSummary({
-							chainId: entityId.chainId,
-							blockNumber: BigInt(wire.number ?? '0x0'),
-							wire,
-						})
-					))
-				}
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
-				const { ethBlockNumber, ethGetBlockByNumber } = await import(
-					'$/sources/Evm/JsonRpc/queries.ts'
+			resolve: async (entityId, context) => {
+				const limit = resolverLoadSubsetRowLimit(context)
+				if (limit == null) return []
+				const origin = explorerOriginForEntityOrSkip(entityId.chainId)
+				if (origin == null) return []
+				const wires = await getBlockscoutBlocks({ explorerOrigin: origin, limit })
+				return (
+					wires.map((wire) => {
+						const blockNumber = BigInt(wire.number ?? '0x0')
+						const blockHash = (
+							typeof wire.hash === 'string' && Hex.isHex(wire.hash) && Hex.size(wire.hash) === 32 ?
+								wire.hash.toLowerCase() as `0x${string}`
+							:
+								undefined
+						)
+						const timestampSeconds = (
+							typeof wire.timestamp === 'string' ? ((parsed) => (
+								Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
+									parsed
+								:
+									NaN
+							))(Number(wire.timestamp)) : NaN
+						)
+						return {
+							[EntityMetaKey.Id]: {
+								$network: { chainId: entityId.chainId },
+								blockNumber,
+								...(blockHash != null ? { hash: blockHash } : {}),
+							},
+							number: blockNumber,
+							timestamp: ((timestampSeconds) => (
+								Number.isFinite(timestampSeconds) ? timestampSeconds * 1000 : undefined
+							))(timestampSeconds),
+							gasUsed: (
+								typeof wire.gasUsed === 'string' ? ((value) => (
+									value == null || value < 0n ? undefined : value
+								))((() => {
+									try {
+										return BigInt(wire.gasUsed)
+									} catch {
+										return undefined
+									}
+								})()) : undefined
+							),
+							gasLimit: (
+								typeof wire.gasLimit === 'string' ? ((value) => (
+									value == null || value < 0n ? undefined : value
+								))((() => {
+									try {
+										return BigInt(wire.gasLimit)
+									} catch {
+										return undefined
+									}
+								})()) : undefined
+							),
+							baseFeePerGas: (
+								typeof wire.baseFeePerGas === 'string' ? ((value) => (
+									value == null || value < 0n ? undefined : value
+								))((() => {
+									try {
+										return BigInt(wire.baseFeePerGas)
+									} catch {
+										return undefined
+									}
+								})()) : undefined
+							),
+							transactionCount: (wire.transactions ?? []).length,
+						} satisfies Entity<typeof schema, EntityType.EvmBlock>
+					})
 				)
-				const rpcUrl = await evmExplorerRpcUrl(entityId.chainId)
-				if (rpcUrl == null) return undefined
-				const headHex = await singleFlight(ethBlockNumber)({ rpcUrl })
-				const head = BigInt(headHex)
-				const blockNumbers = (
-					Array.from(
-						{ length: recentBlockCap },
-						(_, index) => head - BigInt(index),
-					).filter((n) => n >= 0n)
-				)
-				const blockWires = await Promise.all(
-					blockNumbers.map((blockNumber) =>
-						singleFlight(ethGetBlockByNumber)({
-							rpcUrl,
-							blockNumber,
-							txObjects: false,
-						})
-					),
-				)
-				const $$evmBlocks: Entity<typeof schema, EntityType.EvmBlock>[] = []
-				for (let index = 0; index < blockWires.length; index++) {
-					const wire = blockWires[index]
-					const blockNumber = blockNumbers[index]
-					if (wire == null || blockNumber == null) continue
-					$$evmBlocks.push(
-						mapBlockSummary({
-							chainId: entityId.chainId,
-							blockNumber,
-							wire,
-						}),
-					)
-				}
-				return $$evmBlocks
 			},
 		}),
 		defineEntityFieldResolver({
 			entityType: EntityType.Network,
 			fieldName: '$$evmTransactions',
-			source: Source.Blockscout,
-			resolve: async (entityId) => {
-				const { stubEvmTransactionEntitiesFromBlockTransactions } = await import(
-					'$/lib/evmEntityFromWire.ts'
+			resolve: async (entityId, context) => {
+				const limit = resolverLoadSubsetRowLimit(context)
+				if (limit == null) return []
+				const origin = explorerOriginForEntityOrSkip(entityId.chainId)
+				if (origin == null) return []
+				const wires = await getBlockscoutTransactions({ explorerOrigin: origin, limit })
+				return (
+					wires
+						.flatMap((wire) => (
+							typeof wire.hash === 'string' && Hex.isHex(wire.hash) && Hex.size(wire.hash) === 32 ?
+								[{
+									[EntityMetaKey.Id]: {
+										$network: { chainId: entityId.chainId },
+										txHash: wire.hash.toLowerCase() as `0x${string}`,
+									},
+								}]
+							:
+								[]
+						))
 				)
-				const rest = await explorerTransactionsForNetwork(entityId.chainId)
-				if (rest != null) {
-					return stubEvmTransactionEntitiesFromBlockTransactions({
-						chainId: entityId.chainId,
-						transactions: rest as unknown[],
-						cap: recentTxCap,
-					})
-				}
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
-				const { ethGetBlockByNumber } = await import('$/sources/Evm/JsonRpc/queries.ts')
-				const rpcUrl = await evmExplorerRpcUrl(entityId.chainId)
-				if (rpcUrl == null) return undefined
-				const latestWire = await singleFlight(ethGetBlockByNumber)({
-					rpcUrl,
-					blockNumber: 'latest',
-					txObjects: false,
-				})
-				if (latestWire == null) return undefined
-				return stubEvmTransactionEntitiesFromBlockTransactions({
-					chainId: entityId.chainId,
-					transactions: latestWire.transactions as unknown[],
-					cap: recentTxCap,
-				})
+			},
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$evmContracts',
+			resolve: async (entityId, context) => {
+				const limit = resolverLoadSubsetRowLimit(context)
+				if (limit == null) return []
+				const origin = explorerOriginForEntityOrSkip(entityId.chainId)
+				if (origin == null) return []
+				const items = await getBlockscoutSmartContracts({ explorerOrigin: origin, limit })
+				return (
+					items
+						.flatMap((w) => {
+							const address = evmAddressFromBlockscoutContractListWire(w)
+							return address == null ?
+								[]
+							:	[{
+								[EntityMetaKey.Id]: {
+									$network: { chainId: entityId.chainId },
+									address,
+								},
+							} satisfies Entity<typeof schema, EntityType.EvmContract>]
+						})
+				)
 			},
 		}),
 		defineEntityFieldResolver({
 			entityType: EntityType.EvmBlock,
 			fieldName: '$$evmTransactions',
-			source: Source.Blockscout,
-			resolve: async (entityId) => {
-				const { stubEvmTransactionEntitiesFromBlockTransactions } = await import(
-					'$/lib/evmEntityFromWire.ts'
-				)
-				const { getBlockTransactionsBlockscout } = await import(
-					'$/sources/Blockscout/Rest/queries.ts'
-				)
-				const ctx = await explorerContextForChainId(entityId.$network.chainId)
-				if (ctx.explorerOrigin != null) {
-					try {
-						const { singleFlight } = await import('$/lib/singleFlight.ts')
-						const rest = await singleFlight(getBlockTransactionsBlockscout)({
-							explorerOrigin: ctx.explorerOrigin,
-							blockNumber: entityId.blockNumber,
-							limit: recentTxCap,
-						})
-						return stubEvmTransactionEntitiesFromBlockTransactions({
-							chainId: entityId.$network.chainId,
-							transactions: rest as unknown[],
-							cap: recentTxCap,
-						})
-					} catch {
-						//
-					}
-				}
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
-				const { ethGetBlockByNumber } = await import('$/sources/Evm/JsonRpc/queries.ts')
-				const rpcUrl = await evmExplorerRpcUrl(entityId.$network.chainId)
-				if (rpcUrl == null) return undefined
-				const wire = await singleFlight(ethGetBlockByNumber)({
-					rpcUrl,
+			resolve: async (entityId, context) => {
+				const limit = resolverLoadSubsetRowLimit(context)
+				if (limit == null) return []
+				const origin = explorerOriginForEntityOrSkip(entityId.$network.chainId)
+				if (origin == null) return []
+				const wires = await singleFlight(getBlockTransactionsBlockscout)({
+					explorerOrigin: origin,
 					blockNumber: entityId.blockNumber,
-					txObjects: false,
+					limit,
 				})
-				if (wire == null) return undefined
-				return stubEvmTransactionEntitiesFromBlockTransactions({
-					chainId: entityId.$network.chainId,
-					transactions: wire.transactions as unknown[],
-					cap: recentTxCap,
-				})
+				return (
+					wires
+						.flatMap((w) => (
+							typeof w.hash === 'string' && Hex.isHex(w.hash) && Hex.size(w.hash) === 32 ?
+								[{
+									[EntityMetaKey.Id]: {
+										$network: { chainId: entityId.$network.chainId },
+										txHash: w.hash.toLowerCase() as `0x${string}`,
+									},
+								}]
+							:
+								[]
+						))
+				)
 			},
 		}),
 	],

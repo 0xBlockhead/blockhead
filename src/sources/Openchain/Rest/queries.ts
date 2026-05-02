@@ -1,6 +1,7 @@
-import { getJson } from '$/lib/fetch.ts'
+import { getJson } from '$/lib/http.ts'
+import Openchain from '$/sources/Openchain/index.ts'
 import { openchainGetJson } from '$/sources/Openchain/Rest/client.ts'
-import { fourbyteDirectoryApiV1BaseUrl } from '$/sources/Openchain/Rest/constants.ts'
+import { directoryBaseUrl } from '$/sources/Openchain/Rest/constants.ts'
 import {
 	type OpenchainLookupResponseWire,
 	type OpenchainSignatureEntryWire,
@@ -8,13 +9,13 @@ import {
 } from '$/sources/Openchain/Rest/types.ts'
 
 const normalizeHex4 = (hex: `0x${string}`) => {
-	const h = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase() : hex.toLowerCase()
-	return `0x${h.padStart(8, '0').slice(-8)}` as `0x${string}`
+	const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase() : hex.toLowerCase()
+	return `0x${digits.padStart(8, '0').slice(-8)}` as `0x${string}`
 }
 
 const normalizeHex32 = (hex: `0x${string}`) => {
-	const h = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase() : hex.toLowerCase()
-	return `0x${h.padStart(64, '0').slice(-64)}` as `0x${string}`
+	const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase() : hex.toLowerCase()
+	return `0x${digits.padStart(64, '0').slice(-64)}` as `0x${string}`
 }
 
 const fourbyteHex4Query = (hex: `0x${string}`) => (
@@ -30,19 +31,21 @@ type FourbyteSignaturesListWire = {
 }
 
 const fourbyteFunctionEntries = async (hex: `0x${string}`): Promise<OpenchainSignatureEntryWire[]> => {
-	const qs = new URLSearchParams({ hex_signature: fourbyteHex4Query(hex) })
+	const searchParams = new URLSearchParams({ hex_signature: fourbyteHex4Query(hex) })
 	const json = await getJson<FourbyteSignaturesListWire>(
-		`${fourbyteDirectoryApiV1BaseUrl}/signatures/?${qs}`,
+		`${directoryBaseUrl}/signatures/?${searchParams}`,
+		{ origins: Openchain.origins },
 	)
-	return (json.results ?? []).map((r) => ({ name: r.text_signature }))
+	return (json.results ?? []).map((row) => ({ name: row.text_signature }))
 }
 
 const fourbyteEventEntries = async (hex: `0x${string}`): Promise<OpenchainSignatureEntryWire[]> => {
-	const qs = new URLSearchParams({ hex_signature: fourbyteHex32Query(hex) })
+	const searchParams = new URLSearchParams({ hex_signature: fourbyteHex32Query(hex) })
 	const json = await getJson<FourbyteSignaturesListWire>(
-		`${fourbyteDirectoryApiV1BaseUrl}/event-signatures/?${qs}`,
+		`${directoryBaseUrl}/event-signatures/?${searchParams}`,
+		{ origins: Openchain.origins },
 	)
-	return (json.results ?? []).map((r) => ({ name: r.text_signature }))
+	return (json.results ?? []).map((row) => ({ name: row.text_signature }))
 }
 
 const lookupPath = (params: {
@@ -50,11 +53,11 @@ const lookupPath = (params: {
 	event?: string
 	filter?: boolean
 }) => {
-	const q = new URLSearchParams()
-	if (params.function != null) q.set('function', params.function)
-	if (params.event != null) q.set('event', params.event)
-	if (params.filter !== undefined) q.set('filter', String(params.filter))
-	return `/lookup?${q}`
+	const searchParams = new URLSearchParams()
+	if (params.function != null) searchParams.set('function', params.function)
+	if (params.event != null) searchParams.set('event', params.event)
+	if (params.filter !== undefined) searchParams.set('filter', String(params.filter))
+	return `/lookup?${searchParams}`
 }
 
 const assertOpenchainOk = (json: OpenchainLookupResponseWire) => {
@@ -77,8 +80,8 @@ export const getOpenchainFunctionEntries = async ({
 		path: lookupPath({ function: key, filter }),
 	})) as OpenchainLookupResponseWire
 	assertOpenchainOk(json)
-	const arr = json.result?.function?.[key] ?? []
-	return arr.length > 0 ? arr : fourbyteFunctionEntries(hex)
+	const openchainEntries = json.result?.function?.[key] ?? []
+	return openchainEntries.length > 0 ? openchainEntries : fourbyteFunctionEntries(hex)
 }
 
 /**
@@ -96,8 +99,8 @@ export const getOpenchainEventEntries = async ({
 		path: lookupPath({ event: key, filter }),
 	})) as OpenchainLookupResponseWire
 	assertOpenchainOk(json)
-	const arr = json.result?.event?.[key] ?? []
-	return arr.length > 0 ? arr : fourbyteEventEntries(hex)
+	const openchainEntries = json.result?.event?.[key] ?? []
+	return openchainEntries.length > 0 ? openchainEntries : fourbyteEventEntries(hex)
 }
 
 /**

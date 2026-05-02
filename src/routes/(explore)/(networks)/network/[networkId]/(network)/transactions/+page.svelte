@@ -12,13 +12,18 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
+	import { EntityType } from '$/schema/$EntityType.ts'
 </script>
 
 
 <Page>
 	<section>
 		<EvmTransactionsView
-			entityId={{ chainId: Number(params.networkId) }}
+			entityFieldReference={{
+				entityType: EntityType.Network,
+				entityId: { chainId: Number(params.networkId) },
+				fieldName: '$$evmTransactions',
+			}}
 			href={resolve('/(explore)/(networks)/network/[networkId]/(network)/transactions', params)}
 			id="transactions"
 		/>

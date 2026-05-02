@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -11,7 +12,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -36,9 +37,8 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
-			| 'SummaryHeadingAfter'
-			| 'SummaryContent'
+			| 'HeadingAfter'
+			| 'Content'
 		>
 	> = $props()
 
@@ -71,11 +71,12 @@
 	const connectionField = $derived(
 		(() => {
 			const bag = connectionRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
-			const verifications = Reflect.get(bag, 'verifications')
-			const signedAt = Reflect.get(bag, 'signedAt')
+			if (bag === undefined || typeof bag !== 'object') return null
+			const f = bag as Record<string, unknown>
+			const verifications = f['verifications']
+			const signedAt = f['signedAt']
 			const pick = (key: string) => {
-				const x = Reflect.get(bag, key)
+				const x = f[key]
 				return typeof x === 'string' && x.length ? x : undefined
 			}
 			return {
@@ -100,9 +101,10 @@
 	)
 
 	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import Media from '$/components/Media.svelte'
+	import QueryBoundary from '$/components/QueryBoundary.svelte'
 </script>
 
 
@@ -114,21 +116,23 @@
 	{...entityViewRest}
 	title={displayTitle}
 >
-	{#snippet SummaryHeadingAfter()}
-		{#if connectionField?.username != null && connectionField.username !== displayTitle}
+	{#snippet HeadingAfter()}
+		{#if connectionField?.username !== undefined && connectionField.username !== displayTitle}
 			<span data-text="muted">
 				@{connectionField.username}
 			</span>
 		{/if}
 	{/snippet}
 
-	{#snippet SummaryContent()}
-		<dl data-definition-list="vertical">
-			<div>
-				<dt>FID</dt>
-				<dd>{String(entityId.fid)}</dd>
-			</div>
-		</dl>
+	{#snippet Content()}
+		{#if String(entityId.fid) !== displayTitle}
+			<dl data-definition-list="vertical">
+				<div>
+					<dt>FID</dt>
+					<dd>{String(entityId.fid)}</dd>
+				</div>
+			</dl>
+		{/if}
 	{/snippet}
 
 	{#snippet Details({
@@ -146,11 +150,11 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No Farcaster connection row in collections yet.
+							No Farcaster connection data yet.
 						</p>
-					{:else if connectionField == null}
+					{:else if connectionField === undefined}
 						<dl>
 							<div>
 								<dt>FID</dt>
@@ -163,49 +167,55 @@
 								<dt>FID</dt>
 								<dd>{String(entityId.fid)}</dd>
 							</div>
-							{#if connectionField.displayName != null}
+							{#if connectionField.displayName !== undefined}
 								<div>
 									<dt>Display name</dt>
 									<dd>{connectionField.displayName}</dd>
 								</div>
 							{/if}
-							{#if connectionField.username != null}
+							{#if connectionField.username !== undefined}
 								<div>
 									<dt>Username</dt>
 									<dd>{connectionField.username}</dd>
 								</div>
 							{/if}
-							{#if connectionField.pfpUrl != null}
+							{#if connectionField.pfpUrl !== undefined}
 								<div>
-									<dt>PFP URL</dt>
-									<dd>{connectionField.pfpUrl}</dd>
+									<dt>Profile image</dt>
+									<dd data-column>
+										<Media
+											media={{ url: connectionField.pfpUrl }}
+											alt={connectionField.displayName ?? connectionField.username ?? ''}
+										/>
+										<a href={connectionField.pfpUrl}>{connectionField.pfpUrl}</a>
+									</dd>
 								</div>
 							{/if}
-							{#if connectionField.bio != null}
+							{#if connectionField.bio !== undefined}
 								<div>
 									<dt>Bio</dt>
 									<dd>{connectionField.bio}</dd>
 								</div>
 							{/if}
-							{#if connectionField.authMethod != null}
+							{#if connectionField.authMethod !== undefined}
 								<div>
 									<dt>Auth method</dt>
 									<dd>{connectionField.authMethod}</dd>
 								</div>
 							{/if}
-							{#if connectionField.custody != null}
+							{#if connectionField.custody !== undefined}
 								<div>
 									<dt>Custody</dt>
 									<dd>{connectionField.custody}</dd>
 								</div>
 							{/if}
-							{#if connectionField.verifications != null && connectionField.verifications.length}
+							{#if connectionField.verifications !== undefined && connectionField.verifications.length}
 								<div>
 									<dt>Verifications</dt>
 									<dd>{connectionField.verifications.join(', ')}</dd>
 								</div>
 							{/if}
-							{#if connectionField.signedAt != null}
+							{#if connectionField.signedAt !== undefined}
 								<div>
 									<dt>Signed at</dt>
 									<dd>{new Date(connectionField.signedAt).toISOString()}</dd>

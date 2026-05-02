@@ -7,7 +7,7 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import Network from '$/schema/Network.ts'
-import { Source } from '$/sources/$Sources.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.EvmBlock,
@@ -75,7 +75,7 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmTransaction,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [Source.Blockscout, Source.Voltaire],
+			defaultSources: [Source.Blockscout_Rest, Source.Voltaire_JsonRpc],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

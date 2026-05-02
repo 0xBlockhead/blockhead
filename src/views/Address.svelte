@@ -13,12 +13,13 @@
 	// Types/constants
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Sources.ts'
+	import { Source } from '$/sources/$Source.ts'
 
-	import { entityFieldCollections } from '$/collections/$collections.ts'
+	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -50,27 +51,32 @@
 	const addressResolved = $derived(
 		actorId?.address ?? address ?? undefined
 	)
-	const resolvedActorId = $derived(
-		actorId
-		?? (
-			network != null && address != null ?
-				{ $network: network, address }
-			:
-				null
-		)
-	)
 	const actorParentIdKey = $derived(
-		resolvedActorId != null ?
-			stringify(resolvedActorId)
-		:
-			null
+		(
+			(
+				(r) => (
+					r !== undefined ?
+						stringify(r)
+					: null
+				)
+			)(
+				actorId
+				?? (
+					network !== undefined && address !== undefined ?
+						{ $network: network, address }
+					: null
+				),
+			)
+		),
 	)
 
 
 	// State
+	const noActorParentKey = '\0actor:primary-name:none'
+
 	const primaryNameQuery = useLiveQuery(
 		(queryBuilder) => (
-			actorParentIdKey != null ?
+			actorParentIdKey !== undefined ?
 				queryBuilder
 					.from({
 						field: entityFieldCollections[EntityType.Actor]['$primaryName'],
@@ -84,7 +90,7 @@
 					.where(({ field }) => (
 						eq(
 							field[EntityMetaKey.Source],
-							Source.Voltaire,
+							Source.Voltaire_JsonRpc,
 						)
 					))
 					.select(({ field }) => ({
@@ -98,14 +104,8 @@
 					})
 					.where(({ field }) => (
 						eq(
-							field[EntityMetaKey.Source],
-							Source._User,
-						)
-					))
-					.where(({ field }) => (
-						eq(
-							field[EntityMetaKey.Source],
-							Source.Voltaire,
+							field[EntityMetaKey.ParentIdKey],
+							noActorParentKey,
 						)
 					))
 					.select(({ field }) => ({
@@ -118,7 +118,7 @@
 
 	const avatarUrlQuery = useLiveQuery(
 		(queryBuilder) => (
-			actorParentIdKey != null ?
+			actorParentIdKey !== undefined ?
 				queryBuilder
 					.from({
 						field: entityFieldCollections[EntityType.Actor]['avatarUrl'],
@@ -132,7 +132,7 @@
 					.where(({ field }) => (
 						eq(
 							field[EntityMetaKey.Source],
-							Source.Voltaire,
+							Source.Voltaire_JsonRpc,
 						)
 					))
 					.select(({ field }) => ({
@@ -146,14 +146,8 @@
 					})
 					.where(({ field }) => (
 						eq(
-							field[EntityMetaKey.Source],
-							Source._User,
-						)
-					))
-					.where(({ field }) => (
-						eq(
-							field[EntityMetaKey.Source],
-							Source.Voltaire,
+							field[EntityMetaKey.ParentIdKey],
+							noActorParentKey,
 						)
 					))
 					.select(({ field }) => ({
@@ -166,15 +160,15 @@
 
 
 	// (Derived)
-	const displayEnsName = $derived(
-		ensNameProp
-		?? (
-			typeof primaryNameQuery.data?.[EntityMetaKey.Value]?.[EntityMetaKey.Id]?.name === 'string' ?
-				primaryNameQuery.data[EntityMetaKey.Value][EntityMetaKey.Id].name
-			:
-				undefined
-		)
-	)
+	const displayEnsName = $derived.by(() => {
+		if (ensNameProp !== undefined) return ensNameProp
+		const wrapped = primaryNameQuery.data?.[EntityMetaKey.Value]
+		if (wrapped === undefined || typeof wrapped !== 'object') return undefined
+		const inner = (wrapped as Record<string, unknown>)[EntityMetaKey.Id]
+		if (inner === undefined || typeof inner !== 'object') return undefined
+		const name = (inner as { name?: unknown }).name
+		return typeof name === 'string' ? name : undefined
+	})
 
 	const avatarUrlResolved = $derived(
 		typeof avatarUrlQuery.data?.[EntityMetaKey.Value] === 'string' ?

@@ -29,7 +29,7 @@
 		...CollapsibleProps
 	}: WithRest<
 		{
-			title: string
+			title?: string
 			href?: ResolvedPathname
 
 			open?: boolean
@@ -86,9 +86,9 @@
 					<a
 						data-link
 						href={href}
-					>{title}</a>
+					>{title ?? ''}</a>
 				{:else}
-					{title}
+					{title ?? ''}
 				{/if}
 			</Heading>
 		{/if}

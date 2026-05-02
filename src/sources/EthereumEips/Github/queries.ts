@@ -13,12 +13,12 @@ import type { EthereumEipSpecLedger } from './types.ts'
 export { parseFrontmatter, stripFrontmatter } from '$/sources/Github/Rest/client.ts'
 
 export const getEthereumEipSpecGithubContentsUrl = ({ ledger }: { ledger: EthereumEipSpecLedger }) => {
-	const r = ethereumEipSpecGithubRepoByLedger[ledger]
+	const repository = ethereumEipSpecGithubRepoByLedger[ledger]
 	return getGithubRestRepoContentsUrl({
-		owner: r.owner,
-		repo: r.repo,
-		pathInRepo: r.path,
-		ref: r.ref,
+		owner: repository.owner,
+		repo: repository.repo,
+		pathInRepo: repository.path,
+		ref: repository.ref,
 	})
 }
 
@@ -31,14 +31,14 @@ export const getEthereumEipSpecRawMarkdownUrl = ({
 	fileName: string
 	downloadUrl: string | null | undefined
 }) => {
-	const r = ethereumEipSpecGithubRepoByLedger[ledger]
+	const repository = ethereumEipSpecGithubRepoByLedger[ledger]
 	return (
 		downloadUrl ??
 		getGithubRawUserContentUrl({
-			owner: r.owner,
-			repo: r.repo,
-			ref: r.ref,
-			pathInRepo: `${r.path}/${fileName}`,
+			owner: repository.owner,
+			repo: repository.repo,
+			ref: repository.ref,
+			pathInRepo: `${repository.path}/${fileName}`,
 		})
 	)
 }
@@ -50,13 +50,13 @@ export const getEthereumEipSpecProposalMarkdownUrl = ({
 	ledger: EthereumEipSpecLedger
 	number: number
 }) => {
-	const r = ethereumEipSpecGithubRepoByLedger[ledger]
+	const repository = ethereumEipSpecGithubRepoByLedger[ledger]
 	return getGithubRawUserContentUrl({
-		owner: r.owner,
-		repo: r.repo,
-		ref: r.ref,
+		owner: repository.owner,
+		repo: repository.repo,
+		ref: repository.ref,
 		pathInRepo: (
-			`${r.path}/${ethereumEipSpecMarkdownPrefixByLedger[ledger]}-${number}.md`
+			`${repository.path}/${ethereumEipSpecMarkdownPrefixByLedger[ledger]}-${number}.md`
 		),
 	})
 }

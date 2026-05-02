@@ -12,13 +12,18 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import EvmBlocksView from '$/views/EvmBlocksView.svelte'
+	import { EntityType } from '$/schema/$EntityType.ts'
 </script>
 
 
 <Page>
 	<section>
 		<EvmBlocksView
-			entityId={{ chainId: Number(params.networkId) }}
+			entityFieldReference={{
+				entityType: EntityType.Network,
+				entityId: { chainId: Number(params.networkId) },
+				fieldName: '$$evmBlocks',
+			}}
 			href={resolve(
 				'/(explore)/(networks)/network/[networkId]/(network)/(forks)/fork/[forkSlug]/(fork)/blocks',
 				params,

@@ -73,6 +73,12 @@ export const useNavigationItems = () => {
 					icon: '🤖',
 				},
 				{
+					id: 'explore-ipfs',
+					title: 'IPFS',
+					href: '/ipfs',
+					icon: '🗂️',
+				},
+				{
 					id: 'explore-proposals',
 					title: 'Proposals',
 					href: '/proposals',
@@ -80,9 +86,21 @@ export const useNavigationItems = () => {
 					defaultIsOpen: true,
 					children: [
 						{
-							id: 'explore-proposals-caips',
-							title: 'CAIPs',
-							href: '/proposals/caips',
+							id: 'explore-proposals-ethereum',
+							title: 'Ethereum',
+							href: '/proposals/ethereum',
+							icon: '⬨',
+						},
+						{
+							id: 'explore-proposals-ens',
+							title: 'ENS',
+							href: '/proposals/ens',
+							icon: '🪪',
+						},
+						{
+							id: 'explore-proposals-chain-agnostic',
+							title: 'Chain Agnostic',
+							href: '/proposals/chain-agnostic',
 							icon: '📎',
 						},
 					],
@@ -146,7 +164,26 @@ export const useNavigationItems = () => {
 					href: '/coins',
 					icon: '🪙',
 					defaultIsOpen: true,
-					children: [],
+					children: [
+						{
+							id: 'assets-coins-quotes',
+							title: 'Spot quotes',
+							href: '/coins/prices',
+							icon: '💹',
+						},
+						{
+							id: 'assets-coins-candles',
+							title: 'Candles',
+							href: '/coins/candles',
+							icon: '📊',
+						},
+						{
+							id: 'assets-coins-markets',
+							title: 'Markets',
+							href: '/coins/markets',
+							icon: '🔀',
+						},
+					],
 				},
 				{
 					id: 'assets-pools',
@@ -213,6 +250,41 @@ export const useNavigationItems = () => {
 					],
 				},
 				{
+					id: 'social-atproto',
+					title: 'AT Protocol',
+					href: '/atproto',
+					icon: '🦋',
+					children: [],
+				},
+				{
+					id: 'social-activitypub',
+					title: 'ActivityPub',
+					href: '/activitypub',
+					icon: '🐘',
+					children: [],
+				},
+				{
+					id: 'social-lens',
+					title: 'Lens',
+					href: '/lens',
+					icon: '🔭',
+					children: [],
+				},
+				{
+					id: 'social-x',
+					title: 'X',
+					href: '/x',
+					icon: '𝕏',
+					children: [],
+				},
+				{
+					id: 'social-reddit',
+					title: 'Reddit',
+					href: '/reddit',
+					icon: '🤖',
+					children: [],
+				},
+				{
 					id: 'social-farcaster',
 					title: 'Farcaster',
 					href: '/farcaster',
@@ -231,6 +303,15 @@ export const useNavigationItems = () => {
 							title: 'Feed',
 							href: '/farcaster/feed',
 							icon: '📰',
+							children: [
+								{
+									id: 'social-farcaster-feed-trending',
+									title: 'Trending',
+									href: '/farcaster/feed/trending',
+									icon: '🔥',
+									children: [],
+								},
+							],
 						},
 						{
 							id: 'social-farcaster-channels',

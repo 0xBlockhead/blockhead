@@ -3,8 +3,9 @@
  * @see https://snapchain.farcaster.xyz/reference/httpapi/httpapi
  */
 
-import { browser } from '$app/environment'
-import { snapchainNodeEndpoints } from '$/sources/Snapchain/Rest/constants.ts'
+import { getJson } from '$/lib/http.ts'
+import Snapchain from '$/sources/Snapchain/index.ts'
+import { nodeEndpoints } from '$/sources/Snapchain/Rest/constants.ts'
 
 const toQueryString = (params?: Record<string, string | number | boolean | undefined>) => {
 	const searchParams = new URLSearchParams()
@@ -18,43 +19,23 @@ const toQueryString = (params?: Record<string, string | number | boolean | undef
 	return queryString ? `?${queryString}` : ''
 }
 
-const snapchainProxyBasePath = '/api/snapchain'
-
-const directSnapchainGet = async <T,>(
-	path: string,
-	params?: Record<string, string | number | boolean | undefined>,
-): Promise<T> => {
-	let lastError: Error | undefined
-
-	for (const endpoint of snapchainNodeEndpoints) {
-		try {
-			const res = await fetch(`${endpoint.url}${path}${toQueryString(params)}`)
-			if (res.ok) return res.json() as Promise<T>
-			lastError = new Error(`Snapchain ${endpoint.id} ${res.status}: ${await res.text()}`)
-		} catch (error) {
-			lastError = (
-				error instanceof Error ?
-					error
-				:	new Error(String(error))
-			)
-		}
-	}
-
-	throw lastError ?? new Error('Snapchain node request failed')
-}
-
 export async function snapchainGet<T>(
 	path: string,
 	params?: Record<string, string | number | boolean | undefined>,
 ): Promise<T> {
-	if (!browser) {
-		return directSnapchainGet<T>(path, params)
+	let lastError: Error | undefined
+	for (const endpoint of nodeEndpoints) {
+		try {
+			return await getJson<T>(`${endpoint.url}${path}${toQueryString(params)}`, {
+				origins: Snapchain.origins ?? [],
+			})
+		} catch (error) {
+			lastError = (
+				error instanceof Error ?
+					new Error(`Snapchain ${endpoint.id}: ${error.message}`)
+				:	new Error(`Snapchain ${endpoint.id}: ${String(error)}`)
+			)
+		}
 	}
-
-	const res = await fetch(`${snapchainProxyBasePath}${path}${toQueryString(params)}`)
-	if (!res.ok) {
-		throw new Error(`Snapchain proxy ${res.status}: ${await res.text()}`)
-	}
-
-	return res.json() as Promise<T>
+	throw lastError ?? new Error('Snapchain node request failed')
 }

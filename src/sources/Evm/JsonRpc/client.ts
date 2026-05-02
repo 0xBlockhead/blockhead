@@ -1,4 +1,3 @@
-import { getJson } from '$/lib/fetch.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
 
 type JsonRpcError = {
@@ -23,7 +22,7 @@ export const jsonRpc = async <_Result>({
 	method: string
 	params: unknown[]
 }): Promise<_Result> => {
-	const json = await getJson<JsonRpcResponse<_Result>>(rpcUrl, {
+	const ressponse = await fetch(rpcUrl, {
 		method: 'POST',
 		headers: jsonRpcHeaders,
 		body: JSON.stringify({
@@ -33,6 +32,10 @@ export const jsonRpc = async <_Result>({
 			params,
 		}),
 	})
+	if (!ressponse.ok) throw new Error(`JsonRpc ${method}: ${res.status} ${res.statusText}`)
+
+	const json = (await ressponse.json()) as JsonRpcResponse<_Result>
+
 	if (json.error != null)
 		throw new Error(`JsonRpc ${method}: ${json.error.message}`)
 

@@ -2,6 +2,8 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+	import { EntityType } from '$/schema/$EntityType.ts'
+
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -11,6 +13,11 @@
 
 <Page>
 	<BlockheadSourcesView
+		entityFieldReference={{
+			entityType: EntityType._Global,
+			entityId: {},
+			fieldName: '$$blockheadSources',
+		}}
 		href={resolve('/~/manage/sources')}
 		id="sources"
 	/>

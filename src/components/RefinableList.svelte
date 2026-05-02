@@ -31,8 +31,8 @@
 	}
 
 	type FilterGroupSelection<_FilterId extends string = string> =
-		| { exclusive: true; defaultFilter?: _FilterId }
-		| { exclusive: false; defaultFilters?: _FilterId[] }
+		| { exclusive: true, defaultFilter?: _FilterId }
+		| { exclusive: false, defaultFilters?: _FilterId[] }
 
 	type FilterGroupBase<_Item, _FilterId extends string = string> = {
 		id: string
@@ -79,14 +79,16 @@
 	"
 >
 	// Types/constants
-	import type { Match } from '$/lib/fuzzyMatch.ts'
+	import type { Match } from '$/lib/string.ts'
+	import { fuzzyMatch } from '$/lib/string.ts'
+	import { untrack } from 'svelte'
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity'
 
-
-	// State
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 
+
+	// State
 	let {
 		items,
 
@@ -98,6 +100,7 @@
 		defaultSortId,
 
 		getKey,
+		getSearchText,
 		getSortValue,
 		getGroupKey,
 		getGroupLabel,
@@ -123,6 +126,7 @@
 		Empty,
 		ToolbarExtra,
 
+		listViewTransition = true,
 		...ulProps
 	}: WithRest<
 		{
@@ -136,6 +140,8 @@
 			defaultSortId?: _SortId
 
 			getKey: (item: _Item) => _Key
+			/** When `searchPlaceholder` is set, pass this so rows get fuzzy `matches` and are not all `hidden` by search. */
+			getSearchText?: (item: _Item) => string
 			getSortValue?: (item: _Item) => number | string
 			getGroupKey?: (item: _Item) => _GroupKey
 			getGroupLabel?: (groupKey: _GroupKey) => string
@@ -169,11 +175,14 @@
 							searchQuery?: string
 							matches?: SvelteSet<Match>
 						}
-					| { item?: never; isPlaceholder: true }
+					| { item?: never, isPlaceholder: true }
 				),
 			]>
 			Empty?: import('svelte').Snippet
 			ToolbarExtra?: import('svelte').Snippet
+
+			/** When true, the rendered list commits row changes inside colocated list view transitions. */
+			listViewTransition?: boolean
 		},
 		SvelteHTMLElements['ul']
 	> = $props()
@@ -182,6 +191,8 @@
 	let sortedItems = $state<_Item[]>([])
 	let hasAppliedDefaultFilters = $state(false)
 
+
+	// (Derived)
 	const hasFilterGroups = $derived(
 		filterGroups.length > 0 && filterGroups.some((g) => g.filters.length > 1)
 	)
@@ -202,13 +213,9 @@
 		:
 			itemsToSort
 	)
-	const itemsSet = $derived(
-		new SvelteSet(displayItems)
-	)
 	const orderMap = $derived(
 		new Map(displayItems.map((item, i) => [getKey(item), i]))
 	)
-
 	$effect(() => {
 		if (!hasFilterGroups) filteredItems = items
 	})
@@ -244,24 +251,22 @@
 	$effect(() => {
 		displayedItems = displayItems
 	})
-
-
-	// Functions
-	const handleKeydown = (e: KeyboardEvent) => {
-		if (
-			!searchInputRef ||
-			e.ctrlKey ||
-			e.metaKey ||
-			e.altKey ||
-			e.key.length !== 1 ||
-			!/^[a-zA-Z]$/.test(e.key) ||
-			(e.target instanceof Node && searchInputRef.contains(e.target))
-		)
-			return
-		e.preventDefault()
-		searchInputRef.focus()
-		searchQuery = searchQuery + e.key
-	}
+	$effect(() => {
+		if (getSearchText === undefined) return
+		const fromSearch = getSearchText
+		const q = searchQuery.trim()
+		untrack(() => {
+			if (q.length === 0) {
+				matchesForItem.clear()
+				return
+			}
+			for (const item of displayItems)
+				matchesForItem.set(
+					item,
+					new SvelteSet(fuzzyMatch(fromSearch(item), q)),
+				)
+		})
+	})
 
 
 	// Components
@@ -277,16 +282,30 @@
 	data-sticky-container
 	role="group"
 	aria-label="Refinable list"
-	onkeydown={handleKeydown}
+	onkeydown={(e) => {
+		if (
+			!searchInputRef ||
+			e.ctrlKey ||
+			e.metaKey ||
+			e.altKey ||
+			e.key.length !== 1 ||
+			!/^[a-zA-Z]$/.test(e.key) ||
+			(e.target instanceof Node && searchInputRef.contains(e.target))
+		)
+			return
+		e.preventDefault()
+		searchInputRef.focus()
+		searchQuery = searchQuery + e.key
+	}}
 >
-	{#if searchPlaceholder != null || hasFilterGroups || hasSortOptions || ToolbarExtra}
+	{#if searchPlaceholder !== undefined || hasFilterGroups || hasSortOptions || ToolbarExtra}
 		<div
 			data-sticky
 			data-row="gap-4 wrap"
 			role="group"
 			aria-label="Search, filters and sorts"
 		>
-			{#if searchPlaceholder != null}
+			{#if searchPlaceholder !== undefined}
 				<label
 					data-row-item="flexible"
 					data-column
@@ -305,14 +324,8 @@
 				<Filters
 					items={items}
 					{filterGroups}
-					bind:activeFilters={
-						() => activeFilters,
-						(_activeFilters) => { activeFilters = _activeFilters }
-					}
-					bind:filteredItems={
-						() => filteredItems,
-						(_filteredItems) => { filteredItems = _filteredItems }
-					}
+					bind:activeFilters
+					bind:filteredItems
 					onreset={(e) => {
 						e.preventDefault()
 						activeFilters = new Set()
@@ -325,10 +338,7 @@
 					items={itemsToSort}
 					sortOptions={sortOptions!}
 					{defaultSortId}
-					bind:sortedItems={
-						() => sortedItems,
-						(_sortedItems) => { sortedItems = _sortedItems }
-					}
+					bind:sortedItems
 				/>
 			{/if}
 
@@ -339,7 +349,7 @@
 	{/if}
 
 	<UnorderedList
-		items={itemsSet}
+		items={new SvelteSet(displayItems)}
 		{getKey}
 		getSortValue={
 			getSortValue ?? ((item: _Item) => orderMap.get(getKey(item)) ?? Infinity)
@@ -354,14 +364,9 @@
 		}
 		{scrollPosition}
 		{pagination}
-		bind:searchQuery={
-			() => searchQuery,
-			(_searchQuery) => { searchQuery = _searchQuery }
-		}
-		bind:matchesForItem={
-			() => matchesForItem,
-			(_matchesForItem) => { matchesForItem = _matchesForItem }
-		}
+		{listViewTransition}
+		{searchQuery}
+		{matchesForItem}
 		{GroupHeader}
 		{Item}
 		{Empty}

@@ -2,7 +2,8 @@
  * Fork source row shape (per-chain files) and row → `Entity<typeof schema, EntityType.NetworkFork>`.
  */
 
-import { type Entity, schema } from '$/schema/$schema.ts'
+import type { Entity } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type {
@@ -10,8 +11,7 @@ import type {
 	ExecutionProtocol,
 	ForkScheduleKind,
 } from '$/schema/NetworkFork.ts'
-import type { ProposalCategory } from '$/constants/Proposal/ProposalCategory.ts'
-import { ProposalRealm } from '$/constants/Proposal/ProposalRealm.ts'
+import { type ProposalCategory, ProposalRealm } from '$/constants/Proposal.ts'
 
 
 // Types
@@ -72,8 +72,10 @@ export const ethereumExecutionForkFromRow = <T extends string>(
 						category: id.kind,
 						number: id.number,
 					},
-					category: null,
-					body: null,
+					documentTitle: null,
+					documentCategory: null,
+					documentStatus: null,
+					documentBody: null,
 				})),
 			}
 		:	{}),

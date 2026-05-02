@@ -122,13 +122,6 @@
 	// Functions
 	const preparedByKey = new Map<string, PreparedText>()
 
-	const onScroll = () => {
-		if (
-			!viewportEl
-		) return
-		scrollTop = viewportEl.scrollTop
-	}
-
 
 	$effect(() => {
 		if (
@@ -246,7 +239,10 @@
 		bind:this={viewportEl}
 		data-scroll-container
 		data-virtual-list
-		onscroll={onScroll}
+		onscroll={() => {
+			if (!viewportEl) return
+			scrollTop = viewportEl.scrollTop
+		}}
 		{...viewportProps}
 	>
 		<div

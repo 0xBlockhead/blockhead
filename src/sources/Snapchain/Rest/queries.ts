@@ -7,8 +7,13 @@
  * @see https://snapchain.farcaster.xyz/reference/httpapi/verification#verificationsbyfid
  */
 
+import { singleFlight } from '$/lib/singleFlight.ts'
 import { snapchainGet } from '$/sources/Snapchain/Rest/client.ts'
-import { snapchainDefaultShardId } from '$/sources/Snapchain/Rest/constants.ts'
+import {
+	defaultShardId,
+	snapchainDefaultCastTimelinePageSize,
+	snapchainMaxPageSize,
+} from '$/sources/Snapchain/Rest/constants.ts'
 import type {
 	SnapchainCastWire,
 	SnapchainFidsPage,
@@ -19,20 +24,12 @@ import type {
 	SnapchainVerificationWire,
 } from '$/sources/Snapchain/Rest/types.ts'
 
-export const snapchainReactionTypeLike = 1
-export const snapchainReactionTypeRecast = 2
-
-export const snapchainUserDataTypePfp = 'USER_DATA_TYPE_PFP'
-export const snapchainUserDataTypeDisplay = 'USER_DATA_TYPE_DISPLAY'
-export const snapchainUserDataTypeBio = 'USER_DATA_TYPE_BIO'
-export const snapchainUserDataTypeUrl = 'USER_DATA_TYPE_URL'
-
 /**
  * `GET /v1/fids`
  */
 export const getFids = ({
-	shardId = snapchainDefaultShardId,
-	pageSize = 100,
+	shardId = defaultShardId,
+	pageSize = snapchainMaxPageSize,
 	pageToken,
 	reverse,
 }: {
@@ -70,7 +67,7 @@ export const getCastById = ({
  */
 export const getCastsByFid = ({
 	fid,
-	pageSize = 25,
+	pageSize = snapchainDefaultCastTimelinePageSize,
 	pageToken,
 	reverse = true,
 	startTimestamp,
@@ -100,7 +97,7 @@ export const getCastsByParent = ({
 	url,
 	fid,
 	hash,
-	pageSize = 25,
+	pageSize = snapchainDefaultCastTimelinePageSize,
 	pageToken,
 }: {
 	url?: string
@@ -125,7 +122,7 @@ export const getReactionsByCast = ({
 	targetFid,
 	targetHash,
 	reactionType,
-	pageSize = 100,
+	pageSize = snapchainMaxPageSize,
 	pageToken,
 	reverse,
 }: {
@@ -151,7 +148,7 @@ export const getReactionsByCast = ({
  */
 export const getUserDataByFid = ({
 	fid,
-	pageSize = 100,
+	pageSize = snapchainMaxPageSize,
 	pageToken,
 	reverse,
 }: {
@@ -173,7 +170,7 @@ export const getUserDataByFid = ({
  */
 export const getUsernameProofsByFid = ({
 	fid,
-	pageSize = 100,
+	pageSize = snapchainMaxPageSize,
 	pageToken,
 	reverse,
 }: {
@@ -196,7 +193,7 @@ export const getUsernameProofsByFid = ({
 export const getVerificationsByFid = ({
 	fid,
 	address,
-	pageSize = 100,
+	pageSize = snapchainMaxPageSize,
 	pageToken,
 	reverse,
 }: {
@@ -214,3 +211,54 @@ export const getVerificationsByFid = ({
 		reverse,
 	})
 )
+
+const countReactionsForCastTarget = async ({
+	targetFid,
+	targetHash,
+	reactionType,
+}: {
+	targetFid: number
+	targetHash: `0x${string}`
+	reactionType: number | string
+}) => {
+	let reactionCount = 0
+	let pageToken: string | undefined
+	do {
+		const reactionPage = await getReactionsByCast({
+			targetFid,
+			targetHash,
+			reactionType,
+			pageToken,
+		})
+		reactionCount += reactionPage.messages?.length ?? 0
+		pageToken = reactionPage.nextPageToken
+	} while (pageToken != null)
+	return reactionCount
+}
+
+export const getLikeAndRecastCountsForCast = async ({
+	targetFid,
+	targetHash,
+	likeReactionType,
+	recastReactionType,
+}: {
+	targetFid: number
+	targetHash: `0x${string}`
+	likeReactionType: number | string
+	recastReactionType: number | string
+}): Promise<{ likeCount: number; recastCount: number }> => {
+	const [likeCount, recastCount] = await Promise.all([
+		countReactionsForCastTarget({ targetFid, targetHash, reactionType: likeReactionType }),
+		countReactionsForCastTarget({ targetFid, targetHash, reactionType: recastReactionType }),
+	])
+	return { likeCount, recastCount }
+}
+
+export const getSnapchainUserBundleByFid = async ({ fid }: { fid: number }) => {
+	const [userData, usernameProofs, verifications] = await Promise.all([
+		singleFlight(getUserDataByFid)({ fid }),
+		singleFlight(getUsernameProofsByFid)({ fid }),
+		singleFlight(getVerificationsByFid)({ fid }),
+	])
+	return { userData, usernameProofs, verifications }
+}

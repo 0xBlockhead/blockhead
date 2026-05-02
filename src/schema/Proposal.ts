@@ -6,8 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import { ProposalRealm } from '$/constants/Proposal/ProposalRealm.ts'
-import { ProposalCategory } from '$/constants/Proposal/ProposalCategory.ts'
+import { ProposalCategory, ProposalRealm } from '$/constants/Proposal.ts'
 
 export default {
 	entityType: EntityType.Proposal,
@@ -23,13 +22,25 @@ export default {
 
 	fields: [
 		{
-			name: 'category',
+			name: 'documentCategory',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string | null'),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'body',
+			name: 'documentTitle',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string | null'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'documentStatus',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string | null'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'documentBody',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string | null'),
 			cardinality: EntityFieldCardinality.One,

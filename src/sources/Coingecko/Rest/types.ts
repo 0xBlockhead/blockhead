@@ -19,6 +19,13 @@ export type CoingeckoCoin = {
 	detail_platforms?: Record<string, CoingeckoDetailPlatform>
 }
 
+export type CoingeckoCoinWithMarketData = CoingeckoCoin & {
+	market_data?: {
+		current_price?: { usd?: number }
+		last_updated?: string | null
+	}
+}
+
 export type CoingeckoAssetPlatform = {
 	id: string
 	name: string

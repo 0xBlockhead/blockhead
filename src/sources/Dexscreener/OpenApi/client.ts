@@ -1,4 +1,4 @@
-import { dexscreenerApiBaseUrl } from '$/sources/Dexscreener/OpenApi/constants.ts'
+import { baseUrl } from '$/sources/Dexscreener/OpenApi/constants.ts'
 import type { components, paths } from '$/sources/Dexscreener/OpenApi/openapi.d.ts'
 
 export type DexscreenerPair = components['schemas']['Pair']
@@ -14,7 +14,7 @@ export type DexscreenerTokenPairsResponse = (
 export const getDexscreenerJson = async <_Response>(
 	pathAndQuery: string,
 ): Promise<_Response> => {
-	const response = await fetch(`${dexscreenerApiBaseUrl}${pathAndQuery}`, {
+	const response = await fetch(`${baseUrl}${pathAndQuery}`, {
 		headers: {
 			Accept: 'application/json',
 		},

@@ -86,7 +86,10 @@
 	</summary>
 
 	{#if children}
-		<div data-column>
+		<div
+			data-column
+			data-sticky-container
+		>
 			{@render children({
 				open,
 			})}

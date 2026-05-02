@@ -18,7 +18,7 @@
 			String(item)
 		: typeof item === 'bigint' ?
 			item.toString()
-		: item === null ?
+		: item === undefined ?
 			'null'
 		: typeof item === 'object' ?
 			stringify(item)
@@ -111,7 +111,9 @@
 		:
 			[],
 	)
-	const valueStr = $derived(value != null ? getItemId(value) : '')
+	const valueStr = $derived(
+		value !== undefined ? String(getItemId(value)) : '',
+	)
 
 
 	// Actions
@@ -142,8 +144,10 @@
 					value = undefined
 					return
 				}
-				const found = normalizedItems.find((item) => item.id === _value)
-				if (found != null) value = found.item
+				const found = normalizedItems.find(
+					(item) => String(item.id) === String(_value),
+				)
+				if (found !== undefined) value = found.item
 			}
 		}
 		{disabled}
@@ -152,19 +156,22 @@
 		data-row
 		{...selectProps}
 	>
-		<button type="button" data-button="unstyled">
+		<button
+			type="button"
+			data-button="unstyled"
+		>
 			<selectedcontent></selectedcontent>
 		</button>
-		{#if placeholder != null}
+		{#if placeholder !== undefined}
 			<option value="" disabled={!(allowDeselect ?? false)}>{placeholder}</option>
 		{/if}
 		{#if normalizedGroups.length > 0}
 			{#each normalizedGroups as group (group.id)}
 				<optgroup label={group.label}>
 					{#each group.items as item (item.id)}
-						<option value={item.id} disabled={item.disabled}>
+						<option value={String(item.id)} disabled={item.disabled}>
 							{#if _Item}
-								{@render _Item(item.item, item.id === valueStr)}
+								{@render _Item(item.item, String(item.id) === valueStr)}
 							{:else}
 								{item.label}
 							{/if}
@@ -174,9 +181,9 @@
 			{/each}
 		{:else}
 			{#each normalizedItems as item (item.id)}
-				<option value={item.id} disabled={item.disabled}>
+				<option value={String(item.id)} disabled={item.disabled}>
 					{#if _Item}
-						{@render _Item(item.item, item.id === valueStr)}
+						{@render _Item(item.item, String(item.id) === valueStr)}
 					{:else}
 						{item.label}
 					{/if}

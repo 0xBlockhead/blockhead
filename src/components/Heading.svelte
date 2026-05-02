@@ -6,8 +6,6 @@
 
 	import { getHeadingLevel } from '$/context/headingLevel.ts'
 
-	const headingLevel = Math.min(6, Math.max(1, getHeadingLevel()))
-
 
 	// State
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -28,7 +26,7 @@
 
 {#if isInsidePage}
 	<svelte:element
-		this={'h' + headingLevel}
+		this={`h${Math.min(6, Math.max(1, getHeadingLevel()))}`}
 		{...elementProps}
 	>
 		{#if children}

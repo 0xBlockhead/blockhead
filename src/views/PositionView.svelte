@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -11,7 +12,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -36,19 +37,11 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
-
 	const liquidityPositionIdKey = $derived(
 		stringify(entityId),
-	)
-
-	const chainId = $derived(
-		typeof entityId?.$network?.chainId === 'number' ?
-			entityId.$network.chainId
-		:	undefined,
 	)
 
 	const positionQuery = useLiveQuery(
@@ -73,7 +66,7 @@
 	const liquidityPositionField = $derived(
 		(() => {
 			const bag = liquidityPositionRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			return {
 				tickLower: typeof b.tickLower === 'number' ? b.tickLower : undefined,
@@ -88,15 +81,11 @@
 		})(),
 	)
 
-	const displayTitle = $derived(
-		entityId.id,
-	)
-
-
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -106,21 +95,22 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
+	title={entityId.id}
 >
-	{#snippet SummaryContent()}
-		<dl data-definition-list="vertical">
-			{#if chainId != null}
+	{#snippet Content()}
+		{#if liquidityPositionField?.createdAtTimestamp !== undefined && typeof liquidityPositionField.createdAtTimestamp === 'number' && Number.isFinite(liquidityPositionField.createdAtTimestamp)}
+			<dl data-definition-list="vertical">
 				<div>
-					<dt>Chain ID</dt>
-					<dd>{String(chainId)}</dd>
+					<dt>Timestamp</dt>
+					<dd>
+						<Timestamp
+							timestamp={liquidityPositionField.createdAtTimestamp}
+							format={TimestampFormat.Both}
+						/>
+					</dd>
 				</div>
-			{/if}
-			<div>
-				<dt>Position id</dt>
-				<dd>{entityId.id}</dd>
-			</div>
-		</dl>
+			</dl>
+		{/if}
 	{/snippet}
 
 	{#snippet Details({
@@ -138,58 +128,63 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No liquidity position row in collections yet (no resolver row for this id).
+							No liquidity position data for this id yet.
 						</p>
 					{:else}
 						<dl>
-							{#if liquidityPositionField?.tickLower != null}
+							{#if liquidityPositionField?.tickLower !== undefined}
 								<div>
 									<dt>Tick lower</dt>
 									<dd>{String(liquidityPositionField.tickLower)}</dd>
 								</div>
 							{/if}
-							{#if liquidityPositionField?.tickUpper != null}
+							{#if liquidityPositionField?.tickUpper !== undefined}
 								<div>
 									<dt>Tick upper</dt>
 									<dd>{String(liquidityPositionField.tickUpper)}</dd>
 								</div>
 							{/if}
-							{#if liquidityPositionField?.liquidity != null}
+							{#if liquidityPositionField?.liquidity !== undefined}
 								<div>
 									<dt>Liquidity</dt>
 									<dd>{String(liquidityPositionField.liquidity)}</dd>
 								</div>
 							{/if}
-							{#if liquidityPositionField?.token0Owed != null}
+							{#if liquidityPositionField?.token0Owed !== undefined}
 								<div>
 									<dt>Token0 owed</dt>
 									<dd>{String(liquidityPositionField.token0Owed)}</dd>
 								</div>
 							{/if}
-							{#if liquidityPositionField?.token1Owed != null}
+							{#if liquidityPositionField?.token1Owed !== undefined}
 								<div>
 									<dt>Token1 owed</dt>
 									<dd>{String(liquidityPositionField.token1Owed)}</dd>
 								</div>
 							{/if}
-							{#if liquidityPositionField?.tokenId != null}
+							{#if liquidityPositionField?.tokenId !== undefined}
 								<div>
 									<dt>Token id</dt>
 									<dd>{String(liquidityPositionField.tokenId)}</dd>
 								</div>
 							{/if}
-							{#if liquidityPositionField?.origin != null}
+							{#if liquidityPositionField?.origin !== undefined}
 								<div>
 									<dt>Origin</dt>
 									<dd>{liquidityPositionField.origin}</dd>
 								</div>
 							{/if}
-							{#if liquidityPositionField?.createdAtTimestamp != null}
+							{#if liquidityPositionField?.createdAtTimestamp !== undefined && typeof liquidityPositionField.createdAtTimestamp === 'number' && Number.isFinite(liquidityPositionField.createdAtTimestamp)}
 								<div>
 									<dt>Created at (timestamp)</dt>
-									<dd>{String(liquidityPositionField.createdAtTimestamp)}</dd>
+									<dd>
+										<Timestamp
+											timestamp={liquidityPositionField.createdAtTimestamp}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
 								</div>
 							{/if}
 						</dl>

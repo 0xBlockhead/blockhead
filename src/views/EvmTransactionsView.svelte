@@ -3,55 +3,27 @@
 	import type { ComponentProps } from 'svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import {
-		type EntityId,
-		schema,
-	} from '$/schema/$schema.ts'
+	import { type EntityFieldReference } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Sources.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// Functions
-	const evmTxListLink = (id: unknown) => {
-		if (typeof id !== 'object' || id === null) return undefined
-		if (!('$network' in id) || !('txHash' in id)) return undefined
-		const nw = Reflect.get(id, '$network')
-		if (typeof nw !== 'object' || nw === null || !('chainId' in nw)) return undefined
-		const chainId = Reflect.get(nw, 'chainId')
-		const txHash = Reflect.get(id, 'txHash')
-		return (
-			typeof chainId === 'number'
-			&& typeof txHash === 'string'
-			&& txHash.startsWith('0x') ?
-				{ chainId, txHash }
-			:
-				undefined
-		)
-	}
-
-	const evmTxRowSortKey = (row: { [EntityMetaKey.Id]: unknown }) => (
-		evmTxListLink(row[EntityMetaKey.Id])?.txHash
-		?? stringify(row[EntityMetaKey.Id])
-		?? ''
-	)
-
-
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { eq, or, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import { entityFieldCollections } from '$/collections/$collections.ts'
+	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
 	// Props
 	let {
-		entityId,
+		entityFieldReference,
 
 		title = 'Transactions',
 
@@ -60,7 +32,7 @@
 		...entitiesListProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.Network> | EntityId<typeof schema, EntityType.EvmBlock>
+			entityFieldReference: EntityFieldReference<typeof EntityType.EvmTransaction>
 			title?: string
 			open?: boolean
 		},
@@ -72,16 +44,54 @@
 
 
 	const parentKey = $derived(
-		stringify(entityId),
+		stringify(entityFieldReference.entityId),
 	)
 
-	const parentIsBlock = $derived(
-		'blockNumber' in entityId,
+	const blockHeightParentKey = $derived(
+		entityFieldReference.entityType === EntityType.EvmBlock ?
+			stringify({
+				chainId: (
+					entityFieldReference.entityId
+						.$network
+						.chainId
+				),
+			})
+		:
+			parentKey
+	)
+
+	const blockHeightQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ blockHeight: entityFieldCollections[EntityType.Network].blockHeight! })
+				.where(({ blockHeight }) => (
+					eq(
+						blockHeight[EntityMetaKey.ParentIdKey],
+						blockHeightParentKey,
+					)
+				))
+				.where(({ blockHeight }) => (
+					eq(
+						blockHeight[EntityMetaKey.Source],
+						Source.Voltaire_JsonRpc,
+					)
+				))
+				.select(({ blockHeight }) => ({
+					height: blockHeight[EntityMetaKey.Value],
+				}))
+				.findOne()
+		),
+		[
+			() => entityFieldReference.entityType,
+			() => entityFieldReference.fieldName,
+			() => stringify(entityFieldReference.entityId),
+			() => blockHeightParentKey,
+		],
 	)
 
 	const transactionsQuery = useLiveQuery(
 		(queryBuilder) => (
-			parentIsBlock ?
+			entityFieldReference.entityType === EntityType.EvmBlock ?
 				queryBuilder
 					.from({ $$evmTransactions: entityFieldCollections[EntityType.EvmBlock]['$$evmTransactions']! })
 					.where(({ $$evmTransactions }) => (
@@ -91,16 +101,28 @@
 						)
 					))
 					.where(({ $$evmTransactions }) => (
-						eq(
-							$$evmTransactions[EntityMetaKey.Source],
-							Source.Blockscout,
+						or(
+							eq(
+								$$evmTransactions[EntityMetaKey.Source],
+								Source.Blockscout_Rest,
+							),
+							eq(
+								$$evmTransactions[EntityMetaKey.Source],
+								Source.Voltaire_JsonRpc,
+							),
 						)
 					))
-					.select(({ $$evmTransactions }) => ({
+					.orderBy(({ $$evmTransactions }) => (
+						$$evmTransactions[EntityMetaKey.IdKey]
+					), 'desc')
+					.limit(100)
+					.select(({ $$evmTransactions }) => (
+					{
 						[EntityMetaKey.Id]: (
 							$$evmTransactions[EntityMetaKey.Value][EntityMetaKey.Id]
 						),
-					}))
+					}
+					))
 			:
 				queryBuilder
 					.from({ $$evmTransactions: entityFieldCollections[EntityType.Network]['$$evmTransactions']! })
@@ -113,16 +135,28 @@
 					.where(({ $$evmTransactions }) => (
 						eq(
 							$$evmTransactions[EntityMetaKey.Source],
-							Source.Blockscout,
+							Source.Blockscout_Rest,
 						)
 					))
-					.select(({ $$evmTransactions }) => ({
+					.orderBy(({ $$evmTransactions }) => (
+						$$evmTransactions[EntityMetaKey.IdKey]
+					), 'desc')
+					.limit(8)
+					.select(({ $$evmTransactions }) => (
+					{
 						[EntityMetaKey.Id]: (
 							$$evmTransactions[EntityMetaKey.Value][EntityMetaKey.Id]
 						),
-					}))
+					}
+					))
 		),
-		[() => parentKey, () => parentIsBlock],
+		[
+			() => entityFieldReference.entityType,
+			() => entityFieldReference.fieldName,
+			() => stringify(entityFieldReference.entityId),
+			() => parentKey,
+			() => blockHeightQuery.data?.height,
+		],
 	)
 
 
@@ -139,15 +173,15 @@
 	bind:open
 	query={transactionsQuery}
 	items={new SvelteSet(transactionsQuery.data ?? [])}
-	getKey={(row) => stringify(row[EntityMetaKey.Id]) ?? ''}
-	getSortValue={evmTxRowSortKey}
-	placeholderKeys={new SvelteSet()}
-	unorderedListProps={{ orientation: ListOrientation.Column }}
+	getKey={(row) => stringify(row[EntityMetaKey.Id])}
+	getSortValue={(row) => row[EntityMetaKey.Id].txHash}
+	placeholderKeys={new SvelteSet<string | number>()}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListProps}
 >
 	{#snippet Empty()}
 		<p data-text="muted">
-			No transactions in collections for this scope (resolve Blockscout / RPC).
+			No transactions to show for this scope yet.
 		</p>
 	{/snippet}
 
@@ -157,30 +191,37 @@
 				…
 			</span>
 		{:else if row}
-			{@const link = evmTxListLink(row[EntityMetaKey.Id])}
-			{#if link != null}
-				<EvmTransactionView
-					entityId={{
-						$network: { chainId: link.chainId },
-						txHash: link.txHash,
-					}}
-					href={resolve(
-						'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
-						{
-							networkId: String(link.chainId),
-							transactionId: link.txHash,
-						},
-					)}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{:else}
-				<span data-text="muted">
-					<code data-text="font-monospace">
-						{String(row[EntityMetaKey.Id])}
-					</code>
-				</span>
-			{/if}
+			{@const t = row[EntityMetaKey.Id]}
+			<EvmTransactionView
+				entityId={t}
+				href={(
+					entityFieldReference.entityType === EntityType.EvmBlock ?
+						resolve(
+							'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId]',
+							{
+								networkId: String(
+									entityFieldReference.entityId.$network.chainId,
+								),
+								blockNumber: String(
+									entityFieldReference.entityId.blockNumber,
+								),
+								transactionId: t.txHash,
+							},
+						)
+					:
+						resolve(
+							'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+							{
+								networkId: String(
+									t.$network.chainId,
+								),
+								transactionId: t.txHash,
+							},
+						)
+				)}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
 		{/if}
 	{/snippet}
 </EntitiesList>

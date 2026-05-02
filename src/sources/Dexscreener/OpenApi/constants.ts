@@ -1,22 +1,25 @@
-export const dexscreenerApiBaseUrl = 'https://api.dexscreener.com'
+export const origin = 'https://api.dexscreener.com' as const
 
-const dexscreenerChains = [
-	{ chainId: 1, dexscreenerChainId: 'ethereum' },
-	{ chainId: 10, dexscreenerChainId: 'optimism' },
-	{ chainId: 56, dexscreenerChainId: 'bsc' },
-	{ chainId: 137, dexscreenerChainId: 'polygon' },
-	{ chainId: 8453, dexscreenerChainId: 'base' },
-	{ chainId: 42161, dexscreenerChainId: 'arbitrum' },
-	{ chainId: 43114, dexscreenerChainId: 'avalanche' },
+export const baseUrl = origin
+
+const chains = [
+	{ chainId: 1, apiChainId: 'ethereum' },
+	{ chainId: 10, apiChainId: 'optimism' },
+	{ chainId: 56, apiChainId: 'bsc' },
+	{ chainId: 137, apiChainId: 'polygon' },
+	{ chainId: 8453, apiChainId: 'base' },
+	{ chainId: 42161, apiChainId: 'arbitrum' },
+	{ chainId: 43114, apiChainId: 'avalanche' },
 ] as const satisfies readonly {
 	chainId: number
-	dexscreenerChainId: string
+	apiChainId: string
 }[]
 
-export const dexscreenerChainIdByChainId = Object.fromEntries(
-	dexscreenerChains
+/** Dexscreener `{chainId}` path segment → EVM **`chainId`**. */
+export const apiChainIdByChainId = Object.fromEntries(
+	chains
 		.map((entry) => [
 			entry.chainId,
-			entry.dexscreenerChainId,
+			entry.apiChainId,
 		]),
 ) as Partial<Record<number, string>>

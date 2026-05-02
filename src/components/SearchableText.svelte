@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { type Match, fuzzyMatch } from '$/lib/fuzzyMatch.ts'
+	import { type Match, fuzzyMatch } from '$/lib/string.ts'
 
 
 	// Functions
@@ -42,10 +42,6 @@
 
 	let previousRanges: Match[] = []
 
-	const html = $derived(
-		highlightRanges(escapeHtml(text), fuzzyMatch(text, query))
-	)
-
 	$effect(() => {
 		if (!matches) return
 		const ranges = fuzzyMatch(text, query)
@@ -63,7 +59,7 @@
 </script>
 
 
-<span>{@html html}</span>
+<span>{@html highlightRanges(escapeHtml(text), fuzzyMatch(text, query))}</span>
 
 
 <style>

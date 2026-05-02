@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -11,7 +12,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -36,19 +37,11 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
-
 	const leverageIdKey = $derived(
 		stringify(entityId),
-	)
-
-	const chainId = $derived(
-		typeof entityId?.$network?.chainId === 'number' ?
-			entityId.$network.chainId
-		:	undefined,
 	)
 
 	const leverageQuery = useLiveQuery(
@@ -73,7 +66,7 @@
 	const leverageField = $derived(
 		(() => {
 			const bag = leverageRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			return {
 				tickLower: typeof b.tickLower === 'number' ? b.tickLower : undefined,
@@ -88,16 +81,11 @@
 		})(),
 	)
 
-	const displayTitle = $derived(
-		entityId.id,
-	)
-
-
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -107,26 +95,22 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
+	title={entityId.id}
 >
-	{#snippet SummaryContent()}
-		<dl data-definition-list="vertical">
-			{#if chainId != null}
+	{#snippet Content()}
+		{#if leverageField?.createdAtTimestamp !== undefined && typeof leverageField.createdAtTimestamp === 'number' && Number.isFinite(leverageField.createdAtTimestamp)}
+			<dl data-definition-list="vertical">
 				<div>
-					<dt>Chain ID</dt>
-					<dd>{String(chainId)}</dd>
+					<dt>Timestamp</dt>
+					<dd>
+						<Timestamp
+							timestamp={leverageField.createdAtTimestamp}
+							format={TimestampFormat.Both}
+						/>
+					</dd>
 				</div>
-			{/if}
-			<div>
-				<dt>Leverage id</dt>
-				<dd>
-					<TruncatedValue
-						value={entityId.id}
-						format={TruncatedValueFormat.Visual}
-					/>
-				</dd>
-			</div>
-		</dl>
+			</dl>
+		{/if}
 	{/snippet}
 
 	{#snippet Details({
@@ -144,58 +128,63 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No leverage row in collections yet (no resolver row for this id).
+							No leverage data for this id yet.
 						</p>
 					{:else}
 						<dl>
-							{#if leverageField?.tickLower != null}
+							{#if leverageField?.tickLower !== undefined}
 								<div>
 									<dt>Tick lower</dt>
 									<dd>{String(leverageField.tickLower)}</dd>
 								</div>
 							{/if}
-							{#if leverageField?.tickUpper != null}
+							{#if leverageField?.tickUpper !== undefined}
 								<div>
 									<dt>Tick upper</dt>
 									<dd>{String(leverageField.tickUpper)}</dd>
 								</div>
 							{/if}
-							{#if leverageField?.liquidity != null}
+							{#if leverageField?.liquidity !== undefined}
 								<div>
 									<dt>Liquidity</dt>
 									<dd>{String(leverageField.liquidity)}</dd>
 								</div>
 							{/if}
-							{#if leverageField?.token0Owed != null}
+							{#if leverageField?.token0Owed !== undefined}
 								<div>
 									<dt>Token0 owed</dt>
 									<dd>{String(leverageField.token0Owed)}</dd>
 								</div>
 							{/if}
-							{#if leverageField?.token1Owed != null}
+							{#if leverageField?.token1Owed !== undefined}
 								<div>
 									<dt>Token1 owed</dt>
 									<dd>{String(leverageField.token1Owed)}</dd>
 								</div>
 							{/if}
-							{#if leverageField?.tokenId != null}
+							{#if leverageField?.tokenId !== undefined}
 								<div>
 									<dt>Token id</dt>
 									<dd>{String(leverageField.tokenId)}</dd>
 								</div>
 							{/if}
-							{#if leverageField?.origin != null}
+							{#if leverageField?.origin !== undefined}
 								<div>
 									<dt>Origin</dt>
 									<dd>{leverageField.origin}</dd>
 								</div>
 							{/if}
-							{#if leverageField?.createdAtTimestamp != null}
+							{#if leverageField?.createdAtTimestamp !== undefined && typeof leverageField.createdAtTimestamp === 'number' && Number.isFinite(leverageField.createdAtTimestamp)}
 								<div>
 									<dt>Created at (timestamp)</dt>
-									<dd>{String(leverageField.createdAtTimestamp)}</dd>
+									<dd>
+										<Timestamp
+											timestamp={leverageField.createdAtTimestamp}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
 								</div>
 							{/if}
 						</dl>

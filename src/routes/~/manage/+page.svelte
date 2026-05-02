@@ -2,6 +2,8 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+	import { EntityType } from '$/schema/$EntityType.ts'
+
 
 	// Components
 	import BlockheadSessionsView from '$/views/BlockheadSessionsView.svelte'
@@ -20,6 +22,11 @@
 		{#snippet children()}
 			<section>
 				<BlockheadSessionsView
+					entityFieldReference={{
+						entityType: EntityType._Global,
+						entityId: {},
+						fieldName: '$$blockheadSessions',
+					}}
 					href={resolve('/~/manage/profiles')}
 					id="manage-profiles"
 					open={false}
@@ -28,6 +35,11 @@
 
 			<section>
 				<BlockheadSourcesView
+					entityFieldReference={{
+						entityType: EntityType._Global,
+						entityId: {},
+						fieldName: '$$blockheadSources',
+					}}
 					href={resolve('/~/manage/sources')}
 					id="manage-sources"
 					open={false}

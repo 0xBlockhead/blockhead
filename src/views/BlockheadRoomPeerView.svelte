@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -11,7 +12,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -38,7 +39,6 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
@@ -69,7 +69,7 @@
 	const fieldBag = $derived(
 		(() => {
 			const bag = peerRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object' || Array.isArray(bag)) return null
+			if (bag === undefined || typeof bag !== 'object' || Array.isArray(bag)) return null
 			return bag as Record<string, unknown>
 		})(),
 	)
@@ -126,16 +126,11 @@
 	const roomId = $derived(
 		(() => {
 			const room = fieldBag?.$room
-			if (room == null || typeof room !== 'object' || Array.isArray(room)) return undefined
-			const id = Reflect.get(room, 'id')
+			if (room === undefined || typeof room !== 'object' || Array.isArray(room)) return undefined
+			const id = (room as { id: unknown }).id
 			return typeof id === 'string' && id.length ? id : undefined
 		})(),
 	)
-
-	const displayTitle = $derived(
-		displayName ?? peerId ?? entityId.id,
-	)
-
 
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
@@ -147,30 +142,30 @@
 <EntityView
 	entityType={EntityType.BlockheadRoomPeer}
 	{entityId}
-	title={titleProp ?? displayTitle}
+	title={titleProp ?? (displayName ?? peerId ?? entityId.id)}
 	{href}
 	{open}
 	{...entityViewRest}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Contact ID</dt>
 				<dd>{entityId.id}</dd>
 			</div>
-			{#if peerId != null}
+			{#if peerId !== undefined}
 				<div>
 					<dt>Peer ID</dt>
 					<dd>{peerId}</dd>
 				</div>
 			{/if}
-			{#if isConnected != null}
+			{#if isConnected !== undefined}
 				<div>
 					<dt>Connected</dt>
 					<dd>{isConnected ? 'Yes' : 'No'}</dd>
 				</div>
 			{/if}
-			{#if roomId != null}
+			{#if roomId !== undefined}
 				<div>
 					<dt>Room</dt>
 					<dd>{roomId}</dd>
@@ -194,9 +189,9 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No room peer row in collections yet.
+							No room peer data yet.
 						</p>
 					{:else}
 						<dl>
@@ -204,49 +199,49 @@
 								<dt>Contact ID</dt>
 								<dd>{entityId.id}</dd>
 							</div>
-							{#if peerId != null}
+							{#if peerId !== undefined}
 								<div>
 									<dt>Peer ID</dt>
 									<dd>{peerId}</dd>
 								</div>
 							{/if}
-							{#if displayName != null}
+							{#if displayName !== undefined}
 								<div>
 									<dt>Display name</dt>
 									<dd>{displayName}</dd>
 								</div>
 							{/if}
-							{#if roomId != null}
+							{#if roomId !== undefined}
 								<div>
 									<dt>Room</dt>
 									<dd>{roomId}</dd>
 								</div>
 							{/if}
-							{#if joinedAt != null}
+							{#if joinedAt !== undefined}
 								<div>
 									<dt>Joined at</dt>
 									<dd>{String(joinedAt)}</dd>
 								</div>
 							{/if}
-							{#if lastSeenAt != null}
+							{#if lastSeenAt !== undefined}
 								<div>
 									<dt>Last seen at</dt>
 									<dd>{String(lastSeenAt)}</dd>
 								</div>
 							{/if}
-							{#if connectedAt != null}
+							{#if connectedAt !== undefined}
 								<div>
 									<dt>Connected at</dt>
 									<dd>{String(connectedAt)}</dd>
 								</div>
 							{/if}
-							{#if disconnectedAt != null}
+							{#if disconnectedAt !== undefined}
 								<div>
 									<dt>Disconnected at</dt>
 									<dd>{String(disconnectedAt)}</dd>
 								</div>
 							{/if}
-							{#if isConnected != null}
+							{#if isConnected !== undefined}
 								<div>
 									<dt>Is connected</dt>
 									<dd>{isConnected ? 'Yes' : 'No'}</dd>

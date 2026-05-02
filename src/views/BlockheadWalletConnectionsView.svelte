@@ -29,12 +29,9 @@
 
 	const cleanupByRdns = new SvelteMap<string, () => void>()
 
-	let providers = $state(
-		[] as Eip6963ProviderDetail[],
-	)
-	let connections = $state(
-		[] as WalletConnection[],
-	)
+	let providers = $state<Eip6963ProviderDetail[]>([])
+
+	let connections = $state<WalletConnection[]>([])
 
 
 	// Functions
@@ -190,37 +187,6 @@
 >
 	{#snippet body()}
 		<div data-column="gap-3">
-			<p data-text="muted">
-				Connect an injected provider to add its accounts here.
-			</p>
-
-			{#if availableProviders.length > 0}
-				<div data-row="wrap">
-					{#each availableProviders as detail (detail.info.rdns)}
-						<button
-							type="button"
-							data-row="align-center"
-							onclick={() => connect(detail)}
-						>
-							{#if detail.info.icon}
-								<Icon
-									src={detail.info.icon}
-									alt={detail.info.name}
-								/>
-							{/if}
-
-							<span>
-								Connect {detail.info.name}
-							</span>
-						</button>
-					{/each}
-				</div>
-			{:else if providers.length === 0}
-				<p data-text="muted">
-					No injected providers found.
-				</p>
-			{/if}
-
 			{#if sortedConnections.length > 0}
 				<div data-column="gap-2">
 					{#each sortedConnections as connection (connection.detail.info.rdns)}
@@ -246,6 +212,29 @@
 				<p data-text="muted">
 					No wallet connections yet.
 				</p>
+			{/if}
+
+			{#if availableProviders.length > 0}
+				<div data-row="start">
+					{#each availableProviders as detail (detail.info.rdns)}
+						<button
+							type="button"
+							data-row="align-center"
+							onclick={() => connect(detail)}
+						>
+							{#if detail.info.icon}
+								<Icon
+									src={detail.info.icon}
+									alt={detail.info.name}
+								/>
+							{/if}
+
+							<span>
+								Connect {detail.info.name}
+							</span>
+						</button>
+					{/each}
+				</div>
 			{/if}
 		</div>
 	{/snippet}

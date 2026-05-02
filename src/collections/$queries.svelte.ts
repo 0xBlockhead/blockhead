@@ -1,8 +1,8 @@
 // Types/constants
 import { useLiveQuery } from '@tanstack/svelte-db'
 
-import { entityCollectionByEntityType, entityFieldCollections } from '$/collections/$collections.ts'
-import { schema } from '$/schema/$schema.ts'
+import { entityCollectionByEntityType, entityFieldCollections } from '$/routes/+layout.svelte'
+import { schema } from '$/schema/index.ts'
 
 
 export const entityQueryByEntityType = Object.fromEntries(

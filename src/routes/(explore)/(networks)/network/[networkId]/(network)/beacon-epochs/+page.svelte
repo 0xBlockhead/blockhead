@@ -1,0 +1,31 @@
+<script lang="ts">
+	// Context
+	import { resolve } from '$app/paths'
+
+
+	// State
+	let {
+		params,
+	} = $props()
+
+
+	// Components
+	import Page from '$/components/Page.svelte'
+	import BeaconEpochsView from '$/views/BeaconEpochsView.svelte'
+	import { EntityType } from '$/schema/$EntityType.ts'
+</script>
+
+
+<Page>
+	<section>
+		<BeaconEpochsView
+			entityFieldReference={{
+				entityType: EntityType.Network,
+				entityId: { chainId: Number(params.networkId) },
+				fieldName: '$$beaconEpochs',
+			}}
+			href={resolve('/(explore)/(networks)/network/[networkId]/(network)/beacon-epochs', params)}
+			id="beacon-epochs"
+		/>
+	</section>
+</Page>

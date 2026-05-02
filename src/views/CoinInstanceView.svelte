@@ -1,18 +1,20 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// State
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -37,11 +39,11 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
 
+	// (Derived)
 	const coinInstanceIdKey = $derived(
 		stringify(entityId),
 	)
@@ -62,13 +64,18 @@
 	)
 
 	const coinInstanceRow = $derived(
-		coinInstanceQuery.data?.[0]?.row,
+		(
+			coinInstanceQuery.data?.find(
+				(r) => r.row[EntityMetaKey.Source] === Source.Coingecko_Rest,
+			)?.row
+			?? coinInstanceQuery.data?.[0]?.row
+		),
 	)
 
 	const coinInstanceField = $derived(
 		(() => {
 			const bag = coinInstanceRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			return {
 				symbol: typeof b.symbol === 'string' && b.symbol.length ? b.symbol : undefined,
@@ -80,11 +87,13 @@
 	)
 
 	const displayTitle = $derived(
-		coinInstanceField?.symbol != null ?
-			coinInstanceField.symbol
-		:	entityId.type === CoinInstanceType.NativeCurrency ?
-			`Native (${entityId.$network.chainId})`
-		:	`ERC-20 (${entityId.$network.chainId})`,
+		coinInstanceField?.symbol
+			?? coinInstanceField?.name
+			?? (
+				entityId.type === CoinInstanceType.NativeCurrency ?
+					`Native (${entityId.$network.chainId})`
+				:	`ERC-20 (${entityId.$network.chainId})`
+			),
 	)
 
 
@@ -104,17 +113,19 @@
 	{...entityViewRest}
 	title={displayTitle}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
-				<dt>Chain ID</dt>
-				<dd>{String(entityId.$network.chainId)}</dd>
+				<dt>Chain</dt>
+				<dd>
+					{String(entityId.$network.chainId)}
+				</dd>
 			</div>
 			<div>
 				<dt>Kind</dt>
 				<dd>
 					{#if entityId.type === CoinInstanceType.NativeCurrency}
-						Native currency
+						Native
 					{:else if entityId.type === CoinInstanceType.Erc20Token}
 						<Address
 							network={entityId.$contract.$network}
@@ -140,25 +151,31 @@
 			>
 
 				{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{@const row = (
+						rows?.find(
+							(r) => r.row[EntityMetaKey.Source] === Source.Coingecko_Rest,
+						)?.row
+						?? rows?.[0]?.row
+					)}
+					{#if row === undefined}
 						<p data-text="muted">
-							No coin instance row in collections yet (no resolver for this chain + asset).
+							No metadata for this deployment yet.
 						</p>
 					{:else}
 						<dl>
-							{#if coinInstanceField?.name != null}
+							{#if coinInstanceField?.name !== undefined}
 								<div>
 									<dt>Name</dt>
 									<dd>{coinInstanceField.name}</dd>
 								</div>
 							{/if}
-							{#if coinInstanceField?.decimals != null}
+							{#if coinInstanceField?.decimals !== undefined}
 								<div>
 									<dt>Decimals</dt>
 									<dd>{String(coinInstanceField.decimals)}</dd>
 								</div>
 							{/if}
-							{#if coinInstanceField?.caip19 != null}
+							{#if coinInstanceField?.caip19 !== undefined}
 								<div>
 									<dt>CAIP-19</dt>
 									<dd>{coinInstanceField.caip19}</dd>

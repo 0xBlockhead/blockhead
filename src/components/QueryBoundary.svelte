@@ -2,68 +2,53 @@
 	// Types/constants
 	import type { Snippet } from 'svelte'
 
-	import Boundary from '$/components/Boundary.svelte'
-
-	type QueryLike<Data> = {
-		data: Data
-		isLoading: boolean
-		isError: boolean
-		error?: unknown
-	}
+	import type { QueryLike } from '$/lib/db/queryResource.svelte.ts'
 
 
 	// Props
 	let {
 		children,
-		Failed,
 		Pending: _Pending,
+		Failed: _Failed,
 		placeholderText = 'Loading…',
 		query,
 	}: {
 		children: Snippet<[data: Data]>
+		Pending?: Snippet
 		Failed?: Snippet<[
 			error: unknown,
 			retry: () => void,
 		]>
-		Pending?: Snippet
 		placeholderText?: string
 		query: QueryLike<Data>
 	} = $props()
-
-
-	// (Derived)
-	const dataPromise = $derived.by(() => (
-		query.isLoading ?
-			new Promise<Data>(() => {})
-		: query.isError ?
-			Promise.reject(
-				query.error ?? new Error('Query failed'),
-			)
-		:
-			query.data
-	))
 </script>
 
 
-<Boundary
-	{Failed}
->
-	{#snippet Pending()}
-		{#if _Pending}
-			{@render _Pending()}
-		{:else}
-			<div
-				data-card
-				data-text="muted"
-				class="loading"
-			>
-				<p>{placeholderText}</p>
-			</div>
-		{/if}
-	{/snippet}
-
-	{@render children(await dataPromise)}
-</Boundary>
+{#if query.isReady}
+	{@render children(query.data)}
+{:else if query.isError}
+	{@const err = (query.error ?? query.status ?? 'Query failed')}
+	{#if _Failed}
+		{@render _Failed(err, () => {})}
+	{:else}
+		<div data-card>
+			<p role="alert">{String(err)}</p>
+		</div>
+	{/if}
+{:else if query.isLoading}
+	{#if _Pending}
+		{@render _Pending()}
+	{:else}
+		<div
+			data-card
+			data-text="muted"
+			class="loading"
+		>
+			<p>{placeholderText}</p>
+		</div>
+	{/if}
+{/if}
 
 
 <style>

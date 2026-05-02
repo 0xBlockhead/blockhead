@@ -1,11 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Sources.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
@@ -16,7 +17,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -41,19 +42,11 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
-
 	const blockIdKey = $derived(
 		stringify(entityId),
-	)
-
-	const chainId = $derived(
-		typeof entityId?.$network?.chainId === 'number' ?
-			entityId.$network.chainId
-		:	undefined,
 	)
 
 	const blockHash = $derived(
@@ -78,7 +71,7 @@
 	const blockRow = $derived(
 		(
 			blockQuery.data?.find(
-				(r) => r.row[EntityMetaKey.Source] === Source.Blockscout,
+				(r) => r.row[EntityMetaKey.Source] === Source.Blockscout_Rest,
 			)?.row
 			?? blockQuery.data?.[0]?.row
 		)
@@ -87,9 +80,10 @@
 	const blockField = $derived(
 		(() => {
 			const bag = blockRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			return {
+				extraData: typeof b.extraData === 'string' && b.extraData.length ? b.extraData : undefined,
 				timestamp: typeof b.timestamp === 'number' ? b.timestamp : undefined,
 				gasUsed: typeof b.gasUsed === 'bigint' ? b.gasUsed : undefined,
 				gasLimit: typeof b.gasLimit === 'bigint' ? b.gasLimit : undefined,
@@ -103,13 +97,21 @@
 		`Block ${entityId.blockNumber}`,
 	)
 
+	const hasSummaryDetails = $derived(
+		blockField?.transactionCount !== undefined
+		|| blockField?.extraData !== undefined
+		|| (blockField?.timestamp !== undefined && Number.isFinite(blockField.timestamp)),
+	)
+
 
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
@@ -118,20 +120,58 @@
 	{entityId}
 	title={blockTitle}
 	{href}
+	idDragPlainText={String(entityId.blockNumber)}
 	{open}
 	{...entityViewRest}
 >
-	{#snippet SummaryContent()}
-		{#if chainId != null}
+	{#snippet Id()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span
+				data-badge="small"
+				data-text="font-monospace"
+				data-block-number={String(entityId.blockNumber)}
+			>
+				{String(entityId.blockNumber)}
+			</span>
+			{#if typeof blockHash === 'string'}
+				<small>
+					<TruncatedValue
+						value={blockHash}
+						format={TruncatedValueFormat.Abbr}
+					/>
+				</small>
+			{/if}
+		</span>
+	{/snippet}
+
+	{#snippet Content()}
+		{#if hasSummaryDetails}
 			<dl data-definition-list="vertical">
-				<div>
-					<dt>Chain ID</dt>
-					<dd>{String(chainId)}</dd>
-				</div>
-				<div>
-					<dt>Number</dt>
-					<dd>{String(entityId.blockNumber)}</dd>
-				</div>
+				{#if blockField?.transactionCount !== undefined}
+					<div>
+						<dt>Transactions</dt>
+						<dd>
+							<NumberValue value={blockField.transactionCount} />
+						</dd>
+					</div>
+				{/if}
+				{#if blockField?.extraData !== undefined}
+					<div>
+						<dt>Extra Data (graffiti)</dt>
+						<dd>{blockField.extraData}</dd>
+					</div>
+				{/if}
+				{#if blockField?.timestamp !== undefined && Number.isFinite(blockField.timestamp)}
+					<div>
+						<dt>Timestamp</dt>
+						<dd>
+							<Timestamp
+								timestamp={blockField.timestamp}
+								format={TimestampFormat.Both}
+							/>
+						</dd>
+					</div>
+				{/if}
 			</dl>
 		{/if}
 	{/snippet}
@@ -150,85 +190,94 @@
 				{#snippet children(rows)}
 				{@const blockRow = (
 					rows?.find(
-						(r) => r.row[EntityMetaKey.Source] === Source.Blockscout,
+						(r) => r.row[EntityMetaKey.Source] === Source.Blockscout_Rest,
 					)?.row
 					?? rows?.[0]?.row
 				)}
-				{#if blockRow == null}
+				{#if blockRow === undefined}
 					<p data-text="muted">
-						No block row in collections yet (resolve Blockscout / RPC for this chain).
+						No block data for this chain yet. Try again shortly.
 					</p>
 				{:else}
 					<dl>
-						{#if blockField?.timestamp != null}
+						<div>
+							<dt>Hash</dt>
+							<dd>
+								{#if typeof blockHash === 'string'}
+									<TruncatedValue
+										value={blockHash}
+										format={TruncatedValueFormat.Abbr}
+									/>
+								{:else}
+									–
+								{/if}
+							</dd>
+						</div>
+						{#if blockField?.timestamp !== undefined && Number.isFinite(blockField.timestamp)}
 							<div>
 								<dt>Timestamp</dt>
-								<dd>{String(blockField.timestamp)}</dd>
+								<dd>
+									<Timestamp
+										timestamp={blockField.timestamp}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
 							</div>
 						{/if}
-						{#if blockField?.gasUsed != null}
+						{#if blockField?.gasUsed !== undefined}
 							<div>
 								<dt>Gas used</dt>
-								<dd>{String(blockField.gasUsed)}</dd>
+								<dd>
+									<NumberValue value={blockField.gasUsed} />
+								</dd>
 							</div>
 						{/if}
-						{#if blockField?.gasLimit != null}
+						{#if blockField?.gasLimit !== undefined}
 							<div>
 								<dt>Gas limit</dt>
-								<dd>{String(blockField.gasLimit)}</dd>
+								<dd>
+									<NumberValue value={blockField.gasLimit} />
+								</dd>
 							</div>
 						{/if}
-						{#if blockField?.baseFeePerGas != null}
+						{#if blockField?.baseFeePerGas !== undefined}
 							<div>
 								<dt>Base fee</dt>
-								<dd>{String(blockField.baseFeePerGas)}</dd>
+								<dd>
+									<NumberValue value={blockField.baseFeePerGas} />
+								</dd>
 							</div>
 						{/if}
-						{#if blockField?.transactionCount != null}
+						{#if blockField?.transactionCount !== undefined}
 							<div>
 								<dt>Transactions</dt>
-								<dd>{String(blockField.transactionCount)}</dd>
+								<dd>
+									<NumberValue value={blockField.transactionCount} />
+								</dd>
 							</div>
 						{/if}
 					</dl>
 				{/if}
 				{/snippet}
 			</QueryBoundary>
-
-			<dl data-column>
-				<dt>
-					Hash
-				</dt>
-				<dd>
-					{#if typeof blockHash === 'string'}
-						<TruncatedValue
-							value={blockHash}
-							format={TruncatedValueFormat.Abbr}
-						/>
-					{:else}
-						–
-					{/if}
-				</dd>
-			</dl>
 		</EntityDetails>
 
-		{#if chainId != null}
-			<EvmTransactionsView
-				entityId={{
-					$network: { chainId },
-					blockNumber: entityId.blockNumber,
-				}}
-				href={resolve(
-					'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
-					{
-						networkId: String(chainId),
-						blockNumber: String(entityId.blockNumber),
-					},
-				)}
-				id={`${blockIdKey}:transactions`}
-				open={false}
-			/>
-		{/if}
+		<EvmTransactionsView
+			entityFieldReference={{
+				entityType: EntityType.EvmBlock,
+				entityId,
+				fieldName: '$$evmTransactions',
+			}}
+			href={resolve(
+				'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
+				{
+					networkId: String(entityId.$network.chainId),
+					blockNumber: String(entityId.blockNumber),
+				},
+			)}
+			id="transactions"
+			open={false}
+		/>
 
 		{#if children}
 			{@render children()}

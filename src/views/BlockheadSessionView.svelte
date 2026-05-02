@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -12,7 +13,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -37,7 +38,6 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
@@ -68,7 +68,7 @@
 	const sessionPrimitives = $derived(
 		(() => {
 			const bag = sessionRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object' || Array.isArray(bag)) return null
+			if (bag === undefined || typeof bag !== 'object' || Array.isArray(bag)) return null
 			const b = bag as Record<string, unknown>
 			const str = (key: string) => (
 				typeof b[key] === 'string' && (b[key] as string).length ?
@@ -82,7 +82,7 @@
 			)
 			const statusRaw = str('status')
 			const status = (
-				statusRaw != null
+				statusRaw !== undefined
 				&& (
 					Object.values(BlockheadSessionStatus) as string[]
 				).includes(statusRaw) ?
@@ -100,19 +100,16 @@
 		})(),
 	)
 
-	const displayTitle = $derived(
-		sessionPrimitives?.name ?? entityId.id,
+	const sessionTs = $derived(
+		sessionPrimitives?.updatedAt
+		?? sessionPrimitives?.createdAt
 	)
-
-	const isoFromMs = (ms: number) => (
-		new Date(ms).toISOString()
-	)
-
 
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
@@ -123,9 +120,9 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
+	title={sessionPrimitives?.name ?? entityId.id}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Session id</dt>
@@ -136,10 +133,21 @@
 					/>
 				</dd>
 			</div>
-			{#if sessionPrimitives?.status != null}
+			{#if sessionPrimitives?.status !== undefined}
 				<div>
 					<dt>Status</dt>
 					<dd>{sessionPrimitives.status}</dd>
+				</div>
+			{/if}
+			{#if sessionTs !== undefined && typeof sessionTs === 'number' && Number.isFinite(sessionTs)}
+				<div>
+					<dt>Timestamp</dt>
+					<dd>
+						<Timestamp
+							timestamp={sessionTs}
+							format={TimestampFormat.Both}
+						/>
+					</dd>
 				</div>
 			{/if}
 		</dl>
@@ -160,43 +168,58 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No session row in collections yet (no resolver for this session).
+							No session data for this id yet.
 						</p>
 					{:else}
 						<dl>
-							{#if sessionPrimitives?.name != null}
+							{#if sessionPrimitives?.name !== undefined}
 								<div>
 									<dt>Name</dt>
 									<dd>{sessionPrimitives.name}</dd>
 								</div>
 							{/if}
-							{#if sessionPrimitives?.status != null}
+							{#if sessionPrimitives?.status !== undefined}
 								<div>
 									<dt>Status</dt>
 									<dd>{sessionPrimitives.status}</dd>
 								</div>
 							{/if}
-							{#if sessionPrimitives?.createdAt != null}
+							{#if sessionPrimitives?.createdAt !== undefined && typeof sessionPrimitives.createdAt === 'number' && Number.isFinite(sessionPrimitives.createdAt)}
 								<div>
 									<dt>Created</dt>
-									<dd>{isoFromMs(sessionPrimitives.createdAt)}</dd>
+									<dd>
+										<Timestamp
+											timestamp={sessionPrimitives.createdAt}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
 								</div>
 							{/if}
-							{#if sessionPrimitives?.updatedAt != null}
+							{#if sessionPrimitives?.updatedAt !== undefined && typeof sessionPrimitives.updatedAt === 'number' && Number.isFinite(sessionPrimitives.updatedAt)}
 								<div>
 									<dt>Updated</dt>
-									<dd>{isoFromMs(sessionPrimitives.updatedAt)}</dd>
+									<dd>
+										<Timestamp
+											timestamp={sessionPrimitives.updatedAt}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
 								</div>
 							{/if}
-							{#if sessionPrimitives?.lockedAt != null}
+							{#if sessionPrimitives?.lockedAt !== undefined && typeof sessionPrimitives.lockedAt === 'number' && Number.isFinite(sessionPrimitives.lockedAt)}
 								<div>
 									<dt>Locked</dt>
-									<dd>{isoFromMs(sessionPrimitives.lockedAt)}</dd>
+									<dd>
+										<Timestamp
+											timestamp={sessionPrimitives.lockedAt}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
 								</div>
 							{/if}
-							{#if sessionPrimitives?.simulationCount != null}
+							{#if sessionPrimitives?.simulationCount !== undefined}
 								<div>
 									<dt>Simulation count</dt>
 									<dd>{String(sessionPrimitives.simulationCount)}</dd>

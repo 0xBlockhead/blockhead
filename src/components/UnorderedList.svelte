@@ -17,13 +17,14 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { UnorderedListRowType } from '$/components/UnorderedListRowType.ts'
 	import type { ListPagination } from '$/components/RefinableList.types.ts'
-	import type { Match } from '$/lib/fuzzyMatch.ts'
+	import type { Match } from '$/lib/string.ts'
 	import type { VirtualRowMeasurement } from '$/lib/virtualRows.ts'
 	import type { Snippet } from 'svelte'
 	import { browser } from '$app/environment'
-	import { untrack } from 'svelte'
+	import { tick } from 'svelte'
 	import { SvelteMap, SvelteSet } from 'svelte/reactivity'
 
+	import { createSerialViewTransitionRunner, supportsViewTransitions, viewTransitionName } from '$/lib/viewTransition.ts'
 	import { getVisibleVirtualRange, measureVirtualRows } from '$/lib/virtualRows.ts'
 	import { visibility } from '$/lib/visibility.ts'
 
@@ -56,6 +57,24 @@
 		| PlaceholderRow
 		| PaginationRow
 		| PlaceholderSentinelRow
+	type RenderItemRow = ItemRow & {
+		hidden: boolean
+		matches?: SvelteSet<Match>
+		searchQuery: string
+		visualOrder?: number
+	}
+	type RenderRow =
+		| GroupRow
+		| RenderItemRow
+		| PlaceholderRow
+		| PaginationRow
+		| PlaceholderSentinelRow
+	type RenderState = {
+		empty: boolean
+		hasVirtual: boolean
+		manyItems: boolean
+		rows: RenderRow[]
+	}
 
 
 	// Props
@@ -76,6 +95,7 @@
 		listElement = 'ul',
 		orientation = ListOrientation.Column,
 		pagination,
+		listViewTransition = false,
 		searchQuery = $bindable(''),
 		matchesForItem = $bindable(
 			new SvelteMap<_Item, SvelteSet<Match>>()
@@ -102,6 +122,7 @@
 		listElement?: 'ul' | 'ol'
 		orientation?: ListOrientation
 		pagination?: ListPagination
+		listViewTransition?: boolean
 		searchQuery?: string
 		matchesForItem?: SvelteMap<_Item, SvelteSet<Match>>
 		virtual?: VirtualRowMeasurement<ListRow>
@@ -128,9 +149,6 @@
 
 	// Functions
 	const isPlaceholderKey = (key: _Key): boolean => placeholderKeys.has(key)
-	const viewTransitionName = (key: _Key): string => (
-		'list-item-' + String(key).replace(/^\d/, '_$&').replace(/[^a-zA-Z0-9_-]/g, '_')
-	)
 	const getRowKey = (row: ListRow): string => (
 		isGroupRow(row) ?
 			`group:${row.groupKey}`
@@ -176,6 +194,100 @@
 	const isPlaceholderSentinelRow = (row: ListRow): row is PlaceholderSentinelRow => (
 		row.type === UnorderedListRowType.PlaceholderSentinel
 	)
+	const getMatchFingerprint = (matches: SvelteSet<Match> | undefined) => (
+		matches ?
+			[...matches].map((match) => `${match.start}-${match.end}`).join(',')
+		:
+			''
+	)
+	const buildRenderRows = (
+		rows: ListRow[],
+		useVisualFilters: boolean,
+	): RenderRow[] => (
+		rows.map((row): RenderRow => {
+			if (!isItemRow(row)) return row
+
+			const matches = matchesForItem.get(row.item)
+			const useSearchVisuals = useVisualFilters && hasSearch && hasSearchData
+			const hasNoSearchMatches = useSearchVisuals && (matches?.size ?? 0) === 0
+			const hidden = (
+				(useVisualFilters && getIsHidden ? getIsHidden(row.item) : false)
+				|| hasNoSearchMatches
+			)
+
+			return {
+				...row,
+				hidden,
+				matches: useSearchVisuals ? matches : undefined,
+				searchQuery: useSearchVisuals ? searchQuery : '',
+				visualOrder: (
+					useSearchVisuals ?
+						matchOrder.indexOf(row.item) + 1
+					:
+						undefined
+				),
+			}
+		})
+	)
+	const getRenderRowFingerprint = (row: RenderRow): string => (
+		isGroupRow(row) ?
+			`g:${String(row.groupKey)}`
+		: isPlaceholderRow(row) ?
+			`p:${String(row.key)}`
+		: isPaginationRow(row) ?
+			'pg'
+		: isPlaceholderSentinelRow(row) ?
+			'ps'
+		:
+			[
+				'i',
+				String(row.key),
+				row.hidden ? '1' : '0',
+				String(row.visualOrder ?? ''),
+				getMatchFingerprint(row.matches),
+			].join(':')
+	)
+	const getNextRenderState = (): RenderState => (
+		hasVirtual ?
+			{
+				empty: isEmpty,
+				hasVirtual: true,
+				manyItems: false,
+				rows: buildRenderRows(virtualRows, false),
+			}
+		:
+			{
+				empty: isEmpty,
+				hasVirtual: false,
+				manyItems: allRows.length > 200,
+				rows: [
+					...buildRenderRows(
+						allRows.slice(
+							0,
+							sliceLimit,
+						),
+						true,
+					),
+					...(
+						onLoadMorePlaceholders ?
+							[{
+								type: UnorderedListRowType.PlaceholderSentinel,
+								key: '__placeholder_sentinel__',
+							} satisfies RenderRow]
+						:
+							[]
+					),
+				],
+			}
+	)
+	const getRenderFingerprint = (renderState: RenderState): string => (
+		[
+			renderState.hasVirtual ? 'v' : 'n',
+			renderState.empty ? 'e' : 'o',
+			renderState.manyItems ? 'm' : 's',
+			...renderState.rows.map(getRenderRowFingerprint),
+		].join('\u001f')
+	)
 	const buildGroupEntries = (rows: _Item[]) => {
 		if (!getGroupKey || !getGroupLabel) return null
 		const groupMap = new Map<_GroupKey, _Item[]>()
@@ -218,7 +330,7 @@
 			getGroupKey &&
 			getGroupLabel &&
 			getGroupKeyForPlaceholder &&
-			groupEntries != null
+			groupEntries !== undefined
 		) {
 			const placeholderByGroup = new Map<_GroupKey, _Key[]>()
 			for (const row of placeholderRows) {
@@ -317,11 +429,14 @@
 		0,
 	])
 	let totalHeight = $state(0)
+	let scheduledRenderFingerprint = $state(null as string | null)
+	let transitionsArmed = $state(false)
+	let transitionsArmScheduled = false
 
 
 	// (Derived)
 	const hasVirtual = $derived(
-		browser && virtual != null
+		browser && virtual !== undefined
 	)
 	const sortedItems = $derived(
 		[...items].sort((itemA, itemB) => {
@@ -340,6 +455,9 @@
 	)
 	const hasSearch = $derived(
 		!!searchQueryNormalized
+	)
+	const hasSearchData = $derived(
+		!hasSearch || sortedItems.every((item) => matchesForItem.has(item))
 	)
 	const matchOrder = $derived(
 		hasSearch ?
@@ -398,7 +516,7 @@
 		})
 	))
 	const virtualItems = $derived.by(() => {
-		const baseItems = hasSearch ?
+		const baseItems = hasSearch && hasSearchData ?
 			matchOrder.filter((item) => (
 				(matchesForItem.get(item)?.size ?? 0) > 0
 			))
@@ -426,8 +544,27 @@
 	const isEmpty = $derived(
 		allRows.filter((row) => !isPaginationRow(row)).length === 0
 	)
+	const nextRenderState = $derived.by(getNextRenderState)
+	const nextRenderFingerprint = $derived(
+		getRenderFingerprint(nextRenderState)
+	)
+	let committedRenderState = $state.raw(getNextRenderState())
+	let committedRenderFingerprint = $state(getRenderFingerprint(getNextRenderState()))
+	const renderRows = $derived(
+		committedRenderState.rows
+	)
+	const renderHasVirtual = $derived(
+		committedRenderState.hasVirtual
+	)
+	const renderIsEmpty = $derived(
+		committedRenderState.empty
+	)
+	const renderManyItems = $derived(
+		committedRenderState.manyItems
+	)
+	const viewTransitionRunner = createSerialViewTransitionRunner()
 	const virtualRange = $derived(
-		hasVirtual ?
+		renderHasVirtual ?
 			getVisibleVirtualRange({
 				offsets,
 				scrollTop: virtualScrollTop,
@@ -470,30 +607,61 @@
 	)
 
 	$effect(() => {
-		const query = searchQueryNormalized
-		const _itemsSize = items.size
-		if (!query) {
-			untrack(() => matchesForItem.clear())
-			return
-		}
-		untrack(() => {
-			for (const item of sortedItems)
-				if (!matchesForItem.has(item))
-					matchesForItem.set(
-						item,
-						new SvelteSet(),
-					)
-		})
-	})
-	$effect(() => {
 		summary = {
 			loaded: items.size,
 			total: summaryTotal,
 		}
 	})
 	$effect(() => {
+		const _nextRenderFingerprint = nextRenderFingerprint
 		if (
-			!hasVirtual
+			transitionsArmed
+			|| transitionsArmScheduled
+		) return
+
+		transitionsArmScheduled = true
+		void tick()
+			.then(() => tick())
+			.then(() => {
+				committedRenderState = nextRenderState
+				committedRenderFingerprint = nextRenderFingerprint
+				transitionsArmed = true
+			})
+			.finally(() => {
+				transitionsArmScheduled = false
+			})
+	})
+	$effect.pre(() => {
+		const nextState = nextRenderState
+		const nextFingerprint = nextRenderFingerprint
+		if (nextFingerprint === committedRenderFingerprint) {
+			scheduledRenderFingerprint = null
+			return
+		}
+		if (scheduledRenderFingerprint === nextFingerprint) return
+
+		if (
+			!browser
+			|| !listViewTransition
+			|| !transitionsArmed
+			|| !supportsViewTransitions()
+		) {
+			committedRenderState = nextState
+			committedRenderFingerprint = nextFingerprint
+			scheduledRenderFingerprint = null
+			return
+		}
+
+		scheduledRenderFingerprint = nextFingerprint
+		void viewTransitionRunner.start(() => {
+			committedRenderState = nextState
+			committedRenderFingerprint = nextFingerprint
+			scheduledRenderFingerprint = null
+		})
+	})
+	$effect(() => {
+		if (
+			!renderHasVirtual
 			|| !listEl
 		) return
 
@@ -538,12 +706,12 @@
 	})
 	$effect(() => {
 		if (
-			!hasVirtual
+			!renderHasVirtual
 			|| !virtual
 		) return
 
 		const next = measureVirtualRows({
-			rows: virtualRows,
+			rows: renderRows,
 			width: virtualMeasureWidth,
 			measurement: virtual,
 		})
@@ -555,10 +723,9 @@
 
 
 {#snippet RowItem(
-	row: ListRow,
+	row: RenderRow,
 	index: number,
 	rowHeight: number | undefined = undefined,
-	useVisualFilters: boolean = false,
 )}
 	{#if isGroupRow(row)}
 		<li
@@ -566,7 +733,7 @@
 			data-sticky
 			data-scroll-item="snap-block-start"
 			style:--index={index}
-			style:min-block-size={rowHeight != null ? `${rowHeight}px` : undefined}
+			style:min-block-size={rowHeight !== undefined ? `${rowHeight}px` : undefined}
 		>
 			{#if GroupHeader}
 				{@render GroupHeader({ groupKey: row.groupKey })}
@@ -580,7 +747,7 @@
 			data-placeholder
 			data-scroll-item="snap-block-start"
 			style:--index={index}
-			style:min-block-size={rowHeight != null ? `${rowHeight}px` : undefined}
+			style:min-block-size={rowHeight !== undefined ? `${rowHeight}px` : undefined}
 		>
 			{@render Item({ key: row.key, isPlaceholder: true as const })}
 		</li>
@@ -590,7 +757,7 @@
 			data-pagination
 			data-scroll-item="snap-block-start"
 			style:--index={index}
-			style:min-block-size={rowHeight != null ? `${rowHeight}px` : undefined}
+			style:min-block-size={rowHeight !== undefined ? `${rowHeight}px` : undefined}
 			{@attach visibility({ onVisible: pagination?.onLoadMore ?? (() => {}) })}
 		>
 			{#if pagination?.Placeholder}
@@ -610,24 +777,20 @@
 			data-placeholder-sentinel
 			data-scroll-item="snap-block-start"
 			style:--index={index}
-			style:min-block-size={rowHeight != null ? `${rowHeight}px` : undefined}
+			style:min-block-size={rowHeight !== undefined ? `${rowHeight}px` : undefined}
 			{@attach visibility({ onVisible: onLoadMorePlaceholders ?? (() => {}) })}
 		>
 			<span aria-hidden="true">&nbsp;</span>
 		</li>
 	{:else}
-		{@const hasNoSearchMatches = useVisualFilters && hasSearch && (matchesForItem.get(row.item)?.size ?? 0) === 0}
-		{@const isHidden = useVisualFilters && getIsHidden ? getIsHidden(row.item) : false}
-		{@const visualOrder = useVisualFilters && hasSearch ? matchOrder.indexOf(row.item) + 1 : undefined}
-
 		<li
 			data-list-item
 			data-scroll-item="snap-block-start"
 			style:--index={index}
-			style={visualOrder != null ? `order: ${visualOrder}` : undefined}
-			style:min-block-size={rowHeight != null ? `${rowHeight}px` : undefined}
+			style={row.visualOrder !== undefined ? `order: ${row.visualOrder}` : undefined}
+			style:min-block-size={rowHeight !== undefined ? `${rowHeight}px` : undefined}
 			style:view-transition-name={viewTransitionName(row.key)}
-			{...(isHidden || hasNoSearchMatches) && {
+			{...row.hidden && {
 				hidden: true,
 				inert: true,
 			}}
@@ -636,30 +799,30 @@
 				key: row.key,
 				item: row.item,
 				isPlaceholder: false as const,
-				searchQuery,
-				matches: matchesForItem.get(row.item),
+				searchQuery: row.searchQuery,
+				matches: row.matches,
 			})}
 		</li>
 	{/if}
 {/snippet}
 
 
-{#if isEmpty && Empty}
+{#if renderIsEmpty && Empty}
 	{@render Empty()}
 {:else}
 	<svelte:element
 		this={listElement}
 		bind:this={listEl}
 		class="list anchor-{scrollPosition.toLowerCase()}"
-		class:many-items={!hasVirtual && allRows.length > 200}
-		class:virtual={hasVirtual}
+		class:many-items={renderManyItems}
+		class:virtual={renderHasVirtual}
 		data-row={orientation === ListOrientation.Row ? '' : undefined}
 		data-column={orientation === ListOrientation.Column ? '' : undefined}
 		data-list="unstyled"
 		data-sticky-container
 		{...rootProps}
 	>
-		{#if hasVirtual}
+		{#if renderHasVirtual}
 			{#if topSpacerHeight > 0}
 				<li
 					aria-hidden="true"
@@ -668,9 +831,9 @@
 				></li>
 			{/if}
 
-			{#each virtualVisibleIndices as rowIndex (getRowKey(virtualRows[rowIndex]))}
+			{#each virtualVisibleIndices as rowIndex (getRowKey(renderRows[rowIndex]))}
 				{@render RowItem(
-					virtualRows[rowIndex],
+					renderRows[rowIndex],
 					rowIndex,
 					rowHeights[rowIndex],
 				)}
@@ -684,24 +847,13 @@
 				></li>
 			{/if}
 		{:else}
-			{#each allRows.slice(0, sliceLimit) as row, index (getRowKey(row))}
+			{#each renderRows as row, index (getRowKey(row))}
 				{@render RowItem(
 					row,
 					index,
 					undefined,
-					true,
 				)}
 			{/each}
-
-			{#if onLoadMorePlaceholders}
-				{@render RowItem(
-					{
-						type: UnorderedListRowType.PlaceholderSentinel,
-						key: '__placeholder_sentinel__',
-					},
-					allRows.length,
-				)}
-			{/if}
 		{/if}
 	</svelte:element>
 {/if}

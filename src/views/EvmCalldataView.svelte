@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 
@@ -30,7 +31,6 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'Summary'
 		>
 	> = $props()
 
@@ -65,7 +65,7 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet SummaryContent()}
+	{#snippet Content()}
 		<dl data-definition-list="vertical">
 			<div>
 				<dt>Calldata</dt>
@@ -76,7 +76,7 @@
 					/>
 				</dd>
 			</div>
-			{#if calldataByteLength != null}
+			{#if calldataByteLength !== undefined}
 				<div>
 					<dt>Bytes</dt>
 					<dd>{String(calldataByteLength)}</dd>
@@ -104,7 +104,7 @@
 
 					<section>
 						<dl>
-							{#if calldataByteLength != null}
+							{#if calldataByteLength !== undefined}
 								<div>
 									<dt>Length (bytes)</dt>
 									<dd>{String(calldataByteLength)}</dd>

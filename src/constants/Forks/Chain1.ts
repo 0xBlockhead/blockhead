@@ -2,7 +2,8 @@
  * Ethereum mainnet forks. Activation blocks/timestamps/epochs per EIP-6953, execution-specs, consensus-specs, and fork meta EIPs (e.g. EIP-7600 Pectra, EIP-7607 Fusaka). Paris block from TTD. Links and proposalIds from ethereum.org/ethereum-forks and fork meta EIPs.
  */
 
-import { type Entity, schema } from '$/schema/$schema.ts'
+import type { Entity } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { Fork } from '$/constants/Forks/ForkTypes.ts'
 import { ethereumExecutionForkFromRow } from '$/constants/Forks/ForkTypes.ts'
@@ -11,7 +12,7 @@ import {
 	ExecutionProtocol,
 	ForkScheduleKind,
 } from '$/schema/NetworkFork.ts'
-import { ProposalCategory } from '$/constants/Proposal/ProposalCategory.ts'
+import { ProposalCategory } from '$/constants/Proposal.ts'
 
 const EXEC =
 	'https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades'

@@ -1,7 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { type EntityId, schema } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -11,7 +12,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/collections/$collections.ts'
+	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -36,9 +37,9 @@
 			| 'open'
 			| 'title'
 			| 'Details'
-			| 'SummaryIcon'
-			| 'SummaryHeadingAfter'
-			| 'SummaryContent'
+			| 'Icon'
+			| 'HeadingAfter'
+			| 'Content'
 		>
 	> = $props()
 
@@ -69,10 +70,10 @@
 	const userField = $derived(
 		(() => {
 			const bag = farcasterUserRow?.[EntityMetaKey.Fields]
-			if (bag == null || typeof bag !== 'object') return null
+			if (bag === undefined || typeof bag !== 'object') return null
 			const b = bag as Record<string, unknown>
 			const pick = (key: string) => {
-				const x = Reflect.get(b, key)
+				const x = b[key]
 				return typeof x === 'string' && x.length ? x : undefined
 			}
 			return {
@@ -86,6 +87,18 @@
 		})(),
 	)
 
+	const evmHexAddress40 = (value: string): value is `0x${string}` => (
+		/^0x[a-fA-F0-9]{40}$/.test(value)
+	)
+
+	const verifiedIsEvmHex = $derived(
+		userField?.verifiedAddress !== undefined
+		&& evmHexAddress40(userField.verifiedAddress) ?
+			userField.verifiedAddress
+		:
+			undefined,
+	)
+
 	const displayTitle = $derived(
 		userField?.displayName
 		?? userField?.username
@@ -97,7 +110,10 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import Media from '$/components/Media.svelte'
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import Address from '$/views/Address.svelte'
 </script>
 
 
@@ -109,8 +125,8 @@
 	{...entityViewRest}
 	title={displayTitle}
 >
-	{#snippet SummaryIcon()}
-		{#if userField?.pfpUrl != null}
+	{#snippet Icon()}
+		{#if userField?.pfpUrl !== undefined}
 			<Icon
 				shape={IconShape.Circle}
 				src={userField.pfpUrl}
@@ -119,21 +135,23 @@
 		{/if}
 	{/snippet}
 
-	{#snippet SummaryHeadingAfter()}
-		{#if userField?.username != null && userField.username !== displayTitle}
+	{#snippet HeadingAfter()}
+		{#if userField?.username !== undefined && userField.username !== displayTitle}
 			<span data-text="muted">
 				@{userField.username}
 			</span>
 		{/if}
 	{/snippet}
 
-	{#snippet SummaryContent()}
-		<dl data-definition-list="vertical">
-			<div>
-				<dt>FID</dt>
-				<dd>{String(farcasterUserId.fid)}</dd>
-			</div>
-		</dl>
+	{#snippet Content()}
+		{#if String(farcasterUserId.fid) !== displayTitle}
+			<dl data-definition-list="vertical">
+				<div>
+					<dt>FID</dt>
+					<dd>{String(farcasterUserId.fid)}</dd>
+				</div>
+			</dl>
+		{/if}
 	{/snippet}
 
 	{#snippet Details({
@@ -151,11 +169,11 @@
 				>
 
 					{#snippet children(rows)}
-					{#if rows?.[0]?.row == null}
+					{#if rows?.[0]?.row === undefined}
 						<p data-text="muted">
-							No Farcaster user row in collections yet (no resolver for this FID).
+							No Farcaster profile for this id yet.
 						</p>
-					{:else if userField == null}
+					{:else if userField === undefined}
 						<dl>
 							<div>
 								<dt>FID</dt>
@@ -168,37 +186,36 @@
 								<dt>FID</dt>
 								<dd>{String(farcasterUserId.fid)}</dd>
 							</div>
-							{#if userField.displayName != null}
+							{#if userField.displayName !== undefined}
 								<div>
 									<dt>Display name</dt>
 									<dd>{userField.displayName}</dd>
 								</div>
 							{/if}
-							{#if userField.username != null}
+							{#if userField.username !== undefined}
 								<div>
 									<dt>Username</dt>
 									<dd>{userField.username}</dd>
 								</div>
 							{/if}
-							{#if userField.pfpUrl != null}
+							{#if userField.pfpUrl !== undefined}
 								<div>
 									<dt>Profile image</dt>
 									<dd>
-										<Icon
-											src={userField.pfpUrl}
-											alt=""
-											size="6rem"
+										<Media
+											media={{ url: userField.pfpUrl }}
+											alt={userField.displayName ?? userField.username ?? ''}
 										/>
 									</dd>
 								</div>
 							{/if}
-							{#if userField.bio != null}
+							{#if userField.bio !== undefined}
 								<div>
 									<dt>Bio</dt>
 									<dd>{userField.bio}</dd>
 								</div>
 							{/if}
-							{#if userField.url != null}
+							{#if userField.url !== undefined}
 								<div>
 									<dt>URL</dt>
 									<dd>
@@ -206,10 +223,25 @@
 									</dd>
 								</div>
 							{/if}
-							{#if userField.verifiedAddress != null}
+							{#if verifiedIsEvmHex !== undefined}
 								<div>
 									<dt>Verified address</dt>
-									<dd>{userField.verifiedAddress}</dd>
+									<dd>
+										<Address
+											address={verifiedIsEvmHex}
+											showAvatar={false}
+										/>
+									</dd>
+								</div>
+							{:else if userField.verifiedAddress !== undefined}
+								<div>
+									<dt>Verified address</dt>
+									<dd>
+										<TruncatedValue
+											value={userField.verifiedAddress}
+											format={TruncatedValueFormat.Visual}
+										/>
+									</dd>
 								</div>
 							{/if}
 						</dl>

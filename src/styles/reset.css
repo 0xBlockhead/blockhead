@@ -161,6 +161,7 @@
 :focus:not(:focus-visible) {
 	outline: none;
 }
+
 @media (prefers-reduced-motion: reduce) {
 	*,
 	*::before,
@@ -169,12 +170,10 @@
 		animation-iteration-count: 1 !important;
 		transition-duration: 0.01ms !important;
 	}
-}
-
-::view-transition-group(*),
-::view-transition-old(*),
-::view-transition-new(*) {
-	@media (prefers-reduced-motion: reduce) {
+	
+	::view-transition-group(*),
+	::view-transition-old(*),
+	::view-transition-new(*) {
 		animation: none !important;
 	}
 }

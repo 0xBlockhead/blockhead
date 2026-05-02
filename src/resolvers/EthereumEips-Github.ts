@@ -1,96 +1,124 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
-} from '$/resolvers/$defineEntityResolvers.ts'
+} from '$/resolvers/$resolvers.ts'
+import { regex } from 'arkregex'
+import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import {
-	type EntityId,
-	schema,
-} from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import { ProposalCategory } from '$/constants/Proposal/ProposalCategory.ts'
-import { ProposalRealm } from '$/constants/Proposal/ProposalRealm.ts'
-import type { EthereumEipSpecLedger } from '$/sources/EthereumEips/Github/types.ts'
-import type { GhFile } from '$/sources/Github/Rest/types.ts'
-import { Source } from '$/sources/$Sources.ts'
+import { Source } from '$/sources/$Source.ts'
 
-const catalogForLedger = async (ledger: EthereumEipSpecLedger) => {
-	const { singleFlight } = await import('$/lib/singleFlight.ts')
-	const {
-		getEthereumEipSpecGithubContents,
-	} = await import('$/sources/EthereumEips/Github/queries.ts')
-	const data = await singleFlight(getEthereumEipSpecGithubContents)({ ledger })
-	if (!Array.isArray(data)) throw new Error('GitHub (EIPs/ercs): directory response is not an array')
-	const files = data.filter((f: GhFile) => f.type === 'file' && f.name.endsWith('.md'))
-	return [...files
-		.flatMap((f) => {
-			const nameMatch = f.name.match(/^(?:eip|erc)-(\d+)\.md$/)
-			const number = nameMatch != null ? parseInt(nameMatch[1], 10) : null
-			return number == null ?
-				[]
-			:	[{
-					[EntityMetaKey.Id]: {
-						realm: ProposalRealm.Ethereum,
-						category: ledger === 'erc' ? ProposalCategory.Erc : ProposalCategory.Eip,
-						number,
-					},
-				}]
-		})
-		.reduce((rowsById, row) => (
-			rowsById.set(
-				`${row[EntityMetaKey.Id].realm}:${row[EntityMetaKey.Id].category}:${row[EntityMetaKey.Id].number}`,
-				row,
+const eipOrErcMarkdownFilename = regex('^(?:eip|erc)-(?<proposalNumber>\\d+)\\.md$')
+
+const resolveEthereumProposalRows = async () => {
+	const { ProposalCategory, ProposalRealm } = await import('$/constants/Proposal.ts')
+	const { getEthereumEipSpecGithubContents } = await import('$/sources/EthereumEips/Github/queries.ts')
+	const byLedger = await Promise.all([
+		{
+			ledger: 'eip' as const,
+			category: ProposalCategory.Eip,
+		},
+		{
+			ledger: 'erc' as const,
+			category: ProposalCategory.Erc,
+		},
+	].map(async ({ ledger, category }) => ({
+		category,
+		data: await singleFlight(getEthereumEipSpecGithubContents)({ ledger }),
+	})))
+	return [...byLedger
+		.flatMap(({ category, data }) => (
+			data
+				.filter((entry) => entry.type === 'file' && entry.name.endsWith('.md'))
+				.flatMap((markdownFile) => {
+					const proposalNumberRaw = eipOrErcMarkdownFilename.exec(markdownFile.name)?.groups?.proposalNumber
+					const proposalNumber = proposalNumberRaw != null ? parseInt(proposalNumberRaw, 10) : null
+					return proposalNumber == null ?
+						[]
+					:	[{
+							[EntityMetaKey.Id]: {
+								realm: ProposalRealm.Ethereum,
+								category,
+								number: proposalNumber,
+							},
+						}]
+				})
+		))
+		.reduce((rowsByProposalKey, proposalRow) => (
+			rowsByProposalKey.set(
+				`${proposalRow[EntityMetaKey.Id].realm}:${proposalRow[EntityMetaKey.Id].category}:${proposalRow[EntityMetaKey.Id].number}`,
+				proposalRow,
 			)
 		), new Map())]
-		.map(([, row]) => row)
-		.sort((a, b) => a[EntityMetaKey.Id].number - b[EntityMetaKey.Id].number)
-}
-
-const proposalBodyResolverNotApplicable = () => {
-	throw new Error('Proposal body resolver not applicable')
+		.map(([, proposalRow]) => proposalRow)
+		.sort((firstProposalRow, secondProposalRow) => (
+			firstProposalRow[EntityMetaKey.Id].number - secondProposalRow[EntityMetaKey.Id].number
+		))
 }
 
 export default {
+	source: Source.EthereumEips_Github,
+
 	entityResolvers: [
 		defineEntityResolver({
 			entityType: EntityType.Proposal,
-			source: Source.Eips,
 			resolve: async (entityId) => {
-				if (entityId.category === ProposalCategory.Ensip) proposalBodyResolverNotApplicable()
-				const { singleFlight } = await import('$/lib/singleFlight.ts')
+				const { ProposalCategory } = await import('$/constants/Proposal.ts')
 				const {
 					getEthereumEipSpecProposalMarkdownText,
 					parseFrontmatter,
 					stripFrontmatter,
 				} = await import('$/sources/EthereumEips/Github/queries.ts')
-				if (typeof entityId.number !== 'number' || !Number.isFinite(entityId.number))
-					return {}
+
+				if (entityId.category === ProposalCategory.Ensip) throw new Error('Proposal body resolver not applicable')
+				if (entityId.category === ProposalCategory.Caip) throw new Error('EthereumEips_Github: unsupported proposal category')
 				const text = await singleFlight(getEthereumEipSpecProposalMarkdownText)({
 					ledger: entityId.category === ProposalCategory.Erc ? 'erc' : 'eip',
 					number: entityId.number,
 				})
 				const body = stripFrontmatter(text)
-				const category = parseFrontmatter(text).category?.trim()
+				const fm = parseFrontmatter(text)
+				const docCategory = fm.category?.trim()
+				const docTitle = fm.title?.trim()
+				const docStatus = fm.status?.trim()
 				return {
-					category: category != null && category !== '' ? category : null,
-					body: body.length > 0 ? body : null,
+					documentCategory: docCategory != null && docCategory !== '' ? docCategory : null,
+					documentTitle: docTitle != null && docTitle !== '' ? docTitle : null,
+					documentStatus: docStatus != null && docStatus !== '' ? docStatus : null,
+					documentBody: body.length > 0 ? body : null,
 				}
 			},
 		}),
 	],
+
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$proposalsEips',
-			source: Source.Eips,
-			resolve: async (_entityId: EntityId<typeof schema, EntityType._Global>) => catalogForLedger('eip'),
+			fieldName: '$$proposals',
+			resolve: async () => resolveEthereumProposalRows(),
 		}),
-
 		defineEntityFieldResolver({
-			entityType: EntityType._Global,
-			fieldName: '$$proposalsErc',
-			source: Source.Eips,
-			resolve: async (_entityId: EntityId<typeof schema, EntityType._Global>) => catalogForLedger('erc'),
+			entityType: EntityType.ProposalRealm,
+			fieldName: '$$proposals',
+			resolve: async (entityId) => {
+				const { ProposalRealm } = await import('$/constants/Proposal.ts')
+				return entityId.realm === ProposalRealm.Ethereum ? resolveEthereumProposalRows() : []
+			},
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.ProposalKind,
+			fieldName: '$$proposals',
+			resolve: async (entityId) => {
+				const { ProposalCategory, ProposalRealm } = await import('$/constants/Proposal.ts')
+				if (
+					entityId.realm !== ProposalRealm.Ethereum
+					|| (entityId.category !== ProposalCategory.Eip && entityId.category !== ProposalCategory.Erc)
+				) return []
+				return (
+					(await resolveEthereumProposalRows())
+						.filter((proposalRow) => proposalRow[EntityMetaKey.Id].category === entityId.category)
+				)
+			},
 		}),
 	],
 }
