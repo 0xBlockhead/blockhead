@@ -10,11 +10,13 @@
 	// IDs
 	const _id = $props.id()
 
+	const emptyItemList = <T,>(): T[] => []
+
 
 	// Props
 	let {
 		items,
-		value = $bindable([] as _Item[]),
+		value = $bindable(emptyItemList<_Item>()),
 		getItemId = stringify,
 		getItemLabel = getItemId,
 		getItemDisabled,
@@ -56,7 +58,6 @@
 		id?: string
 		ariaLabel?: string
 
-		[key: string]: unknown
 	} = $props()
 
 	// (Derived)
@@ -103,7 +104,7 @@
 	type="multiple"
 	bind:value={
 		() => {
-			return ((value ?? []) as _Item[]).map((entry) => getItemId(entry))
+			return (value ?? []).map((entry) => getItemId(entry))
 		},
 		(_value) => {
 			value = _value.flatMap((id) => {

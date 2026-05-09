@@ -107,18 +107,18 @@
 		getGroupKeyForPlaceholder,
 
 		placeholderKeys = new Set<_Key>(),
-		visiblePlaceholderKeys = $bindable([] as _Key[]),
+		visiblePlaceholderKeys = $bindable<_Key[]>([]),
 
 		scrollPosition = 'Auto',
 		pagination,
 
 		searchQuery = $bindable(''),
 		searchPlaceholder,
-		searchInputRef = $bindable(null as HTMLInputElement | null),
+		searchInputRef = $bindable<HTMLInputElement | null>(null),
 		matchesForItem = $bindable(new SvelteMap<_Item, SvelteSet<Match>>()),
 
 		displayCount = $bindable(0),
-		displayedItems = $bindable([] as _Item[]),
+		displayedItems = $bindable<_Item[]>([]),
 		filter,
 
 		GroupHeader,
@@ -229,7 +229,7 @@
 			activeFilters.size === 0
 		) {
 			const matching = filterGroups.flatMap((g) => (
-				g.filters.filter((f) => defaultFilterIds.has(f.id as _FilterId))
+				g.filters.filter((f) => defaultFilterIds.has(f.id))
 			))
 			if (matching.length > 0) {
 				activeFilters = new Set(matching)
@@ -240,7 +240,7 @@
 	$effect(() => {
 		if (defaultFilterIds.size > 0 && filterGroups.length > 0) {
 			const matching = filterGroups.flatMap((g) => (
-				g.filters.filter((f) => defaultFilterIds.has(f.id as _FilterId))
+				g.filters.filter((f) => defaultFilterIds.has(f.id))
 			))
 			if (matching.length > 0) activeFilters = new Set(matching)
 		}

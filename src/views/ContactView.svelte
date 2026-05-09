@@ -41,10 +41,6 @@
 		>
 	> = $props()
 
-	const isHexPrefixedAddress = (s: string): s is `0x${string}` => (
-		s.startsWith('0x')
-	)
-
 	const sharedAddressIdKey = $derived(
 		stringify(entityId),
 	)
@@ -68,79 +64,91 @@
 		sharedQuery.data?.[0]?.row,
 	)
 
-	const sharedFieldBag = $derived(
-		(() => {
-			const bag = sharedRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object' || Array.isArray(bag)) return null
-			return bag as Record<string, unknown>
-		})(),
+	const sharedFields = $derived(
+		((u) => (
+			typeof u === 'object' && u !== null && !Array.isArray(u) ?
+				u
+			:	null
+		))(sharedRow?.[EntityMetaKey.Fields]),
 	)
 
 	const peerId = $derived(
-		(() => {
-			const v = sharedFieldBag?.peerId
-			return typeof v === 'string' && v.length ? v : undefined
-		})(),
+		typeof sharedFields?.peerId === 'string' && sharedFields.peerId.length ?
+			sharedFields.peerId
+		:	undefined,
 	)
 
 	const targetPeerIds = $derived(
-		(() => {
-			const v = sharedFieldBag?.targetPeerIds
-			if (v === undefined) return null
-			if (!Array.isArray(v)) return null
-			const strings = v.filter((x): x is string => typeof x === 'string' && x.length > 0)
-			return strings.length ? strings : null
-		})(),
+		sharedFields?.targetPeerIds === undefined ?
+			null
+		: !Array.isArray(sharedFields.targetPeerIds) ?
+			null
+		: ((a) => (a.length ? a : null))(
+			sharedFields.targetPeerIds.filter((x): x is string => typeof x === 'string' && x.length > 0),
+		),
 	)
 
 	const sharedAt = $derived(
-		(() => {
-			const v = sharedFieldBag?.sharedAt
-			return typeof v === 'number' && Number.isFinite(v) ? v : undefined
-		})(),
+		typeof sharedFields?.sharedAt === 'number' && Number.isFinite(sharedFields.sharedAt) ?
+			sharedFields.sharedAt
+		:	undefined,
 	)
 
 	const roomId = $derived(
-		(() => {
-			const room = sharedFieldBag?.$room
-			if (room === undefined || typeof room !== 'object' || Array.isArray(room)) return undefined
-			const id = (room as { id: unknown }).id
-			return typeof id === 'string' && id.length ? id : undefined
-		})(),
+		!(
+			typeof sharedFields?.$room === 'object'
+			&& sharedFields.$room !== null
+			&& !Array.isArray(sharedFields.$room)
+		) ?
+			undefined
+		: ((
+			id,
+		) => (
+			typeof id === 'string' && id.length ?
+				id
+			:	undefined
+		))(
+			'id' in sharedFields.$room ? sharedFields.$room.id : undefined,
+		),
 	)
 
 	const networkChainId = $derived(
-		(() => {
-			const net = sharedFieldBag?.$network
-			if (net === undefined || typeof net !== 'object' || Array.isArray(net)) return undefined
-			const chainId = (net as { chainId: unknown }).chainId
-			return typeof chainId === 'number' ? chainId : undefined
-		})(),
+		!(
+			typeof sharedFields?.$network === 'object'
+			&& sharedFields.$network !== null
+			&& !Array.isArray(sharedFields.$network)
+		) ?
+			undefined
+		: ((
+			chainId,
+		) => (
+			typeof chainId === 'number' ?
+				chainId
+			:	undefined
+		))(
+			'chainId' in sharedFields.$network ? sharedFields.$network.chainId : undefined,
+		),
 	)
 
 	const accountForAddress = $derived(
-		(() => {
-			const acc = sharedFieldBag?.$account
-			if (acc === undefined || typeof acc !== 'object' || Array.isArray(acc)) return null
-			const accRec = acc as { $network: unknown, address: unknown }
-			const net = accRec.$network
-			const addr = accRec.address
-			if (
-				net === undefined
-				|| typeof net !== 'object'
-				|| Array.isArray(net)
+		((accUnknown) => (
+			!(typeof accUnknown === 'object' && accUnknown !== null && !Array.isArray(accUnknown)) ?
+				null
+			: !('$network' in accUnknown) || !('address' in accUnknown) ?
+				null
+			: ((net, addr) => (
+				!(typeof net === 'object' && net !== null && !Array.isArray(net))
 				|| typeof addr !== 'string'
-				|| !isHexPrefixedAddress(addr)
-			) return null
-			const chainId = (net as { chainId: unknown }).chainId
-			if (typeof chainId !== 'number') return null
-			return (
-				{
-					$network: { chainId },
-					address: addr,
-				} satisfies EntityId<typeof schema, EntityType.Actor>
-			)
-		})(),
+				|| !addr.startsWith('0x')
+				|| !('chainId' in net)
+				|| typeof net.chainId !== 'number' ?
+					null
+				:	({
+						$network: { chainId: net.chainId },
+						address: addr as `0x${string}`,
+					} satisfies EntityId<typeof schema, EntityType.Actor>)
+			))(accUnknown['$network'], accUnknown['address'])
+		))(sharedFields?.['$account']),
 	)
 
 	// Components
@@ -161,7 +169,7 @@
 	{...entityViewRest}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Contact ID</dt>
 				<dd>{entityId.id}</dd>
@@ -249,7 +257,7 @@
 									<dd>{String(networkChainId)}</dd>
 								</div>
 							{/if}
-							{#if targetPeerIds !== undefined}
+							{#if targetPeerIds != null}
 								<div>
 									<dt>Target peer IDs</dt>
 									<dd>{targetPeerIds.join(', ')}</dd>

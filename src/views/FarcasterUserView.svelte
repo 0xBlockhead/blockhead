@@ -77,8 +77,7 @@
 	)
 
 	const userFields = $derived(
-		mergeEntityCollectionRowFields(
-			EntityType.FarcasterUser,
+		mergeEntityCollectionRowFields<EntityType.FarcasterUser>(
 			userQuery.data,
 			farcasterUserMergeSourceOrder,
 		),
@@ -89,6 +88,10 @@
 		?? userFields.username
 		?? `FID ${String(entityId.fid)}`,
 	)
+
+	const avatarUrl = $derived((
+		userFields.$icon?.[EntityMetaKey.Id].url
+	))
 
 	const verifiedIsEvmHex = $derived(
 		userFields.verifiedAddress !== undefined
@@ -102,7 +105,7 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import Media from '$/components/Media.svelte'
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -119,10 +122,10 @@
 	title={displayTitle}
 >
 	{#snippet Icon()}
-		{#if userFields.pfpUrl !== undefined}
-			<Icon
+		{#if avatarUrl !== undefined}
+			<IconComponent
 				shape={IconShape.Circle}
-				src={userFields.pfpUrl}
+				src={avatarUrl}
 				alt=""
 			/>
 		{/if}
@@ -249,10 +252,10 @@
 									</div>
 								{/if}
 							</dl>
-							{#if userFields.pfpUrl !== undefined}
+							{#if avatarUrl !== undefined}
 								<p>
 									<Media
-										media={{ url: userFields.pfpUrl }}
+										media={{ url: avatarUrl }}
 										alt={userFields.displayName ?? userFields.username ?? ''}
 									/>
 								</p>

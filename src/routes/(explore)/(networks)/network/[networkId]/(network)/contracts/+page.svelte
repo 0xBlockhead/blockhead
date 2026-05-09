@@ -17,15 +17,14 @@
 
 
 <Page>
-	<section>
 		<EvmContractsView
-			entityFieldReference={{
-				entityType: EntityType.Network,
-				entityId: { chainId: Number(params.networkId) },
-				fieldName: '$$evmContracts',
-			}}
-			href={resolve('/(explore)/(networks)/network/[networkId]/(network)/contracts', params)}
-			id="contracts"
-		/>
-	</section>
+		entityFieldReference={{
+			entityType: EntityType.Network,
+			entityId: { chainId: Number(params.networkId) },
+			fieldName: '$$contracts',
+		}}
+		href={resolve('/(explore)/(networks)/network/[networkId]/(network)/contracts', params)}
+		id="contracts"
+	/>
 </Page>
+

@@ -10,8 +10,6 @@ import {
 } from './constants.ts'
 import type { EthereumEipSpecLedger } from './types.ts'
 
-export { parseFrontmatter, stripFrontmatter } from '$/sources/Github/Rest/client.ts'
-
 export const getEthereumEipSpecGithubContentsUrl = ({ ledger }: { ledger: EthereumEipSpecLedger }) => {
 	const repository = ethereumEipSpecGithubRepoByLedger[ledger]
 	return getGithubRestRepoContentsUrl({

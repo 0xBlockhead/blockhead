@@ -1,6 +1,7 @@
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 export type RedditApiThingWire = {
 	kind: string
-	data: Record<string, unknown> & {
+	data: Record<string, JsonValue> & {
 		name?: string
 		title?: string
 		selftext?: string

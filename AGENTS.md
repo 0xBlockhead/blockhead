@@ -1,3 +1,15 @@
+## Agents
+
+- Reply in a concise style; avoid repetition or filler
+- Be DRY and declarative
+- Inline derived intermediate variables, especially if used once
+
+### Editing
+
+- End files with a single line break
+- Avoid trailing spaces
+
+
 ## Git
 
 ### Commit changes
@@ -18,13 +30,21 @@
 		- commit
 		- mark group checkbox as completed
 
+### File moves
+
+- Prefer `mv` + edit over recreate + delete
+
+
 ## Packages
 
 - Package Manager: `pnpm`
 
+
 ## Tasks
 
 - Use `pnpm` to run tasks from `package.json`
+- **Lint:** `pnpm run lint` — oxlint (with `oxlint-tsgolint` for type-aware rules); config in `.oxlintrc.json`
+
 
 ## Testing
 
@@ -50,31 +70,86 @@
 - Resolver / network latency: Pages backed by `resolveEntity` or external HTTP may need timeouts on the order of minutes (e.g. `120_000` ms) for the “settled” assertion, while still asserting a cheap invariant first (nav link, layout chrome).
 - Success vs failure: When the UI shows either a happy path or an explicit error string, use `.or()` on locators and assert one branch is attached once the async work finishes.
 
+
 ## TypeScript
 
-- Prefer single expressions and inline logic
-- Declare intermediate variables and functions ONLY if referenced more than once, otherwise inline
-- Declare functions with `const` UNLESS overloading signatures
-- Bare minimum type annotations
-- Prefer `as const satisfies` for constants, NEVER `: Type`
-- NO hardening, type assertions, `as`, `as unknown as` unless parsing unknown input
-- Generic type params: `_Type extends Type`
+### Formatting
+
+- Use tabs
+- Prefer `'` over `"`
+- No `;` after statements (only leading `;` when needed before `(` / `[` / template literals)
+- No `;` or `,` after `type` / `interface` properties
+- Max 3 consecutive line breaks
 - Object with > 1 prop, array with > 1 value: indent, one per line, trailing commas
 - Generic with > 1 type param: indent, one per line
 - Multiline expressions: indent, wrap in `()` UNLESS already exclusively wrapped in `[]` / `{}`
-- Multiline ternary expressions:
+- Multiline unions/intersections: leading `&` / `|` before first member
+- Multiline chained calls: break onto new indented lines
+- Multiline ternary expressions: format like `if` / `else if` / `else`; place `?` at line end and `:` on its own branch line
+	```ts
+	const x = (
+		condition ?
+			value1
+		:
+			value2
+	)
+	```
 - Multiline binary expressions: operator begins line after line break
-- Import paths:
+	```ts
+	const x = (
+		1 * 2
+		+ 3 * 4
+		- 5 * 6
+	)
+	```
+- Import paths (shape):
 	- `$/` for `src/`
 	- full extensions `.ts`, `.svelte`, `.svelte.ts`
+
+### Style
+
+- Prefer `??` over `||`
+- Prefer `.` over `?.`, and `?.` over `object && object.value`
+- Prefer `T[]` over `Array<T>`
+- Prefer `[...array1, ...array2]` over `array1.concat(array2)`
+- Prefer single expressions and inline logic
+- Declare intermediate variables and functions ONLY if referenced more than once, otherwise inline
+- Declare functions with `const` UNLESS overloading signatures
+- Bare minimum type annotations. Remove if inferrable
+- Prefer `as const satisfies` for constants, NEVER `: Type`
+- Generic type params: `_Type extends Type`
 - NO reexports or barrel files (`export ... from ...`).
-	- When moving files, rewrite import paths codebase-wide on the spot using find and replace tools.
+- When moving or renaming files, rewrite import paths codebase-wide on the spot using find and replace tools.
+
+### Linting and quality
+
+- ALWAYS solve the highest upstream root cause of a type mismatch
+- **Runtime shape guards (default ban):** unary `typeof`, `Array.isArray`, and `Reflect.get` are disallowed for satisfying TypeScript or hand-narrowing domain data. **oxlint** enforces this via **`no-runtime-shape-guards/guards`** (`scripts/oxlint-plugin-no-runtime-shape-guards.mjs`). **Allowed without a disable:** `typeof window`, `typeof document`, `typeof globalThis`, and `typeof <same>.…` when the member chain’s root is one of those identifiers (environment / capability probes only). Anything else needs a strong reason: fix models or wire types upstream, narrow at **`$/typescript/JsonValue.ts`** (e.g. `isJsonObject` on `JsonValue`), or use **`oxlint-disable-next-line`** with a one-line reviewer-verifiable reason. Prefer a **scoped `overrides` entry** in `.oxlintrc.json` only for stable architectural boundaries (document the rationale when adding or extending a glob). A broad override block currently turns this rule off for UI, resolvers, sources, collections, lib, constants, routes, `JsonValue.ts`, and `tests/**`; treat that as debt—new code there should still avoid these guards in review until the override list shrinks.
+- Do not use other JavaScript runtime shape checking workarounds to satisfy TypeScript checks when a typed or schema-level fix exists
+- Do not try to fix `Type instantiation is excessively deep and possibly infinite`
+- NO hardening, type assertions, `as`, `as unknown as` unless parsing unknown input (see **oxlint** below)
+- NO type narrowing functions operating on `any` or `unknown`
+- **oxlint** (`pnpm run lint`; **Tasks**):
+	- `.oxlintrc.json` holds rules, `overrides`, and `ignorePatterns`
+	— When something fails lint, treat that file as the contract, and use this order of operations:
+		- Fix the underlying types (models, generics, function signatures) before reaching for assertions, `unknown`, or suppressions.
+		- Prefer **`overrides`** scoped to a whole file or a small, stable glob when the exception is architectural (generated or hand-written “edge” modules that always need different rules), not for ad hoc escapes scattered across the tree.
+		- Use **`oxlint-disable-next-line` on the narrowest span** with a one-line reason a reviewer can verify; if the same reason keeps reappearing, replace repeated disables with a scoped override or a proper type refactor.
+		- At untyped boundaries, narrow with real domain types or a single shared wire type instead of defaulting to `unknown` or assertion escapes.
+		- Anything that should meet the same bar as the primary checked tree must not live only under **`ignorePatterns`** unless that exclusion is intentional and reflected in the config.
+
 
 ## Constants (`src/constants/**`)
 
 - Two blank lines between `// Types` → `// Constants` → `// Lookups` (same rhythm as script sections).
 - Types — imports to type the catalog. Constants — optional string enum / ids; one `as const` list, `as const satisfies …` (TypeScript above). Lookups — `Object.fromEntries` maps; keys stay aligned with the list.
 - File `Domain.ts`; export plural list + `thingById`-style maps. Example: `$/constants/Coin.ts`.
+
+
+## Library helpers (`src/lib/**`)
+
+- DO NOT add to `src/lib` unless explicitly asked. Keep logic inlined and local where used without trivial helper functions.
+
 
 ## Svelte (`*.svelte`, `*.svelte.ts`)
 
@@ -243,7 +318,10 @@
 		```
 		- (Only wrap in `{#if true}` to distinguish from sibling markup)
 
+- `{@const}`: prefer inlining one-off derived logic into markup with `{@const}`; `{@const}` must be immediate child of `{#snippet}`, `{#if}`, `{:else if}`, `{:else}`, `{#each}`, `{:then}`, `{:catch}`, `<svelte:fragment>`, `<svelte:boundary>`, or `<Component>`
+
 ### HTML / CSS:
+	- Use semicolons in CSS rule declarations
 	- Check `src/styles/*.css` for global defaults and `data-*` attributes / variants
 	- If unavailable in `src/styles/components.css` as a provided `[~=]` variant, override locally in `<style>`:
 		- select by element, or add class to the closest semantic parent container
@@ -275,85 +353,9 @@
 
 - Display truncation: use `<TruncatedValue>` / `<Address>` (manual truncation is only OK for non-display logic)
 
-## SvelteKit routes and views (`src/routes/**`)
 
-`src/views/*.svelte` / `src/routes/**/*.svelte`:
-- NO TYPESCRIPT TYPE ASSERTIONS. EVER.
+---
 
-URLs and nav: `src/routes/navigationItems.svelte.ts`. `(…)` = layout groups only (not URL). Add `+layout` only for shared chrome or multiple children; drop empty groups. Never colocate `+layout` + `+page` except under `routes/`. Shallow `routes/<segment>/+page.svelte` OK for hubs; same rules with a prefix: `routes/<urlPrefix>/(area)/…`.
-
-Lists / detail — List: `(area)/<domainList>/+page`. Bad list: `(area)/(<domainList>)/<domainList>/+page` (duplicated list token). Hub: `(<hub>)/<hub>/…` = same string for group folder + next segment (not the list bad pattern). `<domainList>` ↔ `<domainItem>` plural/singular; `[<domainItemKey>]` id segment (`coinId`, …). `staticBeforeKey/` = literals before `[domainItemKey]`. `(<domainListGroup>)` ≈ `domainList`. Detail: `<domainItem>/[domainItemKey]/+page` beside `<domainItem>/[domainItemKey]/(<domainItem>)/+layout` (path + chrome share `domainItem`).
-
-Deep — Parent: `<parentItem>/[parentKey]/(<parentItem>)/`. Facet list: `/(<parentItem>)/<childList>/+page`. `(<scopedSlice>)` + `childItem`/`[childKey]` / `(<childItem>)` like domain level; grandchild routes nest under child. Composite: `<compositeItem>/[compositeKeyFirst]/…`. Slice: same `<sliceNoun>` for list + `[sliceKey]` under `(<sliceGroup>)`. Facets: `<facetStatic>`, `(<facetBranch>)` + inner list/item/key placeholders. Double `( )/` only if both wrappers need several routes.
-
-Views / params — No hardcoded domain links on shared views; use `headingHref` / `headingLabel`. Params only (no placeholder IDs); parse to the right entity ID type; no cross-domain param coercion.
-
-Templates — `routes/.../` = any `src/routes/` prefix (incl. `<urlPrefix>`). Repeated placeholder = same folder name. `domainList`/`domainItem`/`[domainItemKey]` as above.
-
-```txt
-# List (section)
-routes/(area)/+layout.svelte
-routes/(area)/<domainList>/+page.svelte
-
-# Provider hub — <hub> repeated: group folder + next URL segment (not the list mistake)
-routes/(area)/(<hub>)/<hub>/+layout.svelte
-routes/(area)/(<hub>)/<hub>/<domainList>/+page.svelte
-routes/<urlPrefix>/(area)/(<hub>)/<hub>/<domainList>/+page.svelte
-
-# Domain family + detail — <domainListGroup> usually same string as <domainList>; <domainItem> repeated for path + (chrome)
-routes/(area)/(<domainListGroup>)/+layout.svelte
-routes/(area)/(<domainListGroup>)/<domainItem>/[<domainItemKey>]/+page.svelte
-routes/(area)/(<domainListGroup>)/<domainItem>/[<domainItemKey>]/(<domainItem>)/+layout.svelte
-routes/(area)/(<domainListGroup>)/<staticBeforeKey>/[<domainItemKey>]/+page.svelte
-routes/(area)/(<domainListGroup>)/<staticBeforeKey>/[<domainItemKey>]/(<domainItem>)/+layout.svelte
-
-# Detail with only (area) — no (<domainListGroup>)
-routes/(area)/<domainItem>/[<domainItemKey>]/+page.svelte
-
-# Under (<domainItem>) chrome — inner list / inner detail for that entity
-routes/.../(<domainItem>)/<innerList>/+page.svelte
-routes/.../(<domainItem>)/<innerItem>/[<innerKey>]/+page.svelte
-
-# Parent entity — <parentItem> matches (<parentItem>); children use child* / grandchild* tokens
-routes/.../<parentItem>/[<parentKey>]/(<parentItem>)/+layout.svelte
-routes/.../(<parentItem>)/<childList>/+page.svelte
-routes/.../(<parentItem>)/(<scopedSlice>)/+layout.svelte
-routes/.../(<parentItem>)/(<scopedSlice>)/<childList>/+page.svelte
-routes/.../(<parentItem>)/(<scopedSlice>)/<childItem>/[<childKey>]/+page.svelte
-routes/.../(<parentItem>)/(<scopedSlice>)/<childItem>/[<childKey>]/(<childItem>)/+layout.svelte
-routes/.../(<childItem>)/<grandchildList>/+page.svelte
-routes/.../(<childItem>)/<grandchildItem>/[<grandchildKey>]/+page.svelte
-
-# Scoped slice — <sliceNoun> shared by list + param detail under (<sliceGroup>)
-routes/.../(<sliceGroup>)/<sliceNoun>/+page.svelte
-routes/.../(<sliceGroup>)/<sliceNoun>/[<sliceKey>]/+page.svelte
-
-# Composite key — <compositeItem> + numbered compositeKey* parts (add more as needed)
-routes/.../<compositeItem>/[<compositeKeyFirst>]/[<compositeKeySecond>]/[<compositeKeyThird>]/+page.svelte
-routes/.../<compositeItem>/[<compositeKeyFirst>]/[<compositeKeySecond>]/[<compositeKeyThird>]/[<compositeKeyFourth>]/+page.svelte
-
-# Composite under (<domainListGroup>) — keys belong to <compositeItem>
-routes/.../(<domainListGroup>)/<compositeItem>/[<compositeKeyFirst>]/[<compositeKeySecond>]/+page.svelte
-routes/.../(<domainListGroup>)/<compositeItem>/[<compositeKeyFirst>]/[<compositeKeySecond>]/[<compositeKeyThird>]/[<compositeKeyFourth>]/+page.svelte
-
-# Facets — host uses <domainItem> / [<domainItemKey>] / (<domainItem>); branch uses facet* tokens
-routes/.../<domainItem>/[<domainItemKey>]/(<domainItem>)/+layout.svelte
-routes/.../(<domainItem>)/<facetStatic>/+page.svelte
-routes/.../(<domainItem>)/(<facetBranch>)/+layout.svelte
-routes/.../(<facetBranch>)/<facetInnerList>/+page.svelte
-routes/.../(<facetBranch>)/<facetInnerItem>/[<facetInnerKey>]/+page.svelte
-```
-
-Anti-examples
-
-- Bad: `(area)/(<domainList>)/<domainList>/+page` (list doubled with parens). Good: `(area)/<domainList>/+page`; detail under `(<domainListGroup>)/<domainItem>/[…]` with `domainListGroup` ≈ `domainList`.
-- Bad: banning `(<hub>)/<hub>/` as if it were the list error. Good: hub repeat OK; wrong is only `(<domainList>)/<domainList>/+page`.
-- Bad: detail `+layout` on `<domainList>/[key]/` (inverted). Good: `(<domainListGroup>)/` then `<domainItem>/[domainItemKey]/+page` and optional `(<domainItem>)/+layout`.
-- Bad: hardcoded heading URL in a shared view. Good: `headingHref` / `headingLabel` from route.
-- Bad: placeholder IDs in detail pages. Good: real `params`, validated to entity ID type.
-- Bad: deep `(group)/` with one file, no shared chrome. Good: merge or give the layout several children / shared UI.
-
-Checks — New routes must not match any Bad row above.
 
 ## Import topology (`src/**`)
 
@@ -373,6 +375,7 @@ Current repo-specific cross-links:
 - `$/resolvers/index.ts` is the resolver registry, and `$/resolvers/$resolvers.ts` holds the shared resolver types and helpers
 
 If a lower layer starts importing a higher one, move the shared code down into `lib/`, `schema/`, `constants/`, or `collections/`.
+
 
 ## Sources (`src/sources/**`)
 
@@ -422,7 +425,94 @@ Source definition shape:
 
 `$/resolvers/index.ts` imports `enabledSources` and keeps only resolver modules whose exported `source` is in that set; it then attaches `source` onto each resolver entry when flattening `entityResolvers` / `entityFieldResolvers`.
 
-Transport folders continue to hold network code (`queries.ts`, optional `client.ts`, `constants.ts`, `types.ts`, generated schema files). `queries.ts` remains the stable entry point resolvers should import.
+Transport folders continue to hold network code (`queries.ts`, optional `client.ts`, `constants.ts`, `types.ts`, generated schema files). In resolvers, load `queries.ts` / `constants.ts` via inline `await import(...)` inside each `resolve(...)` instead of top-level imports.
+
+### OpenAPI schema codegen (`scripts/openapi-source.ts`)
+
+Use this when a transport lives under `src/sources/<Provider>/OpenApi/` and you want checked-in schema plus generated TypeScript types for paths and components.
+
+**Tooling:** `openapi-typescript` emits a TypeScript AST from the schema object; the script writes it with `astToString`. If the downloaded file is **Swagger 2.x** (top-level `swagger` string), `swagger2openapi` converts it to OpenAPI 3 before generation. **YAML** (`.yml` / `.yaml`) is parsed with `yaml`; **JSON** uses `JSON.parse`. `package.json` maps **`sources:openapi`** to **`pnpm exec tsx scripts/openapi-source.ts`**; devDependencies include **`openapi-typescript`**, **`swagger2openapi`**, and **`yaml`**.
+
+**CLI (via `package.json`):**
+
+```txt
+pnpm run sources:openapi -- <download|generate|sync> <Provider>
+```
+
+`<Provider>` is the single path segment under `src/sources/` that contains `OpenApi/schema-source.ts` (e.g. `Defillama`, `Coinpaprika`, `Dexscreener`). `download` fetches `schemaUrl` into `schemaFile`. `generate` reads `schemaFile` and writes `typesFile`. `sync` runs download then generate.
+
+**Manifest:** add `src/sources/<Provider>/OpenApi/schema-source.ts` and export a **`schemaSource`** object:
+
+```ts
+export const schemaSource = {
+	provider: string
+	schemaUrl: string
+	schemaFile: string
+	typesFile: string
+} as const
+```
+
+- **`provider`:** conventionally the same name as the `<Provider>` folder (used in log messages).
+- **`schemaUrl`:** canonical upstream OpenAPI 3 or Swagger 2 document URL.
+- **`schemaFile`:** path relative to the manifest directory for the **checked-in** downloaded spec (e.g. `./openapi.yml`, `./openapi.json`).
+- **`typesFile`:** path relative to the manifest directory for generated types (convention: `./openapi.d.ts`).
+
+**Hand-written transport code:** after generation, import `components` and/or `paths` from `typesFile` inside `client.ts` / `queries.ts` (see `$/sources/Dexscreener/OpenApi/client.ts`). Keep wire-specific hand types in `types.ts` only when they are not expressible from the generated file.
+
+**Convenience scripts:** for each new OpenAPI provider, add three `package.json` scripts that forward to the same runner, mirroring existing `sources:openapi:download:<name>`, `sources:openapi:generate:<name>`, and `sources:openapi:sync:<name>` entries.
+
+**Replication checklist:**
+
+1. Add `src/sources/<Provider>/OpenApi/schema-source.ts` with `schemaSource` as above.
+2. Run `pnpm run sources:openapi -- sync <Provider>` (or `download` / `generate` separately) so `schemaFile` and `typesFile` exist and stay reproducible from `schemaUrl`.
+3. Wire `client.ts` / `queries.ts` / `index.ts` and register the source like any other transport (see **Adding new Sources / Providers**).
+
+### GraphQL schema codegen (`scripts/graphql-source.ts`)
+
+Use this when a transport uses **gql.tada** against a GraphQL schema checked in next to the manifest (subgraphs and other APIs where SDL is the source of truth). The runner downloads SDL and generates the **introspection** module gql.tada expects.
+
+**Tooling:** `@gql.tada/cli-utils` **`generateOutput`**. The script builds a **temporary** directory, writes a combined SDL file (main `schemaFile` body plus optional `patchFile` body, separated by a blank line), and writes a temporary `tsconfig.json` that **extends** the repo root `tsconfig.json` with `compilerOptions.plugins` containing one object: **`name`** `gql.tada/ts-plugin`, **`schema`** pointing at that combined SDL file, and **`tadaOutputLocation`** set to the manifest’s **`outputFile`**. `generateOutput({ output, tsconfig })` writes **`outputFile`** (convention: `./graphql-env.d.ts` beside the manifest). The temp directory is always removed afterward. `package.json` maps **`sources:graphql`** to **`pnpm exec tsx scripts/graphql-source.ts`**; dependencies include **`gql.tada`** and **`graphql`**, and the devDependency **`@gql.tada/cli-utils`** supplies `generateOutput`.
+
+**CLI (via `package.json`):**
+
+```txt
+pnpm run sources:graphql -- <download|generate|sync> <SourceModule>
+```
+
+`<SourceModule>` is the path under `src/sources/` to the folder that contains **`schema-source.ts`** (no filename), e.g. `TheGraph/Graphql/Ens` or `TheGraph/Graphql/Messari/AaveV3/Ethereum`. Actions match OpenAPI: `download`, `generate`, `sync`.
+
+**Manifest:** add `src/sources/<SourceModule>/schema-source.ts` and export **`schemaSource`**:
+
+```ts
+export const schemaSource = {
+	sourceModule: string
+	schemaUrl: string
+	schemaFile: string
+	outputFile: string
+	patchFile?: string
+} as const
+```
+
+- **`sourceModule`:** should match the `<SourceModule>` path segment string you pass to the CLI (used for logs and copy-paste sanity).
+- **`schemaUrl`:** canonical SDL or schema document URL.
+- **`schemaFile`:** relative path for the checked-in schema (convention: `./schema.graphql`).
+- **`outputFile`:** relative path for generated introspection types (convention: `./graphql-env.d.ts`). gql.tada / GraphQLSP consume this file; the header comment in generated files states it is produced by GraphQLSP / gql.tada.
+- **`patchFile`:** optional relative path to extra SDL appended after the main file when generating (separated by a blank line). Use this when upstream SDL is incomplete or subgraph-specific extensions are required (see `$/sources/TheGraph/Graphql/Ens/schema-source.ts` and `schema.patch.graphql`).
+
+**Scalar prelude on `download`:** for every GraphQL manifest, if any of these lines are missing from the fetched text, the script prepends them once: `scalar BigDecimal`, `scalar BigInt`, `scalar Bytes`, `scalar Int8`. That keeps subgraph-style SDL that assumes hosted-graph scalars typecheckable locally.
+
+**Runtime client pattern:** import `initGraphQLTada` from `gql.tada` and `import type { introspection } from './graphql-env.d.ts'`, then `initGraphQLTada<{ introspection: introspection }>()`. Use **`TadaDocumentNode`** for typed documents and keep HTTP in a small wrapper (see `$/sources/TheGraph/Graphql/Ens/client.ts` and shared `$/sources/TheGraph/Graphql/client.ts`).
+
+**Colocated files:** beside the manifest, keep **`schema.graphql`** (downloaded or regenerated), **`graphql-env.d.ts`** (generated; do not hand-edit except when fixing generator output intentionally), **`client.ts`**, and **`queries.ts`** as needed for that module.
+
+**Convenience scripts:** add `sources:graphql:download:…`, `sources:graphql:generate:…`, and `sources:graphql:sync:…` entries in `package.json` that call `pnpm run sources:graphql -- <action> <SourceModule>` with a stable, grep-friendly script name.
+
+**Replication checklist:**
+
+1. Add `schema-source.ts` (with optional `patchFile`), `client.ts`, and `queries.ts` under `src/sources/<SourceModule>/`; run **`generate`** or **`sync`** once so `schema.graphql` and `graphql-env.d.ts` exist (or commit an initial `schema.graphql` and only run **`generate`** if the schema is maintained by hand).
+2. Export `schemaSource` as above; run `pnpm run sources:graphql -- sync <SourceModule>`.
+3. Point gql.tada / editor tooling at the generated `graphql-env.d.ts` for that folder; register the transport in `$/sources` / resolvers like any other source.
+
 
 ## Resolvers (`src/resolvers/**`)
 
@@ -432,10 +522,27 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 - Use `defineEntityResolver` / `defineEntityFieldResolver` from `$/resolvers/$resolvers.ts`
 - Register new modules in `$/resolvers/index.ts` (each default export includes `source: Source`; the list is filtered by `enabledSources` from `$/sources/index.ts`)
 - `resolve(...)` should return schema-shaped field data, not raw wire payloads
+- In resolvers, do not top-level import `$/sources/**/queries.ts` or `$/sources/**/constants.ts`; always use inline `await import('$/sources/**/queries.ts')` / `await import('$/sources/**/constants.ts')` inside each `resolve(...)`.
 - `ResolverLoadSubset` (from `$/resolvers/$resolvers.ts`) includes `publicEnv`: the per-source slice from `resolverPublicEnvBySource` (or full `resolverPublicEnv`). `$/collections/$collections.ts` passes it on every `resolve()` call; prefer reading API keys from `context.publicEnv` instead of `import.meta.env` so behavior matches gating.
 - Thread `context` into source queries when the upstream API supports filtering, sorting, or limits (`filters` / `sorts` / `limit`)
 - Entity **field** collections apply the same optional `Source` filter as entity collections when the live query includes a `Source` `in` clause, so field resolvers for disabled or filtered-out sources are not invoked
-- Optional **`resolveLive`** on an **`EntityFieldResolver`** (see `ResolveLiveContext` in `$/resolvers/$resolvers.ts`): push-driven refresh (WebSockets, streams). Keep **`resolve`** as the snapshot implementation; **`resolveLive`** typically calls **`invalidateEntityFieldQueries`** from `$/lib/db/resolveLive.svelte.ts` so the existing field-collection `queryFn` re-runs. **`runEntityFieldResolveLiveForParent`** in `$/lib/db/resolveLive.svelte.ts` discovers `resolveLive` hooks for a parent id + field list; routes mount it from `$effect` with an **`AbortSignal`** (see network `(network)/+layout.svelte`). One resolver may invalidate sibling fields (e.g. Voltaire `Network` `blockHeight` `resolveLive` also refreshes `$$evmBlocks` and `$$evmTransactions`).
+- Optional **`resolveLive`** on an **`EntityFieldResolver`** (see `ResolveLiveContext` in `$/resolvers/$resolvers.ts`): push-driven refresh (WebSockets, streams). Keep **`resolve`** as the snapshot implementation; **`resolveLive`** typically calls **`invalidateEntityFieldQueries`** from `$/lib/db/resolveLive.svelte.ts` so the existing field-collection `queryFn` re-runs. **`mountEntityResolveLive`** in `$/lib/db/resolveLive.svelte.ts` mounts entity and entity-field live resolvers from `$effect`; **`startEntityFieldResolveLiveForParent`** discovers field hooks for a parent id + field list. One resolver may invalidate sibling fields (e.g. Voltaire `Network` `blockHeight` `resolveLive` also refreshes `$$blocks` and `$$transactions`).
+
+
+## Adding new Sources / Providers
+
+Mirror an existing neighbor such as `$/sources/Coingecko/Rest/` + `$/resolvers/Coingecko-Rest.ts`:
+
+1. Create `$/sources/<Provider>/<Transport>/` with `queries.ts` and any `client.ts`, `constants.ts`, generated types, and `index.ts` default export. For **OpenAPI** or **GraphQL** transports, follow **OpenAPI schema codegen** / **GraphQL schema codegen** under **Sources** for manifests, runners, and `package.json` scripts before registering the source.
+2. Create/update `$/sources/<Provider>/index.ts` default export and include its transport definitions
+3. Ensure `SourceProvider.<Provider>` exists in `$/sources/$SourceProvider.ts`
+4. Ensure `Source.<Provider>_<Transport>` exists in `$/sources/$Source.ts`
+5. Add the provider’s default export to the `sourceProviders` array in `$/sources/index.ts` (filtered `sources` and `enabledSources` are derived from that list and env `.allows` checks)
+6. Add `$/resolvers/<Provider>-<Transport>.ts` that maps wire data into schema fields
+7. Register that resolver module in `$/resolvers/index.ts`
+8. Extend or add schema definitions in `$/schema/*.ts`, and register new entities in `$/schema/index.ts` if needed
+9. Verify with `pnpm run check` and exercise a route or view that hits the new resolver
+
 
 ## Collections and data flow
 
@@ -448,102 +555,91 @@ Current data flow:
 
 Most live queries live in `.svelte` views, but there is also existing shared query state in `$/collections/$queries.svelte.ts`. Follow the nearest existing pattern instead of introducing a new abstraction layer just to satisfy a generic rule.
 
-## Adding a new provider
 
-Mirror an existing neighbor such as `$/sources/Coingecko/Rest/` + `$/resolvers/Coingecko-Rest.ts`:
-
-1. Create `$/sources/<Provider>/<Transport>/` with `queries.ts` and any `client.ts`, `constants.ts`, generated types, and `index.ts` default export
-2. Create/update `$/sources/<Provider>/index.ts` default export and include its transport definitions
-3. Ensure `SourceProvider.<Provider>` exists in `$/sources/$SourceProvider.ts`
-4. Ensure `Source.<Provider>_<Transport>` exists in `$/sources/$Source.ts`
-5. Add the provider’s default export to the `sourceProviders` array in `$/sources/index.ts` (filtered `sources` and `enabledSources` are derived from that list and env `.allows` checks)
-6. Add `$/resolvers/<Provider>-<Transport>.ts` that maps wire data into schema fields
-7. Register that resolver module in `$/resolvers/index.ts`
-8. Extend or add schema definitions in `$/schema/*.ts`, and register new entities in `$/schema/index.ts` if needed
-9. Verify with `pnpm run check` and exercise a route or view that hits the new resolver
+---
 
 
+## SvelteKit routes and views (`src/routes/**`)
 
-## User Preferences (Canonical)
+`src/views/*.svelte` / `src/routes/**/*.svelte`:
+- NO TYPESCRIPT TYPE ASSERTIONS. EVER.
 
-- Reply in a concise style; avoid repetition or filler
-- Be DRY and declarative
-- Inline derived intermediate variables, especially if used once
+URLs and nav: `src/routes/navigationItems.svelte.ts`. `(…)` = layout groups only (not URL). Add `+layout` only for shared chrome or multiple children; drop empty groups. Never colocate `+layout` + `+page` except under `routes/`. Shallow `routes/<segment>/+page.svelte` OK for hubs; same rules with a prefix: `routes/<urlPrefix>/(area)/…`.
 
-### General
+Lists / detail — List: `(area)/<domainList>/+page`. Bad list: `(area)/(<domainList>)/<domainList>/+page` (duplicated list token). Hub: `(<hub>)/<hub>/…` = same string for group folder + next segment (not the list bad pattern). `<domainList>` ↔ `<domainItem>` plural/singular; `[<domainItemKey>]` id segment (`coinId`, …). `staticBeforeKey/` = literals before `[domainItemKey]`. `(<domainListGroup>)` ≈ `domainList`. Detail: `<domainItem>/[domainItemKey]/+page` beside `<domainItem>/[domainItemKey]/(<domainItem>)/+layout` (path + chrome share `domainItem`).
 
-- End files with a single line break
-- Avoid trailing spaces
+Deep — Parent: `<parentItem>/[parentKey]/(<parentItem>)/`. Facet list: `/(<parentItem>)/<childList>/+page`. `(<scopedSlice>)` + `childItem`/`[childKey]` / `(<childItem>)` like domain level; grandchild routes nest under child. Composite: `<compositeItem>/[compositeKeyFirst]/…`. Slice: same `<sliceNoun>` for list + `[sliceKey]` under `(<sliceGroup>)`. Facets: `<facetStatic>`, `(<facetBranch>)` + inner list/item/key placeholders. Double `( )/` only if both wrappers need several routes.
 
-### TypeScript / JavaScript
+Templates — `routes/.../` = any `src/routes/` prefix (incl. `<urlPrefix>`). Repeated placeholder = same folder name. `domainList`/`domainItem`/`[domainItemKey]` as above.
 
-- Use tabs
-- Prefer `'` over `"`
-- No `;` after statements (only leading `;` when needed before `(` / `[` / template literals)
-- No `;` or `,` after `type` / `interface` properties
-- Max 3 consecutive line breaks
-- Prefer `??` over `||`
-- Prefer `.` over `?.`, and `?.` over `object && object.value`
-- Prefer `T[]` over `Array<T>`
-- Prefer `[...array1, ...array2]` over `array1.concat(array2)`
-- Prefer `const fn = () => ()` over `function fn() {}`
-- Prefer expression returns: `=> ( expression )` over block `return`
-- Prefer ternary expression form over statement `if`/`else` for inline transforms
-- Prefer declarative expressions over mutating objects/arrays/maps, including `.reduce()` patterns
-- Do not use `as any` as a lint/type fix
-- Do not try to fix `Type instantiation is excessively deep and possibly infinite`
+- List (section)
+	routes/(area)/+layout.svelte
+	routes/(area)/<domainList>/+page.svelte
 
-#### Ternary formatting
+- Provider hub — <hub> repeated: group folder + next URL segment (not the list mistake)
+	routes/(area)/(<hub>)/<hub>/+layout.svelte
+	routes/(area)/(<hub>)/<hub>/<domainList>/+page.svelte
+	routes/<urlPrefix>/(area)/(<hub>)/<hub>/<domainList>/+page.svelte
 
-- Format multiline ternaries like `if` / `else if` / `else`
-- Place `?` at line end and `:` on its own branch line
-- Use:
+- Domain family + detail — <domainListGroup> usually same string as <domainList>; <domainItem> repeated for path + (chrome)
+	routes/(area)/(<domainListGroup>)/+layout.svelte
+	routes/(area)/(<domainListGroup>)/<domainItem>/[<domainItemKey>]/+page.svelte
+	routes/(area)/(<domainListGroup>)/<domainItem>/[<domainItemKey>]/(<domainItem>)/+layout.svelte
+	routes/(area)/(<domainListGroup>)/<staticBeforeKey>/[<domainItemKey>]/+page.svelte
+	routes/(area)/(<domainListGroup>)/<staticBeforeKey>/[<domainItemKey>]/(<domainItem>)/+layout.svelte
 
-#### Multiline expression formatting
+- Detail with only (area) — no (<domainListGroup>)
+	routes/(area)/<domainItem>/[<domainItemKey>]/+page.svelte
 
-- For multiline arrays/objects/params/args/chains/unions/intersections:
-	- One item/member per line
-	- Trailing comma after last item/property/argument/parameter
-	- Leading `&` / `|` before first intersection/union member
-- Break chained calls onto new indented lines
-- Wrap with outer `(` / `)` when not already an array/object/plain call/spread
-- Multiline binary expressions: operator starts next line
+- Under (<domainItem>) chrome — inner list / inner detail for that entity
+	routes/.../(<domainItem>)/<innerList>/+page.svelte
+	routes/.../(<domainItem>)/<innerItem>/[<innerKey>]/+page.svelte
 
-#### Imports and generics
+- Parent entity — <parentItem> matches (<parentItem>); children use child* / grandchild* tokens
+	routes/.../<parentItem>/[<parentKey>]/(<parentItem>)/+layout.svelte
+	routes/.../(<parentItem>)/<childList>/+page.svelte
+	routes/.../(<parentItem>)/(<scopedSlice>)/+layout.svelte
+	routes/.../(<parentItem>)/(<scopedSlice>)/<childList>/+page.svelte
+	routes/.../(<parentItem>)/(<scopedSlice>)/<childItem>/[<childKey>]/+page.svelte
+	routes/.../(<parentItem>)/(<scopedSlice>)/<childItem>/[<childKey>]/(<childItem>)/+layout.svelte
+	routes/.../(<childItem>)/<grandchildList>/+page.svelte
+	routes/.../(<childItem>)/<grandchildItem>/[<grandchildKey>]/+page.svelte
 
-- Sort imports by path, with type imports before value imports
-- Use full path extensions (`.ts`, `.svelte`, `.svelte.ts`) and `$/` alias for `src/`
-- No re-exports or barrel files
-- For types used only in generic `extends`, alias import with underscore and use `<Type extends _Type>`
+- Scoped slice — <sliceNoun> shared by list + param detail under (<sliceGroup>)
+	routes/.../(<sliceGroup>)/<sliceNoun>/+page.svelte
+	routes/.../(<sliceGroup>)/<sliceNoun>/[<sliceKey>]/+page.svelte
 
-### Svelte
+- Composite key — <compositeItem> + numbered compositeKey* parts (add more as needed)
+	routes/.../<compositeItem>/[<compositeKeyFirst>]/[<compositeKeySecond>]/[<compositeKeyThird>]/+page.svelte
+	routes/.../<compositeItem>/[<compositeKeyFirst>]/[<compositeKeySecond>]/[<compositeKeyThird>]/[<compositeKeyFourth>]/+page.svelte
 
-- Keep `$state()` / `$derived()` values indented on their own line
-- Preserve existing double line breaks before comments in `<script>`
-- Section and ordering in `<script>`:
-	- Types/constants
-	- Props
-	- Functions
-	- State
-	- Actions
-	- Components
-	- Styles
-	- Transitions/animations
-- Within a section, sort imports by path with type imports first
-- File section order: `<script>`, `<svelte:head>`, markup, `<style>` with two empty lines between sections
-- Prefer `let { ... }: { ... } = $props()` over `$props<{ ... }>()`
-- Include a trailing comma after each destructured prop (except `...rest`)
-- Prefer inlining one-off derived logic into markup with `{@const}`
-- `{@const}` must be immediate child of:
-	- `{#snippet}`, `{#if}`, `{:else if}`, `{:else}`, `{#each}`, `{:then}`, `{:catch}`, `<svelte:fragment>`, `<svelte:boundary>`, or `<Component>`
+- Composite under (<domainListGroup>) — keys belong to <compositeItem>
+	routes/.../(<domainListGroup>)/<compositeItem>/[<compositeKeyFirst>]/[<compositeKeySecond>]/+page.svelte
+	routes/.../(<domainListGroup>)/<compositeItem>/[<compositeKeyFirst>]/[<compositeKeySecond>]/[<compositeKeyThird>]/[<compositeKeyFourth>]/+page.svelte
 
-### CSS
+- Facets — host uses <domainItem> / [<domainItemKey>] / (<domainItem>); branch uses facet* tokens
+	routes/.../<domainItem>/[<domainItemKey>]/(<domainItem>)/+layout.svelte
+	routes/.../(<domainItem>)/<facetStatic>/+page.svelte
+	routes/.../(<domainItem>)/(<facetBranch>)/+layout.svelte
+	routes/.../(<facetBranch>)/<facetInnerList>/+page.svelte
+	routes/.../(<facetBranch>)/<facetInnerItem>/[<facetInnerKey>]/+page.svelte
 
-- Use semicolons in declarations
-- Prefer semantic HTML styling over one-off classes
+### Anti-examples
 
-### Scripts / CLI
+- Bad: `(area)/(<domainList>)/<domainList>/+page` (list doubled with parens). Good: `(area)/<domainList>/+page`; detail under `(<domainListGroup>)/<domainItem>/[…]` with `domainListGroup` ≈ `domainList`.
+- Bad: banning `(<hub>)/<hub>/` as if it were the list error. Good: hub repeat OK; wrong is only `(<domainList>)/<domainList>/+page`.
+- Bad: detail `+layout` on `<domainList>/[key]/` (inverted). Good: `(<domainListGroup>)/` then `<domainItem>/[domainItemKey]/+page` and optional `(<domainItem>)/+layout`.
+- Bad: hardcoded heading URL in a shared view. Good: `headingHref` / `headingLabel` from route.
+- Bad: placeholder IDs in detail pages. Good: real `params`, validated to entity ID type.
+- Bad: deep `(group)/` with one file, no shared chrome. Good: merge or give the layout several children / shared UI.
 
-- Prefer `mv` + edit over recreate + delete
-- Avoid index files that only re-export
+Checks — New routes must not match any Bad row above.
 
+### Validation
+
+Visit page with Playwright, collect console errors, read them, iterate until none appear
+
+
+## TanStack DB queries
+
+- LIMIT and OFFSET require an ORDER BY clause to ensure deterministic results

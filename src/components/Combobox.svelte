@@ -3,6 +3,7 @@
 	generics="_Item"
 >
 	// Types/constants
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { Snippet } from 'svelte'
 	import { stringify } from 'devalue'
 
@@ -54,8 +55,7 @@
 		inputValue?: string
 		onInputBlur?: () => void
 		onInputKeydown?: (e: KeyboardEvent) => void
-		Input?: Snippet<[props: Record<string, unknown>]>
-		[key: string]: unknown
+		Input?: Snippet<[props: Record<string, JsonValue>]>
 	} = $props()
 
 	// (Derived)

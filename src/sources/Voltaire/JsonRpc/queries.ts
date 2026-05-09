@@ -8,18 +8,150 @@ import {
 } from '@tevm/voltaire/block'
 import { Rpc } from '@tevm/voltaire/jsonrpc'
 import { Hex } from '@tevm/voltaire/Hex'
-import type { EIP1193Provider, Provider } from '@tevm/voltaire/provider'
+import type { Provider } from '@tevm/voltaire/provider'
 
 import type { ExecutionEndpoint } from '$/constants/ExecutionEndpoints.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { getHttpProvider, getWebsocketProvider } from '$/lib/voltaire.ts'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 
 import { ethBlockNumber } from '$/sources/Evm/JsonRpc/queries.ts'
-import type { RpcBlockHeaderWire, RpcReceiptWire, RpcTxWire } from '$/sources/Evm/JsonRpc/types.ts'
+import type { RpcBlockHeaderWire, RpcLogWire, RpcReceiptWire, RpcTxWire } from '$/sources/Evm/JsonRpc/types.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 import type { VoltaireBlockRpc, VoltaireReceiptRpc, VoltaireTxRpc } from './types.ts'
+
+
+const narrowRpcLogWire = (entry: JsonValue): RpcLogWire | null => (
+	entry === null || typeof entry !== 'object' || !(typeof entry === 'object' && entry !== null && !Array.isArray(entry)) ?
+		null
+	:	{
+			address: typeof entry['address'] === 'string' ? entry['address'] : undefined,
+			topics: (
+				Array.isArray(entry['topics'])
+				&& entry['topics'].every((t) => typeof t === 'string') ?
+					entry['topics']
+				:	undefined
+			),
+			data: typeof entry['data'] === 'string' ? entry['data'] : undefined,
+			blockNumber: typeof entry['blockNumber'] === 'string' ? entry['blockNumber'] : undefined,
+			transactionHash: typeof entry['transactionHash'] === 'string' ? entry['transactionHash'] : undefined,
+			logIndex: typeof entry['logIndex'] === 'string' ? entry['logIndex'] : undefined,
+		}
+)
+
+export const narrowVoltaireTxRpc = (raw: JsonValue): VoltaireTxRpc | null => (
+	raw == null || typeof raw !== 'object' ?
+		null
+	: !(typeof raw === 'object' && raw !== null && !Array.isArray(raw)) ?
+		null
+	:	(() => {
+			const blobRaw = raw['blobVersionedHashes']
+			const blobVersionedHashes = (
+				Array.isArray(blobRaw) && blobRaw.every((h) => typeof h === 'string') ?
+					blobRaw
+				:	undefined
+			)
+			return {
+				hash: typeof raw['hash'] === 'string' ? raw['hash'] : undefined,
+				blockNumber: typeof raw['blockNumber'] === 'string' ? raw['blockNumber'] : undefined,
+				blockHash: typeof raw['blockHash'] === 'string' ? raw['blockHash'] : undefined,
+				transactionIndex: typeof raw['transactionIndex'] === 'string' ? raw['transactionIndex'] : undefined,
+				from: typeof raw['from'] === 'string' ? raw['from'] : undefined,
+				to: raw['to'] === null ? null : typeof raw['to'] === 'string' ? raw['to'] : undefined,
+				value: typeof raw['value'] === 'string' ? raw['value'] : undefined,
+				nonce: typeof raw['nonce'] === 'string' ? raw['nonce'] : undefined,
+				input: typeof raw['input'] === 'string' ? raw['input'] : undefined,
+				gas: typeof raw['gas'] === 'string' ? raw['gas'] : undefined,
+				gasPrice: typeof raw['gasPrice'] === 'string' ? raw['gasPrice'] : undefined,
+				type: typeof raw['type'] === 'string' ? raw['type'] : undefined,
+				...(blobVersionedHashes != null ? { blobVersionedHashes } : {}),
+			}
+		})()
+)
+
+export const narrowVoltaireBlockRpc = (raw: JsonValue): VoltaireBlockRpc | null => (
+	raw == null || typeof raw !== 'object' ?
+		null
+	: !(typeof raw === 'object' && raw !== null && !Array.isArray(raw)) ?
+		null
+	:	(() => {
+			const number = raw['number']
+			const hash = raw['hash']
+			const parentHash = raw['parentHash']
+			const miner = raw['miner']
+			const gasUsed = raw['gasUsed']
+			const gasLimit = raw['gasLimit']
+			if (
+				typeof number !== 'string'
+				|| typeof hash !== 'string'
+				|| typeof parentHash !== 'string'
+				|| typeof miner !== 'string'
+				|| typeof gasUsed !== 'string'
+				|| typeof gasLimit !== 'string'
+			) return null
+			const timestampRaw = raw['timestamp']
+			if (typeof timestampRaw !== 'string' && typeof timestampRaw !== 'number') return null
+			const baseFeePerGas = raw['baseFeePerGas']
+			const txs = raw['transactions']
+			const transactions = (
+				!Array.isArray(txs) ?
+					undefined
+				: txs.length === 0 ?
+					[]
+				: txs.every((t) => typeof t === 'string') ?
+					txs
+				: txs.every((t) => typeof t === 'object' && t !== null && !Array.isArray(t)) ?
+					txs
+						.map((t) => narrowVoltaireTxRpc(t as JsonValue))
+						.filter((t): t is VoltaireTxRpc => t != null)
+				:
+					undefined
+			)
+			return {
+				number,
+				hash,
+				parentHash,
+				timestamp: timestampRaw,
+				miner,
+				gasUsed,
+				gasLimit,
+				...(typeof baseFeePerGas === 'string' ? { baseFeePerGas } : {}),
+				...(transactions != null ? { transactions } : {}),
+			}
+		})()
+)
+
+const narrowVoltaireReceiptRpc = (raw: JsonValue): VoltaireReceiptRpc | null => (
+	raw == null || typeof raw !== 'object' ?
+		null
+	: !(typeof raw === 'object' && raw !== null && !Array.isArray(raw)) ?
+		null
+	:	(() => {
+			const logsRaw = raw['logs']
+			const logsParsed = Array.isArray(logsRaw) ? logsRaw.map(narrowRpcLogWire) : null
+			const logs = (
+				logsParsed != null && logsParsed.every((l) => l != null) ?
+					logsParsed.filter((l): l is RpcLogWire => l != null)
+				:	undefined
+			)
+			const contractAddressRaw = raw['contractAddress']
+			const contractAddress = (
+				contractAddressRaw === null ?
+					null
+				: typeof contractAddressRaw === 'string' ?
+					contractAddressRaw
+				:	undefined
+			)
+			return {
+				status: typeof raw['status'] === 'string' ? raw['status'] : undefined,
+				gasUsed: typeof raw['gasUsed'] === 'string' ? raw['gasUsed'] : undefined,
+				contractAddress,
+				effectiveGasPrice: typeof raw['effectiveGasPrice'] === 'string' ? raw['effectiveGasPrice'] : undefined,
+				...(logs != null ? { logs } : {}),
+			}
+		})()
+)
 
 
 export const streamBlockToVoltaireBlockRpcWire = (
@@ -36,11 +168,11 @@ export const streamBlockToVoltaireBlockRpcWire = (
 		{ baseFeePerGas: String(Hex.fromBigInt(block.header.baseFeePerGas)) }
 	:
 		{}),
-	transactions: [...block.body.transactions] as readonly string[],
+	transactions: [...block.body.transactions] as VoltaireBlockRpc['transactions'],
 })
 
 export const toBlockSpec = (n: number | bigint | 'latest'): 'latest' | `0x${string}` => (
-	n === 'latest' ? 'latest' : (Hex.fromBigInt(BigInt(n)) as `0x${string}`)
+	n === 'latest' ? 'latest' : Hex.fromBigInt(BigInt(n))
 )
 
 export const getVoltaireProviderForExecutionUrl = ({
@@ -73,12 +205,14 @@ export const getBlockByNumber = async ({
 	blockNumber: bigint | 'latest'
 	fullTransactions?: boolean
 }): Promise<VoltaireBlockRpc | null> => (
-	provider.request(
-		Rpc.Eth.GetBlockByNumberRequest(
-			blockNumber === 'latest' ? 'latest' : toBlockSpec(blockNumber),
-			fullTransactions,
+	narrowVoltaireBlockRpc(
+		await provider.request(
+			Rpc.Eth.GetBlockByNumberRequest(
+				blockNumber === 'latest' ? 'latest' : toBlockSpec(blockNumber),
+				fullTransactions,
+			),
 		),
-	) as Promise<VoltaireBlockRpc | null>
+	)
 )
 
 export const getBlockTransactionCountByNumber = async ({
@@ -88,12 +222,15 @@ export const getBlockTransactionCountByNumber = async ({
 	provider: Provider
 	blockNumber: bigint | 'latest'
 }): Promise<bigint> => {
-	const transactionCountHex = await provider.request(
+	const transactionCountHexUnknown = await provider.request(
 		Rpc.Eth.GetBlockTransactionCountByNumberRequest(
 			blockNumber === 'latest' ? 'latest' : toBlockSpec(blockNumber),
 		),
-	) as string
-	return BigInt(transactionCountHex)
+	)
+	if (typeof transactionCountHexUnknown !== 'string' === 'object' && transactionCountHexUnknown !== 'string' !== null && !Array.isArray(transactionCountHexUnknown !== 'string')) {
+		throw new Error('eth_getBlockTransactionCountByNumber: expected hex string')
+	}
+	return BigInt(transactionCountHexUnknown)
 }
 
 export const lookupTransactionByHash = async ({
@@ -103,26 +240,27 @@ export const lookupTransactionByHash = async ({
 	provider: Provider
 	txHash: `0x${string}`
 }): Promise<{ tx: VoltaireTxRpc; receipt: VoltaireReceiptRpc | null }> => {
-	const [tx, receipt] = await Promise.all([
-		provider.request(
-			Rpc.Eth.GetTransactionByHashRequest(txHash as never),
-		) as Promise<VoltaireTxRpc | null>,
-		provider.request(
-			Rpc.Eth.GetTransactionReceiptRequest(txHash as never),
-		) as Promise<VoltaireReceiptRpc | null>,
+	const hashParam = Hex(txHash)
+	const [txUnknown, receiptUnknown] = await Promise.all([
+		provider.request(Rpc.Eth.GetTransactionByHashRequest(hashParam)),
+		provider.request(Rpc.Eth.GetTransactionReceiptRequest(hashParam)),
 	])
+	const tx = narrowVoltaireTxRpc(txUnknown)
+	const receipt = narrowVoltaireReceiptRpc(receiptUnknown)
 	if (tx == null) throw new Error('Transaction not found')
 	return { tx, receipt }
 }
 
 /** BlockStream for live / reorg-aware blocks; prefer a WebSocket execution URL. */
 export const createLiveBlockStream = (provider: Provider) => (
-	BlockStream({ provider: provider as EIP1193Provider })
+	// Voltaire `Provider.request` is untyped EIP-1193; `@tevm/voltaire/block` expects `TypedProvider` with stricter RPC param typing.
+	// @ts-expect-error Provider is structurally compatible at runtime for JSON-RPC block streaming
+	BlockStream({ provider })
 )
 
-const logBlockStreamEvent = <_Include extends BlockInclude>(
+const logBlockStreamEvent = (
 	chainId: number,
-	event: BlockStreamEvent<_Include>,
+	event: BlockStreamEvent<BlockInclude>,
 ) => {
 	if (event.type === 'blocks') {
 		const chainHead = event.metadata.chainHead
@@ -137,9 +275,9 @@ const logBlockStreamEvent = <_Include extends BlockInclude>(
 	}
 }
 
-export async function* iterateBlockStreamEvents<_Include extends BlockInclude = 'header'>({
+export async function* iterateBlockStreamEvents({
 	provider,
-	include = 'header' as _Include,
+	include = 'header',
 	signal,
 	chainId,
 	fromBlock,
@@ -148,7 +286,7 @@ export async function* iterateBlockStreamEvents<_Include extends BlockInclude = 
 	retry,
 }: {
 	provider: Provider
-	include?: _Include
+	include?: BlockInclude
 	signal?: AbortSignal
 	/** When set, each `blocks` / `reorg` event is logged (E2E / no-events debugging). */
 	chainId?: number
@@ -156,7 +294,7 @@ export async function* iterateBlockStreamEvents<_Include extends BlockInclude = 
 	maxQueuedBlocks?: number
 	pollingInterval?: number
 	retry?: RetryOptions
-}): AsyncGenerator<BlockStreamEvent<_Include>, void, void> {
+}): AsyncGenerator<BlockStreamEvent<BlockInclude>, void, void> {
 	const stream = createLiveBlockStream(provider)
 	for await (const event of stream.watch({
 		include,
@@ -173,19 +311,19 @@ export async function* iterateBlockStreamEvents<_Include extends BlockInclude = 
 	}
 }
 
-export async function* iterateBlockStreamBackfill<_Include extends BlockInclude = 'header'>({
+export async function* iterateBlockStreamBackfill({
 	provider,
 	fromBlock,
 	toBlock,
-	include = 'header' as _Include,
+	include = 'header',
 	signal,
 }: {
 	provider: Provider
 	fromBlock: bigint
 	toBlock: bigint
-	include?: _Include
+	include?: BlockInclude
 	signal?: AbortSignal
-}): AsyncGenerator<BlocksEvent<_Include>, void, void> {
+}): AsyncGenerator<BlocksEvent<BlockInclude>, void, void> {
 	const stream = createLiveBlockStream(provider)
 	for await (
 		const event of stream.backfill({
@@ -210,8 +348,11 @@ export const getChainHeadNumberForRpcUrl = async ({
 		return BigInt(hex)
 	}
 	const provider = getVoltaireProviderForExecutionUrl({ url: rpcUrl, transportType })
-	const hex = await provider.request(Rpc.Eth.BlockNumberRequest()) as string
-	return BigInt(hex)
+	const hexUnknown = await provider.request(Rpc.Eth.BlockNumberRequest())
+	if (typeof hexUnknown !== 'string' === 'object' && hexUnknown !== 'string' !== null && !Array.isArray(hexUnknown !== 'string')) {
+		throw new Error('eth_blockNumber: expected hex string')
+	}
+	return BigInt(hexUnknown)
 }
 
 export const getBlockByNumberForRpcUrl = async ({
@@ -271,9 +412,9 @@ export const getTransactionByHashForRpcUrl = async ({
 	txHash: `0x${string}`
 }): Promise<VoltaireTxRpc | null> => {
 	const provider = getVoltaireProviderForExecutionUrl({ url: rpcUrl, transportType })
-	return provider.request(
-		Rpc.Eth.GetTransactionByHashRequest(txHash as never),
-	) as Promise<VoltaireTxRpc | null>
+	return narrowVoltaireTxRpc(
+		await provider.request(Rpc.Eth.GetTransactionByHashRequest(Hex(txHash))),
+	)
 }
 
 export const getTransactionReceiptForRpcUrl = async ({
@@ -285,9 +426,11 @@ export const getTransactionReceiptForRpcUrl = async ({
 	transportType: TransportType
 	txHash: `0x${string}`
 }): Promise<VoltaireReceiptRpc | null> => (
-	getVoltaireProviderForExecutionUrl({ url: rpcUrl, transportType }).request(
-		Rpc.Eth.GetTransactionReceiptRequest(txHash as never),
-	) as Promise<VoltaireReceiptRpc | null>
+	narrowVoltaireReceiptRpc(
+		await getVoltaireProviderForExecutionUrl({ url: rpcUrl, transportType }).request(
+			Rpc.Eth.GetTransactionReceiptRequest(Hex(txHash)),
+		),
+	)
 )
 
 export const lookupTransactionByHashForRpcUrl = async ({
@@ -318,98 +461,8 @@ export const voltaireBlockWireAsRpcHeader = (
 	gasLimit: wire.gasLimit,
 	baseFeePerGas: wire.baseFeePerGas,
 	miner: wire.miner,
-	transactions: wire.transactions as unknown[],
+	transactions: [...(wire.transactions ?? [])],
 })
-
-/** Row value for `Network.$$evmBlocks` (Voltaire source); shared by resolver and live writes. */
-export const evmBlockNetworkFieldValueFromVoltaireWire = ({
-	chainId,
-	wire,
-}: {
-	chainId: number
-	wire: VoltaireBlockRpc
-}): {
-	[EntityMetaKey.Id]: {
-		$network: { chainId: number }
-		blockNumber: bigint
-		hash?: `0x${string}`
-	}
-	number: bigint
-	timestamp?: number
-	gasUsed?: bigint
-	gasLimit?: bigint
-	baseFeePerGas?: bigint
-	transactionCount: number
-} | null => {
-	const blockHeader = voltaireBlockWireAsRpcHeader(wire)
-	let blockNumber: bigint
-	try {
-		blockNumber = BigInt(wire.number)
-	} catch {
-		return null
-	}
-	const blockHash = (
-		typeof blockHeader.hash === 'string' && Hex.isHex(blockHeader.hash) && Hex.size(blockHeader.hash) === 32 ?
-			blockHeader.hash.toLowerCase() as `0x${string}`
-		:
-			undefined
-	)
-	const timestampSeconds = (
-		typeof blockHeader.timestamp === 'string' ? ((parsed) => (
-			Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
-				parsed
-			:
-				NaN
-		))(Number(blockHeader.timestamp)) : NaN
-	)
-	return {
-		[EntityMetaKey.Id]: {
-			$network: { chainId },
-			blockNumber,
-			...(blockHash != null ?
-				{ hash: blockHash }
-			:	{}),
-		},
-		number: blockNumber,
-		timestamp: ((timestampSeconds) => (
-			Number.isFinite(timestampSeconds) ? timestampSeconds * 1000 : undefined
-		))(timestampSeconds),
-		gasUsed: (
-			typeof blockHeader.gasUsed === 'string' ? ((value) => (
-				value == null || value < 0n ? undefined : value
-			))((() => {
-				try {
-					return BigInt(blockHeader.gasUsed)
-				} catch {
-					return undefined
-				}
-			})()) : undefined
-		),
-		gasLimit: (
-			typeof blockHeader.gasLimit === 'string' ? ((value) => (
-				value == null || value < 0n ? undefined : value
-			))((() => {
-				try {
-					return BigInt(blockHeader.gasLimit)
-				} catch {
-					return undefined
-				}
-			})()) : undefined
-		),
-		baseFeePerGas: (
-			typeof blockHeader.baseFeePerGas === 'string' ? ((value) => (
-				value == null || value < 0n ? undefined : value
-			))((() => {
-				try {
-					return BigInt(blockHeader.baseFeePerGas)
-				} catch {
-					return undefined
-				}
-			})()) : undefined
-		),
-		transactionCount: (blockHeader.transactions ?? []).length,
-	}
-}
 
 export const voltaireTxWireAsRpcTx = (
 	tx: VoltaireTxRpc,
@@ -438,7 +491,7 @@ export const voltaireReceiptWireAsRpcReceipt = (
 			status: receipt.status,
 			gasUsed: receipt.gasUsed,
 			effectiveGasPrice: receipt.effectiveGasPrice,
-			logs: receipt.logs as RpcReceiptWire['logs'],
+			logs: receipt.logs,
 			contractAddress: receipt.contractAddress,
 		}
 )

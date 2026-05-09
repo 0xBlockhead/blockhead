@@ -1,25 +1,26 @@
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 export type SourcifyContractSourceWire = {
 	content?: string
 	keccak256?: string
 	license?: string
-	[key: string]: unknown
+	[key: string]: JsonValue
 }
 
 export type SourcifyContractMetadataWire = {
 	compiler?: {
 		version?: string
-		[key: string]: unknown
+		[key: string]: JsonValue
 	}
 	language?: string
 	sources?: Record<string, SourcifyContractSourceWire>
 	fullyQualifiedName?: string
-	[key: string]: unknown
+	[key: string]: JsonValue
 }
 
 export type SourcifyContractSourceMetadata = {
 	compiler?: string
 	language?: string
-	sources?: Record<string, unknown>
+	sources?: Record<string, JsonValue>
 	fullyQualifiedName?: string
 }
 
@@ -29,8 +30,8 @@ export type SourcifyContractCompilationWire = {
 	language?: string
 	name?: string
 	fullyQualifiedName?: string
-	compilerSettings?: unknown
-	[key: string]: unknown
+	compilerSettings?: JsonValue
+	[key: string]: JsonValue
 }
 
 export type SourcifyContractDeploymentWire = {
@@ -38,7 +39,7 @@ export type SourcifyContractDeploymentWire = {
 	transactionHash?: string
 	blockNumber?: string
 	transactionIndex?: string
-	[key: string]: unknown
+	[key: string]: JsonValue
 }
 
 export type SourcifyContractLookupWire = {
@@ -49,10 +50,10 @@ export type SourcifyContractLookupWire = {
 	match?: string | null
 	chainId?: string
 	address?: string
-	abi?: unknown[]
+	abi?: JsonValue[]
 	compilation?: SourcifyContractCompilationWire
 	deployment?: SourcifyContractDeploymentWire
 	sources?: Record<string, SourcifyContractSourceWire>
 	metadata?: SourcifyContractMetadataWire
-	[key: string]: unknown
+	[key: string]: JsonValue
 }

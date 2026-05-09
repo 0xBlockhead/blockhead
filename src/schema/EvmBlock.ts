@@ -71,11 +71,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$$evmTransactions',
+			name: '$$transactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmTransaction,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [Source.Blockscout_Rest, Source.Voltaire_JsonRpc],
+			defaultSources: [
+				Source.Blockscout_Rest,
+				Source.Voltaire_JsonRpc,
+			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

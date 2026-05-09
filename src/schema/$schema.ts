@@ -116,4 +116,4 @@ export type Entity<
 > = {
 	[EntityMetaKey.Id]: EntityId<_Schema, _EntityType>
 	[EntityMetaKey.Fields]?: Partial<EntityFieldValues<_Schema, _EntityType>>
-}
+} & Partial<EntityFieldValues<_Schema, _EntityType>>

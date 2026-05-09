@@ -107,7 +107,15 @@ export default {
 				Source.CoinMarketCap_Rest,
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_Rest,
+				Source.TradingView_Rest,
 			],
+		},
+		{
+			name: '$$marketVenues',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.MarketVenue,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Constants_Internal],
 		},
 		{
 			name: '$$marketPrices',
@@ -120,6 +128,7 @@ export default {
 				Source.CoinMarketCap_Rest,
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_Rest,
+				Source.TradingView_Rest,
 			],
 		},
 		{

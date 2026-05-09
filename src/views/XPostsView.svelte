@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { type EntityFieldReference } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -15,6 +16,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { SvelteSet } from 'svelte/reactivity'
 
+	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
 	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
@@ -26,7 +28,7 @@
 		open = $bindable(true),
 		title = 'Posts',
 	}: {
-		entityFieldReference: EntityFieldReference<typeof EntityType.XPost>
+		entityFieldReference: EntityFieldReference<typeof schema, EntityType.XPost>
 		href: string
 		id: string
 		open?: boolean
@@ -39,8 +41,11 @@
 			queryBuilder
 				.from({
 					postFieldRow: (
-						entityFieldCollections[entityFieldReference.entityType]!
-					)[entityFieldReference.fieldName]!,
+						entityFieldCollectionForReference(
+							entityFieldCollections,
+							entityFieldReference,
+						)
+					),
 				})
 				.where(({ postFieldRow }) => (
 					eq(
@@ -54,12 +59,10 @@
 						Source.X_Rest,
 					)
 				))
-				.select(({ postFieldRow }) => ({
-					[EntityMetaKey.Id]: (
-						// @ts-expect-error entity field row stores target id
-						postFieldRow[EntityMetaKey.Value]![EntityMetaKey.Id]
-					),
-				}))
+				.select(({ postFieldRow }) => (
+					{ value: postFieldRow[EntityMetaKey.Value] }
+				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -82,17 +85,19 @@
 	{id}
 	getKey={(row) => stringify(row[EntityMetaKey.Id])}
 	getSortValue={(row) => (
-		typeof row[EntityMetaKey.Id] === 'object'
-		&& row[EntityMetaKey.Id] !== undefined
-		&& 'id' in row[EntityMetaKey.Id]
-		&& typeof row[EntityMetaKey.Id].id === 'string' ?
-			row[EntityMetaKey.Id].id
-		:	''
+		row[EntityMetaKey.Id].id
 	)}
-	items={new SvelteSet(postsQuery.data ?? [])}
+	items={postsQuery.data?.map(({ value }) => value) ?? []}
 	bind:open
 	placeholderKeys={new SvelteSet<string>()}
-	query={postsQuery}
+	query={{
+		data: postsQuery.data?.map(({ value }) => value) ?? [],
+		isLoading: postsQuery.isLoading,
+		isError: postsQuery.isError,
+		isReady: postsQuery.isReady,
+		error: postsQuery.error,
+		status: postsQuery.status,
+	}}
 	{title}
 >
 	{#snippet Empty()}
@@ -108,16 +113,14 @@
 			</span>
 		{:else if item}
 			{@const postId = item[EntityMetaKey.Id]}
-			{#if typeof postId === 'object' && postId !== undefined && 'id' in postId && typeof postId.id === 'string'}
-				<XPostView
-					entityId={{ id: postId.id }}
-					href={resolve('/(social)/x/post/[postId]', {
-						postId: encodeURIComponent(postId.id),
-					})}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{/if}
+			<XPostView
+				entityId={{ id: postId.id }}
+				href={resolve('/(social)/x/post/[postId]', {
+					postId: encodeURIComponent(postId.id),
+				})}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -5,12 +5,43 @@ import {
 import { farcasterNetworkFieldValues } from '$/constants/Social/Farcaster.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import { type Entity } from '$/schema/$schema.ts'
-import { schema } from '$/schema/index.ts'
+import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
+
+const placeholderIconFragments = [
+	'/missing.',
+	'missing.png',
+	'missing.jpg',
+	'missing.jpeg',
+	'default-avatar',
+	'default_avatar',
+	'default_profile',
+	'profile_images/default',
+	'avatar-default',
+	'anonymous.',
+	'grey_silhouette',
+	'person_blue_generic',
+] as const
+
+const normalizeIconHttpUrl = (value: string | null | undefined): string | undefined => {
+	const raw = typeof value === 'string' ? value.trim() : ''
+	if (raw.length === 0) return undefined
+	if (placeholderIconFragments.some((fragment) => raw.toLowerCase().includes(fragment))) return undefined
+	const withProtocol = raw.startsWith('//') ? `https:${raw}` : raw
+	if (withProtocol.startsWith('ipfs://')) {
+		const path = withProtocol.slice('ipfs://'.length).replace(/^\/+/, '')
+		return path.length > 0 ? `https://ipfs.io/ipfs/${path}` : undefined
+	}
+	if (withProtocol.startsWith('ar://')) {
+		const path = withProtocol.slice('ar://'.length).replace(/^\/+/, '')
+		return path.length > 0 ? `https://arweave.net/${path}` : undefined
+	}
+	return withProtocol.startsWith('http://') || withProtocol.startsWith('https://') ? withProtocol : undefined
+}
 
 export default {
-	source: 'Farcaster_Rest' satisfies import('$/sources/$Source.ts').Source,
+	source: Source.Farcaster_Rest,
 
 	entityResolvers: [
 		defineEntityResolver({
@@ -34,6 +65,7 @@ export default {
 				}
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.FarcasterChannel,
 			resolve: async (entityId) => {
@@ -47,28 +79,50 @@ export default {
 					name: trimmedNonEmptyString(channel.name) ?? channel.id,
 					url: trimmedNonEmptyString(channel.url),
 					description: trimmedNonEmptyString(channel.description),
-					imageUrl: trimmedNonEmptyString(channel.imageUrl),
-					headerImageUrl: trimmedNonEmptyString(channel.headerImageUrl),
+					...((
+						t,
+					) => (
+						t == null ?
+							{}
+						:	{
+								$icon: {
+									[EntityMetaKey.Id]: { url: t },
+									type: MediaType.Image,
+								},
+							}
+					))(normalizeIconHttpUrl(trimmedNonEmptyString(channel.imageUrl))),
+					...((
+						t,
+					) => (
+						t == null ?
+							{}
+						:	{
+								$headerImage: {
+									[EntityMetaKey.Id]: { url: t },
+									type: MediaType.Image,
+								},
+							}
+					))(normalizeIconHttpUrl(trimmedNonEmptyString(channel.headerImageUrl))),
 					$lead: (
 						channel.leadFid == null ?
 							undefined
-						:	({
+						:	{
 								[EntityMetaKey.Id]: { fid: channel.leadFid },
-							} satisfies Entity<typeof schema, EntityType.FarcasterUser>)
+							}
 					),
 					$moderator: (
 						channel.moderatorFids?.[0] == null ?
 							undefined
-						:	({
+						:	{
 								[EntityMetaKey.Id]: { fid: channel.moderatorFids[0] },
-							} satisfies Entity<typeof schema, EntityType.FarcasterUser>)
+							}
 					),
 					$$moderators: (channel.moderatorFids ?? []).flatMap((moderatorFid) => (
 						moderatorFid == null ?
 							[]
 						:	[{
 								[EntityMetaKey.Id]: { fid: moderatorFid },
-							} satisfies Entity<typeof schema, EntityType.FarcasterUser>]
+							}]
 					)),
 					createdAt: ((rawCreatedAt) => (
 						typeof rawCreatedAt === 'number' && Number.isFinite(rawCreatedAt) ?
@@ -97,12 +151,14 @@ export default {
 				}
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.FarcasterNetwork,
 			resolve: async () => (
 				farcasterNetworkFieldValues
 			),
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.FarcasterFeed,
 			resolve: async (entityId) => (
@@ -128,21 +184,22 @@ export default {
 						[EntityMetaKey.Id]: {
 							variant: 'trending',
 						},
-					} satisfies Entity<typeof schema, EntityType.FarcasterFeed>,
+					},
 				]
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.FarcasterNetwork,
 			fieldName: '$$channels',
 			resolve: async () => {
 				const { getAllChannels } = await import('$/sources/Farcaster/Rest/queries.ts')
 				return (await singleFlight(getAllChannels)())
-					.map((farcasterChannel) => (({
+					.map((farcasterChannel) => ({
 						[EntityMetaKey.Id]: {
 							id: farcasterChannel.id,
 						},
-					}) satisfies Entity<typeof schema, EntityType.FarcasterChannel>))
+					}))
 			},
 		}),
 	],

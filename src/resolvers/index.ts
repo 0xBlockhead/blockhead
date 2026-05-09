@@ -21,6 +21,7 @@ import EthereumEipsGithubResolvers from '$/resolvers/EthereumEips-Github.ts'
 import EthereumListsChainsResolvers from '$/resolvers/EthereumLists-Chains.ts'
 import FarcasterRestResolvers from '$/resolvers/Farcaster-Rest.ts'
 import IpfsRestResolvers from '$/resolvers/Ipfs-Rest.ts'
+import L2BeatRestResolvers from '$/resolvers/L2Beat-Rest.ts'
 import LifiRestResolvers from '$/resolvers/Lifi-Rest.ts'
 import LensGraphqlResolvers from '$/resolvers/Lens-Graphql.ts'
 import LocalResolvers from '$/resolvers/Local.ts'
@@ -29,10 +30,12 @@ import OpenchainRestResolvers from '$/resolvers/Openchain-Rest.ts'
 import RedditRestResolvers from '$/resolvers/Reddit-Rest.ts'
 import SnapchainRestResolvers from '$/resolvers/Snapchain-Rest.ts'
 import SourcifyRestResolvers from '$/resolvers/Sourcify-Rest.ts'
+import SwarmRestResolvers from '$/resolvers/Swarm-Rest.ts'
+import TradingViewRestResolvers from '$/resolvers/TradingView-Rest.ts'
 import VoltaireJsonRpcResolvers from '$/resolvers/Voltaire-JsonRpc.ts'
 import XRestResolvers from '$/resolvers/X-Rest.ts'
 
-const resolverModules = (
+const enabledResolverModulesAfterSourceGate = (
 	[
 		MastodonRestResolvers,
 		AlliumRestResolvers,
@@ -40,6 +43,7 @@ const resolverModules = (
 		BeaconRestResolvers,
 		BlockscoutRestResolvers,
 		CaipsGithubResolvers,
+		L2BeatRestResolvers,
 		ChainlistRestResolvers,
 		CoingeckoRestResolvers,
 		CoinMarketCapRestResolvers,
@@ -62,13 +66,15 @@ const resolverModules = (
 		RedditRestResolvers,
 		SnapchainRestResolvers,
 		SourcifyRestResolvers,
+		SwarmRestResolvers,
+		TradingViewRestResolvers,
 		VoltaireJsonRpcResolvers,
 		XRestResolvers,
 	] satisfies readonly { source: Source }[]
 ).filter((module) => enabledSources.has(module.source))
 
 export const entityResolvers = (
-	resolverModules.flatMap((module) => (
+	enabledResolverModulesAfterSourceGate.flatMap((module) => (
 		module.entityResolvers.map((entityResolver) => ({
 			...entityResolver,
 			source: module.source,
@@ -77,7 +83,7 @@ export const entityResolvers = (
 )
 
 export const entityFieldResolvers = (
-	resolverModules.flatMap((module) => (
+	enabledResolverModulesAfterSourceGate.flatMap((module) => (
 		module.entityFieldResolvers.map((entityFieldResolver) => ({
 			...entityFieldResolver,
 			source: module.source,
@@ -86,11 +92,14 @@ export const entityFieldResolvers = (
 )
 
 export const entityLiveResolvers = (
-	resolverModules.flatMap((module) => (
-		(module.entityLiveResolvers ?? []).map((entityLiveResolver) => ({
-			...entityLiveResolver,
-			source: module.source,
-		}))
+	enabledResolverModulesAfterSourceGate.flatMap((module) => (
+		'entityLiveResolvers' in module ?
+			module.entityLiveResolvers.map((entityLiveResolver) => ({
+				...entityLiveResolver,
+				source: module.source,
+			}))
+		:
+			[]
 	))
 )
 
@@ -109,7 +118,9 @@ export const entityLiveResolversByEntityType = Object.groupBy(
 	(entityLiveResolver) => entityLiveResolver.entityType,
 )
 
-export const entityFieldResolversByEntityTypeAndFieldName = Object.fromEntries(
+export const entityFieldResolversByEntityTypeAndFieldName: Partial<
+	Record<string, Partial<Record<string, typeof entityFieldResolvers>>>
+> = Object.fromEntries(
 	Object.entries(entityFieldResolversByEntityType)
 		.map(([entityType, resolversForEntity]) => [
 			entityType,
@@ -120,7 +131,9 @@ export const entityFieldResolversByEntityTypeAndFieldName = Object.fromEntries(
 		]),
 )
 
-export const entityFieldNamesWithResolveLiveByEntityType = Object.fromEntries(
+export const entityFieldNamesWithResolveLiveByEntityType: Partial<
+	Record<string, string[]>
+> = Object.fromEntries(
 	Object.entries(entityFieldResolversByEntityType)
 		.map(([entityType, resolversForEntity]) => [
 			entityType,

@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { Entity, EntityFieldValues, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -14,6 +15,8 @@
 	import { stringify } from 'devalue'
 
 	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+
+	import { isEntityReferenceWithId } from '$/lib/isEntityReferenceWithId.ts'
 
 
 	// Props
@@ -43,17 +46,16 @@
 	> = $props()
 
 
-	const refUserFid = (ref: unknown) => (
-		ref !== undefined
-		&& typeof ref === 'object'
-		&& EntityMetaKey.Id in ref
-		&& typeof (ref as { ['#id']?: { fid?: unknown } })[EntityMetaKey.Id] === 'object'
-		&& (ref as { ['#id']: { fid?: unknown } })[EntityMetaKey.Id] !== undefined
-		&& typeof (ref as { ['#id']: { fid: number } })[EntityMetaKey.Id].fid === 'number' ?
-			(ref as { ['#id']: { fid: number } })[EntityMetaKey.Id].fid
-		:
-			undefined
-	)
+	const refUserFid = (
+		ref: Entity<typeof schema, EntityType.FarcasterUser> | JsonValue | undefined,
+	) => {
+		if (!isEntityReferenceWithId<EntityType.FarcasterUser>(ref)) return undefined
+		const inner = ref[EntityMetaKey.Id]
+		if (typeof inner !== 'object' || inner === null || Array.isArray(inner)) return undefined
+		if (!('fid' in inner)) return undefined
+		const fid = inner.fid
+		return typeof fid === 'number' ? fid : undefined
+	}
 
 	const channelIdKey = $derived(
 		stringify(entityId),
@@ -80,9 +82,9 @@
 
 	const channelField = $derived(
 		(() => {
-			const bag = channelRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
+			const bagUnknown = channelRow?.[EntityMetaKey.Fields]
+			if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) return null
+			const b: Partial<EntityFieldValues<typeof schema, EntityType.FarcasterChannel>> = bagUnknown
 			const moderatorsRaw = b.$$moderators
 			const moderators = (
 				Array.isArray(moderatorsRaw) ?
@@ -96,8 +98,8 @@
 				name: typeof b.name === 'string' ? b.name : undefined,
 				url: typeof b.url === 'string' ? b.url : undefined,
 				description: typeof b.description === 'string' ? b.description : undefined,
-				imageUrl: typeof b.imageUrl === 'string' ? b.imageUrl : undefined,
-				headerImageUrl: typeof b.headerImageUrl === 'string' ? b.headerImageUrl : undefined,
+				logoUrl: b.$icon?.[EntityMetaKey.Id].url,
+				headerImageUrl: b.$headerImage?.[EntityMetaKey.Id].url,
 				createdAt: typeof b.createdAt === 'number' ? b.createdAt : undefined,
 				followerCount: typeof b.followerCount === 'number' ? b.followerCount : undefined,
 				memberCount: typeof b.memberCount === 'number' ? b.memberCount : undefined,
@@ -141,7 +143,7 @@
 					/>
 				</p>
 			{/if}
-			<dl data-definition-list="vertical">
+			<dl>
 				<div>
 					<dt>Channel id</dt>
 					<dd>{entityId.id}</dd>
@@ -200,7 +202,7 @@
 						<p data-text="muted">
 							No channel data for this id yet.
 						</p>
-					{:else if channelField === undefined}
+					{:else if channelField == null}
 						<p data-text="muted">
 							{entityId.id}
 						</p>
@@ -240,15 +242,15 @@
 										<dd>{channelField.description}</dd>
 									</div>
 								{/if}
-								{#if channelField.imageUrl !== undefined}
+								{#if channelField.logoUrl !== undefined}
 									<div>
-										<dt>Image</dt>
+										<dt>Logo</dt>
 										<dd data-column>
 											<Media
-												media={{ url: channelField.imageUrl }}
+												media={{ url: channelField.logoUrl }}
 												alt=""
 											/>
-											<a href={channelField.imageUrl}>{channelField.imageUrl}</a>
+											<a href={channelField.logoUrl}>{channelField.logoUrl}</a>
 										</dd>
 									</div>
 								{/if}

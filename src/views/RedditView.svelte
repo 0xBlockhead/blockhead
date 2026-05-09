@@ -41,7 +41,7 @@
 	const subredditsQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.RedditNetwork]['$$redditSubreddits']! })
+				.from({ row: entityFieldCollections[EntityType.RedditNetwork]['$$redditSubreddits'] })
 				.where(({ row }) => (
 					eq(
 						row[EntityMetaKey.ParentIdKey],
@@ -56,7 +56,7 @@
 	const linksQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.RedditNetwork]['$$redditLinks']! })
+				.from({ row: entityFieldCollections[EntityType.RedditNetwork]['$$redditLinks'] })
 				.where(({ row }) => (
 					eq(
 						row[EntityMetaKey.ParentIdKey],
@@ -70,7 +70,7 @@
 
 	const networkFields = $derived.by(() => {
 		const bag = networkQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		return bag !== undefined && typeof bag === 'object' ? bag as Record<string, unknown> : null
+		return bag != null && (typeof bag === 'object' && bag !== null && !Array.isArray(bag)) ? bag : null
 	})
 
 
@@ -93,7 +93,7 @@
 	title="Reddit"
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Scope</dt>
 				<dd>{entityId.scope}</dd>
@@ -120,7 +120,7 @@
 				query={networkQuery}
 			>
 				{#snippet children(_rows)}
-					<dl data-definition-list="vertical">
+					<dl>
 						<div>
 							<dt>Protocol name</dt>
 							<dd>{String(networkFields?.protocolName ?? 'Reddit')}</dd>
@@ -169,7 +169,7 @@
 					data-row="start align-start"
 					style="--carousel-basis: 36ch"
 				>
-					<section>
+					<section data-scroll-marker-label="Subreddits">
 						<RedditSubredditsView
 							entityFieldReference={{
 								entityType: EntityType.RedditNetwork,
@@ -182,7 +182,7 @@
 						/>
 					</section>
 
-					<section>
+					<section data-scroll-marker-label="Popular posts">
 						<RedditLinksView
 							entityFieldReference={{
 								entityType: EntityType.RedditNetwork,

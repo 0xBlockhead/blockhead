@@ -1,4 +1,5 @@
 <script module lang="ts">
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { Type } from 'arktype'
 	import type { ObjectType } from 'arktype/internal/variants/object.ts'
 	import { regex } from 'arkregex'
@@ -282,20 +283,26 @@
 
 					const { filters, sorts, limit } = parseLoadSubsetOptions(loadSubsetOptions)
 
+					const sourceCandidates = (
+						filters
+							.filter((clause) => (
+								clause.field[clause.field.length - 1] === EntityMetaKey.Source
+								&& clause.operator === 'in'
+							))
+							.flatMap((clause) => (
+								Array.isArray(clause.value) ?
+									clause.value
+								:
+									[clause.value]
+							))
+					)
 					const sources = new Set(
-						(
-							filters
-								.filter((clause) => (
-									clause.field[clause.field.length - 1] === EntityMetaKey.Source
-									&& clause.operator === 'in'
-								))
-								.flatMap((clause) => (
-									Array.isArray(clause.value) ?
-										clause.value
-									:
-										[clause.value]
-								))
-						) as Source[]
+						sourceCandidates.filter((v): v is Source => (
+							v === Source.Local_Internal
+							|| v === Source.Voltaire_JsonRpc
+							|| v === Source.Chainlist_Rest
+							|| v === Source.EthereumEips_Github
+						)),
 					)
 
 					const entityIds = (
@@ -626,19 +633,10 @@
 	}
 
 	enum Source {
-		Local = 'Local',
-		NetworkDefault = 'NetworkDefault',
-		ChainList = 'ChainList',
-		Scan8004 = 'Scan8004',
-		Eips = 'Eips',
-		Ensips = 'Ensips',
-		LiFi = 'LiFi',
-		NearIntents = 'NearIntents',
-		Openchain = 'Openchain',
-		Uniswap = 'Uniswap',
-		Farcaster = 'Farcaster',
-		Blockscout = 'Blockscout',
-		Voltaire = 'Voltaire',
+		Local_Internal = 'Local_Internal',
+		Voltaire_JsonRpc = 'Voltaire_JsonRpc',
+		Chainlist_Rest = 'Chainlist_Rest',
+		EthereumEips_Github = 'EthereumEips_Github',
 	}
 
 	export enum ProposalRealm {
@@ -667,14 +665,18 @@
 					type: EntityFieldType.EntitiesReference,
 					entityType: BlockheadEntityType.Proposal,
 					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.EthereumEips_Github],
+					defaultSources: [
+						Source.EthereumEips_Github,
+					],
 				},
 				{
 					name: '$$networks',
 					type: EntityFieldType.EntitiesReference,
 					entityType: BlockheadEntityType.Network,
 					cardinality: EntityFieldCardinality.Many,
-					defaultSources: [Source.Chainlist_Rest],
+					defaultSources: [
+						Source.Chainlist_Rest,
+					],
 				},
 			],
 		},
@@ -784,7 +786,9 @@
 					type: EntityFieldType.Primitive,
 					primitiveType: type('string'),
 					cardinality: EntityFieldCardinality.One,
-					defaultSources: [Source.EthereumEips_Github],
+					defaultSources: [
+						Source.EthereumEips_Github,
+					],
 				},
 			],
 		},
@@ -808,7 +812,9 @@
 					type: EntityFieldType.EntitiesReference,
 					entityType: BlockheadEntityType.EvmBlock,
 					cardinality: EntityFieldCardinality.ZeroOrMany,
-					defaultSources: [Source.Voltaire_JsonRpc],
+					defaultSources: [
+						Source.Voltaire_JsonRpc,
+					],
 				},
 			],
 		},
@@ -844,11 +850,13 @@
 					cardinality: EntityFieldCardinality.ZeroOrOne,
 				},
 				{
-					name: '$$evmTransactions',
+					name: '$$transactions',
 					type: EntityFieldType.EntitiesReference,
 					entityType: BlockheadEntityType.EvmTransaction,
 					cardinality: EntityFieldCardinality.ZeroOrMany,
-					defaultSources: [Source.Voltaire_JsonRpc],
+					defaultSources: [
+						Source.Voltaire_JsonRpc,
+					],
 				},
 			],
 		},
@@ -906,7 +914,7 @@
 	)
 
 	// const rowKeyEqValue = (
-	// 	filters: { field: readonly unknown[]; operator: string; value?: unknown }[],
+	// 	filters: { field: readonly unknown[]; operator: string; value?: JsonValue }[],
 	// 	rowKey: string,
 	// ) =>
 	// 	filters.find(
@@ -952,24 +960,22 @@
 			entityType: BlockheadEntityType.Network,
 			source: Source.Chainlist_Rest,
 			resolve: async (entityId) => {
-				const { fetchRpcsJson, chainPrimaryExplorerUrl, isPublicRpcUrl } = await import(
+				const { fetchRpcsJson } = await import(
 					'$/sources/Chainlist/Rest/queries.ts'
 				)
-				const { findChainByChainId, rpcUrlsWithoutHeavyTracking } = await import(
-					'$/sources/Chainlist/Rest/rpcsJsonWire.ts'
-				)
 				const chains = await fetchRpcsJson()
-				const chain = findChainByChainId(chains, entityId.chainId)
-				if (chain === undefined) return {}
-				const rpcUrls = rpcUrlsWithoutHeavyTracking(chain).filter(isPublicRpcUrl)
-				const rpcUrl = rpcUrls[0]
-				const explorer = chainPrimaryExplorerUrl(chain)
-				return {
-					name: chain.title ?? chain.name,
-					nativeSymbol: chain.nativeCurrency.symbol,
-					...(explorer !== undefined ? { explorerOrigin: explorer } : {}),
-					...(rpcUrl !== undefined ? { rpcUrl } : {}),
-				}
+				const chain = chains.find((candidate) => candidate.chainId === entityId.chainId)
+				return (
+					chain === undefined ?
+						{}
+					:
+						{
+							[EntityMetaKey.Id]: {
+								chainId: chain.chainId,
+							},
+							name: chain.title ?? chain.name,
+						}
+				)
 			},
 		}),
 
@@ -977,7 +983,7 @@
 			entityType: BlockheadEntityType.EvmBlock,
 			source: Source.Voltaire_JsonRpc,
 			resolve: async ($id) => {
-				if (typeof $id.blockNumber !== 'bigint') return {}
+				if (typeof $id.blockNumber !== 'bigint' === 'object' && $id.blockNumber !== 'bigint' !== null && !Array.isArray($id.blockNumber !== 'bigint')) return {}
 				const { Rpc } = await import('@tevm/voltaire/jsonrpc')
 				const { Hex } = await import('@tevm/voltaire/Hex')
 				const { HttpProvider } = await import('@tevm/voltaire/provider')
@@ -987,7 +993,7 @@
 						false,
 					),
 				)
-				const bj = (blockJson ?? {}) as Record<string, unknown>
+				const bj: Record<string, JsonValue> = (typeof blockJson === 'object' && blockJson !== null && !Array.isArray(blockJson)) ? blockJson : {}
 				const tsRaw = bj['timestamp']
 				const gasUsedRaw = bj['gasUsed']
 				const gasLimitRaw = bj['gasLimit']
@@ -1032,7 +1038,13 @@
 				const transactionJsonRaw = await new HttpProvider(demoRpcUrl).request(
 					Rpc.Eth.GetTransactionByHashRequest($id.txHash),
 				)
-				const transactionJson = transactionJsonRaw as Record<string, unknown> | null
+				const transactionJson = (
+					transactionJsonRaw == null ?
+						null
+					: (typeof transactionJsonRaw === 'object' && transactionJsonRaw !== null && !Array.isArray(transactionJsonRaw)) ?
+						transactionJsonRaw
+					: null
+				)
 				return {
 					value: typeof transactionJson?.value === 'string' ?
 						BigInt(transactionJson.value)
@@ -1060,7 +1072,7 @@
 				)
 
 				const match = regex(
-					'^\s*(---\s*\n(?<frontmatterText>[\s\S]*?)\n---\s*\n?)?(?<bodyText>[\s\S]*)',
+					'^s*(---s*\n(?<frontmatterText>[sS]*?)\n---s*\n?)?(?<bodyText>[sS]*)',
 				).exec(markdownText)
 
 				const frontmatterText = match?.groups?.frontmatterText ?? ''
@@ -1179,7 +1191,13 @@
 						false,
 					),
 				)
-				const headBlockJson = headBlockJsonRaw as Record<string, unknown> | null
+				const headBlockJson = (
+					headBlockJsonRaw == null ?
+						null
+					: (typeof headBlockJsonRaw === 'object' && headBlockJsonRaw !== null && !Array.isArray(headBlockJsonRaw)) ?
+						headBlockJsonRaw
+					: null
+				)
 				return [
 					{
 						[EntityMetaKey.Id]: {
@@ -1202,10 +1220,10 @@
 
 		defineEntityFieldResolver({
 			entityType: BlockheadEntityType.EvmBlock,
-			fieldName: '$$evmTransactions',
+			fieldName: '$$transactions',
 			source: Source.Voltaire_JsonRpc,
 			resolve: async ($id) => {
-				if (typeof $id.blockNumber !== 'bigint') return []
+				if (typeof $id.blockNumber !== 'bigint' === 'object' && $id.blockNumber !== 'bigint' !== null && !Array.isArray($id.blockNumber !== 'bigint')) return []
 				const chainId = $id.$network.chainId
 				const { Rpc } = await import('@tevm/voltaire/jsonrpc')
 				const { Hex } = await import('@tevm/voltaire/Hex')
@@ -1216,8 +1234,14 @@
 						true,
 					),
 				)
-				const blockWire = blockRecord as Record<string, unknown> | null
-				const transactions: unknown[] = (
+				const blockWire = (
+					blockRecord == null ?
+						null
+					: (typeof blockRecord === 'object' && blockRecord !== null && !Array.isArray(blockRecord)) ?
+						blockRecord
+					: null
+				)
+				const transactions: JsonValue[] = (
 					blockWire !== undefined &&
 					Array.isArray(blockWire.transactions) ?
 						blockWire.transactions
@@ -1234,8 +1258,8 @@
 						hashes.push(txOrHashInBlock)
 						continue
 					}
-					if (typeof txOrHashInBlock === 'object' && txOrHashInBlock !== undefined) {
-						const hash = (txOrHashInBlock as Record<string, unknown>)['hash']
+					if ((typeof txOrHashInBlock === 'object' && txOrHashInBlock !== null && !Array.isArray(txOrHashInBlock))) {
+						const hash = txOrHashInBlock['hash']
 						if (typeof hash === 'string' && hash.startsWith('0x')) {
 							hashes.push(hash)
 						}
@@ -1268,7 +1292,13 @@
 						$id.txHash,
 					),
 				)
-				const receiptWire = receipt as Record<string, unknown> | null
+				const receiptWire = (
+					receipt == null ?
+						null
+					: (typeof receipt === 'object' && receipt !== null && !Array.isArray(receipt)) ?
+						receipt
+					: null
+				)
 				return (
 					typeof receiptWire?.status === 'string' ?
 						Number.parseInt(receiptWire.status, 16)
@@ -1296,7 +1326,13 @@
 						$id.txHash,
 					),
 				)
-				const receiptWire = receipt as Record<string, unknown> | null
+				const receiptWire = (
+					receipt == null ?
+						null
+					: (typeof receipt === 'object' && receipt !== null && !Array.isArray(receipt)) ?
+						receipt
+					: null
+				)
 				return (
 					typeof receiptWire?.gasUsed === 'string' ?
 						BigInt(receiptWire.gasUsed)
@@ -1662,9 +1698,9 @@
 		),
 	)
 
-	const liveQueryDataRows = (data: unknown) => (data === undefined ? [] : Array.isArray(data) ? data : [data])
+	const liveQueryDataRows = (data: JsonValue) => (data === undefined ? [] : Array.isArray(data) ? data : [data])
 
-	type OneOffLiveQueryShell = { data: unknown; isLoading: boolean; isError: boolean }
+	type OneOffLiveQueryShell = { data: JsonValue; isLoading: boolean; isError: boolean }
 
 	// const networkQuery = useLiveQuery((queryBuilder) => (
 	// 	queryBuilder
@@ -1733,7 +1769,7 @@
 	// 		.join(
 	// 			{
 	// 				blockTransactionsField: entityFieldCollections[BlockheadEntityType.EvmBlock][
-	// 					'$$evmTransactions'
+	// 					'$$transactions'
 	// 				],
 	// 			},
 	// 			({ blockRow, blockTransactionsField }) => (
@@ -1806,8 +1842,8 @@
 	// 			receiptGasUsedField,
 	// 		}) => {
 	// 			const entityDevalueWire = (row: {
-	// 				[EntityMetaKey.IdKey]: unknown
-	// 				[EntityMetaKey.Id]: unknown
+	// 				[EntityMetaKey.IdKey]: JsonValue
+	// 				[EntityMetaKey.Id]: JsonValue
 	// 			}) => (
 	// 				typeof row[EntityMetaKey.IdKey] === 'string' ?
 	// 					row[EntityMetaKey.IdKey]

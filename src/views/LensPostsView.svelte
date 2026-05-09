@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { type EntityFieldReference, type EntityId, schema } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -19,6 +20,7 @@
 		entityCollectionByEntityType,
 		entityFieldCollections,
 	} from '$/routes/+layout.svelte'
+	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
 
 
 	// Props
@@ -30,7 +32,7 @@
 		open = $bindable(true),
 		title = 'Posts',
 	}: {
-		entityFieldReference: EntityFieldReference<typeof EntityType.LensPost>
+		entityFieldReference: EntityFieldReference<typeof schema, EntityType.LensPost>
 		href: string
 		id: string
 		limit?: number
@@ -44,8 +46,11 @@
 			queryBuilder
 				.from({
 					postFieldRow: (
-						entityFieldCollections[entityFieldReference.entityType]!
-					)[entityFieldReference.fieldName]!,
+						entityFieldCollectionForReference(
+							entityFieldCollections,
+							entityFieldReference,
+						)
+					),
 				})
 				.where(({ postFieldRow }) => (
 					eq(
@@ -63,8 +68,7 @@
 					{ post: entityCollectionByEntityType[EntityType.LensPost] },
 					({ postFieldRow, post }) => (
 						eq(
-							// @ts-expect-error entity field row stores target id key
-							postFieldRow[EntityMetaKey.Value]![EntityMetaKey.IdKey],
+							postFieldRow[EntityMetaKey.Value][EntityMetaKey.IdKey],
 							post[EntityMetaKey.IdKey],
 						)
 					),
@@ -78,12 +82,10 @@
 				.orderBy(({ post }) => coalesce(post.timestamp, 0), 'desc')
 				.orderBy(({ post }) => post[EntityMetaKey.IdKey], 'desc')
 				.limit(limit)
-				.select(({ postFieldRow }) => ({
-					[EntityMetaKey.Id]: (
-						// @ts-expect-error entity field row stores target id
-						postFieldRow[EntityMetaKey.Value]![EntityMetaKey.Id]
-					),
-				}))
+				.select(({ postFieldRow }) => (
+					{ value: postFieldRow[EntityMetaKey.Value] }
+				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -93,27 +95,12 @@
 		],
 	)
 
-	const postItems = $derived.by(() => (
-		new SvelteSet(
-			(postsQuery.data ?? []).flatMap((row, order) => {
-				const postId = row[EntityMetaKey.Id]
-				return (
-					postId !== undefined
-					&& typeof postId === 'object'
-					&& 'id' in postId
-					&& typeof postId.id === 'string'
-				) ?
-					[
-						{
-							...(postId as EntityId<typeof schema, EntityType.LensPost>),
-							order,
-						},
-					]
-				:	[]
-			}),
-		)
-	))
-
+	const postItems = $derived(
+		(postsQuery.data ?? []).map(({ value: post }, order) => ({
+			...post[EntityMetaKey.Id],
+			order,
+		})),
+	)
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -131,7 +118,14 @@
 	items={postItems}
 	bind:open
 	placeholderKeys={new SvelteSet<string>()}
-	query={postsQuery}
+	query={{
+		data: postItems,
+		isLoading: postsQuery.isLoading,
+		isError: postsQuery.isError,
+		isReady: postsQuery.isReady,
+		error: postsQuery.error,
+		status: postsQuery.status,
+	}}
 	{title}
 >
 	{#snippet Empty()}

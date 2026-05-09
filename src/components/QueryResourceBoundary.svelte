@@ -3,7 +3,12 @@
 	import type { Snippet } from 'svelte'
 
 	import Boundary from '$/components/Boundary.svelte'
-	import { type QueryLike, toQueryResource } from '$/lib/db/queryResource.svelte.ts'
+	import type { RemoteResource } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import {
+		type QueryLike,
+		toQueryResource,
+		toQueryResourceFromRemote,
+	} from '$/lib/db/queryResource.svelte.ts'
 
 
 	// Props
@@ -21,12 +26,16 @@
 			retry: () => void,
 		]>
 		placeholderText?: string
-		query: QueryLike<Data>
+		query:
+			| QueryLike<Data>
+			| RemoteResource<Data>
 	} = $props()
 
 
-	// State
-	const resource = toQueryResource(() => query)
+	const resource = query[Symbol.toStringTag] === 'RemoteResource' ?
+		toQueryResourceFromRemote(() => query as RemoteResource<Data>)
+	:
+		toQueryResource(() => query as QueryLike<Data>)
 </script>
 
 

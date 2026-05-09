@@ -1,6 +1,4 @@
-import {
-	requiredPublicEnvString,
-} from '$/lib/sources.ts'
+import { requiredPublicEnvString } from '$/lib/sources.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { baseUrl } from '$/sources/Allium/Rest/constants.ts'
@@ -24,5 +22,5 @@ export const alliumFetch = async <_Response>(
 		throw new Error(`Allium API error: ${response.status} ${response.statusText}`)
 	}
 
-	return response.json() as Promise<_Response>
+	return response.json<_Response>()
 }

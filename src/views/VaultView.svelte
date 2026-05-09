@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -65,24 +66,21 @@
 
 	const vaultField = $derived(
 		(() => {
-			const bag = vaultRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
-			const num = (key: string) => (
-				typeof b[key] === 'number' && Number.isFinite(b[key] as number) ?
-					(b[key] as number)
-				:	undefined
-			)
-			const str = (key: string) => (
-				typeof b[key] === 'string' && (b[key] as string).length ?
-					(b[key] as string)
-				:	undefined
-			)
-			const big = (key: string) => (
-				typeof b[key] === 'bigint' ?
-					(b[key] as bigint)
-				:	undefined
-			)
+			const bagUnknown = vaultRow?.[EntityMetaKey.Fields]
+			if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) return null
+			const b: Record<string, JsonValue> = bagUnknown
+			const num = (key: string) => {
+				const v = b[key]
+				return typeof v === 'number' && Number.isFinite(v) ? v : undefined
+			}
+			const str = (key: string) => {
+				const v = b[key]
+				return typeof v === 'string' && v.length ? v : undefined
+			}
+			const big = (key: string) => {
+				const v = b[key]
+				return typeof v === 'bigint' ? v : undefined
+			}
 			const usd = (key: string) => {
 				const v = b[key]
 				return (
@@ -130,7 +128,7 @@
 >
 	{#snippet Content()}
 		{#if titleIsTokenPair}
-			<dl data-definition-list="vertical">
+			<dl>
 				<div>
 					<dt>Vault id</dt>
 					<dd>

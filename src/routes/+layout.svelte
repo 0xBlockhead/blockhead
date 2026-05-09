@@ -1,4 +1,7 @@
 <script module lang="ts">
+	// Polyfills
+	import '$/polyfills.ts'
+
 	import {
 		createBrowserWASQLitePersistence,
 		openBrowserWASQLiteOPFSDatabase,
@@ -15,10 +18,12 @@
 	} from '$/resolvers/index.ts'
 	import { schema } from '$/schema/index.ts'
 
-	const persistence: PersistedCollectionPersistence<object, string | number> = createBrowserWASQLitePersistence({
+	const persistence = createBrowserWASQLitePersistence({
 		database: await openBrowserWASQLiteOPFSDatabase({ databaseName: BLOCKHEAD_WA_SQLITE_DATABASE_NAME }),
 	})
 
+
+	// Global context
 	const {
 		entityCollections: entityCollectionByEntityType,
 		entityFieldCollections,
@@ -39,10 +44,6 @@
 
 
 <script lang="ts">
-	// Polyfills
-	import '$/polyfills.ts'
-
-
 	// Styles
 	import '$/styles/fonts.css'
 	import '$/styles/colors.css'
@@ -103,7 +104,7 @@
 	>
 		<div
 			class="layout-main"
-			data-column
+			data-column="layout-flex"
 		>
 			{@render children()}
 		</div>

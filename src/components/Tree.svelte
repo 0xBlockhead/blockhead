@@ -8,8 +8,7 @@
 	lang="ts"
 	generics="
 		_Node,
-		_Key extends string | number = string | number,
-		_ListTag extends ListTag = 'ul'
+		_Key extends string | number = string | number
 	"
 >
 	// Types/constants
@@ -29,7 +28,7 @@
 		onIsOpenChange,
 		getIsHidden,
 		Content,
-		listTag = 'ul' as _ListTag,
+		listTag = 'ul',
 		listAttrs,
 		detailsAttrs,
 		summaryAttrs,
@@ -41,8 +40,8 @@
 		onIsOpenChange?: (node: _Node, open: boolean) => void
 		getIsHidden?: IsHidden
 		Content: Snippet<[{ node: _Node }]>
-		listTag?: _ListTag
-		listAttrs?: Partial<SvelteHTMLElements[_ListTag]>
+		listTag?: ListTag
+		listAttrs?: Partial<SvelteHTMLElements[ListTag]>
 		detailsAttrs?: Partial<SvelteHTMLElements['details']>
 		summaryAttrs?: Partial<SvelteHTMLElements['summary']>
 	} = $props()
@@ -54,7 +53,7 @@
 
 
 <svelte:element
-	this={listTag as ListTag}
+	this={listTag}
 	{...listAttrs}
 >
 	{#each items as node (getKey(node))}

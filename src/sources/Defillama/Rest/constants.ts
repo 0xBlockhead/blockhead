@@ -1,37 +1,100 @@
 import { CoinId } from '$/constants/Coin.ts'
 
+export const defillamaCurrentPriceIds = [
+	{
+		coinId: CoinId.AAVE,
+		providerCoinId: 'coingecko:aave',
+	},
+	{
+		coinId: CoinId.ADA,
+		providerCoinId: 'coingecko:cardano',
+	},
+	{
+		coinId: CoinId.ARB,
+		providerCoinId: 'coingecko:arbitrum',
+	},
+	{
+		coinId: CoinId.AVAX,
+		providerCoinId: 'coingecko:avalanche-2',
+	},
+	{
+		coinId: CoinId.BNB,
+		providerCoinId: 'coingecko:binancecoin',
+	},
+	{
+		coinId: CoinId.BTC,
+		providerCoinId: 'coingecko:bitcoin',
+	},
+	{
+		coinId: CoinId.ETH,
+		providerCoinId: 'coingecko:ethereum',
+	},
+	{
+		coinId: CoinId.FIL,
+		providerCoinId: 'coingecko:filecoin',
+	},
+	{
+		coinId: CoinId.LINK,
+		providerCoinId: 'coingecko:chainlink',
+	},
+	{
+		coinId: CoinId.MITO,
+		providerCoinId: 'coingecko:mitosis',
+	},
+	{
+		coinId: CoinId.POL,
+		providerCoinId: 'coingecko:polygon-ecosystem-token',
+	},
+	{
+		coinId: CoinId.S,
+		providerCoinId: 'coingecko:sonic-3',
+	},
+	{
+		coinId: CoinId.SEI,
+		providerCoinId: 'coingecko:sei-network',
+	},
+	{
+		coinId: CoinId.SOL,
+		providerCoinId: 'coingecko:solana',
+	},
+	{
+		coinId: CoinId.STETH,
+		providerCoinId: 'coingecko:staked-ether',
+	},
+	{
+		coinId: CoinId.UNI,
+		providerCoinId: 'coingecko:uniswap',
+	},
+	{
+		coinId: CoinId.USDC,
+		providerCoinId: 'coingecko:usd-coin',
+	},
+	{
+		coinId: CoinId.WBTC,
+		providerCoinId: 'coingecko:wrapped-bitcoin',
+	},
+] as const satisfies readonly {
+	coinId: CoinId
+	providerCoinId: string
+}[]
+
 /**
  * Coin ids accepted by {@link coinsOrigin} current-prices API (`coingecko:…`, etc.).
+ * Keep this list to ids proven to return current prices. Missing keys mean this
+ * source does not currently support that catalog coin.
+ *
  * @see https://docs.llama.fi/coin-prices-api
  */
-export const defillamaCurrentPriceIdByCoinId: Partial<Record<CoinId, string>> = {
-	[CoinId.AAVE]: 'coingecko:aave',
-	[CoinId.ADA]: 'coingecko:cardano',
-	[CoinId.APT]: 'coingecko:aptos',
-	[CoinId.ARB]: 'coingecko:arbitrum',
-	[CoinId.AVAX]: 'coingecko:avalanche-2',
-	[CoinId.BNB]: 'coingecko:binancecoin',
-	[CoinId.BTC]: 'coingecko:bitcoin',
-	[CoinId.CELO]: 'coingecko:celo',
-	[CoinId.EDU]: 'coingecko:open-campus',
-	[CoinId.ETH]: 'coingecko:ethereum',
-	[CoinId.FIL]: 'coingecko:filecoin',
-	[CoinId.LINK]: 'coingecko:chainlink',
-	[CoinId.MITO]: 'coingecko:mitosis',
-	[CoinId.MATIC]: 'coingecko:matic-network',
-	[CoinId.OP]: 'coingecko:optimism',
-	[CoinId.POL]: 'coingecko:polygon-ecosystem-token',
-	[CoinId.S]: 'coingecko:sonic-3',
-	[CoinId.SEI]: 'coingecko:sei-network',
-	[CoinId.SOL]: 'coingecko:solana',
-	[CoinId.STETH]: 'coingecko:staked-ether',
-	[CoinId.TAC]: 'coingecko:tac',
-	[CoinId.UNI]: 'coingecko:uniswap',
-	[CoinId.USDC]: 'coingecko:usd-coin',
-	[CoinId.USDT]: 'coingecko:tether',
-	[CoinId.WBTC]: 'coingecko:wrapped-bitcoin',
-	[CoinId.XDC]: 'coingecko:xdce',
-}
+export const defillamaCurrentPriceIdByCoinId = Object.fromEntries(
+	defillamaCurrentPriceIds
+		.map(({
+			coinId,
+			providerCoinId,
+		}) => [
+			coinId,
+			providerCoinId,
+		])
+) as Partial<Record<CoinId, string>>
 
 /**
  * Public current-prices host — `GET /prices/current/{coins}` (comma-separated path segment).

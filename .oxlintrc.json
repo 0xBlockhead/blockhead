@@ -1,0 +1,114 @@
+{
+	"$schema": "./node_modules/oxlint/configuration_schema.json",
+	"jsPlugins": [
+		"./scripts/oxlint-plugin-no-runtime-shape-guards.mjs"
+	],
+	"plugins": [
+		"typescript"
+	],
+	"categories": {
+		"correctness": "off",
+		"nursery": "off",
+		"pedantic": "off",
+		"perf": "off",
+		"restriction": "off",
+		"style": "off",
+		"suspicious": "off"
+	},
+	"options": {
+		"typeAware": true
+	},
+	"ignorePatterns": [
+		"**/node_modules/**",
+		".svelte-kit/**",
+		"build/**",
+		"dist/**",
+		"coverage/**",
+		"playwright-report/**",
+		"**/*.d.ts",
+		"scripts/**/*.ts"
+	],
+	"rules": {
+		"no-restricted-globals": [
+			"error",
+			{
+				"name": "Reflect",
+				"message": "Avoid Reflect except when forwarding Proxy traps; use normal property access or Object.getOwnPropertyDescriptor."
+			}
+		],
+		"typescript/consistent-type-assertions": [
+			"error",
+			{
+				"assertionStyle": "never"
+			}
+		],
+		"typescript/no-inferrable-types": "error",
+		"typescript/no-unnecessary-type-assertion": "error",
+		"typescript/no-restricted-types": [
+			"error",
+			{
+				"types": {
+					"unknown": "Prefer JsonValue ($/typescript/JsonValue.ts), explicit domain types, or a documented exception (EIP-1193, error serialization, Promise rejection)."
+				}
+			}
+		],
+		"no-runtime-shape-guards/guards": "error"
+	},
+	"overrides": [
+		{
+			"files": ["src/schema/**/*.ts"],
+			"rules": {
+				"typescript/consistent-type-assertions": "off"
+			}
+		},
+		{
+			"files": [
+				"src/collections/$collections.ts",
+				"src/collections/$queries.svelte.ts",
+				"src/collections/entityQuerySynthesis.ts"
+			],
+			"rules": {
+				"typescript/consistent-type-assertions": "off",
+				"typescript/no-restricted-types": "off"
+			}
+		},
+		{
+			"files": [
+				"src/lib/eip1193.ts",
+				"src/lib/eip6963.ts",
+				"src/lib/errors.ts",
+				"src/lib/db/queryResource.svelte.ts"
+			],
+			"rules": {
+				"typescript/no-restricted-types": "off"
+			}
+		},
+		{
+			"files": [
+				"src/components/Boundary.svelte",
+				"src/components/QueryBoundary.svelte",
+				"src/components/QueryResourceBoundary.svelte"
+			],
+			"rules": {
+				"typescript/no-restricted-types": "off"
+			}
+		},
+		{
+			"files": [
+				"src/**/*.svelte",
+				"src/**/*.svelte.ts",
+				"src/resolvers/**/*.ts",
+				"src/sources/**/*.ts",
+				"src/collections/**/*.ts",
+				"src/lib/**/*.ts",
+				"src/constants/**/*.ts",
+				"src/routes/**/*.ts",
+				"src/typescript/JsonValue.ts",
+				"tests/**/*.ts"
+			],
+			"rules": {
+				"no-runtime-shape-guards/guards": "off"
+			}
+		}
+	]
+}

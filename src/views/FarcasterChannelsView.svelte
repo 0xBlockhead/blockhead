@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { type EntityFieldReference } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -11,27 +12,11 @@
 	import { resolve } from '$app/paths'
 
 
-	// Functions
-	const rowEntityId = (row: { [EntityMetaKey.Id]: unknown }) => row[EntityMetaKey.Id]
-
-	const channelRowSortKey = (row: { [EntityMetaKey.Id]: unknown }) => {
-		const channelId = rowEntityId(row)
-		return (
-			typeof channelId === 'object'
-			&& channelId !== undefined
-			&& 'id' in channelId
-			&& typeof channelId.id === 'string' ?
-				channelId.id
-			:
-				''
-		)
-	}
-
-
 	// State
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { SvelteSet } from 'svelte/reactivity'
 
+	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
 	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
@@ -43,7 +28,7 @@
 		title = 'Channels',
 		open = $bindable(true),
 	}: {
-		entityFieldReference: EntityFieldReference<typeof EntityType.FarcasterChannel>
+		entityFieldReference: EntityFieldReference<typeof schema, EntityType.FarcasterChannel>
 		id?: string
 		href?: string
 		title?: string
@@ -54,7 +39,14 @@
 	const channelsQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ $$channels: entityFieldCollections[EntityType.FarcasterNetwork]['$$channels']! })
+				.from({
+					$$channels: (
+						entityFieldCollectionForReference(
+							entityFieldCollections,
+							entityFieldReference,
+						)
+					),
+				})
 				.where(({ $$channels }) => (
 					eq(
 						$$channels[EntityMetaKey.ParentIdKey],
@@ -67,12 +59,10 @@
 						Source.Farcaster_Rest,
 					)
 				))
-				.select(({ $$channels }) => ({
-					[EntityMetaKey.Id]: (
-						// @ts-expect-error Farcaster channel field row Value holds entity id
-						$$channels[EntityMetaKey.Value]![EntityMetaKey.Id]
-					),
-				}))
+				.select(({ $$channels }) => (
+					{ value: $$channels[EntityMetaKey.Value] }
+				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -95,11 +85,18 @@
 	{href}
 	{title}
 	bind:open
-	query={channelsQuery}
-	items={new SvelteSet(channelsQuery.data ?? [])}
+	items={channelsQuery.data?.map(({ value }) => value) ?? []}
 	getKey={(row) => stringify(row[EntityMetaKey.Id])}
-	getSortValue={channelRowSortKey}
+	getSortValue={(row) => row[EntityMetaKey.Id].id}
 	placeholderKeys={new SvelteSet<string>()}
+	query={{
+		data: channelsQuery.data?.map(({ value }) => value) ?? [],
+		isLoading: channelsQuery.isLoading,
+		isError: channelsQuery.isError,
+		isReady: channelsQuery.isReady,
+		error: channelsQuery.error,
+		status: channelsQuery.status,
+	}}
 >
 	{#snippet Empty()}
 		<p data-text="muted">
@@ -113,17 +110,15 @@
 				…
 			</span>
 		{:else if row}
-			{@const channelId = rowEntityId(row)}
-			{#if typeof channelId === 'object' && channelId !== undefined && 'id' in channelId && typeof channelId.id === 'string' && channelId.id.length}
-				<FarcasterChannelView
-					entityId={{ id: channelId.id }}
-					href={resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
-						channelId: channelId.id,
-					})}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{/if}
+			{@const channelId = row[EntityMetaKey.Id]}
+			<FarcasterChannelView
+				entityId={{ id: channelId.id }}
+				href={resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
+					channelId: channelId.id,
+				})}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
 		{/if}
 	{/snippet}
 </EntitiesList>

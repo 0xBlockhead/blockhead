@@ -86,8 +86,8 @@
 	const forkField = $derived(
 		(() => {
 			const bag = forkRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
+			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+			const b = bag
 			return {
 				name: typeof b.name === 'string' && b.name.length ? b.name : undefined,
 				slug: typeof b.slug === 'string' && b.slug.length ? b.slug : undefined,
@@ -181,16 +181,6 @@
 						</p>
 					{:else}
 						<dl>
-							<div>
-								<dt>Fork id</dt>
-								<dd>{entityId.forkId}</dd>
-							</div>
-							{#if forkField?.slug !== undefined}
-								<div>
-									<dt>Slug</dt>
-									<dd>{forkField.slug}</dd>
-								</div>
-							{/if}
 							{#if forkField?.activationBlock !== undefined}
 								<div>
 									<dt>Activation block</dt>

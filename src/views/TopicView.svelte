@@ -60,25 +60,22 @@
 	)
 
 	const signatures = $derived(
-		(
-			(
-				(fieldBag) => (
-					fieldBag !== undefined
-					&& typeof fieldBag === 'object'
-					&& 'signatures' in fieldBag
-					&& Array.isArray(fieldBag.signatures) ?
-						fieldBag.signatures.filter((x): x is string => typeof x === 'string')
-					: undefined
-				)
-			)(
-				(
-					topicQuery.data?.find(
-						(r) => r.row[EntityMetaKey.Source] === Source.Openchain_Rest,
-					)?.row
-					?? topicQuery.data?.[0]?.row
-				)?.[EntityMetaKey.Fields],
+		(() => {
+			const fields = (
+				topicQuery.data?.find(
+					(r) => r.row[EntityMetaKey.Source] === Source.Openchain_Rest,
+				)?.row
+				?? topicQuery.data?.[0]?.row
+			)?.[EntityMetaKey.Fields]
+			return (
+				fields !== undefined
+				&& typeof fields === 'object'
+				&& 'signatures' in fields
+				&& Array.isArray(fields.signatures) ?
+					fields.signatures.filter((x): x is string => typeof x === 'string')
+				: undefined
 			)
-		),
+		})(),
 	)
 
 	const label = $derived(
@@ -105,7 +102,7 @@
 	{...entityViewRest}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Hex</dt>
 				<dd>{entityId.hex}</dd>

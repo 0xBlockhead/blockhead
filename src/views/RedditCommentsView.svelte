@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { type EntityFieldReference, type EntityId, schema } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -12,13 +13,11 @@
 
 
 	// State
-	import { coalesce, eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
+	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
+	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -30,7 +29,7 @@
 		open = $bindable(true),
 		title = 'Comments',
 	}: {
-		entityFieldReference: EntityFieldReference<typeof EntityType.RedditComment>
+		entityFieldReference: EntityFieldReference<typeof schema, EntityType.RedditComment>
 		href: string
 		id: string
 		limit?: number
@@ -44,8 +43,11 @@
 			queryBuilder
 				.from({
 					commentFieldRow: (
-						entityFieldCollections[entityFieldReference.entityType]!
-					)[entityFieldReference.fieldName]!,
+						entityFieldCollectionForReference(
+							entityFieldCollections,
+							entityFieldReference,
+						)
+					),
 				})
 				.where(({ commentFieldRow }) => (
 					eq(
@@ -59,31 +61,14 @@
 						Source.Reddit_Rest,
 					)
 				))
-				.innerJoin(
-					{ comment: entityCollectionByEntityType[EntityType.RedditComment] },
-					({ commentFieldRow, comment }) => (
-						eq(
-							// @ts-expect-error entity field row stores target id key
-							commentFieldRow[EntityMetaKey.Value]![EntityMetaKey.IdKey],
-							comment[EntityMetaKey.IdKey],
-						)
-					),
-				)
-				.where(({ comment }) => (
-					eq(
-						comment[EntityMetaKey.Source],
-						Source.Reddit_Rest,
-					)
-				))
-				.orderBy(({ comment }) => coalesce(comment.timestamp, 0), 'desc')
-				.orderBy(({ comment }) => comment[EntityMetaKey.IdKey], 'desc')
+				.orderBy(({ commentFieldRow }) => (
+					commentFieldRow[EntityMetaKey.Value][EntityMetaKey.IdKey]
+				), 'desc')
 				.limit(limit)
-				.select(({ commentFieldRow }) => ({
-					[EntityMetaKey.Id]: (
-						// @ts-expect-error entity field row stores target id
-						commentFieldRow[EntityMetaKey.Value]![EntityMetaKey.Id]
-					),
-				}))
+				.select(({ commentFieldRow }) => (
+					{ value: commentFieldRow[EntityMetaKey.Value] }
+				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -93,27 +78,12 @@
 		],
 	)
 
-	const commentItems = $derived.by(() => (
-		new SvelteSet(
-			(commentsQuery.data ?? []).flatMap((row, order) => {
-				const commentId = row[EntityMetaKey.Id]
-				return (
-					commentId !== undefined
-					&& typeof commentId === 'object'
-					&& 'fullname' in commentId
-					&& typeof commentId.fullname === 'string'
-				) ?
-					[
-						{
-							...(commentId as EntityId<typeof schema, EntityType.RedditComment>),
-							order,
-						},
-					]
-				:	[]
-			}),
-		)
-	))
-
+	const commentItems = $derived(
+		(commentsQuery.data ?? []).map(({ value: comment }, order) => ({
+			...comment[EntityMetaKey.Id],
+			order,
+		})),
+	)
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -131,7 +101,14 @@
 	items={commentItems}
 	bind:open
 	placeholderKeys={new SvelteSet<string>()}
-	query={commentsQuery}
+	query={{
+		data: commentItems,
+		isLoading: commentsQuery.isLoading,
+		isError: commentsQuery.isError,
+		isReady: commentsQuery.isReady,
+		error: commentsQuery.error,
+		status: commentsQuery.status,
+	}}
 	{title}
 >
 	{#snippet Empty()}

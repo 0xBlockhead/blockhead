@@ -17,6 +17,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
+	import { mergeEntityCollectionRowFields } from '$/collections/mergeEntityCollectionRowFields.ts'
 	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 	// Props
@@ -49,6 +50,10 @@
 
 	const idKey = $derived(stringify(entityId))
 
+	const atprotoPostMergeSourceOrder = [
+		Source.Atproto_Xrpc,
+	] as const
+
 	const postQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
@@ -64,32 +69,21 @@
 		[() => idKey],
 	)
 
-	const summaryFields = $derived.by((): Record<string, unknown> | null => {
-		const r = postQuery.data
-			?.find((e) => e.row[EntityMetaKey.Source] === Source.Atproto_Xrpc)
-			?.row
-			?? postQuery.data?.[0]?.row
-		const b = r?.[EntityMetaKey.Fields]
-		if (b === undefined || typeof b !== 'object' || Array.isArray(b)) {
-			return null
-		}
-		return b as Record<string, unknown>
-	})
+	const postFields = $derived(
+		mergeEntityCollectionRowFields(
+			postQuery.data,
+			atprotoPostMergeSourceOrder,
+		),
+	)
 
 	const summaryTitle = $derived(
-		summaryFields != null
-		&& typeof summaryFields['text'] === 'string'
-		&& summaryFields['text'].length > 0 ?
-			summaryFields['text']
+		postFields.text ?
+			postFields.text
 		:
 			entityId.uri
 	)
 
-	const authorDid = $derived((
-		summaryFields?.['$author'] as
-			| { [EntityMetaKey.Id]: EntityId<typeof schema, EntityType.AtprotoActor> }
-			| undefined
-	)?.[EntityMetaKey.Id])
+	const authorDid = $derived(postFields.$author?.[EntityMetaKey.Id])
 
 
 	// Components
@@ -110,8 +104,8 @@
 	{...entityViewRest}
 	title={summaryTitle}
 >
-	{#if summaryFields != null && typeof summaryFields['text'] === 'string' && summaryFields['text']}
-		{@const postText = summaryFields['text']}
+	{#if postFields.text}
+		{@const postText = postFields.text}
 		{#snippet Heading()}
 			<HeadingComponent>
 				{#if href}
@@ -136,9 +130,9 @@
 	{/if}
 	{#snippet Content()}
 		<div data-column>
-			{#if summaryFields != null && typeof summaryFields['text'] === 'string' && summaryFields['text']}
+			{#if postFields.text}
 				<p>
-					{summaryFields['text']}
+					{postFields.text}
 				</p>
 			{/if}
 			{#if authorDid}
@@ -151,10 +145,10 @@
 					>Author ({authorDid.did})</a>
 				</p>
 			{/if}
-			{#if summaryFields != null && typeof summaryFields['createdAt'] === 'number' && Number.isFinite(summaryFields['createdAt'])}
+			{#if postFields.createdAt !== undefined}
 				<p data-text="muted">
 					<Timestamp
-						timestamp={summaryFields['createdAt']}
+						timestamp={postFields.createdAt}
 						format={TimestampFormat.Both}
 					/>
 				</p>
@@ -176,35 +170,24 @@
 				query={postQuery}
 			>
 				{#snippet children(atprotoPostResultRows)}
-					{@const detailFields = ((): Record<string, unknown> | null => {
-						const r = atprotoPostResultRows
-							?.find((e) => e.row[EntityMetaKey.Source] === Source.Atproto_Xrpc)
-							?.row
-							?? atprotoPostResultRows?.[0]?.row
-						const b = r?.[EntityMetaKey.Fields]
-						if (b === undefined || typeof b !== 'object' || Array.isArray(b)) {
-							return null
-						}
-						return b as Record<string, unknown>
-					})()}
-					{#if detailFields == null}
+					{#if atprotoPostResultRows.length === 0}
 						<p data-text="muted">
 							No post data in the app for this id yet. Try again shortly.
 						</p>
 					{:else}
 						<dl>
-							{#if typeof detailFields['text'] === 'string' && detailFields['text']}
+							{#if postFields.text}
 								<div>
 									<dt>Text</dt>
-									<dd>{detailFields['text']}</dd>
+									<dd>{postFields.text}</dd>
 								</div>
 							{/if}
-							{#if typeof detailFields['createdAt'] === 'number' && Number.isFinite(detailFields['createdAt'])}
+							{#if postFields.createdAt !== undefined}
 								<div>
 									<dt>Created at</dt>
 									<dd>
 										<Timestamp
-											timestamp={detailFields['createdAt']}
+											timestamp={postFields.createdAt}
 											format={TimestampFormat.Both}
 										/>
 									</dd>

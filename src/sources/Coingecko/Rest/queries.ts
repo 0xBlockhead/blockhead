@@ -40,7 +40,7 @@ export const getCoingeckoCoin = async (
 	if (res.status === 404) return undefined
 	if (!res.ok) throw new Error(`CoinGecko /coins/${coingeckoId} failed: ${res.status}`)
 
-	return res.json() as Promise<CoingeckoCoin>
+	return res.json<CoingeckoCoin>()
 }
 
 /**
@@ -54,6 +54,8 @@ export const getCoingeckoCoinMarketSpot = async (
 ): Promise<{
 	coin: CoingeckoCoinWithMarketData
 	usd: number
+	marketCapUsd?: number
+	volume24hUsd?: number
 	lastUpdatedAtSec: number
 } | undefined> => {
 	if (coingeckoId.trim() === '') return undefined
@@ -66,16 +68,24 @@ export const getCoingeckoCoinMarketSpot = async (
 	if (res.status === 404) return undefined
 	if (!res.ok) throw new Error(`CoinGecko /coins/${coingeckoId} (market) failed: ${res.status}`)
 
-	const coin = (await res.json()) as CoingeckoCoinWithMarketData
+	const coin = await res.json<CoingeckoCoinWithMarketData>()
 	const usd = coin.market_data?.current_price?.usd
 	if (typeof usd !== 'number' || !Number.isFinite(usd)) {
 		return undefined
 	}
+	const marketCapUsd = coin.market_data?.market_cap?.usd
+	const volume24hUsd = coin.market_data?.total_volume?.usd
 	const lastUpdatedAtSec = Date.parse(String(coin.market_data?.last_updated ?? '')) / 1000
 	if (!Number.isFinite(lastUpdatedAtSec)) {
 		return undefined
 	}
-	return { coin, usd, lastUpdatedAtSec }
+	return {
+		coin,
+		usd,
+		...(typeof marketCapUsd === 'number' && Number.isFinite(marketCapUsd) ? { marketCapUsd } : {}),
+		...(typeof volume24hUsd === 'number' && Number.isFinite(volume24hUsd) ? { volume24hUsd } : {}),
+		lastUpdatedAtSec,
+	}
 }
 
 export const getCoingeckoCoinByAssetPlatformContract = async ({
@@ -101,7 +111,7 @@ export const getCoingeckoCoinByAssetPlatformContract = async ({
 		)
 	}
 
-	return res.json() as Promise<CoingeckoCoin>
+	return res.json<CoingeckoCoin>()
 }
 
 const fetchCoingeckoAssetPlatformsOnce = async (
@@ -111,7 +121,7 @@ const fetchCoingeckoAssetPlatformsOnce = async (
 
 	if (!res.ok) throw new Error(`CoinGecko /asset_platforms failed: ${res.status}`)
 
-	return res.json() as Promise<CoingeckoAssetPlatform[]>
+	return res.json<CoingeckoAssetPlatform[]>()
 }
 
 export const fetchCoingeckoAssetPlatforms = singleFlight(fetchCoingeckoAssetPlatformsOnce)
@@ -155,10 +165,11 @@ export const getCoingeckoSimplePriceUsd = async ({
 	if (res.status === 404) return undefined
 	if (!res.ok) throw new Error(`CoinGecko /simple/price failed: ${res.status}`)
 
-	const payload = await res.json() as Record<string, {
+	type CoingeckoSimplePriceWire = Record<string, {
 		usd?: number
 		last_updated_at?: number
 	}>
+	const payload = await res.json<CoingeckoSimplePriceWire>()
 
 	return payload[coingeckoId]
 }
@@ -192,5 +203,5 @@ export const getCoingeckoCoinOhlc = async ({
 		)
 	}
 
-	return res.json() as Promise<number[][]>
+	return res.json<number[][]>()
 }

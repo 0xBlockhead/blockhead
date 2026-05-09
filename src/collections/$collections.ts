@@ -1,11 +1,15 @@
 import { QueryClient } from '@tanstack/query-core'
-import { queryCollectionOptions } from '@tanstack/query-db-collection'
+import {
+	queryCollectionOptions,
+	type QueryCollectionUtils,
+} from '@tanstack/query-db-collection'
 import {
 	persistedCollectionOptions,
 	type PersistedCollectionPersistence,
 } from '@tanstack/db-sqlite-persistence-core'
 import {
 	BasicIndex,
+	type Collection,
 	createCollection,
 	parseLoadSubsetOptions,
 	parseOrderByExpression,
@@ -16,8 +20,10 @@ import {
 	EntityFieldCardinality,
 	EntityMetaKey,
 } from '$/schema/$EntityDefinition.ts'
+import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 import type {
 	EntityDefinitionForEntityType,
+	EntityFieldDefinition,
 	EntityFieldName,
 	EntityFieldValue,
 	EntityFieldValues,
@@ -41,27 +47,133 @@ export type EntityCollectionItem<
 	[EntityMetaKey.IdKey]: string
 	[EntityMetaKey.Fields]: Partial<EntityFieldValues<_Schema, _EntityType>>
 	[EntityMetaKey.Source]: Source
-}
+} & Partial<EntityFieldValues<_Schema, _EntityType>>
+
+export type EntityCollectionItemInsert<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = EntityCollectionItem<_Schema, _EntityType>
+
+export const entityCollectionLoadDebugByType = new Map<string, {
+	entityIds: unknown[]
+	filters: {
+		field: string[]
+		operator: string
+		value: unknown
+	}[]
+	idKeyFilterValues: unknown[]
+	resolverSources: string[]
+	resolverStatuses?: {
+		reason?: string
+		source: string
+		status: string
+	}[]
+	sources: string[]
+}>()
+
+export const entityFieldCollectionLoadDebugByName = new Map<string, {
+	filters: {
+		field: string[]
+		operator: string
+		value: unknown
+	}[]
+	parentIdKeyFilterValues: unknown[]
+	resolverSources: string[]
+	rowCount?: number
+	sources: string[]
+}>()
+
+type EntityFieldCollectionValue<_Value> = (
+	_Value extends { [EntityMetaKey.Id]: infer _EntityId } ?
+		{
+			[EntityMetaKey.Id]: _EntityId
+			[EntityMetaKey.IdKey]: string
+		}
+	:
+		_Value
+)
+
+type EntityFieldCollectionValueId<_Value> = (
+	_Value extends { [EntityMetaKey.Id]: infer _EntityId } ?
+		_EntityId
+	:
+		never
+)
+
+type EntityCollectionUtils<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = QueryCollectionUtils<
+	EntityCollectionItem<_Schema, _EntityType>,
+	string | number,
+	EntityCollectionItem<_Schema, _EntityType>,
+	unknown
+>
+
+type EntityFieldCollectionUtils<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_EntityFieldName extends EntityFieldName<_Schema, _EntityType>,
+> = QueryCollectionUtils<
+	EntityFieldCollectionItem<_Schema, _EntityType, _EntityFieldName>,
+	string | number,
+	EntityFieldCollectionItem<_Schema, _EntityType, _EntityFieldName>,
+	unknown
+>
+
+const hasEntityValueId = <_Value extends object>(
+	value: _Value,
+): value is _Value & { [EntityMetaKey.Id]: EntityFieldCollectionValueId<_Value> } => (
+	EntityMetaKey.Id in value
+)
 
 /** Stable row key for entity field collection items; must match `getKey` in `createEntityFieldCollection`. */
-export const entityFieldCollectionItemKey = (entityFieldItem: {
+export const entityFieldCollectionItemKey = <_Value>(entityFieldItem: {
 	[EntityMetaKey.Source]: Source
 	[EntityMetaKey.ParentIdKey]: string
-	[EntityMetaKey.Value]: unknown
+	[EntityMetaKey.Value]: _Value
 }) => (
 	[
 		entityFieldItem[EntityMetaKey.Source],
 		entityFieldItem[EntityMetaKey.ParentIdKey],
 		stringify(
-			typeof entityFieldItem[EntityMetaKey.Value] === 'object'
-			&& entityFieldItem[EntityMetaKey.Value] != null
-			&& EntityMetaKey.Id in (entityFieldItem[EntityMetaKey.Value] as object) ?
-				(entityFieldItem[EntityMetaKey.Value] as { [EntityMetaKey.Id]: unknown })[EntityMetaKey.Id]
+			entityFieldItem[EntityMetaKey.Value] != null
+			&& typeof entityFieldItem[EntityMetaKey.Value] === 'object'
+			&& hasEntityValueId(entityFieldItem[EntityMetaKey.Value]) ?
+				entityFieldItem[EntityMetaKey.Value][EntityMetaKey.Id]
 			:
 				entityFieldItem[EntityMetaKey.Value],
 		),
 	]
 		.join('\x1E')
+)
+
+const entityFieldCollectionValue = <_Value>(
+	value: _Value,
+): EntityFieldCollectionValue<_Value> => (
+	value != null
+	&& typeof value === 'object'
+	&& hasEntityValueId(value) ?
+		{
+			[EntityMetaKey.Id]: value[EntityMetaKey.Id],
+			[EntityMetaKey.IdKey]: stringify(value[EntityMetaKey.Id]),
+		} as EntityFieldCollectionValue<_Value>
+	:
+		value as EntityFieldCollectionValue<_Value>
+)
+
+type EntityFieldCollectionInnerValue<
+	_Schema extends Schema,
+	_ParentEntityType extends EntityType<_Schema>,
+	_EntityFieldName extends EntityFieldName<_Schema, _ParentEntityType>,
+> = (
+	Exclude<EntityFieldValue<_Schema, _ParentEntityType, _EntityFieldName>, undefined> extends infer _Value ?
+		_Value extends readonly (infer _Element)[] ?
+			_Element
+		:
+			_Value
+	:
+		never
 )
 
 export type EntityFieldCollectionItem<
@@ -71,15 +183,7 @@ export type EntityFieldCollectionItem<
 > = {
 	[EntityMetaKey.ParentId]: EntityId<_Schema, _ParentEntityType>
 	[EntityMetaKey.ParentIdKey]: string
-	[EntityMetaKey.Value]: (
-		Exclude<EntityFieldValue<_Schema, _ParentEntityType, _EntityFieldName>, undefined> extends infer _Value ?
-			_Value extends unknown[] ?
-				_Value[number]
-			:
-				_Value
-		:
-			never
-	)
+	[EntityMetaKey.Value]: EntityFieldCollectionValue<EntityFieldCollectionInnerValue<_Schema, _ParentEntityType, _EntityFieldName>>
 	[EntityMetaKey.Source]: Source
 }
 
@@ -93,6 +197,51 @@ type EntityFieldCollectionResult<
 	_EntityType extends EntityType<_Schema>,
 	_FieldDefinition extends EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number],
 > = ReturnType<typeof createEntityFieldCollection<_Schema, _EntityType, _FieldDefinition>>
+
+export type EntityCollections<_Schema extends Schema> = {
+	[_EntityType in EntityType<_Schema>]: EntityCollectionResult<_Schema, _EntityType>
+}
+
+export type EntityFieldCollections<_Schema extends Schema> = {
+	[_EntityType in EntityType<_Schema>]: {
+		[_EntityFieldName in EntityFieldName<_Schema, _EntityType>]: EntityFieldCollectionResult<
+			_Schema,
+			_EntityType,
+			EntityFieldDefinition<_Schema, _EntityType, _EntityFieldName>
+		>
+	}
+}
+
+export type EntityFieldCollectionForReference<
+	_Schema extends Schema,
+	_Reference,
+> = (
+	_Reference extends {
+		entityType: infer _EntityType extends EntityType<_Schema>
+	} ?
+		_Reference extends {
+			fieldName: infer _EntityFieldName extends EntityFieldName<_Schema, _EntityType>
+		} ?
+			EntityFieldCollections<_Schema>[_EntityType][_EntityFieldName]
+		:
+			never
+	:
+		never
+)
+
+export const entityFieldCollectionForReference = <
+	_Schema extends Schema,
+	_ListedEntity extends EntityType<_Schema>,
+	_Reference extends EntityFieldReference<_Schema, _ListedEntity>,
+>(
+	entityFieldCollections: EntityFieldCollections<_Schema>,
+	entityFieldReference: _Reference,
+): EntityFieldCollectionForReference<_Schema, _Reference> => (
+	entityFieldCollections[entityFieldReference.entityType][entityFieldReference.fieldName] as EntityFieldCollectionForReference<
+		_Schema,
+		_Reference
+	>
+)
 
 const fulfilledOrThrow = <T>(
 	settled: PromiseSettledResult<T>[],
@@ -182,7 +331,7 @@ const comparisonsFromWhereLenient = (where: unknown): ParsedLoadSubset['filters'
 			}
 			return
 		}
-		if (node.name === 'in') {
+		if (node.name === 'in' || node.name === 'inArray') {
 			const [l, r] = node.args
 			const leftPath = (
 				l
@@ -250,11 +399,17 @@ const createEntityCollection = <
 }: {
 	entityResolvers: EntityResolver<_Schema, _EntityType>[]
 	entityType: _EntityType
-	persistence: PersistedCollectionPersistence<EntityCollectionItem<_Schema, _EntityType>, string | number>
+	persistence: PersistedCollectionPersistence
 	queryClient: QueryClient
 	schemaVersion: number
 }) => {
-	let collectionRef: ReturnType<typeof createCollection> | null = null
+	let collectionRef: Collection<
+		EntityCollectionItem<_Schema, _EntityType>,
+		string | number,
+		EntityCollectionUtils<_Schema, _EntityType>,
+		never,
+		EntityCollectionItem<_Schema, _EntityType>
+	> | null = null
 	const queryHashesServedFromHydration = new Set<string>()
 
 	const collection = createCollection(
@@ -262,10 +417,28 @@ const createEntityCollection = <
 			EntityCollectionItem<_Schema, _EntityType>,
 			string | number,
 			never,
-			ReturnType<typeof queryCollectionOptions<EntityCollectionItem<_Schema, _EntityType>>>['utils']
+			EntityCollectionUtils<_Schema, _EntityType>
 		>({
-			...queryCollectionOptions<EntityCollectionItem<_Schema, _EntityType>>({
-				queryKey: [`EntityCollection:${entityType}`],
+			...queryCollectionOptions({
+				queryKey: (loadSubsetOptions) => [
+					`EntityCollection:${entityType}`,
+					...(
+						loadSubsetOptions == null || Object.keys(loadSubsetOptions).length === 0 ?
+							[]
+						:
+							[
+								{
+									filters: parseLoadSubsetForQueryFn(loadSubsetOptions).filters.map((filter) => ({
+										field: filter.field.map((part) => String(part)),
+										operator: filter.operator,
+										value: filter.value,
+									})),
+									limit: loadSubsetOptions.limit,
+									sorts: parseLoadSubsetForQueryFn(loadSubsetOptions).sorts,
+								},
+							]
+					),
+				],
 
 				syncMode: 'on-demand',
 
@@ -282,21 +455,24 @@ const createEntityCollection = <
 					const { filters } = subsetBase
 
 					const sources = new Set(
-						(
-							filters
-								.filter((clause) => (
-									clause.field[clause.field.length - 1] === EntityMetaKey.Source
-									&& clause.operator === 'in'
-								))
-								.flatMap((clause) => (
-									Array.isArray(clause.value) ?
-										clause.value
-									:
-										[clause.value]
-								))
-						) as Source[],
+						[
+							...(
+								filters
+									.filter((clause) => (
+										clause.field[clause.field.length - 1] === EntityMetaKey.Source
+										&& (clause.operator === 'in' || clause.operator === 'eq')
+									))
+									.flatMap((clause) => (
+										clause.operator === 'eq' ?
+											[clause.value]
+										: Array.isArray(clause.value) ?
+											clause.value
+										:
+											[clause.value]
+									))
+							) as Source[],
+						],
 					)
-
 					const idKeyFilterValues = new Set(
 						filters
 							.filter((clause) => (
@@ -312,7 +488,6 @@ const createEntityCollection = <
 									[clause.value]
 							))
 					)
-
 					const queryHash = JSON.stringify(queryContext.queryKey)
 
 					if (
@@ -332,16 +507,42 @@ const createEntityCollection = <
 								))
 						) as EntityItem[]
 
-						if (matchingRows.length > 0)
+						if (
+							matchingRows.length > 0
+							&& (
+								!sources.size
+								|| !idKeyFilterValues.size
+								|| [...idKeyFilterValues].every((idKey) => (
+									[...sources].every((source) => (
+										matchingRows.some((row) => (
+											row[EntityMetaKey.IdKey] === idKey
+											&& row[EntityMetaKey.Source] === source
+										))
+									))
+								))
+							)
+						)
 							return matchingRows
 					}
-					queryHashesServedFromHydration.add(queryHash)
-
 					const entityIds = (
 						[...idKeyFilterValues]
 							.map((value) => (
 								subsetFilterEntityId(value) as EntityId<_Schema, _EntityType>
 							))
+					)
+					entityCollectionLoadDebugByType.set(
+						String(entityType),
+						{
+							entityIds,
+							filters: subsetBase.filters.map((filter) => ({
+								field: filter.field.map((part) => String(part)),
+								operator: filter.operator,
+								value: filter.value,
+							})),
+							idKeyFilterValues: [...idKeyFilterValues],
+							resolverSources: entityResolvers.map((resolver) => resolver.source),
+							sources: [...sources],
+						},
 					)
 
 					return (
@@ -380,9 +581,20 @@ const createEntityCollection = <
 														:
 															{}
 													),
-												} satisfies EntityCollectionItem<_Schema, _EntityType>
+												} as EntityCollectionItem<_Schema, _EntityType>
 											)
 										}),
+								)
+								entityCollectionLoadDebugByType.set(
+									String(entityType),
+									{
+										...entityCollectionLoadDebugByType.get(String(entityType))!,
+										resolverStatuses: settled.map((result, index) => ({
+											reason: result.status === 'rejected' ? String(result.reason) : undefined,
+											source: resolvers[index]!.source,
+											status: result.status,
+										})),
+									},
 								)
 
 								return fulfilledOrThrow(
@@ -415,16 +627,6 @@ const createEntityCollection = <
 
 	collectionRef = collection
 
-	collection.createIndex(
-		(entityItem) => entityItem[EntityMetaKey.IdKey],
-		{ name: `${collection.id}:idKey` },
-	)
-
-	collection.createIndex(
-		(entityItem) => entityItem[EntityMetaKey.Source],
-		{ name: `${collection.id}:source` },
-	)
-
 	return collection
 }
 
@@ -444,26 +646,38 @@ const createEntityFieldCollection = <
 	entityFieldResolvers: EntityFieldResolver<_Schema, _EntityType, _FieldDefinition['name']>[]
 	entityType: _EntityType
 	fieldDefinition: _FieldDefinition
-	persistence: PersistedCollectionPersistence<
-		EntityFieldCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>,
-		string | number
-	>
+	persistence: PersistedCollectionPersistence
 	queryClient: QueryClient
 	schemaVersion: number
 }) => {
-	let collectionRef: ReturnType<typeof createCollection> | null = null
-
 	const collection = createCollection(
 		persistedCollectionOptions<
 			EntityFieldCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>,
 			string | number,
 			never,
-			ReturnType<typeof queryCollectionOptions<EntityFieldCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>>>['utils']
+			EntityFieldCollectionUtils<_Schema, _EntityType, _FieldDefinition['name']>
 		>({
-			...queryCollectionOptions<
-				EntityFieldCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>
-			>({
-				queryKey: [`EntityFieldCollection:${entityType}`, fieldDefinition.name],
+			...queryCollectionOptions({
+				queryKey: (loadSubsetOptions) => [
+					`EntityFieldCollection:${entityType}`,
+					fieldDefinition.name,
+					...(
+						loadSubsetOptions == null || Object.keys(loadSubsetOptions).length === 0 ?
+							[]
+						:
+							[
+								{
+									filters: parseLoadSubsetForQueryFn(loadSubsetOptions).filters.map((filter) => ({
+										field: filter.field.map((part) => String(part)),
+										operator: filter.operator,
+										value: filter.value,
+									})),
+									limit: loadSubsetOptions.limit,
+									sorts: parseLoadSubsetForQueryFn(loadSubsetOptions).sorts,
+								},
+							]
+					),
+				],
 
 				syncMode: 'on-demand',
 
@@ -480,19 +694,23 @@ const createEntityFieldCollection = <
 					const { filters } = subsetBase
 
 					const sources = new Set(
-						(
-							filters
-								.filter((clause) => (
-									clause.field[clause.field.length - 1] === EntityMetaKey.Source
-									&& clause.operator === 'in'
-								))
-								.flatMap((clause) => (
-									Array.isArray(clause.value) ?
-										clause.value
-									:
-										[clause.value]
-								))
-						) as Source[],
+						[
+							...(
+								filters
+									.filter((clause) => (
+										clause.field[clause.field.length - 1] === EntityMetaKey.Source
+										&& (clause.operator === 'in' || clause.operator === 'eq')
+									))
+									.flatMap((clause) => (
+										clause.operator === 'eq' ?
+											[clause.value]
+										: Array.isArray(clause.value) ?
+											clause.value
+										:
+											[clause.value]
+									))
+							) as Source[],
+						],
 					)
 
 					const parentIdKeyFilterValues = new Set(
@@ -509,6 +727,19 @@ const createEntityFieldCollection = <
 								:
 									[clause.value]
 							))
+					)
+					entityFieldCollectionLoadDebugByName.set(
+						`${entityType}:${fieldDefinition.name}`,
+						{
+							filters: subsetBase.filters.map((filter) => ({
+								field: filter.field.map((part) => String(part)),
+								operator: filter.operator,
+								value: filter.value,
+							})),
+							parentIdKeyFilterValues: [...parentIdKeyFilterValues],
+							resolverSources: entityFieldResolvers.map((resolver) => resolver.source),
+							sources: [...sources],
+						},
 					)
 
 					const globalRootIdKey = stringify({})
@@ -579,19 +810,27 @@ const createEntityFieldCollection = <
 														[]
 													:
 														[value]
-												) as EntityFieldCollectionItem<
+												) as EntityFieldCollectionInnerValue<
 													_Schema,
 													_EntityType,
 													_FieldDefinition['name']
-												>[EntityMetaKey.Value][]
+												>[]
 
 												return (
-													innerValues.map((innerValue) => ({
-														[EntityMetaKey.ParentId]: parentEntityId,
-														[EntityMetaKey.ParentIdKey]: stringify(parentEntityId),
-														[EntityMetaKey.Source]: fieldResolver.source,
-														[EntityMetaKey.Value]: innerValue,
-													}))
+													innerValues.map((innerValue) => {
+														const value = entityFieldCollectionValue(innerValue)
+
+														return {
+															[EntityMetaKey.ParentId]: parentEntityId,
+															[EntityMetaKey.ParentIdKey]: stringify(parentEntityId),
+															[EntityMetaKey.Source]: fieldResolver.source,
+															[EntityMetaKey.Value]: value,
+														} satisfies EntityFieldCollectionItem<
+															_Schema,
+															_EntityType,
+															_FieldDefinition['name']
+														>
+													})
 												)
 											}),
 									)
@@ -606,6 +845,13 @@ const createEntityFieldCollection = <
 							.flat()
 					)
 
+					entityFieldCollectionLoadDebugByName.set(
+						`${entityType}:${fieldDefinition.name}`,
+						{
+							...entityFieldCollectionLoadDebugByName.get(`${entityType}:${fieldDefinition.name}`)!,
+							rowCount: loadedRows.length,
+						},
+					)
 					return loadedRows
 				},
 
@@ -620,8 +866,6 @@ const createEntityFieldCollection = <
 			schemaVersion,
 		}),
 	)
-
-	collectionRef = collection
 
 	collection.createIndex(
 		(entityFieldItem) => entityFieldItem[EntityMetaKey.ParentIdKey],
@@ -656,12 +900,12 @@ export const createCollectionsFromSchema = <
 			EntityFieldName<_Schema, _ResolvedEntityType>
 		>
 	}[EntityType<_Schema>][]
-	persistence: PersistedCollectionPersistence<object, string | number>
+	persistence: PersistedCollectionPersistence
 	schemaVersion?: number
 }) => {
 	const queryClient = new QueryClient()
 
-	const entityCollections: Record<string, ReturnType<typeof createEntityCollection>> = {}
+	const entityCollections: Partial<EntityCollections<_Schema>> = {}
 
 	for (const definition of schema) {
 		const entityType = definition.entityType
@@ -674,10 +918,7 @@ export const createCollectionsFromSchema = <
 						entityResolver.entityType === entityType
 					)),
 					entityType,
-					persistence: persistence as PersistedCollectionPersistence<
-						EntityCollectionItem<_Schema, typeof entityType>,
-						string | number
-					>,
+					persistence,
 					queryClient,
 					schemaVersion,
 				})
@@ -687,11 +928,13 @@ export const createCollectionsFromSchema = <
 		})
 	}
 
-	const entityFieldCollections: Record<string, Record<string, ReturnType<typeof createEntityFieldCollection>>> = {}
+	const entityFieldCollections: {
+		[_EntityType in EntityType<_Schema>]?: Partial<EntityFieldCollections<_Schema>[_EntityType]>
+	} = {}
 
 	for (const definition of schema) {
 		const entityType = definition.entityType
-		const fieldCollections: Record<string, ReturnType<typeof createEntityFieldCollection>> = {}
+		const fieldCollections: Partial<EntityFieldCollections<_Schema>[typeof entityType]> = {}
 
 		for (const field of definition.fields) {
 			const fieldName = field.name
@@ -712,10 +955,7 @@ export const createCollectionsFromSchema = <
 						)),
 						entityType,
 						fieldDefinition: field,
-						persistence: persistence as PersistedCollectionPersistence<
-							EntityFieldCollectionItem<_Schema, typeof entityType, typeof fieldName>,
-							string | number
-						>,
+						persistence,
 						queryClient,
 						schemaVersion,
 					})
@@ -725,12 +965,12 @@ export const createCollectionsFromSchema = <
 			})
 		}
 
-		entityFieldCollections[entityType] = fieldCollections
+		entityFieldCollections[entityType as EntityType<_Schema>] = fieldCollections
 	}
 
 	return {
-		entityCollections,
-		entityFieldCollections,
+		entityCollections: entityCollections as EntityCollections<_Schema>,
+		entityFieldCollections: entityFieldCollections as EntityFieldCollections<_Schema>,
 		queryClient,
 	}
 }

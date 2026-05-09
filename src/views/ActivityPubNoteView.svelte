@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -20,6 +21,7 @@
 	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 	import { htmlToPlainText } from '$/lib/html.ts'
+	import { isEntityReferenceWithId } from '$/lib/isEntityReferenceWithId.ts'
 
 
 	// Props
@@ -33,7 +35,7 @@
 		{
 			entityId: EntityId<typeof schema, EntityType.ActivityPubNote>
 			href: string
-			layout?: (typeof EntityLayout)[keyof typeof EntityLayout]
+			layout?: EntityLayout
 			open?: boolean
 		},
 		Omit<
@@ -69,16 +71,13 @@
 		[() => idKey],
 	)
 
-	const summaryFields = $derived.by((): Record<string, unknown> | null => {
+	const summaryFields = $derived.by((): Record<string, JsonValue> | null => {
 		const r = noteQuery.data
 			?.find((e) => e.row[EntityMetaKey.Source] === Source.Mastodon_Rest)
 			?.row
 			?? noteQuery.data?.[0]?.row
-		const b = r?.[EntityMetaKey.Fields]
-		if (b === undefined || typeof b !== 'object' || Array.isArray(b)) {
-			return null
-		}
-		return b as Record<string, unknown>
+		const bagUnknown = r?.[EntityMetaKey.Fields]
+		return (typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown)) ? bagUnknown : null
 	})
 
 	const contentPlain = $derived(
@@ -97,17 +96,19 @@
 			entityId.localStatusId
 	)
 
-	const authorId = $derived((
-		summaryFields?.['$author'] as
-			| { [EntityMetaKey.Id]: EntityId<typeof schema, EntityType.ActivityPubActor> }
-			| undefined
-	)?.[EntityMetaKey.Id])
+	const authorId = $derived((() => {
+		const ref = summaryFields?.['$author']
+		return isEntityReferenceWithId<EntityType.ActivityPubActor>(ref) ?
+				ref[EntityMetaKey.Id]
+			:	undefined
+	})())
 
-	const inReplyToId = $derived((
-		summaryFields?.['$inReplyTo'] as
-			| { [EntityMetaKey.Id]: EntityId<typeof schema, EntityType.ActivityPubNote> }
-			| undefined
-	)?.[EntityMetaKey.Id])
+	const inReplyToId = $derived((() => {
+		const ref = summaryFields?.['$inReplyTo']
+		return isEntityReferenceWithId<EntityType.ActivityPubNote>(ref) ?
+				ref[EntityMetaKey.Id]
+			:	undefined
+	})())
 
 
 	// Components
@@ -223,10 +224,10 @@
 							?.row
 							?? mastoRestNoteResultRows?.[0]?.row
 						const b = r?.[EntityMetaKey.Fields]
-						if (b === undefined || typeof b !== 'object' || Array.isArray(b)) {
+						if (!(typeof b === 'object' && b !== null && !Array.isArray(b))) {
 							return null
 						}
-						return b as Record<string, unknown>
+						return b
 					})()}
 					{#if detailFields == null}
 						<p data-text="muted">

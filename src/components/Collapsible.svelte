@@ -87,7 +87,8 @@
 
 	{#if children}
 		<div
-			data-column
+			data-column-item="flexible"
+			data-column="layout-flex"
 			data-sticky-container
 		>
 			{@render children({

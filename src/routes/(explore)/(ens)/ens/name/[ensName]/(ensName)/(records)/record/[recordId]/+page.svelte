@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import {
@@ -67,8 +68,8 @@
 				((f) => (
 					f?.textRecords === undefined || typeof f.textRecords !== 'object' || Array.isArray(f.textRecords) ?
 						undefined
-					: typeof (f.textRecords as Record<string, unknown>)[recordKey] === 'string' ?
-						(f.textRecords as Record<string, unknown>)[recordKey] as string
+					: typeof (f.textRecords as Record<string, JsonValue>)[recordKey] === 'string' ?
+						(f.textRecords as Record<string, JsonValue>)[recordKey] as string
 					:
 						undefined
 				))(
@@ -77,7 +78,7 @@
 							?.map((item) => item.row)
 							.find((row) => row[EntityMetaKey.Source] === Source.Voltaire_JsonRpc)
 					)
-						?.[EntityMetaKey.Fields] as Record<string, unknown> | undefined,
+						?.[EntityMetaKey.Fields] as Record<string, JsonValue> | undefined,
 				)
 			)}
 			<section data-card>

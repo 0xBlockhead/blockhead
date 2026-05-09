@@ -6,14 +6,30 @@ import {
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import { type Entity } from '$/schema/$schema.ts'
-import { schema } from '$/schema/index.ts'
+import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const trim = (value: string | undefined) => (
+const optionalTrimmedString = (value: string | undefined) => (
 	value?.trim() ? value.trim() : undefined
 )
+
+const xProfileImageHttpUrl = (value: string | null | undefined) => {
+	const raw = typeof value === 'string' ? value.trim() : ''
+	if (raw.length === 0) return undefined
+	const withProtocol = raw.startsWith('//') ? `https:${raw}` : raw
+	try {
+		const parsed = new URL(withProtocol)
+		return (
+			parsed.protocol === 'http:' || parsed.protocol === 'https:' ?
+				parsed.toString()
+			:
+				undefined
+		)
+	} catch {
+		return undefined
+	}
+}
 
 export default {
 	source: Source.X_Rest,
@@ -26,13 +42,25 @@ export default {
 				const d = (await singleFlight(xGetUser)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
 				if (d == null) throw new Error('X_Rest: user not found')
 				return {
-					username: trim(d.username),
-					name: trim(d.name),
-					description: trim(d.description),
-					profileImageUrl: trim(d.profile_image_url),
+					username: optionalTrimmedString(d.username),
+					name: optionalTrimmedString(d.name),
+					description: optionalTrimmedString(d.description),
+					...((
+						t,
+					) => (
+						t == null ?
+							{}
+						:	{
+								$icon: {
+									[EntityMetaKey.Id]: { url: t },
+									type: MediaType.Image,
+								},
+							}
+					))(xProfileImageHttpUrl(d.profile_image_url)),
 				}
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.XPost,
 			resolve: async (entityId, context) => {
@@ -41,14 +69,14 @@ export default {
 				if (t == null) throw new Error('X_Rest: post not found')
 				const createdAt = Date.parse(t.created_at ?? '')
 				return {
-					text: trim(t.text),
+					text: optionalTrimmedString(t.text),
 					...(Number.isFinite(createdAt) ? { createdAt } : {}),
 					$author: (
 						t.author_id == null ?
 							undefined
-						:	(({
+						:	{
 								[EntityMetaKey.Id]: { id: t.author_id },
-							}) satisfies Entity<typeof schema, EntityType.XUser>)
+							}
 					),
 				}
 			},
@@ -62,52 +90,57 @@ export default {
 			resolve: async (_entityId, context) => {
 				const { xSearchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.X_Rest)
-				const limit = resolverLoadSubsetRowLimit(context) ?? 25
+				const limit = resolverLoadSubsetRowLimit(context)
+				if (limit == null) throw new Error('X_Rest: XNetwork $$xUsers requires query limit')
 				const result = await singleFlight(xSearchRecentTweets)(publicEnv, limit)
-				const byId = new Map<string, Entity<typeof schema, EntityType.XUser>>()
+				const byId = new Map<string, { [EntityMetaKey.Id]: { id: string } }>()
 				for (const user of result.includes?.users ?? []) {
-					byId.set(user.id, (({
+					byId.set(user.id, {
 						[EntityMetaKey.Id]: { id: user.id },
-					}) satisfies Entity<typeof schema, EntityType.XUser>))
+					})
 				}
 				for (const tweet of result.data ?? []) {
-					const authorId = trim(tweet.author_id)
+					const authorId = optionalTrimmedString(tweet.author_id)
 					if (authorId != null) {
-						byId.set(authorId, (({
+						byId.set(authorId, {
 							[EntityMetaKey.Id]: { id: authorId },
-						}) satisfies Entity<typeof schema, EntityType.XUser>))
+						})
 					}
 				}
 				return [...byId.values()]
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.XNetwork,
 			fieldName: '$$xPosts',
 			resolve: async (_entityId, context) => {
 				const { xSearchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.X_Rest)
-				const limit = resolverLoadSubsetRowLimit(context) ?? 25
+				const limit = resolverLoadSubsetRowLimit(context)
+				if (limit == null) throw new Error('X_Rest: XNetwork $$xPosts requires query limit')
 				return (
 					((await singleFlight(xSearchRecentTweets)(publicEnv, limit)).data ?? [])
-						.map((row) => (({
+						.map((row) => ({
 							[EntityMetaKey.Id]: { id: row.id },
-						}) satisfies Entity<typeof schema, EntityType.XPost>))
+						}))
 				)
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.XUser,
 			fieldName: '$$posts',
 			resolve: async (entityId, context) => {
 				const { xListUserTweets } = await import('$/sources/X/Rest/queries.ts')
-				const limit = resolverLoadSubsetRowLimit(context) ?? 10
+				const limit = resolverLoadSubsetRowLimit(context)
+				if (limit == null) throw new Error('X_Rest: XUser $$posts requires query limit')
 				const { data = [] } = await singleFlight(xListUserTweets)(sourcePublicEnv(context, Source.X_Rest), entityId.id, limit)
 				return (
 					data
-						.map((row) => (({
+						.map((row) => ({
 							[EntityMetaKey.Id]: { id: row.id },
-						}) satisfies Entity<typeof schema, EntityType.XPost>))
+						}))
 				)
 			},
 		}),

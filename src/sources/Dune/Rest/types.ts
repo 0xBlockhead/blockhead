@@ -1,3 +1,4 @@
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 /**
  * Dune API shapes (read / execute / execution results).
  * @see https://docs.dune.com/api-reference/queries/endpoint/read.md
@@ -54,7 +55,7 @@ export type DuneExecutionStatus =
 	| 'QUERY_STATE_CANCELED'
 
 export type DuneQueryResultData = {
-	rows: Record<string, unknown>[]
+	rows: Record<string, JsonValue>[]
 	metadata?: DuneExecutionResultMetadata
 	update_type?: string
 }
@@ -94,7 +95,7 @@ export type DuneExecutionResult = {
 }
 
 export type DuneExecuteQueryBody = {
-	query_parameters?: Record<string, unknown>
+	query_parameters?: Record<string, JsonValue>
 	performance?: 'medium' | 'large'
 }
 

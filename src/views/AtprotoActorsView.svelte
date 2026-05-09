@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { type EntityFieldReference } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -15,6 +16,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { SvelteSet } from 'svelte/reactivity'
 
+	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
 	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
@@ -26,7 +28,7 @@
 		open = $bindable(true),
 		title = 'Actors',
 	}: {
-		entityFieldReference: EntityFieldReference<typeof EntityType.AtprotoActor>
+		entityFieldReference: EntityFieldReference<typeof schema, EntityType.AtprotoActor>
 		href: string
 		id: string
 		open?: boolean
@@ -38,7 +40,12 @@
 		(queryBuilder) => (
 			queryBuilder
 				.from({
-					actorFieldRow: entityFieldCollections[EntityType.AtprotoNetwork]['$$atprotoActors']!,
+					actorFieldRow: (
+						entityFieldCollectionForReference(
+							entityFieldCollections,
+							entityFieldReference,
+						)
+					),
 				})
 				.where(({ actorFieldRow }) => (
 					eq(
@@ -52,12 +59,10 @@
 						Source.Atproto_Xrpc,
 					)
 				))
-				.select(({ actorFieldRow }) => ({
-					[EntityMetaKey.Id]: (
-						// @ts-expect-error entity field row stores target id
-						actorFieldRow[EntityMetaKey.Value]![EntityMetaKey.Id]
-					),
-				}))
+				.select(({ actorFieldRow }) => (
+					{ value: actorFieldRow[EntityMetaKey.Value] }
+				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -80,17 +85,19 @@
 	{id}
 	getKey={(row) => stringify(row[EntityMetaKey.Id])}
 	getSortValue={(row) => (
-		typeof row[EntityMetaKey.Id] === 'object'
-		&& row[EntityMetaKey.Id] !== undefined
-		&& 'did' in row[EntityMetaKey.Id]
-		&& typeof row[EntityMetaKey.Id].did === 'string' ?
-			row[EntityMetaKey.Id].did
-		:	''
+		row[EntityMetaKey.Id].did
 	)}
-	items={new SvelteSet(actorsQuery.data ?? [])}
+	items={actorsQuery.data?.map(({ value }) => value) ?? []}
 	bind:open
 	placeholderKeys={new SvelteSet<string>()}
-	query={actorsQuery}
+	query={{
+		data: actorsQuery.data?.map(({ value }) => value) ?? [],
+		isLoading: actorsQuery.isLoading,
+		isError: actorsQuery.isError,
+		isReady: actorsQuery.isReady,
+		error: actorsQuery.error,
+		status: actorsQuery.status,
+	}}
 	{title}
 >
 	{#snippet Empty()}
@@ -106,16 +113,14 @@
 			</span>
 		{:else if item}
 			{@const actorId = item[EntityMetaKey.Id]}
-			{#if typeof actorId === 'object' && actorId !== undefined && 'did' in actorId && typeof actorId.did === 'string'}
-				<AtprotoActorView
-					entityId={{ did: actorId.did }}
-					href={resolve('/(social)/atproto/actor/[did]', {
-						did: encodeURIComponent(actorId.did),
-					})}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{/if}
+			<AtprotoActorView
+				entityId={{ did: actorId.did }}
+				href={resolve('/(social)/atproto/actor/[did]', {
+					did: encodeURIComponent(actorId.did),
+				})}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
 		{/if}
 	{/snippet}
 </EntitiesList>

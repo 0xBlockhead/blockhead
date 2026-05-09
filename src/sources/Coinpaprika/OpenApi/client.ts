@@ -1,6 +1,4 @@
-import {
-	optionalPublicEnvString,
-} from '$/lib/sources.ts'
+import { optionalPublicEnvString } from '$/lib/sources.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import {
@@ -27,7 +25,7 @@ export const getCoinpaprikaJson = async <_Response>(
 		throw new Error(`Coinpaprika API error: ${response.status} ${response.statusText}`)
 	}
 
-	return response.json() as Promise<_Response>
+	return response.json<_Response>()
 }
 
 export type CoinpaprikaCoin = {
@@ -41,6 +39,12 @@ export type CoinpaprikaTicker = {
 	id?: string
 	name?: string
 	symbol?: string
-	price_usd?: string
 	last_updated?: string
+	quotes?: {
+		USD?: {
+			price?: number
+			market_cap?: number
+			volume_24h?: number
+		}
+	}
 }

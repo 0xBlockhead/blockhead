@@ -19,6 +19,19 @@ export const ethBlockNumber = ({ rpcUrl }: { rpcUrl: string }) => (
 	})
 )
 
+/**
+ * `eth_gasPrice` returns the current price per gas in wei.
+ * @see https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_gasprice
+ * @see https://github.com/ethereum/execution-apis
+ */
+export const ethGasPrice = ({ rpcUrl }: { rpcUrl: string }) => (
+	jsonRpc<string>({
+		rpcUrl,
+		method: 'eth_gasPrice',
+		params: [],
+	})
+)
+
 export const ethGetBlockByNumber = ({
 	rpcUrl,
 	blockNumber,

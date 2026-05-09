@@ -83,7 +83,7 @@
 	{...entityViewRest}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Panel tree ID</dt>
 				<dd>{entityId.id}</dd>

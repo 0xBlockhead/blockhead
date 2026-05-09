@@ -24,35 +24,45 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [Source.Farcaster_Rest],
+			defaultSources: [
+				Source.Farcaster_Rest,
+			],
 		},
 		{
 			name: 'homeUrl',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [Source.Farcaster_Rest],
+			defaultSources: [
+				Source.Farcaster_Rest,
+			],
 		},
 		{
 			name: 'docsUrl',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [Source.Farcaster_Rest],
+			defaultSources: [
+				Source.Farcaster_Rest,
+			],
 		},
 		{
 			name: 'registryLabel',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [Source.Farcaster_Rest],
+			defaultSources: [
+				Source.Farcaster_Rest,
+			],
 		},
 		{
 			name: 'topology',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [Source.Farcaster_Rest],
+			defaultSources: [
+				Source.Farcaster_Rest,
+			],
 		},
 		{
 			name: '$$feeds',

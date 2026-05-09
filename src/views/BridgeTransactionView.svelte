@@ -6,6 +6,7 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import {
 		EntityFieldType,
+		type EntityFieldDefinition,
 		EntityMetaKey,
 	} from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -53,6 +54,16 @@
 		stringify(entityId),
 	)
 
+	const bridgePrimitiveFieldNames = $derived(
+		new Set(
+			entityDefinitionByType[EntityType.BridgeTransaction].fields.flatMap((d: EntityFieldDefinition) => (
+				d.type === EntityFieldType.Primitive ?
+					[d.name]
+				:	[]
+			)),
+		),
+	)
+
 	const bridgeQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
@@ -67,32 +78,6 @@
 		),
 		[() => bridgeIdKey],
 	)
-
-	const bridgeRow = $derived(
-		(
-			bridgeQuery.data?.find(
-				(r) => r.row[EntityMetaKey.Source] === Source.Blockscout_Rest,
-			)?.row
-			?? bridgeQuery.data?.[0]?.row
-		)
-	)
-
-	const bridgeFieldBag = $derived(
-		(() => {
-			const bag = bridgeRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
-			const out: Record<string, string> = {}
-			for (const def of entityDefinitionByType[EntityType.BridgeTransaction].fields) {
-				if (def.type !== EntityFieldType.Primitive) continue
-				const v = b[def.name]
-				if (v === undefined) continue
-				out[def.name] = String(v)
-			}
-			return out
-		})(),
-	)
-
 
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
@@ -112,7 +97,7 @@
 	{...entityViewRest}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Source tx</dt>
 				<dd>
@@ -159,13 +144,16 @@
 						No bridge transaction data yet.
 					</p>
 				{:else}
+					{@const fieldsRaw = bridgeRow[EntityMetaKey.Fields]}
 					<dl>
-						{#if bridgeFieldBag !== undefined}
-							{#each Object.entries(bridgeFieldBag) as [name, value] (name)}
-								<div>
-									<dt>{name}</dt>
-									<dd>{value}</dd>
-								</div>
+						{#if typeof fieldsRaw === 'object' && fieldsRaw !== null && !Array.isArray(fieldsRaw)}
+							{#each Object.entries(fieldsRaw) as [name, value] (name)}
+								{#if bridgePrimitiveFieldNames.has(name) && value !== undefined}
+									<div>
+										<dt>{name}</dt>
+										<dd>{String(value)}</dd>
+									</div>
+								{/if}
 							{/each}
 						{/if}
 						{#if entityId.createdAt !== undefined && typeof entityId.createdAt === 'number' && Number.isFinite(entityId.createdAt)}

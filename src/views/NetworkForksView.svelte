@@ -3,8 +3,9 @@
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { ethereumExecutionForkByChainIdAndForkId } from '$/constants/EthereumExecutionForks.ts'
-	import { schema, type EntityFieldReference } from '$/schema/index.ts'
+	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -19,8 +20,11 @@
 		const chainId = id.$network.chainId
 		const forkId = id.forkId
 		const catalog = ethereumExecutionForkByChainIdAndForkId[`${chainId}:${forkId}`]
-		const slug = typeof catalog?.slug === 'string' && catalog.slug.length > 0 ? catalog.slug : undefined
-		return { chainId, forkId, slug }
+		return {
+			chainId,
+			forkId,
+			slug: catalog?.slug,
+		}
 	}
 
 	const forkSortKey = (row: { [EntityMetaKey.Id]: EntityId<typeof schema, EntityType.NetworkFork> }) => {
@@ -31,13 +35,10 @@
 		if (catalog === undefined) {
 			return 0
 		}
-		const block = catalog.activationBlock
-		const ts = catalog.activationTimestamp
-		const epoch = catalog.activationEpoch
 		return (
-			typeof block === 'number' ? block
-			: typeof ts === 'number' ? ts
-			: typeof epoch === 'number' ? epoch
+			catalog.activationBlock != null ? catalog.activationBlock
+			: catalog.activationTimestamp != null ? catalog.activationTimestamp
+			: catalog.activationEpoch != null ? catalog.activationEpoch
 			: 0
 		)
 	}
@@ -45,7 +46,6 @@
 	// State
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 
 	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
@@ -61,7 +61,7 @@
 		...entitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof EntityType.NetworkFork>
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.NetworkFork>
 			title?: string
 			open?: boolean
 		},
@@ -72,55 +72,29 @@
 	> = $props()
 
 
-	// @ts-expect-error  useLiveQuery infers a single from(); two branch aliases
 	const forksQuery = useLiveQuery(
-		(queryBuilder) => {
-			const pk = stringify(entityFieldReference.entityId)
-			if (entityFieldReference.fieldName === '$$networkForks') {
-				return (
-					queryBuilder
-						.from({ $$networkForks: entityFieldCollections[EntityType._Global]['$$networkForks']! })
-						.where(({ $$networkForks }) => (
-							eq(
-								$$networkForks[EntityMetaKey.ParentIdKey],
-								pk,
-							)
-						))
-						.where(({ $$networkForks }) => (
-							eq(
-								$$networkForks[EntityMetaKey.Source],
-								Source.Constants_Internal,
-							)
-						))
-						.select(({ $$networkForks }) => ({
-							[EntityMetaKey.Id]: (
-								$$networkForks[EntityMetaKey.Value][EntityMetaKey.Id]
-							),
-						}))
-				)
-			}
-			return (
-				queryBuilder
-					.from({ $$forks: entityFieldCollections[EntityType.Network]['$$forks']! })
-					.where(({ $$forks }) => (
-						eq(
-							$$forks[EntityMetaKey.ParentIdKey],
-							pk,
-						)
-					))
-					.where(({ $$forks }) => (
-						eq(
-							$$forks[EntityMetaKey.Source],
-							Source.Constants_Internal,
-						)
-					))
-					.select(({ $$forks }) => ({
-						[EntityMetaKey.Id]: (
-							$$forks[EntityMetaKey.Value][EntityMetaKey.Id]
-						),
-					}))
-			)
-		},
+		(queryBuilder) => (
+			queryBuilder
+				.from({
+					forkFieldRow: entityFieldCollections[EntityType.Network]['$$forks'],
+				})
+				.where(({ forkFieldRow }) => (
+					eq(
+						forkFieldRow[EntityMetaKey.ParentIdKey],
+						stringify(entityFieldReference.entityId),
+					)
+				))
+				.where(({ forkFieldRow }) => (
+					eq(
+						forkFieldRow[EntityMetaKey.Source],
+						Source.Constants_Internal,
+					)
+				))
+				.select(({ forkFieldRow }) => (
+					{ value: forkFieldRow[EntityMetaKey.Value] }
+				))
+				.distinct()
+		),
 		[
 			() => entityFieldReference.entityType,
 			() => entityFieldReference.fieldName,
@@ -153,15 +127,15 @@
 
 			{#snippet children(forks)}
 				<OrderedList
-					items={new SvelteSet(forks)}
-					getKey={forkSortKey}
-					getStableItemKey={(row) => stringify(row[EntityMetaKey.Id])}
+					items={forksQuery.data?.map(({ value }) => value) ?? []}
+					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getSortKey={forkSortKey}
 					placeholderRanges={[]}
 					orientation={ListOrientation.Column}
 				>
 					{#snippet Empty()}
 						<p data-text="muted">
-							No execution forks cataloged for this chain yet.
+							No forks cataloged for this chain yet.
 						</p>
 					{/snippet}
 

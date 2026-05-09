@@ -2,6 +2,8 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+
 
 	// State
 	let {
@@ -12,11 +14,15 @@
 		const raw = decodeURIComponent(params.address).trim()
 		const with0x = raw.startsWith('0x') ? raw : `0x${raw}`
 		const address = (
-			/^0x[a-fA-F0-9]{40}$/i.test(with0x) ?
-				`0x${with0x.slice(2).toLowerCase()}`
-			:
-				with0x
-		) as `0x${string}`
+			hexLowerOfByteSize(with0x, 20)
+			?? (
+				/^0x[a-fA-F0-9]{40}$/i.test(with0x) ?
+					hexLowerOfByteSize(`0x${with0x.slice(2).toLowerCase()}`, 20)
+				:
+					undefined
+			)
+			?? with0x
+		)
 		return { address }
 	})
 

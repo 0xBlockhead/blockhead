@@ -1,38 +1,664 @@
 // Types/constants
-import { useLiveQuery } from '@tanstack/svelte-db'
+import {
+	BaseQueryBuilder,
+	type CollectionStatus,
+	createLiveQueryCollection,
+	eq,
+	inArray,
+	useLiveQuery,
+} from '@tanstack/svelte-db'
+import { stringify } from 'devalue'
+import { tick, untrack } from 'svelte'
+import { SvelteMap } from 'svelte/reactivity'
 
+import type { RemoteResource } from '$/lib/svelte/RemoteResource.svelte.ts'
+import { derive, reduce } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+import type {
+	EntityFieldName,
+	EntityId,
+	EntityType,
+	Schema,
+} from '$/schema/$schema.ts'
+import { EntityFieldCardinality, EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { entityCollectionByEntityType, entityFieldCollections } from '$/routes/+layout.svelte'
 import { schema } from '$/schema/index.ts'
+import { Source } from '$/sources/$Source.ts'
 
 
-export const entityQueryByEntityType = Object.fromEntries(
-	schema
-		.map((entityDefinition) => [
-			entityDefinition.entityType,
-			useLiveQuery((queryBuilder) => (
-				queryBuilder
-					.from({ entity: entityCollectionByEntityType[entityDefinition.entityType] })
-					.select(({ entity }) => ({ entity }))
-			))
-		] as const)
-)
+export type EntitySelection<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = {
+	$?: readonly Source[]
+} & {
+	[
+		_FieldName in EntityFieldName<_Schema, _EntityType>
+	]?:
+		EntitySelection<_Schema, EntityType<_Schema>>
+}
 
-export const entityFieldQueryByEntityType = Object.fromEntries(
+const entityFieldDefinitionsByEntityType = Object.fromEntries(
 	schema.map((entityDefinition) => [
 		entityDefinition.entityType,
 		Object.fromEntries(
-			entityDefinition.fields
-				.filter((field) => entityFieldCollections[entityDefinition.entityType][field.name])
-				.map((field) => [
-					field.name,
-					useLiveQuery((queryBuilder) => (
+			entityDefinition.fields.map((fieldDefinition) => [
+				fieldDefinition.name,
+				fieldDefinition,
+			]),
+		),
+	]),
+)
+
+export const useEntity1 = <
+	_EntityType extends EntityType<typeof schema>,
+>(
+	entityType: _EntityType,
+	entityId: EntityId<typeof schema, _EntityType>,
+	selection: EntitySelection<typeof schema, _EntityType>,
+) => {
+	const idKey = $derived(
+		stringify(entityId),
+	)
+	const query = useLiveQuery(
+		(queryBuilder) => {
+			const idKey = stringify(entityId)
+			const selectedFieldEntries = Object.entries(selection)
+				.filter(([fieldName]) => fieldName !== '$')
+			const fieldSourcesByName = Object.fromEntries(
+				selectedFieldEntries.map(([fieldName, fieldSelection]) => [
+					fieldName,
+					fieldSelection?.$ ?? selection.$ ?? [],
+				]),
+			)
+			const sourcePriority = [
+				...(selection.$ ?? []),
+				...Object.values(fieldSourcesByName).flat(),
+			].filter((source, index, sources) => (
+				sources.indexOf(source) === index
+			))
+
+			return queryBuilder
+				.from({ entityRow: entityCollectionByEntityType[entityType] })
+				.where(({ entityRow }) => (
+					eq(entityRow[EntityMetaKey.IdKey], idKey)
+				))
+				.where(({ entityRow }) => (
+					inArray(entityRow[EntityMetaKey.Source], sourcePriority)
+				))
+				.orderBy(({ entityRow }) => (
+					sourcePriority.indexOf(entityRow[EntityMetaKey.Source])
+				), 'asc')
+				.select(({ entityRow }) => {
+					return {
+						entity: {
+							[EntityMetaKey.Id]: entityId,
+							...Object.fromEntries(
+								selectedFieldEntries
+									.map(([fieldName]) => [
+										fieldName,
+										entityFieldDefinitionsByEntityType[entityType][fieldName].cardinality === EntityFieldCardinality.Many
+										|| entityFieldDefinitionsByEntityType[entityType][fieldName].cardinality === EntityFieldCardinality.ZeroOrMany ?
+											[
+												...[
+													entityRow,
+													...sourcePriority.flatMap((source) => (
+														[...entityCollectionByEntityType[entityType].values()]
+															.filter((row) => (
+																row[EntityMetaKey.IdKey] === idKey
+																&& row[EntityMetaKey.Source] === source
+															))
+													)),
+												].flatMap((row) => (
+													Array.isArray(row[EntityMetaKey.Fields][fieldName]) ?
+														row[EntityMetaKey.Fields][fieldName]
+													:
+														[]
+												)),
+												...(fieldSourcesByName[fieldName] ?? [])
+													.flatMap((source) => (
+														[...entityFieldCollections[entityType][fieldName as EntityFieldName<typeof schema, _EntityType>].values()]
+															.filter((fieldRow) => (
+																fieldRow[EntityMetaKey.ParentIdKey] === idKey
+																&& fieldRow[EntityMetaKey.Source] === source
+															))
+													))
+													.map((fieldRow) => (
+														fieldRow[EntityMetaKey.Value]
+													)),
+											]
+										:
+											[
+												...[
+													entityRow,
+													...sourcePriority.flatMap((source) => (
+														[...entityCollectionByEntityType[entityType].values()]
+															.filter((row) => (
+																row[EntityMetaKey.IdKey] === idKey
+																&& row[EntityMetaKey.Source] === source
+															))
+													)),
+												].map((row) => (
+													row[EntityMetaKey.Fields][fieldName]
+												)),
+												...(fieldSourcesByName[fieldName] ?? [])
+													.flatMap((source) => (
+														[...entityFieldCollections[entityType][fieldName as EntityFieldName<typeof schema, _EntityType>].values()]
+															.filter((fieldRow) => (
+																fieldRow[EntityMetaKey.ParentIdKey] === idKey
+																&& fieldRow[EntityMetaKey.Source] === source
+															))
+													))
+													.map((fieldRow) => (
+														fieldRow[EntityMetaKey.Value]
+													)),
+											].find((value) => value !== undefined),
+									])
+									.filter(([, value]) => value !== undefined),
+							),
+						},
+					}
+				})
+				.findOne()
+		},
+		[
+			() => idKey,
+			() => stringify(selection),
+		],
+	)
+
+	return {
+		get data() {
+			return query.data?.entity
+		},
+		get error() {
+			return query.error
+		},
+		get isError() {
+			return query.isError
+		},
+		get isLoading() {
+			return query.isLoading
+		},
+		get isReady() {
+			return query.isReady
+		},
+		get status() {
+			return query.status
+		},
+	}
+}
+
+export const useEntity2 = <
+	_EntityType extends EntityType<typeof schema>,
+>(
+	entityType: _EntityType,
+	entityId: EntityId<typeof schema, _EntityType>,
+	selection: EntitySelection<typeof schema, _EntityType>,
+) => {
+	const idKey = $derived(
+		stringify(entityId),
+	)
+	const selectedFieldEntries = $derived(
+		Object.entries(selection)
+			.filter(([fieldName]) => fieldName !== '$'),
+	)
+	const fieldSourcesByName = $derived(
+		Object.fromEntries(
+			selectedFieldEntries.map(([fieldName, fieldSelection]) => [
+				fieldName,
+				fieldSelection?.$ ?? selection.$ ?? [],
+			]),
+		),
+	)
+	const sourcePriority = $derived(
+		[
+			...(selection.$ ?? []),
+			...Object.values(fieldSourcesByName).flat(),
+		].filter((source, index, sources) => (
+			sources.indexOf(source) === index
+		)),
+	)
+	const entityRowsQuery = useLiveQuery(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ entityRow: entityCollectionByEntityType[entityType] })
+				.where(({ entityRow }) => (
+					eq(entityRow[EntityMetaKey.IdKey], idKey)
+				))
+				.where(({ entityRow }) => (
+					inArray(entityRow[EntityMetaKey.Source], sourcePriority)
+				))
+				.orderBy(({ entityRow }) => (
+					sourcePriority.indexOf(entityRow[EntityMetaKey.Source])
+				), 'asc')
+				.select(({ entityRow }) => ({
+					entityRow,
+				}))
+		),
+		[
+			() => idKey,
+			() => stringify(sourcePriority),
+		],
+	)
+	const fieldRowsQueries = $derived(
+		Object.fromEntries(
+			selectedFieldEntries.map(([fieldName]) => [
+				fieldName,
+				useLiveQuery(
+					(queryBuilder) => (
 						queryBuilder
 							.from({
-								entityField: entityFieldCollections[entityDefinition.entityType][field.name],
+								fieldRow: entityFieldCollections[entityType][fieldName as EntityFieldName<typeof schema, _EntityType>],
 							})
-							.select(({ entityField }) => ({ entityField }))
-					)),
-				] as const)
+							.where(({ fieldRow }) => (
+								eq(fieldRow[EntityMetaKey.ParentIdKey], idKey)
+							))
+							.where(({ fieldRow }) => (
+								inArray(fieldRow[EntityMetaKey.Source], fieldSourcesByName[fieldName] ?? [])
+							))
+							.orderBy(({ fieldRow }) => (
+								(fieldSourcesByName[fieldName] ?? []).indexOf(fieldRow[EntityMetaKey.Source])
+							), 'asc')
+							.select(({ fieldRow }) => ({
+								fieldRow,
+							}))
+					),
+					[
+						() => idKey,
+						() => stringify(fieldSourcesByName[fieldName] ?? []),
+					],
+				),
+			]),
 		),
-	] as const)
-)
+	)
+	const query = $derived.by(() => {
+		return {
+			...entityRowsQuery,
+			data: (
+				entityRowsQuery.isReady
+				&& Object.values(fieldRowsQueries).every((fieldRowsQuery) => fieldRowsQuery.isReady) ?
+					{
+						[EntityMetaKey.Id]: entityId,
+						...Object.fromEntries(
+							selectedFieldEntries
+								.map(([fieldName]) => [
+									fieldName,
+									entityFieldDefinitionsByEntityType[entityType][fieldName].cardinality === EntityFieldCardinality.Many
+									|| entityFieldDefinitionsByEntityType[entityType][fieldName].cardinality === EntityFieldCardinality.ZeroOrMany ?
+										[
+											...(entityRowsQuery.data?.map(({ entityRow }) => entityRow) ?? []).flatMap((entityRow) => (
+												Array.isArray(entityRow[EntityMetaKey.Fields][fieldName]) ?
+													entityRow[EntityMetaKey.Fields][fieldName]
+												:
+													[]
+											)),
+											...(fieldRowsQueries[fieldName]?.data?.map(({ fieldRow }) => fieldRow[EntityMetaKey.Value]) ?? []),
+										]
+									:
+										[
+											...(entityRowsQuery.data?.map(({ entityRow }) => entityRow[EntityMetaKey.Fields][fieldName]) ?? []),
+											...(fieldRowsQueries[fieldName]?.data?.map(({ fieldRow }) => fieldRow[EntityMetaKey.Value]) ?? []),
+										].find((value) => value !== undefined),
+								])
+								.filter(([, value]) => value !== undefined),
+						),
+					}
+				:
+					undefined
+			),
+			isLoading: (
+				entityRowsQuery.isLoading
+				|| Object.values(fieldRowsQueries).some((fieldRowsQuery) => fieldRowsQuery.isLoading)
+			),
+			isReady: (
+				entityRowsQuery.isReady
+				&& Object.values(fieldRowsQueries).every((fieldRowsQuery) => fieldRowsQuery.isReady)
+			),
+		}
+	})
+	$effect(() => {
+		if (query.data != null) {
+			globalThis.dispatchEvent(
+				new CustomEvent(
+					'blockhead:e2e-debug',
+					{
+						detail: {
+							key: `useEntity:${entityType}:${idKey}`,
+							value: {
+								entityType,
+								id: entityId,
+								idKey,
+								selectedFields: query.data,
+								selection,
+							},
+						},
+					},
+				),
+			)
+		}
+	})
+
+	return query
+}
+
+export const useLiveResource = <_Data>(
+	queryBuilderFunction: (queryBuilder: BaseQueryBuilder) => ReturnType<BaseQueryBuilder['from']>,
+	deps: (() => unknown)[] = [],
+): RemoteResource<_Data> => {
+	const collection = $derived.by(() => {
+		deps.forEach((dep) => dep())
+		return createLiveQueryCollection({
+			query: queryBuilderFunction,
+			startSync: true,
+		})
+	})
+	const state = new SvelteMap()
+	let current = $state<_Data | undefined>()
+	let status = $state<CollectionStatus>(
+		collection.status,
+	)
+	let error = $state<unknown>()
+	let currentUnsubscribe: (() => void) | undefined
+
+	$effect(() => {
+		status = collection.status
+		currentUnsubscribe?.()
+		untrack(() => {
+			state.clear()
+			for (const [key, value] of collection.entries()) {
+				state.set(key, value)
+			}
+			current = collection.config.singleResult ?
+				Array.from(collection.values())[0] as _Data | undefined
+			:
+				Array.from(collection.values()) as _Data
+		})
+		collection.onFirstReady(() => {
+			status = collection.status
+		})
+		const subscription = collection.subscribeChanges((changes) => {
+			untrack(() => {
+				for (const change of changes) {
+					if (change.type === 'delete') state.delete(change.key)
+					else state.set(change.key, change.value)
+				}
+				current = collection.config.singleResult ?
+					Array.from(collection.values())[0] as _Data | undefined
+				:
+					Array.from(collection.values()) as _Data
+			})
+			status = collection.status
+		}, {
+			includeInitialState: true,
+		})
+		collection.preload().catch((cause) => {
+			error = cause
+			status = 'error'
+		})
+		currentUnsubscribe = subscription.unsubscribe.bind(subscription)
+		return () => {
+			currentUnsubscribe?.()
+			currentUnsubscribe = undefined
+		}
+	})
+	const promise = $derived(
+		Promise.resolve()
+			.then(tick)
+			.then(() => current as _Data)
+	)
+
+	return {
+		get current() {
+			return current
+		},
+		get data() {
+			return current
+		},
+		get error() {
+			return error
+		},
+		get isError() {
+			return status === 'error'
+		},
+		get isLoading() {
+			return status === 'loading'
+		},
+		get isReady() {
+			return status === 'ready' || status === 'disabled'
+		},
+		get loading() {
+			return status === 'loading'
+		},
+		get ready() {
+			return status === 'ready' || status === 'disabled'
+		},
+		get status() {
+			return status
+		},
+		get then() {
+			return promise.then.bind(promise)
+		},
+		get catch() {
+			return promise.catch.bind(promise)
+		},
+		get finally() {
+			return promise.finally.bind(promise)
+		},
+		[Symbol.toStringTag]: 'RemoteResource',
+	}
+}
+
+export const useEntity3 = <
+	_EntityType extends EntityType<typeof schema>,
+>(
+	entityType: _EntityType,
+	entityId: EntityId<typeof schema, _EntityType>,
+	selection: EntitySelection<typeof schema, _EntityType>,
+) => {
+	const idKey = $derived(
+		stringify(entityId),
+	)
+	const selectedFieldEntries = $derived(
+		Object.entries(selection)
+			.filter(([fieldName]) => fieldName !== '$'),
+	)
+	const fieldSourcesByName = $derived(
+		Object.fromEntries(
+			selectedFieldEntries.map(([fieldName, fieldSelection]) => [
+				fieldName,
+				fieldSelection?.$ ?? selection.$ ?? [],
+			]),
+		),
+	)
+	const sourcePriority = $derived(
+		[
+			...(selection.$ ?? []),
+			...Object.values(fieldSourcesByName).flat(),
+		].filter((source, index, sources) => (
+			sources.indexOf(source) === index
+		)),
+	)
+	const entityRowsResource = useLiveResource(
+		(queryBuilder) => (
+			queryBuilder
+				.from({ entityRow: entityCollectionByEntityType[entityType] })
+				.where(({ entityRow }) => (
+					eq(entityRow[EntityMetaKey.IdKey], idKey)
+				))
+				.where(({ entityRow }) => (
+					inArray(entityRow[EntityMetaKey.Source], sourcePriority)
+				))
+				.orderBy(({ entityRow }) => (
+					sourcePriority.indexOf(entityRow[EntityMetaKey.Source])
+				), 'asc')
+				.select(({ entityRow }) => ({
+					entityRow,
+				}))
+		),
+		[
+			() => idKey,
+			() => stringify(sourcePriority),
+		],
+	)
+	const fieldRowsResources = $derived(
+		Object.fromEntries(
+			selectedFieldEntries.map(([fieldName]) => [
+				fieldName,
+				useLiveResource(
+					(queryBuilder) => (
+						queryBuilder
+							.from({
+								fieldRow: entityFieldCollections[entityType][fieldName as EntityFieldName<typeof schema, _EntityType>],
+							})
+							.where(({ fieldRow }) => (
+								eq(fieldRow[EntityMetaKey.ParentIdKey], idKey)
+							))
+							.where(({ fieldRow }) => (
+								inArray(fieldRow[EntityMetaKey.Source], fieldSourcesByName[fieldName] ?? [])
+							))
+							.orderBy(({ fieldRow }) => (
+								(fieldSourcesByName[fieldName] ?? []).indexOf(fieldRow[EntityMetaKey.Source])
+							), 'asc')
+							.select(({ fieldRow }) => ({
+								fieldRow,
+							}))
+					),
+					[
+						() => idKey,
+						() => stringify(fieldSourcesByName[fieldName] ?? []),
+					],
+				),
+			]),
+		),
+	)
+
+	const mergedAccum = reduce(
+		[
+			derive(entityRowsResource, (rows) => ({
+				kind: 0 as const,
+				rows,
+			})),
+			...selectedFieldEntries.map(([fieldName]) => (
+				derive(fieldRowsResources[fieldName], (rows) => ({
+					kind: 1 as const,
+					fieldName,
+					rows,
+				}))
+			)),
+		],
+		(
+			acc,
+			part,
+		) => (
+			part.kind === 0 ?
+				{
+					entityRows: part.rows,
+					fieldRowsByField: acc.fieldRowsByField,
+				}
+			:
+				{
+					entityRows: acc.entityRows,
+					fieldRowsByField: {
+						...acc.fieldRowsByField,
+						[part.fieldName]: part.rows,
+					},
+				}
+		),
+		{
+			entityRows: [] as { entityRow: { [EntityMetaKey.Fields]: Record<string, unknown> } }[],
+			fieldRowsByField: {} as Record<string, { fieldRow: { [EntityMetaKey.Value]: unknown } }[]>,
+		},
+	)
+
+	const mergedEntity = $derived.by(() => {
+		const { entityRows, fieldRowsByField } = mergedAccum.current
+
+		return {
+			[EntityMetaKey.Id]: entityId,
+			...Object.fromEntries(
+				selectedFieldEntries
+					.map(([fieldName]) => [
+						fieldName,
+						entityFieldDefinitionsByEntityType[entityType][fieldName].cardinality === EntityFieldCardinality.Many
+						|| entityFieldDefinitionsByEntityType[entityType][fieldName].cardinality === EntityFieldCardinality.ZeroOrMany ?
+							[
+								...entityRows.flatMap(({ entityRow }) => (
+									Array.isArray(entityRow[EntityMetaKey.Fields][fieldName]) ?
+										entityRow[EntityMetaKey.Fields][fieldName]
+									:
+										[]
+								)),
+								...(fieldRowsByField[fieldName] ?? []).map(({ fieldRow }) => (
+									fieldRow[EntityMetaKey.Value]
+								)),
+							]
+						:
+							[
+								...entityRows.map(({ entityRow }) => (
+									entityRow[EntityMetaKey.Fields][fieldName]
+								)),
+								...(fieldRowsByField[fieldName] ?? []).map(({ fieldRow }) => (
+									fieldRow[EntityMetaKey.Value]
+								)),
+							].find((value) => value !== undefined),
+					])
+					.filter(([, value]) => value !== undefined),
+			),
+		}
+	})
+
+	const promise = $derived(
+		mergedAccum
+			.then(tick)
+			.then(() => mergedEntity),
+	)
+
+	$effect(() => {
+		if (typeof mergedEntity.name !== 'string') return
+		globalThis.dispatchEvent(
+			new CustomEvent(
+				'blockhead:e2e-debug',
+				{
+					detail: {
+						key: `useEntity:${entityType}:${idKey}`,
+						value: {
+							entityType,
+							id: entityId,
+							idKey,
+							selectedFields: mergedEntity,
+							selection,
+						},
+					},
+				},
+			),
+		)
+	})
+
+	return {
+		get current() {
+			return mergedEntity
+		},
+		get loading() {
+			return mergedAccum.loading
+		},
+		get error() {
+			return mergedAccum.error
+		},
+		get ready() {
+			return mergedAccum.ready
+		},
+		get then() {
+			return promise.then.bind(promise)
+		},
+		get catch() {
+			return promise.catch.bind(promise)
+		},
+		get finally() {
+			return promise.finally.bind(promise)
+		},
+		[Symbol.toStringTag]: 'RemoteResource',
+	}
+}
+
+export const useEntity = useEntity3

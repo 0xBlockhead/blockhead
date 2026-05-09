@@ -10,6 +10,7 @@ export default {
 			entityType: EntityType._Global,
 			resolve: async () => ({}),
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.Proposal,
 			resolve: async () => ({}),

@@ -40,6 +40,7 @@ export enum SourceProvider {
 	Github = 'Github',
 	Hypersnap = 'Hypersnap',
 	Ipfs = 'Ipfs',
+	L2Beat = 'L2Beat',
 	Lens = 'Lens',
 	Lifi = 'Lifi',
 	Local = 'Local',
@@ -49,7 +50,9 @@ export enum SourceProvider {
 	Reddit = 'Reddit',
 	Snapchain = 'Snapchain',
 	Sourcify = 'Sourcify',
+	Swarm = 'Swarm',
 	TheGraph = 'TheGraph',
+	TradingView = 'TradingView',
 	Voltaire = 'Voltaire',
 	X = 'X',
 }

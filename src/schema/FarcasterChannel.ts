@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.FarcasterChannel,
@@ -37,16 +38,22 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'imageUrl',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			name: '$icon',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Farcaster_Rest,
+			],
 		},
 		{
-			name: 'headerImageUrl',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			name: '$headerImage',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Farcaster_Rest,
+			],
 		},
 		{
 			name: '$lead',

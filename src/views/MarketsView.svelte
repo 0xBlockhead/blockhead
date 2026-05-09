@@ -2,13 +2,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import type { EntityFieldReference } from '$/schema/index.ts'
+	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
-
-	import { isMarketEntityId } from '$/lib/isMarketEntityId.ts'
 
 
 	// Context
@@ -19,7 +19,10 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
+	import {
+		entityCollectionByEntityType,
+		entityFieldCollections,
+	} from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -32,7 +35,7 @@
 		{
 			title?: string
 			open?: boolean
-			entityFieldReference: EntityFieldReference<typeof EntityType.Market>
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Market>
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
@@ -43,22 +46,42 @@
 
 	// (Derived)
 	const marketsQuery = useLiveQuery(
-		(queryBuilder) => {
-			const pk = stringify(entityFieldReference.entityId)
-			return (
-				queryBuilder
-					.from({ m: entityFieldCollections[EntityType._Global]['$$markets']! })
-					.where(({ m }) => (
+		(queryBuilder) => (
+			queryBuilder
+				.from({
+						m: entityFieldCollections[entityFieldReference.entityType][entityFieldReference.fieldName],
+					})
+				.where(({ m }) => (
 						eq(
 							m[EntityMetaKey.ParentIdKey],
-							pk,
+							stringify(entityFieldReference.entityId),
 						)
 					))
-					.select(({ m }) => (
-						{ market: m[EntityMetaKey.Value] }
-					))
-			)
-		},
+				.leftJoin(
+						{ quoteLink: entityFieldCollections[EntityType.Market].$$quotes },
+						({ m, quoteLink }) => (
+							eq(
+								quoteLink[EntityMetaKey.ParentIdKey],
+								m[EntityMetaKey.Value][EntityMetaKey.IdKey],
+							)
+						),
+					)
+				.leftJoin(
+						{ quote: entityCollectionByEntityType[EntityType.Market_Timestamp] },
+						({ quoteLink, quote }) => (
+							eq(
+								quote[EntityMetaKey.IdKey],
+								quoteLink[EntityMetaKey.Value][EntityMetaKey.IdKey],
+							)
+						),
+					)
+				.select(({ m, quote }) => ({
+						...m[EntityMetaKey.Value],
+						volumeSort: quote?.volume24h,
+						quoteTimestampNs: quote?.[EntityMetaKey.Id].timestampNs,
+					}))
+				.distinct()
+		),
 		[
 			() => entityFieldReference.entityType,
 			() => entityFieldReference.fieldName,
@@ -66,32 +89,35 @@
 		],
 	)
 
-	const marketRowKey = (row) => (
+	const marketRowKey = (row: Entity<typeof schema, EntityType.Market> & { volumeSort?: bigint, quoteTimestampNs?: bigint }) => (
 		stringify(
-			row.market,
+			row[EntityMetaKey.Id],
 		)
 	)
 
 	const marketRows = $derived(
-		[
-			...(
-				(marketsQuery.data ?? [])
-					.reduce(
-						(rowsByKey, row) => {
-							if (!isMarketEntityId(row.market)) {
-								return rowsByKey
-							}
-							rowsByKey.set(
-								stringify(row.market),
-								row,
-							)
-							return rowsByKey
-						},
-						new Map(),
-					)
-					.values()
+		Object.values(
+			Object.groupBy(
+				marketsQuery.data ?? [],
+				marketRowKey,
 			),
-		],
+		)
+			.map((rows) => (
+				rows
+					?.sort((a, b) => (
+						a.quoteTimestampNs === undefined ?
+							1
+						: b.quoteTimestampNs === undefined ?
+							-1
+						: a.quoteTimestampNs < b.quoteTimestampNs ?
+							1
+						: a.quoteTimestampNs > b.quoteTimestampNs ?
+							-1
+						:
+							0
+					))[0]
+			))
+			.filter((row) => row !== undefined),
 	)
 
 
@@ -108,8 +134,13 @@
 	entityType={EntityType.Market}
 	{title}
 	getKey={marketRowKey}
-	getSortValue={marketRowKey}
-	items={new SvelteSet(marketRows)}
+	getSortValue={(row) => (
+		row.volumeSort === undefined ?
+			0
+		:
+			-Number(row.volumeSort / 1_000_000n)
+	)}
+	items={marketRows}
 	placeholderKeys={new SvelteSet<string | number>()}
 	query={marketsQuery}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -127,20 +158,20 @@
 			</span>
 		{:else if row}
 			<MarketView
-				entityId={row.market}
+				entityId={row[EntityMetaKey.Id]}
 				href={resolve(
 					'/(assets)/coins/market/[marketKey]',
 					{
 						marketKey: (
 							encodeURIComponent(
 								stringify(
-									row.market,
+									row[EntityMetaKey.Id],
 								),
 							)
 						),
 					},
 				)}
-				id={stringify(row.market)}
+				id={stringify(row[EntityMetaKey.Id])}
 				layout={EntityLayout.Summary}
 				open={false}
 			/>

@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { type EntityFieldReference } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -15,6 +16,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { SvelteSet } from 'svelte/reactivity'
 
+	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
 	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
@@ -26,7 +28,7 @@
 		open = $bindable(true),
 		title = 'Actors',
 	}: {
-		entityFieldReference: EntityFieldReference<typeof EntityType.ActivityPubActor>
+		entityFieldReference: EntityFieldReference<typeof schema, EntityType.ActivityPubActor>
 		href: string
 		id: string
 		open?: boolean
@@ -38,7 +40,12 @@
 		(queryBuilder) => (
 			queryBuilder
 				.from({
-					actorFieldRow: entityFieldCollections[EntityType.ActivityPubNetwork]['$$activityPubActors']!,
+					actorFieldRow: (
+						entityFieldCollectionForReference(
+							entityFieldCollections,
+							entityFieldReference,
+						)
+					),
 				})
 				.where(({ actorFieldRow }) => (
 					eq(
@@ -52,12 +59,10 @@
 						Source.Mastodon_Rest,
 					)
 				))
-				.select(({ actorFieldRow }) => ({
-					[EntityMetaKey.Id]: (
-						// @ts-expect-error entity field row stores target id
-						actorFieldRow[EntityMetaKey.Value]![EntityMetaKey.Id]
-					),
-				}))
+				.select(({ actorFieldRow }) => (
+					{ value: actorFieldRow[EntityMetaKey.Value] }
+				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -80,17 +85,19 @@
 	{id}
 	getKey={(row) => stringify(row[EntityMetaKey.Id])}
 	getSortValue={(row) => (
-		typeof row[EntityMetaKey.Id] === 'object'
-		&& row[EntityMetaKey.Id] !== undefined
-		&& 'localAccountId' in row[EntityMetaKey.Id]
-		&& typeof row[EntityMetaKey.Id].localAccountId === 'string' ?
-			row[EntityMetaKey.Id].localAccountId
-		:	''
+		row[EntityMetaKey.Id].localAccountId
 	)}
-	items={new SvelteSet(actorsQuery.data ?? [])}
+	items={actorsQuery.data?.map(({ value }) => value) ?? []}
 	bind:open
 	placeholderKeys={new SvelteSet<string>()}
-	query={actorsQuery}
+	query={{
+		data: actorsQuery.data?.map(({ value }) => value) ?? [],
+		isLoading: actorsQuery.isLoading,
+		isError: actorsQuery.isError,
+		isReady: actorsQuery.isReady,
+		error: actorsQuery.error,
+		status: actorsQuery.status,
+	}}
 	{title}
 >
 	{#snippet Empty()}
@@ -106,20 +113,18 @@
 			</span>
 		{:else if item}
 			{@const actorId = item[EntityMetaKey.Id]}
-			{#if typeof actorId === 'object' && actorId !== undefined && 'instanceOrigin' in actorId && 'localAccountId' in actorId && typeof actorId.instanceOrigin === 'string' && typeof actorId.localAccountId === 'string'}
-				<ActivityPubActorView
-					entityId={{
-						instanceOrigin: actorId.instanceOrigin,
-						localAccountId: actorId.localAccountId,
-					}}
-					href={resolve('/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
-						instanceOrigin: encodeURIComponent(actorId.instanceOrigin),
-						localAccountId: encodeURIComponent(actorId.localAccountId),
-					})}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{/if}
+			<ActivityPubActorView
+				entityId={{
+					instanceOrigin: actorId.instanceOrigin,
+					localAccountId: actorId.localAccountId,
+				}}
+				href={resolve('/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+					instanceOrigin: encodeURIComponent(actorId.instanceOrigin),
+					localAccountId: encodeURIComponent(actorId.localAccountId),
+				})}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -53,12 +53,13 @@ export const queryTheGraph = async <
 		throw new Error(`The Graph API error: ${response.status} ${response.statusText}`)
 	}
 
-	const payload = await response.json() as {
+	type TheGraphPayloadWire = {
 		data?: _Result
 		errors?: {
 			message?: string
 		}[]
 	}
+	const payload = await response.json<TheGraphPayloadWire>()
 
 	if ((payload.errors?.length ?? 0) > 0) {
 		const errors = payload.errors ?? []

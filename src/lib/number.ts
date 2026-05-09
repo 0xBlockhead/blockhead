@@ -1,6 +1,21 @@
-export const formatValue = <
-	ToParts extends boolean = false,
->(
+type FormatValueOptions<ToParts extends boolean = false> = {
+	currency?: string
+	showDecimalPlaces?: number
+	useGrouping?: boolean
+	compactLargeValues?: boolean
+	locale?: string | string[]
+	toParts?: ToParts
+}
+
+export function formatValue(
+	value: number,
+	options: FormatValueOptions<true> & { toParts: true },
+): Intl.NumberFormatPart[]
+export function formatValue(
+	value: number,
+	options?: FormatValueOptions<false>,
+): string
+export function formatValue(
 	value: number,
 	{
 		currency,
@@ -9,20 +24,13 @@ export const formatValue = <
 		compactLargeValues = false,
 		locale,
 		toParts,
-	}: {
-		currency?: string
-		showDecimalPlaces?: number
-		useGrouping?: boolean
-		compactLargeValues?: boolean
-		locale?: string | string[]
-		toParts?: ToParts
-	} = {},
-) => {
+	}: FormatValueOptions = {},
+): string | Intl.NumberFormatPart[] {
 	try {
 		const formatter = new Intl.NumberFormat(
 			locale
 				?? (typeof globalThis.navigator !== 'undefined' ?
-					(globalThis.navigator.languages as string[])
+					globalThis.navigator.languages
 				: ['en-US']),
 			{
 				...(currency && {
@@ -66,24 +74,12 @@ export const formatValue = <
 			},
 		)
 
-		return (
-			toParts
-				? formatter.formatToParts(value)
-				: formatter.format(value)
-		) as (
-			ToParts extends true
-				? Intl.NumberFormatPart[]
-				: string
-		)
+		return toParts === true ?
+				formatter.formatToParts(value)
+			: formatter.format(value)
 	} catch {
-		return (
-			toParts
-				? [{ type: 'integer' as const, value: value?.toString() ?? '0' }]
-				: value?.toString() ?? '0'
-		) as (
-			ToParts extends true
-				? Intl.NumberFormatPart[]
-				: string
-		)
+		return toParts === true ?
+				[{ type: 'integer' as const, value: value?.toString() ?? '0' }]
+			: value?.toString() ?? '0'
 	}
 }

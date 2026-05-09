@@ -7,11 +7,15 @@ import {
 	ensTextRecordKeys,
 } from '$/constants/Ens.ts'
 import { TransportType } from '$/constants/TransportType.ts'
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 import { getVoltaireProviderForExecutionUrl } from './queries.ts'
 
 const ENS_REGISTRY_MAINNET = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e' as const
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
+
+const emptyStringRecord: Record<string, string> = {}
 
 const ENS_REGISTRY_ABI = new Abi([
 	{
@@ -90,22 +94,25 @@ const ADDRESS_OUTPUT = [{ type: 'address' as const, name: '' }] as const
 const STRING_OUTPUT = [{ type: 'string' as const, name: '' }] as const
 const BYTES_OUTPUT = [{ type: 'bytes' as const, name: '' }] as const
 
-const bytes32FromNamehash = (nodeBytes: Uint8Array) => {
+const bytes32FromNamehash = (nodeBytes: Uint8Array): `0x${string}` => {
 	const hex = hexFromBytes(nodeBytes)
-	return (
+	const normalized = (
 		hex.length === 66 ?
 			hex
 		:	`0x${Array.from(nodeBytes)
 				.map((byte) => byte.toString(16).padStart(2, '0'))
 				.join('')}`
-	) as `0x${string}`
+	)
+	const out = hexLowerOfByteSize(normalized, 32)
+	if (out == null) throw new Error('namehash: expected 32-byte hex')
+	return out
 }
 
 const isZeroHex = (value: string) => (
 	/^0x0*$/i.test(value)
 )
 
-const decodedBytesAsHex = (value: unknown) => (
+const decodedBytesAsHex = (value: JsonValue | Uint8Array) => (
 	typeof value === 'string' ?
 		value
 	: value instanceof Uint8Array ?
@@ -140,9 +147,10 @@ const getRegistryAddress = async ({
 	})
 	if (typeof response !== 'string' || response === '0x' || response.length < 66) return null
 	const [address] = decodeParameters(ADDRESS_OUTPUT, toBytes(response))
-	return typeof address === 'string' && address !== ZERO_ADDRESS ?
-			address as `0x${string}`
+	const hex = typeof address === 'string' && address !== ZERO_ADDRESS ?
+			hexLowerOfByteSize(address, 20)
 		: null
+	return hex ?? null
 }
 
 const resolveAddr = async ({
@@ -172,9 +180,10 @@ const resolveAddr = async ({
 	})
 	if (typeof response !== 'string' || response === '0x' || response.length < 66) return null
 	const [address] = decodeParameters(ADDRESS_OUTPUT, toBytes(response))
-	return typeof address === 'string' && address !== ZERO_ADDRESS ?
-			address as `0x${string}`
+	const hex = typeof address === 'string' && address !== ZERO_ADDRESS ?
+			hexLowerOfByteSize(address, 20)
 		: null
+	return hex ?? null
 }
 
 const resolveText = async ({
@@ -355,9 +364,9 @@ export const resolveEnsForwardForRpcUrl = async ({
 			address: null,
 			owner,
 			resolver: null,
-			textRecords: {} as Record<string, string>,
+			textRecords: { ...emptyStringRecord },
 			contentHash: null,
-			coinAddresses: {} as Record<string, string>,
+			coinAddresses: { ...emptyStringRecord },
 		}
 	}
 	const [address, textRecords, contentHash, coinAddresses] = await Promise.all([

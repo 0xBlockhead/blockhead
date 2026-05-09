@@ -85,10 +85,11 @@
 	const ensOwnedNames = $derived(
 		(ensOwnedQuery.data ?? [])
 			.map((row) => {
-				const v = row.value as Record<string, unknown> | undefined
-				if (v === undefined) return null
-				const id = v[EntityMetaKey.Id] as Record<string, unknown> | undefined
-				const name = id?.name
+				const v = row.value
+				if (!(typeof v === 'object' && v !== null && !Array.isArray(v))) return null
+				const id = v[EntityMetaKey.Id]
+				if (!(typeof id === 'object' && id !== null && !Array.isArray(id))) return null
+				const name = id['name']
 				return typeof name === 'string' && name !== '' ?
 						name
 					:	null
@@ -115,7 +116,7 @@
 	{...entityViewRest}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Address</dt>
 				<dd>

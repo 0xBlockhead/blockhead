@@ -73,7 +73,6 @@
 
 	const lensFields = $derived(
 		mergeEntityCollectionRowFields(
-			EntityType.LensAccount,
 			rowQuery.data,
 			lensAccountMergeSourceOrder,
 		),
@@ -91,7 +90,7 @@
 	import Collapsible from '$/components/Collapsible.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import LensPostsView from '$/views/LensPostsView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
@@ -107,7 +106,7 @@
 	title={displayTitle}
 >
 	{#snippet Icon()}
-		<Icon
+		<IconComponent
 			shape={IconShape.Circle}
 			icon="L"
 			label="Lens"
@@ -179,7 +178,7 @@
 					data-scroll-container="inline layout-carousel carousel-marker-tabs"
 					data-row="start align-start"
 				>
-					<section>
+					<section data-scroll-marker-label="Posts">
 						<LensPostsView
 							entityFieldReference={{
 								entityType: EntityType.LensAccount,

@@ -1,3 +1,5 @@
+import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
+
 export enum ProposalRealm {
 	ChainAgnostic = 'ChainAgnostic',
 	Ens = 'Ens',
@@ -80,37 +82,45 @@ type ProposalCategoryRow = (typeof proposalCategories)[number]
 
 
 // Lookups
-export const proposalRealmById = Object.fromEntries(
+export const proposalRealmById: Record<ProposalRealm, ProposalRealmRow> = Object.fromEntries(
 	proposalRealms
 		.map((row) => [
 			row.id,
 			row,
 		]),
-) as Record<ProposalRealm, ProposalRealmRow>
+)
 
-export const proposalRealmBySlug = Object.fromEntries(
+export const proposalRealmBySlug: Record<string, ProposalRealmRow> = Object.fromEntries(
 	proposalRealms
 		.map((row) => [
 			row.slug,
 			row,
 		]),
-) as Record<string, ProposalRealmRow>
+)
 
-export const proposalCategoryById = Object.fromEntries(
+export const proposalCategoryById: Record<ProposalCategory, ProposalCategoryRow> = Object.fromEntries(
 	proposalCategories
 		.map((row) => [
 			row.id,
 			row,
 		]),
-) as Record<ProposalCategory, ProposalCategoryRow>
+)
 
-export const proposalCategoryBySlug = Object.fromEntries(
+export const proposalCategoryBySlug: Record<string, ProposalCategoryRow> = Object.fromEntries(
 	proposalCategories
 		.map((row) => [
 			row.slug,
 			row,
 		]),
-) as Record<string, ProposalCategoryRow>
+)
+
+const isProposalRealm = (value: string): value is ProposalRealm => (
+	value in proposalRealmById
+)
+
+const isProposalCategory = (value: string): value is ProposalCategory => (
+	value in proposalCategoryById
+)
 
 export const proposalKindAllowedInRealm = (realm: ProposalRealm, category: ProposalCategory) => (
 	(
@@ -149,17 +159,16 @@ export const proposalKindIdsForRealm = (realm: ProposalRealm) => (
 	proposalKindIds.filter((kind) => kind.realm === realm)
 )
 
-export const proposalWireParts = (wire: unknown): {
+export const proposalWireParts = (wire: JsonValue): {
 	realm: ProposalRealm
 	category: ProposalCategory
 	number: number
 } | null => {
-	if (wire == null || typeof wire !== 'object') return null
-	const proposalWire = wire as Record<string, unknown>
-	const { realm, category, number } = proposalWire
+	if (!isJsonObject(wire)) return null
+	const { realm, category, number } = wire
 	if (
-		typeof realm !== 'string' || !(realm in proposalRealmById)
-		|| typeof category !== 'string' || !(category in proposalCategoryById)
+		typeof realm !== 'string' || !isProposalRealm(realm)
+		|| typeof category !== 'string' || !isProposalCategory(category)
 		|| typeof number !== 'number' || !Number.isFinite(number)
 	) return null
 	if (!proposalKindAllowedInRealm(realm, category)) return null

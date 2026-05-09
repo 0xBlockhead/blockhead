@@ -1,15 +1,20 @@
 // Types/constants
 import type { Attachment } from 'svelte/attachments'
 
+import type { JsonValue } from '$/typescript/JsonValue.ts'
+
+
 const unset = Symbol('animationKey.unset')
+
+type AnimationKey = JsonValue | typeof unset
 
 /**
  * Re-runs the element’s `animation` when the key reference changes (restarts `animation: Flash` etc.).
  * Use: `{@attach animationKey(() => someKey)}`
  */
-export const animationKey = (getKey: () => unknown): Attachment<HTMLElement> => (
+export const animationKey = (getKey: () => AnimationKey): Attachment<HTMLElement> => (
 	(element) => {
-		let previousKey: unknown = unset
+		let previousKey: AnimationKey = unset
 
 		$effect(() => {
 			const newKey = getKey()

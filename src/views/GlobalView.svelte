@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
@@ -127,14 +128,13 @@
 		row,
 		fieldName,
 	}: {
-		row: Record<string, unknown> | undefined
+		row: Record<string, JsonValue> | undefined
 		fieldName: string
 	}) => {
 		const fields = row?.[EntityMetaKey.Fields]
 		const value = (
-			typeof fields === 'object'
-			&& fields !== undefined ?
-				(Object(fields) as Record<string, unknown>)[fieldName]
+			(typeof fields === 'object' && fields !== null && !Array.isArray(fields)) ?
+				fields[fieldName]
 			:
 				undefined
 		)

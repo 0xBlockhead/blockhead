@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.ActivityPubActor,
@@ -44,10 +45,13 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'avatarUrl',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			name: '$icon',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Mastodon_Rest,
+			],
 		},
 		{
 			name: '$$notes',

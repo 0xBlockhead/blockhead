@@ -43,8 +43,8 @@ const getAccessToken = async (publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>)
 	return t
 }
 
-const oauthGetJson = async <T>(path: `/${string}`, publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>) => (
-	getJson<T>(`${redditOauthOrigin}${path}`, {
+const oauthGetJson = async <T>(publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>, path: string) => (
+	getJson<T>(`${redditOauthOrigin}${path.startsWith('/') ? path : `/${path}`}`, {
 		origins: redditApiOrigins,
 		init: {
 			headers: {

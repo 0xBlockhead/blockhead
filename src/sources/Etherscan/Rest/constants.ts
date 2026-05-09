@@ -38,6 +38,12 @@ export const supportedChains = [
 
 export const supportedChainIds: readonly number[] = supportedChains.map((r) => r.chainId)
 
-export const supportedByChainId: Readonly<Record<number, true>> = Object.fromEntries(
-	supportedChainIds.map((chainId) => [chainId, true]),
+export const supportedByChainId: Readonly<Record<number, true>> = supportedChainIds.reduce(
+	(acc, chainId) => (
+		{
+			...acc,
+			[chainId]: true,
+		}
+	),
+	{} as Record<number, true>,
 )

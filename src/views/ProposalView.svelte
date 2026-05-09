@@ -3,6 +3,7 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import Markdown from '$/components/Markdown.svelte'
@@ -11,14 +12,10 @@
 		ProposalCategory,
 		proposalCategoryById,
 	} from '$/constants/Proposal.ts'
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import ProposalSchema from '$/schema/Proposal.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
 
 
 	// Props
@@ -47,51 +44,26 @@
 	> = $props()
 
 	// (Derived)
-	const rowQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.Proposal] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						stringify(entityId),
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[
-			() => stringify(entityId),
-		],
+	const proposalQuery = useEntity(
+		EntityType.Proposal,
+		entityId,
+		{
+			$: [
+				entityId.category === ProposalCategory.Caip ?
+					Source.Caips_Github
+				: entityId.category === ProposalCategory.Ensip ?
+					Source.Ensips_Github
+				:
+					Source.EthereumEips_Github,
+			],
+			documentBody: {},
+			documentStatus: {},
+			documentTitle: {},
+		},
 	)
-
-	const fieldsBag = $derived(
-		(() => {
-			const row = (
-				rowQuery.data?.find(
-					({ row }) => row[EntityMetaKey.Source] === (
-						entityId.category === ProposalCategory.Caip ?
-							Source.Caips_Github
-						:	entityId.category === ProposalCategory.Ensip ?
-								Source.Ensips_Github
-							:
-								Source.EthereumEips_Github
-					),
-				)?.row
-				?? rowQuery.data?.[0]?.row
-			)
-			const fields = row?.[EntityMetaKey.Fields]
-			return fields != null && typeof fields === 'object' ? fields : null
-		})(),
-	)
-
-	type ProposalFields = {
-		documentBody?: unknown
-		documentStatus?: unknown
-		documentTitle?: unknown
-	}
 
 	const proposalFields = $derived(
-		fieldsBag as ProposalFields | null,
+		proposalQuery.data?.[EntityMetaKey.Fields],
 	)
 
 	const headingTitle = $derived(
@@ -130,7 +102,7 @@
 	{...entityViewRest}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			{#if proposalFields?.documentStatus}
 				<div>
 					<dt>Status</dt>
@@ -148,40 +120,19 @@
 			{entityId}
 		>
 			<QueryBoundary
-				query={rowQuery}
+				query={proposalQuery}
 			>
-				{#snippet children(rows)}
-					{@const detailRow = (
-						rows?.find(
-							({ row }) => row[EntityMetaKey.Source] === (
-								entityId.category === ProposalCategory.Caip ?
-									Source.Caips_Github
-								:	entityId.category === ProposalCategory.Ensip ?
-										Source.Ensips_Github
-									:
-										Source.EthereumEips_Github
-							),
-						)?.row
-						?? rows?.[0]?.row
-					)}
-					{#if detailRow === undefined}
+				{#snippet children(proposal)}
+					{#if proposal === undefined}
 						<p data-text="muted">
 							No proposal data for this item yet. Try again shortly.
 						</p>
+					{:else if proposal[EntityMetaKey.Fields]?.documentBody}
+						<Markdown content={proposal[EntityMetaKey.Fields].documentBody} />
 					{:else}
-						{@const detailFields = (
-							detailRow[EntityMetaKey.Fields] != null && typeof detailRow[EntityMetaKey.Fields] === 'object' ?
-								(detailRow[EntityMetaKey.Fields] as ProposalFields)
-							:
-								null
-						)}
-						{#if detailFields?.documentBody}
-							<Markdown content={String(detailFields.documentBody)} />
-						{:else}
-							<p data-text="muted">
-								No document body yet.
-							</p>
-						{/if}
+						<p data-text="muted">
+							No document body yet.
+						</p>
 					{/if}
 				{/snippet}
 			</QueryBoundary>

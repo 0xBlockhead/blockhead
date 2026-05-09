@@ -1,9 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema, type EntityFieldReference } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -42,7 +43,7 @@
 		href?: string
 		title?: string
 		open?: boolean
-		entityFieldReference: EntityFieldReference<typeof EntityType.FarcasterFeed>
+		entityFieldReference: EntityFieldReference<typeof schema, EntityType.FarcasterFeed>
 	} = $props()
 
 
@@ -52,7 +53,7 @@
 			const pk = stringify(entityFieldReference.entityId)
 			return (
 				queryBuilder
-					.from({ $$feeds: entityFieldCollections[EntityType.FarcasterNetwork]['$$feeds']! })
+					.from({ $$feeds: entityFieldCollections[EntityType.FarcasterNetwork]['$$feeds'] })
 					.where(({ $$feeds }) => (
 						eq(
 							$$feeds[EntityMetaKey.ParentIdKey],
@@ -66,12 +67,9 @@
 						)
 					))
 					.select(({ $$feeds }) => (
-						{
-							[EntityMetaKey.Id]: (
-								$$feeds[EntityMetaKey.Value][EntityMetaKey.Id]
-							),
-						}
+						{ value: $$feeds[EntityMetaKey.Value] }
 					))
+					.distinct()
 			)
 		},
 		[
@@ -80,8 +78,6 @@
 			() => stringify(entityFieldReference.entityId),
 		],
 	)
-
-	type Row = (NonNullable<typeof feedsQuery.data>)[number]
 
 
 	// Components
@@ -97,15 +93,22 @@
 	{href}
 	{title}
 	bind:open
-	query={feedsQuery}
-	items={new SvelteSet(feedsQuery.data ?? [])}
+	items={feedsQuery.data?.map(({ value }) => value) ?? []}
 	getKey={(row) => stringify(
-		row?.[EntityMetaKey.Id] ?? {},
+		row[EntityMetaKey.Id],
 	)}
 	getSortValue={(row) => stringify(
-		row?.[EntityMetaKey.Id] ?? {},
+		row[EntityMetaKey.Id],
 	)}
 	placeholderKeys={new SvelteSet<string | number>()}
+	query={{
+		data: feedsQuery.data?.map(({ value }) => value) ?? [],
+		isLoading: feedsQuery.isLoading,
+		isError: feedsQuery.isError,
+		isReady: feedsQuery.isReady,
+		error: feedsQuery.error,
+		status: feedsQuery.status,
+	}}
 >
 	{#snippet Empty()}
 		<p data-text="muted">
@@ -119,7 +122,7 @@
 				…
 			</span>
 		{:else if row}
-			{@const feedId = (row as Row)[EntityMetaKey.Id]}
+			{@const feedId = row[EntityMetaKey.Id]}
 			<FarcasterFeedView
 				entityId={feedId}
 				href={farcasterFeedSummaryHref(feedId)}

@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -65,27 +66,28 @@
 		sessionQuery.data?.[0]?.row,
 	)
 
+	const isBlockheadSessionStatus = (s: string): s is BlockheadSessionStatus => (
+		s === BlockheadSessionStatus.Draft
+		|| s === BlockheadSessionStatus.Submitted
+		|| s === BlockheadSessionStatus.Finalized
+	)
+
 	const sessionPrimitives = $derived(
 		(() => {
-			const bag = sessionRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object' || Array.isArray(bag)) return null
-			const b = bag as Record<string, unknown>
-			const str = (key: string) => (
-				typeof b[key] === 'string' && (b[key] as string).length ?
-					(b[key] as string)
-				:	undefined
-			)
-			const num = (key: string) => (
-				typeof b[key] === 'number' && Number.isFinite(b[key] as number) ?
-					(b[key] as number)
-				:	undefined
-			)
+			const bagUnknown = sessionRow?.[EntityMetaKey.Fields]
+			if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) return null
+			const b: Record<string, JsonValue> = bagUnknown
+			const str = (key: string) => {
+				const v = b[key]
+				return typeof v === 'string' && v.length ? v : undefined
+			}
+			const num = (key: string) => {
+				const v = b[key]
+				return typeof v === 'number' && Number.isFinite(v) ? v : undefined
+			}
 			const statusRaw = str('status')
 			const status = (
-				statusRaw !== undefined
-				&& (
-					Object.values(BlockheadSessionStatus) as string[]
-				).includes(statusRaw) ?
+				statusRaw !== undefined && isBlockheadSessionStatus(statusRaw) ?
 					statusRaw
 				:	undefined
 			)
@@ -123,7 +125,7 @@
 	title={sessionPrimitives?.name ?? entityId.id}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Session id</dt>
 				<dd>

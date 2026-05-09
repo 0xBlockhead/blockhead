@@ -37,7 +37,7 @@ export const getCurrentPricesJson = async ({
 	const response = await fetch(
 		withSearchWidth(
 			new URL(
-				`/prices/current/${coins.join(',')}`,
+				`/prices/current/${coins.map((coin) => encodeURIComponent(coin)).join(',')}`,
 				coinsBaseUrl,
 			),
 			searchWidth,
@@ -46,5 +46,5 @@ export const getCurrentPricesJson = async ({
 
 	if (!response.ok) throw new Error(`DefiLlama API error: ${response.status}`)
 
-	return response.json() as Promise<DefillamaOpenApiCurrentPricesResponse>
+	return response.json<DefillamaOpenApiCurrentPricesResponse>()
 }

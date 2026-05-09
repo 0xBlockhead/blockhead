@@ -48,5 +48,5 @@ export const getProCurrentPrices = async ({
 	if (searchWidthOption != null) url.searchParams.set('searchWidth', searchWidthOption)
 	const res = await fetch(url)
 	if (!res.ok) throw new Error(`DefiLlama Pro API error: ${res.status}`)
-	return (await res.json()) as DefiLlamaCurrentPricesResponse
+	return res.json<DefiLlamaCurrentPricesResponse>()
 }

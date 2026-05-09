@@ -4,13 +4,12 @@
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import {
-		ProposalCategory,
-		ProposalRealm,
 		proposalCategoryById,
 		proposalRealmById,
 	} from '$/constants/Proposal.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -44,9 +43,19 @@
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'entityType'
+			| 'getKey'
+			| 'getSortValue'
+			| 'items'
+			| 'query'
 		>
 	> = $props()
+
+
+	// Functions
+	const proposalKindKey = (row: Entity<typeof schema, EntityType.ProposalKind>) => (
+		stringify(row[EntityMetaKey.Id])
+	)
 
 
 	const proposalKindsQuery = useLiveQuery(
@@ -63,9 +72,10 @@
 							parentIdKey,
 						)
 					))
-					.select(({ $$proposalKinds }) => ({
-						proposalKindRow: $$proposalKinds,
-					}))
+					.select(({ $$proposalKinds }) => (
+						{ value: $$proposalKinds[EntityMetaKey.Value] }
+					))
+					.distinct()
 			)
 		},
 		[
@@ -75,17 +85,6 @@
 		],
 	)
 
-	type ProposalKindRow = {
-	proposalKindRow: {
-		[EntityMetaKey.Value]: {
-			[EntityMetaKey.Id]: {
-				realm: ProposalRealm
-				category: ProposalCategory
-			}
-		}
-	}
-}
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -94,22 +93,25 @@
 
 
 <EntitiesList
+	{...EntitiesListProps}
 	entityType={EntityType.ProposalKind}
 	{title}
 	bind:open
-	query={proposalKindsQuery}
-	items={new SvelteSet(proposalKindsQuery.data ?? [])}
-	getKey={(row) => stringify(
-		(row as ProposalKindRow).proposalKindRow[EntityMetaKey.Value][EntityMetaKey.Id],
-	)}
-	getSortValue={(row) => stringify(
-		(row as ProposalKindRow).proposalKindRow[EntityMetaKey.Value][EntityMetaKey.Id],
-	)}
+	items={proposalKindsQuery.data?.map(({ value }) => value) ?? []}
+	getKey={proposalKindKey}
+	getSortValue={proposalKindKey}
 	layout={EntitiesListLayout.Carousel}
 	panelStyle="--carousel-basis: min(40ch, 88cqi); gap: 0.5em"
 	placeholderKeys={new SvelteSet<string | number>()}
+	query={{
+		data: proposalKindsQuery.data?.map(({ value }) => value) ?? [],
+		isLoading: proposalKindsQuery.isLoading,
+		isError: proposalKindsQuery.isError,
+		isReady: proposalKindsQuery.isReady,
+		error: proposalKindsQuery.error,
+		status: proposalKindsQuery.status,
+	}}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...EntitiesListProps}
 >
 	{#snippet Empty()}
 		<p data-text="muted">
@@ -123,7 +125,7 @@
 				…
 			</span>
 		{:else if row}
-			{@const kindId = (row as ProposalKindRow).proposalKindRow[EntityMetaKey.Value][EntityMetaKey.Id]}
+			{@const kindId = row[EntityMetaKey.Id]}
 			<ProposalsView
 				collapsible={false}
 				layout={EntitiesListLayout.Default}

@@ -1,6 +1,4 @@
-import {
-	requiredPublicEnvString,
-} from '$/lib/sources.ts'
+import { requiredPublicEnvString } from '$/lib/sources.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { baseUrl } from '$/sources/CoinMarketCap/Rest/constants.ts'
@@ -20,5 +18,5 @@ export const coinMarketCapFetch = async <_Response>(
 		throw new Error(`CoinMarketCap API error: ${response.status} ${response.statusText}`)
 	}
 
-	return response.json() as Promise<_Response>
+	return response.json<_Response>()
 }

@@ -12,15 +12,13 @@
 
 
 <Page>
-	<section>
-		<NetworksView
-			entityFieldReference={{
-				entityType: EntityType._Global,
-				entityId: {},
-				fieldName: '$$networks',
-			}}
-			href={resolve('/networks')}
-			id="networks"
-		/>
-	</section>
+	<NetworksView
+		entityFieldReference={{
+			entityType: EntityType._Global,
+			entityId: {},
+			fieldName: '$$networks',
+		}}
+		href={resolve('/networks')}
+		id="networks"
+	/>
 </Page>

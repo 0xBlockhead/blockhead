@@ -8,10 +8,11 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import type { CastHash } from '$/schema/FarcasterCast.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { schema } from '$/schema/index.ts'
+import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const normalizeFarcasterCastHash = (hash: string): CastHash => {
+const zeroXLowerHexCastHash = (hash: string): CastHash => {
 	const t = hash.trim()
 	const hex = (
 		t.startsWith('0x')
@@ -20,7 +21,7 @@ const normalizeFarcasterCastHash = (hash: string): CastHash => {
 		:
 			t
 	)
-	return `0x${hex.toLowerCase()}` as CastHash
+	return `0x${hex.toLowerCase()}`
 }
 
 type NeynarCastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
@@ -28,11 +29,32 @@ type NeynarUserEntity = import('$/schema/$schema.ts').Entity<typeof schema, Enti
 type NeynarChannelEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterChannel>
 type NeynarCastWire = import('$/sources/Neynar/Rest/types.ts').NeynarCastWire
 
-const neynarNonEmptyString = (value: string | undefined | null) => (
+const neynarPfpHttpUrl = (value: string | null | undefined) => {
+	const raw = typeof value === 'string' ? value.trim() : ''
+	if (raw.length === 0) return undefined
+	const withProtocol = raw.startsWith('//') ? `https:${raw}` : raw
+	if (withProtocol.startsWith('ipfs://')) {
+		const path = withProtocol.slice('ipfs://'.length).replace(/^\/+/, '')
+		return path.length > 0 ? `https://ipfs.io/ipfs/${path}` : undefined
+	}
+	try {
+		const parsed = new URL(withProtocol)
+		return (
+			parsed.protocol === 'http:' || parsed.protocol === 'https:' ?
+				parsed.toString()
+			:
+				undefined
+		)
+	} catch {
+		return undefined
+	}
+}
+
+const optionalTrimmedString = (value: string | undefined | null) => (
 	value?.trim() ? value.trim() : undefined
 )
 
-const neynarCastEntityRef = (
+const farcasterCastEntityFromOptionalFidHash = (
 	fid: number | undefined,
 	hash: string | undefined,
 ): NeynarCastEntity | undefined => (
@@ -41,14 +63,14 @@ const neynarCastEntityRef = (
 	: {
 			[EntityMetaKey.Id]: {
 				fid,
-				hash: normalizeFarcasterCastHash(String(hash)),
+				hash: zeroXLowerHexCastHash(String(hash)),
 			},
 		} satisfies NeynarCastEntity
 )
 
-const neynarCastRefsFromFeed = (casts: NeynarCastWire[]) => (
+const farcasterCastEntitiesFromNeynarCastFeed = (casts: NeynarCastWire[]) => (
 	casts
-		.map((cast) => neynarCastEntityRef(cast.author?.fid, cast.hash))
+		.map((cast) => farcasterCastEntityFromOptionalFidHash(cast.author?.fid, cast.hash))
 		.filter((ref): ref is NeynarCastEntity => ref != null)
 )
 
@@ -69,14 +91,24 @@ export default {
 				if (user == null) throw new Error('Neynar_Rest: user not found')
 				const bioRaw = user.profile?.bio
 				return {
-					[EntityMetaKey.Id]: entityId,
-					username: neynarNonEmptyString(user.username),
-					displayName: neynarNonEmptyString(user.display_name),
-					pfpUrl: neynarNonEmptyString(user.pfp_url),
-					bio: neynarNonEmptyString(
+					username: optionalTrimmedString(user.username),
+					displayName: optionalTrimmedString(user.display_name),
+					...((
+						t,
+					) => (
+						t == null ?
+							{}
+						:	{
+								$icon: {
+									[EntityMetaKey.Id]: { url: t },
+									type: MediaType.Image,
+								},
+							}
+					))(neynarPfpHttpUrl(user.pfp_url)),
+					bio: optionalTrimmedString(
 						typeof bioRaw === 'string' ? bioRaw : bioRaw?.text,
 					),
-					verifiedAddress: neynarNonEmptyString(
+					verifiedAddress: optionalTrimmedString(
 						user.verified_addresses?.primary?.eth_address
 						?? user.verified_addresses?.eth_addresses?.[0]
 						?? user.verified_addresses?.primary?.sol_address
@@ -85,6 +117,53 @@ export default {
 				}
 			},
 		}),
+
+		defineEntityResolver({
+			entityType: EntityType.BlockheadFarcasterAccountConnection,
+			resolve: async (entityId, context) => {
+				const { getBulkUsers } = await import('$/sources/Neynar/Rest/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
+				const bulkUsers = await singleFlight(getBulkUsers)({
+					publicEnv,
+					fids: [entityId.fid],
+				})
+				const user = bulkUsers?.users?.find((neynarUser) => neynarUser.fid === entityId.fid)
+				if (user == null) throw new Error('Neynar_Rest: Blockhead Farcaster connection user not found')
+				const bioRaw = user.profile?.bio
+				const ethList = (
+					[
+						...(user.verified_addresses?.eth_addresses ?? []),
+						...(user.verified_addresses?.primary?.eth_address != null ?
+							[user.verified_addresses.primary.eth_address]
+						:
+							[]),
+					]
+						.map(optionalTrimmedString)
+						.filter((v): v is string => v != null)
+				)
+				return {
+					username: optionalTrimmedString(user.username),
+					displayName: optionalTrimmedString(user.display_name),
+					...((
+						t,
+					) => (
+						t == null ?
+							{}
+						:	{
+								$icon: {
+									[EntityMetaKey.Id]: { url: t },
+									type: MediaType.Image,
+								},
+							}
+					))(neynarPfpHttpUrl(user.pfp_url)),
+					bio: optionalTrimmedString(
+						typeof bioRaw === 'string' ? bioRaw : bioRaw?.text,
+					),
+					...(ethList.length > 0 ? { verifications: ethList } : {}),
+				}
+			},
+		}),
+
 		defineEntityResolver({
 			entityType: EntityType.FarcasterCast,
 			resolve: async (entityId, context) => {
@@ -94,7 +173,7 @@ export default {
 				type FieldValuesCast = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterCast>
 				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
 				const cast = await singleFlight(getCastByHash)(publicEnv, entityId.hash)
-				if (cast == null || normalizeFarcasterCastHash(cast.hash) !== entityId.hash) {
+				if (cast == null || zeroXLowerHexCastHash(cast.hash) !== entityId.hash) {
 					throw new Error('Neynar_Rest: cast not found')
 				}
 				const castId: EntityIdCast = entityId
@@ -106,12 +185,11 @@ export default {
 				)
 				const mentionChIds = (
 					(cast.mentioned_channels ?? [])
-						.map((ch) => neynarNonEmptyString(ch?.id))
+						.map((ch) => optionalTrimmedString(ch?.id))
 						.filter((idValue): idValue is string => idValue != null)
 				)
-				const channelId = neynarNonEmptyString(cast.channel?.id)
+				const channelId = optionalTrimmedString(cast.channel?.id)
 				return {
-					[EntityMetaKey.Id]: entityId,
 					$author: (
 						cast.author?.fid == null ?
 							undefined
@@ -126,38 +204,53 @@ export default {
 								[EntityMetaKey.Id]: { fid: cast.app.fid },
 							} satisfies NeynarUserEntity)
 					),
-					text: neynarNonEmptyString(cast.text),
-					$parentCast: neynarCastEntityRef(cast.parent_author?.fid, cast.parent_hash),
-					parentUrl: neynarNonEmptyString(cast.parent_url ?? cast.root_parent_url),
+					text: optionalTrimmedString(cast.text),
+					$parentCast: farcasterCastEntityFromOptionalFidHash(cast.parent_author?.fid, cast.parent_hash),
+					parentUrl: optionalTrimmedString(cast.parent_url ?? cast.root_parent_url),
 					timestamp: Number.isFinite(timestamp) ? timestamp : undefined,
 					mentions: cast.mentions,
 					mentionedProfileFids: mentionFids.length > 0 ? mentionFids : undefined,
 					mentionedChannelIds: mentionChIds.length > 0 ? mentionChIds : undefined,
 					$$embeds: (cast.embeds ?? []).map((embed, index) => {
 						const ogImages = embed.metadata?.html?.ogImage
+						const og0 = ogImages?.[0]?.url
 						return (({
 							[EntityMetaKey.Id]: {
 								$cast: castId,
 								index,
 							},
-							url: neynarNonEmptyString(embed.url),
+							url: optionalTrimmedString(embed.url),
 							$embeddedCast: (
 								embed.cast?.hash != null && embed.cast.author?.fid != null ?
-									neynarCastEntityRef(embed.cast.author.fid, embed.cast.hash)
+									farcasterCastEntityFromOptionalFidHash(embed.cast.author.fid, embed.cast.hash)
 								: embed.cast_id?.fid != null && embed.cast_id.hash != null ?
-									neynarCastEntityRef(embed.cast_id.fid, embed.cast_id.hash)
+									farcasterCastEntityFromOptionalFidHash(embed.cast_id.fid, embed.cast_id.hash)
 								:	undefined
 							),
-							title: neynarNonEmptyString(embed.metadata?.html?.ogTitle),
-							description: neynarNonEmptyString(embed.metadata?.html?.ogDescription),
-							imageUrl: neynarNonEmptyString(ogImages?.[0]?.url),
-							quotedPreviewText: neynarNonEmptyString(embed.cast?.text),
+							title: optionalTrimmedString(embed.metadata?.html?.ogTitle),
+							description: optionalTrimmedString(embed.metadata?.html?.ogDescription),
+							...((
+								t,
+							) => (
+								t == null ?
+									{}
+								:	{
+										$icon: {
+											[EntityMetaKey.Id]: { url: t },
+											type: MediaType.Image,
+										},
+									}
+							))(neynarPfpHttpUrl(
+								typeof og0 === 'string' ? og0 : undefined,
+								{ pageBaseUrl: optionalTrimmedString(embed.url) },
+							)),
+							quotedPreviewText: optionalTrimmedString(embed.cast?.text),
 						}) satisfies CastEmbedEntity)
 					}),
 					likeCount: cast.likes ?? cast.reactions?.likes_count,
 					recastCount: cast.recasts ?? cast.reactions?.recasts_count,
 					replyCount: cast.replies?.count,
-					threadHash: neynarNonEmptyString(cast.thread_hash),
+					threadHash: optionalTrimmedString(cast.thread_hash),
 					$channel: (
 						channelId == null ? undefined : {
 							[EntityMetaKey.Id]: {
@@ -178,6 +271,7 @@ export default {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
+				if (limit == null) throw new Error('Neynar_Rest: FarcasterFeed $$entries requires query limit')
 				if (entityId.variant === 'trending') {
 					const page = await singleFlight(getFeed)(
 						publicEnv,
@@ -187,7 +281,8 @@ export default {
 							limit,
 						},
 					)
-					return neynarCastRefsFromFeed(page?.casts ?? [])
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return farcasterCastEntitiesFromNeynarCastFeed(page.casts ?? [])
 				}
 				if (entityId.variant === 'byUser') {
 					const page = await singleFlight(getFeed)(
@@ -199,7 +294,8 @@ export default {
 							limit,
 						},
 					)
-					return neynarCastRefsFromFeed(page?.casts ?? [])
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return farcasterCastEntitiesFromNeynarCastFeed(page.casts ?? [])
 				}
 				if (entityId.variant === 'byChannel') {
 					const page = await singleFlight(getFeed)(
@@ -211,45 +307,54 @@ export default {
 							limit,
 						},
 					)
-					return neynarCastRefsFromFeed(page?.casts ?? [])
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return farcasterCastEntitiesFromNeynarCastFeed(page.casts ?? [])
 				}
-				return []
+				throw new Error(`Neynar_Rest: unsupported FarcasterFeed variant ${JSON.stringify(entityId)}`)
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.FarcasterUser,
 			fieldName: '$$casts',
 			resolve: async (entityId, context) => {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
+				const limit = resolverLoadSubsetRowLimit(context)
+				if (limit == null) throw new Error('Neynar_Rest: FarcasterUser $$casts requires query limit')
 				const page = await singleFlight(getFeed)(
 					publicEnv,
 					{
 						feedType: 'filter',
 						filterType: 'fids',
 						fids: [entityId.fid],
-						limit: resolverLoadSubsetRowLimit(context),
+						limit,
 					},
 				)
-				return neynarCastRefsFromFeed(page?.casts ?? [])
+				if (page == null) throw new Error('Neynar_Rest: feed response missing')
+				return farcasterCastEntitiesFromNeynarCastFeed(page.casts ?? [])
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.FarcasterChannel,
 			fieldName: '$$casts',
 			resolve: async (entityId, context) => {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
+				const limit = resolverLoadSubsetRowLimit(context)
+				if (limit == null) throw new Error('Neynar_Rest: FarcasterChannel $$casts requires query limit')
 				const page = await singleFlight(getFeed)(
 					publicEnv,
 					{
 						feedType: 'filter',
 						filterType: 'channel_id',
 						channelId: entityId.id,
-						limit: resolverLoadSubsetRowLimit(context),
+						limit,
 					},
 				)
-				return neynarCastRefsFromFeed(page?.casts ?? [])
+				if (page == null) throw new Error('Neynar_Rest: feed response missing')
+				return farcasterCastEntitiesFromNeynarCastFeed(page.casts ?? [])
 			},
 		}),
 	],

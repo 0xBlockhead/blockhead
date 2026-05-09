@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { type EntityFieldReference } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -13,12 +14,12 @@
 
 	// State
 	import { coalesce, eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { SvelteSet } from 'svelte/reactivity'
 
 	import {
 		entityCollectionByEntityType,
 		entityFieldCollections,
 	} from '$/routes/+layout.svelte'
+	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
 
 	import { htmlToPlainText } from '$/lib/html.ts'
 
@@ -37,16 +38,19 @@
 		orderByCreatedAt: 'asc' | 'desc'
 		placeholderText: string
 		title: string
-		entityFieldReference: EntityFieldReference<typeof EntityType.ActivityPubNote>
+		entityFieldReference: EntityFieldReference<typeof schema, EntityType.ActivityPubNote>
 	} = $props()
 
 
 	// (Derived)
-		const fieldQuery = useLiveQuery(
+	const fieldQuery = useLiveQuery(
 		(queryBuilder) => {
 			const tr = (
-				entityFieldCollections[entityFieldReference.entityType]!
-			)[entityFieldReference.fieldName]!
+				entityFieldCollectionForReference(
+					entityFieldCollections,
+					entityFieldReference,
+				)
+			)
 			return (
 				queryBuilder
 					.from({ tr })
@@ -66,8 +70,7 @@
 						{ note: entityCollectionByEntityType[EntityType.ActivityPubNote]! },
 						({ tr, note }) => (
 							eq(
-								// @ts-expect-error entity field transition row — Value is the target id row
-								tr[EntityMetaKey.Value]![EntityMetaKey.IdKey],
+								tr[EntityMetaKey.Value][EntityMetaKey.IdKey],
 								note[EntityMetaKey.IdKey],
 							)
 						),
@@ -79,21 +82,15 @@
 						)
 					))
 					.orderBy(({ note }) => {
-						const b = note[EntityMetaKey.Fields] as Record<string, unknown> | undefined
 						return coalesce(
-							typeof b?.['createdAt'] === 'number' ? b['createdAt'] : undefined,
+							note[EntityMetaKey.Fields].createdAt,
 							0,
 						)
 					}, orderByCreatedAt)
 					.select(({ tr, note }) => {
-						const b = note[EntityMetaKey.Fields] as Record<string, unknown> | undefined
-						const content = typeof b?.['content'] === 'string' ? b['content'] : ''
 						return {
-							[EntityMetaKey.Id]: (
-								// @ts-expect-error entity field transition row — Value is the target entity id
-								tr[EntityMetaKey.Value]![EntityMetaKey.Id]
-							),
-							textPreview: htmlToPlainText(content),
+							note: tr[EntityMetaKey.Value],
+							content: note[EntityMetaKey.Fields].content,
 						}
 					})
 			)
@@ -107,33 +104,12 @@
 	)
 
 	const noteItems = $derived(
-		new SvelteSet(
-			(fieldQuery.data ?? []).flatMap(
-				(row, order) => {
-					const idValue = row[EntityMetaKey.Id]
-					if (
-						idValue === undefined
-						|| typeof idValue !== 'object'
-						|| !('instanceOrigin' in idValue)
-						|| !('localStatusId' in idValue)
-					) {
-						return []
-					}
-					const { instanceOrigin, localStatusId } = idValue
-					if (typeof instanceOrigin !== 'string' || typeof localStatusId !== 'string') {
-						return []
-					}
-					return [
-						{
-							instanceOrigin,
-							localStatusId,
-							order,
-							textPreview: row.textPreview,
-						},
-					]
-				},
-			),
-		),
+		(fieldQuery.data ?? [])
+			.map(({ content, note }, order) => ({
+				...note[EntityMetaKey.Id],
+				order,
+				textPreview: htmlToPlainText(content ?? ''),
+			})),
 	)
 
 
@@ -153,7 +129,13 @@
 	items={noteItems}
 	open={true}
 	{placeholderText}
-	query={fieldQuery}
+	query={{
+		data: noteItems,
+		isLoading: fieldQuery.isLoading,
+		isError: fieldQuery.isError,
+		isReady: fieldQuery.isReady,
+		status: fieldQuery.status,
+	}}
 	{title}
 >
 	{#snippet Item({ item, isPlaceholder })}

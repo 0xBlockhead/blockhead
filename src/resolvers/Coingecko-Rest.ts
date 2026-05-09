@@ -3,9 +3,9 @@ import {
 	MarketAssetKind,
 	MarketPriceRangeType,
 	MarketTimeIntervalUnit,
-	MarketVenue,
 	coingeckoOhlcDayWindowLengths,
 } from '$/constants/Market.ts'
+import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { caip19Erc20, caip19Slip44, Slip44 } from '$/lib/caip19.ts'
 import {
 	defineEntityFieldResolver,
@@ -77,7 +77,6 @@ export default {
 					getCoingeckoCoin,
 					getCoingeckoCoinByAssetPlatformContract,
 				} = await import('$/sources/Coingecko/Rest/queries.ts')
-				const { findChainByChainId } = await import('$/sources/Chainlist/Rest/rpcsJsonWire.ts')
 				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_Rest)
 				const knownCoinIds = Object.values(CoinId)
@@ -87,10 +86,12 @@ export default {
 						?? coingeckoCoin?.image?.thumb
 				)
 				if (entityId.type === CoinInstanceType.NativeCurrency) {
-					const chain = findChainByChainId(
-						await fetchRpcsJson(),
-						entityId.$network.chainId,
+					const chain = (
+						await fetchRpcsJson()
 					)
+						.find((candidateChain) => (
+							candidateChain.chainId === entityId.$network.chainId
+						))
 					if (chain == null) throw new Error('Coingecko_Rest: native coin chain not in chainlist')
 
 					const symbol = chain.nativeCurrency.symbol.trim().toUpperCase()
@@ -282,6 +283,7 @@ export default {
 				)
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$markets',
@@ -301,12 +303,15 @@ export default {
 									kind: MarketAssetKind.Currency,
 									iso4217: 'USD',
 								},
-								venue: MarketVenue.SpotIndex,
+								$marketVenue: {
+									marketVenueId: MarketVenueId.SpotIndex,
+								},
 							} as const,
 						}))
 				)
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$marketPrices',
@@ -327,13 +332,16 @@ export default {
 										kind: MarketAssetKind.Currency,
 										iso4217: 'USD',
 									},
-									venue: MarketVenue.SpotIndex,
+									$marketVenue: {
+										marketVenueId: MarketVenueId.SpotIndex,
+									},
 								} as const,
 							},
 						}))
 				)
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$marketPriceRanges',
@@ -355,7 +363,9 @@ export default {
 											kind: MarketAssetKind.Currency,
 											iso4217: 'USD',
 										},
-										venue: MarketVenue.SpotIndex,
+										$marketVenue: {
+											marketVenueId: MarketVenueId.SpotIndex,
+										},
 									} as const,
 									timeInterval: {
 										unit: MarketTimeIntervalUnit.Day,
@@ -368,6 +378,7 @@ export default {
 				)
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$coinInstances',
@@ -443,6 +454,7 @@ export default {
 				return rows
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsBase',
@@ -463,13 +475,16 @@ export default {
 									kind: MarketAssetKind.Currency,
 									iso4217: 'USD',
 								},
-								venue: MarketVenue.SpotIndex,
+								$marketVenue: {
+									marketVenueId: MarketVenueId.SpotIndex,
+								},
 							} as const,
 						},
 					]
 				)
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
@@ -477,6 +492,7 @@ export default {
 				[]
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketPrice',
@@ -495,13 +511,16 @@ export default {
 									kind: MarketAssetKind.Currency,
 									iso4217: 'USD',
 								},
-								venue: MarketVenue.SpotIndex,
+								$marketVenue: {
+									marketVenueId: MarketVenueId.SpotIndex,
+								},
 							} as const,
 						},
 					}
 				)
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketPriceRanges',
@@ -523,7 +542,9 @@ export default {
 									kind: MarketAssetKind.Currency,
 									iso4217: 'USD',
 								},
-								venue: MarketVenue.SpotIndex,
+								$marketVenue: {
+									marketVenueId: MarketVenueId.SpotIndex,
+								},
 							} as const,
 							timeInterval: {
 								unit: MarketTimeIntervalUnit.Day,
@@ -535,6 +556,7 @@ export default {
 				))
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.CoinInstance,
 			fieldName: '$$marketsWithInstanceAsBase',
@@ -542,6 +564,7 @@ export default {
 				[]
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.CoinInstance,
 			fieldName: '$$marketsWithInstanceAsQuote',
@@ -549,6 +572,7 @@ export default {
 				[]
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Market,
 			fieldName: '$$baseCoin',
@@ -562,6 +586,7 @@ export default {
 				:	undefined
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Market,
 			fieldName: '$$marketPrices',
@@ -575,6 +600,7 @@ export default {
 				]
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Market,
 			fieldName: '$$marketPriceRanges',
@@ -593,6 +619,7 @@ export default {
 				))
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.MarketPrice,
 			fieldName: '$$parentMarket',
@@ -602,6 +629,7 @@ export default {
 				}
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.MarketPriceRange,
 			fieldName: '$$parentMarket',

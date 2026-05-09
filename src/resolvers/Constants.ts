@@ -4,9 +4,9 @@ import {
 	MarketAssetKind,
 	MarketPriceRangeType,
 	MarketTimeIntervalUnit,
-	MarketVenue,
 	coingeckoOhlcDayWindowLengths,
 } from '$/constants/Market.ts'
+import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import {
 	proposalCategoryById,
 	proposalKindIds,
@@ -43,6 +43,15 @@ export default {
 					`${entityId.$network.chainId}:${entityId.forkId}`
 				]
 				return forkDefinition != null ? { ...forkDefinition } : {}
+			},
+		}),
+		defineEntityResolver({
+			entityType: EntityType.MarketVenue,
+			resolve: async (entityId) => {
+				const { marketVenueById } = await import('$/constants/MarketVenue.ts')
+				return {
+					label: marketVenueById[entityId.marketVenueId].label,
+				}
 			},
 		}),
 		defineEntityResolver({
@@ -153,6 +162,7 @@ export default {
 				return ethereumExecutionForks.map((forkRow) => ({ ...forkRow }))
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$proposalRealms',
@@ -166,6 +176,7 @@ export default {
 					}))
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$proposalKinds',
@@ -175,6 +186,7 @@ export default {
 				}))
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.ProposalRealm,
 			fieldName: '$$proposalKinds',
@@ -184,6 +196,7 @@ export default {
 				}))
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.ProposalKind,
 			fieldName: '$proposalRealm',
@@ -195,6 +208,7 @@ export default {
 				}
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$coins',
@@ -211,6 +225,22 @@ export default {
 				]
 			},
 		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType._Global,
+			fieldName: '$$marketVenues',
+			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+				const { marketVenues } = await import('$/constants/MarketVenue.ts')
+				return marketVenues.map((marketVenue) => (
+					{
+						[EntityMetaKey.Id]: {
+							marketVenueId: marketVenue.id,
+						},
+					}
+				))
+			},
+		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$markets',
@@ -228,13 +258,16 @@ export default {
 									kind: MarketAssetKind.Currency,
 									iso4217: 'USD',
 								},
-								venue: MarketVenue.SpotIndex,
+								$marketVenue: {
+									marketVenueId: MarketVenueId.SpotIndex,
+								},
 							} as const,
 						}
 					)),
 				]
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$marketPrices',
@@ -253,7 +286,9 @@ export default {
 										kind: MarketAssetKind.Currency,
 										iso4217: 'USD',
 									},
-									venue: MarketVenue.SpotIndex,
+									$marketVenue: {
+										marketVenueId: MarketVenueId.SpotIndex,
+									},
 								} as const,
 							},
 						}
@@ -261,6 +296,7 @@ export default {
 				]
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsBase',
@@ -276,12 +312,15 @@ export default {
 								kind: MarketAssetKind.Currency,
 								iso4217: 'USD',
 							},
-							venue: MarketVenue.SpotIndex,
+							$marketVenue: {
+								marketVenueId: MarketVenueId.SpotIndex,
+							},
 						} as const,
 					},
 				]
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
@@ -289,6 +328,7 @@ export default {
 				[]
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketPrice',
@@ -306,12 +346,15 @@ export default {
 									kind: MarketAssetKind.Currency,
 									iso4217: 'USD',
 								},
-								venue: MarketVenue.SpotIndex,
+								$marketVenue: {
+									marketVenueId: MarketVenueId.SpotIndex,
+								},
 							} as const,
 						},
 					}
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Market,
 			fieldName: '$$baseCoin',
@@ -325,6 +368,7 @@ export default {
 				:	undefined
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Market,
 			fieldName: '$$marketPrices',
@@ -338,6 +382,7 @@ export default {
 				]
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Market,
 			fieldName: '$$marketPriceRanges',
@@ -356,6 +401,7 @@ export default {
 				))
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.MarketPrice,
 			fieldName: '$$parentMarket',
@@ -365,6 +411,7 @@ export default {
 				}
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.MarketPriceRange,
 			fieldName: '$$parentMarket',
@@ -374,6 +421,7 @@ export default {
 				}
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.CoinInstance,
 			fieldName: '$$marketsWithInstanceAsBase',
@@ -381,6 +429,7 @@ export default {
 				[]
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.CoinInstance,
 			fieldName: '$$marketsWithInstanceAsQuote',
@@ -388,6 +437,7 @@ export default {
 				[]
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Network,
 			fieldName: '$$forks',
@@ -400,6 +450,7 @@ export default {
 				)
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.LensNetwork,
 			fieldName: '$$lensAccounts',
@@ -409,11 +460,13 @@ export default {
 				}))
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.LensNetwork,
 			fieldName: '$$lensPosts',
 			resolve: async () => [],
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.AtprotoNetwork,
 			fieldName: '$$atprotoActors',
@@ -423,11 +476,13 @@ export default {
 				}))
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.AtprotoNetwork,
 			fieldName: '$$atprotoPosts',
 			resolve: async () => [],
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.ActivityPubNetwork,
 			fieldName: '$$activityPubActors',
@@ -437,11 +492,13 @@ export default {
 				}))
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.ActivityPubNetwork,
 			fieldName: '$$activityPubNotes',
 			resolve: async () => [],
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.RedditNetwork,
 			fieldName: '$$redditSubreddits',
@@ -451,11 +508,13 @@ export default {
 				}))
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.RedditNetwork,
 			fieldName: '$$redditLinks',
 			resolve: async () => [],
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.XNetwork,
 			fieldName: '$$xUsers',
@@ -465,11 +524,13 @@ export default {
 				}))
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.XNetwork,
 			fieldName: '$$xPosts',
 			resolve: async () => [],
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.XmtpNetwork,
 			fieldName: '$$xmtpConversations',

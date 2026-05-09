@@ -31,18 +31,20 @@ const catalog = [
 }[]
 
 /** Numeric coin ids for `/v1/cryptocurrency/quotes/latest?id=…`. */
-export const idByCoinId = Object.fromEntries(
+export const idByCoinId: Partial<Record<CoinId, number>> = Object.fromEntries(
 	catalog
 		.map((entry) => [
 			entry.coinId,
 			entry.wireId,
 		]),
-) as Partial<Record<CoinId, number>>
+)
 
-export const coinIdByWireId = Object.fromEntries(
+export const coinIdByWireId: Partial<Record<number, CoinId>> = Object.fromEntries(
 	catalog
 		.map((entry) => [
 			entry.wireId,
 			entry.coinId,
 		]),
-) as Partial<Record<number, CoinId>>
+)
+
+export const coinmarketcapCatalogCoinIds: readonly CoinId[] = catalog.map((entry) => entry.coinId)

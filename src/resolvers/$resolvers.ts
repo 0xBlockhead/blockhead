@@ -11,6 +11,7 @@ import type {
 import { schema } from '$/schema/index.ts'
 import type { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export type ResolverLoadSubset<_Source extends Source = Source> = ReturnType<typeof parseLoadSubsetOptions> & {
 	/** Keys validated by provider+source env schemas for this resolver’s source (empty object when no env schema exists). */
@@ -26,6 +27,8 @@ export const sourcePublicEnv = <_Source extends Source>(
 	context: ResolverLoadSubset | undefined,
 	_source: _Source,
 ): SourcePublicEnvFor<_Source> => (
+	// Empty object is a valid wire shape when a source has no env keys; SourcePublicEnvFor is a per-source record.
+	// oxlint-disable-next-line typescript/consistent-type-assertions -- `{}` is not inferred as each branch of the conditional env type
 	(context?.publicEnv ?? {}) as SourcePublicEnvFor<_Source>
 )
 
@@ -61,7 +64,7 @@ export type ResolveLiveContext<
 			parentEntityId?: EntityId<_Schema, _EntityType>
 			parentIdKey?: string
 			source: Source
-			value: unknown
+			value: JsonValue
 		}[],
 	) => void
 }
@@ -91,6 +94,10 @@ export type EntityResolver<
 > = {
 	entityType: _EntityType
 	source: Source
+	/**
+	 * Must **throw** when the entity cannot be resolved under the given `entityId` / `context` (missing transport, missing upstream row, etc.).
+	 * Do not return `{}` or other empty shapes to mean failure.
+	 */
 	resolve: (
 		entityId: EntityId<_Schema, _EntityType>,
 		context?: ResolverLoadSubset,
@@ -110,13 +117,19 @@ export type EntityFieldResolver<
 	entityType: _EntityType
 	fieldName: _ResolverFieldKey
 	source: Source
-	/** Long-running sync; wire via `useEntityFieldResolveLive` / `runEntityFieldResolveLiveForParent` in `$/lib/db/resolveLive.svelte.ts` (default field list: `entityFieldNamesWithResolveLiveByEntityType` from `$/resolvers/index.ts`). */
+	/** Long-running sync; wire via `mountEntityResolveLive` / `startEntityFieldResolveLiveForParent` in `$/lib/db/resolveLive.svelte.ts` (default field list: `entityFieldNamesWithResolveLiveByEntityType` from `$/resolvers/index.ts`). */
 	resolveLive?: (ctx: ResolveLiveContext<_Schema, _EntityType>) => (
 		void
 	| Promise<void>
 	| (() => void)
 	| Promise<() => void>
 	)
+	/**
+	 * Must **throw** when the field cannot be resolved (unsupported parent scope, missing API mapping, missing `context.limit` when the source requires a bounded page, etc.).
+	 * Do not return `[]` / `undefined` / `{}` to mean “could not resolve”.
+	 *
+	 * Apply **no** client-side filter / sort / offset pagination that duplicates `ResolverLoadSubset`. Pass `filters` / `sorts` / `limit` through to source `queries` only where that transport documents support.
+	 */
 	resolve: (
 		scopedEntityId: EntityId<_Schema, _EntityType>,
 		context?: ResolverLoadSubset,

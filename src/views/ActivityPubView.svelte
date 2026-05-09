@@ -42,7 +42,7 @@
 	const actorsQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.ActivityPubNetwork]['$$activityPubActors']! })
+				.from({ row: entityFieldCollections[EntityType.ActivityPubNetwork]['$$activityPubActors'] })
 				.where(({ row }) => (
 					eq(
 						row[EntityMetaKey.ParentIdKey],
@@ -57,7 +57,7 @@
 	const notesQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.ActivityPubNetwork]['$$activityPubNotes']! })
+				.from({ row: entityFieldCollections[EntityType.ActivityPubNetwork]['$$activityPubNotes'] })
 				.where(({ row }) => (
 					eq(
 						row[EntityMetaKey.ParentIdKey],
@@ -71,7 +71,7 @@
 
 	const networkFields = $derived.by(() => {
 		const bag = networkQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		return bag !== undefined && typeof bag === 'object' ? bag as Record<string, unknown> : null
+		return bag != null && (typeof bag === 'object' && bag !== null && !Array.isArray(bag)) ? bag : null
 	})
 
 
@@ -94,7 +94,7 @@
 	title="ActivityPub"
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Scope</dt>
 				<dd>{entityId.scope}</dd>
@@ -121,7 +121,7 @@
 				query={networkQuery}
 			>
 				{#snippet children(_rows)}
-					<dl data-definition-list="vertical">
+					<dl>
 						<div>
 							<dt>Protocol name</dt>
 							<dd>{String(networkFields?.protocolName ?? 'ActivityPub')}</dd>
@@ -174,7 +174,7 @@
 					data-row="start align-start"
 					style="--carousel-basis: 36ch"
 				>
-					<section>
+					<section data-scroll-marker-label="Actors">
 						<ActivityPubActorsView
 							entityFieldReference={{
 								entityType: EntityType.ActivityPubNetwork,
@@ -187,7 +187,7 @@
 						/>
 					</section>
 
-					<section>
+					<section data-scroll-marker-label="Public notes">
 						<ActivityPubMastodonFieldNotes
 							entityFieldReference={{
 								entityType: EntityType.ActivityPubNetwork,

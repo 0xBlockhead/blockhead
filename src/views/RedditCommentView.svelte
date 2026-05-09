@@ -66,20 +66,14 @@
 
 	const f = $derived.by(() => {
 		const bag = rowQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		if (bag === undefined || typeof bag !== 'object') return null
-		const rec = bag as Record<string, unknown>
+		if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+		const rec = bag
 		const bodyX = rec['body']
 		const authorX = rec['author']
 		const linkRef = rec['$link']
 		const linkId = (
-			linkRef !== undefined
-			&& typeof linkRef === 'object'
-			&& EntityMetaKey.Id in linkRef ?
-				(
-					linkRef as {
-						[EntityMetaKey.Id]: EntityId<typeof schema, EntityType.RedditLink>
-					}
-				)[EntityMetaKey.Id]
+			(typeof linkRef === 'object' && linkRef !== null && !Array.isArray(linkRef)) && EntityMetaKey.Id in linkRef ?
+				linkRef[EntityMetaKey.Id]
 			:
 				undefined
 		)

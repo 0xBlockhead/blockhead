@@ -3,9 +3,10 @@
 	import type { ComponentProps } from 'svelte'
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import { ProposalRealm, proposalRealmById } from '$/constants/Proposal.ts'
+	import { proposalRealmById } from '$/constants/Proposal.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -39,9 +40,19 @@
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'entityType'
+			| 'getKey'
+			| 'getSortValue'
+			| 'items'
+			| 'query'
 		>
 	> = $props()
+
+
+	// Functions
+	const proposalRealmKey = (row: Entity<typeof schema, EntityType.ProposalRealm>) => (
+		stringify(row[EntityMetaKey.Id])
+	)
 
 
 	const proposalRealmsQuery = useLiveQuery(
@@ -58,9 +69,10 @@
 							parentIdKey,
 						)
 					))
-					.select(({ $$proposalRealms }) => ({
-						proposalRealmRow: $$proposalRealms,
-					}))
+					.select(({ $$proposalRealms }) => (
+						{ value: $$proposalRealms[EntityMetaKey.Value] }
+					))
+					.distinct()
 			)
 		},
 		[
@@ -70,16 +82,6 @@
 		],
 	)
 
-	type ProposalRealmRow = {
-	proposalRealmRow: {
-		[EntityMetaKey.Value]: {
-			[EntityMetaKey.Id]: {
-				realm: ProposalRealm
-			}
-		}
-	}
-}
-
 
 	// Components
 	import { default as EntitiesList } from '$/components/EntitiesList.svelte'
@@ -88,22 +90,25 @@
 
 
 <EntitiesList
+	{...EntitiesListProps}
 	entityType={EntityType.ProposalRealm}
 	{title}
 	bind:open
-	query={proposalRealmsQuery}
-	items={new SvelteSet(proposalRealmsQuery.data ?? [])}
-	getKey={(row) => stringify(
-		(row as ProposalRealmRow).proposalRealmRow[EntityMetaKey.Value][EntityMetaKey.Id],
-	)}
-	getSortValue={(row) => stringify(
-		(row as ProposalRealmRow).proposalRealmRow[EntityMetaKey.Value][EntityMetaKey.Id],
-	)}
+	items={proposalRealmsQuery.data?.map(({ value }) => value) ?? []}
+	getKey={proposalRealmKey}
+	getSortValue={proposalRealmKey}
 	layout={EntitiesListLayout.Carousel}
 	panelStyle="--carousel-basis: min(44ch, 92cqi); gap: 0.5em"
 	placeholderKeys={new SvelteSet<string | number>()}
+	query={{
+		data: proposalRealmsQuery.data?.map(({ value }) => value) ?? [],
+		isLoading: proposalRealmsQuery.isLoading,
+		isError: proposalRealmsQuery.isError,
+		isReady: proposalRealmsQuery.isReady,
+		error: proposalRealmsQuery.error,
+		status: proposalRealmsQuery.status,
+	}}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...EntitiesListProps}
 >
 	{#snippet Empty()}
 		<p data-text="muted">
@@ -117,7 +122,7 @@
 				…
 			</span>
 		{:else if row}
-			{@const realmId = (row as ProposalRealmRow).proposalRealmRow[EntityMetaKey.Value][EntityMetaKey.Id]}
+			{@const realmId = row[EntityMetaKey.Id]}
 			<ProposalKindsView
 				collapsible={false}
 				layout={EntitiesListLayout.Carousel}

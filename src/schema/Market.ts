@@ -1,8 +1,7 @@
 /**
- * Tradable book or index: two market asset legs (`$base`, `$quote`) and a `venue` to merge or split providers.
+ * Tradable book or index: two market asset legs (`$base`, `$quote`) and a venue reference to merge or split providers.
  */
 import { type } from 'arktype'
-import { MarketVenue } from '$/constants/Market.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -11,13 +10,14 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import MarketAsset from '$/schema/MarketAsset.ts'
+import MarketVenue from '$/schema/MarketVenue.ts'
 import { Source } from '$/sources/$Source.ts'
 
 
 const id = type({
 	$base: MarketAsset.id,
 	$quote: MarketAsset.id,
-	venue: type.valueOf(MarketVenue),
+	$marketVenue: MarketVenue.id,
 })
 
 export { id }
@@ -49,6 +49,7 @@ export default {
 				Source.CoinMarketCap_Rest,
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_Rest,
+				Source.TradingView_Rest,
 			],
 		},
 		{

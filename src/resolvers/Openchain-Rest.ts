@@ -18,6 +18,7 @@ export default {
 				}
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.EvmTopic,
 			resolve: async (entityId) => {
@@ -29,6 +30,7 @@ export default {
 				}
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.EvmError,
 			resolve: async (entityId) => {

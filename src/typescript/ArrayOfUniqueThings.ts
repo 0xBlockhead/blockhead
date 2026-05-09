@@ -1,5 +1,5 @@
 type UnionToIntersection<_U> = (
-	_U extends unknown ? (_x: _U) => void : never
+	_U extends any ? (_x: _U) => void : never
 ) extends (_x: infer _I) => void ? _I : never
 
 type LastInUnion<_U> = (
@@ -39,7 +39,7 @@ type PermutationTuple<
 )
 
 type TupleOfIdRecords<
-	_Tuple extends readonly unknown[],
+	_Tuple extends readonly PropertyKey[],
 	_Key extends PropertyKey,
 > = (
 	_Tuple extends readonly [infer _Head, ...infer _Rest]

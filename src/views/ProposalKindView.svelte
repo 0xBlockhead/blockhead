@@ -5,15 +5,16 @@
 		proposalCategoryById,
 	} from '$/constants/Proposal.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import ProposalKindSchema from '$/schema/ProposalKind.ts'
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Props
@@ -25,7 +26,7 @@
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
 		children?: Snippet
-		entityId: typeof ProposalKindSchema.id.infer
+		entityId: EntityId<typeof schema, EntityType.ProposalKind>
 		open?: boolean
 		href: string
 		layout?: EntityLayout
@@ -36,31 +37,20 @@
 		stringify(entityId),
 	)
 
-	const kindQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ kindRow: entityCollectionByEntityType[EntityType.ProposalKind] })
-				.where(({ kindRow }) => (
-					eq(
-						kindRow[EntityMetaKey.IdKey],
-						kindIdKey,
-					)
-				))
-				.select(({ kindRow }) => ({ kindRow }))
-		),
-		[() => kindIdKey],
+	const kindQuery = useEntity(
+		EntityType.ProposalKind,
+		entityId,
+		{
+			$: [
+				Source.Constants_Internal,
+			],
+			labelPlural: {},
+		},
 	)
 
-	const kindRow = $derived(
-		kindQuery.data?.[0]?.kindRow,
-	)
-
-	const kindLabelPlural = $derived(
-		(
-			kindRow?.[EntityMetaKey.Fields] as { labelPlural?: string } | undefined
-		)?.labelPlural
-		?? proposalCategoryById[entityId.category].labelPlural,
-	)
+	const kindLabelPlural = $derived.by(() => {
+		return kindQuery.data?.[EntityMetaKey.Fields]?.labelPlural ?? proposalCategoryById[entityId.category].labelPlural
+	})
 
 
 	// Components

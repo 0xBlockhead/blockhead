@@ -67,8 +67,8 @@
 	const contractField = $derived(
 		(() => {
 			const bag = contractRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
+			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+			const b = bag
 			return {
 				abi: typeof b.abi === 'string' && b.abi.length ? b.abi : undefined,
 			}
@@ -94,7 +94,7 @@
 	{...entityViewRest}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Address</dt>
 				<dd>

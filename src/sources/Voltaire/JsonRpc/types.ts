@@ -1,4 +1,4 @@
-import type * as VoltaireTransaction from '@tevm/voltaire/Transaction'
+import type { RpcLogWire } from '$/sources/Evm/JsonRpc/types.ts'
 
 export type VoltaireBlockRpc = {
 	number: string
@@ -9,7 +9,7 @@ export type VoltaireBlockRpc = {
 	gasUsed: string
 	gasLimit: string
 	baseFeePerGas?: string
-	transactions?: readonly (string | VoltaireTransaction.Any)[]
+	transactions?: readonly (string | VoltaireTxRpc)[]
 }
 
 export type VoltaireTxRpc = {
@@ -25,6 +25,7 @@ export type VoltaireTxRpc = {
 	gas?: string
 	gasPrice?: string
 	type?: string
+	blobVersionedHashes?: readonly string[]
 }
 
 export type VoltaireReceiptRpc = {
@@ -32,5 +33,5 @@ export type VoltaireReceiptRpc = {
 	gasUsed?: string
 	contractAddress?: string | null
 	effectiveGasPrice?: string
-	logs?: unknown[]
+	logs?: RpcLogWire[]
 }

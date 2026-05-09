@@ -37,26 +37,28 @@ const catalog = [
 	decimals: number
 }[]
 
-export const idByCoinId = Object.fromEntries(
+export const idByCoinId: Partial<Record<CoinId, string>> = Object.fromEntries(
 	catalog
 		.map((entry) => [
 			entry.coinId,
 			entry.wireId,
 		]),
-) as Partial<Record<CoinId, string>>
+)
 
-export const coinIdByWireId = Object.fromEntries(
+export const coinIdByWireId: Partial<Record<string, CoinId>> = Object.fromEntries(
 	catalog
 		.map((entry) => [
 			entry.wireId,
 			entry.coinId,
 		]),
-) as Partial<Record<string, CoinId>>
+)
 
-export const decimalsByCoinId = Object.fromEntries(
+export const decimalsByCoinId: Partial<Record<CoinId, number>> = Object.fromEntries(
 	catalog
 		.map((entry) => [
 			entry.coinId,
 			entry.decimals,
 		]),
-) as Partial<Record<CoinId, number>>
+)
+
+export const coinpaprikaCatalogCoinIds: readonly CoinId[] = catalog.map((entry) => entry.coinId)

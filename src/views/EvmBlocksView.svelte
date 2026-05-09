@@ -2,9 +2,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { type EntityFieldReference } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
@@ -15,7 +16,6 @@
 	// State
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 
 	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
@@ -31,7 +31,7 @@
 		...entitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof EntityType.EvmBlock>
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmBlock>
 			title?: string
 			open?: boolean
 		},
@@ -45,7 +45,7 @@
 	const blockHeightQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ blockHeight: entityFieldCollections[EntityType.Network].blockHeight! })
+				.from({ blockHeight: entityFieldCollections[EntityType.Network].blockHeight })
 				.where(({ blockHeight }) => (
 					eq(
 						blockHeight[EntityMetaKey.ParentIdKey],
@@ -73,30 +73,27 @@
 	const blocksQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ $$evmBlocks: entityFieldCollections[EntityType.Network]['$$evmBlocks']! })
-				.where(({ $$evmBlocks }) => (
+				.from({ $$blocks: entityFieldCollections[EntityType.Network]['$$blocks'] })
+				.where(({ $$blocks }) => (
 					eq(
-						$$evmBlocks[EntityMetaKey.ParentIdKey],
+						$$blocks[EntityMetaKey.ParentIdKey],
 						stringify(entityFieldReference.entityId),
 					)
 				))
-				.where(({ $$evmBlocks }) => (
+				.where(({ $$blocks }) => (
 					eq(
-						$$evmBlocks[EntityMetaKey.Source],
+						$$blocks[EntityMetaKey.Source],
 						Source.Voltaire_JsonRpc,
 					)
 				))
-				.orderBy(({ $$evmBlocks }) => (
-					$$evmBlocks[EntityMetaKey.IdKey]
+				.orderBy(({ $$blocks }) => (
+					$$blocks[EntityMetaKey.Value][EntityMetaKey.IdKey]
 				), 'desc')
 				.limit(16)
-				.select(({ $$evmBlocks }) => (
-					{
-						[EntityMetaKey.Id]: (
-							$$evmBlocks[EntityMetaKey.Value][EntityMetaKey.Id]
-						),
-					}
+				.select(({ $$blocks }) => (
+					{ value: $$blocks[EntityMetaKey.Value] }
 				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -128,16 +125,12 @@
 			query={blocksQuery}
 			placeholderText="Loading blocks…"
 		>
-			{#snippet children(blocks)}
+			<div data-e2e="network-blocks-list">
 				<OrderedList
-					data-e2e="network-blocks-list"
-					items={new SvelteSet(blocks ?? [])}
+					items={blocksQuery.data?.map(({ value }) => value) ?? []}
 					getKey={(row) => (
-						Number(
-							row[EntityMetaKey.Id].blockNumber,
-						)
+						row[EntityMetaKey.Id].blockNumber
 					)}
-					getStableItemKey={(row) => stringify(row[EntityMetaKey.Id])}
 					placeholderRanges={[]}
 					orientation={ListOrientation.Column}
 				>
@@ -152,27 +145,27 @@
 							<span data-placeholder>
 								…
 							</span>
-					{:else if row}
-						<EvmBlockView
-							entityId={row[EntityMetaKey.Id]}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
-								{
-									networkId: String(
-										row[EntityMetaKey.Id].$network.chainId,
-									),
-									blockNumber: String(
-										row[EntityMetaKey.Id].blockNumber,
-									),
-								},
-							)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
+						{:else if row}
+							<EvmBlockView
+								entityId={row[EntityMetaKey.Id]}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
+									{
+										networkId: String(
+											row[EntityMetaKey.Id].$network.chainId,
+										),
+										blockNumber: String(
+											row[EntityMetaKey.Id].blockNumber,
+										),
+									},
+								)}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
 						{/if}
 					{/snippet}
 				</OrderedList>
-			{/snippet}
+			</div>
 		</QueryBoundary>
 	{/snippet}
 </EntitiesList>

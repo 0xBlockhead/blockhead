@@ -91,20 +91,17 @@ export const blockscoutHostedNetworks = [
 
 // Lookups
 
-export const blockscoutExplorerOriginByChainId = Object.fromEntries(
+export const blockscoutExplorerOriginByChainId: Partial<Record<number, string>> = Object.fromEntries(
 	blockscoutHostedNetworks
 		.map((entry) => [
 			entry.chainId,
 			`https://${entry.host}`,
 		]),
-) as Record<
-	(typeof blockscoutHostedNetworks)[number]['chainId'],
-	string
->
+)
 
 export const blockscoutExplorerOriginForChain = (
 	chainId: number,
 ): string | undefined => {
-	const v = (blockscoutExplorerOriginByChainId as Record<number, string | undefined>)[chainId]
+	const v = blockscoutExplorerOriginByChainId[chainId]
 	return typeof v === 'string' ? v : undefined
 }

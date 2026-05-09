@@ -1,32 +1,22 @@
 import { stringify } from 'devalue'
 
-type FlightFn = (...args: unknown[]) => Promise<unknown>
-
-const cacheByFn = new WeakMap<FlightFn, Map<string, Promise<unknown>>>()
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export const singleFlight = <
-	_Arguments extends unknown[],
+	_Arguments extends ReadonlyArray<JsonValue | undefined>,
 	_Result,
 >(
 	fn: (...args: _Arguments) => Promise<_Result>,
-): typeof fn => {
-	const keyFn = fn as FlightFn
-	return ((...args: _Arguments) => {
-		let cache = cacheByFn.get(keyFn)
-		if (cache == null) {
-			cache = new Map()
-			cacheByFn.set(keyFn, cache)
-		}
+): ((...args: _Arguments) => Promise<_Result>) => {
+	const cache = new Map<string, Promise<_Result>>()
+	return (...args: _Arguments): Promise<_Result> => {
 		const key = stringify(args)
 		const existing = cache.get(key)
-		if (existing != null) return (existing as Promise<_Result>)
-		const pending = (
-			fn(...args)
-				.finally(() => {
-					cache.delete(key)
-				})
-		)
+		if (existing != null) return existing
+		const pending = fn(...args).finally(() => {
+			cache.delete(key)
+		})
 		cache.set(key, pending)
 		return pending
-	}) as typeof fn
+	}
 }

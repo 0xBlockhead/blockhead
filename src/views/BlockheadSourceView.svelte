@@ -87,7 +87,7 @@
 	{...entityViewRest}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Source ID</dt>
 				<dd>{sourceId}</dd>

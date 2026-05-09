@@ -9,10 +9,15 @@ type DocumentWithViewTransitions = Document & {
 	startViewTransition: (cb: () => void | Promise<void>) => ViewTransitionHandle
 }
 
+const documentHasStartViewTransition = (
+	doc: Document,
+): doc is DocumentWithViewTransitions => (
+	'startViewTransition' in doc
+)
+
 const getDocumentWithViewTransitions = (): DocumentWithViewTransitions | undefined => (
-	typeof document !== 'undefined'
-	&& 'startViewTransition' in document ?
-		document as DocumentWithViewTransitions
+	typeof document !== 'undefined' && documentHasStartViewTransition(document) ?
+		document
 	:
 		undefined
 )

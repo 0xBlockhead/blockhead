@@ -3,6 +3,7 @@ import type { Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { ForkScheduleKind } from '$/schema/NetworkFork.ts'
 import { ethereumExecutionForks as ethereumExecutionForks1 } from '$/constants/Forks/Chain1.ts'
 import { ethereumExecutionForks as ethereumExecutionForks10 } from '$/constants/Forks/Chain10.ts'
 import { ethereumExecutionForks as ethereumExecutionForks8453 } from '$/constants/Forks/Chain8453.ts'
@@ -25,6 +26,14 @@ export const ethereumExecutionForks = [
 
 
 // Functions
+export const networkHasCatalogedBlobScheduleFork = (chainId: number): boolean => (
+	ethereumExecutionForks.some((row) => {
+		const id = row[EntityMetaKey.Id]
+		if (!('$network' in id) || id.$network.chainId !== chainId) return false
+		return row.kind === ForkScheduleKind.Blob
+	})
+)
+
 export const networkForkIdFromChainIdAndUrlSegment = (
 	chainId: number,
 	segment: string,

@@ -69,8 +69,8 @@
 	const roomPrimitives = $derived(
 		(() => {
 			const bag = roomRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object' || Array.isArray(bag)) return null
-			const b = bag as Record<string, unknown>
+			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+			const b = bag
 			const createdAt = b.createdAt
 			const createdBy = b.createdBy
 			const name = b.name
@@ -114,7 +114,7 @@
 	title={titleProp ?? roomPrimitives?.name ?? entityId.id}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Room id</dt>
 				<dd>{entityId.id}</dd>

@@ -66,8 +66,8 @@
 	const liquidityPositionField = $derived(
 		(() => {
 			const bag = liquidityPositionRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
+			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+			const b = bag
 			return {
 				tickLower: typeof b.tickLower === 'number' ? b.tickLower : undefined,
 				tickUpper: typeof b.tickUpper === 'number' ? b.tickUpper : undefined,
@@ -99,7 +99,7 @@
 >
 	{#snippet Content()}
 		{#if liquidityPositionField?.createdAtTimestamp !== undefined && typeof liquidityPositionField.createdAtTimestamp === 'number' && Number.isFinite(liquidityPositionField.createdAtTimestamp)}
-			<dl data-definition-list="vertical">
+			<dl>
 				<div>
 					<dt>Timestamp</dt>
 					<dd>

@@ -3,7 +3,8 @@ import {
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
 import type { CoinId } from '$/constants/Coin.ts'
-import { MarketAssetKind, MarketVenue } from '$/constants/Market.ts'
+import { MarketAssetKind } from '$/constants/Market.ts'
+import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { caip19Erc20 } from '$/lib/caip19.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
@@ -147,6 +148,7 @@ export default {
 				)
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$markets',
@@ -167,13 +169,16 @@ export default {
 										kind: MarketAssetKind.Currency,
 										iso4217: 'USD',
 									},
-									venue: MarketVenue.SpotIndex,
+									$marketVenue: {
+										marketVenueId: MarketVenueId.SpotIndex,
+									},
 								} as const,
 							}
 						))
 				)
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$marketPrices',
@@ -195,7 +200,9 @@ export default {
 											kind: MarketAssetKind.Currency,
 											iso4217: 'USD',
 										},
-										venue: MarketVenue.SpotIndex,
+										$marketVenue: {
+											marketVenueId: MarketVenueId.SpotIndex,
+										},
 									} as const,
 								},
 							}
@@ -203,6 +210,7 @@ export default {
 				)
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsBase',
@@ -223,13 +231,16 @@ export default {
 									kind: MarketAssetKind.Currency,
 									iso4217: 'USD',
 								},
-								venue: MarketVenue.SpotIndex,
+								$marketVenue: {
+									marketVenueId: MarketVenueId.SpotIndex,
+								},
 							} as const,
 						},
 					]
 				)
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
@@ -237,6 +248,7 @@ export default {
 				[]
 			),
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketPrice',
@@ -255,13 +267,16 @@ export default {
 									kind: MarketAssetKind.Currency,
 									iso4217: 'USD',
 								},
-								venue: MarketVenue.SpotIndex,
+								$marketVenue: {
+									marketVenueId: MarketVenueId.SpotIndex,
+								},
 							} as const,
 						},
 					}
 				)
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.MarketPrice,
 			fieldName: '$$parentMarket',

@@ -1,6 +1,7 @@
 import { baseUrl } from '$/sources/Sourcify/Rest/constants.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-export const sourcifyGetJsonOrNull = async <T = unknown>({
+export const sourcifyGetJsonOrNull = async <T = JsonValue>({
 	path,
 }: {
 	path: string
@@ -9,5 +10,5 @@ export const sourcifyGetJsonOrNull = async <T = unknown>({
 	const res = await fetch(url)
 	if (res.status === 404) return null
 	if (!res.ok) throw new Error(`Fetch failed (${res.status} ${res.statusText}) for ${url}`)
-	return await res.json() as T
+	return res.json<T>()
 }

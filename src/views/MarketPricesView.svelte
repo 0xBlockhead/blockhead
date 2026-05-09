@@ -2,11 +2,14 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import { coinById } from '$/constants/Coin.ts'
 	import { MarketAssetKind } from '$/constants/Market.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import MarketPriceSchema from '$/schema/MarketPrice.ts'
+	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -23,11 +26,7 @@
 		{
 			title?: string
 			open?: boolean
-			entityFieldReference: {
-				entityType: EntityType._Global
-				entityId: Record<string, never>
-				fieldName: '$$marketPrices'
-			}
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.MarketPrice>
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
@@ -48,16 +47,19 @@
 	const marketPricesQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ $$prices: entityFieldCollections[EntityType._Global]['$$marketPrices']! })
+				.from({
+					$$prices: entityFieldCollections[entityFieldReference.entityType][entityFieldReference.fieldName],
+				})
 				.where(({ $$prices }) => (
 					eq(
 						$$prices[EntityMetaKey.ParentIdKey],
 						stringify(entityFieldReference.entityId),
 					)
 				))
-				.select(({ $$prices }) => ({
-					price: $$prices[EntityMetaKey.Value],
-				}))
+				.select(({ $$prices }) => (
+					{ value: $$prices[EntityMetaKey.Value] }
+				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -66,41 +68,12 @@
 		],
 	)
 
-	type PriceRow = (NonNullable<typeof marketPricesQuery.data>)[number]
-
-	const projectPriceRow = (row: PriceRow) => {
-		const entityId = (
-			(row.price as Record<string, unknown>)[EntityMetaKey.Id] as typeof MarketPriceSchema.id.infer
+	const marketPriceRowKey = (
+		row: Entity<typeof schema, EntityType.MarketPrice>,
+	) => (
+		stringify(
+			row[EntityMetaKey.Id],
 		)
-		return {
-			coinId: entityId.$market.$base.kind === MarketAssetKind.Coin ?
-				entityId.$market.$base.$coin.coinId
-			:
-				undefined,
-			entityId,
-			key: stringify(entityId),
-		}
-	}
-
-	const priceRows = $derived(
-		Array.from(
-			(marketPricesQuery.data ?? [])
-				.reduce(
-					(rowsByKey, row: PriceRow) => {
-						if (row.price === undefined) {
-							return rowsByKey
-						}
-						const projected = projectPriceRow(row)
-						rowsByKey.set(
-							projected.key,
-							row,
-						)
-						return rowsByKey
-					},
-					new Map<string, PriceRow>(),
-				)
-				.values(),
-		),
 	)
 
 
@@ -116,9 +89,14 @@
 	entityType={EntityType.MarketPrice}
 	{title}
 	bind:open
-	getKey={(row) => projectPriceRow(row).key}
-	getSortValue={(row) => projectPriceRow(row).coinId ?? ''}
-	items={new SvelteSet(priceRows)}
+	getKey={marketPriceRowKey}
+	getSortValue={(row) => (
+		row[EntityMetaKey.Id].$market.$base.kind === MarketAssetKind.Coin ?
+			row[EntityMetaKey.Id].$market.$base.$coin.coinId
+		:
+			''
+	)}
+	items={marketPricesQuery.data?.map(({ value }) => value) ?? []}
 	placeholderKeys={new SvelteSet<string | number>()}
 	query={marketPricesQuery}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -135,18 +113,19 @@
 				…
 			</span>
 		{:else}
-			{@const projected = projectPriceRow(row)}
 			<MarketPriceView
-				entityId={projected.entityId}
+				entityId={row[EntityMetaKey.Id]}
 				href={(
-					projected.coinId === undefined ?
+					row[EntityMetaKey.Id].$market.$base.kind !== MarketAssetKind.Coin ?
+						undefined
+					: coinById[row[EntityMetaKey.Id].$market.$base.$coin.coinId] == null ?
 						undefined
 					:	resolve(
 							'/(assets)/(coins)/coin/[coinId]',
-							{ coinId: projected.coinId },
+							{ coinId: row[EntityMetaKey.Id].$market.$base.$coin.coinId },
 						)
 				)}
-				id={projected.key}
+				id={stringify(row[EntityMetaKey.Id])}
 				layout={EntityLayout.Summary}
 				open={false}
 			/>

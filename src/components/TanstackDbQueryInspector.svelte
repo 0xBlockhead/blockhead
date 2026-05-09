@@ -9,6 +9,7 @@
 	} from '$/routes/+layout.svelte'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { schema } from '$/schema/index.ts'
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 	const entityQueryByEntityType = Object.fromEntries(
 		schema.map((entityDefinition) => [
@@ -39,7 +40,7 @@
 		] as const),
 	)
 
-	const bigintSafeReplacer = (_key: string, value: unknown) => (
+	const bigintSafeReplacer = (_key: string, value: JsonValue) => (
 		typeof value === 'bigint' ? value.toString() : value
 	)
 </script>

@@ -22,6 +22,8 @@ export type CoingeckoCoin = {
 export type CoingeckoCoinWithMarketData = CoingeckoCoin & {
 	market_data?: {
 		current_price?: { usd?: number }
+		market_cap?: { usd?: number }
+		total_volume?: { usd?: number }
 		last_updated?: string | null
 	}
 }

@@ -8,7 +8,7 @@ export type RpcBlockHeaderWire = {
 	baseFeePerGas?: string
 	miner?: string
 	difficulty?: string
-	transactions?: unknown[]
+	transactions?: (string | RpcTxWire)[]
 }
 
 export type RpcTxWire = {

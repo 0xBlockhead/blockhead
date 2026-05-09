@@ -12,15 +12,14 @@
 
 
 <Page>
-	<section>
 		<NetworkForksView
-			entityFieldReference={{
-				entityType: EntityType._Global,
-				entityId: {},
-				fieldName: '$$networkForks',
-			}}
-			href={resolve('/forks')}
-			id="forks"
-		/>
-	</section>
+		entityFieldReference={{
+			entityType: EntityType._Global,
+			entityId: {},
+			fieldName: '$$networkForks',
+		}}
+		href={resolve('/forks')}
+		id="forks"
+	/>
 </Page>
+

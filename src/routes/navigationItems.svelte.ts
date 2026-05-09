@@ -79,6 +79,12 @@ export const useNavigationItems = () => {
 					icon: '🗂️',
 				},
 				{
+					id: 'explore-swarm',
+					title: 'Swarm',
+					href: '/swarm',
+					icon: '🐝',
+				},
+				{
 					id: 'explore-proposals',
 					title: 'Proposals',
 					href: '/proposals',

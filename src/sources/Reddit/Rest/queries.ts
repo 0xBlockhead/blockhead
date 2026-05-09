@@ -65,6 +65,6 @@ export const redditGetLinkComments = async (
 				limit: String(limit),
 				raw_json: '1',
 			}).toString()
-		)}` as `/${string}`,
+		)}`,
 	)
 )

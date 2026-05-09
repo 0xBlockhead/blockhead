@@ -16,16 +16,15 @@
 
 
 <Page>
-	<section>
 		<EvmTransactionView
-			entityId={{
-				$network: { chainId: Number(params.networkId) },
-				txHash: params.transactionId as `0x${string}`,
-			}}
-			href={resolve(
-				'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId]',
-				params,
-			)}
-		/>
-	</section>
+		entityId={{
+			$network: { chainId: Number(params.networkId) },
+			txHash: params.transactionId as `0x${string}`,
+		}}
+		href={resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId]',
+			params,
+		)}
+	/>
 </Page>
+

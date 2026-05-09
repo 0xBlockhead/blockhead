@@ -6,9 +6,10 @@ import { ipfsResourceCanonicalUri } from '$/lib/ipfs.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
-	source: 'Ipfs_Rest' satisfies import('$/sources/$Source.ts').Source,
+	source: Source.Ipfs_Rest,
 
 	entityResolvers: [
 		defineEntityResolver({

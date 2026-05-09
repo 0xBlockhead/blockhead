@@ -1,11 +1,9 @@
 <script module lang="ts">
 	// Types/constants
-	export const AddressFormat = {
-		Full: 'full',
-		MiddleTruncated: 'middle-truncated',
-	} as const
-
-	export type AddressFormat = (typeof AddressFormat)[keyof typeof AddressFormat]
+	export enum AddressFormat {
+		Full = 'full',
+		MiddleTruncated = 'middle-truncated',
+	}
 </script>
 
 
@@ -24,7 +22,7 @@
 
 	// Props
 	let {
-		actorId: actorId,
+		actorId,
 		network,
 		address,
 		ensName: ensNameProp,
@@ -94,7 +92,7 @@
 						)
 					))
 					.select(({ field }) => ({
-						[EntityMetaKey.Value]: field[EntityMetaKey.Value],
+						name: field[EntityMetaKey.Value][EntityMetaKey.Id].name,
 					}))
 					.findOne()
 			:
@@ -109,19 +107,19 @@
 						)
 					))
 					.select(({ field }) => ({
-						[EntityMetaKey.Value]: field[EntityMetaKey.Value],
+						name: field[EntityMetaKey.Value][EntityMetaKey.Id].name,
 					}))
 					.findOne()
 		),
 		[() => actorParentIdKey],
 	)
 
-	const avatarUrlQuery = useLiveQuery(
+	const actorAvatarQuery = useLiveQuery(
 		(queryBuilder) => (
 			actorParentIdKey !== undefined ?
 				queryBuilder
 					.from({
-						field: entityFieldCollections[EntityType.Actor]['avatarUrl'],
+						field: entityFieldCollections[EntityType.Actor]['$icon'],
 					})
 					.where(({ field }) => (
 						eq(
@@ -136,13 +134,13 @@
 						)
 					))
 					.select(({ field }) => ({
-						[EntityMetaKey.Value]: field[EntityMetaKey.Value],
+						avatar: field[EntityMetaKey.Value],
 					}))
 					.findOne()
 			:
 				queryBuilder
 					.from({
-						field: entityFieldCollections[EntityType.Actor]['avatarUrl'],
+						field: entityFieldCollections[EntityType.Actor]['$icon'],
 					})
 					.where(({ field }) => (
 						eq(
@@ -151,7 +149,7 @@
 						)
 					))
 					.select(({ field }) => ({
-						[EntityMetaKey.Value]: field[EntityMetaKey.Value],
+						avatar: field[EntityMetaKey.Value],
 					}))
 					.findOne()
 		),
@@ -160,22 +158,13 @@
 
 
 	// (Derived)
-	const displayEnsName = $derived.by(() => {
-		if (ensNameProp !== undefined) return ensNameProp
-		const wrapped = primaryNameQuery.data?.[EntityMetaKey.Value]
-		if (wrapped === undefined || typeof wrapped !== 'object') return undefined
-		const inner = (wrapped as Record<string, unknown>)[EntityMetaKey.Id]
-		if (inner === undefined || typeof inner !== 'object') return undefined
-		const name = (inner as { name?: unknown }).name
-		return typeof name === 'string' ? name : undefined
-	})
-
-	const avatarUrlResolved = $derived(
-		typeof avatarUrlQuery.data?.[EntityMetaKey.Value] === 'string' ?
-			avatarUrlQuery.data[EntityMetaKey.Value]
-		:
-			undefined
+	const displayEnsName = $derived(
+		ensNameProp ?? primaryNameQuery.data?.name,
 	)
+
+	const avatarUrl = $derived((
+		actorAvatarQuery.data?.avatar?.[EntityMetaKey.Id].url
+	))
 
 
 	// Components
@@ -187,10 +176,10 @@
 {#if addressResolved}
 	<span data-row="inline">
 		{#if showAvatar}
-			{#if avatarUrlResolved}
+			{#if avatarUrl}
 				<Icon
 					shape={IconShape.Circle}
-					src={avatarUrlResolved}
+					src={avatarUrl}
 					size="1.5em"
 					alt={displayEnsName ?? ''}
 				/>

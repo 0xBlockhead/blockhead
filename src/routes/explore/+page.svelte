@@ -55,6 +55,16 @@
 			</p>
 		</section>
 
+		<section data-card>
+			<h2>
+				<a href={resolve('/swarm')}>Swarm</a>
+			</h2>
+
+			<p data-text="muted">
+				Open resolver-backed Swarm BZZ resource pages from raw references, `bzz://` URIs, or public gateway URLs.
+			</p>
+		</section>
+
 		<section>
 			<ProposalRealmsView
 				entityFieldReference={{

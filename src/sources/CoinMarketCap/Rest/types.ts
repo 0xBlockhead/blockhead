@@ -7,6 +7,8 @@ export type CoinMarketCapStatus = {
 
 export type CoinMarketCapUsdQuote = {
 	price?: number
+	market_cap?: number
+	volume_24h?: number
 	last_updated?: string
 }
 

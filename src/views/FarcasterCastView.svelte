@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { CastHash } from '$/schema/FarcasterCast.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntityFieldValues, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -18,6 +19,8 @@
 	import { stringify } from 'devalue'
 
 	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+
+	import { isEntityReferenceWithId } from '$/lib/isEntityReferenceWithId.ts'
 
 
 	// Props
@@ -58,7 +61,7 @@
 		stringify(entityId),
 	)
 
-	const isCastHashStr = (value: unknown): value is CastHash => (
+	const isCastHashStr = (value: JsonValue): value is CastHash => (
 		typeof value === 'string'
 		&& value.startsWith('0x')
 	)
@@ -72,7 +75,11 @@
 			:
 				t
 		)
-		return `0x${hex.toLowerCase()}` as CastHash
+		const out = `0x${hex.toLowerCase()}`
+		if (!isCastHashStr(out)) {
+			return '0x0'
+		}
+		return out
 	}
 
 	const castQuery = useLiveQuery(
@@ -94,95 +101,95 @@
 		castQuery.data?.[0]?.row,
 	)
 
+	type CastRefsEmbed = {
+		url?: string
+		embeddedCastId?: EntityId<typeof schema, EntityType.FarcasterCast>
+		title?: string
+		description?: string
+		openGraphImageUrl?: string
+		quotedPreviewText?: string
+	}
+
+	type CastRefsShape = {
+		authorId: EntityId<typeof schema, EntityType.FarcasterUser> | undefined
+		parentCastId: EntityId<typeof schema, EntityType.FarcasterCast> | undefined
+		postedViaAppId: EntityId<typeof schema, EntityType.FarcasterUser> | undefined
+		channelId: string | undefined
+		embeds: CastRefsEmbed[]
+	}
+
+	const emptyCastRefs: CastRefsShape = {
+		authorId: undefined,
+		parentCastId: undefined,
+		postedViaAppId: undefined,
+		channelId: undefined,
+		embeds: [],
+	}
+
 	const castRefs = $derived(
 		(() => {
-			const bag = castRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') {
-				return {
-					authorId: undefined as EntityId<typeof schema, EntityType.FarcasterUser> | undefined,
-					parentCastId: undefined as EntityId<typeof schema, EntityType.FarcasterCast> | undefined,
-					postedViaAppId: undefined as EntityId<typeof schema, EntityType.FarcasterUser> | undefined,
-					channelId: undefined as string | undefined,
-					embeds: [] as {
-						url?: string
-						embeddedCastId?: EntityId<typeof schema, EntityType.FarcasterCast>
-						title?: string
-						description?: string
-						imageUrl?: string
-						quotedPreviewText?: string
-					}[],
-				}
+			const bagUnknown = castRow?.[EntityMetaKey.Fields]
+			if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) {
+				return emptyCastRefs
 			}
-			const b = bag as Record<string, unknown>
+			const b: Partial<EntityFieldValues<typeof schema, EntityType.FarcasterCast>> = bagUnknown
 			const authorRef = b.$author
 			const authorId = (
-				authorRef !== undefined
-				&& typeof authorRef === 'object'
-				&& EntityMetaKey.Id in authorRef ?
-					(authorRef as { ['#id']: EntityId<typeof schema, EntityType.FarcasterUser> })[EntityMetaKey.Id]
-				:
-					undefined
+				isEntityReferenceWithId<EntityType.FarcasterUser>(authorRef) ?
+					authorRef[EntityMetaKey.Id]
+				:	undefined
 			)
 			const parentRef = b.$parentCast
 			const parentCastId = (
-				parentRef !== undefined
-				&& typeof parentRef === 'object'
-				&& EntityMetaKey.Id in parentRef ?
-					(parentRef as { ['#id']: EntityId<typeof schema, EntityType.FarcasterCast> })[EntityMetaKey.Id]
-				:
-					undefined
+				isEntityReferenceWithId<EntityType.FarcasterCast>(parentRef) ?
+					parentRef[EntityMetaKey.Id]
+				:	undefined
 			)
 			const postedViaRef = b.$postedViaApp
 			const postedViaAppId = (
-				postedViaRef !== undefined
-				&& typeof postedViaRef === 'object'
-				&& EntityMetaKey.Id in postedViaRef ?
-					(postedViaRef as { ['#id']: EntityId<typeof schema, EntityType.FarcasterUser> })[EntityMetaKey.Id]
-				:
-					undefined
+				isEntityReferenceWithId<EntityType.FarcasterUser>(postedViaRef) ?
+					postedViaRef[EntityMetaKey.Id]
+				:	undefined
 			)
 			const channelRef = b.$channel
 			const channelId = (
-				channelRef !== undefined
-				&& typeof channelRef === 'object'
-				&& EntityMetaKey.Id in channelRef ?
-					(channelRef as { ['#id']: { id: string } })[EntityMetaKey.Id]?.id
-				:
-					undefined
+				isEntityReferenceWithId<EntityType.FarcasterChannel>(channelRef) ?
+					(
+						typeof channelRef[EntityMetaKey.Id].id === 'string' ?
+							channelRef[EntityMetaKey.Id].id
+						:	undefined
+					)
+				:	undefined
 			)
 			const embedRefs = b.$$embeds
 			const embeds = (
 				Array.isArray(embedRefs) ?
-					embedRefs.map((raw) => {
-						if (raw === undefined || typeof raw !== 'object') {
+					embedRefs.map((raw): CastRefsEmbed => {
+						if (!(typeof raw === 'object' && raw !== null && !Array.isArray(raw))) {
 							return {}
 						}
-						const e = raw as Record<string, unknown>
-						const pickStr = (key: string) => {
-							const x = e[key]
-							return typeof x === 'string' && x.length ? x : undefined
-						}
-						const url = pickStr('url')
+						const e: Partial<EntityFieldValues<typeof schema, EntityType.FarcasterCastEmbed>> = raw
+						const url = typeof e.url === 'string' && e.url.length ? e.url : undefined
 						const emb = e.$embeddedCast
 						const embeddedCastId = (
-							emb !== undefined
-							&& typeof emb === 'object'
-							&& EntityMetaKey.Id in emb ?
-								(emb as { ['#id']: EntityId<typeof schema, EntityType.FarcasterCast> })[EntityMetaKey.Id]
-							:
-								undefined
+							isEntityReferenceWithId<EntityType.FarcasterCast>(emb) ?
+								emb[EntityMetaKey.Id]
+							:	undefined
 						)
 						return {
 							url,
 							embeddedCastId,
-							title: pickStr('title'),
-							description: pickStr('description'),
-							imageUrl: pickStr('imageUrl'),
-							quotedPreviewText: pickStr('quotedPreviewText'),
+							title: typeof e.title === 'string' && e.title.length ? e.title : undefined,
+							description: typeof e.description === 'string' && e.description.length ? e.description : undefined,
+							openGraphImageUrl: e.$icon?.[EntityMetaKey.Id].url,
+							quotedPreviewText: (
+								typeof e.quotedPreviewText === 'string' && e.quotedPreviewText.length ?
+									e.quotedPreviewText
+								:	undefined
+							),
 						}
 					})
-				:
-					[]
+				:	[]
 			)
 			return {
 				authorId,
@@ -222,17 +229,17 @@
 
 	const authorField = $derived(
 		(() => {
-			const bag = authorRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
-			const pick = (key: string) => {
+			const bagUnknown = authorRow?.[EntityMetaKey.Fields]
+			if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) return null
+			const b: Partial<EntityFieldValues<typeof schema, EntityType.FarcasterUser>> = bagUnknown
+			const pick = (key: keyof typeof b) => {
 				const x = b[key]
 				return typeof x === 'string' && x.length ? x : undefined
 			}
 			return {
 				username: pick('username'),
 				displayName: pick('displayName'),
-				pfpUrl: pick('pfpUrl'),
+				avatarUrl: b.$icon?.[EntityMetaKey.Id].url,
 			}
 		})(),
 	)
@@ -264,9 +271,9 @@
 
 	const postedViaAppField = $derived(
 		(() => {
-			const bag = postedViaAppRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
+			const bagUnknown = postedViaAppRow?.[EntityMetaKey.Fields]
+			if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) return null
+			const b: Record<string, JsonValue> = bagUnknown
 			const pick = (key: string) => {
 				const x = b[key]
 				return typeof x === 'string' && x.length ? x : undefined
@@ -280,28 +287,29 @@
 
 	const castField = $derived(
 		(() => {
-			const bag = castRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
+			const bagUnknown = castRow?.[EntityMetaKey.Fields]
+			if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) return null
+			const b: Record<string, JsonValue> = bagUnknown
 			const text = typeof b.text === 'string' ? b.text : undefined
 			const timestamp = typeof b.timestamp === 'number' ? b.timestamp : undefined
 			const parentUrl = typeof b.parentUrl === 'string' && b.parentUrl.length ? b.parentUrl : undefined
-			const mentions = Array.isArray(b.mentions) ? b.mentions as unknown[] : undefined
+			const mentionsRaw = b.mentions
+			const mentions = Array.isArray(mentionsRaw) ? mentionsRaw : undefined
 			const likeCount = typeof b.likeCount === 'number' ? b.likeCount : undefined
 			const recastCount = typeof b.recastCount === 'number' ? b.recastCount : undefined
 			const replyCount = typeof b.replyCount === 'number' ? b.replyCount : undefined
 			const threadHash = typeof b.threadHash === 'string' && b.threadHash.length ? b.threadHash : undefined
+			const fidsRaw = b.mentionedProfileFids
 			const mentionedProfileFids = (
-				Array.isArray(b.mentionedProfileFids) ?
-					(b.mentionedProfileFids as unknown[]).filter((fid): fid is number => typeof fid === 'number')
-				:
-					undefined
+				Array.isArray(fidsRaw) ?
+					fidsRaw.filter((fid): fid is number => typeof fid === 'number')
+				:	undefined
 			)
+			const chansRaw = b.mentionedChannelIds
 			const mentionedChannelIds = (
-				Array.isArray(b.mentionedChannelIds) ?
-					(b.mentionedChannelIds as unknown[]).filter((id): id is string => typeof id === 'string' && id.length)
-				:
-					undefined
+				Array.isArray(chansRaw) ?
+					chansRaw.filter((id): id is string => typeof id === 'string' && id.length > 0)
+				:	undefined
 			)
 			return {
 				text,
@@ -394,7 +402,7 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import Media from '$/components/Media.svelte'
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
@@ -411,10 +419,10 @@
 	{...entityViewRest}
 >
 	{#snippet Icon()}
-		{#if isFeed && authorField?.pfpUrl !== undefined}
-			<Icon
+		{#if isFeed && authorField?.avatarUrl !== undefined}
+			<IconComponent
 				shape={IconShape.Circle}
-				src={authorField.pfpUrl}
+				src={authorField.avatarUrl}
 				alt=""
 			/>
 		{/if}
@@ -435,7 +443,7 @@
 					{summaryBody}
 				</p>
 			{/if}
-			<dl data-definition-list="vertical">
+			<dl>
 				{#if castField?.timestamp !== undefined && typeof castField.timestamp === 'number' && Number.isFinite(castField.timestamp)}
 					<div>
 						<dt>Timestamp</dt>
@@ -498,7 +506,7 @@
 						<p data-text="muted">
 							No cast data yet.
 						</p>
-					{:else if castField === undefined}
+					{:else if castField == null}
 						<p data-text="muted">
 							FID {String(entityId.fid)} ·{' '}
 							<span data-text="font-monospace">
@@ -513,12 +521,12 @@
 					{:else}
 						<section data-column>
 							<header data-row="wrap gap-4">
-								{#if authorField !== undefined}
+								{#if authorField != null}
 									<div data-row="inline wrap gap-2">
-										{#if authorField.pfpUrl !== undefined}
-											<Icon
+										{#if authorField.avatarUrl !== undefined}
+											<IconComponent
 												shape={IconShape.Circle}
-												src={authorField.pfpUrl}
+												src={authorField.avatarUrl}
 												alt=""
 												size="2.5rem"
 											/>
@@ -555,7 +563,7 @@
 										/>
 									</p>
 								{/if}
-								{#if postedViaAppField !== undefined && castRefs.postedViaAppId !== undefined}
+								{#if postedViaAppField != null && castRefs.postedViaAppId !== undefined}
 									<p data-text="muted">
 										Posted via{' '}
 										<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
@@ -735,14 +743,14 @@
 									<ul data-column>
 										{#each castRefs.embeds as embed, embedIndex (String(embedIndex))}
 											<li data-column>
-												{#if embed.imageUrl !== undefined}
+												{#if embed.openGraphImageUrl !== undefined}
 													<p>
 														<a
-															href={embed.url ?? embed.imageUrl}
+															href={embed.url ?? embed.openGraphImageUrl}
 															rel="noreferrer"
 														>
 															<Media
-																media={{ url: embed.imageUrl }}
+																media={{ url: embed.openGraphImageUrl }}
 																alt=""
 																loading="lazy"
 															/>

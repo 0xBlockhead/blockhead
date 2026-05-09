@@ -75,6 +75,7 @@
 		manyItems: boolean
 		rows: RenderRow[]
 	}
+	type ItemsInput = Iterable<_Item>
 
 
 	// Props
@@ -87,8 +88,8 @@
 		getGroupLabel,
 		getGroupKeyForPlaceholder,
 		placeholderKeys,
-		summary = $bindable({ loaded: 0, total: undefined as number | undefined }),
-		visiblePlaceholderKeys = $bindable([] as _Key[]),
+		summary = $bindable({ loaded: 0, total: undefined }),
+		visiblePlaceholderKeys = $bindable<_Key[]>([]),
 		onLoadMorePlaceholders,
 		sliceLimit: sliceLimitProp,
 		scrollPosition = 'Auto',
@@ -106,9 +107,9 @@
 		Empty,
 		...rootProps
 	}: {
-		items: Set<_Item>
+		items: ItemsInput
 		getKey: (item: _Item) => _Key
-		getSortValue: (item: _Item) => number | string
+		getSortValue?: (item: _Item) => number | string
 		getIsHidden?: (item: _Item) => boolean
 		getGroupKey?: (item: _Item) => _GroupKey
 		getGroupLabel?: (groupKey: _GroupKey) => string
@@ -143,7 +144,6 @@
 			]
 		>
 		Empty?: Snippet<[]>
-		[key: string]: unknown
 	} = $props()
 
 
@@ -330,7 +330,7 @@
 			getGroupKey &&
 			getGroupLabel &&
 			getGroupKeyForPlaceholder &&
-			groupEntries !== undefined
+			groupEntries != null
 		) {
 			const placeholderByGroup = new Map<_GroupKey, _Key[]>()
 			for (const row of placeholderRows) {
@@ -350,7 +350,7 @@
 			const maxBlockInGroup = (groupKey: _GroupKey) => (
 				Math.max(
 					...(groupEntries.find(([currentGroupKey]) => currentGroupKey === groupKey)?.[1]?.map((item) => (
-						-Number(getSortValue(item))
+						getSortValue === undefined ? 0 : -Number(getSortValue(item))
 					)) ?? []),
 					...(placeholderByGroup.get(groupKey)?.map((key) => Number(key)) ?? []),
 				)
@@ -429,7 +429,7 @@
 		0,
 	])
 	let totalHeight = $state(0)
-	let scheduledRenderFingerprint = $state(null as string | null)
+	let scheduledRenderFingerprint = $state<string | null>(null)
 	let transitionsArmed = $state(false)
 	let transitionsArmScheduled = false
 
@@ -439,16 +439,18 @@
 		browser && virtual !== undefined
 	)
 	const sortedItems = $derived(
-		[...items].sort((itemA, itemB) => {
-			const sortValueA = getSortValue(itemA)
-			const sortValueB = getSortValue(itemB)
-			return sortValueA < sortValueB ?
-				-1
-			: sortValueA > sortValueB ?
-				1
-			:
-				0
-		})
+		getSortValue === undefined ?
+			[...items]
+		:	[...items].sort((itemA, itemB) => {
+				const sortValueA = getSortValue(itemA)
+				const sortValueB = getSortValue(itemB)
+				return sortValueA < sortValueB ?
+					-1
+				: sortValueA > sortValueB ?
+					1
+				:
+					0
+			})
 	)
 	const searchQueryNormalized = $derived(
 		searchQuery.trim().toLowerCase()
@@ -483,12 +485,13 @@
 					if (scoreA.spans !== scoreB.spans) return scoreA.spans - scoreB.spans
 					if (scoreA.minStart !== scoreB.minStart) return scoreA.minStart - scoreB.minStart
 					if (scoreA.spread !== scoreB.spread) return scoreA.spread - scoreB.spread
+					if (getSortValue === undefined) return 0
 					return getSortValue(itemA) < getSortValue(itemB) ?
-							-1
-						: getSortValue(itemA) > getSortValue(itemB) ?
-							1
-						:
-							0
+						-1
+					: getSortValue(itemA) > getSortValue(itemB) ?
+						1
+					:
+						0
 				})
 			})()
 		:
@@ -608,7 +611,7 @@
 
 	$effect(() => {
 		summary = {
-			loaded: items.size,
+			loaded: sortedItems.length,
 			total: summaryTotal,
 		}
 	})

@@ -75,8 +75,8 @@
 	const coinInstanceField = $derived(
 		(() => {
 			const bag = coinInstanceRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
+			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+			const b = bag
 			return {
 				symbol: typeof b.symbol === 'string' && b.symbol.length ? b.symbol : undefined,
 				name: typeof b.name === 'string' && b.name.length ? b.name : undefined,
@@ -87,14 +87,18 @@
 	)
 
 	const displayTitle = $derived(
-		coinInstanceField?.symbol
-			?? coinInstanceField?.name
-			?? (
+		(() => {
+			if (coinInstanceField?.symbol != null) return coinInstanceField.symbol
+			if (coinInstanceField?.name != null) return coinInstanceField.name
+			return (
 				entityId.type === CoinInstanceType.NativeCurrency ?
 					`Native (${entityId.$network.chainId})`
 				:	`ERC-20 (${entityId.$network.chainId})`
-			),
+			)
+		})(),
 	)
+
+	const coinInstancePlaceholderText = 'Loading coin instance...'
 
 
 	// Components
@@ -114,7 +118,7 @@
 	title={displayTitle}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Chain</dt>
 				<dd>
@@ -147,6 +151,7 @@
 			{entityId}
 		>
 			<QueryBoundary
+				placeholderText={coinInstancePlaceholderText}
 				query={coinInstanceQuery}
 			>
 

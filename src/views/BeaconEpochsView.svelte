@@ -1,11 +1,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { hasBeaconDataForChainId } from '$/constants/BeaconConsensus.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { type EntityFieldReference } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
@@ -16,7 +16,6 @@
 	// State
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 
 	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
@@ -32,7 +31,7 @@
 		...entitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof EntityType.BeaconEpoch>
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BeaconEpoch>
 			title?: string
 			open?: boolean
 		},
@@ -50,7 +49,7 @@
 	const blockHeightQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ blockHeight: entityFieldCollections[EntityType.Network].blockHeight! })
+				.from({ blockHeight: entityFieldCollections[EntityType.Network].blockHeight })
 				.where(({ blockHeight }) => (
 					eq(
 						blockHeight[EntityMetaKey.ParentIdKey],
@@ -79,7 +78,7 @@
 	const beaconEpochsQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ $$beaconEpochs: entityFieldCollections[EntityType.Network]['$$beaconEpochs']! })
+				.from({ $$beaconEpochs: entityFieldCollections[EntityType.Network]['$$beaconEpochs'] })
 				.where(({ $$beaconEpochs }) => (
 					eq(
 						$$beaconEpochs[EntityMetaKey.ParentIdKey],
@@ -93,16 +92,13 @@
 					)
 				))
 				.orderBy(({ $$beaconEpochs }) => (
-					$$beaconEpochs[EntityMetaKey.IdKey]
+					$$beaconEpochs[EntityMetaKey.Value][EntityMetaKey.IdKey]
 				), 'desc')
 				.limit(16)
 				.select(({ $$beaconEpochs }) => (
-					{
-						[EntityMetaKey.Id]: (
-							$$beaconEpochs[EntityMetaKey.Value][EntityMetaKey.Id]
-						),
-					}
+					{ value: $$beaconEpochs[EntityMetaKey.Value] }
 				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -135,59 +131,41 @@
 			placeholderText="Loading epochs…"
 			query={beaconEpochsQuery}
 		>
-			{#snippet children(epochs)}
-				<OrderedList
-					items={new SvelteSet(epochs ?? [])}
-					getKey={(row) => (
-						row[EntityMetaKey.Id].epoch
-					)}
-					getStableItemKey={(row) => (
-						stringify(
-							row[EntityMetaKey.Id],
-						)
-					)}
-					placeholderRanges={[]}
-					orientation={ListOrientation.Column}
-				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							{(
-								hasBeaconDataForChainId(
-									entityFieldReference.entityId.chainId,
-								) ?
-									'No consensus epochs for this network yet. Try again shortly.'
-								:
-									'This execution chain has no mapped beacon (consensus) network.'
-							)}
-						</p>
-					{/snippet}
+			<OrderedList
+				items={beaconEpochsQuery.data?.map(({ value }) => value) ?? []}
+				getKey={(row) => (
+					row[EntityMetaKey.Id].epoch
+				)}
+				placeholderRanges={[]}
+				orientation={ListOrientation.Column}
+			>
+				{#snippet Empty()}{/snippet}
 
-					{#snippet Item({ item: row, isPlaceholder })}
-						{#if isPlaceholder}
-							<span data-placeholder>
-								…
-							</span>
-						{:else if row}
-							<BeaconEpochView
-								entityId={row[EntityMetaKey.Id]}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
-									{
-										networkId: String(
-											row[EntityMetaKey.Id].$network.chainId,
-										),
-										epochNumber: String(
-											row[EntityMetaKey.Id].epoch,
-										),
-									},
-								)}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</OrderedList>
-			{/snippet}
+				{#snippet Item({ item: row, isPlaceholder })}
+					{#if isPlaceholder}
+						<span data-placeholder>
+							…
+						</span>
+					{:else if row}
+						<BeaconEpochView
+							entityId={row[EntityMetaKey.Id]}
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
+								{
+									networkId: String(
+										row[EntityMetaKey.Id].$network.chainId,
+									),
+									epochNumber: String(
+										row[EntityMetaKey.Id].epoch,
+									),
+								},
+							)}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</OrderedList>
 		</QueryBoundary>
 	{/snippet}
 </EntitiesList>

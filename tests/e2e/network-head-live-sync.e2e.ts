@@ -23,7 +23,7 @@ const networkLayoutPath = join(
 )
 
 test.describe('Network head resolveLive (Voltaire block stream)', () => {
-	test('(contract) (network) layout still calls useEntityFieldResolveLive for Network (resolveLive from registry)', () => {
+	test('(contract) (network) layout still mounts resolveLive for Network (resolveLive from registry)', () => {
 		const source = readFileSync(networkLayoutPath, 'utf8')
 		const resolvers = readFileSync(
 			join(thisDir, '../../src/resolvers/index.ts'),
@@ -33,10 +33,10 @@ test.describe('Network head resolveLive (Voltaire block stream)', () => {
 			join(thisDir, '../../src/lib/db/resolveLive.svelte.ts'),
 			'utf8',
 		)
-		expect(source, networkLayoutPath).toContain('useEntityFieldResolveLive')
+		expect(source, networkLayoutPath).toContain('mountEntityResolveLive')
 		expect(source).toContain('EntityType.Network')
 		expect(hook).toContain('$effect')
-		expect(hook).toContain('runEntityFieldResolveLiveForParent')
+		expect(hook).toContain('startEntityFieldResolveLiveForParent')
 		expect(resolvers).toContain('entityFieldNamesWithResolveLiveByEntityType')
 		expect(hook).toContain('entityFieldResolversByEntityTypeAndFieldName')
 	})

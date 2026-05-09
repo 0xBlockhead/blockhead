@@ -78,8 +78,8 @@
 	const networkPrimitiveFields = $derived(
 		(() => {
 			const bag = networkRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
+			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+			const b = bag
 			const out: Record<string, string> = {}
 			for (const def of entityDefinitionByType[EntityType.FarcasterNetwork].fields) {
 				if (def.type !== EntityFieldType.Primitive) continue
@@ -204,7 +204,7 @@
 	title="Farcaster"
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Scope</dt>
 				<dd>{entityId.scope}</dd>
@@ -304,7 +304,7 @@
 						data-scroll-container="inline layout-carousel carousel-marker-tabs"
 						data-row="start align-start"
 					>
-						<section>
+						<section data-scroll-marker-label="Feeds">
 							<FarcasterFeedsView
 								entityFieldReference={{
 									entityType: EntityType.FarcasterNetwork,
@@ -317,7 +317,7 @@
 							/>
 						</section>
 
-						<section>
+						<section data-scroll-marker-label="Trending">
 							<FarcasterCastsView
 								entityFieldReference={{
 									entityType: EntityType.FarcasterFeed,
@@ -360,7 +360,7 @@
 						data-scroll-container="inline layout-carousel carousel-marker-tabs"
 						data-row="start align-start"
 					>
-						<section>
+						<section data-scroll-marker-label="Channels">
 							<FarcasterChannelsView
 								entityFieldReference={{
 									entityType: EntityType.FarcasterNetwork,
@@ -373,7 +373,7 @@
 							/>
 						</section>
 
-						<section>
+						<section data-scroll-marker-label="Users">
 							<FarcasterUsersView
 								entityFieldReference={{
 									entityType: EntityType.FarcasterNetwork,
@@ -412,7 +412,7 @@
 						data-scroll-container="inline layout-carousel carousel-marker-tabs"
 						data-row="start align-start"
 					>
-						<section>
+						<section data-scroll-marker-label="Accounts">
 							<BlockheadFarcasterAccountConnectionsView
 								entityFieldReference={{
 									entityType: EntityType._Global,

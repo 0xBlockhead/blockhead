@@ -13,7 +13,7 @@ const qs = (o: Record<string, string | undefined>) => {
 	return t ? `?${t}` : ''
 }
 
-const authHeaders = () => {
+const authHeaders = (): Record<string, string> => {
 	const t = env.PUBLIC_MASTODON_ACCESS_TOKEN
 	return (
 		typeof t === 'string' && t.trim() !== '' ?

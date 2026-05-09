@@ -12,7 +12,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { useEntityFieldResolveLive } from '$/lib/db/resolveLive.svelte.ts'
+	import { mountEntityResolveLive } from '$/lib/db/resolveLive.svelte.ts'
 	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
@@ -49,7 +49,7 @@
 		stringify(entityId),
 	)
 
-	useEntityFieldResolveLive({
+	mountEntityResolveLive({
 		entityType: EntityType.FarcasterFeed,
 		entityId: () => entityId,
 	})
@@ -76,9 +76,9 @@
 	const displayTitle = $derived(
 		(() => {
 			const bag = feedRow?.[EntityMetaKey.Fields]
-			if (bag !== undefined && typeof bag === 'object') {
-				const t = (bag as Record<string, unknown>)['label']
-				if (typeof t === 'string' && t.length > 0) {
+			if ((typeof bag === 'object' && bag !== null && !Array.isArray(bag))) {
+				const t = bag['label']
+				if (typeof t === 'string' && t.length > 0 === 'object' && t === 'string' && t.length > 0 !== null && !Array.isArray(t === 'string' && t.length > 0)) {
 					return t
 				}
 			}
@@ -113,7 +113,7 @@
 	title={displayTitle}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Variant</dt>
 				<dd>{entityId.variant}</dd>

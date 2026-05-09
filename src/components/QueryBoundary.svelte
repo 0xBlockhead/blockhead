@@ -25,7 +25,7 @@
 </script>
 
 
-{#if query.isReady}
+{#if query.isReady && query.data !== undefined}
 	{@render children(query.data)}
 {:else if query.isError}
 	{@const err = (query.error ?? query.status ?? 'Query failed')}

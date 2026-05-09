@@ -6,6 +6,14 @@ import { jsonRpcUrlWithTransportForChain } from '$/resolvers/Voltaire-JsonRpc.ts
 
 export { e2eBrowserNewContextOptions } from '../playwright.env.ts'
 
+declare global {
+	interface Window {
+		__e2eViewTransitionStarts?: number
+		__e2eViewTransitionFinishes?: number
+		__e2eViewTransitionUpdates?: number
+	}
+}
+
 const forwardBrowserConsoleLine = (
 	type: string,
 	text: string,
@@ -58,13 +66,8 @@ export const collectIssues = (page: Page) => {
 export const clearOriginOpfs = (page: Page) => (
 	page.evaluate(async () => {
 		const root = await navigator.storage.getDirectory()
-		for await (const [name] of (
-			root as FileSystemDirectoryHandle & {
-				entries: () => AsyncIterable<[string, FileSystemHandle]>
-			}
-		).entries()) {
+		for await (const [name] of root.entries())
 			await root.removeEntry(name, { recursive: true })
-		}
 	})
 )
 
@@ -85,50 +88,36 @@ export const ipfsPublicGatewayGetWire = (url: string) => {
 	}
 }
 
-type WindowWithE2eViewTransitionSpy = Window & {
-	__e2eViewTransitionStarts: number
-	__e2eViewTransitionFinishes: number
-	__e2eViewTransitionUpdates: number
-}
-
 /**
  * Call before `page.goto`. Patches `document.startViewTransition` to count
  * starts and completed transitions (or set both to `-1` when the API is missing).
  */
 export const installViewTransitionStartSpy = (page: Page) => (
 	page.addInitScript(() => {
-		const w = window as unknown as WindowWithE2eViewTransitionSpy
-		w.__e2eViewTransitionStarts = 0
-		w.__e2eViewTransitionFinishes = 0
-		w.__e2eViewTransitionUpdates = 0
-		const d = document as Document & {
-			startViewTransition?: (cb: () => void | Promise<void>) => {
-				finished: Promise<void>
-				ready: Promise<void>
-				skipTransition: () => void
-			}
-		}
-		if (typeof d.startViewTransition !== 'function') {
-			w.__e2eViewTransitionStarts = -1
-			w.__e2eViewTransitionFinishes = -1
-			w.__e2eViewTransitionUpdates = -1
+		window.__e2eViewTransitionStarts = 0
+		window.__e2eViewTransitionFinishes = 0
+		window.__e2eViewTransitionUpdates = 0
+		if (typeof document.startViewTransition !== 'function') {
+			window.__e2eViewTransitionStarts = -1
+			window.__e2eViewTransitionFinishes = -1
+			window.__e2eViewTransitionUpdates = -1
 			return
 		}
-		const orig = d.startViewTransition.bind(d) as (
-			cb: () => void | Promise<void>
-		) => {
-			finished: Promise<void>
-			ready: Promise<void>
-			skipTransition: () => void
-		}
-		d.startViewTransition = (update) => {
-			w.__e2eViewTransitionStarts += 1
+		const startViewTransition = document.startViewTransition
+		const orig = startViewTransition.bind(document)
+		document.startViewTransition = (callbackOptions) => {
+			window.__e2eViewTransitionStarts = (window.__e2eViewTransitionStarts ?? 0) + 1
+			const update: ViewTransitionUpdateCallback = (
+				typeof callbackOptions === 'function'
+					? callbackOptions
+					: () => {}
+			)
 			const vt = orig(async () => {
-				w.__e2eViewTransitionUpdates += 1
+				window.__e2eViewTransitionUpdates = (window.__e2eViewTransitionUpdates ?? 0) + 1
 				return await update()
 			})
 			void vt.finished.then(() => {
-				w.__e2eViewTransitionFinishes += 1
+				window.__e2eViewTransitionFinishes = (window.__e2eViewTransitionFinishes ?? 0) + 1
 			}).catch(() => {})
 			return vt
 		}
@@ -137,22 +126,22 @@ export const installViewTransitionStartSpy = (page: Page) => (
 
 export const getViewTransitionSpy = (page: Page) => (
 	page.evaluate(() => ({
-		f: (window as unknown as WindowWithE2eViewTransitionSpy).__e2eViewTransitionFinishes,
-		s: (window as unknown as WindowWithE2eViewTransitionSpy).__e2eViewTransitionStarts,
-		u: (window as unknown as WindowWithE2eViewTransitionSpy).__e2eViewTransitionUpdates,
+		f: window.__e2eViewTransitionFinishes ?? 0,
+		s: window.__e2eViewTransitionStarts ?? 0,
+		u: window.__e2eViewTransitionUpdates ?? 0,
 	}))
 )
 
 export const getViewTransitionStartCount = (page: Page) => (
-	page.evaluate(() => (window as unknown as WindowWithE2eViewTransitionSpy).__e2eViewTransitionStarts)
+	page.evaluate(() => window.__e2eViewTransitionStarts ?? 0)
 )
 
 export const getViewTransitionFinishCount = (page: Page) => (
-	page.evaluate(() => (window as unknown as WindowWithE2eViewTransitionSpy).__e2eViewTransitionFinishes)
+	page.evaluate(() => window.__e2eViewTransitionFinishes ?? 0)
 )
 
 export const getViewTransitionUpdateCount = (page: Page) => (
-	page.evaluate(() => (window as unknown as WindowWithE2eViewTransitionSpy).__e2eViewTransitionUpdates)
+	page.evaluate(() => window.__e2eViewTransitionUpdates ?? 0)
 )
 
 export const countRequestsMatching = (page: Page, match: (url: string) => boolean) => {
@@ -243,8 +232,15 @@ export const publicJsonRpcHttpUrlForChainE2e = async (chainId: number) => {
 	const t = await jsonRpcUrlWithTransportForChain(chainId)
 	if (t == null) return null
 	if (t.transportType === TransportType.Http) return t.rpcUrl
-	const { chainlistRpcUrlForChainId } = await import('$/sources/Chainlist/Rest/queries.ts')
-	return (await chainlistRpcUrlForChainId(chainId)) ?? null
+	const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
+	const chain = (await fetchRpcsJson()).find((candidate) => candidate.chainId === chainId)
+	if (chain == null) return null
+	for (const entry of chain.rpc ?? []) {
+		const raw = typeof entry === 'string' ? entry : entry.url
+		const url = raw?.trim()
+		if (url && url.startsWith('http')) return url
+	}
+	return null
 }
 
 /** In-browser public RPC check — matches client `fetch` + `corsEnabled: true` (not `/api-proxy`). Two `eth_blockNumber` samples; fail-fast when the chain is stuck or rate-limited (429). */
@@ -282,7 +278,8 @@ export const preflightChainHeadAdvancesWithRetries = async (
 		if (last.ok) return last
 		if (i < attempts - 1) await page.waitForTimeout(betweenAttemptsMs)
 	}
-	return last!
+	if (last === undefined) throw new Error('preflightChainHeadAdvancesWithRetries: no attempt ran')
+	return last
 }
 
 export const preflightPublicJsonRpcEthBlockNumber = (
@@ -307,7 +304,7 @@ export const preflightPublicJsonRpcEthBlockNumber = (
 				},
 			)
 			if (!res.ok) return { ok: false, status: res.status }
-			const j = (await res.json()) as { result?: string, error?: { message?: string } }
+			const j: { result?: string, error?: { message?: string } } = await res.json()
 			const hex = j?.result
 			if (typeof hex !== 'string' || !hex.startsWith('0x')) return { ok: false, status: res.status, error: j.error?.message }
 			return { ok: true, blockNumberHex: hex }
@@ -339,7 +336,7 @@ const blockPathNumberFromHref = (href: string | null) => {
 	const m = /\/block\/([0-9]+)\b/.exec(href)
 	if (m == null) return null
 	try {
-		return BigInt(m[1]!)
+		return BigInt(m[1])
 	} catch {
 		return null
 	}
@@ -383,7 +380,12 @@ export const readTxHrefsJoin = async (page: Page) => {
 	if (n === 0) return ''
 	const all = await list.evaluateAll(
 		(els) => (
-			(els as HTMLAnchorElement[]).map((a) => a.getAttribute('href') ?? '')
+			els.map((a) => (
+				a instanceof HTMLAnchorElement ?
+					(a.getAttribute('href') ?? '')
+				:
+					''
+			))
 		),
 	)
 	return all.join('\0')
@@ -392,12 +394,13 @@ export const readTxHrefsJoin = async (page: Page) => {
 export const expandClosedAncestors = async (link: Locator) => {
 	await link.evaluate((el) => {
 		const closed: HTMLDetailsElement[] = []
-		for (let n = (el as HTMLElement).parentElement; n; n = n.parentElement) {
+		for (let n = el.parentElement; n; n = n.parentElement) {
 			if (n instanceof HTMLDetailsElement && !n.hasAttribute('open'))
 				closed.push(n)
 		}
 		for (const d of closed.slice().reverse()) {
-			;(d.querySelector(':scope > summary') as HTMLElement | null)?.click()
+			const summary = d.querySelector(':scope > summary')
+			if (summary instanceof HTMLElement) summary.click()
 		}
 	})
 }
@@ -436,7 +439,9 @@ export const clickInternalNavHrefs = async (
 	for (const href of hrefs) {
 		await expandClosedAncestors(menu.locator(`a[href="${href}"]`).first())
 		const link = menu.locator(`a[href="${href}"]`).first()
-		await link.evaluate((el) => (el as HTMLAnchorElement).click())
+		await link.evaluate((el) => {
+			if (el instanceof HTMLAnchorElement) el.click()
+		})
 		await expect(page).toHaveURL((u) => new URL(u).pathname === href, { timeout: 15_000 })
 		await expect(page.locator('body')).toBeVisible({ timeout: 5_000 })
 		await assertMainSettled(page)

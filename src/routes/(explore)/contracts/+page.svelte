@@ -15,7 +15,7 @@
 		entityFieldReference={{
 			entityType: EntityType.Network,
 			entityId: { chainId: 1 },
-			fieldName: '$$evmContracts',
+			fieldName: '$$contracts',
 		}}
 		href={resolve('/contracts')}
 		id="contracts"

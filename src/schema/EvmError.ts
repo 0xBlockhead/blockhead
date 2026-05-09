@@ -24,7 +24,9 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string[]'),
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [Source.Openchain_Rest],
+			defaultSources: [
+				Source.Openchain_Rest,
+			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

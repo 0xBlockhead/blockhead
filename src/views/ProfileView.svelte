@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntityFieldValues, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -70,19 +70,19 @@
 	const userField = $derived(
 		(() => {
 			const bag = farcasterUserRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
-			const pick = (key: string) => {
-				const x = b[key]
-				return typeof x === 'string' && x.length ? x : undefined
-			}
+			if (bag == null) return null
+			const b: Partial<EntityFieldValues<typeof schema, EntityType.FarcasterUser>> = bag
 			return {
-				username: pick('username'),
-				displayName: pick('displayName'),
-				pfpUrl: pick('pfpUrl'),
-				bio: pick('bio'),
-				url: pick('url'),
-				verifiedAddress: pick('verifiedAddress'),
+				username: typeof b.username === 'string' && b.username.length ? b.username : undefined,
+				displayName: typeof b.displayName === 'string' && b.displayName.length ? b.displayName : undefined,
+				avatarUrl: b.$icon?.[EntityMetaKey.Id].url,
+				bio: typeof b.bio === 'string' && b.bio.length ? b.bio : undefined,
+				url: typeof b.url === 'string' && b.url.length ? b.url : undefined,
+				verifiedAddress: (
+					typeof b.verifiedAddress === 'string' && b.verifiedAddress.length ?
+						b.verifiedAddress
+					:	undefined
+				),
 			}
 		})(),
 	)
@@ -109,7 +109,7 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import Media from '$/components/Media.svelte'
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -126,10 +126,10 @@
 	title={displayTitle}
 >
 	{#snippet Icon()}
-		{#if userField?.pfpUrl !== undefined}
-			<Icon
+		{#if userField?.avatarUrl !== undefined}
+			<IconComponent
 				shape={IconShape.Circle}
-				src={userField.pfpUrl}
+				src={userField.avatarUrl}
 				alt=""
 			/>
 		{/if}
@@ -145,7 +145,7 @@
 
 	{#snippet Content()}
 		{#if String(farcasterUserId.fid) !== displayTitle}
-			<dl data-definition-list="vertical">
+			<dl>
 				<div>
 					<dt>FID</dt>
 					<dd>{String(farcasterUserId.fid)}</dd>
@@ -173,7 +173,7 @@
 						<p data-text="muted">
 							No Farcaster profile for this id yet.
 						</p>
-					{:else if userField === undefined}
+					{:else if userField == null}
 						<dl>
 							<div>
 								<dt>FID</dt>
@@ -198,12 +198,12 @@
 									<dd>{userField.username}</dd>
 								</div>
 							{/if}
-							{#if userField.pfpUrl !== undefined}
+							{#if userField.avatarUrl !== undefined}
 								<div>
 									<dt>Profile image</dt>
 									<dd>
 										<Media
-											media={{ url: userField.pfpUrl }}
+											media={{ url: userField.avatarUrl }}
 											alt={userField.displayName ?? userField.username ?? ''}
 										/>
 									</dd>

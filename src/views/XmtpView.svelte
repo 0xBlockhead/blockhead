@@ -41,7 +41,7 @@
 	const accountsQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ row: entityFieldCollections[EntityType._Global]['$$actors']! })
+				.from({ row: entityFieldCollections[EntityType._Global]['$$actors'] })
 				.select(({ row }) => ({ row }))
 		),
 		[],
@@ -50,7 +50,7 @@
 	const conversationsQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ row: entityFieldCollections[EntityType._Global]['$$xmtpConversations']! })
+				.from({ row: entityFieldCollections[EntityType._Global]['$$xmtpConversations'] })
 				.select(({ row }) => ({ row }))
 		),
 		[],
@@ -58,7 +58,7 @@
 
 	const networkFields = $derived.by(() => {
 		const bag = networkQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		return bag !== undefined && typeof bag === 'object' ? bag as Record<string, unknown> : null
+		return bag != null && (typeof bag === 'object' && bag !== null && !Array.isArray(bag)) ? bag : null
 	})
 
 
@@ -81,7 +81,7 @@
 	title="XMTP"
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Scope</dt>
 				<dd>{entityId.scope}</dd>
@@ -108,7 +108,7 @@
 				query={networkQuery}
 			>
 				{#snippet children(_rows)}
-					<dl data-definition-list="vertical">
+					<dl>
 						<div>
 							<dt>Protocol name</dt>
 							<dd>{String(networkFields?.protocolName ?? 'XMTP')}</dd>
@@ -157,7 +157,7 @@
 					data-row="start align-start"
 					style="--carousel-basis: 36ch"
 				>
-					<section>
+					<section data-scroll-marker-label="Accounts">
 						<ActorsView
 							entityFieldReference={{
 								entityType: EntityType._Global,
@@ -171,7 +171,7 @@
 						/>
 					</section>
 
-					<section>
+					<section data-scroll-marker-label="Conversations">
 						<XmtpConversationsView
 							entityFieldReference={{
 								entityType: EntityType._Global,

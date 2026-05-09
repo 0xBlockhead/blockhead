@@ -6,8 +6,6 @@ import {
 
 import { caipOfficialHumanBaseUrl, caipsGithubRepo } from './constants.ts'
 
-export { parseFrontmatter, stripFrontmatter } from '$/sources/Github/Rest/client.ts'
-
 export const getCaipsGithubContentsUrl = () => (
 	getGithubRestRepoContentsUrl({
 		owner: caipsGithubRepo.owner,

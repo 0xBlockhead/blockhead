@@ -71,8 +71,7 @@
 	)
 
 	const actorFields = $derived(
-		mergeEntityCollectionRowFields(
-			EntityType.AtprotoActor,
+		mergeEntityCollectionRowFields<EntityType.AtprotoActor>(
 			actorQuery.data,
 			atprotoActorMergeSourceOrder,
 		),
@@ -84,6 +83,10 @@
 		?? entityId.did,
 	)
 
+	const avatarUrl = $derived((
+		actorFields.$icon?.[EntityMetaKey.Id].url
+	))
+
 
 	// Components
 	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
@@ -92,7 +95,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 </script>
 
 
@@ -105,11 +108,11 @@
 	title={displayTitle}
 >
 	{#snippet Icon()}
-		{#if actorFields.avatarUrl !== undefined}
-			<Icon
+		{#if avatarUrl !== undefined}
+			<IconComponent
 				alt={actorFields.displayName ?? actorFields.handle ?? ''}
 				shape={IconShape.Circle}
-				src={actorFields.avatarUrl}
+				src={avatarUrl}
 			/>
 		{/if}
 	{/snippet}
@@ -196,7 +199,7 @@
 					data-scroll-container="inline layout-carousel carousel-marker-tabs"
 					data-row="start align-start"
 				>
-					<section>
+					<section data-scroll-marker-label="Posts">
 						<AtprotoPostsView
 							entityFieldReference={{
 								entityType: EntityType.AtprotoActor,

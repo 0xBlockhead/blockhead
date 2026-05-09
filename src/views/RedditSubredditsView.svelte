@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { type EntityFieldReference } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -15,6 +16,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { SvelteSet } from 'svelte/reactivity'
 
+	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
 	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
@@ -26,7 +28,7 @@
 		open = $bindable(true),
 		title = 'Subreddits',
 	}: {
-		entityFieldReference: EntityFieldReference<typeof EntityType.RedditSubreddit>
+		entityFieldReference: EntityFieldReference<typeof schema, EntityType.RedditSubreddit>
 		href: string
 		id: string
 		open?: boolean
@@ -38,7 +40,12 @@
 		(queryBuilder) => (
 			queryBuilder
 				.from({
-					subredditFieldRow: entityFieldCollections[EntityType.RedditNetwork]['$$redditSubreddits']!,
+					subredditFieldRow: (
+						entityFieldCollectionForReference(
+							entityFieldCollections,
+							entityFieldReference,
+						)
+					),
 				})
 				.where(({ subredditFieldRow }) => (
 					eq(
@@ -52,12 +59,10 @@
 						Source.Reddit_Rest,
 					)
 				))
-				.select(({ subredditFieldRow }) => ({
-					[EntityMetaKey.Id]: (
-						// @ts-expect-error entity field row stores target id
-						subredditFieldRow[EntityMetaKey.Value]![EntityMetaKey.Id]
-					),
-				}))
+				.select(({ subredditFieldRow }) => (
+					{ value: subredditFieldRow[EntityMetaKey.Value] }
+				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -80,17 +85,19 @@
 	{id}
 	getKey={(row) => stringify(row[EntityMetaKey.Id])}
 	getSortValue={(row) => (
-		typeof row[EntityMetaKey.Id] === 'object'
-		&& row[EntityMetaKey.Id] !== undefined
-		&& 'name' in row[EntityMetaKey.Id]
-		&& typeof row[EntityMetaKey.Id].name === 'string' ?
-			row[EntityMetaKey.Id].name
-		:	''
+		row[EntityMetaKey.Id].name
 	)}
-	items={new SvelteSet(subredditsQuery.data ?? [])}
+	items={subredditsQuery.data?.map(({ value }) => value) ?? []}
 	bind:open
 	placeholderKeys={new SvelteSet<string>()}
-	query={subredditsQuery}
+	query={{
+		data: subredditsQuery.data?.map(({ value }) => value) ?? [],
+		isLoading: subredditsQuery.isLoading,
+		isError: subredditsQuery.isError,
+		isReady: subredditsQuery.isReady,
+		error: subredditsQuery.error,
+		status: subredditsQuery.status,
+	}}
 	{title}
 >
 	{#snippet Empty()}
@@ -106,16 +113,14 @@
 			</span>
 		{:else if item}
 			{@const subredditId = item[EntityMetaKey.Id]}
-			{#if typeof subredditId === 'object' && subredditId !== undefined && 'name' in subredditId && typeof subredditId.name === 'string'}
-				<RedditSubredditView
-					entityId={{ name: subredditId.name }}
-					href={resolve('/(social)/reddit/r/[name]', {
-						name: encodeURIComponent(subredditId.name),
-					})}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{/if}
+			<RedditSubredditView
+				entityId={{ name: subredditId.name }}
+				href={resolve('/(social)/reddit/r/[name]', {
+					name: encodeURIComponent(subredditId.name),
+				})}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
 		{/if}
 	{/snippet}
 </EntitiesList>

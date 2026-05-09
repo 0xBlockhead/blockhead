@@ -47,13 +47,13 @@
 
 <svelte:head>
 	<title>
-		{route.marketId !== undefined ? `Market` : 'Market · not found'}
+		{route.marketId != null ? `Market` : 'Market · not found'}
 	</title>
 </svelte:head>
 
 
 <Page>
-	{#if route.error !== undefined || route.marketId === undefined}
+	{#if route.error != null || route.marketId == null}
 		<h1>
 			Not found
 		</h1>

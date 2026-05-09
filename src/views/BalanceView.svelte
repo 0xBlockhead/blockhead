@@ -66,8 +66,8 @@
 	const actorCoinField = $derived(
 		(() => {
 			const bag = actorCoinRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
+			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+			const b = bag
 			return {
 				symbol: typeof b.symbol === 'string' && b.symbol.length ? b.symbol : undefined,
 				decimals: typeof b.decimals === 'number' ? b.decimals : undefined,
@@ -93,7 +93,7 @@
 	title={actorCoinField?.symbol ?? 'Balance'}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Owner</dt>
 				<dd>

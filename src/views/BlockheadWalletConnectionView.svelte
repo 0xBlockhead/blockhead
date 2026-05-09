@@ -54,7 +54,7 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import Icon from '$/components/Icon.svelte'
+	import IconComponent from '$/components/Icon.svelte'
 	import ActorView from '$/views/ActorView.svelte'
 	import Address from '$/views/Address.svelte'
 </script>
@@ -70,7 +70,7 @@
 >
 	{#snippet Icon()}
 		{#if icon}
-			<Icon
+			<IconComponent
 				src={icon}
 				alt={title}
 			/>
@@ -78,7 +78,7 @@
 	{/snippet}
 
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Status</dt>
 				<dd>{status}</dd>

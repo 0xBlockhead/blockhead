@@ -4,11 +4,30 @@ import {
 } from '$/resolvers/$resolvers.ts'
 import { Hex } from '@tevm/voltaire/Hex'
 import { caip19Erc20, caip19Slip44 } from '$/lib/caip19.ts'
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
+import { chainlistNetworkEntitiesFieldResolver } from '$/resolvers/Chainlist-Rest.ts'
+
+const alliumTokenImageHttpUrl = (value: string | null | undefined) => {
+	const raw = typeof value === 'string' ? value.trim() : ''
+	if (raw.length === 0) return undefined
+	const withProtocol = raw.startsWith('//') ? `https:${raw}` : raw
+	try {
+		const parsed = new URL(withProtocol)
+		return (
+			parsed.protocol === 'http:' || parsed.protocol === 'https:' ?
+				parsed.toString()
+			:
+				undefined
+		)
+	} catch {
+		return undefined
+	}
+}
 
 export default {
 	source: Source.Allium_Rest,
@@ -21,30 +40,29 @@ export default {
 				const { sourcePublicEnv } = await import('$/resolvers/$resolvers.ts')
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 				const { getAlliumTokensByChainAddress } = await import('$/sources/Allium/Rest/queries.ts')
-				const { findChainByChainId } = await import('$/sources/Chainlist/Rest/rpcsJsonWire.ts')
-				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 
 				const publicEnv = sourcePublicEnv(context, Source.Allium_Rest)
 				if (entityId.type === CoinInstanceType.NativeCurrency) {
-					const chain = findChainByChainId(
-						await fetchRpcsJson(),
-						entityId.$network.chainId,
+					const nativeCurrency = (
+						(await chainlistNetworkEntitiesFieldResolver.resolve({}, context))
+							.find((network) => network[EntityMetaKey.Id].chainId === entityId.$network.chainId)
+							?.nativeCurrencies?.[0]
 					)
-					if (chain == null) throw new Error('Allium_Rest: native coin chain not in chainlist')
+					if (nativeCurrency == null) throw new Error('Allium_Rest: native coin chain not in chainlist')
 
-					const symbol = chain.nativeCurrency.symbol.trim().toUpperCase()
+					const symbol = nativeCurrency.symbol.trim().toUpperCase()
 					const coinId = coinBySymbol[symbol]?.id ?? CoinId.Unknown
 
 					return {
 						coinId,
-						...(chain.nativeCurrency.name.trim() !== '' ? { name: chain.nativeCurrency.name.trim() } : {}),
+						...(nativeCurrency.name.trim() !== '' ? { name: nativeCurrency.name.trim() } : {}),
 						symbol,
-						decimals: chain.nativeCurrency.decimals,
-						...(chain.slip44 != null ?
+						decimals: nativeCurrency.decimals,
+						...(nativeCurrency.slip44 != null ?
 							{
 								caip19: caip19Slip44(
 									entityId.$network.chainId,
-									chain.slip44,
+									nativeCurrency.slip44,
 								),
 							}
 						:
@@ -93,20 +111,29 @@ export default {
 						entityId.$network.chainId,
 						entityId.$contract.address,
 					),
-					...(token.attributes?.image_url?.trim() ?
-						{
-							$icon: {
-								[EntityMetaKey.Id]: {
-									url: token.attributes.image_url,
+					...((
+						t,
+					) => (
+						t == null ?
+							{}
+						:	{
+								$icon: {
+									[EntityMetaKey.Id]: { url: t },
+									type: MediaType.Image,
 								},
-								type: MediaType.Image,
-							},
-						}
-					:
-						{}),
+							}
+					))(
+						alliumTokenImageHttpUrl(
+							token.attributes?.image_url != null
+							&& String(token.attributes.image_url).trim().length > 0 ?
+								String(token.attributes.image_url).trim()
+							:	undefined,
+						),
+					),
 				}
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.ActorCoin,
 			resolve: async (entityId, context) => {
@@ -167,10 +194,16 @@ export default {
 				const { sourcePublicEnv } = await import('$/resolvers/$resolvers.ts')
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 				const { getAlliumLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
+				type ActorCoinEntityId = import('$/schema/$schema.ts').EntityId<
+					typeof import('$/schema/index.ts').schema,
+					EntityType.ActorCoin
+				>
 
 				const publicEnv = sourcePublicEnv(context, Source.Allium_Rest)
 				const apiChain = apiChainByChainId[entityId.$network.chainId]
-				if (apiChain == null) return []
+				if (apiChain == null) {
+					throw new Error(`Allium_Rest: chain ${entityId.$network.chainId} not supported for wallet balances`)
+				}
 
 				return (
 					(await getAlliumLatestWalletBalances({
@@ -180,7 +213,7 @@ export default {
 						withLiquidityInfo: false,
 					}))
 						.items
-						.flatMap((balanceRow) => (
+						.flatMap<{ [EntityMetaKey.Id]: ActorCoinEntityId }>((balanceRow) => (
 							balanceRow.token?.type === 'native' ?
 								[{
 									[EntityMetaKey.Id]: {
@@ -190,23 +223,27 @@ export default {
 											type: CoinInstanceType.NativeCurrency,
 										},
 									},
-								} as const]
+								} satisfies { [EntityMetaKey.Id]: ActorCoinEntityId }]
 							: balanceRow.token?.type === 'evm_erc20'
 								&& Hex.isHex(balanceRow.token.address)
 								&& Hex.size(balanceRow.token.address) === 20 ?
-								[{
-									[EntityMetaKey.Id]: {
-										$actor: entityId,
-										$coinInstance: {
-											$network: entityId.$network,
-											type: CoinInstanceType.Erc20Token,
-											$contract: {
-												$network: entityId.$network,
-												address: balanceRow.token.address.toLowerCase() as `0x${string}`,
+								((address) => (
+									address == null ?
+										[]
+									:	[{
+											[EntityMetaKey.Id]: {
+												$actor: entityId,
+												$coinInstance: {
+													$network: entityId.$network,
+													type: CoinInstanceType.Erc20Token,
+													$contract: {
+														$network: entityId.$network,
+														address,
+													},
+												},
 											},
-										},
-									},
-								} as const]
+										} satisfies { [EntityMetaKey.Id]: ActorCoinEntityId }]
+								))(hexLowerOfByteSize(balanceRow.token.address.toLowerCase(), 20))
 							:
 								[]
 						))

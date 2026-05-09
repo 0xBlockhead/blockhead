@@ -13,7 +13,7 @@
 	let {
 		items,
 		sortOptions,
-		activeSortId = $bindable('' as _SortId | ''),
+		activeSortId = $bindable<_SortId | ''>(''),
 		sortedItems = $bindable(items),
 		defaultSortId,
 		setSortById = $bindable(),
@@ -57,7 +57,7 @@
 	// Actions
 
 	$effect(() => {
-		sortedItems = sortItems(effectiveSortId as _SortId | '')
+		sortedItems = sortItems(effectiveSortId)
 	})
 
 

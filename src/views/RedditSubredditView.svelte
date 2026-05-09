@@ -66,8 +66,8 @@
 
 	const f = $derived.by(() => {
 		const bag = rowQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		if (bag === undefined || typeof bag !== 'object') return null
-		const rec = bag as Record<string, unknown>
+		if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+		const rec = bag
 		const t = rec['title']
 		const pd = rec['publicDescription']
 		return {
@@ -174,7 +174,7 @@
 					data-scroll-container="inline layout-carousel carousel-marker-tabs"
 					data-row="start align-start"
 				>
-					<section>
+					<section data-scroll-marker-label="Posts">
 						<RedditLinksView
 							entityFieldReference={{
 								entityType: EntityType.RedditSubreddit,

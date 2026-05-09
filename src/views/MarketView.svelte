@@ -5,6 +5,7 @@
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { MarketAssetKind } from '$/constants/Market.ts'
+	import { marketVenueById } from '$/constants/MarketVenue.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -15,13 +16,8 @@
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { stringify } from 'devalue'
-
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -48,16 +44,6 @@
 			| 'Details'
 		>
 	> = $props()
-
-
-	// Functions
-	const isMarketValueLink = (
-		row: unknown,
-	): row is { m: unknown } => (
-		typeof row === 'object'
-			&& row !== undefined
-			&& 'm' in row
-	)
 
 	// (Derived)
 	const marketIdKey = $derived(
@@ -91,7 +77,7 @@
 	)
 
 	const displayTitle = $derived(
-		`${baseLabel} / ${quoteLabel} · ${String(entityId.venue)}`,
+		`${baseLabel} / ${quoteLabel} · ${marketVenueById[entityId.$marketVenue.marketVenueId].label}`,
 	)
 
 	const baseCoinId = $derived(
@@ -111,186 +97,44 @@
 		),
 	)
 
-	const marketQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.Market] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						marketIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => marketIdKey],
-	)
-
-	const marketRow = $derived(
-		(
-			marketQuery.data?.find(
-				(r) => r.row[EntityMetaKey.Source] === Source.Coingecko_Rest,
-			)?.row
-			?? marketQuery.data?.[0]?.row
-		),
-	)
-
-	const baseCoinFieldQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					link: entityFieldCollections[EntityType.Market]['$$baseCoin'],
-				})
-				.where(({ link }) => (
-					eq(
-						link[EntityMetaKey.ParentIdKey],
-						marketIdKey,
-					)
-				))
-				.select(({ link }) => ({
-					coin: link[EntityMetaKey.Value],
-				}))
-		),
-		[() => marketIdKey],
-	)
-
-	const priceLinksQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					link: entityFieldCollections[EntityType.Market]['$$marketPrices'],
-				})
-				.where(({ link }) => (
-					eq(
-						link[EntityMetaKey.ParentIdKey],
-						marketIdKey,
-					)
-				))
-				.select(({ link }) => ({
-					m: link[EntityMetaKey.Value],
-				}))
-		),
-		[() => marketIdKey],
-	)
-
-	const rangeLinksQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					link: entityFieldCollections[EntityType.Market]['$$marketPriceRanges'],
-				})
-				.where(({ link }) => (
-					eq(
-						link[EntityMetaKey.ParentIdKey],
-						marketIdKey,
-					)
-				))
-				.select(({ link }) => ({
-					m: link[EntityMetaKey.Value],
-				}))
-		),
-		[() => marketIdKey],
-	)
-
-	const uniquePriceRows = $derived(
-		(() => {
-			const data = priceLinksQuery.data
-			if (data === undefined) {
-				return []
-			}
-			const by = new Map<string, { m: unknown }>()
-			for (const row of data) {
-				if (!isMarketValueLink(row) || row.m === undefined) {
-					continue
-				}
-				const p = (
-					typeof row.m === 'object'
-					&& EntityMetaKey.Id in row.m
-				) ?
-					row.m[EntityMetaKey.Id]
-				:
-					row.m
-				if (p === undefined) {
-					continue
-				}
-				const k = stringify(p)
-				if (by.has(k)) {
-					continue
-				}
-				by.set(k, { m: row.m })
-			}
-			return [...by.values()]
-		})(),
-	)
-
-	const uniqueRangeRows = $derived(
-		(() => {
-			const data = rangeLinksQuery.data
-			if (data === undefined) {
-				return []
-			}
-			const by = new Map<string, { m: unknown }>()
-			for (const row of data) {
-				if (!isMarketValueLink(row) || row.m === undefined) {
-					continue
-				}
-				const p = (
-					typeof row.m === 'object'
-					&& EntityMetaKey.Id in row.m
-				) ?
-					row.m[EntityMetaKey.Id]
-				:
-					row.m
-				if (p === undefined) {
-					continue
-				}
-				const k = stringify(p)
-				if (by.has(k)) {
-					continue
-				}
-				by.set(k, { m: row.m })
-			}
-			return [...by.values()]
-		})(),
+	const marketQuery = useEntity(
+		EntityType.Market,
+		entityId,
+		{
+			$: [
+				Source.Coingecko_Rest,
+				Source.Defillama_Rest,
+				Source.Dexscreener_OpenApi,
+			],
+			$$baseCoin: {},
+		},
 	)
 
 	const firstCatalogBaseCoin = $derived(
-		(
-			(() => {
-				for (const row of baseCoinFieldQuery.data ?? []) {
-					const c = row.coin
-					if (c === undefined || typeof c !== 'object') {
-						continue
-					}
-					const idv = (
-						EntityMetaKey.Id in c ?
-							c[EntityMetaKey.Id]
-						:
-							c
-					)
-					if (
-						idv === undefined
-						|| typeof idv !== 'object'
-						|| !('coinId' in idv)
-					) {
-						continue
-					}
-					return idv
-				}
-				return null
-			})()
-		),
+		marketQuery.data?.$$baseCoin?.[EntityMetaKey.Id],
 	)
+
+	const showCatalogBaseSection = $derived(
+		entityId.$base.kind === MarketAssetKind.Coin,
+	)
+
+	const showCatalogBaseCoin = $derived(
+		firstCatalogBaseCoin !== undefined,
+	)
+
+	const marketPlaceholderText = 'Loading market…'
 
 
 	// Components
+	import Collapsible from '$/components/Collapsible.svelte'
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import Heading from '$/components/Heading.svelte'
 	import CoinView from '$/views/CoinView.svelte'
-	import MarketPriceView from '$/views/MarketPriceView.svelte'
-	import MarketPriceRangeView from '$/views/MarketPriceRangeView.svelte'
 	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
+	import MarketPriceRangesView from '$/views/MarketPriceRangesView.svelte'
+	import MarketPricesView from '$/views/MarketPricesView.svelte'
 </script>
 
 
@@ -303,26 +147,18 @@
 	title={displayTitle}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Venue</dt>
-				<dd>{String(entityId.venue)}</dd>
+				<dd>{marketVenueById[entityId.$marketVenue.marketVenueId].label}</dd>
 			</div>
 			<div>
-				<dt>Base leg</dt>
-				<dd>
-					<code>{String(entityId.$base.kind)}</code>
-					·
-					{baseLabel}
-				</dd>
+				<dt>Base</dt>
+				<dd>{baseLabel}</dd>
 			</div>
 			<div>
-				<dt>Quote leg</dt>
-				<dd>
-					<code>{String(entityId.$quote.kind)}</code>
-					·
-					{quoteLabel}
-				</dd>
+				<dt>Quote</dt>
+				<dd>{quoteLabel}</dd>
 			</div>
 		</dl>
 	{/snippet}
@@ -335,244 +171,197 @@
 			{entityId}
 		>
 			<QueryBoundary
+				placeholderText={marketPlaceholderText}
 				query={marketQuery}
 			>
-				{#snippet children(_rows)}
-					{#if marketRow === undefined}
+				{#snippet children(_market)}
+					{#if marketQuery.data === undefined}
 						<p data-text="muted">
-							No local
-							<code>Market</code>
-							collection row (sources may be pending).
+							No market metadata yet.
 						</p>
 					{/if}
 				{/snippet}
 			</QueryBoundary>
 		</EntityDetails>
 
-		<section>
-			<h2>
-				Asset legs
-			</h2>
-			<p data-text="muted">
-				<code>$$base</code>
-				/
-				<code>$$quote</code>
-				—
-				MarketAsset
-				vertices; catalog coins and instances are linked where resolvers have ids.
-			</p>
-			<ul>
-				<li>
-					<strong>Base</strong>
-					:
-					{#if entityId.$base.kind === MarketAssetKind.Coin}
-						<CoinView
-							entityId={entityId.$base.$coin}
-							href={(
-								resolve(
-									'/(assets)/(coins)/coin/[coinId]',
-									{ coinId: entityId.$base.$coin.coinId },
-								)
-							)}
-							id={`${marketIdKey}:leg-base-coin`}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{:else if entityId.$base.kind === MarketAssetKind.CoinInstance}
-						<CoinInstanceView
-							entityId={entityId.$base.$coinInstance}
-							{href}
-							id={`${marketIdKey}:leg-base-instance`}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{:else}
-						{entityId.$base.iso4217}
-					{/if}
-				</li>
-				<li>
-					<strong>Quote</strong>
-					:
-					{#if entityId.$quote.kind === MarketAssetKind.Coin}
-						<CoinView
-							entityId={entityId.$quote.$coin}
-							href={(
-								resolve(
-									'/(assets)/(coins)/coin/[coinId]',
-									{ coinId: entityId.$quote.$coin.coinId },
-								)
-							)}
-							id={`${marketIdKey}:leg-quote-coin`}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{:else if entityId.$quote.kind === MarketAssetKind.CoinInstance}
-						<CoinInstanceView
-							entityId={entityId.$quote.$coinInstance}
-							{href}
-							id={`${marketIdKey}:leg-quote-instance`}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{:else}
-						{entityId.$quote.iso4217}
-					{/if}
-				</li>
-			</ul>
-		</section>
+		<div data-column="gap-3">
+			<Collapsible
+				id={`${marketIdKey}:carousel-assets`}
+				{...{ 'data-card': '' }}
+			>
+				{#snippet Summary({
+					open: _open,
+				})}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<Heading>
+							Assets
+						</Heading>
+					</header>
+				{/snippet}
 
-		{#if entityId.$base.kind === MarketAssetKind.Coin}
-			<section>
-				<h2>
-					Catalog base
-				</h2>
-				<p data-text="muted">
-					<code>$$baseCoin</code>
-					—
-					join
-					<code>Coin</code>
-					for this
-					<code>Market</code>
-					’s catalog base; empty when the resolver has not produced the edge.
-				</p>
-				<QueryBoundary
-					query={baseCoinFieldQuery}
-				>
-					{#snippet children(_rows)}
-						{#if firstCatalogBaseCoin === undefined}
-							<p data-text="muted">
-								No catalog
-								<code>Coin</code>
-								edge.
-							</p>
-						{:else if 'coinId' in firstCatalogBaseCoin}
-							<CoinView
-								entityId={{
-									coinId: firstCatalogBaseCoin.coinId,
-								}}
-								href={(
-									resolve(
+				{#snippet children(_ctx)}
+					<div
+						class="carousel"
+						data-scroll-container="inline layout-carousel carousel-marker-tabs"
+						data-row="start align-start"
+					>
+						<section data-scroll-marker-label="Base">
+							{#if entityId.$base.kind === MarketAssetKind.Coin}
+								<CoinView
+									entityId={entityId.$base.$coin}
+									href={resolve(
 										'/(assets)/(coins)/coin/[coinId]',
-										{ coinId: firstCatalogBaseCoin.coinId },
-									)
-								)}
-								id={`${marketIdKey}:catalog-base`}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
+										{ coinId: entityId.$base.$coin.coinId },
+									)}
+									id={`${marketIdKey}:leg-base-coin`}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
+							{:else if entityId.$base.kind === MarketAssetKind.CoinInstance}
+								<CoinInstanceView
+									entityId={entityId.$base.$coinInstance}
+									{href}
+									id={`${marketIdKey}:leg-base-instance`}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
+							{:else}
+								<p>{entityId.$base.iso4217}</p>
+							{/if}
+						</section>
+
+						<section data-scroll-marker-label="Quote">
+							{#if entityId.$quote.kind === MarketAssetKind.Coin}
+								<CoinView
+									entityId={entityId.$quote.$coin}
+									href={resolve(
+										'/(assets)/(coins)/coin/[coinId]',
+										{ coinId: entityId.$quote.$coin.coinId },
+									)}
+									id={`${marketIdKey}:leg-quote-coin`}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
+							{:else if entityId.$quote.kind === MarketAssetKind.CoinInstance}
+								<CoinInstanceView
+									entityId={entityId.$quote.$coinInstance}
+									{href}
+									id={`${marketIdKey}:leg-quote-instance`}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
+							{:else}
+								<p>{entityId.$quote.iso4217}</p>
+							{/if}
+						</section>
+
+						{#if showCatalogBaseSection}
+							<section data-scroll-marker-label="Catalog base">
+								<QueryBoundary
+									placeholderText={marketPlaceholderText}
+									query={marketQuery}
+								>
+									{#snippet children(_market)}
+										{#if showCatalogBaseCoin}
+											<CoinView
+												entityId={{
+													coinId: firstCatalogBaseCoin.coinId,
+												}}
+												href={resolve(
+													'/(assets)/(coins)/coin/[coinId]',
+													{ coinId: firstCatalogBaseCoin.coinId },
+												)}
+												id={`${marketIdKey}:catalog-base`}
+												layout={EntityLayout.Summary}
+												open={false}
+											/>
+										{:else}
+											<p data-text="muted">
+												No catalog base coin yet.
+											</p>
+										{/if}
+									{/snippet}
+								</QueryBoundary>
+							</section>
 						{/if}
-					{/snippet}
-				</QueryBoundary>
-			</section>
-		{/if}
-
-		<section>
-			<h2>
-				Market prices
-			</h2>
-			<p data-text="muted">
-				<code>$$marketPrices</code>
-				—
-				<code>$$parentMarket</code>
-				on
-				<code>MarketPrice</code>
-				cuts back to this node; multiple feeds share one market id when keyed by
-				<code>$market</code>
-				only.
-			</p>
-			<QueryBoundary
-				query={priceLinksQuery}
-			>
-				{#snippet children(_rows)}
-					{#if uniquePriceRows.length === 0}
-						<p data-text="muted">
-							No price links yet.
-						</p>
-					{:else}
-						<ul>
-							{#each uniquePriceRows as row, i (stringify((typeof row.m === 'object' && EntityMetaKey.Id in row.m ? row.m[EntityMetaKey.Id] : row.m) ?? i))}
-								{@const pe = (typeof row.m === 'object' && EntityMetaKey.Id in row.m ? row.m[EntityMetaKey.Id] : row.m)}
-								<li>
-									{#if pe !== undefined && baseCoinId !== undefined}
-										<MarketPriceView
-											entityId={pe}
-											href={baseCoinCatalogHref ?? href}
-											id={stringify(pe)}
-											layout={EntityLayout.Summary}
-											open={false}
-										/>
-									{:else if pe !== undefined}
-										<MarketPriceView
-											entityId={pe}
-											{href}
-											id={stringify(pe)}
-											layout={EntityLayout.Summary}
-											open={false}
-										/>
-									{:else}
-										<span data-text="muted">
-											—
-										</span>
-									{/if}
-								</li>
-							{/each}
-						</ul>
-					{/if}
+					</div>
 				{/snippet}
-			</QueryBoundary>
-		</section>
+			</Collapsible>
 
-		<section>
-			<h2>
-				OHLC ranges
-			</h2>
-			<p data-text="muted">
-				<code>$$marketPriceRanges</code>
-				—
-				candles for this same
-				<code>Market</code>
-				identifier; window is
-				<code>timeInterval</code>
-				(e.g. 1/7/30
-				<code>day</code>
-				rows from resolvers).
-			</p>
-			<QueryBoundary
-				query={rangeLinksQuery}
+			<Collapsible
+				id={`${marketIdKey}:carousel-pricing`}
+				{...{ 'data-card': '' }}
 			>
-				{#snippet children(_rows)}
-					{#if uniqueRangeRows.length === 0}
-						<p data-text="muted">
-							No range links yet.
-						</p>
-					{:else}
-						<ul>
-							{#each uniqueRangeRows as row, i (stringify((typeof row.m === 'object' && EntityMetaKey.Id in row.m ? row.m[EntityMetaKey.Id] : row.m) ?? i))}
-								{@const re = (typeof row.m === 'object' && EntityMetaKey.Id in row.m ? row.m[EntityMetaKey.Id] : row.m)}
-								<li>
-									{#if re !== undefined}
-										<MarketPriceRangeView
-											entityId={re}
-											href={baseCoinCatalogHref ?? href}
-											id={stringify(re)}
-											layout={EntityLayout.Summary}
-											open={false}
-										/>
-									{:else}
-										<span data-text="muted">
-											—
-										</span>
-									{/if}
-								</li>
-							{/each}
-						</ul>
-					{/if}
+				{#snippet Summary({
+					open: _open,
+				})}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<Heading>
+							Pricing
+						</Heading>
+					</header>
 				{/snippet}
-			</QueryBoundary>
-		</section>
+
+				{#snippet children(_ctx)}
+					<div
+						class="carousel"
+						data-scroll-container="inline layout-carousel carousel-marker-tabs"
+						data-row="start align-start"
+					>
+						<section data-scroll-marker-label="Prices">
+							<MarketPricesView
+								collapsible={false}
+								entityFieldReference={{
+									entityType: EntityType.Market,
+									entityId,
+									fieldName: '$$marketPrices',
+								}}
+								href={baseCoinCatalogHref ?? href}
+								id={`${marketIdKey}:market-prices`}
+								title="Prices"
+							/>
+						</section>
+
+						<section data-scroll-marker-label="OHLC">
+							<MarketPriceRangesView
+								collapsible={false}
+								entityFieldReference={{
+									entityType: EntityType.Market,
+									entityId,
+									fieldName: '$$marketPriceRanges',
+								}}
+								href={baseCoinCatalogHref ?? href}
+								id={`${marketIdKey}:market-price-ranges`}
+								title="OHLC"
+							/>
+						</section>
+					</div>
+				{/snippet}
+			</Collapsible>
+		</div>
 
 		{#if children}
 			{@render children()}
 		{/if}
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.carousel {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 40ch;
+			}
+		}
+	}
+</style>

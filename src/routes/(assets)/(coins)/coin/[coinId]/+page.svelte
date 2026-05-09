@@ -1,7 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { CoinId } from '$/constants/Coin.ts'
-	import { coinById } from '$/constants/Coin.ts'
+	import { coinById, coins } from '$/constants/Coin.ts'
+
+
+	const coinIdFromParam = (param: string): CoinId | null => (
+		coins.find((c) => c.id === param)?.id ?? null
+	)
 
 
 	// Context
@@ -17,7 +22,7 @@
 	// (Derived)
 	const route = $derived.by(() => {
 		const param = params.coinId ?? ''
-		const coinId = param in coinById ? (param as CoinId) : null
+		const coinId = coinIdFromParam(param)
 		return { param, coinId }
 	})
 

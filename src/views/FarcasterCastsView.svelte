@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { type EntityFieldReference, type EntityId, schema } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -12,13 +13,11 @@
 
 
 	// State
-	import { coalesce, eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
+	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
+	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -35,7 +34,7 @@
 		title?: string
 		limit?: number
 		open?: boolean
-		entityFieldReference: EntityFieldReference<typeof EntityType.FarcasterCast>
+		entityFieldReference: EntityFieldReference<typeof schema, EntityType.FarcasterCast>
 	} = $props()
 
 	const farcasterCastListSource = $derived(
@@ -50,11 +49,11 @@
 	const castsQuery = useLiveQuery(
 		(queryBuilder) => {
 			const castFieldCollection = (
-				entityFieldCollections[entityFieldReference.entityType]!
-			)[entityFieldReference.fieldName]!
-			const castEntityCollection = (
-				entityCollectionByEntityType[EntityType.FarcasterCast]
-			)!
+				entityFieldCollectionForReference(
+					entityFieldCollections,
+					entityFieldReference,
+				)
+			)
 
 			return queryBuilder
 				.from({ castFieldRow: castFieldCollection })
@@ -70,31 +69,14 @@
 						farcasterCastListSource,
 					)
 				))
-				.innerJoin(
-					{ cast: castEntityCollection },
-					({ castFieldRow, cast }) => (
-						eq(
-							// @ts-expect-error field row Value id key joins to cast collection
-							castFieldRow[EntityMetaKey.Value]![EntityMetaKey.IdKey],
-							cast[EntityMetaKey.IdKey],
-						)
-					),
-				)
-				.where(({ cast }) => (
-					eq(
-						cast[EntityMetaKey.Source],
-						farcasterCastListSource,
-					)
-				))
-				.orderBy(({ cast }) => coalesce(cast.timestamp, 0), 'desc')
-				.orderBy(({ cast }) => cast[EntityMetaKey.IdKey], 'desc')
+				.orderBy(({ castFieldRow }) => (
+					castFieldRow[EntityMetaKey.Value][EntityMetaKey.IdKey]
+				), 'desc')
 				.limit(limit)
-				.select(({ castFieldRow }) => ({
-					[EntityMetaKey.Id]: (
-						// @ts-expect-error field row Value holds the cast entity id
-						castFieldRow[EntityMetaKey.Value]![EntityMetaKey.Id]
-					),
-				}))
+				.select(({ castFieldRow }) => (
+					{ value: castFieldRow[EntityMetaKey.Value] }
+				))
+				.distinct()
 		},
 		[
 			() => entityFieldReference.entityType,
@@ -105,19 +87,12 @@
 		],
 	)
 
-	const castItems = $derived.by(() => {
-		const items: ((EntityId<typeof schema, EntityType.FarcasterCast>) & { order: number })[] = []
-		for (const [order, row] of (castsQuery.data ?? []).entries()) {
-			const castId = (
-				row[EntityMetaKey.Id] as EntityId<typeof schema, EntityType.FarcasterCast>
-			)
-			items.push({
-				...castId,
-				order,
-			})
-		}
-		return new SvelteSet(items)
-	})
+	const castItems = $derived(
+		(castsQuery.data ?? []).map(({ value: cast }, order) => ({
+			...cast[EntityMetaKey.Id],
+			order,
+		})),
+	)
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -132,11 +107,18 @@
 	{href}
 	{title}
 	bind:open
-	query={castsQuery}
 	items={castItems}
 	getKey={(row) => `${row.fid}:${row.hash}`}
 	getSortValue={(row) => row.order}
 	placeholderKeys={new SvelteSet<string>()}
+	query={{
+		data: castItems,
+		isLoading: castsQuery.isLoading,
+		isError: castsQuery.isError,
+		isReady: castsQuery.isReady,
+		error: castsQuery.error,
+		status: castsQuery.status,
+	}}
 >
 	{#snippet Empty()}
 		<p data-text="muted">

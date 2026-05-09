@@ -2,9 +2,10 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { type EntityFieldReference } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
@@ -15,7 +16,6 @@
 	// State
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 
 	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
@@ -31,7 +31,7 @@
 		...entitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof EntityType.EvmContract>
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmContract>
 			title?: string
 			open?: boolean
 		},
@@ -49,7 +49,7 @@
 	const blockHeightQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ blockHeight: entityFieldCollections[EntityType.Network].blockHeight! })
+				.from({ blockHeight: entityFieldCollections[EntityType.Network].blockHeight })
 				.where(({ blockHeight }) => (
 					eq(
 						blockHeight[EntityMetaKey.ParentIdKey],
@@ -78,30 +78,27 @@
 	const contractsQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ $$evmContracts: entityFieldCollections[EntityType.Network]['$$evmContracts']! })
-				.where(({ $$evmContracts }) => (
+				.from({ $$contracts: entityFieldCollections[EntityType.Network]['$$contracts'] })
+				.where(({ $$contracts }) => (
 					eq(
-						$$evmContracts[EntityMetaKey.ParentIdKey],
+						$$contracts[EntityMetaKey.ParentIdKey],
 						networkIdKey,
 					)
 				))
-				.where(({ $$evmContracts }) => (
+				.where(({ $$contracts }) => (
 					eq(
-						$$evmContracts[EntityMetaKey.Source],
+						$$contracts[EntityMetaKey.Source],
 						Source.Blockscout_Rest,
 					)
 				))
-				.orderBy(({ $$evmContracts }) => (
-					$$evmContracts[EntityMetaKey.IdKey]
+				.orderBy(({ $$contracts }) => (
+					$$contracts[EntityMetaKey.Value][EntityMetaKey.IdKey]
 				), 'desc')
 				.limit(16)
-				.select(({ $$evmContracts }) => (
-					{
-						[EntityMetaKey.Id]: (
-							$$evmContracts[EntityMetaKey.Value][EntityMetaKey.Id]
-						),
-					}
+				.select(({ $$contracts }) => (
+					{ value: $$contracts[EntityMetaKey.Value] }
 				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -134,48 +131,46 @@
 			placeholderText="Loading contracts…"
 			query={contractsQuery}
 		>
-			{#snippet children(contracts)}
-				<OrderedList
-					items={new SvelteSet(contracts ?? [])}
-					getKey={(row) => (
-						BigInt(
-							row[EntityMetaKey.Id].address,
-						)
-					)}
-					getStableItemKey={(row) => stringify(row[EntityMetaKey.Id])}
-					placeholderRanges={[]}
-					orientation={ListOrientation.Column}
-				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							No verified contracts for this network yet. Try again shortly.
-						</p>
-					{/snippet}
+			<OrderedList
+				items={contractsQuery.data?.map(({ value }) => value) ?? []}
+				getKey={(row) => stringify(row[EntityMetaKey.Id])}
+				getSortKey={(row) => (
+					BigInt(
+						row[EntityMetaKey.Id].address,
+					)
+				)}
+				placeholderRanges={[]}
+				orientation={ListOrientation.Column}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No verified contracts for this network yet. Try again shortly.
+					</p>
+				{/snippet}
 
-					{#snippet Item({ item: row, isPlaceholder })}
-						{#if isPlaceholder}
-							<span data-placeholder>
-								…
-							</span>
-						{:else if row}
-							<EvmContractView
-								entityId={row[EntityMetaKey.Id]}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-									{
-										networkId: String(
-											row[EntityMetaKey.Id].$network.chainId,
-										),
-										address: row[EntityMetaKey.Id].address,
-									},
-								)}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</OrderedList>
-			{/snippet}
+				{#snippet Item({ item: row, isPlaceholder })}
+					{#if isPlaceholder}
+						<span data-placeholder>
+							…
+						</span>
+					{:else if row}
+						<EvmContractView
+							entityId={row[EntityMetaKey.Id]}
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+								{
+									networkId: String(
+										row[EntityMetaKey.Id].$network.chainId,
+									),
+									address: row[EntityMetaKey.Id].address,
+								},
+							)}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</OrderedList>
 		</QueryBoundary>
 	{/snippet}
 </EntitiesList>

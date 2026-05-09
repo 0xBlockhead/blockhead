@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { type EntityFieldReference, type EntityId, schema } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -12,13 +13,14 @@
 
 
 	// State
-	import { coalesce, eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { SvelteSet } from 'svelte/reactivity'
 
 	import {
 		entityCollectionByEntityType,
 		entityFieldCollections,
 	} from '$/routes/+layout.svelte'
+	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
 
 
 	// Props
@@ -30,7 +32,7 @@
 		open = $bindable(true),
 		title = 'Posts',
 	}: {
-		entityFieldReference: EntityFieldReference<typeof EntityType.RedditLink>
+		entityFieldReference: EntityFieldReference<typeof schema, EntityType.RedditLink>
 		href: string
 		id: string
 		limit?: number
@@ -44,8 +46,11 @@
 			queryBuilder
 				.from({
 					linkFieldRow: (
-						entityFieldCollections[entityFieldReference.entityType]!
-					)[entityFieldReference.fieldName]!,
+						entityFieldCollectionForReference(
+							entityFieldCollections,
+							entityFieldReference,
+						)
+					),
 				})
 				.where(({ linkFieldRow }) => (
 					eq(
@@ -63,8 +68,7 @@
 					{ link: entityCollectionByEntityType[EntityType.RedditLink] },
 					({ linkFieldRow, link }) => (
 						eq(
-							// @ts-expect-error entity field row stores target id key
-							linkFieldRow[EntityMetaKey.Value]![EntityMetaKey.IdKey],
+							linkFieldRow[EntityMetaKey.Value][EntityMetaKey.IdKey],
 							link[EntityMetaKey.IdKey],
 						)
 					),
@@ -75,15 +79,12 @@
 						Source.Reddit_Rest,
 					)
 				))
-				.orderBy(({ link }) => coalesce(link.timestamp, 0), 'desc')
 				.orderBy(({ link }) => link[EntityMetaKey.IdKey], 'desc')
 				.limit(limit)
-				.select(({ linkFieldRow }) => ({
-					[EntityMetaKey.Id]: (
-						// @ts-expect-error entity field row stores target id
-						linkFieldRow[EntityMetaKey.Value]![EntityMetaKey.Id]
-					),
-				}))
+				.select(({ linkFieldRow }) => (
+					{ value: linkFieldRow[EntityMetaKey.Value] }
+				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -93,27 +94,12 @@
 		],
 	)
 
-	const linkItems = $derived.by(() => (
-		new SvelteSet(
-			(linksQuery.data ?? []).flatMap((row, order) => {
-				const linkId = row[EntityMetaKey.Id]
-				return (
-					linkId !== undefined
-					&& typeof linkId === 'object'
-					&& 'fullname' in linkId
-					&& typeof linkId.fullname === 'string'
-				) ?
-					[
-						{
-							...(linkId as EntityId<typeof schema, EntityType.RedditLink>),
-							order,
-						},
-					]
-				:	[]
-			}),
-		)
-	))
-
+	const linkItems = $derived(
+		(linksQuery.data ?? []).map(({ value: link }, order) => ({
+			...link[EntityMetaKey.Id],
+			order,
+		})),
+	)
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -131,7 +117,14 @@
 	items={linkItems}
 	bind:open
 	placeholderKeys={new SvelteSet<string>()}
-	query={linksQuery}
+	query={{
+		data: linkItems,
+		isLoading: linksQuery.isLoading,
+		isError: linksQuery.isError,
+		isReady: linksQuery.isReady,
+		error: linksQuery.error,
+		status: linksQuery.status,
+	}}
 	{title}
 >
 	{#snippet Empty()}

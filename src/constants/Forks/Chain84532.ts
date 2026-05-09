@@ -61,8 +61,7 @@ const forkRows: readonly Fork<ForkId>[] = [
 	{
 		forkId: ForkId.PectraBlobSchedule,
 		activation: { timestamp: 1_742_486_400 },
-		kind: ForkScheduleKind.Execution,
-		executionProtocol: ExecutionProtocol.OpStack,
+		kind: ForkScheduleKind.Blob,
 	},
 	{
 		forkId: ForkId.Isthmus,

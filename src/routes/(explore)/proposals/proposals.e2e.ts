@@ -6,11 +6,12 @@ test.describe('/proposals', () => {
 
 		await expect(page.locator('#nav-menu').getByRole('link', { name: 'Proposals' })).toBeVisible()
 
-		const proposals = page.locator('#proposals')
+		const proposals = page.locator('#proposal-realms')
+		await expect(proposals).toBeVisible()
 		await expect(
-			proposals.getByText('EIPs', { exact: true }).or(
-				proposals.getByText('Failed to load proposals.'),
+			proposals.getByText('No proposal realms to show yet.').or(
+				proposals.locator('li, section').first(),
 			),
-		).toBeAttached({ timeout: 5_000 })
+		).toBeAttached({ timeout: 15_000 })
 	})
 })

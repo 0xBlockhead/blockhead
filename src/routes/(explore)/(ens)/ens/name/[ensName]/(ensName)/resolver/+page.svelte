@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -73,7 +74,7 @@
 				))(
 					((r) => (
 						r !== undefined && typeof r === 'object' && !Array.isArray(r) ?
-							(r as Record<string, unknown>)
+							(r as Record<string, JsonValue>)
 						:
 							null
 					))(
@@ -82,7 +83,7 @@
 								?.map((item) => item.row)
 								.find((row) => row[EntityMetaKey.Source] === Source.Voltaire_JsonRpc)
 						)
-							?.[EntityMetaKey.Fields] as Record<string, unknown> | undefined)?.['$resolverContract'],
+							?.[EntityMetaKey.Fields] as Record<string, JsonValue> | undefined)?.['$resolverContract'],
 					),
 				)
 			)}

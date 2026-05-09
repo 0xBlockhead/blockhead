@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export enum BlockheadFarcasterConnectionAuthMethod {
 	Custody = 'custody',
@@ -36,10 +37,14 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'pfpUrl',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			name: '$icon',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Media,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Neynar_Rest,
+				Source.Snapchain_Rest,
+			],
 		},
 		{
 			name: 'bio',

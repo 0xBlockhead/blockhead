@@ -17,6 +17,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
+	import { mergeEntityCollectionRowFields } from '$/collections/mergeEntityCollectionRowFields.ts'
 	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 	import { htmlToPlainText } from '$/lib/html.ts'
@@ -51,6 +52,10 @@
 
 	const idKey = $derived(stringify(entityId))
 
+	const activityPubActorMergeSourceOrder = [
+		Source.Mastodon_Rest,
+	] as const
+
 	const actorQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
@@ -66,33 +71,30 @@
 		[() => idKey],
 	)
 
-	const summaryFields = $derived.by((): Record<string, unknown> | null => {
-		const r = actorQuery.data
-			?.find((e) => e.row[EntityMetaKey.Source] === Source.Mastodon_Rest)
-			?.row
-			?? actorQuery.data?.[0]?.row
-		const b = r?.[EntityMetaKey.Fields]
-		if (b === undefined || typeof b !== 'object' || Array.isArray(b)) {
-			return null
-		}
-		return b as Record<string, unknown>
-	})
+	const actorFields = $derived(
+		mergeEntityCollectionRowFields<EntityType.ActivityPubActor>(
+			actorQuery.data,
+			activityPubActorMergeSourceOrder,
+		),
+	)
 
 	const displayTitle = $derived(
-		(typeof summaryFields?.['displayName'] === 'string' && summaryFields['displayName']
-			? summaryFields['displayName']
-			:	undefined)
-		?? (typeof summaryFields?.['acct'] === 'string' ? summaryFields['acct'] : undefined)
-		?? (typeof summaryFields?.['username'] === 'string' ? summaryFields['username'] : undefined)
-		?? entityId.localAccountId
+		actorFields.displayName
+		?? actorFields.acct
+		?? actorFields.username
+		?? entityId.localAccountId,
 	)
+
+	const avatarUrl = $derived((
+		actorFields.$icon?.[EntityMetaKey.Id].url
+	))
 
 
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
 </script>
 
@@ -106,37 +108,33 @@
 	title={displayTitle}
 >
 	{#snippet Icon()}
-		{@const s = summaryFields}
-		{@const a = s != null && typeof s['avatarUrl'] === 'string' ? s['avatarUrl'] : null}
-		{#if a}
-			<Icon
+		{#if avatarUrl !== undefined}
+			<IconComponent
 				alt={(
-					(s != null && typeof s['displayName'] === 'string' && s['displayName'])
-					?? (s != null && typeof s['acct'] === 'string' && s['acct'])
-					?? (s != null && typeof s['username'] === 'string' && s['username'])
+					actorFields.displayName
+					?? actorFields.acct
+					?? actorFields.username
 					?? ''
 				)}
 				shape={IconShape.Circle}
-				src={a}
+				src={avatarUrl}
 			/>
 		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{@const s = summaryFields}
-		{@const u = s != null && typeof s['username'] === 'string' && s['username'] !== displayTitle ? s['username'] : null}
-		{#if u}
+		{#if actorFields.username !== undefined && actorFields.username !== displayTitle}
 			<span data-text="muted">
-				@{u}
+				@{actorFields.username}
 			</span>
 		{/if}
 	{/snippet}
 
 	{#snippet Content()}
 		<div data-column>
-			{#if typeof summaryFields?.['note'] === 'string' && summaryFields['note'].length}
+			{#if actorFields.note}
 				<p data-text="muted">
-					{htmlToPlainText(summaryFields['note'])}
+					{htmlToPlainText(actorFields.note)}
 				</p>
 			{/if}
 			<div data-text="mono muted">
@@ -158,47 +156,36 @@
 				query={actorQuery}
 			>
 				{#snippet children(mastoRestActorResultRows)}
-					{@const detailFields = (() => {
-						const r = mastoRestActorResultRows
-							?.find((e) => e.row[EntityMetaKey.Source] === Source.Mastodon_Rest)
-							?.row
-							?? mastoRestActorResultRows?.[0]?.row
-						const b = r?.[EntityMetaKey.Fields]
-						if (b === undefined || typeof b !== 'object' || Array.isArray(b)) {
-							return null
-						}
-						return b as Record<string, unknown>
-					})()}
-					{#if detailFields == null}
+					{#if mastoRestActorResultRows.length === 0}
 						<p data-text="muted">
 							No account data in the app for this id yet. Try again shortly, or check that the Mastodon instance
 							API can be reached.
 						</p>
 					{:else}
 						<dl>
-							{#if typeof detailFields['username'] === 'string' && detailFields['username']}
+							{#if actorFields.username}
 								<div>
 									<dt>Username</dt>
-									<dd>{detailFields['username']}</dd>
+									<dd>{actorFields.username}</dd>
 								</div>
 							{/if}
-							{#if typeof detailFields['acct'] === 'string' && detailFields['acct']}
+							{#if actorFields.acct}
 								<div>
 									<dt>Acct</dt>
-									<dd>{detailFields['acct']}</dd>
+									<dd>{actorFields.acct}</dd>
 								</div>
 							{/if}
-							{#if typeof detailFields['displayName'] === 'string' && detailFields['displayName']}
+							{#if actorFields.displayName}
 								<div>
 									<dt>Display name</dt>
-									<dd>{detailFields['displayName']}</dd>
+									<dd>{actorFields.displayName}</dd>
 								</div>
 							{/if}
-							{#if typeof detailFields['note'] === 'string' && detailFields['note']}
+							{#if actorFields.note}
 								<div>
 									<dt>About</dt>
 									<dd>
-										{htmlToPlainText(detailFields['note'])}
+										{htmlToPlainText(actorFields.note)}
 									</dd>
 								</div>
 							{/if}

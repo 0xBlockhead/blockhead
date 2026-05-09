@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntityFieldValues, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -71,25 +71,19 @@
 	const connectionField = $derived(
 		(() => {
 			const bag = connectionRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const f = bag as Record<string, unknown>
-			const verifications = f['verifications']
-			const signedAt = f['signedAt']
-			const pick = (key: string) => {
-				const x = f[key]
-				return typeof x === 'string' && x.length ? x : undefined
-			}
+			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+			const f: Partial<EntityFieldValues<typeof schema, EntityType.BlockheadFarcasterAccountConnection>> = bag
 			return {
-				username: pick('username'),
-				displayName: pick('displayName'),
-				pfpUrl: pick('pfpUrl'),
-				bio: pick('bio'),
-				custody: pick('custody'),
-				authMethod: pick('authMethod'),
-				verifications: Array.isArray(verifications) ?
-					verifications.filter((value): value is string => typeof value === 'string' && value.length)
+				username: typeof f.username === 'string' && f.username.length ? f.username : undefined,
+				displayName: typeof f.displayName === 'string' && f.displayName.length ? f.displayName : undefined,
+				avatarUrl: f.$icon?.[EntityMetaKey.Id].url,
+				bio: typeof f.bio === 'string' && f.bio.length ? f.bio : undefined,
+				custody: typeof f.custody === 'string' && f.custody.length ? f.custody : undefined,
+				authMethod: f.authMethod,
+				verifications: Array.isArray(f.verifications) ?
+					f.verifications.filter((value): value is string => typeof value === 'string' && value.length > 0)
 				:	undefined,
-				signedAt: typeof signedAt === 'number' ? signedAt : undefined,
+				signedAt: typeof f.signedAt === 'number' ? f.signedAt : undefined,
 			}
 		})(),
 	)
@@ -126,7 +120,7 @@
 
 	{#snippet Content()}
 		{#if String(entityId.fid) !== displayTitle}
-			<dl data-definition-list="vertical">
+			<dl>
 				<div>
 					<dt>FID</dt>
 					<dd>{String(entityId.fid)}</dd>
@@ -154,7 +148,7 @@
 						<p data-text="muted">
 							No Farcaster connection data yet.
 						</p>
-					{:else if connectionField === undefined}
+					{:else if connectionField == null}
 						<dl>
 							<div>
 								<dt>FID</dt>
@@ -179,15 +173,15 @@
 									<dd>{connectionField.username}</dd>
 								</div>
 							{/if}
-							{#if connectionField.pfpUrl !== undefined}
+							{#if connectionField.avatarUrl !== undefined}
 								<div>
 									<dt>Profile image</dt>
 									<dd data-column>
 										<Media
-											media={{ url: connectionField.pfpUrl }}
+											media={{ url: connectionField.avatarUrl }}
 											alt={connectionField.displayName ?? connectionField.username ?? ''}
 										/>
-										<a href={connectionField.pfpUrl}>{connectionField.pfpUrl}</a>
+										<a href={connectionField.avatarUrl}>{connectionField.avatarUrl}</a>
 									</dd>
 								</div>
 							{/if}

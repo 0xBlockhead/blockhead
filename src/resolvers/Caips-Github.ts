@@ -2,22 +2,24 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import { parseFrontmatter, stripFrontmatter } from '$/lib/markdownFrontmatter.ts'
 import { regex } from 'arkregex'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
 
-const caipMarkdownFilename = regex('^caip-(?<caipNumber>\\d+)\\.md$')
-
-const resolveCaipProposalRows = async () => {
+const githubCaipProposalIndexRows = async (
+	data: {
+		type: string
+		name: string
+	}[],
+) => {
 	const { ProposalCategory, ProposalRealm } = await import('$/constants/Proposal.ts')
-	const { getCaipsGithubContents } = await import('$/sources/Caips/Github/queries.ts')
-
-	const data = await singleFlight(getCaipsGithubContents)()
 	const markdownFiles = data.filter((entry) => entry.type === 'file' && entry.name.endsWith('.md'))
 	return [...markdownFiles
 		.flatMap((markdownFile) => {
-			const caipNumberRaw = caipMarkdownFilename.exec(markdownFile.name)?.groups?.caipNumber
+			const caipNumberRaw = regex('^caip-(?<caipNumber>\\d+)\\.md$').exec(markdownFile.name)?.groups?.caipNumber
 			const caipNumber = caipNumberRaw != null ? parseInt(caipNumberRaw, 10) : null
 			return caipNumber == null ?
 				[]
@@ -42,7 +44,7 @@ const resolveCaipProposalRows = async () => {
 }
 
 export default {
-	source: 'Caips_Github' satisfies import('$/sources/$Source.ts').Source,
+	source: Source.Caips_Github,
 
 	entityResolvers: [
 		defineEntityResolver({
@@ -51,8 +53,6 @@ export default {
 				const { ProposalCategory, ProposalRealm } = await import('$/constants/Proposal.ts')
 				const {
 					getCaipMarkdownTextForNumber,
-					parseFrontmatter,
-					stripFrontmatter,
 				} = await import('$/sources/Caips/Github/queries.ts')
 
 				if (
@@ -79,27 +79,31 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$proposals',
-			resolve: async () => resolveCaipProposalRows(),
+			resolve: async () => {
+				const { getCaipsGithubContents } = await import('$/sources/Caips/Github/queries.ts')
+				return githubCaipProposalIndexRows(await singleFlight(getCaipsGithubContents)())
+			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.ProposalRealm,
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
 				const { ProposalRealm } = await import('$/constants/Proposal.ts')
-				return entityId.realm === ProposalRealm.ChainAgnostic ? resolveCaipProposalRows() : []
+				if (entityId.realm !== ProposalRealm.ChainAgnostic) return []
+				const { getCaipsGithubContents } = await import('$/sources/Caips/Github/queries.ts')
+				return githubCaipProposalIndexRows(await singleFlight(getCaipsGithubContents)())
 			},
 		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.ProposalKind,
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
 				const { ProposalCategory, ProposalRealm } = await import('$/constants/Proposal.ts')
-				return (
-					entityId.realm === ProposalRealm.ChainAgnostic && entityId.category === ProposalCategory.Caip ?
-						resolveCaipProposalRows()
-					:
-						[]
-				)
+				if (entityId.realm !== ProposalRealm.ChainAgnostic || entityId.category !== ProposalCategory.Caip) return []
+				const { getCaipsGithubContents } = await import('$/sources/Caips/Github/queries.ts')
+				return githubCaipProposalIndexRows(await singleFlight(getCaipsGithubContents)())
 			},
 		}),
 	],

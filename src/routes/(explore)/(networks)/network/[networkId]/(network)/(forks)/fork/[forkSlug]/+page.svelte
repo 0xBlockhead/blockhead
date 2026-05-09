@@ -19,21 +19,20 @@
 
 
 <Page>
-	<section>
 		<NetworkForkView
-			entityId={{
-				$network: { chainId: Number(params.networkId) },
-				forkId: (
-					networkForkIdFromChainIdAndUrlSegment(
-						Number(params.networkId),
-						params.forkSlug,
-					) ?? params.forkSlug
-				),
-			}}
-			href={resolve(
-				'/(explore)/(networks)/network/[networkId]/(network)/(forks)/fork/[forkSlug]',
-				params,
-			)}
-		/>
-	</section>
+		entityId={{
+			$network: { chainId: Number(params.networkId) },
+			forkId: (
+				networkForkIdFromChainIdAndUrlSegment(
+					Number(params.networkId),
+					params.forkSlug,
+				) ?? params.forkSlug
+			),
+		}}
+		href={resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(forks)/fork/[forkSlug]',
+			params,
+		)}
+	/>
 </Page>
+

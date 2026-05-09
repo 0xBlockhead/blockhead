@@ -56,59 +56,70 @@
 		[() => ensNameIdKey],
 	)
 
-	const parseTextRecordKeys = (raw: unknown) => {
-		if (
-			raw === undefined
-			|| typeof raw !== 'object'
-			|| Array.isArray(raw)
-		) return [] as string[]
-		return Object.keys(raw as Record<string, unknown>).filter((k) => (
-			typeof (raw as Record<string, unknown>)[k] === 'string'
-		))
-	}
-
-	const stringListFromBag = (raw: unknown) => (
-		Array.isArray(raw) ?
-			raw.filter((x): x is string => typeof x === 'string')
-		:	[]
-	)
-
-	const textRecordRank = (key: string) => (
-		key in ensTextRecordDisplayRank ?
-			ensTextRecordDisplayRank[key as keyof typeof ensTextRecordDisplayRank]
-		:	9999
-	)
-
-	const sortKeys = (keys: string[]) => (
-		[...keys].toSorted((a, b) => (
-			(() => {
-				const ra = textRecordRank(a)
-				const rb = textRecordRank(b)
-				return ra !== rb ?
+	const keysResolved = $derived.by(() => {
+		if (recordKeysProp !== undefined) {
+			return [...recordKeysProp].toSorted((a, b) => (
+				((
+					ra,
+					rb,
+				) => (
+					ra !== rb ?
 						ra - rb
 					:	a.localeCompare(b)
-			})()
-		))
-	)
-
-	const keysResolved = $derived.by(() => {
-		if (recordKeysProp !== undefined) return sortKeys(recordKeysProp)
+				))(
+					a in ensTextRecordDisplayRank ?
+						ensTextRecordDisplayRank[a]
+					:	9999,
+					b in ensTextRecordDisplayRank ?
+						ensTextRecordDisplayRank[b]
+					:	9999,
+				)
+			))
+		}
 		const rows = ensRowsQuery.data?.map((item) => item.row) ?? []
-		const v = rows.find((r) => r[EntityMetaKey.Source] === Source.Voltaire_JsonRpc)
-			?.[EntityMetaKey.Fields] as Record<string, unknown> | undefined
-		const g = rows.find((r) => r[EntityMetaKey.Source] === Source.TheGraph_Graphql)
-			?.[EntityMetaKey.Fields] as Record<string, unknown> | undefined
-		const fromLive = parseTextRecordKeys(v?.textRecords)
-		const fromIndex = stringListFromBag(g?.resolverTextKeys)
-		const merged = [...new Set([...fromLive, ...fromIndex])]
-		return sortKeys(merged)
+		const vRaw = rows.find((r) => r[EntityMetaKey.Source] === Source.Voltaire_JsonRpc)?.[EntityMetaKey.Fields]
+		const v = (typeof vRaw === 'object' && vRaw !== null && !Array.isArray(vRaw)) ? vRaw : undefined
+		const gRaw = rows.find((r) => r[EntityMetaKey.Source] === Source.TheGraph_Graphql)?.[EntityMetaKey.Fields]
+		const g = (typeof gRaw === 'object' && gRaw !== null && !Array.isArray(gRaw)) ? gRaw : undefined
+		const fromLive = (
+			v !== undefined
+			&& typeof v.textRecords === 'object'
+			&& v.textRecords !== null
+			&& !Array.isArray(v.textRecords) ?
+				Object.entries(v.textRecords).flatMap(([k, val]) => (
+					typeof val === 'string' ?
+						[k]
+					:	[]
+				))
+			:	[]
+		)
+		const fromIndex = (
+			Array.isArray(g?.resolverTextKeys) ?
+				g.resolverTextKeys.filter((x): x is string => typeof x === 'string')
+			:	[]
+		)
+		return [...new Set([...fromLive, ...fromIndex])].toSorted((a, b) => (
+			((
+				ra,
+				rb,
+			) => (
+				ra !== rb ?
+					ra - rb
+				:	a.localeCompare(b)
+			))(
+				a in ensTextRecordDisplayRank ?
+					ensTextRecordDisplayRank[a]
+				:	9999,
+				b in ensTextRecordDisplayRank ?
+					ensTextRecordDisplayRank[b]
+				:	9999,
+			)
+		))
 	})
 
-	const items = $derived.by(() => {
-		const s = new SvelteSet<string>()
-		for (const k of keysResolved) s.add(k)
-		return s
-	})
+	const items = $derived(
+		new SvelteSet(keysResolved),
+	)
 
 	const placeholderKeys = new SvelteSet<string>()
 

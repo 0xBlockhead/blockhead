@@ -12,7 +12,7 @@ import type {
 } from '$/sources/CoinMarketCap/Rest/types.ts'
 
 /**
- * `GET /v2/cryptocurrency/quotes/latest`
+ * `GET /v3/cryptocurrency/quotes/latest`
  */
 export const getCoinMarketCapQuotesLatest = async ({
 	publicEnv,
@@ -23,7 +23,7 @@ export const getCoinMarketCapQuotesLatest = async ({
 }) => (
 	await coinMarketCapFetch<CoinMarketCapQuotesLatestResponse>(
 		publicEnv,
-		`/v2/cryptocurrency/quotes/latest?id=${id}&convert=USD`,
+		`/v3/cryptocurrency/quotes/latest?id=${id}&convert=USD`,
 	)
 )
 

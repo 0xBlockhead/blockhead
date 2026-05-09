@@ -19,6 +19,8 @@
 
 	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
+	import { isEntityReferenceWithId } from '$/lib/isEntityReferenceWithId.ts'
+
 
 	// Props
 	let {
@@ -65,9 +67,9 @@
 	)
 
 	const f = $derived.by(() => {
-		const bag = rowQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		if (bag === undefined || typeof bag !== 'object') return null
-		const rec = bag as Record<string, unknown>
+		const bagUnknown = rowQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
+		if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) return null
+		const rec = bagUnknown
 		const t = rec['title']
 		const st = rec['selftext']
 		const u = rec['url']
@@ -79,16 +81,9 @@
 			url: typeof u === 'string' && u.length ? u : undefined,
 			author: typeof a === 'string' && a.length ? a : undefined,
 			subId: (
-				subRef !== undefined
-				&& typeof subRef === 'object'
-				&& EntityMetaKey.Id in subRef ?
-					(
-						subRef as {
-							[EntityMetaKey.Id]: EntityId<typeof schema, EntityType.RedditSubreddit>
-						}
-					)[EntityMetaKey.Id]
-				:
-					undefined
+				isEntityReferenceWithId<EntityType.RedditSubreddit>(subRef) ?
+					subRef[EntityMetaKey.Id]
+				:	undefined
 			),
 		}
 	})
@@ -244,7 +239,7 @@
 					data-scroll-container="inline layout-carousel carousel-marker-tabs"
 					data-row="start align-start"
 				>
-					<section>
+					<section data-scroll-marker-label="Comments">
 						<RedditCommentsView
 							entityFieldReference={{
 								entityType: EntityType.RedditLink,

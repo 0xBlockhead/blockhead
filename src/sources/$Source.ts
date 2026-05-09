@@ -30,6 +30,7 @@ export enum Source {
 	Github_Rest = 'Github_Rest',
 	Hypersnap_Rest = 'Hypersnap_Rest',
 	Ipfs_Rest = 'Ipfs_Rest',
+	L2Beat_Rest = 'L2Beat_Rest',
 	Lens_Graphql = 'Lens_Graphql',
 	Lifi_Rest = 'Lifi_Rest',
 	Local_Internal = 'Local_Internal',
@@ -39,7 +40,9 @@ export enum Source {
 	Reddit_Rest = 'Reddit_Rest',
 	Snapchain_Rest = 'Snapchain_Rest',
 	Sourcify_Rest = 'Sourcify_Rest',
+	Swarm_Rest = 'Swarm_Rest',
 	TheGraph_Graphql = 'TheGraph_Graphql',
+	TradingView_Rest = 'TradingView_Rest',
 	Voltaire_JsonRpc = 'Voltaire_JsonRpc',
 	X_Rest = 'X_Rest',
 }

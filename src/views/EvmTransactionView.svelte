@@ -73,8 +73,8 @@
 	const txField = $derived(
 		(() => {
 			const bag = txRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
+			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+			const b = bag
 			return {
 				value: typeof b.value === 'bigint' ? b.value : undefined,
 				nonce: typeof b.nonce === 'number' ? b.nonce : undefined,

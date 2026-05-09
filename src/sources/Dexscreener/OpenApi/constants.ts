@@ -16,10 +16,10 @@ const chains = [
 }[]
 
 /** Dexscreener `{chainId}` path segment → EVM **`chainId`**. */
-export const apiChainIdByChainId = Object.fromEntries(
+export const apiChainIdByChainId: Partial<Record<number, string>> = Object.fromEntries(
 	chains
 		.map((entry) => [
 			entry.chainId,
 			entry.apiChainId,
 		]),
-) as Partial<Record<number, string>>
+)

@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -66,31 +67,35 @@
 
 	const conversationField = $derived(
 		(() => {
-			const bag = conversationRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
+			const bagUnknown = conversationRow?.[EntityMetaKey.Fields]
+			if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) return null
+			const b: Record<string, JsonValue> = bagUnknown
 			const strOrNull = (key: string) => (
 				!(
 					key in b
 				) ?
 					undefined
 				: b[key] === undefined ?
-					null
-				: typeof b[key] === 'string' ?
-					(b[key] as string)
-				:
 					undefined
+				: (() => {
+					const v = b[key]
+					return typeof v === 'string' ? v : undefined
+				})()
 			)
 			const name = (
 				!(
 					'name' in b
 				) ?
 					undefined
-				: b.name === null || typeof b.name === 'string' ?
-					(b.name as string | null)
+				: b.name === null ?
+					null
+				: typeof b.name === 'string' ?
+					b.name
 				:
 					undefined
 			)
+			const createdAtVal = b.createdAt
+			const updatedAtVal = b.updatedAt
 			return {
 				name,
 				pinned: typeof b.pinned === 'boolean' ? b.pinned : undefined,
@@ -98,13 +103,13 @@
 				defaultConnectionId: strOrNull('defaultConnectionId'),
 				defaultModelId: strOrNull('defaultModelId'),
 				createdAt: (
-					typeof b.createdAt === 'number' && Number.isFinite(b.createdAt) ?
-						(b.createdAt as number)
+					typeof createdAtVal === 'number' && Number.isFinite(createdAtVal) ?
+						createdAtVal
 					:	undefined
 				),
 				updatedAt: (
-					typeof b.updatedAt === 'number' && Number.isFinite(b.updatedAt) ?
-						(b.updatedAt as number)
+					typeof updatedAtVal === 'number' && Number.isFinite(updatedAtVal) ?
+						updatedAtVal
 					:	undefined
 				),
 			}
@@ -131,10 +136,14 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={conversationField?.name !== undefined && conversationField.name.length ? conversationField.name : entityId.id}
+	title={(
+		typeof conversationField?.name === 'string' && conversationField.name.length > 0 ?
+			conversationField.name
+		:	entityId.id
+	)}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Conversation id</dt>
 				<dd>

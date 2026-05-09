@@ -66,8 +66,8 @@
 
 	const f = $derived.by(() => {
 		const bag = rowQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		if (bag === undefined || typeof bag !== 'object') return null
-		const rec = bag as Record<string, unknown>
+		if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+		const rec = bag
 		const text = rec['text']
 		const ts = rec['timestamp']
 		const authorRef = rec['$author']
@@ -75,12 +75,8 @@
 			text: typeof text === 'string' && text.length ? text : undefined,
 			timestamp: typeof ts === 'number' && Number.isFinite(ts) ? ts : undefined,
 			authorId: (
-				authorRef !== undefined
-				&& typeof authorRef === 'object'
-				&& EntityMetaKey.Id in authorRef ?
-					(authorRef as { [EntityMetaKey.Id]: EntityId<typeof schema, EntityType.LensAccount> })[
-						EntityMetaKey.Id
-					]
+				(typeof authorRef === 'object' && authorRef !== null && !Array.isArray(authorRef)) && EntityMetaKey.Id in authorRef ?
+					authorRef[EntityMetaKey.Id]
 				:
 					undefined
 			),
@@ -120,7 +116,7 @@
 					{f.text}
 				</p>
 			{/if}
-			<dl data-definition-list="vertical">
+			<dl>
 				{#if f !== undefined && f.authorId !== undefined}
 					<div>
 						<dt>Author</dt>

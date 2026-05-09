@@ -3,9 +3,7 @@
  * @see https://docs.dune.com/api-reference/overview/authentication.md
  */
 
-import {
-	requiredPublicEnvString,
-} from '$/lib/sources.ts'
+import { requiredPublicEnvString } from '$/lib/sources.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { baseUrl } from '$/sources/Dune/Rest/constants.ts'
@@ -29,5 +27,5 @@ export async function duneFetch<T>(
 		headers: { ...duneRequestHeaders(publicEnv), ...init?.headers },
 	})
 	if (!res.ok) throw new Error(`Dune API ${res.status}: ${await res.text()}`)
-	return res.json() as Promise<T>
+	return res.json<T>()
 }

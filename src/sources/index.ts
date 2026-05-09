@@ -8,7 +8,6 @@ import {
 } from '$/sources/$Source.ts'
 
 import {
-	SourceProvider,
 	type SourceProviderDefinition,
 } from '$/sources/$SourceProvider.ts'
 
@@ -35,6 +34,7 @@ import Farcaster from '$/sources/Farcaster/index.ts'
 import Github from '$/sources/Github/index.ts'
 import Hypersnap from '$/sources/Hypersnap/index.ts'
 import Ipfs from '$/sources/Ipfs/index.ts'
+import L2Beat from '$/sources/L2Beat/index.ts'
 import Lifi from '$/sources/Lifi/index.ts'
 import Lens from '$/sources/Lens/index.ts'
 import Local from '$/sources/Local/index.ts'
@@ -44,7 +44,9 @@ import Openchain from '$/sources/Openchain/index.ts'
 import Reddit from '$/sources/Reddit/index.ts'
 import Snapchain from '$/sources/Snapchain/index.ts'
 import Sourcify from '$/sources/Sourcify/index.ts'
+import Swarm from '$/sources/Swarm/index.ts'
 import TheGraph from '$/sources/TheGraph/index.ts'
+import TradingView from '$/sources/TradingView/index.ts'
 import Voltaire from '$/sources/Voltaire/index.ts'
 import X from '$/sources/X/index.ts'
 
@@ -74,6 +76,7 @@ const sourceProviderDefinitions = [
 	Github,
 	Hypersnap,
 	Ipfs,
+	L2Beat,
 	Lens,
 	Lifi,
 	Local,
@@ -83,7 +86,9 @@ const sourceProviderDefinitions = [
 	Reddit,
 	Snapchain,
 	Sourcify,
+	Swarm,
 	TheGraph,
+	TradingView,
 	Voltaire,
 	X,
 ] as const satisfies readonly SourceProviderDefinition[]
@@ -139,7 +144,7 @@ export const resolverPublicEnv = (
 ) satisfies SourcePublicEnvWire
 
 const envSubsetFromSchema = (
-	envSchema: SourceProviderDefinition['env'] | SourceDefinition['env'],
+	envSchema: SourceProviderDefinition['env']  ,
 ): SourcePublicEnvWire | null => {
 	if (envSchema == null) return {}
 	const out = envSchema(resolverPublicEnv)

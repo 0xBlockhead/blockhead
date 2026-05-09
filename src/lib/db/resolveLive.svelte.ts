@@ -2,6 +2,7 @@
 import type { Query, QueryClient } from '@tanstack/query-core'
 import { parseLoadSubsetOptions } from '@tanstack/svelte-db'
 import { entityFieldCollectionQueryKeyBase } from '$/collections/$collections.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 import {
 	entityCollectionsQueryClient,
 	entityFieldCollections,
@@ -18,18 +19,22 @@ import type { EntityType } from '$/schema/$EntityType.ts'
 import type { Source } from '$/sources/$Source.ts'
 import { stringify } from 'devalue'
 
+import type { ResolveLiveContext } from '$/resolvers/$resolvers.ts'
+
 
 // Entity field collection invalidation
 const comparisonValuesForField = (
 	query: Query,
 	fieldName: string,
-): Set<unknown> => {
+): Set<JsonValue | undefined> => {
 	try {
+		const meta = query.options.meta
 		return new Set(
 			(parseLoadSubsetOptions(
-				(
-					query.options.meta as { loadSubsetOptions?: unknown } | undefined
-				)?.loadSubsetOptions,
+				typeof meta === 'object' && meta != null && 'loadSubsetOptions' in meta ?
+					meta.loadSubsetOptions
+				:
+					undefined,
 			).filters ?? [])
 				.filter((clause) => (
 					String(clause.field[clause.field.length - 1] ?? '') === fieldName
@@ -66,13 +71,14 @@ const deleteEntityFieldRowsForContext = <_EntityType extends SchemaEntityType<ty
 	const parentIdKeys = new Set(
 		parentEntityIds.map((id) => stringify(id)),
 	)
-	const sourceSet = sources != null ? new Set(sources) : null
+	const sourceKeys = sources != null ? new Set(sources.map(String)) : null
 
 	const keysToDelete: (string | number)[] = []
 	for (const [rowKey, row] of fieldCollection.entries()) {
-		const r = row as Record<string, unknown>
+		if (!(typeof row === 'object' && row !== null && !Array.isArray(row))) continue
+		const r = row
 		if (!parentIdKeys.has(String(r[EntityMetaKey.ParentIdKey]))) continue
-		if (sourceSet != null && !sourceSet.has(r[EntityMetaKey.Source] as Source)) continue
+		if (sourceKeys != null && !sourceKeys.has(String(r[EntityMetaKey.Source]))) continue
 		keysToDelete.push(rowKey)
 	}
 	if (keysToDelete.length === 0) return
@@ -95,7 +101,7 @@ const writeEntityFieldUpsertsForContext = <_EntityType extends SchemaEntityType<
 		parentEntityId?: EntityId<typeof schema, _EntityType>
 		parentIdKey?: string
 		source: Source
-		value: unknown
+		value: JsonValue
 	}[]
 	defaultParentEntityId: EntityId<typeof schema, _EntityType>
 }): void => {
@@ -133,101 +139,82 @@ export const invalidateEntityFieldQueries = (
 			const parentIdKeys = new Set(
 				(parentEntityIds ?? []).map((parentEntityId) => stringify(parentEntityId)),
 			)
-			const sourceSet = new Set(sources ?? [])
-			return (
-			queryClient.invalidateQueries(
-				{
-					queryKey: [entityFieldCollectionQueryKeyBase(entityType), fieldName],
-					predicate: (query) => {
-						if (!Array.isArray(query.queryKey)) return false
-						if (query.queryKey[0] !== entityFieldCollectionQueryKeyBase(entityType)) return false
-						if (query.queryKey[1] !== fieldName) return false
+			const sourceKeys = new Set((sources ?? []).map(String))
+			return queryClient.invalidateQueries({
+				queryKey: [entityFieldCollectionQueryKeyBase(entityType), fieldName],
+				predicate: (query) => {
+					if (!Array.isArray(query.queryKey)) return false
+					if (query.queryKey[0] !== entityFieldCollectionQueryKeyBase(entityType)) return false
+					if (query.queryKey[1] !== fieldName) return false
 
-						if (parentIdKeys.size > 0) {
-							const queryParentIdKeys = comparisonValuesForField(
-								query,
-								EntityMetaKey.ParentIdKey,
-							)
-							if (
-								queryParentIdKeys.size > 0
-								&& ![...queryParentIdKeys].some((value) => parentIdKeys.has(String(value)))
-							) {
-								return false
-							}
+					if (parentIdKeys.size > 0) {
+						const queryParentIdKeys = comparisonValuesForField(
+							query,
+							EntityMetaKey.ParentIdKey,
+						)
+						if (
+							queryParentIdKeys.size > 0
+							&& ![...queryParentIdKeys].some((value) => parentIdKeys.has(String(value)))
+						) {
+							return false
 						}
+					}
 
-						if (sourceSet.size > 0) {
-							const querySources = comparisonValuesForField(
-								query,
-								EntityMetaKey.Source,
-							)
-							if (
-								querySources.size > 0
-								&& ![...querySources].some((value): value is Source => sourceSet.has(value as Source))
-							) {
-								return false
-							}
+					if (sourceKeys.size > 0) {
+						const querySources = comparisonValuesForField(
+							query,
+							EntityMetaKey.Source,
+						)
+						if (
+							querySources.size > 0
+							&& ![...querySources].some((value) => sourceKeys.has(String(value)))
+						) {
+							return false
 						}
+					}
 
-						return true
-					},
-					refetchType: 'all',
+					return true
 				},
-			)
-			)
+				refetchType: 'all',
+			})
 		}),
-	)
+	).then(() => undefined)
 )
 
-const createSharedResolveLiveSubscription = <_EntityType extends SchemaEntityType<typeof schema>>({
+type ResolveLiveFunction = (
+	ctx: ResolveLiveContext<typeof schema, SchemaEntityType<typeof schema>>,
+) => void | Promise<void> | (() => void) | Promise<() => void>
+type ResolveLiveEntityFieldOptions = {
+	parentEntityIds?: readonly EntityId<typeof schema, EntityType>[]
+	sources?: readonly Source[]
+}
+type ResolveLiveEntityFieldUpsertRow = {
+	parentEntityId?: EntityId<typeof schema, EntityType>
+	parentIdKey?: string
+	source: Source
+	value: JsonValue
+}
+
+const createSharedResolveLiveSubscription = ({
 	entityType,
 	parentEntityId,
 	queryClient,
 	resolveLive,
 	scopeKey,
-	signal,
 	source,
 }: {
-	entityType: _EntityType
-	parentEntityId: EntityId<typeof schema, _EntityType>
+	entityType: EntityType
+	parentEntityId: EntityId<typeof schema, EntityType>
 	queryClient: QueryClient
-	resolveLive: (ctx: {
-		invalidate: (
-			fieldNames: readonly string[],
-			options?: {
-				parentEntityIds?: readonly EntityId<typeof schema, _EntityType>[]
-				sources?: readonly Source[]
-			},
-		) => Promise<void>
-		deleteEntityFieldRows: (
-			fieldName: string,
-			options?: {
-				parentEntityIds?: readonly EntityId<typeof schema, _EntityType>[]
-				sources?: readonly Source[]
-			},
-		) => void
-		writeEntityFieldUpserts: (
-			fieldName: string,
-			rows: readonly {
-				parentEntityId?: EntityId<typeof schema, _EntityType>
-				parentIdKey?: string
-				source: Source
-				value: unknown
-			}[],
-		) => void
-		parentEntityId: EntityId<typeof schema, _EntityType>
-		queryClient: QueryClient
-		signal: AbortSignal
-	}) => void | Promise<void> | (() => void) | Promise<() => void>
+	resolveLive: ResolveLiveFunction
 	scopeKey: string
-	signal: AbortSignal
 	source: Source
 }): (() => void) => {
 	const sharedSubscriptionsByKey = (
-		sharedEntityFieldResolveLiveSubscriptionsByQueryClient.get(queryClient)
-		?? new Map<string, SharedEntityFieldResolveLiveSubscription>()
+		sharedResolveLiveSubscriptionsByQueryClient.get(queryClient)
+		?? new Map<string, SharedResolveLiveSubscription>()
 	)
-	sharedEntityFieldResolveLiveSubscriptionsByQueryClient.set(queryClient, sharedSubscriptionsByKey)
+	sharedResolveLiveSubscriptionsByQueryClient.set(queryClient, sharedSubscriptionsByKey)
 
 	const existing = sharedSubscriptionsByKey.get(scopeKey)
 	if (existing != null) {
@@ -271,7 +258,7 @@ const createSharedResolveLiveSubscription = <_EntityType extends SchemaEntityTyp
 		sharedSubscriptionsByKey.delete(scopeKey)
 	}
 
-	const subscription: SharedEntityFieldResolveLiveSubscription = {
+	const subscription: SharedResolveLiveSubscription = {
 		refCount: 1,
 		dispose,
 	}
@@ -279,7 +266,10 @@ const createSharedResolveLiveSubscription = <_EntityType extends SchemaEntityTyp
 
 	void Promise.resolve(
 		resolveLive({
-			invalidate: (fieldNames, options) => (
+			invalidate: (
+				fieldNames: readonly string[],
+				options?: ResolveLiveEntityFieldOptions,
+			) => (
 				invalidateEntityFieldQueries(
 					queryClient,
 					{
@@ -290,7 +280,10 @@ const createSharedResolveLiveSubscription = <_EntityType extends SchemaEntityTyp
 					},
 				)
 			),
-			deleteEntityFieldRows: (fieldName, options) => {
+			deleteEntityFieldRows: (
+				fieldName: string,
+				options?: ResolveLiveEntityFieldOptions,
+			) => {
 				deleteEntityFieldRowsForContext({
 					entityType,
 					fieldName,
@@ -298,7 +291,10 @@ const createSharedResolveLiveSubscription = <_EntityType extends SchemaEntityTyp
 					sources: options?.sources,
 				})
 			},
-			writeEntityFieldUpserts: (fieldName, rows) => {
+			writeEntityFieldUpserts: (
+				fieldName: string,
+				rows: readonly ResolveLiveEntityFieldUpsertRow[],
+			) => {
 				writeEntityFieldUpsertsForContext({
 					entityType,
 					fieldName,
@@ -312,7 +308,7 @@ const createSharedResolveLiveSubscription = <_EntityType extends SchemaEntityTyp
 		}),
 	)
 		.then((cleanup) => {
-			if (typeof cleanup !== 'function') return
+			if (typeof cleanup !== 'function' === 'object' && cleanup !== 'function' !== null && !Array.isArray(cleanup !== 'function')) return
 			if (disposed) {
 				runCleanup(cleanup)
 				return
@@ -339,14 +335,32 @@ const createSharedResolveLiveSubscription = <_EntityType extends SchemaEntityTyp
 	return release
 }
 
-export const runEntityResolveLiveForParent = <_EntityType extends SchemaEntityType<typeof schema>>({
+const releaseWithAbortSignal = (
+	signal: AbortSignal,
+	release: () => void,
+): (() => void) => {
+	let removeAbortListener = () => {}
+	const releaseAndRemoveAbortListener = () => {
+		removeAbortListener()
+		release()
+	}
+	if (signal.aborted) {
+		release()
+	} else {
+		signal.addEventListener('abort', releaseAndRemoveAbortListener, { once: true })
+		removeAbortListener = () => signal.removeEventListener('abort', releaseAndRemoveAbortListener)
+	}
+	return releaseAndRemoveAbortListener
+}
+
+export const startEntityResolveLive = ({
+	entityId,
 	entityType,
-	parentEntityId,
 	queryClient,
 	signal,
 }: {
-	entityType: _EntityType
-	parentEntityId: EntityId<typeof schema, _EntityType>
+	entityId: EntityId<typeof schema, EntityType>
+	entityType: EntityType
 	queryClient: QueryClient
 	signal: AbortSignal
 }): (() => void) => {
@@ -354,16 +368,15 @@ export const runEntityResolveLiveForParent = <_EntityType extends SchemaEntityTy
 	const releases = resolvers.map((resolver) => (
 		createSharedResolveLiveSubscription({
 			entityType,
-			parentEntityId,
+			parentEntityId: entityId,
 			queryClient,
 			resolveLive: resolver.resolveLive,
 			scopeKey: [
 				'entity',
 				entityType,
 				resolver.source,
-				stringify(parentEntityId),
+				stringify(entityId),
 			].join('\x1E'),
-			signal,
 			source: resolver.source,
 		})
 	))
@@ -375,24 +388,19 @@ export const runEntityResolveLiveForParent = <_EntityType extends SchemaEntityTy
 			release()
 		}
 	}
-	if (signal.aborted) {
-		releaseAll()
-	} else {
-		signal.addEventListener('abort', releaseAll, { once: true })
-	}
-	return releaseAll
+	return releaseWithAbortSignal(signal, releaseAll)
 }
 
-export const runEntityFieldResolveLiveForParent = <_EntityType extends SchemaEntityType<typeof schema>>({
+export const startEntityFieldResolveLiveForParent = ({
 	entityType,
 	fieldNames = entityFieldNamesWithResolveLiveByEntityType[entityType] ?? [],
 	parentEntityId,
 	queryClient,
 	signal,
 }: {
-	entityType: _EntityType
+	entityType: EntityType
 	fieldNames?: readonly string[]
-	parentEntityId: EntityId<typeof schema, _EntityType>
+	parentEntityId: EntityId<typeof schema, EntityType>
 	queryClient: QueryClient
 	signal: AbortSignal
 }): (() => void) => {
@@ -421,7 +429,6 @@ export const runEntityFieldResolveLiveForParent = <_EntityType extends SchemaEnt
 					queryClient,
 					resolveLive: resolver.resolveLive,
 					scopeKey: subscriptionKey,
-					signal,
 					source: resolver.source,
 				}),
 			)
@@ -436,34 +443,27 @@ export const runEntityFieldResolveLiveForParent = <_EntityType extends SchemaEnt
 			release()
 		}
 	}
-
-	if (signal.aborted) {
-		releaseAll()
-	} else {
-		signal.addEventListener('abort', releaseAll, { once: true })
-	}
-
-	return releaseAll
+	return releaseWithAbortSignal(signal, releaseAll)
 }
 
-export const useEntityFieldResolveLive = <_EntityType extends EntityType>({
+export const mountEntityResolveLive = ({
 	entityId: entityIdGetter,
 	entityType,
 }: {
-	entityType: _EntityType
-	entityId: () => EntityId<typeof schema, _EntityType>
+	entityType: EntityType
+	entityId: () => EntityId<typeof schema, EntityType>
 }): void => {
 	$effect(() => {
 		const entityId = entityIdGetter()
 		void stringify(entityId)
 		const ac = new AbortController()
-		runEntityResolveLiveForParent({
+		const releaseEntityLive = startEntityResolveLive({
+			entityId,
 			entityType,
-			parentEntityId: entityId,
 			queryClient: entityCollectionsQueryClient,
 			signal: ac.signal,
 		})
-		runEntityFieldResolveLiveForParent({
+		const releaseFieldLive = startEntityFieldResolveLiveForParent({
 			entityType,
 			parentEntityId: entityId,
 			queryClient: entityCollectionsQueryClient,
@@ -471,16 +471,18 @@ export const useEntityFieldResolveLive = <_EntityType extends EntityType>({
 		})
 		return () => {
 			ac.abort()
+			releaseEntityLive()
+			releaseFieldLive()
 		}
 	})
 }
 
-type SharedEntityFieldResolveLiveSubscription = {
+type SharedResolveLiveSubscription = {
 	refCount: number
 	dispose: () => void
 }
 
-const sharedEntityFieldResolveLiveSubscriptionsByQueryClient = new WeakMap<
+const sharedResolveLiveSubscriptionsByQueryClient = new WeakMap<
 	QueryClient,
-	Map<string, SharedEntityFieldResolveLiveSubscription>
+	Map<string, SharedResolveLiveSubscription>
 >()

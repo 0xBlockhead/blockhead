@@ -5,6 +5,7 @@ import ActivityPubActorSchema from '$/schema/ActivityPubActor.ts'
 import ActivityPubNetworkSchema from '$/schema/ActivityPubNetwork.ts'
 import ActivityPubNoteSchema from '$/schema/ActivityPubNote.ts'
 import ActorSchema from '$/schema/Actor.ts'
+import Actor_Coin_EvmBlockSchema from '$/schema/Actor_Coin_EvmBlock.ts'
 import AtprotoActorSchema from '$/schema/AtprotoActor.ts'
 import AtprotoPostSchema from '$/schema/AtprotoPost.ts'
 import AtprotoNetworkSchema from '$/schema/AtprotoNetwork.ts'
@@ -39,12 +40,18 @@ import CctpFeeSchema from '$/schema/CctpFee.ts'
 import ChannelProposalSchema from '$/schema/ChannelProposal.ts'
 import CoinSchema from '$/schema/Coin.ts'
 import CoinInstanceSchema from '$/schema/CoinInstance.ts'
+import Coin_EvmBlockSchema from '$/schema/Coin_EvmBlock.ts'
+import Coin_TimestampSchema from '$/schema/Coin_Timestamp.ts'
 import MarketSchema from '$/schema/Market.ts'
+import MarketVenueSchema from '$/schema/MarketVenue.ts'
 import MarketPriceSchema from '$/schema/MarketPrice.ts'
 import MarketPriceRangeSchema from '$/schema/MarketPriceRange.ts'
+import Market_TimeInterval_TimestampSchema from '$/schema/Market_TimeInterval_Timestamp.ts'
+import Market_TimestampSchema from '$/schema/Market_Timestamp.ts'
 import Eip8004ServiceSchema from '$/schema/Eip8004Service.ts'
 import EnsNameSchema from '$/schema/EnsName.ts'
 import EvmBlockSchema from '$/schema/EvmBlock.ts'
+import EvmBlobSchema from '$/schema/EvmBlob.ts'
 import EvmCalldataSchema from '$/schema/EvmCalldata.ts'
 import EvmContractSchema from '$/schema/EvmContract.ts'
 import EvmContractSourceSchema from '$/schema/EvmContractSource.ts'
@@ -69,6 +76,7 @@ import LiquidityPositionSchema from '$/schema/LiquidityPosition.ts'
 import MediaSchema from '$/schema/Media.ts'
 import MediaObjectSchema from '$/schema/MediaObject.ts'
 import NetworkSchema from '$/schema/Network.ts'
+import NetworkBridgeSchema from '$/schema/NetworkBridge.ts'
 import NetworkForkSchema from '$/schema/NetworkFork.ts'
 import ProposalKindSchema from '$/schema/ProposalKind.ts'
 import ProposalRealmSchema from '$/schema/ProposalRealm.ts'
@@ -81,6 +89,7 @@ import StateChannelSchema from '$/schema/StateChannel.ts'
 import StateChannelDepositSchema from '$/schema/StateChannelDeposit.ts'
 import StateChannelStateSchema from '$/schema/StateChannelState.ts'
 import StateChannelTransferSchema from '$/schema/StateChannelTransfer.ts'
+import SwarmResourceSchema from '$/schema/SwarmResource.ts'
 import SwapQuoteSchema from '$/schema/SwapQuote.ts'
 import VaultSchema from '$/schema/Vault.ts'
 import XPostSchema from '$/schema/XPost.ts'
@@ -95,6 +104,7 @@ export const schema = [
 	ActivityPubNetworkSchema,
 	ActivityPubNoteSchema,
 	ActorSchema,
+	Actor_Coin_EvmBlockSchema,
 	AtprotoActorSchema,
 	AtprotoPostSchema,
 	AtprotoNetworkSchema,
@@ -129,12 +139,18 @@ export const schema = [
 	ChannelProposalSchema,
 	CoinSchema,
 	CoinInstanceSchema,
+	Coin_EvmBlockSchema,
+	Coin_TimestampSchema,
 	MarketSchema,
+	MarketVenueSchema,
 	MarketPriceSchema,
 	MarketPriceRangeSchema,
+	Market_TimeInterval_TimestampSchema,
+	Market_TimestampSchema,
 	Eip8004ServiceSchema,
 	EnsNameSchema,
 	EvmBlockSchema,
+	EvmBlobSchema,
 	EvmCalldataSchema,
 	EvmContractSchema,
 	EvmContractSourceSchema,
@@ -159,6 +175,7 @@ export const schema = [
 	MediaSchema,
 	MediaObjectSchema,
 	NetworkSchema,
+	NetworkBridgeSchema,
 	NetworkForkSchema,
 	ProposalKindSchema,
 	ProposalRealmSchema,
@@ -171,6 +188,7 @@ export const schema = [
 	StateChannelDepositSchema,
 	StateChannelStateSchema,
 	StateChannelTransferSchema,
+	SwarmResourceSchema,
 	SwapQuoteSchema,
 	VaultSchema,
 	XPostSchema,

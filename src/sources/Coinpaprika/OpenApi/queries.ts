@@ -36,6 +36,6 @@ export const getCoinpaprikaTickerById = async ({
 }) => (
 	await getCoinpaprikaJson<CoinpaprikaTicker>(
 		publicEnv,
-		`/ticker/${coinpaprikaId}`,
+		`/tickers/${coinpaprikaId}`,
 	)
 )

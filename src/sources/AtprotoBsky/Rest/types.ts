@@ -3,6 +3,7 @@
  * @see https://docs.bsky.app/docs/api/app-bsky-actor-get-profile
  * @see https://docs.bsky.app/docs/api/app-bsky-feed-get-posts
  */
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export type BskyAppViewProfileWire = {
 	did?: string
@@ -36,7 +37,7 @@ export type BskyAppViewGetPostsResponseWire = {
 export type BskyAppViewGetAuthorFeedResponseWire = {
 	feed?: {
 		post: BskyAppViewPostViewWire
-		reply?: unknown
+		reply?: JsonValue
 	}[]
 	cursor?: string
 }

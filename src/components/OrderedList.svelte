@@ -29,12 +29,13 @@
 	import { visibility } from '$/lib/visibility.ts'
 
 
-	type OrderedListKey = number | bigint
+	type OrderedListKey = number | bigint | string
 	type ItemRow = {
 		type: OrderedListRowType.Item
-		key: number
-		/** Svelte #each + visibility; use `getStableItemKey` when `getKey` (sort) is not unique. */
-		stableKey: string
+		/** Identity from `getKey` (and `#each` key via {@link eachKeyString}). */
+		key: OrderedListKey
+		/** Sort + placeholder gaps: `getSortKey` when passed, else `getKey`. */
+		sortKey: OrderedListKey
 		item: _Item
 	}
 	type RangeRow = {
@@ -58,6 +59,7 @@
 		manyItems: boolean
 		rows: Row[]
 	}
+	type ItemsInput = Iterable<_Item>
 
 
 	// Functions
@@ -96,7 +98,7 @@
 	}
 	const getRowKey = (row: Row) => (
 		isItemRow(row) ?
-			row.stableKey
+			eachKeyString(row.key)
 		: isRangeRow(row) ?
 			`range:${row.range[0]}-${row.range[1]}`
 		:
@@ -126,8 +128,71 @@
 				target: window,
 			}
 	}
-	const getNumberKey = (item: _Item) => (
-		Number(getKey(item))
+	const isStringSortTuple = (
+		t: readonly [0 | 2, string | bigint],
+	): t is readonly [2, string] => (
+		t[0] === 2
+	)
+	const isBigintSortTuple = (
+		t: readonly [0 | 2, string | bigint],
+	): t is readonly [0, bigint] => (
+		t[0] === 0
+	)
+	const toOrderedTuple = (k: OrderedListKey): readonly [0, bigint] | readonly [2, string] => (
+		typeof k === 'bigint' ?
+			[0, k] as const
+		: typeof k === 'number' ?
+			(
+				Number.isFinite(k) ?
+					[0, BigInt(Math.trunc(k))] as const
+				:
+					[2, `${k}`] as const
+			)
+		:
+			[2, k] as const
+	)
+	const compareOrderedListKeys = (a: OrderedListKey, b: OrderedListKey): number => {
+		const ta = toOrderedTuple(a)
+		const tb = toOrderedTuple(b)
+		if (ta[0] !== tb[0]) return ta[0] - tb[0]
+		if (isStringSortTuple(ta) && isStringSortTuple(tb)) return ta[1].localeCompare(tb[1])
+		if (isBigintSortTuple(ta) && isBigintSortTuple(tb)) {
+			const ca = ta[1]
+			const cb = tb[1]
+			return (
+				ca < cb ? -1
+				: ca > cb ? 1
+				: 0
+			)
+		}
+		return 0
+	}
+	const eachKeyString = (k: OrderedListKey): string => (
+		typeof k === 'bigint' ?
+			`b:${k.toString()}`
+		: typeof k === 'number' ?
+			`n:${k}`
+		:
+			`s:${k}`
+	)
+	const keyForGapNumeric = (k: OrderedListKey): number | undefined => (
+		typeof k === 'number' ?
+			(Number.isFinite(k) ? Math.trunc(k) : undefined)
+		: typeof k === 'bigint' ?
+			(() => {
+				const n = Number(k)
+				return (
+					Number.isSafeInteger(n) && BigInt(n) === k ?
+						n
+					: undefined
+				)
+			})()
+		: ((t) => (
+			t.length === 0 || !/^-?\d+$/.test(t) ?
+				undefined
+			:
+				Number(t)
+		))(k.trim())
 	)
 	const getRangeKey = (lo: number, hi: number) => `${lo}-${hi}`
 	const isItemRow = (row: Row): row is ItemRow => (
@@ -189,10 +254,10 @@
 	let {
 		items = $bindable(new Set<_Item>()),
 		getKey,
-		getStableItemKey: getStableItemKeyOption,
+		getSortKey: getSortKeyOption,
 		sortDirection = SortDirection.Desc,
 		placeholderRanges,
-		summary = $bindable({ loaded: 0, total: undefined as number | undefined }),
+		summary = $bindable({ loaded: 0, total: undefined }),
 		visiblePlaceholderRanges = $bindable(new Set<string>()),
 		onLoadMorePlaceholders,
 		sliceLimit: sliceLimitProp,
@@ -206,8 +271,10 @@
 		Empty,
 		...rootProps
 	}: {
-		items: Set<_Item>
+		items: ItemsInput
 		getKey: (item: _Item) => OrderedListKey
+		/** When `getKey` is not a good sort key (e.g. string id) but items still sort by number/bigint. */
+		getSortKey?: (item: _Item) => OrderedListKey
 		sortDirection?: SortDirection
 		placeholderRanges: Iterable<[number, number] | readonly [number, number]>
 		summary?: { loaded: number; total?: number }
@@ -218,12 +285,11 @@
 		orientation?: ListOrientation
 		pagination?: ListPagination
 		listViewTransition?: boolean
-		getStableItemKey?: (item: _Item) => string
 		virtual?: VirtualRowMeasurement<Row>
 		Item: Snippet<
 			[
 				{
-					key: number
+					key: OrderedListKey
 					isVisible: boolean
 				} & (
 					| { item: _Item; isPlaceholder: false }
@@ -239,11 +305,10 @@
 			},
 		]>
 		Empty?: Snippet<[]>
-		[key: string]: unknown
 	} = $props()
 
-	const getStableItemKey = (item: _Item) => (
-		getStableItemKeyOption?.(item) ?? String(getNumberKey(item))
+	const itemSortKey = (item: _Item): OrderedListKey => (
+		getSortKeyOption?.(item) ?? getKey(item)
 	)
 
 	// State
@@ -256,7 +321,7 @@
 		0,
 	])
 	let totalHeight = $state(0)
-	let scheduledRenderFingerprint = $state(null as string | null)
+	let scheduledRenderFingerprint = $state<string | null>(null)
 	let visibleItemKeys = new SvelteSet<string>()
 	let visibleRangeStarts = new SvelteSet<string>()
 	let visibleRangeEnds = new SvelteSet<string>()
@@ -270,15 +335,15 @@
 	)
 	const sortedItems = $derived(
 		[...items].sort((a, b) => {
-			const ka = getNumberKey(a)
-			const kb = getNumberKey(b)
-			return sortDirection === SortDirection.Desc ?
-				kb - ka
-			:
-				ka - kb
+			const c = compareOrderedListKeys(itemSortKey(a), itemSortKey(b))
+			return sortDirection === SortDirection.Desc ? -c : c
 		}),
 	)
-	const sortedKeys = $derived(sortedItems.map((item) => (getNumberKey(item))))
+	const sortedKeys = $derived(
+		sortedItems
+			.map((item) => keyForGapNumeric(itemSortKey(item)))
+			.filter((n): n is number => n !== undefined),
+	)
 	const scopeRanges = $derived(mergeRanges(placeholderRanges))
 	const gapRanges = $derived.by(() => {
 		const out: [number, number][] = []
@@ -295,8 +360,8 @@
 		sortedItems.map(
 			(item): Row => ({
 				type: OrderedListRowType.Item,
-				key: getNumberKey(item),
-				stableKey: getStableItemKey(item),
+				key: getKey(item),
+				sortKey: itemSortKey(item),
 				item,
 			}),
 		),
@@ -309,21 +374,19 @@
 			}),
 		),
 	)
-	const orderKey = (row: Row) => (
+	const orderKeyRow = (row: Row): OrderedListKey => (
 		isItemRow(row) ?
-			row.key
+			row.sortKey
 		: isRangeRow(row) ?
 			row.range[1]
 		:
-			Infinity
+			0
 	)
 	const allRows = $derived.by((): Row[] => (
-		[...itemRows, ...rangeRows].sort((a, b) => (
-			sortDirection === SortDirection.Desc ?
-				orderKey(b) - orderKey(a)
-			:
-				orderKey(a) - orderKey(b)
-		))
+		[...itemRows, ...rangeRows].sort((a, b) => {
+			const c = compareOrderedListKeys(orderKeyRow(a), orderKeyRow(b))
+			return sortDirection === SortDirection.Desc ? -c : c
+		})
 	))
 	const virtualRows = $derived.by((): Row[] => (
 		[
@@ -410,7 +473,7 @@
 
 	$effect(() => {
 		summary = {
-			loaded: items.size,
+			loaded: sortedItems.length,
 			total: summaryTotal,
 		}
 	})
@@ -541,17 +604,17 @@
 			data-list-item
 			data-scroll-item="snap-block-start"
 			style:--index={index}
-			style:view-transition-name={viewTransitionName(row.stableKey)}
+			style:view-transition-name={viewTransitionName(eachKeyString(row.key))}
 			style:min-block-size={rowHeight !== undefined ? `${rowHeight}px` : undefined}
 			{@attach visibility({
-				onChange: (visible) => setItemVisible(row.stableKey, visible),
+				onChange: (visible) => setItemVisible(eachKeyString(row.key), visible),
 			})}
 		>
 			{@render Item({
 				key: row.key,
 				item: row.item,
 				isPlaceholder: false as const,
-				isVisible: visibleItemKeys.has(row.stableKey),
+				isVisible: visibleItemKeys.has(eachKeyString(row.key)),
 			})}
 		</li>
 	{:else if isRangeRow(row)}

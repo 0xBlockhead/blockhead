@@ -3,9 +3,11 @@
 	import type { ComponentProps } from 'svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { type EntityFieldReference } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
@@ -32,13 +34,17 @@
 		...entitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof EntityType.EvmTransaction>
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmTransaction>
 			title?: string
 			open?: boolean
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'entityType'
+			| 'getKey'
+			| 'getSortValue'
+			| 'items'
+			| 'query'
 		>
 	> = $props()
 
@@ -60,10 +66,24 @@
 			parentKey
 	)
 
+	type TransactionRow = {
+		[EntityMetaKey.Id]: EntityId<typeof schema, EntityType.EvmTransaction>
+		[EntityMetaKey.IdKey]: string
+		[EntityMetaKey.Source]: Source
+	}
+
+	const transactionKey = (row: TransactionRow) => (
+		stringify(row[EntityMetaKey.Id])
+	)
+
+	const transactionSortValue = (row: TransactionRow) => (
+		row[EntityMetaKey.Id].txHash
+	)
+
 	const blockHeightQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ blockHeight: entityFieldCollections[EntityType.Network].blockHeight! })
+				.from({ blockHeight: entityFieldCollections[EntityType.Network].blockHeight })
 				.where(({ blockHeight }) => (
 					eq(
 						blockHeight[EntityMetaKey.ParentIdKey],
@@ -89,66 +109,49 @@
 		],
 	)
 
-	const transactionsQuery = useLiveQuery(
+	const blockTransactionsQuery = useLiveQuery(
 		(queryBuilder) => (
-			entityFieldReference.entityType === EntityType.EvmBlock ?
+			entityFieldReference.entityType !== EntityType.EvmBlock ?
 				queryBuilder
-					.from({ $$evmTransactions: entityFieldCollections[EntityType.EvmBlock]['$$evmTransactions']! })
-					.where(({ $$evmTransactions }) => (
-						eq(
-							$$evmTransactions[EntityMetaKey.ParentIdKey],
-							parentKey,
-						)
-					))
-					.where(({ $$evmTransactions }) => (
-						or(
-							eq(
-								$$evmTransactions[EntityMetaKey.Source],
-								Source.Blockscout_Rest,
-							),
-							eq(
-								$$evmTransactions[EntityMetaKey.Source],
-								Source.Voltaire_JsonRpc,
-							),
-						)
-					))
-					.orderBy(({ $$evmTransactions }) => (
-						$$evmTransactions[EntityMetaKey.IdKey]
-					), 'desc')
-					.limit(100)
-					.select(({ $$evmTransactions }) => (
-					{
-						[EntityMetaKey.Id]: (
-							$$evmTransactions[EntityMetaKey.Value][EntityMetaKey.Id]
-						),
-					}
-					))
+					.from({ $$transactions: entityFieldCollections[EntityType.EvmBlock]['$$transactions'] })
+					.orderBy(({ $$transactions }) => (
+						$$transactions[EntityMetaKey.ParentIdKey]
+					), 'asc')
+					.limit(0)
+					.select(({ $$transactions }) => ({
+						...$$transactions[EntityMetaKey.Value],
+						[EntityMetaKey.Source]: $$transactions[EntityMetaKey.Source],
+					}))
 			:
-				queryBuilder
-					.from({ $$evmTransactions: entityFieldCollections[EntityType.Network]['$$evmTransactions']! })
-					.where(({ $$evmTransactions }) => (
+			queryBuilder
+				.from({ $$transactions: entityFieldCollections[EntityType.EvmBlock]['$$transactions'] })
+				.where(({ $$transactions }) => (
+					eq(
+						$$transactions[EntityMetaKey.ParentIdKey],
+						parentKey,
+					)
+				))
+				.where(({ $$transactions }) => (
+					or(
 						eq(
-							$$evmTransactions[EntityMetaKey.ParentIdKey],
-							parentKey,
-						)
-					))
-					.where(({ $$evmTransactions }) => (
-						eq(
-							$$evmTransactions[EntityMetaKey.Source],
+							$$transactions[EntityMetaKey.Source],
 							Source.Blockscout_Rest,
-						)
-					))
-					.orderBy(({ $$evmTransactions }) => (
-						$$evmTransactions[EntityMetaKey.IdKey]
-					), 'desc')
-					.limit(8)
-					.select(({ $$evmTransactions }) => (
-					{
-						[EntityMetaKey.Id]: (
-							$$evmTransactions[EntityMetaKey.Value][EntityMetaKey.Id]
 						),
-					}
-					))
+						eq(
+							$$transactions[EntityMetaKey.Source],
+							Source.Voltaire_JsonRpc,
+						),
+					)
+				))
+				.orderBy(({ $$transactions }) => (
+					$$transactions[EntityMetaKey.Value][EntityMetaKey.IdKey]
+				), 'desc')
+				.limit(100)
+				.select(({ $$transactions }) => ({
+					...$$transactions[EntityMetaKey.Value],
+					[EntityMetaKey.Source]: $$transactions[EntityMetaKey.Source],
+				}))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -157,6 +160,116 @@
 			() => parentKey,
 			() => blockHeightQuery.data?.height,
 		],
+	)
+
+	const networkTransactionsQuery = useLiveQuery(
+		(queryBuilder) => (
+			entityFieldReference.entityType !== EntityType.Network ?
+				queryBuilder
+					.from({ $$transactions: entityFieldCollections[EntityType.Network]['$$transactions'] })
+					.orderBy(({ $$transactions }) => (
+						$$transactions[EntityMetaKey.ParentIdKey]
+					), 'asc')
+					.limit(0)
+					.select(({ $$transactions }) => ({
+						...$$transactions[EntityMetaKey.Value],
+						[EntityMetaKey.Source]: $$transactions[EntityMetaKey.Source],
+					}))
+			:
+			queryBuilder
+				.from({ $$transactions: entityFieldCollections[EntityType.Network]['$$transactions'] })
+				.where(({ $$transactions }) => (
+					eq(
+						$$transactions[EntityMetaKey.ParentIdKey],
+						parentKey,
+					)
+				))
+				.where(({ $$transactions }) => (
+					eq(
+						$$transactions[EntityMetaKey.Source],
+						Source.Blockscout_Rest,
+					)
+				))
+				.orderBy(({ $$transactions }) => (
+					$$transactions[EntityMetaKey.Value][EntityMetaKey.IdKey]
+				), 'desc')
+				.limit(8)
+				.select(({ $$transactions }) => ({
+					...$$transactions[EntityMetaKey.Value],
+					[EntityMetaKey.Source]: $$transactions[EntityMetaKey.Source],
+				}))
+				.distinct()
+		),
+		[
+			() => entityFieldReference.entityType,
+			() => entityFieldReference.fieldName,
+			() => stringify(entityFieldReference.entityId),
+			() => parentKey,
+			() => blockHeightQuery.data?.height,
+		],
+	)
+
+	const transactionRows = $derived(
+		[
+			...new Map(
+				[
+					...(
+						entityFieldReference.entityType === EntityType.EvmBlock ?
+							(blockTransactionsQuery.data ?? [])
+						: entityFieldReference.entityType === EntityType.Network ?
+							(networkTransactionsQuery.data ?? [])
+						:
+							[]
+					).filter((row) => (
+						row[EntityMetaKey.Source] !== Source.Blockscout_Rest
+					)),
+					...(
+						entityFieldReference.entityType === EntityType.EvmBlock ?
+							(blockTransactionsQuery.data ?? [])
+						: entityFieldReference.entityType === EntityType.Network ?
+							(networkTransactionsQuery.data ?? [])
+						:
+							[]
+					).filter((row) => (
+						row[EntityMetaKey.Source] === Source.Blockscout_Rest
+					)),
+				].map((row) => [
+					row[EntityMetaKey.IdKey],
+					row,
+				]),
+			).values(),
+		],
+	)
+
+	const transactionRowsQuery = $derived(
+		{
+			data: transactionRows,
+			isLoading: (
+				entityFieldReference.entityType === EntityType.EvmBlock ?
+					blockTransactionsQuery.isLoading
+				:
+					networkTransactionsQuery.isLoading
+			),
+			isError: (
+				entityFieldReference.entityType === EntityType.EvmBlock ?
+					blockTransactionsQuery.isError
+				:
+					networkTransactionsQuery.isError
+			),
+			isReady: (
+				entityFieldReference.entityType === EntityType.EvmBlock ?
+					(blockTransactionsQuery.isLoading !== true && blockTransactionsQuery.isReady !== false)
+				:
+					(networkTransactionsQuery.isLoading !== true && networkTransactionsQuery.isReady !== false)
+			),
+			error: undefined,
+			status: (
+				entityFieldReference.entityType === EntityType.EvmBlock ?
+					blockTransactionsQuery.status
+				:
+					networkTransactionsQuery.status
+			),
+		},
 	)
 
 
@@ -168,16 +281,16 @@
 
 
 <EntitiesList
+	{...entitiesListProps}
 	entityType={EntityType.EvmTransaction}
 	{title}
 	bind:open
-	query={transactionsQuery}
-	items={new SvelteSet(transactionsQuery.data ?? [])}
-	getKey={(row) => stringify(row[EntityMetaKey.Id])}
-	getSortValue={(row) => row[EntityMetaKey.Id].txHash}
+	items={transactionRows}
+	getKey={transactionKey}
+	getSortValue={transactionSortValue}
 	placeholderKeys={new SvelteSet<string | number>()}
+	query={transactionRowsQuery}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...entitiesListProps}
 >
 	{#snippet Empty()}
 		<p data-text="muted">

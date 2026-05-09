@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { IpfsDisplayType } from '$/lib/contentType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
@@ -46,7 +47,7 @@
 
 
 	// Functions
-	const ipfsDisplayType = (value: unknown): IpfsDisplayType | undefined => (
+	const ipfsDisplayType = (value: JsonValue): IpfsDisplayType | undefined => (
 		value === 'text'
 		|| value === 'image'
 		|| value === 'video'
@@ -98,8 +99,8 @@
 	const resourceField = $derived(
 		(() => {
 			const bag = resourceRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
+			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+			const b = bag
 			return {
 				canonicalUri: typeof b.canonicalUri === 'string' && b.canonicalUri.length > 0 ? b.canonicalUri : undefined,
 				fileName: typeof b.fileName === 'string' && b.fileName.length > 0 ? b.fileName : undefined,
@@ -164,7 +165,7 @@
 
 	{#snippet Content()}
 		{#if resourceField?.contentType !== undefined}
-			<dl data-definition-list="vertical">
+			<dl>
 				<div>
 					<dt>Content type</dt>
 					<dd>

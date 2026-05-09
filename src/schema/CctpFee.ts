@@ -31,23 +31,5 @@ export default {
 			primitiveType: cctpFeeRow.array(),
 			cardinality: EntityFieldCardinality.One,
 		},
-		{
-			name: 'fetchedAt',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'isLoading',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'error',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string | null'),
-			cardinality: EntityFieldCardinality.One,
-		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

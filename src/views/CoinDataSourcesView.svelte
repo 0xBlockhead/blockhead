@@ -24,7 +24,10 @@
 		data-e2e="coin-data-sources-carousel"
 		style="--carousel-basis: 38ch; gap: 0.5em"
 	>
-		<section data-e2e="coin-source-constants">
+		<section
+			data-e2e="coin-source-constants"
+			data-scroll-marker-label="Constants (internal)"
+		>
 			<EntitiesList
 				collapsible={false}
 				entityType={EntityType._Global}
@@ -57,7 +60,10 @@
 			</EntitiesList>
 		</section>
 
-		<section data-e2e="coin-source-coingecko">
+		<section
+			data-e2e="coin-source-coingecko"
+			data-scroll-marker-label="CoinGecko (REST)"
+		>
 			<EntitiesList
 				collapsible={false}
 				entityType={EntityType._Global}
@@ -100,7 +106,10 @@
 			</EntitiesList>
 		</section>
 
-		<section data-e2e="coin-source-coinmarketcap">
+		<section
+			data-e2e="coin-source-coinmarketcap"
+			data-scroll-marker-label="CoinMarketCap (REST)"
+		>
 			<EntitiesList
 				collapsible={false}
 				entityType={EntityType._Global}
@@ -128,7 +137,10 @@
 			</EntitiesList>
 		</section>
 
-		<section data-e2e="coin-source-coinpaprika">
+		<section
+			data-e2e="coin-source-coinpaprika"
+			data-scroll-marker-label="CoinPaprika (OpenAPI)"
+		>
 			<EntitiesList
 				collapsible={false}
 				entityType={EntityType._Global}
@@ -154,7 +166,10 @@
 			</EntitiesList>
 		</section>
 
-		<section data-e2e="coin-source-defillama">
+		<section
+			data-e2e="coin-source-defillama"
+			data-scroll-marker-label="DeFi Llama (REST)"
+		>
 			<EntitiesList
 				collapsible={false}
 				entityType={EntityType._Global}

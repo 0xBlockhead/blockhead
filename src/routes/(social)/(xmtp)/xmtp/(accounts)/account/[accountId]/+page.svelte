@@ -16,16 +16,14 @@
 
 
 <Page>
-	<section>
-		<NetworkView
-			entityId={{ chainId: 1 }}
-			href={resolve('/(explore)/(networks)/network/[networkId]', {
-				networkId: '1',
-			})}
-			layout={EntityLayout.Summary}
-			open={false}
-		/>
-	</section>
+	<NetworkView
+		entityId={{ chainId: 1 }}
+		href={resolve('/(explore)/(networks)/network/[networkId]', {
+			networkId: '1',
+		})}
+		layout={EntityLayout.Summary}
+		open={false}
+	/>
 
 	<ActorView
 		entityId={{

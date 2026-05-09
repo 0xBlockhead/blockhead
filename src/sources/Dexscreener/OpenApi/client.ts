@@ -24,5 +24,5 @@ export const getDexscreenerJson = async <_Response>(
 		throw new Error(`Dexscreener API error: ${response.status} ${response.statusText}`)
 	}
 
-	return response.json() as Promise<_Response>
+	return response.json<_Response>()
 }

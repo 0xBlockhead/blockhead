@@ -27,5 +27,5 @@ export async function farcasterGet<T>(
 	const baseUrl = path.startsWith('/~api/') ? webBaseUrl : clientBaseUrl
 	const res = await fetch(`${baseUrl}${path}${toQueryString(params)}`)
 	if (!res.ok) throw new Error(`Farcaster API ${res.status}: ${await res.text()}`)
-	return res.json() as Promise<T>
+	return res.json<T>()
 }

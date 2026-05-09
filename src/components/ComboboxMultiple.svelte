@@ -10,11 +10,13 @@
 	// IDs
 	const _id = $props.id()
 
+	const emptyItemList = <T,>(): T[] => []
+
 
 	// Props
 	let {
 		items,
-		value = $bindable([] as _Item[]),
+		value = $bindable(emptyItemList<_Item>()),
 		getItemId = stringify,
 		getItemLabel = getItemId,
 		getItemDisabled,
@@ -58,7 +60,6 @@
 
 		inputValue?: string
 
-		[key: string]: unknown
 	} = $props()
 
 
@@ -134,13 +135,11 @@
 		}))
 	)
 	const selectedChips = $derived(
-		((value ?? []) as _Item[])
-			.map((entry) => getItemId(entry))
-			.map((id) => {
-				const n = normalizedItems.find((item) => item.id === id)
-				return n ? { id: n.id, label: n.label, item: n.item } : null
-			})
-			.filter(Boolean) as { id: string; label: string; item: _Item }[]
+		(value ?? []).flatMap((entry) => {
+			const id = getItemId(entry)
+			const n = normalizedItems.find((item) => item.id === id)
+			return n ? [{ id: n.id, label: n.label, item: n.item }] : []
+		})
 	)
 
 
@@ -151,7 +150,7 @@
 		inputValue = target.value
 	}
 	const removeChip = (chipId: string) => {
-		value = ((value ?? []) as _Item[])
+		value = (value ?? [])
 			.map((entry) => getItemId(entry))
 			.filter((x) => x !== chipId)
 			.flatMap((id) => {
@@ -160,7 +159,7 @@
 			})
 	}
 	const setValue = (nextValue: string | string[]) => {
-		const prevArr = ((value ?? []) as _Item[]).map((entry) => getItemId(entry))
+		const prevArr = (value ?? []).map((entry) => getItemId(entry))
 		const nextArr = typeof nextValue === 'string' ? [] : nextValue
 		value = nextArr.flatMap((id) => {
 			const item = normalizedItems.find((entry) => entry.id === id)
@@ -182,7 +181,7 @@
 	type="multiple"
 	bind:open
 	bind:value={
-		() => ((value ?? []) as _Item[]).map((entry) => getItemId(entry)),
+		() => (value ?? []).map((entry) => getItemId(entry)),
 		(_value) => setValue(_value)
 	}
 	{disabled}

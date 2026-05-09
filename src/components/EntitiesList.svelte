@@ -47,15 +47,10 @@
 
 	type HeadingForwardProps = Omit<ComponentProps<typeof Heading>, 'children'>
 
-	type UnorderedListForwardProps = Omit<
-		ComponentProps<typeof UnorderedList>,
-		| 'Empty'
-		| 'getKey'
-		| 'getSortValue'
-		| 'Item'
-		| 'items'
-		| 'placeholderKeys'
-	>
+	type UnorderedListForwardProps = {
+		orientation?: ListOrientation
+	}
+	type ItemsInput = Iterable<_Item>
 
 
 	// Context
@@ -116,10 +111,10 @@
 			href: string
 			id: string
 			Item?: Snippet<[ListItemProps]>
-			items?: Set<_Item>
+			items?: ItemsInput
 			open?: boolean
 			placeholderText?: string
-			query?: QueryLike<unknown>
+			query?: QueryLike<ItemsInput | undefined>
 			placeholderKeys?: Set<_Key>
 			title: string
 			UnorderedListProps?: UnorderedListForwardProps
@@ -151,7 +146,7 @@
 
 	let listSummary = $state({
 		loaded: 0,
-		total: undefined as number | undefined,
+		total: undefined,
 	})
 
 	const loadedCount = $derived(
@@ -173,6 +168,13 @@
 		loadedCount !== undefined
 		&& totalCount !== undefined
 		&& totalCount !== loadedCount,
+	)
+
+	const listItems = $derived(
+		items !== undefined ?
+			[...items]
+		:
+			[],
 	)
 </script>
 
@@ -216,20 +218,20 @@
 
 	{#snippet ListRows()}
 		<UnorderedList
-			items={items!}
+			items={listItems}
 			{placeholderKeys}
 			bind:summary={
 				() => listSummary,
 				(_listSummary) => { listSummary = _listSummary }
 			}
 			getKey={getKey!}
-			getSortValue={getSortValue!}
+			{getSortValue}
 			Item={Item!}
 			{...UnorderedListProps}
 			{...{
 				...layout === EntitiesListLayout.Carousel && {
 					orientation: ListOrientation.Row,
-					'data-scroll-container': 'inline layout-carousel carousel-marker-tabs',
+					'data-scroll-container': 'inline layout-carousel',
 					'data-row': 'start align-start',
 					style: panelStyle ?? '--carousel-basis: min(40ch, 88cqi); gap: 0.5em',
 				}
@@ -244,7 +246,7 @@
 	{#snippet listColumnBody()}
 		{#if body}
 			{@render body()}
-		{:else if items !== undefined && getKey !== undefined && getSortValue !== undefined && Item !== undefined}
+		{:else if items !== undefined && getKey !== undefined && Item !== undefined}
 			{#if query !== undefined}
 				<QueryBoundary
 					{query}

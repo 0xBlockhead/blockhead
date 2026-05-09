@@ -39,5 +39,11 @@ export default {
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.One,
 		},
+		{
+			name: 'usdValue',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

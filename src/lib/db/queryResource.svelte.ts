@@ -1,4 +1,5 @@
 // Types/constants
+import type { RemoteResource } from '$/lib/svelte/RemoteResource.svelte.ts'
 import { tick, untrack } from 'svelte'
 
 
@@ -177,6 +178,30 @@ export const toQueryResource = <Data>(
 						query.isLoading
 				)
 			),
+		})
+	})
+
+	return resource
+}
+
+
+export const toQueryResourceFromRemote = <Data>(
+	getRemote: () => RemoteResource<Data>,
+) => {
+	const resource = new QueryResource<Data>()
+
+	$effect(() => {
+		const r = getRemote()
+		const error = r.error
+		const pending = (
+			error === undefined
+			&& (!r.ready || r.current === undefined)
+		)
+
+		resource.applySync({
+			data: r.current as Data,
+			error: error === undefined ? undefined : error,
+			pending,
 		})
 	})
 

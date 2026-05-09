@@ -25,7 +25,7 @@ export const isMarketEntityId = (
 	&& v !== null
 	&& '$base' in v
 	&& '$quote' in v
-	&& 'venue' in v
+	&& '$marketVenue' in v
 	&& legShapeOk((v as { $base: unknown }).$base)
 	&& legShapeOk((v as { $quote: unknown }).$quote)
 )

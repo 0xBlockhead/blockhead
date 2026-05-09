@@ -5,6 +5,7 @@ import { getCastByUsernameAndHashPrefix } from '$/sources/Farcaster/Rest/queries
 import { getCastByClientUrl } from '$/sources/Neynar/Rest/queries.ts'
 import type { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 
 const normalizeFarcasterCastHash = (hash: string): CastHash => {
 	const t = hash.trim()
@@ -15,7 +16,7 @@ const normalizeFarcasterCastHash = (hash: string): CastHash => {
 		:
 			t
 	)
-	return `0x${hex.toLowerCase()}` as CastHash
+	return `0x${hex.toLowerCase()}`
 }
 
 /**
@@ -59,18 +60,15 @@ const canonicalCastPath = ({
 	)
 )
 
-const castRefFromWire = (value: unknown) => {
-	if (value == null || typeof value !== 'object') return undefined
-	const asRecord = value as Record<string, unknown>
-	const hash = typeof asRecord.hash === 'string' ? asRecord.hash : undefined
-	const author = asRecord.author
+const castRefFromWire = (value: JsonValue) => {
+	if (!isJsonObject(value)) return undefined
+	const hash = typeof value.hash === 'string' ? value.hash : undefined
+	const author = value.author
 	const fid = (
-		author != null
-		&& typeof author === 'object'
-		&& typeof (author as Record<string, unknown>).fid === 'number'
-	) ?
-		(author as { fid: number }).fid
-	:	undefined
+		isJsonObject(author) && typeof author.fid === 'number' ?
+			author.fid
+		:	undefined
+	)
 	return hash != null && fid != null ?
 		{ hash, fid }
 	:	undefined
@@ -90,18 +88,11 @@ const castRefFromHaatzCastEndpoint = async (clientUrl: string) => {
 
 	const response = await fetch(url.toString())
 	if (!response.ok) return undefined
-	const payload = await response.json() as unknown
-	if (payload == null || typeof payload !== 'object') return undefined
-	const root = payload as Record<string, unknown>
-	return (
-		castRefFromWire(root.cast)
-		?? (
-			root.result != null
-			&& typeof root.result === 'object' ?
-				castRefFromWire((root.result as Record<string, unknown>).cast)
-			:	undefined
-		)
-	)
+	const payload = await response.json<JsonValue>()
+	if (!isJsonObject(payload)) return undefined
+	const result = payload.result
+	const nestedCast = isJsonObject(result) ? result.cast : undefined
+	return castRefFromWire(payload.cast) ?? (nestedCast == null ? undefined : castRefFromWire(nestedCast))
 }
 
 export const getCanonicalCastPathFromClientUrls = async (

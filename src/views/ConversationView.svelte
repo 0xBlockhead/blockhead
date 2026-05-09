@@ -84,7 +84,7 @@
 	title={titleProp ?? 'Conversation'}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Conversation id</dt>
 				<dd>

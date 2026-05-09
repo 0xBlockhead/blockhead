@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -66,16 +67,17 @@
 
 	const ensNameField = $derived(
 		(() => {
-			const bag = ensNameRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
+			const bagUnknown = ensNameRow?.[EntityMetaKey.Fields]
+			if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) return null
+			const b: Record<string, JsonValue> = bagUnknown
 			const raw = b.textRecords
-			if (raw === undefined || typeof raw !== 'object' || Array.isArray(raw)) {
-				return { textRecords: undefined as Record<string, string> | undefined }
+			const emptyText: Record<string, string> | undefined = undefined
+			if (raw === undefined || !(typeof raw === 'object' && raw !== null && !Array.isArray(raw))) {
+				return { textRecords: emptyText }
 			}
 			const textRecords: Record<string, string> = {}
-			for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
-				if (typeof v === 'string') textRecords[k] = v
+			for (const [k, v] of Object.entries(raw)) {
+				if (typeof v === 'string' === 'object' && v === 'string' !== null && !Array.isArray(v === 'string')) textRecords[k] = v
 			}
 			return {
 				textRecords: (

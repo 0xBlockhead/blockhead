@@ -11,7 +11,7 @@ import type {
 } from '$/schema/$schema.ts'
 
 /**
- * Parent + `Many` entity field whose listed `entityType` is `_ListedEntity`
+ * Parent + list-valued entity field whose listed `entityType` is `_ListedEntity`
  * (same as the list view’s `entityType` on `EntitiesList`).
  */
 export type EntityFieldReference<
@@ -22,7 +22,7 @@ export type EntityFieldReference<
 		[_Field in EntityFieldName<_Schema, _Parent>]:
 			EntityFieldDefinition<_Schema, _Parent, _Field> extends {
 				type: typeof EntityFieldType.EntitiesReference
-				cardinality: typeof EntityFieldCardinality.Many
+				cardinality: typeof EntityFieldCardinality.Many | typeof EntityFieldCardinality.ZeroOrMany
 				entityType: _ListedEntity
 			} ? {
 				entityType: _Parent

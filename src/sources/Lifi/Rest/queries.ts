@@ -40,7 +40,7 @@ export async function fetchLifiChains(
 	)
 	if (!res.ok)
 		throw new Error(`LI.FI GET /v1/chains failed: ${res.status} ${res.statusText}`)
-	return (await res.json()) as LifiChainsResponse
+	return res.json<LifiChainsResponse>()
 }
 
 /**
@@ -64,7 +64,7 @@ export async function fetchLifiTokens(
 	)
 	if (!res.ok)
 		throw new Error(`LI.FI GET /v1/tokens failed: ${res.status} ${res.statusText}`)
-	return (await res.json()) as LifiTokensResponse
+	return res.json<LifiTokensResponse>()
 }
 
 /** Deduped default chain catalog for resolvers (no query options). */

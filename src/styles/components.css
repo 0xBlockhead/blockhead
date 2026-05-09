@@ -15,7 +15,7 @@ a {
 		color: inherit;
 
 		&:hover {
-			color: color-mix(in oklch, var(--color-fg) 33%, var(--color-accent));
+			color: color-mix(inres oklch, var(--color-fg) 33%, var(--color-accent));
 			text-decoration: none;
 		}
 	}
@@ -39,6 +39,7 @@ h5,
 h6 {
 	text-box: trim-both auto;
 	text-wrap: balance;
+	font-size: 1em;
 }
 
 [data-text] {
@@ -500,9 +501,16 @@ span svg {
 
 [data-column],
 [data-card] {
-	display: grid;
-	/* grid-template-columns: 1fr; */
-	grid-template-columns: minmax(0, 1fr);
+	/* display: grid;
+	grid-template-columns: minmax(0, 1fr); */
+
+	display: flex;
+	flex-direction: column;
+
+	&[data-row] {
+		flex-direction: row;
+	}
+
 	gap: 0.5em;
 	align-content: start;
 
@@ -542,8 +550,12 @@ span svg {
 	}
 
 	&[data-column~="layout-flex"] {
-		display: flex;
-		flex-direction: column;
+		/* display: flex;
+		flex-direction: column; */
+	}
+
+	> [data-column-item~='flexible'] {
+		flex: 1;
 	}
 }
 
@@ -1292,19 +1304,19 @@ summary dl:not([data-definition-list~='horizontal']) {
 		}
 
 		> :only-child {
-			scroll-snap-align: center;
+			scroll-snap-align: start center;
 		}
 
 		> :first-child:not(:only-child) {
-			scroll-snap-align: start;
+			scroll-snap-align: start start;
 		}
 
 		> :last-child:not(:only-child):not(:first-child) {
-			scroll-snap-align: end;
+			scroll-snap-align: start end;
 		}
 
 		> :not(:first-child):not(:last-child) {
-			scroll-snap-align: center;
+			scroll-snap-align: start center;
 		}
 
 		scroll-marker-group: after;
@@ -1352,6 +1364,8 @@ summary dl:not([data-definition-list~='horizontal']) {
 
 		> *::scroll-marker {
 			content: "";
+			text-decoration: none;
+			color: inherit;
 			width: 0.6em;
 			aspect-ratio: 1;
 			border-radius: 50%;
@@ -1372,44 +1386,52 @@ summary dl:not([data-definition-list~='horizontal']) {
 		/**
 		 * Scroll markers as a tab strip (CSS Overflow scroll-marker-group).
 		 * Compose: `data-scroll-container="inline layout-carousel carousel-marker-tabs"`.
+		 * Set `data-scroll-marker-label` on each direct child to match that pane’s heading
+		 * (same string as the embedded list/view `title` or default view title).
 		 */
 		&[data-scroll-container~='carousel-marker-tabs'] {
 			scroll-marker-group: before;
 
 			&::scroll-marker-group {
 				display: flex;
-				flex-direction: row;
-				flex-wrap: nowrap;
-				align-items: stretch;
-				justify-content: stretch;
+				align-items: center;
 				gap: 1px;
 
-				inline-size: 100%;
-				margin-block-end: 0.5em;
-				padding-block: 0;
-				padding-inline: 0;
+				padding-block: 0.66em;
 
-				background: var(--color-border);
-				border-block-end: 1px solid var(--color-border);
+				background-color: var(--card-backgroundColor);
 			}
 
 			> *::scroll-marker {
-				content: "";
+				content: attr(data-scroll-marker-label);
 
 				flex: 1 1 0;
 				min-inline-size: 0;
 				inline-size: auto;
-				block-size: auto;
 				aspect-ratio: unset;
 
 				border: none;
-				border-radius: 0.35em 0.35em 0 0;
+				border-radius: 0.5em;
 				opacity: 1;
 
-				padding-block: 0.45em;
+				padding-block: 0.5em;
 				padding-inline: 0.5em;
 
-				background: color-mix(in oklch, canvas 88%, var(--color-border));
+				font-size: 0.62em;
+				font-weight: 500;
+				line-height: normal;
+				text-align: center;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+
+				background-color: var(--color-bg-muted);
+
+				transition-property:
+					background-color,
+					color,
+					filter
+				;
 			}
 
 			> :first-child::scroll-marker {
@@ -1422,23 +1444,17 @@ summary dl:not([data-definition-list~='horizontal']) {
 
 			> *::scroll-marker:target-current {
 				position: relative;
-				z-index: 1;
-
-				margin-block-end: -1px;
-				padding-block-end: calc(0.45em + 1px);
-
-				background: canvas;
-				box-shadow: 0 1px 0 0 canvas;
+				filter: brightness(110%);
 			}
 
 			> *::scroll-marker:hover,
 			> *::scroll-marker:focus-visible {
-				background: color-mix(in oklch, canvas 70%, var(--color-border));
+				background: color-mix(in oklch, var(--color-fg) 6%, var(--color-bg-muted));
 			}
 
 			> *::scroll-marker:target-current:hover,
 			> *::scroll-marker:target-current:focus-visible {
-				background: canvas;
+				background: var(--color-bg);
 			}
 		}
 	}

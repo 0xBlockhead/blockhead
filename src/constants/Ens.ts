@@ -1,14 +1,10 @@
 // Types
-export const EnsTextRecordHrefMode = {
-	Value: 'value',
-	Mailto: 'mailto',
-	Prefix: 'prefix',
-	PrefixStripAt: 'prefixStripAt',
-} as const
-
-export type EnsTextRecordHrefMode = (
-	(typeof EnsTextRecordHrefMode)[keyof typeof EnsTextRecordHrefMode]
-)
+export enum EnsTextRecordHrefMode {
+	Value = 'value',
+	Mailto = 'mailto',
+	Prefix = 'prefix',
+	PrefixStripAt = 'prefixStripAt',
+}
 
 export type EnsTextRecordLinkEntry = {
 	keys: readonly string[]
@@ -81,7 +77,11 @@ export const ensCoinTypeLabels = {
 
 export const ensCoinTypeIdsToResolve = Object.keys(
 	ensCoinTypeLabels,
-) as (keyof typeof ensCoinTypeLabels)[]
+)
+
+const ensTextRecordLabelsLookup: Record<string, string> = { ...ensTextRecordLabels }
+
+const ensCoinTypeLabelsLookup: Record<string, string> = { ...ensCoinTypeLabels }
 
 export const ensTextRecordLinkEntries = [
 	{ keys: ['url', 'website'], hrefMode: EnsTextRecordHrefMode.Value },
@@ -148,9 +148,10 @@ export const getEnsTextRecordHref = (key: string, value: string) => {
 }
 
 export const getEnsTextRecordLabel = (key: string) => (
-	ensTextRecordLabels[key as keyof typeof ensTextRecordLabels] ?? key
+	key in ensTextRecordLabelsLookup ? ensTextRecordLabelsLookup[key] : key
 )
 
-export const getEnsCoinTypeLabel = (coinType: string | number) => (
-	ensCoinTypeLabels[String(coinType) as keyof typeof ensCoinTypeLabels] ?? `Coin type ${coinType}`
-)
+export const getEnsCoinTypeLabel = (coinType: string | number) => {
+	const key = String(coinType)
+	return key in ensCoinTypeLabelsLookup ? ensCoinTypeLabelsLookup[key] : `Coin type ${coinType}`
+}

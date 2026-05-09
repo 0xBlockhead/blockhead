@@ -14,16 +14,15 @@
 
 
 <Page>
-	<section>
 		<EvmBlockView
-			entityId={{
-				$network: { chainId: Number(params.networkId) },
-				blockNumber: BigInt(params.blockNumber),
-			}}
-			href={resolve(
-				'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
-				params,
-			)}
-		/>
-	</section>
+		entityId={{
+			$network: { chainId: Number(params.networkId) },
+			blockNumber: BigInt(params.blockNumber),
+		}}
+		href={resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
+			params,
+		)}
+	/>
 </Page>
+

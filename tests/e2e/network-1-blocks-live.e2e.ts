@@ -37,14 +37,18 @@ test.describe('/network/1/blocks (EvmBlocksView + blockHeight-driven query)', ()
 	test('(browser, live) ordered list: top block advances after chain head moves', async ({ page }) => {
 		test.setTimeout(400_000)
 		await installChainlistRpcsJsonStub(page)
-		const rpcUrl = await publicJsonRpcHttpUrlForChainE2e(1)
+		const rpcUrlRaw = await publicJsonRpcHttpUrlForChainE2e(1)
 		expect(
-			rpcUrl,
+			rpcUrlRaw,
 			'no HTTP JSON-RPC for chain 1 (ExecutionEndpoints / Chainlist)',
 		).not.toBeNull()
+		if (rpcUrlRaw == null) {
+			throw new Error('no HTTP JSON-RPC for chain 1 (ExecutionEndpoints / Chainlist)')
+		}
+		const rpcUrl = rpcUrlRaw
 		const preflight = await preflightChainHeadAdvancesWithRetries(
 			page,
-			rpcUrl!,
+			rpcUrl,
 			3_000,
 			{ attempts: 8, betweenAttemptsMs: 4_000 },
 		)
@@ -71,7 +75,7 @@ test.describe('/network/1/blocks (EvmBlocksView + blockHeight-driven query)', ()
 				return t != null && t > (top0 ?? 0n)
 			},
 			{
-				message: 'top list block should pass prior head after a new mainnet block (blockHeight + $$evmBlocks refetch)',
+				message: 'top list block should pass prior head after a new mainnet block (blockHeight + $$blocks refetch)',
 				timeout: 180_000,
 				intervals: [3_000, 4_000, 5_000, 6_000, 8_000, 8_000],
 			},

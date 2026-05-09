@@ -77,106 +77,206 @@
 		ensNameQuery.data?.map((item) => item.row) ?? [],
 	)
 
-	const parseStringRecord = (raw: unknown) => {
-		if (
-			raw === undefined
-			|| typeof raw !== 'object'
-			|| Array.isArray(raw)
-		) return undefined
-		const o: Record<string, string> = {}
-		for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
-			if (typeof v === 'string') o[k] = v
-		}
-		return Object.keys(o).length ? o : undefined
-	}
-
-	const evmRef = (b: Record<string, unknown>, key: string) => {
-		const v = b[key]
-		if (v === undefined || typeof v !== 'object' || Array.isArray(v)) return undefined
-		const o = v as Record<string, unknown>
-		const net = o.$network
-		const addr = o.address
-		if (
-			net === undefined
-			|| typeof net !== 'object'
-			|| typeof addr !== 'string'
-			|| !addr.startsWith('0x')
-		) return undefined
-		return {
-			$network: net as EntityId<typeof schema, EntityType.Network>,
-			address: addr as `0x${string}`,
-		}
-	}
-
-	const ensNameIdFromBag = (raw: unknown) => {
-		if (raw === undefined || typeof raw !== 'object' || Array.isArray(raw)) return undefined
-		const o = raw as Record<string, unknown>
-		const id = o[EntityMetaKey.Id] ?? o
-		if (id === undefined || typeof id !== 'object' || Array.isArray(id)) return undefined
-		const name = (id as Record<string, unknown>).name
-		return typeof name === 'string' && name !== '' ?
-				{ name } as EntityId<typeof schema, EntityType.EnsName>
-			:	undefined
-	}
-
-	const ensSubdomainsFromBag = (raw: unknown) => {
-		if (!Array.isArray(raw)) return [] as EntityId<typeof schema, EntityType.EnsName>[]
-		const out: EntityId<typeof schema, EntityType.EnsName>[] = []
-		for (const item of raw) {
-			const id = ensNameIdFromBag(item)
-			if (id !== undefined) out.push(id)
-		}
-		return out
-	}
-
-	const stringListFromBag = (raw: unknown) => (
-		Array.isArray(raw) ?
-			raw.filter((x): x is string => typeof x === 'string')
-		:	[]
-	)
-
-	const bigintFromBag = (raw: unknown) => (
-		typeof raw === 'bigint' ?
-			raw
-		: typeof raw === 'string' || typeof raw === 'number' ?
-			BigInt(raw)
-		:	
-			undefined
-	)
-
 	const ensMerged = $derived.by(() => {
 		const voltaire = ensRows.find((r) => r[EntityMetaKey.Source] === Source.Voltaire_JsonRpc)
 		const graph = ensRows.find((r) => r[EntityMetaKey.Source] === Source.TheGraph_Graphql)
-		const v = voltaire?.[EntityMetaKey.Fields] as Record<string, unknown> | undefined
-		const g = graph?.[EntityMetaKey.Fields] as Record<string, unknown> | undefined
-		if (v === undefined && g === undefined) return null
-		const vb = v ?? {}
-		const gb = g ?? {}
+		const vRaw = voltaire?.[EntityMetaKey.Fields]
+		const v = (typeof vRaw === 'object' && vRaw !== null && !Array.isArray(vRaw)) ? vRaw : undefined
+		const gRaw = graph?.[EntityMetaKey.Fields]
+		const g = (typeof gRaw === 'object' && gRaw !== null && !Array.isArray(gRaw)) ? gRaw : undefined
+		if (v === undefined && g === undefined) return undefined
 		return {
-			textRecords: parseStringRecord(vb.textRecords),
-			coinAddresses: parseStringRecord(vb.coinAddresses),
+			textRecords: (
+				v === undefined ?
+					undefined
+				: !(typeof v.textRecords === 'object' && v.textRecords !== null && !Array.isArray(v.textRecords)) ?
+					undefined
+				: ((rec) => (
+					((o) => (
+						Object.keys(o).length ?
+							o
+						:
+							undefined
+					))(
+						Object.fromEntries(
+							Object.entries(rec).filter((e): e is [string, string] => typeof e[1] === 'string'),
+						),
+					)
+				))(v.textRecords)
+			),
+			coinAddresses: (
+				v === undefined ?
+					undefined
+				: !(typeof v.coinAddresses === 'object' && v.coinAddresses !== null && !Array.isArray(v.coinAddresses)) ?
+					undefined
+				: ((rec) => (
+					((o) => (
+						Object.keys(o).length ?
+							o
+						:
+							undefined
+					))(
+						Object.fromEntries(
+							Object.entries(rec).filter((e): e is [string, string] => typeof e[1] === 'string'),
+						),
+					)
+				))(v.coinAddresses)
+			),
 			contentHash: (
-				typeof vb.contentHash === 'string' && vb.contentHash !== '' ?
-					vb.contentHash
-				: typeof gb.contentHash === 'string' && gb.contentHash !== '' ?
-					gb.contentHash
+				v !== undefined && typeof v.contentHash === 'string' && v.contentHash !== '' ?
+					v.contentHash
+				: g !== undefined && typeof g.contentHash === 'string' && g.contentHash !== '' ?
+					g.contentHash
 				:
 					undefined
 			),
-			resolvedActor: evmRef(vb, '$resolvedActor'),
-			resolverContract: evmRef(vb, '$resolverContract'),
-			ownerActor: evmRef(vb, '$ownerActor'),
-			labelName: typeof gb.labelName === 'string' ? gb.labelName : undefined,
-			labelhash: typeof gb.labelhash === 'string' ? gb.labelhash : undefined,
-			parent: ensNameIdFromBag(gb.$parent),
-			subdomains: ensSubdomainsFromBag(gb.$$subdomains),
-			subdomainCount: typeof gb.subdomainCount === 'number' ? gb.subdomainCount : undefined,
-			resolverTextKeys: stringListFromBag(gb.resolverTextKeys),
-			resolverCoinTypes: stringListFromBag(gb.resolverCoinTypes),
-			ttl: bigintFromBag(gb.ttl),
-			isMigrated: typeof gb.isMigrated === 'boolean' ? gb.isMigrated : undefined,
-			createdAt: bigintFromBag(gb.createdAt),
-			expiryDate: bigintFromBag(gb.expiryDate),
+			resolvedActor: (
+				v === undefined ?
+					undefined
+				: ((ref) => (
+					!(typeof ref === 'object' && ref !== null && !Array.isArray(ref)) ?
+						undefined
+					: !('$network' in ref && 'address' in ref) ?
+						undefined
+					: ((net, addr) => (
+						typeof net === 'object' && net !== null && !Array.isArray(net)
+						&& 'chainId' in net
+						&& typeof net.chainId === 'number'
+						&& typeof addr === 'string'
+						&& addr.startsWith('0x')
+						&& addr.length > 2 ?
+							({
+								$network: { chainId: net.chainId },
+								address: addr as `0x${string}`,
+							} satisfies EntityId<typeof schema, EntityType.Actor>)
+						:
+							undefined
+					))(ref['$network'], ref['address'])
+				))(v['$resolvedActor'])
+			),
+			resolverContract: (
+				v === undefined ?
+					undefined
+				: ((ref) => (
+					!(typeof ref === 'object' && ref !== null && !Array.isArray(ref)) ?
+						undefined
+					: !('$network' in ref && 'address' in ref) ?
+						undefined
+					: ((net, addr) => (
+						typeof net === 'object' && net !== null && !Array.isArray(net)
+						&& 'chainId' in net
+						&& typeof net.chainId === 'number'
+						&& typeof addr === 'string'
+						&& addr.startsWith('0x')
+						&& addr.length > 2 ?
+							({
+								$network: { chainId: net.chainId },
+								address: addr as `0x${string}`,
+							} satisfies EntityId<typeof schema, EntityType.Actor>)
+						:
+							undefined
+					))(ref['$network'], ref['address'])
+				))(v['$resolverContract'])
+			),
+			ownerActor: (
+				v === undefined ?
+					undefined
+				: ((ref) => (
+					!(typeof ref === 'object' && ref !== null && !Array.isArray(ref)) ?
+						undefined
+					: !('$network' in ref && 'address' in ref) ?
+						undefined
+					: ((net, addr) => (
+						typeof net === 'object' && net !== null && !Array.isArray(net)
+						&& 'chainId' in net
+						&& typeof net.chainId === 'number'
+						&& typeof addr === 'string'
+						&& addr.startsWith('0x')
+						&& addr.length > 2 ?
+							({
+								$network: { chainId: net.chainId },
+								address: addr as `0x${string}`,
+							} satisfies EntityId<typeof schema, EntityType.Actor>)
+						:
+							undefined
+					))(ref['$network'], ref['address'])
+				))(v['$ownerActor'])
+			),
+			labelName: g !== undefined && typeof g.labelName === 'string' ? g.labelName : undefined,
+			labelhash: g !== undefined && typeof g.labelhash === 'string' ? g.labelhash : undefined,
+			parent: (
+				g === undefined
+				|| !(typeof g.$parent === 'object' && g.$parent !== null && !Array.isArray(g.$parent)) ?
+					undefined
+				: ((o) => (
+					((idRaw) => (
+						!(typeof idRaw === 'object' && idRaw !== null && !Array.isArray(idRaw)) ?
+							undefined
+						: 'name' in idRaw && typeof idRaw.name === 'string' && idRaw.name !== '' ?
+							({ name: idRaw.name } satisfies EntityId<typeof schema, EntityType.EnsName>)
+						:
+							undefined
+					))(o[EntityMetaKey.Id] ?? o)
+				))(g.$parent)
+			),
+			subdomains: (
+				g !== undefined && Array.isArray(g.$$subdomains) ?
+					g.$$subdomains.flatMap((item) => (
+						!(typeof item === 'object' && item !== null && !Array.isArray(item)) ?
+							[]
+						: ((idRaw) => (
+							!(typeof idRaw === 'object' && idRaw !== null && !Array.isArray(idRaw)) ?
+								[]
+							: 'name' in idRaw && typeof idRaw.name === 'string' && idRaw.name !== '' ?
+								[{ name: idRaw.name } satisfies EntityId<typeof schema, EntityType.EnsName>]
+							:
+								[]
+						))(item[EntityMetaKey.Id] ?? item)
+					))
+				:	[]
+			),
+			subdomainCount: g !== undefined && typeof g.subdomainCount === 'number' ? g.subdomainCount : undefined,
+			resolverTextKeys: (
+				g !== undefined && Array.isArray(g.resolverTextKeys) ?
+					g.resolverTextKeys.filter((x): x is string => typeof x === 'string')
+				:	[]
+			),
+			resolverCoinTypes: (
+				g !== undefined && Array.isArray(g.resolverCoinTypes) ?
+					g.resolverCoinTypes.filter((x): x is string => typeof x === 'string')
+				:	[]
+			),
+			ttl: (
+				g === undefined ?
+					undefined
+				: typeof g.ttl === 'bigint' ?
+					g.ttl
+				: typeof g.ttl === 'string' || typeof g.ttl === 'number' ?
+					BigInt(g.ttl)
+				:
+					undefined
+			),
+			isMigrated: g !== undefined && typeof g.isMigrated === 'boolean' ? g.isMigrated : undefined,
+			createdAt: (
+				g === undefined ?
+					undefined
+				: typeof g.createdAt === 'bigint' ?
+					g.createdAt
+				: typeof g.createdAt === 'string' || typeof g.createdAt === 'number' ?
+					BigInt(g.createdAt)
+				:
+					undefined
+			),
+			expiryDate: (
+				g === undefined ?
+					undefined
+				: typeof g.expiryDate === 'bigint' ?
+					g.expiryDate
+				: typeof g.expiryDate === 'string' || typeof g.expiryDate === 'number' ?
+					BigInt(g.expiryDate)
+				:
+					undefined
+			),
 		}
 	})
 
@@ -186,29 +286,27 @@
 		:	Object.keys(ensMerged.textRecords).length,
 	)
 
-	const textRecordRank = (key: string) => (
-		key in ensTextRecordDisplayRank ?
-			ensTextRecordDisplayRank[key as keyof typeof ensTextRecordDisplayRank]
-		:	9999
-	)
-
 	const textRecordEntries = $derived(
 		ensMerged?.textRecords === undefined ?
 			[]
 		:	Object.entries(ensMerged.textRecords)
 				.toSorted(([a], [b]) => (
-					(() => {
-						const ra = textRecordRank(a)
-						const rb = textRecordRank(b)
-						return ra !== rb ?
-								ra - rb
-							:	a.localeCompare(b)
-					})()
+					((
+						ra,
+						rb,
+					) => (
+						ra !== rb ?
+							ra - rb
+						:	a.localeCompare(b)
+					))(
+						a in ensTextRecordDisplayRank ?
+							ensTextRecordDisplayRank[a]
+						:	9999,
+						b in ensTextRecordDisplayRank ?
+							ensTextRecordDisplayRank[b]
+						:	9999,
+					)
 				)),
-	)
-
-	const textRecordKeys = $derived(
-		textRecordEntries.map(([key]) => key),
 	)
 
 
@@ -234,7 +332,7 @@
 	title={titleProp ?? (entityId.name === 'list' ? 'ENS' : entityId.name)}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			{#if entityId.name === 'list'}
 				<div>
 					<dt>Scope</dt>
@@ -302,7 +400,7 @@
 								No ENS rows in the local collection for this name yet. Data loads on demand; try again
 								after the request completes or confirm the label exists.
 							</p>
-						{:else if ensMerged === undefined}
+						{:else if ensMerged == null}
 							<p data-text="muted">
 								ENS sources returned no fields for this name.
 							</p>
@@ -481,7 +579,14 @@
 								<dl>
 									{#each textRecordEntries as [key, value] (key)}
 										{@const trHref = getEnsTextRecordHref(key, value)}
-										{@const trExternal = trHref !== undefined && (trHref.startsWith('http://') || trHref.startsWith('https://') || trHref.startsWith('mailto:'))}
+										{@const trExternal = (
+											trHref != null
+											&& (
+												trHref.startsWith('http://')
+												|| trHref.startsWith('https://')
+												|| trHref.startsWith('mailto:')
+											)
+										)}
 										<div>
 											<dt>{getEnsTextRecordLabel(key)}</dt>
 											<dd>
@@ -491,7 +596,7 @@
 														data-button="unstyled"
 														data-link
 														onclick={() => {
-															if (trHref === undefined) return
+															if (trHref == null) return
 															window.open(
 																trHref,
 																'_blank',
@@ -532,7 +637,7 @@
 					ensName: entityId.name,
 				})}
 				open={false}
-				recordKeys={textRecordKeys}
+				recordKeys={textRecordEntries.map(([key]) => key)}
 			/>
 
 			{#if ensMerged?.resolverContract !== undefined}

@@ -12,16 +12,15 @@
 
 
 <Page>
-	<section>
 		<ProposalRealmsView
-			entityFieldReference={{
-				entityType: EntityType._Global,
-				entityId: {},
-				fieldName: '$$proposalRealms',
-			}}
-			href={resolve('/proposals')}
-			id="proposal-realms"
-			title="Proposals"
-		/>
-	</section>
+		entityFieldReference={{
+			entityType: EntityType._Global,
+			entityId: {},
+			fieldName: '$$proposalRealms',
+		}}
+		href={resolve('/proposals')}
+		id="proposal-realms"
+		title="Proposals"
+	/>
 </Page>
+

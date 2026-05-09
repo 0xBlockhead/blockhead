@@ -1,4 +1,5 @@
 import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 /** Client-side fetch via shared api-proxy (`hooks.server.ts`). Pass absolute `http(s):` URL; origin must be allow-listed. Browser uses `/api-proxy`; SSR uses direct `fetch`. */
 export const proxyFetch: typeof fetch = async (input, init) => {
@@ -70,9 +71,9 @@ export const getText = async (
 
 /**
  * `GET` (or custom `init`) then `Response.json()` after `res.ok`.
- * Pass `T` when the wire shape is known; otherwise defaults to `unknown`.
+ * Pass `T` when the wire shape is known; otherwise defaults to `JsonValue`.
  */
-export const getJson = async <T = unknown>(
+export const getJson = async <T = JsonValue>(
 	url: string,
 	options: CorsAwareFetchOptions,
 ): Promise<T> => {
@@ -81,5 +82,5 @@ export const getJson = async <T = unknown>(
 	if (!response.ok)
 		throw new Error(`Fetch failed (${response.status} ${response.statusText}) for ${url}`)
 
-	return (await response.json()) as T
+	return response.json<T>()
 }

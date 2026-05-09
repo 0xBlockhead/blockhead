@@ -14,16 +14,15 @@
 
 
 <Page>
-	<section>
 		<BeaconSlotView
-			entityId={{
-				$network: { chainId: Number(params.networkId) },
-				slot: Number(params.slotNumber),
-			}}
-			href={resolve(
-				'/(explore)/(networks)/network/[networkId]/(network)/(beacon-slots)/slot/[slotNumber]',
-				params,
-			)}
-		/>
-	</section>
+		entityId={{
+			$network: { chainId: Number(params.networkId) },
+			slot: Number(params.slotNumber),
+		}}
+		href={resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(beacon-slots)/slot/[slotNumber]',
+			params,
+		)}
+	/>
 </Page>
+

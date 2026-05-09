@@ -1,8 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { type EntityFieldReference } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -15,6 +16,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { SvelteSet } from 'svelte/reactivity'
 
+	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
 	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
@@ -26,7 +28,7 @@
 		open = $bindable(true),
 		title = 'Users',
 	}: {
-		entityFieldReference: EntityFieldReference<typeof EntityType.XUser>
+		entityFieldReference: EntityFieldReference<typeof schema, EntityType.XUser>
 		href: string
 		id: string
 		open?: boolean
@@ -38,7 +40,12 @@
 		(queryBuilder) => (
 			queryBuilder
 				.from({
-					userFieldRow: entityFieldCollections[EntityType.XNetwork]['$$xUsers']!,
+					userFieldRow: (
+						entityFieldCollectionForReference(
+							entityFieldCollections,
+							entityFieldReference,
+						)
+					),
 				})
 				.where(({ userFieldRow }) => (
 					eq(
@@ -52,12 +59,10 @@
 						Source.X_Rest,
 					)
 				))
-				.select(({ userFieldRow }) => ({
-					[EntityMetaKey.Id]: (
-						// @ts-expect-error entity field row stores target id
-						userFieldRow[EntityMetaKey.Value]![EntityMetaKey.Id]
-					),
-				}))
+				.select(({ userFieldRow }) => (
+					{ value: userFieldRow[EntityMetaKey.Value] }
+				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -80,17 +85,19 @@
 	{id}
 	getKey={(row) => stringify(row[EntityMetaKey.Id])}
 	getSortValue={(row) => (
-		typeof row[EntityMetaKey.Id] === 'object'
-		&& row[EntityMetaKey.Id] !== undefined
-		&& 'id' in row[EntityMetaKey.Id]
-		&& typeof row[EntityMetaKey.Id].id === 'string' ?
-			row[EntityMetaKey.Id].id
-		:	''
+		row[EntityMetaKey.Id].id
 	)}
-	items={new SvelteSet(usersQuery.data ?? [])}
+	items={usersQuery.data?.map(({ value }) => value) ?? []}
 	bind:open
 	placeholderKeys={new SvelteSet<string>()}
-	query={usersQuery}
+	query={{
+		data: usersQuery.data?.map(({ value }) => value) ?? [],
+		isLoading: usersQuery.isLoading,
+		isError: usersQuery.isError,
+		isReady: usersQuery.isReady,
+		error: usersQuery.error,
+		status: usersQuery.status,
+	}}
 	{title}
 >
 	{#snippet Empty()}
@@ -106,16 +113,14 @@
 			</span>
 		{:else if item}
 			{@const userId = item[EntityMetaKey.Id]}
-			{#if typeof userId === 'object' && userId !== undefined && 'id' in userId && typeof userId.id === 'string'}
-				<XUserView
-					entityId={{ id: userId.id }}
-					href={resolve('/(social)/x/user/[userId]', {
-						userId: encodeURIComponent(userId.id),
-					})}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{/if}
+			<XUserView
+				entityId={{ id: userId.id }}
+				href={resolve('/(social)/x/user/[userId]', {
+					userId: encodeURIComponent(userId.id),
+				})}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
 		{/if}
 	{/snippet}
 </EntitiesList>

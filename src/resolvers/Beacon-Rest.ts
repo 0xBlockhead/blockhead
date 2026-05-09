@@ -9,11 +9,8 @@ import {
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import type { Entity } from '$/schema/$schema.ts'
-import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import { getBeaconHeadSlot } from '$/sources/Beacon/Rest/queries.ts'
 
 export default {
 	source: Source.Beacon_Rest,
@@ -21,69 +18,123 @@ export default {
 	entityResolvers: [
 		defineEntityResolver({
 			entityType: EntityType.BeaconEpoch,
-			resolve: async () => ({}),
+			resolve: async (entityId) => {
+				const { epoch } = entityId
+				return {
+					startSlot: epoch * slotsPerEpoch,
+					endSlot: (epoch * slotsPerEpoch) + slotsPerEpoch - 1,
+					slotCount: slotsPerEpoch,
+				}
+			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.BeaconSlot,
-			resolve: async () => ({}),
+			resolve: async (entityId) => {
+				const { getBeaconHeader } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { $network, slot } = entityId
+				const base = beaconRestBaseByExecutionChainId[$network.chainId]
+				if (base == null) return {
+					epoch: Math.floor(slot / slotsPerEpoch),
+				}
+				const header = await singleFlight(getBeaconHeader)(base, slot)
+				return {
+					bodyRoot: header.bodyRoot,
+					canonical: header.canonical,
+					epoch: Math.floor(header.slot / slotsPerEpoch),
+					parentRoot: header.parentRoot,
+					proposerIndex: header.proposerIndex,
+					root: header.root,
+					stateRoot: header.stateRoot,
+				}
+			},
 		}),
 	],
 
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
-			fieldName: '$$beaconEpochs',
+			entityType: EntityType.BeaconEpoch,
+			fieldName: '$$beaconSlots',
 			resolve: async (entityId, context) => {
+				const { $network, epoch } = entityId
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) return []
-				const base = beaconRestBaseByExecutionChainId[entityId.chainId]
-				if (base == null) return []
-				const headSlot = await singleFlight(getBeaconHeadSlot)(base)
-				const headEpoch = Math.floor(headSlot / slotsPerEpoch)
-				const chain = entityId.chainId
+				if (limit == null) throw new Error('Beacon_Rest: BeaconEpoch $$beaconSlots requires query limit')
 				return (
 					Array.from(
-						{ length: limit },
-						(_, i) => {
-							const epoch = headEpoch - i
-							if (epoch < 0) return null
-							return {
-								[EntityMetaKey.Id]: {
-									$network: { chainId: chain },
-									epoch,
-								},
-							} satisfies Entity<typeof schema, EntityType.BeaconEpoch>
-						},
+						{ length: Math.min(limit, slotsPerEpoch) },
+						(_, i) => (epoch * slotsPerEpoch) + i,
 					)
-						.filter((row): row is Entity<typeof schema, EntityType.BeaconEpoch> => row != null)
+						.map((slot) => ({
+							[EntityMetaKey.Id]: {
+								$network,
+								slot,
+							},
+						}))
 				)
 			},
 		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$beaconEpochs',
+			resolve: async (entityId, context) => {
+				const { getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				if (limit == null) throw new Error('Beacon_Rest: Network $$beaconEpochs requires query limit')
+				const { chainId } = entityId
+				const base = beaconRestBaseByExecutionChainId[chainId]
+				if (base == null) return []
+				const headSlot = await singleFlight(getBeaconHeadSlot)(base)
+				const headEpoch = Math.floor(headSlot / slotsPerEpoch)
+				return (
+					Array.from(
+						{ length: limit },
+						(_, i) => headEpoch - i,
+					)
+						.flatMap((epoch) => (
+							epoch < 0 ?
+								[]
+							:	[
+								{
+									[EntityMetaKey.Id]: {
+										$network: { chainId },
+										epoch,
+									},
+								},
+							]
+						))
+				)
+			},
+		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.Network,
 			fieldName: '$$beaconSlots',
 			resolve: async (entityId, context) => {
+				const { getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) return []
-				const base = beaconRestBaseByExecutionChainId[entityId.chainId]
+				if (limit == null) throw new Error('Beacon_Rest: Network $$beaconSlots requires query limit')
+				const { chainId } = entityId
+				const base = beaconRestBaseByExecutionChainId[chainId]
 				if (base == null) return []
 				const headSlot = await singleFlight(getBeaconHeadSlot)(base)
-				const chain = entityId.chainId
 				return (
 					Array.from(
 						{ length: limit },
-						(_, i) => {
-							const slot = headSlot - i
-							if (slot < 0) return null
-							return {
-								[EntityMetaKey.Id]: {
-									$network: { chainId: chain },
-									slot,
-								},
-							} satisfies Entity<typeof schema, EntityType.BeaconSlot>
-						},
+						(_, i) => headSlot - i,
 					)
-						.filter((row): row is Entity<typeof schema, EntityType.BeaconSlot> => row != null)
+						.flatMap((slot) => (
+							slot < 0 ?
+								[]
+							:	[
+								{
+									[EntityMetaKey.Id]: {
+										$network: { chainId },
+										slot,
+									},
+								},
+							]
+						))
 				)
 			},
 		}),

@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type ConsoleMessage, type Page } from '@playwright/test'
 
 import {
 	assertMainSettled,
@@ -31,14 +31,18 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 	await installChainlistRpcsJsonStub(page)
 
 	const { chainId, enforceBasescanNotViaApiProxy, label: _label } = chain
-	const publicRpcUrl = await publicJsonRpcHttpUrlForChainE2e(chainId)
+	const publicRpcUrlRaw = await publicJsonRpcHttpUrlForChainE2e(chainId)
 	expect(
-		publicRpcUrl,
+		publicRpcUrlRaw,
 		`no HTTP JSON-RPC for chain ${String(chainId)} (ExecutionEndpoints / Chainlist)`,
 	).not.toBeNull()
+	if (publicRpcUrlRaw == null) {
+		throw new Error(`no HTTP JSON-RPC for chain ${String(chainId)} (ExecutionEndpoints / Chainlist)`)
+	}
+	const publicRpcUrl = publicRpcUrlRaw
 	const preflight = await preflightChainHeadAdvancesWithRetries(
 		page,
-		publicRpcUrl!,
+		publicRpcUrl,
 		3_000,
 		{ attempts: 8, betweenAttemptsMs: 4_000 },
 	)
@@ -67,7 +71,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 
 	const issues = collectIssues(page)
 	let sawBlockStreamTypeBlocks = false
-	const onBlockStreamTypeBlocks: Parameters<Page['on']>[1] = (msg) => {
+	const onBlockStreamTypeBlocks = (msg: ConsoleMessage) => {
 		const t = msg.text()
 		if (t.includes('[block stream]') && t.includes('type=blocks')) {
 			sawBlockStreamTypeBlocks = true
@@ -186,7 +190,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 			async () => {
 				const nums = await readNetworkCarouselBlockNumbers(page)
 				if (nums.length === 0) return false
-				const top = nums.reduce((a, b) => (a > b ? a : b), nums[0]!)
+				const top = nums.reduce((a, b) => (a > b ? a : b), nums[0])
 				return top >= (head2 ?? 0n) || top > topBefore
 			},
 			{

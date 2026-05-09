@@ -32,22 +32,16 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'isLoading',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('boolean'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'error',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string | null'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
 			name: 'lastChecked',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$spenderContract',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

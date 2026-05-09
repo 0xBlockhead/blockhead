@@ -6,11 +6,8 @@ import type { Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import type {
-	ConsensusProtocol,
-	ExecutionProtocol,
-	ForkScheduleKind,
-} from '$/schema/NetworkFork.ts'
+import type { ConsensusProtocol, ExecutionProtocol } from '$/schema/NetworkFork.ts'
+import { ForkScheduleKind } from '$/schema/NetworkFork.ts'
 import { type ProposalCategory, ProposalRealm } from '$/constants/Proposal.ts'
 
 
@@ -50,11 +47,21 @@ export const ethereumExecutionForkFromRow = <T extends string>(
 		activation,
 		links,
 		proposalIds,
-		...rest
+		kind,
+		executionProtocol,
+		consensusProtocol,
+		forkHash,
 	} = row
 	return {
 		[EntityMetaKey.Id]: { $network: { chainId }, forkId },
-		...rest,
+		...(kind != null ? { kind } : {}),
+		...(
+			kind !== ForkScheduleKind.Blob && executionProtocol != null ?
+				{ executionProtocol }
+			:	{}
+		),
+		...(consensusProtocol != null ? { consensusProtocol } : {}),
+		...(forkHash != null ? { forkHash } : {}),
 		name: forkId,
 		slug: slugEntry ?? String(forkId).toLowerCase().replace(/\s+/g, '-'),
 		...(activation?.block != null ? { activationBlock: activation.block } : {}),
@@ -79,5 +86,5 @@ export const ethereumExecutionForkFromRow = <T extends string>(
 				})),
 			}
 		:	{}),
-	} as Entity<typeof schema, EntityType.NetworkFork>
+	} satisfies Entity<typeof schema, EntityType.NetworkFork>
 }

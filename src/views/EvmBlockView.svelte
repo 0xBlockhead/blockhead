@@ -80,8 +80,8 @@
 	const blockField = $derived(
 		(() => {
 			const bag = blockRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
+			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+			const b = bag
 			return {
 				extraData: typeof b.extraData === 'string' && b.extraData.length ? b.extraData : undefined,
 				timestamp: typeof b.timestamp === 'number' ? b.timestamp : undefined,
@@ -146,7 +146,7 @@
 
 	{#snippet Content()}
 		{#if hasSummaryDetails}
-			<dl data-definition-list="vertical">
+			<dl>
 				{#if blockField?.transactionCount !== undefined}
 					<div>
 						<dt>Transactions</dt>
@@ -266,7 +266,7 @@
 			entityFieldReference={{
 				entityType: EntityType.EvmBlock,
 				entityId,
-				fieldName: '$$evmTransactions',
+				fieldName: '$$transactions',
 			}}
 			href={resolve(
 				'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',

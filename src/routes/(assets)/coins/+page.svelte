@@ -1,8 +1,10 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
-
-	import { EntityType } from '$/schema/$EntityType.ts'
 
 
 	// Components
@@ -20,5 +22,6 @@
 		}}
 		href={resolve('/coins')}
 		id="coins"
+		limit={80}
 	/>
 </Page>

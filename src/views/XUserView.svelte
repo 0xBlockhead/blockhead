@@ -13,6 +13,7 @@
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
+	import { mergeEntityCollectionRowFields } from '$/collections/mergeEntityCollectionRowFields.ts'
 	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
@@ -45,6 +46,10 @@
 
 	const idKey = $derived(stringify(entityId))
 
+	const xUserMergeSourceOrder = [
+		Source.X_Rest,
+	] as const
+
 	const userQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
@@ -60,32 +65,29 @@
 		[() => idKey],
 	)
 
-	const summaryFields = $derived.by((): Record<string, unknown> | null => {
-		const r = userQuery.data
-			?.find((e) => e.row[EntityMetaKey.Source] === Source.X_Rest)
-			?.row
-			?? userQuery.data?.[0]?.row
-		const b = r?.[EntityMetaKey.Fields]
-		if (b === undefined || typeof b !== 'object' || Array.isArray(b)) {
-			return null
-		}
-		return b as Record<string, unknown>
-	})
+	const userFields = $derived(
+		mergeEntityCollectionRowFields<EntityType.XUser>(
+			userQuery.data,
+			xUserMergeSourceOrder,
+		),
+	)
 
 	const displayTitle = $derived(
-		(summaryFields !== undefined && typeof summaryFields['name'] === 'string' && summaryFields['name']
-			? summaryFields['name']
-			:	undefined)
-		?? (summaryFields !== undefined && typeof summaryFields['username'] === 'string' ? summaryFields['username'] : undefined)
-		?? entityId.id
+		userFields.name
+		?? userFields.username
+		?? entityId.id,
 	)
+
+	const avatarUrl = $derived((
+		userFields.$icon?.[EntityMetaKey.Id].url
+	))
 
 
 	// Components
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 </script>
 
 
@@ -98,35 +100,31 @@
 	title={displayTitle}
 >
 	{#snippet Icon()}
-		{@const s = summaryFields}
-		{@const a = s !== undefined && typeof s['profileImageUrl'] === 'string' ? s['profileImageUrl'] : null}
-		{#if a}
-			<Icon
+		{#if avatarUrl !== undefined}
+			<IconComponent
 				alt={(
-					(s !== undefined && typeof s['name'] === 'string' && s['name'])
-					?? (s !== undefined && typeof s['username'] === 'string' && s['username'])
+					userFields.name
+					?? userFields.username
 					?? ''
 				)}
 				shape={IconShape.Circle}
-				src={a}
+				src={avatarUrl}
 			/>
 		{/if}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{@const s = summaryFields}
-		{@const u = s !== undefined && typeof s['username'] === 'string' && s['username'] !== displayTitle ? s['username'] : null}
-		{#if u}
+		{#if userFields.username !== undefined && userFields.username !== displayTitle}
 			<span data-text="muted">
-				@{u}
+				@{userFields.username}
 			</span>
 		{/if}
 	{/snippet}
 
 	{#snippet Content()}
-		{#if summaryFields !== undefined && typeof summaryFields['description'] === 'string' && summaryFields['description']}
+		{#if userFields.description}
 			<p data-text="muted">
-				{summaryFields['description']}
+				{userFields.description}
 			</p>
 		{/if}
 		<div data-text="mono muted">
@@ -145,40 +143,29 @@
 				query={userQuery}
 			>
 				{#snippet children(xApiUserResultRows)}
-					{@const detailFields = (() => {
-						const r = xApiUserResultRows
-							?.find((e) => e.row[EntityMetaKey.Source] === Source.X_Rest)
-							?.row
-							?? xApiUserResultRows?.[0]?.row
-						const b = r?.[EntityMetaKey.Fields]
-						if (b === undefined || typeof b !== 'object' || Array.isArray(b)) {
-							return null
-						}
-						return b as Record<string, unknown>
-					})()}
-					{#if detailFields === undefined}
+					{#if xApiUserResultRows.length === 0}
 						<p data-text="muted">
 							No user data in the app for this id yet. Try again shortly, or check your X API credentials and
 							rate limits.
 						</p>
 					{:else}
 						<dl>
-							{#if typeof detailFields['name'] === 'string' && detailFields['name']}
+							{#if userFields.name}
 								<div>
 									<dt>Name</dt>
-									<dd>{detailFields['name']}</dd>
+									<dd>{userFields.name}</dd>
 								</div>
 							{/if}
-							{#if typeof detailFields['username'] === 'string' && detailFields['username']}
+							{#if userFields.username}
 								<div>
 									<dt>Username</dt>
-									<dd>{detailFields['username']}</dd>
+									<dd>{userFields.username}</dd>
 								</div>
 							{/if}
-							{#if typeof detailFields['description'] === 'string' && detailFields['description']}
+							{#if userFields.description}
 								<div>
 									<dt>Description</dt>
-									<dd>{detailFields['description']}</dd>
+									<dd>{userFields.description}</dd>
 								</div>
 							{/if}
 						</dl>

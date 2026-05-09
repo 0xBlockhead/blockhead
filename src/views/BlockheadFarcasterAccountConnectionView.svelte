@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { resolve } from '$app/paths'
-	import type { EntityId } from '$/schema/$schema.ts'
+	import type { EntityFieldValues, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -77,25 +77,19 @@
 	const connectionField = $derived(
 		(() => {
 			const bag = connectionRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const f = bag as Record<string, unknown>
-			const verifications = f['verifications']
-			const signedAt = f['signedAt']
-			const pick = (key: string) => {
-				const x = f[key]
-				return typeof x === 'string' && x.length ? x : undefined
-			}
+			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+			const f: Partial<EntityFieldValues<typeof schema, EntityType.BlockheadFarcasterAccountConnection>> = bag
 			return {
-				username: pick('username'),
-				displayName: pick('displayName'),
-				pfpUrl: pick('pfpUrl'),
-				bio: pick('bio'),
-				custody: pick('custody'),
-				authMethod: pick('authMethod'),
-				verifications: Array.isArray(verifications) ?
-					verifications.filter((value): value is string => typeof value === 'string' && value.length > 0)
+				username: typeof f.username === 'string' && f.username.length ? f.username : undefined,
+				displayName: typeof f.displayName === 'string' && f.displayName.length ? f.displayName : undefined,
+				avatarUrl: f.$icon?.[EntityMetaKey.Id].url,
+				bio: typeof f.bio === 'string' && f.bio.length ? f.bio : undefined,
+				custody: typeof f.custody === 'string' && f.custody.length ? f.custody : undefined,
+				authMethod: f.authMethod,
+				verifications: Array.isArray(f.verifications) ?
+					f.verifications.filter((value): value is string => typeof value === 'string' && value.length > 0)
 				:	undefined,
-				signedAt: typeof signedAt === 'number' ? signedAt : undefined,
+				signedAt: typeof f.signedAt === 'number' ? f.signedAt : undefined,
 			}
 		})(),
 	)
@@ -118,7 +112,7 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import Media from '$/components/Media.svelte'
 	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
@@ -136,10 +130,10 @@
 	title={displayTitle}
 >
 	{#snippet Icon()}
-		{#if connectionField?.pfpUrl !== undefined}
-			<Icon
+		{#if connectionField?.avatarUrl !== undefined}
+			<IconComponent
 				shape={IconShape.Circle}
-				src={connectionField.pfpUrl}
+				src={connectionField.avatarUrl}
 				alt=""
 			/>
 		{/if}
@@ -177,7 +171,7 @@
 				FID {String(entityId.fid)}
 			</p>
 			{#if connectionField?.signedAt !== undefined && typeof connectionField.signedAt === 'number' && Number.isFinite(connectionField.signedAt)}
-				<dl data-definition-list="vertical">
+				<dl>
 					<div>
 						<dt>Timestamp</dt>
 						<dd>
@@ -211,7 +205,7 @@
 						<p data-text="muted">
 							No Farcaster connection data yet.
 						</p>
-					{:else if connectionField === undefined}
+					{:else if connectionField == null}
 						<p data-text="muted">
 							FID {String(entityId.fid)}
 						</p>
@@ -275,10 +269,10 @@
 									</div>
 								{/if}
 							</dl>
-							{#if connectionField.pfpUrl !== undefined}
+							{#if connectionField.avatarUrl !== undefined}
 								<p>
 									<Media
-										media={{ url: connectionField.pfpUrl }}
+										media={{ url: connectionField.avatarUrl }}
 										alt={connectionField.displayName ?? connectionField.username ?? ''}
 									/>
 								</p>

@@ -2,20 +2,22 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import { normalize as ensNormalizeNode, toString as ensToString } from '@tevm/voltaire/Ens'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-const bigIntFromSubgraphScalar = (value: unknown) => (
+const nullableBigIntFromSubgraphScalar = (value: JsonValue) => (
 	typeof value === 'string' || typeof value === 'number' ?
 		BigInt(value)
 	:	null
 )
 
-const ensNameEntityFromGraphName = (
-	nameValue: unknown,
+const ensNameEntityFromSubgraphNameField = (
+	nameValue: string | null | undefined,
 ): import('$/schema/$schema.ts').Entity<typeof schema, EntityType.EnsName> | null => (
 	typeof nameValue === 'string' && nameValue.length > 0 ?
 		{
@@ -34,10 +36,9 @@ export default {
 			entityType: EntityType.EnsName,
 			resolve: async (entityId, context) => {
 				const { sourcePublicEnv } = await import('$/resolvers/$resolvers.ts')
-				const { normalizeEnsName } = await import('$/sources/Voltaire/JsonRpc/ens.ts')
 				const { getEnsName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.TheGraph_Graphql)
-				const normalizedName = normalizeEnsName(entityId.name)
+				const normalizedName = ensToString(ensNormalizeNode(entityId.name.trim()))
 				const matchingEnsDomain = (
 					await singleFlight(getEnsName)({
 						publicEnv,
@@ -46,20 +47,20 @@ export default {
 				).find((candidate) => candidate.name === normalizedName)
 				if (matchingEnsDomain == null) throw new Error('TheGraph_Graphql: ENS name not in subgraph')
 
-				const parentEnsNameEntity = ensNameEntityFromGraphName(matchingEnsDomain.parent?.name)
+				const parentEnsNameEntity = ensNameEntityFromSubgraphNameField(matchingEnsDomain.parent?.name)
 				const subdomainEnsNameEntities = (
 					matchingEnsDomain.subdomains
-						.map((subdomain) => ensNameEntityFromGraphName(subdomain.name))
+						.map((subdomain) => ensNameEntityFromSubgraphNameField(subdomain.name))
 						.filter((entity) => entity != null)
 				)
 				const ttlBigInt = matchingEnsDomain.ttl != null ?
-						bigIntFromSubgraphScalar(matchingEnsDomain.ttl)
+						nullableBigIntFromSubgraphScalar(matchingEnsDomain.ttl)
 					:	null
 				const createdAtBigInt = matchingEnsDomain.createdAt != null ?
-						bigIntFromSubgraphScalar(matchingEnsDomain.createdAt)
+						nullableBigIntFromSubgraphScalar(matchingEnsDomain.createdAt)
 					:	null
 				const expiryDateBigInt = matchingEnsDomain.expiryDate != null ?
-						bigIntFromSubgraphScalar(matchingEnsDomain.expiryDate)
+						nullableBigIntFromSubgraphScalar(matchingEnsDomain.expiryDate)
 					:	null
 
 				return {
@@ -105,7 +106,7 @@ export default {
 						publicEnv,
 						owner: entityId.address.toLowerCase(),
 					}))
-						.map((domain) => ensNameEntityFromGraphName(domain.name))
+						.map((domain) => ensNameEntityFromSubgraphNameField(domain.name))
 						.filter((entity) => entity != null)
 				)
 			},

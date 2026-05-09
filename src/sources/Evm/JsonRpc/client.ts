@@ -1,14 +1,15 @@
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 type JsonRpcError = {
 	code: number
 	message: string
-	data?: unknown
+	data?: JsonValue
 }
 
 type JsonRpcResponse<TResult> = {
 	jsonrpc: typeof jsonRpcVersion
-	id: number | unknown
+	id: number | string | null
 	result?: TResult
 	error?: JsonRpcError
 }
@@ -20,9 +21,9 @@ export const jsonRpc = async <_Result>({
 }: {
 	rpcUrl: string
 	method: string
-	params: unknown[]
+	params: JsonValue[]
 }): Promise<_Result> => {
-	const ressponse = await fetch(rpcUrl, {
+	const response = await fetch(rpcUrl, {
 		method: 'POST',
 		headers: jsonRpcHeaders,
 		body: JSON.stringify({
@@ -32,12 +33,16 @@ export const jsonRpc = async <_Result>({
 			params,
 		}),
 	})
-	if (!ressponse.ok) throw new Error(`JsonRpc ${method}: ${res.status} ${res.statusText}`)
+	if (!response.ok) throw new Error(`JsonRpc ${method}: ${response.status} ${response.statusText}`)
 
-	const json = (await ressponse.json()) as JsonRpcResponse<_Result>
+	const json = await response.json<JsonRpcResponse<_Result>>()
 
 	if (json.error != null)
 		throw new Error(`JsonRpc ${method}: ${json.error.message}`)
 
-	return json.result as _Result
+	const { result } = json
+	if (result === undefined)
+		throw new Error(`JsonRpc ${method}: missing result`)
+
+	return result
 }

@@ -27,12 +27,6 @@ export type ExecutionEndpoint = {
 	tevmForkTransportCompatible?: boolean
 	/** From web3_clientVersion; omit for WebSocket or when not probed. */
 	executionClient?: ExecutionClientId
-	/** When Chainlist has no row, seed `Network` display in Blockscout resolvers. */
-	chainlistFallbackDisplay?: {
-		name: string
-		nativeSymbol: string
-		explorerOrigin: string
-	}
 }
 
 export const executionEndpoints = [
@@ -610,11 +604,6 @@ export const executionEndpoints = [
 		transportType: TransportType.Http,
 		tevmForkTransportCompatible: true,
 		executionClient: ExecutionClientId.Geth,
-		chainlistFallbackDisplay: {
-			name: 'Sepolia',
-			nativeSymbol: 'ETH',
-			explorerOrigin: 'https://sepolia.etherscan.io',
-		},
 	},
 	{
 		chainId: ChainId.EthereumSepolia,
@@ -680,34 +669,34 @@ export const executionEndpoints = [
 	},
 ] as const satisfies readonly ExecutionEndpoint[]
 
-export const executionEndpointsByChainId = Object.groupBy(
+export const executionEndpointsByChainId: Partial<Record<number, ExecutionEndpoint[]>> = Object.groupBy(
 	executionEndpoints,
 	(e) => e.chainId,
 )
 
-/** Lookups and URL maps derived from {@link executionEndpointsByChainId}. */
-export const getChainlistFallbackDisplay = (chainId: number) => (
-	(executionEndpointsByChainId[chainId as ChainId] ?? [])
-		.find((e) => e.chainlistFallbackDisplay != null)
-		?.chainlistFallbackDisplay
-)
+export const executionEndpointsForChainId = (chainId: number): ExecutionEndpoint[] => {
+	for (const [key, group] of Object.entries(executionEndpointsByChainId)) {
+		if (Number(key) === chainId) return group ?? []
+	}
+	return []
+}
 
 export const getDefaultExecutionEndpoint = (
 	chainId: number,
 ): ExecutionEndpoint | undefined =>
-	executionEndpointsByChainId[chainId as ChainId]?.[0]
+	executionEndpointsByChainId[chainId]?.[0]
 
 export const getDefaultExecutionEndpointForLive = (
 	chainId: number,
 ): ExecutionEndpoint | undefined => {
-	const list = executionEndpointsByChainId[chainId as ChainId] ?? []
+	const list = executionEndpointsByChainId[chainId] ?? []
 	const ws = list.find((e) => e.transportType === TransportType.WebSocket)
 	return ws ?? list[0]
 }
 
 /** HTTP URLs for chain marked tevmForkTransportCompatible (order matches constants). Use to retry simulation when the first fork RPC fails. */
 export const listTevmForkTransportCompatibleHttpUrls = (chainId: number): string[] => {
-	const list = executionEndpointsByChainId[chainId as ChainId] ?? []
+	const list = executionEndpointsByChainId[chainId] ?? []
 	return list
 		.filter((e) => (
 			e.transportType === TransportType.Http &&
@@ -721,7 +710,7 @@ export const listTevmForkTransportCompatibleHttpUrls = (chainId: number): string
 export const getTevmForkTransportCompatibleExecutionEndpoint = (
 	chainId: number,
 ): ExecutionEndpoint | undefined => {
-	const list = executionEndpointsByChainId[chainId as ChainId] ?? []
+	const list = executionEndpointsByChainId[chainId] ?? []
 	const http = list.filter((e) => e.transportType === TransportType.Http)
 	return (
 		http.find((e) => (
@@ -732,18 +721,18 @@ export const getTevmForkTransportCompatibleExecutionEndpoint = (
 	)
 }
 
-const chainIds = Object.keys(executionEndpointsByChainId).map(Number) as ChainId[]
+const chainIds: number[] = Object.keys(executionEndpointsByChainId).map(Number)
 
-export const defaultExecutionClientUrls = Object.fromEntries(
+export const defaultExecutionClientUrls: Partial<Record<ChainId, string>> = Object.fromEntries(
 	chainIds.flatMap((c) => {
 		const ep = executionEndpointsByChainId[c]?.[0]
 		return ep ? [[c, ep.url] as const] : []
 	}),
-) as Partial<Record<ChainId, string>>
+)
 
-export const defaultLiveExecutionClientUrls = Object.fromEntries(
+export const defaultLiveExecutionClientUrls: Partial<Record<ChainId, string>> = Object.fromEntries(
 	chainIds.flatMap((c) => {
 		const ep = getDefaultExecutionEndpointForLive(c)
 		return ep ? [[c, ep.url] as const] : []
 	}),
-) as Partial<Record<ChainId, string>>
+)

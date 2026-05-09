@@ -3,15 +3,16 @@
 	import type { Snippet } from 'svelte'
 	import { proposalRealmById } from '$/constants/Proposal.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import ProposalRealmSchema from '$/schema/ProposalRealm.ts'
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Props
@@ -23,7 +24,7 @@
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
 		children?: Snippet
-		entityId: typeof ProposalRealmSchema.id.infer
+		entityId: EntityId<typeof schema, EntityType.ProposalRealm>
 		open?: boolean
 		href: string
 		layout?: EntityLayout
@@ -34,31 +35,20 @@
 		stringify(entityId),
 	)
 
-	const realmQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ realmRow: entityCollectionByEntityType[EntityType.ProposalRealm] })
-				.where(({ realmRow }) => (
-					eq(
-						realmRow[EntityMetaKey.IdKey],
-						realmIdKey,
-					)
-				))
-				.select(({ realmRow }) => ({ realmRow }))
-		),
-		[() => realmIdKey],
+	const realmQuery = useEntity(
+		EntityType.ProposalRealm,
+		entityId,
+		{
+			$: [
+				Source.Constants_Internal,
+			],
+			label: {},
+		},
 	)
 
-	const realmRow = $derived(
-		realmQuery.data?.[0]?.realmRow,
-	)
-
-	const realmLabel = $derived(
-		(
-			realmRow?.[EntityMetaKey.Fields] as { label?: string } | undefined
-		)?.label
-		?? proposalRealmById[entityId.realm].label,
-	)
+	const realmLabel = $derived.by(() => {
+		return realmQuery.data?.[EntityMetaKey.Fields]?.label ?? proposalRealmById[entityId.realm].label
+	})
 
 
 	// Components

@@ -1,9 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import { type EntityFieldReference } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -12,27 +13,11 @@
 	import { resolve } from '$app/paths'
 
 
-	// Functions
-	const rowEntityId = (row: { [EntityMetaKey.Id]: unknown }) => row[EntityMetaKey.Id]
-
-	const userRowSortKey = (row: { [EntityMetaKey.Id]: unknown }) => {
-		const userId = rowEntityId(row)
-		return (
-			typeof userId === 'object'
-			&& userId !== undefined
-			&& 'fid' in userId
-			&& typeof userId.fid === 'number' ?
-				userId.fid
-			:
-				0
-		)
-	}
-
-
 	// State
 	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { SvelteSet } from 'svelte/reactivity'
 
+	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
 	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
@@ -44,7 +29,7 @@
 		title = 'Users',
 		open = $bindable(true),
 	}: {
-		entityFieldReference: EntityFieldReference<typeof EntityType.FarcasterUser>
+		entityFieldReference: EntityFieldReference<typeof schema, EntityType.FarcasterUser>
 		id?: string
 		href?: string
 		title?: string
@@ -55,7 +40,14 @@
 	const usersQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ $$users: entityFieldCollections[EntityType.FarcasterNetwork]['$$users']! })
+				.from({
+					$$users: (
+						entityFieldCollectionForReference(
+							entityFieldCollections,
+							entityFieldReference,
+						)
+					),
+				})
 				.where(({ $$users }) => (
 					eq(
 						$$users[EntityMetaKey.ParentIdKey],
@@ -68,12 +60,10 @@
 						Source.Snapchain_Rest,
 					)
 				))
-				.select(({ $$users }) => ({
-					[EntityMetaKey.Id]: (
-						// @ts-expect-error Farcaster user field row Value holds entity id
-						$$users[EntityMetaKey.Value]![EntityMetaKey.Id]
-					),
-				}))
+				.select(({ $$users }) => (
+					{ value: $$users[EntityMetaKey.Value] }
+				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -96,12 +86,19 @@
 	{href}
 	{title}
 	bind:open
-	query={usersQuery}
-	items={new SvelteSet(usersQuery.data ?? [])}
+	items={usersQuery.data?.map(({ value }) => value) ?? []}
 	getKey={(row) => stringify(row[EntityMetaKey.Id])}
-	getSortValue={userRowSortKey}
+	getSortValue={(row) => row[EntityMetaKey.Id].fid}
 	placeholderKeys={new SvelteSet<string>()}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	query={{
+		data: usersQuery.data?.map(({ value }) => value) ?? [],
+		isLoading: usersQuery.isLoading,
+		isError: usersQuery.isError,
+		isReady: usersQuery.isReady,
+		error: usersQuery.error,
+		status: usersQuery.status,
+	}}
 >
 	{#snippet Empty()}
 		<p data-text="muted">
@@ -115,17 +112,15 @@
 				…
 			</span>
 		{:else if row}
-			{@const userId = rowEntityId(row)}
-			{#if typeof userId === 'object' && userId !== undefined && 'fid' in userId && typeof userId.fid === 'number'}
-				<FarcasterUserView
-					entityId={{ fid: userId.fid }}
-					href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-						userId: String(userId.fid),
-					})}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{/if}
+			{@const userId = row[EntityMetaKey.Id]}
+			<FarcasterUserView
+				entityId={{ fid: userId.fid }}
+				href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+					userId: String(userId.fid),
+				})}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
 		{/if}
 	{/snippet}
 </EntitiesList>

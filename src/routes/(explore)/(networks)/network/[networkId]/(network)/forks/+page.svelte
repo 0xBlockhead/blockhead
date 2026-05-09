@@ -18,15 +18,14 @@
 
 
 <Page>
-	<section>
 		<NetworkForksView
-			entityFieldReference={{
-				entityType: EntityType.Network,
-				entityId: { chainId: Number(params.networkId) },
-				fieldName: '$$forks',
-			}}
-			href={resolve('/(explore)/(networks)/network/[networkId]/(network)/forks', params)}
-			id="forks"
-		/>
-	</section>
+		entityFieldReference={{
+			entityType: EntityType.Network,
+			entityId: { chainId: Number(params.networkId) },
+			fieldName: '$$forks',
+		}}
+		href={resolve('/(explore)/(networks)/network/[networkId]/(network)/forks', params)}
+		id="forks"
+	/>
 </Page>
+

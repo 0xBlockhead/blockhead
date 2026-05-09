@@ -2,11 +2,13 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { formatMarketTimeIntervalLabel, MarketAssetKind } from '$/constants/Market.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import MarketPriceRangeSchema from '$/schema/MarketPriceRange.ts'
+	import { schema } from '$/schema/index.ts'
 
 
 	// Context
@@ -23,11 +25,7 @@
 		{
 			title?: string
 			open?: boolean
-			entityFieldReference: {
-				entityType: EntityType._Global
-				entityId: Record<string, never>
-				fieldName: '$$marketPriceRanges'
-			}
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.MarketPriceRange>
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
@@ -48,16 +46,19 @@
 	const marketPriceRangeFieldQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ range: entityFieldCollections[EntityType._Global]['$$marketPriceRanges']! })
+				.from({
+					range: entityFieldCollections[entityFieldReference.entityType][entityFieldReference.fieldName],
+				})
 				.where(({ range }) => (
 					eq(
 						range[EntityMetaKey.ParentIdKey],
 						stringify(entityFieldReference.entityId),
 					)
 				))
-				.select(({ range }) => ({
-					range: range[EntityMetaKey.Value],
-				}))
+				.select(({ range }) => (
+					{ value: range[EntityMetaKey.Value] }
+				))
+				.distinct()
 		),
 		[
 			() => entityFieldReference.entityType,
@@ -66,45 +67,12 @@
 		],
 	)
 
-	type RangeRow = (NonNullable<typeof marketPriceRangeFieldQuery.data>)[number]
-
-	const projectRangeRow = (row: RangeRow) => {
-		const entityId = (
-			(row.range as Record<string, unknown>)[EntityMetaKey.Id] as typeof MarketPriceRangeSchema.id.infer
+	const marketPriceRangeRowKey = (
+		row: Entity<typeof schema, EntityType.MarketPriceRange>,
+	) => (
+		stringify(
+			row[EntityMetaKey.Id],
 		)
-		const coinId = (
-			entityId.$market.$base.kind === MarketAssetKind.Coin ?
-				entityId.$market.$base.$coin.coinId
-			:
-				undefined
-		)
-		return {
-			coinId,
-			entityId,
-			key: stringify(entityId),
-			sortKey: `${coinId ?? ''} ${formatMarketTimeIntervalLabel(entityId.timeInterval)}`,
-		}
-	}
-
-	const rangeRows = $derived(
-		Array.from(
-			(marketPriceRangeFieldQuery.data ?? [])
-				.reduce(
-					(rowsByKey, row: RangeRow) => {
-						if (row.range === undefined) {
-							return rowsByKey
-						}
-						const projected = projectRangeRow(row)
-						rowsByKey.set(
-							projected.key,
-							row,
-						)
-						return rowsByKey
-					},
-					new Map<string, RangeRow>(),
-				)
-				.values(),
-		),
 	)
 
 
@@ -119,9 +87,16 @@
 	{...entitiesListRest}
 	bind:open
 	entityType={EntityType.MarketPriceRange}
-	getKey={(row) => projectRangeRow(row).key}
-	getSortValue={(row) => projectRangeRow(row).sortKey}
-	items={new SvelteSet(rangeRows)}
+	getKey={marketPriceRangeRowKey}
+	getSortValue={(row) => (
+		`${(
+			row[EntityMetaKey.Id].$market.$base.kind === MarketAssetKind.Coin ?
+				row[EntityMetaKey.Id].$market.$base.$coin.coinId
+			:
+				''
+		)} ${formatMarketTimeIntervalLabel(row[EntityMetaKey.Id].timeInterval)}`
+	)}
+	items={marketPriceRangeFieldQuery.data?.map(({ value }) => value) ?? []}
 	placeholderKeys={new SvelteSet<string | number>()}
 	query={marketPriceRangeFieldQuery}
 	{title}
@@ -139,18 +114,17 @@
 				…
 			</span>
 		{:else}
-			{@const projected = projectRangeRow(row)}
 			<MarketPriceRangeView
-				entityId={projected.entityId}
+				entityId={row[EntityMetaKey.Id]}
 				href={(
-					projected.coinId === undefined ?
+					row[EntityMetaKey.Id].$market.$base.kind !== MarketAssetKind.Coin ?
 						undefined
 					:	resolve(
 							'/(assets)/(coins)/coin/[coinId]',
-							{ coinId: projected.coinId },
+							{ coinId: row[EntityMetaKey.Id].$market.$base.$coin.coinId },
 						)
 				)}
-				id={projected.key}
+				id={stringify(row[EntityMetaKey.Id])}
 				layout={EntityLayout.Summary}
 				open={false}
 			/>

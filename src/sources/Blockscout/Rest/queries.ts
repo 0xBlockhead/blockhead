@@ -4,6 +4,7 @@
  * @see https://docs.blockscout.com/devs/apis/rest
  */
 
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { getJson } from '$/sources/Blockscout/Rest/client.ts'
 import type {
 	BlockscoutBlockWire,
@@ -32,7 +33,7 @@ const timestampHex = (timestamp: string | undefined) => {
 }
 
 const addressHash = (
-	wire: string | BlockscoutBlockWire['miner'] | BlockscoutTransactionWire['from'] | BlockscoutTransactionWire['to'] | BlockscoutTransactionWire['created_contract'] | BlockscoutTransactionLogWire['address_hash'] | BlockscoutSmartContractForListWire['address_hash'] | undefined,
+	wire: string | BlockscoutBlockWire['miner']   | BlockscoutTransactionWire['to']   | BlockscoutTransactionLogWire['address_hash'] | BlockscoutSmartContractForListWire['address_hash'] | undefined,
 ) => (
 	typeof wire === 'string' ?
 		wire
@@ -221,7 +222,8 @@ export const evmAddressFromBlockscoutContractListWire = (
 ): `0x${string}` | null => {
 	const h = addressHash(w.address_hash)
 	if (h == null || h === '') return null
-	return (h.startsWith('0x') ? h : `0x${h}`) as `0x${string}`
+	const normalized = h.startsWith('0x') ? h : `0x${h}`
+	return hexLowerOfByteSize(normalized, 20) ?? null
 }
 
 export const getBlockscoutSmartContracts = async ({

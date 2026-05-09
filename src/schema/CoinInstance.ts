@@ -76,14 +76,20 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Market,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Constants_Internal, Source.Coingecko_Rest],
+			defaultSources: [
+				Source.Constants_Internal,
+				Source.Coingecko_Rest,
+			],
 		},
 		{
 			name: '$$marketsWithInstanceAsQuote',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Market,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Constants_Internal, Source.Coingecko_Rest],
+			defaultSources: [
+				Source.Constants_Internal,
+				Source.Coingecko_Rest,
+			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

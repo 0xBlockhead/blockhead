@@ -18,7 +18,7 @@
 		entityFieldReference={{
 			entityType: EntityType._Global,
 			entityId: {},
-			fieldName: '$$evmTopics',
+			fieldName: '$$topics',
 		}}
 		href={resolve('/evm/topics')}
 		id="topics"

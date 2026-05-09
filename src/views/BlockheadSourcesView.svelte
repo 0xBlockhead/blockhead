@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
-	import { type EntityFieldReference } from '$/schema/index.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 
 
@@ -18,7 +19,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof EntityType.BlockheadSource>
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BlockheadSource>
 			title?: string
 			open?: boolean
 		},

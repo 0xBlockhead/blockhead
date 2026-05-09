@@ -78,7 +78,7 @@
 			</label>
 		</header>
 
-		<dl data-definition-list="vertical">
+		<dl>
 			{#each encodingRows as row (`${row.version}-${row.baseName}`)}
 				{@const subdomainOk = checkIpfsCidIsValidSubdomain({
 					baseName: row.baseName,

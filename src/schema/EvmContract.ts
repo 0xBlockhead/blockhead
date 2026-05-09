@@ -27,6 +27,30 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$creationTransaction',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmTransaction,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$implementation',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'bytecodeHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string.hex' as type.cast<`0x${string}`>),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'code',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string.hex' as type.cast<`0x${string}`>),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: 'abi',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),

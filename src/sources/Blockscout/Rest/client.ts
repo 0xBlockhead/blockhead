@@ -41,5 +41,5 @@ export const getJson = async <T>({
 	)
 	if (!res.ok) throw new Error(`Blockscout GET ${res.status} ${res.statusText}`)
 
-	return (await res.json()) as T
+	return res.json<T>()
 }

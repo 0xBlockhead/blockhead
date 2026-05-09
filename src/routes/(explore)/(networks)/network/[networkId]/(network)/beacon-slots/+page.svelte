@@ -17,15 +17,14 @@
 
 
 <Page>
-	<section>
 		<BeaconSlotsView
-			entityFieldReference={{
-				entityType: EntityType.Network,
-				entityId: { chainId: Number(params.networkId) },
-				fieldName: '$$beaconSlots',
-			}}
-			href={resolve('/(explore)/(networks)/network/[networkId]/(network)/beacon-slots', params)}
-			id="beacon-slots"
-		/>
-	</section>
+		entityFieldReference={{
+			entityType: EntityType.Network,
+			entityId: { chainId: Number(params.networkId) },
+			fieldName: '$$beaconSlots',
+		}}
+		href={resolve('/(explore)/(networks)/network/[networkId]/(network)/beacon-slots', params)}
+		id="beacon-slots"
+	/>
 </Page>
+

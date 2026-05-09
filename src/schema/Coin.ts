@@ -63,6 +63,7 @@ export default {
 				Source.CoinMarketCap_Rest,
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_Rest,
+				Source.TradingView_Rest,
 			],
 		},
 		{
@@ -76,6 +77,7 @@ export default {
 				Source.CoinMarketCap_Rest,
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_Rest,
+				Source.TradingView_Rest,
 			],
 		},
 		{
@@ -89,6 +91,7 @@ export default {
 				Source.CoinMarketCap_Rest,
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_Rest,
+				Source.TradingView_Rest,
 			],
 		},
 		{

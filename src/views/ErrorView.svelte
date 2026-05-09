@@ -66,7 +66,6 @@
 
 	const errorFields = $derived(
 		mergeEntityCollectionRowFields(
-			EntityType.EvmError,
 			errorQuery.data,
 			evmErrorMergeSourceOrder,
 		),
@@ -93,7 +92,7 @@
 	{...entityViewRest}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Hex</dt>
 				<dd>{entityId.hex}</dd>
@@ -116,13 +115,7 @@
 				>
 
 					{#snippet children(rows)}
-					{@const row = (
-						rows?.find(
-							(r) => r.row[EntityMetaKey.Source] === Source.Openchain_Rest,
-						)?.row
-						?? rows?.[0]?.row
-					)}
-					{#if row === undefined}
+					{#if rows.length === 0}
 						<p data-text="muted">
 							No signatures found for this error selector.
 						</p>
@@ -141,9 +134,9 @@
 										Signatures
 									</dt>
 									<dd>
-										{#if signatures !== undefined && signatures.length > 0}
+										{#if errorFields.signatures !== undefined && errorFields.signatures.length > 0}
 											<ul>
-												{#each signatures as sig}
+												{#each errorFields.signatures as sig (sig)}
 													<li><code>{sig}</code></li>
 												{/each}
 											</ul>

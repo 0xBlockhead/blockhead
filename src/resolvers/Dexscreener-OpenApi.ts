@@ -1,9 +1,11 @@
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { defineEntityResolver } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
-	source: 'Dexscreener_OpenApi' satisfies import('$/sources/$Source.ts').Source,
+	source: Source.Dexscreener_OpenApi,
 
 	entityResolvers: [
 		defineEntityResolver({
@@ -36,7 +38,10 @@ export default {
 									$network: {
 										chainId,
 									},
-									address: latestDexPair.baseToken.address.toLowerCase() as `0x${string}`,
+									address: (
+										hexLowerOfByteSize(latestDexPair.baseToken.address.trim(), 20)
+										?? latestDexPair.baseToken.address.trim()
+									),
 								},
 							},
 						}
@@ -49,7 +54,10 @@ export default {
 									$network: {
 										chainId,
 									},
-									address: latestDexPair.quoteToken.address.toLowerCase() as `0x${string}`,
+									address: (
+										hexLowerOfByteSize(latestDexPair.quoteToken.address.trim(), 20)
+										?? latestDexPair.quoteToken.address.trim()
+									),
 								},
 							},
 						}

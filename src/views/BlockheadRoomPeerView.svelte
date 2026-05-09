@@ -66,70 +66,72 @@
 		peerQuery.data?.[0]?.row,
 	)
 
-	const fieldBag = $derived(
-		(() => {
-			const bag = peerRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object' || Array.isArray(bag)) return null
-			return bag as Record<string, unknown>
-		})(),
+	const peerFields = $derived(
+		((u) => (
+			typeof u === 'object' && u !== null && !Array.isArray(u) ?
+				u
+			:	null
+		))(peerRow?.[EntityMetaKey.Fields]),
 	)
 
 	const peerId = $derived(
-		(() => {
-			const v = fieldBag?.peerId
-			return typeof v === 'string' && v.length ? v : undefined
-		})(),
+		typeof peerFields?.peerId === 'string' && peerFields.peerId.length ?
+			peerFields.peerId
+		:	undefined,
 	)
 
 	const displayName = $derived(
-		(() => {
-			const v = fieldBag?.displayName
-			return typeof v === 'string' && v.length ? v : undefined
-		})(),
+		typeof peerFields?.displayName === 'string' && peerFields.displayName.length ?
+			peerFields.displayName
+		:	undefined,
 	)
 
 	const joinedAt = $derived(
-		(() => {
-			const v = fieldBag?.joinedAt
-			return typeof v === 'number' && Number.isFinite(v) ? v : undefined
-		})(),
+		typeof peerFields?.joinedAt === 'number' && Number.isFinite(peerFields.joinedAt) ?
+			peerFields.joinedAt
+		:	undefined,
 	)
 
 	const lastSeenAt = $derived(
-		(() => {
-			const v = fieldBag?.lastSeenAt
-			return typeof v === 'number' && Number.isFinite(v) ? v : undefined
-		})(),
+		typeof peerFields?.lastSeenAt === 'number' && Number.isFinite(peerFields.lastSeenAt) ?
+			peerFields.lastSeenAt
+		:	undefined,
 	)
 
 	const connectedAt = $derived(
-		(() => {
-			const v = fieldBag?.connectedAt
-			return typeof v === 'number' && Number.isFinite(v) ? v : undefined
-		})(),
+		typeof peerFields?.connectedAt === 'number' && Number.isFinite(peerFields.connectedAt) ?
+			peerFields.connectedAt
+		:	undefined,
 	)
 
 	const disconnectedAt = $derived(
-		(() => {
-			const v = fieldBag?.disconnectedAt
-			return typeof v === 'number' && Number.isFinite(v) ? v : undefined
-		})(),
+		typeof peerFields?.disconnectedAt === 'number' && Number.isFinite(peerFields.disconnectedAt) ?
+			peerFields.disconnectedAt
+		:	undefined,
 	)
 
 	const isConnected = $derived(
-		(() => {
-			const v = fieldBag?.isConnected
-			return typeof v === 'boolean' ? v : undefined
-		})(),
+		typeof peerFields?.isConnected === 'boolean' ?
+			peerFields.isConnected
+		:	undefined,
 	)
 
 	const roomId = $derived(
-		(() => {
-			const room = fieldBag?.$room
-			if (room === undefined || typeof room !== 'object' || Array.isArray(room)) return undefined
-			const id = (room as { id: unknown }).id
-			return typeof id === 'string' && id.length ? id : undefined
-		})(),
+		!(
+			typeof peerFields?.$room === 'object'
+			&& peerFields.$room !== null
+			&& !Array.isArray(peerFields.$room)
+		) ?
+			undefined
+		: ((
+			id,
+		) => (
+			typeof id === 'string' && id.length ?
+				id
+			:	undefined
+		))(
+			'id' in peerFields.$room ? peerFields.$room.id : undefined,
+		),
 	)
 
 	// Components
@@ -148,7 +150,7 @@
 	{...entityViewRest}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Contact ID</dt>
 				<dd>{entityId.id}</dd>

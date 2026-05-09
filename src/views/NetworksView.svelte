@@ -1,3 +1,15 @@
+<script module lang="ts">
+	// Types/constants
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import {
+		ethereumChainId,
+		l2BeatProjectChainIds,
+	} from '$/sources/L2Beat/Rest/constants.ts'
+	import { stringify } from 'devalue'
+</script>
+
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
@@ -5,10 +17,6 @@
 	import { type EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -16,7 +24,7 @@
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { eq, not, useLiveQuery } from '@tanstack/svelte-db'
 	import { SvelteSet } from 'svelte/reactivity'
 
 	import { entityFieldCollections } from '$/routes/+layout.svelte'
@@ -35,72 +43,168 @@
 		{
 			title?: string
 			open?: boolean
-			entityFieldReference: EntityFieldReference<typeof schema, typeof EntityType.Network>
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Network>
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'entityType'
+			| 'getKey'
+			| 'getSortValue'
+			| 'items'
+			| 'query'
 		>
 	> = $props()
 
+	const entityFieldReferenceIdKey = $derived(
+		stringify(entityFieldReference.entityId)
+	)
 
-	const networksQuery = useLiveQuery(
+	const isGlobalNetworksReference = $derived(
+		entityFieldReference.entityType === EntityType._Global
+		&& entityFieldReference.fieldName === '$$networks'
+	)
+
+	const isChildNetworksReference = $derived(
+		entityFieldReference.entityType === EntityType.Network
+		&& entityFieldReference.fieldName === '$$childNetworks'
+	)
+
+
+	const globalNetworksFieldQuery = useLiveQuery(
 		(queryBuilder) => {
-			const pk = stringify(entityFieldReference.entityId)
-			const { entityType, fieldName } = entityFieldReference
-			if (entityType === EntityType._Global && fieldName === '$$networks') {
-				return (
-					queryBuilder
-						.from({ n: entityFieldCollections[EntityType._Global]['$$networks']! })
-						.where(({ n }) => (
-							eq(
-								n[EntityMetaKey.ParentIdKey],
-								pk,
-							)
-						))
-						.where(({ n }) => (
-							eq(
-								n[EntityMetaKey.Source],
-								Source.Chainlist_Rest,
-							)
-						))
-						.select(({ n }) => (
-							{ ...n[EntityMetaKey.Value] }
-						))
-				)
-			}
-			if (entityType === EntityType.Network && fieldName === '$$childNetworks') {
-				return (
-					queryBuilder
-						.from({ n: entityFieldCollections[EntityType.Network]['$$childNetworks']! })
-						.where(({ n }) => (
-							eq(
-								n[EntityMetaKey.ParentIdKey],
-								pk,
-							)
-						))
-						.where(({ n }) => (
-							eq(
-								n[EntityMetaKey.Source],
-								Source.Chainlist_Rest,
-							)
-						))
-						.select(({ n }) => (
-							{ ...n[EntityMetaKey.Value] }
-						))
-				)
-			}
-			return (
+			let query = (
 				queryBuilder
-					.from({ n: entityFieldCollections[EntityType._Global]['$$networks']! })
-					.where(() => (false as unknown as boolean))
+					.from({ n: entityFieldCollections[EntityType._Global]['$$networks'] })
+					.where(({ n }) => (
+						eq(
+							n[EntityMetaKey.ParentIdKey],
+							(
+								isGlobalNetworksReference ?
+									entityFieldReferenceIdKey
+								:
+									''
+							),
+						)
+					))
+					.orderBy(({ n }) => (
+						not(eq(
+							n[EntityMetaKey.Value][EntityMetaKey.Id].chainId,
+							ethereumChainId,
+						))
+					))
+			)
+
+			for (const { chainId } of l2BeatProjectChainIds) {
+				query = query.orderBy(({ n }) => (
+					not(eq(
+						n[EntityMetaKey.Value][EntityMetaKey.Id].chainId,
+						chainId,
+					))
+				))
+			}
+
+			return (
+				query
+					.orderBy(({ n }) => (
+						n[EntityMetaKey.Value][EntityMetaKey.Id].chainId
+					))
+					.select(({ n }) => (
+						{ value: n[EntityMetaKey.Value] }
+					))
+					.distinct()
 			)
 		},
 		[
 			() => entityFieldReference.entityType,
 			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
+			() => entityFieldReferenceIdKey,
 		],
+	)
+
+	const childNetworksFieldQuery = useLiveQuery(
+		(queryBuilder) => {
+			let query = (
+				queryBuilder
+					.from({ n: entityFieldCollections[EntityType.Network]['$$childNetworks'] })
+					.where(({ n }) => (
+						eq(
+							n[EntityMetaKey.ParentIdKey],
+							(
+								isChildNetworksReference ?
+									entityFieldReferenceIdKey
+								:
+									''
+							),
+						)
+					))
+					.orderBy(({ n }) => (
+						not(eq(
+							n[EntityMetaKey.Value][EntityMetaKey.Id].chainId,
+							ethereumChainId,
+						))
+					))
+			)
+
+			for (const { chainId } of l2BeatProjectChainIds) {
+				query = query.orderBy(({ n }) => (
+					not(eq(
+						n[EntityMetaKey.Value][EntityMetaKey.Id].chainId,
+						chainId,
+					))
+				))
+			}
+
+			return (
+				query
+					.orderBy(({ n }) => (
+						n[EntityMetaKey.Value][EntityMetaKey.Id].chainId
+					))
+					.select(({ n }) => (
+						{ value: n[EntityMetaKey.Value] }
+					))
+					.distinct()
+			)
+		},
+		[
+			() => entityFieldReference.entityType,
+			() => entityFieldReference.fieldName,
+			() => entityFieldReferenceIdKey,
+		],
+	)
+
+	const networkItems = $derived(
+		isGlobalNetworksReference ?
+			globalNetworksFieldQuery.data?.map(({ value }) => value) ?? []
+		: isChildNetworksReference ?
+			childNetworksFieldQuery.data?.map(({ value }) => value) ?? []
+		:
+			[],
+	)
+
+	const networksSourceQuery = $derived(
+		isGlobalNetworksReference ?
+			globalNetworksFieldQuery
+		: isChildNetworksReference ?
+			childNetworksFieldQuery
+		:
+			{
+				isLoading: false,
+				isError: false,
+				isReady: true,
+				error: undefined,
+				status: 'success',
+			}
+	)
+
+	const networksQuery = $derived(
+		{
+			data: networkItems,
+			isLoading: networksSourceQuery.isLoading,
+			isError: networksSourceQuery.isError,
+			isReady: networksSourceQuery.isReady,
+			error: networksSourceQuery.error,
+			status: networksSourceQuery.status,
+		},
 	)
 
 
@@ -115,15 +219,12 @@
 	entityType={EntityType.Network}
 	{title}
 	bind:open
-	query={networksQuery}
-	items={new SvelteSet(networksQuery.data ?? [])}
-	getKey={(row) => stringify(row[EntityMetaKey.Id])}
-	getSortValue={(row) => (
-		row[EntityMetaKey.Id].chainId
-	)}
-	placeholderKeys={new SvelteSet()}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
+	query={networksQuery}
+	items={networkItems}
+	getKey={(row) => stringify(row[EntityMetaKey.Id])}
+	placeholderKeys={new SvelteSet<string | number>()}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet Empty()}
 		<p data-text="muted">

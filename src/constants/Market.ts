@@ -6,11 +6,11 @@
  * - **MarketAsset** — discriminated value in `Market.$base` / `.$quote` (catalog `Coin`, on-chain
  *   `CoinInstance`, or `Currency` ISO 4217). Not a standalone `EntityType`; it is embedded in
  *   `Market.id` and in `MarketPrice` / range parents via `.$market`.
- * - **Market** — `{$base, $quote, venue}`; venue separates synthetic indices vs per-provider books.
+ * - **Market** — `{$base, $quote, $marketVenue}`; venue separates synthetic indices vs real trading books.
  * - **MarketPrice** — stream identity: `{$market, feedKey?, $network?}`; observation: `price` and
  *   time fields in entity payload (as-of is not part of the id, so the same id can update over time).
- * - **MarketPriceRange** — `{$market, timeInterval, rangeType}`; `rangeType` picks the payload
- *   family; store provider blobs in `rangePayload` and interpret per `rangeType`.
+ * - **MarketPriceRange** — `{$market, timeInterval, rangeType}`; the series identity.
+ * - **Market_TimeInterval_Timestamp** — one bucketed market observation for a series point.
  */
 
 
@@ -23,19 +23,6 @@ export enum MarketAssetKind {
 	Coin = 'Coin',
 	CoinInstance = 'CoinInstance',
 	Currency = 'Currency',
-}
-
-/**
- * Book or index for a `Market` id. `SpotIndex` is a shared key so many resolvers list the same row;
- * per-provider values keep parallel venues addressable.
- */
-export enum MarketVenue {
-	/** Shared spot/USD market id so Constants and multiple price sources address one row. */
-	SpotIndex = 'SpotIndex',
-	Coingecko_Rest = 'Coingecko_Rest',
-	CoinMarketCap_Rest = 'CoinMarketCap_Rest',
-	Coinpaprika_OpenApi = 'Coinpaprika_OpenApi',
-	Defillama_Rest = 'Defillama_Rest',
 }
 
 /**
@@ -57,7 +44,7 @@ export type MarketTimeInterval = {
 }
 
 /**
- * Discriminates `MarketPriceRange` payload family; new members imply new `rangePayload` shapes.
+ * Discriminates `MarketPriceRange` point family.
  */
 export enum MarketPriceRangeType {
 	OHLCCandles = 'OHLCCandles',

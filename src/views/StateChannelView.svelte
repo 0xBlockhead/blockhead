@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -67,9 +68,9 @@
 	const stateChannelField = $derived(
 		(() => {
 			const bag = stateChannelRow?.[EntityMetaKey.Fields]
-			if (bag === undefined || typeof bag !== 'object') return null
-			const b = bag as Record<string, unknown>
-			const bigString = (v: unknown) => (
+			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
+			const b = bag
+			const bigString = (v: JsonValue) => (
 				typeof v === 'bigint' ?
 					String(v)
 				: typeof v === 'string' && /^-?\d+$/.test(v) ?
@@ -113,7 +114,7 @@
 	title={stateChannelField?.status ?? (stateChannelField?.turnNum !== undefined ? `Turn ${String(stateChannelField.turnNum)}` : undefined) ?? stateChannelField?.totalDeposited ?? `Channel ${entityId.id}`}
 >
 	{#snippet Content()}
-		<dl data-definition-list="vertical">
+		<dl>
 			<div>
 				<dt>Channel id</dt>
 				<dd>{entityId.id}</dd>
