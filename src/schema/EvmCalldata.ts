@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	type EntityDefinition,
 	type EntityFieldDefinition,
@@ -12,7 +14,7 @@ export default {
 	labelPlural: 'EVM Calldata',
 
 	id: type({
-		hex: 'string.hex' as type.cast<`0x${string}`>,
+		hex: ZeroExHex,
 	}),
 
 	fields: [] as const satisfies readonly EntityFieldDefinition[],

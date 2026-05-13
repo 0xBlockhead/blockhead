@@ -2,19 +2,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+	import { entityResolversByEntityType } from '$/resolvers/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { mergeEntityCollectionRowFields } from '$/collections/mergeEntityCollectionRowFields.ts'
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -36,6 +29,7 @@
 			| 'href'
 			| 'open'
 			| 'title'
+			| 'Heading'
 			| 'Details'
 			| 'Icon'
 			| 'HeadingAfter'
@@ -44,50 +38,31 @@
 	> = $props()
 
 
-	const idKey = $derived(stringify(entityId))
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const xUserMergeSourceOrder = [
-		Source.X_Rest,
-	] as const
-
-	const userQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.XUser] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						idKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => idKey],
+	const user = useEntity(
+		EntityType.XUser,
+		entityId,
+		{
+			$: (
+				entityResolversByEntityType[EntityType.XUser]?.map((r) => r.source)
+				?? [Source.Local_Internal]
+			),
+			username: {},
+			name: {},
+			description: {},
+			$icon: {},
+		},
 	)
-
-	const userFields = $derived(
-		mergeEntityCollectionRowFields<EntityType.XUser>(
-			userQuery.data,
-			xUserMergeSourceOrder,
-		),
-	)
-
-	const displayTitle = $derived(
-		userFields.name
-		?? userFields.username
-		?? entityId.id,
-	)
-
-	const avatarUrl = $derived((
-		userFields.$icon?.[EntityMetaKey.Id].url
-	))
 
 
 	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -97,36 +72,70 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
 >
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={user}
+			placeholderText="Loading user…"
+		>
+			{#snippet children(row)}
+				<HeadingComponent>
+					{row.name ?? row.username ?? entityId.id}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Icon()}
-		{#if avatarUrl !== undefined}
-			<IconComponent
-				alt={(
-					userFields.name
-					?? userFields.username
-					?? ''
-				)}
-				shape={IconShape.Circle}
-				src={avatarUrl}
-			/>
-		{/if}
+		<ResourceBoundary
+			resource={user}
+			placeholderText="Loading user…"
+		>
+			{#snippet children(row)}
+				{#if row.$icon !== undefined}
+					<IconComponent
+						alt={row.name ?? row.username ?? ''}
+						shape={IconShape.Circle}
+						src={row.$icon[EntityMetaKey.Id].url}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if userFields.username !== undefined && userFields.username !== displayTitle}
-			<span data-text="muted">
-				@{userFields.username}
-			</span>
-		{/if}
+		<ResourceBoundary
+			resource={user}
+			placeholderText="Loading user…"
+		>
+			{#snippet children(row)}
+				{#if (
+					row.username !== undefined
+					&& row.username !== (
+						row.name ?? row.username ?? entityId.id
+					)
+				)}
+					<span data-text="muted">
+						@{row.username}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content()}
-		{#if userFields.description}
-			<p data-text="muted">
-				{userFields.description}
-			</p>
-		{/if}
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={user}
+			placeholderText="Loading user…"
+		>
+			{#snippet children(row)}
+				{#if row.description}
+					<p data-text="muted">
+						{row.description}
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 		<div data-text="mono muted">
 			{entityId.id}
 		</div>
@@ -139,39 +148,44 @@
 			entityType={EntityType.XUser}
 			{entityId}
 		>
-			<QueryBoundary
-				query={userQuery}
+			<ResourceBoundary
+				resource={user}
+				placeholderText="Loading user…"
 			>
-				{#snippet children(xApiUserResultRows)}
-					{#if xApiUserResultRows.length === 0}
+				{#snippet children(row)}
+					{#if (
+						row.name === undefined
+						&& row.username === undefined
+						&& row.description === undefined
+						&& row.$icon === undefined
+					)}
 						<p data-text="muted">
-							No user data in the app for this id yet. Try again shortly, or check your X API credentials and
-							rate limits.
+							User details are not available yet.
 						</p>
 					{:else}
 						<dl>
-							{#if userFields.name}
+							{#if row.name}
 								<div>
 									<dt>Name</dt>
-									<dd>{userFields.name}</dd>
+									<dd>{row.name}</dd>
 								</div>
 							{/if}
-							{#if userFields.username}
+							{#if row.username}
 								<div>
 									<dt>Username</dt>
-									<dd>{userFields.username}</dd>
+									<dd>{row.username}</dd>
 								</div>
 							{/if}
-							{#if userFields.description}
+							{#if row.description}
 								<div>
 									<dt>Description</dt>
-									<dd>{userFields.description}</dd>
+									<dd>{row.description}</dd>
 								</div>
 							{/if}
 						</dl>
 					{/if}
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 	{/snippet}
 </EntityView>

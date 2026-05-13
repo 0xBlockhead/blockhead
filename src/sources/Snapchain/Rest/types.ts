@@ -41,8 +41,9 @@ export type SnapchainReactionWire = {
 
 export type SnapchainVerificationWire = {
 	data?: {
-		verificationAddEthAddressBody?: {
-			address?: `0x${string}`
+		verificationAddAddressBody?: {
+			address?: string
+			protocol?: string
 		}
 	}
 }

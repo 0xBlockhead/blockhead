@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -17,7 +19,7 @@ export default {
 
 	id: type({
 		$network: Network.id,
-		txHash: 'string.hex' as type.cast<`0x${string}`>,
+		txHash: ZeroExHex,
 		blobIndex: 'number',
 	}),
 
@@ -25,7 +27,7 @@ export default {
 		{
 			name: 'versionedHash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string.hex' as type.cast<`0x${string}`>),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,

@@ -1,10 +1,14 @@
+import { type as arktype } from 'arktype'
+
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
 import { farcasterNetworkFieldValues } from '$/constants/Social/Farcaster.ts'
+import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -24,20 +28,15 @@ const placeholderIconFragments = [
 	'person_blue_generic',
 ] as const
 
-const normalizeIconHttpUrl = (value: string | null | undefined): string | undefined => {
+const optionalTrimmedString = (value: string | undefined | null) => (
+	value?.trim() ? value.trim() : undefined
+)
+
+const normalizeMediaUrl = (value: string | null | undefined): string | undefined => {
 	const raw = typeof value === 'string' ? value.trim() : ''
 	if (raw.length === 0) return undefined
 	if (placeholderIconFragments.some((fragment) => raw.toLowerCase().includes(fragment))) return undefined
-	const withProtocol = raw.startsWith('//') ? `https:${raw}` : raw
-	if (withProtocol.startsWith('ipfs://')) {
-		const path = withProtocol.slice('ipfs://'.length).replace(/^\/+/, '')
-		return path.length > 0 ? `https://ipfs.io/ipfs/${path}` : undefined
-	}
-	if (withProtocol.startsWith('ar://')) {
-		const path = withProtocol.slice('ar://'.length).replace(/^\/+/, '')
-		return path.length > 0 ? `https://arweave.net/${path}` : undefined
-	}
-	return withProtocol.startsWith('http://') || withProtocol.startsWith('https://') ? withProtocol : undefined
+	return resolveMediaUrlTransport(raw)?.url
 }
 
 export default {
@@ -48,21 +47,25 @@ export default {
 			entityType: EntityType.FarcasterUser,
 			resolve: async (entityId) => {
 				const { getPrimaryAddress } = await import('$/sources/Farcaster/Rest/queries.ts')
-				const verifiedAddress = (
-					await singleFlight(getPrimaryAddress)({
+				const [ethRaw, solRaw] = await Promise.all([
+					singleFlight(getPrimaryAddress)({
 						fid: entityId.fid,
-					})
-				) ?? (
-					await singleFlight(getPrimaryAddress)({
+					}),
+					singleFlight(getPrimaryAddress)({
 						fid: entityId.fid,
 						protocol: 'solana',
-					})
+					}),
+				])
+				const ethTrimmed = optionalTrimmedString(ethRaw ?? undefined)
+				const ethParsed = (
+					ethTrimmed == null ?
+						arktype.errors
+					:
+						EvmAddress(ethTrimmed)
 				)
-
-				if (verifiedAddress == null) throw new Error('Farcaster_Rest: verified address not found')
-				return {
-					verifiedAddress,
-				}
+				if (!(ethParsed instanceof arktype.errors)) return { verifiedAddress: ethParsed }
+				if (ethRaw == null && solRaw == null) throw new Error('Farcaster_Rest: verified address not found')
+				throw new Error('Farcaster_Rest: only ethereum verified addresses are supported')
 			},
 		}),
 
@@ -85,24 +88,18 @@ export default {
 						t == null ?
 							{}
 						:	{
-								$icon: {
-									[EntityMetaKey.Id]: { url: t },
-									type: MediaType.Image,
-								},
+								$icon: t,
 							}
-					))(normalizeIconHttpUrl(trimmedNonEmptyString(channel.imageUrl))),
+					))(mediaFromUrl(normalizeMediaUrl(trimmedNonEmptyString(channel.imageUrl)), MediaType.Image)),
 					...((
 						t,
 					) => (
 						t == null ?
 							{}
 						:	{
-								$headerImage: {
-									[EntityMetaKey.Id]: { url: t },
-									type: MediaType.Image,
-								},
+								$headerImage: t,
 							}
-					))(normalizeIconHttpUrl(trimmedNonEmptyString(channel.headerImageUrl))),
+					))(mediaFromUrl(normalizeMediaUrl(trimmedNonEmptyString(channel.headerImageUrl)), MediaType.Image)),
 					$lead: (
 						channel.leadFid == null ?
 							undefined

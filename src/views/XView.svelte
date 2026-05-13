@@ -1,11 +1,18 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
+
+
+	// State
+	import { stringify } from 'devalue'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	const entityId = {
 		scope: 'XNetwork' as const,
@@ -14,67 +21,20 @@
 	const exampleUserId = '783214' as const
 	const examplePostId = '1955274825074221427' as const
 
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
-
 	const networkIdKey = stringify(entityId)
 
-	const networkQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.XNetwork] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
+	const network = useEntity(
+		EntityType.XNetwork,
+		entityId,
+		{
+			$: [Source.Constants_Internal],
+			protocolName: {},
+			homeUrl: {},
+			docsUrl: {},
+			$$xUsers: {},
+			$$xPosts: {},
+		},
 	)
-
-	const usersQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.XNetwork]['$$xUsers'] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
-	)
-
-	const postsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.XNetwork]['$$xPosts'] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
-	)
-
-	const networkFields = $derived.by(() => {
-		const bag = networkQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		return bag != null && (typeof bag === 'object' && bag !== null && !Array.isArray(bag)) ? bag : null
-	})
 
 
 	// Components
@@ -82,7 +42,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import XPostsView from '$/views/XPostsView.svelte'
 	import XUsersView from '$/views/XUsersView.svelte'
 </script>
@@ -95,20 +55,27 @@
 	open={true}
 	title="X"
 >
-	{#snippet Content()}
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Scope</dt>
 				<dd>{entityId.scope}</dd>
 			</div>
-			<div>
-				<dt>Users</dt>
-				<dd>{String(usersQuery.data?.length ?? 0)}</dd>
-			</div>
-			<div>
-				<dt>Posts</dt>
-				<dd>{String(postsQuery.data?.length ?? 0)}</dd>
-			</div>
+			<ResourceBoundary
+				resource={network}
+				placeholderText="Loading X network…"
+			>
+				{#snippet children(loaded)}
+					<div>
+						<dt>Users</dt>
+						<dd>{String(loaded['$$xUsers'].length)}</dd>
+					</div>
+					<div>
+						<dt>Posts</dt>
+						<dd>{String(loaded['$$xPosts'].length)}</dd>
+					</div>
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
@@ -119,36 +86,37 @@
 			entityType={EntityType.XNetwork}
 			{entityId}
 		>
-			<QueryBoundary
-				query={networkQuery}
+			<ResourceBoundary
+				resource={network}
+				placeholderText="Loading X network…"
 			>
-				{#snippet children(_rows)}
+				{#snippet children(loaded)}
 					<dl>
 						<div>
 							<dt>Protocol name</dt>
-							<dd>{String(networkFields?.protocolName ?? 'X')}</dd>
+							<dd>{loaded.protocolName}</dd>
 						</div>
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={String(networkFields?.homeUrl ?? '#')}>
-									{String(networkFields?.homeUrl ?? '—')}
+								<a href={loaded.homeUrl}>
+									{loaded.homeUrl}
 								</a>
 							</dd>
 						</div>
-						{#if typeof networkFields?.docsUrl === 'string' && networkFields.docsUrl.length}
+						{#if loaded.docsUrl != null && loaded.docsUrl !== ''}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={networkFields.docsUrl}>
-										{networkFields.docsUrl}
+									<a href={loaded.docsUrl}>
+										{loaded.docsUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
 					</dl>
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		<div data-column="gap-3">

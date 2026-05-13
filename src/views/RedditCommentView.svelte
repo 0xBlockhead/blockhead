@@ -1,39 +1,34 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
+	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { default as EntityViewComponent } from '$/components/EntityView.svelte'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
-
-
 	// Props
 	let {
+		children,
 		entityId,
 		href,
 		open = $bindable(true),
 		...entityViewRest
 	}: WithRest<
 		{
+			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.RedditComment>
 			href: string
 			open?: boolean
 		},
 		Omit<
-			ComponentProps<typeof EntityViewComponent>,
+			ComponentProps<typeof EntityView>,
 			| 'entityType'
 			| 'entityId'
 			| 'href'
@@ -43,64 +38,34 @@
 			| 'Icon'
 			| 'HeadingAfter'
 			| 'Content'
+			| 'Heading'
 		>
 	> = $props()
 
 
-	const idKey = $derived(stringify(entityId))
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const rowQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.RedditComment] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						idKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => idKey],
+	const comment = useEntity(
+		EntityType.RedditComment,
+		entityId,
+		{
+			$: [
+				Source.Reddit_Rest,
+			],
+			body: {},
+			author: {},
+			$link: {},
+		},
 	)
-
-	const f = $derived.by(() => {
-		const bag = rowQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-		const rec = bag
-		const bodyX = rec['body']
-		const authorX = rec['author']
-		const linkRef = rec['$link']
-		const linkId = (
-			(typeof linkRef === 'object' && linkRef !== null && !Array.isArray(linkRef)) && EntityMetaKey.Id in linkRef ?
-				linkRef[EntityMetaKey.Id]
-			:
-				undefined
-		)
-		return {
-			body: typeof bodyX === 'string' && bodyX.length ? bodyX : undefined,
-			author: typeof authorX === 'string' && authorX.length ? authorX : undefined,
-			linkId,
-		}
-	})
-
-	const displayTitle = $derived.by(() => (
-		f?.body !== undefined && f.body.length > 0 ?
-			(
-				f.body.length > 96 ?
-					`${f.body.slice(0, 96)}…`
-				:
-					f.body
-			)
-		:
-			entityId.fullname
-	))
 
 
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -110,34 +75,38 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
 >
-	{#snippet Content()}
-		<div data-column>
-			{#if f !== undefined && f.body !== undefined}
-				<p>
-					{f.body}
-				</p>
-			{/if}
-			{#if f !== undefined && f.author !== undefined}
-				<p data-text="muted">
-					u/{f.author}
-				</p>
-			{/if}
-			{#if f !== undefined && f.linkId !== undefined}
-				<p data-text="muted">
-					<a
-						href={resolve(
-							'/(social)/reddit/link/[fullname]',
-							{ fullname: encodeURIComponent(f.linkId.fullname) },
-						)}
-					>Post {f.linkId.fullname}</a>
-				</p>
-			{/if}
-			<div data-text="mono muted">
-				{entityId.fullname}
-			</div>
-		</div>
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={comment}
+			placeholderText="Loading comment…"
+		>
+			{#snippet children(c)}
+				<HeadingComponent>
+					{(
+						c.body !== undefined && c.body.length > 0 ?
+							c.body
+						:
+							entityId.fullname
+					)}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={comment}
+			placeholderText="Loading comment…"
+		>
+			{#snippet children(c)}
+				{#if c.body.trim() === ''}
+					<p data-text="muted">No comment text.</p>
+				{:else}
+					<p>{c.body}</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -147,53 +116,51 @@
 			entityType={EntityType.RedditComment}
 			{entityId}
 		>
-			<QueryBoundary
-				query={rowQuery}
+			<ResourceBoundary
+				resource={comment}
+				placeholderText="Loading comment…"
 			>
-				{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No Reddit comment data in the app for this fullname yet.
-						</p>
-					{:else}
-						<dl>
+				{#snippet children(c)}
+					<dl>
+						<div>
+							<dt>Comment id</dt>
+							<dd>
+								<span data-text="mono">
+									<TruncatedValue
+										value={entityId.fullname}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</span>
+							</dd>
+						</div>
+						<div>
+							<dt>Author</dt>
+							<dd>u/{c.author}</dd>
+						</div>
+						{#if c.$link !== undefined}
 							<div>
-								<dt>Comment id</dt>
+								<dt>Post</dt>
 								<dd>
-									<span data-text="mono">
-										{entityId.fullname}
-									</span>
+									<a
+										href={resolve(
+											'/(social)/reddit/link/[fullname]',
+											{ fullname: encodeURIComponent(c.$link[EntityMetaKey.Id].fullname) },
+										)}
+									>Post {c.$link[EntityMetaKey.Id].fullname}</a>
 								</dd>
 							</div>
-							{#if f?.author !== undefined}
-								<div>
-									<dt>Author</dt>
-									<dd>u/{f.author}</dd>
-								</div>
-							{/if}
-							{#if f?.linkId !== undefined}
-								<div>
-									<dt>Post</dt>
-									<dd>
-										<a
-											href={resolve(
-												'/(social)/reddit/link/[fullname]',
-												{ fullname: encodeURIComponent(f.linkId.fullname) },
-											)}
-										>Post {f.linkId.fullname}</a>
-									</dd>
-								</div>
-							{/if}
-							{#if f?.body !== undefined}
-								<div>
-									<dt>Body</dt>
-									<dd>{f.body}</dd>
-								</div>
-							{/if}
-						</dl>
-					{/if}
+						{/if}
+						<div>
+							<dt>Body</dt>
+							<dd>{c.body}</dd>
+						</div>
+					</dl>
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
+
+		{#if children}
+			{@render children()}
+		{/if}
 	{/snippet}
 </EntityView>

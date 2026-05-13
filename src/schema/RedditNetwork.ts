@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
@@ -31,7 +32,7 @@ export default {
 		{
 			name: 'homeUrl',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Constants_Internal,
@@ -40,7 +41,7 @@ export default {
 		{
 			name: 'docsUrl',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Constants_Internal,

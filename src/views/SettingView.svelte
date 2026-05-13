@@ -4,22 +4,20 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import UnorderedList from '$/components/UnorderedList.svelte'
 
 
 	// Props
@@ -42,60 +40,30 @@
 			ComponentProps<typeof EntityView>,
 			| 'entityType'
 			| 'entityId'
-			| 'title'
 			| 'href'
 			| 'open'
+			| 'title'
 			| 'Details'
 		>
 	> = $props()
 
 
-	const globalIdKey = $derived(
-		stringify(entityId),
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	const global = useEntity(
+		EntityType._Global,
+		entityId,
+		{
+			$: [
+				Source.Local_Internal,
+				Source.Dune_Rest,
+			],
+			duneCreditsUsed: {},
+			duneCreditsIncluded: {},
+		},
 	)
-
-	const globalQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType._Global] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						globalIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => globalIdKey],
-	)
-
-	type ManageShortcut = {
-		key: string
-		href: string
-		label: string
-	}
-
-	const manageShortcutItems = $derived(
-		new SvelteSet<ManageShortcut>([
-			{
-				key: 'self',
-				href,
-				label: title,
-			},
-			{
-				key: 'explore',
-				href: resolve('/explore'),
-				label: 'Explore',
-			},
-		]),
-	)
-
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import UnorderedList from '$/components/UnorderedList.svelte'
 </script>
 
 
@@ -115,47 +83,86 @@
 				entityType={EntityType._Global}
 				{entityId}
 			>
-				<QueryBoundary
-					query={globalQuery}
-				>
+				<ResourceBoundary resource={global}>
+					{#snippet children(g)}
+						<p data-text="muted">
+							Shared app settings and usage totals.
+						</p>
+						<dl>
+							{#if g.duneCreditsUsed !== undefined}
+								<div>
+									<dt>Dune credits used</dt>
+									<dd>{String(g.duneCreditsUsed)}</dd>
+								</div>
+							{/if}
+							{#if g.duneCreditsIncluded !== undefined}
+								<div>
+									<dt>Dune credits included</dt>
+									<dd>{String(g.duneCreditsIncluded)}</dd>
+								</div>
+							{/if}
+						</dl>
 
-					{#snippet children(globalRows)}
-					{@const globalRow = (
-						globalRows?.find(
-							(globalRowEnvelope) => globalRowEnvelope.row[EntityMetaKey.Source] === Source.Local_Internal,
-						)?.row
-						?? globalRows?.[0]?.row
-					)}
-					{#if globalRow === undefined}
-						<p data-text="muted">
-							Nothing loaded for this view yet. Try again shortly.
-						</p>
-					{:else}
-						<p data-text="muted">
-							Global scope row ({String(globalRow[EntityMetaKey.Source])}).
-						</p>
-					{/if}
+						{#if g.duneCreditsUsed === undefined && g.duneCreditsIncluded === undefined}
+							<p data-text="muted">
+								Usage totals are not available yet.
+							</p>
+						{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 
 			<UnorderedList
-				items={manageShortcutItems}
+				items={new SvelteSet([
+					{
+						key: 'self',
+						href,
+						label: title,
+					},
+					{
+						key: 'explore',
+						href: resolve('/explore'),
+						label: 'Explore',
+					},
+					...(
+						href === resolve('/assets') ?
+							[
+								{
+									key: 'assets-coins',
+									href: resolve('/coins'),
+									label: 'Coins',
+								},
+								{
+									key: 'assets-pools',
+									href: resolve('/pools'),
+									label: 'Pools',
+								},
+							]
+						:
+							[]
+					),
+					...(
+						href === resolve('/~/accounts') ?
+							[
+								{
+									key: 'accounts-balances',
+									href: resolve('/~/accounts/balances'),
+									label: 'Balances',
+								},
+							]
+						:
+							[]
+					),
+				])}
 				getKey={(row) => row.key}
 				getSortValue={(row) => row.key}
 				placeholderKeys={new SvelteSet()}
 				orientation={ListOrientation.Column}
 			>
-				{#snippet Item({ item: row, isPlaceholder })}
-					{#if isPlaceholder}
-						<span data-placeholder>
-							…
-						</span>
-					{:else if row}
-						<a href={row.href}>
-							{row.label}
-						</a>
-					{/if}
+				{#snippet Item({ item })}
+					<a href={item.href}>
+						{item.label}
+					</a>
 				{/snippet}
 			</UnorderedList>
 		{/if}

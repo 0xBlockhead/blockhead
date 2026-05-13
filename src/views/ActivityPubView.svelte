@@ -1,78 +1,20 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityId } from '$/schema/$schema.ts'
 	import { mastodonDefaultInstanceOrigin } from '$/constants/Mastodon.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
-	const entityId = {
-		scope: 'ActivityPubNetwork' as const,
-	}
-
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
-
-	const networkIdKey = stringify(entityId)
-
-	const networkQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.ActivityPubNetwork] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
-	)
-
-	const actorsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.ActivityPubNetwork]['$$activityPubActors'] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
-	)
-
-	const notesQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.ActivityPubNetwork]['$$activityPubNotes'] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
-	)
-
-	const networkFields = $derived.by(() => {
-		const bag = networkQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		return bag != null && (typeof bag === 'object' && bag !== null && !Array.isArray(bag)) ? bag : null
-	})
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Components
@@ -82,7 +24,29 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+
+
+	const entityId = (
+		{
+			scope: 'ActivityPubNetwork' as const,
+		} satisfies EntityId<typeof schema, EntityType.ActivityPubNetwork>
+	)
+
+	const networkIdKey = stringify(entityId)
+
+	const activityPubNetwork = useEntity(
+		EntityType.ActivityPubNetwork,
+		entityId,
+		{
+			$: [Source.Constants_Internal],
+			protocolName: {},
+			homeUrl: {},
+			docsUrl: {},
+			$$activityPubActors: {},
+			$$activityPubNotes: {},
+		},
+	)
 </script>
 
 
@@ -93,21 +57,25 @@
 	open={true}
 	title="ActivityPub"
 >
-	{#snippet Content()}
-		<dl>
-			<div>
-				<dt>Scope</dt>
-				<dd>{entityId.scope}</dd>
-			</div>
-			<div>
-				<dt>Actors</dt>
-				<dd>{String(actorsQuery.data?.length ?? 0)}</dd>
-			</div>
-			<div>
-				<dt>Notes</dt>
-				<dd>{String(notesQuery.data?.length ?? 0)}</dd>
-			</div>
-		</dl>
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary resource={activityPubNetwork}>
+			{#snippet children(n)}
+				<dl>
+					<div>
+						<dt>Scope</dt>
+						<dd>{entityId.scope}</dd>
+					</div>
+					<div>
+						<dt>Actors</dt>
+						<dd>{String(n.$$activityPubActors.length)}</dd>
+					</div>
+					<div>
+						<dt>Notes</dt>
+						<dd>{String(n.$$activityPubNotes.length)}</dd>
+					</div>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -117,29 +85,27 @@
 			entityType={EntityType.ActivityPubNetwork}
 			{entityId}
 		>
-			<QueryBoundary
-				query={networkQuery}
-			>
-				{#snippet children(_rows)}
+			<ResourceBoundary resource={activityPubNetwork}>
+				{#snippet children(n)}
 					<dl>
 						<div>
 							<dt>Protocol name</dt>
-							<dd>{String(networkFields?.protocolName ?? 'ActivityPub')}</dd>
+							<dd>{n.protocolName ?? 'ActivityPub'}</dd>
 						</div>
-						<div>
-							<dt>Home</dt>
-							<dd>
-								<a href={String(networkFields?.homeUrl ?? '#')}>
-									{String(networkFields?.homeUrl ?? '—')}
-								</a>
-							</dd>
-						</div>
-						{#if typeof networkFields?.docsUrl === 'string' && networkFields.docsUrl.length}
+						{#if n.homeUrl}
+							<div>
+								<dt>Home</dt>
+								<dd>
+									<a href={n.homeUrl}>{n.homeUrl}</a>
+								</dd>
+							</div>
+						{/if}
+						{#if n.docsUrl != null && n.docsUrl !== ''}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={networkFields.docsUrl}>
-										{networkFields.docsUrl}
+									<a href={n.docsUrl}>
+										{n.docsUrl}
 									</a>
 								</dd>
 							</div>
@@ -150,7 +116,7 @@
 						</div>
 					</dl>
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		<div data-column="gap-3">
@@ -169,39 +135,41 @@
 					</header>
 				{/snippet}
 
-				<div
-					data-scroll-container="inline layout-carousel carousel-marker-tabs"
-					data-row="start align-start"
-					style="--carousel-basis: 36ch"
-				>
-					<section data-scroll-marker-label="Actors">
-						<ActivityPubActorsView
-							entityFieldReference={{
-								entityType: EntityType.ActivityPubNetwork,
-								entityId,
-								fieldName: '$$activityPubActors',
-							}}
-							href={resolve('/(social)/activitypub')}
-							id={`${networkIdKey}:actors`}
-							open={false}
-						/>
-					</section>
+				{#snippet children({ open: _open })}
+					<div
+						data-scroll-container="inline layout-carousel carousel-marker-tabs"
+						data-row="start align-start"
+						style="--carousel-basis: 36ch"
+					>
+						<section data-scroll-marker-label="Actors">
+							<ActivityPubActorsView
+								entityFieldReference={{
+									entityType: EntityType.ActivityPubNetwork,
+									entityId,
+									fieldName: '$$activityPubActors',
+								}}
+								href={resolve('/(social)/activitypub')}
+								id={`${networkIdKey}:actors`}
+								open={false}
+							/>
+						</section>
 
-					<section data-scroll-marker-label="Public notes">
-						<ActivityPubMastodonFieldNotes
-							entityFieldReference={{
-								entityType: EntityType.ActivityPubNetwork,
-								entityId,
-								fieldName: '$$activityPubNotes',
-							}}
-							href={resolve('/(social)/activitypub')}
-							id={`${networkIdKey}:notes`}
-							orderByCreatedAt="desc"
-							placeholderText="Loading public notes…"
-							title="Public notes"
-						/>
-					</section>
-				</div>
+						<section data-scroll-marker-label="Public notes">
+							<ActivityPubMastodonFieldNotes
+								entityFieldReference={{
+									entityType: EntityType.ActivityPubNetwork,
+									entityId,
+									fieldName: '$$activityPubNotes',
+								}}
+								href={resolve('/(social)/activitypub')}
+								id={`${networkIdKey}:notes`}
+								orderByCreatedAt="desc"
+								placeholderText="Loading public notes…"
+								title="Public notes"
+							/>
+						</section>
+					</div>
+				{/snippet}
 			</Collapsible>
 		</div>
 	{/snippet}

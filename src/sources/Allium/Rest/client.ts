@@ -1,3 +1,4 @@
+import { throwHttpError } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/lib/sources.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
@@ -18,9 +19,7 @@ export const alliumFetch = async <_Response>(
 		},
 	})
 
-	if (!response.ok) {
-		throw new Error(`Allium API error: ${response.status} ${response.statusText}`)
-	}
+	if (!response.ok) await throwHttpError('Allium API', response)
 
 	return response.json<_Response>()
 }

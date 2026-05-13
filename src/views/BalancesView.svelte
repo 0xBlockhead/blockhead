@@ -1,22 +1,33 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
-	import { schema } from '$/schema/index.ts'
+	import type { Entity } from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+	import { Source } from '$/sources/$Source.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// State
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+
 	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 	let {
 		entityFieldReference,
 		title = 'Balances',
-
 		open = $bindable(true),
-
-		...EntitiesListProps
+		...entitiesListRest
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.ActorCoin>
@@ -29,9 +40,43 @@
 		>
 	> = $props()
 
+	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
+
+	const parentEntity = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			[entityFieldReference.fieldName]: {
+				$: [
+					Source.Allium_Rest,
+				],
+			},
+		},
+	)
+
+	const tokenBalances = derive(
+		parentEntity,
+		(merged) => {
+			const rows = (
+				(
+					merged[entityFieldReference.fieldName as keyof typeof merged]
+					?? []
+				) as Entity<typeof schema, EntityType.ActorCoin>[]
+			)
+			return (
+				rows.map((value) => ({
+					value,
+				}))
+			)
+		},
+	)
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import ActorCoinView from '$/views/ActorCoinView.svelte'
 </script>
 
 
@@ -39,5 +84,41 @@
 	entityType={EntityType.ActorCoin}
 	{title}
 	bind:open
-	{...EntitiesListProps}
-/>
+	data-entity-field-name={entityFieldReference.fieldName}
+	data-entity-field-type={entityFieldReference.entityType}
+	data-entity-field-parent={stringify(entityFieldReference.entityId)}
+	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+	getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+	placeholderKeys={new SvelteSet<string>()}
+	placeholderText={`Loading ${title.toLowerCase()}…`}
+	resource={tokenBalances}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{...entitiesListRest}
+>
+	{#snippet Empty()}
+		<p data-text="muted">
+			No balances loaded yet.
+		</p>
+	{/snippet}
+
+	{#snippet Item(props)}
+		{#if props.isPlaceholder === false}
+			{@const id = props.item.value[EntityMetaKey.Id]}
+			<ActorCoinView
+				entityId={id}
+				href={resolve('/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]', {
+					chainId: String(id.$coinInstance.$network.chainId),
+					owner: id.$actor.address,
+					coin: (
+						id.$coinInstance.type === CoinInstanceType.Erc20Token ?
+							id.$coinInstance.$contract.address
+						:
+							pathNativeCoin
+					),
+				})}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
+		{/if}
+	{/snippet}
+</EntitiesList>

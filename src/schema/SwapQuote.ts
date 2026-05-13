@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -9,8 +11,8 @@ import { EntityType } from '$/schema/$EntityType.ts'
 
 const swapRouteRow = type({
 	poolId: 'string',
-	tokenIn: 'string.hex' as type.cast<`0x${string}`>,
-	tokenOut: 'string.hex' as type.cast<`0x${string}`>,
+	tokenIn: EvmAddress,
+	tokenOut: EvmAddress,
 	fee: 'number',
 })
 

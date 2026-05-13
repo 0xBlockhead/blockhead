@@ -18,7 +18,6 @@
 	<ActorCoinView
 		entityId={{
 			$actor: {
-				$network: { chainId: Number(params.chainId) },
 				address: params.owner as `0x${string}`,
 			},
 			$coinInstance: {

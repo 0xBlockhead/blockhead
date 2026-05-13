@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldCardinality,
 	EntityFieldType,
@@ -6,6 +8,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
@@ -24,7 +27,7 @@ export default {
 		{
 			name: 'canonicalUri',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Ipfs_Rest,
@@ -33,7 +36,7 @@ export default {
 		{
 			name: 'gatewayOrigin',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Ipfs_Rest,
@@ -42,7 +45,7 @@ export default {
 		{
 			name: 'gatewayUrl',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Ipfs_Rest,
@@ -150,7 +153,7 @@ export default {
 		{
 			name: 'cidMultihashDigestHex',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string.hex' as type.cast<`0x${string}`>),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Ipfs_Rest,

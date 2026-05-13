@@ -1,24 +1,30 @@
 <script lang="ts">
 	// Types/constants
-	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
+
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Props
 	let {
-		children,
+		children: childrenSnippet,
 		entityId,
 		href,
 		open = $bindable(true),
@@ -38,95 +44,23 @@
 			| 'open'
 			| 'title'
 			| 'Details'
+			| 'Heading'
 		>
 	> = $props()
 
 
-	const conversationIdKey = $derived(
-		stringify(entityId),
+	const conversation = useEntity(
+		EntityType.BlockheadAgentConversation,
+		entityId,
+		{
+			$: [
+				Source.Local_Internal,
+			],
+			name: {},
+			createdAt: {},
+			updatedAt: {},
+		},
 	)
-
-	const conversationQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.BlockheadAgentConversation] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						conversationIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => conversationIdKey],
-	)
-
-	const conversationRow = $derived(
-		conversationQuery.data?.[0]?.row,
-	)
-
-	const conversationField = $derived(
-		(() => {
-			const bagUnknown = conversationRow?.[EntityMetaKey.Fields]
-			if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) return null
-			const b: Record<string, JsonValue> = bagUnknown
-			const strOrNull = (key: string) => (
-				!(
-					key in b
-				) ?
-					undefined
-				: b[key] === undefined ?
-					undefined
-				: (() => {
-					const v = b[key]
-					return typeof v === 'string' ? v : undefined
-				})()
-			)
-			const name = (
-				!(
-					'name' in b
-				) ?
-					undefined
-				: b.name === null ?
-					null
-				: typeof b.name === 'string' ?
-					b.name
-				:
-					undefined
-			)
-			const createdAtVal = b.createdAt
-			const updatedAtVal = b.updatedAt
-			return {
-				name,
-				pinned: typeof b.pinned === 'boolean' ? b.pinned : undefined,
-				systemPrompt: typeof b.systemPrompt === 'string' ? b.systemPrompt : undefined,
-				defaultConnectionId: strOrNull('defaultConnectionId'),
-				defaultModelId: strOrNull('defaultModelId'),
-				createdAt: (
-					typeof createdAtVal === 'number' && Number.isFinite(createdAtVal) ?
-						createdAtVal
-					:	undefined
-				),
-				updatedAt: (
-					typeof updatedAtVal === 'number' && Number.isFinite(updatedAtVal) ?
-						updatedAtVal
-					:	undefined
-				),
-			}
-		})(),
-	)
-
-	const convTs = $derived(
-		conversationField?.updatedAt
-		?? conversationField?.createdAt
-	)
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -136,13 +70,18 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={(
-		typeof conversationField?.name === 'string' && conversationField.name.length > 0 ?
-			conversationField.name
-		:	entityId.id
-	)}
 >
-	{#snippet Content()}
+	{#snippet Heading()}
+		<ResourceBoundary resource={conversation}>
+			{#snippet children(_conversation)}
+				<HeadingComponent>
+					{_conversation.name ?? entityId.id}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Conversation id</dt>
@@ -153,122 +92,81 @@
 					/>
 				</dd>
 			</div>
-			{#if convTs !== undefined && typeof convTs === 'number' && Number.isFinite(convTs)}
-				<div>
-					<dt>Timestamp</dt>
-					<dd>
-						<Timestamp
-							timestamp={convTs}
-							format={TimestampFormat.Both}
-						/>
-					</dd>
-				</div>
-			{/if}
+
+			<ResourceBoundary resource={conversation}>
+				{#snippet children(_conversation)}
+					{#if _conversation.updatedAt !== undefined || _conversation.createdAt !== undefined}
+						<div>
+							<dt>Timestamp</dt>
+							<dd>
+								<Timestamp
+									timestamp={_conversation.updatedAt ?? _conversation.createdAt}
+									format={TimestampFormat.Both}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
 	{#snippet Details({
 		open: _open,
 	})}
-		{#if children}
-			{@render children()}
+		{#if childrenSnippet}
+			{@render childrenSnippet()}
 		{:else}
 			<EntityDetails
 				entityType={EntityType.BlockheadAgentConversation}
 				{entityId}
 			>
-				<QueryBoundary
-					query={conversationQuery}
-				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No conversation data for this id yet.
-						</p>
-					{:else}
+				<ResourceBoundary resource={conversation}>
+					{#snippet children(_conversation)}
 						<dl>
-							{#if conversationField?.name !== undefined}
+							{#if _conversation.name !== undefined && _conversation.name !== ''}
 								<div>
 									<dt>Name</dt>
-									<dd>
-										{conversationField.name ?? '—'}
-									</dd>
+									<dd>{_conversation.name}</dd>
 								</div>
 							{/if}
-							{#if conversationField?.pinned !== undefined}
-								<div>
-									<dt>Pinned</dt>
-									<dd>{String(conversationField.pinned)}</dd>
-								</div>
-							{/if}
-							{#if conversationField?.systemPrompt !== undefined}
-								<div>
-									<dt>System prompt</dt>
-									<dd>
-										<TruncatedValue
-											value={conversationField.systemPrompt}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</dd>
-								</div>
-							{/if}
-							{#if conversationField?.defaultConnectionId !== undefined}
-								<div>
-									<dt>Default connection id</dt>
-									<dd>
-										{#if conversationField.defaultConnectionId === undefined}
-											—
-										{:else}
-											<TruncatedValue
-												value={conversationField.defaultConnectionId}
-												format={TruncatedValueFormat.Visual}
-											/>
-										{/if}
-									</dd>
-								</div>
-							{/if}
-							{#if conversationField?.defaultModelId !== undefined}
-								<div>
-									<dt>Default model id</dt>
-									<dd>
-										{#if conversationField.defaultModelId === undefined}
-											—
-										{:else}
-											<TruncatedValue
-												value={conversationField.defaultModelId}
-												format={TruncatedValueFormat.Visual}
-											/>
-										{/if}
-									</dd>
-								</div>
-							{/if}
-							{#if conversationField?.createdAt !== undefined && typeof conversationField.createdAt === 'number' && Number.isFinite(conversationField.createdAt)}
+
+							{#if _conversation.createdAt !== undefined}
 								<div>
 									<dt>Created at</dt>
 									<dd>
 										<Timestamp
-											timestamp={conversationField.createdAt}
+											timestamp={_conversation.createdAt}
 											format={TimestampFormat.Both}
 										/>
 									</dd>
 								</div>
 							{/if}
-							{#if conversationField?.updatedAt !== undefined && typeof conversationField.updatedAt === 'number' && Number.isFinite(conversationField.updatedAt)}
+
+							{#if _conversation.updatedAt !== undefined}
 								<div>
 									<dt>Updated at</dt>
 									<dd>
 										<Timestamp
-											timestamp={conversationField.updatedAt}
+											timestamp={_conversation.updatedAt}
 											format={TimestampFormat.Both}
 										/>
 									</dd>
 								</div>
 							{/if}
 						</dl>
-					{/if}
+
+						{#if (
+							(_conversation.name === undefined || _conversation.name === '')
+							&& _conversation.createdAt === undefined
+							&& _conversation.updatedAt === undefined
+						)}
+							<p data-text="muted">
+								No conversation details are available yet.
+							</p>
+						{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

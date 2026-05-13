@@ -15,6 +15,7 @@
 			scope: 'FarcasterNetwork',
 		}}
 		href={resolve('/farcaster')}
+		open={false}
 	/>
 
 </Page>

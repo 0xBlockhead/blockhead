@@ -1,18 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityFieldValues, EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Props
@@ -37,68 +31,42 @@
 			| 'open'
 			| 'title'
 			| 'Details'
+			| 'Heading'
 			| 'HeadingAfter'
 			| 'Content'
 		>
 	> = $props()
 
 
-	const connectionIdKey = $derived(
-		stringify(entityId),
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const connection = useEntity(
+		EntityType.BlockheadFarcasterAccountConnection,
+		entityId,
+		{
+			$: [
+				Source.Neynar_Rest,
+				Source.Snapchain_Rest,
+			],
+			username: {},
+			displayName: {},
+			$icon: {},
+			bio: {},
+			verifications: {},
+			custody: {},
+			authMethod: {},
+			signedAt: {},
+		},
 	)
 
-	const connectionQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					row: entityCollectionByEntityType[EntityType.BlockheadFarcasterAccountConnection],
-				})
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						connectionIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => connectionIdKey],
-	)
-
-	const connectionRow = $derived(
-		connectionQuery.data?.[0]?.row,
-	)
-
-	const connectionField = $derived(
-		(() => {
-			const bag = connectionRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-			const f: Partial<EntityFieldValues<typeof schema, EntityType.BlockheadFarcasterAccountConnection>> = bag
-			return {
-				username: typeof f.username === 'string' && f.username.length ? f.username : undefined,
-				displayName: typeof f.displayName === 'string' && f.displayName.length ? f.displayName : undefined,
-				avatarUrl: f.$icon?.[EntityMetaKey.Id].url,
-				bio: typeof f.bio === 'string' && f.bio.length ? f.bio : undefined,
-				custody: typeof f.custody === 'string' && f.custody.length ? f.custody : undefined,
-				authMethod: f.authMethod,
-				verifications: Array.isArray(f.verifications) ?
-					f.verifications.filter((value): value is string => typeof value === 'string' && value.length > 0)
-				:	undefined,
-				signedAt: typeof f.signedAt === 'number' ? f.signedAt : undefined,
-			}
-		})(),
-	)
-
-	const displayTitle = $derived(
-		connectionField?.displayName
-		?? connectionField?.username
-		?? String(entityId.fid),
-	)
 
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import Media from '$/components/Media.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -108,25 +76,53 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
 >
-	{#snippet HeadingAfter()}
-		{#if connectionField?.username !== undefined && connectionField.username !== displayTitle}
-			<span data-text="muted">
-				@{connectionField.username}
-			</span>
-		{/if}
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={connection}
+			placeholderText="Loading account…"
+		>
+			{#snippet children(account)}
+				<HeadingComponent>
+					{account.displayName ?? account.username ?? String(entityId.fid)}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content()}
-		{#if String(entityId.fid) !== displayTitle}
-			<dl>
-				<div>
-					<dt>FID</dt>
-					<dd>{String(entityId.fid)}</dd>
-				</div>
-			</dl>
-		{/if}
+	{#snippet HeadingAfter()}
+		<ResourceBoundary
+			resource={connection}
+			placeholderText="Loading account…"
+		>
+			{#snippet children(account)}
+				{#if (
+					account.username !== undefined
+					&& account.username !== (
+						account.displayName ?? account.username ?? String(entityId.fid)
+					)
+				)}
+					<span data-text="muted">
+						@{account.username}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={connection}
+			placeholderText="Loading account…"
+		>
+			{#snippet children(account)}
+				{#if account.bio}
+					<p data-text="muted">
+						{account.bio}
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -139,88 +135,76 @@
 				entityType={EntityType.BlockheadFarcasterAccountConnection}
 				{entityId}
 			>
-				<QueryBoundary
-					query={connectionQuery}
+				<ResourceBoundary
+					resource={connection}
+					placeholderText="Loading account…"
 				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No Farcaster connection data yet.
-						</p>
-					{:else if connectionField == null}
+					{#snippet children(account)}
 						<dl>
 							<div>
 								<dt>FID</dt>
 								<dd>{String(entityId.fid)}</dd>
 							</div>
-						</dl>
-					{:else}
-						<dl>
-							<div>
-								<dt>FID</dt>
-								<dd>{String(entityId.fid)}</dd>
-							</div>
-							{#if connectionField.displayName !== undefined}
+							{#if account.displayName}
 								<div>
 									<dt>Display name</dt>
-									<dd>{connectionField.displayName}</dd>
+									<dd>{account.displayName}</dd>
 								</div>
 							{/if}
-							{#if connectionField.username !== undefined}
+							{#if account.username}
 								<div>
 									<dt>Username</dt>
-									<dd>{connectionField.username}</dd>
+									<dd>{account.username}</dd>
 								</div>
 							{/if}
-							{#if connectionField.avatarUrl !== undefined}
-								<div>
-									<dt>Profile image</dt>
-									<dd data-column>
-										<Media
-											media={{ url: connectionField.avatarUrl }}
-											alt={connectionField.displayName ?? connectionField.username ?? ''}
-										/>
-										<a href={connectionField.avatarUrl}>{connectionField.avatarUrl}</a>
-									</dd>
-								</div>
+							{#if account.$icon}
+								{#if account.$icon[EntityMetaKey.Id].url}
+									<div>
+										<dt>Profile image</dt>
+										<dd data-column>
+											<Media
+												media={{ url: account.$icon[EntityMetaKey.Id].url }}
+												alt={(account.displayName ?? account.username) ?? ''}
+											/>
+											<a href={account.$icon[EntityMetaKey.Id].url}>{account.$icon[EntityMetaKey.Id].url}</a>
+										</dd>
+									</div>
+								{/if}
 							{/if}
-							{#if connectionField.bio !== undefined}
+							{#if account.bio}
 								<div>
 									<dt>Bio</dt>
-									<dd>{connectionField.bio}</dd>
+									<dd>{account.bio}</dd>
 								</div>
 							{/if}
-							{#if connectionField.authMethod !== undefined}
+							{#if account.authMethod}
 								<div>
 									<dt>Auth method</dt>
-									<dd>{connectionField.authMethod}</dd>
+									<dd>{account.authMethod}</dd>
 								</div>
 							{/if}
-							{#if connectionField.custody !== undefined}
+							{#if account.custody}
 								<div>
 									<dt>Custody</dt>
-									<dd>{connectionField.custody}</dd>
+									<dd>{account.custody}</dd>
 								</div>
 							{/if}
-							{#if connectionField.verifications !== undefined && connectionField.verifications.length}
+							{#if account.verifications && account.verifications.length}
 								<div>
 									<dt>Verifications</dt>
-									<dd>{connectionField.verifications.join(', ')}</dd>
+									<dd>{account.verifications.join(', ')}</dd>
 								</div>
 							{/if}
-							{#if connectionField.signedAt !== undefined}
+							{#if account.signedAt !== undefined}
 								<div>
 									<dt>Signed at</dt>
-									<dd>{new Date(connectionField.signedAt).toISOString()}</dd>
+									<dd>{new Date(account.signedAt).toISOString()}</dd>
 								</div>
 							{/if}
 						</dl>
-					{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}
 </EntityView>
-

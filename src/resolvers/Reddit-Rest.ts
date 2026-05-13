@@ -88,7 +88,6 @@ export default {
 				const { redditListPopularLinks } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Reddit_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Reddit_Rest: RedditNetwork $$redditSubreddits requires query limit')
 				const byName = new Map<string, { [EntityMetaKey.Id]: { name: string } }>()
 				for (const child of ((await singleFlight(redditListPopularLinks)(publicEnv, limit)).data.children ?? [])) {
 					if (child.kind !== 't3') continue
@@ -110,7 +109,6 @@ export default {
 				const { redditListPopularLinks } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Reddit_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Reddit_Rest: RedditNetwork $$redditLinks requires query limit')
 				return (
 					((await singleFlight(redditListPopularLinks)(publicEnv, limit)).data.children ?? [])
 						.flatMap((child) => (
@@ -133,7 +131,6 @@ export default {
 				const { redditListSubredditLinks } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Reddit_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Reddit_Rest: RedditSubreddit $$links requires query limit')
 				return (
 					((await singleFlight(redditListSubredditLinks)(publicEnv, entityId.name, limit)).data.children ?? [])
 						.flatMap((child) => (
@@ -156,7 +153,6 @@ export default {
 				const { redditGetInfo, redditGetLinkComments } = await import('$/sources/Reddit/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Reddit_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Reddit_Rest: RedditLink $$comments requires query limit')
 				const info = (await singleFlight(redditGetInfo)(publicEnv, entityId.fullname)).data.children[0]
 				const permalink = (
 					info != null

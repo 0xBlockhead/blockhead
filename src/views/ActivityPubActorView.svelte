@@ -2,24 +2,18 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { mergeEntityCollectionRowFields } from '$/collections/mergeEntityCollectionRowFields.ts'
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
-
+	// Functions
 	import { htmlToPlainText } from '$/lib/html.ts'
 
 
@@ -44,58 +38,37 @@
 			| 'title'
 			| 'Details'
 			| 'Icon'
+			| 'Heading'
 			| 'HeadingAfter'
 			| 'Content'
 		>
 	> = $props()
 
 
-	const idKey = $derived(stringify(entityId))
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const activityPubActorMergeSourceOrder = [
-		Source.Mastodon_Rest,
-	] as const
-
-	const actorQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.ActivityPubActor] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						idKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => idKey],
+	const actor = useEntity(
+		EntityType.ActivityPubActor,
+		entityId,
+		{
+			$: [Source.Mastodon_Rest],
+			username: {},
+			acct: {},
+			displayName: {},
+			note: {},
+			$icon: {},
+		},
 	)
-
-	const actorFields = $derived(
-		mergeEntityCollectionRowFields<EntityType.ActivityPubActor>(
-			actorQuery.data,
-			activityPubActorMergeSourceOrder,
-		),
-	)
-
-	const displayTitle = $derived(
-		actorFields.displayName
-		?? actorFields.acct
-		?? actorFields.username
-		?? entityId.localAccountId,
-	)
-
-	const avatarUrl = $derived((
-		actorFields.$icon?.[EntityMetaKey.Id].url
-	))
 
 
 	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
-	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -105,38 +78,72 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
 >
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={actor}
+			placeholderText="Loading account…"
+		>
+			{#snippet Pending()}{/snippet}
+			{#snippet children(u)}
+				<HeadingComponent>
+					{u.displayName
+						?? u.acct
+						?? u.username
+						?? entityId.localAccountId}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Icon()}
-		{#if avatarUrl !== undefined}
-			<IconComponent
-				alt={(
-					actorFields.displayName
-					?? actorFields.acct
-					?? actorFields.username
-					?? ''
-				)}
-				shape={IconShape.Circle}
-				src={avatarUrl}
-			/>
-		{/if}
+		<ResourceBoundary resource={actor}>
+			{#snippet Pending()}{/snippet}
+			{#snippet children(u)}
+				{#if u.$icon}
+					<IconComponent
+						alt={u.displayName ?? u.acct ?? u.username ?? entityId.localAccountId}
+						shape={IconShape.Circle}
+						src={u.$icon[EntityMetaKey.Id].url}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if actorFields.username !== undefined && actorFields.username !== displayTitle}
-			<span data-text="muted">
-				@{actorFields.username}
-			</span>
-		{/if}
+		<ResourceBoundary resource={actor}>
+			{#snippet Pending()}{/snippet}
+			{#snippet children(u)}
+				{@const heading =
+					u.displayName
+					?? u.acct
+					?? u.username
+					?? entityId.localAccountId}
+				{#if u.username !== undefined && u.username !== heading}
+					<span data-text="muted">
+						@{u.username}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content()}
+	{#snippet Content({ title: _title, href: _href })}
 		<div data-column>
-			{#if actorFields.note}
-				<p data-text="muted">
-					{htmlToPlainText(actorFields.note)}
-				</p>
-			{/if}
+			<ResourceBoundary
+				resource={actor}
+				placeholderText="Loading account…"
+			>
+				{#snippet children(u)}
+					{#if u.note}
+						<p data-text="muted">
+							{htmlToPlainText(u.note)}
+						</p>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			<div data-text="mono muted">
 				{entityId.instanceOrigin}
 				 · 
@@ -152,47 +159,44 @@
 			entityType={EntityType.ActivityPubActor}
 			{entityId}
 		>
-			<QueryBoundary
-				query={actorQuery}
-			>
-				{#snippet children(mastoRestActorResultRows)}
-					{#if mastoRestActorResultRows.length === 0}
+			<ResourceBoundary resource={actor}>
+				{#snippet children(u)}
+					{#if u.acct == null && u.displayName == null && u.username == null && u.note == null}
 						<p data-text="muted">
-							No account data in the app for this id yet. Try again shortly, or check that the Mastodon instance
-							API can be reached.
+							Profile details are not available yet for this account.
 						</p>
 					{:else}
 						<dl>
-							{#if actorFields.username}
+							{#if u.username}
 								<div>
 									<dt>Username</dt>
-									<dd>{actorFields.username}</dd>
+									<dd>{u.username}</dd>
 								</div>
 							{/if}
-							{#if actorFields.acct}
+							{#if u.acct}
 								<div>
 									<dt>Acct</dt>
-									<dd>{actorFields.acct}</dd>
+									<dd>{u.acct}</dd>
 								</div>
 							{/if}
-							{#if actorFields.displayName}
+							{#if u.displayName}
 								<div>
 									<dt>Display name</dt>
-									<dd>{actorFields.displayName}</dd>
+									<dd>{u.displayName}</dd>
 								</div>
 							{/if}
-							{#if actorFields.note}
+							{#if u.note}
 								<div>
 									<dt>About</dt>
 									<dd>
-										{htmlToPlainText(actorFields.note)}
+										{htmlToPlainText(u.note)}
 									</dd>
 								</div>
 							{/if}
 						</dl>
 					{/if}
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		<ActivityPubMastodonFieldNotes

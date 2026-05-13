@@ -18,10 +18,13 @@ export type ResolverLoadSubset<_Source extends Source = Source> = ReturnType<typ
 	publicEnv: SourcePublicEnvFor<_Source>
 }
 
-/** `loadSubsetOptions.limit` from the live query (undefined when the query has no `LIMIT`). */
+/** When hydrate/live-query omits `LIMIT`, list field resolvers still need a cap (aligned with `useEntity` field `$limit` default). */
+export const defaultResolverLoadSubsetRowLimit = 64
+
+/** Row cap from load subset; never undefined — uses {@link defaultResolverLoadSubsetRowLimit} when the query omitted LIMIT. */
 export const resolverLoadSubsetRowLimit = (
 	context: ResolverLoadSubset | undefined,
-): number | undefined => context?.limit
+): number => context?.limit ?? defaultResolverLoadSubsetRowLimit
 
 export const sourcePublicEnv = <_Source extends Source>(
 	context: ResolverLoadSubset | undefined,

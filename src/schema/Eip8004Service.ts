@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { UrlString } from '$/schema/$Url.ts'
 import Network from '$/schema/Network.ts'
 
 export default {
@@ -29,7 +30,7 @@ export default {
 		{
 			name: 'registrationUri',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
@@ -53,13 +54,13 @@ export default {
 		{
 			name: 'image',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'contactEndpoint',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

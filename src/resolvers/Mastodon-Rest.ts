@@ -4,6 +4,7 @@ import {
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -13,7 +14,7 @@ const optionalTrimmedString = (value: string | undefined) => (
 	value?.trim() ? value.trim() : undefined
 )
 
-const mastodonAvatarHttpUrl = (
+const mastodonAvatarUrl = (
 	value: string | null | undefined,
 	options?: { siteOrigin?: string },
 ) => {
@@ -25,18 +26,7 @@ const mastodonAvatarHttpUrl = (
 		:
 			raw
 	)
-	const withProtocol = withOrigin.startsWith('//') ? `https:${withOrigin}` : withOrigin
-	try {
-		const parsed = new URL(withProtocol)
-		return (
-			parsed.protocol === 'http:' || parsed.protocol === 'https:' ?
-				parsed.toString()
-			:
-				undefined
-		)
-	} catch {
-		return undefined
-	}
+	return withOrigin
 }
 
 export default {
@@ -50,7 +40,6 @@ export default {
 				assertInstanceMatches(entityId.instanceOrigin)
 				const a = await singleFlight(mastodonGetAccount)(entityId.localAccountId)
 				if (a == null) throw new Error('Mastodon_Rest: account not found')
-				const instanceOrigin = entityId.instanceOrigin
 				return {
 					username: optionalTrimmedString(a.username),
 					acct: optionalTrimmedString(a.acct),
@@ -62,12 +51,9 @@ export default {
 						t == null ?
 							{}
 						:	{
-								$icon: {
-									[EntityMetaKey.Id]: { url: t },
-									type: MediaType.Image,
-								},
+								$icon: t,
 							}
-					))(mastodonAvatarHttpUrl(a.avatar, { siteOrigin: instanceOrigin })),
+					))(mediaFromUrl(mastodonAvatarUrl(a.avatar, { siteOrigin: entityId.instanceOrigin }), MediaType.Image)),
 				}
 			},
 		}),
@@ -119,7 +105,6 @@ export default {
 				const { mastodonInstanceOrigin } = await import('$/sources/Mastodon/Rest/constants.ts')
 				const { mastodonListPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Mastodon_Rest: ActivityPubNetwork $$activityPubActors requires query limit')
 				const byId = new Map<string, { [EntityMetaKey.Id]: { instanceOrigin: string, localAccountId: string } }>()
 				for (const status of await singleFlight(mastodonListPublicTimeline)(limit)) {
 					const accountId = status.account?.id == null ? undefined : String(status.account.id)
@@ -142,7 +127,6 @@ export default {
 				const { mastodonInstanceOrigin } = await import('$/sources/Mastodon/Rest/constants.ts')
 				const { mastodonListPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Mastodon_Rest: ActivityPubNetwork $$activityPubNotes requires query limit')
 				return (
 					(await singleFlight(mastodonListPublicTimeline)(limit))
 						.flatMap((status) => (
@@ -168,7 +152,6 @@ export default {
 				const { assertInstanceMatches, mastodonListAccountStatuses } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Mastodon_Rest: ActivityPubActor $$notes requires query limit')
 				return (
 					(await singleFlight(mastodonListAccountStatuses)(entityId.localAccountId, limit))
 						.flatMap((s) => (

@@ -1,5 +1,8 @@
+import { type as arktype } from 'arktype'
+
 import { SnapchainReactionType } from '$/constants/Snapchain.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineEntityFieldResolver,
@@ -7,6 +10,7 @@ import {
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import { type Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
@@ -26,22 +30,7 @@ const optionalTrimmedString = (value: string | undefined) => (
 const snapchainUserDataPfpHttpUrl = (value: string | null | undefined) => {
 	const raw = typeof value === 'string' ? value.trim() : ''
 	if (raw.length === 0) return undefined
-	const withProtocol = raw.startsWith('//') ? `https:${raw}` : raw
-	if (withProtocol.startsWith('ipfs://')) {
-		const path = withProtocol.slice('ipfs://'.length).replace(/^\/+/, '')
-		return path.length > 0 ? `https://ipfs.io/ipfs/${path}` : undefined
-	}
-	try {
-		const parsed = new URL(withProtocol)
-		return (
-			parsed.protocol === 'http:' || parsed.protocol === 'https:' ?
-				parsed.toString()
-			:
-				undefined
-		)
-	} catch {
-		return undefined
-	}
+	return resolveMediaUrlTransport(raw)?.url
 }
 
 export default {
@@ -57,29 +46,33 @@ export default {
 				const { userData, usernameProofs, verifications } = await getSnapchainUserBundleByFid({
 					fid: entityId.fid,
 				})
-				const verifiedAddress = (
+				const verifiedAddressWire = (
 					(verifications.messages ?? [])
-						.map((message: SnapVerify) => (
-							message.data?.verificationAddEthAddressBody?.address
-						))
+						.map((message: SnapVerify) => {
+							const body = message.data?.verificationAddAddressBody
+							if (body?.protocol !== 'PROTOCOL_ETHEREUM') return undefined
+							return body.address
+						})
 						.find((address) => address != null)
+				)
+				const verifiedTrimmed = optionalTrimmedString(verifiedAddressWire)
+				const verifiedParsed = (
+					verifiedTrimmed == null ?
+						arktype.errors
+					:
+						EvmAddress(verifiedTrimmed)
 				)
 				const userFields: Partial<UserFields> = {
 					username: optionalTrimmedString(usernameProofs.proofs?.[0]?.name),
-					verifiedAddress: optionalTrimmedString(verifiedAddress),
 				}
+				if (!(verifiedParsed instanceof arktype.errors)) userFields.verifiedAddress = verifiedParsed
 				for (const message of (userData.messages ?? [])) {
 					const userDataType = message.data?.userDataBody?.type
 					const fieldValue = optionalTrimmedString(message.data?.userDataBody?.value)
 					if (fieldValue == null) continue
 					if (userDataType === 'USER_DATA_TYPE_PFP') {
-						const iconUrl = snapchainUserDataPfpHttpUrl(fieldValue)
-						if (iconUrl != null) {
-							userFields.$icon = {
-								[EntityMetaKey.Id]: { url: iconUrl },
-								type: MediaType.Image,
-							}
-						}
+						const icon = mediaFromUrl(snapchainUserDataPfpHttpUrl(fieldValue), MediaType.Image)
+						if (icon != null) userFields.$icon = icon
 					}
 					else if (userDataType === 'USER_DATA_TYPE_DISPLAY') userFields.displayName = fieldValue
 					else if (userDataType === 'USER_DATA_TYPE_BIO') userFields.bio = fieldValue
@@ -183,7 +176,6 @@ export default {
 				type UserEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterUser>
 				const { getFids } = await import('$/sources/Snapchain/Rest/queries.ts')
 				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
-				if (subsetRowLimit == null) throw new Error('Snapchain_Rest: FarcasterNetwork $$users requires query limit')
 				const fids: number[] = []
 				let pageToken: string | undefined
 				do {
@@ -219,7 +211,6 @@ export default {
 				type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCastWire
 				const { getCastsByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
 				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
-				if (subsetRowLimit == null) throw new Error('Snapchain_Rest: FarcasterUser $$casts requires query limit')
 				const casts: SnapCast[] = []
 				let pageToken: string | undefined
 				do {
@@ -262,7 +253,6 @@ export default {
 				const channel = await singleFlight(getChannel)(entityId.id)
 				const channelPageUrl = optionalTrimmedString(channel?.url) ?? `https://warpcast.com/~/channel/${entityId.id}`
 				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
-				if (subsetRowLimit == null) throw new Error('Snapchain_Rest: FarcasterChannel $$casts requires query limit')
 				const casts: SnapCast[] = []
 				let pageToken: string | undefined
 				do {
@@ -309,7 +299,6 @@ export default {
 					throw new Error('Snapchain_Rest: following feed is not supported')
 				}
 				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
-				if (subsetRowLimit == null) throw new Error('Snapchain_Rest: FarcasterFeed $$entries requires query limit')
 
 				if (entityId.variant === 'byUser') {
 					const { getCastsByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
@@ -435,5 +424,6 @@ export default {
 				)
 			},
 		}),
+
 	],
 }

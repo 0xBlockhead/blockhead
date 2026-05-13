@@ -42,8 +42,7 @@ export default {
 						{
 							$deployer: {
 								[EntityMetaKey.Id]: {
-									$network: entityId.$network,
-									address: deployer,
+									address: deployer.toLowerCase() as `0x${string}`,
 								},
 							},
 						}
@@ -124,11 +123,10 @@ export default {
 			fieldName: '$verifiedSource',
 			resolve: async (entityId) => {
 				const { getSourcifyContractLookup } = await import('$/sources/Sourcify/Rest/queries.ts')
-				const contractLookup = await singleFlight(getSourcifyContractLookup)({
+				if (await singleFlight(getSourcifyContractLookup)({
 					chainId: entityId.$network.chainId,
 					address: entityId.address,
-				})
-				if (contractLookup == null) return undefined
+				}) == null) return undefined
 				return {
 					[EntityMetaKey.Id]: entityId,
 				}

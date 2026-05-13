@@ -1,21 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import Markdown from '$/components/Markdown.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import {
 		ProposalCategory,
 		proposalCategoryById,
 	} from '$/constants/Proposal.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import ProposalSchema from '$/schema/Proposal.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Props
@@ -40,11 +33,52 @@
 			| 'open'
 			| 'title'
 			| 'Details'
+			| 'Heading'
 		>
 	> = $props()
 
-	// (Derived)
-	const proposalQuery = useEntity(
+
+	// Functions
+	const proposalHeadingTitle = (
+		m: {
+			documentBody?: string | null
+			documentTitle?: string | null
+		},
+		proposalEntityId: typeof ProposalSchema.id.infer,
+	) => {
+		const identifier = `${proposalCategoryById[proposalEntityId.category].label}-${proposalEntityId.number}`
+		const trimmedTitle = (m.documentTitle ?? '').trim()
+		const match = (
+			proposalEntityId.category === ProposalCategory.Ensip ?
+				(m.documentBody ?? '').match(/#\s*(ENSIP-\d+:\s*.+)/)
+			:
+				null
+		)
+		const headingTitle = (
+			trimmedTitle !== '' ?
+				trimmedTitle
+			:
+				(match?.[1] ?? '').trim()
+		)
+		return (
+			headingTitle === '' ?
+				identifier
+			:
+				new RegExp(
+					`^${identifier.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:`,
+					'i',
+				).test(headingTitle) ?
+					headingTitle
+				:
+					`${identifier.trim()}: ${headingTitle}`
+		)
+	}
+
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const proposal = useEntity(
 		EntityType.Proposal,
 		entityId,
 		{
@@ -62,80 +96,69 @@
 		},
 	)
 
-	const proposalFields = $derived(
-		proposalQuery.data?.[EntityMetaKey.Fields],
-	)
 
-	const headingTitle = $derived(
-		(() => {
-			const identifier = `${proposalCategoryById[entityId.category].label}-${entityId.number}`
-			const core = (
-				String(proposalFields?.documentTitle ?? '').trim() !== '' ?
-					String(proposalFields?.documentTitle).trim()
-				:	entityId.category === ProposalCategory.Ensip ?
-						String(proposalFields?.documentBody ?? '').match(/#\s*(ENSIP-\d+:\s*.+)/)?.[1]?.trim()
-						?? null
-					:	null
-			)
-			const title = String(core ?? '').trim()
-			return (
-				title === '' ?
-					identifier
-				:	new RegExp(
-						`^${identifier.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:`,
-						'i',
-					).test(title) ?
-						title
-					:	`${identifier.trim()}: ${title}`
-			)
-		})(),
-	)
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import Markdown from '$/components/Markdown.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.Proposal}
 	{entityId}
-	title={headingTitle}
 	{href}
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Content()}
-		<dl>
-			{#if proposalFields?.documentStatus}
-				<div>
-					<dt>Status</dt>
-					<dd>{proposalFields.documentStatus}</dd>
-				</div>
-			{/if}
-		</dl>
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={proposal}
+			placeholderText="Loading proposal…"
+		>
+			{#snippet children(p)}
+				<HeadingComponent>
+					{proposalHeadingTitle(p, entityId)}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={proposal}
+			placeholderText="Loading proposal…"
+		>
+			{#snippet children(p)}
+				<dl>
+					<div>
+						<dt>Status</dt>
+						<dd>{p.documentStatus}</dd>
+					</div>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({ open: _open })}
 		<EntityDetails
 			entityType={EntityType.Proposal}
 			{entityId}
 		>
-			<QueryBoundary
-				query={proposalQuery}
+			<ResourceBoundary
+				resource={proposal}
+				placeholderText="Loading proposal…"
 			>
-				{#snippet children(proposal)}
-					{#if proposal === undefined}
-						<p data-text="muted">
-							No proposal data for this item yet. Try again shortly.
-						</p>
-					{:else if proposal[EntityMetaKey.Fields]?.documentBody}
-						<Markdown content={proposal[EntityMetaKey.Fields].documentBody} />
+				{#snippet children(p)}
+					{#if p.documentBody.trim() === ''}
+						<p data-text="muted">No proposal body available.</p>
 					{:else}
-						<p data-text="muted">
-							No document body yet.
-						</p>
+						<Markdown content={p.documentBody} />
 					{/if}
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		{#if children}

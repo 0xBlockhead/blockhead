@@ -1,21 +1,18 @@
 <script lang="ts">
-	// Context
+	import type { PageProps } from './$types.ts'
+
 	import { resolve } from '$app/paths'
 
-	// State
-	let {
-		params,
-	} = $props()
-
-	// Components
 	import Page from '$/components/Page.svelte'
 	import EvmTopicView from '$/views/EvmTopicView.svelte'
+
+	let { data }: PageProps = $props()
 </script>
 
 
 <Page>
 	<EvmTopicView
-		entityId={{ hex: params.hex as `0x${string}` }}
+		entityId={data.entityId}
 		href={resolve('/evm/topics')}
 	/>
 </Page>

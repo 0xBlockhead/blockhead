@@ -6,45 +6,6 @@
 	import { formatValue } from '$/lib/number.ts'
 
 
-	// Functions
-	const indexParts = (parts: Intl.NumberFormatPart[]) => {
-		const decimalIndex = parts.findIndex(
-			(part) => (part.type === 'decimal' || part.type === 'exponentSeparator'),
-		)
-		const partsLeft = (
-			decimalIndex === -1
-				? parts
-			: parts.slice(0, decimalIndex)
-		)
-		const partsRight = (
-			decimalIndex === -1
-				? []
-			: parts.slice(decimalIndex)
-		)
-
-		let k = 0
-		return [
-			...partsLeft
-				.toReversed()
-				.map((part) => (
-					{
-						key: `L${(k++).toString(36)}`,
-						part,
-					}
-				))
-				.toReversed(),
-
-			...partsRight
-				.map((part) => (
-					{
-						key: `R${(k++).toString(36)}`,
-						part,
-					}
-				)),
-		]
-	}
-
-
 	// Props
 	let {
 		value,
@@ -64,48 +25,85 @@
 
 
 	// (Derived)
-	const numberTarget = $derived(
-		Number(value) || 0
-	)
-
-	const decimalPlaces = $derived(
+	const dPad = $derived(
 		formatValueOptions?.showDecimalPlaces
 			?? options.maximumFractionDigits
 			?? options.minimumFractionDigits
 			?? 0
 	)
 
-	let dPad = $state(0)
 
-	$effect(() => {
-		dPad = decimalPlaces
-	})
+	// Functions
+	const indexParts = (parts: Intl.NumberFormatPart[]) => {
+		const decimalIndex = parts.findIndex(
+			(part) => (part.type === 'decimal' || part.type === 'exponentSeparator'),
+		)
+
+		let k = 0
+		return [
+			...(decimalIndex === -1
+				? parts
+			: parts.slice(0, decimalIndex))
+				.toReversed()
+				.map((part) => (
+					{
+						key: `L${(k++).toString(36)}`,
+						part,
+					}
+				))
+				.toReversed(),
+
+			...(decimalIndex === -1
+				? []
+			: parts.slice(decimalIndex))
+				.map((part) => (
+					{
+						key: `R${(k++).toString(36)}`,
+						part,
+					}
+				)),
+		]
+	}
 
 
-	// Tween: log-scale interpolation; duration 0 when `tween` is false or reduced motion
-	const tweenedNumber = (new Tween(0, {
+	// State
+	let isFirstTweenSet = $state(
+		true,
+	)
+
+	const tweenedNumber = new Tween(0, {
 		duration: 0,
 		easing: quintOut,
 		interpolate: (from, to) => (step) => {
 			const dec = dPad
 			const logFrom = (from != 0 ? Math.log10(from) : -dec - 1)
-			const logTo = (to != 0 ? Math.log10(to) : -dec - 1)
-			const result = (
+			const interpolated = (
 				10
-				** (logFrom + step * (logTo - logFrom))
+				** (
+					logFrom
+					+ step * (
+						(to != 0 ? Math.log10(to) : -dec - 1)
+						- logFrom
+					)
+				)
 			)
 			return (
 				to >= 100 && step < 0.9994
-					? (from < to ? Math.floor(result) : Math.ceil(result))
-				: result
+					? (from < to ? Math.floor(interpolated) : Math.ceil(interpolated))
+				: interpolated
 			)
 		},
-	}))
+	})
 
-	let isFirstTweenSet = $state(
-		true
+	const displayNumber = $derived(
+		tween ?
+			tweenedNumber.current
+		:
+			(Number(value) || 0)
 	)
 
+
+	// (Derived)
 	$effect(() => {
 		if (!tween) {
 			return
@@ -115,46 +113,35 @@
 			|| isFirstTweenSet
 		)
 		void tweenedNumber.set(
-			numberTarget,
+			Number(value) || 0,
 			{
 				duration: (instant
 					? 0
-				: tweenDuration),
+					: tweenDuration),
 				delay: (instant
 					? 0
-				: 1),
+					: 1),
 			},
 		)
 		isFirstTweenSet = false
 	})
-
-
-	// (Derived)
-	const displayNumber = $derived(
-		tween
-			? tweenedNumber.current
-		: numberTarget
-	)
-
-	const indexedParts = $derived((
-		indexParts(
-			formatValueOptions
-				? (formatValue(
-					displayNumber,
-					{ ...formatValueOptions, toParts: true },
-				))
-			: (new Intl.NumberFormat(
-					locales,
-					options,
-				)
-					.formatToParts(displayNumber)),
-		)
-	))
 </script>
 
 
 <output>
-	{#each indexedParts as { key, part } (key)}
+	{#each indexParts(
+		formatValueOptions
+			? (formatValue(
+				displayNumber,
+				{ ...formatValueOptions, toParts: true },
+			))
+		: (new Intl.NumberFormat(
+				locales,
+				options,
+			)
+				.formatToParts(displayNumber)
+		)
+	) as { key, part } (key)}
 		<span
 			data-part={part.type}
 		>

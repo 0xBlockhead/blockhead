@@ -1,77 +1,46 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
+
+	// State
+	import { stringify } from 'devalue'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const entityId = {
 		scope: 'RedditNetwork' as const,
 	}
 
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
-
 	const networkIdKey = stringify(entityId)
 
-	const networkQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.RedditNetwork] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
+	const redditNetwork = useEntity(
+		EntityType.RedditNetwork,
+		entityId,
+		{
+			$: [
+				Source.Constants_Internal,
+			],
+			docsUrl: {},
+			homeUrl: {},
+			protocolName: {},
+			$$redditLinks: {
+				$: [
+					Source.Reddit_Rest,
+				],
+			},
+			$$redditSubreddits: {
+				$: [
+					Source.Reddit_Rest,
+				],
+			},
+		},
 	)
-
-	const subredditsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.RedditNetwork]['$$redditSubreddits'] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
-	)
-
-	const linksQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.RedditNetwork]['$$redditLinks'] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
-	)
-
-	const networkFields = $derived.by(() => {
-		const bag = networkQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		return bag != null && (typeof bag === 'object' && bag !== null && !Array.isArray(bag)) ? bag : null
-	})
 
 
 	// Components
@@ -79,7 +48,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import RedditLinksView from '$/views/RedditLinksView.svelte'
 	import RedditSubredditsView from '$/views/RedditSubredditsView.svelte'
 </script>
@@ -92,21 +61,28 @@
 	open={true}
 	title="Reddit"
 >
-	{#snippet Content()}
-		<dl>
-			<div>
-				<dt>Scope</dt>
-				<dd>{entityId.scope}</dd>
-			</div>
-			<div>
-				<dt>Communities</dt>
-				<dd>{String(subredditsQuery.data?.length ?? 0)}</dd>
-			</div>
-			<div>
-				<dt>Posts</dt>
-				<dd>{String(linksQuery.data?.length ?? 0)}</dd>
-			</div>
-		</dl>
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={redditNetwork}
+			placeholderText="Loading Reddit…"
+		>
+			{#snippet children(u)}
+				<dl>
+					<div>
+						<dt>Scope</dt>
+						<dd>{entityId.scope}</dd>
+					</div>
+					<div>
+						<dt>Communities</dt>
+						<dd>{String(u.$$redditSubreddits.length)}</dd>
+					</div>
+					<div>
+						<dt>Posts</dt>
+						<dd>{String(u.$$redditLinks.length)}</dd>
+					</div>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -116,36 +92,37 @@
 			entityType={EntityType.RedditNetwork}
 			{entityId}
 		>
-			<QueryBoundary
-				query={networkQuery}
+			<ResourceBoundary
+				resource={redditNetwork}
+				placeholderText="Loading Reddit…"
 			>
-				{#snippet children(_rows)}
+				{#snippet children(u)}
 					<dl>
 						<div>
 							<dt>Protocol name</dt>
-							<dd>{String(networkFields?.protocolName ?? 'Reddit')}</dd>
+							<dd>{String(u.protocolName ?? 'Reddit')}</dd>
 						</div>
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={String(networkFields?.homeUrl ?? '#')}>
-									{String(networkFields?.homeUrl ?? '—')}
+								<a href={String(u.homeUrl ?? '#')}>
+									{String(u.homeUrl ?? '—')}
 								</a>
 							</dd>
 						</div>
-						{#if typeof networkFields?.docsUrl === 'string' && networkFields.docsUrl.length}
+						{#if u.docsUrl != null && u.docsUrl !== ''}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={networkFields.docsUrl}>
-										{networkFields.docsUrl}
+									<a href={u.docsUrl}>
+										{u.docsUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
 					</dl>
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		<div data-column="gap-3">

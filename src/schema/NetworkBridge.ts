@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { UrlString } from '$/schema/$Url.ts'
 import Network from '$/schema/Network.ts'
 
 export default {
@@ -17,7 +18,7 @@ export default {
 	id: type({
 		$fromNetwork: Network.id,
 		$toNetwork: Network.id,
-		url: 'string',
+		url: UrlString,
 	}),
 
 	fields: [
@@ -36,7 +37,7 @@ export default {
 		{
 			name: 'url',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

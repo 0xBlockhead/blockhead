@@ -2,12 +2,8 @@
 	// Types/constants
 	type ShowEncodings = 'all' | 'common' | 'no-formatting-variants'
 
+	import type { CID } from 'multiformats/cid'
 
-	// Components
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-
-
-	// Functions
 	import { ipfsResourceHref } from '$/lib/ipfs.ts'
 	import {
 		checkIpfsCidIsValidSubdomain,
@@ -30,34 +26,38 @@
 	// State
 	let showEncodings = $state<ShowEncodings>('common')
 
-
-	// (Derived)
 	const cid = $derived(parseIpfsCid(target))
 
-	const encodingRows = $derived(
-		cid === undefined ?
-			[]
-		:	(
-				getAllIpfsCidEncodings(cid).filter(({ version, baseName }) => (
-					(
-						version === cid.version
-						&& baseName === currentMultibaseNameForCidTarget(target, cid)
-					)
-					|| (
-						showEncodings === 'common' ?
-							version === 0 || baseName === 'base32' || baseName === 'base36'
-						: showEncodings === 'no-formatting-variants' ?
-							!/(?:upper|pad)$/.test(baseName)
-						:
-							true
-					)
-				))
-			),
+
+	// Functions
+	const filteredEncodings = (
+		targetParam: string,
+		cidValue: CID,
+		show: ShowEncodings,
+	) => (
+		getAllIpfsCidEncodings(cidValue).filter(({ version, baseName }) => (
+			(
+				version === cidValue.version
+				&& baseName === currentMultibaseNameForCidTarget(targetParam, cidValue)
+			)
+			|| (
+				show === 'common' ?
+					version === 0 || baseName === 'base32' || baseName === 'base36'
+				: show === 'no-formatting-variants' ?
+					!/(?:upper|pad)$/.test(baseName)
+				:
+					true
+			)
+		))
 	)
+
+
+	// Components
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
-{#if cid !== undefined}
+{#if cid}
 	<section
 		class="ipfs-cid-alternate-encodings"
 		data-card
@@ -68,9 +68,7 @@
 
 			<label data-row="wrap">
 				<span data-text="muted">Show</span>
-				<select
-					bind:value={showEncodings}
-				>
+				<select bind:value={showEncodings}>
 					<option value="common">Common</option>
 					<option value="no-formatting-variants">All bases</option>
 					<option value="all">All bases + formatting variants</option>
@@ -79,16 +77,16 @@
 		</header>
 
 		<dl>
-			{#each encodingRows as row (`${row.version}-${row.baseName}`)}
+			{#each filteredEncodings(target, cid, showEncodings) as encoding (`${encoding.version}-${encoding.baseName}`)}
 				{@const subdomainOk = checkIpfsCidIsValidSubdomain({
-					baseName: row.baseName,
-					cidString: row.cidString,
+					baseName: encoding.baseName,
+					cidString: encoding.cidString,
 				})}
 				<div>
 					<dt>
-						CIDv{String(row.version)}
+						CIDv{String(encoding.version)}
 						<small data-text="muted">
-							({row.baseName})
+							({encoding.baseName})
 						</small>
 					</dt>
 					<dd data-row="wrap">
@@ -98,14 +96,14 @@
 								window.location.assign(
 									ipfsResourceHref({
 										namespace: 'ipfs',
-										target: row.cidString,
+										target: encoding.cidString,
 										contentPath,
 									}),
 								)
 							}}
 						>
 							<TruncatedValue
-								value={row.cidString}
+								value={encoding.cidString}
 								format={TruncatedValueFormat.Visual}
 							/>
 						</button>

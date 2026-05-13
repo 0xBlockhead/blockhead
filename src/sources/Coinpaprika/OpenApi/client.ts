@@ -1,3 +1,4 @@
+import { throwHttpError } from '$/lib/http.ts'
 import { optionalPublicEnvString } from '$/lib/sources.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
@@ -21,9 +22,7 @@ export const getCoinpaprikaJson = async <_Response>(
 		},
 	)
 
-	if (!response.ok) {
-		throw new Error(`Coinpaprika API error: ${response.status} ${response.statusText}`)
-	}
+	if (!response.ok) await throwHttpError('Coinpaprika API', response)
 
 	return response.json<_Response>()
 }

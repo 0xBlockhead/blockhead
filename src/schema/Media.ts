@@ -1,4 +1,7 @@
 import { type } from 'arktype'
+
+import { UrlString } from '$/schema/$Url.ts'
+import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -18,6 +21,12 @@ export enum MediaType {
 	Other = 'Other',
 }
 
+export enum MediaTransport {
+	Http = 'Http',
+	Ipfs = 'Ipfs',
+	Arweave = 'Arweave',
+}
+
 export default {
 	entityType: EntityType.Media,
 
@@ -25,7 +34,7 @@ export default {
 	labelPlural: 'Media',
 
 	id: type({
-		url: 'string',
+		url: UrlString,
 	}),
 
 	fields: [
@@ -36,9 +45,15 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
+			name: 'transport',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(MediaTransport),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
 			name: 'hash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string.hex' as type.cast<`0x${string}`>),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
@@ -76,5 +91,5 @@ export default {
 
 export type Media<_MediaType extends MediaType = MediaType> = (
 	Entity<typeof schema, EntityType.Media> &
-	{ type: _MediaType }
+	{ type: _MediaType, transport: MediaTransport }
 )

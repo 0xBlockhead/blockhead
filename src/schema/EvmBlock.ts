@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -18,7 +20,7 @@ export default {
 	id: type({
 		$network: Network.id,
 		blockNumber: 'bigint',
-		'hash?': 'string.hex' as type.cast<`0x${string}`>,
+		'hash?': ZeroExHex,
 	}),
 
 	fields: [

@@ -1,19 +1,12 @@
 <script lang="ts">
 	// Types/constants
-	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	import { entityResolversByEntityType } from '$/resolvers/index.ts'
+	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Props
@@ -38,69 +31,38 @@
 			| 'open'
 			| 'title'
 			| 'Details'
+			| 'Heading'
 		>
 	> = $props()
 
 
-	const stateChannelIdKey = $derived(
-		stringify(entityId),
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const stateChannel = useEntity(
+		EntityType.StateChannel,
+		entityId,
+		{
+			$: (
+				entityResolversByEntityType[EntityType.StateChannel]?.map((resolver) => resolver.source)
+				?? [Source.Local_Internal]
+			),
+			totalDeposited: {},
+			balance0: {},
+			balance1: {},
+			turnNum: {},
+			status: {},
+			createdAt: {},
+			updatedAt: {},
+		},
 	)
 
-	const stateChannelQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.StateChannel] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						stateChannelIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => stateChannelIdKey],
-	)
-
-	const stateChannelRow = $derived(
-		stateChannelQuery.data?.[0]?.row,
-	)
-
-	const stateChannelField = $derived(
-		(() => {
-			const bag = stateChannelRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-			const b = bag
-			const bigString = (v: JsonValue) => (
-				typeof v === 'bigint' ?
-					String(v)
-				: typeof v === 'string' && /^-?\d+$/.test(v) ?
-					v
-				: typeof v === 'number' && Number.isFinite(v) ?
-					String(BigInt(Math.trunc(v)))
-				:
-					undefined
-			)
-			return {
-				totalDeposited: bigString(b.totalDeposited),
-				balance0: bigString(b.balance0),
-				balance1: bigString(b.balance1),
-				turnNum: typeof b.turnNum === 'number' && Number.isFinite(b.turnNum) ? b.turnNum : undefined,
-				status: typeof b.status === 'string' && b.status.length ? b.status : undefined,
-				createdAt: typeof b.createdAt === 'number' && Number.isFinite(b.createdAt) ? b.createdAt : undefined,
-				updatedAt: typeof b.updatedAt === 'number' && Number.isFinite(b.updatedAt) ? b.updatedAt : undefined,
-			}
-		})(),
-	)
-
-	const stateChTs = $derived(
-		stateChannelField?.updatedAt
-		?? stateChannelField?.createdAt
-	)
 
 	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 </script>
 
@@ -111,31 +73,56 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={stateChannelField?.status ?? (stateChannelField?.turnNum !== undefined ? `Turn ${String(stateChannelField.turnNum)}` : undefined) ?? stateChannelField?.totalDeposited ?? `Channel ${entityId.id}`}
 >
-	{#snippet Content()}
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={stateChannel}
+			placeholderText="Loading channel…"
+		>
+			{#snippet children(c)}
+				<HeadingComponent>
+					{(
+						c.status
+						?? (c.turnNum !== undefined ? `Turn ${String(c.turnNum)}` : undefined)
+						?? (c.totalDeposited !== undefined ? String(c.totalDeposited) : undefined)
+						?? `Channel ${entityId.id}`
+					)}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Channel id</dt>
 				<dd>{entityId.id}</dd>
 			</div>
-			{#if stateChannelField?.status !== undefined}
-				<div>
-					<dt>Status</dt>
-					<dd>{stateChannelField.status}</dd>
-				</div>
-			{/if}
-			{#if stateChTs !== undefined && typeof stateChTs === 'number' && Number.isFinite(stateChTs)}
-				<div>
-					<dt>Timestamp</dt>
-					<dd>
-						<Timestamp
-							timestamp={stateChTs}
-							format={TimestampFormat.Both}
-						/>
-					</dd>
-				</div>
-			{/if}
+
+			<ResourceBoundary
+				resource={stateChannel}
+				placeholderText="Loading channel…"
+			>
+				{#snippet children(c)}
+					{#if c.status !== undefined}
+						<div>
+							<dt>Status</dt>
+							<dd>{c.status}</dd>
+						</div>
+					{/if}
+					{#if c.updatedAt !== undefined || c.createdAt !== undefined}
+						<div>
+							<dt>Timestamp</dt>
+							<dd>
+								<Timestamp
+									timestamp={c.updatedAt ?? c.createdAt}
+									format={TimestampFormat.Both}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
@@ -149,73 +136,81 @@
 				entityType={EntityType.StateChannel}
 				{entityId}
 			>
-				<QueryBoundary
-					query={stateChannelQuery}
+				<ResourceBoundary
+					resource={stateChannel}
+					placeholderText="Loading channel…"
 				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No state channel data for this id yet.
-						</p>
-					{:else}
+					{#snippet children(c)}
 						<dl>
-							{#if stateChannelField?.totalDeposited !== undefined}
+							{#if c.totalDeposited !== undefined}
 								<div>
 									<dt>Total deposited</dt>
-									<dd>{stateChannelField.totalDeposited}</dd>
+									<dd>{String(c.totalDeposited)}</dd>
 								</div>
 							{/if}
-							{#if stateChannelField?.balance0 !== undefined}
+							{#if c.balance0 !== undefined}
 								<div>
 									<dt>Balance 0</dt>
-									<dd>{stateChannelField.balance0}</dd>
+									<dd>{String(c.balance0)}</dd>
 								</div>
 							{/if}
-							{#if stateChannelField?.balance1 !== undefined}
+							{#if c.balance1 !== undefined}
 								<div>
 									<dt>Balance 1</dt>
-									<dd>{stateChannelField.balance1}</dd>
+									<dd>{String(c.balance1)}</dd>
 								</div>
 							{/if}
-							{#if stateChannelField?.turnNum !== undefined}
+							{#if c.turnNum !== undefined}
 								<div>
 									<dt>Turn</dt>
-									<dd>{String(stateChannelField.turnNum)}</dd>
+									<dd>{String(c.turnNum)}</dd>
 								</div>
 							{/if}
-							{#if stateChannelField?.status !== undefined}
+							{#if c.status !== undefined}
 								<div>
 									<dt>Status</dt>
-									<dd>{stateChannelField.status}</dd>
+									<dd>{c.status}</dd>
 								</div>
 							{/if}
-							{#if stateChannelField?.createdAt !== undefined && typeof stateChannelField.createdAt === 'number' && Number.isFinite(stateChannelField.createdAt)}
+							{#if c.createdAt !== undefined}
 								<div>
 									<dt>Created at</dt>
 									<dd>
 										<Timestamp
-											timestamp={stateChannelField.createdAt}
+											timestamp={c.createdAt}
 											format={TimestampFormat.Both}
 										/>
 									</dd>
 								</div>
 							{/if}
-							{#if stateChannelField?.updatedAt !== undefined && typeof stateChannelField.updatedAt === 'number' && Number.isFinite(stateChannelField.updatedAt)}
+							{#if c.updatedAt !== undefined}
 								<div>
 									<dt>Updated at</dt>
 									<dd>
 										<Timestamp
-											timestamp={stateChannelField.updatedAt}
+											timestamp={c.updatedAt}
 											format={TimestampFormat.Both}
 										/>
 									</dd>
 								</div>
 							{/if}
 						</dl>
-					{/if}
+
+						{#if (
+							c.totalDeposited === undefined
+							&& c.balance0 === undefined
+							&& c.balance1 === undefined
+							&& c.turnNum === undefined
+							&& c.status === undefined
+							&& c.createdAt === undefined
+							&& c.updatedAt === undefined
+						)}
+							<p data-text="muted">
+								No channel details are available yet.
+							</p>
+						{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

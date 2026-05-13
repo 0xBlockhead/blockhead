@@ -13,6 +13,7 @@
 
 <Page>
 	<FarcasterFeedsView
+		collapsible={false}
 		entityFieldReference={{
 			entityType: EntityType.FarcasterNetwork,
 			entityId: { scope: 'FarcasterNetwork' },
@@ -20,6 +21,7 @@
 		}}
 		href={resolve('/farcaster/feed')}
 		id="feed-index"
+		limit={36}
 		title="Feeds"
 		open={true}
 	/>

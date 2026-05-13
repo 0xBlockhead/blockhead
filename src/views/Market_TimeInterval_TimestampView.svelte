@@ -1,11 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
+	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 	import { formatMarketTimeIntervalLabel } from '$/constants/Market.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import Market_TimeInterval_TimestampSchema from '$/schema/Market_TimeInterval_Timestamp.ts'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
@@ -17,13 +19,15 @@
 		children,
 		entityId,
 		href,
+		layout,
 		open = $bindable(true),
 		...entityViewRest
 	}: WithRest<
 		{
 			children?: Snippet
-			entityId: typeof Market_TimeInterval_TimestampSchema.id.infer | string
+			entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>
 			href?: string
+			layout?: EntityLayout
 			open?: boolean
 		},
 		Omit<
@@ -31,182 +35,161 @@
 			| 'entityType'
 			| 'entityId'
 			| 'href'
+			| 'layout'
 			| 'open'
 			| 'title'
 			| 'Details'
+			| 'Heading'
 		>
 	> = $props()
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
-
-
-	// (Derived)
-	const pointIdKey = $derived(
-		typeof entityId === 'string' ?
-			entityId
-		:	stringify(entityId),
-	)
-
-	const pointQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.Market_TimeInterval_Timestamp] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						pointIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => pointIdKey],
-	)
-
-	const pointRow = $derived(
-		pointQuery.data?.[0]?.row,
-	)
-
-	const wireId = $derived(
-		typeof entityId === 'string' ?
-			pointRow?.[EntityMetaKey.Id]
-		:
-			entityId,
-	)
-
-	const pointField = $derived(
-		(() => {
-			const bag = pointRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-			const b = bag
-			return {
-				open: typeof b.open === 'bigint' ? b.open : undefined,
-				high: typeof b.high === 'bigint' ? b.high : undefined,
-				low: typeof b.low === 'bigint' ? b.low : undefined,
-				close: typeof b.close === 'bigint' ? b.close : undefined,
-			}
-		})(),
-	)
-
-	const timestampMs = $derived(
-		wireId === undefined ?
-			undefined
-		:	Number(wireId.timestampNs / 1_000_000n),
+	const pointLive = useEntity(
+		EntityType.Market_TimeInterval_Timestamp,
+		entityId,
+		{
+			$: [
+				Source.Coingecko_Rest,
+				Source.Constants_Internal,
+			],
+			open: {},
+			high: {},
+			low: {},
+			close: {},
+		},
 	)
 
 
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import MarketView from '$/views/MarketView.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
-{#if wireId === undefined}
-	<span data-placeholder>
-		…
-	</span>
-{:else}
-	<EntityView
-		entityType={EntityType.Market_TimeInterval_Timestamp}
-		entityId={wireId}
-		href={href}
-		{open}
-		{...entityViewRest}
-		title={`OHLC ${formatMarketTimeIntervalLabel(wireId.timeInterval)}`}
-	>
-		{#snippet Content()}
-			<dl>
-				{#if pointField?.close !== undefined}
-					<div>
-						<dt>Close</dt>
-						<dd>{String(pointField.close)}</dd>
-					</div>
-				{/if}
+<EntityView
+	{...entityViewRest}
+	entityType={EntityType.Market_TimeInterval_Timestamp}
+	{entityId}
+	href={href ?? resolve(
+		'/(assets)/coins/market/[marketKey]',
+		{
+			marketKey: encodeURIComponent(stringify(entityId.$market)),
+		},
+	)}
+	{layout}
+	{open}
+>
+	{#snippet Heading()}
+		<HeadingComponent>
+			{`OHLC ${formatMarketTimeIntervalLabel(entityId.timeInterval)}`}
+		</HeadingComponent>
+	{/snippet}
 
-				{#if timestampMs !== undefined && Number.isFinite(timestampMs)}
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={pointLive}
+			placeholderText="Loading OHLC point…"
+		>
+			{#snippet children(pointLoaded)}
+				<dl>
+					{#if pointLoaded.close !== undefined}
+						<div>
+							<dt>Close</dt>
+							<dd>
+								<NumberValue
+									options={{
+										maximumFractionDigits: 6,
+										minimumFractionDigits: 2,
+									}}
+									value={Number(pointLoaded.close) / 1e8}
+								/>
+							</dd>
+						</div>
+					{/if}
+
 					<div>
 						<dt>At</dt>
 						<dd>
 							<Timestamp
-								timestamp={timestampMs}
 								format={TimestampFormat.Both}
+								timestamp={Number(entityId.timestampNs / 1_000_000n)}
 							/>
 						</dd>
 					</div>
-				{/if}
-			</dl>
-		{/snippet}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
 
-		{#snippet Details({
-			open: _open,
-		})}
-			<EntityDetails
-				entityType={EntityType.Market_TimeInterval_Timestamp}
-				entityId={wireId}
+	{#snippet Details({ open: _open })}
+		<EntityDetails
+			entityType={EntityType.Market_TimeInterval_Timestamp}
+			{entityId}
+		>
+			<ResourceBoundary
+				resource={pointLive}
+				placeholderText="Loading OHLC point…"
 			>
-				<QueryBoundary
-					placeholderText="Loading OHLC point…"
-					query={pointQuery}
-				>
-					{#snippet children(_rows)}
-						<dl>
-							{#if pointField?.open !== undefined}
-								<div>
-									<dt>Open</dt>
-									<dd>{String(pointField.open)}</dd>
-								</div>
-							{/if}
-
-							{#if pointField?.high !== undefined}
-								<div>
-									<dt>High</dt>
-									<dd>{String(pointField.high)}</dd>
-								</div>
-							{/if}
-
-							{#if pointField?.low !== undefined}
-								<div>
-									<dt>Low</dt>
-									<dd>{String(pointField.low)}</dd>
-								</div>
-							{/if}
-
+				{#snippet children(pointLoaded)}
+					<dl>
+						{#if pointLoaded.open !== undefined}
 							<div>
-								<dt>Timestamp (ns)</dt>
-								<dd>{String(wireId.timestampNs)}</dd>
+								<dt>Open</dt>
+								<dd>{String(pointLoaded.open)}</dd>
 							</div>
-						</dl>
-					{/snippet}
-				</QueryBoundary>
-			</EntityDetails>
+						{/if}
 
-			<section>
-				<h2>
-					Market
-				</h2>
-				<MarketView
-					entityId={wireId.$market}
-					href={resolve(
-						'/(assets)/coins/market/[marketKey]',
-						{
-							marketKey: encodeURIComponent(stringify(wireId.$market)),
-						},
-					)}
-					id={`${pointIdKey}:market`}
-					open={false}
-				/>
-			</section>
+						{#if pointLoaded.high !== undefined}
+							<div>
+								<dt>High</dt>
+								<dd>{String(pointLoaded.high)}</dd>
+							</div>
+						{/if}
 
-			{#if children}
-				{@render children()}
-			{/if}
-		{/snippet}
-	</EntityView>
-{/if}
+						{#if pointLoaded.low !== undefined}
+							<div>
+								<dt>Low</dt>
+								<dd>{String(pointLoaded.low)}</dd>
+							</div>
+						{/if}
+
+						<div>
+							<dt>Timestamp (ns)</dt>
+							<dd>{String(entityId.timestampNs)}</dd>
+						</div>
+					</dl>
+				{/snippet}
+			</ResourceBoundary>
+		</EntityDetails>
+
+		<section>
+			<h2>
+				Market
+			</h2>
+			<MarketView
+				entityId={entityId.$market}
+				href={resolve(
+					'/(assets)/coins/market/[marketKey]',
+					{
+						marketKey: encodeURIComponent(stringify(entityId.$market)),
+					},
+				)}
+				id={`${stringify(entityId)}:market`}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
+		</section>
+
+		{#if children}
+			{@render children()}
+		{/if}
+	{/snippet}
+</EntityView>

@@ -58,7 +58,6 @@ export default {
 			resolve: async (entityId, context) => {
 				const { $network, epoch } = entityId
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Beacon_Rest: BeaconEpoch $$beaconSlots requires query limit')
 				return (
 					Array.from(
 						{ length: Math.min(limit, slotsPerEpoch) },
@@ -80,10 +79,11 @@ export default {
 			resolve: async (entityId, context) => {
 				const { getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Beacon_Rest: Network $$beaconEpochs requires query limit')
 				const { chainId } = entityId
 				const base = beaconRestBaseByExecutionChainId[chainId]
-				if (base == null) return []
+				if (base == null) {
+					throw new Error(`Beacon_Rest: $$beaconEpochs unsupported for chain ${String(chainId)}`)
+				}
 				const headSlot = await singleFlight(getBeaconHeadSlot)(base)
 				const headEpoch = Math.floor(headSlot / slotsPerEpoch)
 				return (
@@ -113,10 +113,11 @@ export default {
 			resolve: async (entityId, context) => {
 				const { getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Beacon_Rest: Network $$beaconSlots requires query limit')
 				const { chainId } = entityId
 				const base = beaconRestBaseByExecutionChainId[chainId]
-				if (base == null) return []
+				if (base == null) {
+					throw new Error(`Beacon_Rest: $$beaconSlots unsupported for chain ${String(chainId)}`)
+				}
 				const headSlot = await singleFlight(getBeaconHeadSlot)(base)
 				return (
 					Array.from(

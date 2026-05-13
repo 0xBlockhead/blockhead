@@ -1,19 +1,23 @@
 <script lang="ts">
 	// Types/constants
-	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { entityResolversByEntityType } from '$/resolvers/index.ts'
+	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import Address from '$/views/Address.svelte'
 
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Props
@@ -38,83 +42,36 @@
 			| 'open'
 			| 'title'
 			| 'Details'
+			| 'Heading'
 		>
 	> = $props()
 
-	const poolIdKey = $derived(
-		stringify(entityId),
-	)
 
-	const poolQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.LiquidityPool] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						poolIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => poolIdKey],
+	const pool = useEntity(
+		EntityType.LiquidityPool,
+		entityId,
+		{
+			$: (
+				entityResolversByEntityType[EntityType.LiquidityPool]?.map((resolver) => resolver.source)
+				?? [Source.Dexscreener_OpenApi]
+			),
+			$token0: {},
+			$token1: {},
+			$hooks: {},
+			token0Symbol: {},
+			token1Symbol: {},
+			token0Decimals: {},
+			token1Decimals: {},
+			fee: {},
+			tickSpacing: {},
+			v4PoolId: {},
+			sqrtPriceX96: {},
+			liquidity: {},
+			tick: {},
+			volumeUSD: {},
+			totalValueLockedUSD: {},
+		},
 	)
-
-	const poolRow = $derived(
-		poolQuery.data?.[0]?.row,
-	)
-
-	const poolField = $derived(
-		(() => {
-			const bagUnknown = poolRow?.[EntityMetaKey.Fields]
-			if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) return null
-			const b: Record<string, JsonValue> = bagUnknown
-			const num = (key: string) => {
-				const v = b[key]
-				return typeof v === 'number' && Number.isFinite(v) ? v : undefined
-			}
-			const str = (key: string) => {
-				const v = b[key]
-				return typeof v === 'string' && v.length ? v : undefined
-			}
-			const big = (key: string) => {
-				const v = b[key]
-				return typeof v === 'bigint' ? v : undefined
-			}
-			const usd = (key: string) => {
-				const v = b[key]
-				return (
-					typeof v === 'string' || typeof v === 'number' ?
-						v
-					:	undefined
-				)
-			}
-			return {
-				fee: num('fee'),
-				tickSpacing: num('tickSpacing'),
-				v4PoolId: str('v4PoolId'),
-				sqrtPriceX96: big('sqrtPriceX96'),
-				liquidity: big('liquidity'),
-				tick: num('tick'),
-				token0Symbol: str('token0Symbol'),
-				token1Symbol: str('token1Symbol'),
-				token0Decimals: num('token0Decimals'),
-				token1Decimals: num('token1Decimals'),
-				volumeUSD: usd('volumeUSD'),
-				totalValueLockedUSD: usd('totalValueLockedUSD'),
-			}
-		})(),
-	)
-
-	const titleIsTokenPair = $derived(
-		poolField?.token0Symbol !== undefined && poolField?.token1Symbol !== undefined,
-	)
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -124,27 +81,64 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={poolField?.token0Symbol !== undefined && poolField?.token1Symbol !== undefined ? `${poolField.token0Symbol} / ${poolField.token1Symbol}` : entityId.id}
 >
-	{#snippet Content()}
-		{#if titleIsTokenPair}
-			<dl>
-				<div>
-					<dt>Pool id</dt>
-					<dd>
-						<TruncatedValue
-							value={entityId.id}
-							format={TruncatedValueFormat.Visual}
-						/>
-					</dd>
-				</div>
-			</dl>
-		{/if}
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={pool}
+			placeholderText="Loading pool…"
+		>
+			{#snippet children(p)}
+				<HeadingComponent>
+					{p.token0Symbol} / {p.token1Symbol}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={pool}
+			placeholderText="Loading pool…"
+		>
+			{#snippet children(p)}
+				<dl>
+					<div>
+						<dt>Chain id</dt>
+						<dd>{String(p.$token0.$network.chainId)}</dd>
+					</div>
+					<div>
+						<dt>Pool id</dt>
+						<dd>
+							<TruncatedValue
+								value={entityId.id}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</dd>
+					</div>
+					<div>
+						<dt>Token 0</dt>
+						<dd>
+							<Address
+								network={p.$token0.$network}
+								address={p.$token0.address}
+							/>
+						</dd>
+					</div>
+					<div>
+						<dt>Token 1</dt>
+						<dd>
+							<Address
+								network={p.$token1.$network}
+								address={p.$token1.address}
+							/>
+						</dd>
+					</div>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({ open: _open })}
 		{#if children}
 			{@render children()}
 		{:else}
@@ -152,98 +146,103 @@
 				entityType={EntityType.LiquidityPool}
 				{entityId}
 			>
-				<QueryBoundary
-					query={poolQuery}
+				<ResourceBoundary
+					resource={pool}
+					placeholderText="Loading pool…"
 				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No liquidity pool data for this id yet.
-						</p>
-					{:else}
+					{#snippet children(p)}
 						<dl>
-							{#if poolField?.fee !== undefined}
+							{#if p.fee !== undefined}
 								<div>
 									<dt>Fee</dt>
-									<dd>{String(poolField.fee)}</dd>
+									<dd>{String(p.fee)}</dd>
 								</div>
 							{/if}
-							{#if poolField?.tickSpacing !== undefined}
+							{#if p.tickSpacing !== undefined}
 								<div>
 									<dt>Tick spacing</dt>
-									<dd>{String(poolField.tickSpacing)}</dd>
+									<dd>{String(p.tickSpacing)}</dd>
 								</div>
 							{/if}
-							{#if poolField?.v4PoolId !== undefined}
+							{#if p.$hooks}
+								<div>
+									<dt>Hooks</dt>
+									<dd>
+										<Address
+											network={p.$hooks.$network}
+											address={p.$hooks.address}
+										/>
+									</dd>
+								</div>
+							{/if}
+							{#if p.v4PoolId !== undefined}
 								<div>
 									<dt>v4 pool id</dt>
 									<dd>
 										<TruncatedValue
-											value={poolField.v4PoolId}
+											value={String(p.v4PoolId)}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</dd>
 								</div>
 							{/if}
-							{#if poolField?.sqrtPriceX96 !== undefined}
+							{#if p.sqrtPriceX96 !== undefined}
 								<div>
 									<dt>Sqrt price X96</dt>
-									<dd>{String(poolField.sqrtPriceX96)}</dd>
+									<dd>{String(p.sqrtPriceX96)}</dd>
 								</div>
 							{/if}
-							{#if poolField?.liquidity !== undefined}
+							{#if p.liquidity !== undefined}
 								<div>
 									<dt>Liquidity</dt>
-									<dd>{String(poolField.liquidity)}</dd>
+									<dd>{String(p.liquidity)}</dd>
 								</div>
 							{/if}
-							{#if poolField?.tick !== undefined}
+							{#if p.tick !== undefined}
 								<div>
 									<dt>Tick</dt>
-									<dd>{String(poolField.tick)}</dd>
+									<dd>{String(p.tick)}</dd>
 								</div>
 							{/if}
-							{#if poolField?.token0Symbol !== undefined}
+							{#if p.token0Symbol !== undefined}
 								<div>
 									<dt>Token 0 symbol</dt>
-									<dd>{poolField.token0Symbol}</dd>
+									<dd>{p.token0Symbol}</dd>
 								</div>
 							{/if}
-							{#if poolField?.token1Symbol !== undefined}
+							{#if p.token1Symbol !== undefined}
 								<div>
 									<dt>Token 1 symbol</dt>
-									<dd>{poolField.token1Symbol}</dd>
+									<dd>{p.token1Symbol}</dd>
 								</div>
 							{/if}
-							{#if poolField?.token0Decimals !== undefined}
+							{#if p.token0Decimals !== undefined}
 								<div>
 									<dt>Token 0 decimals</dt>
-									<dd>{String(poolField.token0Decimals)}</dd>
+									<dd>{String(p.token0Decimals)}</dd>
 								</div>
 							{/if}
-							{#if poolField?.token1Decimals !== undefined}
+							{#if p.token1Decimals !== undefined}
 								<div>
 									<dt>Token 1 decimals</dt>
-									<dd>{String(poolField.token1Decimals)}</dd>
+									<dd>{String(p.token1Decimals)}</dd>
 								</div>
 							{/if}
-							{#if poolField?.volumeUSD !== undefined}
+							{#if p.volumeUSD !== undefined}
 								<div>
 									<dt>Volume USD</dt>
-									<dd>{String(poolField.volumeUSD)}</dd>
+									<dd>{String(p.volumeUSD)}</dd>
 								</div>
 							{/if}
-							{#if poolField?.totalValueLockedUSD !== undefined}
+							{#if p.totalValueLockedUSD !== undefined}
 								<div>
 									<dt>TVL USD</dt>
-									<dd>{String(poolField.totalValueLockedUSD)}</dd>
+									<dd>{String(p.totalValueLockedUSD)}</dd>
 								</div>
 							{/if}
 						</dl>
-					{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

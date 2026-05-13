@@ -661,7 +661,7 @@
 			id: type({}),
 			fields: [
 				{
-					name: '$$proposalsEips',
+					name: '$$proposals',
 					type: EntityFieldType.EntitiesReference,
 					entityType: BlockheadEntityType.Proposal,
 					cardinality: EntityFieldCardinality.Many,
@@ -1119,7 +1119,7 @@
 	const entityFieldResolvers = [
 		defineEntityFieldResolver({
 			entityType: BlockheadEntityType._Global,
-			fieldName: '$$proposalsEips',
+			fieldName: '$$proposals',
 			source: Source.EthereumEips_Github,
 			resolve: async () => {
 				const { getJson } = await import('$/lib/http.ts')
@@ -1512,8 +1512,8 @@
 					)
 				))
 				.select(({ global }) => ({
-					$$proposalsEips: toArray(
-						queryBuilder.from({ $proposal: entityFieldCollections[BlockheadEntityType._Global]['$$proposalsEips'] })
+					$$proposals: toArray(
+						queryBuilder.from({ $proposal: entityFieldCollections[BlockheadEntityType._Global]['$$proposals'] })
 							.where(({ $proposal }) => (
 								eq(
 									global[EntityMetaKey.IdKey],
@@ -1591,7 +1591,7 @@
 				.findOne()
 				// .innerJoin(
 				// 	{
-				// 		proposals: entityFieldCollections[BlockheadEntityType._Global]['$$proposalsEips'],
+				// 		proposals: entityFieldCollections[BlockheadEntityType._Global]['$$proposals'],
 				// 	},
 				// 	({ global, proposal }) => (
 				// 		eq(
@@ -1617,7 +1617,7 @@
 	const proposalsJoinedQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
-				.from({ $proposal: entityFieldCollections[BlockheadEntityType._Global]['$$proposalsEips'] })
+				.from({ $proposal: entityFieldCollections[BlockheadEntityType._Global]['$$proposals'] })
 				.where(({ $proposal }) => (
 					eq(
 						$proposal[EntityMetaKey.ParentIdKey],
@@ -1919,12 +1919,12 @@
 	)[] = [
 		// {
 		// 	id: 'proposalsNested',
-		// 	label: 'Global + nested $$proposalsEips join/select (findOne)',
+		// 	label: 'Global + nested $$proposals join/select (findOne)',
 		// 	query: proposalsNestedQuery
 		// },
 		// {
 		// 	id: 'proposalsJoined',
-		// 	label: '$$proposalsEips + proposal + title + body leftJoins',
+		// 	label: '$$proposals + proposal + title + body leftJoins',
 		// 	query: proposalsJoinedQuery
 		// },
 		// {

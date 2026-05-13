@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import type {
 	EntityDefinition,
 	EntityFieldDefinition,
@@ -8,17 +10,19 @@ import {
 	EntityFieldCardinality,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { UrlString } from '$/schema/$Url.ts'
 import Actor from '$/schema/Actor.ts'
 import Network from '$/schema/Network.ts'
+import { Source } from '$/sources/$Source.ts'
 
 const contractPositionProtocol = type({
 	key: 'string',
 	name: 'string',
-	'logo_url?': 'string',
+	'logo_url?': UrlString,
 })
 
 const contractPositionPool = type({
-	address: 'string.hex' as type.cast<`0x${string}`>,
+	address: EvmAddress,
 	'name?': 'string',
 })
 
@@ -38,6 +42,7 @@ export default {
 	labelPlural: 'Network Actors',
 
 	id: type({
+		$network: Network.id,
 		$actor: Actor.id,
 	}),
 
@@ -89,6 +94,9 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.ActorCoin,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Allium_Rest,
+			],
 		},
 		{
 			name: '$$erc20TokenAllowances',

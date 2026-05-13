@@ -4,6 +4,7 @@
  * @see https://docs.neynar.com/reference
  */
 
+import { throwHttpError } from '$/lib/http.ts'
 import { optionalPublicEnvString } from '$/lib/sources.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
@@ -34,6 +35,6 @@ export async function neynarFetch<T>(
 		headers: { ...headers, ...init?.headers },
 	})
 	if (res.status === 401 || res.status === 403) return undefined
-	if (!res.ok) throw new Error(`Neynar API ${res.status}: ${await res.text()}`)
+	if (!res.ok) await throwHttpError('Neynar API', res)
 	return res.json<T>()
 }

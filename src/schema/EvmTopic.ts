@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -15,7 +17,7 @@ export default {
 	labelPlural: 'EVM Topics',
 
 	id: type({
-		hex: 'string.hex' as type.cast<`0x${string}`>,
+		hex: ZeroExHex,
 	}),
 
 	fields: [

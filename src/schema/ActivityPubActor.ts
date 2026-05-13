@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
@@ -15,7 +16,7 @@ export default {
 	labelPlural: 'ActivityPub actors',
 
 	id: type({
-		instanceOrigin: 'string',
+		instanceOrigin: UrlString,
 		localAccountId: 'string',
 	}),
 

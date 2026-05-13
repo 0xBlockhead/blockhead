@@ -1,19 +1,12 @@
 <script lang="ts">
 	// Types/constants
-	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	import { schema } from '$/schema/index.ts'
+	import { entityResolversByEntityType } from '$/resolvers/index.ts'
+	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Props
@@ -38,83 +31,44 @@
 			| 'open'
 			| 'title'
 			| 'Details'
+			| 'Heading'
 		>
 	> = $props()
 
-	const vaultIdKey = $derived(
-		stringify(entityId),
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const vault = useEntity(
+		EntityType.Vault,
+		entityId,
+		{
+			$: (
+				entityResolversByEntityType[EntityType.Vault]?.map((resolver) => resolver.source)
+				?? [Source.Dexscreener_OpenApi]
+			),
+			$token0: {},
+			$token1: {},
+			token0Symbol: {},
+			token1Symbol: {},
+			fee: {},
+			tickSpacing: {},
+			sqrtPriceX96: {},
+			liquidity: {},
+			tick: {},
+			volumeUSD: {},
+			totalValueLockedUSD: {},
+		},
 	)
 
-	const vaultQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.Vault] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						vaultIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => vaultIdKey],
-	)
-
-	const vaultRow = $derived(
-		vaultQuery.data?.[0]?.row,
-	)
-
-	const vaultField = $derived(
-		(() => {
-			const bagUnknown = vaultRow?.[EntityMetaKey.Fields]
-			if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) return null
-			const b: Record<string, JsonValue> = bagUnknown
-			const num = (key: string) => {
-				const v = b[key]
-				return typeof v === 'number' && Number.isFinite(v) ? v : undefined
-			}
-			const str = (key: string) => {
-				const v = b[key]
-				return typeof v === 'string' && v.length ? v : undefined
-			}
-			const big = (key: string) => {
-				const v = b[key]
-				return typeof v === 'bigint' ? v : undefined
-			}
-			const usd = (key: string) => {
-				const v = b[key]
-				return (
-					typeof v === 'string' || typeof v === 'number' ?
-						v
-					:	undefined
-				)
-			}
-			return {
-				fee: num('fee'),
-				tickSpacing: num('tickSpacing'),
-				v4PoolId: str('v4PoolId'),
-				sqrtPriceX96: big('sqrtPriceX96'),
-				liquidity: big('liquidity'),
-				tick: num('tick'),
-				token0Symbol: str('token0Symbol'),
-				token1Symbol: str('token1Symbol'),
-				token0Decimals: num('token0Decimals'),
-				token1Decimals: num('token1Decimals'),
-				volumeUSD: usd('volumeUSD'),
-				totalValueLockedUSD: usd('totalValueLockedUSD'),
-			}
-		})(),
-	)
-
-	const titleIsTokenPair = $derived(
-		vaultField?.token0Symbol !== undefined && vaultField?.token1Symbol !== undefined,
-	)
 
 	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import Address from '$/views/Address.svelte'
 </script>
 
 
@@ -124,27 +78,65 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={vaultField?.token0Symbol !== undefined && vaultField?.token1Symbol !== undefined ? `${vaultField.token0Symbol} / ${vaultField.token1Symbol}` : entityId.id}
 >
-	{#snippet Content()}
-		{#if titleIsTokenPair}
-			<dl>
-				<div>
-					<dt>Vault id</dt>
-					<dd>
-						<TruncatedValue
-							value={entityId.id}
-							format={TruncatedValueFormat.Visual}
-						/>
-					</dd>
-				</div>
-			</dl>
-		{/if}
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={vault}
+			placeholderText="Loading vault…"
+		>
+			{#snippet children(v)}
+				<HeadingComponent>{`${v.token0Symbol} / ${v.token1Symbol}`}</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
+	{#snippet Content({ title: _title, href: _href })}
+		<dl>
+			<div>
+				<dt>Vault id</dt>
+				<dd>
+					<TruncatedValue
+						value={entityId.id}
+						format={TruncatedValueFormat.Visual}
+					/>
+				</dd>
+			</div>
+		</dl>
+
+		<ResourceBoundary
+			resource={vault}
+			placeholderText="Loading vault…"
+		>
+			{#snippet children(v)}
+				<dl>
+					<div>
+						<dt>Chain id</dt>
+						<dd>{String(v.$token0.$network.chainId)}</dd>
+					</div>
+					<div>
+						<dt>Token 0</dt>
+						<dd>
+							<Address
+								network={v.$token0.$network}
+								address={v.$token0.address}
+							/>
+						</dd>
+					</div>
+					<div>
+						<dt>Token 1</dt>
+						<dd>
+							<Address
+								network={v.$token1.$network}
+								address={v.$token1.address}
+							/>
+						</dd>
+					</div>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({ open: _open })}
 		{#if children}
 			{@render children()}
 		{:else}
@@ -152,98 +144,57 @@
 				entityType={EntityType.Vault}
 				{entityId}
 			>
-				<QueryBoundary
-					query={vaultQuery}
+				<ResourceBoundary
+					resource={vault}
+					placeholderText="Loading vault…"
 				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No vault data for this id yet.
-						</p>
-					{:else}
+					{#snippet children(v)}
 						<dl>
-							{#if vaultField?.fee !== undefined}
+							{#if v.fee !== undefined}
 								<div>
 									<dt>Fee</dt>
-									<dd>{String(vaultField.fee)}</dd>
+									<dd>{String(v.fee)}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.tickSpacing !== undefined}
+							{#if v.tickSpacing !== undefined}
 								<div>
 									<dt>Tick spacing</dt>
-									<dd>{String(vaultField.tickSpacing)}</dd>
+									<dd>{String(v.tickSpacing)}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.v4PoolId !== undefined}
-								<div>
-									<dt>v4 pool id</dt>
-									<dd>
-										<TruncatedValue
-											value={vaultField.v4PoolId}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</dd>
-								</div>
-							{/if}
-							{#if vaultField?.sqrtPriceX96 !== undefined}
+							{#if v.sqrtPriceX96 !== undefined}
 								<div>
 									<dt>Sqrt price X96</dt>
-									<dd>{String(vaultField.sqrtPriceX96)}</dd>
+									<dd>{String(v.sqrtPriceX96)}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.liquidity !== undefined}
+							{#if v.liquidity !== undefined}
 								<div>
 									<dt>Liquidity</dt>
-									<dd>{String(vaultField.liquidity)}</dd>
+									<dd>{String(v.liquidity)}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.tick !== undefined}
+							{#if v.tick !== undefined}
 								<div>
 									<dt>Tick</dt>
-									<dd>{String(vaultField.tick)}</dd>
+									<dd>{String(v.tick)}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.token0Symbol !== undefined}
-								<div>
-									<dt>Token 0 symbol</dt>
-									<dd>{vaultField.token0Symbol}</dd>
-								</div>
-							{/if}
-							{#if vaultField?.token1Symbol !== undefined}
-								<div>
-									<dt>Token 1 symbol</dt>
-									<dd>{vaultField.token1Symbol}</dd>
-								</div>
-							{/if}
-							{#if vaultField?.token0Decimals !== undefined}
-								<div>
-									<dt>Token 0 decimals</dt>
-									<dd>{String(vaultField.token0Decimals)}</dd>
-								</div>
-							{/if}
-							{#if vaultField?.token1Decimals !== undefined}
-								<div>
-									<dt>Token 1 decimals</dt>
-									<dd>{String(vaultField.token1Decimals)}</dd>
-								</div>
-							{/if}
-							{#if vaultField?.volumeUSD !== undefined}
+							{#if v.volumeUSD !== undefined}
 								<div>
 									<dt>Volume USD</dt>
-									<dd>{String(vaultField.volumeUSD)}</dd>
+									<dd>{String(v.volumeUSD)}</dd>
 								</div>
 							{/if}
-							{#if vaultField?.totalValueLockedUSD !== undefined}
+							{#if v.totalValueLockedUSD !== undefined}
 								<div>
 									<dt>TVL USD</dt>
-									<dd>{String(vaultField.totalValueLockedUSD)}</dd>
+									<dd>{String(v.totalValueLockedUSD)}</dd>
 								</div>
 							{/if}
 						</dl>
-					{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

@@ -12,9 +12,7 @@
 	}
 
 
-	// State
-	import { SvelteMap } from 'svelte/reactivity'
-
+	// Props
 	let {
 		id,
 		href,
@@ -27,14 +25,8 @@
 		open?: boolean
 	} = $props()
 
-	const cleanupByRdns = new SvelteMap<string, () => void>()
 
-	let providers = $state<Eip6963ProviderDetail[]>([])
-
-	let connections = $state<WalletConnection[]>([])
-
-
-	// Functions
+	// State
 	import {
 		subscribeEip6963Providers,
 	} from '$/lib/eip6963.ts'
@@ -44,7 +36,19 @@
 		onChainChanged,
 		requestAccounts,
 	} from '$/lib/eip1193.ts'
+	import { SvelteMap } from 'svelte/reactivity'
 
+
+	const cleanupByRdns = new SvelteMap<string, () => void>()
+
+	let providers = $state<Eip6963ProviderDetail[]>([])
+
+	let connections = $state<WalletConnection[]>([])
+
+	let eip6963Hydrated = $state(false)
+
+
+	// Actions
 	const updateConnection = (
 		rdns: string,
 		getNextConnection: (connection: WalletConnection | null) => WalletConnection,
@@ -101,19 +105,6 @@
 	}
 
 
-	// (Derived)
-	const availableProviders = $derived(
-		providers.filter((provider) => !connections.some((connection) => connection.detail.info.rdns === provider.info.rdns)),
-	)
-
-	const sortedConnections = $derived(
-		[...connections].sort((connectionA, connectionB) => (
-			connectionA.detail.info.name.localeCompare(connectionB.detail.info.name)
-		)),
-	)
-
-
-	// Actions
 	const connect = async (detail: Eip6963ProviderDetail) => {
 		updateConnection(detail.info.rdns, (connection) => ({
 			detail,
@@ -140,7 +131,8 @@
 			}))
 
 			subscribeConnection(detail)
-		} catch (error) {
+		}
+		catch (error) {
 			updateConnection(detail.info.rdns, (connection) => ({
 				detail,
 				accounts: connection?.accounts ?? [],
@@ -155,9 +147,12 @@
 		}
 	}
 
+
+	// (Derived)
 	$effect(() => (
 		subscribeEip6963Providers((nextProviders) => {
 			providers = nextProviders
+			eip6963Hydrated = true
 		})
 	))
 
@@ -172,8 +167,8 @@
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import BlockheadWalletConnectionView from '$/views/BlockheadWalletConnectionView.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import Icon from '$/components/Icon.svelte'
 </script>
 
@@ -183,59 +178,87 @@
 	{id}
 	{href}
 	{title}
-	{open}
+	bind:open
 >
 	{#snippet body()}
-		<div data-column="gap-3">
-			{#if sortedConnections.length > 0}
-				<div data-column="gap-2">
-					{#each sortedConnections as connection (connection.detail.info.rdns)}
-						<BlockheadWalletConnectionView
-							entityId={{
-								$wallet: {
-									rdns: connection.detail.info.rdns,
-								},
-							}}
-							title={connection.detail.info.name}
-							icon={connection.detail.info.icon}
-							accounts={connection.accounts}
-							chainId={connection.chainId}
-							status={connection.status}
-							error={connection.error}
-							onRemove={() => disconnect(connection.detail.info.rdns)}
-							href={href}
-							open={false}
-						/>
-					{/each}
-				</div>
-			{:else}
-				<p data-text="muted">
-					No wallet connections yet.
+		{#if !eip6963Hydrated}
+			<div
+				data-card
+				data-text="muted"
+				class="loading"
+			>
+				<p>
+					Loading wallets…
 				</p>
-			{/if}
+			</div>
+		{:else}
+			{@const sortedConnections = (
+				[...connections]
+					.sort((connectionA, connectionB) => (
+						connectionA.detail.info.name.localeCompare(connectionB.detail.info.name)
+					))
+			)}
+			{@const availableProviders = providers.filter((provider) => (
+				!connections.some((connection) => connection.detail.info.rdns === provider.info.rdns)
+			))}
+			<div data-column="gap-3">
+				{#if sortedConnections.length > 0}
+					<div data-column="gap-2">
+						{#each sortedConnections as connection (connection.detail.info.rdns)}
+							<BlockheadWalletConnectionView
+								entityId={{
+									$wallet: {
+										rdns: connection.detail.info.rdns,
+									},
+								}}
+								title={connection.detail.info.name}
+								icon={connection.detail.info.icon}
+								accounts={connection.accounts}
+								chainId={connection.chainId}
+								status={connection.status}
+								error={connection.error}
+								onRemove={() => disconnect(connection.detail.info.rdns)}
+								{href}
+								open={false}
+							/>
+						{/each}
+					</div>
+				{:else}
+					<p data-text="muted">
+						No wallet connections yet.
+					</p>
+				{/if}
 
-			{#if availableProviders.length > 0}
-				<div data-row="start">
-					{#each availableProviders as detail (detail.info.rdns)}
-						<button
-							type="button"
-							data-row="align-center"
-							onclick={() => connect(detail)}
-						>
-							{#if detail.info.icon}
-								<Icon
-									src={detail.info.icon}
-									alt={detail.info.name}
-								/>
-							{/if}
+				{#if availableProviders.length > 0}
+					<div data-row="start">
+						{#each availableProviders as detail (detail.info.rdns)}
+							<button
+								type="button"
+								data-row="align-center"
+								onclick={() => connect(detail)}
+							>
+								{#if detail.info.icon}
+									<Icon
+										src={detail.info.icon}
+										alt={detail.info.name}
+									/>
+								{/if}
 
-							<span>
-								Connect {detail.info.name}
-							</span>
-						</button>
-					{/each}
-				</div>
-			{/if}
-		</div>
+								<span>
+									Connect {detail.info.name}
+								</span>
+							</button>
+						{/each}
+					</div>
+				{/if}
+			</div>
+		{/if}
 	{/snippet}
 </EntitiesList>
+
+
+<style>
+	.loading {
+		cursor: wait;
+	}
+</style>

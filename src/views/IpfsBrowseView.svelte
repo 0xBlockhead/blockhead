@@ -1,26 +1,25 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-
-
-	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-
-
-	// Context
-
-
-	// Functions
+	import { schema } from '$/schema/index.ts'
 	import {
 		ipfsResourceAddressFromInput,
 		ipfsResourceCanonicalUri,
 		ipfsResourceHref,
 	} from '$/lib/ipfs.ts'
 
-	const exampleResource = ({
+
+	// Props
+	let {
+		entityId,
+	}: {
+		entityId?: EntityId<typeof schema, EntityType.IpfsResource>
+	} = $props()
+
+
+	// Functions
+	const sample = ({
 		label,
 		targetInput,
 		contentPathInput = '',
@@ -37,7 +36,7 @@
 			targetInput,
 			contentPathInput,
 		})
-		if (address === undefined) throw new Error(`Invalid IPFS example: ${targetInput}`)
+		if (address == null) throw new Error(`Invalid IPFS example: ${targetInput}`)
 
 		return {
 			label,
@@ -48,26 +47,26 @@
 		}
 	}
 
-	const exampleResources = [
-		exampleResource({
+	const samples = [
+		sample({
 			label: 'Wikipedia article via CID path gateway example',
 			targetInput: 'ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/wiki/Vincent_van_Gogh.html',
 			sourceHref: 'https://docs.ipfs.tech/how-to/address-ipfs-on-web/',
 			sourceLabel: 'IPFS Docs',
 		}),
-		exampleResource({
+		sample({
 			label: 'Wikipedia article via ipfs.io path gateway',
 			targetInput: 'https://ipfs.io/ipfs/bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/wiki/Vincent_van_Gogh.html',
 			sourceHref: 'https://docs.ipfs.tech/concepts/ipfs-gateway/',
 			sourceLabel: 'IPFS Docs',
 		}),
-		exampleResource({
+		sample({
 			label: 'Wikipedia via DNSLink / IPNS homepage',
 			targetInput: 'https://ipfs.io/ipns/tr.wikipedia-on-ipfs.org/wiki/Anasayfa.html',
 			sourceHref: 'https://docs.ipfs.tech/concepts/ipfs-gateway/',
 			sourceLabel: 'IPFS Docs',
 		}),
-		exampleResource({
+		sample({
 			label: 'Wikipedia via IPNS key example',
 			targetInput: 'ipns://k51qzi5uqu5dlvj2baxnqndepeb86cbk3ng7n3i46uzyxzyqj2xjonzllnv0v8',
 			sourceHref: 'https://docs.ipfs.tech/concepts/ipfs-gateway/',
@@ -75,61 +74,36 @@
 		}),
 	]
 
-
-	// Props
-	let {
-		entityId,
-	}: {
-		entityId?: EntityId<typeof schema, EntityType.IpfsResource>
-	} = $props()
-
-
-	// (Derived)
-	const targetValue = $derived(
-		entityId === undefined ?
-			''
-		:
-			`${entityId.namespace}://${entityId.target}`,
-	)
-
-	const contentPathValue = $derived(
-		entityId?.contentPath ?? '',
-	)
-
-	const currentCanonicalUri = $derived(
-		entityId === undefined ?
-			undefined
-		:
-			ipfsResourceCanonicalUri(entityId),
-	)
-
-
-	// Actions
 	const onsubmit = async (event: SubmitEvent) => {
 		event.preventDefault()
 		if (!(event.currentTarget instanceof HTMLFormElement)) return
 
 		const formData = new FormData(event.currentTarget)
-		const nextResource = ipfsResourceAddressFromInput({
+		const next = ipfsResourceAddressFromInput({
 			targetInput: String(formData.get('target') ?? ''),
 			contentPathInput: String(formData.get('path') ?? ''),
 		})
-		if (nextResource === undefined) return
+		if (next == null) return
 
-		window.location.assign(ipfsResourceHref(nextResource))
+		window.location.assign(ipfsResourceHref(next))
 	}
 
-	const openExample = (href: string) => {
+	const openSample = (href: string) => {
 		window.location.assign(href)
 	}
 
-	const openDocsExample = (href: string) => {
+	const openDocsSample = (href: string) => {
 		window.open(href, '_blank', 'noopener,noreferrer')
 	}
+
+
+	// Components
+	import IpfsBrowseEntityChrome from '$/views/IpfsBrowseEntityChrome.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
-{#snippet IpfsBrowseBody()}
+{#snippet Form()}
 	<form
 		class="ipfs-browser-form"
 		data-card
@@ -148,7 +122,7 @@
 				name="target"
 				type="text"
 				placeholder="bafybeigdyrzt..."
-				value={targetValue}
+				value={entityId === undefined ? '' : `${entityId.namespace}://${entityId.target}`}
 			/>
 		</div>
 
@@ -164,7 +138,7 @@
 				name="path"
 				type="text"
 				placeholder="metadata.json"
-				value={contentPathValue}
+				value={entityId?.contentPath ?? ''}
 			/>
 		</div>
 
@@ -180,11 +154,11 @@
 			</summary>
 
 			<ul>
-				{#each exampleResources as example (example.label)}
+				{#each samples as example (example.label)}
 					<li data-column>
 						<button
 							type="button"
-							onclick={() => openExample(example.href)}
+							onclick={() => openSample(example.href)}
 						>
 							{example.label}
 						</button>
@@ -196,7 +170,7 @@
 						</code>
 						<button
 							type="button"
-							onclick={() => openDocsExample(example.sourceHref)}
+							onclick={() => openDocsSample(example.sourceHref)}
 						>
 							{example.sourceLabel}
 						</button>
@@ -205,55 +179,32 @@
 			</ul>
 		</details>
 	</form>
-
-	<section
-		class="ipfs-browser-note"
-		data-card
-		data-column
-	>
-		<h2>Browse IPFS</h2>
-
-		{#if currentCanonicalUri !== undefined}
-			<p data-text="muted">
-				Current resource:
-				<code>
-					<TruncatedValue
-						value={currentCanonicalUri}
-						format={TruncatedValueFormat.Visual}
-					/>
-				</code>
-			</p>
-		{:else}
-			<p data-text="muted">
-				Paste a CID, IPNS name, `ipfs://` URI, or public gateway URL to open an IPFS resource page.
-			</p>
-		{/if}
-	</section>
 {/snippet}
 
+
 {#if entityId !== undefined}
-	<EntityView
-		layout={EntityLayout.Details}
-		entityType={EntityType.IpfsResource}
+	<IpfsBrowseEntityChrome
 		{entityId}
-		href={ipfsResourceHref(entityId)}
-		title={ipfsResourceCanonicalUri(entityId)}
-	>
-		{#snippet Details()}
-			<section
-				class="ipfs-browser"
-				data-column
-			>
-				{@render IpfsBrowseBody()}
-			</section>
-		{/snippet}
-	</EntityView>
+		Form={Form}
+	/>
 {:else}
 	<section
 		class="ipfs-browser"
 		data-column
 	>
-		{@render IpfsBrowseBody()}
+		{@render Form()}
+
+		<section
+			class="ipfs-browser-note"
+			data-card
+			data-column
+		>
+			<h2>Browse IPFS</h2>
+
+			<p data-text="muted">
+				Paste a CID, IPNS name, `ipfs://` URI, or public gateway URL to open an IPFS resource page.
+			</p>
+		</section>
 	</section>
 {/if}
 

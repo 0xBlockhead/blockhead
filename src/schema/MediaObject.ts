@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { UrlString } from '$/schema/$Url.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -16,7 +18,7 @@ export default {
 	labelPlural: 'Media Objects',
 
 	id: type({
-		url: 'string',
+		url: UrlString,
 	}),
 
 	fields: [

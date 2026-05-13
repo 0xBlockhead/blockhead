@@ -47,9 +47,12 @@ const normalizeForStarkdown = (s: string) => {
 		.join('\n')
 }
 
-export const markdownToHtml = (markdownText: string): string => {
+export const markdownToHtml = (
+	markdownText: string | null | undefined,
+): string => {
+	const markdown = markdownText === undefined || markdownText === null ? '' : markdownText
 	try {
-		return insane(starkdown(normalizeForStarkdown(markdownText)), {
+		return insane(starkdown(normalizeForStarkdown(markdown)), {
 			allowedSchemes: [
 				'http',
 				'https',
@@ -99,6 +102,6 @@ export const markdownToHtml = (markdownText: string): string => {
 			},
 		})
 	} catch {
-		return `<pre>${escapeHtml(markdownText)}</pre>`
+		return `<pre>${escapeHtml(markdown)}</pre>`
 	}
 }

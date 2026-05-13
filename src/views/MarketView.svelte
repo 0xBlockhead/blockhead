@@ -2,22 +2,18 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { MarketAssetKind } from '$/constants/Market.ts'
 	import { marketVenueById } from '$/constants/MarketVenue.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { stringify } from 'devalue'
 
 
 	// Props
@@ -45,59 +41,11 @@
 		>
 	> = $props()
 
-	// (Derived)
-	const marketIdKey = $derived(
-		stringify(entityId),
-	)
 
-	const baseLabel = $derived(
-		(() => {
-			const b = entityId.$base
-			if (b.kind === MarketAssetKind.Coin) {
-				return b.$coin.coinId
-			}
-			if (b.kind === MarketAssetKind.CoinInstance) {
-				return `instance ${stringify(b.$coinInstance)}`
-			}
-			return b.iso4217
-		})(),
-	)
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const quoteLabel = $derived(
-		(() => {
-			const q = entityId.$quote
-			if (q.kind === MarketAssetKind.Coin) {
-				return q.$coin.coinId
-			}
-			if (q.kind === MarketAssetKind.CoinInstance) {
-				return `instance ${stringify(q.$coinInstance)}`
-			}
-			return q.iso4217
-		})(),
-	)
-
-	const displayTitle = $derived(
-		`${baseLabel} / ${quoteLabel} · ${marketVenueById[entityId.$marketVenue.marketVenueId].label}`,
-	)
-
-	const baseCoinId = $derived(
-		entityId.$base.kind === MarketAssetKind.Coin ?
-			entityId.$base.$coin.coinId
-		:	undefined,
-	)
-
-	const baseCoinCatalogHref = $derived(
-		baseCoinId === undefined ?
-			undefined
-		:	(
-			resolve(
-				'/(assets)/(coins)/coin/[coinId]',
-				{ coinId: baseCoinId },
-			)
-		),
-	)
-
-	const marketQuery = useEntity(
+	const market = useEntity(
 		EntityType.Market,
 		entityId,
 		{
@@ -110,24 +58,10 @@
 		},
 	)
 
-	const firstCatalogBaseCoin = $derived(
-		marketQuery.data?.$$baseCoin?.[EntityMetaKey.Id],
-	)
-
-	const showCatalogBaseSection = $derived(
-		entityId.$base.kind === MarketAssetKind.Coin,
-	)
-
-	const showCatalogBaseCoin = $derived(
-		firstCatalogBaseCoin !== undefined,
-	)
-
-	const marketPlaceholderText = 'Loading market…'
-
 
 	// Components
 	import Collapsible from '$/components/Collapsible.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import Heading from '$/components/Heading.svelte'
@@ -144,9 +78,23 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
+	title={`${
+		entityId.$base.kind === MarketAssetKind.Coin ?
+			entityId.$base.$coin.coinId
+		: entityId.$base.kind === MarketAssetKind.CoinInstance ?
+			`instance ${stringify(entityId.$base.$coinInstance)}`
+		:
+			entityId.$base.iso4217
+	} / ${
+		entityId.$quote.kind === MarketAssetKind.Coin ?
+			entityId.$quote.$coin.coinId
+		: entityId.$quote.kind === MarketAssetKind.CoinInstance ?
+			`instance ${stringify(entityId.$quote.$coinInstance)}`
+		:
+			entityId.$quote.iso4217
+	} · ${marketVenueById[entityId.$marketVenue.marketVenueId].label}`}
 >
-	{#snippet Content()}
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Venue</dt>
@@ -154,11 +102,25 @@
 			</div>
 			<div>
 				<dt>Base</dt>
-				<dd>{baseLabel}</dd>
+				<dd>{(
+					entityId.$base.kind === MarketAssetKind.Coin ?
+						entityId.$base.$coin.coinId
+					: entityId.$base.kind === MarketAssetKind.CoinInstance ?
+						`instance ${stringify(entityId.$base.$coinInstance)}`
+					:
+						entityId.$base.iso4217
+				)}</dd>
 			</div>
 			<div>
 				<dt>Quote</dt>
-				<dd>{quoteLabel}</dd>
+				<dd>{(
+					entityId.$quote.kind === MarketAssetKind.Coin ?
+						entityId.$quote.$coin.coinId
+					: entityId.$quote.kind === MarketAssetKind.CoinInstance ?
+						`instance ${stringify(entityId.$quote.$coinInstance)}`
+					:
+						entityId.$quote.iso4217
+				)}</dd>
 			</div>
 		</dl>
 	{/snippet}
@@ -166,23 +128,20 @@
 	{#snippet Details({
 		open: _open,
 	})}
+		{@const marketIdKey = stringify(entityId)}
+		{@const pricingHubHref = (
+			entityId.$base.kind === MarketAssetKind.Coin ?
+				resolve(
+					'/(assets)/(coins)/coin/[coinId]',
+					{ coinId: entityId.$base.$coin.coinId },
+				)
+			:
+				undefined
+		)}
 		<EntityDetails
 			entityType={EntityType.Market}
 			{entityId}
-		>
-			<QueryBoundary
-				placeholderText={marketPlaceholderText}
-				query={marketQuery}
-			>
-				{#snippet children(_market)}
-					{#if marketQuery.data === undefined}
-						<p data-text="muted">
-							No market metadata yet.
-						</p>
-					{/if}
-				{/snippet}
-			</QueryBoundary>
-		</EntityDetails>
+		/>
 
 		<div data-column="gap-3">
 			<Collapsible
@@ -258,21 +217,19 @@
 							{/if}
 						</section>
 
-						{#if showCatalogBaseSection}
+						{#if entityId.$base.kind === MarketAssetKind.Coin}
 							<section data-scroll-marker-label="Catalog base">
-								<QueryBoundary
-									placeholderText={marketPlaceholderText}
-									query={marketQuery}
+								<ResourceBoundary
+									placeholderText="Loading market…"
+									resource={market}
 								>
-									{#snippet children(_market)}
-										{#if showCatalogBaseCoin}
+									{#snippet children(loaded)}
+										{#if loaded.$$baseCoin !== undefined}
 											<CoinView
-												entityId={{
-													coinId: firstCatalogBaseCoin.coinId,
-												}}
+												entityId={loaded.$$baseCoin[EntityMetaKey.Id]}
 												href={resolve(
 													'/(assets)/(coins)/coin/[coinId]',
-													{ coinId: firstCatalogBaseCoin.coinId },
+													{ coinId: loaded.$$baseCoin[EntityMetaKey.Id].coinId },
 												)}
 												id={`${marketIdKey}:catalog-base`}
 												layout={EntityLayout.Summary}
@@ -284,7 +241,7 @@
 											</p>
 										{/if}
 									{/snippet}
-								</QueryBoundary>
+								</ResourceBoundary>
 							</section>
 						{/if}
 					</div>
@@ -322,7 +279,7 @@
 									entityId,
 									fieldName: '$$marketPrices',
 								}}
-								href={baseCoinCatalogHref ?? href}
+								href={pricingHubHref ?? href}
 								id={`${marketIdKey}:market-prices`}
 								title="Prices"
 							/>
@@ -336,7 +293,7 @@
 									entityId,
 									fieldName: '$$marketPriceRanges',
 								}}
-								href={baseCoinCatalogHref ?? href}
+								href={pricingHubHref ?? href}
 								id={`${marketIdKey}:market-price-ranges`}
 								title="OHLC"
 							/>

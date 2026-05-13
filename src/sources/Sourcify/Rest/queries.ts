@@ -1,3 +1,4 @@
+import { zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { sourcifyGetJsonOrNull } from '$/sources/Sourcify/Rest/client.ts'
 import type { SourcifyContractLookupWire } from '$/sources/Sourcify/Rest/types.ts'
 
@@ -23,7 +24,7 @@ export const getSourcifyContractLookup = async ({
 	const json = await sourcifyGetJsonOrNull<SourcifyContractLookupWire>({
 		path: sourcifyContractLookupPath({
 			chainId,
-			address,
+			address: zeroExLowerCase(address),
 		}),
 	})
 	if (

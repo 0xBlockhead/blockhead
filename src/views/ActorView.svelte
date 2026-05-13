@@ -13,10 +13,14 @@
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
+	// Components
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import ActorIdentityRow from '$/views/ActorIdentityRow.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Props
@@ -46,64 +50,33 @@
 		>
 	> = $props()
 
-	// Functions
-	const evmHexAddress40 = (value: string): value is `0x${string}` => (
-		/^0x[a-fA-F0-9]{40}$/.test(value)
+
+	// State
+	const actor = useEntity(
+		EntityType.Actor,
+		entityId,
+		{
+			$: [
+				Source.Voltaire_JsonRpc,
+				Source.TheGraph_Graphql,
+			],
+			$primaryName: {
+				$: [
+					Source.Voltaire_JsonRpc,
+				],
+			},
+			$icon: {
+				$: [
+					Source.Voltaire_JsonRpc,
+				],
+			},
+			$$ensNamesOwned: {
+				$: [
+					Source.TheGraph_Graphql,
+				],
+			},
+		},
 	)
-
-
-	// (Derived)
-	const actorParentIdKey = $derived(
-		stringify(entityId),
-	)
-
-	const ensOwnedQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					field: entityFieldCollections[EntityType.Actor]['$$ensNamesOwned'],
-				})
-				.where(({ field }) => (
-					eq(
-						field[EntityMetaKey.ParentIdKey],
-						actorParentIdKey,
-					)
-				))
-				.where(({ field }) => (
-					eq(
-						field[EntityMetaKey.Source],
-						Source.TheGraph_Graphql,
-					)
-				))
-				.select(({ field }) => ({
-					value: field[EntityMetaKey.Value],
-				}))
-		),
-		[() => actorParentIdKey],
-	)
-
-	const ensOwnedNames = $derived(
-		(ensOwnedQuery.data ?? [])
-			.map((row) => {
-				const v = row.value
-				if (!(typeof v === 'object' && v !== null && !Array.isArray(v))) return null
-				const id = v[EntityMetaKey.Id]
-				if (!(typeof id === 'object' && id !== null && !Array.isArray(id))) return null
-				const name = id['name']
-				return typeof name === 'string' && name !== '' ?
-						name
-					:	null
-			})
-			.filter((x): x is string => x !== undefined),
-	)
-
-
-	// Components
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import Address from '$/views/Address.svelte'
-	import Boundary from '$/components/Boundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
 </script>
 
 
@@ -115,15 +88,16 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Content()}
+	{#snippet Id()}
+		<ActorIdentityRow {entityId} />
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<Address
-						network={entityId.$network}
-						address={entityId.address}
-					/>
+					<ActorIdentityRow {entityId} />
 				</dd>
 			</div>
 		</dl>
@@ -132,71 +106,53 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.Actor}
-			{entityId}
-		>
-			<Boundary>
-				{#snippet Failed(err, _retry)}
-					<p role="alert">
-						{String(err)}
-					</p>
-				{/snippet}
-
-				<p data-text="muted">
-					ENS primary name and avatar resolve via Voltaire when available.
-				</p>
-
-				{#if entityId.interopAddress !== undefined && entityId.interopAddress !== ''}
-					<dl>
-						<div>
-							<dt>Interop</dt>
-							<dd>
-								{#if evmHexAddress40(entityId.interopAddress)}
-									<Address
-										network={entityId.$network}
-										address={entityId.interopAddress}
-										showAvatar={false}
-									/>
-								{:else}
-									<TruncatedValue
-										value={entityId.interopAddress}
-										format={TruncatedValueFormat.Visual}
-									/>
-								{/if}
-							</dd>
-						</div>
-					</dl>
-				{/if}
-			</Boundary>
-		</EntityDetails>
-
-		{#if ensOwnedNames.length > 0}
+		{#if entityId.interopAddress}
 			<EntityDetails
 				entityType={EntityType.Actor}
 				{entityId}
 			>
 				<dl>
 					<div>
-						<dt>ENS names (The Graph)</dt>
+						<dt>Interop</dt>
 						<dd>
-							<ul>
-								{#each ensOwnedNames as name (name)}
-									<li>
-										<a
-											data-link
-											href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-												ensName: name,
-											})}
-										>{name}</a>
-									</li>
-								{/each}
-							</ul>
+							<TruncatedValue
+								value={entityId.interopAddress}
+								format={TruncatedValueFormat.Visual}
+							/>
 						</dd>
 					</div>
 				</dl>
 			</EntityDetails>
 		{/if}
+
+		<ResourceBoundary resource={actor}>
+			{#snippet children(live)}
+				<EntityDetails
+					entityType={EntityType.Actor}
+					{entityId}
+				>
+					<dl>
+						<div>
+							<dt>ENS names (The Graph)</dt>
+							<dd>
+								<ul>
+									{#each live.$$ensNamesOwned as nameRef (`${nameRef[EntityMetaKey.Id].name}`)}
+										<li>
+											<a
+												data-link
+												href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
+													ensName: nameRef[EntityMetaKey.Id].name,
+												})}
+											>{nameRef[EntityMetaKey.Id].name}</a>
+										</li>
+									{/each}
+								</ul>
+							</dd>
+						</div>
+					</dl>
+				</EntityDetails>
+			{/snippet}
+		</ResourceBoundary>
 
 		{#if children}
 			{@render children()}

@@ -4,15 +4,18 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 
 
 	// Props
@@ -43,34 +46,16 @@
 	> = $props()
 
 
-	const panelTreeIdKey = $derived(
-		stringify(entityId),
+	// State
+	const panelTree = useEntity(
+		EntityType.BlockheadPanelTree,
+		entityId,
+		{
+			$: [
+				Source.Local_Internal,
+			],
+		},
 	)
-
-	const panelTreeQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.BlockheadPanelTree] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						panelTreeIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => panelTreeIdKey],
-	)
-
-	const panelTreeRow = $derived(
-		panelTreeQuery.data?.[0]?.row,
-	)
-
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
 </script>
 
 
@@ -82,7 +67,7 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Content()}
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Panel tree ID</dt>
@@ -101,22 +86,13 @@
 				entityType={EntityType.BlockheadPanelTree}
 				{entityId}
 			>
-				<QueryBoundary
-					query={panelTreeQuery}
-				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
+				<ResourceBoundary resource={panelTree}>
+					{#snippet children(_)}
 						<p data-text="muted">
-							No panel tree data yet.
+							No additional dashboard metadata is available yet.
 						</p>
-					{:else}
-						<p data-text="muted">
-							Only basic panel tree info is available here for now.
-						</p>
-					{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

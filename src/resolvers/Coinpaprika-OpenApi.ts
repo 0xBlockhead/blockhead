@@ -5,6 +5,7 @@ import {
 import type { CoinId } from '$/constants/Coin.ts'
 import { MarketAssetKind } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
+import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
@@ -36,14 +37,7 @@ export default {
 				})
 
 				const decimals = decimalsByCoinId[entityId.coinId]
-				const logoMedia = (
-					coin.logo == null || coin.logo.trim() === '' ?
-						undefined
-					:	{
-							[EntityMetaKey.Id]: { url: coin.logo },
-							type: MediaType.Image,
-						}
-				)
+				const logoMedia = mediaFromUrl(coin.logo, MediaType.Image)
 
 				return {
 					...(coin.name.trim() !== '' ? { name: coin.name.trim() } : {}),
@@ -61,6 +55,7 @@ export default {
 				}
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: async (entityId, context) => {
@@ -187,7 +182,7 @@ export default {
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 				if (idByCoinId[entityId.coinId] == null) {
-					return []
+					throw new Error(`Coinpaprika_OpenApi: $$marketsWithCoinAsBase unsupported for coin ${entityId.coinId}`)
 				}
 				return (
 					[
@@ -214,9 +209,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => (
-				[]
-			),
+			resolve: async () => {
+				throw new Error('Coinpaprika_OpenApi: $$marketsWithCoinAsQuote is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({

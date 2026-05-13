@@ -3,6 +3,7 @@
  * @see https://docs.farcaster.xyz/reference/farcaster/api
  */
 
+import { throwHttpError } from '$/lib/http.ts'
 import {
 	clientBaseUrl,
 	webBaseUrl,
@@ -26,6 +27,6 @@ export async function farcasterGet<T>(
 ): Promise<T> {
 	const baseUrl = path.startsWith('/~api/') ? webBaseUrl : clientBaseUrl
 	const res = await fetch(`${baseUrl}${path}${toQueryString(params)}`)
-	if (!res.ok) throw new Error(`Farcaster API ${res.status}: ${await res.text()}`)
+	if (!res.ok) await throwHttpError('Farcaster API', res)
 	return res.json<T>()
 }

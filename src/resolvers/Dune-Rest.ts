@@ -15,11 +15,14 @@ export default {
 				const { sourcePublicEnv } = await import('$/resolvers/$resolvers.ts')
 				const { getUsage } = await import('$/sources/Dune/Rest/queries.ts')
 
-				const usage = await getUsage(
-					sourcePublicEnv(loadSubset, Source.Dune_Rest),
-					{},
+				const billingPeriod = ((usage) => (
+					usage.billingPeriods?.[0] ?? usage.billing_periods?.[0]
+				))(
+					await getUsage(
+						sourcePublicEnv(loadSubset, Source.Dune_Rest),
+						{},
+					),
 				)
-				const billingPeriod = usage.billingPeriods?.[0] ?? usage.billing_periods?.[0]
 				if (
 					billingPeriod == null
 					|| (billingPeriod.credits_used == null && billingPeriod.credits_included == null)

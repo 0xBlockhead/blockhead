@@ -73,6 +73,12 @@
 			}
 		},
 		{
+			"files": ["src/lib/svelte/RemoteResource.svelte.ts"],
+			"rules": {
+				"typescript/consistent-type-assertions": "off"
+			}
+		},
+		{
 			"files": [
 				"src/lib/eip1193.ts",
 				"src/lib/eip6963.ts",
@@ -87,7 +93,7 @@
 			"files": [
 				"src/components/Boundary.svelte",
 				"src/components/QueryBoundary.svelte",
-				"src/components/QueryResourceBoundary.svelte"
+				"src/components/ResourceBoundary.svelte"
 			],
 			"rules": {
 				"typescript/no-restricted-types": "off"

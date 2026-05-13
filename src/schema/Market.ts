@@ -59,5 +59,12 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [Source.Coingecko_Rest],
 		},
+		{
+			name: '$$quotes',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Market_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.TradingView_Rest],
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

@@ -1,26 +1,15 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
-	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
 
 
 	// Props
@@ -41,65 +30,52 @@
 	} = $props()
 
 
-	const linksQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					linkFieldRow: (
-						entityFieldCollectionForReference(
-							entityFieldCollections,
-							entityFieldReference,
-						)
-					),
-				})
-				.where(({ linkFieldRow }) => (
-					eq(
-						linkFieldRow[EntityMetaKey.ParentIdKey],
-						stringify(entityFieldReference.entityId),
-					)
-				))
-				.where(({ linkFieldRow }) => (
-					eq(
-						linkFieldRow[EntityMetaKey.Source],
-						Source.Reddit_Rest,
-					)
-				))
-				.innerJoin(
-					{ link: entityCollectionByEntityType[EntityType.RedditLink] },
-					({ linkFieldRow, link }) => (
-						eq(
-							linkFieldRow[EntityMetaKey.Value][EntityMetaKey.IdKey],
-							link[EntityMetaKey.IdKey],
-						)
-					),
-				)
-				.where(({ link }) => (
-					eq(
-						link[EntityMetaKey.Source],
-						Source.Reddit_Rest,
-					)
-				))
-				.orderBy(({ link }) => link[EntityMetaKey.IdKey], 'desc')
-				.limit(limit)
-				.select(({ linkFieldRow }) => (
-					{ value: linkFieldRow[EntityMetaKey.Value] }
-				))
-				.distinct()
-		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-			() => limit,
-		],
+	// State
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const fieldName = entityFieldReference.fieldName
+
+	const parentEntity = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			$: [
+				Source.Constants_Internal,
+				Source.Reddit_Rest,
+			],
+			[fieldName]: {
+				$: [
+					Source.Reddit_Rest,
+				],
+				limit,
+			},
+		},
 	)
 
-	const linkItems = $derived(
-		(linksQuery.data ?? []).map(({ value: link }, order) => ({
-			...link[EntityMetaKey.Id],
-			order,
-		})),
+	const links = derive(
+		parentEntity,
+		(merged) => (
+			(
+				merged[fieldName as keyof typeof merged] as (
+					Entity<typeof schema, EntityType.RedditLink>
+				)[]
+			)
+				.toSorted((a, b) => (
+					b[EntityMetaKey.Id].fullname.localeCompare(a[EntityMetaKey.Id].fullname)
+				))
+				.map((link) => (
+					{
+						...link[EntityMetaKey.Id],
+						sortKey: link[EntityMetaKey.IdKey],
+					}
+				))
+		),
 	)
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -112,20 +88,13 @@
 	entityType={EntityType.RedditLink}
 	{href}
 	{id}
-	getKey={(row) => row.fullname}
-	getSortValue={(row) => row.order}
-	items={linkItems}
-	bind:open
-	placeholderKeys={new SvelteSet<string>()}
-	query={{
-		data: linkItems,
-		isLoading: linksQuery.isLoading,
-		isError: linksQuery.isError,
-		isReady: linksQuery.isReady,
-		error: linksQuery.error,
-		status: linksQuery.status,
-	}}
 	{title}
+	bind:open
+	resource={links}
+	placeholderText="Loading posts…"
+	getKey={(row) => row.fullname}
+	getSortValue={(row) => row.sortKey}
+	placeholderKeys={new SvelteSet<string>()}
 >
 	{#snippet Empty()}
 		<p data-text="muted">
@@ -133,16 +102,15 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item, isPlaceholder })}
-		{#if isPlaceholder}
-			<span data-placeholder>
-				…
-			</span>
-		{:else if item}
+	{#snippet Item({
+		item: row,
+		isPlaceholder,
+	})}
+		{#if isPlaceholder === false}
 			<RedditLinkView
-				entityId={{ fullname: item.fullname }}
+				entityId={{ fullname: row.fullname }}
 				href={resolve('/(social)/reddit/link/[fullname]', {
-					fullname: encodeURIComponent(item.fullname),
+					fullname: encodeURIComponent(row.fullname),
 				})}
 				layout={EntityLayout.Summary}
 				open={false}

@@ -3,21 +3,13 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { default as EntityViewComponent } from '$/components/EntityView.svelte'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -33,7 +25,7 @@
 			open?: boolean
 		},
 		Omit<
-			ComponentProps<typeof EntityViewComponent>,
+			ComponentProps<typeof EntityView>,
 			| 'entityType'
 			| 'entityId'
 			| 'href'
@@ -43,42 +35,29 @@
 			| 'Icon'
 			| 'HeadingAfter'
 			| 'Content'
+			| 'Heading'
 		>
 	> = $props()
 
 
-	const idKey = $derived(stringify(entityId))
+	// State
+	import { stringify } from 'devalue'
 
-	const rowQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.RedditSubreddit] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						idKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => idKey],
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const subreddit = useEntity(
+		EntityType.RedditSubreddit,
+		entityId,
+		{
+			$: [
+				Source.Reddit_Rest,
+			],
+			title: {},
+			publicDescription: {},
+		},
 	)
 
-	const f = $derived.by(() => {
-		const bag = rowQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-		const rec = bag
-		const t = rec['title']
-		const pd = rec['publicDescription']
-		return {
-			title: typeof t === 'string' && t.length ? t : undefined,
-			publicDescription: typeof pd === 'string' && pd.length ? pd : undefined,
-		}
-	})
-
-	const displayTitle = $derived(
-		f?.title ?? `r/${entityId.name}`,
-	)
+	const idKey = stringify(entityId)
 
 
 	// Components
@@ -86,7 +65,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import RedditLinksView from '$/views/RedditLinksView.svelte'
 </script>
 
@@ -97,19 +76,33 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
 >
-	{#snippet Content()}
-		<div data-column>
-			{#if f !== undefined && f.publicDescription !== undefined}
-				<p data-text="muted">
-					{f.publicDescription}
-				</p>
-			{/if}
-			<div data-text="mono muted">
-				r/{entityId.name}
-			</div>
-		</div>
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={subreddit}
+			placeholderText="Loading subreddit…"
+		>
+			{#snippet children(u)}
+				<HeadingComponent>
+					{u.title ?? `r/${entityId.name}`}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={subreddit}
+			placeholderText="Loading subreddit…"
+		>
+			{#snippet children(u)}
+				{#if u.publicDescription.trim() === ''}
+					<p data-text="muted">No subreddit description.</p>
+				{:else}
+					<p data-text="muted">{u.publicDescription}</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -119,36 +112,27 @@
 			entityType={EntityType.RedditSubreddit}
 			{entityId}
 		>
-			<QueryBoundary
-				query={rowQuery}
+			<ResourceBoundary
+				resource={subreddit}
+				placeholderText="Loading subreddit…"
 			>
-				{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No subreddit data in the app for this name yet.
-						</p>
-					{:else}
-						<dl>
-							<div>
-								<dt>Subreddit</dt>
-								<dd>r/{entityId.name}</dd>
-							</div>
-							{#if f?.title !== undefined}
-								<div>
-									<dt>Title</dt>
-									<dd>{f.title}</dd>
-								</div>
-							{/if}
-							{#if f?.publicDescription !== undefined}
-								<div>
-									<dt>Description</dt>
-									<dd>{f.publicDescription}</dd>
-								</div>
-							{/if}
-						</dl>
-					{/if}
+				{#snippet children(u)}
+					<dl>
+						<div>
+							<dt>Subreddit</dt>
+							<dd>r/{entityId.name}</dd>
+						</div>
+						<div>
+							<dt>Title</dt>
+							<dd>{u.title}</dd>
+						</div>
+						<div>
+							<dt>Description</dt>
+							<dd>{u.publicDescription}</dd>
+						</div>
+					</dl>
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		<Collapsible
@@ -156,7 +140,7 @@
 			{...{ 'data-card': '' }}
 		>
 			{#snippet Summary({
-				open: _open,
+				open: _summaryOpen,
 			})}
 				<header
 					data-row-item="flexible"
@@ -181,7 +165,9 @@
 								entityId,
 								fieldName: '$$links',
 							}}
-							href={`/reddit/r/${encodeURIComponent(entityId.name)}/links`}
+							href={resolve('/(social)/reddit/r/[name]/(subreddit)/links', {
+								name: encodeURIComponent(entityId.name),
+							})}
 							id={`${idKey}:links`}
 							open={false}
 						/>

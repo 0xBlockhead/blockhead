@@ -1,4 +1,5 @@
 import { regex } from 'arkregex'
+import { jsonErrorHintFromResponse } from '$/lib/http.ts'
 import { gatewayUrls } from '$/sources/Ipfs/Rest/constants.ts'
 
 export type IpfsNamespace = 'ipfs' | 'ipns'
@@ -130,7 +131,13 @@ export const fetchIpfsBrowseResult = async ({
 
 		const response = await fetch(gatewayUrl, { signal })
 		if (!response.ok) {
-			failures.push(`${gatewayOrigin} (${response.status} ${response.statusText})`)
+			const hint = await jsonErrorHintFromResponse(response)
+			failures.push(
+				hint ?
+					`${gatewayOrigin} (${response.status}): ${hint}`
+				:
+					`${gatewayOrigin} (${response.status} ${response.statusText})`,
+			)
 			continue
 		}
 

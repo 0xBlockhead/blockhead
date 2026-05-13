@@ -1,16 +1,30 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import { MarketAssetKind } from '$/constants/Market.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import MarketPriceSchema from '$/schema/MarketPrice.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import MarketView from '$/views/MarketView.svelte'
+	import Market_TimestampsView from '$/views/Market_TimestampsView.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
+
+	import { stringify } from 'devalue'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Props
@@ -23,7 +37,7 @@
 	}: WithRest<
 		{
 			children?: Snippet
-			entityId: typeof MarketPriceSchema.id.infer | string
+			entityId: EntityId<typeof schema, EntityType.MarketPrice>
 			href?: string
 			open?: boolean
 		},
@@ -39,208 +53,74 @@
 	> = $props()
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
-
-
-	// (Derived)
-	const marketPriceIdKey = $derived(
-		typeof entityId === 'string' ?
-			entityId
-		:	stringify(entityId),
+	const priceLive = useEntity(
+		EntityType.MarketPrice,
+		entityId,
+		{
+			$: [
+				Source.Constants_Internal,
+				Source.Coingecko_Rest,
+				Source.CoinMarketCap_Rest,
+				Source.Coinpaprika_OpenApi,
+				Source.Defillama_Rest,
+				Source.TradingView_Rest,
+			],
+			$$parentMarket: {},
+			$$quotes: {
+				$: [
+					Source.TradingView_Rest,
+				],
+			},
+			caip19: {},
+			price: {},
+			providerAssetId: {},
+			timestampNs: {},
+			transport: {},
+			updatedAt: {},
+		},
 	)
-
-	const marketPriceQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.MarketPrice] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						marketPriceIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => marketPriceIdKey],
-	)
-
-	const marketPriceRow = $derived(
-		(
-			marketPriceQuery.data === undefined
-				? undefined
-			:	(
-					marketPriceQuery.data.find(
-						(r) => r.row[EntityMetaKey.Source] === Source.Coingecko_Rest,
-					)?.row
-					?? marketPriceQuery.data[0]?.row
-				)
-		),
-	)
-
-	const marketPriceQuotesQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.MarketPrice].$$quotes })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.ParentIdKey],
-						marketPriceIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => marketPriceIdKey],
-	)
-
-	const latestQuoteId = $derived(
-		marketPriceQuotesQuery.data
-			?.map((r) => r.row[EntityMetaKey.Value])
-			.sort((a, b) => (
-				a[EntityMetaKey.Id].timestampNs < b[EntityMetaKey.Id].timestampNs ?
-					1
-				: a[EntityMetaKey.Id].timestampNs > b[EntityMetaKey.Id].timestampNs ?
-					-1
-				:
-					0
-			))[0]
-			?.[EntityMetaKey.Id],
-	)
-
-	const latestQuoteIdKey = $derived(
-		latestQuoteId === undefined ?
-			undefined
-		:	stringify(latestQuoteId),
-	)
-
-	const latestQuoteQuery = useLiveQuery(
-		(queryBuilder) => (
-			latestQuoteIdKey === undefined ?
-				queryBuilder
-					.from({ row: entityCollectionByEntityType[EntityType.Market_Timestamp] })
-					.orderBy(({ row }) => (
-						row[EntityMetaKey.IdKey]
-					), 'asc')
-					.limit(0)
-					.select(({ row }) => ({ row }))
-			:
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.Market_Timestamp] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						latestQuoteIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => latestQuoteIdKey],
-	)
-
-	const latestQuoteRow = $derived(
-		(
-			latestQuoteQuery.data === undefined
-				? undefined
-			:	(
-					latestQuoteQuery.data.find(
-						(r) => r.row[EntityMetaKey.Source] === Source.Coingecko_Rest,
-					)?.row
-					?? latestQuoteQuery.data[0]?.row
-				)
-		),
-	)
-
-	const wireId = $derived(
-		typeof entityId === 'string' ?
-			marketPriceRow?.[EntityMetaKey.Id]
-		:
-			entityId,
-	)
-
-	const catalogCoinId = $derived(
-		wireId !== undefined && wireId.$market.$base.kind === MarketAssetKind.Coin ?
-			wireId.$market.$base.$coin.coinId
-		:	undefined,
-	)
-
-	const hrefResolved = $derived(
-		href
-		?? (catalogCoinId === undefined
-			? undefined
-		:	resolve(
-				'/(assets)/(coins)/coin/[coinId]',
-				{ coinId: catalogCoinId },
-			)),
-	)
-
-	const marketPriceField = $derived(
-		(() => {
-			const bag = latestQuoteRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) {
-				return null
-			}
-			const b = bag
-			return {
-				price: typeof b.price === 'bigint' ? b.price : undefined,
-				caip19: typeof b.caip19 === 'string' ? b.caip19 : undefined,
-			}
-		})(),
-	)
-
-	const latestQuoteUpdatedAt = $derived(
-		latestQuoteId === undefined ?
-			undefined
-		:	Number(latestQuoteId.timestampNs / 1_000_000n),
-	)
-
-	const usdFrom1e8 = $derived(
-		marketPriceField?.price === undefined ?
-			undefined
-		:	Number(marketPriceField.price) / 1e8,
-	)
-
-	const marketPricePlaceholderText = 'Loading market price…'
-
-
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import MarketView from '$/views/MarketView.svelte'
-	import Market_TimestampsView from '$/views/Market_TimestampsView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
-{#if wireId === undefined}
-	<span data-placeholder>
-		…
-	</span>
-{:else}
-	<EntityView
-		entityType={EntityType.MarketPrice}
-		entityId={wireId}
-		href={hrefResolved}
-		{open}
-		{...entityViewRest}
-		title={catalogCoinId ?? 'Market price'}
-	>
-		{#snippet Content()}
-			{#if usdFrom1e8 !== undefined || latestQuoteUpdatedAt !== undefined || marketPriceField?.caip19 !== undefined}
+<EntityView
+	entityType={EntityType.MarketPrice}
+	{entityId}
+	href={
+		href
+		?? (
+			entityId.$market.$base.kind !== MarketAssetKind.Coin ?
+				undefined
+			:	resolve(
+					'/(assets)/(coins)/coin/[coinId]',
+					{ coinId: entityId.$market.$base.$coin.coinId },
+				)
+		)
+	}
+	{open}
+	title={
+		(
+			entityId.$market.$base.kind === MarketAssetKind.Coin ?
+				entityId.$market.$base.$coin.coinId
+			:
+				undefined
+		)
+		?? 'Market price'
+	}
+	{...entityViewRest}
+>
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={priceLive}
+			placeholderText="Loading price…"
+		>
+			{#snippet children(loaded)}
 				<dl>
-					{#if usdFrom1e8 !== undefined}
+					{#if loaded.price !== undefined}
 						<div>
 							<dt>USD (spot index)</dt>
 							<dd>
 								<NumberValue
-									value={usdFrom1e8}
+									value={Number(loaded.price) / 1e8}
 									options={{
 										minimumFractionDigits: 2,
 										maximumFractionDigits: 6,
@@ -249,132 +129,124 @@
 							</dd>
 						</div>
 					{/if}
-					{#if marketPriceField?.caip19 !== undefined}
+					{#if loaded.caip19 !== undefined}
 						<div>
 							<dt>CAIP-19</dt>
 							<dd>
-								<code>
-									{marketPriceField.caip19}
-								</code>
+								<code>{loaded.caip19}</code>
 							</dd>
 						</div>
 					{/if}
-					{#if latestQuoteUpdatedAt !== undefined && Number.isFinite(latestQuoteUpdatedAt)}
+					{#if loaded.timestampNs !== undefined}
 						<div>
 							<dt>As of</dt>
 							<dd>
 								<Timestamp
-									timestamp={latestQuoteUpdatedAt}
+									timestamp={Number(loaded.timestampNs / 1_000_000n)}
 									format={TimestampFormat.Both}
 								/>
 							</dd>
 						</div>
 					{/if}
 				</dl>
-			{/if}
-		{/snippet}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
 
-		{#snippet Details({
-			open: _open,
-		})}
-			<EntityDetails
-				entityType={EntityType.MarketPrice}
-				entityId={wireId}
+	{#snippet Details()}
+		<EntityDetails
+			entityType={EntityType.MarketPrice}
+			{entityId}
+		>
+			<ResourceBoundary
+				resource={priceLive}
+				placeholderText="Loading price…"
 			>
-				<QueryBoundary
-					placeholderText={marketPricePlaceholderText}
-					query={latestQuoteQuery}
-				>
-					{#snippet children(_rows)}
-						{#if latestQuoteRow === undefined}
-							<p data-text="muted">
-								No price point for this market yet.
-							</p>
-						{:else}
-							<dl>
-								{#if marketPriceField?.price !== undefined}
-									<div>
-										<dt>Price</dt>
-										<dd>{String(marketPriceField.price)}</dd>
-									</div>
-								{/if}
-								{#if latestQuoteId !== undefined}
-									<div>
-										<dt>Timestamp (ns)</dt>
-										<dd>{String(latestQuoteId.timestampNs)}</dd>
-									</div>
-								{/if}
-								{#if latestQuoteUpdatedAt !== undefined && Number.isFinite(latestQuoteUpdatedAt)}
-									<div>
-										<dt>Updated</dt>
-										<dd>
-											<Timestamp
-												timestamp={latestQuoteUpdatedAt}
-												format={TimestampFormat.Both}
-											/>
-										</dd>
-									</div>
-								{/if}
-								{#if marketPriceField?.caip19 !== undefined}
-									<div>
-										<dt>CAIP-19</dt>
-										<dd>
-											<code>{marketPriceField.caip19}</code>
-										</dd>
-									</div>
-								{/if}
-							</dl>
+				{#snippet children(loaded)}
+					<dl>
+						{#if loaded.price !== undefined}
+							<div>
+								<dt>Price</dt>
+								<dd>{String(loaded.price)}</dd>
+							</div>
 						{/if}
-					{/snippet}
-				</QueryBoundary>
-			</EntityDetails>
+						{#if loaded.timestampNs !== undefined}
+							<div>
+								<dt>Timestamp (ns)</dt>
+								<dd>{String(loaded.timestampNs)}</dd>
+							</div>
+						{/if}
+						{#if loaded.updatedAt !== undefined}
+							<div>
+								<dt>Updated</dt>
+								<dd>
+									<Timestamp
+										timestamp={loaded.updatedAt}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
+							</div>
+						{/if}
+						{#if loaded.transport !== undefined}
+							<div>
+								<dt>Transport</dt>
+								<dd>{loaded.transport}</dd>
+							</div>
+						{/if}
+						{#if loaded.providerAssetId !== undefined && loaded.providerAssetId !== null}
+							<div>
+								<dt>Provider asset id</dt>
+								<dd>{loaded.providerAssetId}</dd>
+							</div>
+						{/if}
+					</dl>
+				{/snippet}
+			</ResourceBoundary>
+		</EntityDetails>
 
-			<section>
-				<h2>
-					Quotes
-				</h2>
-				<Market_TimestampsView
-					collapsible={false}
-					entityFieldReference={{
-						entityType: EntityType.MarketPrice,
-						entityId: wireId,
-						fieldName: '$$quotes',
-					}}
-					href={resolve('/(assets)/coins/market/[marketKey]', {
-						marketKey: encodeURIComponent(stringify(wireId.$market)),
-					})}
-					id={`${stringify(wireId)}:quotes`}
-					title="Quotes"
-				/>
-			</section>
+		<section>
+			<h2>
+				Quotes
+			</h2>
+			<Market_TimestampsView
+				collapsible={false}
+				entityFieldReference={{
+					entityType: EntityType.MarketPrice,
+					entityId,
+					fieldName: '$$quotes',
+				}}
+				href={resolve('/(assets)/coins/market/[marketKey]', {
+					marketKey: encodeURIComponent(stringify(entityId.$market)),
+				})}
+				id={`${stringify(entityId)}:quotes`}
+				title="Quotes"
+			/>
+		</section>
 
-			<section>
-				<h2>
-					Market
-				</h2>
-				<MarketView
-					entityId={wireId.$market}
-					href={(
-						resolve(
-							'/(assets)/coins/market/[marketKey]',
-							{
-								marketKey: (
-									encodeURIComponent(
-										stringify(wireId.$market),
-									)
-								),
-							},
-						)
-					)}
-					id={`${stringify(wireId)}:parent-market`}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			</section>
+		<section>
+			<h2>
+				Market
+			</h2>
+			<MarketView
+				entityId={entityId.$market}
+				href={resolve(
+					'/(assets)/coins/market/[marketKey]',
+					{
+						marketKey: (
+							encodeURIComponent(
+								stringify(entityId.$market),
+							)
+						),
+					},
+				)}
+				id={`${stringify(entityId)}:parent-market`}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
+		</section>
 
-			{#if children}
-				{@render children()}
-			{/if}
-		{/snippet}
-	</EntityView>
-{/if}
+		{#if children}
+			{@render children()}
+		{/if}
+	{/snippet}
+</EntityView>

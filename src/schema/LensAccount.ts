@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -14,7 +16,7 @@ export default {
 	labelPlural: 'Lens accounts',
 
 	id: type({
-		address: 'string.hex' as type.cast<`0x${string}`>,
+		address: EvmAddress,
 	}),
 
 	fields: [

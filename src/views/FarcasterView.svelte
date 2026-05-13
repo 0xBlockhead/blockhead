@@ -2,28 +2,14 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { entityDefinitionByType, schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import {
-		EntityFieldType,
-		EntityMetaKey,
-	} from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
-	import { Source } from '$/sources/$Source.ts'
 
 
 	// Props
@@ -52,141 +38,53 @@
 	> = $props()
 
 
-	const networkIdKey = $derived(
-		stringify(entityId),
+	// State
+	import { stringify } from 'devalue'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const network = useEntity(
+		EntityType.FarcasterNetwork,
+		entityId,
+		{
+			$: [Source.Farcaster_Rest],
+			protocolName: {},
+			homeUrl: {},
+			docsUrl: {},
+			registryLabel: {},
+			topology: {},
+			$$channels: {},
+			$$users: { $: [Source.Snapchain_Rest] },
+		},
 	)
 
-	const networkQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.FarcasterNetwork] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => networkIdKey],
-	)
-
-	const networkRow = $derived(
-		networkQuery.data?.[0]?.row,
-	)
-
-	const networkPrimitiveFields = $derived(
-		(() => {
-			const bag = networkRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-			const b = bag
-			const out: Record<string, string> = {}
-			for (const def of entityDefinitionByType[EntityType.FarcasterNetwork].fields) {
-				if (def.type !== EntityFieldType.Primitive) continue
-				const v = b[def.name]
-				if (v === undefined) continue
-				out[def.name] = String(v)
-			}
-			return out
-		})(),
-	)
-
-	const channelsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					ch: entityFieldCollections[EntityType.FarcasterNetwork]['$$channels'],
-				})
-				.where(({ ch }) => (
-					eq(
-						ch[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ ch }) => ({ ch }))
-		),
-		[() => networkIdKey],
-	)
-
-	const usersQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					user: entityFieldCollections[EntityType.FarcasterNetwork]['$$users'],
-				})
-				.where(({ user }) => (
-					eq(
-						user[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.where(({ user }) => (
-					eq(
-						user[EntityMetaKey.Source],
-						Source.Snapchain_Rest,
-					)
-				))
-				.select(({ user }) => ({ user }))
-		),
-		[() => networkIdKey],
-	)
-
-	const trendingFeedIdKey = $derived(
-		stringify(({
+	const trendingFeedEntityId = (
+		{
 			variant: 'trending' as const,
-		} satisfies EntityId<typeof schema, EntityType.FarcasterFeed>)),
+		} satisfies EntityId<typeof schema, EntityType.FarcasterFeed>
 	)
 
-	const farcasterCastListSource = $derived(
-		(
-			typeof import.meta.env.PUBLIC_NEYNAR_API_KEY === 'string'
-			&& import.meta.env.PUBLIC_NEYNAR_API_KEY.trim() !== ''
-		) ?
-			Source.Neynar_Rest
-		:	Source.Snapchain_Rest,
+	const trending = useEntity(
+		EntityType.FarcasterFeed,
+		trendingFeedEntityId,
+		{
+			$: [
+				import.meta.env.PUBLIC_NEYNAR_API_KEY?.trim() ?
+					Source.Neynar_Rest
+				:
+					Source.Snapchain_Rest,
+			],
+			$$entries: {},
+		},
 	)
 
-	const castsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					cast: entityFieldCollections[EntityType.FarcasterFeed]['$$entries']!,
-				})
-				.where(({ cast }) => (
-					eq(
-						cast[EntityMetaKey.ParentIdKey],
-						trendingFeedIdKey,
-					)
-				))
-				.where(({ cast }) => (
-					eq(
-						cast[EntityMetaKey.Source],
-						farcasterCastListSource,
-					)
-				))
-				.select(({ cast }) => ({ cast }))
-		),
-		[() => trendingFeedIdKey, () => farcasterCastListSource],
-	)
-
-	const channelCount = $derived(
-		channelsQuery.data?.length ?? 0,
-	)
-
-	const userCount = $derived(
-		usersQuery.data?.length ?? 0,
-	)
-
-	const castCount = $derived(
-		castsQuery.data?.length ?? 0,
-	)
 
 	// Components
 	import Collapsible from '$/components/Collapsible.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BlockheadFarcasterAccountConnectionsView from '$/views/BlockheadFarcasterAccountConnectionsView.svelte'
 	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 	import FarcasterChannelsView from '$/views/FarcasterChannelsView.svelte'
@@ -203,81 +101,76 @@
 	{...entityViewRest}
 	title="Farcaster"
 >
-	{#snippet Content()}
-		<dl>
-			<div>
-				<dt>Scope</dt>
-				<dd>{entityId.scope}</dd>
-			</div>
-			<div>
-				<dt>Channels</dt>
-				<dd>{String(channelCount)}</dd>
-			</div>
-			<div>
-				<dt>Users</dt>
-				<dd>{String(userCount)}</dd>
-			</div>
-			<div>
-				<dt>Trending feed</dt>
-				<dd>{String(castCount)}</dd>
-			</div>
-			{#if networkPrimitiveFields != null}
-				{#each Object.entries(networkPrimitiveFields) as [name, value] (name)}
-					<div>
-						<dt>{name}</dt>
-						<dd>{value}</dd>
-					</div>
-				{/each}
-			{/if}
-		</dl>
-	{/snippet}
-
 	{#snippet Details({
 		open: _open,
 	})}
+		{@const networkIdKey = stringify(entityId)}
 		<EntityDetails
 			entityType={EntityType.FarcasterNetwork}
 			{entityId}
 		>
-			<QueryBoundary
-				query={networkQuery}
-			>
-
-				{#snippet children(networkRows)}
-					{#if networkRows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No Farcaster network data yet.
-						</p>
-					{:else}
-						<dl>
+			<ResourceBoundary resource={network}>
+				{#snippet children(n)}
+					<dl>
+						<div>
+							<dt>Scope</dt>
+							<dd>{entityId.scope}</dd>
+						</div>
+						<div>
+							<dt>Channels</dt>
+							<dd>{String(n.$$channels.length)}</dd>
+						</div>
+						<div>
+							<dt>Users</dt>
+							<dd>{String(n.$$users.length)}</dd>
+						</div>
+						{#if n.protocolName}
 							<div>
-								<dt>Scope</dt>
-								<dd>{entityId.scope}</dd>
+								<dt>Protocol</dt>
+								<dd>{n.protocolName}</dd>
 							</div>
+						{/if}
+						{#if n.homeUrl}
 							<div>
-								<dt>Channels (field rows)</dt>
-								<dd>{String(channelCount)}</dd>
+								<dt>Home</dt>
+								<dd>
+									<a href={n.homeUrl}>{n.homeUrl}</a>
+								</dd>
 							</div>
+						{/if}
+						{#if n.docsUrl}
 							<div>
-								<dt>Users (field rows)</dt>
-								<dd>{String(userCount)}</dd>
+								<dt>Docs</dt>
+								<dd>
+									<a href={n.docsUrl}>{n.docsUrl}</a>
+								</dd>
 							</div>
+						{/if}
+						{#if n.registryLabel}
 							<div>
-								<dt>Trending feed (field rows)</dt>
-								<dd>{String(castCount)}</dd>
+								<dt>Registry</dt>
+								<dd>{n.registryLabel}</dd>
 							</div>
-							{#if networkPrimitiveFields != null}
-								{#each Object.entries(networkPrimitiveFields) as [name, value] (name)}
-									<div>
-										<dt>{name}</dt>
-										<dd>{value}</dd>
-									</div>
-								{/each}
-							{/if}
-						</dl>
-					{/if}
+						{/if}
+						{#if n.topology}
+							<div>
+								<dt>Topology</dt>
+								<dd>{n.topology}</dd>
+							</div>
+						{/if}
+					</dl>
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
+			<ResourceBoundary resource={trending}>
+				{#snippet children(t)}
+					<dl>
+						<div>
+							<dt>Trending entries</dt>
+							<dd>{String(t.$$entries.length)}</dd>
+						</div>
+					</dl>
+				{/snippet}
+			</ResourceBoundary>
 		</EntityDetails>
 
 		<div data-column="gap-3">
@@ -285,9 +178,7 @@
 				id={`${networkIdKey}:carousel-discovery`}
 				{...{ 'data-card': '' }}
 			>
-				{#snippet Summary({
-					open: _open,
-				})}
+				{#snippet Summary()}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
@@ -298,7 +189,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet children(_ctx)}
+				{#snippet children()}
 					<div
 						class="carousel"
 						data-scroll-container="inline layout-carousel carousel-marker-tabs"
@@ -321,9 +212,7 @@
 							<FarcasterCastsView
 								entityFieldReference={{
 									entityType: EntityType.FarcasterFeed,
-									entityId: ({
-										variant: 'trending' as const,
-									} satisfies EntityId<typeof schema, EntityType.FarcasterFeed>),
+									entityId: trendingFeedEntityId,
 									fieldName: '$$entries',
 								}}
 								href={resolve('/farcaster/feed/trending')}
@@ -341,9 +230,7 @@
 				id={`${networkIdKey}:carousel-community`}
 				{...{ 'data-card': '' }}
 			>
-				{#snippet Summary({
-					open: _open,
-				})}
+				{#snippet Summary()}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
@@ -354,7 +241,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet children(_ctx)}
+				{#snippet children()}
 					<div
 						class="carousel"
 						data-scroll-container="inline layout-carousel carousel-marker-tabs"
@@ -393,9 +280,7 @@
 				id={`${networkIdKey}:carousel-accounts`}
 				{...{ 'data-card': '' }}
 			>
-				{#snippet Summary({
-					open: _open,
-				})}
+				{#snippet Summary()}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
@@ -406,7 +291,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet children(_ctx)}
+				{#snippet children()}
 					<div
 						class="carousel"
 						data-scroll-container="inline layout-carousel carousel-marker-tabs"

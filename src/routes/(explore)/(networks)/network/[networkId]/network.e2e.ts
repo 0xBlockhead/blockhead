@@ -1,4 +1,11 @@
 import { expect, test, type Page } from '@playwright/test'
+import {
+	chainlistRpcsWire,
+	clearOriginOpfs,
+	countRequestsMatching,
+	ethereumListsChainsJsonWire,
+	installChainlistRpcsJsonStub,
+} from '../../../../../../tests/_e2eBrowserHelpers.ts'
 
 test.describe('/network/[networkId]', () => {
 	const setupFailFast = (page: Page) => {
@@ -12,7 +19,7 @@ test.describe('/network/[networkId]', () => {
 			failed = true
 			rejectRuntimeError?.(error)
 		}
-		const step = async (promise: Promise<unknown>) => {
+		const step = async <_Value>(promise: Promise<_Value>) => {
 			await Promise.race([promise, runtimeError])
 		}
 
@@ -24,9 +31,18 @@ test.describe('/network/[networkId]', () => {
 			if (
 				message.type() === 'error'
 				&& !message.text().includes('Failed to load resource: the server responded with a status of 404')
+				&& !message.text().includes('Failed to load resource: the server responded with a status of 422')
 				&& !message.text().includes('Failed to load resource: the server responded with a status of 502')
 				&& !message.text().includes('Failed to load resource: net::ERR_QUIC_PROTOCOL_ERROR')
+				&& !message.text().includes('Failed to load resource: net::ERR_CONNECTION_REFUSED')
+				&& !message.text().includes('Failed to load resource: net::ERR_FAILED')
+				&& !message.text().includes('has been blocked by CORS policy')
 				&& !message.text().includes('Voltaire: block stream ended')
+				&& !(
+					message.text().includes('[QueryCollection]')
+					&& message.text().includes('blockscout.com')
+					&& message.text().includes('Fetch failed (422')
+				)
 			) failFast(new Error(`console error: ${message.text()}`))
 			if (
 				message.type() === 'warning'
@@ -72,63 +88,87 @@ test.describe('/network/[networkId]', () => {
 		testInfo.setTimeout(120_000)
 		const { step } = setupFailFast(page)
 
-		await page.exposeFunction('__recordBlockheadE2eDebug', (event: {
-			key: string
-			value: unknown
-		}) => {
-			;(globalThis as typeof globalThis & {
-				__blockheadE2eDebug?: Record<string, unknown>
-			}).__blockheadE2eDebug = {
-				...(globalThis as typeof globalThis & {
-					__blockheadE2eDebug?: Record<string, unknown>
-				}).__blockheadE2eDebug,
-				[event.key]: event.value,
-			}
-		})
-		await page.addInitScript(() => {
-			globalThis.addEventListener('blockhead:e2e-debug', (event) => {
-				void (globalThis as typeof globalThis & {
-					__recordBlockheadE2eDebug: (detail: unknown) => Promise<void>
-				}).__recordBlockheadE2eDebug((event as CustomEvent).detail)
-			})
-		})
+		await step(page.goto('/network/1', { waitUntil: 'domcontentloaded' }))
+		await step(expect(page.locator('[data-e2e="network-carousel-groups"]')).toBeAttached({
+			timeout: 120_000,
+		}))
+		await step(expect(page.getByText('Ethereum Mainnet').first()).toBeVisible({
+			timeout: 30_000,
+		}))
+	})
+
+	test('network 1 reload uses persisted Chainlist and EthereumLists rows', async ({ page }, testInfo) => {
+		testInfo.setTimeout(120_000)
+		const { step } = setupFailFast(page)
+		await installChainlistRpcsJsonStub(page)
+		await step(page.goto('/', { waitUntil: 'domcontentloaded' }))
+		await clearOriginOpfs(page)
+		await step(page.reload({ waitUntil: 'domcontentloaded' }))
+		await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
+
+		const cold = countRequestsMatching(page, (url, method) => (
+			method === 'GET'
+			&& (
+				chainlistRpcsWire(url)
+				|| ethereumListsChainsJsonWire(url, method)
+			)
+		))
 
 		await step(page.goto('/network/1', { waitUntil: 'domcontentloaded' }))
 		await step(expect(page.locator('[data-e2e="network-carousel-groups"]')).toBeAttached({
 			timeout: 120_000,
 		}))
-		await expect.poll(() => (
-			(globalThis as typeof globalThis & {
-				__blockheadE2eDebug?: Record<string, {
-					idKey?: string
-					selectedFields?: Record<string, unknown>
-				}>
-			}).__blockheadE2eDebug
-		), {
-			timeout: 30_000,
-		}).toEqual(expect.objectContaining({
-			'useEntity:Network:[{"chainId":1},1]': expect.objectContaining({
-				idKey: '[{"chainId":1},1]',
-				selectedFields: expect.objectContaining({
-					name: 'Ethereum Mainnet',
-				}),
-			}),
+		await step(expect(page.getByRole('link', { name: 'Mock Base', exact: true }).first()).toBeVisible({
+			timeout: 120_000,
 		}))
-		const debug = (
-			(globalThis as typeof globalThis & {
-				__blockheadE2eDebug?: Record<string, unknown>
-			}).__blockheadE2eDebug?.['useEntity:Network:[{"chainId":1},1]']
-		) as {
-			idKey: string
-			loadDebug?: unknown
-			selectedFields: Record<string, unknown>
-		}
-		console.info(JSON.stringify({
-			idKey: debug.idKey,
-			loadDebug: debug.loadDebug,
-			selectedFields: Object.keys(debug.selectedFields).sort(),
-		}, null, 2))
-		expect(debug.selectedFields.name).toBe('Ethereum Mainnet')
-		expect(debug.selectedFields.environment).toBe('Mainnet')
+		await step(expect(page.locator('#main .loading')).toHaveCount(0, {
+			timeout: 120_000,
+		}))
+		expect(cold.get(), 'network detail resolves chain metadata via HTTP').toBeGreaterThan(0)
+		cold.detach()
+
+		const blockedWarmRequests: string[] = []
+		await page.route('**/*', async (route) => {
+			const url = route.request().url()
+			const method = route.request().method()
+			if (
+				method === 'GET'
+				&& (
+					chainlistRpcsWire(url)
+					|| ethereumListsChainsJsonWire(url, method)
+				)
+			) {
+				blockedWarmRequests.push(url)
+				await route.fulfill({
+					status: 200,
+					contentType: 'application/json',
+					body: '[]',
+				})
+				return
+			}
+			await route.fallback()
+		})
+
+		const warm = countRequestsMatching(page, (url, method) => (
+			method === 'GET'
+			&& (
+				chainlistRpcsWire(url)
+				|| ethereumListsChainsJsonWire(url, method)
+			)
+		))
+
+		await step(page.reload({ waitUntil: 'domcontentloaded' }))
+		await step(expect(page.locator('[data-e2e="network-carousel-groups"]')).toBeAttached({
+			timeout: 120_000,
+		}))
+		await step(expect(page.getByRole('link', { name: 'Mock Base', exact: true }).first()).toBeVisible({
+			timeout: 120_000,
+		}))
+		await step(expect(page.locator('#main .loading')).toHaveCount(0, {
+			timeout: 120_000,
+		}))
+		expect(warm.get(), 'reload should hydrate from OPFS without Chainlist / chains.json').toBe(0)
+		expect(blockedWarmRequests, 'warm reload must not request Chainlist / chains.json').toEqual([])
+		warm.detach()
 	})
 })

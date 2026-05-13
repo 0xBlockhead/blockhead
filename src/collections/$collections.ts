@@ -9,12 +9,15 @@ import {
 } from '@tanstack/db-sqlite-persistence-core'
 import {
 	BasicIndex,
-	type Collection,
 	createCollection,
+	type LoadSubsetOptions,
 	parseLoadSubsetOptions,
 	parseOrderByExpression,
+	type SyncConfig,
 } from '@tanstack/svelte-db'
 import { stringify, parse } from 'devalue'
+
+import { assertEntityFieldResolverResult } from '$/collections/assertLoadedCollectionRows.ts'
 
 import {
 	EntityFieldCardinality,
@@ -53,35 +56,6 @@ export type EntityCollectionItemInsert<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 > = EntityCollectionItem<_Schema, _EntityType>
-
-export const entityCollectionLoadDebugByType = new Map<string, {
-	entityIds: unknown[]
-	filters: {
-		field: string[]
-		operator: string
-		value: unknown
-	}[]
-	idKeyFilterValues: unknown[]
-	resolverSources: string[]
-	resolverStatuses?: {
-		reason?: string
-		source: string
-		status: string
-	}[]
-	sources: string[]
-}>()
-
-export const entityFieldCollectionLoadDebugByName = new Map<string, {
-	filters: {
-		field: string[]
-		operator: string
-		value: unknown
-	}[]
-	parentIdKeyFilterValues: unknown[]
-	resolverSources: string[]
-	rowCount?: number
-	sources: string[]
-}>()
 
 type EntityFieldCollectionValue<_Value> = (
 	_Value extends { [EntityMetaKey.Id]: infer _EntityId } ?
@@ -262,39 +236,54 @@ const fulfilledOrThrow = <T>(
 	return fulfilled.map((r) => r.value)
 }
 
-/** Live-query subset `eq` values: devalue strings, unwrap single-element arrays, normalize global parent wire shapes to `stringify({})`. */
+/** Live-query subset `eq` values: devalue strings and unwrap single-element arrays. */
 const subsetFilterEntityId = (value: unknown): unknown => (
 	typeof value === 'string' ?
-		value === '[{}]' ?
-			stringify({})
-		: (() => {
+		(() => {
 			try {
 				return subsetFilterEntityId(parse(value))
 			} catch {
-				return stringify({})
+				return value
 			}
 		})()
 	: Array.isArray(value) && value.length === 1 ?
 		subsetFilterEntityId(value[0])
-	: value != null && typeof value === 'object' && !Array.isArray(value) && Object.keys(value).length === 0 ?
-		stringify({})
 	:
 		value
 )
 
-type ParsedLoadSubset = ReturnType<typeof parseLoadSubsetOptions>
+/**
+ * `persistOnDemandSubsets` short-circuits warm-reload `loadSubset` calls when OPFS rows
+ * (or the loaded-subset metadata marker) cover the request. Keeping `staleTime` infinite
+ * prevents TanStack Query from triggering its own background refetch path that bypasses
+ * the wrapper; manual refreshes still flow through resolvers.
+ */
+const collectionStaleTime = Number.POSITIVE_INFINITY
 
-const whereExpressionRoot = (where: unknown) => (
-	typeof where === 'object'
-	&& where != null
-	&& 'expression' in where ?
-		(where as { expression: unknown }).expression
-	:
-		where
-)
+/** Keep persisted rows in OPFS for a week so revisits hydrate without re-fetching upstream. */
+const collectionPersistedGcTime = 7 * 24 * 60 * 60 * 1000
+
+
+type ParsedLoadSubset = ReturnType<typeof parseLoadSubsetOptions>
+type SubsetFilter = ParsedLoadSubset['filters'][number]
+type PersistOnDemandSubsetSync<
+	_Row extends object,
+	_Key extends string | number,
+> = SyncConfig<_Row, _Key>
+type PersistOnDemandSubsetCollection<
+	_Row extends object,
+	_Key extends string | number,
+> = Parameters<PersistOnDemandSubsetSync<_Row, _Key>['sync']>[0]['collection']
 
 const comparisonsFromWhereLenient = (where: unknown): ParsedLoadSubset['filters'] => {
-	const expr = whereExpressionRoot(where)
+	const expr = (
+		typeof where === 'object'
+		&& where != null
+		&& 'expression' in where ?
+			(where as { expression: unknown }).expression
+		:
+			where
+	)
 	const out: ParsedLoadSubset['filters'] = []
 	const visit = (e: unknown) => {
 		if (!e || typeof e !== 'object') return
@@ -327,7 +316,7 @@ const comparisonsFromWhereLenient = (where: unknown): ParsedLoadSubset['filters'
 					field: leftPath,
 					operator: 'eq',
 					value: rightVal,
-				} as ParsedLoadSubset['filters'][number])
+				})
 			}
 			return
 		}
@@ -354,7 +343,7 @@ const comparisonsFromWhereLenient = (where: unknown): ParsedLoadSubset['filters'
 					field: leftPath,
 					operator: 'in',
 					value: rightVal,
-				} as ParsedLoadSubset['filters'][number])
+				})
 			}
 		}
 	}
@@ -387,6 +376,213 @@ const parseLoadSubsetForQueryFn = (
 	}
 }
 
+const loadedSubsetMetadataKey = (loadSubsetOptions: LoadSubsetOptions) => (
+	[
+		'blockhead:loaded-subset',
+		stringify({
+			filters: parseLoadSubsetForQueryFn(loadSubsetOptions).filters.map((filter) => ({
+				field: filter.field.map((part) => String(part)),
+				operator: filter.operator,
+				value: filter.value,
+			})),
+			limit: loadSubsetOptions.limit,
+			sorts: parseLoadSubsetForQueryFn(loadSubsetOptions).sorts,
+		}),
+	]
+		.join(':')
+)
+
+const valueAtPath = (value: unknown, path: readonly unknown[]): unknown => (
+	path.reduce<unknown>((current, part) => (
+		current != null && typeof current === 'object' ?
+			(current as Record<string, unknown>)[String(part)]
+		:
+			undefined
+	), value)
+)
+
+const subsetValuesEqual = (left: unknown, right: unknown) => (
+	Object.is(left, right)
+	|| stringify(left) === stringify(right)
+)
+
+const rowMatchesSubsetFilter = (row: unknown, filter: SubsetFilter) => (
+	filter.operator === 'eq' ?
+		subsetValuesEqual(valueAtPath(row, filter.field), filter.value)
+	: filter.operator === 'in' ?
+		(
+			Array.isArray(filter.value) ?
+				filter.value
+			:
+				[filter.value]
+		)
+			.some((value) => subsetValuesEqual(valueAtPath(row, filter.field), value))
+	:
+		false
+)
+
+const collectionHasHydratedSubset = <
+	_Row extends object,
+	_Key extends string | number,
+>(
+	collection: PersistOnDemandSubsetCollection<_Row, _Key>,
+	loadSubsetOptions: LoadSubsetOptions,
+) => {
+	if (collection.size === 0) return false
+	const filters = parseLoadSubsetForQueryFn(loadSubsetOptions).filters
+	// Unfiltered subsets (like Global `$$networks`) need either the loaded-subset marker
+	// or a real remote load. Any random hydrated row is not enough to prove completeness.
+	if (filters.length === 0) return false
+	const sourceFilter = filters.find((filter) => (
+		filter.operator === 'in'
+		&& filter.field.length === 1
+		&& String(filter.field[0]) === EntityMetaKey.Source
+	))
+	if (sourceFilter != null) {
+		return (
+			(
+				Array.isArray(sourceFilter.value) ?
+					sourceFilter.value
+				:
+					[sourceFilter.value]
+			)
+				.every((source) => (
+					[...collection.values()].some((row) => (
+						filters.every((filter) => (
+							filter === sourceFilter ?
+								subsetValuesEqual(valueAtPath(row, filter.field), source)
+							:
+								rowMatchesSubsetFilter(row, filter)
+						))
+					))
+				))
+		)
+	}
+	return [...collection.values()].some((row) => (
+		filters.every((filter) => rowMatchesSubsetFilter(row, filter))
+	))
+}
+
+const collectionSnapshotHasChanges = <
+	_Row extends object,
+	_Key extends string | number,
+>(
+	collection: PersistOnDemandSubsetCollection<_Row, _Key>,
+	loadSubsetOptions: LoadSubsetOptions,
+): boolean | undefined => {
+	const snapshotOpts = (
+		loadSubsetOptions.orderBy != null ?
+			{
+				where: loadSubsetOptions.where,
+				orderBy: loadSubsetOptions.orderBy,
+				...(
+					loadSubsetOptions.limit != null ?
+						{ limit: loadSubsetOptions.limit }
+					:
+						{}
+				),
+			}
+		:
+			{
+				where: loadSubsetOptions.where,
+			}
+	)
+	let localChanges: unknown
+	try {
+		localChanges = collection.currentStateAsChanges(snapshotOpts)
+	} catch {
+		return undefined
+	}
+	if (Array.isArray(localChanges) && localChanges.length > 0)
+		return true
+	if (
+		localChanges != null
+		&& (!Array.isArray(localChanges) || localChanges.length > 0)
+	)
+		return false
+	if (loadSubsetOptions.where == null)
+		return false
+
+	return [
+		{ where: loadSubsetOptions.where },
+		...(
+			loadSubsetOptions.orderBy != null ?
+				[
+					{
+						where: loadSubsetOptions.where,
+						orderBy: loadSubsetOptions.orderBy,
+					},
+				]
+			:
+				[]
+		),
+	]
+		.some((opts) => {
+			try {
+				const broader = collection.currentStateAsChanges(opts)
+				return Array.isArray(broader) && broader.length > 0
+			} catch {
+				return false
+			}
+		})
+}
+
+const persistOnDemandSubsets = <_Options>(options: _Options) => {
+	const outerSync = (options as _Options & {
+		sync: PersistOnDemandSubsetSync<object, string | number>
+	}).sync
+
+	return {
+		...options,
+		sync: {
+			...outerSync,
+			sync: (params: Parameters<typeof outerSync.sync>[0]) => {
+				const syncResult = outerSync.sync(params)
+
+				if (syncResult == null || typeof syncResult === 'function')
+					return syncResult
+
+				return {
+					...syncResult,
+					loadSubset: (loadSubsetOptions: LoadSubsetOptions) => {
+						const loadedKey = loadedSubsetMetadataKey(loadSubsetOptions)
+						if (collectionHasHydratedSubset(params.collection, loadSubsetOptions))
+							return true
+						if (params.metadata?.collection.get(loadedKey) === true)
+							return true
+
+						const markLoaded = () => {
+							if (params.begin == null || params.commit == null || params.metadata == null)
+								return
+							params.begin()
+							params.metadata.collection.set(loadedKey, true)
+							params.commit()
+						}
+						const loadRemoteAndMarkLoaded = () => {
+							const remote = syncResult.loadSubset?.(loadSubsetOptions)
+							if (remote != null && typeof remote === 'object' && 'then' in remote)
+								return remote.then(() => {
+									markLoaded()
+								})
+
+							markLoaded()
+							return remote ?? true
+						}
+
+						const hasSnapshotChanges = collectionSnapshotHasChanges(params.collection, loadSubsetOptions)
+						if (hasSnapshotChanges === undefined)
+							return loadRemoteAndMarkLoaded()
+						if (hasSnapshotChanges)
+							return true
+
+						return loadRemoteAndMarkLoaded()
+					},
+				}
+			},
+		},
+	} as _Options
+}
+
 const createEntityCollection = <
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
@@ -403,15 +599,6 @@ const createEntityCollection = <
 	queryClient: QueryClient
 	schemaVersion: number
 }) => {
-	let collectionRef: Collection<
-		EntityCollectionItem<_Schema, _EntityType>,
-		string | number,
-		EntityCollectionUtils<_Schema, _EntityType>,
-		never,
-		EntityCollectionItem<_Schema, _EntityType>
-	> | null = null
-	const queryHashesServedFromHydration = new Set<string>()
-
 	const collection = createCollection(
 		persistedCollectionOptions<
 			EntityCollectionItem<_Schema, _EntityType>,
@@ -419,7 +606,7 @@ const createEntityCollection = <
 			never,
 			EntityCollectionUtils<_Schema, _EntityType>
 		>({
-			...queryCollectionOptions({
+			...persistOnDemandSubsets(queryCollectionOptions({
 				queryKey: (loadSubsetOptions) => [
 					`EntityCollection:${entityType}`,
 					...(
@@ -445,9 +632,9 @@ const createEntityCollection = <
 				autoIndex: 'eager',
 				defaultIndexType: BasicIndex,
 
-				persistedGcTime: Number.POSITIVE_INFINITY,
+				persistedGcTime: collectionPersistedGcTime,
 
-				staleTime: 5 * 60 * 1000,
+				staleTime: collectionStaleTime,
 
 				queryFn: async (queryContext) => {
 					const subsetBase = parseLoadSubsetForQueryFn(queryContext.meta?.loadSubsetOptions)
@@ -488,61 +675,11 @@ const createEntityCollection = <
 									[clause.value]
 							))
 					)
-					const queryHash = JSON.stringify(queryContext.queryKey)
-
-					if (
-						!queryHashesServedFromHydration.has(queryHash)
-						&& collectionRef
-						&& collectionRef.size > 0
-					) {
-						queryHashesServedFromHydration.add(queryHash)
-
-						type EntityItem = EntityCollectionItem<_Schema, _EntityType>
-
-						const matchingRows = (
-							[...collectionRef.values()]
-								.filter((row) => (
-									(!sources.size || sources.has((row as EntityItem)[EntityMetaKey.Source]))
-									&& (!idKeyFilterValues.size || idKeyFilterValues.has((row as EntityItem)[EntityMetaKey.IdKey]))
-								))
-						) as EntityItem[]
-
-						if (
-							matchingRows.length > 0
-							&& (
-								!sources.size
-								|| !idKeyFilterValues.size
-								|| [...idKeyFilterValues].every((idKey) => (
-									[...sources].every((source) => (
-										matchingRows.some((row) => (
-											row[EntityMetaKey.IdKey] === idKey
-											&& row[EntityMetaKey.Source] === source
-										))
-									))
-								))
-							)
-						)
-							return matchingRows
-					}
 					const entityIds = (
 						[...idKeyFilterValues]
 							.map((value) => (
 								subsetFilterEntityId(value) as EntityId<_Schema, _EntityType>
 							))
-					)
-					entityCollectionLoadDebugByType.set(
-						String(entityType),
-						{
-							entityIds,
-							filters: subsetBase.filters.map((filter) => ({
-								field: filter.field.map((part) => String(part)),
-								operator: filter.operator,
-								value: filter.value,
-							})),
-							idKeyFilterValues: [...idKeyFilterValues],
-							resolverSources: entityResolvers.map((resolver) => resolver.source),
-							sources: [...sources],
-						},
 					)
 
 					return (
@@ -569,32 +706,19 @@ const createEntityCollection = <
 												},
 											)
 
-											return (
-												{
-													[EntityMetaKey.Id]: entityId,
-													[EntityMetaKey.IdKey]: stringify(entityId),
-													[EntityMetaKey.Source]: entityResolver.source,
-													[EntityMetaKey.Fields]: fields,
-													...(
-														fields != null && typeof fields === 'object' && !Array.isArray(fields) ?
-															fields
-														:
-															{}
-													),
-												} as EntityCollectionItem<_Schema, _EntityType>
-											)
+											return {
+												...(
+													fields != null && typeof fields === 'object' && !Array.isArray(fields) ?
+														fields
+													:
+														{}
+												),
+												[EntityMetaKey.Id]: entityId,
+												[EntityMetaKey.IdKey]: stringify(entityId),
+												[EntityMetaKey.Source]: entityResolver.source,
+												[EntityMetaKey.Fields]: fields,
+											}
 										}),
-								)
-								entityCollectionLoadDebugByType.set(
-									String(entityType),
-									{
-										...entityCollectionLoadDebugByType.get(String(entityType))!,
-										resolverStatuses: settled.map((result, index) => ({
-											reason: result.status === 'rejected' ? String(result.reason) : undefined,
-											source: resolvers[index]!.source,
-											status: result.status,
-										})),
-									},
 								)
 
 								return fulfilledOrThrow(
@@ -604,7 +728,7 @@ const createEntityCollection = <
 							}),
 						))
 							.flat()
-					)
+					) as EntityCollectionItem<_Schema, _EntityType>[]
 				},
 
 				getKey: (entityItem) => (
@@ -616,7 +740,7 @@ const createEntityCollection = <
 				),
 
 				queryClient,
-			}),
+			})),
 
 			id: `EntityCollection:${entityType}`,
 
@@ -624,8 +748,6 @@ const createEntityCollection = <
 			schemaVersion,
 		}),
 	)
-
-	collectionRef = collection
 
 	return collection
 }
@@ -657,7 +779,7 @@ const createEntityFieldCollection = <
 			never,
 			EntityFieldCollectionUtils<_Schema, _EntityType, _FieldDefinition['name']>
 		>({
-			...queryCollectionOptions({
+			...persistOnDemandSubsets(queryCollectionOptions({
 				queryKey: (loadSubsetOptions) => [
 					`EntityFieldCollection:${entityType}`,
 					fieldDefinition.name,
@@ -684,9 +806,9 @@ const createEntityFieldCollection = <
 				autoIndex: 'eager',
 				defaultIndexType: BasicIndex,
 
-				persistedGcTime: Number.POSITIVE_INFINITY,
+				persistedGcTime: collectionPersistedGcTime,
 
-				staleTime: 5 * 60 * 1000,
+				staleTime: collectionStaleTime,
 
 				queryFn: async (queryContext) => {
 					const subsetBase = parseLoadSubsetForQueryFn(queryContext.meta?.loadSubsetOptions)
@@ -712,7 +834,6 @@ const createEntityFieldCollection = <
 							) as Source[],
 						],
 					)
-
 					const parentIdKeyFilterValues = new Set(
 						filters
 							.filter((clause) => (
@@ -727,19 +848,6 @@ const createEntityFieldCollection = <
 								:
 									[clause.value]
 							))
-					)
-					entityFieldCollectionLoadDebugByName.set(
-						`${entityType}:${fieldDefinition.name}`,
-						{
-							filters: subsetBase.filters.map((filter) => ({
-								field: filter.field.map((part) => String(part)),
-								operator: filter.operator,
-								value: filter.value,
-							})),
-							parentIdKeyFilterValues: [...parentIdKeyFilterValues],
-							resolverSources: entityFieldResolvers.map((resolver) => resolver.source),
-							sources: [...sources],
-						},
 					)
 
 					const globalRootIdKey = stringify({})
@@ -817,20 +925,21 @@ const createEntityFieldCollection = <
 												>[]
 
 												return (
-													innerValues.map((innerValue) => {
-														const value = entityFieldCollectionValue(innerValue)
-
-														return {
-															[EntityMetaKey.ParentId]: parentEntityId,
-															[EntityMetaKey.ParentIdKey]: stringify(parentEntityId),
-															[EntityMetaKey.Source]: fieldResolver.source,
-															[EntityMetaKey.Value]: value,
-														} satisfies EntityFieldCollectionItem<
-															_Schema,
-															_EntityType,
-															_FieldDefinition['name']
-														>
-													})
+													innerValues.map((innerValue) => (
+														(row) => (
+															assertEntityFieldResolverResult(
+																String(entityType),
+																fieldDefinition,
+																row,
+															),
+															row
+														)
+													)({
+														[EntityMetaKey.ParentId]: parentEntityId,
+														[EntityMetaKey.ParentIdKey]: stringify(parentEntityId),
+														[EntityMetaKey.Source]: fieldResolver.source,
+														[EntityMetaKey.Value]: entityFieldCollectionValue(innerValue),
+													}))
 												)
 											}),
 									)
@@ -845,20 +954,13 @@ const createEntityFieldCollection = <
 							.flat()
 					)
 
-					entityFieldCollectionLoadDebugByName.set(
-						`${entityType}:${fieldDefinition.name}`,
-						{
-							...entityFieldCollectionLoadDebugByName.get(`${entityType}:${fieldDefinition.name}`)!,
-							rowCount: loadedRows.length,
-						},
-					)
 					return loadedRows
 				},
 
 				getKey: (entityFieldItem) => entityFieldCollectionItemKey(entityFieldItem),
 
 				queryClient,
-			}),
+			})),
 
 			id: `EntityFieldCollection:${entityType}:${fieldDefinition.name}`,
 

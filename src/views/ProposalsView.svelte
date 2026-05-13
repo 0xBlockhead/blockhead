@@ -2,30 +2,21 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import {
 		proposalCategoryById,
 		proposalRealmById,
-		proposalWireParts,
 	} from '$/constants/Proposal.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import type { Entity } from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -40,67 +31,73 @@
 		{
 			title?: string
 			open?: boolean
-			entityFieldReference: EntityFieldReference<typeof schema, typeof EntityType.Proposal>
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Proposal>
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
 			| 'entityType'
-			| 'getKey'
-			| 'getSortValue'
 			| 'items'
-			| 'query'
+			| 'body'
 		>
 	> = $props()
 
 
+	// State
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+
 	// Functions
-	const proposalFieldCollection = (reference: EntityFieldReference<typeof schema, EntityType.Proposal>) => (
-		reference.entityType === EntityType._Global ?
-			entityFieldCollections[EntityType._Global][reference.fieldName]
-		: reference.entityType === EntityType.ProposalKind ?
-			entityFieldCollections[EntityType.ProposalKind].$$proposals
-		: reference.entityType === EntityType.ProposalRealm ?
-			entityFieldCollections[EntityType.ProposalRealm].$$proposals
-		:
-			entityFieldCollections[EntityType.NetworkFork].$$proposals
+	const proposalKey = (row: { result: Entity<typeof schema, EntityType.Proposal> }) => (
+		stringify(row.result[EntityMetaKey.Id])
 	)
 
-	const proposalKey = (row: Entity<typeof schema, EntityType.Proposal>) => (
-		stringify(row[EntityMetaKey.Id])
+	const proposalSortValue = (row: { result: Entity<typeof schema, EntityType.Proposal> }) => (
+		row.result[EntityMetaKey.Id].number
 	)
 
-	const proposalSortValue = (row: Entity<typeof schema, EntityType.Proposal>) => (
-		proposalWireParts(
-			row[EntityMetaKey.Id],
-		)?.number ?? Number.POSITIVE_INFINITY
-	)
+	const fieldName = $derived(entityFieldReference.fieldName)
 
-
-	const proposalsQuery = useLiveQuery(
-		(queryBuilder) => {
-			const parentIdKey = stringify(entityFieldReference.entityId)
-			return (
-				queryBuilder
-					.from({
-						$$proposals: proposalFieldCollection(entityFieldReference)!,
-					})
-					.where(({ $$proposals }) => (
-						eq(
-							$$proposals[EntityMetaKey.ParentIdKey],
-							parentIdKey,
-						)
-					))
-					.select(({ $$proposals }) => (
-						{ value: $$proposals[EntityMetaKey.Value] }
-					))
-					.distinct()
-			)
+	const proposalsParent = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			$: [
+				Source.Constants_Internal,
+				Source.EthereumEips_Github,
+				Source.Ensips_Github,
+				Source.Caips_Github,
+			],
+			[fieldName]: {
+				$: [
+					Source.EthereumEips_Github,
+					Source.Ensips_Github,
+					Source.Caips_Github,
+				],
+				$limit: 2048,
+			},
 		},
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-		],
+	)
+
+	const proposals = derive(
+		proposalsParent,
+		(merged) => (
+			(
+				merged[fieldName as keyof typeof merged] as (
+					Entity<typeof schema, EntityType.Proposal>
+				)[]
+			)
+				.toSorted((first, second) => (
+					first[EntityMetaKey.Id].number
+					- second[EntityMetaKey.Id].number
+				))
+				.map((proposalRow) => ({
+					result: proposalRow,
+				}))
+		),
 	)
 
 
@@ -116,53 +113,29 @@
 	entityType={EntityType.Proposal}
 	{title}
 	bind:open
-	items={proposalsQuery.data?.map(({ value }) => value) ?? []}
 	getKey={proposalKey}
 	getSortValue={proposalSortValue}
 	layout={EntitiesListLayout.Carousel}
 	panelStyle="--carousel-basis: min(40ch, 88cqi); gap: 0.5em"
 	placeholderKeys={new SvelteSet<string | number>()}
-	query={{
-		data: proposalsQuery.data?.map(({ value }) => value) ?? [],
-		isLoading: proposalsQuery.isLoading,
-		isError: proposalsQuery.isError,
-		isReady: proposalsQuery.isReady,
-		error: proposalsQuery.error,
-		status: proposalsQuery.status,
-	}}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	resource={proposals}
 >
-	{#snippet Empty()}
-		<p data-text="muted">
-			No proposals to show yet.
-		</p>
-	{/snippet}
-
-	{#snippet Item({ item: row, isPlaceholder })}
-		{#if isPlaceholder}
-			<span data-placeholder>
-				…
-			</span>
-		{:else if row}
-			{@const proposalId = proposalWireParts(
-				row[EntityMetaKey.Id],
-			)}
-			{#if proposalId != null}
-				{@const proposalEntityId = proposalId}
-				<ProposalView
-					entityId={proposalEntityId}
-					href={resolve(
-						'/(explore)/(proposals)/proposals/[proposalRealmSlug=proposalRealmSlug]/(proposalRealm)/[proposalKindSlug=proposalKindSlug]/(proposalKind)/[proposalRef=proposalRef]',
-						{
-							proposalRealmSlug: proposalRealmById[proposalEntityId.realm].slug,
-							proposalKindSlug: proposalCategoryById[proposalEntityId.category].slug,
-							proposalRef: `${proposalCategoryById[proposalEntityId.category].slug}-${proposalEntityId.number}`,
-						},
-					)}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{/if}
+	{#snippet Item(props)}
+		{#if props.isPlaceholder === false}
+			{@const proposalEntityId = props.item.result[EntityMetaKey.Id]}
+			<ProposalView
+				entityId={proposalEntityId}
+				href={resolve(
+					'/(explore)/(proposals)/proposals/[proposalRealmSlug=proposalRealmSlug]/(proposalRealm)/[proposalKindSlug=proposalKindSlug]/(proposalKind)/[proposalRef=proposalRef]',
+					{
+						proposalRealmSlug: proposalRealmById[proposalEntityId.realm].slug,
+						proposalKindSlug: proposalCategoryById[proposalEntityId.category].slug,
+						proposalRef: `${proposalCategoryById[proposalEntityId.category].slug}-${proposalEntityId.number}`,
+					},
+				)}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
 		{/if}
 	{/snippet}
 </EntitiesList>

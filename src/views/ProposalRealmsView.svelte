@@ -2,26 +2,18 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { proposalRealmById } from '$/constants/Proposal.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import type { Entity } from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -36,55 +28,65 @@
 		{
 			title?: string
 			open?: boolean
-			entityFieldReference: EntityFieldReference<typeof schema, typeof EntityType.ProposalRealm>
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.ProposalRealm>
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
 			| 'entityType'
-			| 'getKey'
-			| 'getSortValue'
 			| 'items'
-			| 'query'
+			| 'body'
 		>
 	> = $props()
 
 
+	// State
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+
 	// Functions
-	const proposalRealmKey = (row: Entity<typeof schema, EntityType.ProposalRealm>) => (
-		stringify(row[EntityMetaKey.Id])
+	const proposalRealmKey = (row: { result: Entity<typeof schema, EntityType.ProposalRealm> }) => (
+		stringify(row.result[EntityMetaKey.Id])
 	)
 
+	const fieldName = entityFieldReference.fieldName
 
-	const proposalRealmsQuery = useLiveQuery(
-		(queryBuilder) => {
-			const parentIdKey = stringify(entityFieldReference.entityId)
-			return (
-				queryBuilder
-					.from({
-						$$proposalRealms: entityFieldCollections[entityFieldReference.entityType][entityFieldReference.fieldName]!,
-					})
-					.where(({ $$proposalRealms }) => (
-						eq(
-							$$proposalRealms[EntityMetaKey.ParentIdKey],
-							parentIdKey,
-						)
-					))
-					.select(({ $$proposalRealms }) => (
-						{ value: $$proposalRealms[EntityMetaKey.Value] }
-					))
-					.distinct()
-			)
+	const realmsParent = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			$: [
+				Source.Constants_Internal,
+			],
+			[fieldName]: {
+				$limit: 512,
+			},
 		},
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-		],
+	)
+
+	const proposalRealms = derive(
+		realmsParent,
+		(merged) => (
+			(
+				merged[fieldName as keyof typeof merged] as (
+					Entity<typeof schema, EntityType.ProposalRealm>
+				)[]
+			)
+				.toSorted((first, second) => (
+					stringify(first[EntityMetaKey.Id]).localeCompare(stringify(second[EntityMetaKey.Id]))
+				))
+				.map((realm) => ({
+					result: realm,
+				}))
+		),
 	)
 
 
 	// Components
-	import { default as EntitiesList } from '$/components/EntitiesList.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import ProposalKindsView from '$/views/ProposalKindsView.svelte'
 </script>
 
@@ -94,35 +96,16 @@
 	entityType={EntityType.ProposalRealm}
 	{title}
 	bind:open
-	items={proposalRealmsQuery.data?.map(({ value }) => value) ?? []}
 	getKey={proposalRealmKey}
 	getSortValue={proposalRealmKey}
 	layout={EntitiesListLayout.Carousel}
 	panelStyle="--carousel-basis: min(44ch, 92cqi); gap: 0.5em"
 	placeholderKeys={new SvelteSet<string | number>()}
-	query={{
-		data: proposalRealmsQuery.data?.map(({ value }) => value) ?? [],
-		isLoading: proposalRealmsQuery.isLoading,
-		isError: proposalRealmsQuery.isError,
-		isReady: proposalRealmsQuery.isReady,
-		error: proposalRealmsQuery.error,
-		status: proposalRealmsQuery.status,
-	}}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	resource={proposalRealms}
 >
-	{#snippet Empty()}
-		<p data-text="muted">
-			No proposal realms to show yet.
-		</p>
-	{/snippet}
-
-	{#snippet Item({ item: row, isPlaceholder })}
-		{#if isPlaceholder}
-			<span data-placeholder>
-				…
-			</span>
-		{:else if row}
-			{@const realmId = row[EntityMetaKey.Id]}
+	{#snippet Item(props)}
+		{#if props.isPlaceholder === false}
+			{@const realmId = props.item.result[EntityMetaKey.Id]}
 			<ProposalKindsView
 				collapsible={false}
 				layout={EntitiesListLayout.Carousel}

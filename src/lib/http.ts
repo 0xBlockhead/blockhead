@@ -54,6 +54,86 @@ const httpFetch = async (
 	:	fetch(url, options.init)
 )
 
+
+/** Pull `{ message }` / `{ error: { message } }` from JSON bodies — generic gateways often return `{ message: "Internal Error" }`. */
+export const jsonErrorHintFromResponse = async (
+	response: Response,
+): Promise<string | undefined> => {
+	const ct = response.headers.get('content-type') ?? ''
+	if (!ct.includes('application/json')) return undefined
+	let parsed: unknown
+	try {
+		parsed = await response.clone().json()
+	}
+	catch {
+		return undefined
+	}
+	if (
+		parsed != null
+		&& typeof parsed === 'object'
+		&& !Array.isArray(parsed)
+		&& 'message' in parsed
+		&& typeof (parsed as { message: unknown }).message === 'string'
+	) {
+		const trimmed = (parsed as { message: string }).message.trim()
+		return trimmed === '' ? undefined : trimmed
+	}
+	if (
+		parsed != null
+		&& typeof parsed === 'object'
+		&& !Array.isArray(parsed)
+		&& 'error' in parsed
+	) {
+		const inner = (parsed as { error: unknown }).error
+		if (
+			inner != null
+			&& typeof inner === 'object'
+			&& !Array.isArray(inner)
+			&& 'message' in inner
+			&& typeof (inner as { message: unknown }).message === 'string'
+		) {
+			const trimmed = (inner as { message: string }).message.trim()
+			return trimmed === '' ? undefined : trimmed
+		}
+	}
+	return undefined
+}
+
+
+export const fetchFailedMessage = async (
+	url: string,
+	response: Response,
+): Promise<string> => {
+	const base = `Fetch failed (${response.status} ${response.statusText}) for ${url}`
+	const hint = await jsonErrorHintFromResponse(response)
+	return hint ? `${base}: ${hint}` : base
+}
+
+
+export const throwIfHttpNotOk = async (
+	response: Response,
+	url: string,
+): Promise<void> => {
+	if (response.ok) return
+	throw new Error(await fetchFailedMessage(url, response))
+}
+
+
+/** Context-labelled failures (`CoinGecko …`) merged with JSON body hints when present. */
+export const throwHttpError = async (
+	contextLabel: string,
+	response: Response,
+): Promise<never> => {
+	const hint = await jsonErrorHintFromResponse(response)
+	throw new Error(
+		hint ?
+			`${contextLabel} (${response.status}): ${hint}`
+		:
+			`${contextLabel}: ${response.status} ${response.statusText}`,
+	)
+}
+
+
 /**
  * `GET` (or custom `init`) then `Response.text()` after `res.ok`.
  */
@@ -64,7 +144,7 @@ export const getText = async (
 	const response = await httpFetch(url, options)
 
 	if (!response.ok)
-		throw new Error(`Fetch failed (${response.status} ${response.statusText}) for ${url}`)
+		throw new Error(await fetchFailedMessage(url, response))
 
 	return response.text()
 }
@@ -80,7 +160,7 @@ export const getJson = async <T = JsonValue>(
 	const response = await httpFetch(url, options)
 
 	if (!response.ok)
-		throw new Error(`Fetch failed (${response.status} ${response.statusText}) for ${url}`)
+		throw new Error(await fetchFailedMessage(url, response))
 
 	return response.json<T>()
 }

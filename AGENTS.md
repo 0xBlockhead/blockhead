@@ -3,6 +3,8 @@
 - Reply in a concise style; avoid repetition or filler
 - Be DRY and declarative
 - Inline derived intermediate variables, especially if used once
+- Name variables, snippets, callback parameters, and arguments by what they are; never abbreviate identifiers.
+- Do not introduce new files or helper functions without proper justification, a detailed plan, and explicit permission
 
 ### Editing
 
@@ -129,6 +131,7 @@
 - Do not try to fix `Type instantiation is excessively deep and possibly infinite`
 - NO hardening, type assertions, `as`, `as unknown as` unless parsing unknown input (see **oxlint** below)
 - NO type narrowing functions operating on `any` or `unknown`
+- When refactoring, strip as many type assertions and annotations as you can while keeping things type safe. Prefer to reuse / derive from existing / package-provided types instead of duplicating.
 - **oxlint** (`pnpm run lint`; **Tasks**):
 	- `.oxlintrc.json` holds rules, `overrides`, and `ignorePatterns`
 	— When something fails lint, treat that file as the contract, and use this order of operations:
@@ -190,7 +193,7 @@
 				- `$bindable()`: indent default value if specified
 				- Snippets (`TitleCase` in destructure; types on props object):
 					- No args: `Snippet` — never `Snippet<[]>` or `Snippet<[{}]>`. `{@render Name()}`.
-					- Object arg: `Snippet<[{ … }]>` with ≥1 property; bundled state. Positional: `Snippet<[ a: A, b: B, … ]>`; separate values. `{@render}` arity, order, and object-vs-positional must match the type.
+					- Object arg: bundled state as `Snippet<[{ … }]>`; when every field is optional for callers, prefer `Snippet<[context?: { … }]>` with optional properties on the object so `{#snippet Name()}` is valid when the body ignores the bundle (see `$/components/EntityView.svelte` and `EntitySummary.svelte` patterns). Positional: `Snippet<[ a: A, b: B, … ]>`; separate values. `{@render}` arity, order, and object-vs-positional must match the type.
 					- Line breaks: for a given snippet, type and `{@render}` use the same shape — both multiline or both single-line. Multiline means one tuple member or object property per line, trailing commas, and a dedicated closing line for `]>` / `)}` / `)`. Same for `{#snippet …}` params. Multiline when there are 2+ tuple members, 2+ object fields, or 2+ render arguments.
 					```ts
 					let {
@@ -352,7 +355,6 @@
 ### Svelte components
 
 - Display truncation: use `<TruncatedValue>` / `<Address>` (manual truncation is only OK for non-display logic)
-
 
 ---
 
@@ -518,15 +520,35 @@ export const schemaSource = {
 
 Resolvers are the bridge between `sources/` and the TanStack DB collections.
 
-- Each provider module exports `default { entityResolvers, entityFieldResolvers }`
-- Use `defineEntityResolver` / `defineEntityFieldResolver` from `$/resolvers/$resolvers.ts`
-- Register new modules in `$/resolvers/index.ts` (each default export includes `source: Source`; the list is filtered by `enabledSources` from `$/sources/index.ts`)
-- `resolve(...)` should return schema-shaped field data, not raw wire payloads
-- In resolvers, do not top-level import `$/sources/**/queries.ts` or `$/sources/**/constants.ts`; always use inline `await import('$/sources/**/queries.ts')` / `await import('$/sources/**/constants.ts')` inside each `resolve(...)`.
-- `ResolverLoadSubset` (from `$/resolvers/$resolvers.ts`) includes `publicEnv`: the per-source slice from `resolverPublicEnvBySource` (or full `resolverPublicEnv`). `$/collections/$collections.ts` passes it on every `resolve()` call; prefer reading API keys from `context.publicEnv` instead of `import.meta.env` so behavior matches gating.
-- Thread `context` into source queries when the upstream API supports filtering, sorting, or limits (`filters` / `sorts` / `limit`)
-- Entity **field** collections apply the same optional `Source` filter as entity collections when the live query includes a `Source` `in` clause, so field resolvers for disabled or filtered-out sources are not invoked
-- Optional **`resolveLive`** on an **`EntityFieldResolver`** (see `ResolveLiveContext` in `$/resolvers/$resolvers.ts`): push-driven refresh (WebSockets, streams). Keep **`resolve`** as the snapshot implementation; **`resolveLive`** typically calls **`invalidateEntityFieldQueries`** from `$/lib/db/resolveLive.svelte.ts` so the existing field-collection `queryFn` re-runs. **`mountEntityResolveLive`** in `$/lib/db/resolveLive.svelte.ts` mounts entity and entity-field live resolvers from `$effect`; **`startEntityFieldResolveLiveForParent`** discovers field hooks for a parent id + field list. One resolver may invalidate sibling fields (e.g. Voltaire `Network` `blockHeight` `resolveLive` also refreshes `$$blocks` and `$$transactions`).
+- Module shape:
+	- Use `defineEntityResolver` / `defineEntityFieldResolver` from `$/resolvers/$resolvers.ts`.
+	- Each provider module exports only `default { source, entityResolvers, entityFieldResolvers }`; do not export individual resolvers for other modules to call.
+	- Register new modules in `$/resolvers/index.ts`; each default export includes `source: Source`, and the registry filters modules by `enabledSources` from `$/sources/index.ts`.
+- Source boundary:
+	- Put all `fetch` / HTTP / provider transport logic under `src/sources/**`. Resolvers call source query functions; they do not fetch external URLs directly.
+	- In resolvers, do not top-level import `$/sources/**/queries.ts` or `$/sources/**/constants.ts`; load them with inline `await import(...)` inside each `resolve(...)`.
+	- `ResolverLoadSubset` (from `$/resolvers/$resolvers.ts`) includes `publicEnv`, the per-source slice from `resolverPublicEnvBySource` or full `resolverPublicEnv`. `$/collections/$collections.ts` passes it on every `resolve()` call; prefer `context.publicEnv` over `import.meta.env` so behavior matches source gating.
+	- Thread `context` into source queries when the upstream API supports filtering, sorting, or limits (`filters` / `sorts` / `limit`).
+- Resolver boundaries:
+	- `resolve(...)` returns schema-shaped field data, not raw wire payloads.
+	- Keep resolver modules shaped around resolver entries, not shared mapper layers. Put source-to-schema mapping inline in the relevant `resolve(...)` body unless a helper is clearly justified and explicitly approved.
+	- One resolver should make one primary upstream source request whenever feasible.
+	- Do not create resolver waterfalls. If a second request enriches only a specific field, move that work to a field resolver or the owning `sources/**/queries.ts` function.
+	- Do not call another resolver's `resolve(...)`. If two resolvers need the same provider data, both should call the appropriate source query, or the shared transport logic belongs in `src/sources/**`.
+- Entity vs field resolvers:
+	- Entity resolvers own full entity mapping.
+	- Entity field resolvers that return many entities should normally return entity IDs / references, not fully mapped child entities.
+	- Use field resolvers for truly field-scoped data only; avoid repeating identical endpoint calls across many fields for one entity.
+	- Entity **field** collections apply the same optional `Source` filter as entity collections when the live query includes a `Source` `in` clause, so field resolvers for disabled or filtered-out sources are not invoked.
+- Failure behavior:
+	- Do not keep placeholder resolvers that return empty `{}` / `[]`; either implement supported behavior or throw early with a clear unsupported predicate/source message.
+	- When support is predicate-scoped (chain, variant, id shape, realm/category), validate and throw as early as possible before making extra requests.
+- Live resolvers:
+	- Optional **`resolveLive`** on an **`EntityFieldResolver`** (see `ResolveLiveContext` in `$/resolvers/$resolvers.ts`) handles push-driven refresh from WebSockets or streams.
+	- Keep **`resolve`** as the snapshot implementation.
+	- **`resolveLive`** typically calls **`invalidateEntityFieldQueries`** from `$/lib/db/resolveLive.svelte.ts` so the existing field-collection `queryFn` re-runs.
+	- **`mountEntityResolveLive`** in `$/lib/db/resolveLive.svelte.ts` mounts entity and entity-field live resolvers from `$effect`; **`startEntityFieldResolveLiveForParent`** discovers field hooks for a parent id + field list.
+	- One live resolver may invalidate sibling fields, such as Voltaire `Network` `blockHeight` `resolveLive` refreshing `$$blocks` and `$$transactions`.
 
 
 ## Adding new Sources / Providers
@@ -555,11 +577,46 @@ Current data flow:
 
 Most live queries live in `.svelte` views, but there is also existing shared query state in `$/collections/$queries.svelte.ts`. Follow the nearest existing pattern instead of introducing a new abstraction layer just to satisfy a generic rule.
 
+### TanStack DB OPFS persistence
+
+`$/collections/$collections.ts` composes TanStack DB in this order: `createCollection(...)` → `persistedCollectionOptions(...)` → `queryCollectionOptions(...)`, with the local `persistOnDemandSubsets(...)` wrapper around the query collection options.
+
+Built-in TanStack behavior:
+
+- `queryCollectionOptions({ syncMode: 'on-demand' })` turns each live-query subset into a TanStack Query observer and gives the query function `meta.loadSubsetOptions`.
+- `persistedCollectionOptions(...)` hydrates matching rows from OPFS before delegating to the upstream on-demand loader.
+- TanStack owns query keys, stale/cache state, row persistence, row ownership metadata for non-empty query results, collection metadata persistence, and OPFS hydration.
+- `persistedGcTime: Number.POSITIVE_INFINITY` and `staleTime: Number.POSITIVE_INFINITY` mean persisted rows and query results should not expire during normal app use.
+
+Local behavior in `persistOnDemandSubsets(...)`:
+
+- TanStack’s persisted wrapper still calls the upstream on-demand loader after OPFS hydration. In this app, that would re-run resolvers and repeat catalog HTTP requests after reload unless we short-circuit it.
+- The wrapper returns `true` before the upstream loader when the OPFS-hydrated in-memory collection already has rows matching the requested `eq` / `in` subset filters.
+- For successful empty subsets, the wrapper stores a collection metadata marker keyed by the parsed filters/sorts/limit (`blockhead:loaded-subset:...`). This is required because row ownership cannot represent “this subset loaded and returned zero rows.”
+- If neither hydrated rows nor the loaded-subset marker satisfy the request, the wrapper delegates to TanStack Query’s upstream `loadSubset(...)`; after it succeeds, the wrapper marks that subset as loaded.
+- Keep the wrapper typed from package-provided TanStack types where possible, especially `SyncConfig`, `LoadSubsetOptions`, and `ReturnType<typeof parseLoadSubsetOptions>`. Avoid duplicating sync param/result shapes locally unless package types cannot express the boundary.
+- Do not remove this wrapper or replace it with route/view-specific guards. The purpose is to preserve TanStack’s built-in on-demand hydration while preventing unnecessary resolver/network calls for already persisted subsets across all views.
+
+Verification:
+
+- Use `tests/e2e/tanstack-db-persistence.e2e.ts` for real-request OPFS persistence checks. It clears OPFS from a same-origin blank page, cold-loads discovered views, records real Chainlist / EthereumLists catalog requests, reloads with those catalog URLs blocked, and fails if warm reload tries to request them again.
+- Real-network suites may need provider-specific noise filtering for unrelated upstream 400/404/422/fetch failures, but must not filter Chainlist / EthereumLists catalog requests during the warm reload assertion.
+- Current focused status from the latest type-cleanup pass: `/network/1` passes the real OPFS persistence test, while `/networks` still repeats Chainlist / EthereumLists warm-reload requests and needs follow-up before claiming all-view persistence is fixed.
+
 
 ---
 
+## Entity Views (`src/views/*.svelte`)
 
-## SvelteKit routes and views (`src/routes/**`)
+- Entity pages (`EntityView`, resource-backed views): Keep user-facing depth that still matters from older layouts (topology, execution RPCs/clients, explorers, related networks, forks, faucets, head block/epoch where applicable) while staying aligned with current schema field names (for example `$$blocks`, not stale or invented keys).
+- Section chrome: Render a block only when it has meaningful payload; gate on the smallest truthful checks (`length`, `undefined`, domain-backed flags). Avoid technical placeholder copy whose only role is to fill space.
+- Summary vs details: If a row already appears in the summary `<dl>`, do not repeat the same row in the details `<dl>`.
+- `useEntity` selection: Prefer hierarchical resolver/source inheritance (a concise top-level `$` source list; nested field entries use `{}` where children inherit) instead of repeating the same `$` on every nested property when the model allows it. Prefer inlining short `$derived` values and colocating `{#if}` conditions beside the markup they guard over one shared visibility object unless branches genuinely share the same decision.
+- Title / media: When the loaded entity exposes artwork (for example `$icon`), show it in the title row using the existing `Icon` snippet plus shared icon components (`IconComponent`, etc.), matching patterns from other entity views.
+- `EntityView` / `EntitySummary` snippet contracts: For bundled context (`Content`, `Details`, summary `children`), use an optional first tuple parameter with optional object fields (for example `Snippet<[context?: { title?: string, href?: string }]>` and `Snippet<[context?: { open?: boolean }]>`). Call sites that ignore the bundle may use `{#snippet Content()}` / `{#snippet Details()}` instead of destructuring unused bindings.
+
+
+## SvelteKit routes and views (`src/routes/**/*`)
 
 `src/views/*.svelte` / `src/routes/**/*.svelte`:
 - NO TYPESCRIPT TYPE ASSERTIONS. EVER.

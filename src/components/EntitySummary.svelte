@@ -33,14 +33,14 @@
 		Heading?: Snippet
 		Id?: Snippet
 		HeadingAfter?: Snippet
-		children?: Snippet<[{
-			title: string
+		children?: Snippet<[context?: {
+			title?: string
 			href?: string
 		}]>
 	} = $props()
 
 	const title = $derived(
-		_title ?? entityDefinitionByType[entityType].label
+		_title ?? entityDefinitionByType[entityType].label,
 	)
 
 
@@ -61,7 +61,7 @@
 <header
 	class="entity-summary"
 	data-row-item="flexible"
-	data-row="wrap gap-4"
+	data-row="wrap gap-2"
 	style:view-transition-name={`EntitySummary-${stringify(entityId)}`}
 >
 	{#if Icon}

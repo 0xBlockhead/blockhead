@@ -4,6 +4,7 @@
  * @see https://docs.llama.fi/pro-api
  */
 
+import { throwIfHttpNotOk } from '$/lib/http.ts'
 import { proBaseUrl } from '$/sources/Defillama/Rest/constants.ts'
 import { getCurrentPrices as getCurrentPricesOpenApi } from '$/sources/Defillama/OpenApi/queries.ts'
 import type { DefiLlamaCurrentPricesResponse } from '$/sources/Defillama/Rest/types.ts'
@@ -47,6 +48,6 @@ export const getProCurrentPrices = async ({
 	)
 	if (searchWidthOption != null) url.searchParams.set('searchWidth', searchWidthOption)
 	const res = await fetch(url)
-	if (!res.ok) throw new Error(`DefiLlama Pro API error: ${res.status}`)
+	await throwIfHttpNotOk(res, url.href)
 	return res.json<DefiLlamaCurrentPricesResponse>()
 }

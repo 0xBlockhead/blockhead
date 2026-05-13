@@ -4,7 +4,7 @@
 
 
 	// Props
-	let { content = '' }: { content: string } = $props()
+	let { content = null }: { content?: string | null } = $props()
 </script>
 
 

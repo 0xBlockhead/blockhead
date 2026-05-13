@@ -1,33 +1,33 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import OrderedList from '$/components/OrderedList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
 
 
 	// Props
 	let {
 		entityFieldReference,
-
 		title = 'Slots',
-
 		open = $bindable(true),
-
 		...entitiesListProps
 	}: WithRest<
 		{
@@ -42,95 +42,36 @@
 	> = $props()
 
 
-	const parentIdKey = $derived(
-		stringify(entityFieldReference.entityId),
-	)
+	// State
+	import { stringify } from 'devalue'
 
-	const chainId = $derived(
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	const beaconParent = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
 		entityFieldReference.entityType === EntityType.Network ?
-			entityFieldReference.entityId.chainId
+			({
+				blockHeight: { $: [Source.Voltaire_JsonRpc] },
+				$$beaconSlots: { $: [Source.Beacon_Rest] },
+			})
 		:
-			entityFieldReference.entityId.$network.chainId,
+			({
+				$$beaconSlots: { $: [Source.Beacon_Rest] },
+			}),
 	)
 
-	const blockHeightQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ blockHeight: entityFieldCollections[EntityType.Network].blockHeight })
-				.where(({ blockHeight }) => (
-					eq(
-						blockHeight[EntityMetaKey.ParentIdKey],
-						parentIdKey,
-					)
+	const slots = derive(
+		beaconParent,
+		(merged): Entity<typeof schema, EntityType.BeaconSlot>[] => (
+			(merged.$$beaconSlots ?? [])
+				.toSorted((a, b) => (
+					b[EntityMetaKey.Id].slot - a[EntityMetaKey.Id].slot
 				))
-				.where(({ blockHeight }) => (
-					eq(
-						blockHeight[EntityMetaKey.Source],
-						Source.Voltaire_JsonRpc,
-					)
-				))
-				.select(({ blockHeight }) => ({
-					height: blockHeight[EntityMetaKey.Value],
-				}))
-				.findOne()
+				.slice(0, 32)
 		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-			() => parentIdKey,
-		],
 	)
-
-	const beaconSlotsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					$$beaconSlots: (
-						entityFieldReference.entityType === EntityType.BeaconEpoch ?
-							entityFieldCollections[EntityType.BeaconEpoch]['$$beaconSlots']!
-						:
-							entityFieldCollections[EntityType.Network]['$$beaconSlots']!
-					),
-				})
-				.where(({ $$beaconSlots }) => (
-					eq(
-						$$beaconSlots[EntityMetaKey.ParentIdKey],
-						parentIdKey,
-					)
-				))
-				.where(({ $$beaconSlots }) => (
-					eq(
-						$$beaconSlots[EntityMetaKey.Source],
-						Source.Beacon_Rest,
-					)
-				))
-				.orderBy(({ $$beaconSlots }) => (
-					$$beaconSlots[EntityMetaKey.Value][EntityMetaKey.IdKey]
-				), 'desc')
-				.limit(32)
-				.select(({ $$beaconSlots }) => (
-					{ value: $$beaconSlots[EntityMetaKey.Value] }
-				))
-				.distinct()
-		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-			() => parentIdKey,
-			() => blockHeightQuery.data?.height,
-		],
-	)
-
-
-	// Components
-	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import OrderedList from '$/components/OrderedList.svelte'
-	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
 </script>
 
 
@@ -141,44 +82,51 @@
 	{...entitiesListProps}
 >
 	{#snippet body()}
-		<QueryBoundary
-			placeholderText="Loading slots…"
-			query={beaconSlotsQuery}
-		>
-			<OrderedList
-				items={beaconSlotsQuery.data?.map(({ value }) => value) ?? []}
-				getKey={(row) => stringify(row[EntityMetaKey.Id])}
-				getSortKey={(row) => row[EntityMetaKey.Id].slot}
-				placeholderRanges={[]}
-				orientation={ListOrientation.Column}
+		{#key stringify(entityFieldReference.entityId)}
+			<ResourceBoundary
+				resource={slots}
+				placeholderText="Loading slots…"
 			>
-				{#snippet Empty()}{/snippet}
+				{#snippet children(loaded)}
+					<OrderedList
+						items={loaded}
+						getKey={(slot) => stringify(slot[EntityMetaKey.Id])}
+						getSortKey={(slot) => slot[EntityMetaKey.Id].slot}
+						placeholderRanges={[]}
+						orientation={ListOrientation.Column}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No recent slots for this network yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item: row, isPlaceholder })}
-					{#if isPlaceholder}
-						<span data-placeholder>
-							…
-						</span>
-					{:else if row}
-						<BeaconSlotView
-							entityId={row[EntityMetaKey.Id]}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(beacon-slots)/slot/[slotNumber]',
-								{
-									networkId: String(
-										row[EntityMetaKey.Id].$network.chainId,
-									),
-									slotNumber: String(
-										row[EntityMetaKey.Id].slot,
-									),
-								},
-							)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+						{#snippet Item({ item: slot, isPlaceholder })}
+							{#if isPlaceholder === false}
+								<BeaconSlotView
+									entityId={slot[EntityMetaKey.Id]}
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(beacon-slots)/slot/[slotNumber]',
+										{
+											networkId: String(
+												entityFieldReference.entityType === EntityType.Network ?
+													entityFieldReference.entityId.chainId
+												:
+													entityFieldReference.entityId.$network.chainId,
+											),
+											slotNumber: String(
+												slot[EntityMetaKey.Id].slot,
+											),
+										},
+									)}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
+							{/if}
+						{/snippet}
+					</OrderedList>
 				{/snippet}
-			</OrderedList>
-		</QueryBoundary>
+			</ResourceBoundary>
+		{/key}
 	{/snippet}
 </EntitiesList>

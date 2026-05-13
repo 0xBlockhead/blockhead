@@ -1,10 +1,34 @@
 <script lang="ts">
 	// Types/constants
 	import type { NavigationItem } from '$/routes/NavigationItem.ts'
+	import type { Snippet } from 'svelte'
 
 
 	// Context
 	import { preloadData } from '$app/navigation'
+
+
+	// State
+	import { SvelteMap } from 'svelte/reactivity'
+
+
+	// Components
+	import Icon from '$/components/Icon.svelte'
+	import SearchableText from '$/components/SearchableText.svelte'
+	import Tree from '$/components/Tree.svelte'
+	import ActorIdentityRow from '$/views/ActorIdentityRow.svelte'
+
+
+	// Props
+	let {
+		items,
+		currentPathname,
+		LabelSnippet,
+	}: {
+		items: NavigationItem[]
+		currentPathname?: string
+		LabelSnippet?: Snippet<[{ node: NavigationItem }]>
+	} = $props()
 
 
 	// Functions
@@ -17,37 +41,19 @@
 
 
 	// State
-	import type { Snippet } from 'svelte'
-	import { SvelteMap } from 'svelte/reactivity'
-
-	let {
-		items,
-		currentPathname,
-		LabelSnippet,
-	}: {
-		items: NavigationItem[]
-		currentPathname?: string
-		LabelSnippet?: Snippet<[{ node: NavigationItem }]>
-	} = $props()
-
 	let searchValue = $state(
-		''
+		'',
 	)
 
 	let treeOpenState = $state(
-		new SvelteMap<string, boolean>()
-	)
-
-	const searchQuery = $derived(
-		searchValue.trim().toLowerCase()
+		new SvelteMap<string, boolean>(),
 	)
 
 
-	// Components
-	import Icon from '$/components/Icon.svelte'
-	import SearchableText from '$/components/SearchableText.svelte'
-	import Tree from '$/components/Tree.svelte'
-	import Address, { AddressFormat } from '$/views/Address.svelte'
+	// (Derived)
+	const searchFilter = $derived(
+		searchValue.trim().toLowerCase(),
+	)
 </script>
 
 
@@ -63,7 +69,7 @@
 		{@attach (element) => {
 			const abortController = new AbortController()
 
-			let lastFocusedElement: HTMLElement | undefined = $state()
+			let lastFocusedElement: HTMLElement | undefined
 
 			globalThis.addEventListener(
 				'keydown',
@@ -112,8 +118,8 @@
 			treeOpenState.set(item.id, open)
 		}}
 		getIsHidden={(item, getIsHidden) => (
-			!!searchQuery
-			&& !item.title.toLowerCase().includes(searchQuery)
+			!!searchFilter
+			&& !item.title.toLowerCase().includes(searchFilter)
 			&& ((item.children ?? item.allChildren)?.every((child) => getIsHidden(child, getIsHidden)) ?? true)
 		)}
 		listTag="menu"
@@ -123,16 +129,17 @@
 	>
 		{#snippet Content({ node })}
 			{#if node.href}
+				{@const navHref = node.href}
 				<a
-					href={node.href}
+					href={navHref}
 					data-row="start"
 					aria-current={currentPathname === node.href ? 'page' : undefined}
 					onmouseenter={() => {
-						if (node.href && !node.href.startsWith('http')) {
-							preloadData(node.href)
+						if (navHref && !navHref.startsWith('http')) {
+							preloadData(navHref)
 						}
 					}}
-					{...node.href.startsWith('http') && {
+					{...navHref.startsWith('http') && {
 						target: '_blank',
 						rel: 'noopener noreferrer',
 					}}
@@ -145,16 +152,17 @@
 							{@render LabelSnippet({ node })}
 						{:else}
 							{#if node.address}
-								<Address
-									actorId={node.address.network ?
-										{ $network: node.address.network, address: node.address.address }
-									: undefined}
-									network={node.address.network}
-									address={node.address.address}
-									format={AddressFormat.MiddleTruncated}
-									isLinked={false}
-									showAvatar={true}
-								/>
+								{#if node.address.network}
+									<span data-row="inline wrap align-center gap-2">
+										<ActorIdentityRow entityId={{ address: node.address.address }} />
+
+										<small data-text="muted">
+											 · {node.address.network.chainId}
+										</small>
+									</span>
+								{:else}
+									<ActorIdentityRow entityId={{ address: node.address.address }} />
+								{/if}
 							{:else if node.icon}
 								<Icon
 									{...navIconProps(node.icon)}
@@ -165,7 +173,7 @@
 							{#if !node.address}
 								<SearchableText
 									text={node.title}
-									query={searchQuery}
+									query={searchFilter}
 								/>
 							{/if}
 						{/if}
@@ -209,16 +217,17 @@
 							{@render LabelSnippet({ node })}
 						{:else}
 							{#if node.address}
-								<Address
-									actorId={node.address.network ?
-										{ $network: node.address.network, address: node.address.address }
-									: undefined}
-									network={node.address.network}
-									address={node.address.address}
-									format={AddressFormat.MiddleTruncated}
-									isLinked={false}
-									showAvatar={true}
-								/>
+								{#if node.address.network}
+									<span data-row="inline wrap align-center gap-2">
+										<ActorIdentityRow entityId={{ address: node.address.address }} />
+
+										<small data-text="muted">
+											 · {node.address.network.chainId}
+										</small>
+									</span>
+								{:else}
+									<ActorIdentityRow entityId={{ address: node.address.address }} />
+								{/if}
 							{:else if node.icon}
 								<Icon
 									{...navIconProps(node.icon)}
@@ -229,7 +238,7 @@
 							{#if !node.address}
 								<SearchableText
 									text={node.title}
-									query={searchQuery}
+									query={searchFilter}
 								/>
 							{/if}
 						{/if}

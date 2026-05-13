@@ -1,6 +1,7 @@
 import {
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -21,38 +22,41 @@ export default {
 					reference: entityId.reference,
 					contentPath: entityId.contentPath,
 				})
-				const mediaEntity = (
+				const mediaEntity = ((
+					type,
+				) => (
 					browseResult.displayType === 'image'
 					|| browseResult.displayType === 'video'
 					|| browseResult.displayType === 'audio' ?
-						{
-							[EntityMetaKey.Id]: {
-								url: browseResult.gatewayUrl,
-							},
-							type: (
-								browseResult.displayType === 'image' ?
-									MediaType.Image
-								: browseResult.displayType === 'video' ?
-									MediaType.Video
-								:
-									MediaType.Audio
-							),
-							$original: {
-								[EntityMetaKey.Id]: {
-									url: browseResult.gatewayUrl,
-								},
-								...(browseResult.contentType != null ?
-									{ mimeType: browseResult.contentType }
-								:
-									{}),
-								...(browseResult.contentLength != null ?
-									{ size: browseResult.contentLength }
-								:
-									{}),
-							},
-						}
+						((media) => (
+							media == null ?
+								undefined
+							:	{
+									...media,
+									$original: {
+										[EntityMetaKey.Id]: {
+											url: browseResult.gatewayUrl,
+										},
+										...(browseResult.contentType != null ?
+											{ mimeType: browseResult.contentType }
+										:
+											{}),
+										...(browseResult.contentLength != null ?
+											{ size: browseResult.contentLength }
+										:
+											{}),
+									},
+								}
+						))(mediaFromUrl(browseResult.gatewayUrl, type))
 					:
 						undefined
+				))(
+					browseResult.displayType === 'image' ?
+						MediaType.Image
+					: browseResult.displayType === 'video' ?
+						MediaType.Video
+					:
+						MediaType.Audio,
 				)
 
 				return {

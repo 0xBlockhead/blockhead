@@ -57,34 +57,6 @@ export default {
 			defaultSources: [Source.Constants_Internal],
 		},
 		{
-			name: '$$proposalsEips',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.Proposal,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.EthereumEips_Github],
-		},
-		{
-			name: '$$proposalsErc',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.Proposal,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.EthereumEips_Github],
-		},
-		{
-			name: '$$proposalsEnsip',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.Proposal,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Ensips_Github],
-		},
-		{
-			name: '$$proposalsCaips',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.Proposal,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Caips_Github],
-		},
-		{
 			name: '$$coins',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Coin,
@@ -178,7 +150,7 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Vault,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Constants_Internal],
+			defaultSources: [Source.Dexscreener_OpenApi],
 		},
 		{
 			name: '$$blockheadSources',
@@ -244,13 +216,6 @@ export default {
 			defaultSources: [Source.Local_Internal],
 		},
 		{
-			name: '$$farcasterUsers',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.FarcasterUser,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Neynar_Rest, Source.Snapchain_Rest],
-		},
-		{
 			name: '$$stateChannels',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.StateChannel,
@@ -269,7 +234,7 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.LiquidityPool,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Constants_Internal],
+			defaultSources: [Source.Dexscreener_OpenApi],
 		},
 		{
 			name: '$$blockheadSharedAddresses',

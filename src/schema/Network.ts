@@ -10,19 +10,20 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const executionEndpointField = type({
-	url: 'string',
+	url: UrlString,
 	serviceProvider: type.valueOf(ExecutionRpcProvider),
 	transportType: type.valueOf(TransportType),
 })
 
 const blockExplorerField = type({
-	origin: 'string',
+	origin: UrlString,
 	'name?': 'string',
 	'standard?': 'string',
-	'icon?': 'string',
+	'icon?': UrlString,
 })
 
 const nativeCurrencyField = type({
@@ -34,7 +35,7 @@ const nativeCurrencyField = type({
 })
 
 const networkParentLayerField = type({
-	bridgeUrls: type('string').array(),
+	bridgeUrls: UrlString.array(),
 	parentChainCaip: 'string',
 	parentChainId: 'number',
 	relationshipType: 'string',
@@ -125,30 +126,30 @@ export default {
 			],
 		},
 		{
-			name: 'childLayerChainIds',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.Many,
+			name: '$$childNetworks',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
 			],
 		},
 		{
-			name: 'correspondingChainIds',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.Many,
+			name: '$$correspondingNetworks',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
 			],
 		},
 		{
-			name: 'siblingShardChainIds',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.Many,
+			name: '$$siblingShardNetworks',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
@@ -187,7 +188,7 @@ export default {
 		{
 			name: 'faucets',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.Chainlist_Rest,
@@ -213,16 +214,6 @@ export default {
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
 				Source.Lifi_Rest,
-			],
-		},
-		{
-			name: '$$childNetworks',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.Network,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
 			],
 		},
 		{

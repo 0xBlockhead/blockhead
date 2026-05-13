@@ -1,80 +1,19 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
-	const entityId = {
-		scope: 'AtprotoNetwork' as const,
-	}
-
-	const exampleDid = 'did:plc:z72i7hdynmk6r22z27h6tvur' as const
-	const examplePostUri = 'at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3la6vijfoie2r' as const
-
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
-
-	const networkIdKey = stringify(entityId)
-
-	const networkQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.AtprotoNetwork] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
-	)
-
-	const actorsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.AtprotoNetwork]['$$atprotoActors'] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
-	)
-
-	const postsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.AtprotoNetwork]['$$atprotoPosts'] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
-	)
-
-	const networkFields = $derived.by(() => {
-		const bag = networkQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		return bag != null && (typeof bag === 'object' && bag !== null && !Array.isArray(bag)) ? bag : null
-	})
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Components
@@ -84,7 +23,38 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+
+
+	const entityId = (
+		{
+			scope: 'AtprotoNetwork' as const,
+		} satisfies EntityId<typeof schema, EntityType.AtprotoNetwork>
+	)
+
+	const exampleDid = (
+		'did:plc:z72i7hdynmk6r22z27h6tvur' as const
+	)
+
+	const examplePostUri = (
+		'at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3la6vijfoie2r' as const
+	)
+
+
+	const networkIdKey = stringify(entityId)
+
+	const atprotoNetwork = useEntity(
+		EntityType.AtprotoNetwork,
+		entityId,
+		{
+			$: [Source.Constants_Internal],
+			protocolName: {},
+			homeUrl: {},
+			docsUrl: {},
+			$$atprotoActors: {},
+			$$atprotoPosts: {},
+		},
+	)
 </script>
 
 
@@ -95,21 +65,25 @@
 	open={true}
 	title="AT Protocol"
 >
-	{#snippet Content()}
-		<dl>
-			<div>
-				<dt>Scope</dt>
-				<dd>{entityId.scope}</dd>
-			</div>
-			<div>
-				<dt>Actors</dt>
-				<dd>{String(actorsQuery.data?.length ?? 0)}</dd>
-			</div>
-			<div>
-				<dt>Posts</dt>
-				<dd>{String(postsQuery.data?.length ?? 0)}</dd>
-			</div>
-		</dl>
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary resource={atprotoNetwork}>
+			{#snippet children(n)}
+				<dl>
+					<div>
+						<dt>Scope</dt>
+						<dd>{entityId.scope}</dd>
+					</div>
+					<div>
+						<dt>Actors</dt>
+						<dd>{String(n.$$atprotoActors.length)}</dd>
+					</div>
+					<div>
+						<dt>Posts</dt>
+						<dd>{String(n.$$atprotoPosts.length)}</dd>
+					</div>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -119,36 +93,34 @@
 			entityType={EntityType.AtprotoNetwork}
 			{entityId}
 		>
-			<QueryBoundary
-				query={networkQuery}
-			>
-				{#snippet children(_rows)}
+			<ResourceBoundary resource={atprotoNetwork}>
+				{#snippet children(n)}
 					<dl>
 						<div>
 							<dt>Protocol name</dt>
-							<dd>{String(networkFields?.protocolName ?? 'AT Protocol')}</dd>
+							<dd>{n.protocolName ?? 'AT Protocol'}</dd>
 						</div>
-						<div>
-							<dt>Home</dt>
-							<dd>
-								<a href={String(networkFields?.homeUrl ?? '#')}>
-									{String(networkFields?.homeUrl ?? '—')}
-								</a>
-							</dd>
-						</div>
-						{#if typeof networkFields?.docsUrl === 'string' && networkFields.docsUrl.length}
+						{#if n.homeUrl}
+							<div>
+								<dt>Home</dt>
+								<dd>
+									<a href={n.homeUrl}>{n.homeUrl}</a>
+								</dd>
+							</div>
+						{/if}
+						{#if n.docsUrl != null && n.docsUrl !== ''}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={networkFields.docsUrl}>
-										{networkFields.docsUrl}
+									<a href={n.docsUrl}>
+										{n.docsUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
 					</dl>
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		<div data-column="gap-3">
@@ -167,38 +139,40 @@
 					</header>
 				{/snippet}
 
-				<div
-					data-scroll-container="inline layout-carousel carousel-marker-tabs"
-					data-row="start align-start"
-					style="--carousel-basis: 36ch"
-				>
-					<section data-scroll-marker-label="Actors">
-						<AtprotoActorsView
-							entityFieldReference={{
-								entityType: EntityType.AtprotoNetwork,
-								entityId,
-								fieldName: '$$atprotoActors',
-							}}
-							href={resolve('/(social)/atproto')}
-							id={`${networkIdKey}:actors`}
-							open={false}
-						/>
-					</section>
+				{#snippet children({ open: _open })}
+					<div
+						data-scroll-container="inline layout-carousel carousel-marker-tabs"
+						data-row="start align-start"
+						style="--carousel-basis: 36ch"
+					>
+						<section data-scroll-marker-label="Actors">
+							<AtprotoActorsView
+								entityFieldReference={{
+									entityType: EntityType.AtprotoNetwork,
+									entityId,
+									fieldName: '$$atprotoActors',
+								}}
+								href={resolve('/(social)/atproto')}
+								id={`${networkIdKey}:actors`}
+								open={false}
+							/>
+						</section>
 
-					<section data-scroll-marker-label="Recent posts">
-						<AtprotoPostsView
-							entityFieldReference={{
-								entityType: EntityType.AtprotoNetwork,
-								entityId,
-								fieldName: '$$atprotoPosts',
-							}}
-							href={resolve('/(social)/atproto')}
-							id={`${networkIdKey}:posts`}
-							open={false}
-							title="Recent posts"
-						/>
-					</section>
-				</div>
+						<section data-scroll-marker-label="Recent posts">
+							<AtprotoPostsView
+								entityFieldReference={{
+									entityType: EntityType.AtprotoNetwork,
+									entityId,
+									fieldName: '$$atprotoPosts',
+								}}
+								href={resolve('/(social)/atproto')}
+								id={`${networkIdKey}:posts`}
+								open={false}
+								title="Recent posts"
+							/>
+						</section>
+					</div>
+				{/snippet}
 			</Collapsible>
 
 			<Collapsible
@@ -217,22 +191,24 @@
 					</header>
 				{/snippet}
 
-				<ul>
-					<li>
-						<a href={resolve('/(social)/atproto/actor/[did]', {
-							did: encodeURIComponent(exampleDid),
-						})}>
-							Actor example
-						</a>
-					</li>
-					<li>
-						<a href={resolve('/(social)/atproto/post/[uri]', {
-							uri: encodeURIComponent(examplePostUri),
-						})}>
-							Post example
-						</a>
-					</li>
-				</ul>
+				{#snippet children({ open: _open })}
+					<ul>
+						<li>
+							<a href={resolve('/(social)/atproto/actor/[did]', {
+								did: encodeURIComponent(exampleDid),
+							})}>
+								Actor example
+							</a>
+						</li>
+						<li>
+							<a href={resolve('/(social)/atproto/post/[uri]', {
+								uri: encodeURIComponent(examplePostUri),
+							})}>
+								Post example
+							</a>
+						</li>
+					</ul>
+				{/snippet}
 			</Collapsible>
 		</div>
 	{/snippet}

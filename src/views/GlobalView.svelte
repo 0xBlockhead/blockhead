@@ -1,26 +1,32 @@
+<script module lang="ts">
+</script>
+
+
 <script lang="ts">
 	// Types/constants
-	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+
+
+	type GlobalNavItem =
+		| { key: 'self', label: string }
+		| { key: string, label: string, path: string }
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import UnorderedList from '$/components/UnorderedList.svelte'
 
 
 	// Props
@@ -51,107 +57,23 @@
 	> = $props()
 
 
-	const globalIdKey = $derived(
-		stringify(entityId),
-	)
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { SvelteSet } from 'svelte/reactivity'
 
-	const globalQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType._Global] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						globalIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => globalIdKey],
-	)
 
-	type ExploreShortcut = {
-		key: string
-		href: string
-		label: string
-	}
-
-	const exploreShortcutItems = $derived(
-		new SvelteSet<ExploreShortcut>(
-			[
-				{
-					key: 'self',
-					href,
-					label: title,
-				},
-				{
-					key: 'explore',
-					href: resolve('/explore'),
-					label: 'Explore',
-				},
-				...(
-					href === resolve('/assets') ?
-						[
-							{
-								key: 'assets-coins',
-								href: resolve('/coins'),
-								label: 'Coins',
-							},
-							{
-								key: 'assets-pools',
-								href: resolve('/pools'),
-								label: 'Pools',
-							},
-						]
-					:
-						[]
-				),
-				...(
-					href === resolve('/~/accounts') ?
-						[
-							{
-								key: 'accounts-balances',
-								href: resolve('/~/accounts/balances'),
-								label: 'Balances',
-							},
-						]
-					:
-						[]
-				),
+	const duneUsage = useEntity(
+		EntityType._Global,
+		{},
+		{
+			$: [
+				Source.Local_Internal,
+				Source.Dune_Rest,
 			],
-		),
+			duneCreditsUsed: {},
+			duneCreditsIncluded: {},
+		},
 	)
-
-
-	// Functions
-	const fieldNumber = ({
-		row,
-		fieldName,
-	}: {
-		row: Record<string, JsonValue> | undefined
-		fieldName: string
-	}) => {
-		const fields = row?.[EntityMetaKey.Fields]
-		const value = (
-			(typeof fields === 'object' && fields !== null && !Array.isArray(fields)) ?
-				fields[fieldName]
-			:
-				undefined
-		)
-		return (
-			typeof value === 'number' ?
-				value
-			:
-				undefined
-		)
-	}
-
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import UnorderedList from '$/components/UnorderedList.svelte'
 </script>
 
 
@@ -171,73 +93,95 @@
 				entityType={EntityType._Global}
 				{entityId}
 			>
-				<QueryBoundary
-					query={globalQuery}
-				>
+				<p data-text="muted">
+					Shared app settings and usage totals.
+				</p>
 
-					{#snippet children(rows)}
-						{@const globalRow = (
-							rows?.find(
-								(r) => r.row[EntityMetaKey.Source] === Source.Local_Internal,
-							)?.row
-							?? rows?.[0]?.row
-						)}
-						{@const duneRow = rows?.find(
-							(r) => r.row[EntityMetaKey.Source] === Source.Dune_Rest,
-						)?.row}
-						{@const duneCreditsUsed = fieldNumber({
-							row: duneRow,
-							fieldName: 'duneCreditsUsed',
-						})}
-						{@const duneCreditsIncluded = fieldNumber({
-							row: duneRow,
-							fieldName: 'duneCreditsIncluded',
-						})}
-						{#if globalRow === undefined}
+				<ResourceBoundary resource={duneUsage}>
+					{#snippet children(global)}
+						<dl>
+							{#if global.duneCreditsUsed !== undefined}
+								<div>
+									<dt>Dune credits used</dt>
+									<dd>{String(global.duneCreditsUsed)}</dd>
+								</div>
+							{/if}
+							{#if global.duneCreditsIncluded !== undefined}
+								<div>
+									<dt>Dune credits included</dt>
+									<dd>{String(global.duneCreditsIncluded)}</dd>
+								</div>
+							{/if}
+						</dl>
+
+						{#if global.duneCreditsUsed === undefined && global.duneCreditsIncluded === undefined}
 							<p data-text="muted">
-								Nothing loaded for this view yet. Try again shortly.
+								Usage totals are not available yet.
 							</p>
-						{:else}
-							<p data-text="muted">
-								Global scope row ({String(globalRow[EntityMetaKey.Source])}).
-							</p>
-						{/if}
-						{#if duneCreditsUsed !== undefined || duneCreditsIncluded !== undefined}
-							<dl>
-								{#if duneCreditsUsed !== undefined}
-									<div>
-										<dt>Dune credits used</dt>
-										<dd>{String(duneCreditsUsed)}</dd>
-									</div>
-								{/if}
-								{#if duneCreditsIncluded !== undefined}
-									<div>
-										<dt>Dune credits included</dt>
-										<dd>{String(duneCreditsIncluded)}</dd>
-									</div>
-								{/if}
-							</dl>
 						{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 
 			<UnorderedList
-				items={exploreShortcutItems}
+				items={
+					new SvelteSet<GlobalNavItem>([
+						{
+							key: 'self',
+							label: title,
+						},
+						{
+							key: 'explore',
+							label: 'Explore',
+							path: '/explore',
+						},
+						...(
+							href === resolve('/assets') ?
+								[
+									{
+										key: 'assets-coins',
+										label: 'Coins',
+										path: '/coins',
+									},
+									{
+										key: 'assets-pools',
+										label: 'Pools',
+										path: '/pools',
+									},
+								] as const
+							:
+								[]
+						),
+						...(
+							href === resolve('/~/accounts') ?
+								[
+									{
+										key: 'accounts-balances',
+										label: 'Balances',
+										path: '/~/accounts/balances',
+									},
+								] as const
+							:
+								[]
+						),
+					])
+				}
 				getKey={(row) => row.key}
 				getSortValue={(row) => row.key}
 				placeholderKeys={new SvelteSet()}
 				orientation={ListOrientation.Column}
 			>
-				{#snippet Item({ item: row, isPlaceholder })}
-					{#if isPlaceholder}
-						<span data-placeholder>
-							…
-						</span>
-					{:else if row}
-						<a href={row.href}>
-							{row.label}
-						</a>
+				{#snippet Item({ item, isPlaceholder })}
+					{#if isPlaceholder === false}
+						{#if item.key === 'self'}
+							<a href={resolve(href as `/${string}`)}>
+								{item.label}
+							</a>
+						{:else}
+							<a href={resolve(item.path)}>
+								{item.label}
+							</a>
+						{/if}
 					{/if}
 				{/snippet}
 			</UnorderedList>

@@ -5,6 +5,7 @@ import {
 	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -13,23 +14,6 @@ import { Source } from '$/sources/$Source.ts'
 const optionalTrimmedString = (value: string | undefined) => (
 	value?.trim() ? value.trim() : undefined
 )
-
-const xProfileImageHttpUrl = (value: string | null | undefined) => {
-	const raw = typeof value === 'string' ? value.trim() : ''
-	if (raw.length === 0) return undefined
-	const withProtocol = raw.startsWith('//') ? `https:${raw}` : raw
-	try {
-		const parsed = new URL(withProtocol)
-		return (
-			parsed.protocol === 'http:' || parsed.protocol === 'https:' ?
-				parsed.toString()
-			:
-				undefined
-		)
-	} catch {
-		return undefined
-	}
-}
 
 export default {
 	source: Source.X_Rest,
@@ -51,12 +35,9 @@ export default {
 						t == null ?
 							{}
 						:	{
-								$icon: {
-									[EntityMetaKey.Id]: { url: t },
-									type: MediaType.Image,
-								},
+								$icon: t,
 							}
-					))(xProfileImageHttpUrl(d.profile_image_url)),
+					))(mediaFromUrl(d.profile_image_url, MediaType.Image)),
 				}
 			},
 		}),
@@ -91,7 +72,6 @@ export default {
 				const { xSearchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.X_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('X_Rest: XNetwork $$xUsers requires query limit')
 				const result = await singleFlight(xSearchRecentTweets)(publicEnv, limit)
 				const byId = new Map<string, { [EntityMetaKey.Id]: { id: string } }>()
 				for (const user of result.includes?.users ?? []) {
@@ -118,7 +98,6 @@ export default {
 				const { xSearchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.X_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('X_Rest: XNetwork $$xPosts requires query limit')
 				return (
 					((await singleFlight(xSearchRecentTweets)(publicEnv, limit)).data ?? [])
 						.map((row) => ({
@@ -134,7 +113,6 @@ export default {
 			resolve: async (entityId, context) => {
 				const { xListUserTweets } = await import('$/sources/X/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('X_Rest: XUser $$posts requires query limit')
 				const { data = [] } = await singleFlight(xListUserTweets)(sourcePublicEnv(context, Source.X_Rest), entityId.id, limit)
 				return (
 					data

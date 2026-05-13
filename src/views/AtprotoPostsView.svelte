@@ -1,23 +1,23 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import AtprotoPostView from '$/views/AtprotoPostView.svelte'
 
 
 	// Props
@@ -28,67 +28,72 @@
 		limit = 25,
 		open = $bindable(true),
 		title = 'Posts',
-	}: {
-		entityFieldReference: EntityFieldReference<typeof schema, EntityType.AtprotoPost>
-		href: string
-		id: string
-		limit?: number
-		open?: boolean
-		title?: string
-	} = $props()
+		...entitiesListRest
+	}: WithRest<
+		{
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.AtprotoPost>
+			href: string
+			id: string
+			limit?: number
+			open?: boolean
+			title?: string
+		},
+		Omit<
+			ComponentProps<typeof EntitiesList>,
+			'entityType'
+		>
+	> = $props()
 
 
-	const postsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					postFieldRow: (
-						entityFieldCollectionForReference(
-							entityFieldCollections,
-							entityFieldReference,
-						)
-					),
-				})
-				.where(({ postFieldRow }) => (
-					eq(
-						postFieldRow[EntityMetaKey.ParentIdKey],
-						stringify(entityFieldReference.entityId),
-					)
-				))
-				.where(({ postFieldRow }) => (
-					eq(
-						postFieldRow[EntityMetaKey.Source],
+	// State
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	const atprotoNetworkOrAccount = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		entityFieldReference.entityType === EntityType.AtprotoNetwork ?
+			{
+				$: [Source.Constants_Internal],
+				protocolName: {},
+				$$atprotoPosts: {
+					$: [
+						Source.Constants_Internal,
 						Source.Atproto_Xrpc,
-					)
-				))
-				.orderBy(({ postFieldRow }) => (
-					postFieldRow[EntityMetaKey.Value][EntityMetaKey.IdKey]
-				), 'desc')
-				.limit(limit)
-				.select(({ postFieldRow }) => (
-					{ value: postFieldRow[EntityMetaKey.Value] }
-				))
-				.distinct()
-		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-			() => limit,
-		],
+					],
+				},
+			}
+		:
+			{
+				$: [Source.Atproto_Xrpc],
+				$$posts: {},
+			},
 	)
 
-	const postItems = $derived(
-		(postsQuery.data ?? []).map(({ value: post }, order) => ({
-			...post[EntityMetaKey.Id],
-			order,
-		})),
+	const posts = derive(
+		atprotoNetworkOrAccount,
+		(loaded) => {
+			const rows = (
+				(
+					entityFieldReference.entityType === EntityType.AtprotoNetwork ?
+						loaded.$$atprotoPosts
+					:
+						loaded.$$posts
+				)
+				?? []
+			) as Entity<typeof schema, EntityType.AtprotoPost>[]
+			return (
+				rows
+					.toSorted((a, b) => (
+						(b.createdAt ?? 0) - (a.createdAt ?? 0)
+					))
+					.slice(0, limit)
+			)
+		},
 	)
-
-	// Components
-	import AtprotoPostView from '$/views/AtprotoPostView.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -96,41 +101,47 @@
 	entityType={EntityType.AtprotoPost}
 	{href}
 	{id}
-	getKey={(row) => row.uri}
-	getSortValue={(row) => row.order}
-	items={postItems}
 	bind:open
-	placeholderKeys={new SvelteSet<string>()}
-	query={{
-		data: postItems,
-		isLoading: postsQuery.isLoading,
-		isError: postsQuery.isError,
-		isReady: postsQuery.isReady,
-		error: postsQuery.error,
-		status: postsQuery.status,
-	}}
 	{title}
+	{...entitiesListRest}
 >
-	{#snippet Empty()}
-		<p data-text="muted">
-			No AT Protocol posts to show yet.
-		</p>
-	{/snippet}
+	{#snippet body()}
+		{#key `${stringify(entityFieldReference.entityId)}-${limit}`}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.AtprotoPost}
+				id={`${id}-items`}
+				{href}
+				{title}
+				open={true}
+				getKey={(row) => row[EntityMetaKey.Id].uri}
+				getSortValue={(row) => (
+					-(row.createdAt ?? 0)
+				)}
+				placeholderKeys={new SvelteSet()}
+				resource={posts}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No AT Protocol posts to show yet.
+					</p>
+				{/snippet}
 
-	{#snippet Item({ item, isPlaceholder })}
-		{#if isPlaceholder}
-			<span data-placeholder>
-				…
-			</span>
-		{:else if item}
-			<AtprotoPostView
-				entityId={{ uri: item.uri }}
-				href={resolve('/(social)/atproto/post/[uri]', {
-					uri: encodeURIComponent(item.uri),
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
+				{#snippet Item(props)}
+					{#if props.isPlaceholder === false}
+						<AtprotoPostView
+							entityId={{ uri: props.item[EntityMetaKey.Id].uri }}
+							href={resolve('/(social)/atproto/post/[uri]', {
+								uri: encodeURIComponent(props.item[EntityMetaKey.Id].uri),
+							})}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
+		{/key}
 	{/snippet}
 </EntitiesList>
+

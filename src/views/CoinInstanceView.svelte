@@ -2,19 +2,22 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
+	// Context
 
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import Heading from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Address from '$/views/Address.svelte'
 
 
 	// Props
@@ -43,69 +46,36 @@
 	> = $props()
 
 
-	// (Derived)
-	const coinInstanceIdKey = $derived(
-		stringify(entityId),
-	)
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const coinInstanceQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.CoinInstance] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						coinInstanceIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => coinInstanceIdKey],
-	)
 
-	const coinInstanceRow = $derived(
-		(
-			coinInstanceQuery.data?.find(
-				(r) => r.row[EntityMetaKey.Source] === Source.Coingecko_Rest,
-			)?.row
-			?? coinInstanceQuery.data?.[0]?.row
-		),
-	)
-
-	const coinInstanceField = $derived(
-		(() => {
-			const bag = coinInstanceRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-			const b = bag
-			return {
-				symbol: typeof b.symbol === 'string' && b.symbol.length ? b.symbol : undefined,
-				name: typeof b.name === 'string' && b.name.length ? b.name : undefined,
-				decimals: typeof b.decimals === 'number' ? b.decimals : undefined,
-				caip19: typeof b.caip19 === 'string' && b.caip19.length ? b.caip19 : undefined,
-			}
-		})(),
-	)
-
-	const displayTitle = $derived(
-		(() => {
-			if (coinInstanceField?.symbol != null) return coinInstanceField.symbol
-			if (coinInstanceField?.name != null) return coinInstanceField.name
-			return (
-				entityId.type === CoinInstanceType.NativeCurrency ?
-					`Native (${entityId.$network.chainId})`
-				:	`ERC-20 (${entityId.$network.chainId})`
+	const nativeOrErcTitle = (
+		entityId.type === CoinInstanceType.NativeCurrency ?
+			(
+				`Native (${entityId.$network.chainId})`
 			)
-		})(),
+		:
+			(
+				`ERC-20 (${entityId.$network.chainId})`
+			)
 	)
 
-	const coinInstancePlaceholderText = 'Loading coin instance...'
 
-
-	// Components
-	import Address from '$/views/Address.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	const coinInstance = useEntity(
+		EntityType.CoinInstance,
+		entityId,
+		{
+			$: [
+				Source.Coingecko_Rest,
+				Source.Constants_Internal,
+			],
+			decimals: {},
+			name: {},
+			symbol: {},
+			caip19: {},
+		},
+	)
 </script>
 
 
@@ -115,28 +85,40 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
 >
-	{#snippet Content()}
+	{#snippet Heading()}
+		<ResourceBoundary resource={coinInstance}>
+			{#snippet children(live)}
+				<Heading>
+					{#if href}
+						<a
+							data-link
+							{href}
+						>{live.symbol ?? live.name ?? nativeOrErcTitle}</a>
+					{:else}
+						{live.symbol ?? live.name ?? nativeOrErcTitle}
+					{/if}
+				</Heading>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Chain</dt>
-				<dd>
-					{String(entityId.$network.chainId)}
-				</dd>
+				<dd>{String(entityId.$network.chainId)}</dd>
 			</div>
 			<div>
 				<dt>Kind</dt>
 				<dd>
 					{#if entityId.type === CoinInstanceType.NativeCurrency}
 						Native
-					{:else if entityId.type === CoinInstanceType.Erc20Token}
+					{:else}
 						<Address
 							network={entityId.$contract.$network}
 							address={entityId.$contract.address}
 						/>
-					{:else}
-						—
 					{/if}
 				</dd>
 			</div>
@@ -150,46 +132,36 @@
 			entityType={EntityType.CoinInstance}
 			{entityId}
 		>
-			<QueryBoundary
-				placeholderText={coinInstancePlaceholderText}
-				query={coinInstanceQuery}
-			>
-
-				{#snippet children(rows)}
-					{@const row = (
-						rows?.find(
-							(r) => r.row[EntityMetaKey.Source] === Source.Coingecko_Rest,
-						)?.row
-						?? rows?.[0]?.row
-					)}
-					{#if row === undefined}
-						<p data-text="muted">
-							No metadata for this deployment yet.
-						</p>
-					{:else}
-						<dl>
-							{#if coinInstanceField?.name !== undefined}
-								<div>
-									<dt>Name</dt>
-									<dd>{coinInstanceField.name}</dd>
-								</div>
-							{/if}
-							{#if coinInstanceField?.decimals !== undefined}
-								<div>
-									<dt>Decimals</dt>
-									<dd>{String(coinInstanceField.decimals)}</dd>
-								</div>
-							{/if}
-							{#if coinInstanceField?.caip19 !== undefined}
-								<div>
-									<dt>CAIP-19</dt>
-									<dd>{coinInstanceField.caip19}</dd>
-								</div>
-							{/if}
-						</dl>
-					{/if}
+			<ResourceBoundary resource={coinInstance}>
+				{#snippet children(live)}
+					<dl>
+						{#if live.name !== undefined}
+							<div>
+								<dt>Name</dt>
+								<dd>{live.name}</dd>
+							</div>
+						{/if}
+						{#if live.symbol !== undefined}
+							<div>
+								<dt>Symbol</dt>
+								<dd>{live.symbol}</dd>
+							</div>
+						{/if}
+						{#if live.decimals !== undefined}
+							<div>
+								<dt>Decimals</dt>
+								<dd>{String(live.decimals)}</dd>
+							</div>
+						{/if}
+						{#if live.caip19 !== undefined}
+							<div>
+								<dt>CAIP-19</dt>
+								<dd>{live.caip19}</dd>
+							</div>
+						{/if}
+					</dl>
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		{#if children}

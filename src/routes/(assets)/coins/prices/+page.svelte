@@ -11,6 +11,7 @@
 
 <Page>
 	<MarketPricesView
+		collapsible={false}
 		entityFieldReference={{
 			entityType: EntityType._Global,
 			entityId: {},
@@ -18,6 +19,7 @@
 		}}
 		href={resolve('/coins/prices')}
 		id="coin-prices-page"
+		limit={96}
 		title="All spot quotes"
 	/>
 </Page>

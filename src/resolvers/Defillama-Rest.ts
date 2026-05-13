@@ -149,9 +149,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => (
-				[]
-			),
+			resolve: async () => {
+				throw new Error('Defillama_Rest: $$marketsWithCoinAsQuote is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({

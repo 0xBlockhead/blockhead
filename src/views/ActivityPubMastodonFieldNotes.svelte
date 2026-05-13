@@ -1,11 +1,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -13,18 +13,13 @@
 
 
 	// State
-	import { coalesce, eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
-	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
-
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { htmlToPlainText } from '$/lib/html.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-
-	// Props
 	let {
 		href,
 		id,
@@ -41,75 +36,40 @@
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.ActivityPubNote>
 	} = $props()
 
-
-	// (Derived)
-	const fieldQuery = useLiveQuery(
-		(queryBuilder) => {
-			const tr = (
-				entityFieldCollectionForReference(
-					entityFieldCollections,
-					entityFieldReference,
-				)
-			)
-			return (
-				queryBuilder
-					.from({ tr })
-					.where(({ tr }) => (
-						eq(
-							tr[EntityMetaKey.ParentIdKey],
-							stringify(entityFieldReference.entityId),
-						)
-					))
-					.where(({ tr }) => (
-						eq(
-							tr[EntityMetaKey.Source],
-							Source.Mastodon_Rest,
-						)
-					))
-					.innerJoin(
-						{ note: entityCollectionByEntityType[EntityType.ActivityPubNote]! },
-						({ tr, note }) => (
-							eq(
-								tr[EntityMetaKey.Value][EntityMetaKey.IdKey],
-								note[EntityMetaKey.IdKey],
-							)
-						),
-					)
-					.where(({ note }) => (
-						eq(
-							note[EntityMetaKey.Source],
-							Source.Mastodon_Rest,
-						)
-					))
-					.orderBy(({ note }) => {
-						return coalesce(
-							note[EntityMetaKey.Fields].createdAt,
-							0,
-						)
-					}, orderByCreatedAt)
-					.select(({ tr, note }) => {
-						return {
-							note: tr[EntityMetaKey.Value],
-							content: note[EntityMetaKey.Fields].content,
-						}
-					})
-			)
+	const parentEntity = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			[entityFieldReference.fieldName]: {
+				$: [
+					Source.Mastodon_Rest,
+				],
+			},
 		},
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-			() => orderByCreatedAt,
-		],
 	)
 
-	const noteItems = $derived(
-		(fieldQuery.data ?? [])
-			.map(({ content, note }, order) => ({
-				...note[EntityMetaKey.Id],
-				order,
-				textPreview: htmlToPlainText(content ?? ''),
-			})),
+	const notes = derive(
+		parentEntity,
+		(merged) => {
+			const rows = (
+				(
+					merged[entityFieldReference.fieldName as keyof typeof merged]
+					?? []
+				) as Entity<typeof schema, EntityType.ActivityPubNote>[]
+			)
+			return (
+				rows.map((value) => ({
+					value,
+					sortKey: value.createdAt ?? 0,
+				}))
+					.toSorted((a, b) => (
+						orderByCreatedAt === 'asc' ?
+							a.sortKey - b.sortKey
+						:
+							b.sortKey - a.sortKey
+					))
+			)
+		},
 	)
 
 
@@ -122,28 +82,22 @@
 <EntitiesList
 	collapsible={true}
 	entityType={EntityType.ActivityPubNote}
-	getKey={(row) => `${row.instanceOrigin}\x1e${row.localStatusId}`}
-	getSortValue={(row) => row.order}
+	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+	getSortValue={(row) => row.sortKey}
 	{href}
 	{id}
-	items={noteItems}
 	open={true}
+	placeholderKeys={new SvelteSet()}
 	{placeholderText}
-	query={{
-		data: noteItems,
-		isLoading: fieldQuery.isLoading,
-		isError: fieldQuery.isError,
-		isReady: fieldQuery.isReady,
-		status: fieldQuery.status,
-	}}
+	resource={notes}
 	{title}
 >
-	{#snippet Item({ item, isPlaceholder })}
-		{#if isPlaceholder}
-			<span data-placeholder>
-				…
-			</span>
-		{:else if item}
+	{#snippet Item(props)}
+		{#if props.isPlaceholder === false}
+			{@const nid = props.item.value[EntityMetaKey.Id]}
+			{@const textPreview = htmlToPlainText(
+				props.item.value.content,
+			)}
 			<div
 				data-column
 				data-row-item="flexible"
@@ -153,21 +107,21 @@
 						href={resolve(
 							'/(social)/activitypub/note/[instanceOrigin]/[localStatusId]',
 							{
-								instanceOrigin: encodeURIComponent(item.instanceOrigin),
-								localStatusId: encodeURIComponent(item.localStatusId),
+								instanceOrigin: encodeURIComponent(nid.instanceOrigin),
+								localStatusId: encodeURIComponent(nid.localStatusId),
 							},
 						)}
 					>
-						{item.localStatusId}
+						{nid.localStatusId}
 					</a>
 				</p>
-				{#if item.textPreview}
+				{#if textPreview !== ''}
 					<p data-text="muted">
 						<TruncatedValue
 							endLength={12}
 							format={TruncatedValueFormat.Visual}
 							startLength={88}
-							value={item.textPreview}
+							value={textPreview}
 						/>
 					</p>
 				{/if}

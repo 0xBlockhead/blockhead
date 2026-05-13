@@ -1,23 +1,15 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -36,39 +28,46 @@
 	} = $props()
 
 
-	const subredditsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					subredditFieldRow: (
-						entityFieldCollectionForReference(
-							entityFieldCollections,
-							entityFieldReference,
-						)
-					),
-				})
-				.where(({ subredditFieldRow }) => (
-					eq(
-						subredditFieldRow[EntityMetaKey.ParentIdKey],
-						stringify(entityFieldReference.entityId),
-					)
+	// State
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const fieldName = entityFieldReference.fieldName
+
+	const parentEntity = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			$: [
+				Source.Constants_Internal,
+				Source.Reddit_Rest,
+			],
+			[fieldName]: {
+				$: [
+					Source.Reddit_Rest,
+				],
+			},
+		},
+	)
+
+	const subreddits = derive(
+		parentEntity,
+		(merged) => (
+			(
+				merged[fieldName as keyof typeof merged] as (
+					Entity<typeof schema, EntityType.RedditSubreddit>
+				)[]
+			)
+				.toSorted((a, b) => (
+					stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
 				))
-				.where(({ subredditFieldRow }) => (
-					eq(
-						subredditFieldRow[EntityMetaKey.Source],
-						Source.Reddit_Rest,
-					)
+				.map((value) => (
+					{ entityId: value[EntityMetaKey.Id] }
 				))
-				.select(({ subredditFieldRow }) => (
-					{ value: subredditFieldRow[EntityMetaKey.Value] }
-				))
-				.distinct()
 		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-		],
 	)
 
 
@@ -83,22 +82,13 @@
 	entityType={EntityType.RedditSubreddit}
 	{href}
 	{id}
-	getKey={(row) => stringify(row[EntityMetaKey.Id])}
-	getSortValue={(row) => (
-		row[EntityMetaKey.Id].name
-	)}
-	items={subredditsQuery.data?.map(({ value }) => value) ?? []}
-	bind:open
-	placeholderKeys={new SvelteSet<string>()}
-	query={{
-		data: subredditsQuery.data?.map(({ value }) => value) ?? [],
-		isLoading: subredditsQuery.isLoading,
-		isError: subredditsQuery.isError,
-		isReady: subredditsQuery.isReady,
-		error: subredditsQuery.error,
-		status: subredditsQuery.status,
-	}}
 	{title}
+	bind:open
+	resource={subreddits}
+	placeholderText="Loading subreddits…"
+	getKey={(row) => stringify(row.entityId)}
+	getSortValue={(row) => row.entityId.name}
+	placeholderKeys={new SvelteSet<string>()}
 >
 	{#snippet Empty()}
 		<p data-text="muted">
@@ -106,17 +96,15 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item, isPlaceholder })}
-		{#if isPlaceholder}
-			<span data-placeholder>
-				…
-			</span>
-		{:else if item}
-			{@const subredditId = item[EntityMetaKey.Id]}
+	{#snippet Item({
+		item: row,
+		isPlaceholder,
+	})}
+		{#if isPlaceholder === false}
 			<RedditSubredditView
-				entityId={{ name: subredditId.name }}
+				entityId={row.entityId}
 				href={resolve('/(social)/reddit/r/[name]', {
-					name: encodeURIComponent(subredditId.name),
+					name: encodeURIComponent(row.entityId.name),
 				})}
 				layout={EntityLayout.Summary}
 				open={false}

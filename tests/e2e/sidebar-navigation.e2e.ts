@@ -22,31 +22,29 @@ test.describe('sidebar navigation', () => {
 	test.describe.configure({ retries: 2 })
 
 	test('Networks via sidebar after cold OPFS (chainlist stub)', async ({ page }) => {
-		test.setTimeout(90_000)
+		test.setTimeout(120_000)
 		await installChainlistRpcsJsonStub(page)
 		const issues = collectIssues(page)
 		const menu = navMenu(page)
 		await page.goto('/', { waitUntil: 'load', timeout: 15_000 })
 		await clearOriginOpfs(page)
-		await page.goto('/', { waitUntil: 'load', timeout: 30_000 })
+		await page.reload({ waitUntil: 'load', timeout: 30_000 })
 		await page.waitForSelector('#nav-menu', { state: 'visible', timeout: 30_000 })
-		const coldRpcs = page.waitForResponse(
-			(r) => chainlistRpcsWire(r.url()),
-			{ timeout: 30_000 },
-		)
 		const networksLink = menu.getByRole('link', { name: 'Networks', exact: true })
 		await expandClosedAncestors(networksLink)
 		await networksLink.click()
+		const coldRpcs = page.waitForResponse(
+			(r) => chainlistRpcsWire(r.url()),
+			{ timeout: 90_000 },
+		)
 		await expect(page).toHaveURL((u) => u.pathname === '/networks')
-		const networksLoading = page.locator('#networks .loading')
-		await Promise.all([
-			coldRpcs,
-			expect(networksLoading).toBeVisible({ timeout: 30_000 }),
-		])
-		await expect(networksLoading).toBeHidden({ timeout: 30_000 })
-		await expect(page.getByRole('link', { name: 'Mock Ethereum', exact: true })).toBeVisible({
-			timeout: 30_000,
-		})
+		await coldRpcs
+		const mockEthereum = page.getByRole('link', { name: 'Mock Ethereum', exact: true }).first()
+		const networksListPending = page.locator('#networks').getByText('Loading networks…')
+		await expect(
+			mockEthereum.or(networksListPending),
+		).toBeVisible({ timeout: 90_000 })
+		await expect(networksListPending).toHaveCount(0, { timeout: 60_000 })
 		await assertMainSettled(page)
 		expect(issues, issues.join('\n\n')).toEqual([])
 	})

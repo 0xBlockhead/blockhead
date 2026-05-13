@@ -1,18 +1,22 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
+	import type { ComponentProps } from 'svelte'
+	import type { Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 
 
 	// Props
@@ -43,38 +47,19 @@
 	> = $props()
 
 
-	const entityId = $derived(
-		{ id: sourceId } satisfies EntityId<typeof schema, EntityType.BlockheadSource>,
+	const entityId = (
+		{ id: sourceId } satisfies EntityId<typeof schema, EntityType.BlockheadSource>
 	)
 
-	const sourceIdKey = $derived(
-		stringify(entityId),
+	const sourceRow = useEntity(
+		EntityType.BlockheadSource,
+		entityId,
+		{
+			$: [
+				Source.Local_Internal,
+			],
+		},
 	)
-
-	const sourceQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.BlockheadSource] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						sourceIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => sourceIdKey],
-	)
-
-	const sourceRow = $derived(
-		sourceQuery.data?.[0]?.row,
-	)
-
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
 </script>
 
 
@@ -86,7 +71,7 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Content()}
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Source ID</dt>
@@ -105,22 +90,13 @@
 				entityType={EntityType.BlockheadSource}
 				{entityId}
 			>
-				<QueryBoundary
-					query={sourceQuery}
-				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
+				<ResourceBoundary resource={sourceRow}>
+					{#snippet children(_merged)}
 						<p data-text="muted">
-							No source data yet.
+							No additional source metadata is available yet.
 						</p>
-					{:else}
-						<p data-text="muted">
-							Only basic source info is available here for now.
-						</p>
-					{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

@@ -1,20 +1,17 @@
 <script lang="ts">
 	// Types/constants
-	import type { Snippet } from 'svelte'
+	import type { ComponentProps, Snippet } from 'svelte'
+
 	import {
 		proposalCategoryById,
 	} from '$/constants/Proposal.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-
-
-	// State
-	import { stringify } from 'devalue'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+
+	import { stringify } from 'devalue'
 
 
 	// Props
@@ -24,20 +21,31 @@
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
-	}: {
-		children?: Snippet
-		entityId: EntityId<typeof schema, EntityType.ProposalKind>
-		open?: boolean
-		href: string
-		layout?: EntityLayout
-	} = $props()
+		...entityViewRest
+	}: WithRest<
+		{
+			children?: Snippet
+			entityId: EntityId<typeof schema, EntityType.ProposalKind>
+			href: string
+			layout?: EntityLayout
+			open?: boolean
+		},
+		Omit<
+			ComponentProps<typeof EntityView>,
+			| 'entityType'
+			| 'entityId'
+			| 'href'
+			| 'title'
+			| 'open'
+			| 'Details'
+		>
+	> = $props()
 
 
-	const kindIdKey = $derived(
-		stringify(entityId),
-	)
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const kindQuery = useEntity(
+	const kind = useEntity(
 		EntityType.ProposalKind,
 		entityId,
 		{
@@ -48,16 +56,12 @@
 		},
 	)
 
-	const kindLabelPlural = $derived.by(() => {
-		return kindQuery.data?.[EntityMetaKey.Fields]?.labelPlural ?? proposalCategoryById[entityId.category].labelPlural
-	})
-
 
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ProposalsView from '$/views/ProposalsView.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
 </script>
 
 
@@ -65,9 +69,10 @@
 	entityType={EntityType.ProposalKind}
 	{entityId}
 	{href}
-	title={kindLabelPlural}
+	title={proposalCategoryById[entityId.category].labelPlural}
 	{layout}
 	{open}
+	{...entityViewRest}
 >
 	{#snippet Details({
 		open: _open,
@@ -76,21 +81,27 @@
 			entityType={EntityType.ProposalKind}
 			{entityId}
 		>
-			<QueryBoundary query={kindQuery}>
-				{#snippet children(_rows)}
+			<ResourceBoundary
+				resource={kind}
+				placeholderText="Loading proposals…"
+			>
+				{#snippet children(k)}
 					<ProposalsView
 						entityFieldReference={{
 							entityType: EntityType.ProposalKind,
 							entityId,
 							fieldName: '$$proposals',
 						}}
-						href={href}
-						id={`${kindIdKey}:proposals`}
+						{href}
+						id={`${stringify(entityId)}:proposals`}
 						open={false}
-						title={kindLabelPlural}
+						title={
+							k.labelPlural
+							?? proposalCategoryById[entityId.category].labelPlural
+						}
 					/>
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		{#if children}

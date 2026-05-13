@@ -1,24 +1,15 @@
 <script lang="ts">
 	// Types/constants
-	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { IpfsDisplayType } from '$/lib/contentType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
 	import {
 		swarmResourceCanonicalUri,
 	} from '$/sources/Swarm/Rest/queries.ts'
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -48,74 +39,25 @@
 	> = $props()
 
 
-	// Functions
-	const ipfsDisplayType = (value: JsonValue | undefined): IpfsDisplayType | undefined => (
-		value === 'text'
-		|| value === 'image'
-		|| value === 'video'
-		|| value === 'audio'
-		|| value === 'json'
-		|| value === 'xml'
-		|| value === 'pdf'
-		|| value === 'iframe'
-		|| value === 'binary' ?
-			value
-		:
-			undefined
-	)
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-
-	// (Derived)
-	const resourceIdKey = $derived(
-		stringify(entityId),
-	)
-
-	const displayTitle = $derived(
-		swarmResourceCanonicalUri(entityId),
-	)
-
-	const resourceQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.SwarmResource] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						resourceIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => resourceIdKey],
-	)
-
-	const resourceRow = $derived(
-		(
-			resourceQuery.data?.find(
-				({ row }) => row[EntityMetaKey.Source] === Source.Swarm_Rest,
-			)?.row
-			?? resourceQuery.data?.[0]?.row
-		),
-	)
-
-	const resourceField = $derived(
-		(() => {
-			const bag = resourceRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return undefined
-			const b = bag
-			return {
-				canonicalUri: typeof b.canonicalUri === 'string' && b.canonicalUri.length > 0 ? b.canonicalUri : undefined,
-				fileName: typeof b.fileName === 'string' && b.fileName.length > 0 ? b.fileName : undefined,
-				extension: typeof b.extension === 'string' && b.extension.length > 0 ? b.extension : undefined,
-				gatewayOrigin: typeof b.gatewayOrigin === 'string' && b.gatewayOrigin.length > 0 ? b.gatewayOrigin : undefined,
-				gatewayUrl: typeof b.gatewayUrl === 'string' && b.gatewayUrl.length > 0 ? b.gatewayUrl : undefined,
-				contentType: typeof b.contentType === 'string' && b.contentType.length > 0 ? b.contentType : undefined,
-				contentLength: typeof b.contentLength === 'number' && Number.isFinite(b.contentLength) ? b.contentLength : undefined,
-				displayType: ipfsDisplayType(b.displayType),
-				isContentTypeInferred: typeof b.isContentTypeInferred === 'boolean' ? b.isContentTypeInferred : undefined,
-				text: typeof b.text === 'string' ? b.text : undefined,
-			}
-		})(),
+	const swarm = useEntity(
+		EntityType.SwarmResource,
+		entityId,
+		{
+			$: [Source.Swarm_Rest],
+			canonicalUri: {},
+			fileName: {},
+			extension: {},
+			gatewayOrigin: {},
+			gatewayUrl: {},
+			contentType: {},
+			contentLength: {},
+			displayType: {},
+			isContentTypeInferred: {},
+			text: {},
+		},
 	)
 
 
@@ -124,7 +66,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
@@ -136,45 +78,41 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
 >
 	{#snippet Heading()}
 		<HeadingComponent>
-			{#if href}
-				<a
-					{href}
-				>
-					<TruncatedValue
-						value={displayTitle}
-						format={TruncatedValueFormat.Visual}
-					/>
-				</a>
-			{:else}
+			<a {href}>
 				<TruncatedValue
-					value={displayTitle}
+					value={swarmResourceCanonicalUri(entityId)}
 					format={TruncatedValueFormat.Visual}
 				/>
-			{/if}
+			</a>
 		</HeadingComponent>
 	{/snippet}
 
-	{#snippet Content()}
-		{#if resourceField?.contentType !== undefined}
-			<dl>
-				<div>
-					<dt>Content type</dt>
-					<dd>
-						<TruncatedValue
-							value={resourceField.contentType}
-							format={TruncatedValueFormat.Visual}
-						/>
-						{#if resourceField.isContentTypeInferred}
-							{' '}<span data-text="muted">(inferred)</span>
-						{/if}
-					</dd>
-				</div>
-			</dl>
-		{/if}
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary resource={swarm}>
+			{#snippet children(loaded)}
+				{#if loaded.contentType !== undefined}
+					<dl>
+						<div>
+							<dt>Content type</dt>
+							<dd>
+								<TruncatedValue
+									value={loaded.contentType}
+									format={TruncatedValueFormat.Visual}
+								/>
+								{#if loaded.isContentTypeInferred}
+									{' '}<span data-text="muted">(inferred)</span>
+								{/if}
+							</dd>
+						</div>
+					</dl>
+				{:else}
+					<p data-text="muted">Content type unavailable.</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -184,115 +122,92 @@
 			entityType={EntityType.SwarmResource}
 			{entityId}
 		>
-			<QueryBoundary
-				query={resourceQuery}
-			>
-				{#snippet children(rows)}
-					{@const resourceRow = (
-						rows?.find(
-							({ row }) => row[EntityMetaKey.Source] === Source.Swarm_Rest,
-						)?.row
-						?? rows?.[0]?.row
-					)}
-					{#if resourceRow === undefined || resourceField === undefined}
-						<p data-text="muted">
-							No Swarm content for this URI yet. Try again shortly.
-						</p>
-					{:else}
-						<dl>
+			<ResourceBoundary resource={swarm}>
+				{#snippet children(loaded)}
+					<dl>
+						<div>
+							<dt>Canonical URI</dt>
+							<dd>
+								<TruncatedValue
+									value={loaded.canonicalUri}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</dd>
+						</div>
+
+						<div>
+							<dt>Gateway</dt>
+							<dd>
+								<TruncatedValue
+									value={loaded.gatewayOrigin}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</dd>
+						</div>
+
+						<div>
+							<dt>Gateway URL</dt>
+							<dd>
+								<a
+									href={loaded.gatewayUrl}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue
+										value={loaded.gatewayUrl}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</a>
+							</dd>
+						</div>
+
+						{#if loaded.contentLength !== undefined}
 							<div>
-								<dt>Canonical URI</dt>
+								<dt>Content length</dt>
+								<dd>
+									<NumberValue
+										value={loaded.contentLength}
+										options={{ maximumFractionDigits: 0 }}
+									/>
+									{' '}
+									bytes
+								</dd>
+							</div>
+						{/if}
+						{#if loaded.fileName !== undefined}
+							<div>
+								<dt>File name</dt>
 								<dd>
 									<TruncatedValue
-										value={resourceField.canonicalUri ?? displayTitle}
+										value={loaded.fileName}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>
 							</div>
-
-							{#if resourceField.gatewayOrigin !== undefined}
-								<div>
-									<dt>Gateway</dt>
-									<dd>
-										<TruncatedValue
-											value={resourceField.gatewayOrigin}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</dd>
-								</div>
-							{/if}
-
-							{#if resourceField.gatewayUrl !== undefined}
-								<div>
-									<dt>Gateway URL</dt>
-									<dd>
-										<a
-											href={resourceField.gatewayUrl}
-											target="_blank"
-											rel="noreferrer noopener"
-										>
-											<TruncatedValue
-												value={resourceField.gatewayUrl}
-												format={TruncatedValueFormat.Visual}
-											/>
-										</a>
-									</dd>
-								</div>
-							{/if}
-
-							{#if resourceField.contentLength !== undefined}
-								<div>
-									<dt>Content length</dt>
-									<dd
-									>
-										<NumberValue
-											value={resourceField.contentLength}
-											options={{ maximumFractionDigits: 0 }}
-										/>
-										{' '}
-										bytes
-									</dd>
-								</div>
-							{/if}
-							{#if resourceField.fileName !== undefined}
-								<div>
-									<dt>File name</dt>
-									<dd>
-										<TruncatedValue
-											value={resourceField.fileName}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</dd>
-								</div>
-							{/if}
-							{#if resourceField.extension !== undefined}
-								<div>
-									<dt>Extension</dt>
-									<dd>.{resourceField.extension}</dd>
-								</div>
-							{/if}
-							{#if resourceField.displayType !== undefined}
-								<div>
-									<dt>Display type</dt>
-									<dd>{resourceField.displayType}</dd>
-								</div>
-							{/if}
-						</dl>
-
-						{#if resourceField.displayType !== undefined}
-							<FileDetails
-								contentSize={resourceField.contentLength}
-								contentType={resourceField.contentType}
-								displayType={resourceField.displayType}
-								extension={resourceField.extension}
-								fileName={resourceField.fileName}
-								src={resourceField.gatewayUrl}
-								text={resourceField.text}
-							/>
 						{/if}
-					{/if}
+						{#if loaded.extension !== undefined}
+							<div>
+								<dt>Extension</dt>
+								<dd>.{loaded.extension}</dd>
+							</div>
+						{/if}
+						<div>
+							<dt>Display type</dt>
+							<dd>{loaded.displayType}</dd>
+						</div>
+					</dl>
+
+					<FileDetails
+						contentSize={loaded.contentLength}
+						contentType={loaded.contentType}
+						displayType={loaded.displayType}
+						extension={loaded.extension}
+						fileName={loaded.fileName}
+						src={loaded.gatewayUrl}
+						text={loaded.text}
+					/>
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		{#if children}

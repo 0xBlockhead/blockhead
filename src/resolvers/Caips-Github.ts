@@ -62,13 +62,22 @@ export default {
 				const text = await singleFlight(getCaipMarkdownTextForNumber)({ number: entityId.number })
 				const body = stripFrontmatter(text)
 				const frontmatter = parseFrontmatter(text)
-				const docCategory = frontmatter.type?.trim()
-				const docTitle = frontmatter.title?.trim()
-				const docStatus = frontmatter.status?.trim()
 				return {
-					documentCategory: docCategory != null && docCategory !== '' ? docCategory : null,
-					documentTitle: docTitle != null && docTitle !== '' ? docTitle : null,
-					documentStatus: docStatus != null && docStatus !== '' ? docStatus : null,
+					documentCategory: (
+						((docCategory) => (
+							docCategory != null && docCategory !== '' ? docCategory : null
+						))(frontmatter.type?.trim())
+					),
+					documentTitle: (
+						((docTitle) => (
+							docTitle != null && docTitle !== '' ? docTitle : null
+						))(frontmatter.title?.trim())
+					),
+					documentStatus: (
+						((docStatus) => (
+							docStatus != null && docStatus !== '' ? docStatus : null
+						))(frontmatter.status?.trim())
+					),
 					documentBody: body.length > 0 ? body : null,
 				}
 			},
@@ -90,7 +99,9 @@ export default {
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
 				const { ProposalRealm } = await import('$/constants/Proposal.ts')
-				if (entityId.realm !== ProposalRealm.ChainAgnostic) return []
+				if (entityId.realm !== ProposalRealm.ChainAgnostic) {
+					throw new Error('Caips_Github: $$proposals only supports ProposalRealm.ChainAgnostic')
+				}
 				const { getCaipsGithubContents } = await import('$/sources/Caips/Github/queries.ts')
 				return githubCaipProposalIndexRows(await singleFlight(getCaipsGithubContents)())
 			},
@@ -101,7 +112,9 @@ export default {
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
 				const { ProposalCategory, ProposalRealm } = await import('$/constants/Proposal.ts')
-				if (entityId.realm !== ProposalRealm.ChainAgnostic || entityId.category !== ProposalCategory.Caip) return []
+				if (entityId.realm !== ProposalRealm.ChainAgnostic || entityId.category !== ProposalCategory.Caip) {
+					throw new Error('Caips_Github: $$proposals only supports CAIP proposal kind')
+				}
 				const { getCaipsGithubContents } = await import('$/sources/Caips/Github/queries.ts')
 				return githubCaipProposalIndexRows(await singleFlight(getCaipsGithubContents)())
 			},

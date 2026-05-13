@@ -1,20 +1,20 @@
 <script lang="ts">
 	// Types/constants
-	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
 
 	// Props
@@ -39,80 +39,28 @@
 			| 'open'
 			| 'title'
 			| 'Details'
+			| 'Heading'
 		>
 	> = $props()
 
 
-	const sessionIdKey = $derived(
-		stringify(entityId),
-	)
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const sessionQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.BlockheadSession] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						sessionIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => sessionIdKey],
+	const session = useEntity(
+		EntityType.BlockheadSession,
+		entityId,
+		{
+			$: [
+				Source.Local_Internal,
+			],
+			name: {},
+			status: {},
+			createdAt: {},
+			updatedAt: {},
+			simulationCount: {},
+		},
 	)
-
-	const sessionRow = $derived(
-		sessionQuery.data?.[0]?.row,
-	)
-
-	const isBlockheadSessionStatus = (s: string): s is BlockheadSessionStatus => (
-		s === BlockheadSessionStatus.Draft
-		|| s === BlockheadSessionStatus.Submitted
-		|| s === BlockheadSessionStatus.Finalized
-	)
-
-	const sessionPrimitives = $derived(
-		(() => {
-			const bagUnknown = sessionRow?.[EntityMetaKey.Fields]
-			if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) return null
-			const b: Record<string, JsonValue> = bagUnknown
-			const str = (key: string) => {
-				const v = b[key]
-				return typeof v === 'string' && v.length ? v : undefined
-			}
-			const num = (key: string) => {
-				const v = b[key]
-				return typeof v === 'number' && Number.isFinite(v) ? v : undefined
-			}
-			const statusRaw = str('status')
-			const status = (
-				statusRaw !== undefined && isBlockheadSessionStatus(statusRaw) ?
-					statusRaw
-				:	undefined
-			)
-			return {
-				name: str('name'),
-				status,
-				createdAt: num('createdAt'),
-				updatedAt: num('updatedAt'),
-				lockedAt: num('lockedAt'),
-				simulationCount: num('simulationCount'),
-			}
-		})(),
-	)
-
-	const sessionTs = $derived(
-		sessionPrimitives?.updatedAt
-		?? sessionPrimitives?.createdAt
-	)
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -122,37 +70,54 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={sessionPrimitives?.name ?? entityId.id}
 >
-	{#snippet Content()}
-		<dl>
-			<div>
-				<dt>Session id</dt>
-				<dd>
-					<TruncatedValue
-						value={entityId.id}
-						format={TruncatedValueFormat.Visual}
-					/>
-				</dd>
-			</div>
-			{#if sessionPrimitives?.status !== undefined}
-				<div>
-					<dt>Status</dt>
-					<dd>{sessionPrimitives.status}</dd>
-				</div>
-			{/if}
-			{#if sessionTs !== undefined && typeof sessionTs === 'number' && Number.isFinite(sessionTs)}
-				<div>
-					<dt>Timestamp</dt>
-					<dd>
-						<Timestamp
-							timestamp={sessionTs}
-							format={TimestampFormat.Both}
-						/>
-					</dd>
-				</div>
-			{/if}
-		</dl>
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={session}
+			placeholderText="Loading session…"
+		>
+			{#snippet children(s)}
+				<HeadingComponent>
+					{s.name ?? entityId.id}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={session}
+			placeholderText="Loading session…"
+		>
+			{#snippet children(s)}
+				<dl>
+					<div>
+						<dt>Session id</dt>
+						<dd>
+							<TruncatedValue
+								value={entityId.id}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</dd>
+					</div>
+					<div>
+						<dt>Status</dt>
+						<dd>{s.status}</dd>
+					</div>
+					{#if s.updatedAt !== undefined || s.createdAt !== undefined}
+						<div>
+							<dt>Timestamp</dt>
+							<dd>
+								<Timestamp
+									timestamp={s.updatedAt ?? s.createdAt}
+									format={TimestampFormat.Both}
+								/>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -165,72 +130,63 @@
 				entityType={EntityType.BlockheadSession}
 				{entityId}
 			>
-				<QueryBoundary
-					query={sessionQuery}
+				<ResourceBoundary
+					resource={session}
+					placeholderText="Loading session…"
 				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No session data for this id yet.
-						</p>
-					{:else}
+					{#snippet children(s)}
 						<dl>
-							{#if sessionPrimitives?.name !== undefined}
+							{#if s.name !== undefined && s.name !== ''}
 								<div>
 									<dt>Name</dt>
-									<dd>{sessionPrimitives.name}</dd>
+									<dd>{s.name}</dd>
 								</div>
 							{/if}
-							{#if sessionPrimitives?.status !== undefined}
-								<div>
-									<dt>Status</dt>
-									<dd>{sessionPrimitives.status}</dd>
-								</div>
-							{/if}
-							{#if sessionPrimitives?.createdAt !== undefined && typeof sessionPrimitives.createdAt === 'number' && Number.isFinite(sessionPrimitives.createdAt)}
+
+							{#if s.createdAt !== undefined}
 								<div>
 									<dt>Created</dt>
 									<dd>
 										<Timestamp
-											timestamp={sessionPrimitives.createdAt}
+											timestamp={s.createdAt}
 											format={TimestampFormat.Both}
 										/>
 									</dd>
 								</div>
 							{/if}
-							{#if sessionPrimitives?.updatedAt !== undefined && typeof sessionPrimitives.updatedAt === 'number' && Number.isFinite(sessionPrimitives.updatedAt)}
+
+							{#if s.updatedAt !== undefined}
 								<div>
 									<dt>Updated</dt>
 									<dd>
 										<Timestamp
-											timestamp={sessionPrimitives.updatedAt}
+											timestamp={s.updatedAt}
 											format={TimestampFormat.Both}
 										/>
 									</dd>
 								</div>
 							{/if}
-							{#if sessionPrimitives?.lockedAt !== undefined && typeof sessionPrimitives.lockedAt === 'number' && Number.isFinite(sessionPrimitives.lockedAt)}
-								<div>
-									<dt>Locked</dt>
-									<dd>
-										<Timestamp
-											timestamp={sessionPrimitives.lockedAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-							{#if sessionPrimitives?.simulationCount !== undefined}
+
+							{#if s.simulationCount !== undefined}
 								<div>
 									<dt>Simulation count</dt>
-									<dd>{String(sessionPrimitives.simulationCount)}</dd>
+									<dd>{String(s.simulationCount)}</dd>
 								</div>
 							{/if}
 						</dl>
-					{/if}
+
+						{#if (
+							(s.name === undefined || s.name === '')
+							&& s.createdAt === undefined
+							&& s.updatedAt === undefined
+							&& s.simulationCount === undefined
+						)}
+							<p data-text="muted">
+								No additional session details are available yet.
+							</p>
+						{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

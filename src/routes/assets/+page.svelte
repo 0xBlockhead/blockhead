@@ -18,6 +18,7 @@
 		entityId={{}}
 		title="Assets"
 		href={resolve('/assets')}
+		open={false}
 	>
 		{#snippet children()}
 			<section>

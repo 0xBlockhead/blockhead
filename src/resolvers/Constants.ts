@@ -42,9 +42,13 @@ export default {
 				const forkDefinition = ethereumExecutionForkByChainIdAndForkId[
 					`${entityId.$network.chainId}:${entityId.forkId}`
 				]
-				return forkDefinition != null ? { ...forkDefinition } : {}
+				if (forkDefinition == null) {
+					throw new Error(`Constants_Internal: NetworkFork not found for ${entityId.$network.chainId}:${entityId.forkId}`)
+				}
+				return { ...forkDefinition }
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.MarketVenue,
 			resolve: async (entityId) => {
@@ -54,10 +58,7 @@ export default {
 				}
 			},
 		}),
-		defineEntityResolver({
-			entityType: EntityType.Market,
-			resolve: async () => ({}),
-		}),
+
 		defineEntityResolver({
 			entityType: EntityType.Network,
 			resolve: async (entityId) => {
@@ -79,6 +80,7 @@ export default {
 				}
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.ProposalRealm,
 			resolve: async (entityId) => (
@@ -87,6 +89,7 @@ export default {
 				}
 			),
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.ProposalKind,
 			resolve: async (entityId) => (
@@ -97,6 +100,7 @@ export default {
 				}
 			),
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: async (entityId) => {
@@ -106,6 +110,7 @@ export default {
 				return activityPubNetworkFieldValues
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.AtprotoNetwork,
 			resolve: async (entityId) => {
@@ -115,6 +120,7 @@ export default {
 				return atprotoNetworkFieldValues
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.LensNetwork,
 			resolve: async (entityId) => {
@@ -124,6 +130,7 @@ export default {
 				return lensNetworkFieldValues
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.RedditNetwork,
 			resolve: async (entityId) => {
@@ -133,6 +140,7 @@ export default {
 				return redditNetworkFieldValues
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.XNetwork,
 			resolve: async (entityId) => {
@@ -142,6 +150,7 @@ export default {
 				return xNetworkFieldValues
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.XmtpNetwork,
 			resolve: async (entityId) => {
@@ -324,9 +333,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => (
-				[]
-			),
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$marketsWithCoinAsQuote is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -425,17 +434,17 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.CoinInstance,
 			fieldName: '$$marketsWithInstanceAsBase',
-			resolve: async () => (
-				[]
-			),
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$marketsWithInstanceAsBase is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType.CoinInstance,
 			fieldName: '$$marketsWithInstanceAsQuote',
-			resolve: async () => (
-				[]
-			),
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$marketsWithInstanceAsQuote is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -464,7 +473,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.LensNetwork,
 			fieldName: '$$lensPosts',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$lensPosts is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -480,7 +491,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.AtprotoNetwork,
 			fieldName: '$$atprotoPosts',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$atprotoPosts is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -496,7 +509,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.ActivityPubNetwork,
 			fieldName: '$$activityPubNotes',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$activityPubNotes is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -512,7 +527,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.RedditNetwork,
 			fieldName: '$$redditLinks',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$redditLinks is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -528,13 +545,33 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.XNetwork,
 			fieldName: '$$xPosts',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$xPosts is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType.XmtpNetwork,
 			fieldName: '$$xmtpConversations',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$xmtpConversations is unsupported')
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType._Global,
+			fieldName: '$$liquidityPositions',
+			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+				throw new Error('Constants_Internal: $$liquidityPositions is unsupported')
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType._Global,
+			fieldName: '$$eip8004Services',
+			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
+				throw new Error('Constants_Internal: $$eip8004Services is unsupported')
+			},
 		}),
 	],
 }

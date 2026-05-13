@@ -86,13 +86,13 @@
 			Icon?: Snippet
 			Heading?: Snippet
 			HeadingAfter?: Snippet
-			Content?: Snippet<[{
-				title: string
+			Content?: Snippet<[context?: {
+				title?: string
 				href?: string
 			}]>
 			CollapsibleProps?: ComponentProps<typeof Collapsible>
-			Details?: Snippet<[{
-				open: boolean,
+			Details?: Snippet<[context?: {
+				open?: boolean
 			}]>
 		},
 		SvelteHTMLElements['article']
@@ -110,9 +110,22 @@
 
 
 {#if layout === EntityLayout.Id}
-	{#if Id}
-		{@render Id()}
-	{/if}
+	<div
+		data-row-item="flexible"
+		data-row="align-center wrap"
+	>
+		<EntitySummary
+			entityType={entityType}
+			entityId={entityId}
+			{title}
+			{href}
+			{idDragPlainText}
+			{Icon}
+			{Heading}
+			{Id}
+			{HeadingAfter}
+		/>
+	</div>
 
 {:else if layout === EntityLayout.SummaryInline}
 	<div
@@ -193,17 +206,18 @@
 			<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
 		{/snippet}
 
-		{#snippet children()}
+		{#snippet children({ open: detailsOpen })}
 			{#if (
 				_Details
+				&& detailsOpen
 				&& (
-					(layout === EntityLayout.Summary && open)
-					|| (layout === EntityLayout.SummaryDetails)
+					layout === EntityLayout.Summary
+					|| layout === EntityLayout.SummaryDetails
 				)
 			)}
 				<div data-column>
 					{@render _Details({
-						open,
+						open: detailsOpen,
 					})}
 				</div>
 			{/if}

@@ -52,6 +52,7 @@
 		entityId={{}}
 		title={'Social'}
 		href={resolve('/social')}
+		open={false}
 	>
 		{#snippet children()}
 			<section data-column>

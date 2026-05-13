@@ -1,4 +1,5 @@
 <script lang="ts">
+	// Types/constants
 </script>
 
 

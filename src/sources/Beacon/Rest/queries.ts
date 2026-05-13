@@ -2,7 +2,7 @@
  * Standard Ethereum beacon node REST (`/eth/v1/...`) — @see https://github.com/ethereum/beacon-APIs
  */
 
-import { proxyFetch } from '$/lib/http.ts'
+import { proxyFetch, throwHttpError } from '$/lib/http.ts'
 
 type BeaconHeaderHeadWire = {
 	data?: {
@@ -45,7 +45,7 @@ export const getBeaconHeadSlot = async (beaconRestBaseUrl: string): Promise<numb
 	const res = await proxyFetch(`${base}/eth/v1/beacon/headers/head`, {
 		headers: { accept: 'application/json' },
 	})
-	if (!res.ok) throw new Error(`Beacon GET head ${res.status} ${res.statusText}`)
+	if (!res.ok) await throwHttpError('Beacon GET head', res)
 	const wire = await res.json<BeaconHeaderHeadWire>()
 	const data = wire.data
 	if (data == null) throw new Error('Beacon: head response missing data')
@@ -68,7 +68,7 @@ export const getBeaconHeader = async (
 	const res = await proxyFetch(`${base}/eth/v1/beacon/headers/${blockId}`, {
 		headers: { accept: 'application/json' },
 	})
-	if (!res.ok) throw new Error(`Beacon GET header ${res.status} ${res.statusText}`)
+	if (!res.ok) await throwHttpError('Beacon GET header', res)
 	const wire = await res.json<BeaconHeaderWire>()
 	const data = wire.data
 	if (data == null) throw new Error('Beacon: header response missing data')

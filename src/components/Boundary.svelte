@@ -6,6 +6,7 @@
 		children,
 		Pending,
 		Failed,
+		boundaryKey = 'Boundary',
 	}: {
 		children?: Snippet
 		Pending?: Snippet
@@ -13,6 +14,7 @@
 			error: unknown,
 			retry: () => void,
 		]>
+		boundaryKey?: string
 	} = $props()
 
 
@@ -24,7 +26,7 @@
 
 <svelte:boundary
 	onerror={(error) => {
-		console.error(error)
+		console.error('[blockhead:boundary:uncaught]', boundaryKey, error)
 	}}
 >
 	{#if children}
@@ -51,64 +53,68 @@
 		error,
 		retry
 	)}
-		{#if Failed}
-			{@render Failed(
-				error,
-				retry
-			)}
-		{:else}
-			<div
-				data-card
-			>
-				<header data-row="wrap">
-					<div
-						data-row="start"
-						data-row-item="flexible"
-					>
-						<p role="alert">
-							{error instanceof Error ? error.name : 'Error'}
-						</p>
-					</div>
-
-					<div
-						data-row
-					>
-						<button
-							type="button"
-							onclick={() => navigator.clipboard.writeText(String(serializeError(error)))}
+		<div
+			data-card
+			data-error={boundaryKey}
+			role="alert"
+		>
+			{#if Failed}
+				{@render Failed(
+					error,
+					retry,
+				)}
+			{:else}
+				<div>
+					<header data-row="wrap">
+						<div
+							data-row="start"
+							data-row-item="flexible"
 						>
-							Copy
-						</button>
+							<p>
+								{error instanceof Error ? error.name : 'Error'}
+							</p>
+						</div>
 
-						{#if retry}
+						<div
+							data-row
+						>
 							<button
 								type="button"
-								onclick={retry}
+								onclick={() => navigator.clipboard.writeText(String(serializeError(error)))}
 							>
-								Retry
+								Copy
 							</button>
+
+							{#if retry}
+								<button
+									type="button"
+									onclick={retry}
+								>
+									Retry
+								</button>
+							{/if}
+						</div>
+					</header>
+
+					<div class="error-content">
+						{#if error instanceof Error}
+							<p class="error-message">{error.message}</p>
+
+							{#if error.stack}
+								<details class="error-stack">
+									<summary>
+										Stack trace
+									</summary>
+									<pre>{error.stack}</pre>
+								</details>
+							{/if}
+						{:else}
+							<pre>{stringify(error ?? null, null, 2)}</pre>
 						{/if}
 					</div>
-				</header>
-
-				<div class="error-content">
-					{#if error instanceof Error}
-						<p class="error-message">{error.message}</p>
-
-						{#if error.stack}
-							<details class="error-stack">
-								<summary>
-									Stack trace
-								</summary>
-								<pre>{error.stack}</pre>
-							</details>
-						{/if}
-					{:else}
-						<pre>{stringify(error ?? null, null, 2)}</pre>
-					{/if}
 				</div>
-			</div>
-		{/if}
+			{/if}
+		</div>
 	{/snippet}
 </svelte:boundary>
 

@@ -1,18 +1,16 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityFieldValues, EntityId } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -40,80 +38,40 @@
 			| 'Icon'
 			| 'HeadingAfter'
 			| 'Content'
+			| 'Heading'
 		>
 	> = $props()
 
 
-	const farcasterUserIdKey = $derived(
-		stringify(farcasterUserId),
-	)
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const userQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.FarcasterUser] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						farcasterUserIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => farcasterUserIdKey],
-	)
-
-	const farcasterUserRow = $derived(
-		userQuery.data?.[0]?.row,
-	)
-
-	const userField = $derived(
-		(() => {
-			const bag = farcasterUserRow?.[EntityMetaKey.Fields]
-			if (bag == null) return null
-			const b: Partial<EntityFieldValues<typeof schema, EntityType.FarcasterUser>> = bag
-			return {
-				username: typeof b.username === 'string' && b.username.length ? b.username : undefined,
-				displayName: typeof b.displayName === 'string' && b.displayName.length ? b.displayName : undefined,
-				avatarUrl: b.$icon?.[EntityMetaKey.Id].url,
-				bio: typeof b.bio === 'string' && b.bio.length ? b.bio : undefined,
-				url: typeof b.url === 'string' && b.url.length ? b.url : undefined,
-				verifiedAddress: (
-					typeof b.verifiedAddress === 'string' && b.verifiedAddress.length ?
-						b.verifiedAddress
-					:	undefined
-				),
-			}
-		})(),
-	)
-
-	const evmHexAddress40 = (value: string): value is `0x${string}` => (
-		/^0x[a-fA-F0-9]{40}$/.test(value)
-	)
-
-	const verifiedIsEvmHex = $derived(
-		userField?.verifiedAddress !== undefined
-		&& evmHexAddress40(userField.verifiedAddress) ?
-			userField.verifiedAddress
-		:
-			undefined,
-	)
-
-	const displayTitle = $derived(
-		userField?.displayName
-		?? userField?.username
-		?? String(farcasterUserId.fid),
+	const farcasterUser = useEntity(
+		EntityType.FarcasterUser,
+		farcasterUserId,
+		{
+			$: [
+				Source.Neynar_Rest,
+				Source.Snapchain_Rest,
+			],
+			username: {},
+			displayName: {},
+			$icon: {},
+			bio: {},
+			url: {},
+			verifiedAddress: {},
+		},
 	)
 
 
 	// Components
+	import ActorView from '$/views/ActorView.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import Media from '$/components/Media.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import Address from '$/views/Address.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -123,35 +81,112 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
 >
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={farcasterUser}
+			placeholderText="Loading profile…"
+		>
+			{#snippet children(p)}
+				<HeadingComponent>
+					{p.displayName
+						?? p.username
+						?? String(farcasterUserId.fid)}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Icon()}
-		{#if userField?.avatarUrl !== undefined}
-			<IconComponent
-				shape={IconShape.Circle}
-				src={userField.avatarUrl}
-				alt=""
-			/>
-		{/if}
+		<ResourceBoundary
+			resource={farcasterUser}
+			placeholderText="Loading profile…"
+		>
+			{#snippet children(p)}
+				{#if p.$icon?.[EntityMetaKey.Id].url !== undefined}
+					<IconComponent
+						shape={IconShape.Circle}
+						src={p.$icon[EntityMetaKey.Id].url}
+						alt=""
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if userField?.username !== undefined && userField.username !== displayTitle}
-			<span data-text="muted">
-				@{userField.username}
-			</span>
-		{/if}
+		<ResourceBoundary
+			resource={farcasterUser}
+			placeholderText="Loading profile…"
+		>
+			{#snippet children(p)}
+				{#if (
+					p.username !== undefined
+					&& p.username !== (
+						p.displayName
+						?? p.username
+						?? String(farcasterUserId.fid)
+					)
+				)}
+					<span data-text="muted">
+						@{p.username}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content()}
-		{#if String(farcasterUserId.fid) !== displayTitle}
-			<dl>
-				<div>
-					<dt>FID</dt>
-					<dd>{String(farcasterUserId.fid)}</dd>
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={farcasterUser}
+			placeholderText="Loading profile…"
+		>
+			{#snippet children(p)}
+				<div data-column>
+					{#if p.bio}
+						<p data-text="muted">
+							{p.bio}
+						</p>
+					{/if}
+					{#if p.url}
+						<p>
+							<a
+								href={p.url}
+								data-text="muted"
+							>{p.url}</a>
+						</p>
+					{/if}
+					{#if p.verifiedAddress !== undefined}
+						<p data-row="inline wrap gap-2">
+							<span data-text="muted">Verified</span>
+							<ActorView
+								entityId={{
+									address: p.verifiedAddress,
+								}}
+								href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+									accountId: p.verifiedAddress,
+								})}
+								layout={EntityLayout.Id}
+								open={false}
+								showTypeAnnotation={false}
+							/>
+						</p>
+					{/if}
 				</div>
-			</dl>
-		{/if}
+				{#if (
+					(
+						p.displayName
+						?? p.username
+						?? `FID ${String(farcasterUserId.fid)}`
+					)
+					!== `FID ${String(farcasterUserId.fid)}`
+				)}
+					<p data-text="muted">
+						{`FID ${String(farcasterUserId.fid)}`}
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -164,90 +199,74 @@
 				entityType={EntityType.FarcasterUser}
 				entityId={farcasterUserId}
 			>
-				<QueryBoundary
-					query={userQuery}
+				<ResourceBoundary
+					resource={farcasterUser}
+					placeholderText="Loading profile…"
 				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No Farcaster profile for this id yet.
-						</p>
-					{:else if userField == null}
+					{#snippet children(p)}
 						<dl>
 							<div>
 								<dt>FID</dt>
 								<dd>{String(farcasterUserId.fid)}</dd>
 							</div>
-						</dl>
-					{:else}
-						<dl>
-							<div>
-								<dt>FID</dt>
-								<dd>{String(farcasterUserId.fid)}</dd>
-							</div>
-							{#if userField.displayName !== undefined}
+							{#if p.displayName != null}
 								<div>
 									<dt>Display name</dt>
-									<dd>{userField.displayName}</dd>
+									<dd>{p.displayName}</dd>
 								</div>
 							{/if}
-							{#if userField.username !== undefined}
+							{#if p.username != null}
 								<div>
 									<dt>Username</dt>
-									<dd>{userField.username}</dd>
+									<dd>{p.username}</dd>
 								</div>
 							{/if}
-							{#if userField.avatarUrl !== undefined}
+							{#if p.$icon?.[EntityMetaKey.Id].url != null}
 								<div>
 									<dt>Profile image</dt>
 									<dd>
 										<Media
-											media={{ url: userField.avatarUrl }}
-											alt={userField.displayName ?? userField.username ?? ''}
+											media={{ url: p.$icon[EntityMetaKey.Id].url }}
+											alt={p.displayName ?? p.username ?? ''}
 										/>
 									</dd>
 								</div>
 							{/if}
-							{#if userField.bio !== undefined}
+							{#if p.bio != null}
 								<div>
 									<dt>Bio</dt>
-									<dd>{userField.bio}</dd>
+									<dd>{p.bio}</dd>
 								</div>
 							{/if}
-							{#if userField.url !== undefined}
+							{#if p.url != null}
 								<div>
 									<dt>URL</dt>
 									<dd>
-										<a href={userField.url}>{userField.url}</a>
+										<a href={p.url}>{p.url}</a>
 									</dd>
 								</div>
 							{/if}
-							{#if verifiedIsEvmHex !== undefined}
+							{#if p.verifiedAddress !== undefined}
 								<div>
 									<dt>Verified address</dt>
 									<dd>
-										<Address
-											address={verifiedIsEvmHex}
-											showAvatar={false}
-										/>
-									</dd>
-								</div>
-							{:else if userField.verifiedAddress !== undefined}
-								<div>
-									<dt>Verified address</dt>
-									<dd>
-										<TruncatedValue
-											value={userField.verifiedAddress}
-											format={TruncatedValueFormat.Visual}
+										<ActorView
+											entityId={{
+												address: p.verifiedAddress,
+											}}
+											href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+												accountId: p.verifiedAddress,
+											})}
+											layout={EntityLayout.Id}
+											open={false}
+											showTypeAnnotation={false}
 										/>
 									</dd>
 								</div>
 							{/if}
 						</dl>
-					{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

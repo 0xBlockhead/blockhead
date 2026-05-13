@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { UrlString } from '$/schema/$Url.ts'
 import Network from '$/schema/Network.ts'
 
 export enum ForkScheduleKind {
@@ -95,25 +96,25 @@ export default {
 		{
 			name: 'linkEthereumOrg',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'linkExecutionDocs',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'linkConsensusDocs',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'linkForkcast',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

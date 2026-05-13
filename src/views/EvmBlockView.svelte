@@ -3,21 +3,23 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 
 
 	// Props
@@ -45,80 +47,32 @@
 		>
 	> = $props()
 
-	const blockIdKey = $derived(
-		stringify(entityId),
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const block = useEntity(
+		EntityType.EvmBlock,
+		entityId,
+		{
+			$: [
+				Source.Blockscout_Rest,
+				Source.Voltaire_JsonRpc,
+			],
+			timestamp: {},
+			gasUsed: {},
+			gasLimit: {},
+			baseFeePerGas: {},
+			transactionCount: {},
+		},
 	)
-
-	const blockHash = $derived(
-		entityId.hash,
-	)
-
-	const blockQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.EvmBlock] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						blockIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => blockIdKey],
-	)
-
-	const blockRow = $derived(
-		(
-			blockQuery.data?.find(
-				(r) => r.row[EntityMetaKey.Source] === Source.Blockscout_Rest,
-			)?.row
-			?? blockQuery.data?.[0]?.row
-		)
-	)
-
-	const blockField = $derived(
-		(() => {
-			const bag = blockRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-			const b = bag
-			return {
-				extraData: typeof b.extraData === 'string' && b.extraData.length ? b.extraData : undefined,
-				timestamp: typeof b.timestamp === 'number' ? b.timestamp : undefined,
-				gasUsed: typeof b.gasUsed === 'bigint' ? b.gasUsed : undefined,
-				gasLimit: typeof b.gasLimit === 'bigint' ? b.gasLimit : undefined,
-				baseFeePerGas: typeof b.baseFeePerGas === 'bigint' ? b.baseFeePerGas : undefined,
-				transactionCount: typeof b.transactionCount === 'number' ? b.transactionCount : undefined,
-			}
-		})(),
-	)
-
-	const blockTitle = $derived(
-		`Block ${entityId.blockNumber}`,
-	)
-
-	const hasSummaryDetails = $derived(
-		blockField?.transactionCount !== undefined
-		|| blockField?.extraData !== undefined
-		|| (blockField?.timestamp !== undefined && Number.isFinite(blockField.timestamp)),
-	)
-
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.EvmBlock}
 	{entityId}
-	title={blockTitle}
+	title={`Block ${String(entityId.blockNumber)}`}
 	{href}
 	idDragPlainText={String(entityId.blockNumber)}
 	{open}
@@ -133,10 +87,10 @@
 			>
 				{String(entityId.blockNumber)}
 			</span>
-			{#if typeof blockHash === 'string'}
+			{#if entityId.hash}
 				<small>
 					<TruncatedValue
-						value={blockHash}
+						value={entityId.hash}
 						format={TruncatedValueFormat.Abbr}
 					/>
 				</small>
@@ -144,122 +98,93 @@
 		</span>
 	{/snippet}
 
-	{#snippet Content()}
-		{#if hasSummaryDetails}
-			<dl>
-				{#if blockField?.transactionCount !== undefined}
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={block}
+			placeholderText="Loading block…"
+		>
+			{#snippet children(b)}
+				<dl>
 					<div>
-						<dt>Transactions</dt>
-						<dd>
-							<NumberValue value={blockField.transactionCount} />
-						</dd>
+						<dt>Chain id</dt>
+						<dd>{String(entityId.$network.chainId)}</dd>
 					</div>
-				{/if}
-				{#if blockField?.extraData !== undefined}
-					<div>
-						<dt>Extra Data (graffiti)</dt>
-						<dd>{blockField.extraData}</dd>
-					</div>
-				{/if}
-				{#if blockField?.timestamp !== undefined && Number.isFinite(blockField.timestamp)}
-					<div>
-						<dt>Timestamp</dt>
-						<dd>
-							<Timestamp
-								timestamp={blockField.timestamp}
-								format={TimestampFormat.Both}
-							/>
-						</dd>
-					</div>
-				{/if}
-			</dl>
-		{/if}
+					{#if b.transactionCount !== undefined}
+						<div>
+							<dt>Transactions</dt>
+							<dd>
+								<NumberValue value={b.transactionCount} />
+							</dd>
+						</div>
+					{/if}
+					{#if b.timestamp !== undefined}
+						<div>
+							<dt>Timestamp</dt>
+							<dd>
+								<Timestamp
+									timestamp={b.timestamp}
+									format={TimestampFormat.Both}
+								/>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
+	{#snippet Details({ open: _open })}
 		<EntityDetails
 			entityType={EntityType.EvmBlock}
 			{entityId}
 		>
-			<QueryBoundary
-				query={blockQuery}
-			>
+			{#if entityId.hash}
+				<dl>
+					<div>
+						<dt>Hash</dt>
+						<dd>
+							<TruncatedValue
+								value={entityId.hash}
+								format={TruncatedValueFormat.Abbr}
+							/>
+						</dd>
+					</div>
+				</dl>
+			{/if}
 
-				{#snippet children(rows)}
-				{@const blockRow = (
-					rows?.find(
-						(r) => r.row[EntityMetaKey.Source] === Source.Blockscout_Rest,
-					)?.row
-					?? rows?.[0]?.row
-				)}
-				{#if blockRow === undefined}
-					<p data-text="muted">
-						No block data for this chain yet. Try again shortly.
-					</p>
-				{:else}
+			<ResourceBoundary
+				resource={block}
+				placeholderText="Loading block…"
+			>
+				{#snippet children(b)}
 					<dl>
-						<div>
-							<dt>Hash</dt>
-							<dd>
-								{#if typeof blockHash === 'string'}
-									<TruncatedValue
-										value={blockHash}
-										format={TruncatedValueFormat.Abbr}
-									/>
-								{:else}
-									–
-								{/if}
-							</dd>
-						</div>
-						{#if blockField?.timestamp !== undefined && Number.isFinite(blockField.timestamp)}
-							<div>
-								<dt>Timestamp</dt>
-								<dd>
-									<Timestamp
-										timestamp={blockField.timestamp}
-										format={TimestampFormat.Both}
-									/>
-								</dd>
-							</div>
-						{/if}
-						{#if blockField?.gasUsed !== undefined}
+						{#if b.gasUsed !== undefined}
 							<div>
 								<dt>Gas used</dt>
 								<dd>
-									<NumberValue value={blockField.gasUsed} />
+									<NumberValue value={b.gasUsed} />
 								</dd>
 							</div>
 						{/if}
-						{#if blockField?.gasLimit !== undefined}
+						{#if b.gasLimit !== undefined}
 							<div>
 								<dt>Gas limit</dt>
 								<dd>
-									<NumberValue value={blockField.gasLimit} />
+									<NumberValue value={b.gasLimit} />
 								</dd>
 							</div>
 						{/if}
-						{#if blockField?.baseFeePerGas !== undefined}
+						{#if b.baseFeePerGas !== undefined}
 							<div>
 								<dt>Base fee</dt>
 								<dd>
-									<NumberValue value={blockField.baseFeePerGas} />
-								</dd>
-							</div>
-						{/if}
-						{#if blockField?.transactionCount !== undefined}
-							<div>
-								<dt>Transactions</dt>
-								<dd>
-									<NumberValue value={blockField.transactionCount} />
+									<NumberValue value={b.baseFeePerGas} />
 								</dd>
 							</div>
 						{/if}
 					</dl>
-				{/if}
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		<EvmTransactionsView

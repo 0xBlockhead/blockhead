@@ -1,23 +1,22 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import FarcasterChannelView from '$/views/FarcasterChannelView.svelte'
 
 
 	// Props
@@ -27,55 +26,53 @@
 		href = resolve('/farcaster/channels'),
 		title = 'Channels',
 		open = $bindable(true),
-	}: {
-		entityFieldReference: EntityFieldReference<typeof schema, EntityType.FarcasterChannel>
-		id?: string
-		href?: string
-		title?: string
-		open?: boolean
-	} = $props()
+		...entitiesListProps
+	}: WithRest<
+		{
+			entityFieldReference: EntityFieldReference<
+				typeof schema,
+				EntityType.FarcasterChannel
+			>
+			id?: string
+			href?: string
+			title?: string
+			open?: boolean
+		},
+		Omit<
+			ComponentProps<typeof EntitiesList>,
+			'entityType'
+		>
+	> = $props()
 
 
-	const channelsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					$$channels: (
-						entityFieldCollectionForReference(
-							entityFieldCollections,
-							entityFieldReference,
-						)
-					),
-				})
-				.where(({ $$channels }) => (
-					eq(
-						$$channels[EntityMetaKey.ParentIdKey],
-						stringify(entityFieldReference.entityId),
-					)
-				))
-				.where(({ $$channels }) => (
-					eq(
-						$$channels[EntityMetaKey.Source],
-						Source.Farcaster_Rest,
-					)
-				))
-				.select(({ $$channels }) => (
-					{ value: $$channels[EntityMetaKey.Value] }
-				))
-				.distinct()
-		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-		],
+	// State
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+
+	const parentNetwork = useEntity(
+		EntityType.FarcasterNetwork,
+		entityFieldReference.entityId,
+		{
+			$$channels: { $: [Source.Farcaster_Rest] },
+		},
 	)
 
-
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FarcasterChannelView from '$/views/FarcasterChannelView.svelte'
+	const channels = derive(
+		parentNetwork,
+		(merged) => (
+			[...(merged.$$channels ?? [])]
+				.toSorted((a, b) => (
+					a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
+				))
+				.map((result) => ({
+					result,
+				}))
+		),
+	)
 </script>
 
 
@@ -85,18 +82,12 @@
 	{href}
 	{title}
 	bind:open
-	items={channelsQuery.data?.map(({ value }) => value) ?? []}
-	getKey={(row) => stringify(row[EntityMetaKey.Id])}
-	getSortValue={(row) => row[EntityMetaKey.Id].id}
-	placeholderKeys={new SvelteSet<string>()}
-	query={{
-		data: channelsQuery.data?.map(({ value }) => value) ?? [],
-		isLoading: channelsQuery.isLoading,
-		isError: channelsQuery.isError,
-		isReady: channelsQuery.isReady,
-		error: channelsQuery.error,
-		status: channelsQuery.status,
-	}}
+	getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
+	getSortValue={(row) => row.result[EntityMetaKey.Id].id}
+	placeholderKeys={new SvelteSet()}
+	placeholderText="Loading channels…"
+	resource={channels}
+	{...entitiesListProps}
 >
 	{#snippet Empty()}
 		<p data-text="muted">
@@ -104,13 +95,9 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: row, isPlaceholder })}
-		{#if isPlaceholder}
-			<span data-placeholder>
-				…
-			</span>
-		{:else if row}
-			{@const channelId = row[EntityMetaKey.Id]}
+	{#snippet Item(props)}
+		{#if props.isPlaceholder === false}
+			{@const channelId = props.item.result[EntityMetaKey.Id]}
 			<FarcasterChannelView
 				entityId={{ id: channelId.id }}
 				href={resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {

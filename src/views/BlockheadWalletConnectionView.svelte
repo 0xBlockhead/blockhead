@@ -2,13 +2,28 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
+
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import IconComponent from '$/components/Icon.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import ActorView from '$/views/ActorView.svelte'
 
 
 	// Props
@@ -51,12 +66,17 @@
 	> = $props()
 
 
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import IconComponent from '$/components/Icon.svelte'
-	import ActorView from '$/views/ActorView.svelte'
-	import Address from '$/views/Address.svelte'
+	const persisted = useEntity(
+		EntityType.BlockheadWalletConnection,
+		entityId,
+		{
+			$: [
+				Source.Local_Internal,
+			],
+			selected: {},
+			connectedAt: {},
+		},
+	)
 </script>
 
 
@@ -77,7 +97,7 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Content()}
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Status</dt>
@@ -88,20 +108,39 @@
 				<div>
 					<dt>Account</dt>
 					<dd>
-						<Address
-							actorId={{
-								$network: {
-									chainId: chainId ?? 1,
-								},
-								address: accounts[0],
-							}}
-							isLinked={false}
-						/>
+						{#if chainId !== null}
+							<ActorNetworkView
+								entityId={{
+									$network: { chainId },
+									$actor: {
+										address: accounts[0],
+									},
+								}}
+								href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+									accountId: accounts[0],
+								})}
+								layout={EntityLayout.Id}
+								open={false}
+								showTypeAnnotation={false}
+							/>
+						{:else}
+							<ActorView
+								entityId={{
+									address: accounts[0],
+								}}
+								href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+									accountId: accounts[0],
+								})}
+								layout={EntityLayout.Id}
+								open={false}
+								showTypeAnnotation={false}
+							/>
+						{/if}
 					</dd>
 				</div>
 			{/if}
 
-			{#if chainId !== undefined}
+			{#if chainId !== null}
 				<div>
 					<dt>Chain</dt>
 					<dd>{String(chainId)}</dd>
@@ -117,6 +156,41 @@
 			entityType={EntityType.BlockheadWalletConnection}
 			{entityId}
 		>
+			<dl>
+				<div>
+					<dt>Status</dt>
+					<dd>{status}</dd>
+				</div>
+
+				{#if chainId !== null}
+					<div>
+						<dt>Chain</dt>
+						<dd>{String(chainId)}</dd>
+					</div>
+				{/if}
+			</dl>
+
+			<ResourceBoundary resource={persisted}>
+				{#snippet children(connection)}
+					<dl>
+						<div>
+							<dt>Selected</dt>
+							<dd>{connection.selected ? 'Yes' : 'No'}</dd>
+						</div>
+
+						<div>
+							<dt>Connected at</dt>
+							<dd>
+								<Timestamp
+									timestamp={connection.connectedAt}
+									format={TimestampFormat.Both}
+								/>
+							</dd>
+						</div>
+					</dl>
+				{/snippet}
+			</ResourceBoundary>
+
 			{#if error}
 				<p role="alert">
 					{error}
@@ -130,21 +204,33 @@
 				>
 					{#each accounts as address (address)}
 						<li>
-							<ActorView
-								entityId={{
-									$network: {
-										chainId: chainId ?? 1,
-									},
-									address,
-								}}
-								href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-									accountId: address,
-								})}
-								open={false}
-							/>
+							{#if chainId !== null}
+								<ActorNetworkView
+									entityId={{
+										$network: { chainId },
+										$actor: { address },
+									}}
+									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+										accountId: address,
+									})}
+									open={false}
+								/>
+							{:else}
+								<ActorView
+									entityId={{ address }}
+									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+										accountId: address,
+									})}
+									open={false}
+								/>
+							{/if}
 						</li>
 					{/each}
 				</ul>
+			{:else}
+				<p data-text="muted">
+					No accounts are connected to this wallet yet.
+				</p>
 			{/if}
 
 			<div data-row>

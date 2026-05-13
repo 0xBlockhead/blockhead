@@ -264,13 +264,19 @@ const logBlockStreamEvent = (
 ) => {
 	if (event.type === 'blocks') {
 		const chainHead = event.metadata.chainHead
-		const blockNumbers = event.blocks.map((b) => String(b.header.number))
+		const blockNumbers = event.blocks.map((b) => (
+			b.header != null ?
+				String(b.header.number)
+			:
+				'(no header)'
+		))
 		console.info(
 			`[block stream] chainId=${String(chainId)} type=blocks chainHead=${String(chainHead)} blockNumbers=${blockNumbers.join(',')}`,
 		)
 	} else {
+		const ancestor = event.commonAncestor
 		console.info(
-			`[block stream] chainId=${String(chainId)} type=reorg removed=${String(event.removed.length)} added=${String(event.added.length)} commonAncestor=${String(event.commonAncestor.number)}`,
+			`[block stream] chainId=${String(chainId)} type=reorg removed=${String(event.removed.length)} added=${String(event.added.length)} commonAncestor=${ancestor != null ? String(ancestor.number) : '?'}`,
 		)
 	}
 }

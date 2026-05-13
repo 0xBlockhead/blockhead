@@ -1,20 +1,22 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// State
-	import type { ComponentProps, Snippet } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
 
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+
+
+	// Props
 	let {
 		children,
 		entityId,
@@ -36,137 +38,95 @@
 			| 'open'
 			| 'title'
 			| 'Details'
+			| 'Heading'
 		>
 	> = $props()
 
 
-	const idKey = $derived(
-		stringify(entityId),
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const selector = useEntity(
+		EntityType.EvmSelector,
+		entityId,
+		{
+			$: [
+				Source.Openchain_Rest,
+			],
+			signatures: {},
+		},
 	)
-
-	const selectorQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.EvmSelector] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						idKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => idKey],
-	)
-
-	const signatures = $derived(
-		(() => {
-			const fields = (
-				selectorQuery.data?.find(
-					(r) => r.row[EntityMetaKey.Source] === Source.Openchain_Rest,
-				)?.row
-				?? selectorQuery.data?.[0]?.row
-			)?.[EntityMetaKey.Fields]
-			return (
-				fields !== undefined
-				&& typeof fields === 'object'
-				&& 'signatures' in fields
-				&& Array.isArray(fields.signatures) ?
-					fields.signatures.filter((x): x is string => typeof x === 'string')
-				: undefined
-			)
-		})(),
-	)
-
-	const label = $derived(
-		signatures !== undefined && signatures.length > 0 ?
-			signatures[0]!
-		:
-			entityId.hex,
-	)
-
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.EvmSelector}
 	{entityId}
-	title={label}
 	{href}
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Content()}
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={selector}
+			placeholderText="Loading selector…"
+		>
+			{#snippet children(s)}
+				<HeadingComponent>{s.signatures[0] ?? entityId.hex}</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Hex</dt>
-				<dd>{entityId.hex}</dd>
+				<dd>
+					<TruncatedValue
+						value={entityId.hex}
+						format={TruncatedValueFormat.Visual}
+					/>
+				</dd>
 			</div>
 		</dl>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
+	{#snippet Details({ open: _open })}
+		<EntityDetails
+			entityType={EntityType.EvmSelector}
+			{entityId}
+		>
+			<section>
+				<dl>
+					<div>
+						<dt>
+							Signatures
+						</dt>
+						<dd>
+							<ResourceBoundary
+								resource={selector}
+								placeholderText="Loading signatures…"
+							>
+								{#snippet children(s)}
+									{#if s.signatures.length > 0}
+										<ul>
+										{#each s.signatures as sig (sig)}
+												<li><code>{sig}</code></li>
+											{/each}
+										</ul>
+									{:else}
+										<p data-text="muted">No signatures found for this selector.</p>
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				</dl>
+			</section>
+		</EntityDetails>
+
 		{#if children}
 			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.EvmSelector}
-				{entityId}
-			>
-				<QueryBoundary
-					query={selectorQuery}
-				>
-
-					{#snippet children(rows)}
-					{@const row = (
-						rows?.find(
-							(r) => r.row[EntityMetaKey.Source] === Source.Openchain_Rest,
-						)?.row
-						?? rows?.[0]?.row
-					)}
-					{#if row === undefined}
-						<p data-text="muted">
-							No signatures found for this selector.
-						</p>
-					{:else}
-						<section>
-							<dl>
-								<div>
-									<dt>
-										Hex (4-byte)
-									</dt>
-									<dd><code>{entityId.hex}</code></dd>
-								</div>
-
-								<div>
-									<dt>
-										Signatures
-									</dt>
-									<dd>
-										{#if signatures !== undefined && signatures.length > 0}
-											<ul>
-												{#each signatures as sig}
-													<li><code>{sig}</code></li>
-												{/each}
-											</ul>
-										{:else}
-											—
-										{/if}
-									</dd>
-								</div>
-							</dl>
-						</section>
-					{/if}
-					{/snippet}
-				</QueryBoundary>
-			</EntityDetails>
 		{/if}
 	{/snippet}
 </EntityView>

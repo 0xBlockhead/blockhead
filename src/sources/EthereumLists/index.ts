@@ -2,7 +2,10 @@ import {
 	type SourceProviderDefinition,
 	SourceProvider,
 } from '$/sources/$SourceProvider.ts'
-import { origin } from '$/sources/EthereumLists/Rest/constants.ts'
+import {
+	githubApiOrigin,
+	origin,
+} from '$/sources/EthereumLists/Rest/constants.ts'
 import EthereumListsRestSource from '$/sources/EthereumLists/Rest/index.ts'
 
 export default {
@@ -11,6 +14,10 @@ export default {
 	origins: [
 		{
 			origin,
+			corsEnabled: true,
+		},
+		{
+			origin: githubApiOrigin,
 			corsEnabled: true,
 		},
 	],

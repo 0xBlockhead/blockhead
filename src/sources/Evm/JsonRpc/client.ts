@@ -1,3 +1,4 @@
+import { throwHttpError } from '$/lib/http.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
@@ -33,7 +34,7 @@ export const jsonRpc = async <_Result>({
 			params,
 		}),
 	})
-	if (!response.ok) throw new Error(`JsonRpc ${method}: ${response.status} ${response.statusText}`)
+	if (!response.ok) await throwHttpError(`JsonRpc ${method}`, response)
 
 	const json = await response.json<JsonRpcResponse<_Result>>()
 

@@ -1,3 +1,4 @@
+import { throwHttpError } from '$/lib/http.ts'
 import { requiredPublicEnvString } from '$/lib/sources.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
@@ -14,9 +15,7 @@ export const coinMarketCapFetch = async <_Response>(
 		},
 	})
 
-	if (!response.ok) {
-		throw new Error(`CoinMarketCap API error: ${response.status} ${response.statusText}`)
-	}
+	if (!response.ok) await throwHttpError('CoinMarketCap API', response)
 
 	return response.json<_Response>()
 }

@@ -1,5 +1,10 @@
 <script lang="ts">
-	// Types/constants
+	// Props
+	let {
+		label = 'Mainnet',
+	}: {
+		label?: string
+	} = $props()
 </script>
 
 
@@ -9,5 +14,5 @@
 	role="status"
 	aria-label="Network environment"
 >
-	<span data-text="muted">Mainnet</span>
+	<span data-text="muted">{label}</span>
 </div>

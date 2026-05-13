@@ -1,33 +1,33 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import OrderedList from '$/components/OrderedList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 
 
 	// Props
 	let {
 		entityFieldReference,
-
 		title = 'Epochs',
-
 		open = $bindable(true),
-
 		...entitiesListProps
 	}: WithRest<
 		{
@@ -42,81 +42,31 @@
 	> = $props()
 
 
-	const networkIdKey = $derived(
-		stringify(entityFieldReference.entityId),
+	// State
+	import { stringify } from 'devalue'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	const network = useEntity(
+		EntityType.Network,
+		entityFieldReference.entityId,
+		{
+			blockHeight: { $: [Source.Voltaire_JsonRpc] },
+			$$beaconEpochs: { $: [Source.Beacon_Rest] },
+		},
 	)
 
-	const blockHeightQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ blockHeight: entityFieldCollections[EntityType.Network].blockHeight })
-				.where(({ blockHeight }) => (
-					eq(
-						blockHeight[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
+	const epochs = derive(
+		network,
+		(merged): Entity<typeof schema, EntityType.BeaconEpoch>[] => (
+			(merged.$$beaconEpochs ?? [])
+				.toSorted((a, b) => (
+					Number(b[EntityMetaKey.Id].epoch - a[EntityMetaKey.Id].epoch)
 				))
-				.where(({ blockHeight }) => (
-					eq(
-						blockHeight[EntityMetaKey.Source],
-						Source.Voltaire_JsonRpc,
-					)
-				))
-				.select(({ blockHeight }) => ({
-					height: blockHeight[EntityMetaKey.Value],
-				}))
-				.findOne()
+				.slice(0, 16)
 		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-			() => networkIdKey,
-		],
 	)
-
-	const beaconEpochsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ $$beaconEpochs: entityFieldCollections[EntityType.Network]['$$beaconEpochs'] })
-				.where(({ $$beaconEpochs }) => (
-					eq(
-						$$beaconEpochs[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.where(({ $$beaconEpochs }) => (
-					eq(
-						$$beaconEpochs[EntityMetaKey.Source],
-						Source.Beacon_Rest,
-					)
-				))
-				.orderBy(({ $$beaconEpochs }) => (
-					$$beaconEpochs[EntityMetaKey.Value][EntityMetaKey.IdKey]
-				), 'desc')
-				.limit(16)
-				.select(({ $$beaconEpochs }) => (
-					{ value: $$beaconEpochs[EntityMetaKey.Value] }
-				))
-				.distinct()
-		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-			() => networkIdKey,
-			() => blockHeightQuery.data?.height,
-		],
-	)
-
-
-	// Components
-	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import OrderedList from '$/components/OrderedList.svelte'
-	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 </script>
 
 
@@ -127,45 +77,49 @@
 	{...entitiesListProps}
 >
 	{#snippet body()}
-		<QueryBoundary
-			placeholderText="Loading epochs…"
-			query={beaconEpochsQuery}
-		>
-			<OrderedList
-				items={beaconEpochsQuery.data?.map(({ value }) => value) ?? []}
-				getKey={(row) => (
-					row[EntityMetaKey.Id].epoch
-				)}
-				placeholderRanges={[]}
-				orientation={ListOrientation.Column}
+		{#key stringify(entityFieldReference.entityId)}
+			<ResourceBoundary
+				resource={epochs}
+				placeholderText="Loading epochs…"
 			>
-				{#snippet Empty()}{/snippet}
+				{#snippet children(loaded)}
+					<OrderedList
+						items={loaded}
+						getKey={(epoch) => (
+							epoch[EntityMetaKey.Id].epoch
+						)}
+						placeholderRanges={[]}
+						orientation={ListOrientation.Column}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No recent epochs for this network yet.
+							</p>
+						{/snippet}
 
-				{#snippet Item({ item: row, isPlaceholder })}
-					{#if isPlaceholder}
-						<span data-placeholder>
-							…
-						</span>
-					{:else if row}
-						<BeaconEpochView
-							entityId={row[EntityMetaKey.Id]}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
-								{
-									networkId: String(
-										row[EntityMetaKey.Id].$network.chainId,
-									),
-									epochNumber: String(
-										row[EntityMetaKey.Id].epoch,
-									),
-								},
-							)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+						{#snippet Item({ item: epoch, isPlaceholder })}
+							{#if isPlaceholder === false}
+								<BeaconEpochView
+									entityId={epoch[EntityMetaKey.Id]}
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
+										{
+											networkId: String(
+												epoch[EntityMetaKey.Id].$network.chainId,
+											),
+											epochNumber: String(
+												epoch[EntityMetaKey.Id].epoch,
+											),
+										},
+									)}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
+							{/if}
+						{/snippet}
+					</OrderedList>
 				{/snippet}
-			</OrderedList>
-		</QueryBoundary>
+			</ResourceBoundary>
+		{/key}
 	{/snippet}
 </EntitiesList>

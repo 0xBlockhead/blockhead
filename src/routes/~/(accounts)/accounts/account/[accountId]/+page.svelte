@@ -17,7 +17,6 @@
 <Page>
 	<ActorView
 		entityId={{
-			$network: { chainId: 1 },
 			address: params.accountId as `0x${string}`,
 		}}
 		href={resolve('/~/(accounts)/accounts/account/[accountId]', params)}

@@ -17,6 +17,9 @@
 
 export const restPath = '/api/v2'
 
+/** Inclusive maximum for the `items_count` query param on paginated v2 list endpoints (422 above this). */
+export const blockscoutV2ItemsCountMax = 50
+
 /**
  * `GET {explorerOrigin}` + `restPath` + `…` is Blockscout’s own HTTP API. Other block-explorer UIs
  * (custom domains, different products) do not serve this path — use chain RPC and/or that product’s client instead.

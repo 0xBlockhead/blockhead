@@ -4,6 +4,7 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { MediaType } from '$/schema/Media.ts'
@@ -11,7 +12,6 @@ import { Source } from '$/sources/$Source.ts'
 import type { LifiChain } from '$/sources/Lifi/Rest/types.ts'
 
 const networkEntityFieldsFromLifiChain = (lifiChain: LifiChain) => {
-	const logoUri = lifiChain.logoURI?.trim()
 	return {
 		[EntityMetaKey.Id]: { chainId: lifiChain.id },
 		...((
@@ -20,12 +20,9 @@ const networkEntityFieldsFromLifiChain = (lifiChain: LifiChain) => {
 			t == null ?
 				{}
 			:	{
-					$icon: {
-						[EntityMetaKey.Id]: { url: t },
-						type: MediaType.Image,
-					},
+					$icon: t,
 				}
-		))(logoUri != null && logoUri.length > 0 ? logoUri : undefined),
+		))(mediaFromUrl(lifiChain.logoURI, MediaType.Image)),
 		blockExplorers: (
 			(lifiChain.metamask?.blockExplorerUrls ?? [])
 				.map((u) => u.trim())

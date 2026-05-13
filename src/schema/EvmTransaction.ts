@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -9,11 +11,11 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import Network from '$/schema/Network.ts'
 
 const evmLogRow = type({
-	'address?': 'string.hex' as type.cast<`0x${string}`>,
+	'address?': EvmAddress,
 	'topics?': type.string.array(),
 	'data?': 'string',
 	'blockNumber?': 'string | number',
-	'transactionHash?': 'string.hex' as type.cast<`0x${string}`>,
+	'transactionHash?': ZeroExHex,
 	'logIndex?': 'string | number',
 })
 
@@ -25,7 +27,7 @@ export default {
 
 	id: type({
 		$network: Network.id,
-		txHash: 'string.hex' as type.cast<`0x${string}`>,
+		txHash: ZeroExHex,
 	}),
 
 	fields: [

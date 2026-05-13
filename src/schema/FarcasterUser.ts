@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -6,6 +8,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
@@ -50,13 +53,13 @@ export default {
 		{
 			name: 'url',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'verifiedAddress',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: EvmAddress,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

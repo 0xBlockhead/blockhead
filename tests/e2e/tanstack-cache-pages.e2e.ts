@@ -7,6 +7,7 @@ import {
 	collectIssues,
 	countRequestsMatching,
 	e2eBrowserNewContextOptions,
+	ethereumListsChainsJsonWire,
 	installChainlistRpcsJsonStub,
 } from '../_e2eBrowserHelpers.ts'
 
@@ -33,7 +34,7 @@ test.describe('TanStack query lifecycle + cache', () => {
 		)
 	})
 
-	test('networks: cold OPFS chainlist fetch + UI; reload skips rpcs; OPFS clear + new context refetches', async ({
+	test('networks: cold OPFS resolves; reload hydrates from OPFS; OPFS clear refetches', async ({
 		browser,
 	}) => {
 		test.setTimeout(600_000)
@@ -47,7 +48,10 @@ test.describe('TanStack query lifecycle + cache', () => {
 		await page.reload({ waitUntil: 'domcontentloaded' })
 		await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
 
-		const rpcs = countRequestsMatching(page, chainlistRpcsWire)
+		const networkListSources = countRequestsMatching(page, (url, method) => (
+			chainlistRpcsWire(url)
+			|| ethereumListsChainsJsonWire(url, method)
+		))
 
 		const coldRpc = page.waitForResponse(
 			(r) => chainlistRpcsWire(r.url()),
@@ -57,25 +61,30 @@ test.describe('TanStack query lifecycle + cache', () => {
 		await coldRpc
 		await expect(page.locator('#networks')).toBeVisible()
 		await expect(page.locator('#networks .loading')).toBeHidden()
-		await expect(page.getByRole('link', { name: 'Mock Ethereum', exact: true })).toBeVisible()
+		await expect(page.getByRole('link', { name: 'Mock Ethereum', exact: true }).first()).toBeVisible()
 
-		expect(rpcs.get(), 'cold load should hit Chainlist rpcs.json').toBeGreaterThan(0)
-		const afterFirst = rpcs.get()
+		expect(networkListSources.get(), 'cold load should call network list resolvers').toBeGreaterThan(0)
+		const afterFirst = networkListSources.get()
+		networkListSources.detach()
 
 		await assertMainSettled(page)
 
+		const reloadNetworkListSources = countRequestsMatching(page, (url, method) => (
+			chainlistRpcsWire(url)
+			|| ethereumListsChainsJsonWire(url, method)
+		))
 		await page.reload({ waitUntil: 'load' })
 		await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
 		await expect(page.locator('#networks')).toBeVisible({ timeout: 120_000 })
-		await expect(page.getByRole('link', { name: 'Mock Ethereum', exact: true })).toBeVisible({
+		await expect(page.getByRole('link', { name: 'Mock Ethereum', exact: true }).first()).toBeVisible({
 			timeout: 120_000,
 		})
+		reloadNetworkListSources.detach()
 		expect(
-			rpcs.get() - afterFirst,
-			`reload should add at most one extra rpcs.json request (before ${afterFirst}, after ${rpcs.get()})`,
-		).toBeLessThanOrEqual(1)
+			reloadNetworkListSources.get(),
+			`reload should serve network list from OPFS without Chainlist / ethereum-lists HTTP (cold count ${afterFirst})`,
+		).toBe(0)
 
-		rpcs.detach()
 		await ctx1.close()
 
 		const wipeCtx = await browser.newContext(e2eBrowserNewContextOptions())
@@ -87,7 +96,10 @@ test.describe('TanStack query lifecycle + cache', () => {
 		const ctx2 = await browser.newContext(e2eBrowserNewContextOptions())
 		const page2 = await ctx2.newPage()
 		await installChainlistRpcsJsonStub(page2)
-		const rpcs2 = countRequestsMatching(page2, chainlistRpcsWire)
+		const networkListSources2 = countRequestsMatching(page2, (url, method) => (
+			chainlistRpcsWire(url)
+			|| ethereumListsChainsJsonWire(url, method)
+		))
 		const coldRpc2 = page2.waitForResponse(
 			(r) => chainlistRpcsWire(r.url()),
 			{ timeout: 120_000 },
@@ -96,13 +108,13 @@ test.describe('TanStack query lifecycle + cache', () => {
 		await coldRpc2
 		await expect(page2.locator('#networks')).toBeVisible()
 		await expect(page2.locator('#networks .loading')).toBeHidden()
-		await expect(page2.getByRole('link', { name: 'Mock Ethereum', exact: true })).toBeVisible()
+		await expect(page2.getByRole('link', { name: 'Mock Ethereum', exact: true }).first()).toBeVisible()
 		expect(
-			rpcs2.get(),
-			'empty OPFS + fresh JS should refetch rpcs.json',
+			networkListSources2.get(),
+			'empty OPFS + fresh JS should call network list resolvers',
 		).toBeGreaterThan(0)
 
-		rpcs2.detach()
+		networkListSources2.detach()
 		await ctx2.close()
 		expect(issues, issues.join('\n')).toEqual([])
 	})

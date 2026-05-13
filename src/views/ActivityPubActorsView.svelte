@@ -1,23 +1,22 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
 
 
 	// Props
@@ -27,55 +26,54 @@
 		id,
 		open = $bindable(true),
 		title = 'Actors',
-	}: {
-		entityFieldReference: EntityFieldReference<typeof schema, EntityType.ActivityPubActor>
-		href: string
-		id: string
-		open?: boolean
-		title?: string
-	} = $props()
+		...entitiesListRest
+	}: WithRest<
+		{
+			entityFieldReference: EntityFieldReference<
+				typeof schema,
+				EntityType.ActivityPubActor
+			>
+			href: string
+			id: string
+			open?: boolean
+			title?: string
+		},
+		Omit<
+			ComponentProps<typeof EntitiesList>,
+			'entityType'
+		>
+	> = $props()
 
 
-	const actorsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					actorFieldRow: (
-						entityFieldCollectionForReference(
-							entityFieldCollections,
-							entityFieldReference,
-						)
-					),
-				})
-				.where(({ actorFieldRow }) => (
-					eq(
-						actorFieldRow[EntityMetaKey.ParentIdKey],
-						stringify(entityFieldReference.entityId),
-					)
-				))
-				.where(({ actorFieldRow }) => (
-					eq(
-						actorFieldRow[EntityMetaKey.Source],
-						Source.Mastodon_Rest,
-					)
-				))
-				.select(({ actorFieldRow }) => (
-					{ value: actorFieldRow[EntityMetaKey.Value] }
-				))
-				.distinct()
-		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-		],
+	// State
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	const activityPubNetwork = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			$: [Source.Constants_Internal],
+			protocolName: {},
+			$$activityPubActors: {
+				$: [
+					Source.Constants_Internal,
+					Source.Mastodon_Rest,
+				],
+			},
+		},
 	)
 
-
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
+	const actors = derive(
+		activityPubNetwork,
+		(loaded) => (
+			loaded.$$activityPubActors
+			?? []
+		),
+	)
 </script>
 
 
@@ -83,48 +81,50 @@
 	entityType={EntityType.ActivityPubActor}
 	{href}
 	{id}
-	getKey={(row) => stringify(row[EntityMetaKey.Id])}
-	getSortValue={(row) => (
-		row[EntityMetaKey.Id].localAccountId
-	)}
-	items={actorsQuery.data?.map(({ value }) => value) ?? []}
 	bind:open
-	placeholderKeys={new SvelteSet<string>()}
-	query={{
-		data: actorsQuery.data?.map(({ value }) => value) ?? [],
-		isLoading: actorsQuery.isLoading,
-		isError: actorsQuery.isError,
-		isReady: actorsQuery.isReady,
-		error: actorsQuery.error,
-		status: actorsQuery.status,
-	}}
 	{title}
+	{...entitiesListRest}
 >
-	{#snippet Empty()}
-		<p data-text="muted">
-			No ActivityPub actors to show yet.
-		</p>
-	{/snippet}
+	{#snippet body()}
+		{#key stringify(entityFieldReference.entityId)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.ActivityPubActor}
+				id={`${id}-items`}
+				{href}
+				{title}
+				open={true}
+				getKey={(row) => stringify(row[EntityMetaKey.Id])}
+				getSortValue={(row) => row[EntityMetaKey.Id].localAccountId}
+				placeholderKeys={new SvelteSet()}
+				placeholderText="Loading ActivityPub network…"
+				resource={actors}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No ActivityPub actors to show yet.
+					</p>
+				{/snippet}
 
-	{#snippet Item({ item, isPlaceholder })}
-		{#if isPlaceholder}
-			<span data-placeholder>
-				…
-			</span>
-		{:else if item}
-			{@const actorId = item[EntityMetaKey.Id]}
-			<ActivityPubActorView
-				entityId={{
-					instanceOrigin: actorId.instanceOrigin,
-					localAccountId: actorId.localAccountId,
-				}}
-				href={resolve('/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
-					instanceOrigin: encodeURIComponent(actorId.instanceOrigin),
-					localAccountId: encodeURIComponent(actorId.localAccountId),
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
+				{#snippet Item(props)}
+					{#if props.isPlaceholder === false}
+						{@const actorId = props.item[EntityMetaKey.Id]}
+						<ActivityPubActorView
+							entityId={{
+								instanceOrigin: actorId.instanceOrigin,
+								localAccountId: actorId.localAccountId,
+							}}
+							href={resolve('/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+								instanceOrigin: encodeURIComponent(actorId.instanceOrigin),
+								localAccountId: encodeURIComponent(actorId.localAccountId),
+							})}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
+		{/key}
 	{/snippet}
 </EntitiesList>

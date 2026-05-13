@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -6,6 +8,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { UrlString } from '$/schema/$Url.ts'
 
 export type CastHash = `0x${string}`
 
@@ -17,7 +20,7 @@ export default {
 
 	id: type({
 		fid: 'number',
-		hash: 'string.hex' as type.cast<CastHash>,
+		hash: ZeroExHex,
 	}),
 
 	fields: [
@@ -42,7 +45,7 @@ export default {
 		{
 			name: 'parentUrl',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

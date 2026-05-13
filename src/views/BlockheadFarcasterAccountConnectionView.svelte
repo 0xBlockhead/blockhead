@@ -1,23 +1,33 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { resolve } from '$app/paths'
-	import type { EntityFieldValues, EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { Source } from '$/sources/$Source.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { entityResolversByEntityType } from '$/resolvers/index.ts'
 
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
-	const evmHexAddress40 = (value: string): value is `0x${string}` => (
-		/^0x[a-fA-F0-9]{40}$/.test(value)
-	)
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
+	import Media from '$/components/Media.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 
 
 	// Props
@@ -43,81 +53,31 @@
 			| 'title'
 			| 'Details'
 			| 'Icon'
+			| 'Heading'
 			| 'HeadingAfter'
 			| 'Content'
 		>
 	> = $props()
 
 
-	const connectionIdKey = $derived(
-		stringify(entityId),
+	const connection = useEntity(
+		EntityType.BlockheadFarcasterAccountConnection,
+		entityId,
+		{
+			$: (
+				entityResolversByEntityType[EntityType.BlockheadFarcasterAccountConnection]?.map((r) => r.source)
+				?? [
+					Source.Neynar_Rest,
+				]
+			),
+			displayName: {},
+			username: {},
+			$icon: {},
+			bio: {},
+			custody: {},
+			signedAt: {},
+		},
 	)
-
-	const connectionQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					row: entityCollectionByEntityType[EntityType.BlockheadFarcasterAccountConnection],
-				})
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						connectionIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => connectionIdKey],
-	)
-
-	const connectionRow = $derived(
-		connectionQuery.data?.[0]?.row,
-	)
-
-	const connectionField = $derived(
-		(() => {
-			const bag = connectionRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-			const f: Partial<EntityFieldValues<typeof schema, EntityType.BlockheadFarcasterAccountConnection>> = bag
-			return {
-				username: typeof f.username === 'string' && f.username.length ? f.username : undefined,
-				displayName: typeof f.displayName === 'string' && f.displayName.length ? f.displayName : undefined,
-				avatarUrl: f.$icon?.[EntityMetaKey.Id].url,
-				bio: typeof f.bio === 'string' && f.bio.length ? f.bio : undefined,
-				custody: typeof f.custody === 'string' && f.custody.length ? f.custody : undefined,
-				authMethod: f.authMethod,
-				verifications: Array.isArray(f.verifications) ?
-					f.verifications.filter((value): value is string => typeof value === 'string' && value.length > 0)
-				:	undefined,
-				signedAt: typeof f.signedAt === 'number' ? f.signedAt : undefined,
-			}
-		})(),
-	)
-
-	const displayTitle = $derived(
-		connectionField?.displayName
-		?? connectionField?.username
-		?? `FID ${String(entityId.fid)}`,
-	)
-
-	const custodyIsEvmHex = $derived(
-		connectionField?.custody !== undefined
-		&& evmHexAddress40(connectionField.custody) ?
-			connectionField.custody
-		:
-			undefined,
-	)
-
-
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import IconComponent, { IconShape } from '$/components/Icon.svelte'
-	import Media from '$/components/Media.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import Address from '$/views/Address.svelte'
-	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 </script>
 
 
@@ -125,64 +85,89 @@
 	entityType={EntityType.BlockheadFarcasterAccountConnection}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
-	title={displayTitle}
 >
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={connection}
+			placeholderText="Loading connection…"
+		>
+			{#snippet Pending()}{/snippet}
+			{#snippet children(c)}
+				{@const headline = (
+					c.displayName
+					?? c.username
+					?? `FID ${String(entityId.fid)}`
+				)}
+				<HeadingComponent>{headline}</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Icon()}
-		{#if connectionField?.avatarUrl !== undefined}
-			<IconComponent
-				shape={IconShape.Circle}
-				src={connectionField.avatarUrl}
-				alt=""
-			/>
-		{/if}
+		<ResourceBoundary
+			resource={connection}
+			placeholderText="Loading icon…"
+		>
+			{#snippet children(c)}
+				{#if c.$icon}
+					{#if c.$icon[EntityMetaKey.Id].url}
+						<IconComponent
+							shape={IconShape.Circle}
+							src={c.$icon[EntityMetaKey.Id].url}
+							alt=""
+						/>
+					{/if}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if connectionField?.username !== undefined && connectionField.username !== displayTitle}
-			<span data-text="muted">
-				@{connectionField.username}
-			</span>
-		{/if}
+		<ResourceBoundary
+			resource={connection}
+			placeholderText=""
+		>
+			{#snippet Pending()}{/snippet}
+			{#snippet children(c)}
+				{@const headline = (
+					c.displayName
+					?? c.username
+					?? `FID ${String(entityId.fid)}`
+				)}
+				{#if c.username !== undefined && c.username !== headline}
+					<span data-text="muted">
+						@{c.username}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content()}
+	{#snippet Content({ title: _title, href: _href })}
 		<div data-column>
-			{#if connectionField?.bio !== undefined}
-				<p data-text="muted">
-					{connectionField.bio}
-				</p>
-			{/if}
-			{#if custodyIsEvmHex !== undefined}
-				<p data-row="inline wrap gap-2">
-					<span data-text="muted">Custody</span>
-					<Address
-						address={custodyIsEvmHex}
-						showAvatar={false}
-					/>
-				</p>
-			{:else if connectionField?.custody !== undefined}
-				<p data-text="muted">
-					{connectionField.custody}
-				</p>
-			{/if}
-			<p data-text="muted">
-				FID {String(entityId.fid)}
-			</p>
-			{#if connectionField?.signedAt !== undefined && typeof connectionField.signedAt === 'number' && Number.isFinite(connectionField.signedAt)}
-				<dl>
-					<div>
-						<dt>Timestamp</dt>
-						<dd>
-							<Timestamp
-								timestamp={connectionField.signedAt}
-								format={TimestampFormat.Both}
-							/>
-						</dd>
-					</div>
-				</dl>
-			{/if}
+			<ResourceBoundary
+				resource={connection}
+				placeholderText="Loading profile…"
+			>
+				{#snippet Pending()}{/snippet}
+				{#snippet children(c)}
+					{#if c.bio}
+						<p data-text="muted">
+							{c.bio}
+						</p>
+					{/if}
+					<p data-text="muted">
+						FID {String(entityId.fid)}
+					</p>
+					{#if c.bio === undefined || c.bio === ''}
+						<p data-text="muted">
+							No profile bio is set.
+						</p>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</div>
 	{/snippet}
 
@@ -196,101 +181,78 @@
 				entityType={EntityType.BlockheadFarcasterAccountConnection}
 				{entityId}
 			>
-				<QueryBoundary
-					query={connectionQuery}
-				>
+				<dl>
+					<div>
+						<dt>FID</dt>
+						<dd>{String(entityId.fid)}</dd>
+					</div>
 
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No Farcaster connection data yet.
-						</p>
-					{:else if connectionField == null}
-						<p data-text="muted">
-							FID {String(entityId.fid)}
-						</p>
-					{:else}
-						<section data-column>
-							<h3>Connected Farcaster account</h3>
-							<dl>
+					<ResourceBoundary resource={connection}>
+						{#snippet Pending()}{/snippet}
+						{#snippet children(c)}
+							{#if c.displayName}
 								<div>
-									<dt>FID</dt>
-									<dd>{String(entityId.fid)}</dd>
+									<dt>Name</dt>
+									<dd>{c.displayName}</dd>
 								</div>
-								{#if connectionField.displayName !== undefined}
-									<div>
-										<dt>Name</dt>
-										<dd>{connectionField.displayName}</dd>
-									</div>
-								{/if}
-								{#if connectionField.username !== undefined}
-									<div>
-										<dt>Username</dt>
-										<dd>@{connectionField.username}</dd>
-									</div>
-								{/if}
-								{#if connectionField.bio !== undefined}
-									<div>
-										<dt>Bio</dt>
-										<dd>{connectionField.bio}</dd>
-									</div>
-								{/if}
-								{#if connectionField.authMethod !== undefined}
-									<div>
-										<dt>Sign-in</dt>
-										<dd>{connectionField.authMethod}</dd>
-									</div>
-								{/if}
-								{#if custodyIsEvmHex !== undefined}
-									<div>
-										<dt>Custody</dt>
-										<dd>
-											<Address
-												address={custodyIsEvmHex}
-												showAvatar={false}
-											/>
-										</dd>
-									</div>
-								{:else if connectionField.custody !== undefined}
-									<div>
-										<dt>Custody</dt>
-										<dd>{connectionField.custody}</dd>
-									</div>
-								{/if}
-								{#if connectionField.signedAt !== undefined && typeof connectionField.signedAt === 'number' && Number.isFinite(connectionField.signedAt)}
-									<div>
-										<dt>Signed in</dt>
-										<dd>
-											<Timestamp
-												timestamp={connectionField.signedAt}
-												format={TimestampFormat.Both}
-											/>
-										</dd>
-									</div>
-								{/if}
-							</dl>
-							{#if connectionField.avatarUrl !== undefined}
+							{/if}
+
+							{#if c.username}
+								<div>
+									<dt>Username</dt>
+									<dd>@{c.username}</dd>
+								</div>
+							{/if}
+
+							{#if c.custody}
+								<div>
+									<dt>Custody</dt>
+									<dd>
+										<TruncatedValue
+											value={c.custody}
+											format={TruncatedValueFormat.Visual}
+										/>
+									</dd>
+								</div>
+							{/if}
+
+							{#if c.bio !== undefined && c.bio !== ''}
+								<div>
+									<dt>Bio</dt>
+									<dd>{c.bio}</dd>
+								</div>
+							{/if}
+
+							{#if c.signedAt !== undefined}
+								<div>
+									<dt>Signed in</dt>
+									<dd>
+										<Timestamp
+											timestamp={c.signedAt}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dl>
+
+				<ResourceBoundary resource={connection}>
+					{#snippet Pending()}{/snippet}
+					{#snippet children(c)}
+						{#if c.$icon}
+							{#if c.$icon[EntityMetaKey.Id].url}
 								<p>
 									<Media
-										media={{ url: connectionField.avatarUrl }}
-										alt={connectionField.displayName ?? connectionField.username ?? ''}
+										media={{ url: c.$icon[EntityMetaKey.Id].url }}
+										alt={(c.displayName ?? c.username) ?? ''}
 									/>
 								</p>
 							{/if}
-							{#if connectionField.verifications !== undefined && connectionField.verifications.length}
-								<section data-stack="xs">
-									<h4>Verifications</h4>
-									<ul>
-										{#each connectionField.verifications as v (v)}
-											<li>{v}</li>
-										{/each}
-									</ul>
-								</section>
-							{/if}
-						</section>
-					{/if}
+						{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 
 				<FarcasterCastsView
 					entityFieldReference={{

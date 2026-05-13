@@ -3,6 +3,7 @@
  * @see https://docs.blockscout.com/devs/apis/rest
  */
 
+import { throwIfHttpNotOk } from '$/lib/http.ts'
 import { restPath } from '$/sources/Blockscout/Rest/constants.ts'
 
 const blockscoutApiUrl = ({
@@ -31,15 +32,13 @@ export const getJson = async <T>({
 	path: string
 	searchParams?: Record<string, string | number | undefined>
 }): Promise<T> => {
-	const res = await fetch(
-		blockscoutApiUrl({
-			explorerOrigin,
-			path,
-			searchParams,
-		}),
-		{ headers: { accept: 'application/json' } },
-	)
-	if (!res.ok) throw new Error(`Blockscout GET ${res.status} ${res.statusText}`)
+	const url = blockscoutApiUrl({
+		explorerOrigin,
+		path,
+		searchParams,
+	})
+	const res = await fetch(url, { headers: { accept: 'application/json' } })
+	await throwIfHttpNotOk(res, url)
 
 	return res.json<T>()
 }

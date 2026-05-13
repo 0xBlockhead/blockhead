@@ -1,16 +1,4 @@
 import type { RemoteResource } from '@sveltejs/kit'
-
-// export type RemoteResource<_Value> = PromiseLike<Awaited<_Value>> & {
-// 	readonly current: Awaited<_Value> | undefined
-// 	readonly loading: boolean
-// 	readonly ready: boolean
-// 	readonly error: unknown
-// 	readonly catch: Promise<Awaited<_Value>>['catch']
-// 	readonly finally: Promise<Awaited<_Value>>['finally']
-// 	readonly [Symbol.toStringTag]: string
-// }
-
-
 import { tick } from 'svelte'
 
 
@@ -22,61 +10,6 @@ import { tick } from 'svelte'
  * Transforms the value of a RemoteResource when it becomes ready.
  * Named `derive` instead of `then` to avoid module thenable detection issues during SSR.
  */
-export const unfold = <_Value, _Result>(
-	resource: RemoteResource<_Value>,
-	project: (value: _Value | undefined) => _Result | undefined,
-): RemoteResource<_Result> => {
-	const projected = $derived(
-		project(resource.current),
-	)
-
-	const ready = $derived(
-		projected !== undefined,
-	)
-
-	const loading = $derived(
-		!ready && resource.error === undefined && resource.loading,
-	)
-
-	const promise = $derived(
-		resource
-			.then(tick)
-			.then(() => projected as _Result)
-	)
-
-	return {
-		get current() {
-			return projected as _Result | undefined
-		},
-
-		get loading() {
-			return loading
-		},
-
-		get error() {
-			return resource.error
-		},
-
-		get ready() {
-			return ready
-		},
-
-		get then() {
-			return promise.then.bind(promise)
-		},
-
-		get catch() {
-			return promise.catch.bind(promise)
-		},
-
-		get finally() {
-			return promise.finally.bind(promise)
-		},
-
-		[Symbol.toStringTag]: 'RemoteResource',
-	}
-}
-
 export const derive = <_Value, _Result>(
 	resource: RemoteResource<_Value>,
 	transform: (value: _Value) => Awaited<_Result>
@@ -124,7 +57,6 @@ export const derive = <_Value, _Result>(
 		[Symbol.toStringTag]: 'RemoteResource',
 	}
 }
-
 
 export const _then = <_Value, _Result>(
 	resource: RemoteResource<_Value>,

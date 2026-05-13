@@ -3,6 +3,7 @@ import type {
 	TadaDocumentNode,
 } from 'gql.tada'
 
+import { throwHttpError } from '$/lib/http.ts'
 import {
 	optionalPublicEnvString,
 } from '$/lib/sources.ts'
@@ -49,9 +50,7 @@ export const queryTheGraph = async <
 		}),
 	})
 
-	if (!response.ok) {
-		throw new Error(`The Graph API error: ${response.status} ${response.statusText}`)
-	}
+	if (!response.ok) await throwHttpError('The Graph API', response)
 
 	type TheGraphPayloadWire = {
 		data?: _Result

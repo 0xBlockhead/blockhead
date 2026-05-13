@@ -3,16 +3,17 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { entityResolversByEntityType } from '$/resolvers/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
 
+	import { resolve } from '$app/paths'
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 
 
 	// Props
@@ -40,52 +41,36 @@
 		>
 	> = $props()
 
-	const liquidityPositionIdKey = $derived(
-		stringify(entityId),
+
+	// State
+	const liquidityPosition = useEntity(
+		EntityType.LiquidityPosition,
+		entityId,
+		{
+			$: (
+				entityResolversByEntityType[EntityType.LiquidityPosition]?.map((r) => r.source)
+				?? [Source.Constants_Internal]
+			),
+			$pool: {},
+			$owner: {},
+			createdAtTimestamp: {},
+			liquidity: {},
+			origin: {},
+			tickLower: {},
+			tickUpper: {},
+			token0Owed: {},
+			token1Owed: {},
+			tokenId: {},
+		},
 	)
 
-	const positionQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.LiquidityPosition] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						liquidityPositionIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => liquidityPositionIdKey],
-	)
-
-	const liquidityPositionRow = $derived(
-		positionQuery.data?.[0]?.row,
-	)
-
-	const liquidityPositionField = $derived(
-		(() => {
-			const bag = liquidityPositionRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-			const b = bag
-			return {
-				tickLower: typeof b.tickLower === 'number' ? b.tickLower : undefined,
-				tickUpper: typeof b.tickUpper === 'number' ? b.tickUpper : undefined,
-				liquidity: typeof b.liquidity === 'bigint' ? b.liquidity : undefined,
-				token0Owed: typeof b.token0Owed === 'bigint' ? b.token0Owed : undefined,
-				token1Owed: typeof b.token1Owed === 'bigint' ? b.token1Owed : undefined,
-				tokenId: typeof b.tokenId === 'bigint' ? b.tokenId : undefined,
-				origin: typeof b.origin === 'string' && b.origin.length ? b.origin : undefined,
-				createdAtTimestamp: typeof b.createdAtTimestamp === 'number' ? b.createdAtTimestamp : undefined,
-			}
-		})(),
-	)
 
 	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 </script>
 
 
@@ -93,29 +78,44 @@
 	entityType={EntityType.LiquidityPosition}
 	{entityId}
 	{href}
+	title={entityId.id}
 	{open}
 	{...entityViewRest}
-	title={entityId.id}
 >
-	{#snippet Content()}
-		{#if liquidityPositionField?.createdAtTimestamp !== undefined && typeof liquidityPositionField.createdAtTimestamp === 'number' && Number.isFinite(liquidityPositionField.createdAtTimestamp)}
-			<dl>
-				<div>
-					<dt>Timestamp</dt>
-					<dd>
-						<Timestamp
-							timestamp={liquidityPositionField.createdAtTimestamp}
-							format={TimestampFormat.Both}
-						/>
-					</dd>
-				</div>
-			</dl>
-		{/if}
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary resource={liquidityPosition}>
+			{#snippet children(p)}
+				<dl>
+					<div>
+						<dt>Network</dt>
+						<dd>{String(p.$pool.$network.chainId)}</dd>
+					</div>
+					<div>
+						<dt>Pool</dt>
+						<dd>
+							<TruncatedValue
+								value={p.$pool.id}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</dd>
+					</div>
+					{#if p.createdAtTimestamp !== undefined}
+						<div>
+							<dt>Timestamp</dt>
+							<dd>
+								<Timestamp
+									timestamp={p.createdAtTimestamp}
+									format={TimestampFormat.Both}
+								/>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
+	{#snippet Details({ open: _open })}
 		{#if children}
 			{@render children()}
 		{:else}
@@ -123,74 +123,82 @@
 				entityType={EntityType.LiquidityPosition}
 				{entityId}
 			>
-				<QueryBoundary
-					query={positionQuery}
-				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No liquidity position data for this id yet.
-						</p>
-					{:else}
+				<ResourceBoundary resource={liquidityPosition}>
+					{#snippet children(p)}
 						<dl>
-							{#if liquidityPositionField?.tickLower !== undefined}
+							<div>
+								<dt>Owner</dt>
+								<dd>
+									<ActorNetworkView
+										entityId={{
+											$network: p.$pool.$network,
+											$actor: p.$owner[EntityMetaKey.Id],
+										}}
+										href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+											accountId: p.$owner[EntityMetaKey.Id].address,
+										})}
+										layout={EntityLayout.Id}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								</dd>
+							</div>
+							{#if p.tickLower !== undefined}
 								<div>
 									<dt>Tick lower</dt>
-									<dd>{String(liquidityPositionField.tickLower)}</dd>
+									<dd>{String(p.tickLower)}</dd>
 								</div>
 							{/if}
-							{#if liquidityPositionField?.tickUpper !== undefined}
+							{#if p.tickUpper !== undefined}
 								<div>
 									<dt>Tick upper</dt>
-									<dd>{String(liquidityPositionField.tickUpper)}</dd>
+									<dd>{String(p.tickUpper)}</dd>
 								</div>
 							{/if}
-							{#if liquidityPositionField?.liquidity !== undefined}
+							{#if p.liquidity !== undefined}
 								<div>
 									<dt>Liquidity</dt>
-									<dd>{String(liquidityPositionField.liquidity)}</dd>
+									<dd>{String(p.liquidity)}</dd>
 								</div>
 							{/if}
-							{#if liquidityPositionField?.token0Owed !== undefined}
+							{#if p.token0Owed !== undefined}
 								<div>
 									<dt>Token0 owed</dt>
-									<dd>{String(liquidityPositionField.token0Owed)}</dd>
+									<dd>{String(p.token0Owed)}</dd>
 								</div>
 							{/if}
-							{#if liquidityPositionField?.token1Owed !== undefined}
+							{#if p.token1Owed !== undefined}
 								<div>
 									<dt>Token1 owed</dt>
-									<dd>{String(liquidityPositionField.token1Owed)}</dd>
+									<dd>{String(p.token1Owed)}</dd>
 								</div>
 							{/if}
-							{#if liquidityPositionField?.tokenId !== undefined}
+							{#if p.tokenId !== undefined}
 								<div>
 									<dt>Token id</dt>
-									<dd>{String(liquidityPositionField.tokenId)}</dd>
+									<dd>{String(p.tokenId)}</dd>
 								</div>
 							{/if}
-							{#if liquidityPositionField?.origin !== undefined}
+							{#if p.origin}
 								<div>
 									<dt>Origin</dt>
-									<dd>{liquidityPositionField.origin}</dd>
+									<dd>{p.origin}</dd>
 								</div>
 							{/if}
-							{#if liquidityPositionField?.createdAtTimestamp !== undefined && typeof liquidityPositionField.createdAtTimestamp === 'number' && Number.isFinite(liquidityPositionField.createdAtTimestamp)}
+							{#if p.createdAtTimestamp !== undefined}
 								<div>
-									<dt>Created at (timestamp)</dt>
+									<dt>Created at</dt>
 									<dd>
 										<Timestamp
-											timestamp={liquidityPositionField.createdAtTimestamp}
+											timestamp={p.createdAtTimestamp}
 											format={TimestampFormat.Both}
 										/>
 									</dd>
 								</div>
 							{/if}
 						</dl>
-					{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

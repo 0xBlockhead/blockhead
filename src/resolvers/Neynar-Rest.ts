@@ -1,3 +1,5 @@
+import { type as arktype } from 'arktype'
+
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
@@ -5,8 +7,10 @@ import {
 	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import type { CastHash } from '$/schema/FarcasterCast.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -29,25 +33,18 @@ type NeynarUserEntity = import('$/schema/$schema.ts').Entity<typeof schema, Enti
 type NeynarChannelEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterChannel>
 type NeynarCastWire = import('$/sources/Neynar/Rest/types.ts').NeynarCastWire
 
-const neynarPfpHttpUrl = (value: string | null | undefined) => {
+const neynarPfpHttpUrl = (
+	value: string | null | undefined,
+	options?: { pageBaseUrl?: string },
+) => {
 	const raw = typeof value === 'string' ? value.trim() : ''
 	if (raw.length === 0) return undefined
-	const withProtocol = raw.startsWith('//') ? `https:${raw}` : raw
-	if (withProtocol.startsWith('ipfs://')) {
-		const path = withProtocol.slice('ipfs://'.length).replace(/^\/+/, '')
-		return path.length > 0 ? `https://ipfs.io/ipfs/${path}` : undefined
-	}
-	try {
-		const parsed = new URL(withProtocol)
-		return (
-			parsed.protocol === 'http:' || parsed.protocol === 'https:' ?
-				parsed.toString()
-			:
-				undefined
-		)
-	} catch {
-		return undefined
-	}
+	return resolveMediaUrlTransport(
+		raw.startsWith('/') && options?.pageBaseUrl != null ?
+			new URL(raw, options.pageBaseUrl).toString()
+		:
+			raw,
+	)?.url
 }
 
 const optionalTrimmedString = (value: string | undefined | null) => (
@@ -90,6 +87,24 @@ export default {
 				const user = bulkUsers?.users?.find((neynarUser) => neynarUser.fid === entityId.fid)
 				if (user == null) throw new Error('Neynar_Rest: user not found')
 				const bioRaw = user.profile?.bio
+				const ethVerifiedCand = optionalTrimmedString(
+					user.verified_addresses?.primary?.eth_address
+					?? user.verified_addresses?.eth_addresses?.[0],
+				)
+				const ethVerifiedParsed = (
+					ethVerifiedCand == null ?
+						arktype.errors
+					:
+						EvmAddress(ethVerifiedCand)
+				)
+				const verifiedPart = (
+					ethVerifiedParsed instanceof arktype.errors ?
+						{}
+					:
+						{
+							verifiedAddress: ethVerifiedParsed,
+						}
+				)
 				return {
 					username: optionalTrimmedString(user.username),
 					displayName: optionalTrimmedString(user.display_name),
@@ -99,21 +114,13 @@ export default {
 						t == null ?
 							{}
 						:	{
-								$icon: {
-									[EntityMetaKey.Id]: { url: t },
-									type: MediaType.Image,
-								},
+								$icon: t,
 							}
-					))(neynarPfpHttpUrl(user.pfp_url)),
+					))(mediaFromUrl(neynarPfpHttpUrl(user.pfp_url), MediaType.Image)),
 					bio: optionalTrimmedString(
 						typeof bioRaw === 'string' ? bioRaw : bioRaw?.text,
 					),
-					verifiedAddress: optionalTrimmedString(
-						user.verified_addresses?.primary?.eth_address
-						?? user.verified_addresses?.eth_addresses?.[0]
-						?? user.verified_addresses?.primary?.sol_address
-						?? user.verified_addresses?.sol_addresses?.[0],
-					),
+					...verifiedPart,
 				}
 			},
 		}),
@@ -150,12 +157,9 @@ export default {
 						t == null ?
 							{}
 						:	{
-								$icon: {
-									[EntityMetaKey.Id]: { url: t },
-									type: MediaType.Image,
-								},
+								$icon: t,
 							}
-					))(neynarPfpHttpUrl(user.pfp_url)),
+					))(mediaFromUrl(neynarPfpHttpUrl(user.pfp_url), MediaType.Image)),
 					bio: optionalTrimmedString(
 						typeof bioRaw === 'string' ? bioRaw : bioRaw?.text,
 					),
@@ -235,15 +239,12 @@ export default {
 								t == null ?
 									{}
 								:	{
-										$icon: {
-											[EntityMetaKey.Id]: { url: t },
-											type: MediaType.Image,
-										},
+										$icon: t,
 									}
-							))(neynarPfpHttpUrl(
+							))(mediaFromUrl(neynarPfpHttpUrl(
 								typeof og0 === 'string' ? og0 : undefined,
 								{ pageBaseUrl: optionalTrimmedString(embed.url) },
-							)),
+							), MediaType.Image)),
 							quotedPreviewText: optionalTrimmedString(embed.cast?.text),
 						}) satisfies CastEmbedEntity)
 					}),
@@ -271,7 +272,6 @@ export default {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Neynar_Rest: FarcasterFeed $$entries requires query limit')
 				if (entityId.variant === 'trending') {
 					const page = await singleFlight(getFeed)(
 						publicEnv,
@@ -321,7 +321,6 @@ export default {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Neynar_Rest: FarcasterUser $$casts requires query limit')
 				const page = await singleFlight(getFeed)(
 					publicEnv,
 					{
@@ -343,7 +342,6 @@ export default {
 				const { getFeed } = await import('$/sources/Neynar/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Neynar_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Neynar_Rest: FarcasterChannel $$casts requires query limit')
 				const page = await singleFlight(getFeed)(
 					publicEnv,
 					{
@@ -357,5 +355,6 @@ export default {
 				return farcasterCastEntitiesFromNeynarCastFeed(page.casts ?? [])
 			},
 		}),
+
 	],
 }

@@ -1,3 +1,4 @@
+import { fetchFailedMessage } from '$/lib/http.ts'
 import { coinsBaseUrl } from '$/sources/Defillama/Rest/constants.ts'
 import type { paths } from '$/sources/Defillama/OpenApi/openapi.d.ts'
 
@@ -34,17 +35,16 @@ export const getCurrentPricesJson = async ({
 	coins: string[]
 	searchWidth?: string
 }): Promise<DefillamaOpenApiCurrentPricesResponse> => {
-	const response = await fetch(
-		withSearchWidth(
-			new URL(
-				`/prices/current/${coins.map((coin) => encodeURIComponent(coin)).join(',')}`,
-				coinsBaseUrl,
-			),
-			searchWidth,
+	const reqUrl = withSearchWidth(
+		new URL(
+			`/prices/current/${coins.map((coin) => encodeURIComponent(coin)).join(',')}`,
+			coinsBaseUrl,
 		),
+		searchWidth,
 	)
+	const response = await fetch(reqUrl)
 
-	if (!response.ok) throw new Error(`DefiLlama API error: ${response.status}`)
+	if (!response.ok) throw new Error(await fetchFailedMessage(reqUrl.href, response))
 
 	return response.json<DefillamaOpenApiCurrentPricesResponse>()
 }

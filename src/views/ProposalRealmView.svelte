@@ -1,18 +1,25 @@
 <script lang="ts">
 	// Types/constants
-	import type { Snippet } from 'svelte'
+	import type { ComponentProps, Snippet } from 'svelte'
+
 	import { proposalRealmById } from '$/constants/Proposal.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ProposalKindsView from '$/views/ProposalKindsView.svelte'
 
 
 	// Props
@@ -22,20 +29,29 @@
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
-	}: {
-		children?: Snippet
-		entityId: EntityId<typeof schema, EntityType.ProposalRealm>
-		open?: boolean
-		href: string
-		layout?: EntityLayout
-	} = $props()
+		...entityViewRest
+	}: WithRest<
+		{
+			children?: Snippet
+			entityId: EntityId<typeof schema, EntityType.ProposalRealm>
+			href: string
+			layout?: EntityLayout
+			open?: boolean
+		},
+		Omit<
+			ComponentProps<typeof EntityView>,
+			| 'entityType'
+			| 'entityId'
+			| 'href'
+			| 'title'
+			| 'open'
+			| 'Details'
+		>
+	> = $props()
 
 
-	const realmIdKey = $derived(
-		stringify(entityId),
-	)
-
-	const realmQuery = useEntity(
+	// State
+	const realm = useEntity(
 		EntityType.ProposalRealm,
 		entityId,
 		{
@@ -43,19 +59,9 @@
 				Source.Constants_Internal,
 			],
 			label: {},
+			slug: {},
 		},
 	)
-
-	const realmLabel = $derived.by(() => {
-		return realmQuery.data?.[EntityMetaKey.Fields]?.label ?? proposalRealmById[entityId.realm].label
-	})
-
-
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ProposalKindsView from '$/views/ProposalKindsView.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
 </script>
 
 
@@ -63,9 +69,10 @@
 	entityType={EntityType.ProposalRealm}
 	{entityId}
 	{href}
-	title={realmLabel}
+	title={proposalRealmById[entityId.realm].label}
 	{layout}
 	{open}
+	{...entityViewRest}
 >
 	{#snippet Details({
 		open: _open,
@@ -74,21 +81,32 @@
 			entityType={EntityType.ProposalRealm}
 			{entityId}
 		>
-			<QueryBoundary query={realmQuery}>
-				{#snippet children(_rows)}
+			<ResourceBoundary resource={realm}>
+				{#snippet children(r)}
+					{#if r.slug != null && r.slug !== ''}
+						<dl>
+							<div>
+								<dt>Slug</dt>
+								<dd>{r.slug}</dd>
+							</div>
+						</dl>
+					{:else}
+						<p data-text="muted">No realm metadata available.</p>
+					{/if}
+
 					<ProposalKindsView
 						entityFieldReference={{
 							entityType: EntityType.ProposalRealm,
 							entityId,
 							fieldName: '$$proposalKinds',
 						}}
-						href={href}
-						id={`${realmIdKey}:proposalKinds`}
+						{href}
+						id={`${stringify(entityId)}:proposalKinds`}
 						open={false}
 						title="Kinds"
 					/>
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		{#if children}
@@ -96,4 +114,3 @@
 		{/if}
 	{/snippet}
 </EntityView>
-

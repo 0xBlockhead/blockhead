@@ -18,6 +18,7 @@ export default {
 				const {
 					chainIdByL2BeatProjectId,
 					ethereumChainId,
+					l2BeatProjectChainIds,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
 				const summary = await fetchScalingSummary()
@@ -25,11 +26,11 @@ export default {
 					{
 						[EntityMetaKey.Id]: { chainId: ethereumChainId },
 					},
-					...Object.entries(summary.projects)
-						.flatMap(([projectId]) => {
+					...l2BeatProjectChainIds
+						.flatMap(({ projectId }) => {
 							const chainId = chainIdByL2BeatProjectId[projectId]
 							return (
-								chainId == null ?
+								chainId == null || summary.projects[projectId] == null ?
 									[]
 								:	[
 									{
@@ -49,17 +50,18 @@ export default {
 				const {
 					chainIdByL2BeatProjectId,
 					ethereumChainId,
+					l2BeatProjectChainIds,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
 				if (entityId.chainId !== ethereumChainId) {
 					throw new Error('L2Beat_Rest: child networks are only mapped for Ethereum')
 				}
 				const summary = await fetchScalingSummary()
-				return Object.entries(summary.projects)
-					.flatMap(([projectId]) => {
+				return l2BeatProjectChainIds
+					.flatMap(({ projectId }) => {
 						const chainId = chainIdByL2BeatProjectId[projectId]
 						return (
-							chainId == null ?
+							chainId == null || summary.projects[projectId] == null ?
 								[]
 							:	[
 								{

@@ -149,7 +149,6 @@ export default {
 							{
 								$miner: {
 									[EntityMetaKey.Id]: {
-										$network: { chainId },
 										address: miner,
 									} satisfies Entity<typeof schema, EntityType.Actor>,
 								},
@@ -191,10 +190,6 @@ export default {
 				if (jsonRpcTransaction == null) {
 					throw new Error('Blockscout_Rest: transaction not returned for EvmTransaction')
 				}
-				const receipt = await getTransactionReceiptBlockscout({
-					explorerOrigin: origin,
-					txHash: entityId.txHash,
-				})
 				const networkChainId = entityId.$network.chainId
 				const containingBlockNumber = (
 					typeof jsonRpcTransaction.blockNumber === 'string' ? ((value) => (
@@ -245,7 +240,6 @@ export default {
 						{
 							$from: {
 								[EntityMetaKey.Id]: {
-									$network: { chainId: networkChainId },
 									address: from,
 								},
 							} satisfies Entity<typeof schema, EntityType.Actor>,
@@ -255,7 +249,6 @@ export default {
 						{
 							$to: {
 								[EntityMetaKey.Id]: {
-									$network: { chainId: networkChainId },
 									address: to,
 								},
 							} satisfies Entity<typeof schema, EntityType.Actor>,
@@ -320,6 +313,10 @@ export default {
 						))(Number(jsonRpcTransaction.type)) : undefined
 					),
 				} satisfies Entity<typeof schema, EntityType.EvmTransaction>
+				const receipt = await singleFlight(getTransactionReceiptBlockscout)({
+					explorerOrigin: origin,
+					txHash: entityId.txHash,
+				})
 				return {
 					...base,
 					...(typeof receipt?.status === 'string' ? ((parsed) => (
@@ -375,9 +372,12 @@ export default {
 				const {
 					blockscoutExplorerOriginForChain,
 					blockscoutRestV2AtExplorerOrigin,
+					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Blockscout_Rest: Network $$blocks requires query limit')
+				const limit = Math.min(
+					resolverLoadSubsetRowLimit(context),
+					blockscoutV2ItemsCountMax,
+				)
 				const { getBlockscoutBlocks } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
 					chainId: entityId.chainId,
@@ -389,14 +389,23 @@ export default {
 				}
 				const wires = await getBlockscoutBlocks({ explorerOrigin: origin, limit })
 				return (
-					wires.map((wire) => {
-						const blockNumber = BigInt(wire.number ?? '0x0')
-					const blockHash = (
-						typeof wire.hash === 'string' ?
-							hexLowerOfByteSize(wire.hash, 32)
-						:
-							undefined
-					)
+					wires.flatMap((wire) => {
+						const height = wire.height
+						const blockNumber = (
+							height != null && Number.isFinite(height) && Number.isInteger(height) && height >= 0 ?
+								BigInt(height)
+							:
+								null
+						)
+						if (blockNumber == null) {
+							return []
+						}
+						const blockHash = (
+							typeof wire.hash === 'string' ?
+								hexLowerOfByteSize(wire.hash, 32)
+							:
+								undefined
+						)
 						const timestampSeconds = (
 							typeof wire.timestamp === 'string' ? ((parsed) => (
 								Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
@@ -405,51 +414,53 @@ export default {
 									NaN
 							))(Number(wire.timestamp)) : NaN
 						)
-						return {
-							[EntityMetaKey.Id]: {
-								$network: { chainId: entityId.chainId },
-								blockNumber,
-								...(blockHash != null ? { hash: blockHash } : {}),
-							},
-							number: blockNumber,
-							timestamp: ((timestampSeconds) => (
-								Number.isFinite(timestampSeconds) ? timestampSeconds * 1000 : undefined
-							))(timestampSeconds),
-							gasUsed: (
-								typeof wire.gasUsed === 'string' ? ((value) => (
-									value == null || value < 0n ? undefined : value
-								))((() => {
-									try {
-										return BigInt(wire.gasUsed)
-									} catch {
-										return undefined
-									}
-								})()) : undefined
-							),
-							gasLimit: (
-								typeof wire.gasLimit === 'string' ? ((value) => (
-									value == null || value < 0n ? undefined : value
-								))((() => {
-									try {
-										return BigInt(wire.gasLimit)
-									} catch {
-										return undefined
-									}
-								})()) : undefined
-							),
-							baseFeePerGas: (
-								typeof wire.baseFeePerGas === 'string' ? ((value) => (
-									value == null || value < 0n ? undefined : value
-								))((() => {
-									try {
-										return BigInt(wire.baseFeePerGas)
-									} catch {
-										return undefined
-									}
-								})()) : undefined
-							),
-							transactionCount: (wire.transactions ?? []).length,
-						} satisfies Entity<typeof schema, EntityType.EvmBlock>
+						return [
+							{
+								[EntityMetaKey.Id]: {
+									$network: { chainId: entityId.chainId },
+									blockNumber,
+									...(blockHash != null ? { hash: blockHash } : {}),
+								},
+								number: blockNumber,
+								timestamp: ((timestampSeconds) => (
+									Number.isFinite(timestampSeconds) ? timestampSeconds * 1000 : undefined
+								))(timestampSeconds),
+								gasUsed: (
+									typeof wire.gas_used === 'string' ? ((value) => (
+										value == null || value < 0n ? undefined : value
+									))((() => {
+										try {
+											return BigInt(wire.gas_used)
+										} catch {
+											return undefined
+										}
+									})()) : undefined
+								),
+								gasLimit: (
+									typeof wire.gas_limit === 'string' ? ((value) => (
+										value == null || value < 0n ? undefined : value
+									))((() => {
+										try {
+											return BigInt(wire.gas_limit)
+										} catch {
+											return undefined
+										}
+									})()) : undefined
+								),
+								baseFeePerGas: (
+									typeof wire.base_fee_per_gas === 'string' ? ((value) => (
+										value == null || value < 0n ? undefined : value
+									))((() => {
+										try {
+											return BigInt(wire.base_fee_per_gas)
+										} catch {
+											return undefined
+										}
+									})()) : undefined
+								),
+								transactionCount: wire.transactions_count ?? 0,
+							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+						]
 					})
 				)
 			},
@@ -462,9 +473,12 @@ export default {
 				const {
 					blockscoutExplorerOriginForChain,
 					blockscoutRestV2AtExplorerOrigin,
+					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Blockscout_Rest: Network $$transactions requires query limit')
+				const limit = Math.min(
+					resolverLoadSubsetRowLimit(context),
+					blockscoutV2ItemsCountMax,
+				)
 				const { getBlockscoutTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
 					chainId: entityId.chainId,
@@ -499,9 +513,12 @@ export default {
 				const {
 					blockscoutExplorerOriginForChain,
 					blockscoutRestV2AtExplorerOrigin,
+					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Blockscout_Rest: Network $$contracts requires query limit')
+				const limit = Math.min(
+					resolverLoadSubsetRowLimit(context),
+					blockscoutV2ItemsCountMax,
+				)
 				const {
 					evmAddressFromBlockscoutContractListWire,
 					getBlockscoutSmartContracts,
@@ -539,9 +556,12 @@ export default {
 				const {
 					blockscoutExplorerOriginForChain,
 					blockscoutRestV2AtExplorerOrigin,
+					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
-				const limit = resolverLoadSubsetRowLimit(context)
-				if (limit == null) throw new Error('Blockscout_Rest: EvmBlock $$transactions requires query limit')
+				const limit = Math.min(
+					resolverLoadSubsetRowLimit(context),
+					blockscoutV2ItemsCountMax,
+				)
 				const { getBlockTransactionsBlockscout } = await import('$/sources/Blockscout/Rest/queries.ts')
 				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
 					chainId: entityId.$network.chainId,

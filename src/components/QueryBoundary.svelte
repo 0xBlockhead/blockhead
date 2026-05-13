@@ -2,6 +2,7 @@
 	// Types/constants
 	import type { Snippet } from 'svelte'
 
+	import { serializeError } from '$/lib/errors.ts'
 	import type { QueryLike } from '$/lib/db/queryResource.svelte.ts'
 
 
@@ -12,6 +13,7 @@
 		Failed: _Failed,
 		placeholderText = 'Loading…',
 		query,
+		boundaryKey = 'QueryBoundary',
 	}: {
 		children: Snippet<[data: Data]>
 		Pending?: Snippet
@@ -21,6 +23,7 @@
 		]>
 		placeholderText?: string
 		query: QueryLike<Data>
+		boundaryKey?: string
 	} = $props()
 </script>
 
@@ -29,13 +32,22 @@
 	{@render children(query.data)}
 {:else if query.isError}
 	{@const err = (query.error ?? query.status ?? 'Query failed')}
-	{#if _Failed}
-		{@render _Failed(err, () => {})}
-	{:else}
-		<div data-card>
-			<p role="alert">{String(err)}</p>
-		</div>
-	{/if}
+	{@const _ = (
+		void console.error('[blockhead:boundary]', boundaryKey, err),
+		true
+	)}
+	<div
+		data-error={boundaryKey}
+		role="alert"
+	>
+		{#if _Failed}
+			{@render _Failed(err, () => {})}
+		{:else}
+			<div data-card>
+				<p>{err instanceof Error ? err.message : serializeError(err)}</p>
+			</div>
+		{/if}
+	</div>
 {:else if query.isLoading}
 	{#if _Pending}
 		{@render _Pending()}
@@ -45,7 +57,7 @@
 			data-text="muted"
 			class="loading"
 		>
-			<p>{placeholderText}</p>
+			<p>{typeof placeholderText === 'string' ? placeholderText : 'Loading…'}</p>
 		</div>
 	{/if}
 {/if}

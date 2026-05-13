@@ -11,6 +11,7 @@
 
 <Page>
 	<MarketPriceRangesView
+		collapsible={false}
 		entityFieldReference={{
 			entityType: EntityType._Global,
 			entityId: {},
@@ -18,6 +19,7 @@
 		}}
 		href={resolve('/coins/candles')}
 		id="coin-ohlc-ranges-page"
+		limit={96}
 		title="All OHLC ranges"
 	/>
 </Page>

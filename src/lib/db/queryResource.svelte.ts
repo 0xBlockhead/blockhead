@@ -1,5 +1,6 @@
 // Types/constants
-import type { RemoteResource } from '$/lib/svelte/RemoteResource.svelte.ts'
+import { normalizeBoundaryError } from '$/lib/errors.ts'
+import type { RemoteResource } from '@sveltejs/kit'
 import { tick, untrack } from 'svelte'
 
 
@@ -16,21 +17,22 @@ export type QueryLike<Data> = {
 
 
 // Functions
-const withResolvers = <T>() => {
-	let resolve!: (value: T | PromiseLike<T>) => void
+const withResolvers = () => {
+	let resolve!: (value: void | PromiseLike<void>) => void
 	let reject!: (reason?: unknown) => void
-	const promise = new Promise<T>((res, rej) => {
+	const promise = new Promise<void>((res, rej) => {
 		resolve = res
 		reject = rej
 	})
 	return { promise, resolve, reject }
 }
 
+
 /**
  * Thenable reactive resource driven by an external sync (e.g. TanStack `useLiveQuery`).
  *
- * Modeled on {@link https://github.com/sveltejs/kit/blob/main/packages/kit/src/runtime/client/remote-functions/query.svelte.js SvelteKit}'s internal `Query`.
- * Instead of an async `#fn`, feed it snapshots via {@link QueryResource.applySync}.
+ * Mirrors {@link https://github.com/sveltejs/kit/blob/main/packages/kit/src/runtime/client/remote-functions/query.svelte.js SvelteKit `Query`}: `then` chains `p.then(tick).then(() => #current)` and settles the inner promise with `undefined` while data lives in `#raw` / `#current`.
+ * Feed snapshots via {@link QueryResource.applySync} instead of an async `#fn`.
  */
 export class QueryResource<Data> {
 	#raw = $state.raw<Data | undefined>(undefined)
@@ -38,40 +40,51 @@ export class QueryResource<Data> {
 	#ready = $state(false)
 	#loading = $state(true)
 	#promise = $state.raw<Promise<void> | null>(null)
-	#pending: { resolve: (v: undefined) => void, reject: (e: unknown) => void } | null = null
+	#pending: { resolve: () => void, reject: (reason?: unknown) => void } | null = null
 
 	#current = $derived(this.#ready ? this.#raw : undefined)
 
-	#then = $derived.by(() => {
-		void untrack(() => (this.#promise ??= this.#newPromise()))
-		const p = this.#promise!
-
-		return <R1 = Data, R2 = never>(
-			onFulfilled?: (value: Data) => R1 | PromiseLike<R1>,
-			onRejected?: (reason: unknown) => R2 | PromiseLike<R2>,
-		): Promise<R1 | R2> => (
-			p
-				.then(tick)
-				.then(() => {
-					const v = this.#current
-					if (v === undefined) throw new Error('QueryResource settled without data')
-					return v
-				})
-				.then(onFulfilled, onRejected)
-		)
-	})
-
-	#newPromise() {
-		const { promise, resolve, reject } = withResolvers<void>()
-		this.#pending = { resolve, reject }
-		return promise
+	#get_promise(): Promise<void> {
+		void untrack(() => {
+			if (this.#promise != null)
+				return
+			if (this.#ready) {
+				this.#promise = Promise.resolve()
+				return
+			}
+			const { promise, resolve, reject } = withResolvers()
+			this.#pending = { resolve, reject }
+			this.#promise = promise
+		})
+		return this.#promise!
 	}
+
+	#then = $derived.by(() => {
+		const p = this.#get_promise()
+
+		return (
+			onFulfilled?: (value: Data) => unknown,
+			onRejected?: (reason: unknown) => unknown,
+		) => {
+			const result = (
+				p
+					.then(tick)
+					.then(() => this.#current as Data)
+			)
+
+			if (onFulfilled != null || onRejected != null) {
+				return result.then(onFulfilled, onRejected)
+			}
+
+			return result
+		}
+	})
 
 	/**
 	 * Apply an external snapshot.
 	 * - `pending: true` opens a new promise if none is pending (starts loading).
 	 * - `error !== undefined` settles with rejection.
-	 * - Otherwise settles with `data`.
+	 * - Otherwise settles with `undefined` after writing `data` (SvelteKit-style).
 	 */
 	applySync({
 		data,
@@ -84,9 +97,13 @@ export class QueryResource<Data> {
 	}) {
 		if (pending) {
 			this.#loading = true
-			if (this.#ready || !this.#promise) {
-				untrack(() => (this.#ready = false))
-				this.#promise = this.#newPromise()
+			if (this.#ready || this.#promise == null) {
+				untrack(() => {
+					this.#ready = false
+					const { promise, resolve, reject } = withResolvers()
+					this.#pending = { resolve, reject }
+					this.#promise = promise
+				})
 			}
 			return
 		}
@@ -109,7 +126,7 @@ export class QueryResource<Data> {
 			this.#ready = true
 			this.#loading = false
 		})
-		p?.resolve(undefined)
+		p?.resolve()
 	}
 
 	get current() {
@@ -133,12 +150,16 @@ export class QueryResource<Data> {
 	}
 
 	get catch() {
+		this.#then
+
 		return <R = never>(onRejected?: (reason: unknown) => R | PromiseLike<R>) => (
 			this.#then(undefined, onRejected)
 		)
 	}
 
 	get finally() {
+		this.#then
+
 		return (fn?: () => void) => (
 			this.#then(
 				(value) => {
@@ -169,13 +190,15 @@ export const toQueryResource = <Data>(
 
 		resource.applySync({
 			data: query.data,
-			error: query.isError ? (query.error ?? new Error(String(query.status ?? 'Query failed'))) : undefined,
+			error: (
+				query.isError ?
+					normalizeBoundaryError(query.error ?? new Error(String(query.status ?? 'Query failed')))
+				: undefined
+			),
 			pending: (
 				!query.isError && (
-					typeof query.isReady === 'boolean' ?
-						query.isLoading || !query.isReady
-					:
-						query.isLoading
+					query.isLoading
+					|| query.isReady === false
 				)
 			),
 		})
@@ -195,7 +218,7 @@ export const toQueryResourceFromRemote = <Data>(
 		const error = r.error
 		const pending = (
 			error === undefined
-			&& (!r.ready || r.current === undefined)
+			&& !r.ready
 		)
 
 		resource.applySync({

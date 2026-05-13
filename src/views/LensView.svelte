@@ -1,80 +1,39 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import { stringify } from 'devalue'
+	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
-	const entityId = {
-		scope: 'LensNetwork' as const,
-	}
-
-	const exampleAccountAddress = '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045' as const
-	const examplePostId = 'replace-with-lens-post-id-or-slug' as const
-
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
+	const entityId = (
+		{
+			scope: 'LensNetwork' as const,
+		} satisfies EntityId<typeof schema, EntityType.LensNetwork>
+	)
 
 	const networkIdKey = stringify(entityId)
 
-	const networkQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.LensNetwork] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
+	const lensNetwork = useEntity(
+		EntityType.LensNetwork,
+		entityId,
+		{
+			$: [Source.Constants_Internal],
+			protocolName: {},
+			homeUrl: {},
+			docsUrl: {},
+			$$lensAccounts: {},
+			$$lensPosts: {},
+		},
 	)
-
-	const accountsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.LensNetwork]['$$lensAccounts'] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
-	)
-
-	const postsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityFieldCollections[EntityType.LensNetwork]['$$lensPosts'] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
-	)
-
-	const networkFields = $derived.by(() => {
-		const bag = networkQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		return bag != null && (typeof bag === 'object' && bag !== null && !Array.isArray(bag)) ? bag : null
-	})
 
 
 	// Components
@@ -82,9 +41,9 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import LensAccountsView from '$/views/LensAccountsView.svelte'
 	import LensPostsView from '$/views/LensPostsView.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
 </script>
 
 
@@ -95,21 +54,25 @@
 	open={true}
 	title="Lens"
 >
-	{#snippet Content()}
-		<dl>
-			<div>
-				<dt>Scope</dt>
-				<dd>{entityId.scope}</dd>
-			</div>
-			<div>
-				<dt>Accounts</dt>
-				<dd>{String(accountsQuery.data?.length ?? 0)}</dd>
-			</div>
-			<div>
-				<dt>Posts</dt>
-				<dd>{String(postsQuery.data?.length ?? 0)}</dd>
-			</div>
-		</dl>
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary resource={lensNetwork}>
+			{#snippet children(loaded)}
+				<dl>
+					<div>
+						<dt>Scope</dt>
+						<dd>{entityId.scope}</dd>
+					</div>
+					<div>
+						<dt>Accounts</dt>
+						<dd>{String(loaded.$$lensAccounts.length)}</dd>
+					</div>
+					<div>
+						<dt>Posts</dt>
+						<dd>{String(loaded.$$lensPosts.length)}</dd>
+					</div>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -119,36 +82,32 @@
 			entityType={EntityType.LensNetwork}
 			{entityId}
 		>
-			<QueryBoundary
-				query={networkQuery}
-			>
-				{#snippet children(_rows)}
+			<ResourceBoundary resource={lensNetwork}>
+				{#snippet children(loaded)}
 					<dl>
 						<div>
 							<dt>Protocol name</dt>
-							<dd>{String(networkFields?.protocolName ?? 'Lens')}</dd>
+							<dd>{loaded.protocolName}</dd>
 						</div>
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={String(networkFields?.homeUrl ?? '#')}>
-									{String(networkFields?.homeUrl ?? '—')}
-								</a>
+								<a href={loaded.homeUrl}>{loaded.homeUrl}</a>
 							</dd>
 						</div>
-						{#if typeof networkFields?.docsUrl === 'string' && networkFields.docsUrl.length}
+						{#if loaded.docsUrl !== undefined}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={networkFields.docsUrl}>
-										{networkFields.docsUrl}
+									<a href={loaded.docsUrl}>
+										{loaded.docsUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
 					</dl>
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		<div data-column="gap-3">
@@ -220,14 +179,16 @@
 				<ul>
 					<li>
 						<a href={resolve('/(social)/lens/account/[address]', {
-							address: exampleAccountAddress,
+							address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
 						})}>
 							Account example
 						</a>
 					</li>
 					<li>
 						<a href={resolve('/(social)/lens/post/[postId]', {
-							postId: encodeURIComponent(examplePostId),
+							postId: encodeURIComponent(
+								'0x0000000000000000000000000000000000000000000000000000000000000001',
+							),
 						})}>
 							Post example
 						</a>

@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -6,7 +8,6 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
@@ -16,8 +17,7 @@ export default {
 	labelPlural: 'Actors',
 
 	id: type({
-		$network: Network.id,
-		address: 'string.hex' as type.cast<`0x${string}`>,
+		address: EvmAddress,
 		'interopAddress?': 'string',
 	}),
 
@@ -47,15 +47,6 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.TheGraph_Graphql,
-			],
-		},
-		{
-			name: '$$coins',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ActorCoin,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Allium_Rest,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

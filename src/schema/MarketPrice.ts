@@ -41,6 +41,13 @@ export default {
 			],
 		},
 		{
+			name: '$$quotes',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Market_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.TradingView_Rest],
+		},
+		{
 			name: 'price',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),

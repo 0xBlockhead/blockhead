@@ -14,11 +14,6 @@ export default {
 
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.Market,
-			resolve: async () => ({}),
-		}),
-
-		defineEntityResolver({
 			entityType: EntityType.Market_Timestamp,
 			resolve: async (entityId) => {
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
@@ -129,7 +124,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => ([]),
+			resolve: async () => {
+				throw new Error('TradingView_Rest: $$marketsWithCoinAsQuote is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({

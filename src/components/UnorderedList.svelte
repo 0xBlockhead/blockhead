@@ -149,11 +149,14 @@
 
 	// Functions
 	const isPlaceholderKey = (key: _Key): boolean => placeholderKeys.has(key)
-	const getRowKey = (row: ListRow): string => (
+	const getRowBaseKey = (row: ListRow): string => (
 		isGroupRow(row) ?
 			`group:${row.groupKey}`
 		:
 			String(row.key)
+	)
+	const getRowKey = (row: ListRow, index: number): string => (
+		`${getRowBaseKey(row)}:${index}`
 	)
 	const getVirtualViewport = (element: HTMLElement) => {
 		const listRect = element.getBoundingClientRect()
@@ -834,7 +837,7 @@
 				></li>
 			{/if}
 
-			{#each virtualVisibleIndices as rowIndex (getRowKey(renderRows[rowIndex]))}
+			{#each virtualVisibleIndices as rowIndex (getRowKey(renderRows[rowIndex], rowIndex))}
 				{@render RowItem(
 					renderRows[rowIndex],
 					rowIndex,
@@ -850,7 +853,7 @@
 				></li>
 			{/if}
 		{:else}
-			{#each renderRows as row, index (getRowKey(row))}
+			{#each renderRows as row, index (getRowKey(row, index))}
 				{@render RowItem(
 					row,
 					index,

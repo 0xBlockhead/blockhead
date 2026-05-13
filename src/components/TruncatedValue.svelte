@@ -9,65 +9,69 @@
 
 
 <script lang="ts">
-	// State
+	// Props
 	let {
 		value,
 		startLength = 6,
 		endLength = 4,
 		format = TruncatedValueFormat.Visual,
 	}: {
-		value: string
+		value: string | null | undefined
 		startLength?: number
 		endLength?: number
 		format?: TruncatedValueFormat
 	} = $props()
+
+
+	// Derived
+	const rendered = $derived(
+		value ?? '',
+	)
 </script>
 
 
-{#if value.length <= startLength + endLength}
-	{value}
+{#if rendered.length <= startLength + endLength}
+	{rendered}
 {:else if format === TruncatedValueFormat.Abbr}
-	<abbr title={value}>
-		{`${value.slice(0, startLength)}⸱⸱⸱${value.slice(-endLength)}`}
+	<abbr title={rendered}>
+		{`${rendered.slice(0, startLength)}⸱⸱⸱${rendered.slice(-endLength)}`}
 	</abbr>
 {:else if format === TruncatedValueFormat.Visual}
+	{@const start = rendered.slice(0, startLength)}
+
+	{@const middle = rendered.slice(startLength, -endLength || undefined)}
+
+	{@const end = rendered.slice(-endLength || undefined)}
+
 	<span
 		class="truncated-value format-visual"
 		role="button"
 		tabindex="0"
-		aria-label={value}
+		aria-label={rendered}
 	>
-		{#if value}
-			{@const start = value.slice(0, startLength)}
-
-			{@const middle = value.slice(startLength, -endLength || undefined)}
-
-			{@const end = value.slice(-endLength || undefined)}
-
-			<span>{start}</span><span
-				class="middle"
-			><span>{middle.slice(0, middle.length / 2)}</span><span
-					aria-hidden="true"
-				></span><span>{middle.slice(middle.length / 2)}</span></span><span>{end}</span>
-		{/if}
+		<span>{start}</span><span
+			class="middle"
+		><span>{middle.slice(0, middle.length / 2)}</span><span
+				aria-hidden="true"
+			></span><span>{middle.slice(middle.length / 2)}</span></span><span>{end}</span>
 	</span>
 {:else if format === TruncatedValueFormat.VisualCharacters}
 	<span
 		class="truncated-value format-visual-characters"
 		role="button"
 		tabindex="0"
-		aria-label={value}
+		aria-label={rendered}
 	>
 		{#if startLength}
-			<span>{value.slice(0, startLength)}</span>
+			<span>{rendered.slice(0, startLength)}</span>
 		{/if}
 		<span class="middle">
-			{#each value.slice(startLength, -endLength || undefined) as char}
+			{#each rendered.slice(startLength, -endLength || undefined) as char}
 				<span>{char}</span>
 			{/each}
 		</span>
 		{#if endLength}
-			<span>{value.slice(-endLength)}</span>
+			<span>{rendered.slice(-endLength)}</span>
 		{/if}
 	</span>
 {/if}

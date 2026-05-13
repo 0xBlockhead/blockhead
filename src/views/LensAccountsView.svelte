@@ -1,23 +1,22 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import LensAccountView from '$/views/LensAccountView.svelte'
 
 
 	// Props
@@ -27,55 +26,51 @@
 		id,
 		open = $bindable(true),
 		title = 'Accounts',
-	}: {
-		entityFieldReference: EntityFieldReference<typeof schema, EntityType.LensAccount>
-		href: string
-		id: string
-		open?: boolean
-		title?: string
-	} = $props()
+		...entitiesListRest
+	}: WithRest<
+		{
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.LensAccount>
+			href: string
+			id: string
+			open?: boolean
+			title?: string
+		},
+		Omit<
+			ComponentProps<typeof EntitiesList>,
+			'entityType'
+		>
+	> = $props()
 
 
-	const accountsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					accountFieldRow: (
-						entityFieldCollectionForReference(
-							entityFieldCollections,
-							entityFieldReference,
-						)
-					),
-				})
-				.where(({ accountFieldRow }) => (
-					eq(
-						accountFieldRow[EntityMetaKey.ParentIdKey],
-						stringify(entityFieldReference.entityId),
-					)
-				))
-				.where(({ accountFieldRow }) => (
-					eq(
-						accountFieldRow[EntityMetaKey.Source],
-						Source.Lens_Graphql,
-					)
-				))
-				.select(({ accountFieldRow }) => (
-					{ value: accountFieldRow[EntityMetaKey.Value] }
-				))
-				.distinct()
-		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-		],
+	// State
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	const lensNetwork = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			$: [Source.Constants_Internal],
+			protocolName: {},
+			$$lensAccounts: {
+				$: [
+					Source.Constants_Internal,
+					Source.Lens_Graphql,
+				],
+			},
+		},
 	)
 
-
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LensAccountView from '$/views/LensAccountView.svelte'
+	const accounts = derive(
+		lensNetwork,
+		(loaded) => (
+			loaded.$$lensAccounts
+			?? []
+		),
+	)
 </script>
 
 
@@ -83,44 +78,45 @@
 	entityType={EntityType.LensAccount}
 	{href}
 	{id}
-	getKey={(row) => stringify(row[EntityMetaKey.Id])}
-	getSortValue={(row) => (
-		row[EntityMetaKey.Id].address
-	)}
-	items={accountsQuery.data?.map(({ value }) => value) ?? []}
 	bind:open
-	placeholderKeys={new SvelteSet<string>()}
-	query={{
-		data: accountsQuery.data?.map(({ value }) => value) ?? [],
-		isLoading: accountsQuery.isLoading,
-		isError: accountsQuery.isError,
-		isReady: accountsQuery.isReady,
-		error: accountsQuery.error,
-		status: accountsQuery.status,
-	}}
 	{title}
+	{...entitiesListRest}
 >
-	{#snippet Empty()}
-		<p data-text="muted">
-			No Lens accounts to show yet.
-		</p>
-	{/snippet}
+	{#snippet body()}
+		{#key stringify(entityFieldReference.entityId)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.LensAccount}
+				id={`${id}-items`}
+				{href}
+				{title}
+				open={true}
+				getKey={(row) => stringify(row[EntityMetaKey.Id])}
+				getSortValue={(row) => row[EntityMetaKey.Id].address}
+				placeholderKeys={new SvelteSet()}
+				placeholderText="Loading Lens network…"
+				resource={accounts}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No Lens accounts to show yet.
+					</p>
+				{/snippet}
 
-	{#snippet Item({ item, isPlaceholder })}
-		{#if isPlaceholder}
-			<span data-placeholder>
-				…
-			</span>
-		{:else if item}
-			{@const accountId = item[EntityMetaKey.Id]}
-			<LensAccountView
-				entityId={{ address: accountId.address }}
-				href={resolve('/(social)/lens/account/[address]', {
-					address: accountId.address,
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
+				{#snippet Item(props)}
+					{#if props.isPlaceholder === false}
+						<LensAccountView
+							entityId={{ address: props.item[EntityMetaKey.Id].address }}
+							href={resolve('/(social)/lens/account/[address]', {
+								address: props.item[EntityMetaKey.Id].address,
+							})}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
+		{/key}
 	{/snippet}
 </EntitiesList>

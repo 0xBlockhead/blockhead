@@ -1,27 +1,39 @@
+<script module lang="ts">
+</script>
+
+
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
-	import { schema } from '$/schema/index.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { stringify } from 'devalue'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { SvelteSet } from 'svelte/reactivity'
+	// Components
+	import Collapsible from '$/components/Collapsible.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Heading from '$/components/Heading.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import UnorderedList from '$/components/UnorderedList.svelte'
+	import CoinDataSourcesView from '$/views/CoinDataSourcesView.svelte'
+	import CoinView from '$/views/CoinView.svelte'
+	import MarketPricesView from '$/views/MarketPricesView.svelte'
+	import MarketPriceRangesView from '$/views/MarketPriceRangesView.svelte'
+	import MarketsView from '$/views/MarketsView.svelte'
 
-	import {
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
 
+	// Props
 	let {
 		title = 'Coins',
 		id = 'coins',
@@ -33,6 +45,7 @@
 		sourcesOpen = false,
 		open = $bindable(true),
 		entityFieldReference,
+		href,
 		...entitiesListRest
 	}: WithRest<
 		{
@@ -45,102 +58,117 @@
 			sourcesOpen?: boolean
 			title?: string
 			open?: boolean
+			href: string
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Coin>
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'entityType'
+			| 'getKey'
+			| 'getSortValue'
+			| 'items'
+			| 'resource'
+			| 'Item'
+			| 'body'
 		>
 	> = $props()
 
 
-	const coinsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					$$coins: entityFieldCollections[EntityType._Global]['$$coins']!,
-				})
-				.where(({ $$coins }) => (
-					eq(
-						$$coins[EntityMetaKey.ParentIdKey],
-						stringify(entityFieldReference.entityId),
-					)
-				))
-				.select(({ $$coins }) => (
-					{ value: $$coins[EntityMetaKey.Value] }
-				))
-				.distinct()
-				.orderBy(({ $$coins }) => $$coins[EntityMetaKey.Value][EntityMetaKey.IdKey], 'asc')
-				.limit(limit)
-		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-			() => limit,
-		],
+	// State
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const fieldName = entityFieldReference.fieldName
+
+	const coinsHub = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			$: [
+				Source.Constants_Internal,
+				Source.Coingecko_Rest,
+				Source.CoinMarketCap_Rest,
+				Source.Coinpaprika_OpenApi,
+			],
+			[fieldName]: {
+				$limit: limit,
+			},
+		},
 	)
 
-	const showExtendedSections = $derived(
-		id !== 'coins',
+	const coins = derive(
+		coinsHub,
+		(merged): Entity<typeof schema, EntityType.Coin>[] => {
+			const list = merged[fieldName as keyof typeof merged]
+			return (
+				(
+					list == null ?
+						[]
+					:
+						[...list]
+				)
+					.toSorted((first, second) => (
+						first[EntityMetaKey.IdKey].localeCompare(second[EntityMetaKey.IdKey])
+					))
+			)
+		},
 	)
-
-	// Components
-	import Collapsible from '$/components/Collapsible.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Heading from '$/components/Heading.svelte'
-	import CoinDataSourcesView from '$/views/CoinDataSourcesView.svelte'
-	import CoinView from '$/views/CoinView.svelte'
-	import MarketPricesView from '$/views/MarketPricesView.svelte'
-	import MarketPriceRangesView from '$/views/MarketPriceRangesView.svelte'
-	import MarketsView from '$/views/MarketsView.svelte'
 </script>
 
 
 <div
-	data-column="gap-3"
 	data-e2e="coins-hub-carousel-groups"
 >
 	<EntitiesList
 		{...entitiesListRest}
 		bind:open
 		entityType={EntityType.Coin}
-		getKey={(row) => stringify(row[EntityMetaKey.Id])}
+		{href}
 		{id}
-		items={coinsQuery.data?.map(({ value }) => value) ?? []}
-		placeholderKeys={new SvelteSet<string | number>()}
-		query={coinsQuery}
 		{title}
-		UnorderedListProps={{ orientation: ListOrientation.Column }}
 	>
-		{#snippet Empty()}
-			<p data-text="muted">
-				No coins to show yet.
-			</p>
-		{/snippet}
+		{#snippet body()}
+			<ResourceBoundary resource={coins}>
+				{#snippet children(loaded)}
+					<UnorderedList
+						items={loaded}
+						getKey={(row) => stringify(row[EntityMetaKey.Id])}
+						placeholderKeys={new SvelteSet<string | number>()}
+						orientation={ListOrientation.Column}
+					>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No coins to show yet.
+							</p>
+						{/snippet}
 
-		{#snippet Item({ item: row, isPlaceholder })}
-			{#if isPlaceholder}
-				<span data-placeholder>
-					…
-				</span>
-			{:else if row}
-				{@const entityId = row[EntityMetaKey.Id]}
-				<CoinView
-					entityId={entityId}
-					href={resolve('/(assets)/(coins)/coin/[coinId]', {
-						coinId: entityId.coinId,
-					})}
-					id={stringify(entityId)}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{/if}
+						{#snippet Item({
+							item: row,
+							isPlaceholder,
+						})}
+							{#if isPlaceholder === false}
+								{@const entityId = row[EntityMetaKey.Id]}
+								<CoinView
+									entityId={entityId}
+									href={resolve('/(assets)/(coins)/coin/[coinId]', {
+										coinId: entityId.coinId,
+									})}
+									id={stringify(entityId)}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
+							{/if}
+						{/snippet}
+					</UnorderedList>
+				{/snippet}
+			</ResourceBoundary>
 		{/snippet}
 	</EntitiesList>
 
-	{#if showExtendedSections}
+	{#if id !== 'coins'}
 		<Collapsible
 			id={`${id}:hub-spot-quotes`}
 			{...{ 'data-card': '' }}
@@ -394,3 +422,10 @@
 		{/snippet}
 	</Collapsible>
 </div>
+
+
+<style>
+	.entity-details {
+		display: contents;
+	}
+</style>

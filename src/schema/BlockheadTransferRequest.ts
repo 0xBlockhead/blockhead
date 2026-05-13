@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -9,8 +11,8 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import Network from '$/schema/Network.ts'
 
 const transferAllocationRow = type({
-	destination: 'string.hex' as type.cast<`0x${string}`>,
-	token: 'string.hex' as type.cast<`0x${string}`>,
+	destination: EvmAddress,
+	token: EvmAddress,
 	amount: 'bigint',
 })
 

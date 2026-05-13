@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { UrlString } from '$/schema/$Url.ts'
 
 export default {
 	entityType: EntityType.AtprotoPost,
@@ -14,7 +15,7 @@ export default {
 	labelPlural: 'AT Protocol posts',
 
 	id: type({
-		uri: 'string',
+		uri: UrlString,
 	}),
 
 	fields: [

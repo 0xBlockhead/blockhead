@@ -4,19 +4,13 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -44,51 +38,26 @@
 		>
 	> = $props()
 
-	const blobIdKey = $derived(
-		stringify(entityId),
-	)
 
-	const blobQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.EvmBlob] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						blobIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => blobIdKey],
-	)
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const blobRow = $derived(
-		blobQuery.data?.[0]?.row,
-	)
-
-	const blobField = $derived(
-		(() => {
-			const bag = blobRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-			const b = bag
-			return {
-				versionedHash: typeof b.versionedHash === 'string' && b.versionedHash.length > 0 ?
-					b.versionedHash
-				:	undefined,
-			}
-		})(),
-	)
-
-	const blobTitle = $derived(
-		`Blob ${String(entityId.blobIndex)}`,
+	const blob = useEntity(
+		EntityType.EvmBlob,
+		entityId,
+		{
+			$: [
+				Source.Voltaire_JsonRpc,
+			],
+			versionedHash: {},
+		},
 	)
 
 
 	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
@@ -97,9 +66,9 @@
 <EntityView
 	entityType={EntityType.EvmBlob}
 	{entityId}
-	title={blobTitle}
+	title={`Blob ${String(entityId.blobIndex)}`}
 	{href}
-	idDragPlainText={blobIdKey}
+	idDragPlainText={stringify(entityId)}
 	{open}
 	{...entityViewRest}
 >
@@ -111,91 +80,82 @@
 			>
 				#{String(entityId.blobIndex)}
 			</span>
-			{#if blobField?.versionedHash !== undefined}
-				<small>
-					<TruncatedValue
-						value={blobField.versionedHash}
-						format={TruncatedValueFormat.Abbr}
-					/>
-				</small>
-			{/if}
+			<ResourceBoundary
+				resource={blob}
+				placeholderText="Loading blob…"
+			>
+				{#snippet children(b)}
+					<small>
+						<TruncatedValue
+							value={b.versionedHash}
+							format={TruncatedValueFormat.Abbr}
+						/>
+					</small>
+				{/snippet}
+			</ResourceBoundary>
 		</span>
 	{/snippet}
 
-	{#snippet Content()}
-		{#if blobField?.versionedHash !== undefined}
-			<dl>
-				<div>
-					<dt>Versioned hash</dt>
-					<dd>
-						<TruncatedValue
-							value={blobField.versionedHash}
-							format={TruncatedValueFormat.Abbr}
-						/>
-					</dd>
-				</div>
-			</dl>
-		{/if}
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={blob}
+			placeholderText="Loading blob…"
+		>
+			{#snippet children(b)}
+				<dl>
+					<div>
+						<dt>Chain id</dt>
+						<dd>{String(entityId.$network.chainId)}</dd>
+					</div>
+					{#if b.versionedHash !== undefined}
+						<div>
+							<dt>Versioned hash</dt>
+							<dd>
+								<TruncatedValue
+									value={b.versionedHash}
+									format={TruncatedValueFormat.Abbr}
+								/>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
+	{#snippet Details({ open: _open })}
 		<EntityDetails
 			entityType={EntityType.EvmBlob}
 			{entityId}
 		>
-			<QueryBoundary
-				query={blobQuery}
-			>
-				{#snippet children(rows)}
-					{@const row = rows?.[0]?.row}
-					{#if row === undefined}
-						<p data-text="muted">
-							No blob data for this commitment yet. Try again shortly.
-						</p>
-					{:else}
-						<dl>
-							<div>
-								<dt>Blob index</dt>
-								<dd>
-									<NumberValue value={entityId.blobIndex} />
-								</dd>
-							</div>
-							<div>
-								<dt>Transaction</dt>
-								<dd>
-									<a
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
-											{
-												networkId: String(entityId.$network.chainId),
-												transactionId: entityId.txHash,
-											},
-										)}
-									>
-										<TruncatedValue
-											value={entityId.txHash}
-											format={TruncatedValueFormat.Abbr}
-										/>
-									</a>
-								</dd>
-							</div>
-							{#if blobField?.versionedHash !== undefined}
-								<div>
-									<dt>Versioned hash</dt>
-									<dd>
-										<TruncatedValue
-											value={blobField.versionedHash}
-											format={TruncatedValueFormat.Abbr}
-										/>
-									</dd>
-								</div>
-							{/if}
-						</dl>
-					{/if}
-				{/snippet}
-			</QueryBoundary>
+			<dl>
+				<div>
+					<dt>Blob index</dt>
+					<dd>
+						<NumberValue value={entityId.blobIndex} />
+					</dd>
+				</div>
+				<div>
+					<dt>Transaction</dt>
+					<dd>
+						<a
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+								{
+									networkId: String(entityId.$network.chainId),
+									transactionId: entityId.txHash,
+								},
+							)}
+						>
+							<TruncatedValue
+								value={entityId.txHash}
+								format={TruncatedValueFormat.Abbr}
+							/>
+						</a>
+					</dd>
+				</div>
+			</dl>
+
 		</EntityDetails>
 
 		{#if children}

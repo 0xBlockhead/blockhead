@@ -2,23 +2,16 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { mergeEntityCollectionRowFields } from '$/collections/mergeEntityCollectionRowFields.ts'
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 	// Props
 	let {
@@ -48,49 +41,26 @@
 	> = $props()
 
 
-	const idKey = $derived(stringify(entityId))
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const atprotoPostMergeSourceOrder = [
-		Source.Atproto_Xrpc,
-	] as const
-
-	const postQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.AtprotoPost] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						idKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => idKey],
+	const post = useEntity(
+		EntityType.AtprotoPost,
+		entityId,
+		{
+			$: [Source.Atproto_Xrpc],
+			text: {},
+			createdAt: {},
+			$author: {},
+		},
 	)
-
-	const postFields = $derived(
-		mergeEntityCollectionRowFields(
-			postQuery.data,
-			atprotoPostMergeSourceOrder,
-		),
-	)
-
-	const summaryTitle = $derived(
-		postFields.text ?
-			postFields.text
-		:
-			entityId.uri
-	)
-
-	const authorDid = $derived(postFields.$author?.[EntityMetaKey.Id])
 
 
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
@@ -102,57 +72,67 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={summaryTitle}
 >
-	{#if postFields.text}
-		{@const postText = postFields.text}
-		{#snippet Heading()}
-			<HeadingComponent>
-				{#if href}
-					<a href={href}>
-						<TruncatedValue
-							endLength={8}
-							format={TruncatedValueFormat.Visual}
-							startLength={88}
-							value={postText}
-						/>
-					</a>
-				{:else}
-					<TruncatedValue
-						endLength={8}
-						format={TruncatedValueFormat.Visual}
-						startLength={88}
-						value={postText}
-					/>
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={post}
+			placeholderText="Loading post…"
+		>
+			{#snippet children(u)}
+				{#if u.text !== undefined && u.text !== ''}
+					<HeadingComponent>
+						{#if href}
+							<a href={href}>
+								<TruncatedValue
+									endLength={8}
+									format={TruncatedValueFormat.Visual}
+									startLength={88}
+									value={u.text}
+								/>
+							</a>
+						{:else}
+							<TruncatedValue
+								endLength={8}
+								format={TruncatedValueFormat.Visual}
+								startLength={88}
+								value={u.text}
+							/>
+						{/if}
+					</HeadingComponent>
 				{/if}
-			</HeadingComponent>
-		{/snippet}
-	{/if}
-	{#snippet Content()}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
 		<div data-column>
-			{#if postFields.text}
-				<p>
-					{postFields.text}
-				</p>
-			{/if}
-			{#if authorDid}
-				<p data-text="muted">
-					<a
-						href={resolve(
-							'/(social)/atproto/actor/[did]',
-							{ did: encodeURIComponent(authorDid.did) },
-						)}
-					>Author ({authorDid.did})</a>
-				</p>
-			{/if}
-			{#if postFields.createdAt !== undefined}
-				<p data-text="muted">
-					<Timestamp
-						timestamp={postFields.createdAt}
-						format={TimestampFormat.Both}
-					/>
-				</p>
-			{/if}
+			<ResourceBoundary
+				resource={post}
+				placeholderText="Loading post…"
+			>
+				{#snippet children(u)}
+					{#if u.text}
+						<p>
+							{u.text}
+						</p>
+					{/if}
+					{#if u.$author}
+						<p data-text="muted">
+							<a
+								href={resolve(
+									'/(social)/atproto/actor/[did]',
+									{
+										did: encodeURIComponent(
+											u.$author[EntityMetaKey.Id].did,
+										),
+									},
+								)}
+							>Author ({u.$author[EntityMetaKey.Id].did})</a>
+						</p>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			<div data-text="mono muted">
 				{entityId.uri}
 			</div>
@@ -166,28 +146,32 @@
 			entityType={EntityType.AtprotoPost}
 			{entityId}
 		>
-			<QueryBoundary
-				query={postQuery}
-			>
-				{#snippet children(atprotoPostResultRows)}
-					{#if atprotoPostResultRows.length === 0}
+			<ResourceBoundary resource={post}>
+				{#snippet children(u)}
+					{#if (u.text == null || u.text === '') && u.createdAt == null}
 						<p data-text="muted">
-							No post data in the app for this id yet. Try again shortly.
+							Post details are not available yet.
 						</p>
 					{:else}
 						<dl>
-							{#if postFields.text}
+							{#if u.$author}
 								<div>
-									<dt>Text</dt>
-									<dd>{postFields.text}</dd>
+									<dt>Author</dt>
+									<dd>{u.$author[EntityMetaKey.Id].did}</dd>
 								</div>
 							{/if}
-							{#if postFields.createdAt !== undefined}
+							{#if u.text !== undefined && u.text !== ''}
+								<div>
+									<dt>Text</dt>
+									<dd>{u.text}</dd>
+								</div>
+							{/if}
+							{#if u.createdAt !== undefined}
 								<div>
 									<dt>Created at</dt>
 									<dd>
 										<Timestamp
-											timestamp={postFields.createdAt}
+											timestamp={u.createdAt}
 											format={TimestampFormat.Both}
 										/>
 									</dd>
@@ -196,7 +180,7 @@
 						</dl>
 					{/if}
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 	{/snippet}
 </EntityView>

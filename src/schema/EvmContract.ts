@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -16,7 +18,7 @@ export default {
 
 	id: type({
 		$network: Network.id,
-		address: 'string.hex' as type.cast<`0x${string}`>,
+		address: EvmAddress,
 	}),
 
 	fields: [
@@ -41,13 +43,13 @@ export default {
 		{
 			name: 'bytecodeHash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string.hex' as type.cast<`0x${string}`>),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'code',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string.hex' as type.cast<`0x${string}`>),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

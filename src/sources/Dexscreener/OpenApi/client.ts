@@ -1,3 +1,4 @@
+import { fetchFailedMessage } from '$/lib/http.ts'
 import { baseUrl } from '$/sources/Dexscreener/OpenApi/constants.ts'
 import type { components, paths } from '$/sources/Dexscreener/OpenApi/openapi.d.ts'
 
@@ -14,15 +15,14 @@ export type DexscreenerTokenPairsResponse = (
 export const getDexscreenerJson = async <_Response>(
 	pathAndQuery: string,
 ): Promise<_Response> => {
-	const response = await fetch(`${baseUrl}${pathAndQuery}`, {
+	const href = `${baseUrl}${pathAndQuery}`
+	const response = await fetch(href, {
 		headers: {
 			Accept: 'application/json',
 		},
 	})
 
-	if (!response.ok) {
-		throw new Error(`Dexscreener API error: ${response.status} ${response.statusText}`)
-	}
+	if (!response.ok) throw new Error(await fetchFailedMessage(href, response))
 
 	return response.json<_Response>()
 }

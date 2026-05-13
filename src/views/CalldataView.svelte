@@ -2,9 +2,10 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Props
@@ -35,24 +36,24 @@
 	> = $props()
 
 
-	const calldataByteLength = $derived(
-		(() => {
-			const hex = entityId.hex
-			return (
-				hex.length >= 2
-				&& hex.startsWith('0x')
-				&& (hex.length - 2) % 2 === 0 ?
-					(hex.length - 2) / 2
-				:	undefined
-			)
-		})(),
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const calldata = useEntity(
+		EntityType.EvmCalldata,
+		entityId,
+		{
+			$: [
+				Source.Local_Internal,
+			],
+		},
 	)
 
 
 	// Components
-	import Boundary from '$/components/Boundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
@@ -65,24 +66,30 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Content()}
-		<dl>
-			<div>
-				<dt>Calldata</dt>
-				<dd>
-					<TruncatedValue
-						value={entityId.hex}
-						format={TruncatedValueFormat.Abbr}
-					/>
-				</dd>
-			</div>
-			{#if calldataByteLength !== undefined}
-				<div>
-					<dt>Bytes</dt>
-					<dd>{String(calldataByteLength)}</dd>
-				</div>
-			{/if}
-		</dl>
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			placeholderText="Loading calldata…"
+			resource={calldata}
+		>
+			{#snippet children(_)}
+				<dl>
+					<div>
+						<dt>Calldata</dt>
+						<dd>
+							<TruncatedValue
+								value={entityId.hex}
+								format={TruncatedValueFormat.Abbr}
+							/>
+						</dd>
+					</div>
+
+					<div>
+						<dt>Bytes</dt>
+						<dd>{String((entityId.hex.length - 2) / 2)}</dd>
+					</div>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -95,33 +102,26 @@
 				entityType={EntityType.EvmCalldata}
 				{entityId}
 			>
-				<Boundary>
-					{#snippet Failed(err, _retry)}
-						<p role="alert">
-							{String(err)}
-						</p>
-					{/snippet}
-
-					<section>
-						<dl>
-							{#if calldataByteLength !== undefined}
+				<ResourceBoundary
+					placeholderText="Loading calldata…"
+					resource={calldata}
+				>
+					{#snippet children(_)}
+						<section>
+							<dl>
 								<div>
-									<dt>Length (bytes)</dt>
-									<dd>{String(calldataByteLength)}</dd>
+									<dt>Hex</dt>
+									<dd>
+										<TruncatedValue
+											format={TruncatedValueFormat.Visual}
+											value={entityId.hex}
+										/>
+									</dd>
 								</div>
-							{/if}
-							<div>
-								<dt>Hex</dt>
-								<dd>
-									<TruncatedValue
-										value={entityId.hex}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</dd>
-							</div>
-						</dl>
-					</section>
-				</Boundary>
+							</dl>
+						</section>
+					{/snippet}
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

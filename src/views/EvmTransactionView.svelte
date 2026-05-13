@@ -3,16 +3,17 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 
 
 	// Props
@@ -42,58 +43,29 @@
 		>
 	> = $props()
 
-	const txIdKey = $derived(
-		stringify(entityId),
-	)
 
-	const transactionQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.EvmTransaction] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						txIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => txIdKey],
-	)
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const txRow = $derived(
-		(
-			transactionQuery.data?.find(
-				(r) => r.row[EntityMetaKey.Source] === Source.Blockscout_Rest,
-			)?.row
-			?? transactionQuery.data?.[0]?.row
-		)
+	const tx = useEntity(
+		EntityType.EvmTransaction,
+		entityId,
+		{
+			$: [
+				Source.Blockscout_Rest,
+				Source.Voltaire_JsonRpc,
+			],
+			value: {},
+			nonce: {},
+			transactionIndex: {},
+			gas: {},
+			gasPrice: {},
+			type: {},
+			status: {},
+			gasUsed: {},
+			effectiveGasPrice: {},
+		},
 	)
-
-	const txField = $derived(
-		(() => {
-			const bag = txRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-			const b = bag
-			return {
-				value: typeof b.value === 'bigint' ? b.value : undefined,
-				nonce: typeof b.nonce === 'number' ? b.nonce : undefined,
-				transactionIndex: typeof b.transactionIndex === 'number' ? b.transactionIndex : undefined,
-				gas: typeof b.gas === 'bigint' ? b.gas : undefined,
-				gasPrice: typeof b.gasPrice === 'bigint' ? b.gasPrice : undefined,
-				type: typeof b.type === 'number' ? b.type : undefined,
-				status: typeof b.status === 'number' ? b.status : undefined,
-				gasUsed: typeof b.gasUsed === 'bigint' ? b.gasUsed : undefined,
-				effectiveGasPrice: typeof b.effectiveGasPrice === 'bigint' ? b.effectiveGasPrice : undefined,
-			}
-		})(),
-	)
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -118,6 +90,44 @@
 		</span>
 	{/snippet}
 
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={tx}
+			placeholderText="Loading transaction…"
+		>
+			{#snippet children(t)}
+				<dl>
+					<div>
+						<dt>Chain id</dt>
+						<dd>{String(entityId.$network.chainId)}</dd>
+					</div>
+					{#if t.value !== undefined}
+						<div>
+							<dt>Value</dt>
+							<dd>
+								<NumberValue value={t.value} />
+							</dd>
+						</div>
+					{/if}
+					{#if t.status !== undefined}
+						<div>
+							<dt>Status</dt>
+							<dd>{String(t.status)}</dd>
+						</div>
+					{/if}
+					{#if t.gasUsed !== undefined}
+						<div>
+							<dt>Gas used</dt>
+							<dd>
+								<NumberValue value={t.gasUsed} />
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Details({
 		open: _open,
 	})}
@@ -125,81 +135,57 @@
 			entityType={EntityType.EvmTransaction}
 			{entityId}
 		>
-			<QueryBoundary
-				query={transactionQuery}
+			<ResourceBoundary
+				resource={tx}
+				placeholderText="Loading transaction…"
 			>
-
-				{#snippet children(rows)}
-				{@const txRow = (
-					rows?.find(
-						(r) => r.row[EntityMetaKey.Source] === Source.Blockscout_Rest,
-					)?.row
-					?? rows?.[0]?.row
-				)}
-				{#if txRow === undefined}
-					<p data-text="muted">
-						No transaction data for this hash yet.
-					</p>
-				{:else}
+				{#snippet children(t)}
 					<dl>
-						{#if txField?.value !== undefined}
-							<div>
-								<dt>Value</dt>
-								<dd>{String(txField.value)}</dd>
-							</div>
-						{/if}
-						{#if txField?.nonce !== undefined}
+						{#if t.nonce !== undefined}
 							<div>
 								<dt>Nonce</dt>
-								<dd>{String(txField.nonce)}</dd>
+								<dd>{String(t.nonce)}</dd>
 							</div>
 						{/if}
-						{#if txField?.transactionIndex !== undefined}
+						{#if t.transactionIndex !== undefined}
 							<div>
 								<dt>Index</dt>
-								<dd>{String(txField.transactionIndex)}</dd>
+								<dd>{String(t.transactionIndex)}</dd>
 							</div>
 						{/if}
-						{#if txField?.gas !== undefined}
+						{#if t.gas !== undefined}
 							<div>
 								<dt>Gas</dt>
-								<dd>{String(txField.gas)}</dd>
+								<dd>
+									<NumberValue value={t.gas} />
+								</dd>
 							</div>
 						{/if}
-						{#if txField?.gasPrice !== undefined}
+						{#if t.gasPrice !== undefined}
 							<div>
 								<dt>Gas price</dt>
-								<dd>{String(txField.gasPrice)}</dd>
+								<dd>
+									<NumberValue value={t.gasPrice} />
+								</dd>
 							</div>
 						{/if}
-						{#if txField?.type !== undefined}
+						{#if t.type !== undefined}
 							<div>
 								<dt>Type</dt>
-								<dd>{String(txField.type)}</dd>
+								<dd>{String(t.type)}</dd>
 							</div>
 						{/if}
-						{#if txField?.status !== undefined}
-							<div>
-								<dt>Status</dt>
-								<dd>{String(txField.status)}</dd>
-							</div>
-						{/if}
-						{#if txField?.gasUsed !== undefined}
-							<div>
-								<dt>Gas used</dt>
-								<dd>{String(txField.gasUsed)}</dd>
-							</div>
-						{/if}
-						{#if txField?.effectiveGasPrice !== undefined}
+						{#if t.effectiveGasPrice !== undefined}
 							<div>
 								<dt>Effective gas price</dt>
-								<dd>{String(txField.effectiveGasPrice)}</dd>
+								<dd>
+									<NumberValue value={t.effectiveGasPrice} />
+								</dd>
 							</div>
 						{/if}
 					</dl>
-				{/if}
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		{#if children}

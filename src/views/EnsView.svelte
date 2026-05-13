@@ -1,19 +1,22 @@
 <script lang="ts">
 	// Types/constants
-	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Props
@@ -42,69 +45,17 @@
 	> = $props()
 
 
-	const ensNameIdKey = $derived(
-		stringify(entityId),
+	const ensText = useEntity(
+		EntityType.EnsName,
+		entityId,
+		{
+			$: [
+				Source.Voltaire_JsonRpc,
+				Source.TheGraph_Graphql,
+			],
+			textRecords: {},
+		},
 	)
-
-	const ensNameQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.EnsName] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						ensNameIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => ensNameIdKey],
-	)
-
-	const ensNameRow = $derived(
-		ensNameQuery.data?.[0]?.row,
-	)
-
-	const ensNameField = $derived(
-		(() => {
-			const bagUnknown = ensNameRow?.[EntityMetaKey.Fields]
-			if (!(typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown))) return null
-			const b: Record<string, JsonValue> = bagUnknown
-			const raw = b.textRecords
-			const emptyText: Record<string, string> | undefined = undefined
-			if (raw === undefined || !(typeof raw === 'object' && raw !== null && !Array.isArray(raw))) {
-				return { textRecords: emptyText }
-			}
-			const textRecords: Record<string, string> = {}
-			for (const [k, v] of Object.entries(raw)) {
-				if (typeof v === 'string' === 'object' && v === 'string' !== null && !Array.isArray(v === 'string')) textRecords[k] = v
-			}
-			return {
-				textRecords: (
-					Object.keys(textRecords).length ?
-						textRecords
-					:	undefined
-				),
-			}
-		})(),
-	)
-
-	const textRecordEntries = $derived(
-		ensNameField?.textRecords === undefined ?
-			[]
-		:	(
-				Object.entries(ensNameField.textRecords)
-					.toSorted(([a], [b]) => (
-						a.localeCompare(b)
-					))
-			),
-	)
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -116,6 +67,19 @@
 	{...entityViewRest}
 	title={entityId.name}
 >
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary resource={ensText}>
+			{#snippet children(snapshot)}
+				<dl>
+					<div>
+						<dt>Text records</dt>
+						<dd>{String(Object.keys(snapshot.textRecords ?? {}).length)}</dd>
+					</div>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Details({
 		open: _open,
 	})}
@@ -126,41 +90,46 @@
 				entityType={EntityType.EnsName}
 				{entityId}
 			>
-				<QueryBoundary
-					query={ensNameQuery}
-				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No ENS name data for this name yet.
-						</p>
-					{:else if textRecordEntries.length === 0}
-						<p data-text="muted">
-							No text records on this name row.
-						</p>
-					{:else}
-						<dl>
-							{#each textRecordEntries as [key, value] (key)}
-								<div>
-									<dt>
-										<TruncatedValue
-											value={key}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</dt>
-									<dd>
-										<TruncatedValue
-											{value}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</dd>
-								</div>
-							{/each}
-						</dl>
-					{/if}
+				<ResourceBoundary resource={ensText}>
+					{#snippet children(snapshot)}
+						{@const entries = (
+							snapshot.textRecords === undefined ?
+								[]
+							:
+								Object.entries(snapshot.textRecords).toSorted(([a], [b]) => (
+									a.localeCompare(b)
+								))
+						)}
+						{#if snapshot.textRecords === undefined}
+							<p data-text="muted">
+								No records available yet.
+							</p>
+						{:else if entries.length === 0}
+							<p data-text="muted">
+								No text records found.
+							</p>
+						{:else}
+							<dl>
+								{#each entries as [key, value] (key)}
+									<div>
+										<dt>
+											<TruncatedValue
+												value={key}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</dt>
+										<dd>
+											<TruncatedValue
+												{value}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</dd>
+									</div>
+								{/each}
+							</dl>
+						{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

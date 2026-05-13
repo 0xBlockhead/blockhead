@@ -1,27 +1,20 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
-
+	// Functions
 	import { htmlToPlainText } from '$/lib/html.ts'
-	import { isEntityReferenceWithId } from '$/lib/isEntityReferenceWithId.ts'
 
 
 	// Props
@@ -54,71 +47,30 @@
 	> = $props()
 
 
-	const idKey = $derived(stringify(entityId))
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const noteQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.ActivityPubNote] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						idKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => idKey],
+	const note = useEntity(
+		EntityType.ActivityPubNote,
+		entityId,
+		{
+			$: [Source.Mastodon_Rest],
+			content: {},
+			createdAt: {},
+			$author: {},
+			$inReplyTo: {},
+		},
 	)
-
-	const summaryFields = $derived.by((): Record<string, JsonValue> | null => {
-		const r = noteQuery.data
-			?.find((e) => e.row[EntityMetaKey.Source] === Source.Mastodon_Rest)
-			?.row
-			?? noteQuery.data?.[0]?.row
-		const bagUnknown = r?.[EntityMetaKey.Fields]
-		return (typeof bagUnknown === 'object' && bagUnknown !== null && !Array.isArray(bagUnknown)) ? bagUnknown : null
-	})
-
-	const contentPlain = $derived(
-		summaryFields != null
-		&& typeof summaryFields['content'] === 'string'
-		&& summaryFields['content'].length > 0 ?
-			htmlToPlainText(summaryFields['content'])
-		:
-			'',
-	)
-
-	const summaryTitle = $derived(
-		contentPlain.length > 0 ?
-			contentPlain
-		:
-			entityId.localStatusId
-	)
-
-	const authorId = $derived((() => {
-		const ref = summaryFields?.['$author']
-		return isEntityReferenceWithId<EntityType.ActivityPubActor>(ref) ?
-				ref[EntityMetaKey.Id]
-			:	undefined
-	})())
-
-	const inReplyToId = $derived((() => {
-		const ref = summaryFields?.['$inReplyTo']
-		return isEntityReferenceWithId<EntityType.ActivityPubNote>(ref) ?
-				ref[EntityMetaKey.Id]
-			:	undefined
-	})())
 
 
 	// Components
+	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
 </script>
 
 
@@ -129,76 +81,96 @@
 	{layout}
 	{open}
 	{...entityViewRest}
-	title={summaryTitle}
 >
-	{#if contentPlain}
-		{#snippet Heading()}
-			<HeadingComponent>
-				{#if href}
-					<a href={href}>
-						<TruncatedValue
-							endLength={16}
-							format={TruncatedValueFormat.Visual}
-							startLength={64}
-							value={contentPlain}
-						/>
-					</a>
-				{:else}
-					<TruncatedValue
-						endLength={16}
-						format={TruncatedValueFormat.Visual}
-						startLength={64}
-						value={contentPlain}
-					/>
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={note}
+			placeholderText="Loading status…"
+		>
+			{#snippet children(u)}
+				{#if u.content != null && u.content !== ''}
+					{@const headingPlain = htmlToPlainText(u.content)}
+					<HeadingComponent>
+						{#if href}
+							<a href={href}>
+								<TruncatedValue
+									endLength={16}
+									format={TruncatedValueFormat.Visual}
+									startLength={64}
+									value={headingPlain}
+								/>
+							</a>
+						{:else}
+							<TruncatedValue
+								endLength={16}
+								format={TruncatedValueFormat.Visual}
+								startLength={64}
+								value={headingPlain}
+							/>
+						{/if}
+					</HeadingComponent>
 				{/if}
-			</HeadingComponent>
-		{/snippet}
-	{/if}
-	{#snippet HeadingAfter()}
-		{@const t = (summaryFields != null && typeof summaryFields['createdAt'] === 'number' && Number.isFinite(summaryFields['createdAt']) ? summaryFields['createdAt'] : null)}
-		{#if t != null}
-			<span data-text="muted">
-				<Timestamp
-					timestamp={t}
-					format={TimestampFormat.Both}
-				/>
-			</span>
-		{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content()}
+	{#snippet HeadingAfter()}
+		<ResourceBoundary resource={note}>
+			{#snippet Pending()}{/snippet}
+			{#snippet children(u)}
+				{#if u.createdAt != null && Number.isFinite(u.createdAt)}
+					<span data-text="muted">
+						<Timestamp
+							timestamp={u.createdAt}
+							format={TimestampFormat.Both}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
 		<div data-column>
-			{#if contentPlain}
-				<p data-text="muted">
-					{contentPlain}
-				</p>
-			{/if}
-			{#if authorId}
-				<p data-text="muted">
-					<a
-						href={resolve(
-							'/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]',
-							{
-								instanceOrigin: encodeURIComponent(authorId.instanceOrigin),
-								localAccountId: encodeURIComponent(authorId.localAccountId),
-							},
-						)}
-					>Author</a>
-				</p>
-			{/if}
-			{#if inReplyToId}
-				<p data-text="muted">
-					<a
-						href={resolve(
-							'/(social)/activitypub/note/[instanceOrigin]/[localStatusId]',
-							{
-								instanceOrigin: encodeURIComponent(inReplyToId.instanceOrigin),
-								localStatusId: encodeURIComponent(inReplyToId.localStatusId),
-							},
-						)}
-					>In reply to</a>
-				</p>
-			{/if}
+			<ResourceBoundary
+				resource={note}
+				placeholderText="Loading status…"
+			>
+				{#snippet children(u)}
+					{#if u.content != null && u.content !== ''}
+						<p data-text="muted">
+							{htmlToPlainText(u.content)}
+						</p>
+					{/if}
+					{#if u.$author}
+						<p data-text="muted">
+							<a
+								href={resolve(
+									'/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]',
+									{
+										instanceOrigin: encodeURIComponent(u.$author[EntityMetaKey.Id].instanceOrigin),
+										localAccountId: encodeURIComponent(u.$author[EntityMetaKey.Id].localAccountId),
+									},
+								)}
+							>Author</a>
+						</p>
+					{/if}
+					{#if u.$inReplyTo}
+						<p data-text="muted">
+							<a
+								href={resolve(
+									'/(social)/activitypub/note/[instanceOrigin]/[localStatusId]',
+									{
+										instanceOrigin: encodeURIComponent(u.$inReplyTo[EntityMetaKey.Id].instanceOrigin),
+										localStatusId: encodeURIComponent(u.$inReplyTo[EntityMetaKey.Id].localStatusId),
+									},
+								)}
+							>In reply to</a>
+						</p>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
 			<div data-text="mono muted">
 				{entityId.instanceOrigin}
 				 · 
@@ -214,42 +186,28 @@
 			entityType={EntityType.ActivityPubNote}
 			{entityId}
 		>
-			<QueryBoundary
-				query={noteQuery}
-			>
-				{#snippet children(mastoRestNoteResultRows)}
-					{@const detailFields = (() => {
-						const r = mastoRestNoteResultRows
-							?.find((e) => e.row[EntityMetaKey.Source] === Source.Mastodon_Rest)
-							?.row
-							?? mastoRestNoteResultRows?.[0]?.row
-						const b = r?.[EntityMetaKey.Fields]
-						if (!(typeof b === 'object' && b !== null && !Array.isArray(b))) {
-							return null
-						}
-						return b
-					})()}
-					{#if detailFields == null}
+			<ResourceBoundary resource={note}>
+				{#snippet children(u)}
+					{#if (u.content == null || u.content === '') && (u.createdAt == null)}
 						<p data-text="muted">
-							No status data in the app for this id yet. Try again shortly, or check that the Mastodon instance
-							API can be reached.
+							Status details are not available yet for this note.
 						</p>
 					{:else}
 						<dl>
-							{#if typeof detailFields['content'] === 'string' && detailFields['content']}
+							{#if u.content != null && u.content !== ''}
 								<div>
 									<dt>Content</dt>
 									<dd>
-										{htmlToPlainText(detailFields['content'])}
+										{htmlToPlainText(u.content)}
 									</dd>
 								</div>
 							{/if}
-							{#if typeof detailFields['createdAt'] === 'number' && Number.isFinite(detailFields['createdAt'])}
+							{#if u.createdAt != null && Number.isFinite(u.createdAt)}
 								<div>
 									<dt>Created at</dt>
 									<dd>
 										<Timestamp
-											timestamp={detailFields['createdAt']}
+											timestamp={u.createdAt}
 											format={TimestampFormat.Both}
 										/>
 									</dd>
@@ -258,7 +216,7 @@
 						</dl>
 					{/if}
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		<ActivityPubMastodonFieldNotes

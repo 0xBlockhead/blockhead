@@ -7,11 +7,32 @@
 	// Context
 	import { resolve } from '$app/paths'
 
-	let { id }: { id: string } = $props()
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+
+
+	// Props
+	let { id }: { id: string } = $props()
+
+
+	const globalDuneBilling = useEntity(
+		EntityType._Global,
+		{},
+		{
+			$: [
+				Source.Local_Internal,
+				Source.Dune_Rest,
+			],
+			duneCreditsUsed: {},
+			duneCreditsIncluded: {},
+		},
+	)
 </script>
 
 
@@ -25,181 +46,240 @@
 		style="--carousel-basis: 38ch; gap: 0.5em"
 	>
 		<section
-			data-e2e="coin-source-constants"
-			data-scroll-marker-label="Constants (internal)"
+			data-e2e="coin-source-dune-billing"
+			data-scroll-marker-label="Dune (billing)"
 		>
 			<EntitiesList
 				collapsible={false}
 				entityType={EntityType._Global}
 				href={resolve('/coins')}
-				id={`${id}:source-constants`}
-				title="Constants (internal)"
+				id={`${id}:source-dune-billing`}
+				title="Dune API billing"
 			>
 				{#snippet body()}
 					<div
 						class="entity-details"
-						style:view-transition-name={`CoinDataSources-Constants-${id}`}
+						style:view-transition-name={`CoinDataSources-DuneBilling-${id}`}
 					>
 						<p>
-							<cite>{Source.Constants_Internal}</cite>
-							— seeds global
-							<code>$$coins</code>
+							<cite>{Source.Dune_Rest}</cite>
+							—
+							global billing counters via
+							<code>duneCreditsUsed</code>
 							and
-							<code>$$marketPrices</code>
-							(quote list pointers)
-							from
-							<code>constants/Coin.ts</code>
-							; also supplies network execution endpoint overlays for
-							<code>EntityType.Network</code>
-							in
-							<code>resolvers/Constants.ts</code>
-							.
-						</p>
-					</div>
-				{/snippet}
-			</EntitiesList>
-		</section>
-
-		<section
-			data-e2e="coin-source-coingecko"
-			data-scroll-marker-label="CoinGecko (REST)"
-		>
-			<EntitiesList
-				collapsible={false}
-				entityType={EntityType._Global}
-				href={resolve('/coins')}
-				id={`${id}:source-coingecko`}
-				title="CoinGecko (REST)"
-			>
-				{#snippet body()}
-					<div
-						class="entity-details"
-						style:view-transition-name={`CoinDataSources-Coingecko-${id}`}
-					>
-						<p>
-							<cite>{Source.Coingecko_Rest}</cite>
-							—
-							<code>resolvers/Coingecko-Rest.ts</code>
-							: global
-							<code>$$coins</code>
-							,
-							<code>$$marketPrices</code>
-							(spot
-							<code>Market price</code>
-							)
-							,
-							<code>$$marketPriceRanges</code>
+							<code>duneCreditsIncluded</code>
+							on
+							<code>EntityType._Global</code>
 							(
-							<code>GET /coins/…/ohlc</code>
-							)
-							; entity
-							<code>EntityType.Coin</code>
-							; per-chain
-							<code>EntityType.CoinInstance</code>
-							(
-							deployments
-							)
-							.
+							<code>resolvers/Dune-Rest.ts</code>
+							).
 						</p>
+						<dl>
+							<ResourceBoundary resource={globalDuneBilling}>
+								{#snippet children(g)}
+									<div>
+										<dt>Credits used</dt>
+										<dd>{String(g.duneCreditsUsed)}</dd>
+									</div>
+								{/snippet}
+							</ResourceBoundary>
+							<ResourceBoundary resource={globalDuneBilling}>
+								{#snippet children(g)}
+									<div>
+										<dt>Credits included</dt>
+										<dd>{String(g.duneCreditsIncluded)}</dd>
+									</div>
+								{/snippet}
+							</ResourceBoundary>
+						</dl>
 					</div>
 				{/snippet}
 			</EntitiesList>
 		</section>
 
 		<section
-			data-e2e="coin-source-coinmarketcap"
-			data-scroll-marker-label="CoinMarketCap (REST)"
-		>
-			<EntitiesList
-				collapsible={false}
-				entityType={EntityType._Global}
-				href={resolve('/coins')}
-				id={`${id}:source-cmc`}
-				title="CoinMarketCap (REST)"
-			>
-				{#snippet body()}
-					<div
-						class="entity-details"
-						style:view-transition-name={`CoinDataSources-Cmc-${id}`}
+					data-e2e="coin-source-constants"
+					data-scroll-marker-label="Constants (internal)"
+				>
+					<EntitiesList
+						collapsible={false}
+						entityType={EntityType._Global}
+						href={resolve('/coins')}
+						id={`${id}:source-constants`}
+						title="Constants (internal)"
 					>
-						<p>
-							<cite>{Source.CoinMarketCap_Rest}</cite>
-							—
-							<code>resolvers/CoinMarketCap-Rest.ts</code>
-							: list wiring, CMC info for
-							<code>EntityType.Coin</code>
-							, and
-							<code>EntityType.MarketPrice</code>
-							USD rows.
-						</p>
-					</div>
-				{/snippet}
-			</EntitiesList>
-		</section>
+						{#snippet body()}
+							<div
+								class="entity-details"
+								style:view-transition-name={`CoinDataSources-Constants-${id}`}
+							>
+								<p>
+									<cite>{Source.Constants_Internal}</cite>
+									— seeds global
+									<code>$$coins</code>
+									and
+									<code>$$marketPrices</code>
+									(quote list pointers)
+									from
+									<code>constants/Coin.ts</code>
+									; also supplies network execution endpoint overlays for
+									<code>EntityType.Network</code>
+									in
+									<code>resolvers/Constants.ts</code>
+									.
+								</p>
+							</div>
+						{/snippet}
+					</EntitiesList>
+				</section>
 
-		<section
-			data-e2e="coin-source-coinpaprika"
-			data-scroll-marker-label="CoinPaprika (OpenAPI)"
-		>
-			<EntitiesList
-				collapsible={false}
-				entityType={EntityType._Global}
-				href={resolve('/coins')}
-				id={`${id}:source-paprika`}
-				title="CoinPaprika (OpenAPI)"
-			>
-				{#snippet body()}
-					<div
-						class="entity-details"
-						style:view-transition-name={`CoinDataSources-Paprika-${id}`}
+				<section
+					data-e2e="coin-source-coingecko"
+					data-scroll-marker-label="CoinGecko (REST)"
+				>
+					<EntitiesList
+						collapsible={false}
+						entityType={EntityType._Global}
+						href={resolve('/coins')}
+						id={`${id}:source-coingecko`}
+						title="CoinGecko (REST)"
 					>
-						<p>
-							<cite>{Source.Coinpaprika_OpenApi}</cite>
-							—
-							<code>resolvers/Coinpaprika-OpenApi.ts</code>
-							: list wiring, markets, and
-							<code>EntityType.MarketPrice</code>
-							rows from tickers.
-						</p>
-					</div>
-				{/snippet}
-			</EntitiesList>
-		</section>
+						{#snippet body()}
+							<div
+								class="entity-details"
+								style:view-transition-name={`CoinDataSources-Coingecko-${id}`}
+							>
+								<p>
+									<cite>{Source.Coingecko_Rest}</cite>
+									—
+									<code>resolvers/Coingecko-Rest.ts</code>
+									: global
+									<code>$$coins</code>
+									,
+									<code>$$marketPrices</code>
+									(spot
+									<code>Market price</code>
+									)
+									,
+									<code>$$marketPriceRanges</code>
+									(
+									<code>GET /coins/…/ohlc</code>
+									)
+									; entity
+									<code>EntityType.Coin</code>
+									; per-chain
+									<code>EntityType.CoinInstance</code>
+									(
+									deployments
+									)
+									.
+								</p>
+							</div>
+						{/snippet}
+					</EntitiesList>
+				</section>
 
-		<section
-			data-e2e="coin-source-defillama"
-			data-scroll-marker-label="DeFi Llama (REST)"
-		>
-			<EntitiesList
-				collapsible={false}
-				entityType={EntityType._Global}
-				href={resolve('/coins')}
-				id={`${id}:source-llama`}
-				title="DeFi Llama (REST)"
-			>
-				{#snippet body()}
-					<div
-						class="entity-details"
-						style:view-transition-name={`CoinDataSources-Defillama-${id}`}
+				<section
+					data-e2e="coin-source-coinmarketcap"
+					data-scroll-marker-label="CoinMarketCap (REST)"
+				>
+					<EntitiesList
+						collapsible={false}
+						entityType={EntityType._Global}
+						href={resolve('/coins')}
+						id={`${id}:source-cmc`}
+						title="CoinMarketCap (REST)"
 					>
-						<p>
-							<cite>{Source.Defillama_Rest}</cite>
-							—
-							<code>resolvers/Defillama-Rest.ts</code>
-							: global
-							<code>$$marketPrices</code>
-							and
-							<code>EntityType.MarketPrice</code>
-							via
-							<code>sources/Defillama/Rest/constants.ts</code>
-							(
-							<code>defillamaCurrentPriceIdByCoinId</code>
-							)
-							.
-						</p>
-					</div>
-				{/snippet}
-			</EntitiesList>
-		</section>
-	</div>
+						{#snippet body()}
+							<div
+								class="entity-details"
+								style:view-transition-name={`CoinDataSources-Cmc-${id}`}
+							>
+								<p>
+									<cite>{Source.CoinMarketCap_Rest}</cite>
+									—
+									<code>resolvers/CoinMarketCap-Rest.ts</code>
+									: list wiring, CMC info for
+									<code>EntityType.Coin</code>
+									, and
+									<code>EntityType.MarketPrice</code>
+									USD rows.
+								</p>
+							</div>
+						{/snippet}
+					</EntitiesList>
+				</section>
+
+				<section
+					data-e2e="coin-source-coinpaprika"
+					data-scroll-marker-label="CoinPaprika (OpenAPI)"
+				>
+					<EntitiesList
+						collapsible={false}
+						entityType={EntityType._Global}
+						href={resolve('/coins')}
+						id={`${id}:source-paprika`}
+						title="CoinPaprika (OpenAPI)"
+					>
+						{#snippet body()}
+							<div
+								class="entity-details"
+								style:view-transition-name={`CoinDataSources-Paprika-${id}`}
+							>
+								<p>
+									<cite>{Source.Coinpaprika_OpenApi}</cite>
+									—
+									<code>resolvers/Coinpaprika-OpenApi.ts</code>
+									: list wiring, markets, and
+									<code>EntityType.MarketPrice</code>
+									rows from tickers.
+								</p>
+							</div>
+						{/snippet}
+					</EntitiesList>
+				</section>
+
+				<section
+					data-e2e="coin-source-defillama"
+					data-scroll-marker-label="DeFi Llama (REST)"
+				>
+					<EntitiesList
+						collapsible={false}
+						entityType={EntityType._Global}
+						href={resolve('/coins')}
+						id={`${id}:source-llama`}
+						title="DeFi Llama (REST)"
+					>
+						{#snippet body()}
+							<div
+								class="entity-details"
+								style:view-transition-name={`CoinDataSources-Defillama-${id}`}
+							>
+								<p>
+									<cite>{Source.Defillama_Rest}</cite>
+									—
+									<code>resolvers/Defillama-Rest.ts</code>
+									: global
+									<code>$$marketPrices</code>
+									and
+									<code>EntityType.MarketPrice</code>
+									via
+									<code>sources/Defillama/Rest/constants.ts</code>
+									(
+									<code>defillamaCurrentPriceIdByCoinId</code>
+									)
+									.
+								</p>
+							</div>
+						{/snippet}
+					</EntitiesList>
+				</section>
+			</div>
 </div>
+
+
+<style>
+	.entity-details {
+		display: contents;
+	}
+</style>

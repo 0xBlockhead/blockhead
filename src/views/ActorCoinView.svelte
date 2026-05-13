@@ -2,17 +2,15 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
 	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -37,50 +35,34 @@
 			| 'open'
 			| 'title'
 			| 'Details'
+			| 'Heading'
 		>
 	> = $props()
 
-	const actorCoinIdKey = $derived(
-		stringify(entityId),
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const actorCoin = useEntity(
+		EntityType.ActorCoin,
+		entityId,
+		{
+			$: [Source.Allium_Rest],
+			symbol: {},
+			decimals: {},
+			balance: {},
+			usdValue: {},
+		},
 	)
 
-	const actorCoinQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.ActorCoin] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						actorCoinIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => actorCoinIdKey],
-	)
-
-	const actorCoinRow = $derived(
-		actorCoinQuery.data?.[0]?.row,
-	)
-
-	const actorCoinField = $derived(
-		(() => {
-			const bag = actorCoinRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-			const b = bag
-			return {
-				symbol: typeof b.symbol === 'string' && b.symbol.length ? b.symbol : undefined,
-				decimals: typeof b.decimals === 'number' ? b.decimals : undefined,
-				balance: typeof b.balance === 'bigint' ? b.balance : undefined,
-			}
-		})(),
-	)
 
 	// Components
+	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import Address from '$/views/Address.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -90,16 +72,40 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={actorCoinField?.symbol ?? 'Balance'}
 >
-	{#snippet Content()}
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={actorCoin}
+			placeholderText="Loading balance…"
+		>
+			{#snippet children(u)}
+				<HeadingComponent>
+					{u.symbol ?? 'Balance'}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Owner</dt>
 				<dd>
-					<Address
-						network={entityId.$actor.$network}
-						address={entityId.$actor.address}
+					<ActorNetworkView
+						entityId={{
+							$network: entityId.$coinInstance.$network,
+							$actor: entityId.$actor,
+						}}
+						href={resolve(
+							'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+							{
+								networkId: String(entityId.$coinInstance.$network.chainId),
+								address: entityId.$actor.address,
+							},
+						)}
+						layout={EntityLayout.Id}
+						open={false}
+						showTypeAnnotation={false}
 					/>
 				</dd>
 			</div>
@@ -118,12 +124,25 @@
 					{/if}
 				</dd>
 			</div>
-			{#if actorCoinField?.balance !== undefined}
-				<div>
-					<dt>Balance</dt>
-					<dd>{String(actorCoinField.balance)}</dd>
-				</div>
-			{/if}
+			<ResourceBoundary
+				resource={actorCoin}
+				placeholderText="Loading balance…"
+			>
+				{#snippet children(u)}
+					{#if u.balance !== undefined}
+						<div>
+							<dt>Balance</dt>
+							<dd>{String(u.balance)}</dd>
+						</div>
+					{/if}
+					{#if u.usdValue !== undefined}
+						<div>
+							<dt>USD value</dt>
+							<dd>{String(u.usdValue)}</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
@@ -137,39 +156,39 @@
 				entityType={EntityType.ActorCoin}
 				{entityId}
 			>
-				<QueryBoundary
-					query={actorCoinQuery}
+				<ResourceBoundary
+					resource={actorCoin}
+					placeholderText="Loading balance…"
 				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No balance data for this account and coin yet.
-						</p>
-					{:else}
-						<dl>
-							{#if actorCoinField?.symbol !== undefined}
-								<div>
-									<dt>Symbol</dt>
-									<dd>{actorCoinField.symbol}</dd>
-								</div>
-							{/if}
-							{#if actorCoinField?.decimals !== undefined}
-								<div>
-									<dt>Decimals</dt>
-									<dd>{String(actorCoinField.decimals)}</dd>
-								</div>
-							{/if}
-							{#if actorCoinField?.balance !== undefined}
-								<div>
-									<dt>Balance (raw)</dt>
-									<dd>{String(actorCoinField.balance)}</dd>
-								</div>
-							{/if}
-						</dl>
-					{/if}
+					{#snippet children(u)}
+						{#if u.symbol == null && u.decimals == null && u.balance == null}
+							<p data-text="muted">
+								No balance data for this account and coin yet.
+							</p>
+						{:else}
+							<dl>
+								{#if u.symbol !== undefined}
+									<div>
+										<dt>Symbol</dt>
+										<dd>{u.symbol}</dd>
+									</div>
+								{/if}
+								{#if u.decimals !== undefined}
+									<div>
+										<dt>Decimals</dt>
+										<dd>{String(u.decimals)}</dd>
+									</div>
+								{/if}
+								{#if u.usdValue !== undefined}
+									<div>
+										<dt>USD value</dt>
+										<dd>{String(u.usdValue)}</dd>
+									</div>
+								{/if}
+							</dl>
+						{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

@@ -1,23 +1,22 @@
+<script module lang="ts">
+</script>
+
+
 <script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-
-
-	// Components
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-
-
-	// Functions
 	import {
 		swarmResourceAddressFromInput,
 		swarmResourceCanonicalUri,
 		swarmResourceHref,
 	} from '$/sources/Swarm/Rest/queries.ts'
 
-	const exampleResource = ({
+
+	// Components
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+
+
+	// Functions
+	const sample = ({
 		label,
 		targetInput,
 		contentPathInput = '',
@@ -45,14 +44,14 @@
 		}
 	}
 
-	const exampleResources = [
-		exampleResource({
+	const samples = [
+		sample({
 			label: 'Bee docs landing page',
 			targetInput: 'bzz://8b6ca499eb6f3f7e5ee242f08f1de2e7e6bb1728d7f4ee5ec22091b048f34ff1',
 			sourceHref: 'https://docs.ethswarm.org',
 			sourceLabel: 'Swarm Docs',
 		}),
-		exampleResource({
+		sample({
 			label: 'Gateway URL input',
 			targetInput: 'https://gateway.ethswarm.org/bzz/8b6ca499eb6f3f7e5ee242f08f1de2e7e6bb1728d7f4ee5ec22091b048f34ff1',
 			sourceHref: 'https://docs.ethswarm.org/docs/develop/upload-and-download/',
@@ -61,60 +60,36 @@
 	]
 
 
-	// Props
-	let {
-		entityId,
-	}: {
-		entityId?: EntityId<typeof schema, EntityType.SwarmResource>
-	} = $props()
-
-
-	// (Derived)
-	const targetValue = $derived(
-		entityId === undefined ?
-			''
-		:
-			`bzz://${entityId.reference}`,
-	)
-
-	const contentPathValue = $derived(
-		entityId?.contentPath ?? '',
-	)
-
-	const currentCanonicalUri = $derived(
-		entityId === undefined ?
-			undefined
-		:
-			swarmResourceCanonicalUri(entityId),
-	)
-
-
 	// Actions
-	const onsubmit = async (event: SubmitEvent) => {
+	const onsubmit = (event: SubmitEvent) => {
 		event.preventDefault()
-		if (!(event.currentTarget instanceof HTMLFormElement)) return
+		const form = event.currentTarget
+		if (!(form instanceof HTMLFormElement)) return
 
-		const formData = new FormData(event.currentTarget)
-		const nextResource = swarmResourceAddressFromInput({
+		const formData = new FormData(form)
+		const next = swarmResourceAddressFromInput({
 			targetInput: String(formData.get('target') ?? ''),
 			contentPathInput: String(formData.get('path') ?? ''),
 		})
-		if (nextResource === undefined) return
+		if (next === undefined) return
 
-		window.location.assign(swarmResourceHref(nextResource))
+		window.location.assign(swarmResourceHref(next))
 	}
 
-	const openExample = (href: string) => {
+	const openSample = (href: string) => {
 		window.location.assign(href)
 	}
 
-	const openDocsExample = (href: string) => {
+	const openDocsSample = (href: string) => {
 		window.open(href, '_blank', 'noopener,noreferrer')
 	}
 </script>
 
 
-{#snippet SwarmBrowseBody()}
+<section
+	class="swarm-browser"
+	data-column
+>
 	<form
 		class="swarm-browser-form"
 		data-card
@@ -133,7 +108,6 @@
 				name="target"
 				type="text"
 				placeholder="bzz://..."
-				value={targetValue}
 			/>
 		</div>
 
@@ -149,7 +123,6 @@
 				name="path"
 				type="text"
 				placeholder="metadata.json"
-				value={contentPathValue}
 			/>
 		</div>
 
@@ -165,11 +138,11 @@
 			</summary>
 
 			<ul>
-				{#each exampleResources as example (example.label)}
+				{#each samples as example (example.label)}
 					<li data-column>
 						<button
 							type="button"
-							onclick={() => openExample(example.href)}
+							onclick={() => openSample(example.href)}
 						>
 							{example.label}
 						</button>
@@ -181,7 +154,7 @@
 						</code>
 						<button
 							type="button"
-							onclick={() => openDocsExample(example.sourceHref)}
+							onclick={() => openDocsSample(example.sourceHref)}
 						>
 							{example.sourceLabel}
 						</button>
@@ -197,50 +170,11 @@
 		data-column
 	>
 		<h2>Browse Swarm</h2>
-
-		{#if currentCanonicalUri !== undefined}
-			<p data-text="muted">
-				Current resource:
-				<code>
-					<TruncatedValue
-						value={currentCanonicalUri}
-						format={TruncatedValueFormat.Visual}
-					/>
-				</code>
-			</p>
-		{:else}
-			<p data-text="muted">
-				Paste a BZZ reference, `bzz://` URI, or gateway URL to open a resolver-backed Swarm resource page.
-			</p>
-		{/if}
+		<p data-text="muted">
+			Paste a BZZ reference, `bzz://` URI, or gateway URL to open a resolver-backed Swarm resource page.
+		</p>
 	</section>
-{/snippet}
-
-{#if entityId !== undefined}
-	<EntityView
-		layout={EntityLayout.Details}
-		entityType={EntityType.SwarmResource}
-		{entityId}
-		href={swarmResourceHref(entityId)}
-		title={swarmResourceCanonicalUri(entityId)}
-	>
-		{#snippet Details()}
-			<section
-				class="swarm-browser"
-				data-column
-			>
-				{@render SwarmBrowseBody()}
-			</section>
-		{/snippet}
-	</EntityView>
-{:else}
-	<section
-		class="swarm-browser"
-		data-column
-	>
-		{@render SwarmBrowseBody()}
-	</section>
-{/if}
+</section>
 
 
 <style>

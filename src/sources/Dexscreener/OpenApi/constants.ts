@@ -23,3 +23,11 @@ export const apiChainIdByChainId: Partial<Record<number, string>> = Object.fromE
 			entry.apiChainId,
 		]),
 )
+
+/** **`pair.chainId`** string from search → numeric `chainId` when supported by this transport. */
+export const numericChainIdByDexscreenerApiChainLabel: Partial<Record<string, number>> = Object.fromEntries(
+	chains.map((entry) => [
+		entry.apiChainId,
+		entry.chainId,
+	]),
+)

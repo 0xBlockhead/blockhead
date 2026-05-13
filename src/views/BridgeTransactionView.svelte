@@ -2,14 +2,9 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { entityDefinitionByType, schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import {
-		EntityFieldType,
-		type EntityFieldDefinition,
-		EntityMetaKey,
-	} from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
@@ -18,9 +13,16 @@
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+
+	// Components
+	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
 
 	// Props
@@ -50,41 +52,16 @@
 		>
 	> = $props()
 
-	const bridgeIdKey = $derived(
-		stringify(entityId),
-	)
 
-	const bridgePrimitiveFieldNames = $derived(
-		new Set(
-			entityDefinitionByType[EntityType.BridgeTransaction].fields.flatMap((d: EntityFieldDefinition) => (
-				d.type === EntityFieldType.Primitive ?
-					[d.name]
-				:	[]
-			)),
-		),
+	const bridgeTransaction = useEntity(
+		EntityType.BridgeTransaction,
+		entityId,
+		{
+			$: [
+				Source.Local_Internal,
+			],
+		},
 	)
-
-	const bridgeQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.BridgeTransaction] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						bridgeIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => bridgeIdKey],
-	)
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -96,8 +73,12 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Content()}
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
+			<div>
+				<dt>Source chain id</dt>
+				<dd>{String(entityId.$sourceTx.$network.chainId)}</dd>
+			</div>
 			<div>
 				<dt>Source tx</dt>
 				<dd>
@@ -107,74 +88,50 @@
 					/>
 				</dd>
 			</div>
-			{#if entityId.createdAt !== undefined && typeof entityId.createdAt === 'number' && Number.isFinite(entityId.createdAt)}
-				<div>
-					<dt>Timestamp</dt>
-					<dd>
-						<Timestamp
-							timestamp={entityId.createdAt}
-							format={TimestampFormat.Both}
-						/>
-					</dd>
-				</div>
-			{/if}
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<Timestamp
+						timestamp={entityId.createdAt}
+						format={TimestampFormat.Both}
+					/>
+				</dd>
+			</div>
 		</dl>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
-		<EntityDetails
-			entityType={EntityType.BridgeTransaction}
-			{entityId}
-		>
-			<QueryBoundary
-				query={bridgeQuery}
+	{#snippet Details({ open: _open })}
+		{#if children}
+			{@render children()}
+		{:else}
+			<EntityDetails
+				entityType={EntityType.BridgeTransaction}
+				{entityId}
 			>
-
-				{#snippet children(rows)}
-				{@const bridgeRow = (
-					rows?.find(
-						(r) => r.row[EntityMetaKey.Source] === Source.Blockscout_Rest,
-					)?.row
-					?? rows?.[0]?.row
-				)}
-				{#if bridgeRow === undefined}
-					<p data-text="muted">
-						No bridge transaction data yet.
-					</p>
-				{:else}
-					{@const fieldsRaw = bridgeRow[EntityMetaKey.Fields]}
-					<dl>
-						{#if typeof fieldsRaw === 'object' && fieldsRaw !== null && !Array.isArray(fieldsRaw)}
-							{#each Object.entries(fieldsRaw) as [name, value] (name)}
-								{#if bridgePrimitiveFieldNames.has(name) && value !== undefined}
-									<div>
-										<dt>{name}</dt>
-										<dd>{String(value)}</dd>
-									</div>
-								{/if}
-							{/each}
-						{/if}
-						{#if entityId.createdAt !== undefined && typeof entityId.createdAt === 'number' && Number.isFinite(entityId.createdAt)}
+				<ResourceBoundary resource={bridgeTransaction}>
+					{#snippet children(_row)}
+						<dl>
 							<div>
-								<dt>Timestamp</dt>
+								<dt>Account</dt>
 								<dd>
-									<Timestamp
-										timestamp={entityId.createdAt}
-										format={TimestampFormat.Both}
+									<ActorNetworkView
+										entityId={{
+											$network: entityId.$sourceTx.$network,
+											$actor: entityId.$account,
+										}}
+										href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+											accountId: entityId.$account.address,
+										})}
+										layout={EntityLayout.Id}
+										open={false}
+										showTypeAnnotation={false}
 									/>
 								</dd>
 							</div>
-						{/if}
-					</dl>
-				{/if}
-				{/snippet}
-			</QueryBoundary>
-		</EntityDetails>
-
-		{#if children}
-			{@render children()}
+						</dl>
+					{/snippet}
+				</ResourceBoundary>
+			</EntityDetails>
 		{/if}
 	{/snippet}
 </EntityView>

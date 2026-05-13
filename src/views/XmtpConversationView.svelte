@@ -4,15 +4,19 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
 
 	// Props
@@ -43,34 +47,15 @@
 	> = $props()
 
 
-	const conversationIdKey = $derived(
-		stringify(entityId),
+	const conversation = useEntity(
+		EntityType.XmtpConversation,
+		entityId,
+		{
+			$: [
+				Source.Local_Internal,
+			],
+		},
 	)
-
-	const conversationQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.XmtpConversation] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						conversationIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => conversationIdKey],
-	)
-
-	const conversationRow = $derived(
-		conversationQuery.data?.[0]?.row,
-	)
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -79,10 +64,10 @@
 	{entityId}
 	{href}
 	{open}
-	{...entityViewRest}
 	title={titleProp ?? 'Conversation'}
+	{...entityViewRest}
 >
-	{#snippet Content()}
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Conversation id</dt>
@@ -106,34 +91,16 @@
 				entityType={EntityType.XmtpConversation}
 				{entityId}
 			>
-				<QueryBoundary
-					query={conversationQuery}
+				<ResourceBoundary
+					resource={conversation}
+					placeholderText="Loading conversation…"
 				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
+					{#snippet children()}
 						<p data-text="muted">
-							No conversation data for this id yet.
+							Conversation metadata is not available yet.
 						</p>
-					{:else}
-						<dl>
-							<div>
-								<dt>Conversation id</dt>
-								<dd>
-									<TruncatedValue
-										value={entityId.id}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</dd>
-							</div>
-						</dl>
-
-						<p data-text="muted">
-							Only basic conversation info is available here for now.
-						</p>
-					{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

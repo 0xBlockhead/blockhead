@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -53,7 +55,7 @@ export default {
 		{
 			name: 'v4PoolId',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string.hex' as type.cast<`0x${string}`>),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

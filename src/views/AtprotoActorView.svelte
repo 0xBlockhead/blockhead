@@ -2,24 +2,15 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
-
-	import { mergeEntityCollectionRowFields } from '$/collections/mergeEntityCollectionRowFields.ts'
 
 
 	// Props
@@ -43,59 +34,41 @@
 			| 'title'
 			| 'Details'
 			| 'Icon'
+			| 'Heading'
 			| 'HeadingAfter'
 			| 'Content'
 		>
 	> = $props()
 
 
-	const idKey = $derived(stringify(entityId))
+	// State
+	import { stringify } from 'devalue'
 
-	const atprotoActorMergeSourceOrder = [
-		Source.Atproto_Xrpc,
-	] as const
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const actorQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.AtprotoActor] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						idKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => idKey],
+	const idKey = stringify(entityId)
+
+	const actor = useEntity(
+		EntityType.AtprotoActor,
+		entityId,
+		{
+			$: [Source.Atproto_Xrpc],
+			displayName: {},
+			handle: {},
+			$icon: {},
+			description: {},
+		},
 	)
-
-	const actorFields = $derived(
-		mergeEntityCollectionRowFields<EntityType.AtprotoActor>(
-			actorQuery.data,
-			atprotoActorMergeSourceOrder,
-		),
-	)
-
-	const displayTitle = $derived(
-		actorFields.displayName
-		?? actorFields.handle
-		?? entityId.did,
-	)
-
-	const avatarUrl = $derived((
-		actorFields.$icon?.[EntityMetaKey.Id].url
-	))
 
 
 	// Components
 	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
 	import Collapsible from '$/components/Collapsible.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -103,36 +76,74 @@
 	entityType={EntityType.AtprotoActor}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
-	title={displayTitle}
 >
+	{#snippet Heading()}
+		<ResourceBoundary resource={actor}>
+			{#snippet Pending()}{/snippet}
+			{#snippet children(profile)}
+				<HeadingComponent>
+					{profile.displayName
+						?? profile.handle
+						?? entityId.did}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Icon()}
-		{#if avatarUrl !== undefined}
-			<IconComponent
-				alt={actorFields.displayName ?? actorFields.handle ?? ''}
-				shape={IconShape.Circle}
-				src={avatarUrl}
-			/>
-		{/if}
+		<ResourceBoundary resource={actor}>
+			{#snippet Pending()}{/snippet}
+			{#snippet children(profile)}
+				{@const avatar = profile.$icon?.[EntityMetaKey.Id].url}
+				{#if avatar !== undefined}
+					<IconComponent
+						alt={profile.displayName ?? profile.handle ?? ''}
+						shape={IconShape.Circle}
+						src={avatar}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		{#if actorFields.handle !== undefined && actorFields.handle !== displayTitle}
-			<span data-text="muted">
-				@{actorFields.handle}
-			</span>
-		{/if}
+		<ResourceBoundary resource={actor}>
+			{#snippet Pending()}{/snippet}
+			{#snippet children(profile)}
+				{@const heading = (
+					profile.displayName
+					?? profile.handle
+					?? entityId.did
+				)}
+				{#if profile.handle !== undefined && profile.handle !== heading}
+					<span data-text="muted">
+						@{profile.handle}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content()}
-		{#if actorFields.description}
-			<p data-text="muted">
-				{actorFields.description}
-			</p>
-		{/if}
-		<div data-text="mono muted">
-			{entityId.did}
+	{#snippet Content({ title: _title, href: _href })}
+		<div data-column>
+			<ResourceBoundary
+				resource={actor}
+				placeholderText="Loading profile…"
+			>
+				{#snippet children(profile)}
+					{#if profile.description}
+						<p data-text="muted">
+							{profile.description}
+						</p>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			<div data-text="mono muted">
+				{entityId.did}
+			</div>
 		</div>
 	{/snippet}
 
@@ -143,38 +154,36 @@
 			entityType={EntityType.AtprotoActor}
 			{entityId}
 		>
-			<QueryBoundary
-				query={actorQuery}
-			>
-				{#snippet children(atprotoActorResultRows)}
-					{#if atprotoActorResultRows == null || atprotoActorResultRows.length === 0}
+			<ResourceBoundary resource={actor}>
+				{#snippet children(profile)}
+					{#if profile.handle == null && profile.displayName == null && profile.description == null}
 						<p data-text="muted">
 							No atproto profile data in the app for this DID yet. Try again shortly.
 						</p>
 					{:else}
 						<dl>
-							{#if actorFields.displayName}
+							{#if profile.displayName}
 								<div>
 									<dt>Display name</dt>
-									<dd>{actorFields.displayName}</dd>
+									<dd>{profile.displayName}</dd>
 								</div>
 							{/if}
-							{#if actorFields.handle}
+							{#if profile.handle}
 								<div>
 									<dt>Handle</dt>
-									<dd>{actorFields.handle}</dd>
+									<dd>{profile.handle}</dd>
 								</div>
 							{/if}
-							{#if actorFields.description}
+							{#if profile.description}
 								<div>
 									<dt>Description</dt>
-									<dd>{actorFields.description}</dd>
+									<dd>{profile.description}</dd>
 								</div>
 							{/if}
 						</dl>
 					{/if}
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		<Collapsible
@@ -182,7 +191,7 @@
 			{...{ 'data-card': '' }}
 		>
 			{#snippet Summary({
-				open: _open,
+				open: _postsSummaryOpen,
 			})}
 				<header
 					data-row-item="flexible"
@@ -193,7 +202,9 @@
 					</HeadingComponent>
 				</header>
 			{/snippet}
-			{#snippet children(_ctx)}
+			{#snippet children({
+				open: _postsDetailOpen,
+			})}
 				<div
 					class="carousel"
 					data-scroll-container="inline layout-carousel carousel-marker-tabs"

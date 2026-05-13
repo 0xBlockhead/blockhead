@@ -4,6 +4,7 @@
  * @see https://docs.li.fi/api-reference/fetch-all-known-tokens
  */
 
+import { throwIfHttpNotOk } from '$/lib/http.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { baseUrl } from '$/sources/Lifi/Rest/constants.ts'
 import type {
@@ -35,11 +36,9 @@ export async function fetchLifiChains(
 	if (options?.chainTypes != null && options.chainTypes !== '')
 		params.set('chainTypes', options.chainTypes)
 	const queryString = params.toString()
-	const res = await fetch(
-		`${base}/v1/chains${queryString ? `?${queryString}` : ''}`,
-	)
-	if (!res.ok)
-		throw new Error(`LI.FI GET /v1/chains failed: ${res.status} ${res.statusText}`)
+	const chainsUrl = `${base}/v1/chains${queryString ? `?${queryString}` : ''}`
+	const res = await fetch(chainsUrl)
+	await throwIfHttpNotOk(res, chainsUrl)
 	return res.json<LifiChainsResponse>()
 }
 
@@ -59,11 +58,9 @@ export async function fetchLifiTokens(
 	if (options?.minPriceUSD != null)
 		params.set('minPriceUSD', String(options.minPriceUSD))
 	const queryString = params.toString()
-	const res = await fetch(
-		`${base}/v1/tokens${queryString ? `?${queryString}` : ''}`,
-	)
-	if (!res.ok)
-		throw new Error(`LI.FI GET /v1/tokens failed: ${res.status} ${res.statusText}`)
+	const tokensUrl = `${base}/v1/tokens${queryString ? `?${queryString}` : ''}`
+	const res = await fetch(tokensUrl)
+	await throwIfHttpNotOk(res, tokensUrl)
 	return res.json<LifiTokensResponse>()
 }
 

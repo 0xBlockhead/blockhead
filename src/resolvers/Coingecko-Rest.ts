@@ -7,6 +7,7 @@ import {
 } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { caip19Erc20, caip19Slip44, Slip44 } from '$/lib/caip19.ts'
+import { mediaFromUrl } from '$/lib/media.ts'
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
@@ -43,14 +44,7 @@ export default {
 					?? decimalsByCoinId[entityId.coinId]
 				)
 				const logoUrl = coin.image?.large ?? coin.image?.small ?? coin.image?.thumb
-				const logoMedia = (
-					logoUrl == null || logoUrl.trim() === '' ?
-						undefined
-					:	{
-							[EntityMetaKey.Id]: { url: logoUrl },
-							type: MediaType.Image,
-						}
-				)
+				const logoMedia = mediaFromUrl(logoUrl, MediaType.Image)
 
 				return {
 					symbol: coinById[entityId.coinId]?.symbol ?? coin.symbol.trim().toUpperCase(),
@@ -62,6 +56,7 @@ export default {
 				}
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.CoinInstance,
 			resolve: async (entityId, context) => {
@@ -70,11 +65,9 @@ export default {
 				const {
 					decimalsByCoinId,
 					coinIdByWireId,
-					idByCoinId,
 				} = await import('$/sources/Coingecko/Rest/constants.ts')
 				const {
 					findCoingeckoAssetPlatformByChainId,
-					getCoingeckoCoin,
 					getCoingeckoCoinByAssetPlatformContract,
 				} = await import('$/sources/Coingecko/Rest/queries.ts')
 				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
@@ -102,24 +95,6 @@ export default {
 						decimals: chain.nativeCurrency.decimals,
 						slip44: chain.slip44,
 					}
-					const coin = (
-						nativeCurrency.coinId !== CoinId.Unknown && idByCoinId[nativeCurrency.coinId] != null ?
-							await getCoingeckoCoin(
-								publicEnv,
-								idByCoinId[nativeCurrency.coinId]!,
-							)
-						:	undefined
-					)
-					const iconUrl = pickCoingeckoCoinImageUrl(coin)
-					const iconMedia = (
-						iconUrl == null || iconUrl.trim() === '' ?
-							undefined
-						:	{
-								[EntityMetaKey.Id]: { url: iconUrl },
-								type: MediaType.Image,
-							}
-					)
-
 					return {
 						coinId: nativeCurrency.coinId,
 						...(nativeCurrency.name.trim() !== '' ? { name: nativeCurrency.name.trim() } : {}),
@@ -127,9 +102,6 @@ export default {
 						decimals: nativeCurrency.decimals,
 						...(nativeCurrency.slip44 != null ?
 							{ caip19: caip19Slip44(entityId.$network.chainId, nativeCurrency.slip44) }
-						:	{}),
-						...(iconMedia != null ?
-							{ $icon: iconMedia }
 						:	{}),
 					}
 				}
@@ -165,14 +137,7 @@ export default {
 					?? decimalsByCoinId[coinId]
 				)
 				const iconUrl = pickCoingeckoCoinImageUrl(coin)
-				const iconMedia = (
-					iconUrl == null || iconUrl.trim() === '' ?
-						undefined
-					:	{
-							[EntityMetaKey.Id]: { url: iconUrl },
-							type: MediaType.Image,
-						}
-				)
+				const iconMedia = mediaFromUrl(iconUrl, MediaType.Image)
 
 				return {
 					coinId,
@@ -186,10 +151,7 @@ export default {
 				}
 			},
 		}),
-		defineEntityResolver({
-			entityType: EntityType.Market,
-			resolve: async () => ({}),
-		}),
+
 		defineEntityResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: async (entityId, context) => {
@@ -232,6 +194,7 @@ export default {
 				}
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.MarketPriceRange,
 			resolve: async (entityId, context) => {
@@ -390,11 +353,15 @@ export default {
 				type CoinInstanceEntityId = import('$/schema/$schema.ts').EntityId<typeof schema, EntityType.CoinInstance>
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_Rest)
 				const coingeckoId = idByCoinId[entityId.coinId]
-				if (coingeckoId == null) return []
+				if (coingeckoId == null) {
+					throw new Error(`Coingecko_Rest: $$coinInstances unsupported for coin ${entityId.coinId}`)
+				}
 
 				const { coin, assetPlatforms } = await getCoingeckoCoinWithAssetPlatforms(publicEnv, coingeckoId)
 
-				if (coin == null) return []
+				if (coin == null) {
+					throw new Error(`Coingecko_Rest: coin metadata not found for ${coingeckoId}`)
+				}
 
 				const chainIdByPlatformId = new Map(
 					assetPlatforms
@@ -461,7 +428,7 @@ export default {
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				if (idByCoinId[entityId.coinId] == null) {
-					return []
+					throw new Error(`Coingecko_Rest: $$marketsWithCoinAsBase unsupported for coin ${entityId.coinId}`)
 				}
 				return (
 					[
@@ -488,9 +455,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => (
-				[]
-			),
+			resolve: async () => {
+				throw new Error('Coingecko_Rest: $$marketsWithCoinAsQuote is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -528,7 +495,7 @@ export default {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				if (coinById[entityId.coinId] == null || idByCoinId[entityId.coinId] == null) {
-					return []
+					throw new Error(`Coingecko_Rest: $$marketPriceRanges unsupported for coin ${entityId.coinId}`)
 				}
 				return [...coingeckoOhlcDayWindowLengths].map((value) => (
 					{
@@ -560,17 +527,17 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.CoinInstance,
 			fieldName: '$$marketsWithInstanceAsBase',
-			resolve: async () => (
-				[]
-			),
+			resolve: async () => {
+				throw new Error('Coingecko_Rest: $$marketsWithInstanceAsBase is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType.CoinInstance,
 			fieldName: '$$marketsWithInstanceAsQuote',
-			resolve: async () => (
-				[]
-			),
+			resolve: async () => {
+				throw new Error('Coingecko_Rest: $$marketsWithInstanceAsQuote is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({

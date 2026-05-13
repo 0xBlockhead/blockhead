@@ -9,15 +9,16 @@
 
 <script lang="ts">
 	// Types/constants
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
 
 	// Props
@@ -31,7 +32,7 @@
 		showAvatar = true,
 		isVertical: _isVertical = false,
 	}: {
-		actorId?: { $network: EntityId<typeof schema, EntityType.Network>, address: `0x${string}` } | null
+		actorId?: EntityId<typeof schema, EntityType.Actor> | null
 		network?: EntityId<typeof schema, EntityType.Network>
 		address?: `0x${string}`
 		ensName?: string
@@ -43,184 +44,168 @@
 
 
 	// (Derived)
-	const networkResolved = $derived(
-		actorId?.$network ?? network
-	)
-	const addressResolved = $derived(
-		actorId?.address ?? address ?? undefined
-	)
-	const actorParentIdKey = $derived(
-		(
-			(
-				(r) => (
-					r !== undefined ?
-						stringify(r)
-					: null
-				)
-			)(
-				actorId
-				?? (
-					network !== undefined && address !== undefined ?
-						{ $network: network, address }
-					: null
-				),
-			)
-		),
+	const shownAddress = $derived(
+		actorId?.address ?? address ?? undefined,
 	)
 
 
 	// State
-	const noActorParentKey = '\0actor:primary-name:none'
-
-	const primaryNameQuery = useLiveQuery(
-		(queryBuilder) => (
-			actorParentIdKey !== undefined ?
-				queryBuilder
-					.from({
-						field: entityFieldCollections[EntityType.Actor]['$primaryName'],
-					})
-					.where(({ field }) => (
-						eq(
-							field[EntityMetaKey.ParentIdKey],
-							actorParentIdKey,
-						)
-					))
-					.where(({ field }) => (
-						eq(
-							field[EntityMetaKey.Source],
-							Source.Voltaire_JsonRpc,
-						)
-					))
-					.select(({ field }) => ({
-						name: field[EntityMetaKey.Value][EntityMetaKey.Id].name,
-					}))
-					.findOne()
-			:
-				queryBuilder
-					.from({
-						field: entityFieldCollections[EntityType.Actor]['$primaryName'],
-					})
-					.where(({ field }) => (
-						eq(
-							field[EntityMetaKey.ParentIdKey],
-							noActorParentKey,
-						)
-					))
-					.select(({ field }) => ({
-						name: field[EntityMetaKey.Value][EntityMetaKey.Id].name,
-					}))
-					.findOne()
+	const actor = useEntity(
+		EntityType.Actor,
+		actorId
+		?? (
+			address !== undefined ?
+				{ address }
+			: { address: '0x0000000000000000000000000000000000000000' as `0x${string}` }
 		),
-		[() => actorParentIdKey],
+		{
+			$: [Source.Voltaire_JsonRpc],
+			$primaryName: {},
+			$icon: {},
+		},
 	)
-
-	const actorAvatarQuery = useLiveQuery(
-		(queryBuilder) => (
-			actorParentIdKey !== undefined ?
-				queryBuilder
-					.from({
-						field: entityFieldCollections[EntityType.Actor]['$icon'],
-					})
-					.where(({ field }) => (
-						eq(
-							field[EntityMetaKey.ParentIdKey],
-							actorParentIdKey,
-						)
-					))
-					.where(({ field }) => (
-						eq(
-							field[EntityMetaKey.Source],
-							Source.Voltaire_JsonRpc,
-						)
-					))
-					.select(({ field }) => ({
-						avatar: field[EntityMetaKey.Value],
-					}))
-					.findOne()
-			:
-				queryBuilder
-					.from({
-						field: entityFieldCollections[EntityType.Actor]['$icon'],
-					})
-					.where(({ field }) => (
-						eq(
-							field[EntityMetaKey.ParentIdKey],
-							noActorParentKey,
-						)
-					))
-					.select(({ field }) => ({
-						avatar: field[EntityMetaKey.Value],
-					}))
-					.findOne()
-		),
-		[() => actorParentIdKey],
-	)
-
-
-	// (Derived)
-	const displayEnsName = $derived(
-		ensNameProp ?? primaryNameQuery.data?.name,
-	)
-
-	const avatarUrl = $derived((
-		actorAvatarQuery.data?.avatar?.[EntityMetaKey.Id].url
-	))
-
-
-	// Components
-	import Icon, { IconShape } from '$/components/Icon.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
-{#if addressResolved}
-	<span data-row="inline">
-		{#if showAvatar}
-			{#if avatarUrl}
-				<Icon
-					shape={IconShape.Circle}
-					src={avatarUrl}
-					size="1.5em"
-					alt={displayEnsName ?? ''}
-				/>
-			{:else}
-				<Icon
-					shape={IconShape.Circle}
-					icon="◉"
-					size="1.5em"
-				/>
-			{/if}
-		{/if}
+{#if shownAddress}
+	{#if showAvatar || ensNameProp === undefined}
+		<ResourceBoundary
+			resource={actor}
+			placeholderText=""
+		>
+			{#snippet Pending()}
+				<span data-row="inline">
+					{#if showAvatar}
+						<Icon
+							shape={IconShape.Circle}
+							icon="◉"
+							size="1.5em"
+						/>
+					{/if}
 
-		<span data-text="font-monospace">
-			<TruncatedValue
-				value={addressResolved}
-				startLength={
-					format === AddressFormat.Full ?
-						addressResolved.length
-					:
-						6
-				}
-				endLength={
-					format === AddressFormat.Full ?
-						0
-					:
-						4
-				}
-				format={TruncatedValueFormat.Visual}
-			/>
-		</span>
+					<span data-text="font-monospace">
+						<TruncatedValue
+							value={shownAddress}
+							startLength={
+								format === AddressFormat.Full ?
+									shownAddress.length
+								:
+									6
+							}
+							endLength={
+								format === AddressFormat.Full ?
+									0
+								:
+									4
+							}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</span>
 
-		{#if displayEnsName}
+					{#if ensNameProp}
+						<small>
+							(<span data-text="font-monospace">{ensNameProp}</span>)
+						</small>
+					{/if}
+
+					{#if network}
+						<small data-text="muted">
+							 · {network.chainId}
+						</small>
+					{/if}
+				</span>
+			{/snippet}
+
+			{#snippet children(live)}
+				<span data-row="inline">
+					{#if showAvatar}
+						{@const avatarHref = live.$icon?.[EntityMetaKey.Id].url}
+						{#if avatarHref}
+							<Icon
+								shape={IconShape.Circle}
+								src={avatarHref}
+								size="1.5em"
+								alt={ensNameProp ?? ''}
+							/>
+						{:else}
+							<Icon
+								shape={IconShape.Circle}
+								icon="◉"
+								size="1.5em"
+							/>
+						{/if}
+					{/if}
+
+					<span data-text="font-monospace">
+						<TruncatedValue
+							value={shownAddress}
+							startLength={
+								format === AddressFormat.Full ?
+									shownAddress.length
+								:
+									6
+							}
+							endLength={
+								format === AddressFormat.Full ?
+									0
+								:
+									4
+							}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</span>
+
+					{#if ensNameProp}
+						<small>
+							(<span data-text="font-monospace">{ensNameProp}</span>)
+						</small>
+					{:else}
+						{@const forwardResolution = live.$primaryName?.[EntityMetaKey.Id].name}
+						{#if forwardResolution}
+							<small>
+								(<span data-text="font-monospace">{forwardResolution}</span>)
+							</small>
+						{/if}
+					{/if}
+
+					{#if network}
+						<small data-text="muted">
+							 · {network.chainId}
+						</small>
+					{/if}
+				</span>
+			{/snippet}
+		</ResourceBoundary>
+	{:else}
+		<span data-row="inline">
+			<span data-text="font-monospace">
+				<TruncatedValue
+					value={shownAddress}
+					startLength={
+						format === AddressFormat.Full ?
+							shownAddress.length
+						:
+							6
+					}
+					endLength={
+						format === AddressFormat.Full ?
+							0
+						:
+							4
+					}
+					format={TruncatedValueFormat.Visual}
+				/>
+			</span>
+
 			<small>
-				(<span data-text="font-monospace">{displayEnsName}</span>)
+				(<span data-text="font-monospace">{ensNameProp}</span>)
 			</small>
-		{/if}
 
-		{#if networkResolved}
-			<small data-text="muted">
-				 · {networkResolved.chainId}
-			</small>
-		{/if}
-	</span>
+			{#if network}
+				<small data-text="muted">
+					 · {network.chainId}
+				</small>
+			{/if}
+		</span>
+	{/if}
 {/if}

@@ -4,6 +4,7 @@ import {
 } from '$/resolvers/$resolvers.ts'
 import { normalize as ensNormalizeNode, toString as ensToString } from '@tevm/voltaire/Ens'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -104,7 +105,7 @@ export default {
 				return (
 					(await singleFlight(getEnsDomainsByOwner)({
 						publicEnv,
-						owner: entityId.address.toLowerCase(),
+						owner: zeroExLowerCase(entityId.address),
 					}))
 						.map((domain) => ensNameEntityFromSubgraphNameField(domain.name))
 						.filter((entity) => entity != null)

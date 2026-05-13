@@ -2,18 +2,11 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
-
-	import { mountEntityResolveLive } from '$/lib/db/resolveLive.svelte.ts'
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -41,65 +34,39 @@
 			| 'title'
 			| 'Details'
 			| 'Icon'
+			| 'Heading'
 		>
 	> = $props()
 
 
-	const feedIdKey = $derived(
-		stringify(entityId),
-	)
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { mountEntityResolveLive } from '$/lib/db/resolveLive.svelte.ts'
 
 	mountEntityResolveLive({
 		entityType: EntityType.FarcasterFeed,
 		entityId: () => entityId,
 	})
 
-	const feedQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.FarcasterFeed] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						feedIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => feedIdKey],
-	)
-
-	const feedRow = $derived(
-		feedQuery.data?.[0]?.row,
-	)
-
-	const displayTitle = $derived(
-		(() => {
-			const bag = feedRow?.[EntityMetaKey.Fields]
-			if ((typeof bag === 'object' && bag !== null && !Array.isArray(bag))) {
-				const t = bag['label']
-				if (typeof t === 'string' && t.length > 0 === 'object' && t === 'string' && t.length > 0 !== null && !Array.isArray(t === 'string' && t.length > 0)) {
-					return t
-				}
-			}
-			if (entityId.variant === 'trending') {
-				return 'Trending'
-			}
-			if (entityId.variant === 'byUser') {
-				return `FID ${String(entityId.fid)}`
-			}
-			if (entityId.variant === 'byChannel') {
-				return entityId.channelId
-			}
-			return 'Following'
-		})(),
+	const feed = useEntity(
+		EntityType.FarcasterFeed,
+		entityId,
+		{
+			$: [
+				Source.Neynar_Rest,
+				Source.Snapchain_Rest,
+				Source.Farcaster_Rest,
+			],
+			label: {},
+		},
 	)
 
 
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 </script>
 
@@ -110,9 +77,36 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
 >
-	{#snippet Content()}
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={feed}
+			placeholderText="Loading feed…"
+		>
+			{#snippet children(feedRow)}
+				<HeadingComponent>
+					<a {href}>
+						{(
+							feedRow.label != null
+							&& feedRow.label.trim() !== ''
+						) ?
+							feedRow.label
+						: entityId.variant === 'trending' ?
+							'Trending'
+						: entityId.variant === 'byUser' ?
+							`FID ${String(entityId.fid)}`
+						: entityId.variant === 'byChannel' ?
+							entityId.channelId
+						:
+							'Following'
+						}
+					</a>
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Variant</dt>
@@ -134,6 +128,19 @@
 					<dd>{String(entityId.viewerFid)}</dd>
 				</div>
 			{/if}
+			<ResourceBoundary
+				resource={feed}
+				placeholderText="Loading feed…"
+			>
+				{#snippet children(feedRow)}
+					{#if feedRow.label != null && feedRow.label.trim() !== ''}
+						<div>
+							<dt>Label</dt>
+							<dd>{feedRow.label}</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
@@ -143,20 +150,7 @@
 		<EntityDetails
 			entityType={EntityType.FarcasterFeed}
 			{entityId}
-		>
-			<QueryBoundary
-				query={feedQuery}
-			>
-
-				{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No feed metadata yet.
-						</p>
-					{/if}
-				{/snippet}
-			</QueryBoundary>
-		</EntityDetails>
+		/>
 
 		<FarcasterCastsView
 			entityFieldReference={{
@@ -165,7 +159,7 @@
 				fieldName: '$$entries',
 			}}
 			href={href}
-			id={`${feedIdKey}:entries`}
+			id={`${stringify(entityId)}:entries`}
 			{limit}
 			open={false}
 			title="Feed"

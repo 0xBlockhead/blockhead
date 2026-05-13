@@ -1,40 +1,28 @@
 <script lang="ts">
 	// Types/constants
-	import type { JsonValue } from '$/typescript/JsonValue.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
+	import { stringify } from 'devalue'
+
 	import BeaconEpochSchema from '$/schema/BeaconEpoch.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// Functions
-	const fieldValue = (fields: JsonValue, key: string): JsonValue => (
-		fields !== undefined && typeof fields === 'object' && fields !== null ?
-			Object.getOwnPropertyDescriptor(fields, key)?.value
-		:
-			undefined
-	)
-
-	const numberField = (fields: JsonValue, key: string) => (
-		((value: JsonValue) => (
-			typeof value === 'number' ?
-				value
-			:
-				undefined
-		))(fieldValue(fields, key))
-	)
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
+	import BeaconSlotsView from '$/views/BeaconSlotsView.svelte'
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Props
@@ -69,66 +57,30 @@
 	> = $props()
 
 
-	// (Derived)
-	const href = $derived(
-		hrefProp ?? (
-			resolve(
-				'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
-				{
-					networkId: String(entityId.$network.chainId),
-					epochNumber: String(entityId.epoch),
-				},
-			)
-		),
-	)
-
-	const title = $derived(
-		titleProp ?? `Epoch ${entityId.epoch.toLocaleString()}`,
-	)
-
-	const epochIdKey = $derived(
-		stringify(entityId),
-	)
-
-	const epochQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.BeaconEpoch] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						epochIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => epochIdKey],
-	)
-
-	const epochRow = $derived(
-		(
-			epochQuery.data?.find(
-				(row) => row.row[EntityMetaKey.Source] === Source.Beacon_Rest,
-			)?.row
-			?? epochQuery.data?.[0]?.row
+	const href = (
+		hrefProp ?? resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
+			{
+				networkId: String(entityId.$network.chainId),
+				epochNumber: String(entityId.epoch),
+			},
 		)
 	)
 
-	const epochField = $derived(
+	const title = titleProp ?? `Epoch ${entityId.epoch.toLocaleString()}`
+
+	const epoch = useEntity(
+		EntityType.BeaconEpoch,
+		entityId,
 		{
-			startSlot: numberField(epochRow?.[EntityMetaKey.Fields], 'startSlot'),
-			endSlot: numberField(epochRow?.[EntityMetaKey.Fields], 'endSlot'),
-			slotCount: numberField(epochRow?.[EntityMetaKey.Fields], 'slotCount'),
+			$: [
+				Source.Beacon_Rest,
+			],
+			startSlot: {},
+			endSlot: {},
+			slotCount: {},
 		},
 	)
-
-
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import BeaconSlotsView from '$/views/BeaconSlotsView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
@@ -142,7 +94,7 @@
 	idDragPlainText={String(entityId.epoch)}
 	{...entityViewRest}
 >
-	{#snippet Content()}
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Epoch</dt>
@@ -150,16 +102,21 @@
 					<NumberValue value={entityId.epoch} />
 				</dd>
 			</div>
-			{#if epochField?.startSlot !== undefined && epochField.endSlot !== undefined}
-				<div>
-					<dt>Slot range</dt>
-					<dd>
-						<NumberValue value={epochField.startSlot} />
-						to
-						<NumberValue value={epochField.endSlot} />
-					</dd>
-				</div>
-			{/if}
+
+			<ResourceBoundary resource={epoch}>
+				{#snippet children(e)}
+					{#if e.startSlot !== undefined && e.endSlot !== undefined}
+						<div>
+							<dt>Slot range</dt>
+							<dd>
+								<NumberValue value={e.startSlot} />
+								to
+								<NumberValue value={e.endSlot} />
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
@@ -170,35 +127,22 @@
 			entityType={EntityType.BeaconEpoch}
 			{entityId}
 		>
-			<QueryBoundary
-				placeholderText="Loading epoch…"
-				query={epochQuery}
-			>
-				{#snippet children(rows)}
-					{@const row = (
-						rows?.find(
-							(row) => row.row[EntityMetaKey.Source] === Source.Beacon_Rest,
-						)?.row
-						?? rows?.[0]?.row
-					)}
-					{#if row === undefined}
-						<p data-text="muted">
-							No epoch data for this network yet. Try again shortly.
-						</p>
-					{:else}
+			<ResourceBoundary resource={epoch}>
+				{#snippet children(e)}
+					{#if e.slotCount !== undefined}
 						<dl>
-							{#if epochField?.slotCount !== undefined}
-								<div>
-									<dt>Slots</dt>
-									<dd>
-										<NumberValue value={epochField.slotCount} />
-									</dd>
-								</div>
-							{/if}
+							<div>
+								<dt>Slots</dt>
+								<dd>
+									<NumberValue value={e.slotCount} />
+								</dd>
+							</div>
 						</dl>
+					{:else}
+						<p data-text="muted">Slot data unavailable.</p>
 					{/if}
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		<BeaconSlotsView
@@ -213,7 +157,7 @@
 					networkId: String(entityId.$network.chainId),
 				},
 			)}
-			id={`${epochIdKey}:beacon-slots`}
+			id={`${stringify(entityId)}:beacon-slots`}
 			open={false}
 			title="Slots"
 		/>

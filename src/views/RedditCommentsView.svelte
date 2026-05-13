@@ -1,23 +1,15 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -38,52 +30,52 @@
 	} = $props()
 
 
-	const commentsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					commentFieldRow: (
-						entityFieldCollectionForReference(
-							entityFieldCollections,
-							entityFieldReference,
-						)
-					),
-				})
-				.where(({ commentFieldRow }) => (
-					eq(
-						commentFieldRow[EntityMetaKey.ParentIdKey],
-						stringify(entityFieldReference.entityId),
-					)
-				))
-				.where(({ commentFieldRow }) => (
-					eq(
-						commentFieldRow[EntityMetaKey.Source],
-						Source.Reddit_Rest,
-					)
-				))
-				.orderBy(({ commentFieldRow }) => (
-					commentFieldRow[EntityMetaKey.Value][EntityMetaKey.IdKey]
-				), 'desc')
-				.limit(limit)
-				.select(({ commentFieldRow }) => (
-					{ value: commentFieldRow[EntityMetaKey.Value] }
-				))
-				.distinct()
-		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-			() => limit,
-		],
+	// State
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const fieldName = entityFieldReference.fieldName
+
+	const parentEntity = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			$: [
+				Source.Constants_Internal,
+				Source.Reddit_Rest,
+			],
+			[fieldName]: {
+				$: [
+					Source.Reddit_Rest,
+				],
+				limit,
+			},
+		},
 	)
 
-	const commentItems = $derived(
-		(commentsQuery.data ?? []).map(({ value: comment }, order) => ({
-			...comment[EntityMetaKey.Id],
-			order,
-		})),
+	const comments = derive(
+		parentEntity,
+		(merged) => (
+			(
+				merged[fieldName as keyof typeof merged] as (
+					Entity<typeof schema, EntityType.RedditComment>
+				)[]
+			)
+				.toSorted((a, b) => (
+					b[EntityMetaKey.IdKey].localeCompare(a[EntityMetaKey.IdKey])
+				))
+				.map((comment) => (
+					{
+						...comment[EntityMetaKey.Id],
+						sortKey: comment[EntityMetaKey.IdKey],
+					}
+				))
+		),
 	)
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -96,20 +88,13 @@
 	entityType={EntityType.RedditComment}
 	{href}
 	{id}
-	getKey={(row) => row.fullname}
-	getSortValue={(row) => row.order}
-	items={commentItems}
-	bind:open
-	placeholderKeys={new SvelteSet<string>()}
-	query={{
-		data: commentItems,
-		isLoading: commentsQuery.isLoading,
-		isError: commentsQuery.isError,
-		isReady: commentsQuery.isReady,
-		error: commentsQuery.error,
-		status: commentsQuery.status,
-	}}
 	{title}
+	bind:open
+	resource={comments}
+	placeholderText="Loading comments…"
+	getKey={(row) => row.fullname}
+	getSortValue={(row) => row.sortKey}
+	placeholderKeys={new SvelteSet<string>()}
 >
 	{#snippet Empty()}
 		<p data-text="muted">
@@ -117,16 +102,15 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item, isPlaceholder })}
-		{#if isPlaceholder}
-			<span data-placeholder>
-				…
-			</span>
-		{:else if item}
+	{#snippet Item({
+		item: row,
+		isPlaceholder,
+	})}
+		{#if isPlaceholder === false}
 			<RedditCommentView
-				entityId={{ fullname: item.fullname }}
+				entityId={{ fullname: row.fullname }}
 				href={resolve('/(social)/reddit/comment/[fullname]', {
-					fullname: encodeURIComponent(item.fullname),
+					fullname: encodeURIComponent(row.fullname),
 				})}
 				layout={EntityLayout.Summary}
 				open={false}

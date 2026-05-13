@@ -1,14 +1,15 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { formatMarketTimeIntervalLabel, MarketAssetKind } from '$/constants/Market.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
@@ -19,12 +20,14 @@
 	let {
 		title = 'OHLC',
 		open = $bindable(true),
+		limit = 400,
 		entityFieldReference,
 		...entitiesListRest
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
+			limit?: number
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.MarketPriceRange>
 		},
 		Omit<
@@ -35,44 +38,44 @@
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+	const fieldName = entityFieldReference.fieldName
 
-	// (Derived)
-	const marketPriceRangeFieldQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					range: entityFieldCollections[entityFieldReference.entityType][entityFieldReference.fieldName],
-				})
-				.where(({ range }) => (
-					eq(
-						range[EntityMetaKey.ParentIdKey],
-						stringify(entityFieldReference.entityId),
-					)
-				))
-				.select(({ range }) => (
-					{ value: range[EntityMetaKey.Value] }
-				))
-				.distinct()
-		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-		],
+	const rangesParentEntity = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			$: [
+				Source.Constants_Internal,
+				Source.Coingecko_Rest,
+			],
+			[fieldName]: {
+				$: [
+					Source.Coingecko_Rest,
+				],
+				limit,
+			},
+		},
 	)
 
-	const marketPriceRangeRowKey = (
-		row: Entity<typeof schema, EntityType.MarketPriceRange>,
-	) => (
-		stringify(
-			row[EntityMetaKey.Id],
-		)
+	const ranges = derive(
+		rangesParentEntity,
+		(merged) => (
+			(
+				merged[fieldName as keyof typeof merged] as (Entity<typeof schema, EntityType.MarketPriceRange>)[]
+			)
+				.toSorted((a, b) => (
+					a[EntityMetaKey.IdKey].localeCompare(b[EntityMetaKey.IdKey])
+				))
+				.map((value) => ({
+					value,
+				}))
+		),
 	)
 
 
@@ -87,18 +90,19 @@
 	{...entitiesListRest}
 	bind:open
 	entityType={EntityType.MarketPriceRange}
-	getKey={marketPriceRangeRowKey}
+	getKey={(row) => stringify(
+		row.value[EntityMetaKey.Id],
+	)}
 	getSortValue={(row) => (
 		`${(
-			row[EntityMetaKey.Id].$market.$base.kind === MarketAssetKind.Coin ?
-				row[EntityMetaKey.Id].$market.$base.$coin.coinId
+			row.value[EntityMetaKey.Id].$market.$base.kind === MarketAssetKind.Coin ?
+				row.value[EntityMetaKey.Id].$market.$base.$coin.coinId
 			:
 				''
-		)} ${formatMarketTimeIntervalLabel(row[EntityMetaKey.Id].timeInterval)}`
+		)} ${formatMarketTimeIntervalLabel(row.value[EntityMetaKey.Id].timeInterval)}`
 	)}
-	items={marketPriceRangeFieldQuery.data?.map(({ value }) => value) ?? []}
 	placeholderKeys={new SvelteSet<string | number>()}
-	query={marketPriceRangeFieldQuery}
+	resource={ranges}
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
@@ -108,23 +112,19 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: row, isPlaceholder })}
-		{#if isPlaceholder}
-			<span data-placeholder>
-				…
-			</span>
-		{:else}
+	{#snippet Item(props)}
+		{#if props.isPlaceholder === false}
 			<MarketPriceRangeView
-				entityId={row[EntityMetaKey.Id]}
+				entityId={props.item.value[EntityMetaKey.Id]}
 				href={(
-					row[EntityMetaKey.Id].$market.$base.kind !== MarketAssetKind.Coin ?
+					props.item.value[EntityMetaKey.Id].$market.$base.kind !== MarketAssetKind.Coin ?
 						undefined
 					:	resolve(
 							'/(assets)/(coins)/coin/[coinId]',
-							{ coinId: row[EntityMetaKey.Id].$market.$base.$coin.coinId },
+							{ coinId: props.item.value[EntityMetaKey.Id].$market.$base.$coin.coinId },
 						)
 				)}
-				id={stringify(row[EntityMetaKey.Id])}
+				id={stringify(props.item.value[EntityMetaKey.Id])}
 				layout={EntityLayout.Summary}
 				open={false}
 			/>

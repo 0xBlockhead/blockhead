@@ -1,3 +1,4 @@
+import { throwHttpError } from '$/lib/http.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
@@ -38,7 +39,7 @@ export const getCoingeckoCoin = async (
 	)
 
 	if (res.status === 404) return undefined
-	if (!res.ok) throw new Error(`CoinGecko /coins/${coingeckoId} failed: ${res.status}`)
+	if (!res.ok) await throwHttpError(`CoinGecko /coins/${coingeckoId}`, res)
 
 	return res.json<CoingeckoCoin>()
 }
@@ -66,7 +67,7 @@ export const getCoingeckoCoinMarketSpot = async (
 	)
 
 	if (res.status === 404) return undefined
-	if (!res.ok) throw new Error(`CoinGecko /coins/${coingeckoId} (market) failed: ${res.status}`)
+	if (!res.ok) await throwHttpError(`CoinGecko /coins/${coingeckoId} (market)`, res)
 
 	const coin = await res.json<CoingeckoCoinWithMarketData>()
 	const usd = coin.market_data?.current_price?.usd
@@ -105,11 +106,11 @@ export const getCoingeckoCoinByAssetPlatformContract = async ({
 	)
 
 	if (res.status === 404) return undefined
-	if (!res.ok) {
-		throw new Error(
-			`CoinGecko /coins/${assetPlatformId}/contract/${contractAddress} failed: ${res.status}`,
+	if (!res.ok)
+		await throwHttpError(
+			`CoinGecko /coins/${assetPlatformId}/contract/${contractAddress}`,
+			res,
 		)
-	}
 
 	return res.json<CoingeckoCoin>()
 }
@@ -119,7 +120,7 @@ const fetchCoingeckoAssetPlatformsOnce = async (
 ): Promise<CoingeckoAssetPlatform[]> => {
 	const res = await coingeckoRestFetch(publicEnv, '/asset_platforms')
 
-	if (!res.ok) throw new Error(`CoinGecko /asset_platforms failed: ${res.status}`)
+	if (!res.ok) await throwHttpError('CoinGecko /asset_platforms', res)
 
 	return res.json<CoingeckoAssetPlatform[]>()
 }
@@ -163,7 +164,7 @@ export const getCoingeckoSimplePriceUsd = async ({
 	)
 
 	if (res.status === 404) return undefined
-	if (!res.ok) throw new Error(`CoinGecko /simple/price failed: ${res.status}`)
+	if (!res.ok) await throwHttpError('CoinGecko /simple/price', res)
 
 	type CoingeckoSimplePriceWire = Record<string, {
 		usd?: number
@@ -197,11 +198,7 @@ export const getCoingeckoCoinOhlc = async ({
 	)
 
 	if (res.status === 404) return []
-	if (!res.ok) {
-		throw new Error(
-			`CoinGecko /coins/${coingeckoId}/ohlc failed: ${res.status}`,
-		)
-	}
+	if (!res.ok) await throwHttpError(`CoinGecko /coins/${coingeckoId}/ohlc`, res)
 
 	return res.json<number[][]>()
 }

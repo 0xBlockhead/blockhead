@@ -1,23 +1,25 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ContractView from '$/views/ContractView.svelte'
 
 
 	// Props
@@ -42,81 +44,51 @@
 	> = $props()
 
 
-	const networkIdKey = $derived(
-		stringify(entityFieldReference.entityId),
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	const network = useEntity(
+		EntityType.Network,
+		entityFieldReference.entityId,
+		{
+			blockHeight: {
+				$: [
+					Source.Voltaire_JsonRpc,
+				],
+			},
+			$$contracts: {
+				$: [
+					Source.Blockscout_Rest,
+				],
+			},
+		},
 	)
 
-	const blockHeightQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ blockHeight: entityFieldCollections[EntityType.Network].blockHeight })
-				.where(({ blockHeight }) => (
-					eq(
-						blockHeight[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.where(({ blockHeight }) => (
-					eq(
-						blockHeight[EntityMetaKey.Source],
-						Source.Voltaire_JsonRpc,
-					)
-				))
-				.select(({ blockHeight }) => ({
-					height: blockHeight[EntityMetaKey.Value],
-				}))
-				.findOne()
-		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-			() => networkIdKey,
-		],
+	const contracts = derive(
+		network,
+		(loaded): Entity<typeof schema, EntityType.EvmContract>[] => {
+			const rows = (
+				loaded.$$contracts
+				?? []
+			)
+			return (
+				rows
+					.toSorted((a, b) => (
+						stringify(b[EntityMetaKey.Id])
+							> stringify(a[EntityMetaKey.Id]) ?
+							1
+						:
+							stringify(b[EntityMetaKey.Id])
+								< stringify(a[EntityMetaKey.Id]) ?
+								-1
+							:
+								0
+					))
+					.slice(0, 16)
+			)
+		},
 	)
-
-	const contractsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ $$contracts: entityFieldCollections[EntityType.Network]['$$contracts'] })
-				.where(({ $$contracts }) => (
-					eq(
-						$$contracts[EntityMetaKey.ParentIdKey],
-						networkIdKey,
-					)
-				))
-				.where(({ $$contracts }) => (
-					eq(
-						$$contracts[EntityMetaKey.Source],
-						Source.Blockscout_Rest,
-					)
-				))
-				.orderBy(({ $$contracts }) => (
-					$$contracts[EntityMetaKey.Value][EntityMetaKey.IdKey]
-				), 'desc')
-				.limit(16)
-				.select(({ $$contracts }) => (
-					{ value: $$contracts[EntityMetaKey.Value] }
-				))
-				.distinct()
-		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-			() => networkIdKey,
-			() => blockHeightQuery.data?.height,
-		],
-	)
-
-
-	// Components
-	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import OrderedList from '$/components/OrderedList.svelte'
-	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
 
 
@@ -127,20 +99,24 @@
 	{...entitiesListProps}
 >
 	{#snippet body()}
-		<QueryBoundary
-			placeholderText="Loading contracts…"
-			query={contractsQuery}
-		>
-			<OrderedList
-				items={contractsQuery.data?.map(({ value }) => value) ?? []}
+		{#key stringify(entityFieldReference.entityId)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.EvmContract}
+				id={`${entitiesListProps.id}-items`}
+				href={entitiesListProps.href}
+				{title}
+				open={true}
 				getKey={(row) => stringify(row[EntityMetaKey.Id])}
-				getSortKey={(row) => (
+				getSortValue={(row) => (
 					BigInt(
 						row[EntityMetaKey.Id].address,
 					)
 				)}
-				placeholderRanges={[]}
-				orientation={ListOrientation.Column}
+				placeholderText="Loading contracts…"
+				resource={contracts}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
@@ -148,21 +124,17 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item({ item: row, isPlaceholder })}
-					{#if isPlaceholder}
-						<span data-placeholder>
-							…
-						</span>
-					{:else if row}
-						<EvmContractView
-							entityId={row[EntityMetaKey.Id]}
+				{#snippet Item(props)}
+					{#if props.isPlaceholder === false}
+						<ContractView
+							entityId={props.item[EntityMetaKey.Id]}
 							href={resolve(
 								'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
 								{
 									networkId: String(
-										row[EntityMetaKey.Id].$network.chainId,
+										props.item[EntityMetaKey.Id].$network.chainId,
 									),
-									address: row[EntityMetaKey.Id].address,
+									address: props.item[EntityMetaKey.Id].address,
 								},
 							)}
 							layout={EntityLayout.Summary}
@@ -170,7 +142,7 @@
 						/>
 					{/if}
 				{/snippet}
-			</OrderedList>
-		</QueryBoundary>
+			</EntitiesList>
+		{/key}
 	{/snippet}
 </EntitiesList>

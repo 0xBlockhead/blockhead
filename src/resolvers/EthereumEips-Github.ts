@@ -76,13 +76,22 @@ export default {
 				if (text.trim() === '') throw new Error('EthereumEips_Github: empty proposal markdown')
 				const body = stripFrontmatter(text)
 				const fm = parseFrontmatter(text)
-				const docCategory = fm.category?.trim()
-				const docTitle = fm.title?.trim()
-				const docStatus = fm.status?.trim()
 				return {
-					documentCategory: docCategory != null && docCategory !== '' ? docCategory : null,
-					documentTitle: docTitle != null && docTitle !== '' ? docTitle : null,
-					documentStatus: docStatus != null && docStatus !== '' ? docStatus : null,
+					documentCategory: (
+						((docCategory) => (
+							docCategory != null && docCategory !== '' ? docCategory : null
+						))(fm.category?.trim())
+					),
+					documentTitle: (
+						((docTitle) => (
+							docTitle != null && docTitle !== '' ? docTitle : null
+						))(fm.title?.trim())
+					),
+					documentStatus: (
+						((docStatus) => (
+							docStatus != null && docStatus !== '' ? docStatus : null
+						))(fm.status?.trim())
+					),
 					documentBody: body.length > 0 ? body : null,
 				}
 			},

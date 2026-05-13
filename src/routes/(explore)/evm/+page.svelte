@@ -26,7 +26,7 @@
 					entityFieldReference={{
 						entityType: EntityType._Global,
 						entityId: {},
-						fieldName: '$$topics',
+						fieldName: '$$evmTopics',
 					}}
 					href={resolve('/evm/topics')}
 					id="evm-topics"
@@ -39,7 +39,7 @@
 					entityFieldReference={{
 						entityType: EntityType._Global,
 						entityId: {},
-						fieldName: '$$selectors',
+						fieldName: '$$evmSelectors',
 					}}
 					href={resolve('/evm/selectors')}
 					id="evm-selectors"
@@ -52,7 +52,7 @@
 					entityFieldReference={{
 						entityType: EntityType._Global,
 						entityId: {},
-						fieldName: '$$errors',
+						fieldName: '$$evmErrors',
 					}}
 					href={resolve('/evm/errors')}
 					id="evm-errors"

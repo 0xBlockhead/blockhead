@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -8,8 +10,8 @@ import {
 import { EntityType } from '$/schema/$EntityType.ts'
 
 const stateChannelAllocationRow = type({
-	destination: 'string.hex' as type.cast<`0x${string}`>,
-	token: 'string.hex' as type.cast<`0x${string}`>,
+	destination: EvmAddress,
+	token: EvmAddress,
 	amount: 'bigint',
 })
 
@@ -45,7 +47,7 @@ export default {
 		{
 			name: 'stateData',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string.hex' as type.cast<`0x${string}`>),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
@@ -57,7 +59,7 @@ export default {
 		{
 			name: 'signatures',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string[]' as type.cast<`0x${string}`[]>),
+			primitiveType: ZeroExHex.array(),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

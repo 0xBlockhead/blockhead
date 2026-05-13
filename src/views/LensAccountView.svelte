@@ -1,14 +1,11 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps } from 'svelte'
+	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-	import { mergeEntityCollectionRowFields } from '$/collections/mergeEntityCollectionRowFields.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { default as EntityViewComponent } from '$/components/EntityView.svelte'
 
 
@@ -16,21 +13,16 @@
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
-
-
 	// Props
 	let {
+		children,
 		entityId,
 		href,
 		open = $bindable(true),
 		...entityViewRest
 	}: WithRest<
 		{
+			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.LensAccount>
 			href: string
 			open?: boolean
@@ -44,56 +36,41 @@
 			| 'title'
 			| 'Details'
 			| 'Icon'
+			| 'Heading'
 			| 'HeadingAfter'
 			| 'Content'
 		>
 	> = $props()
 
 
-	const idKey = $derived(stringify(entityId))
+	// State
+	import { stringify } from 'devalue'
 
-	const lensAccountMergeSourceOrder = [
-		Source.Lens_Graphql,
-	] as const
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const rowQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.LensAccount] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						idKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => idKey],
-	)
+	const idKey = stringify(entityId)
 
-	const lensFields = $derived(
-		mergeEntityCollectionRowFields(
-			rowQuery.data,
-			lensAccountMergeSourceOrder,
-		),
-	)
+	const lensMainnet = { chainId: 1 }
 
-	const displayTitle = $derived(
-		lensFields.localName?.length ?
-			lensFields.localName
-		:
-			entityId.address,
+	const lensAccount = useEntity(
+		EntityType.LensAccount,
+		entityId,
+		{
+			$: [Source.Lens_Graphql],
+			localName: {},
+		},
 	)
 
 
 	// Components
 	import Collapsible from '$/components/Collapsible.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import IconComponent, { IconShape } from '$/components/Icon.svelte'
-	import LensPostsView from '$/views/LensPostsView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import LensPostsView from '$/views/LensPostsView.svelte'
 </script>
 
 
@@ -103,8 +80,21 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={displayTitle}
 >
+	{#snippet Heading()}
+		<ResourceBoundary resource={lensAccount}>
+			{#snippet children(loaded)}
+				<HeadingComponent>
+					{#if loaded.localName !== undefined && loaded.localName.trim().length > 0}
+						{loaded.localName.trim()}
+					{:else}
+						{entityId.address}
+					{/if}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Icon()}
 		<IconComponent
 			shape={IconShape.Circle}
@@ -113,10 +103,21 @@
 		/>
 	{/snippet}
 
-	{#snippet Content()}
-		<div data-text="mono muted">
-			{entityId.address}
-		</div>
+	{#snippet Content({ title: _title, href: _href })}
+		<ActorNetworkView
+			entityId={{
+				$network: lensMainnet,
+				$actor: {
+					address: entityId.address,
+				},
+			}}
+			href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+				accountId: entityId.address,
+			})}
+			layout={EntityLayout.Id}
+			open={false}
+			showTypeAnnotation={false}
+		/>
 	{/snippet}
 
 	{#snippet Details({
@@ -126,34 +127,37 @@
 			entityType={EntityType.LensAccount}
 			{entityId}
 		>
-			<QueryBoundary
-				query={rowQuery}
-			>
-				{#snippet children(rows)}
-					{#if rows == null || rows.length === 0}
-						<p data-text="muted">
-							No Lens account data in the app for this address yet.
-						</p>
-					{:else}
-						<dl>
+			<ResourceBoundary resource={lensAccount}>
+				{#snippet children(loaded)}
+					<dl>
+						<div>
+							<dt>Address</dt>
+							<dd>
+								<ActorNetworkView
+									entityId={{
+										$network: lensMainnet,
+										$actor: {
+											address: entityId.address,
+										},
+									}}
+									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+										accountId: entityId.address,
+									})}
+									layout={EntityLayout.Id}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							</dd>
+						</div>
+						{#if loaded.localName !== undefined}
 							<div>
-								<dt>Address</dt>
-								<dd>
-									<span data-text="mono">
-										{entityId.address}
-									</span>
-								</dd>
+								<dt>Handle</dt>
+								<dd>{loaded.localName}</dd>
 							</div>
-							{#if lensFields.localName !== undefined && lensFields.localName.length > 0}
-								<div>
-									<dt>Handle</dt>
-									<dd>{lensFields.localName}</dd>
-								</div>
-							{/if}
-						</dl>
-					{/if}
+						{/if}
+					</dl>
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		<Collapsible
@@ -161,7 +165,7 @@
 			{...{ 'data-card': '' }}
 		>
 			{#snippet Summary({
-				open: _open,
+				open: _summaryOpen,
 			})}
 				<header
 					data-row-item="flexible"
@@ -195,6 +199,10 @@
 				</div>
 			{/snippet}
 		</Collapsible>
+
+		{#if children}
+			{@render children()}
+		{/if}
 	{/snippet}
 </EntityView>
 

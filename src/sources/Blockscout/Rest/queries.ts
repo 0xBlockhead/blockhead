@@ -6,6 +6,7 @@
 
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { getJson } from '$/sources/Blockscout/Rest/client.ts'
+import { blockscoutV2ItemsCountMax } from '$/sources/Blockscout/Rest/constants.ts'
 import type {
 	BlockscoutBlockWire,
 	BlockscoutPaginatedWire,
@@ -31,6 +32,13 @@ const timestampHex = (timestamp: string | undefined) => {
 	const ts = Math.floor(new Date(timestamp).getTime() / 1000)
 	return Number.isFinite(ts) ? `0x${BigInt(ts).toString(16)}` : undefined
 }
+
+const blockscoutItemsCount = (limit: number) => (
+	Math.min(
+		Math.max(Number.isFinite(limit) ? limit : 0, 0),
+		blockscoutV2ItemsCountMax,
+	)
+)
 
 const addressHash = (
 	wire: string | BlockscoutBlockWire['miner']   | BlockscoutTransactionWire['to']   | BlockscoutTransactionLogWire['address_hash'] | BlockscoutSmartContractForListWire['address_hash'] | undefined,
@@ -94,6 +102,9 @@ export const getBlockByNumberBlockscout = async ({
 	explorerOrigin: string
 	blockNumber: bigint
 }): Promise<RpcBlockHeaderWire | null> => {
+	if (blockNumber == null || typeof blockNumber !== 'bigint') {
+		return null
+	}
 	const wire = await getJson<BlockscoutBlockWire | null>({
 		explorerOrigin,
 		path: `/blocks/${blockNumber}`,
@@ -113,7 +124,7 @@ export const getBlockscoutBlocks = async ({
 		explorerOrigin,
 		path: '/blocks',
 		searchParams: {
-			items_count: limit,
+			items_count: blockscoutItemsCount(limit),
 		},
 	})
 	return wire.items.map(blockscoutBlockWireAsRpcBlockHeaderWire)
@@ -129,11 +140,14 @@ export const getBlockTransactionsBlockscout = async ({
 	limit: number
 }): Promise<RpcTxWire[]> => {
 	if (limit <= 0) return []
+	if (blockNumber == null || typeof blockNumber !== 'bigint') {
+		return []
+	}
 	const wire = await getJson<BlockscoutPaginatedWire<BlockscoutTransactionWire>>({
 		explorerOrigin,
 		path: `/blocks/${blockNumber}/transactions`,
 		searchParams: {
-			items_count: limit,
+			items_count: blockscoutItemsCount(limit),
 		},
 	})
 	return wire.items.map(blockscoutTransactionWireAsRpcTxWire)
@@ -165,7 +179,7 @@ export const getBlockscoutTransactions = async ({
 		explorerOrigin,
 		path: '/transactions',
 		searchParams: {
-			items_count: limit,
+			items_count: blockscoutItemsCount(limit),
 		},
 	})
 	return wire.items.map(blockscoutTransactionWireAsRpcTxWire)
@@ -238,7 +252,7 @@ export const getBlockscoutSmartContracts = async ({
 		explorerOrigin,
 		path: '/smart-contracts',
 		searchParams: {
-			items_count: limit,
+			items_count: blockscoutItemsCount(limit),
 		},
 	})
 	return wire.items

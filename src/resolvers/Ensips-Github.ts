@@ -53,17 +53,23 @@ export default {
 				const text = await singleFlight(getEnsipProposalMarkdownText)({ number: entityId.number })
 				const body = stripFrontmatter(text)
 				const fm = parseFrontmatter(text)
-				const docCategory = fm.category?.trim()
-				const docStatus = fm.status?.trim()
 				return {
-					documentCategory: docCategory != null && docCategory !== '' ? docCategory : null,
+					documentCategory: (
+						((docCategory) => (
+							docCategory != null && docCategory !== '' ? docCategory : null
+						))(fm.category?.trim())
+					),
 					documentTitle: (
 						fm.title?.trim()
 						|| body.match(/#\s*(ENSIP-\d+:\s*.+)/)?.[1]?.trim()
 						|| fm.description?.trim()
 						|| null
 					),
-					documentStatus: docStatus != null && docStatus !== '' ? docStatus : null,
+					documentStatus: (
+						((docStatus) => (
+							docStatus != null && docStatus !== '' ? docStatus : null
+						))(fm.status?.trim())
+					),
 					documentBody: body.length > 0 ? body : null,
 				}
 			},
@@ -85,7 +91,9 @@ export default {
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
 				const { ProposalRealm } = await import('$/constants/Proposal.ts')
-				if (entityId.realm !== ProposalRealm.Ens) return []
+				if (entityId.realm !== ProposalRealm.Ens) {
+					throw new Error('Ensips_Github: $$proposals only supports ProposalRealm.Ens')
+				}
 				const { getEnsipsGithubContents } = await import('$/sources/Ensips/Github/queries.ts')
 				return githubEnsipProposalIndexRows(await getEnsipsGithubContents())
 			},
@@ -96,7 +104,9 @@ export default {
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
 				const { ProposalCategory, ProposalRealm } = await import('$/constants/Proposal.ts')
-				if (entityId.realm !== ProposalRealm.Ens || entityId.category !== ProposalCategory.Ensip) return []
+				if (entityId.realm !== ProposalRealm.Ens || entityId.category !== ProposalCategory.Ensip) {
+					throw new Error('Ensips_Github: $$proposals only supports ENSIP proposal kind')
+				}
 				const { getEnsipsGithubContents } = await import('$/sources/Ensips/Github/queries.ts')
 				return githubEnsipProposalIndexRows(await getEnsipsGithubContents())
 			},

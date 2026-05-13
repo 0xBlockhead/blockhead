@@ -3,16 +3,17 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { entityResolversByEntityType } from '$/resolvers/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
 
+	import { resolve } from '$app/paths'
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 
 
 	// Props
@@ -40,52 +41,36 @@
 		>
 	> = $props()
 
-	const leverageIdKey = $derived(
-		stringify(entityId),
+
+	// State
+	const leverage = useEntity(
+		EntityType.Leverage,
+		entityId,
+		{
+			$: (
+				entityResolversByEntityType[EntityType.Leverage]?.map((r) => r.source)
+				?? [Source.Local_Internal]
+			),
+			$pool: {},
+			$owner: {},
+			createdAtTimestamp: {},
+			liquidity: {},
+			origin: {},
+			tickLower: {},
+			tickUpper: {},
+			token0Owed: {},
+			token1Owed: {},
+			tokenId: {},
+		},
 	)
 
-	const leverageQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.Leverage] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						leverageIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => leverageIdKey],
-	)
-
-	const leverageRow = $derived(
-		leverageQuery.data?.[0]?.row,
-	)
-
-	const leverageField = $derived(
-		(() => {
-			const bag = leverageRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-			const b = bag
-			return {
-				tickLower: typeof b.tickLower === 'number' ? b.tickLower : undefined,
-				tickUpper: typeof b.tickUpper === 'number' ? b.tickUpper : undefined,
-				liquidity: typeof b.liquidity === 'bigint' ? b.liquidity : undefined,
-				token0Owed: typeof b.token0Owed === 'bigint' ? b.token0Owed : undefined,
-				token1Owed: typeof b.token1Owed === 'bigint' ? b.token1Owed : undefined,
-				tokenId: typeof b.tokenId === 'bigint' ? b.tokenId : undefined,
-				origin: typeof b.origin === 'string' && b.origin.length ? b.origin : undefined,
-				createdAtTimestamp: typeof b.createdAtTimestamp === 'number' ? b.createdAtTimestamp : undefined,
-			}
-		})(),
-	)
 
 	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 </script>
 
 
@@ -93,29 +78,44 @@
 	entityType={EntityType.Leverage}
 	{entityId}
 	{href}
+	title={entityId.id}
 	{open}
 	{...entityViewRest}
-	title={entityId.id}
 >
-	{#snippet Content()}
-		{#if leverageField?.createdAtTimestamp !== undefined && typeof leverageField.createdAtTimestamp === 'number' && Number.isFinite(leverageField.createdAtTimestamp)}
-			<dl>
-				<div>
-					<dt>Timestamp</dt>
-					<dd>
-						<Timestamp
-							timestamp={leverageField.createdAtTimestamp}
-							format={TimestampFormat.Both}
-						/>
-					</dd>
-				</div>
-			</dl>
-		{/if}
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary resource={leverage}>
+			{#snippet children(merged)}
+				<dl>
+					<div>
+						<dt>Network</dt>
+						<dd>{String(merged.$pool.$network.chainId)}</dd>
+					</div>
+					<div>
+						<dt>Pool</dt>
+						<dd>
+							<TruncatedValue
+								value={merged.$pool.id}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</dd>
+					</div>
+					{#if merged.createdAtTimestamp !== undefined}
+						<div>
+							<dt>Timestamp</dt>
+							<dd>
+								<Timestamp
+									timestamp={merged.createdAtTimestamp}
+									format={TimestampFormat.Both}
+								/>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
+	{#snippet Details({ open: _open })}
 		{#if children}
 			{@render children()}
 		{:else}
@@ -123,74 +123,82 @@
 				entityType={EntityType.Leverage}
 				{entityId}
 			>
-				<QueryBoundary
-					query={leverageQuery}
-				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No leverage data for this id yet.
-						</p>
-					{:else}
+				<ResourceBoundary resource={leverage}>
+					{#snippet children(merged)}
 						<dl>
-							{#if leverageField?.tickLower !== undefined}
+							<div>
+								<dt>Owner</dt>
+								<dd>
+									<ActorNetworkView
+										entityId={{
+											$network: merged.$pool.$network,
+											$actor: merged.$owner[EntityMetaKey.Id],
+										}}
+										href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+											accountId: merged.$owner[EntityMetaKey.Id].address,
+										})}
+										layout={EntityLayout.Id}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								</dd>
+							</div>
+							{#if merged.tickLower !== undefined}
 								<div>
 									<dt>Tick lower</dt>
-									<dd>{String(leverageField.tickLower)}</dd>
+									<dd>{String(merged.tickLower)}</dd>
 								</div>
 							{/if}
-							{#if leverageField?.tickUpper !== undefined}
+							{#if merged.tickUpper !== undefined}
 								<div>
 									<dt>Tick upper</dt>
-									<dd>{String(leverageField.tickUpper)}</dd>
+									<dd>{String(merged.tickUpper)}</dd>
 								</div>
 							{/if}
-							{#if leverageField?.liquidity !== undefined}
+							{#if merged.liquidity !== undefined}
 								<div>
 									<dt>Liquidity</dt>
-									<dd>{String(leverageField.liquidity)}</dd>
+									<dd>{String(merged.liquidity)}</dd>
 								</div>
 							{/if}
-							{#if leverageField?.token0Owed !== undefined}
+							{#if merged.token0Owed !== undefined}
 								<div>
 									<dt>Token0 owed</dt>
-									<dd>{String(leverageField.token0Owed)}</dd>
+									<dd>{String(merged.token0Owed)}</dd>
 								</div>
 							{/if}
-							{#if leverageField?.token1Owed !== undefined}
+							{#if merged.token1Owed !== undefined}
 								<div>
 									<dt>Token1 owed</dt>
-									<dd>{String(leverageField.token1Owed)}</dd>
+									<dd>{String(merged.token1Owed)}</dd>
 								</div>
 							{/if}
-							{#if leverageField?.tokenId !== undefined}
+							{#if merged.tokenId !== undefined}
 								<div>
 									<dt>Token id</dt>
-									<dd>{String(leverageField.tokenId)}</dd>
+									<dd>{String(merged.tokenId)}</dd>
 								</div>
 							{/if}
-							{#if leverageField?.origin !== undefined}
+							{#if merged.origin}
 								<div>
 									<dt>Origin</dt>
-									<dd>{leverageField.origin}</dd>
+									<dd>{merged.origin}</dd>
 								</div>
 							{/if}
-							{#if leverageField?.createdAtTimestamp !== undefined && typeof leverageField.createdAtTimestamp === 'number' && Number.isFinite(leverageField.createdAtTimestamp)}
+							{#if merged.createdAtTimestamp !== undefined}
 								<div>
-									<dt>Created at (timestamp)</dt>
+									<dt>Created at</dt>
 									<dd>
 										<Timestamp
-											timestamp={leverageField.createdAtTimestamp}
+											timestamp={merged.createdAtTimestamp}
 											format={TimestampFormat.Both}
 										/>
 									</dd>
 								</div>
 							{/if}
 						</dl>
-					{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

@@ -2,17 +2,18 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import { entityCollectionByEntityType } from '$/routes/+layout.svelte'
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 
 
 	// Props
@@ -37,51 +38,26 @@
 			| 'open'
 			| 'title'
 			| 'Details'
+			| 'Heading'
 		>
 	> = $props()
 
 
-	const roomIdKey = $derived(
-		stringify(entityId),
-	)
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const roomQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.BlockheadRoom] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						roomIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[() => roomIdKey],
+	const room = useEntity(
+		EntityType.BlockheadRoom,
+		entityId,
+		{
+			$: [
+				Source.Local_Internal,
+			],
+			name: {},
+			createdAt: {},
+			createdBy: {},
+		},
 	)
-
-	const roomRow = $derived(
-		roomQuery.data?.[0]?.row,
-	)
-
-	const roomField = $derived(
-		(() => {
-			const bag = roomRow?.[EntityMetaKey.Fields]
-			if (!(typeof bag === 'object' && bag !== null && !Array.isArray(bag))) return null
-			const b = bag
-			return {
-				createdAt: typeof b.createdAt === 'number' && Number.isFinite(b.createdAt) ? b.createdAt : undefined,
-				createdBy: typeof b.createdBy === 'string' && b.createdBy.length ? b.createdBy : undefined,
-				name: typeof b.name === 'string' && b.name.length ? b.name : undefined,
-			}
-		})(),
-	)
-
-	// Components
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -91,32 +67,45 @@
 	{href}
 	{open}
 	{...entityViewRest}
-	title={roomField?.name ?? entityId.id}
 >
-	{#snippet Content()}
-		<dl>
-			<div>
-				<dt>Room id</dt>
-				<dd>{entityId.id}</dd>
-			</div>
-			{#if roomField?.name !== undefined}
-				<div>
-					<dt>Name</dt>
-					<dd>{roomField.name}</dd>
-				</div>
-			{/if}
-			{#if roomField?.createdAt !== undefined && typeof roomField.createdAt === 'number' && Number.isFinite(roomField.createdAt)}
-				<div>
-					<dt>Timestamp</dt>
-					<dd>
-						<Timestamp
-							timestamp={roomField.createdAt}
-							format={TimestampFormat.Both}
-						/>
-					</dd>
-				</div>
-			{/if}
-		</dl>
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={room}
+			placeholderText="Loading room…"
+		>
+			{#snippet children(r)}
+				<HeadingComponent>
+					{r.name ?? entityId.id}
+				</HeadingComponent>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={room}
+			placeholderText="Loading room…"
+		>
+			{#snippet children(r)}
+				<dl>
+					<div>
+						<dt>Room id</dt>
+						<dd>{entityId.id}</dd>
+					</div>
+					{#if r.createdAt !== undefined}
+						<div>
+							<dt>Created</dt>
+							<dd>
+								<Timestamp
+									timestamp={r.createdAt}
+									format={TimestampFormat.Both}
+								/>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -129,44 +118,50 @@
 				entityType={EntityType.BlockheadRoom}
 				{entityId}
 			>
-				<QueryBoundary
-					query={roomQuery}
+				<ResourceBoundary
+					resource={room}
+					placeholderText="Loading room…"
 				>
-
-					{#snippet children(rows)}
-					{#if rows?.[0]?.row === undefined}
-						<p data-text="muted">
-							No room data yet.
-						</p>
-					{:else}
+					{#snippet children(r)}
 						<dl>
-							{#if roomField?.createdAt !== undefined && typeof roomField.createdAt === 'number' && Number.isFinite(roomField.createdAt)}
+							{#if r.name !== undefined && r.name !== ''}
+								<div>
+									<dt>Name</dt>
+									<dd>{r.name}</dd>
+								</div>
+							{/if}
+
+							{#if r.createdBy !== undefined && r.createdBy !== ''}
+								<div>
+									<dt>Created by</dt>
+									<dd>{r.createdBy}</dd>
+								</div>
+							{/if}
+
+							{#if r.createdAt !== undefined}
 								<div>
 									<dt>Created at</dt>
 									<dd>
 										<Timestamp
-											timestamp={roomField.createdAt}
+											timestamp={r.createdAt}
 											format={TimestampFormat.Both}
 										/>
 									</dd>
 								</div>
 							{/if}
-							{#if roomField?.createdBy !== undefined}
-								<div>
-									<dt>Created by</dt>
-									<dd>{roomField.createdBy}</dd>
-								</div>
-							{/if}
-							{#if roomField?.name !== undefined}
-								<div>
-									<dt>Name</dt>
-									<dd>{roomField.name}</dd>
-								</div>
-							{/if}
 						</dl>
-					{/if}
+
+						{#if (
+							(r.name === undefined || r.name === '')
+							&& (r.createdBy === undefined || r.createdBy === '')
+							&& r.createdAt === undefined
+						)}
+							<p data-text="muted">
+								No room details are available yet.
+							</p>
+						{/if}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}

@@ -17,11 +17,12 @@
 
 	import Collapsible from '$/components/Collapsible.svelte'
 	import Heading from '$/components/Heading.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import UnorderedList from '$/components/UnorderedList.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 
 	import type { QueryLike } from '$/lib/db/queryResource.svelte.ts'
+	import type { RemoteResource } from '@sveltejs/kit'
 
 	type ListItemProps = {
 		key: _Key
@@ -76,7 +77,7 @@
 		getKey,
 		getSortValue,
 		placeholderText,
-		query,
+		resource,
 		placeholderKeys = new SvelteSet<_Key>(),
 		Item,
 		Empty,
@@ -111,10 +112,11 @@
 			href: string
 			id: string
 			Item?: Snippet<[ListItemProps]>
+			/** Ignored when `resource` is set; list rows come from the boundary resolution. */
 			items?: ItemsInput
 			open?: boolean
 			placeholderText?: string
-			query?: QueryLike<ItemsInput | undefined>
+			resource?: QueryLike<ItemsInput | undefined> | RemoteResource<ItemsInput | undefined>
 			placeholderKeys?: Set<_Key>
 			title: string
 			UnorderedListProps?: UnorderedListForwardProps
@@ -150,7 +152,7 @@
 	})
 
 	const loadedCount = $derived(
-		items !== undefined ?
+		items !== undefined || resource !== undefined ?
 			listSummary.loaded
 		:
 			undefined,
@@ -175,6 +177,13 @@
 			[...items]
 		:
 			[],
+	)
+
+	const rowsFromQuery = (queryRows: ItemsInput | undefined) => (
+		queryRows === undefined ?
+			[] as _Item[]
+		:
+			[...queryRows]
 	)
 </script>
 
@@ -216,9 +225,9 @@
 		<span data-text="annotation">{entityDefinitionByType[entityType].labelPlural}</span>
 	{/snippet}
 
-	{#snippet ListRows()}
+	{#snippet ListRowsFrom(rows: _Item[])}
 		<UnorderedList
-			items={listItems}
+			items={rows}
 			{placeholderKeys}
 			bind:summary={
 				() => listSummary,
@@ -246,20 +255,25 @@
 	{#snippet listColumnBody()}
 		{#if body}
 			{@render body()}
-		{:else if items !== undefined && getKey !== undefined && Item !== undefined}
-			{#if query !== undefined}
-				<QueryBoundary
-					{query}
+		{:else if getKey !== undefined && Item !== undefined}
+			{#if resource !== undefined}
+				<ResourceBoundary
+					boundaryKey={id}
+					resource={resource}
 					placeholderText={placeholderText ?? `Loading ${entityDefinitionByType[entityType].labelPlural.toLowerCase()}…`}
 				>
 					{#snippet children(queryRows)}
 						{#key queryRows}
-							{@render ListRows()}
+							{@render ListRowsFrom(rowsFromQuery(queryRows))}
 						{/key}
 					{/snippet}
-				</QueryBoundary>
+				</ResourceBoundary>
+			{:else if items !== undefined}
+				{#key listItems}
+					{@render ListRowsFrom(listItems)}
+				{/key}
 			{:else}
-				{@render ListRows()}
+				{@render EmptyFallback()}
 			{/if}
 		{:else}
 			{@render EmptyFallback()}

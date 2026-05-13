@@ -48,6 +48,21 @@ export const collectIssues = (page: Page) => {
 		forwardBrowserConsoleLine(t, text, loc)
 		if (t !== 'error')
 			return
+		// Legacy ignore: hydrate paths historically surfaced resolver “requires query limit”; capped via resolverLoadSubsetRowLimit fallback now.
+		if (
+			text.includes('[QueryCollection]')
+			&& text.includes('requires query limit')
+		)
+			return
+		// Browser network layer: upstream 4xx/5xx and DNS noise on public RPC URLs in e2e (not app throws).
+		if (
+			text.startsWith('Failed to load resource')
+			&& (
+				/\b[45]\d\d\b/.test(text)
+				|| text.includes('ERR_NAME_NOT_RESOLVED')
+			)
+		)
+			return
 		const locStr = (
 			loc.url ?
 				` ${loc.url}:${loc.lineNumber}:${loc.columnNumber}`
@@ -144,14 +159,19 @@ export const getViewTransitionUpdateCount = (page: Page) => (
 	page.evaluate(() => window.__e2eViewTransitionUpdates ?? 0)
 )
 
-export const countRequestsMatching = (page: Page, match: (url: string) => boolean) => {
+export const countRequestsMatching = (page: Page, match: (url: string, method: string) => boolean) => {
 	let n = 0
-	const fn = (req: { url: () => string }) => {
-		if (match(req.url())) n += 1
+	const urls: string[] = []
+	const fn = (req: { method: () => string, url: () => string }) => {
+		if (match(req.url(), req.method())) {
+			n += 1
+			urls.push(req.url())
+		}
 	}
 	page.on('request', fn)
 	return {
 		get: () => n,
+		urls,
 		detach: () => page.off('request', fn),
 	}
 }
@@ -159,17 +179,170 @@ export const countRequestsMatching = (page: Page, match: (url: string) => boolea
 /** Stubs for `GET …/rpcs.json` in e2e. Includes popular live chains + mainnet HTTP RPCs. */
 export const MOCK_CHAINLIST_RPCS_JSON_BODY = JSON.stringify([
 	{ chainId: 1, name: 'Mock Ethereum', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://ethereum.publicnode.com'] },
-	{ chainId: 8453, name: 'Mock Base', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://mainnet.base.org'] },
-	{ chainId: 42161, name: 'Arbitrum One', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://arb1.arbitrum.io/rpc'] },
-	{ chainId: 10, name: 'Optimism', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://mainnet.optimism.io'] },
+	{ chainId: 8453, name: 'Mock Base', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://mainnet.base.org'], parent: { type: 'L2', chain: 'eip155:1' } },
+	{ chainId: 42161, name: 'Arbitrum One', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://arb1.arbitrum.io/rpc'], parent: { type: 'L2', chain: 'eip155:1' } },
+	{ chainId: 10, name: 'Optimism', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://mainnet.optimism.io'], parent: { type: 'L2', chain: 'eip155:1' } },
 	{ chainId: 137, name: 'Polygon', nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 }, rpc: ['https://polygon-rpc.com'] },
 	{ chainId: 56, name: 'BNB Chain', nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 }, rpc: ['https://bsc-dataseed.binance.org'] },
 ])
+export const MOCK_CHAINLIST_RPCS_CHAIN_COUNT = 6
+
+/**
+ * Minimal `chains.json` for ethereum-lists (same chain ids as {@link MOCK_CHAINLIST_RPCS_JSON_BODY}).
+ * Includes L2 parent links so `/network/1` exercises the Chainlist / ethereum-lists child network subsets.
+ */
+export const MOCK_ETHEREUM_LISTS_CHAINS_JSON_BODY = JSON.stringify(
+	[
+		{
+			name: 'Mock Ethereum',
+			chain: 'ETH',
+			rpc: ['https://ethereum.publicnode.com'],
+			nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+			shortName: 'eth',
+			chainId: 1,
+			networkId: 1,
+		},
+		{
+			name: 'Mock Base',
+			chain: 'ETH',
+			rpc: ['https://mainnet.base.org'],
+			nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+			shortName: 'base',
+			chainId: 8453,
+			networkId: 8453,
+			parent: { type: 'L2', chain: 'eip155:1' },
+		},
+		{
+			name: 'Arbitrum One',
+			chain: 'ETH',
+			rpc: ['https://arb1.arbitrum.io/rpc'],
+			nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+			shortName: 'arb1',
+			chainId: 42161,
+			networkId: 42161,
+			parent: { type: 'L2', chain: 'eip155:1' },
+		},
+		{
+			name: 'Optimism',
+			chain: 'ETH',
+			rpc: ['https://mainnet.optimism.io'],
+			nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
+			shortName: 'oeth',
+			chainId: 10,
+			networkId: 10,
+			parent: { type: 'L2', chain: 'eip155:1' },
+		},
+		{
+			name: 'Polygon',
+			chain: 'MATIC',
+			rpc: ['https://polygon-rpc.com'],
+			nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 },
+			shortName: 'matic',
+			chainId: 137,
+			networkId: 137,
+		},
+		{
+			name: 'BNB Chain',
+			chain: 'BNB',
+			rpc: ['https://bsc-dataseed.binance.org'],
+			nativeCurrency: { name: 'BNB', symbol: 'BNB', decimals: 18 },
+			shortName: 'bnb',
+			chainId: 56,
+			networkId: 56,
+		},
+	],
+)
+
+export const ethereumListsChainsJsonWire = (url: string, method: string) => (
+	method === 'GET'
+	&& url.includes('/chains.json')
+	&& !url.includes('rpcs.json')
+	&& (
+		url.includes('chainid.network')
+		|| (url.includes('api-proxy') && url.includes('chainid.network'))
+	)
+)
+
+/**
+ * L2Beat scaling summary — only projects that map to {@link MOCK_CHAINLIST_RPCS_JSON_BODY}
+ * chain ids via `chainIdByL2BeatProjectId`, so e2e does not hydrate extra `Network` rows that
+ * lack JSON-RPC in the chainlist stub (Voltaire / `collectIssues` console errors).
+ */
+export const MOCK_L2BEAT_SCALING_SUMMARY_BODY = JSON.stringify({
+	projects: {
+		arbitrum: {
+			id: 'arbitrum',
+			name: 'Arbitrum One',
+			slug: 'arbitrum',
+			type: 'layer2',
+			hostChain: 'ethereum',
+		},
+		base: {
+			id: 'base',
+			name: 'Base',
+			slug: 'base',
+			type: 'layer2',
+			hostChain: 'ethereum',
+		},
+		'polygon-pos': {
+			id: 'polygon-pos',
+			name: 'Polygon PoS',
+			slug: 'polygon-pos',
+			type: 'layer2',
+			hostChain: 'ethereum',
+		},
+		optimism: {
+			id: 'optimism',
+			name: 'Optimism',
+			slug: 'optimism',
+			type: 'layer2',
+			hostChain: 'ethereum',
+		},
+	},
+})
+
+export const l2BeatScalingSummaryWire = (url: string, method: string) => (
+	method === 'GET'
+	&& (
+		(url.includes('l2beat.com') && url.includes('/api/scaling/summary'))
+		|| (
+			url.includes('api-proxy/')
+			&& url.includes('l2beat.com')
+			&& url.includes('scaling/summary')
+		)
+	)
+)
+
+const publicJsonRpcWire = (url: string, method: string) => (
+	method === 'POST'
+	&& (
+		url === 'https://ethereum.publicnode.com/'
+		|| url === 'https://mainnet.base.org/'
+		|| url === 'https://arb1.arbitrum.io/rpc'
+		|| url === 'https://mainnet.optimism.io/'
+		|| url === 'https://polygon-rpc.com/'
+		|| url === 'https://bsc-dataseed.binance.org/'
+		|| url === 'https://eth.llamarpc.com/'
+		|| url === 'https://base.llamarpc.com/'
+		|| url === 'https://binance.llamarpc.com/'
+	)
+)
+
+/** TradingView crypto scanner `POST /crypto/scan` (browser hits dev `api-proxy/…` or origin). */
+export const tradingViewCryptoScanWire = (url: string, method: string) => (
+	method === 'POST'
+	&& url.includes('/crypto/scan')
+	&& (
+		url.includes('scanner.tradingview.com')
+		|| (url.includes('api-proxy') && url.includes('scanner.tradingview'))
+	)
+)
 
 export const installChainlistRpcsJsonStub = async (page: Page) => {
 	await page.route('**/*', async (route) => {
 		const url = route.request().url()
-		if (route.request().method() === 'GET' && ipfsPublicGatewayGetWire(url)) {
+		const method = route.request().method()
+		if (method === 'GET' && ipfsPublicGatewayGetWire(url)) {
 			await route.fulfill({
 				status: 200,
 				contentType: 'text/plain; charset=utf-8',
@@ -182,6 +355,59 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 				status: 200,
 				contentType: 'application/json',
 				body: MOCK_CHAINLIST_RPCS_JSON_BODY,
+			})
+			return
+		}
+		if (ethereumListsChainsJsonWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: MOCK_ETHEREUM_LISTS_CHAINS_JSON_BODY,
+			})
+			return
+		}
+		if (l2BeatScalingSummaryWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: MOCK_L2BEAT_SCALING_SUMMARY_BODY,
+			})
+			return
+		}
+		if (publicJsonRpcWire(url, method)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({
+					jsonrpc: '2.0',
+					id: 1,
+					result: '0x1',
+				}),
+			})
+			return
+		}
+		if (tradingViewCryptoScanWire(url, method)) {
+			let tickers: string[] = []
+			try {
+				const post = route.request().postDataJSON()
+				const list = post?.symbols?.tickers
+				if (Array.isArray(list))
+					tickers = list.filter((t): t is string => typeof t === 'string')
+			} catch {
+				//
+			}
+			const data = tickers.map((ticker) => ({
+				s: ticker,
+				d: [
+					`e2e-${ticker}`,
+					1,
+					'streaming',
+				],
+			}))
+			await route.fulfill({
+				status: 200,
+				contentType: 'application/json',
+				body: JSON.stringify({ data }),
 			})
 			return
 		}

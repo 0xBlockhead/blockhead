@@ -1,33 +1,24 @@
 <script lang="ts">
-	// Context
+	import type { PageProps } from './$types.ts'
+
 	import { resolve } from '$app/paths'
 
-
-	// State
-	let {
-		params,
-	} = $props()
-
-	// Components
 	import Page from '$/components/Page.svelte'
-	import EvmContractView from '$/views/EvmContractView.svelte'
+	import ContractView from '$/views/ContractView.svelte'
+
+	let { data }: PageProps = $props()
 </script>
 
 
 <Page>
-	<EvmContractView
-		entityId={{
-			$network: { chainId: Number(params.networkId) },
-			address: (
-				params.address.startsWith('0x') ?
-					params.address
-				:
-					`0x${params.address}`
-			) as `0x${string}`,
-		}}
+	<ContractView
+		entityId={data.entityId}
 		href={resolve(
 			'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-			params,
+			{
+				networkId: String(data.entityId.$network.chainId),
+				address: data.entityId.address,
+			},
 		)}
 	/>
 </Page>

@@ -1,65 +1,45 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
+
+	// State
+	import { stringify } from 'devalue'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+
 	const entityId = {
 		scope: 'XmtpNetwork' as const,
 	}
 
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
-
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
-
 	const networkIdKey = stringify(entityId)
 
-	const networkQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityCollectionByEntityType[EntityType.XmtpNetwork] })
-				.where(({ row }) => (
-					eq(
-						row[EntityMetaKey.IdKey],
-						networkIdKey,
-					)
-				))
-				.select(({ row }) => ({ row }))
-		),
-		[],
+	const network = useEntity(
+		EntityType.XmtpNetwork,
+		entityId,
+		{
+			$: [Source.Constants_Internal],
+			protocolName: {},
+			homeUrl: {},
+			docsUrl: {},
+		},
 	)
 
-	const accountsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityFieldCollections[EntityType._Global]['$$actors'] })
-				.select(({ row }) => ({ row }))
-		),
-		[],
+	const registry = useEntity(
+		EntityType._Global,
+		{},
+		{
+			$: [Source.Local_Internal],
+			$$actors: {},
+			$$xmtpConversations: {},
+		},
 	)
-
-	const conversationsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ row: entityFieldCollections[EntityType._Global]['$$xmtpConversations'] })
-				.select(({ row }) => ({ row }))
-		),
-		[],
-	)
-
-	const networkFields = $derived.by(() => {
-		const bag = networkQuery.data?.[0]?.row?.[EntityMetaKey.Fields]
-		return bag != null && (typeof bag === 'object' && bag !== null && !Array.isArray(bag)) ? bag : null
-	})
 
 
 	// Components
@@ -68,7 +48,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import XmtpConversationsView from '$/views/XmtpConversationsView.svelte'
 </script>
 
@@ -80,20 +60,24 @@
 	open={true}
 	title="XMTP"
 >
-	{#snippet Content()}
+	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
 				<dt>Scope</dt>
 				<dd>{entityId.scope}</dd>
 			</div>
-			<div>
-				<dt>Accounts</dt>
-				<dd>{String(accountsQuery.data?.length ?? 0)}</dd>
-			</div>
-			<div>
-				<dt>Conversations</dt>
-				<dd>{String(conversationsQuery.data?.length ?? 0)}</dd>
-			</div>
+			<ResourceBoundary resource={registry}>
+				{#snippet children(g)}
+					<div>
+						<dt>Accounts</dt>
+						<dd>{String(g['$$actors'].length)}</dd>
+					</div>
+					<div>
+						<dt>Conversations</dt>
+						<dd>{String(g['$$xmtpConversations'].length)}</dd>
+					</div>
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
@@ -104,36 +88,34 @@
 			entityType={EntityType.XmtpNetwork}
 			{entityId}
 		>
-			<QueryBoundary
-				query={networkQuery}
-			>
-				{#snippet children(_rows)}
+			<ResourceBoundary resource={network}>
+				{#snippet children(loaded)}
 					<dl>
 						<div>
 							<dt>Protocol name</dt>
-							<dd>{String(networkFields?.protocolName ?? 'XMTP')}</dd>
+							<dd>{loaded.protocolName}</dd>
 						</div>
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={String(networkFields?.homeUrl ?? '#')}>
-									{String(networkFields?.homeUrl ?? '—')}
+								<a href={loaded.homeUrl}>
+									{loaded.homeUrl}
 								</a>
 							</dd>
 						</div>
-						{#if typeof networkFields?.docsUrl === 'string' && networkFields.docsUrl.length}
+						{#if loaded.docsUrl != null && loaded.docsUrl !== ''}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={networkFields.docsUrl}>
-										{networkFields.docsUrl}
+									<a href={loaded.docsUrl}>
+										{loaded.docsUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
 					</dl>
 				{/snippet}
-			</QueryBoundary>
+			</ResourceBoundary>
 		</EntityDetails>
 
 		<div data-column="gap-3">

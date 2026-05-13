@@ -6,6 +6,7 @@ import type { CoinId } from '$/constants/Coin.ts'
 import { MarketAssetKind } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { caip19Erc20 } from '$/lib/caip19.ts'
+import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { MediaType } from '$/schema/Media.ts'
@@ -40,14 +41,7 @@ export default {
 				if (info == null) throw new Error('CoinMarketCap_Rest: coin info not returned')
 
 				const logoUrl = info.logo
-				const logoMedia = (
-					logoUrl == null || logoUrl.trim() === '' ?
-						undefined
-					:	{
-							[EntityMetaKey.Id]: { url: logoUrl },
-							type: MediaType.Image,
-						}
-				)
+				const logoMedia = mediaFromUrl(logoUrl, MediaType.Image)
 
 				return {
 					...(info.name.trim() !== '' ? { name: info.name.trim() } : {}),
@@ -62,6 +56,7 @@ export default {
 				}
 			},
 		}),
+
 		defineEntityResolver({
 			entityType: EntityType.MarketPrice,
 			resolve: async (entityId, context) => {
@@ -217,7 +212,7 @@ export default {
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				if (idByCoinId[entityId.coinId] == null) {
-					return []
+					throw new Error(`CoinMarketCap_Rest: $$marketsWithCoinAsBase unsupported for coin ${entityId.coinId}`)
 				}
 				return (
 					[
@@ -244,9 +239,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => (
-				[]
-			),
+			resolve: async () => {
+				throw new Error('CoinMarketCap_Rest: $$marketsWithCoinAsQuote is unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({

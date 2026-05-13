@@ -1,23 +1,15 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { entityFieldCollectionForReference } from '$/collections/$collections.ts'
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
 
 
 	// Props
@@ -36,39 +28,41 @@
 	} = $props()
 
 
-	const usersQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					userFieldRow: (
-						entityFieldCollectionForReference(
-							entityFieldCollections,
-							entityFieldReference,
-						)
-					),
-				})
-				.where(({ userFieldRow }) => (
-					eq(
-						userFieldRow[EntityMetaKey.ParentIdKey],
-						stringify(entityFieldReference.entityId),
-					)
+	// State
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+
+	const parentEntity = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			$: [Source.Constants_Internal],
+			[entityFieldReference.fieldName]: {
+				$: [Source.X_Rest],
+			},
+		},
+	)
+
+	const envelopes = derive(
+		parentEntity,
+		(merged) => (
+			(
+				(
+					merged[entityFieldReference.fieldName as keyof typeof merged]
+					?? []
+				) as Entity<typeof schema, EntityType.XUser>[]
+			)
+				.toSorted((a, b) => (
+					a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
 				))
-				.where(({ userFieldRow }) => (
-					eq(
-						userFieldRow[EntityMetaKey.Source],
-						Source.X_Rest,
-					)
-				))
-				.select(({ userFieldRow }) => (
-					{ value: userFieldRow[EntityMetaKey.Value] }
-				))
-				.distinct()
+				.map((value) => ({
+					value,
+				}))
 		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-		],
 	)
 
 
@@ -80,24 +74,14 @@
 
 
 <EntitiesList
+	bind:open
 	entityType={EntityType.XUser}
+	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+	getSortValue={(row) => row.value[EntityMetaKey.Id].id}
 	{href}
 	{id}
-	getKey={(row) => stringify(row[EntityMetaKey.Id])}
-	getSortValue={(row) => (
-		row[EntityMetaKey.Id].id
-	)}
-	items={usersQuery.data?.map(({ value }) => value) ?? []}
-	bind:open
-	placeholderKeys={new SvelteSet<string>()}
-	query={{
-		data: usersQuery.data?.map(({ value }) => value) ?? [],
-		isLoading: usersQuery.isLoading,
-		isError: usersQuery.isError,
-		isReady: usersQuery.isReady,
-		error: usersQuery.error,
-		status: usersQuery.status,
-	}}
+	placeholderKeys={new SvelteSet()}
+	resource={envelopes}
 	{title}
 >
 	{#snippet Empty()}
@@ -106,17 +90,12 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item, isPlaceholder })}
-		{#if isPlaceholder}
-			<span data-placeholder>
-				…
-			</span>
-		{:else if item}
-			{@const userId = item[EntityMetaKey.Id]}
+	{#snippet Item(props)}
+		{#if props.isPlaceholder === false}
 			<XUserView
-				entityId={{ id: userId.id }}
+				entityId={{ id: props.item.value[EntityMetaKey.Id].id }}
 				href={resolve('/(social)/x/user/[userId]', {
-					userId: encodeURIComponent(userId.id),
+					userId: encodeURIComponent(props.item.value[EntityMetaKey.Id].id),
 				})}
 				layout={EntityLayout.Summary}
 				open={false}

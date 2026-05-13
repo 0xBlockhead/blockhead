@@ -1,4 +1,5 @@
 import { regex } from 'arkregex'
+import { jsonErrorHintFromResponse } from '$/lib/http.ts'
 import { gatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
 
 export type SwarmBrowseResult = {
@@ -161,7 +162,13 @@ export const fetchSwarmBrowseResult = async ({
 
 		const response = await fetch(gatewayUrl, { signal })
 		if (!response.ok) {
-			failures.push(`${gatewayOrigin} (${response.status} ${response.statusText})`)
+			const hint = await jsonErrorHintFromResponse(response)
+			failures.push(
+				hint ?
+					`${gatewayOrigin} (${response.status}): ${hint}`
+				:
+					`${gatewayOrigin} (${response.status} ${response.statusText})`,
+			)
 			continue
 		}
 

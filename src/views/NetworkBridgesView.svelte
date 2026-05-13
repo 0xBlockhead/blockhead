@@ -1,28 +1,33 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
-	import { schema } from '$/schema/index.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// State
-	import { eq, useLiveQuery } from '@tanstack/svelte-db'
-	import { stringify } from 'devalue'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { SvelteSet } from 'svelte/reactivity'
 
-	import { entityFieldCollections } from '$/routes/+layout.svelte'
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import NetworkBridgeView from '$/views/NetworkBridgeView.svelte'
 
 
 	// Props
 	let {
 		entityFieldReference,
-
 		title = 'Bridges',
-
 		open = $bindable(true),
-
 		...entitiesListProps
 	}: WithRest<
 		{
@@ -37,38 +42,38 @@
 	> = $props()
 
 
-	const bridgesQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({
-					bridgeFieldRow: entityFieldCollections[EntityType.Network]['$$bridges'],
-				})
-				.where(({ bridgeFieldRow }) => (
-					eq(
-						bridgeFieldRow[EntityMetaKey.ParentIdKey],
-						stringify(entityFieldReference.entityId),
-					)
-				))
-				.select(({ bridgeFieldRow }) => (
-					{ value: bridgeFieldRow[EntityMetaKey.Value] }
-				))
-				.distinct()
-		),
-		[
-			() => entityFieldReference.entityType,
-			() => entityFieldReference.fieldName,
-			() => stringify(entityFieldReference.entityId),
-		],
+	const parentEntity = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			[entityFieldReference.fieldName]: {
+				$: [
+					Source.Chainlist_Rest,
+					Source.EthereumLists_Rest,
+				],
+			},
+		},
 	)
 
-
-	// Components
-	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import QueryBoundary from '$/components/QueryBoundary.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import OrderedList from '$/components/OrderedList.svelte'
-	import NetworkBridgeView from '$/views/NetworkBridgeView.svelte'
+	const bridges = derive(
+		parentEntity,
+		(merged) => {
+			const rows = (
+				(
+					merged[entityFieldReference.fieldName as keyof typeof merged]
+					?? []
+				) as Entity<typeof schema, EntityType.NetworkBridge>[]
+			)
+				.toSorted((a, b) => (
+					a[EntityMetaKey.Id].url.localeCompare(b[EntityMetaKey.Id].url)
+				))
+			return (
+				rows.map((value) => ({
+					value,
+				}))
+			)
+		},
+	)
 </script>
 
 
@@ -76,38 +81,27 @@
 	entityType={EntityType.NetworkBridge}
 	{title}
 	bind:open
+	getKey={(envelope) => envelope.value[EntityMetaKey.Id].url}
+	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].url}
+	placeholderKeys={new SvelteSet()}
+	resource={bridges}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListProps}
 >
-	{#snippet body()}
-		<QueryBoundary
-			query={bridgesQuery}
-			placeholderText="Loading bridges…"
-		>
-			{#snippet children(_bridges)}
-				<OrderedList
-					items={bridgesQuery.data?.map(({ value }) => value) ?? []}
-					getKey={(row) => row[EntityMetaKey.Id].url}
-					placeholderRanges={[]}
-					orientation={ListOrientation.Column}
-				>
-					{#snippet Empty()}{/snippet}
+	{#snippet Empty()}
+		<p data-text="muted">
+			No bridges for this network yet.
+		</p>
+	{/snippet}
 
-					{#snippet Item({ item: row, isPlaceholder })}
-						{#if isPlaceholder}
-							<span data-placeholder>
-								…
-							</span>
-						{:else if row}
-							<NetworkBridgeView
-								entityId={row[EntityMetaKey.Id]}
-								href={row[EntityMetaKey.Id].url}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/if}
-					{/snippet}
-				</OrderedList>
-			{/snippet}
-		</QueryBoundary>
+	{#snippet Item({ item: envelope, isPlaceholder })}
+		{#if isPlaceholder === false}
+			<NetworkBridgeView
+				entityId={envelope.value[EntityMetaKey.Id]}
+				href={envelope.value[EntityMetaKey.Id].url}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
+		{/if}
 	{/snippet}
 </EntitiesList>
