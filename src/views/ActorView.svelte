@@ -93,45 +93,27 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl>
-			<div>
-				<dt>Address</dt>
-				<dd>
-					<ActorIdentityRow {entityId} />
-				</dd>
-			</div>
-		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		{#if entityId.interopAddress}
-			<EntityDetails
-				entityType={EntityType.Actor}
-				{entityId}
-			>
-				<dl>
-					<div>
-						<dt>Interop</dt>
-						<dd>
-							<TruncatedValue
-								value={entityId.interopAddress}
-								format={TruncatedValueFormat.Visual}
-							/>
-						</dd>
-					</div>
-				</dl>
-			</EntityDetails>
-		{/if}
-
 		<ResourceBoundary resource={actor}>
 			{#snippet children(live)}
-				<EntityDetails
-					entityType={EntityType.Actor}
-					{entityId}
-				>
-					<dl>
+				<dl>
+					<div>
+						<dt>Address</dt>
+						<dd>
+							<ActorIdentityRow {entityId} />
+						</dd>
+					</div>
+					{#if open}
+						{#if entityId.interopAddress}
+							<div>
+								<dt>Interop</dt>
+								<dd>
+									<TruncatedValue
+										value={entityId.interopAddress}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</dd>
+							</div>
+						{/if}
 						<div>
 							<dt>ENS names (The Graph)</dt>
 							<dd>
@@ -149,10 +131,19 @@
 								</ul>
 							</dd>
 						</div>
-					</dl>
-				</EntityDetails>
+					{/if}
+				</dl>
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.Actor}
+			{entityId}
+		/>
 
 		{#if children}
 			{@render children()}

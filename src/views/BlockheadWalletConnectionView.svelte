@@ -146,33 +146,9 @@
 					<dd>{String(chainId)}</dd>
 				</div>
 			{/if}
-		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		<EntityDetails
-			entityType={EntityType.BlockheadWalletConnection}
-			{entityId}
-		>
-			<dl>
-				<div>
-					<dt>Status</dt>
-					<dd>{status}</dd>
-				</div>
-
-				{#if chainId !== null}
-					<div>
-						<dt>Chain</dt>
-						<dd>{String(chainId)}</dd>
-					</div>
-				{/if}
-			</dl>
-
-			<ResourceBoundary resource={persisted}>
-				{#snippet children(connection)}
-					<dl>
+			{#if open}
+				<ResourceBoundary resource={persisted}>
+					{#snippet children(connection)}
 						<div>
 							<dt>Selected</dt>
 							<dd>{connection.selected ? 'Yes' : 'No'}</dd>
@@ -187,9 +163,19 @@
 								/>
 							</dd>
 						</div>
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+		</dl>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.BlockheadWalletConnection}
+			{entityId}
+		/>
 
 			{#if error}
 				<p role="alert">
@@ -241,6 +227,5 @@
 					Remove
 				</button>
 			</div>
-		</EntityDetails>
 	{/snippet}
 </EntityView>

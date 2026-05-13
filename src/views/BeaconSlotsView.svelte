@@ -101,8 +101,8 @@
 							</p>
 						{/snippet}
 
-						{#snippet Item({ item: slot, isPlaceholder })}
-							{#if isPlaceholder === false}
+						{#snippet Item({ item: slot })}
+							{#if slot}
 								<BeaconSlotView
 									entityId={slot[EntityMetaKey.Id]}
 									href={resolve(

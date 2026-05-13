@@ -110,6 +110,78 @@
 							</dd>
 						</div>
 					{/if}
+					{#if open}
+						<div>
+							<dt>Owner</dt>
+							<dd>
+								<ActorNetworkView
+									entityId={{
+										$network: merged.$pool.$network,
+										$actor: merged.$owner[EntityMetaKey.Id],
+									}}
+									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+										accountId: merged.$owner[EntityMetaKey.Id].address,
+									})}
+									layout={EntityLayout.Id}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							</dd>
+						</div>
+						{#if merged.tickLower !== undefined}
+							<div>
+								<dt>Tick lower</dt>
+								<dd>{String(merged.tickLower)}</dd>
+							</div>
+						{/if}
+						{#if merged.tickUpper !== undefined}
+							<div>
+								<dt>Tick upper</dt>
+								<dd>{String(merged.tickUpper)}</dd>
+							</div>
+						{/if}
+						{#if merged.liquidity !== undefined}
+							<div>
+								<dt>Liquidity</dt>
+								<dd>{String(merged.liquidity)}</dd>
+							</div>
+						{/if}
+						{#if merged.token0Owed !== undefined}
+							<div>
+								<dt>Token0 owed</dt>
+								<dd>{String(merged.token0Owed)}</dd>
+							</div>
+						{/if}
+						{#if merged.token1Owed !== undefined}
+							<div>
+								<dt>Token1 owed</dt>
+								<dd>{String(merged.token1Owed)}</dd>
+							</div>
+						{/if}
+						{#if merged.tokenId !== undefined}
+							<div>
+								<dt>Token id</dt>
+								<dd>{String(merged.tokenId)}</dd>
+							</div>
+						{/if}
+						{#if merged.origin}
+							<div>
+								<dt>Origin</dt>
+								<dd>{merged.origin}</dd>
+							</div>
+						{/if}
+						{#if merged.createdAtTimestamp !== undefined}
+							<div>
+								<dt>Created at</dt>
+								<dd>
+									<Timestamp
+										timestamp={merged.createdAtTimestamp}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
+							</div>
+						{/if}
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -122,84 +194,7 @@
 			<EntityDetails
 				entityType={EntityType.Leverage}
 				{entityId}
-			>
-				<ResourceBoundary resource={leverage}>
-					{#snippet children(merged)}
-						<dl>
-							<div>
-								<dt>Owner</dt>
-								<dd>
-									<ActorNetworkView
-										entityId={{
-											$network: merged.$pool.$network,
-											$actor: merged.$owner[EntityMetaKey.Id],
-										}}
-										href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-											accountId: merged.$owner[EntityMetaKey.Id].address,
-										})}
-										layout={EntityLayout.Id}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								</dd>
-							</div>
-							{#if merged.tickLower !== undefined}
-								<div>
-									<dt>Tick lower</dt>
-									<dd>{String(merged.tickLower)}</dd>
-								</div>
-							{/if}
-							{#if merged.tickUpper !== undefined}
-								<div>
-									<dt>Tick upper</dt>
-									<dd>{String(merged.tickUpper)}</dd>
-								</div>
-							{/if}
-							{#if merged.liquidity !== undefined}
-								<div>
-									<dt>Liquidity</dt>
-									<dd>{String(merged.liquidity)}</dd>
-								</div>
-							{/if}
-							{#if merged.token0Owed !== undefined}
-								<div>
-									<dt>Token0 owed</dt>
-									<dd>{String(merged.token0Owed)}</dd>
-								</div>
-							{/if}
-							{#if merged.token1Owed !== undefined}
-								<div>
-									<dt>Token1 owed</dt>
-									<dd>{String(merged.token1Owed)}</dd>
-								</div>
-							{/if}
-							{#if merged.tokenId !== undefined}
-								<div>
-									<dt>Token id</dt>
-									<dd>{String(merged.tokenId)}</dd>
-								</div>
-							{/if}
-							{#if merged.origin}
-								<div>
-									<dt>Origin</dt>
-									<dd>{merged.origin}</dd>
-								</div>
-							{/if}
-							{#if merged.createdAtTimestamp !== undefined}
-								<div>
-									<dt>Created at</dt>
-									<dd>
-										<Timestamp
-											timestamp={merged.createdAtTimestamp}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-						</dl>
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
+			/>
 		{/if}
 	{/snippet}
 </EntityView>

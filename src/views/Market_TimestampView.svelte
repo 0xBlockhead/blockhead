@@ -112,22 +112,7 @@
 							/>
 						</dd>
 					</div>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details()}
-		<EntityDetails
-			entityType={EntityType.Market_Timestamp}
-			{entityId}
-		>
-			<ResourceBoundary
-				placeholderText="Loading quote…"
-				resource={quoteLive}
-			>
-				{#snippet children(q)}
-					<dl>
+					{#if open}
 						{#if q.marketCap !== undefined}
 							<div>
 								<dt>Market cap</dt>
@@ -155,10 +140,17 @@
 								</dd>
 							</div>
 						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details()}
+		<EntityDetails
+			entityType={EntityType.Market_Timestamp}
+			{entityId}
+		/>
 
 		<section>
 			<h2>

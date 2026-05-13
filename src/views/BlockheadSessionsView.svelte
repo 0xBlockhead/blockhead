@@ -97,8 +97,8 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListRest}
 >
-	{#snippet Item({ item: envelope, isPlaceholder })}
-		{#if isPlaceholder === false}
+	{#snippet Item({ item: envelope })}
+		{#if envelope}
 			<BlockheadSessionView
 				entityId={envelope.value[EntityMetaKey.Id]}
 				href={resolve(

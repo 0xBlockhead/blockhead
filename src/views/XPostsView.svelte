@@ -91,7 +91,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			<XPostView
 				entityId={{ id: props.item.value[EntityMetaKey.Id].id }}
 				href={resolve('/(social)/x/post/[postId]', {

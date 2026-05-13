@@ -90,69 +90,79 @@
 						<dd>{p.isConnected ? 'Yes' : 'No'}</dd>
 					</div>
 
-					{#if p.displayName !== undefined && p.displayName !== ''}
-						<div>
-							<dt>Name</dt>
-							<dd>{p.displayName}</dd>
-						</div>
+					{#if p.displayName !== undefined}
+						{#if p.displayName !== ''}
+							<div>
+								<dt>Name</dt>
+								<dd>{p.displayName}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if p.peerId !== undefined}
+							{#if p.peerId !== ''}
+								<div>
+									<dt>Peer ID</dt>
+									<dd>{p.peerId}</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if p.$room.id !== ''}
+							<div>
+								<dt>Room</dt>
+								<dd>{p.$room.id}</dd>
+							</div>
+						{/if}
 					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
+	{#snippet Details()}
 		{#if children}
 			{@render children()}
 		{:else}
 			<EntityDetails
 				entityType={EntityType.BlockheadRoomPeer}
 				{entityId}
-			>
-				<ResourceBoundary resource={peer}>
-					{#snippet children(p)}
-						<dl>
-							{#if p.peerId !== undefined && p.peerId !== ''}
-								<div>
-									<dt>Peer ID</dt>
-									<dd>{p.peerId}</dd>
-								</div>
+			/>
+			<ResourceBoundary resource={peer}>
+				{#snippet children(p)}
+					{#if p.$room.id === ''}
+						{#if p.peerId === undefined}
+							{#if p.displayName === undefined}
+								<p data-text="muted">
+									No additional peer details are available yet.
+								</p>
 							{/if}
-
-							{#if p.displayName !== undefined && p.displayName !== ''}
-								<div>
-									<dt>Display name</dt>
-									<dd>{p.displayName}</dd>
-								</div>
+							{#if p.displayName !== undefined}
+								{#if p.displayName === ''}
+									<p data-text="muted">
+										No additional peer details are available yet.
+									</p>
+								{/if}
 							{/if}
-
-							{#if p.$room.id !== ''}
-								<div>
-									<dt>Room</dt>
-									<dd>{p.$room.id}</dd>
-								</div>
-							{/if}
-
-							<div>
-								<dt>Is connected</dt>
-								<dd>{p.isConnected ? 'Yes' : 'No'}</dd>
-							</div>
-						</dl>
-
-						{#if (
-							(p.peerId === undefined || p.peerId === '')
-							&& (p.displayName === undefined || p.displayName === '')
-							&& p.$room.id === ''
-						)}
-							<p data-text="muted">
-								No additional peer details are available yet.
-							</p>
 						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
+						{#if p.peerId !== undefined}
+							{#if p.peerId === ''}
+								{#if p.displayName === undefined}
+									<p data-text="muted">
+										No additional peer details are available yet.
+									</p>
+								{/if}
+								{#if p.displayName !== undefined}
+									{#if p.displayName === ''}
+										<p data-text="muted">
+											No additional peer details are available yet.
+										</p>
+									{/if}
+								{/if}
+							{/if}
+						{/if}
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntityView>

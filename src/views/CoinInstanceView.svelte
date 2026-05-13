@@ -104,37 +104,27 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl>
-			<div>
-				<dt>Chain</dt>
-				<dd>{String(entityId.$network.chainId)}</dd>
-			</div>
-			<div>
-				<dt>Kind</dt>
-				<dd>
-					{#if entityId.type === CoinInstanceType.NativeCurrency}
-						Native
-					{:else}
-						<Address
-							network={entityId.$contract.$network}
-							address={entityId.$contract.address}
-						/>
-					{/if}
-				</dd>
-			</div>
-		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		<EntityDetails
-			entityType={EntityType.CoinInstance}
-			{entityId}
-		>
-			<ResourceBoundary resource={coinInstance}>
-				{#snippet children(live)}
-					<dl>
+		<ResourceBoundary resource={coinInstance}>
+			{#snippet children(live)}
+				<dl>
+					<div>
+						<dt>Chain</dt>
+						<dd>{String(entityId.$network.chainId)}</dd>
+					</div>
+					<div>
+						<dt>Kind</dt>
+						<dd>
+							{#if entityId.type === CoinInstanceType.NativeCurrency}
+								Native
+							{:else}
+								<Address
+									network={entityId.$contract.$network}
+									address={entityId.$contract.address}
+								/>
+							{/if}
+						</dd>
+					</div>
+					{#if open}
 						{#if live.name !== undefined}
 							<div>
 								<dt>Name</dt>
@@ -159,10 +149,19 @@
 								<dd>{live.caip19}</dd>
 							</div>
 						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.CoinInstance}
+			{entityId}
+		/>
 
 		{#if children}
 			{@render children()}

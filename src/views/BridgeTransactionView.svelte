@@ -97,6 +97,29 @@
 					/>
 				</dd>
 			</div>
+			{#if open}
+				<ResourceBoundary resource={bridgeTransaction}>
+					{#snippet children(_row)}
+						<div>
+							<dt>Account</dt>
+							<dd>
+								<ActorNetworkView
+									entityId={{
+										$network: entityId.$sourceTx.$network,
+										$actor: entityId.$account,
+									}}
+									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+										accountId: entityId.$account.address,
+									})}
+									layout={EntityLayout.Id}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							</dd>
+						</div>
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
 		</dl>
 	{/snippet}
 
@@ -107,31 +130,7 @@
 			<EntityDetails
 				entityType={EntityType.BridgeTransaction}
 				{entityId}
-			>
-				<ResourceBoundary resource={bridgeTransaction}>
-					{#snippet children(_row)}
-						<dl>
-							<div>
-								<dt>Account</dt>
-								<dd>
-									<ActorNetworkView
-										entityId={{
-											$network: entityId.$sourceTx.$network,
-											$actor: entityId.$account,
-										}}
-										href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-											accountId: entityId.$account.address,
-										})}
-										layout={EntityLayout.Id}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								</dd>
-							</div>
-						</dl>
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
+			/>
 		{/if}
 	{/snippet}
 </EntityView>

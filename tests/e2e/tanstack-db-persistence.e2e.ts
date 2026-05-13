@@ -106,7 +106,7 @@ const pathnamesForRun = async () => {
 
 test.describe.configure({ mode: 'serial' })
 
-test.describe('real OPFS persistence', () => {
+test.describe('TanStack DB persistence', () => {
 	let pageUrls: string[] = []
 
 	test.beforeAll(async () => {

@@ -114,7 +114,7 @@
 				{/snippet}
 
 				{#snippet Item(props)}
-					{#if props.isPlaceholder === false}
+					{#if props.item}
 						<EvmSelectorView
 							entityId={props.item[EntityMetaKey.Id]}
 							href={resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {

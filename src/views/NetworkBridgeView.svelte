@@ -65,47 +65,49 @@
 	{open}
 	title={`Bridge to chain ${String(entityId.$toNetwork.chainId)}`}
 >
+	{#snippet Content({ title: _title, href: _href })}
+		<dl>
+			<div>
+				<dt>From network</dt>
+				<dd>
+					Chain {String(entityId.$fromNetwork.chainId)}
+				</dd>
+			</div>
+			<div>
+				<dt>To network</dt>
+				<dd>
+					Chain {String(entityId.$toNetwork.chainId)}
+				</dd>
+			</div>
+			<div>
+				<dt>URL</dt>
+				<dd>
+					<a
+						href={entityId.url}
+						rel="noreferrer"
+						target="_blank"
+					>
+						{entityId.url}
+					</a>
+				</dd>
+			</div>
+			<ResourceBoundary resource={bridge}>
+				{#snippet children(b)}
+					<div>
+						<dt>Relationship type</dt>
+						<dd>{b.relationshipType}</dd>
+					</div>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+	{/snippet}
+
 	{#snippet Details({
 		open: _open,
 	})}
 		<EntityDetails
 			entityType={EntityType.NetworkBridge}
 			{entityId}
-		>
-			<dl>
-				<div>
-					<dt>From network</dt>
-					<dd>
-						Chain {String(entityId.$fromNetwork.chainId)}
-					</dd>
-				</div>
-				<div>
-					<dt>To network</dt>
-					<dd>
-						Chain {String(entityId.$toNetwork.chainId)}
-					</dd>
-				</div>
-				<div>
-					<dt>URL</dt>
-					<dd>
-						<a
-							href={entityId.url}
-							rel="noreferrer"
-							target="_blank"
-						>
-							{entityId.url}
-						</a>
-					</dd>
-				</div>
-				<ResourceBoundary resource={bridge}>
-					{#snippet children(b)}
-						<div>
-							<dt>Relationship type</dt>
-							<dd>{b.relationshipType}</dd>
-						</div>
-					{/snippet}
-				</ResourceBoundary>
-			</dl>
-		</EntityDetails>
+		/>
 	{/snippet}
 </EntityView>

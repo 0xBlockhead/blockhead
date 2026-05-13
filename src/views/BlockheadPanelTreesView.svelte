@@ -80,8 +80,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: row, isPlaceholder })}
-		{#if isPlaceholder === false}
+	{#snippet Item({ item: row })}
+		{#if row}
 			<BlockheadPanelTreeView
 				entityId={row[EntityMetaKey.Id]}
 				href={resolve(`/dashboard/${row[EntityMetaKey.Id].id}`)}

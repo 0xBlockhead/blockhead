@@ -112,7 +112,7 @@
 				{/snippet}
 
 				{#snippet Item(props)}
-					{#if props.isPlaceholder === false}
+					{#if props.item}
 						<EvmErrorView
 							entityId={props.item[EntityMetaKey.Id]}
 							href={resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {

@@ -50,6 +50,7 @@ export enum SourceProvider {
 	Reddit = 'Reddit',
 	Snapchain = 'Snapchain',
 	Sourcify = 'Sourcify',
+	Superchain = 'Superchain',
 	Swarm = 'Swarm',
 	TheGraph = 'TheGraph',
 	TradingView = 'TradingView',

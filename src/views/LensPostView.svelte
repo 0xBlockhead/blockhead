@@ -134,55 +134,6 @@
 						{/if}
 						{#if u.timestamp !== undefined}
 							<div>
-								<dt>Timestamp</dt>
-								<dd>
-									<Timestamp
-										timestamp={u.timestamp}
-										format={TimestampFormat.Both}
-									/>
-								</dd>
-							</div>
-						{/if}
-					</dl>
-					<div data-text="mono muted">
-						{entityId.id}
-					</div>
-				</div>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({ open: _open })}
-		<EntityDetails
-			entityType={EntityType.LensPost}
-			{entityId}
-		>
-			<ResourceBoundary
-				placeholderText="Loading post…"
-				resource={lensPost}
-			>
-				{#snippet children(u)}
-					<dl>
-						{#if u.$author}
-							<div>
-								<dt>Author</dt>
-								<dd>
-									<a
-										data-link
-										href={resolve('/(social)/lens/account/[address]', {
-											address: u.$author[EntityMetaKey.Id].address,
-										})}
-									>
-										<TruncatedValue
-											value={u.$author[EntityMetaKey.Id].address}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</a>
-								</dd>
-							</div>
-						{/if}
-						{#if u.timestamp !== undefined}
-							<div>
 								<dt>Created at</dt>
 								<dd>
 									<Timestamp
@@ -199,9 +150,16 @@
 							</dd>
 						</div>
 					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+				</div>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details()}
+		<EntityDetails
+			entityType={EntityType.LensPost}
+			{entityId}
+		/>
 
 		{#if children}
 			{@render children()}

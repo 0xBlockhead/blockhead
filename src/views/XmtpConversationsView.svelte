@@ -95,7 +95,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			<XmtpConversationView
 				entityId={props.item.value[EntityMetaKey.Id]}
 				href={resolve('/(social)/(xmtp)/xmtp/(conversations)/conversation/[conversationId]', {

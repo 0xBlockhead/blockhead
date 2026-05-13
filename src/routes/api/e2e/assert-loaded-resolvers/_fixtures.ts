@@ -187,6 +187,18 @@ export const probeEntityIdByType: Partial<Record<EntityType, unknown>> = {
 		$network: mainnet,
 		forkId: 'Homestead',
 	},
+	[EntityType.NetworkUpgrade]: {
+		$network: mainnet,
+		upgradeId: 'Homestead',
+	},
+	[EntityType.NetworkExecutionUpgrade]: {
+		$network: mainnet,
+		upgradeId: 'Homestead',
+	},
+	[EntityType.NetworkConsensusUpgrade]: {
+		$network: mainnet,
+		upgradeId: 'Deneb',
+	},
 
 	[EntityType.Proposal]: {
 		realm: ProposalRealm.Ethereum,

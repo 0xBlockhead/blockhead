@@ -88,6 +88,39 @@
 					/>
 				</dd>
 			</div>
+			{#if open}
+				<ResourceBoundary
+					resource={topic}
+					placeholderText="Loading signatures…"
+				>
+					{#snippet children(t)}
+						{#if t.signatures.length > 0}
+							<div>
+								<dt>
+									Signatures
+								</dt>
+								<dd>
+									<ul>
+										{#each t.signatures as sig (sig)}
+											<li><code>{sig}</code></li>
+										{/each}
+									</ul>
+								</dd>
+							</div>
+						{/if}
+						{#if t.signatures.length === 0}
+							<div>
+								<dt>
+									Signatures
+								</dt>
+								<dd>
+									<p data-text="muted">No signatures found for this topic.</p>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
 		</dl>
 	{/snippet}
 
@@ -95,35 +128,7 @@
 		<EntityDetails
 			entityType={EntityType.EvmTopic}
 			{entityId}
-		>
-			<section>
-				<dl>
-					<div>
-						<dt>
-							Signatures
-						</dt>
-						<dd>
-							<ResourceBoundary
-								resource={topic}
-								placeholderText="Loading signatures…"
-							>
-								{#snippet children(t)}
-									{#if t.signatures.length > 0}
-										<ul>
-										{#each t.signatures as sig (sig)}
-												<li><code>{sig}</code></li>
-											{/each}
-										</ul>
-									{:else}
-										<p data-text="muted">No signatures found for this topic.</p>
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				</dl>
-			</section>
-		</EntityDetails>
+		/>
 
 		{#if children}
 			{@render children()}

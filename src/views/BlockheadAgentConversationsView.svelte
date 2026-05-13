@@ -95,8 +95,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: conversation, isPlaceholder })}
-		{#if isPlaceholder === false}
+	{#snippet Item({ item: conversation })}
+		{#if conversation}
 			<BlockheadAgentConversationView
 				entityId={{
 					id: conversation[EntityMetaKey.Id].id,

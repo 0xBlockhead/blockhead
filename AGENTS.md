@@ -320,6 +320,7 @@
 		{/if}
 		```
 		- (Only wrap in `{#if true}` to distinguish from sibling markup)
+	- List `Item` snippets (`UnorderedList`, `OrderedList`, `RefinableList`, …): only destructure or branch on `isPlaceholder` when the snippet **renders** placeholder-specific UI for `isPlaceholder === true`. If you only render real rows, gate on `item` (e.g. `{#if item}`) instead of `{#if isPlaceholder === false}` with no placeholder branch — placeholder rows omit `item`.
 
 - `{@const}`: prefer inlining one-off derived logic into markup with `{@const}`; `{@const}` must be immediate child of `{#snippet}`, `{#if}`, `{:else if}`, `{:else}`, `{#each}`, `{:then}`, `{:catch}`, `<svelte:fragment>`, `<svelte:boundary>`, or `<Component>`
 
@@ -586,7 +587,7 @@ Built-in TanStack behavior:
 - `queryCollectionOptions({ syncMode: 'on-demand' })` turns each live-query subset into a TanStack Query observer and gives the query function `meta.loadSubsetOptions`.
 - `persistedCollectionOptions(...)` hydrates matching rows from OPFS before delegating to the upstream on-demand loader.
 - TanStack owns query keys, stale/cache state, row persistence, row ownership metadata for non-empty query results, collection metadata persistence, and OPFS hydration.
-- `persistedGcTime: Number.POSITIVE_INFINITY` and `staleTime: Number.POSITIVE_INFINITY` mean persisted rows and query results should not expire during normal app use.
+- `persistedGcTime: Number.POSITIVE_INFINITY` and `staleTime: Number.POSITIVE_INFINITY` mean persisted rows and query results should not expire during normal app use. Keep both infinite unless a replacement refresh/expiry path is verified against warm reloads; a finite `staleTime` has previously caused immediate warm-reload refetches.
 
 Local behavior in `persistOnDemandSubsets(...)`:
 
@@ -601,7 +602,7 @@ Verification:
 
 - Use `tests/e2e/tanstack-db-persistence.e2e.ts` for real-request OPFS persistence checks. It clears OPFS from a same-origin blank page, cold-loads discovered views, records real Chainlist / EthereumLists catalog requests, reloads with those catalog URLs blocked, and fails if warm reload tries to request them again.
 - Real-network suites may need provider-specific noise filtering for unrelated upstream 400/404/422/fetch failures, but must not filter Chainlist / EthereumLists catalog requests during the warm reload assertion.
-- Current focused status from the latest type-cleanup pass: `/network/1` passes the real OPFS persistence test, while `/networks` still repeats Chainlist / EthereumLists warm-reload requests and needs follow-up before claiming all-view persistence is fixed.
+- Current focused status: `/network/1` and `/networks` pass the real TanStack DB persistence test together.
 
 
 ---
@@ -610,7 +611,9 @@ Verification:
 
 - Entity pages (`EntityView`, resource-backed views): Keep user-facing depth that still matters from older layouts (topology, execution RPCs/clients, explorers, related networks, forks, faucets, head block/epoch where applicable) while staying aligned with current schema field names (for example `$$blocks`, not stale or invented keys).
 - Section chrome: Render a block only when it has meaningful payload; gate on the smallest truthful checks (`length`, `undefined`, domain-backed flags). Avoid technical placeholder copy whose only role is to fill space.
-- Summary vs details: If a row already appears in the summary `<dl>`, do not repeat the same row in the details `<dl>`.
+- **`EntityView` + `<dl>` (required):** At most **one** `<dl>` per card, and it must appear **only** in the `Content` snippet. Do not use `<dl>` inside `Details` or other detail-only sections; put extra metadata as additional rows in that same `Content` `<dl>` (with `{#if open}` when rows should only show when expanded). Each optional row is its **own** `{#if}…{/if}` (one row per guard). Do not use a single `{#if}` wrapping multiple rows. Do not use one `{#if}` with compound conditions like `open && x`; use **nested** `{#if}` blocks instead. A nested `<EntityView>` (e.g. inline entity link) is its own card and may have its own `Content` `<dl>` — the limit is per `EntityView` instance, not the whole page.
+- **`<dl>` vs heading:** Do not add `<dl>` rows that repeat fields already shown in the `EntityView` heading (linked title, subtitle line, icon-backed identity, badges or labels rendered in the title row). Surface that information in the heading **or** in the `<dl>`, not both.
+- **`<dl>` vs parent id:** On nested or scoped child cards, do not add `<dl>` rows for id fields that belong to the **parent** entity or that duplicate components already present on the child’s own id object (the parent route or enclosing context already establishes them). Omit those redundant id slices from the summary `<dl>`.
 - `useEntity` selection: Prefer hierarchical resolver/source inheritance (a concise top-level `$` source list; nested field entries use `{}` where children inherit) instead of repeating the same `$` on every nested property when the model allows it. Prefer inlining short `$derived` values and colocating `{#if}` conditions beside the markup they guard over one shared visibility object unless branches genuinely share the same decision.
 - Title / media: When the loaded entity exposes artwork (for example `$icon`), show it in the title row using the existing `Icon` snippet plus shared icon components (`IconComponent`, etc.), matching patterns from other entity views.
 - `EntityView` / `EntitySummary` snippet contracts: For bundled context (`Content`, `Details`, summary `children`), use an optional first tuple parameter with optional object fields (for example `Snippet<[context?: { title?: string, href?: string }]>` and `Snippet<[context?: { open?: boolean }]>`). Call sites that ignore the bundle may use `{#snippet Content()}` / `{#snippet Details()}` instead of destructuring unused bindings.

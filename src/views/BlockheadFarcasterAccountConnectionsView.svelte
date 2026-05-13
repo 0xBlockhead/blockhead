@@ -81,8 +81,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: row, isPlaceholder })}
-		{#if isPlaceholder === false}
+	{#snippet Item({ item: row })}
+		{#if row}
 			<BlockheadFarcasterAccountConnectionView
 				entityId={{ fid: row[EntityMetaKey.Id].fid }}
 				href={resolve('/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]', {

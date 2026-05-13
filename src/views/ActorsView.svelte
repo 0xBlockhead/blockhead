@@ -103,7 +103,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const aid = props.item.value[EntityMetaKey.Id]}
 			<ActorView
 				entityId={aid}

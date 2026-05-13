@@ -132,7 +132,7 @@
 				{/snippet}
 
 				{#snippet Item(props)}
-					{#if props.isPlaceholder === false}
+					{#if props.item}
 						<LensPostView
 							entityId={{ id: props.item[EntityMetaKey.Id].id }}
 							href={resolve('/(social)/lens/post/[postId]', {

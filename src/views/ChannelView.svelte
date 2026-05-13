@@ -107,16 +107,82 @@
 							<dd>{c.status}</dd>
 						</div>
 					{/if}
-					{#if c.updatedAt !== undefined || c.createdAt !== undefined}
+					{#if c.updatedAt !== undefined}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
 								<Timestamp
-									timestamp={c.updatedAt ?? c.createdAt}
+									timestamp={c.updatedAt}
 									format={TimestampFormat.Both}
 								/>
 							</dd>
 						</div>
+					{:else}
+						{#if c.createdAt !== undefined}
+							<div>
+								<dt>Timestamp</dt>
+								<dd>
+									<Timestamp
+										timestamp={c.createdAt}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if c.totalDeposited !== undefined}
+							<div>
+								<dt>Total deposited</dt>
+								<dd>{String(c.totalDeposited)}</dd>
+							</div>
+						{/if}
+						{#if c.balance0 !== undefined}
+							<div>
+								<dt>Balance 0</dt>
+								<dd>{String(c.balance0)}</dd>
+							</div>
+						{/if}
+						{#if c.balance1 !== undefined}
+							<div>
+								<dt>Balance 1</dt>
+								<dd>{String(c.balance1)}</dd>
+							</div>
+						{/if}
+						{#if c.turnNum !== undefined}
+							<div>
+								<dt>Turn</dt>
+								<dd>{String(c.turnNum)}</dd>
+							</div>
+						{/if}
+						{#if c.status !== undefined}
+							<div>
+								<dt>Status</dt>
+								<dd>{c.status}</dd>
+							</div>
+						{/if}
+						{#if c.createdAt !== undefined}
+							<div>
+								<dt>Created at</dt>
+								<dd>
+									<Timestamp
+										timestamp={c.createdAt}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
+							</div>
+						{/if}
+						{#if c.updatedAt !== undefined}
+							<div>
+								<dt>Updated at</dt>
+								<dd>
+									<Timestamp
+										timestamp={c.updatedAt}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
+							</div>
+						{/if}
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
@@ -132,83 +198,33 @@
 			<EntityDetails
 				entityType={EntityType.StateChannel}
 				{entityId}
+			/>
+			<ResourceBoundary
+				resource={channel}
+				placeholderText="Loading channel…"
 			>
-				<ResourceBoundary
-					resource={channel}
-					placeholderText="Loading channel…"
-				>
-					{#snippet children(c)}
-						<dl>
-							{#if c.totalDeposited !== undefined}
-								<div>
-									<dt>Total deposited</dt>
-									<dd>{String(c.totalDeposited)}</dd>
-								</div>
+				{#snippet children(c)}
+					{#if open}
+						{#if c.totalDeposited === undefined}
+							{#if c.balance0 === undefined}
+								{#if c.balance1 === undefined}
+									{#if c.turnNum === undefined}
+										{#if c.status === undefined}
+											{#if c.createdAt === undefined}
+												{#if c.updatedAt === undefined}
+													<p data-text="muted">
+														No channel details are available yet.
+													</p>
+												{/if}
+											{/if}
+										{/if}
+									{/if}
+								{/if}
 							{/if}
-							{#if c.balance0 !== undefined}
-								<div>
-									<dt>Balance 0</dt>
-									<dd>{String(c.balance0)}</dd>
-								</div>
-							{/if}
-							{#if c.balance1 !== undefined}
-								<div>
-									<dt>Balance 1</dt>
-									<dd>{String(c.balance1)}</dd>
-								</div>
-							{/if}
-							{#if c.turnNum !== undefined}
-								<div>
-									<dt>Turn</dt>
-									<dd>{String(c.turnNum)}</dd>
-								</div>
-							{/if}
-							{#if c.status !== undefined}
-								<div>
-									<dt>Status</dt>
-									<dd>{c.status}</dd>
-								</div>
-							{/if}
-							{#if c.createdAt !== undefined}
-								<div>
-									<dt>Created at</dt>
-									<dd>
-										<Timestamp
-											timestamp={c.createdAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-							{#if c.updatedAt !== undefined}
-								<div>
-									<dt>Updated at</dt>
-									<dd>
-										<Timestamp
-											timestamp={c.updatedAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-						</dl>
-
-						{#if (
-							c.totalDeposited === undefined
-							&& c.balance0 === undefined
-							&& c.balance1 === undefined
-							&& c.turnNum === undefined
-							&& c.status === undefined
-							&& c.createdAt === undefined
-							&& c.updatedAt === undefined
-						)}
-							<p data-text="muted">
-								No channel details are available yet.
-							</p>
 						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntityView>

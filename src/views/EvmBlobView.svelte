@@ -104,8 +104,10 @@
 			{#snippet children(b)}
 				<dl>
 					<div>
-						<dt>Chain id</dt>
-						<dd>{String(entityId.$network.chainId)}</dd>
+						<dt>Blob index</dt>
+						<dd>
+							<NumberValue value={entityId.blobIndex} />
+						</dd>
 					</div>
 					{#if b.versionedHash !== undefined}
 						<div>
@@ -118,6 +120,27 @@
 							</dd>
 						</div>
 					{/if}
+					{#if open}
+						<div>
+							<dt>Transaction</dt>
+							<dd>
+								<a
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+										{
+											networkId: String(entityId.$network.chainId),
+											transactionId: entityId.txHash,
+										},
+									)}
+								>
+									<TruncatedValue
+										value={entityId.txHash}
+										format={TruncatedValueFormat.Abbr}
+									/>
+								</a>
+							</dd>
+						</div>
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -127,36 +150,7 @@
 		<EntityDetails
 			entityType={EntityType.EvmBlob}
 			{entityId}
-		>
-			<dl>
-				<div>
-					<dt>Blob index</dt>
-					<dd>
-						<NumberValue value={entityId.blobIndex} />
-					</dd>
-				</div>
-				<div>
-					<dt>Transaction</dt>
-					<dd>
-						<a
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
-								{
-									networkId: String(entityId.$network.chainId),
-									transactionId: entityId.txHash,
-								},
-							)}
-						>
-							<TruncatedValue
-								value={entityId.txHash}
-								format={TruncatedValueFormat.Abbr}
-							/>
-						</a>
-					</dd>
-				</div>
-			</dl>
-
-		</EntityDetails>
+		/>
 
 		{#if children}
 			{@render children()}

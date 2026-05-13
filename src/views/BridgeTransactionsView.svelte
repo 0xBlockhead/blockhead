@@ -115,9 +115,8 @@
 
 	{#snippet Item({
 		item: row,
-		isPlaceholder,
 	})}
-		{#if isPlaceholder === false}
+		{#if row}
 			{@const id = row.value[EntityMetaKey.Id]}
 			<BridgeTransactionView
 				entityId={id}

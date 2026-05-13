@@ -25,9 +25,9 @@ export default {
 			defaultSources: [Source.Chainlist_Rest, Source.EthereumLists_Rest],
 		},
 		{
-			name: '$$networkForks',
+			name: '$$networkUpgrades',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.NetworkFork,
+			entityType: EntityType.NetworkUpgrade,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [Source.Constants_Internal],
 		},

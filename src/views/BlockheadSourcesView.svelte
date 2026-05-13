@@ -97,8 +97,8 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListRest}
 >
-	{#snippet Item({ item: envelope, isPlaceholder })}
-		{#if isPlaceholder === false}
+	{#snippet Item({ item: envelope })}
+		{#if envelope}
 			<BlockheadSourceView
 				layout={EntityLayout.Summary}
 				open={false}

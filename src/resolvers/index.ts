@@ -30,6 +30,7 @@ import OpenchainRestResolvers from '$/resolvers/Openchain-Rest.ts'
 import RedditRestResolvers from '$/resolvers/Reddit-Rest.ts'
 import SnapchainRestResolvers from '$/resolvers/Snapchain-Rest.ts'
 import SourcifyRestResolvers from '$/resolvers/Sourcify-Rest.ts'
+import SuperchainGithubResolvers from '$/resolvers/Superchain-Github.ts'
 import SwarmRestResolvers from '$/resolvers/Swarm-Rest.ts'
 import TradingViewRestResolvers from '$/resolvers/TradingView-Rest.ts'
 import VoltaireJsonRpcResolvers from '$/resolvers/Voltaire-JsonRpc.ts'
@@ -66,6 +67,7 @@ const enabledResolverModulesAfterSourceGate = (
 		RedditRestResolvers,
 		SnapchainRestResolvers,
 		SourcifyRestResolvers,
+		SuperchainGithubResolvers,
 		SwarmRestResolvers,
 		TradingViewRestResolvers,
 		VoltaireJsonRpcResolvers,

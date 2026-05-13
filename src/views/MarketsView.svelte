@@ -116,7 +116,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			<MarketView
 				entityId={props.item[EntityMetaKey.Id]}
 				href={resolve(

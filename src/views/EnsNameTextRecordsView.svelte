@@ -116,7 +116,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const recordLabel = getEnsTextRecordLabel(props.item)}
 			<a
 				data-link

@@ -101,17 +101,11 @@
 	{...entityViewRest}
 	title="Farcaster"
 >
-	{#snippet Details({
-		open: _open,
-	})}
-		{@const networkIdKey = stringify(entityId)}
-		<EntityDetails
-			entityType={EntityType.FarcasterNetwork}
-			{entityId}
-		>
-			<ResourceBoundary resource={network}>
-				{#snippet children(n)}
-					<dl>
+	{#snippet Content({ title: _title, href: _href })}
+		<dl>
+			{#if open}
+				<ResourceBoundary resource={network}>
+					{#snippet children(n)}
 						<div>
 							<dt>Scope</dt>
 							<dd>{entityId.scope}</dd>
@@ -158,20 +152,28 @@
 								<dd>{n.topology}</dd>
 							</div>
 						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-			<ResourceBoundary resource={trending}>
-				{#snippet children(t)}
-					<dl>
+					{/snippet}
+				</ResourceBoundary>
+				<ResourceBoundary resource={trending}>
+					{#snippet children(t)}
 						<div>
 							<dt>Trending entries</dt>
 							<dd>{String(t.$$entries.length)}</dd>
 						</div>
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+		</dl>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		{@const networkIdKey = stringify(entityId)}
+		<EntityDetails
+			entityType={EntityType.FarcasterNetwork}
+			{entityId}
+		/>
 
 		<div data-column="gap-3">
 			<Collapsible

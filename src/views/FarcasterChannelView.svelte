@@ -125,37 +125,7 @@
 								<dd>{_channel.publicCasting ? 'Yes' : 'No'}</dd>
 							</div>
 						{/if}
-					</dl>
-					{#if _channel.description !== undefined}
-						<p data-text="muted">
-							{_channel.description}
-						</p>
-					{/if}
-				</div>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		<EntityDetails
-			entityType={EntityType.FarcasterChannel}
-			{entityId}
-		>
-			<ResourceBoundary resource={channel}>
-				{#snippet children(_channel)}
-					<section data-column>
-						<h3>Channel</h3>
-						{#if _channel.$headerImage?.[EntityMetaKey.Id].url !== undefined}
-							<p>
-								<Media
-									media={{ url: _channel.$headerImage[EntityMetaKey.Id].url }}
-									fit="cover"
-								/>
-							</p>
-						{/if}
-						<dl>
+						{#if open}
 							{#if _channel.name !== undefined}
 								<div>
 									<dt>Name</dt>
@@ -180,41 +150,47 @@
 									<dd>{_channel.description}</dd>
 								</div>
 							{/if}
-							{#if _channel.$icon?.[EntityMetaKey.Id].url !== undefined}
-								<div>
-									<dt>Logo</dt>
-									<dd data-column>
-										<Media
-											media={{ url: _channel.$icon[EntityMetaKey.Id].url }}
-											alt=""
-										/>
-										<a href={_channel.$icon[EntityMetaKey.Id].url}>{_channel.$icon[EntityMetaKey.Id].url}</a>
-									</dd>
-								</div>
+							{#if _channel.$icon !== undefined}
+								{#if _channel.$icon[EntityMetaKey.Id].url !== undefined}
+									<div>
+										<dt>Logo</dt>
+										<dd data-column>
+											<Media
+												media={{ url: _channel.$icon[EntityMetaKey.Id].url }}
+												alt=""
+											/>
+											<a href={_channel.$icon[EntityMetaKey.Id].url}>{_channel.$icon[EntityMetaKey.Id].url}</a>
+										</dd>
+									</div>
+								{/if}
 							{/if}
-							{#if _channel.$lead?.[EntityMetaKey.Id].fid !== undefined}
-								<div>
-									<dt>Lead</dt>
-									<dd>
-										<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-											userId: String(_channel.$lead[EntityMetaKey.Id].fid),
-										})}>
-											FID {String(_channel.$lead[EntityMetaKey.Id].fid)}
-										</a>
-									</dd>
-								</div>
+							{#if _channel.$lead !== undefined}
+								{#if _channel.$lead[EntityMetaKey.Id].fid !== undefined}
+									<div>
+										<dt>Lead</dt>
+										<dd>
+											<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+												userId: String(_channel.$lead[EntityMetaKey.Id].fid),
+											})}>
+												FID {String(_channel.$lead[EntityMetaKey.Id].fid)}
+											</a>
+										</dd>
+									</div>
+								{/if}
 							{/if}
-							{#if _channel.$moderator?.[EntityMetaKey.Id].fid !== undefined}
-								<div>
-									<dt>Moderator</dt>
-									<dd>
-										<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-											userId: String(_channel.$moderator[EntityMetaKey.Id].fid),
-										})}>
-											FID {String(_channel.$moderator[EntityMetaKey.Id].fid)}
-										</a>
-									</dd>
-								</div>
+							{#if _channel.$moderator !== undefined}
+								{#if _channel.$moderator[EntityMetaKey.Id].fid !== undefined}
+									<div>
+										<dt>Moderator</dt>
+										<dd>
+											<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+												userId: String(_channel.$moderator[EntityMetaKey.Id].fid),
+											})}>
+												FID {String(_channel.$moderator[EntityMetaKey.Id].fid)}
+											</a>
+										</dd>
+									</div>
+								{/if}
 							{/if}
 							{#if _channel.$$moderators.length}
 								<div>
@@ -260,12 +236,6 @@
 									</dd>
 								</div>
 							{/if}
-							{#if _channel.publicCasting !== undefined}
-								<div>
-									<dt>Public casting</dt>
-									<dd>{_channel.publicCasting ? 'Yes' : 'No'}</dd>
-								</div>
-							{/if}
 							{#if _channel.externalLinkUrl !== undefined}
 								<div>
 									<dt>External link</dt>
@@ -287,23 +257,42 @@
 									</dd>
 								</div>
 							{/if}
-							{#if _channel.followerCount !== undefined}
-								<div>
-									<dt>Followers</dt>
-									<dd>{String(_channel.followerCount)}</dd>
-								</div>
-							{/if}
-							{#if _channel.memberCount !== undefined}
-								<div>
-									<dt>Members</dt>
-									<dd>{String(_channel.memberCount)}</dd>
-								</div>
-							{/if}
-						</dl>
-					</section>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+						{/if}
+					</dl>
+					{#if _channel.description !== undefined}
+						{#if !open}
+							<p data-text="muted">
+								{_channel.description}
+							</p>
+						{/if}
+					{/if}
+				</div>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details()}
+		<EntityDetails
+			entityType={EntityType.FarcasterChannel}
+			{entityId}
+		/>
+		<ResourceBoundary resource={channel}>
+			{#snippet children(_channel)}
+				<section data-column>
+					<h3>Channel</h3>
+					{#if _channel.$headerImage !== undefined}
+						{#if _channel.$headerImage[EntityMetaKey.Id].url !== undefined}
+							<p>
+								<Media
+									media={{ url: _channel.$headerImage[EntityMetaKey.Id].url }}
+									fit="cover"
+								/>
+							</p>
+						{/if}
+					{/if}
+				</section>
+			{/snippet}
+		</ResourceBoundary>
 
 		{#if children}
 			{@render children()}

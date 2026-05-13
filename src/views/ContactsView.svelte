@@ -100,7 +100,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			<ContactView
 				entityId={props.item.value[EntityMetaKey.Id]}
 				href={resolve('/~/(multiplayer)/multiplayer/(contacts)/contact/[contactId]', {

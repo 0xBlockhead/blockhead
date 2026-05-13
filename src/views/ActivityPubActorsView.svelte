@@ -108,7 +108,7 @@
 				{/snippet}
 
 				{#snippet Item(props)}
-					{#if props.isPlaceholder === false}
+					{#if props.item}
 						{@const actorId = props.item[EntityMetaKey.Id]}
 						<ActivityPubActorView
 							entityId={{

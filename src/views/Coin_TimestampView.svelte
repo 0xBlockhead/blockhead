@@ -108,6 +108,18 @@
 							/>
 						</dd>
 					</div>
+					{#if open}
+						{#if live.totalSupply !== undefined}
+							<div>
+								<dt>Total supply</dt>
+								<dd>{String(live.totalSupply)}</dd>
+							</div>
+						{/if}
+						<div>
+							<dt>Timestamp (ns)</dt>
+							<dd>{String(entityId.timestampNs)}</dd>
+						</div>
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -119,24 +131,7 @@
 		<EntityDetails
 			entityType={EntityType.Coin_Timestamp}
 			{entityId}
-		>
-			<ResourceBoundary resource={coinTimestamp}>
-				{#snippet children(live)}
-					<dl>
-						{#if live.totalSupply !== undefined}
-							<div>
-								<dt>Total supply</dt>
-								<dd>{String(live.totalSupply)}</dd>
-							</div>
-						{/if}
-						<div>
-							<dt>Timestamp (ns)</dt>
-							<dd>{String(entityId.timestampNs)}</dd>
-						</div>
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+		/>
 
 		<section>
 			<h2>

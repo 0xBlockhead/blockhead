@@ -70,46 +70,22 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={ensText}>
 			{#snippet children(snapshot)}
+				{@const entries = (
+					snapshot.textRecords === undefined ?
+						[]
+					:
+						Object.entries(snapshot.textRecords).toSorted(([a], [b]) => (
+							a.localeCompare(b)
+						))
+				)}
 				<dl>
 					<div>
 						<dt>Text records</dt>
 						<dd>{String(Object.keys(snapshot.textRecords ?? {}).length)}</dd>
 					</div>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		{#if children}
-			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.EnsName}
-				{entityId}
-			>
-				<ResourceBoundary resource={ensText}>
-					{#snippet children(snapshot)}
-						{@const entries = (
-							snapshot.textRecords === undefined ?
-								[]
-							:
-								Object.entries(snapshot.textRecords).toSorted(([a], [b]) => (
-									a.localeCompare(b)
-								))
-						)}
-						{#if snapshot.textRecords === undefined}
-							<p data-text="muted">
-								No records available yet.
-							</p>
-						{:else if entries.length === 0}
-							<p data-text="muted">
-								No text records found.
-							</p>
-						{:else}
-							<dl>
+					{#if open}
+						{#if snapshot.textRecords !== undefined}
+							{#if entries.length > 0}
 								{#each entries as [key, value] (key)}
 									<div>
 										<dt>
@@ -126,11 +102,37 @@
 										</dd>
 									</div>
 								{/each}
-							</dl>
+							{/if}
 						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
+					{/if}
+				</dl>
+				{#if open}
+					{#if snapshot.textRecords === undefined}
+						<p data-text="muted">
+							No records available yet.
+						</p>
+					{:else}
+						{#if entries.length === 0}
+							<p data-text="muted">
+								No text records found.
+							</p>
+						{/if}
+					{/if}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		{#if children}
+			{@render children()}
+		{:else}
+			<EntityDetails
+				entityType={EntityType.EnsName}
+				{entityId}
+			/>
 		{/if}
 	{/snippet}
 </EntityView>

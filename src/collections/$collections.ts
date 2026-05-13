@@ -260,8 +260,8 @@ const subsetFilterEntityId = (value: unknown): unknown => (
  */
 const collectionStaleTime = Number.POSITIVE_INFINITY
 
-/** Keep persisted rows in OPFS for a week so revisits hydrate without re-fetching upstream. */
-const collectionPersistedGcTime = 7 * 24 * 60 * 60 * 1000
+/** Keep persisted rows in OPFS until schema/version changes so revisits hydrate without re-fetching upstream. */
+const collectionPersistedGcTime = Number.POSITIVE_INFINITY
 
 
 type ParsedLoadSubset = ReturnType<typeof parseLoadSubsetOptions>

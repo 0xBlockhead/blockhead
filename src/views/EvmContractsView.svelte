@@ -125,7 +125,7 @@
 				{/snippet}
 
 				{#snippet Item(props)}
-					{#if props.isPlaceholder === false}
+					{#if props.item}
 						<ContractView
 							entityId={props.item[EntityMetaKey.Id]}
 							href={resolve(

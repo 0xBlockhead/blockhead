@@ -6,20 +6,19 @@
 
 
 	// Components
+	import NetworkUpgradesView from '$/views/NetworkUpgradesView.svelte'
 	import Page from '$/components/Page.svelte'
-	import NetworkForksView from '$/views/NetworkForksView.svelte'
 </script>
 
 
 <Page>
-		<NetworkForksView
+	<NetworkUpgradesView
 		entityFieldReference={{
 			entityType: EntityType._Global,
 			entityId: {},
-			fieldName: '$$networkForks',
+			fieldName: '$$networkUpgrades',
 		}}
-		href={resolve('/forks')}
-		id="forks"
+		href={resolve('/upgrades')}
+		id="upgrades"
 	/>
 </Page>
-

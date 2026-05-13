@@ -80,6 +80,36 @@
 						<dt>Posts</dt>
 						<dd>{String(u.$$redditLinks.length)}</dd>
 					</div>
+					{#if open}
+						<div>
+							<dt>Protocol name</dt>
+							<dd>{String(u.protocolName ?? 'Reddit')}</dd>
+						</div>
+					{/if}
+					{#if open}
+						<div>
+							<dt>Home</dt>
+							<dd>
+								<a href={String(u.homeUrl ?? '#')}>
+									{String(u.homeUrl ?? '—')}
+								</a>
+							</dd>
+						</div>
+					{/if}
+					{#if open}
+						{#if u.docsUrl != null}
+							{#if u.docsUrl !== ''}
+								<div>
+									<dt>Docs</dt>
+									<dd>
+										<a href={u.docsUrl}>
+											{u.docsUrl}
+										</a>
+									</dd>
+								</div>
+							{/if}
+						{/if}
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -91,39 +121,7 @@
 		<EntityDetails
 			entityType={EntityType.RedditNetwork}
 			{entityId}
-		>
-			<ResourceBoundary
-				resource={redditNetwork}
-				placeholderText="Loading Reddit…"
-			>
-				{#snippet children(u)}
-					<dl>
-						<div>
-							<dt>Protocol name</dt>
-							<dd>{String(u.protocolName ?? 'Reddit')}</dd>
-						</div>
-						<div>
-							<dt>Home</dt>
-							<dd>
-								<a href={String(u.homeUrl ?? '#')}>
-									{String(u.homeUrl ?? '—')}
-								</a>
-							</dd>
-						</div>
-						{#if u.docsUrl != null && u.docsUrl !== ''}
-							<div>
-								<dt>Docs</dt>
-								<dd>
-									<a href={u.docsUrl}>
-										{u.docsUrl}
-									</a>
-								</dd>
-							</div>
-						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+		/>
 
 		<div data-column="gap-3">
 			<Collapsible

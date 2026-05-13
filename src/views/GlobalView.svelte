@@ -53,6 +53,7 @@
 			| 'href'
 			| 'open'
 			| 'Details'
+			| 'Content'
 		>
 	> = $props()
 
@@ -85,6 +86,36 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary resource={duneUsage}>
+			{#snippet children(global)}
+				<div data-column="gap-2">
+					{#if global.duneCreditsUsed === undefined}
+						{#if global.duneCreditsIncluded === undefined}
+							<p data-text="muted">
+								Usage totals are not available yet.
+							</p>
+						{/if}
+					{/if}
+					<dl>
+						{#if global.duneCreditsUsed !== undefined}
+							<div>
+								<dt>Dune credits used</dt>
+								<dd>{String(global.duneCreditsUsed)}</dd>
+							</div>
+						{/if}
+						{#if global.duneCreditsIncluded !== undefined}
+							<div>
+								<dt>Dune credits included</dt>
+								<dd>{String(global.duneCreditsIncluded)}</dd>
+							</div>
+						{/if}
+					</dl>
+				</div>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Details()}
 		{#if children}
 			{@render children()}
@@ -92,36 +123,11 @@
 			<EntityDetails
 				entityType={EntityType._Global}
 				{entityId}
-			>
-				<p data-text="muted">
-					Shared app settings and usage totals.
-				</p>
+			/>
 
-				<ResourceBoundary resource={duneUsage}>
-					{#snippet children(global)}
-						<dl>
-							{#if global.duneCreditsUsed !== undefined}
-								<div>
-									<dt>Dune credits used</dt>
-									<dd>{String(global.duneCreditsUsed)}</dd>
-								</div>
-							{/if}
-							{#if global.duneCreditsIncluded !== undefined}
-								<div>
-									<dt>Dune credits included</dt>
-									<dd>{String(global.duneCreditsIncluded)}</dd>
-								</div>
-							{/if}
-						</dl>
-
-						{#if global.duneCreditsUsed === undefined && global.duneCreditsIncluded === undefined}
-							<p data-text="muted">
-								Usage totals are not available yet.
-							</p>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
+			<p data-text="muted">
+				Shared app settings and usage totals.
+			</p>
 
 			<UnorderedList
 				items={
@@ -171,8 +177,8 @@
 				placeholderKeys={new SvelteSet()}
 				orientation={ListOrientation.Column}
 			>
-				{#snippet Item({ item, isPlaceholder })}
-					{#if isPlaceholder === false}
+				{#snippet Item({ item })}
+					{#if item}
 						{#if item.key === 'self'}
 							<a href={resolve(href as `/${string}`)}>
 								{item.label}

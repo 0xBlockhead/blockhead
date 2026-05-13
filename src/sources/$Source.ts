@@ -40,6 +40,7 @@ export enum Source {
 	Reddit_Rest = 'Reddit_Rest',
 	Snapchain_Rest = 'Snapchain_Rest',
 	Sourcify_Rest = 'Sourcify_Rest',
+	Superchain_Github = 'Superchain_Github',
 	Swarm_Rest = 'Swarm_Rest',
 	TheGraph_Graphql = 'TheGraph_Graphql',
 	TradingView_Rest = 'TradingView_Rest',

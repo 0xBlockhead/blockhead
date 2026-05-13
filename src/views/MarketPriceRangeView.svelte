@@ -131,7 +131,15 @@
 					:	ohlcRangePayloadToEntities(r.rangePayload, entityId)
 				)}
 				{@const latest = ordered.at(-1)}
-				{#if r.pointCount !== undefined || latest?.close !== undefined}
+				{@const hasDlRow = (
+					r.pointCount !== undefined
+					|| latest?.close !== undefined
+					|| (
+						open
+						&& latest !== undefined
+					)
+				)}
+				{#if hasDlRow}
 					<dl>
 						{#if r.pointCount !== undefined}
 							<div>
@@ -144,6 +152,14 @@
 								<dt>Latest close</dt>
 								<dd>{String(Number(latest.close) / 1e8)}</dd>
 							</div>
+						{/if}
+						{#if open}
+							{#if latest !== undefined}
+								<div>
+									<dt>Latest timestamp (ns)</dt>
+									<dd>{String(latest[EntityMetaKey.Id].timestampNs)}</dd>
+								</div>
+							{/if}
 						{/if}
 					</dl>
 				{:else}
@@ -159,7 +175,7 @@
 		<EntityDetails
 			entityType={EntityType.MarketPriceRange}
 			{entityId}
-		>
+		/>
 			<ResourceBoundary
 				resource={rangeLive}
 				placeholderText="Loading range…"
@@ -170,7 +186,6 @@
 							[]
 						:	ohlcRangePayloadToEntities(r.rangePayload, entityId)
 					)}
-					{@const latest = ordered.at(-1)}
 					{@const chartMin = (
 						ordered.length === 0 ?
 							0
@@ -189,15 +204,6 @@
 								)),
 							)
 					)}
-					{#if latest !== undefined}
-						<dl>
-							<div>
-								<dt>Latest timestamp (ns)</dt>
-								<dd>{String(latest[EntityMetaKey.Id].timestampNs)}</dd>
-							</div>
-						</dl>
-					{/if}
-
 					{#if ordered.length > 0}
 						<MarketTimeIntervalTimestampChart
 							max={chartMax}
@@ -213,7 +219,6 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-		</EntityDetails>
 
 		<section>
 			<h2>

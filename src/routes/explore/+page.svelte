@@ -8,8 +8,8 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import GlobalView from '$/views/GlobalView.svelte'
-	import NetworkForksView from '$/views/NetworkForksView.svelte'
 	import NetworksView from '$/views/NetworksView.svelte'
+	import NetworkUpgradesView from '$/views/NetworkUpgradesView.svelte'
 	import ProposalRealmsView from '$/views/ProposalRealmsView.svelte'
 </script>
 
@@ -34,14 +34,14 @@
 		</section>
 
 		<section>
-			<NetworkForksView
+			<NetworkUpgradesView
 				entityFieldReference={{
 					entityType: EntityType._Global,
 					entityId: {},
-					fieldName: '$$networkForks',
+					fieldName: '$$networkUpgrades',
 				}}
-				href={resolve('/forks')}
-				id="forks"
+				href={resolve('/upgrades')}
+				id="upgrades"
 			/>
 		</section>
 

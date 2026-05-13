@@ -142,12 +142,30 @@
 		title: _contentTitle,
 		href: _contentHref,
 	})}
-		<dl>
-			<div>
-				<dt>Coin id</dt>
-				<dd>{entityId.coinId}</dd>
-			</div>
-		</dl>
+		<ResourceBoundary resource={coinIdentity}>
+			{#snippet children(live)}
+				<dl>
+					<div>
+						<dt>Coin id</dt>
+						<dd>{entityId.coinId}</dd>
+					</div>
+					{#if open}
+						{#if live.name !== undefined}
+							<div>
+								<dt>Name</dt>
+								<dd>{live.name}</dd>
+							</div>
+						{/if}
+						{#if live.decimals !== undefined}
+							<div>
+								<dt>Decimals</dt>
+								<dd>{String(live.decimals)}</dd>
+							</div>
+						{/if}
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -161,26 +179,7 @@
 		<EntityDetails
 			entityType={EntityType.Coin}
 			{entityId}
-		>
-			<ResourceBoundary resource={coinIdentity}>
-				{#snippet children(live)}
-					<dl>
-						{#if live.name !== undefined}
-							<div>
-								<dt>Name</dt>
-								<dd>{live.name}</dd>
-							</div>
-						{/if}
-						{#if live.decimals !== undefined}
-							<div>
-								<dt>Decimals</dt>
-								<dd>{String(live.decimals)}</dd>
-							</div>
-						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+		/>
 
 		<div data-column="gap-3">
 			<Collapsible

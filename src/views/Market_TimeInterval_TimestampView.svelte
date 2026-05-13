@@ -124,22 +124,7 @@
 							/>
 						</dd>
 					</div>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({ open: _open })}
-		<EntityDetails
-			entityType={EntityType.Market_TimeInterval_Timestamp}
-			{entityId}
-		>
-			<ResourceBoundary
-				resource={pointLive}
-				placeholderText="Loading OHLC point…"
-			>
-				{#snippet children(pointLoaded)}
-					<dl>
+					{#if open}
 						{#if pointLoaded.open !== undefined}
 							<div>
 								<dt>Open</dt>
@@ -165,10 +150,17 @@
 							<dt>Timestamp (ns)</dt>
 							<dd>{String(entityId.timestampNs)}</dd>
 						</div>
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({ open: _open })}
+		<EntityDetails
+			entityType={EntityType.Market_TimeInterval_Timestamp}
+			{entityId}
+		/>
 
 		<section>
 			<h2>

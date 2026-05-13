@@ -102,7 +102,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const feedId = props.item.value[EntityMetaKey.Id]}
 			<FarcasterFeedView
 				entityId={feedId}

@@ -45,31 +45,64 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Network,
-			fieldName: '$$childNetworks',
+			fieldName: '$parentLayer',
+			resolve: async (entityId) => {
+				const {
+					l2beatHostChainToParentChainId,
+					l2BeatProjectIdByChainId,
+				} = await import('$/sources/L2Beat/Rest/constants.ts')
+				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
+				const projectId = l2BeatProjectIdByChainId[String(entityId.chainId)]
+				if (projectId == null) return undefined
+				const summary = await fetchScalingSummary()
+				const project = summary.projects[projectId]
+				if (project == null || project.isArchived === true) return undefined
+				const parentChainId = l2beatHostChainToParentChainId[project.hostChain]
+				if (parentChainId == null || parentChainId === entityId.chainId) return undefined
+				return {
+					[EntityMetaKey.Id]: { chainId: parentChainId },
+				}
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$childLayers',
 			resolve: async (entityId) => {
 				const {
 					chainIdByL2BeatProjectId,
-					ethereumChainId,
+					l2beatHostChainToParentChainId,
 					l2BeatProjectChainIds,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-				if (entityId.chainId !== ethereumChainId) {
-					throw new Error('L2Beat_Rest: child networks are only mapped for Ethereum')
-				}
-				const summary = await fetchScalingSummary()
-				return l2BeatProjectChainIds
-					.flatMap(({ projectId }) => {
-						const chainId = chainIdByL2BeatProjectId[projectId]
-						return (
-							chainId == null || summary.projects[projectId] == null ?
+				const parentChainId = entityId.chainId
+				const hostLabels = (
+					Object.entries(l2beatHostChainToParentChainId)
+						.flatMap(([label, chainId]) => (
+							chainId === parentChainId ?
+								[label]
+							:
 								[]
-							:	[
-								{
-									[EntityMetaKey.Id]: { chainId },
-								},
-							]
-						)
+						))
+				)
+				if (hostLabels.length === 0) return []
+				const summary = await fetchScalingSummary()
+				const chainIds = (
+					l2BeatProjectChainIds.flatMap(({ projectId }) => {
+						const chainId = chainIdByL2BeatProjectId[projectId]
+						if (chainId == null || chainId === parentChainId) return []
+						const project = summary.projects[projectId]
+						if (project == null || project.isArchived === true) return []
+						return hostLabels.includes(project.hostChain) ? [chainId] : []
 					})
+				)
+				return (
+					[...new Set(chainIds)]
+						.toSorted((chainIdA, chainIdB) => chainIdA - chainIdB)
+						.map((chainId) => ({
+							[EntityMetaKey.Id]: { chainId },
+						}))
+				)
 			},
 		}),
 	],

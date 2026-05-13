@@ -105,7 +105,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			<CoinInstanceView
 				entityId={props.item.value[EntityMetaKey.Id]}
 				{href}

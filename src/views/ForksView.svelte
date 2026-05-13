@@ -145,7 +145,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const link = forkListLink(props.item.value[EntityMetaKey.Id])}
 			<NetworkForkView
 				entityId={{

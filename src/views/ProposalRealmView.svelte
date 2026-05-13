@@ -46,6 +46,7 @@
 			| 'title'
 			| 'open'
 			| 'Details'
+			| 'Content'
 		>
 	> = $props()
 
@@ -74,41 +75,50 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Details({
-		open: _open,
-	})}
+	{#snippet Content()}
+		<ResourceBoundary resource={realm}>
+			{#snippet children(r)}
+				{#if open}
+					{#if r.slug != null}
+						{#if r.slug !== ''}
+							<dl>
+								<div>
+									<dt>Slug</dt>
+									<dd>{r.slug}</dd>
+								</div>
+							</dl>
+						{/if}
+					{/if}
+					{#if r.slug == null}
+						<p data-text="muted">No realm metadata available.</p>
+					{/if}
+					{#if r.slug != null}
+						{#if r.slug === ''}
+							<p data-text="muted">No realm metadata available.</p>
+						{/if}
+					{/if}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details()}
 		<EntityDetails
 			entityType={EntityType.ProposalRealm}
 			{entityId}
-		>
-			<ResourceBoundary resource={realm}>
-				{#snippet children(r)}
-					{#if r.slug != null && r.slug !== ''}
-						<dl>
-							<div>
-								<dt>Slug</dt>
-								<dd>{r.slug}</dd>
-							</div>
-						</dl>
-					{:else}
-						<p data-text="muted">No realm metadata available.</p>
-					{/if}
+		/>
 
-					<ProposalKindsView
-						entityFieldReference={{
-							entityType: EntityType.ProposalRealm,
-							entityId,
-							fieldName: '$$proposalKinds',
-						}}
-						{href}
-						id={`${stringify(entityId)}:proposalKinds`}
-						open={false}
-						title="Kinds"
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
-
+		<ProposalKindsView
+			entityFieldReference={{
+				entityType: EntityType.ProposalRealm,
+				entityId,
+				fieldName: '$$proposalKinds',
+			}}
+			{href}
+			id={`${stringify(entityId)}:proposalKinds`}
+			open={false}
+			title="Kinds"
+		/>
 		{#if children}
 			{@render children()}
 		{/if}

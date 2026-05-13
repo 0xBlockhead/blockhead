@@ -4,6 +4,19 @@ export const scalingSummaryPath = '/api/scaling/summary'
 
 export const ethereumChainId = 1
 
+/**
+ * L2Beat `hostChain` label → settled-on chain id (L1/L2 host for L2/L3 stacks).
+ * @see https://l2beat.com/api/scaling/summary
+ */
+export const l2beatHostChainToParentChainId: Record<string, number> = {
+	Ethereum: 1,
+	'Arbitrum One': 42161,
+	'Arbitrum Nova': 42170,
+	'Base Chain': 8453,
+	Linea: 59144,
+	Scroll: 534352,
+}
+
 export const l2BeatProjectChainIds = [
 	{ projectId: 'arbitrum', chainId: 42161 },
 	{ projectId: 'base', chainId: 8453 },
@@ -87,3 +100,10 @@ export const chainIdByL2BeatProjectId = Object.fromEntries(
 		project.chainId,
 	]),
 ) satisfies Partial<Record<string, number>>
+
+export const l2BeatProjectIdByChainId = Object.fromEntries(
+	l2BeatProjectChainIds.map((project) => [
+		String(project.chainId),
+		project.projectId,
+	]),
+) satisfies Record<string, string>

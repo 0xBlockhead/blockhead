@@ -17,8 +17,8 @@
 
 
 <ParentPageCollapsible
-	title={'Forks'}
-	href={resolve('/(explore)/(networks)/network/[networkId]/(network)/forks', params)}
+	title="Upgrades"
+	href={resolve('/(explore)/(networks)/network/[networkId]/(network)/upgrades', params)}
 	id={stringify({ chainId: Number(params.networkId) })}
 >
 	{@render children()}

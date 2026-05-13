@@ -105,10 +105,17 @@
 		>
 			{#snippet children(b)}
 				<dl>
-					<div>
-						<dt>Chain id</dt>
-						<dd>{String(entityId.$network.chainId)}</dd>
-					</div>
+					{#if entityId.hash}
+						<div>
+							<dt>Hash</dt>
+							<dd>
+								<TruncatedValue
+									value={entityId.hash}
+									format={TruncatedValueFormat.Abbr}
+								/>
+							</dd>
+						</div>
+					{/if}
 					{#if b.transactionCount !== undefined}
 						<div>
 							<dt>Transactions</dt>
@@ -128,6 +135,36 @@
 							</dd>
 						</div>
 					{/if}
+					{#if open}
+						{#if b.gasUsed !== undefined}
+							<div>
+								<dt>Gas used</dt>
+								<dd>
+									<NumberValue value={b.gasUsed} />
+								</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if b.gasLimit !== undefined}
+							<div>
+								<dt>Gas limit</dt>
+								<dd>
+									<NumberValue value={b.gasLimit} />
+								</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if b.baseFeePerGas !== undefined}
+							<div>
+								<dt>Base fee</dt>
+								<dd>
+									<NumberValue value={b.baseFeePerGas} />
+								</dd>
+							</div>
+						{/if}
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -137,55 +174,7 @@
 		<EntityDetails
 			entityType={EntityType.EvmBlock}
 			{entityId}
-		>
-			{#if entityId.hash}
-				<dl>
-					<div>
-						<dt>Hash</dt>
-						<dd>
-							<TruncatedValue
-								value={entityId.hash}
-								format={TruncatedValueFormat.Abbr}
-							/>
-						</dd>
-					</div>
-				</dl>
-			{/if}
-
-			<ResourceBoundary
-				resource={block}
-				placeholderText="Loading block…"
-			>
-				{#snippet children(b)}
-					<dl>
-						{#if b.gasUsed !== undefined}
-							<div>
-								<dt>Gas used</dt>
-								<dd>
-									<NumberValue value={b.gasUsed} />
-								</dd>
-							</div>
-						{/if}
-						{#if b.gasLimit !== undefined}
-							<div>
-								<dt>Gas limit</dt>
-								<dd>
-									<NumberValue value={b.gasLimit} />
-								</dd>
-							</div>
-						{/if}
-						{#if b.baseFeePerGas !== undefined}
-							<div>
-								<dt>Base fee</dt>
-								<dd>
-									<NumberValue value={b.baseFeePerGas} />
-								</dd>
-							</div>
-						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+		/>
 
 		<EvmTransactionsView
 			entityFieldReference={{

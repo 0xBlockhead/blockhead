@@ -93,31 +93,30 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
-		<EntityDetails
-			entityType={EntityType.NetworkFork}
-			{entityId}
-		>
+	{#snippet Content({ title: _title, href: _href })}
+		<dl>
 			<ResourceBoundary
 				resource={fork}
 				placeholderText="Loading fork…"
 			>
 				{#snippet children(f)}
-					<dl>
+					{#if open}
 						{#if f.activationBlock !== undefined}
 							<div>
 								<dt>Activation block</dt>
 								<dd>{String(f.activationBlock)}</dd>
 							</div>
 						{/if}
+					{/if}
+					{#if open}
 						{#if f.activationEpoch !== undefined}
 							<div>
 								<dt>Activation epoch</dt>
 								<dd>{String(f.activationEpoch)}</dd>
 							</div>
 						{/if}
+					{/if}
+					{#if open}
 						{#if f.activationTimestamp !== undefined}
 							<div>
 								<dt>Activation time</dt>
@@ -129,6 +128,8 @@
 								</dd>
 							</div>
 						{/if}
+					{/if}
+					{#if open}
 						{#if f.kind !== undefined}
 							<div>
 								<dt>Kind</dt>
@@ -146,54 +147,70 @@
 								</dd>
 							</div>
 						{/if}
-					</dl>
-
-					{#if f.kind !== ForkScheduleKind.Blob}
-						<div
-							data-scroll-container="inline layout-carousel carousel-marker-tabs"
-							style="--carousel-basis: 40ch; gap: 0.5em"
-						>
-							<section data-scroll-marker-label="Blocks">
-								<EvmBlocksView
-									entityFieldReference={{
-										entityType: EntityType.Network,
-										entityId: { chainId },
-										fieldName: '$$blocks',
-									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(forks)/fork/[forkSlug]/(fork)/blocks',
-										{
-											networkId: String(chainId),
-											forkSlug: (
-												f.slug
-												?? entityId.forkId
-											),
-										},
-									)}
-									id={`${forkIdKey}:blocks`}
-								/>
-							</section>
-							<section data-scroll-marker-label="Transactions">
-								<EvmTransactionsView
-									entityFieldReference={{
-										entityType: EntityType.Network,
-										entityId: { chainId },
-										fieldName: '$$transactions',
-									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/transactions',
-										{
-											networkId: String(chainId),
-										},
-									)}
-									id={`${forkIdKey}:transactions`}
-								/>
-							</section>
-						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-		</EntityDetails>
+		</dl>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.NetworkFork}
+			{entityId}
+		/>
+
+		<ResourceBoundary
+			resource={fork}
+			placeholderText="Loading fork…"
+		>
+			{#snippet children(f)}
+				{#if f.kind !== ForkScheduleKind.Blob}
+					<div
+						data-scroll-container="inline layout-carousel carousel-marker-tabs"
+						style="--carousel-basis: 40ch; gap: 0.5em"
+					>
+						<section data-scroll-marker-label="Blocks">
+							<EvmBlocksView
+								entityFieldReference={{
+									entityType: EntityType.Network,
+									entityId: { chainId },
+									fieldName: '$$blocks',
+								}}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(forks)/fork/[forkSlug]/(fork)/blocks',
+									{
+										networkId: String(chainId),
+										forkSlug: (
+											f.slug
+											?? entityId.forkId
+										),
+									},
+								)}
+								id={`${forkIdKey}:blocks`}
+							/>
+						</section>
+						<section data-scroll-marker-label="Transactions">
+							<EvmTransactionsView
+								entityFieldReference={{
+									entityType: EntityType.Network,
+									entityId: { chainId },
+									fieldName: '$$transactions',
+								}}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/transactions',
+									{
+										networkId: String(chainId),
+									},
+								)}
+								id={`${forkIdKey}:transactions`}
+							/>
+						</section>
+					</div>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 
 		{#if children}
 			{@render children()}

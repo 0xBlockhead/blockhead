@@ -75,6 +75,27 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Content({ title: _title, href: _href })}
+		<dl>
+			<ResourceBoundary resource={global}>
+				{#snippet children(g)}
+					{#if g.duneCreditsUsed !== undefined}
+						<div>
+							<dt>Dune credits used</dt>
+							<dd>{String(g.duneCreditsUsed)}</dd>
+						</div>
+					{/if}
+					{#if g.duneCreditsIncluded !== undefined}
+						<div>
+							<dt>Dune credits included</dt>
+							<dd>{String(g.duneCreditsIncluded)}</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+	{/snippet}
+
 	{#snippet Details()}
 		{#if children}
 			{@render children()}
@@ -82,35 +103,23 @@
 			<EntityDetails
 				entityType={EntityType._Global}
 				{entityId}
-			>
-				<ResourceBoundary resource={global}>
-					{#snippet children(g)}
-						<p data-text="muted">
-							Shared app settings and usage totals.
-						</p>
-						<dl>
-							{#if g.duneCreditsUsed !== undefined}
-								<div>
-									<dt>Dune credits used</dt>
-									<dd>{String(g.duneCreditsUsed)}</dd>
-								</div>
-							{/if}
-							{#if g.duneCreditsIncluded !== undefined}
-								<div>
-									<dt>Dune credits included</dt>
-									<dd>{String(g.duneCreditsIncluded)}</dd>
-								</div>
-							{/if}
-						</dl>
+			/>
 
-						{#if g.duneCreditsUsed === undefined && g.duneCreditsIncluded === undefined}
+			<ResourceBoundary resource={global}>
+				{#snippet children(g)}
+					<p data-text="muted">
+						Shared app settings and usage totals.
+					</p>
+
+					{#if g.duneCreditsUsed === undefined}
+						{#if g.duneCreditsIncluded === undefined}
 							<p data-text="muted">
 								Usage totals are not available yet.
 							</p>
 						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			<UnorderedList
 				items={new SvelteSet([

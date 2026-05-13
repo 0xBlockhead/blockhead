@@ -129,7 +129,7 @@
 				{/snippet}
 
 				{#snippet Item(props)}
-					{#if props.isPlaceholder === false}
+					{#if props.item}
 						<AtprotoPostView
 							entityId={{ uri: props.item[EntityMetaKey.Id].uri }}
 							href={resolve('/(social)/atproto/post/[uri]', {

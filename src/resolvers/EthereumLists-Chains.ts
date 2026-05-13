@@ -12,6 +12,130 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/$Source.ts'
 
+const testnetKeywordPattern = /\b(testnet|sepolia|holesky|hoodi|goerli|rinkeby|ropsten|kovan)\b/i
+const familyAliasByToken: Record<string, string> = {
+	op: 'optimism',
+	oeth: 'optimism',
+	arb: 'arbitrum',
+	arb1: 'arbitrum',
+	eth: 'ethereum',
+}
+const familyStopwords = new Set([
+	'mainnet',
+	'testnet',
+	'network',
+	'chain',
+	'rollup',
+	'l2',
+	'l3',
+	'public',
+	'private',
+	'alpha',
+	'beta',
+	'devnet',
+	'deprecated',
+	'legacy',
+	'stage',
+	'staging',
+	'v1',
+	'v2',
+	'v3',
+])
+const normalizeFamilyToken = (value: string): string => (
+	value.toLowerCase().replace(/[^a-z0-9]+/g, '')
+)
+const canonicalFamilyToken = (value: string): string => (
+	familyAliasByToken[normalizeFamilyToken(value)]
+	?? normalizeFamilyToken(value)
+)
+const ethereumFamilyCanonical = canonicalFamilyToken('ethereum')
+const resolveNetworkFamily = ({
+	name,
+	title,
+	shortName,
+}: {
+	name?: string
+	title?: string
+	shortName?: string
+}): string | undefined => {
+	const text = `${title ?? ''} ${name ?? ''} ${shortName ?? ''}`
+	if (/\bethereum\s+classic\b/i.test(text)) {
+		return 'ethereumclassic'
+	}
+	if (/\bpolygon\s+zkevm\b/i.test(text) || (/\bpolygon\b/i.test(text) && /\bzkevm\b/i.test(text))) {
+		return normalizeFamilyToken('polygonzkevm')
+	}
+	const token = text
+		.toLowerCase()
+		.split(/[^a-z0-9]+/g)
+		.find((value) => value.length > 0 && !familyStopwords.has(value))
+	return token == null ? undefined : canonicalFamilyToken(token)
+}
+const isEthereumListsTestnet = (chain: {
+	name?: string
+	title?: string
+}): boolean => (
+	testnetKeywordPattern.test(`${chain.title ?? ''} ${chain.name ?? ''}`)
+)
+const normalizeShortName = (shortName: string | undefined): string => (
+	(shortName ?? '')
+		.toLowerCase()
+		.replace(/[^a-z0-9]+/g, '')
+		.replace(/(testnet|sepolia|holesky|hoodi|goerli|rinkeby|ropsten|kovan)+$/g, '')
+)
+const selectBestMainnetCandidate = ({
+	testnetChainId,
+	testnetShortName,
+	mainnetCandidates,
+}: {
+	testnetChainId: number
+	testnetShortName?: string
+	mainnetCandidates: {
+		chainId: number
+		shortName?: string
+		name?: string
+	}[]
+}) => {
+	const testnetChainIdAsString = String(testnetChainId)
+	const byChainIdPrefix = mainnetCandidates
+		.filter((candidate) => (
+			testnetChainIdAsString.startsWith(String(candidate.chainId))
+		))
+		.toSorted((leftCandidate, rightCandidate) => (
+			String(rightCandidate.chainId).length - String(leftCandidate.chainId).length
+			|| leftCandidate.chainId - rightCandidate.chainId
+		))
+	if (byChainIdPrefix[0] != null) return byChainIdPrefix[0]
+	const normalizedSourceShortName = normalizeShortName(testnetShortName)
+	if (normalizedSourceShortName.length > 0) {
+		const byShortNamePrefix = mainnetCandidates
+			.filter((candidate) => {
+				const normalizedCandidateShortName = normalizeShortName(candidate.shortName)
+				return (
+					normalizedCandidateShortName.length > 0
+					&& (
+						normalizedSourceShortName.startsWith(normalizedCandidateShortName)
+						|| normalizedCandidateShortName.startsWith(normalizedSourceShortName)
+					)
+				)
+			})
+			.toSorted((leftCandidate, rightCandidate) => (
+				leftCandidate.chainId - rightCandidate.chainId
+			))
+		if (byShortNamePrefix[0] != null) return byShortNamePrefix[0]
+	}
+	const byMainnetKeyword = mainnetCandidates
+		.filter((candidate) => /\bmainnet\b/i.test(candidate.name ?? ''))
+		.toSorted((leftCandidate, rightCandidate) => (
+			leftCandidate.chainId - rightCandidate.chainId
+		))
+	if (byMainnetKeyword[0] != null) return byMainnetKeyword[0]
+	return mainnetCandidates
+		.toSorted((leftCandidate, rightCandidate) => (
+			leftCandidate.chainId - rightCandidate.chainId
+		))[0]
+}
+
 export default {
 	source: Source.EthereumLists_Rest,
 
@@ -107,20 +231,17 @@ export default {
 					peeringId: chain.networkId,
 					...(chain.shortName !== '' ? { shortName: chain.shortName } : {}),
 					...(chain.slip44 != null ? { slip44: chain.slip44 } : {}),
-					...(/testnet/i.test(`${chain.title ?? ''} ${chain.name}`) ? { environment: NetworkEnvironment.Testnet } : {}),
-					parentLayer: (
+					...(isEthereumListsTestnet(chain) ? { environment: NetworkEnvironment.Testnet } : {}),
+					$parentLayer: (
 						((parentMatch) => (
 							parentMatch == null || chain.parent == null ?
 								undefined
 							:	{
-									bridgeUrls: (chain.parent.bridges ?? []).map((bridge) => bridge.url).filter((url) => url.length > 0),
-									parentChainCaip: chain.parent.chain.trim(),
-									parentChainId: Number(parentMatch[1]),
-									relationshipType: String(chain.parent.type ?? 'unknown'),
+									[EntityMetaKey.Id]: { chainId: Number(parentMatch[1]) },
 								}
 						))(chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim()))
 					),
-					rollupLayerNumber: (() => {
+					layerNumber: (() => {
 						const chainByChainId = new Map(chains.map((chain) => [chain.chainId, chain]))
 						let layer = 1
 						let currentChainId: number | undefined = chain.chainId
@@ -183,7 +304,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Network,
-			fieldName: '$$childNetworks',
+			fieldName: '$$childLayers',
 			resolve: async (entityId) => {
 				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
 				const chains = await fetchChainsJson()
@@ -203,6 +324,82 @@ export default {
 				]
 					.toSorted((chainIdA, chainIdB) => chainIdA - chainIdB)
 					.map((chainId) => ({ [EntityMetaKey.Id]: { chainId } }))
+			},
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$testnets',
+			resolve: async (entityId) => {
+				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
+				const chains = await fetchChainsJson()
+				const chain = chains.find((row) => row.chainId === entityId.chainId)
+				if (chain == null) {
+					throw new Error('EthereumLists_Rest: network not in chains.json for testnet list')
+				}
+				if (isEthereumListsTestnet(chain)) return []
+				const sourceFamily = resolveNetworkFamily(chain)
+				if (sourceFamily == null) return []
+				const sourceIsEthereumExecutionRoot = (
+					sourceFamily === ethereumFamilyCanonical
+					&& chain.parent?.chain == null
+				)
+				return [
+					...new Set(
+						chains.flatMap((candidate) => {
+							return candidate.chainId === entityId.chainId
+								|| !isEthereumListsTestnet(candidate)
+								|| resolveNetworkFamily(candidate) !== sourceFamily
+								|| (
+									sourceIsEthereumExecutionRoot
+									&& candidate.parent?.chain != null
+								) ?
+								[]
+							:	[candidate.chainId]
+						}),
+					),
+				]
+					.map((chainId) => ({ [EntityMetaKey.Id]: { chainId } }))
+			},
+		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$mainnet',
+			resolve: async (entityId) => {
+				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
+				const chains = await fetchChainsJson()
+				const chain = chains.find((row) => row.chainId === entityId.chainId)
+				if (chain == null) {
+					throw new Error('EthereumLists_Rest: network not in chains.json for mainnet')
+				}
+				if (!isEthereumListsTestnet(chain)) return undefined
+				const sourceFamily = resolveNetworkFamily(chain)
+				if (sourceFamily == null) return undefined
+				const testnetIsEthereumExecutionRoot = (
+					sourceFamily === ethereumFamilyCanonical
+					&& chain.parent?.chain == null
+				)
+				const mainnet = selectBestMainnetCandidate({
+					testnetChainId: chain.chainId,
+					testnetShortName: chain.shortName,
+					mainnetCandidates: chains.filter((candidate) => (
+						candidate.chainId !== entityId.chainId
+						&& !isEthereumListsTestnet(candidate)
+						&& resolveNetworkFamily(candidate) === sourceFamily
+						&& (
+							!testnetIsEthereumExecutionRoot
+							|| candidate.parent?.chain == null
+						)
+					)),
+				})
+				return (
+					mainnet == null ?
+						undefined
+					:	{
+							[EntityMetaKey.Id]: {
+								chainId: mainnet.chainId,
+							},
+						}
+				)
 			},
 		}),
 
@@ -232,7 +429,6 @@ export default {
 							),
 						]
 				)
-					.toSorted((chainIdA, chainIdB) => chainIdA - chainIdB)
 					.map((chainId) => ({ [EntityMetaKey.Id]: { chainId } }))
 			},
 		}),

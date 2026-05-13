@@ -34,13 +34,6 @@ const nativeCurrencyField = type({
 	'slip44?': 'number',
 })
 
-const networkParentLayerField = type({
-	bridgeUrls: UrlString.array(),
-	parentChainCaip: 'string',
-	parentChainId: 'number',
-	relationshipType: 'string',
-})
-
 export default {
 	entityType: EntityType.Network,
 
@@ -106,17 +99,19 @@ export default {
 			],
 		},
 		{
-			name: 'parentLayer',
-			type: EntityFieldType.Primitive,
-			primitiveType: networkParentLayerField,
+			name: '$parentLayer',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
+				Source.Superchain_Github,
+				Source.L2Beat_Rest,
 			],
 		},
 		{
-			name: 'rollupLayerNumber',
+			name: 'layerNumber',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.One,
@@ -126,23 +121,35 @@ export default {
 			],
 		},
 		{
-			name: '$$childNetworks',
+			name: '$$childLayers',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
+				Source.Superchain_Github,
+				Source.L2Beat_Rest,
 			],
 		},
 		{
-			name: '$$correspondingNetworks',
+			name: '$$testnets',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
+				Source.Superchain_Github,
+			],
+		},
+		{
+			name: '$mainnet',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Network,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Chainlist_Rest,
+				Source.Superchain_Github,
 			],
 		},
 		{
@@ -220,6 +227,33 @@ export default {
 			name: '$$forks',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NetworkFork,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
+		},
+		{
+			name: '$$upgrades',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.NetworkUpgrade,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
+		},
+		{
+			name: '$$executionUpgrades',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.NetworkExecutionUpgrade,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
+		},
+		{
+			name: '$$consensusUpgrades',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.NetworkConsensusUpgrade,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Constants_Internal,

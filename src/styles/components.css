@@ -554,8 +554,21 @@ span svg {
 		flex-direction: column; */
 	}
 
-	> [data-column-item~='flexible'] {
+	[data-column-item~='flexible'] {
 		flex: 1;
+	}
+
+	[data-column-item~='start'] {
+		align-self: start;
+	}
+	[data-column-item~='center'] {
+		align-self: center;
+	}
+	[data-column-item~='end'] {
+		align-self: end;
+	}
+	[data-column-item~='baseline'] {
+		align-self: baseline;
 	}
 }
 
@@ -1146,10 +1159,6 @@ ol {
 }
 
 dl {
-	&:not(
-		[data-definition-list~='vertical'],
-		[data-definition-list~='horizontal']
-	),
 	[data-definition-list~='vertical'] {
 		display: grid;
 		grid-template-columns: minmax(0, auto) minmax(0, auto);
@@ -1171,6 +1180,11 @@ dl {
 			grid-column: 2;
 		}
 	}
+
+	&:not(
+		[data-definition-list~='vertical'],
+		[data-definition-list~='horizontal']
+	),
 	&[data-definition-list='horizontal'] {
 		display: flex;
 		flex-wrap: wrap;
@@ -1190,28 +1204,6 @@ dl {
 
 	dt {
 		color: var(--color-text-muted);
-	}
-}
-
-summary dl:not([data-definition-list~='horizontal']) {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 0.5em 1.5em;
-	row-gap: 0.5em;
-	column-gap: 1.5em;
-
-	> div {
-		display: inline-flex;
-		gap: 0.35em;
-	}
-
-	dt {
-		grid-column: unset;
-		text-align: unset;
-	}
-
-	dd {
-		grid-column: unset;
 	}
 }
 

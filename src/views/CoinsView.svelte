@@ -147,9 +147,8 @@
 
 						{#snippet Item({
 							item: row,
-							isPlaceholder,
 						})}
-							{#if isPlaceholder === false}
+							{#if row}
 								{@const entityId = row[EntityMetaKey.Id]}
 								<CoinView
 									entityId={entityId}

@@ -94,8 +94,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: envelope, isPlaceholder })}
-		{#if isPlaceholder === false}
+	{#snippet Item({ item: envelope })}
+		{#if envelope}
 			<NetworkBridgeView
 				entityId={envelope.value[EntityMetaKey.Id]}
 				href={envelope.value[EntityMetaKey.Id].url}

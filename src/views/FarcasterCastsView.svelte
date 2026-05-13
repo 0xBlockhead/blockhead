@@ -104,7 +104,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const castId = props.item.result[EntityMetaKey.Id]}
 			<FarcasterCastView
 				entityId={{

@@ -109,7 +109,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const line = props.item.value}
 			{@const t = line[EntityMetaKey.Id]}
 			{#if entityFieldReference.entityType === EntityType.EvmBlock}

@@ -102,7 +102,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			<LiquidityPoolView
 				entityId={props.item.value[EntityMetaKey.Id]}
 				href={resolve('/(assets)/(pools)/pool/[poolId]', {

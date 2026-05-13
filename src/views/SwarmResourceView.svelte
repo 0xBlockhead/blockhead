@@ -93,20 +93,94 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={swarm}>
 			{#snippet children(loaded)}
-				{#if loaded.contentType !== undefined}
+				{#if loaded.contentType !== undefined || open}
 					<dl>
-						<div>
-							<dt>Content type</dt>
-							<dd>
-								<TruncatedValue
-									value={loaded.contentType}
-									format={TruncatedValueFormat.Visual}
-								/>
-								{#if loaded.isContentTypeInferred}
-									{' '}<span data-text="muted">(inferred)</span>
-								{/if}
-							</dd>
-						</div>
+						{#if loaded.contentType !== undefined}
+							<div>
+								<dt>Content type</dt>
+								<dd>
+									<TruncatedValue
+										value={loaded.contentType}
+										format={TruncatedValueFormat.Visual}
+									/>
+									{#if loaded.isContentTypeInferred}
+										{' '}<span data-text="muted">(inferred)</span>
+									{/if}
+								</dd>
+							</div>
+						{/if}
+						{#if open}
+							<div>
+								<dt>Canonical URI</dt>
+								<dd>
+									<TruncatedValue
+										value={loaded.canonicalUri}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</dd>
+							</div>
+
+							<div>
+								<dt>Gateway</dt>
+								<dd>
+									<TruncatedValue
+										value={loaded.gatewayOrigin}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</dd>
+							</div>
+
+							<div>
+								<dt>Gateway URL</dt>
+								<dd>
+									<a
+										href={loaded.gatewayUrl}
+										target="_blank"
+										rel="noreferrer noopener"
+									>
+										<TruncatedValue
+											value={loaded.gatewayUrl}
+											format={TruncatedValueFormat.Visual}
+										/>
+									</a>
+								</dd>
+							</div>
+
+							{#if loaded.contentLength !== undefined}
+								<div>
+									<dt>Content length</dt>
+									<dd>
+										<NumberValue
+											value={loaded.contentLength}
+											options={{ maximumFractionDigits: 0 }}
+										/>
+										{' '}
+										bytes
+									</dd>
+								</div>
+							{/if}
+							{#if loaded.fileName !== undefined}
+								<div>
+									<dt>File name</dt>
+									<dd>
+										<TruncatedValue
+											value={loaded.fileName}
+											format={TruncatedValueFormat.Visual}
+										/>
+									</dd>
+								</div>
+							{/if}
+							{#if loaded.extension !== undefined}
+								<div>
+									<dt>Extension</dt>
+									<dd>.{loaded.extension}</dd>
+								</div>
+							{/if}
+							<div>
+								<dt>Display type</dt>
+								<dd>{loaded.displayType}</dd>
+							</div>
+						{/if}
 					</dl>
 				{:else}
 					<p data-text="muted">Content type unavailable.</p>
@@ -121,82 +195,10 @@
 		<EntityDetails
 			entityType={EntityType.SwarmResource}
 			{entityId}
-		>
+		/>
+
 			<ResourceBoundary resource={swarm}>
 				{#snippet children(loaded)}
-					<dl>
-						<div>
-							<dt>Canonical URI</dt>
-							<dd>
-								<TruncatedValue
-									value={loaded.canonicalUri}
-									format={TruncatedValueFormat.Visual}
-								/>
-							</dd>
-						</div>
-
-						<div>
-							<dt>Gateway</dt>
-							<dd>
-								<TruncatedValue
-									value={loaded.gatewayOrigin}
-									format={TruncatedValueFormat.Visual}
-								/>
-							</dd>
-						</div>
-
-						<div>
-							<dt>Gateway URL</dt>
-							<dd>
-								<a
-									href={loaded.gatewayUrl}
-									target="_blank"
-									rel="noreferrer noopener"
-								>
-									<TruncatedValue
-										value={loaded.gatewayUrl}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</a>
-							</dd>
-						</div>
-
-						{#if loaded.contentLength !== undefined}
-							<div>
-								<dt>Content length</dt>
-								<dd>
-									<NumberValue
-										value={loaded.contentLength}
-										options={{ maximumFractionDigits: 0 }}
-									/>
-									{' '}
-									bytes
-								</dd>
-							</div>
-						{/if}
-						{#if loaded.fileName !== undefined}
-							<div>
-								<dt>File name</dt>
-								<dd>
-									<TruncatedValue
-										value={loaded.fileName}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</dd>
-							</div>
-						{/if}
-						{#if loaded.extension !== undefined}
-							<div>
-								<dt>Extension</dt>
-								<dd>.{loaded.extension}</dd>
-							</div>
-						{/if}
-						<div>
-							<dt>Display type</dt>
-							<dd>{loaded.displayType}</dd>
-						</div>
-					</dl>
-
 					<FileDetails
 						contentSize={loaded.contentLength}
 						contentType={loaded.contentType}
@@ -208,7 +210,6 @@
 					/>
 				{/snippet}
 			</ResourceBoundary>
-		</EntityDetails>
 
 		{#if children}
 			{@render children()}

@@ -128,8 +128,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: line, isPlaceholder })}
-		{#if isPlaceholder === false}
+	{#snippet Item({ item: line })}
+		{#if line}
 			{@const chainId = line.value[EntityMetaKey.Id].chainId}
 			<NetworkView
 				entityId={{ chainId }}

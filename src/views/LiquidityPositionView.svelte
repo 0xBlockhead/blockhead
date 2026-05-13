@@ -110,6 +110,78 @@
 							</dd>
 						</div>
 					{/if}
+					{#if open}
+						<div>
+							<dt>Owner</dt>
+							<dd>
+								<ActorNetworkView
+									entityId={{
+										$network: p.$pool.$network,
+										$actor: p.$owner[EntityMetaKey.Id],
+									}}
+									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+										accountId: p.$owner[EntityMetaKey.Id].address,
+									})}
+									layout={EntityLayout.Id}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							</dd>
+						</div>
+						{#if p.tickLower !== undefined}
+							<div>
+								<dt>Tick lower</dt>
+								<dd>{String(p.tickLower)}</dd>
+							</div>
+						{/if}
+						{#if p.tickUpper !== undefined}
+							<div>
+								<dt>Tick upper</dt>
+								<dd>{String(p.tickUpper)}</dd>
+							</div>
+						{/if}
+						{#if p.liquidity !== undefined}
+							<div>
+								<dt>Liquidity</dt>
+								<dd>{String(p.liquidity)}</dd>
+							</div>
+						{/if}
+						{#if p.token0Owed !== undefined}
+							<div>
+								<dt>Token0 owed</dt>
+								<dd>{String(p.token0Owed)}</dd>
+							</div>
+						{/if}
+						{#if p.token1Owed !== undefined}
+							<div>
+								<dt>Token1 owed</dt>
+								<dd>{String(p.token1Owed)}</dd>
+							</div>
+						{/if}
+						{#if p.tokenId !== undefined}
+							<div>
+								<dt>Token id</dt>
+								<dd>{String(p.tokenId)}</dd>
+							</div>
+						{/if}
+						{#if p.origin}
+							<div>
+								<dt>Origin</dt>
+								<dd>{p.origin}</dd>
+							</div>
+						{/if}
+						{#if p.createdAtTimestamp !== undefined}
+							<div>
+								<dt>Created at</dt>
+								<dd>
+									<Timestamp
+										timestamp={p.createdAtTimestamp}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
+							</div>
+						{/if}
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -122,84 +194,7 @@
 			<EntityDetails
 				entityType={EntityType.LiquidityPosition}
 				{entityId}
-			>
-				<ResourceBoundary resource={liquidityPosition}>
-					{#snippet children(p)}
-						<dl>
-							<div>
-								<dt>Owner</dt>
-								<dd>
-									<ActorNetworkView
-										entityId={{
-											$network: p.$pool.$network,
-											$actor: p.$owner[EntityMetaKey.Id],
-										}}
-										href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-											accountId: p.$owner[EntityMetaKey.Id].address,
-										})}
-										layout={EntityLayout.Id}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								</dd>
-							</div>
-							{#if p.tickLower !== undefined}
-								<div>
-									<dt>Tick lower</dt>
-									<dd>{String(p.tickLower)}</dd>
-								</div>
-							{/if}
-							{#if p.tickUpper !== undefined}
-								<div>
-									<dt>Tick upper</dt>
-									<dd>{String(p.tickUpper)}</dd>
-								</div>
-							{/if}
-							{#if p.liquidity !== undefined}
-								<div>
-									<dt>Liquidity</dt>
-									<dd>{String(p.liquidity)}</dd>
-								</div>
-							{/if}
-							{#if p.token0Owed !== undefined}
-								<div>
-									<dt>Token0 owed</dt>
-									<dd>{String(p.token0Owed)}</dd>
-								</div>
-							{/if}
-							{#if p.token1Owed !== undefined}
-								<div>
-									<dt>Token1 owed</dt>
-									<dd>{String(p.token1Owed)}</dd>
-								</div>
-							{/if}
-							{#if p.tokenId !== undefined}
-								<div>
-									<dt>Token id</dt>
-									<dd>{String(p.tokenId)}</dd>
-								</div>
-							{/if}
-							{#if p.origin}
-								<div>
-									<dt>Origin</dt>
-									<dd>{p.origin}</dd>
-								</div>
-							{/if}
-							{#if p.createdAtTimestamp !== undefined}
-								<div>
-									<dt>Created at</dt>
-									<dd>
-										<Timestamp
-											timestamp={p.createdAtTimestamp}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-						</dl>
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
+			/>
 		{/if}
 	{/snippet}
 </EntityView>

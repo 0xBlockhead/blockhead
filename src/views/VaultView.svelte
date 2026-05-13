@@ -91,18 +91,6 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl>
-			<div>
-				<dt>Vault id</dt>
-				<dd>
-					<TruncatedValue
-						value={entityId.id}
-						format={TruncatedValueFormat.Visual}
-					/>
-				</dd>
-			</div>
-		</dl>
-
 		<ResourceBoundary
 			resource={vault}
 			placeholderText="Loading vault…"
@@ -110,8 +98,13 @@
 			{#snippet children(v)}
 				<dl>
 					<div>
-						<dt>Chain id</dt>
-						<dd>{String(v.$token0.$network.chainId)}</dd>
+						<dt>Vault id</dt>
+						<dd>
+							<TruncatedValue
+								value={entityId.id}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</dd>
 					</div>
 					<div>
 						<dt>Token 0</dt>
@@ -131,71 +124,75 @@
 							/>
 						</dd>
 					</div>
+					{#if open}
+						{#if v.fee !== undefined}
+							<div>
+								<dt>Fee</dt>
+								<dd>{String(v.fee)}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if v.tickSpacing !== undefined}
+							<div>
+								<dt>Tick spacing</dt>
+								<dd>{String(v.tickSpacing)}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if v.sqrtPriceX96 !== undefined}
+							<div>
+								<dt>Sqrt price X96</dt>
+								<dd>{String(v.sqrtPriceX96)}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if v.liquidity !== undefined}
+							<div>
+								<dt>Liquidity</dt>
+								<dd>{String(v.liquidity)}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if v.tick !== undefined}
+							<div>
+								<dt>Tick</dt>
+								<dd>{String(v.tick)}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if v.volumeUSD !== undefined}
+							<div>
+								<dt>Volume USD</dt>
+								<dd>{String(v.volumeUSD)}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if v.totalValueLockedUSD !== undefined}
+							<div>
+								<dt>TVL USD</dt>
+								<dd>{String(v.totalValueLockedUSD)}</dd>
+							</div>
+						{/if}
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({ open: _open })}
+		<EntityDetails
+			entityType={EntityType.Vault}
+			{entityId}
+		/>
+
 		{#if children}
 			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.Vault}
-				{entityId}
-			>
-				<ResourceBoundary
-					resource={vault}
-					placeholderText="Loading vault…"
-				>
-					{#snippet children(v)}
-						<dl>
-							{#if v.fee !== undefined}
-								<div>
-									<dt>Fee</dt>
-									<dd>{String(v.fee)}</dd>
-								</div>
-							{/if}
-							{#if v.tickSpacing !== undefined}
-								<div>
-									<dt>Tick spacing</dt>
-									<dd>{String(v.tickSpacing)}</dd>
-								</div>
-							{/if}
-							{#if v.sqrtPriceX96 !== undefined}
-								<div>
-									<dt>Sqrt price X96</dt>
-									<dd>{String(v.sqrtPriceX96)}</dd>
-								</div>
-							{/if}
-							{#if v.liquidity !== undefined}
-								<div>
-									<dt>Liquidity</dt>
-									<dd>{String(v.liquidity)}</dd>
-								</div>
-							{/if}
-							{#if v.tick !== undefined}
-								<div>
-									<dt>Tick</dt>
-									<dd>{String(v.tick)}</dd>
-								</div>
-							{/if}
-							{#if v.volumeUSD !== undefined}
-								<div>
-									<dt>Volume USD</dt>
-									<dd>{String(v.volumeUSD)}</dd>
-								</div>
-							{/if}
-							{#if v.totalValueLockedUSD !== undefined}
-								<div>
-									<dt>TVL USD</dt>
-									<dd>{String(v.totalValueLockedUSD)}</dd>
-								</div>
-							{/if}
-						</dl>
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
 		{/if}
 	{/snippet}
 </EntityView>

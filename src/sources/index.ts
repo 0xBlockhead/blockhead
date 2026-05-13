@@ -44,6 +44,7 @@ import Openchain from '$/sources/Openchain/index.ts'
 import Reddit from '$/sources/Reddit/index.ts'
 import Snapchain from '$/sources/Snapchain/index.ts'
 import Sourcify from '$/sources/Sourcify/index.ts'
+import Superchain from '$/sources/Superchain/index.ts'
 import Swarm from '$/sources/Swarm/index.ts'
 import TheGraph from '$/sources/TheGraph/index.ts'
 import TradingView from '$/sources/TradingView/index.ts'
@@ -86,6 +87,7 @@ const sourceProviderDefinitions = [
 	Reddit,
 	Snapchain,
 	Sourcify,
+	Superchain,
 	Swarm,
 	TheGraph,
 	TradingView,

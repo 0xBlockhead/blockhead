@@ -51,6 +51,56 @@
 	href={ipfsResourceHref(entityId)}
 	title={ipfsResourceCanonicalUri(entityId)}
 >
+	{#snippet Content()}
+		<ResourceBoundary
+			resource={ipfs}
+			placeholderText="Loading gateway metadata…"
+		>
+			{#snippet children(loaded)}
+				<dl>
+					{#if loaded.gatewayUrl !== undefined}
+						<div>
+							<dt>Gateway URL</dt>
+							<dd>
+								<a
+									href={loaded.gatewayUrl}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue
+										value={loaded.gatewayUrl}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</a>
+							</dd>
+						</div>
+					{/if}
+					{#if loaded.displayType !== undefined}
+						<div>
+							<dt>Display type</dt>
+							<dd>{loaded.displayType}</dd>
+						</div>
+					{/if}
+					{#if loaded.contentType !== undefined}
+						<div>
+							<dt>Content type</dt>
+							<dd>
+								<TruncatedValue
+									value={loaded.contentType}
+									format={TruncatedValueFormat.Visual}
+								/>
+								{#if loaded.isContentTypeInferred}
+									{' '}
+									<span data-text="muted">(inferred)</span>
+								{/if}
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Details()}
 		<section
 			class="ipfs-browser"
@@ -74,54 +124,6 @@
 						/>
 					</code>
 				</p>
-
-				<ResourceBoundary
-					resource={ipfs}
-					placeholderText="Loading gateway metadata…"
-				>
-					{#snippet children(loaded)}
-						<dl>
-							{#if loaded.gatewayUrl !== undefined}
-								<div>
-									<dt>Gateway URL</dt>
-									<dd>
-										<a
-											href={loaded.gatewayUrl}
-											target="_blank"
-											rel="noreferrer noopener"
-										>
-											<TruncatedValue
-												value={loaded.gatewayUrl}
-												format={TruncatedValueFormat.Visual}
-											/>
-										</a>
-									</dd>
-								</div>
-							{/if}
-							{#if loaded.displayType !== undefined}
-								<div>
-									<dt>Display type</dt>
-									<dd>{loaded.displayType}</dd>
-								</div>
-							{/if}
-							{#if loaded.contentType !== undefined}
-								<div>
-									<dt>Content type</dt>
-									<dd>
-										<TruncatedValue
-											value={loaded.contentType}
-											format={TruncatedValueFormat.Visual}
-										/>
-										{#if loaded.isContentTypeInferred}
-											{' '}
-											<span data-text="muted">(inferred)</span>
-										{/if}
-									</dd>
-								</div>
-							{/if}
-						</dl>
-					{/snippet}
-				</ResourceBoundary>
 			</section>
 		</section>
 	{/snippet}

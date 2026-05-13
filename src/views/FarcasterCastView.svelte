@@ -243,15 +243,142 @@
 								<dd>{String(row.replyCount)}</dd>
 							</div>
 						{/if}
-						{#if channelPageHref !== undefined && channelId !== undefined}
+						{#if channelPageHref !== undefined}
+							{#if channelId !== undefined}
+								<div>
+									<dt>Channel</dt>
+									<dd>
+										<a href={channelPageHref}>
+											/{channelId}
+										</a>
+									</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if open}
+							{@const parentCastIdOpen = (
+								row.$parentCast === undefined ?
+									undefined
+								:
+									row.$parentCast[EntityMetaKey.Id]
+							)}
+							{@const authorUsernameOpen = row.$author.username}
+							{@const threadNormOpen = (
+								(() => {
+									const th = (
+										row.threadHash === undefined ?
+											''
+										:
+											row.threadHash.trim()
+									)
+									if (th === '') {
+										return undefined
+									}
+									const hex = (
+										th.startsWith('0x') || th.startsWith('0X') ?
+											th.slice(2)
+										:
+											th
+									)
+									return `0x${hex.toLowerCase()}` as CastHash
+								})()
+							)}
+							{@const warpcastThreadHrefOpen = (
+								threadNormOpen !== undefined && threadNormOpen !== entityId.hash ?
+									`https://warpcast.com/~/conversations/${threadNormOpen}`
+								:
+									undefined
+							)}
+							{@const farcasterWebCastHrefOpen = (
+								authorUsernameOpen === undefined ?
+									undefined
+								:
+									`https://farcaster.xyz/${authorUsernameOpen}/${entityId.hash}`
+							)}
+							{@const parentCastHrefOpen = (
+								parentCastIdOpen === undefined ?
+									undefined
+								:
+									resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
+										fid: String(parentCastIdOpen.fid),
+										hash: parentCastIdOpen.hash,
+									})
+							)}
 							<div>
-								<dt>Channel</dt>
+								<dt>FID</dt>
+								<dd>{String(entityId.fid)}</dd>
+							</div>
+							<div>
+								<dt>Hash</dt>
 								<dd>
-									<a href={channelPageHref}>
-										/{channelId}
-									</a>
+									<span data-text="font-monospace">
+										<TruncatedValue
+											value={entityId.hash}
+											startLength={12}
+											endLength={10}
+											format={TruncatedValueFormat.Visual}
+										/>
+									</span>
 								</dd>
 							</div>
+							{#if parentCastHrefOpen !== undefined}
+								<div>
+									<dt>Parent cast</dt>
+									<dd>
+										<a href={parentCastHrefOpen}>View parent</a>
+									</dd>
+								</div>
+							{/if}
+							{#if row.parentUrl !== undefined}
+								<div>
+									<dt>Parent URL</dt>
+									<dd>
+										<a href={row.parentUrl}>{row.parentUrl}</a>
+									</dd>
+								</div>
+							{/if}
+							{#if row.mentions !== undefined}
+								{#if row.mentions.length}
+									<div>
+										<dt>Mentions</dt>
+										<dd>
+											<ul data-row="wrap gap-2">
+												{#each row.mentions as mention (String(mention))}
+													<li>
+														<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+															userId: String(mention),
+														})}>
+															FID {String(mention)}
+														</a>
+													</li>
+												{/each}
+											</ul>
+										</dd>
+									</div>
+								{/if}
+							{/if}
+							{#if farcasterWebCastHrefOpen !== undefined}
+								<div>
+									<dt>On web</dt>
+									<dd>
+										<a
+											href={farcasterWebCastHrefOpen}
+											rel="noreferrer"
+										>Open on Farcaster</a>
+									</dd>
+								</div>
+							{/if}
+							{#if warpcastThreadHrefOpen !== undefined}
+								<div>
+									<dt>Thread</dt>
+									<dd>
+										<a
+											href={warpcastThreadHrefOpen}
+											rel="noreferrer"
+										>Open thread on Warpcast</a>
+									</dd>
+								</div>
+							{/if}
 						{/if}
 					</dl>
 				</div>
@@ -268,28 +395,22 @@
 			<EntityDetails
 				entityType={EntityType.FarcasterCast}
 				{entityId}
+			/>
+			<ResourceBoundary
+				resource={castSummary}
+				placeholderText="Loading cast…"
 			>
-				<ResourceBoundary
-					resource={castSummary}
-					placeholderText="Loading cast…"
-				>
-					{#snippet children(row)}
-						{@const authorId = row.$author[EntityMetaKey.Id]}
-						{@const authorUsername = row.$author.username}
-						{@const authorDisplayName = row.$author.displayName}
-						{@const authorAvatarUrl = (
-							row.$author.$icon === undefined ?
-								undefined
-							:
-								row.$author.$icon[EntityMetaKey.Id].url
-						)}
-						{@const parentCastId = (
-							row.$parentCast === undefined ?
-								undefined
-							:
-								row.$parentCast[EntityMetaKey.Id]
-						)}
-						{@const postedViaAppId = (
+				{#snippet children(row)}
+					{@const authorId = row.$author[EntityMetaKey.Id]}
+					{@const authorUsername = row.$author.username}
+					{@const authorDisplayName = row.$author.displayName}
+					{@const authorAvatarUrl = (
+						row.$author.$icon === undefined ?
+							undefined
+						:
+							row.$author.$icon[EntityMetaKey.Id].url
+					)}
+					{@const postedViaAppId = (
 							row.$postedViaApp === undefined ?
 								undefined
 							:
@@ -319,47 +440,6 @@
 							:
 								resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
 									channelId,
-								})
-						)}
-						{@const threadNorm = (
-							(() => {
-								const th = (
-									row.threadHash === undefined ?
-										''
-									:
-										row.threadHash.trim()
-								)
-								if (th === '') {
-									return undefined
-								}
-								const hex = (
-									th.startsWith('0x') || th.startsWith('0X') ?
-										th.slice(2)
-									:
-										th
-								)
-								return `0x${hex.toLowerCase()}` as CastHash
-							})()
-						)}
-						{@const warpcastThreadHref = (
-							threadNorm !== undefined && threadNorm !== entityId.hash ?
-								`https://warpcast.com/~/conversations/${threadNorm}`
-							:
-								undefined
-						)}
-						{@const farcasterWebCastHref = (
-							authorUsername === undefined ?
-								undefined
-							:
-								`https://farcaster.xyz/${authorUsername}/${entityId.hash}`
-						)}
-						{@const parentCastHref = (
-							parentCastId === undefined ?
-								undefined
-							:
-								resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
-									fid: String(parentCastId.fid),
-									hash: parentCastId.hash,
 								})
 						)}
 						<section data-column>
@@ -404,122 +484,20 @@
 										</a>
 									</p>
 								{/if}
-								{#if channelPageHref !== undefined && channelId !== undefined}
-									<p data-text="muted">
-										<a href={channelPageHref}>
-											/{channelId}
-										</a>
-									</p>
+								{#if channelPageHref !== undefined}
+									{#if channelId !== undefined}
+										<p data-text="muted">
+											<a href={channelPageHref}>
+												/{channelId}
+											</a>
+										</p>
+									{/if}
 								{/if}
 							</header>
 
 							<p>
 								{row.text}
 							</p>
-
-							<dl>
-								<div>
-									<dt>FID</dt>
-									<dd>{String(entityId.fid)}</dd>
-								</div>
-								<div>
-									<dt>Hash</dt>
-									<dd>
-										<span data-text="font-monospace">
-											<TruncatedValue
-												value={entityId.hash}
-												startLength={12}
-												endLength={10}
-												format={TruncatedValueFormat.Visual}
-											/>
-										</span>
-									</dd>
-								</div>
-								{#if parentCastHref !== undefined}
-									<div>
-										<dt>Parent cast</dt>
-										<dd>
-											<a href={parentCastHref}>View parent</a>
-										</dd>
-									</div>
-								{/if}
-								{#if row.parentUrl !== undefined}
-									<div>
-										<dt>Parent URL</dt>
-										<dd>
-											<a href={row.parentUrl}>{row.parentUrl}</a>
-										</dd>
-									</div>
-								{/if}
-								{#if row.mentions !== undefined && row.mentions.length}
-									<div>
-										<dt>Mentions</dt>
-										<dd>
-											<ul data-row="wrap gap-2">
-												{#each row.mentions as mention (String(mention))}
-													<li>
-														<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-															userId: String(mention),
-														})}>
-															FID {String(mention)}
-														</a>
-													</li>
-												{/each}
-											</ul>
-										</dd>
-									</div>
-								{/if}
-								{#if row.likeCount !== undefined}
-									<div>
-										<dt>Likes</dt>
-										<dd>{String(row.likeCount)}</dd>
-									</div>
-								{/if}
-								{#if row.recastCount !== undefined}
-									<div>
-										<dt>Recasts</dt>
-										<dd>{String(row.recastCount)}</dd>
-									</div>
-								{/if}
-								{#if row.replyCount !== undefined}
-									<div>
-										<dt>Replies</dt>
-										<dd>{String(row.replyCount)}</dd>
-									</div>
-								{/if}
-								{#if channelPageHref !== undefined && channelId !== undefined}
-									<div>
-										<dt>Channel</dt>
-										<dd>
-											<a href={channelPageHref}>
-												/{channelId}
-											</a>
-										</dd>
-									</div>
-								{/if}
-								{#if farcasterWebCastHref !== undefined}
-									<div>
-										<dt>On web</dt>
-										<dd>
-											<a
-												href={farcasterWebCastHref}
-												rel="noreferrer"
-											>Open on Farcaster</a>
-										</dd>
-									</div>
-								{/if}
-								{#if warpcastThreadHref !== undefined}
-									<div>
-										<dt>Thread</dt>
-										<dd>
-											<a
-												href={warpcastThreadHref}
-												rel="noreferrer"
-											>Open thread on Warpcast</a>
-										</dd>
-									</div>
-								{/if}
-							</dl>
 						</section>
 					{/snippet}
 				</ResourceBoundary>
@@ -656,7 +634,6 @@
 						</section>
 					{/snippet}
 				</ResourceBoundary>
-			</EntityDetails>
 		{/if}
 	{/snippet}
 </EntityView>

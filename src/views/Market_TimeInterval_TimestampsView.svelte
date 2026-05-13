@@ -111,7 +111,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const row = props.item.value}
 			<Market_TimeInterval_TimestampView
 				entityId={row[EntityMetaKey.Id]}

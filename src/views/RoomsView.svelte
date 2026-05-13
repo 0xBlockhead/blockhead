@@ -104,7 +104,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const roomId = props.item.value[EntityMetaKey.Id]}
 			<BlockheadRoomView
 				entityId={roomId}

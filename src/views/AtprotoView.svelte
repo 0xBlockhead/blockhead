@@ -43,6 +43,8 @@
 
 	const networkIdKey = stringify(entityId)
 
+	let open = $bindable(true)
+
 	const atprotoNetwork = useEntity(
 		EntityType.AtprotoNetwork,
 		entityId,
@@ -62,7 +64,7 @@
 	entityType={EntityType.AtprotoNetwork}
 	{entityId}
 	href={resolve('/(social)/atproto')}
-	open={true}
+	bind:open
 	title="AT Protocol"
 >
 	{#snippet Content({ title: _title, href: _href })}
@@ -81,21 +83,7 @@
 						<dt>Posts</dt>
 						<dd>{String(n.$$atprotoPosts.length)}</dd>
 					</div>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		<EntityDetails
-			entityType={EntityType.AtprotoNetwork}
-			{entityId}
-		>
-			<ResourceBoundary resource={atprotoNetwork}>
-				{#snippet children(n)}
-					<dl>
+					{#if open}
 						<div>
 							<dt>Protocol name</dt>
 							<dd>{n.protocolName ?? 'AT Protocol'}</dd>
@@ -108,20 +96,31 @@
 								</dd>
 							</div>
 						{/if}
-						{#if n.docsUrl != null && n.docsUrl !== ''}
-							<div>
-								<dt>Docs</dt>
-								<dd>
-									<a href={n.docsUrl}>
-										{n.docsUrl}
-									</a>
-								</dd>
-							</div>
+						{#if n.docsUrl != null}
+							{#if n.docsUrl !== ''}
+								<div>
+									<dt>Docs</dt>
+									<dd>
+										<a href={n.docsUrl}>
+											{n.docsUrl}
+										</a>
+									</dd>
+								</div>
+							{/if}
 						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.AtprotoNetwork}
+			{entityId}
+		/>
 
 		<div data-column="gap-3">
 			<Collapsible

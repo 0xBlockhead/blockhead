@@ -74,6 +74,36 @@
 						<dt>Posts</dt>
 						<dd>{String(loaded['$$xPosts'].length)}</dd>
 					</div>
+					{#if open}
+						<div>
+							<dt>Protocol name</dt>
+							<dd>{loaded.protocolName}</dd>
+						</div>
+					{/if}
+					{#if open}
+						<div>
+							<dt>Home</dt>
+							<dd>
+								<a href={loaded.homeUrl}>
+									{loaded.homeUrl}
+								</a>
+							</dd>
+						</div>
+					{/if}
+					{#if open}
+						{#if loaded.docsUrl != null}
+							{#if loaded.docsUrl !== ''}
+								<div>
+									<dt>Docs</dt>
+									<dd>
+										<a href={loaded.docsUrl}>
+											{loaded.docsUrl}
+										</a>
+									</dd>
+								</div>
+							{/if}
+						{/if}
+					{/if}
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
@@ -85,39 +115,7 @@
 		<EntityDetails
 			entityType={EntityType.XNetwork}
 			{entityId}
-		>
-			<ResourceBoundary
-				resource={network}
-				placeholderText="Loading X network…"
-			>
-				{#snippet children(loaded)}
-					<dl>
-						<div>
-							<dt>Protocol name</dt>
-							<dd>{loaded.protocolName}</dd>
-						</div>
-						<div>
-							<dt>Home</dt>
-							<dd>
-								<a href={loaded.homeUrl}>
-									{loaded.homeUrl}
-								</a>
-							</dd>
-						</div>
-						{#if loaded.docsUrl != null && loaded.docsUrl !== ''}
-							<div>
-								<dt>Docs</dt>
-								<dd>
-									<a href={loaded.docsUrl}>
-										{loaded.docsUrl}
-									</a>
-								</dd>
-							</div>
-						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+		/>
 
 		<div data-column="gap-3">
 			<Collapsible

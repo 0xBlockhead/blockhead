@@ -148,22 +148,7 @@
 							</dd>
 						</div>
 					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details()}
-		<EntityDetails
-			entityType={EntityType.MarketPrice}
-			{entityId}
-		>
-			<ResourceBoundary
-				resource={priceLive}
-				placeholderText="Loading price…"
-			>
-				{#snippet children(loaded)}
-					<dl>
+					{#if open}
 						{#if loaded.price !== undefined}
 							<div>
 								<dt>Price</dt>
@@ -193,16 +178,25 @@
 								<dd>{loaded.transport}</dd>
 							</div>
 						{/if}
-						{#if loaded.providerAssetId !== undefined && loaded.providerAssetId !== null}
-							<div>
-								<dt>Provider asset id</dt>
-								<dd>{loaded.providerAssetId}</dd>
-							</div>
+						{#if loaded.providerAssetId !== undefined}
+							{#if loaded.providerAssetId !== null}
+								<div>
+									<dt>Provider asset id</dt>
+									<dd>{loaded.providerAssetId}</dd>
+								</div>
+							{/if}
 						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details()}
+		<EntityDetails
+			entityType={EntityType.MarketPrice}
+			{entityId}
+		/>
 
 		<section>
 			<h2>

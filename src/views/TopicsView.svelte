@@ -106,7 +106,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const topicId = props.item.result[EntityMetaKey.Id]}
 			<EvmTopicView
 				entityId={topicId}

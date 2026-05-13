@@ -107,7 +107,7 @@
 	resource={proposalKinds}
 >
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const kindId = props.item.result[EntityMetaKey.Id]}
 			<ProposalsView
 				collapsible={false}

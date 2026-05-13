@@ -141,6 +141,20 @@
 							<dd>{String(u.usdValue)}</dd>
 						</div>
 					{/if}
+					{#if open}
+						{#if u.symbol !== undefined}
+							<div>
+								<dt>Symbol</dt>
+								<dd>{u.symbol}</dd>
+							</div>
+						{/if}
+						{#if u.decimals !== undefined}
+							<div>
+								<dt>Decimals</dt>
+								<dd>{String(u.decimals)}</dd>
+							</div>
+						{/if}
+					{/if}
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
@@ -155,41 +169,23 @@
 			<EntityDetails
 				entityType={EntityType.ActorCoin}
 				{entityId}
+			/>
+			<ResourceBoundary
+				resource={actorCoin}
+				placeholderText="Loading balance…"
 			>
-				<ResourceBoundary
-					resource={actorCoin}
-					placeholderText="Loading balance…"
-				>
-					{#snippet children(u)}
-						{#if u.symbol == null && u.decimals == null && u.balance == null}
-							<p data-text="muted">
-								No balance data for this account and coin yet.
-							</p>
-						{:else}
-							<dl>
-								{#if u.symbol !== undefined}
-									<div>
-										<dt>Symbol</dt>
-										<dd>{u.symbol}</dd>
-									</div>
-								{/if}
-								{#if u.decimals !== undefined}
-									<div>
-										<dt>Decimals</dt>
-										<dd>{String(u.decimals)}</dd>
-									</div>
-								{/if}
-								{#if u.usdValue !== undefined}
-									<div>
-										<dt>USD value</dt>
-										<dd>{String(u.usdValue)}</dd>
-									</div>
-								{/if}
-							</dl>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
+				{#snippet children(u)}
+					{#if (
+						u.symbol == null
+						&& u.decimals == null
+						&& u.balance == null
+					)}
+						<p data-text="muted">
+							No balance data for this account and coin yet.
+						</p>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntityView>

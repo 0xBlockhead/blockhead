@@ -104,7 +104,7 @@
 	resource={proposalRealms}
 >
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const realmId = props.item.result[EntityMetaKey.Id]}
 			<ProposalKindsView
 				collapsible={false}

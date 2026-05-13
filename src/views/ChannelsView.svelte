@@ -113,7 +113,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const channelId = props.item.value[EntityMetaKey.Id]}
 			<StateChannelView
 				entityId={channelId}

@@ -93,82 +93,54 @@
 </script>
 
 
-{#if entityId.name === 'list'}
-	<EntityView
-		entityType={EntityType.EnsName}
-		{entityId}
-		{href}
-		{open}
-		{...entityViewRest}
-		title={titleProp ?? (entityId.name === 'list' ? 'ENS' : entityId.name)}
-	>
-		{#snippet Content({ title: _title, href: _href })}
-			<dl>
+<EntityView
+	entityType={EntityType.EnsName}
+	{entityId}
+	{href}
+	{open}
+	{...entityViewRest}
+	title={titleProp ?? (entityId.name === 'list' ? 'ENS' : entityId.name)}
+>
+	{#snippet Content({ title: _title, href: _href })}
+		<dl>
+			{#if entityId.name === 'list'}
 				<div>
 					<dt>Scope</dt>
 					<dd>Ethereum mainnet ENS</dd>
 				</div>
-			</dl>
-		{/snippet}
-
-		{#snippet Details({
-			open: _open,
-		})}
-			<EntityDetails
-				entityType={EntityType.EnsName}
-				{entityId}
-			>
-				<p>
-					Enter an ENS name (for example <code>vitalik.eth</code>) to view records, resolver data, and ownership.
-				</p>
-			</EntityDetails>
-
-			{#if children}
-				{@render children()}
-			{/if}
-		{/snippet}
-	</EntityView>
-{:else}
-	<ResourceBoundary resource={onchain}>
-		{#snippet children(onchain)}
-			{@const textRecordEntries = (
-				onchain.textRecords === undefined ?
-					[]
-				:	Object.entries(onchain.textRecords)
-						.toSorted(([a], [b]) => (
-							((
-								ra,
-								rb,
-							) => (
-								ra !== rb ?
-									ra - rb
-								:	a.localeCompare(b)
-							))(
-								a in ensTextRecordDisplayRank ?
-									ensTextRecordDisplayRank[a]
-								:	9999,
-								b in ensTextRecordDisplayRank ?
-									ensTextRecordDisplayRank[b]
-								:	9999,
-							)
-						))
-			)}
-			{@const textRecordCount = textRecordEntries.length}
-			<EntityView
-				entityType={EntityType.EnsName}
-				{entityId}
-				{href}
-				{open}
-				{...entityViewRest}
-				title={titleProp ?? (entityId.name === 'list' ? 'ENS' : entityId.name)}
-			>
-				{#snippet Content({ title: _title, href: _href })}
-					<dl>
-						{#if onchain.labelName != null && onchain.labelName !== '' && entityId.name !== 'list'}
-							<div>
-								<dt>Label</dt>
-								<dd>{onchain.labelName}</dd>
-							</div>
+			{:else}
+				<ResourceBoundary resource={onchain}>
+					{#snippet children(onchain)}
+						{@const textRecordEntries = (
+							onchain.textRecords === undefined ?
+								[]
+							:	Object.entries(onchain.textRecords)
+									.toSorted(([a], [b]) => (
+										((
+											ra,
+											rb,
+										) => (
+											ra !== rb ?
+												ra - rb
+											:	a.localeCompare(b)
+										))(
+											a in ensTextRecordDisplayRank ?
+												ensTextRecordDisplayRank[a]
+											:	9999,
+											b in ensTextRecordDisplayRank ?
+												ensTextRecordDisplayRank[b]
+											:	9999,
+										)
+									))
+						)}
+						{@const textRecordCount = textRecordEntries.length}
+						{#if onchain.labelName != null}
+							{#if onchain.labelName !== ''}
+								<div>
+									<dt>Label</dt>
+									<dd>{onchain.labelName}</dd>
+								</div>
+							{/if}
 						{/if}
 						{#if textRecordCount > 0}
 							<div>
@@ -182,27 +154,19 @@
 								<dd>{String(onchain.subdomainCount)}</dd>
 							</div>
 						{/if}
-					</dl>
-				{/snippet}
-
-				{#snippet Details({
-					open: _open,
-				})}
-					<EntityDetails
-						entityType={EntityType.EnsName}
-						{entityId}
-					>
-						<dl>
-							{#if onchain.labelhash != null && onchain.labelhash !== ''}
-								<div>
-									<dt>Labelhash</dt>
-									<dd>
-										<TruncatedValue
-											value={onchain.labelhash}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</dd>
-								</div>
+						{#if open}
+							{#if onchain.labelhash != null}
+								{#if onchain.labelhash !== ''}
+									<div>
+										<dt>Labelhash</dt>
+										<dd>
+											<TruncatedValue
+												value={onchain.labelhash}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</dd>
+									</div>
+								{/if}
 							{/if}
 							{#if onchain.$parent !== undefined}
 								<div>
@@ -319,45 +283,36 @@
 									</div>
 								{/if}
 							{/if}
-						</dl>
-
-						{#if (onchain.resolverTextKeys ?? []).length > 0 || (onchain.resolverCoinTypes ?? []).length > 0}
-							<dl>
-								{#if (onchain.resolverTextKeys ?? []).length > 0}
-									<div>
-										<dt>Resolver text keys (indexer)</dt>
-										<dd>
-											<span data-text="muted">{(onchain.resolverTextKeys ?? []).join(', ')}</span>
-										</dd>
-									</div>
-								{/if}
-								{#if (onchain.resolverCoinTypes ?? []).length > 0}
-									<div>
-										<dt>Resolver coin types (indexer)</dt>
-										<dd>
-											<span data-text="muted">{(onchain.resolverCoinTypes ?? []).join(', ')}</span>
-										</dd>
-									</div>
-								{/if}
-							</dl>
-						{/if}
-
-						{#if onchain.contentHash != null && onchain.contentHash !== ''}
-							<dl>
+							{#if (onchain.resolverTextKeys ?? []).length > 0}
 								<div>
-									<dt>Content hash</dt>
+									<dt>Resolver text keys (indexer)</dt>
 									<dd>
-										<TruncatedValue
-											value={onchain.contentHash}
-											format={TruncatedValueFormat.Visual}
-										/>
+										<span data-text="muted">{(onchain.resolverTextKeys ?? []).join(', ')}</span>
 									</dd>
 								</div>
-							</dl>
-						{/if}
-
-						{#if onchain.coinAddresses !== undefined}
-							<dl>
+							{/if}
+							{#if (onchain.resolverCoinTypes ?? []).length > 0}
+								<div>
+									<dt>Resolver coin types (indexer)</dt>
+									<dd>
+										<span data-text="muted">{(onchain.resolverCoinTypes ?? []).join(', ')}</span>
+									</dd>
+								</div>
+							{/if}
+							{#if onchain.contentHash != null}
+								{#if onchain.contentHash !== ''}
+									<div>
+										<dt>Content hash</dt>
+										<dd>
+											<TruncatedValue
+												value={onchain.contentHash}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</dd>
+									</div>
+								{/if}
+							{/if}
+							{#if onchain.coinAddresses !== undefined}
 								{#each Object.entries(onchain.coinAddresses) as [coinType, addr] (coinType)}
 									<div>
 										<dt>{getEnsCoinTypeLabel(coinType)}</dt>
@@ -369,11 +324,8 @@
 										</dd>
 									</div>
 								{/each}
-							</dl>
-						{/if}
-
-						{#if textRecordEntries.length > 0}
-							<dl>
+							{/if}
+							{#if textRecordEntries.length > 0}
 								{#each textRecordEntries as [key, value] (key)}
 									{@const trHref = getEnsTextRecordHref(key, value)}
 									{@const trExternal = (
@@ -415,9 +367,55 @@
 										</dd>
 									</div>
 								{/each}
-							</dl>
+							{/if}
 						{/if}
-					</EntityDetails>
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+		</dl>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		{#if entityId.name === 'list'}
+			<EntityDetails
+				entityType={EntityType.EnsName}
+				{entityId}
+			>
+				<p>
+					Enter an ENS name (for example <code>vitalik.eth</code>) to view records, resolver data, and ownership.
+				</p>
+			</EntityDetails>
+		{:else}
+			<ResourceBoundary resource={onchain}>
+				{#snippet children(onchain)}
+					{@const textRecordEntries = (
+						onchain.textRecords === undefined ?
+							[]
+						:	Object.entries(onchain.textRecords)
+								.toSorted(([a], [b]) => (
+									((
+										ra,
+										rb,
+									) => (
+										ra !== rb ?
+											ra - rb
+										:	a.localeCompare(b)
+									))(
+										a in ensTextRecordDisplayRank ?
+											ensTextRecordDisplayRank[a]
+										:	9999,
+										b in ensTextRecordDisplayRank ?
+											ensTextRecordDisplayRank[b]
+										:	9999,
+									)
+								))
+					)}
+					<EntityDetails
+						entityType={EntityType.EnsName}
+						{entityId}
+					/>
 
 					<EnsNameTextRecordsView
 						entityId={entityId}
@@ -449,12 +447,12 @@
 							title="Resolves to"
 						/>
 					{/if}
-
-					{#if children}
-						{@render children()}
-					{/if}
 				{/snippet}
-			</EntityView>
-		{/snippet}
-	</ResourceBoundary>
-{/if}
+			</ResourceBoundary>
+		{/if}
+
+		{#if children}
+			{@render children()}
+		{/if}
+	{/snippet}
+</EntityView>

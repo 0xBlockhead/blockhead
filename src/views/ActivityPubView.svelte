@@ -35,6 +35,8 @@
 
 	const networkIdKey = stringify(entityId)
 
+	let open = $bindable(true)
+
 	const activityPubNetwork = useEntity(
 		EntityType.ActivityPubNetwork,
 		entityId,
@@ -54,7 +56,7 @@
 	entityType={EntityType.ActivityPubNetwork}
 	{entityId}
 	href={resolve('/(social)/activitypub')}
-	open={true}
+	bind:open
 	title="ActivityPub"
 >
 	{#snippet Content({ title: _title, href: _href })}
@@ -73,21 +75,7 @@
 						<dt>Notes</dt>
 						<dd>{String(n.$$activityPubNotes.length)}</dd>
 					</div>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		<EntityDetails
-			entityType={EntityType.ActivityPubNetwork}
-			{entityId}
-		>
-			<ResourceBoundary resource={activityPubNetwork}>
-				{#snippet children(n)}
-					<dl>
+					{#if open}
 						<div>
 							<dt>Protocol name</dt>
 							<dd>{n.protocolName ?? 'ActivityPub'}</dd>
@@ -100,24 +88,35 @@
 								</dd>
 							</div>
 						{/if}
-						{#if n.docsUrl != null && n.docsUrl !== ''}
-							<div>
-								<dt>Docs</dt>
-								<dd>
-									<a href={n.docsUrl}>
-										{n.docsUrl}
-									</a>
-								</dd>
-							</div>
+						{#if n.docsUrl != null}
+							{#if n.docsUrl !== ''}
+								<div>
+									<dt>Docs</dt>
+									<dd>
+										<a href={n.docsUrl}>
+											{n.docsUrl}
+										</a>
+									</dd>
+								</div>
+							{/if}
 						{/if}
 						<div>
 							<dt>Configured instance</dt>
 							<dd>{mastodonDefaultInstanceOrigin}</dd>
 						</div>
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.ActivityPubNetwork}
+			{entityId}
+		/>
 
 		<div data-column="gap-3">
 			<Collapsible

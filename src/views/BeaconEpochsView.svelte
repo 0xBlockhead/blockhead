@@ -97,8 +97,8 @@
 							</p>
 						{/snippet}
 
-						{#snippet Item({ item: epoch, isPlaceholder })}
-							{#if isPlaceholder === false}
+						{#snippet Item({ item: epoch })}
+							{#if epoch}
 								<BeaconEpochView
 									entityId={epoch[EntityMetaKey.Id]}
 									href={resolve(

@@ -121,7 +121,7 @@
 	resource={proposals}
 >
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const proposalEntityId = props.item.result[EntityMetaKey.Id]}
 			<ProposalView
 				entityId={proposalEntityId}

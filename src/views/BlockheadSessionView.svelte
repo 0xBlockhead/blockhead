@@ -104,16 +104,66 @@
 						<dt>Status</dt>
 						<dd>{s.status}</dd>
 					</div>
-					{#if s.updatedAt !== undefined || s.createdAt !== undefined}
+					{#if s.updatedAt !== undefined}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
 								<Timestamp
-									timestamp={s.updatedAt ?? s.createdAt}
+									timestamp={s.updatedAt}
 									format={TimestampFormat.Both}
 								/>
 							</dd>
 						</div>
+					{:else}
+						{#if s.createdAt !== undefined}
+							<div>
+								<dt>Timestamp</dt>
+								<dd>
+									<Timestamp
+										timestamp={s.createdAt}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if s.name !== undefined}
+							{#if s.name !== ''}
+								<div>
+									<dt>Name</dt>
+									<dd>{s.name}</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if s.createdAt !== undefined}
+							<div>
+								<dt>Created</dt>
+								<dd>
+									<Timestamp
+										timestamp={s.createdAt}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
+							</div>
+						{/if}
+						{#if s.updatedAt !== undefined}
+							<div>
+								<dt>Updated</dt>
+								<dd>
+									<Timestamp
+										timestamp={s.updatedAt}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
+							</div>
+						{/if}
+						{#if s.simulationCount !== undefined}
+							<div>
+								<dt>Simulation count</dt>
+								<dd>{String(s.simulationCount)}</dd>
+							</div>
+						{/if}
 					{/if}
 				</dl>
 			{/snippet}
@@ -129,65 +179,33 @@
 			<EntityDetails
 				entityType={EntityType.BlockheadSession}
 				{entityId}
+			/>
+			<ResourceBoundary
+				resource={session}
+				placeholderText="Loading session…"
 			>
-				<ResourceBoundary
-					resource={session}
-					placeholderText="Loading session…"
-				>
-					{#snippet children(s)}
-						<dl>
-							{#if s.name !== undefined && s.name !== ''}
-								<div>
-									<dt>Name</dt>
-									<dd>{s.name}</dd>
-								</div>
+				{#snippet children(s)}
+					{#if open}
+						{#if s.createdAt === undefined}
+							{#if s.updatedAt === undefined}
+								{#if s.simulationCount === undefined}
+									{#if s.name === undefined}
+										<p data-text="muted">
+											No additional session details are available yet.
+										</p>
+									{:else}
+										{#if s.name === ''}
+											<p data-text="muted">
+												No additional session details are available yet.
+											</p>
+										{/if}
+									{/if}
+								{/if}
 							{/if}
-
-							{#if s.createdAt !== undefined}
-								<div>
-									<dt>Created</dt>
-									<dd>
-										<Timestamp
-											timestamp={s.createdAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-
-							{#if s.updatedAt !== undefined}
-								<div>
-									<dt>Updated</dt>
-									<dd>
-										<Timestamp
-											timestamp={s.updatedAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-
-							{#if s.simulationCount !== undefined}
-								<div>
-									<dt>Simulation count</dt>
-									<dd>{String(s.simulationCount)}</dd>
-								</div>
-							{/if}
-						</dl>
-
-						{#if (
-							(s.name === undefined || s.name === '')
-							&& s.createdAt === undefined
-							&& s.updatedAt === undefined
-							&& s.simulationCount === undefined
-						)}
-							<p data-text="muted">
-								No additional session details are available yet.
-							</p>
 						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntityView>

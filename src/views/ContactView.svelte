@@ -120,11 +120,13 @@
 						<dd>{entityId.id}</dd>
 					</div>
 
-					{#if live.peerId !== undefined && live.peerId !== ''}
-						<div>
-							<dt>Peer ID</dt>
-							<dd>{live.peerId}</dd>
-						</div>
+					{#if live.peerId !== undefined}
+						{#if live.peerId !== ''}
+							<div>
+								<dt>Peer ID</dt>
+								<dd>{live.peerId}</dd>
+							</div>
+						{/if}
 					{/if}
 
 					{#if live.sharedAt !== undefined}
@@ -138,45 +140,27 @@
 							</dd>
 						</div>
 					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		<EntityDetails
-			entityType={EntityType.BlockheadSharedAddress}
-			{entityId}
-		>
-			<ResourceBoundary resource={shared}>
-				{#snippet children(live)}
-					<dl>
-						{#if live.peerId !== undefined && live.peerId !== ''}
-							<div>
-								<dt>Peer ID</dt>
-								<dd>{live.peerId}</dd>
-							</div>
-						{/if}
-						{#if live.$account !== undefined && live.$network !== undefined}
-							<div>
-								<dt>Account</dt>
-								<dd>
-									<ActorNetworkView
-										entityId={{
-											$network: live.$network[EntityMetaKey.Id],
-											$actor: live.$account[EntityMetaKey.Id],
-										}}
-										href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-											accountId: live.$account[EntityMetaKey.Id].address,
-										})}
-										layout={EntityLayout.Id}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								</dd>
-							</div>
+					{#if open}
+						{#if live.$account !== undefined}
+							{#if live.$network !== undefined}
+								<div>
+									<dt>Account</dt>
+									<dd>
+										<ActorNetworkView
+											entityId={{
+												$network: live.$network[EntityMetaKey.Id],
+												$actor: live.$account[EntityMetaKey.Id],
+											}}
+											href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+												accountId: live.$account[EntityMetaKey.Id].address,
+											})}
+											layout={EntityLayout.Id}
+											open={false}
+											showTypeAnnotation={false}
+										/>
+									</dd>
+								</div>
+							{/if}
 						{/if}
 						{#if live.$room !== undefined}
 							<div>
@@ -196,34 +180,35 @@
 								<dd>{(live.targetPeerIds ?? []).join(', ')}</dd>
 							</div>
 						{/if}
-						{#if live.sharedAt !== undefined}
-							<div>
-								<dt>Shared at</dt>
-								<dd>
-									<Timestamp
-										timestamp={live.sharedAt}
-										format={TimestampFormat.Both}
-									/>
-								</dd>
-							</div>
-						{/if}
-					</dl>
-
-					{#if (
-						(live.peerId === undefined || live.peerId === '')
-						&& !(live.$account !== undefined && live.$network !== undefined)
-						&& live.$room === undefined
-						&& live.$network === undefined
-						&& (live.targetPeerIds ?? []).length === 0
-						&& live.sharedAt === undefined
-					)}
-						<p data-text="muted">
-							No additional contact details are available yet.
-						</p>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.BlockheadSharedAddress}
+			{entityId}
+		/>
+		<ResourceBoundary resource={shared}>
+			{#snippet children(live)}
+				{#if (
+					(live.peerId === undefined || live.peerId === '')
+					&& !(live.$account !== undefined && live.$network !== undefined)
+					&& live.$room === undefined
+					&& live.$network === undefined
+					&& (live.targetPeerIds ?? []).length === 0
+					&& live.sharedAt === undefined
+				)}
+					<p data-text="muted">
+						No additional contact details are available yet.
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 
 		{#if children}
 			{@render children()}

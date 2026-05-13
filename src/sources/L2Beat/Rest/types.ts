@@ -8,6 +8,7 @@ export type L2BeatScalingSummaryProject = {
 	name: string
 	slug: string
 	type: string
+	/** Settled-on / host chain label; maps via `l2beatHostChainToParentChainId`. */
 	hostChain: string
 	category?: string
 	isArchived?: boolean

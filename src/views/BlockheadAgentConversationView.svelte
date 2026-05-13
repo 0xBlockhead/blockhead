@@ -95,79 +95,98 @@
 
 			<ResourceBoundary resource={conversation}>
 				{#snippet children(_conversation)}
-					{#if _conversation.updatedAt !== undefined || _conversation.createdAt !== undefined}
+					{#if _conversation.updatedAt !== undefined}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
 								<Timestamp
-									timestamp={_conversation.updatedAt ?? _conversation.createdAt}
+									timestamp={_conversation.updatedAt}
 									format={TimestampFormat.Both}
 								/>
 							</dd>
 						</div>
+					{:else}
+						{#if _conversation.createdAt !== undefined}
+							<div>
+								<dt>Timestamp</dt>
+								<dd>
+									<Timestamp
+										timestamp={_conversation.createdAt}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if _conversation.name !== undefined}
+							{#if _conversation.name !== ''}
+								<div>
+									<dt>Name</dt>
+									<dd>{_conversation.name}</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if _conversation.createdAt !== undefined}
+							<div>
+								<dt>Created at</dt>
+								<dd>
+									<Timestamp
+										timestamp={_conversation.createdAt}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
+							</div>
+						{/if}
+						{#if _conversation.updatedAt !== undefined}
+							<div>
+								<dt>Updated at</dt>
+								<dd>
+									<Timestamp
+										timestamp={_conversation.updatedAt}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
+							</div>
+						{/if}
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
+	{#snippet Details()}
 		{#if childrenSnippet}
 			{@render childrenSnippet()}
 		{:else}
 			<EntityDetails
 				entityType={EntityType.BlockheadAgentConversation}
 				{entityId}
-			>
-				<ResourceBoundary resource={conversation}>
-					{#snippet children(_conversation)}
-						<dl>
-							{#if _conversation.name !== undefined && _conversation.name !== ''}
-								<div>
-									<dt>Name</dt>
-									<dd>{_conversation.name}</dd>
-								</div>
+			/>
+			<ResourceBoundary resource={conversation}>
+				{#snippet children(_conversation)}
+					{#if _conversation.name === undefined}
+						{#if _conversation.createdAt === undefined}
+							{#if _conversation.updatedAt === undefined}
+								<p data-text="muted">
+									No conversation details are available yet.
+								</p>
 							{/if}
-
-							{#if _conversation.createdAt !== undefined}
-								<div>
-									<dt>Created at</dt>
-									<dd>
-										<Timestamp
-											timestamp={_conversation.createdAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-
-							{#if _conversation.updatedAt !== undefined}
-								<div>
-									<dt>Updated at</dt>
-									<dd>
-										<Timestamp
-											timestamp={_conversation.updatedAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-						</dl>
-
-						{#if (
-							(_conversation.name === undefined || _conversation.name === '')
-							&& _conversation.createdAt === undefined
-							&& _conversation.updatedAt === undefined
-						)}
-							<p data-text="muted">
-								No conversation details are available yet.
-							</p>
 						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
+					{/if}
+					{#if _conversation.name !== undefined}
+						{#if _conversation.name === ''}
+							{#if _conversation.createdAt === undefined}
+								{#if _conversation.updatedAt === undefined}
+									<p data-text="muted">
+										No conversation details are available yet.
+									</p>
+								{/if}
+							{/if}
+						{/if}
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntityView>

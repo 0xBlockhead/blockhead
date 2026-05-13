@@ -86,17 +86,9 @@
 					/>
 				</dd>
 			</div>
-		</dl>
-	{/snippet}
-
-	{#snippet Details({ open: _open })}
-		<EntityDetails
-			entityType={EntityType.EvmContract}
-			{entityId}
-		>
 			<ResourceBoundary resource={contract}>
 				{#snippet children(live)}
-					<dl>
+					{#if open}
 						{#if live.abi !== undefined}
 							<div>
 								<dt>ABI</dt>
@@ -107,16 +99,26 @@
 									/>
 								</dd>
 							</div>
-						{:else}
+						{/if}
+					{/if}
+					{#if open}
+						{#if live.abi === undefined}
 							<div>
 								<dt>ABI</dt>
 								<dd>No ABI available yet.</dd>
 							</div>
 						{/if}
-					</dl>
+					{/if}
 				{/snippet}
 			</ResourceBoundary>
-		</EntityDetails>
+		</dl>
+	{/snippet}
+
+	{#snippet Details({ open: _open })}
+		<EntityDetails
+			entityType={EntityType.EvmContract}
+			{entityId}
+		/>
 
 		{#if children}
 			{@render children()}

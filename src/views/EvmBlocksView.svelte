@@ -113,7 +113,7 @@
 				{/snippet}
 
 				{#snippet Item(props)}
-					{#if props.isPlaceholder === false}
+					{#if props.item}
 						<EvmBlockView
 							entityId={props.item[EntityMetaKey.Id]}
 							href={resolve(

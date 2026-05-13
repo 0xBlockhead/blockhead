@@ -88,6 +88,31 @@
 					/>
 				</dd>
 			</div>
+			{#if open}
+				<div>
+					<dt>
+						Signatures
+					</dt>
+					<dd>
+						<ResourceBoundary
+							resource={selector}
+							placeholderText="Loading signatures…"
+						>
+							{#snippet children(s)}
+								{#if s.signatures.length > 0}
+									<ul>
+									{#each s.signatures as sig (sig)}
+											<li><code>{sig}</code></li>
+										{/each}
+									</ul>
+								{:else}
+									<p data-text="muted">No signatures found for this selector.</p>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 		</dl>
 	{/snippet}
 
@@ -95,35 +120,7 @@
 		<EntityDetails
 			entityType={EntityType.EvmSelector}
 			{entityId}
-		>
-			<section>
-				<dl>
-					<div>
-						<dt>
-							Signatures
-						</dt>
-						<dd>
-							<ResourceBoundary
-								resource={selector}
-								placeholderText="Loading signatures…"
-							>
-								{#snippet children(s)}
-									{#if s.signatures.length > 0}
-										<ul>
-										{#each s.signatures as sig (sig)}
-												<li><code>{sig}</code></li>
-											{/each}
-										</ul>
-									{:else}
-										<p data-text="muted">No signatures found for this selector.</p>
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				</dl>
-			</section>
-		</EntityDetails>
+		/>
 
 		{#if children}
 			{@render children()}

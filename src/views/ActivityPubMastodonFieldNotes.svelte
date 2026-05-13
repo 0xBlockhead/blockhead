@@ -93,7 +93,7 @@
 	{title}
 >
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const nid = props.item.value[EntityMetaKey.Id]}
 			{@const textPreview = htmlToPlainText(
 				props.item.value.content,

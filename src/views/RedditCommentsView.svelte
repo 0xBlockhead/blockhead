@@ -104,9 +104,8 @@
 
 	{#snippet Item({
 		item: row,
-		isPlaceholder,
 	})}
-		{#if isPlaceholder === false}
+		{#if row}
 			<RedditCommentView
 				entityId={{ fullname: row.fullname }}
 				href={resolve('/(social)/reddit/comment/[fullname]', {

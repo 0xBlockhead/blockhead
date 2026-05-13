@@ -97,10 +97,6 @@
 		>
 			{#snippet children(t)}
 				<dl>
-					<div>
-						<dt>Chain id</dt>
-						<dd>{String(entityId.$network.chainId)}</dd>
-					</div>
 					{#if t.value !== undefined}
 						<div>
 							<dt>Value</dt>
@@ -123,6 +119,60 @@
 							</dd>
 						</div>
 					{/if}
+					{#if open}
+						{#if t.nonce !== undefined}
+							<div>
+								<dt>Nonce</dt>
+								<dd>{String(t.nonce)}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if t.transactionIndex !== undefined}
+							<div>
+								<dt>Index</dt>
+								<dd>{String(t.transactionIndex)}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if t.gas !== undefined}
+							<div>
+								<dt>Gas</dt>
+								<dd>
+									<NumberValue value={t.gas} />
+								</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if t.gasPrice !== undefined}
+							<div>
+								<dt>Gas price</dt>
+								<dd>
+									<NumberValue value={t.gasPrice} />
+								</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if t.type !== undefined}
+							<div>
+								<dt>Type</dt>
+								<dd>{String(t.type)}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if t.effectiveGasPrice !== undefined}
+							<div>
+								<dt>Effective gas price</dt>
+								<dd>
+									<NumberValue value={t.effectiveGasPrice} />
+								</dd>
+							</div>
+						{/if}
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -134,59 +184,7 @@
 		<EntityDetails
 			entityType={EntityType.EvmTransaction}
 			{entityId}
-		>
-			<ResourceBoundary
-				resource={tx}
-				placeholderText="Loading transaction…"
-			>
-				{#snippet children(t)}
-					<dl>
-						{#if t.nonce !== undefined}
-							<div>
-								<dt>Nonce</dt>
-								<dd>{String(t.nonce)}</dd>
-							</div>
-						{/if}
-						{#if t.transactionIndex !== undefined}
-							<div>
-								<dt>Index</dt>
-								<dd>{String(t.transactionIndex)}</dd>
-							</div>
-						{/if}
-						{#if t.gas !== undefined}
-							<div>
-								<dt>Gas</dt>
-								<dd>
-									<NumberValue value={t.gas} />
-								</dd>
-							</div>
-						{/if}
-						{#if t.gasPrice !== undefined}
-							<div>
-								<dt>Gas price</dt>
-								<dd>
-									<NumberValue value={t.gasPrice} />
-								</dd>
-							</div>
-						{/if}
-						{#if t.type !== undefined}
-							<div>
-								<dt>Type</dt>
-								<dd>{String(t.type)}</dd>
-							</div>
-						{/if}
-						{#if t.effectiveGasPrice !== undefined}
-							<div>
-								<dt>Effective gas price</dt>
-								<dd>
-									<NumberValue value={t.effectiveGasPrice} />
-								</dd>
-							</div>
-						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+		/>
 
 		{#if children}
 			{@render children()}

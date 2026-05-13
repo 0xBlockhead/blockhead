@@ -38,10 +38,12 @@ import BridgeTransactionSchema from '$/schema/BridgeTransaction.ts'
 import CctpAllowanceSchema from '$/schema/CctpAllowance.ts'
 import CctpFeeSchema from '$/schema/CctpFee.ts'
 import ChannelProposalSchema from '$/schema/ChannelProposal.ts'
+import NetworkConsensusUpgradeSchema from '$/schema/ConsensusUpgrade.ts'
 import CoinSchema from '$/schema/Coin.ts'
 import CoinInstanceSchema from '$/schema/CoinInstance.ts'
 import Coin_EvmBlockSchema from '$/schema/Coin_EvmBlock.ts'
 import Coin_TimestampSchema from '$/schema/Coin_Timestamp.ts'
+import NetworkExecutionUpgradeSchema from '$/schema/ExecutionUpgrade.ts'
 import MarketSchema from '$/schema/Market.ts'
 import MarketVenueSchema from '$/schema/MarketVenue.ts'
 import MarketPriceSchema from '$/schema/MarketPrice.ts'
@@ -97,6 +99,7 @@ import XUserSchema from '$/schema/XUser.ts'
 import XNetworkSchema from '$/schema/XNetwork.ts'
 import XmtpConversationSchema from '$/schema/XmtpConversation.ts'
 import XmtpNetworkSchema from '$/schema/XmtpNetwork.ts'
+import NetworkUpgradeSchema from '$/schema/Upgrade.ts'
 
 export const schema = [
 	_GlobalSchema,
@@ -137,10 +140,12 @@ export const schema = [
 	CctpAllowanceSchema,
 	CctpFeeSchema,
 	ChannelProposalSchema,
+	NetworkConsensusUpgradeSchema,
 	CoinSchema,
 	CoinInstanceSchema,
 	Coin_EvmBlockSchema,
 	Coin_TimestampSchema,
+	NetworkExecutionUpgradeSchema,
 	MarketSchema,
 	MarketVenueSchema,
 	MarketPriceSchema,
@@ -190,6 +195,7 @@ export const schema = [
 	StateChannelTransferSchema,
 	SwarmResourceSchema,
 	SwapQuoteSchema,
+	NetworkUpgradeSchema,
 	VaultSchema,
 	XPostSchema,
 	XUserSchema,

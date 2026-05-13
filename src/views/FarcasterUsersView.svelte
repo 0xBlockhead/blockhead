@@ -85,7 +85,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const userId = props.item.value[EntityMetaKey.Id]}
 			<FarcasterUserView
 				entityId={{ fid: userId.fid }}

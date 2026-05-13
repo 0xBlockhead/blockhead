@@ -41,6 +41,8 @@
 		},
 	)
 
+	let open = $bindable(true)
+
 
 	// Components
 	import ActorsView from '$/views/ActorsView.svelte'
@@ -57,7 +59,7 @@
 	entityType={EntityType.XmtpNetwork}
 	{entityId}
 	href={resolve('/(social)/xmtp')}
-	open={true}
+	bind:open
 	title="XMTP"
 >
 	{#snippet Content({ title: _title, href: _href })}
@@ -78,19 +80,9 @@
 					</div>
 				{/snippet}
 			</ResourceBoundary>
-		</dl>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		<EntityDetails
-			entityType={EntityType.XmtpNetwork}
-			{entityId}
-		>
-			<ResourceBoundary resource={network}>
-				{#snippet children(loaded)}
-					<dl>
+			{#if open}
+				<ResourceBoundary resource={network}>
+					{#snippet children(loaded)}
 						<div>
 							<dt>Protocol name</dt>
 							<dd>{loaded.protocolName}</dd>
@@ -103,20 +95,31 @@
 								</a>
 							</dd>
 						</div>
-						{#if loaded.docsUrl != null && loaded.docsUrl !== ''}
-							<div>
-								<dt>Docs</dt>
-								<dd>
-									<a href={loaded.docsUrl}>
-										{loaded.docsUrl}
-									</a>
-								</dd>
-							</div>
+						{#if loaded.docsUrl != null}
+							{#if loaded.docsUrl !== ''}
+								<div>
+									<dt>Docs</dt>
+									<dd>
+										<a href={loaded.docsUrl}>
+											{loaded.docsUrl}
+										</a>
+									</dd>
+								</div>
+							{/if}
 						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+		</dl>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.XmtpNetwork}
+			{entityId}
+		/>
 
 		<div data-column="gap-3">
 			<Collapsible

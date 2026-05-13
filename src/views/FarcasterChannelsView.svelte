@@ -96,7 +96,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const channelId = props.item.result[EntityMetaKey.Id]}
 			<FarcasterChannelView
 				entityId={{ id: channelId.id }}

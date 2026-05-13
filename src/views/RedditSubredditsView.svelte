@@ -98,9 +98,8 @@
 
 	{#snippet Item({
 		item: row,
-		isPlaceholder,
 	})}
-		{#if isPlaceholder === false}
+		{#if row}
 			<RedditSubredditView
 				entityId={row.entityId}
 				href={resolve('/(social)/reddit/r/[name]', {

@@ -87,6 +87,17 @@
 						<dt>Bytes</dt>
 						<dd>{String((entityId.hex.length - 2) / 2)}</dd>
 					</div>
+					{#if open}
+						<div>
+							<dt>Hex</dt>
+							<dd>
+								<TruncatedValue
+									format={TruncatedValueFormat.Visual}
+									value={entityId.hex}
+								/>
+							</dd>
+						</div>
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -101,28 +112,7 @@
 			<EntityDetails
 				entityType={EntityType.EvmCalldata}
 				{entityId}
-			>
-				<ResourceBoundary
-					placeholderText="Loading calldata…"
-					resource={calldata}
-				>
-					{#snippet children(_)}
-						<section>
-							<dl>
-								<div>
-									<dt>Hex</dt>
-									<dd>
-										<TruncatedValue
-											format={TruncatedValueFormat.Visual}
-											value={entityId.hex}
-										/>
-									</dd>
-								</div>
-							</dl>
-						</section>
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
+			/>
 		{/if}
 	{/snippet}
 </EntityView>

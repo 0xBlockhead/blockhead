@@ -103,6 +103,35 @@
 							</dd>
 						</div>
 					{/if}
+					{#if open}
+						{#if r.name !== undefined}
+							{#if r.name !== ''}
+								<div>
+									<dt>Name</dt>
+									<dd>{r.name}</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if r.createdBy !== undefined}
+							{#if r.createdBy !== ''}
+								<div>
+									<dt>Created by</dt>
+									<dd>{r.createdBy}</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if r.createdAt !== undefined}
+							<div>
+								<dt>Created at</dt>
+								<dd>
+									<Timestamp
+										timestamp={r.createdAt}
+										format={TimestampFormat.Both}
+									/>
+								</dd>
+							</div>
+						{/if}
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -117,40 +146,13 @@
 			<EntityDetails
 				entityType={EntityType.BlockheadRoom}
 				{entityId}
+			/>
+			<ResourceBoundary
+				resource={room}
+				placeholderText="Loading room…"
 			>
-				<ResourceBoundary
-					resource={room}
-					placeholderText="Loading room…"
-				>
-					{#snippet children(r)}
-						<dl>
-							{#if r.name !== undefined && r.name !== ''}
-								<div>
-									<dt>Name</dt>
-									<dd>{r.name}</dd>
-								</div>
-							{/if}
-
-							{#if r.createdBy !== undefined && r.createdBy !== ''}
-								<div>
-									<dt>Created by</dt>
-									<dd>{r.createdBy}</dd>
-								</div>
-							{/if}
-
-							{#if r.createdAt !== undefined}
-								<div>
-									<dt>Created at</dt>
-									<dd>
-										<Timestamp
-											timestamp={r.createdAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-						</dl>
-
+				{#snippet children(r)}
+					{#if open}
 						{#if (
 							(r.name === undefined || r.name === '')
 							&& (r.createdBy === undefined || r.createdBy === '')
@@ -160,9 +162,9 @@
 								No room details are available yet.
 							</p>
 						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntityView>

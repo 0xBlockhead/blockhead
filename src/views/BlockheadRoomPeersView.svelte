@@ -84,8 +84,8 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListRest}
 >
-	{#snippet Item({ item: row, isPlaceholder })}
-		{#if isPlaceholder === false}
+	{#snippet Item({ item: row })}
+		{#if row}
 			<BlockheadRoomPeerView
 				entityId={row[EntityMetaKey.Id]}
 				href={resolve(

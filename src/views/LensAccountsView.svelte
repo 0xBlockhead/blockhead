@@ -105,7 +105,7 @@
 				{/snippet}
 
 				{#snippet Item(props)}
-					{#if props.isPlaceholder === false}
+					{#if props.item}
 						<LensAccountView
 							entityId={{ address: props.item[EntityMetaKey.Id].address }}
 							href={resolve('/(social)/lens/account/[address]', {

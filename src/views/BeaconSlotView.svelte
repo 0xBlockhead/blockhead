@@ -99,28 +99,64 @@
 >
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
-			<div>
-				<dt>Slot</dt>
-				<dd>
-					<NumberValue value={entityId.slot} />
-				</dd>
-			</div>
-
 			<ResourceBoundary resource={slot}>
 				{#snippet children(s)}
-					<div>
-						<dt>Epoch</dt>
-						<dd>
-							<NumberValue value={s.epoch} />
-						</dd>
-					</div>
-
 					<div>
 						<dt>Proposer</dt>
 						<dd>
 							<NumberValue value={s.proposerIndex} />
 						</dd>
 					</div>
+					{#if open}
+						<div>
+							<dt>Root</dt>
+							<dd>
+								<TruncatedValue
+									value={s.root}
+									format={TruncatedValueFormat.Abbr}
+								/>
+							</dd>
+						</div>
+					{/if}
+					{#if open}
+						<div>
+							<dt>Canonical</dt>
+							<dd>{s.canonical ? 'Yes' : 'No'}</dd>
+						</div>
+					{/if}
+					{#if open}
+						<div>
+							<dt>Parent root</dt>
+							<dd>
+								<TruncatedValue
+									value={s.parentRoot}
+									format={TruncatedValueFormat.Abbr}
+								/>
+							</dd>
+						</div>
+					{/if}
+					{#if open}
+						<div>
+							<dt>State root</dt>
+							<dd>
+								<TruncatedValue
+									value={s.stateRoot}
+									format={TruncatedValueFormat.Abbr}
+								/>
+							</dd>
+						</div>
+					{/if}
+					{#if open}
+						<div>
+							<dt>Body root</dt>
+							<dd>
+								<TruncatedValue
+									value={s.bodyRoot}
+									format={TruncatedValueFormat.Abbr}
+								/>
+							</dd>
+						</div>
+					{/if}
 				{/snippet}
 			</ResourceBoundary>
 		</dl>
@@ -132,58 +168,7 @@
 		<EntityDetails
 			entityType={EntityType.BeaconSlot}
 			{entityId}
-		>
-			<ResourceBoundary resource={slot}>
-				{#snippet children(s)}
-					<dl>
-						<div>
-							<dt>Root</dt>
-							<dd>
-								<TruncatedValue
-									value={s.root}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
-
-						<div>
-							<dt>Canonical</dt>
-							<dd>{s.canonical ? 'Yes' : 'No'}</dd>
-						</div>
-
-						<div>
-							<dt>Parent root</dt>
-							<dd>
-								<TruncatedValue
-									value={s.parentRoot}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
-
-						<div>
-							<dt>State root</dt>
-							<dd>
-								<TruncatedValue
-									value={s.stateRoot}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
-
-						<div>
-							<dt>Body root</dt>
-							<dd>
-								<TruncatedValue
-									value={s.bodyRoot}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+		/>
 
 		{#if children}
 			{@render children()}

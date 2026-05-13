@@ -13,6 +13,8 @@
 
 	import { stringify } from 'devalue'
 
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+
 
 	// Props
 	let {
@@ -38,6 +40,7 @@
 			| 'title'
 			| 'open'
 			| 'Details'
+			| 'Content'
 		>
 	> = $props()
 
@@ -59,7 +62,6 @@
 
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ProposalsView from '$/views/ProposalsView.svelte'
 </script>
@@ -74,35 +76,56 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Details({
-		open: _open,
-	})}
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={kind}
+			placeholderText="Loading proposals…"
+		>
+			{#snippet children(k)}
+				<dl>
+					<div>
+						<dt>Category</dt>
+						<dd>{proposalCategoryById[entityId.category].labelPlural}</dd>
+					</div>
+					{#if open}
+						{#if k.labelPlural !== undefined}
+							<div>
+								<dt>Label plural</dt>
+								<dd>{k.labelPlural}</dd>
+							</div>
+						{/if}
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details()}
 		<EntityDetails
 			entityType={EntityType.ProposalKind}
 			{entityId}
+		/>
+		<ResourceBoundary
+			resource={kind}
+			placeholderText="Loading proposals…"
 		>
-			<ResourceBoundary
-				resource={kind}
-				placeholderText="Loading proposals…"
-			>
-				{#snippet children(k)}
-					<ProposalsView
-						entityFieldReference={{
-							entityType: EntityType.ProposalKind,
-							entityId,
-							fieldName: '$$proposals',
-						}}
-						{href}
-						id={`${stringify(entityId)}:proposals`}
-						open={false}
-						title={
-							k.labelPlural
-							?? proposalCategoryById[entityId.category].labelPlural
-						}
-					/>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+			{#snippet children(k)}
+				<ProposalsView
+					entityFieldReference={{
+						entityType: EntityType.ProposalKind,
+						entityId,
+						fieldName: '$$proposals',
+					}}
+					{href}
+					id={`${stringify(entityId)}:proposals`}
+					open={false}
+					title={
+						k.labelPlural
+						?? proposalCategoryById[entityId.category].labelPlural
+					}
+				/>
+			{/snippet}
+		</ResourceBoundary>
 
 		{#if children}
 			{@render children()}

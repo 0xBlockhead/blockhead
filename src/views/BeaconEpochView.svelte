@@ -96,24 +96,37 @@
 >
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
-			<div>
-				<dt>Epoch</dt>
-				<dd>
-					<NumberValue value={entityId.epoch} />
-				</dd>
-			</div>
-
 			<ResourceBoundary resource={epoch}>
 				{#snippet children(e)}
-					{#if e.startSlot !== undefined && e.endSlot !== undefined}
-						<div>
-							<dt>Slot range</dt>
-							<dd>
-								<NumberValue value={e.startSlot} />
-								to
-								<NumberValue value={e.endSlot} />
-							</dd>
-						</div>
+					{#if e.startSlot !== undefined}
+						{#if e.endSlot !== undefined}
+							<div>
+								<dt>Slot range</dt>
+								<dd>
+									<NumberValue value={e.startSlot} />
+									to
+									<NumberValue value={e.endSlot} />
+								</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if e.slotCount !== undefined}
+							<div>
+								<dt>Slots</dt>
+								<dd>
+									<NumberValue value={e.slotCount} />
+								</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if e.slotCount === undefined}
+							<div>
+								<dt>Slots</dt>
+								<dd data-text="muted">Slot data unavailable.</dd>
+							</div>
+						{/if}
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
@@ -126,24 +139,7 @@
 		<EntityDetails
 			entityType={EntityType.BeaconEpoch}
 			{entityId}
-		>
-			<ResourceBoundary resource={epoch}>
-				{#snippet children(e)}
-					{#if e.slotCount !== undefined}
-						<dl>
-							<div>
-								<dt>Slots</dt>
-								<dd>
-									<NumberValue value={e.slotCount} />
-								</dd>
-							</div>
-						</dl>
-					{:else}
-						<p data-text="muted">Slot data unavailable.</p>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+		/>
 
 		<BeaconSlotsView
 			entityFieldReference={{

@@ -164,11 +164,19 @@
 	</div>
 
 {:else if layout === EntityLayout.Details}
-	{#if _Details}
-		{@render _Details({
-			open: true,
-		})}
-	{/if}
+	<div data-column>
+		{#if Content}
+			{@render Content({
+				title,
+				href,
+			})}
+		{/if}
+		{#if _Details}
+			{@render _Details({
+				open: true,
+			})}
+		{/if}
+	</div>
 
 {:else}
 	<article

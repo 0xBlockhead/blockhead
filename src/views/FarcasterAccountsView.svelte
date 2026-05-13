@@ -96,7 +96,7 @@
 	{/snippet}
 
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			{@const fid = props.item.result[EntityMetaKey.Id]}
 			<BlockheadFarcasterAccountConnectionView
 				entityId={{ fid: fid.fid }}

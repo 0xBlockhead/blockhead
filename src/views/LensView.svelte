@@ -22,6 +22,8 @@
 
 	const networkIdKey = stringify(entityId)
 
+	let open = $bindable(true)
+
 	const lensNetwork = useEntity(
 		EntityType.LensNetwork,
 		entityId,
@@ -51,7 +53,7 @@
 	entityType={EntityType.LensNetwork}
 	{entityId}
 	href={resolve('/(social)/lens')}
-	open={true}
+	bind:open
 	title="Lens"
 >
 	{#snippet Content({ title: _title, href: _href })}
@@ -70,21 +72,7 @@
 						<dt>Posts</dt>
 						<dd>{String(loaded.$$lensPosts.length)}</dd>
 					</div>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		<EntityDetails
-			entityType={EntityType.LensNetwork}
-			{entityId}
-		>
-			<ResourceBoundary resource={lensNetwork}>
-				{#snippet children(loaded)}
-					<dl>
+					{#if open}
 						<div>
 							<dt>Protocol name</dt>
 							<dd>{loaded.protocolName}</dd>
@@ -105,10 +93,19 @@
 								</dd>
 							</div>
 						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.LensNetwork}
+			{entityId}
+		/>
 
 		<div data-column="gap-3">
 			<Collapsible

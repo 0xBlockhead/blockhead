@@ -97,7 +97,7 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet Item(props)}
-		{#if props.isPlaceholder === false}
+		{#if props.item}
 			<VaultView
 				entityId={props.item.value[EntityMetaKey.Id]}
 				href={resolve('/(assets)/(vaults)/vault/[vaultId]', {

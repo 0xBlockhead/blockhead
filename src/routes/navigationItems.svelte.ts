@@ -112,9 +112,9 @@ export const useNavigationItems = () => {
 					],
 				},
 				{
-					id: 'explore-forks',
-					title: 'Forks',
-					href: '/forks',
+					id: 'explore-upgrades',
+					title: 'Upgrades',
+					href: '/upgrades',
 					icon: '🔀',
 					defaultIsOpen: true,
 					children: [],
