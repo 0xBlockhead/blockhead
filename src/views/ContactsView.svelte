@@ -54,11 +54,8 @@
 	const contacts = derive(
 		parentEntity,
 		(merged) => {
-			const rows = (
-				(
-					merged[entityFieldReference.fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.BlockheadSharedAddress>[]
+			const rows: Entity<typeof schema, EntityType.BlockheadSharedAddress>[] = (
+				merged[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					b.sharedAt - a.sharedAt

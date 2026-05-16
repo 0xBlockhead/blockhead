@@ -52,7 +52,7 @@
 
 
 	// Context
-	import { useNavigationItems } from './navigationItems.svelte'
+	import { useNavigationItems } from './navigationItems.svelte.ts'
 
 	const navigationItems = $derived(
 		useNavigationItems().navigationItems

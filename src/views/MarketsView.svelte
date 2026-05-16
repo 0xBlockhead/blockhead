@@ -64,29 +64,28 @@
 
 	const markets = derive(
 		marketsParent,
-		(merged) => (
-			Object.values(
-				Object.groupBy(
-					(
-						merged[fieldName as keyof typeof merged] as (
-							Entity<typeof schema, EntityType.Market>
-						)[]
+		(merged) => {
+			const rows: Entity<typeof schema, EntityType.Market>[] = merged[fieldName] ?? []
+			return (
+				Object.values(
+					Object.groupBy(
+						rows,
+						(marketRow) => stringify(marketRow[EntityMetaKey.Id]),
 					),
-					(marketRow) => stringify(marketRow[EntityMetaKey.Id]),
-				),
+				)
+					.flatMap((group) => (
+						group == null ?
+							[]
+						:
+							[group[0]]
+					))
+					.toSorted((first, second) => (
+						stringify(first[EntityMetaKey.Id]).localeCompare(
+							stringify(second[EntityMetaKey.Id]),
+						)
+					))
 			)
-				.flatMap((group) => (
-					group == null ?
-						[]
-					:
-						[group[0]]
-				))
-				.toSorted((first, second) => (
-					stringify(first[EntityMetaKey.Id]).localeCompare(
-						stringify(second[EntityMetaKey.Id]),
-					)
-				))
-		),
+		},
 	)
 
 
@@ -98,7 +97,6 @@
 
 
 <EntitiesList
-	data-e2e="markets-entities-list"
 	{...entitiesListRest}
 	bind:open
 	entityType={EntityType.Market}

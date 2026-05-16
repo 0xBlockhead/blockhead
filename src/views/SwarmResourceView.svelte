@@ -65,8 +65,7 @@
 	import FileDetails from '$/components/FileDetails.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
@@ -79,15 +78,17 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.reference}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
-		<HeadingComponent>
-			<a {href}>
-				<TruncatedValue
-					value={swarmResourceCanonicalUri(entityId)}
-					format={TruncatedValueFormat.Visual}
-				/>
-			</a>
-		</HeadingComponent>
+		<TruncatedValue
+			value={swarmResourceCanonicalUri(entityId)}
+			format={TruncatedValueFormat.Visual}
+		/>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -197,7 +198,10 @@
 			{entityId}
 		/>
 
-			<ResourceBoundary resource={swarm}>
+			<ResourceBoundary
+				layout={Layout.Block}
+				resource={swarm}
+			>
 				{#snippet children(loaded)}
 					<FileDetails
 						contentSize={loaded.contentLength}

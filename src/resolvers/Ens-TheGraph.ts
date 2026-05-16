@@ -65,30 +65,22 @@ export default {
 					:	null
 
 				return {
-					...(typeof matchingEnsDomain.labelName === 'string' && matchingEnsDomain.labelName !== '' ?
-						{ labelName: matchingEnsDomain.labelName }
-					:	{}),
-					...(typeof matchingEnsDomain.labelhash === 'string' && matchingEnsDomain.labelhash !== '' ?
-						{ labelhash: matchingEnsDomain.labelhash }
-					:	{}),
-					...(parentEnsNameEntity != null ? { $parent: parentEnsNameEntity } : {}),
-					...(subdomainEnsNameEntities.length > 0 ? { $$subdomains: subdomainEnsNameEntities } : {}),
-					...(typeof matchingEnsDomain.subdomainCount === 'number' ?
-						{ subdomainCount: matchingEnsDomain.subdomainCount }
-					:	{}),
-					...(matchingEnsDomain.resolver?.contentHash != null ?
-						{ contentHash: String(matchingEnsDomain.resolver.contentHash) }
-					:	{}),
-					...(matchingEnsDomain.resolver?.texts != null && matchingEnsDomain.resolver.texts.length > 0 ?
-						{ resolverTextKeys: matchingEnsDomain.resolver.texts.filter((value) => value != null).map(String) }
-					:	{}),
-					...(matchingEnsDomain.resolver?.coinTypes != null && matchingEnsDomain.resolver.coinTypes.length > 0 ?
-						{ resolverCoinTypes: matchingEnsDomain.resolver.coinTypes.filter((value) => value != null).map((value) => String(value)) }
-					:	{}),
-					...(ttlBigInt != null ? { ttl: ttlBigInt } : {}),
+					...(typeof matchingEnsDomain.labelName === 'string' && matchingEnsDomain.labelName !== '' && { labelName: matchingEnsDomain.labelName }),
+					...(typeof matchingEnsDomain.labelhash === 'string' && matchingEnsDomain.labelhash !== '' && { labelhash: matchingEnsDomain.labelhash }),
+					...(parentEnsNameEntity != null && { $parent: parentEnsNameEntity }),
+					...(subdomainEnsNameEntities.length > 0 && { $$subdomains: subdomainEnsNameEntities }),
+					...(typeof matchingEnsDomain.subdomainCount === 'number' && { subdomainCount: matchingEnsDomain.subdomainCount }),
+					...(matchingEnsDomain.resolver?.contentHash != null && { contentHash: String(matchingEnsDomain.resolver.contentHash) }),
+					...(matchingEnsDomain.resolver?.texts != null && matchingEnsDomain.resolver.texts.length > 0 && {
+						resolverTextKeys: matchingEnsDomain.resolver.texts.filter((value) => value != null).map(String),
+					}),
+					...(matchingEnsDomain.resolver?.coinTypes != null && matchingEnsDomain.resolver.coinTypes.length > 0 && {
+						resolverCoinTypes: matchingEnsDomain.resolver.coinTypes.filter((value) => value != null).map((value) => String(value)),
+					}),
+					...(ttlBigInt != null && { ttl: ttlBigInt }),
 					isMigrated: matchingEnsDomain.isMigrated,
-					...(createdAtBigInt != null ? { createdAt: createdAtBigInt } : {}),
-					...(expiryDateBigInt != null ? { expiryDate: expiryDateBigInt } : {}),
+					...(createdAtBigInt != null && { createdAt: createdAtBigInt }),
+					...(expiryDateBigInt != null && { expiryDate: expiryDateBigInt }),
 				}
 			},
 		}),

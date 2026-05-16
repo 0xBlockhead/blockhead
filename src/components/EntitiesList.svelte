@@ -17,7 +17,7 @@
 
 	import Collapsible from '$/components/Collapsible.svelte'
 	import Heading from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
 	import UnorderedList from '$/components/UnorderedList.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 
@@ -259,6 +259,7 @@
 			{#if resource !== undefined}
 				<ResourceBoundary
 					boundaryKey={id}
+					layout={Layout.Block}
 					resource={resource}
 					placeholderText={placeholderText ?? `Loading ${entityDefinitionByType[entityType].labelPlural.toLowerCase()}…`}
 				>

@@ -72,7 +72,8 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Id()}
+	{#snippet Heading()}
+
 		<span data-row="inline align-center gap-2 wrap">
 			<span
 				data-badge="small"

@@ -33,7 +33,7 @@ test.describe('assertLoaded resolver probes', () => {
 		const text = await res.text()
 		expect(res.status(), text).toBe(200)
 
-		const body = JSON.parse(text) as AssertLoadedResolverProbeResult
+		const body: AssertLoadedResolverProbeResult = JSON.parse(text)
 
 		expect(
 			body.fulfilledButAssertFailed,

@@ -24,7 +24,7 @@
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Heading from '$/components/Heading.svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
 	import UnorderedList from '$/components/UnorderedList.svelte'
 	import CoinDataSourcesView from '$/views/CoinDataSourcesView.svelte'
 	import CoinView from '$/views/CoinView.svelte'
@@ -102,7 +102,7 @@
 	const coins = derive(
 		coinsHub,
 		(merged): Entity<typeof schema, EntityType.Coin>[] => {
-			const list = merged[fieldName as keyof typeof merged]
+			const list = merged[fieldName]
 			return (
 				(
 					list == null ?
@@ -131,7 +131,10 @@
 		{title}
 	>
 		{#snippet body()}
-			<ResourceBoundary resource={coins}>
+			<ResourceBoundary
+				layout={Layout.Block}
+				resource={coins}
+			>
 				{#snippet children(loaded)}
 					<UnorderedList
 						items={loaded}

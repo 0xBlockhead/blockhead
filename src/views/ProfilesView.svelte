@@ -55,11 +55,8 @@
 	const users = derive(
 		parentEntity,
 		(merged) => {
-			const rows = (
-				(
-					merged[entityFieldReference.fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.FarcasterUser>[]
+			const rows: Entity<typeof schema, EntityType.FarcasterUser>[] = (
+				merged[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].fid - b[EntityMetaKey.Id].fid

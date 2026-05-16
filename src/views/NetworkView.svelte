@@ -3,7 +3,8 @@
 	import type { Snippet } from 'svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { stringify } from 'devalue'
-	import { hasBeaconDataForChainId } from '$/constants/BeaconConsensus.ts'
+	import { beaconRestBaseByExecutionChainId } from '$/constants/BeaconConsensus.ts'
+	import { mevRelayHostsByChainId } from '$/constants/MevRelayHosts.ts'
 	import { NetworkEnvironment } from '$/constants/NetworkEnvironment.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -14,28 +15,6 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// Components
-	import Collapsible from '$/components/Collapsible.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import IconComponent from '$/components/Icon.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import BeaconEpochsView from '$/views/BeaconEpochsView.svelte'
-	import BeaconSlotsView from '$/views/BeaconSlotsView.svelte'
-	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
-	import EvmBlocksView from '$/views/EvmBlocksView.svelte'
-	import EvmContractsView from '$/views/EvmContractsView.svelte'
-	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
-	import EvmBlockView from '$/views/EvmBlockView.svelte'
-	import NetworkConsensusUpgradesView from '$/views/NetworkConsensusUpgradesView.svelte'
-	import NetworkExecutionUpgradesView from '$/views/NetworkExecutionUpgradesView.svelte'
-	import NetworkUpgradesView from '$/views/NetworkUpgradesView.svelte'
-	import NetworksView from '$/views/NetworksView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
 
 
 	// Props
@@ -86,7 +65,7 @@
 						[
 							Source.Voltaire_JsonRpc,
 							...(
-								hasBeaconDataForChainId(entityId.chainId) ?
+								beaconRestBaseByExecutionChainId[entityId.chainId] != null ?
 									[Source.Beacon_Rest]
 								:
 									[]
@@ -115,43 +94,54 @@
 			layerNumber: {},
 			environment: {},
 			executionEndpoints: {},
-			blockExplorers: {},
+			$$blockExplorerUrls: {},
 			$icon: {},
 			nativeCurrencies: {},
 			shortName: {},
 			registryStatus: {},
 			slip44: {},
 			peeringId: {},
-			faucets: {},
+			$$faucetUrls: {},
 			$$upgrades: {},
 			$$executionUpgrades: {},
 			$$consensusUpgrades: {},
-			...(
-				open ?
-					{
-						blockHeight: {},
-						gasPrice: {},
-						...(
-							hasBeaconDataForChainId(entityId.chainId) ?
-								{
-									$$beaconEpochs: {},
-								}
-							:
-								{}
-						),
-					}
-				:
-					{}
-			),
+			...(open && {
+				blockHeight: {},
+				gasPrice: {},
+				$$gasFeeTimestamps: {
+					$: [
+						Source.Voltaire_JsonRpc,
+					],
+					$limit: 64,
+				},
+				$$txpoolTimestamps: {
+					$: [
+						Source.Voltaire_JsonRpc,
+					],
+					$limit: 64,
+				},
+				...(entityId.chainId in mevRelayHostsByChainId && {
+					$$mevProposerPayloadDelivered: {
+						$: [
+							Source.MevRelay_Rest,
+						],
+						$limit: 32,
+					},
+				}),
+				...(beaconRestBaseByExecutionChainId[entityId.chainId] != null && {
+					$$beaconEpochs: {},
+				}),
+			}),
 		},
 	)
+
 
 	const headEpochNumber = derive(
 		network,
 		(networkEntity) => {
 			const epochs: Entity<typeof schema, EntityType.BeaconEpoch>[] | undefined =
 				networkEntity.$$beaconEpochs
-			if (epochs === undefined || epochs.length === 0) {
+			if (!(epochs?.length)) {
 				return undefined
 			}
 			return epochs
@@ -181,23 +171,36 @@
 		},
 	)
 
-	const explorerOrigins = derive(
-		network,
-		(networkEntity) => {
-			const explorerOriginsLookup: Record<string, true> = {}
-			for (const blockExplorer of networkEntity.blockExplorers ?? []) {
-				explorerOriginsLookup[blockExplorer.origin] = true
-			}
-			return Object.keys(explorerOriginsLookup).toSorted((leftOrigin, rightOrigin) => (
-				leftOrigin.localeCompare(rightOrigin)
-			))
-		},
-	)
-
 	const nativeSymbol = derive(
 		network,
 		(networkEntity) => networkEntity.nativeCurrencies?.[0]?.symbol,
 	)
+
+
+	// Components
+	import Collapsible from '$/components/Collapsible.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import IconComponent from '$/components/Icon.svelte'
+	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
+	import BeaconEpochsView from '$/views/BeaconEpochsView.svelte'
+	import BeaconSlotsView from '$/views/BeaconSlotsView.svelte'
+	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
+	import EvmBlocksView from '$/views/EvmBlocksView.svelte'
+	import EvmContractsView from '$/views/EvmContractsView.svelte'
+	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
+	import EvmBlockView from '$/views/EvmBlockView.svelte'
+	import NetworkConsensusUpgradesView from '$/views/NetworkConsensusUpgradesView.svelte'
+	import NetworkExecutionUpgradesView from '$/views/NetworkExecutionUpgradesView.svelte'
+	import UrlsView from '$/views/UrlsView.svelte'
+	import Network_GasFee_TimestampsView from '$/views/Network_GasFee_TimestampsView.svelte'
+	import Network_Txpool_TimestampsView from '$/views/Network_Txpool_TimestampsView.svelte'
+	import NetworkUpgradesView from '$/views/NetworkUpgradesView.svelte'
+	import NetworksView from '$/views/NetworksView.svelte'
+	import MevRelay_ProposerPayloadDeliveredRowsView from '$/views/MevRelay_ProposerPayloadDeliveredRowsView.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
@@ -208,38 +211,6 @@
 	{layout}
 	bind:open
 >
-	{#snippet Heading()}
-		<div data-row="inline wrap gap-2 align-center">
-			<HeadingComponent>
-				{#if Title}
-					{#if href}
-						<a href={resolve(href as `/${string}`)}>
-							{@render Title()}
-						</a>
-					{:else}
-						{@render Title()}
-					{/if}
-				{:else}
-					<ResourceBoundary
-						resource={network}
-						placeholderText="Loading name…"
-					>
-						{#snippet Pending()}{/snippet}
-						{#snippet children(networkEntity)}
-							{#if href}
-								<a href={resolve(href as `/${string}`)}>
-									{networkEntity.name}
-								</a>
-							{:else}
-								{networkEntity.name}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/if}
-			</HeadingComponent>
-		</div>
-	{/snippet}
-
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={network}
@@ -256,13 +227,37 @@
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet Heading()}
+		{#if Title}
+			{@render Title()}
+		{:else}
+			<ResourceBoundary
+				resource={network}
+				placeholderText="Loading name…"
+			>
+				{#snippet children(networkEntity)}
+					{networkEntity.name ?? String(entityId.chainId)}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{String(entityId.chainId)}
+		</span>
+	{/snippet}
+
+
+
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			<div>
 				<dt>Chain ID</dt>
-				<dd>{String(entityId.chainId)}</dd>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
 			</div>
-
 			{#if open}
 				<div>
 					<dt>Head block</dt>
@@ -289,6 +284,7 @@
 											},
 										)}
 										layout={EntityLayout.Id}
+										showTypeAnnotation={false}
 									/>
 								{:else}
 									<span data-text="muted">—</span>
@@ -299,7 +295,7 @@
 				</div>
 			{/if}
 			{#if open}
-				{#if hasBeaconDataForChainId(entityId.chainId)}
+				{#if beaconRestBaseByExecutionChainId[entityId.chainId] != null}
 					<div>
 						<dt>Head epoch</dt>
 						<dd>
@@ -390,7 +386,7 @@
 					{#snippet children(networkEntity)}
 						{#if networkEntity.peeringId !== undefined}
 							<div>
-								<dt>Peering id</dt>
+								<dt>Peering ID</dt>
 								<dd>{String(networkEntity.peeringId)}</dd>
 							</div>
 						{/if}
@@ -443,8 +439,30 @@
 						data-row="start align-start"
 						data-e2e="network-carousel-topology"
 					>
-						<ResourceBoundary resource={network}>
+						<ResourceBoundary
+							layout={Layout.Block}
+							resource={network}
+						>
 							{#snippet children(networkEntity)}
+								<section
+									data-e2e="network-topology-upgrades"
+									data-scroll-marker-label="Upgrades"
+								>
+									<NetworkUpgradesView
+										collapsible={false}
+										entityFieldReference={{
+											entityType: EntityType.Network,
+											entityId,
+											fieldName: '$$upgrades',
+										}}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/upgrades',
+											{ networkId: String(entityId.chainId) },
+										)}
+										id={`${networkIdKey}:topology-upgrades`}
+									/>
+								</section>
+
 								{#if networkEntity.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
 									<section
 										data-e2e="network-topology-parent-layer"
@@ -468,7 +486,7 @@
 									</section>
 								{/if}
 
-								{#if (networkEntity.$$siblingShardNetworks ?? []).length > 0}
+								{#if (networkEntity.$$siblingShardNetworks ?? []).length}
 									<section
 										data-e2e="network-topology-sibling-shards"
 										data-scroll-marker-label="Sibling shards"
@@ -551,7 +569,7 @@
 									</section>
 								{/if}
 
-								{#if (networkEntity.$$childLayers ?? []).length > 0}
+								{#if (networkEntity.$$childLayers ?? []).length}
 									<section
 										data-e2e="network-topology-child-layers"
 										data-scroll-marker-label={`Layer-${String(networkEntity.layerNumber + 1)}s`}
@@ -574,60 +592,27 @@
 									</section>
 								{/if}
 
-								{#if (networkEntity.$$upgrades ?? []).length > 0}
-									<section
-										data-e2e="network-topology-upgrades"
-										data-scroll-marker-label="Upgrades"
-									>
-										<NetworkUpgradesView
-											collapsible={false}
-											entityFieldReference={{
-												entityType: EntityType.Network,
-												entityId,
-												fieldName: '$$upgrades',
-											}}
-											href={resolve(
-												'/(explore)/(networks)/network/[networkId]/(network)/upgrades',
-												{ networkId: String(entityId.chainId) },
-											)}
-											id={`${networkIdKey}:topology-upgrades`}
-										/>
-									</section>
-								{/if}
-
-								{#if (networkEntity.faucets ?? []).length > 0}
+								{#if (networkEntity.$$faucetUrls ?? []).length}
 									<section
 										data-e2e="network-topology-faucets"
 										data-scroll-marker-label="Faucets"
 									>
-										<EntitiesList
+										<UrlsView
 											collapsible={false}
-											entityType={EntityType.Network}
-											{href}
+											emptyText="No faucets listed for this network yet."
+											entityFieldReference={{
+												entityType: EntityType.Network,
+												entityId,
+												fieldName: '$$faucetUrls',
+											}}
+											fieldSources={[
+												Source.Chainlist_Rest,
+												Source.EthereumLists_Rest,
+											]}
 											id={`${networkIdKey}:topology-faucets`}
+											open={false}
 											title="Faucets"
-										>
-											{#snippet body()}
-												<div
-													class="entity-details"
-													style:view-transition-name={`NetworkView-TopologyFaucets-${networkIdKey}`}
-												>
-													<ul>
-														{#each networkEntity.faucets ?? [] as faucetUrl (faucetUrl)}
-															<li>
-																<a
-																	href={faucetUrl}
-																	rel="noreferrer"
-																	target="_blank"
-																>
-																	{faucetUrl}
-																</a>
-															</li>
-														{/each}
-													</ul>
-												</div>
-											{/snippet}
-										</EntitiesList>
+										/>
 									</section>
 								{/if}
 							{/snippet}
@@ -653,7 +638,10 @@
 					data-row="start align-start"
 					data-e2e="network-carousel-economics"
 				>
-					<ResourceBoundary resource={network}>
+					<ResourceBoundary
+						layout={Layout.Block}
+						resource={network}
+					>
 						{#snippet children(networkEntity)}
 							{#if networkEntity.gasPrice !== undefined}
 								<section
@@ -668,6 +656,56 @@
 											</span>
 										</div>
 									</div>
+								</section>
+							{/if}
+							<section
+								data-e2e="network-economics-gas-snapshots"
+								data-scroll-marker-label="Gas snapshots"
+							>
+								<Network_GasFee_TimestampsView
+									collapsible={false}
+									entityFieldReference={{
+										entityType: EntityType.Network,
+										entityId,
+										fieldName: '$$gasFeeTimestamps',
+									}}
+									href={href}
+									id={`${networkIdKey}:gas-fee-snapshots`}
+									open={false}
+								/>
+							</section>
+							<section
+								data-e2e="network-economics-txpool"
+								data-scroll-marker-label="Txpool"
+							>
+								<Network_Txpool_TimestampsView
+									collapsible={false}
+									entityFieldReference={{
+										entityType: EntityType.Network,
+										entityId,
+										fieldName: '$$txpoolTimestamps',
+									}}
+									href={href}
+									id={`${networkIdKey}:txpool-snapshots`}
+									open={false}
+								/>
+							</section>
+							{#if entityId.chainId in mevRelayHostsByChainId}
+								<section
+									data-e2e="network-economics-mev-relay"
+									data-scroll-marker-label="MEV relay"
+								>
+									<MevRelay_ProposerPayloadDeliveredRowsView
+										collapsible={false}
+										entityFieldReference={{
+											entityType: EntityType.Network,
+											entityId,
+											fieldName: '$$mevProposerPayloadDelivered',
+										}}
+										href={href}
+										id={`${networkIdKey}:mev-relay-payloads`}
+										open={false}
+									/>
 								</section>
 							{/if}
 						{/snippet}
@@ -692,6 +730,24 @@
 						data-row="start align-start"
 						data-e2e="network-carousel-execution"
 					>
+						<section
+							data-e2e="network-carousel-execution-upgrades"
+							data-scroll-marker-label="Upgrades"
+						>
+							<NetworkExecutionUpgradesView
+								collapsible={false}
+								entityFieldReference={{
+									entityType: EntityType.Network,
+									entityId,
+									fieldName: '$$executionUpgrades',
+								}}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/upgrades',
+									{ networkId: String(entityId.chainId) },
+								)}
+								id={`${networkIdKey}:execution-upgrades`}
+							/>
+						</section>
 						<section
 							data-e2e="network-carousel-blocks"
 							data-scroll-marker-label="Blocks"
@@ -746,33 +802,12 @@
 								id={`${networkIdKey}:contracts`}
 							/>
 						</section>
-						<ResourceBoundary resource={network}>
-							{#snippet children(networkEntity)}
-								{#if (networkEntity.$$executionUpgrades ?? []).length > 0}
-									<section
-										data-e2e="network-carousel-execution-upgrades"
-										data-scroll-marker-label="Upgrades"
-									>
-										<NetworkExecutionUpgradesView
-											collapsible={false}
-											entityFieldReference={{
-												entityType: EntityType.Network,
-												entityId,
-												fieldName: '$$executionUpgrades',
-											}}
-											href={resolve(
-												'/(explore)/(networks)/network/[networkId]/(network)/upgrades',
-												{ networkId: String(entityId.chainId) },
-											)}
-											id={`${networkIdKey}:execution-upgrades`}
-										/>
-									</section>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-						<ResourceBoundary resource={executionEndpointsByUrl}>
+						<ResourceBoundary
+							layout={Layout.Block}
+							resource={executionEndpointsByUrl}
+						>
 							{#snippet children(executionEndpoints)}
-								{#if executionEndpoints.length > 0}
+								{#if executionEndpoints.length}
 									<section
 										data-e2e="network-carousel-execution-rpcs"
 										data-scroll-marker-label="Execution providers"
@@ -803,41 +838,33 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-						<ResourceBoundary resource={explorerOrigins}>
-							{#snippet children(explorerOrigins)}
-								{#if explorerOrigins.length > 0}
+						<ResourceBoundary
+							layout={Layout.Block}
+							resource={network}
+						>
+							{#snippet children(networkEntity)}
+								{#if (networkEntity.$$blockExplorerUrls ?? []).length}
 									<section
 										data-e2e="network-carousel-explorers"
 										data-scroll-marker-label="Explorers"
 									>
-										<EntitiesList
+										<UrlsView
 											collapsible={false}
-											entityType={EntityType.Network}
-											{href}
+											emptyText="No block explorers listed for this network yet."
+											entityFieldReference={{
+												entityType: EntityType.Network,
+												entityId,
+												fieldName: '$$blockExplorerUrls',
+											}}
+											fieldSources={[
+												Source.Chainlist_Rest,
+												Source.EthereumLists_Rest,
+												Source.Lifi_Rest,
+											]}
 											id={`${networkIdKey}:explorers`}
+											open={false}
 											title="Explorers"
-										>
-											{#snippet body()}
-												<div
-													class="entity-details"
-													style:view-transition-name={`NetworkView-Explorers-${networkIdKey}`}
-												>
-													<ul>
-														{#each explorerOrigins as explorerOrigin (explorerOrigin)}
-															<li>
-																<a
-																	href={explorerOrigin}
-																	rel="noreferrer"
-																	target="_blank"
-																>
-																	{explorerOrigin}
-																</a>
-															</li>
-														{/each}
-													</ul>
-												</div>
-											{/snippet}
-										</EntitiesList>
+										/>
 									</section>
 								{/if}
 							{/snippet}
@@ -846,7 +873,7 @@
 				{/snippet}
 			</Collapsible>
 
-			{#if hasBeaconDataForChainId(entityId.chainId)}
+			{#if beaconRestBaseByExecutionChainId[entityId.chainId] != null}
 				<Collapsible
 					id={`${networkIdKey}:carousel-consensus`}
 					{...{ 'data-card': '' }}
@@ -864,6 +891,24 @@
 							data-row="start align-start"
 							data-e2e="network-carousel-consensus"
 						>
+							<section
+								data-e2e="network-carousel-consensus-upgrades"
+								data-scroll-marker-label="Upgrades"
+							>
+								<NetworkConsensusUpgradesView
+									collapsible={false}
+									entityFieldReference={{
+										entityType: EntityType.Network,
+										entityId,
+										fieldName: '$$consensusUpgrades',
+									}}
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/upgrades',
+										{ networkId: String(entityId.chainId) },
+									)}
+									id={`${networkIdKey}:consensus-upgrades`}
+								/>
+							</section>
 							<section
 								data-e2e="network-carousel-beacon-epochs"
 								data-scroll-marker-label="Epochs"
@@ -900,30 +945,6 @@
 									id={`${networkIdKey}:beacon-slots`}
 								/>
 							</section>
-							<ResourceBoundary resource={network}>
-								{#snippet children(networkEntity)}
-									{#if (networkEntity.$$consensusUpgrades ?? []).length > 0}
-										<section
-											data-e2e="network-carousel-consensus-upgrades"
-											data-scroll-marker-label="Upgrades"
-										>
-											<NetworkConsensusUpgradesView
-												collapsible={false}
-												entityFieldReference={{
-													entityType: EntityType.Network,
-													entityId,
-													fieldName: '$$consensusUpgrades',
-												}}
-												href={resolve(
-													'/(explore)/(networks)/network/[networkId]/(network)/upgrades',
-													{ networkId: String(entityId.chainId) },
-												)}
-												id={`${networkIdKey}:consensus-upgrades`}
-											/>
-										</section>
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
 						</div>
 					{/snippet}
 				</Collapsible>

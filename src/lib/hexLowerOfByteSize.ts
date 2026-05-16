@@ -18,7 +18,7 @@ export const with0xHex = (s: string): `0x${string}` => (
 	s.startsWith('0x') || s.startsWith('0X') ?
 		s.toLowerCase() as `0x${string}`
 	:
-		(`0x${s.toLowerCase()}` as `0x${string}`)
+		(`0x${s.toLowerCase()}`)
 )
 
 

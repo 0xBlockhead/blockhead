@@ -21,6 +21,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import IconComponent from '$/components/Icon.svelte'
 	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
@@ -90,16 +91,31 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Heading()}
+	{#snippet Id()}
 		<ResourceBoundary resource={channel}>
 			{#snippet children(_channel)}
-				<HeadingComponent>
-					<a {href}>
+				<span data-row="inline wrap align-center gap-2">
+					{#if _channel.$icon !== undefined}
+						{#if _channel.$icon[EntityMetaKey.Id].url !== undefined}
+							<IconComponent
+								src={_channel.$icon[EntityMetaKey.Id].url}
+								alt=""
+							/>
+						{/if}
+					{/if}
+					<span>
 						{_channel.name ?? entityId.id}
-					</a>
-				</HeadingComponent>
+					</span>
+				</span>
 			{/snippet}
+
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Heading()}
+		<span data-text="font-monospace">
+			/{entityId.id}
+		</span>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -107,6 +123,13 @@
 			{#snippet children(_channel)}
 				<div data-column>
 					<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 						{#if _channel.followerCount !== undefined}
 							<div>
 								<dt>Followers</dt>

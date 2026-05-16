@@ -66,8 +66,8 @@ const toSuperchainNetwork = (
 		identifier: chain.identifier,
 		namespace,
 		slug,
-		...(chain.parent != null ? { parentType: chain.parent.type } : {}),
-		...((parentChainId) => parentChainId == null ? {} : { parentChainId })(
+		...(chain.parent != null && { parentType: chain.parent.type }),
+		...((parentChainId) => parentChainId != null && { parentChainId })(
 			resolveParentChainId(chain, chainByIdentifier),
 		),
 	}

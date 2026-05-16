@@ -65,11 +65,8 @@
 	const envelopes = derive(
 		parentEntity,
 		(merged) => {
-			const rows = (
-				(
-					merged[entityFieldReference.fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.Vault>[]
+			const rows: Entity<typeof schema, EntityType.Vault>[] = (
+				merged[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)

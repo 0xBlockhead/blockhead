@@ -30,13 +30,11 @@ export default {
 					name: optionalTrimmedString(d.name),
 					description: optionalTrimmedString(d.description),
 					...((
-						t,
+						iconMedia,
 					) => (
-						t == null ?
-							{}
-						:	{
-								$icon: t,
-							}
+						iconMedia != null && {
+							$icon: iconMedia,
+						}
 					))(mediaFromUrl(d.profile_image_url, MediaType.Image)),
 				}
 			},
@@ -51,7 +49,7 @@ export default {
 				const createdAt = Date.parse(t.created_at ?? '')
 				return {
 					text: optionalTrimmedString(t.text),
-					...(Number.isFinite(createdAt) ? { createdAt } : {}),
+					...(Number.isFinite(createdAt) && { createdAt }),
 					$author: (
 						t.author_id == null ?
 							undefined

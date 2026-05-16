@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { stringify } from 'devalue'
-	import { ethereumExecutionUpgradeByChainIdAndUpgradeId } from '$/constants/EthereumUpgrades.ts'
+	import { networkExecutionUpgradeByChainIdAndUpgradeId } from '$/constants/NetworkUpgrades.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
@@ -56,10 +56,14 @@
 		parentEntityType,
 		parentEntityId,
 		{
+			$: [
+				Source.Constants_Internal,
+			],
 			[fieldName]: {
 				$: [
 					Source.Constants_Internal,
 				],
+				$limit: 512,
 			},
 		},
 	)
@@ -73,30 +77,32 @@
 
 	const upgrades = derive(
 		parentEntity,
-		(merged) => (
-			(
-				(
-					merged[fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.NetworkExecutionUpgrade>[]
+		(merged) => {
+			const rows: Entity<typeof schema, EntityType.NetworkExecutionUpgrade>[] = (
+				merged[fieldName] ?? []
 			)
-				.toSorted((a, b) => (
-					upgradeSortValue(a) - upgradeSortValue(b)
-				))
-				.map((value) => ({
-					value,
-				}))
-		),
+			return (
+				rows
+					.toSorted((a, b) => (
+						upgradeSortValue(a) - upgradeSortValue(b)
+					))
+					.map((value) => ({
+						value,
+					}))
+			)
+		},
 	)
 
-	const upgradeListLink = (row: Entity<typeof schema, EntityType.NetworkExecutionUpgrade>) => {
-		const { chainId } = row[EntityMetaKey.Id].$network
-		const { upgradeId } = row[EntityMetaKey.Id]
-		const catalog = ethereumExecutionUpgradeByChainIdAndUpgradeId[`${chainId}:${upgradeId}`]
+	const upgradeListLink = (
+		networkExecutionUpgradeEntity: Entity<typeof schema, EntityType.NetworkExecutionUpgrade>,
+	) => {
+		const { chainId } = networkExecutionUpgradeEntity[EntityMetaKey.Id].$network
+		const { upgradeId } = networkExecutionUpgradeEntity[EntityMetaKey.Id]
+		const constantUpgrade = networkExecutionUpgradeByChainIdAndUpgradeId[`${chainId}:${upgradeId}`]
 		return {
 			chainId,
 			upgradeId,
-			slug: catalog?.slug ?? row.slug,
+			slug: constantUpgrade?.slug ?? networkExecutionUpgradeEntity.slug,
 		}
 	}
 </script>

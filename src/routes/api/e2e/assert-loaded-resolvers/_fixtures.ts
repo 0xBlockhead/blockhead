@@ -6,6 +6,8 @@ import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { ProposalCategory, ProposalRealm } from '$/constants/Proposal.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import type { EntityId } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
 import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 
 
@@ -59,7 +61,7 @@ const coinInstanceUsdcMainnet = {
 /**
  * Probe entity ids for `entityResolvers` smoke shapes; must match each type’s Arktype `id`.
  */
-export const probeEntityIdByType: Partial<Record<EntityType, unknown>> = {
+export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof schema, EntityType>>> = {
 	[EntityType._Global]: {},
 
 	[EntityType.ActivityPubActor]: {
@@ -157,6 +159,10 @@ export const probeEntityIdByType: Partial<Record<EntityType, unknown>> = {
 		id: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
 	},
 
+	[EntityType.Url]: {
+		url: 'https://example.com/',
+	},
+
 	[EntityType.Vault]: {
 		$network: mainnet,
 		id: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
@@ -183,14 +189,24 @@ export const probeEntityIdByType: Partial<Record<EntityType, unknown>> = {
 		$toNetwork: { chainId: 10 },
 		url: 'https://bridge.example',
 	},
-	[EntityType.NetworkFork]: {
-		$network: mainnet,
-		forkId: 'Homestead',
-	},
 	[EntityType.NetworkUpgrade]: {
 		$network: mainnet,
 		upgradeId: 'Homestead',
 	},
+	[EntityType.Network_GasFee_Timestamp]: {
+		$network: mainnet,
+		timestampNs: 0n,
+	},
+	[EntityType.Network_Txpool_Timestamp]: {
+		$network: mainnet,
+		timestampNs: 0n,
+	},
+	[EntityType.MevRelay_ProposerPayloadDelivered]: {
+		$network: mainnet,
+		relayHost: 'relay.ultrasound.money',
+		slot: 9_500_000,
+		blockHash: `0x${'0'.repeat(64)}`,
+	} as const,
 	[EntityType.NetworkExecutionUpgrade]: {
 		$network: mainnet,
 		upgradeId: 'Homestead',

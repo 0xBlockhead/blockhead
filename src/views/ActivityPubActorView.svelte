@@ -84,70 +84,123 @@
 			resource={actor}
 			placeholderText="Loading account…"
 		>
-			{#snippet Pending()}{/snippet}
-			{#snippet children(u)}
-				<HeadingComponent>
-					{u.displayName
-						?? u.acct
-						?? u.username
-						?? entityId.localAccountId}
-				</HeadingComponent>
+			{#snippet children(activityPubActorRow)}
+				{activityPubActorRow.displayName
+					?? activityPubActorRow.acct
+					?? activityPubActorRow.username
+					?? entityId.localAccountId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Icon()}
 		<ResourceBoundary resource={actor}>
-			{#snippet Pending()}{/snippet}
-			{#snippet children(u)}
-				{#if u.$icon}
+			{#snippet children(activityPubActorRow)}
+				{#if activityPubActorRow.$icon}
 					<IconComponent
-						alt={u.displayName ?? u.acct ?? u.username ?? entityId.localAccountId}
+						alt={activityPubActorRow.displayName ?? activityPubActorRow.acct ?? activityPubActorRow.username ?? entityId.localAccountId}
 						shape={IconShape.Circle}
-						src={u.$icon[EntityMetaKey.Id].url}
+						src={activityPubActorRow.$icon[EntityMetaKey.Id].url}
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.localAccountId}
+		</span>
+	{/snippet}
+
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={actor}>
-			{#snippet Pending()}{/snippet}
-			{#snippet children(u)}
-				{@const heading =
-					u.displayName
-					?? u.acct
-					?? u.username
+			{#snippet children(activityPubActorRow)}
+				{@const activityPubSummaryHeadingLine =
+					activityPubActorRow.displayName
+					?? activityPubActorRow.acct
+					?? activityPubActorRow.username
 					?? entityId.localAccountId}
-				{#if u.username !== undefined && u.username !== heading}
+				{#if activityPubActorRow.username && activityPubActorRow.username !== activityPubSummaryHeadingLine}
 					<span data-text="muted">
-						@{u.username}
+						@{activityPubActorRow.username}
 					</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({ title: _title, href: _href, open })}
 		<div data-column>
 			<ResourceBoundary
 				resource={actor}
 				placeholderText="Loading account…"
 			>
-				{#snippet children(u)}
-					{#if u.note}
-						<p data-text="muted">
-							{htmlToPlainText(u.note)}
-						</p>
+			{#snippet children(activityPubActorRow)}
+				{@const activityPubSummaryHeadingLine = (
+					activityPubActorRow.displayName
+					?? activityPubActorRow.acct
+					?? activityPubActorRow.username
+					?? entityId.localAccountId
+				)}
+				{#if activityPubActorRow.note}
+						{#if !open}
+							<p data-text="muted">
+								{htmlToPlainText(activityPubActorRow.note)}
+							</p>
+						{/if}
 					{/if}
+					<dl data-column-item="center">
+						{#if activityPubSummaryHeadingLine !== entityId.localAccountId}
+							<div>
+								<dt>Local account id</dt>
+								<dd data-text="mono">
+									{@render Id()}
+								</dd>
+							</div>
+						{/if}
+						{#if open}
+							{#if activityPubActorRow.username}
+								<div>
+									<dt>Username</dt>
+									<dd>{activityPubActorRow.username}</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if open}
+							{#if activityPubActorRow.acct}
+								<div>
+									<dt>Acct</dt>
+									<dd>{activityPubActorRow.acct}</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if open}
+							{#if activityPubActorRow.displayName}
+								<div>
+									<dt>Display name</dt>
+									<dd>{activityPubActorRow.displayName}</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if open}
+							{#if activityPubActorRow.note}
+								<div>
+									<dt>About</dt>
+									<dd>
+										{htmlToPlainText(activityPubActorRow.note)}
+									</dd>
+								</div>
+							{/if}
+						{/if}
+					</dl>
 				{/snippet}
 			</ResourceBoundary>
 
 			<div data-text="mono muted">
-				{entityId.instanceOrigin}
-				 · 
-				{entityId.localAccountId}
+			{entityId.instanceOrigin}
+				·
+			{entityId.localAccountId}
 			</div>
 		</div>
 	{/snippet}
@@ -160,40 +213,16 @@
 			{entityId}
 		>
 			<ResourceBoundary resource={actor}>
-				{#snippet children(u)}
-					{#if u.acct == null && u.displayName == null && u.username == null && u.note == null}
+				{#snippet children(activityPubActorRow)}
+					{#if (
+						activityPubActorRow.acct == null
+						&& activityPubActorRow.displayName == null
+						&& activityPubActorRow.username == null
+						&& activityPubActorRow.note == null
+					)}
 						<p data-text="muted">
 							Profile details are not available yet for this account.
 						</p>
-					{:else}
-						<dl>
-							{#if u.username}
-								<div>
-									<dt>Username</dt>
-									<dd>{u.username}</dd>
-								</div>
-							{/if}
-							{#if u.acct}
-								<div>
-									<dt>Acct</dt>
-									<dd>{u.acct}</dd>
-								</div>
-							{/if}
-							{#if u.displayName}
-								<div>
-									<dt>Display name</dt>
-									<dd>{u.displayName}</dd>
-								</div>
-							{/if}
-							{#if u.note}
-								<div>
-									<dt>About</dt>
-									<dd>
-										{htmlToPlainText(u.note)}
-									</dd>
-								</div>
-							{/if}
-						</dl>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

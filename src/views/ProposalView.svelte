@@ -39,6 +39,28 @@
 
 
 	// Functions
+	const proposalHeadingExtractBeforeIdentifier = (
+		m: {
+			documentBody?: string | null
+			documentTitle?: string | null
+		},
+		proposalEntityId: typeof ProposalSchema.id.infer,
+	): string => {
+		const trimmedTitle = (m.documentTitle ?? '').trim()
+		const match = (
+			proposalEntityId.category === ProposalCategory.Ensip ?
+				(m.documentBody ?? '').match(/#\s*(ENSIP-\d+:\s*.+)/)
+			:
+				null
+		)
+		return (
+			trimmedTitle !== '' ?
+				trimmedTitle
+			:
+				(match?.[1] ?? '').trim()
+		)
+	}
+
 	const proposalHeadingTitle = (
 		m: {
 			documentBody?: string | null
@@ -47,30 +69,17 @@
 		proposalEntityId: typeof ProposalSchema.id.infer,
 	) => {
 		const identifier = `${proposalCategoryById[proposalEntityId.category].label}-${proposalEntityId.number}`
-		const trimmedTitle = (m.documentTitle ?? '').trim()
-		const match = (
-			proposalEntityId.category === ProposalCategory.Ensip ?
-				(m.documentBody ?? '').match(/#\s*(ENSIP-\d+:\s*.+)/)
-			:
-				null
-		)
-		const headingTitle = (
-			trimmedTitle !== '' ?
-				trimmedTitle
-			:
-				(match?.[1] ?? '').trim()
-		)
+		const headingExtract = proposalHeadingExtractBeforeIdentifier(m, proposalEntityId)
 		return (
-			headingTitle === '' ?
+			headingExtract === '' ?
 				identifier
-			:
-				new RegExp(
+			:	new RegExp(
 					`^${identifier.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:`,
 					'i',
-				).test(headingTitle) ?
-					headingTitle
+				).test(headingExtract) ?
+					headingExtract
 				:
-					`${identifier.trim()}: ${headingTitle}`
+					`${identifier.trim()}: ${headingExtract}`
 		)
 	}
 
@@ -97,10 +106,15 @@
 	)
 
 
+	const hideHeadingSecondarySummaryFromProposalIdentifierFallbackOnly = $derived(
+		proposal.ready
+		&& proposalHeadingExtractBeforeIdentifier(proposal.current, entityId) === '',
+	)
+
+
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import Markdown from '$/components/Markdown.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
@@ -119,12 +133,18 @@
 			placeholderText="Loading proposal…"
 		>
 			{#snippet children(p)}
-				<HeadingComponent>
-					{proposalHeadingTitle(p, entityId)}
-				</HeadingComponent>
+				{proposalHeadingTitle(p, entityId)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{`${proposalCategoryById[entityId.category].label}-${entityId.number}`}
+		</span>
+	{/snippet}
+
+
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
@@ -133,6 +153,14 @@
 		>
 			{#snippet children(p)}
 				<dl>
+					{#if !hideHeadingSecondarySummaryFromProposalIdentifierFallbackOnly}
+						<div>
+							<dt>Proposal</dt>
+							<dd data-text="mono">
+								{@render Id()}
+							</dd>
+						</div>
+					{/if}
 					<div>
 						<dt>Status</dt>
 						<dd>{p.documentStatus}</dd>
@@ -152,7 +180,7 @@
 				placeholderText="Loading proposal…"
 			>
 				{#snippet children(p)}
-					{#if p.documentBody.trim() === ''}
+					{#if !p.documentBody}
 						<p data-text="muted">No proposal body available.</p>
 					{:else}
 						<Markdown content={p.documentBody} />

@@ -56,6 +56,13 @@
 	bind:open
 	title="Lens"
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			{entityId.scope}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={lensNetwork}>
 			{#snippet children(loaded)}

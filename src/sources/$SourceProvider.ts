@@ -45,6 +45,8 @@ export enum SourceProvider {
 	Lifi = 'Lifi',
 	Local = 'Local',
 	Mastodon = 'Mastodon',
+	MetadataVision = 'MetadataVision',
+	MevRelay = 'MevRelay',
 	Neynar = 'Neynar',
 	Openchain = 'Openchain',
 	Reddit = 'Reddit',

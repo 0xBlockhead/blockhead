@@ -48,11 +48,9 @@ export default {
 
 				return {
 					symbol: coinById[entityId.coinId]?.symbol ?? coin.symbol.trim().toUpperCase(),
-					...(coin.name.trim() !== '' ? { name: coin.name.trim() } : {}),
-					...(decimals != null ? { decimals } : {}),
-					...(logoMedia != null ?
-						{ $logo: logoMedia }
-					:	{}),
+					...(coin.name.trim() !== '' && { name: coin.name.trim() }),
+					...(decimals != null && { decimals }),
+					...(logoMedia != null && { $logo: logoMedia }),
 				}
 			},
 		}),
@@ -97,12 +95,10 @@ export default {
 					}
 					return {
 						coinId: nativeCurrency.coinId,
-						...(nativeCurrency.name.trim() !== '' ? { name: nativeCurrency.name.trim() } : {}),
+						...(nativeCurrency.name.trim() !== '' && { name: nativeCurrency.name.trim() }),
 						symbol: nativeCurrency.symbol,
 						decimals: nativeCurrency.decimals,
-						...(nativeCurrency.slip44 != null ?
-							{ caip19: caip19Slip44(entityId.$network.chainId, nativeCurrency.slip44) }
-						:	{}),
+						...(nativeCurrency.slip44 != null && { caip19: caip19Slip44(entityId.$network.chainId, nativeCurrency.slip44) }),
 					}
 				}
 
@@ -142,12 +138,10 @@ export default {
 				return {
 					coinId,
 					symbol: coin.symbol.trim().toUpperCase(),
-					...(coin.name.trim() !== '' ? { name: coin.name.trim() } : {}),
-					...(decimals != null ? { decimals } : {}),
+					...(coin.name.trim() !== '' && { name: coin.name.trim() }),
+					...(decimals != null && { decimals }),
 					caip19,
-					...(iconMedia != null ?
-						{ $icon: iconMedia }
-					:	{}),
+					...(iconMedia != null && { $icon: iconMedia }),
 				}
 			},
 		}),
@@ -190,7 +184,7 @@ export default {
 					updatedAt: lastUpdatedAtSec * 1000,
 					transport: 'coingecko-coins-id-market-data-usd-1e8',
 					providerAssetId: coingeckoId,
-					...(caip19 != null ? { caip19 } : {}),
+					...(caip19 != null && { caip19 }),
 				}
 			},
 		}),

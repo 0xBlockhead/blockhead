@@ -42,3 +42,16 @@ export type RpcReceiptWire = {
 	logs?: RpcLogWire[]
 	contractAddress?: string | null
 }
+
+/** `eth_feeHistory` result — @see https://github.com/ethereum/execution-apis/blob/main/src/eth/fee_market.yaml */
+export type RpcFeeHistoryWire = {
+	oldestBlock: string
+	baseFeePerGas: string[]
+	gasUsedRatio: number[]
+	reward?: string[][]
+}
+
+export type RpcTxpoolStatusWire = {
+	pending: string
+	queued: string
+}

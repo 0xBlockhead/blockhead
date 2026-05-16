@@ -8,7 +8,7 @@
 
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Page from '$/components/Page.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
 	import ContractView from '$/views/ContractView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 
@@ -38,7 +38,10 @@
 
 
 <Page>
-	<ResourceBoundary resource={ensName}>
+	<ResourceBoundary
+		layout={Layout.Block}
+		resource={ensName}
+	>
 		{#snippet children(live)}
 			{@const contractId = live.$resolverContract?.[EntityMetaKey.Id]}
 			{#if contractId}

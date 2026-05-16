@@ -65,7 +65,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 </script>
@@ -78,36 +77,45 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.feedId}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={feed}
 			placeholderText="Loading feed…"
 		>
 			{#snippet children(feedRow)}
-				<HeadingComponent>
-					<a {href}>
-						{(
-							feedRow.label != null
-							&& feedRow.label.trim() !== ''
-						) ?
-							feedRow.label
-						: entityId.variant === 'trending' ?
-							'Trending'
-						: entityId.variant === 'byUser' ?
-							`FID ${String(entityId.fid)}`
-						: entityId.variant === 'byChannel' ?
-							entityId.channelId
-						:
-							'Following'
-						}
-					</a>
-				</HeadingComponent>
+				{(
+					feedRow.label != null
+					&& feedRow.label !== ''
+				) ?
+					feedRow.label
+				: entityId.variant === 'trending' ?
+					'Trending'
+				: entityId.variant === 'byUser' ?
+					`FID ${String(entityId.fid)}`
+				: entityId.variant === 'byChannel' ?
+					entityId.channelId
+				:
+					'Following'
+				}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 			<div>
 				<dt>Variant</dt>
 				<dd>{entityId.variant}</dd>
@@ -133,7 +141,7 @@
 				placeholderText="Loading feed…"
 			>
 				{#snippet children(feedRow)}
-					{#if feedRow.label != null && feedRow.label.trim() !== ''}
+					{#if feedRow.label != null && feedRow.label !== ''}
 						<div>
 							<dt>Label</dt>
 							<dd>{feedRow.label}</dd>

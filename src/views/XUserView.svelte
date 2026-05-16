@@ -60,9 +60,8 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -79,11 +78,15 @@
 			placeholderText="Loading user…"
 		>
 			{#snippet children(row)}
-				<HeadingComponent>
-					{row.name ?? row.username ?? entityId.id}
-				</HeadingComponent>
+				{row.name ?? row.username ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.id}
+		</span>
 	{/snippet}
 
 	{#snippet Icon()}
@@ -123,22 +126,53 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({ title: _title, href: _href, open })}
 		<ResourceBoundary
 			resource={user}
 			placeholderText="Loading user…"
 		>
 			{#snippet children(row)}
 				{#if row.description}
-					<p data-text="muted">
-						{row.description}
-					</p>
+					{#if !open}
+						<p data-text="muted">
+							{row.description}
+						</p>
+					{/if}
 				{/if}
+				<dl data-column-item="center">
+					<div>
+						<dt>User id</dt>
+						<dd data-text="mono">
+							{@render Id()}
+						</dd>
+					</div>
+					{#if open}
+						{#if row.name}
+							<div>
+								<dt>Name</dt>
+								<dd>{row.name}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if row.username}
+							<div>
+								<dt>Username</dt>
+								<dd>{row.username}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if row.description}
+							<div>
+								<dt>Description</dt>
+								<dd>{row.description}</dd>
+							</div>
+						{/if}
+					{/if}
+				</dl>
 			{/snippet}
 		</ResourceBoundary>
-		<div data-text="mono muted">
-			{entityId.id}
-		</div>
 	{/snippet}
 
 	{#snippet Details({
@@ -162,27 +196,6 @@
 						<p data-text="muted">
 							User details are not available yet.
 						</p>
-					{:else}
-						<dl>
-							{#if row.name}
-								<div>
-									<dt>Name</dt>
-									<dd>{row.name}</dd>
-								</div>
-							{/if}
-							{#if row.username}
-								<div>
-									<dt>Username</dt>
-									<dd>{row.username}</dd>
-								</div>
-							{/if}
-							{#if row.description}
-								<div>
-									<dt>Description</dt>
-									<dd>{row.description}</dd>
-								</div>
-							{/if}
-						</dl>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

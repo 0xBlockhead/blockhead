@@ -101,6 +101,12 @@
 	{...entityViewRest}
 	title={titleProp ?? (entityId.name === 'list' ? 'ENS' : entityId.name)}
 >
+	{#snippet Heading()}
+		<span>
+			{entityId.name === 'list' ? 'ENS' : entityId.name}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			{#if entityId.name === 'list'}
@@ -134,13 +140,11 @@
 									))
 						)}
 						{@const textRecordCount = textRecordEntries.length}
-						{#if onchain.labelName != null}
-							{#if onchain.labelName !== ''}
+						{#if onchain.labelName != null && onchain.labelName !== '' && onchain.labelName !== entityId.name}
 								<div>
 									<dt>Label</dt>
 									<dd>{onchain.labelName}</dd>
 								</div>
-							{/if}
 						{/if}
 						{#if textRecordCount > 0}
 							<div>
@@ -181,7 +185,7 @@
 									</dd>
 								</div>
 							{/if}
-							{#if (onchain.$$subdomains ?? []).length > 0}
+							{#if (onchain.$$subdomains ?? []).length}
 								<div>
 									<dt>Subdomains</dt>
 									<dd>
@@ -283,7 +287,7 @@
 									</div>
 								{/if}
 							{/if}
-							{#if (onchain.resolverTextKeys ?? []).length > 0}
+							{#if (onchain.resolverTextKeys ?? []).length}
 								<div>
 									<dt>Resolver text keys (indexer)</dt>
 									<dd>
@@ -291,7 +295,7 @@
 									</dd>
 								</div>
 							{/if}
-							{#if (onchain.resolverCoinTypes ?? []).length > 0}
+							{#if (onchain.resolverCoinTypes ?? []).length}
 								<div>
 									<dt>Resolver coin types (indexer)</dt>
 									<dd>
@@ -325,7 +329,7 @@
 									</div>
 								{/each}
 							{/if}
-							{#if textRecordEntries.length > 0}
+							{#if textRecordEntries.length}
 								{#each textRecordEntries as [key, value] (key)}
 									{@const trHref = getEnsTextRecordHref(key, value)}
 									{@const trExternal = (

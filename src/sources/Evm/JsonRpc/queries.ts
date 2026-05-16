@@ -1,7 +1,9 @@
 import { jsonRpc } from '$/sources/Evm/JsonRpc/client.ts'
 import type {
 	RpcBlockHeaderWire,
+	RpcFeeHistoryWire,
 	RpcReceiptWire,
+	RpcTxpoolStatusWire,
 	RpcTxWire,
 } from '$/sources/Evm/JsonRpc/types.ts'
 
@@ -73,5 +75,55 @@ export const ethGetTransactionReceipt = ({
 		rpcUrl,
 		method: 'eth_getTransactionReceipt',
 		params: [txHash],
+	})
+)
+
+const quantityHex = (value: bigint) => (
+	`0x${value.toString(16)}`
+)
+
+/**
+ * Historical base fee and priority fee rewards — EIP-1559 fee market.
+ * @see https://github.com/ethereum/execution-apis/blob/main/src/eth/fee_market.yaml
+ */
+export const ethFeeHistory = ({
+	rpcUrl,
+	blockCount,
+	newestBlock,
+	rewardPercentiles,
+}: {
+	rpcUrl: string
+	blockCount: number
+	newestBlock: bigint | 'latest'
+	rewardPercentiles?: readonly number[]
+}) => (
+	jsonRpc<RpcFeeHistoryWire>({
+		rpcUrl,
+		method: 'eth_feeHistory',
+		params: [
+			quantityHex(BigInt(blockCount)),
+			newestBlock === 'latest' ? 'latest' : quantityHex(newestBlock),
+			[...(rewardPercentiles ?? [])],
+		],
+	})
+)
+
+/**
+ * `@see https://github.com/ethereum/execution-apis/blob/main/src/eth/fee_market.yaml` — not supported on all networks.
+ */
+export const ethMaxPriorityFeePerGas = ({ rpcUrl }: { rpcUrl: string }) => (
+	jsonRpc<string>({
+		rpcUrl,
+		method: 'eth_maxPriorityFeePerGas',
+		params: [],
+	})
+)
+
+/** Geth-compatible txpool inspection — often disabled on public RPCs. */
+export const txpoolStatus = ({ rpcUrl }: { rpcUrl: string }) => (
+	jsonRpc<RpcTxpoolStatusWire>({
+		rpcUrl,
+		method: 'txpool_status',
+		params: [],
 	})
 )

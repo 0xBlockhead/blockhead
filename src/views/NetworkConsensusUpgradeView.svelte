@@ -56,7 +56,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
@@ -68,13 +67,19 @@
 	{href}
 	{open}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.upgradeSlug}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={networkConsensusUpgrade}
 			placeholderText="Loading network consensus upgrade…"
 		>
 			{#snippet children(networkConsensusUpgradeEntity)}
-				<HeadingComponent>{networkConsensusUpgradeEntity.name ?? entityId.upgradeId}</HeadingComponent>
+				{networkConsensusUpgradeEntity.name ?? entityId.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -86,10 +91,13 @@
 		>
 			{#snippet children(networkConsensusUpgradeEntity)}
 				<dl>
-					<div>
-						<dt>Upgrade</dt>
-						<dd>{entityId.upgradeId}</dd>
-					</div>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 					{#if open}
 						{#if networkConsensusUpgradeEntity.protocol !== undefined}
 							<div>

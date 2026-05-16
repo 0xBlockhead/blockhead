@@ -77,30 +77,65 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.name}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={subreddit}
 			placeholderText="Loading subreddit…"
 		>
 			{#snippet children(u)}
-				<HeadingComponent>
-					{u.title ?? `r/${entityId.name}`}
-				</HeadingComponent>
+				{u.title ?? `r/${entityId.name}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({ title: _title, href: _href, open })}
 		<ResourceBoundary
 			resource={subreddit}
 			placeholderText="Loading subreddit…"
 		>
 			{#snippet children(u)}
-				{#if u.publicDescription.trim() === ''}
+				{#if !u.publicDescription}
 					<p data-text="muted">No subreddit description.</p>
 				{:else}
-					<p data-text="muted">{u.publicDescription}</p>
+					{#if !open}
+						<p data-text="muted">{u.publicDescription}</p>
+					{/if}
 				{/if}
+				<dl data-column-item="center">
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
+					<div>
+						<dt>Subreddit</dt>
+						<dd>r/{entityId.name}</dd>
+					</div>
+					{#if open}
+						{#if u.title}
+							<div>
+								<dt>Title</dt>
+								<dd>{u.title}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if u.publicDescription}
+							<div>
+								<dt>Description</dt>
+								<dd>{u.publicDescription}</dd>
+							</div>
+						{/if}
+					{/if}
+				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -111,29 +146,7 @@
 		<EntityDetails
 			entityType={EntityType.RedditSubreddit}
 			{entityId}
-		>
-			<ResourceBoundary
-				resource={subreddit}
-				placeholderText="Loading subreddit…"
-			>
-				{#snippet children(u)}
-					<dl>
-						<div>
-							<dt>Subreddit</dt>
-							<dd>r/{entityId.name}</dd>
-						</div>
-						<div>
-							<dt>Title</dt>
-							<dd>{u.title}</dd>
-						</div>
-						<div>
-							<dt>Description</dt>
-							<dd>{u.publicDescription}</dd>
-						</div>
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+		/>
 
 		<Collapsible
 			id={`${idKey}:carousel-posts`}

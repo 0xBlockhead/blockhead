@@ -58,11 +58,8 @@
 	const actors = derive(
 		parentEntity,
 		(merged) => {
-			const rows = (
-				(
-					merged[entityFieldReference.fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.Actor>[]
+			const rows: Entity<typeof schema, EntityType.Actor>[] = (
+				merged[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].address.toLowerCase()

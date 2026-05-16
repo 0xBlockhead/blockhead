@@ -66,11 +66,8 @@
 	const sessions = derive(
 		parentEntity,
 		(merged) => {
-			const rows = (
-				(
-					merged[entityFieldReference.fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.BlockheadSession>[]
+			const rows: Entity<typeof schema, EntityType.BlockheadSession>[] = (
+				merged[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))

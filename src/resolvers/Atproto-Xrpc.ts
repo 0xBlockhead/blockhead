@@ -28,13 +28,11 @@ export default {
 					displayName: optionalTrimmedString(profile.displayName),
 					handle: optionalTrimmedString(profile.handle),
 					...((
-						t,
+						iconMedia,
 					) => (
-						t == null ?
-							{}
-						:	{
-								$icon: t,
-							}
+						iconMedia != null && {
+							$icon: iconMedia,
+						}
 					))(mediaFromUrl(profile.avatar, MediaType.Image)),
 					description: optionalTrimmedString(profile.description),
 				}
@@ -55,9 +53,9 @@ export default {
 				return {
 					$author: authorDid == null ? undefined : { [EntityMetaKey.Id]: { did: authorDid } },
 					text: optionalTrimmedString(rec?.text),
-					...(Number.isFinite(createdAt) ? { createdAt } : {}),
-					...(parentUri == null ? {} : { $parent: { [EntityMetaKey.Id]: { uri: parentUri } } }),
-					...(rootUri == null ? {} : { $root: { [EntityMetaKey.Id]: { uri: rootUri } } }),
+					...(Number.isFinite(createdAt) && { createdAt }),
+					...(parentUri != null && { $parent: { [EntityMetaKey.Id]: { uri: parentUri } } }),
+					...(rootUri != null && { $root: { [EntityMetaKey.Id]: { uri: rootUri } } }),
 				}
 			},
 		}),

@@ -119,6 +119,19 @@
 	} · ${formatMarketTimeIntervalLabel(entityId.timeInterval)} · ${entityId.rangeType}`}
 	{...entityViewRest}
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			range
+		</span>
+	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{formatMarketTimeIntervalLabel(entityId.timeInterval)} · {entityId.rangeType}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={rangeLive}
@@ -141,6 +154,13 @@
 				)}
 				{#if hasDlRow}
 					<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 						{#if r.pointCount !== undefined}
 							<div>
 								<dt>Points</dt>
@@ -187,7 +207,7 @@
 						:	ohlcRangePayloadToEntities(r.rangePayload, entityId)
 					)}
 					{@const chartMin = (
-						ordered.length === 0 ?
+						!ordered.length ?
 							0
 						:	Math.min(
 								...ordered.map((point) => (
@@ -196,7 +216,7 @@
 							)
 					)}
 					{@const chartMax = (
-						ordered.length === 0 ?
+						!ordered.length ?
 							1
 						:	Math.max(
 								...ordered.map((point) => (
@@ -204,7 +224,7 @@
 								)),
 							)
 					)}
-					{#if ordered.length > 0}
+					{#if ordered.length}
 						<MarketTimeIntervalTimestampChart
 							max={chartMax}
 							min={chartMin}

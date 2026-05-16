@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { networkUpgradeIdFromChainIdAndUrlSegment } from '$/constants/EthereumUpgrades.ts'
+	import { networkUpgradeIdFromChainIdAndUrlSegment } from '$/constants/NetworkUpgrades.ts'
 	import { resolve } from '$app/paths'
 	import { stringify } from 'devalue'
 

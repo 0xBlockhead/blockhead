@@ -59,7 +59,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -73,69 +72,97 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.uri}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={post}
 			placeholderText="Loading post…"
 		>
-			{#snippet children(u)}
-				{#if u.text !== undefined && u.text !== ''}
-					<HeadingComponent>
-						{#if href}
-							<a href={href}>
-								<TruncatedValue
-									endLength={8}
-									format={TruncatedValueFormat.Visual}
-									startLength={88}
-									value={u.text}
-								/>
-							</a>
-						{:else}
-							<TruncatedValue
-								endLength={8}
-								format={TruncatedValueFormat.Visual}
-								startLength={88}
-								value={u.text}
-							/>
-						{/if}
-					</HeadingComponent>
+			{#snippet children(resolvedAtprotoPost)}
+				{#if resolvedAtprotoPost.text}
+					<TruncatedValue
+						endLength={8}
+						format={TruncatedValueFormat.Visual}
+						startLength={88}
+						value={resolvedAtprotoPost.text}
+					/>
+				{:else}
+					{entityId.uri}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({ title: _title, href: _href, open })}
 		<div data-column>
 			<ResourceBoundary
 				resource={post}
 				placeholderText="Loading post…"
 			>
-				{#snippet children(u)}
-					{#if u.text}
-						<p>
-							{u.text}
-						</p>
+				{#snippet children(resolvedAtprotoPost)}
+					{#if resolvedAtprotoPost.text}
+						{#if !open}
+							<p>
+								{resolvedAtprotoPost.text}
+							</p>
+						{/if}
 					{/if}
-					{#if u.$author}
+					{#if resolvedAtprotoPost.$author}
 						<p data-text="muted">
 							<a
 								href={resolve(
 									'/(social)/atproto/actor/[did]',
 									{
 										did: encodeURIComponent(
-											u.$author[EntityMetaKey.Id].did,
+											resolvedAtprotoPost.$author[EntityMetaKey.Id].did,
 										),
 									},
 								)}
-							>Author ({u.$author[EntityMetaKey.Id].did})</a>
+							>Author ({resolvedAtprotoPost.$author[EntityMetaKey.Id].did})</a>
 						</p>
 					{/if}
+					<dl data-column-item="center">
+						{#if resolvedAtprotoPost.text}
+							<div>
+								<dt>Record URI</dt>
+								<dd data-text="mono">
+									{@render Id()}
+								</dd>
+							</div>
+						{/if}
+						{#if open}
+							{#if resolvedAtprotoPost.$author}
+								<div>
+									<dt>Author</dt>
+									<dd>{resolvedAtprotoPost.$author[EntityMetaKey.Id].did}</dd>
+								</div>
+							{/if}
+							{#if resolvedAtprotoPost.text}
+								<div>
+									<dt>Text</dt>
+									<dd>{resolvedAtprotoPost.text}</dd>
+								</div>
+							{/if}
+							{#if resolvedAtprotoPost.createdAt}
+								<div>
+									<dt>Created at</dt>
+									<dd>
+										<Timestamp
+											timestamp={resolvedAtprotoPost.createdAt}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/if}
+					</dl>
 				{/snippet}
 			</ResourceBoundary>
-
-			<div data-text="mono muted">
-				{entityId.uri}
-			</div>
 		</div>
 	{/snippet}
 
@@ -147,37 +174,14 @@
 			{entityId}
 		>
 			<ResourceBoundary resource={post}>
-				{#snippet children(u)}
-					{#if (u.text == null || u.text === '') && u.createdAt == null}
+				{#snippet children(resolvedAtprotoPost)}
+					{#if (
+						!resolvedAtprotoPost.text
+						&& resolvedAtprotoPost.createdAt == null
+					)}
 						<p data-text="muted">
 							Post details are not available yet.
 						</p>
-					{:else}
-						<dl>
-							{#if u.$author}
-								<div>
-									<dt>Author</dt>
-									<dd>{u.$author[EntityMetaKey.Id].did}</dd>
-								</div>
-							{/if}
-							{#if u.text !== undefined && u.text !== ''}
-								<div>
-									<dt>Text</dt>
-									<dd>{u.text}</dd>
-								</div>
-							{/if}
-							{#if u.createdAt !== undefined}
-								<div>
-									<dt>Created at</dt>
-									<dd>
-										<Timestamp
-											timestamp={u.createdAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-						</dl>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

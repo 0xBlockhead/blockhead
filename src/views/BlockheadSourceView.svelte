@@ -1,4 +1,6 @@
 <script lang="ts">
+	import { stringify } from 'devalue'
+
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { Snippet } from 'svelte'
@@ -71,6 +73,13 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			{entityId.id}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>

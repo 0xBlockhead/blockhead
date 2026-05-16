@@ -9,7 +9,7 @@
 
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Page from '$/components/Page.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
 	import ActorView from '$/views/ActorView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 
@@ -39,7 +39,10 @@
 
 
 <Page>
-	<ResourceBoundary resource={ensName}>
+	<ResourceBoundary
+		layout={Layout.Block}
+		resource={ensName}
+	>
 		{#snippet children(live)}
 			{@const resolvedActorId = live.$resolvedActor?.[EntityMetaKey.Id]}
 			{#if resolvedActorId}

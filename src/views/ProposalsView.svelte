@@ -84,20 +84,19 @@
 
 	const proposals = derive(
 		proposalsParent,
-		(merged) => (
-			(
-				merged[fieldName as keyof typeof merged] as (
-					Entity<typeof schema, EntityType.Proposal>
-				)[]
+		(merged) => {
+			const rows: Entity<typeof schema, EntityType.Proposal>[] = merged[fieldName] ?? []
+			return (
+				rows
+					.toSorted((first, second) => (
+						first[EntityMetaKey.Id].number
+						- second[EntityMetaKey.Id].number
+					))
+					.map((proposalRow) => ({
+						result: proposalRow,
+					}))
 			)
-				.toSorted((first, second) => (
-					first[EntityMetaKey.Id].number
-					- second[EntityMetaKey.Id].number
-				))
-				.map((proposalRow) => ({
-					result: proposalRow,
-				}))
-		),
+		},
 	)
 
 

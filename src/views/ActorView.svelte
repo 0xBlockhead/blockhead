@@ -14,8 +14,8 @@
 
 
 	// Components
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import ActorIdentityRow from '$/views/ActorIdentityRow.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
@@ -88,20 +88,52 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Id()}
-		<ActorIdentityRow {entityId} />
+	{#snippet Icon()}
+		<ResourceBoundary resource={actor}>
+			{#snippet children(actorSummaryRow)}
+				{#if actorSummaryRow.$icon}
+					<IconComponent
+						shape={IconShape.Circle}
+						src={actorSummaryRow.$icon[EntityMetaKey.Id].url}
+						size="1.5em"
+						alt=""
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
+
+	{#snippet Heading()}
+		<ResourceBoundary resource={actor}>
+			{#snippet children(actorSummaryRow)}
+				{actorSummaryRow.$primaryName?.[EntityMetaKey.Id].name ?? entityId.address}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			<TruncatedValue
+				value={entityId.address}
+				format={TruncatedValueFormat.Visual}
+			/>
+		</span>
+	{/snippet}
+
+
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={actor}>
-			{#snippet children(live)}
+			{#snippet children(actorSummaryRow)}
 				<dl>
-					<div>
-						<dt>Address</dt>
-						<dd>
-							<ActorIdentityRow {entityId} />
-						</dd>
-					</div>
+					{#if actorSummaryRow.$primaryName}
+						<div>
+							<dt>Address</dt>
+							<dd data-text="mono">
+								{@render Id()}
+							</dd>
+						</div>
+					{/if}
 					{#if open}
 						{#if entityId.interopAddress}
 							<div>
@@ -118,7 +150,7 @@
 							<dt>ENS names (The Graph)</dt>
 							<dd>
 								<ul>
-									{#each live.$$ensNamesOwned as nameRef (`${nameRef[EntityMetaKey.Id].name}`)}
+									{#each actorSummaryRow.$$ensNamesOwned as nameRef (`${nameRef[EntityMetaKey.Id].name}`)}
 										<li>
 											<a
 												data-link

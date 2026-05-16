@@ -73,11 +73,8 @@
 	const bridgeTransactions = derive(
 		parentEntity,
 		(merged): BridgeTxRow[] => {
-			const rows = (
-				(
-					merged[entityFieldReference.fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.BridgeTransaction>[]
+			const rows: Entity<typeof schema, EntityType.BridgeTransaction>[] = (
+				merged[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					`${String(a[EntityMetaKey.Id].createdAt)}\0${stringify(a[EntityMetaKey.Id])}`

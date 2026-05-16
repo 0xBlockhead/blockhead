@@ -58,11 +58,8 @@
 	const bridges = derive(
 		parentEntity,
 		(merged) => {
-			const rows = (
-				(
-					merged[entityFieldReference.fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.NetworkBridge>[]
+			const rows: Entity<typeof schema, EntityType.NetworkBridge>[] = (
+				merged[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].url.localeCompare(b[EntityMetaKey.Id].url)

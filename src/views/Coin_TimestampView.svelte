@@ -16,7 +16,7 @@
 	import CoinView from '$/views/CoinView.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 
 
@@ -89,6 +89,13 @@
 	title={`${entityId.$coin.coinId} snapshot`}
 	{...entityViewRest}
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			{entityId.coinId}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={coinTimestamp}>
 			{#snippet children(live)}
@@ -137,7 +144,10 @@
 			<h2>
 				Coin
 			</h2>
-			<ResourceBoundary resource={coinTimestamp}>
+			<ResourceBoundary
+				layout={Layout.Block}
+				resource={coinTimestamp}
+			>
 				{#snippet children()}
 					<CoinView
 						entityId={entityId.$coin}

@@ -61,7 +61,7 @@
 
 	// Components
 	import Collapsible from '$/components/Collapsible.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import Heading from '$/components/Heading.svelte'
@@ -94,6 +94,24 @@
 			entityId.$quote.iso4217
 	} · ${marketVenueById[entityId.$marketVenue.marketVenueId].label}`}
 >
+	{#snippet Heading()}
+		{`${
+			entityId.$base.kind === MarketAssetKind.Coin ?
+				entityId.$base.$coin.coinId
+			: entityId.$base.kind === MarketAssetKind.CoinInstance ?
+				`instance ${stringify(entityId.$base.$coinInstance)}`
+			:
+				entityId.$base.iso4217
+		} / ${
+			entityId.$quote.kind === MarketAssetKind.Coin ?
+				entityId.$quote.$coin.coinId
+			: entityId.$quote.kind === MarketAssetKind.CoinInstance ?
+				`instance ${stringify(entityId.$quote.$coinInstance)}`
+			:
+				entityId.$quote.iso4217
+		} · ${marketVenueById[entityId.$marketVenue.marketVenueId].label}`}
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
@@ -220,6 +238,7 @@
 						{#if entityId.$base.kind === MarketAssetKind.Coin}
 							<section data-scroll-marker-label="Catalog base">
 								<ResourceBoundary
+									layout={Layout.Block}
 									placeholderText="Loading market…"
 									resource={market}
 								>

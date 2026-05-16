@@ -2,7 +2,8 @@
 
 - Reply in a concise style; avoid repetition or filler
 - Be DRY and declarative
-- Inline derived intermediate variables, especially if used once
+- Inline derived intermediate variables, especially if used once (same in markup: no one-off `{@const}` / `const` / `$derived` when the value is only referenced once—inline it)
+- **Assistant / handoff summaries:** Do not paste large JSON blobs, `devalue` / `stringify(entityId)` dumps, or other machine-oriented payloads into chat summaries; describe intent and point to paths or small code citations instead
 - Name variables, snippets, callback parameters, and arguments by what they are; never abbreviate identifiers.
 - Do not introduce new files or helper functions without proper justification, a detailed plan, and explicit permission
 
@@ -64,7 +65,7 @@
 
 ### Playwright E2E — `data-e2e`
 
-- Add `data-e2e="…"` **sparingly** for one-off nodes used only by E2E (not for layout/theme). Prefer `getByRole` / label / text / `#main` first. Existing hooks include e.g. `nav-menu` (`Navigation.svelte`), `networks-panel` (`explore/+page.svelte`), and on network summary `network-summary-head-block`, `network-carousel-blocks`, `network-carousel-transactions` (`NetworkView.svelte`).
+- Add `data-e2e="…"` **sparingly** for one-off nodes used only by E2E (not for layout/theme). Prefer `getByRole` / label / text / stable `id` / `#main` / `data-scroll-marker-label` (carousel sections) first. Existing hooks include e.g. `#nav-menu` (`Navigation.svelte`), and on network summary `network-summary-head-block`, `data-e2e="network-carousel-groups"`, and collapsible region roots on `NetworkView.svelte` (`data-e2e="network-collapsible-*"`).
 
 ### Playwright E2E — assertions
 
@@ -114,6 +115,7 @@
 - Prefer `.` over `?.`, and `?.` over `object && object.value`
 - Prefer `T[]` over `Array<T>`
 - Prefer `[...array1, ...array2]` over `array1.concat(array2)`
+- **Conditional spread in object literals:** Prefer `...(condition && { … })` over `...(condition ? { … } : {})` when the alternate branch would be `{}`. (**Array** literals still need `(condition ? […] : [])` or similar: spreading a falsy value into an array is not valid.)
 - Prefer single expressions and inline logic
 - Declare intermediate variables and functions ONLY if referenced more than once, otherwise inline
 - Declare functions with `const` UNLESS overloading signatures
@@ -355,7 +357,7 @@
 
 ### Svelte components
 
-- Display truncation: use `<TruncatedValue>` / `<Address>` (manual truncation is only OK for non-display logic)
+- Display truncation: use `<TruncatedValue>` / `<Address>` (manual truncation is only OK for non-display logic). Entity card headings and secondary ids follow **Entity Views** → **Entity summary row** (no JSON-shaped summary ids).
 
 ---
 
@@ -617,6 +619,14 @@ Verification:
 - `useEntity` selection: Prefer hierarchical resolver/source inheritance (a concise top-level `$` source list; nested field entries use `{}` where children inherit) instead of repeating the same `$` on every nested property when the model allows it. Prefer inlining short `$derived` values and colocating `{#if}` conditions beside the markup they guard over one shared visibility object unless branches genuinely share the same decision.
 - Title / media: When the loaded entity exposes artwork (for example `$icon`), show it in the title row using the existing `Icon` snippet plus shared icon components (`IconComponent`, etc.), matching patterns from other entity views.
 - `EntityView` / `EntitySummary` snippet contracts: For bundled context (`Content`, `Details`, summary `children`), use an optional first tuple parameter with optional object fields (for example `Snippet<[context?: { title?: string, href?: string }]>` and `Snippet<[context?: { open?: boolean }]>`). Call sites that ignore the bundle may use `{#snippet Content()}` / `{#snippet Details()}` instead of destructuring unused bindings.
+
+### Entity summary row (`$/components/EntitySummary.svelte`, `$/components/EntityView.svelte`)
+
+- **Layout:** The summary **link** (when `href` is set) wraps the **icon** (`#snippet Icon`) and the **primary title** (`#snippet Heading` or fallback). Keep that pattern so the whole row is one draggable / navigable target.
+- **Readable ids, not JSON-shaped summaries:** Do **not** render `stringify(entityId)` from `devalue` (or any similar serialized object blob) in `#snippet Id()` or other **user-visible** summary text. Use domain-appropriate copy: `<Address>`, `<TruncatedValue>`, chain id, short labels, etc. **`stringify(entityId)` is still fine** for non-display uses (e.g. element `id`, view-transition names, sort keys, `idDragPlainText`, route params).
+- **Lists vs type noise:** `$/components/EntitiesList.svelte` calls `setIsInsideEntityList(true)`. `EntityView` defaults `showTypeAnnotation` from that context and derives `showEntitySummaryTypeIdPrefix` as `$derived(!showTypeAnnotation && !(isInsideEntityList ?? false))`, passed to `EntitySummary` as **`showEntityTypeIdPrefix`** so **list rows** do not show the entity-type label as a **secondary id prefix** (homogeneous list; avoid repeating the type next to every row). Do **not** use `!showTypeAnnotation` alone for that prop (it incorrectly re-introduces the type prefix when the collapsible annotation is hidden). The collapsible **annotation** on the card is already suppressed via `showTypeAnnotation` when inside a list.
+- **Heading vs secondary `#snippet Id`:** Do not duplicate the same fact in the heading and in `<dl>` rows (see bullets above). When both `Heading` and `Id` exist, `EntitySummary` **hides the secondary row** if the **normalized visible text** of the heading body and the secondary row match (**client-side** compare after paint, with `MutationObserver` so `ResourceBoundary` / `TruncatedValue` updates still reconcile; SSR markup may briefly show both until hydration). Prefer omitting `#snippet Id` when it is **statically** redundant; rely on the component for async / loaded-text cases.
+- **Redundancy removal:** Drop `<dl>` rows (and avoid extra summary lines) that only repeat the heading, the secondary id line, or parent-scoped ids—see **`<dl>` vs heading** and **`<dl>` vs parent id** above.
 
 
 ## SvelteKit routes and views (`src/routes/**/*`)

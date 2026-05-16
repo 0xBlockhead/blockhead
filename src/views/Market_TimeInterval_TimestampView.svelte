@@ -66,7 +66,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import MarketView from '$/views/MarketView.svelte'
@@ -87,10 +86,14 @@
 	{layout}
 	{open}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			timestamp
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
-		<HeadingComponent>
-			{`OHLC ${formatMarketTimeIntervalLabel(entityId.timeInterval)}`}
-		</HeadingComponent>
+		{`OHLC ${formatMarketTimeIntervalLabel(entityId.timeInterval)}`}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -100,6 +103,13 @@
 		>
 			{#snippet children(pointLoaded)}
 				<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 					{#if pointLoaded.close !== undefined}
 						<div>
 							<dt>Close</dt>

@@ -7,14 +7,14 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
-import { ConsensusProtocol } from '$/schema/NetworkFork.ts'
+import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 import Network from '$/schema/Network.ts'
 
 export default {
 	entityType: EntityType.NetworkConsensusUpgrade,
 
-	label: 'Network Consensus Upgrade',
-	labelPlural: 'Network Consensus Upgrades',
+	label: 'Consensus Upgrade',
+	labelPlural: 'Consensus Upgrades',
 
 	id: type({
 		$network: Network.id,

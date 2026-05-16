@@ -94,8 +94,28 @@
 	idDragPlainText={String(entityId.epoch)}
 	{...entityViewRest}
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			{entityId.epoch}
+		</span>
+	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			chain {String(entityId.$network.chainId)}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 			<ResourceBoundary resource={epoch}>
 				{#snippet children(e)}
 					{#if e.startSlot !== undefined}

@@ -39,18 +39,15 @@ export default {
 
 					return {
 						coinId,
-						...(nativeCurrency.name.trim() !== '' ? { name: nativeCurrency.name.trim() } : {}),
+						...(nativeCurrency.name.trim() !== '' && { name: nativeCurrency.name.trim() }),
 						symbol,
 						decimals: nativeCurrency.decimals,
-						...(chain.slip44 != null ?
-							{
+						...(chain.slip44 != null && {
 								caip19: caip19Slip44(
 									entityId.$network.chainId,
 									chain.slip44,
 								),
-							}
-						:
-							{}),
+							}),
 					}
 				}
 
@@ -79,30 +76,22 @@ export default {
 				return {
 					coinId,
 					symbol: symbol ?? coinById[coinId]?.symbol ?? entityId.$contract.address,
-					...(token.info?.name != null && token.info.name.trim() !== '' ?
-						{
+					...(token.info?.name != null && token.info.name.trim() !== '' && {
 							name: token.info.name.trim(),
-						}
-					:
-						{}),
-					...(token.decimals != null ?
-						{
+						}),
+					...(token.decimals != null && {
 							decimals: token.decimals,
-						}
-					:
-						{}),
+						}),
 					caip19: caip19Erc20(
 						entityId.$network.chainId,
 						entityId.$contract.address,
 					),
 					...((
-						t,
+						iconMedia,
 					) => (
-						t == null ?
-							{}
-						:	{
-								$icon: t,
-							}
+						iconMedia != null && {
+							$icon: iconMedia,
+						}
 					))(
 						mediaFromUrl(token.attributes?.image_url == null ? undefined : String(token.attributes.image_url), MediaType.Image),
 					),

@@ -89,6 +89,7 @@
 			Content?: Snippet<[context?: {
 				title?: string
 				href?: string
+				open?: boolean
 			}]>
 			CollapsibleProps?: ComponentProps<typeof Collapsible>
 			Details?: Snippet<[context?: {
@@ -97,6 +98,11 @@
 		},
 		SvelteHTMLElements['article']
 	> = $props()
+
+	/** Type label beside / before id in `EntitySummary` — not on list rows (list already homogenous). */
+	const showEntitySummaryTypeIdPrefix = $derived(
+		!showTypeAnnotation && !(isInsideEntityList ?? false),
+	)
 
 
 	// Functions
@@ -120,6 +126,7 @@
 			{title}
 			{href}
 			{idDragPlainText}
+			showEntityTypeIdPrefix={showEntitySummaryTypeIdPrefix}
 			{Icon}
 			{Heading}
 			{Id}
@@ -138,6 +145,7 @@
 			{title}
 			{href}
 			{idDragPlainText}
+			showEntityTypeIdPrefix={showEntitySummaryTypeIdPrefix}
 			{Icon}
 			{Heading}
 			{Id}
@@ -151,6 +159,7 @@
 					{@render Content({
 						title,
 						href,
+						open: true,
 					})}
 				{/if}
 			{/snippet}
@@ -169,6 +178,7 @@
 			{@render Content({
 				title,
 				href,
+				open: true,
 			})}
 		{/if}
 		{#if _Details}
@@ -184,13 +194,16 @@
 		id={stringify(entityId)}
 		style:view-transition-name={`EntityView-${stringify(entityId)}`}
 	>
-		{#snippet Summary()}
+		{#snippet Summary({
+			open: summaryOpen,
+		})}
 			<EntitySummary
 				{entityType}
 				{entityId}
 				{title}
 				{href}
 				{idDragPlainText}
+				showEntityTypeIdPrefix={showEntitySummaryTypeIdPrefix}
 				{Icon}
 				{Heading}
 				{Id}
@@ -204,6 +217,7 @@
 						{@render Content({
 							title,
 							href,
+							open: summaryOpen,
 						})}
 					{/if}
 				{/snippet}
@@ -212,23 +226,6 @@
 
 		{#snippet Annotation()}
 			<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
-		{/snippet}
-
-		{#snippet children({ open: detailsOpen })}
-			{#if (
-				_Details
-				&& detailsOpen
-				&& (
-					layout === EntityLayout.Summary
-					|| layout === EntityLayout.SummaryDetails
-				)
-			)}
-				<div data-column>
-					{@render _Details({
-						open: detailsOpen,
-					})}
-				</div>
-			{/if}
 		{/snippet}
 
 		<Collapsible
@@ -244,8 +241,24 @@
 			}}
 			{Summary}
 			Annotation={showTypeAnnotation ? Annotation : undefined}
-			{children}
-		/>
+		>
+			{#snippet children({ open: detailsOpen })}
+				{#if (
+					_Details
+					&& detailsOpen
+					&& (
+						layout === EntityLayout.Summary
+						|| layout === EntityLayout.SummaryDetails
+					)
+				)}
+					<div data-column>
+						{@render _Details({
+							open: detailsOpen,
+						})}
+					</div>
+				{/if}
+			{/snippet}
+		</Collapsible>
 	</article>
 {/if}
 

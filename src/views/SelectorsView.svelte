@@ -60,11 +60,8 @@
 	const envelopes = derive(
 		parentEntity,
 		(merged) => {
-			const rows = (
-				(
-					merged[entityFieldReference.fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.EvmSelector>[]
+			const rows: Entity<typeof schema, EntityType.EvmSelector>[] = (
+				merged[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].hex > b[EntityMetaKey.Id].hex ?

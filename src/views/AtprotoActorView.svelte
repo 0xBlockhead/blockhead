@@ -79,71 +79,111 @@
 	bind:open
 	{...entityViewRest}
 >
-	{#snippet Heading()}
-		<ResourceBoundary resource={actor}>
-			{#snippet Pending()}{/snippet}
-			{#snippet children(profile)}
-				<HeadingComponent>
-					{profile.displayName
-						?? profile.handle
-						?? entityId.did}
-				</HeadingComponent>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet Icon()}
 		<ResourceBoundary resource={actor}>
-			{#snippet Pending()}{/snippet}
-			{#snippet children(profile)}
-				{@const avatar = profile.$icon?.[EntityMetaKey.Id].url}
-				{#if avatar !== undefined}
+			{#snippet children(atprotoProfileRow)}
+				{@const atprotoBrandIconSrc = atprotoProfileRow.$icon?.[EntityMetaKey.Id].url}
+				{#if atprotoBrandIconSrc}
 					<IconComponent
-						alt={profile.displayName ?? profile.handle ?? ''}
+						alt={atprotoProfileRow.displayName ?? atprotoProfileRow.handle ?? ''}
 						shape={IconShape.Circle}
-						src={avatar}
+						src={atprotoBrandIconSrc}
 					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet HeadingAfter()}
+	{#snippet Heading()}
 		<ResourceBoundary resource={actor}>
-			{#snippet Pending()}{/snippet}
-			{#snippet children(profile)}
-				{@const heading = (
-					profile.displayName
-					?? profile.handle
+			{#snippet children(atprotoProfileRow)}
+				{atprotoProfileRow.displayName
+					?? atprotoProfileRow.handle
+					?? entityId.did}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.did}
+		</span>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary
+			resource={actor}
+		>
+			{#snippet children(atprotoProfileRow)}
+				{@const atprotoSummaryHeadingLine = (
+					atprotoProfileRow.displayName
+					?? atprotoProfileRow.handle
 					?? entityId.did
 				)}
-				{#if profile.handle !== undefined && profile.handle !== heading}
+				{#if atprotoProfileRow.handle && atprotoProfileRow.handle !== atprotoSummaryHeadingLine}
 					<span data-text="muted">
-						@{profile.handle}
+						@{atprotoProfileRow.handle}
 					</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({ title: _title, href: _href, open })}
 		<div data-column>
 			<ResourceBoundary
 				resource={actor}
 				placeholderText="Loading profile…"
 			>
-				{#snippet children(profile)}
-					{#if profile.description}
-						<p data-text="muted">
-							{profile.description}
-						</p>
+			{#snippet children(atprotoProfileRow)}
+				{@const atprotoSummaryHeadingLine = (
+					atprotoProfileRow.displayName
+					?? atprotoProfileRow.handle
+					?? entityId.did
+				)}
+				{#if atprotoProfileRow.description}
+						{#if !open}
+							<p data-text="muted">
+								{atprotoProfileRow.description}
+							</p>
+						{/if}
 					{/if}
+					<dl data-column-item="center">
+						{#if atprotoSummaryHeadingLine !== entityId.did}
+							<div>
+								<dt>DID</dt>
+								<dd data-text="mono">
+									{@render Id()}
+								</dd>
+							</div>
+						{/if}
+						{#if open}
+							{#if atprotoProfileRow.displayName}
+								<div>
+									<dt>Display name</dt>
+									<dd>{atprotoProfileRow.displayName}</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if open}
+							{#if atprotoProfileRow.handle}
+								<div>
+									<dt>Handle</dt>
+									<dd>{atprotoProfileRow.handle}</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if open}
+							{#if atprotoProfileRow.description}
+								<div>
+									<dt>Description</dt>
+									<dd>{atprotoProfileRow.description}</dd>
+								</div>
+							{/if}
+						{/if}
+					</dl>
 				{/snippet}
 			</ResourceBoundary>
-
-			<div data-text="mono muted">
-				{entityId.did}
-			</div>
 		</div>
 	{/snippet}
 
@@ -155,32 +195,15 @@
 			{entityId}
 		>
 			<ResourceBoundary resource={actor}>
-				{#snippet children(profile)}
-					{#if profile.handle == null && profile.displayName == null && profile.description == null}
+				{#snippet children(atprotoProfileRow)}
+					{#if (
+						atprotoProfileRow.handle == null
+						&& atprotoProfileRow.displayName == null
+						&& atprotoProfileRow.description == null
+					)}
 						<p data-text="muted">
 							No atproto profile data in the app for this DID yet. Try again shortly.
 						</p>
-					{:else}
-						<dl>
-							{#if profile.displayName}
-								<div>
-									<dt>Display name</dt>
-									<dd>{profile.displayName}</dd>
-								</div>
-							{/if}
-							{#if profile.handle}
-								<div>
-									<dt>Handle</dt>
-									<dd>{profile.handle}</dd>
-								</div>
-							{/if}
-							{#if profile.description}
-								<div>
-									<dt>Description</dt>
-									<dd>{profile.description}</dd>
-								</div>
-							{/if}
-						</dl>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

@@ -37,14 +37,8 @@ export default {
 										[EntityMetaKey.Id]: {
 											url: browseResult.gatewayUrl,
 										},
-										...(browseResult.contentType != null ?
-											{ mimeType: browseResult.contentType }
-										:
-											{}),
-										...(browseResult.contentLength != null ?
-											{ size: browseResult.contentLength }
-										:
-											{}),
+										...(browseResult.contentType != null && { mimeType: browseResult.contentType }),
+										...(browseResult.contentLength != null && { size: browseResult.contentLength }),
 									},
 								}
 						))(mediaFromUrl(browseResult.gatewayUrl, type))
@@ -68,24 +62,12 @@ export default {
 					gatewayUrl: browseResult.gatewayUrl,
 					fileName: browseResult.fileName,
 					extension: browseResult.extension,
-					...(browseResult.contentType != null ?
-						{ contentType: browseResult.contentType }
-					:
-						{}),
-					...(browseResult.contentLength != null ?
-						{ contentLength: browseResult.contentLength }
-					:
-						{}),
+					...(browseResult.contentType != null && { contentType: browseResult.contentType }),
+					...(browseResult.contentLength != null && { contentLength: browseResult.contentLength }),
 					displayType: browseResult.displayType,
 					isContentTypeInferred: browseResult.isContentTypeInferred,
-					...(browseResult.text != null ?
-						{ text: browseResult.text }
-					:
-						{}),
-					...(mediaEntity != null ?
-						{ $media: mediaEntity }
-					:
-						{}),
+					...(browseResult.text != null && { text: browseResult.text }),
+					...(mediaEntity != null && { $media: mediaEntity }),
 				}
 			},
 		}),

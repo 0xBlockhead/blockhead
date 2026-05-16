@@ -50,32 +50,25 @@
 		EntityType._Global,
 		entityFieldReference.entityId,
 		{
+			$: [
+				Source.Openchain_Rest,
+			],
 			$$evmTopics: {
-				$: [
-					Source.Openchain_Rest,
-				],
+				$limit: 4096,
 			},
 		},
 	)
 
 	const topics = derive(
 		global,
-		(loaded): Entity<typeof schema, EntityType.EvmTopic>[] => {
-			const rows = (
+		(loaded) => {
+			const rows: Entity<typeof schema, EntityType.EvmTopic>[] = (
 				loaded.$$evmTopics
 				?? []
 			)
 			return (
-				rows.toSorted((a, b) => (
-					a[EntityMetaKey.Id].hex
-						> b[EntityMetaKey.Id].hex ?
-						1
-					:
-						a[EntityMetaKey.Id].hex
-							< b[EntityMetaKey.Id].hex ?
-							-1
-						:
-							0
+				rows.toSorted((first, second) => (
+					first[EntityMetaKey.Id].hex.localeCompare(second[EntityMetaKey.Id].hex)
 				))
 			)
 		},
@@ -99,8 +92,8 @@
 				href={entitiesListRest.href}
 				{title}
 				open={true}
-				getKey={(row) => row[EntityMetaKey.Id].hex}
-				getSortValue={(row) => row[EntityMetaKey.Id].hex}
+				getKey={(topic) => topic[EntityMetaKey.Id].hex}
+				getSortValue={(topic) => topic[EntityMetaKey.Id].hex}
 				placeholderText="Loading topics…"
 				resource={topics}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}

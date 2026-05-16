@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { stringify } from 'devalue'
-	import { ethereumUpgradeByChainIdAndUpgradeId } from '$/constants/EthereumUpgrades.ts'
+	import { networkUpgradeByChainIdAndUpgradeId } from '$/constants/NetworkUpgrades.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
@@ -56,10 +56,14 @@
 		parentEntityType,
 		parentEntityId,
 		{
+			$: [
+				Source.Constants_Internal,
+			],
 			[fieldName]: {
 				$: [
 					Source.Constants_Internal,
 				],
+				$limit: 512,
 			},
 		},
 	)
@@ -73,30 +77,30 @@
 
 	const upgrades = derive(
 		parentEntity,
-		(merged) => (
-			(
-				(
-					merged[fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.NetworkUpgrade>[]
+		(merged) => {
+			const rows: Entity<typeof schema, EntityType.NetworkUpgrade>[] = (
+				merged[fieldName] ?? []
 			)
-				.toSorted((a, b) => (
-					upgradeSortValue(a) - upgradeSortValue(b)
-				))
-				.map((value) => ({
-					value,
-				}))
-		),
+			return (
+				rows
+					.toSorted((a, b) => (
+						upgradeSortValue(a) - upgradeSortValue(b)
+					))
+					.map((value) => ({
+						value,
+					}))
+			)
+		},
 	)
 
-	const upgradeListLink = (row: Entity<typeof schema, EntityType.NetworkUpgrade>) => {
-		const { chainId } = row[EntityMetaKey.Id].$network
-		const { upgradeId } = row[EntityMetaKey.Id]
-		const catalog = ethereumUpgradeByChainIdAndUpgradeId[`${chainId}:${upgradeId}`]
+	const upgradeListLink = (networkUpgradeEntity: Entity<typeof schema, EntityType.NetworkUpgrade>) => {
+		const { chainId } = networkUpgradeEntity[EntityMetaKey.Id].$network
+		const { upgradeId } = networkUpgradeEntity[EntityMetaKey.Id]
+		const constantUpgrade = networkUpgradeByChainIdAndUpgradeId[`${chainId}:${upgradeId}`]
 		return {
 			chainId,
 			upgradeId,
-			slug: catalog?.slug ?? row.slug,
+			slug: constantUpgrade?.slug ?? networkUpgradeEntity.slug,
 		}
 	}
 </script>

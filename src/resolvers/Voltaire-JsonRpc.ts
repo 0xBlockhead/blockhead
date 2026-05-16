@@ -174,6 +174,33 @@ const nonNegativeBigIntFromHex = (value: string | undefined) => (
 		})())
 )
 
+const txpoolCountFromHex = (label: string, hex: string | undefined): number => {
+	if (typeof hex !== 'string') throw new Error(`Voltaire_JsonRpc: txpool ${label} missing`)
+	try {
+		const n = Number(BigInt(hex))
+		if (!Number.isFinite(n) || n < 0) throw new Error('txpool count out of range')
+		return n
+	} catch {
+		throw new Error(`Voltaire_JsonRpc: txpool ${label} not a hex quantity`)
+	}
+}
+
+const gasUsedRatioLastFromFeeHistory = (feeHistory: { gasUsedRatio: readonly unknown[] }) => {
+	const raw = feeHistory.gasUsedRatio.at(-1)
+	if (raw == null) return undefined
+	if (typeof raw === 'number') return raw
+	if (typeof raw === 'string') {
+		const n = Number.parseFloat(raw)
+		return Number.isFinite(n) ? n : undefined
+	}
+	return undefined
+}
+
+const priorityRewardAt50thFromFeeHistory = (feeHistory: { reward?: string[][] }) => {
+	const cell = feeHistory.reward?.at(-1)?.at(0)
+	return nonNegativeBigIntFromHex(cell)
+}
+
 const evmBlobEntitiesFromVoltaireBlockWire = (
 	chainId: number,
 	blockNumber: bigint,
@@ -242,7 +269,7 @@ const networkScopedEvmBlockFieldsFromVoltaireBlockRpc = (
 		[EntityMetaKey.Id]: {
 			$network: { chainId },
 			blockNumber,
-			...(blockHash == null ? {} : { hash: blockHash }),
+			...(blockHash != null && { hash: blockHash }),
 		},
 		number: blockNumber,
 		timestamp: (
@@ -311,9 +338,7 @@ export default {
 					[EntityMetaKey.Id]: {
 						$network: { chainId: entityId.$network.chainId },
 						blockNumber,
-						...(blockHash != null ?
-							{ hash: blockHash }
-						:	{}),
+						...(blockHash != null && { hash: blockHash }),
 					},
 					number: blockNumber,
 					timestamp: ((timestampSeconds) => (
@@ -363,8 +388,7 @@ export default {
 				return {
 					...evmBlockEntityBase,
 					$$transactions,
-					...(parentBlockNumber != null ?
-						{
+					...(parentBlockNumber != null && {
 							$parent: {
 								[EntityMetaKey.Id]: {
 									$network: entityId.$network,
@@ -372,17 +396,14 @@ export default {
 								},
 								number: parentBlockNumber,
 							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
-						}
-					:	{}),
-					...(miner != null ?
-						{
+						}),
+					...(miner != null && {
 							$miner: {
 								[EntityMetaKey.Id]: {
 									address: miner,
 								},
 							} satisfies Entity<typeof schema, EntityType.Actor>,
-						}
-					:	{}),
+						}),
 				}
 			},
 		}),
@@ -434,6 +455,83 @@ export default {
 		}),
 
 		defineEntityResolver({
+			entityType: EntityType.Network_GasFee_Timestamp,
+			resolve: async (entityId) => {
+				const {
+					ethFeeHistory,
+					ethGasPrice,
+					ethMaxPriorityFeePerGas,
+				} = await import('$/sources/Evm/JsonRpc/queries.ts')
+				const chainId = entityId.$network.chainId
+				const jsonRpcTransports = await dedupedJsonRpcTransportCandidatesForExecutionChain(chainId)
+				if (jsonRpcTransports.length === 0) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL for Network_GasFee_Timestamp')
+				const errors: string[] = []
+				for (const jsonRpcTransport of jsonRpcTransports) {
+					if (jsonRpcTransport.transportType !== TransportType.Http) continue
+					try {
+						const feeHistory = await singleFlight(ethFeeHistory)({
+							rpcUrl: jsonRpcTransport.rpcUrl,
+							blockCount: 5,
+							newestBlock: 'latest',
+							rewardPercentiles: [50],
+						})
+						const baseFees = feeHistory.baseFeePerGas
+						const lastBaseHex = baseFees?.at(-1)
+						const legacyGas = await singleFlight(ethGasPrice)({
+							rpcUrl: jsonRpcTransport.rpcUrl,
+						})
+						let maxPriority: string | undefined
+						try {
+							maxPriority = await singleFlight(ethMaxPriorityFeePerGas)({
+								rpcUrl: jsonRpcTransport.rpcUrl,
+							})
+						} catch {
+							maxPriority = undefined
+						}
+						return {
+							[EntityMetaKey.Id]: entityId,
+							baseFeePerGas: nonNegativeBigIntFromHex(lastBaseHex),
+							legacyGasPrice: nonNegativeBigIntFromHex(legacyGas),
+							maxPriorityFeePerGas: nonNegativeBigIntFromHex(maxPriority),
+							gasUsedRatioLastBlock: gasUsedRatioLastFromFeeHistory(feeHistory),
+							priorityFeeRewardAt50thPercentile: priorityRewardAt50thFromFeeHistory(feeHistory),
+						}
+					} catch (error) {
+						errors.push(`${jsonRpcTransport.rpcUrl} (${jsonRpcTransport.transportType}): ${errorMessage(error)}`)
+					}
+				}
+				throw allJsonRpcEndpointsFailedError(chainId, 'Network_GasFee_Timestamp', errors)
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.Network_Txpool_Timestamp,
+			resolve: async (entityId) => {
+				const { txpoolStatus } = await import('$/sources/Evm/JsonRpc/queries.ts')
+				const chainId = entityId.$network.chainId
+				const jsonRpcTransports = await dedupedJsonRpcTransportCandidatesForExecutionChain(chainId)
+				if (jsonRpcTransports.length === 0) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL for Network_Txpool_Timestamp')
+				const errors: string[] = []
+				for (const jsonRpcTransport of jsonRpcTransports) {
+					if (jsonRpcTransport.transportType !== TransportType.Http) continue
+					try {
+						const status = await singleFlight(txpoolStatus)({
+							rpcUrl: jsonRpcTransport.rpcUrl,
+						})
+						return {
+							[EntityMetaKey.Id]: entityId,
+							pendingCount: txpoolCountFromHex('pending', status.pending),
+							queuedCount: txpoolCountFromHex('queued', status.queued),
+						}
+					} catch (error) {
+						errors.push(`${jsonRpcTransport.rpcUrl} (${jsonRpcTransport.transportType}): ${errorMessage(error)}`)
+					}
+				}
+				throw allJsonRpcEndpointsFailedError(chainId, 'Network_Txpool_Timestamp', errors)
+			},
+		}),
+
+		defineEntityResolver({
 			entityType: EntityType.EnsName,
 			resolve: async (entityId) => {
 				const {
@@ -451,43 +549,31 @@ export default {
 					textKeys: [...ensTextRecordKeys],
 				})
 				return {
-					...(Object.keys(resolution.textRecords).length > 0 ?
-						{ textRecords: resolution.textRecords }
-					:	{}),
-					...(resolution.contentHash != null ?
-						{ contentHash: resolution.contentHash }
-					:	{}),
-					...(Object.keys(resolution.coinAddresses).length > 0 ?
-						{ coinAddresses: resolution.coinAddresses }
-					:	{}),
-					...(resolution.address != null ?
-						{
+					...(Object.keys(resolution.textRecords).length > 0 && { textRecords: resolution.textRecords }),
+					...(resolution.contentHash != null && { contentHash: resolution.contentHash }),
+					...(Object.keys(resolution.coinAddresses).length > 0 && { coinAddresses: resolution.coinAddresses }),
+					...(resolution.address != null && {
 							$resolvedActor: {
 								[EntityMetaKey.Id]: {
 									address: resolution.address,
 								},
 							} satisfies Entity<typeof schema, EntityType.Actor>,
-						}
-					:	{}),
-					...(resolution.owner != null ?
-						{
+						}),
+					...(resolution.owner != null && {
 							$ownerActor: {
 								[EntityMetaKey.Id]: {
 									address: resolution.owner,
 								},
 							} satisfies Entity<typeof schema, EntityType.Actor>,
-						}
-					:	{}),
-					...(resolution.resolver != null ?
-						{
+						}),
+					...(resolution.resolver != null && {
 							$resolverContract: {
 								[EntityMetaKey.Id]: {
 									$network: { chainId: ensEthereumChainId },
 									address: resolution.resolver,
 								},
 							} satisfies Entity<typeof schema, EntityType.EvmContract>,
-						}
-					:	{}),
+						}),
 				}
 			},
 		}),
@@ -544,8 +630,7 @@ export default {
 						$network: { chainId },
 						txHash,
 					},
-					...(containingBlockNumber != null ?
-						{
+					...(containingBlockNumber != null && {
 							$block: {
 								[EntityMetaKey.Id]: {
 									$network: { chainId },
@@ -553,26 +638,21 @@ export default {
 								},
 								number: containingBlockNumber,
 							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
-						}
-					:	{}),
-					...(from != null ?
-						{
+						}),
+					...(from != null && {
 							$from: {
 								[EntityMetaKey.Id]: {
 									address: from,
 								},
 							} satisfies Entity<typeof schema, EntityType.Actor>,
-						}
-					:	{}),
-					...(to != null ?
-						{
+						}),
+					...(to != null && {
 							$to: {
 								[EntityMetaKey.Id]: {
 									address: to,
 								},
 							} satisfies Entity<typeof schema, EntityType.Actor>,
-						}
-					:	{}),
+						}),
 					transactionIndex: (
 						typeof jsonRpcTransaction.transactionIndex === 'string' ? ((parsed) => (
 							Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
@@ -600,7 +680,7 @@ export default {
 								undefined
 						))(Number(jsonRpcTransaction.nonce)) : undefined
 					),
-					...(jsonRpcTransaction.input != null ? { input: jsonRpcTransaction.input } : {}),
+					...(jsonRpcTransaction.input != null && { input: jsonRpcTransaction.input }),
 					gas: (
 						typeof jsonRpcTransaction.gas === 'string' ? ((value) => (
 							value == null || value < 0n ? undefined : value
@@ -641,30 +721,34 @@ export default {
 				const receipt = receiptWire == null ? null : voltaireReceiptWireAsRpcReceipt(receiptWire)
 				return {
 					...evmTransactionEntityBase,
-					...(typeof receipt?.status === 'string' ? ((parsed) => (
-						Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
-							{ status: parsed }
-						:
-							{}
-					))(Number(receipt.status)) : {}),
-					...(typeof receipt?.gasUsed === 'string' ? ((value) => (
-						value == null || value < 0n ? {} : { gasUsed: value }
+					...(typeof receipt?.status === 'string' && ((parsed) => (
+						Number.isFinite(parsed)
+						&& Number.isInteger(parsed)
+						&& parsed >= 0
+						&& { status: parsed }
+					))(Number(receipt.status))),
+					...(typeof receipt?.gasUsed === 'string' && ((value) => (
+						value != null
+						&& !(value < 0n)
+						&& { gasUsed: value }
 					))((() => {
 						try {
 							return BigInt(receipt.gasUsed)
 						} catch {
 							return undefined
 						}
-					})()) : {}),
-					...(typeof receipt?.effectiveGasPrice === 'string' ? ((value) => (
-						value == null || value < 0n ? {} : { effectiveGasPrice: value }
+					})())),
+					...(typeof receipt?.effectiveGasPrice === 'string' && ((value) => (
+						value != null
+						&& !(value < 0n)
+						&& { effectiveGasPrice: value }
 					))((() => {
 						try {
 							return BigInt(receipt.effectiveGasPrice)
 						} catch {
 							return undefined
 						}
-					})()) : {}),
+					})())),
 					logs: (
 						receipt?.logs?.map((log) => {
 							const logAddress = (
@@ -680,32 +764,26 @@ export default {
 									undefined
 							)
 							return {
-								...(logAddress != null ? { address: logAddress } : {}),
-								...(log.topics != null ? { topics: log.topics } : {}),
-								...(log.data != null ? { data: log.data } : {}),
-								...(log.blockNumber != null ? { blockNumber: log.blockNumber } : {}),
-								...(logTxHash != null ? { transactionHash: logTxHash } : {}),
-								...(log.logIndex != null ? { logIndex: log.logIndex } : {}),
+								...(logAddress != null && { address: logAddress }),
+								...(log.topics != null && { topics: log.topics }),
+								...(log.data != null && { data: log.data }),
+								...(log.blockNumber != null && { blockNumber: log.blockNumber }),
+								...(logTxHash != null && { transactionHash: logTxHash }),
+								...(log.logIndex != null && { logIndex: log.logIndex }),
 							}
 						})
 						?? []
 					),
-					...(typeof receipt?.contractAddress === 'string' ?
-						((address) => (
-							address == null ?
-								{}
-							:
-								{
-									$contract: {
-										[EntityMetaKey.Id]: {
-											$network: entityId.$network,
-											address,
-										},
-									} satisfies Entity<typeof schema, EntityType.EvmContract>,
-								}
-						))(hexLowerOfByteSize(receipt.contractAddress, 20))
-					:
-						{}),
+					...(typeof receipt?.contractAddress === 'string' && ((address) => (
+						address != null && {
+							$contract: {
+								[EntityMetaKey.Id]: {
+									$network: entityId.$network,
+									address,
+								},
+							} satisfies Entity<typeof schema, EntityType.EvmContract>,
+						}
+					))(hexLowerOfByteSize(receipt.contractAddress, 20))),
 				}
 			},
 		}),
@@ -1035,6 +1113,36 @@ export default {
 				}
 				throw allJsonRpcEndpointsFailedError(entityId.chainId, 'gasUsedRatio', errors)
 			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$gasFeeTimestamps',
+			resolve: async (entityId) => (
+				[
+					{
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							timestampNs: BigInt(Date.now()) * 1_000_000n,
+						},
+					},
+				]
+			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$txpoolTimestamps',
+			resolve: async (entityId) => (
+				[
+					{
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							timestampNs: BigInt(Date.now()) * 1_000_000n,
+						},
+					},
+				]
+			),
 		}),
 
 		defineEntityFieldResolver({

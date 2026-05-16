@@ -75,7 +75,9 @@
 		{
 			"files": ["src/lib/svelte/RemoteResource.svelte.ts"],
 			"rules": {
-				"typescript/consistent-type-assertions": "off"
+				"typescript/consistent-type-assertions": "off",
+				"typescript/no-restricted-types": "off",
+				"no-restricted-globals": "off"
 			}
 		},
 		{

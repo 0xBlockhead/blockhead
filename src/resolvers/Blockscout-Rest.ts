@@ -121,7 +121,7 @@ export default {
 						[EntityMetaKey.Id]: {
 							$network: { chainId },
 							blockNumber,
-							...(blockHash != null ? { hash: blockHash } : {}),
+							...(blockHash != null && { hash: blockHash }),
 						},
 						number: blockNumber,
 						timestamp: ((timestampSeconds) => (
@@ -134,8 +134,7 @@ export default {
 					}
 					return {
 						...base,
-						...(parentBlockNumber != null ?
-							{
+						...(parentBlockNumber != null && {
 								$parent: {
 									[EntityMetaKey.Id]: {
 										$network: { chainId },
@@ -143,17 +142,14 @@ export default {
 									},
 									number: parentBlockNumber,
 								} satisfies Entity<typeof schema, EntityType.EvmBlock>,
-							}
-						:	{}),
-						...(miner != null ?
-							{
+							}),
+						...(miner != null && {
 								$miner: {
 									[EntityMetaKey.Id]: {
 										address: miner,
 									} satisfies Entity<typeof schema, EntityType.Actor>,
 								},
-							}
-						:	{}),
+							}),
 					}
 				}
 				return evmBlockEntityFromRpcHeaderWire({
@@ -225,8 +221,7 @@ export default {
 						$network: { chainId: networkChainId },
 						txHash,
 					},
-					...(containingBlockNumber != null ?
-						{
+					...(containingBlockNumber != null && {
 							$block: {
 								[EntityMetaKey.Id]: {
 									$network: { chainId: networkChainId },
@@ -234,26 +229,21 @@ export default {
 								},
 								number: containingBlockNumber,
 							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
-						}
-					:	{}),
-					...(from != null ?
-						{
+						}),
+					...(from != null && {
 							$from: {
 								[EntityMetaKey.Id]: {
 									address: from,
 								},
 							} satisfies Entity<typeof schema, EntityType.Actor>,
-						}
-					:	{}),
-					...(to != null ?
-						{
+						}),
+					...(to != null && {
 							$to: {
 								[EntityMetaKey.Id]: {
 									address: to,
 								},
 							} satisfies Entity<typeof schema, EntityType.Actor>,
-						}
-					:	{}),
+						}),
 					transactionIndex: (
 						typeof jsonRpcTransaction.transactionIndex === 'string' ? ((parsed) => (
 							Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
@@ -281,7 +271,7 @@ export default {
 								undefined
 						))(Number(jsonRpcTransaction.nonce)) : undefined
 					),
-					...(jsonRpcTransaction.input != null ? { input: jsonRpcTransaction.input } : {}),
+					...(jsonRpcTransaction.input != null && { input: jsonRpcTransaction.input }),
 					gas: (
 						typeof jsonRpcTransaction.gas === 'string' ? ((value) => (
 							value == null || value < 0n ? undefined : value
@@ -319,46 +309,45 @@ export default {
 				})
 				return {
 					...base,
-					...(typeof receipt?.status === 'string' ? ((parsed) => (
-						Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
-							{ status: parsed }
-						:
-							{}
-					))(Number(receipt.status)) : {}),
-					...(typeof receipt?.gasUsed === 'string' ? ((value) => (
-						value == null || value < 0n ? {} : { gasUsed: value }
+					...(typeof receipt?.status === 'string' && ((parsed) => (
+						Number.isFinite(parsed)
+						&& Number.isInteger(parsed)
+						&& parsed >= 0
+						&& { status: parsed }
+					))(Number(receipt.status))),
+					...(typeof receipt?.gasUsed === 'string' && ((value) => (
+						value != null
+						&& !(value < 0n)
+						&& { gasUsed: value }
 					))((() => {
 						try {
 							return BigInt(receipt.gasUsed)
 						} catch {
 							return undefined
 						}
-					})()) : {}),
-					...(typeof receipt?.effectiveGasPrice === 'string' ? ((value) => (
-						value == null || value < 0n ? {} : { effectiveGasPrice: value }
+					})())),
+					...(typeof receipt?.effectiveGasPrice === 'string' && ((value) => (
+						value != null
+						&& !(value < 0n)
+						&& { effectiveGasPrice: value }
 					))((() => {
 						try {
 							return BigInt(receipt.effectiveGasPrice)
 						} catch {
 							return undefined
 						}
-					})()) : {}),
+					})())),
 					...(receipt?.logs != null ? { logs: receipt.logs } : { logs: [] }),
-					...(typeof receipt?.contractAddress === 'string' ?
-						(() => {
-							const address = hexLowerOfByteSize(receipt.contractAddress, 20)
-							return address == null ?
-									{}
-								:	{
-										$contract: {
-											[EntityMetaKey.Id]: {
-												$network: entityId.$network,
-												address,
-											},
-										} satisfies Entity<typeof schema, EntityType.EvmContract>,
-									}
-						})()
-					:	{}),
+					...(typeof receipt?.contractAddress === 'string' && ((address) => (
+						address != null && {
+							$contract: {
+								[EntityMetaKey.Id]: {
+									$network: entityId.$network,
+									address,
+								},
+							} satisfies Entity<typeof schema, EntityType.EvmContract>,
+						}
+					))(hexLowerOfByteSize(receipt.contractAddress, 20))),
 				}
 			},
 		}),
@@ -419,7 +408,7 @@ export default {
 								[EntityMetaKey.Id]: {
 									$network: { chainId: entityId.chainId },
 									blockNumber,
-									...(blockHash != null ? { hash: blockHash } : {}),
+									...(blockHash != null && { hash: blockHash }),
 								},
 								number: blockNumber,
 								timestamp: ((timestampSeconds) => (

@@ -52,20 +52,20 @@
 
 	const envelopes = derive(
 		parentEntity,
-		(merged) => (
-			(
-				(
-					merged[entityFieldReference.fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.XmtpConversation>[]
+		(merged) => {
+			const rows: Entity<typeof schema, EntityType.XmtpConversation>[] = (
+				merged[entityFieldReference.fieldName] ?? []
 			)
-				.toSorted((a, b) => (
-					a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
-				))
-				.map((value) => ({
-					value,
-				}))
-		),
+			return (
+				rows
+					.toSorted((a, b) => (
+						a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
+					))
+					.map((value) => ({
+						value,
+					}))
+			)
+		},
 	)
 
 

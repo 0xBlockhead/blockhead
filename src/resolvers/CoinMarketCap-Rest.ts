@@ -44,15 +44,12 @@ export default {
 				const logoMedia = mediaFromUrl(logoUrl, MediaType.Image)
 
 				return {
-					...(info.name.trim() !== '' ? { name: info.name.trim() } : {}),
-					...(info.symbol.trim() !== '' ?
-						{ symbol: info.symbol.trim().toUpperCase() }
-					: coinById[entityId.coinId] != null ?
-						{ symbol: coinById[entityId.coinId].symbol }
-					:	{}),
-					...(logoMedia != null ?
-						{ $logo: logoMedia }
-					:	{}),
+					...(info.name.trim() !== '' && { name: info.name.trim() }),
+					...(info.symbol.trim() !== '' && { symbol: info.symbol.trim().toUpperCase() }),
+					...(info.symbol.trim() === '' && coinById[entityId.coinId] != null && {
+						symbol: coinById[entityId.coinId].symbol,
+					}),
+					...(logoMedia != null && { $logo: logoMedia }),
 				}
 			},
 		}),
@@ -117,7 +114,7 @@ export default {
 					updatedAt,
 					transport: 'coinmarketcap-v2-quotes-and-info-usd-1e8',
 					providerAssetId: String(coinMarketCapId),
-					...(caip19 != null ? { caip19 } : {}),
+					...(caip19 != null && { caip19 }),
 				}
 			},
 		}),

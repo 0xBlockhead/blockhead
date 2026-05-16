@@ -10,7 +10,7 @@
 	import { Source } from '$/sources/$Source.ts'
 
 	import Page from '$/components/Page.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
@@ -39,7 +39,10 @@
 
 
 <Page>
-	<ResourceBoundary resource={ensName}>
+	<ResourceBoundary
+		layout={Layout.Block}
+		resource={ensName}
+	>
 		{#snippet children(live)}
 			{@const recordValue = live.textRecords?.[params.recordId]}
 			<section data-card>

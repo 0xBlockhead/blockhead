@@ -25,8 +25,7 @@ const entityFieldsFromDexPair = ({
 	latestDexPair: DexscreenerPair
 }) => (
 	{
-		...(isEvmContractAddress(latestDexPair.baseToken?.address) ?
-			{
+		...(isEvmContractAddress(latestDexPair.baseToken?.address) && {
 				$token0: {
 					[EntityMetaKey.Id]: {
 						$network: {
@@ -38,11 +37,8 @@ const entityFieldsFromDexPair = ({
 						),
 					},
 				},
-			}
-		:
-			{}),
-		...(isEvmContractAddress(latestDexPair.quoteToken?.address) ?
-			{
+			}),
+		...(isEvmContractAddress(latestDexPair.quoteToken?.address) && {
 				$token1: {
 					[EntityMetaKey.Id]: {
 						$network: {
@@ -54,13 +50,11 @@ const entityFieldsFromDexPair = ({
 						),
 					},
 				},
-			}
-		:
-			{}),
-		...(latestDexPair.baseToken?.symbol != null ? { token0Symbol: latestDexPair.baseToken.symbol } : {}),
-		...(latestDexPair.quoteToken?.symbol != null ? { token1Symbol: latestDexPair.quoteToken.symbol } : {}),
-		...(latestDexPair.volume?.h24 != null ? { volumeUSD: latestDexPair.volume.h24 } : {}),
-		...(latestDexPair.liquidity?.usd != null ? { totalValueLockedUSD: latestDexPair.liquidity.usd } : {}),
+			}),
+		...(latestDexPair.baseToken?.symbol != null && { token0Symbol: latestDexPair.baseToken.symbol }),
+		...(latestDexPair.quoteToken?.symbol != null && { token1Symbol: latestDexPair.quoteToken.symbol }),
+		...(latestDexPair.volume?.h24 != null && { volumeUSD: latestDexPair.volume.h24 }),
+		...(latestDexPair.liquidity?.usd != null && { totalValueLockedUSD: latestDexPair.liquidity.usd }),
 	}
 )
 

@@ -40,18 +40,13 @@ export default {
 				const logoMedia = mediaFromUrl(coin.logo, MediaType.Image)
 
 				return {
-					...(coin.name.trim() !== '' ? { name: coin.name.trim() } : {}),
-					...(coin.symbol.trim() !== '' ?
-						{ symbol: coin.symbol.trim().toUpperCase() }
-					: coinById[entityId.coinId] != null ?
-						{ symbol: coinById[entityId.coinId].symbol }
-					:	{}),
-					...(decimals != null ?
-						{ decimals }
-					:	{}),
-					...(logoMedia != null ?
-						{ $logo: logoMedia }
-					:	{}),
+					...(coin.name.trim() !== '' && { name: coin.name.trim() }),
+					...(coin.symbol.trim() !== '' && { symbol: coin.symbol.trim().toUpperCase() }),
+					...(coin.symbol.trim() === '' && coinById[entityId.coinId] != null && {
+						symbol: coinById[entityId.coinId].symbol,
+					}),
+					...(decimals != null && { decimals }),
+					...(logoMedia != null && { $logo: logoMedia }),
 				}
 			},
 		}),

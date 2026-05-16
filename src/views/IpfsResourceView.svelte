@@ -68,8 +68,7 @@
 	import FileDetails from '$/components/FileDetails.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import IpfsCidAlternateEncodings from '$/views/IpfsCidAlternateEncodings.svelte'
@@ -83,24 +82,28 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.cid}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
-		<HeadingComponent>
-			{#if href}
-				<a
-					{href}
-				>
-					<TruncatedValue
-						value={ipfsResourceCanonicalUri(entityId)}
-						format={TruncatedValueFormat.Visual}
-					/>
-				</a>
-			{:else}
+		{#if href}
+			<a
+				{href}
+			>
 				<TruncatedValue
 					value={ipfsResourceCanonicalUri(entityId)}
 					format={TruncatedValueFormat.Visual}
 				/>
-			{/if}
-		</HeadingComponent>
+			</a>
+		{:else}
+			<TruncatedValue
+				value={ipfsResourceCanonicalUri(entityId)}
+				format={TruncatedValueFormat.Visual}
+			/>
+		{/if}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -265,7 +268,10 @@
 				/>
 			{/if}
 
-			<ResourceBoundary resource={resourceEntity}>
+			<ResourceBoundary
+				layout={Layout.Block}
+				resource={resourceEntity}
+			>
 				{#snippet children(loaded)}
 					<FileDetails
 						contentSize={loaded.contentLength}

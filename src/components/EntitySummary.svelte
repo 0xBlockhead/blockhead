@@ -17,6 +17,7 @@
 		title: _title,
 		href,
 		idDragPlainText,
+		showEntityTypeIdPrefix = false,
 		Icon,
 		Heading,
 		Id,
@@ -27,8 +28,10 @@
 		entityId: EntityId<typeof schema, SchemaEntityType<typeof schema>>
 		title?: string
 		href?: string
-		/** `text/plain` for `Id` drag; default `stringify(entityId)`. */
+		/** `text/plain` for summary drag; default `stringify(entityId)`. */
 		idDragPlainText?: string
+		/** Prefix secondary (or primary fallback) id with the entity type label (e.g. in lists). */
+		showEntityTypeIdPrefix?: boolean
 		Icon?: Snippet
 		Heading?: Snippet
 		Id?: Snippet
@@ -41,6 +44,10 @@
 
 	const title = $derived(
 		_title ?? entityDefinitionByType[entityType].label,
+	)
+
+	const entityTypeLabel = $derived(
+		entityDefinitionByType[entityType].label,
 	)
 
 
@@ -64,50 +71,64 @@
 	data-row="wrap gap-2"
 	style:view-transition-name={`EntitySummary-${stringify(entityId)}`}
 >
-	{#if Icon}
-		{@render Icon()}
-	{/if}
-
 	<div
 		data-row-item="flexible"
 		data-row="wrap"
 	>
 		<div data-row="start wrap">
-			{#if Heading}
-				{@render Heading()}
-			{:else if Id}
-				<HeadingComponent>
-					{#if href}
-						<a
-							class="entity-summary-id-draggable"
-							{href}
-							draggable={true}
-							ondragstart={onIdDragStart}
-						>
-							{@render Id()}
-						</a>
-					{:else}
-						<span
-							class="entity-summary-id-draggable"
-							role="group"
-							draggable={true}
-							ondragstart={onIdDragStart}
-						>
-							{@render Id()}
+			<HeadingComponent>
+				{#if href}
+					<a
+						class="entity-summary-id-draggable"
+						{href}
+						draggable={true}
+						ondragstart={onIdDragStart}
+					>
+						<span data-row="inline wrap align-center gap-2">
+							{#if Icon}
+								{@render Icon()}
+							{/if}
+							<span>
+								{#if Heading}
+									{@render Heading()}
+								{:else if Id}
+									{#if showEntityTypeIdPrefix}
+										<span data-text="annotation">{entityTypeLabel}</span>
+									{/if}
+									{@render Id()}
+								{:else}
+									{title}
+								{/if}
+							</span>
 						</span>
-					{/if}
-				</HeadingComponent>
-			{:else}
-				<HeadingComponent>
-					{#if href}
-						<a href={href}>
-							{title}
-						</a>
-					{:else}
-						{title}
-					{/if}
-				</HeadingComponent>
-			{/if}
+					</a>
+				{:else}
+					<span
+						class="entity-summary-id-draggable"
+						role="group"
+						draggable={true}
+						ondragstart={onIdDragStart}
+					>
+						<span data-row="inline wrap align-center gap-2">
+							{#if Icon}
+								{@render Icon()}
+							{/if}
+							<span>
+								{#if Heading}
+									{@render Heading()}
+								{:else if Id}
+									{#if showEntityTypeIdPrefix}
+										<span data-text="annotation">{entityTypeLabel}</span>
+									{/if}
+									{@render Id()}
+								{:else}
+									{title}
+								{/if}
+							</span>
+						</span>
+					</span>
+				{/if}
+			</HeadingComponent>
 
 			{#if HeadingAfter}
 				{@render HeadingAfter()}

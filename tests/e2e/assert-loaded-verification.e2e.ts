@@ -46,9 +46,9 @@ test.describe('assertLoaded verification', () => {
 			[EntityMetaKey.Fields]: {},
 		}
 
-		expect(() => assertEntityResolverResult(definition!, good)).not.toThrow()
+		expect(() => assertEntityResolverResult(definition, good)).not.toThrow()
 
-		expect(() => assertEntityResolverResult(definition!, {
+		expect(() => assertEntityResolverResult(definition, {
 			...good,
 			[EntityMetaKey.Id]: null,
 		})).toThrow()
@@ -63,7 +63,7 @@ test.describe('assertLoaded verification', () => {
 		const text = await res.text()
 		expect(res.status(), text).toBe(200)
 
-		const body = JSON.parse(text) as AssertLoadedResolverProbeResult
+		const body: AssertLoadedResolverProbeResult = JSON.parse(text)
 
 		const { cases, entityResolverCount, fieldResolverCount } = body
 

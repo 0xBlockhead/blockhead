@@ -39,6 +39,8 @@ import Lifi from '$/sources/Lifi/index.ts'
 import Lens from '$/sources/Lens/index.ts'
 import Local from '$/sources/Local/index.ts'
 import Mastodon from '$/sources/Mastodon/index.ts'
+import MetadataVision from '$/sources/MetadataVision/index.ts'
+import MevRelay from '$/sources/MevRelay/index.ts'
 import Neynar from '$/sources/Neynar/index.ts'
 import Openchain from '$/sources/Openchain/index.ts'
 import Reddit from '$/sources/Reddit/index.ts'
@@ -82,6 +84,8 @@ const sourceProviderDefinitions = [
 	Lifi,
 	Local,
 	Mastodon,
+	MetadataVision,
+	MevRelay,
 	Neynar,
 	Openchain,
 	Reddit,

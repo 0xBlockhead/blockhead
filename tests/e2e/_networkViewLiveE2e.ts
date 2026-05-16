@@ -123,8 +123,8 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 		expect(head1, 'head after tick').not.toBeNull()
 		expect((head1 ?? 0n) > (head0 ?? 0n)).toBe(true)
 
-		await expect(page.locator('[data-e2e="network-carousel-blocks"]')).toBeVisible()
-		await expect(page.locator('[data-e2e="network-carousel-transactions"]')).toBeVisible()
+		await expect(page.locator('[data-scroll-marker-label="Blocks"]')).toBeVisible()
+		await expect(page.locator('[data-scroll-marker-label="Transactions"]')).toBeVisible()
 
 		await expect.poll(
 			async () => {
@@ -148,7 +148,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 		expect(maxCarousel >= (head1 ?? 0n)).toBe(true)
 
 		await expect(
-			page.locator('[data-e2e="network-carousel-transactions"] a[href*="/tx/"]').first(),
+			page.locator('[data-scroll-marker-label="Transactions"] a[href*="/tx/"]').first(),
 		).toBeVisible({ timeout: 90_000 })
 
 		const txBefore = await readTxHrefsJoin(page)

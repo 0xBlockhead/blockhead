@@ -11,7 +11,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 
@@ -70,15 +69,21 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.id}
+		</span>
+	{/snippet}
+
+
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={room}
 			placeholderText="Loading room…"
 		>
 			{#snippet children(r)}
-				<HeadingComponent>
-					{r.name ?? entityId.id}
-				</HeadingComponent>
+				{r.name ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

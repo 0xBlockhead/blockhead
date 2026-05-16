@@ -57,12 +57,7 @@
 	const tokenBalances = derive(
 		parentEntity,
 		(merged) => {
-			const rows = (
-				(
-					merged[entityFieldReference.fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.ActorCoin>[]
-			)
+			const rows: Entity<typeof schema, EntityType.ActorCoin>[] = merged[entityFieldReference.fieldName] ?? []
 			return (
 				rows.map((value) => ({
 					value,

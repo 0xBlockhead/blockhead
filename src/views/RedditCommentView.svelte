@@ -63,7 +63,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
@@ -76,20 +75,24 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.id}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={comment}
 			placeholderText="Loading comment…"
 		>
 			{#snippet children(c)}
-				<HeadingComponent>
-					{(
-						c.body !== undefined && c.body.length > 0 ?
-							c.body
-						:
-							entityId.fullname
-					)}
-				</HeadingComponent>
+				{(
+					c.body ?
+						c.body
+					:
+						entityId.fullname
+				)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -100,11 +103,60 @@
 			placeholderText="Loading comment…"
 		>
 			{#snippet children(c)}
-				{#if c.body.trim() === ''}
+				{#if !c.body}
 					<p data-text="muted">No comment text.</p>
 				{:else}
 					<p>{c.body}</p>
 				{/if}
+				<dl data-column-item="center">
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
+					{#if open}
+						<div>
+							<dt>Comment id</dt>
+							<dd>
+								<span data-text="mono">
+									<TruncatedValue
+										value={entityId.fullname}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</span>
+							</dd>
+						</div>
+					{/if}
+					{#if open}
+						<div>
+							<dt>Author</dt>
+							<dd>u/{c.author}</dd>
+						</div>
+					{/if}
+					{#if open}
+						{#if c.$link !== undefined}
+							<div>
+								<dt>Post</dt>
+								<dd>
+									<a
+										href={resolve(
+											'/(social)/reddit/link/[fullname]',
+											{ fullname: encodeURIComponent(c.$link[EntityMetaKey.Id].fullname) },
+										)}
+									>Post {c.$link[EntityMetaKey.Id].fullname}</a>
+								</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						<div>
+							<dt>Body</dt>
+							<dd>{c.body}</dd>
+						</div>
+					{/if}
+				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -120,41 +172,7 @@
 				resource={comment}
 				placeholderText="Loading comment…"
 			>
-				{#snippet children(c)}
-					<dl>
-						<div>
-							<dt>Comment id</dt>
-							<dd>
-								<span data-text="mono">
-									<TruncatedValue
-										value={entityId.fullname}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</span>
-							</dd>
-						</div>
-						<div>
-							<dt>Author</dt>
-							<dd>u/{c.author}</dd>
-						</div>
-						{#if c.$link !== undefined}
-							<div>
-								<dt>Post</dt>
-								<dd>
-									<a
-										href={resolve(
-											'/(social)/reddit/link/[fullname]',
-											{ fullname: encodeURIComponent(c.$link[EntityMetaKey.Id].fullname) },
-										)}
-									>Post {c.$link[EntityMetaKey.Id].fullname}</a>
-								</dd>
-							</div>
-						{/if}
-						<div>
-							<dt>Body</dt>
-							<dd>{c.body}</dd>
-						</div>
-					</dl>
+				{#snippet children(_c)}
 				{/snippet}
 			</ResourceBoundary>
 		</EntityDetails>

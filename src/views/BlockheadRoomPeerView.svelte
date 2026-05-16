@@ -5,7 +5,6 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
@@ -66,12 +65,16 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.id}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary resource={peer}>
 			{#snippet children(p)}
-				<HeadingComponent>
-					{titleProp ?? p.displayName ?? p.peerId ?? entityId.id}
-				</HeadingComponent>
+				{titleProp ?? p.displayName ?? p.peerId ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -80,6 +83,13 @@
 		<ResourceBoundary resource={peer}>
 			{#snippet children(p)}
 				<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 					<div>
 						<dt>Contact ID</dt>
 						<dd>{entityId.id}</dd>

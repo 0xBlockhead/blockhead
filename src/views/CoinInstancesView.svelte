@@ -60,20 +60,20 @@
 
 	const envelopes = derive(
 		parentEntity,
-		(merged) => (
-			(
-				(
-					merged[entityFieldReference.fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.CoinInstance>[]
+		(merged) => {
+			const rows: Entity<typeof schema, EntityType.CoinInstance>[] = (
+				merged[entityFieldReference.fieldName] ?? []
 			)
-				.toSorted((a, b) => (
-					stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
-				))
-				.map((value) => ({
-					value,
-				}))
-		),
+			return (
+				rows
+					.toSorted((a, b) => (
+						stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
+					))
+					.map((value) => ({
+						value,
+					}))
+			)
+		},
 	)
 
 

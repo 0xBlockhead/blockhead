@@ -78,7 +78,8 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Id()}
+	{#snippet Heading()}
+
 		<span
 			data-text="font-monospace"
 			data-tx-hash={entityId.txHash}

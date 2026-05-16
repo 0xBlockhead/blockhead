@@ -85,12 +85,12 @@ const blockscoutTransactionLogWiresAsRpcReceiptLogs = (
 	logs.map((log) => {
 		const logAddress = addressHash(log.address_hash)
 		return {
-			...(logAddress != null ? { address: logAddress } : {}),
-			...(log.topics != null ? { topics: log.topics } : {}),
-			...(log.data != null ? { data: log.data } : {}),
-			...(log.block_number != null ? { blockNumber: `0x${log.block_number.toString(16)}` } : {}),
-			...(log.transaction_hash != null ? { transactionHash: log.transaction_hash } : {}),
-			...(log.index != null ? { logIndex: `0x${log.index.toString(16)}` } : {}),
+			...(logAddress != null && { address: logAddress }),
+			...(log.topics != null && { topics: log.topics }),
+			...(log.data != null && { data: log.data }),
+			...(log.block_number != null && { blockNumber: `0x${log.block_number.toString(16)}` }),
+			...(log.transaction_hash != null && { transactionHash: log.transaction_hash }),
+			...(log.index != null && { logIndex: `0x${log.index.toString(16)}` }),
 		}
 	})
 )

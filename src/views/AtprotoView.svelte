@@ -67,6 +67,13 @@
 	bind:open
 	title="AT Protocol"
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			{entityId.scope}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={atprotoNetwork}>
 			{#snippet children(n)}

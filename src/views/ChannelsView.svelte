@@ -73,11 +73,8 @@
 	const channels = derive(
 		parentEntity,
 		(merged) => {
-			const rows = (
-				(
-					merged[entityFieldReference.fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.StateChannel>[]
+			const rows: Entity<typeof schema, EntityType.StateChannel>[] = (
+				merged[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)

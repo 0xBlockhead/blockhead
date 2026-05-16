@@ -97,8 +97,25 @@
 		{/if}
 	{/snippet}
 
+	{#snippet Heading()}
+		{title}
+	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.id}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 			<div>
 				<dt>Status</dt>
 				<dd>{status}</dd>
@@ -183,7 +200,7 @@
 				</p>
 			{/if}
 
-			{#if accounts.length > 0}
+			{#if accounts.length}
 				<ul
 					data-column="gap-1"
 					data-list="unstyled"

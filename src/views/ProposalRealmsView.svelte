@@ -69,19 +69,18 @@
 
 	const proposalRealms = derive(
 		realmsParent,
-		(merged) => (
-			(
-				merged[fieldName as keyof typeof merged] as (
-					Entity<typeof schema, EntityType.ProposalRealm>
-				)[]
+		(merged) => {
+			const rows: Entity<typeof schema, EntityType.ProposalRealm>[] = merged[fieldName] ?? []
+			return (
+				rows
+					.toSorted((first, second) => (
+						stringify(first[EntityMetaKey.Id]).localeCompare(stringify(second[EntityMetaKey.Id]))
+					))
+					.map((realm) => ({
+						result: realm,
+					}))
 			)
-				.toSorted((first, second) => (
-					stringify(first[EntityMetaKey.Id]).localeCompare(stringify(second[EntityMetaKey.Id]))
-				))
-				.map((realm) => ({
-					result: realm,
-				}))
-		),
+		},
 	)
 
 

@@ -74,12 +74,12 @@ test.describe('/network/[networkId]', () => {
 		await step(expect(page.locator('[data-e2e="network-collapsible-consensus"]')).toBeAttached())
 		await step(expect(page.locator('[data-e2e="network-collapsible-data-storage"]')).toBeAttached())
 
-		await step(expect(page.locator('[data-e2e="network-carousel-blocks"]')).toBeAttached())
-		await step(expect(page.locator('[data-e2e="network-carousel-transactions"]')).toBeAttached())
-		await step(expect(page.locator('[data-e2e="network-carousel-contracts"]')).toBeAttached())
-		await step(expect(page.locator('[data-e2e="network-carousel-beacon-epochs"]')).toBeAttached())
-		await step(expect(page.locator('[data-e2e="network-carousel-beacon-slots"]')).toBeAttached())
-		await step(expect(page.locator('[data-e2e="network-data-storage-blobs-list"]')).toBeAttached())
+		await step(expect(page.locator('[data-scroll-marker-label="Blocks"]')).toBeAttached())
+		await step(expect(page.locator('[data-scroll-marker-label="Transactions"]')).toBeAttached())
+		await step(expect(page.locator('[data-scroll-marker-label="Contracts"]')).toBeAttached())
+		await step(expect(page.locator('[data-scroll-marker-label="Epochs"]')).toBeAttached())
+		await step(expect(page.locator('[data-scroll-marker-label="Slots"]')).toBeAttached())
+		await step(expect(page.locator('[data-scroll-marker-label="Blobs"]')).toBeAttached())
 		await step(expect(page.locator('[data-e2e="network-summary-head-block"]')).toBeAttached())
 
 	})

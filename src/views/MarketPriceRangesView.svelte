@@ -65,17 +65,20 @@
 
 	const ranges = derive(
 		rangesParentEntity,
-		(merged) => (
-			(
-				merged[fieldName as keyof typeof merged] as (Entity<typeof schema, EntityType.MarketPriceRange>)[]
+		(merged) => {
+			const rows: Entity<typeof schema, EntityType.MarketPriceRange>[] = (
+				merged[fieldName] ?? []
 			)
-				.toSorted((a, b) => (
-					a[EntityMetaKey.IdKey].localeCompare(b[EntityMetaKey.IdKey])
-				))
-				.map((value) => ({
-					value,
-				}))
-		),
+			return (
+				rows
+					.toSorted((a, b) => (
+						a[EntityMetaKey.IdKey].localeCompare(b[EntityMetaKey.IdKey])
+					))
+					.map((value) => ({
+						value,
+					}))
+			)
+		},
 	)
 
 

@@ -83,22 +83,18 @@ export default {
 					url: trimmedNonEmptyString(channel.url),
 					description: trimmedNonEmptyString(channel.description),
 					...((
-						t,
+						iconMedia,
 					) => (
-						t == null ?
-							{}
-						:	{
-								$icon: t,
-							}
+						iconMedia != null && {
+							$icon: iconMedia,
+						}
 					))(mediaFromUrl(normalizeMediaUrl(trimmedNonEmptyString(channel.imageUrl)), MediaType.Image)),
 					...((
-						t,
+						iconMedia,
 					) => (
-						t == null ?
-							{}
-						:	{
-								$headerImage: t,
-							}
+						iconMedia != null && {
+							$headerImage: iconMedia,
+						}
 					))(mediaFromUrl(normalizeMediaUrl(trimmedNonEmptyString(channel.headerImageUrl)), MediaType.Image)),
 					$lead: (
 						channel.leadFid == null ?

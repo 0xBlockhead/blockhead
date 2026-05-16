@@ -35,6 +35,8 @@ export enum Source {
 	Lifi_Rest = 'Lifi_Rest',
 	Local_Internal = 'Local_Internal',
 	Mastodon_Rest = 'Mastodon_Rest',
+	MetadataVision_Rest = 'MetadataVision_Rest',
+	MevRelay_Rest = 'MevRelay_Rest',
 	Neynar_Rest = 'Neynar_Rest',
 	Openchain_Rest = 'Openchain_Rest',
 	Reddit_Rest = 'Reddit_Rest',

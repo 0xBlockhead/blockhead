@@ -221,31 +221,8 @@ export default {
 							symbol: chain.nativeCurrency.symbol,
 							decimals: chain.nativeCurrency.decimals,
 							coinId: coinBySymbol[chain.nativeCurrency.symbol.trim().toUpperCase()]?.id ?? CoinId.Unknown,
-							...(chain.slip44 != null ? { slip44: chain.slip44 } : {}),
+							...(chain.slip44 != null && { slip44: chain.slip44 }),
 						},
-					],
-					blockExplorers: [
-						...(chain.explorers ?? [])
-							.flatMap((explorer) => (
-								explorer.url.trim() === '' ?
-									[]
-								:	[
-										{
-											origin: explorer.url,
-											...(explorer.name.trim() !== '' ? { name: explorer.name } : {}),
-											...(explorer.standard != null && explorer.standard.trim() !== '' ? { standard: explorer.standard } : {}),
-											...(explorer.icon != null && explorer.icon.trim() !== '' ? { icon: explorer.icon } : {}),
-										},
-									]
-							)),
-						...(
-							chain.infoURL?.trim() != null
-							&& chain.infoURL.trim() !== ''
-							&& !(chain.explorers ?? []).some((explorer) => explorer.url === chain.infoURL?.trim()) ?
-								[{ origin: chain.infoURL.trim() }]
-							:
-								[]
-						),
 					],
 					executionEndpoints: rpcUrls.map((url) => ({
 						url,
@@ -289,12 +266,11 @@ export default {
 						}
 						return layer
 					})(),
-					faucets: (chain.faucets ?? []).filter((url) => url.length > 0),
-					...(chain.shortName != null && String(chain.shortName).length > 0 ? { shortName: String(chain.shortName) } : {}),
-					...(chain.status != null && String(chain.status).length > 0 ? { registryStatus: String(chain.status) } : {}),
-					...(chain.networkId != null ? { peeringId: chain.networkId } : {}),
-					...(chain.slip44 != null ? { slip44: chain.slip44 } : {}),
-					...((iconMedia) => iconMedia == null ? {} : { $icon: iconMedia })(mediaFromUrl(icon, MediaType.Image)),
+					...(chain.shortName != null && String(chain.shortName).length > 0 && { shortName: String(chain.shortName) }),
+					...(chain.status != null && String(chain.status).length > 0 && { registryStatus: String(chain.status) }),
+					...(chain.networkId != null && { peeringId: chain.networkId }),
+					...(chain.slip44 != null && { slip44: chain.slip44 }),
+					...((iconMedia) => iconMedia != null && { $icon: iconMedia })(mediaFromUrl(icon, MediaType.Image)),
 				}
 			},
 		}),
@@ -478,6 +454,42 @@ export default {
 						chainIdA - chainIdB
 					))
 					.map((chainId) => ({ [EntityMetaKey.Id]: { chainId } }))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$blockExplorerUrls',
+			resolve: async (entityId) => {
+				const {
+					blockExplorerCatalogWireFromExplorersAndInfoUrl,
+					urlEntitiesDeduplicatedSortedFromBlockExplorerCatalog,
+				} = await import('$/resolvers/_networkCatalogUrlEntities.ts')
+				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
+				const chain = (await fetchRpcsJson()).find((row) => row.chainId === entityId.chainId)
+				if (chain == null) throw new Error('Chainlist_Rest: network not in rpcs.json for block explorer URLs')
+				return urlEntitiesDeduplicatedSortedFromBlockExplorerCatalog(
+					blockExplorerCatalogWireFromExplorersAndInfoUrl({
+						explorers: chain.explorers,
+						infoURL: chain.infoURL,
+					}),
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$faucetUrls',
+			resolve: async (entityId) => {
+				const { urlEntitiesDeduplicatedSortedFromFaucetUrlStrings } = await import(
+					'$/resolvers/_networkCatalogUrlEntities.ts'
+				)
+				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
+				const chain = (await fetchRpcsJson()).find((row) => row.chainId === entityId.chainId)
+				if (chain == null) throw new Error('Chainlist_Rest: network not in rpcs.json for faucet URLs')
+				return urlEntitiesDeduplicatedSortedFromFaucetUrlStrings(
+					(chain.faucets ?? []).filter((url) => url.length > 0),
+				)
 			},
 		}),
 	],

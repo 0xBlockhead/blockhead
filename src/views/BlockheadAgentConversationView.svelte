@@ -12,7 +12,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -71,18 +70,29 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.id}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary resource={conversation}>
 			{#snippet children(_conversation)}
-				<HeadingComponent>
-					{_conversation.name ?? entityId.id}
-				</HeadingComponent>
+				{_conversation.name ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 			<div>
 				<dt>Conversation id</dt>
 				<dd>

@@ -15,7 +15,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import Heading from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Address from '$/views/Address.svelte'
 
@@ -89,24 +88,29 @@
 	{#snippet Heading()}
 		<ResourceBoundary resource={coinInstance}>
 			{#snippet children(live)}
-				<Heading>
-					{#if href}
-						<a
-							data-link
-							{href}
-						>{live.symbol ?? live.name ?? nativeOrErcTitle}</a>
-					{:else}
-						{live.symbol ?? live.name ?? nativeOrErcTitle}
-					{/if}
-				</Heading>
+				{live.symbol ?? live.name ?? nativeOrErcTitle}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.$coin.coinId}
+		</span>
+	{/snippet}
+
+
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={coinInstance}>
 			{#snippet children(live)}
 				<dl>
+					<div>
+						<dt>Coin id</dt>
+						<dd data-text="mono">
+							{@render Id()}
+						</dd>
+					</div>
 					<div>
 						<dt>Chain</dt>
 						<dd>{String(entityId.$network.chainId)}</dd>

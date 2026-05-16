@@ -75,6 +75,13 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			{entityId.realm}
+		</span>
+	{/snippet}
+
 	{#snippet Content()}
 		<ResourceBoundary resource={realm}>
 			{#snippet children(r)}

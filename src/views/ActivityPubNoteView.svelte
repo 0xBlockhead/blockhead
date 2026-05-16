@@ -67,7 +67,6 @@
 	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -82,33 +81,33 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.uri}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={note}
 			placeholderText="Loading status…"
 		>
-			{#snippet children(u)}
-				{#if u.content != null && u.content !== ''}
-					{@const headingPlain = htmlToPlainText(u.content)}
-					<HeadingComponent>
-						{#if href}
-							<a href={href}>
-								<TruncatedValue
-									endLength={16}
-									format={TruncatedValueFormat.Visual}
-									startLength={64}
-									value={headingPlain}
-								/>
-							</a>
-						{:else}
-							<TruncatedValue
-								endLength={16}
-								format={TruncatedValueFormat.Visual}
-								startLength={64}
-								value={headingPlain}
-							/>
-						{/if}
-					</HeadingComponent>
+			{#snippet children(mastodonNoteRow)}
+				{@const mastodonPlainBody = (
+					mastodonNoteRow.content == null ?
+						''
+					:
+						htmlToPlainText(mastodonNoteRow.content)
+				)}
+				{#if mastodonPlainBody !== ''}
+					<TruncatedValue
+						endLength={16}
+						format={TruncatedValueFormat.Visual}
+						startLength={64}
+						value={mastodonPlainBody}
+					/>
+				{:else}
+					{entityId.uri}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -116,12 +115,11 @@
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary resource={note}>
-			{#snippet Pending()}{/snippet}
-			{#snippet children(u)}
-				{#if u.createdAt != null && Number.isFinite(u.createdAt)}
+			{#snippet children(mastodonNoteRow)}
+				{#if mastodonNoteRow.createdAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={u.createdAt}
+							timestamp={mastodonNoteRow.createdAt}
 							format={TimestampFormat.Both}
 						/>
 					</span>
@@ -130,50 +128,78 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({ title: _title, href: _href, open })}
 		<div data-column>
 			<ResourceBoundary
 				resource={note}
 				placeholderText="Loading status…"
 			>
-				{#snippet children(u)}
-					{#if u.content != null && u.content !== ''}
-						<p data-text="muted">
-							{htmlToPlainText(u.content)}
-						</p>
+				{#snippet children(mastodonNoteRow)}
+					{@const mastodonPlainBody = (
+						mastodonNoteRow.content == null ?
+							''
+						:
+							htmlToPlainText(mastodonNoteRow.content)
+					)}
+					{#if mastodonPlainBody !== ''}
+						{#if !open}
+							<p data-text="muted">
+								{htmlToPlainText(mastodonNoteRow.content)}
+							</p>
+						{/if}
 					{/if}
-					{#if u.$author}
+					{#if mastodonNoteRow.$author}
 						<p data-text="muted">
 							<a
 								href={resolve(
 									'/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]',
 									{
-										instanceOrigin: encodeURIComponent(u.$author[EntityMetaKey.Id].instanceOrigin),
-										localAccountId: encodeURIComponent(u.$author[EntityMetaKey.Id].localAccountId),
+										instanceOrigin: encodeURIComponent(mastodonNoteRow.$author[EntityMetaKey.Id].instanceOrigin),
+										localAccountId: encodeURIComponent(mastodonNoteRow.$author[EntityMetaKey.Id].localAccountId),
 									},
 								)}
 							>Author</a>
 						</p>
 					{/if}
-					{#if u.$inReplyTo}
+					{#if mastodonNoteRow.$inReplyTo}
 						<p data-text="muted">
 							<a
 								href={resolve(
 									'/(social)/activitypub/note/[instanceOrigin]/[localStatusId]',
 									{
-										instanceOrigin: encodeURIComponent(u.$inReplyTo[EntityMetaKey.Id].instanceOrigin),
-										localStatusId: encodeURIComponent(u.$inReplyTo[EntityMetaKey.Id].localStatusId),
+										instanceOrigin: encodeURIComponent(mastodonNoteRow.$inReplyTo[EntityMetaKey.Id].instanceOrigin),
+										localStatusId: encodeURIComponent(mastodonNoteRow.$inReplyTo[EntityMetaKey.Id].localStatusId),
 									},
 								)}
 							>In reply to</a>
 						</p>
 					{/if}
+					<dl data-column-item="center">
+						{#if mastodonPlainBody !== ''}
+							<div>
+								<dt>Object URI</dt>
+								<dd data-text="mono">
+									{@render Id()}
+								</dd>
+							</div>
+						{/if}
+						{#if open}
+							{#if mastodonPlainBody !== ''}
+								<div>
+									<dt>Content</dt>
+									<dd>
+										{htmlToPlainText(mastodonNoteRow.content)}
+									</dd>
+								</div>
+							{/if}
+						{/if}
+					</dl>
 				{/snippet}
 			</ResourceBoundary>
 
 			<div data-text="mono muted">
 				{entityId.instanceOrigin}
-				 · 
+				·
 				{entityId.localStatusId}
 			</div>
 		</div>
@@ -187,33 +213,11 @@
 			{entityId}
 		>
 			<ResourceBoundary resource={note}>
-				{#snippet children(u)}
-					{#if (u.content == null || u.content === '') && (u.createdAt == null)}
+				{#snippet children(mastodonNoteRow)}
+					{#if htmlToPlainText(mastodonNoteRow.content ?? '').trim() === '' && mastodonNoteRow.createdAt == null}
 						<p data-text="muted">
 							Status details are not available yet for this note.
 						</p>
-					{:else}
-						<dl>
-							{#if u.content != null && u.content !== ''}
-								<div>
-									<dt>Content</dt>
-									<dd>
-										{htmlToPlainText(u.content)}
-									</dd>
-								</div>
-							{/if}
-							{#if u.createdAt != null && Number.isFinite(u.createdAt)}
-								<div>
-									<dt>Created at</dt>
-									<dd>
-										<Timestamp
-											timestamp={u.createdAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-						</dl>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

@@ -68,7 +68,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -89,13 +88,17 @@
 			placeholderText="Loading profile…"
 		>
 			{#snippet children(u)}
-				<HeadingComponent>
-					{u.displayName
-						?? u.username
-						?? `FID ${String(entityId.fid)}`}
-				</HeadingComponent>
+				{u.displayName
+					?? u.username
+					?? `FID ${String(entityId.fid)}`}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			FID {String(entityId.fid)}
+		</span>
 	{/snippet}
 
 	{#snippet Icon()}
@@ -146,77 +149,73 @@
 		>
 			{#snippet children(u)}
 				<div data-column>
-					{#if u.bio}
-						<p data-text="muted">
-							{u.bio}
-						</p>
-					{/if}
-					{#if u.url}
-						<p>
-							<a
-								href={u.url}
-								data-text="muted"
-							>{u.url}</a>
-						</p>
-					{/if}
-					{#if u.verifiedAddress !== undefined}
-						<p data-row="inline wrap gap-2">
-							<span data-text="muted">Verified</span>
-							<ActorView
-								entityId={{
-									address: u.verifiedAddress,
-								}}
-								href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-									accountId: u.verifiedAddress,
-								})}
-								layout={EntityLayout.Id}
-								open={false}
-								showTypeAnnotation={false}
-							/>
-						</p>
-					{/if}
-					{#if (
-						(
-							u.displayName
-							?? u.username
-							?? `FID ${String(entityId.fid)}`
-						)
-						!== `FID ${String(entityId.fid)}`
-					)}
-						<p data-text="muted">
-							{`FID ${String(entityId.fid)}`}
-						</p>
-					{/if}
-				</div>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Details({
-		open: _open,
-	})}
-		<EntityDetails
-			entityType={EntityType.FarcasterUser}
-			{entityId}
-		>
-			<ResourceBoundary
-				resource={farcasterUser}
-				placeholderText="Loading profile…"
-			>
-				{#snippet children(u)}
-					<section data-column>
-						<h3>Farcaster profile</h3>
-						<dl>
+					<dl data-column-item="center">
+						<div>
+							<dt>FID</dt>
+							<dd data-text="mono">
+								{@render Id()}
+							</dd>
+						</div>
+						{#if u.bio != null}
+							{#if u.bio !== ''}
+								<div>
+									<dt>Bio</dt>
+									<dd>{u.bio}</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if u.bio == null}
 							<div>
-								<dt>FID</dt>
-								<dd>{String(entityId.fid)}</dd>
+								<dt>Bio</dt>
+								<dd data-text="muted">No profile bio is set.</dd>
 							</div>
+						{/if}
+						{#if u.bio !== null}
+							{#if u.bio === ''}
+								<div>
+									<dt>Bio</dt>
+									<dd data-text="muted">No profile bio is set.</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if u.url}
+							<div>
+								<dt>Link</dt>
+								<dd>
+									<a
+										href={u.url}
+										data-text="muted"
+									>{u.url}</a>
+								</dd>
+							</div>
+						{/if}
+						{#if u.verifiedAddress !== undefined}
+							<div>
+								<dt>Verified address</dt>
+								<dd>
+									<ActorView
+										entityId={{
+											address: u.verifiedAddress,
+										}}
+										href={resolve('/~/(accounts)/accounts/account/[accountId]', {
+											accountId: u.verifiedAddress,
+										})}
+										layout={EntityLayout.Id}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								</dd>
+							</div>
+						{/if}
+						{#if open}
 							{#if u.displayName}
 								<div>
 									<dt>Name</dt>
 									<dd>{u.displayName}</dd>
 								</div>
 							{/if}
+						{/if}
+						{#if open}
 							{#if u.username}
 								<div>
 									<dt>Username</dt>
@@ -225,12 +224,8 @@
 									</dd>
 								</div>
 							{/if}
-							{#if u.bio}
-								<div>
-									<dt>Bio</dt>
-									<dd>{u.bio}</dd>
-								</div>
-							{/if}
+						{/if}
+						{#if open}
 							{#if u.url}
 								<div>
 									<dt>Link</dt>
@@ -239,6 +234,8 @@
 									</dd>
 								</div>
 							{/if}
+						{/if}
+						{#if open}
 							{#if u.verifiedAddress !== undefined}
 								<div>
 									<dt>Verified address</dt>
@@ -257,17 +254,42 @@
 									</dd>
 								</div>
 							{/if}
-						</dl>
-						{#if u.$icon}
-							{#if u.$icon[EntityMetaKey.Id].url}
-								<p>
-									<Media
-										media={{ url: u.$icon[EntityMetaKey.Id].url }}
-										alt={(u.displayName ?? u.username) ?? ''}
-									/>
-								</p>
+						{/if}
+						{#if open}
+							{#if u.$icon}
+								{#if u.$icon[EntityMetaKey.Id].url}
+									<div>
+										<dt>Avatar</dt>
+										<dd>
+											<Media
+												media={{ url: u.$icon[EntityMetaKey.Id].url }}
+												alt={(u.displayName ?? u.username) ?? ''}
+											/>
+										</dd>
+									</div>
+								{/if}
 							{/if}
 						{/if}
+					</dl>
+				</div>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.FarcasterUser}
+			{entityId}
+		>
+			<ResourceBoundary
+				resource={farcasterUser}
+				placeholderText="Loading profile…"
+			>
+				{#snippet children(_u)}
+					<section data-column>
+						<h3>Farcaster profile</h3>
 					</section>
 				{/snippet}
 			</ResourceBoundary>

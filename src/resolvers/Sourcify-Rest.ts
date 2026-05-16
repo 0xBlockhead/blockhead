@@ -37,16 +37,14 @@ export default {
 				const abi = abiJsonStringFromSourcifyLookup(contractLookup)
 				const deployer = contractLookup.deployment?.deployer
 				return {
-					...(abi != null ? { abi } : {}),
-					...(deployer != null && deployer.startsWith('0x') ?
-						{
+					...(abi != null && { abi }),
+					...(deployer != null && deployer.startsWith('0x') && {
 							$deployer: {
 								[EntityMetaKey.Id]: {
 									address: deployer.toLowerCase() as `0x${string}`,
 								},
 							},
-						}
-					:	{}),
+						}),
 					$verifiedSource: {
 						[EntityMetaKey.Id]: entityId,
 					},
@@ -77,12 +75,10 @@ export default {
 					?? contractLookup.compilation?.fullyQualifiedName
 				)
 				const metadata: SourcifyContractSourceMetadata = {
-					...(compiler != null && compiler !== '' ? { compiler } : {}),
-					...(language != null && language !== '' ? { language } : {}),
-					...(sources != null ? { sources } : {}),
-					...(fullyQualifiedName != null && fullyQualifiedName !== '' ?
-						{ fullyQualifiedName }
-					:	{}),
+					...(compiler != null && compiler !== '' && { compiler }),
+					...(language != null && language !== '' && { language }),
+					...(sources != null && { sources }),
+					...(fullyQualifiedName != null && fullyQualifiedName !== '' && { fullyQualifiedName }),
 				}
 				const files = (
 					Object.fromEntries(

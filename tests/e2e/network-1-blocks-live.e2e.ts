@@ -31,7 +31,7 @@ test.describe('/network/1/blocks (EvmBlocksView + blockHeight-driven query)', ()
 		const view = readFileSync(evmBlocksViewPath, 'utf8')
 		expect(view, evmBlocksViewPath).toContain('blockHeightQuery')
 		expect(view, evmBlocksViewPath).toContain('blockHeightQuery.data?.height')
-		expect(view, evmBlocksViewPath).toContain("data-e2e=\"network-blocks-list\"")
+		expect(view, evmBlocksViewPath).toContain('${entitiesListRest.id}-items')
 	})
 
 	test('(browser, live) ordered list: top block advances after chain head moves', async ({ page }) => {

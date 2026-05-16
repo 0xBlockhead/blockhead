@@ -83,8 +83,8 @@ export const getCoingeckoCoinMarketSpot = async (
 	return {
 		coin,
 		usd,
-		...(typeof marketCapUsd === 'number' && Number.isFinite(marketCapUsd) ? { marketCapUsd } : {}),
-		...(typeof volume24hUsd === 'number' && Number.isFinite(volume24hUsd) ? { volume24hUsd } : {}),
+		...(typeof marketCapUsd === 'number' && Number.isFinite(marketCapUsd) && { marketCapUsd }),
+		...(typeof volume24hUsd === 'number' && Number.isFinite(volume24hUsd) && { volume24hUsd }),
 		lastUpdatedAtSec,
 	}
 }

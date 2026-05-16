@@ -110,6 +110,21 @@ const entityFieldDefinitionsByEntityType = Object.fromEntries(
 	]),
 )
 
+const entityFieldDefinitionFor = <
+	_EntityType extends EntityType<typeof schema>,
+>(
+	entityType: _EntityType,
+	fieldName: EntityFieldName<typeof schema, _EntityType>,
+) => {
+	const fieldDefinition = entityFieldDefinitionsByEntityType[entityType][fieldName]
+	if (fieldDefinition === undefined) {
+		throw new Error(
+			`useEntity: ${entityType} has no field ${fieldName}`,
+		)
+	}
+	return fieldDefinition
+}
+
 export const useEntity1 = <
 	_EntityType extends EntityType<typeof schema>,
 >(
@@ -563,7 +578,13 @@ export const useEntity3 = <
 					fieldName,
 					useLiveQueryResource(
 						(queryBuilder) => {
-							const cardinality = entityFieldDefinitionsByEntityType[entityType][fieldName].cardinality
+							const fieldDefinition = entityFieldDefinitionsByEntityType[entityType][fieldName]
+							if (fieldDefinition === undefined) {
+								throw new Error(
+									`useEntity: ${entityType} has no field ${fieldName}`,
+								)
+							}
+							const cardinality = fieldDefinition.cardinality
 							const base = foldOrderBySteps(
 								queryBuilder
 									.from({

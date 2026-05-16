@@ -78,6 +78,10 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Heading()}
+		Block {String(entityId.blockNumber)}
+	{/snippet}
+
 	{#snippet Id()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span
@@ -97,6 +101,8 @@
 			{/if}
 		</span>
 	{/snippet}
+
+
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary

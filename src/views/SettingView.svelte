@@ -75,6 +75,13 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			{entityId.scope}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<ResourceBoundary resource={global}>

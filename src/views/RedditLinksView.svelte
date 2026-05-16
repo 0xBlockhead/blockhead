@@ -58,22 +58,21 @@
 
 	const links = derive(
 		parentEntity,
-		(merged) => (
-			(
-				merged[fieldName as keyof typeof merged] as (
-					Entity<typeof schema, EntityType.RedditLink>
-				)[]
+		(merged) => {
+			const rows: Entity<typeof schema, EntityType.RedditLink>[] = merged[fieldName] ?? []
+			return (
+				rows
+					.toSorted((a, b) => (
+						b[EntityMetaKey.Id].fullname.localeCompare(a[EntityMetaKey.Id].fullname)
+					))
+					.map((link) => (
+						{
+							...link[EntityMetaKey.Id],
+							sortKey: link[EntityMetaKey.IdKey],
+						}
+					))
 			)
-				.toSorted((a, b) => (
-					b[EntityMetaKey.Id].fullname.localeCompare(a[EntityMetaKey.Id].fullname)
-				))
-				.map((link) => (
-					{
-						...link[EntityMetaKey.Id],
-						sortKey: link[EntityMetaKey.IdKey],
-					}
-				))
-		),
+		},
 	)
 
 

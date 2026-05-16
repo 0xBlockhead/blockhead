@@ -21,9 +21,7 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
-	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -93,16 +91,21 @@
 			resource={connection}
 			placeholderText="Loading connection…"
 		>
-			{#snippet Pending()}{/snippet}
 			{#snippet children(c)}
 				{@const headline = (
 					c.displayName
 					?? c.username
 					?? `FID ${String(entityId.fid)}`
 				)}
-				<HeadingComponent>{headline}</HeadingComponent>
+				{headline}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			FID {String(entityId.fid)}
+		</span>
 	{/snippet}
 
 	{#snippet Icon()}
@@ -129,7 +132,6 @@
 			resource={connection}
 			placeholderText=""
 		>
-			{#snippet Pending()}{/snippet}
 			{#snippet children(c)}
 				{@const headline = (
 					c.displayName
@@ -153,19 +155,62 @@
 			>
 				{#snippet Pending()}{/snippet}
 				{#snippet children(c)}
-					{#if c.bio}
-						<p data-text="muted">
-							{c.bio}
-						</p>
-					{/if}
-					<p data-text="muted">
-						FID {String(entityId.fid)}
-					</p>
-					{#if c.bio === undefined || c.bio === ''}
-						<p data-text="muted">
-							No profile bio is set.
-						</p>
-					{/if}
+					<dl data-column-item="center">
+						<div>
+							<dt>FID</dt>
+							<dd data-text="mono">
+								{@render Id()}
+							</dd>
+						</div>
+						{#if c.bio != null}
+							{#if c.bio !== ''}
+								<div>
+									<dt>Bio</dt>
+									<dd>{c.bio}</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if c.bio == null}
+							<div>
+								<dt>Bio</dt>
+								<dd data-text="muted">No profile bio is set.</dd>
+							</div>
+						{/if}
+						{#if c.bio !== null}
+							{#if c.bio === ''}
+								<div>
+									<dt>Bio</dt>
+									<dd data-text="muted">No profile bio is set.</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if open}
+							{#if c.custody}
+								<div>
+									<dt>Custody</dt>
+									<dd>
+										<TruncatedValue
+											value={c.custody}
+											format={TruncatedValueFormat.Visual}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/if}
+						{#if open}
+							{#if c.signedAt !== undefined}
+								<div>
+									<dt>Signed in</dt>
+									<dd>
+										<Timestamp
+											timestamp={c.signedAt}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/if}
+					</dl>
 				{/snippet}
 			</ResourceBoundary>
 		</div>
@@ -181,92 +226,21 @@
 				entityType={EntityType.BlockheadFarcasterAccountConnection}
 				{entityId}
 			>
-				<dl>
-					<div>
-						<dt>FID</dt>
-						<dd>{String(entityId.fid)}</dd>
-					</div>
-
-					<ResourceBoundary resource={connection}>
-						{#snippet Pending()}{/snippet}
-						{#snippet children(c)}
-							{#if c.displayName}
-								<div>
-									<dt>Name</dt>
-									<dd>{c.displayName}</dd>
-								</div>
-							{/if}
-
-							{#if c.username}
-								<div>
-									<dt>Username</dt>
-									<dd>@{c.username}</dd>
-								</div>
-							{/if}
-
-							{#if c.custody}
-								<div>
-									<dt>Custody</dt>
-									<dd>
-										<TruncatedValue
-											value={c.custody}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</dd>
-								</div>
-							{/if}
-
-							{#if c.bio !== undefined && c.bio !== ''}
-								<div>
-									<dt>Bio</dt>
-									<dd>{c.bio}</dd>
-								</div>
-							{/if}
-
-							{#if c.signedAt !== undefined}
-								<div>
-									<dt>Signed in</dt>
-									<dd>
-										<Timestamp
-											timestamp={c.signedAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dl>
-
-				<ResourceBoundary resource={connection}>
-					{#snippet Pending()}{/snippet}
-					{#snippet children(c)}
-						{#if c.$icon}
-							{#if c.$icon[EntityMetaKey.Id].url}
-								<p>
-									<Media
-										media={{ url: c.$icon[EntityMetaKey.Id].url }}
-										alt={(c.displayName ?? c.username) ?? ''}
-									/>
-								</p>
-							{/if}
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-
-				<FarcasterCastsView
-					entityFieldReference={{
-						entityType: EntityType.FarcasterFeed,
-						entityId: {
-							variant: 'byUser',
-							fid: entityId.fid,
-						},
-						fieldName: '$$entries',
-					}}
-					id="casts"
-					title="Feed"
-					href={resolve(`/farcaster/feed/user/${String(entityId.fid)}`)}
-				/>
+				{#snippet children()}
+					<FarcasterCastsView
+						entityFieldReference={{
+							entityType: EntityType.FarcasterFeed,
+							entityId: {
+								variant: 'byUser',
+								fid: entityId.fid,
+							},
+							fieldName: '$$entries',
+						}}
+						id="casts"
+						title="Feed"
+						href={resolve(`/farcaster/feed/user/${String(entityId.fid)}`)}
+					/>
+				{/snippet}
 			</EntityDetails>
 		{/if}
 	{/snippet}

@@ -76,6 +76,19 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			{entityId.kind}
+		</span>
+	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.realm} · {entityId.category}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={kind}
@@ -83,6 +96,13 @@
 		>
 			{#snippet children(k)}
 				<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 					<div>
 						<dt>Category</dt>
 						<dd>{proposalCategoryById[entityId.category].labelPlural}</dd>

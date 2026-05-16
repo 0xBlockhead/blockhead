@@ -56,7 +56,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
@@ -68,13 +67,19 @@
 	{href}
 	{open}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.upgradeId}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={networkExecutionUpgrade}
 			placeholderText="Loading network execution upgrade…"
 		>
 			{#snippet children(networkExecutionUpgradeEntity)}
-				<HeadingComponent>{networkExecutionUpgradeEntity.name ?? entityId.upgradeId}</HeadingComponent>
+				{networkExecutionUpgradeEntity.name ?? entityId.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -86,10 +91,13 @@
 		>
 			{#snippet children(networkExecutionUpgradeEntity)}
 				<dl>
-					<div>
-						<dt>Upgrade</dt>
-						<dd>{entityId.upgradeId}</dd>
-					</div>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 					{#if open}
 						{#if networkExecutionUpgradeEntity.protocol !== undefined}
 							<div>

@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { networkUpgradeIdFromChainIdAndUrlSegment } from '$/constants/EthereumUpgrades.ts'
+	import { networkUpgradeIdFromChainIdAndUrlSegment } from '$/constants/NetworkUpgrades.ts'
 
 
 	// Context

@@ -70,8 +70,26 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Heading()}
+		{title}
+	{/snippet}
+
+	{#snippet Id()}
+		<Address
+			network={entityId.$network}
+			address={entityId.address}
+		/>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 			<div>
 				<dt>Chain ID</dt>
 				<dd>{String(entityId.$network.chainId)}</dd>

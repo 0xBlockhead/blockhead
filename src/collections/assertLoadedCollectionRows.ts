@@ -294,7 +294,7 @@ export const assertEntityResolverResult = (
 	}
 
 	const seen = new WeakSet<object>()
-	seen.add(row as object)
+	seen.add(row)
 	walkLoadedValue(record[EntityMetaKey.Fields], `${path}.${EntityMetaKey.Fields}`, seen)
 	for (const key of Object.keys(record)) {
 		if (ENTITY_ROW_ROOT_SKIP.has(key)) continue
@@ -331,7 +331,7 @@ export const assertEntityFieldResolverResult = (
 
 	const value = record[EntityMetaKey.Value]
 	const seen = new WeakSet<object>()
-	seen.add(row as object)
+	seen.add(row)
 
 	if (fieldDefinition.type === EntityFieldType.Primitive) {
 		const out = fieldDefinition.primitiveType(value)

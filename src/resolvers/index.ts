@@ -1,7 +1,9 @@
 import { Source } from '$/sources/$Source.ts'
 import { enabledSources } from '$/sources/index.ts'
 
+import MevRelayRestResolvers from '$/resolvers/MevRelay-Rest.ts'
 import MastodonRestResolvers from '$/resolvers/Mastodon-Rest.ts'
+import MetadataVisionRestResolvers from '$/resolvers/MetadataVision-Rest.ts'
 import AlliumRestResolvers from '$/resolvers/Allium-Rest.ts'
 import AtprotoXrpcResolvers from '$/resolvers/Atproto-Xrpc.ts'
 import BeaconRestResolvers from '$/resolvers/Beacon-Rest.ts'
@@ -39,6 +41,8 @@ import XRestResolvers from '$/resolvers/X-Rest.ts'
 const enabledResolverModulesAfterSourceGate = (
 	[
 		MastodonRestResolvers,
+		MetadataVisionRestResolvers,
+		MevRelayRestResolvers,
 		AlliumRestResolvers,
 		AtprotoXrpcResolvers,
 		BeaconRestResolvers,

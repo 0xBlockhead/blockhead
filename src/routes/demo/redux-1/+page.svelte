@@ -621,7 +621,6 @@
 		Media = 'Media',
 		MediaObject = 'MediaObject',
 		Network = 'Network',
-		NetworkFork = 'NetworkFork',
 		Proposal = 'Proposal',
 		StateChannel = 'StateChannel',
 		StateChannelDeposit = 'StateChannelDeposit',

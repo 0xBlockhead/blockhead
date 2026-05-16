@@ -53,7 +53,7 @@ export const orderByIrFromSteps = (
 	steps: DeclarativeOrderBy<any>,
 ): IR.OrderBy => {
 	let qb = new BaseQueryBuilder().from(from) as BuilderWithInternalQuery
-	qb = foldOrderBySteps(qb, steps) as BuilderWithInternalQuery
+	qb = foldOrderBySteps(qb, steps)
 	return qb._getQuery().orderBy ?? []
 }
 

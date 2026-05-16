@@ -108,6 +108,28 @@
 	}
 	{...entityViewRest}
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			price
+		</span>
+	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{(
+				entityId.feedKey != null && entityId.feedKey !== '' ?
+					entityId.feedKey
+				: entityId.$network != null ?
+					`Chain ${String(entityId.$network.chainId)}`
+				:
+					'Quote stream'
+			)}
+		</span>
+	{/snippet}
+
+
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={priceLive}
@@ -115,6 +137,12 @@
 		>
 			{#snippet children(loaded)}
 				<dl>
+					<div>
+						<dt>Quote</dt>
+						<dd data-text="mono">
+							{@render Id()}
+						</dd>
+					</div>
 					{#if loaded.price !== undefined}
 						<div>
 							<dt>USD (spot index)</dt>

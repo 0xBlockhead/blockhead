@@ -98,24 +98,19 @@ export default {
 						EvmAddress(ethVerifiedCand)
 				)
 				const verifiedPart = (
-					ethVerifiedParsed instanceof arktype.errors ?
-						{}
-					:
-						{
-							verifiedAddress: ethVerifiedParsed,
-						}
+					!(ethVerifiedParsed instanceof arktype.errors) && {
+						verifiedAddress: ethVerifiedParsed,
+					}
 				)
 				return {
 					username: optionalTrimmedString(user.username),
 					displayName: optionalTrimmedString(user.display_name),
 					...((
-						t,
+						iconMedia,
 					) => (
-						t == null ?
-							{}
-						:	{
-								$icon: t,
-							}
+						iconMedia != null && {
+							$icon: iconMedia,
+						}
 					))(mediaFromUrl(neynarPfpHttpUrl(user.pfp_url), MediaType.Image)),
 					bio: optionalTrimmedString(
 						typeof bioRaw === 'string' ? bioRaw : bioRaw?.text,
@@ -152,18 +147,16 @@ export default {
 					username: optionalTrimmedString(user.username),
 					displayName: optionalTrimmedString(user.display_name),
 					...((
-						t,
+						iconMedia,
 					) => (
-						t == null ?
-							{}
-						:	{
-								$icon: t,
-							}
+						iconMedia != null && {
+							$icon: iconMedia,
+						}
 					))(mediaFromUrl(neynarPfpHttpUrl(user.pfp_url), MediaType.Image)),
 					bio: optionalTrimmedString(
 						typeof bioRaw === 'string' ? bioRaw : bioRaw?.text,
 					),
-					...(ethList.length > 0 ? { verifications: ethList } : {}),
+					...(ethList.length > 0 && { verifications: ethList }),
 				}
 			},
 		}),
@@ -234,13 +227,11 @@ export default {
 							title: optionalTrimmedString(embed.metadata?.html?.ogTitle),
 							description: optionalTrimmedString(embed.metadata?.html?.ogDescription),
 							...((
-								t,
+								iconMedia,
 							) => (
-								t == null ?
-									{}
-								:	{
-										$icon: t,
-									}
+								iconMedia != null && {
+									$icon: iconMedia,
+								}
 							))(mediaFromUrl(neynarPfpHttpUrl(
 								typeof og0 === 'string' ? og0 : undefined,
 								{ pageBaseUrl: optionalTrimmedString(embed.url) },

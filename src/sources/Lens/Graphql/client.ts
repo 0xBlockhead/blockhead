@@ -18,12 +18,7 @@ export const lensGraphql = async <T>(
 			headers: {
 				'Content-Type': 'application/json',
 				Accept: 'application/json',
-				...(
-					typeof k === 'string' && k.trim() !== '' ?
-						{ 'x-lens-app': k.trim() }
-					:
-						{}
-				),
+				...(typeof k === 'string' && k.trim() !== '' && { 'x-lens-app': k.trim() }),
 			},
 			body: JSON.stringify(body),
 		},

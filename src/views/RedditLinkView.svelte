@@ -81,15 +81,19 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.id}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={link}
 			placeholderText="Loading post…"
 		>
 			{#snippet children(u)}
-				<HeadingComponent>
-					{u.title ?? entityId.fullname}
-				</HeadingComponent>
+				{u.title ?? entityId.fullname}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -100,11 +104,67 @@
 			placeholderText="Loading post…"
 		>
 			{#snippet children(u)}
-				{#if u.selftext.trim() === ''}
+				{#if !u.selftext}
 					<p data-text="muted">No post text.</p>
 				{:else}
 					<p>{u.selftext}</p>
 				{/if}
+				<dl data-column-item="center">
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
+					{#if open}
+						<div>
+							<dt>Post id</dt>
+							<dd>
+								<span data-text="mono">
+									{entityId.fullname}
+								</span>
+							</dd>
+						</div>
+					{/if}
+					{#if open}
+						<div>
+							<dt>Title</dt>
+							<dd>{u.title}</dd>
+						</div>
+					{/if}
+					{#if open}
+						<div>
+							<dt>Author</dt>
+							<dd>u/{u.author}</dd>
+						</div>
+					{/if}
+					{#if open}
+						<div>
+							<dt>Subreddit</dt>
+							<dd>
+								<a
+									href={resolve(
+										'/(social)/reddit/r/[name]',
+										{ name: encodeURIComponent(u.$subreddit[EntityMetaKey.Id].name) },
+									)}
+								>r/{u.$subreddit[EntityMetaKey.Id].name}</a>
+							</dd>
+						</div>
+					{/if}
+					{#if open}
+						<div>
+							<dt>URL</dt>
+							<dd>
+								<a
+									href={u.url}
+									rel="noreferrer"
+									target="_blank"
+								>{u.url}</a>
+							</dd>
+						</div>
+					{/if}
+				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -120,46 +180,7 @@
 				resource={link}
 				placeholderText="Loading post…"
 			>
-				{#snippet children(u)}
-					<dl>
-						<div>
-							<dt>Post id</dt>
-							<dd>
-								<span data-text="mono">
-									{entityId.fullname}
-								</span>
-							</dd>
-						</div>
-						<div>
-							<dt>Title</dt>
-							<dd>{u.title}</dd>
-						</div>
-						<div>
-							<dt>Author</dt>
-							<dd>u/{u.author}</dd>
-						</div>
-						<div>
-							<dt>Subreddit</dt>
-							<dd>
-								<a
-									href={resolve(
-										'/(social)/reddit/r/[name]',
-										{ name: encodeURIComponent(u.$subreddit[EntityMetaKey.Id].name) },
-									)}
-								>r/{u.$subreddit[EntityMetaKey.Id].name}</a>
-							</dd>
-						</div>
-						<div>
-							<dt>URL</dt>
-							<dd>
-								<a
-									href={u.url}
-									rel="noreferrer"
-									target="_blank"
-								>{u.url}</a>
-							</dd>
-						</div>
-					</dl>
+				{#snippet children(_u)}
 				{/snippet}
 			</ResourceBoundary>
 		</EntityDetails>

@@ -51,12 +51,7 @@
 	const notes = derive(
 		parentEntity,
 		(merged) => {
-			const rows = (
-				(
-					merged[entityFieldReference.fieldName as keyof typeof merged]
-					?? []
-				) as Entity<typeof schema, EntityType.ActivityPubNote>[]
-			)
+			const rows: Entity<typeof schema, EntityType.ActivityPubNote>[] = merged[entityFieldReference.fieldName] ?? []
 			return (
 				rows.map((value) => ({
 					value,

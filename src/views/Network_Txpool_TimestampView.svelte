@@ -1,0 +1,145 @@
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps, Snippet } from 'svelte'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+
+	// Props
+	let {
+		children,
+		entityId,
+		href,
+		layout,
+		open = $bindable(true),
+		...entityViewRest
+	}: WithRest<
+		{
+			children?: Snippet
+			entityId: EntityId<typeof schema, EntityType.Network_Txpool_Timestamp>
+			href?: string
+			layout?: EntityLayout
+			open?: boolean
+		},
+		Omit<
+			ComponentProps<typeof EntityView>,
+			| 'entityType'
+			| 'entityId'
+			| 'href'
+			| 'layout'
+			| 'open'
+			| 'title'
+			| 'Details'
+		>
+	> = $props()
+
+
+	const txpoolLive = useEntity(
+		EntityType.Network_Txpool_Timestamp,
+		entityId,
+		{
+			$: [Source.Voltaire_JsonRpc],
+			pendingCount: {},
+			queuedCount: {},
+		},
+	)
+
+
+	const defaultHref = resolve(
+		'/(explore)/(networks)/network/[networkId]',
+		{ networkId: String(entityId.$network.chainId) },
+	)
+</script>
+
+
+<EntityView
+	entityType={EntityType.Network_Txpool_Timestamp}
+	{entityId}
+	href={href ?? defaultHref}
+	{layout}
+	{open}
+	title="Txpool snapshot"
+	{...entityViewRest}
+>
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			{String(entityId.timestampNs)}
+		</span>
+	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			chain {String(entityId.$network.chainId)}
+		</span>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			placeholderText="Loading txpool…"
+			resource={txpoolLive}
+		>
+			{#snippet children(p)}
+				{@const timestampMs = Number(entityId.timestampNs / 1_000_000n)}
+				<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
+					<div>
+						<dt>As of</dt>
+						<dd>
+							<Timestamp
+								format={TimestampFormat.Both}
+								timestamp={timestampMs}
+							/>
+						</dd>
+					</div>
+					<div>
+						<dt>Pending</dt>
+						<dd>
+							<NumberValue value={p.pendingCount} />
+						</dd>
+					</div>
+					<div>
+						<dt>Queued</dt>
+						<dd>
+							<NumberValue value={p.queuedCount} />
+						</dd>
+					</div>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Details()}
+		<EntityDetails
+			entityType={EntityType.Network_Txpool_Timestamp}
+			{entityId}
+		/>
+
+		{#if children}
+			{@render children()}
+		{/if}
+	{/snippet}
+</EntityView>

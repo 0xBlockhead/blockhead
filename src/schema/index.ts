@@ -50,6 +50,7 @@ import MarketPriceSchema from '$/schema/MarketPrice.ts'
 import MarketPriceRangeSchema from '$/schema/MarketPriceRange.ts'
 import Market_TimeInterval_TimestampSchema from '$/schema/Market_TimeInterval_Timestamp.ts'
 import Market_TimestampSchema from '$/schema/Market_Timestamp.ts'
+import MevRelay_ProposerPayloadDeliveredSchema from '$/schema/MevRelay_ProposerPayloadDelivered.ts'
 import Eip8004ServiceSchema from '$/schema/Eip8004Service.ts'
 import EnsNameSchema from '$/schema/EnsName.ts'
 import EvmBlockSchema from '$/schema/EvmBlock.ts'
@@ -79,7 +80,8 @@ import MediaSchema from '$/schema/Media.ts'
 import MediaObjectSchema from '$/schema/MediaObject.ts'
 import NetworkSchema from '$/schema/Network.ts'
 import NetworkBridgeSchema from '$/schema/NetworkBridge.ts'
-import NetworkForkSchema from '$/schema/NetworkFork.ts'
+import Network_GasFee_TimestampSchema from '$/schema/Network_GasFee_Timestamp.ts'
+import Network_Txpool_TimestampSchema from '$/schema/Network_Txpool_Timestamp.ts'
 import ProposalKindSchema from '$/schema/ProposalKind.ts'
 import ProposalRealmSchema from '$/schema/ProposalRealm.ts'
 import ProposalSchema from '$/schema/Proposal.ts'
@@ -93,6 +95,7 @@ import StateChannelStateSchema from '$/schema/StateChannelState.ts'
 import StateChannelTransferSchema from '$/schema/StateChannelTransfer.ts'
 import SwarmResourceSchema from '$/schema/SwarmResource.ts'
 import SwapQuoteSchema from '$/schema/SwapQuote.ts'
+import UrlSchema from '$/schema/Url.ts'
 import VaultSchema from '$/schema/Vault.ts'
 import XPostSchema from '$/schema/XPost.ts'
 import XUserSchema from '$/schema/XUser.ts'
@@ -152,6 +155,7 @@ export const schema = [
 	MarketPriceRangeSchema,
 	Market_TimeInterval_TimestampSchema,
 	Market_TimestampSchema,
+	MevRelay_ProposerPayloadDeliveredSchema,
 	Eip8004ServiceSchema,
 	EnsNameSchema,
 	EvmBlockSchema,
@@ -181,7 +185,8 @@ export const schema = [
 	MediaObjectSchema,
 	NetworkSchema,
 	NetworkBridgeSchema,
-	NetworkForkSchema,
+	Network_GasFee_TimestampSchema,
+	Network_Txpool_TimestampSchema,
 	ProposalKindSchema,
 	ProposalRealmSchema,
 	ProposalSchema,
@@ -195,6 +200,7 @@ export const schema = [
 	StateChannelTransferSchema,
 	SwarmResourceSchema,
 	SwapQuoteSchema,
+	UrlSchema,
 	NetworkUpgradeSchema,
 	VaultSchema,
 	XPostSchema,

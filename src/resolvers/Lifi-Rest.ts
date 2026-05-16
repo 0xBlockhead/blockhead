@@ -15,20 +15,12 @@ const networkEntityFieldsFromLifiChain = (lifiChain: LifiChain) => {
 	return {
 		[EntityMetaKey.Id]: { chainId: lifiChain.id },
 		...((
-			t,
+			iconMedia,
 		) => (
-			t == null ?
-				{}
-			:	{
-					$icon: t,
-				}
+			iconMedia != null && {
+				$icon: iconMedia,
+			}
 		))(mediaFromUrl(lifiChain.logoURI, MediaType.Image)),
-		blockExplorers: (
-			(lifiChain.metamask?.blockExplorerUrls ?? [])
-				.map((u) => u.trim())
-				.filter((u) => u.length > 0)
-				.map((origin) => ({ origin }))
-		),
 		executionEndpoints: (
 			(lifiChain.metamask?.rpcUrls ?? [])
 				.map((u) => u.trim())
@@ -74,5 +66,30 @@ export default {
 
 	entityFieldResolvers: [
 		globalNetworkEntitiesFieldResolver,
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$blockExplorerUrls',
+			resolve: async (entityId, _context) => {
+				const {
+					blockExplorerCatalogWireFromExplorersAndInfoUrl,
+					urlEntitiesDeduplicatedSortedFromBlockExplorerCatalog,
+				} = await import('$/resolvers/_networkCatalogUrlEntities.ts')
+				const { fetchLifiChainsCatalog } = await import('$/sources/Lifi/Rest/queries.ts')
+				const lifiChain = (await fetchLifiChainsCatalog()).chains.find((row) => row.id === entityId.chainId)
+				if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog for block explorer URLs')
+				return urlEntitiesDeduplicatedSortedFromBlockExplorerCatalog(
+					blockExplorerCatalogWireFromExplorersAndInfoUrl({
+						explorers: (
+							(lifiChain.metamask?.blockExplorerUrls ?? [])
+								.map((u) => u.trim())
+								.filter((u) => u.length > 0)
+								.map((url) => ({ name: '', url }))
+						),
+						infoURL: undefined,
+					}),
+				)
+			},
+		}),
 	],
 }

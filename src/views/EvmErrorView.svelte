@@ -11,7 +11,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
@@ -66,13 +65,19 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.hex}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={evmError}
 			placeholderText="Loading error…"
 		>
 			{#snippet children(e)}
-				<HeadingComponent>{e.signatures[0] ?? entityId.hex}</HeadingComponent>
+				{e.signatures[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -94,7 +99,7 @@
 					placeholderText="Loading signatures…"
 				>
 					{#snippet children(e)}
-						{#if e.signatures.length > 0}
+						{#if e.signatures.length}
 							<div>
 								<dt>
 									Signatures
@@ -108,7 +113,7 @@
 								</dd>
 							</div>
 						{/if}
-						{#if e.signatures.length === 0}
+						{#if !e.signatures.length}
 							<div>
 								<dt>
 									Signatures

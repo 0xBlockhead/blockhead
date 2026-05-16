@@ -46,14 +46,8 @@ export default {
 										[EntityMetaKey.Id]: {
 											url: browseResult.gatewayUrl,
 										},
-										...(browseResult.contentType != null ?
-											{ mimeType: browseResult.contentType }
-										:
-											{}),
-										...(browseResult.contentLength != null ?
-											{ size: browseResult.contentLength }
-										:
-											{}),
+										...(browseResult.contentType != null && { mimeType: browseResult.contentType }),
+										...(browseResult.contentLength != null && { size: browseResult.contentLength }),
 									},
 								}
 						))(mediaFromUrl(browseResult.gatewayUrl, type))
@@ -78,35 +72,20 @@ export default {
 					gatewayUrl: browseResult.gatewayUrl,
 					fileName: browseResult.fileName,
 					extension: browseResult.extension,
-					...(browseResult.contentType != null ?
-						{ contentType: browseResult.contentType }
-					:
-						{}),
-					...(browseResult.contentLength != null ?
-						{ contentLength: browseResult.contentLength }
-					:
-						{}),
+					...(browseResult.contentType != null && { contentType: browseResult.contentType }),
+					...(browseResult.contentLength != null && { contentLength: browseResult.contentLength }),
 					displayType: browseResult.displayType,
 					isContentTypeInferred: browseResult.isContentTypeInferred,
-					...(browseResult.text != null ?
-						{ text: browseResult.text }
-					:
-						{}),
-					...(decodedCid != null ?
-						{
+					...(browseResult.text != null && { text: browseResult.text }),
+					...(decodedCid != null && {
 							cidVersion: decodedCid.version,
 							cidMultibase: decodedCid.multibase,
 							cidMulticodecCode: decodedCid.multicodecCode,
 							cidMultihashCode: decodedCid.multihashCode,
 							cidMultihashDigestHex: decodedCid.multihashDigestHex,
 							isCidSubdomainSafe: decodedCid.isSubdomainSafe,
-						}
-					:
-						{}),
-					...(mediaEntity != null ?
-						{ $media: mediaEntity }
-					:
-						{}),
+						}),
+					...(mediaEntity != null && { $media: mediaEntity }),
 				}
 			},
 		}),

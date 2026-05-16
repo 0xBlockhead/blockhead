@@ -17,7 +17,6 @@
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import Heading from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 
@@ -81,40 +80,36 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Heading()}
+	{#snippet Id()}
 		{#if title !== undefined}
-			<Heading>
-				{#if href}
-					<a
-						data-link
-						{href}
-					>{title}</a>
-				{:else}
-					{title}
-				{/if}
-			</Heading>
+			<span>{title}</span>
 		{:else}
 			<ResourceBoundary resource={shared}>
 				{#snippet children(live)}
-					<Heading>
-						{#if href}
-							<a
-								data-link
-								{href}
-							>{live.peerId ?? entityId.id}</a>
-						{:else}
-							{live.peerId ?? entityId.id}
-						{/if}
-					</Heading>
+					<span>
+						{live.peerId ?? entityId.id}
+					</span>
 				{/snippet}
+
 			</ResourceBoundary>
 		{/if}
+	{/snippet}
+
+	{#snippet Heading()}
+		<span data-text="font-monospace">{entityId.id}</span>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={shared}>
 			{#snippet children(live)}
 				<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 					<div>
 						<dt>Contact ID</dt>
 						<dd>{entityId.id}</dd>
@@ -174,7 +169,7 @@
 								<dd>{String(live.$network.chainId)}</dd>
 							</div>
 						{/if}
-						{#if (live.targetPeerIds ?? []).length > 0}
+						{#if (live.targetPeerIds ?? []).length}
 							<div>
 								<dt>Target peer IDs</dt>
 								<dd>{(live.targetPeerIds ?? []).join(', ')}</dd>
@@ -200,7 +195,7 @@
 					&& !(live.$account !== undefined && live.$network !== undefined)
 					&& live.$room === undefined
 					&& live.$network === undefined
-					&& (live.targetPeerIds ?? []).length === 0
+					&& !(live.targetPeerIds ?? []).length
 					&& live.sharedAt === undefined
 				)}
 					<p data-text="muted">

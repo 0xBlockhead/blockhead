@@ -15,4 +15,3 @@ export default {
 
 	fields: [] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition
-

@@ -34,28 +34,12 @@ export default {
 
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.NetworkFork,
-			resolve: async (entityId) => {
-				const { ethereumExecutionForkByChainIdAndForkId } = await import(
-					'$/constants/EthereumExecutionForks.ts'
-				)
-				const forkDefinition = ethereumExecutionForkByChainIdAndForkId[
-					`${entityId.$network.chainId}:${entityId.forkId}`
-				]
-				if (forkDefinition == null) {
-					throw new Error(`Constants_Internal: NetworkFork not found for ${entityId.$network.chainId}:${entityId.forkId}`)
-				}
-				return { ...forkDefinition }
-			},
-		}),
-
-		defineEntityResolver({
 			entityType: EntityType.NetworkUpgrade,
 			resolve: async (entityId) => {
-				const { ethereumUpgradeByChainIdAndUpgradeId } = await import(
-					'$/constants/EthereumUpgrades.ts'
+				const { networkUpgradeByChainIdAndUpgradeId } = await import(
+					'$/constants/NetworkUpgrades.ts'
 				)
-				const upgradeDefinition = ethereumUpgradeByChainIdAndUpgradeId[
+				const upgradeDefinition = networkUpgradeByChainIdAndUpgradeId[
 					`${entityId.$network.chainId}:${entityId.upgradeId}`
 				]
 				if (upgradeDefinition == null) {
@@ -68,10 +52,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.NetworkExecutionUpgrade,
 			resolve: async (entityId) => {
-				const { ethereumExecutionUpgradeByChainIdAndUpgradeId } = await import(
-					'$/constants/EthereumUpgrades.ts'
+				const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import(
+					'$/constants/NetworkUpgrades.ts'
 				)
-				const upgradeDefinition = ethereumExecutionUpgradeByChainIdAndUpgradeId[
+				const upgradeDefinition = networkExecutionUpgradeByChainIdAndUpgradeId[
 					`${entityId.$network.chainId}:${entityId.upgradeId}`
 				]
 				if (upgradeDefinition == null) {
@@ -84,10 +68,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.NetworkConsensusUpgrade,
 			resolve: async (entityId) => {
-				const { ethereumConsensusUpgradeByChainIdAndUpgradeId } = await import(
-					'$/constants/EthereumUpgrades.ts'
+				const { networkConsensusUpgradeByChainIdAndUpgradeId } = await import(
+					'$/constants/NetworkUpgrades.ts'
 				)
-				const upgradeDefinition = ethereumConsensusUpgradeByChainIdAndUpgradeId[
+				const upgradeDefinition = networkConsensusUpgradeByChainIdAndUpgradeId[
 					`${entityId.$network.chainId}:${entityId.upgradeId}`
 				]
 				if (upgradeDefinition == null) {
@@ -112,18 +96,7 @@ export default {
 			resolve: async (entityId) => {
 				const { executionEndpointsByChainId } = await import('$/constants/ExecutionEndpoints.ts')
 				const list = executionEndpointsByChainId[entityId.chainId as ChainId] ?? []
-				const explorerOrigin = (
-					list.find((e) => e.chainlistFallbackDisplay != null)
-						?.chainlistFallbackDisplay
-						?.explorerOrigin
-				)
 				return {
-					explorers: (
-						explorerOrigin != null && explorerOrigin.length > 0 ?
-							[explorerOrigin]
-						:
-							[]
-					),
 					executionEndpoints: [...list],
 				}
 			},
@@ -215,8 +188,17 @@ export default {
 			entityType: EntityType._Global,
 			fieldName: '$$networkUpgrades',
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
-				const { ethereumUpgrades } = await import('$/constants/EthereumUpgrades.ts')
-				return ethereumUpgrades.map((upgradeRow) => ({ ...upgradeRow }))
+				const { networkUpgrades } = await import('$/constants/NetworkUpgrades.ts')
+				return (
+					networkUpgrades
+						.filter((upgradeRow) => (
+							upgradeRow.$executionUpgrade != null
+							&& upgradeRow.$consensusUpgrade != null
+							&& upgradeRow.$executionUpgrade[EntityMetaKey.Id].upgradeId
+								!== upgradeRow.$consensusUpgrade[EntityMetaKey.Id].upgradeId
+						))
+						.map((upgradeRow) => ({ ...upgradeRow }))
+				)
 			},
 		}),
 
@@ -497,13 +479,11 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Network,
-			fieldName: '$$forks',
+			fieldName: 'hasBlobParameterExecutionUpgrade',
 			resolve: async (entityId) => {
-				const { ethereumExecutionForks } = await import('$/constants/EthereumExecutionForks.ts')
+				const { networkHasBlobParameterExecutionUpgrade } = await import('$/constants/NetworkUpgrades.ts')
 				return (
-					ethereumExecutionForks
-						.filter((forkRow) => forkRow[EntityMetaKey.Id].$network.chainId === entityId.chainId)
-						.map((forkRow) => ({ ...forkRow }))
+					networkHasBlobParameterExecutionUpgrade(entityId.chainId)
 				)
 			},
 		}),
@@ -512,10 +492,16 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$$upgrades',
 			resolve: async (entityId) => {
-				const { ethereumUpgrades } = await import('$/constants/EthereumUpgrades.ts')
+				const { networkUpgrades } = await import('$/constants/NetworkUpgrades.ts')
 				return (
-					ethereumUpgrades
-						.filter((upgradeRow) => upgradeRow[EntityMetaKey.Id].$network.chainId === entityId.chainId)
+					networkUpgrades
+						.filter((upgradeRow) => (
+							upgradeRow[EntityMetaKey.Id].$network.chainId === entityId.chainId
+							&& upgradeRow.$executionUpgrade != null
+							&& upgradeRow.$consensusUpgrade != null
+							&& upgradeRow.$executionUpgrade[EntityMetaKey.Id].upgradeId
+								!== upgradeRow.$consensusUpgrade[EntityMetaKey.Id].upgradeId
+						))
 						.map((upgradeRow) => ({ ...upgradeRow }))
 				)
 			},
@@ -525,9 +511,9 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$$executionUpgrades',
 			resolve: async (entityId) => {
-				const { ethereumExecutionUpgrades } = await import('$/constants/EthereumUpgrades.ts')
+				const { networkExecutionUpgrades } = await import('$/constants/NetworkUpgrades.ts')
 				return (
-					ethereumExecutionUpgrades
+					networkExecutionUpgrades
 						.filter((upgradeRow) => upgradeRow[EntityMetaKey.Id].$network.chainId === entityId.chainId)
 						.map((upgradeRow) => ({ ...upgradeRow }))
 				)
@@ -538,9 +524,9 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$$consensusUpgrades',
 			resolve: async (entityId) => {
-				const { ethereumConsensusUpgrades } = await import('$/constants/EthereumUpgrades.ts')
+				const { networkConsensusUpgrades } = await import('$/constants/NetworkUpgrades.ts')
 				return (
-					ethereumConsensusUpgrades
+					networkConsensusUpgrades
 						.filter((upgradeRow) => upgradeRow[EntityMetaKey.Id].$network.chainId === entityId.chainId)
 						.map((upgradeRow) => ({ ...upgradeRow }))
 				)
@@ -551,8 +537,8 @@ export default {
 			entityType: EntityType.NetworkUpgrade,
 			fieldName: '$executionUpgrade',
 			resolve: async (entityId) => {
-				const { ethereumUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumUpgrades.ts')
-				const upgradeRow = ethereumUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
+				const { networkUpgradeByChainIdAndUpgradeId } = await import('$/constants/NetworkUpgrades.ts')
+				const upgradeRow = networkUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
 				return (
 					upgradeRow?.$executionUpgrade == null ?
 						undefined
@@ -565,8 +551,8 @@ export default {
 			entityType: EntityType.NetworkUpgrade,
 			fieldName: '$consensusUpgrade',
 			resolve: async (entityId) => {
-				const { ethereumUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumUpgrades.ts')
-				const upgradeRow = ethereumUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
+				const { networkUpgradeByChainIdAndUpgradeId } = await import('$/constants/NetworkUpgrades.ts')
+				const upgradeRow = networkUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
 				return (
 					upgradeRow?.$consensusUpgrade == null ?
 						undefined
@@ -579,8 +565,8 @@ export default {
 			entityType: EntityType.NetworkUpgrade,
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
-				const { ethereumUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumUpgrades.ts')
-				const upgradeRow = ethereumUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
+				const { networkUpgradeByChainIdAndUpgradeId } = await import('$/constants/NetworkUpgrades.ts')
+				const upgradeRow = networkUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
 				return [...(upgradeRow?.$$proposals ?? [])]
 			},
 		}),
@@ -589,8 +575,8 @@ export default {
 			entityType: EntityType.NetworkExecutionUpgrade,
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
-				const { ethereumExecutionUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumUpgrades.ts')
-				const upgradeRow = ethereumExecutionUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
+				const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import('$/constants/NetworkUpgrades.ts')
+				const upgradeRow = networkExecutionUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
 				return [...(upgradeRow?.$$proposals ?? [])]
 			},
 		}),
@@ -599,8 +585,8 @@ export default {
 			entityType: EntityType.NetworkConsensusUpgrade,
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
-				const { ethereumConsensusUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumUpgrades.ts')
-				const upgradeRow = ethereumConsensusUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
+				const { networkConsensusUpgradeByChainIdAndUpgradeId } = await import('$/constants/NetworkUpgrades.ts')
+				const upgradeRow = networkConsensusUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
 				return [...(upgradeRow?.$$proposals ?? [])]
 			},
 		}),

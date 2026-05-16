@@ -29,8 +29,8 @@ export default {
 				) throw new Error('Dune_Rest: usage response missing billing credits')
 				return {
 					[EntityMetaKey.Id]: entityId,
-					...(billingPeriod.credits_used != null ? { duneCreditsUsed: billingPeriod.credits_used } : {}),
-					...(billingPeriod.credits_included != null ? { duneCreditsIncluded: billingPeriod.credits_included } : {}),
+					...(billingPeriod.credits_used != null && { duneCreditsUsed: billingPeriod.credits_used }),
+					...(billingPeriod.credits_included != null && { duneCreditsIncluded: billingPeriod.credits_included }),
 				}
 			},
 		}),

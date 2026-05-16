@@ -182,32 +182,8 @@ export default {
 				const icon = resolveMediaUrlTransport(chain.icon)?.url
 				return {
 					[EntityMetaKey.Id]: { chainId: chain.chainId },
-					...((iconMedia) => iconMedia == null ? {} : { $icon: iconMedia })(mediaFromUrl(icon, MediaType.Image)),
-					...(chain.status != null && chain.status !== '' ? { registryStatus: String(chain.status) } : {}),
-					faucets: (chain.faucets ?? []).filter((url) => url.length > 0),
-					blockExplorers: [
-						...(chain.explorers ?? [])
-							.flatMap((explorer) => (
-								explorer.url.trim() === '' ?
-									[]
-								:	[
-										{
-											origin: explorer.url,
-											...(explorer.name.trim() !== '' ? { name: explorer.name } : {}),
-											...(explorer.standard != null && explorer.standard.trim() !== '' ? { standard: explorer.standard } : {}),
-											...(explorer.icon != null && explorer.icon.trim() !== '' ? { icon: explorer.icon } : {}),
-										},
-									]
-							)),
-						...(
-							chain.infoURL?.trim() != null
-							&& chain.infoURL.trim() !== ''
-							&& !(chain.explorers ?? []).some((explorer) => explorer.url === chain.infoURL?.trim()) ?
-								[{ origin: chain.infoURL.trim() }]
-							:
-								[]
-						),
-					],
+					...((iconMedia) => iconMedia != null && { $icon: iconMedia })(mediaFromUrl(icon, MediaType.Image)),
+					...(chain.status != null && chain.status !== '' && { registryStatus: String(chain.status) }),
 					executionEndpoints: rpcUrls.map((url) => ({
 						url,
 						serviceProvider: ExecutionRpcProvider.Unknown,
@@ -225,13 +201,13 @@ export default {
 							symbol: chain.nativeCurrency.symbol,
 							decimals: chain.nativeCurrency.decimals,
 							coinId: coinBySymbol[chain.nativeCurrency.symbol.trim().toUpperCase()]?.id ?? CoinId.Unknown,
-							...(chain.slip44 != null ? { slip44: chain.slip44 } : {}),
+							...(chain.slip44 != null && { slip44: chain.slip44 }),
 						},
 					],
 					peeringId: chain.networkId,
-					...(chain.shortName !== '' ? { shortName: chain.shortName } : {}),
-					...(chain.slip44 != null ? { slip44: chain.slip44 } : {}),
-					...(isEthereumListsTestnet(chain) ? { environment: NetworkEnvironment.Testnet } : {}),
+					...(chain.shortName !== '' && { shortName: chain.shortName }),
+					...(chain.slip44 != null && { slip44: chain.slip44 }),
+					...(isEthereumListsTestnet(chain) && { environment: NetworkEnvironment.Testnet }),
 					$parentLayer: (
 						((parentMatch) => (
 							parentMatch == null || chain.parent == null ?
@@ -430,6 +406,42 @@ export default {
 						]
 				)
 					.map((chainId) => ({ [EntityMetaKey.Id]: { chainId } }))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$blockExplorerUrls',
+			resolve: async (entityId) => {
+				const {
+					blockExplorerCatalogWireFromExplorersAndInfoUrl,
+					urlEntitiesDeduplicatedSortedFromBlockExplorerCatalog,
+				} = await import('$/resolvers/_networkCatalogUrlEntities.ts')
+				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
+				const chain = (await fetchChainsJson()).find((row) => row.chainId === entityId.chainId)
+				if (chain == null) throw new Error('EthereumLists_Rest: network not in chains.json for block explorer URLs')
+				return urlEntitiesDeduplicatedSortedFromBlockExplorerCatalog(
+					blockExplorerCatalogWireFromExplorersAndInfoUrl({
+						explorers: chain.explorers,
+						infoURL: chain.infoURL,
+					}),
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$faucetUrls',
+			resolve: async (entityId) => {
+				const { urlEntitiesDeduplicatedSortedFromFaucetUrlStrings } = await import(
+					'$/resolvers/_networkCatalogUrlEntities.ts'
+				)
+				const { fetchChainsJson } = await import('$/sources/EthereumLists/Rest/queries.ts')
+				const chain = (await fetchChainsJson()).find((row) => row.chainId === entityId.chainId)
+				if (chain == null) throw new Error('EthereumLists_Rest: network not in chains.json for faucet URLs')
+				return urlEntitiesDeduplicatedSortedFromFaucetUrlStrings(
+					(chain.faucets ?? []).filter((url) => url.length > 0),
+				)
 			},
 		}),
 	],

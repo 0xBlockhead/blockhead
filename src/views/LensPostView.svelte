@@ -16,7 +16,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -73,25 +72,29 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.id}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			placeholderText="Loading post…"
 			resource={lensPost}
 		>
-			{#snippet children(u)}
-				<HeadingComponent>
-					<TruncatedValue
-						value={(
-							u.text !== undefined && u.text.trim().length > 0 ?
-								u.text.trim()
-							:
-								entityId.id
-						)}
-						format={TruncatedValueFormat.Visual}
-						startLength={42}
-						endLength={14}
-					/>
-				</HeadingComponent>
+			{#snippet children(resolvedLensPost)}
+				<TruncatedValue
+					format={TruncatedValueFormat.Visual}
+					startLength={42}
+					endLength={14}
+					value={(
+						resolvedLensPost.text
+							? resolvedLensPost.text
+						:
+							entityId.id
+					)}
+				/>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -101,12 +104,12 @@
 			placeholderText="Loading post…"
 			resource={lensPost}
 		>
-			{#snippet children(u)}
+			{#snippet children(resolvedLensPost)}
 				<div data-column>
-					{#if u.text !== undefined}
+					{#if resolvedLensPost.text}
 						<p>
 							<TruncatedValue
-								value={u.text}
+								value={resolvedLensPost.text}
 								format={TruncatedValueFormat.Visual}
 								startLength={64}
 								endLength={24}
@@ -114,30 +117,30 @@
 						</p>
 					{/if}
 					<dl>
-						{#if u.$author}
+						{#if resolvedLensPost.$author}
 							<div>
 								<dt>Author</dt>
 								<dd>
 									<a
 										data-link
 										href={resolve('/(social)/lens/account/[address]', {
-											address: u.$author[EntityMetaKey.Id].address,
+											address: resolvedLensPost.$author[EntityMetaKey.Id].address,
 										})}
 									>
 										<TruncatedValue
-											value={u.$author[EntityMetaKey.Id].address}
+											value={resolvedLensPost.$author[EntityMetaKey.Id].address}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</a>
 								</dd>
 							</div>
 						{/if}
-						{#if u.timestamp !== undefined}
+						{#if resolvedLensPost.timestamp != null}
 							<div>
 								<dt>Created at</dt>
 								<dd>
 									<Timestamp
-										timestamp={u.timestamp}
+										timestamp={resolvedLensPost.timestamp}
 										format={TimestampFormat.Both}
 									/>
 								</dd>

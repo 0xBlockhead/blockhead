@@ -74,7 +74,7 @@
 		cleanupByRdns.set(detail.info.rdns, () => {})
 
 		const unsubscribeAccountsChanged = onAccountsChanged(detail.provider, (accounts) => {
-			if (accounts.length === 0) {
+			if (!accounts.length) {
 				disconnect(detail.info.rdns)
 				return
 			}
@@ -117,7 +117,7 @@
 		try {
 			const accounts = await requestAccounts(detail.provider)
 
-			if (accounts.length === 0)
+			if (!accounts.length)
 				throw new Error('Provider did not return any accounts')
 
 			const chainId = await getChainId(detail.provider)
@@ -202,7 +202,7 @@
 				!connections.some((connection) => connection.detail.info.rdns === provider.info.rdns)
 			))}
 			<div data-column="gap-3">
-				{#if sortedConnections.length > 0}
+				{#if sortedConnections.length}
 					<div data-column="gap-2">
 						{#each sortedConnections as connection (connection.detail.info.rdns)}
 							<BlockheadWalletConnectionView
@@ -229,7 +229,7 @@
 					</p>
 				{/if}
 
-				{#if availableProviders.length > 0}
+				{#if availableProviders.length}
 					<div data-row="start">
 						{#each availableProviders as detail (detail.info.rdns)}
 							<button

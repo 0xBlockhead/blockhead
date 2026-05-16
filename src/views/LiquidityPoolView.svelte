@@ -82,17 +82,25 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Heading()}
+	{#snippet Id()}
 		<ResourceBoundary
 			resource={pool}
 			placeholderText="Loading pool…"
 		>
 			{#snippet children(p)}
-				<HeadingComponent>
-					{p.token0Symbol} / {p.token1Symbol}
-				</HeadingComponent>
+				{p.token0Symbol} / {p.token1Symbol}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+
+
+	{#snippet Heading()}
+		<span data-text="muted">
+			<span data-text="font-monospace">
+				{entityId.id}
+			</span>
+		</span>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -102,6 +110,12 @@
 		>
 			{#snippet children(p)}
 				<dl>
+					<div>
+						<dt>Liquidity pair</dt>
+						<dd>
+							{p.token0Symbol} / {p.token1Symbol}
+						</dd>
+					</div>
 					<div>
 						<dt>Pool id</dt>
 						<dd>

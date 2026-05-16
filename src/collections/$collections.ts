@@ -475,12 +475,7 @@ const collectionSnapshotHasChanges = <
 			{
 				where: loadSubsetOptions.where,
 				orderBy: loadSubsetOptions.orderBy,
-				...(
-					loadSubsetOptions.limit != null ?
-						{ limit: loadSubsetOptions.limit }
-					:
-						{}
-				),
+				...(loadSubsetOptions.limit != null && { limit: loadSubsetOptions.limit }),
 			}
 		:
 			{

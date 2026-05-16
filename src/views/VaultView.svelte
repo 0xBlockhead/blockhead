@@ -65,7 +65,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import Address from '$/views/Address.svelte'
@@ -79,13 +78,21 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.id}
+		</span>
+	{/snippet}
+
+
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={vault}
 			placeholderText="Loading vault…"
 		>
 			{#snippet children(v)}
-				<HeadingComponent>{`${v.token0Symbol} / ${v.token1Symbol}`}</HeadingComponent>
+				{`${v.token0Symbol} / ${v.token1Symbol}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

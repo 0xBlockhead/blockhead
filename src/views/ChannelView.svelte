@@ -58,7 +58,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 </script>
@@ -71,26 +70,37 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.channelId}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={channel}
 			placeholderText="Loading channel…"
 		>
 			{#snippet children(c)}
-				<HeadingComponent>
-					{(
-						c.status
-						?? (c.turnNum !== undefined ? `Turn ${String(c.turnNum)}` : undefined)
-						?? (c.totalDeposited !== undefined ? String(c.totalDeposited) : undefined)
-						?? `Channel ${entityId.id}`
-					)}
-				</HeadingComponent>
+				{(
+					c.status
+					?? (c.turnNum !== undefined ? `Turn ${String(c.turnNum)}` : undefined)
+					?? (c.totalDeposited !== undefined ? String(c.totalDeposited) : undefined)
+					?? `Channel ${entityId.id}`
+				)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 			<div>
 				<dt>Channel id</dt>
 				<dd>{entityId.id}</dd>

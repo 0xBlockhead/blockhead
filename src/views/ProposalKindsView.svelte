@@ -72,19 +72,18 @@
 
 	const proposalKinds = derive(
 		kindsParent,
-		(merged) => (
-			(
-				merged[fieldName as keyof typeof merged] as (
-					Entity<typeof schema, EntityType.ProposalKind>
-				)[]
+		(merged) => {
+			const rows: Entity<typeof schema, EntityType.ProposalKind>[] = merged[fieldName] ?? []
+			return (
+				rows
+					.toSorted((first, second) => (
+						stringify(first[EntityMetaKey.Id]).localeCompare(stringify(second[EntityMetaKey.Id]))
+					))
+					.map((kind) => ({
+						result: kind,
+					}))
 			)
-				.toSorted((first, second) => (
-					stringify(first[EntityMetaKey.Id]).localeCompare(stringify(second[EntityMetaKey.Id]))
-				))
-				.map((kind) => ({
-					result: kind,
-				}))
-		),
+		},
 	)
 
 

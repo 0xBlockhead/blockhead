@@ -19,7 +19,7 @@
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import OrderedList from '$/components/OrderedList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
 	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 
 
@@ -79,6 +79,7 @@
 	{#snippet body()}
 		{#key stringify(entityFieldReference.entityId)}
 			<ResourceBoundary
+				layout={Layout.Block}
 				resource={epochs}
 				placeholderText="Loading epochs…"
 			>

@@ -71,7 +71,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 			let fields: unknown
 			try {
 				fields = await resolver.resolve(
-					entityId as never,
+					entityId,
 					{
 						...resolverContext,
 						publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
@@ -89,7 +89,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 			const row = {
 				...(
 					fields != null && typeof fields === 'object' && !Array.isArray(fields) ?
-						fields as object
+						fields
 					:
 						{}
 				),
@@ -141,7 +141,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 			let raw: unknown
 			try {
 				raw = await fieldResolver.resolve(
-					parentEntityId as never,
+					parentEntityId,
 					{
 						...resolverContext,
 						publicEnv: resolverPublicEnvBySource.get(fieldResolver.source) ?? {},

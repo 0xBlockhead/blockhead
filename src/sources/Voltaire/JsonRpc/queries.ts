@@ -65,7 +65,7 @@ export const narrowVoltaireTxRpc = (raw: JsonValue): VoltaireTxRpc | null => (
 				gas: typeof raw['gas'] === 'string' ? raw['gas'] : undefined,
 				gasPrice: typeof raw['gasPrice'] === 'string' ? raw['gasPrice'] : undefined,
 				type: typeof raw['type'] === 'string' ? raw['type'] : undefined,
-				...(blobVersionedHashes != null ? { blobVersionedHashes } : {}),
+				...(blobVersionedHashes != null && { blobVersionedHashes }),
 			}
 		})()
 )
@@ -116,8 +116,8 @@ export const narrowVoltaireBlockRpc = (raw: JsonValue): VoltaireBlockRpc | null 
 				miner,
 				gasUsed,
 				gasLimit,
-				...(typeof baseFeePerGas === 'string' ? { baseFeePerGas } : {}),
-				...(transactions != null ? { transactions } : {}),
+				...(typeof baseFeePerGas === 'string' && { baseFeePerGas }),
+				...(transactions != null && { transactions }),
 			}
 		})()
 )
@@ -148,7 +148,7 @@ const narrowVoltaireReceiptRpc = (raw: JsonValue): VoltaireReceiptRpc | null => 
 				gasUsed: typeof raw['gasUsed'] === 'string' ? raw['gasUsed'] : undefined,
 				contractAddress,
 				effectiveGasPrice: typeof raw['effectiveGasPrice'] === 'string' ? raw['effectiveGasPrice'] : undefined,
-				...(logs != null ? { logs } : {}),
+				...(logs != null && { logs }),
 			}
 		})()
 )
@@ -164,10 +164,7 @@ export const streamBlockToVoltaireBlockRpcWire = (
 	miner: String(Hex.fromBytes(block.header.beneficiary)),
 	gasUsed: String(Hex.fromBigInt(block.header.gasUsed)),
 	gasLimit: String(Hex.fromBigInt(block.header.gasLimit)),
-	...(block.header.baseFeePerGas != null ?
-		{ baseFeePerGas: String(Hex.fromBigInt(block.header.baseFeePerGas)) }
-	:
-		{}),
+	...(block.header.baseFeePerGas != null && { baseFeePerGas: String(Hex.fromBigInt(block.header.baseFeePerGas)) }),
 	transactions: [...block.body.transactions] as VoltaireBlockRpc['transactions'],
 })
 

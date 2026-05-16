@@ -65,6 +65,13 @@
 	{open}
 	title={`Bridge to chain ${String(entityId.$toNetwork.chainId)}`}
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			{entityId.bridgeId}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>

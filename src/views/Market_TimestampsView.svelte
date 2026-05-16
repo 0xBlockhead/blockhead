@@ -63,27 +63,15 @@
 
 	const quotes = derive(
 		marketParentEntity,
-		(merged) => (
-			(
-				merged[fieldName as keyof typeof merged] as (
-					Entity<typeof schema, EntityType.Market_Timestamp>
-				)[]
+		(merged) => {
+			const rows: Entity<typeof schema, EntityType.Market_Timestamp>[] = merged[fieldName] ?? []
+			return (
+				rows
+					.map((value) => ({
+						value,
+					}))
 			)
-				.toSorted((first, second) => (
-					first[EntityMetaKey.Id].timestampNs < second[EntityMetaKey.Id].timestampNs ?
-						1
-					:
-						first[EntityMetaKey.Id].timestampNs > second[EntityMetaKey.Id].timestampNs ?
-							-1
-						:
-							stringify(second[EntityMetaKey.Id]).localeCompare(
-								stringify(first[EntityMetaKey.Id]),
-							)
-				))
-				.map((value) => ({
-					value,
-				}))
-		),
+		},
 	)
 
 

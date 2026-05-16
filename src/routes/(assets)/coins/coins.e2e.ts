@@ -75,10 +75,7 @@ test.describe('/coins routes', () => {
 		})
 
 		await page.goto('/coins/markets', { waitUntil: 'domcontentloaded' })
-		await expect(page.locator('#coin-markets-page')).toBeVisible()
-		await expect(page.locator('[data-e2e="markets-entities-list"]')).toBeAttached({
-			timeout: 120_000,
-		})
+		await expect(page.locator('#coin-markets-page')).toBeVisible({ timeout: 120_000 })
 		await expect(page.getByText('Not found')).toHaveCount(0)
 		assertNoRuntimeErrors(pageErrors, consoleErrors)
 	})

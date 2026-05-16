@@ -61,7 +61,6 @@
 	import Address from '$/views/Address.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
@@ -73,21 +72,32 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.$coin.coinId}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={actorCoin}
 			placeholderText="Loading balance…"
 		>
 			{#snippet children(u)}
-				<HeadingComponent>
-					{u.symbol ?? 'Balance'}
-				</HeadingComponent>
+				{u.symbol ?? 'Balance'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 			<div>
 				<dt>Owner</dt>
 				<dd>
@@ -142,12 +152,6 @@
 						</div>
 					{/if}
 					{#if open}
-						{#if u.symbol !== undefined}
-							<div>
-								<dt>Symbol</dt>
-								<dd>{u.symbol}</dd>
-							</div>
-						{/if}
 						{#if u.decimals !== undefined}
 							<div>
 								<dt>Decimals</dt>

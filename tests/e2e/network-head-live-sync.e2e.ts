@@ -50,8 +50,8 @@ test.describe('Network head resolveLive (Voltaire block stream)', () => {
 		await expect(page.locator('#main')).toBeVisible()
 		await assertMainSettled(page)
 		await watchStart
-		await expect(page.locator('[data-e2e="network-carousel-blocks"]')).toBeVisible()
-		await expect(page.locator('[data-e2e="network-carousel-transactions"]')).toBeVisible()
+		await expect(page.locator('[data-scroll-marker-label="Blocks"]')).toBeVisible()
+		await expect(page.locator('[data-scroll-marker-label="Transactions"]')).toBeVisible()
 		expect(
 			pageErrors(issues),
 			pageErrors(issues).join('\n'),

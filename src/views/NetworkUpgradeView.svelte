@@ -58,7 +58,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 </script>
@@ -71,13 +70,19 @@
 	{href}
 	{open}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.upgradeSlug}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={networkUpgrade}
 			placeholderText="Loading network upgrade…"
 		>
 			{#snippet children(networkUpgradeEntity)}
-				<HeadingComponent>{networkUpgradeEntity.name ?? entityId.upgradeId}</HeadingComponent>
+				{networkUpgradeEntity.name ?? entityId.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -89,10 +94,13 @@
 		>
 			{#snippet children(networkUpgradeEntity)}
 				<dl>
-					<div>
-						<dt>Upgrade</dt>
-						<dd>{entityId.upgradeId}</dd>
-					</div>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 					{#if open}
 						{#if networkUpgradeEntity.activationBlock !== undefined}
 							<div>

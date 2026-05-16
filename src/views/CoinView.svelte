@@ -21,7 +21,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
 	import CoinInstancesView from '$/views/CoinInstancesView.svelte'
 	import MarketPriceRangesView from '$/views/MarketPriceRangesView.svelte'
 	import MarketPriceView from '$/views/MarketPriceView.svelte'
@@ -110,6 +110,12 @@
 			},
 		} as const
 	)
+
+	const hideHeadingSecondaryCoinSlugMatchesHeadingFallback = $derived(
+		coinIdentity.ready
+		&& coinIdentity.current.symbol === undefined
+		&& coinIdentity.current.name === undefined,
+	)
 </script>
 
 
@@ -124,19 +130,18 @@
 	{#snippet Heading()}
 		<ResourceBoundary resource={coinIdentity}>
 			{#snippet children(live)}
-				<HeadingComponent>
-					{#if href}
-						<a
-							data-link
-							{href}
-						>{live.symbol ?? live.name ?? entityId.coinId}</a>
-					{:else}
-						{live.symbol ?? live.name ?? entityId.coinId}
-					{/if}
-				</HeadingComponent>
+				{live.symbol ?? live.name ?? entityId.coinId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.coinId}
+		</span>
+	{/snippet}
+
+
 
 	{#snippet Content({
 		title: _contentTitle,
@@ -145,10 +150,14 @@
 		<ResourceBoundary resource={coinIdentity}>
 			{#snippet children(live)}
 				<dl>
-					<div>
-						<dt>Coin id</dt>
-						<dd>{entityId.coinId}</dd>
-					</div>
+					{#if !hideHeadingSecondaryCoinSlugMatchesHeadingFallback}
+						<div>
+							<dt>Coin id</dt>
+							<dd data-text="mono">
+								{@render Id()}
+							</dd>
+						</div>
+					{/if}
 					{#if open}
 						{#if live.name !== undefined}
 							<div>
@@ -206,7 +215,10 @@
 						data-row="start align-start"
 					>
 						<section data-scroll-marker-label="Spot">
-							<ResourceBoundary resource={coinSpotPrice}>
+							<ResourceBoundary
+								layout={Layout.Block}
+								resource={coinSpotPrice}
+							>
 								{#snippet children(priceLive)}
 									<MarketPriceView
 										entityId={

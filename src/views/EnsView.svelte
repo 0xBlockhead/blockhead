@@ -67,6 +67,13 @@
 	{...entityViewRest}
 	title={entityId.name}
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			{entityId.name}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={ensText}>
 			{#snippet children(snapshot)}
@@ -85,7 +92,7 @@
 					</div>
 					{#if open}
 						{#if snapshot.textRecords !== undefined}
-							{#if entries.length > 0}
+							{#if entries.length}
 								{#each entries as [key, value] (key)}
 									<div>
 										<dt>
@@ -112,7 +119,7 @@
 							No records available yet.
 						</p>
 					{:else}
-						{#if entries.length === 0}
+						{#if !entries.length}
 							<p data-text="muted">
 								No text records found.
 							</p>

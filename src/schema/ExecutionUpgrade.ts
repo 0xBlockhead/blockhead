@@ -7,14 +7,17 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
-import { ExecutionProtocol } from '$/schema/NetworkFork.ts'
+import {
+	ExecutionProtocol,
+	NetworkExecutionUpgradeLayer,
+} from '$/schema/NetworkUpgradeProtocols.ts'
 import Network from '$/schema/Network.ts'
 
 export default {
 	entityType: EntityType.NetworkExecutionUpgrade,
 
-	label: 'Network Execution Upgrade',
-	labelPlural: 'Network Execution Upgrades',
+	label: 'Execution Upgrade',
+	labelPlural: 'Execution Upgrades',
 
 	id: type({
 		$network: Network.id,
@@ -56,6 +59,12 @@ export default {
 			name: 'protocol',
 			type: EntityFieldType.Primitive,
 			primitiveType: type.valueOf(ExecutionProtocol),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'layer',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(NetworkExecutionUpgradeLayer),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

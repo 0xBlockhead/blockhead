@@ -99,7 +99,6 @@
 
 	<div
 		id="nav-menu"
-		data-e2e="nav-menu"
 		data-sticky-container
 	>
 		<NavigationItems

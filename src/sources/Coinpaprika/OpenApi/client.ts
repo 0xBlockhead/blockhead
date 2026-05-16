@@ -17,7 +17,7 @@ export const getCoinpaprikaJson = async <_Response>(
 		{
 			headers: {
 				Accept: 'application/json',
-				...(apiKey == null ? {} : { Authorization: `Bearer ${apiKey}` }),
+				...(apiKey != null && { Authorization: `Bearer ${apiKey}` }),
 			},
 		},
 	)

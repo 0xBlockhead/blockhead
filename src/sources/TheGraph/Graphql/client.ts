@@ -42,7 +42,7 @@ export const queryTheGraph = async <
 		headers: {
 			Accept: 'application/json',
 			'Content-Type': 'application/json',
-			...(apiKey != null ? { Authorization: `Bearer ${apiKey}` } : {}),
+			...(apiKey != null && { Authorization: `Bearer ${apiKey}` }),
 		},
 		body: JSON.stringify({
 			query: print(document),

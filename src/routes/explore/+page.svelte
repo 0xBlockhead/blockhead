@@ -22,7 +22,6 @@
 	>
 		<section>
 			<NetworksView
-				data-e2e="networks-panel"
 				entityFieldReference={{
 					entityType: EntityType._Global,
 					entityId: {},

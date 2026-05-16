@@ -97,8 +97,28 @@
 	idDragPlainText={String(entityId.slot)}
 	{...entityViewRest}
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			{entityId.slot}
+		</span>
+	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			chain {String(entityId.$network.chainId)}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
+			<div>
+				<dt>Id</dt>
+				<dd data-text="mono">
+					{@render Id()}
+				</dd>
+			</div>
+
 			<ResourceBoundary resource={slot}>
 				{#snippet children(s)}
 					<div>

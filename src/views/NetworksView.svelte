@@ -88,13 +88,9 @@
 		networksParent,
 		(merged) => {
 			const chainIds = new SvelteSet<number>()
+			const rows: Entity<typeof schema, EntityType.Network>[] = merged[fieldName] ?? []
 			return (
-				(
-					(
-						merged[fieldName as keyof typeof merged]
-						?? []
-					) as (Entity<typeof schema, EntityType.Network>)[]
-				)
+				rows
 					.flatMap((value) => {
 						const chainId = value[EntityMetaKey.Id].chainId
 						if (chainIds.has(chainId)) return []

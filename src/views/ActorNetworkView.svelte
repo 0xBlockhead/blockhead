@@ -10,10 +10,11 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
-	// Components
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ActorIdentityRow from '$/views/ActorIdentityRow.svelte'
+	import Address from '$/views/Address.svelte'
 
 
 	// Props
@@ -63,6 +64,20 @@
 			name: {},
 		},
 	)
+
+	const actor = useEntity(
+		EntityType.Actor,
+		entityId.$actor,
+		{
+			$: [
+				Source.Voltaire_JsonRpc,
+			],
+			$primaryName: {},
+			$icon: {},
+		},
+	)
+
+
 </script>
 
 
@@ -75,60 +90,94 @@
 	bind:open
 	{...entityViewRest}
 >
+	{#snippet Icon()}
+		<ResourceBoundary resource={actor}>
+			{#snippet children(actorRow)}
+				{#if actorRow.$icon}
+					<IconComponent
+						shape={IconShape.Circle}
+						src={actorRow.$icon[EntityMetaKey.Id].url}
+						size="1.5em"
+						alt=""
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Heading()}
+		<ResourceBoundary resource={actor}>
+			{#snippet children(actorRow)}
+				{actorRow.$primaryName?.[EntityMetaKey.Id].name ?? entityId.$actor.address}
+			{/snippet}
+		</ResourceBoundary>
+		<small data-text="muted">
+			{' '}·{' '}
+			<ResourceBoundary
+				resource={network}
+				placeholderText="···"
+			>
+				{#snippet children(chain)}
+					{chain.name ?? String(chain[EntityMetaKey.Id].chainId)}
+				{/snippet}
+			</ResourceBoundary>
+		</small>
+	{/snippet}
+
 	{#snippet Id()}
-		<span data-row="inline wrap align-center gap-2">
-			<ActorIdentityRow entityId={entityId.$actor} />
-
-			<small data-text="muted">
-				 ·{' '}
-
-				<ResourceBoundary
-					resource={network}
-					placeholderText="···"
-				>
-					{#snippet children(chain)}
-						{chain.name ?? String(chain[EntityMetaKey.Id].chainId)}
-					{/snippet}
-				</ResourceBoundary>
-			</small>
-		</span>
+		<Address
+			address={entityId.$actor.address}
+			network={entityId.$network}
+		/>
 	{/snippet}
 
 	{#snippet Content({
 		title: _title,
 		href: _href,
 	})}
-		<dl>
-			<div>
-				<dt>Actor</dt>
-				<dd>
-					<ActorIdentityRow entityId={entityId.$actor} />
-				</dd>
-			</div>
+		<ResourceBoundary resource={actor}>
+			{#snippet children(actorRow)}
+				<dl>
+					{#if actorRow.$primaryName}
+						<div>
+							<dt>Address</dt>
+							<dd data-text="mono">
+								{@render Id()}
+							</dd>
+						</div>
+					{/if}
+					<div>
+						<dt>Actor</dt>
+						<dd>
+							<ActorIdentityRow entityId={entityId.$actor} />
+						</dd>
+					</div>
 
-			<div>
-				<dt>Network</dt>
-				<dd>
-					<ResourceBoundary
-						resource={network}
-						placeholderText="Loading…"
-					>
-						{#snippet children(chain)}
-							<samp data-text="font-monospace">
-								{#if chain.name}
-									{chain.name}
-									<span data-text="muted">
-										{' '}({String(chain[EntityMetaKey.Id].chainId)})
-									</span>
-								{:else}
-									{String(chain[EntityMetaKey.Id].chainId)}
-								{/if}
-							</samp>
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-		</dl>
+					<div>
+						<dt>Network</dt>
+						<dd>
+							<ResourceBoundary
+								resource={network}
+								placeholderText="Loading…"
+							>
+								{#snippet children(chain)}
+									<samp data-text="font-monospace">
+										{#if chain.name}
+											{chain.name}
+											<span data-text="muted">
+												{' '}({String(chain[EntityMetaKey.Id].chainId)})
+											</span>
+										{:else}
+											{String(chain[EntityMetaKey.Id].chainId)}
+										{/if}
+									</samp>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({

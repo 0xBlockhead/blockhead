@@ -35,7 +35,7 @@ const normalizeCurrentPriceData = (
 			price: value.price,
 			symbol: value.symbol,
 			timestamp: value.timestamp,
-			...(value.confidence != null ? { confidence: value.confidence } : {}),
+			...(value.confidence != null && { confidence: value.confidence }),
 		}
 	:	undefined
 )

@@ -63,7 +63,6 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -77,65 +76,92 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.id}
+		</span>
+	{/snippet}
+
+
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={post}
 			placeholderText="Loading post…"
 		>
-			{#snippet children(row)}
-				<HeadingComponent>
-					{#if href}
-						<a href={href}>
-							<TruncatedValue
-								endLength={8}
-								format={TruncatedValueFormat.Visual}
-								startLength={88}
-								value={row.text ?? entityId.id}
-							/>
-						</a>
-					{:else}
-						<TruncatedValue
-							endLength={8}
-							format={TruncatedValueFormat.Visual}
-							startLength={88}
-							value={row.text ?? entityId.id}
-						/>
-					{/if}
-				</HeadingComponent>
+			{#snippet children(resolvedXPost)}
+				{#if resolvedXPost.text}
+					<TruncatedValue
+						endLength={8}
+						format={TruncatedValueFormat.Visual}
+						startLength={88}
+						value={resolvedXPost.text}
+					/>
+				{:else}
+					{entityId.id}
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({ title: _title, href: _href, open })}
 		<ResourceBoundary
 			resource={post}
 			placeholderText="Loading post…"
 		>
-			{#snippet children(row)}
-				{#if row.text}
-					<p>
-						{row.text}
-					</p>
+			{#snippet children(resolvedXPost)}
+				{#if resolvedXPost.text}
+					{#if !open}
+						<p>
+							{resolvedXPost.text}
+						</p>
+					{/if}
 				{/if}
-				{#if row.$author}
+				{#if resolvedXPost.$author}
 					<p data-text="muted">
 						<a
 							href={resolve(
 								'/(social)/x/user/[userId]',
 								{
 									userId: encodeURIComponent(
-										row.$author[EntityMetaKey.Id].id,
+										resolvedXPost.$author[EntityMetaKey.Id].id,
 									),
 								},
 							)}
-						>Author (id {row.$author[EntityMetaKey.Id].id})</a>
+						>Author (id {resolvedXPost.$author[EntityMetaKey.Id].id})</a>
 					</p>
 				{/if}
+				<dl data-column-item="center">
+						{#if resolvedXPost.text}
+							<div>
+								<dt>Post id</dt>
+								<dd data-text="mono">
+									{@render Id()}
+								</dd>
+							</div>
+						{/if}
+						{#if open}
+							{#if resolvedXPost.text}
+								<div>
+									<dt>Text</dt>
+									<dd>{resolvedXPost.text}</dd>
+								</div>
+							{/if}
+							{#if resolvedXPost.createdAt != null}
+								<div>
+									<dt>Created at</dt>
+									<dd>
+										<Timestamp
+											timestamp={resolvedXPost.createdAt}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/if}
+					</dl>
 			{/snippet}
 		</ResourceBoundary>
-		<div data-text="mono muted">
-			{entityId.id}
-		</div>
 	{/snippet}
 
 	{#snippet Details({
@@ -149,41 +175,15 @@
 				resource={post}
 				placeholderText="Loading post…"
 			>
-				{#snippet children(row)}
+				{#snippet children(resolvedXPost)}
 					{#if (
-						row.text === undefined
-						&& row.createdAt === undefined
-						&& row.$author === undefined
+						!resolvedXPost.text
+						&& resolvedXPost.createdAt == null
+						&& !resolvedXPost.$author
 					)}
 						<p data-text="muted">
 							Post details are not available yet.
 						</p>
-					{:else}
-						<dl>
-							{#if row.$author}
-								<div>
-									<dt>Author id</dt>
-									<dd>{row.$author[EntityMetaKey.Id].id}</dd>
-								</div>
-							{/if}
-							{#if row.text}
-								<div>
-									<dt>Text</dt>
-									<dd>{row.text}</dd>
-								</div>
-							{/if}
-							{#if row.createdAt !== undefined}
-								<div>
-									<dt>Created at</dt>
-									<dd>
-										<Timestamp
-											timestamp={row.createdAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-						</dl>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

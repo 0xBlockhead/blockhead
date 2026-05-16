@@ -46,13 +46,11 @@ export default {
 					displayName: optionalTrimmedString(a.display_name),
 					note: optionalTrimmedString(a.note),
 					...((
-						t,
+						iconMedia,
 					) => (
-						t == null ?
-							{}
-						:	{
-								$icon: t,
-							}
+						iconMedia != null && {
+							$icon: iconMedia,
+						}
 					))(mediaFromUrl(mastodonAvatarUrl(a.avatar, { siteOrigin: entityId.instanceOrigin }), MediaType.Image)),
 				}
 			},
@@ -71,7 +69,7 @@ export default {
 				const createdAt = Date.parse(s.created_at ?? '')
 				return {
 					content: optionalTrimmedString(s.content),
-					...(Number.isFinite(createdAt) ? { createdAt } : {}),
+					...(Number.isFinite(createdAt) && { createdAt }),
 					$author: (
 						s.account == null || s.account.id == null ?
 							undefined

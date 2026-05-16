@@ -50,8 +50,6 @@
 
 	const idKey = stringify(entityId)
 
-	const lensMainnet = { chainId: 1 }
-
 	const lensAccount = useEntity(
 		EntityType.LensAccount,
 		entityId,
@@ -65,11 +63,11 @@
 	// Components
 	import Collapsible from '$/components/Collapsible.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+
 	import LensPostsView from '$/views/LensPostsView.svelte'
 </script>
 
@@ -83,17 +81,23 @@
 >
 	{#snippet Heading()}
 		<ResourceBoundary resource={lensAccount}>
-			{#snippet children(loaded)}
-				<HeadingComponent>
-					{#if loaded.localName !== undefined && loaded.localName.trim().length > 0}
-						{loaded.localName.trim()}
-					{:else}
-						{entityId.address}
-					{/if}
-				</HeadingComponent>
+			{#snippet children(resolvedLensAccount)}
+				{#if resolvedLensAccount.localName}
+					{resolvedLensAccount.localName}
+				{:else}
+					{entityId.address}
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.address}
+		</span>
+	{/snippet}
+
+
 
 	{#snippet Icon()}
 		<IconComponent
@@ -104,20 +108,28 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ActorNetworkView
-			entityId={{
-				$network: lensMainnet,
-				$actor: {
-					address: entityId.address,
-				},
-			}}
-			href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-				accountId: entityId.address,
-			})}
-			layout={EntityLayout.Id}
-			open={false}
-			showTypeAnnotation={false}
-		/>
+		<div data-column>
+			<ResourceBoundary resource={lensAccount}>
+				{#snippet children(resolvedLensAccount)}
+					<dl data-column-item="center">
+						{#if resolvedLensAccount.localName}
+							<div>
+								<dt>Address</dt>
+								<dd data-text="mono">
+									{@render Id()}
+								</dd>
+							</div>
+						{/if}
+						{#if resolvedLensAccount.localName !== undefined}
+							<div>
+								<dt>Handle</dt>
+								<dd>{resolvedLensAccount.localName}</dd>
+							</div>
+						{/if}
+					</dl>
+				{/snippet}
+			</ResourceBoundary>
+		</div>
 	{/snippet}
 
 	{#snippet Details({
@@ -126,39 +138,7 @@
 		<EntityDetails
 			entityType={EntityType.LensAccount}
 			{entityId}
-		>
-			<ResourceBoundary resource={lensAccount}>
-				{#snippet children(loaded)}
-					<dl>
-						<div>
-							<dt>Address</dt>
-							<dd>
-								<ActorNetworkView
-									entityId={{
-										$network: lensMainnet,
-										$actor: {
-											address: entityId.address,
-										},
-									}}
-									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-										accountId: entityId.address,
-									})}
-									layout={EntityLayout.Id}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-						{#if loaded.localName !== undefined}
-							<div>
-								<dt>Handle</dt>
-								<dd>{loaded.localName}</dd>
-							</div>
-						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+		/>
 
 		<Collapsible
 			id={`${idKey}:carousel-activity`}

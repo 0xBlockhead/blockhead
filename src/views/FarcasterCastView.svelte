@@ -17,9 +17,8 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
@@ -118,33 +117,6 @@
 	{open}
 	{...entityViewRest}
 >
-	{#snippet Heading()}
-		<ResourceBoundary
-			resource={castSummary}
-			placeholderText="Loading cast…"
-		>
-			{#snippet children(row)}
-				<HeadingComponent>
-					<a {href}>
-						<TruncatedValue
-							value={(
-								row.text.trim().replaceAll('\n', ' ')
-								=== ''
-							) ?
-								'Cast'
-							:
-								row.text.trim().replaceAll('\n', ' ')
-							}
-							startLength={56}
-							endLength={24}
-							format={TruncatedValueFormat.Abbr}
-						/>
-					</a>
-				</HeadingComponent>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet Icon()}
 		{#if variant === 'feed'}
 			<ResourceBoundary
@@ -162,6 +134,35 @@
 				{/snippet}
 			</ResourceBoundary>
 		{/if}
+	{/snippet}
+
+	{#snippet Heading()}
+		<ResourceBoundary
+			resource={castSummary}
+			placeholderText="Loading cast…"
+		>
+			{#snippet children(row)}
+				<TruncatedValue
+					value={(
+						row.text.replaceAll('\n', ' ')
+						=== ''
+					) ?
+						'Cast'
+					:
+						row.text.replaceAll('\n', ' ')
+					}
+					startLength={56}
+					endLength={24}
+					format={TruncatedValueFormat.Abbr}
+				/>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			{entityId.hash}
+		</span>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -199,7 +200,7 @@
 							channelId,
 						})
 				)}
-				{@const flatText = row.text.trim().replaceAll('\n', ' ')}
+				{@const flatText = row.text.replaceAll('\n', ' ')}
 				<div data-column>
 					{#if flatText !== ''}
 						<p>
@@ -502,6 +503,7 @@
 					{/snippet}
 				</ResourceBoundary>
 				<ResourceBoundary
+					layout={Layout.Block}
 					resource={castRich}
 					placeholderText="Loading mentions and embeds…"
 				>
@@ -623,9 +625,9 @@
 							{/if}
 
 							{#if (
-								(rich.mentionedProfileFids === undefined || rich.mentionedProfileFids.length === 0)
-								&& (rich.mentionedChannelIds === undefined || rich.mentionedChannelIds.length === 0)
-								&& rich.$$embeds.length === 0
+								!(rich.mentionedProfileFids?.length)
+								&& !(rich.mentionedChannelIds?.length)
+								&& !rich.$$embeds.length
 							)}
 								<p data-text="muted">
 									No mentions or embeds available.

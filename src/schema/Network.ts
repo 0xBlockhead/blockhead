@@ -19,13 +19,6 @@ const executionEndpointField = type({
 	transportType: type.valueOf(TransportType),
 })
 
-const blockExplorerField = type({
-	origin: UrlString,
-	'name?': 'string',
-	'standard?': 'string',
-	'icon?': UrlString,
-})
-
 const nativeCurrencyField = type({
 	name: 'string',
 	symbol: 'string',
@@ -66,10 +59,10 @@ export default {
 			],
 		},
 		{
-			name: 'blockExplorers',
-			type: EntityFieldType.Primitive,
-			primitiveType: blockExplorerField,
-			cardinality: EntityFieldCardinality.Many,
+			name: '$$blockExplorerUrls',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Url,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
@@ -193,10 +186,10 @@ export default {
 			],
 		},
 		{
-			name: 'faucets',
-			type: EntityFieldType.Primitive,
-			primitiveType: UrlString,
-			cardinality: EntityFieldCardinality.Many,
+			name: '$$faucetUrls',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Url,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
@@ -221,15 +214,6 @@ export default {
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
 				Source.Lifi_Rest,
-			],
-		},
-		{
-			name: '$$forks',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.NetworkFork,
-			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Constants_Internal,
 			],
 		},
 		{
@@ -260,7 +244,7 @@ export default {
 			],
 		},
 		{
-			name: 'hasCatalogedBlobScheduleFork',
+			name: 'hasBlobParameterExecutionUpgrade',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('boolean'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -340,6 +324,33 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Blockscout_Rest,
+			],
+		},
+		{
+			name: '$$gasFeeTimestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Network_GasFee_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
+		},
+		{
+			name: '$$txpoolTimestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Network_Txpool_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
+		},
+		{
+			name: '$$mevProposerPayloadDelivered',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.MevRelay_ProposerPayloadDelivered,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.MevRelay_Rest,
 			],
 		},
 		{

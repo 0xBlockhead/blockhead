@@ -75,7 +75,7 @@ const ascComparator = (
 	const bIsObject = typeof b === `object`
 	if (aIsObject || bIsObject) {
 		if (aIsObject && bIsObject) {
-			return getObjectId(a as object) - getObjectId(b as object)
+			return getObjectId(a) - getObjectId(b)
 		}
 		if (aIsObject) return 1
 		if (bIsObject) return -1

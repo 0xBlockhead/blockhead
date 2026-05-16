@@ -64,8 +64,7 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import Media from '$/components/Media.svelte'
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
@@ -77,15 +76,30 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Icon()}
+		<ResourceBoundary
+			resource={connection}
+			placeholderText="Loading account…"
+		>
+			{#snippet children(account)}
+				{#if account.$icon?.[EntityMetaKey.Id].url}
+					<IconComponent
+						shape={IconShape.Circle}
+						src={account.$icon[EntityMetaKey.Id].url}
+						alt=""
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={connection}
 			placeholderText="Loading account…"
 		>
 			{#snippet children(account)}
-				<HeadingComponent>
-					{account.displayName ?? account.username ?? String(entityId.fid)}
-				</HeadingComponent>
+				{account.displayName ?? account.username ?? String(entityId.fid)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -110,17 +124,66 @@
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet Id()}
+		<span data-text="font-monospace">
+			FID {String(entityId.fid)}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={connection}
 			placeholderText="Loading account…"
 		>
 			{#snippet children(account)}
-				{#if account.bio}
-					<p data-text="muted">
-						{account.bio}
-					</p>
-				{/if}
+				<dl data-column-item="center">
+					<div>
+						<dt>FID</dt>
+						<dd data-text="mono">
+							{@render Id()}
+						</dd>
+					</div>
+					{#if account.bio}
+						<div>
+							<dt>Bio</dt>
+							<dd>{account.bio}</dd>
+						</div>
+					{/if}
+					{#if open}
+						{#if account.authMethod}
+							<div>
+								<dt>Auth method</dt>
+								<dd>{account.authMethod}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if account.custody}
+							<div>
+								<dt>Custody</dt>
+								<dd>{account.custody}</dd>
+							</div>
+						{/if}
+					{/if}
+					{#if open}
+						{#if account.verifications}
+							{#if account.verifications.length}
+								<div>
+									<dt>Verifications</dt>
+									<dd>{account.verifications.join(', ')}</dd>
+								</div>
+							{/if}
+						{/if}
+					{/if}
+					{#if open}
+						{#if account.signedAt !== undefined}
+							<div>
+								<dt>Signed at</dt>
+								<dd>{new Date(account.signedAt).toISOString()}</dd>
+							</div>
+						{/if}
+					{/if}
+				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -134,77 +197,7 @@
 			<EntityDetails
 				entityType={EntityType.BlockheadFarcasterAccountConnection}
 				{entityId}
-			>
-				<ResourceBoundary
-					resource={connection}
-					placeholderText="Loading account…"
-				>
-					{#snippet children(account)}
-						<dl>
-							<div>
-								<dt>FID</dt>
-								<dd>{String(entityId.fid)}</dd>
-							</div>
-							{#if account.displayName}
-								<div>
-									<dt>Display name</dt>
-									<dd>{account.displayName}</dd>
-								</div>
-							{/if}
-							{#if account.username}
-								<div>
-									<dt>Username</dt>
-									<dd>{account.username}</dd>
-								</div>
-							{/if}
-							{#if account.$icon}
-								{#if account.$icon[EntityMetaKey.Id].url}
-									<div>
-										<dt>Profile image</dt>
-										<dd data-column>
-											<Media
-												media={{ url: account.$icon[EntityMetaKey.Id].url }}
-												alt={(account.displayName ?? account.username) ?? ''}
-											/>
-											<a href={account.$icon[EntityMetaKey.Id].url}>{account.$icon[EntityMetaKey.Id].url}</a>
-										</dd>
-									</div>
-								{/if}
-							{/if}
-							{#if account.bio}
-								<div>
-									<dt>Bio</dt>
-									<dd>{account.bio}</dd>
-								</div>
-							{/if}
-							{#if account.authMethod}
-								<div>
-									<dt>Auth method</dt>
-									<dd>{account.authMethod}</dd>
-								</div>
-							{/if}
-							{#if account.custody}
-								<div>
-									<dt>Custody</dt>
-									<dd>{account.custody}</dd>
-								</div>
-							{/if}
-							{#if account.verifications && account.verifications.length}
-								<div>
-									<dt>Verifications</dt>
-									<dd>{account.verifications.join(', ')}</dd>
-								</div>
-							{/if}
-							{#if account.signedAt !== undefined}
-								<div>
-									<dt>Signed at</dt>
-									<dd>{new Date(account.signedAt).toISOString()}</dd>
-								</div>
-							{/if}
-						</dl>
-					{/snippet}
-				</ResourceBoundary>
-			</EntityDetails>
+			/>
 		{/if}
 	{/snippet}
 </EntityView>

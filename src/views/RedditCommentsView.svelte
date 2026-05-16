@@ -58,22 +58,21 @@
 
 	const comments = derive(
 		parentEntity,
-		(merged) => (
-			(
-				merged[fieldName as keyof typeof merged] as (
-					Entity<typeof schema, EntityType.RedditComment>
-				)[]
+		(merged) => {
+			const rows: Entity<typeof schema, EntityType.RedditComment>[] = merged[fieldName] ?? []
+			return (
+				rows
+					.toSorted((a, b) => (
+						b[EntityMetaKey.IdKey].localeCompare(a[EntityMetaKey.IdKey])
+					))
+					.map((comment) => (
+						{
+							...comment[EntityMetaKey.Id],
+							sortKey: comment[EntityMetaKey.IdKey],
+						}
+					))
 			)
-				.toSorted((a, b) => (
-					b[EntityMetaKey.IdKey].localeCompare(a[EntityMetaKey.IdKey])
-				))
-				.map((comment) => (
-					{
-						...comment[EntityMetaKey.Id],
-						sortKey: comment[EntityMetaKey.IdKey],
-					}
-				))
-		),
+		},
 	)
 
 

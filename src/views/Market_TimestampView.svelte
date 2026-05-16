@@ -81,6 +81,13 @@
 	title="Market quote"
 	{...entityViewRest}
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			{String(entityId.timestampNs)}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			placeholderText="Loading quote…"

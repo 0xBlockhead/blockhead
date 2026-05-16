@@ -61,6 +61,13 @@
 	open={true}
 	title="Reddit"
 >
+	{#snippet Heading()}
+
+		<span data-text="font-monospace">
+			{entityId.scope}
+		</span>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={redditNetwork}
