@@ -18,7 +18,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
-	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
@@ -503,7 +503,6 @@
 					{/snippet}
 				</ResourceBoundary>
 				<ResourceBoundary
-					layout={Layout.Block}
 					resource={castRich}
 					placeholderText="Loading mentions and embeds…"
 				>

@@ -114,7 +114,7 @@
 
 <style>
 	#layout {
-		--navigation-desktop-inlineSize: 21rem;
+		--navigation-desktop-inlineSize: 16rem;
 		--navigation-mobile-blockSize: 4rem;
 
 		inline-size: 100dvw;

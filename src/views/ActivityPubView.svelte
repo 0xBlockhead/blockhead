@@ -20,7 +20,7 @@
 	// Components
 	import ActivityPubActorsView from '$/views/ActivityPubActorsView.svelte'
 	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
-	import Collapsible from '$/components/Collapsible.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -126,9 +126,13 @@
 		/>
 
 		<div data-column="gap-3">
-			<Collapsible
+			<CollapsibleTabs
 				id={`${networkIdKey}:registry`}
 				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+					style: '--carousel-basis: 36ch',
+				}}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
@@ -142,41 +146,35 @@
 				{/snippet}
 
 				{#snippet children({ open: _open })}
-					<div
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						data-row="start align-start"
-						style="--carousel-basis: 36ch"
-					>
-						<section data-scroll-marker-label="Actors">
-							<ActivityPubActorsView
-								entityFieldReference={{
-									entityType: EntityType.ActivityPubNetwork,
-									entityId,
-									fieldName: '$$activityPubActors',
-								}}
-								href={resolve('/(social)/activitypub')}
-								id={`${networkIdKey}:actors`}
-								open={false}
-							/>
-						</section>
+					<section data-scroll-marker-label="Actors">
+						<ActivityPubActorsView
+							entityFieldReference={{
+								entityType: EntityType.ActivityPubNetwork,
+								entityId,
+								fieldName: '$$activityPubActors',
+							}}
+							href={resolve('/(social)/activitypub')}
+							id={`${networkIdKey}:actors`}
+							open={false}
+						/>
+					</section>
 
-						<section data-scroll-marker-label="Public notes">
-							<ActivityPubMastodonFieldNotes
-								entityFieldReference={{
-									entityType: EntityType.ActivityPubNetwork,
-									entityId,
-									fieldName: '$$activityPubNotes',
-								}}
-								href={resolve('/(social)/activitypub')}
-								id={`${networkIdKey}:notes`}
-								orderByCreatedAt="desc"
-								placeholderText="Loading public notes…"
-								title="Public notes"
-							/>
-						</section>
-					</div>
+					<section data-scroll-marker-label="Public notes">
+						<ActivityPubMastodonFieldNotes
+							entityFieldReference={{
+								entityType: EntityType.ActivityPubNetwork,
+								entityId,
+								fieldName: '$$activityPubNotes',
+							}}
+							href={resolve('/(social)/activitypub')}
+							id={`${networkIdKey}:notes`}
+							orderByCreatedAt="desc"
+							placeholderText="Loading public notes…"
+							title="Public notes"
+						/>
+					</section>
 				{/snippet}
-			</Collapsible>
+			</CollapsibleTabs>
 		</div>
 	{/snippet}
 </EntityView>

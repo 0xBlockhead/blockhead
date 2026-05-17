@@ -20,6 +20,7 @@
 	import AtprotoActorsView from '$/views/AtprotoActorsView.svelte'
 	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
 	import Collapsible from '$/components/Collapsible.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -40,10 +41,15 @@
 		'at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3la6vijfoie2r' as const
 	)
 
-
 	const networkIdKey = stringify(entityId)
 
-	let open = $bindable(true)
+
+	// State
+	let {
+		open = $bindable(true),
+	}: {
+		open: boolean
+	} = $props()
 
 	const atprotoNetwork = useEntity(
 		EntityType.AtprotoNetwork,
@@ -130,9 +136,13 @@
 		/>
 
 		<div data-column="gap-3">
-			<Collapsible
+			<CollapsibleTabs
 				id={`${networkIdKey}:registry`}
 				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+					style: '--carousel-basis: 36ch',
+				}}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
@@ -146,40 +156,34 @@
 				{/snippet}
 
 				{#snippet children({ open: _open })}
-					<div
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						data-row="start align-start"
-						style="--carousel-basis: 36ch"
-					>
-						<section data-scroll-marker-label="Actors">
-							<AtprotoActorsView
-								entityFieldReference={{
-									entityType: EntityType.AtprotoNetwork,
-									entityId,
-									fieldName: '$$atprotoActors',
-								}}
-								href={resolve('/(social)/atproto')}
-								id={`${networkIdKey}:actors`}
-								open={false}
-							/>
-						</section>
+					<section data-scroll-marker-label="Actors">
+						<AtprotoActorsView
+							entityFieldReference={{
+								entityType: EntityType.AtprotoNetwork,
+								entityId,
+								fieldName: '$$atprotoActors',
+							}}
+							href={resolve('/(social)/atproto')}
+							id={`${networkIdKey}:actors`}
+							open={false}
+						/>
+					</section>
 
-						<section data-scroll-marker-label="Recent posts">
-							<AtprotoPostsView
-								entityFieldReference={{
-									entityType: EntityType.AtprotoNetwork,
-									entityId,
-									fieldName: '$$atprotoPosts',
-								}}
-								href={resolve('/(social)/atproto')}
-								id={`${networkIdKey}:posts`}
-								open={false}
-								title="Recent posts"
-							/>
-						</section>
-					</div>
+					<section data-scroll-marker-label="Recent posts">
+						<AtprotoPostsView
+							entityFieldReference={{
+								entityType: EntityType.AtprotoNetwork,
+								entityId,
+								fieldName: '$$atprotoPosts',
+							}}
+							href={resolve('/(social)/atproto')}
+							id={`${networkIdKey}:posts`}
+							open={false}
+							title="Recent posts"
+						/>
+					</section>
 				{/snippet}
-			</Collapsible>
+			</CollapsibleTabs>
 
 			<Collapsible
 				id={`${networkIdKey}:examples`}

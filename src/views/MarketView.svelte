@@ -60,8 +60,8 @@
 
 
 	// Components
-	import Collapsible from '$/components/Collapsible.svelte'
-	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import Heading from '$/components/Heading.svelte'
@@ -161,10 +161,16 @@
 			{entityId}
 		/>
 
-		<div data-column="gap-3">
-			<Collapsible
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
+			<CollapsibleTabs
 				id={`${marketIdKey}:carousel-assets`}
 				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
 				{#snippet Summary({
 					open: _open,
@@ -180,12 +186,7 @@
 				{/snippet}
 
 				{#snippet children(_ctx)}
-					<div
-						class="carousel"
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						data-row="start align-start"
-					>
-						<section data-scroll-marker-label="Base">
+					<section data-scroll-marker-label="Base">
 							{#if entityId.$base.kind === MarketAssetKind.Coin}
 								<CoinView
 									entityId={entityId.$base.$coin}
@@ -238,7 +239,6 @@
 						{#if entityId.$base.kind === MarketAssetKind.Coin}
 							<section data-scroll-marker-label="Catalog base">
 								<ResourceBoundary
-									layout={Layout.Block}
 									placeholderText="Loading market…"
 									resource={market}
 								>
@@ -263,13 +263,15 @@
 								</ResourceBoundary>
 							</section>
 						{/if}
-					</div>
 				{/snippet}
-			</Collapsible>
+			</CollapsibleTabs>
 
-			<Collapsible
+			<CollapsibleTabs
 				id={`${marketIdKey}:carousel-pricing`}
 				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
 				{#snippet Summary({
 					open: _open,
@@ -285,41 +287,35 @@
 				{/snippet}
 
 				{#snippet children(_ctx)}
-					<div
-						class="carousel"
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						data-row="start align-start"
-					>
-						<section data-scroll-marker-label="Prices">
-							<MarketPricesView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Market,
-									entityId,
-									fieldName: '$$marketPrices',
-								}}
-								href={pricingHubHref ?? href}
-								id={`${marketIdKey}:market-prices`}
-								title="Prices"
-							/>
-						</section>
+					<section data-scroll-marker-label="Prices">
+						<MarketPricesView
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.Market,
+								entityId,
+								fieldName: '$$marketPrices',
+							}}
+							href={pricingHubHref ?? href}
+							id={`${marketIdKey}:market-prices`}
+							title="Prices"
+						/>
+					</section>
 
-						<section data-scroll-marker-label="OHLC">
-							<MarketPriceRangesView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Market,
-									entityId,
-									fieldName: '$$marketPriceRanges',
-								}}
-								href={pricingHubHref ?? href}
-								id={`${marketIdKey}:market-price-ranges`}
-								title="OHLC"
-							/>
-						</section>
-					</div>
+					<section data-scroll-marker-label="OHLC">
+						<MarketPriceRangesView
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.Market,
+								entityId,
+								fieldName: '$$marketPriceRanges',
+							}}
+							href={pricingHubHref ?? href}
+							id={`${marketIdKey}:market-price-ranges`}
+							title="OHLC"
+						/>
+					</section>
 				{/snippet}
-			</Collapsible>
+			</CollapsibleTabs>
 		</div>
 
 		{#if children}
@@ -330,7 +326,7 @@
 
 
 <style>
-	.carousel {
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
 		&[data-scroll-container] {
 			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
 			max-block-size: var(--scrollContainer-sizeBlock);

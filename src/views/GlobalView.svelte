@@ -94,33 +94,7 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary resource={duneUsage}>
-			{#snippet children(global)}
-				<div data-column="gap-2">
-					{#if global.duneCreditsUsed === undefined}
-						{#if global.duneCreditsIncluded === undefined}
-							<p data-text="muted">
-								Usage totals are not available yet.
-							</p>
-						{/if}
-					{/if}
-					<dl>
-						{#if global.duneCreditsUsed !== undefined}
-							<div>
-								<dt>Dune credits used</dt>
-								<dd>{String(global.duneCreditsUsed)}</dd>
-							</div>
-						{/if}
-						{#if global.duneCreditsIncluded !== undefined}
-							<div>
-								<dt>Dune credits included</dt>
-								<dd>{String(global.duneCreditsIncluded)}</dd>
-							</div>
-						{/if}
-					</dl>
-				</div>
-			{/snippet}
-		</ResourceBoundary>
+
 	{/snippet}
 
 	{#snippet Details()}

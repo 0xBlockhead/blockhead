@@ -59,7 +59,7 @@
 	<summary data-sticky>
 		<div
 			data-row-item="flexible"
-			data-row="align-center wrap"
+			data-row="align-center wrap wrap-first-last"
 		>
 			{#if Summary}
 				{@render Summary({

@@ -62,7 +62,7 @@
 			)}
 		{:else if layout === Layout.Inline}
 			<span
-				data-badge
+				data-tag
 				class="inline-placeholder"
 				aria-label={resource.error instanceof Error ? resource.error.message : String(resource.error)}
 			>
@@ -79,7 +79,7 @@
 		{:else}
 			{#if layout === Layout.Inline}
 				<span
-					data-badge
+					data-tag
 					data-text="muted"
 					class="loading inline-placeholder"
 					aria-busy="true"

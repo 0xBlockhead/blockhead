@@ -61,7 +61,7 @@
 
 
 	// Components
-	import Collapsible from '$/components/Collapsible.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -140,28 +140,27 @@
 			{entityId}
 		/>
 
-		<Collapsible
-			id={`${idKey}:carousel-activity`}
-			{...{ 'data-card': '' }}
-		>
-			{#snippet Summary({
-				open: _summaryOpen,
-			})}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<HeadingComponent>
-						Activity
-					</HeadingComponent>
-				</header>
-			{/snippet}
-			{#snippet children(_ctx)}
-				<div
-					class="carousel"
-					data-scroll-container="inline layout-carousel carousel-marker-tabs"
-					data-row="start align-start"
-				>
+		<div class="entity-view-detail-carousels">
+			<CollapsibleTabs
+				id={`${idKey}:carousel-activity`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({
+					open: _summaryOpen,
+				})}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<HeadingComponent>
+							Activity
+						</HeadingComponent>
+					</header>
+				{/snippet}
+				{#snippet children(_ctx)}
 					<section data-scroll-marker-label="Posts">
 						<LensPostsView
 							entityFieldReference={{
@@ -176,9 +175,9 @@
 							open={false}
 						/>
 					</section>
-				</div>
-			{/snippet}
-		</Collapsible>
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
 
 		{#if children}
 			{@render children()}
@@ -188,7 +187,7 @@
 
 
 <style>
-	.carousel {
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
 		&[data-scroll-container] {
 			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
 			max-block-size: var(--scrollContainer-sizeBlock);

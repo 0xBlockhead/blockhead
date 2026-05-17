@@ -25,9 +25,10 @@
 
 	// (Derived)
 	const date = $derived(
-	timestamp !== undefined && typeof timestamp === 'number' && Number.isFinite(timestamp) ?
+		timestamp !== undefined && typeof timestamp === 'number' && Number.isFinite(timestamp) ?
 			new Date(timestamp)
-		:	undefined
+		:
+			undefined
 	)
 	const isoString = $derived(
 		date?.toISOString()
@@ -45,9 +46,10 @@
 
 	// (Derived)
 	const relativeTime = $derived(
-	timestamp !== undefined && typeof timestamp === 'number' && Number.isFinite(timestamp) ?
+		timestamp !== undefined && typeof timestamp === 'number' && Number.isFinite(timestamp) ?
 			formatRelativeTime(now - timestamp)
-		:	undefined
+		:
+			undefined
 	)
 
 
@@ -68,16 +70,19 @@
 
 {#if timestamp === undefined || typeof timestamp !== 'number' || !Number.isFinite(timestamp)}
 	–
+
 {:else if format === TimestampFormat.Absolute}
 	<time
 		datetime={isoString}
 		title={relativeTime}
 	>{absoluteTime}</time>
+
 {:else if format === TimestampFormat.Relative}
 	<time
 		datetime={isoString}
 		title={absoluteTime}
 	>{relativeTime}</time>
+
 {:else if format === TimestampFormat.Both}
 	<time
 		datetime={isoString}

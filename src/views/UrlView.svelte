@@ -45,6 +45,7 @@
 		entityId,
 		{
 			$: [
+				Source.Constants_Internal,
 				Source.MetadataVision_Rest,
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,

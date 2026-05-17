@@ -568,11 +568,15 @@ const blockPathNumberFromHref = (href: string | null) => {
 	}
 }
 
+/** Scroll host (`layout-carousel`) — execution carousel assigns `data-e2e`; panes are direct children (no `[data-carousel-panes]` wrapper). */
+const networkExecutionCarouselPanesSel = '[data-e2e="network-carousel-execution"][data-scroll-container~="layout-carousel"]'
+
+
 export const readTopBlockNumberFromNetworkCarousel = async (
 	page: Page,
 	linkWaitMs = 90_000,
 ) => {
-	const first = page.locator('[data-scroll-marker-label="Blocks"] a[href*="/block/"]').first()
+	const first = page.locator(`${networkExecutionCarouselPanesSel} a[href*="/block/"]`).first()
 	await first.waitFor({ state: 'visible', timeout: linkWaitMs })
 	return blockPathNumberFromHref(await first.getAttribute('href'))
 }
@@ -589,7 +593,7 @@ export const readTopBlockNumberFromNetworkBlocksPage = async (
 
 /** Block numbers from visible carousel links, in DOM order (per list implementation). */
 export const readNetworkCarouselBlockNumbers = async (page: Page) => {
-	const links = page.locator('[data-scroll-marker-label="Blocks"] a[href*="/block/"]')
+	const links = page.locator(`${networkExecutionCarouselPanesSel} a[href*="/block/"]`)
 	const n = await links.count()
 	const out: bigint[] = []
 	for (let i = 0; i < n; i++) {
@@ -601,7 +605,7 @@ export const readNetworkCarouselBlockNumbers = async (page: Page) => {
 }
 
 export const readTxHrefsJoin = async (page: Page) => {
-	const list = page.locator('[data-scroll-marker-label="Transactions"] a[href*="/tx/"]')
+	const list = page.locator(`${networkExecutionCarouselPanesSel} a[href*="/tx/"]`)
 	const n = await list.count()
 	if (n === 0) return ''
 	const all = await list.evaluateAll(

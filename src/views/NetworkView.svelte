@@ -94,6 +94,7 @@
 			layerNumber: {},
 			environment: {},
 			executionEndpoints: {},
+			$$rpcUrls: {},
 			$$blockExplorerUrls: {},
 			$icon: {},
 			nativeCurrencies: {},
@@ -152,25 +153,6 @@
 		},
 	)
 
-	const executionEndpointsByUrl = derive(
-		network,
-		(networkEntity) => {
-			const executionEndpointsByUrlLookup: Record<string, {
-				url: string
-				transportType: string
-				serviceProvider: string
-			}> = {}
-			for (const executionEndpoint of networkEntity.executionEndpoints ?? []) {
-				if (executionEndpointsByUrlLookup[executionEndpoint.url] === undefined) {
-					executionEndpointsByUrlLookup[executionEndpoint.url] = executionEndpoint
-				}
-			}
-			return Object.values(executionEndpointsByUrlLookup).toSorted((leftEndpoint, rightEndpoint) => (
-				leftEndpoint.url.localeCompare(rightEndpoint.url)
-			))
-		},
-	)
-
 	const nativeSymbol = derive(
 		network,
 		(networkEntity) => networkEntity.nativeCurrencies?.[0]?.symbol,
@@ -178,13 +160,13 @@
 
 
 	// Components
-	import Collapsible from '$/components/Collapsible.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
-	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BeaconEpochsView from '$/views/BeaconEpochsView.svelte'
 	import BeaconSlotsView from '$/views/BeaconSlotsView.svelte'
 	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
@@ -416,11 +398,19 @@
 			{entityId}
 		/>
 
-		<div data-column="gap-3" data-e2e="network-carousel-groups">
-			<Collapsible
+		<div
+			class="network-view-carousel-groups"
+			data-column="gap-3"
+			data-e2e="network-carousel-groups"
+		>
+			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-topology`}
 				{...{ 'data-card': '' }}
 				data-e2e="network-collapsible-topology"
+				scrollContainerProps={{
+					'data-e2e': 'network-carousel-topology',
+					'data-row': 'start align-start',
+				}}
 			>
 				{#snippet Summary({ open: _isOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
@@ -432,22 +422,58 @@
 					</header>
 				{/snippet}
 
+				{#snippet Markers()}
+					<ResourceBoundary resource={network}>
+						{#snippet children(networkEntity)}
+							<a
+								data-scroll-marker-label="Upgrades"
+								href={`#${networkIdKey}:topology-upgrades`}
+							>Upgrades</a>
+							{#if networkEntity.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
+								<a
+									data-scroll-marker-label="Parent layer"
+									href={`#${networkIdKey}:topology-parent-layer`}
+								>Parent layer</a>
+							{/if}
+							{#if (networkEntity.$$siblingShardNetworks ?? []).length}
+								<a
+									data-scroll-marker-label="Sibling shards"
+									href={`#${networkIdKey}:topology-sibling-shards`}
+								>Sibling shards</a>
+							{/if}
+							{#if networkEntity.environment === NetworkEnvironment.Mainnet}
+								<a
+									data-scroll-marker-label="Testnets"
+									href={`#${networkIdKey}:topology-testnets`}
+								>Testnets</a>
+							{:else if networkEntity.environment === NetworkEnvironment.Testnet}
+								<a
+									data-scroll-marker-label="Mainnet"
+									href={`#${networkIdKey}:topology-mainnet`}
+								>Mainnet</a>
+							{/if}
+							{#if (networkEntity.$$childLayers ?? []).length}
+								<a
+									data-scroll-marker-label={`Layer-${String(networkEntity.layerNumber + 1)}s`}
+									href={`#${networkIdKey}:topology-child-layers`}
+								>{`Layer-${String(networkEntity.layerNumber + 1)}s`}</a>
+							{/if}
+							{#if (networkEntity.$$faucetUrls ?? []).length}
+								<a
+									data-scroll-marker-label="Faucets"
+									href={`#${networkIdKey}:topology-faucets`}
+								>Faucets</a>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+
 				{#snippet children(_childrenContext)}
-					<div
-						class="carousel"
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						data-row="start align-start"
-						data-e2e="network-carousel-topology"
+					<ResourceBoundary
+						resource={network}
 					>
-						<ResourceBoundary
-							layout={Layout.Block}
-							resource={network}
-						>
-							{#snippet children(networkEntity)}
-								<section
-									data-e2e="network-topology-upgrades"
-									data-scroll-marker-label="Upgrades"
-								>
+						{#snippet children(networkEntity)}
+								<section data-e2e="network-topology-upgrades">
 									<NetworkUpgradesView
 										collapsible={false}
 										entityFieldReference={{
@@ -464,10 +490,7 @@
 								</section>
 
 								{#if networkEntity.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
-									<section
-										data-e2e="network-topology-parent-layer"
-										data-scroll-marker-label="Parent layer"
-									>
+									<section data-e2e="network-topology-parent-layer">
 										<EntitiesList
 											collapsible={false}
 											entityType={EntityType.Network}
@@ -510,10 +533,7 @@
 								{/if}
 
 								{#if networkEntity.environment === NetworkEnvironment.Mainnet}
-									<section
-										data-e2e="network-topology-testnets"
-										data-scroll-marker-label="Testnets"
-									>
+									<section data-e2e="network-topology-testnets">
 										<NetworksView
 											collapsible={false}
 											entityFieldReference={{
@@ -531,10 +551,7 @@
 										/>
 									</section>
 								{:else if networkEntity.environment === NetworkEnvironment.Testnet}
-									<section
-										data-e2e="network-topology-mainnet"
-										data-scroll-marker-label="Mainnet"
-									>
+									<section data-e2e="network-topology-mainnet">
 										{#if networkEntity.$mainnet?.[EntityMetaKey.Id].chainId !== undefined}
 											<EntitiesList
 												collapsible={false}
@@ -570,10 +587,7 @@
 								{/if}
 
 								{#if (networkEntity.$$childLayers ?? []).length}
-									<section
-										data-e2e="network-topology-child-layers"
-										data-scroll-marker-label={`Layer-${String(networkEntity.layerNumber + 1)}s`}
-									>
+									<section data-e2e="network-topology-child-layers">
 										<NetworksView
 											collapsible={false}
 											entityFieldReference={{
@@ -593,10 +607,7 @@
 								{/if}
 
 								{#if (networkEntity.$$faucetUrls ?? []).length}
-									<section
-										data-e2e="network-topology-faucets"
-										data-scroll-marker-label="Faucets"
-									>
+									<section data-e2e="network-topology-faucets">
 										<UrlsView
 											collapsible={false}
 											emptyText="No faucets listed for this network yet."
@@ -615,16 +626,19 @@
 										/>
 									</section>
 								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</div>
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
-			</Collapsible>
+			</CollapsibleTabs>
 
-			<Collapsible
+			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-economics`}
 				{...{ 'data-card': '' }}
 				data-e2e="network-collapsible-economics"
+				scrollContainerProps={{
+					'data-e2e': 'network-carousel-economics',
+					'data-row': 'start align-start',
+				}}
 			>
 				{#snippet Summary({ open: _isOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
@@ -632,21 +646,42 @@
 					</header>
 				{/snippet}
 
-				<div
-					class="carousel"
-					data-scroll-container="inline layout-carousel carousel-marker-tabs"
-					data-row="start align-start"
-					data-e2e="network-carousel-economics"
-				>
+				{#snippet Markers()}
+					<ResourceBoundary resource={network}>
+						{#snippet children(networkEntity)}
+							{#if networkEntity.gasPrice !== undefined}
+								<a
+									data-scroll-marker-label="Gas"
+									href={`#${networkIdKey}:gas`}
+								>Gas</a>
+							{/if}
+							<a
+								data-scroll-marker-label="Gas"
+								href={`#${networkIdKey}:gas`}
+							>Gas</a>
+							<a
+								data-scroll-marker-label="Txpool"
+								href={`#${networkIdKey}:txpool`}
+							>Txpool</a>
+							{#if entityId.chainId in mevRelayHostsByChainId}
+								<a
+									data-scroll-marker-label="MEV relay"
+									href={`#${networkIdKey}:mev-relay-payloads`}
+								>MEV relay</a>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+
+				{#snippet children(_childrenContext)}
 					<ResourceBoundary
-						layout={Layout.Block}
 						resource={network}
 					>
 						{#snippet children(networkEntity)}
 							{#if networkEntity.gasPrice !== undefined}
 								<section
 									data-e2e="network-economics-gas"
-									data-scroll-marker-label="Gas"
+									id={`${networkIdKey}:gas`}
 								>
 									<div class="entity-details">
 										<div data-row="inline wrap gap-2 align-baseline">
@@ -658,10 +693,7 @@
 									</div>
 								</section>
 							{/if}
-							<section
-								data-e2e="network-economics-gas-snapshots"
-								data-scroll-marker-label="Gas snapshots"
-							>
+							<section data-e2e="network-economics-gas">
 								<Network_GasFee_TimestampsView
 									collapsible={false}
 									entityFieldReference={{
@@ -670,14 +702,11 @@
 										fieldName: '$$gasFeeTimestamps',
 									}}
 									href={href}
-									id={`${networkIdKey}:gas-fee-snapshots`}
+									id={`${networkIdKey}:gas-fee`}
 									open={false}
 								/>
 							</section>
-							<section
-								data-e2e="network-economics-txpool"
-								data-scroll-marker-label="Txpool"
-							>
+							<section data-e2e="network-economics-txpool">
 								<Network_Txpool_TimestampsView
 									collapsible={false}
 									entityFieldReference={{
@@ -686,15 +715,12 @@
 										fieldName: '$$txpoolTimestamps',
 									}}
 									href={href}
-									id={`${networkIdKey}:txpool-snapshots`}
+									id={`${networkIdKey}:txpool`}
 									open={false}
 								/>
 							</section>
 							{#if entityId.chainId in mevRelayHostsByChainId}
-								<section
-									data-e2e="network-economics-mev-relay"
-									data-scroll-marker-label="MEV relay"
-								>
+								<section data-e2e="network-economics-mev-relay">
 									<MevRelay_ProposerPayloadDeliveredRowsView
 										collapsible={false}
 										entityFieldReference={{
@@ -710,30 +736,65 @@
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-				</div>
-			</Collapsible>
+				{/snippet}
+			</CollapsibleTabs>
 
-			<Collapsible
+			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-execution`}
 				{...{ 'data-card': '' }}
 				data-e2e="network-collapsible-execution"
+				scrollContainerProps={{
+					'data-e2e': 'network-carousel-execution',
+					'data-row': 'start align-start',
+				}}
 			>
 				{#snippet Summary({ open: _isOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Execution</HeadingComponent>
 					</header>
 				{/snippet}
+
+				{#snippet Markers()}
+					<a
+						data-scroll-marker-label="Upgrades"
+						href={`#${networkIdKey}:execution-upgrades`}
+					>Upgrades</a>
+					<a
+						data-scroll-marker-label="Blocks"
+						href={`#${networkIdKey}:blocks`}
+					>Blocks</a>
+					<a
+						data-scroll-marker-label="Transactions"
+						href={`#${networkIdKey}:transactions`}
+					>Transactions</a>
+					<a
+						data-scroll-marker-label="Contracts"
+						href={`#${networkIdKey}:contracts`}
+					>Contracts</a>
+					<ResourceBoundary resource={network}>
+						{#snippet children(networkEntity)}
+							{#if (networkEntity.$$rpcUrls ?? []).length}
+								<a
+									data-scroll-marker-label="Providers"
+									href={`#${networkIdKey}:execution-rpcs`}
+								>Providers</a>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+					<ResourceBoundary resource={network}>
+						{#snippet children(networkEntity)}
+							{#if (networkEntity.$$blockExplorerUrls ?? []).length}
+								<a
+									data-scroll-marker-label="Explorers"
+									href={`#${networkIdKey}:explorers`}
+								>Explorers</a>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+
 				{#snippet children(_childrenContext)}
-					<div
-						class="carousel"
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						data-row="start align-start"
-						data-e2e="network-carousel-execution"
-					>
-						<section
-							data-e2e="network-carousel-execution-upgrades"
-							data-scroll-marker-label="Upgrades"
-						>
+						<section data-e2e="network-carousel-execution-upgrades">
 							<NetworkExecutionUpgradesView
 								collapsible={false}
 								entityFieldReference={{
@@ -748,10 +809,7 @@
 								id={`${networkIdKey}:execution-upgrades`}
 							/>
 						</section>
-						<section
-							data-e2e="network-carousel-blocks"
-							data-scroll-marker-label="Blocks"
-						>
+						<section data-e2e="network-carousel-blocks">
 							<EvmBlocksView
 								collapsible={false}
 								entityFieldReference={{
@@ -766,10 +824,7 @@
 								id={`${networkIdKey}:blocks`}
 							/>
 						</section>
-						<section
-							data-e2e="network-carousel-transactions"
-							data-scroll-marker-label="Transactions"
-						>
+						<section data-e2e="network-carousel-transactions">
 							<EvmTransactionsView
 								collapsible={false}
 								entityFieldReference={{
@@ -784,10 +839,7 @@
 								id={`${networkIdKey}:transactions`}
 							/>
 						</section>
-						<section
-							data-e2e="network-carousel-contracts"
-							data-scroll-marker-label="Contracts"
-						>
+						<section data-e2e="network-carousel-contracts">
 							<EvmContractsView
 								collapsible={false}
 								entityFieldReference={{
@@ -802,52 +854,38 @@
 								id={`${networkIdKey}:contracts`}
 							/>
 						</section>
-						<ResourceBoundary
-							layout={Layout.Block}
-							resource={executionEndpointsByUrl}
-						>
-							{#snippet children(executionEndpoints)}
-								{#if executionEndpoints.length}
-									<section
-										data-e2e="network-carousel-execution-rpcs"
-										data-scroll-marker-label="Execution providers"
-									>
-										<EntitiesList
+						<ResourceBoundary resource={network}>
+							{#snippet children(networkEntity)}
+								{#if (networkEntity.$$rpcUrls ?? []).length}
+									<section data-e2e="network-carousel-execution-rpcs">
+										<UrlsView
 											collapsible={false}
-											entityType={EntityType.Network}
-											{href}
+											emptyText="No RPC endpoints listed for this network yet."
+											entityFieldReference={{
+												entityType: EntityType.Network,
+												entityId,
+												fieldName: '$$rpcUrls',
+											}}
+											fieldSources={[
+												Source.Constants_Internal,
+												Source.Chainlist_Rest,
+												Source.EthereumLists_Rest,
+												Source.Lifi_Rest,
+											]}
 											id={`${networkIdKey}:execution-rpcs`}
-											title="Execution providers"
-										>
-											{#snippet body()}
-												<div
-													class="entity-details"
-													style:view-transition-name={`NetworkView-ExecutionRpcs-${networkIdKey}`}
-												>
-													<ul>
-														{#each executionEndpoints as executionEndpoint (executionEndpoint.url)}
-															<li>
-																{executionEndpoint.url} · {executionEndpoint.transportType} · {executionEndpoint.serviceProvider}
-															</li>
-														{/each}
-													</ul>
-												</div>
-											{/snippet}
-										</EntitiesList>
+											open={false}
+											title="Providers"
+										/>
 									</section>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
 						<ResourceBoundary
-							layout={Layout.Block}
 							resource={network}
 						>
 							{#snippet children(networkEntity)}
 								{#if (networkEntity.$$blockExplorerUrls ?? []).length}
-									<section
-										data-e2e="network-carousel-explorers"
-										data-scroll-marker-label="Explorers"
-									>
+									<section data-e2e="network-carousel-explorers">
 										<UrlsView
 											collapsible={false}
 											emptyText="No block explorers listed for this network yet."
@@ -869,32 +907,42 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-					</div>
 				{/snippet}
-			</Collapsible>
+			</CollapsibleTabs>
 
 			{#if beaconRestBaseByExecutionChainId[entityId.chainId] != null}
-				<Collapsible
+				<CollapsibleTabs
 					id={`${networkIdKey}:carousel-consensus`}
 					{...{ 'data-card': '' }}
 					data-e2e="network-collapsible-consensus"
+					scrollContainerProps={{
+						'data-e2e': 'network-carousel-consensus',
+						'data-row': 'start align-start',
+					}}
 				>
 					{#snippet Summary({ open: _isOpen })}
 						<header data-row-item="flexible" data-row="wrap gap-4">
 							<HeadingComponent>Consensus</HeadingComponent>
 						</header>
 					{/snippet}
+
+					{#snippet Markers()}
+						<a
+							data-scroll-marker-label="Upgrades"
+							href={`#${networkIdKey}:consensus-upgrades`}
+						>Upgrades</a>
+						<a
+							data-scroll-marker-label="Epochs"
+							href={`#${networkIdKey}:beacon-epochs`}
+						>Epochs</a>
+						<a
+							data-scroll-marker-label="Slots"
+							href={`#${networkIdKey}:beacon-slots`}
+						>Slots</a>
+					{/snippet}
+
 					{#snippet children(_childrenContext)}
-						<div
-							class="carousel"
-							data-scroll-container="inline layout-carousel carousel-marker-tabs"
-							data-row="start align-start"
-							data-e2e="network-carousel-consensus"
-						>
-							<section
-								data-e2e="network-carousel-consensus-upgrades"
-								data-scroll-marker-label="Upgrades"
-							>
+							<section data-e2e="network-carousel-consensus-upgrades">
 								<NetworkConsensusUpgradesView
 									collapsible={false}
 									entityFieldReference={{
@@ -909,10 +957,7 @@
 									id={`${networkIdKey}:consensus-upgrades`}
 								/>
 							</section>
-							<section
-								data-e2e="network-carousel-beacon-epochs"
-								data-scroll-marker-label="Epochs"
-							>
+							<section data-e2e="network-carousel-beacon-epochs">
 								<BeaconEpochsView
 									collapsible={false}
 									entityFieldReference={{
@@ -927,10 +972,7 @@
 									id={`${networkIdKey}:beacon-epochs`}
 								/>
 							</section>
-							<section
-								data-e2e="network-carousel-beacon-slots"
-								data-scroll-marker-label="Slots"
-							>
+							<section data-e2e="network-carousel-beacon-slots">
 								<BeaconSlotsView
 									collapsible={false}
 									entityFieldReference={{
@@ -945,32 +987,34 @@
 									id={`${networkIdKey}:beacon-slots`}
 								/>
 							</section>
-						</div>
 					{/snippet}
-				</Collapsible>
+				</CollapsibleTabs>
 			{/if}
 
-			<Collapsible
+			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-data-storage`}
 				{...{ 'data-card': '' }}
 				data-e2e="network-collapsible-data-storage"
+				scrollContainerProps={{
+					'data-e2e': 'network-carousel-data-storage',
+					'data-row': 'start align-start',
+				}}
 			>
 				{#snippet Summary({ open: _isOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Data</HeadingComponent>
 					</header>
 				{/snippet}
+
+				{#snippet Markers()}
+					<a
+						data-scroll-marker-label="Blobs"
+						href={`#${networkIdKey}:data-storage-blobs`}
+					>Blobs</a>
+				{/snippet}
+
 				{#snippet children(_childrenContext)}
-					<div
-						class="carousel"
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						data-row="start align-start"
-						data-e2e="network-carousel-data-storage"
-					>
-						<section
-							data-e2e="network-data-storage-blobs-list"
-							data-scroll-marker-label="Blobs"
-						>
+						<section data-e2e="network-data-storage-blobs-list">
 							<EvmBlobsView
 								collapsible={false}
 								entityFieldReference={{
@@ -986,9 +1030,8 @@
 								title="Blobs"
 							/>
 						</section>
-					</div>
 				{/snippet}
-			</Collapsible>
+			</CollapsibleTabs>
 		</div>
 
 		{#if children}
@@ -999,7 +1042,7 @@
 
 
 <style>
-	.carousel {
+	.network-view-carousel-groups :global(.carousel) {
 		&[data-scroll-container] {
 			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
 			max-block-size: var(--scrollContainer-sizeBlock);

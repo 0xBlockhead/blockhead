@@ -33,6 +33,7 @@ export enum SourceProvider {
 	Ensips = 'Ensips',
 	EthereumEips = 'EthereumEips',
 	EthereumLists = 'EthereumLists',
+	EthereumSpecs = 'EthereumSpecs',
 	Etherscan = 'Etherscan',
 	Evm = 'Evm',
 	Explorer = 'Explorer',

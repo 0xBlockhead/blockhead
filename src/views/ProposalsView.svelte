@@ -114,8 +114,7 @@
 	bind:open
 	getKey={proposalKey}
 	getSortValue={proposalSortValue}
-	layout={EntitiesListLayout.Carousel}
-	panelStyle="--carousel-basis: min(40ch, 88cqi); gap: 0.5em"
+	layout={EntitiesListLayout.Default}
 	placeholderKeys={new SvelteSet<string | number>()}
 	resource={proposals}
 >

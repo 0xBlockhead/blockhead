@@ -21,6 +21,7 @@ import EnsTheGraphResolvers from '$/resolvers/Ens-TheGraph.ts'
 import EnsipsGithubResolvers from '$/resolvers/Ensips-Github.ts'
 import EthereumEipsGithubResolvers from '$/resolvers/EthereumEips-Github.ts'
 import EthereumListsChainsResolvers from '$/resolvers/EthereumLists-Chains.ts'
+import EthereumSpecsGithubResolvers from '$/resolvers/EthereumSpecs-Github.ts'
 import FarcasterRestResolvers from '$/resolvers/Farcaster-Rest.ts'
 import IpfsRestResolvers from '$/resolvers/Ipfs-Rest.ts'
 import L2BeatRestResolvers from '$/resolvers/L2Beat-Rest.ts'
@@ -61,6 +62,7 @@ const enabledResolverModulesAfterSourceGate = (
 		EnsipsGithubResolvers,
 		EthereumEipsGithubResolvers,
 		EthereumListsChainsResolvers,
+		EthereumSpecsGithubResolvers,
 		FarcasterRestResolvers,
 		IpfsRestResolvers,
 		LifiRestResolvers,

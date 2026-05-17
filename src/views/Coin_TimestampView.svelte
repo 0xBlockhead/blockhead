@@ -16,7 +16,7 @@
 	import CoinView from '$/views/CoinView.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 
 
@@ -145,7 +145,6 @@
 				Coin
 			</h2>
 			<ResourceBoundary
-				layout={Layout.Block}
 				resource={coinTimestamp}
 			>
 				{#snippet children()}

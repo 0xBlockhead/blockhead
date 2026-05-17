@@ -1,6 +1,5 @@
 /**
- * Per-chain activation metadata used when emitting materialized upgrade entities.
- * See `scripts/emit-network-upgrade-entity-lists.ts` and `NetworkUpgradeEntityLists.ts`.
+ * Per-chain activation metadata; consumed by `NetworkUpgrades.ts`.
  */
 
 import {

@@ -92,12 +92,23 @@ export default {
 		}),
 
 		defineEntityResolver({
+			entityType: EntityType.Url,
+			resolve: async (_entityId) => (
+				{}
+			),
+		}),
+
+		defineEntityResolver({
 			entityType: EntityType.Network,
 			resolve: async (entityId) => {
+				const { urlEntitiesDeduplicatedSortedFromFaucetUrlStrings } = await import(
+					'$/resolvers/_networkCatalogUrlEntities.ts'
+				)
 				const { executionEndpointsByChainId } = await import('$/constants/ExecutionEndpoints.ts')
 				const list = executionEndpointsByChainId[entityId.chainId as ChainId] ?? []
 				return {
 					executionEndpoints: [...list],
+					$$rpcUrls: urlEntitiesDeduplicatedSortedFromFaucetUrlStrings(list.map((endpoint) => endpoint.url)),
 				}
 			},
 		}),

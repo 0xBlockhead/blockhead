@@ -94,13 +94,6 @@
 		>
 			{#snippet children(networkUpgradeEntity)}
 				<dl>
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
 					{#if open}
 						{#if networkUpgradeEntity.activationBlock !== undefined}
 							<div>

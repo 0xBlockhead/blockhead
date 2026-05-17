@@ -7,148 +7,17 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import {
+	catalogChainIsEthereumExecutionRoot,
+	catalogEthereumExecutionRootAcceptsTestnetCandidate,
+	chainlistRowImpliesTestnet,
+	pairingFamilyKey,
+	selectBestMainnetCandidate,
+} from '$/resolvers/_networkCatalogPairing.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/$Source.ts'
-
-const testnetKeywordPattern = /\b(testnet|sepolia|holesky|hoodi|goerli|rinkeby|ropsten|kovan)\b/i
-const familyAliasByToken: Record<string, string> = {
-	op: 'optimism',
-	oeth: 'optimism',
-	arb: 'arbitrum',
-	arb1: 'arbitrum',
-	eth: 'ethereum',
-}
-const familyStopwords = new Set([
-	'mainnet',
-	'testnet',
-	'network',
-	'chain',
-	'rollup',
-	'l2',
-	'l3',
-	'public',
-	'private',
-	'alpha',
-	'beta',
-	'devnet',
-	'deprecated',
-	'legacy',
-	'stage',
-	'staging',
-	'v1',
-	'v2',
-	'v3',
-])
-const normalizeFamilyToken = (value: string): string => (
-	value.toLowerCase().replace(/[^a-z0-9]+/g, '')
-)
-const canonicalFamilyToken = (value: string): string => (
-	familyAliasByToken[normalizeFamilyToken(value)]
-	?? normalizeFamilyToken(value)
-)
-const slugFamilyTokenAliases: Record<string, string> = {
-	zksyncera: 'zksync',
-}
-const ethereumFamilyCanonical = canonicalFamilyToken('ethereum')
-const resolveNetworkFamily = ({
-	name,
-	title,
-	shortName,
-	chainSlug,
-}: {
-	name?: string
-	title?: string
-	shortName?: string
-	chainSlug?: string
-}): string | undefined => {
-	if (chainSlug != null && chainSlug.trim().length > 0) {
-		const slugCanonical = canonicalFamilyToken(chainSlug.trim())
-		const slugNormalized = normalizeFamilyToken(slugCanonical)
-		return slugFamilyTokenAliases[slugNormalized] ?? slugCanonical
-	}
-	const text = `${title ?? ''} ${name ?? ''} ${shortName ?? ''}`
-	if (/\bethereum\s+classic\b/i.test(text)) {
-		return 'ethereumclassic'
-	}
-	if (/\bpolygon\s+zkevm\b/i.test(text) || (/\bpolygon\b/i.test(text) && /\bzkevm\b/i.test(text))) {
-		return normalizeFamilyToken('polygonzkevm')
-	}
-	const token = text
-		.toLowerCase()
-		.split(/[^a-z0-9]+/g)
-		.find((value) => value.length > 0 && !familyStopwords.has(value))
-	return token == null ? undefined : canonicalFamilyToken(token)
-}
-const isChainlistTestnet = (chain: {
-	isTestnet?: boolean
-	testnet?: boolean
-	name?: string
-	title?: string
-}): boolean => (
-	chain.isTestnet === true
-	|| chain.testnet === true
-	|| testnetKeywordPattern.test(`${chain.title ?? ''} ${chain.name ?? ''}`)
-)
-const normalizeShortName = (shortName: string | undefined): string => (
-	(shortName ?? '')
-		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, '')
-		.replace(/(testnet|sepolia|holesky|hoodi|goerli|rinkeby|ropsten|kovan)+$/g, '')
-)
-const selectBestMainnetCandidate = ({
-	testnetChainId,
-	testnetShortName,
-	mainnetCandidates,
-}: {
-	testnetChainId: number
-	testnetShortName?: string
-	mainnetCandidates: {
-		chainId: number
-		shortName?: string
-		name?: string
-	}[]
-}) => {
-	const testnetChainIdAsString = String(testnetChainId)
-	const byChainIdPrefix = mainnetCandidates
-		.filter((candidate) => (
-			testnetChainIdAsString.startsWith(String(candidate.chainId))
-		))
-		.toSorted((leftCandidate, rightCandidate) => (
-			String(rightCandidate.chainId).length - String(leftCandidate.chainId).length
-			|| leftCandidate.chainId - rightCandidate.chainId
-		))
-	if (byChainIdPrefix[0] != null) return byChainIdPrefix[0]
-	const normalizedSourceShortName = normalizeShortName(testnetShortName)
-	if (normalizedSourceShortName.length > 0) {
-		const byShortNamePrefix = mainnetCandidates
-			.filter((candidate) => {
-				const normalizedCandidateShortName = normalizeShortName(candidate.shortName)
-				return (
-					normalizedCandidateShortName.length > 0
-					&& (
-						normalizedSourceShortName.startsWith(normalizedCandidateShortName)
-						|| normalizedCandidateShortName.startsWith(normalizedSourceShortName)
-					)
-				)
-			})
-			.toSorted((leftCandidate, rightCandidate) => (
-				leftCandidate.chainId - rightCandidate.chainId
-			))
-		if (byShortNamePrefix[0] != null) return byShortNamePrefix[0]
-	}
-	const byMainnetKeyword = mainnetCandidates
-		.filter((candidate) => /\bmainnet\b/i.test(candidate.name ?? ''))
-		.toSorted((leftCandidate, rightCandidate) => (
-			leftCandidate.chainId - rightCandidate.chainId
-		))
-	if (byMainnetKeyword[0] != null) return byMainnetKeyword[0]
-	return mainnetCandidates
-		.toSorted((leftCandidate, rightCandidate) => (
-			leftCandidate.chainId - rightCandidate.chainId
-		))[0]
-}
 
 export default {
 	source: Source.Chainlist_Rest,
@@ -208,6 +77,9 @@ export default {
 					.map((entry) => (typeof entry === 'string' ? entry : entry.url).trim())
 					.filter((url) => url.length > 0)
 				if (rpcUrls.length === 0) throw new Error(`Chainlist_Rest: no RPC URLs for chain ${chain.chainId}`)
+				const { urlEntitiesDeduplicatedSortedFromFaucetUrlStrings } = await import(
+					'$/resolvers/_networkCatalogUrlEntities.ts'
+				)
 				const icon = (
 					resolveMediaUrlTransport(chain.icons?.find((icon) => icon?.url != null && String(icon.url).length > 0)?.url)?.url
 					?? resolveMediaUrlTransport(chain.icon)?.url
@@ -234,6 +106,7 @@ export default {
 								TransportType.Http
 						),
 					})),
+					$$rpcUrls: urlEntitiesDeduplicatedSortedFromFaucetUrlStrings(rpcUrls),
 					environment: (
 						chain.isTestnet === true ?
 							NetworkEnvironment.Testnet
@@ -354,23 +227,21 @@ export default {
 				if (chain == null) {
 					throw new Error('Chainlist_Rest: network not in rpcs.json for testnet list')
 				}
-				if (isChainlistTestnet(chain)) return []
-				const sourceFamily = resolveNetworkFamily(chain)
-				if (sourceFamily == null) return []
-				const sourceIsEthereumExecutionRoot = (
-					sourceFamily === ethereumFamilyCanonical
-					&& chain.parent?.chain == null
-				)
+				if (chainlistRowImpliesTestnet(chain)) return []
+				const sourceFamilyKey = pairingFamilyKey(chain)
+				if (sourceFamilyKey == null) return []
+				const sourceIsEthereumExecutionRoot = catalogChainIsEthereumExecutionRoot(chain)
 				return [
 					...new Set(
 						chains.flatMap((candidate) => {
 							return candidate.chainId === entityId.chainId
-								|| !isChainlistTestnet(candidate)
-								|| resolveNetworkFamily(candidate) !== sourceFamily
+								|| !chainlistRowImpliesTestnet(candidate)
+								|| pairingFamilyKey(candidate) !== sourceFamilyKey
 								|| (
 									sourceIsEthereumExecutionRoot
 									&& candidate.parent?.chain != null
-								) ?
+								)
+								|| !catalogEthereumExecutionRootAcceptsTestnetCandidate(chain, candidate) ?
 								[]
 							:	[candidate.chainId]
 						}),
@@ -392,20 +263,17 @@ export default {
 				if (chain == null) {
 					throw new Error('Chainlist_Rest: network not in rpcs.json for mainnet')
 				}
-				if (!isChainlistTestnet(chain)) return undefined
-				const sourceFamily = resolveNetworkFamily(chain)
-				if (sourceFamily == null) return undefined
-				const testnetIsEthereumExecutionRoot = (
-					sourceFamily === ethereumFamilyCanonical
-					&& chain.parent?.chain == null
-				)
+				if (!chainlistRowImpliesTestnet(chain)) return undefined
+				const sourceFamilyKey = pairingFamilyKey(chain)
+				if (sourceFamilyKey == null) return undefined
+				const testnetIsEthereumExecutionRoot = catalogChainIsEthereumExecutionRoot(chain)
 				const mainnet = selectBestMainnetCandidate({
 					testnetChainId: chain.chainId,
 					testnetShortName: chain.shortName,
 					mainnetCandidates: chains.filter((candidate) => (
 						candidate.chainId !== entityId.chainId
-						&& !isChainlistTestnet(candidate)
-						&& resolveNetworkFamily(candidate) === sourceFamily
+						&& !chainlistRowImpliesTestnet(candidate)
+						&& pairingFamilyKey(candidate) === sourceFamilyKey
 						&& (
 							!testnetIsEthereumExecutionRoot
 							|| candidate.parent?.chain == null

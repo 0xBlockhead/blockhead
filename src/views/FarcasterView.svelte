@@ -80,7 +80,7 @@
 
 
 	// Components
-	import Collapsible from '$/components/Collapsible.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -182,12 +182,18 @@
 			{entityId}
 		/>
 
-		<div data-column="gap-3">
-			<Collapsible
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
+			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-discovery`}
 				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
-				{#snippet Summary()}
+				{#snippet Summary({ open: _open })}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
@@ -198,48 +204,45 @@
 					</header>
 				{/snippet}
 
-				{#snippet children()}
-					<div
-						class="carousel"
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						data-row="start align-start"
-					>
-						<section data-scroll-marker-label="Feeds">
-							<FarcasterFeedsView
-								entityFieldReference={{
-									entityType: EntityType.FarcasterNetwork,
-									entityId: { scope: 'FarcasterNetwork' },
-									fieldName: '$$feeds',
-								}}
-								href={resolve('/farcaster/feed')}
-								id={`${networkIdKey}:feeds`}
-								open={false}
-							/>
-						</section>
+				{#snippet children({ open: _open })}
+					<section data-scroll-marker-label="Feeds">
+						<FarcasterFeedsView
+							entityFieldReference={{
+								entityType: EntityType.FarcasterNetwork,
+								entityId: { scope: 'FarcasterNetwork' },
+								fieldName: '$$feeds',
+							}}
+							href={resolve('/farcaster/feed')}
+							id={`${networkIdKey}:feeds`}
+							open={false}
+						/>
+					</section>
 
-						<section data-scroll-marker-label="Trending">
-							<FarcasterCastsView
-								entityFieldReference={{
-									entityType: EntityType.FarcasterFeed,
-									entityId: trendingFeedEntityId,
-									fieldName: '$$entries',
-								}}
-								href={resolve('/farcaster/feed/trending')}
-								id={`${networkIdKey}:trending`}
-								limit={25}
-								open={false}
-								title="Trending"
-							/>
-						</section>
-					</div>
+					<section data-scroll-marker-label="Trending">
+						<FarcasterCastsView
+							entityFieldReference={{
+								entityType: EntityType.FarcasterFeed,
+								entityId: trendingFeedEntityId,
+								fieldName: '$$entries',
+							}}
+							href={resolve('/farcaster/feed/trending')}
+							id={`${networkIdKey}:trending`}
+							limit={25}
+							open={false}
+							title="Trending"
+						/>
+					</section>
 				{/snippet}
-			</Collapsible>
+			</CollapsibleTabs>
 
-			<Collapsible
+			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-community`}
 				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
-				{#snippet Summary()}
+				{#snippet Summary({ open: _open })}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
@@ -250,46 +253,43 @@
 					</header>
 				{/snippet}
 
-				{#snippet children()}
-					<div
-						class="carousel"
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						data-row="start align-start"
-					>
-						<section data-scroll-marker-label="Channels">
-							<FarcasterChannelsView
-								entityFieldReference={{
-									entityType: EntityType.FarcasterNetwork,
-									entityId,
-									fieldName: '$$channels',
-								}}
-								href={resolve('/farcaster/channels')}
-								id={`${networkIdKey}:channels`}
-								open={false}
-							/>
-						</section>
+				{#snippet children({ open: _open })}
+					<section data-scroll-marker-label="Channels">
+						<FarcasterChannelsView
+							entityFieldReference={{
+								entityType: EntityType.FarcasterNetwork,
+								entityId,
+								fieldName: '$$channels',
+							}}
+							href={resolve('/farcaster/channels')}
+							id={`${networkIdKey}:channels`}
+							open={false}
+						/>
+					</section>
 
-						<section data-scroll-marker-label="Users">
-							<FarcasterUsersView
-								entityFieldReference={{
-									entityType: EntityType.FarcasterNetwork,
-									entityId,
-									fieldName: '$$users',
-								}}
-								href={resolve('/farcaster/users')}
-								id={`${networkIdKey}:users`}
-								open={false}
-							/>
-						</section>
-					</div>
+					<section data-scroll-marker-label="Users">
+						<FarcasterUsersView
+							entityFieldReference={{
+								entityType: EntityType.FarcasterNetwork,
+								entityId,
+								fieldName: '$$users',
+							}}
+							href={resolve('/farcaster/users')}
+							id={`${networkIdKey}:users`}
+							open={false}
+						/>
+					</section>
 				{/snippet}
-			</Collapsible>
+			</CollapsibleTabs>
 
-			<Collapsible
+			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-accounts`}
 				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
-				{#snippet Summary()}
+				{#snippet Summary({ open: _open })}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
@@ -300,27 +300,21 @@
 					</header>
 				{/snippet}
 
-				{#snippet children()}
-					<div
-						class="carousel"
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						data-row="start align-start"
-					>
-						<section data-scroll-marker-label="Accounts">
-							<BlockheadFarcasterAccountConnectionsView
-								entityFieldReference={{
-									entityType: EntityType._Global,
-									entityId: {},
-									fieldName: '$$blockheadFarcasterAccountConnections',
-								}}
-								href={resolve('/farcaster/accounts')}
-								id={`${networkIdKey}:accounts`}
-								open={false}
-							/>
-						</section>
-					</div>
+				{#snippet children({ open: _open })}
+					<section data-scroll-marker-label="Accounts">
+						<BlockheadFarcasterAccountConnectionsView
+							entityFieldReference={{
+								entityType: EntityType._Global,
+								entityId: {},
+								fieldName: '$$blockheadFarcasterAccountConnections',
+							}}
+							href={resolve('/farcaster/accounts')}
+							id={`${networkIdKey}:accounts`}
+							open={false}
+						/>
+					</section>
 				{/snippet}
-			</Collapsible>
+			</CollapsibleTabs>
 		</div>
 
 		{#if children}
@@ -331,7 +325,7 @@
 
 
 <style>
-	.carousel {
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
 		&[data-scroll-container] {
 			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
 			max-block-size: var(--scrollContainer-sizeBlock);

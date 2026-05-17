@@ -68,7 +68,7 @@
 	import FileDetails from '$/components/FileDetails.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import IpfsCidAlternateEncodings from '$/views/IpfsCidAlternateEncodings.svelte'
@@ -269,7 +269,6 @@
 			{/if}
 
 			<ResourceBoundary
-				layout={Layout.Block}
 				resource={resourceEntity}
 			>
 				{#snippet children(loaded)}

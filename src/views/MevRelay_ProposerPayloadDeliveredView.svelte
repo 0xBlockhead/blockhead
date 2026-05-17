@@ -17,7 +17,7 @@
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 
@@ -143,7 +143,6 @@
 		/>
 
 		<ResourceBoundary
-			layout={Layout.Block}
 			resource={payloadLive}
 		>
 			{#snippet children(p)}

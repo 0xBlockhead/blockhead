@@ -12,16 +12,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
-
-
 	// Props
 	let {
 		children,
@@ -66,6 +56,16 @@
 			transactionCount: {},
 		},
 	)
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
@@ -79,7 +79,7 @@
 	{...entityViewRest}
 >
 	{#snippet Heading()}
-		Block {String(entityId.blockNumber)}
+		Block {@render Id()}
 	{/snippet}
 
 	{#snippet Id()}
@@ -91,85 +91,69 @@
 			>
 				{String(entityId.blockNumber)}
 			</span>
-			{#if entityId.hash}
-				<small>
-					<TruncatedValue
-						value={entityId.hash}
-						format={TruncatedValueFormat.Abbr}
-					/>
-				</small>
-			{/if}
 		</span>
 	{/snippet}
 
-
-
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({ open })}
 		<ResourceBoundary
 			resource={block}
 			placeholderText="Loading block…"
 		>
-			{#snippet children(b)}
+			{#snippet children(block)}
 				<dl>
-					{#if entityId.hash}
+					{#if entityId.hash || block.hash}
 						<div>
 							<dt>Hash</dt>
 							<dd>
 								<TruncatedValue
-									value={entityId.hash}
+									value={entityId.hash || block.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
 						</div>
 					{/if}
-					{#if b.transactionCount !== undefined}
+					{#if block.transactionCount !== undefined}
 						<div>
 							<dt>Transactions</dt>
 							<dd>
-								<NumberValue value={b.transactionCount} />
+								<NumberValue value={block.transactionCount} />
 							</dd>
 						</div>
 					{/if}
-					{#if b.timestamp !== undefined}
+					{#if block.timestamp !== undefined}
 						<div>
 							<dt>Timestamp</dt>
 							<dd>
 								<Timestamp
-									timestamp={b.timestamp}
+									timestamp={block.timestamp}
 									format={TimestampFormat.Both}
 								/>
 							</dd>
 						</div>
 					{/if}
-					{#if open}
-						{#if b.gasUsed !== undefined}
-							<div>
-								<dt>Gas used</dt>
-								<dd>
-									<NumberValue value={b.gasUsed} />
-								</dd>
-							</div>
-						{/if}
+					{#if open && block.gasUsed !== undefined}
+						<div>
+							<dt>Gas used</dt>
+							<dd>
+								<NumberValue value={block.gasUsed} />
+							</dd>
+						</div>
 					{/if}
-					{#if open}
-						{#if b.gasLimit !== undefined}
-							<div>
-								<dt>Gas limit</dt>
-								<dd>
-									<NumberValue value={b.gasLimit} />
-								</dd>
-							</div>
-						{/if}
+					{#if open && block.gasLimit !== undefined}
+						<div>
+							<dt>Gas limit</dt>
+							<dd>
+								<NumberValue value={block.gasLimit} />
+							</dd>
+						</div>
 					{/if}
-					{#if open}
-						{#if b.baseFeePerGas !== undefined}
-							<div>
-								<dt>Base fee</dt>
-								<dd>
-									<NumberValue value={b.baseFeePerGas} />
-								</dd>
-							</div>
-						{/if}
+					{#if open && block.baseFeePerGas !== undefined}
+						<div>
+							<dt>Base fee</dt>
+							<dd>
+								<NumberValue value={block.baseFeePerGas} />
+							</dd>
+						</div>
 					{/if}
 				</dl>
 			{/snippet}

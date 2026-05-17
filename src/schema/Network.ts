@@ -82,6 +82,18 @@ export default {
 			],
 		},
 		{
+			name: '$$rpcUrls',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Url,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Constants_Internal,
+				Source.Chainlist_Rest,
+				Source.EthereumLists_Rest,
+				Source.Lifi_Rest,
+			],
+		},
+		{
 			name: 'environment',
 			type: EntityFieldType.Primitive,
 			primitiveType: type.valueOf(NetworkEnvironment),
@@ -241,6 +253,24 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Constants_Internal,
+			],
+		},
+		{
+			name: 'consensusSpecsConfigYaml',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.EthereumSpecs_Github,
+			],
+		},
+		{
+			name: 'goEthereumParamsConfigGo',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.EthereumSpecs_Github,
 			],
 		},
 		{

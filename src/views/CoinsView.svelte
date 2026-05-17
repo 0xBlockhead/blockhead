@@ -20,11 +20,12 @@
 
 	// Components
 	import Collapsible from '$/components/Collapsible.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Heading from '$/components/Heading.svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import UnorderedList from '$/components/UnorderedList.svelte'
 	import CoinDataSourcesView from '$/views/CoinDataSourcesView.svelte'
 	import CoinView from '$/views/CoinView.svelte'
@@ -120,6 +121,7 @@
 
 
 <div
+	class="coins-view-hub-carousels"
 	data-e2e="coins-hub-carousel-groups"
 >
 	<EntitiesList
@@ -132,7 +134,6 @@
 	>
 		{#snippet body()}
 			<ResourceBoundary
-				layout={Layout.Block}
 				resource={coins}
 			>
 				{#snippet children(loaded)}
@@ -171,11 +172,15 @@
 	</EntitiesList>
 
 	{#if id !== 'coins'}
-		<Collapsible
+		<CollapsibleTabs
 			id={`${id}:hub-spot-quotes`}
 			{...{ 'data-card': '' }}
 			data-e2e="coins-collapsible-spot-quotes"
 			open={quotesOpen}
+			scrollContainerProps={{
+				'data-e2e': 'coins-carousel-spot-quotes',
+				style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
+			}}
 		>
 			{#snippet Summary({
 				open: _o,
@@ -189,53 +194,49 @@
 					</Heading>
 				</header>
 			{/snippet}
-			{#snippet children(_c)}
-				<div
-					data-column="gap-2"
+			{#snippet BeforeScroll({ open: _o })}
+				<p
+					data-text="muted"
+					data-e2e="coins-spot-quotes-desc"
 				>
-					<p
-						data-text="muted"
-						data-e2e="coins-spot-quotes-desc"
-					>
-						<a href={resolve('/coins/prices')}>
-							Spot index
-						</a>
-						—
-						<code>MarketPrice</code>
-						rows (USD, 1e8), not venue-level order books.
-					</p>
-					<div
-						data-e2e="coins-carousel-spot-quotes"
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						style="--carousel-basis: min(44ch, 100%); gap: 0.5em"
-					>
-						<section
-							data-e2e="coins-section-spot-quotes"
-							data-scroll-marker-label="Spot quote index"
-						>
-							<MarketPricesView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType._Global,
-									entityId: {},
-									fieldName: '$$marketPrices',
-								}}
-								href={resolve('/coins/prices')}
-								id={`${id}:prices-spot`}
-								open
-								title="Spot quote index"
-							/>
-						</section>
-					</div>
-				</div>
+					<a href={resolve('/coins/prices')}>
+						Spot index
+					</a>
+					—
+					<code>MarketPrice</code>
+					rows (USD, 1e8), not venue-level order books.
+				</p>
 			{/snippet}
-		</Collapsible>
+			{#snippet children(_c)}
+				<section
+					data-e2e="coins-section-spot-quotes"
+					data-scroll-marker-label="Spot quote index"
+				>
+					<MarketPricesView
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType._Global,
+							entityId: {},
+							fieldName: '$$marketPrices',
+						}}
+						href={resolve('/coins/prices')}
+						id={`${id}:prices-spot`}
+						open
+						title="Spot quote index"
+					/>
+				</section>
+			{/snippet}
+		</CollapsibleTabs>
 
-		<Collapsible
+		<CollapsibleTabs
 			id={`${id}:hub-ohlc-ranges`}
 			{...{ 'data-card': '' }}
 			data-e2e="coins-collapsible-ohlc"
 			open={ohlcOpen}
+			scrollContainerProps={{
+				'data-e2e': 'coins-carousel-ohlc',
+				style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
+			}}
 		>
 			{#snippet Summary({
 				open: _o,
@@ -249,50 +250,46 @@
 					</Heading>
 				</header>
 			{/snippet}
-			{#snippet children(_c)}
-				<div
-					data-column="gap-2"
-				>
-					<p data-text="muted">
-						<a href={resolve('/coins/candles')}>
-							OHLC ranges
-						</a>
-						—
-						<code>MarketPriceRange</code>
-						(1/7/30d, USD; CoinGecko
-						<code>$$marketPriceRanges</code>
-						)
-						.
-					</p>
-					<div
-						data-e2e="coins-carousel-ohlc"
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						style="--carousel-basis: min(44ch, 100%); gap: 0.5em"
-					>
-						<section data-scroll-marker-label="Candle range index">
-							<MarketPriceRangesView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType._Global,
-									entityId: {},
-									fieldName: '$$marketPriceRanges',
-								}}
-								href={resolve('/coins/candles')}
-								id={`${id}:ohlc-ranges-preview`}
-								open
-								title="Candle range index"
-							/>
-						</section>
-					</div>
-				</div>
+			{#snippet BeforeScroll({ open: _o })}
+				<p data-text="muted">
+					<a href={resolve('/coins/candles')}>
+						OHLC ranges
+					</a>
+					—
+					<code>MarketPriceRange</code>
+					(1/7/30d, USD; CoinGecko
+					<code>$$marketPriceRanges</code>
+					)
+					.
+				</p>
 			{/snippet}
-		</Collapsible>
+			{#snippet children(_c)}
+				<section data-scroll-marker-label="Candle range index">
+					<MarketPriceRangesView
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType._Global,
+							entityId: {},
+							fieldName: '$$marketPriceRanges',
+						}}
+						href={resolve('/coins/candles')}
+						id={`${id}:ohlc-ranges-preview`}
+						open
+						title="Candle range index"
+					/>
+				</section>
+			{/snippet}
+		</CollapsibleTabs>
 
-		<Collapsible
+		<CollapsibleTabs
 			id={`${id}:hub-markets`}
 			{...{ 'data-card': '' }}
 			data-e2e="coins-collapsible-markets"
 			open={marketsOpen}
+			scrollContainerProps={{
+				'data-e2e': 'coins-carousel-markets',
+				style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
+			}}
 		>
 			{#snippet Summary({
 				open: _o,
@@ -306,51 +303,43 @@
 					</Heading>
 				</header>
 			{/snippet}
-			{#snippet children(_c)}
-				<div
-					data-column="gap-2"
-				>
-					<p data-text="muted">
-						<a href={resolve('/coins/markets')}>
-							All markets
-						</a>
-						—
-						<code>Market</code>
-						vertices
-						(<code>$base</code>
-						·
-						<code>$quote</code>
-						·
-						<code>venue</code>
-						), with
-						<code>$$marketPrices</code>
-						/
-						<code>$$marketPriceRanges</code>
-						hanging off each.
-					</p>
-					<div
-						data-e2e="coins-carousel-markets"
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						style="--carousel-basis: min(44ch, 100%); gap: 0.5em"
-					>
-						<section data-scroll-marker-label="Market index">
-							<MarketsView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType._Global,
-									entityId: {},
-									fieldName: '$$markets',
-								}}
-								href={resolve('/coins/markets')}
-								id={`${id}:markets-index`}
-								open
-								title="Market index"
-							/>
-						</section>
-					</div>
-				</div>
+			{#snippet BeforeScroll({ open: _o })}
+				<p data-text="muted">
+					<a href={resolve('/coins/markets')}>
+						All markets
+					</a>
+					—
+					<code>Market</code>
+					vertices
+					(<code>$base</code>
+					·
+					<code>$quote</code>
+					·
+					<code>venue</code>
+					), with
+					<code>$$marketPrices</code>
+					/
+					<code>$$marketPriceRanges</code>
+					hanging off each.
+				</p>
 			{/snippet}
-		</Collapsible>
+			{#snippet children(_c)}
+				<section data-scroll-marker-label="Market index">
+					<MarketsView
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType._Global,
+							entityId: {},
+							fieldName: '$$markets',
+						}}
+						href={resolve('/coins/markets')}
+						id={`${id}:markets-index`}
+						open
+						title="Market index"
+					/>
+				</section>
+			{/snippet}
+		</CollapsibleTabs>
 	{/if}
 
 	<Collapsible

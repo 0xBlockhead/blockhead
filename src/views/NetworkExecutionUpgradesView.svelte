@@ -2,12 +2,11 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { stringify } from 'devalue'
-	import { networkExecutionUpgradeByChainIdAndUpgradeId } from '$/constants/NetworkUpgrades.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import type { Entity } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -15,18 +14,6 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { SvelteSet } from 'svelte/reactivity'
-
-
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NetworkExecutionUpgradeView from '$/views/NetworkExecutionUpgradeView.svelte'
 
 
 	// Props
@@ -47,6 +34,11 @@
 		>
 	> = $props()
 
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { SvelteSet } from 'svelte/reactivity'
 
 	const parentEntityType = $derived(entityFieldReference.entityType)
 	const parentEntityId = $derived(entityFieldReference.entityId)
@@ -93,18 +85,11 @@
 		},
 	)
 
-	const upgradeListLink = (
-		networkExecutionUpgradeEntity: Entity<typeof schema, EntityType.NetworkExecutionUpgrade>,
-	) => {
-		const { chainId } = networkExecutionUpgradeEntity[EntityMetaKey.Id].$network
-		const { upgradeId } = networkExecutionUpgradeEntity[EntityMetaKey.Id]
-		const constantUpgrade = networkExecutionUpgradeByChainIdAndUpgradeId[`${chainId}:${upgradeId}`]
-		return {
-			chainId,
-			upgradeId,
-			slug: constantUpgrade?.slug ?? networkExecutionUpgradeEntity.slug,
-		}
-	}
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import NetworkExecutionUpgradeView from '$/views/NetworkExecutionUpgradeView.svelte'
 </script>
 
 
@@ -127,14 +112,14 @@
 
 	{#snippet Item({ item: envelope })}
 		{#if envelope}
-			{@const link = upgradeListLink(envelope.value)}
+			{@const slug = envelope.value.slug ?? envelope.value[EntityMetaKey.Id].upgradeId}
 			<NetworkExecutionUpgradeView
 				entityId={envelope.value[EntityMetaKey.Id]}
 				href={resolve(
 					'/(explore)/(networks)/network/[networkId]/(network)/(upgrades)/upgrade/[upgradeSlug]',
 					{
-						networkId: String(link.chainId),
-						upgradeSlug: link.slug ?? link.upgradeId,
+						networkId: String(envelope.value[EntityMetaKey.Id].$network.chainId),
+						upgradeSlug: slug,
 					},
 				)}
 				layout={EntityLayout.Summary}

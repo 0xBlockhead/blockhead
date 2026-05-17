@@ -39,6 +39,7 @@
 
 	// Components
 	import Collapsible from '$/components/Collapsible.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -125,9 +126,13 @@
 		/>
 
 		<div data-column="gap-3">
-			<Collapsible
+			<CollapsibleTabs
 				id={`${networkIdKey}:registry`}
 				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+					style: '--carousel-basis: 36ch',
+				}}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
@@ -140,11 +145,7 @@
 					</header>
 				{/snippet}
 
-				<div
-					data-scroll-container="inline layout-carousel carousel-marker-tabs"
-					data-row="start align-start"
-					style="--carousel-basis: 36ch"
-				>
+				{#snippet children({ open: _o })}
 					<section data-scroll-marker-label="Users">
 						<XUsersView
 							entityFieldReference={{
@@ -171,8 +172,8 @@
 							title="Recent posts"
 						/>
 					</section>
-				</div>
-			</Collapsible>
+				{/snippet}
+			</CollapsibleTabs>
 
 			<Collapsible
 				id={`${networkIdKey}:examples`}

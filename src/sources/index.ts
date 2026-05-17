@@ -27,6 +27,7 @@ import Dune from '$/sources/Dune/index.ts'
 import Ensips from '$/sources/Ensips/index.ts'
 import EthereumEips from '$/sources/EthereumEips/index.ts'
 import EthereumLists from '$/sources/EthereumLists/index.ts'
+import EthereumSpecs from '$/sources/EthereumSpecs/index.ts'
 import Etherscan from '$/sources/Etherscan/index.ts'
 import Evm from '$/sources/Evm/index.ts'
 import Explorer from '$/sources/Explorer/index.ts'
@@ -72,6 +73,7 @@ const sourceProviderDefinitions = [
 	Ensips,
 	EthereumEips,
 	EthereumLists,
+	EthereumSpecs,
 	Etherscan,
 	Evm,
 	Explorer,

@@ -17,11 +17,11 @@
 
 
 	// Components
-	import Collapsible from '$/components/Collapsible.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import CoinInstancesView from '$/views/CoinInstancesView.svelte'
 	import MarketPriceRangesView from '$/views/MarketPriceRangesView.svelte'
 	import MarketPriceView from '$/views/MarketPriceView.svelte'
@@ -190,10 +190,16 @@
 			{entityId}
 		/>
 
-		<div data-column="gap-3">
-			<Collapsible
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
+			<CollapsibleTabs
 				id={`${idPrefix}:carousel-pricing`}
 				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -209,14 +215,8 @@
 				{/snippet}
 
 				{#snippet children({ open: _detailsOpen })}
-					<div
-						class="carousel"
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						data-row="start align-start"
-					>
-						<section data-scroll-marker-label="Spot">
+					<section data-scroll-marker-label="Spot">
 							<ResourceBoundary
-								layout={Layout.Block}
 								resource={coinSpotPrice}
 							>
 								{#snippet children(priceLive)}
@@ -249,13 +249,15 @@
 								title="Historical"
 							/>
 						</section>
-					</div>
 				{/snippet}
-			</Collapsible>
+			</CollapsibleTabs>
 
-			<Collapsible
+			<CollapsibleTabs
 				id={`${idPrefix}:carousel-markets`}
 				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -271,49 +273,46 @@
 				{/snippet}
 
 				{#snippet children({ open: _detailsOpen })}
-					<div
-						class="carousel"
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						data-row="start align-start"
-					>
-						<section data-scroll-marker-label="As base">
-							<MarketsView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Coin,
-									entityId,
-									fieldName: '$$marketsWithCoinAsBase',
-								}}
-								href={resolve('/(assets)/(coins)/coin/[coinId]', {
-									coinId: entityId.coinId,
-								})}
-								id={`${idPrefix}:markets-as-base`}
-								title="As base"
-							/>
-						</section>
+					<section data-scroll-marker-label="As base">
+						<MarketsView
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.Coin,
+								entityId,
+								fieldName: '$$marketsWithCoinAsBase',
+							}}
+							href={resolve('/(assets)/(coins)/coin/[coinId]', {
+								coinId: entityId.coinId,
+							})}
+							id={`${idPrefix}:markets-as-base`}
+							title="As base"
+						/>
+					</section>
 
-						<section data-scroll-marker-label="As quote">
-							<MarketsView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Coin,
-									entityId,
-									fieldName: '$$marketsWithCoinAsQuote',
-								}}
-								href={resolve('/(assets)/(coins)/coin/[coinId]', {
-									coinId: entityId.coinId,
-								})}
-								id={`${idPrefix}:markets-as-quote`}
-								title="As quote"
-							/>
-						</section>
-					</div>
+					<section data-scroll-marker-label="As quote">
+						<MarketsView
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.Coin,
+								entityId,
+								fieldName: '$$marketsWithCoinAsQuote',
+							}}
+							href={resolve('/(assets)/(coins)/coin/[coinId]', {
+								coinId: entityId.coinId,
+							})}
+							id={`${idPrefix}:markets-as-quote`}
+							title="As quote"
+						/>
+					</section>
 				{/snippet}
-			</Collapsible>
+			</CollapsibleTabs>
 
-			<Collapsible
+			<CollapsibleTabs
 				id={`${idPrefix}:carousel-deployments`}
 				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -329,27 +328,21 @@
 				{/snippet}
 
 				{#snippet children({ open: _detailsOpen })}
-					<div
-						class="carousel"
-						data-scroll-container="inline layout-carousel carousel-marker-tabs"
-						data-row="start align-start"
-					>
-						<section data-scroll-marker-label="Instances">
-							<CoinInstancesView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Coin,
-									entityId,
-									fieldName: '$$coinInstances',
-								}}
-								{href}
-								id={`${idPrefix}:coin-instances`}
-								title="Instances"
-							/>
-						</section>
-					</div>
+					<section data-scroll-marker-label="Instances">
+						<CoinInstancesView
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.Coin,
+								entityId,
+								fieldName: '$$coinInstances',
+							}}
+							{href}
+							id={`${idPrefix}:coin-instances`}
+							title="Instances"
+						/>
+					</section>
 				{/snippet}
-			</Collapsible>
+			</CollapsibleTabs>
 		</div>
 
 		{#if children}
@@ -360,7 +353,7 @@
 
 
 <style>
-	.carousel {
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
 		&[data-scroll-container] {
 			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
 			max-block-size: var(--scrollContainer-sizeBlock);

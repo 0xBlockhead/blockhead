@@ -41,8 +41,12 @@
 >
 	<div
 		data-scroll-container="inline layout-carousel carousel-marker-tabs"
-		style="--carousel-basis: 38ch; gap: 0.5em"
+		style="--carousel-basis: 38ch"
 	>
+		<div
+			data-carousel-panes=""
+			style="gap: 0.5em"
+		>
 		<section
 			data-scroll-marker-label="Dune (billing)"
 		>
@@ -266,7 +270,8 @@
 						{/snippet}
 					</EntitiesList>
 				</section>
-			</div>
+		</div>
+	</div>
 </div>
 
 

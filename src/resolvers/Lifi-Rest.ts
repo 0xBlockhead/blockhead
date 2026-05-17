@@ -4,6 +4,7 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import { urlEntitiesDeduplicatedSortedFromFaucetUrlStrings } from '$/resolvers/_networkCatalogUrlEntities.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -12,6 +13,11 @@ import { Source } from '$/sources/$Source.ts'
 import type { LifiChain } from '$/sources/Lifi/Rest/types.ts'
 
 const networkEntityFieldsFromLifiChain = (lifiChain: LifiChain) => {
+	const metamaskRpcUrls = (
+		(lifiChain.metamask?.rpcUrls ?? [])
+			.map((u) => u.trim())
+			.filter((u) => u.length > 0)
+	)
 	return {
 		[EntityMetaKey.Id]: { chainId: lifiChain.id },
 		...((
@@ -22,9 +28,7 @@ const networkEntityFieldsFromLifiChain = (lifiChain: LifiChain) => {
 			}
 		))(mediaFromUrl(lifiChain.logoURI, MediaType.Image)),
 		executionEndpoints: (
-			(lifiChain.metamask?.rpcUrls ?? [])
-				.map((u) => u.trim())
-				.filter((u) => u.length > 0)
+			metamaskRpcUrls
 				.map((url) => (
 					{
 						url,
@@ -38,6 +42,7 @@ const networkEntityFieldsFromLifiChain = (lifiChain: LifiChain) => {
 					}
 				))
 		),
+		$$rpcUrls: urlEntitiesDeduplicatedSortedFromFaucetUrlStrings(metamaskRpcUrls),
 	}
 }
 

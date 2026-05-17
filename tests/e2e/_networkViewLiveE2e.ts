@@ -148,7 +148,9 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 		expect(maxCarousel >= (head1 ?? 0n)).toBe(true)
 
 		await expect(
-			page.locator('[data-scroll-marker-label="Transactions"] a[href*="/tx/"]').first(),
+			page.locator(
+				'[data-e2e="network-carousel-execution"][data-scroll-container~="layout-carousel"] a[href*="/tx/"]',
+			).first(),
 		).toBeVisible({ timeout: 90_000 })
 
 		const txBefore = await readTxHrefsJoin(page)

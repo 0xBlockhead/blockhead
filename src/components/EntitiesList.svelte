@@ -15,12 +15,6 @@
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	import Collapsible from '$/components/Collapsible.svelte'
-	import Heading from '$/components/Heading.svelte'
-	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
-	import UnorderedList from '$/components/UnorderedList.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
-
 	import type { QueryLike } from '$/lib/db/queryResource.svelte.ts'
 	import type { RemoteResource } from '@sveltejs/kit'
 
@@ -185,6 +179,14 @@
 		:
 			[...queryRows]
 	)
+
+
+	// Components
+	import Collapsible from '$/components/Collapsible.svelte'
+	import Heading from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import UnorderedList from '$/components/UnorderedList.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
@@ -259,7 +261,6 @@
 			{#if resource !== undefined}
 				<ResourceBoundary
 					boundaryKey={id}
-					layout={Layout.Block}
 					resource={resource}
 					placeholderText={placeholderText ?? `Loading ${entityDefinitionByType[entityType].labelPlural.toLowerCase()}…`}
 				>
@@ -282,11 +283,7 @@
 	{/snippet}
 
 	{#if !showSummary}
-		<div
-			{...{ 'data-card': 'padding-5 radius-4' }}
-		>
-			{@render listColumnBody()}
-		</div>
+		{@render listColumnBody()}
 	{:else if collapsible}
 		<Collapsible
 			bind:open

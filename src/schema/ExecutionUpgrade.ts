@@ -1,17 +1,18 @@
 import { type } from 'arktype'
 import {
-	EntityFieldType,
 	EntityFieldCardinality,
+	EntityFieldType,
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
+import Network from '$/schema/Network.ts'
 import {
 	ExecutionProtocol,
 	NetworkExecutionUpgradeLayer,
 } from '$/schema/NetworkUpgradeProtocols.ts'
-import Network from '$/schema/Network.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.NetworkExecutionUpgrade,
@@ -90,6 +91,24 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'executionSpecsPinnedMarkdownFilename',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
+		},
+		{
+			name: 'executionSpecsMainnetUpgradeMarkdown',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.EthereumSpecs_Github,
+			],
 		},
 		{
 			name: '$$proposals',

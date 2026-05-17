@@ -23,6 +23,7 @@ export enum Source {
 	Ensips_Github = 'Ensips_Github',
 	EthereumEips_Github = 'EthereumEips_Github',
 	EthereumLists_Rest = 'EthereumLists_Rest',
+	EthereumSpecs_Github = 'EthereumSpecs_Github',
 	Etherscan_Rest = 'Etherscan_Rest',
 	Evm_JsonRpc = 'Evm_JsonRpc',
 	Explorer_Rest = 'Explorer_Rest',

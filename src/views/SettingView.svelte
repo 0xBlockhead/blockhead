@@ -117,14 +117,6 @@
 					<p data-text="muted">
 						Shared app settings and usage totals.
 					</p>
-
-					{#if g.duneCreditsUsed === undefined}
-						{#if g.duneCreditsIncluded === undefined}
-							<p data-text="muted">
-								Usage totals are not available yet.
-							</p>
-						{/if}
-					{/if}
 				{/snippet}
 			</ResourceBoundary>
 

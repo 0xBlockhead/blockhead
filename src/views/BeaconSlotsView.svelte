@@ -19,7 +19,7 @@
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import OrderedList from '$/components/OrderedList.svelte'
-	import ResourceBoundary, { Layout } from '$/components/ResourceBoundary.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
 
 
@@ -84,7 +84,6 @@
 	{#snippet body()}
 		{#key stringify(entityFieldReference.entityId)}
 			<ResourceBoundary
-				layout={Layout.Block}
 				resource={slots}
 				placeholderText="Loading slots…"
 			>
