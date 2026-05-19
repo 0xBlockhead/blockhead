@@ -50,6 +50,13 @@ h3 {
 	font-size: 1.05em;
 }
 
+abbr.entity-heading-tip {
+	cursor: help;
+	text-decoration: none;
+	border: none;
+	font-style: normal;
+}
+
 [data-text] {
 	&[data-text~="font-base"] {
 		font-family: var(--fontFamily-sans);
@@ -1366,7 +1373,7 @@ details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers] {
 	 * `[data-carousel-panes]`). Overrides `snap-inline` snap axis rules when both are present.
 	 */
 	&[data-scroll-container~='layout-carousel'] {
-		--carousel-basis: 28ch;
+		--carousel-basis: 32ch;
 		--carousel-button-inline-padding: 0.25em;
 
 		position: relative;

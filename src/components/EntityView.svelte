@@ -62,6 +62,7 @@
 		Icon,
 		Heading,
 		HeadingAfter,
+		TypeAnnotationTooltip,
 		Content,
 		CollapsibleProps,
 		Details: _Details,
@@ -86,6 +87,8 @@
 			Icon?: Snippet
 			Heading?: Snippet
 			HeadingAfter?: Snippet
+			/** Tooltip body (e.g. `<p>` paragraphs) shown when hovering the entity type label; omitted when `showTypeAnnotation` is false. */
+			TypeAnnotationTooltip?: Snippet
 			Content?: Snippet<[context?: {
 				title?: string
 				href?: string
@@ -111,6 +114,7 @@
 
 	// Components
 	import Collapsible from '$/components/Collapsible.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import EntitySummary from './EntitySummary.svelte'
 </script>
 
@@ -167,7 +171,18 @@
 
 		{#if showTypeAnnotation}
 			<div data-row="wrap">
-				<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
+				{#if TypeAnnotationTooltip}
+					<Tooltip contentProps={{ side: 'top' }}>
+						{#snippet Content()}
+							{@render TypeAnnotationTooltip()}
+						{/snippet}
+						{#snippet children()}
+							<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
+						{/snippet}
+					</Tooltip>
+				{:else}
+					<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
+				{/if}
 			</div>
 		{/if}
 	</div>
@@ -181,6 +196,7 @@
 				open: true,
 			})}
 		{/if}
+
 		{#if _Details}
 			{@render _Details({
 				open: true,
@@ -194,38 +210,19 @@
 		id={stringify(entityId)}
 		style:view-transition-name={`EntityView-${stringify(entityId)}`}
 	>
-		{#snippet Summary({
-			open: summaryOpen,
-		})}
-			<EntitySummary
-				{entityType}
-				{entityId}
-				{title}
-				{href}
-				{idDragPlainText}
-				showEntityTypeIdPrefix={showEntitySummaryTypeIdPrefix}
-				{Icon}
-				{Heading}
-				{Id}
-				{HeadingAfter}
-			>
-				{#snippet children({
-					title,
-					href,
-				})}
-					{#if Content}
-						{@render Content({
-							title,
-							href,
-							open: summaryOpen,
-						})}
-					{/if}
-				{/snippet}
-			</EntitySummary>
-		{/snippet}
-
 		{#snippet Annotation()}
-			<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
+			{#if TypeAnnotationTooltip}
+				<Tooltip contentProps={{ side: 'top' }}>
+					{#snippet Content()}
+						{@render TypeAnnotationTooltip()}
+					{/snippet}
+					{#snippet children()}
+						<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
+					{/snippet}
+				</Tooltip>
+			{:else}
+				<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
+			{/if}
 		{/snippet}
 
 		<Collapsible
@@ -239,21 +236,58 @@
 				'data-card': '',
 				...CollapsibleProps,
 			}}
-			{Summary}
 			Annotation={showTypeAnnotation ? Annotation : undefined}
 		>
-			{#snippet children({ open: detailsOpen })}
+			{#snippet Summary({
+				open,
+			})}
+				<EntitySummary
+					{entityType}
+					{entityId}
+					{title}
+					{href}
+					{idDragPlainText}
+					showEntityTypeIdPrefix={showEntitySummaryTypeIdPrefix}
+					{Icon}
+					{Heading}
+					{Id}
+					{HeadingAfter}
+				>
+					{#snippet children({
+						title,
+						href,
+					})}
+						{#if Content && !open}
+							{@render Content({
+								title,
+								href,
+								open,
+							})}
+						{/if}
+					{/snippet}
+				</EntitySummary>
+			{/snippet}
+
+			{#snippet children({ open })}
 				{#if (
 					_Details
-					&& detailsOpen
+					&& open
 					&& (
 						layout === EntityLayout.Summary
 						|| layout === EntityLayout.SummaryDetails
 					)
 				)}
 					<div data-column>
+						{#if Content && open}
+							{@render Content({
+								title,
+								href,
+								open,
+							})}
+						{/if}
+
 						{@render _Details({
-							open: detailsOpen,
+							open,
 						})}
 					</div>
 				{/if}

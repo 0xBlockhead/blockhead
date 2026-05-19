@@ -50,3 +50,16 @@ export type LifiChainsResponse = {
 export type LifiTokensResponse = {
 	tokens: Record<string, LifiToken[]>
 }
+
+export type FetchLifiChainsOptions = {
+	chainTypes?: string
+	baseUrl?: string
+}
+
+export type FetchLifiTokensOptions = {
+	chains?: string
+	tags?: string
+	chainTypes?: string
+	minPriceUSD?: number
+	baseUrl?: string
+}

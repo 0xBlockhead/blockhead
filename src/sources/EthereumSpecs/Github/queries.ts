@@ -16,8 +16,7 @@ import {
 	goEthereumParamsConfigGoUrl,
 } from '$/sources/EthereumSpecs/Github/constants.ts'
 
-
-export type ConsensusSpecsNetworkPreset = 'mainnet' | 'sepolia' | 'holesky'
+import type { ConsensusSpecsNetworkPreset } from '$/sources/EthereumSpecs/Github/types.ts'
 
 const consensusSpecsConfigYamlUrlByPreset = {
 	mainnet: consensusMainnetYamlUrl,

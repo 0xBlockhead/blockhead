@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -14,7 +13,6 @@
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
 
 	// State
@@ -67,7 +65,7 @@
 	entityType={EntityType.BlockheadAgentConversation}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Id()}
@@ -77,7 +75,10 @@
 	{/snippet}
 
 	{#snippet Heading()}
-		<ResourceBoundary resource={conversation}>
+		<ResourceBoundary
+			resource={conversation}
+			placeholderText="Loading conversation…"
+		>
 			{#snippet children(_conversation)}
 				{_conversation.name ?? entityId.id}
 			{/snippet}
@@ -87,19 +88,16 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
-				<dt>Id</dt>
+				<dt>Conversation id</dt>
 				<dd data-text="mono">
 					{@render Id()}
 				</dd>
 			</div>
 
 			<div>
-				<dt>Conversation id</dt>
-				<dd>
-					<TruncatedValue
-						value={entityId.id}
-						format={TruncatedValueFormat.Visual}
-					/>
+				<dt>Scope</dt>
+				<dd data-text="muted">
+					Persisted chat transcript keyed by conversation id: role-tagged messages and optional titles. This persistence is client-side storage—not consensus slots, Farcaster casts, or on-chain events.
 				</dd>
 			</div>
 
@@ -107,7 +105,7 @@
 				{#snippet children(_conversation)}
 					{#if _conversation.updatedAt !== undefined}
 						<div>
-							<dt>Timestamp</dt>
+							<dt>Last activity</dt>
 							<dd>
 								<Timestamp
 									timestamp={_conversation.updatedAt}
@@ -118,7 +116,7 @@
 					{:else}
 						{#if _conversation.createdAt !== undefined}
 							<div>
-								<dt>Timestamp</dt>
+								<dt>Last activity</dt>
 								<dd>
 									<Timestamp
 										timestamp={_conversation.createdAt}
@@ -128,15 +126,8 @@
 							</div>
 						{/if}
 					{/if}
+
 					{#if open}
-						{#if _conversation.name !== undefined}
-							{#if _conversation.name !== ''}
-								<div>
-									<dt>Name</dt>
-									<dd>{_conversation.name}</dd>
-								</div>
-							{/if}
-						{/if}
 						{#if _conversation.createdAt !== undefined}
 							<div>
 								<dt>Created at</dt>
@@ -148,6 +139,7 @@
 								</dd>
 							</div>
 						{/if}
+
 						{#if _conversation.updatedAt !== undefined}
 							<div>
 								<dt>Updated at</dt>
@@ -165,38 +157,16 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.BlockheadAgentConversation}
+			{entityId}
+		/>
+
 		{#if childrenSnippet}
 			{@render childrenSnippet()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.BlockheadAgentConversation}
-				{entityId}
-			/>
-			<ResourceBoundary resource={conversation}>
-				{#snippet children(_conversation)}
-					{#if _conversation.name === undefined}
-						{#if _conversation.createdAt === undefined}
-							{#if _conversation.updatedAt === undefined}
-								<p data-text="muted">
-									No conversation details are available yet.
-								</p>
-							{/if}
-						{/if}
-					{/if}
-					{#if _conversation.name !== undefined}
-						{#if _conversation.name === ''}
-							{#if _conversation.createdAt === undefined}
-								{#if _conversation.updatedAt === undefined}
-									<p data-text="muted">
-										No conversation details are available yet.
-									</p>
-								{/if}
-							{/if}
-						{/if}
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
 		{/if}
 	{/snippet}
 </EntityView>

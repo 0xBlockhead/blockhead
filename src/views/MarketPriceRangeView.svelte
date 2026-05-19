@@ -15,6 +15,53 @@
 	import { resolve } from '$app/paths'
 
 
+	// Props
+	let {
+		children,
+		entityId,
+		href,
+		open = $bindable(true),
+		...entityViewRest
+	}: WithRest<
+		{
+			children?: Snippet
+			entityId: EntityId<typeof schema, EntityType.MarketPriceRange>
+			href?: string
+			open?: boolean
+		},
+		Omit<
+			ComponentProps<typeof EntityView>,
+			| 'entityType'
+			| 'entityId'
+			| 'href'
+			| 'open'
+			| 'title'
+			| 'Details'
+		>
+	> = $props()
+
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const rangeLive = useEntity(
+		EntityType.MarketPriceRange,
+		entityId,
+		{
+			$: [
+				Source.Constants_Internal,
+				Source.Coingecko_Rest,
+				Source.Defillama_OpenApi,
+				Source.Coinpaprika_OpenApi,
+				Source.CoinMarketCap_Rest,
+			],
+			$$parentMarket: {},
+			pointCount: {},
+			rangePayload: {},
+		},
+	)
+
+
 	// Functions
 	const ohlcRangePayloadToEntities = (
 		rangePayload: string,
@@ -50,51 +97,9 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import MarketTimeIntervalTimestampChart from '$/views/charts/Market_TimeInterval_Timestamp.svelte'
 	import MarketView from '$/views/MarketView.svelte'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-
-	// Props
-	let {
-		children,
-		entityId,
-		href,
-		open = $bindable(true),
-		...entityViewRest
-	}: WithRest<
-		{
-			children?: Snippet
-			entityId: EntityId<typeof schema, EntityType.MarketPriceRange>
-			href?: string
-			open?: boolean
-		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-		>
-	> = $props()
-
-
-	const rangeLive = useEntity(
-		EntityType.MarketPriceRange,
-		entityId,
-		{
-			$: [
-				Source.Constants_Internal,
-				Source.Coingecko_Rest,
-			],
-			$$parentMarket: {},
-			pointCount: {},
-			rangePayload: {},
-		},
-	)
 </script>
 
 
@@ -115,15 +120,24 @@
 		entityId.$market.$base.kind === MarketAssetKind.Coin ?
 			entityId.$market.$base.$coin.coinId
 		:
-			'Market'
+			'Pair market'
 	} · ${formatMarketTimeIntervalLabel(entityId.timeInterval)} · ${entityId.rangeType}`}
 	{...entityViewRest}
 >
 	{#snippet Heading()}
 
 		<span data-text="font-monospace">
-			range
+			OHLC range
 		</span>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					OHLC ranges roll prints into open, high, low, close ladders for each interval of the chosen timeframe.
+				</p>
+				<p>
+					Spot or index feeds are a separate time series: prints can arrive between candle boundaries without changing the prior bar’s close.
+				</p>
 	{/snippet}
 
 	{#snippet Id()}
@@ -153,30 +167,25 @@
 					)
 				)}
 				{#if hasDlRow}
-					<dl>
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
+					<dl data-column-item="center">
 						{#if r.pointCount !== undefined}
 							<div>
-								<dt>Points</dt>
+								<dt>OHLC bars (interval candles)</dt>
 								<dd>{String(r.pointCount)}</dd>
 							</div>
 						{/if}
+
 						{#if latest?.close !== undefined}
 							<div>
-								<dt>Latest close</dt>
+								<dt>Last close</dt>
 								<dd>{String(Number(latest.close) / 1e8)}</dd>
 							</div>
 						{/if}
+
 						{#if open}
 							{#if latest !== undefined}
 								<div>
-									<dt>Latest timestamp (ns)</dt>
+									<dt>Bar end (ns)</dt>
 									<dd>{String(latest[EntityMetaKey.Id].timestampNs)}</dd>
 								</div>
 							{/if}
@@ -184,66 +193,65 @@
 					</dl>
 				{:else}
 					<p data-text="muted">
-						No price range points yet.
+						No OHLC series yet.
 					</p>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({
+		open: _open,
+	})}
 		<EntityDetails
 			entityType={EntityType.MarketPriceRange}
 			{entityId}
 		/>
-			<ResourceBoundary
-				resource={rangeLive}
-				placeholderText="Loading range…"
-			>
-				{#snippet children(r)}
-					{@const ordered = (
-						r.rangePayload === undefined ?
-							[]
-						:	ohlcRangePayloadToEntities(r.rangePayload, entityId)
-					)}
-					{@const chartMin = (
-						!ordered.length ?
-							0
-						:	Math.min(
-								...ordered.map((point) => (
-									Number(point.low ?? point.close ?? point.open ?? 0n) / 1e8
-								)),
-							)
-					)}
-					{@const chartMax = (
-						!ordered.length ?
-							1
-						:	Math.max(
-								...ordered.map((point) => (
-									Number(point.high ?? point.close ?? point.open ?? 1n) / 1e8
-								)),
-							)
-					)}
-					{#if ordered.length}
-						<MarketTimeIntervalTimestampChart
-							max={chartMax}
-							min={chartMin}
-							points={ordered}
-							title={`${
-								entityId.$market.$base.kind === MarketAssetKind.Coin ?
-									entityId.$market.$base.$coin.coinId
-								:
-									'Market'
-							} · ${formatMarketTimeIntervalLabel(entityId.timeInterval)} · ${entityId.rangeType}`}
-						/>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+		<ResourceBoundary
+			resource={rangeLive}
+			placeholderText="Loading range…"
+		>
+			{#snippet children(r)}
+				{@const ordered = (
+					r.rangePayload === undefined ?
+						[]
+					:	ohlcRangePayloadToEntities(r.rangePayload, entityId)
+				)}
+				{@const chartMin = (
+					!ordered.length ?
+						0
+					:	Math.min(
+							...ordered.map((point) => (
+								Number(point.low ?? point.close ?? point.open ?? 0n) / 1e8
+							)),
+						)
+				)}
+				{@const chartMax = (
+					!ordered.length ?
+						1
+					:	Math.max(
+							...ordered.map((point) => (
+								Number(point.high ?? point.close ?? point.open ?? 1n) / 1e8
+							)),
+						)
+				)}
+				{#if ordered.length}
+					<MarketTimeIntervalTimestampChart
+						max={chartMax}
+						min={chartMin}
+						points={ordered}
+						title={`${
+							entityId.$market.$base.kind === MarketAssetKind.Coin ?
+								entityId.$market.$base.$coin.coinId
+							:
+								'Pair market'
+						} · ${formatMarketTimeIntervalLabel(entityId.timeInterval)} · ${entityId.rangeType}`}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 
-		<section>
-			<h2>
-				Market
-			</h2>
+		<section data-scroll-marker-label="Pair market">
 			<MarketView
 				entityId={entityId.$market}
 				href={(

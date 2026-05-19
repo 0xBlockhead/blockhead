@@ -156,7 +156,7 @@ test.describe('TanStack DB persistence', () => {
 					`#main missing after cold goto ${url} (final URL: ${page.url()})`,
 				).toBeVisible({ timeout: 120_000 })
 				if (url === '/network/1')
-					await expect(page.locator('[data-e2e="network-carousel-groups"]')).toBeAttached({
+					await expect(page.locator('.network-view-carousel-groups')).toBeAttached({
 						timeout: 120_000,
 					})
 				else if (url === '/networks')
@@ -190,7 +190,7 @@ test.describe('TanStack DB persistence', () => {
 					`#main missing after warm reload ${url} (final URL: ${page.url()})`,
 				).toBeVisible({ timeout: 120_000 })
 				if (url === '/network/1')
-					await expect(page.locator('[data-e2e="network-carousel-groups"]')).toBeAttached({
+					await expect(page.locator('.network-view-carousel-groups')).toBeAttached({
 						timeout: 120_000,
 					})
 				else if (url === '/networks')

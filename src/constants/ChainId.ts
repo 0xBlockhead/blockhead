@@ -1,5 +1,7 @@
 /** EVM chain ids used by execution RPC defaults (mirrors ethglobal-hackmoney-2026). */
 
+
+// Constants
 export enum ChainId {
 	Ethereum = 1,
 	Optimism = 10,

@@ -26,12 +26,16 @@
 		entityFieldReference,
 		title = 'Blocks',
 		open = $bindable(true),
+		id,
+		href,
 		...entitiesListRest
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmBlock>
 			title?: string
 			open?: boolean
+			id: string
+			href: string
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
@@ -41,8 +45,6 @@
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -50,26 +52,28 @@
 		EntityType.Network,
 		entityFieldReference.entityId,
 		{
-			blockHeight: {
-				$: [
-					Source.Voltaire_JsonRpc,
-				],
-			},
-			$$blocks: {
-				$: [
-					Source.Voltaire_JsonRpc,
-				],
-			},
+			...(open ? {
+				blockHeight: {
+					$: [
+						Source.Voltaire_JsonRpc,
+					],
+				},
+				$$blocks: {
+					$: [
+						Source.Voltaire_JsonRpc,
+					],
+				},
+			} : {}),
 		},
 	)
 
 	const recentBlocks = derive(
 		network,
-		(loaded) => {
+		(loaded): Entity<typeof schema, EntityType.EvmBlock>[] => {
 			const rows = (
 				loaded.$$blocks
 				?? []
-			) as Entity<typeof schema, EntityType.EvmBlock>[]
+			)
 			return (
 				rows
 					.toSorted((a, b) => (
@@ -87,28 +91,42 @@
 
 <EntitiesList
 	entityType={EntityType.EvmBlock}
+	{id}
+	{href}
 	{title}
 	bind:open
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Execution blocks group ordered transactions under one header: gas usage, fee market, and parent hash linkage.
+					</p>
+					<p>
+						Receipts carry event logs with indexed topics; blob transactions add data availability commitments without changing how contracts are decoded.
+					</p>
+					<p>
+						Recent block lists are often capped for RPC cost.
+					</p>
+	{/snippet}
+
 	{#snippet body()}
-		{#key stringify(entityFieldReference.entityId)}
+		<div data-column="gap-3">
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmBlock}
-				id={`${entitiesListRest.id}-items`}
-				href={entitiesListRest.href}
+				id={`${id}-items`}
+				{href}
 				{title}
 				open={true}
 				getKey={(row) => row[EntityMetaKey.Id].blockNumber}
-				placeholderText="Loading blocks…"
+				placeholderText="Loading execution blocks…"
 				resource={recentBlocks}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No recent blocks for this network yet. Try again shortly.
+						No recent blocks yet.
 					</p>
 				{/snippet}
 
@@ -133,6 +151,6 @@
 					{/if}
 				{/snippet}
 			</EntitiesList>
-		{/key}
+		</div>
 	{/snippet}
 </EntitiesList>

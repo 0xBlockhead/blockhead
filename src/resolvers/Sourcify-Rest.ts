@@ -19,6 +19,35 @@ const abiJsonStringFromSourcifyLookup = (
 	:	undefined
 )
 
+const sourcifyFirstStorageLayoutRecord = (
+	root: unknown,
+): Record<string, unknown> | undefined => {
+	const visited = new WeakSet<object>()
+	const walk = (node: unknown): Record<string, unknown> | undefined => {
+		if (node === null || typeof node !== 'object') return undefined
+		if (visited.has(node as object)) return undefined
+		visited.add(node as object)
+		if (Array.isArray(node)) {
+			for (const child of node) {
+				const found = walk(child)
+				if (found !== undefined) return found
+			}
+			return undefined
+		}
+		const record = node as Record<string, unknown>
+		const direct = record.storageLayout
+		if (direct !== null && typeof direct === 'object' && !Array.isArray(direct)) {
+			return direct as Record<string, unknown>
+		}
+		for (const child of Object.values(record)) {
+			const found = walk(child)
+			if (found !== undefined) return found
+		}
+		return undefined
+	}
+	return walk(root)
+}
+
 export default {
 	source: Source.Sourcify_Rest,
 
@@ -126,6 +155,25 @@ export default {
 				return {
 					[EntityMetaKey.Id]: entityId,
 				}
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmContract,
+			fieldName: 'storageLayoutJson',
+			resolve: async (entityId) => {
+				const { getSourcifyContractLookup } = await import('$/sources/Sourcify/Rest/queries.ts')
+				const contractLookup = await singleFlight(getSourcifyContractLookup)({
+					chainId: entityId.$network.chainId,
+					address: entityId.address,
+				})
+				if (contractLookup == null) return undefined
+				const layoutObject = (
+					sourcifyFirstStorageLayoutRecord(contractLookup.metadata)
+					?? sourcifyFirstStorageLayoutRecord(contractLookup.compilation)
+					?? sourcifyFirstStorageLayoutRecord(contractLookup)
+				)
+				return layoutObject == null ? undefined : JSON.stringify(layoutObject)
 			},
 		}),
 	],

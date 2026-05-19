@@ -1,11 +1,13 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
@@ -15,24 +17,31 @@
 	// Props
 	let {
 		entityFieldReference,
-		title = 'Topics',
+		title = 'Log topics',
 		open = $bindable(true),
 		href,
 		id,
-	}: {
-		entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmTopic>
-		open?: boolean
-		title?: string
-		href: string
-		id: string
-	} = $props()
+		...entitiesListRest
+	}: WithRest<
+		{
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmTopic>
+			title?: string
+			open?: boolean
+			href: string
+			id: string
+		},
+		Omit<
+			ComponentProps<typeof EntitiesList>,
+			'entityType'
+		>
+	> = $props()
 
 
 	// State
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 	const fieldName = entityFieldReference.fieldName
 
@@ -44,9 +53,16 @@
 				Source.Constants_Internal,
 				Source.Openchain_Rest,
 			],
-			[fieldName]: {
-				$limit: 4096,
-			},
+			...(
+				open ?
+					{
+						[fieldName]: {
+							$limit: 4096,
+						},
+					}
+				:
+					{}
+			),
 		},
 	)
 
@@ -72,11 +88,12 @@
 
 
 <EntitiesList
+	{...entitiesListRest}
+	bind:open
 	entityType={EntityType.EvmTopic}
 	{href}
 	{id}
 	{title}
-	bind:open
 	resource={topics}
 	placeholderText="Loading topics…"
 	getKey={(topic) => topic[EntityMetaKey.Id].hex}
@@ -84,9 +101,18 @@
 	placeholderKeys={new SvelteSet()}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Event log topics are keccak hashes of the canonical event signature for indexed logs on EVM chains.
+					</p>
+					<p>
+						They are indexed separately from function selectors, market candles, storage links, or messaging threads.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No topics indexed yet.
+			No log topics indexed yet.
 		</p>
 	{/snippet}
 

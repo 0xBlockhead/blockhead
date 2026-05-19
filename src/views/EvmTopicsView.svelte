@@ -18,6 +18,7 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import EvmTopicView from '$/views/EvmTopicView.svelte'
 
 
@@ -25,7 +26,8 @@
 	let {
 		entityFieldReference,
 		open = $bindable(true),
-		title = 'Topics',
+
+		title = 'Log topics',
 		...entitiesListRest
 	}: WithRest<
 		{
@@ -41,8 +43,6 @@
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -50,12 +50,17 @@
 		EntityType._Global,
 		entityFieldReference.entityId,
 		{
-			$: [
-				Source.Openchain_Rest,
-			],
-			$$evmTopics: {
-				$limit: 4096,
-			},
+			...(open ?
+				{
+					$: [
+						Source.Openchain_Rest,
+					],
+					$$evmTopics: {
+						$limit: 4096,
+					},
+				}
+			:
+				{}),
 		},
 	)
 
@@ -78,45 +83,39 @@
 
 <EntitiesList
 	entityType={EntityType.EvmTopic}
+	getKey={(topic) => topic[EntityMetaKey.Id].hex}
+	getSortValue={(topic) => topic[EntityMetaKey.Id].hex}
+	placeholderText="Loading indexed log topics…"
+	resource={topics}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{title}
 	bind:open
 	{...entitiesListRest}
 >
-	{#snippet body()}
-		{#key stringify(entityFieldReference.entityId)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmTopic}
-				id={`${entitiesListRest.id}-items`}
-				href={entitiesListRest.href}
-				{title}
-				open={true}
-				getKey={(topic) => topic[EntityMetaKey.Id].hex}
-				getSortValue={(topic) => topic[EntityMetaKey.Id].hex}
-				placeholderText="Loading topics…"
-				resource={topics}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No topics indexed yet.
-					</p>
-				{/snippet}
+		{#snippet TypeAnnotationTooltip()}
+						<p>
+							Log topics are the hashed event signatures that appear in the topic position of EVM event logs.
+						</p>
+						<p>
+							They identify which event fired, distinct from function selectors used in contract calls.
+						</p>
+		{/snippet}
+		{#snippet Empty()}
+			<p data-text="muted">
+				No indexed log topics yet.
+			</p>
+		{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<EvmTopicView
-							entityId={props.item[EntityMetaKey.Id]}
-							href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
-								hex: props.item[EntityMetaKey.Id].hex,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
-				{/snippet}
-			</EntitiesList>
-		{/key}
-	{/snippet}
+		{#snippet Item(props)}
+			{#if props.item}
+				<EvmTopicView
+					entityId={props.item[EntityMetaKey.Id]}
+					href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
+						hex: props.item[EntityMetaKey.Id].hex,
+					})}
+					layout={EntityLayout.Summary}
+					open={false}
+				/>
+			{/if}
+		{/snippet}
 </EntitiesList>

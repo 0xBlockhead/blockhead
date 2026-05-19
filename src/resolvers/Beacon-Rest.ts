@@ -49,6 +49,25 @@ export default {
 				}
 			},
 		}),
+
+		defineEntityResolver({
+			entityType: EntityType.BeaconValidator,
+			resolve: async (entityId) => {
+				const { getBeaconValidatorSummaryAtHead } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { $network, validatorIndex } = entityId
+				const base = beaconRestBaseByExecutionChainId[$network.chainId]
+				if (base == null) return {}
+				const summary = await singleFlight(getBeaconValidatorSummaryAtHead)(base, validatorIndex)
+				if (summary == null) return {}
+				return {
+					balanceGwei: summary.balanceGwei,
+					effectiveBalanceGwei: summary.effectiveBalanceGwei,
+					pubkey: summary.pubkey,
+					slashed: summary.slashed,
+					status: summary.status,
+				}
+			},
+		}),
 	],
 
 	entityFieldResolvers: [
@@ -137,6 +156,59 @@ export default {
 							]
 						))
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$beaconValidators',
+			resolve: async (entityId, context) => {
+				const { getBeaconRecentProposerValidatorIndices } = await import('$/sources/Beacon/Rest/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				const { chainId } = entityId
+				const base = beaconRestBaseByExecutionChainId[chainId]
+				if (base == null) {
+					throw new Error(`Beacon_Rest: $$beaconValidators unsupported for chain ${String(chainId)}`)
+				}
+				const validatorIndices = await getBeaconRecentProposerValidatorIndices({
+					beaconRestBaseUrl: base,
+					limit,
+					slotLookbackCap: Math.min(384, Math.max(limit * 8, slotsPerEpoch)),
+				})
+				return (
+					validatorIndices.map((validatorIndex) => ({
+						[EntityMetaKey.Id]: {
+							$network: { chainId },
+							validatorIndex,
+						},
+					}))
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: 'beaconFinalityCheckpointsJson',
+			resolve: async (entityId) => {
+				const { chainId } = entityId
+				const base = beaconRestBaseByExecutionChainId[chainId]
+				if (base == null) return undefined
+				const { getBeaconFinalityCheckpointsJsonString } = await import('$/sources/Beacon/Rest/queries.ts')
+				const json = await singleFlight(getBeaconFinalityCheckpointsJsonString)(base)
+				return json ?? undefined
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: 'beaconForkScheduleJson',
+			resolve: async (entityId) => {
+				const { chainId } = entityId
+				const base = beaconRestBaseByExecutionChainId[chainId]
+				if (base == null) return undefined
+				const { getBeaconForkScheduleJsonString } = await import('$/sources/Beacon/Rest/queries.ts')
+				const json = await singleFlight(getBeaconForkScheduleJsonString)(base)
+				return json ?? undefined
 			},
 		}),
 	],

@@ -2,14 +2,13 @@
  * Per-chain activation metadata; consumed by `NetworkUpgrades.ts`.
  */
 
+// Types
 import {
 	ConsensusProtocol,
 	ExecutionProtocol,
 } from '$/schema/NetworkUpgradeProtocols.ts'
 import { ProposalCategory } from '$/constants/Proposal.ts'
 
-
-// Types
 export type NetworkUpgradeActivationProposal = {
 	kind: ProposalCategory
 	number: number

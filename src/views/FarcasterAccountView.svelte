@@ -53,17 +53,24 @@
 			displayName: {},
 			$icon: {},
 			bio: {},
-			verifications: {},
-			custody: {},
-			authMethod: {},
-			signedAt: {},
+			...(open ?
+				{
+					verifications: {},
+					custody: {},
+					authMethod: {},
+					signedAt: {},
+				}
+			:
+				{}),
 		},
 	)
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import Heading from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
@@ -73,13 +80,13 @@
 	entityType={EntityType.BlockheadFarcasterAccountConnection}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={connection}
-			placeholderText="Loading account…"
+			placeholderText="Loading Farcaster account connection (FID)…"
 		>
 			{#snippet children(account)}
 				{#if account.$icon?.[EntityMetaKey.Id].url}
@@ -96,7 +103,7 @@
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={connection}
-			placeholderText="Loading account…"
+			placeholderText="Loading Farcaster account connection (FID)…"
 		>
 			{#snippet children(account)}
 				{account.displayName ?? account.username ?? String(entityId.fid)}
@@ -107,7 +114,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary
 			resource={connection}
-			placeholderText="Loading account…"
+			placeholderText="Loading Farcaster account connection (FID)…"
 		>
 			{#snippet children(account)}
 				{#if (
@@ -133,7 +140,7 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={connection}
-			placeholderText="Loading account…"
+			placeholderText="Loading Farcaster account connection (FID)…"
 		>
 			{#snippet children(account)}
 				<dl data-column-item="center">
@@ -143,38 +150,51 @@
 							{@render Id()}
 						</dd>
 					</div>
+					{#if open}
+						{#if account.username}
+							<div>
+								<dt>fname</dt>
+								<dd>@{account.username}</dd>
+							</div>
+						{/if}
+					{/if}
+
 					{#if account.bio}
 						<div>
 							<dt>Bio</dt>
 							<dd>{account.bio}</dd>
 						</div>
 					{/if}
+
 					{#if open}
 						{#if account.authMethod}
 							<div>
-								<dt>Auth method</dt>
+								<dt>Auth routing</dt>
 								<dd>{account.authMethod}</dd>
 							</div>
 						{/if}
 					{/if}
+
 					{#if open}
 						{#if account.custody}
 							<div>
-								<dt>Custody</dt>
+								<dt>Farcaster custody address</dt>
 								<dd>{account.custody}</dd>
 							</div>
 						{/if}
 					{/if}
+
 					{#if open}
 						{#if account.verifications}
 							{#if account.verifications.length}
 								<div>
-									<dt>Verifications</dt>
+									<dt>Verified signer addresses</dt>
 									<dd>{account.verifications.join(', ')}</dd>
 								</div>
 							{/if}
 						{/if}
 					{/if}
+
 					{#if open}
 						{#if account.signedAt !== undefined}
 							<div>
@@ -188,16 +208,44 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
+	{#snippet Details()}
+		<EntityDetails
+			entityType={EntityType.BlockheadFarcasterAccountConnection}
+			{entityId}
+		/>
+
 		{#if children}
-			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.BlockheadFarcasterAccountConnection}
-				{entityId}
-			/>
+			<div
+				class="entity-view-detail-carousels"
+				data-column="gap-3"
+			>
+				<CollapsibleTabs
+					id={`farcaster-account:${String(entityId.fid)}:carousel-more`}
+					{...{ 'data-card': '' }}
+					scrollContainerProps={{
+						'data-row': 'start align-start',
+					}}
+				>
+					{#snippet Summary({ open: _isOpen })}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<Heading>Page</Heading>
+						</header>
+					{/snippet}
+
+					{#snippet Markers()}
+						<a
+							data-scroll-marker-label="Route"
+							href={`#farcaster-account:${String(entityId.fid)}:page-content`}
+						>Route</a>
+					{/snippet}
+
+					{#snippet children(_ctx)}
+						<section id={`farcaster-account:${String(entityId.fid)}:page-content`}>
+							{@render children()}
+						</section>
+					{/snippet}
+				</CollapsibleTabs>
+			</div>
 		{/if}
 	{/snippet}
 </EntityView>

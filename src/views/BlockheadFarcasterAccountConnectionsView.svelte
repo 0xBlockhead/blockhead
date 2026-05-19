@@ -28,7 +28,7 @@
 	// Props
 	let {
 		entityFieldReference,
-		title = 'Accounts',
+		title = 'Linked Farcaster accounts',
 		open = $bindable(true),
 		...entitiesListRest
 	}: WithRest<
@@ -50,10 +50,17 @@
 	const globalEntity = useEntity(
 		EntityType._Global,
 		entityFieldReference.entityId,
-		{
-			$: [Source.Local_Internal],
-			$$blockheadFarcasterAccountConnections: {},
-		},
+		(
+			open ?
+				{
+					$: [Source.Local_Internal],
+					$$blockheadFarcasterAccountConnections: {},
+				}
+			:
+				{
+					$: [Source.Local_Internal],
+				}
+		),
 	)
 
 	const connections = derive(
@@ -75,9 +82,18 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Local mapping from your Farcaster signer to a numeric FID: custody addresses, verifications, and casts resolve through that identity.
+					</p>
+					<p>
+						That mapping is separate from wallet-only EOAs, on-chain contract admin keys, and peer-to-peer messaging identities.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No accounts yet.
+			No linked accounts yet.
 		</p>
 	{/snippet}
 
@@ -94,4 +110,3 @@
 			/>
 		{/if}
 	{/snippet}
-</EntitiesList>

@@ -48,7 +48,10 @@
 				Source.Constants_Internal,
 			],
 			name: {},
-			protocol: {},
+			slug: {},
+			...(open && {
+				protocol: {},
+			}),
 		},
 	)
 
@@ -61,11 +64,12 @@
 
 
 <EntityView
-	{...entityViewRest}
 	entityType={EntityType.NetworkExecutionUpgrade}
 	{entityId}
 	{href}
-	{open}
+	bind:open
+	title={`Execution upgrade · ${String(entityId.upgradeId)}`}
+	{...entityViewRest}
 >
 	{#snippet Id()}
 		<span data-text="font-monospace">
@@ -76,7 +80,7 @@
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={networkExecutionUpgrade}
-			placeholderText="Loading network execution upgrade…"
+			placeholderText="Loading execution upgrade…"
 		>
 			{#snippet children(networkExecutionUpgradeEntity)}
 				{networkExecutionUpgradeEntity.name ?? entityId.upgradeId}
@@ -87,21 +91,33 @@
 	{#snippet Content()}
 		<ResourceBoundary
 			resource={networkExecutionUpgrade}
-			placeholderText="Loading network execution upgrade…"
+			placeholderText="Loading execution upgrade…"
 		>
 			{#snippet children(networkExecutionUpgradeEntity)}
-				<dl>
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
+				<dl data-column-item="center">
+					<div>
+						<dt>Chain ID</dt>
+						<dd data-text="mono">
+							{String(entityId.$network.chainId)}
+						</dd>
+					</div>
 
 					{#if open}
+						{#if (
+							networkExecutionUpgradeEntity.slug !== undefined
+							&& networkExecutionUpgradeEntity.slug !== entityId.upgradeId
+						)}
+							<div>
+								<dt>Route slug</dt>
+								<dd data-text="mono">
+									{networkExecutionUpgradeEntity.slug}
+								</dd>
+							</div>
+						{/if}
+
 						{#if networkExecutionUpgradeEntity.protocol !== undefined}
 							<div>
-								<dt>Protocol</dt>
+								<dt>Execution fork</dt>
 								<dd>{networkExecutionUpgradeEntity.protocol}</dd>
 							</div>
 						{/if}

@@ -48,13 +48,18 @@
 		entityId,
 		{
 			$: [Source.Farcaster_Rest],
-			protocolName: {},
-			homeUrl: {},
-			docsUrl: {},
-			registryLabel: {},
-			topology: {},
-			$$channels: {},
-			$$users: { $: [Source.Snapchain_Rest] },
+			...(open ?
+				{
+					protocolName: {},
+					homeUrl: {},
+					docsUrl: {},
+					registryLabel: {},
+					topology: {},
+					$$channels: {},
+					$$users: { $: [Source.Snapchain_Rest] },
+				}
+			:
+				{}),
 		},
 	)
 
@@ -74,9 +79,18 @@
 				:
 					Source.Snapchain_Rest,
 			],
-			$$entries: {},
+			...(open ?
+				{
+					$$entries: {},
+				}
+			:
+				{}),
 		},
 	)
+
+	const entityViewDetailCarouselScrollProps = {
+		'data-row': 'start align-start',
+	} as const
 
 
 	// Components
@@ -97,7 +111,7 @@
 	entityType={EntityType.FarcasterNetwork}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 	title="Farcaster"
 >
@@ -111,18 +125,21 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			{#if open}
-				<ResourceBoundary resource={network}>
+				<ResourceBoundary
+					resource={network}
+					placeholderText="Loading Farcaster hub directory…"
+				>
 					{#snippet children(n)}
 						<div>
 							<dt>Scope</dt>
 							<dd>{entityId.scope}</dd>
 						</div>
 						<div>
-							<dt>Channels</dt>
+							<dt>Channels (id / slug)</dt>
 							<dd>{String(n.$$channels.length)}</dd>
 						</div>
 						<div>
-							<dt>Users</dt>
+							<dt>Users (FID · fname on profile)</dt>
 							<dd>{String(n.$$users.length)}</dd>
 						</div>
 						{#if n.protocolName}
@@ -131,6 +148,7 @@
 								<dd>{n.protocolName}</dd>
 							</div>
 						{/if}
+
 						{#if n.homeUrl}
 							<div>
 								<dt>Home</dt>
@@ -139,6 +157,7 @@
 								</dd>
 							</div>
 						{/if}
+
 						{#if n.docsUrl}
 							<div>
 								<dt>Docs</dt>
@@ -147,12 +166,14 @@
 								</dd>
 							</div>
 						{/if}
+
 						{#if n.registryLabel}
 							<div>
 								<dt>Registry</dt>
 								<dd>{n.registryLabel}</dd>
 							</div>
 						{/if}
+
 						{#if n.topology}
 							<div>
 								<dt>Topology</dt>
@@ -161,10 +182,13 @@
 						{/if}
 					{/snippet}
 				</ResourceBoundary>
-				<ResourceBoundary resource={trending}>
+				<ResourceBoundary
+					resource={trending}
+					placeholderText="Loading trending feed (casts by FID + cast hash)…"
+				>
 					{#snippet children(t)}
 						<div>
-							<dt>Trending entries</dt>
+							<dt>Trending casts (feed)</dt>
 							<dd>{String(t.$$entries.length)}</dd>
 						</div>
 					{/snippet}
@@ -204,6 +228,17 @@
 					</header>
 				{/snippet}
 
+				{#snippet Markers({ open: _markersOpen })}
+					<a
+						data-scroll-marker-label="Feeds"
+						href={`#${networkIdKey}:feeds`}
+					>Feeds</a>
+					<a
+						data-scroll-marker-label="Trending casts"
+						href={`#${networkIdKey}:trending`}
+					>Trending casts</a>
+				{/snippet}
+
 				{#snippet children({ open: _open })}
 					<section data-scroll-marker-label="Feeds">
 						<FarcasterFeedsView
@@ -218,7 +253,7 @@
 						/>
 					</section>
 
-					<section data-scroll-marker-label="Trending">
+					<section data-scroll-marker-label="Trending casts">
 						<FarcasterCastsView
 							entityFieldReference={{
 								entityType: EntityType.FarcasterFeed,
@@ -229,7 +264,7 @@
 							id={`${networkIdKey}:trending`}
 							limit={25}
 							open={false}
-							title="Trending"
+							title="Trending casts"
 						/>
 					</section>
 				{/snippet}
@@ -238,9 +273,7 @@
 			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-community`}
 				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
 				{#snippet Summary({ open: _open })}
 					<header
@@ -251,6 +284,17 @@
 							Community
 						</HeadingComponent>
 					</header>
+				{/snippet}
+
+				{#snippet Markers({ open: _markersOpen })}
+					<a
+						data-scroll-marker-label="Channels"
+						href={`#${networkIdKey}:channels`}
+					>Channels</a>
+					<a
+						data-scroll-marker-label="Users"
+						href={`#${networkIdKey}:users`}
+					>Users</a>
 				{/snippet}
 
 				{#snippet children({ open: _open })}
@@ -285,9 +329,7 @@
 			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-accounts`}
 				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
 				{#snippet Summary({ open: _open })}
 					<header
@@ -300,8 +342,15 @@
 					</header>
 				{/snippet}
 
+				{#snippet Markers({ open: _markersOpen })}
+					<a
+						data-scroll-marker-label="Connected accounts"
+						href={`#${networkIdKey}:accounts`}
+					>Connected accounts</a>
+				{/snippet}
+
 				{#snippet children({ open: _open })}
-					<section data-scroll-marker-label="Accounts">
+					<section data-scroll-marker-label="Connected accounts">
 						<BlockheadFarcasterAccountConnectionsView
 							entityFieldReference={{
 								entityType: EntityType._Global,

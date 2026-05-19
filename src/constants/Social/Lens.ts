@@ -1,7 +1,10 @@
+// Types
 import type { EntityId } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { schema } from '$/schema/index.ts'
 
+
+// Constants
 export const lensNetworkFieldValues = {
 	docsUrl: 'https://docs.lens.xyz',
 	homeUrl: 'https://lens.xyz',

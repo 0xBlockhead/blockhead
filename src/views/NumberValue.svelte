@@ -24,7 +24,7 @@
 	} = $props()
 
 
-	// (Derived)
+	// State
 	const dPad = $derived(
 		formatValueOptions?.showDecimalPlaces
 			?? options.maximumFractionDigits
@@ -32,41 +32,6 @@
 			?? 0
 	)
 
-
-	// Functions
-	const indexParts = (parts: Intl.NumberFormatPart[]) => {
-		const decimalIndex = parts.findIndex(
-			(part) => (part.type === 'decimal' || part.type === 'exponentSeparator'),
-		)
-
-		let k = 0
-		return [
-			...(decimalIndex === -1
-				? parts
-			: parts.slice(0, decimalIndex))
-				.toReversed()
-				.map((part) => (
-					{
-						key: `L${(k++).toString(36)}`,
-						part,
-					}
-				))
-				.toReversed(),
-
-			...(decimalIndex === -1
-				? []
-			: parts.slice(decimalIndex))
-				.map((part) => (
-					{
-						key: `R${(k++).toString(36)}`,
-						part,
-					}
-				)),
-		]
-	}
-
-
-	// State
 	let isFirstTweenSet = $state(
 		true,
 	)
@@ -102,8 +67,6 @@
 			(Number(value) || 0)
 	)
 
-
-	// (Derived)
 	$effect(() => {
 		if (!tween) {
 			return
@@ -125,10 +88,43 @@
 		)
 		isFirstTweenSet = false
 	})
+
+
+	// Functions
+	const indexParts = (parts: Intl.NumberFormatPart[]) => {
+		const decimalIndex = parts.findIndex(
+			(part) => (part.type === 'decimal' || part.type === 'exponentSeparator'),
+		)
+
+		let k = 0
+		return [
+			...(decimalIndex === -1
+				? parts
+			: parts.slice(0, decimalIndex))
+				.toReversed()
+				.map((part) => (
+					{
+						key: `L${(k++).toString(36)}`,
+						part,
+					}
+				))
+				.toReversed(),
+
+			...(decimalIndex === -1
+				? []
+			: parts.slice(decimalIndex))
+				.map((part) => (
+					{
+						key: `R${(k++).toString(36)}`,
+						part,
+					}
+				)),
+		]
+	}
 </script>
 
 
-<output>
+<output class="number-value">
 	{#each indexParts(
 		formatValueOptions
 			? (formatValue(
@@ -141,17 +137,21 @@
 			)
 				.formatToParts(displayNumber)
 		)
-	) as { key, part } (key)}
+	) as indexed (indexed.key)}
 		<span
-			data-part={part.type}
+			data-part={indexed.part.type}
 		>
-			{part.value}
+			{indexed.part.value}
 		</span>
 	{/each}
 </output>
 
 
 <style>
+	.number-value {
+		font-variant-numeric: tabular-nums;
+	}
+
 	span[data-part='fraction'] {
 		opacity: 0.6;
 	}

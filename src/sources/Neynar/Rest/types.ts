@@ -92,6 +92,32 @@ export type NeynarFeedResponse = {
 	}
 }
 
+export type NeynarFeedQuery =
+	| {
+		feedType: 'filter'
+		filterType: 'global_trending'
+		limit?: number
+		cursor?: string
+		viewerFid?: number
+	}
+	| {
+		feedType: 'filter'
+		filterType: 'fids'
+		fids: number[]
+		limit?: number
+		cursor?: string
+		viewerFid?: number
+	}
+	| {
+		feedType: 'filter'
+		filterType: 'channel_id'
+		channelId: string
+		limit?: number
+		cursor?: string
+		membersOnly?: boolean
+		viewerFid?: number
+	}
+
 export type NeynarBulkUsersResponse = {
 	users: NeynarUserWire[]
 }

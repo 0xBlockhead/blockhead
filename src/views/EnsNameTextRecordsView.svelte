@@ -18,6 +18,7 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 
 
 	// Props
@@ -56,8 +57,10 @@
 				Source.Voltaire_JsonRpc,
 				Source.TheGraph_Graphql,
 			],
-			textRecords: {},
-			resolverTextKeys: {},
+			...(open ? {
+				textRecords: {},
+				resolverTextKeys: {},
+			} : {}),
 		},
 	)
 
@@ -95,41 +98,51 @@
 </script>
 
 
-<EntitiesList
-	{...entitiesListRest}
-	bind:open
-	entityType={EntityType.EnsName}
-	getKey={(key) => key}
-	getSortValue={(key) => (
-		`${String(rank(key)).padStart(4, '0')}:${key}`
-	)}
-	{href}
-	{id}
-	placeholderKeys={new SvelteSet()}
-	resource={textRecordKeys}
-	{title}
->
-	{#snippet Empty()}
-		<p data-text="muted">
-			No text records yet.
-		</p>
-	{/snippet}
+<div data-column="gap-3">
+	<EntitiesList
+		{...entitiesListRest}
+		bind:open
+		entityType={EntityType.EnsName}
+		getKey={(key) => key}
+		getSortValue={(key) => (
+			`${String(rank(key)).padStart(4, '0')}:${key}`
+		)}
+		{href}
+		{id}
+		placeholderKeys={new SvelteSet()}
+		resource={textRecordKeys}
+		{title}
+	>
+		{#snippet TypeAnnotationTooltip()}
+						<p>
+							ENS text records are resolver-stored profile fields (avatar, URL, etc.) keyed by the name’s on-chain node hash.
+						</p>
+						<p>
+							They are not the same as calldata method ids or log event topics—those belong to contract execution and receipts.
+						</p>
+		{/snippet}
+		{#snippet Empty()}
+			<p data-text="muted">
+				No text record keys yet.
+			</p>
+		{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			{@const recordLabel = getEnsTextRecordLabel(props.item)}
-			<a
-				data-link
-				href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/(records)/record/[recordId]', {
-					ensName: entityId.name,
-					recordId: props.item,
-				})}
-			>
-				{recordLabel}
-				{#if recordLabel !== props.item}
-					<small data-text="muted"> ({props.item})</small>
-				{/if}
-			</a>
-		{/if}
-	{/snippet}
-</EntitiesList>
+		{#snippet Item(props)}
+			{#if props.item}
+				{@const recordLabel = getEnsTextRecordLabel(props.item)}
+				<a
+					data-link
+					href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/(records)/record/[recordId]', {
+						ensName: entityId.name,
+						recordId: props.item,
+					})}
+				>
+					{recordLabel}
+					{#if recordLabel !== props.item}
+						<small data-text="muted"> ({props.item})</small>
+					{/if}
+				</a>
+			{/if}
+		{/snippet}
+	</EntitiesList>
+</div>

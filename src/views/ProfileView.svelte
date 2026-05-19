@@ -68,7 +68,6 @@
 	import ActorView from '$/views/ActorView.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -79,7 +78,8 @@
 	entityType={EntityType.FarcasterUser}
 	entityId={farcasterUserId}
 	{href}
-	{open}
+	bind:open
+	title="Profile"
 	{...entityViewRest}
 >
 	{#snippet Heading()}
@@ -162,6 +162,7 @@
 								</div>
 							{/if}
 						{/if}
+
 						{#if p.url != null}
 							<div>
 								<dt>URL</dt>
@@ -173,6 +174,7 @@
 								</dd>
 							</div>
 						{/if}
+
 						{#if p.verifiedAddress !== undefined}
 							<div>
 								<dt>Verified address</dt>
@@ -191,6 +193,7 @@
 								</dd>
 							</div>
 						{/if}
+
 						{#if open}
 							{#if p.displayName != null}
 								<div>
@@ -199,6 +202,7 @@
 								</div>
 							{/if}
 						{/if}
+
 						{#if open}
 							{#if p.username != null}
 								<div>
@@ -207,6 +211,7 @@
 								</div>
 							{/if}
 						{/if}
+
 						{#if open}
 							{#if p.$icon}
 								{#if p.$icon[EntityMetaKey.Id].url != null}
@@ -220,44 +225,6 @@
 										</dd>
 									</div>
 								{/if}
-							{/if}
-						{/if}
-						{#if open}
-							{#if p.bio != null}
-								<div>
-									<dt>Bio</dt>
-									<dd>{p.bio}</dd>
-								</div>
-							{/if}
-						{/if}
-						{#if open}
-							{#if p.url != null}
-								<div>
-									<dt>URL</dt>
-									<dd>
-										<a href={p.url}>{p.url}</a>
-									</dd>
-								</div>
-							{/if}
-						{/if}
-						{#if open}
-							{#if p.verifiedAddress !== undefined}
-								<div>
-									<dt>Verified address</dt>
-									<dd>
-										<ActorView
-											entityId={{
-												address: p.verifiedAddress,
-											}}
-											href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-												accountId: p.verifiedAddress,
-											})}
-											layout={EntityLayout.Id}
-											open={false}
-											showTypeAnnotation={false}
-										/>
-									</dd>
-								</div>
 							{/if}
 						{/if}
 					</dl>

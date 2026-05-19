@@ -1,24 +1,22 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+
+	import EntitiesList from '$/components/EntitiesList.svelte'
+
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmSelectorView from '$/views/EvmSelectorView.svelte'
 
 
 	// Props
@@ -41,20 +39,24 @@
 
 
 	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { SvelteSet } from 'svelte/reactivity'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Openchain_Rest,
-				],
-			},
-		},
+		(
+			open ?
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Openchain_Rest,
+						],
+					},
+				}
+			:
+				{}
+		),
 	)
 
 	const envelopes = derive(
@@ -79,6 +81,13 @@
 			)
 		},
 	)
+
+
+	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import EvmSelectorView from '$/views/EvmSelectorView.svelte'
 </script>
 
 
@@ -93,22 +102,31 @@
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
-	{#snippet Empty()}
-		<p data-text="muted">
-			No selectors indexed yet.
-		</p>
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Function selectors are the first four bytes of keccak(functionName(types)) used as the calldata discriminator on EVM chains.
+					</p>
+					<p>
+						Catalogs map those bytes to human-readable signatures—distinct from log event topics or social posts.
+					</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			<EvmSelectorView
-				entityId={props.item.value[EntityMetaKey.Id]}
-				href={resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
-					hex: props.item.value[EntityMetaKey.Id].hex,
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
-	{/snippet}
+	{#snippet Empty()}
+			<p data-text="muted">
+				No contract function selectors indexed yet.
+			</p>
+		{/snippet}
+
+		{#snippet Item(props)}
+			{#if props.item}
+				<EvmSelectorView
+					entityId={props.item.value[EntityMetaKey.Id]}
+					href={resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
+						hex: props.item.value[EntityMetaKey.Id].hex,
+					})}
+					layout={EntityLayout.Summary}
+					open={false}
+				/>
+			{/if}
+		{/snippet}
 </EntitiesList>

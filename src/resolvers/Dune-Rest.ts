@@ -1,5 +1,6 @@
 import {
 	defineEntityResolver,
+	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -12,7 +13,6 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType._Global,
 			resolve: async (entityId, loadSubset) => {
-				const { sourcePublicEnv } = await import('$/resolvers/$resolvers.ts')
 				const { getUsage } = await import('$/sources/Dune/Rest/queries.ts')
 
 				const billingPeriod = ((usage) => (

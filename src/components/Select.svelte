@@ -165,6 +165,7 @@
 		{#if placeholder !== undefined}
 			<option value="" disabled={!(allowDeselect ?? false)}>{placeholder}</option>
 		{/if}
+
 		{#if normalizedGroups.length > 0}
 			{#each normalizedGroups as group (group.id)}
 				<optgroup label={group.label}>

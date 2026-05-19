@@ -19,6 +19,6 @@
 		entityId={{
 			address: params.accountId as `0x${string}`,
 		}}
-		href={resolve('/~/(accounts)/accounts/account/[accountId]', params)}
+		href={resolve('/~/(accounts)/account/[accountId]', params)}
 	/>
 </Page>

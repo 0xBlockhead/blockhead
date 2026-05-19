@@ -1,5 +1,5 @@
 import { getJson as fetchGetJson, getText as fetchGetText } from '$/lib/http.ts'
-import Github from '$/sources/Github/index.ts'
+import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
 import { restHeaders, restOrigin } from '$/sources/Github/Rest/constants.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
@@ -17,14 +17,14 @@ export const githubHttp = ({ url }: { url: string }): Promise<Response> => (
 
 export const getJson = ({ url }: { url: string }): Promise<JsonValue> => (
 	fetchGetJson<JsonValue>(url, {
-		origins: Github.origins,
+		origins: [...githubHttpAllowedOrigins],
 		init: githubInit(url),
 	})
 )
 
 export const getText = ({ url }: { url: string }): Promise<string> => (
 	fetchGetText(url, {
-		origins: Github.origins,
+		origins: [...githubHttpAllowedOrigins],
 		init: githubInit(url),
 	})
 )

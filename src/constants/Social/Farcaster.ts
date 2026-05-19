@@ -1,3 +1,4 @@
+// Constants
 export const farcasterNetworkFieldValues = {
 	docsUrl: 'https://docs.farcaster.xyz',
 	homeUrl: 'https://www.farcaster.xyz',

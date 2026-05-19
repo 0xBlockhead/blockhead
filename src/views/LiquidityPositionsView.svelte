@@ -14,17 +14,10 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import LiquidityPositionView from '$/views/LiquidityPositionView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
-		title = 'Liquidity positions',
+		title = 'LP positions',
 		open = $bindable(true),
 		...entitiesListRest
 	}: WithRest<
@@ -42,20 +35,25 @@
 
 	// State
 	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { SvelteSet } from 'svelte/reactivity'
 
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Constants_Internal,
-				],
-			},
+			$: [
+				Source.Constants_Internal,
+			],
+			...(open && {
+				[entityFieldReference.fieldName]: {
+					$: [
+						Source.Constants_Internal,
+					],
+				},
+			}),
 		},
 	)
 
@@ -75,6 +73,14 @@
 			)
 		},
 	)
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import LiquidityPositionView from '$/views/LiquidityPositionView.svelte'
 </script>
 
 
@@ -93,9 +99,25 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet Empty()}
-		<p data-text="muted">
-			No liquidity positions yet.
-		</p>
+		<div data-row="wrap align-center gap-2">
+			<p data-text="muted">
+				No concentrated liquidity positions yet.
+			</p>
+			<Tooltip contentProps={{ side: 'top' }}>
+				{#snippet Content()}
+					<p>
+						Concentrated-liquidity positions use range orders, fees, and NFT token ids (Uniswap v3–style).
+					</p>
+					<p>
+						Import addresses or open an account view that holds LP NFTs to populate rows.
+					</p>
+				{/snippet}
+				<abbr
+					class="entity-heading-tip"
+					aria-label="About LP positions"
+				>ⓘ</abbr>
+			</Tooltip>
+		</div>
 	{/snippet}
 
 	{#snippet Item(props)}

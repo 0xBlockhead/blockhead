@@ -168,6 +168,28 @@ export default {
 
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
+			entityType: EntityType.BlockheadFarcasterAccountConnection,
+			fieldName: '$icon',
+			resolve: async (entityId) => {
+				const { getSnapchainUserBundleByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+				const { userData } = await singleFlight(getSnapchainUserBundleByFid)({
+					fid: entityId.fid,
+				})
+				for (const message of (userData.messages ?? [])) {
+					const userDataType = message.data?.userDataBody?.type
+					const fieldValue = optionalTrimmedString(message.data?.userDataBody?.value)
+					if (fieldValue == null) continue
+					if (userDataType === 'USER_DATA_TYPE_PFP') {
+						return (
+							mediaFromUrl(snapchainUserDataPfpHttpUrl(fieldValue), MediaType.Image)
+						)
+					}
+				}
+				return undefined
+			},
+		}),
+
+		defineEntityFieldResolver({
 			entityType: EntityType.FarcasterNetwork,
 			fieldName: '$$users',
 			resolve: async (_entityId, context) => {

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
+	import { stringify } from 'devalue'
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import EntityDetails from '$/components/EntityDetails.svelte'
@@ -49,10 +50,15 @@
 			$: [
 				Source.Local_Internal,
 			],
-			$room: {},
-			peerId: {},
 			displayName: {},
 			isConnected: {},
+			...(open ?
+				{
+					$room: {},
+					peerId: {},
+				}
+			:
+				{}),
 		},
 	)
 </script>
@@ -62,7 +68,7 @@
 	entityType={EntityType.BlockheadRoomPeer}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Id()}
@@ -72,107 +78,76 @@
 	{/snippet}
 
 	{#snippet Heading()}
-		<ResourceBoundary resource={peer}>
+		<ResourceBoundary
+			resource={peer}
+			placeholderText="Loading peer…"
+		>
 			{#snippet children(p)}
 				{titleProp ?? p.displayName ?? p.peerId ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary resource={peer}>
-			{#snippet children(p)}
-				<dl>
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					Membership row for a realtime room: human-readable label, underlying peer id, and transport connection flags.
+				</p>
+				<p>
+					<code>isConnected</code> reflects WebRTC or signaling reachability for that peer endpoint—not chain balances, Farcaster custody keys, or XMTP inbox material.
+				</p>
+	{/snippet}
 
+	{#snippet Content({ title: _title, href: _href })}
+		<dl>
+			<ResourceBoundary resource={peer}>
+				{#snippet children(p)}
 					<div>
-						<dt>Contact ID</dt>
-						<dd>{entityId.id}</dd>
+						<dt>Contact record id</dt>
+						<dd data-text="mono">
+							{@render Id()}
+						</dd>
 					</div>
 
 					<div>
-						<dt>Connected</dt>
+						<dt>Connected to you</dt>
 						<dd>{p.isConnected ? 'Yes' : 'No'}</dd>
 					</div>
 
-					{#if p.displayName !== undefined}
-						{#if p.displayName !== ''}
-							<div>
-								<dt>Name</dt>
-								<dd>{p.displayName}</dd>
-							</div>
-						{/if}
-					{/if}
-					{#if open}
-						{#if p.peerId !== undefined}
-							{#if p.peerId !== ''}
-								<div>
-									<dt>Peer ID</dt>
-									<dd>{p.peerId}</dd>
-								</div>
-							{/if}
-						{/if}
-						{#if p.$room.id !== ''}
-							<div>
-								<dt>Room</dt>
-								<dd>{p.$room.id}</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
+					<div>
+						<dt>Multiplayer role</dt>
+						<dd>
+							Session collaborator visibility.
+						</dd>
+					</div>
 
-	{#snippet Details()}
-		{#if children}
-			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.BlockheadRoomPeer}
-				{entityId}
-			/>
-			<ResourceBoundary resource={peer}>
-				{#snippet children(p)}
-					{#if p.$room.id === ''}
-						{#if p.peerId === undefined}
-							{#if p.displayName === undefined}
-								<p data-text="muted">
-									No additional peer details are available yet.
-								</p>
-							{/if}
-							{#if p.displayName !== undefined}
-								{#if p.displayName === ''}
-									<p data-text="muted">
-										No additional peer details are available yet.
-									</p>
-								{/if}
-							{/if}
-						{/if}
-						{#if p.peerId !== undefined}
-							{#if p.peerId === ''}
-								{#if p.displayName === undefined}
-									<p data-text="muted">
-										No additional peer details are available yet.
-									</p>
-								{/if}
-								{#if p.displayName !== undefined}
-									{#if p.displayName === ''}
-										<p data-text="muted">
-											No additional peer details are available yet.
-										</p>
-									{/if}
-								{/if}
-							{/if}
-						{/if}
+					{#if open && p.peerId !== undefined && p.peerId !== ''}
+						<div>
+							<dt>libp2p peer ID</dt>
+							<dd>{p.peerId}</dd>
+						</div>
+					{/if}
+
+					{#if open && p.$room?.id != null && p.$room.id !== ''}
+						<div>
+							<dt>Room session</dt>
+							<dd>{p.$room.id}</dd>
+						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
+		</dl>
+	{/snippet}
+
+	{#snippet Details({
+		open: _open,
+	})}
+		<EntityDetails
+			entityType={EntityType.BlockheadRoomPeer}
+			{entityId}
+		/>
+
+		{#if children}
+			{@render children()}
 		{/if}
 	{/snippet}
 </EntityView>

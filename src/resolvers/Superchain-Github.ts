@@ -4,10 +4,6 @@ import {
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import {
-	superchainMainnetIdentifier,
-	superchainSepoliaIdentifier,
-} from '$/sources/Superchain/Github/constants.ts'
 
 const stableSortNetworkIds = (chainIds: number[]) => (
 	[...new Set(chainIds)].toSorted((leftChainId, rightChainId) => (
@@ -43,6 +39,10 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$$childLayers',
 			resolve: async (entityId) => {
+				const {
+					superchainMainnetIdentifier,
+					superchainSepoliaIdentifier,
+				} = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchSuperchainNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 				const networks = await fetchSuperchainNetworks()
 				const namespaceFilter = (
@@ -77,6 +77,7 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$$testnets',
 			resolve: async (entityId) => {
+				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchSuperchainNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 				const networks = await fetchSuperchainNetworks()
 				const network = networks.find((candidate) => candidate.chainId === entityId.chainId)
@@ -102,6 +103,7 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$mainnet',
 			resolve: async (entityId) => {
+				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchSuperchainNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 				const networks = await fetchSuperchainNetworks()
 				const network = networks.find((candidate) => candidate.chainId === entityId.chainId)

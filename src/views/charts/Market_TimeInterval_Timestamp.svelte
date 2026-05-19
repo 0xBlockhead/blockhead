@@ -6,6 +6,10 @@
 	import { schema } from '$/schema/index.ts'
 
 
+	// Components
+	import Tooltip from '$/components/Tooltip.svelte'
+
+
 	// Props
 	let {
 		title = 'OHLC',
@@ -24,12 +28,44 @@
 		stepInlineSize?: string
 		height?: string
 	} = $props()
+
+	const formatChartPrice = (value: number) => (
+		new Intl.NumberFormat(undefined, {
+			maximumFractionDigits: priceDecimals,
+			minimumFractionDigits: 0,
+		}).format(value)
+	)
+
+	const chartRangeSummary = $derived.by(() => {
+		if (points.length === 0)
+			return null
+		const firstMs = Number(points[0][EntityMetaKey.Id].timestampNs / 1_000_000n)
+		const lastMs = Number(points[points.length - 1][EntityMetaKey.Id].timestampNs / 1_000_000n)
+		return (
+			{
+				count: points.length,
+				firstMs,
+				lastMs,
+				label: (
+					`${new Date(firstMs).toLocaleString()} → ${new Date(lastMs).toLocaleString()} · ${String(points.length)} candles`
+				),
+			}
+		)
+	})
+
+	const chartViewportAriaLabel = $derived.by(() => (
+		chartRangeSummary === null ?
+			`${title} candlestick chart (no OHLC points)`
+		:
+			`${title} candlestick chart: ${String(chartRangeSummary.count)} OHLC candles spanning ${new Date(chartRangeSummary.firstMs).toLocaleDateString()}–${new Date(chartRangeSummary.lastMs).toLocaleDateString()}`
+	))
 </script>
 
 
 <section
 	aria-label={title}
 	class="market-candlestick-chart"
+	data-column="gap-2"
 	data-card="padding-0"
 	style:--chart-price-decimals={priceDecimals}
 	style:--chart-price-min={min}
@@ -37,14 +73,24 @@
 	style:--chart-step-inline-size={stepInlineSize}
 	style:--chart-size-block={height}
 >
-	<header data-row>
+	<header data-row="wrap align-center gap-2">
 		<h2>
 			{title}
 		</h2>
-
-		<p data-text="muted">
-			Scroll to pan. Pinch or browser zoom to inspect.
-		</p>
+		<Tooltip contentProps={{ side: 'top' }}>
+			{#snippet Content()}
+				<p>
+					Each candle encodes open, high, low, and close for one interval on the horizontal time axis.
+				</p>
+				<p>
+					Interactive charts let you pan and zoom along that axis to compare neighboring buckets.
+				</p>
+			{/snippet}
+			<abbr
+				class="entity-heading-tip"
+				aria-label="Chart notes"
+			>ⓘ</abbr>
+		</Tooltip>
 	</header>
 
 	<div
@@ -52,7 +98,7 @@
 		data-scroll-container="inline snap-inline"
 		data-sticky-container
 		role="img"
-		aria-label={`${title} candlestick chart`}
+		aria-label={chartViewportAriaLabel}
 	>
 		<div
 			class="chart-canvas"
@@ -66,10 +112,10 @@
 				{@const timestampMs = Number(point[EntityMetaKey.Id].timestampNs / 1_000_000n)}
 
 				<article
-					aria-label={`${new Date(timestampMs).toLocaleDateString()}: open ${open}, high ${high}, low ${low}, close ${close}`}
+					aria-label={`${new Date(timestampMs).toLocaleString()}: open ${formatChartPrice(open)}, high ${formatChartPrice(high)}, low ${formatChartPrice(low)}, close ${formatChartPrice(close)}`}
 					class="candle"
+					class:candle-trend-down={close < open}
 					data-scroll-item="snap-inline-end"
-					data-trend={close >= open ? 'up' : 'down'}
 					style:--candle-open={open}
 					style:--candle-high={high}
 					style:--candle-low={low}
@@ -82,6 +128,18 @@
 			{/each}
 		</div>
 	</div>
+
+	{#if chartRangeSummary}
+		<p
+			class="chart-axis-footer"
+			data-text="muted"
+		>
+			<span class="chart-axis-footer-label">
+				Shown range
+			</span>
+			{chartRangeSummary.label}
+		</p>
+	{/if}
 </section>
 
 
@@ -113,6 +171,20 @@
 		p {
 			margin: 0;
 		}
+	}
+
+	.chart-axis-footer {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 0.35rem 0.75rem;
+		margin: 0;
+		padding-inline: var(--card-padding);
+		padding-block-end: var(--card-padding);
+	}
+
+	.chart-axis-footer-label {
+		font-weight: 600;
 	}
 
 	.chart-viewport {
@@ -166,7 +238,7 @@
 		scroll-margin-inline: calc(var(--chart-step-inline-size) * 2);
 	}
 
-	.candle[data-trend='down'] {
+	.candle.candle-trend-down {
 		--candle-color: var(--chart-down-color);
 	}
 

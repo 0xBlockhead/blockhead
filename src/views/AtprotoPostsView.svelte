@@ -27,6 +27,7 @@
 		id,
 		limit = 25,
 		open = $bindable(true),
+		fieldOpen = true,
 		title = 'Posts',
 		...entitiesListRest
 	}: WithRest<
@@ -36,6 +37,7 @@
 			id: string
 			limit?: number
 			open?: boolean
+			fieldOpen?: boolean
 			title?: string
 		},
 		Omit<
@@ -55,43 +57,73 @@
 	const atprotoNetworkOrAccount = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
-		entityFieldReference.entityType === EntityType.AtprotoNetwork ?
-			{
-				$: [Source.Constants_Internal],
-				protocolName: {},
-				$$atprotoPosts: {
-					$: [
-						Source.Constants_Internal,
-						Source.Atproto_Xrpc,
-					],
-				},
-			}
-		:
-			{
-				$: [Source.Atproto_Xrpc],
-				$$posts: {},
-			},
+		(
+			entityFieldReference.entityType === EntityType.AtprotoNetwork ?
+				(
+					open ?
+						(
+							fieldOpen ?
+								{
+									$: [Source.Constants_Internal],
+									protocolName: {},
+									$$atprotoPosts: {
+										$: [
+											Source.Constants_Internal,
+											Source.Atproto_Xrpc,
+										],
+									},
+								}
+							:
+								{
+									$: [Source.Constants_Internal],
+									protocolName: {},
+								}
+						)
+					:
+						{
+							$: [Source.Constants_Internal],
+						}
+				)
+			:
+				(
+					fieldOpen ?
+						{
+							$: [Source.Atproto_Xrpc],
+							$$posts: {},
+						}
+					:
+						{
+							$: [Source.Atproto_Xrpc],
+						}
+				)
+		),
 	)
 
 	const posts = derive(
 		atprotoNetworkOrAccount,
 		(loaded) => {
-			const rows = (
-				(
-					entityFieldReference.entityType === EntityType.AtprotoNetwork ?
-						loaded.$$atprotoPosts
-					:
-						loaded.$$posts
-				)
-				?? []
-			) as Entity<typeof schema, EntityType.AtprotoPost>[]
-			return (
+			const sortPosts = <
+				R extends Entity<typeof schema, EntityType.AtprotoPost>[],
+			>(rows: R) => (
 				rows
-					.toSorted((a, b) => (
-						(b.createdAt ?? 0) - (a.createdAt ?? 0)
-					))
+					.toSorted((a, b) => {
+						const timeDelta = (
+							(b.createdAt ?? 0) - (a.createdAt ?? 0)
+						)
+						return (
+							timeDelta !== 0 ?
+								timeDelta
+							:
+								a[EntityMetaKey.Id].uri.localeCompare(b[EntityMetaKey.Id].uri)
+						)
+					})
 					.slice(0, limit)
 			)
+
+			if (entityFieldReference.entityType === EntityType.AtprotoNetwork) {
+				return sortPosts(loaded.$$atprotoPosts ?? [])
+			}
+			return sortPosts(loaded.$$posts ?? [])
 		},
 	)
 </script>
@@ -102,11 +134,24 @@
 	{href}
 	{id}
 	bind:open
+	placeholderText={`Loading ${title.toLowerCase()}…`}
 	{title}
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			ATProto repository records—posts and reposts—addressed by at-URI inside a given DID’s repo.
+		</p>
+		<p>
+			Collection scope follows the repo or list you navigated from; URIs are stable handles for the same bytes across relays.
+		</p>
+		<p>
+			The list keeps a capped newest-first slice; navigating a post resolves the full at-URI record, including embeds, facets, and reply parent linkage when the API returns them.
+		</p>
+	{/snippet}
+
 	{#snippet body()}
-		{#key `${stringify(entityFieldReference.entityId)}-${limit}`}
+		{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}`}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
@@ -120,11 +165,12 @@
 					-(row.createdAt ?? 0)
 				)}
 				placeholderKeys={new SvelteSet()}
+				placeholderText={`Loading ${title.toLowerCase()}…`}
 				resource={posts}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No AT Protocol posts to show yet.
+						No posts yet.
 					</p>
 				{/snippet}
 
@@ -144,4 +190,3 @@
 		{/key}
 	{/snippet}
 </EntitiesList>
-

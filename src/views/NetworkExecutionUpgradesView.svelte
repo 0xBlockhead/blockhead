@@ -19,7 +19,7 @@
 	// Props
 	let {
 		entityFieldReference,
-		title = 'Execution Upgrades',
+		title = 'Execution forks',
 		open = $bindable(true),
 		...entitiesListProps
 	}: WithRest<
@@ -51,12 +51,14 @@
 			$: [
 				Source.Constants_Internal,
 			],
-			[fieldName]: {
-				$: [
-					Source.Constants_Internal,
-				],
-				$limit: 512,
-			},
+			...(open && {
+				[fieldName]: {
+					$: [
+						Source.Constants_Internal,
+					],
+					$limit: 512,
+				},
+			}),
 		},
 	)
 
@@ -89,6 +91,7 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import NetworkExecutionUpgradeView from '$/views/NetworkExecutionUpgradeView.svelte'
 </script>
 
@@ -104,9 +107,18 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Execution upgrades change EVM rules and precompiles—gas costs, opcodes, and withdrawal or proof layouts.
+					</p>
+					<p>
+						Activation is usually pinned to a block or timestamp; cards summarize slug and catalog metadata for each fork.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No execution upgrades cataloged for this network yet.
+			No execution upgrades yet.
 		</p>
 	{/snippet}
 

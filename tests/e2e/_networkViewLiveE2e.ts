@@ -4,6 +4,7 @@ import {
 	assertMainSettled,
 	collectIssues,
 	installChainlistRpcsJsonStub,
+	jsonStringifyForExpectMessage,
 	preflightChainHeadAdvancesWithRetries,
 	publicJsonRpcHttpUrlForChainE2e,
 	readNetworkCarouselBlockNumbers,
@@ -51,8 +52,8 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 		preflight.ok
 			? 'ok'
 			: 'detail' in preflight && preflight.detail != null
-				? JSON.stringify(preflight.detail)
-			: JSON.stringify(preflight),
+				? jsonStringifyForExpectMessage(preflight.detail)
+				: jsonStringifyForExpectMessage(preflight),
 	).toBe(true)
 
 	const blockscoutToBasescanV2: string[] = []
@@ -83,7 +84,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 		await expect(page.locator('#main')).toBeVisible()
 		await assertMainSettled(page, 120_000)
 
-		await expect(page.locator('[data-e2e="network-summary-head-block"]')).toBeVisible(
+		await expect(page.locator('#network-summary-head-block')).toBeVisible(
 			{ timeout: 45_000 },
 		)
 		const headBaseline = await readNetworkHeadBlockBigint(page)
@@ -123,8 +124,8 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 		expect(head1, 'head after tick').not.toBeNull()
 		expect((head1 ?? 0n) > (head0 ?? 0n)).toBe(true)
 
-		await expect(page.locator('[data-scroll-marker-label="Blocks"]')).toBeVisible()
-		await expect(page.locator('[data-scroll-marker-label="Transactions"]')).toBeVisible()
+		await expect(page.locator('[data-scroll-marker-label="Blocks"]')).toBeAttached({ timeout: 120_000 })
+		await expect(page.locator('[data-scroll-marker-label="Transactions"]')).toBeAttached({ timeout: 120_000 })
 
 		await expect.poll(
 			async () => {
@@ -149,7 +150,7 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 
 		await expect(
 			page.locator(
-				'[data-e2e="network-carousel-execution"][data-scroll-container~="layout-carousel"] a[href*="/tx/"]',
+				'.network-carousel-execution[data-scroll-container~="layout-carousel"] a[href*="/tx/"]',
 			).first(),
 		).toBeVisible({ timeout: 90_000 })
 

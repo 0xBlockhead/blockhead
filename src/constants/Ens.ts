@@ -127,8 +127,6 @@ export const ensTextRecordDisplayRank = Object.fromEntries(
 	]),
 )
 
-
-// Functions
 export const getEnsTextRecordHref = (key: string, value: string) => {
 	const entry = ensTextRecordLinkEntries.find((candidate) => (
 		candidate.keys.some((candidateKey) => candidateKey === key)

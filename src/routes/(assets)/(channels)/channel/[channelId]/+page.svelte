@@ -9,12 +9,12 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import StateChannelView from '$/views/StateChannelView.svelte'
+	import ChannelView from '$/views/ChannelView.svelte'
 </script>
 
 
 <Page>
-	<StateChannelView
+	<ChannelView
 		entityId={{ id: params.channelId }}
 		href={resolve('/(assets)/(channels)/channel/[channelId]', params)}
 	/>

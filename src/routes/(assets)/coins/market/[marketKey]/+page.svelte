@@ -4,6 +4,14 @@
 
 	import { isMarketEntityId } from '$/lib/isMarketEntityId.ts'
 
+	const tryDecodeMarketKeyParam = (raw: string): string => {
+		try {
+			return decodeURIComponent(raw)
+		} catch {
+			return raw
+		}
+	}
+
 
 	// Context
 	import { resolve } from '$app/paths'
@@ -25,7 +33,7 @@
 			}
 		}
 		try {
-			const id = parse(decodeURIComponent(raw))
+			const id = parse(tryDecodeMarketKeyParam(raw))
 			if (isMarketEntityId(id)) {
 				return { marketId: id, error: null }
 			}

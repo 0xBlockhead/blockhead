@@ -1,8 +1,11 @@
+// Types
 import { mastodonDefaultInstanceOrigin } from '$/constants/Mastodon.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { schema } from '$/schema/index.ts'
 
+
+// Constants
 export const activityPubNetworkFieldValues = {
 	docsUrl: 'https://w3c.github.io/activitypub/',
 	homeUrl: 'https://www.w3.org/TR/activitypub/',

@@ -17,7 +17,7 @@
 
 	// Props
 	let {
-		title = 'OHLC points',
+		title = 'OHLC',
 		open = $bindable(true),
 		entityFieldReference,
 		...entitiesListRest
@@ -51,12 +51,22 @@
 		entityFieldReference.entityId,
 		{
 			$: [
-				Source.Coingecko_Rest,
-				Source.TradingView_Rest,
+				Source.Constants_Internal,
+				...(
+					open ?
+						[
+							Source.Coingecko_Rest,
+							Source.TradingView_Rest,
+						]
+					:
+						[]
+				),
 			],
-			[fieldName]: {
-				$limit: 4096,
-			},
+			...(open && {
+				[fieldName]: {
+					$limit: 4096,
+				},
+			}),
 		},
 	)
 
@@ -68,6 +78,20 @@
 			)
 			return (
 				rows
+					.toSorted((left, right) => (
+						(
+							left[EntityMetaKey.Id].timestampNs
+							< right[EntityMetaKey.Id].timestampNs
+						) ?
+							1
+						: (
+							left[EntityMetaKey.Id].timestampNs
+							> right[EntityMetaKey.Id].timestampNs
+						) ?
+							-1
+						:
+							0
+					))
 					.map((value) => ({
 						value,
 					}))
@@ -94,9 +118,18 @@
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Candle rows sit on interval boundaries: open, high, low, close for each bucket start.
+		</p>
+		<p>
+			They differ from tick-level spot quotes, which are timestamped prints rather than rolled OHLC.
+		</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No OHLC points yet.
+			No OHLC candles yet.
 		</p>
 	{/snippet}
 

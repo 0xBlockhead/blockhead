@@ -2,6 +2,12 @@
  * Known Mastodon HTTP API (v1) instances. Wire is always REST; entity layer uses ActivityPub* types.
  * Switch default by changing `mastodonDefaultInstanceKey` (or add keys and map in code), not per-instance env.
  */
+
+
+// Types
+
+
+// Constants
 export const mastodonInstanceByKey = {
 	mastodon_social: {
 		origin: 'https://mastodon.social' as const,

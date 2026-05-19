@@ -9,6 +9,12 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import Network from '$/schema/Network.ts'
+import { Source } from '$/sources/$Source.ts'
+
+const storageSlotRead = type({
+	slot: ZeroExHex,
+	value: ZeroExHex,
+})
 
 export default {
 	entityType: EntityType.EvmContract,
@@ -57,6 +63,28 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Sourcify_Rest,
+				Source.Etherscan_Rest,
+			],
+		},
+		{
+			name: 'storageLayoutJson',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Sourcify_Rest,
+			],
+		},
+		{
+			name: 'storageSlotReads',
+			type: EntityFieldType.Primitive,
+			primitiveType: storageSlotRead,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
 		},
 		{
 			name: '$verifiedSource',

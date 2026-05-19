@@ -1,6 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { stringify } from 'devalue'
+
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -13,8 +15,6 @@
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -24,6 +24,7 @@
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import BlockheadRoomPeerView from '$/views/BlockheadRoomPeerView.svelte'
 
 
@@ -34,7 +35,7 @@
 			entityId: {},
 			fieldName: '$$blockheadRoomPeers',
 		},
-		title = 'Contacts',
+		title = 'Room peers',
 		open = $bindable(true),
 		href,
 		id,
@@ -57,10 +58,17 @@
 	const globalEntity = useEntity(
 		EntityType._Global,
 		entityFieldReference.entityId,
-		{
-			$: [Source.Local_Internal],
-			$$blockheadRoomPeers: {},
-		},
+		(
+			open ?
+				{
+					$: [Source.Local_Internal],
+					$$blockheadRoomPeers: {},
+				}
+			:
+				{
+					$: [Source.Local_Internal],
+				}
+		),
 	)
 
 	const peers = derive(
@@ -84,6 +92,17 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>Realtime peers attached to the multiplayer room—who is connected over the mesh for collaboration.</p>
+					<p>Not the same as Farcaster contacts, wallet sessions, or beacon validators.</p>
+	{/snippet}
+
+	{#snippet Empty()}
+		<p data-text="muted">
+			No peers yet.
+		</p>
+	{/snippet}
+
 	{#snippet Item({ item: row })}
 		{#if row}
 			<BlockheadRoomPeerView
@@ -97,4 +116,3 @@
 			/>
 		{/if}
 	{/snippet}
-</EntitiesList>

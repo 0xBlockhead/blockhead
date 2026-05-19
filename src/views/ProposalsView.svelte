@@ -1,6 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
 	import {
 		proposalCategoryById,
@@ -13,6 +15,9 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
@@ -42,14 +47,6 @@
 	> = $props()
 
 
-	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-
 	// Functions
 	const proposalKey = (row: { result: Entity<typeof schema, EntityType.Proposal> }) => (
 		stringify(row.result[EntityMetaKey.Id])
@@ -58,6 +55,11 @@
 	const proposalSortValue = (row: { result: Entity<typeof schema, EntityType.Proposal> }) => (
 		row.result[EntityMetaKey.Id].number
 	)
+
+
+	// State
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const fieldName = $derived(entityFieldReference.fieldName)
 
@@ -101,8 +103,8 @@
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import ProposalView from '$/views/ProposalView.svelte'
 </script>
 
@@ -118,6 +120,21 @@
 	placeholderKeys={new SvelteSet<string | number>()}
 	resource={proposals}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						These proposal cards come from public standards repositories for Ethereum upgrades, name-service improvements, and shared chain identifiers.
+					</p>
+					<p>
+						They document design specs—not live on-chain vote tallies for a particular DAO.
+					</p>
+	{/snippet}
+
+	{#snippet Empty()}
+		<p data-text="muted">
+			No proposals in this slice yet.
+		</p>
+	{/snippet}
+
 	{#snippet Item(props)}
 		{#if props.item}
 			{@const proposalEntityId = props.item.result[EntityMetaKey.Id]}

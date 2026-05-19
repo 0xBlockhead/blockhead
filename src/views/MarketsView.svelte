@@ -50,15 +50,24 @@
 		{
 			$: [
 				Source.Constants_Internal,
-				Source.Coingecko_Rest,
-				Source.CoinMarketCap_Rest,
-				Source.Coinpaprika_OpenApi,
-				Source.Defillama_Rest,
-				Source.TradingView_Rest,
+				...(
+					open ?
+						[
+							Source.Coingecko_Rest,
+							Source.CoinMarketCap_Rest,
+							Source.Coinpaprika_OpenApi,
+							Source.Defillama_OpenApi,
+							Source.TradingView_Rest,
+						]
+					:
+						[]
+				),
 			],
-			[fieldName]: {
-				$limit: 8192,
-			},
+			...(open && {
+				[fieldName]: {
+					$limit: 8192,
+				},
+			}),
 		},
 	)
 
@@ -92,6 +101,7 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import MarketView from '$/views/MarketView.svelte'
 </script>
 
@@ -107,9 +117,18 @@
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						A market pairs a base asset with a quote so feeds can publish prices, volume, and related stats.
+					</p>
+					<p>
+						Spot best bids/asks and index marks are point samples; OHLC ranges aggregate trades or mid-prices into interval buckets for charts.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No markets indexed yet.
+			No markets in this context yet.
 		</p>
 	{/snippet}
 

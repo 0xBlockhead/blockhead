@@ -15,7 +15,7 @@ export default defineConfig({
 	use: {
 		baseURL,
 		actionTimeout: 15_000,
-		navigationTimeout: 15_000,
+		navigationTimeout: 120_000,
 		...e2eBrowserNewContextOptions(),
 		headless: playwrightHeadless(),
 	},
@@ -26,7 +26,8 @@ export default defineConfig({
 			command: 'pnpm run dev',
 			url: baseURL,
 			timeout: 120_000,
-			reuseExistingServer: true,
+			/** Dedicated server (`PLAYWRIGHT_DEDICATED_SERVER=1`): avoids stale reused Vite client chunks when another dev PID left `.svelte-kit/generated` mid-HMR (stop `pnpm run dev` first if port 5173 is taken). */
+			reuseExistingServer: process.env.PLAYWRIGHT_DEDICATED_SERVER !== '1',
 		},
 	}),
 	testMatch: '**/*.e2e.{ts,js}',

@@ -45,19 +45,33 @@
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Allium_Rest,
-				],
-			},
-		},
+		(
+			open ?
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Allium_Rest,
+						],
+					},
+				}
+			:
+				{
+					$: [
+						Source.Allium_Rest,
+					],
+				}
+		),
 	)
 
 	const tokenBalances = derive(
 		parentEntity,
 		(merged) => {
-			const rows: Entity<typeof schema, EntityType.ActorCoin>[] = merged[entityFieldReference.fieldName] ?? []
+			const rows: Entity<typeof schema, EntityType.ActorCoin>[] = (
+				merged[entityFieldReference.fieldName] ?? []
+			)
+				.toSorted((a, b) => (
+					stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
+				))
 			return (
 				rows.map((value) => ({
 					value,
@@ -70,7 +84,6 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ActorCoinView from '$/views/ActorCoinView.svelte'
 </script>
 
@@ -79,9 +92,6 @@
 	entityType={EntityType.ActorCoin}
 	{title}
 	bind:open
-	data-entity-field-name={entityFieldReference.fieldName}
-	data-entity-field-type={entityFieldReference.entityType}
-	data-entity-field-parent={stringify(entityFieldReference.entityId)}
 	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 	getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 	placeholderKeys={new SvelteSet<string>()}
@@ -90,9 +100,18 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Each row is a token balance for an address on a specific chain (native asset or ERC-20 style contract).
+					</p>
+					<p>
+						Totals come from execution-layer address indexers; beacon-chain validator balances and rewards use a different accounting model.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No balances loaded yet.
+			No balances yet.
 		</p>
 	{/snippet}
 

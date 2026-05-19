@@ -1,6 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { stringify } from 'devalue'
+
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
@@ -13,6 +15,11 @@
 
 	// Context
 	import { resolve } from '$app/paths'
+
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
 	// Components
@@ -41,25 +48,27 @@
 		>
 	> = $props()
 
-
-	// State
-	import { stringify } from 'devalue'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
 	const beaconParent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
-		entityFieldReference.entityType === EntityType.Network ?
-			({
-				blockHeight: { $: [Source.Voltaire_JsonRpc] },
-				$$beaconSlots: { $: [Source.Beacon_Rest] },
-			})
-		:
-			({
-				$$beaconSlots: { $: [Source.Beacon_Rest] },
-			}),
+		(
+			open ?
+				(
+					entityFieldReference.entityType === EntityType.Network ?
+						({
+							blockHeight: { $: [Source.Voltaire_JsonRpc] },
+							$$beaconSlots: { $: [Source.Beacon_Rest] },
+						})
+					:
+						({
+							$$beaconSlots: { $: [Source.Beacon_Rest] },
+						})
+				)
+			:
+				{
+					$: [Source.Beacon_Rest],
+				}
+		),
 	)
 
 	const slots = derive(
@@ -81,6 +90,12 @@
 	bind:open
 	{...entitiesListProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Beacon consensus slots ordered in time; proposer duties and attestations are scheduled per slot.
+		</p>
+	{/snippet}
+
 	{#snippet body()}
 		{#key stringify(entityFieldReference.entityId)}
 			<ResourceBoundary
@@ -97,7 +112,7 @@
 					>
 						{#snippet Empty()}
 							<p data-text="muted">
-								No recent slots for this network yet.
+								No slots yet.
 							</p>
 						{/snippet}
 

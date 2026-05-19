@@ -1,30 +1,11 @@
 import { regex } from 'arkregex'
 import { jsonErrorHintFromResponse } from '$/lib/http.ts'
 import { gatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
-
-export type SwarmBrowseResult = {
-	reference: string
-	contentPath: string
-	gatewayOrigin: string
-	gatewayUrl: string
-	fileName?: string
-	extension?: string
-	contentType?: string
-	contentLength?: number
-	displayType: 'text' | 'image' | 'video' | 'audio' | 'json' | 'xml' | 'pdf' | 'iframe' | 'binary'
-	isContentTypeInferred: boolean
-	text?: string
-}
-
-export type SwarmResourceAddress = {
-	reference: string
-	contentPath: string
-}
-
-type ParsedSwarmBrowseInput = {
-	reference: string
-	contentPath: string
-}
+import type {
+	ParsedSwarmBrowseInput,
+	SwarmBrowseResult,
+	SwarmResourceAddress,
+} from '$/sources/Swarm/Rest/types.ts'
 
 const swarmBrowseUriPattern = regex('^bzz://(?<reference>[^/?#]+)(?<contentPath>/[^?#]*)?(?:[?#].*)?$', 'i')
 const swarmBrowseGatewayPattern = regex('^https?://[^/]+/bzz/(?<reference>[^/?#]+)(?<contentPath>/[^?#]*)?(?:[?#].*)?$', 'i')

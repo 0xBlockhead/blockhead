@@ -48,3 +48,35 @@ export type CoinMarketCapInfoLatestResponse = {
 	status?: CoinMarketCapStatus
 	data?: Record<string, CoinMarketCapInfo>
 }
+
+export type CoinMarketCapOhlcvUsdQuote = {
+	open?: number
+	high?: number
+	low?: number
+	close?: number
+	volume?: number
+	market_cap?: number
+	timestamp?: string
+}
+
+export type CoinMarketCapOhlcvQuote = {
+	time_open?: string
+	time_close?: string
+	time_high?: string
+	time_low?: string
+	quote?: {
+		USD?: CoinMarketCapOhlcvUsdQuote
+	}
+}
+
+export type CoinMarketCapOhlcvHistoricalCoin = {
+	id?: number
+	name?: string
+	symbol?: string
+	quotes?: CoinMarketCapOhlcvQuote[]
+}
+
+export type CoinMarketCapOhlcvHistoricalResponse = {
+	status?: CoinMarketCapStatus
+	data?: Record<string, CoinMarketCapOhlcvHistoricalCoin>
+}

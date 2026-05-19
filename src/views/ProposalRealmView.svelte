@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 
 	import { proposalRealmById } from '$/constants/Proposal.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
@@ -9,17 +10,6 @@
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import ProposalKindsView from '$/views/ProposalKindsView.svelte'
 
 
 	// Props
@@ -45,6 +35,7 @@
 			| 'href'
 			| 'title'
 			| 'open'
+			| 'layout'
 			| 'Details'
 			| 'Content'
 		>
@@ -52,6 +43,8 @@
 
 
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const realm = useEntity(
 		EntityType.ProposalRealm,
 		entityId,
@@ -59,10 +52,19 @@
 			$: [
 				Source.Constants_Internal,
 			],
-			label: {},
-			slug: {},
+			...(open && {
+				label: {},
+				slug: {},
+			}),
 		},
 	)
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import ProposalKindsView from '$/views/ProposalKindsView.svelte'
 </script>
 
 
@@ -72,39 +74,54 @@
 	{href}
 	title={proposalRealmById[entityId.realm].label}
 	{layout}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
-	{#snippet Heading()}
-
+	{#snippet Id()}
 		<span data-text="font-monospace">
-			{entityId.realm}
+			{proposalRealmById[entityId.realm].slug}
 		</span>
 	{/snippet}
 
-	{#snippet Content()}
-		<ResourceBoundary resource={realm}>
+	{#snippet Heading()}
+		{proposalRealmById[entityId.realm].label}
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					A realm gathers related specification families so you browse documents by steward and topic—not by vote totals.
+				</p>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={realm}
+			placeholderText="Loading realm…"
+		>
 			{#snippet children(r)}
-				{#if open}
-					{#if r.slug != null}
-						{#if r.slug !== ''}
-							<dl>
-								<div>
-									<dt>Slug</dt>
-									<dd>{r.slug}</dd>
-								</div>
-							</dl>
+				<dl data-column-item="center">
+					<div>
+						<dt>Realm</dt>
+						<dd data-text="mono">
+							{@render Id()}
+						</dd>
+					</div>
+					{#if open}
+						{#if r.slug != null && r.slug !== ''}
+							<div>
+								<dt>Slug</dt>
+								<dd>{r.slug}</dd>
+							</div>
 						{/if}
 					{/if}
-					{#if r.slug == null}
-						<p data-text="muted">No realm metadata available.</p>
+
+					{#if open && (r.slug == null || r.slug === '')}
+						<div>
+							<dt>Metadata</dt>
+							<dd data-text="muted">No realm metadata available.</dd>
+						</div>
 					{/if}
-					{#if r.slug != null}
-						{#if r.slug === ''}
-							<p data-text="muted">No realm metadata available.</p>
-						{/if}
-					{/if}
-				{/if}
+				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -124,7 +141,7 @@
 			{href}
 			id={`${stringify(entityId)}:proposalKinds`}
 			open={false}
-			title="Kinds"
+			title="Proposal kinds"
 		/>
 		{#if children}
 			{@render children()}

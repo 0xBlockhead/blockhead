@@ -33,7 +33,6 @@
 			| 'entityId'
 			| 'entityType'
 			| 'Heading'
-			| 'HeadingAfter'
 			| 'Icon'
 			| 'href'
 			| 'open'
@@ -61,11 +60,14 @@
 
 
 	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import XUserView from '$/views/XUserView.svelte'
 </script>
 
 
@@ -82,12 +84,10 @@
 		</span>
 	{/snippet}
 
-
-
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={post}
-			placeholderText="Loading post…"
+			placeholderText="Loading X post…"
 		>
 			{#snippet children(resolvedXPost)}
 				{#if resolvedXPost.text}
@@ -104,19 +104,29 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href, open })}
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					Public posts on X (Twitter): short text, timestamps, and author profile links.
+				</p>
+				<p>
+					Not Reddit threads, storage CIDs, on-chain receipts, or encrypted chats.
+				</p>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
 		<ResourceBoundary
 			resource={post}
-			placeholderText="Loading post…"
+			placeholderText="Loading X post…"
 		>
 			{#snippet children(resolvedXPost)}
 				{#if resolvedXPost.text}
-					{#if !open}
+					{#if !contentOpen}
 						<p>
 							{resolvedXPost.text}
 						</p>
 					{/if}
 				{/if}
+
 				{#if resolvedXPost.$author}
 					<p data-text="muted">
 						<a
@@ -128,38 +138,40 @@
 									),
 								},
 							)}
-						>Author (id {resolvedXPost.$author[EntityMetaKey.Id].id})</a>
+						>Profile (id {resolvedXPost.$author[EntityMetaKey.Id].id})</a>
 					</p>
 				{/if}
 				<dl data-column-item="center">
+					{#if resolvedXPost.text}
+						<div>
+							<dt>Post id</dt>
+							<dd data-text="mono">
+								{@render Id()}
+							</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen}
 						{#if resolvedXPost.text}
 							<div>
-								<dt>Post id</dt>
-								<dd data-text="mono">
-									{@render Id()}
+								<dt>Text</dt>
+								<dd>{resolvedXPost.text}</dd>
+							</div>
+						{/if}
+
+						{#if resolvedXPost.createdAt != null}
+							<div>
+								<dt>Created at</dt>
+								<dd>
+									<Timestamp
+										timestamp={resolvedXPost.createdAt}
+										format={TimestampFormat.Both}
+									/>
 								</dd>
 							</div>
 						{/if}
-						{#if open}
-							{#if resolvedXPost.text}
-								<div>
-									<dt>Text</dt>
-									<dd>{resolvedXPost.text}</dd>
-								</div>
-							{/if}
-							{#if resolvedXPost.createdAt != null}
-								<div>
-									<dt>Created at</dt>
-									<dd>
-										<Timestamp
-											timestamp={resolvedXPost.createdAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-						{/if}
-					</dl>
+					{/if}
+				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -167,26 +179,121 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.XPost}
-			{entityId}
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
 		>
-			<ResourceBoundary
-				resource={post}
-				placeholderText="Loading post…"
+			<CollapsibleTabs
+				id={`x-post:${entityId.id}:carousel`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
-				{#snippet children(resolvedXPost)}
-					{#if (
-						!resolvedXPost.text
-						&& resolvedXPost.createdAt == null
-						&& !resolvedXPost.$author
-					)}
-						<p data-text="muted">
-							Post details are not available yet.
-						</p>
-					{/if}
+				{#snippet Summary({
+					open: _summaryOpen,
+				})}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<HeadingComponent>
+							Post details
+						</HeadingComponent>
+					</header>
 				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+
+				{#snippet Markers({
+					open: _markersOpen,
+				})}
+					<a
+						data-scroll-marker-label="Author"
+						href={`#x-post:${entityId.id}:author`}
+					>Author</a>
+					<a
+						data-scroll-marker-label="Post"
+						href={`#x-post:${entityId.id}:post`}
+					>Post</a>
+				{/snippet}
+
+				{#snippet children({
+					open: _paneOpen,
+				})}
+					<section
+						data-scroll-marker-label="Author"
+						id={`x-post:${entityId.id}:author`}
+					>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading X post…"
+						>
+							{#snippet children(resolvedXPost)}
+								{#if resolvedXPost.$author}
+									<XUserView
+										entityId={resolvedXPost.$author[EntityMetaKey.Id]}
+										href={resolve(
+											'/(social)/x/user/[userId]',
+											{
+												userId: encodeURIComponent(
+													resolvedXPost.$author[EntityMetaKey.Id].id,
+												),
+											},
+										)}
+										layout={EntityLayout.Summary}
+										open={false}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</section>
+					<section
+						data-scroll-marker-label="Post"
+						id={`x-post:${entityId.id}:post`}
+					>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading X post…"
+						>
+							{#snippet children(resolvedXPost)}
+								<dl data-column-item="center">
+									{#if resolvedXPost.text}
+										<div>
+											<dt>Text</dt>
+											<dd>{resolvedXPost.text}</dd>
+										</div>
+									{/if}
+
+									{#if resolvedXPost.createdAt != null}
+										<div>
+											<dt>Created at</dt>
+											<dd>
+												<Timestamp
+													timestamp={resolvedXPost.createdAt}
+													format={TimestampFormat.Both}
+												/>
+											</dd>
+										</div>
+									{/if}
+								</dl>
+							{/snippet}
+						</ResourceBoundary>
+					</section>
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 36ch;
+			}
+		}
+	}
+</style>

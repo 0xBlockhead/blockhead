@@ -1,18 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
+
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { default as EntityViewComponent } from '$/components/EntityView.svelte'
-
-
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 
 
 	// Props
@@ -20,21 +14,24 @@
 		children,
 		entityId,
 		href,
-		open = $bindable(true),
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...entityViewRest
 	}: WithRest<
 		{
 			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.BlockheadRoom>
 			href: string
+			layout?: EntityLayout
 			open?: boolean
 		},
 		Omit<
-			ComponentProps<typeof EntityViewComponent>,
+			ComponentProps<typeof EntityView>,
 			| 'entityType'
 			| 'entityId'
 			| 'href'
 			| 'open'
+			| 'layout'
 			| 'title'
 			| 'Heading'
 			| 'Details'
@@ -59,6 +56,13 @@
 			createdBy: {},
 		},
 	)
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 </script>
 
 
@@ -66,7 +70,8 @@
 	entityType={EntityType.BlockheadRoom}
 	{entityId}
 	{href}
-	{open}
+	{layout}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Id()}
@@ -88,17 +93,24 @@
 		</ResourceBoundary>
 	{/snippet}
 
+
+
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					WebRTC-style rooms synchronize ephemeral presence—cursors, avatars, shared focus—between joined clients.
+				</p>
+				<p>
+					That transport differs from federated ActivityPub threads, Reddit HTTP threads, or XMTP double-ratchet DMs.
+				</p>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={room}
 			placeholderText="Loading room…"
 		>
 			{#snippet children(r)}
-				<dl>
-					<div>
-						<dt>Room id</dt>
-						<dd>{entityId.id}</dd>
-					</div>
+				<dl data-column-item="center">
 					{#if r.createdAt !== undefined}
 						<div>
 							<dt>Created</dt>
@@ -110,32 +122,21 @@
 							</dd>
 						</div>
 					{/if}
+
 					{#if open}
-						{#if r.name !== undefined}
-							{#if r.name !== ''}
-								<div>
-									<dt>Name</dt>
-									<dd>{r.name}</dd>
-								</div>
-							{/if}
-						{/if}
-						{#if r.createdBy !== undefined}
-							{#if r.createdBy !== ''}
-								<div>
-									<dt>Created by</dt>
-									<dd>{r.createdBy}</dd>
-								</div>
-							{/if}
-						{/if}
-						{#if r.createdAt !== undefined}
+						{#if r.name !== undefined && r.name !== ''}
 							<div>
-								<dt>Created at</dt>
-								<dd>
-									<Timestamp
-										timestamp={r.createdAt}
-										format={TimestampFormat.Both}
-									/>
-								</dd>
+								<dt>Name</dt>
+								<dd>{r.name}</dd>
+							</div>
+						{/if}
+					{/if}
+
+					{#if open}
+						{#if r.createdBy !== undefined && r.createdBy !== ''}
+							<div>
+								<dt>Opened by</dt>
+								<dd>{r.createdBy}</dd>
 							</div>
 						{/if}
 					{/if}

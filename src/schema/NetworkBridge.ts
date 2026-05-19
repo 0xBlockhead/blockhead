@@ -12,8 +12,8 @@ import Network from '$/schema/Network.ts'
 export default {
 	entityType: EntityType.NetworkBridge,
 
-	label: 'Network Bridge',
-	labelPlural: 'Network Bridges',
+	label: 'Bridge',
+	labelPlural: 'Bridges',
 
 	id: type({
 		$fromNetwork: Network.id,

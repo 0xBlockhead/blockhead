@@ -22,6 +22,11 @@ const SAMPLE_TX_HASH = (
 	'0xdacd6abf5b2814b28c68c59981f269c615796e7f0cba2009f4bf5edfdd9595ab' as const
 )
 
+/** Mainnet type‑3 tx with EIP‑4844 sidecars — exercised by Blobscan REST probes. */
+const SAMPLE_BLOB_TX_HASH = (
+	'0x31ed178236b6bc4dd6dc8c6026e9d344e39afe0dc6d832c228131ce4ee40a8ca' as const
+)
+
 const CAST_HASH_32 = `0x${'a'.repeat(64)}` as const
 
 const ERROR_SELECTOR = '0x08c379a0' as const
@@ -111,7 +116,7 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 
 	[EntityType.EvmBlob]: {
 		$network: mainnet,
-		txHash: SAMPLE_TX_HASH,
+		txHash: SAMPLE_BLOB_TX_HASH,
 		blobIndex: 0,
 	},
 	[EntityType.EvmBlock]: {
@@ -193,9 +198,9 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		$network: mainnet,
 		upgradeId: 'Homestead',
 	},
-	[EntityType.Network_GasFee_Timestamp]: {
+	[EntityType.Network_GasFee_Block]: {
 		$network: mainnet,
-		timestampNs: 0n,
+		blockNumber: 18_000_000n,
 	},
 	[EntityType.Network_Txpool_Timestamp]: {
 		$network: mainnet,

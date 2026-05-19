@@ -13,8 +13,8 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	entityType: EntityType.MarketPrice,
 
-	label: 'Market price',
-	labelPlural: 'Market prices',
+	label: 'Quote',
+	labelPlural: 'Quotes',
 
 	/**
 	 * Quote stream id: which market, optional per-feed key, optional on-chain context.
@@ -37,7 +37,7 @@ export default {
 				Source.Coingecko_Rest,
 				Source.CoinMarketCap_Rest,
 				Source.Coinpaprika_OpenApi,
-				Source.Defillama_Rest,
+				Source.Defillama_OpenApi,
 			],
 		},
 		{

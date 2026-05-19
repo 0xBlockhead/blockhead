@@ -10,14 +10,14 @@ import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
-	entityType: EntityType.Network_GasFee_Timestamp,
+	entityType: EntityType.Network_GasFee_Block,
 
-	label: 'Network gas fee snapshot',
-	labelPlural: 'Network gas fee snapshots',
+	label: 'Network gas fee block snapshot',
+	labelPlural: 'Network gas fee block snapshots',
 
 	id: type({
 		$network: Network.id,
-		timestampNs: 'bigint',
+		blockNumber: 'bigint',
 	}),
 
 	fields: [
@@ -49,7 +49,7 @@ export default {
 			],
 		},
 		{
-			name: 'gasUsedRatioLastBlock',
+			name: 'gasUsedRatio',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

@@ -11,24 +11,12 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { SvelteSet } from 'svelte/reactivity'
-
-
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import UrlView from '$/views/UrlView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
 		fieldSources,
 		title = 'URLs',
-		emptyText = 'No URLs listed yet.',
+		emptyText = 'No URLs in this list yet.',
 		open = $bindable(true),
 		...entitiesListProps
 	}: WithRest<
@@ -45,6 +33,11 @@
 		>
 	> = $props()
 
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { SvelteSet } from 'svelte/reactivity'
 
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
@@ -77,6 +70,13 @@
 			)
 		},
 	)
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import UrlView from '$/views/UrlView.svelte'
 </script>
 
 
@@ -91,20 +91,29 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListProps}
 >
-	{#snippet Empty()}
-		<p data-text="muted">
-			{emptyText}
-		</p>
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Each row is a normal HTTPS (or similar) link, usually enriched from page metadata when available.
+					</p>
+					<p>
+						This is separate from Swarm <code>bzz</code> addresses, on-chain topics, pool contracts, or chat threads.
+					</p>
 	{/snippet}
 
-	{#snippet Item({ item: envelope })}
-		{#if envelope}
-			<UrlView
-				entityId={envelope.value[EntityMetaKey.Id]}
-				href={envelope.value[EntityMetaKey.Id].url}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
-	{/snippet}
+	{#snippet Empty()}
+			<p data-text="muted">
+				{emptyText}
+			</p>
+		{/snippet}
+
+		{#snippet Item({ item: envelope })}
+			{#if envelope}
+				<UrlView
+					entityId={envelope.value[EntityMetaKey.Id]}
+					href={envelope.value[EntityMetaKey.Id].url}
+					layout={EntityLayout.Summary}
+					open={false}
+				/>
+			{/if}
+		{/snippet}
 </EntitiesList>

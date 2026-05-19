@@ -2,6 +2,7 @@
  * Default execution endpoints by chain: url, serviceProvider, transportType.
  */
 
+// Types
 import { ChainId } from '$/constants/ChainId.ts'
 import { ExecutionRpcProvider } from '$/constants/ExecutionRpcProvider.ts'
 import { TransportType } from '$/constants/TransportType.ts'
@@ -29,6 +30,8 @@ export type ExecutionEndpoint = {
 	executionClient?: ExecutionClientId
 }
 
+
+// Constants
 export const executionEndpoints = [
 	// {
 	// 	chainId: ChainId.Ethereum,
@@ -669,6 +672,8 @@ export const executionEndpoints = [
 	},
 ] as const satisfies readonly ExecutionEndpoint[]
 
+
+// Lookups
 export const executionEndpointsByChainId: Partial<Record<number, ExecutionEndpoint[]>> = Object.groupBy(
 	executionEndpoints,
 	(e) => e.chainId,

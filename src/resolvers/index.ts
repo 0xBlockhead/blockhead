@@ -7,6 +7,7 @@ import MetadataVisionRestResolvers from '$/resolvers/MetadataVision-Rest.ts'
 import AlliumRestResolvers from '$/resolvers/Allium-Rest.ts'
 import AtprotoXrpcResolvers from '$/resolvers/Atproto-Xrpc.ts'
 import BeaconRestResolvers from '$/resolvers/Beacon-Rest.ts'
+import BlobscanRestResolvers from '$/resolvers/Blobscan-Rest.ts'
 import BlockscoutRestResolvers from '$/resolvers/Blockscout-Rest.ts'
 import CaipsGithubResolvers from '$/resolvers/Caips-Github.ts'
 import ChainlistRestResolvers from '$/resolvers/Chainlist-Rest.ts'
@@ -14,6 +15,7 @@ import CoingeckoRestResolvers from '$/resolvers/Coingecko-Rest.ts'
 import CoinMarketCapRestResolvers from '$/resolvers/CoinMarketCap-Rest.ts'
 import CoinpaprikaOpenApiResolvers from '$/resolvers/Coinpaprika-OpenApi.ts'
 import ConstantsResolvers from '$/resolvers/Constants.ts'
+import DefillamaOpenApiResolvers from '$/resolvers/Defillama-OpenApi.ts'
 import DefillamaRestResolvers from '$/resolvers/Defillama-Rest.ts'
 import DexscreenerOpenApiResolvers from '$/resolvers/Dexscreener-OpenApi.ts'
 import DuneRestResolvers from '$/resolvers/Dune-Rest.ts'
@@ -22,6 +24,7 @@ import EnsipsGithubResolvers from '$/resolvers/Ensips-Github.ts'
 import EthereumEipsGithubResolvers from '$/resolvers/EthereumEips-Github.ts'
 import EthereumListsChainsResolvers from '$/resolvers/EthereumLists-Chains.ts'
 import EthereumSpecsGithubResolvers from '$/resolvers/EthereumSpecs-Github.ts'
+import EtherscanRestResolvers from '$/resolvers/Etherscan-Rest.ts'
 import FarcasterRestResolvers from '$/resolvers/Farcaster-Rest.ts'
 import IpfsRestResolvers from '$/resolvers/Ipfs-Rest.ts'
 import L2BeatRestResolvers from '$/resolvers/L2Beat-Rest.ts'
@@ -47,6 +50,7 @@ const enabledResolverModulesAfterSourceGate = (
 		AlliumRestResolvers,
 		AtprotoXrpcResolvers,
 		BeaconRestResolvers,
+		BlobscanRestResolvers,
 		BlockscoutRestResolvers,
 		CaipsGithubResolvers,
 		L2BeatRestResolvers,
@@ -55,6 +59,7 @@ const enabledResolverModulesAfterSourceGate = (
 		CoinMarketCapRestResolvers,
 		CoinpaprikaOpenApiResolvers,
 		ConstantsResolvers,
+		DefillamaOpenApiResolvers,
 		DefillamaRestResolvers,
 		DexscreenerOpenApiResolvers,
 		DuneRestResolvers,
@@ -63,6 +68,7 @@ const enabledResolverModulesAfterSourceGate = (
 		EthereumEipsGithubResolvers,
 		EthereumListsChainsResolvers,
 		EthereumSpecsGithubResolvers,
+		EtherscanRestResolvers,
 		FarcasterRestResolvers,
 		IpfsRestResolvers,
 		LifiRestResolvers,

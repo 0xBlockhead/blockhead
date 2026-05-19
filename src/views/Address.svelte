@@ -56,7 +56,7 @@
 		?? (
 			address !== undefined ?
 				{ address }
-			: { address: '0x0000000000000000000000000000000000000000' as `0x${string}` }
+			: { address: '0x0000000000000000000000000000000000000000' satisfies `0x${string}` }
 		),
 		{
 			$: [Source.Voltaire_JsonRpc],
@@ -74,7 +74,7 @@
 			placeholderText=""
 		>
 			{#snippet Pending()}
-				<span data-row="inline">
+				<span data-row="inline wrap gap-1 align-center">
 					{#if showAvatar}
 						<Icon
 							shape={IconShape.Circle}
@@ -110,14 +110,14 @@
 
 					{#if network}
 						<small data-text="muted">
-							 · {network.chainId}
+							{' '}· <code>eip155:{network.chainId}</code>
 						</small>
 					{/if}
 				</span>
 			{/snippet}
 
 			{#snippet children(live)}
-				<span data-row="inline">
+				<span data-row="inline wrap gap-1 align-center">
 					{#if showAvatar}
 						{@const avatarHref = live.$icon?.[EntityMetaKey.Id].url}
 						{#if avatarHref}
@@ -132,6 +132,7 @@
 								shape={IconShape.Circle}
 								icon="◉"
 								size="1.5em"
+								alt=""
 							/>
 						{/if}
 					{/if}
@@ -170,14 +171,14 @@
 
 					{#if network}
 						<small data-text="muted">
-							 · {network.chainId}
+							{' '}· <code>eip155:{network.chainId}</code>
 						</small>
 					{/if}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
 	{:else}
-		<span data-row="inline">
+		<span data-row="inline wrap gap-1 align-center">
 			<span data-text="font-monospace">
 				<TruncatedValue
 					value={shownAddress}
@@ -203,7 +204,7 @@
 
 			{#if network}
 				<small data-text="muted">
-					 · {network.chainId}
+					{' '}· <code>eip155:{network.chainId}</code>
 				</small>
 			{/if}
 		</span>

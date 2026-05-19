@@ -46,7 +46,11 @@
 
 
 	// State
+	import { stringify } from 'devalue'
+
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const idKey = stringify(entityId)
 
 	const actor = useEntity(
 		EntityType.ActivityPubActor,
@@ -56,19 +60,26 @@
 			username: {},
 			acct: {},
 			displayName: {},
-			note: {},
 			$icon: {},
+			...(open ?
+				{
+					note: {},
+				}
+			:
+				{}),
 		},
 	)
 
 
 	// Components
 	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 </script>
 
 
@@ -76,13 +87,13 @@
 	entityType={EntityType.ActivityPubActor}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={actor}
-			placeholderText="Loading account…"
+			placeholderText="Loading actor…"
 		>
 			{#snippet children(activityPubActorRow)}
 				{activityPubActorRow.displayName
@@ -94,7 +105,10 @@
 	{/snippet}
 
 	{#snippet Icon()}
-		<ResourceBoundary resource={actor}>
+		<ResourceBoundary
+			resource={actor}
+			placeholderText=""
+		>
 			{#snippet children(activityPubActorRow)}
 				{#if activityPubActorRow.$icon}
 					<IconComponent
@@ -114,7 +128,10 @@
 	{/snippet}
 
 	{#snippet HeadingAfter()}
-		<ResourceBoundary resource={actor}>
+		<ResourceBoundary
+			resource={actor}
+			placeholderText=""
+		>
 			{#snippet children(activityPubActorRow)}
 				{@const activityPubSummaryHeadingLine =
 					activityPubActorRow.displayName
@@ -131,11 +148,10 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open })}
-		<div data-column>
-			<ResourceBoundary
-				resource={actor}
-				placeholderText="Loading account…"
-			>
+		<ResourceBoundary
+			resource={actor}
+			placeholderText="Loading actor…"
+		>
 			{#snippet children(activityPubActorRow)}
 				{@const activityPubSummaryHeadingLine = (
 					activityPubActorRow.displayName
@@ -143,105 +159,174 @@
 					?? activityPubActorRow.username
 					?? entityId.localAccountId
 				)}
-				{#if activityPubActorRow.note}
-						{#if !open}
-							<p data-text="muted">
-								{htmlToPlainText(activityPubActorRow.note)}
-							</p>
+				<dl data-column-item="center">
+					{#if activityPubSummaryHeadingLine !== entityId.localAccountId}
+						<div>
+							<dt>Local account id</dt>
+							<dd data-text="mono">
+								{@render Id()}
+							</dd>
+						</div>
+					{/if}
+
+					{#if open}
+						{#if activityPubActorRow.username}
+							<div>
+								<dt>Username on instance</dt>
+								<dd>{activityPubActorRow.username}</dd>
+							</div>
 						{/if}
 					{/if}
-					<dl data-column-item="center">
-						{#if activityPubSummaryHeadingLine !== entityId.localAccountId}
+
+					{#if open}
+						{#if activityPubActorRow.acct}
 							<div>
-								<dt>Local account id</dt>
-								<dd data-text="mono">
-									{@render Id()}
+								<dt>Federated handle (acct)</dt>
+								<dd>{activityPubActorRow.acct}</dd>
+							</div>
+						{/if}
+					{/if}
+
+					{#if open}
+						{#if activityPubActorRow.displayName}
+							<div>
+								<dt>Display name</dt>
+								<dd>{activityPubActorRow.displayName}</dd>
+							</div>
+						{/if}
+					{/if}
+
+					{#if open}
+						{#if activityPubActorRow.note}
+							<div>
+								<dt>Bio (plain text)</dt>
+								<dd>
+									{htmlToPlainText(activityPubActorRow.note)}
 								</dd>
 							</div>
 						{/if}
-						{#if open}
-							{#if activityPubActorRow.username}
-								<div>
-									<dt>Username</dt>
-									<dd>{activityPubActorRow.username}</dd>
-								</div>
-							{/if}
-						{/if}
-						{#if open}
-							{#if activityPubActorRow.acct}
-								<div>
-									<dt>Acct</dt>
-									<dd>{activityPubActorRow.acct}</dd>
-								</div>
-							{/if}
-						{/if}
-						{#if open}
-							{#if activityPubActorRow.displayName}
-								<div>
-									<dt>Display name</dt>
-									<dd>{activityPubActorRow.displayName}</dd>
-								</div>
-							{/if}
-						{/if}
-						{#if open}
-							{#if activityPubActorRow.note}
-								<div>
-									<dt>About</dt>
-									<dd>
-										{htmlToPlainText(activityPubActorRow.note)}
-									</dd>
-								</div>
-							{/if}
-						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-
-			<div data-text="mono muted">
-			{entityId.instanceOrigin}
-				·
-			{entityId.localAccountId}
-			</div>
-		</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.ActivityPubActor}
-			{entityId}
+		<div
+			class="activitypub-actor-detail-carousels"
+			data-column="gap-3"
 		>
-			<ResourceBoundary resource={actor}>
-				{#snippet children(activityPubActorRow)}
-					{#if (
-						activityPubActorRow.acct == null
-						&& activityPubActorRow.displayName == null
-						&& activityPubActorRow.username == null
-						&& activityPubActorRow.note == null
-					)}
-						<p data-text="muted">
-							Profile details are not available yet for this account.
-						</p>
-					{/if}
+			<CollapsibleTabs
+				id={`${idKey}:carousel-activity`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+					style: '--carousel-basis: 36ch',
+				}}
+			>
+				{#snippet Summary({ open: _activitySummaryOpen })}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<HeadingComponent>
+							Mastodon actor & outbox
+						</HeadingComponent>
+					</header>
 				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
 
-		<ActivityPubMastodonFieldNotes
-			entityFieldReference={{
-				entityType: EntityType.ActivityPubActor,
-				entityId,
-				fieldName: '$$notes',
-			}}
-			href={resolve('/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]/(actor)/notes', {
-				instanceOrigin: encodeURIComponent(entityId.instanceOrigin),
-				localAccountId: encodeURIComponent(entityId.localAccountId),
-			})}
-			id="activitypub-actor-statuses"
-			orderByCreatedAt="desc"
-			placeholderText="Loading statuses…"
-			title="Statuses"
-		/>
+				{#snippet Markers()}
+					<a
+						data-scroll-marker-label="Profile"
+						href={`#${idKey}:mastodon-profile`}
+					>Profile</a>
+					<a
+						data-scroll-marker-label="Outbox"
+						href={`#${idKey}:activity-statuses`}
+					>Outbox</a>
+				{/snippet}
+
+				{#snippet children(_activityChildrenContext)}
+					<section
+						data-scroll-marker-label="Profile"
+						id={`${idKey}:mastodon-profile`}
+					>
+						<EntityDetails
+							entityType={EntityType.ActivityPubActor}
+							{entityId}
+						/>
+
+						<ResourceBoundary
+							resource={actor}
+							placeholderText="Loading Mastodon profile…"
+						>
+							{#snippet children(activityPubActorRow)}
+								{@const mastodonProfileUnset = (
+									activityPubActorRow.acct == null
+									&& activityPubActorRow.displayName == null
+									&& activityPubActorRow.username == null
+									&& activityPubActorRow.note == null
+								)}
+								{#if mastodonProfileUnset}
+									<div data-row="wrap align-center gap-2">
+										<p data-text="muted">
+											No profile fields yet.
+										</p>
+										<Tooltip contentProps={{ side: 'top' }}>
+											{#snippet Content()}
+												<p>
+													Handle, display name, and bio load from the configured Mastodon instance when the account is reachable.
+												</p>
+											{/snippet}
+											<abbr
+												class="entity-heading-tip"
+												aria-label="Profile fields"
+											>ⓘ</abbr>
+										</Tooltip>
+									</div>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</section>
+
+					<section
+						data-scroll-marker-label="Outbox"
+						id={`${idKey}:activity-statuses`}
+					>
+						<ActivityPubMastodonFieldNotes
+							entityFieldReference={{
+								entityType: EntityType.ActivityPubActor,
+								entityId,
+								fieldName: '$$notes',
+							}}
+							fieldOpen={_open}
+							href={resolve('/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]/(actor)/notes', {
+								instanceOrigin: encodeURIComponent(entityId.instanceOrigin),
+								localAccountId: encodeURIComponent(entityId.localAccountId),
+							})}
+							id={`${idKey}:activity-notes-list`}
+							orderByCreatedAt="desc"
+							placeholderText="Loading Mastodon outbox statuses…"
+							title="Outbox"
+						/>
+					</section>
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
 	{/snippet}
 </EntityView>
+
+<style>
+	.activitypub-actor-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 36ch;
+			}
+		}
+	}
+</style>

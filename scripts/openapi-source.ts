@@ -67,6 +67,47 @@ const loadSchemaSource = async (provider: string): Promise<{
 	}
 }
 
+/** Upstream specs (e.g. Coinpaprika) may reuse operationIds; openapi-typescript requires uniqueness. */
+const dedupeOpenApiOperationIds = (
+	spec: Record<string, unknown>,
+): Record<string, unknown> => {
+	const paths = spec.paths
+	if (paths == null || typeof paths !== 'object') return spec
+
+	const seen = new Map<string, number>()
+
+	for (const [pathKey, pathItem] of Object.entries(paths)) {
+		if (pathItem == null || typeof pathItem !== 'object') continue
+
+		for (const method of [
+			'get',
+			'put',
+			'post',
+			'delete',
+			'patch',
+			'options',
+			'head',
+			'trace',
+		]) {
+			const operation = (pathItem as Record<string, unknown>)[method]
+			if (operation == null || typeof operation !== 'object') continue
+
+			const operationId = (operation as { operationId?: string }).operationId
+			if (operationId == null || operationId === '') continue
+
+			const count = seen.get(operationId) ?? 0
+			if (count > 0) {
+				(operation as { operationId: string }).operationId = (
+					`${operationId}__${pathKey.replace(/^\//, '').replace(/\//g, '_')}`
+				)
+			}
+			seen.set(operationId, count + 1)
+		}
+	}
+
+	return spec
+}
+
 const parseSchema = async (schemaFile: string) => {
 	const schemaText = await readFile(schemaFile, 'utf8')
 	const parsedSchema = (
@@ -76,12 +117,14 @@ const parseSchema = async (schemaFile: string) => {
 			JSON.parse(schemaText)
 	)
 
-	return (
+	const converted = (
 		typeof parsedSchema?.swagger === 'string' ?
 			(await swagger2openapi.convertObj(parsedSchema, {})).openapi
 		:
 			parsedSchema
 	)
+
+	return dedupeOpenApiOperationIds(converted)
 }
 
 const downloadSchema = async ({

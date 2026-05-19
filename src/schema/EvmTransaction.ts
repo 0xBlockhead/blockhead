@@ -19,6 +19,7 @@ const evmLogRow = type({
 	'logIndex?': 'string | number',
 })
 
+// Signed execution-layer transaction (RPC/indexer). No ERC-4337 UserOperation / paymaster bundle fields on this entity.
 export default {
 	entityType: EntityType.EvmTransaction,
 

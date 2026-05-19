@@ -60,8 +60,11 @@ test.describe('TanStack query lifecycle + cache', () => {
 		await page.goto('/networks', { waitUntil: 'load' })
 		await coldRpc
 		await expect(page.locator('#networks')).toBeVisible()
-		await expect(page.locator('#networks .loading')).toBeHidden()
-		await expect(page.getByRole('link', { name: 'Mock Ethereum', exact: true }).first()).toBeVisible()
+		await expect(page.locator('#networks').getByText('Loading networks…')).toHaveCount(
+			0,
+			{ timeout: 120_000 },
+		)
+		await expect(page.locator('#networks').locator('a[href$="/network/1"]').first()).toBeVisible()
 
 		expect(networkListSources.get(), 'cold load should call network list resolvers').toBeGreaterThan(0)
 		const afterFirst = networkListSources.get()
@@ -76,7 +79,7 @@ test.describe('TanStack query lifecycle + cache', () => {
 		await page.reload({ waitUntil: 'load' })
 		await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
 		await expect(page.locator('#networks')).toBeVisible({ timeout: 120_000 })
-		await expect(page.getByRole('link', { name: 'Mock Ethereum', exact: true }).first()).toBeVisible({
+		await expect(page.locator('#networks').locator('a[href$="/network/1"]').first()).toBeVisible({
 			timeout: 120_000,
 		})
 		reloadNetworkListSources.detach()
@@ -107,8 +110,11 @@ test.describe('TanStack query lifecycle + cache', () => {
 		await page2.goto('/networks', { waitUntil: 'load' })
 		await coldRpc2
 		await expect(page2.locator('#networks')).toBeVisible()
-		await expect(page2.locator('#networks .loading')).toBeHidden()
-		await expect(page2.getByRole('link', { name: 'Mock Ethereum', exact: true }).first()).toBeVisible()
+		await expect(page2.locator('#networks').getByText('Loading networks…')).toHaveCount(
+			0,
+			{ timeout: 120_000 },
+		)
+		await expect(page2.locator('#networks').locator('a[href$="/network/1"]').first()).toBeVisible()
 		expect(
 			networkListSources2.get(),
 			'empty OPFS + fresh JS should call network list resolvers',

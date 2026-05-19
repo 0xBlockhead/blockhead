@@ -4,7 +4,6 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { formatMarketTimeIntervalLabel, MarketAssetKind } from '$/constants/Market.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -18,7 +17,7 @@
 
 	// Props
 	let {
-		title = 'OHLC',
+		title = 'OHLC ranges',
 		open = $bindable(true),
 		limit = 400,
 		entityFieldReference,
@@ -41,8 +40,8 @@
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 	const fieldName = entityFieldReference.fieldName
 
@@ -52,14 +51,29 @@
 		{
 			$: [
 				Source.Constants_Internal,
-				Source.Coingecko_Rest,
+				...(
+					open ?
+						[
+							Source.Coingecko_Rest,
+							Source.Defillama_OpenApi,
+							Source.Coinpaprika_OpenApi,
+							Source.CoinMarketCap_Rest,
+						]
+					:
+						[]
+				),
 			],
-			[fieldName]: {
-				$: [
-					Source.Coingecko_Rest,
-				],
-				limit,
-			},
+			...(open && {
+				[fieldName]: {
+					$: [
+						Source.Coingecko_Rest,
+						Source.Defillama_OpenApi,
+						Source.Coinpaprika_OpenApi,
+						Source.CoinMarketCap_Rest,
+					],
+					$limit: limit,
+				},
+			}),
 		},
 	)
 
@@ -85,6 +99,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import MarketPriceRangeView from '$/views/MarketPriceRangeView.svelte'
 </script>
 
@@ -109,9 +125,18 @@
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						OHLC ranges aggregate trades or mids into open/high/low/close buckets for a configured interval on a specific base/quote/venue tuple.
+					</p>
+					<p>
+						Candlesticks roll spot or trade prints into open/high/low/close for each interval; they are not level-two order books.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No candle ranges in the index yet.
+			No OHLC ranges yet.
 		</p>
 	{/snippet}
 

@@ -31,7 +31,6 @@
 			| 'Details'
 			| 'Heading'
 			| 'Icon'
-			| 'HeadingAfter'
 			| 'Content'
 		>
 	> = $props()
@@ -68,6 +67,7 @@
 	import EntityView from '$/components/EntityView.svelte'
 	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 </script>
 
 
@@ -87,7 +87,7 @@
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={urlEntity}
-			placeholderText="Loading URL…"
+			placeholderText="Loading URL entity…"
 		>
 			{#snippet children(u)}
 				{u.openGraphTitle ?? u.catalogName ?? entityId.url}
@@ -95,8 +95,17 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ open: contentOpen })}
-		<dl>
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					Ordinary HTTPS links with page metadata (title, preview) when available.
+				</p>
+				<p>
+					Different from Swarm or IPFS roots, token pool contracts, event logs, or social posts.
+				</p>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
+		<dl data-column-item="center">
 			<div>
 				<dt>Id</dt>
 				<dd data-text="mono">
@@ -114,12 +123,14 @@
 							</div>
 						{/if}
 					{/if}
+
 					{#if u.publisher != null}
 						<div>
 							<dt>Publisher</dt>
 							<dd>{u.publisher}</dd>
 						</div>
 					{/if}
+
 					{#if contentOpen}
 						{#if u.catalogStandard != null}
 							<div>
@@ -128,6 +139,7 @@
 							</div>
 						{/if}
 					{/if}
+
 					{#if contentOpen}
 						{#if u.$openGraphImage != null}
 							{#if u.$openGraphImage[EntityMetaKey.Id].url}
@@ -143,6 +155,7 @@
 							{/if}
 						{/if}
 					{/if}
+
 					{#if u.openGraphTitle != null}
 						<div>
 							<dt>Website</dt>

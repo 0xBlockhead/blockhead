@@ -17,7 +17,7 @@
 
 	// Props
 	let {
-		title = 'MEV-Boost relay payloads',
+		title = 'MEV-Boost deliveries',
 		open = $bindable(true),
 		entityFieldReference,
 		...entitiesListRest
@@ -52,14 +52,21 @@
 		{
 			$: [
 				Source.Constants_Internal,
-				Source.MevRelay_Rest,
+				...(
+					open ?
+						[Source.MevRelay_Rest]
+					:
+						[]
+				),
 			],
-			[fieldName]: {
-				$: [
-					Source.MevRelay_Rest,
-				],
-				$limit: 64,
-			},
+			...(open && {
+				[fieldName]: {
+					$: [
+						Source.MevRelay_Rest,
+					],
+					$limit: 64,
+				},
+			}),
 		},
 	)
 
@@ -82,6 +89,7 @@
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import MevRelay_ProposerPayloadDeliveredView from '$/views/MevRelay_ProposerPayloadDeliveredView.svelte'
 </script>
 
@@ -99,9 +107,18 @@
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						MEV-Boost relay <code>proposer_payload_delivered</code> rows: winning builder bids per slot (not swap bridges or Relay.link quotes).
+					</p>
+					<p>
+						Use them to audit payload/value flow—not live consensus votes.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No relay payloads yet.
+			No MEV-Boost deliveries yet.
 		</p>
 	{/snippet}
 

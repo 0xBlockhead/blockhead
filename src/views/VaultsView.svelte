@@ -14,13 +14,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import VaultView from '$/views/VaultView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -46,6 +39,7 @@
 
 	// State
 	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
@@ -78,6 +72,13 @@
 			)
 		},
 	)
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import VaultView from '$/views/VaultView.svelte'
 </script>
 
 
@@ -89,10 +90,26 @@
 	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
 	{href}
 	{id}
+	placeholderKeys={new SvelteSet()}
 	resource={envelopes}
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						In DEX aggregators, “vault” often denotes a concentrated-liquidity pool: a pair, fee tier, and measures such as TVL—not an ERC-4626 share vault.
+					</p>
+					<p>
+						That usage is unrelated to IPFS roots, object storage, or social-graph identities.
+					</p>
+	{/snippet}
+
+	{#snippet Empty()}
+		<p data-text="muted">
+			No DEX pool rows yet.
+		</p>
+	{/snippet}
+
 	{#snippet Item(props)}
 		{#if props.item}
 			<VaultView

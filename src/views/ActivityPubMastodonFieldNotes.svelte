@@ -27,6 +27,7 @@
 		placeholderText,
 		title,
 		entityFieldReference,
+		fieldOpen = true,
 	}: {
 		href: string
 		id: string
@@ -34,18 +35,24 @@
 		placeholderText: string
 		title: string
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.ActivityPubNote>
+		fieldOpen?: boolean
 	} = $props()
 
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Mastodon_Rest,
-				],
-			},
-		},
+		(
+			fieldOpen ?
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Mastodon_Rest,
+						],
+					},
+				}
+			:
+				{}
+		),
 	)
 
 	const notes = derive(
@@ -83,13 +90,31 @@
 	{id}
 	open={true}
 	placeholderKeys={new SvelteSet()}
-	{placeholderText}
 	resource={notes}
 	{title}
+	placeholderText={(
+		fieldOpen ?
+			placeholderText
+		:
+			'Facet idle—no timeline request.'
+	)}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Status objects in ActivityPub/Mastodon timelines: each row is a public note (HTML body, visibility, replies) addressed by instance origin + status id.
+					</p>
+					<p>
+						Ordering follows <code>createdAt</code> for the facet (newest or oldest first); empty responses usually mean the collection is private or not yet synced from the origin.
+					</p>
+					<p>
+						If the parent entity keeps this field reference idle, clients skip the Mastodon collection request for that scope until the facet is activated—same as an untouched relation in a typical ActivityPub client.
+					</p>
+	{/snippet}
+
 	{#snippet Item(props)}
 		{#if props.item}
 			{@const nid = props.item.value[EntityMetaKey.Id]}
+			{@const mastodonOriginLabel = nid.instanceOrigin}
 			{@const textPreview = htmlToPlainText(
 				props.item.value.content,
 			)}
@@ -99,6 +124,7 @@
 			>
 				<p>
 					<a
+						title="Open this Mastodon status"
 						href={resolve(
 							'/(social)/activitypub/note/[instanceOrigin]/[localStatusId]',
 							{
@@ -107,8 +133,21 @@
 							},
 						)}
 					>
-						{nid.localStatusId}
+						<TruncatedValue
+							endLength={10}
+							format={TruncatedValueFormat.Visual}
+							startLength={24}
+							value={nid.localStatusId}
+						/>
 					</a>
+				</p>
+				<p data-text="muted">
+					<TruncatedValue
+						endLength={16}
+						format={TruncatedValueFormat.Visual}
+						startLength={24}
+						value={mastodonOriginLabel}
+					/>
 				</p>
 				{#if textPreview !== ''}
 					<p data-text="muted">

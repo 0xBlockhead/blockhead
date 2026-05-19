@@ -8,6 +8,11 @@
 	import { schema } from '$/schema/index.ts'
 	import { entityResolversByEntityType } from '$/resolvers/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -32,8 +37,9 @@
 			| 'Heading'
 			| 'Details'
 			| 'Icon'
-			| 'HeadingAfter'
 			| 'Content'
+			| 'HeadingAfter'
+			| 'TypeAnnotationTooltip'
 		>
 	> = $props()
 
@@ -53,15 +59,20 @@
 			name: {},
 			description: {},
 			$icon: {},
+			$$posts: {},
 		},
 	)
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import XPostsView from '$/views/XPostsView.svelte'
 </script>
 
 
@@ -75,7 +86,7 @@
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={user}
-			placeholderText="Loading user…"
+			placeholderText="Loading X profile…"
 		>
 			{#snippet children(row)}
 				{row.name ?? row.username ?? entityId.id}
@@ -84,15 +95,16 @@
 	{/snippet}
 
 	{#snippet Id()}
-		<span data-text="font-monospace">
-			{entityId.id}
-		</span>
+		<TruncatedValue
+			value={entityId.id}
+			format={TruncatedValueFormat.Visual}
+		/>
 	{/snippet}
 
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={user}
-			placeholderText="Loading user…"
+			placeholderText="Loading X profile…"
 		>
 			{#snippet children(row)}
 				{#if row.$icon !== undefined}
@@ -106,10 +118,19 @@
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			X profiles here mirror public handle metadata such as bios and avatars.
+		</p>
+		<p>
+			Handle metadata is public social surface area: it does not, by itself, prove custody of on-chain assets, Farcaster FIDs, or content on other networks.
+		</p>
+	{/snippet}
+
 	{#snippet HeadingAfter()}
 		<ResourceBoundary
 			resource={user}
-			placeholderText="Loading user…"
+			placeholderText="Loading X profile…"
 		>
 			{#snippet children(row)}
 				{#if (
@@ -126,14 +147,14 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href, open })}
+	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
 		<ResourceBoundary
 			resource={user}
-			placeholderText="Loading user…"
+			placeholderText="Loading X profile…"
 		>
 			{#snippet children(row)}
 				{#if row.description}
-					{#if !open}
+					{#if !contentOpen}
 						<p data-text="muted">
 							{row.description}
 						</p>
@@ -143,10 +164,13 @@
 					<div>
 						<dt>User id</dt>
 						<dd data-text="mono">
-							{@render Id()}
+							<TruncatedValue
+								value={entityId.id}
+								format={TruncatedValueFormat.Visual}
+							/>
 						</dd>
 					</div>
-					{#if open}
+					{#if contentOpen}
 						{#if row.name}
 							<div>
 								<dt>Name</dt>
@@ -154,7 +178,8 @@
 							</div>
 						{/if}
 					{/if}
-					{#if open}
+
+					{#if contentOpen}
 						{#if row.username}
 							<div>
 								<dt>Username</dt>
@@ -162,7 +187,8 @@
 							</div>
 						{/if}
 					{/if}
-					{#if open}
+
+					{#if contentOpen}
 						{#if row.description}
 							<div>
 								<dt>Description</dt>
@@ -178,27 +204,113 @@
 	{#snippet Details({
 		open: _open,
 	})}
+		{@const userIdKey = stringify(entityId)}
 		<EntityDetails
 			entityType={EntityType.XUser}
 			{entityId}
+		/>
+
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
 		>
-			<ResourceBoundary
-				resource={user}
-				placeholderText="Loading user…"
+			<CollapsibleTabs
+				id={`${userIdKey}:carousel-profile`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
-				{#snippet children(row)}
-					{#if (
-						row.name === undefined
-						&& row.username === undefined
-						&& row.description === undefined
-						&& row.$icon === undefined
-					)}
-						<p data-text="muted">
-							User details are not available yet.
-						</p>
-					{/if}
+				{#snippet Summary({ open: _isOpen })}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<HeadingComponent>
+							Profile
+						</HeadingComponent>
+					</header>
 				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
+
+				{#snippet Markers()}
+					<a
+						data-scroll-marker-label="Profile"
+						href={`#${userIdKey}:profile`}
+					>Profile</a>
+					<ResourceBoundary resource={user}>
+						{#snippet children(row)}
+							{#if (row.$$posts?.length)}
+								<a
+									data-scroll-marker-label="Posts"
+									href={`#${userIdKey}:posts`}
+								>Posts</a>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+
+				{#snippet children(_childrenContext)}
+					<section data-scroll-marker-label="Profile">
+						<ResourceBoundary
+							resource={user}
+							placeholderText="Loading X profile…"
+						>
+							{#snippet children(row)}
+								{#if (
+									row.name === undefined
+									&& row.username === undefined
+									&& row.description === undefined
+									&& row.$icon === undefined
+								)}
+									<p data-text="muted">
+										User details are not available yet.
+									</p>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</section>
+
+					<ResourceBoundary resource={user}>
+						{#snippet children(row)}
+							{#if (row.$$posts?.length)}
+								<section data-scroll-marker-label="Posts">
+									<XPostsView
+										collapsible={false}
+										entityFieldReference={{
+											entityType: EntityType.XUser,
+											entityId,
+											fieldName: '$$posts',
+										}}
+										href={resolve(
+											'/(social)/x/user/[userId]',
+											{
+												userId: encodeURIComponent(entityId.id),
+											},
+										)}
+										id={`${userIdKey}:posts`}
+										open={false}
+										title="Posts"
+									/>
+								</section>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 36ch;
+			}
+		}
+	}
+</style>

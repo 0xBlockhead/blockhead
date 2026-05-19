@@ -13,7 +13,6 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-
 	const entityId = {
 		scope: 'XNetwork' as const,
 	}
@@ -22,6 +21,8 @@
 	const examplePostId = '1955274825074221427' as const
 
 	const networkIdKey = stringify(entityId)
+
+	let open = $bindable(true)
 
 	const network = useEntity(
 		EntityType.XNetwork,
@@ -44,6 +45,7 @@
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import XPostsView from '$/views/XPostsView.svelte'
 	import XUsersView from '$/views/XUsersView.svelte'
 </script>
@@ -53,18 +55,30 @@
 	entityType={EntityType.XNetwork}
 	{entityId}
 	href={resolve('/(social)/x')}
-	open={true}
+	bind:open
 	title="X"
 >
 	{#snippet Heading()}
-
 		<span data-text="font-monospace">
 			{entityId.scope}
 		</span>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
-		<dl>
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					X (Twitter) profiles and posts: public text and media surfaced by the network hub.
+				</p>
+				<p>
+					Not on-chain markets, Swarm blobs, Reddit, or end-to-end encrypted chat.
+				</p>
+	{/snippet}
+
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: contentOpen,
+	})}
+		<dl data-column-item="center">
 			<div>
 				<dt>Scope</dt>
 				<dd>{entityId.scope}</dd>
@@ -75,20 +89,21 @@
 			>
 				{#snippet children(loaded)}
 					<div>
-						<dt>Users</dt>
+						<dt>Profiles</dt>
 						<dd>{String(loaded['$$xUsers'].length)}</dd>
 					</div>
 					<div>
 						<dt>Posts</dt>
 						<dd>{String(loaded['$$xPosts'].length)}</dd>
 					</div>
-					{#if open}
+					{#if contentOpen}
 						<div>
 							<dt>Protocol name</dt>
 							<dd>{loaded.protocolName}</dd>
 						</div>
 					{/if}
-					{#if open}
+
+					{#if contentOpen}
 						<div>
 							<dt>Home</dt>
 							<dd>
@@ -98,7 +113,8 @@
 							</dd>
 						</div>
 					{/if}
-					{#if open}
+
+					{#if contentOpen}
 						{#if loaded.docsUrl != null}
 							{#if loaded.docsUrl !== ''}
 								<div>
@@ -125,7 +141,7 @@
 			{entityId}
 		/>
 
-		<div data-column="gap-3">
+		<div class="entity-view-detail-carousels" data-column="gap-3">
 			<CollapsibleTabs
 				id={`${networkIdKey}:registry`}
 				{...{ 'data-card': '' }}
@@ -145,8 +161,22 @@
 					</header>
 				{/snippet}
 
+				{#snippet Markers({ open: _markersOpen })}
+					<a
+						data-scroll-marker-label="Profiles"
+						href={`#${networkIdKey}:profiles`}
+					>Profiles</a>
+					<a
+						data-scroll-marker-label="Recent posts"
+						href={`#${networkIdKey}:recent-posts`}
+					>Posts</a>
+				{/snippet}
+
 				{#snippet children({ open: _o })}
-					<section data-scroll-marker-label="Users">
+					<section
+						id={`${networkIdKey}:profiles`}
+						data-scroll-marker-label="Profiles"
+					>
 						<XUsersView
 							entityFieldReference={{
 								entityType: EntityType.XNetwork,
@@ -156,10 +186,14 @@
 							href={resolve('/(social)/x')}
 							id={`${networkIdKey}:users`}
 							open={false}
+							title="Profiles"
 						/>
 					</section>
 
-					<section data-scroll-marker-label="Recent posts">
+					<section
+						id={`${networkIdKey}:recent-posts`}
+						data-scroll-marker-label="Recent posts"
+					>
 						<XPostsView
 							entityFieldReference={{
 								entityType: EntityType.XNetwork,
@@ -183,19 +217,28 @@
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
 						data-row-item="flexible"
-						data-row="wrap gap-4"
+						data-row="wrap gap-4 align-center"
 					>
 						<HeadingComponent>
 							Examples
 						</HeadingComponent>
+						<Tooltip contentProps={{ side: 'top' }}>
+							{#snippet Content()}
+								<p>
+									X’s HTTP APIs identify users and posts with opaque string ids; tutorials often embed stable public examples for copy/paste.
+								</p>
+								<p>
+									Search and timeline endpoints require OAuth or app-registered bearer tokens—rate limits and entitlements come from Twitter’s developer program, not from public HTML alone.
+								</p>
+							{/snippet}
+							<abbr
+								class="entity-heading-tip"
+								aria-label="About examples"
+							>ⓘ</abbr>
+						</Tooltip>
 					</header>
 				{/snippet}
 
-				<p data-text="muted">
-					Set
-					<code>PUBLIC_X_API_BEARER</code>
-					to enable the source.
-				</p>
 				<ul>
 					<li>
 						<a href={resolve('/(social)/x/user/[userId]', {
@@ -216,3 +259,17 @@
 		</div>
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 36ch;
+			}
+		}
+	}
+</style>

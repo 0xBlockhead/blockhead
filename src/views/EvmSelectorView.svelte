@@ -6,13 +6,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import { stringify } from 'devalue'
 
 
 	// Props
@@ -41,6 +35,10 @@
 		>
 	> = $props()
 
+	const selectorIdKey = $derived(
+		stringify(entityId),
+	)
+
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
@@ -52,9 +50,21 @@
 			$: [
 				Source.Openchain_Rest,
 			],
-			signatures: {},
+			...(open && {
+				signatures: {},
+			}),
 		},
 	)
+
+
+	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import Heading from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -62,7 +72,7 @@
 	entityType={EntityType.EvmSelector}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Id()}
@@ -74,25 +84,35 @@
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={selector}
-			placeholderText="Loading selector…"
+			placeholderText="Loading decoded function selector…"
 		>
 			{#snippet children(s)}
-				{s.signatures[0] ?? entityId.hex}
+				{s.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					The first four bytes of a contract call identify which function ABI follows; the rest carries encoded arguments.
+				</p>
+				<p>
+					Revert payloads use another four-byte family of codes, still different from full-width log fingerprints that annotate events on receipts.
+				</p>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
-		<dl>
+		<div data-column="gap-1">
+		<dl data-column-item="center">
 			<div>
-				<dt>Id</dt>
+				<dt>Function selector</dt>
 				<dd data-text="mono">
 					{@render Id()}
 				</dd>
 			</div>
 
 			<div>
-				<dt>Hex</dt>
+				<dt>Selector (hex)</dt>
 				<dd>
 					<TruncatedValue
 						value={entityId.hex}
@@ -102,23 +122,21 @@
 			</div>
 			{#if open}
 				<div>
-					<dt>
-						Signatures
-					</dt>
+					<dt>Decoded functions (catalog)</dt>
 					<dd>
 						<ResourceBoundary
 							resource={selector}
-							placeholderText="Loading signatures…"
+							placeholderText="Loading decoded calldata prefixes…"
 						>
 							{#snippet children(s)}
-								{#if s.signatures.length}
+								{#if s.signatures?.length}
 									<ul>
-									{#each s.signatures as sig (sig)}
+										{#each s.signatures as sig (sig)}
 											<li><code>{sig}</code></li>
 										{/each}
 									</ul>
 								{:else}
-									<p data-text="muted">No signatures found for this selector.</p>
+									<p data-text="muted">No ABI signatures matched this function selector.</p>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -126,16 +144,47 @@
 				</div>
 			{/if}
 		</dl>
+		</div>
 	{/snippet}
 
-	{#snippet Details({ open: _open })}
+	{#snippet Details()}
 		<EntityDetails
 			entityType={EntityType.EvmSelector}
 			{entityId}
 		/>
 
 		{#if children}
-			{@render children()}
+			<div
+				class="entity-view-detail-carousels"
+				data-column="gap-3"
+			>
+				<CollapsibleTabs
+					id={`${selectorIdKey}:carousel-more`}
+					{...{ 'data-card': '' }}
+					scrollContainerProps={{
+						'data-row': 'start align-start',
+					}}
+				>
+					{#snippet Summary({ open: _isOpen })}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<Heading>Page</Heading>
+						</header>
+					{/snippet}
+
+					{#snippet Markers()}
+						<a
+							data-scroll-marker-label="Route"
+							href={`#${selectorIdKey}:page-content`}
+						>Route</a>
+					{/snippet}
+
+					{#snippet children(_ctx)}
+						<section id={`${selectorIdKey}:page-content`}>
+							{@render children()}
+						</section>
+					{/snippet}
+				</CollapsibleTabs>
+			</div>
 		{/if}
 	{/snippet}
 </EntityView>

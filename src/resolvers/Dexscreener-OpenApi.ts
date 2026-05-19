@@ -9,7 +9,7 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import type { DexscreenerPair } from '$/sources/Dexscreener/OpenApi/client.ts'
+import type { DexscreenerPair } from '$/sources/Dexscreener/OpenApi/types.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const isEvmContractAddress = (value: string | null | undefined): value is `0x${string}` => (

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -40,6 +41,8 @@
 
 
 	// State
+	import { stringify } from 'devalue'
+
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const swarm = useEntity(
@@ -56,16 +59,22 @@
 			contentLength: {},
 			displayType: {},
 			isContentTypeInferred: {},
-			text: {},
+			...(open && {
+				text: {},
+				$media: {},
+			}),
 		},
 	)
 
 
 	// Components
-	import FileDetails from '$/components/FileDetails.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
@@ -91,11 +100,20 @@
 		/>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					Swarm stores content in a distributed chunk network addressed by <code>bzz</code> URIs.
+				</p>
+				<p>
+					What you see here is the object behind that reference, often fetched via an HTTP gateway for display.
+				</p>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={swarm}>
 			{#snippet children(loaded)}
 				{#if loaded.contentType !== undefined || open}
-					<dl>
+					<dl data-column-item="center">
 						{#if loaded.contentType !== undefined}
 							<div>
 								<dt>Content type</dt>
@@ -110,6 +128,7 @@
 								</dd>
 							</div>
 						{/if}
+
 						{#if open}
 							<div>
 								<dt>Canonical URI</dt>
@@ -120,7 +139,9 @@
 									/>
 								</dd>
 							</div>
+						{/if}
 
+						{#if open}
 							<div>
 								<dt>Gateway</dt>
 								<dd>
@@ -130,7 +151,9 @@
 									/>
 								</dd>
 							</div>
+						{/if}
 
+						{#if open}
 							<div>
 								<dt>Gateway URL</dt>
 								<dd>
@@ -146,7 +169,9 @@
 									</a>
 								</dd>
 							</div>
+						{/if}
 
+						{#if open}
 							{#if loaded.contentLength !== undefined}
 								<div>
 									<dt>Content length</dt>
@@ -160,6 +185,9 @@
 									</dd>
 								</div>
 							{/if}
+						{/if}
+
+						{#if open}
 							{#if loaded.fileName !== undefined}
 								<div>
 									<dt>File name</dt>
@@ -171,16 +199,50 @@
 									</dd>
 								</div>
 							{/if}
+						{/if}
+
+						{#if open}
 							{#if loaded.extension !== undefined}
 								<div>
 									<dt>Extension</dt>
 									<dd>.{loaded.extension}</dd>
 								</div>
 							{/if}
+						{/if}
+
+						{#if open}
 							<div>
 								<dt>Display type</dt>
 								<dd>{loaded.displayType}</dd>
 							</div>
+						{/if}
+
+						{#if open}
+							{#if loaded.text !== undefined}
+								<div>
+									<dt>Text</dt>
+									<dd>
+										<TruncatedValue
+											value={loaded.text}
+											format={TruncatedValueFormat.Visual}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/if}
+
+						{#if open}
+							{#if loaded.$media?.[EntityMetaKey.Id].url !== undefined}
+								<div>
+									<dt>Media</dt>
+									<dd>
+										<Media
+											media={{ url: loaded.$media[EntityMetaKey.Id].url }}
+											alt={loaded.fileName ?? ''}
+										/>
+									</dd>
+								</div>
+							{/if}
 						{/if}
 					</dl>
 				{:else}
@@ -193,26 +255,112 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.SwarmResource}
-			{entityId}
-		/>
-
-			<ResourceBoundary
-				resource={swarm}
+		{@const detailKey = stringify(entityId)}
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
+			<CollapsibleTabs
+				id={`${detailKey}:carousel-swarm-resource`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
-				{#snippet children(loaded)}
-					<FileDetails
-						contentSize={loaded.contentLength}
-						contentType={loaded.contentType}
-						displayType={loaded.displayType}
-						extension={loaded.extension}
-						fileName={loaded.fileName}
-						src={loaded.gatewayUrl}
-						text={loaded.text}
-					/>
+				{#snippet Summary({
+					open: _summaryOpen,
+				})}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<HeadingComponent>
+							Resource
+						</HeadingComponent>
+						<Tooltip contentProps={{ side: 'top' }}>
+							{#snippet Content()}
+								<p>
+									Swarm stores content in a distributed chunk network addressed by bzz URIs.
+								</p>
+								<p>
+									What you see here is the object behind that reference, often fetched via an HTTP gateway for display.
+								</p>
+							{/snippet}
+							<abbr
+								class="entity-heading-tip"
+								aria-label="Swarm resource notes"
+							>ⓘ</abbr>
+						</Tooltip>
+					</header>
 				{/snippet}
-			</ResourceBoundary>
+
+				{#snippet Markers({
+					open: _markersOpen,
+				})}
+					<a
+						data-scroll-marker-label="Record"
+						href={`#${detailKey}:swarm-record`}
+					>Record</a>
+					{#if _open}
+						<a
+							data-scroll-marker-label="Content"
+							href={`#${detailKey}:swarm-content`}
+						>Content</a>
+						<a
+							data-scroll-marker-label="Media"
+							href={`#${detailKey}:swarm-media`}
+						>Media</a>
+					{/if}
+				{/snippet}
+
+				{#snippet children({
+					open: _paneOpen,
+				})}
+					<section
+						data-scroll-marker-label="Record"
+						id={`${detailKey}:swarm-record`}
+					>
+						<EntityDetails
+							entityType={EntityType.SwarmResource}
+							{entityId}
+						/>
+					</section>
+					{#if _open}
+						<section
+							data-scroll-marker-label="Content"
+							id={`${detailKey}:swarm-content`}
+						>
+							<ResourceBoundary resource={swarm}>
+								{#snippet children(loaded)}
+									{#if loaded.text !== undefined}
+										<pre>{loaded.text}</pre>
+									{:else}
+										<p data-text="muted">No text content.</p>
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</section>
+						<section
+							data-scroll-marker-label="Media"
+							id={`${detailKey}:swarm-media`}
+						>
+							<ResourceBoundary resource={swarm}>
+								{#snippet children(loaded)}
+									{#if loaded.$media?.[EntityMetaKey.Id].url !== undefined}
+										<Media
+											media={{ url: loaded.$media[EntityMetaKey.Id].url }}
+											alt={loaded.fileName ?? ''}
+										/>
+									{:else}
+										<p data-text="muted">No media content.</p>
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</section>
+					{/if}
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
 
 		{#if children}
 			{@render children()}

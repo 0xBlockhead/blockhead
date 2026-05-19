@@ -22,13 +22,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import UnorderedList from '$/components/UnorderedList.svelte'
-
-
 	// Props
 	let {
 		children,
@@ -65,16 +58,41 @@
 
 	const duneUsage = useEntity(
 		EntityType._Global,
-		{},
+		entityId,
 		{
 			$: [
 				Source.Local_Internal,
-				Source.Dune_Rest,
+				...(
+					open ?
+						[Source.Dune_Rest]
+					:
+						[]
+				),
 			],
-			duneCreditsUsed: {},
-			duneCreditsIncluded: {},
+			...(open ?
+				{
+					duneCreditsUsed: {},
+					duneCreditsIncluded: {},
+				}
+			:
+				{}),
 		},
 	)
+
+
+	const entityViewDetailCarouselScrollProps = {
+		'data-row': 'start align-start',
+	} as const
+
+
+	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import UnorderedList from '$/components/UnorderedList.svelte'
 </script>
 
 
@@ -83,7 +101,7 @@
 	{entityId}
 	{title}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Heading()}
@@ -94,10 +112,52 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
+		{#if !children}
+			<section
+				data-scroll-marker-label="Usage"
+				id={`global:${entityId.scope}:usage`}
+			>
+				<ResourceBoundary
+					resource={duneUsage}
+					placeholderText="Loading usage…"
+				>
+					{#snippet children(g)}
+						<dl data-column-item="center">
+							{#if g.duneCreditsUsed !== undefined}
+								<div>
+									<dt>Query credits used</dt>
+									<dd>{String(g.duneCreditsUsed)}</dd>
+								</div>
+							{/if}
 
+							{#if g.duneCreditsIncluded !== undefined}
+								<div>
+									<dt>Query credits included</dt>
+									<dd>{String(g.duneCreditsIncluded)}</dd>
+								</div>
+							{/if}
+
+							{#if (
+								g.duneCreditsUsed === undefined
+								&& g.duneCreditsIncluded === undefined
+							)}
+								<div>
+									<dt>Status</dt>
+									<dd data-text="muted">
+										No usage totals yet.
+									</dd>
+								</div>
+							{/if}
+						</dl>
+					{/snippet}
+				</ResourceBoundary>
+			</section>
+		{/if}
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({
+		open: _open,
+	})}
 		{#if children}
 			{@render children()}
 		{:else}
@@ -106,72 +166,142 @@
 				{entityId}
 			/>
 
-			<p data-text="muted">
-				Shared app settings and usage totals.
-			</p>
-
-			<UnorderedList
-				items={
-					new SvelteSet<GlobalNavItem>([
-						{
-							key: 'self',
-							label: title,
-						},
-						{
-							key: 'explore',
-							label: 'Explore',
-							path: '/explore',
-						},
-						...(
-							href === resolve('/assets') ?
-								[
-									{
-										key: 'assets-coins',
-										label: 'Coins',
-										path: '/coins',
-									},
-									{
-										key: 'assets-pools',
-										label: 'Pools',
-										path: '/pools',
-									},
-								] as const
-							:
-								[]
-						),
-						...(
-							href === resolve('/~/accounts') ?
-								[
-									{
-										key: 'accounts-balances',
-										label: 'Balances',
-										path: '/~/accounts/balances',
-									},
-								] as const
-							:
-								[]
-						),
-					])
-				}
-				getKey={(row) => row.key}
-				getSortValue={(row) => row.key}
-				placeholderKeys={new SvelteSet()}
-				orientation={ListOrientation.Column}
+			<div
+				class="entity-view-detail-carousels"
+				data-column="gap-3"
 			>
-				{#snippet Item({ item })}
-					{#if item}
-						{#if item.key === 'self'}
-							<a href={resolve(href as `/${string}`)}>
-								{item.label}
-							</a>
-						{:else}
-							<a href={resolve(item.path)}>
-								{item.label}
-							</a>
-						{/if}
-					{/if}
-				{/snippet}
-			</UnorderedList>
+				<CollapsibleTabs
+					id={`global:${entityId.scope}:carousel-app`}
+					{...{ 'data-card': '' }}
+					scrollContainerProps={entityViewDetailCarouselScrollProps}
+				>
+					{#snippet Summary({
+						open: _summaryOpen,
+					})}
+						<header
+							data-row-item="flexible"
+							data-row="wrap gap-4 align-center"
+						>
+							<HeadingComponent>
+								App
+							</HeadingComponent>
+							<Tooltip contentProps={{ side: 'top' }}>
+								{#snippet Content()}
+									<p>
+										Application menus often group shortcuts to L1/L2 networks, asset catalogs, name or identity systems, IPFS gateways, and common EVM explorers.
+									</p>
+									<p>
+										Per-browser preference state is distinct from signing keys and from saved remote API endpoints.
+									</p>
+								{/snippet}
+								<abbr
+									class="entity-heading-tip"
+									aria-label="About app navigation"
+								>ⓘ</abbr>
+							</Tooltip>
+						</header>
+					{/snippet}
+
+					{#snippet Markers({
+						open: _markersOpen,
+					})}
+						<a
+							data-scroll-marker-label="Nav"
+							href={`#global:${entityId.scope}:nav`}
+						>Nav</a>
+						<a
+							data-scroll-marker-label="Usage"
+							href={`#global:${entityId.scope}:usage`}
+						>Usage</a>
+					{/snippet}
+
+					{#snippet children({
+						open: _paneOpen,
+					})}
+						<section
+							id={`global:${entityId.scope}:nav`}
+						>
+							<UnorderedList
+								items={
+									new SvelteSet<GlobalNavItem>([
+										{
+											key: 'self',
+											label: title,
+										},
+										{
+											key: 'explore',
+											label: 'Explore',
+											path: '/explore',
+										},
+										...(
+											href === resolve('/assets') ?
+												[
+													{
+														key: 'assets-coins',
+														label: 'Coins',
+														path: '/coins',
+													},
+													{
+														key: 'assets-pools',
+														label: 'Pools',
+														path: '/pools',
+													},
+												] as const
+											:
+												[]
+										),
+										...(
+											href === resolve('/~/accounts') ?
+												[
+													{
+														key: 'accounts-balances',
+														label: 'Balances',
+														path: '/~/accounts/balances',
+													},
+												] as const
+											:
+												[]
+										),
+									])
+								}
+								getKey={(row) => row.key}
+								getSortValue={(row) => row.key}
+								placeholderKeys={new SvelteSet()}
+								orientation={ListOrientation.Column}
+							>
+								{#snippet Item({ item })}
+									{#if item}
+										{#if item.key === 'self'}
+											<a href={resolve(href as `/${string}`)}>
+												{item.label}
+											</a>
+										{:else}
+											<a href={resolve(item.path)}>
+												{item.label}
+											</a>
+										{/if}
+									{/if}
+								{/snippet}
+							</UnorderedList>
+						</section>
+
+					{/snippet}
+				</CollapsibleTabs>
+			</div>
 		{/if}
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 36ch;
+			}
+		}
+	}
+</style>

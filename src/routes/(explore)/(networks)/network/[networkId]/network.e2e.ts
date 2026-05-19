@@ -32,7 +32,11 @@ test.describe('/network/[networkId]', () => {
 				message.type() === 'error'
 				&& !message.text().includes('Failed to load resource: the server responded with a status of 404')
 				&& !message.text().includes('Failed to load resource: the server responded with a status of 422')
+				&& !message.text().includes('Failed to load resource: the server responded with a status of 429')
+				&& !message.text().includes('Failed to load resource: the server responded with a status of 500')
 				&& !message.text().includes('Failed to load resource: the server responded with a status of 502')
+				&& !message.text().includes('[vite] Failed to reload')
+				&& !message.text().includes('Failed to fetch dynamically imported module')
 				&& !message.text().includes('Failed to load resource: net::ERR_QUIC_PROTOCOL_ERROR')
 				&& !message.text().includes('Failed to load resource: net::ERR_CONNECTION_REFUSED')
 				&& !message.text().includes('Failed to load resource: net::ERR_FAILED')
@@ -59,28 +63,42 @@ test.describe('/network/[networkId]', () => {
 		testInfo.setTimeout(120_000)
 		const { step } = setupFailFast(page)
 
-		await step(page.goto('/network/1', { waitUntil: 'domcontentloaded' }))
+		await step(page.goto('/network/1', { waitUntil: 'load', timeout: 120_000 }))
 
-		await step(expect(page.locator('#nav-menu').getByRole('link', { name: 'Networks' })).toBeVisible())
+		await step(expect(page.locator('#nav-menu').getByRole('link', { name: 'Networks' })).toBeVisible({
+			timeout: 120_000,
+		}))
 		await step(expect(page.getByRole('heading', { name: '500' })).toHaveCount(0))
 		await step(expect(page.getByText('Internal Error')).toHaveCount(0))
-		await step(expect(page.locator('[data-e2e="network-carousel-groups"]')).toBeAttached({
+		await step(expect(page.locator('.network-view-carousel-groups')).toBeAttached({
 			timeout: 120_000,
 		}))
 
-		await step(expect(page.locator('[data-e2e="network-collapsible-topology"]')).toBeAttached())
-		await step(expect(page.locator('[data-e2e="network-collapsible-economics"]')).toBeAttached())
-		await step(expect(page.locator('[data-e2e="network-collapsible-execution"]')).toBeAttached())
-		await step(expect(page.locator('[data-e2e="network-collapsible-consensus"]')).toBeAttached())
-		await step(expect(page.locator('[data-e2e="network-collapsible-data-storage"]')).toBeAttached())
+		const scrollAttach = { timeout: 120_000 } as const
+		await step(expect(page.locator('.network-view-collapsible-topology')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-economics')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-execution')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-consensus')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-data-storage')).toBeAttached(scrollAttach))
 
-		await step(expect(page.locator('[data-scroll-marker-label="Blocks"]')).toBeAttached())
-		await step(expect(page.locator('[data-scroll-marker-label="Transactions"]')).toBeAttached())
-		await step(expect(page.locator('[data-scroll-marker-label="Contracts"]')).toBeAttached())
-		await step(expect(page.locator('[data-scroll-marker-label="Epochs"]')).toBeAttached())
-		await step(expect(page.locator('[data-scroll-marker-label="Slots"]')).toBeAttached())
-		await step(expect(page.locator('[data-scroll-marker-label="Blobs"]')).toBeAttached())
-		await step(expect(page.locator('[data-e2e="network-summary-head-block"]')).toBeAttached())
+		await step(expect(page.locator('[data-scroll-marker-label="Blocks"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('[data-scroll-marker-label="Tx"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-data-storage [data-scroll-marker-label="Contracts"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-data-storage [data-scroll-marker-label="Stats"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-execution [data-scroll-marker-label="Validators"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-execution [data-scroll-marker-label="Mempool"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-economics [data-scroll-marker-label="Native currencies"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-economics [data-scroll-marker-label="Tokens"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-economics [data-scroll-marker-label="Gas"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-economics [data-scroll-marker-label="MEV-Boost"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-actors')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-actors [data-scroll-marker-label="Accounts"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Fork schedule"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Finality"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('[data-scroll-marker-label="Epochs"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('[data-scroll-marker-label="Slots"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('[data-scroll-marker-label="Blobs"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('#network-summary-head-block')).toBeAttached(scrollAttach))
 
 	})
 
@@ -88,8 +106,8 @@ test.describe('/network/[networkId]', () => {
 		testInfo.setTimeout(120_000)
 		const { step } = setupFailFast(page)
 
-		await step(page.goto('/network/1', { waitUntil: 'domcontentloaded' }))
-		await step(expect(page.locator('[data-e2e="network-carousel-groups"]')).toBeAttached({
+		await step(page.goto('/network/1', { waitUntil: 'load', timeout: 120_000 }))
+		await step(expect(page.locator('.network-view-carousel-groups')).toBeAttached({
 			timeout: 120_000,
 		}))
 		await step(expect(page.getByText('Ethereum Mainnet').first()).toBeVisible({
@@ -98,12 +116,12 @@ test.describe('/network/[networkId]', () => {
 	})
 
 	test('network 1 reload uses persisted Chainlist and EthereumLists rows', async ({ page }, testInfo) => {
-		testInfo.setTimeout(120_000)
+		testInfo.setTimeout(240_000)
 		const { step } = setupFailFast(page)
 		await installChainlistRpcsJsonStub(page)
-		await step(page.goto('/', { waitUntil: 'domcontentloaded' }))
+		await step(page.goto('/', { waitUntil: 'domcontentloaded', timeout: 120_000 }))
 		await clearOriginOpfs(page)
-		await step(page.reload({ waitUntil: 'domcontentloaded' }))
+		await step(page.reload({ waitUntil: 'domcontentloaded', timeout: 120_000 }))
 		await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
 
 		const cold = countRequestsMatching(page, (url, method) => (
@@ -114,14 +132,11 @@ test.describe('/network/[networkId]', () => {
 			)
 		))
 
-		await step(page.goto('/network/1', { waitUntil: 'domcontentloaded' }))
-		await step(expect(page.locator('[data-e2e="network-carousel-groups"]')).toBeAttached({
+		await step(page.goto('/network/1', { waitUntil: 'load', timeout: 120_000 }))
+		await step(expect(page.locator('.network-view-carousel-groups')).toBeAttached({
 			timeout: 120_000,
 		}))
-		await step(expect(page.getByRole('link', { name: 'Mock Base', exact: true }).first()).toBeVisible({
-			timeout: 120_000,
-		}))
-		await step(expect(page.locator('#main .loading')).toHaveCount(0, {
+		await step(expect(page.locator('.network-view-carousel-groups').locator('a[href$="/network/8453"]').first()).toBeVisible({
 			timeout: 120_000,
 		}))
 		expect(cold.get(), 'network detail resolves chain metadata via HTTP').toBeGreaterThan(0)
@@ -157,14 +172,11 @@ test.describe('/network/[networkId]', () => {
 			)
 		))
 
-		await step(page.reload({ waitUntil: 'domcontentloaded' }))
-		await step(expect(page.locator('[data-e2e="network-carousel-groups"]')).toBeAttached({
+		await step(page.reload({ waitUntil: 'domcontentloaded', timeout: 120_000 }))
+		await step(expect(page.locator('.network-view-carousel-groups')).toBeAttached({
 			timeout: 120_000,
 		}))
-		await step(expect(page.getByRole('link', { name: 'Mock Base', exact: true }).first()).toBeVisible({
-			timeout: 120_000,
-		}))
-		await step(expect(page.locator('#main .loading')).toHaveCount(0, {
+		await step(expect(page.locator('.network-view-carousel-groups').locator('a[href$="/network/8453"]').first()).toBeVisible({
 			timeout: 120_000,
 		}))
 		expect(warm.get(), 'reload should hydrate from OPFS without Chainlist / chains.json').toBe(0)

@@ -1,3 +1,4 @@
+// Constants
 export enum SnapchainReactionType {
 	Like = 1,
 	Recast = 2,

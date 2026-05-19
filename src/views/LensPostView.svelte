@@ -13,16 +13,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-
 	// Props
 	let {
 		children,
@@ -52,6 +42,11 @@
 	> = $props()
 
 
+	// State
+	import { stringify } from 'devalue'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const lensPost = useEntity(
 		EntityType.LensPost,
 		entityId,
@@ -62,6 +57,17 @@
 			$author: {},
 		},
 	)
+
+
+	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import LensAccountView from '$/views/LensAccountView.svelte'
 </script>
 
 
@@ -69,7 +75,7 @@
 	entityType={EntityType.LensPost}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Id()}
@@ -80,7 +86,7 @@
 
 	{#snippet Heading()}
 		<ResourceBoundary
-			placeholderText="Loading post…"
+			placeholderText="Loading Lens v3 publication…"
 			resource={lensPost}
 		>
 			{#snippet children(resolvedLensPost)}
@@ -101,7 +107,7 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
-			placeholderText="Loading post…"
+			placeholderText="Loading Lens v3 publication…"
 			resource={lensPost}
 		>
 			{#snippet children(resolvedLensPost)}
@@ -116,25 +122,23 @@
 							/>
 						</p>
 					{/if}
-					<dl>
+					<dl data-column-item="center">
 						{#if resolvedLensPost.$author}
 							<div>
-								<dt>Author</dt>
+								<dt>Author (Lens v3 profile)</dt>
 								<dd>
-									<a
-										data-link
+									<LensAccountView
+										entityId={resolvedLensPost.$author[EntityMetaKey.Id]}
 										href={resolve('/(social)/lens/account/[address]', {
 											address: resolvedLensPost.$author[EntityMetaKey.Id].address,
 										})}
-									>
-										<TruncatedValue
-											value={resolvedLensPost.$author[EntityMetaKey.Id].address}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</a>
+										layout={EntityLayout.Id}
+										showTypeAnnotation={false}
+									/>
 								</dd>
 							</div>
 						{/if}
+
 						{#if resolvedLensPost.timestamp != null}
 							<div>
 								<dt>Created at</dt>
@@ -147,7 +151,7 @@
 							</div>
 						{/if}
 						<div>
-							<dt>Post id</dt>
+							<dt>Publication id (Lens v3 on-chain)</dt>
 							<dd data-text="mono">
 								{entityId.id}
 							</dd>
@@ -158,14 +162,85 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details()}
-		<EntityDetails
-			entityType={EntityType.LensPost}
-			{entityId}
-		/>
+	{#snippet Details({
+		open: _open,
+	})}
+		{@const postDetailKey = stringify(entityId)}
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
+			<CollapsibleTabs
+				id={`${postDetailKey}:carousel-lens-post`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({
+					open: _summaryOpen,
+				})}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<HeadingComponent>
+							Lens v3 publication
+						</HeadingComponent>
+					</header>
+				{/snippet}
 
-		{#if children}
-			{@render children()}
-		{/if}
+				{#snippet Markers({
+					open: _markersOpen,
+				})}
+					<a
+						data-scroll-marker-label="Record"
+						href={`#${postDetailKey}:lens-post-record`}
+					>Record</a>
+					{#if children}
+						<a
+							data-scroll-marker-label="More"
+							href={`#${postDetailKey}:lens-post-more`}
+						>More</a>
+					{/if}
+				{/snippet}
+
+				{#snippet children({
+					open: _paneOpen,
+				})}
+					<section
+						data-scroll-marker-label="Record"
+						id={`${postDetailKey}:lens-post-record`}
+					>
+						<EntityDetails
+							entityType={EntityType.LensPost}
+							{entityId}
+						/>
+					</section>
+					{#if children}
+						<section
+							data-scroll-marker-label="More"
+							id={`${postDetailKey}:lens-post-more`}
+						>
+							{@render children()}
+						</section>
+					{/if}
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 36ch;
+			}
+		}
+	}
+</style>

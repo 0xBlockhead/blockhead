@@ -9,17 +9,6 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import Address from '$/views/Address.svelte'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-
 	// Props
 	let {
 		children,
@@ -43,9 +32,13 @@
 			| 'title'
 			| 'Details'
 			| 'Heading'
+			| 'TypeAnnotationTooltip'
 		>
 	> = $props()
 
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const pool = useEntity(
 		EntityType.LiquidityPool,
@@ -72,6 +65,15 @@
 			totalValueLockedUSD: {},
 		},
 	)
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import Address from '$/views/Address.svelte'
 </script>
 
 
@@ -93,8 +95,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-
-
 	{#snippet Heading()}
 		<span data-text="muted">
 			<span data-text="font-monospace">
@@ -103,21 +103,43 @@
 		</span>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					Concentrated-liquidity AMM pool on this network: two tokens, swap fee parameter, and curve state (<code>sqrtPrice</code>, tick, aggregate liquidity).
+				</p>
+				<p>
+					Concentrated-liquidity positions own tick ranges, accrued fees, and ERC-721 position tokens; the pool row only carries the pair’s shared curve and aggregate depth.
+				</p>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={pool}
 			placeholderText="Loading pool…"
 		>
 			{#snippet children(p)}
-				<dl>
+				<dl data-column-item="center">
+					{#if open}
+						<div>
+							<dt>Note</dt>
+							<dd>
+								<div data-row="wrap align-center gap-2">
+									<span data-text="muted">Uniswap v3–style curve metadata on this pool row.</span>
+									<Tooltip contentProps={{ side: 'top' }}>
+										{#snippet Content()}
+											<p>Canonical Uniswap v3–style curve for the pair: swap fee tier and tick spacing define the pool; <code>sqrtPrice</code>, active tick, and in-range liquidity describe the bonding curve. Fee magnitudes use Uniswap fee units (hundredths of a bip, e.g. <code>500</code> ≈ 0.05%). User-specific tick ranges, owed fees, and the ERC-721 position token id live on liquidity position / leverage rows instead.</p>
+										{/snippet}
+										<abbr
+											class="entity-heading-tip"
+											aria-label="Pool vs position rows"
+										>ⓘ</abbr>
+									</Tooltip>
+								</div>
+							</dd>
+						</div>
+					{/if}
 					<div>
-						<dt>Liquidity pair</dt>
-						<dd>
-							{p.token0Symbol} / {p.token1Symbol}
-						</dd>
-					</div>
-					<div>
-						<dt>Pool id</dt>
+						<dt>Pool id (AMM)</dt>
 						<dd>
 							<TruncatedValue
 								value={entityId.id}
@@ -146,20 +168,18 @@
 					{#if open}
 						{#if p.fee !== undefined}
 							<div>
-								<dt>Fee</dt>
+								<dt>Fee tier (v3 swap fee parameter)</dt>
 								<dd>{String(p.fee)}</dd>
 							</div>
 						{/if}
-					{/if}
-					{#if open}
+
 						{#if p.tickSpacing !== undefined}
 							<div>
-								<dt>Tick spacing</dt>
+								<dt>Tick spacing (v3 grid step)</dt>
 								<dd>{String(p.tickSpacing)}</dd>
 							</div>
 						{/if}
-					{/if}
-					{#if open}
+
 						{#if p.$hooks}
 							<div>
 								<dt>Hooks</dt>
@@ -171,8 +191,7 @@
 								</dd>
 							</div>
 						{/if}
-					{/if}
-					{#if open}
+
 						{#if p.v4PoolId !== undefined}
 							<div>
 								<dt>v4 pool id</dt>
@@ -184,72 +203,49 @@
 								</dd>
 							</div>
 						{/if}
-					{/if}
-					{#if open}
+
 						{#if p.sqrtPriceX96 !== undefined}
 							<div>
 								<dt>Sqrt price X96</dt>
 								<dd>{String(p.sqrtPriceX96)}</dd>
 							</div>
 						{/if}
-					{/if}
-					{#if open}
+
 						{#if p.liquidity !== undefined}
 							<div>
-								<dt>Liquidity</dt>
+								<dt>Active liquidity</dt>
 								<dd>{String(p.liquidity)}</dd>
 							</div>
 						{/if}
-					{/if}
-					{#if open}
+
 						{#if p.tick !== undefined}
 							<div>
 								<dt>Tick</dt>
 								<dd>{String(p.tick)}</dd>
 							</div>
 						{/if}
-					{/if}
-					{#if open}
-						{#if p.token0Symbol !== undefined}
-							<div>
-								<dt>Token 0 symbol</dt>
-								<dd>{p.token0Symbol}</dd>
-							</div>
-						{/if}
-					{/if}
-					{#if open}
-						{#if p.token1Symbol !== undefined}
-							<div>
-								<dt>Token 1 symbol</dt>
-								<dd>{p.token1Symbol}</dd>
-							</div>
-						{/if}
-					{/if}
-					{#if open}
+
 						{#if p.token0Decimals !== undefined}
 							<div>
 								<dt>Token 0 decimals</dt>
 								<dd>{String(p.token0Decimals)}</dd>
 							</div>
 						{/if}
-					{/if}
-					{#if open}
+
 						{#if p.token1Decimals !== undefined}
 							<div>
 								<dt>Token 1 decimals</dt>
 								<dd>{String(p.token1Decimals)}</dd>
 							</div>
 						{/if}
-					{/if}
-					{#if open}
+
 						{#if p.volumeUSD !== undefined}
 							<div>
 								<dt>Volume USD</dt>
 								<dd>{String(p.volumeUSD)}</dd>
 							</div>
 						{/if}
-					{/if}
-					{#if open}
+
 						{#if p.totalValueLockedUSD !== undefined}
 							<div>
 								<dt>TVL USD</dt>
@@ -262,7 +258,9 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({ open: _open })}
+	{#snippet Details({
+		open: _open,
+	})}
 		<EntityDetails
 			entityType={EntityType.LiquidityPool}
 			{entityId}

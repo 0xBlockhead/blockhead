@@ -7,6 +7,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 
+	import { SvelteSet } from 'svelte/reactivity'
+
 
 	// Context
 	import { resolve } from '$app/paths'
@@ -19,7 +21,7 @@
 		id,
 		limit = 25,
 		open = $bindable(true),
-		title = 'Posts',
+		title = 'Submissions'
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.RedditLink>
 		href: string
@@ -31,9 +33,6 @@
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -47,12 +46,19 @@
 				Source.Constants_Internal,
 				Source.Reddit_Rest,
 			],
-			[fieldName]: {
-				$: [
-					Source.Reddit_Rest,
-				],
-				limit,
-			},
+			...(
+				open ?
+					{
+						[fieldName]: {
+							$: [
+								Source.Reddit_Rest,
+							],
+							limit,
+						},
+					}
+				:
+					{}
+			),
 		},
 	)
 
@@ -65,12 +71,10 @@
 					.toSorted((a, b) => (
 						b[EntityMetaKey.Id].fullname.localeCompare(a[EntityMetaKey.Id].fullname)
 					))
-					.map((link) => (
-						{
-							...link[EntityMetaKey.Id],
-							sortKey: link[EntityMetaKey.IdKey],
-						}
-					))
+					.map((link) => ({
+						...link[EntityMetaKey.Id],
+						sortKey: link[EntityMetaKey.IdKey],
+					}))
 			)
 		},
 	)
@@ -79,40 +83,77 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import RedditLinkView from '$/views/RedditLinkView.svelte'
 </script>
 
 
-<EntitiesList
-	entityType={EntityType.RedditLink}
-	{href}
-	{id}
-	{title}
-	bind:open
-	resource={links}
-	placeholderText="Loading posts…"
-	getKey={(row) => row.fullname}
-	getSortValue={(row) => row.sortKey}
-	placeholderKeys={new SvelteSet<string>()}
->
-	{#snippet Empty()}
-		<p data-text="muted">
-			No Reddit posts to show yet.
-		</p>
-	{/snippet}
+<div data-column="gap-2">
+	<div data-row="wrap align-center gap-2">
+		<Tooltip contentProps={{ side: 'top' }}>
+			{#snippet Content()}
+				<p>
+					Submissions and comment threads sourced from Reddit’s own HTTP APIs.
+				</p>
+				<p>
+					Not Farcaster casts, team rooms, or file pinning networks.
+				</p>
+			{/snippet}
+			<abbr
+				class="entity-heading-tip"
+				aria-label="About submissions"
+			>ⓘ</abbr>
+		</Tooltip>
+	</div>
 
-	{#snippet Item({
-		item: row,
-	})}
-		{#if row}
-			<RedditLinkView
-				entityId={{ fullname: row.fullname }}
-				href={resolve('/(social)/reddit/link/[fullname]', {
-					fullname: encodeURIComponent(row.fullname),
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
-	{/snippet}
-</EntitiesList>
+	<EntitiesList
+		entityType={EntityType.RedditLink}
+		{href}
+		{id}
+		{title}
+		bind:open
+		resource={links}
+		placeholderText="Loading submissions…"
+		getKey={(row) => row.fullname}
+		getSortValue={(row) => row.sortKey}
+		placeholderKeys={new SvelteSet<string>()}
+	>
+		{#snippet Empty()}
+			<div data-row="wrap align-center gap-2">
+				<p data-text="muted">
+					No Reddit submissions here yet.
+				</p>
+				<Tooltip contentProps={{ side: 'top' }}>
+					{#snippet Content()}
+						<p>
+							Rows are threads on Reddit itself.
+						</p>
+						<p>
+							They are not social casts or decentralized storage objects.
+						</p>
+					{/snippet}
+					<abbr
+						class="entity-heading-tip"
+						aria-label="About Reddit submissions"
+					>ⓘ</abbr>
+				</Tooltip>
+			</div>
+		{/snippet}
+
+		{#snippet Item({
+			item: row,
+		})}
+			{#if row}
+				<RedditLinkView
+					entityId={{ fullname: row.fullname }}
+					href={resolve('/(social)/reddit/link/[fullname]', {
+						fullname: encodeURIComponent(row.fullname),
+					})}
+					layout={EntityLayout.Summary}
+					open={false}
+				/>
+			{/if}
+		{/snippet}
+	</EntitiesList>
+</div>
+

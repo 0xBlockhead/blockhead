@@ -45,13 +45,22 @@
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Allium_Rest,
-				],
-			},
-		},
+		(
+			open ?
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Allium_Rest,
+						],
+					},
+				}
+			:
+				{
+					$: [
+						Source.Allium_Rest,
+					],
+				}
+		),
 	)
 
 	const tokenBalances = derive(
@@ -90,30 +99,39 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListRest}
 >
-	{#snippet Empty()}
-		<p data-text="muted">
-			No balances loaded yet.
-		</p>
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Token balances are indexed holdings for this address on a given execution-layer network.
+					</p>
+					<p>
+						Consensus-layer validator balances and attestation rewards live on the beacon chain, not in ERC-20 style token balance tables.
+					</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			{@const id = props.item.value[EntityMetaKey.Id]}
-			<ActorCoinView
-				entityId={id}
-				href={resolve('/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]', {
-					chainId: String(id.$coinInstance.$network.chainId),
-					owner: id.$actor.address,
-					coin: (
-						id.$coinInstance.type === CoinInstanceType.Erc20Token ?
-							id.$coinInstance.$contract.address
-						:
-							pathNativeCoin
-					),
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
-	{/snippet}
+	{#snippet Empty()}
+			<p data-text="muted">
+				No balances for this wallet yet.
+			</p>
+		{/snippet}
+
+		{#snippet Item(props)}
+			{#if props.item}
+				{@const id = props.item.value[EntityMetaKey.Id]}
+				<ActorCoinView
+					entityId={id}
+					href={resolve('/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]', {
+						chainId: String(id.$coinInstance.$network.chainId),
+						owner: id.$actor.address,
+						coin: (
+							id.$coinInstance.type === CoinInstanceType.Erc20Token ?
+								id.$coinInstance.$contract.address
+							:
+								pathNativeCoin
+						),
+					})}
+					layout={EntityLayout.Summary}
+					open={false}
+				/>
+			{/if}
+		{/snippet}
 </EntitiesList>

@@ -6,6 +6,8 @@ export type RpcBlockHeaderWire = {
 	gasUsed?: string
 	gasLimit?: string
 	baseFeePerGas?: string
+	blobGasUsed?: string
+	excessBlobGas?: string
 	miner?: string
 	difficulty?: string
 	transactions?: (string | RpcTxWire)[]

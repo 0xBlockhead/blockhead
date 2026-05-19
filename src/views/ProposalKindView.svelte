@@ -2,18 +2,16 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import {
 		proposalCategoryById,
+		proposalRealmById,
 	} from '$/constants/Proposal.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-	import { stringify } from 'devalue'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 
 
 	// Props
@@ -46,6 +44,8 @@
 
 
 	// State
+	import { stringify } from 'devalue'
+
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const kind = useEntity(
@@ -55,13 +55,16 @@
 			$: [
 				Source.Constants_Internal,
 			],
-			labelPlural: {},
+			...(open && {
+				labelPlural: {},
+			}),
 		},
 	)
 
 
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ProposalsView from '$/views/ProposalsView.svelte'
 </script>
@@ -73,7 +76,7 @@
 	{href}
 	title={proposalCategoryById[entityId.category].labelPlural}
 	{layout}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Heading()}
@@ -85,28 +88,30 @@
 
 	{#snippet Id()}
 		<span data-text="font-monospace">
-			{entityId.realm} · {entityId.category}
+			{`${proposalRealmById[entityId.realm].label} · ${proposalCategoryById[entityId.category].label}`}
 		</span>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={kind}
-			placeholderText="Loading proposals…"
+			placeholderText="Loading proposal kind…"
 		>
 			{#snippet children(k)}
-				<dl>
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
+				<dl data-column-item="center">
+					<div>
+						<dt>Realm</dt>
+						<dd data-text="mono">
+							{proposalRealmById[entityId.realm].label}
+						</dd>
+					</div>
 					<div>
 						<dt>Category</dt>
-						<dd>{proposalCategoryById[entityId.category].labelPlural}</dd>
+						<dd data-text="mono">
+							{proposalCategoryById[entityId.category].label}
+						</dd>
 					</div>
+
 					{#if open}
 						{#if k.labelPlural !== undefined}
 							<div>

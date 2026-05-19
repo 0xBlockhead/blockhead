@@ -48,9 +48,11 @@
 				{#if _showLoadedCount}
 					<span>{summary.loaded}</span>
 				{/if}
+
 				{#if _showLoadedCount && _showTotalCount}
 					/
 				{/if}
+
 				{#if _showTotalCount}
 					<span>{summary.total}</span>
 				{/if}

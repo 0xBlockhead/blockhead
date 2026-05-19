@@ -1,3 +1,6 @@
+// Types
+
+
 // Constants
 export enum CoinId {
 	BTC = 'BTC',

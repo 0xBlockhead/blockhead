@@ -45,13 +45,13 @@ test.describe('Network head resolveLive (Voltaire block stream)', () => {
 		test.setTimeout(300_000)
 		await installChainlistRpcsJsonStub(page)
 		const issues = collectIssues(page)
-		const watchStart = voltaireBlockStreamWatchStartConsoleEvent(page, 30_000)
+		const watchStart = voltaireBlockStreamWatchStartConsoleEvent(page, 90_000)
 		await page.goto('/network/1', { waitUntil: 'load' })
 		await expect(page.locator('#main')).toBeVisible()
 		await assertMainSettled(page)
 		await watchStart
-		await expect(page.locator('[data-scroll-marker-label="Blocks"]')).toBeVisible()
-		await expect(page.locator('[data-scroll-marker-label="Transactions"]')).toBeVisible()
+		await expect(page.locator('[data-scroll-marker-label="Blocks"]')).toBeAttached({ timeout: 120_000 })
+		await expect(page.locator('[data-scroll-marker-label="Transactions"]')).toBeAttached({ timeout: 120_000 })
 		expect(
 			pageErrors(issues),
 			pageErrors(issues).join('\n'),

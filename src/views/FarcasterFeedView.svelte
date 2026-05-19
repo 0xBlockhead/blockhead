@@ -6,7 +6,6 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
 
 
 	// Props
@@ -40,6 +39,8 @@
 
 
 	// State
+	import { stringify } from 'devalue'
+
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { mountEntityResolveLive } from '$/lib/db/resolveLive.svelte.ts'
 
@@ -63,8 +64,10 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 </script>
@@ -74,7 +77,7 @@
 	entityType={EntityType.FarcasterFeed}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Id()}
@@ -86,7 +89,7 @@
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={feed}
-			placeholderText="Loading feed…"
+			placeholderText="Loading Farcaster feed (variant, FID or channel id, cast stream)…"
 		>
 			{#snippet children(feedRow)}
 				{(
@@ -108,73 +111,151 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl>
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
+		<ResourceBoundary
+			resource={feed}
+			placeholderText="Loading Farcaster feed (variant, FID or channel id, cast stream)…"
+		>
+			{#snippet children(feedRow)}
+				<dl>
+					<div>
+						<dt>Feed id</dt>
+						<dd data-text="mono">
+							{@render Id()}
+						</dd>
+					</div>
 
-			<div>
-				<dt>Variant</dt>
-				<dd>{entityId.variant}</dd>
-			</div>
-			{#if entityId.variant === 'byUser'}
-				<div>
-					<dt>FID</dt>
-					<dd>{String(entityId.fid)}</dd>
-				</div>
-			{:else if entityId.variant === 'byChannel'}
-				<div>
-					<dt>Channel id</dt>
-					<dd>{entityId.channelId}</dd>
-				</div>
-			{:else if entityId.variant === 'following'}
-				<div>
-					<dt>Viewer FID</dt>
-					<dd>{String(entityId.viewerFid)}</dd>
-				</div>
-			{/if}
-			<ResourceBoundary
-				resource={feed}
-				placeholderText="Loading feed…"
-			>
-				{#snippet children(feedRow)}
+					<div>
+						<dt>Variant</dt>
+						<dd>{entityId.variant}</dd>
+					</div>
+					{#if entityId.variant === 'byUser'}
+						<div>
+							<dt>FID</dt>
+							<dd>{String(entityId.fid)}</dd>
+						</div>
+					{:else if entityId.variant === 'byChannel'}
+						<div>
+							<dt>Channel id</dt>
+							<dd>{entityId.channelId}</dd>
+						</div>
+					{:else if entityId.variant === 'following'}
+						<div>
+							<dt>Viewer FID</dt>
+							<dd>{String(entityId.viewerFid)}</dd>
+						</div>
+					{/if}
+
 					{#if feedRow.label != null && feedRow.label !== ''}
 						<div>
 							<dt>Label</dt>
 							<dd>{feedRow.label}</dd>
 						</div>
 					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</dl>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.FarcasterFeed}
-			{entityId}
-		/>
+		{@const feedDetailKey = stringify(entityId)}
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
+			<CollapsibleTabs
+				id={`${feedDetailKey}:carousel-feed`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({
+					open: _summaryOpen,
+				})}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<HeadingComponent>
+							Feed
+						</HeadingComponent>
+					</header>
+				{/snippet}
 
-		<FarcasterCastsView
-			entityFieldReference={{
-				entityType: EntityType.FarcasterFeed,
-				entityId,
-				fieldName: '$$entries',
-			}}
-			href={href}
-			id={`${stringify(entityId)}:entries`}
-			{limit}
-			open={false}
-			title="Feed"
-		/>
+				{#snippet Markers({
+					open: _markersOpen,
+				})}
+					<a
+						data-scroll-marker-label="Record"
+						href={`#${feedDetailKey}:feed-record`}
+					>Record</a>
+					<a
+						data-scroll-marker-label="Casts"
+						href={`#${feedDetailKey}:feed-entries`}
+					>Casts</a>
+					{#if children}
+						<a
+							data-scroll-marker-label="More"
+							href={`#${feedDetailKey}:feed-more`}
+						>More</a>
+					{/if}
+				{/snippet}
 
-		{#if children}
-			{@render children()}
-		{/if}
+				{#snippet children({
+					open: _paneOpen,
+				})}
+					<section
+						data-scroll-marker-label="Record"
+						id={`${feedDetailKey}:feed-record`}
+					>
+						<EntityDetails
+							entityType={EntityType.FarcasterFeed}
+							{entityId}
+						/>
+					</section>
+					<section
+						data-scroll-marker-label="Casts"
+						id={`${feedDetailKey}:feed-entries`}
+					>
+						<FarcasterCastsView
+							entityFieldReference={{
+								entityType: EntityType.FarcasterFeed,
+								entityId,
+								fieldName: '$$entries',
+							}}
+							href={href}
+							id={`${feedDetailKey}:entries`}
+							{limit}
+							open={false}
+							title="Feed"
+						/>
+					</section>
+					{#if children}
+						<section
+							data-scroll-marker-label="More"
+							id={`${feedDetailKey}:feed-more`}
+						>
+							{@render children()}
+						</section>
+					{/if}
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 36ch;
+			}
+		}
+	}
+</style>

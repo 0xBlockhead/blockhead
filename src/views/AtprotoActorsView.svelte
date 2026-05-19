@@ -25,7 +25,7 @@
 		href,
 		id,
 		open = $bindable(true),
-		title = 'Actors',
+		title = 'ATProto handles',
 		...entitiesListRest
 	}: WithRest<
 		{
@@ -57,21 +57,28 @@
 		entityFieldReference.entityId,
 		{
 			$: [Source.Constants_Internal],
-			protocolName: {},
-			$$atprotoActors: {
-				$: [
-					Source.Constants_Internal,
-					Source.Atproto_Xrpc,
-				],
-			},
+			...(open ?
+				{
+					protocolName: {},
+					$$atprotoActors: {
+						$: [
+							Source.Constants_Internal,
+							Source.Atproto_Xrpc,
+						],
+					},
+				}
+			:
+				{}),
 		},
 	)
 
 	const actors = derive(
 		atprotoNetwork,
 		(loaded) => (
-			loaded.$$atprotoActors
-			?? []
+			(loaded.$$atprotoActors ?? [])
+				.toSorted((a, b) => (
+					a[EntityMetaKey.Id].did.localeCompare(b[EntityMetaKey.Id].did)
+				))
 		),
 	)
 </script>
@@ -85,6 +92,18 @@
 	{title}
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						AT Protocol accounts are DIDs; public handles, follow graphs, and posts are stored in content-addressed repos synced by PDS and relays.
+					</p>
+					<p>
+						A directory response lists only the handles a hub currently indexes—not every DID that exists network-wide.
+					</p>
+					<p>
+						Listing order is lexicographic by DID as returned by the hub directory.
+					</p>
+	{/snippet}
+
 	{#snippet body()}
 		{#key stringify(entityFieldReference.entityId)}
 			<EntitiesList
@@ -98,12 +117,12 @@
 				getKey={(row) => stringify(row[EntityMetaKey.Id])}
 				getSortValue={(row) => row[EntityMetaKey.Id].did}
 				placeholderKeys={new SvelteSet()}
-				placeholderText="Loading AT Protocol network…"
+				placeholderText="Loading DID directory…"
 				resource={actors}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No AT Protocol actors to show yet.
+						No actors yet.
 					</p>
 				{/snippet}
 

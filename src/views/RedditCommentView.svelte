@@ -1,12 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
+
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
@@ -18,13 +20,15 @@
 		children,
 		entityId,
 		href,
-		open = $bindable(true),
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...entityViewRest
 	}: WithRest<
 		{
 			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.RedditComment>
 			href: string
+			layout?: EntityLayout
 			open?: boolean
 		},
 		Omit<
@@ -33,10 +37,10 @@
 			| 'entityId'
 			| 'href'
 			| 'open'
+			| 'layout'
 			| 'title'
 			| 'Details'
 			| 'Icon'
-			| 'HeadingAfter'
 			| 'Content'
 			| 'Heading'
 		>
@@ -62,8 +66,8 @@
 
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
@@ -72,7 +76,8 @@
 	entityType={EntityType.RedditComment}
 	{entityId}
 	{href}
-	{open}
+	{layout}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Id()}
@@ -84,7 +89,7 @@
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={comment}
-			placeholderText="Loading comment…"
+			placeholderText="Loading Reddit comment…"
 		>
 			{#snippet children(c)}
 				{(
@@ -97,10 +102,19 @@
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					Reddit organizes posts with nested threaded replies anchored on a submission.
+				</p>
+				<p>
+					It is unrelated to realtime collaboration rooms here or casts on other networks.
+				</p>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={comment}
-			placeholderText="Loading comment…"
+			placeholderText="Loading Reddit comment…"
 		>
 			{#snippet children(c)}
 				{#if !c.body}
@@ -109,16 +123,15 @@
 					<p>{c.body}</p>
 				{/if}
 				<dl data-column-item="center">
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
+					<div>
+						<dt>Comment id</dt>
+						<dd data-text="mono">
+							{@render Id()}
+						</dd>
+					</div>
 					{#if open}
 						<div>
-							<dt>Comment id</dt>
+							<dt>Reddit fullname</dt>
 							<dd>
 								<span data-text="mono">
 									<TruncatedValue
@@ -128,33 +141,23 @@
 								</span>
 							</dd>
 						</div>
-					{/if}
-					{#if open}
 						<div>
 							<dt>Author</dt>
 							<dd>u/{c.author}</dd>
 						</div>
-					{/if}
-					{#if open}
 						{#if c.$link !== undefined}
 							<div>
-								<dt>Post</dt>
+								<dt>Submission</dt>
 								<dd>
 									<a
 										href={resolve(
 											'/(social)/reddit/link/[fullname]',
 											{ fullname: encodeURIComponent(c.$link[EntityMetaKey.Id].fullname) },
 										)}
-									>Post {c.$link[EntityMetaKey.Id].fullname}</a>
+									>{c.$link[EntityMetaKey.Id].fullname}</a>
 								</dd>
 							</div>
 						{/if}
-					{/if}
-					{#if open}
-						<div>
-							<dt>Body</dt>
-							<dd>{c.body}</dd>
-						</div>
 					{/if}
 				</dl>
 			{/snippet}
@@ -170,7 +173,7 @@
 		>
 			<ResourceBoundary
 				resource={comment}
-				placeholderText="Loading comment…"
+				placeholderText="Loading Reddit comment…"
 			>
 				{#snippet children(_c)}
 				{/snippet}

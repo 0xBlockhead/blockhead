@@ -4,12 +4,6 @@
 
 	import type EntitiesListComponent from '$/components/EntitiesList.svelte'
 
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import Heading from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-
-	import NumberValue from '$/views/NumberValue.svelte'
-
 	import {
 		proposalCategoryById,
 		proposalRealmById,
@@ -21,6 +15,9 @@
 	import { entityDefinitionByType, schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
@@ -48,18 +45,9 @@
 	>
 
 
-	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import ProposalsView from '$/views/ProposalsView.svelte'
-
-
 	// Props
 	let {
-		title = 'Proposal Kinds',
+		title = 'Proposal kinds',
 
 		open = $bindable(true),
 		entityFieldReference,
@@ -106,17 +94,17 @@
 	} = CollapsibleProps
 
 
-	const collapsibleTabsPaneProps = {
+	const collapsibleTabsPaneProps: Record<string, string> = {
 		'data-scroll-container': 'block',
-	} as Record<string, string>
+	}
 
-	const standaloneKindPanelsProps = {
+	const standaloneKindPanelsProps: Record<string, string> = {
 		'data-column': 'gap-4 layout-flex',
 		...(panelStyle ?
 			{ style: panelStyle }
 		:
 			{}),
-	} as Record<string, string>
+	}
 
 
 	// Functions
@@ -126,9 +114,9 @@
 
 	const rowsFromProposalKinds = (
 		queryRows: { result: Entity<typeof schema, EntityType.ProposalKind> }[] | undefined,
-	) => (
+	): { result: Entity<typeof schema, EntityType.ProposalKind> }[] => (
 		queryRows === undefined ?
-			[] as { result: Entity<typeof schema, EntityType.ProposalKind> }[]
+			[]
 		:
 			[...queryRows]
 	)
@@ -137,6 +125,11 @@
 		`proposal-kind:${kindEntity[EntityMetaKey.Id].realm}:${kindEntity[EntityMetaKey.Id].category}:proposals`
 	)
 
+
+	// State
+
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const fieldName = entityFieldReference.fieldName
 
@@ -190,6 +183,16 @@
 		&& totalCount !== undefined
 		&& totalCount !== loadedCount,
 	)
+
+
+	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+
+	import NumberValue from '$/views/NumberValue.svelte'
+	import ProposalsView from '$/views/ProposalsView.svelte'
 </script>
 
 
@@ -262,26 +265,48 @@
 						{...{ 'data-card': '' }}
 						scrollContainerProps={collapsibleTabsPaneProps}
 					>
-						{#snippet Annotation({ open: _ })}
+						{#snippet Annotation({
+							open: _annotationOpen,
+						})}
 							<span data-text="annotation">{entityDefinitionByType[EntityType.ProposalKind].labelPlural}</span>
 						{/snippet}
 
-						{#snippet Summary({ open: _ })}
-							<header
-								data-row-item="flexible"
-								data-row="wrap gap-4"
-								style:view-transition-name={`EntitiesList-Summary-${id}`}
-							>
-								<Heading {...HeadingProps}>
-									<a {href}>{title}</a>
-									{#if showCounts}
-										<small>({#if loadedCount !== undefined}<NumberValue value={loadedCount} />{/if}{#if showTotalCount} / {/if}{#if showTotalCount}<NumberValue value={totalCount!} />{/if}{#if loadedCount === undefined && totalCount !== undefined}<NumberValue value={totalCount} />{/if})</small>
-									{/if}
-								</Heading>
-							</header>
+						{#snippet Summary({
+							open: _summaryOpen,
+						})}
+							<div data-column="gap-1">
+								<header
+									data-row-item="flexible"
+									data-row="wrap gap-4"
+									style:view-transition-name={`EntitiesList-Summary-${id}`}
+								>
+									<HeadingComponent {...HeadingProps}>
+										<a {href}>{title}</a>
+										{#if showCounts}
+											<small>({#if loadedCount !== undefined}<NumberValue value={loadedCount} />{/if}{#if showTotalCount} / {/if}{#if showTotalCount}<NumberValue value={totalCount!} />{/if}{#if loadedCount === undefined && totalCount !== undefined}<NumberValue value={totalCount} />{/if})</small>
+										{/if}
+									</HeadingComponent>
+								</header>
+
+								<div data-row="wrap align-center gap-2">
+									<Tooltip contentProps={{ side: 'top' }}>
+										{#snippet Content()}
+											<p>
+												Specifications are grouped by steward realm and document family, then numbered drafts from public repositories—not live treasury vote dashboards.
+											</p>
+										{/snippet}
+										<abbr
+											class="entity-heading-tip"
+											aria-label="How proposals are grouped"
+										>ⓘ</abbr>
+									</Tooltip>
+								</div>
+							</div>
 						{/snippet}
 
-						{#snippet Markers({ open: _ })}
+						{#snippet Markers({
+							open: _markersOpen,
+						})}
 							{#each rows as row (proposalKindKey(row))}
 								{@const kindRow = row.result}
 								<a
@@ -291,7 +316,9 @@
 							{/each}
 						{/snippet}
 
-						{#snippet children({ open: _ })}
+						{#snippet children({
+							open: _sectionOpen,
+						})}
 							{#each rows as row (proposalKindKey(row))}
 								{@const kindRow = row.result}
 								<section data-scroll-marker-label={proposalCategoryById[kindRow[EntityMetaKey.Id].category].labelPlural}>
@@ -323,19 +350,33 @@
 					>
 						<div data-sticky>
 							<div data-row="align-center gap-4">
-								<div data-row-item="wrap-start">
+								<div data-column="gap-1" data-row-item="wrap-start">
 									<header
 										data-row-item="flexible"
 										data-row="wrap gap-4"
 										style:view-transition-name={`EntitiesList-Summary-${id}`}
 									>
-										<Heading {...HeadingProps}>
+										<HeadingComponent {...HeadingProps}>
 											<a {href}>{title}</a>
 											{#if showCounts}
 												<small>({#if loadedCount !== undefined}<NumberValue value={loadedCount} />{/if}{#if showTotalCount} / {/if}{#if showTotalCount}<NumberValue value={totalCount!} />{/if}{#if loadedCount === undefined && totalCount !== undefined}<NumberValue value={totalCount} />{/if})</small>
 											{/if}
-										</Heading>
+										</HeadingComponent>
 									</header>
+
+									<div data-row="wrap align-center gap-2">
+										<Tooltip contentProps={{ side: 'top' }}>
+											{#snippet Content()}
+												<p>
+													Specifications are grouped by steward realm and document family, then numbered drafts from public repositories—not live treasury vote dashboards.
+												</p>
+											{/snippet}
+											<abbr
+												class="entity-heading-tip"
+												aria-label="How proposals are grouped"
+											>ⓘ</abbr>
+										</Tooltip>
+									</div>
 								</div>
 
 								<div

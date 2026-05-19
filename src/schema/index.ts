@@ -54,6 +54,7 @@ import MevRelay_ProposerPayloadDeliveredSchema from '$/schema/MevRelay_ProposerP
 import Eip8004ServiceSchema from '$/schema/Eip8004Service.ts'
 import EnsNameSchema from '$/schema/EnsName.ts'
 import EvmBlockSchema from '$/schema/EvmBlock.ts'
+import EvmAccountAbstractionAddressSchema from '$/schema/EvmAccountAbstractionAddress.ts'
 import EvmBlobSchema from '$/schema/EvmBlob.ts'
 import EvmCalldataSchema from '$/schema/EvmCalldata.ts'
 import EvmContractSchema from '$/schema/EvmContract.ts'
@@ -63,6 +64,7 @@ import EvmMempoolSchema from '$/schema/EvmMempool.ts'
 import EvmSelectorSchema from '$/schema/EvmSelector.ts'
 import EvmTopicSchema from '$/schema/EvmTopic.ts'
 import EvmTransactionSchema from '$/schema/EvmTransaction.ts'
+import EvmUserOperationSchema from '$/schema/EvmUserOperation.ts'
 import FarcasterCastSchema from '$/schema/FarcasterCast.ts'
 import FarcasterCastEmbedSchema from '$/schema/FarcasterCastEmbed.ts'
 import FarcasterChannelSchema from '$/schema/FarcasterChannel.ts'
@@ -80,7 +82,7 @@ import MediaSchema from '$/schema/Media.ts'
 import MediaObjectSchema from '$/schema/MediaObject.ts'
 import NetworkSchema from '$/schema/Network.ts'
 import NetworkBridgeSchema from '$/schema/NetworkBridge.ts'
-import Network_GasFee_TimestampSchema from '$/schema/Network_GasFee_Timestamp.ts'
+import Network_GasFee_BlockSchema from '$/schema/Network_GasFee_Block.ts'
 import Network_Txpool_TimestampSchema from '$/schema/Network_Txpool_Timestamp.ts'
 import ProposalKindSchema from '$/schema/ProposalKind.ts'
 import ProposalRealmSchema from '$/schema/ProposalRealm.ts'
@@ -159,6 +161,7 @@ export const schema = [
 	Eip8004ServiceSchema,
 	EnsNameSchema,
 	EvmBlockSchema,
+	EvmAccountAbstractionAddressSchema,
 	EvmBlobSchema,
 	EvmCalldataSchema,
 	EvmContractSchema,
@@ -168,6 +171,7 @@ export const schema = [
 	EvmSelectorSchema,
 	EvmTopicSchema,
 	EvmTransactionSchema,
+	EvmUserOperationSchema,
 	FarcasterCastSchema,
 	FarcasterCastEmbedSchema,
 	FarcasterChannelSchema,
@@ -185,7 +189,7 @@ export const schema = [
 	MediaObjectSchema,
 	NetworkSchema,
 	NetworkBridgeSchema,
-	Network_GasFee_TimestampSchema,
+	Network_GasFee_BlockSchema,
 	Network_Txpool_TimestampSchema,
 	ProposalKindSchema,
 	ProposalRealmSchema,

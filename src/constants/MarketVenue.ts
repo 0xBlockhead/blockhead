@@ -1,5 +1,7 @@
-// Constants
+// Types
 
+
+// Constants
 export enum MarketVenueId {
 	Binance = 'Binance',
 	Coinbase = 'Coinbase',

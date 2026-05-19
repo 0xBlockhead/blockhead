@@ -14,8 +14,8 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	entityType: EntityType.EvmBlock,
 
-	label: 'EVM Block',
-	labelPlural: 'EVM Blocks',
+	label: 'Block',
+	labelPlural: 'Blocks',
 
 	id: type({
 		$network: Network.id,
@@ -62,6 +62,18 @@ export default {
 		},
 		{
 			name: 'baseFeePerGas',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'blobGasUsed',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'excessBlobGas',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

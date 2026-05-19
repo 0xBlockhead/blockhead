@@ -8,6 +8,7 @@ import {
 	assertMainSettled,
 	collectIssues,
 	installChainlistRpcsJsonStub,
+	jsonStringifyForExpectMessage,
 	preflightChainHeadAdvancesWithRetries,
 	publicJsonRpcHttpUrlForChainE2e,
 	readTopBlockNumberFromNetworkBlocksPage,
@@ -29,9 +30,9 @@ test.describe('/network/1/blocks (EvmBlocksView + blockHeight-driven query)', ()
 		const pageSource = readFileSync(blocksPagePath, 'utf8')
 		expect(pageSource, blocksPagePath).toContain('EvmBlocksView')
 		const view = readFileSync(evmBlocksViewPath, 'utf8')
-		expect(view, evmBlocksViewPath).toContain('blockHeightQuery')
-		expect(view, evmBlocksViewPath).toContain('blockHeightQuery.data?.height')
-		expect(view, evmBlocksViewPath).toContain('${entitiesListRest.id}-items')
+		expect(view, evmBlocksViewPath).toContain('blockHeight')
+		expect(view, evmBlocksViewPath).toContain('$$blocks')
+		expect(view, evmBlocksViewPath).toContain('${id}-items')
 	})
 
 	test('(browser, live) ordered list: top block advances after chain head moves', async ({ page }) => {
@@ -57,8 +58,8 @@ test.describe('/network/1/blocks (EvmBlocksView + blockHeight-driven query)', ()
 			preflight.ok
 				? 'ok'
 				: 'detail' in preflight && preflight.detail != null
-					? JSON.stringify(preflight.detail)
-				: JSON.stringify(preflight),
+					? jsonStringifyForExpectMessage(preflight.detail)
+					: jsonStringifyForExpectMessage(preflight),
 		).toBe(true)
 
 		const issues = collectIssues(page)

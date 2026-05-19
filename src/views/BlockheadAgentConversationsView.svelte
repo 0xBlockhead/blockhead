@@ -16,6 +16,11 @@
 	import { resolve } from '$app/paths'
 
 
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -26,7 +31,7 @@
 	// Props
 	let {
 		entityFieldReference,
-		title = 'Agents',
+		title = 'Agent conversations',
 		open = $bindable(true),
 		href = resolve('/~/agents'),
 		id = 'agents',
@@ -49,21 +54,28 @@
 	> = $props()
 
 
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const emptyGlobal = {} as EntityId<typeof schema, EntityType._Global>
+	const globalEntityId = (
+		{} satisfies EntityId<typeof schema, EntityType._Global>
+	)
 
 	const globalEntity = useEntity(
 		EntityType._Global,
-		entityFieldReference?.entityId ?? emptyGlobal,
-		{
-			$: [
-				Source.Local_Internal,
-			],
-			$$blockheadAgentConversations: {},
-		},
+		entityFieldReference?.entityId ?? globalEntityId,
+		(
+			open ?
+				{
+					$: [
+						Source.Local_Internal,
+					],
+					$$blockheadAgentConversations: {},
+				}
+			:
+				{
+					$: [
+						Source.Local_Internal,
+					],
+				}
+		),
 	)
 
 	const conversations = derive(
@@ -89,6 +101,15 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListForward}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Persisted large-language-model chat transcripts: each row is one conversation with ordered user/assistant messages.
+					</p>
+					<p>
+						Those logs are ordinary files or local DB rows—not consensus state, Farcaster casts, or multiplayer CRDT rooms.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
 			No conversations yet.
@@ -120,3 +141,4 @@
 		{/if}
 	{/snippet}
 </EntitiesList>
+

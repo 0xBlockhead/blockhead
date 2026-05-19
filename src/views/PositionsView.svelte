@@ -4,10 +4,15 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
@@ -16,8 +21,8 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import LiquidityPositionView from '$/views/LiquidityPositionView.svelte'
 
 
@@ -41,12 +46,6 @@
 
 
 	// State
-	import { stringify } from 'devalue'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
@@ -88,13 +87,23 @@
 	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
 	placeholderKeys={new SvelteSet()}
+	placeholderText="Loading positions…"
 	resource={envelopes}
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Liquidity positions are a user’s shares and price range inside a specific automated market maker pool.
+					</p>
+					<p>
+						They are not standalone pool contracts or generic wallet token balances.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No liquidity positions yet.
+			No positions in this list yet.
 		</p>
 	{/snippet}
 

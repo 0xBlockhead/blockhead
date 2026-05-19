@@ -36,6 +36,8 @@
 
 
 	// State
+	import { stringify } from 'devalue'
+
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { ipfsResourceCanonicalUri } from '$/lib/ipfs.ts'
 
@@ -65,10 +67,13 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import FileDetails from '$/components/FileDetails.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import IpfsCidAlternateEncodings from '$/views/IpfsCidAlternateEncodings.svelte'
@@ -79,7 +84,7 @@
 	entityType={EntityType.IpfsResource}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Id()}
@@ -110,7 +115,7 @@
 		<ResourceBoundary resource={resourceEntity}>
 			{#snippet children(loaded)}
 				{#if loaded.contentType !== undefined || open}
-					<dl>
+					<dl data-column-item="center">
 						{#if loaded.contentType !== undefined}
 							<div>
 								<dt>Content type</dt>
@@ -125,6 +130,7 @@
 								</dd>
 							</div>
 						{/if}
+
 						{#if open}
 							<div>
 								<dt>Canonical URI</dt>
@@ -176,6 +182,7 @@
 									</dd>
 								</div>
 							{/if}
+
 							{#if loaded.fileName !== undefined}
 								<div>
 									<dt>File name</dt>
@@ -187,6 +194,7 @@
 									</dd>
 								</div>
 							{/if}
+
 							{#if loaded.extension !== undefined}
 								<div>
 									<dt>Extension</dt>
@@ -200,7 +208,7 @@
 							{#if entityId.namespace === 'ipfs'}
 								{#if loaded.cidVersion !== undefined}
 									<div>
-										<dt>CID version</dt>
+										<dt>Content identifier version</dt>
 										<dd>{String(loaded.cidVersion)}</dd>
 									</div>
 									{#if loaded.cidMultibase !== undefined}
@@ -214,21 +222,24 @@
 											</dd>
 										</div>
 									{/if}
+
 									{#if loaded.cidMulticodecCode !== undefined}
 										<div>
 											<dt>Multicodec code</dt>
 											<dd>{String(loaded.cidMulticodecCode)}</dd>
 										</div>
 									{/if}
+
 									{#if loaded.cidMultihashCode !== undefined}
 										<div>
 											<dt>Multihash code</dt>
 											<dd>{String(loaded.cidMultihashCode)}</dd>
 										</div>
 									{/if}
+
 									{#if loaded.cidMultihashDigestHex !== undefined}
 										<div>
-											<dt>Digest</dt>
+											<dt>Multihash digest</dt>
 											<dd>
 												<TruncatedValue
 													value={loaded.cidMultihashDigestHex}
@@ -237,6 +248,7 @@
 											</dd>
 										</div>
 									{/if}
+
 									{#if loaded.isCidSubdomainSafe !== undefined}
 										<div>
 											<dt>Subdomain-safe</dt>
@@ -257,35 +269,133 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.IpfsResource}
-			{entityId}
-		/>
-			{#if entityId.namespace === 'ipfs'}
-				<IpfsCidAlternateEncodings
-					contentPath={entityId.contentPath}
-					target={entityId.target}
-				/>
-			{/if}
-
-			<ResourceBoundary
-				resource={resourceEntity}
+		{@const detailKey = stringify(entityId)}
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
+			<CollapsibleTabs
+				id={`${detailKey}:carousel-ipfs-resource`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
-				{#snippet children(loaded)}
-					<FileDetails
-						contentSize={loaded.contentLength}
-						contentType={loaded.contentType}
-						displayType={loaded.displayType}
-						extension={loaded.extension}
-						fileName={loaded.fileName}
-						src={loaded.gatewayUrl}
-						text={loaded.text}
-					/>
+				{#snippet Summary({
+					open: _summaryOpen,
+				})}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<HeadingComponent>
+							Resource
+						</HeadingComponent>
+						<Tooltip contentProps={{ side: 'top' }}>
+							{#snippet Content()}
+								<p>
+									IPFS names content by content identifiers (CIDs); browsers usually load bytes through an HTTP gateway.
+								</p>
+								<p>
+									The alternate CID encodings below are the same logical content in forms other tools expect.
+								</p>
+							{/snippet}
+							<abbr
+								class="entity-heading-tip"
+								aria-label="IPFS resource notes"
+							>ⓘ</abbr>
+						</Tooltip>
+					</header>
 				{/snippet}
-			</ResourceBoundary>
+
+				{#snippet Markers({
+					open: _markersOpen,
+				})}
+					<a
+						data-scroll-marker-label="Record"
+						href={`#${detailKey}:ipfs-record`}
+					>Record</a>
+					{#if entityId.namespace === 'ipfs' && _open}
+					<a
+						data-scroll-marker-label="Encodings"
+						href={`#${detailKey}:ipfs-cid`}
+					>Encodings</a>
+					{/if}
+
+					{#if _open}
+						<a
+							data-scroll-marker-label="Preview"
+							href={`#${detailKey}:ipfs-preview`}
+						>Preview</a>
+					{/if}
+				{/snippet}
+
+				{#snippet children({
+					open: _paneOpen,
+				})}
+					<section
+						data-scroll-marker-label="Record"
+						id={`${detailKey}:ipfs-record`}
+					>
+						<EntityDetails
+							entityType={EntityType.IpfsResource}
+							{entityId}
+						/>
+					</section>
+					{#if _open && entityId.namespace === 'ipfs'}
+						<section
+							data-scroll-marker-label="CID"
+							id={`${detailKey}:ipfs-cid`}
+						>
+							<IpfsCidAlternateEncodings
+								contentPath={entityId.contentPath}
+								target={entityId.target}
+							/>
+						</section>
+					{/if}
+
+					{#if _open}
+						<section
+							data-scroll-marker-label="Preview"
+							id={`${detailKey}:ipfs-preview`}
+						>
+							<ResourceBoundary
+								resource={resourceEntity}
+							>
+								{#snippet children(loaded)}
+									<FileDetails
+										contentSize={loaded.contentLength}
+										contentType={loaded.contentType}
+										displayType={loaded.displayType}
+										extension={loaded.extension}
+										fileName={loaded.fileName}
+										src={loaded.gatewayUrl}
+										text={loaded.text}
+									/>
+								{/snippet}
+							</ResourceBoundary>
+						</section>
+					{/if}
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
 
 		{#if children}
 			{@render children()}
 		{/if}
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 36ch;
+			}
+		}
+	}
+</style>

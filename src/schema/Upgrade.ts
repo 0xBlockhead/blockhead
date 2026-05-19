@@ -8,11 +8,12 @@ import {
 import { EntityType } from '$/schema/$EntityType.ts'
 import Network from '$/schema/Network.ts'
 
+/** Combined or single-layer upgrade label: references `NetworkExecutionUpgrade`; may also reference `NetworkConsensusUpgrade`. */
 export default {
 	entityType: EntityType.NetworkUpgrade,
 
-	label: 'Network Upgrade',
-	labelPlural: 'Network Upgrades',
+	label: 'Network upgrade',
+	labelPlural: 'Network upgrades',
 
 	id: type({
 		$network: Network.id,
@@ -51,13 +52,13 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$executionUpgrade',
+			name: '$networkExecutionUpgrade',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NetworkExecutionUpgrade,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: '$consensusUpgrade',
+			name: '$networkConsensusUpgrade',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NetworkConsensusUpgrade,
 			cardinality: EntityFieldCardinality.ZeroOrOne,

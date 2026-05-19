@@ -38,6 +38,14 @@
 	} = $props()
 
 
+	// State
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+
 	const summaryHref = (idArg: EntityId<typeof schema, EntityType.FarcasterFeed>) => (
 		idArg.variant === 'trending' ?
 			resolve('/farcaster/feed/trending')
@@ -49,21 +57,17 @@
 			resolve('/farcaster/feed')
 	)
 
-
-	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-
 	const parentNetwork = useEntity(
 		EntityType.FarcasterNetwork,
 		entityFieldReference.entityId,
-		{
-			$$feeds: { $: [Source.Farcaster_Rest] },
-		},
+		(
+			open ?
+				{
+					$$feeds: { $: [Source.Farcaster_Rest] },
+				}
+			:
+				{}
+		),
 	)
 
 	const feeds = derive(
@@ -92,12 +96,21 @@
 	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
 	getSortValue={(row) => stringify(row.value[EntityMetaKey.Id])}
 	placeholderKeys={new SvelteSet()}
-	placeholderText="Loading feeds…"
+	placeholderText="Loading Farcaster feeds (trending, FID, channel)…"
 	resource={feeds}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Farcaster feed definitions address hub APIs: trending timelines, numeric feed ids, per-user casts, or channel-scoped streams.
+					</p>
+					<p>
+						Each row’s parameters determine which cast hashes the hub returns—different ids are not interchangeable.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No feed entries yet.
+			No feeds yet.
 		</p>
 	{/snippet}
 

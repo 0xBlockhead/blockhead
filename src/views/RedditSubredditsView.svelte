@@ -7,6 +7,9 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
 
 	// Context
 	import { resolve } from '$app/paths'
@@ -29,9 +32,6 @@
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -45,11 +45,18 @@
 				Source.Constants_Internal,
 				Source.Reddit_Rest,
 			],
-			[fieldName]: {
-				$: [
-					Source.Reddit_Rest,
-				],
-			},
+			...(
+				open ?
+					{
+						[fieldName]: {
+							$: [
+								Source.Reddit_Rest,
+							],
+						},
+					}
+				:
+					{}
+			),
 		},
 	)
 
@@ -64,9 +71,9 @@
 					.toSorted((a, b) => (
 						stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
 					))
-					.map((value) => (
-						{ entityId: value[EntityMetaKey.Id] }
-					))
+					.map((value) => ({
+						entityId: value[EntityMetaKey.Id],
+					}))
 			)
 		},
 	)
@@ -91,9 +98,21 @@
 	getSortValue={(row) => row.entityId.name}
 	placeholderKeys={new SvelteSet<string>()}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Named communities on Reddit (<code>/r/…</code>).
+		</p>
+		<p>
+			Not chat inboxes, storage roots, or profile graphs from other networks.
+		</p>
+		<p>
+			Each list row is a Reddit community namespace—compare to profiles on X or blobs on content-addressed storage.
+		</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No Reddit communities to show yet.
+			No subreddits in this Reddit hub yet.
 		</p>
 	{/snippet}
 
@@ -112,3 +131,4 @@
 		{/if}
 	{/snippet}
 </EntitiesList>
+

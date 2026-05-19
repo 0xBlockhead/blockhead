@@ -3,6 +3,7 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -17,9 +18,8 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Props
@@ -51,6 +51,7 @@
 	> = $props()
 
 
+	// State
 	const txpoolLive = useEntity(
 		EntityType.Network_Txpool_Timestamp,
 		entityId,
@@ -60,7 +61,6 @@
 			queuedCount: {},
 		},
 	)
-
 
 	const defaultHref = resolve(
 		'/(explore)/(networks)/network/[networkId]',
@@ -75,7 +75,7 @@
 	href={href ?? defaultHref}
 	{layout}
 	{open}
-	title="Txpool snapshot"
+	title="Mempool"
 	{...entityViewRest}
 >
 	{#snippet Heading()}
@@ -83,6 +83,15 @@
 		<span data-text="font-monospace">
 			{String(entityId.timestampNs)}
 		</span>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					Txpool snapshots count pending and queued transactions from one execution node at one instant—mempool shape differs per client and peer view.
+				</p>
+				<p>
+					Pending transactions are executable under current chain rules; queued ones wait on nonces, balances, or gas bounds before they can enter a block.
+				</p>
 	{/snippet}
 
 	{#snippet Id()}
@@ -93,18 +102,18 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
-			placeholderText="Loading txpool…"
+			placeholderText="Loading mempool snapshot…"
 			resource={txpoolLive}
 		>
 			{#snippet children(p)}
 				{@const timestampMs = Number(entityId.timestampNs / 1_000_000n)}
-				<dl>
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
+				<dl data-column-item="center">
+					<div>
+						<dt>Id</dt>
+						<dd data-text="mono">
+							{@render Id()}
+						</dd>
+					</div>
 
 					<div>
 						<dt>As of</dt>
@@ -115,18 +124,20 @@
 							/>
 						</dd>
 					</div>
-					<div>
-						<dt>Pending</dt>
-						<dd>
-							<NumberValue value={p.pendingCount} />
-						</dd>
-					</div>
-					<div>
-						<dt>Queued</dt>
-						<dd>
-							<NumberValue value={p.queuedCount} />
-						</dd>
-					</div>
+					{#if open}
+						<div>
+							<dt>Pending (executable)</dt>
+							<dd>
+								<NumberValue value={p.pendingCount} />
+							</dd>
+						</div>
+						<div>
+							<dt>Queued (non-executable)</dt>
+							<dd>
+								<NumberValue value={p.queuedCount} />
+							</dd>
+						</div>
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
+	import { stringify } from 'devalue'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -19,8 +20,10 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
@@ -58,6 +61,11 @@
 	> = $props()
 
 
+	const connectionIdKey = $derived(
+		stringify(entityId),
+	)
+
+
 	const connection = useEntity(
 		EntityType.BlockheadFarcasterAccountConnection,
 		entityId,
@@ -71,9 +79,14 @@
 			displayName: {},
 			username: {},
 			$icon: {},
-			bio: {},
-			custody: {},
-			signedAt: {},
+			...(open ?
+				{
+					bio: {},
+					custody: {},
+					signedAt: {},
+				}
+			:
+				{}),
 		},
 	)
 </script>
@@ -148,100 +161,122 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<div data-column>
+		<dl data-column-item="center">
 			<ResourceBoundary
 				resource={connection}
 				placeholderText="Loading profile…"
 			>
 				{#snippet Pending()}{/snippet}
 				{#snippet children(c)}
-					<dl data-column-item="center">
+					<div>
+						<dt>FID</dt>
+						<dd data-text="mono">
+							{@render Id()}
+						</dd>
+					</div>
+					<div>
+						<dt>Link role</dt>
+						<dd data-text="muted">
+							Binds a Farcaster signer to a numeric FID so hub APIs can load custody, verifications, and casts for that identity. This is social-graph state—not wallet session keys, automated trading bots, or IPFS storage.
+						</dd>
+					</div>
+					{#if open}
 						<div>
-							<dt>FID</dt>
-							<dd data-text="mono">
-								{@render Id()}
+							<dt>Bio</dt>
+							<dd>
+								{#if c.bio != null && c.bio !== ''}
+									{c.bio}
+								{:else}
+									<span data-text="muted">No profile bio is set.</span>
+								{/if}
 							</dd>
 						</div>
-						{#if c.bio != null}
-							{#if c.bio !== ''}
-								<div>
-									<dt>Bio</dt>
-									<dd>{c.bio}</dd>
-								</div>
-							{/if}
-						{/if}
-						{#if c.bio == null}
-							<div>
-								<dt>Bio</dt>
-								<dd data-text="muted">No profile bio is set.</dd>
-							</div>
-						{/if}
-						{#if c.bio !== null}
-							{#if c.bio === ''}
-								<div>
-									<dt>Bio</dt>
-									<dd data-text="muted">No profile bio is set.</dd>
-								</div>
-							{/if}
-						{/if}
-						{#if open}
-							{#if c.custody}
-								<div>
-									<dt>Custody</dt>
-									<dd>
-										<TruncatedValue
-											value={c.custody}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</dd>
-								</div>
-							{/if}
-						{/if}
-						{#if open}
-							{#if c.signedAt !== undefined}
-								<div>
-									<dt>Signed in</dt>
-									<dd>
-										<Timestamp
-											timestamp={c.signedAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-						{/if}
-					</dl>
+					{/if}
+
+					{#if open && c.custody}
+						<div>
+							<dt>Custody</dt>
+							<dd>
+								<TruncatedValue
+									value={c.custody}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if open && c.signedAt !== undefined}
+						<div>
+							<dt>Signed in</dt>
+							<dd>
+								<Timestamp
+									timestamp={c.signedAt}
+									format={TimestampFormat.Both}
+								/>
+							</dd>
+						</div>
+					{/if}
 				{/snippet}
 			</ResourceBoundary>
-		</div>
+		</dl>
 	{/snippet}
 
 	{#snippet Details({
 		open: _open,
 	})}
+		<EntityDetails
+			entityType={EntityType.BlockheadFarcasterAccountConnection}
+			{entityId}
+		/>
+
+		<div
+			class="blockhead-farcaster-connection-carousel-groups"
+			data-column="gap-3"
+		>
+			<CollapsibleTabs
+				id={`${connectionIdKey}:carousel-feed`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({ open: _isOpen })}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Farcaster feed</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet Markers({ open: _markersOpen })}
+					<a
+						data-scroll-marker-label="Farcaster feed"
+						href={`#${connectionIdKey}:feed`}
+					>Farcaster feed</a>
+				{/snippet}
+
+				{#snippet children(_childrenContext)}
+					<section
+						id={`${connectionIdKey}:feed`}
+					>
+						<FarcasterCastsView
+							entityFieldReference={{
+								entityType: EntityType.FarcasterFeed,
+								entityId: {
+									variant: 'byUser',
+									fid: entityId.fid,
+								},
+								fieldName: '$$entries',
+							}}
+							id={`${connectionIdKey}:feed-list`}
+							title="Farcaster feed"
+							href={resolve(`/farcaster/feed/user/${String(entityId.fid)}`)}
+						/>
+					</section>
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
+
 		{#if children}
 			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.BlockheadFarcasterAccountConnection}
-				{entityId}
-			>
-				{#snippet children()}
-					<FarcasterCastsView
-						entityFieldReference={{
-							entityType: EntityType.FarcasterFeed,
-							entityId: {
-								variant: 'byUser',
-								fid: entityId.fid,
-							},
-							fieldName: '$$entries',
-						}}
-						id="casts"
-						title="Feed"
-						href={resolve(`/farcaster/feed/user/${String(entityId.fid)}`)}
-					/>
-				{/snippet}
-			</EntityDetails>
 		{/if}
 	{/snippet}
 </EntityView>

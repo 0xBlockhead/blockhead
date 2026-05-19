@@ -1,7 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -18,14 +20,21 @@
 		href,
 		id,
 		open = $bindable(true),
-		title = 'Posts',
-	}: {
-		entityFieldReference: EntityFieldReference<typeof schema, EntityType.XPost>
-		href: string
-		id: string
-		open?: boolean
-		title?: string
-	} = $props()
+		title = 'X posts',
+		...entitiesListRest
+	}: WithRest<
+		{
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.XPost>
+			href: string
+			id: string
+			open?: boolean
+			title?: string
+		},
+		Omit<
+			ComponentProps<typeof EntitiesList>,
+			'entityType'
+		>
+	> = $props()
 
 
 	// State
@@ -34,7 +43,6 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
 
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
@@ -69,11 +77,13 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import XPostView from '$/views/XPostView.svelte'
 </script>
 
 
 <EntitiesList
+	{...entitiesListRest}
 	bind:open
 	entityType={EntityType.XPost}
 	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
@@ -83,10 +93,20 @@
 	placeholderKeys={new SvelteSet()}
 	resource={envelopes}
 	{title}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Public posts on X (Twitter).
+		</p>
+		<p>
+			Not Reddit threads, blob storage, pools, candle data, chats, or logs. Live lookup depends on OAuth or bearer credentials and X developer API availability.
+		</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No X posts to show yet.
+			No X posts in this list yet.
 		</p>
 	{/snippet}
 

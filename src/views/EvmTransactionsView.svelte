@@ -8,16 +8,10 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
 	// Components
@@ -48,26 +42,41 @@
 	> = $props()
 
 
+	// State
+	import { stringify } from 'devalue'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		entityFieldReference.entityType === EntityType.EvmBlock ?
-			({
-				$$transactions: {
-					$: [
-						Source.Blockscout_Rest,
-						Source.Voltaire_JsonRpc,
-					],
-				},
-			})
+			(
+				open ?
+					{
+						$$transactions: {
+							$: [
+								Source.Blockscout_Rest,
+								Source.Voltaire_JsonRpc,
+							],
+						},
+					}
+				:
+					{}
+			)
 		:
-			({
-				$$transactions: {
-					$: [
-						Source.Blockscout_Rest,
-					],
-				},
-			}),
+			(
+				open ?
+					{
+						$$transactions: {
+							$: [
+								Source.Blockscout_Rest,
+							],
+						},
+					}
+				:
+					{}
+			),
 	)
 
 	const transactions = derive(
@@ -81,6 +90,9 @@
 					0,
 					entityFieldReference.entityType === EntityType.EvmBlock ?
 						100
+					:
+					entityFieldReference.entityType === EntityType.ActorNetwork ?
+						32
 					:
 						8,
 				)
@@ -102,9 +114,18 @@
 	bind:open
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Signed execution payloads included in a block or sitting in the mempool: gas fields, type (legacy/EIP-1559/blob), and logs follow that network’s rules.
+					</p>
+					<p>
+						Receipts add cumulative gas used, contract status, and event logs—full detail is only available once the tx is mined and indexed.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No transactions to show for this scope yet.
+			No transactions yet.
 		</p>
 	{/snippet}
 
@@ -130,7 +151,7 @@
 					layout={EntityLayout.Summary}
 					open={false}
 				/>
-			{:else if entityFieldReference.entityType === EntityType.Network}
+			{:else if entityFieldReference.entityType === EntityType.Network || entityFieldReference.entityType === EntityType.ActorNetwork}
 				<EvmTransactionView
 					entityId={t}
 					href={resolve(

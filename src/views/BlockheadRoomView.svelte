@@ -8,13 +8,6 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-
-
 	// Props
 	let {
 		children,
@@ -53,10 +46,22 @@
 				Source.Local_Internal,
 			],
 			name: {},
-			createdAt: {},
-			createdBy: {},
+			...(open ?
+				{
+					createdAt: {},
+					createdBy: {},
+				}
+			:
+				{}),
 		},
 	)
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -64,7 +69,7 @@
 	entityType={EntityType.BlockheadRoom}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Id()}
@@ -84,6 +89,15 @@
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					Realtime room records identify a shared session: display name, host metadata, and stable room id for presence sync.
+				</p>
+				<p>
+					Membership and permissions are carried on companion peer rows; rooms themselves are not XMPP MUC transcripts or IPFS DAGs.
+				</p>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={room}
@@ -91,48 +105,24 @@
 		>
 			{#snippet children(r)}
 				<dl>
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
+					<div>
+						<dt>Room session id</dt>
+						<dd data-text="mono">
+							{@render Id()}
+						</dd>
+					</div>
 
 					<div>
-						<dt>Room id</dt>
-						<dd>{entityId.id}</dd>
+						<dt>Room kind</dt>
+						<dd>
+							Realtime collaboration workspace.
+						</dd>
 					</div>
-					{#if r.createdAt !== undefined}
-						<div>
-							<dt>Created</dt>
-							<dd>
-								<Timestamp
-									timestamp={r.createdAt}
-									format={TimestampFormat.Both}
-								/>
-							</dd>
-						</div>
-					{/if}
+
 					{#if open}
-						{#if r.name !== undefined}
-							{#if r.name !== ''}
-								<div>
-									<dt>Name</dt>
-									<dd>{r.name}</dd>
-								</div>
-							{/if}
-						{/if}
-						{#if r.createdBy !== undefined}
-							{#if r.createdBy !== ''}
-								<div>
-									<dt>Created by</dt>
-									<dd>{r.createdBy}</dd>
-								</div>
-							{/if}
-						{/if}
 						{#if r.createdAt !== undefined}
 							<div>
-								<dt>Created at</dt>
+								<dt>Created</dt>
 								<dd>
 									<Timestamp
 										timestamp={r.createdAt}
@@ -140,6 +130,15 @@
 									/>
 								</dd>
 							</div>
+						{/if}
+
+						{#if r.createdBy !== undefined}
+							{#if r.createdBy !== ''}
+								<div>
+									<dt>Opened by</dt>
+									<dd>{r.createdBy}</dd>
+								</div>
+							{/if}
 						{/if}
 					{/if}
 				</dl>
@@ -157,24 +156,8 @@
 				entityType={EntityType.BlockheadRoom}
 				{entityId}
 			/>
-			<ResourceBoundary
-				resource={room}
-				placeholderText="Loading room…"
-			>
-				{#snippet children(r)}
-					{#if open}
-						{#if (
-							(r.name === undefined || r.name === '')
-							&& (r.createdBy === undefined || r.createdBy === '')
-							&& r.createdAt === undefined
-						)}
-							<p data-text="muted">
-								No room details are available yet.
-							</p>
-						{/if}
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+
 		{/if}
 	{/snippet}
 </EntityView>
+

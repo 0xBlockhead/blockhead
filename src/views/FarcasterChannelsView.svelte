@@ -56,9 +56,14 @@
 	const parentNetwork = useEntity(
 		EntityType.FarcasterNetwork,
 		entityFieldReference.entityId,
-		{
-			$$channels: { $: [Source.Farcaster_Rest] },
-		},
+		(
+			open ?
+				{
+					$$channels: { $: [Source.Farcaster_Rest] },
+				}
+			:
+				{}
+		),
 	)
 
 	const channels = derive(
@@ -85,13 +90,22 @@
 	getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
 	getSortValue={(row) => row.result[EntityMetaKey.Id].id}
 	placeholderKeys={new SvelteSet()}
-	placeholderText="Loading channels…"
+	placeholderText="Loading Farcaster channels (channel id / slug)…"
 	resource={channels}
 	{...entitiesListProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Farcaster channels are namespaces (ids/slugs) that collect casts; hub APIs expose directory pages of channel metadata.
+					</p>
+					<p>
+						A channel is not a wallet, a FID, nor an on-chain contract—just social grouping on the protocol graph.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No channels loaded for this network yet. Try again shortly.
+			No channels yet.
 		</p>
 	{/snippet}
 

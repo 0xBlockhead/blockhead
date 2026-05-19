@@ -47,6 +47,10 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+	const entityIdKey = $derived(
+		stringify(entityId),
+	)
+
 	const pointLive = useEntity(
 		EntityType.Market_TimeInterval_Timestamp,
 		entityId,
@@ -55,17 +59,21 @@
 				Source.Coingecko_Rest,
 				Source.Constants_Internal,
 			],
-			open: {},
-			high: {},
-			low: {},
 			close: {},
+			...(open && {
+				open: {},
+				high: {},
+				low: {},
+			}),
 		},
 	)
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import Heading from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import MarketView from '$/views/MarketView.svelte'
@@ -74,7 +82,6 @@
 
 
 <EntityView
-	{...entityViewRest}
 	entityType={EntityType.Market_TimeInterval_Timestamp}
 	{entityId}
 	href={href ?? resolve(
@@ -84,32 +91,27 @@
 		},
 	)}
 	{layout}
-	{open}
+	bind:open
+	title={`Market interval OHLC · ${formatMarketTimeIntervalLabel(entityId.timeInterval)} · candle at interval boundary`}
+	{...entityViewRest}
 >
 	{#snippet Id()}
 		<span data-text="font-monospace">
-			timestamp
+			interval start (candle boundary)
 		</span>
 	{/snippet}
 
 	{#snippet Heading()}
-		{`OHLC ${formatMarketTimeIntervalLabel(entityId.timeInterval)}`}
+		{`${formatMarketTimeIntervalLabel(entityId.timeInterval)} OHLC`}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={pointLive}
-			placeholderText="Loading OHLC point…"
+			placeholderText="Loading OHLC candle…"
 		>
 			{#snippet children(pointLoaded)}
-				<dl>
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
+				<dl data-column-item="center">
 					{#if pointLoaded.close !== undefined}
 						<div>
 							<dt>Close</dt>
@@ -126,7 +128,7 @@
 					{/if}
 
 					<div>
-						<dt>At</dt>
+						<dt>Interval start</dt>
 						<dd>
 							<Timestamp
 								format={TimestampFormat.Both}
@@ -137,27 +139,27 @@
 					{#if open}
 						{#if pointLoaded.open !== undefined}
 							<div>
-								<dt>Open</dt>
+								<dt>Open (1e8)</dt>
 								<dd>{String(pointLoaded.open)}</dd>
 							</div>
 						{/if}
 
 						{#if pointLoaded.high !== undefined}
 							<div>
-								<dt>High</dt>
+								<dt>High (1e8)</dt>
 								<dd>{String(pointLoaded.high)}</dd>
 							</div>
 						{/if}
 
 						{#if pointLoaded.low !== undefined}
 							<div>
-								<dt>Low</dt>
+								<dt>Low (1e8)</dt>
 								<dd>{String(pointLoaded.low)}</dd>
 							</div>
 						{/if}
 
 						<div>
-							<dt>Timestamp (ns)</dt>
+							<dt>Candle boundary (interval start · ns)</dt>
 							<dd>{String(entityId.timestampNs)}</dd>
 						</div>
 					{/if}
@@ -166,32 +168,74 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({ open: _open })}
+	{#snippet Details()}
 		<EntityDetails
 			entityType={EntityType.Market_TimeInterval_Timestamp}
 			{entityId}
 		/>
 
-		<section>
-			<h2>
-				Market
-			</h2>
-			<MarketView
-				entityId={entityId.$market}
-				href={resolve(
-					'/(assets)/coins/market/[marketKey]',
-					{
-						marketKey: encodeURIComponent(stringify(entityId.$market)),
-					},
-				)}
-				id={`${stringify(entityId)}:market`}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		</section>
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
+			<CollapsibleTabs
+				id={`${entityIdKey}:carousel-related`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+					style: '--carousel-basis: 40ch',
+				}}
+			>
+				{#snippet Summary({
+					open: _isOpen,
+				})}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<Heading>
+							Related pair market
+						</Heading>
+					</header>
+				{/snippet}
 
-		{#if children}
-			{@render children()}
-		{/if}
+				{#snippet children(_ctx)}
+					<section data-scroll-marker-label="Pair market">
+						<MarketView
+							entityId={entityId.$market}
+							href={resolve(
+								'/(assets)/coins/market/[marketKey]',
+								{
+									marketKey: encodeURIComponent(stringify(entityId.$market)),
+								},
+							)}
+							id={`${entityIdKey}:market`}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					</section>
+
+					{#if children}
+						<section data-scroll-marker-label="More">
+							{@render children()}
+						</section>
+					{/if}
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 40ch;
+			}
+		}
+	}
+</style>

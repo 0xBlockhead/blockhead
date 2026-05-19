@@ -25,7 +25,7 @@
 		href,
 		id,
 		open = $bindable(true),
-		title = 'Actors',
+		title = 'Federated actors',
 		...entitiesListRest
 	}: WithRest<
 		{
@@ -57,21 +57,38 @@
 		entityFieldReference.entityId,
 		{
 			$: [Source.Constants_Internal],
-			protocolName: {},
-			$$activityPubActors: {
-				$: [
-					Source.Constants_Internal,
-					Source.Mastodon_Rest,
-				],
-			},
+			...(open ?
+				{
+					protocolName: {},
+					$$activityPubActors: {
+						$: [
+							Source.Constants_Internal,
+							Source.Mastodon_Rest,
+						],
+					},
+				}
+			:
+				{}),
 		},
 	)
 
 	const actors = derive(
 		activityPubNetwork,
 		(loaded) => (
-			loaded.$$activityPubActors
-			?? []
+			(loaded.$$activityPubActors ?? [])
+				.toSorted((a, b) => {
+					const left = a[EntityMetaKey.Id]
+					const right = b[EntityMetaKey.Id]
+					const originCompare = (
+						left.instanceOrigin.localeCompare(right.instanceOrigin)
+					)
+					return (
+						originCompare !== 0 ?
+							originCompare
+						:
+							left.localAccountId.localeCompare(right.localAccountId)
+					)
+				})
 		),
 	)
 </script>
@@ -85,6 +102,18 @@
 	{title}
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						ActivityPub actors federate across instances; each id pairs an origin host with a local account id (Mastodon-style).
+					</p>
+					<p>
+						Actor rows are discovery records—handles, inbox/outbox, and public keys live behind WebFinger and collection endpoints on the home instance.
+					</p>
+					<p>
+						Sorted like the instance directory collection response.
+					</p>
+	{/snippet}
+
 	{#snippet body()}
 		{#key stringify(entityFieldReference.entityId)}
 			<EntitiesList
@@ -96,14 +125,14 @@
 				{title}
 				open={true}
 				getKey={(row) => stringify(row[EntityMetaKey.Id])}
-				getSortValue={(row) => row[EntityMetaKey.Id].localAccountId}
+				getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
 				placeholderKeys={new SvelteSet()}
-				placeholderText="Loading ActivityPub network…"
+				placeholderText="Loading Mastodon actor directory…"
 				resource={actors}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No ActivityPub actors to show yet.
+						No actors yet.
 					</p>
 				{/snippet}
 

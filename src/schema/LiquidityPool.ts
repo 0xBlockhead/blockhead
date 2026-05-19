@@ -1,5 +1,6 @@
 import { type } from 'arktype'
 
+// On-chain concentrated-liquidity AMM pool. EntityType.Vault models the same Dexscreener-style rows under the route label Vault in places.
 import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,

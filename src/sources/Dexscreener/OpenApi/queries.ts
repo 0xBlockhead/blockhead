@@ -3,17 +3,12 @@
  * @see https://docs.dexscreener.com/api/reference
  */
 
-import type { paths } from '$/sources/Dexscreener/OpenApi/openapi.d.ts'
-
-import {
-	getDexscreenerJson,
-	type DexscreenerPairsResponse,
-	type DexscreenerTokenPairsResponse,
-} from '$/sources/Dexscreener/OpenApi/client.ts'
-
-export type DexscreenerSearchResponse = (
-	paths['/latest/dex/search']['get']['responses'][200]['content']['application/json']
-)
+import { getDexscreenerJson } from '$/sources/Dexscreener/OpenApi/client.ts'
+import type {
+	DexscreenerPairsResponse,
+	DexscreenerSearchResponse,
+	DexscreenerTokenPairsResponse,
+} from '$/sources/Dexscreener/OpenApi/types.ts'
 
 export const getDexscreenerLatestPairs = async ({
 	chainId,

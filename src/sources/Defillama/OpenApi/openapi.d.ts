@@ -437,14 +437,22 @@ export interface paths {
                         "application/json": {
                             coins?: {
                                 "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1"?: {
-                                    /** @example 8 */
+                                    /**
+                                     * @description Token decimals. Omitted for coingecko-native assets (e.g. coingecko:ethereum).
+                                     * @example 8
+                                     */
                                     decimals?: number;
                                     /** @example 0.022053735051098835 */
-                                    price?: number;
+                                    price: number;
                                     /** @example cDAI */
-                                    symbol?: string;
+                                    symbol: string;
                                     /** @example 0.99 */
-                                    timestamp?: number;
+                                    timestamp: number;
+                                    /**
+                                     * @description Confidence score between 0 and 1 indicating the reliability of the price.
+                                     * @example 0.99
+                                     */
+                                    confidence?: number;
                                 };
                             };
                         };
@@ -504,14 +512,22 @@ export interface paths {
                         "application/json": {
                             coins?: {
                                 "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1"?: {
-                                    /** @example 8 */
+                                    /**
+                                     * @description Token decimals. Omitted for coingecko-native assets (e.g. coingecko:ethereum).
+                                     * @example 8
+                                     */
                                     decimals?: number;
                                     /** @example 0.022053735051098835 */
-                                    price?: number;
+                                    price: number;
                                     /** @example cDAI */
-                                    symbol?: string;
+                                    symbol: string;
                                     /** @example 1648680149 */
-                                    timestamp?: number;
+                                    timestamp: number;
+                                    /**
+                                     * @description Confidence score between 0 and 1 indicating the reliability of the price.
+                                     * @example 0.99
+                                     */
+                                    confidence?: number;
                                 };
                             };
                         };
@@ -647,18 +663,24 @@ export interface paths {
                         "application/json": {
                             coins?: {
                                 "ethereum:0xdF574c24545E5FfEcb9a659c229253D4111d87e1"?: {
-                                    /** @example 8 */
+                                    /**
+                                     * @description Token decimals. Omitted for coingecko-native assets (e.g. coingecko:ethereum).
+                                     * @example 8
+                                     */
                                     decimals?: number;
-                                    /** @example 0.99 */
-                                    confidence?: number;
-                                    prices?: {
+                                    /**
+                                     * @description Confidence score between 0 and 1 indicating the reliability of the price.
+                                     * @example 0.99
+                                     */
+                                    confidence: number;
+                                    prices: {
                                         /** @example 1666790570 */
                                         timestamp?: number;
                                         /** @example 0.984519 */
                                         price?: number;
                                     }[];
                                     /** @example HUSD */
-                                    symbol?: string;
+                                    symbol: string;
                                 };
                             };
                         };

@@ -17,7 +17,11 @@
 
 export const restPath = '/api/v2'
 
-/** Inclusive maximum for the `items_count` query param on paginated v2 list endpoints (422 above this). */
+/**
+ * Inclusive maximum list size for Blockscout REST v2 pagination (clamp client limits here).
+ * Standard list endpoints use query param **`items_count`** (422 above this).
+ * **`/proxy/account-abstraction/*`** list routes expect **`page_size`** instead (same numeric ceiling).
+ */
 export const blockscoutV2ItemsCountMax = 50
 
 /**
@@ -107,4 +111,10 @@ export const blockscoutExplorerOriginForChain = (
 ): string | undefined => {
 	const v = blockscoutExplorerOriginByChainId[chainId]
 	return typeof v === 'string' ? v : undefined
+}
+
+/** Same predicate Blockscout resolvers use before calling REST v2 list endpoints. */
+export const blockscoutExplorerRestV2SupportedForChain = (chainId: number): boolean => {
+	const origin = blockscoutExplorerOriginForChain(chainId)
+	return origin != null && blockscoutRestV2AtExplorerOrigin(origin)
 }

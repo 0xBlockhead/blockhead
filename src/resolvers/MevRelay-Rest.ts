@@ -9,7 +9,7 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import type { ProposerPayloadDeliveredRowWire } from '$/sources/MevRelay/Rest/queries.ts'
+import type { ProposerPayloadDeliveredRowWire } from '$/sources/MevRelay/Rest/types.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const parsePayloadSlot = (row: ProposerPayloadDeliveredRowWire): number | undefined => {

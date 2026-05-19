@@ -1,26 +1,21 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
+
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
+	// Props
 	let {
 		entityFieldReference,
 		title = 'Contacts',
@@ -39,16 +34,27 @@
 		Omit<ComponentProps<typeof EntitiesList>, 'entityType'>
 	> = $props()
 
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { SvelteSet } from 'svelte/reactivity'
+
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Local_Internal,
-				],
-			},
-		},
+		(
+			open ?
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Local_Internal,
+						],
+					},
+				}
+			:
+				{}
+		),
 	)
 
 	const contacts = derive(
@@ -73,6 +79,7 @@
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import ContactView from '$/views/ContactView.svelte'
 </script>
 
@@ -90,18 +97,27 @@
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Contacts are execution addresses a peer has shared for this collaboration room.
+					</p>
+					<p>
+						They support session routing—not a generic address book export from a wallet.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No contacts yet.
+			No shared contacts yet.
 		</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
+	{#snippet Item({ item })}
+		{#if item}
 			<ContactView
-				entityId={props.item.value[EntityMetaKey.Id]}
+				entityId={item.value[EntityMetaKey.Id]}
 				href={resolve('/~/(multiplayer)/multiplayer/(contacts)/contact/[contactId]', {
-					contactId: props.item.value[EntityMetaKey.Id].id,
+					contactId: item.value[EntityMetaKey.Id].id,
 				})}
 				layout={EntityLayout.Summary}
 				open={false}

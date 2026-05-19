@@ -26,24 +26,3 @@ export const getCoinpaprikaJson = async <_Response>(
 
 	return response.json<_Response>()
 }
-
-export type CoinpaprikaCoin = {
-	id?: string
-	name?: string
-	symbol?: string
-	logo?: string
-}
-
-export type CoinpaprikaTicker = {
-	id?: string
-	name?: string
-	symbol?: string
-	last_updated?: string
-	quotes?: {
-		USD?: {
-			price?: number
-			market_cap?: number
-			volume_24h?: number
-		}
-	}
-}

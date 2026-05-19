@@ -4,20 +4,31 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
+	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import Network_Txpool_TimestampView from '$/views/Network_Txpool_TimestampView.svelte'
+
+
 	// Props
 	let {
-		title = 'Txpool snapshots',
+		title = 'Mempool',
 		open = $bindable(true),
 		entityFieldReference,
 		...entitiesListRest
@@ -35,12 +46,6 @@
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 	const fieldName = entityFieldReference.fieldName
 
 	const parentEntity = useEntity(
@@ -74,12 +79,6 @@
 			)
 		},
 	)
-
-
-	// Components
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import Network_Txpool_TimestampView from '$/views/Network_Txpool_TimestampView.svelte'
 </script>
 
 
@@ -92,13 +91,23 @@
 		-Number(row.value[EntityMetaKey.Id].timestampNs)
 	)}
 	placeholderKeys={new SvelteSet<string>()}
+	placeholderText="Loading mempool samples…"
 	resource={rows}
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Each row captures how many transactions were waiting in the mempool at one instant—pending versus queued.
+					</p>
+					<p>
+						Samples appear when the execution client exposes txpool inspection for this chain.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No txpool snapshots yet.
+			No mempool snapshots yet.
 		</p>
 	{/snippet}
 

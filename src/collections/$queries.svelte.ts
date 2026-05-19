@@ -226,9 +226,9 @@ export const useEntity1 = <
 													.map((fieldRow) => (
 														fieldRow[EntityMetaKey.Value]
 													)),
-											].find((value) => value !== undefined),
+											].find((value) => value != null),
 									])
-									.filter(([, value]) => value !== undefined),
+									.filter(([, value]) => value != null),
 							),
 						},
 					}
@@ -372,9 +372,9 @@ export const useEntity2 = <
 										[
 											...(entityRowsQuery.data?.map(({ entityRow }) => entityRow[EntityMetaKey.Fields][fieldName]) ?? []),
 											...(fieldRowsQueries[fieldName]?.data?.map(({ fieldRow }) => fieldRow[EntityMetaKey.Value]) ?? []),
-										].find((value) => value !== undefined),
+										].find((value) => value != null),
 								])
-								.filter(([, value]) => value !== undefined),
+								.filter(([, value]) => value != null),
 						),
 					}
 				:
@@ -700,10 +700,10 @@ export const useEntity3 = <
 									...(fieldRowsByField[fieldName] ?? []).map(({ fieldRow }) => (
 										fieldRow[EntityMetaKey.Value]
 									)),
-								].find((value) => value !== undefined),
+								].find((value) => value != null),
 						]
 					})
-					.filter(([, value]) => value !== undefined),
+					.filter(([, value]) => value != null),
 			),
 		}
 	})

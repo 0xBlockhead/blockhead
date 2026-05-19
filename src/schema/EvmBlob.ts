@@ -1,5 +1,6 @@
 import { type } from 'arktype'
 
+// EIP-4844-style execution blob sidecar: versioned commitment tied to a blob tx hash, not contract storage or IPFS blobs.
 import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
@@ -49,6 +50,15 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
+			],
+		},
+		{
+			name: 'blobscanBlobJson',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Blobscan_Rest,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

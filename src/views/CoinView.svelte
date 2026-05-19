@@ -1,33 +1,21 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { MarketAssetKind } from '$/constants/Market.ts'
 	import { MarketVenueId } from '$/constants/MarketVenue.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import CoinInstancesView from '$/views/CoinInstancesView.svelte'
-	import MarketPriceRangesView from '$/views/MarketPriceRangesView.svelte'
-	import MarketPriceView from '$/views/MarketPriceView.svelte'
-	import MarketsView from '$/views/MarketsView.svelte'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Props
@@ -61,6 +49,8 @@
 
 
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const coinIdentity = useEntity(
 		EntityType.Coin,
 		entityId,
@@ -69,12 +59,14 @@
 				Source.Coingecko_Rest,
 				Source.CoinMarketCap_Rest,
 				Source.Coinpaprika_OpenApi,
-				Source.Defillama_Rest,
+				Source.Defillama_OpenApi,
 				Source.Constants_Internal,
 			],
 			decimals: {},
 			name: {},
 			symbol: {},
+			marketCapRank: {},
+			marketCapUsd: {},
 		},
 	)
 
@@ -86,15 +78,20 @@
 				Source.Coingecko_Rest,
 				Source.CoinMarketCap_Rest,
 				Source.Coinpaprika_OpenApi,
-				Source.Defillama_Rest,
+				Source.Defillama_OpenApi,
 				Source.Constants_Internal,
 			],
-			$$marketPrice: {},
+			...(open ?
+				{
+					$$marketPrice: {},
+				}
+				:
+				{}),
 		},
 	)
 
-	const spotPriceEntityId = (
-		{
+	const spotPriceEntityId =
+		({
 			$market: {
 				$base: {
 					kind: MarketAssetKind.Coin,
@@ -108,27 +105,44 @@
 					marketVenueId: MarketVenueId.SpotIndex,
 				},
 			},
-		} as const
-	)
+		}) satisfies EntityId<
+			typeof schema,
+			EntityType.MarketPrice
+		>
 
 	const hideHeadingSecondaryCoinSlugMatchesHeadingFallback = $derived(
 		coinIdentity.ready
 		&& coinIdentity.current.symbol === undefined
 		&& coinIdentity.current.name === undefined,
 	)
+
+
+	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import CoinInstancesView from '$/views/CoinInstancesView.svelte'
+	import MarketPriceRangesView from '$/views/MarketPriceRangesView.svelte'
+	import MarketPriceView from '$/views/MarketPriceView.svelte'
+	import MarketsView from '$/views/MarketsView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.Coin}
+	bind:open
 	{entityId}
 	{href}
 	{layout}
-	{open}
 	{...entityViewRest}
 >
 	{#snippet Heading()}
-		<ResourceBoundary resource={coinIdentity}>
+		<ResourceBoundary
+			resource={coinIdentity}
+			placeholderText="Loading…"
+		>
 			{#snippet children(live)}
 				{live.symbol ?? live.name ?? entityId.coinId}
 			{/snippet}
@@ -141,7 +155,16 @@
 		</span>
 	{/snippet}
 
-
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A logical <strong>CAIP-19 coin</strong>
+			id groups every on-chain deployment, time-stamped fundamentals snapshots, and market quote streams for the same asset so duplicate tickers from rival data vendors stay separable by catalog key and vendor attribution.
+		</p>
+		<p>
+			Each <strong>coin instance</strong>
+			row is anchored on one execution chain—either the native gas asset or a token contract—while sharing the same catalog coin id across networks.
+		</p>
+	{/snippet}
 
 	{#snippet Content({
 		title: _contentTitle,
@@ -149,7 +172,7 @@
 	})}
 		<ResourceBoundary resource={coinIdentity}>
 			{#snippet children(live)}
-				<dl>
+				<dl data-column-item="center">
 					{#if !hideHeadingSecondaryCoinSlugMatchesHeadingFallback}
 						<div>
 							<dt>Coin id</dt>
@@ -158,6 +181,21 @@
 							</dd>
 						</div>
 					{/if}
+
+					{#if live.marketCapRank != null && Number.isFinite(live.marketCapRank)}
+						<div>
+							<dt>Market cap rank</dt>
+							<dd>{String(live.marketCapRank)}</dd>
+						</div>
+					{/if}
+
+					{#if live.marketCapUsd != null && Number.isFinite(live.marketCapUsd)}
+						<div>
+							<dt>Market cap (USD)</dt>
+							<dd>{String(live.marketCapUsd)}</dd>
+						</div>
+					{/if}
+
 					{#if open}
 						{#if live.name !== undefined}
 							<div>
@@ -165,6 +203,7 @@
 								<dd>{live.name}</dd>
 							</div>
 						{/if}
+
 						{#if live.decimals !== undefined}
 							<div>
 								<dt>Decimals</dt>
@@ -214,9 +253,21 @@
 					</header>
 				{/snippet}
 
+				{#snippet Markers({ open: _markersOpen })}
+					<a
+						data-scroll-marker-label="Spot"
+						href={`#${idPrefix}:price`}
+					>Spot</a>
+					<a
+						data-scroll-marker-label="Historical"
+						href={`#${idPrefix}:market-price-ranges`}
+					>Historical</a>
+				{/snippet}
+
 				{#snippet children({ open: _detailsOpen })}
-					<section data-scroll-marker-label="Spot">
+					<section>
 							<ResourceBoundary
+								placeholderText="Loading spot price…"
 								resource={coinSpotPrice}
 							>
 								{#snippet children(priceLive)}
@@ -236,7 +287,7 @@
 							</ResourceBoundary>
 						</section>
 
-						<section data-scroll-marker-label="Historical">
+						<section>
 							<MarketPriceRangesView
 								collapsible={false}
 								entityFieldReference={{
@@ -272,8 +323,19 @@
 					</header>
 				{/snippet}
 
+				{#snippet Markers({ open: _markersOpen })}
+					<a
+						data-scroll-marker-label="As base"
+						href={`#${idPrefix}:markets-as-base`}
+					>As base</a>
+					<a
+						data-scroll-marker-label="As quote"
+						href={`#${idPrefix}:markets-as-quote`}
+					>As quote</a>
+				{/snippet}
+
 				{#snippet children({ open: _detailsOpen })}
-					<section data-scroll-marker-label="As base">
+					<section>
 						<MarketsView
 							collapsible={false}
 							entityFieldReference={{
@@ -289,7 +351,7 @@
 						/>
 					</section>
 
-					<section data-scroll-marker-label="As quote">
+					<section>
 						<MarketsView
 							collapsible={false}
 							entityFieldReference={{
@@ -322,13 +384,20 @@
 						data-row="wrap gap-4"
 					>
 						<HeadingComponent>
-							Instances
+							Execution deployments
 						</HeadingComponent>
 					</header>
 				{/snippet}
 
+				{#snippet Markers({ open: _markersOpen })}
+					<a
+						data-scroll-marker-label="Instances"
+						href={`#${idPrefix}:coin-instances`}
+					>Deployments</a>
+				{/snippet}
+
 				{#snippet children({ open: _detailsOpen })}
-					<section data-scroll-marker-label="Instances">
+					<section>
 						<CoinInstancesView
 							collapsible={false}
 							entityFieldReference={{

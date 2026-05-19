@@ -122,16 +122,33 @@ export const entityFieldCollectionItemKey = <_Value>(entityFieldItem: {
 		.join('\x1E')
 )
 
+/** Optional sort facets merged onto compact `Coin` refs for `$$coins` (see Coingecko `$$coins` resolver). */
+const denormalizedCoinListSortKeys = [
+	'marketCapRank',
+	'marketCapUsd',
+] as const
+
 const entityFieldCollectionValue = <_Value>(
 	value: _Value,
 ): EntityFieldCollectionValue<_Value> => (
 	value != null
 	&& typeof value === 'object'
 	&& hasEntityValueId(value) ?
-		{
+		({
 			[EntityMetaKey.Id]: value[EntityMetaKey.Id],
 			[EntityMetaKey.IdKey]: stringify(value[EntityMetaKey.Id]),
-		} as EntityFieldCollectionValue<_Value>
+			...Object.fromEntries(
+				denormalizedCoinListSortKeys.flatMap((sortKey) => {
+					const raw = (value as Record<string, unknown>)[sortKey]
+					return (
+						typeof raw === 'number' && Number.isFinite(raw) ?
+							[[sortKey, raw] as const]
+						:
+							[]
+					)
+				}),
+			),
+		} as EntityFieldCollectionValue<_Value>)
 	:
 		value as EntityFieldCollectionValue<_Value>
 )
@@ -541,13 +558,34 @@ const persistOnDemandSubsets = <_Options>(options: _Options) => {
 					...syncResult,
 					loadSubset: (loadSubsetOptions: LoadSubsetOptions) => {
 						const loadedKey = loadedSubsetMetadataKey(loadSubsetOptions)
+						const subsetFilters = parseLoadSubsetForQueryFn(loadSubsetOptions).filters
+						const sourceInFilter = subsetFilters.find((filter) => (
+							filter.operator === 'in'
+							&& filter.field.length === 1
+							&& String(filter.field[0]) === EntityMetaKey.Source
+						))
+						const subsetListsMultipleSources = sourceInFilter != null
+						const everyListedSourceHydrated = (
+							!subsetListsMultipleSources
+							|| collectionHasHydratedSubset(params.collection, loadSubsetOptions)
+						)
+
 						if (collectionHasHydratedSubset(params.collection, loadSubsetOptions))
 							return true
-						if (params.metadata?.collection.get(loadedKey) === true)
+						if (
+							params.metadata?.collection.get(loadedKey) === true
+							&& everyListedSourceHydrated
+						)
 							return true
 
 						const markLoaded = () => {
 							if (params.begin == null || params.commit == null || params.metadata == null)
+								return
+							const subsetComplete = (
+								!subsetListsMultipleSources
+								|| collectionHasHydratedSubset(params.collection, loadSubsetOptions)
+							)
+							if (!subsetComplete)
 								return
 							params.begin()
 							params.metadata.collection.set(loadedKey, true)
@@ -564,10 +602,14 @@ const persistOnDemandSubsets = <_Options>(options: _Options) => {
 							return remote ?? true
 						}
 
-						const hasSnapshotChanges = collectionSnapshotHasChanges(params.collection, loadSubsetOptions)
+						const hasSnapshotChanges = collectionSnapshotHasChanges(
+							params.collection,
+							loadSubsetOptions,
+						)
+
 						if (hasSnapshotChanges === undefined)
 							return loadRemoteAndMarkLoaded()
-						if (hasSnapshotChanges)
+						if (hasSnapshotChanges && everyListedSourceHydrated)
 							return true
 
 						return loadRemoteAndMarkLoaded()

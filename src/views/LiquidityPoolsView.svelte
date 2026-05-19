@@ -45,14 +45,19 @@
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Dexscreener_OpenApi,
-				],
-				limit,
-			},
-		},
+		(
+			open ?
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Dexscreener_OpenApi,
+						],
+						limit,
+					},
+				}
+			:
+				{}
+		),
 	)
 
 	const envelopes = derive(
@@ -76,8 +81,9 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
 </script>
 
@@ -96,9 +102,25 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet Empty()}
-		<p data-text="muted">
-			No liquidity pools indexed yet.
-		</p>
+		<div data-row="wrap align-center gap-2">
+			<p data-text="muted">
+				No concentrated-liquidity pools in this slice yet.
+			</p>
+			<Tooltip contentProps={{ side: 'top' }}>
+				{#snippet Content()}
+					<p>
+						Each row is the shared pool curve (pair, fee, ticks, aggregate liquidity).
+					</p>
+					<p>
+						Individual LP ranges are listed under positions, not here.
+					</p>
+				{/snippet}
+				<abbr
+					class="entity-heading-tip"
+					aria-label="About pool rows"
+				>ⓘ</abbr>
+			</Tooltip>
+		</div>
 	{/snippet}
 
 	{#snippet Item(props)}

@@ -11,6 +11,14 @@
 	import { resolve } from '$app/paths'
 
 
+	// Props
+	let {
+		open = $bindable(true),
+	}: {
+		open?: boolean
+	} = $props()
+
+
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -21,8 +29,6 @@
 	)
 
 	const networkIdKey = stringify(entityId)
-
-	let open = $bindable(true)
 
 	const lensNetwork = useEntity(
 		EntityType.LensNetwork,
@@ -55,8 +61,17 @@
 	{entityId}
 	href={resolve('/(social)/lens')}
 	bind:open
-	title="Lens"
+	title="Lens Protocol v3"
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Lens v3 separates publisher profiles (addresses and account metadata) from publications (posts, mirrors, collects) surfaced as distinct entity lists.
+		</p>
+		<p>
+			Counts here reflect the Graph-backed slice wired for this app; they index protocol activity the resolver exposes, not an exhaustive offline mirror of Lens.
+		</p>
+	{/snippet}
+
 	{#snippet Heading()}
 
 		<span data-text="font-monospace">
@@ -67,17 +82,17 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={lensNetwork}>
 			{#snippet children(loaded)}
-				<dl>
+				<dl data-column-item="center">
 					<div>
 						<dt>Scope</dt>
 						<dd>{entityId.scope}</dd>
 					</div>
 					<div>
-						<dt>Accounts</dt>
+						<dt>Profiles</dt>
 						<dd>{String(loaded.$$lensAccounts.length)}</dd>
 					</div>
 					<div>
-						<dt>Posts</dt>
+						<dt>Publications</dt>
 						<dd>{String(loaded.$$lensPosts.length)}</dd>
 					</div>
 					{#if open}
@@ -121,7 +136,7 @@
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
-					style: '--carousel-basis: 36ch',
+					style: '--carousel-basis: 40ch',
 				}}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
@@ -136,7 +151,7 @@
 				{/snippet}
 
 				{#snippet children({ open: _o })}
-					<section data-scroll-marker-label="Accounts">
+					<section data-scroll-marker-label="Profiles">
 						<LensAccountsView
 							entityFieldReference={{
 								entityType: EntityType.LensNetwork,
@@ -149,7 +164,7 @@
 						/>
 					</section>
 
-					<section data-scroll-marker-label="Recent posts">
+					<section data-scroll-marker-label="Recent publications">
 						<LensPostsView
 							entityFieldReference={{
 								entityType: EntityType.LensNetwork,
@@ -159,7 +174,7 @@
 							href={resolve('/(social)/lens')}
 							id={`${networkIdKey}:posts`}
 							open={false}
-							title="Recent posts"
+							title="Recent Lens v3 publications"
 						/>
 					</section>
 				{/snippet}
@@ -186,7 +201,7 @@
 						<a href={resolve('/(social)/lens/account/[address]', {
 							address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
 						})}>
-							Account example
+							Lens v3 profile example
 						</a>
 					</li>
 					<li>
@@ -195,7 +210,7 @@
 								'0x0000000000000000000000000000000000000000000000000000000000000001',
 							),
 						})}>
-							Post example
+							Lens v3 publication example
 						</a>
 					</li>
 				</ul>

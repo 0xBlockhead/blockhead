@@ -11,8 +11,8 @@ import Market from '$/schema/Market.ts'
 export default {
 	entityType: EntityType.Market_Timestamp,
 
-	label: 'Market Timestamp',
-	labelPlural: 'Market Timestamps',
+	label: 'Spot quote',
+	labelPlural: 'Spot quotes',
 
 	id: type({
 		$market: Market.id,

@@ -75,13 +75,15 @@
 			$: [
 				Source.Beacon_Rest,
 			],
-			epoch: {},
 			proposerIndex: {},
-			root: {},
-			parentRoot: {},
-			stateRoot: {},
-			bodyRoot: {},
-			canonical: {},
+			...(open && {
+				epoch: {},
+				root: {},
+				parentRoot: {},
+				stateRoot: {},
+				bodyRoot: {},
+				canonical: {},
+			}),
 		},
 	)
 </script>
@@ -93,10 +95,16 @@
 	{title}
 	{href}
 	{layout}
-	{open}
+	bind:open
 	idDragPlainText={String(entityId.slot)}
 	{...entityViewRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Beacon consensus slot: one timestep for the proposer duty and attestations; slot length is defined by the chain’s consensus spec.
+		</p>
+	{/snippet}
+
 	{#snippet Heading()}
 
 		<span data-text="font-monospace">
@@ -111,71 +119,89 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl>
+		<dl data-column-item="center">
 			<div>
-				<dt>Id</dt>
+				<dt>Execution layer chain</dt>
 				<dd data-text="mono">
 					{@render Id()}
 				</dd>
 			</div>
 
-			<ResourceBoundary resource={slot}>
+			<ResourceBoundary
+				resource={slot}
+				placeholderText="Loading slot…"
+			>
 				{#snippet children(s)}
 					<div>
-						<dt>Proposer</dt>
+						<dt>Consensus proposer index</dt>
 						<dd>
 							<NumberValue value={s.proposerIndex} />
 						</dd>
 					</div>
 					{#if open}
-						<div>
-							<dt>Root</dt>
-							<dd>
-								<TruncatedValue
-									value={s.root}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
-					{/if}
-					{#if open}
-						<div>
-							<dt>Canonical</dt>
-							<dd>{s.canonical ? 'Yes' : 'No'}</dd>
-						</div>
-					{/if}
-					{#if open}
-						<div>
-							<dt>Parent root</dt>
-							<dd>
-								<TruncatedValue
-									value={s.parentRoot}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
-					{/if}
-					{#if open}
-						<div>
-							<dt>State root</dt>
-							<dd>
-								<TruncatedValue
-									value={s.stateRoot}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
-					{/if}
-					{#if open}
-						<div>
-							<dt>Body root</dt>
-							<dd>
-								<TruncatedValue
-									value={s.bodyRoot}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							</dd>
-						</div>
+						{#if s.epoch !== undefined}
+							<div>
+								<dt>Epoch</dt>
+								<dd>
+									<NumberValue value={s.epoch} />
+								</dd>
+							</div>
+						{/if}
+
+						{#if s.root !== undefined && s.root !== ''}
+							<div>
+								<dt>Root</dt>
+								<dd>
+									<TruncatedValue
+										value={s.root}
+										format={TruncatedValueFormat.Abbr}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if s.canonical !== undefined}
+							<div>
+								<dt>Canonical</dt>
+								<dd>{s.canonical ? 'Yes' : 'No'}</dd>
+							</div>
+						{/if}
+
+						{#if s.parentRoot !== undefined && s.parentRoot !== ''}
+							<div>
+								<dt>Parent root</dt>
+								<dd>
+									<TruncatedValue
+										value={s.parentRoot}
+										format={TruncatedValueFormat.Abbr}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if s.stateRoot !== undefined && s.stateRoot !== ''}
+							<div>
+								<dt>State root</dt>
+								<dd>
+									<TruncatedValue
+										value={s.stateRoot}
+										format={TruncatedValueFormat.Abbr}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if s.bodyRoot !== undefined && s.bodyRoot !== ''}
+							<div>
+								<dt>Body root</dt>
+								<dd>
+									<TruncatedValue
+										value={s.bodyRoot}
+										format={TruncatedValueFormat.Abbr}
+									/>
+								</dd>
+							</div>
+						{/if}
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

@@ -56,7 +56,12 @@
 			displayName: {},
 			handle: {},
 			$icon: {},
-			description: {},
+			...(open ?
+				{
+					description: {},
+				}
+			:
+				{}),
 		},
 	)
 
@@ -69,6 +74,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 </script>
 
 
@@ -80,7 +86,10 @@
 	{...entityViewRest}
 >
 	{#snippet Icon()}
-		<ResourceBoundary resource={actor}>
+		<ResourceBoundary
+			resource={actor}
+			placeholderText=""
+		>
 			{#snippet children(atprotoProfileRow)}
 				{@const atprotoBrandIconSrc = atprotoProfileRow.$icon?.[EntityMetaKey.Id].url}
 				{#if atprotoBrandIconSrc}
@@ -95,7 +104,10 @@
 	{/snippet}
 
 	{#snippet Heading()}
-		<ResourceBoundary resource={actor}>
+		<ResourceBoundary
+			resource={actor}
+			placeholderText="Loading profile…"
+		>
 			{#snippet children(atprotoProfileRow)}
 				{atprotoProfileRow.displayName
 					?? atprotoProfileRow.handle
@@ -113,6 +125,7 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary
 			resource={actor}
+			placeholderText=""
 		>
 			{#snippet children(atprotoProfileRow)}
 				{@const atprotoSummaryHeadingLine = (
@@ -130,109 +143,139 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open })}
-		<div data-column>
-			<ResourceBoundary
-				resource={actor}
-				placeholderText="Loading profile…"
-			>
+		<ResourceBoundary
+			resource={actor}
+			placeholderText="Loading profile…"
+		>
 			{#snippet children(atprotoProfileRow)}
 				{@const atprotoSummaryHeadingLine = (
 					atprotoProfileRow.displayName
 					?? atprotoProfileRow.handle
 					?? entityId.did
 				)}
-				{#if atprotoProfileRow.description}
-						{#if !open}
-							<p data-text="muted">
-								{atprotoProfileRow.description}
-							</p>
-						{/if}
+				<dl data-column-item="center">
+					{#if atprotoSummaryHeadingLine !== entityId.did}
+						<div>
+							<dt>DID</dt>
+							<dd data-text="mono">
+								{@render Id()}
+							</dd>
+						</div>
 					{/if}
-					<dl data-column-item="center">
-						{#if atprotoSummaryHeadingLine !== entityId.did}
+
+					{#if open}
+						{#if atprotoProfileRow.displayName}
 							<div>
-								<dt>DID</dt>
-								<dd data-text="mono">
-									{@render Id()}
-								</dd>
+								<dt>Display name</dt>
+								<dd>{atprotoProfileRow.displayName}</dd>
 							</div>
 						{/if}
-						{#if open}
-							{#if atprotoProfileRow.displayName}
-								<div>
-									<dt>Display name</dt>
-									<dd>{atprotoProfileRow.displayName}</dd>
-								</div>
-							{/if}
+					{/if}
+
+					{#if open}
+						{#if atprotoProfileRow.handle}
+							<div>
+								<dt>Federation handle</dt>
+								<dd>{atprotoProfileRow.handle}</dd>
+							</div>
 						{/if}
-						{#if open}
-							{#if atprotoProfileRow.handle}
-								<div>
-									<dt>Handle</dt>
-									<dd>{atprotoProfileRow.handle}</dd>
-								</div>
-							{/if}
+					{/if}
+
+					{#if open}
+						{#if atprotoProfileRow.description}
+							<div>
+								<dt>Bio</dt>
+								<dd>{atprotoProfileRow.description}</dd>
+							</div>
 						{/if}
-						{#if open}
-							{#if atprotoProfileRow.description}
-								<div>
-									<dt>Description</dt>
-									<dd>{atprotoProfileRow.description}</dd>
-								</div>
-							{/if}
-						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.AtprotoActor}
-			{entityId}
+		<div
+			class="atproto-actor-detail-carousels"
+			data-column="gap-3"
 		>
-			<ResourceBoundary resource={actor}>
-				{#snippet children(atprotoProfileRow)}
-					{#if (
-						atprotoProfileRow.handle == null
-						&& atprotoProfileRow.displayName == null
-						&& atprotoProfileRow.description == null
-					)}
-						<p data-text="muted">
-							No atproto profile data in the app for this DID yet. Try again shortly.
-						</p>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
-
-		<div class="entity-view-detail-carousels">
 			<CollapsibleTabs
-				id={`${idKey}:carousel-activity`}
+				id={`${idKey}:carousel-profile`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
+					style: '--carousel-basis: 36ch',
 				}}
 			>
-				{#snippet Summary({
-					open: _postsSummaryOpen,
-				})}
+				{#snippet Summary({ open: _profileSummaryOpen })}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
 					>
 						<HeadingComponent>
-							Posts
+							Lexicon profile & posts
 						</HeadingComponent>
 					</header>
 				{/snippet}
-				{#snippet children({
-					open: _postsDetailOpen,
-				})}
-					<section data-scroll-marker-label="Posts">
+
+				{#snippet Markers()}
+					<a
+						data-scroll-marker-label="Lexicon identity"
+						href={`#${idKey}:profile-details`}
+					>Lexicon identity</a>
+					<a
+						data-scroll-marker-label="Posts"
+						href={`#${idKey}:activity-posts`}
+					>Posts</a>
+				{/snippet}
+
+				{#snippet children(_profileCarouselContext)}
+					<section
+						data-scroll-marker-label="Lexicon identity"
+						id={`${idKey}:profile-details`}
+					>
+						<EntityDetails
+							entityType={EntityType.AtprotoActor}
+							{entityId}
+						/>
+
+						<ResourceBoundary
+							resource={actor}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(atprotoProfileRow)}
+								{@const atprotoProfileUnset = (
+									atprotoProfileRow.handle == null
+									&& atprotoProfileRow.displayName == null
+									&& atprotoProfileRow.description == null
+								)}
+								{#if atprotoProfileUnset}
+									<div data-row="wrap align-center gap-2">
+										<p data-text="muted">
+											No profile fields yet.
+										</p>
+										<Tooltip contentProps={{ side: 'top' }}>
+											{#snippet Content()}
+												<p>
+													Display name, handle, and description load from the configured ATProto repository when the DID resolves.
+												</p>
+											{/snippet}
+											<abbr
+												class="entity-heading-tip"
+												aria-label="Lexicon profile"
+											>ⓘ</abbr>
+										</Tooltip>
+									</div>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</section>
+					<section
+						data-scroll-marker-label="Posts"
+						id={`${idKey}:activity-posts`}
+					>
 						<AtprotoPostsView
 							entityFieldReference={{
 								entityType: EntityType.AtprotoActor,
@@ -243,7 +286,9 @@
 								did: encodeURIComponent(entityId.did),
 							})}
 							id={`${idKey}:posts`}
+							fieldOpen={_open}
 							open={false}
+							title="Posts"
 						/>
 					</section>
 				{/snippet}
@@ -254,7 +299,7 @@
 
 
 <style>
-	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+	.atproto-actor-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
 		&[data-scroll-container] {
 			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
 			max-block-size: var(--scrollContainer-sizeBlock);

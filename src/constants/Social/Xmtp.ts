@@ -1,3 +1,4 @@
+// Constants
 export const xmtpNetworkFieldValues = {
 	docsUrl: 'https://docs.xmtp.org',
 	homeUrl: 'https://xmtp.org',

@@ -5,15 +5,13 @@
  */
 
 import { throwIfHttpNotOk } from '$/lib/http.ts'
-import { proBaseUrl } from '$/sources/Defillama/Rest/constants.ts'
+import type { GetDefillamaCurrentPricesOptions } from '$/sources/Defillama/OpenApi/types.ts'
 import { getCurrentPrices as getCurrentPricesOpenApi } from '$/sources/Defillama/OpenApi/queries.ts'
-import type { DefiLlamaCurrentPricesResponse } from '$/sources/Defillama/Rest/types.ts'
-
-export type DefillamaSearchWidth = '4h' | '24h'
-
-export type GetDefillamaCurrentPricesOptions = {
-	searchWidth?: DefillamaSearchWidth
-}
+import { proBaseUrl } from '$/sources/Defillama/Rest/constants.ts'
+import type {
+	DefiLlamaCurrentPricesResponse,
+	GetProDefillamaCurrentPricesArgs,
+} from '$/sources/Defillama/Rest/types.ts'
 
 /**
  * `GET /prices/current/{coins}` on `https://coins.llama.fi` — unauthenticated.
@@ -27,12 +25,6 @@ export const getCurrentPrices = async (
 		options,
 	)
 )
-
-export type GetProDefillamaCurrentPricesArgs = {
-	apiKey: string
-	coins: string[]
-	searchWidth?: DefillamaSearchWidth
-}
 
 /**
  * `GET /coins/prices/current/{coins}` on Pro — key is first path segment after host.

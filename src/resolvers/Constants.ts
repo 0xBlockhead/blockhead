@@ -36,7 +36,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.NetworkUpgrade,
 			resolve: async (entityId) => {
-				const { networkUpgradeByChainIdAndUpgradeId } = await import(
+				const {
+					networkUpgradeByChainIdAndUpgradeId,
+					resolveNetworkUpgradeDenormalizedFields,
+				} = await import(
 					'$/constants/NetworkUpgrades.ts'
 				)
 				const upgradeDefinition = networkUpgradeByChainIdAndUpgradeId[
@@ -45,7 +48,10 @@ export default {
 				if (upgradeDefinition == null) {
 					throw new Error(`Constants_Internal: NetworkUpgrade not found for ${entityId.$network.chainId}:${entityId.upgradeId}`)
 				}
-				return { ...upgradeDefinition }
+				return {
+					...upgradeDefinition,
+					...resolveNetworkUpgradeDenormalizedFields(upgradeDefinition),
+				}
 			},
 		}),
 
@@ -89,6 +95,11 @@ export default {
 					label: marketVenueById[entityId.marketVenueId].label,
 				}
 			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.Market,
+			resolve: async (_entityId) => ({}),
 		}),
 
 		defineEntityResolver({
@@ -199,16 +210,15 @@ export default {
 			entityType: EntityType._Global,
 			fieldName: '$$networkUpgrades',
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
-				const { networkUpgrades } = await import('$/constants/NetworkUpgrades.ts')
+				const {
+					networkUpgrades,
+					resolveNetworkUpgradeDenormalizedFields,
+				} = await import('$/constants/NetworkUpgrades.ts')
 				return (
-					networkUpgrades
-						.filter((upgradeRow) => (
-							upgradeRow.$executionUpgrade != null
-							&& upgradeRow.$consensusUpgrade != null
-							&& upgradeRow.$executionUpgrade[EntityMetaKey.Id].upgradeId
-								!== upgradeRow.$consensusUpgrade[EntityMetaKey.Id].upgradeId
-						))
-						.map((upgradeRow) => ({ ...upgradeRow }))
+					networkUpgrades.map((upgradeRow) => ({
+						...upgradeRow,
+						...resolveNetworkUpgradeDenormalizedFields(upgradeRow),
+					}))
 				)
 			},
 		}),
@@ -374,9 +384,7 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => {
-				throw new Error('Constants_Internal: $$marketsWithCoinAsQuote is unsupported')
-			},
+			resolve: async () => [],
 		}),
 
 		defineEntityFieldResolver({
@@ -503,17 +511,19 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$$upgrades',
 			resolve: async (entityId) => {
-				const { networkUpgrades } = await import('$/constants/NetworkUpgrades.ts')
+				const {
+					networkUpgrades,
+					resolveNetworkUpgradeDenormalizedFields,
+				} = await import('$/constants/NetworkUpgrades.ts')
 				return (
 					networkUpgrades
 						.filter((upgradeRow) => (
 							upgradeRow[EntityMetaKey.Id].$network.chainId === entityId.chainId
-							&& upgradeRow.$executionUpgrade != null
-							&& upgradeRow.$consensusUpgrade != null
-							&& upgradeRow.$executionUpgrade[EntityMetaKey.Id].upgradeId
-								!== upgradeRow.$consensusUpgrade[EntityMetaKey.Id].upgradeId
 						))
-						.map((upgradeRow) => ({ ...upgradeRow }))
+						.map((upgradeRow) => ({
+							...upgradeRow,
+							...resolveNetworkUpgradeDenormalizedFields(upgradeRow),
+						}))
 				)
 			},
 		}),
@@ -546,28 +556,29 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.NetworkUpgrade,
-			fieldName: '$executionUpgrade',
+			fieldName: '$networkExecutionUpgrade',
 			resolve: async (entityId) => {
 				const { networkUpgradeByChainIdAndUpgradeId } = await import('$/constants/NetworkUpgrades.ts')
 				const upgradeRow = networkUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
+				if (upgradeRow == null) {
+					return undefined
+				}
 				return (
-					upgradeRow?.$executionUpgrade == null ?
-						undefined
-					:	{ ...upgradeRow.$executionUpgrade }
+					{ ...upgradeRow.$networkExecutionUpgrade }
 				)
 			},
 		}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType.NetworkUpgrade,
-			fieldName: '$consensusUpgrade',
+			fieldName: '$networkConsensusUpgrade',
 			resolve: async (entityId) => {
 				const { networkUpgradeByChainIdAndUpgradeId } = await import('$/constants/NetworkUpgrades.ts')
 				const upgradeRow = networkUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
 				return (
-					upgradeRow?.$consensusUpgrade == null ?
+					upgradeRow?.$networkConsensusUpgrade == null ?
 						undefined
-					:	{ ...upgradeRow.$consensusUpgrade }
+					:	{ ...upgradeRow.$networkConsensusUpgrade }
 				)
 			},
 		}),
@@ -576,9 +587,16 @@ export default {
 			entityType: EntityType.NetworkUpgrade,
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
-				const { networkUpgradeByChainIdAndUpgradeId } = await import('$/constants/NetworkUpgrades.ts')
+				const {
+					networkUpgradeByChainIdAndUpgradeId,
+					resolveNetworkUpgradeDenormalizedFields,
+				} = await import('$/constants/NetworkUpgrades.ts')
 				const upgradeRow = networkUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
-				return [...(upgradeRow?.$$proposals ?? [])]
+				if (upgradeRow == null) {
+					return []
+				}
+				const denorm = resolveNetworkUpgradeDenormalizedFields(upgradeRow)
+				return [...(denorm.$$proposals ?? [])]
 			},
 		}),
 

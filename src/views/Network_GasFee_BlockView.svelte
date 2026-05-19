@@ -3,6 +3,7 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -16,10 +17,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Props
@@ -33,7 +31,7 @@
 	}: WithRest<
 		{
 			children?: Snippet
-			entityId: EntityId<typeof schema, EntityType.Network_GasFee_Timestamp>
+			entityId: EntityId<typeof schema, EntityType.Network_GasFee_Block>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
@@ -51,41 +49,53 @@
 	> = $props()
 
 
+	// State
 	const gasFeeLive = useEntity(
-		EntityType.Network_GasFee_Timestamp,
+		EntityType.Network_GasFee_Block,
 		entityId,
 		{
 			$: [Source.Voltaire_JsonRpc],
 			baseFeePerGas: {},
 			legacyGasPrice: {},
 			maxPriorityFeePerGas: {},
-			gasUsedRatioLastBlock: {},
+			gasUsedRatio: {},
 			priorityFeeRewardAt50thPercentile: {},
 		},
 	)
 
-
 	const defaultHref = resolve(
-		'/(explore)/(networks)/network/[networkId]',
-		{ networkId: String(entityId.$network.chainId) },
+		'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
+		{
+			networkId: String(entityId.$network.chainId),
+			blockNumber: String(entityId.blockNumber),
+		},
 	)
 </script>
 
 
 <EntityView
-	entityType={EntityType.Network_GasFee_Timestamp}
+	entityType={EntityType.Network_GasFee_Block}
 	{entityId}
 	href={href ?? defaultHref}
 	{layout}
 	{open}
-	title="Gas fee snapshot"
+	title="Gas"
 	{...entityViewRest}
 >
 	{#snippet Heading()}
 
 		<span data-text="font-monospace">
-			{String(entityId.timestampNs)}
+			block {String(entityId.blockNumber)}
 		</span>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					Fee-market snapshot for one execution block: base fee per gas from <code>eth_feeHistory</code>, plus optional live RPC hints for legacy and priority fees.
+				</p>
+				<p>
+					EIP-1559 sets base fee from parent fullness; priority fee percentiles describe inclusion bids around this height.
+				</p>
 	{/snippet}
 
 	{#snippet Id()}
@@ -100,24 +110,14 @@
 			resource={gasFeeLive}
 		>
 			{#snippet children(g)}
-				{@const timestampMs = Number(entityId.timestampNs / 1_000_000n)}
-				<dl>
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
+				<dl data-column-item="center">
 					<div>
-						<dt>As of</dt>
-						<dd>
-							<Timestamp
-								format={TimestampFormat.Both}
-								timestamp={timestampMs}
-							/>
+						<dt>Chain</dt>
+						<dd data-text="mono">
+							{@render Id()}
 						</dd>
 					</div>
+
 					{#if open}
 						{#if g.baseFeePerGas !== undefined}
 							<div>
@@ -146,10 +146,10 @@
 							</div>
 						{/if}
 
-						{#if g.gasUsedRatioLastBlock !== undefined}
+						{#if g.gasUsedRatio !== undefined}
 							<div>
-								<dt>Gas used ratio (last fee-history block)</dt>
-								<dd>{String(g.gasUsedRatioLastBlock)}</dd>
+								<dt>Gas used ratio (fee-history block)</dt>
+								<dd>{String(g.gasUsedRatio)}</dd>
 							</div>
 						{/if}
 
@@ -169,7 +169,7 @@
 
 	{#snippet Details()}
 		<EntityDetails
-			entityType={EntityType.Network_GasFee_Timestamp}
+			entityType={EntityType.Network_GasFee_Block}
 			{entityId}
 		/>
 

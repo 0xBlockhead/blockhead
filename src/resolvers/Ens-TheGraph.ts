@@ -1,6 +1,7 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
+	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { normalize as ensNormalizeNode, toString as ensToString } from '@tevm/voltaire/Ens'
 import { singleFlight } from '$/lib/singleFlight.ts'
@@ -36,7 +37,6 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.EnsName,
 			resolve: async (entityId, context) => {
-				const { sourcePublicEnv } = await import('$/resolvers/$resolvers.ts')
 				const { getEnsName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.TheGraph_Graphql)
 				const normalizedName = ensToString(ensNormalizeNode(entityId.name.trim()))
@@ -91,7 +91,6 @@ export default {
 			entityType: EntityType.Actor,
 			fieldName: '$$ensNamesOwned',
 			resolve: async (entityId, context) => {
-				const { sourcePublicEnv } = await import('$/resolvers/$resolvers.ts')
 				const { getEnsDomainsByOwner } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.TheGraph_Graphql)
 				return (

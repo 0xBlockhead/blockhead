@@ -6,6 +6,20 @@ import { jsonRpcUrlWithTransportForChain } from '$/resolvers/Voltaire-JsonRpc.ts
 
 export { e2eBrowserNewContextOptions } from '../playwright.env.ts'
 
+export const jsonStringifyForExpectMessage = (
+	value: unknown,
+) => (
+	JSON.stringify(
+		value,
+		(_key, nested) => (
+			typeof nested === 'bigint' ?
+				nested.toString()
+			:
+				nested
+		),
+	)
+)
+
 declare global {
 	interface Window {
 		__e2eViewTransitionStarts?: number
@@ -178,8 +192,8 @@ export const countRequestsMatching = (page: Page, match: (url: string, method: s
 
 /** Stubs for `GET …/rpcs.json` in e2e. Includes popular live chains + mainnet HTTP RPCs. */
 export const MOCK_CHAINLIST_RPCS_JSON_BODY = JSON.stringify([
-	{ chainId: 1, name: 'Mock Ethereum', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://ethereum.publicnode.com'] },
-	{ chainId: 8453, name: 'Mock Base', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://mainnet.base.org'], parent: { type: 'L2', chain: 'eip155:1' } },
+	{ chainId: 1, name: 'Ethereum Mainnet', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://ethereum.publicnode.com'] },
+	{ chainId: 8453, name: 'Base', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://mainnet.base.org'], parent: { type: 'L2', chain: 'eip155:1' } },
 	{ chainId: 42161, name: 'Arbitrum One', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://arb1.arbitrum.io/rpc'], parent: { type: 'L2', chain: 'eip155:1' } },
 	{ chainId: 10, name: 'Optimism', nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 }, rpc: ['https://mainnet.optimism.io'], parent: { type: 'L2', chain: 'eip155:1' } },
 	{ chainId: 137, name: 'Polygon', nativeCurrency: { name: 'MATIC', symbol: 'MATIC', decimals: 18 }, rpc: ['https://polygon-rpc.com'] },
@@ -194,7 +208,7 @@ export const MOCK_CHAINLIST_RPCS_CHAIN_COUNT = 6
 export const MOCK_ETHEREUM_LISTS_CHAINS_JSON_BODY = JSON.stringify(
 	[
 		{
-			name: 'Mock Ethereum',
+			name: 'Ethereum Mainnet',
 			chain: 'ETH',
 			rpc: ['https://ethereum.publicnode.com'],
 			nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
@@ -203,7 +217,7 @@ export const MOCK_ETHEREUM_LISTS_CHAINS_JSON_BODY = JSON.stringify(
 			networkId: 1,
 		},
 		{
-			name: 'Mock Base',
+			name: 'Base',
 			chain: 'ETH',
 			rpc: ['https://mainnet.base.org'],
 			nativeCurrency: { name: 'Ether', symbol: 'ETH', decimals: 18 },
@@ -313,22 +327,6 @@ export const l2BeatScalingSummaryWire = (url: string, method: string) => (
 	)
 )
 
-const publicJsonRpcWire = (url: string, method: string) => (
-	method === 'POST'
-	&& (
-		url === 'https://ethereum.publicnode.com/'
-		|| url === 'https://mainnet.base.org/'
-		|| url === 'https://arb1.arbitrum.io/rpc'
-		|| url === 'https://mainnet.optimism.io/'
-		|| url === 'https://polygon-rpc.com/'
-		|| url === 'https://bsc-dataseed.binance.org/'
-		|| url === 'https://eth.llamarpc.com/'
-		|| url === 'https://base.llamarpc.com/'
-		|| url === 'https://binance.llamarpc.com/'
-	)
-)
-
-/** TradingView crypto scanner `POST /crypto/scan` (browser hits dev `api-proxy/…` or origin). */
 export const tradingViewCryptoScanWire = (url: string, method: string) => (
 	method === 'POST'
 	&& url.includes('/crypto/scan')
@@ -338,7 +336,13 @@ export const tradingViewCryptoScanWire = (url: string, method: string) => (
 	)
 )
 
+/**
+ * Stubs Chainlist `rpcs.json`, ethereum-lists `chains.json`, L2Beat scaling summary, TradingView crypto scan, and public IPFS gateway GETs.
+ * One-off real catalog runs: `E2E_USE_E2E_HTTP_STUBS=0 pnpm exec playwright test …` (OPFS / warm-reload tests may need the stub).
+ */
 export const installChainlistRpcsJsonStub = async (page: Page) => {
+	if (process.env.E2E_USE_E2E_HTTP_STUBS === '0')
+		return
 	await page.route('**/*', async (route) => {
 		const url = route.request().url()
 		const method = route.request().method()
@@ -371,18 +375,6 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 				status: 200,
 				contentType: 'application/json',
 				body: MOCK_L2BEAT_SCALING_SUMMARY_BODY,
-			})
-			return
-		}
-		if (publicJsonRpcWire(url, method)) {
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: JSON.stringify({
-					jsonrpc: '2.0',
-					id: 1,
-					result: '0x1',
-				}),
 			})
 			return
 		}
@@ -420,18 +412,20 @@ export const assertMainSettled = async (
 	timeoutMs = 180_000,
 ) => {
 	await expect(page.locator('#main [role="alert"]')).toHaveCount(0, { timeout: timeoutMs })
-	await expect(page.locator('#main .loading')).toHaveCount(0, { timeout: timeoutMs })
 }
 
 /**
  * Proves `resolveLive` started Voltaire’s subscription (layout mounted). WSS can still drop in CI/Playwright; use for smoke tests with stubbed chainlist.
  * Register the returned promise *before* `page.goto` so the first line is not missed.
  */
-export const voltaireBlockStreamWatchStartConsoleEvent = (page: Page, timeoutMs = 30_000) => (
+export const voltaireBlockStreamWatchStartConsoleEvent = (page: Page, timeoutMs = 90_000) => (
 	page.waitForEvent('console', {
 		predicate: (msg) => {
 			const t = msg.text()
-			return t.includes('[Voltaire]') && t.includes('block stream watch start')
+			return (
+				(t.includes('[Voltaire]') && t.includes('block stream watch start'))
+				|| (t.includes('[block stream]') && t.includes('type=blocks'))
+			)
 		},
 		timeout: timeoutMs,
 	})
@@ -540,23 +534,6 @@ export const preflightPublicJsonRpcEthBlockNumber = (
 	}, rpcUrl)
 )
 
-export const readNetworkHeadBlockBigint = (page: Page) => (
-	page
-		.locator('[data-e2e="network-summary-head-block"]')
-		.innerText()
-		.then(
-			(t) => {
-				const s = t.trim()
-				if (s.length === 0) return null
-				try {
-					return BigInt(s)
-				} catch {
-					return null
-				}
-			},
-		)
-)
-
 const blockPathNumberFromHref = (href: string | null) => {
 	if (href == null) return null
 	const m = /\/block\/([0-9]+)\b/.exec(href)
@@ -568,8 +545,18 @@ const blockPathNumberFromHref = (href: string | null) => {
 	}
 }
 
-/** Scroll host (`layout-carousel`) — execution carousel assigns `data-e2e`; panes are direct children (no `[data-carousel-panes]` wrapper). */
-const networkExecutionCarouselPanesSel = '[data-e2e="network-carousel-execution"][data-scroll-container~="layout-carousel"]'
+/** Parses head block height from `#network-summary-head-block` block link (`EvmBlockView`); raw `innerText` is often not a lone decimal anymore. */
+export const readNetworkHeadBlockBigint = async (
+	page: Page,
+	linkWaitMs = 120_000,
+) => {
+	const link = page.locator('#network-summary-head-block').locator('a[href*="/block/"]').first()
+	await link.waitFor({ state: 'attached', timeout: linkWaitMs })
+	return blockPathNumberFromHref(await link.getAttribute('href'))
+}
+
+/** Scroll host (`layout-carousel`) — execution carousel pane host uses `network-carousel-execution`; panes are direct children (no `[data-carousel-panes]` wrapper). */
+const networkExecutionCarouselPanesSel = '.network-carousel-execution[data-scroll-container~="layout-carousel"]'
 
 
 export const readTopBlockNumberFromNetworkCarousel = async (

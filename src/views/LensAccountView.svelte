@@ -2,11 +2,11 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { stringify } from 'devalue'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { default as EntityViewComponent } from '$/components/EntityView.svelte'
 
 
 	// Context
@@ -28,7 +28,7 @@
 			open?: boolean
 		},
 		Omit<
-			ComponentProps<typeof EntityViewComponent>,
+			ComponentProps<typeof EntityView>,
 			| 'entityType'
 			| 'entityId'
 			| 'href'
@@ -44,8 +44,6 @@
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const idKey = stringify(entityId)
@@ -53,10 +51,15 @@
 	const lensAccount = useEntity(
 		EntityType.LensAccount,
 		entityId,
-		{
-			$: [Source.Lens_Graphql],
-			localName: {},
-		},
+		(
+			open ?
+				{
+					$: [Source.Lens_Graphql],
+					localName: {},
+				}
+			:
+				{}
+		),
 	)
 
 
@@ -67,7 +70,6 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-
 	import LensPostsView from '$/views/LensPostsView.svelte'
 </script>
 
@@ -76,7 +78,7 @@
 	entityType={EntityType.LensAccount}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Heading()}
@@ -97,8 +99,6 @@
 		</span>
 	{/snippet}
 
-
-
 	{#snippet Icon()}
 		<IconComponent
 			shape={IconShape.Circle}
@@ -114,12 +114,13 @@
 					<dl data-column-item="center">
 						{#if resolvedLensAccount.localName}
 							<div>
-								<dt>Address</dt>
+								<dt>Profile address</dt>
 								<dd data-text="mono">
 									{@render Id()}
 								</dd>
 							</div>
 						{/if}
+
 						{#if resolvedLensAccount.localName !== undefined}
 							<div>
 								<dt>Handle</dt>
@@ -135,17 +136,16 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.LensAccount}
-			{entityId}
-		/>
-
-		<div class="entity-view-detail-carousels">
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-activity`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
+					style: '--carousel-basis: 36ch',
 				}}
 			>
 				{#snippet Summary({
@@ -156,12 +156,38 @@
 						data-row="wrap gap-4"
 					>
 						<HeadingComponent>
-							Activity
+							Lens v3 profile &amp; publications
 						</HeadingComponent>
 					</header>
 				{/snippet}
+
+				{#snippet Markers({
+					open: _markersOpen,
+				})}
+					<a
+						data-scroll-marker-label="Record"
+						href={`#${idKey}:lens-account-record`}
+					>Record</a>
+					<a
+						data-scroll-marker-label="Publications"
+						href={`#${idKey}:posts`}
+					>Publications (Lens v3)</a>
+				{/snippet}
+
 				{#snippet children(_ctx)}
-					<section data-scroll-marker-label="Posts">
+					<section
+						data-scroll-marker-label="Record"
+						id={`${idKey}:lens-account-record`}
+					>
+						<EntityDetails
+							entityType={EntityType.LensAccount}
+							{entityId}
+						/>
+					</section>
+					<section
+						data-scroll-marker-label="Publications"
+						id={`${idKey}:posts`}
+					>
 						<LensPostsView
 							entityFieldReference={{
 								entityType: EntityType.LensAccount,
@@ -171,7 +197,7 @@
 							href={resolve('/(social)/lens/account/[address]/(account)/posts', {
 								address: entityId.address,
 							})}
-							id={`${idKey}:posts`}
+							id={`${idKey}:posts-list`}
 							open={false}
 						/>
 					</section>

@@ -8,22 +8,11 @@ import { throwIfHttpNotOk } from '$/lib/http.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { baseUrl } from '$/sources/Lifi/Rest/constants.ts'
 import type {
+	FetchLifiChainsOptions,
+	FetchLifiTokensOptions,
 	LifiChainsResponse,
 	LifiTokensResponse,
 } from '$/sources/Lifi/Rest/types.ts'
-
-export type FetchLifiChainsOptions = {
-	chainTypes?: string
-	baseUrl?: string
-}
-
-export type FetchLifiTokensOptions = {
-	chains?: string
-	tags?: string
-	chainTypes?: string
-	minPriceUSD?: number
-	baseUrl?: string
-}
 
 /**
  * `GET /v1/chains` — supported chains (optional `chainTypes` e.g. `EVM,SVM`).

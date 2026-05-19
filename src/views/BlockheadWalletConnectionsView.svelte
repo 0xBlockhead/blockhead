@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { Eip6963ProviderDetail } from '$/lib/eip6963.ts'
+
 	import { EntityType } from '$/schema/$EntityType.ts'
 
 	type WalletConnection = {
@@ -10,6 +11,10 @@
 		status: 'connecting' | 'connected' | 'error'
 		error: string | null
 	}
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -38,7 +43,6 @@
 	} from '$/lib/eip1193.ts'
 	import { SvelteMap } from 'svelte/reactivity'
 
-
 	const cleanupByRdns = new SvelteMap<string, () => void>()
 
 	let providers = $state<Eip6963ProviderDetail[]>([])
@@ -46,6 +50,8 @@
 	let connections = $state<WalletConnection[]>([])
 
 	let eip6963Hydrated = $state(false)
+
+	const accountsHref = resolve('/~/accounts')
 
 
 	// Actions
@@ -104,7 +110,6 @@
 		})
 	}
 
-
 	const connect = async (detail: Eip6963ProviderDetail) => {
 		updateConnection(detail.info.rdns, (connection) => ({
 			detail,
@@ -148,7 +153,6 @@
 	}
 
 
-	// (Derived)
 	$effect(() => (
 		subscribeEip6963Providers((nextProviders) => {
 			providers = nextProviders
@@ -167,9 +171,10 @@
 
 
 	// Components
-	import BlockheadWalletConnectionView from '$/views/BlockheadWalletConnectionView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import Icon from '$/components/Icon.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import BlockheadWalletConnectionView from '$/views/BlockheadWalletConnectionView.svelte'
 </script>
 
 
@@ -179,7 +184,20 @@
 	{href}
 	{title}
 	bind:open
+	placeholderText="Resolving browser wallets…"
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Browser extensions can announce themselves via EIP-6963; after you authorize, the page can subscribe to <code>accountsChanged</code> and <code>chainChanged</code>.
+		</p>
+		<p>
+			Eligible wallets surface through provider discovery; account access still requires explicit per-origin approval alongside any connect action in the UI.
+		</p>
+		<p>
+			Always confirm account and chain before signing bridges or contract calls—wrong chain is a common source of lost funds or stuck approvals.
+		</p>
+	{/snippet}
+
 	{#snippet body()}
 		{#if !eip6963Hydrated}
 			<div
@@ -218,7 +236,7 @@
 								status={connection.status}
 								error={connection.error}
 								onRemove={() => disconnect(connection.detail.info.rdns)}
-								{href}
+								href={accountsHref}
 								open={false}
 							/>
 						{/each}

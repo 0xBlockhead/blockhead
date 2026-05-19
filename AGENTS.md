@@ -65,13 +65,19 @@
 
 ### Playwright E2E — `data-e2e`
 
-- Add `data-e2e="…"` **sparingly** for one-off nodes used only by E2E (not for layout/theme). Prefer `getByRole` / label / text / stable `id` / `#main` / `data-scroll-marker-label` (carousel sections) first. Existing hooks include e.g. `#nav-menu` (`Navigation.svelte`), and on network summary `network-summary-head-block`, `data-e2e="network-carousel-groups"`, and collapsible region roots on `NetworkView.svelte` (`data-e2e="network-collapsible-*"`).
+- Add `data-e2e="…"` **sparingly** for one-off nodes used only by E2E (not for layout/theme). Prefer `getByRole` / label / text / stable **`id`** / `#main` / **`class`** selectors / `data-scroll-marker-label` (carousel sections) first. Examples: **`#network-summary-head-block`** and **`.network-view-carousel-groups`** / **`.network-view-collapsible-*`** on **`NetworkView.svelte`** (replacing scattered `data-e2e` on the same layout); **`#nav-menu`** (`Navigation.svelte`).
 
 ### Playwright E2E — assertions
 
 - `<details>` / collapsed UI: Copy inside a closed `<details>` (or similar) is often attached but not visible to Playwright. For “data loaded” checks on that content, prefer `expect(locator).toBeAttached()` (optionally with a long `timeout`) instead of relying only on `toBeVisible()`.
 - Resolver / network latency: Pages backed by `resolveEntity` or external HTTP may need timeouts on the order of minutes (e.g. `120_000` ms) for the “settled” assertion, while still asserting a cheap invariant first (nav link, layout chrome).
 - Success vs failure: When the UI shows either a happy path or an explicit error string, use `.or()` on locators and assert one branch is attached once the async work finishes.
+
+### Entity views — Lens, liquidity, markets
+
+- **`LensView` / `LensPostsView`:** `LensNetwork` hub (scope, profile and publication counts). Registry carousel sections use `data-scroll-marker-label` (`Profiles`, `Recent publications`). Prefer roles, scroll markers, and existing network-style hooks over new `data-e2e` attributes.
+- **Liquidity — pool vs position:** `LiquidityPoolView` is the **pool** (pair, fee, curve liquidity, token addresses). `LiquidityPositionView` and `LeverageView` are **positions** (pool ref, owner, ticks, position liquidity, token amounts). Lists `LiquidityPoolsView` and `LiquidityPositionsView` follow the same `EntitiesList` field-reference pattern as other domains; do not introduce `data-view` or speculative `data-e2e` hooks.
+- **Markets — OHLC, prices, intervals:** `MarketView` anchors base/quote/venue and composes **spot & index** rows (`MarketPricesView`, `MarketPriceView`) with **OHLC ranges** (`MarketPriceRangesView`, `MarketPriceRangeView`). Timestamped quote streams use `Market_TimestampView`; interval OHLC points use `Market_TimeInterval_TimestampView` and `Market_TimeInterval_TimestampsView`. Reuse carousel/`data-scroll-marker-label` patterns from `MarketView` and `NetworkView`; keep Playwright hooks sparing per above.
 
 
 ## TypeScript
@@ -430,7 +436,7 @@ Source definition shape:
 
 `$/resolvers/index.ts` imports `enabledSources` and keeps only resolver modules whose exported `source` is in that set; it then attaches `source` onto each resolver entry when flattening `entityResolvers` / `entityFieldResolvers`.
 
-Transport folders continue to hold network code (`queries.ts`, optional `client.ts`, `constants.ts`, `types.ts`, generated schema files). In resolvers, load `queries.ts` / `constants.ts` via inline `await import(...)` inside each `resolve(...)` instead of top-level imports.
+Transport folders continue to hold network code (`queries.ts`, optional `client.ts`, `constants.ts`, `types.ts`, generated schema files). In resolvers, load `queries.ts` / `constants.ts` via inline `await import(...)` inside each `resolve(...)` instead of top-level imports. Stable wire shapes or resolver-facing types live in **`types.ts`** (not `queries.ts`). Import **`sourcePublicEnv`** from **`$/resolvers/$resolvers.ts`** at module top (do not dynamically import `$resolvers` inside `resolve`).
 
 ### OpenAPI schema codegen (`scripts/openapi-source.ts`)
 
@@ -462,7 +468,7 @@ export const schemaSource = {
 - **`schemaFile`:** path relative to the manifest directory for the **checked-in** downloaded spec (e.g. `./openapi.yml`, `./openapi.json`).
 - **`typesFile`:** path relative to the manifest directory for generated types (convention: `./openapi.d.ts`).
 
-**Hand-written transport code:** after generation, import `components` and/or `paths` from `typesFile` inside `client.ts` / `queries.ts` (see `$/sources/Dexscreener/OpenApi/client.ts`). Keep wire-specific hand types in `types.ts` only when they are not expressible from the generated file.
+**Hand-written transport code:** after generation, keep HTTP in `client.ts`, put wire shapes beside the manifest in **`OpenApi/types.ts`** (aliases from **`openapi.d.ts`** plus any hand-maintained payloads), and use **`queries.ts`** for operations — `Coinpaprika`, `Dexscreener`, and `Defillama` follow this layout. Resolvers import wire types from `types.ts`, not `client.ts` / `queries.ts`.
 
 **Convenience scripts:** for each new OpenAPI provider, add three `package.json` scripts that forward to the same runner, mirroring existing `sources:openapi:download:<name>`, `sources:openapi:generate:<name>`, and `sources:openapi:sync:<name>` entries.
 
@@ -530,6 +536,7 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 - Source boundary:
 	- Put all `fetch` / HTTP / provider transport logic under `src/sources/**`. Resolvers call source query functions; they do not fetch external URLs directly.
 	- In resolvers, do not top-level import `$/sources/**/queries.ts` or `$/sources/**/constants.ts`; load them with inline `await import(...)` inside each `resolve(...)`.
+	- Resolver-only **type imports** for wire payloads should prefer **`$/sources/**/types.ts`** (or generated OpenAPI components), not **`queries.ts`**.
 	- `ResolverLoadSubset` (from `$/resolvers/$resolvers.ts`) includes `publicEnv`, the per-source slice from `resolverPublicEnvBySource` or full `resolverPublicEnv`. `$/collections/$collections.ts` passes it on every `resolve()` call; prefer `context.publicEnv` over `import.meta.env` so behavior matches source gating.
 	- Thread `context` into source queries when the upstream API supports filtering, sorting, or limits (`filters` / `sorts` / `limit`).
 - Resolver boundaries:
@@ -611,6 +618,7 @@ Verification:
 
 ## Entity Views (`src/views/*.svelte`)
 
+- Add **`data-e2e`** only where Playwright needs a stable selector (see **Playwright E2E — `data-e2e`**). Do not add decorative or non-test **`data-*`** tagging on `EntityView`, `EntitiesList`, or related entity chrome. Do not use **`data-view`**; when a non-test hook is needed, use a **`class`** referenced in that component’s local `<style>` (or an established global primitive from `src/styles/components.css`).
 - Entity pages (`EntityView`, resource-backed views): Keep user-facing depth that still matters from older layouts (topology, execution RPCs/clients, explorers, related networks, forks, faucets, head block/epoch where applicable) while staying aligned with current schema field names (for example `$$blocks`, not stale or invented keys).
 - Section chrome: Render a block only when it has meaningful payload; gate on the smallest truthful checks (`length`, `undefined`, domain-backed flags). Avoid technical placeholder copy whose only role is to fill space.
 - **`EntityView` + `<dl>` (required):** At most **one** `<dl>` per card, and it must appear **only** in the `Content` snippet. Do not use `<dl>` inside `Details` or other detail-only sections; put extra metadata as additional rows in that same `Content` `<dl>` (with `{#if open}` when rows should only show when expanded). Each optional row is its **own** `{#if}…{/if}` (one row per guard). Do not use a single `{#if}` wrapping multiple rows. Do not use one `{#if}` with compound conditions like `open && x`; use **nested** `{#if}` blocks instead. A nested `<EntityView>` (e.g. inline entity link) is its own card and may have its own `Content` `<dl>` — the limit is per `EntityView` instance, not the whole page.
@@ -628,6 +636,45 @@ Verification:
 - **Heading vs secondary `#snippet Id`:** Do not duplicate the same fact in the heading and in `<dl>` rows (see bullets above). When both `Heading` and `Id` exist, `EntitySummary` **hides the secondary row** if the **normalized visible text** of the heading body and the secondary row match (**client-side** compare after paint, with `MutationObserver` so `ResourceBoundary` / `TruncatedValue` updates still reconcile; SSR markup may briefly show both until hydration). Prefer omitting `#snippet Id` when it is **statically** redundant; rely on the component for async / loaded-text cases.
 - **Redundancy removal:** Drop `<dl>` rows (and avoid extra summary lines) that only repeat the heading, the secondary id line, or parent-scoped ids—see **`<dl>` vs heading** and **`<dl>` vs parent id** above.
 
+### Domain-oriented views (settings, storage, social)
+
+Keep these semantics stable in UI copy and `useEntity` wiring; do not add **`data-view`**. Add **`data-e2e`** only when a Playwright test already targets the node (same bar as **`NetworkView`**, which uses a **small fixed set** of carousel/collapsible roots—do not blanket other entity pages with parallel hooks).
+
+| View | Role |
+|------|------|
+| `SettingView.svelte` | `_Global` **settings** hub: navigation/usage copy clarifies this is app preferences and usage (e.g. Dune credits), **not** the resolver **`Source`** catalog. |
+| `SourcesView.svelte` | Lists persisted **`BlockheadSource`** rows (saved transports), gated by **`Source.Local_Internal`**; distinct from enabled **`Source`** definitions in `$/sources/index.ts`. |
+| `SelectorsView.svelte` | EVM contract **function selectors** (OpenChain-backed field lists). |
+| `TopicsView.svelte` | EVM log **topics** / event signatures (indexed arguments). |
+| `EvmTopicsView.svelte` | **`_Global` `$$evmTopics`:** sorted EVM log **topics** / event signatures (**Source.Openchain_Rest**). |
+| `EvmTransactionView.svelte` | Single **EvmTransaction** by chain + tx hash; Blockscout / Voltaire execution fields. |
+| `EvmTransactionsView.svelte` | Transaction list from a parent **`$$transactions`** field reference (block or network). |
+| `FarcasterAccountView.svelte` | **`BlockheadFarcasterAccountConnection`:** connected **FID**, custody, verifications; Neynar / Snapchain. |
+| `FarcasterAccountsView.svelte` | **`_Global` `$$blockheadFarcasterAccountConnections`** list (sorted by **FID**). |
+| `FarcasterCastView.svelte` | **Cast** by author **FID** + **cast hash**; **channel**, thread, mentions, embeds; feed vs hub layout. |
+| `FarcasterCastsView.svelte` | Cast cards from a **FarcasterFeed** `$$entries` field (e.g. hub trending). |
+| `FarcasterChannelView.svelte` | **FarcasterChannel** by id; stats, **pinned cast hash**, lead/moderators as **FID** links. |
+| `FarcasterChannelsView.svelte` | **`FarcasterNetwork` `$$channels`** registry list. |
+| `FarcasterFeedView.svelte` | **Feed** (trending, by **FID**, by **channel**, following); `$$entries` cast stream + live resolve where wired. |
+| `FarcasterFeedsView.svelte` | **`FarcasterNetwork` `$$feeds`** catalog with stable routes per feed variant. |
+| `FarcasterUserView.svelte` | **FarcasterUser:** **FID**, **fname** (`@username`), profile fields, verified EVM address. |
+| `FarcasterUsersView.svelte` | **`FarcasterNetwork` `$$users`** list (**FID**-sorted). |
+| `FarcasterView.svelte` | **`FarcasterNetwork` hub:** carousels for **feeds**, trending **casts**, **channels**, **users**, and connected **accounts**; registry metadata in `Content` `<dl>`. |
+| `GlobalView.svelte` | **`_Global` hub:** app navigation shortcuts, Dune usage, **`EntityType._Global`** details—distinct from resolver **Source** rows (**SettingView**). |
+| `IpfsBrowseEntityChrome.svelte` | **`IpfsResource`** browse + **gateway** metadata via **`Source.Ipfs_Rest`** (collapsible CID / path + current resource). |
+| `IpfsBrowseView.svelte` | **IPFS** browse form: **multibase CID**, IPNS, `ipfs://` / `ipns://`, or **gateway** URL → canonical resource navigation. |
+| `StateChannelsView.svelte` | **Off-chain state channel** rows (`StateChannel` / `ChannelView`); not on-chain event streams. |
+| `SwarmBrowseView.svelte` | **Swarm** browse form: BZZ references and gateways; copy states this is **not IPFS** (`bzz://` vs CIDs). |
+| `SwarmResourceView.svelte` | Resolver-backed **`SwarmResource`** entity: canonical URI, gateway, typed content via **`Source.Swarm_Rest`**. |
+| `UrlView.svelte` / `UrlsView.svelte` | **`Url`** entities: arbitrary **web URLs** with catalog / Open Graph enrichment. |
+| `VaultView.svelte` / `VaultsView.svelte` | **`Vault`** here is **concentrated-liquidity / DEX pool** metadata (e.g. token pair, ticks, TVL from **`Source.Dexscreener_OpenApi`**), **not** ERC-4626 yield vaults—wording should not imply share-token vault semantics. |
+| `XPostView.svelte` / `XPostsView.svelte` / `XUserView.svelte` / `XUsersView.svelte` | **X (Twitter)** posts and profiles; field lists combine **`Source.Constants_Internal`** on the parent with **`Source.X_Rest`** on the relation where applicable. |
+| `XView.svelte` | **`XNetwork`** hub: carousel of profiles + posts lists (**`entity-view-detail-carousels`** + **`CollapsibleTabs`** like **`FarcasterView`**); singleton metadata via **`Source.Constants_Internal`**. |
+| `XmtpView.svelte` / `XmtpConversationsView.svelte` / `XmtpConversationView.svelte` | **`XmtpNetwork`** + **`XmtpConversation`**: **`_Global`** **`$$actors`** / **`$$xmtpConversations`** (**`Source.Local_Internal`**); omit **`Content`** `<dl>` ids that duplicate the **`Heading`** conversation identifier. |
+| `Proposal*View.svelte` / `ProposalsView.svelte` | **Proposal catalogs**: **realm** (**`ProposalRealm`**) scopes **kind** (**`ProposalKind`**: EIP / CAIP / …), then upstream **`Proposal`** documents; **`ProposalKindsView`** / **`ProposalRealmsView`** mirror **`/proposals/…`** navigation; mute copy distinguishes spec text from live governance tallies where applicable. |
+| `Reddit*View.svelte` | **`RedditNetwork`** lists **subreddits** + popular **submissions**, **`RedditLinkView`** nests **`$$comments`**, **`RedditCommentView`** resolves **`$link`**; terminology stays Reddit-native (**subreddit**, **submission**, **comment thread**) versus Farcaster/X. |
+| `RoomView.svelte` / `RoomsView.svelte` | **`BlockheadRoom`**: realtime **multiplayer session** (**`Local_Internal`**), framed apart from Reddit, XMTP, Swarm; **`RoomsView`** uses **`RoomView`** rows. |
+| `charts/Market_TimeInterval_Timestamp.svelte` | Candlesticks over **`EntityType.Market_TimeInterval_Timestamp`** OHLC points; callers choose **`title`** / interval framing—surface that linkage in muted chrome so charts stay tied to **Market** interval semantics. |
 
 ## SvelteKit routes and views (`src/routes/**/*`)
 

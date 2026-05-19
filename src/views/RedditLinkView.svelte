@@ -1,12 +1,16 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
+
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -17,12 +21,14 @@
 	let {
 		entityId,
 		href,
-		open = $bindable(true),
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...entityViewRest
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.RedditLink>
 			href: string
+			layout?: EntityLayout
 			open?: boolean
 		},
 		Omit<
@@ -31,10 +37,10 @@
 			| 'entityId'
 			| 'href'
 			| 'open'
+			| 'layout'
 			| 'title'
 			| 'Details'
 			| 'Icon'
-			| 'HeadingAfter'
 			| 'Content'
 			| 'Heading'
 		>
@@ -42,8 +48,6 @@
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const link = useEntity(
@@ -56,6 +60,7 @@
 			title: {},
 			selftext: {},
 			url: {},
+			permalink: {},
 			author: {},
 			$subreddit: {},
 		},
@@ -67,9 +72,9 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import RedditCommentsView from '$/views/RedditCommentsView.svelte'
 </script>
 
@@ -78,7 +83,8 @@
 	entityType={EntityType.RedditLink}
 	{entityId}
 	{href}
-	{open}
+	{layout}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Id()}
@@ -90,7 +96,7 @@
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={link}
-			placeholderText="Loading post…"
+			placeholderText="Loading Reddit submission…"
 		>
 			{#snippet children(u)}
 				{u.title ?? entityId.fullname}
@@ -98,28 +104,36 @@
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					A submission bundles a headline, outbound link fields, optional body markdown, then the anchored comment thread underneath.
+				</p>
+				<p>
+					This is Reddit’s threaded model—not realtime rooms or simple chat timelines.
+				</p>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={link}
-			placeholderText="Loading post…"
+			placeholderText="Loading Reddit submission…"
 		>
 			{#snippet children(u)}
 				{#if !u.selftext}
-					<p data-text="muted">No post text.</p>
+					<p data-text="muted">No submission text.</p>
 				{:else}
 					<p>{u.selftext}</p>
 				{/if}
 				<dl data-column-item="center">
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
+					<div>
+						<dt>Submission id (short)</dt>
+						<dd data-text="mono">
+							{@render Id()}
+						</dd>
+					</div>
 					{#if open}
 						<div>
-							<dt>Post id</dt>
+							<dt>Submission fullname</dt>
 							<dd>
 								<span data-text="mono">
 									{entityId.fullname}
@@ -127,21 +141,24 @@
 							</dd>
 						</div>
 					{/if}
+
 					{#if open}
 						<div>
-							<dt>Title</dt>
+							<dt>Submission title</dt>
 							<dd>{u.title}</dd>
 						</div>
 					{/if}
+
 					{#if open}
 						<div>
 							<dt>Author</dt>
 							<dd>u/{u.author}</dd>
 						</div>
 					{/if}
+
 					{#if open}
 						<div>
-							<dt>Subreddit</dt>
+							<dt>Posted in</dt>
 							<dd>
 								<a
 									href={resolve(
@@ -152,6 +169,7 @@
 							</dd>
 						</div>
 					{/if}
+
 					{#if open}
 						<div>
 							<dt>URL</dt>
@@ -163,6 +181,21 @@
 								>{u.url}</a>
 							</dd>
 						</div>
+					{/if}
+
+					{#if open}
+						{#if u.permalink}
+							<div>
+								<dt>Permalink</dt>
+								<dd>
+									<a
+										href={`https://reddit.com${u.permalink}`}
+										rel="noreferrer"
+										target="_blank"
+									>reddit.com{u.permalink}</a>
+								</dd>
+							</div>
+						{/if}
 					{/if}
 				</dl>
 			{/snippet}
@@ -178,14 +211,17 @@
 		>
 			<ResourceBoundary
 				resource={link}
-				placeholderText="Loading post…"
+				placeholderText="Loading Reddit submission…"
 			>
 				{#snippet children(_u)}
 				{/snippet}
 			</ResourceBoundary>
 		</EntityDetails>
 
-		<div class="entity-view-detail-carousels">
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-comments`}
 				{...{ 'data-card': '' }}
@@ -201,13 +237,27 @@
 						data-row="wrap gap-4"
 					>
 						<HeadingComponent>
-							Comments
+							Comment thread
 						</HeadingComponent>
 					</header>
 				{/snippet}
 
-				{#snippet children(_ctx)}
-					<section data-scroll-marker-label="Comments">
+				{#snippet Markers({
+					open: _markersOpen,
+				})}
+					<a
+						data-scroll-marker-label="Comment thread"
+						href={`#${idKey}:comments`}
+					>Thread</a>
+				{/snippet}
+
+				{#snippet children({
+					open: _sectionOpen,
+				})}
+					<section
+						id={`${idKey}:comments`}
+						data-scroll-marker-label="Comment thread"
+					>
 						<RedditCommentsView
 							entityFieldReference={{
 								entityType: EntityType.RedditLink,
@@ -217,7 +267,7 @@
 							href={resolve('/(social)/reddit/link/[fullname]/(link)/comments', {
 								fullname: encodeURIComponent(entityId.fullname),
 							})}
-							id={`${idKey}:comments`}
+							id={`${idKey}:reddit-comments`}
 							open={false}
 						/>
 					</section>

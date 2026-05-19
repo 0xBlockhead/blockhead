@@ -8,17 +8,6 @@
 	import { preloadData } from '$app/navigation'
 
 
-	// State
-	import { SvelteMap } from 'svelte/reactivity'
-
-
-	// Components
-	import Icon from '$/components/Icon.svelte'
-	import SearchableText from '$/components/SearchableText.svelte'
-	import Tree from '$/components/Tree.svelte'
-	import ActorIdentityRow from '$/views/ActorIdentityRow.svelte'
-
-
 	// Props
 	let {
 		items,
@@ -32,15 +21,17 @@
 
 
 	// Functions
-	const navIconProps = (string: string) => (
-		/^data:|^\/\^http/.test(string) ?
-			{ src: string }
+	const navIconProps = (iconRef: string) => (
+		/^data:|^\/\^http/.test(iconRef) ?
+			{ src: iconRef }
 		:
-			{ icon: string }
+			{ icon: iconRef }
 	)
 
 
 	// State
+	import { SvelteMap } from 'svelte/reactivity'
+
 	let searchValue = $state(
 		'',
 	)
@@ -54,18 +45,27 @@
 	const searchFilter = $derived(
 		searchValue.trim().toLowerCase(),
 	)
+
+
+	// Components
+	import Icon from '$/components/Icon.svelte'
+	import SearchableText from '$/components/SearchableText.svelte'
+	import Tree from '$/components/Tree.svelte'
+	import ActorIdentityRow from '$/views/ActorIdentityRow.svelte'
 </script>
 
 
 <search
+	aria-label="Site navigation tree (addresses show EL chain id; markets, MEV-Boost deliveries, bridges, fork trains live in subtrees)"
 	class="nav-items"
 	data-column="gap-3"
 >
 	<input
+		aria-controls="navigation-tree"
 		type="search"
 		data-sticky
 		bind:value={searchValue}
-		placeholder="Search (⌘+K)"
+		placeholder="Search... (⌘+K)"
 		{@attach (element) => {
 			const abortController = new AbortController()
 
@@ -123,7 +123,10 @@
 			&& ((item.children ?? item.allChildren)?.every((child) => getIsHidden(child, getIsHidden)) ?? true)
 		)}
 		listTag="menu"
-		listAttrs={{ 'data-column': 'gap-0' }}
+		listAttrs={{
+			id: 'navigation-tree',
+			'data-column': 'gap-0',
+		}}
 		detailsAttrs={{ 'data-sticky-container': '' }}
 		summaryAttrs={{ 'data-sticky': '', 'data-row': 'start gap-2' }}
 	>
@@ -157,7 +160,7 @@
 										<ActorIdentityRow entityId={{ address: node.address.address }} />
 
 										<small data-text="muted">
-											 · {node.address.network.chainId}
+											 · execution-layer chain {node.address.network.chainId}
 										</small>
 									</span>
 								{:else}
@@ -222,7 +225,7 @@
 										<ActorIdentityRow entityId={{ address: node.address.address }} />
 
 										<small data-text="muted">
-											 · {node.address.network.chainId}
+											 · execution-layer chain {node.address.network.chainId}
 										</small>
 									</span>
 								{:else}

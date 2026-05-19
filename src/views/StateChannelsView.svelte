@@ -17,7 +17,7 @@
 	// Props
 	let {
 		entityFieldReference,
-		title = 'Channels',
+		title = 'State channels',
 		open = $bindable(true),
 		href,
 		id,
@@ -48,11 +48,16 @@
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [Source.Local_Internal],
-			},
-		},
+		(
+			open ?
+				{
+					[entityFieldReference.fieldName]: {
+						$: [Source.Local_Internal],
+					},
+				}
+			:
+				{}
+		),
 	)
 
 	const envelopes = derive(
@@ -78,7 +83,8 @@
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import StateChannelView from '$/views/StateChannelView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import ChannelView from '$/views/ChannelView.svelte'
 </script>
 
 
@@ -96,15 +102,31 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet Empty()}
-		<p data-text="muted">
-			No channels yet.
-		</p>
+		<div data-row="wrap align-center gap-2">
+			<p data-text="muted">
+				No state channels in this datastore yet.
+			</p>
+			<Tooltip contentProps={{ side: 'top' }}>
+				{#snippet Content()}
+					<p>
+						Participants update a joint ledger off-chain and settle or challenge on-chain if cooperation stops.
+					</p>
+					<p>
+						Not chat apps, AMM pools, or receipt logs.
+					</p>
+				{/snippet}
+				<abbr
+					class="entity-heading-tip"
+					aria-label="About state channels"
+				>ⓘ</abbr>
+			</Tooltip>
+		</div>
 	{/snippet}
 
 	{#snippet Item(props)}
 		{#if props.item}
 			{@const channelId = props.item.value[EntityMetaKey.Id]}
-			<StateChannelView
+			<ChannelView
 				entityId={channelId}
 				href={resolve('/(assets)/(channels)/channel/[channelId]', {
 					channelId: channelId.id,

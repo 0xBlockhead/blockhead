@@ -11,8 +11,8 @@ import { ProposalCategory, ProposalRealm } from '$/constants/Proposal.ts'
 export default {
 	entityType: EntityType.ProposalKind,
 
-	label: 'Proposal Kind',
-	labelPlural: 'Proposal Kinds',
+	label: 'Proposal kind',
+	labelPlural: 'Proposal kinds',
 
 	id: type({
 		realm: type.valueOf(ProposalRealm),

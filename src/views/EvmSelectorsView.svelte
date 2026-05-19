@@ -25,13 +25,17 @@
 	let {
 		entityFieldReference,
 		open = $bindable(true),
-		title = 'Selectors',
+		title = '4-byte selectors',
+		id,
+		href,
 		...entitiesListRest
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmSelector>
 			open?: boolean
 			title?: string
+			id: string
+			href: string
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
@@ -41,7 +45,6 @@
 
 
 	// State
-	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
@@ -51,11 +54,13 @@
 		EntityType._Global,
 		entityFieldReference.entityId,
 		{
-			$$evmSelectors: {
-				$: [
-					Source.Openchain_Rest,
-				],
-			},
+			...(open ? {
+				$$evmSelectors: {
+					$: [
+						Source.Openchain_Rest,
+					],
+				},
+			} : {}),
 		},
 	)
 
@@ -86,30 +91,44 @@
 
 <EntitiesList
 	entityType={EntityType.EvmSelector}
+	{id}
+	{href}
 	{title}
 	bind:open
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Four-byte function selectors prefix calldata for contract calls; catalogs map them to human-readable signatures.
+					</p>
+					<p>
+						Event topic zeros and error selectors follow different decoding rules on receipts and reverts.
+					</p>
+					<p>
+						Rows filter the shared OpenChain-style directory for the current slice.
+					</p>
+	{/snippet}
+
 	{#snippet body()}
-		{#key stringify(entityFieldReference.entityId)}
+		<div data-column="gap-3">
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmSelector}
-				id={`${entitiesListRest.id}-items`}
-				href={entitiesListRest.href}
+				id={`${id}-items`}
+				{href}
 				{title}
 				open={true}
 				getKey={(row) => row[EntityMetaKey.Id].hex}
 				getSortValue={(row) => row[EntityMetaKey.Id].hex}
 				placeholderKeys={new SvelteSet()}
-				placeholderText="Loading selectors…"
+				placeholderText="Loading 4-byte selectors…"
 				resource={selectors}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No selectors indexed yet.
+						No selectors yet.
 					</p>
 				{/snippet}
 
@@ -126,6 +145,6 @@
 					{/if}
 				{/snippet}
 			</EntitiesList>
-		{/key}
+		</div>
 	{/snippet}
 </EntitiesList>

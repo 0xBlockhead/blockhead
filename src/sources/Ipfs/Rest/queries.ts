@@ -1,29 +1,11 @@
 import { regex } from 'arkregex'
 import { jsonErrorHintFromResponse } from '$/lib/http.ts'
 import { gatewayUrls } from '$/sources/Ipfs/Rest/constants.ts'
-
-export type IpfsNamespace = 'ipfs' | 'ipns'
-
-export type IpfsBrowseResult = {
-	namespace: IpfsNamespace
-	target: string
-	contentPath: string
-	gatewayOrigin: string
-	gatewayUrl: string
-	fileName?: string
-	extension?: string
-	contentType?: string
-	contentLength?: number
-	displayType: 'text' | 'image' | 'video' | 'audio' | 'json' | 'xml' | 'pdf' | 'iframe' | 'binary'
-	isContentTypeInferred: boolean
-	text?: string
-}
-
-export type ParsedIpfsBrowseInput = {
-	namespace?: IpfsNamespace
-	target: string
-	contentPath: string
-}
+import type {
+	IpfsBrowseResult,
+	IpfsNamespace,
+	ParsedIpfsBrowseInput,
+} from '$/sources/Ipfs/Rest/types.ts'
 
 const ipfsBrowseUriPattern = regex('^(?<namespace>ipfs|ipns)://(?<target>[^/?#]+)(?<contentPath>/[^?#]*)?(?:[?#].*)?$', 'i')
 const ipfsBrowseGatewayPattern = regex('^https?://[^/]+/(?<namespace>ipfs|ipns)/(?<target>[^/?#]+)(?<contentPath>/[^?#]*)?(?:[?#].*)?$', 'i')

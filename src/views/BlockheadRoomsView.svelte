@@ -1,6 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { stringify } from 'devalue'
+
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -13,8 +15,6 @@
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -30,7 +30,7 @@
 	// Props
 	let {
 		entityFieldReference,
-		title = 'Rooms',
+		title = 'Collaboration rooms',
 		open = $bindable(true),
 		href,
 		id,
@@ -53,10 +53,17 @@
 	const globalEntity = useEntity(
 		EntityType._Global,
 		entityFieldReference.entityId,
-		{
-			$: [Source.Local_Internal],
-			$$blockheadRooms: {},
-		},
+		(
+			open ?
+				{
+					$: [Source.Local_Internal],
+					$$blockheadRooms: {},
+				}
+			:
+				{
+					$: [Source.Local_Internal],
+				}
+		),
 	)
 
 	const rooms = derive(
@@ -80,6 +87,21 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Realtime collaboration rooms: stable ids plus host metadata for synchronized presence and shared cursors/state.
+					</p>
+					<p>
+						They ride on WebRTC or similar transports—separate persistence from chat logs (XMTP), Farcaster feeds, or beacon consensus.
+					</p>
+	{/snippet}
+
+	{#snippet Empty()}
+		<p data-text="muted">
+			No rooms yet.
+		</p>
+	{/snippet}
+
 	{#snippet Item({ item: row })}
 		{#if row}
 			<BlockheadRoomView

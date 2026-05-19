@@ -1,3 +1,4 @@
+// Types
 import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 
 export enum ProposalRealm {
@@ -18,6 +19,8 @@ export type ProposalKindId = {
 	category: ProposalCategory
 }
 
+
+// Constants
 export const proposalRealms = [
 	{
 		id: ProposalRealm.Ethereum,

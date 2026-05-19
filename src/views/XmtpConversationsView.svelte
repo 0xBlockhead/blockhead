@@ -40,7 +40,6 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
@@ -71,8 +70,9 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import XmtpConversationView from '$/views/XmtpConversationView.svelte'
 </script>
 
@@ -89,9 +89,25 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet Empty()}
-		<p data-text="muted">
-			No conversations yet.
-		</p>
+		<div data-row="wrap align-center gap-2">
+			<p data-text="muted">
+				No XMTP inbox threads synced yet.
+			</p>
+			<Tooltip contentProps={{ side: 'top' }}>
+				{#snippet Content()}
+					<p>
+						Threads sync after an XMTP-capable client merges your local inbox.
+					</p>
+					<p>
+						They are not public timelines or on-chain market tables.
+					</p>
+				{/snippet}
+				<abbr
+					class="entity-heading-tip"
+					aria-label="How XMTP rows appear"
+				>ⓘ</abbr>
+			</Tooltip>
+		</div>
 	{/snippet}
 
 	{#snippet Item(props)}

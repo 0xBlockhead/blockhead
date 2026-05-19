@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { Snippet } from 'svelte'
+	// Reserved pass-through wrapper for route-level composition (`NetworkView` is the canonical implementation).
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -30,11 +31,13 @@
 </script>
 
 
-<NetworkView
-	{children}
-	{entityId}
-	{href}
-	bind:open
-	{layout}
-	{Title}
-/>
+<div style="display: contents;">
+	<NetworkView
+		{children}
+		{entityId}
+		{href}
+		bind:open
+		{layout}
+		{Title}
+	/>
+</div>

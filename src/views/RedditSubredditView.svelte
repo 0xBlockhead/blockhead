@@ -1,11 +1,15 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
+
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -16,12 +20,14 @@
 	let {
 		entityId,
 		href,
-		open = $bindable(true),
+		layout = EntityLayout.SummaryDetails,
+		open = $bindable(layout === EntityLayout.SummaryDetails),
 		...entityViewRest
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.RedditSubreddit>
 			href: string
+			layout?: EntityLayout
 			open?: boolean
 		},
 		Omit<
@@ -30,10 +36,10 @@
 			| 'entityId'
 			| 'href'
 			| 'open'
+			| 'layout'
 			| 'title'
 			| 'Details'
 			| 'Icon'
-			| 'HeadingAfter'
 			| 'Content'
 			| 'Heading'
 		>
@@ -41,8 +47,6 @@
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const subreddit = useEntity(
@@ -63,9 +67,9 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import RedditLinksView from '$/views/RedditLinksView.svelte'
 </script>
 
@@ -74,7 +78,8 @@
 	entityType={EntityType.RedditSubreddit}
 	{entityId}
 	{href}
-	{open}
+	{layout}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Id()}
@@ -94,7 +99,16 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href, open })}
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					Subreddits are Reddit’s named communities—their moderators and description power the posts list surfaced here.
+				</p>
+				<p>
+					Profiles on other networks or realtime rooms tracked locally are unrelated rows.
+				</p>
+	{/snippet}
+
+	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={subreddit}
 			placeholderText="Loading subreddit…"
@@ -108,25 +122,10 @@
 					{/if}
 				{/if}
 				<dl data-column-item="center">
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
 					<div>
 						<dt>Subreddit</dt>
-						<dd>r/{entityId.name}</dd>
+						<dd data-text="mono">r/{entityId.name}</dd>
 					</div>
-					{#if open}
-						{#if u.title}
-							<div>
-								<dt>Title</dt>
-								<dd>{u.title}</dd>
-							</div>
-						{/if}
-					{/if}
 					{#if open}
 						{#if u.publicDescription}
 							<div>
@@ -148,7 +147,10 @@
 			{entityId}
 		/>
 
-		<div class="entity-view-detail-carousels">
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-posts`}
 				{...{ 'data-card': '' }}
@@ -169,8 +171,22 @@
 					</header>
 				{/snippet}
 
-				{#snippet children(_ctx)}
-					<section data-scroll-marker-label="Posts">
+				{#snippet Markers({
+					open: _markersOpen,
+				})}
+					<a
+						data-scroll-marker-label="Submissions"
+						href={`#${idKey}:links`}
+					>Submissions</a>
+				{/snippet}
+
+				{#snippet children({
+					open: _sectionOpen,
+				})}
+					<section
+						id={`${idKey}:links`}
+						data-scroll-marker-label="Submissions"
+					>
 						<RedditLinksView
 							entityFieldReference={{
 								entityType: EntityType.RedditSubreddit,
@@ -180,7 +196,7 @@
 							href={resolve('/(social)/reddit/r/[name]/(subreddit)/links', {
 								name: encodeURIComponent(entityId.name),
 							})}
-							id={`${idKey}:links`}
+							id={`${idKey}:reddit-links`}
 							open={false}
 						/>
 					</section>

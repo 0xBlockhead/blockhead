@@ -58,15 +58,20 @@
 	const parentFeed = useEntity(
 		EntityType.FarcasterFeed,
 		entityFieldReference.entityId,
-		{
-			$: [
-				import.meta.env.PUBLIC_NEYNAR_API_KEY?.trim() ?
-					Source.Neynar_Rest
-				:
-					Source.Snapchain_Rest,
-			],
-			$$entries: {},
-		},
+		(
+			open ?
+				{
+					$: [
+						import.meta.env.PUBLIC_NEYNAR_API_KEY?.trim() ?
+							Source.Neynar_Rest
+						:
+							Source.Snapchain_Rest,
+					],
+					$$entries: {},
+				}
+			:
+				{}
+		),
 	)
 
 	const casts = derive(
@@ -93,13 +98,22 @@
 	bind:open
 	getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
 	placeholderKeys={new SvelteSet()}
-	placeholderText="Loading casts…"
+	placeholderText="Loading feed casts (Farcaster FID + cast hash)…"
 	resource={casts}
 	{...entitiesListProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Casts are immutable messages (FID + hash) referenced by feeds; trending, author, and channel feeds differ only in hub query semantics.
+					</p>
+					<p>
+						An empty feed response usually means no hashes matched that filter at the hub—not that the chain halted.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No casts to show yet.
+			No casts yet.
 		</p>
 	{/snippet}
 

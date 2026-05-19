@@ -14,12 +14,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LensPostView from '$/views/LensPostView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -27,7 +21,7 @@
 		id,
 		limit = 25,
 		open = $bindable(true),
-		title = 'Posts',
+		title = 'Lens v3 publications',
 		...entitiesListRest
 	}: WithRest<
 		{
@@ -55,31 +49,38 @@
 	const lensNetworkOrAccount = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
-		entityFieldReference.entityType === EntityType.LensNetwork ?
-			{
-				$: [Source.Constants_Internal],
-				protocolName: {},
-				$$lensPosts: {
-					$: [
-						Source.Constants_Internal,
-						Source.Lens_Graphql,
-					],
-				},
-			}
-		:
-			{
-				$: [
-					Source.Constants_Internal,
-					Source.Lens_Graphql,
-				],
-				$$posts: {},
-			},
+		(
+			open ?
+				(
+					entityFieldReference.entityType === EntityType.LensNetwork ?
+						{
+							$: [Source.Constants_Internal],
+							protocolName: {},
+							$$lensPosts: {
+								$: [
+									Source.Constants_Internal,
+									Source.Lens_Graphql,
+								],
+							},
+						}
+					:
+						{
+							$: [
+								Source.Constants_Internal,
+								Source.Lens_Graphql,
+							],
+							$$posts: {},
+						}
+				)
+			:
+				{}
+		),
 	)
 
 	const posts = derive(
 		lensNetworkOrAccount,
 		(loaded) => {
-			const rows = (
+			const rows: Entity<typeof schema, EntityType.LensPost>[] = (
 				(
 					entityFieldReference.entityType === EntityType.LensNetwork ?
 						loaded.$$lensPosts
@@ -87,7 +88,7 @@
 						loaded.$$posts
 				)
 				?? []
-			) as Entity<typeof schema, EntityType.LensPost>[]
+			)
 			return (
 				rows
 					.toSorted((a, b) => (
@@ -97,6 +98,12 @@
 			)
 		},
 	)
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import LensPostView from '$/views/LensPostView.svelte'
 </script>
 
 
@@ -108,6 +115,15 @@
 	{title}
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Lens publications are recorded on-chain.
+		</p>
+		<p>
+			They are not generic off-chain mirrors unless the protocol itself points at one.
+		</p>
+	{/snippet}
+
 	{#snippet body()}
 		{#key `${stringify(entityFieldReference.entityId)}-${limit}`}
 			<EntitiesList
@@ -127,7 +143,7 @@
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No Lens posts to show yet.
+						No Lens publications in this slice yet.
 					</p>
 				{/snippet}
 
@@ -147,4 +163,3 @@
 		{/key}
 	{/snippet}
 </EntitiesList>
-

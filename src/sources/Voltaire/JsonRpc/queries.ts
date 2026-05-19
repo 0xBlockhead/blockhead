@@ -93,6 +93,8 @@ export const narrowVoltaireBlockRpc = (raw: JsonValue): VoltaireBlockRpc | null 
 			const timestampRaw = raw['timestamp']
 			if (typeof timestampRaw !== 'string' && typeof timestampRaw !== 'number') return null
 			const baseFeePerGas = raw['baseFeePerGas']
+			const blobGasUsed = raw['blobGasUsed']
+			const excessBlobGas = raw['excessBlobGas']
 			const txs = raw['transactions']
 			const transactions = (
 				!Array.isArray(txs) ?
@@ -117,6 +119,8 @@ export const narrowVoltaireBlockRpc = (raw: JsonValue): VoltaireBlockRpc | null 
 				gasUsed,
 				gasLimit,
 				...(typeof baseFeePerGas === 'string' && { baseFeePerGas }),
+				...(typeof blobGasUsed === 'string' && { blobGasUsed }),
+				...(typeof excessBlobGas === 'string' && { excessBlobGas }),
 				...(transactions != null && { transactions }),
 			}
 		})()
@@ -465,6 +469,8 @@ export const voltaireBlockWireAsRpcHeader = (
 	baseFeePerGas: wire.baseFeePerGas,
 	miner: wire.miner,
 	transactions: [...(wire.transactions ?? [])],
+	...(wire.blobGasUsed != null && { blobGasUsed: wire.blobGasUsed }),
+	...(wire.excessBlobGas != null && { excessBlobGas: wire.excessBlobGas }),
 })
 
 export const voltaireTxWireAsRpcTx = (

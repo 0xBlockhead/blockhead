@@ -13,8 +13,8 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	entityType: EntityType.EvmTopic,
 
-	label: 'EVM Topic',
-	labelPlural: 'EVM Topics',
+	label: 'Log topic',
+	labelPlural: 'Log topics',
 
 	id: type({
 		hex: ZeroExHex,

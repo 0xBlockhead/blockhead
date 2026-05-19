@@ -10,6 +10,8 @@ export type VoltaireBlockRpc = {
 	gasLimit: string
 	baseFeePerGas?: string
 	transactions?: readonly (string | VoltaireTxRpc)[]
+	blobGasUsed?: string
+	excessBlobGas?: string
 }
 
 export type VoltaireTxRpc = {

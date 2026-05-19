@@ -10,6 +10,7 @@ import { neynarFeedDefaultLimit, neynarFeedMaxLimit } from '$/sources/Neynar/Res
 import type {
 	NeynarBulkUsersResponse,
 	NeynarCastWire,
+	NeynarFeedQuery,
 	NeynarFeedResponse,
 } from '$/sources/Neynar/Rest/types.ts'
 
@@ -24,32 +25,6 @@ export const getBulkUsers = async ({
 	const searchParams = new URLSearchParams({ fids: fids.join(',') })
 	return neynarFetch<NeynarBulkUsersResponse>(publicEnv, `/v2/farcaster/user/bulk/?${searchParams}`)
 }
-
-export type NeynarFeedQuery =
-	| {
-		feedType: 'filter'
-		filterType: 'global_trending'
-		limit?: number
-		cursor?: string
-		viewerFid?: number
-	}
-	| {
-		feedType: 'filter'
-		filterType: 'fids'
-		fids: number[]
-		limit?: number
-		cursor?: string
-		viewerFid?: number
-	}
-	| {
-		feedType: 'filter'
-		filterType: 'channel_id'
-		channelId: string
-		limit?: number
-		cursor?: string
-		membersOnly?: boolean
-		viewerFid?: number
-	}
 
 /**
  * Neynar feed — `feed_type` + `filter_type` per

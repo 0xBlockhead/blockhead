@@ -12,8 +12,8 @@ import Market from '$/schema/Market.ts'
 export default {
 	entityType: EntityType.Market_TimeInterval_Timestamp,
 
-	label: 'Market Time Interval Timestamp',
-	labelPlural: 'Market Time Interval Timestamps',
+	label: 'OHLC interval',
+	labelPlural: 'OHLC intervals',
 
 	id: type({
 		$market: Market.id,

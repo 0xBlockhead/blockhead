@@ -1,6 +1,7 @@
 /**
- * Network upgrade rows: manual L2/pairing activation lists, EF marketing umbrellas (entity-shaped),
- * and derived entity lists for resolvers / UI.
+ * `NetworkUpgrade` ties a catalog / marketing id to a `NetworkExecutionUpgrade` and optionally a
+ * `NetworkConsensusUpgrade` when both layers shipped under one name (e.g. umbrella labels on L1).
+ * Consensus-only forks (beacon-only activations) are listed only on `Network.$$consensusUpgrades`, not here.
  * @see https://ethereum.org/en/history/
  */
 
@@ -23,10 +24,30 @@ import {
 	sepoliaNetworkUpgradeActivations,
 	type NetworkUpgradeActivation,
 } from '$/constants/NetworkUpgradeActivations.ts'
+import {
+	ethereumNetworkMarketingNetworkUpgradeSlugs,
+	networkConsensusUpgradeSlugFromParts,
+	networkExecutionUpgradeSlugFromParts,
+	networkUpgradeSlugFromParts,
+	networkUpgradeSlugSegmentFromUpgradeId,
+} from '$/constants/NetworkUpgradeSlugs.ts'
 import { ProposalRealm } from '$/constants/Proposal.ts'
 import { stringify } from 'devalue'
 
+/**
+ * Manual dual-layer marketing umbrellas (Merge, Shapella, …). Shaped like `NetworkUpgrade` refs;
+ * `$network` on ids is applied when expanding to per-chain rows.
+ */
+export type NetworkUpgradeMarketingUmbrellaTemplate = {
+	readonly [EntityMetaKey.Id]: { readonly upgradeId: string }
+	readonly name: string
+	readonly slug: string
+	readonly $networkExecutionUpgrade: { readonly [EntityMetaKey.Id]: { readonly upgradeId: string } }
+	readonly $networkConsensusUpgrade: { readonly [EntityMetaKey.Id]: { readonly upgradeId: string } }
+}
 
+
+// Constants
 /** Canonical `*.md` under pinned `ethereum/execution-specs/.../network-upgrades/mainnet-upgrades/`. */
 const executionSpecsPinnedMarkdownFilenameFromLink = (
 	executionSpecsLink: string | undefined,
@@ -41,23 +62,8 @@ const executionSpecsPinnedMarkdownFilenameFromLink = (
 	return /^[a-zA-Z0-9][a-zA-Z0-9._-]*\.md$/.test(lastSegment) ? lastSegment : undefined
 }
 
-
-/**
- * Manual dual-layer marketing umbrellas (Merge, Shapella, …). Shaped like `NetworkUpgrade` refs;
- * `$network` on ids is applied when expanding to per-chain rows.
- */
-export type NetworkUpgradeMarketingUmbrellaTemplate = {
-	readonly [EntityMetaKey.Id]: { readonly upgradeId: string }
-	readonly name: string
-	readonly slug: string
-	readonly $executionUpgrade: { readonly [EntityMetaKey.Id]: { readonly upgradeId: string } }
-	readonly $consensusUpgrade: { readonly [EntityMetaKey.Id]: { readonly upgradeId: string } }
-}
-
-
-// Constants
-/** L1 / public testnets where EL+CL umbrella ids replace paired half rows. */
-export const ethereumUmbrellaPairingChainIds = [
+/** L1 / public testnets where merge-era umbrella ids (Merge, Shapella, …) subsume separate execution and consensus fork names into one NetworkUpgrade row. */
+export const ethereumNetworkUpgradeUmbrellaChainIds = [
 	1,
 	11_155_111,
 	17_000,
@@ -67,44 +73,42 @@ export const ethereumNetworkMarketingUmbrellas = [
 	{
 		[EntityMetaKey.Id]: { upgradeId: 'Merge' },
 		name: 'The Merge',
-		slug: 'merge',
-		$executionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Paris' } },
-		$consensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Bellatrix' } },
+		slug: ethereumNetworkMarketingNetworkUpgradeSlugs.Merge,
+		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Paris' } },
+		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Bellatrix' } },
 	},
 	{
 		[EntityMetaKey.Id]: { upgradeId: 'Shapella' },
 		name: 'Shapella',
-		slug: 'shapella',
-		$executionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Shanghai' } },
-		$consensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Capella' } },
+		slug: ethereumNetworkMarketingNetworkUpgradeSlugs.Shapella,
+		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Shanghai' } },
+		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Capella' } },
 	},
 	{
 		[EntityMetaKey.Id]: { upgradeId: 'Dencun' },
 		name: 'Dencun',
-		slug: 'dencun',
-		$executionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Cancun' } },
-		$consensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Deneb' } },
+		slug: ethereumNetworkMarketingNetworkUpgradeSlugs.Dencun,
+		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Cancun' } },
+		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Deneb' } },
 	},
 	{
 		[EntityMetaKey.Id]: { upgradeId: 'Pectra' },
 		name: 'Pectra',
-		slug: 'pectra',
-		$executionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Prague' } },
-		$consensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Electra' } },
+		slug: ethereumNetworkMarketingNetworkUpgradeSlugs.Pectra,
+		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Prague' } },
+		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Electra' } },
 	},
 	{
 		[EntityMetaKey.Id]: { upgradeId: 'Fusaka' },
 		name: 'Fusaka',
-		slug: 'fusaka',
-		$executionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Osaka' } },
-		$consensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Fulu' } },
+		slug: ethereumNetworkMarketingNetworkUpgradeSlugs.Fusaka,
+		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Osaka' } },
+		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Fulu' } },
 	},
 ] as const satisfies readonly NetworkUpgradeMarketingUmbrellaTemplate[]
 
 
-const PAIR_DEFINITIONS = ethereumNetworkMarketingUmbrellas
-
-const ETHEREUM_EXECUTION_CONSENSUS_PAIR_CHAIN_IDS = new Set(ethereumUmbrellaPairingChainIds)
+const ETHEREUM_NETWORK_UPGRADE_UMBRELLA_CHAIN_IDS = new Set(ethereumNetworkUpgradeUmbrellaChainIds)
 
 const proposalStubs = (
 	proposalIds: NonNullable<NetworkUpgradeActivation['proposalIds']>,
@@ -144,9 +148,10 @@ const networkExecutionUpgradeEntityFromSource = (
 		proposalIds,
 		forkHash,
 	} = activationSource
-	const slugValue = (
-		slugMaybe ?? String(upgradeId).toLowerCase().replace(/\s+/g, '-')
-	)
+	const slugValue = networkExecutionUpgradeSlugFromParts({
+		upgradeId,
+		slugOverride: slugMaybe,
+	})
 	const pinnedFilename = executionSpecsPinnedMarkdownFilenameFromLink(links?.executionSpecs)
 	if (activationSource.blobParameterOnly === true) {
 		return {
@@ -213,7 +218,10 @@ const networkConsensusUpgradeEntityFromSource = (
 			upgradeId,
 		},
 		name: name ?? upgradeId,
-		slug: slugMaybe ?? String(upgradeId).toLowerCase().replace(/\s+/g, '-'),
+		slug: networkConsensusUpgradeSlugFromParts({
+			upgradeId,
+			slugOverride: slugMaybe,
+		}),
 		protocol: activationSource.consensusProtocol,
 		...(activation?.block != null && { activationBlock: activation.block }),
 		...(activation?.timestamp != null && { activationTimestamp: activation.timestamp }),
@@ -234,15 +242,13 @@ const networkUpgradeEntityFromSource = (
 		|| activationSource.executionProtocol != null
 	)
 	const hasConsensus = activationSource.consensusProtocol != null
-	if (!hasExecution && !hasConsensus) {
+	if (!hasExecution) {
 		return null
 	}
 	const {
 		upgradeId,
 		name,
 		slug: slugMaybe,
-		activation,
-		proposalIds,
 	} = activationSource
 	return {
 		[EntityMetaKey.Id]: {
@@ -250,27 +256,24 @@ const networkUpgradeEntityFromSource = (
 			upgradeId,
 		},
 		name: name ?? upgradeId,
-		slug: slugMaybe ?? String(upgradeId).toLowerCase().replace(/\s+/g, '-'),
-		...(activation?.block != null && { activationBlock: activation.block }),
-		...(activation?.timestamp != null && { activationTimestamp: activation.timestamp }),
-		...(activation?.epoch != null && { activationEpoch: activation.epoch }),
-		...(hasExecution && {
-			$executionUpgrade: {
-				[EntityMetaKey.Id]: {
-					$network: { chainId },
-					upgradeId,
-				},
-			},
+		slug: networkUpgradeSlugFromParts({
+			upgradeId,
+			slugOverride: slugMaybe,
 		}),
+		$networkExecutionUpgrade: {
+			[EntityMetaKey.Id]: {
+				$network: { chainId },
+				upgradeId,
+			},
+		},
 		...(hasConsensus && {
-			$consensusUpgrade: {
+			$networkConsensusUpgrade: {
 				[EntityMetaKey.Id]: {
 					$network: { chainId },
 					upgradeId,
 				},
 			},
 		}),
-		...(proposalIds != null && proposalIds.length > 0 && { $$proposals: proposalStubs(proposalIds) }),
 	} satisfies Entity<typeof schema, EntityType.NetworkUpgrade>
 }
 
@@ -305,7 +308,7 @@ const withChain = [
 	...activationsWithChainId(11_155_420, opSepoliaNetworkUpgradeActivations),
 ]
 
-const chainIdsInCatalog = (
+const chainIdsWithUpgradeActivations = (
 	[...new Set(withChain.map(({ chainId }) => chainId))].toSorted((a, b) => a - b)
 )
 
@@ -332,17 +335,17 @@ for (const consensusUpgrade of networkConsensusUpgradesBuilt) {
 	consensusByKey[`${id.$network.chainId}:${id.upgradeId}`] = consensusUpgrade
 }
 
-const pairHalfIdsSubsumedOnChain = new Map<number, Set<string>>()
+const umbrellaSubsumedUpgradeIdsByChain = new Map<number, Set<string>>()
 
-for (const chainId of chainIdsInCatalog) {
-	if (!ETHEREUM_EXECUTION_CONSENSUS_PAIR_CHAIN_IDS.has(chainId)) {
-		pairHalfIdsSubsumedOnChain.set(chainId, new Set())
+for (const chainId of chainIdsWithUpgradeActivations) {
+	if (!ETHEREUM_NETWORK_UPGRADE_UMBRELLA_CHAIN_IDS.has(chainId)) {
+		umbrellaSubsumedUpgradeIdsByChain.set(chainId, new Set())
 		continue
 	}
 	const subsumedOnChain = new Set<string>()
-	for (const definition of PAIR_DEFINITIONS) {
-		const executionUpgradeId = definition.$executionUpgrade[EntityMetaKey.Id].upgradeId
-		const consensusUpgradeId = definition.$consensusUpgrade[EntityMetaKey.Id].upgradeId
+	for (const definition of ethereumNetworkMarketingUmbrellas) {
+		const executionUpgradeId = definition.$networkExecutionUpgrade[EntityMetaKey.Id].upgradeId
+		const consensusUpgradeId = definition.$networkConsensusUpgrade[EntityMetaKey.Id].upgradeId
 		const executionEntity = executionByKey[`${chainId}:${executionUpgradeId}`]
 		const consensusEntity = consensusByKey[`${chainId}:${consensusUpgradeId}`]
 		if (executionEntity != null && consensusEntity != null) {
@@ -350,44 +353,21 @@ for (const chainId of chainIdsInCatalog) {
 			subsumedOnChain.add(consensusUpgradeId)
 		}
 	}
-	pairHalfIdsSubsumedOnChain.set(chainId, subsumedOnChain)
+	umbrellaSubsumedUpgradeIdsByChain.set(chainId, subsumedOnChain)
 }
 
-const pairUmbrellas = (
-	[...ETHEREUM_EXECUTION_CONSENSUS_PAIR_CHAIN_IDS].toSorted((a, b) => a - b)
-		.filter((chainId) => chainIdsInCatalog.includes(chainId))
+const networkUpgradeMarketingUmbrellaRows = (
+	[...ETHEREUM_NETWORK_UPGRADE_UMBRELLA_CHAIN_IDS].toSorted((a, b) => a - b)
+		.filter((chainId) => chainIdsWithUpgradeActivations.includes(chainId))
 		.flatMap((chainId) => (
-			PAIR_DEFINITIONS.map((definition) => {
-				const executionUpgradeId = definition.$executionUpgrade[EntityMetaKey.Id].upgradeId
-				const consensusUpgradeId = definition.$consensusUpgrade[EntityMetaKey.Id].upgradeId
+			ethereumNetworkMarketingUmbrellas.map((definition) => {
+				const executionUpgradeId = definition.$networkExecutionUpgrade[EntityMetaKey.Id].upgradeId
+				const consensusUpgradeId = definition.$networkConsensusUpgrade[EntityMetaKey.Id].upgradeId
 				const executionEntity = executionByKey[`${chainId}:${executionUpgradeId}`]
 				const consensusEntity = consensusByKey[`${chainId}:${consensusUpgradeId}`]
 				if (executionEntity == null || consensusEntity == null) {
 					return null
 				}
-				const activationBlock = executionEntity.activationBlock ?? consensusEntity.activationBlock
-				const activationTimestamp = (
-					executionEntity.activationTimestamp
-					?? consensusEntity.activationTimestamp
-				)
-				const activationEpoch = (
-					consensusEntity.activationEpoch
-					?? executionEntity.activationEpoch
-				)
-				const umbrellaProposals = uniqueProposalsById([
-					...(
-						executionEntity.$$proposals != null ?
-							[...executionEntity.$$proposals]
-						:
-							[]
-					),
-					...(
-						consensusEntity.$$proposals != null ?
-							[...consensusEntity.$$proposals]
-						:
-							[]
-					),
-				])
 				const umbrellaUpgradeId = definition[EntityMetaKey.Id].upgradeId
 				return {
 					[EntityMetaKey.Id]: {
@@ -396,22 +376,18 @@ const pairUmbrellas = (
 					},
 					name: definition.name,
 					slug: definition.slug,
-					...(activationBlock != null && { activationBlock }),
-					...(activationTimestamp != null && { activationTimestamp }),
-					...(activationEpoch != null && { activationEpoch }),
-					$executionUpgrade: {
+					$networkExecutionUpgrade: {
 						[EntityMetaKey.Id]: {
 							$network: { chainId },
 							upgradeId: executionUpgradeId,
 						},
 					},
-					$consensusUpgrade: {
+					$networkConsensusUpgrade: {
 						[EntityMetaKey.Id]: {
 							$network: { chainId },
 							upgradeId: consensusUpgradeId,
 						},
 					},
-					...(umbrellaProposals.length > 0 && { $$proposals: umbrellaProposals }),
 				} satisfies Entity<typeof schema, EntityType.NetworkUpgrade>
 			}).filter((entity): entity is Entity<typeof schema, EntityType.NetworkUpgrade> => entity != null)
 		))
@@ -421,8 +397,8 @@ const standaloneNetworkUpgrades = (
 	withChain
 		.map(({ chainId, activationSource }) => {
 			if (
-				ETHEREUM_EXECUTION_CONSENSUS_PAIR_CHAIN_IDS.has(chainId)
-				&& pairHalfIdsSubsumedOnChain.get(chainId)?.has(activationSource.upgradeId) === true
+				ETHEREUM_NETWORK_UPGRADE_UMBRELLA_CHAIN_IDS.has(chainId)
+				&& umbrellaSubsumedUpgradeIdsByChain.get(chainId)?.has(activationSource.upgradeId) === true
 			) {
 				return null
 			}
@@ -433,7 +409,7 @@ const standaloneNetworkUpgrades = (
 
 const networkUpgradesBuilt = [
 	...standaloneNetworkUpgrades,
-	...pairUmbrellas,
+	...networkUpgradeMarketingUmbrellaRows,
 ]
 
 export const networkExecutionUpgrades: readonly Entity<
@@ -452,7 +428,7 @@ export const networkUpgrades: readonly Entity<
 >[] = networkUpgradesBuilt
 
 
-/** Execution / consensus codenames → umbrella `NetworkUpgrade.upgradeId` on paired L1 chains (1, Sepolia, Holesky). */
+/** Execution / consensus codename aliases → umbrella `NetworkUpgrade.upgradeId` on Ethereum L1 and those public testnets (mainnet 1, Sepolia, Holesky). */
 const ETHEREUM_MAINNET_NETWORK_UPGRADE_SLUG_ALIASES: Readonly<Record<string, string>> = {
 	paris: 'Merge',
 	bellatrix: 'Merge',
@@ -470,16 +446,12 @@ const ETHEREUM_MAINNET_NETWORK_UPGRADE_SLUG_ALIASES: Readonly<Record<string, str
 }
 
 
-// Functions
+// Lookups
 export const networkHasBlobParameterExecutionUpgrade = (chainId: number): boolean => (
 	networkExecutionUpgrades.some((executionUpgrade) => (
 		executionUpgrade[EntityMetaKey.Id].$network.chainId === chainId
 		&& executionUpgrade.layer === NetworkExecutionUpgradeLayer.Blob
 	))
-)
-
-const normalizeNetworkUpgradeSlugSegment = (segment: string): string => (
-	segment.trim().toLowerCase().replace(/\s+/g, '-')
 )
 
 export const networkUpgradeIdFromChainIdAndUrlSegment = (
@@ -494,7 +466,7 @@ export const networkUpgradeIdFromChainIdAndUrlSegment = (
 			typeof slugRaw === 'string' && slugRaw.length > 0 ?
 				slugRaw
 			:
-				id.upgradeId.toLowerCase().replace(/\s+/g, '-')
+				networkUpgradeSlugSegmentFromUpgradeId(id.upgradeId)
 		)
 		const { upgradeId } = id
 		return (
@@ -502,8 +474,8 @@ export const networkUpgradeIdFromChainIdAndUrlSegment = (
 			|| segment === slug
 			|| segment.toLowerCase() === upgradeId.toLowerCase()
 			|| segment.toLowerCase() === slug.toLowerCase()
-			|| normalizeNetworkUpgradeSlugSegment(segment) === normalizeNetworkUpgradeSlugSegment(slug)
-			|| normalizeNetworkUpgradeSlugSegment(segment) === normalizeNetworkUpgradeSlugSegment(upgradeId)
+			|| networkUpgradeSlugSegmentFromUpgradeId(segment) === networkUpgradeSlugSegmentFromUpgradeId(slug)
+			|| networkUpgradeSlugSegmentFromUpgradeId(segment) === networkUpgradeSlugSegmentFromUpgradeId(upgradeId)
 		)
 	})?.[EntityMetaKey.Id].upgradeId
 
@@ -516,7 +488,7 @@ export const networkUpgradeIdFromChainIdAndUrlSegment = (
 		|| chainId === 11_155_111
 		|| chainId === 17_000
 	) {
-		const aliasTarget = ETHEREUM_MAINNET_NETWORK_UPGRADE_SLUG_ALIASES[normalizeNetworkUpgradeSlugSegment(segment)]
+		const aliasTarget = ETHEREUM_MAINNET_NETWORK_UPGRADE_SLUG_ALIASES[networkUpgradeSlugSegmentFromUpgradeId(segment)]
 		if (aliasTarget != null) {
 			return (
 				networkUpgrades.find((networkUpgrade) => (
@@ -531,8 +503,6 @@ export const networkUpgradeIdFromChainIdAndUrlSegment = (
 	return undefined
 }
 
-
-// Lookups
 export const networkUpgradeByChainIdAndUpgradeId = Object.fromEntries(
 	networkUpgrades.map((networkUpgrade) => [
 		`${networkUpgrade[EntityMetaKey.Id].$network.chainId}:${networkUpgrade[EntityMetaKey.Id].upgradeId}`,
@@ -553,3 +523,45 @@ export const networkConsensusUpgradeByChainIdAndUpgradeId = Object.fromEntries(
 		consensusUpgrade,
 	]),
 )
+
+/** Fills `NetworkUpgrade` activation + `$$proposals` from linked fork rows (single source of truth). */
+export const resolveNetworkUpgradeDenormalizedFields = (
+	row: Entity<typeof schema, EntityType.NetworkUpgrade>,
+): Partial<
+	Pick<
+		Entity<typeof schema, EntityType.NetworkUpgrade>,
+		| 'activationBlock'
+		| 'activationTimestamp'
+		| 'activationEpoch'
+		| '$$proposals'
+	>
+> => {
+	const execRef = row.$networkExecutionUpgrade[EntityMetaKey.Id]
+	const executionRow = networkExecutionUpgradeByChainIdAndUpgradeId[
+		`${execRef.$network.chainId}:${execRef.upgradeId}`
+	]
+	const consRef = row.$networkConsensusUpgrade
+	const consensusRow = (
+		consRef == null
+			? null
+			: networkConsensusUpgradeByChainIdAndUpgradeId[
+				`${consRef[EntityMetaKey.Id].$network.chainId}:${consRef[EntityMetaKey.Id].upgradeId}`
+			]
+	)
+
+	const activationBlock = executionRow?.activationBlock ?? consensusRow?.activationBlock
+	const activationTimestamp = executionRow?.activationTimestamp ?? consensusRow?.activationTimestamp
+	const activationEpoch = consensusRow?.activationEpoch ?? executionRow?.activationEpoch
+
+	const mergedProposals = uniqueProposalsById([
+		...(executionRow?.$$proposals != null ? [...executionRow.$$proposals] : []),
+		...(consensusRow?.$$proposals != null ? [...consensusRow.$$proposals] : []),
+	])
+
+	return {
+		...(activationBlock != null && { activationBlock }),
+		...(activationTimestamp != null && { activationTimestamp }),
+		...(activationEpoch != null && { activationEpoch }),
+		...(mergedProposals.length > 0 && { $$proposals: mergedProposals }),
+	}
+}

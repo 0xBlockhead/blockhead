@@ -1,6 +1,4 @@
 <script lang="ts">
-	import { stringify } from 'devalue'
-
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
@@ -8,17 +6,6 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
 
 	// Props
@@ -49,6 +36,9 @@
 	> = $props()
 
 
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const conversation = useEntity(
 		EntityType.XmtpConversation,
 		entityId,
@@ -58,6 +48,13 @@
 			],
 		},
 	)
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -70,14 +67,27 @@
 	{...entityViewRest}
 >
 	{#snippet Heading()}
-
-		<span data-text="font-monospace">
-			{entityId.id}
-		</span>
+		<TruncatedValue
+			value={entityId.id}
+			format={TruncatedValueFormat.Visual}
+		/>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
-		<dl>
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					Thread id in XMTP labels a double‑ratchet conversation between provisioned wallet identities.
+				</p>
+				<p>
+					Ciphertext and session state live off-chain; explorers cannot reconstruct transcripts from calldata alone.
+				</p>
+	{/snippet}
+
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: _contentOpen,
+	})}
+		<dl data-column-item="center">
 			<div>
 				<dt>Conversation id</dt>
 				<dd>
@@ -105,12 +115,13 @@
 					placeholderText="Loading conversation…"
 				>
 					{#snippet children()}
-						<p data-text="muted">
-							Conversation metadata is not available yet.
-						</p>
+						<div data-text="muted">
+							Encrypted conversation metadata is not available yet.
+						</div>
 					{/snippet}
 				</ResourceBoundary>
 			</EntityDetails>
 		{/if}
 	{/snippet}
 </EntityView>
+

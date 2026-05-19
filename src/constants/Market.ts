@@ -13,9 +13,6 @@
  * - **Market_TimeInterval_Timestamp** — one bucketed market observation for a series point.
  */
 
-
-// Constants
-
 /**
  * How a market asset id discriminates value: catalog coin, `CoinInstance` id, or fiat ISO 4217.
  */
@@ -51,7 +48,7 @@ export enum MarketPriceRangeType {
 }
 
 
-// Lookups
+// Constants
 
 /**
  * `days` values accepted by CoinGecko `GET /coins/{id}/ohlc` for USD candles (numeric days).
@@ -59,6 +56,8 @@ export enum MarketPriceRangeType {
  */
 export const coingeckoOhlcDayWindowLengths = [1, 7, 14, 30, 90] as const
 
+
+// Lookups
 
 export const formatMarketTimeIntervalLabel = (timeInterval: MarketTimeInterval) => (
 	timeInterval.unit === MarketTimeIntervalUnit.Day ?

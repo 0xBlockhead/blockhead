@@ -89,6 +89,7 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import NetworkUpgradeView from '$/views/NetworkUpgradeView.svelte'
 </script>
 
@@ -104,9 +105,18 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Each network upgrade references a <strong>network execution upgrade</strong>; when both layers shipped together it also references a <strong>network consensus upgrade</strong>.
+					</p>
+					<p>
+						Cards link to the paired execution and consensus fork views when present.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No upgrades cataloged for this network yet.
+			No upgrades yet.
 		</p>
 	{/snippet}
 

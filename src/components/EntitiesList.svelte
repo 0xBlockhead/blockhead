@@ -76,6 +76,7 @@
 		Item,
 		Empty,
 		body,
+		TypeAnnotationTooltip,
 		collapsible = true,
 		layout = EntitiesListLayout.Default,
 		showSummary = true,
@@ -99,6 +100,8 @@
 			panelStyle?: string
 			CollapsibleProps?: CollapsibleForwardProps
 			Empty?: Snippet
+			/** Tooltip body for the list entity-type label (label plural); hover target is the annotation, not a separate icon. */
+			TypeAnnotationTooltip?: Snippet
 			entityType: _EntityType
 			getKey?: (item: _Item) => _Key
 			getSortValue?: (item: _Item) => number | string
@@ -186,6 +189,7 @@
 	import Heading from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import UnorderedList from '$/components/UnorderedList.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
@@ -224,7 +228,18 @@
 	{/snippet}
 
 	{#snippet SummaryAnnotation()}
-		<span data-text="annotation">{entityDefinitionByType[entityType].labelPlural}</span>
+		{#if TypeAnnotationTooltip}
+			<Tooltip contentProps={{ side: 'top' }}>
+				{#snippet Content()}
+					{@render TypeAnnotationTooltip()}
+				{/snippet}
+				{#snippet children()}
+					<span data-text="annotation">{entityDefinitionByType[entityType].labelPlural}</span>
+				{/snippet}
+			</Tooltip>
+		{:else}
+			<span data-text="annotation">{entityDefinitionByType[entityType].labelPlural}</span>
+		{/if}
 	{/snippet}
 
 	{#snippet ListRowsFrom(rows: _Item[])}

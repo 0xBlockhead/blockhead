@@ -13,8 +13,8 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	entityType: EntityType.MarketPriceRange,
 
-	label: 'Market price range',
-	labelPlural: 'Market price ranges',
+	label: 'OHLC range',
+	labelPlural: 'OHLC ranges',
 
 	/**
 	 * Series identity: market + window + kind. Payload is in `pointCount` / `rangePayload`
@@ -35,7 +35,12 @@ export default {
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Market,
 			cardinality: EntityFieldCardinality.One,
-			defaultSources: [Source.Coingecko_Rest],
+			defaultSources: [
+				Source.Coingecko_Rest,
+				Source.Defillama_OpenApi,
+				Source.Coinpaprika_OpenApi,
+				Source.CoinMarketCap_Rest,
+			],
 		},
 		{
 			name: 'pointCount',

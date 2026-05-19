@@ -22,13 +22,17 @@
 	let {
 		entityFieldReference,
 		open = $bindable(true),
-		title = 'Errors',
+		title = 'Revert data',
+		id,
+		href,
 		...entitiesListRest
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmError>
 			open?: boolean
 			title?: string
+			id: string
+			href: string
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
@@ -40,11 +44,13 @@
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Openchain_Rest,
-				],
-			},
+			...(open ? {
+				[entityFieldReference.fieldName]: {
+					$: [
+						Source.Openchain_Rest,
+					],
+				},
+			} : {}),
 		},
 	)
 
@@ -75,31 +81,60 @@
 
 
 <EntitiesList
-	{...entitiesListRest}
-	bind:open
 	entityType={EntityType.EvmError}
-	getKey={(envelope) => envelope.evmEntity[EntityMetaKey.Id].hex}
-	getSortValue={(envelope) => envelope.evmEntity[EntityMetaKey.Id].hex}
-	resource={envelopes}
+	{id}
+	{href}
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	bind:open
+	{...entitiesListRest}
 >
-	{#snippet Empty()}
-		<p data-text="muted">
-			No errors indexed yet.
-		</p>
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Revert data uses four-byte selectors (like calldata) but labels custom errors and standard revert shapes instead of function entrypoints.
+					</p>
+					<p>
+						Catalogs map those prefixes to signatures so tooling can decode the trailing words similarly to call arguments.
+					</p>
+					<p>
+						This list is a subset of error selectors for the parent contract or address under inspection.
+					</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			<EvmErrorView
-				entityId={props.item.evmEntity[EntityMetaKey.Id]}
-				href={resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
-					hex: props.item.evmEntity[EntityMetaKey.Id].hex,
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
+	{#snippet body()}
+		<div data-column="gap-3">
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.EvmError}
+				id={`${id}-items`}
+				{href}
+				{title}
+				open={true}
+				getKey={(envelope) => envelope.evmEntity[EntityMetaKey.Id].hex}
+				getSortValue={(envelope) => envelope.evmEntity[EntityMetaKey.Id].hex}
+				placeholderText="Loading revert data…"
+				resource={envelopes}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No revert selectors yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item(props)}
+					{#if props.item}
+						<EvmErrorView
+							entityId={props.item.evmEntity[EntityMetaKey.Id]}
+							href={resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
+								hex: props.item.evmEntity[EntityMetaKey.Id].hex,
+							})}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
+		</div>
 	{/snippet}
 </EntitiesList>

@@ -26,12 +26,16 @@
 		entityFieldReference,
 		title = 'Blobs',
 		open = $bindable(true),
+		id,
+		href,
 		...entitiesListRest
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmBlob>
 			title?: string
 			open?: boolean
+			id: string
+			href: string
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
@@ -48,16 +52,18 @@
 		EntityType.Network,
 		entityFieldReference.entityId,
 		{
-			blockHeight: {
-				$: [
-					Source.Voltaire_JsonRpc,
-				],
-			},
-			$$blobs: {
-				$: [
-					Source.Voltaire_JsonRpc,
-				],
-			},
+			...(open ? {
+				blockHeight: {
+					$: [
+						Source.Voltaire_JsonRpc,
+					],
+				},
+				$$blobs: {
+					$: [
+						Source.Voltaire_JsonRpc,
+					],
+				},
+			} : {}),
 		},
 	)
 
@@ -90,18 +96,32 @@
 
 <EntitiesList
 	entityType={EntityType.EvmBlob}
+	{id}
+	{href}
 	{title}
 	bind:open
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Blob transactions carry large binary payloads alongside execution blocks; headers point at commitments while bodies hold the data for rollups.
+					</p>
+					<p>
+						That layer is separate from contract ABI decoding or ENS metadata.
+					</p>
+					<p>
+						Lists sample recent sidecars; nodes may omit blob bodies unless blob RPC is enabled.
+					</p>
+	{/snippet}
+
 	{#snippet body()}
-		{#key stringify(entityFieldReference.entityId)}
+		<div data-column="gap-3">
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmBlob}
-				id={`${entitiesListRest.id}-items`}
-				href={entitiesListRest.href}
+				id={`${id}-items`}
+				{href}
 				{title}
 				open={true}
 				getKey={(row) => stringify(row[EntityMetaKey.Id])}
@@ -111,8 +131,7 @@
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No EIP-4844 blobs in the sampled recent blocks for this network (or the RPC did not return full
-						transactions).
+						No blobs in this sample yet.
 					</p>
 				{/snippet}
 
@@ -136,6 +155,6 @@
 					{/if}
 				{/snippet}
 			</EntitiesList>
-		{/key}
+		</div>
 	{/snippet}
 </EntitiesList>

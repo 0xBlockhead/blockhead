@@ -5,6 +5,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -49,16 +50,18 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { Source } from '$/sources/$Source.ts'
-
-
 	const globalEntity = useEntity(
 		EntityType._Global,
 		entityFieldReference.entityId,
-		{
-			$: [Source.Local_Internal],
-			$$blockheadFarcasterAccountConnections: {},
-		},
+		(
+			open ?
+				{
+					$: [Source.Local_Internal],
+					$$blockheadFarcasterAccountConnections: {},
+				}
+			:
+				{}
+		),
 	)
 
 	const connections = derive(
@@ -85,13 +88,22 @@
 	getKey={(row) => row.result[EntityMetaKey.Id].fid}
 	getSortValue={(row) => row.result[EntityMetaKey.Id].fid}
 	placeholderKeys={new SvelteSet()}
-	placeholderText="Loading accounts…"
+	placeholderText="Loading connected Farcaster accounts…"
 	resource={connections}
 	{...entitiesListProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Farcaster accounts are numeric FIDs; clients keep an authorized signer so hub APIs can return feeds and profile edges for that identity.
+					</p>
+					<p>
+						Hub directory data for fname, custody address, and verifications remains authoritative; local state only remembers which FIDs currently have active sign-in.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No accounts yet.
+			No connected accounts yet.
 		</p>
 	{/snippet}
 
@@ -105,7 +117,7 @@
 				})}
 				layout={EntityLayout.Summary}
 				open={false}
-				title="Account"
+				title="Farcaster account"
 			/>
 		{/if}
 	{/snippet}

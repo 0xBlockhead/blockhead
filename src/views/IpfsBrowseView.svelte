@@ -100,8 +100,8 @@
 	// Components
 	import IpfsBrowseEntityChrome from '$/views/IpfsBrowseEntityChrome.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 </script>
-
 
 {#snippet Form()}
 	<form
@@ -115,7 +115,7 @@
 			data-column
 		>
 			<label for="ipfs-target-input">
-				CID, IPNS name, IPFS URI, or gateway URL
+				CID (multibase: e.g. bafy…, Qm…), IPNS key, IPFS / IPNS URI, or gateway URL
 			</label>
 			<input
 				id="ipfs-target-input"
@@ -131,7 +131,7 @@
 			data-column
 		>
 			<label for="ipfs-path-input">
-				Content path
+				Path under the root (CID content path)
 			</label>
 			<input
 				id="ipfs-path-input"
@@ -199,11 +199,23 @@
 			data-card
 			data-column
 		>
-			<h2>Browse IPFS</h2>
-
-			<p data-text="muted">
-				Paste a CID, IPNS name, `ipfs://` URI, or public gateway URL to open an IPFS resource page.
-			</p>
+			<header data-row="wrap align-center gap-2">
+				<h2>Browse IPFS</h2>
+				<Tooltip contentProps={{ side: 'top' }}>
+					{#snippet Content()}
+						<p>
+							CIDs can appear in multiple spellings while still naming the same content; IPNS behaves like a movable pointer atop those roots.
+						</p>
+						<p>
+							Paste a hash, resolver key, canonical scheme URL, or a public gateway URL, then optionally append a subdirectory path—the detail pane shows both the canonical form and how it is fetched over HTTP.
+						</p>
+					{/snippet}
+					<abbr
+						class="entity-heading-tip"
+						aria-label="What you can paste"
+					>ⓘ</abbr>
+				</Tooltip>
+			</header>
 		</section>
 	</section>
 {/if}

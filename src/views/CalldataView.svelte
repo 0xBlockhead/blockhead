@@ -1,11 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Props
@@ -39,6 +41,10 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+	const calldataKey = $derived(
+		stringify(entityId),
+	)
+
 	const calldata = useEntity(
 		EntityType.EvmCalldata,
 		entityId,
@@ -51,8 +57,10 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
@@ -60,41 +68,56 @@
 
 <EntityView
 	entityType={EntityType.EvmCalldata}
+	bind:open
 	{entityId}
-	{title}
 	{href}
-	{open}
+	{title}
 	{...entityViewRest}
 >
 	{#snippet Heading()}
-
 		<span data-text="font-monospace">
 			{entityId.hex}
 		</span>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			placeholderText="Loading calldata…"
-			resource={calldata}
-		>
-			{#snippet children(_)}
-				<dl>
-					<div>
-						<dt>Calldata</dt>
-						<dd>
-							<TruncatedValue
-								value={entityId.hex}
-								format={TruncatedValueFormat.Abbr}
-							/>
-						</dd>
-					</div>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			<strong>Raw calldata</strong>
+			is ABI-encoded execution bytes (<code>0x</code>
+			prefix; four-byte selector then arguments). Match length and selector to the contract you target before any wallet prompt—human-readable strings are not calldata.
+		</p>
+	{/snippet}
 
-					<div>
-						<dt>Bytes</dt>
-						<dd>{String((entityId.hex.length - 2) / 2)}</dd>
-					</div>
-					{#if open}
+	{#snippet Content({ title: _title, href: _href })}
+		<div data-column="gap-1">
+			<dl data-column-item="center">
+			<div>
+				<dt>Calldata</dt>
+				<dd>
+					<TruncatedValue
+						value={entityId.hex}
+						format={TruncatedValueFormat.Abbr}
+					/>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Payload length</dt>
+				<dd>
+					{String((entityId.hex.length - 2) / 2)}
+					bytes
+					<span data-text="muted">
+						(nibble-prefixed <code>0x</code>
+						hex; leading four bytes are the selector when invoking a contract)
+					</span>
+				</dd>
+			</div>
+			{#if open}
+				<ResourceBoundary
+					placeholderText="Loading calldata…"
+					resource={calldata}
+				>
+					{#snippet children(_)}
 						<div>
 							<dt>Hex</dt>
 							<dd>
@@ -104,22 +127,69 @@
 								/>
 							</dd>
 						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+			</dl>
+		</div>
 	{/snippet}
 
 	{#snippet Details({
 		open: _open,
 	})}
+		<EntityDetails
+			entityType={EntityType.EvmCalldata}
+			{entityId}
+		/>
+
 		{#if children}
-			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.EvmCalldata}
-				{entityId}
-			/>
+			<div
+				class="calldata-carousel-groups"
+				data-column="gap-3"
+			>
+				<CollapsibleTabs
+					id={`${calldataKey}:carousel-extra`}
+					{...{ 'data-card': '' }}
+					scrollContainerProps={{
+						'data-row': 'start align-start',
+					}}
+				>
+					{#snippet Summary({ open: _isOpen })}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>
+								More
+							</HeadingComponent>
+						</header>
+					{/snippet}
+
+					{#snippet Markers()}
+						<a
+							data-scroll-marker-label="Content"
+							href={`#${calldataKey}:calldata-extra`}
+						>Content</a>
+					{/snippet}
+
+					{#snippet children(_childrenContext)}
+						<section id={`${calldataKey}:calldata-extra`}>
+							{@render children()}
+						</section>
+					{/snippet}
+				</CollapsibleTabs>
+			</div>
 		{/if}
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.calldata-carousel-groups :global(.carousel) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 40ch;
+			}
+		}
+	}
+</style>

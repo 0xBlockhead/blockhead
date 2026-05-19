@@ -1,23 +1,28 @@
 <script lang="ts">
 	// Types/constants
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+
+	import { stringify } from 'devalue'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { stringify } from 'devalue'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
+	// Props
 	const entityId = {
 		scope: 'RedditNetwork' as const,
 	}
 
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const networkIdKey = stringify(entityId)
+
+	let open = $state(true)
 
 	const redditNetwork = useEntity(
 		EntityType.RedditNetwork,
@@ -46,9 +51,9 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import RedditLinksView from '$/views/RedditLinksView.svelte'
 	import RedditSubredditsView from '$/views/RedditSubredditsView.svelte'
 </script>
@@ -58,14 +63,23 @@
 	entityType={EntityType.RedditNetwork}
 	{entityId}
 	href={resolve('/(social)/reddit')}
-	open={true}
+	layout={EntityLayout.SummaryDetails}
+	bind:open
 	title="Reddit"
 >
 	{#snippet Heading()}
-
 		<span data-text="font-monospace">
 			{entityId.scope}
 		</span>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Reddit’s HTTP APIs return communities, ranked submissions, and linked comment threads under a common JSON model.
+		</p>
+		<p>
+			Reddit’s public API surfaces subreddits, submissions, and comment trees over HTTPS—separate transport from low-latency game/voice rooms or Nostr/Farcaster relays.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -74,7 +88,7 @@
 			placeholderText="Loading Reddit…"
 		>
 			{#snippet children(u)}
-				<dl>
+				<dl data-column-item="center">
 					<div>
 						<dt>Scope</dt>
 						<dd>{entityId.scope}</dd>
@@ -84,7 +98,7 @@
 						<dd>{String(u.$$redditSubreddits.length)}</dd>
 					</div>
 					<div>
-						<dt>Posts</dt>
+						<dt>Submissions</dt>
 						<dd>{String(u.$$redditLinks.length)}</dd>
 					</div>
 					{#if open}
@@ -93,6 +107,7 @@
 							<dd>{String(u.protocolName ?? 'Reddit')}</dd>
 						</div>
 					{/if}
+
 					{#if open}
 						<div>
 							<dt>Home</dt>
@@ -103,18 +118,17 @@
 							</dd>
 						</div>
 					{/if}
+
 					{#if open}
-						{#if u.docsUrl != null}
-							{#if u.docsUrl !== ''}
-								<div>
-									<dt>Docs</dt>
-									<dd>
-										<a href={u.docsUrl}>
-											{u.docsUrl}
-										</a>
-									</dd>
-								</div>
-							{/if}
+						{#if u.docsUrl != null && u.docsUrl !== ''}
+							<div>
+								<dt>Docs</dt>
+								<dd>
+									<a href={u.docsUrl}>
+										{u.docsUrl}
+									</a>
+								</dd>
+							</div>
 						{/if}
 					{/if}
 				</dl>
@@ -130,16 +144,20 @@
 			{entityId}
 		/>
 
-		<div data-column="gap-3">
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
 			<CollapsibleTabs
 				id={`${networkIdKey}:registry`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
-					style: '--carousel-basis: 36ch',
 				}}
 			>
-				{#snippet Summary({ open: _summaryOpen })}
+				{#snippet Summary({
+					open: _summaryOpen,
+				})}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
@@ -150,8 +168,26 @@
 					</header>
 				{/snippet}
 
-				{#snippet children({ open: _o })}
-					<section data-scroll-marker-label="Subreddits">
+				{#snippet Markers({
+					open: _markersOpen,
+				})}
+					<a
+						data-scroll-marker-label="Subreddits"
+						href={`#${networkIdKey}:subreddits`}
+					>Subreddits</a>
+					<a
+						data-scroll-marker-label="Popular submissions"
+						href={`#${networkIdKey}:links`}
+					>Submissions</a>
+				{/snippet}
+
+				{#snippet children({
+					open: _sectionOpen,
+				})}
+					<section
+						id={`${networkIdKey}:subreddits`}
+						data-scroll-marker-label="Subreddits"
+					>
 						<RedditSubredditsView
 							entityFieldReference={{
 								entityType: EntityType.RedditNetwork,
@@ -159,12 +195,15 @@
 								fieldName: '$$redditSubreddits',
 							}}
 							href={resolve('/(social)/reddit')}
-							id={`${networkIdKey}:subreddits`}
+							id={`${networkIdKey}:subreddits-list`}
 							open={false}
 						/>
 					</section>
 
-					<section data-scroll-marker-label="Popular posts">
+					<section
+						id={`${networkIdKey}:links`}
+						data-scroll-marker-label="Popular submissions"
+					>
 						<RedditLinksView
 							entityFieldReference={{
 								entityType: EntityType.RedditNetwork,
@@ -172,9 +211,9 @@
 								fieldName: '$$redditLinks',
 							}}
 							href={resolve('/(social)/reddit')}
-							id={`${networkIdKey}:links`}
+							id={`${networkIdKey}:links-list`}
 							open={false}
-							title="Popular posts"
+							title="Popular submissions"
 						/>
 					</section>
 				{/snippet}
@@ -182,3 +221,17 @@
 		</div>
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 36ch;
+			}
+		}
+	}
+</style>

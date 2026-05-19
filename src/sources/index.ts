@@ -14,6 +14,7 @@ import {
 import Allium from '$/sources/Allium/index.ts'
 import AtprotoBsky from '$/sources/AtprotoBsky/index.ts'
 import Beacon from '$/sources/Beacon/index.ts'
+import Blobscan from '$/sources/Blobscan/index.ts'
 import Blockscout from '$/sources/Blockscout/index.ts'
 import Caips from '$/sources/Caips/index.ts'
 import Chainlist from '$/sources/Chainlist/index.ts'
@@ -29,11 +30,7 @@ import EthereumEips from '$/sources/EthereumEips/index.ts'
 import EthereumLists from '$/sources/EthereumLists/index.ts'
 import EthereumSpecs from '$/sources/EthereumSpecs/index.ts'
 import Etherscan from '$/sources/Etherscan/index.ts'
-import Evm from '$/sources/Evm/index.ts'
-import Explorer from '$/sources/Explorer/index.ts'
 import Farcaster from '$/sources/Farcaster/index.ts'
-import Github from '$/sources/Github/index.ts'
-import Hypersnap from '$/sources/Hypersnap/index.ts'
 import Ipfs from '$/sources/Ipfs/index.ts'
 import L2Beat from '$/sources/L2Beat/index.ts'
 import Lifi from '$/sources/Lifi/index.ts'
@@ -60,6 +57,7 @@ const sourceProviderDefinitions = [
 	Allium,
 	AtprotoBsky,
 	Beacon,
+	Blobscan,
 	Blockscout,
 	Caips,
 	Chainlist,
@@ -75,11 +73,7 @@ const sourceProviderDefinitions = [
 	EthereumLists,
 	EthereumSpecs,
 	Etherscan,
-	Evm,
-	Explorer,
 	Farcaster,
-	Github,
-	Hypersnap,
 	Ipfs,
 	L2Beat,
 	Lens,
@@ -120,7 +114,7 @@ export type SourcePublicEnvFor<_Source extends Source> = (
 	: _Source extends Source.CoinMarketCap_Rest ?
 		SchemaEnv<typeof CoinMarketCap.env>
 	: _Source extends Source.Coingecko_Rest ?
-		SchemaEnv<typeof Coingecko.env>
+		SourcePublicEnvWire
 	: _Source extends Source.Coinpaprika_OpenApi ?
 		SchemaEnv<typeof Coinpaprika.env>
 	: _Source extends Source.Dune_Rest ?
@@ -182,12 +176,17 @@ const enabledSourceEntries = sourceProviders.flatMap((sourceProvider) => {
 				undefined,
 		)
 		if (sourceSubset == null) return []
+		const merged = {
+			...providerSubset,
+			...sourceSubset,
+		}
 		return [[
 			sourceDefinition,
-			{
-				...providerSubset,
-				...sourceSubset,
-			},
+			(
+				Object.keys(merged).length === 0 ?
+					resolverPublicEnv
+				:	merged
+			),
 		] as const]
 	})
 })
@@ -196,7 +195,7 @@ export const sources = (
 	enabledSourceEntries.map(([sourceDefinition]) => sourceDefinition)
 ) satisfies readonly SourceDefinition[]
 
-/** Per-source validated env subset from provider+source schemas (empty object when no env schema exists). */
+/** Per-source public env passed to resolvers: validated subset when provider/source declare `env`; otherwise full {@link resolverPublicEnv}. */
 export const resolverPublicEnvBySource: ReadonlyMap<Source, SourcePublicEnvWire> = new Map(
 	enabledSourceEntries.map(([sourceDefinition, sourcePublicEnv]) => ([
 		sourceDefinition.source,

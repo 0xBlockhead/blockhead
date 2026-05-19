@@ -19,7 +19,6 @@
 	// Components
 	import AtprotoActorsView from '$/views/AtprotoActorsView.svelte'
 	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
-	import Collapsible from '$/components/Collapsible.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
@@ -41,26 +40,31 @@
 		'at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3la6vijfoie2r' as const
 	)
 
-	const networkIdKey = stringify(entityId)
-
-
-	// State
 	let {
 		open = $bindable(true),
 	}: {
-		open: boolean
+		open?: boolean
 	} = $props()
+
+	const networkIdKey = $derived(
+		stringify(entityId),
+	)
 
 	const atprotoNetwork = useEntity(
 		EntityType.AtprotoNetwork,
 		entityId,
 		{
 			$: [Source.Constants_Internal],
-			protocolName: {},
-			homeUrl: {},
-			docsUrl: {},
-			$$atprotoActors: {},
-			$$atprotoPosts: {},
+			...(open ?
+				{
+					protocolName: {},
+					homeUrl: {},
+					docsUrl: {},
+					$$atprotoActors: {},
+					$$atprotoPosts: {},
+				}
+			:
+				{}),
 		},
 	)
 </script>
@@ -80,27 +84,38 @@
 		</span>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary resource={atprotoNetwork}>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			The AT Protocol anchors accounts in DIDs served by personal data stores; lexicon schemas define posts, follows, and profile blobs replicated through relays as signed CAR commits.
+		</p>
+		<p>
+			Actor and post counts in a hub snapshot cover only the handles and records that instance has synced—not every Bluesky-compatible identity on the network.
+		</p>
+	{/snippet}
+
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: _contentOpen,
+	})}
+		<ResourceBoundary
+			resource={atprotoNetwork}
+			placeholderText="Loading AT Protocol directory…"
+		>
 			{#snippet children(n)}
-				<dl>
+				<dl data-column-item="center">
 					<div>
-						<dt>Scope</dt>
-						<dd>{entityId.scope}</dd>
+						<dt>Network scope</dt>
+						<dd data-text="mono">{entityId.scope}</dd>
 					</div>
-					<div>
-						<dt>Actors</dt>
-						<dd>{String(n.$$atprotoActors.length)}</dd>
-					</div>
-					<div>
-						<dt>Posts</dt>
-						<dd>{String(n.$$atprotoPosts.length)}</dd>
-					</div>
-					{#if open}
+					{#if _contentOpen}
 						<div>
-							<dt>Protocol name</dt>
+							<dt>Protocol</dt>
 							<dd>{n.protocolName ?? 'AT Protocol'}</dd>
 						</div>
+					{/if}
+
+					{#if _contentOpen}
 						{#if n.homeUrl}
 							<div>
 								<dt>Home</dt>
@@ -109,18 +124,28 @@
 								</dd>
 							</div>
 						{/if}
-						{#if n.docsUrl != null}
-							{#if n.docsUrl !== ''}
-								<div>
-									<dt>Docs</dt>
-									<dd>
-										<a href={n.docsUrl}>
-											{n.docsUrl}
-										</a>
-									</dd>
-								</div>
-							{/if}
+					{/if}
+
+					{#if _contentOpen}
+						{#if n.docsUrl != null && n.docsUrl !== ''}
+							<div>
+								<dt>Documentation</dt>
+								<dd>
+									<a href={n.docsUrl}>
+										{n.docsUrl}
+									</a>
+								</dd>
+							</div>
 						{/if}
+					{/if}
+
+					{#if _contentOpen}
+						<div>
+							<dt>Local ATProto cache</dt>
+							<dd data-text="muted">
+								{String(n.$$atprotoActors?.length ?? 0)} accounts · {String(n.$$atprotoPosts?.length ?? 0)} records
+							</dd>
+						</div>
 					{/if}
 				</dl>
 			{/snippet}
@@ -135,9 +160,12 @@
 			{entityId}
 		/>
 
-		<div data-column="gap-3">
+		<div
+			class="atproto-network-detail-carousels"
+			data-column="gap-3"
+		>
 			<CollapsibleTabs
-				id={`${networkIdKey}:registry`}
+				id={`${networkIdKey}:carousel-registry`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -150,13 +178,31 @@
 						data-row="wrap gap-4"
 					>
 						<HeadingComponent>
-							Registry
+							Directory & examples
 						</HeadingComponent>
 					</header>
 				{/snippet}
 
-				{#snippet children({ open: _open })}
-					<section data-scroll-marker-label="Actors">
+				{#snippet Markers()}
+					<a
+						data-scroll-marker-label="Accounts"
+						href={`#${networkIdKey}:registry-actors`}
+					>Accounts</a>
+					<a
+						data-scroll-marker-label="Recent posts"
+						href={`#${networkIdKey}:registry-posts`}
+					>Recent posts</a>
+					<a
+						data-scroll-marker-label="Example routes"
+						href={`#${networkIdKey}:examples-list`}
+					>Examples</a>
+				{/snippet}
+
+				{#snippet children()}
+					<section
+						data-scroll-marker-label="Accounts"
+						id={`${networkIdKey}:registry-actors`}
+					>
 						<AtprotoActorsView
 							entityFieldReference={{
 								entityType: EntityType.AtprotoNetwork,
@@ -169,57 +215,60 @@
 						/>
 					</section>
 
-					<section data-scroll-marker-label="Recent posts">
+					<section
+						data-scroll-marker-label="Recent posts"
+						id={`${networkIdKey}:registry-posts`}
+					>
 						<AtprotoPostsView
 							entityFieldReference={{
 								entityType: EntityType.AtprotoNetwork,
 								entityId,
 								fieldName: '$$atprotoPosts',
 							}}
+							fieldOpen={_open}
 							href={resolve('/(social)/atproto')}
 							id={`${networkIdKey}:posts`}
 							open={false}
 							title="Recent posts"
 						/>
 					</section>
+
+					<section
+						data-scroll-marker-label="Example routes"
+						id={`${networkIdKey}:examples-list`}
+					>
+						<ul>
+							<li>
+								<a href={resolve('/(social)/atproto/actor/[did]', {
+									did: encodeURIComponent(exampleDid),
+								})}>
+									Actor example
+								</a>
+							</li>
+							<li>
+								<a href={resolve('/(social)/atproto/post/[uri]', {
+									uri: encodeURIComponent(examplePostUri),
+								})}>
+									Post example
+								</a>
+							</li>
+						</ul>
+					</section>
 				{/snippet}
 			</CollapsibleTabs>
-
-			<Collapsible
-				id={`${networkIdKey}:examples`}
-				open={true}
-				{...{ 'data-card': '' }}
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Examples
-						</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet children({ open: _open })}
-					<ul>
-						<li>
-							<a href={resolve('/(social)/atproto/actor/[did]', {
-								did: encodeURIComponent(exampleDid),
-							})}>
-								Actor example
-							</a>
-						</li>
-						<li>
-							<a href={resolve('/(social)/atproto/post/[uri]', {
-								uri: encodeURIComponent(examplePostUri),
-							})}>
-								Post example
-							</a>
-						</li>
-					</ul>
-				{/snippet}
-			</Collapsible>
 		</div>
 	{/snippet}
 </EntityView>
+
+<style>
+	.atproto-network-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 36ch;
+			}
+		}
+	}
+</style>

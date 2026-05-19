@@ -48,7 +48,10 @@
 				Source.Constants_Internal,
 			],
 			name: {},
-			protocol: {},
+			slug: {},
+			...(open && {
+				protocol: {},
+			}),
 		},
 	)
 
@@ -61,22 +64,23 @@
 
 
 <EntityView
-	{...entityViewRest}
 	entityType={EntityType.NetworkConsensusUpgrade}
 	{entityId}
 	{href}
-	{open}
+	bind:open
+	title={`Consensus upgrade · ${entityId.upgradeId}`}
+	{...entityViewRest}
 >
 	{#snippet Id()}
 		<span data-text="font-monospace">
-			{entityId.upgradeSlug}
+			{entityId.upgradeId}
 		</span>
 	{/snippet}
 
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={networkConsensusUpgrade}
-			placeholderText="Loading network consensus upgrade…"
+			placeholderText="Loading consensus upgrade…"
 		>
 			{#snippet children(networkConsensusUpgradeEntity)}
 				{networkConsensusUpgradeEntity.name ?? entityId.upgradeId}
@@ -87,21 +91,33 @@
 	{#snippet Content()}
 		<ResourceBoundary
 			resource={networkConsensusUpgrade}
-			placeholderText="Loading network consensus upgrade…"
+			placeholderText="Loading consensus upgrade…"
 		>
 			{#snippet children(networkConsensusUpgradeEntity)}
-				<dl>
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
+				<dl data-column-item="center">
+					<div>
+						<dt>Chain ID</dt>
+						<dd data-text="mono">
+							{String(entityId.$network.chainId)}
+						</dd>
+					</div>
 
 					{#if open}
+						{#if (
+							networkConsensusUpgradeEntity.slug !== undefined
+							&& networkConsensusUpgradeEntity.slug !== entityId.upgradeId
+						)}
+							<div>
+								<dt>Route slug</dt>
+								<dd data-text="mono">
+									{networkConsensusUpgradeEntity.slug}
+								</dd>
+							</div>
+						{/if}
+
 						{#if networkConsensusUpgradeEntity.protocol !== undefined}
 							<div>
-								<dt>Protocol</dt>
+								<dt>Consensus fork</dt>
 								<dd>{networkConsensusUpgradeEntity.protocol}</dd>
 							</div>
 						{/if}

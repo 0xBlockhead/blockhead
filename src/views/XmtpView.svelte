@@ -13,7 +13,6 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-
 	const entityId = {
 		scope: 'XmtpNetwork' as const,
 	}
@@ -45,12 +44,12 @@
 
 
 	// Components
-	import ActorsView from '$/views/ActorsView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ActorsView from '$/views/ActorsView.svelte'
 	import XmtpConversationsView from '$/views/XmtpConversationsView.svelte'
 </script>
 
@@ -63,19 +62,34 @@
 	title="XMTP"
 >
 	{#snippet Heading()}
-
 		<span data-text="font-monospace">
 			{entityId.scope}
 		</span>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
-		<dl>
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					XMTP transports double‑ratcheted payloads between wallet-controlled identities; only holders of the session material can read ciphertext.
+				</p>
+				<p>
+					Message bodies therefore stay off calldata and most explorers—unlike public Farcaster casts or federated ActivityPub notes on HTTPS.
+				</p>
+	{/snippet}
+
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: contentOpen,
+	})}
+		<dl data-column-item="center">
 			<div>
 				<dt>Scope</dt>
 				<dd>{entityId.scope}</dd>
 			</div>
-			<ResourceBoundary resource={registry}>
+			<ResourceBoundary
+				resource={registry}
+				placeholderText="Loading local inbox…"
+			>
 				{#snippet children(g)}
 					<div>
 						<dt>Accounts</dt>
@@ -87,8 +101,11 @@
 					</div>
 				{/snippet}
 			</ResourceBoundary>
-			{#if open}
-				<ResourceBoundary resource={network}>
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={network}
+					placeholderText="Loading XMTP network…"
+				>
 					{#snippet children(loaded)}
 						<div>
 							<dt>Protocol name</dt>
@@ -128,7 +145,7 @@
 			{entityId}
 		/>
 
-		<div data-column="gap-3">
+		<div class="entity-view-detail-carousels" data-column="gap-3">
 			<CollapsibleTabs
 				id={`${networkIdKey}:registry`}
 				{...{ 'data-card': '' }}
@@ -143,13 +160,27 @@
 						data-row="wrap gap-4"
 					>
 						<HeadingComponent>
-							Local network state
+							Local inbox state
 						</HeadingComponent>
 					</header>
 				{/snippet}
 
+				{#snippet Markers({ open: _markersOpen })}
+					<a
+						data-scroll-marker-label="Accounts"
+						href={`#${networkIdKey}:accounts`}
+					>Accounts</a>
+					<a
+						data-scroll-marker-label="Conversations"
+						href={`#${networkIdKey}:conversations`}
+					>Inbox</a>
+				{/snippet}
+
 				{#snippet children({ open: _o })}
-					<section data-scroll-marker-label="Accounts">
+					<section
+						id={`${networkIdKey}:accounts`}
+						data-scroll-marker-label="Accounts"
+					>
 						<ActorsView
 							entityFieldReference={{
 								entityType: EntityType._Global,
@@ -163,7 +194,10 @@
 						/>
 					</section>
 
-					<section data-scroll-marker-label="Conversations">
+					<section
+						id={`${networkIdKey}:conversations`}
+						data-scroll-marker-label="Conversations"
+					>
 						<XmtpConversationsView
 							entityFieldReference={{
 								entityType: EntityType._Global,
@@ -171,7 +205,7 @@
 								fieldName: '$$xmtpConversations',
 							}}
 							href={resolve('/(social)/(xmtp)/xmtp/conversations')}
-							id={`${networkIdKey}:conversations`}
+							id={`${networkIdKey}:conversations-list`}
 							open={false}
 						/>
 					</section>
@@ -180,3 +214,17 @@
 		</div>
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 36ch;
+			}
+		}
+	}
+</style>

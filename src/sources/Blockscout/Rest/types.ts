@@ -4,6 +4,8 @@ export type BlockscoutAddressWire = {
 
 export type BlockscoutBlockWire = {
 	base_fee_per_gas?: string
+	blob_gas_used?: string | number
+	excess_blob_gas?: string | number
 	gas_limit?: string
 	gas_used?: string
 	hash?: string
@@ -55,4 +57,19 @@ export type BlockscoutTransactionLogWire = {
 	smart_contract?: BlockscoutAddressWire | null
 	topics?: string[]
 	transaction_hash?: string
+}
+
+export type BlockscoutAccountAbstractionSmartAccountWire = {
+	address?: BlockscoutAddressWire
+	total_ops?: number
+}
+
+export type BlockscoutUserOperationListItemWire = {
+	address?: BlockscoutAddressWire
+	block_number?: string | number | null
+	fee?: string
+	hash?: string
+	status?: boolean
+	timestamp?: string
+	transaction_hash?: string | null
 }

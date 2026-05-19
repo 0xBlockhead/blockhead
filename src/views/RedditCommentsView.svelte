@@ -7,6 +7,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 
+	import { SvelteSet } from 'svelte/reactivity'
+
 
 	// Context
 	import { resolve } from '$app/paths'
@@ -19,7 +21,7 @@
 		id,
 		limit = 50,
 		open = $bindable(true),
-		title = 'Comments',
+		title = 'Top-level comments',
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.RedditComment>
 		href: string
@@ -31,9 +33,6 @@
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -65,12 +64,10 @@
 					.toSorted((a, b) => (
 						b[EntityMetaKey.IdKey].localeCompare(a[EntityMetaKey.IdKey])
 					))
-					.map((comment) => (
-						{
-							...comment[EntityMetaKey.Id],
-							sortKey: comment[EntityMetaKey.IdKey],
-						}
-					))
+					.map((comment) => ({
+						...comment[EntityMetaKey.Id],
+						sortKey: comment[EntityMetaKey.IdKey],
+					}))
 			)
 		},
 	)
@@ -79,40 +76,51 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import RedditCommentView from '$/views/RedditCommentView.svelte'
 </script>
 
 
-<EntitiesList
-	entityType={EntityType.RedditComment}
-	{href}
-	{id}
-	{title}
-	bind:open
-	resource={comments}
-	placeholderText="Loading comments…"
-	getKey={(row) => row.fullname}
-	getSortValue={(row) => row.sortKey}
-	placeholderKeys={new SvelteSet<string>()}
->
-	{#snippet Empty()}
-		<p data-text="muted">
-			No Reddit comments to show yet.
-		</p>
-	{/snippet}
+<div data-column="gap-2">
+	<EntitiesList
+		entityType={EntityType.RedditComment}
+		{href}
+		{id}
+		{title}
+		bind:open
+		resource={comments}
+		placeholderText="Loading comment thread…"
+		getKey={(row) => row.fullname}
+		getSortValue={(row) => row.sortKey}
+		placeholderKeys={new SvelteSet<string>()}
+	>
+		{#snippet TypeAnnotationTooltip()}
+						<p>
+							Top-level comments are direct replies to a Reddit submission, ordered for this thread listing.
+						</p>
+						<p>
+							They are specific to Reddit’s data model—not Farcaster feeds or in-app multiplayer chat.
+						</p>
+		{/snippet}
+		{#snippet Empty()}
+			<p data-text="muted">
+				No comments yet.
+			</p>
+		{/snippet}
 
-	{#snippet Item({
-		item: row,
-	})}
-		{#if row}
-			<RedditCommentView
-				entityId={{ fullname: row.fullname }}
-				href={resolve('/(social)/reddit/comment/[fullname]', {
-					fullname: encodeURIComponent(row.fullname),
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
-	{/snippet}
-</EntitiesList>
+		{#snippet Item({
+			item: row,
+		})}
+			{#if row}
+				<RedditCommentView
+					entityId={{ fullname: row.fullname }}
+					href={resolve('/(social)/reddit/comment/[fullname]', {
+						fullname: encodeURIComponent(row.fullname),
+					})}
+					layout={EntityLayout.Summary}
+					open={false}
+				/>
+			{/if}
+		{/snippet}
+	</EntitiesList>
+</div>

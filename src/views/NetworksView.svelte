@@ -1,9 +1,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,19 +14,13 @@
 		l2BeatProjectChainIds,
 	} from '$/sources/L2Beat/Rest/constants.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify as stringifyId } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { stringify as stringifyId } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Components
@@ -33,13 +29,11 @@
 	import NetworkView from '$/views/NetworkView.svelte'
 
 
+	// Props
 	let {
 		title = 'Networks',
-
 		open = $bindable(true),
-
 		entityFieldReference,
-
 		...EntitiesListProps
 	}: WithRest<
 		{
@@ -60,13 +54,16 @@
 	> = $props()
 
 
+	// State
 	const fieldName = entityFieldReference.fieldName
-	const sortValueByChainId = new Map([
+	const sortValueByChainId = new Map<number, number>([
 		[ethereumChainId, 0],
-		...l2BeatProjectChainIds.map(({ chainId }, index) => [
-			chainId,
-			index + 1,
-		] as const),
+		...l2BeatProjectChainIds.map(({ chainId }, index): [number, number] => (
+			[
+				chainId,
+				index + 1,
+			]
+		)),
 	])
 
 	const networksParent = useEntity(
@@ -118,9 +115,18 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Execution networks are identified by EIP-155 chain id; public registries publish RPC URLs, explorers, and native currency symbols.
+					</p>
+					<p>
+						Testnets, rollups, and app-chains reuse the same abstraction—only consensus parameters and fork schedules differ.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No networks to show yet. Check your connection and try again.
+			No networks match this list yet.
 		</p>
 	{/snippet}
 

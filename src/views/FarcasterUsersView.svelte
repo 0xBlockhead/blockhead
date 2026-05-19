@@ -11,6 +11,13 @@
 	import { resolve } from '$app/paths'
 
 
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import FarcasterUserView from '$/views/FarcasterUserView.svelte'
+
+
 	// Props
 	let {
 		entityFieldReference,
@@ -38,11 +45,16 @@
 	const parentNetwork = useEntity(
 		EntityType.FarcasterNetwork,
 		entityFieldReference.entityId,
-		{
-			$: [Source.Farcaster_Rest],
-			protocolName: {},
-			$$users: { $: [Source.Snapchain_Rest] },
-		},
+		(
+			open ?
+				{
+					$: [Source.Farcaster_Rest],
+					protocolName: {},
+					$$users: { $: [Source.Snapchain_Rest] },
+				}
+			:
+				{}
+		),
 	)
 
 	const users = derive(
@@ -57,12 +69,6 @@
 				}))
 		),
 	)
-
-
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FarcasterUserView from '$/views/FarcasterUserView.svelte'
 </script>
 
 
@@ -75,12 +81,21 @@
 	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
 	getSortValue={(row) => row.value[EntityMetaKey.Id].fid}
 	placeholderKeys={new SvelteSet()}
-	placeholderText="Loading users…"
+	placeholderText="Loading Farcaster users…"
 	resource={users}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Farcaster users are numeric FIDs registered through Hubs and Snapchain-style sync; directory APIs enumerate who exists on that network view.
+					</p>
+					<p>
+						Human-readable fnames resolve per profile; empty directories usually mean the indexer has not caught up yet.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No users loaded for this network yet. Try again shortly.
+			No Farcaster users in this list yet.
 		</p>
 	{/snippet}
 

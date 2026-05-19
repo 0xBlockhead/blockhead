@@ -6,17 +6,10 @@
  * @see https://github.com/farcasterorg/hypersnap
  */
 
-export enum SnapchainNodeEndpointId {
-	Pinata = 'Pinata',
-	Snap = 'Snap',
-	Pop = 'Pop',
-	Haatz = 'Haatz',
-}
-
-export type SnapchainNodeEndpoint = {
-	id: SnapchainNodeEndpointId
-	url: string
-}
+import {
+	SnapchainNodeEndpointId,
+	type SnapchainNodeEndpoint,
+} from '$/sources/Snapchain/Rest/types.ts'
 
 export const defaultShardId = 1
 

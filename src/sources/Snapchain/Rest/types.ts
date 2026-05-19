@@ -7,6 +7,18 @@
  * @see https://snapchain.farcaster.xyz/reference/httpapi/verification
  */
 
+export enum SnapchainNodeEndpointId {
+	Pinata = 'Pinata',
+	Snap = 'Snap',
+	Pop = 'Pop',
+	Haatz = 'Haatz',
+}
+
+export type SnapchainNodeEndpoint = {
+	id: SnapchainNodeEndpointId
+	url: string
+}
+
 export type SnapchainCastEmbedWire = {
 	url?: string
 	castId?: {

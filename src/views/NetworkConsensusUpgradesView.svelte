@@ -19,7 +19,7 @@
 	// Props
 	let {
 		entityFieldReference,
-		title = 'Consensus Upgrades',
+		title = 'Consensus forks',
 		open = $bindable(true),
 		...entitiesListProps
 	}: WithRest<
@@ -51,12 +51,14 @@
 			$: [
 				Source.Constants_Internal,
 			],
-			[fieldName]: {
-				$: [
-					Source.Constants_Internal,
-				],
-				$limit: 512,
-			},
+			...(open && {
+				[fieldName]: {
+					$: [
+						Source.Constants_Internal,
+					],
+					$limit: 512,
+				},
+			}),
 		},
 	)
 
@@ -104,9 +106,18 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Consensus-layer forks change beacon rules—slot timing, signature domains, validator set caps, or light-client assumptions.
+					</p>
+					<p>
+						Activations are anchored to an epoch (and sometimes a block height on linked execution chains) published in network upgrade metadata.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No consensus upgrades cataloged for this network yet.
+			No consensus upgrades yet.
 		</p>
 	{/snippet}
 

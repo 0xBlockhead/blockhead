@@ -13,19 +13,13 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import LensAccountView from '$/views/LensAccountView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
 		href,
 		id,
 		open = $bindable(true),
-		title = 'Accounts',
+		title = 'Lens v3 profiles',
 		...entitiesListRest
 	}: WithRest<
 		{
@@ -52,16 +46,21 @@
 	const lensNetwork = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
-		{
-			$: [Source.Constants_Internal],
-			protocolName: {},
-			$$lensAccounts: {
-				$: [
-					Source.Constants_Internal,
-					Source.Lens_Graphql,
-				],
-			},
-		},
+		(
+			open ?
+				{
+					$: [Source.Constants_Internal],
+					protocolName: {},
+					$$lensAccounts: {
+						$: [
+							Source.Constants_Internal,
+							Source.Lens_Graphql,
+						],
+					},
+				}
+			:
+				{}
+		),
 	)
 
 	const accounts = derive(
@@ -71,6 +70,12 @@
 			?? []
 		),
 	)
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import LensAccountView from '$/views/LensAccountView.svelte'
 </script>
 
 
@@ -82,6 +87,15 @@
 	{title}
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Lens profiles are on-chain publisher identities tied to an address.
+		</p>
+		<p>
+			Publications for the Lens network aggregate in resolver-backed feeds; profile-scoped indexes align with that network’s publication graph.
+		</p>
+	{/snippet}
+
 	{#snippet body()}
 		{#key stringify(entityFieldReference.entityId)}
 			<EntitiesList
@@ -100,7 +114,7 @@
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No Lens accounts to show yet.
+						No Lens profiles for this slice yet.
 					</p>
 				{/snippet}
 

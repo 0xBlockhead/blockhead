@@ -3,17 +3,15 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { entityResolversByEntityType } from '$/resolvers/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 
+
+	// Context
 	import { resolve } from '$app/paths'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 
 
 	// Props
@@ -43,6 +41,8 @@
 
 
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const leverage = useEntity(
 		EntityType.Leverage,
 		entityId,
@@ -67,6 +67,7 @@
 
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -92,13 +93,21 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={leverage}>
 			{#snippet children(merged)}
-				<dl>
+				<dl data-column-item="center">
+					{#if open}
+						<div>
+							<dt>Note</dt>
+							<dd data-text="muted">
+								Here “leverage” names concentrated-liquidity position accounting—tick range, in-range liquidity, uncollected fees, ERC-721 token id—not perpetual margin, borrow APR, or liquidation state from a CEX.
+							</dd>
+						</div>
+					{/if}
 					<div>
 						<dt>Network</dt>
 						<dd>{String(merged.$pool.$network.chainId)}</dd>
 					</div>
 					<div>
-						<dt>Pool</dt>
+						<dt>AMM pool (Uniswap v3-style)</dt>
 						<dd>
 							<TruncatedValue
 								value={merged.$pool.id}
@@ -106,17 +115,6 @@
 							/>
 						</dd>
 					</div>
-					{#if merged.createdAtTimestamp !== undefined}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp
-									timestamp={merged.createdAtTimestamp}
-									format={TimestampFormat.Both}
-								/>
-							</dd>
-						</div>
-					{/if}
 					{#if open}
 						<div>
 							<dt>Owner</dt>
@@ -137,64 +135,73 @@
 						</div>
 						{#if merged.tickLower !== undefined}
 							<div>
-								<dt>Tick lower</dt>
+								<dt>LP NFT range · tick lower</dt>
 								<dd>{String(merged.tickLower)}</dd>
 							</div>
 						{/if}
+
 						{#if merged.tickUpper !== undefined}
 							<div>
-								<dt>Tick upper</dt>
+								<dt>LP NFT range · tick upper</dt>
 								<dd>{String(merged.tickUpper)}</dd>
 							</div>
 						{/if}
+
 						{#if merged.liquidity !== undefined}
 							<div>
-								<dt>Liquidity</dt>
+								<dt>Range liquidity</dt>
 								<dd>{String(merged.liquidity)}</dd>
 							</div>
 						{/if}
+
 						{#if merged.token0Owed !== undefined}
 							<div>
 								<dt>Token0 owed</dt>
 								<dd>{String(merged.token0Owed)}</dd>
 							</div>
 						{/if}
+
 						{#if merged.token1Owed !== undefined}
 							<div>
 								<dt>Token1 owed</dt>
 								<dd>{String(merged.token1Owed)}</dd>
 							</div>
 						{/if}
+
 						{#if merged.tokenId !== undefined}
 							<div>
-								<dt>Token id</dt>
+								<dt>Position NFT (token id)</dt>
 								<dd>{String(merged.tokenId)}</dd>
 							</div>
 						{/if}
+
 						{#if merged.origin}
 							<div>
 								<dt>Origin</dt>
 								<dd>{merged.origin}</dd>
 							</div>
 						{/if}
-						{#if merged.createdAtTimestamp !== undefined}
-							<div>
-								<dt>Created at</dt>
-								<dd>
-									<Timestamp
-										timestamp={merged.createdAtTimestamp}
-										format={TimestampFormat.Both}
-									/>
-								</dd>
-							</div>
-						{/if}
+					{/if}
+
+					{#if merged.createdAtTimestamp !== undefined}
+						<div>
+							<dt>Created at</dt>
+							<dd>
+								<Timestamp
+									timestamp={merged.createdAtTimestamp}
+									format={TimestampFormat.Both}
+								/>
+							</dd>
+						</div>
 					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({ open: _open })}
+	{#snippet Details({
+		open: _open,
+	})}
 		{#if children}
 			{@render children()}
 		{:else}

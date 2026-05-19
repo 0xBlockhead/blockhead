@@ -124,9 +124,7 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => {
-				throw new Error('TradingView_Rest: $$marketsWithCoinAsQuote is unsupported')
-			},
+			resolve: async () => [],
 		}),
 
 		defineEntityFieldResolver({

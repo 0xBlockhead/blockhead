@@ -25,13 +25,17 @@
 	let {
 		entityFieldReference,
 		open = $bindable(true),
-		title = 'Errors',
+		title = 'Error selectors',
+		id,
+		href,
 		...entitiesListRest
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmError>
 			open?: boolean
 			title?: string
+			id: string
+			href: string
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
@@ -41,8 +45,6 @@
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -50,11 +52,13 @@
 		EntityType._Global,
 		entityFieldReference.entityId,
 		{
-			$$evmErrors: {
-				$: [
-					Source.Openchain_Rest,
-				],
-			},
+			...(open ? {
+				$$evmErrors: {
+					$: [
+						Source.Openchain_Rest,
+					],
+				},
+			} : {}),
 		},
 	)
 
@@ -85,29 +89,43 @@
 
 <EntitiesList
 	entityType={EntityType.EvmError}
+	{id}
+	{href}
 	{title}
 	bind:open
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Global registry of four-byte error selectors for custom and standard revert shapes—same width as calldata selectors but used when decoding failures.
+					</p>
+					<p>
+						They pair with ABI tail words rather than log topics.
+					</p>
+					<p>
+						Rows filter the shared directory by the current field predicate.
+					</p>
+	{/snippet}
+
 	{#snippet body()}
-		{#key stringify(entityFieldReference.entityId)}
+		<div data-column="gap-3">
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmError}
-				id={`${entitiesListRest.id}-items`}
-				href={entitiesListRest.href}
+				id={`${id}-items`}
+				{href}
 				{title}
 				open={true}
 				getKey={(row) => row[EntityMetaKey.Id].hex}
 				getSortValue={(row) => row[EntityMetaKey.Id].hex}
-				placeholderText="Loading errors…"
+				placeholderText="Loading revert/error selectors…"
 				resource={errors}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No errors indexed yet.
+						No error selectors yet.
 					</p>
 				{/snippet}
 
@@ -124,6 +142,6 @@
 					{/if}
 				{/snippet}
 			</EntitiesList>
-		{/key}
+		</div>
 	{/snippet}
 </EntitiesList>

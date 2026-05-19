@@ -1,6 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { stringify } from 'devalue'
+
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -15,10 +17,8 @@
 
 
 	// State
-	import { stringify } from 'devalue'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Components
@@ -31,7 +31,7 @@
 	// Props
 	let {
 		entityFieldReference,
-		title = 'Profiles',
+		title = 'Simulator sessions',
 		open = $bindable(true),
 		href,
 		id,
@@ -54,13 +54,22 @@
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Local_Internal,
-				],
-			},
-		},
+		(
+			open ?
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Local_Internal,
+						],
+					},
+				}
+			:
+				{
+					$: [
+						Source.Local_Internal,
+					],
+				}
+		),
 	)
 
 	const sessions = derive(
@@ -94,6 +103,21 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Saved simulation projects: named capture points, loop counters, and replay bookkeeping for scripted EVM or HTTP traces.
+					</p>
+					<p>
+						Such traces are diagnostics—compare their implied state roots to a live node instead of treating them as canonical chain history.
+					</p>
+	{/snippet}
+
+	{#snippet Empty()}
+		<p data-text="muted">
+			No sessions yet.
+		</p>
+	{/snippet}
+
 	{#snippet Item({ item: envelope })}
 		{#if envelope}
 			<BlockheadSessionView
@@ -104,7 +128,6 @@
 				)}
 				layout={EntityLayout.Summary}
 				open={false}
-				title="Profile"
 			/>
 		{/if}
 	{/snippet}

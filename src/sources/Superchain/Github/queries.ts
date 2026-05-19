@@ -6,17 +6,10 @@ import {
 	networkChainIdBySuperchainIdentifier,
 	origin,
 } from '$/sources/Superchain/Github/constants.ts'
-import type { SuperchainChainListEntry } from '$/sources/Superchain/Github/types.ts'
-
-export type SuperchainNetwork = {
-	chainId: number
-	name: string
-	identifier: string
-	namespace: string
-	slug: string
-	parentChainId?: number
-	parentType?: string
-}
+import type {
+	SuperchainChainListEntry,
+	SuperchainNetwork,
+} from '$/sources/Superchain/Github/types.ts'
 
 const splitIdentifier = (identifier: string): {
 	namespace: string

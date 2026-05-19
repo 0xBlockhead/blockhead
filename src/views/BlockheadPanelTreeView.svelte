@@ -1,15 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
+	import { stringify } from 'devalue'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
 	// Components
@@ -46,7 +43,14 @@
 	> = $props()
 
 
+	const panelTreeIdKey = $derived(
+		stringify(entityId),
+	)
+
+
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const panelTree = useEntity(
 		EntityType.BlockheadPanelTree,
 		entityId,
@@ -64,7 +68,7 @@
 	{entityId}
 	{title}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Heading()}
@@ -74,11 +78,22 @@
 		</span>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					Serialized layout graphs capture nested region ids and split ratios so multi-pane dashboards can restore geometry across reloads.
+				</p>
+				<p>
+					Chat logs, automation replays, and chain head cursors are unrelated artifacts—layout trees only describe viewport structure.
+				</p>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
-				<dt>Panel tree ID</dt>
-				<dd>{entityId.id}</dd>
+				<dt>Layout kind</dt>
+				<dd>
+					Dashboard workspace tree.
+				</dd>
 			</div>
 		</dl>
 	{/snippet}
@@ -86,21 +101,32 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{#if children}
-			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.BlockheadPanelTree}
-				{entityId}
+		<EntityDetails
+			entityType={EntityType.BlockheadPanelTree}
+			{entityId}
+		/>
+
+		<div
+			class="blockhead-panel-tree-carousel-groups"
+			data-column="gap-3"
+		>
+			<section
+				{...{ 'data-card': '' }}
+				data-column="gap-2"
+				id={`${panelTreeIdKey}:metadata`}
 			>
 				<ResourceBoundary resource={panelTree}>
 					{#snippet children(_)}
 						<p data-text="muted">
-							No additional dashboard metadata is available yet.
+							No saved panel layout metadata yet.
 						</p>
 					{/snippet}
 				</ResourceBoundary>
-			</EntityDetails>
+			</section>
+		</div>
+
+		{#if children}
+			{@render children()}
 		{/if}
 	{/snippet}
 </EntityView>

@@ -1,7 +1,3 @@
-<script module lang="ts">
-</script>
-
-
 <script lang="ts">
 	// Types/constants
 	import {
@@ -9,10 +5,6 @@
 		swarmResourceCanonicalUri,
 		swarmResourceHref,
 	} from '$/sources/Swarm/Rest/queries.ts'
-
-
-	// Components
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
 
 	// Functions
@@ -83,6 +75,11 @@
 	const openDocsSample = (href: string) => {
 		window.open(href, '_blank', 'noopener,noreferrer')
 	}
+
+
+	// Components
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 </script>
 
 
@@ -101,7 +98,7 @@
 			data-column
 		>
 			<label for="swarm-target-input">
-				BZZ reference, URI, or gateway URL
+				BZZ root / chunk reference, URI, or gateway URL
 			</label>
 			<input
 				id="swarm-target-input"
@@ -169,10 +166,23 @@
 		data-card
 		data-column
 	>
-		<h2>Browse Swarm</h2>
-		<p data-text="muted">
-			Paste a BZZ reference, `bzz://` URI, or gateway URL to open a resolver-backed Swarm resource page.
-		</p>
+		<div data-row="wrap align-center gap-2">
+			<h2>Browse Swarm</h2>
+			<Tooltip contentProps={{ side: 'top' }}>
+				{#snippet Content()}
+					<p>
+						Ethereum Swarm stores content under BZZ root hashes and manifest paths; gateways expose that over HTTPS.
+					</p>
+					<p>
+						That model differs from IPFS CIDs or ordinary single-page URLs.
+					</p>
+				{/snippet}
+				<abbr
+					class="entity-heading-tip"
+					aria-label="About Swarm browsing"
+				>ⓘ</abbr>
+			</Tooltip>
+		</div>
 	</section>
 </section>
 

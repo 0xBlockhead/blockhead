@@ -9,10 +9,11 @@ import type {
 	CoingeckoCoinWithMarketData,
 } from '$/sources/Coingecko/Rest/types.ts'
 
+/** Includes `market_data` so entity resolvers can attach rank / market cap without a second request. */
 const coingeckoCoinMetadataQuery = (
 	'localization=false'
 	+ '&tickers=false'
-	+ '&market_data=false'
+	+ '&market_data=true'
 	+ '&community_data=false'
 	+ '&developer_data=false'
 	+ '&sparkline=false'
@@ -173,6 +174,44 @@ export const getCoingeckoSimplePriceUsd = async ({
 	const payload = await res.json<CoingeckoSimplePriceWire>()
 
 	return payload[coingeckoId]
+}
+
+export type CoingeckoCoinsMarketRowWire = {
+	id: string
+	symbol: string
+	name: string
+	market_cap?: number | null
+	market_cap_rank?: number | null
+}
+
+export const getCoingeckoCoinsMarketsPage = async ({
+	publicEnv,
+	vsCurrency,
+	order,
+	perPage,
+	page,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>
+	vsCurrency: string
+	order: 'market_cap_desc'
+	perPage: number
+	page: number
+}): Promise<CoingeckoCoinsMarketRowWire[]> => {
+	const searchParams = new URLSearchParams()
+	searchParams.set('vs_currency', vsCurrency)
+	searchParams.set('order', order)
+	searchParams.set('per_page', String(perPage))
+	searchParams.set('page', String(page))
+	searchParams.set('sparkline', 'false')
+
+	const res = await coingeckoRestFetch(
+		publicEnv,
+		`/coins/markets?${searchParams.toString()}`,
+	)
+
+	if (!res.ok) await throwHttpError('CoinGecko /coins/markets', res)
+
+	return res.json<CoingeckoCoinsMarketRowWire[]>()
 }
 
 export const getCoingeckoCoinOhlc = async ({

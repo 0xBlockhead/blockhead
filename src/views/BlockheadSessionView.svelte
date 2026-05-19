@@ -1,19 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
+
+
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
 
 	// Props
@@ -57,9 +51,21 @@
 			status: {},
 			createdAt: {},
 			updatedAt: {},
-			simulationCount: {},
+			...(open ?
+				{
+					simulationCount: {},
+				}
+			:
+				{}),
 		},
 	)
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -67,7 +73,7 @@
 	entityType={EntityType.BlockheadSession}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Id()}
@@ -87,65 +93,68 @@
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					Simulation sessions bundle named checkpoints, iteration counters, and timestamps for replaying scripted EVM calls or HTTP fixtures.
+				</p>
+				<p>
+					Replay captures are engineering artifacts—validate implied roots and receipts against live nodes instead of treating them as canonical chain history.
+				</p>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={session}
 			placeholderText="Loading session…"
 		>
 			{#snippet children(s)}
-				<dl>
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
+				<dl data-column-item="center">
 					<div>
-						<dt>Session id</dt>
-						<dd>
-							<TruncatedValue
-								value={entityId.id}
-								format={TruncatedValueFormat.Visual}
-							/>
+						<dt>Simulator session id</dt>
+						<dd data-text="mono">
+							{@render Id()}
 						</dd>
 					</div>
+
+					<div>
+						<dt>Session kind</dt>
+						<dd>
+							Persisted sandbox notebook.
+						</dd>
+					</div>
+
 					<div>
 						<dt>Status</dt>
 						<dd>{s.status}</dd>
 					</div>
-					{#if s.updatedAt !== undefined}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp
-									timestamp={s.updatedAt}
-									format={TimestampFormat.Both}
-								/>
-							</dd>
-						</div>
-					{:else}
-						{#if s.createdAt !== undefined}
+
+					{#if !open}
+						{#if s.updatedAt !== undefined}
 							<div>
-								<dt>Timestamp</dt>
+								<dt>Last activity</dt>
 								<dd>
 									<Timestamp
-										timestamp={s.createdAt}
+										timestamp={s.updatedAt}
 										format={TimestampFormat.Both}
 									/>
 								</dd>
 							</div>
-						{/if}
-					{/if}
-					{#if open}
-						{#if s.name !== undefined}
-							{#if s.name !== ''}
+						{:else}
+							{#if s.createdAt !== undefined}
 								<div>
-									<dt>Name</dt>
-									<dd>{s.name}</dd>
+									<dt>Last activity</dt>
+									<dd>
+										<Timestamp
+											timestamp={s.createdAt}
+											format={TimestampFormat.Both}
+										/>
+									</dd>
 								</div>
 							{/if}
 						{/if}
+					{/if}
+
+					{#if open}
 						{#if s.createdAt !== undefined}
 							<div>
 								<dt>Created</dt>
@@ -157,6 +166,7 @@
 								</dd>
 							</div>
 						{/if}
+
 						{#if s.updatedAt !== undefined}
 							<div>
 								<dt>Updated</dt>
@@ -168,6 +178,7 @@
 								</dd>
 							</div>
 						{/if}
+
 						{#if s.simulationCount !== undefined}
 							<div>
 								<dt>Simulation count</dt>
@@ -190,32 +201,7 @@
 				entityType={EntityType.BlockheadSession}
 				{entityId}
 			/>
-			<ResourceBoundary
-				resource={session}
-				placeholderText="Loading session…"
-			>
-				{#snippet children(s)}
-					{#if open}
-						{#if s.createdAt === undefined}
-							{#if s.updatedAt === undefined}
-								{#if s.simulationCount === undefined}
-									{#if s.name === undefined}
-										<p data-text="muted">
-											No additional session details are available yet.
-										</p>
-									{:else}
-										{#if s.name === ''}
-											<p data-text="muted">
-												No additional session details are available yet.
-											</p>
-										{/if}
-									{/if}
-								{/if}
-							{/if}
-						{/if}
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+
 		{/if}
 	{/snippet}
 </EntityView>

@@ -54,6 +54,7 @@
 
 	// Components
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 </script>
 
 
@@ -64,7 +65,23 @@
 		data-column
 	>
 		<header data-row="wrap">
-			<h3>Alternate encodings</h3>
+			<div data-row="wrap align-center gap-2">
+				<h3>Same CID, different multibase literals</h3>
+				<Tooltip contentProps={{ side: 'top' }}>
+					{#snippet Content()}
+						<p>
+							A content id keeps the digest and codec constants; switching multibase tables only rewires punctuation.
+						</p>
+						<p>
+							Each literal here is interchangeable for gateways; Swarm URIs remain a distinct ecosystem.
+						</p>
+					{/snippet}
+					<abbr
+						class="entity-heading-tip"
+						aria-label="Why many strings match"
+					>ⓘ</abbr>
+				</Tooltip>
+			</div>
 
 			<label data-row="wrap">
 				<span data-text="muted">Show</span>
@@ -76,20 +93,26 @@
 			</label>
 		</header>
 
-		<dl>
+		<div
+			class="ipfs-cid-encoding-rows"
+			data-column
+		>
 			{#each filteredEncodings(target, cid, showEncodings) as encoding (`${encoding.version}-${encoding.baseName}`)}
 				{@const subdomainOk = checkIpfsCidIsValidSubdomain({
 					baseName: encoding.baseName,
 					cidString: encoding.cidString,
 				})}
-				<div>
-					<dt>
+				<div
+					class="ipfs-cid-encoding-row"
+					data-column
+				>
+					<div>
 						CIDv{String(encoding.version)}
 						<small data-text="muted">
-							({encoding.baseName})
+							{' '}({encoding.baseName})
 						</small>
-					</dt>
-					<dd data-row="wrap">
+					</div>
+					<div data-row="wrap">
 						<button
 							type="button"
 							onclick={() => {
@@ -117,10 +140,10 @@
 								{subdomainOk ? 'Subdomain gateway OK' : 'Subdomain gateway too long'}
 							</a>
 						{/if}
-					</dd>
+					</div>
 				</div>
 			{/each}
-		</dl>
+		</div>
 	</section>
 {/if}
 
@@ -129,5 +152,13 @@
 	.ipfs-cid-alternate-encodings {
 		gap: 1rem;
 		padding: 1rem;
+	}
+
+	.ipfs-cid-encoding-rows {
+		gap: 1rem;
+	}
+
+	.ipfs-cid-encoding-row {
+		gap: 0.375rem;
 	}
 </style>

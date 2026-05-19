@@ -1,6 +1,7 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
+	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { Hex } from '@tevm/voltaire/Hex'
 import { caip19Erc20, caip19Slip44 } from '$/lib/caip19.ts'
@@ -22,7 +23,6 @@ export default {
 			entityType: EntityType.CoinInstance,
 			resolve: async (entityId, context) => {
 				const { CoinId, coinById, coinBySymbol } = await import('$/constants/Coin.ts')
-				const { sourcePublicEnv } = await import('$/resolvers/$resolvers.ts')
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 				const { getAlliumTokensByChainAddress } = await import('$/sources/Allium/Rest/queries.ts')
 
@@ -102,7 +102,6 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.ActorCoin,
 			resolve: async (entityId, context) => {
-				const { sourcePublicEnv } = await import('$/resolvers/$resolvers.ts')
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 				const { getAlliumLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
 
@@ -156,7 +155,6 @@ export default {
 			entityType: EntityType.ActorNetwork,
 			fieldName: '$$ownedCoins',
 			resolve: async (entityId, context) => {
-				const { sourcePublicEnv } = await import('$/resolvers/$resolvers.ts')
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 				const { getAlliumLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
 				type ActorCoinEntityId = import('$/schema/$schema.ts').EntityId<

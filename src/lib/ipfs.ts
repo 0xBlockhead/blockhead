@@ -1,7 +1,7 @@
+import type { IpfsNamespace } from '$/sources/Ipfs/Rest/types.ts'
 import {
 	ipfsNamespaceForTarget,
 	parseIpfsBrowseInput,
-	type IpfsNamespace,
 } from '$/sources/Ipfs/Rest/queries.ts'
 
 export type IpfsResourceAddress = {

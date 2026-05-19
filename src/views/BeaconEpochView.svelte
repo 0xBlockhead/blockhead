@@ -14,8 +14,10 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import BeaconSlotsView from '$/views/BeaconSlotsView.svelte'
@@ -69,6 +71,10 @@
 
 	const title = titleProp ?? `Epoch ${entityId.epoch.toLocaleString()}`
 
+	const epochIdKey = $derived(
+		stringify(entityId),
+	)
+
 	const epoch = useEntity(
 		EntityType.BeaconEpoch,
 		entityId,
@@ -78,7 +84,9 @@
 			],
 			startSlot: {},
 			endSlot: {},
-			slotCount: {},
+			...(open && {
+				slotCount: {},
+			}),
 		},
 	)
 </script>
@@ -90,7 +98,7 @@
 	{title}
 	{href}
 	{layout}
-	{open}
+	bind:open
 	idDragPlainText={String(entityId.epoch)}
 	{...entityViewRest}
 >
@@ -108,20 +116,23 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl>
+		<dl data-column-item="center">
 			<div>
-				<dt>Id</dt>
+				<dt>Execution layer chain</dt>
 				<dd data-text="mono">
 					{@render Id()}
 				</dd>
 			</div>
 
-			<ResourceBoundary resource={epoch}>
+			<ResourceBoundary
+				resource={epoch}
+				placeholderText="Loading epoch…"
+			>
 				{#snippet children(e)}
 					{#if e.startSlot !== undefined}
 						{#if e.endSlot !== undefined}
 							<div>
-								<dt>Slot range</dt>
+								<dt>Consensus slot range</dt>
 								<dd>
 									<NumberValue value={e.startSlot} />
 									to
@@ -130,21 +141,19 @@
 							</div>
 						{/if}
 					{/if}
+
 					{#if open}
 						{#if e.slotCount !== undefined}
 							<div>
-								<dt>Slots</dt>
+								<dt>Slots in this epoch</dt>
 								<dd>
 									<NumberValue value={e.slotCount} />
 								</dd>
 							</div>
-						{/if}
-					{/if}
-					{#if open}
-						{#if e.slotCount === undefined}
+						{:else}
 							<div>
-								<dt>Slots</dt>
-								<dd data-text="muted">Slot data unavailable.</dd>
+								<dt>Slots in this epoch</dt>
+								<dd data-text="muted">Slot span unavailable from beacon API.</dd>
 							</div>
 						{/if}
 					{/if}
@@ -161,22 +170,52 @@
 			{entityId}
 		/>
 
-		<BeaconSlotsView
-			entityFieldReference={{
-				entityType: EntityType.BeaconEpoch,
-				entityId,
-				fieldName: '$$beaconSlots',
-			}}
-			href={resolve(
-				'/(explore)/(networks)/network/[networkId]/(network)/beacon-slots',
-				{
-					networkId: String(entityId.$network.chainId),
-				},
-			)}
-			id={`${stringify(entityId)}:beacon-slots`}
-			open={false}
-			title="Slots"
-		/>
+		<div
+			class="beacon-epoch-view-carousel-groups"
+			data-column="gap-3"
+		>
+			<CollapsibleTabs
+				id={`${epochIdKey}:carousel-slots`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({ open: _isOpen })}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Slots</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet Markers({ open: _markersOpen })}
+					<a
+						data-scroll-marker-label="Slots"
+						href={`#${epochIdKey}:beacon-slots`}
+					>Slots</a>
+				{/snippet}
+
+				{#snippet children(_childrenContext)}
+					<section>
+						<BeaconSlotsView
+							entityFieldReference={{
+								entityType: EntityType.BeaconEpoch,
+								entityId,
+								fieldName: '$$beaconSlots',
+							}}
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/beacon-slots',
+								{
+									networkId: String(entityId.$network.chainId),
+								},
+							)}
+							id={`${epochIdKey}:beacon-slots`}
+							open={false}
+							title="Slots"
+						/>
+					</section>
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
 
 		{#if children}
 			{@render children()}

@@ -15,14 +15,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import OrderedList from '$/components/OrderedList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import ContractView from '$/views/ContractView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -52,8 +44,10 @@
 		EntityType.Network,
 		entityFieldReference.entityId,
 		{
-			blockHeight: { $: [Source.Voltaire_JsonRpc] },
-			$$contracts: { $: [Source.Blockscout_Rest] },
+			...(open ? {
+				blockHeight: { $: [Source.Voltaire_JsonRpc] },
+				$$contracts: { $: [Source.Blockscout_Rest] },
+			} : {}),
 		},
 	)
 
@@ -67,6 +61,15 @@
 				.slice(0, 16)
 		),
 	)
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import OrderedList from '$/components/OrderedList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import ContractView from '$/views/ContractView.svelte'
 </script>
 
 
@@ -76,6 +79,15 @@
 	bind:open
 	{...entitiesListProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Verified contracts pair execution-layer addresses with bytecode and an ABI so calldata and logs decode to human-readable functions and events.
+					</p>
+					<p>
+						Explorers index these artifacts when publish-submitted metadata is available.
+					</p>
+	{/snippet}
+
 	{#snippet body()}
 		{#key stringify(entityFieldReference.entityId)}
 			<ResourceBoundary
@@ -96,7 +108,7 @@
 					>
 						{#snippet Empty()}
 							<p data-text="muted">
-								No verified contracts for this network yet. Try again shortly.
+								No verified contracts yet.
 							</p>
 						{/snippet}
 

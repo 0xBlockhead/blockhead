@@ -11,18 +11,6 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { SvelteSet } from 'svelte/reactivity'
-
-
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NetworkBridgeView from '$/views/NetworkBridgeView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -42,16 +30,35 @@
 	> = $props()
 
 
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { SvelteSet } from 'svelte/reactivity'
+
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Chainlist_Rest,
-					Source.EthereumLists_Rest,
-				],
-			},
+			$: [
+				Source.Constants_Internal,
+				...(
+					open ?
+						[
+							Source.Chainlist_Rest,
+							Source.EthereumLists_Rest,
+						]
+					:
+						[]
+				),
+			],
+			...(open && {
+				[entityFieldReference.fieldName]: {
+					$: [
+						Source.Chainlist_Rest,
+						Source.EthereumLists_Rest,
+					],
+				},
+			}),
 		},
 	)
 
@@ -71,6 +78,13 @@
 			)
 		},
 	)
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import NetworkBridgeView from '$/views/NetworkBridgeView.svelte'
 </script>
 
 
@@ -85,9 +99,14 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>Registered routes between this chain and others: official or community bridge endpoints from network catalogs.</p>
+					<p>Use them to pick an exit before moving funds; always verify destination support separately.</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No bridges for this network yet.
+			No bridges yet.
 		</p>
 	{/snippet}
 

@@ -24,7 +24,7 @@
 
 	let {
 		entityFieldReference,
-		title = 'Accounts',
+		title = 'Linked wallets',
 		href,
 		id,
 		open = $bindable(true),
@@ -46,13 +46,22 @@
 	const parentEntity = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Local_Internal,
-				],
-			},
-		},
+		(
+			open ?
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Local_Internal,
+						],
+					},
+				}
+			:
+				{
+					$: [
+						Source.Local_Internal,
+					],
+				}
+		),
 	)
 
 	const actors = derive(
@@ -77,9 +86,9 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import ActorView from '$/views/ActorView.svelte'
 </script>
-
 
 <EntitiesList
 	entityType={EntityType.Actor}
@@ -93,9 +102,18 @@
 	{title}
 	{...entitiesListRest}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Linked wallets are execution-layer addresses associated with this facet (account, room, or profile).
+					</p>
+					<p>
+						Empty lists usually mean nothing has been linked yet or the parent entity has not loaded its relations fully.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No accounts yet.
+			No linked wallets in this list yet.
 		</p>
 	{/snippet}
 

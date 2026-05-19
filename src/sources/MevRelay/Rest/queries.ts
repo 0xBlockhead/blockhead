@@ -3,20 +3,10 @@
  * @see https://flashbots.mintlify.app/flashbots-mev-boost/relay-specs/data-api
  */
 
-import { getJson } from '$/lib/http.ts'
 import { mevRelayHttpsOrigins } from '$/constants/MevRelayHosts.ts'
+import { getJson } from '$/lib/http.ts'
 
-export type ProposerPayloadDeliveredRowWire = {
-	slot?: string | number
-	block_hash?: string
-	blockHash?: string
-	builder_pubkey?: string
-	builderPubkey?: string
-	proposer_fee_recipient?: string
-	value?: string | number
-	block_number?: string | number
-	blockNumber?: string | number
-}
+import type { ProposerPayloadDeliveredRowWire } from '$/sources/MevRelay/Rest/types.ts'
 
 export const getProposerPayloadDeliveredForRelayHost = async (
 	relayHost: string,

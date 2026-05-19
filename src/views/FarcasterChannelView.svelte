@@ -2,6 +2,7 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { stringify } from 'devalue'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -11,21 +12,6 @@
 
 	// Context
 	import { resolve } from '$app/paths'
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import IconComponent from '$/components/Icon.svelte'
-	import Media from '$/components/Media.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
 
 	// Props
@@ -56,6 +42,9 @@
 	> = $props()
 
 
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const channel = useEntity(
 		EntityType.FarcasterChannel,
 		entityId,
@@ -67,7 +56,6 @@
 			url: {},
 			description: {},
 			$icon: {},
-			$headerImage: {},
 			createdAt: {},
 			followerCount: {},
 			memberCount: {},
@@ -76,11 +64,29 @@
 			externalLinkTitle: {},
 			externalLinkUrl: {},
 			followedAt: {},
-			$lead: {},
-			$moderator: {},
-			$$moderators: {},
+			...(open ?
+				{
+					$headerImage: {},
+					$lead: {},
+					$moderator: {},
+					$$moderators: {},
+				}
+			:
+				{}),
 		},
 	)
+
+
+	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import IconComponent from '$/components/Icon.svelte'
+	import Media from '$/components/Media.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -88,7 +94,7 @@
 	entityType={EntityType.FarcasterChannel}
 	{entityId}
 	{href}
-	{open}
+	bind:open
 	{...entityViewRest}
 >
 	{#snippet Id()}
@@ -119,16 +125,18 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary resource={channel}>
+		<ResourceBoundary
+			resource={channel}
+			placeholderText="Loading Farcaster channel (channel id / slug)…"
+		>
 			{#snippet children(_channel)}
-				<div data-column>
-					<dl>
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
+				<dl>
+						<div>
+							<dt>Channel id</dt>
+							<dd data-text="mono">
+								{@render Id()}
+							</dd>
+						</div>
 
 						{#if _channel.followerCount !== undefined}
 							<div>
@@ -136,18 +144,21 @@
 								<dd>{String(_channel.followerCount)}</dd>
 							</div>
 						{/if}
+
 						{#if _channel.memberCount !== undefined}
 							<div>
 								<dt>Members</dt>
 								<dd>{String(_channel.memberCount)}</dd>
 							</div>
 						{/if}
+
 						{#if _channel.publicCasting !== undefined}
 							<div>
 								<dt>Public casting</dt>
 								<dd>{_channel.publicCasting ? 'Yes' : 'No'}</dd>
 							</div>
 						{/if}
+
 						{#if open}
 							{#if _channel.name !== undefined}
 								<div>
@@ -167,12 +178,14 @@
 									</dd>
 								</div>
 							{/if}
+
 							{#if _channel.description !== undefined}
 								<div>
 									<dt>Description</dt>
 									<dd>{_channel.description}</dd>
 								</div>
 							{/if}
+
 							{#if _channel.$icon !== undefined}
 								{#if _channel.$icon[EntityMetaKey.Id].url !== undefined}
 									<div>
@@ -187,6 +200,7 @@
 									</div>
 								{/if}
 							{/if}
+
 							{#if _channel.$lead !== undefined}
 								{#if _channel.$lead[EntityMetaKey.Id].fid !== undefined}
 									<div>
@@ -201,6 +215,7 @@
 									</div>
 								{/if}
 							{/if}
+
 							{#if _channel.$moderator !== undefined}
 								{#if _channel.$moderator[EntityMetaKey.Id].fid !== undefined}
 									<div>
@@ -215,6 +230,7 @@
 									</div>
 								{/if}
 							{/if}
+
 							{#if _channel.$$moderators.length}
 								<div>
 									<dt>Moderators</dt>
@@ -233,6 +249,7 @@
 									</dd>
 								</div>
 							{/if}
+
 							{#if _channel.createdAt !== undefined}
 								<div>
 									<dt>Created</dt>
@@ -244,9 +261,10 @@
 									</dd>
 								</div>
 							{/if}
+
 							{#if _channel.pinnedCastHash !== undefined}
 								<div>
-									<dt>Pinned cast</dt>
+									<dt>Pinned cast hash</dt>
 									<dd>
 										<span data-text="font-monospace">
 											<TruncatedValue
@@ -259,6 +277,7 @@
 									</dd>
 								</div>
 							{/if}
+
 							{#if _channel.externalLinkUrl !== undefined}
 								<div>
 									<dt>External link</dt>
@@ -269,6 +288,7 @@
 									</dd>
 								</div>
 							{/if}
+
 							{#if _channel.followedAt !== undefined}
 								<div>
 									<dt>Followed at</dt>
@@ -279,46 +299,130 @@
 										/>
 									</dd>
 								</div>
-							{/if}
 						{/if}
-					</dl>
+					{/if}
+
 					{#if _channel.description !== undefined}
 						{#if !open}
-							<p data-text="muted">
-								{_channel.description}
-							</p>
+							<div>
+								<dt>Description</dt>
+								<dd data-text="muted">{_channel.description}</dd>
+							</div>
 						{/if}
 					{/if}
-				</div>
+				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details()}
-		<EntityDetails
-			entityType={EntityType.FarcasterChannel}
-			{entityId}
-		/>
-		<ResourceBoundary resource={channel}>
-			{#snippet children(_channel)}
-				<section data-column>
-					<h3>Channel</h3>
-					{#if _channel.$headerImage !== undefined}
-						{#if _channel.$headerImage[EntityMetaKey.Id].url !== undefined}
-							<p>
-								<Media
-									media={{ url: _channel.$headerImage[EntityMetaKey.Id].url }}
-									fit="cover"
-								/>
-							</p>
-						{/if}
-					{/if}
-				</section>
-			{/snippet}
-		</ResourceBoundary>
+	{#snippet Details({
+		open: _open,
+	})}
+		{@const channelDetailKey = stringify(entityId)}
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
+			<CollapsibleTabs
+				id={`${channelDetailKey}:carousel-channel`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({
+					open: _summaryOpen,
+				})}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<HeadingComponent>
+							Channel
+						</HeadingComponent>
+					</header>
+				{/snippet}
 
-		{#if children}
-			{@render children()}
-		{/if}
+				{#snippet Markers({
+					open: _markersOpen,
+				})}
+					<a
+						data-scroll-marker-label="Record"
+						href={`#${channelDetailKey}:channel-record`}
+					>Record</a>
+					<a
+						data-scroll-marker-label="Banner"
+						href={`#${channelDetailKey}:channel-banner`}
+					>Banner</a>
+					{#if children}
+						<a
+							data-scroll-marker-label="More"
+							href={`#${channelDetailKey}:channel-more`}
+						>More</a>
+					{/if}
+				{/snippet}
+
+				{#snippet children({
+					open: _paneOpen,
+				})}
+					<section
+						data-scroll-marker-label="Record"
+						id={`${channelDetailKey}:channel-record`}
+					>
+						<EntityDetails
+							entityType={EntityType.FarcasterChannel}
+							{entityId}
+						/>
+					</section>
+					<section
+						data-scroll-marker-label="Banner"
+						id={`${channelDetailKey}:channel-banner`}
+					>
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel banner…"
+						>
+							{#snippet children(_channel)}
+								<section data-column>
+									<h3>Channel</h3>
+									{#if _channel.$headerImage !== undefined}
+										{#if _channel.$headerImage[EntityMetaKey.Id].url !== undefined}
+											<p>
+												<Media
+													media={{ url: _channel.$headerImage[EntityMetaKey.Id].url }}
+													fit="cover"
+												/>
+											</p>
+										{/if}
+									{/if}
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					</section>
+					{#if children}
+						<section
+							data-scroll-marker-label="More"
+							id={`${channelDetailKey}:channel-more`}
+						>
+							{@render children()}
+						</section>
+					{/if}
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 36ch;
+			}
+		}
+	}
+</style>

@@ -87,11 +87,11 @@
 		getGroupKey,
 		getGroupLabel,
 		getGroupKeyForPlaceholder,
-		placeholderKeys,
 		summary = $bindable({ loaded: 0, total: undefined }),
 		visiblePlaceholderKeys = $bindable<_Key[]>([]),
 		onLoadMorePlaceholders,
 		sliceLimit: sliceLimitProp,
+		placeholderKeys = new SvelteSet<_Key>(),
 		scrollPosition = 'Auto',
 		listElement = 'ul',
 		orientation = ListOrientation.Column,
@@ -114,11 +114,11 @@
 		getGroupKey?: (item: _Item) => _GroupKey
 		getGroupLabel?: (groupKey: _GroupKey) => string
 		getGroupKeyForPlaceholder?: (key: _Key) => _GroupKey
-		placeholderKeys: Set<_Key>
 		summary?: { loaded: number; total?: number }
 		visiblePlaceholderKeys?: _Key[]
 		onLoadMorePlaceholders?: () => void
 		sliceLimit?: number
+		placeholderKeys?: Set<_Key>
 		scrollPosition?: 'Start' | 'End' | 'Auto'
 		listElement?: 'ul' | 'ol'
 		orientation?: ListOrientation

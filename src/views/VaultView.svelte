@@ -51,6 +51,8 @@
 			$token1: {},
 			token0Symbol: {},
 			token1Symbol: {},
+			token0Decimals: {},
+			token1Decimals: {},
 			fee: {},
 			tickSpacing: {},
 			sqrtPriceX96: {},
@@ -58,6 +60,8 @@
 			tick: {},
 			volumeUSD: {},
 			totalValueLockedUSD: {},
+			$hooks: {},
+			v4PoolId: {},
 		},
 	)
 
@@ -66,6 +70,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import Address from '$/views/Address.svelte'
 </script>
@@ -84,8 +89,6 @@
 		</span>
 	{/snippet}
 
-
-
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={vault}
@@ -97,13 +100,22 @@
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+<p>
+					Concentrated-liquidity AMM pool: two tokens, a fee tier, curve price and tick state shared by LPs.
+				</p>
+				<p>
+					Not an ERC-4626 yield vault, a storage download, or a social feed.
+				</p>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={vault}
 			placeholderText="Loading vault…"
 		>
 			{#snippet children(v)}
-				<dl>
+				<dl data-column-item="center">
 					<div>
 						<dt>Vault id</dt>
 						<dd>
@@ -132,6 +144,24 @@
 						</dd>
 					</div>
 					{#if open}
+						{#if v.token0Decimals !== undefined}
+							<div>
+								<dt>Token 0 decimals</dt>
+								<dd>{String(v.token0Decimals)}</dd>
+							</div>
+						{/if}
+					{/if}
+
+					{#if open}
+						{#if v.token1Decimals !== undefined}
+							<div>
+								<dt>Token 1 decimals</dt>
+								<dd>{String(v.token1Decimals)}</dd>
+							</div>
+						{/if}
+					{/if}
+
+					{#if open}
 						{#if v.fee !== undefined}
 							<div>
 								<dt>Fee</dt>
@@ -139,6 +169,7 @@
 							</div>
 						{/if}
 					{/if}
+
 					{#if open}
 						{#if v.tickSpacing !== undefined}
 							<div>
@@ -147,6 +178,7 @@
 							</div>
 						{/if}
 					{/if}
+
 					{#if open}
 						{#if v.sqrtPriceX96 !== undefined}
 							<div>
@@ -155,6 +187,7 @@
 							</div>
 						{/if}
 					{/if}
+
 					{#if open}
 						{#if v.liquidity !== undefined}
 							<div>
@@ -163,6 +196,7 @@
 							</div>
 						{/if}
 					{/if}
+
 					{#if open}
 						{#if v.tick !== undefined}
 							<div>
@@ -171,6 +205,7 @@
 							</div>
 						{/if}
 					{/if}
+
 					{#if open}
 						{#if v.volumeUSD !== undefined}
 							<div>
@@ -179,11 +214,40 @@
 							</div>
 						{/if}
 					{/if}
+
 					{#if open}
 						{#if v.totalValueLockedUSD !== undefined}
 							<div>
 								<dt>TVL USD</dt>
 								<dd>{String(v.totalValueLockedUSD)}</dd>
+							</div>
+						{/if}
+					{/if}
+
+					{#if open}
+						{#if v.$hooks !== undefined}
+							<div>
+								<dt>Hooks</dt>
+								<dd>
+									<Address
+										network={v.$hooks.$network}
+										address={v.$hooks.address}
+									/>
+								</dd>
+							</div>
+						{/if}
+					{/if}
+
+					{#if open}
+						{#if v.v4PoolId !== undefined}
+							<div>
+								<dt>Pool id</dt>
+								<dd>
+									<TruncatedValue
+										value={v.v4PoolId}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</dd>
 							</div>
 						{/if}
 					{/if}

@@ -119,6 +119,29 @@ export const ethMaxPriorityFeePerGas = ({ rpcUrl }: { rpcUrl: string }) => (
 	})
 )
 
+/** `eth_getStorageAt` — execution storage slot at `address` for `quantityHex` slot index. */
+export const ethGetStorageAt = ({
+	rpcUrl,
+	address,
+	slotQuantityHex,
+	blockTag = 'latest',
+}: {
+	rpcUrl: string
+	address: `0x${string}`
+	slotQuantityHex: `0x${string}`
+	blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
+}) => (
+	jsonRpc<`0x${string}`>({
+		rpcUrl,
+		method: 'eth_getStorageAt',
+		params: [
+			address,
+			slotQuantityHex,
+			blockTag,
+		],
+	})
+)
+
 /** Geth-compatible txpool inspection — often disabled on public RPCs. */
 export const txpoolStatus = ({ rpcUrl }: { rpcUrl: string }) => (
 	jsonRpc<RpcTxpoolStatusWire>({

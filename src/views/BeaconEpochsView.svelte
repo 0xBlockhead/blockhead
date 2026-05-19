@@ -1,6 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { stringify } from 'devalue'
+
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
@@ -13,6 +15,11 @@
 
 	// Context
 	import { resolve } from '$app/paths'
+
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
 	// Components
@@ -41,20 +48,20 @@
 		>
 	> = $props()
 
-
-	// State
-	import { stringify } from 'devalue'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
 	const network = useEntity(
 		EntityType.Network,
 		entityFieldReference.entityId,
-		{
-			blockHeight: { $: [Source.Voltaire_JsonRpc] },
-			$$beaconEpochs: { $: [Source.Beacon_Rest] },
-		},
+		(
+			open ?
+				{
+					blockHeight: { $: [Source.Voltaire_JsonRpc] },
+					$$beaconEpochs: { $: [Source.Beacon_Rest] },
+				}
+			:
+				{
+					$: [Source.Constants_Internal],
+				}
+		),
 	)
 
 	const epochs = derive(
@@ -76,6 +83,12 @@
 	bind:open
 	{...entitiesListProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Beacon epochs group consecutive consensus slots into fixed spans (32 slots per epoch on Ethereum mainnet—check the deployment you are on).
+		</p>
+	{/snippet}
+
 	{#snippet body()}
 		{#key stringify(entityFieldReference.entityId)}
 			<ResourceBoundary
@@ -93,7 +106,7 @@
 					>
 						{#snippet Empty()}
 							<p data-text="muted">
-								No recent epochs for this network yet.
+								No epochs yet.
 							</p>
 						{/snippet}
 

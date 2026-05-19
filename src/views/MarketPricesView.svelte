@@ -4,7 +4,6 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { coinById } from '$/constants/Coin.ts'
 	import { MarketAssetKind } from '$/constants/Market.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -19,7 +18,7 @@
 
 	// Props
 	let {
-		title = 'Market prices',
+		title = 'Quotes',
 		open = $bindable(true),
 		limit = 400,
 		entityFieldReference,
@@ -42,8 +41,8 @@
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 	const fieldName = entityFieldReference.fieldName
 
@@ -53,15 +52,24 @@
 		{
 			$: [
 				Source.Constants_Internal,
-				Source.Coingecko_Rest,
-				Source.CoinMarketCap_Rest,
-				Source.Coinpaprika_OpenApi,
-				Source.Defillama_Rest,
-				Source.TradingView_Rest,
+				...(
+					open ?
+						[
+							Source.Coingecko_Rest,
+							Source.CoinMarketCap_Rest,
+							Source.Coinpaprika_OpenApi,
+							Source.Defillama_OpenApi,
+							Source.TradingView_Rest,
+						]
+					:
+						[]
+				),
 			],
-			[fieldName]: {
-				$limit: limit,
-			},
+			...(open && {
+				[fieldName]: {
+					$limit: limit,
+				},
+			}),
 		},
 	)
 
@@ -72,7 +80,18 @@
 				merged[fieldName] ?? []
 			)
 			return (
-				rows
+				Object.values(
+					Object.groupBy(
+						rows,
+						(priceRow) => priceRow[EntityMetaKey.IdKey],
+					),
+				)
+					.flatMap((group) => (
+						group == null ?
+							[]
+						:
+							[group[0]]
+					))
 					.toSorted((a, b) => (
 						a[EntityMetaKey.IdKey].localeCompare(b[EntityMetaKey.IdKey])
 					))
@@ -87,6 +106,8 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import MarketPriceView from '$/views/MarketPriceView.svelte'
 </script>
 
@@ -109,9 +130,18 @@
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						These rows are single snapshots or index readings for a market (price, clock, identifiers).
+					</p>
+					<p>
+						Interval OHLC candles are separate entities tied to the same market with a time bucket.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No market price rows yet.
+			No point-in-time quotes yet.
 		</p>
 	{/snippet}
 

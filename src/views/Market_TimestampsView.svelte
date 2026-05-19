@@ -17,7 +17,7 @@
 
 	// Props
 	let {
-		title = 'Quotes',
+		title = 'Spot stream',
 		open = $bindable(true),
 		entityFieldReference,
 		...entitiesListRest
@@ -49,15 +49,24 @@
 		{
 			$: [
 				Source.Constants_Internal,
-				Source.TradingView_Rest,
-				Source.Coingecko_Rest,
+				...(
+					open ?
+						[
+							Source.TradingView_Rest,
+							Source.Coingecko_Rest,
+						]
+					:
+						[]
+				),
 			],
-			[fieldName]: {
-				$: [
-					Source.TradingView_Rest,
-				],
-				$limit: 2048,
-			},
+			...(open && {
+				[fieldName]: {
+					$: [
+						Source.TradingView_Rest,
+					],
+					$limit: 2048,
+				},
+			}),
 		},
 	)
 
@@ -78,6 +87,7 @@
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import Market_TimestampView from '$/views/Market_TimestampView.svelte'
 </script>
 
@@ -93,9 +103,18 @@
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Each row is a timestamped spot or index observation for the quoted base/against pair.
+					</p>
+					<p>
+						OHLC interval candles use separate entities with an explicit time bucket.
+					</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<p data-text="muted">
-			No quotes yet.
+			No spot quotes yet.
 		</p>
 	{/snippet}
 

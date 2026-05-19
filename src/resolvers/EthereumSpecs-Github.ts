@@ -1,7 +1,7 @@
 import { defineEntityFieldResolver } from '$/resolvers/$resolvers.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import type { ConsensusSpecsNetworkPreset } from '$/sources/EthereumSpecs/Github/queries.ts'
+import type { ConsensusSpecsNetworkPreset } from '$/sources/EthereumSpecs/Github/types.ts'
 
 
 const consensusSpecsPresetForChainId = (chainId: number): ConsensusSpecsNetworkPreset | undefined => (

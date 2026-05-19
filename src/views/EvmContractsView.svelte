@@ -30,12 +30,18 @@
 
 		open = $bindable(true),
 
+		id,
+
+		href,
+
 		...entitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmContract>
 			title?: string
 			open?: boolean
+			id: string
+			href: string
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
@@ -52,16 +58,18 @@
 		EntityType.Network,
 		entityFieldReference.entityId,
 		{
-			blockHeight: {
-				$: [
-					Source.Voltaire_JsonRpc,
-				],
-			},
-			$$contracts: {
-				$: [
-					Source.Blockscout_Rest,
-				],
-			},
+			...(open ? {
+				blockHeight: {
+					$: [
+						Source.Voltaire_JsonRpc,
+					],
+				},
+				$$contracts: {
+					$: [
+						Source.Blockscout_Rest,
+					],
+				},
+			} : {}),
 		},
 	)
 
@@ -94,33 +102,43 @@
 
 <EntitiesList
 	entityType={EntityType.EvmContract}
+	{id}
+	{href}
 	{title}
 	bind:open
 	{...entitiesListProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+					<p>
+						Explorer-verified contracts pair immutable bytecode with published ABI metadata so calldata, events, and errors decode predictably.
+					</p>
+					<p>
+						Blob commitments for rollups are separate from interface metadata at the address.
+					</p>
+					<p>
+						Rows mirror recent deployments the explorer indexed for this network.
+					</p>
+	{/snippet}
+
 	{#snippet body()}
-		{#key stringify(entityFieldReference.entityId)}
+		<div data-column="gap-3">
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmContract}
-				id={`${entitiesListProps.id}-items`}
-				href={entitiesListProps.href}
+				id={`${id}-items`}
+				{href}
 				{title}
 				open={true}
 				getKey={(row) => stringify(row[EntityMetaKey.Id])}
-				getSortValue={(row) => (
-					BigInt(
-						row[EntityMetaKey.Id].address,
-					)
-				)}
-				placeholderText="Loading contracts…"
+				getSortValue={(row) => BigInt(row[EntityMetaKey.Id].address)}
+				placeholderText="Loading verified contracts…"
 				resource={contracts}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No verified contracts for this network yet. Try again shortly.
+						No verified contracts yet.
 					</p>
 				{/snippet}
 
@@ -143,6 +161,6 @@
 					{/if}
 				{/snippet}
 			</EntitiesList>
-		{/key}
+		</div>
 	{/snippet}
 </EntitiesList>

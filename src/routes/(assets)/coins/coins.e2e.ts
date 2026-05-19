@@ -29,6 +29,8 @@ const assertNoRuntimeErrors = (
 }
 
 test.describe('/coins routes', () => {
+	test.describe.configure({ timeout: 150_000 })
+
 	test('coins list renders', async ({ page }) => {
 		const pageErrors: string[] = []
 		const consoleErrors: string[] = []
@@ -43,6 +45,16 @@ test.describe('/coins routes', () => {
 		await page.goto('/coins', { waitUntil: 'domcontentloaded' })
 		await expect(page.locator('#coins')).toBeVisible()
 		await expect(page.getByText('Not found')).toHaveCount(0)
+
+		await expect(page.locator('#coins a[href^="/coin/"]').first()).toBeAttached({
+			timeout: 120_000,
+		})
+
+		const coinLinks = page.locator('#coins a[href="/coin/BTC"]')
+		await expect(coinLinks, 'catalog coin link is not duplicated').toHaveCount(1)
+
+		await expect(page.locator('#coins a[href="/coin/ETH"]')).toBeAttached({ timeout: 120_000 })
+
 		assertNoRuntimeErrors(pageErrors, consoleErrors)
 	})
 
@@ -59,7 +71,8 @@ test.describe('/coins routes', () => {
 
 		await page.goto('/coin/ETH', { waitUntil: 'domcontentloaded' })
 		await expect(page.getByText('Not found')).toHaveCount(0)
-		await expect(page.getByText('Price', { exact: true })).toBeAttached()
+		await expect(page.getByText('Price', { exact: true })).toBeAttached({ timeout: 120_000 })
+		await expect(page.getByText('Coin id', { exact: true })).toBeAttached({ timeout: 120_000 })
 		assertNoRuntimeErrors(pageErrors, consoleErrors)
 	})
 
@@ -93,7 +106,10 @@ test.describe('/coins routes', () => {
 
 		await page.goto(`/coins/market/${marketKeyEthUsdSpotIndex}`, { waitUntil: 'domcontentloaded' })
 		await expect(page.getByText('Not found')).toHaveCount(0)
-		await expect(page.getByText('Pricing', { exact: true })).toBeAttached()
+		await expect(page.getByRole('heading', { name: '500' })).toHaveCount(0)
+		await expect(
+			page.locator('#main').getByRole('heading', { name: 'Assets' }),
+		).toBeAttached({ timeout: 120_000 })
 		assertNoRuntimeErrors(pageErrors, consoleErrors)
 	})
 })

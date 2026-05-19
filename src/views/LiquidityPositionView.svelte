@@ -3,17 +3,15 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { entityResolversByEntityType } from '$/resolvers/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 
+
+	// Context
 	import { resolve } from '$app/paths'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 
 
 	// Props
@@ -43,6 +41,8 @@
 
 
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const liquidityPosition = useEntity(
 		EntityType.LiquidityPosition,
 		entityId,
@@ -67,6 +67,7 @@
 
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -92,13 +93,21 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={liquidityPosition}>
 			{#snippet children(p)}
-				<dl>
+				<dl data-column-item="center">
+					{#if open}
+						<div>
+							<dt>Note</dt>
+							<dd data-text="muted">
+								A concentrated-liquidity LP position on a Uniswap v3-style pool: owner, NFT-bound tick range on the shared curve, position-scoped liquidity, uncollected fees, and (when present) the ERC-721 position token id from the periphery manager.
+							</dd>
+						</div>
+					{/if}
 					<div>
 						<dt>Network</dt>
 						<dd>{String(p.$pool.$network.chainId)}</dd>
 					</div>
 					<div>
-						<dt>Pool</dt>
+						<dt>AMM pool (Uniswap v3-style)</dt>
 						<dd>
 							<TruncatedValue
 								value={p.$pool.id}
@@ -106,17 +115,6 @@
 							/>
 						</dd>
 					</div>
-					{#if p.createdAtTimestamp !== undefined}
-						<div>
-							<dt>Timestamp</dt>
-							<dd>
-								<Timestamp
-									timestamp={p.createdAtTimestamp}
-									format={TimestampFormat.Both}
-								/>
-							</dd>
-						</div>
-					{/if}
 					{#if open}
 						<div>
 							<dt>Owner</dt>
@@ -137,64 +135,73 @@
 						</div>
 						{#if p.tickLower !== undefined}
 							<div>
-								<dt>Tick lower</dt>
+								<dt>LP NFT range · tick lower</dt>
 								<dd>{String(p.tickLower)}</dd>
 							</div>
 						{/if}
+
 						{#if p.tickUpper !== undefined}
 							<div>
-								<dt>Tick upper</dt>
+								<dt>LP NFT range · tick upper</dt>
 								<dd>{String(p.tickUpper)}</dd>
 							</div>
 						{/if}
+
 						{#if p.liquidity !== undefined}
 							<div>
-								<dt>Liquidity</dt>
+								<dt>Position liquidity (NFT range)</dt>
 								<dd>{String(p.liquidity)}</dd>
 							</div>
 						{/if}
+
 						{#if p.token0Owed !== undefined}
 							<div>
 								<dt>Token0 owed</dt>
 								<dd>{String(p.token0Owed)}</dd>
 							</div>
 						{/if}
+
 						{#if p.token1Owed !== undefined}
 							<div>
 								<dt>Token1 owed</dt>
 								<dd>{String(p.token1Owed)}</dd>
 							</div>
 						{/if}
+
 						{#if p.tokenId !== undefined}
 							<div>
-								<dt>Token id</dt>
+								<dt>Position NFT (token id)</dt>
 								<dd>{String(p.tokenId)}</dd>
 							</div>
 						{/if}
+
 						{#if p.origin}
 							<div>
 								<dt>Origin</dt>
 								<dd>{p.origin}</dd>
 							</div>
 						{/if}
-						{#if p.createdAtTimestamp !== undefined}
-							<div>
-								<dt>Created at</dt>
-								<dd>
-									<Timestamp
-										timestamp={p.createdAtTimestamp}
-										format={TimestampFormat.Both}
-									/>
-								</dd>
-							</div>
-						{/if}
+					{/if}
+
+					{#if p.createdAtTimestamp !== undefined}
+						<div>
+							<dt>Created at</dt>
+							<dd>
+								<Timestamp
+									timestamp={p.createdAtTimestamp}
+									format={TimestampFormat.Both}
+								/>
+							</dd>
+						</div>
 					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({ open: _open })}
+	{#snippet Details({
+		open: _open,
+	})}
 		{#if children}
 			{@render children()}
 		{:else}
