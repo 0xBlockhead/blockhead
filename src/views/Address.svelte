@@ -116,10 +116,10 @@
 				</span>
 			{/snippet}
 
-			{#snippet children(live)}
+			{#snippet children(actor)}
 				<span data-row="inline wrap gap-1 align-center">
 					{#if showAvatar}
-						{@const avatarHref = live.$icon?.[EntityMetaKey.Id].url}
+						{@const avatarHref = actor.$icon?.[EntityMetaKey.Id].url}
 						{#if avatarHref}
 							<Icon
 								shape={IconShape.Circle}
@@ -161,7 +161,7 @@
 							(<span data-text="font-monospace">{ensNameProp}</span>)
 						</small>
 					{:else}
-						{@const forwardResolution = live.$primaryName?.[EntityMetaKey.Id].name}
+						{@const forwardResolution = actor.$primaryName?.[EntityMetaKey.Id].name}
 						{#if forwardResolution}
 							<small>
 								(<span data-text="font-monospace">{forwardResolution}</span>)

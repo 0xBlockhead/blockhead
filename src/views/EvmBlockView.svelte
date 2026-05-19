@@ -285,8 +285,8 @@
 						resource={block}
 						placeholderText=""
 					>
-						{#snippet children(blockEntity)}
-							{#if blockEntity.$parent}
+						{#snippet children(block)}
+							{#if block.$parent}
 								<a
 									data-scroll-marker-label="Chain"
 									href={`#${blockIdKey}:chain`}
@@ -311,18 +311,18 @@
 						resource={block}
 						placeholderText="Loading chain info…"
 					>
-						{#snippet children(blockEntity)}
-							{#if blockEntity.$parent}
+						{#snippet children(block)}
+							{#if block.$parent}
 								<section
 									id={`${blockIdKey}:chain`}
 								>
 									<EvmBlockView
-										entityId={blockEntity.$parent[EntityMetaKey.Id]}
+										entityId={block.$parent[EntityMetaKey.Id]}
 										href={resolve(
 											'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
 											{
 												networkId: String(entityId.$network.chainId),
-												blockNumber: String(blockEntity.$parent[EntityMetaKey.Id].blockNumber),
+												blockNumber: String(block.$parent[EntityMetaKey.Id].blockNumber),
 											},
 										)}
 										layout={EntityLayout.Summary}

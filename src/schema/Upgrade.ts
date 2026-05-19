@@ -7,6 +7,7 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import Network from '$/schema/Network.ts'
+import { Source } from '$/sources/$Source.ts'
 
 /** Combined or single-layer upgrade label: references `NetworkExecutionUpgrade`; may also reference `NetworkConsensusUpgrade`. */
 export default {
@@ -68,6 +69,7 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Proposal,
 			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Constants_Internal],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

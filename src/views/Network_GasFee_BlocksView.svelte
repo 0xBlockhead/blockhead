@@ -47,7 +47,7 @@
 	// State
 	const fieldName = entityFieldReference.fieldName
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -65,10 +65,10 @@
 	)
 
 	const rows = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const list: Entity<typeof schema, EntityType.Network_GasFee_Block>[] = (
-				merged[fieldName] ?? []
+				parent[fieldName] ?? []
 			)
 			return (
 				list
@@ -96,12 +96,12 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Each row is keyed by an execution block height; fee-history fields describe the EIP-1559 fee market at that height from <code>eth_feeHistory</code>.
-					</p>
-					<p>
-						Legacy gas price and max priority fee calls reflect the RPC’s current tip hints when the snapshot resolves, not necessarily historical values at older heights.
-					</p>
+		<p>
+			Each row is keyed by an execution block height; fee-history fields describe the EIP-1559 fee market at that height from <code>eth_feeHistory</code>.
+		</p>
+		<p>
+			Legacy gas price and max priority fee calls reflect the RPC’s current tip hints when the snapshot resolves, not necessarily historical values at older heights.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

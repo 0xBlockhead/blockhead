@@ -65,8 +65,8 @@
 
 	const accounts = derive(
 		lensNetwork,
-		(loaded) => (
-			loaded.$$lensAccounts
+		(lensNetwork) => (
+			lensNetwork.$$lensAccounts
 			?? []
 		),
 	)

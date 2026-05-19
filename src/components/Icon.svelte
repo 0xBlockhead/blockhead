@@ -75,7 +75,7 @@
 	class={`icon shape-${shape}${className ?
 		` ${className}`
 		: ''}`}
-	data-row
+	data-row="center"
 	style={`--icon-size: ${typeof size === 'number' ?
 		`${size}px`
 		: size}${backgroundColor !== undefined ?
@@ -144,8 +144,6 @@
 	}
 
 	.icon-main {
-		position: absolute;
-		inset: 0;
 		overflow: hidden;
 		border-radius: inherit;
 

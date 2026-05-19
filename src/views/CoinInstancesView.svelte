@@ -2,6 +2,7 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 
+	import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -18,6 +19,7 @@
 		href,
 		id,
 		entityFieldReference,
+		representationFilter,
 		...entitiesListRest
 	}: WithRest<
 		{
@@ -25,6 +27,7 @@
 			open?: boolean
 			href: string
 			id: string
+			representationFilter?: CoinInstanceRepresentation
 			entityFieldReference: EntityFieldReference<
 				typeof schema,
 				EntityType.CoinInstance
@@ -42,7 +45,7 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		(
@@ -56,7 +59,10 @@
 						Source.Constants_Internal,
 					],
 					[entityFieldReference.fieldName]: {
-						$: [Source.Coingecko_Rest],
+						$: [
+							Source.Constants_Internal,
+							Source.Coingecko_Rest,
+						],
 					},
 				}
 			:
@@ -64,14 +70,18 @@
 		),
 	)
 
-	const envelopes = derive(
-		parentEntity,
-		(merged) => {
+	const coinInstances = derive(
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.CoinInstance>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 			return (
 				rows
+					.filter((row) => (
+						representationFilter == null
+						|| row.representation === representationFilter
+					))
 					.toSorted((a, b) => (
 						stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
 					))
@@ -103,21 +113,24 @@
 		{id}
 		placeholderKeys={new SvelteSet()}
 		placeholderText="Loading deployments…"
-		resource={envelopes}
+		resource={coinInstances}
 		{title}
 		UnorderedListProps={{ orientation: ListOrientation.Column }}
 	>
 		{#snippet TypeAnnotationTooltip()}
-						<p>
-							Deployments are concrete representations of this asset on a chain: native currency or a token contract.
-						</p>
-						<p>
-							The same logical coin can exist on many networks; each row is one chain-specific instance.
-						</p>
+			<p>
+				Deployments are concrete representations of this asset on a chain: native currency or a token contract.
+			</p>
+			<p>
+				The same logical coin can exist on many networks; each row is one chain-specific instance.
+			</p>
 		{/snippet}
 		{#snippet Empty()}
 			<p data-text="muted">
-				No deployments yet.
+				{representationFilter === CoinInstanceRepresentation.BridgeWrapped ?
+					'No bridge-wrapped deployments classified for this coin yet.'
+				:
+					'No deployments yet.'}
 			</p>
 		{/snippet}
 

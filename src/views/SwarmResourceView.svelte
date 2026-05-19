@@ -101,28 +101,28 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Swarm stores content in a distributed chunk network addressed by <code>bzz</code> URIs.
-				</p>
-				<p>
-					What you see here is the object behind that reference, often fetched via an HTTP gateway for display.
-				</p>
+		<p>
+			Swarm stores content in a distributed chunk network addressed by <code>bzz</code> URIs.
+		</p>
+		<p>
+			What you see here is the object behind that reference, often fetched via an HTTP gateway for display.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={swarm}>
-			{#snippet children(loaded)}
-				{#if loaded.contentType !== undefined || open}
+			{#snippet children(swarm)}
+				{#if swarm.contentType !== undefined || open}
 					<dl data-column-item="center">
-						{#if loaded.contentType !== undefined}
+						{#if swarm.contentType !== undefined}
 							<div>
 								<dt>Content type</dt>
 								<dd>
 									<TruncatedValue
-										value={loaded.contentType}
+										value={swarm.contentType}
 										format={TruncatedValueFormat.Visual}
 									/>
-									{#if loaded.isContentTypeInferred}
+									{#if swarm.isContentTypeInferred}
 										{' '}<span data-text="muted">(inferred)</span>
 									{/if}
 								</dd>
@@ -134,7 +134,7 @@
 								<dt>Canonical URI</dt>
 								<dd>
 									<TruncatedValue
-										value={loaded.canonicalUri}
+										value={swarm.canonicalUri}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>
@@ -146,7 +146,7 @@
 								<dt>Gateway</dt>
 								<dd>
 									<TruncatedValue
-										value={loaded.gatewayOrigin}
+										value={swarm.gatewayOrigin}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>
@@ -158,12 +158,12 @@
 								<dt>Gateway URL</dt>
 								<dd>
 									<a
-										href={loaded.gatewayUrl}
+										href={swarm.gatewayUrl}
 										target="_blank"
 										rel="noreferrer noopener"
 									>
 										<TruncatedValue
-											value={loaded.gatewayUrl}
+											value={swarm.gatewayUrl}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</a>
@@ -172,12 +172,12 @@
 						{/if}
 
 						{#if open}
-							{#if loaded.contentLength !== undefined}
+							{#if swarm.contentLength !== undefined}
 								<div>
 									<dt>Content length</dt>
 									<dd>
 										<NumberValue
-											value={loaded.contentLength}
+											value={swarm.contentLength}
 											options={{ maximumFractionDigits: 0 }}
 										/>
 										{' '}
@@ -188,12 +188,12 @@
 						{/if}
 
 						{#if open}
-							{#if loaded.fileName !== undefined}
+							{#if swarm.fileName !== undefined}
 								<div>
 									<dt>File name</dt>
 									<dd>
 										<TruncatedValue
-											value={loaded.fileName}
+											value={swarm.fileName}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</dd>
@@ -202,10 +202,10 @@
 						{/if}
 
 						{#if open}
-							{#if loaded.extension !== undefined}
+							{#if swarm.extension !== undefined}
 								<div>
 									<dt>Extension</dt>
-									<dd>.{loaded.extension}</dd>
+									<dd>.{swarm.extension}</dd>
 								</div>
 							{/if}
 						{/if}
@@ -213,17 +213,17 @@
 						{#if open}
 							<div>
 								<dt>Display type</dt>
-								<dd>{loaded.displayType}</dd>
+								<dd>{swarm.displayType}</dd>
 							</div>
 						{/if}
 
 						{#if open}
-							{#if loaded.text !== undefined}
+							{#if swarm.text !== undefined}
 								<div>
 									<dt>Text</dt>
 									<dd>
 										<TruncatedValue
-											value={loaded.text}
+											value={swarm.text}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</dd>
@@ -232,13 +232,13 @@
 						{/if}
 
 						{#if open}
-							{#if loaded.$media?.[EntityMetaKey.Id].url !== undefined}
+							{#if swarm.$media?.[EntityMetaKey.Id].url !== undefined}
 								<div>
 									<dt>Media</dt>
 									<dd>
 										<Media
-											media={{ url: loaded.$media[EntityMetaKey.Id].url }}
-											alt={loaded.fileName ?? ''}
+											media={{ url: swarm.$media[EntityMetaKey.Id].url }}
+											alt={swarm.fileName ?? ''}
 										/>
 									</dd>
 								</div>
@@ -331,9 +331,9 @@
 							id={`${detailKey}:swarm-content`}
 						>
 							<ResourceBoundary resource={swarm}>
-								{#snippet children(loaded)}
-									{#if loaded.text !== undefined}
-										<pre>{loaded.text}</pre>
+								{#snippet children(swarm)}
+									{#if swarm.text !== undefined}
+										<pre>{swarm.text}</pre>
 									{:else}
 										<p data-text="muted">No text content.</p>
 									{/if}
@@ -345,11 +345,11 @@
 							id={`${detailKey}:swarm-media`}
 						>
 							<ResourceBoundary resource={swarm}>
-								{#snippet children(loaded)}
-									{#if loaded.$media?.[EntityMetaKey.Id].url !== undefined}
+								{#snippet children(swarm)}
+									{#if swarm.$media?.[EntityMetaKey.Id].url !== undefined}
 										<Media
-											media={{ url: loaded.$media[EntityMetaKey.Id].url }}
-											alt={loaded.fileName ?? ''}
+											media={{ url: swarm.$media[EntityMetaKey.Id].url }}
+											alt={swarm.fileName ?? ''}
 										/>
 									{:else}
 										<p data-text="muted">No media content.</p>

@@ -75,9 +75,9 @@
 
 	const contracts = derive(
 		network,
-		(loaded): Entity<typeof schema, EntityType.EvmContract>[] => {
+		(network): Entity<typeof schema, EntityType.EvmContract>[] => {
 			const rows = (
-				loaded.$$contracts
+				network.$$contracts
 				?? []
 			)
 			return (
@@ -109,15 +109,15 @@
 	{...entitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Explorer-verified contracts pair immutable bytecode with published ABI metadata so calldata, events, and errors decode predictably.
-					</p>
-					<p>
-						Blob commitments for rollups are separate from interface metadata at the address.
-					</p>
-					<p>
-						Rows mirror recent deployments the explorer indexed for this network.
-					</p>
+		<p>
+			Explorer-verified contracts pair immutable bytecode with published ABI metadata so calldata, events, and errors decode predictably.
+		</p>
+		<p>
+			Blob commitments for rollups are separate from interface metadata at the address.
+		</p>
+		<p>
+			Rows mirror recent deployments the explorer indexed for this network.
+		</p>
 	{/snippet}
 
 	{#snippet body()}

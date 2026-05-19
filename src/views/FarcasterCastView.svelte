@@ -49,7 +49,7 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const castSummary = useEntity(
+	const cast = useEntity(
 		EntityType.FarcasterCast,
 		entityId,
 		{
@@ -76,17 +76,6 @@
 				displayName: {},
 			},
 			$channel: {},
-		},
-	)
-
-	const castRich = useEntity(
-		EntityType.FarcasterCast,
-		entityId,
-		{
-			$: [
-				Source.Neynar_Rest,
-				Source.Snapchain_Rest,
-			],
 			...(open ?
 				{
 					mentionedProfileFids: {},
@@ -129,14 +118,14 @@
 	{#snippet Icon()}
 		{#if variant === 'feed'}
 			<ResourceBoundary
-				resource={castSummary}
+				resource={cast}
 				placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 			>
-				{#snippet children(row)}
-					{#if row.$author.$icon}
+				{#snippet children(cast)}
+					{#if cast.$author.$icon}
 						<IconComponent
 							shape={IconShape.Circle}
-							src={row.$author.$icon[EntityMetaKey.Id].url}
+							src={cast.$author.$icon[EntityMetaKey.Id].url}
 							alt=""
 						/>
 					{/if}
@@ -147,18 +136,18 @@
 
 	{#snippet Heading()}
 		<ResourceBoundary
-			resource={castSummary}
+			resource={cast}
 			placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 		>
-			{#snippet children(row)}
+			{#snippet children(cast)}
 				<TruncatedValue
 					value={(
-						row.text.replaceAll('\n', ' ')
+						cast.text.replaceAll('\n', ' ')
 						=== ''
 					) ?
 						'Cast'
 					:
-						row.text.replaceAll('\n', ' ')
+						cast.text.replaceAll('\n', ' ')
 					}
 					startLength={56}
 					endLength={24}
@@ -176,13 +165,13 @@
 
 	{#snippet HeadingAfter()}
 		<ResourceBoundary
-			resource={castSummary}
+			resource={cast}
 			placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 		>
-			{#snippet children(row)}
-				{#if variant === 'feed' && row.$author.username !== undefined}
+			{#snippet children(cast)}
+				{#if variant === 'feed' && cast.$author.username !== undefined}
 					<span data-text="muted">
-						@{row.$author.username}
+						@{cast.$author.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -191,15 +180,15 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
-			resource={castSummary}
+			resource={cast}
 			placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 		>
-			{#snippet children(row)}
+			{#snippet children(cast)}
 				{@const channelId = (
-					row.$channel === undefined ?
+					cast.$channel === undefined ?
 						undefined
 					:
-						row.$channel[EntityMetaKey.Id].id
+						cast.$channel[EntityMetaKey.Id].id
 				)}
 				{@const channelPageHref = (
 					channelId === undefined ?
@@ -209,7 +198,7 @@
 							channelId,
 						})
 				)}
-				{@const flatText = row.text.replaceAll('\n', ' ')}
+				{@const flatText = cast.text.replaceAll('\n', ' ')}
 				<dl>
 					{#if flatText !== ''}
 						<div>
@@ -226,7 +215,7 @@
 									</p>
 								{:else}
 									<p>
-										{row.text}
+										{cast.text}
 									</p>
 								{/if}
 							</dd>
@@ -236,29 +225,29 @@
 						<dt>Timestamp</dt>
 						<dd>
 							<Timestamp
-								timestamp={row.timestamp}
+								timestamp={cast.timestamp}
 								format={TimestampFormat.Both}
 							/>
 						</dd>
 					</div>
-						{#if row.likeCount !== undefined}
+						{#if cast.likeCount !== undefined}
 							<div>
 								<dt>Likes</dt>
-								<dd>{String(row.likeCount)}</dd>
+								<dd>{String(cast.likeCount)}</dd>
 							</div>
 						{/if}
 
-						{#if row.recastCount !== undefined}
+						{#if cast.recastCount !== undefined}
 							<div>
 								<dt>Recasts</dt>
-								<dd>{String(row.recastCount)}</dd>
+								<dd>{String(cast.recastCount)}</dd>
 							</div>
 						{/if}
 
-						{#if row.replyCount !== undefined}
+						{#if cast.replyCount !== undefined}
 							<div>
 								<dt>Replies</dt>
-								<dd>{String(row.replyCount)}</dd>
+								<dd>{String(cast.replyCount)}</dd>
 							</div>
 						{/if}
 
@@ -277,19 +266,19 @@
 
 						{#if open}
 							{@const parentCastIdOpen = (
-								row.$parentCast === undefined ?
+								cast.$parentCast === undefined ?
 									undefined
 								:
-									row.$parentCast[EntityMetaKey.Id]
+									cast.$parentCast[EntityMetaKey.Id]
 							)}
-							{@const authorUsernameOpen = row.$author.username}
+							{@const authorUsernameOpen = cast.$author.username}
 							{@const threadNormOpen = (
 								(() => {
 									const th = (
-										row.threadHash === undefined ?
+										cast.threadHash === undefined ?
 											''
 										:
-											row.threadHash.trim()
+											cast.threadHash.trim()
 									)
 									if (th === '') {
 										return undefined
@@ -328,19 +317,6 @@
 								<dt>FID</dt>
 								<dd>{String(entityId.fid)}</dd>
 							</div>
-							<div>
-								<dt>Cast hash</dt>
-								<dd>
-									<span data-text="font-monospace">
-										<TruncatedValue
-											value={entityId.hash}
-											startLength={12}
-											endLength={10}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</span>
-								</dd>
-							</div>
 							{#if parentCastHrefOpen !== undefined}
 								<div>
 									<dt>Parent cast</dt>
@@ -350,22 +326,22 @@
 								</div>
 							{/if}
 
-							{#if row.parentUrl !== undefined}
+							{#if cast.parentUrl !== undefined}
 								<div>
 									<dt>Parent URL</dt>
 									<dd>
-										<a href={row.parentUrl}>{row.parentUrl}</a>
+										<a href={cast.parentUrl}>{cast.parentUrl}</a>
 									</dd>
 								</div>
 							{/if}
 
-							{#if row.mentions !== undefined}
-								{#if row.mentions.length}
+							{#if cast.mentions !== undefined}
+								{#if cast.mentions.length}
 									<div>
 										<dt>Mentions</dt>
 										<dd>
-											<ul data-row="wrap gap-2">
-												{#each row.mentions as mention (String(mention))}
+											<ul data-cast="wrap gap-2">
+												{#each cast.mentions as mention (String(mention))}
 													<li>
 														<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
 															userId: String(mention),
@@ -486,42 +462,42 @@
 							id={`${castDetailKey}:cast-thread`}
 						>
 							<ResourceBoundary
-								resource={castSummary}
+								resource={cast}
 									placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 							>
-								{#snippet children(row)}
-									{@const authorId = row.$author[EntityMetaKey.Id]}
-									{@const authorUsername = row.$author.username}
-									{@const authorDisplayName = row.$author.displayName}
+								{#snippet children(cast)}
+									{@const authorId = cast.$author[EntityMetaKey.Id]}
+									{@const authorUsername = cast.$author.username}
+									{@const authorDisplayName = cast.$author.displayName}
 									{@const authorAvatarUrl = (
-										row.$author.$icon === undefined ?
+										cast.$author.$icon === undefined ?
 											undefined
 										:
-											row.$author.$icon[EntityMetaKey.Id].url
+											cast.$author.$icon[EntityMetaKey.Id].url
 									)}
 									{@const postedViaAppId = (
-										row.$postedViaApp === undefined ?
+										cast.$postedViaApp === undefined ?
 											undefined
 										:
-											row.$postedViaApp[EntityMetaKey.Id]
+											cast.$postedViaApp[EntityMetaKey.Id]
 									)}
 									{@const postedViaUsername = (
-										row.$postedViaApp === undefined ?
+										cast.$postedViaApp === undefined ?
 											undefined
 										:
-											row.$postedViaApp.username
+											cast.$postedViaApp.username
 									)}
 									{@const postedViaDisplayName = (
-										row.$postedViaApp === undefined ?
+										cast.$postedViaApp === undefined ?
 											undefined
 										:
-											row.$postedViaApp.displayName
+											cast.$postedViaApp.displayName
 									)}
 									{@const channelId = (
-										row.$channel === undefined ?
+										cast.$channel === undefined ?
 											undefined
 										:
-											row.$channel[EntityMetaKey.Id].id
+											cast.$channel[EntityMetaKey.Id].id
 									)}
 									{@const channelPageHref = (
 										channelId === undefined ?
@@ -532,8 +508,8 @@
 											})
 									)}
 									<section data-column>
-										<header data-row="wrap gap-4">
-											<div data-row="inline wrap gap-2">
+										<header data-cast="wrap gap-4">
+											<div data-cast="inline wrap gap-2">
 												{#if authorAvatarUrl !== undefined}
 													<IconComponent
 														shape={IconShape.Circle}
@@ -559,7 +535,7 @@
 											</div>
 											<p data-text="muted">
 												<Timestamp
-													timestamp={row.timestamp}
+													timestamp={cast.timestamp}
 													format={TimestampFormat.Absolute}
 												/>
 											</p>
@@ -586,7 +562,7 @@
 										</header>
 
 										<p>
-											{row.text}
+											{cast.text}
 										</p>
 									</section>
 								{/snippet}
@@ -598,16 +574,16 @@
 								id={`${castDetailKey}:cast-media`}
 							>
 								<ResourceBoundary
-									resource={castRich}
+									resource={cast}
 									placeholderText="Loading cast mentions, channel ids & embeds…"
 								>
-									{#snippet children(rich)}
+									{#snippet children(cast)}
 										<section data-column>
-											{#if rich.mentionedProfileFids !== undefined && rich.mentionedProfileFids.length}
+											{#if cast.mentionedProfileFids !== undefined && cast.mentionedProfileFids.length}
 												<section data-column>
 													<h3>Mentioned profiles (FID)</h3>
 													<ul data-row="wrap gap-2">
-														{#each rich.mentionedProfileFids as mentionFid (String(mentionFid))}
+														{#each cast.mentionedProfileFids as mentionFid (String(mentionFid))}
 															<li>
 																<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
 																	userId: String(mentionFid),
@@ -620,11 +596,11 @@
 												</section>
 											{/if}
 
-											{#if rich.mentionedChannelIds !== undefined && rich.mentionedChannelIds.length}
+											{#if cast.mentionedChannelIds !== undefined && cast.mentionedChannelIds.length}
 												<section data-column>
 													<h3>Mentioned channels</h3>
 													<ul data-row="wrap gap-2">
-														{#each rich.mentionedChannelIds as mentionChId (mentionChId)}
+														{#each cast.mentionedChannelIds as mentionChId (mentionChId)}
 															<li>
 																<a href={resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
 																	channelId: mentionChId,
@@ -637,11 +613,11 @@
 												</section>
 											{/if}
 
-											{#if rich.$$embeds.length}
+											{#if cast.$$embeds.length}
 												<section data-column>
 													<h3>Embeds</h3>
 													<ul data-column>
-														{#each rich.$$embeds as embed, embedIndex (String(embedIndex))}
+														{#each cast.$$embeds as embed, embedIndex (String(embedIndex))}
 															{@const og = (
 																embed.$icon === undefined ?
 																	undefined
@@ -724,9 +700,9 @@
 											{/if}
 
 											{#if (
-												!(rich.mentionedProfileFids?.length)
-												&& !(rich.mentionedChannelIds?.length)
-												&& !rich.$$embeds.length
+												!(cast.mentionedProfileFids?.length)
+												&& !(cast.mentionedChannelIds?.length)
+												&& !cast.$$embeds.length
 											)}
 												<div data-row="wrap align-center gap-2">
 													<p data-text="muted">
@@ -735,7 +711,7 @@
 													<Tooltip contentProps={{ side: 'top' }}>
 														{#snippet Content()}
 															<p>
-																Mentioned profiles, channels, and rich embeds appear when the provider returns them for this cast.
+																Mentioned profiles, channels, and cast embeds appear when the provider returns them for this cast.
 															</p>
 														{/snippet}
 														<abbr

@@ -61,7 +61,7 @@
 		stringify(entityId),
 	)
 
-	const persisted = useEntity(
+	const walletConnection = useEntity(
 		EntityType.BlockheadWalletConnection,
 		entityId,
 		{
@@ -120,24 +120,18 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					EIP-1193 exposes the wallet’s selected accounts and current chain id to the page; dapps read them when constructing transactions.
-				</p>
-				<p>
-					Those handles are not Farcaster FIDs, on-chain contract labels, or a general-purpose contact book.
-				</p>
+		<p>
+			EIP-1193 exposes the wallet’s selected accounts and current chain id to the page; dapps read them when constructing transactions.
+		</p>
+		<p>
+			Those handles are not Farcaster FIDs, on-chain contract labels, or a general-purpose contact book.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<div data-column="gap-1">
 
 			<dl data-column-item="center">
-				<div>
-					<dt>Id</dt>
-					<dd data-text="mono">
-						{@render Id()}
-					</dd>
-				</div>
 
 				<div>
 					<dt>Status</dt>
@@ -189,20 +183,20 @@
 
 				{#if open}
 				<ResourceBoundary
-					resource={persisted}
+					resource={walletConnection}
 					placeholderText="Loading wallet connection…"
 				>
-					{#snippet children(connection)}
+					{#snippet children(walletConnection)}
 						<div>
 							<dt>Selected</dt>
-							<dd>{connection.selected ? 'Yes' : 'No'}</dd>
+							<dd>{walletConnection.selected ? 'Yes' : 'No'}</dd>
 						</div>
 
 						<div>
 							<dt>Connected at</dt>
 							<dd>
 								<Timestamp
-									timestamp={connection.connectedAt}
+									timestamp={walletConnection.connectedAt}
 									format={TimestampFormat.Both}
 								/>
 							</dd>

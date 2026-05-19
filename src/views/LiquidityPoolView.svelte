@@ -71,7 +71,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
+	import Tooltip from '$/components/Tooltipool.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import Address from '$/views/Address.svelte'
 </script>
@@ -89,8 +89,8 @@
 			resource={pool}
 			placeholderText="Loading pool…"
 		>
-			{#snippet children(p)}
-				{p.token0Symbol} / {p.token1Symbol}
+			{#snippet children(pool)}
+				{pool.token0Symbol} / {pool.token1Symbol}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -104,12 +104,12 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Concentrated-liquidity AMM pool on this network: two tokens, swap fee parameter, and curve state (<code>sqrtPrice</code>, tick, aggregate liquidity).
-				</p>
-				<p>
-					Concentrated-liquidity positions own tick ranges, accrued fees, and ERC-721 position tokens; the pool row only carries the pair’s shared curve and aggregate depth.
-				</p>
+		<p>
+			Concentrated-liquidity AMM pool on this network: two tokens, swap fee parameter, and curve state (<code>sqrtPrice</code>, tick, aggregate liquidity).
+		</p>
+		<p>
+			Concentrated-liquidity positions own tick ranges, accrued fees, and ERC-721 position tokens; the pool row only carries the pair’s shared curve and aggregate depth.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -117,7 +117,7 @@
 			resource={pool}
 			placeholderText="Loading pool…"
 		>
-			{#snippet children(p)}
+			{#snippet children(pool)}
 				<dl data-column-item="center">
 					{#if open}
 						<div>
@@ -139,20 +139,11 @@
 						</div>
 					{/if}
 					<div>
-						<dt>Pool id (AMM)</dt>
-						<dd>
-							<TruncatedValue
-								value={entityId.id}
-								format={TruncatedValueFormat.Visual}
-							/>
-						</dd>
-					</div>
-					<div>
 						<dt>Token 0</dt>
 						<dd>
 							<Address
-								network={p.$token0.$network}
-								address={p.$token0.address}
+								network={pool.$token0.$network}
+								address={pool.$token0.address}
 							/>
 						</dd>
 					</div>
@@ -160,96 +151,96 @@
 						<dt>Token 1</dt>
 						<dd>
 							<Address
-								network={p.$token1.$network}
-								address={p.$token1.address}
+								network={pool.$token1.$network}
+								address={pool.$token1.address}
 							/>
 						</dd>
 					</div>
 					{#if open}
-						{#if p.fee !== undefined}
+						{#if pool.fee !== undefined}
 							<div>
 								<dt>Fee tier (v3 swap fee parameter)</dt>
-								<dd>{String(p.fee)}</dd>
+								<dd>{String(pool.fee)}</dd>
 							</div>
 						{/if}
 
-						{#if p.tickSpacing !== undefined}
+						{#if pool.tickSpacing !== undefined}
 							<div>
 								<dt>Tick spacing (v3 grid step)</dt>
-								<dd>{String(p.tickSpacing)}</dd>
+								<dd>{String(pool.tickSpacing)}</dd>
 							</div>
 						{/if}
 
-						{#if p.$hooks}
+						{#if pool.$hooks}
 							<div>
 								<dt>Hooks</dt>
 								<dd>
 									<Address
-										network={p.$hooks.$network}
-										address={p.$hooks.address}
+										network={pool.$hooks.$network}
+										address={pool.$hooks.address}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if p.v4PoolId !== undefined}
+						{#if pool.v4PoolId !== undefined}
 							<div>
 								<dt>v4 pool id</dt>
 								<dd>
 									<TruncatedValue
-										value={String(p.v4PoolId)}
+										value={String(pool.v4PoolId)}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if p.sqrtPriceX96 !== undefined}
+						{#if pool.sqrtPriceX96 !== undefined}
 							<div>
 								<dt>Sqrt price X96</dt>
-								<dd>{String(p.sqrtPriceX96)}</dd>
+								<dd>{String(pool.sqrtPriceX96)}</dd>
 							</div>
 						{/if}
 
-						{#if p.liquidity !== undefined}
+						{#if pool.liquidity !== undefined}
 							<div>
 								<dt>Active liquidity</dt>
-								<dd>{String(p.liquidity)}</dd>
+								<dd>{String(pool.liquidity)}</dd>
 							</div>
 						{/if}
 
-						{#if p.tick !== undefined}
+						{#if pool.tick !== undefined}
 							<div>
 								<dt>Tick</dt>
-								<dd>{String(p.tick)}</dd>
+								<dd>{String(pool.tick)}</dd>
 							</div>
 						{/if}
 
-						{#if p.token0Decimals !== undefined}
+						{#if pool.token0Decimals !== undefined}
 							<div>
 								<dt>Token 0 decimals</dt>
-								<dd>{String(p.token0Decimals)}</dd>
+								<dd>{String(pool.token0Decimals)}</dd>
 							</div>
 						{/if}
 
-						{#if p.token1Decimals !== undefined}
+						{#if pool.token1Decimals !== undefined}
 							<div>
 								<dt>Token 1 decimals</dt>
-								<dd>{String(p.token1Decimals)}</dd>
+								<dd>{String(pool.token1Decimals)}</dd>
 							</div>
 						{/if}
 
-						{#if p.volumeUSD !== undefined}
+						{#if pool.volumeUSD !== undefined}
 							<div>
 								<dt>Volume USD</dt>
-								<dd>{String(p.volumeUSD)}</dd>
+								<dd>{String(pool.volumeUSD)}</dd>
 							</div>
 						{/if}
 
-						{#if p.totalValueLockedUSD !== undefined}
+						{#if pool.totalValueLockedUSD !== undefined}
 							<div>
 								<dt>TVL USD</dt>
-								<dd>{String(p.totalValueLockedUSD)}</dd>
+								<dd>{String(pool.totalValueLockedUSD)}</dd>
 							</div>
 						{/if}
 					{/if}

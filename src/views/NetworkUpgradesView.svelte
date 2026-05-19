@@ -40,18 +40,14 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	const parentEntityType = $derived(entityFieldReference.entityType)
-	const parentEntityId = $derived(entityFieldReference.entityId)
-	const fieldName = $derived(entityFieldReference.fieldName)
-
-	const parentEntity = useEntity(
-		parentEntityType,
-		parentEntityId,
+	const parent = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
 		{
 			$: [
 				Source.Constants_Internal,
 			],
-			[fieldName]: {
+			[entityFieldReference.fieldName]: {
 				$: [
 					Source.Constants_Internal,
 				],
@@ -68,15 +64,15 @@
 	)
 
 	const upgrades = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.NetworkUpgrade>[] = (
-				merged[fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 			return (
 				rows
 					.toSorted((a, b) => (
-						upgradeSortValue(a) - upgradeSortValue(b)
+						upgradeSortValue(b) - upgradeSortValue(a)
 					))
 					.map((value) => ({
 						value,
@@ -106,12 +102,12 @@
 	{...entitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Each network upgrade references a <strong>network execution upgrade</strong>; when both layers shipped together it also references a <strong>network consensus upgrade</strong>.
-					</p>
-					<p>
-						Cards link to the paired execution and consensus fork views when present.
-					</p>
+		<p>
+			Each network upgrade references a <strong>network execution upgrade</strong>; when both layers shipped together it also references a <strong>network consensus upgrade</strong>.
+		</p>
+		<p>
+			Cards link to the paired execution and consensus fork views when present.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

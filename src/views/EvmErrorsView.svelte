@@ -64,9 +64,9 @@
 
 	const errors = derive(
 		global,
-		(loaded): Entity<typeof schema, EntityType.EvmError>[] => {
+		(global): Entity<typeof schema, EntityType.EvmError>[] => {
 			const rows = (
-				loaded.$$evmErrors
+				global.$$evmErrors
 				?? []
 			)
 			return (
@@ -96,15 +96,15 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Global registry of four-byte error selectors for custom and standard revert shapes—same width as calldata selectors but used when decoding failures.
-					</p>
-					<p>
-						They pair with ABI tail words rather than log topics.
-					</p>
-					<p>
-						Rows filter the shared directory by the current field predicate.
-					</p>
+		<p>
+			Global registry of four-byte error selectors for custom and standard revert shapes—same width as calldata selectors but used when decoding failures.
+		</p>
+		<p>
+			They pair with ABI tail words rather than log topics.
+		</p>
+		<p>
+			Rows filter the shared directory by the current field predicate.
+		</p>
 	{/snippet}
 
 	{#snippet body()}

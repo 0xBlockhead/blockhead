@@ -89,13 +89,13 @@
 			resource={post}
 			placeholderText="Loading X post…"
 		>
-			{#snippet children(resolvedXPost)}
-				{#if resolvedXPost.text}
+			{#snippet children(post)}
+				{#if post.text}
 					<TruncatedValue
 						endLength={8}
 						format={TruncatedValueFormat.Visual}
 						startLength={88}
-						value={resolvedXPost.text}
+						value={post.text}
 					/>
 				{:else}
 					{entityId.id}
@@ -105,12 +105,12 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Public posts on X (Twitter): short text, timestamps, and author profile links.
-				</p>
-				<p>
-					Not Reddit threads, storage CIDs, on-chain receipts, or encrypted chats.
-				</p>
+		<p>
+			Public posts on X (Twitter): short text, timestamps, and author profile links.
+		</p>
+		<p>
+			Not Reddit threads, storage CIDs, on-chain receipts, or encrypted chats.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
@@ -118,53 +118,45 @@
 			resource={post}
 			placeholderText="Loading X post…"
 		>
-			{#snippet children(resolvedXPost)}
-				{#if resolvedXPost.text}
+			{#snippet children(post)}
+				{#if post.text}
 					{#if !contentOpen}
 						<p>
-							{resolvedXPost.text}
+							{post.text}
 						</p>
 					{/if}
 				{/if}
 
-				{#if resolvedXPost.$author}
+				{#if post.$author}
 					<p data-text="muted">
 						<a
 							href={resolve(
 								'/(social)/x/user/[userId]',
 								{
 									userId: encodeURIComponent(
-										resolvedXPost.$author[EntityMetaKey.Id].id,
+										post.$author[EntityMetaKey.Id].id,
 									),
 								},
 							)}
-						>Profile (id {resolvedXPost.$author[EntityMetaKey.Id].id})</a>
+						>Profile (id {post.$author[EntityMetaKey.Id].id})</a>
 					</p>
 				{/if}
 				<dl data-column-item="center">
-					{#if resolvedXPost.text}
-						<div>
-							<dt>Post id</dt>
-							<dd data-text="mono">
-								{@render Id()}
-							</dd>
-						</div>
-					{/if}
 
 					{#if contentOpen}
-						{#if resolvedXPost.text}
+						{#if post.text}
 							<div>
 								<dt>Text</dt>
-								<dd>{resolvedXPost.text}</dd>
+								<dd>{post.text}</dd>
 							</div>
 						{/if}
 
-						{#if resolvedXPost.createdAt != null}
+						{#if post.createdAt != null}
 							<div>
 								<dt>Created at</dt>
 								<dd>
 									<Timestamp
-										timestamp={resolvedXPost.createdAt}
+										timestamp={post.createdAt}
 										format={TimestampFormat.Both}
 									/>
 								</dd>
@@ -227,15 +219,15 @@
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(resolvedXPost)}
-								{#if resolvedXPost.$author}
+							{#snippet children(post)}
+								{#if post.$author}
 									<XUserView
-										entityId={resolvedXPost.$author[EntityMetaKey.Id]}
+										entityId={post.$author[EntityMetaKey.Id]}
 										href={resolve(
 											'/(social)/x/user/[userId]',
 											{
 												userId: encodeURIComponent(
-													resolvedXPost.$author[EntityMetaKey.Id].id,
+													post.$author[EntityMetaKey.Id].id,
 												),
 											},
 										)}
@@ -254,21 +246,21 @@
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(resolvedXPost)}
+							{#snippet children(post)}
 								<dl data-column-item="center">
-									{#if resolvedXPost.text}
+									{#if post.text}
 										<div>
 											<dt>Text</dt>
-											<dd>{resolvedXPost.text}</dd>
+											<dd>{post.text}</dd>
 										</div>
 									{/if}
 
-									{#if resolvedXPost.createdAt != null}
+									{#if post.createdAt != null}
 										<div>
 											<dt>Created at</dt>
 											<dd>
 												<Timestamp
-													timestamp={resolvedXPost.createdAt}
+													timestamp={post.createdAt}
 													format={TimestampFormat.Both}
 												/>
 											</dd>

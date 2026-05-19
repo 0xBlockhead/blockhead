@@ -89,14 +89,14 @@
 			placeholderText="Loading Lens v3 publication…"
 			resource={lensPost}
 		>
-			{#snippet children(resolvedLensPost)}
+			{#snippet children(lensPost)}
 				<TruncatedValue
 					format={TruncatedValueFormat.Visual}
 					startLength={42}
 					endLength={14}
 					value={(
-						resolvedLensPost.text
-							? resolvedLensPost.text
+						lensPost.text
+							? lensPost.text
 						:
 							entityId.id
 					)}
@@ -110,12 +110,12 @@
 			placeholderText="Loading Lens v3 publication…"
 			resource={lensPost}
 		>
-			{#snippet children(resolvedLensPost)}
+			{#snippet children(lensPost)}
 				<div data-column>
-					{#if resolvedLensPost.text}
+					{#if lensPost.text}
 						<p>
 							<TruncatedValue
-								value={resolvedLensPost.text}
+								value={lensPost.text}
 								format={TruncatedValueFormat.Visual}
 								startLength={64}
 								endLength={24}
@@ -123,14 +123,14 @@
 						</p>
 					{/if}
 					<dl data-column-item="center">
-						{#if resolvedLensPost.$author}
+						{#if lensPost.$author}
 							<div>
 								<dt>Author (Lens v3 profile)</dt>
 								<dd>
 									<LensAccountView
-										entityId={resolvedLensPost.$author[EntityMetaKey.Id]}
+										entityId={lensPost.$author[EntityMetaKey.Id]}
 										href={resolve('/(social)/lens/account/[address]', {
-											address: resolvedLensPost.$author[EntityMetaKey.Id].address,
+											address: lensPost.$author[EntityMetaKey.Id].address,
 										})}
 										layout={EntityLayout.Id}
 										showTypeAnnotation={false}
@@ -139,12 +139,12 @@
 							</div>
 						{/if}
 
-						{#if resolvedLensPost.timestamp != null}
+						{#if lensPost.timestamp != null}
 							<div>
 								<dt>Created at</dt>
 								<dd>
 									<Timestamp
-										timestamp={resolvedLensPost.timestamp}
+										timestamp={lensPost.timestamp}
 										format={TimestampFormat.Both}
 									/>
 								</dd>

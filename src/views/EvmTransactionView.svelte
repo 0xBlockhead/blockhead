@@ -45,7 +45,7 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const tx = useEntity(
+	const evmTransaction = useEntity(
 		EntityType.EvmTransaction,
 		entityId,
 		{
@@ -115,57 +115,57 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Signed execution-layer transaction (legacy or type-2 envelope). From and to are addresses; either may be a contract.
-				</p>
-				<p>
-					ERC-4337 account abstraction wraps intent in <code>UserOperation</code> bundles, paymasters, and optional relay batches—separate from a single externally owned account sending one legacy or type-2 envelope.
-				</p>
+		<p>
+			Signed execution-layer transaction (legacy or type-2 envelope). From and to are addresses; either may be a contract.
+		</p>
+		<p>
+			ERC-4337 account abstraction wraps intent in <code>UserOperation</code> bundles, paymasters, and optional relay batches—separate from a single externally owned account sending one legacy or type-2 envelope.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
-			resource={tx}
+			resource={evmTransaction}
 			placeholderText="Loading transaction…"
 		>
-			{#snippet children(t)}
+			{#snippet children(evmTransaction)}
 				<dl>
-					{#if t.value !== undefined}
+					{#if evmTransaction.value !== undefined}
 						<div>
 							<dt>Value</dt>
 							<dd>
-								<NumberValue value={t.value} />
+								<NumberValue value={evmTransaction.value} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if t.status !== undefined}
+					{#if evmTransaction.status !== undefined}
 						<div>
 							<dt>Status</dt>
-							<dd>{String(t.status)}</dd>
+							<dd>{String(evmTransaction.status)}</dd>
 						</div>
 					{/if}
 
-					{#if t.gasUsed !== undefined}
+					{#if evmTransaction.gasUsed !== undefined}
 						<div>
 							<dt>Gas used</dt>
 							<dd>
-								<NumberValue value={t.gasUsed} />
+								<NumberValue value={evmTransaction.gasUsed} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if t.$block?.[EntityMetaKey.Id].blockNumber !== undefined}
+					{#if evmTransaction.$block?.[EntityMetaKey.Id].blockNumber !== undefined}
 						<div>
 							<dt>Block</dt>
 							<dd>
 								<EvmBlockView
-									entityId={t.$block[EntityMetaKey.Id]}
+									entityId={evmTransaction.$block[EntityMetaKey.Id]}
 									href={resolve(
 										'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
 										{
 											networkId: String(entityId.$network.chainId),
-											blockNumber: String(t.$block[EntityMetaKey.Id].blockNumber),
+											blockNumber: String(evmTransaction.$block[EntityMetaKey.Id].blockNumber),
 										},
 									)}
 									layout={EntityLayout.Summary}
@@ -176,14 +176,14 @@
 						</div>
 					{/if}
 
-					{#if t.$from?.[EntityMetaKey.Id].address !== undefined}
+					{#if evmTransaction.$from?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>From</dt>
 							<dd>
 								<ActorView
-									entityId={t.$from[EntityMetaKey.Id]}
+									entityId={evmTransaction.$from[EntityMetaKey.Id]}
 									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-										accountId: t.$from[EntityMetaKey.Id].address,
+										accountId: evmTransaction.$from[EntityMetaKey.Id].address,
 									})}
 									layout={EntityLayout.Summary}
 									open={false}
@@ -193,14 +193,14 @@
 						</div>
 					{/if}
 
-					{#if t.$to?.[EntityMetaKey.Id].address !== undefined}
+					{#if evmTransaction.$to?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>To</dt>
 							<dd>
 								<ActorView
-									entityId={t.$to[EntityMetaKey.Id]}
+									entityId={evmTransaction.$to[EntityMetaKey.Id]}
 									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-										accountId: t.$to[EntityMetaKey.Id].address,
+										accountId: evmTransaction.$to[EntityMetaKey.Id].address,
 									})}
 									layout={EntityLayout.Summary}
 									open={false}
@@ -210,17 +210,17 @@
 						</div>
 					{/if}
 
-					{#if t.$contract?.[EntityMetaKey.Id].address !== undefined}
+					{#if evmTransaction.$contract?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>Contract</dt>
 							<dd>
 								<ContractView
-									entityId={t.$contract[EntityMetaKey.Id]}
+									entityId={evmTransaction.$contract[EntityMetaKey.Id]}
 									href={resolve(
 										'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
 										{
 											networkId: String(entityId.$network.chainId),
-											address: t.$contract[EntityMetaKey.Id].address,
+											address: evmTransaction.$contract[EntityMetaKey.Id].address,
 										},
 									)}
 									layout={EntityLayout.Summary}
@@ -232,46 +232,46 @@
 					{/if}
 
 					{#if open}
-						{#if t.nonce !== undefined}
+						{#if evmTransaction.nonce !== undefined}
 							<div>
 								<dt>Nonce</dt>
-								<dd>{String(t.nonce)}</dd>
+								<dd>{String(evmTransaction.nonce)}</dd>
 							</div>
 						{/if}
 
-						{#if t.transactionIndex !== undefined}
+						{#if evmTransaction.transactionIndex !== undefined}
 							<div>
 								<dt>Position in block</dt>
-								<dd>{String(t.transactionIndex)}</dd>
+								<dd>{String(evmTransaction.transactionIndex)}</dd>
 							</div>
 						{/if}
 
-						{#if t.gas !== undefined}
+						{#if evmTransaction.gas !== undefined}
 							<div>
 								<dt>Gas limit</dt>
 								<dd>
-									<NumberValue value={t.gas} />
+									<NumberValue value={evmTransaction.gas} />
 								</dd>
 							</div>
 						{/if}
 
-						{#if t.gasPrice !== undefined}
+						{#if evmTransaction.gasPrice !== undefined}
 							<div>
 								<dt>Gas price (legacy type 0/1)</dt>
 								<dd>
-									<NumberValue value={t.gasPrice} />
+									<NumberValue value={evmTransaction.gasPrice} />
 								</dd>
 							</div>
 						{/if}
 
-						{#if t.type !== undefined}
+						{#if evmTransaction.type !== undefined}
 							<div>
 								<dt>Transaction envelope type</dt>
-								<dd>{String(t.type)}</dd>
+								<dd>{String(evmTransaction.type)}</dd>
 							</div>
 						{/if}
 
-						{#if t.type === 2}
+						{#if evmTransaction.type === 2}
 							<div>
 								<dt>EIP-1559 max fee / priority (type 2)</dt>
 								<dd data-row="wrap align-center gap-2">
@@ -363,13 +363,13 @@
 				{#snippet children(_ctx)}
 					<section id={`${txStableKey}:logs`}>
 						<ResourceBoundary
-							resource={tx}
+							resource={evmTransaction}
 							placeholderText="Loading transaction logs…"
 						>
-							{#snippet children(t)}
-								{#if t.logs?.length}
+							{#snippet children(evmTransaction)}
+								{#if evmTransaction.logs?.length}
 									<div data-column="gap-2">
-										{#each t.logs as log, index}
+										{#each evmTransaction.logs as log, index}
 											<div data-card="">
 												<div data-row="wrap gap-2 align-baseline">
 													<span data-text="annotation">Index</span>

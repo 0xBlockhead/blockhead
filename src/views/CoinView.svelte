@@ -2,14 +2,14 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { MarketAssetKind } from '$/constants/Market.ts'
-	import { MarketVenueId } from '$/constants/MarketVenue.ts'
+	import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
+	import { catalogCoinIdentitySources } from '$/constants/Market.ts'
+	import { catalogCoinUsdMarketId } from '$/constants/MarketCatalog.ts'
+	import { formatMarketIdLabel } from '$/constants/Market.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
@@ -51,17 +51,14 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const coinIdentity = useEntity(
+	import { EntityLayout } from '$/components/EntityView.svelte'
+
+	const coin = useEntity(
 		EntityType.Coin,
 		entityId,
 		{
-			$: [
-				Source.Coingecko_Rest,
-				Source.CoinMarketCap_Rest,
-				Source.Coinpaprika_OpenApi,
-				Source.Defillama_OpenApi,
-				Source.Constants_Internal,
-			],
+			$: [...catalogCoinIdentitySources],
+			$logo: {},
 			decimals: {},
 			name: {},
 			symbol: {},
@@ -70,50 +67,21 @@
 		},
 	)
 
-	const coinSpotPrice = useEntity(
-		EntityType.Coin,
-		entityId,
-		{
-			$: [
-				Source.Coingecko_Rest,
-				Source.CoinMarketCap_Rest,
-				Source.Coinpaprika_OpenApi,
-				Source.Defillama_OpenApi,
-				Source.Constants_Internal,
-			],
-			...(open ?
-				{
-					$$marketPrice: {},
-				}
-				:
-				{}),
+
+	// Functions
+	const formatCoinHeadingLabel = (
+		coin: {
+			name?: string
+			symbol?: string
 		},
-	)
-
-	const spotPriceEntityId =
-		({
-			$market: {
-				$base: {
-					kind: MarketAssetKind.Coin,
-					$coin: { coinId: entityId.coinId },
-				},
-				$quote: {
-					kind: MarketAssetKind.Currency,
-					iso4217: 'USD',
-				},
-				$marketVenue: {
-					marketVenueId: MarketVenueId.SpotIndex,
-				},
-			},
-		}) satisfies EntityId<
-			typeof schema,
-			EntityType.MarketPrice
-		>
-
-	const hideHeadingSecondaryCoinSlugMatchesHeadingFallback = $derived(
-		coinIdentity.ready
-		&& coinIdentity.current.symbol === undefined
-		&& coinIdentity.current.name === undefined,
+		coinId: EntityId<typeof schema, EntityType.Coin>['coinId'],
+	) => (
+		coin.name != null
+		&& coin.symbol != null
+		&& coin.name !== coin.symbol ?
+			`${coin.name} (${coin.symbol})`
+		:
+			coin.symbol ?? coin.name ?? coinId
 	)
 
 
@@ -122,10 +90,12 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import CoinBridgeCapabilitiesView from '$/views/CoinBridgeCapabilitiesView.svelte'
 	import CoinInstancesView from '$/views/CoinInstancesView.svelte'
-	import MarketPriceRangesView from '$/views/MarketPriceRangesView.svelte'
-	import MarketPriceView from '$/views/MarketPriceView.svelte'
+	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 	import MarketsView from '$/views/MarketsView.svelte'
 </script>
 
@@ -138,13 +108,29 @@
 	{layout}
 	{...entityViewRest}
 >
+	{#snippet Icon()}
+		<ResourceBoundary
+			resource={coin}
+			placeholderText=""
+		>
+			{#snippet children(coin)}
+				{#if coin.$logo?.[EntityMetaKey.Id].url !== undefined}
+					<IconComponent
+						src={coin.$logo[EntityMetaKey.Id].url}
+						alt={coin.symbol ?? coin.name ?? entityId.coinId}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Heading()}
 		<ResourceBoundary
-			resource={coinIdentity}
+			resource={coin}
 			placeholderText="Loading…"
 		>
-			{#snippet children(live)}
-				{live.symbol ?? live.name ?? entityId.coinId}
+			{#snippet children(coin)}
+				{formatCoinHeadingLabel(coin, entityId.coinId)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -170,44 +156,34 @@
 		title: _contentTitle,
 		href: _contentHref,
 	})}
-		<ResourceBoundary resource={coinIdentity}>
-			{#snippet children(live)}
+		<ResourceBoundary resource={coin}>
+			{#snippet children(coin)}
 				<dl data-column-item="center">
-					{#if !hideHeadingSecondaryCoinSlugMatchesHeadingFallback}
+					{#if coin.marketCapRank != null && Number.isFinite(coin.marketCapRank)}
 						<div>
-							<dt>Coin id</dt>
-							<dd data-text="mono">
-								{@render Id()}
+							<dt>Market cap rank</dt>
+							<dd>{String(coin.marketCapRank)}</dd>
+						</div>
+					{/if}
+
+					{#if coin.marketCapUsd != null && Number.isFinite(coin.marketCapUsd)}
+						<div>
+							<dt>Market cap</dt>
+							<dd>
+								<CurrencyAmount
+									currency="USD"
+									scale={1}
+									value={coin.marketCapUsd}
+								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if live.marketCapRank != null && Number.isFinite(live.marketCapRank)}
-						<div>
-							<dt>Market cap rank</dt>
-							<dd>{String(live.marketCapRank)}</dd>
-						</div>
-					{/if}
-
-					{#if live.marketCapUsd != null && Number.isFinite(live.marketCapUsd)}
-						<div>
-							<dt>Market cap (USD)</dt>
-							<dd>{String(live.marketCapUsd)}</dd>
-						</div>
-					{/if}
-
 					{#if open}
-						{#if live.name !== undefined}
-							<div>
-								<dt>Name</dt>
-								<dd>{live.name}</dd>
-							</div>
-						{/if}
-
-						{#if live.decimals !== undefined}
+						{#if coin.decimals !== undefined}
 							<div>
 								<dt>Decimals</dt>
-								<dd>{String(live.decimals)}</dd>
+								<dd>{String(coin.decimals)}</dd>
 							</div>
 						{/if}
 					{/if}
@@ -220,9 +196,14 @@
 		open: _open,
 	})}
 		{@const idPrefix = stringify(entityId)}
-		{@const coinPageHref = resolve(
-			'/(assets)/(coins)/coin/[coinId]',
-			{ coinId: entityId.coinId },
+		{@const catalogUsdMarketId = (
+			catalogCoinUsdMarketId(entityId.coinId)
+		) satisfies EntityId<typeof schema, EntityType.Market>}
+		{@const catalogUsdMarketHref = resolve(
+			'/(assets)/(markets)/market/[marketKey]',
+			{
+				marketKey: encodeURIComponent(stringify(catalogUsdMarketId)),
+			},
 		)}
 		<EntityDetails
 			entityType={EntityType.Coin}
@@ -230,11 +211,12 @@
 		/>
 
 		<div
-			class="entity-view-detail-carousels"
+			class="coin-view-carousel-groups entity-view-detail-carousels"
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
-				id={`${idPrefix}:carousel-pricing`}
+				id={`${idPrefix}:carousel-topology`}
+				class="coin-view-collapsible-topology"
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -248,63 +230,75 @@
 						data-row="wrap gap-4"
 					>
 						<HeadingComponent>
-							Price
+							Topology
 						</HeadingComponent>
 					</header>
 				{/snippet}
 
 				{#snippet Markers({ open: _markersOpen })}
 					<a
-						data-scroll-marker-label="Spot"
-						href={`#${idPrefix}:price`}
-					>Spot</a>
+						data-scroll-marker-label="Instances"
+						href={`#${idPrefix}:coin-instances`}
+					>Instances</a>
 					<a
-						data-scroll-marker-label="Historical"
-						href={`#${idPrefix}:market-price-ranges`}
-					>Historical</a>
+						data-scroll-marker-label="Wrapped"
+						href={`#${idPrefix}:coin-wrapped`}
+					>Wrapped</a>
+					<a
+						data-scroll-marker-label="Bridge capabilities"
+						href={`#${idPrefix}:coin-bridge-capabilities`}
+					>Bridge capabilities</a>
 				{/snippet}
 
 				{#snippet children({ open: _detailsOpen })}
-					<section>
-							<ResourceBoundary
-								placeholderText="Loading spot price…"
-								resource={coinSpotPrice}
-							>
-								{#snippet children(priceLive)}
-									<MarketPriceView
-										entityId={
-											priceLive.$$marketPrice === undefined ?
-												spotPriceEntityId
-											:
-												priceLive.$$marketPrice[EntityMetaKey.Id]
-										}
-										href={coinPageHref}
-										id={`${idPrefix}:price`}
-										layout={EntityLayout.Summary}
-										open={false}
-									/>
-								{/snippet}
-							</ResourceBoundary>
-						</section>
+					<section data-scroll-marker-label="Instances">
+						<CoinInstancesView
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.Coin,
+								entityId,
+								fieldName: '$$coinInstances',
+							}}
+							{href}
+							id={`${idPrefix}:coin-instances`}
+							title="Instances"
+						/>
+					</section>
 
-						<section>
-							<MarketPriceRangesView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Coin,
-									entityId,
-									fieldName: '$$marketPriceRanges',
-								}}
-								href={coinPageHref}
-								id={`${idPrefix}:market-price-ranges`}
-								title="Historical"
-							/>
-						</section>
+					<section data-scroll-marker-label="Wrapped">
+						<CoinInstancesView
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.Coin,
+								entityId,
+								fieldName: '$$coinInstances',
+							}}
+							{href}
+							id={`${idPrefix}:coin-wrapped`}
+							representationFilter={CoinInstanceRepresentation.BridgeWrapped}
+							title="Wrapped"
+						/>
+					</section>
+
+					<section data-scroll-marker-label="Bridge capabilities">
+						<CoinBridgeCapabilitiesView
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.Coin,
+								entityId,
+								fieldName: '$$bridgeCapabilities',
+							}}
+							{href}
+							id={`${idPrefix}:coin-bridge-capabilities`}
+							title="Bridge capabilities"
+						/>
+					</section>
 				{/snippet}
 			</CollapsibleTabs>
 
 			<CollapsibleTabs
 				id={`${idPrefix}:carousel-markets`}
+				class="coin-view-collapsible-markets"
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -320,22 +314,51 @@
 						<HeadingComponent>
 							Markets
 						</HeadingComponent>
+						<Tooltip contentProps={{ side: 'top' }}>
+							{#snippet Content()}
+								<p>
+									Each market row is a base / quote / venue triple. Open a market for spot quotes and OHLC candles.
+								</p>
+							{/snippet}
+							<abbr
+								class="entity-heading-tip"
+								aria-label="Markets and pricing"
+							>ⓘ</abbr>
+						</Tooltip>
 					</header>
 				{/snippet}
 
 				{#snippet Markers({ open: _markersOpen })}
 					<a
-						data-scroll-marker-label="As base"
-						href={`#${idPrefix}:markets-as-base`}
-					>As base</a>
+						data-scroll-marker-label="USD market"
+						href={`#${idPrefix}:catalog-usd-market`}
+					>USD market</a>
 					<a
-						data-scroll-marker-label="As quote"
+						data-scroll-marker-label="Base"
+						href={`#${idPrefix}:markets-as-base`}
+					>Base</a>
+					<a
+						data-scroll-marker-label="Quote"
 						href={`#${idPrefix}:markets-as-quote`}
-					>As quote</a>
+					>Quote</a>
 				{/snippet}
 
 				{#snippet children({ open: _detailsOpen })}
-					<section>
+					<section
+						data-scroll-marker-label="USD market"
+						id={`${idPrefix}:catalog-usd-market`}
+					>
+						<p>
+							<a href={catalogUsdMarketHref}>
+								{formatMarketIdLabel(catalogUsdMarketId)}
+							</a>
+							<span data-text="muted">
+								— spot quote and OHLC on the market page.
+							</span>
+						</p>
+					</section>
+
+					<section data-scroll-marker-label="Base">
 						<MarketsView
 							collapsible={false}
 							entityFieldReference={{
@@ -347,11 +370,11 @@
 								coinId: entityId.coinId,
 							})}
 							id={`${idPrefix}:markets-as-base`}
-							title="As base"
+							title="Base"
 						/>
 					</section>
 
-					<section>
+					<section data-scroll-marker-label="Quote">
 						<MarketsView
 							collapsible={false}
 							entityFieldReference={{
@@ -363,51 +386,7 @@
 								coinId: entityId.coinId,
 							})}
 							id={`${idPrefix}:markets-as-quote`}
-							title="As quote"
-						/>
-					</section>
-				{/snippet}
-			</CollapsibleTabs>
-
-			<CollapsibleTabs
-				id={`${idPrefix}:carousel-deployments`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Execution deployments
-						</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Instances"
-						href={`#${idPrefix}:coin-instances`}
-					>Deployments</a>
-				{/snippet}
-
-				{#snippet children({ open: _detailsOpen })}
-					<section>
-						<CoinInstancesView
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.Coin,
-								entityId,
-								fieldName: '$$coinInstances',
-							}}
-							{href}
-							id={`${idPrefix}:coin-instances`}
-							title="Instances"
+							title="Quote"
 						/>
 					</section>
 				{/snippet}

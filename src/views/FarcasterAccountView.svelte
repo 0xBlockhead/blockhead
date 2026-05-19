@@ -88,11 +88,11 @@
 			resource={connection}
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
-			{#snippet children(account)}
-				{#if account.$icon?.[EntityMetaKey.Id].url}
+			{#snippet children(connection)}
+				{#if connection.$icon?.[EntityMetaKey.Id].url}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={account.$icon[EntityMetaKey.Id].url}
+						src={connection.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -105,8 +105,8 @@
 			resource={connection}
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
-			{#snippet children(account)}
-				{account.displayName ?? account.username ?? String(entityId.fid)}
+			{#snippet children(connection)}
+				{connection.displayName ?? connection.username ?? String(entityId.fid)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -116,15 +116,15 @@
 			resource={connection}
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
-			{#snippet children(account)}
+			{#snippet children(connection)}
 				{#if (
-					account.username !== undefined
-					&& account.username !== (
-						account.displayName ?? account.username ?? String(entityId.fid)
+					connection.username !== undefined
+					&& connection.username !== (
+						connection.displayName ?? connection.username ?? String(entityId.fid)
 					)
 				)}
 					<span data-text="muted">
-						@{account.username}
+						@{connection.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -142,64 +142,58 @@
 			resource={connection}
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
-			{#snippet children(account)}
+			{#snippet children(connection)}
 				<dl data-column-item="center">
-					<div>
-						<dt>FID</dt>
-						<dd data-text="mono">
-							{@render Id()}
-						</dd>
-					</div>
 					{#if open}
-						{#if account.username}
+						{#if connection.username}
 							<div>
 								<dt>fname</dt>
-								<dd>@{account.username}</dd>
+								<dd>@{connection.username}</dd>
 							</div>
 						{/if}
 					{/if}
 
-					{#if account.bio}
+					{#if connection.bio}
 						<div>
 							<dt>Bio</dt>
-							<dd>{account.bio}</dd>
+							<dd>{connection.bio}</dd>
 						</div>
 					{/if}
 
 					{#if open}
-						{#if account.authMethod}
+						{#if connection.authMethod}
 							<div>
 								<dt>Auth routing</dt>
-								<dd>{account.authMethod}</dd>
+								<dd>{connection.authMethod}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if account.custody}
+						{#if connection.custody}
 							<div>
 								<dt>Farcaster custody address</dt>
-								<dd>{account.custody}</dd>
+								<dd>{connection.custody}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if account.verifications}
-							{#if account.verifications.length}
+						{#if connection.verifications}
+							{#if connection.verifications.length}
 								<div>
 									<dt>Verified signer addresses</dt>
-									<dd>{account.verifications.join(', ')}</dd>
+									<dd>{connection.verifications.join(', ')}</dd>
 								</div>
 							{/if}
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if account.signedAt !== undefined}
+						{#if connection.signedAt !== undefined}
 							<div>
 								<dt>Signed at</dt>
-								<dd>{new Date(account.signedAt).toISOString()}</dd>
+								<dd>{new Date(connection.signedAt).toISOString()}</dd>
 							</div>
 						{/if}
 					{/if}

@@ -85,7 +85,7 @@
 
 
 	// State
-	const row = useEntity(
+	const evmAccountAbstractionAddress = useEntity(
 		EntityType.EvmAccountAbstractionAddress,
 		entityId,
 		{
@@ -114,7 +114,7 @@
 	href={href}
 >
 	{#snippet Heading()}
-		<span data-row="wrap gap-2 align-center">
+		<span data-evmAccountAbstractionAddress="wrap gap-2 align-center">
 			<span data-tag>{aaRoleHeading(entityId.role)}</span>
 			<Address
 				address={entityId.address}
@@ -143,9 +143,9 @@
 	})}
 		<ResourceBoundary
 			placeholderText="Loading…"
-			resource={row}
+			resource={evmAccountAbstractionAddress}
 		>
-			{#snippet children(loaded)}
+			{#snippet children(evmAccountAbstractionAddress)}
 				<dl data-column-item="center">
 					<div>
 						<dt>Chain ID</dt>
@@ -155,10 +155,10 @@
 					</div>
 
 					{#if contentOpen}
-						{#if loaded.totalOperations != null}
+						{#if evmAccountAbstractionAddress.totalOperations != null}
 							<div>
 								<dt>Total operations</dt>
-								<dd>{String(loaded.totalOperations)}</dd>
+								<dd>{String(evmAccountAbstractionAddress.totalOperations)}</dd>
 							</div>
 						{/if}
 					{/if}
@@ -173,8 +173,8 @@
 			{entityId}
 		/>
 
-		<ResourceBoundary resource={row}>
-			{#snippet children(_loaded)}
+		<ResourceBoundary resource={evmAccountAbstractionAddress}>
+			{#snippet children(evmAccountAbstractionAddress)}
 				<div class="entity-details" data-column="gap-2">
 					<ContractView
 						entityId={{

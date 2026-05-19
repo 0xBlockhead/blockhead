@@ -50,7 +50,7 @@
 
 
 	// State
-	const gasFeeLive = useEntity(
+	const networkGasFeeBlock = useEntity(
 		EntityType.Network_GasFee_Block,
 		entityId,
 		{
@@ -90,12 +90,12 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Fee-market snapshot for one execution block: base fee per gas from <code>eth_feeHistory</code>, plus optional live RPC hints for legacy and priority fees.
-				</p>
-				<p>
-					EIP-1559 sets base fee from parent fullness; priority fee percentiles describe inclusion bids around this height.
-				</p>
+		<p>
+			Fee-market snapshot for one execution block: base fee per gas from <code>eth_feeHistory</code>, plus optional live RPC hints for legacy and priority fees.
+		</p>
+		<p>
+			EIP-1559 sets base fee from parent fullness; priority fee percentiles describe inclusion bids around this height.
+		</p>
 	{/snippet}
 
 	{#snippet Id()}
@@ -107,57 +107,51 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			placeholderText="Loading gas snapshot…"
-			resource={gasFeeLive}
+			resource={networkGasFeeBlock}
 		>
-			{#snippet children(g)}
+			{#snippet children(networkGasFeeBlock)}
 				<dl data-column-item="center">
-					<div>
-						<dt>Chain</dt>
-						<dd data-text="mono">
-							{@render Id()}
-						</dd>
-					</div>
 
 					{#if open}
-						{#if g.baseFeePerGas !== undefined}
+						{#if networkGasFeeBlock.baseFeePerGas !== undefined}
 							<div>
 								<dt>Base fee</dt>
 								<dd>
-									<NumberValue value={g.baseFeePerGas} /> wei
+									<NumberValue value={networkGasFeeBlock.baseFeePerGas} /> wei
 								</dd>
 							</div>
 						{/if}
 
-						{#if g.legacyGasPrice !== undefined}
+						{#if networkGasFeeBlock.legacyGasPrice !== undefined}
 							<div>
 								<dt>Legacy gas price</dt>
 								<dd>
-									<NumberValue value={g.legacyGasPrice} /> wei
+									<NumberValue value={networkGasFeeBlock.legacyGasPrice} /> wei
 								</dd>
 							</div>
 						{/if}
 
-						{#if g.maxPriorityFeePerGas !== undefined}
+						{#if networkGasFeeBlock.maxPriorityFeePerGas !== undefined}
 							<div>
 								<dt>Max priority fee</dt>
 								<dd>
-									<NumberValue value={g.maxPriorityFeePerGas} /> wei
+									<NumberValue value={networkGasFeeBlock.maxPriorityFeePerGas} /> wei
 								</dd>
 							</div>
 						{/if}
 
-						{#if g.gasUsedRatio !== undefined}
+						{#if networkGasFeeBlock.gasUsedRatio !== undefined}
 							<div>
 								<dt>Gas used ratio (fee-history block)</dt>
-								<dd>{String(g.gasUsedRatio)}</dd>
+								<dd>{String(networkGasFeeBlock.gasUsedRatio)}</dd>
 							</div>
 						{/if}
 
-						{#if g.priorityFeeRewardAt50thPercentile !== undefined}
+						{#if networkGasFeeBlock.priorityFeeRewardAt50thPercentile !== undefined}
 							<div>
 								<dt>Priority fee at 50th percentile</dt>
 								<dd>
-									<NumberValue value={g.priorityFeeRewardAt50thPercentile} /> wei
+									<NumberValue value={networkGasFeeBlock.priorityFeeRewardAt50thPercentile} /> wei
 								</dd>
 							</div>
 						{/if}

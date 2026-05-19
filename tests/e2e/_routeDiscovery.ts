@@ -15,11 +15,11 @@ const VITALIK = '0xd8dA6BF26964aF9D7eed9E403E826090792BeD6A'
 
 const SAMPLE_TX = '0xdacd6abf5b2814b28c68c59981f269c615796e7f0cba2009f4bf5edfdd9595ab'
 
-/** Catalog ETH / USD at `SpotIndex` — same discriminant strings as `MarketAssetKind` / `MarketVenue`. */
-const marketKeyEthUsdSpotIndex = stringify({
+/** Catalog ETH / USD at Binance — same discriminant strings as `MarketAssetKind` / `MarketVenue`. */
+const marketKeyEthUsdBinance = stringify({
 	$base: { kind: 'Coin', $coin: { coinId: 'ETH' } },
-	$quote: { kind: 'Currency', iso4217: 'USD' },
-	venue: 'SpotIndex',
+	$quote: { kind: 'Currency', $currency: { iso4217: 'USD' } },
+	$marketVenue: { marketVenueId: 'Binance' },
 })
 
 /**
@@ -65,7 +65,7 @@ const PARAM_FIXTURES: Record<string, string> = {
 	namespace: 'ipfs',
 	target: 'bafybeigdyrzt3sfp7vd2lvdwqcedebyb6utyghj6v7k5vcheck7l1vprfw',
 	test: 'test',
-	marketKey: marketKeyEthUsdSpotIndex,
+	marketKey: marketKeyEthUsdBinance,
 	instanceOrigin: 'https://mastodon.social',
 	localAccountId: '1',
 	localStatusId: '111801704737679096',
@@ -74,7 +74,7 @@ const PARAM_FIXTURES: Record<string, string> = {
 	postId: '1855943488122347520',
 	epochNumber: '300000',
 	slotNumber: '9500000',
-	timestampNs: '0',
+	timestampMs: '0',
 	sampleKey: 'Etherscan_Rest:gastracker:gasoracle',
 	observerKey: 'Voltaire_JsonRpc:txpool_status:ethereum.publicnode.com',
 	observer: 'ethereum.publicnode.com',

@@ -128,6 +128,19 @@ const denormalizedCoinListSortKeys = [
 	'marketCapUsd',
 ] as const
 
+/** Latest catalog snapshot refs on compact `Currency` rows for `$$currencies` list sort. */
+const denormalizedCurrencyListSnapshotKeys = [
+	'$$timestamps',
+] as const
+
+/** OHLC bigints kept on compact `Market_TimeInterval_Timestamp` refs for charts and list rows. */
+const denormalizedOhlcPrimitiveKeys = [
+	'open',
+	'high',
+	'low',
+	'close',
+] as const
+
 const entityFieldCollectionValue = <_Value>(
 	value: _Value,
 ): EntityFieldCollectionValue<_Value> => (
@@ -138,15 +151,35 @@ const entityFieldCollectionValue = <_Value>(
 			[EntityMetaKey.Id]: value[EntityMetaKey.Id],
 			[EntityMetaKey.IdKey]: stringify(value[EntityMetaKey.Id]),
 			...Object.fromEntries(
-				denormalizedCoinListSortKeys.flatMap((sortKey) => {
-					const raw = (value as Record<string, unknown>)[sortKey]
-					return (
-						typeof raw === 'number' && Number.isFinite(raw) ?
-							[[sortKey, raw] as const]
-						:
-							[]
-					)
-				}),
+				[
+					...denormalizedCoinListSortKeys.flatMap((sortKey) => {
+						const raw = (value as Record<string, unknown>)[sortKey]
+						return (
+							typeof raw === 'number' && Number.isFinite(raw) ?
+								[[sortKey, raw] as const]
+							:
+								[]
+						)
+					}),
+					...denormalizedCurrencyListSnapshotKeys.flatMap((fieldName) => {
+						const raw = (value as Record<string, unknown>)[fieldName]
+						return (
+							Array.isArray(raw) ?
+								[[fieldName, raw] as const]
+							:
+								[]
+						)
+					}),
+					...denormalizedOhlcPrimitiveKeys.flatMap((fieldName) => {
+						const raw = (value as Record<string, unknown>)[fieldName]
+						return (
+							typeof raw === 'bigint' ?
+								[[fieldName, raw] as const]
+							:
+								[]
+						)
+					}),
+				],
 			),
 		} as EntityFieldCollectionValue<_Value>)
 	:

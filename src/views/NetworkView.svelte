@@ -194,17 +194,17 @@
 	)
 
 
-	const headEpochNumber = derive(
+	const beaconHeadEpoch = derive(
 		network,
-		(networkEntity) => {
+		(network) => {
 			const epochs: Entity<typeof schema, EntityType.BeaconEpoch>[] | undefined =
-				networkEntity.$$beaconEpochs
+				network.$$beaconEpochs
 			if (!(epochs?.length)) {
 				return undefined
 			}
 			return epochs
-				.toSorted((leftEpochEntity, rightEpochEntity) => (
-					rightEpochEntity[EntityMetaKey.Id].epoch - leftEpochEntity[EntityMetaKey.Id].epoch
+				.toSorted((leftEpoch, rightEpoch) => (
+					rightEpoch[EntityMetaKey.Id].epoch - leftEpoch[EntityMetaKey.Id].epoch
 				))[0]
 				?.[EntityMetaKey.Id].epoch
 		},
@@ -255,11 +255,11 @@
 			resource={network}
 			placeholderText=""
 		>
-			{#snippet children(networkEntity)}
-				{#if networkEntity.$icon?.[EntityMetaKey.Id].url !== undefined}
+			{#snippet children(network)}
+				{#if network.$icon?.[EntityMetaKey.Id].url !== undefined}
 					<IconComponent
-						src={networkEntity.$icon[EntityMetaKey.Id].url}
-						alt={networkEntity.name ?? ''}
+						src={network.$icon[EntityMetaKey.Id].url}
+						alt={network.name ?? ''}
 					/>
 				{/if}
 			{/snippet}
@@ -274,8 +274,8 @@
 				resource={network}
 				placeholderText="Loading name…"
 			>
-				{#snippet children(networkEntity)}
-					{networkEntity.name ?? String(entityId.chainId)}
+				{#snippet children(network)}
+					{network.name ?? String(entityId.chainId)}
 				{/snippet}
 			</ResourceBoundary>
 		{/if}
@@ -295,23 +295,16 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			<div>
-				<dt>Chain ID</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
 			{#if open}
 				<ResourceBoundary
 					resource={network}
 					placeholderText="Loading network…"
 				>
-					{#snippet children(networkEntity)}
-						{#if networkEntity.environment !== undefined}
+					{#snippet children(network)}
+						{#if network.environment !== undefined}
 							<div>
 								<dt>Environment</dt>
-								<dd>{networkEntity.environment}</dd>
+								<dd>{network.environment}</dd>
 							</div>
 						{/if}
 					{/snippet}
@@ -328,18 +321,18 @@
 						resource={network}
 						placeholderText="Loading head block…"
 					>
-						{#snippet children(networkEntity)}
-							{#if networkEntity.blockHeight !== undefined}
+						{#snippet children(network)}
+							{#if network.blockHeight !== undefined}
 								<EvmBlockView
 									entityId={{
 										$network: { chainId: entityId.chainId },
-										blockNumber: networkEntity.blockHeight,
+										blockNumber: network.blockHeight,
 									}}
 									href={resolve(
 										'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
 										{
 											networkId: String(entityId.chainId),
-											blockNumber: String(networkEntity.blockHeight),
+											blockNumber: String(network.blockHeight),
 										},
 									)}
 									layout={EntityLayout.Id}
@@ -358,12 +351,12 @@
 					<dt>Epoch</dt>
 					<dd>
 						<ResourceBoundary
-							resource={headEpochNumber}
+							resource={beaconHeadEpoch}
 							placeholderText="Loading head epoch…"
 						>
-							{#snippet children(epoch)}
-								{#if epoch !== undefined}
-									<NumberValue value={epoch} />
+							{#snippet children(beaconHeadEpoch)}
+								{#if beaconHeadEpoch !== undefined}
+									<NumberValue value={beaconHeadEpoch} />
 								{:else}
 									—
 								{/if}
@@ -378,11 +371,11 @@
 					resource={network}
 					placeholderText="Loading network…"
 				>
-					{#snippet children(networkEntity)}
-						{#if networkEntity.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
+					{#snippet children(network)}
+						{#if network.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
 							<div>
 								<dt>Parent</dt>
-								<dd>Chain {String(networkEntity.$parentLayer[EntityMetaKey.Id].chainId)}</dd>
+								<dd>Chain {String(network.$parentLayer[EntityMetaKey.Id].chainId)}</dd>
 							</div>
 						{/if}
 					{/snippet}
@@ -400,11 +393,11 @@
 				<ResourceBoundary
 					resource={network}
 				>
-					{#snippet children(networkEntity)}
-						{#if networkEntity.registryStatus !== undefined}
+					{#snippet children(network)}
+						{#if network.registryStatus !== undefined}
 							<div>
 								<dt>Registry status</dt>
-								<dd>{networkEntity.registryStatus}</dd>
+								<dd>{network.registryStatus}</dd>
 							</div>
 						{/if}
 					{/snippet}
@@ -415,14 +408,14 @@
 				<ResourceBoundary
 					resource={network}
 				>
-					{#snippet children(networkEntity)}
+					{#snippet children(network)}
 						{#if (
-							networkEntity.peeringId !== undefined
-							&& networkEntity.peeringId !== entityId.chainId
+							network.peeringId !== undefined
+							&& network.peeringId !== entityId.chainId
 						)}
 							<div>
 								<dt>Peering ID</dt>
-								<dd>{String(networkEntity.peeringId)}</dd>
+								<dd>{String(network.peeringId)}</dd>
 							</div>
 						{/if}
 					{/snippet}
@@ -433,11 +426,11 @@
 				<ResourceBoundary
 					resource={network}
 				>
-					{#snippet children(networkEntity)}
-						{#if networkEntity.slip44 !== undefined}
+					{#snippet children(network)}
+						{#if network.slip44 !== undefined}
 							<div>
 								<dt>SLIP-44</dt>
-								<dd>{String(networkEntity.slip44)}</dd>
+								<dd>{String(network.slip44)}</dd>
 							</div>
 						{/if}
 					{/snippet}
@@ -467,7 +460,7 @@
 				{#snippet Summary({ open: _isOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<ResourceBoundary resource={network}>
-							{#snippet children(networkEntity)}
+							{#snippet children(network)}
 								<HeadingComponent>Topology</HeadingComponent>
 							{/snippet}
 						</ResourceBoundary>
@@ -476,45 +469,45 @@
 
 				{#snippet Markers()}
 					<ResourceBoundary resource={network}>
-						{#snippet children(networkEntity)}
+						{#snippet children(network)}
 							<a
 								data-scroll-marker-label="Upgrades"
 								href={`#${networkIdKey}:topology-upgrades`}
 							>Upgrades</a>
-							{#if networkEntity.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
+							{#if network.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
 								<a
 									data-scroll-marker-label="Parent"
 									href={`#${networkIdKey}:topology-parent-layer`}
 								>Parent</a>
 							{/if}
 
-							{#if (networkEntity.$$siblingShardNetworks ?? []).length}
+							{#if (network.$$siblingShardNetworks ?? []).length}
 								<a
 									data-scroll-marker-label="Shards"
 									href={`#${networkIdKey}:topology-sibling-shards`}
 								>Shards</a>
 							{/if}
 
-							{#if networkEntity.environment === NetworkEnvironment.Mainnet}
+							{#if network.environment === NetworkEnvironment.Mainnet}
 								<a
 									data-scroll-marker-label="Testnets"
 									href={`#${networkIdKey}:topology-testnets`}
 								>Testnets</a>
-							{:else if networkEntity.environment === NetworkEnvironment.Testnet}
+							{:else if network.environment === NetworkEnvironment.Testnet}
 								<a
 									data-scroll-marker-label="Mainnet"
 									href={`#${networkIdKey}:topology-mainnet`}
 								>Mainnet</a>
 							{/if}
 
-							{#if (networkEntity.$$childLayers ?? []).length}
+							{#if (network.$$childLayers ?? []).length}
 								<a
 									data-scroll-marker-label="Layers"
 									href={`#${networkIdKey}:topology-child-layers`}
 								>Layers</a>
 							{/if}
 
-							{#if (networkEntity.$$faucetUrls ?? []).length}
+							{#if (network.$$faucetUrls ?? []).length}
 								<a
 									data-scroll-marker-label="Faucets"
 									href={`#${networkIdKey}:topology-faucets`}
@@ -528,7 +521,7 @@
 					<ResourceBoundary
 						resource={network}
 					>
-						{#snippet children(networkEntity)}
+						{#snippet children(network)}
 								<section>
 									<NetworkUpgradesView
 										collapsible={false}
@@ -546,7 +539,7 @@
 									/>
 								</section>
 
-								{#if networkEntity.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
+								{#if network.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
 									<section>
 										<EntitiesList
 											collapsible={false}
@@ -557,8 +550,8 @@
 										>
 											{#snippet body()}
 												<div class="entity-details">
-													<a href={networkHref(networkEntity.$parentLayer[EntityMetaKey.Id].chainId)}>
-														Chain {String(networkEntity.$parentLayer[EntityMetaKey.Id].chainId)}
+													<a href={networkHref(network.$parentLayer[EntityMetaKey.Id].chainId)}>
+														Chain {String(network.$parentLayer[EntityMetaKey.Id].chainId)}
 													</a>
 												</div>
 											{/snippet}
@@ -566,7 +559,7 @@
 									</section>
 								{/if}
 
-								{#if (networkEntity.$$siblingShardNetworks ?? []).length}
+								{#if (network.$$siblingShardNetworks ?? []).length}
 									<section data-scroll-marker-label="Shards">
 										<NetworksView
 											collapsible={false}
@@ -586,7 +579,7 @@
 									</section>
 								{/if}
 
-								{#if networkEntity.environment === NetworkEnvironment.Mainnet}
+								{#if network.environment === NetworkEnvironment.Mainnet}
 									<section>
 										<NetworksView
 											collapsible={false}
@@ -604,9 +597,9 @@
 											title="Testnets"
 										/>
 									</section>
-								{:else if networkEntity.environment === NetworkEnvironment.Testnet}
+								{:else if network.environment === NetworkEnvironment.Testnet}
 									<section>
-										{#if networkEntity.$mainnet?.[EntityMetaKey.Id].chainId !== undefined}
+										{#if network.$mainnet?.[EntityMetaKey.Id].chainId !== undefined}
 											<EntitiesList
 												collapsible={false}
 												entityType={EntityType.Network}
@@ -616,8 +609,8 @@
 											>
 												{#snippet body()}
 													<div class="entity-details">
-														<a href={networkHref(networkEntity.$mainnet[EntityMetaKey.Id].chainId)}>
-															Chain {String(networkEntity.$mainnet[EntityMetaKey.Id].chainId)}
+														<a href={networkHref(network.$mainnet[EntityMetaKey.Id].chainId)}>
+															Chain {String(network.$mainnet[EntityMetaKey.Id].chainId)}
 														</a>
 													</div>
 												{/snippet}
@@ -658,7 +651,7 @@
 									</section>
 								{/if}
 
-								{#if (networkEntity.$$childLayers ?? []).length}
+								{#if (network.$$childLayers ?? []).length}
 									<section>
 										<NetworksView
 											collapsible={false}
@@ -678,7 +671,7 @@
 									</section>
 								{/if}
 
-								{#if (networkEntity.$$faucetUrls ?? []).length}
+								{#if (network.$$faucetUrls ?? []).length}
 									<section>
 										<UrlsView
 											collapsible={false}
@@ -876,8 +869,8 @@
 					<ResourceBoundary
 						resource={network}
 					>
-						{#snippet children(networkEntity)}
-							{@const nativeRows = networkEntity.nativeCurrencies ?? []}
+						{#snippet children(network)}
+							{@const nativeRows = network.nativeCurrencies ?? []}
 							{@const catalogCoinIds = (
 								[
 									...new Set(
@@ -974,28 +967,28 @@
 
 							<section id={`${networkIdKey}:economics-gas`}>
 								<div class="entity-details" data-column="gap-3">
-									{#if networkEntity.gasPrice !== undefined}
+									{#if network.gasPrice !== undefined}
 										<div data-row="inline wrap gap-2 align-baseline">
 											<span data-text="annotation">Suggested gas price</span>
 											<span>
-												<NumberValue value={networkEntity.gasPrice} /> wei
+												<NumberValue value={network.gasPrice} /> wei
 											</span>
 										</div>
 									{/if}
 
-									{#if networkEntity.baseFeePerGas !== undefined}
+									{#if network.baseFeePerGas !== undefined}
 										<div data-row="inline wrap gap-2 align-baseline">
 											<span data-text="annotation">Base fee</span>
 											<span>
-												<NumberValue value={networkEntity.baseFeePerGas} /> wei
+												<NumberValue value={network.baseFeePerGas} /> wei
 											</span>
 										</div>
 									{/if}
 
-									{#if networkEntity.gasUsedRatio !== undefined}
+									{#if network.gasUsedRatio !== undefined}
 										<div data-row="inline wrap gap-2 align-baseline">
 											<span data-text="annotation">Gas-used ratio</span>
-											<span>{String(networkEntity.gasUsedRatio)}</span>
+											<span>{String(network.gasUsedRatio)}</span>
 										</div>
 									{/if}
 									<Network_GasFee_BlocksView
@@ -1073,8 +1066,8 @@
 						href={`#${networkIdKey}:txpool`}
 					>Mempool</a>
 					<ResourceBoundary resource={network}>
-						{#snippet children(networkEntity)}
-							{#if (networkEntity.$$rpcUrls ?? []).length}
+						{#snippet children(network)}
+							{#if (network.$$rpcUrls ?? []).length}
 								<a
 									data-scroll-marker-label="Providers"
 									href={`#${networkIdKey}:execution-rpcs`}
@@ -1083,8 +1076,8 @@
 						{/snippet}
 					</ResourceBoundary>
 					<ResourceBoundary resource={network}>
-						{#snippet children(networkEntity)}
-							{#if (networkEntity.$$blockExplorerUrls ?? []).length}
+						{#snippet children(network)}
+							{#if (network.$$blockExplorerUrls ?? []).length}
 								<a
 									data-scroll-marker-label="Explorers"
 									href={`#${networkIdKey}:explorers`}
@@ -1173,8 +1166,8 @@
 							/>
 						</section>
 						<ResourceBoundary resource={network}>
-							{#snippet children(networkEntity)}
-								{#if (networkEntity.$$rpcUrls ?? []).length}
+							{#snippet children(network)}
+								{#if (network.$$rpcUrls ?? []).length}
 									<section>
 										<UrlsView
 											collapsible={false}
@@ -1201,8 +1194,8 @@
 						<ResourceBoundary
 							resource={network}
 						>
-							{#snippet children(networkEntity)}
-								{#if (networkEntity.$$blockExplorerUrls ?? []).length}
+							{#snippet children(network)}
+								{#if (network.$$blockExplorerUrls ?? []).length}
 									<section>
 										<UrlsView
 											collapsible={false}
@@ -1289,12 +1282,12 @@
 										resource={network}
 										placeholderText="Loading fork schedule…"
 									>
-										{#snippet children(networkEntity)}
-											{#if networkEntity.beaconForkScheduleJson !== undefined}
+										{#snippet children(network)}
+											{#if network.beaconForkScheduleJson !== undefined}
 												<div data-row="wrap align-start gap-2">
 													<TruncatedValue
 														format={TruncatedValueFormat.Visual}
-														value={networkEntity.beaconForkScheduleJson}
+														value={network.beaconForkScheduleJson}
 													/>
 													<Tooltip contentProps={{ side: 'top' }}>
 														{#snippet Content()}
@@ -1332,12 +1325,12 @@
 										resource={network}
 										placeholderText="Loading finality checkpoints…"
 									>
-										{#snippet children(networkEntity)}
-											{#if networkEntity.beaconFinalityCheckpointsJson !== undefined}
+										{#snippet children(network)}
+											{#if network.beaconFinalityCheckpointsJson !== undefined}
 												<div data-row="wrap align-start gap-2">
 													<TruncatedValue
 														format={TruncatedValueFormat.Visual}
-														value={networkEntity.beaconFinalityCheckpointsJson}
+														value={network.beaconFinalityCheckpointsJson}
 													/>
 													<Tooltip contentProps={{ side: 'top' }}>
 														{#snippet Content()}
@@ -1458,12 +1451,12 @@
 										resource={network}
 										placeholderText="Loading explorer stats…"
 									>
-										{#snippet children(networkEntity)}
-											{#if networkEntity.blockscoutStatsJson !== undefined}
+										{#snippet children(network)}
+											{#if network.blockscoutStatsJson !== undefined}
 												<div data-row="wrap align-start gap-2">
 													<TruncatedValue
 														format={TruncatedValueFormat.Visual}
-														value={networkEntity.blockscoutStatsJson}
+														value={network.blockscoutStatsJson}
 													/>
 													<Tooltip contentProps={{ side: 'top' }}>
 														{#snippet Content()}

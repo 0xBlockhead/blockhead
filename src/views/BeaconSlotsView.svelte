@@ -48,7 +48,7 @@
 		>
 	> = $props()
 
-	const beaconParent = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		(
@@ -72,9 +72,9 @@
 	)
 
 	const slots = derive(
-		beaconParent,
-		(merged): Entity<typeof schema, EntityType.BeaconSlot>[] => (
-			(merged.$$beaconSlots ?? [])
+		parent,
+		(parent): Entity<typeof schema, EntityType.BeaconSlot>[] => (
+			(parent.$$beaconSlots ?? [])
 				.toSorted((a, b) => (
 					b[EntityMetaKey.Id].slot - a[EntityMetaKey.Id].slot
 				))
@@ -102,9 +102,9 @@
 				resource={slots}
 				placeholderText="Loading slots…"
 			>
-				{#snippet children(loaded)}
+				{#snippet children(slots)}
 					<OrderedList
-						items={loaded}
+						items={slots}
 						getKey={(slot) => stringify(slot[EntityMetaKey.Id])}
 						getSortKey={(slot) => slot[EntityMetaKey.Id].slot}
 						placeholderRanges={[]}

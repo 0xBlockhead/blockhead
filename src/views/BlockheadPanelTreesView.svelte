@@ -46,7 +46,7 @@
 	> = $props()
 
 
-	const globalEntity = useEntity(
+	const global = useEntity(
 		EntityType._Global,
 		entityFieldReference.entityId,
 		(
@@ -63,9 +63,9 @@
 	)
 
 	const panelTrees = derive(
-		globalEntity,
-		(globalRow) => (
-			globalRow['$$blockheadPanelTrees'] ?? []
+		global,
+		(global) => (
+			global['$$blockheadPanelTrees'] ?? []
 		),
 	)
 </script>

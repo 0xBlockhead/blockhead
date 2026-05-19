@@ -98,10 +98,10 @@
 				resource={blob}
 				placeholderText="Loading blob…"
 			>
-				{#snippet children(b)}
+				{#snippet children(blob)}
 					<small>
 						<TruncatedValue
-							value={b.versionedHash}
+							value={blob.versionedHash}
 							format={TruncatedValueFormat.Abbr}
 						/>
 					</small>
@@ -111,12 +111,12 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Blob-bearing transactions anchor large binary payloads beside the usual execution payload: commitments and blob gas live in header metadata while the opaque bytes ride in sidecars.
-				</p>
-				<p>
-					The short <strong>versioned hash</strong> shown here summarizes the cryptographic commitment validators agreed on—not contract bytecode nor log fingerprints.
-				</p>
+		<p>
+			Blob-bearing transactions anchor large binary payloads beside the usual execution payload: commitments and blob gas live in header metadata while the opaque bytes ride in sidecars.
+		</p>
+		<p>
+			The short <strong>versioned hash</strong> shown here summarizes the cryptographic commitment validators agreed on—not contract bytecode nor log fingerprints.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -124,7 +124,7 @@
 			resource={blob}
 			placeholderText="Loading blob…"
 		>
-			{#snippet children(b)}
+			{#snippet children(blob)}
 				<div data-column="gap-1">
 				<dl data-column-item="center">
 					<div>
@@ -133,12 +133,12 @@
 							<NumberValue value={entityId.blobIndex} />
 						</dd>
 					</div>
-					{#if b.versionedHash !== undefined}
+					{#if blob.versionedHash !== undefined}
 						<div>
 							<dt>Blob commitment (KZG versioned hash)</dt>
 							<dd>
 								<TruncatedValue
-									value={b.versionedHash}
+									value={blob.versionedHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>
@@ -148,7 +148,7 @@
 								<dt>Blobscan</dt>
 								<dd>
 									<a
-										href={`https://blobscan.com/blob/${b.versionedHash}`}
+										href={`https://blobscan.com/blob/${blob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
@@ -160,7 +160,7 @@
 								<dt>Blobscan</dt>
 								<dd>
 									<a
-										href={`https://sepolia.blobscan.com/blob/${b.versionedHash}`}
+										href={`https://sepolia.blobscan.com/blob/${blob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
@@ -172,7 +172,7 @@
 								<dt>Blobscan</dt>
 								<dd>
 									<a
-										href={`https://gnosis.blobscan.com/blob/${b.versionedHash}`}
+										href={`https://gnosis.blobscan.com/blob/${blob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
@@ -184,7 +184,7 @@
 								<dt>Blobscan</dt>
 								<dd>
 									<a
-										href={`https://hoodi.blobscan.com/blob/${b.versionedHash}`}
+										href={`https://hoodi.blobscan.com/blob/${blob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
@@ -194,14 +194,14 @@
 						{/if}
 					{/if}
 
-					{#if b.blobscanBlobJson !== undefined}
+					{#if blob.blobscanBlobJson !== undefined}
 						<div>
 							<dt>Blobscan indexer payload</dt>
 							<dd data-column="gap-1">
 								<div data-row="wrap align-start gap-2">
 									<TruncatedValue
 										format={TruncatedValueFormat.Visual}
-										value={b.blobscanBlobJson}
+										value={blob.blobscanBlobJson}
 									/>
 									<Tooltip contentProps={{ side: 'top' }}>
 										{#snippet Content()}

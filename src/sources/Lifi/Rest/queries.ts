@@ -6,12 +6,13 @@
 
 import { throwIfHttpNotOk } from '$/lib/http.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
-import { baseUrl } from '$/sources/Lifi/Rest/constants.ts'
+import { lifiRestFetch } from '$/sources/Lifi/Rest/client.ts'
 import type {
 	FetchLifiChainsOptions,
 	FetchLifiTokensOptions,
 	LifiChainsResponse,
 	LifiTokensResponse,
+	LifiToolsResponse,
 } from '$/sources/Lifi/Rest/types.ts'
 
 /**
@@ -20,14 +21,13 @@ import type {
 export async function fetchLifiChains(
 	options?: FetchLifiChainsOptions,
 ): Promise<LifiChainsResponse> {
-	const base = options?.baseUrl ?? baseUrl
 	const params = new URLSearchParams()
 	if (options?.chainTypes != null && options.chainTypes !== '')
 		params.set('chainTypes', options.chainTypes)
 	const queryString = params.toString()
-	const chainsUrl = `${base}/v1/chains${queryString ? `?${queryString}` : ''}`
-	const res = await fetch(chainsUrl)
-	await throwIfHttpNotOk(res, chainsUrl)
+	const path = `/v1/chains${queryString ? `?${queryString}` : ''}`
+	const res = await lifiRestFetch(path, undefined, { baseUrl: options?.baseUrl })
+	await throwIfHttpNotOk(res, path)
 	return res.json<LifiChainsResponse>()
 }
 
@@ -37,7 +37,6 @@ export async function fetchLifiChains(
 export async function fetchLifiTokens(
 	options?: FetchLifiTokensOptions,
 ): Promise<LifiTokensResponse> {
-	const base = options?.baseUrl ?? baseUrl
 	const params = new URLSearchParams()
 	if (options?.chains != null && options.chains !== '')
 		params.set('chains', options.chains)
@@ -47,9 +46,9 @@ export async function fetchLifiTokens(
 	if (options?.minPriceUSD != null)
 		params.set('minPriceUSD', String(options.minPriceUSD))
 	const queryString = params.toString()
-	const tokensUrl = `${base}/v1/tokens${queryString ? `?${queryString}` : ''}`
-	const res = await fetch(tokensUrl)
-	await throwIfHttpNotOk(res, tokensUrl)
+	const path = `/v1/tokens${queryString ? `?${queryString}` : ''}`
+	const res = await lifiRestFetch(path, undefined, { baseUrl: options?.baseUrl })
+	await throwIfHttpNotOk(res, path)
 	return res.json<LifiTokensResponse>()
 }
 
@@ -57,5 +56,24 @@ export async function fetchLifiTokens(
 export const fetchLifiChainsCatalog = singleFlight(
 	async (): Promise<LifiChainsResponse> => (
 		fetchLifiChains()
+	),
+)
+
+/**
+ * `GET /v1/tools` — supported bridges (and exchanges; callers use `bridges`).
+ * @see https://docs.li.fi/li.fi-api/li.fi-api/requesting-all-supported-tools
+ */
+export async function fetchLifiTools(
+	options?: { baseUrl?: string },
+): Promise<LifiToolsResponse> {
+	const path = '/v1/tools'
+	const res = await lifiRestFetch(path, undefined, { baseUrl: options?.baseUrl })
+	await throwIfHttpNotOk(res, path)
+	return res.json<LifiToolsResponse>()
+}
+
+export const fetchLifiToolsCatalog = singleFlight(
+	async (): Promise<LifiToolsResponse> => (
+		fetchLifiTools()
 	),
 )

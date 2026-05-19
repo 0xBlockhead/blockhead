@@ -109,11 +109,11 @@
 			resource={stateChannel}
 			placeholderText="Loading state channel…"
 		>
-			{#snippet children(live)}
+			{#snippet children(stateChannel)}
 				{(
-					live.status
-					?? (live.turnNum !== undefined ? `Turn ${String(live.turnNum)}` : undefined)
-					?? (live.totalDeposited !== undefined ? String(live.totalDeposited) : undefined)
+					stateChannel.status
+					?? (stateChannel.turnNum !== undefined ? `Turn ${String(stateChannel.turnNum)}` : undefined)
+					?? (stateChannel.totalDeposited !== undefined ? String(stateChannel.totalDeposited) : undefined)
 					?? `State channel ${entityId.id}`
 				)}
 			{/snippet}
@@ -121,98 +121,92 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					State channels settle balances privately off-chain until a closing transaction posts on-chain defaults.
-				</p>
-				<p>
-					They serve a different workflow than mempool gossip or realtime collaboration rooms tracked elsewhere in the app.
-				</p>
+		<p>
+			State channels settle balances privately off-chain until a closing transaction posts on-chain defaults.
+		</p>
+		<p>
+			They serve a different workflow than mempool gossip or realtime collaboration rooms tracked elsewhere in the app.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<div data-column="gap-1">
 
 			<dl data-column-item="center">
-			<div>
-				<dt>State channel id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
 
 			<ResourceBoundary
 				resource={stateChannel}
 				placeholderText="Loading state channel…"
 			>
-				{#snippet children(live)}
-					{#if live.status !== undefined}
+				{#snippet children(stateChannel)}
+					{#if stateChannel.status !== undefined}
 						<div>
 							<dt>Status</dt>
-							<dd>{live.status}</dd>
+							<dd>{stateChannel.status}</dd>
 						</div>
 					{/if}
 
-					{#if !open && live.updatedAt !== undefined}
+					{#if !open && stateChannel.updatedAt !== undefined}
 						<div>
 							<dt>Last activity</dt>
 							<dd>
 								<Timestamp
-									timestamp={live.updatedAt}
+									timestamp={stateChannel.updatedAt}
 									format={TimestampFormat.Both}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if !open && live.updatedAt === undefined && live.createdAt !== undefined}
+					{#if !open && stateChannel.updatedAt === undefined && stateChannel.createdAt !== undefined}
 						<div>
 							<dt>Last activity</dt>
 							<dd>
 								<Timestamp
-									timestamp={live.createdAt}
+									timestamp={stateChannel.createdAt}
 									format={TimestampFormat.Both}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && live.totalDeposited !== undefined}
+					{#if open && stateChannel.totalDeposited !== undefined}
 						<div>
 							<dt>Total deposited</dt>
-							<dd>{String(live.totalDeposited)}</dd>
+							<dd>{String(stateChannel.totalDeposited)}</dd>
 						</div>
 					{/if}
 
-					{#if open && live.balance0 !== undefined}
+					{#if open && stateChannel.balance0 !== undefined}
 						<div>
 							<dt>Balance (participant 0)</dt>
-							<dd>{String(live.balance0)}</dd>
+							<dd>{String(stateChannel.balance0)}</dd>
 						</div>
 					{/if}
 
-					{#if open && live.balance1 !== undefined}
+					{#if open && stateChannel.balance1 !== undefined}
 						<div>
 							<dt>Balance (participant 1)</dt>
-							<dd>{String(live.balance1)}</dd>
+							<dd>{String(stateChannel.balance1)}</dd>
 						</div>
 					{/if}
 
-					{#if open && live.turnNum !== undefined}
+					{#if open && stateChannel.turnNum !== undefined}
 						<div>
 							<dt>Turn</dt>
-							<dd>{String(live.turnNum)}</dd>
+							<dd>{String(stateChannel.turnNum)}</dd>
 						</div>
 					{/if}
 
-					{#if open && live.$network?.[EntityMetaKey.Id].chainId !== undefined}
+					{#if open && stateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
 						<div>
 							<dt>Network</dt>
 							<dd>
 								<NetworkView
-									entityId={live.$network[EntityMetaKey.Id]}
+									entityId={stateChannel.$network[EntityMetaKey.Id]}
 									href={resolve(
 										'/(explore)/(networks)/network/[networkId]',
-										{ networkId: String(live.$network[EntityMetaKey.Id].chainId) },
+										{ networkId: String(stateChannel.$network[EntityMetaKey.Id].chainId) },
 									)}
 									layout={EntityLayout.Summary}
 									open={false}
@@ -222,14 +216,14 @@
 						</div>
 					{/if}
 
-					{#if open && live.$participant0?.[EntityMetaKey.Id].address !== undefined}
+					{#if open && stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>Participant 0</dt>
 							<dd>
 								<ActorView
-									entityId={live.$participant0[EntityMetaKey.Id]}
+									entityId={stateChannel.$participant0[EntityMetaKey.Id]}
 									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-										accountId: live.$participant0[EntityMetaKey.Id].address,
+										accountId: stateChannel.$participant0[EntityMetaKey.Id].address,
 									})}
 									layout={EntityLayout.Summary}
 									open={false}
@@ -239,14 +233,14 @@
 						</div>
 					{/if}
 
-					{#if open && live.$participant1?.[EntityMetaKey.Id].address !== undefined}
+					{#if open && stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>Participant 1</dt>
 							<dd>
 								<ActorView
-									entityId={live.$participant1[EntityMetaKey.Id]}
+									entityId={stateChannel.$participant1[EntityMetaKey.Id]}
 									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-										accountId: live.$participant1[EntityMetaKey.Id].address,
+										accountId: stateChannel.$participant1[EntityMetaKey.Id].address,
 									})}
 									layout={EntityLayout.Summary}
 									open={false}
@@ -256,12 +250,12 @@
 						</div>
 					{/if}
 
-					{#if open && live.$asset?.[EntityMetaKey.Id] !== undefined}
+					{#if open && stateChannel.$asset?.[EntityMetaKey.Id] !== undefined}
 						<div>
 							<dt>Asset</dt>
 							<dd>
 								<CoinInstanceView
-									entityId={live.$asset[EntityMetaKey.Id]}
+									entityId={stateChannel.$asset[EntityMetaKey.Id]}
 									{href}
 									layout={EntityLayout.Summary}
 									open={false}
@@ -271,15 +265,15 @@
 						</div>
 					{/if}
 
-					{#if open && live.$room?.[EntityMetaKey.Id].id !== undefined}
+					{#if open && stateChannel.$room?.[EntityMetaKey.Id].id !== undefined}
 						<div>
 							<dt>Room</dt>
 							<dd>
 								<BlockheadRoomView
-									entityId={live.$room[EntityMetaKey.Id]}
+									entityId={stateChannel.$room[EntityMetaKey.Id]}
 									href={resolve(
 										'/~/(multiplayer)/multiplayer/(rooms)/room/[roomId]',
-										{ roomId: live.$room[EntityMetaKey.Id].id },
+										{ roomId: stateChannel.$room[EntityMetaKey.Id].id },
 									)}
 									layout={EntityLayout.Summary}
 									open={false}
@@ -289,24 +283,24 @@
 						</div>
 					{/if}
 
-					{#if open && live.createdAt !== undefined}
+					{#if open && stateChannel.createdAt !== undefined}
 						<div>
 							<dt>Opened</dt>
 							<dd>
 								<Timestamp
-									timestamp={live.createdAt}
+									timestamp={stateChannel.createdAt}
 									format={TimestampFormat.Both}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && live.updatedAt !== undefined}
+					{#if open && stateChannel.updatedAt !== undefined}
 						<div>
 							<dt>Last updated</dt>
 							<dd>
 								<Timestamp
-									timestamp={live.updatedAt}
+									timestamp={stateChannel.updatedAt}
 									format={TimestampFormat.Both}
 								/>
 							</dd>
@@ -353,11 +347,11 @@
 							resource={stateChannel}
 							placeholderText=""
 						>
-							{#snippet children(live)}
+							{#snippet children(stateChannel)}
 								{#if open}
 									{#if (
-										live.$participant0?.[EntityMetaKey.Id].address !== undefined
-										|| live.$participant1?.[EntityMetaKey.Id].address !== undefined
+										stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined
+										|| stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined
 									)}
 										<a
 											data-scroll-marker-label="Participants"
@@ -365,21 +359,21 @@
 										>Participants</a>
 									{/if}
 
-									{#if live.$asset?.[EntityMetaKey.Id] !== undefined}
+									{#if stateChannel.$asset?.[EntityMetaKey.Id] !== undefined}
 										<a
 											data-scroll-marker-label="Asset"
 											href={`#${channelKey}:asset`}
 										>Asset</a>
 									{/if}
 
-									{#if live.$network?.[EntityMetaKey.Id].chainId !== undefined}
+									{#if stateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
 										<a
 											data-scroll-marker-label="Network"
 											href={`#${channelKey}:network`}
 										>Network</a>
 									{/if}
 
-									{#if live.$room?.[EntityMetaKey.Id].id !== undefined}
+									{#if stateChannel.$room?.[EntityMetaKey.Id].id !== undefined}
 										<a
 											data-scroll-marker-label="Room"
 											href={`#${channelKey}:room`}
@@ -395,22 +389,22 @@
 							resource={stateChannel}
 							placeholderText="Loading state channel…"
 						>
-							{#snippet children(live)}
+							{#snippet children(stateChannel)}
 								{#if open}
 									{#if (
-										live.$participant0?.[EntityMetaKey.Id].address !== undefined
-										|| live.$participant1?.[EntityMetaKey.Id].address !== undefined
+										stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined
+										|| stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined
 									)}
 										<section
 											data-scroll-marker-label="Participants"
 											id={`${channelKey}:participants`}
 										>
 											<div data-column="gap-2">
-												{#if live.$participant0?.[EntityMetaKey.Id].address !== undefined}
+												{#if stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined}
 													<ActorView
-														entityId={live.$participant0[EntityMetaKey.Id]}
+														entityId={stateChannel.$participant0[EntityMetaKey.Id]}
 														href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-															accountId: live.$participant0[EntityMetaKey.Id].address,
+															accountId: stateChannel.$participant0[EntityMetaKey.Id].address,
 														})}
 														layout={EntityLayout.Summary}
 														open={false}
@@ -418,11 +412,11 @@
 													/>
 												{/if}
 
-												{#if live.$participant1?.[EntityMetaKey.Id].address !== undefined}
+												{#if stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
 													<ActorView
-														entityId={live.$participant1[EntityMetaKey.Id]}
+														entityId={stateChannel.$participant1[EntityMetaKey.Id]}
 														href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-															accountId: live.$participant1[EntityMetaKey.Id].address,
+															accountId: stateChannel.$participant1[EntityMetaKey.Id].address,
 														})}
 														layout={EntityLayout.Summary}
 														open={false}
@@ -433,13 +427,13 @@
 										</section>
 									{/if}
 
-									{#if live.$asset?.[EntityMetaKey.Id] !== undefined}
+									{#if stateChannel.$asset?.[EntityMetaKey.Id] !== undefined}
 										<section
 											data-scroll-marker-label="Asset"
 											id={`${channelKey}:asset`}
 										>
 											<CoinInstanceView
-												entityId={live.$asset[EntityMetaKey.Id]}
+												entityId={stateChannel.$asset[EntityMetaKey.Id]}
 												{href}
 												layout={EntityLayout.Summary}
 												open={false}
@@ -448,16 +442,16 @@
 										</section>
 									{/if}
 
-									{#if live.$network?.[EntityMetaKey.Id].chainId !== undefined}
+									{#if stateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
 										<section
 											data-scroll-marker-label="Network"
 											id={`${channelKey}:network`}
 										>
 											<NetworkView
-												entityId={live.$network[EntityMetaKey.Id]}
+												entityId={stateChannel.$network[EntityMetaKey.Id]}
 												href={resolve(
 													'/(explore)/(networks)/network/[networkId]',
-													{ networkId: String(live.$network[EntityMetaKey.Id].chainId) },
+													{ networkId: String(stateChannel.$network[EntityMetaKey.Id].chainId) },
 												)}
 												layout={EntityLayout.Summary}
 												open={false}
@@ -466,16 +460,16 @@
 										</section>
 									{/if}
 
-									{#if live.$room?.[EntityMetaKey.Id].id !== undefined}
+									{#if stateChannel.$room?.[EntityMetaKey.Id].id !== undefined}
 										<section
 											data-scroll-marker-label="Room"
 											id={`${channelKey}:room`}
 										>
 											<BlockheadRoomView
-												entityId={live.$room[EntityMetaKey.Id]}
+												entityId={stateChannel.$room[EntityMetaKey.Id]}
 												href={resolve(
 													'/~/(multiplayer)/multiplayer/(rooms)/room/[roomId]',
-													{ roomId: live.$room[EntityMetaKey.Id].id },
+													{ roomId: stateChannel.$room[EntityMetaKey.Id].id },
 												)}
 												layout={EntityLayout.Summary}
 												open={false}

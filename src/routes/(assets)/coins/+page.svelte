@@ -22,6 +22,6 @@
 		}}
 		href={resolve('/coins')}
 		id="coins"
-		limit={80}
+		limit={120}
 	/>
 </Page>

@@ -101,30 +101,30 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Browser storage can keep UI preferences and optional third-party API usage counters tied to one profile.
-				</p>
-				<p>
-					RPC or indexer base URLs and API keys belong in transport configuration rows, not in generic preference blobs.
-				</p>
+		<p>
+			Browser storage can keep UI preferences and optional third-party API usage counters tied to one profile.
+		</p>
+		<p>
+			RPC or indexer base URLs and API keys belong in transport configuration rows, not in generic preference blobs.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open: summaryOpen })}
 		{#if summaryOpen}
 		<dl data-column-item="center">
 			<ResourceBoundary resource={global}>
-				{#snippet children(g)}
-					{#if g.duneCreditsUsed !== undefined}
+				{#snippet children(global)}
+					{#if global.duneCreditsUsed !== undefined}
 						<div>
 							<dt>Dune credits used</dt>
-							<dd>{String(g.duneCreditsUsed)}</dd>
+							<dd>{String(global.duneCreditsUsed)}</dd>
 						</div>
 					{/if}
 
-					{#if g.duneCreditsIncluded !== undefined}
+					{#if global.duneCreditsIncluded !== undefined}
 						<div>
 							<dt>Dune credits included</dt>
-							<dd>{String(g.duneCreditsIncluded)}</dd>
+							<dd>{String(global.duneCreditsIncluded)}</dd>
 						</div>
 					{/if}
 				{/snippet}
@@ -266,30 +266,30 @@
 								resource={global}
 								placeholderText="Loading usage…"
 							>
-								{#snippet children(g)}
+								{#snippet children(global)}
 									<dl data-column-item="center">
-										{#if g.duneCreditsUsed !== undefined}
+										{#if global.duneCreditsUsed !== undefined}
 											<div>
 												<dt>Dune credits used</dt>
-												<dd>{String(g.duneCreditsUsed)}</dd>
+												<dd>{String(global.duneCreditsUsed)}</dd>
 											</div>
 										{/if}
 
-										{#if g.duneCreditsIncluded !== undefined}
+										{#if global.duneCreditsIncluded !== undefined}
 											<div>
 												<dt>Dune credits included</dt>
-												<dd>{String(g.duneCreditsIncluded)}</dd>
+												<dd>{String(global.duneCreditsIncluded)}</dd>
 											</div>
 										{/if}
 
 										{#if (
-											g.duneCreditsUsed === undefined
-											&& g.duneCreditsIncluded === undefined
+											global.duneCreditsUsed === undefined
+											&& global.duneCreditsIncluded === undefined
 										)}
 											<div>
 												<dt>Status</dt>
 												<dd data-text="muted">
-													No usage totals loaded yet.
+													No usage totals global yet.
 												</dd>
 											</div>
 										{/if}

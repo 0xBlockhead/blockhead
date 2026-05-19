@@ -67,11 +67,11 @@
 		},
 	)
 
-	const recentBlocks = derive(
+	const blocks = derive(
 		network,
-		(loaded): Entity<typeof schema, EntityType.EvmBlock>[] => {
+		(network): Entity<typeof schema, EntityType.EvmBlock>[] => {
 			const rows = (
-				loaded.$$blocks
+				network.$$blocks
 				?? []
 			)
 			return (
@@ -98,15 +98,15 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Execution blocks group ordered transactions under one header: gas usage, fee market, and parent hash linkage.
-					</p>
-					<p>
-						Receipts carry event logs with indexed topics; blob transactions add data availability commitments without changing how contracts are decoded.
-					</p>
-					<p>
-						Recent block lists are often capped for RPC cost.
-					</p>
+		<p>
+			Execution blocks group ordered transactions under one header: gas usage, fee market, and parent hash linkage.
+		</p>
+		<p>
+			Receipts carry event logs with indexed topics; blob transactions add data availability commitments without changing how contracts are decoded.
+		</p>
+		<p>
+			Recent block lists are often capped for RPC cost.
+		</p>
 	{/snippet}
 
 	{#snippet body()}
@@ -121,7 +121,7 @@
 				open={true}
 				getKey={(row) => row[EntityMetaKey.Id].blockNumber}
 				placeholderText="Loading execution blocks…"
-				resource={recentBlocks}
+				resource={blocks}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}

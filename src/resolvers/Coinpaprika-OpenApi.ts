@@ -1,15 +1,24 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
+	resolverLoadSubsetRowLimit,
 	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import type { CoinId } from '$/constants/Coin.ts'
 import {
 	MarketAssetKind,
-	MarketPriceRangeType,
 	MarketTimeIntervalUnit,
 } from '$/constants/Market.ts'
-import { MarketVenueId } from '$/constants/MarketVenue.ts'
+import {
+	catalogMarketsWithCurrencyAsBase,
+	catalogMarketsWithCurrencyAsQuote,
+	usdCurrencyMarketAssetLeg,
+} from '$/constants/Currency.ts'
+import {
+	candleEntitiesFromOhlcWireRows,
+	candleEntityFromOhlcWireRow,
+} from '$/lib/marketOhlcCandles.ts'
+import { catalogCoinUsdMarketId } from '$/constants/MarketCatalog.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
@@ -89,7 +98,7 @@ export default {
 				return {
 					[EntityMetaKey.Id]: entityId,
 					price: BigInt(Math.round(price * 1e8)),
-					timestampNs: BigInt(updatedAtSec) * 1_000_000_000n,
+					timestampMs: updatedAtSec * 1000,
 					updatedAt: updatedAtSec * 1000,
 					transport: 'coinpaprika-usd-1e8',
 					providerAssetId: coinpaprikaId,
@@ -98,7 +107,7 @@ export default {
 		}),
 
 		defineEntityResolver({
-			entityType: EntityType.MarketPriceRange,
+			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: async (entityId, context) => {
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 				const {
@@ -107,9 +116,6 @@ export default {
 					getCoinpaprikaOhlcvTodayCoingeckoShape,
 				} = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
-				if (entityId.rangeType !== MarketPriceRangeType.OHLCCandles) {
-					throw new Error('Coinpaprika_OpenApi: unsupported range type')
-				}
 				if (entityId.timeInterval.unit !== MarketTimeIntervalUnit.Day) {
 					throw new Error('Coinpaprika_OpenApi: OHLC timeInterval must be day-based')
 				}
@@ -138,11 +144,17 @@ export default {
 							days: entityId.timeInterval.value,
 						})
 				)
-				if (rows.length === 0) throw new Error('Coinpaprika_OpenApi: empty OHLC series')
-				return {
-					pointCount: rows.length,
-					rangePayload: JSON.stringify(rows),
-				}
+				const row = rows.find(([timestampMs]) => (
+					Math.floor(timestampMs) === entityId.timestampMs
+				))
+				if (row == null) throw new Error('Coinpaprika_OpenApi: OHLC candle not found for timestamp')
+				return (
+					candleEntityFromOhlcWireRow(
+						entityId.$market,
+						entityId.timeInterval,
+						row,
+					)
+				)
 			},
 		}),
 	],
@@ -179,19 +191,7 @@ export default {
 						.filter(([coinId]) => coinById[coinId as keyof typeof coinById] != null)
 						.map(([coinId]) => (
 							{
-								[EntityMetaKey.Id]: {
-									$base: {
-										kind: MarketAssetKind.Coin,
-										$coin: { coinId: coinId as CoinId },
-									},
-									$quote: {
-										kind: MarketAssetKind.Currency,
-										iso4217: 'USD',
-									},
-									$marketVenue: {
-										marketVenueId: MarketVenueId.SpotIndex,
-									},
-								} as const,
+								[EntityMetaKey.Id]: catalogCoinUsdMarketId(coinId),
 							}
 						))
 				)
@@ -200,44 +200,8 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$marketPriceRanges',
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
-				const { coinById } = await import('$/constants/Coin.ts')
-				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-				const { coinpaprikaOhlcDayWindowValues } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
-				const ohlcDayWindows = coinpaprikaOhlcDayWindowValues(publicEnv)
-				return (
-					Object.entries(idByCoinId)
-						.filter(([coinId]) => coinById[coinId as keyof typeof coinById] != null)
-						.flatMap(
-							([coinId]) => ohlcDayWindows.map((value) => (
-								{
-									[EntityMetaKey.Id]: {
-										$market: {
-											$base: {
-												kind: MarketAssetKind.Coin,
-												$coin: { coinId: coinId as CoinId },
-											},
-											$quote: {
-												kind: MarketAssetKind.Currency,
-												iso4217: 'USD',
-											},
-											$marketVenue: {
-												marketVenueId: MarketVenueId.SpotIndex,
-											},
-										} as const,
-										timeInterval: {
-											unit: MarketTimeIntervalUnit.Day,
-											value,
-										},
-										rangeType: MarketPriceRangeType.OHLCCandles,
-									},
-								}
-							)),
-						)
-				)
-			},
+			fieldName: '$$marketTimeIntervalTimestamps',
+			resolve: async () => [],
 		}),
 
 		defineEntityFieldResolver({
@@ -252,19 +216,7 @@ export default {
 						.map(([coinId]) => (
 							{
 								[EntityMetaKey.Id]: {
-									$market: {
-										$base: {
-											kind: MarketAssetKind.Coin,
-											$coin: { coinId: coinId as CoinId },
-										},
-										$quote: {
-											kind: MarketAssetKind.Currency,
-											iso4217: 'USD',
-										},
-										$marketVenue: {
-											marketVenueId: MarketVenueId.SpotIndex,
-										},
-									} as const,
+									$market: catalogCoinUsdMarketId(coinId),
 								},
 							}
 						))
@@ -283,19 +235,7 @@ export default {
 				return (
 					[
 						{
-							[EntityMetaKey.Id]: {
-								$base: {
-									kind: MarketAssetKind.Coin,
-									$coin: { coinId: entityId.coinId },
-								},
-								$quote: {
-									kind: MarketAssetKind.Currency,
-									iso4217: 'USD',
-								},
-								$marketVenue: {
-									marketVenueId: MarketVenueId.SpotIndex,
-								},
-							} as const,
+							[EntityMetaKey.Id]: catalogCoinUsdMarketId(entityId.coinId),
 						},
 					]
 				)
@@ -309,36 +249,21 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Coin,
-			fieldName: '$$marketPriceRanges',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>, context) => {
+			entityType: EntityType.Currency,
+			fieldName: '$$marketsWithCurrencyAsQuote',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-				const { coinpaprikaOhlcDayWindowValues } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
-				if (idByCoinId[entityId.coinId] == null) return []
-				const ohlcDayWindows = coinpaprikaOhlcDayWindowValues(sourcePublicEnv(context, Source.Coinpaprika_OpenApi))
 				return (
-					ohlcDayWindows.map((value) => (
+					catalogMarketsWithCurrencyAsQuote(
+						entityId.iso4217,
+						(coinId) => (
+							coinById[coinId as keyof typeof coinById] != null
+							&& idByCoinId[coinId] != null
+						),
+					).map((marketId) => (
 						{
-							[EntityMetaKey.Id]: {
-								$market: {
-									$base: {
-										kind: MarketAssetKind.Coin,
-										$coin: { coinId: entityId.coinId },
-									},
-									$quote: {
-										kind: MarketAssetKind.Currency,
-										iso4217: 'USD',
-									},
-									$marketVenue: {
-										marketVenueId: MarketVenueId.SpotIndex,
-									},
-								} as const,
-								timeInterval: {
-									unit: MarketTimeIntervalUnit.Day,
-									value,
-								},
-								rangeType: MarketPriceRangeType.OHLCCandles,
-							},
+							[EntityMetaKey.Id]: marketId,
 						}
 					))
 				)
@@ -346,59 +271,82 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Coin,
-			fieldName: '$$marketPrice',
-			resolve: async (entityId) => {
-				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-				if (idByCoinId[entityId.coinId] == null) return undefined
-				return (
+			entityType: EntityType.Currency,
+			fieldName: '$$marketsWithCurrencyAsBase',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => (
+				catalogMarketsWithCurrencyAsBase(entityId.iso4217).map((marketId) => (
 					{
-						[EntityMetaKey.Id]: {
-							$market: {
-								$base: {
-									kind: MarketAssetKind.Coin,
-									$coin: { coinId: entityId.coinId },
-								},
-								$quote: {
-									kind: MarketAssetKind.Currency,
-									iso4217: 'USD',
-								},
-								$marketVenue: {
-									marketVenueId: MarketVenueId.SpotIndex,
-								},
-							} as const,
-						},
+						[EntityMetaKey.Id]: marketId,
 					}
-				)
-			},
+				))
+			),
 		}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Market,
-			fieldName: '$$marketPriceRanges',
+			fieldName: '$$marketTimeIntervalTimestamps',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>, context) => {
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-				const { coinpaprikaOhlcDayWindowValues } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
+				const {
+					coinpaprikaOhlcDayWindowValues,
+					getCoinpaprikaOhlcvHistoricalCoingeckoShape,
+					getCoinpaprikaOhlcvTodayCoingeckoShape,
+				} = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
 				const coinId = (
 					entityId.$base.kind === MarketAssetKind.Coin ?
 						entityId.$base.$coin.coinId
 					:	undefined
 				)
 				if (coinId == null || idByCoinId[coinId] == null) return []
-				const ohlcDayWindows = coinpaprikaOhlcDayWindowValues(sourcePublicEnv(context, Source.Coinpaprika_OpenApi))
+				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
+				const ohlcDayWindows = coinpaprikaOhlcDayWindowValues(publicEnv)
+				const coinpaprikaId = idByCoinId[coinId]
+				if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: OHLC coin not mapped')
+				const lim = resolverLoadSubsetRowLimit(context)
+				const candles = (
+					(
+						await Promise.all(
+							ohlcDayWindows.map(async (value) => {
+								const timeInterval = (
+									{
+										unit: MarketTimeIntervalUnit.Day,
+										value,
+									}
+								)
+								const rows = (
+									value === 1 ?
+										await getCoinpaprikaOhlcvTodayCoingeckoShape({
+											publicEnv,
+											coinpaprikaId,
+										})
+									:	await getCoinpaprikaOhlcvHistoricalCoingeckoShape({
+											publicEnv,
+											coinpaprikaId,
+											days: value,
+										})
+								)
+								return (
+									candleEntitiesFromOhlcWireRows(
+										entityId,
+										timeInterval,
+										rows,
+									)
+								)
+							}),
+						)
+					).flat()
+				)
 				return (
-					ohlcDayWindows.map((value) => (
-						{
-							[EntityMetaKey.Id]: {
-								$market: entityId,
-								timeInterval: {
-									unit: MarketTimeIntervalUnit.Day,
-									value,
-								},
-								rangeType: MarketPriceRangeType.OHLCCandles,
-							},
-						}
-					))
+					candles
+						.toSorted((left, right) => (
+							left[EntityMetaKey.Id].timestampMs < right[EntityMetaKey.Id].timestampMs ?
+								1
+							: left[EntityMetaKey.Id].timestampMs > right[EntityMetaKey.Id].timestampMs ?
+								-1
+							:
+								0
+						))
+						.slice(0, lim)
 				)
 			},
 		}),
@@ -414,9 +362,9 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.MarketPriceRange,
+			entityType: EntityType.Market_TimeInterval_Timestamp,
 			fieldName: '$$parentMarket',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPriceRange>) => (
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
 				}

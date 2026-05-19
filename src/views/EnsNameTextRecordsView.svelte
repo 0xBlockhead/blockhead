@@ -71,7 +71,7 @@
 			9999
 	)
 
-	const textRecordKeys = derive(ens, (row) => (
+	const textRecords = derive(ens, (ens) => (
 		recordKeysProp !== undefined ?
 			[...recordKeysProp].toSorted((a, b) => (
 				rank(a) !== rank(b) ?
@@ -110,16 +110,16 @@
 		{href}
 		{id}
 		placeholderKeys={new SvelteSet()}
-		resource={textRecordKeys}
+		resource={textRecords}
 		{title}
 	>
 		{#snippet TypeAnnotationTooltip()}
-						<p>
-							ENS text records are resolver-stored profile fields (avatar, URL, etc.) keyed by the name’s on-chain node hash.
-						</p>
-						<p>
-							They are not the same as calldata method ids or log event topics—those belong to contract execution and receipts.
-						</p>
+			<p>
+				ENS text records are resolver-stored profile fields (avatar, URL, etc.) keyed by the name’s on-chain node hash.
+			</p>
+			<p>
+				They are not the same as calldata method ids or log event topics—those belong to contract execution and receipts.
+			</p>
 		{/snippet}
 		{#snippet Empty()}
 			<p data-text="muted">

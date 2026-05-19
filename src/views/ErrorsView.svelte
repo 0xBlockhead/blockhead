@@ -40,7 +40,7 @@
 		>
 	> = $props()
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -54,11 +54,11 @@
 		},
 	)
 
-	const envelopes = derive(
-		parentEntity,
-		(merged) => {
+	const errors = derive(
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.EvmError>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].hex.localeCompare(b[EntityMetaKey.Id].hex)
@@ -89,15 +89,15 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Revert data uses four-byte selectors (like calldata) but labels custom errors and standard revert shapes instead of function entrypoints.
-					</p>
-					<p>
-						Catalogs map those prefixes to signatures so tooling can decode the trailing words similarly to call arguments.
-					</p>
-					<p>
-						This list is a subset of error selectors for the parent contract or address under inspection.
-					</p>
+		<p>
+			Revert data uses four-byte selectors (like calldata) but labels custom errors and standard revert shapes instead of function entrypoints.
+		</p>
+		<p>
+			Catalogs map those prefixes to signatures so tooling can decode the trailing words similarly to call arguments.
+		</p>
+		<p>
+			This list is a subset of error selectors for the parent contract or address under inspection.
+		</p>
 	{/snippet}
 
 	{#snippet body()}
@@ -113,7 +113,7 @@
 				getKey={(envelope) => envelope.evmEntity[EntityMetaKey.Id].hex}
 				getSortValue={(envelope) => envelope.evmEntity[EntityMetaKey.Id].hex}
 				placeholderText="Loading revert data…"
-				resource={envelopes}
+				resource={errors}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}

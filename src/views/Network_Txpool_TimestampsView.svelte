@@ -48,7 +48,7 @@
 	// State
 	const fieldName = entityFieldReference.fieldName
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -66,10 +66,10 @@
 	)
 
 	const rows = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const list: Entity<typeof schema, EntityType.Network_Txpool_Timestamp>[] = (
-				merged[fieldName] ?? []
+				parent[fieldName] ?? []
 			)
 			return (
 				list
@@ -88,7 +88,7 @@
 	entityType={EntityType.Network_Txpool_Timestamp}
 	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
 	getSortValue={(row) => (
-		-Number(row.value[EntityMetaKey.Id].timestampNs)
+		-Number(row.value[EntityMetaKey.Id].timestampMs)
 	)}
 	placeholderKeys={new SvelteSet<string>()}
 	placeholderText="Loading mempool samples…"
@@ -97,12 +97,12 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Each row captures how many transactions were waiting in the mempool at one instant—pending versus queued.
-					</p>
-					<p>
-						Samples appear when the execution client exposes txpool inspection for this chain.
-					</p>
+		<p>
+			Each row captures how many transactions were waiting in the mempool at one instant—pending versus queued.
+		</p>
+		<p>
+			Samples appear when the execution client exposes txpool inspection for this chain.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

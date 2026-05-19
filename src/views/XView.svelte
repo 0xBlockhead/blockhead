@@ -13,6 +13,11 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+
+	let {
+		open = $bindable(true),
+	} = $props()
+
 	const entityId = {
 		scope: 'XNetwork' as const,
 	}
@@ -21,8 +26,6 @@
 	const examplePostId = '1955274825074221427' as const
 
 	const networkIdKey = stringify(entityId)
-
-	let open = $bindable(true)
 
 	const network = useEntity(
 		EntityType.XNetwork,
@@ -39,7 +42,6 @@
 
 
 	// Components
-	import Collapsible from '$/components/Collapsible.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
@@ -65,12 +67,12 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					X (Twitter) profiles and posts: public text and media surfaced by the network hub.
-				</p>
-				<p>
-					Not on-chain markets, Swarm blobs, Reddit, or end-to-end encrypted chat.
-				</p>
+		<p>
+			X (Twitter) profiles and posts: public text and media surfaced by the network hub.
+		</p>
+		<p>
+			Not on-chain markets, Swarm blobs, Reddit, or end-to-end encrypted chat.
+		</p>
 	{/snippet}
 
 	{#snippet Content({
@@ -79,27 +81,23 @@
 		open: contentOpen,
 	})}
 		<dl data-column-item="center">
-			<div>
-				<dt>Scope</dt>
-				<dd>{entityId.scope}</dd>
-			</div>
 			<ResourceBoundary
 				resource={network}
 				placeholderText="Loading X network…"
 			>
-				{#snippet children(loaded)}
+				{#snippet children(network)}
 					<div>
 						<dt>Profiles</dt>
-						<dd>{String(loaded['$$xUsers'].length)}</dd>
+						<dd>{String(network['$$xUsers'].length)}</dd>
 					</div>
 					<div>
 						<dt>Posts</dt>
-						<dd>{String(loaded['$$xPosts'].length)}</dd>
+						<dd>{String(network['$$xPosts'].length)}</dd>
 					</div>
 					{#if contentOpen}
 						<div>
 							<dt>Protocol name</dt>
-							<dd>{loaded.protocolName}</dd>
+							<dd>{network.protocolName}</dd>
 						</div>
 					{/if}
 
@@ -107,21 +105,21 @@
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={loaded.homeUrl}>
-									{loaded.homeUrl}
+								<a href={network.homeUrl}>
+									{network.homeUrl}
 								</a>
 							</dd>
 						</div>
 					{/if}
 
 					{#if contentOpen}
-						{#if loaded.docsUrl != null}
-							{#if loaded.docsUrl !== ''}
+						{#if network.docsUrl != null}
+							{#if network.docsUrl !== ''}
 								<div>
 									<dt>Docs</dt>
 									<dd>
-										<a href={loaded.docsUrl}>
-											{loaded.docsUrl}
+										<a href={network.docsUrl}>
+											{network.docsUrl}
 										</a>
 									</dd>
 								</div>
@@ -141,9 +139,12 @@
 			{entityId}
 		/>
 
-		<div class="entity-view-detail-carousels" data-column="gap-3">
+		<div
+			class="entity-view-detail-carousels x-network-detail-carousels"
+			data-column="gap-3"
+		>
 			<CollapsibleTabs
-				id={`${networkIdKey}:registry`}
+				id={`${networkIdKey}:carousel-registry`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -153,74 +154,10 @@
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
 						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Recent search
-						</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Profiles"
-						href={`#${networkIdKey}:profiles`}
-					>Profiles</a>
-					<a
-						data-scroll-marker-label="Recent posts"
-						href={`#${networkIdKey}:recent-posts`}
-					>Posts</a>
-				{/snippet}
-
-				{#snippet children({ open: _o })}
-					<section
-						id={`${networkIdKey}:profiles`}
-						data-scroll-marker-label="Profiles"
-					>
-						<XUsersView
-							entityFieldReference={{
-								entityType: EntityType.XNetwork,
-								entityId,
-								fieldName: '$$xUsers',
-							}}
-							href={resolve('/(social)/x')}
-							id={`${networkIdKey}:users`}
-							open={false}
-							title="Profiles"
-						/>
-					</section>
-
-					<section
-						id={`${networkIdKey}:recent-posts`}
-						data-scroll-marker-label="Recent posts"
-					>
-						<XPostsView
-							entityFieldReference={{
-								entityType: EntityType.XNetwork,
-								entityId,
-								fieldName: '$$xPosts',
-							}}
-							href={resolve('/(social)/x')}
-							id={`${networkIdKey}:posts`}
-							open={false}
-							title="Recent posts"
-						/>
-					</section>
-				{/snippet}
-			</CollapsibleTabs>
-
-			<Collapsible
-				id={`${networkIdKey}:examples`}
-				open={true}
-				{...{ 'data-card': '' }}
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
 						data-row="wrap gap-4 align-center"
 					>
 						<HeadingComponent>
-							Examples
+							Directory & examples
 						</HeadingComponent>
 						<Tooltip contentProps={{ side: 'top' }}>
 							{#snippet Content()}
@@ -239,23 +176,79 @@
 					</header>
 				{/snippet}
 
-				<ul>
-					<li>
-						<a href={resolve('/(social)/x/user/[userId]', {
-							userId: encodeURIComponent(exampleUserId),
-						})}>
-							Example user
-						</a>
-					</li>
-					<li>
-						<a href={resolve('/(social)/x/post/[postId]', {
-							postId: examplePostId,
-						})}>
-							Example post
-						</a>
-					</li>
-				</ul>
-			</Collapsible>
+				{#snippet Markers({ open: _markersOpen })}
+					<a
+						data-scroll-marker-label="Profiles"
+						href={`#${networkIdKey}:profiles`}
+					>Profiles</a>
+					<a
+						data-scroll-marker-label="Recent posts"
+						href={`#${networkIdKey}:recent-posts`}
+					>Posts</a>
+					<a
+						data-scroll-marker-label="Examples"
+						href={`#${networkIdKey}:examples-list`}
+					>Examples</a>
+				{/snippet}
+
+				{#snippet children({ open: _o })}
+					<section
+						id={`${networkIdKey}:profiles`}
+						data-scroll-marker-label="Profiles"
+					>
+						<XUsersView
+							entityFieldReference={{
+								entityType: EntityType.XNetwork,
+								entityId,
+								fieldName: '$$xUsers',
+							}}
+							href={resolve('/(social)/x')}
+							id={`${networkIdKey}:users`}
+							open={_open}
+							title="Profiles"
+						/>
+					</section>
+
+					<section
+						id={`${networkIdKey}:recent-posts`}
+						data-scroll-marker-label="Recent posts"
+					>
+						<XPostsView
+							entityFieldReference={{
+								entityType: EntityType.XNetwork,
+								entityId,
+								fieldName: '$$xPosts',
+							}}
+							href={resolve('/(social)/x')}
+							id={`${networkIdKey}:posts`}
+							open={_open}
+							title="Recent posts"
+						/>
+					</section>
+
+					<section
+						id={`${networkIdKey}:examples-list`}
+						data-scroll-marker-label="Examples"
+					>
+						<ul>
+							<li>
+								<a href={resolve('/(social)/x/user/[userId]', {
+									userId: encodeURIComponent(exampleUserId),
+								})}>
+									Example user
+								</a>
+							</li>
+							<li>
+								<a href={resolve('/(social)/x/post/[postId]', {
+									postId: examplePostId,
+								})}>
+									Example post
+								</a>
+							</li>
+						</ul>
+					</section>
+				{/snippet}
+			</CollapsibleTabs>
 		</div>
 	{/snippet}
 </EntityView>

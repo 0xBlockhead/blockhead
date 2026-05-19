@@ -97,13 +97,13 @@
 			resource={post}
 			placeholderText="Loading post…"
 		>
-			{#snippet children(resolvedAtprotoPost)}
-				{#if resolvedAtprotoPost.text}
+			{#snippet children(post)}
+				{#if post.text}
 					<TruncatedValue
 						endLength={8}
 						format={TruncatedValueFormat.Visual}
 						startLength={88}
-						value={resolvedAtprotoPost.text}
+						value={post.text}
 					/>
 				{:else}
 					{entityId.uri}
@@ -117,11 +117,11 @@
 			resource={post}
 			placeholderText=""
 		>
-			{#snippet children(resolvedAtprotoPost)}
-				{#if resolvedAtprotoPost.createdAt}
+			{#snippet children(post)}
+				{#if post.createdAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={resolvedAtprotoPost.createdAt}
+							timestamp={post.createdAt}
 							format={TimestampFormat.Both}
 						/>
 					</span>
@@ -135,11 +135,11 @@
 			resource={post}
 			placeholderText="Loading lexicon record…"
 		>
-			{#snippet children(resolvedAtprotoPost)}
+			{#snippet children(post)}
 				<dl data-column-item="center">
 					{#if open}
-						{#if resolvedAtprotoPost.$author}
-							{@const authorDid = resolvedAtprotoPost.$author[EntityMetaKey.Id].did}
+						{#if post.$author}
+							{@const authorDid = post.$author[EntityMetaKey.Id].did}
 							<div>
 								<dt>Author DID</dt>
 								<dd>
@@ -165,8 +165,8 @@
 					{/if}
 
 					{#if open}
-						{#if resolvedAtprotoPost.$parent}
-							{@const parentUri = resolvedAtprotoPost.$parent[EntityMetaKey.Id].uri}
+						{#if post.$parent}
+							{@const parentUri = post.$parent[EntityMetaKey.Id].uri}
 							<div>
 								<dt>Reply to</dt>
 								<dd>
@@ -192,8 +192,8 @@
 					{/if}
 
 					{#if open}
-						{#if resolvedAtprotoPost.$root && resolvedAtprotoPost.$root[EntityMetaKey.Id].uri !== resolvedAtprotoPost.$parent?.[EntityMetaKey.Id].uri}
-							{@const rootUri = resolvedAtprotoPost.$root[EntityMetaKey.Id].uri}
+						{#if post.$root && post.$root[EntityMetaKey.Id].uri !== post.$parent?.[EntityMetaKey.Id].uri}
+							{@const rootUri = post.$root[EntityMetaKey.Id].uri}
 							<div>
 								<dt>Thread root</dt>
 								<dd>
@@ -219,34 +219,21 @@
 					{/if}
 
 					{#if open}
-						{#if resolvedAtprotoPost.text !== undefined}
-							{#if resolvedAtprotoPost.text !== ''}
-								<div>
-									<dt>AT URI</dt>
-									<dd data-text="mono">
-										{@render Id()}
-									</dd>
-								</div>
-							{/if}
-						{/if}
-					{/if}
-
-					{#if open}
-						{#if resolvedAtprotoPost.text}
+						{#if post.text}
 							<div>
 								<dt>Record text</dt>
-								<dd>{resolvedAtprotoPost.text}</dd>
+								<dd>{post.text}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if resolvedAtprotoPost.createdAt != null}
+						{#if post.createdAt != null}
 							<div>
 								<dt>Indexed at</dt>
 								<dd>
 									<Timestamp
-										timestamp={resolvedAtprotoPost.createdAt}
+										timestamp={post.createdAt}
 										format={TimestampFormat.Both}
 									/>
 								</dd>
@@ -309,12 +296,12 @@
 							resource={post}
 							placeholderText="Loading lexicon record…"
 						>
-							{#snippet children(resolvedAtprotoPost)}
+							{#snippet children(post)}
 								{@const atprotoRecordNotReady = (
-									resolvedAtprotoPost.createdAt == null
+									post.createdAt == null
 									&& (
-										resolvedAtprotoPost.text === undefined
-										|| resolvedAtprotoPost.text === ''
+										post.text === undefined
+										|| post.text === ''
 									)
 								)}
 								{#if atprotoRecordNotReady}
@@ -344,10 +331,10 @@
 							resource={post}
 							placeholderText="Loading lexicon record…"
 						>
-							{#snippet children(resolvedAtprotoPost)}
-								{#if resolvedAtprotoPost.text}
+							{#snippet children(post)}
+								{#if post.text}
 									<p>
-										{resolvedAtprotoPost.text}
+										{post.text}
 									</p>
 								{:else}
 									<div data-row="wrap align-center gap-2">

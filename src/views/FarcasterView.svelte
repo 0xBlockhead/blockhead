@@ -63,7 +63,7 @@
 		},
 	)
 
-	const trendingFeedEntityId = (
+	const trendingFeed = (
 		{
 			variant: 'trending' as const,
 		} satisfies EntityId<typeof schema, EntityType.FarcasterFeed>
@@ -71,7 +71,7 @@
 
 	const trending = useEntity(
 		EntityType.FarcasterFeed,
-		trendingFeedEntityId,
+		trendingFeed,
 		{
 			$: [
 				import.meta.env.PUBLIC_NEYNAR_API_KEY?.trim() ?
@@ -129,55 +129,51 @@
 					resource={network}
 					placeholderText="Loading Farcaster hub directory…"
 				>
-					{#snippet children(n)}
+					{#snippet children(network)}
 						<div>
-							<dt>Scope</dt>
-							<dd>{entityId.scope}</dd>
-						</div>
-						<div>
-							<dt>Channels (id / slug)</dt>
-							<dd>{String(n.$$channels.length)}</dd>
+							<dt>Channels</dt>
+							<dd>{String(network.$$channels.length)}</dd>
 						</div>
 						<div>
 							<dt>Users (FID · fname on profile)</dt>
-							<dd>{String(n.$$users.length)}</dd>
+							<dd>{String(network.$$users.length)}</dd>
 						</div>
-						{#if n.protocolName}
+						{#if network.protocolName}
 							<div>
 								<dt>Protocol</dt>
-								<dd>{n.protocolName}</dd>
+								<dd>{network.protocolName}</dd>
 							</div>
 						{/if}
 
-						{#if n.homeUrl}
+						{#if network.homeUrl}
 							<div>
 								<dt>Home</dt>
 								<dd>
-									<a href={n.homeUrl}>{n.homeUrl}</a>
+									<a href={network.homeUrl}>{network.homeUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if n.docsUrl}
+						{#if network.docsUrl}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={n.docsUrl}>{n.docsUrl}</a>
+									<a href={network.docsUrl}>{network.docsUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if n.registryLabel}
+						{#if network.registryLabel}
 							<div>
 								<dt>Registry</dt>
-								<dd>{n.registryLabel}</dd>
+								<dd>{network.registryLabel}</dd>
 							</div>
 						{/if}
 
-						{#if n.topology}
+						{#if network.topology}
 							<div>
 								<dt>Topology</dt>
-								<dd>{n.topology}</dd>
+								<dd>{network.topology}</dd>
 							</div>
 						{/if}
 					{/snippet}
@@ -186,10 +182,10 @@
 					resource={trending}
 					placeholderText="Loading trending feed (casts by FID + cast hash)…"
 				>
-					{#snippet children(t)}
+					{#snippet children(trending)}
 						<div>
 							<dt>Trending casts (feed)</dt>
-							<dd>{String(t.$$entries.length)}</dd>
+							<dd>{String(trending.$$entries.length)}</dd>
 						</div>
 					{/snippet}
 				</ResourceBoundary>
@@ -242,14 +238,16 @@
 				{#snippet children({ open: _open })}
 					<section data-scroll-marker-label="Feeds">
 						<FarcasterFeedsView
+							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.FarcasterNetwork,
 								entityId: { scope: 'FarcasterNetwork' },
 								fieldName: '$$feeds',
 							}}
 							href={resolve('/farcaster/feed')}
-							id={`${networkIdKey}:feeds`}
-							open={false}
+							id="feed-index"
+							limit={36}
+							open={_open}
 						/>
 					</section>
 
@@ -257,13 +255,13 @@
 						<FarcasterCastsView
 							entityFieldReference={{
 								entityType: EntityType.FarcasterFeed,
-								entityId: trendingFeedEntityId,
+								entityId: trendingFeed,
 								fieldName: '$$entries',
 							}}
 							href={resolve('/farcaster/feed/trending')}
-							id={`${networkIdKey}:trending`}
+							id="casts"
 							limit={25}
-							open={false}
+							open={_open}
 							title="Trending casts"
 						/>
 					</section>
@@ -306,8 +304,8 @@
 								fieldName: '$$channels',
 							}}
 							href={resolve('/farcaster/channels')}
-							id={`${networkIdKey}:channels`}
-							open={false}
+							id="channels"
+							open={_open}
 						/>
 					</section>
 
@@ -319,8 +317,8 @@
 								fieldName: '$$users',
 							}}
 							href={resolve('/farcaster/users')}
-							id={`${networkIdKey}:users`}
-							open={false}
+							id="users"
+							open={_open}
 						/>
 					</section>
 				{/snippet}
@@ -358,8 +356,8 @@
 								fieldName: '$$blockheadFarcasterAccountConnections',
 							}}
 							href={resolve('/farcaster/accounts')}
-							id={`${networkIdKey}:accounts`}
-							open={false}
+							id="accounts"
+							open={_open}
 						/>
 					</section>
 				{/snippet}

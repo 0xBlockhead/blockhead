@@ -87,19 +87,19 @@
 			resource={session}
 			placeholderText="Loading session…"
 		>
-			{#snippet children(s)}
-				{s.name ?? entityId.id}
+			{#snippet children(session)}
+				{session.name ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Simulation sessions bundle named checkpoints, iteration counters, and timestamps for replaying scripted EVM calls or HTTP fixtures.
-				</p>
-				<p>
-					Replay captures are engineering artifacts—validate implied roots and receipts against live nodes instead of treating them as canonical chain history.
-				</p>
+		<p>
+			Simulation sessions bundle named checkpoints, iteration counters, and timestamps for replaying scripted EVM calls or HTTP fixtures.
+		</p>
+		<p>
+			Replay captures are engineering artifacts—validate implied roots and receipts against live nodes instead of treating them as canonical chain history.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -107,14 +107,8 @@
 			resource={session}
 			placeholderText="Loading session…"
 		>
-			{#snippet children(s)}
+			{#snippet children(session)}
 				<dl data-column-item="center">
-					<div>
-						<dt>Simulator session id</dt>
-						<dd data-text="mono">
-							{@render Id()}
-						</dd>
-					</div>
 
 					<div>
 						<dt>Session kind</dt>
@@ -125,27 +119,27 @@
 
 					<div>
 						<dt>Status</dt>
-						<dd>{s.status}</dd>
+						<dd>{session.status}</dd>
 					</div>
 
 					{#if !open}
-						{#if s.updatedAt !== undefined}
+						{#if session.updatedAt !== undefined}
 							<div>
 								<dt>Last activity</dt>
 								<dd>
 									<Timestamp
-										timestamp={s.updatedAt}
+										timestamp={session.updatedAt}
 										format={TimestampFormat.Both}
 									/>
 								</dd>
 							</div>
 						{:else}
-							{#if s.createdAt !== undefined}
+							{#if session.createdAt !== undefined}
 								<div>
 									<dt>Last activity</dt>
 									<dd>
 										<Timestamp
-											timestamp={s.createdAt}
+											timestamp={session.createdAt}
 											format={TimestampFormat.Both}
 										/>
 									</dd>
@@ -155,34 +149,34 @@
 					{/if}
 
 					{#if open}
-						{#if s.createdAt !== undefined}
+						{#if session.createdAt !== undefined}
 							<div>
 								<dt>Created</dt>
 								<dd>
 									<Timestamp
-										timestamp={s.createdAt}
+										timestamp={session.createdAt}
 										format={TimestampFormat.Both}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if s.updatedAt !== undefined}
+						{#if session.updatedAt !== undefined}
 							<div>
 								<dt>Updated</dt>
 								<dd>
 									<Timestamp
-										timestamp={s.updatedAt}
+										timestamp={session.updatedAt}
 										format={TimestampFormat.Both}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if s.simulationCount !== undefined}
+						{#if session.simulationCount !== undefined}
 							<div>
 								<dt>Simulation count</dt>
-								<dd>{String(s.simulationCount)}</dd>
+								<dd>{String(session.simulationCount)}</dd>
 							</div>
 						{/if}
 					{/if}

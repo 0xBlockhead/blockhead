@@ -117,7 +117,7 @@
 					placeholderText="Loading calldata…"
 					resource={calldata}
 				>
-					{#snippet children(_)}
+					{#snippet children(calldata)}
 						<div>
 							<dt>Hex</dt>
 							<dd>

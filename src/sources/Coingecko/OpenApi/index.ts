@@ -1,0 +1,11 @@
+import { Source } from '$/sources/$Source.ts'
+import { SourceProvider } from '$/sources/$SourceProvider.ts'
+import type { SourceDefinition } from '$/sources/$Source.ts'
+
+const CoingeckoOpenApiSource = {
+	provider: SourceProvider.Coingecko,
+	source: Source.Coingecko_OpenApi,
+	label: 'Coingecko OpenApi',
+} satisfies SourceDefinition
+
+export default CoingeckoOpenApiSource

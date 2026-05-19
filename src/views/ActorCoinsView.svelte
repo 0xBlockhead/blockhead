@@ -42,7 +42,7 @@
 
 	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		(
@@ -64,10 +64,10 @@
 	)
 
 	const tokenBalances = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.ActorCoin>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
@@ -101,12 +101,12 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Each row is a token balance for an address on a specific chain (native asset or ERC-20 style contract).
-					</p>
-					<p>
-						Totals come from execution-layer address indexers; beacon-chain validator balances and rewards use a different accounting model.
-					</p>
+		<p>
+			Each row is a token balance for an address on a specific chain (native asset or ERC-20 style contract).
+		</p>
+		<p>
+			Totals come from execution-layer address indexers; beacon-chain validator balances and rewards use a different accounting model.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

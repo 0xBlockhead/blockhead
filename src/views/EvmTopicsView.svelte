@@ -66,9 +66,9 @@
 
 	const topics = derive(
 		global,
-		(loaded) => {
+		(global) => {
 			const rows: Entity<typeof schema, EntityType.EvmTopic>[] = (
-				loaded.$$evmTopics
+				global.$$evmTopics
 				?? []
 			)
 			return (
@@ -93,12 +93,12 @@
 	{...entitiesListRest}
 >
 		{#snippet TypeAnnotationTooltip()}
-						<p>
-							Log topics are the hashed event signatures that appear in the topic position of EVM event logs.
-						</p>
-						<p>
-							They identify which event fired, distinct from function selectors used in contract calls.
-						</p>
+			<p>
+				Log topics are the hashed event signatures that appear in the topic position of EVM event logs.
+			</p>
+			<p>
+				They identify which event fired, distinct from function selectors used in contract calls.
+			</p>
 		{/snippet}
 		{#snippet Empty()}
 			<p data-text="muted">

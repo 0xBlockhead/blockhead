@@ -6,6 +6,11 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { marketOhlcCandleSources, type MarketTimeInterval } from '$/constants/Market.ts'
+	import {
+		dedupeCandleEntitiesById,
+		marketTimeIntervalsEqual,
+	} from '$/lib/marketOhlcCandles.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -19,12 +24,16 @@
 	let {
 		title = 'OHLC',
 		open = $bindable(true),
+		limit = 4096,
+		timeInterval,
 		entityFieldReference,
 		...entitiesListRest
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
+			limit?: number
+			timeInterval?: MarketTimeInterval
 			entityFieldReference: EntityFieldReference<
 				typeof schema,
 				EntityType.Market_TimeInterval_Timestamp
@@ -46,7 +55,7 @@
 
 	const fieldName = entityFieldReference.fieldName
 
-	const ohlcParentEntity = useEntity(
+	const market = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -54,39 +63,45 @@
 				Source.Constants_Internal,
 				...(
 					open ?
-						[
-							Source.Coingecko_Rest,
-							Source.TradingView_Rest,
-						]
+						[...marketOhlcCandleSources]
 					:
 						[]
 				),
 			],
 			...(open && {
 				[fieldName]: {
-					$limit: 4096,
+					$limit: limit,
 				},
 			}),
 		},
 	)
 
 	const points = derive(
-		ohlcParentEntity,
-		(merged) => {
+		market,
+		(market) => {
 			const rows: Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[] = (
-				merged[fieldName] ?? []
+				market[fieldName] ?? []
 			)
 			return (
-				rows
+				(
+					timeInterval == null ?
+						dedupeCandleEntitiesById(rows)
+					:	dedupeCandleEntitiesById(rows).filter((row) => (
+						marketTimeIntervalsEqual(
+							row[EntityMetaKey.Id].timeInterval,
+							timeInterval,
+						)
+					))
+				)
 					.toSorted((left, right) => (
 						(
-							left[EntityMetaKey.Id].timestampNs
-							< right[EntityMetaKey.Id].timestampNs
+							left[EntityMetaKey.Id].timestampMs
+							< right[EntityMetaKey.Id].timestampMs
 						) ?
 							1
 						: (
-							left[EntityMetaKey.Id].timestampNs
-							> right[EntityMetaKey.Id].timestampNs
+							left[EntityMetaKey.Id].timestampMs
+							> right[EntityMetaKey.Id].timestampMs
 						) ?
 							-1
 						:
@@ -112,7 +127,7 @@
 	bind:open
 	entityType={EntityType.Market_TimeInterval_Timestamp}
 	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-	getSortValue={(row) => String(row.value[EntityMetaKey.Id].timestampNs)}
+	getSortValue={(row) => String(row.value[EntityMetaKey.Id].timestampMs)}
 	placeholderKeys={new SvelteSet<string>()}
 	resource={points}
 	{title}
@@ -138,7 +153,7 @@
 			{@const row = props.item.value}
 			<Market_TimeInterval_TimestampView
 				entityId={row[EntityMetaKey.Id]}
-				href={resolve('/(assets)/coins/market/[marketKey]', {
+				href={resolve('/(assets)/(markets)/market/[marketKey]', {
 					marketKey: encodeURIComponent(stringify(row[EntityMetaKey.Id].$market)),
 				})}
 				id={stringify(row[EntityMetaKey.Id])}

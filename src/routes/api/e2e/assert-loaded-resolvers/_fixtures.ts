@@ -1,7 +1,8 @@
 import { stringify } from 'devalue'
 
 import { CoinId } from '$/constants/Coin.ts'
-import { MarketAssetKind, MarketPriceRangeType, MarketTimeIntervalUnit } from '$/constants/Market.ts'
+import { Iso4217, usdCurrencyMarketAssetLeg } from '$/constants/Currency.ts'
+import { MarketAssetKind, MarketTimeIntervalUnit } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { ProposalCategory, ProposalRealm } from '$/constants/Proposal.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -37,10 +38,10 @@ const TRANSFER_TOPIC = (
 	'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef' as const
 )
 
-export const ethUsdSpotMarket = {
+export const ethUsdCatalogMarket = {
 	$base: { kind: MarketAssetKind.Coin, $coin: { coinId: CoinId.ETH } },
-	$quote: { kind: MarketAssetKind.Currency, iso4217: 'USD' },
-	$marketVenue: { marketVenueId: MarketVenueId.SpotIndex },
+	$quote: usdCurrencyMarketAssetLeg,
+	$marketVenue: { marketVenueId: MarketVenueId.Binance },
 } as const
 
 const mainnet = { chainId: 1 }
@@ -61,6 +62,19 @@ const coinInstanceUsdcMainnet = {
 		$network: mainnet,
 		address: USDC_ADDRESS,
 	},
+} as const
+
+const NATIVE_TOKEN = '0x0000000000000000000000000000000000000000' as const
+
+/** LI.FI native placeholder; small ETH amount for live `GET /v1/quote`. */
+const bridgeRouteEthMainnetToOptimism = {
+	fromChainId: 1,
+	toChainId: 10,
+	fromToken: NATIVE_TOKEN,
+	toToken: NATIVE_TOKEN,
+	fromAmount: '1000000000000000',
+	fromAddress: VITALIK_ADDRESS,
+	slippage: 0.005,
 } as const
 
 /**
@@ -110,6 +124,25 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	[EntityType.CoinInstance]: {
 		$network: mainnet,
 		type: CoinInstanceType.NativeCurrency,
+	},
+
+	[EntityType.CoinBridgeCapability]: {
+		$fromInstance: {
+			$network: mainnet,
+			type: CoinInstanceType.NativeCurrency,
+		},
+		$toInstance: {
+			$network: { chainId: 10 },
+			type: CoinInstanceType.NativeCurrency,
+		},
+		toolKey: 'across',
+	},
+
+	[EntityType.BridgeRoute]: bridgeRouteEthMainnetToOptimism,
+
+	[EntityType.BridgeRouteStep]: {
+		$route: bridgeRouteEthMainnetToOptimism,
+		index: 0,
 	},
 
 	[EntityType.EnsName]: { name: 'vitalik.eth' },
@@ -173,19 +206,20 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		id: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
 	},
 
-	[EntityType.Market]: ethUsdSpotMarket,
+	[EntityType.Market]: ethUsdCatalogMarket,
 	[EntityType.MarketPrice]: {
-		$market: ethUsdSpotMarket,
+		$market: ethUsdCatalogMarket,
 	},
-	[EntityType.MarketPriceRange]: {
-		$market: ethUsdSpotMarket,
+	[EntityType.Market_TimeInterval_Timestamp]: {
+		$market: ethUsdCatalogMarket,
 		timeInterval: { unit: MarketTimeIntervalUnit.Day, value: 7 },
-		rangeType: MarketPriceRangeType.OHLCCandles,
+		timestampMs: 1_700_000_000_000,
 	},
-	[EntityType.MarketVenue]: { marketVenueId: MarketVenueId.SpotIndex },
+	[EntityType.MarketVenue]: { marketVenueId: MarketVenueId.Binance },
+	[EntityType.Currency]: { iso4217: Iso4217.USD },
 	[EntityType.Market_Timestamp]: {
-		$market: ethUsdSpotMarket,
-		timestampNs: 0n,
+		$market: ethUsdCatalogMarket,
+		timestampMs: 0,
 	},
 
 	[EntityType.Network]: mainnet,
@@ -204,7 +238,7 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	},
 	[EntityType.Network_Txpool_Timestamp]: {
 		$network: mainnet,
-		timestampNs: 0n,
+		timestampMs: 0,
 	},
 	[EntityType.MevRelay_ProposerPayloadDelivered]: {
 		$network: mainnet,

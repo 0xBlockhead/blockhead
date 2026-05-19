@@ -1192,7 +1192,7 @@ export default {
 					{
 						[EntityMetaKey.Id]: {
 							$network: entityId,
-							timestampNs: BigInt(Date.now()) * 1_000_000n,
+							timestampMs: Date.now(),
 						},
 					},
 				]

@@ -47,7 +47,7 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		(
@@ -65,10 +65,10 @@
 	)
 
 	const sources = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.BlockheadSource>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))

@@ -109,7 +109,7 @@
 			placeholderText="Loading user operation…"
 			resource={operation}
 		>
-			{#snippet children(op)}
+			{#snippet children(operation)}
 				<dl data-column-item="center">
 					<div>
 						<dt>Operation hash</dt>
@@ -121,24 +121,24 @@
 						</dd>
 					</div>
 
-					{#if op.finalized !== undefined}
+					{#if operation.finalized !== undefined}
 						<div>
 							<dt>Finalized</dt>
-							<dd>{String(op.finalized)}</dd>
+							<dd>{String(operation.finalized)}</dd>
 						</div>
 					{/if}
 
-					{#if op.blockNumber !== undefined}
+					{#if operation.blockNumber !== undefined}
 						<div>
 							<dt>Bundled block</dt>
-							<dd>{String(op.blockNumber)}</dd>
+							<dd>{String(operation.blockNumber)}</dd>
 						</div>
 					{/if}
 
-					{#if op.fee != null && op.fee !== ''}
+					{#if operation.fee != null && operation.fee !== ''}
 						<div>
 							<dt>Fee</dt>
-							<dd>{op.fee}</dd>
+							<dd>{operation.fee}</dd>
 						</div>
 					{/if}
 				</dl>
@@ -148,19 +148,19 @@
 
 	{#snippet Details()}
 		<ResourceBoundary resource={operation}>
-			{#snippet children(op)}
+			{#snippet children(operation)}
 				<div class="entity-details" data-column="gap-2">
-					{#if op.bundledTransactionHash != null}
+					{#if operation.bundledTransactionHash != null}
 						<EvmTransactionView
 							entityId={{
 								$network: entityId.$network,
-								txHash: op.bundledTransactionHash,
+								txHash: operation.bundledTransactionHash,
 							}}
 							href={resolve(
 								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
 								{
 									networkId: String(entityId.$network.chainId),
-									transactionId: op.bundledTransactionHash,
+									transactionId: operation.bundledTransactionHash,
 								},
 							)}
 							layout={EntityLayout.Summary}
@@ -168,14 +168,14 @@
 						/>
 					{/if}
 
-					{#if op.$sender != null}
+					{#if operation.$sender != null}
 						<ContractView
-							entityId={op.$sender[EntityMetaKey.Id]}
+							entityId={operation.$sender[EntityMetaKey.Id]}
 							href={resolve(
 								'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
 								{
 									networkId: String(entityId.$network.chainId),
-									address: op.$sender[EntityMetaKey.Id].address,
+									address: operation.$sender[EntityMetaKey.Id].address,
 								},
 							)}
 							layout={EntityLayout.Summary}

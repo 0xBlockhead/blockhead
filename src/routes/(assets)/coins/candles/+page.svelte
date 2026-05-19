@@ -5,21 +5,21 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 
 	import Page from '$/components/Page.svelte'
-	import MarketPriceRangesView from '$/views/MarketPriceRangesView.svelte'
+	import Market_TimeInterval_TimestampsView from '$/views/Market_TimeInterval_TimestampsView.svelte'
 </script>
 
 
 <Page>
-	<MarketPriceRangesView
+	<Market_TimeInterval_TimestampsView
 		collapsible={false}
 		entityFieldReference={{
 			entityType: EntityType._Global,
 			entityId: {},
-			fieldName: '$$marketPriceRanges',
+			fieldName: '$$marketTimeIntervalTimestamps',
 		}}
 		href={resolve('/coins/candles')}
-		id="coin-ohlc-ranges-page"
-		limit={96}
-		title="All OHLC ranges"
+		id="coin-ohlc-candles-page"
+		limit={256}
+		title="All OHLC candles"
 	/>
 </Page>

@@ -176,11 +176,11 @@
 			[],
 	)
 
-	const rowsFromQuery = (queryRows: ItemsInput | undefined) => (
-		queryRows === undefined ?
+	const rowsFromQuery = (items: ItemsInput | undefined) => (
+		items === undefined ?
 			[] as _Item[]
 		:
-			[...queryRows]
+			[...items]
 	)
 
 
@@ -279,9 +279,9 @@
 					resource={resource}
 					placeholderText={placeholderText ?? `Loading ${entityDefinitionByType[entityType].labelPlural.toLowerCase()}…`}
 				>
-					{#snippet children(queryRows)}
-						{#key queryRows}
-							{@render ListRowsFrom(rowsFromQuery(queryRows))}
+					{#snippet children(resource)}
+						{#key resource}
+							{@render ListRowsFrom(rowsFromQuery(resource))}
 						{/key}
 					{/snippet}
 				</ResourceBoundary>

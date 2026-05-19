@@ -40,7 +40,7 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		(
@@ -58,10 +58,10 @@
 	)
 
 	const contacts = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.BlockheadSharedAddress>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					b.sharedAt - a.sharedAt
@@ -98,12 +98,12 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Contacts are execution addresses a peer has shared for this collaboration room.
-					</p>
-					<p>
-						They support session routing—not a generic address book export from a wallet.
-					</p>
+		<p>
+			Contacts are execution addresses a peer has shared for this collaboration room.
+		</p>
+		<p>
+			They support session routing—not a generic address book export from a wallet.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

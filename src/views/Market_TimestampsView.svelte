@@ -43,7 +43,7 @@
 
 	const fieldName = entityFieldReference.fieldName
 
-	const marketParentEntity = useEntity(
+	const market = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -71,9 +71,9 @@
 	)
 
 	const quotes = derive(
-		marketParentEntity,
-		(merged) => {
-			const rows: Entity<typeof schema, EntityType.Market_Timestamp>[] = merged[fieldName] ?? []
+		market,
+		(market) => {
+			const rows: Entity<typeof schema, EntityType.Market_Timestamp>[] = market[fieldName] ?? []
 			return (
 				rows
 					.map((value) => ({
@@ -97,19 +97,19 @@
 	bind:open
 	entityType={EntityType.Market_Timestamp}
 	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-	getSortValue={(row) => String(row.value[EntityMetaKey.Id].timestampNs)}
+	getSortValue={(row) => String(row.value[EntityMetaKey.Id].timestampMs)}
 	placeholderKeys={new SvelteSet<string>()}
 	resource={quotes}
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Each row is a timestamped spot or index observation for the quoted base/against pair.
-					</p>
-					<p>
-						OHLC interval candles use separate entities with an explicit time bucket.
-					</p>
+		<p>
+			Each row is a timestamped spot or index observation for the quoted base/against pair.
+		</p>
+		<p>
+			OHLC interval candles use separate entities with an explicit time bucket.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}
@@ -123,7 +123,7 @@
 			{@const row = props.item.value}
 			<Market_TimestampView
 				entityId={row[EntityMetaKey.Id]}
-				href={resolve('/(assets)/coins/market/[marketKey]', {
+				href={resolve('/(assets)/(markets)/market/[marketKey]', {
 					marketKey: encodeURIComponent(stringify(row[EntityMetaKey.Id].$market)),
 				})}
 				id={stringify(row[EntityMetaKey.Id])}

@@ -42,7 +42,7 @@
 
 	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		(
@@ -64,9 +64,9 @@
 	)
 
 	const tokenBalances = derive(
-		parentEntity,
-		(merged) => {
-			const rows: Entity<typeof schema, EntityType.ActorCoin>[] = merged[entityFieldReference.fieldName] ?? []
+		parent,
+		(parent) => {
+			const rows: Entity<typeof schema, EntityType.ActorCoin>[] = parent[entityFieldReference.fieldName] ?? []
 			return (
 				rows.map((value) => ({
 					value,
@@ -100,12 +100,12 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Token balances are indexed holdings for this address on a given execution-layer network.
-					</p>
-					<p>
-						Consensus-layer validator balances and attestation rewards live on the beacon chain, not in ERC-20 style token balance tables.
-					</p>
+		<p>
+			Token balances are indexed holdings for this address on a given execution-layer network.
+		</p>
+		<p>
+			Consensus-layer validator balances and attestation rewards live on the beacon chain, not in ERC-20 style token balance tables.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

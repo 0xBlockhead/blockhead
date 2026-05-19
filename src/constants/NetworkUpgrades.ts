@@ -524,7 +524,7 @@ export const networkConsensusUpgradeByChainIdAndUpgradeId = Object.fromEntries(
 	]),
 )
 
-/** Fills `NetworkUpgrade` activation + `$$proposals` from linked fork rows (single source of truth). */
+/** Fills `NetworkUpgrade` activation + `$$proposals` from linked fork rows (execution-layer proposals when present, else consensus). */
 export const resolveNetworkUpgradeDenormalizedFields = (
 	row: Entity<typeof schema, EntityType.NetworkUpgrade>,
 ): Partial<
@@ -553,15 +553,23 @@ export const resolveNetworkUpgradeDenormalizedFields = (
 	const activationTimestamp = executionRow?.activationTimestamp ?? consensusRow?.activationTimestamp
 	const activationEpoch = consensusRow?.activationEpoch ?? executionRow?.activationEpoch
 
-	const mergedProposals = uniqueProposalsById([
-		...(executionRow?.$$proposals != null ? [...executionRow.$$proposals] : []),
-		...(consensusRow?.$$proposals != null ? [...consensusRow.$$proposals] : []),
-	])
+	const executionProposals = executionRow?.$$proposals
+	const consensusProposals = consensusRow?.$$proposals
+	const linkedProposals = (
+		executionProposals != null && executionProposals.length > 0
+			? [...executionProposals]
+		: consensusProposals != null && consensusProposals.length > 0
+			? [...consensusProposals]
+		:	uniqueProposalsById([
+				...(executionProposals != null ? [...executionProposals] : []),
+				...(consensusProposals != null ? [...consensusProposals] : []),
+			])
+	)
 
 	return {
 		...(activationBlock != null && { activationBlock }),
 		...(activationTimestamp != null && { activationTimestamp }),
 		...(activationEpoch != null && { activationEpoch }),
-		...(mergedProposals.length > 0 && { $$proposals: mergedProposals }),
+		...(linkedProposals.length > 0 && { $$proposals: linkedProposals }),
 	}
 }

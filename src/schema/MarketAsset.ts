@@ -1,10 +1,11 @@
 /**
- * Leg of a `Market` id: not an `EntityType`; a discriminated union of coin, instance, or ISO fiat.
+ * Leg of a `Market` id: not an `EntityType`; a discriminated union of coin, instance, or currency.
  */
 import { type } from 'arktype'
 import { MarketAssetKind } from '$/constants/Market.ts'
 import Coin from '$/schema/Coin.ts'
 import CoinInstance from '$/schema/CoinInstance.ts'
+import Currency from '$/schema/Currency.ts'
 
 const id = type.or(
 	type({
@@ -17,7 +18,7 @@ const id = type.or(
 	}),
 	type({
 		kind: type.unit(MarketAssetKind.Currency),
-		iso4217: 'string',
+		$currency: Currency.id,
 	}),
 )
 

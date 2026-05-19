@@ -91,10 +91,10 @@
 			resource={comment}
 			placeholderText="Loading Reddit comment…"
 		>
-			{#snippet children(c)}
+			{#snippet children(comment)}
 				{(
-					c.body ?
-						c.body
+					comment.body ?
+						comment.body
 					:
 						entityId.fullname
 				)}
@@ -103,12 +103,12 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Reddit organizes posts with nested threaded replies anchored on a submission.
-				</p>
-				<p>
-					It is unrelated to realtime collaboration rooms here or casts on other networks.
-				</p>
+		<p>
+			Reddit organizes posts with nested threaded replies anchored on a submission.
+		</p>
+		<p>
+			It is unrelated to realtime collaboration rooms here or casts on other networks.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -116,19 +116,13 @@
 			resource={comment}
 			placeholderText="Loading Reddit comment…"
 		>
-			{#snippet children(c)}
-				{#if !c.body}
+			{#snippet children(comment)}
+				{#if !comment.body}
 					<p data-text="muted">No comment text.</p>
 				{:else}
-					<p>{c.body}</p>
+					<p>{comment.body}</p>
 				{/if}
 				<dl data-column-item="center">
-					<div>
-						<dt>Comment id</dt>
-						<dd data-text="mono">
-							{@render Id()}
-						</dd>
-					</div>
 					{#if open}
 						<div>
 							<dt>Reddit fullname</dt>
@@ -143,18 +137,18 @@
 						</div>
 						<div>
 							<dt>Author</dt>
-							<dd>u/{c.author}</dd>
+							<dd>u/{comment.author}</dd>
 						</div>
-						{#if c.$link !== undefined}
+						{#if comment.$link !== undefined}
 							<div>
 								<dt>Submission</dt>
 								<dd>
 									<a
 										href={resolve(
 											'/(social)/reddit/link/[fullname]',
-											{ fullname: encodeURIComponent(c.$link[EntityMetaKey.Id].fullname) },
+											{ fullname: encodeURIComponent(comment.$link[EntityMetaKey.Id].fullname) },
 										)}
-									>{c.$link[EntityMetaKey.Id].fullname}</a>
+									>{comment.$link[EntityMetaKey.Id].fullname}</a>
 								</dd>
 							</div>
 						{/if}
@@ -175,7 +169,7 @@
 				resource={comment}
 				placeholderText="Loading Reddit comment…"
 			>
-				{#snippet children(_c)}
+				{#snippet children(comment)}
 				{/snippet}
 			</ResourceBoundary>
 		</EntityDetails>

@@ -4,7 +4,8 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { stringify } from 'devalue'
 	import { schema } from '$/schema/index.ts'
-	import { MarketAssetKind } from '$/constants/Market.ts'
+	import { quoteIso4217FromMarketId } from '$/constants/Currency.ts'
+	import { formatMarketIdLabel } from '$/constants/Market.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -43,13 +44,14 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const priceLive = useEntity(
+	const marketPrice = useEntity(
 		EntityType.MarketPrice,
 		entityId,
 		{
 			$: [
 				Source.Constants_Internal,
 				Source.Coingecko_Rest,
+				Source.Coingecko_OpenApi,
 				Source.CoinMarketCap_Rest,
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_OpenApi,
@@ -66,7 +68,7 @@
 			caip19: {},
 			price: {},
 			providerAssetId: {},
-			timestampNs: {},
+			timestampMs: {},
 			transport: {},
 			updatedAt: {},
 		},
@@ -81,7 +83,7 @@
 	import Tooltip from '$/components/Tooltip.svelte'
 	import MarketView from '$/views/MarketView.svelte'
 	import Market_TimestampsView from '$/views/Market_TimestampsView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 </script>
 
 
@@ -90,32 +92,19 @@
 	{entityId}
 	href={
 		href
-		?? (
-			entityId.$market.$base.kind !== MarketAssetKind.Coin ?
-				undefined
-			:	resolve(
-					'/(assets)/(coins)/coin/[coinId]',
-					{ coinId: entityId.$market.$base.$coin.coinId },
-				)
+		?? resolve(
+			'/(assets)/(markets)/market/[marketKey]',
+			{
+				marketKey: encodeURIComponent(stringify(entityId.$market)),
+			},
 		)
 	}
 	{open}
-	title={
-		(
-			entityId.$market.$base.kind === MarketAssetKind.Coin ?
-				entityId.$market.$base.$coin.coinId
-			:
-				undefined
-		)
-		?? 'Spot / index quote'
-	}
+	title={formatMarketIdLabel(entityId.$market)}
 	{...entityViewRest}
 >
 	{#snippet Heading()}
-
-		<span data-text="font-monospace">
-			spot / index quote
-		</span>
+		{formatMarketIdLabel(entityId.$market)}
 	{/snippet}
 
 	{#snippet Id()}
@@ -133,51 +122,49 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
-			resource={priceLive}
+			resource={marketPrice}
 			placeholderText="Loading price…"
 		>
-			{#snippet children(loaded)}
+			{#snippet children(marketPrice)}
 				{#if (
-					loaded.price !== undefined
-					|| loaded.caip19 !== undefined
-					|| loaded.timestampNs !== undefined
+					marketPrice.price !== undefined
+					|| marketPrice.caip19 !== undefined
+					|| marketPrice.timestampMs !== undefined
 					|| open && (
-						loaded.updatedAt !== undefined
-						|| loaded.transport !== undefined
-						|| loaded.providerAssetId !== undefined
+						marketPrice.updatedAt !== undefined
+						|| marketPrice.transport !== undefined
+						|| marketPrice.providerAssetId !== undefined
 					)
 				)}
 					<dl data-column-item="center">
-						{#if loaded.price !== undefined}
+						{#if marketPrice.price !== undefined}
 							<div>
-								<dt>Quoted price USD (spot or composite index)</dt>
+								<dt>Quoted price ({quoteIso4217FromMarketId(entityId.$market)}, spot or composite index)</dt>
 								<dd>
-									<NumberValue
-										value={Number(loaded.price) / 1e8}
-										options={{
-											minimumFractionDigits: 2,
-											maximumFractionDigits: 6,
-										}}
+									<CurrencyAmount
+										currency={quoteIso4217FromMarketId(entityId.$market)}
+										showDecimalPlaces={6}
+										value={marketPrice.price}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loaded.caip19 !== undefined}
+						{#if marketPrice.caip19 !== undefined}
 							<div>
 								<dt>CAIP-19</dt>
 								<dd>
-									<code>{loaded.caip19}</code>
+									<code>{marketPrice.caip19}</code>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loaded.timestampNs !== undefined}
+						{#if marketPrice.timestampMs !== undefined}
 							<div>
 								<dt>Index / quote clock</dt>
 								<dd>
 									<Timestamp
-										timestamp={Number(loaded.timestampNs / 1_000_000n)}
+										timestamp={marketPrice.timestampMs}
 										format={TimestampFormat.Both}
 									/>
 								</dd>
@@ -185,44 +172,30 @@
 						{/if}
 
 						{#if open}
-							{#if loaded.price !== undefined}
-								<div>
-									<dt>Price (fixed 1e8)</dt>
-									<dd>{String(loaded.price)}</dd>
-								</div>
-							{/if}
-
-							{#if loaded.timestampNs !== undefined}
-								<div>
-									<dt>Quote time (ns)</dt>
-									<dd>{String(loaded.timestampNs)}</dd>
-								</div>
-							{/if}
-
-							{#if loaded.updatedAt !== undefined}
+							{#if marketPrice.updatedAt !== undefined}
 								<div>
 									<dt>Updated</dt>
 									<dd>
 										<Timestamp
-											timestamp={loaded.updatedAt}
+											timestamp={marketPrice.updatedAt}
 											format={TimestampFormat.Both}
 										/>
 									</dd>
 								</div>
 							{/if}
 
-							{#if loaded.transport !== undefined}
+							{#if marketPrice.transport !== undefined}
 								<div>
 									<dt>Transport</dt>
-									<dd>{loaded.transport}</dd>
+									<dd>{marketPrice.transport}</dd>
 								</div>
 							{/if}
 
-							{#if loaded.providerAssetId !== undefined}
-								{#if loaded.providerAssetId !== null}
+							{#if marketPrice.providerAssetId !== undefined}
+								{#if marketPrice.providerAssetId !== null}
 									<div>
 										<dt>Provider asset id</dt>
-										<dd>{loaded.providerAssetId}</dd>
+										<dd>{marketPrice.providerAssetId}</dd>
 									</div>
 								{/if}
 							{/if}
@@ -269,7 +242,7 @@
 					entityId,
 					fieldName: '$$quotes',
 				}}
-				href={resolve('/(assets)/coins/market/[marketKey]', {
+				href={resolve('/(assets)/(markets)/market/[marketKey]', {
 					marketKey: encodeURIComponent(stringify(entityId.$market)),
 				})}
 				id={`${stringify(entityId)}:quotes`}
@@ -281,7 +254,7 @@
 			<MarketView
 				entityId={entityId.$market}
 				href={resolve(
-					'/(assets)/coins/market/[marketKey]',
+					'/(assets)/(markets)/market/[marketKey]',
 					{
 						marketKey: (
 							encodeURIComponent(
@@ -291,8 +264,9 @@
 					},
 				)}
 				id={`${stringify(entityId)}:parent-market`}
-				layout={EntityLayout.Summary}
+				layout={EntityLayout.Id}
 				open={false}
+				showTypeAnnotation={false}
 			/>
 		</section>
 

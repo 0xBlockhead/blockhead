@@ -44,7 +44,7 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -55,11 +55,11 @@
 		},
 	)
 
-	const envelopes = derive(
-		parentEntity,
-		(merged) => {
+	const posts = derive(
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.XPost>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 			return (
 				rows
@@ -91,7 +91,7 @@
 	{href}
 	{id}
 	placeholderKeys={new SvelteSet()}
-	resource={envelopes}
+	resource={posts}
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >

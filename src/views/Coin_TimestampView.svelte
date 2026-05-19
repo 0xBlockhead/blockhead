@@ -43,10 +43,6 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const snapshotKey = $derived(
-		stringify(entityId),
-	)
-
 	const coinTimestamp = useEntity(
 		EntityType.Coin_Timestamp,
 		entityId,
@@ -76,19 +72,13 @@
 	)
 
 
-	const timestampMs = (
-		Number(entityId.timestampNs / 1_000_000n)
-	)
-
-
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import CoinView from '$/views/CoinView.svelte'
+	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 </script>
 
 
@@ -111,7 +101,7 @@
 		<p>
 			<strong>Timestamped</strong>
 			catalog snapshot for the owning coin: fundamental fields frozen at wall-clock <strong>quote time</strong>
-			— the entity id keeps <strong>nanoseconds</strong>
+			— the entity id keeps <strong>epoch milliseconds</strong>
 			for stable ordering; pair with spot or OHLC market rows when auditing supply or market-cap moves, not with mempool calldata.
 		</p>
 	{/snippet}
@@ -121,34 +111,50 @@
 			resource={coinTimestamp}
 			placeholderText="Loading snapshot…"
 		>
-			{#snippet children(live)}
+			{#snippet children(coinTimestamp)}
 				<dl data-column-item="center">
-					{#if live.marketCap !== undefined}
+					{#if coinTimestamp.marketCap !== undefined}
 						<div>
 							<dt>Market cap</dt>
-							<dd>{String(live.marketCap)}</dd>
+							<dd>
+								<CurrencyAmount
+									currency="USD"
+									value={coinTimestamp.marketCap}
+								/>
+							</dd>
 						</div>
 					{/if}
 					<div>
 						<dt>Snapshot wall time</dt>
 						<dd>
 							<Timestamp
-								timestamp={timestampMs}
+								timestamp={entityId.timestampMs}
 								format={TimestampFormat.Both}
 							/>
 						</dd>
 					</div>
+					<div>
+						<dt>Coin</dt>
+						<dd>
+							<CoinView
+								entityId={entityId.$coin}
+								href={resolve(
+									'/(assets)/(coins)/coin/[coinId]',
+									{ coinId: entityId.$coin.coinId },
+								)}
+								layout={EntityLayout.Id}
+								open={false}
+								showTypeAnnotation={false}
+							/>
+						</dd>
+					</div>
 					{#if open}
-						{#if live.totalSupply !== undefined}
+						{#if coinTimestamp.totalSupply !== undefined}
 							<div>
 								<dt>Recorded total supply</dt>
-								<dd>{String(live.totalSupply)}</dd>
+								<dd>{String(coinTimestamp.totalSupply)}</dd>
 							</div>
 						{/if}
-						<div>
-							<dt>Keyed timestamp (nanoseconds)</dt>
-							<dd>{String(entityId.timestampNs)}</dd>
-						</div>
 					{/if}
 				</dl>
 			{/snippet}
@@ -163,81 +169,8 @@
 			{entityId}
 		/>
 
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
-				id={`${snapshotKey}:carousel-related`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({ open: _isOpen })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>
-							Upstream coin
-						</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Coin"
-						href={`#${snapshotKey}:coin-timestamp-coin`}
-					>Logical coin</a>
-					{#if children}
-						<a
-							data-scroll-marker-label="More"
-							href={`#${snapshotKey}:coin-timestamp-more`}
-						>More</a>
-					{/if}
-				{/snippet}
-
-				{#snippet children(_childrenContext)}
-					<section id={`${snapshotKey}:coin-timestamp-coin`}>
-						<ResourceBoundary
-							placeholderText="Loading coin…"
-							resource={coinTimestamp}
-						>
-							{#snippet children()}
-								<CoinView
-									entityId={entityId.$coin}
-									href={resolve(
-										'/(assets)/(coins)/coin/[coinId]',
-										{
-											coinId: entityId.$coin.coinId,
-										},
-									)}
-									id={`${snapshotKey}:coin`}
-									open={false}
-								/>
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-
-					{#if children}
-						<section id={`${snapshotKey}:coin-timestamp-more`}>
-							{@render children()}
-						</section>
-					{/if}
-				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		{#if children}
+			{@render children()}
+		{/if}
 	{/snippet}
 </EntityView>
-
-
-<style>
-	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 40ch;
-			}
-		}
-	}
-</style>

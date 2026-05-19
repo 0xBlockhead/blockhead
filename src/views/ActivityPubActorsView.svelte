@@ -74,8 +74,8 @@
 
 	const actors = derive(
 		activityPubNetwork,
-		(loaded) => (
-			(loaded.$$activityPubActors ?? [])
+		(activityPubNetwork) => (
+			(activityPubNetwork.$$activityPubActors ?? [])
 				.toSorted((a, b) => {
 					const left = a[EntityMetaKey.Id]
 					const right = b[EntityMetaKey.Id]
@@ -103,15 +103,15 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						ActivityPub actors federate across instances; each id pairs an origin host with a local account id (Mastodon-style).
-					</p>
-					<p>
-						Actor rows are discovery records—handles, inbox/outbox, and public keys live behind WebFinger and collection endpoints on the home instance.
-					</p>
-					<p>
-						Sorted like the instance directory collection response.
-					</p>
+		<p>
+			ActivityPub actors federate across instances; each id pairs an origin host with a local account id (Mastodon-style).
+		</p>
+		<p>
+			Actor rows are discovery records—handles, inbox/outbox, and public keys live behind WebFinger and collection endpoints on the home instance.
+		</p>
+		<p>
+			Sorted like the instance directory collection response.
+		</p>
 	{/snippet}
 
 	{#snippet body()}

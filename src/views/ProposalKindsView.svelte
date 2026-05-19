@@ -113,16 +113,16 @@
 	)
 
 	const rowsFromProposalKinds = (
-		queryRows: { result: Entity<typeof schema, EntityType.ProposalKind> }[] | undefined,
+		proposalKinds: { result: Entity<typeof schema, EntityType.ProposalKind> }[] | undefined,
 	): { result: Entity<typeof schema, EntityType.ProposalKind> }[] => (
-		queryRows === undefined ?
+		proposalKinds === undefined ?
 			[]
 		:
-			[...queryRows]
+			[...proposalKinds]
 	)
 
-	const kindPanelDomId = (kindEntity: Entity<typeof schema, EntityType.ProposalKind>) => (
-		`proposal-kind:${kindEntity[EntityMetaKey.Id].realm}:${kindEntity[EntityMetaKey.Id].category}:proposals`
+	const kindPanelDomId = (kind: Entity<typeof schema, EntityType.ProposalKind>) => (
+		`proposal-kind:${kind[EntityMetaKey.Id].realm}:${kind[EntityMetaKey.Id].category}:proposals`
 	)
 
 
@@ -133,7 +133,7 @@
 
 	const fieldName = entityFieldReference.fieldName
 
-	const kindsParent = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -147,9 +147,9 @@
 	)
 
 	const proposalKinds = derive(
-		kindsParent,
-		(merged) => {
-			const rows: Entity<typeof schema, EntityType.ProposalKind>[] = merged[fieldName] ?? []
+		parent,
+		(parent) => {
+			const rows: Entity<typeof schema, EntityType.ProposalKind>[] = parent[fieldName] ?? []
 			return (
 				rows
 					.toSorted((first, second) => (
@@ -222,9 +222,9 @@
 		}
 		resource={proposalKinds}
 	>
-		{#snippet children(queryRows)}
-			{#key queryRows}
-				{@const rows = rowsFromProposalKinds(queryRows)}
+		{#snippet children(proposalKinds)}
+			{#key proposalKinds}
+				{@const rows = rowsFromProposalKinds(proposalKinds)}
 
 				{#if rows.length === 0}
 					{@render EmptyFallback()}

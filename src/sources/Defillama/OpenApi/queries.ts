@@ -76,7 +76,7 @@ export const getCurrentPrices = async (
 
 /**
  * Maps DefiLlama chart closes to CoinGecko `/coins/{id}/ohlc` tuples
- * `[timestampMs, open, high, low, close]` so `MarketPriceRangeView` can parse one shape.
+ * `[timestampMs, open, high, low, close]` — Coingecko-shaped OHLC rows for candle entities.
  * Opens link prior close; high/low are min/max of that step (line-to-synthetic-OHLC).
  */
 export const defillamaChartPricesToCoingeckoOhlcRows = (

@@ -47,7 +47,7 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		entityFieldReference.entityType === EntityType.EvmBlock ?
@@ -80,9 +80,9 @@
 	)
 
 	const transactions = derive(
-		parentEntity,
-		(merged) => (
-			[...(merged.$$transactions ?? [])]
+		parent,
+		(parent) => (
+			[...(parent.$$transactions ?? [])]
 				.toSorted((a, b) => (
 					stringify(b[EntityMetaKey.Id]).localeCompare(stringify(a[EntityMetaKey.Id]))
 				))
@@ -115,12 +115,12 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Signed execution payloads included in a block or sitting in the mempool: gas fields, type (legacy/EIP-1559/blob), and logs follow that network’s rules.
-					</p>
-					<p>
-						Receipts add cumulative gas used, contract status, and event logs—full detail is only available once the tx is mined and indexed.
-					</p>
+		<p>
+			Signed execution payloads included in a block or sitting in the mempool: gas fields, type (legacy/EIP-1559/blob), and logs follow that network’s rules.
+		</p>
+		<p>
+			Receipts add cumulative gas used, contract status, and event logs—full detail is only available once the tx is mined and indexed.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

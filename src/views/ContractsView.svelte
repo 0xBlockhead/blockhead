@@ -53,8 +53,8 @@
 
 	const contracts = derive(
 		network,
-		(merged): Entity<typeof schema, EntityType.EvmContract>[] => (
-			(merged.$$contracts ?? [])
+		(network): Entity<typeof schema, EntityType.EvmContract>[] => (
+			(network.$$contracts ?? [])
 				.toSorted((a, b) => (
 					stringify(b[EntityMetaKey.Id]).localeCompare(stringify(a[EntityMetaKey.Id]))
 				))
@@ -80,12 +80,12 @@
 	{...entitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Verified contracts pair execution-layer addresses with bytecode and an ABI so calldata and logs decode to human-readable functions and events.
-					</p>
-					<p>
-						Explorers index these artifacts when publish-submitted metadata is available.
-					</p>
+		<p>
+			Verified contracts pair execution-layer addresses with bytecode and an ABI so calldata and logs decode to human-readable functions and events.
+		</p>
+		<p>
+			Explorers index these artifacts when publish-submitted metadata is available.
+		</p>
 	{/snippet}
 
 	{#snippet body()}
@@ -94,9 +94,9 @@
 				placeholderText="Loading contracts…"
 				resource={contracts}
 			>
-				{#snippet children(loaded)}
+				{#snippet children(contracts)}
 					<OrderedList
-						items={loaded}
+						items={contracts}
 						getKey={(row) => stringify(row[EntityMetaKey.Id])}
 						getSortKey={(row) => (
 							BigInt(

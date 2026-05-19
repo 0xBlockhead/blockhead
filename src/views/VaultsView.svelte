@@ -44,7 +44,7 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -56,11 +56,11 @@
 		},
 	)
 
-	const envelopes = derive(
-		parentEntity,
-		(merged) => {
+	const vaults = derive(
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.Vault>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
@@ -91,17 +91,17 @@
 	{href}
 	{id}
 	placeholderKeys={new SvelteSet()}
-	resource={envelopes}
+	resource={vaults}
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						In DEX aggregators, “vault” often denotes a concentrated-liquidity pool: a pair, fee tier, and measures such as TVL—not an ERC-4626 share vault.
-					</p>
-					<p>
-						That usage is unrelated to IPFS roots, object storage, or social-graph identities.
-					</p>
+		<p>
+			In DEX aggregators, “vault” often denotes a concentrated-liquidity pool: a pair, fee tier, and measures such as TVL—not an ERC-4626 share vault.
+		</p>
+		<p>
+			That usage is unrelated to IPFS roots, object storage, or social-graph identities.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

@@ -13,6 +13,7 @@ export enum Source {
 	Blockscout_Rest = 'Blockscout_Rest',
 	Caips_Github = 'Caips_Github',
 	Chainlist_Rest = 'Chainlist_Rest',
+	Coingecko_OpenApi = 'Coingecko_OpenApi',
 	Coingecko_Rest = 'Coingecko_Rest',
 	CoinMarketCap_Rest = 'CoinMarketCap_Rest',
 	Coinpaprika_OpenApi = 'Coinpaprika_OpenApi',

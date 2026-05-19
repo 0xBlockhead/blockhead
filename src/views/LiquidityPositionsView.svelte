@@ -40,7 +40,7 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -57,11 +57,11 @@
 		},
 	)
 
-	const envelopes = derive(
-		parentEntity,
-		(merged) => {
+	const liquidityPositions = derive(
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.LiquidityPosition>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
@@ -94,7 +94,7 @@
 	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
 	placeholderKeys={new SvelteSet()}
-	resource={envelopes}
+	resource={liquidityPositions}
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >

@@ -32,7 +32,9 @@
 		...entityViewRest
 	}: WithRest<
 		{
-			children?: Snippet
+			children?: Snippet<[{
+				open: boolean,
+			}]>
 			entityId: EntityId<typeof schema, EntityType._Global>
 			title: string
 			href: string
@@ -56,7 +58,7 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
-	const duneUsage = useEntity(
+	const global = useEntity(
 		EntityType._Global,
 		entityId,
 		{
@@ -118,28 +120,28 @@
 				id={`global:${entityId.scope}:usage`}
 			>
 				<ResourceBoundary
-					resource={duneUsage}
+					resource={global}
 					placeholderText="Loading usage…"
 				>
-					{#snippet children(g)}
+					{#snippet children(global)}
 						<dl data-column-item="center">
-							{#if g.duneCreditsUsed !== undefined}
+							{#if global.duneCreditsUsed !== undefined}
 								<div>
 									<dt>Query credits used</dt>
-									<dd>{String(g.duneCreditsUsed)}</dd>
+									<dd>{String(global.duneCreditsUsed)}</dd>
 								</div>
 							{/if}
 
-							{#if g.duneCreditsIncluded !== undefined}
+							{#if global.duneCreditsIncluded !== undefined}
 								<div>
 									<dt>Query credits included</dt>
-									<dd>{String(g.duneCreditsIncluded)}</dd>
+									<dd>{String(global.duneCreditsIncluded)}</dd>
 								</div>
 							{/if}
 
 							{#if (
-								g.duneCreditsUsed === undefined
-								&& g.duneCreditsIncluded === undefined
+								global.duneCreditsUsed === undefined
+								&& global.duneCreditsIncluded === undefined
 							)}
 								<div>
 									<dt>Status</dt>
@@ -159,7 +161,14 @@
 		open: _open,
 	})}
 		{#if children}
-			{@render children()}
+			<div
+				class="entity-view-detail-carousels"
+				data-column="gap-3"
+			>
+				{@render children({
+					open: _open,
+				})}
+			</div>
 		{:else}
 			<EntityDetails
 				entityType={EntityType._Global}
@@ -283,6 +292,46 @@
 									{/if}
 								{/snippet}
 							</UnorderedList>
+						</section>
+
+						<section
+							id={`global:${entityId.scope}:usage`}
+							data-scroll-marker-label="Usage"
+						>
+							<ResourceBoundary
+								resource={global}
+								placeholderText="Loading usage…"
+							>
+								{#snippet children(global)}
+									<dl data-column-item="center">
+										{#if global.duneCreditsUsed !== undefined}
+											<div>
+												<dt>Query credits used</dt>
+												<dd>{String(global.duneCreditsUsed)}</dd>
+											</div>
+										{/if}
+
+										{#if global.duneCreditsIncluded !== undefined}
+											<div>
+												<dt>Query credits included</dt>
+												<dd>{String(global.duneCreditsIncluded)}</dd>
+											</div>
+										{/if}
+
+										{#if (
+											global.duneCreditsUsed === undefined
+											&& global.duneCreditsIncluded === undefined
+										)}
+											<div>
+												<dt>Status</dt>
+												<dd data-text="muted">
+													No usage totals yet.
+												</dd>
+											</div>
+										{/if}
+									</dl>
+								{/snippet}
+							</ResourceBoundary>
 						</section>
 
 					{/snippet}

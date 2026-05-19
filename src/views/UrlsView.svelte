@@ -39,7 +39,7 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -50,10 +50,10 @@
 	)
 
 	const urls = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.Url>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 			const byUrl = new Map<string, Entity<typeof schema, EntityType.Url>>()
 			for (const row of rows) {
@@ -92,12 +92,12 @@
 	{...entitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Each row is a normal HTTPS (or similar) link, usually enriched from page metadata when available.
-					</p>
-					<p>
-						This is separate from Swarm <code>bzz</code> addresses, on-chain topics, pool contracts, or chat threads.
-					</p>
+		<p>
+			Each row is a normal HTTPS (or similar) link, usually enriched from page metadata when available.
+		</p>
+		<p>
+			This is separate from Swarm <code>bzz</code> addresses, on-chain topics, pool contracts, or chat threads.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

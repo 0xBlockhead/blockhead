@@ -86,19 +86,19 @@
 			resource={topic}
 			placeholderText="Loading event topic…"
 		>
-			{#snippet children(t)}
-				{t.signatures?.[0] ?? entityId.hex}
+			{#snippet children(topic)}
+				{topic.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Receipt logs publish a small ordered list of 32-byte <strong>topics</strong>; the first is usually the fingerprint of the event declaration.
-				</p>
-				<p>
-					Additional topics carry indexed arguments, while remaining fields encode in the log’s data. This differs from four-byte prefixes used on calldata or revert payloads.
-				</p>
+		<p>
+			Receipt logs publish a small ordered list of 32-byte <strong>topics</strong>; the first is usually the fingerprint of the event declaration.
+		</p>
+		<p>
+			Additional topics carry indexed arguments, while remaining fields encode in the log’s data. This differs from four-byte prefixes used on calldata or revert payloads.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -118,13 +118,13 @@
 					resource={topic}
 					placeholderText="Loading event ABI fragments…"
 				>
-					{#snippet children(t)}
-						{#if t.signatures?.length}
+					{#snippet children(topic)}
+						{#if topic.signatures?.length}
 							<div>
 								<dt>Decoded logs (indexed args / event defs)</dt>
 								<dd>
 									<ul>
-										{#each t.signatures as sig (sig)}
+										{#each topic.signatures as sig (sig)}
 											<li><code>{sig}</code></li>
 										{/each}
 									</ul>

@@ -11,6 +11,7 @@ import BlobscanRestResolvers from '$/resolvers/Blobscan-Rest.ts'
 import BlockscoutRestResolvers from '$/resolvers/Blockscout-Rest.ts'
 import CaipsGithubResolvers from '$/resolvers/Caips-Github.ts'
 import ChainlistRestResolvers from '$/resolvers/Chainlist-Rest.ts'
+import CoingeckoOpenApiResolvers from '$/resolvers/Coingecko-OpenApi.ts'
 import CoingeckoRestResolvers from '$/resolvers/Coingecko-Rest.ts'
 import CoinMarketCapRestResolvers from '$/resolvers/CoinMarketCap-Rest.ts'
 import CoinpaprikaOpenApiResolvers from '$/resolvers/Coinpaprika-OpenApi.ts'
@@ -56,6 +57,7 @@ const enabledResolverModulesAfterSourceGate = (
 		L2BeatRestResolvers,
 		ChainlistRestResolvers,
 		CoingeckoRestResolvers,
+		CoingeckoOpenApiResolvers,
 		CoinMarketCapRestResolvers,
 		CoinpaprikaOpenApiResolvers,
 		ConstantsResolvers,

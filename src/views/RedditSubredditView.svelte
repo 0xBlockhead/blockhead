@@ -93,19 +93,19 @@
 			resource={subreddit}
 			placeholderText="Loading subreddit…"
 		>
-			{#snippet children(u)}
-				{u.title ?? `r/${entityId.name}`}
+			{#snippet children(subreddit)}
+				{subreddit.title ?? `r/${entityId.name}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Subreddits are Reddit’s named communities—their moderators and description power the posts list surfaced here.
-				</p>
-				<p>
-					Profiles on other networks or realtime rooms tracked locally are unrelated rows.
-				</p>
+		<p>
+			Subreddits are Reddit’s named communities—their moderators and description power the posts list surfaced here.
+		</p>
+		<p>
+			Profiles on other networks or realtime rooms tracked locally are unrelated rows.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -113,24 +113,20 @@
 			resource={subreddit}
 			placeholderText="Loading subreddit…"
 		>
-			{#snippet children(u)}
-				{#if !u.publicDescription}
+			{#snippet children(subreddit)}
+				{#if !subreddit.publicDescription}
 					<p data-text="muted">No subreddit description.</p>
 				{:else}
 					{#if !open}
-						<p data-text="muted">{u.publicDescription}</p>
+						<p data-text="muted">{subreddit.publicDescription}</p>
 					{/if}
 				{/if}
 				<dl data-column-item="center">
-					<div>
-						<dt>Subreddit</dt>
-						<dd data-text="mono">r/{entityId.name}</dd>
-					</div>
 					{#if open}
-						{#if u.publicDescription}
+						{#if subreddit.publicDescription}
 							<div>
 								<dt>Description</dt>
-								<dd>{u.publicDescription}</dd>
+								<dd>{subreddit.publicDescription}</dd>
 							</div>
 						{/if}
 					{/if}

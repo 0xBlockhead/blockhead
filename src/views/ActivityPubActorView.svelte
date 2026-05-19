@@ -95,10 +95,10 @@
 			resource={actor}
 			placeholderText="Loading actor…"
 		>
-			{#snippet children(activityPubActorRow)}
-				{activityPubActorRow.displayName
-					?? activityPubActorRow.acct
-					?? activityPubActorRow.username
+			{#snippet children(actor)}
+				{actor.displayName
+					?? actor.acct
+					?? actor.username
 					?? entityId.localAccountId}
 			{/snippet}
 		</ResourceBoundary>
@@ -109,12 +109,12 @@
 			resource={actor}
 			placeholderText=""
 		>
-			{#snippet children(activityPubActorRow)}
-				{#if activityPubActorRow.$icon}
+			{#snippet children(actor)}
+				{#if actor.$icon}
 					<IconComponent
-						alt={activityPubActorRow.displayName ?? activityPubActorRow.acct ?? activityPubActorRow.username ?? entityId.localAccountId}
+						alt={actor.displayName ?? actor.acct ?? actor.username ?? entityId.localAccountId}
 						shape={IconShape.Circle}
-						src={activityPubActorRow.$icon[EntityMetaKey.Id].url}
+						src={actor.$icon[EntityMetaKey.Id].url}
 					/>
 				{/if}
 			{/snippet}
@@ -132,15 +132,15 @@
 			resource={actor}
 			placeholderText=""
 		>
-			{#snippet children(activityPubActorRow)}
+			{#snippet children(actor)}
 				{@const activityPubSummaryHeadingLine =
-					activityPubActorRow.displayName
-					?? activityPubActorRow.acct
-					?? activityPubActorRow.username
+					actor.displayName
+					?? actor.acct
+					?? actor.username
 					?? entityId.localAccountId}
-				{#if activityPubActorRow.username && activityPubActorRow.username !== activityPubSummaryHeadingLine}
+				{#if actor.username && actor.username !== activityPubSummaryHeadingLine}
 					<span data-text="muted">
-						@{activityPubActorRow.username}
+						@{actor.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -152,11 +152,11 @@
 			resource={actor}
 			placeholderText="Loading actor…"
 		>
-			{#snippet children(activityPubActorRow)}
+			{#snippet children(actor)}
 				{@const activityPubSummaryHeadingLine = (
-					activityPubActorRow.displayName
-					?? activityPubActorRow.acct
-					?? activityPubActorRow.username
+					actor.displayName
+					?? actor.acct
+					?? actor.username
 					?? entityId.localAccountId
 				)}
 				<dl data-column-item="center">
@@ -170,38 +170,38 @@
 					{/if}
 
 					{#if open}
-						{#if activityPubActorRow.username}
+						{#if actor.username}
 							<div>
 								<dt>Username on instance</dt>
-								<dd>{activityPubActorRow.username}</dd>
+								<dd>{actor.username}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if activityPubActorRow.acct}
+						{#if actor.acct}
 							<div>
 								<dt>Federated handle (acct)</dt>
-								<dd>{activityPubActorRow.acct}</dd>
+								<dd>{actor.acct}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if activityPubActorRow.displayName}
+						{#if actor.displayName}
 							<div>
 								<dt>Display name</dt>
-								<dd>{activityPubActorRow.displayName}</dd>
+								<dd>{actor.displayName}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if activityPubActorRow.note}
+						{#if actor.note}
 							<div>
 								<dt>Bio (plain text)</dt>
 								<dd>
-									{htmlToPlainText(activityPubActorRow.note)}
+									{htmlToPlainText(actor.note)}
 								</dd>
 							</div>
 						{/if}
@@ -262,12 +262,12 @@
 							resource={actor}
 							placeholderText="Loading Mastodon profile…"
 						>
-							{#snippet children(activityPubActorRow)}
+							{#snippet children(actor)}
 								{@const mastodonProfileUnset = (
-									activityPubActorRow.acct == null
-									&& activityPubActorRow.displayName == null
-									&& activityPubActorRow.username == null
-									&& activityPubActorRow.note == null
+									actor.acct == null
+									&& actor.displayName == null
+									&& actor.username == null
+									&& actor.note == null
 								)}
 								{#if mastodonProfileUnset}
 									<div data-row="wrap align-center gap-2">

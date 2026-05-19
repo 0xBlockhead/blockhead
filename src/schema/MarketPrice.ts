@@ -35,6 +35,7 @@ export default {
 			defaultSources: [
 				Source.Constants_Internal,
 				Source.Coingecko_Rest,
+				Source.Coingecko_OpenApi,
 				Source.CoinMarketCap_Rest,
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_OpenApi,
@@ -54,9 +55,9 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
-			name: 'timestampNs',
+			name: 'timestampMs',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

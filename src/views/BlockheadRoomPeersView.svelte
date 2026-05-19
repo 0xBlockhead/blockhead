@@ -55,7 +55,7 @@
 	> = $props()
 
 
-	const globalEntity = useEntity(
+	const global = useEntity(
 		EntityType._Global,
 		entityFieldReference.entityId,
 		(
@@ -72,9 +72,9 @@
 	)
 
 	const peers = derive(
-		globalEntity,
-		(globalRow) => (
-			globalRow['$$blockheadRoomPeers'] ?? []
+		global,
+		(global) => (
+			global['$$blockheadRoomPeers'] ?? []
 		),
 	)
 </script>
@@ -93,8 +93,12 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>Realtime peers attached to the multiplayer room—who is connected over the mesh for collaboration.</p>
-					<p>Not the same as Farcaster contacts, wallet sessions, or beacon validators.</p>
+		<p>
+			Realtime peers attached to the multiplayer room—who is connected over the mesh for collaboration.
+		</p>
+		<p>
+			Not the same as Farcaster contacts, wallet sessions, or beacon validators.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}
@@ -116,3 +120,4 @@
 			/>
 		{/if}
 	{/snippet}
+</EntitiesList>

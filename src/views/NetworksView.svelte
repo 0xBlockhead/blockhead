@@ -66,7 +66,7 @@
 		)),
 	])
 
-	const networksParent = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -82,10 +82,10 @@
 	)
 
 	const networks = derive(
-		networksParent,
-		(merged) => {
+		parent,
+		(parent) => {
 			const chainIds = new SvelteSet<number>()
-			const rows: Entity<typeof schema, EntityType.Network>[] = merged[fieldName] ?? []
+			const rows: Entity<typeof schema, EntityType.Network>[] = parent[fieldName] ?? []
 			return (
 				rows
 					.flatMap((value) => {
@@ -116,12 +116,12 @@
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Execution networks are identified by EIP-155 chain id; public registries publish RPC URLs, explorers, and native currency symbols.
-					</p>
-					<p>
-						Testnets, rollups, and app-chains reuse the same abstraction—only consensus parameters and fork schedules differ.
-					</p>
+		<p>
+			Execution networks are identified by EIP-155 chain id; public registries publish RPC URLs, explorers, and native currency symbols.
+		</p>
+		<p>
+			Testnets, rollups, and app-chains reuse the same abstraction—only consensus parameters and fork schedules differ.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

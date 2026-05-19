@@ -35,7 +35,7 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -63,10 +63,10 @@
 	)
 
 	const bridges = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.NetworkBridge>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].url.localeCompare(b[EntityMetaKey.Id].url)
@@ -100,8 +100,12 @@
 	{...entitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>Registered routes between this chain and others: official or community bridge endpoints from network catalogs.</p>
-					<p>Use them to pick an exit before moving funds; always verify destination support separately.</p>
+		<p>
+			Registered routes between this chain and others: official or community bridge endpoints from network catalogs.
+		</p>
+		<p>
+			Use them to pick an exit before moving funds; always verify destination support separately.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

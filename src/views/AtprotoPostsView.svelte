@@ -101,7 +101,7 @@
 
 	const posts = derive(
 		atprotoNetworkOrAccount,
-		(loaded) => {
+		(atprotoNetworkOrAccount) => {
 			const sortPosts = <
 				R extends Entity<typeof schema, EntityType.AtprotoPost>[],
 			>(rows: R) => (
@@ -121,9 +121,9 @@
 			)
 
 			if (entityFieldReference.entityType === EntityType.AtprotoNetwork) {
-				return sortPosts(loaded.$$atprotoPosts ?? [])
+				return sortPosts(atprotoNetworkOrAccount.$$atprotoPosts ?? [])
 			}
-			return sortPosts(loaded.$$posts ?? [])
+			return sortPosts(atprotoNetworkOrAccount.$$posts ?? [])
 		},
 	)
 </script>

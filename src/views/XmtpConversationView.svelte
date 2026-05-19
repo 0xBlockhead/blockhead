@@ -74,30 +74,12 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Thread id in XMTP labels a double‑ratchet conversation between provisioned wallet identities.
-				</p>
-				<p>
-					Ciphertext and session state live off-chain; explorers cannot reconstruct transcripts from calldata alone.
-				</p>
-	{/snippet}
-
-	{#snippet Content({
-		title: _title,
-		href: _href,
-		open: _contentOpen,
-	})}
-		<dl data-column-item="center">
-			<div>
-				<dt>Conversation id</dt>
-				<dd>
-					<TruncatedValue
-						value={entityId.id}
-						format={TruncatedValueFormat.Visual}
-					/>
-				</dd>
-			</div>
-		</dl>
+		<p>
+			Thread id in XMTP labels a double‑ratchet conversation between provisioned wallet identities.
+		</p>
+		<p>
+			Ciphertext and session state live off-chain; explorers cannot reconstruct transcripts from calldata alone.
+		</p>
 	{/snippet}
 
 	{#snippet Details({
@@ -114,10 +96,10 @@
 					resource={conversation}
 					placeholderText="Loading conversation…"
 				>
-					{#snippet children()}
-						<div data-text="muted">
-							Encrypted conversation metadata is not available yet.
-						</div>
+					{#snippet children(conversation)}
+						<conversationdivconversation conversationdataconversation-conversationtextconversation="conversationmutedconversation">
+							conversationEncryptedconversation conversationconversationconversation conversationmetadataconversation conversationisconversation conversationnotconversation conversationavailableconversation conversationyetconversation.
+						</conversationdivconversation>
 					{/snippet}
 				</ResourceBoundary>
 			</EntityDetails>

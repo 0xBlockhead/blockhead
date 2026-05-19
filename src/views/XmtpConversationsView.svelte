@@ -40,7 +40,7 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -49,11 +49,11 @@
 		},
 	)
 
-	const envelopes = derive(
-		parentEntity,
-		(merged) => {
+	const conversations = derive(
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.XmtpConversation>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 			return (
 				rows
@@ -84,7 +84,7 @@
 	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
 	getSortValue={(row) => row.value[EntityMetaKey.Id].id}
 	placeholderKeys={new SvelteSet()}
-	resource={envelopes}
+	resource={conversations}
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >

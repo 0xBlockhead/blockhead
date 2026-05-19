@@ -120,83 +120,76 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			<div>
-				<dt>Execution layer chain</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
 			<ResourceBoundary
 				resource={slot}
 				placeholderText="Loading slot…"
 			>
-				{#snippet children(s)}
+				{#snippet children(slot)}
 					<div>
 						<dt>Consensus proposer index</dt>
 						<dd>
-							<NumberValue value={s.proposerIndex} />
+							<NumberValue value={slot.proposerIndex} />
 						</dd>
 					</div>
 					{#if open}
-						{#if s.epoch !== undefined}
+						{#if slot.epoch !== undefined}
 							<div>
 								<dt>Epoch</dt>
 								<dd>
-									<NumberValue value={s.epoch} />
+									<NumberValue value={slot.epoch} />
 								</dd>
 							</div>
 						{/if}
 
-						{#if s.root !== undefined && s.root !== ''}
+						{#if slot.root !== undefined && slot.root !== ''}
 							<div>
 								<dt>Root</dt>
 								<dd>
 									<TruncatedValue
-										value={s.root}
+										value={slot.root}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if s.canonical !== undefined}
+						{#if slot.canonical !== undefined}
 							<div>
 								<dt>Canonical</dt>
-								<dd>{s.canonical ? 'Yes' : 'No'}</dd>
+								<dd>{slot.canonical ? 'Yes' : 'No'}</dd>
 							</div>
 						{/if}
 
-						{#if s.parentRoot !== undefined && s.parentRoot !== ''}
+						{#if slot.parentRoot !== undefined && slot.parentRoot !== ''}
 							<div>
 								<dt>Parent root</dt>
 								<dd>
 									<TruncatedValue
-										value={s.parentRoot}
+										value={slot.parentRoot}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if s.stateRoot !== undefined && s.stateRoot !== ''}
+						{#if slot.stateRoot !== undefined && slot.stateRoot !== ''}
 							<div>
 								<dt>State root</dt>
 								<dd>
 									<TruncatedValue
-										value={s.stateRoot}
+										value={slot.stateRoot}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if s.bodyRoot !== undefined && s.bodyRoot !== ''}
+						{#if slot.bodyRoot !== undefined && slot.bodyRoot !== ''}
 							<div>
 								<dt>Body root</dt>
 								<dd>
 									<TruncatedValue
-										value={s.bodyRoot}
+										value={slot.bodyRoot}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								</dd>

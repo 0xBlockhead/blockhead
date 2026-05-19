@@ -4,11 +4,12 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { CoinInstanceType } from '$/schema/CoinInstance.ts'
-import { schema } from '$/schema/index.ts'
-import { Source } from '$/sources/$Source.ts'
+
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
 
 
 	// Props
@@ -64,7 +65,9 @@ import { Source } from '$/sources/$Source.ts'
 			$: [
 				Source.Coingecko_Rest,
 				Source.Constants_Internal,
+				Source.Lifi_Rest,
 			],
+			coinId: {},
 			$icon: {},
 			name: {},
 			symbol: {},
@@ -72,8 +75,12 @@ import { Source } from '$/sources/$Source.ts'
 				{
 					decimals: {},
 					caip19: {},
+					representation: {},
+					$canonicalInstance: {},
 					$$marketsWithInstanceAsBase: {},
 					$$marketsWithInstanceAsQuote: {},
+					$$outboundBridgeCapabilities: {},
+					$$inboundBridgeCapabilities: {},
 				}
 				:
 				{}),
@@ -84,11 +91,12 @@ import { Source } from '$/sources/$Source.ts'
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Address from '$/views/Address.svelte'
+	import CoinBridgeCapabilitiesView from '$/views/CoinBridgeCapabilitiesView.svelte'
 	import MarketsView from '$/views/MarketsView.svelte'
 </script>
 
@@ -105,11 +113,11 @@ import { Source } from '$/sources/$Source.ts'
 			resource={coinInstance}
 			placeholderText=""
 		>
-			{#snippet children(live)}
-				{#if live.$icon?.[EntityMetaKey.Id].url !== undefined}
+			{#snippet children(coinInstance)}
+				{#if coinInstance.$icon?.[EntityMetaKey.Id].url !== undefined}
 					<IconComponent
-						src={live.$icon[EntityMetaKey.Id].url}
-						alt={live.symbol ?? live.name ?? ''}
+						src={coinInstance.$icon[EntityMetaKey.Id].url}
+						alt={coinInstance.symbol ?? coinInstance.name ?? ''}
 					/>
 				{/if}
 			{/snippet}
@@ -121,16 +129,23 @@ import { Source } from '$/sources/$Source.ts'
 			resource={coinInstance}
 			placeholderText="Loading…"
 		>
-			{#snippet children(live)}
-				{live.symbol ?? live.name ?? nativeOrErcTitle}
+			{#snippet children(coinInstance)}
+				{coinInstance.symbol ?? coinInstance.name ?? nativeOrErcTitle}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Id()}
-		<span data-text="font-monospace">
-			{entityId.$coin.coinId}
-		</span>
+		<ResourceBoundary
+			resource={coinInstance}
+			placeholderText=""
+		>
+			{#snippet children(coinInstance)}
+				<span data-text="font-monospace">
+					{coinInstance.coinId}
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -146,14 +161,8 @@ import { Source } from '$/sources/$Source.ts'
 			resource={coinInstance}
 			placeholderText="Loading coin instance…"
 		>
-			{#snippet children(live)}
+			{#snippet children(coinInstance)}
 				<dl data-column-item="center">
-					<div>
-						<dt>Coin id</dt>
-						<dd data-text="mono">
-							{@render Id()}
-						</dd>
-					</div>
 					<div>
 						<dt>Chain</dt>
 						<dd>{String(entityId.$network.chainId)}</dd>
@@ -172,37 +181,63 @@ import { Source } from '$/sources/$Source.ts'
 						</dd>
 					</div>
 					{#if open}
-						{#if live.name !== undefined}
+						{#if coinInstance.name !== undefined}
 							<div>
 								<dt>Name</dt>
-								<dd>{live.name}</dd>
+								<dd>{coinInstance.name}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if live.symbol !== undefined}
+						{#if coinInstance.symbol !== undefined}
 							<div>
 								<dt>Symbol</dt>
-								<dd>{live.symbol}</dd>
+								<dd>{coinInstance.symbol}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if live.decimals !== undefined}
+						{#if coinInstance.decimals !== undefined}
 							<div>
 								<dt>Decimals</dt>
-								<dd>{String(live.decimals)}</dd>
+								<dd>{String(coinInstance.decimals)}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if live.caip19 !== undefined}
+						{#if coinInstance.caip19 !== undefined}
 							<div>
 								<dt>CAIP-19</dt>
-								<dd>{live.caip19}</dd>
+								<dd>{coinInstance.caip19}</dd>
+							</div>
+						{/if}
+					{/if}
+
+					{#if open}
+						{#if coinInstance.representation !== undefined}
+							<div>
+								<dt>Representation</dt>
+								<dd>{coinInstance.representation}</dd>
+							</div>
+						{/if}
+					{/if}
+
+					{#if open}
+						{#if coinInstance.$canonicalInstance}
+							<div>
+								<dt>Canonical deployment</dt>
+								<dd>
+									<CoinInstanceView
+										entityId={coinInstance.$canonicalInstance[EntityMetaKey.Id]}
+										href={_href}
+										layout={EntityLayout.Id}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								</dd>
 							</div>
 						{/if}
 					{/if}
@@ -224,6 +259,86 @@ import { Source } from '$/sources/$Source.ts'
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
+				id={`${coinInstanceKey}:carousel-bridging`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({ open: _isOpen })}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>
+							Bridging
+						</HeadingComponent>
+					</header>
+				{/snippet}
+
+				{#snippet Markers()}
+					<ResourceBoundary resource={coinInstance}>
+						{#snippet children(coinInstance)}
+							{#if (coinInstance.$$outboundBridgeCapabilities ?? []).length}
+								<a
+									data-scroll-marker-label="Outbound"
+									href={`#${coinInstanceKey}:bridge-outbound`}
+								>Outbound</a>
+							{/if}
+
+							{#if (coinInstance.$$inboundBridgeCapabilities ?? []).length}
+								<a
+									data-scroll-marker-label="Inbound"
+									href={`#${coinInstanceKey}:bridge-inbound`}
+								>Inbound</a>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+
+				{#snippet children(_childrenContext)}
+					<ResourceBoundary resource={coinInstance}>
+						{#snippet children(coinInstance)}
+							{#if (coinInstance.$$outboundBridgeCapabilities ?? []).length}
+								<section
+									data-scroll-marker-label="Outbound"
+									id={`${coinInstanceKey}:bridge-outbound`}
+								>
+									<CoinBridgeCapabilitiesView
+										collapsible={false}
+										entityFieldReference={{
+											entityType: EntityType.CoinInstance,
+											entityId,
+											fieldName: '$$outboundBridgeCapabilities',
+										}}
+										{href}
+										open={false}
+										title="Outbound"
+									/>
+								</section>
+							{/if}
+
+							{#if (coinInstance.$$inboundBridgeCapabilities ?? []).length}
+								<section
+									data-scroll-marker-label="Inbound"
+									id={`${coinInstanceKey}:bridge-inbound`}
+								>
+									<CoinBridgeCapabilitiesView
+										collapsible={false}
+										entityFieldReference={{
+											entityType: EntityType.CoinInstance,
+											entityId,
+											fieldName: '$$inboundBridgeCapabilities',
+										}}
+										{href}
+										open={false}
+										title="Inbound"
+									/>
+								</section>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</CollapsibleTabs>
+
+			<CollapsibleTabs
 				id={`${coinInstanceKey}:carousel-markets`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
@@ -240,15 +355,15 @@ import { Source } from '$/sources/$Source.ts'
 
 				{#snippet Markers()}
 					<ResourceBoundary resource={coinInstance}>
-						{#snippet children(live)}
-							{#if (live.$$marketsWithInstanceAsBase ?? []).length}
+						{#snippet children(coinInstance)}
+							{#if (coinInstance.$$marketsWithInstanceAsBase ?? []).length}
 								<a
 									data-scroll-marker-label="Base"
 									href={`#${coinInstanceKey}:markets-base`}
 								>Base</a>
 							{/if}
 
-							{#if (live.$$marketsWithInstanceAsQuote ?? []).length}
+							{#if (coinInstance.$$marketsWithInstanceAsQuote ?? []).length}
 								<a
 									data-scroll-marker-label="Quote"
 									href={`#${coinInstanceKey}:markets-quote`}
@@ -260,8 +375,8 @@ import { Source } from '$/sources/$Source.ts'
 
 				{#snippet children(_childrenContext)}
 					<ResourceBoundary resource={coinInstance}>
-						{#snippet children(live)}
-							{#if (live.$$marketsWithInstanceAsBase ?? []).length}
+						{#snippet children(coinInstance)}
+							{#if (coinInstance.$$marketsWithInstanceAsBase ?? []).length}
 								<section>
 									<MarketsView
 										collapsible={false}
@@ -278,7 +393,7 @@ import { Source } from '$/sources/$Source.ts'
 								</section>
 							{/if}
 
-							{#if (live.$$marketsWithInstanceAsQuote ?? []).length}
+							{#if (coinInstance.$$marketsWithInstanceAsQuote ?? []).length}
 								<section>
 									<MarketsView
 										collapsible={false}
@@ -300,34 +415,7 @@ import { Source } from '$/sources/$Source.ts'
 			</CollapsibleTabs>
 
 			{#if children}
-				<CollapsibleTabs
-					id={`${coinInstanceKey}:carousel-extra`}
-					{...{ 'data-card': '' }}
-					scrollContainerProps={{
-						'data-row': 'start align-start',
-					}}
-				>
-					{#snippet Summary({ open: _isOpen })}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>
-								More
-							</HeadingComponent>
-						</header>
-					{/snippet}
-
-					{#snippet Markers()}
-						<a
-							data-scroll-marker-label="Content"
-							href={`#${coinInstanceKey}:coin-instance-extra`}
-						>Content</a>
-					{/snippet}
-
-					{#snippet children(_childrenContext)}
-						<section id={`${coinInstanceKey}:coin-instance-extra`}>
-							{@render children()}
-						</section>
-					{/snippet}
-				</CollapsibleTabs>
+				{@render children()}
 			{/if}
 		</div>
 	{/snippet}

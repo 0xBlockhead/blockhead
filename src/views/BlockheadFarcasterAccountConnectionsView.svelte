@@ -47,7 +47,7 @@
 	> = $props()
 
 
-	const globalEntity = useEntity(
+	const global = useEntity(
 		EntityType._Global,
 		entityFieldReference.entityId,
 		(
@@ -64,9 +64,9 @@
 	)
 
 	const connections = derive(
-		globalEntity,
-		(globalRow) => (
-			globalRow['$$blockheadFarcasterAccountConnections'] ?? []
+		global,
+		(global) => (
+			global['$$blockheadFarcasterAccountConnections'] ?? []
 		),
 	)
 </script>
@@ -83,12 +83,12 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Local mapping from your Farcaster signer to a numeric FID: custody addresses, verifications, and casts resolve through that identity.
-					</p>
-					<p>
-						That mapping is separate from wallet-only EOAs, on-chain contract admin keys, and peer-to-peer messaging identities.
-					</p>
+		<p>
+			Local mapping from your Farcaster signer to a numeric FID: custody addresses, verifications, and casts resolve through that identity.
+		</p>
+		<p>
+			That mapping is separate from wallet-only EOAs, on-chain contract admin keys, and peer-to-peer messaging identities.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}
@@ -110,3 +110,4 @@
 			/>
 		{/if}
 	{/snippet}
+</EntitiesList>

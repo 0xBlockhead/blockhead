@@ -9,6 +9,7 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 import Network from '$/schema/Network.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.NetworkConsensusUpgrade,
@@ -81,6 +82,7 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Proposal,
 			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Constants_Internal],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

@@ -104,10 +104,10 @@
 					placeholderText="Loading Chainlist / Ethereum Lists bridge mapping…"
 					resource={bridge}
 				>
-					{#snippet children(b)}
+					{#snippet children(bridge)}
 						<div>
 							<dt>Relationship</dt>
-							<dd>{b.relationshipType}</dd>
+							<dd>{bridge.relationshipType}</dd>
 						</div>
 					{/snippet}
 				</ResourceBoundary>

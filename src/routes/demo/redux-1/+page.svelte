@@ -597,7 +597,7 @@
 		Coin = 'Coin',
 		CoinInstance = 'CoinInstance',
 		MarketPrice = 'MarketPrice',
-		MarketPriceRange = 'MarketPriceRange',
+		Market_TimeInterval_Timestamp = 'Market_TimeInterval_Timestamp',
 		Eip8004Service = 'Eip8004Service',
 		EnsName = 'EnsName',
 		EvmBlock = 'EvmBlock',

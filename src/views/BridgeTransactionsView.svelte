@@ -51,7 +51,7 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		(
@@ -69,10 +69,10 @@
 	)
 
 	const bridgeTransactions = derive(
-		parentEntity,
-		(merged): BridgeTxRow[] => {
+		parent,
+		(parent): BridgeTxRow[] => {
 			const rows: Entity<typeof schema, EntityType.BridgeTransaction>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					`${String(a[EntityMetaKey.Id].createdAt)}\0${stringify(a[EntityMetaKey.Id])}`
@@ -110,12 +110,12 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Each row records origin-side proof you initiated a cross-chain transfer: account, source chain, and source transaction hash.
-					</p>
-					<p>
-						Bridging is usually multi-step: a source-chain transaction locks or burns funds, then relays or light clients justify a release mint on the destination.
-					</p>
+		<p>
+			Each row records origin-side proof you initiated a cross-chain transfer: account, source chain, and source transaction hash.
+		</p>
+		<p>
+			Bridging is usually multi-step: a source-chain transaction locks or burns funds, then relays or light clients justify a release mint on the destination.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

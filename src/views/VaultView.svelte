@@ -94,19 +94,19 @@
 			resource={vault}
 			placeholderText="Loading vault…"
 		>
-			{#snippet children(v)}
-				{`${v.token0Symbol} / ${v.token1Symbol}`}
+			{#snippet children(vault)}
+				{`${vault.token0Symbol} / ${vault.token1Symbol}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Concentrated-liquidity AMM pool: two tokens, a fee tier, curve price and tick state shared by LPs.
-				</p>
-				<p>
-					Not an ERC-4626 yield vault, a storage download, or a social feed.
-				</p>
+		<p>
+			Concentrated-liquidity AMM pool: two tokens, a fee tier, curve price and tick state shared by LPs.
+		</p>
+		<p>
+			Not an ERC-4626 yield vault, a storage download, or a social feed.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -114,23 +114,14 @@
 			resource={vault}
 			placeholderText="Loading vault…"
 		>
-			{#snippet children(v)}
+			{#snippet children(vault)}
 				<dl data-column-item="center">
-					<div>
-						<dt>Vault id</dt>
-						<dd>
-							<TruncatedValue
-								value={entityId.id}
-								format={TruncatedValueFormat.Visual}
-							/>
-						</dd>
-					</div>
 					<div>
 						<dt>Token 0</dt>
 						<dd>
 							<Address
-								network={v.$token0.$network}
-								address={v.$token0.address}
+								network={vault.$token0.$network}
+								address={vault.$token0.address}
 							/>
 						</dd>
 					</div>
@@ -138,100 +129,100 @@
 						<dt>Token 1</dt>
 						<dd>
 							<Address
-								network={v.$token1.$network}
-								address={v.$token1.address}
+								network={vault.$token1.$network}
+								address={vault.$token1.address}
 							/>
 						</dd>
 					</div>
 					{#if open}
-						{#if v.token0Decimals !== undefined}
+						{#if vault.token0Decimals !== undefined}
 							<div>
 								<dt>Token 0 decimals</dt>
-								<dd>{String(v.token0Decimals)}</dd>
+								<dd>{String(vault.token0Decimals)}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if v.token1Decimals !== undefined}
+						{#if vault.token1Decimals !== undefined}
 							<div>
 								<dt>Token 1 decimals</dt>
-								<dd>{String(v.token1Decimals)}</dd>
+								<dd>{String(vault.token1Decimals)}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if v.fee !== undefined}
+						{#if vault.fee !== undefined}
 							<div>
 								<dt>Fee</dt>
-								<dd>{String(v.fee)}</dd>
+								<dd>{String(vault.fee)}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if v.tickSpacing !== undefined}
+						{#if vault.tickSpacing !== undefined}
 							<div>
 								<dt>Tick spacing</dt>
-								<dd>{String(v.tickSpacing)}</dd>
+								<dd>{String(vault.tickSpacing)}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if v.sqrtPriceX96 !== undefined}
+						{#if vault.sqrtPriceX96 !== undefined}
 							<div>
 								<dt>Sqrt price X96</dt>
-								<dd>{String(v.sqrtPriceX96)}</dd>
+								<dd>{String(vault.sqrtPriceX96)}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if v.liquidity !== undefined}
+						{#if vault.liquidity !== undefined}
 							<div>
 								<dt>Liquidity</dt>
-								<dd>{String(v.liquidity)}</dd>
+								<dd>{String(vault.liquidity)}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if v.tick !== undefined}
+						{#if vault.tick !== undefined}
 							<div>
 								<dt>Tick</dt>
-								<dd>{String(v.tick)}</dd>
+								<dd>{String(vault.tick)}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if v.volumeUSD !== undefined}
+						{#if vault.volumeUSD !== undefined}
 							<div>
 								<dt>Volume USD</dt>
-								<dd>{String(v.volumeUSD)}</dd>
+								<dd>{String(vault.volumeUSD)}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if v.totalValueLockedUSD !== undefined}
+						{#if vault.totalValueLockedUSD !== undefined}
 							<div>
 								<dt>TVL USD</dt>
-								<dd>{String(v.totalValueLockedUSD)}</dd>
+								<dd>{String(vault.totalValueLockedUSD)}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if v.$hooks !== undefined}
+						{#if vault.$hooks !== undefined}
 							<div>
 								<dt>Hooks</dt>
 								<dd>
 									<Address
-										network={v.$hooks.$network}
-										address={v.$hooks.address}
+										network={vault.$hooks.$network}
+										address={vault.$hooks.address}
 									/>
 								</dd>
 							</div>
@@ -239,12 +230,12 @@
 					{/if}
 
 					{#if open}
-						{#if v.v4PoolId !== undefined}
+						{#if vault.v4PoolId !== undefined}
 							<div>
 								<dt>Pool id</dt>
 								<dd>
 									<TruncatedValue
-										value={v.v4PoolId}
+										value={vault.v4PoolId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</dd>

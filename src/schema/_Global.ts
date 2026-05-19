@@ -76,6 +76,7 @@ export default {
 			defaultSources: [
 				Source.Constants_Internal,
 				Source.Coingecko_Rest,
+				Source.Coingecko_OpenApi,
 				Source.CoinMarketCap_Rest,
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_OpenApi,
@@ -90,6 +91,13 @@ export default {
 			defaultSources: [Source.Constants_Internal],
 		},
 		{
+			name: '$$currencies',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Currency,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Constants_Internal],
+		},
+		{
 			name: '$$marketPrices',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.MarketPrice,
@@ -97,6 +105,7 @@ export default {
 			defaultSources: [
 				Source.Constants_Internal,
 				Source.Coingecko_Rest,
+				Source.Coingecko_OpenApi,
 				Source.CoinMarketCap_Rest,
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_OpenApi,
@@ -104,12 +113,13 @@ export default {
 			],
 		},
 		{
-			name: '$$marketPriceRanges',
+			name: '$$marketTimeIntervalTimestamps',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.MarketPriceRange,
+			entityType: EntityType.Market_TimeInterval_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.Coingecko_Rest,
+				Source.Coingecko_OpenApi,
 				Source.Defillama_OpenApi,
 				Source.Coinpaprika_OpenApi,
 				Source.CoinMarketCap_Rest,

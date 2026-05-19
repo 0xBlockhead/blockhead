@@ -27,13 +27,15 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 
 
+	let {
+		open = $bindable(true),
+	} = $props()
+
 	const entityId = (
 		{
 			scope: 'ActivityPubNetwork' as const,
 		} satisfies EntityId<typeof schema, EntityType.ActivityPubNetwork>
 	)
-
-	let open = $bindable(true)
 
 	const networkIdKey = $derived(
 		stringify(entityId),
@@ -91,16 +93,13 @@
 			resource={activityPubNetwork}
 			placeholderText="Loading ActivityPub federation slice…"
 		>
-			{#snippet children(n)}
+			{#snippet children(activityPubNetwork)}
 				<dl data-column-item="center">
-						<dt>Federation scope</dt>
-						<dd>{entityId.scope}</dd>
-					</div>
 					{#if _contentOpen}
 						<div>
 							<dt>Local Mastodon cache</dt>
 							<dd data-text="muted">
-								{String(n.$$activityPubActors?.length ?? 0)} actors · {String(n.$$activityPubNotes?.length ?? 0)} statuses
+								{String(activityPubNetwork.$$activityPubActors?.length ?? 0)} actors · {String(activityPubNetwork.$$activityPubNotes?.length ?? 0)} statuses
 							</dd>
 						</div>
 					{/if}
@@ -108,28 +107,28 @@
 					{#if _contentOpen}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{n.protocolName ?? 'ActivityPub (Mastodon-compatible)'}</dd>
+							<dd>{activityPubNetwork.protocolName ?? 'ActivityPub (Mastodon-compatible)'}</dd>
 						</div>
 					{/if}
 
 					{#if _contentOpen}
-						{#if n.homeUrl}
+						{#if activityPubNetwork.homeUrl}
 							<div>
 								<dt>Project home</dt>
 								<dd>
-									<a href={n.homeUrl}>{n.homeUrl}</a>
+									<a href={activityPubNetwork.homeUrl}>{activityPubNetwork.homeUrl}</a>
 								</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if _contentOpen}
-						{#if n.docsUrl}
+						{#if activityPubNetwork.docsUrl}
 							<div>
 								<dt>Specification</dt>
 								<dd>
-									<a href={n.docsUrl}>
-										{n.docsUrl}
+									<a href={activityPubNetwork.docsUrl}>
+										{activityPubNetwork.docsUrl}
 									</a>
 								</dd>
 							</div>
@@ -202,7 +201,7 @@
 							}}
 							href={resolve('/(social)/activitypub')}
 							id={`${networkIdKey}:actors`}
-							open={false}
+							open={_open}
 						/>
 					</section>
 

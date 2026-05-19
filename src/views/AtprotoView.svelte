@@ -102,37 +102,33 @@
 			resource={atprotoNetwork}
 			placeholderText="Loading AT Protocol directory…"
 		>
-			{#snippet children(n)}
+			{#snippet children(atprotoNetwork)}
 				<dl data-column-item="center">
-					<div>
-						<dt>Network scope</dt>
-						<dd data-text="mono">{entityId.scope}</dd>
-					</div>
 					{#if _contentOpen}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{n.protocolName ?? 'AT Protocol'}</dd>
+							<dd>{atprotoNetwork.protocolName ?? 'AT Protocol'}</dd>
 						</div>
 					{/if}
 
 					{#if _contentOpen}
-						{#if n.homeUrl}
+						{#if atprotoNetwork.homeUrl}
 							<div>
 								<dt>Home</dt>
 								<dd>
-									<a href={n.homeUrl}>{n.homeUrl}</a>
+									<a href={atprotoNetwork.homeUrl}>{atprotoNetwork.homeUrl}</a>
 								</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if _contentOpen}
-						{#if n.docsUrl != null && n.docsUrl !== ''}
+						{#if atprotoNetwork.docsUrl != null && atprotoNetwork.docsUrl !== ''}
 							<div>
 								<dt>Documentation</dt>
 								<dd>
-									<a href={n.docsUrl}>
-										{n.docsUrl}
+									<a href={atprotoNetwork.docsUrl}>
+										{atprotoNetwork.docsUrl}
 									</a>
 								</dd>
 							</div>
@@ -143,7 +139,7 @@
 						<div>
 							<dt>Local ATProto cache</dt>
 							<dd data-text="muted">
-								{String(n.$$atprotoActors?.length ?? 0)} accounts · {String(n.$$atprotoPosts?.length ?? 0)} records
+								{String(atprotoNetwork.$$atprotoActors?.length ?? 0)} accounts · {String(atprotoNetwork.$$atprotoPosts?.length ?? 0)} records
 							</dd>
 						</div>
 					{/if}
@@ -211,7 +207,7 @@
 							}}
 							href={resolve('/(social)/atproto')}
 							id={`${networkIdKey}:actors`}
-							open={false}
+							open={_open}
 						/>
 					</section>
 
@@ -228,7 +224,7 @@
 							fieldOpen={_open}
 							href={resolve('/(social)/atproto')}
 							id={`${networkIdKey}:posts`}
-							open={false}
+							open={_open}
 							title="Recent posts"
 						/>
 					</section>

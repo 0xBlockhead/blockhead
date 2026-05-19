@@ -108,15 +108,15 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Smart-contract bytecode at this address answers calls with ABI-encoded calldata.
-				</p>
-				<p>
-					A published ABI explains functions, return data, and events—separate from name-service text records or EIP-4844 blob sidecars.
-				</p>
-				<p>
-					When the resolver surfaces an implementation contract for this proxy address, behavior follows that implementation and storage layout, not the proxy bytecode alone.
-				</p>
+		<p>
+			Smart-contract bytecode at this address answers calls with ABI-encoded calldata.
+		</p>
+		<p>
+			A published ABI explains functions, return data, and events—separate from name-service text records or EIP-4844 blob sidecars.
+		</p>
+		<p>
+			When the resolver surfaces an implementation contract for this proxy address, behavior follows that implementation and storage layout, not the proxy bytecode alone.
+		</p>
 	{/snippet}
 
 	{#snippet Id()}
@@ -138,17 +138,17 @@
 						placeholderText="Loading contract details…"
 						resource={contract}
 					>
-						{#snippet children(live)}
-							{#if live.$deployer}
+						{#snippet children(contract)}
+							{#if contract.$deployer}
 								<div>
 									<dt>Deployer</dt>
 									<dd>
 										<ActorView
-											entityId={live.$deployer[EntityMetaKey.Id]}
+											entityId={contract.$deployer[EntityMetaKey.Id]}
 											href={resolve(
 												'/~/(accounts)/accounts/account/[accountId]',
 												{
-													accountId: live.$deployer[EntityMetaKey.Id].address,
+													accountId: contract.$deployer[EntityMetaKey.Id].address,
 												},
 											)}
 											layout={EntityLayout.Summary}
@@ -158,17 +158,17 @@
 								</div>
 							{/if}
 
-							{#if live.$creationTransaction}
+							{#if contract.$creationTransaction}
 								<div>
 									<dt>Creation transaction</dt>
 									<dd>
 										<EvmTransactionView
-											entityId={live.$creationTransaction[EntityMetaKey.Id]}
+											entityId={contract.$creationTransaction[EntityMetaKey.Id]}
 											href={resolve(
 												'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
 												{
 													networkId: String(entityId.$network.chainId),
-													transactionId: live.$creationTransaction[EntityMetaKey.Id].txHash,
+													transactionId: contract.$creationTransaction[EntityMetaKey.Id].txHash,
 												},
 											)}
 											layout={EntityLayout.Summary}
@@ -178,17 +178,17 @@
 								</div>
 							{/if}
 
-							{#if live.$implementation}
+							{#if contract.$implementation}
 								<div>
 									<dt>Implementation (proxy)</dt>
 									<dd>
 										<svelte:self
-											entityId={live.$implementation[EntityMetaKey.Id]}
+											entityId={contract.$implementation[EntityMetaKey.Id]}
 											href={resolve(
 												'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
 												{
 													networkId: String(entityId.$network.chainId),
-													address: live.$implementation[EntityMetaKey.Id].address,
+													address: contract.$implementation[EntityMetaKey.Id].address,
 												},
 											)}
 											layout={EntityLayout.Summary}
@@ -199,36 +199,36 @@
 								</div>
 							{/if}
 
-							{#if live.bytecodeHash}
+							{#if contract.bytecodeHash}
 								<div>
 									<dt>Bytecode hash</dt>
 									<dd>
 										<TruncatedValue
-											value={live.bytecodeHash}
+											value={contract.bytecodeHash}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</dd>
 								</div>
 							{/if}
 
-							{#if live.code}
+							{#if contract.code}
 								<div>
 									<dt>Runtime bytecode</dt>
 									<dd>
 										<TruncatedValue
-											value={live.code}
+											value={contract.code}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</dd>
 								</div>
 							{/if}
 
-							{#if live.abi !== undefined}
+							{#if contract.abi !== undefined}
 								<div>
 									<dt>ABI (JSON)</dt>
 									<dd>
 										<TruncatedValue
-											value={live.abi}
+											value={contract.abi}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</dd>
@@ -338,36 +338,36 @@
 
 				{#snippet Markers()}
 					<ResourceBoundary resource={contract}>
-						{#snippet children(live)}
-							{#if live.$deployer || live.$creationTransaction}
+						{#snippet children(contract)}
+							{#if contract.$deployer || contract.$creationTransaction}
 								<a
 									data-scroll-marker-label="Deployment"
 									href={`#${contractIdKey}:contract-deployment`}
 								>Deployment</a>
 							{/if}
 
-							{#if live.bytecodeHash || live.code}
+							{#if contract.bytecodeHash || contract.code}
 								<a
 									data-scroll-marker-label="Bytecode"
 									href={`#${contractIdKey}:contract-bytecode`}
 								>Bytecode</a>
 							{/if}
 
-							{#if live.storageLayoutJson !== undefined && live.storageLayoutJson !== ''}
+							{#if contract.storageLayoutJson !== undefined && contract.storageLayoutJson !== ''}
 								<a
 									data-scroll-marker-label="Storage layout"
 									href={`#${contractIdKey}:contract-storage-layout`}
 								>Layout</a>
 							{/if}
 
-							{#if (live.storageSlotReads ?? []).length > 0}
+							{#if (contract.storageSlotReads ?? []).length > 0}
 								<a
 									data-scroll-marker-label="Slots"
 									href={`#${contractIdKey}:contract-storage-slots`}
 								>Slots</a>
 							{/if}
 
-							{#if live.$implementation}
+							{#if contract.$implementation}
 								<a
 									data-scroll-marker-label="Proxy"
 									href={`#${contractIdKey}:contract-proxy`}
@@ -379,17 +379,17 @@
 
 				{#snippet children(_ctx)}
 					<ResourceBoundary resource={contract}>
-						{#snippet children(live)}
-							{#if live.$deployer || live.$creationTransaction}
+						{#snippet children(contract)}
+							{#if contract.$deployer || contract.$creationTransaction}
 								<section id={`${contractIdKey}:contract-deployment`}>
-									{#if live.$deployer}
+									{#if contract.$deployer}
 										<div class="entity-details">
 											<ActorView
-												entityId={live.$deployer[EntityMetaKey.Id]}
+												entityId={contract.$deployer[EntityMetaKey.Id]}
 												href={resolve(
 													'/~/(accounts)/accounts/account/[accountId]',
 													{
-														accountId: live.$deployer[EntityMetaKey.Id].address,
+														accountId: contract.$deployer[EntityMetaKey.Id].address,
 													},
 												)}
 												layout={EntityLayout.Summary}
@@ -398,15 +398,15 @@
 										</div>
 									{/if}
 
-									{#if live.$creationTransaction}
+									{#if contract.$creationTransaction}
 										<div class="entity-details">
 											<EvmTransactionView
-												entityId={live.$creationTransaction[EntityMetaKey.Id]}
+												entityId={contract.$creationTransaction[EntityMetaKey.Id]}
 												href={resolve(
 													'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
 													{
 														networkId: String(entityId.$network.chainId),
-														transactionId: live.$creationTransaction[EntityMetaKey.Id].txHash,
+														transactionId: contract.$creationTransaction[EntityMetaKey.Id].txHash,
 													},
 												)}
 												layout={EntityLayout.Summary}
@@ -417,26 +417,26 @@
 								</section>
 							{/if}
 
-							{#if live.bytecodeHash || live.code}
+							{#if contract.bytecodeHash || contract.code}
 								<section id={`${contractIdKey}:contract-bytecode`}>
-									{#if live.bytecodeHash}
+									{#if contract.bytecodeHash}
 										<div class="entity-details">
 											<div data-row="inline wrap gap-2 align-baseline">
 												<span data-text="annotation">Bytecode hash</span>
 												<TruncatedValue
-													value={live.bytecodeHash}
+													value={contract.bytecodeHash}
 													format={TruncatedValueFormat.Visual}
 												/>
 											</div>
 										</div>
 									{/if}
 
-									{#if live.code}
+									{#if contract.code}
 										<div class="entity-details">
 											<div data-row="inline wrap gap-2 align-baseline">
 												<span data-text="annotation">Runtime bytecode</span>
 												<TruncatedValue
-													value={live.code}
+													value={contract.code}
 													format={TruncatedValueFormat.Visual}
 												/>
 											</div>
@@ -445,7 +445,7 @@
 								</section>
 							{/if}
 
-							{#if live.storageLayoutJson !== undefined && live.storageLayoutJson !== ''}
+							{#if contract.storageLayoutJson !== undefined && contract.storageLayoutJson !== ''}
 								<section id={`${contractIdKey}:contract-storage-layout`}>
 									<div class="entity-details">
 										<div data-row="wrap align-center gap-2">
@@ -461,14 +461,14 @@
 											</Tooltip>
 										</div>
 										<TruncatedValue
-											value={live.storageLayoutJson}
+											value={contract.storageLayoutJson}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</div>
 								</section>
 							{/if}
 
-							{#if (live.storageSlotReads ?? []).length > 0}
+							{#if (contract.storageSlotReads ?? []).length > 0}
 								<section id={`${contractIdKey}:contract-storage-slots`}>
 									<div class="entity-details">
 										<div data-row="wrap align-center gap-2">
@@ -492,7 +492,7 @@
 											</thead>
 											<tbody>
 												{#each (
-													live.storageSlotReads
+													contract.storageSlotReads
 													?? []
 												) as row (`${row.slot}`)}
 													<tr>
@@ -516,16 +516,16 @@
 								</section>
 							{/if}
 
-							{#if live.$implementation}
+							{#if contract.$implementation}
 								<section id={`${contractIdKey}:contract-proxy`}>
 									<div class="entity-details">
 										<svelte:self
-											entityId={live.$implementation[EntityMetaKey.Id]}
+											entityId={contract.$implementation[EntityMetaKey.Id]}
 											href={resolve(
 												'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
 												{
 													networkId: String(entityId.$network.chainId),
-													address: live.$implementation[EntityMetaKey.Id].address,
+													address: contract.$implementation[EntityMetaKey.Id].address,
 												},
 											)}
 											layout={EntityLayout.Summary}

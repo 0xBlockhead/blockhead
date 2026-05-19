@@ -98,19 +98,19 @@
 			resource={link}
 			placeholderText="Loading Reddit submission…"
 		>
-			{#snippet children(u)}
-				{u.title ?? entityId.fullname}
+			{#snippet children(link)}
+				{link.title ?? entityId.fullname}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					A submission bundles a headline, outbound link fields, optional body markdown, then the anchored comment thread underneath.
-				</p>
-				<p>
-					This is Reddit’s threaded model—not realtime rooms or simple chat timelines.
-				</p>
+		<p>
+			A submission bundles a headline, outbound link fields, optional body markdown, then the anchored comment thread underneath.
+		</p>
+		<p>
+			This is Reddit’s threaded model—not realtime rooms or simple chat timelines.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -118,19 +118,13 @@
 			resource={link}
 			placeholderText="Loading Reddit submission…"
 		>
-			{#snippet children(u)}
-				{#if !u.selftext}
+			{#snippet children(link)}
+				{#if !link.selftext}
 					<p data-text="muted">No submission text.</p>
 				{:else}
-					<p>{u.selftext}</p>
+					<p>{link.selftext}</p>
 				{/if}
 				<dl data-column-item="center">
-					<div>
-						<dt>Submission id (short)</dt>
-						<dd data-text="mono">
-							{@render Id()}
-						</dd>
-					</div>
 					{#if open}
 						<div>
 							<dt>Submission fullname</dt>
@@ -145,14 +139,14 @@
 					{#if open}
 						<div>
 							<dt>Submission title</dt>
-							<dd>{u.title}</dd>
+							<dd>{link.title}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
 							<dt>Author</dt>
-							<dd>u/{u.author}</dd>
+							<dd>link/{link.author}</dd>
 						</div>
 					{/if}
 
@@ -163,9 +157,9 @@
 								<a
 									href={resolve(
 										'/(social)/reddit/r/[name]',
-										{ name: encodeURIComponent(u.$subreddit[EntityMetaKey.Id].name) },
+										{ name: encodeURIComponent(link.$subreddit[EntityMetaKey.Id].name) },
 									)}
-								>r/{u.$subreddit[EntityMetaKey.Id].name}</a>
+								>r/{link.$subreddit[EntityMetaKey.Id].name}</a>
 							</dd>
 						</div>
 					{/if}
@@ -175,24 +169,24 @@
 							<dt>URL</dt>
 							<dd>
 								<a
-									href={u.url}
+									href={link.url}
 									rel="noreferrer"
 									target="_blank"
-								>{u.url}</a>
+								>{link.url}</a>
 							</dd>
 						</div>
 					{/if}
 
 					{#if open}
-						{#if u.permalink}
+						{#if link.permalink}
 							<div>
 								<dt>Permalink</dt>
 								<dd>
 									<a
-										href={`https://reddit.com${u.permalink}`}
+										href={`https://reddit.com${link.permalink}`}
 										rel="noreferrer"
 										target="_blank"
-									>reddit.com{u.permalink}</a>
+									>reddit.com{link.permalink}</a>
 								</dd>
 							</div>
 						{/if}
@@ -213,7 +207,7 @@
 				resource={link}
 				placeholderText="Loading Reddit submission…"
 			>
-				{#snippet children(_u)}
+				{#snippet children(link)}
 				{/snippet}
 			</ResourceBoundary>
 		</EntityDetails>

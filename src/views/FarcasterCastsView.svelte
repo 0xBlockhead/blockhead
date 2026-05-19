@@ -76,8 +76,8 @@
 
 	const casts = derive(
 		parentFeed,
-		(merged) => (
-			[...(merged.$$entries ?? [])]
+		(parentFeed) => (
+			[...(parentFeed.$$entries ?? [])]
 				.toSorted((a, b) => (
 					stringify(b[EntityMetaKey.Id]).localeCompare(stringify(a[EntityMetaKey.Id]))
 				))
@@ -103,12 +103,12 @@
 	{...entitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Casts are immutable messages (FID + hash) referenced by feeds; trending, author, and channel feeds differ only in hub query semantics.
-					</p>
-					<p>
-						An empty feed response usually means no hashes matched that filter at the hub—not that the chain halted.
-					</p>
+		<p>
+			Casts are immutable messages (FID + hash) referenced by feeds; trending, author, and channel feeds differ only in hub query semantics.
+		</p>
+		<p>
+			An empty feed response usually means no hashes matched that filter at the hub—not that the chain halted.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

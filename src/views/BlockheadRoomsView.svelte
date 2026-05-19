@@ -50,7 +50,7 @@
 	> = $props()
 
 
-	const globalEntity = useEntity(
+	const global = useEntity(
 		EntityType._Global,
 		entityFieldReference.entityId,
 		(
@@ -67,9 +67,9 @@
 	)
 
 	const rooms = derive(
-		globalEntity,
-		(globalRow) => (
-			globalRow['$$blockheadRooms'] ?? []
+		global,
+		(global) => (
+			global['$$blockheadRooms'] ?? []
 		),
 	)
 </script>
@@ -88,12 +88,12 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Realtime collaboration rooms: stable ids plus host metadata for synchronized presence and shared cursors/state.
-					</p>
-					<p>
-						They ride on WebRTC or similar transports—separate persistence from chat logs (XMTP), Farcaster feeds, or beacon consensus.
-					</p>
+		<p>
+			Realtime collaboration rooms: stable ids plus host metadata for synchronized presence and shared cursors/state.
+		</p>
+		<p>
+			They ride on WebRTC or similar transports—separate persistence from chat logs (XMTP), Farcaster feeds, or beacon consensus.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

@@ -90,11 +90,11 @@
 			resource={actor}
 			placeholderText=""
 		>
-			{#snippet children(atprotoProfileRow)}
-				{@const atprotoBrandIconSrc = atprotoProfileRow.$icon?.[EntityMetaKey.Id].url}
+			{#snippet children(actor)}
+				{@const atprotoBrandIconSrc = actor.$icon?.[EntityMetaKey.Id].url}
 				{#if atprotoBrandIconSrc}
 					<IconComponent
-						alt={atprotoProfileRow.displayName ?? atprotoProfileRow.handle ?? ''}
+						alt={actor.displayName ?? actor.handle ?? ''}
 						shape={IconShape.Circle}
 						src={atprotoBrandIconSrc}
 					/>
@@ -108,9 +108,9 @@
 			resource={actor}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(atprotoProfileRow)}
-				{atprotoProfileRow.displayName
-					?? atprotoProfileRow.handle
+			{#snippet children(actor)}
+				{actor.displayName
+					?? actor.handle
 					?? entityId.did}
 			{/snippet}
 		</ResourceBoundary>
@@ -127,15 +127,15 @@
 			resource={actor}
 			placeholderText=""
 		>
-			{#snippet children(atprotoProfileRow)}
+			{#snippet children(actor)}
 				{@const atprotoSummaryHeadingLine = (
-					atprotoProfileRow.displayName
-					?? atprotoProfileRow.handle
+					actor.displayName
+					?? actor.handle
 					?? entityId.did
 				)}
-				{#if atprotoProfileRow.handle && atprotoProfileRow.handle !== atprotoSummaryHeadingLine}
+				{#if actor.handle && actor.handle !== atprotoSummaryHeadingLine}
 					<span data-text="muted">
-						@{atprotoProfileRow.handle}
+						@{actor.handle}
 					</span>
 				{/if}
 			{/snippet}
@@ -147,10 +147,10 @@
 			resource={actor}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(atprotoProfileRow)}
+			{#snippet children(actor)}
 				{@const atprotoSummaryHeadingLine = (
-					atprotoProfileRow.displayName
-					?? atprotoProfileRow.handle
+					actor.displayName
+					?? actor.handle
 					?? entityId.did
 				)}
 				<dl data-column-item="center">
@@ -164,28 +164,28 @@
 					{/if}
 
 					{#if open}
-						{#if atprotoProfileRow.displayName}
+						{#if actor.displayName}
 							<div>
 								<dt>Display name</dt>
-								<dd>{atprotoProfileRow.displayName}</dd>
+								<dd>{actor.displayName}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if atprotoProfileRow.handle}
+						{#if actor.handle}
 							<div>
 								<dt>Federation handle</dt>
-								<dd>{atprotoProfileRow.handle}</dd>
+								<dd>{actor.handle}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if atprotoProfileRow.description}
+						{#if actor.description}
 							<div>
 								<dt>Bio</dt>
-								<dd>{atprotoProfileRow.description}</dd>
+								<dd>{actor.description}</dd>
 							</div>
 						{/if}
 					{/if}
@@ -245,11 +245,11 @@
 							resource={actor}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(atprotoProfileRow)}
+							{#snippet children(actor)}
 								{@const atprotoProfileUnset = (
-									atprotoProfileRow.handle == null
-									&& atprotoProfileRow.displayName == null
-									&& atprotoProfileRow.description == null
+									actor.handle == null
+									&& actor.displayName == null
+									&& actor.description == null
 								)}
 								{#if atprotoProfileUnset}
 									<div data-row="wrap align-center gap-2">

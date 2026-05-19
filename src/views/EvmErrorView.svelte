@@ -86,19 +86,19 @@
 			resource={evmError}
 			placeholderText="Loading error…"
 		>
-			{#snippet children(e)}
-				{e.signatures?.[0] ?? entityId.hex}
+			{#snippet children(evmError)}
+				{evmError.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Failing execution returns revert bytes prefixed by four bytes naming the ABI error variant, followed by encoded fields (often including human-readable envelopes).
-				</p>
-				<p>
-					Catalog lookups interpret those prefixes like contract call selectors—still separate from thirty-two-byte fingerprint headers on event logs.
-				</p>
+		<p>
+			Failing execution returns revert bytes prefixed by four bytes naming the ABI error variant, followed by encoded fields (often including human-readable envelopes).
+		</p>
+		<p>
+			Catalog lookups interpret those prefixes like contract call selectors—still separate from thirty-two-byte fingerprint headers on event logs.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -118,15 +118,15 @@
 					resource={evmError}
 					placeholderText="Loading catalog matches…"
 				>
-					{#snippet children(e)}
-						{#if e.signatures?.length}
+					{#snippet children(evmError)}
+						{#if evmError.signatures?.length}
 							<div>
 								<dt>
 									Decoded revert / custom error selectors
 								</dt>
 								<dd>
 									<ul>
-										{#each e.signatures as sig (sig)}
+										{#each evmError.signatures as sig (sig)}
 											<li><code>{sig}</code></li>
 										{/each}
 									</ul>

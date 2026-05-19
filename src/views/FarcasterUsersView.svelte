@@ -59,8 +59,8 @@
 
 	const users = derive(
 		parentNetwork,
-		(merged) => (
-			[...(merged.$$users ?? [])]
+		(parentNetwork) => (
+			[...(parentNetwork.$$users ?? [])]
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].fid - b[EntityMetaKey.Id].fid
 				))
@@ -85,12 +85,12 @@
 	resource={users}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Farcaster users are numeric FIDs registered through Hubs and Snapchain-style sync; directory APIs enumerate who exists on that network view.
-					</p>
-					<p>
-						Human-readable fnames resolve per profile; empty directories usually mean the indexer has not caught up yet.
-					</p>
+		<p>
+			Farcaster users are numeric FIDs registered through Hubs and Snapchain-style sync; directory APIs enumerate who exists on that network view.
+		</p>
+		<p>
+			Human-readable fnames resolve per profile; empty directories usually mean the indexer has not caught up yet.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

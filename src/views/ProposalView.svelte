@@ -51,11 +51,11 @@
 			documentBody?: string | null
 			documentTitle?: string | null
 		},
-		proposalEntityId: typeof ProposalSchema.id.infer,
+		proposalId: typeof ProposalSchema.id.infer,
 	): string => {
 		const trimmedTitle = (m.documentTitle ?? '').trim()
 		const match = (
-			proposalEntityId.category === ProposalCategory.Ensip ?
+			proposalId.category === ProposalCategory.Ensip ?
 				(m.documentBody ?? '').match(/#\s*(ENSIP-\d+:\s*.+)/)
 			:
 				null
@@ -73,10 +73,10 @@
 			documentBody?: string | null
 			documentTitle?: string | null
 		},
-		proposalEntityId: typeof ProposalSchema.id.infer,
+		proposalId: typeof ProposalSchema.id.infer,
 	) => {
-		const identifier = `${proposalCategoryById[proposalEntityId.category].label}-${proposalEntityId.number}`
-		const headingExtract = proposalHeadingExtractBeforeIdentifier(m, proposalEntityId)
+		const identifier = `${proposalCategoryById[proposalId.category].label}-${proposalId.number}`
+		const headingExtract = proposalHeadingExtractBeforeIdentifier(m, proposalId)
 		return (
 			headingExtract === '' ?
 				identifier
@@ -118,11 +118,6 @@
 		`proposal:${entityId.realm}:${entityId.category}:${entityId.number}`
 	)
 
-	const hideHeadingSecondarySummaryFromProposalIdentifierFallbackOnly = $derived(
-		proposal.ready
-		&& proposalHeadingExtractBeforeIdentifier(proposal.current, entityId) === '',
-	)
-
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
@@ -147,8 +142,8 @@
 			resource={proposal}
 			placeholderText="Loading proposal…"
 		>
-			{#snippet children(p)}
-				{proposalHeadingTitle(p, entityId)}
+			{#snippet children(proposal)}
+				{proposalHeadingTitle(proposal, entityId)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -162,12 +157,12 @@
 
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Each entry is a numbered specification pulled from upstream documentation trees, grouped first by stewarding realm, then by document family.
-				</p>
-				<p>
-					Catalog entries capture stewarded specification text and lifecycle status; live vote weights and treasury execution are tracked in governance systems on-chain or in forums.
-				</p>
+		<p>
+			Each entry is a numbered specification pulled from upstream documentation trees, grouped first by stewarding realm, then by document family.
+		</p>
+		<p>
+			Catalog entries capture stewarded specification text and lifecycle status; live vote weights and treasury execution are tracked in governance systems on-chain or in forums.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -175,26 +170,17 @@
 			resource={proposal}
 			placeholderText="Loading proposal…"
 		>
-			{#snippet children(p)}
+			{#snippet children(proposal)}
 				<dl data-column-item="center">
-					{#if !hideHeadingSecondarySummaryFromProposalIdentifierFallbackOnly}
-						<div>
-							<dt>Catalog ref</dt>
-							<dd data-text="mono">
-								{@render Id()}
-							</dd>
-						</div>
-					{/if}
-
-					{#if p.documentCategory}
+					{#if proposal.documentCategory}
 						<div>
 							<dt>Category</dt>
-							<dd>{p.documentCategory}</dd>
+							<dd>{proposal.documentCategory}</dd>
 						</div>
 					{/if}
 					<div>
 						<dt>Status</dt>
-						<dd>{p.documentStatus}</dd>
+						<dd>{proposal.documentStatus}</dd>
 					</div>
 					{#if open}
 						<div>
@@ -225,9 +211,9 @@
 								<span>Not shown here.</span>
 								<Tooltip contentProps={{ side: 'top' }}>
 									{#snippet Content()}
-										<p>
+										<proposal>
 											Standards repositories document process and normative text; DAO vote totals and treasury spend need the chain, Snapshot, or each org’s own dashboards.
-										</p>
+										</proposal>
 									{/snippet}
 									<abbr
 										class="entity-heading-tip"
@@ -281,11 +267,11 @@
 							resource={proposal}
 							placeholderText="Loading proposal…"
 						>
-							{#snippet children(p)}
-								{#if !p.documentBody}
-									<p data-text="muted">No proposal body available.</p>
+							{#snippet children(proposal)}
+								{#if !proposal.documentBody}
+									<proposal data-text="muted">No proposal body available.</proposal>
 								{:else}
-									<Markdown content={p.documentBody} />
+									<Markdown content={proposal.documentBody} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -298,17 +284,17 @@
 							resource={proposal}
 							placeholderText="Loading proposal…"
 						>
-							{#snippet children(p)}
+							{#snippet children(proposal)}
 								<dl data-column-item="center">
-									{#if p.documentCategory}
+									{#if proposal.documentCategory}
 										<div>
 											<dt>Category</dt>
-											<dd>{p.documentCategory}</dd>
+											<dd>{proposal.documentCategory}</dd>
 										</div>
 									{/if}
 									<div>
 										<dt>Status</dt>
-										<dd>{p.documentStatus}</dd>
+										<dd>{proposal.documentStatus}</dd>
 									</div>
 									<div>
 										<dt>Realm</dt>

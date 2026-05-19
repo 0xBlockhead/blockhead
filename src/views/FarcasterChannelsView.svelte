@@ -68,8 +68,8 @@
 
 	const channels = derive(
 		parentNetwork,
-		(merged) => (
-			[...(merged.$$channels ?? [])]
+		(parentNetwork) => (
+			[...(parentNetwork.$$channels ?? [])]
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
 				))
@@ -95,12 +95,12 @@
 	{...entitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Farcaster channels are namespaces (ids/slugs) that collect casts; hub APIs expose directory pages of channel metadata.
-					</p>
-					<p>
-						A channel is not a wallet, a FID, nor an on-chain contract—just social grouping on the protocol graph.
-					</p>
+		<p>
+			Farcaster channels are namespaces (ids/slugs) that collect casts; hub APIs expose directory pages of channel metadata.
+		</p>
+		<p>
+			A channel is not a wallet, a FID, nor an on-chain contract—just social grouping on the protocol graph.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

@@ -117,37 +117,30 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			<div>
-				<dt>Execution layer chain</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
 			<ResourceBoundary
 				resource={epoch}
 				placeholderText="Loading epoch…"
 			>
-				{#snippet children(e)}
-					{#if e.startSlot !== undefined}
-						{#if e.endSlot !== undefined}
+				{#snippet children(epoch)}
+					{#if epoch.startSlot !== undefined}
+						{#if epoch.endSlot !== undefined}
 							<div>
 								<dt>Consensus slot range</dt>
 								<dd>
-									<NumberValue value={e.startSlot} />
+									<NumberValue value={epoch.startSlot} />
 									to
-									<NumberValue value={e.endSlot} />
+									<NumberValue value={epoch.endSlot} />
 								</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if e.slotCount !== undefined}
+						{#if epoch.slotCount !== undefined}
 							<div>
 								<dt>Slots in this epoch</dt>
 								<dd>
-									<NumberValue value={e.slotCount} />
+									<NumberValue value={epoch.slotCount} />
 								</dd>
 							</div>
 						{:else}

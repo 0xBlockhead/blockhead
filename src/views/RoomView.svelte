@@ -87,8 +87,8 @@
 			resource={room}
 			placeholderText="Loading room…"
 		>
-			{#snippet children(r)}
-				{r.name ?? entityId.id}
+			{#snippet children(room)}
+				{room.name ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -96,12 +96,12 @@
 
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					WebRTC-style rooms synchronize ephemeral presence—cursors, avatars, shared focus—between joined clients.
-				</p>
-				<p>
-					That transport differs from federated ActivityPub threads, Reddit HTTP threads, or XMTP double-ratchet DMs.
-				</p>
+		<p>
+			WebRTC-style rooms synchronize ephemeral presence—cursors, avatars, shared focus—between joined clients.
+		</p>
+		<p>
+			That transport differs from federated ActivityPub threads, Reddit HTTP threads, or XMTP double-ratchet DMs.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -109,14 +109,14 @@
 			resource={room}
 			placeholderText="Loading room…"
 		>
-			{#snippet children(r)}
+			{#snippet children(room)}
 				<dl data-column-item="center">
-					{#if r.createdAt !== undefined}
+					{#if room.createdAt !== undefined}
 						<div>
 							<dt>Created</dt>
 							<dd>
 								<Timestamp
-									timestamp={r.createdAt}
+									timestamp={room.createdAt}
 									format={TimestampFormat.Both}
 								/>
 							</dd>
@@ -124,19 +124,19 @@
 					{/if}
 
 					{#if open}
-						{#if r.name !== undefined && r.name !== ''}
+						{#if room.name !== undefined && room.name !== ''}
 							<div>
 								<dt>Name</dt>
-								<dd>{r.name}</dd>
+								<dd>{room.name}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if r.createdBy !== undefined && r.createdBy !== ''}
+						{#if room.createdBy !== undefined && room.createdBy !== ''}
 							<div>
 								<dt>Opened by</dt>
-								<dd>{r.createdBy}</dd>
+								<dd>{room.createdBy}</dd>
 							</div>
 						{/if}
 					{/if}
@@ -159,12 +159,12 @@
 				resource={room}
 				placeholderText="Loading room…"
 			>
-				{#snippet children(r)}
+				{#snippet children(room)}
 					{#if open}
 						{#if (
-							(r.name === undefined || r.name === '')
-							&& (r.createdBy === undefined || r.createdBy === '')
-							&& r.createdAt === undefined
+							(room.name === undefined || room.name === '')
+							&& (room.createdBy === undefined || room.createdBy === '')
+							&& room.createdAt === undefined
 						)}
 							<p data-text="muted">
 								No room details are available yet.

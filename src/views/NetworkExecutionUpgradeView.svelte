@@ -7,6 +7,8 @@
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
+	import { stringify } from 'devalue'
+
 
 	// Props
 	let {
@@ -38,11 +40,9 @@
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-	const networkExecutionUpgradeEntityId = $derived(entityId)
-
 	const networkExecutionUpgrade = useEntity(
 		EntityType.NetworkExecutionUpgrade,
-		networkExecutionUpgradeEntityId,
+		entityId,
 		{
 			$: [
 				Source.Constants_Internal,
@@ -60,6 +60,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ProposalsView from '$/views/ProposalsView.svelte'
 </script>
 
 
@@ -82,8 +83,8 @@
 			resource={networkExecutionUpgrade}
 			placeholderText="Loading execution upgrade…"
 		>
-			{#snippet children(networkExecutionUpgradeEntity)}
-				{networkExecutionUpgradeEntity.name ?? entityId.upgradeId}
+			{#snippet children(networkExecutionUpgrade)}
+				{networkExecutionUpgrade.name ?? entityId.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -93,32 +94,13 @@
 			resource={networkExecutionUpgrade}
 			placeholderText="Loading execution upgrade…"
 		>
-			{#snippet children(networkExecutionUpgradeEntity)}
+			{#snippet children(networkExecutionUpgrade)}
 				<dl data-column-item="center">
-					<div>
-						<dt>Chain ID</dt>
-						<dd data-text="mono">
-							{String(entityId.$network.chainId)}
-						</dd>
-					</div>
-
 					{#if open}
-						{#if (
-							networkExecutionUpgradeEntity.slug !== undefined
-							&& networkExecutionUpgradeEntity.slug !== entityId.upgradeId
-						)}
-							<div>
-								<dt>Route slug</dt>
-								<dd data-text="mono">
-									{networkExecutionUpgradeEntity.slug}
-								</dd>
-							</div>
-						{/if}
-
-						{#if networkExecutionUpgradeEntity.protocol !== undefined}
+						{#if networkExecutionUpgrade.protocol !== undefined}
 							<div>
 								<dt>Execution fork</dt>
-								<dd>{networkExecutionUpgradeEntity.protocol}</dd>
+								<dd>{networkExecutionUpgrade.protocol}</dd>
 							</div>
 						{/if}
 					{/if}
@@ -131,6 +113,17 @@
 		<EntityDetails
 			entityType={EntityType.NetworkExecutionUpgrade}
 			{entityId}
+		/>
+
+		<ProposalsView
+			entityFieldReference={{
+				entityType: EntityType.NetworkExecutionUpgrade,
+				entityId,
+				fieldName: '$$proposals',
+			}}
+			id={`${stringify(entityId)}:proposals`}
+			open={false}
+			title="Specification proposals"
 		/>
 
 		{#if children}

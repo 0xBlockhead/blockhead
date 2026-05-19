@@ -88,8 +88,8 @@
 			resource={user}
 			placeholderText="Loading X profile…"
 		>
-			{#snippet children(row)}
-				{row.name ?? row.username ?? entityId.id}
+			{#snippet children(user)}
+				{user.name ?? user.username ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -106,12 +106,12 @@
 			resource={user}
 			placeholderText="Loading X profile…"
 		>
-			{#snippet children(row)}
-				{#if row.$icon !== undefined}
+			{#snippet children(user)}
+				{#if user.$icon !== undefined}
 					<IconComponent
-						alt={row.name ?? row.username ?? ''}
+						alt={user.name ?? user.username ?? ''}
 						shape={IconShape.Circle}
-						src={row.$icon[EntityMetaKey.Id].url}
+						src={user.$icon[EntityMetaKey.Id].url}
 					/>
 				{/if}
 			{/snippet}
@@ -132,15 +132,15 @@
 			resource={user}
 			placeholderText="Loading X profile…"
 		>
-			{#snippet children(row)}
+			{#snippet children(user)}
 				{#if (
-					row.username !== undefined
-					&& row.username !== (
-						row.name ?? row.username ?? entityId.id
+					user.username !== undefined
+					&& user.username !== (
+						user.name ?? user.username ?? entityId.id
 					)
 				)}
 					<span data-text="muted">
-						@{row.username}
+						@{user.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -152,47 +152,38 @@
 			resource={user}
 			placeholderText="Loading X profile…"
 		>
-			{#snippet children(row)}
-				{#if row.description}
+			{#snippet children(user)}
+				{#if user.description}
 					{#if !contentOpen}
 						<p data-text="muted">
-							{row.description}
+							{user.description}
 						</p>
 					{/if}
 				{/if}
 				<dl data-column-item="center">
-					<div>
-						<dt>User id</dt>
-						<dd data-text="mono">
-							<TruncatedValue
-								value={entityId.id}
-								format={TruncatedValueFormat.Visual}
-							/>
-						</dd>
-					</div>
 					{#if contentOpen}
-						{#if row.name}
+						{#if user.name}
 							<div>
 								<dt>Name</dt>
-								<dd>{row.name}</dd>
+								<dd>{user.name}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if contentOpen}
-						{#if row.username}
+						{#if user.username}
 							<div>
 								<dt>Username</dt>
-								<dd>{row.username}</dd>
+								<dd>{user.username}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if contentOpen}
-						{#if row.description}
+						{#if user.description}
 							<div>
 								<dt>Description</dt>
-								<dd>{row.description}</dd>
+								<dd>{user.description}</dd>
 							</div>
 						{/if}
 					{/if}
@@ -238,8 +229,8 @@
 						href={`#${userIdKey}:profile`}
 					>Profile</a>
 					<ResourceBoundary resource={user}>
-						{#snippet children(row)}
-							{#if (row.$$posts?.length)}
+						{#snippet children(user)}
+							{#if (user.$$posts?.length)}
 								<a
 									data-scroll-marker-label="Posts"
 									href={`#${userIdKey}:posts`}
@@ -255,12 +246,12 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(row)}
+							{#snippet children(user)}
 								{#if (
-									row.name === undefined
-									&& row.username === undefined
-									&& row.description === undefined
-									&& row.$icon === undefined
+									user.name === undefined
+									&& user.username === undefined
+									&& user.description === undefined
+									&& user.$icon === undefined
 								)}
 									<p data-text="muted">
 										User details are not available yet.
@@ -271,8 +262,8 @@
 					</section>
 
 					<ResourceBoundary resource={user}>
-						{#snippet children(row)}
-							{#if (row.$$posts?.length)}
+						{#snippet children(user)}
+							{#if (user.$$posts?.length)}
 								<section data-scroll-marker-label="Posts">
 									<XPostsView
 										collapsible={false}

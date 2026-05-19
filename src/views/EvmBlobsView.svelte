@@ -69,9 +69,9 @@
 
 	const blobs = derive(
 		network,
-		(loaded) => {
+		(network) => {
 			const rows = (
-				loaded.$$blobs
+				network.$$blobs
 				?? []
 			)
 			return (
@@ -103,15 +103,15 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Blob transactions carry large binary payloads alongside execution blocks; headers point at commitments while bodies hold the data for rollups.
-					</p>
-					<p>
-						That layer is separate from contract ABI decoding or ENS metadata.
-					</p>
-					<p>
-						Lists sample recent sidecars; nodes may omit blob bodies unless blob RPC is enabled.
-					</p>
+		<p>
+			Blob transactions carry large binary payloads alongside execution blocks; headers point at commitments while bodies hold the data for rollups.
+		</p>
+		<p>
+			That layer is separate from contract ABI decoding or ENS metadata.
+		</p>
+		<p>
+			Lists sample recent sidecars; nodes may omit blob bodies unless blob RPC is enabled.
+		</p>
 	{/snippet}
 
 	{#snippet body()}

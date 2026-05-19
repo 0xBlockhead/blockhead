@@ -42,7 +42,7 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		(
@@ -59,11 +59,11 @@
 		),
 	)
 
-	const envelopes = derive(
-		parentEntity,
-		(merged) => {
+	const selectors = derive(
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.EvmSelector>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].hex > b[EntityMetaKey.Id].hex ?
@@ -98,17 +98,17 @@
 	getKey={(envelope) => envelope.value[EntityMetaKey.Id].hex}
 	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].hex}
 	placeholderKeys={new SvelteSet()}
-	resource={envelopes}
+	resource={selectors}
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Function selectors are the first four bytes of keccak(functionName(types)) used as the calldata discriminator on EVM chains.
-					</p>
-					<p>
-						Catalogs map those bytes to human-readable signatures—distinct from log event topics or social posts.
-					</p>
+		<p>
+			Function selectors are the first four bytes of keccak(functionName(types)) used as the calldata discriminator on EVM chains.
+		</p>
+		<p>
+			Catalogs map those bytes to human-readable signatures—distinct from log event topics or social posts.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

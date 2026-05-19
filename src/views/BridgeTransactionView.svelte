@@ -6,7 +6,6 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -42,21 +41,13 @@
 	> = $props()
 
 
-	// State
-	const bridgeTxKey = $derived(
-		stringify(entityId),
-	)
-
-
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -73,12 +64,12 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Origin-chain bridge records usually list the depositor, source network, and the transaction that locked or burned funds on that side.
-				</p>
-				<p>
-					Final delivery, relayer proofs, and refunds settle on the destination ledger and in the bridge’s own lifecycle rules—always verify both chains and the protocol’s status pages.
-				</p>
+		<p>
+			Origin-chain bridge records usually list the depositor, source network, and the transaction that locked or burned funds on that side.
+		</p>
+		<p>
+			Final delivery, relayer proofs, and refunds settle on the destination ledger and in the bridge’s own lifecycle rules—always verify both chains and the protocol’s status pages.
+		</p>
 	{/snippet}
 
 	{#snippet Id()}
@@ -91,22 +82,17 @@
 		<div data-column="gap-1">
 			<dl data-column-item="center">
 			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
-			<div>
 				<dt>Origin chain</dt>
 				<dd>
-					<a
+					<NetworkView
+						entityId={entityId.$sourceTx.$network}
 						href={resolve('/(explore)/(networks)/network/[networkId]', {
 							networkId: String(entityId.$sourceTx.$network.chainId),
 						})}
-					>
-						{String(entityId.$sourceTx.$network.chainId)}
-					</a>
+						layout={EntityLayout.Id}
+						open={false}
+						showTypeAnnotation={false}
+					/>
 				</dd>
 			</div>
 			<div>
@@ -121,7 +107,7 @@
 								transactionId: entityId.$sourceTx.txHash,
 							},
 						)}
-						layout={EntityLayout.Summary}
+						layout={EntityLayout.Id}
 						open={false}
 						showTypeAnnotation={false}
 					/>
@@ -165,117 +151,8 @@
 			{entityId}
 		/>
 
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
-				id={`${bridgeTxKey}:carousel-transaction`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({ open: _isOpen })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>
-							Transaction
-						</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet Markers()}
-					<a
-						data-scroll-marker-label="Transaction"
-						href={`#${bridgeTxKey}:transaction`}
-					>Transaction</a>
-					<a
-						data-scroll-marker-label="Initiator"
-						href={`#${bridgeTxKey}:initiator`}
-					>Initiator</a>
-				{/snippet}
-
-				{#snippet children(_ctx)}
-					<section id={`${bridgeTxKey}:transaction`}>
-						<EvmTransactionView
-							entityId={entityId.$sourceTx}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
-								{
-									networkId: String(entityId.$sourceTx.$network.chainId),
-									transactionId: entityId.$sourceTx.txHash,
-								},
-							)}
-							open={false}
-						/>
-					</section>
-
-					<section id={`${bridgeTxKey}:initiator`}>
-						<ActorNetworkView
-							entityId={{
-								$network: entityId.$sourceTx.$network,
-								$actor: entityId.$account,
-							}}
-							href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-								accountId: entityId.$account.address,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-							showTypeAnnotation={false}
-						/>
-					</section>
-				{/snippet}
-			</CollapsibleTabs>
-		</div>
-
 		{#if children}
-			<div
-				class="bridge-transaction-carousel-groups"
-				data-column="gap-3"
-			>
-				<CollapsibleTabs
-					id={`${bridgeTxKey}:carousel-extra`}
-					{...{ 'data-card': '' }}
-					scrollContainerProps={{
-						'data-row': 'start align-start',
-					}}
-				>
-					{#snippet Summary({ open: _isOpen })}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>
-								More
-							</HeadingComponent>
-						</header>
-					{/snippet}
-
-					{#snippet Markers()}
-						<a
-							data-scroll-marker-label="Content"
-							href={`#${bridgeTxKey}:bridge-tx-extra`}
-						>Content</a>
-					{/snippet}
-
-					{#snippet children(_childrenContext)}
-						<section id={`${bridgeTxKey}:bridge-tx-extra`}>
-							{@render children()}
-						</section>
-					{/snippet}
-				</CollapsibleTabs>
-			</div>
+			{@render children()}
 		{/if}
 	{/snippet}
 </EntityView>
-
-
-<style>
-	.bridge-transaction-carousel-groups :global(.carousel) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 40ch;
-			}
-		}
-	}
-</style>

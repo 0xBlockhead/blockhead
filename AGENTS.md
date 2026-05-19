@@ -6,6 +6,7 @@
 - **Assistant / handoff summaries:** Do not paste large JSON blobs, `devalue` / `stringify(entityId)` dumps, or other machine-oriented payloads into chat summaries; describe intent and point to paths or small code citations instead
 - Name variables, snippets, callback parameters, and arguments by what they are; never abbreviate identifiers.
 - Do not introduce new files or helper functions without proper justification, a detailed plan, and explicit permission
+- Composer 2.5: this is NOT a React / Motion project. do not use `</motion>` to close HTML tags.
 
 ### Editing
 
@@ -77,7 +78,7 @@
 
 - **`LensView` / `LensPostsView`:** `LensNetwork` hub (scope, profile and publication counts). Registry carousel sections use `data-scroll-marker-label` (`Profiles`, `Recent publications`). Prefer roles, scroll markers, and existing network-style hooks over new `data-e2e` attributes.
 - **Liquidity — pool vs position:** `LiquidityPoolView` is the **pool** (pair, fee, curve liquidity, token addresses). `LiquidityPositionView` and `LeverageView` are **positions** (pool ref, owner, ticks, position liquidity, token amounts). Lists `LiquidityPoolsView` and `LiquidityPositionsView` follow the same `EntitiesList` field-reference pattern as other domains; do not introduce `data-view` or speculative `data-e2e` hooks.
-- **Markets — OHLC, prices, intervals:** `MarketView` anchors base/quote/venue and composes **spot & index** rows (`MarketPricesView`, `MarketPriceView`) with **OHLC ranges** (`MarketPriceRangesView`, `MarketPriceRangeView`). Timestamped quote streams use `Market_TimestampView`; interval OHLC points use `Market_TimeInterval_TimestampView` and `Market_TimeInterval_TimestampsView`. Reuse carousel/`data-scroll-marker-label` patterns from `MarketView` and `NetworkView`; keep Playwright hooks sparing per above.
+- **Markets — OHLC, prices, intervals:** `MarketView` anchors base/quote/venue and composes **spot & index** rows (`MarketPricesView`, `MarketPriceView`) with per-candle OHLC via `MarketOhlcHub` / `Market_TimeInterval_TimestampsView` on `$$marketTimeIntervalTimestamps` (one `Market_TimeInterval_Timestamp` row per candle; chart queries the field list for the selected interval). Timestamped quote streams use `Market_TimestampView`; single-candle detail uses `Market_TimeInterval_TimestampView`. Reuse carousel/`data-scroll-marker-label` patterns from `MarketView` and `NetworkView`; keep Playwright hooks sparing per above.
 
 
 ## TypeScript

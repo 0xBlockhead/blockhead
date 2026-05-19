@@ -71,8 +71,8 @@
 
 	const casts = derive(
 		farcasterUser,
-		(merged) => (
-			[...(merged.$$casts ?? [])]
+		(farcasterUser) => (
+			[...(farcasterUser.$$casts ?? [])]
 				.toSorted((a, b) => (
 					stringify(b[EntityMetaKey.Id]).localeCompare(stringify(a[EntityMetaKey.Id]))
 				))
@@ -109,9 +109,9 @@
 			resource={farcasterUser}
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
-			{#snippet children(u)}
-				{u.displayName
-					?? u.username
+			{#snippet children(farcasterUser)}
+				{farcasterUser.displayName
+					?? farcasterUser.username
 					?? `FID ${String(entityId.fid)}`}
 			{/snippet}
 		</ResourceBoundary>
@@ -128,12 +128,12 @@
 			resource={farcasterUser}
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
-			{#snippet children(u)}
-				{#if u.$icon}
-					{#if u.$icon[EntityMetaKey.Id].url}
+			{#snippet children(farcasterUser)}
+				{#if farcasterUser.$icon}
+					{#if farcasterUser.$icon[EntityMetaKey.Id].url}
 						<IconComponent
 							shape={IconShape.Circle}
-							src={u.$icon[EntityMetaKey.Id].url}
+							src={farcasterUser.$icon[EntityMetaKey.Id].url}
 							alt=""
 						/>
 					{/if}
@@ -147,17 +147,17 @@
 			resource={farcasterUser}
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
-			{#snippet children(u)}
+			{#snippet children(farcasterUser)}
 				{#if (
-					u.username !== undefined
-					&& u.username !== (
-						u.displayName
-						?? u.username
+					farcasterUser.username !== undefined
+					&& farcasterUser.username !== (
+						farcasterUser.displayName
+						?? farcasterUser.username
 						?? `FID ${String(entityId.fid)}`
 					)
 				)}
 					<span data-text="muted">
-						@{u.username}
+						@{farcasterUser.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -169,48 +169,44 @@
 			resource={farcasterUser}
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
-			{#snippet children(u)}
+			{#snippet children(farcasterUser)}
 				<dl data-column-item="center">
-					<div>
-						<dt>FID</dt>
-						<dd data-text="mono">
-							{@render Id()}
-						</dd>
-					</div>
-					{#if u.bio != null && u.bio !== ''}
+					{#if farcasterUser.bio != null && farcasterUser.bio !== ''}
 						<div>
 							<dt>Bio</dt>
-							<dd>{u.bio}</dd>
-						</div>
-					{:else}
-						<div>
-							<dt>Bio</dt>
-							<dd data-text="muted">No profile bio is set.</dd>
+							<dd>{farcasterUser.bio}</dd>
 						</div>
 					{/if}
 
-					{#if u.url}
+					<div>
+						<dt>FID</dt>
+						<dd>
+							{entityId.fid}
+						</dd>
+					</div>
+
+					{#if farcasterUser.url}
 						<div>
 							<dt>Link</dt>
 							<dd>
 								<a
-									href={u.url}
+									href={farcasterUser.url}
 									data-text="muted"
-								>{u.url}</a>
+								>{farcasterUser.url}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if u.verifiedAddress !== undefined}
+					{#if open && farcasterUser.verifiedAddress !== undefined}
 						<div>
 							<dt>Verified address</dt>
 							<dd>
 								<ActorView
 									entityId={{
-										address: u.verifiedAddress,
+										address: farcasterUser.verifiedAddress,
 									}}
 									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-										accountId: u.verifiedAddress,
+										accountId: farcasterUser.verifiedAddress,
 									})}
 									layout={EntityLayout.Id}
 									open={false}
@@ -221,34 +217,34 @@
 					{/if}
 
 					{#if open}
-						{#if u.displayName}
+						{#if farcasterUser.displayName}
 							<div>
 								<dt>Name</dt>
-								<dd>{u.displayName}</dd>
+								<dd>{farcasterUser.displayName}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if u.username}
+						{#if farcasterUser.username}
 							<div>
 								<dt>fname (Farcaster username)</dt>
 								<dd>
-									@{u.username}
+									@{farcasterUser.username}
 								</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if u.$icon}
-							{#if u.$icon[EntityMetaKey.Id].url}
+						{#if farcasterUser.$icon}
+							{#if farcasterUser.$icon[EntityMetaKey.Id].url}
 								<div>
 									<dt>Avatar</dt>
 									<dd>
 										<Media
-											media={{ url: u.$icon[EntityMetaKey.Id].url }}
-											alt={(u.displayName ?? u.username) ?? ''}
+											media={{ url: farcasterUser.$icon[EntityMetaKey.Id].url }}
+											alt={(farcasterUser.displayName ?? farcasterUser.username) ?? ''}
 										/>
 									</dd>
 								</div>
@@ -330,7 +326,7 @@
 							resource={farcasterUser}
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
-							{#snippet children(_u)}
+							{#snippet children(farcasterUser)}
 								<section data-column>
 									<h3>Farcaster profile</h3>
 								</section>

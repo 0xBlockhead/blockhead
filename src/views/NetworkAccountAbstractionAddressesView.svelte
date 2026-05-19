@@ -86,34 +86,15 @@
 
 	const addresses = derive(
 		network,
-		(loaded): Entity<typeof schema, EntityType.EvmAccountAbstractionAddress>[] => (
+		(network): Entity<typeof schema, EntityType.EvmAccountAbstractionAddress>[] => (
 			entityFieldReference.fieldName === '$$accountAbstractionSmartAccounts' ?
-				loaded.$$accountAbstractionSmartAccounts ?? []
+				network.$$accountAbstractionSmartAccounts ?? []
 			: entityFieldReference.fieldName === '$$accountAbstractionBundlers' ?
-				loaded.$$accountAbstractionBundlers ?? []
+				network.$$accountAbstractionBundlers ?? []
 			: entityFieldReference.fieldName === '$$accountAbstractionPaymasters' ?
-				loaded.$$accountAbstractionPaymasters ?? []
+				network.$$accountAbstractionPaymasters ?? []
 			:
-				loaded.$$accountAbstractionFactories ?? []
-		),
-	)
-
-	const addressesSorted = derive(
-		addresses,
-		(rows) => (
-			(rows ?? [])
-				.toSorted((leftRow, rightRow) => {
-					const left = BigInt(leftRow[EntityMetaKey.Id].address)
-					const right = BigInt(rightRow[EntityMetaKey.Id].address)
-					return (
-						right > left ?
-							1
-						: right < left ?
-							-1
-						:
-							0
-					)
-				})
+				network.$$accountAbstractionFactories ?? []
 		),
 	)
 </script>
@@ -128,12 +109,12 @@
 	{...entitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Blockscout-indexed ERC-4337 registry addresses for this execution chain (role plus deployment contract).
-					</p>
-					<p>
-						Open a row for aggregate operation counts and the underlying contract card.
-					</p>
+		<p>
+			Blockscout-indexed ERC-4337 registry addresses for this execution chain (role plus deployment contract).
+		</p>
+		<p>
+			Open a row for aggregate operation counts and the underlying contract card.
+		</p>
 	{/snippet}
 
 	{#snippet body()}
@@ -149,7 +130,7 @@
 				getKey={(item) => stringify(item[EntityMetaKey.Id])}
 				getSortValue={(item) => BigInt(item[EntityMetaKey.Id].address)}
 				placeholderText="Loading indexed addresses…"
-				resource={addressesSorted}
+				resource={addresses}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}

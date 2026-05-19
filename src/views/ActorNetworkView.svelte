@@ -125,9 +125,9 @@
 			{},
 	)
 
-	const allowanceRows = derive(
+	const allowances = derive(
 		actorNetwork,
-		(row) => (
+		(actorNetwork) => (
 			[...(row.$$erc20TokenAllowances ?? [])].map((value) => ({
 				value,
 			}))
@@ -167,11 +167,11 @@
 			resource={actor}
 			placeholderText=""
 		>
-			{#snippet children(actorRow)}
-				{#if actorRow.$icon}
+			{#snippet children(actor)}
+				{#if actor.$icon}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={actorRow.$icon[EntityMetaKey.Id].url}
+						src={actor.$icon[EntityMetaKey.Id].url}
 						size="1.5em"
 						alt=""
 					/>
@@ -185,8 +185,8 @@
 			resource={actor}
 			placeholderText=""
 		>
-			{#snippet children(actorRow)}
-				{actorRow.$primaryName?.[EntityMetaKey.Id].name ?? entityId.$actor.address}
+			{#snippet children(actor)}
+				{actor.$primaryName?.[EntityMetaKey.Id].name ?? entityId.$actor.address}
 			{/snippet}
 		</ResourceBoundary>
 		<small data-text="muted">
@@ -195,8 +195,8 @@
 				resource={network}
 				placeholderText="···"
 			>
-				{#snippet children(chain)}
-					{chain.name ?? String(chain[EntityMetaKey.Id].chainId)}
+				{#snippet children(network)}
+					{network.name ?? String(network[EntityMetaKey.Id].chainId)}
 				{/snippet}
 			</ResourceBoundary>
 		</small>
@@ -218,42 +218,23 @@
 			resource={actor}
 			placeholderText=""
 		>
-			{#snippet children(actorRow)}
+			{#snippet children(actor)}
 				<ResourceBoundary
 					resource={network}
 					placeholderText="Loading network…"
 				>
-					{#snippet children(chainRow)}
+					{#snippet children(network)}
 						<dl data-column-item="center">
-							<div>
-								<dt>EVM address</dt>
-								<dd data-text="mono">
-									{@render Id()}
-								</dd>
-							</div>
 							{#if contentOpen}
-								{#if actorRow.$primaryName}
+								{#if actor.$primaryName}
 									<div>
 										<dt>Primary ENS</dt>
 										<dd data-text="mono">
-											{actorRow.$primaryName[EntityMetaKey.Id].name}
+											{actor.$primaryName[EntityMetaKey.Id].name}
 										</dd>
 									</div>
 								{/if}
 							{/if}
-							<div>
-								<dt>Network</dt>
-								<dd>
-									{chainRow.name ?? String(chainRow[EntityMetaKey.Id].chainId)}
-								</dd>
-							</div>
-							{#if contentOpen}
-								<div>
-									<dt>Chain ID</dt>
-									<dd data-text="mono">{String(entityId.$network.chainId)}</dd>
-								</div>
-							{/if}
-
 							{#if contentOpen}
 								<div>
 									<dt>CAIP-2</dt>
@@ -262,50 +243,67 @@
 									</dd>
 								</div>
 							{/if}
+							{#if contentOpen}
+								<div>
+									<dt>Network</dt>
+									<dd>
+										<NetworkView
+											entityId={entityId.$network}
+											href={resolve(
+												'/(explore)/(networks)/network/[networkId]',
+												{ networkId: String(entityId.$network.chainId) },
+											)}
+											layout={EntityLayout.Id}
+											open={false}
+											showTypeAnnotation={false}
+										/>
+									</dd>
+								</div>
+							{/if}
 							<ResourceBoundary
 								resource={actorNetwork}
 								placeholderText="Loading network activity…"
 							>
-								{#snippet children(netRow)}
-									{#if netRow.transactionsCount !== undefined}
+								{#snippet children(actorNetwork)}
+									{#if actorNetwork.transactionsCount !== undefined}
 										<div>
 											<dt>Transactions (count)</dt>
-											<dd data-text="mono">{String(netRow.transactionsCount)}</dd>
+											<dd data-text="mono">{String(actorNetwork.transactionsCount)}</dd>
 										</div>
 									{/if}
 
-									{#if netRow.transactionCount !== undefined}
+									{#if actorNetwork.transactionCount !== undefined}
 										<div>
 											<dt>Transaction count</dt>
-											<dd data-text="mono">{String(netRow.transactionCount)}</dd>
+											<dd data-text="mono">{String(actorNetwork.transactionCount)}</dd>
 										</div>
 									{/if}
 
-									{#if netRow.tokenTransferCount !== undefined}
+									{#if actorNetwork.tokenTransferCount !== undefined}
 										<div>
 											<dt>Token transfers</dt>
-											<dd data-text="mono">{String(netRow.tokenTransferCount)}</dd>
+											<dd data-text="mono">{String(actorNetwork.tokenTransferCount)}</dd>
 										</div>
 									{/if}
 
-									{#if netRow.nftCount !== undefined}
+									{#if actorNetwork.nftCount !== undefined}
 										<div>
 											<dt>NFT items</dt>
-											<dd data-text="mono">{String(netRow.nftCount)}</dd>
+											<dd data-text="mono">{String(actorNetwork.nftCount)}</dd>
 										</div>
 									{/if}
 
-									{#if netRow.firstTransactionAt !== undefined}
+									{#if actorNetwork.firstTransactionAt !== undefined}
 										<div>
 											<dt>First activity at</dt>
-											<dd data-text="mono">{String(netRow.firstTransactionAt)}</dd>
+											<dd data-text="mono">{String(actorNetwork.firstTransactionAt)}</dd>
 										</div>
 									{/if}
 
-									{#if netRow.lastTransactionAt !== undefined}
+									{#if actorNetwork.lastTransactionAt !== undefined}
 										<div>
 											<dt>Last activity at</dt>
-											<dd data-text="mono">{String(netRow.lastTransactionAt)}</dd>
+											<dd data-text="mono">{String(actorNetwork.lastTransactionAt)}</dd>
 										</div>
 									{/if}
 								{/snippet}
@@ -329,42 +327,6 @@
 			class="actor-network-view-carousel-groups"
 			data-column="gap-3"
 		>
-			<CollapsibleTabs
-				id={`${actorNetworkDetailAnchorKey}:carousel-wallet-network`}
-				{...{ 'data-card': '' }}
-				class="actor-network-view-collapsible-relationship"
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({ open: _scopeSummary })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Wallet · network</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet Markers()}
-					<a
-						data-scroll-marker-label="Network chrome"
-						href={`#${actorNetworkDetailAnchorKey}:actor-network-host`}
-					>Network</a>
-				{/snippet}
-
-				{#snippet children(_relationshipChildren)}
-					<section id={`${actorNetworkDetailAnchorKey}:actor-network-host`}>
-						<NetworkView
-							entityId={entityId.$network}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]',
-								{ networkId: String(entityId.$network.chainId) },
-							)}
-							layout={EntityLayout.Id}
-							open={false}
-						/>
-					</section>
-				{/snippet}
-			</CollapsibleTabs>
-
 			<CollapsibleTabs
 				id={`${actorNetworkDetailAnchorKey}:carousel-balances`}
 				{...{ 'data-card': '' }}
@@ -428,7 +390,7 @@
 							getSortValue={(line) => stringify(line.value[EntityMetaKey.Id])}
 							placeholderKeys={new SvelteSet<string>()}
 							placeholderText="Loading allowances…"
-							resource={allowanceRows}
+							resource={allowances}
 							open={false}
 							UnorderedListProps={{
 								orientation: ListOrientation.Column,
@@ -466,10 +428,10 @@
 							resource={actorNetwork}
 							placeholderText="Loading positions…"
 						>
-							{#snippet children(netRow)}
-								{#if (netRow.contractPositions ?? []).length}
+							{#snippet children(actorNetwork)}
+								{#if (actorNetwork.contractPositions ?? []).length}
 									<ul data-list="unstyled">
-										{#each netRow.contractPositions ?? [] as row (`${row.protocol.key}:${row.name}`)}
+										{#each actorNetwork.contractPositions ?? [] as row (`${row.protocol.key}:${row.name}`)}
 											<li data-column="gap-1">
 												<div data-row="wrap align-baseline gap-2">
 													<strong>{row.name}</strong>
@@ -553,61 +515,61 @@
 							resource={actorNetwork}
 							placeholderText="Loading activity…"
 						>
-							{#snippet children(netRow)}
+							{#snippet children(actorNetwork)}
 								{#if (
-									netRow.transactionsCount !== undefined
-									|| netRow.transactionCount !== undefined
-									|| netRow.tokenTransferCount !== undefined
-									|| netRow.nftCount !== undefined
-									|| netRow.firstTransactionAt !== undefined
-									|| netRow.lastTransactionAt !== undefined
+									actorNetwork.transactionsCount !== undefined
+									|| actorNetwork.transactionCount !== undefined
+									|| actorNetwork.tokenTransferCount !== undefined
+									|| actorNetwork.nftCount !== undefined
+									|| actorNetwork.firstTransactionAt !== undefined
+									|| actorNetwork.lastTransactionAt !== undefined
 								)}
 									<section
 										data-scroll-marker-label="Summary"
 										id={`${actorNetworkDetailAnchorKey}:activity-summary`}
 									>
 										<dl data-column-item="center">
-											{#if netRow.transactionsCount !== undefined}
+											{#if actorNetwork.transactionsCount !== undefined}
 												<div>
 													<dt>Transactions (count)</dt>
 													<dd>
-														<NumberValue value={netRow.transactionsCount} />
+														<NumberValue value={actorNetwork.transactionsCount} />
 													</dd>
 												</div>
 											{/if}
 
-											{#if netRow.transactionCount !== undefined}
+											{#if actorNetwork.transactionCount !== undefined}
 												<div>
 													<dt>Transaction count</dt>
-													<dd data-text="mono">{String(netRow.transactionCount)}</dd>
+													<dd data-text="mono">{String(actorNetwork.transactionCount)}</dd>
 												</div>
 											{/if}
 
-											{#if netRow.tokenTransferCount !== undefined}
+											{#if actorNetwork.tokenTransferCount !== undefined}
 												<div>
 													<dt>Token transfers (indexer)</dt>
-													<dd data-text="mono">{String(netRow.tokenTransferCount)}</dd>
+													<dd data-text="mono">{String(actorNetwork.tokenTransferCount)}</dd>
 												</div>
 											{/if}
 
-											{#if netRow.nftCount !== undefined}
+											{#if actorNetwork.nftCount !== undefined}
 												<div>
 													<dt>NFT items (indexer)</dt>
-													<dd data-text="mono">{String(netRow.nftCount)}</dd>
+													<dd data-text="mono">{String(actorNetwork.nftCount)}</dd>
 												</div>
 											{/if}
 
-											{#if netRow.firstTransactionAt !== undefined}
+											{#if actorNetwork.firstTransactionAt !== undefined}
 												<div>
 													<dt>First activity at</dt>
-													<dd data-text="mono">{String(netRow.firstTransactionAt)}</dd>
+													<dd data-text="mono">{String(actorNetwork.firstTransactionAt)}</dd>
 												</div>
 											{/if}
 
-											{#if netRow.lastTransactionAt !== undefined}
+											{#if actorNetwork.lastTransactionAt !== undefined}
 												<div>
 													<dt>Last activity at</dt>
-													<dd data-text="mono">{String(netRow.lastTransactionAt)}</dd>
+													<dd data-text="mono">{String(actorNetwork.lastTransactionAt)}</dd>
 												</div>
 											{/if}
 										</dl>
@@ -628,7 +590,7 @@
 									/>
 								</section>
 
-								{#if netRow.tokenTransferCount !== undefined}
+								{#if actorNetwork.tokenTransferCount !== undefined}
 									<section
 										data-scroll-marker-label="Transfers"
 										id={`${actorNetworkDetailAnchorKey}:activity-transfers`}
@@ -636,7 +598,7 @@
 										<div class="entity-details">
 											<div data-row="wrap align-center gap-2">
 												<span data-text="annotation">Token transfers (indexer total)</span>
-												<span data-text="mono">{String(netRow.tokenTransferCount)}</span>
+												<span data-text="mono">{String(actorNetwork.tokenTransferCount)}</span>
 												<Tooltip contentProps={{ side: 'top' }}>
 													{#snippet Content()}
 														<p>Per-transfer rows are not modeled on <code>ActorNetwork</code> in this schema; use the count when the indexer provided it.</p>

@@ -73,7 +73,7 @@
 			entityId={route.marketId}
 			href={(
 				resolve(
-					'/(assets)/coins/market/[marketKey]',
+					'/(assets)/(markets)/market/[marketKey]',
 					{ marketKey: params.marketKey },
 				)
 			)}

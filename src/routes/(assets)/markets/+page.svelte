@@ -18,8 +18,8 @@
 			entityId: {},
 			fieldName: '$$markets',
 		}}
-		href={resolve('/coins/markets')}
-		id="coin-markets-page"
+		href={resolve('/markets')}
+		id="markets-page"
 		title="All markets"
 	/>
 </Page>

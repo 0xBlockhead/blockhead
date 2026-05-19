@@ -16,7 +16,7 @@ export default {
 
 	id: type({
 		$market: Market.id,
-		timestampNs: 'bigint',
+		timestampMs: 'number',
 	}),
 
 	fields: [

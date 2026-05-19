@@ -46,7 +46,7 @@
 
 
 	// State
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -58,11 +58,11 @@
 		},
 	)
 
-	const envelopes = derive(
-		parentEntity,
-		(merged) => {
+	const pools = derive(
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.LiquidityPool>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
@@ -85,17 +85,17 @@
 	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
 	placeholderKeys={new SvelteSet()}
 	placeholderText="Loading liquidity pools…"
-	resource={envelopes}
+	resource={pools}
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Liquidity pools are on-chain markets where liquidity providers deposit paired assets and earn fees.
-					</p>
-					<p>
-						Positions in a pool are tracked separately from the pool itself.
-					</p>
+		<p>
+			Liquidity pools are on-chain markets where liquidity providers deposit paired assets and earn fees.
+		</p>
+		<p>
+			Positions in a pool are tracked separately from the pool itself.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

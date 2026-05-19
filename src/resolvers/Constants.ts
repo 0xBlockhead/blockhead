@@ -1,10 +1,16 @@
 import type { ChainId } from '$/constants/ChainId.ts'
+import {
+	coinBridgeCapabilityFieldsForToolKey,
+	coinInstanceRepresentationFor,
+} from '$/constants/Bridge.ts'
 import { CoinId } from '$/constants/Coin.ts'
 import {
+	currencies,
+	currencyByIso4217,
+	usdCurrencyMarketAssetLeg,
+} from '$/constants/Currency.ts'
+import {
 	MarketAssetKind,
-	MarketPriceRangeType,
-	MarketTimeIntervalUnit,
-	coingeckoOhlcDayWindowLengths,
 } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import {
@@ -24,6 +30,7 @@ import {
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -98,7 +105,103 @@ export default {
 		}),
 
 		defineEntityResolver({
+			entityType: EntityType.Currency,
+			resolve: async (entityId) => {
+				const currency = currencyByIso4217[entityId.iso4217]
+				if (currency == null) {
+					throw new Error(`Constants_Internal: Currency not found for ${entityId.iso4217}`)
+				}
+				return {
+					name: currency.name,
+					symbol: currency.symbol,
+					minorUnitExponent: currency.minorUnitExponent,
+				}
+			},
+		}),
+
+		defineEntityResolver({
 			entityType: EntityType.Market,
+			resolve: async (_entityId) => ({}),
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.Coin,
+			resolve: async (entityId) => {
+				const { coinById } = await import('$/constants/Coin.ts')
+				const coin = coinById[entityId.coinId]
+				if (coin == null) {
+					throw new Error(`Constants_Internal: Coin not found for ${entityId.coinId}`)
+				}
+				return {
+					symbol: coin.symbol,
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.CoinInstance,
+			resolve: async (entityId) => {
+				if (
+					entityId.type !== CoinInstanceType.NativeCurrency
+					|| entityId.$network.chainId !== 1
+				) {
+					throw new Error('Constants_Internal: CoinInstance not found')
+				}
+				return {
+					coinId: CoinId.ETH,
+					symbol: 'ETH',
+					decimals: 18,
+					representation: coinInstanceRepresentationFor(
+						CoinId.ETH,
+						'ETH',
+						{
+							chainId: 1,
+							type: CoinInstanceType.NativeCurrency,
+							isNativeChain: true,
+						},
+					),
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.CoinBridgeCapability,
+			resolve: async (entityId) => ({
+				toolKey: entityId.toolKey,
+				...coinBridgeCapabilityFieldsForToolKey(entityId.toolKey),
+			}),
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.BridgeRoute,
+			resolve: async (entityId) => ({
+				$fromNetwork: { chainId: entityId.fromChainId },
+				$toNetwork: { chainId: entityId.toChainId },
+				fromAmount: BigInt(entityId.fromAmount),
+				toAmount: 0n,
+				toAmountMin: 0n,
+				gasCostUsd: 0,
+				estimatedDurationSeconds: 0,
+				tags: [],
+			}),
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.BridgeRouteStep,
+			resolve: async (entityId) => ({
+				stepType: 'lifi',
+				$fromNetwork: { chainId: entityId.$route.fromChainId },
+				$toNetwork: { chainId: entityId.$route.toChainId },
+			}),
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.MarketPrice,
+			resolve: async (_entityId) => ({}),
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: async (_entityId) => ({}),
 		}),
 
@@ -303,6 +406,20 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
+			fieldName: '$$currencies',
+			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
+				currencies.map((currency) => (
+					{
+						[EntityMetaKey.Id]: {
+							iso4217: currency.iso4217,
+						},
+					}
+				))
+			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType._Global,
 			fieldName: '$$markets',
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { coins } = await import('$/constants/Coin.ts')
@@ -314,10 +431,7 @@ export default {
 									kind: MarketAssetKind.Coin,
 									$coin: { coinId: coin.id },
 								},
-								$quote: {
-									kind: MarketAssetKind.Currency,
-									iso4217: 'USD',
-								},
+								$quote: usdCurrencyMarketAssetLeg,
 								$marketVenue: {
 									marketVenueId: MarketVenueId.SpotIndex,
 								},
@@ -342,10 +456,7 @@ export default {
 										kind: MarketAssetKind.Coin,
 										$coin: { coinId: coin.id },
 									},
-									$quote: {
-										kind: MarketAssetKind.Currency,
-										iso4217: 'USD',
-									},
+									$quote: usdCurrencyMarketAssetLeg,
 									$marketVenue: {
 										marketVenueId: MarketVenueId.SpotIndex,
 									},
@@ -368,10 +479,7 @@ export default {
 								kind: MarketAssetKind.Coin,
 								$coin: { coinId: entityId.coinId },
 							},
-							$quote: {
-								kind: MarketAssetKind.Currency,
-								iso4217: 'USD',
-							},
+							$quote: usdCurrencyMarketAssetLeg,
 							$marketVenue: {
 								marketVenueId: MarketVenueId.SpotIndex,
 							},
@@ -389,28 +497,82 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
-			fieldName: '$$marketPrice',
+			fieldName: '$$coinInstances',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => (
-				entityId.coinId === CoinId.Unknown ?
-					undefined
-				:	{
-						[EntityMetaKey.Id]: {
-							$market: {
-								$base: {
-									kind: MarketAssetKind.Coin,
-									$coin: { coinId: entityId.coinId },
+				entityId.coinId === CoinId.ETH ?
+					[
+						{
+							[EntityMetaKey.Id]: {
+								$network: { chainId: 1 },
+								type: CoinInstanceType.NativeCurrency,
+							},
+							representation: coinInstanceRepresentationFor(
+								CoinId.ETH,
+								'ETH',
+								{
+									chainId: 1,
+									type: CoinInstanceType.NativeCurrency,
+									isNativeChain: true,
 								},
-								$quote: {
-									kind: MarketAssetKind.Currency,
-									iso4217: 'USD',
-								},
-								$marketVenue: {
-									marketVenueId: MarketVenueId.SpotIndex,
-								},
-							} as const,
+							),
 						},
-					}
+					]
+				:	[]
 			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Coin,
+			fieldName: '$$bridgeCapabilities',
+			resolve: async () => [],
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.BridgeRoute,
+			fieldName: '$$steps',
+			resolve: async () => [],
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.CoinInstance,
+			fieldName: '$$outboundBridgeCapabilities',
+			resolve: async () => [],
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.CoinInstance,
+			fieldName: '$$inboundBridgeCapabilities',
+			resolve: async () => [],
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.CoinInstance,
+			fieldName: '$canonicalInstance',
+			resolve: async () => {
+				throw new Error('Constants_Internal: $canonicalInstance is unsupported')
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.CoinInstance,
+			fieldName: 'representation',
+			resolve: async (entityId) => {
+				if (
+					entityId.type === CoinInstanceType.NativeCurrency
+					&& entityId.$network.chainId === 1
+				) {
+					return coinInstanceRepresentationFor(
+						CoinId.ETH,
+						'ETH',
+						{
+							chainId: 1,
+							type: CoinInstanceType.NativeCurrency,
+							isNativeChain: true,
+						},
+					)
+				}
+				throw new Error('Constants_Internal: CoinInstance representation unsupported')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -443,21 +605,8 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Market,
-			fieldName: '$$marketPriceRanges',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>) => (
-				[...coingeckoOhlcDayWindowLengths].map((value) => (
-					{
-						[EntityMetaKey.Id]: {
-							$market: entityId,
-							timeInterval: {
-								unit: MarketTimeIntervalUnit.Day,
-								value,
-							},
-							rangeType: MarketPriceRangeType.OHLCCandles,
-						},
-					}
-				))
-			),
+			fieldName: '$$marketTimeIntervalTimestamps',
+			resolve: async () => [],
 		}),
 
 		defineEntityFieldResolver({
@@ -471,9 +620,9 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.MarketPriceRange,
+			entityType: EntityType.Market_TimeInterval_Timestamp,
 			fieldName: '$$parentMarket',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPriceRange>) => (
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
 				}

@@ -95,48 +95,48 @@
 						placeholderText="Loading beacon validator…"
 						resource={validator}
 					>
-						{#snippet children(live)}
-							{#if live.balanceGwei !== undefined}
+						{#snippet children(validator)}
+							{#if validator.balanceGwei !== undefined}
 								<div>
 									<dt>Balance</dt>
 									<dd>
-										<NumberValue value={live.balanceGwei} />
+										<NumberValue value={validator.balanceGwei} />
 										gwei
 									</dd>
 								</div>
 							{/if}
 
-							{#if live.effectiveBalanceGwei !== undefined}
+							{#if validator.effectiveBalanceGwei !== undefined}
 								<div>
 									<dt>Effective balance</dt>
 									<dd>
-										<NumberValue value={live.effectiveBalanceGwei} />
+										<NumberValue value={validator.effectiveBalanceGwei} />
 										gwei
 									</dd>
 								</div>
 							{/if}
 
-							{#if live.status !== undefined}
+							{#if validator.status !== undefined}
 								<div>
 									<dt>Status</dt>
-									<dd>{live.status}</dd>
+									<dd>{validator.status}</dd>
 								</div>
 							{/if}
 
-							{#if live.slashed !== undefined}
+							{#if validator.slashed !== undefined}
 								<div>
 									<dt>Slashed</dt>
-									<dd>{live.slashed ? 'Yes' : 'No'}</dd>
+									<dd>{validator.slashed ? 'Yes' : 'No'}</dd>
 								</div>
 							{/if}
 
-							{#if live.pubkey !== undefined}
+							{#if validator.pubkey !== undefined}
 								<div>
 									<dt>Pubkey</dt>
 									<dd>
 										<TruncatedValue
 											format={TruncatedValueFormat.Visual}
-											value={live.pubkey}
+											value={validator.pubkey}
 										/>
 									</dd>
 								</div>

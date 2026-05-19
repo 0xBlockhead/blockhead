@@ -51,7 +51,7 @@
 	> = $props()
 
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		(
@@ -73,10 +73,10 @@
 	)
 
 	const sessions = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.BlockheadSession>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
@@ -104,12 +104,12 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Saved simulation projects: named capture points, loop counters, and replay bookkeeping for scripted EVM or HTTP traces.
-					</p>
-					<p>
-						Such traces are diagnostics—compare their implied state roots to a live node instead of treating them as canonical chain history.
-					</p>
+		<p>
+			Saved simulation projects: named capture points, loop counters, and replay bookkeeping for scripted EVM or HTTP traces.
+		</p>
+		<p>
+			Such traces are diagnostics—compare their implied state roots to a live node instead of treating them as canonical chain history.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

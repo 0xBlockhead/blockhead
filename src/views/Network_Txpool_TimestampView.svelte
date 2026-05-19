@@ -52,7 +52,7 @@
 
 
 	// State
-	const txpoolLive = useEntity(
+	const networkTxpoolTimestamp = useEntity(
 		EntityType.Network_Txpool_Timestamp,
 		entityId,
 		{
@@ -79,19 +79,19 @@
 	{...entityViewRest}
 >
 	{#snippet Heading()}
-
-		<span data-text="font-monospace">
-			{String(entityId.timestampNs)}
-		</span>
+		<Timestamp
+			format={TimestampFormat.Both}
+			timestamp={entityId.timestampMs}
+		/>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Txpool snapshots count pending and queued transactions from one execution node at one instant—mempool shape differs per client and peer view.
-				</p>
-				<p>
-					Pending transactions are executable under current chain rules; queued ones wait on nonces, balances, or gas bounds before they can enter a block.
-				</p>
+		<p>
+			Txpool snapshots count pending and queued transactions from one execution node at one instant—mempool shape differs per client and peer view.
+		</p>
+		<p>
+			Pending transactions are executable under current chain rules; queued ones wait on nonces, balances, or gas bounds before they can enter a block.
+		</p>
 	{/snippet}
 
 	{#snippet Id()}
@@ -103,24 +103,17 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			placeholderText="Loading mempool snapshot…"
-			resource={txpoolLive}
+			resource={networkTxpoolTimestamp}
 		>
-			{#snippet children(p)}
-				{@const timestampMs = Number(entityId.timestampNs / 1_000_000n)}
+			{#snippet children(networkTxpoolTimestamp)}
 				<dl data-column-item="center">
-					<div>
-						<dt>Id</dt>
-						<dd data-text="mono">
-							{@render Id()}
-						</dd>
-					</div>
 
 					<div>
 						<dt>As of</dt>
 						<dd>
 							<Timestamp
 								format={TimestampFormat.Both}
-								timestamp={timestampMs}
+								timestamp={entityId.timestampMs}
 							/>
 						</dd>
 					</div>
@@ -128,13 +121,13 @@
 						<div>
 							<dt>Pending (executable)</dt>
 							<dd>
-								<NumberValue value={p.pendingCount} />
+								<NumberValue value={networkTxpoolTimestamp.pendingCount} />
 							</dd>
 						</div>
 						<div>
 							<dt>Queued (non-executable)</dt>
 							<dd>
-								<NumberValue value={p.queuedCount} />
+								<NumberValue value={networkTxpoolTimestamp.queuedCount} />
 							</dd>
 						</div>
 					{/if}

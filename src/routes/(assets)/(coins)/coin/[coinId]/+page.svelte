@@ -42,6 +42,7 @@
 
 <Page>
 	{#if !route.coinId}
+		<div id="coin-not-found">
 		<h1>
 			Not found
 		</h1>
@@ -51,12 +52,15 @@
 			:
 				'Coin required'}
 		</p>
+		</div>
 	{:else}
-		<CoinView
-			entityId={{
-				coinId: route.coinId,
-			}}
-			href={resolve('/(assets)/(coins)/coin/[coinId]', params)}
-		/>
+		<div id="coin-detail-page">
+			<CoinView
+				entityId={{
+					coinId: route.coinId,
+				}}
+				href={resolve('/(assets)/(coins)/coin/[coinId]', params)}
+			/>
+		</div>
 	{/if}
 </Page>

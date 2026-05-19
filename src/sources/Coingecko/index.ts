@@ -6,6 +6,7 @@ import {
 	demoOrigin,
 	proOrigin,
 } from '$/sources/Coingecko/Rest/constants.ts'
+import CoingeckoOpenApiSource from '$/sources/Coingecko/OpenApi/index.ts'
 import CoingeckoRestSource from '$/sources/Coingecko/Rest/index.ts'
 
 export default {
@@ -23,5 +24,6 @@ export default {
 	],
 	sources: [
 		CoingeckoRestSource,
+		CoingeckoOpenApiSource,
 	],
 } satisfies SourceProviderDefinition

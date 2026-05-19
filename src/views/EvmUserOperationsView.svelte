@@ -33,7 +33,7 @@
 
 		open = $bindable(true),
 
-		title = 'User operations',
+		title = 'User userOperations',
 
 		id,
 
@@ -82,10 +82,10 @@
 		),
 	)
 
-	const operations = derive(
+	const userOperations = derive(
 		network,
-		(loaded): Entity<typeof schema, EntityType.EvmUserOperation>[] => (
-			loaded.$$userOperations
+		(network): Entity<typeof schema, EntityType.EvmUserOperation>[] => (
+			network.$$userOperations
 			?? []
 		),
 	)
@@ -104,18 +104,18 @@
 	{#snippet body()}
 		<div data-column="gap-3">
 			<ResourceBoundary
-				placeholderText="Loading user operations…"
-				resource={operations}
+				placeholderText="Loading user userOperations…"
+				resource={userOperations}
 			>
-				{#snippet children(rows)}
+				{#snippet children(userOperations)}
 					<UnorderedList
 						getKey={(row) => stringify(row[EntityMetaKey.Id])}
-						items={rows}
+						items={userOperations}
 						orientation={ListOrientation.Column}
 						placeholderRanges={[]}
 					>
 						{#snippet Empty()}
-							<p data-text="muted">No user operations.</p>
+							<p data-text="muted">No user userOperations.</p>
 						{/snippet}
 
 						{#snippet Item({ item })}

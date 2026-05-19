@@ -42,7 +42,7 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		(
@@ -60,11 +60,11 @@
 		),
 	)
 
-	const envelopes = derive(
-		parentEntity,
-		(merged) => {
+	const liquidityPools = derive(
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.LiquidityPool>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 			return (
 				rows
@@ -97,7 +97,7 @@
 	entityType={EntityType.LiquidityPool}
 	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
-	resource={envelopes}
+	resource={liquidityPools}
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >

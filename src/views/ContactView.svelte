@@ -50,7 +50,7 @@
 		stringify(entityId),
 	)
 
-	const shared = useEntity(
+	const sharedAddress = useEntity(
 		EntityType.BlockheadSharedAddress,
 		entityId,
 		{
@@ -96,12 +96,12 @@
 			<span>{title}</span>
 		{:else}
 			<ResourceBoundary
-				resource={shared}
+				resource={sharedAddress}
 				placeholderText="Loading…"
 			>
-				{#snippet children(live)}
+				{#snippet children(sharedAddress)}
 					<span>
-						{live.peerId ?? entityId.id}
+						{sharedAddress.peerId ?? entityId.id}
 					</span>
 				{/snippet}
 			</ResourceBoundary>
@@ -113,21 +113,21 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					<strong>Contact routing</strong> ties a shared execution address to multiplayer sessions: rooms, optional chain-scoped accounts, and negotiated peer ids.
-				</p>
-				<p>
-					Use it to see who should sign next when several people share the same address book entry.
-				</p>
+		<p>
+			<strong>Contact routing</strong> ties a shared execution address to multiplayer sessions: rooms, optional chain-scoped accounts, and negotiated peer ids.
+		</p>
+		<p>
+			Use it to see who should sign next when several people share the same address book entry.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<div data-column="gap-1">
 			<ResourceBoundary
-				resource={shared}
+				resource={sharedAddress}
 				placeholderText="Loading contact…"
 			>
-				{#snippet children(live)}
+				{#snippet children(sharedAddress)}
 					<dl data-column-item="center">
 						<div>
 							<dt>Shown as</dt>
@@ -136,21 +136,21 @@
 							</dd>
 						</div>
 
-						{#if live.peerId !== undefined}
-							{#if live.peerId !== ''}
+						{#if sharedAddress.peerId !== undefined}
+							{#if sharedAddress.peerId !== ''}
 								<div>
 									<dt>Peer ID</dt>
-									<dd>{live.peerId}</dd>
+									<dd>{sharedAddress.peerId}</dd>
 								</div>
 							{/if}
 						{/if}
 
-						{#if live.sharedAt !== undefined}
+						{#if sharedAddress.sharedAt !== undefined}
 							<div>
 								<dt>Shared at</dt>
 								<dd>
 									<Timestamp
-										timestamp={live.sharedAt}
+										timestamp={sharedAddress.sharedAt}
 										format={TimestampFormat.Both}
 									/>
 								</dd>
@@ -158,18 +158,18 @@
 						{/if}
 
 						{#if open}
-							{#if live.$account !== undefined}
-								{#if live.$network !== undefined}
+							{#if sharedAddress.$account !== undefined}
+								{#if sharedAddress.$network !== undefined}
 									<div>
 										<dt>Account</dt>
 										<dd>
 											<ActorNetworkView
 												entityId={{
-													$network: live.$network[EntityMetaKey.Id],
-													$actor: live.$account[EntityMetaKey.Id],
+													$network: sharedAddress.$network[EntityMetaKey.Id],
+													$actor: sharedAddress.$account[EntityMetaKey.Id],
 												}}
 												href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-													accountId: live.$account[EntityMetaKey.Id].address,
+													accountId: sharedAddress.$account[EntityMetaKey.Id].address,
 												})}
 												layout={EntityLayout.Id}
 												open={false}
@@ -180,24 +180,24 @@
 								{/if}
 							{/if}
 
-							{#if live.$room !== undefined}
+							{#if sharedAddress.$room !== undefined}
 								<div>
 									<dt>Room</dt>
-									<dd>{live.$room.id}</dd>
+									<dd>{sharedAddress.$room.id}</dd>
 								</div>
 							{/if}
 
-							{#if live.$network !== undefined}
+							{#if sharedAddress.$network !== undefined}
 								<div>
 									<dt>Execution chain ID</dt>
-									<dd>{String(live.$network.chainId)}</dd>
+									<dd>{String(sharedAddress.$network.chainId)}</dd>
 								</div>
 							{/if}
 
-							{#if (live.targetPeerIds ?? []).length}
+							{#if (sharedAddress.targetPeerIds ?? []).length}
 								<div>
 									<dt>Target peer IDs</dt>
-									<dd>{(live.targetPeerIds ?? []).join(', ')}</dd>
+									<dd>{(sharedAddress.targetPeerIds ?? []).join(', ')}</dd>
 								</div>
 							{/if}
 						{/if}
@@ -252,17 +252,17 @@
 						id={`${contactKey}:contact-overview`}
 					>
 						<ResourceBoundary
-							resource={shared}
+							resource={sharedAddress}
 							placeholderText="Loading contact…"
 						>
-							{#snippet children(live)}
+							{#snippet children(sharedAddress)}
 								{#if (
-									(live.peerId === undefined || live.peerId === '')
-									&& !(live.$account !== undefined && live.$network !== undefined)
-									&& live.$room === undefined
-									&& live.$network === undefined
-									&& !(live.targetPeerIds ?? []).length
-									&& live.sharedAt === undefined
+									(sharedAddress.peerId === undefined || sharedAddress.peerId === '')
+									&& !(sharedAddress.$account !== undefined && sharedAddress.$network !== undefined)
+									&& sharedAddress.$room === undefined
+									&& sharedAddress.$network === undefined
+									&& !(sharedAddress.targetPeerIds ?? []).length
+									&& sharedAddress.sharedAt === undefined
 								)}
 									<div data-row="wrap align-center gap-2">
 										<p data-text="muted">

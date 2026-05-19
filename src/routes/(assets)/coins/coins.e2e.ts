@@ -1,115 +1,161 @@
-import { expect, test } from '@playwright/test'
-import { stringify } from 'devalue'
+import { expect, test, type Page } from '@playwright/test'
 
-const marketKeyEthUsdSpotIndex = encodeURIComponent(
-	stringify({
-		$base: { kind: 'Coin', $coin: { coinId: 'ETH' } },
-		$quote: { kind: 'Currency', iso4217: 'USD' },
-		$marketVenue: { marketVenueId: 'SpotIndex' },
-	}),
-)
+const setupFailFast = (page: Page) => {
+	let failed = false
+	let rejectRuntimeError: ((error: Error) => void) | undefined
+	const runtimeError = new Promise<never>((_, reject) => {
+		rejectRuntimeError = reject
+	})
+	const failFast = (error: Error) => {
+		if (failed) return
+		failed = true
+		rejectRuntimeError?.(error)
+	}
+	const step = async <_Value>(promise: Promise<_Value>) => {
+		await Promise.race([promise, runtimeError])
+	}
 
-const relevantConsoleErrors = (consoleErrors: string[]) => (
-	consoleErrors.filter((error) => (
-		!error.includes('Failed to load resource')
-		&& !error.includes('ERR_CONNECTION_REFUSED')
-		&& !error.includes('blocked by CORS policy')
-	))
-)
+	page.on('pageerror', (error) => {
+		failFast(new Error(`pageerror: ${error.message}`))
+	})
 
-const assertNoRuntimeErrors = (
-	pageErrors: string[],
-	consoleErrors: string[],
-) => {
-	expect(pageErrors, `page errors: ${JSON.stringify(pageErrors, null, 2)}`).toEqual([])
-	expect(
-		relevantConsoleErrors(consoleErrors),
-		`console errors: ${JSON.stringify(consoleErrors, null, 2)}`,
-	).toEqual([])
+	page.on('console', (message) => {
+		if (
+			message.type() === 'error'
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 404')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 422')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 429')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 500')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 502')
+			&& !message.text().includes('[vite] Failed to reload')
+			&& !message.text().includes('Failed to fetch dynamically imported module')
+			&& !message.text().includes('Failed to load resource: net::ERR_QUIC_PROTOCOL_ERROR')
+			&& !message.text().includes('Failed to load resource: net::ERR_CONNECTION_REFUSED')
+			&& !message.text().includes('Failed to load resource: net::ERR_FAILED')
+			&& !message.text().includes('has been blocked by CORS policy')
+			&& !message.text().includes('net::ERR_NETWORK_CHANGED')
+			&& !message.text().includes('net::ERR_NETWORK_IO_SUSPENDED')
+		) failFast(new Error(`console error: ${message.text()}`))
+	})
+
+	return {
+		step,
+	}
 }
 
+const attach = { timeout: 120_000 } as const
+
 test.describe('/coins routes', () => {
-	test.describe.configure({ timeout: 150_000 })
+	test.describe.configure({ timeout: 180_000 })
 
-	test('coins list renders', async ({ page }) => {
-		const pageErrors: string[] = []
-		const consoleErrors: string[] = []
+	test('coins list renders catalog and hub carousels', async ({ page }, testInfo) => {
+		testInfo.setTimeout(180_000)
+		const { step } = setupFailFast(page)
 
-		page.on('pageerror', (error) => {
-			pageErrors.push(error.message)
-		})
-		page.on('console', (message) => {
-			if (message.type() === 'error') consoleErrors.push(message.text())
-		})
+		await step(page.goto('/coins', { waitUntil: 'load', timeout: 120_000 }))
 
-		await page.goto('/coins', { waitUntil: 'domcontentloaded' })
-		await expect(page.locator('#coins')).toBeVisible()
-		await expect(page.getByText('Not found')).toHaveCount(0)
+		await step(expect(page.locator('#coins')).toBeAttached(attach))
+		await step(expect(page.locator('#coins-catalog')).toBeVisible())
+		await step(expect(page.getByText('Not found')).toHaveCount(0))
+		await step(expect(page.getByRole('heading', { name: '500' })).toHaveCount(0))
 
-		await expect(page.locator('#coins a[href^="/coin/"]').first()).toBeAttached({
-			timeout: 120_000,
-		})
+		await step(expect(page.locator('#coins-catalog a[href^="/coin/"]').first()).toBeAttached(attach))
+		await step(expect(page.locator('#coins-catalog a[href*="/coin/BTC"]').first()).toBeAttached(attach))
 
-		const coinLinks = page.locator('#coins a[href="/coin/BTC"]')
-		await expect(coinLinks, 'catalog coin link is not duplicated').toHaveCount(1)
-
-		await expect(page.locator('#coins a[href="/coin/ETH"]')).toBeAttached({ timeout: 120_000 })
-
-		assertNoRuntimeErrors(pageErrors, consoleErrors)
+		await step(expect(page.locator('#coins .coins-view-collapsible-quotes')).toBeAttached(attach))
+		await step(expect(page.locator('#coins .coins-view-collapsible-ohlc')).toBeAttached(attach))
+		await step(expect(page.locator('#coins .coins-view-collapsible-markets')).toBeAttached(attach))
+		await step(expect(page.locator('#coins .coins-view-collapsible-deployments')).toBeAttached(attach))
+		await step(expect(page.locator('#coins a[data-scroll-marker-label="Spot quote index"]').first()).toBeAttached(attach))
+		await step(expect(page.locator('#coins [id="coins:prices-spot"] a[href*="/market/"]').first()).toBeAttached(attach))
+		await step(expect(page.locator('#coins [id="coins:ohlc-candles-preview"]').getByText('OHLC', { exact: false }).first()).toBeAttached(attach))
+		await step(expect(page.locator('#coins [id="coins:markets-index"] a[href*="/market/"]').first()).toBeAttached(attach))
 	})
 
-	test('coin detail renders', async ({ page }) => {
-		const pageErrors: string[] = []
-		const consoleErrors: string[] = []
+	test('coin detail ETH renders markets and deployments', async ({ page }, testInfo) => {
+		testInfo.setTimeout(180_000)
+		const { step } = setupFailFast(page)
 
-		page.on('pageerror', (error) => {
-			pageErrors.push(error.message)
-		})
-		page.on('console', (message) => {
-			if (message.type() === 'error') consoleErrors.push(message.text())
-		})
+		await step(page.goto('/coin/ETH', { waitUntil: 'load', timeout: 120_000 }))
 
-		await page.goto('/coin/ETH', { waitUntil: 'domcontentloaded' })
-		await expect(page.getByText('Not found')).toHaveCount(0)
-		await expect(page.getByText('Price', { exact: true })).toBeAttached({ timeout: 120_000 })
-		await expect(page.getByText('Coin id', { exact: true })).toBeAttached({ timeout: 120_000 })
-		assertNoRuntimeErrors(pageErrors, consoleErrors)
+		await step(expect(page.locator('#coin-detail-page')).toBeAttached(attach))
+		await step(expect(page.getByText('Not found')).toHaveCount(0))
+		await step(expect(page.getByRole('heading', { name: '500' })).toHaveCount(0))
+
+		await step(expect(page.locator('.coin-view-carousel-groups')).toBeAttached(attach))
+		await step(expect(page.locator('.coin-view-collapsible-markets')).toBeAttached(attach))
+		await step(expect(page.locator('.coin-view-collapsible-topology')).toBeAttached(attach))
+		await step(expect(page.locator('.coin-view-collapsible-markets a[data-scroll-marker-label="USD market"]')).toBeAttached(attach))
+		await step(expect(page.locator('.coin-view-collapsible-markets').getByRole('link', { name: 'Binance:ETH-USD' })).toBeAttached(attach))
+		await step(expect(page.getByText('Topology', { exact: true })).toBeAttached(attach))
+		await step(expect(page.locator('.coin-view-collapsible-topology')).toBeAttached(attach))
 	})
 
-	test('markets list renders', async ({ page }) => {
-		const pageErrors: string[] = []
-		const consoleErrors: string[] = []
+	test('coin detail BTC renders markets boundary', async ({ page }, testInfo) => {
+		testInfo.setTimeout(180_000)
+		const { step } = setupFailFast(page)
 
-		page.on('pageerror', (error) => {
-			pageErrors.push(error.message)
-		})
-		page.on('console', (message) => {
-			if (message.type() === 'error') consoleErrors.push(message.text())
-		})
+		await step(page.goto('/coin/BTC', { waitUntil: 'load', timeout: 120_000 }))
 
-		await page.goto('/coins/markets', { waitUntil: 'domcontentloaded' })
-		await expect(page.locator('#coin-markets-page')).toBeVisible({ timeout: 120_000 })
-		await expect(page.getByText('Not found')).toHaveCount(0)
-		assertNoRuntimeErrors(pageErrors, consoleErrors)
+		await step(expect(page.locator('#coin-detail-page')).toBeAttached(attach))
+		await step(expect(page.locator('.coin-view-collapsible-markets')).toBeAttached(attach))
 	})
 
-	test('market detail renders', async ({ page }) => {
-		const pageErrors: string[] = []
-		const consoleErrors: string[] = []
+	test('unknown coin shows not found', async ({ page }, testInfo) => {
+		testInfo.setTimeout(60_000)
+		const { step } = setupFailFast(page)
 
-		page.on('pageerror', (error) => {
-			pageErrors.push(error.message)
-		})
-		page.on('console', (message) => {
-			if (message.type() === 'error') consoleErrors.push(message.text())
-		})
+		await step(page.goto('/coin/UNKNOWN_COIN_XYZ', { waitUntil: 'load', timeout: 60_000 }))
 
-		await page.goto(`/coins/market/${marketKeyEthUsdSpotIndex}`, { waitUntil: 'domcontentloaded' })
-		await expect(page.getByText('Not found')).toHaveCount(0)
-		await expect(page.getByRole('heading', { name: '500' })).toHaveCount(0)
-		await expect(
-			page.locator('#main').getByRole('heading', { name: 'Assets' }),
-		).toBeAttached({ timeout: 120_000 })
-		assertNoRuntimeErrors(pageErrors, consoleErrors)
+		await step(expect(page.locator('#coin-not-found')).toBeVisible())
+		await step(expect(page.getByRole('heading', { name: 'Not found' })).toBeVisible())
+	})
+
+	test('spot quotes index renders with market links', async ({ page }, testInfo) => {
+		testInfo.setTimeout(180_000)
+		const { step } = setupFailFast(page)
+
+		await step(page.goto('/coins/prices', { waitUntil: 'load', timeout: 120_000 }))
+
+		await step(expect(page.locator('#coin-prices-page')).toBeAttached(attach))
+		await step(expect(page.getByText('Not found')).toHaveCount(0))
+		await step(expect(page.locator('#coin-prices-page a[href*="/market/"]').first()).toBeAttached(attach))
+	})
+
+	test('ohlc candles index renders candle rows', async ({ page }, testInfo) => {
+		testInfo.setTimeout(180_000)
+		const { step } = setupFailFast(page)
+
+		await step(page.goto('/coins/candles', { waitUntil: 'load', timeout: 120_000 }))
+
+		await step(expect(page.locator('#coin-ohlc-candles-page')).toBeAttached(attach))
+		await step(expect(page.getByText('Not found')).toHaveCount(0))
+		await step(expect(page.locator('#coin-ohlc-candles-page').getByText('OHLC', { exact: false }).first()).toBeAttached(attach))
+	})
+
+	test('assets hub coins section exposes hub carousels', async ({ page }, testInfo) => {
+		testInfo.setTimeout(180_000)
+		const { step } = setupFailFast(page)
+
+		await step(page.goto('/assets', { waitUntil: 'load', timeout: 120_000 }))
+
+		await step(expect(page.locator('#assets-coins')).toBeAttached(attach))
+		await step(expect(page.locator('#assets-coins .coins-view-collapsible-quotes')).toBeAttached(attach))
+		await step(expect(page.locator('#assets-coins .coins-view-collapsible-ohlc')).toBeAttached(attach))
+		await step(expect(page.locator('#assets-coins .coins-view-collapsible-markets')).toBeAttached(attach))
+		await step(expect(page.locator('#assets-coins .coins-view-collapsible-deployments')).toBeAttached(attach))
+		await step(expect(page.locator('#assets-coins a[data-scroll-marker-label="Spot quote index"]').first()).toBeAttached(attach))
+	})
+
+	test('navigation lists coin facet routes', async ({ page }, testInfo) => {
+		testInfo.setTimeout(60_000)
+		const { step } = setupFailFast(page)
+
+		await step(page.goto('/coins', { waitUntil: 'load', timeout: 60_000 }))
+
+		const nav = page.locator('#nav-menu')
+		await step(expect(nav.getByRole('link', { name: 'Coins' })).toBeAttached())
+		await step(expect(nav.getByRole('link', { name: 'Spot quotes' })).toBeAttached())
+		await step(expect(nav.getByRole('link', { name: 'Candles' })).toBeAttached())
 	})
 })

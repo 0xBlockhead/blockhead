@@ -115,6 +115,7 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Proposal,
 			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Constants_Internal],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

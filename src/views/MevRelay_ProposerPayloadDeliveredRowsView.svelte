@@ -46,7 +46,7 @@
 
 	const fieldName = entityFieldReference.fieldName
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -71,10 +71,10 @@
 	)
 
 	const rows = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const list: Entity<typeof schema, EntityType.MevRelay_ProposerPayloadDelivered>[] = (
-				merged[fieldName] ?? []
+				parent[fieldName] ?? []
 			)
 			return (
 				list
@@ -108,12 +108,12 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						MEV-Boost relay <code>proposer_payload_delivered</code> rows: winning builder bids per slot (not swap bridges or Relay.link quotes).
-					</p>
-					<p>
-						Use them to audit payload/value flow—not live consensus votes.
-					</p>
+		<p>
+			MEV-Boost relay <code>proposer_payload_delivered</code> rows: winning builder bids per slot (not swap bridges or Relay.link quotes).
+		</p>
+		<p>
+			Use them to audit payload/value flow—not live consensus votes.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

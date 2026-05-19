@@ -70,8 +70,11 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
+	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -92,7 +95,7 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={leverage}>
-			{#snippet children(merged)}
+			{#snippet children(leverage)}
 				<dl data-column-item="center">
 					{#if open}
 						<div>
@@ -104,14 +107,30 @@
 					{/if}
 					<div>
 						<dt>Network</dt>
-						<dd>{String(merged.$pool.$network.chainId)}</dd>
+						<dd>
+							<NetworkView
+								entityId={leverage.$pool.$network}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]',
+									{ networkId: String(leverage.$pool.$network.chainId) },
+								)}
+								layout={EntityLayout.Id}
+								open={false}
+								showTypeAnnotation={false}
+							/>
+						</dd>
 					</div>
 					<div>
 						<dt>AMM pool (Uniswap v3-style)</dt>
 						<dd>
-							<TruncatedValue
-								value={merged.$pool.id}
-								format={TruncatedValueFormat.Visual}
+							<LiquidityPoolView
+								entityId={leverage.$pool[EntityMetaKey.Id]}
+								href={resolve('/(assets)/(pools)/pool/[poolId]', {
+									poolId: leverage.$pool[EntityMetaKey.Id].id,
+								})}
+								layout={EntityLayout.Id}
+								open={false}
+								showTypeAnnotation={false}
 							/>
 						</dd>
 					</div>
@@ -121,11 +140,11 @@
 							<dd>
 								<ActorNetworkView
 									entityId={{
-										$network: merged.$pool.$network,
-										$actor: merged.$owner[EntityMetaKey.Id],
+										$network: leverage.$pool.$network,
+										$actor: leverage.$owner[EntityMetaKey.Id],
 									}}
 									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-										accountId: merged.$owner[EntityMetaKey.Id].address,
+										accountId: leverage.$owner[EntityMetaKey.Id].address,
 									})}
 									layout={EntityLayout.Id}
 									open={false}
@@ -133,62 +152,55 @@
 								/>
 							</dd>
 						</div>
-						{#if merged.tickLower !== undefined}
+						{#if leverage.tickLower !== undefined}
 							<div>
 								<dt>LP NFT range · tick lower</dt>
-								<dd>{String(merged.tickLower)}</dd>
+								<dd>{String(leverage.tickLower)}</dd>
 							</div>
 						{/if}
 
-						{#if merged.tickUpper !== undefined}
+						{#if leverage.tickUpper !== undefined}
 							<div>
 								<dt>LP NFT range · tick upper</dt>
-								<dd>{String(merged.tickUpper)}</dd>
+								<dd>{String(leverage.tickUpper)}</dd>
 							</div>
 						{/if}
 
-						{#if merged.liquidity !== undefined}
+						{#if leverage.liquidity !== undefined}
 							<div>
 								<dt>Range liquidity</dt>
-								<dd>{String(merged.liquidity)}</dd>
+								<dd>{String(leverage.liquidity)}</dd>
 							</div>
 						{/if}
 
-						{#if merged.token0Owed !== undefined}
+						{#if leverage.token0Owed !== undefined}
 							<div>
 								<dt>Token0 owed</dt>
-								<dd>{String(merged.token0Owed)}</dd>
+								<dd>{String(leverage.token0Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if merged.token1Owed !== undefined}
+						{#if leverage.token1Owed !== undefined}
 							<div>
 								<dt>Token1 owed</dt>
-								<dd>{String(merged.token1Owed)}</dd>
+								<dd>{String(leverage.token1Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if merged.tokenId !== undefined}
-							<div>
-								<dt>Position NFT (token id)</dt>
-								<dd>{String(merged.tokenId)}</dd>
-							</div>
-						{/if}
-
-						{#if merged.origin}
+						{#if leverage.origin}
 							<div>
 								<dt>Origin</dt>
-								<dd>{merged.origin}</dd>
+								<dd>{leverage.origin}</dd>
 							</div>
 						{/if}
 					{/if}
 
-					{#if merged.createdAtTimestamp !== undefined}
+					{#if leverage.createdAtTimestamp !== undefined}
 						<div>
 							<dt>Created at</dt>
 							<dd>
 								<Timestamp
-									timestamp={merged.createdAtTimestamp}
+									timestamp={leverage.createdAtTimestamp}
 									format={TimestampFormat.Both}
 								/>
 							</dd>

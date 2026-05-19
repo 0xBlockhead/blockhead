@@ -16,7 +16,7 @@ export default {
 
 	id: type({
 		$coin: Coin.id,
-		timestampNs: 'bigint',
+		timestampMs: 'number',
 	}),
 
 	fields: [

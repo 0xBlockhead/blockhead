@@ -45,7 +45,6 @@
 
 
 	// Components
-	import Collapsible from '$/components/Collapsible.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
@@ -81,37 +80,33 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={lensNetwork}>
-			{#snippet children(loaded)}
+			{#snippet children(lensNetwork)}
 				<dl data-column-item="center">
 					<div>
-						<dt>Scope</dt>
-						<dd>{entityId.scope}</dd>
-					</div>
-					<div>
 						<dt>Profiles</dt>
-						<dd>{String(loaded.$$lensAccounts.length)}</dd>
+						<dd>{String(lensNetwork.$$lensAccounts.length)}</dd>
 					</div>
 					<div>
 						<dt>Publications</dt>
-						<dd>{String(loaded.$$lensPosts.length)}</dd>
+						<dd>{String(lensNetwork.$$lensPosts.length)}</dd>
 					</div>
 					{#if open}
 						<div>
 							<dt>Protocol name</dt>
-							<dd>{loaded.protocolName}</dd>
+							<dd>{lensNetwork.protocolName}</dd>
 						</div>
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={loaded.homeUrl}>{loaded.homeUrl}</a>
+								<a href={lensNetwork.homeUrl}>{lensNetwork.homeUrl}</a>
 							</dd>
 						</div>
-						{#if loaded.docsUrl !== undefined}
+						{#if lensNetwork.docsUrl !== undefined}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={loaded.docsUrl}>
-										{loaded.docsUrl}
+									<a href={lensNetwork.docsUrl}>
+										{lensNetwork.docsUrl}
 									</a>
 								</dd>
 							</div>
@@ -130,9 +125,12 @@
 			{entityId}
 		/>
 
-		<div data-column="gap-3">
+		<div
+			class="lens-network-detail-carousels"
+			data-column="gap-3"
+		>
 			<CollapsibleTabs
-				id={`${networkIdKey}:registry`}
+				id={`${networkIdKey}:carousel-registry`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -145,13 +143,31 @@
 						data-row="wrap gap-4"
 					>
 						<HeadingComponent>
-							Registry
+							Directory & examples
 						</HeadingComponent>
 					</header>
 				{/snippet}
 
-				{#snippet children({ open: _o })}
-					<section data-scroll-marker-label="Profiles">
+				{#snippet Markers()}
+					<a
+						data-scroll-marker-label="Profiles"
+						href={`#${networkIdKey}:registry-accounts`}
+					>Profiles</a>
+					<a
+						data-scroll-marker-label="Recent publications"
+						href={`#${networkIdKey}:registry-posts`}
+					>Publications</a>
+					<a
+						data-scroll-marker-label="Examples"
+						href={`#${networkIdKey}:examples-list`}
+					>Examples</a>
+				{/snippet}
+
+				{#snippet children()}
+					<section
+						data-scroll-marker-label="Profiles"
+						id={`${networkIdKey}:registry-accounts`}
+					>
 						<LensAccountsView
 							entityFieldReference={{
 								entityType: EntityType.LensNetwork,
@@ -160,11 +176,14 @@
 							}}
 							href={resolve('/(social)/lens')}
 							id={`${networkIdKey}:accounts`}
-							open={false}
+							open={_open}
 						/>
 					</section>
 
-					<section data-scroll-marker-label="Recent publications">
+					<section
+						data-scroll-marker-label="Recent publications"
+						id={`${networkIdKey}:registry-posts`}
+					>
 						<LensPostsView
 							entityFieldReference={{
 								entityType: EntityType.LensNetwork,
@@ -173,48 +192,50 @@
 							}}
 							href={resolve('/(social)/lens')}
 							id={`${networkIdKey}:posts`}
-							open={false}
+							open={_open}
 							title="Recent Lens v3 publications"
 						/>
 					</section>
+
+					<section
+						data-scroll-marker-label="Examples"
+						id={`${networkIdKey}:examples-list`}
+					>
+						<ul>
+							<li>
+								<a href={resolve('/(social)/lens/account/[address]', {
+									address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+								})}>
+									Lens v3 profile example
+								</a>
+							</li>
+							<li>
+								<a href={resolve('/(social)/lens/post/[postId]', {
+									postId: encodeURIComponent(
+										'0x0000000000000000000000000000000000000000000000000000000000000001',
+									),
+								})}>
+									Lens v3 publication example
+								</a>
+							</li>
+						</ul>
+					</section>
 				{/snippet}
 			</CollapsibleTabs>
-
-			<Collapsible
-				id={`${networkIdKey}:examples`}
-				open={true}
-				{...{ 'data-card': '' }}
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Examples
-						</HeadingComponent>
-					</header>
-				{/snippet}
-
-				<ul>
-					<li>
-						<a href={resolve('/(social)/lens/account/[address]', {
-							address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-						})}>
-							Lens v3 profile example
-						</a>
-					</li>
-					<li>
-						<a href={resolve('/(social)/lens/post/[postId]', {
-							postId: encodeURIComponent(
-								'0x0000000000000000000000000000000000000000000000000000000000000001',
-							),
-						})}>
-							Lens v3 publication example
-						</a>
-					</li>
-				</ul>
-			</Collapsible>
 		</div>
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.lens-network-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
+		&[data-scroll-container] {
+			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+			max-block-size: var(--scrollContainer-sizeBlock);
+
+			&[data-scroll-container~='layout-carousel'] {
+				--carousel-basis: 40ch;
+			}
+		}
+	}
+</style>

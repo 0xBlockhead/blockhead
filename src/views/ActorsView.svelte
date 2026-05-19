@@ -43,7 +43,7 @@
 		>
 	> = $props()
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		(
@@ -65,10 +65,10 @@
 	)
 
 	const actors = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.Actor>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].address.toLowerCase()
@@ -103,12 +103,12 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Linked wallets are execution-layer addresses associated with this facet (account, room, or profile).
-					</p>
-					<p>
-						Empty lists usually mean nothing has been linked yet or the parent entity has not loaded its relations fully.
-					</p>
+		<p>
+			Linked wallets are execution-layer addresses associated with this facet (account, room, or profile).
+		</p>
+		<p>
+			Empty lists usually mean nothing has been linked yet or the parent entity has not loaded its relations fully.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

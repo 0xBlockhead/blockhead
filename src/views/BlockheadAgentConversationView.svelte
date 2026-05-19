@@ -79,21 +79,14 @@
 			resource={conversation}
 			placeholderText="Loading conversation…"
 		>
-			{#snippet children(_conversation)}
-				{_conversation.name ?? entityId.id}
+			{#snippet children(conversation)}
+				{conversation.name ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
-			<div>
-				<dt>Conversation id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
 			<div>
 				<dt>Scope</dt>
 				<dd data-text="muted">
@@ -102,24 +95,24 @@
 			</div>
 
 			<ResourceBoundary resource={conversation}>
-				{#snippet children(_conversation)}
-					{#if _conversation.updatedAt !== undefined}
+				{#snippet children(conversation)}
+					{#if conversation.updatedAt !== undefined}
 						<div>
 							<dt>Last activity</dt>
 							<dd>
 								<Timestamp
-									timestamp={_conversation.updatedAt}
+									timestamp={conversation.updatedAt}
 									format={TimestampFormat.Both}
 								/>
 							</dd>
 						</div>
 					{:else}
-						{#if _conversation.createdAt !== undefined}
+						{#if conversation.createdAt !== undefined}
 							<div>
 								<dt>Last activity</dt>
 								<dd>
 									<Timestamp
-										timestamp={_conversation.createdAt}
+										timestamp={conversation.createdAt}
 										format={TimestampFormat.Both}
 									/>
 								</dd>
@@ -128,24 +121,24 @@
 					{/if}
 
 					{#if open}
-						{#if _conversation.createdAt !== undefined}
+						{#if conversation.createdAt !== undefined}
 							<div>
 								<dt>Created at</dt>
 								<dd>
 									<Timestamp
-										timestamp={_conversation.createdAt}
+										timestamp={conversation.createdAt}
 										format={TimestampFormat.Both}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if _conversation.updatedAt !== undefined}
+						{#if conversation.updatedAt !== undefined}
 							<div>
 								<dt>Updated at</dt>
 								<dd>
 									<Timestamp
-										timestamp={_conversation.updatedAt}
+										timestamp={conversation.updatedAt}
 										format={TimestampFormat.Both}
 									/>
 								</dd>

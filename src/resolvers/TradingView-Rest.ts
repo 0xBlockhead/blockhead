@@ -1,5 +1,10 @@
 import { MarketAssetKind } from '$/constants/Market.ts'
 import {
+	catalogMarketsWithCurrencyAsBase,
+	catalogMarketsWithCurrencyAsQuote,
+	usdCurrencyMarketAssetLeg,
+} from '$/constants/Currency.ts'
+import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
@@ -51,10 +56,7 @@ export default {
 									kind: MarketAssetKind.Coin,
 									$coin: { coinId },
 								},
-								$quote: {
-									kind: MarketAssetKind.Currency,
-									iso4217: 'USD',
-								},
+								$quote: usdCurrencyMarketAssetLeg,
 								$marketVenue: {
 									marketVenueId: market.marketVenueId,
 								},
@@ -78,10 +80,7 @@ export default {
 										kind: MarketAssetKind.Coin,
 										$coin: { coinId },
 									},
-									$quote: {
-										kind: MarketAssetKind.Currency,
-										iso4217: 'USD',
-									},
+									$quote: usdCurrencyMarketAssetLeg,
 									$marketVenue: {
 										marketVenueId: market.marketVenueId,
 									},
@@ -108,10 +107,7 @@ export default {
 								kind: MarketAssetKind.Coin,
 								$coin: { coinId: entityId.coinId },
 							},
-							$quote: {
-								kind: MarketAssetKind.Currency,
-								iso4217: 'USD',
-							},
+							$quote: usdCurrencyMarketAssetLeg,
 							$marketVenue: {
 								marketVenueId: market.marketVenueId,
 							},
@@ -128,32 +124,37 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Coin,
-			fieldName: '$$marketPrice',
-			resolve: async (entityId) => {
+			entityType: EntityType.Currency,
+			fieldName: '$$marketsWithCurrencyAsQuote',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+				const { coinById } = await import('$/constants/Coin.ts')
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
-				const market = tradingViewMarketByCoinId[entityId.coinId]
-				if (market == null) {
-					throw new Error(`TradingView_Rest: no market for coin ${entityId.coinId}`)
-				}
-				return {
-					[EntityMetaKey.Id]: {
-						$market: {
-							$base: {
-								kind: MarketAssetKind.Coin,
-								$coin: { coinId: entityId.coinId },
-							},
-							$quote: {
-								kind: MarketAssetKind.Currency,
-								iso4217: 'USD',
-							},
-							$marketVenue: {
-								marketVenueId: market.marketVenueId,
-							},
-						} as const,
-					},
-				}
+				return (
+					catalogMarketsWithCurrencyAsQuote(
+						entityId.iso4217,
+						(coinId) => (
+							coinById[coinId as keyof typeof coinById] != null
+							&& tradingViewMarketByCoinId[coinId] != null
+						),
+					).map((marketId) => (
+						{
+							[EntityMetaKey.Id]: marketId,
+						}
+					))
+				)
 			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Currency,
+			fieldName: '$$marketsWithCurrencyAsBase',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => (
+				catalogMarketsWithCurrencyAsBase(entityId.iso4217).map((marketId) => (
+					{
+						[EntityMetaKey.Id]: marketId,
+					}
+				))
+			),
 		}),
 
 		defineEntityFieldResolver({
@@ -177,7 +178,7 @@ export default {
 					{
 						[EntityMetaKey.Id]: {
 							$market: entityId.$market,
-							timestampNs: BigInt(Date.now()) * 1_000_000n,
+							timestampMs: Date.now(),
 						},
 					},
 				]
@@ -205,7 +206,7 @@ export default {
 					{
 						[EntityMetaKey.Id]: {
 							$market: entityId,
-							timestampNs: BigInt(Date.now()) * 1_000_000n,
+							timestampMs: Date.now(),
 						},
 					},
 				]

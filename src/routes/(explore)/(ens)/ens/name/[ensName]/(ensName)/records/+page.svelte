@@ -16,6 +16,6 @@
 <Page>
 	<EnsNameTextRecordsView
 		entityId={{ name: params.ensName }}
-		href={resolve(`/ens/name/${params.ensName}/records`)}
+		href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', params)}
 	/>
 </Page>

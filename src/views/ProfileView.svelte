@@ -87,9 +87,9 @@
 			resource={farcasterUser}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(p)}
-				{p.displayName
-					?? p.username
+			{#snippet children(farcasterUser)}
+				{farcasterUser.displayName
+					?? farcasterUser.username
 					?? String(farcasterUserId.fid)}
 			{/snippet}
 		</ResourceBoundary>
@@ -100,11 +100,11 @@
 			resource={farcasterUser}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(p)}
-				{#if p.$icon?.[EntityMetaKey.Id].url !== undefined}
+			{#snippet children(farcasterUser)}
+				{#if farcasterUser.$icon?.[EntityMetaKey.Id].url !== undefined}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={p.$icon[EntityMetaKey.Id].url}
+						src={farcasterUser.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -123,17 +123,17 @@
 			resource={farcasterUser}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(p)}
+			{#snippet children(farcasterUser)}
 				{#if (
-					p.username !== undefined
-					&& p.username !== (
-						p.displayName
-						?? p.username
+					farcasterUser.username !== undefined
+					&& farcasterUser.username !== (
+						farcasterUser.displayName
+						?? farcasterUser.username
 						?? String(farcasterUserId.fid)
 					)
 				)}
 					<span data-text="muted">
-						@{p.username}
+						@{farcasterUser.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -145,46 +145,40 @@
 			resource={farcasterUser}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(p)}
+			{#snippet children(farcasterUser)}
 				<div data-column>
 					<dl data-column-item="center">
-						<div>
-							<dt>FID</dt>
-							<dd data-text="mono">
-								{@render Id()}
-							</dd>
-						</div>
-						{#if p.bio != null}
-							{#if p.bio !== ''}
+						{#if farcasterUser.bio != null}
+							{#if farcasterUser.bio !== ''}
 								<div>
 									<dt>Bio</dt>
-									<dd>{p.bio}</dd>
+									<dd>{farcasterUser.bio}</dd>
 								</div>
 							{/if}
 						{/if}
 
-						{#if p.url != null}
+						{#if farcasterUser.url != null}
 							<div>
 								<dt>URL</dt>
 								<dd>
 									<a
-										href={p.url}
+										href={farcasterUser.url}
 										data-text="muted"
-									>{p.url}</a>
+									>{farcasterUser.url}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if p.verifiedAddress !== undefined}
+						{#if farcasterUser.verifiedAddress !== undefined}
 							<div>
 								<dt>Verified address</dt>
 								<dd>
 									<ActorView
 										entityId={{
-											address: p.verifiedAddress,
+											address: farcasterUser.verifiedAddress,
 										}}
 										href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-											accountId: p.verifiedAddress,
+											accountId: farcasterUser.verifiedAddress,
 										})}
 										layout={EntityLayout.Id}
 										open={false}
@@ -195,32 +189,32 @@
 						{/if}
 
 						{#if open}
-							{#if p.displayName != null}
+							{#if farcasterUser.displayName != null}
 								<div>
 									<dt>Display name</dt>
-									<dd>{p.displayName}</dd>
+									<dd>{farcasterUser.displayName}</dd>
 								</div>
 							{/if}
 						{/if}
 
 						{#if open}
-							{#if p.username != null}
+							{#if farcasterUser.username != null}
 								<div>
 									<dt>Username</dt>
-									<dd>{p.username}</dd>
+									<dd>{farcasterUser.username}</dd>
 								</div>
 							{/if}
 						{/if}
 
 						{#if open}
-							{#if p.$icon}
-								{#if p.$icon[EntityMetaKey.Id].url != null}
+							{#if farcasterUser.$icon}
+								{#if farcasterUser.$icon[EntityMetaKey.Id].url != null}
 									<div>
 										<dt>Profile image</dt>
 										<dd>
 											<Media
-												media={{ url: p.$icon[EntityMetaKey.Id].url }}
-												alt={p.displayName ?? p.username ?? ''}
+												media={{ url: farcasterUser.$icon[EntityMetaKey.Id].url }}
+												alt={farcasterUser.displayName ?? farcasterUser.username ?? ''}
 											/>
 										</dd>
 									</div>

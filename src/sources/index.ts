@@ -113,7 +113,7 @@ export type SourcePublicEnvFor<_Source extends Source> = (
 		SchemaEnv<typeof Allium.env>
 	: _Source extends Source.CoinMarketCap_Rest ?
 		SchemaEnv<typeof CoinMarketCap.env>
-	: _Source extends Source.Coingecko_Rest ?
+	: _Source extends Source.Coingecko_OpenApi | Source.Coingecko_Rest ?
 		SourcePublicEnvWire
 	: _Source extends Source.Coinpaprika_OpenApi ?
 		SchemaEnv<typeof Coinpaprika.env>

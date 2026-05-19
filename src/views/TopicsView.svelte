@@ -45,7 +45,7 @@
 
 	const fieldName = entityFieldReference.fieldName
 
-	const topicsParent = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -67,9 +67,9 @@
 	)
 
 	const topics = derive(
-		topicsParent,
-		(merged) => {
-			const rows: Entity<typeof schema, EntityType.EvmTopic>[] = merged[fieldName] ?? []
+		parent,
+		(parent) => {
+			const rows: Entity<typeof schema, EntityType.EvmTopic>[] = parent[fieldName] ?? []
 			return (
 				rows.toSorted((first, second) => (
 					first[EntityMetaKey.Id].hex.localeCompare(second[EntityMetaKey.Id].hex)
@@ -102,12 +102,12 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Event log topics are keccak hashes of the canonical event signature for indexed logs on EVM chains.
-					</p>
-					<p>
-						They are indexed separately from function selectors, market candles, storage links, or messaging threads.
-					</p>
+		<p>
+			Event log topics are keccak hashes of the canonical event signature for indexed logs on EVM chains.
+		</p>
+		<p>
+			They are indexed separately from function selectors, market candles, storage links, or messaging threads.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

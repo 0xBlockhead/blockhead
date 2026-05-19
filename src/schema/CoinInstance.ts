@@ -1,4 +1,5 @@
 import { type } from 'arktype'
+import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
 import { CoinId } from '$/constants/Coin.ts'
 import {
 	EntityFieldType,
@@ -89,6 +90,46 @@ export default {
 			defaultSources: [
 				Source.Constants_Internal,
 				Source.Coingecko_Rest,
+			],
+		},
+		{
+			name: 'representation',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(CoinInstanceRepresentation),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Constants_Internal,
+				Source.Coingecko_Rest,
+			],
+		},
+		{
+			name: '$canonicalInstance',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.CoinInstance,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Constants_Internal,
+				Source.Coingecko_Rest,
+			],
+		},
+		{
+			name: '$$outboundBridgeCapabilities',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.CoinBridgeCapability,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Constants_Internal,
+				Source.Lifi_Rest,
+			],
+		},
+		{
+			name: '$$inboundBridgeCapabilities',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.CoinBridgeCapability,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Constants_Internal,
+				Source.Lifi_Rest,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

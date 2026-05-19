@@ -39,7 +39,7 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const urlEntity = useEntity(
+	const url = useEntity(
 		EntityType.Url,
 		entityId,
 		{
@@ -86,69 +86,62 @@
 
 	{#snippet Heading()}
 		<ResourceBoundary
-			resource={urlEntity}
+			resource={url}
 			placeholderText="Loading URL entity…"
 		>
-			{#snippet children(u)}
-				{u.openGraphTitle ?? u.catalogName ?? entityId.url}
+			{#snippet children(url)}
+				{url.openGraphTitle ?? url.catalogName ?? entityId.url}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Ordinary HTTPS links with page metadata (title, preview) when available.
-				</p>
-				<p>
-					Different from Swarm or IPFS roots, token pool contracts, event logs, or social posts.
-				</p>
+		<p>
+			Ordinary HTTPS links with page metadata (title, preview) when available.
+		</p>
+		<p>
+			Different from Swarm or IPFS roots, token pool contracts, event logs, or social posts.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
 		<dl data-column-item="center">
-			<div>
-				<dt>Id</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
-
-			<ResourceBoundary resource={urlEntity}>
-				{#snippet children(u)}
+			<ResourceBoundary resource={url}>
+				{#snippet children(url)}
 					{#if contentOpen}
-						{#if u.openGraphDescription != null}
+						{#if url.openGraphDescription != null}
 							<div>
 								<dt>Description</dt>
-								<dd>{u.openGraphDescription}</dd>
+								<dd>{url.openGraphDescription}</dd>
 							</div>
 						{/if}
 					{/if}
 
-					{#if u.publisher != null}
+					{#if url.publisher != null}
 						<div>
 							<dt>Publisher</dt>
-							<dd>{u.publisher}</dd>
+							<dd>{url.publisher}</dd>
 						</div>
 					{/if}
 
 					{#if contentOpen}
-						{#if u.catalogStandard != null}
+						{#if url.catalogStandard != null}
 							<div>
 								<dt>Explorer standard</dt>
-								<dd>{u.catalogStandard}</dd>
+								<dd>{url.catalogStandard}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if contentOpen}
-						{#if u.$openGraphImage != null}
-							{#if u.$openGraphImage[EntityMetaKey.Id].url}
+						{#if url.$openGraphImage != null}
+							{#if url.$openGraphImage[EntityMetaKey.Id].url}
 								<div>
 									<dt>Preview</dt>
 									<dd>
 										<Media
-											alt={u.openGraphTitle ?? ''}
-											media={{ url: u.$openGraphImage[EntityMetaKey.Id].url }}
+											alt={url.openGraphTitle ?? ''}
+											media={{ url: url.$openGraphImage[EntityMetaKey.Id].url }}
 										/>
 									</dd>
 								</div>
@@ -156,7 +149,7 @@
 						{/if}
 					{/if}
 
-					{#if u.openGraphTitle != null}
+					{#if url.openGraphTitle != null}
 						<div>
 							<dt>Website</dt>
 							<dd>
@@ -170,7 +163,7 @@
 							</dd>
 						</div>
 					{:else}
-						{#if u.catalogName != null}
+						{#if url.catalogName != null}
 							<div>
 								<dt>Website</dt>
 								<dd>

@@ -104,12 +104,12 @@
 			resource={note}
 			placeholderText="Loading note…"
 		>
-			{#snippet children(mastodonNoteRow)}
+			{#snippet children(note)}
 				{@const mastodonPlainBody = (
-					mastodonNoteRow.content == null ?
+					note.content == null ?
 						''
 					:
-						htmlToPlainText(mastodonNoteRow.content)
+						htmlToPlainText(note.content)
 				)}
 				{#if mastodonPlainBody !== ''}
 					<TruncatedValue
@@ -130,11 +130,11 @@
 			resource={note}
 			placeholderText=""
 		>
-			{#snippet children(mastodonNoteRow)}
-				{#if mastodonNoteRow.createdAt}
+			{#snippet children(note)}
+				{#if note.createdAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={mastodonNoteRow.createdAt}
+							timestamp={note.createdAt}
 							format={TimestampFormat.Both}
 						/>
 					</span>
@@ -148,16 +148,16 @@
 			resource={note}
 			placeholderText="Loading note…"
 		>
-			{#snippet children(mastodonNoteRow)}
+			{#snippet children(note)}
 				{@const mastodonPlainBodyText = (
-					mastodonNoteRow.content == null ?
+					note.content == null ?
 						''
 					:
-						htmlToPlainText(mastodonNoteRow.content)
+						htmlToPlainText(note.content)
 				)}
 				<dl data-column-item="center">
 					{#if open}
-						{#if mastodonNoteRow.$author}
+						{#if note.$author}
 							<div>
 								<dt>Author</dt>
 								<dd>
@@ -165,8 +165,8 @@
 										href={resolve(
 											'/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]',
 											{
-												instanceOrigin: encodeURIComponent(mastodonNoteRow.$author[EntityMetaKey.Id].instanceOrigin),
-												localAccountId: encodeURIComponent(mastodonNoteRow.$author[EntityMetaKey.Id].localAccountId),
+												instanceOrigin: encodeURIComponent(note.$author[EntityMetaKey.Id].instanceOrigin),
+												localAccountId: encodeURIComponent(note.$author[EntityMetaKey.Id].localAccountId),
 											},
 										)}
 									>Open actor</a>
@@ -176,7 +176,7 @@
 					{/if}
 
 					{#if open}
-						{#if mastodonNoteRow.$inReplyTo}
+						{#if note.$inReplyTo}
 							<div>
 								<dt>In reply to</dt>
 								<dd>
@@ -184,8 +184,8 @@
 										href={resolve(
 											'/(social)/activitypub/note/[instanceOrigin]/[localStatusId]',
 											{
-												instanceOrigin: encodeURIComponent(mastodonNoteRow.$inReplyTo[EntityMetaKey.Id].instanceOrigin),
-												localStatusId: encodeURIComponent(mastodonNoteRow.$inReplyTo[EntityMetaKey.Id].localStatusId),
+												instanceOrigin: encodeURIComponent(note.$inReplyTo[EntityMetaKey.Id].instanceOrigin),
+												localStatusId: encodeURIComponent(note.$inReplyTo[EntityMetaKey.Id].localStatusId),
 											},
 										)}
 									>Open parent status</a>
@@ -195,23 +195,12 @@
 					{/if}
 
 					{#if open}
-						{#if mastodonPlainBodyText !== ''}
-							<div>
-								<dt>Object URI</dt>
-								<dd data-text="mono">
-									{@render Id()}
-								</dd>
-							</div>
-						{/if}
-					{/if}
-
-					{#if open}
-						{#if mastodonNoteRow.content != null}
+						{#if note.content != null}
 							{#if mastodonPlainBodyText !== ''}
 								<div>
 									<dt>Plain text body</dt>
 									<dd>
-										{htmlToPlainText(mastodonNoteRow.content)}
+										{htmlToPlainText(note.content)}
 									</dd>
 								</div>
 							{/if}
@@ -227,14 +216,6 @@
 						{/if}
 					{/if}
 
-					{#if open}
-						{#if entityId.localStatusId}
-							<div>
-								<dt>Status id</dt>
-								<dd data-text="mono muted">{entityId.localStatusId}</dd>
-							</div>
-						{/if}
-					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -290,10 +271,10 @@
 							resource={note}
 							placeholderText="Loading note…"
 						>
-							{#snippet children(mastodonNoteRow)}
+							{#snippet children(note)}
 								{@const mastodonThreadMetadataUnset = (
-									htmlToPlainText(mastodonNoteRow.content ?? '').trim() === ''
-									&& mastodonNoteRow.createdAt == null
+									htmlToPlainText(note.content ?? '').trim() === ''
+									&& note.createdAt == null
 								)}
 								{#if mastodonThreadMetadataUnset}
 									<div data-row="wrap align-center gap-2">

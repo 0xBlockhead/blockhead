@@ -59,8 +59,8 @@
 
 	const validators = derive(
 		network,
-		(loaded): Entity<typeof schema, EntityType.BeaconValidator>[] => (
-			loaded.$$beaconValidators
+		(network): Entity<typeof schema, EntityType.BeaconValidator>[] => (
+			network.$$beaconValidators
 			?? []
 		),
 	)
@@ -80,12 +80,12 @@
 				placeholderText="Loading validators…"
 				resource={validators}
 			>
-				{#snippet children(loaded)}
+				{#snippet children(validators)}
 					<OrderedList
 						getKey={(row) => (
 							String(row[EntityMetaKey.Id].validatorIndex)
 						)}
-						items={loaded}
+						items={validators}
 						orientation={ListOrientation.Column}
 						placeholderRanges={[]}
 					>

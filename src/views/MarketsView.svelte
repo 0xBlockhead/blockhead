@@ -8,6 +8,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { marketCatalogFieldSources } from '$/constants/Market.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
@@ -44,23 +45,16 @@
 
 	const fieldName = entityFieldReference.fieldName
 
-	const marketsParent = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
 			$: [
-				Source.Constants_Internal,
 				...(
 					open ?
-						[
-							Source.Coingecko_Rest,
-							Source.CoinMarketCap_Rest,
-							Source.Coinpaprika_OpenApi,
-							Source.Defillama_OpenApi,
-							Source.TradingView_Rest,
-						]
+						[...marketCatalogFieldSources]
 					:
-						[]
+						[Source.Constants_Internal]
 				),
 			],
 			...(open && {
@@ -72,9 +66,9 @@
 	)
 
 	const markets = derive(
-		marketsParent,
-		(merged) => {
-			const rows: Entity<typeof schema, EntityType.Market>[] = merged[fieldName] ?? []
+		parent,
+		(parent) => {
+			const rows: Entity<typeof schema, EntityType.Market>[] = parent[fieldName] ?? []
 			return (
 				Object.values(
 					Object.groupBy(
@@ -118,12 +112,12 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						A market pairs a base asset with a quote so feeds can publish prices, volume, and related stats.
-					</p>
-					<p>
-						Spot best bids/asks and index marks are point samples; OHLC ranges aggregate trades or mid-prices into interval buckets for charts.
-					</p>
+		<p>
+			A market pairs a base asset with a quote so feeds can publish prices, volume, and related stats.
+		</p>
+		<p>
+			Spot best bids/asks and index marks are point samples; OHLC ranges aggregate trades or mid-prices into interval buckets for charts.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}
@@ -137,7 +131,7 @@
 			<MarketView
 				entityId={props.item[EntityMetaKey.Id]}
 				href={resolve(
-					'/(assets)/coins/market/[marketKey]',
+					'/(assets)/(markets)/market/[marketKey]',
 					{
 						marketKey: encodeURIComponent(stringify(props.item[EntityMetaKey.Id])),
 					},

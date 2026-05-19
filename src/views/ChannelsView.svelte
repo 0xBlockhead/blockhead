@@ -52,7 +52,7 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		(
@@ -70,10 +70,10 @@
 	)
 
 	const channels = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.StateChannel>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
@@ -110,12 +110,12 @@
 		{...entitiesListProps}
 	>
 		{#snippet TypeAnnotationTooltip()}
-						<p>
-							State channels move balances or assets under agreed rules before final settlement on-chain.
-						</p>
-						<p>
-							Shared contacts and collaboration rooms are separate lists.
-						</p>
+			<p>
+				State channels move balances or assets under agreed rules before final settlement on-chain.
+			</p>
+			<p>
+				Shared contacts and collaboration rooms are separate lists.
+			</p>
 		{/snippet}
 		{#snippet Empty()}
 			<p data-text="muted">

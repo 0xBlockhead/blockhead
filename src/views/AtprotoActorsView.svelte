@@ -74,8 +74,8 @@
 
 	const actors = derive(
 		atprotoNetwork,
-		(loaded) => (
-			(loaded.$$atprotoActors ?? [])
+		(atprotoNetwork) => (
+			(atprotoNetwork.$$atprotoActors ?? [])
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].did.localeCompare(b[EntityMetaKey.Id].did)
 				))
@@ -93,15 +93,15 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						AT Protocol accounts are DIDs; public handles, follow graphs, and posts are stored in content-addressed repos synced by PDS and relays.
-					</p>
-					<p>
-						A directory response lists only the handles a hub currently indexes—not every DID that exists network-wide.
-					</p>
-					<p>
-						Listing order is lexicographic by DID as returned by the hub directory.
-					</p>
+		<p>
+			AT Protocol accounts are DIDs; public handles, follow graphs, and posts are stored in content-addressed repos synced by PDS and relays.
+		</p>
+		<p>
+			A directory response lists only the handles a hub currently indexes—not every DID that exists network-wide.
+		</p>
+		<p>
+			Listing order is lexicographic by DID as returned by the hub directory.
+		</p>
 	{/snippet}
 
 	{#snippet body()}

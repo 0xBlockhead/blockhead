@@ -83,9 +83,9 @@
 >
 	{#snippet Heading()}
 		<ResourceBoundary resource={lensAccount}>
-			{#snippet children(resolvedLensAccount)}
-				{#if resolvedLensAccount.localName}
-					{resolvedLensAccount.localName}
+			{#snippet children(lensAccount)}
+				{#if lensAccount.localName}
+					{lensAccount.localName}
 				{:else}
 					{entityId.address}
 				{/if}
@@ -110,9 +110,9 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<div data-column>
 			<ResourceBoundary resource={lensAccount}>
-				{#snippet children(resolvedLensAccount)}
+				{#snippet children(lensAccount)}
 					<dl data-column-item="center">
-						{#if resolvedLensAccount.localName}
+						{#if lensAccount.localName}
 							<div>
 								<dt>Profile address</dt>
 								<dd data-text="mono">
@@ -121,12 +121,6 @@
 							</div>
 						{/if}
 
-						{#if resolvedLensAccount.localName !== undefined}
-							<div>
-								<dt>Handle</dt>
-								<dd>{resolvedLensAccount.localName}</dd>
-							</div>
-						{/if}
 					</dl>
 				{/snippet}
 			</ResourceBoundary>

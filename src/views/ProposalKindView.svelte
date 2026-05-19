@@ -97,26 +97,13 @@
 			resource={kind}
 			placeholderText="Loading proposal kind…"
 		>
-			{#snippet children(k)}
+			{#snippet children(kind)}
 				<dl data-column-item="center">
-					<div>
-						<dt>Realm</dt>
-						<dd data-text="mono">
-							{proposalRealmById[entityId.realm].label}
-						</dd>
-					</div>
-					<div>
-						<dt>Category</dt>
-						<dd data-text="mono">
-							{proposalCategoryById[entityId.category].label}
-						</dd>
-					</div>
-
 					{#if open}
-						{#if k.labelPlural !== undefined}
+						{#if kind.labelPlural !== undefined}
 							<div>
 								<dt>Label plural</dt>
-								<dd>{k.labelPlural}</dd>
+								<dd>{kind.labelPlural}</dd>
 							</div>
 						{/if}
 					{/if}
@@ -134,7 +121,7 @@
 			resource={kind}
 			placeholderText="Loading proposals…"
 		>
-			{#snippet children(k)}
+			{#snippet children(kind)}
 				<ProposalsView
 					entityFieldReference={{
 						entityType: EntityType.ProposalKind,
@@ -145,7 +132,7 @@
 					id={`${stringify(entityId)}:proposals`}
 					open={false}
 					title={
-						k.labelPlural
+						kind.labelPlural
 						?? proposalCategoryById[entityId.category].labelPlural
 					}
 				/>

@@ -38,7 +38,7 @@
 		fieldOpen?: boolean
 	} = $props()
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		(
@@ -56,9 +56,9 @@
 	)
 
 	const notes = derive(
-		parentEntity,
-		(merged) => {
-			const rows: Entity<typeof schema, EntityType.ActivityPubNote>[] = merged[entityFieldReference.fieldName] ?? []
+		parent,
+		(parent) => {
+			const rows: Entity<typeof schema, EntityType.ActivityPubNote>[] = parent[entityFieldReference.fieldName] ?? []
 			return (
 				rows.map((value) => ({
 					value,
@@ -100,15 +100,15 @@
 	)}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Status objects in ActivityPub/Mastodon timelines: each row is a public note (HTML body, visibility, replies) addressed by instance origin + status id.
-					</p>
-					<p>
-						Ordering follows <code>createdAt</code> for the facet (newest or oldest first); empty responses usually mean the collection is private or not yet synced from the origin.
-					</p>
-					<p>
-						If the parent entity keeps this field reference idle, clients skip the Mastodon collection request for that scope until the facet is activated—same as an untouched relation in a typical ActivityPub client.
-					</p>
+		<p>
+			Status objects in ActivityPub/Mastodon timelines: each row is a public note (HTML body, visibility, replies) addressed by instance origin + status id.
+		</p>
+		<p>
+			Ordering follows <code>createdAt</code> for the facet (newest or oldest first); empty responses usually mean the collection is private or not yet synced from the origin.
+		</p>
+		<p>
+			If the parent entity keeps this field reference idle, clients skip the Mastodon collection request for that scope until the facet is activated—same as an untouched relation in a typical ActivityPub client.
+		</p>
 	{/snippet}
 
 	{#snippet Item(props)}

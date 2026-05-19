@@ -13,6 +13,11 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+
+	let {
+		open = $bindable(true),
+	} = $props()
+
 	const entityId = {
 		scope: 'XmtpNetwork' as const,
 	}
@@ -40,8 +45,6 @@
 		},
 	)
 
-	let open = $bindable(true)
-
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
@@ -68,12 +71,12 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					XMTP transports double‑ratcheted payloads between wallet-controlled identities; only holders of the session material can read ciphertext.
-				</p>
-				<p>
-					Message bodies therefore stay off calldata and most explorers—unlike public Farcaster casts or federated ActivityPub notes on HTTPS.
-				</p>
+		<p>
+			XMTP transports double‑ratcheted payloads between wallet-controlled identities; only holders of the session material can read ciphertext.
+		</p>
+		<p>
+			Message bodies therefore stay off calldata and most explorers—unlike public Farcaster casts or federated ActivityPub notes on HTTPS.
+		</p>
 	{/snippet}
 
 	{#snippet Content({
@@ -82,22 +85,18 @@
 		open: contentOpen,
 	})}
 		<dl data-column-item="center">
-			<div>
-				<dt>Scope</dt>
-				<dd>{entityId.scope}</dd>
-			</div>
 			<ResourceBoundary
 				resource={registry}
 				placeholderText="Loading local inbox…"
 			>
-				{#snippet children(g)}
+				{#snippet children(registry)}
 					<div>
 						<dt>Accounts</dt>
-						<dd>{String(g['$$actors'].length)}</dd>
+						<dd>{String(registry['$$actors'].length)}</dd>
 					</div>
 					<div>
 						<dt>Conversations</dt>
-						<dd>{String(g['$$xmtpConversations'].length)}</dd>
+						<dd>{String(registry['$$xmtpConversations'].length)}</dd>
 					</div>
 				{/snippet}
 			</ResourceBoundary>
@@ -106,26 +105,26 @@
 					resource={network}
 					placeholderText="Loading XMTP network…"
 				>
-					{#snippet children(loaded)}
+					{#snippet children(network)}
 						<div>
 							<dt>Protocol name</dt>
-							<dd>{loaded.protocolName}</dd>
+							<dd>{network.protocolName}</dd>
 						</div>
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={loaded.homeUrl}>
-									{loaded.homeUrl}
+								<a href={network.homeUrl}>
+									{network.homeUrl}
 								</a>
 							</dd>
 						</div>
-						{#if loaded.docsUrl != null}
-							{#if loaded.docsUrl !== ''}
+						{#if network.docsUrl != null}
+							{#if network.docsUrl !== ''}
 								<div>
 									<dt>Docs</dt>
 									<dd>
-										<a href={loaded.docsUrl}>
-											{loaded.docsUrl}
+										<a href={network.docsUrl}>
+											{network.docsUrl}
 										</a>
 									</dd>
 								</div>
@@ -187,9 +186,9 @@
 								entityId: {},
 								fieldName: '$$actors',
 							}}
-							href={resolve('/(social)/(xmtp)/xmtp/accounts')}
-							id={`${networkIdKey}:accounts`}
-							open={false}
+							href={resolve('/xmtp/accounts')}
+							id="accounts"
+							open={_open}
 							title="Accounts"
 						/>
 					</section>
@@ -204,9 +203,9 @@
 								entityId: {},
 								fieldName: '$$xmtpConversations',
 							}}
-							href={resolve('/(social)/(xmtp)/xmtp/conversations')}
-							id={`${networkIdKey}:conversations-list`}
-							open={false}
+							href={resolve('/xmtp/conversations')}
+							id="conversations"
+							open={_open}
 						/>
 					</section>
 				{/snippet}

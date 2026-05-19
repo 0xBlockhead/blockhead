@@ -1,13 +1,10 @@
 <script lang="ts">
-	// Types/constants
+	// Context
 	import { resolve } from '$app/paths'
-	import { page } from '$app/state'
 
 
 	// State
-	let {
-		children,
-	} = $props()
+	let { children } = $props()
 
 
 	// Components
@@ -16,8 +13,8 @@
 
 
 <ParentPageCollapsible
-	title="Records"
-	href={resolve(`/ens/name/${page.params.ensName}/records`)}
+	title={'Currencies'}
+	href={resolve('/currencies')}
 >
 	{@render children()}
 </ParentPageCollapsible>

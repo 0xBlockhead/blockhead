@@ -96,8 +96,8 @@
 			resource={actorCoin}
 			placeholderText="Loading holding…"
 		>
-			{#snippet children(u)}
-				{u.symbol ?? 'Balance'}
+			{#snippet children(actorCoin)}
+				{actorCoin.symbol ?? 'Balance'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -107,7 +107,7 @@
 			resource={actorCoin}
 			placeholderText="Loading balance…"
 		>
-			{#snippet children(u)}
+			{#snippet children(actorCoin)}
 				<dl data-column-item="center">
 					<div>
 						<dt>Wallet · chain</dt>
@@ -141,38 +141,30 @@
 							{/if}
 						</dd>
 					</div>
-					{#if open}
-						<div>
-							<dt>Coin id</dt>
-							<dd data-text="mono">
-								{@render Id()}
-							</dd>
-						</div>
-					{/if}
 
 					{#if open}
-						{#if u.balance !== undefined}
+						{#if actorCoin.balance !== undefined}
 							<div>
 								<dt>Balance (raw)</dt>
-								<dd>{String(u.balance)}</dd>
+								<dd>{String(actorCoin.balance)}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if u.usdValue !== undefined}
+						{#if actorCoin.usdValue !== undefined}
 							<div>
 								<dt>USD (estimate)</dt>
-								<dd>{String(u.usdValue)}</dd>
+								<dd>{String(actorCoin.usdValue)}</dd>
 							</div>
 						{/if}
 					{/if}
 
 					{#if open}
-						{#if u.decimals !== undefined}
+						{#if actorCoin.decimals !== undefined}
 							<div>
 								<dt>Decimals</dt>
-								<dd>{String(u.decimals)}</dd>
+								<dd>{String(actorCoin.decimals)}</dd>
 							</div>
 						{/if}
 					{/if}
@@ -234,10 +226,10 @@
 							resource={actorCoin}
 							placeholderText="Loading holding…"
 						>
-							{#snippet children(u)}
-								{#if u.symbol == null}
-									{#if u.decimals == null}
-										{#if u.balance == null}
+							{#snippet children(actorCoin)}
+								{#if actorCoin.symbol == null}
+									{#if actorCoin.decimals == null}
+										{#if actorCoin.balance == null}
 											<div data-row="wrap align-center gap-2">
 												<p data-text="muted">
 													No balance yet.

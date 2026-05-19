@@ -79,13 +79,13 @@
 
 	const posts = derive(
 		lensNetworkOrAccount,
-		(loaded) => {
+		(lensNetworkOrAccount) => {
 			const rows: Entity<typeof schema, EntityType.LensPost>[] = (
 				(
 					entityFieldReference.entityType === EntityType.LensNetwork ?
-						loaded.$$lensPosts
+						lensNetworkOrAccount.$$lensPosts
 					:
-						loaded.$$posts
+						lensNetworkOrAccount.$$posts
 				)
 				?? []
 			)

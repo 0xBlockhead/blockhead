@@ -70,8 +70,11 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
+	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -92,7 +95,7 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary resource={liquidityPosition}>
-			{#snippet children(p)}
+			{#snippet children(liquidityPosition)}
 				<dl data-column-item="center">
 					{#if open}
 						<div>
@@ -104,14 +107,30 @@
 					{/if}
 					<div>
 						<dt>Network</dt>
-						<dd>{String(p.$pool.$network.chainId)}</dd>
+						<dd>
+							<NetworkView
+								entityId={liquidityPosition.$pool.$network}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]',
+									{ networkId: String(liquidityPosition.$pool.$network.chainId) },
+								)}
+								layout={EntityLayout.Id}
+								open={false}
+								showTypeAnnotation={false}
+							/>
+						</dd>
 					</div>
 					<div>
 						<dt>AMM pool (Uniswap v3-style)</dt>
 						<dd>
-							<TruncatedValue
-								value={p.$pool.id}
-								format={TruncatedValueFormat.Visual}
+							<LiquidityPoolView
+								entityId={liquidityPosition.$pool[EntityMetaKey.Id]}
+								href={resolve('/(assets)/(pools)/pool/[poolId]', {
+									poolId: liquidityPosition.$pool[EntityMetaKey.Id].id,
+								})}
+								layout={EntityLayout.Id}
+								open={false}
+								showTypeAnnotation={false}
 							/>
 						</dd>
 					</div>
@@ -121,11 +140,11 @@
 							<dd>
 								<ActorNetworkView
 									entityId={{
-										$network: p.$pool.$network,
-										$actor: p.$owner[EntityMetaKey.Id],
+										$network: liquidityPosition.$pool.$network,
+										$actor: liquidityPosition.$owner[EntityMetaKey.Id],
 									}}
 									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-										accountId: p.$owner[EntityMetaKey.Id].address,
+										accountId: liquidityPosition.$owner[EntityMetaKey.Id].address,
 									})}
 									layout={EntityLayout.Id}
 									open={false}
@@ -133,62 +152,55 @@
 								/>
 							</dd>
 						</div>
-						{#if p.tickLower !== undefined}
+						{#if liquidityPosition.tickLower !== undefined}
 							<div>
 								<dt>LP NFT range · tick lower</dt>
-								<dd>{String(p.tickLower)}</dd>
+								<dd>{String(liquidityPosition.tickLower)}</dd>
 							</div>
 						{/if}
 
-						{#if p.tickUpper !== undefined}
+						{#if liquidityPosition.tickUpper !== undefined}
 							<div>
 								<dt>LP NFT range · tick upper</dt>
-								<dd>{String(p.tickUpper)}</dd>
+								<dd>{String(liquidityPosition.tickUpper)}</dd>
 							</div>
 						{/if}
 
-						{#if p.liquidity !== undefined}
+						{#if liquidityPosition.liquidity !== undefined}
 							<div>
 								<dt>Position liquidity (NFT range)</dt>
-								<dd>{String(p.liquidity)}</dd>
+								<dd>{String(liquidityPosition.liquidity)}</dd>
 							</div>
 						{/if}
 
-						{#if p.token0Owed !== undefined}
+						{#if liquidityPosition.token0Owed !== undefined}
 							<div>
 								<dt>Token0 owed</dt>
-								<dd>{String(p.token0Owed)}</dd>
+								<dd>{String(liquidityPosition.token0Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if p.token1Owed !== undefined}
+						{#if liquidityPosition.token1Owed !== undefined}
 							<div>
 								<dt>Token1 owed</dt>
-								<dd>{String(p.token1Owed)}</dd>
+								<dd>{String(liquidityPosition.token1Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if p.tokenId !== undefined}
-							<div>
-								<dt>Position NFT (token id)</dt>
-								<dd>{String(p.tokenId)}</dd>
-							</div>
-						{/if}
-
-						{#if p.origin}
+						{#if liquidityPosition.origin}
 							<div>
 								<dt>Origin</dt>
-								<dd>{p.origin}</dd>
+								<dd>{liquidityPosition.origin}</dd>
 							</div>
 						{/if}
 					{/if}
 
-					{#if p.createdAtTimestamp !== undefined}
+					{#if liquidityPosition.createdAtTimestamp !== undefined}
 						<div>
 							<dt>Created at</dt>
 							<dd>
 								<Timestamp
-									timestamp={p.createdAtTimestamp}
+									timestamp={liquidityPosition.createdAtTimestamp}
 									format={TimestampFormat.Both}
 								/>
 							</dd>

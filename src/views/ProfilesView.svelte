@@ -45,7 +45,7 @@
 
 
 	// State
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -58,10 +58,10 @@
 	)
 
 	const users = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.FarcasterUser>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].fid - b[EntityMetaKey.Id].fid
@@ -91,12 +91,12 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Farcaster profiles are on-chain-anchored identities keyed by numeric FID, with off-chain social graph data on hubs.
-					</p>
-					<p>
-						A single directory response is always a bounded subset (e.g. one hub’s registry snapshot)—never the entire protocol user set in one page.
-					</p>
+		<p>
+			Farcaster profiles are on-chain-anchored identities keyed by numeric FID, with off-chain social graph data on hubs.
+		</p>
+		<p>
+			A single directory response is always a bounded subset (e.g. one hub’s registry snapshot)—never the entire protocol user set in one page.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

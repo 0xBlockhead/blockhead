@@ -183,13 +183,19 @@ export const useNavigationItems = () => {
 							href: '/coins/candles',
 							icon: '📊',
 						},
-						{
-							id: 'assets-coins-markets',
-							title: 'Markets',
-							href: '/coins/markets',
-							icon: '🔀',
-						},
 					],
+				},
+				{
+					id: 'assets-markets',
+					title: 'Markets',
+					href: '/markets',
+					icon: '🔀',
+				},
+				{
+					id: 'assets-currencies',
+					title: 'Currencies',
+					href: '/currencies',
+					icon: '💱',
 				},
 				{
 					id: 'assets-pools',

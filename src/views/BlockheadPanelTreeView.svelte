@@ -43,11 +43,6 @@
 	> = $props()
 
 
-	const panelTreeIdKey = $derived(
-		stringify(entityId),
-	)
-
-
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -79,12 +74,12 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Serialized layout graphs capture nested region ids and split ratios so multi-pane dashboards can restore geometry across reloads.
-				</p>
-				<p>
-					Chat logs, automation replays, and chain head cursors are unrelated artifacts—layout trees only describe viewport structure.
-				</p>
+		<p>
+			Serialized layout graphs capture nested region ids and split ratios so multi-pane dashboards can restore geometry across reloads.
+		</p>
+		<p>
+			Chat logs, automation replays, and chain head cursors are unrelated artifacts—layout trees only describe viewport structure.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -113,10 +108,10 @@
 			<section
 				{...{ 'data-card': '' }}
 				data-column="gap-2"
-				id={`${panelTreeIdKey}:metadata`}
+				id={`${stringify(entityId)}:metadata`}
 			>
 				<ResourceBoundary resource={panelTree}>
-					{#snippet children(_)}
+					{#snippet children(panelTree)}
 						<p data-text="muted">
 							No saved panel layout metadata yet.
 						</p>

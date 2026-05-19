@@ -50,7 +50,7 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	const globalEntity = useEntity(
+	const global = useEntity(
 		EntityType._Global,
 		entityFieldReference.entityId,
 		(
@@ -65,9 +65,9 @@
 	)
 
 	const connections = derive(
-		globalEntity,
-		(globalRow) => (
-			(globalRow['$$blockheadFarcasterAccountConnections'] ?? [])
+		global,
+		(global) => (
+			(global['$$blockheadFarcasterAccountConnections'] ?? [])
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].fid - b[EntityMetaKey.Id].fid
 				))
@@ -93,12 +93,12 @@
 	{...entitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Farcaster accounts are numeric FIDs; clients keep an authorized signer so hub APIs can return feeds and profile edges for that identity.
-					</p>
-					<p>
-						Hub directory data for fname, custody address, and verifications remains authoritative; local state only remembers which FIDs currently have active sign-in.
-					</p>
+		<p>
+			Farcaster accounts are numeric FIDs; clients keep an authorized signer so hub APIs can return feeds and profile edges for that identity.
+		</p>
+		<p>
+			Hub directory data for fname, custody address, and verifications remains authoritative; local state only remembers which FIDs currently have active sign-in.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

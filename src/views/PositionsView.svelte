@@ -46,7 +46,7 @@
 
 
 	// State
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -58,11 +58,11 @@
 		},
 	)
 
-	const envelopes = derive(
-		parentEntity,
-		(merged) => {
+	const liquidityPositions = derive(
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.LiquidityPosition>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
@@ -88,17 +88,17 @@
 	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
 	placeholderKeys={new SvelteSet()}
 	placeholderText="Loading positions…"
-	resource={envelopes}
+	resource={liquidityPositions}
 	{title}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Liquidity positions are a user’s shares and price range inside a specific automated market maker pool.
-					</p>
-					<p>
-						They are not standalone pool contracts or generic wallet token balances.
-					</p>
+		<p>
+			Liquidity positions are a user’s shares and price range inside a specific automated market maker pool.
+		</p>
+		<p>
+			They are not standalone pool contracts or generic wallet token balances.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

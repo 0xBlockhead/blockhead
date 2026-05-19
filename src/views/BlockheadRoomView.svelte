@@ -83,19 +83,19 @@
 			resource={room}
 			placeholderText="Loading room…"
 		>
-			{#snippet children(r)}
-				{r.name ?? entityId.id}
+			{#snippet children(room)}
+				{room.name ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Realtime room records identify a shared session: display name, host metadata, and stable room id for presence sync.
-				</p>
-				<p>
-					Membership and permissions are carried on companion peer rows; rooms themselves are not XMPP MUC transcripts or IPFS DAGs.
-				</p>
+		<p>
+			Realtime room records identify a shared session: display name, host metadata, and stable room id for presence sync.
+		</p>
+		<p>
+			Membership and permissions are carried on companion peer rows; rooms themselves are not XMPP MUC transcripts or IPFS DAGs.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -103,14 +103,8 @@
 			resource={room}
 			placeholderText="Loading room…"
 		>
-			{#snippet children(r)}
+			{#snippet children(room)}
 				<dl>
-					<div>
-						<dt>Room session id</dt>
-						<dd data-text="mono">
-							{@render Id()}
-						</dd>
-					</div>
 
 					<div>
 						<dt>Room kind</dt>
@@ -120,23 +114,23 @@
 					</div>
 
 					{#if open}
-						{#if r.createdAt !== undefined}
+						{#if room.createdAt !== undefined}
 							<div>
 								<dt>Created</dt>
 								<dd>
 									<Timestamp
-										timestamp={r.createdAt}
+										timestamp={room.createdAt}
 										format={TimestampFormat.Both}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if r.createdBy !== undefined}
-							{#if r.createdBy !== ''}
+						{#if room.createdBy !== undefined}
+							{#if room.createdBy !== ''}
 								<div>
 									<dt>Opened by</dt>
-									<dd>{r.createdBy}</dd>
+									<dd>{room.createdBy}</dd>
 								</div>
 							{/if}
 						{/if}

@@ -17,7 +17,7 @@ export default {
 
 	id: type({
 		$network: Network.id,
-		timestampNs: 'bigint',
+		timestampMs: 'number',
 	}),
 
 	fields: [

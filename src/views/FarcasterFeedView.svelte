@@ -91,12 +91,12 @@
 			resource={feed}
 			placeholderText="Loading Farcaster feed (variant, FID or channel id, cast stream)…"
 		>
-			{#snippet children(feedRow)}
+			{#snippet children(feed)}
 				{(
-					feedRow.label != null
-					&& feedRow.label !== ''
+					feed.label != null
+					&& feed.label !== ''
 				) ?
-					feedRow.label
+					feed.label
 				: entityId.variant === 'trending' ?
 					'Trending'
 				: entityId.variant === 'byUser' ?
@@ -115,40 +115,23 @@
 			resource={feed}
 			placeholderText="Loading Farcaster feed (variant, FID or channel id, cast stream)…"
 		>
-			{#snippet children(feedRow)}
+			{#snippet children(feed)}
 				<dl>
-					<div>
-						<dt>Feed id</dt>
-						<dd data-text="mono">
-							{@render Id()}
-						</dd>
-					</div>
-
 					<div>
 						<dt>Variant</dt>
 						<dd>{entityId.variant}</dd>
 					</div>
-					{#if entityId.variant === 'byUser'}
-						<div>
-							<dt>FID</dt>
-							<dd>{String(entityId.fid)}</dd>
-						</div>
-					{:else if entityId.variant === 'byChannel'}
-						<div>
-							<dt>Channel id</dt>
-							<dd>{entityId.channelId}</dd>
-						</div>
-					{:else if entityId.variant === 'following'}
+					{#if entityId.variant === 'following'}
 						<div>
 							<dt>Viewer FID</dt>
 							<dd>{String(entityId.viewerFid)}</dd>
 						</div>
 					{/if}
 
-					{#if feedRow.label != null && feedRow.label !== ''}
+					{#if feed.label != null && feed.label !== ''}
 						<div>
 							<dt>Label</dt>
-							<dd>{feedRow.label}</dd>
+							<dd>{feed.label}</dd>
 						</div>
 					{/if}
 				</dl>

@@ -38,7 +38,7 @@
 
 	const fieldName = entityFieldReference.fieldName
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -63,9 +63,9 @@
 	)
 
 	const links = derive(
-		parentEntity,
-		(merged) => {
-			const rows: Entity<typeof schema, EntityType.RedditLink>[] = merged[fieldName] ?? []
+		parent,
+		(parent) => {
+			const rows: Entity<typeof schema, EntityType.RedditLink>[] = parent[fieldName] ?? []
 			return (
 				rows
 					.toSorted((a, b) => (

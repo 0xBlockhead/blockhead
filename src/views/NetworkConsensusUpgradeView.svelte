@@ -7,6 +7,8 @@
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
+	import { stringify } from 'devalue'
+
 
 	// Props
 	let {
@@ -38,11 +40,9 @@
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-	const networkConsensusUpgradeEntityId = $derived(entityId)
-
 	const networkConsensusUpgrade = useEntity(
 		EntityType.NetworkConsensusUpgrade,
-		networkConsensusUpgradeEntityId,
+		entityId,
 		{
 			$: [
 				Source.Constants_Internal,
@@ -60,6 +60,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import ProposalsView from '$/views/ProposalsView.svelte'
 </script>
 
 
@@ -82,8 +83,8 @@
 			resource={networkConsensusUpgrade}
 			placeholderText="Loading consensus upgrade…"
 		>
-			{#snippet children(networkConsensusUpgradeEntity)}
-				{networkConsensusUpgradeEntity.name ?? entityId.upgradeId}
+			{#snippet children(networkConsensusUpgrade)}
+				{networkConsensusUpgrade.name ?? entityId.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -93,32 +94,13 @@
 			resource={networkConsensusUpgrade}
 			placeholderText="Loading consensus upgrade…"
 		>
-			{#snippet children(networkConsensusUpgradeEntity)}
+			{#snippet children(networkConsensusUpgrade)}
 				<dl data-column-item="center">
-					<div>
-						<dt>Chain ID</dt>
-						<dd data-text="mono">
-							{String(entityId.$network.chainId)}
-						</dd>
-					</div>
-
 					{#if open}
-						{#if (
-							networkConsensusUpgradeEntity.slug !== undefined
-							&& networkConsensusUpgradeEntity.slug !== entityId.upgradeId
-						)}
-							<div>
-								<dt>Route slug</dt>
-								<dd data-text="mono">
-									{networkConsensusUpgradeEntity.slug}
-								</dd>
-							</div>
-						{/if}
-
-						{#if networkConsensusUpgradeEntity.protocol !== undefined}
+						{#if networkConsensusUpgrade.protocol !== undefined}
 							<div>
 								<dt>Consensus fork</dt>
-								<dd>{networkConsensusUpgradeEntity.protocol}</dd>
+								<dd>{networkConsensusUpgrade.protocol}</dd>
 							</div>
 						{/if}
 					{/if}
@@ -131,6 +113,17 @@
 		<EntityDetails
 			entityType={EntityType.NetworkConsensusUpgrade}
 			{entityId}
+		/>
+
+		<ProposalsView
+			entityFieldReference={{
+				entityType: EntityType.NetworkConsensusUpgrade,
+				entityId,
+				fieldName: '$$proposals',
+			}}
+			id={`${stringify(entityId)}:proposals`}
+			open={false}
+			title="Specification proposals"
 		/>
 
 		{#if children}

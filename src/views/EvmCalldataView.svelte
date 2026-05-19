@@ -83,12 +83,12 @@
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Calldata is the opaque byte blob included with a call: its opening bytes pick the function schema, followed by ABI-packed arguments.
-				</p>
-				<p>
-					Revert data and indexed events reuse similar hashing ideas but with different widths and meanings.
-				</p>
+		<p>
+			Calldata is the opaque byte blob included with a call: its opening bytes pick the function schema, followed by ABI-packed arguments.
+		</p>
+		<p>
+			Revert data and indexed events reuse similar hashing ideas but with different widths and meanings.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -96,7 +96,7 @@
 			placeholderText="Loading calldata…"
 			resource={calldata}
 		>
-			{#snippet children(_)}
+			{#snippet children(calldata)}
 				<div data-column="gap-1">
 				<dl data-column-item="center">
 					<div>

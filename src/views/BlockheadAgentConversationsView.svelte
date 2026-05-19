@@ -54,13 +54,13 @@
 	> = $props()
 
 
-	const globalEntityId = (
+	const globalId = (
 		{} satisfies EntityId<typeof schema, EntityType._Global>
 	)
 
-	const globalEntity = useEntity(
+	const global = useEntity(
 		EntityType._Global,
-		entityFieldReference?.entityId ?? globalEntityId,
+		entityFieldReference?.entityId ?? globalId,
 		(
 			open ?
 				{
@@ -79,9 +79,9 @@
 	)
 
 	const conversations = derive(
-		globalEntity,
-		(g) => (
-			g.$$blockheadAgentConversations
+		global,
+		(global) => (
+			global.$$blockheadAgentConversations
 			?? []
 		),
 	)
@@ -102,12 +102,12 @@
 	{...entitiesListForward}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Persisted large-language-model chat transcripts: each row is one conversation with ordered user/assistant messages.
-					</p>
-					<p>
-						Those logs are ordinary files or local DB rows—not consensus state, Farcaster casts, or multiplayer CRDT rooms.
-					</p>
+		<p>
+			Persisted large-language-model chat transcripts: each row is one conversation with ordered user/assistant messages.
+		</p>
+		<p>
+			Those logs are ordinary files or local DB rows—not consensus state, Farcaster casts, or multiplayer CRDT rooms.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

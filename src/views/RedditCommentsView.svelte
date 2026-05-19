@@ -38,7 +38,7 @@
 
 	const fieldName = entityFieldReference.fieldName
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -56,9 +56,9 @@
 	)
 
 	const comments = derive(
-		parentEntity,
-		(merged) => {
-			const rows: Entity<typeof schema, EntityType.RedditComment>[] = merged[fieldName] ?? []
+		parent,
+		(parent) => {
+			const rows: Entity<typeof schema, EntityType.RedditComment>[] = parent[fieldName] ?? []
 			return (
 				rows
 					.toSorted((a, b) => (
@@ -95,12 +95,12 @@
 		placeholderKeys={new SvelteSet<string>()}
 	>
 		{#snippet TypeAnnotationTooltip()}
-						<p>
-							Top-level comments are direct replies to a Reddit submission, ordered for this thread listing.
-						</p>
-						<p>
-							They are specific to Reddit’s data model—not Farcaster feeds or in-app multiplayer chat.
-						</p>
+			<p>
+				Top-level comments are direct replies to a Reddit submission, ordered for this thread listing.
+			</p>
+			<p>
+				They are specific to Reddit’s data model—not Farcaster feeds or in-app multiplayer chat.
+			</p>
 		{/snippet}
 		{#snippet Empty()}
 			<p data-text="muted">

@@ -63,7 +63,7 @@
 
 	const fieldName = $derived(entityFieldReference.fieldName)
 
-	const proposalsParent = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -85,9 +85,9 @@
 	)
 
 	const proposals = derive(
-		proposalsParent,
-		(merged) => {
-			const rows: Entity<typeof schema, EntityType.Proposal>[] = merged[fieldName] ?? []
+		parent,
+		(parent) => {
+			const rows: Entity<typeof schema, EntityType.Proposal>[] = parent[fieldName] ?? []
 			return (
 				rows
 					.toSorted((first, second) => (
@@ -121,12 +121,12 @@
 	resource={proposals}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						These proposal cards come from public standards repositories for Ethereum upgrades, name-service improvements, and shared chain identifiers.
-					</p>
-					<p>
-						They document design specs—not live on-chain vote tallies for a particular DAO.
-					</p>
+		<p>
+			These proposal cards come from public standards repositories for Ethereum upgrades, name-service improvements, and shared chain identifiers.
+		</p>
+		<p>
+			They document design specs—not live on-chain vote tallies for a particular DAO.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}

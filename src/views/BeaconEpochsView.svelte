@@ -66,8 +66,8 @@
 
 	const epochs = derive(
 		network,
-		(merged): Entity<typeof schema, EntityType.BeaconEpoch>[] => (
-			(merged.$$beaconEpochs ?? [])
+		(network): Entity<typeof schema, EntityType.BeaconEpoch>[] => (
+			(network.$$beaconEpochs ?? [])
 				.toSorted((a, b) => (
 					Number(b[EntityMetaKey.Id].epoch - a[EntityMetaKey.Id].epoch)
 				))
@@ -95,9 +95,9 @@
 				resource={epochs}
 				placeholderText="Loading epochs…"
 			>
-				{#snippet children(loaded)}
+				{#snippet children(epochs)}
 					<OrderedList
-						items={loaded}
+						items={epochs}
 						getKey={(epoch) => (
 							epoch[EntityMetaKey.Id].epoch
 						)}

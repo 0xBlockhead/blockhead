@@ -110,16 +110,16 @@
 	)
 
 	const rowsFromProposalRealms = (
-		queryRows: { result: Entity<typeof schema, EntityType.ProposalRealm> }[] | undefined,
+		proposalRealms: { result: Entity<typeof schema, EntityType.ProposalRealm> }[] | undefined,
 	): { result: Entity<typeof schema, EntityType.ProposalRealm> }[] => (
-		queryRows === undefined ?
+		proposalRealms === undefined ?
 			[]
 		:
-			[...queryRows]
+			[...proposalRealms]
 	)
 
-	const realmPanelDomId = (realmEntity: Entity<typeof schema, EntityType.ProposalRealm>) => (
-		`proposal-realm:${realmEntity[EntityMetaKey.Id].realm}:proposal-kinds`
+	const realmPanelDomId = (realm: Entity<typeof schema, EntityType.ProposalRealm>) => (
+		`proposal-realm:${realm[EntityMetaKey.Id].realm}:proposal-kinds`
 	)
 
 
@@ -129,7 +129,7 @@
 
 	const fieldName = entityFieldReference.fieldName
 
-	const realmsParent = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -143,9 +143,9 @@
 	)
 
 	const proposalRealms = derive(
-		realmsParent,
-		(merged) => {
-			const rows: Entity<typeof schema, EntityType.ProposalRealm>[] = merged[fieldName] ?? []
+		parent,
+		(parent) => {
+			const rows: Entity<typeof schema, EntityType.ProposalRealm>[] = parent[fieldName] ?? []
 			return (
 				rows
 					.toSorted((first, second) => (
@@ -218,9 +218,9 @@
 		}
 		resource={proposalRealms}
 	>
-		{#snippet children(queryRows)}
-			{#key queryRows}
-				{@const rows = rowsFromProposalRealms(queryRows)}
+		{#snippet children(proposalRealms)}
+			{#key proposalRealms}
+				{@const rows = rowsFromProposalRealms(proposalRealms)}
 
 				{#if rows.length === 0}
 					{@render EmptyFallback()}

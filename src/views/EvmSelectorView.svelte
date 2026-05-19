@@ -86,30 +86,24 @@
 			resource={selector}
 			placeholderText="Loading decoded function selector…"
 		>
-			{#snippet children(s)}
-				{s.signatures?.[0] ?? entityId.hex}
+			{#snippet children(selector)}
+				{selector.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					The first four bytes of a contract call identify which function ABI follows; the rest carries encoded arguments.
-				</p>
-				<p>
-					Revert payloads use another four-byte family of codes, still different from full-width log fingerprints that annotate events on receipts.
-				</p>
+		<p>
+			The first four bytes of a contract call identify which function ABI follows; the rest carries encoded arguments.
+		</p>
+		<p>
+			Revert payloads use another four-byte family of codes, still different from full-width log fingerprints that annotate events on receipts.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<div data-column="gap-1">
 		<dl data-column-item="center">
-			<div>
-				<dt>Function selector</dt>
-				<dd data-text="mono">
-					{@render Id()}
-				</dd>
-			</div>
 
 			<div>
 				<dt>Selector (hex)</dt>
@@ -128,10 +122,10 @@
 							resource={selector}
 							placeholderText="Loading decoded calldata prefixes…"
 						>
-							{#snippet children(s)}
-								{#if s.signatures?.length}
+							{#snippet children(selector)}
+								{#if selector.signatures?.length}
 									<ul>
-										{#each s.signatures as sig (sig)}
+										{#each selector.signatures as sig (sig)}
 											<li><code>{sig}</code></li>
 										{/each}
 									</ul>

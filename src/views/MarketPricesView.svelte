@@ -4,11 +4,11 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { coinById } from '$/constants/Coin.ts'
-	import { MarketAssetKind } from '$/constants/Market.ts'
+	import { formatMarketIdLabel } from '$/constants/Market.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { marketCatalogFieldSources } from '$/constants/Market.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
@@ -18,7 +18,7 @@
 
 	// Props
 	let {
-		title = 'Quotes',
+		title = 'Spot quote index',
 		open = $bindable(true),
 		limit = 400,
 		entityFieldReference,
@@ -46,23 +46,16 @@
 
 	const fieldName = entityFieldReference.fieldName
 
-	const marketsParentEntity = useEntity(
+	const market = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
 			$: [
-				Source.Constants_Internal,
 				...(
 					open ?
-						[
-							Source.Coingecko_Rest,
-							Source.CoinMarketCap_Rest,
-							Source.Coinpaprika_OpenApi,
-							Source.Defillama_OpenApi,
-							Source.TradingView_Rest,
-						]
+						[...marketCatalogFieldSources]
 					:
-						[]
+						[Source.Constants_Internal]
 				),
 			],
 			...(open && {
@@ -74,16 +67,16 @@
 	)
 
 	const prices = derive(
-		marketsParentEntity,
-		(merged) => {
+		market,
+		(market) => {
 			const rows: Entity<typeof schema, EntityType.MarketPrice>[] = (
-				merged[fieldName] ?? []
+				market[fieldName] ?? []
 			)
 			return (
 				Object.values(
 					Object.groupBy(
 						rows,
-						(priceRow) => priceRow[EntityMetaKey.IdKey],
+						(price) => price[EntityMetaKey.IdKey],
 					),
 				)
 					.flatMap((group) => (
@@ -131,17 +124,17 @@
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						These rows are single snapshots or index readings for a market (price, clock, identifiers).
-					</p>
-					<p>
-						Interval OHLC candles are separate entities tied to the same market with a time bucket.
-					</p>
+		<p>
+			Each row is one spot or index reading for a market pair (price, quote clock, provider ids).
+		</p>
+		<p>
+			Open the row for the market page, timestamped quote history, and OHLC ranges. Interval candles live on the OHLC index.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}
 		<p data-text="muted">
-			No point-in-time quotes yet.
+			No spot or index quotes in this context yet.
 		</p>
 	{/snippet}
 
@@ -149,15 +142,13 @@
 		{#if props.item}
 			<MarketPriceView
 				entityId={props.item.value[EntityMetaKey.Id]}
-				href={(
-					props.item.value[EntityMetaKey.Id].$market.$base.kind !== MarketAssetKind.Coin ?
-						undefined
-					: coinById[props.item.value[EntityMetaKey.Id].$market.$base.$coin.coinId] == null ?
-						undefined
-					:	resolve(
-							'/(assets)/(coins)/coin/[coinId]',
-							{ coinId: props.item.value[EntityMetaKey.Id].$market.$base.$coin.coinId },
-						)
+				href={resolve(
+					'/(assets)/(markets)/market/[marketKey]',
+					{
+						marketKey: encodeURIComponent(
+							stringify(props.item.value[EntityMetaKey.Id].$market),
+						),
+					},
 				)}
 				id={stringify(props.item.value[EntityMetaKey.Id])}
 				layout={EntityLayout.Summary}

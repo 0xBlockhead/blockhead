@@ -1,13 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { stringify } from 'devalue'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -38,32 +39,32 @@
 			| 'Content'
 			| 'Details'
 			| 'Heading'
+			| 'Id'
 		>
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-	const networkUpgradeEntityId = $derived(entityId)
-
-	const networkUpgradeKey = $derived(
-		stringify(entityId),
-	)
 
 	const networkUpgrade = useEntity(
 		EntityType.NetworkUpgrade,
-		networkUpgradeEntityId,
+		entityId,
 		{
 			$: [
 				Source.Constants_Internal,
 			],
 			name: {},
-			slug: {},
 			activationBlock: {},
 			activationEpoch: {},
 			activationTimestamp: {},
 			$networkExecutionUpgrade: {},
-			$networkConsensusUpgrade: {},
+			...(open ?
+				{
+					$networkConsensusUpgrade: {},
+				}
+			:
+				{}),
 		},
 	)
 
@@ -73,9 +74,11 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import NetworkConsensusUpgradeView from '$/views/NetworkConsensusUpgradeView.svelte'
 	import NetworkExecutionUpgradeView from '$/views/NetworkExecutionUpgradeView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
+	import ProposalsView from '$/views/ProposalsView.svelte'
 </script>
 
 
@@ -87,130 +90,128 @@
 	title={`Network upgrade · ${entityId.upgradeId}`}
 	{...entityViewRest}
 >
-	{#snippet Id()}
-		<span data-text="font-monospace">
-			{entityId.upgradeId}
-		</span>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Marketing or catalog label for a coordinated network fork: always links an execution-layer upgrade and, when both layers shipped together, a consensus-layer upgrade.
+		</p>
+		<p>
+			Activation timing and EIP/ERC specification proposals are taken from the linked execution-layer fork when that row lists them; otherwise from the consensus fork row.
+		</p>
 	{/snippet}
 
 	{#snippet Heading()}
-		<ResourceBoundary
-			resource={networkUpgrade}
-			placeholderText="Loading upgrade…"
-		>
-			{#snippet children(networkUpgradeEntity)}
-				{networkUpgradeEntity.name ?? entityId.upgradeId}
-			{/snippet}
-		</ResourceBoundary>
+		{(
+			networkUpgrade.ready ?
+				(networkUpgrade.current.name ?? entityId.upgradeId)
+			:
+				entityId.upgradeId
+		)}
 	{/snippet}
 
-	{#snippet Content()}
+	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={networkUpgrade}
-			placeholderText="Loading upgrade…"
+			placeholderText=""
 		>
-			{#snippet children(networkUpgradeEntity)}
+			{#snippet children(networkUpgrade)}
 				<dl data-column-item="center">
-					<div>
-						<dt>Chain ID</dt>
-						<dd data-text="mono">
-							{String(entityId.$network.chainId)}
-						</dd>
-					</div>
+					{#if networkUpgrade.activationBlock !== undefined}
+						<div>
+							<dt>Activation block</dt>
+							<dd>
+								<EvmBlockView
+									entityId={{
+										$network: { chainId: entityId.$network.chainId },
+										blockNumber: networkUpgrade.activationBlock,
+									}}
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
+										{
+											networkId: String(entityId.$network.chainId),
+											blockNumber: String(networkUpgrade.activationBlock),
+										},
+									)}
+									layout={EntityLayout.Id}
+									showTypeAnnotation={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if networkUpgrade.activationEpoch !== undefined}
+						<div>
+							<dt>Activation epoch</dt>
+							<dd>
+								<NumberValue value={networkUpgrade.activationEpoch} />
+							</dd>
+						</div>
+					{/if}
+
+					{#if networkUpgrade.activationTimestamp !== undefined}
+						<div>
+							<dt>Activation time</dt>
+							<dd>
+								<Timestamp
+									timestamp={(
+										networkUpgrade.activationTimestamp < 1e12 ?
+											networkUpgrade.activationTimestamp * 1000
+										:
+											networkUpgrade.activationTimestamp
+									)}
+									format={TimestampFormat.Both}
+								/>
+							</dd>
+						</div>
+					{/if}
 
 					{#if open}
-						{#if (
-							networkUpgradeEntity.slug !== undefined
-							&& networkUpgradeEntity.slug !== entityId.upgradeId
-						)}
-							<div>
-								<dt>Route slug</dt>
-								<dd data-text="mono">
-									{networkUpgradeEntity.slug}
-								</dd>
-							</div>
-						{/if}
+						<div>
+							<dt>Execution layer</dt>
+							<dd>
+								<NetworkExecutionUpgradeView
+									entityId={networkUpgrade.$networkExecutionUpgrade[EntityMetaKey.Id]}
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(upgrades)/upgrade/[upgradeSlug]',
+										{
+											networkId: String(entityId.$network.chainId),
+											upgradeSlug: (
+												networkUpgrade.$networkExecutionUpgrade.slug
+												?? networkUpgrade.$networkExecutionUpgrade[EntityMetaKey.Id].upgradeId
+											),
+										},
+									)}
+									layout={EntityLayout.Summary}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							</dd>
+						</div>
 
-						{#if networkUpgradeEntity.activationBlock !== undefined}
+						{#if networkUpgrade.$networkConsensusUpgrade}
 							<div>
-								<dt>Activation block</dt>
+								<dt>Consensus layer</dt>
 								<dd>
-									<NumberValue value={networkUpgradeEntity.activationBlock} />
-								</dd>
-							</div>
-						{/if}
-
-						{#if networkUpgradeEntity.activationEpoch !== undefined}
-							<div>
-								<dt>Activation epoch</dt>
-								<dd>
-									<NumberValue value={networkUpgradeEntity.activationEpoch} />
-								</dd>
-							</div>
-						{/if}
-
-						{#if networkUpgradeEntity.activationTimestamp !== undefined}
-							<div>
-								<dt>Activation time</dt>
-								<dd>
-									<Timestamp
-										timestamp={(
-											networkUpgradeEntity.activationTimestamp < 1e12 ?
-												networkUpgradeEntity.activationTimestamp * 1000
-											:
-												networkUpgradeEntity.activationTimestamp
+									<NetworkConsensusUpgradeView
+										entityId={networkUpgrade.$networkConsensusUpgrade[EntityMetaKey.Id]}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(upgrades)/upgrade/[upgradeSlug]',
+											{
+												networkId: String(entityId.$network.chainId),
+												upgradeSlug: (
+													networkUpgrade.$networkConsensusUpgrade.slug
+													?? networkUpgrade.$networkConsensusUpgrade[EntityMetaKey.Id].upgradeId
+												),
+											},
 										)}
-										format={TimestampFormat.Both}
+										layout={EntityLayout.Summary}
+										open={false}
+										showTypeAnnotation={false}
 									/>
 								</dd>
 							</div>
 						{/if}
 					{/if}
 				</dl>
-
-				<div data-column>
-					<section id={`${networkUpgradeKey}:execution-upgrade`}>
-						<NetworkExecutionUpgradeView
-							entityId={networkUpgradeEntity.$networkExecutionUpgrade[EntityMetaKey.Id]}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(upgrades)/upgrade/[upgradeSlug]',
-								{
-									networkId: String(entityId.$network.chainId),
-									upgradeSlug: (
-										networkUpgradeEntity.$networkExecutionUpgrade.slug
-										?? networkUpgradeEntity.$networkExecutionUpgrade[EntityMetaKey.Id].upgradeId
-									),
-								},
-							)}
-							layout={EntityLayout.Summary}
-							open={true}
-						/>
-					</section>
-
-					<section id={`${networkUpgradeKey}:consensus-upgrade`}>
-						{#if networkUpgradeEntity.$networkConsensusUpgrade}
-							<NetworkConsensusUpgradeView
-								entityId={networkUpgradeEntity.$networkConsensusUpgrade[EntityMetaKey.Id]}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(upgrades)/upgrade/[upgradeSlug]',
-									{
-										networkId: String(entityId.$network.chainId),
-										upgradeSlug: (
-											networkUpgradeEntity.$networkConsensusUpgrade.slug
-											?? networkUpgradeEntity.$networkConsensusUpgrade[EntityMetaKey.Id].upgradeId
-										),
-									},
-								)}
-								layout={EntityLayout.Summary}
-								open={true}
-							/>
-						{:else}
-							<p data-text="muted">
-								No linked consensus fork for this upgrade on this network.
-							</p>
-						{/if}
-					</section>
-				</div>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -219,6 +220,17 @@
 		<EntityDetails
 			entityType={EntityType.NetworkUpgrade}
 			{entityId}
+		/>
+
+		<ProposalsView
+			entityFieldReference={{
+				entityType: EntityType.NetworkUpgrade,
+				entityId,
+				fieldName: '$$proposals',
+			}}
+			id={`${stringify(entityId)}:proposals`}
+			open={false}
+			title="Specification proposals"
 		/>
 
 		{#if children}

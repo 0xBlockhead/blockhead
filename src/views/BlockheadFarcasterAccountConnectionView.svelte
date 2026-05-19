@@ -104,10 +104,10 @@
 			resource={connection}
 			placeholderText="Loading connection…"
 		>
-			{#snippet children(c)}
+			{#snippet children(connection)}
 				{@const headline = (
-					c.displayName
-					?? c.username
+					connection.displayName
+					?? connection.username
 					?? `FID ${String(entityId.fid)}`
 				)}
 				{headline}
@@ -126,12 +126,12 @@
 			resource={connection}
 			placeholderText="Loading icon…"
 		>
-			{#snippet children(c)}
-				{#if c.$icon}
-					{#if c.$icon[EntityMetaKey.Id].url}
+			{#snippet children(connection)}
+				{#if connection.$icon}
+					{#if connection.$icon[EntityMetaKey.Id].url}
 						<IconComponent
 							shape={IconShape.Circle}
-							src={c.$icon[EntityMetaKey.Id].url}
+							src={connection.$icon[EntityMetaKey.Id].url}
 							alt=""
 						/>
 					{/if}
@@ -145,15 +145,15 @@
 			resource={connection}
 			placeholderText=""
 		>
-			{#snippet children(c)}
+			{#snippet children(connection)}
 				{@const headline = (
-					c.displayName
-					?? c.username
+					connection.displayName
+					?? connection.username
 					?? `FID ${String(entityId.fid)}`
 				)}
-				{#if c.username !== undefined && c.username !== headline}
+				{#if connection.username !== undefined && connection.username !== headline}
 					<span data-text="muted">
-						@{c.username}
+						@{connection.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -167,13 +167,7 @@
 				placeholderText="Loading profile…"
 			>
 				{#snippet Pending()}{/snippet}
-				{#snippet children(c)}
-					<div>
-						<dt>FID</dt>
-						<dd data-text="mono">
-							{@render Id()}
-						</dd>
-					</div>
+				{#snippet children(connection)}
 					<div>
 						<dt>Link role</dt>
 						<dd data-text="muted">
@@ -184,8 +178,8 @@
 						<div>
 							<dt>Bio</dt>
 							<dd>
-								{#if c.bio != null && c.bio !== ''}
-									{c.bio}
+								{#if connection.bio != null && connection.bio !== ''}
+									{connection.bio}
 								{:else}
 									<span data-text="muted">No profile bio is set.</span>
 								{/if}
@@ -193,24 +187,24 @@
 						</div>
 					{/if}
 
-					{#if open && c.custody}
+					{#if open && connection.custody}
 						<div>
 							<dt>Custody</dt>
 							<dd>
 								<TruncatedValue
-									value={c.custody}
+									value={connection.custody}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if open && c.signedAt !== undefined}
+					{#if open && connection.signedAt !== undefined}
 						<div>
 							<dt>Signed in</dt>
 							<dd>
 								<Timestamp
-									timestamp={c.signedAt}
+									timestamp={connection.signedAt}
 									format={TimestampFormat.Both}
 								/>
 							</dd>

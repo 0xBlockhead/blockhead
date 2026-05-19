@@ -37,7 +37,7 @@
 
 	const fieldName = entityFieldReference.fieldName
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -61,10 +61,10 @@
 	)
 
 	const subreddits = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.RedditSubreddit>[] = (
-				merged[fieldName] ?? []
+				parent[fieldName] ?? []
 			)
 			return (
 				rows

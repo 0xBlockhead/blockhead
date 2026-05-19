@@ -66,9 +66,9 @@
 
 	const selectors = derive(
 		global,
-		(loaded): Entity<typeof schema, EntityType.EvmSelector>[] => {
+		(global): Entity<typeof schema, EntityType.EvmSelector>[] => {
 			const rows = (
-				loaded.$$evmSelectors
+				global.$$evmSelectors
 				?? []
 			)
 			return (
@@ -98,15 +98,15 @@
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Four-byte function selectors prefix calldata for contract calls; catalogs map them to human-readable signatures.
-					</p>
-					<p>
-						Event topic zeros and error selectors follow different decoding rules on receipts and reverts.
-					</p>
-					<p>
-						Rows filter the shared OpenChain-style directory for the current slice.
-					</p>
+		<p>
+			Four-byte function selectors prefix calldata for contract calls; catalogs map them to human-readable signatures.
+		</p>
+		<p>
+			Event topic zeros and error selectors follow different decoding rules on receipts and reverts.
+		</p>
+		<p>
+			Rows filter the shared OpenChain-style directory for the current slice.
+		</p>
 	{/snippet}
 
 	{#snippet body()}

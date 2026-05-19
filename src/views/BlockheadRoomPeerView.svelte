@@ -82,35 +82,29 @@
 			resource={peer}
 			placeholderText="Loading peer…"
 		>
-			{#snippet children(p)}
-				{titleProp ?? p.displayName ?? p.peerId ?? entityId.id}
+			{#snippet children(peer)}
+				{titleProp ?? peer.displayName ?? peer.peerId ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
-<p>
-					Membership row for a realtime room: human-readable label, underlying peer id, and transport connection flags.
-				</p>
-				<p>
-					<code>isConnected</code> reflects WebRTC or signaling reachability for that peer endpoint—not chain balances, Farcaster custody keys, or XMTP inbox material.
-				</p>
+		<p>
+			Membership row for a realtime room: human-readable label, underlying peer id, and transport connection flags.
+		</p>
+		<p>
+			<code>isConnected</code> reflects WebRTC or signaling reachability for that peer endpoint—not chain balances, Farcaster custody keys, or XMTP inbox material.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<ResourceBoundary resource={peer}>
-				{#snippet children(p)}
-					<div>
-						<dt>Contact record id</dt>
-						<dd data-text="mono">
-							{@render Id()}
-						</dd>
-					</div>
+				{#snippet children(peer)}
 
 					<div>
 						<dt>Connected to you</dt>
-						<dd>{p.isConnected ? 'Yes' : 'No'}</dd>
+						<dd>{peer.isConnected ? 'Yes' : 'No'}</dd>
 					</div>
 
 					<div>
@@ -120,17 +114,17 @@
 						</dd>
 					</div>
 
-					{#if open && p.peerId !== undefined && p.peerId !== ''}
+					{#if open && peer.peerId !== undefined && peer.peerId !== ''}
 						<div>
 							<dt>libp2p peer ID</dt>
-							<dd>{p.peerId}</dd>
+							<dd>{peer.peerId}</dd>
 						</div>
 					{/if}
 
-					{#if open && p.$room?.id != null && p.$room.id !== ''}
+					{#if open && peer.$room?.id != null && peer.$room.id !== ''}
 						<div>
 							<dt>Room session</dt>
-							<dd>{p.$room.id}</dd>
+							<dd>{peer.$room.id}</dd>
 						</div>
 					{/if}
 				{/snippet}

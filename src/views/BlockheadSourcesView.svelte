@@ -44,7 +44,7 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const parentEntity = useEntity(
+	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		(
@@ -62,10 +62,10 @@
 	)
 
 	const sources = derive(
-		parentEntity,
-		(merged) => {
+		parent,
+		(parent) => {
 			const rows: Entity<typeof schema, EntityType.BlockheadSource>[] = (
-				merged[entityFieldReference.fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 				.toSorted((a, b) => (
 					stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
@@ -102,12 +102,12 @@
 		{...entitiesListRest}
 	>
 		{#snippet TypeAnnotationTooltip()}
-						<p>
-							Persistent records of data-source transports: base URLs and metadata used for repeated API access (RPC, REST, GraphQL).
-						</p>
-						<p>
-							Browser wallets use EIP-1193 injection instead—address and chain selection there is session state, not an HTTP transport row.
-						</p>
+			<p>
+				Persistent records of data-source transports: base URLs and metadata used for repeated API access (RPC, REST, GraphQL).
+			</p>
+			<p>
+				Browser wallets use EIP-1193 injection instead—address and chain selection there is session state, not an HTTP transport row.
+			</p>
 		{/snippet}
 		{#snippet Item({ item: envelope })}
 			{#if envelope}

@@ -34,6 +34,7 @@ import BlockheadWalletSchema from '$/schema/BlockheadWallet.ts'
 import BlockheadWalletConnectionSchema from '$/schema/BlockheadWalletConnection.ts'
 import BridgeRouteSchema from '$/schema/BridgeRoute.ts'
 import BridgeRouteStepSchema from '$/schema/BridgeRouteStep.ts'
+import CoinBridgeCapabilitySchema from '$/schema/CoinBridgeCapability.ts'
 import BridgeTransactionSchema from '$/schema/BridgeTransaction.ts'
 import CctpAllowanceSchema from '$/schema/CctpAllowance.ts'
 import CctpFeeSchema from '$/schema/CctpFee.ts'
@@ -47,7 +48,6 @@ import NetworkExecutionUpgradeSchema from '$/schema/ExecutionUpgrade.ts'
 import MarketSchema from '$/schema/Market.ts'
 import MarketVenueSchema from '$/schema/MarketVenue.ts'
 import MarketPriceSchema from '$/schema/MarketPrice.ts'
-import MarketPriceRangeSchema from '$/schema/MarketPriceRange.ts'
 import Market_TimeInterval_TimestampSchema from '$/schema/Market_TimeInterval_Timestamp.ts'
 import Market_TimestampSchema from '$/schema/Market_Timestamp.ts'
 import MevRelay_ProposerPayloadDeliveredSchema from '$/schema/MevRelay_ProposerPayloadDelivered.ts'
@@ -71,6 +71,8 @@ import FarcasterChannelSchema from '$/schema/FarcasterChannel.ts'
 import FarcasterFeedSchema from '$/schema/FarcasterFeed.ts'
 import FarcasterNetworkSchema from '$/schema/FarcasterNetwork.ts'
 import FarcasterUserSchema from '$/schema/FarcasterUser.ts'
+import CurrencySchema from '$/schema/Currency.ts'
+import Currency_TimestampSchema from '$/schema/Currency_Timestamp.ts'
 import IpfsResourceSchema from '$/schema/IpfsResource.ts'
 import LensAccountSchema from '$/schema/LensAccount.ts'
 import LensPostSchema from '$/schema/LensPost.ts'
@@ -141,6 +143,7 @@ export const schema = [
 	BlockheadWalletConnectionSchema,
 	BridgeRouteSchema,
 	BridgeRouteStepSchema,
+	CoinBridgeCapabilitySchema,
 	BridgeTransactionSchema,
 	CctpAllowanceSchema,
 	CctpFeeSchema,
@@ -154,7 +157,6 @@ export const schema = [
 	MarketSchema,
 	MarketVenueSchema,
 	MarketPriceSchema,
-	MarketPriceRangeSchema,
 	Market_TimeInterval_TimestampSchema,
 	Market_TimestampSchema,
 	MevRelay_ProposerPayloadDeliveredSchema,
@@ -178,6 +180,8 @@ export const schema = [
 	FarcasterFeedSchema,
 	FarcasterNetworkSchema,
 	FarcasterUserSchema,
+	CurrencySchema,
+	Currency_TimestampSchema,
 	IpfsResourceSchema,
 	LensAccountSchema,
 	LensPostSchema,

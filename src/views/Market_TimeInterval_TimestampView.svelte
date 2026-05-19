@@ -4,6 +4,7 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
+	import { quoteIso4217FromMarketId } from '$/constants/Currency.ts'
 	import { formatMarketTimeIntervalLabel } from '$/constants/Market.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -47,11 +48,7 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const entityIdKey = $derived(
-		stringify(entityId),
-	)
-
-	const pointLive = useEntity(
+	const marketTimeIntervalTimestamp = useEntity(
 		EntityType.Market_TimeInterval_Timestamp,
 		entityId,
 		{
@@ -70,14 +67,12 @@
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import Heading from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import MarketView from '$/views/MarketView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 </script>
 
 
@@ -85,7 +80,7 @@
 	entityType={EntityType.Market_TimeInterval_Timestamp}
 	{entityId}
 	href={href ?? resolve(
-		'/(assets)/coins/market/[marketKey]',
+		'/(assets)/(markets)/market/[marketKey]',
 		{
 			marketKey: encodeURIComponent(stringify(entityId.$market)),
 		},
@@ -107,21 +102,19 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
-			resource={pointLive}
+			resource={marketTimeIntervalTimestamp}
 			placeholderText="Loading OHLC candle…"
 		>
-			{#snippet children(pointLoaded)}
+			{#snippet children(marketTimeIntervalTimestamp)}
 				<dl data-column-item="center">
-					{#if pointLoaded.close !== undefined}
+					{#if marketTimeIntervalTimestamp.close !== undefined}
 						<div>
 							<dt>Close</dt>
 							<dd>
-								<NumberValue
-									options={{
-										maximumFractionDigits: 6,
-										minimumFractionDigits: 2,
-									}}
-									value={Number(pointLoaded.close) / 1e8}
+								<CurrencyAmount
+									currency={quoteIso4217FromMarketId(entityId.$market)}
+									showDecimalPlaces={6}
+									value={marketTimeIntervalTimestamp.close}
 								/>
 							</dd>
 						</div>
@@ -132,36 +125,68 @@
 						<dd>
 							<Timestamp
 								format={TimestampFormat.Both}
-								timestamp={Number(entityId.timestampNs / 1_000_000n)}
+								timestamp={entityId.timestampMs}
 							/>
 						</dd>
 					</div>
+
+					<div>
+						<dt>Market</dt>
+						<dd>
+							<MarketView
+								entityId={entityId.$market}
+								href={resolve(
+									'/(assets)/(markets)/market/[marketKey]',
+									{
+										marketKey: encodeURIComponent(stringify(entityId.$market)),
+									},
+								)}
+								layout={EntityLayout.Id}
+								open={false}
+								showTypeAnnotation={false}
+							/>
+						</dd>
+					</div>
+
 					{#if open}
-						{#if pointLoaded.open !== undefined}
+						{#if marketTimeIntervalTimestamp.open !== undefined}
 							<div>
-								<dt>Open (1e8)</dt>
-								<dd>{String(pointLoaded.open)}</dd>
+								<dt>Open</dt>
+								<dd>
+									<CurrencyAmount
+										currency={quoteIso4217FromMarketId(entityId.$market)}
+										showDecimalPlaces={6}
+										value={marketTimeIntervalTimestamp.open}
+									/>
+								</dd>
 							</div>
 						{/if}
 
-						{#if pointLoaded.high !== undefined}
+						{#if marketTimeIntervalTimestamp.high !== undefined}
 							<div>
-								<dt>High (1e8)</dt>
-								<dd>{String(pointLoaded.high)}</dd>
+								<dt>High</dt>
+								<dd>
+									<CurrencyAmount
+										currency={quoteIso4217FromMarketId(entityId.$market)}
+										showDecimalPlaces={6}
+										value={marketTimeIntervalTimestamp.high}
+									/>
+								</dd>
 							</div>
 						{/if}
 
-						{#if pointLoaded.low !== undefined}
+						{#if marketTimeIntervalTimestamp.low !== undefined}
 							<div>
-								<dt>Low (1e8)</dt>
-								<dd>{String(pointLoaded.low)}</dd>
+								<dt>Low</dt>
+								<dd>
+									<CurrencyAmount
+										currency={quoteIso4217FromMarketId(entityId.$market)}
+										showDecimalPlaces={6}
+										value={marketTimeIntervalTimestamp.low}
+									/>
+								</dd>
 							</div>
 						{/if}
-
-						<div>
-							<dt>Candle boundary (interval start · ns)</dt>
-							<dd>{String(entityId.timestampNs)}</dd>
-						</div>
 					{/if}
 				</dl>
 			{/snippet}
@@ -174,68 +199,8 @@
 			{entityId}
 		/>
 
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
-				id={`${entityIdKey}:carousel-related`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-					style: '--carousel-basis: 40ch',
-				}}
-			>
-				{#snippet Summary({
-					open: _isOpen,
-				})}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<Heading>
-							Related pair market
-						</Heading>
-					</header>
-				{/snippet}
-
-				{#snippet children(_ctx)}
-					<section data-scroll-marker-label="Pair market">
-						<MarketView
-							entityId={entityId.$market}
-							href={resolve(
-								'/(assets)/coins/market/[marketKey]',
-								{
-									marketKey: encodeURIComponent(stringify(entityId.$market)),
-								},
-							)}
-							id={`${entityIdKey}:market`}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					</section>
-
-					{#if children}
-						<section data-scroll-marker-label="More">
-							{@render children()}
-						</section>
-					{/if}
-				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		{#if children}
+			{@render children()}
+		{/if}
 	{/snippet}
 </EntityView>
-
-
-<style>
-	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 40ch;
-			}
-		}
-	}
-</style>

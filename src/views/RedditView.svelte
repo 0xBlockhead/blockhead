@@ -87,24 +87,20 @@
 			resource={redditNetwork}
 			placeholderText="Loading Reddit…"
 		>
-			{#snippet children(u)}
+			{#snippet children(redditNetwork)}
 				<dl data-column-item="center">
 					<div>
-						<dt>Scope</dt>
-						<dd>{entityId.scope}</dd>
-					</div>
-					<div>
 						<dt>Communities</dt>
-						<dd>{String(u.$$redditSubreddits.length)}</dd>
+						<dd>{String(redditNetwork.$$redditSubreddits.length)}</dd>
 					</div>
 					<div>
 						<dt>Submissions</dt>
-						<dd>{String(u.$$redditLinks.length)}</dd>
+						<dd>{String(redditNetwork.$$redditLinks.length)}</dd>
 					</div>
 					{#if open}
 						<div>
 							<dt>Protocol name</dt>
-							<dd>{String(u.protocolName ?? 'Reddit')}</dd>
+							<dd>{String(redditNetwork.protocolName ?? 'Reddit')}</dd>
 						</div>
 					{/if}
 
@@ -112,20 +108,20 @@
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={String(u.homeUrl ?? '#')}>
-									{String(u.homeUrl ?? '—')}
+								<a href={String(redditNetwork.homeUrl ?? '#')}>
+									{String(redditNetwork.homeUrl ?? '—')}
 								</a>
 							</dd>
 						</div>
 					{/if}
 
 					{#if open}
-						{#if u.docsUrl != null && u.docsUrl !== ''}
+						{#if redditNetwork.docsUrl != null && redditNetwork.docsUrl !== ''}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={u.docsUrl}>
-										{u.docsUrl}
+									<a href={redditNetwork.docsUrl}>
+										{redditNetwork.docsUrl}
 									</a>
 								</dd>
 							</div>
@@ -196,7 +192,7 @@
 							}}
 							href={resolve('/(social)/reddit')}
 							id={`${networkIdKey}:subreddits-list`}
-							open={false}
+							open={_open}
 						/>
 					</section>
 
@@ -212,7 +208,7 @@
 							}}
 							href={resolve('/(social)/reddit')}
 							id={`${networkIdKey}:links-list`}
-							open={false}
+							open={_open}
 							title="Popular submissions"
 						/>
 					</section>

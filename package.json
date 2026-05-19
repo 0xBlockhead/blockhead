@@ -32,6 +32,9 @@
 		"sources:openapi:download:defillama": "pnpm run sources:openapi -- download Defillama",
 		"sources:openapi:generate:defillama": "pnpm run sources:openapi -- generate Defillama",
 		"sources:openapi:sync:defillama": "pnpm run sources:openapi -- sync Defillama",
+		"sources:openapi:download:coingecko": "pnpm run sources:openapi -- download Coingecko",
+		"sources:openapi:generate:coingecko": "pnpm run sources:openapi -- generate Coingecko",
+		"sources:openapi:sync:coingecko": "pnpm run sources:openapi -- sync Coingecko",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test"

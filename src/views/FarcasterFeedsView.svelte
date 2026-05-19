@@ -72,8 +72,8 @@
 
 	const feeds = derive(
 		parentNetwork,
-		(merged) => (
-			[...(merged.$$feeds ?? [])]
+		(parentNetwork) => (
+			[...(parentNetwork.$$feeds ?? [])]
 				.toSorted((a, b) => (
 					stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
 				))
@@ -100,12 +100,12 @@
 	resource={feeds}
 >
 	{#snippet TypeAnnotationTooltip()}
-					<p>
-						Farcaster feed definitions address hub APIs: trending timelines, numeric feed ids, per-user casts, or channel-scoped streams.
-					</p>
-					<p>
-						Each row’s parameters determine which cast hashes the hub returns—different ids are not interchangeable.
-					</p>
+		<p>
+			Farcaster feed definitions address hub APIs: trending timelines, numeric feed ids, per-user casts, or channel-scoped streams.
+		</p>
+		<p>
+			Each row’s parameters determine which cast hashes the hub returns—different ids are not interchangeable.
+		</p>
 	{/snippet}
 
 	{#snippet Empty()}
