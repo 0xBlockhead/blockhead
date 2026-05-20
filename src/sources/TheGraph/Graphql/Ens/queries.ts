@@ -22,6 +22,24 @@ const Domain = graphql(`
 		owner {
 			id
 		}
+		registrant {
+			id
+		}
+		wrappedOwner {
+			id
+		}
+		wrappedDomain {
+			expiryDate
+			fuses
+		}
+		registration {
+			registrationDate
+			expiryDate
+			cost
+			registrant {
+				id
+			}
+		}
 		resolver {
 			id
 			address

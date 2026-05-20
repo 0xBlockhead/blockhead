@@ -21,6 +21,7 @@
 		id,
 		limit = 25,
 		open = $bindable(true),
+		collapsible = true,
 		title = 'Lens v3 publications',
 		...entitiesListRest
 	}: WithRest<
@@ -45,59 +46,6 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const lensNetworkOrAccount = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
-				(
-					entityFieldReference.entityType === EntityType.LensNetwork ?
-						{
-							$: [Source.Constants_Internal],
-							protocolName: {},
-							$$lensPosts: {
-								$: [
-									Source.Constants_Internal,
-									Source.Lens_Graphql,
-								],
-							},
-						}
-					:
-						{
-							$: [
-								Source.Constants_Internal,
-								Source.Lens_Graphql,
-							],
-							$$posts: {},
-						}
-				)
-			:
-				{}
-		),
-	)
-
-	const posts = derive(
-		lensNetworkOrAccount,
-		(lensNetworkOrAccount) => {
-			const rows: Entity<typeof schema, EntityType.LensPost>[] = (
-				(
-					entityFieldReference.entityType === EntityType.LensNetwork ?
-						lensNetworkOrAccount.$$lensPosts
-					:
-						lensNetworkOrAccount.$$posts
-				)
-				?? []
-			)
-			return (
-				rows
-					.toSorted((a, b) => (
-						(b.timestamp ?? 0) - (a.timestamp ?? 0)
-					))
-					.slice(0, limit)
-			)
-		},
-	)
 
 
 	// Components
@@ -125,41 +73,83 @@
 	{/snippet}
 
 	{#snippet body()}
-		{#key `${stringify(entityFieldReference.entityId)}-${limit}`}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.LensPost}
-				id={`${id}-items`}
-				{href}
-				{title}
-				open={true}
-				getKey={(row) => row[EntityMetaKey.Id].id}
-				getSortValue={(row) => (
-					-(row.timestamp ?? 0)
-				)}
-				placeholderKeys={new SvelteSet()}
-				resource={posts}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No Lens publications in this slice yet.
-					</p>
-				{/snippet}
+		{#if open}
+			{@const lensNetworkOrAccount = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				(
+					entityFieldReference.entityType === EntityType.LensNetwork ?
+						{
+							$: [Source.Constants_Internal],
+							protocolName: {},
+							$$lensPosts: {
+								$: [
+									Source.Constants_Internal,
+									Source.Lens_Graphql,
+								],
+							},
+						}
+					:
+						{
+							$: [
+								Source.Constants_Internal,
+								Source.Lens_Graphql,
+							],
+							$$posts: {},
+						}
+				),
+			)}
+			{@const posts = derive(
+				lensNetworkOrAccount,
+				(lensNetworkOrAccount) => {
+					const rows: Entity<typeof schema, EntityType.LensPost>[] = (
+						(
+							entityFieldReference.entityType === EntityType.LensNetwork ?
+								lensNetworkOrAccount.$$lensPosts
+							:
+								lensNetworkOrAccount.$$posts
+						)
+						?? []
+					)
+					return rows.slice(0, limit)
+				},
+			)}
+			{#key `${stringify(entityFieldReference.entityId)}-${limit}`}
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.LensPost}
+					id={`${id}-items`}
+					{href}
+					{title}
+					open={true}
+					getKey={(row) => row[EntityMetaKey.Id].id}
+					getSortValue={(row) => (
+						-(row.timestamp ?? 0)
+					)}
+					placeholderKeys={new SvelteSet()}
+					resource={posts}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No Lens publications in this slice yet.
+						</p>
+					{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<LensPostView
-							entityId={{ id: props.item[EntityMetaKey.Id].id }}
-							href={resolve('/(social)/lens/post/[postId]', {
-								postId: encodeURIComponent(props.item[EntityMetaKey.Id].id),
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
-				{/snippet}
-			</EntitiesList>
-		{/key}
+					{#snippet Item(props)}
+						{#if props.item}
+							<LensPostView
+								entityId={{ id: props.item[EntityMetaKey.Id].id }}
+								href={resolve('/(social)/lens/post/[postId]', {
+									postId: encodeURIComponent(props.item[EntityMetaKey.Id].id),
+								})}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</EntitiesList>
+			{/key}
+		{/if}
 	{/snippet}
 </EntitiesList>

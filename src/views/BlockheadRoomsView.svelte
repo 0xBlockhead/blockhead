@@ -32,6 +32,7 @@
 		entityFieldReference,
 		title = 'Collaboration rooms',
 		open = $bindable(true),
+		collapsible = true,
 		href,
 		id,
 		...entitiesListRest
@@ -48,30 +49,6 @@
 		},
 		Omit<ComponentProps<typeof EntitiesList>, 'entityType'>
 	> = $props()
-
-
-	const global = useEntity(
-		EntityType._Global,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					$: [Source.Local_Internal],
-					$$blockheadRooms: {},
-				}
-			:
-				{
-					$: [Source.Local_Internal],
-				}
-		),
-	)
-
-	const rooms = derive(
-		global,
-		(global) => (
-			global['$$blockheadRooms'] ?? []
-		),
-	)
 </script>
 
 
@@ -81,10 +58,7 @@
 	{id}
 	{title}
 	bind:open
-	getKey={(row) => stringify(row[EntityMetaKey.Id])}
-	getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
-	resource={rooms}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{collapsible}
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -102,17 +76,55 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: row })}
-		{#if row}
-			<BlockheadRoomView
-				entityId={row[EntityMetaKey.Id]}
-				href={resolve(
-					'/~/(multiplayer)/multiplayer/(rooms)/room/[roomId]',
-					{ roomId: row[EntityMetaKey.Id].id },
-				)}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const global = useEntity(
+				EntityType._Global,
+				entityFieldReference.entityId,
+				{
+					$: [Source.Local_Internal],
+					$$blockheadRooms: {},
+				},
+			)}
+			{@const rooms = derive(
+				global,
+				(global) => (
+					global['$$blockheadRooms'] ?? []
+				),
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.BlockheadRoom}
+				{href}
+				id={`${id}-items`}
+				{title}
+				open={true}
+				getKey={(row) => stringify(row[EntityMetaKey.Id])}
+				getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
+				resource={rooms}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No rooms yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item({ item: row })}
+					{#if row}
+						<BlockheadRoomView
+							entityId={row[EntityMetaKey.Id]}
+							href={resolve(
+								'/~/(multiplayer)/multiplayer/(rooms)/room/[roomId]',
+								{ roomId: row[EntityMetaKey.Id].id },
+							)}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -20,6 +20,7 @@
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -44,6 +45,7 @@
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	const channel = useEntity(
 		EntityType.FarcasterChannel,
@@ -96,8 +98,9 @@
 	{href}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<ResourceBoundary resource={channel}>
 			{#snippet children(channel)}
 				<span data-row="inline wrap align-center gap-2">
@@ -351,8 +354,7 @@
 					{/if}
 				{/snippet}
 
-				{#snippet children({
-					open: _paneOpen,
+				{#snippet body({ open: _paneOpen,
 				})}
 					<section
 						data-scroll-marker-label="Record"

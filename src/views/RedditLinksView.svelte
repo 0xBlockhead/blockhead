@@ -21,6 +21,7 @@
 		id,
 		limit = 25,
 		open = $bindable(true),
+		collapsible = true,
 		title = 'Submissions'
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.RedditLink>
@@ -35,49 +36,6 @@
 	// State
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const fieldName = entityFieldReference.fieldName
-
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [
-				Source.Constants_Internal,
-				Source.Reddit_Rest,
-			],
-			...(
-				open ?
-					{
-						[fieldName]: {
-							$: [
-								Source.Reddit_Rest,
-							],
-							limit,
-						},
-					}
-				:
-					{}
-			),
-		},
-	)
-
-	const links = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.RedditLink>[] = parent[fieldName] ?? []
-			return (
-				rows
-					.toSorted((a, b) => (
-						b[EntityMetaKey.Id].fullname.localeCompare(a[EntityMetaKey.Id].fullname)
-					))
-					.map((link) => ({
-						...link[EntityMetaKey.Id],
-						sortKey: link[EntityMetaKey.IdKey],
-					}))
-			)
-		},
-	)
 
 
 	// Components
@@ -112,11 +70,7 @@
 		{id}
 		{title}
 		bind:open
-		resource={links}
-		placeholderText="Loading submissions…"
-		getKey={(row) => row.fullname}
-		getSortValue={(row) => row.sortKey}
-		placeholderKeys={new SvelteSet<string>()}
+		{collapsible}
 	>
 		{#snippet Empty()}
 			<div data-row="wrap align-center gap-2">
@@ -140,20 +94,91 @@
 			</div>
 		{/snippet}
 
-		{#snippet Item({
-			item: row,
-		})}
-			{#if row}
-				<RedditLinkView
-					entityId={{ fullname: row.fullname }}
-					href={resolve('/(social)/reddit/link/[fullname]', {
-						fullname: encodeURIComponent(row.fullname),
+		{#snippet body()}
+			{#if open}
+				{@const fieldName = entityFieldReference.fieldName}
+				{@const parent = useEntity(
+					entityFieldReference.entityType,
+					entityFieldReference.entityId,
+					{
+						$: [
+							Source.Constants_Internal,
+							Source.Reddit_Rest,
+						],
+						[fieldName]: {
+							$: [
+								Source.Reddit_Rest,
+							],
+							limit,
+						},
+					},
+				)}
+				{@const links = derive(
+					parent,
+					(parent) => {
+						const rows: Entity<typeof schema, EntityType.RedditLink>[] = (
+							parent[fieldName] ?? []
+						)
+						return (
+							rows.map((link) => ({
+								...link[EntityMetaKey.Id],
+								sortKey: link[EntityMetaKey.IdKey],
+							}))
+						)
+					},
+				)}
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.RedditLink}
+					{href}
+					id={`${id}-items`}
+					{title}
+					open={true}
+					resource={links}
+					placeholderText="Loading submissions…"
+					getKey={(row) => row.fullname}
+					getSortValue={(row) => row.sortKey}
+					placeholderKeys={new SvelteSet<string>()}
+				>
+					{#snippet Empty()}
+						<div data-row="wrap align-center gap-2">
+							<p data-text="muted">
+								No Reddit submissions here yet.
+							</p>
+							<Tooltip contentProps={{ side: 'top' }}>
+								{#snippet Content()}
+									<p>
+										Rows are threads on Reddit itself.
+									</p>
+									<p>
+										They are not social casts or decentralized storage objects.
+									</p>
+								{/snippet}
+								<abbr
+									class="entity-heading-tip"
+									aria-label="About Reddit submissions"
+								>ⓘ</abbr>
+							</Tooltip>
+						</div>
+					{/snippet}
+
+					{#snippet Item({
+						item: row,
 					})}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
+						{#if row}
+							<RedditLinkView
+								entityId={{ fullname: row.fullname }}
+								href={resolve('/(social)/reddit/link/[fullname]', {
+									fullname: encodeURIComponent(row.fullname),
+								})}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</EntitiesList>
 			{/if}
 		{/snippet}
 	</EntitiesList>
 </div>
-

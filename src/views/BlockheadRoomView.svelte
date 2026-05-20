@@ -14,6 +14,7 @@
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -37,6 +38,7 @@
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	const room = useEntity(
 		EntityType.BlockheadRoom,
@@ -71,8 +73,9 @@
 	{href}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.id}
 		</span>

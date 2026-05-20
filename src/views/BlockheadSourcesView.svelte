@@ -22,6 +22,7 @@
 		entityFieldReference,
 		title = 'Resolver sources',
 		open = $bindable(true),
+		collapsible = true,
 		href,
 		id,
 		...entitiesListRest
@@ -44,40 +45,6 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					[entityFieldReference.fieldName]: {
-						$: [
-							Source.Local_Internal,
-						],
-					},
-				}
-			:
-				{}
-		),
-	)
-
-	const sources = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.BlockheadSource>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-				.toSorted((a, b) => (
-					stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
-				))
-			return (
-				rows.map((value) => ({
-					value,
-				}))
-			)
-		},
-	)
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -94,11 +61,7 @@
 		{id}
 		{title}
 		bind:open
-		placeholderText="Loading resolver sources…"
-		getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-		getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-		resource={sources}
-		UnorderedListProps={{ orientation: ListOrientation.Column }}
+		{collapsible}
 		{...entitiesListRest}
 	>
 		{#snippet TypeAnnotationTooltip()}
@@ -109,18 +72,62 @@
 				Browser wallets use EIP-1193 injection instead—address and chain selection there is session state, not an HTTP transport row.
 			</p>
 		{/snippet}
-		{#snippet Item({ item: envelope })}
-			{#if envelope}
-				<BlockheadSourceView
-					layout={EntityLayout.Summary}
-					open={false}
-					sourceId={envelope.value[EntityMetaKey.Id].id}
-					title="Resolver source"
-					href={resolve(
-						'/~/(manage)/manage/(sources)/source/[sourceId]',
-						{ sourceId: envelope.value[EntityMetaKey.Id].id },
-					)}
-				/>
+
+		{#snippet body()}
+			{#if open}
+				{@const parent = useEntity(
+					entityFieldReference.entityType,
+					entityFieldReference.entityId,
+					{
+						[entityFieldReference.fieldName]: {
+							$: [
+								Source.Local_Internal,
+							],
+						},
+					},
+				)}
+				{@const sources = derive(
+					parent,
+					(parent) => {
+						const rows: Entity<typeof schema, EntityType.BlockheadSource>[] = (
+							parent[entityFieldReference.fieldName] ?? []
+						)
+						return (
+							rows.map((value) => ({
+								value,
+							}))
+						)
+					},
+				)}
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.BlockheadSource}
+					{href}
+					id={`${id}-items`}
+					{title}
+					open={true}
+					placeholderText="Loading resolver sources…"
+					getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+					getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+					resource={sources}
+					UnorderedListProps={{ orientation: ListOrientation.Column }}
+				>
+					{#snippet Item({ item: envelope })}
+						{#if envelope}
+							<BlockheadSourceView
+								layout={EntityLayout.Summary}
+								open={false}
+								sourceId={envelope.value[EntityMetaKey.Id].id}
+								title="Resolver source"
+								href={resolve(
+									'/~/(manage)/manage/(sources)/source/[sourceId]',
+									{ sourceId: envelope.value[EntityMetaKey.Id].id },
+								)}
+							/>
+						{/if}
+					{/snippet}
+				</EntitiesList>
 			{/if}
 		{/snippet}
 	</EntitiesList>

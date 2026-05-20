@@ -82,6 +82,7 @@
 	{href}
 	{open}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
@@ -94,7 +95,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<TruncatedValue
 			value={entityId.id}
 			format={TruncatedValueFormat.Visual}
@@ -223,7 +224,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<a
 						data-scroll-marker-label="Profile"
 						href={`#${userIdKey}:profile`}
@@ -240,7 +241,7 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet children(_childrenContext)}
+				{#snippet body(_childrenContext)}
 					<section data-scroll-marker-label="Profile">
 						<ResourceBoundary
 							resource={user}
@@ -279,7 +280,6 @@
 											},
 										)}
 										id={`${userIdKey}:posts`}
-										open={false}
 										title="Posts"
 									/>
 								</section>

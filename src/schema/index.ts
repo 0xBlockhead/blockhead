@@ -53,13 +53,19 @@ import Market_TimestampSchema from '$/schema/Market_Timestamp.ts'
 import MevRelay_ProposerPayloadDeliveredSchema from '$/schema/MevRelay_ProposerPayloadDelivered.ts'
 import Eip8004ServiceSchema from '$/schema/Eip8004Service.ts'
 import EnsNameSchema from '$/schema/EnsName.ts'
+import Erc4337AccountFactorySchema from '$/schema/Erc4337AccountFactory.ts'
+import Erc4337BundlerSchema from '$/schema/Erc4337Bundler.ts'
+import Erc4337PaymasterSchema from '$/schema/Erc4337Paymaster.ts'
+import Erc4337SmartAccountSchema from '$/schema/Erc4337SmartAccount.ts'
 import EvmBlockSchema from '$/schema/EvmBlock.ts'
-import EvmAccountAbstractionAddressSchema from '$/schema/EvmAccountAbstractionAddress.ts'
 import EvmBlobSchema from '$/schema/EvmBlob.ts'
 import EvmCalldataSchema from '$/schema/EvmCalldata.ts'
 import EvmContractSchema from '$/schema/EvmContract.ts'
-import EvmContractSourceSchema from '$/schema/EvmContractSource.ts'
+import EvmContractCompilationSchema from '$/schema/EvmContractCompilation.ts'
+import EvmContractSourceBundleSchema from '$/schema/EvmContractSourceBundle.ts'
+import EvmContractVerificationSchema from '$/schema/EvmContractVerification.ts'
 import EvmErrorSchema from '$/schema/EvmError.ts'
+import EvmLogSchema from '$/schema/EvmLog.ts'
 import EvmMempoolSchema from '$/schema/EvmMempool.ts'
 import EvmSelectorSchema from '$/schema/EvmSelector.ts'
 import EvmTopicSchema from '$/schema/EvmTopic.ts'
@@ -85,6 +91,7 @@ import MediaObjectSchema from '$/schema/MediaObject.ts'
 import NetworkSchema from '$/schema/Network.ts'
 import NetworkBridgeSchema from '$/schema/NetworkBridge.ts'
 import Network_GasFee_BlockSchema from '$/schema/Network_GasFee_Block.ts'
+import Network_GasEstimate_TimestampSchema from '$/schema/Network_GasEstimate_Timestamp.ts'
 import Network_Txpool_TimestampSchema from '$/schema/Network_Txpool_Timestamp.ts'
 import ProposalKindSchema from '$/schema/ProposalKind.ts'
 import ProposalRealmSchema from '$/schema/ProposalRealm.ts'
@@ -162,13 +169,19 @@ export const schema = [
 	MevRelay_ProposerPayloadDeliveredSchema,
 	Eip8004ServiceSchema,
 	EnsNameSchema,
+	Erc4337AccountFactorySchema,
+	Erc4337BundlerSchema,
+	Erc4337PaymasterSchema,
+	Erc4337SmartAccountSchema,
 	EvmBlockSchema,
-	EvmAccountAbstractionAddressSchema,
 	EvmBlobSchema,
 	EvmCalldataSchema,
 	EvmContractSchema,
-	EvmContractSourceSchema,
+	EvmContractCompilationSchema,
+	EvmContractSourceBundleSchema,
+	EvmContractVerificationSchema,
 	EvmErrorSchema,
+	EvmLogSchema,
 	EvmMempoolSchema,
 	EvmSelectorSchema,
 	EvmTopicSchema,
@@ -194,6 +207,7 @@ export const schema = [
 	NetworkSchema,
 	NetworkBridgeSchema,
 	Network_GasFee_BlockSchema,
+	Network_GasEstimate_TimestampSchema,
 	Network_Txpool_TimestampSchema,
 	ProposalKindSchema,
 	ProposalRealmSchema,

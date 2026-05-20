@@ -316,8 +316,7 @@
 							{/each}
 						{/snippet}
 
-						{#snippet children({
-							open: _sectionOpen,
+						{#snippet body({ open: _sectionOpen,
 						})}
 							{#each rows as row (proposalKindKey(row))}
 								{@const kindRow = row.result}

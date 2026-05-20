@@ -24,8 +24,7 @@
 		title={'Manage'}
 		href={resolve('/~/manage')}
 	>
-		{#snippet children({
-			open: hubOpen,
+		{#snippet children({ open: hubOpen,
 		})}
 			<CollapsibleTabs
 				id={`${hubKey}:hub`}
@@ -57,7 +56,7 @@
 					>Sources</a>
 				{/snippet}
 
-				{#snippet children({ open: _paneOpen })}
+				{#snippet body({ open: _paneOpen })}
 					<section
 						id={`${hubKey}:profiles`}
 						data-scroll-marker-label="Profiles"

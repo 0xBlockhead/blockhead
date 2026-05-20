@@ -81,6 +81,7 @@
 	{open}
 	title="Gas"
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 
@@ -98,7 +99,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			chain {String(entityId.$network.chainId)}
 		</span>
@@ -124,7 +125,7 @@
 
 						{#if networkGasFeeBlock.legacyGasPrice !== undefined}
 							<div>
-								<dt>Legacy gas price</dt>
+								<dt>Suggested gas price</dt>
 								<dd>
 									<NumberValue value={networkGasFeeBlock.legacyGasPrice} /> wei
 								</dd>
@@ -142,7 +143,7 @@
 
 						{#if networkGasFeeBlock.gasUsedRatio !== undefined}
 							<div>
-								<dt>Gas used ratio (fee-history block)</dt>
+								<dt>Gas used ratio</dt>
 								<dd>{String(networkGasFeeBlock.gasUsedRatio)}</dd>
 							</div>
 						{/if}

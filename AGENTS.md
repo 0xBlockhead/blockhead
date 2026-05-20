@@ -3,7 +3,7 @@
 - Reply in a concise style; avoid repetition or filler
 - Be DRY and declarative
 - Inline derived intermediate variables, especially if used once (same in markup: no one-off `{@const}` / `const` / `$derived` when the value is only referenced once—inline it)
-- **Assistant / handoff summaries:** Do not paste large JSON blobs, `devalue` / `stringify(entityId)` dumps, or other machine-oriented payloads into chat summaries; describe intent and point to paths or small code citations instead
+- Assistant / handoff summaries: Do not paste large JSON blobs, `devalue` / `stringify(entityId)` dumps, or other machine-oriented payloads into chat summaries; describe intent and point to paths or small code citations instead
 - Name variables, snippets, callback parameters, and arguments by what they are; never abbreviate identifiers.
 - Do not introduce new files or helper functions without proper justification, a detailed plan, and explicit permission
 - Composer 2.5: this is NOT a React / Motion project. do not use `</motion>` to close HTML tags.
@@ -47,7 +47,7 @@
 ## Tasks
 
 - Use `pnpm` to run tasks from `package.json`
-- **Lint:** `pnpm run lint` — oxlint (with `oxlint-tsgolint` for type-aware rules); config in `.oxlintrc.json`
+- Lint: `pnpm run lint` — oxlint (with `oxlint-tsgolint` for type-aware rules); config in `.oxlintrc.json`
 
 
 ## Testing
@@ -66,7 +66,7 @@
 
 ### Playwright E2E — `data-e2e`
 
-- Add `data-e2e="…"` **sparingly** for one-off nodes used only by E2E (not for layout/theme). Prefer `getByRole` / label / text / stable **`id`** / `#main` / **`class`** selectors / `data-scroll-marker-label` (carousel sections) first. Examples: **`#network-summary-head-block`** and **`.network-view-carousel-groups`** / **`.network-view-collapsible-*`** on **`NetworkView.svelte`** (replacing scattered `data-e2e` on the same layout); **`#nav-menu`** (`Navigation.svelte`).
+- Add `data-e2e="…"` sparingly for one-off nodes used only by E2E (not for layout/theme). Prefer `getByRole` / label / text / stable `id` / `#main` / `class` selectors / `data-scroll-marker-label` (carousel sections) first. Examples: `#network-summary-head-block` and `.network-view-carousel-groups` / `.network-view-collapsible-*` on `NetworkView.svelte` (replacing scattered `data-e2e` on the same layout); `#nav-menu` (`Navigation.svelte`).
 
 ### Playwright E2E — assertions
 
@@ -76,9 +76,9 @@
 
 ### Entity views — Lens, liquidity, markets
 
-- **`LensView` / `LensPostsView`:** `LensNetwork` hub (scope, profile and publication counts). Registry carousel sections use `data-scroll-marker-label` (`Profiles`, `Recent publications`). Prefer roles, scroll markers, and existing network-style hooks over new `data-e2e` attributes.
-- **Liquidity — pool vs position:** `LiquidityPoolView` is the **pool** (pair, fee, curve liquidity, token addresses). `LiquidityPositionView` and `LeverageView` are **positions** (pool ref, owner, ticks, position liquidity, token amounts). Lists `LiquidityPoolsView` and `LiquidityPositionsView` follow the same `EntitiesList` field-reference pattern as other domains; do not introduce `data-view` or speculative `data-e2e` hooks.
-- **Markets — OHLC, prices, intervals:** `MarketView` anchors base/quote/venue and composes **spot & index** rows (`MarketPricesView`, `MarketPriceView`) with per-candle OHLC via `MarketOhlcHub` / `Market_TimeInterval_TimestampsView` on `$$marketTimeIntervalTimestamps` (one `Market_TimeInterval_Timestamp` row per candle; chart queries the field list for the selected interval). Timestamped quote streams use `Market_TimestampView`; single-candle detail uses `Market_TimeInterval_TimestampView`. Reuse carousel/`data-scroll-marker-label` patterns from `MarketView` and `NetworkView`; keep Playwright hooks sparing per above.
+- `LensView` / `LensPostsView`: `LensNetwork` hub (scope, profile and publication counts). Registry carousel sections use `data-scroll-marker-label` (`Profiles`, `Recent publications`). Prefer roles, scroll markers, and existing network-style hooks over new `data-e2e` attributes.
+- Liquidity — pool vs position: `LiquidityPoolView` is the pool (pair, fee, curve liquidity, token addresses). `LiquidityPositionView` and `LeverageView` are positions (pool ref, owner, ticks, position liquidity, token amounts). Lists `LiquidityPoolsView` and `LiquidityPositionsView` follow the same `EntitiesList` field-reference pattern as other domains; do not introduce `data-view` or speculative `data-e2e` hooks.
+- Markets — OHLC, prices, intervals: `MarketView` anchors base/quote/venue and composes spot & index rows (`MarketPricesView`, `MarketPriceView`) with per-candle OHLC via `MarketOhlcHub` / `Market_TimeInterval_TimestampsView` on `$$marketTimeIntervalTimestamps` (one `Market_TimeInterval_Timestamp` row per candle; chart queries the field list for the selected interval). `MarketPrice` is stream identity only; spot/index prints are `Market_Timestamp` rows on `$$quotes` (`Market_TimestampView` / `Market_TimestampsView`). Single-candle detail uses `Market_TimeInterval_TimestampView`. Reuse carousel/`data-scroll-marker-label` patterns from `MarketView` and `NetworkView`; keep Playwright hooks sparing per above.
 
 
 ## TypeScript
@@ -122,7 +122,7 @@
 - Prefer `.` over `?.`, and `?.` over `object && object.value`
 - Prefer `T[]` over `Array<T>`
 - Prefer `[...array1, ...array2]` over `array1.concat(array2)`
-- **Conditional spread in object literals:** Prefer `...(condition && { … })` over `...(condition ? { … } : {})` when the alternate branch would be `{}`. (**Array** literals still need `(condition ? […] : [])` or similar: spreading a falsy value into an array is not valid.)
+- Conditional spread in object literals: Prefer `...(condition && { … })` over `...(condition ? { … } : {})` when the alternate branch would be `{}`. (Array literals still need `(condition ? […] : [])` or similar: spreading a falsy value into an array is not valid.)
 - Prefer single expressions and inline logic
 - Declare intermediate variables and functions ONLY if referenced more than once, otherwise inline
 - Declare functions with `const` UNLESS overloading signatures
@@ -135,20 +135,20 @@
 ### Linting and quality
 
 - ALWAYS solve the highest upstream root cause of a type mismatch
-- **Runtime shape guards (default ban):** unary `typeof`, `Array.isArray`, and `Reflect.get` are disallowed for satisfying TypeScript or hand-narrowing domain data. **oxlint** enforces this via **`no-runtime-shape-guards/guards`** (`scripts/oxlint-plugin-no-runtime-shape-guards.mjs`). **Allowed without a disable:** `typeof window`, `typeof document`, `typeof globalThis`, and `typeof <same>.…` when the member chain’s root is one of those identifiers (environment / capability probes only). Anything else needs a strong reason: fix models or wire types upstream, narrow at **`$/typescript/JsonValue.ts`** (e.g. `isJsonObject` on `JsonValue`), or use **`oxlint-disable-next-line`** with a one-line reviewer-verifiable reason. Prefer a **scoped `overrides` entry** in `.oxlintrc.json` only for stable architectural boundaries (document the rationale when adding or extending a glob). A broad override block currently turns this rule off for UI, resolvers, sources, collections, lib, constants, routes, `JsonValue.ts`, and `tests/**`; treat that as debt—new code there should still avoid these guards in review until the override list shrinks.
+- Runtime shape guards (default ban): unary `typeof`, `Array.isArray`, and `Reflect.get` are disallowed for satisfying TypeScript or hand-narrowing domain data. oxlint enforces this via `no-runtime-shape-guards/guards` (`scripts/oxlint-plugin-no-runtime-shape-guards.mjs`). Allowed without a disable: `typeof window`, `typeof document`, `typeof globalThis`, and `typeof <same>.…` when the member chain’s root is one of those identifiers (environment / capability probes only). Anything else needs a strong reason: fix models or wire types upstream, narrow at `$/typescript/JsonValue.ts` (e.g. `isJsonObject` on `JsonValue`), or use `oxlint-disable-next-line` with a one-line reviewer-verifiable reason. Prefer a scoped `overrides` entry in `.oxlintrc.json` only for stable architectural boundaries (document the rationale when adding or extending a glob). A broad override block currently turns this rule off for UI, resolvers, sources, collections, lib, constants, routes, `JsonValue.ts`, and `tests/**`; treat that as debt—new code there should still avoid these guards in review until the override list shrinks.
 - Do not use other JavaScript runtime shape checking workarounds to satisfy TypeScript checks when a typed or schema-level fix exists
 - Do not try to fix `Type instantiation is excessively deep and possibly infinite`
-- NO hardening, type assertions, `as`, `as unknown as` unless parsing unknown input (see **oxlint** below)
+- NO hardening, type assertions, `as`, `as unknown as` unless parsing unknown input (see oxlint below)
 - NO type narrowing functions operating on `any` or `unknown`
 - When refactoring, strip as many type assertions and annotations as you can while keeping things type safe. Prefer to reuse / derive from existing / package-provided types instead of duplicating.
-- **oxlint** (`pnpm run lint`; **Tasks**):
+- oxlint (`pnpm run lint`; Tasks):
 	- `.oxlintrc.json` holds rules, `overrides`, and `ignorePatterns`
 	— When something fails lint, treat that file as the contract, and use this order of operations:
 		- Fix the underlying types (models, generics, function signatures) before reaching for assertions, `unknown`, or suppressions.
-		- Prefer **`overrides`** scoped to a whole file or a small, stable glob when the exception is architectural (generated or hand-written “edge” modules that always need different rules), not for ad hoc escapes scattered across the tree.
-		- Use **`oxlint-disable-next-line` on the narrowest span** with a one-line reason a reviewer can verify; if the same reason keeps reappearing, replace repeated disables with a scoped override or a proper type refactor.
+		- Prefer `overrides` scoped to a whole file or a small, stable glob when the exception is architectural (generated or hand-written “edge” modules that always need different rules), not for ad hoc escapes scattered across the tree.
+		- Use `oxlint-disable-next-line` on the narrowest span with a one-line reason a reviewer can verify; if the same reason keeps reappearing, replace repeated disables with a scoped override or a proper type refactor.
 		- At untyped boundaries, narrow with real domain types or a single shared wire type instead of defaulting to `unknown` or assertion escapes.
-		- Anything that should meet the same bar as the primary checked tree must not live only under **`ignorePatterns`** unless that exclusion is intentional and reflected in the config.
+		- Anything that should meet the same bar as the primary checked tree must not live only under `ignorePatterns` unless that exclusion is intentional and reflected in the config.
 
 
 ## Constants (`src/constants/**`)
@@ -202,14 +202,14 @@
 				- `$bindable()`: indent default value if specified
 				- Snippets (`TitleCase` in destructure; types on props object):
 					- No args: `Snippet` — never `Snippet<[]>` or `Snippet<[{}]>`. `{@render Name()}`.
-					- Object arg: bundled state as `Snippet<[{ … }]>`; when every field is optional for callers, prefer `Snippet<[context?: { … }]>` with optional properties on the object so `{#snippet Name()}` is valid when the body ignores the bundle (see `$/components/EntityView.svelte` and `EntitySummary.svelte` patterns). Positional: `Snippet<[ a: A, b: B, … ]>`; separate values. `{@render}` arity, order, and object-vs-positional must match the type.
+					- Object arg: bundled state as `Snippet<[context?: { … }]>` with optional properties on the object so `{#snippet Name()}` is valid when the body ignores the bundle (see `$/components/EntityView.svelte` and `EntitySummary.svelte` patterns). Do not use required `Snippet<[{ … }]>` object tuple members. Positional: `Snippet<[ a: A, b: B, … ]>`; separate values. `{@render}` arity, order, and object-vs-positional must match the type.
 					- Line breaks: for a given snippet, type and `{@render}` use the same shape — both multiline or both single-line. Multiline means one tuple member or object property per line, trailing commas, and a dedicated closing line for `]>` / `)}` / `)`. Same for `{#snippet …}` params. Multiline when there are 2+ tuple members, 2+ object fields, or 2+ render arguments.
 					```ts
 					let {
 						...
 					}: {
-						Summary: Snippet<[{
-							open: boolean,
+						Summary: Snippet<[context?: {
+							open?: boolean,
 						}]>
 						OnFailure?: Snippet<[
 							error: unknown,
@@ -329,7 +329,7 @@
 		{/if}
 		```
 		- (Only wrap in `{#if true}` to distinguish from sibling markup)
-	- List `Item` snippets (`UnorderedList`, `OrderedList`, `RefinableList`, …): only destructure or branch on `isPlaceholder` when the snippet **renders** placeholder-specific UI for `isPlaceholder === true`. If you only render real rows, gate on `item` (e.g. `{#if item}`) instead of `{#if isPlaceholder === false}` with no placeholder branch — placeholder rows omit `item`.
+	- List `Item` snippets (`UnorderedList`, `OrderedList`, `RefinableList`, …): only destructure or branch on `isPlaceholder` when the snippet renders placeholder-specific UI for `isPlaceholder === true`. If you only render real rows, gate on `item` (e.g. `{#if item}`) instead of `{#if isPlaceholder === false}` with no placeholder branch — placeholder rows omit `item`.
 
 - `{@const}`: prefer inlining one-off derived logic into markup with `{@const}`; `{@const}` must be immediate child of `{#snippet}`, `{#if}`, `{:else if}`, `{:else}`, `{#each}`, `{:then}`, `{:catch}`, `<svelte:fragment>`, `<svelte:boundary>`, or `<Component>`
 
@@ -364,7 +364,7 @@
 
 ### Svelte components
 
-- Display truncation: use `<TruncatedValue>` / `<Address>` (manual truncation is only OK for non-display logic). Entity card headings and secondary ids follow **Entity Views** → **Entity summary row** (no JSON-shaped summary ids).
+- Display truncation: use `<TruncatedValue>` / `<Address>` (manual truncation is only OK for non-display logic). Entity card headings and secondary ids follow Entity Views → Entity summary row (no JSON-shaped summary ids).
 
 ---
 
@@ -389,6 +389,18 @@ Current repo-specific cross-links:
 If a lower layer starts importing a higher one, move the shared code down into `lib/`, `schema/`, `constants/`, or `collections/`.
 
 
+## Schema (`src/schema/**`)
+
+Definitions in `$/schema/*.ts`; register in `$/schema/index.ts`. ArkType types entity ids and primitives; child rows use `$$…` entity-reference fields.
+
+- Timestamped observations: As-of metrics (quotes, gas tiers, mempool counts, OHLC, …) live on `*_Timestamp` entities (`timestampMs` in the id; extra id keys when needed, e.g. `feedKey?`, candle `timeInterval`). Parents hold stable identity only—no snapshot scalars such as `price` or tiered gas on the header row.
+- Resolvers / views: `defineEntityResolver` per snapshot; parent `defineEntityFieldResolver` returns entity refs. When upstream exposes one stats clock, `entityId.timestampMs` must match it. Latest row: sort `$$…` by `timestampMs`, nest `*_TimestampView`; history: `*_TimestampsView`. Shared observation field mappers only (not id wrappers): `$/resolvers/_marketSpotTimestamp.ts`, `_coinTimestamp.ts`, `_networkGasEstimateTimestamp.ts`.
+- Examples: `MarketPrice` / `$$quotes` → `Market_Timestamp`; `Coin` / `$$timestamps` → `Coin_Timestamp`; `Market` → `Market_Timestamp`, `Market_TimeInterval_Timestamp`; `Network` / `$$gasEstimateTimestamps` → `Network_GasEstimate_Timestamp`, `$$txpoolTimestamps` → `Network_Txpool_Timestamp`; `Currency` / `$$timestamps` → `Currency_Timestamp`.
+- Lifecycle timestamps: `createdAt`, `updatedAt`, etc. on sessions, social, bridges, ENS stay on the owning record—they are not metric streams.
+
+Market graph notes: `$/constants/Market.ts`. Quote / OHLC UI: Entity views — Lens, liquidity, markets.
+
+
 ## Sources (`src/sources/**`)
 
 The repo uses `src/sources/**` for external I/O and source metadata registration.
@@ -401,12 +413,12 @@ Registry contract:
 - `$/sources/*/**/index.ts` default-exports transport/source definitions (`SourceDefinition` rows listed on the provider’s `sources` array)
 - `$/sources/index.ts` exports `Source`, `sourceProviders`, `sources`, `enabledSources`, `resolverPublicEnv`, and `resolverPublicEnvBySource` (`sourceProviders` is annotated `readonly SourceProviderDefinition[]` so the list is not inferred as a union of literal provider shapes, which would break `flatMap` / `filter` typing)
 
-**Env typing:** optional `env` on a provider or source is an ArkType `Type<SourcePublicEnvWire>`. Narrower object schemas are built with `import { type as arktype } from 'arktype'` and `arktype({ PUBLIC_*: 'string', … })`.
+Env typing: optional `env` on a provider or source is an ArkType `Type<SourcePublicEnvWire>`. Narrower object schemas are built with `import { type as arktype } from 'arktype'` and `arktype({ PUBLIC_*: 'string', … })`.
 
-**Gating (`$/sources/index.ts`):**
+Gating (`$/sources/index.ts`):
 
 1. Build `resolverPublicEnv` from `$env/dynamic/public`: every entry uses `value ?? ''` so values are strings; `satisfies SourcePublicEnvWire`.
-2. For each optional `env` schema, call the schema as a function with `resolverPublicEnv`. Reject if the result is `instanceof arktype.errors`, or if any **validated** string value is empty/whitespace (plain `.allows()` is insufficient because `''` still satisfies `'string'`).
+2. For each optional `env` schema, call the schema as a function with `resolverPublicEnv`. Reject if the result is `instanceof arktype.errors`, or if any validated string value is empty/whitespace (plain `.allows()` is insufficient because `''` still satisfies `'string'`).
 3. Keep providers and transports using `'env' in … ? ….env : undefined` for narrowing, same predicate as step 2.
 4. `resolverPublicEnvBySource` maps each enabled `Source` to either the full `resolverPublicEnv` (no `env` on that definition) or an object containing only the keys from that source’s validated env output.
 5. `enabledSources` is a `Set<Source>` of the `source` field on the filtered `SourceDefinition` list.
@@ -437,15 +449,15 @@ Source definition shape:
 
 `$/resolvers/index.ts` imports `enabledSources` and keeps only resolver modules whose exported `source` is in that set; it then attaches `source` onto each resolver entry when flattening `entityResolvers` / `entityFieldResolvers`.
 
-Transport folders continue to hold network code (`queries.ts`, optional `client.ts`, `constants.ts`, `types.ts`, generated schema files). In resolvers, load `queries.ts` / `constants.ts` via inline `await import(...)` inside each `resolve(...)` instead of top-level imports. Stable wire shapes or resolver-facing types live in **`types.ts`** (not `queries.ts`). Import **`sourcePublicEnv`** from **`$/resolvers/$resolvers.ts`** at module top (do not dynamically import `$resolvers` inside `resolve`).
+Transport folders continue to hold network code (`queries.ts`, optional `client.ts`, `constants.ts`, `types.ts`, generated schema files). In resolvers, load `queries.ts` / `constants.ts` via inline `await import(...)` inside each `resolve(...)` instead of top-level imports. Stable wire shapes or resolver-facing types live in `types.ts` (not `queries.ts`). Import `sourcePublicEnv` from `$/resolvers/$resolvers.ts` at module top (do not dynamically import `$resolvers` inside `resolve`).
 
 ### OpenAPI schema codegen (`scripts/openapi-source.ts`)
 
 Use this when a transport lives under `src/sources/<Provider>/OpenApi/` and you want checked-in schema plus generated TypeScript types for paths and components.
 
-**Tooling:** `openapi-typescript` emits a TypeScript AST from the schema object; the script writes it with `astToString`. If the downloaded file is **Swagger 2.x** (top-level `swagger` string), `swagger2openapi` converts it to OpenAPI 3 before generation. **YAML** (`.yml` / `.yaml`) is parsed with `yaml`; **JSON** uses `JSON.parse`. `package.json` maps **`sources:openapi`** to **`pnpm exec tsx scripts/openapi-source.ts`**; devDependencies include **`openapi-typescript`**, **`swagger2openapi`**, and **`yaml`**.
+Tooling: `openapi-typescript` emits a TypeScript AST from the schema object; the script writes it with `astToString`. If the downloaded file is Swagger 2.x (top-level `swagger` string), `swagger2openapi` converts it to OpenAPI 3 before generation. YAML (`.yml` / `.yaml`) is parsed with `yaml`; JSON uses `JSON.parse`. `package.json` maps `sources:openapi` to `pnpm exec tsx scripts/openapi-source.ts`; devDependencies include `openapi-typescript`, `swagger2openapi`, and `yaml`.
 
-**CLI (via `package.json`):**
+CLI (via `package.json`):
 
 ```txt
 pnpm run sources:openapi -- <download|generate|sync> <Provider>
@@ -453,7 +465,7 @@ pnpm run sources:openapi -- <download|generate|sync> <Provider>
 
 `<Provider>` is the single path segment under `src/sources/` that contains `OpenApi/schema-source.ts` (e.g. `Defillama`, `Coinpaprika`, `Dexscreener`). `download` fetches `schemaUrl` into `schemaFile`. `generate` reads `schemaFile` and writes `typesFile`. `sync` runs download then generate.
 
-**Manifest:** add `src/sources/<Provider>/OpenApi/schema-source.ts` and export a **`schemaSource`** object:
+Manifest: add `src/sources/<Provider>/OpenApi/schema-source.ts` and export a `schemaSource` object:
 
 ```ts
 export const schemaSource = {
@@ -464,36 +476,36 @@ export const schemaSource = {
 } as const
 ```
 
-- **`provider`:** conventionally the same name as the `<Provider>` folder (used in log messages).
-- **`schemaUrl`:** canonical upstream OpenAPI 3 or Swagger 2 document URL.
-- **`schemaFile`:** path relative to the manifest directory for the **checked-in** downloaded spec (e.g. `./openapi.yml`, `./openapi.json`).
-- **`typesFile`:** path relative to the manifest directory for generated types (convention: `./openapi.d.ts`).
+- `provider`: conventionally the same name as the `<Provider>` folder (used in log messages).
+- `schemaUrl`: canonical upstream OpenAPI 3 or Swagger 2 document URL.
+- `schemaFile`: path relative to the manifest directory for the checked-in downloaded spec (e.g. `./openapi.yml`, `./openapi.json`).
+- `typesFile`: path relative to the manifest directory for generated types (convention: `./openapi.d.ts`).
 
-**Hand-written transport code:** after generation, keep HTTP in `client.ts`, put wire shapes beside the manifest in **`OpenApi/types.ts`** (aliases from **`openapi.d.ts`** plus any hand-maintained payloads), and use **`queries.ts`** for operations — `Coinpaprika`, `Dexscreener`, and `Defillama` follow this layout. Resolvers import wire types from `types.ts`, not `client.ts` / `queries.ts`.
+Hand-written transport code: after generation, keep HTTP in `client.ts`, put wire shapes beside the manifest in `OpenApi/types.ts` (aliases from `openapi.d.ts` plus any hand-maintained payloads), and use `queries.ts` for operations — `Coinpaprika`, `Dexscreener`, and `Defillama` follow this layout. Resolvers import wire types from `types.ts`, not `client.ts` / `queries.ts`.
 
-**Convenience scripts:** for each new OpenAPI provider, add three `package.json` scripts that forward to the same runner, mirroring existing `sources:openapi:download:<name>`, `sources:openapi:generate:<name>`, and `sources:openapi:sync:<name>` entries.
+Convenience scripts: for each new OpenAPI provider, add three `package.json` scripts that forward to the same runner, mirroring existing `sources:openapi:download:<name>`, `sources:openapi:generate:<name>`, and `sources:openapi:sync:<name>` entries.
 
-**Replication checklist:**
+Replication checklist:
 
 1. Add `src/sources/<Provider>/OpenApi/schema-source.ts` with `schemaSource` as above.
 2. Run `pnpm run sources:openapi -- sync <Provider>` (or `download` / `generate` separately) so `schemaFile` and `typesFile` exist and stay reproducible from `schemaUrl`.
-3. Wire `client.ts` / `queries.ts` / `index.ts` and register the source like any other transport (see **Adding new Sources / Providers**).
+3. Wire `client.ts` / `queries.ts` / `index.ts` and register the source like any other transport (see Adding new Sources / Providers).
 
 ### GraphQL schema codegen (`scripts/graphql-source.ts`)
 
-Use this when a transport uses **gql.tada** against a GraphQL schema checked in next to the manifest (subgraphs and other APIs where SDL is the source of truth). The runner downloads SDL and generates the **introspection** module gql.tada expects.
+Use this when a transport uses gql.tada against a GraphQL schema checked in next to the manifest (subgraphs and other APIs where SDL is the source of truth). The runner downloads SDL and generates the introspection module gql.tada expects.
 
-**Tooling:** `@gql.tada/cli-utils` **`generateOutput`**. The script builds a **temporary** directory, writes a combined SDL file (main `schemaFile` body plus optional `patchFile` body, separated by a blank line), and writes a temporary `tsconfig.json` that **extends** the repo root `tsconfig.json` with `compilerOptions.plugins` containing one object: **`name`** `gql.tada/ts-plugin`, **`schema`** pointing at that combined SDL file, and **`tadaOutputLocation`** set to the manifest’s **`outputFile`**. `generateOutput({ output, tsconfig })` writes **`outputFile`** (convention: `./graphql-env.d.ts` beside the manifest). The temp directory is always removed afterward. `package.json` maps **`sources:graphql`** to **`pnpm exec tsx scripts/graphql-source.ts`**; dependencies include **`gql.tada`** and **`graphql`**, and the devDependency **`@gql.tada/cli-utils`** supplies `generateOutput`.
+Tooling: `@gql.tada/cli-utils` `generateOutput`. The script builds a temporary directory, writes a combined SDL file (main `schemaFile` body plus optional `patchFile` body, separated by a blank line), and writes a temporary `tsconfig.json` that extends the repo root `tsconfig.json` with `compilerOptions.plugins` containing one object: `name` `gql.tada/ts-plugin`, `schema` pointing at that combined SDL file, and `tadaOutputLocation` set to the manifest’s `outputFile`. `generateOutput({ output, tsconfig })` writes `outputFile` (convention: `./graphql-env.d.ts` beside the manifest). The temp directory is always removed afterward. `package.json` maps `sources:graphql` to `pnpm exec tsx scripts/graphql-source.ts`; dependencies include `gql.tada` and `graphql`, and the devDependency `@gql.tada/cli-utils` supplies `generateOutput`.
 
-**CLI (via `package.json`):**
+CLI (via `package.json`):
 
 ```txt
 pnpm run sources:graphql -- <download|generate|sync> <SourceModule>
 ```
 
-`<SourceModule>` is the path under `src/sources/` to the folder that contains **`schema-source.ts`** (no filename), e.g. `TheGraph/Graphql/Ens` or `TheGraph/Graphql/Messari/AaveV3/Ethereum`. Actions match OpenAPI: `download`, `generate`, `sync`.
+`<SourceModule>` is the path under `src/sources/` to the folder that contains `schema-source.ts` (no filename), e.g. `TheGraph/Graphql/Ens` or `TheGraph/Graphql/Messari/AaveV3/Ethereum`. Actions match OpenAPI: `download`, `generate`, `sync`.
 
-**Manifest:** add `src/sources/<SourceModule>/schema-source.ts` and export **`schemaSource`**:
+Manifest: add `src/sources/<SourceModule>/schema-source.ts` and export `schemaSource`:
 
 ```ts
 export const schemaSource = {
@@ -505,23 +517,23 @@ export const schemaSource = {
 } as const
 ```
 
-- **`sourceModule`:** should match the `<SourceModule>` path segment string you pass to the CLI (used for logs and copy-paste sanity).
-- **`schemaUrl`:** canonical SDL or schema document URL.
-- **`schemaFile`:** relative path for the checked-in schema (convention: `./schema.graphql`).
-- **`outputFile`:** relative path for generated introspection types (convention: `./graphql-env.d.ts`). gql.tada / GraphQLSP consume this file; the header comment in generated files states it is produced by GraphQLSP / gql.tada.
-- **`patchFile`:** optional relative path to extra SDL appended after the main file when generating (separated by a blank line). Use this when upstream SDL is incomplete or subgraph-specific extensions are required (see `$/sources/TheGraph/Graphql/Ens/schema-source.ts` and `schema.patch.graphql`).
+- `sourceModule`: should match the `<SourceModule>` path segment string you pass to the CLI (used for logs and copy-paste sanity).
+- `schemaUrl`: canonical SDL or schema document URL.
+- `schemaFile`: relative path for the checked-in schema (convention: `./schema.graphql`).
+- `outputFile`: relative path for generated introspection types (convention: `./graphql-env.d.ts`). gql.tada / GraphQLSP consume this file; the header comment in generated files states it is produced by GraphQLSP / gql.tada.
+- `patchFile`: optional relative path to extra SDL appended after the main file when generating (separated by a blank line). Use this when upstream SDL is incomplete or subgraph-specific extensions are required (see `$/sources/TheGraph/Graphql/Ens/schema-source.ts` and `schema.patch.graphql`).
 
-**Scalar prelude on `download`:** for every GraphQL manifest, if any of these lines are missing from the fetched text, the script prepends them once: `scalar BigDecimal`, `scalar BigInt`, `scalar Bytes`, `scalar Int8`. That keeps subgraph-style SDL that assumes hosted-graph scalars typecheckable locally.
+Scalar prelude on `download`: for every GraphQL manifest, if any of these lines are missing from the fetched text, the script prepends them once: `scalar BigDecimal`, `scalar BigInt`, `scalar Bytes`, `scalar Int8`. That keeps subgraph-style SDL that assumes hosted-graph scalars typecheckable locally.
 
-**Runtime client pattern:** import `initGraphQLTada` from `gql.tada` and `import type { introspection } from './graphql-env.d.ts'`, then `initGraphQLTada<{ introspection: introspection }>()`. Use **`TadaDocumentNode`** for typed documents and keep HTTP in a small wrapper (see `$/sources/TheGraph/Graphql/Ens/client.ts` and shared `$/sources/TheGraph/Graphql/client.ts`).
+Runtime client pattern: import `initGraphQLTada` from `gql.tada` and `import type { introspection } from './graphql-env.d.ts'`, then `initGraphQLTada<{ introspection: introspection }>()`. Use `TadaDocumentNode` for typed documents and keep HTTP in a small wrapper (see `$/sources/TheGraph/Graphql/Ens/client.ts` and shared `$/sources/TheGraph/Graphql/client.ts`).
 
-**Colocated files:** beside the manifest, keep **`schema.graphql`** (downloaded or regenerated), **`graphql-env.d.ts`** (generated; do not hand-edit except when fixing generator output intentionally), **`client.ts`**, and **`queries.ts`** as needed for that module.
+Colocated files: beside the manifest, keep `schema.graphql` (downloaded or regenerated), `graphql-env.d.ts` (generated; do not hand-edit except when fixing generator output intentionally), `client.ts`, and `queries.ts` as needed for that module.
 
-**Convenience scripts:** add `sources:graphql:download:…`, `sources:graphql:generate:…`, and `sources:graphql:sync:…` entries in `package.json` that call `pnpm run sources:graphql -- <action> <SourceModule>` with a stable, grep-friendly script name.
+Convenience scripts: add `sources:graphql:download:…`, `sources:graphql:generate:…`, and `sources:graphql:sync:…` entries in `package.json` that call `pnpm run sources:graphql -- <action> <SourceModule>` with a stable, grep-friendly script name.
 
-**Replication checklist:**
+Replication checklist:
 
-1. Add `schema-source.ts` (with optional `patchFile`), `client.ts`, and `queries.ts` under `src/sources/<SourceModule>/`; run **`generate`** or **`sync`** once so `schema.graphql` and `graphql-env.d.ts` exist (or commit an initial `schema.graphql` and only run **`generate`** if the schema is maintained by hand).
+1. Add `schema-source.ts` (with optional `patchFile`), `client.ts`, and `queries.ts` under `src/sources/<SourceModule>/`; run `generate` or `sync` once so `schema.graphql` and `graphql-env.d.ts` exist (or commit an initial `schema.graphql` and only run `generate` if the schema is maintained by hand).
 2. Export `schemaSource` as above; run `pnpm run sources:graphql -- sync <SourceModule>`.
 3. Point gql.tada / editor tooling at the generated `graphql-env.d.ts` for that folder; register the transport in `$/sources` / resolvers like any other source.
 
@@ -536,13 +548,15 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 	- Register new modules in `$/resolvers/index.ts`; each default export includes `source: Source`, and the registry filters modules by `enabledSources` from `$/sources/index.ts`.
 - Source boundary:
 	- Put all `fetch` / HTTP / provider transport logic under `src/sources/**`. Resolvers call source query functions; they do not fetch external URLs directly.
-	- In resolvers, do not top-level import `$/sources/**/queries.ts` or `$/sources/**/constants.ts`; load them with inline `await import(...)` inside each `resolve(...)`.
-	- Resolver-only **type imports** for wire payloads should prefer **`$/sources/**/types.ts`** (or generated OpenAPI components), not **`queries.ts`**.
+	- In resolvers, do not top-level import `$/sources//queries.ts` or `$/sources//constants.ts`; load them with inline `await import(...)` inside each `resolve(...)`.
+	- Resolver-only type imports for wire payloads should prefer `$/sources/**/types.ts` (or generated OpenAPI components), not `queries.ts`.
 	- `ResolverLoadSubset` (from `$/resolvers/$resolvers.ts`) includes `publicEnv`, the per-source slice from `resolverPublicEnvBySource` or full `resolverPublicEnv`. `$/collections/$collections.ts` passes it on every `resolve()` call; prefer `context.publicEnv` over `import.meta.env` so behavior matches source gating.
 	- Thread `context` into source queries when the upstream API supports filtering, sorting, or limits (`filters` / `sorts` / `limit`).
 - Resolver boundaries:
 	- `resolve(...)` returns schema-shaped field data, not raw wire payloads.
 	- Keep resolver modules shaped around resolver entries, not shared mapper layers. Put source-to-schema mapping inline in the relevant `resolve(...)` body unless a helper is clearly justified and explicitly approved.
+	- Do not add trivial id/entity constructor helpers (e.g. `fooEntityRef`, `barFromWireId`) that only wrap `{ [EntityMetaKey.Id]: { … } }` or a one-line null check. Inline those at the call site in `resolve` / field resolvers. Shared `$/resolvers/_*.ts` modules are for non-trivial wire parsing, observation field mapping, or logic reused across multiple providers—not thin id wrappers.
+	- Do not use `typeof` / `Array.isArray` / similar runtime shape checks on provider wire data when generated or hand-written **wire types** already define the field (gql.tada fragments, OpenAPI components, `types.ts` aliases). Prefer null/empty checks, optional chaining, and domain validators (`hexLowerOfByteSize`, ArkType at boundaries). Same bar as **Linting and quality → Runtime shape guards**; `typeof` remains for environment probes (`window`, `document`, `globalThis`) and genuinely untyped scalars (e.g. GraphQL `BigInt` as `unknown` until normalized with `BigInt(String(value))`, not `typeof value === 'string'`).
 	- One resolver should make one primary upstream source request whenever feasible.
 	- Do not create resolver waterfalls. If a second request enriches only a specific field, move that work to a field resolver or the owning `sources/**/queries.ts` function.
 	- Do not call another resolver's `resolve(...)`. If two resolvers need the same provider data, both should call the appropriate source query, or the shared transport logic belongs in `src/sources/**`.
@@ -550,15 +564,15 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 	- Entity resolvers own full entity mapping.
 	- Entity field resolvers that return many entities should normally return entity IDs / references, not fully mapped child entities.
 	- Use field resolvers for truly field-scoped data only; avoid repeating identical endpoint calls across many fields for one entity.
-	- Entity **field** collections apply the same optional `Source` filter as entity collections when the live query includes a `Source` `in` clause, so field resolvers for disabled or filtered-out sources are not invoked.
+	- Entity field collections apply the same optional `Source` filter as entity collections when the live query includes a `Source` `in` clause, so field resolvers for disabled or filtered-out sources are not invoked.
 - Failure behavior:
 	- Do not keep placeholder resolvers that return empty `{}` / `[]`; either implement supported behavior or throw early with a clear unsupported predicate/source message.
 	- When support is predicate-scoped (chain, variant, id shape, realm/category), validate and throw as early as possible before making extra requests.
 - Live resolvers:
-	- Optional **`resolveLive`** on an **`EntityFieldResolver`** (see `ResolveLiveContext` in `$/resolvers/$resolvers.ts`) handles push-driven refresh from WebSockets or streams.
-	- Keep **`resolve`** as the snapshot implementation.
-	- **`resolveLive`** typically calls **`invalidateEntityFieldQueries`** from `$/lib/db/resolveLive.svelte.ts` so the existing field-collection `queryFn` re-runs.
-	- **`mountEntityResolveLive`** in `$/lib/db/resolveLive.svelte.ts` mounts entity and entity-field live resolvers from `$effect`; **`startEntityFieldResolveLiveForParent`** discovers field hooks for a parent id + field list.
+	- Optional `resolveLive` on an `EntityFieldResolver` (see `ResolveLiveContext` in `$/resolvers/$resolvers.ts`) handles push-driven refresh from WebSockets or streams.
+	- Keep `resolve` as the snapshot implementation.
+	- `resolveLive` typically calls `invalidateEntityFieldQueries` from `$/lib/db/resolveLive.svelte.ts` so the existing field-collection `queryFn` re-runs.
+	- `mountEntityResolveLive` in `$/lib/db/resolveLive.svelte.ts` mounts entity and entity-field live resolvers from `$effect`; `startEntityFieldResolveLiveForParent` discovers field hooks for a parent id + field list.
 	- One live resolver may invalidate sibling fields, such as Voltaire `Network` `blockHeight` `resolveLive` refreshing `$$blocks` and `$$transactions`.
 
 
@@ -566,7 +580,7 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 
 Mirror an existing neighbor such as `$/sources/Coingecko/Rest/` + `$/resolvers/Coingecko-Rest.ts`:
 
-1. Create `$/sources/<Provider>/<Transport>/` with `queries.ts` and any `client.ts`, `constants.ts`, generated types, and `index.ts` default export. For **OpenAPI** or **GraphQL** transports, follow **OpenAPI schema codegen** / **GraphQL schema codegen** under **Sources** for manifests, runners, and `package.json` scripts before registering the source.
+1. Create `$/sources/<Provider>/<Transport>/` with `queries.ts` and any `client.ts`, `constants.ts`, generated types, and `index.ts` default export. For OpenAPI or GraphQL transports, follow OpenAPI schema codegen / GraphQL schema codegen under Sources for manifests, runners, and `package.json` scripts before registering the source.
 2. Create/update `$/sources/<Provider>/index.ts` default export and include its transport definitions
 3. Ensure `SourceProvider.<Provider>` exists in `$/sources/$SourceProvider.ts`
 4. Ensure `Source.<Provider>_<Transport>` exists in `$/sources/$Source.ts`
@@ -584,7 +598,7 @@ Current data flow:
 1. `$/schema/index.ts` registers entity definitions
 2. `$/resolvers/index.ts` aggregates resolver modules
 3. `$/routes/+layout.svelte` calls `createCollectionsFromSchema(...)` and exports the live collections
-4. `$/views/**`, `$/components/**`, routes, and `$/collections/$queries.svelte.ts` consume those collections via `useLiveQuery`
+4. `$/views/`, `$/components/`, routes, and `$/collections/$queries.svelte.ts` consume those collections via `useLiveQuery`
 
 Most live queries live in `.svelte` views, but there is also existing shared query state in `$/collections/$queries.svelte.ts`. Follow the nearest existing pattern instead of introducing a new abstraction layer just to satisfy a generic rule.
 
@@ -619,63 +633,104 @@ Verification:
 
 ## Entity Views (`src/views/*.svelte`)
 
-- Add **`data-e2e`** only where Playwright needs a stable selector (see **Playwright E2E — `data-e2e`**). Do not add decorative or non-test **`data-*`** tagging on `EntityView`, `EntitiesList`, or related entity chrome. Do not use **`data-view`**; when a non-test hook is needed, use a **`class`** referenced in that component’s local `<style>` (or an established global primitive from `src/styles/components.css`).
+- Add `data-e2e` only where Playwright needs a stable selector (see Playwright E2E — `data-e2e`). Do not add decorative or non-test `data-*` tagging on `EntityView`, `EntitiesList`, or related entity chrome. Do not use `data-view`; when a non-test hook is needed, use a `class` referenced in that component’s local `<style>` (or an established global primitive from `src/styles/components.css`).
 - Entity pages (`EntityView`, resource-backed views): Keep user-facing depth that still matters from older layouts (topology, execution RPCs/clients, explorers, related networks, forks, faucets, head block/epoch where applicable) while staying aligned with current schema field names (for example `$$blocks`, not stale or invented keys).
 - Section chrome: Render a block only when it has meaningful payload; gate on the smallest truthful checks (`length`, `undefined`, domain-backed flags). Avoid technical placeholder copy whose only role is to fill space.
-- **`EntityView` + `<dl>` (required):** At most **one** `<dl>` per card, and it must appear **only** in the `Content` snippet. Do not use `<dl>` inside `Details` or other detail-only sections; put extra metadata as additional rows in that same `Content` `<dl>` (with `{#if open}` when rows should only show when expanded). Each optional row is its **own** `{#if}…{/if}` (one row per guard). Do not use a single `{#if}` wrapping multiple rows. Do not use one `{#if}` with compound conditions like `open && x`; use **nested** `{#if}` blocks instead. A nested `<EntityView>` (e.g. inline entity link) is its own card and may have its own `Content` `<dl>` — the limit is per `EntityView` instance, not the whole page.
-- **`<dl>` vs heading:** Do not add `<dl>` rows that repeat fields already shown in the `EntityView` heading (linked title, subtitle line, icon-backed identity, badges or labels rendered in the title row). Surface that information in the heading **or** in the `<dl>`, not both.
-- **`<dl>` vs parent id:** On nested or scoped child cards, do not add `<dl>` rows for id fields that belong to the **parent** entity or that duplicate components already present on the child’s own id object (the parent route or enclosing context already establishes them). Omit those redundant id slices from the summary `<dl>`.
+- `EntityView` + `<dl>` (required): At most one `<dl>` per card, and it must appear only in the `Content` snippet. Do not use `<dl>` inside `Details` or other detail-only sections; put extra metadata as additional rows in that same `Content` `<dl>` (with `{#if open}` when rows should only show when expanded). Each optional row is its own `{#if}…{/if}` (one row per guard). Do not use a single `{#if}` wrapping multiple rows. Do not use one `{#if}` with compound conditions like `open && x`; use nested `{#if}` blocks instead. A nested `<EntityView>` (e.g. inline entity link) is its own card and may have its own `Content` `<dl>` — the limit is per `EntityView` instance, not the whole page.
+- `<dl>` vs heading: Do not add `<dl>` rows that repeat fields already shown in the `EntityView` heading (linked title, subtitle line, icon-backed identity, badges or labels rendered in the title row). Surface that information in the heading or in the `<dl>`, not both.
+- `<dl>` vs parent id: On nested or scoped child cards, do not add `<dl>` rows for id fields that belong to the parent entity or that duplicate components already present on the child’s own id object (the parent route or enclosing context already establishes them). Omit those redundant id slices from the summary `<dl>`.
 - `useEntity` selection: Prefer hierarchical resolver/source inheritance (a concise top-level `$` source list; nested field entries use `{}` where children inherit) instead of repeating the same `$` on every nested property when the model allows it. Prefer inlining short `$derived` values and colocating `{#if}` conditions beside the markup they guard over one shared visibility object unless branches genuinely share the same decision.
 - Title / media: When the loaded entity exposes artwork (for example `$icon`), show it in the title row using the existing `Icon` snippet plus shared icon components (`IconComponent`, etc.), matching patterns from other entity views.
 - `EntityView` / `EntitySummary` snippet contracts: For bundled context (`Content`, `Details`, summary `children`), use an optional first tuple parameter with optional object fields (for example `Snippet<[context?: { title?: string, href?: string }]>` and `Snippet<[context?: { open?: boolean }]>`). Call sites that ignore the bundle may use `{#snippet Content()}` / `{#snippet Details()}` instead of destructuring unused bindings.
 
 ### Entity summary row (`$/components/EntitySummary.svelte`, `$/components/EntityView.svelte`)
 
-- **Layout:** The summary **link** (when `href` is set) wraps the **icon** (`#snippet Icon`) and the **primary title** (`#snippet Heading` or fallback). Keep that pattern so the whole row is one draggable / navigable target.
-- **Readable ids, not JSON-shaped summaries:** Do **not** render `stringify(entityId)` from `devalue` (or any similar serialized object blob) in `#snippet Id()` or other **user-visible** summary text. Use domain-appropriate copy: `<Address>`, `<TruncatedValue>`, chain id, short labels, etc. **`stringify(entityId)` is still fine** for non-display uses (e.g. element `id`, view-transition names, sort keys, `idDragPlainText`, route params).
-- **Lists vs type noise:** `$/components/EntitiesList.svelte` calls `setIsInsideEntityList(true)`. `EntityView` defaults `showTypeAnnotation` from that context and derives `showEntitySummaryTypeIdPrefix` as `$derived(!showTypeAnnotation && !(isInsideEntityList ?? false))`, passed to `EntitySummary` as **`showEntityTypeIdPrefix`** so **list rows** do not show the entity-type label as a **secondary id prefix** (homogeneous list; avoid repeating the type next to every row). Do **not** use `!showTypeAnnotation` alone for that prop (it incorrectly re-introduces the type prefix when the collapsible annotation is hidden). The collapsible **annotation** on the card is already suppressed via `showTypeAnnotation` when inside a list.
-- **Heading vs secondary `#snippet Id`:** Do not duplicate the same fact in the heading and in `<dl>` rows (see bullets above). When both `Heading` and `Id` exist, `EntitySummary` **hides the secondary row** if the **normalized visible text** of the heading body and the secondary row match (**client-side** compare after paint, with `MutationObserver` so `ResourceBoundary` / `TruncatedValue` updates still reconcile; SSR markup may briefly show both until hydration). Prefer omitting `#snippet Id` when it is **statically** redundant; rely on the component for async / loaded-text cases.
-- **Redundancy removal:** Drop `<dl>` rows (and avoid extra summary lines) that only repeat the heading, the secondary id line, or parent-scoped ids—see **`<dl>` vs heading** and **`<dl>` vs parent id** above.
+- Layout: The summary link (when `href` is set) wraps the icon (`#snippet Icon`) and the primary title (`#snippet Heading` or fallback). Keep that pattern so the whole row is one draggable / navigable target.
+- Readable ids, not JSON-shaped summaries: Do not render `stringify(entityId)` from `devalue` (or any similar serialized object blob) in `#snippet Title()` or other user-visible summary text. Use domain-appropriate copy: `<Address>`, `<TruncatedValue>`, chain id, short labels, etc. `stringify(entityId)` is still fine for non-display uses (e.g. element `id`, view-transition names, sort keys, `idDragPlainText`, route params).
+- Lists vs type noise: `$/components/EntitiesList.svelte` calls `setIsInsideEntityList(true)`. `EntityView` defaults `showTypeAnnotation` from that context and passes `showEntityTypeTitlePrefix={false}` to `EntitySummary` so list rows do not show the entity-type label as a secondary title prefix (homogeneous list; avoid repeating the type next to every row). The collapsible annotation on the card is already suppressed via `showTypeAnnotation` when inside a list.
+- Heading vs `#snippet Title`: Do not duplicate the same fact in `#snippet Heading` and in `<dl>` rows (see bullets above). Collapsible summary rows render `#snippet Title` by default; pass `summaryUsesHeading={true}` when `#snippet Heading` should remain the card title (e.g. resolved network name while `#snippet Title` stays compact for inline `<dl>` refs). Prefer omitting redundant `#snippet Title` when it would match the heading body; rely on the component for async / loaded-text cases.
+- Redundancy removal: Drop `<dl>` rows (and avoid extra summary lines) that only repeat the heading, the secondary id line, or parent-scoped ids—see `<dl>` vs heading and `<dl>` vs parent id above.
+
+### Related entities: inline `Title` vs `CollapsibleTabs`
+
+Be deliberate about how child entities appear in `Content` and `Details`. Default to the lightest layout that matches cardinality and depth.
+
+Inline entity reference (`layout={EntityLayout.Title}` in a `<dl>` row):
+
+- One related entity (parent market, upstream coin, network, pool, block, wallet-on-network, from/to deployment, …).
+- The child is primarily a link target—identity + navigation, not a nested card to expand on this page.
+- Set `open={false}` and `showTypeAnnotation={false}` on nested views inside another entity’s `<dl>`.
+- Prefer `Address`, `TruncatedValue`, or plain catalog strings only when there is no schema-backed entity row to link (or the field is not modeled as an entity ref).
+
+Flat `<section>` in `Details` (no carousel):
+
+- One or two substantive blocks that are not single-entity links: a field list (`*View` with `entityFieldReference`), a chart hub (`MarketOhlcHub`), route-local `children`, etc.
+- Example: `MarketView` — spot (`MarketPricesView`) + OHLC (`MarketOhlcHub`) as sibling sections; base/quote legs stay inline in `Content`.
+
+`CollapsibleTabs` + `entity-view-detail-carousels`:
+
+- Three or more distinct sections, or two or more sections where each is a list / feed / chart column worth horizontal scroll markers (not a lone nested card).
+- Hub pages that group registry slices: `NetworkView`, `CoinView`, `FarcasterView`, `ActorNetworkView` (balances + activity), etc.
+- Each carousel section should earn its marker row; do not wrap a single child view or `{@render children()}` alone.
+
+Avoid:
+
+- `CollapsibleTabs` for one related entity (e.g. parent market on a timestamp row, host network on a wallet row)—use inline `Title` in `Content` instead.
+- `EntityLayout.Summary` nested cards in `<dl>` rows when `Title` suffices (bridge endpoints, pool refs, parent market links).
+- Duplicating the same inline `Content` refs again in `Details` carousels (e.g. origin tx + initiator on `BridgeTransactionView`).
+- Raw ids (chain id strings, truncated pool addresses) when a `NetworkView`, `LiquidityPoolView`, `CoinInstanceView`, etc. exists for that ref.
+
+Quick check: *If collapsing the section hides only one link line, use `Title` in the `<dl>`; if it groups multiple lists or tools, use tabs or flat titled sections.*
 
 ### Domain-oriented views (settings, storage, social)
 
-Keep these semantics stable in UI copy and `useEntity` wiring; do not add **`data-view`**. Add **`data-e2e`** only when a Playwright test already targets the node (same bar as **`NetworkView`**, which uses a **small fixed set** of carousel/collapsible roots—do not blanket other entity pages with parallel hooks).
+Keep these semantics stable in UI copy and `useEntity` wiring; do not add `data-view`. Add `data-e2e` only when a Playwright test already targets the node (same bar as `NetworkView`, which uses a small fixed set of carousel/collapsible roots—do not blanket other entity pages with parallel hooks).
 
 | View | Role |
 |------|------|
-| `SettingView.svelte` | `_Global` **settings** hub: navigation/usage copy clarifies this is app preferences and usage (e.g. Dune credits), **not** the resolver **`Source`** catalog. |
-| `SourcesView.svelte` | Lists persisted **`BlockheadSource`** rows (saved transports), gated by **`Source.Local_Internal`**; distinct from enabled **`Source`** definitions in `$/sources/index.ts`. |
-| `SelectorsView.svelte` | EVM contract **function selectors** (OpenChain-backed field lists). |
-| `TopicsView.svelte` | EVM log **topics** / event signatures (indexed arguments). |
-| `EvmTopicsView.svelte` | **`_Global` `$$evmTopics`:** sorted EVM log **topics** / event signatures (**Source.Openchain_Rest**). |
-| `EvmTransactionView.svelte` | Single **EvmTransaction** by chain + tx hash; Blockscout / Voltaire execution fields. |
-| `EvmTransactionsView.svelte` | Transaction list from a parent **`$$transactions`** field reference (block or network). |
-| `FarcasterAccountView.svelte` | **`BlockheadFarcasterAccountConnection`:** connected **FID**, custody, verifications; Neynar / Snapchain. |
-| `FarcasterAccountsView.svelte` | **`_Global` `$$blockheadFarcasterAccountConnections`** list (sorted by **FID**). |
-| `FarcasterCastView.svelte` | **Cast** by author **FID** + **cast hash**; **channel**, thread, mentions, embeds; feed vs hub layout. |
-| `FarcasterCastsView.svelte` | Cast cards from a **FarcasterFeed** `$$entries` field (e.g. hub trending). |
-| `FarcasterChannelView.svelte` | **FarcasterChannel** by id; stats, **pinned cast hash**, lead/moderators as **FID** links. |
-| `FarcasterChannelsView.svelte` | **`FarcasterNetwork` `$$channels`** registry list. |
-| `FarcasterFeedView.svelte` | **Feed** (trending, by **FID**, by **channel**, following); `$$entries` cast stream + live resolve where wired. |
-| `FarcasterFeedsView.svelte` | **`FarcasterNetwork` `$$feeds`** catalog with stable routes per feed variant. |
-| `FarcasterUserView.svelte` | **FarcasterUser:** **FID**, **fname** (`@username`), profile fields, verified EVM address. |
-| `FarcasterUsersView.svelte` | **`FarcasterNetwork` `$$users`** list (**FID**-sorted). |
-| `FarcasterView.svelte` | **`FarcasterNetwork` hub:** carousels for **feeds**, trending **casts**, **channels**, **users**, and connected **accounts**; registry metadata in `Content` `<dl>`. |
-| `GlobalView.svelte` | **`_Global` hub:** app navigation shortcuts, Dune usage, **`EntityType._Global`** details—distinct from resolver **Source** rows (**SettingView**). |
-| `IpfsBrowseEntityChrome.svelte` | **`IpfsResource`** browse + **gateway** metadata via **`Source.Ipfs_Rest`** (collapsible CID / path + current resource). |
-| `IpfsBrowseView.svelte` | **IPFS** browse form: **multibase CID**, IPNS, `ipfs://` / `ipns://`, or **gateway** URL → canonical resource navigation. |
-| `StateChannelsView.svelte` | **Off-chain state channel** rows (`StateChannel` / `ChannelView`); not on-chain event streams. |
-| `SwarmBrowseView.svelte` | **Swarm** browse form: BZZ references and gateways; copy states this is **not IPFS** (`bzz://` vs CIDs). |
-| `SwarmResourceView.svelte` | Resolver-backed **`SwarmResource`** entity: canonical URI, gateway, typed content via **`Source.Swarm_Rest`**. |
-| `UrlView.svelte` / `UrlsView.svelte` | **`Url`** entities: arbitrary **web URLs** with catalog / Open Graph enrichment. |
-| `VaultView.svelte` / `VaultsView.svelte` | **`Vault`** here is **concentrated-liquidity / DEX pool** metadata (e.g. token pair, ticks, TVL from **`Source.Dexscreener_OpenApi`**), **not** ERC-4626 yield vaults—wording should not imply share-token vault semantics. |
-| `XPostView.svelte` / `XPostsView.svelte` / `XUserView.svelte` / `XUsersView.svelte` | **X (Twitter)** posts and profiles; field lists combine **`Source.Constants_Internal`** on the parent with **`Source.X_Rest`** on the relation where applicable. |
-| `XView.svelte` | **`XNetwork`** hub: carousel of profiles + posts lists (**`entity-view-detail-carousels`** + **`CollapsibleTabs`** like **`FarcasterView`**); singleton metadata via **`Source.Constants_Internal`**. |
-| `XmtpView.svelte` / `XmtpConversationsView.svelte` / `XmtpConversationView.svelte` | **`XmtpNetwork`** + **`XmtpConversation`**: **`_Global`** **`$$actors`** / **`$$xmtpConversations`** (**`Source.Local_Internal`**); omit **`Content`** `<dl>` ids that duplicate the **`Heading`** conversation identifier. |
-| `Proposal*View.svelte` / `ProposalsView.svelte` | **Proposal catalogs**: **realm** (**`ProposalRealm`**) scopes **kind** (**`ProposalKind`**: EIP / CAIP / …), then upstream **`Proposal`** documents; **`ProposalKindsView`** / **`ProposalRealmsView`** mirror **`/proposals/…`** navigation; mute copy distinguishes spec text from live governance tallies where applicable. |
-| `Reddit*View.svelte` | **`RedditNetwork`** lists **subreddits** + popular **submissions**, **`RedditLinkView`** nests **`$$comments`**, **`RedditCommentView`** resolves **`$link`**; terminology stays Reddit-native (**subreddit**, **submission**, **comment thread**) versus Farcaster/X. |
-| `RoomView.svelte` / `RoomsView.svelte` | **`BlockheadRoom`**: realtime **multiplayer session** (**`Local_Internal`**), framed apart from Reddit, XMTP, Swarm; **`RoomsView`** uses **`RoomView`** rows. |
-| `charts/Market_TimeInterval_Timestamp.svelte` | Candlesticks over **`EntityType.Market_TimeInterval_Timestamp`** OHLC points; callers choose **`title`** / interval framing—surface that linkage in muted chrome so charts stay tied to **Market** interval semantics. |
+| `SettingView.svelte` | `_Global` settings hub: navigation/usage copy clarifies this is app preferences and usage (e.g. Dune credits), not the resolver `Source` catalog. |
+| `SourcesView.svelte` | Lists persisted `BlockheadSource` rows (saved transports), gated by `Source.Local_Internal`; distinct from enabled `Source` definitions in `$/sources/index.ts`. |
+| `SelectorsView.svelte` | Parent-scoped `$$evmSelectors` field list (not the global catalog). |
+| `TopicsView.svelte` | Parent-scoped `$$evmTopics` field list (not the global catalog). |
+| `EvmSelectorsView.svelte` | `_Global` `$$evmSelectors` catalog (`Source.Local_Internal`); row detail resolves signatures via `Source.Openchain_Rest`. |
+| `EvmTopicsView.svelte` | `_Global` `$$evmTopics` catalog (`Source.Local_Internal`); `/evm` hub carousel + `/evm/topics` list. |
+| `EvmErrorsView.svelte` | `_Global` `$$evmErrors` catalog (`Source.Local_Internal`); `/evm/errors` list + hub carousel. |
+| `EvmSelectorView.svelte` / `EvmTopicView.svelte` / `EvmErrorView.svelte` | Per-hex signature lookup (`Source.Openchain_Rest`); routes under `/evm/selector|topic|error/[hex]`. |
+| `EvmLogView.svelte` | EvmLog by network + tx hash + log index; topics link to EvmTopicView, emitter EvmContractView (`EntityLayout.Title`); topic 0 in heading via nested EvmTopicView. |
+| `EvmLogsView.svelte` | Receipt log list from parent `$$logs` on EvmTransaction; rows link to `/network/…/tx/…/log/[logIndex]`. |
+| `EvmTraceTreeView.svelte` | Recursive EvmTrace call tree on a transaction; each frame renders EvmTraceContentView (selectors, value transfers). |
+| `EvmTraceContentView.svelte` | Single trace frame: selector signatures, value transfers, nested calls. |
+| `EvmTransactionInputDecode.svelte` | Inline tx input decode: EvmSelector link + OpenChain signatures when expanded. |
+| `evm/calldata-decoder` | `/evm/calldata-decoder`: paste hex calldata or event data; OpenChain selector/topic lookup + ABI decode; shareable `?data=` query. |
+| `evm/+page.svelte` | EVM hub (`GlobalView`): carousels for topics, selectors, errors, and calldata-decoder link. |
+| `EvmTransactionView.svelte` | Single EvmTransaction by chain + tx hash; Blockscout / Voltaire execution fields. |
+| `EvmTransactionsView.svelte` | Transaction list from a parent `$$transactions` field reference (block or network). |
+| `FarcasterAccountView.svelte` | `BlockheadFarcasterAccountConnection`: connected FID, custody, verifications; Neynar / Snapchain. |
+| `FarcasterAccountsView.svelte` | `_Global` `$$blockheadFarcasterAccountConnections` list (sorted by FID). |
+| `FarcasterCastView.svelte` | Cast by author FID + cast hash; channel, thread, mentions, embeds; feed vs hub layout. |
+| `FarcasterCastsView.svelte` | Cast cards from a FarcasterFeed `$$entries` field (e.g. hub trending). |
+| `FarcasterChannelView.svelte` | FarcasterChannel by id; stats, pinned cast hash, lead/moderators as FID links. |
+| `FarcasterChannelsView.svelte` | `FarcasterNetwork` `$$channels` registry list. |
+| `FarcasterFeedView.svelte` | Feed (trending, by FID, by channel, following); `$$entries` cast stream + live resolve where wired. |
+| `FarcasterFeedsView.svelte` | `FarcasterNetwork` `$$feeds` catalog with stable routes per feed variant. |
+| `FarcasterUserView.svelte` | FarcasterUser: FID, fname (`@username`), profile fields, verified EVM address. |
+| `FarcasterUsersView.svelte` | `FarcasterNetwork` `$$users` list (FID-sorted). |
+| `FarcasterView.svelte` | `FarcasterNetwork` hub: carousels for feeds, trending casts, channels, users, and connected accounts; registry metadata in `Content` `<dl>`. |
+| `GlobalView.svelte` | `_Global` hub: app navigation shortcuts, Dune usage, `EntityType._Global` details—distinct from resolver Source rows (SettingView). |
+| `IpfsBrowseEntityChrome.svelte` | `IpfsResource` browse + gateway metadata via `Source.Ipfs_Rest` (collapsible CID / path + current resource). |
+| `IpfsBrowseView.svelte` | IPFS browse form: multibase CID, IPNS, `ipfs://` / `ipns://`, or gateway URL → canonical resource navigation. |
+| `StateChannelsView.svelte` | Off-chain state channel rows (`StateChannel` / `ChannelView`); not on-chain event streams. |
+| `SwarmBrowseView.svelte` | Swarm browse form: BZZ references and gateways; copy states this is not IPFS (`bzz://` vs CIDs). |
+| `SwarmResourceView.svelte` | Resolver-backed `SwarmResource` entity: canonical URI, gateway, typed content via `Source.Swarm_Rest`. |
+| `UrlView.svelte` / `UrlsView.svelte` | `Url` entities: arbitrary web URLs with catalog / Open Graph enrichment. |
+| `VaultView.svelte` / `VaultsView.svelte` | `Vault` here is concentrated-liquidity / DEX pool metadata (e.g. token pair, ticks, TVL from `Source.Dexscreener_OpenApi`), not ERC-4626 yield vaults—wording should not imply share-token vault semantics. |
+| `XPostView.svelte` / `XPostsView.svelte` / `XUserView.svelte` / `XUsersView.svelte` | X (Twitter) posts and profiles; field lists combine `Source.Constants_Internal` on the parent with `Source.X_Rest` on the relation where applicable. |
+| `XView.svelte` | `XNetwork` hub: carousel of profiles + posts lists (`entity-view-detail-carousels` + `CollapsibleTabs` like `FarcasterView`); singleton metadata via `Source.Constants_Internal`. |
+| `XmtpView.svelte` / `XmtpConversationsView.svelte` / `XmtpConversationView.svelte` | `XmtpNetwork` + `XmtpConversation`: `_Global` `$$actors` / `$$xmtpConversations` (`Source.Local_Internal`); omit `Content` `<dl>` ids that duplicate the `Heading` conversation identifier. |
+| `Proposal*View.svelte` / `ProposalsView.svelte` | Proposal catalogs: realm (`ProposalRealm`) scopes kind (`ProposalKind`: EIP / CAIP / …), then upstream `Proposal` documents; `ProposalKindsView` / `ProposalRealmsView` mirror `/proposals/…` navigation; mute copy distinguishes spec text from live governance tallies where applicable. |
+| `Reddit*View.svelte` | `RedditNetwork` lists subreddits + popular submissions, `RedditLinkView` nests `$$comments`, `RedditCommentView` resolves `$link`; terminology stays Reddit-native (subreddit, submission, comment thread) versus Farcaster/X. |
+| `RoomView.svelte` / `RoomsView.svelte` | `BlockheadRoom`: realtime multiplayer session (`Local_Internal`), framed apart from Reddit, XMTP, Swarm; `RoomsView` uses `RoomView` rows. |
+| `charts/Market_TimeInterval_Timestamp.svelte` | Candlesticks over `EntityType.Market_TimeInterval_Timestamp` OHLC points; callers choose `title` / interval framing—surface that linkage in muted chrome so charts stay tied to Market interval semantics. |
 
 ## SvelteKit routes and views (`src/routes/**/*`)
 

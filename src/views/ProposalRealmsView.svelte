@@ -309,8 +309,7 @@
 							{/each}
 						{/snippet}
 
-						{#snippet children({
-							open: _sectionOpen,
+						{#snippet body({ open: _sectionOpen,
 						})}
 							{#each rows as row (proposalRealmKey(row))}
 								{@const realmRow = row.result}

@@ -73,8 +73,6 @@
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
-	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -114,7 +112,7 @@
 									'/(explore)/(networks)/network/[networkId]',
 									{ networkId: String(liquidityPosition.$pool.$network.chainId) },
 								)}
-								layout={EntityLayout.Id}
+								layout={EntityLayout.Title}
 								open={false}
 								showTypeAnnotation={false}
 							/>
@@ -128,7 +126,7 @@
 								href={resolve('/(assets)/(pools)/pool/[poolId]', {
 									poolId: liquidityPosition.$pool[EntityMetaKey.Id].id,
 								})}
-								layout={EntityLayout.Id}
+								layout={EntityLayout.Title}
 								open={false}
 								showTypeAnnotation={false}
 							/>
@@ -143,10 +141,14 @@
 										$network: liquidityPosition.$pool.$network,
 										$actor: liquidityPosition.$owner[EntityMetaKey.Id],
 									}}
-									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-										accountId: liquidityPosition.$owner[EntityMetaKey.Id].address,
-									})}
-									layout={EntityLayout.Id}
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+										{
+											networkId: String(liquidityPosition.$pool.$network.chainId),
+											address: liquidityPosition.$owner[EntityMetaKey.Id].address,
+										},
+									)}
+									layout={EntityLayout.Title}
 									open={false}
 									showTypeAnnotation={false}
 								/>

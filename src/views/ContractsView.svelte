@@ -20,6 +20,7 @@
 		entityFieldReference,
 		title = 'Contracts',
 		open = $bindable(true),
+		collapsible = true,
 		...entitiesListProps
 	}: WithRest<
 		{
@@ -40,36 +41,13 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const network = useEntity(
-		EntityType.Network,
-		entityFieldReference.entityId,
-		{
-			...(open ? {
-				blockHeight: { $: [Source.Voltaire_JsonRpc] },
-				$$contracts: { $: [Source.Blockscout_Rest] },
-			} : {}),
-		},
-	)
-
-	const contracts = derive(
-		network,
-		(network): Entity<typeof schema, EntityType.EvmContract>[] => (
-			(network.$$contracts ?? [])
-				.toSorted((a, b) => (
-					stringify(b[EntityMetaKey.Id]).localeCompare(stringify(a[EntityMetaKey.Id]))
-				))
-				.slice(0, 16)
-		),
-	)
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import OrderedList from '$/components/OrderedList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
-	import ContractView from '$/views/ContractView.svelte'
+	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
 
 
@@ -89,50 +67,66 @@
 	{/snippet}
 
 	{#snippet body()}
-		{#key stringify(entityFieldReference.entityId)}
-			<ResourceBoundary
-				placeholderText="Loading contracts…"
-				resource={contracts}
-			>
-				{#snippet children(contracts)}
-					<OrderedList
-						items={contracts}
-						getKey={(row) => stringify(row[EntityMetaKey.Id])}
-						getSortKey={(row) => (
-							BigInt(
-								row[EntityMetaKey.Id].address,
-							)
-						)}
-						placeholderRanges={[]}
-						orientation={ListOrientation.Column}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No verified contracts yet.
-							</p>
-						{/snippet}
+		{#if open}
+			{@const network = useEntity(
+				EntityType.Network,
+				entityFieldReference.entityId,
+				{
+					blockHeight: { $: [Source.Voltaire_JsonRpc] },
+					$$contracts: { $: [Source.Blockscout_Rest] },
+				},
+			)}
+			{@const contracts = derive(
+				network,
+				(network): Entity<typeof schema, EntityType.EvmContract>[] => (
+					(network.$$contracts ?? []).slice(0, 16)
+				),
+			)}
+			{#key stringify(entityFieldReference.entityId)}
+				<ResourceBoundary
+					placeholderText="Loading contracts…"
+					resource={contracts}
+				>
+					{#snippet children(contracts)}
+						<OrderedList
+							items={contracts}
+							getKey={(row) => stringify(row[EntityMetaKey.Id])}
+							getSortKey={(row) => (
+								BigInt(
+									row[EntityMetaKey.Id].address,
+								)
+							)}
+							placeholderRanges={[]}
+							orientation={ListOrientation.Column}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">
+									No verified contracts yet.
+								</p>
+							{/snippet}
 
-						{#snippet Item({ item: row })}
-							{#if row}
-								<ContractView
-									entityId={row[EntityMetaKey.Id]}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-										{
-											networkId: String(
-												row[EntityMetaKey.Id].$network.chainId,
-											),
-											address: row[EntityMetaKey.Id].address,
-										},
-									)}
-									layout={EntityLayout.Summary}
-									open={false}
-								/>
-							{/if}
-						{/snippet}
-					</OrderedList>
-				{/snippet}
-			</ResourceBoundary>
-		{/key}
+							{#snippet Item({ item: row })}
+								{#if row}
+									<EvmContractView
+										entityId={row[EntityMetaKey.Id]}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+											{
+												networkId: String(
+													row[EntityMetaKey.Id].$network.chainId,
+												),
+												address: row[EntityMetaKey.Id].address,
+											},
+										)}
+										layout={EntityLayout.Summary}
+										open={false}
+									/>
+								{/if}
+							{/snippet}
+						</OrderedList>
+					{/snippet}
+				</ResourceBoundary>
+			{/key}
+		{/if}
 	{/snippet}
 </EntitiesList>

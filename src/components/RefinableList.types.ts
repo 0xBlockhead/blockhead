@@ -5,5 +5,7 @@ export type ListPagination = {
 	onLoadMore: () => void
 	loading?: boolean
 	label?: string
-	Placeholder?: Snippet<[{ loading: boolean }]>
+	Placeholder?: Snippet<[context?: {
+		loading?: boolean,
+	}]>
 }

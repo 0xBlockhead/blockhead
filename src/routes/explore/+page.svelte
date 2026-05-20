@@ -25,8 +25,7 @@
 		title="Explore"
 		href={resolve('/explore')}
 	>
-		{#snippet children({
-			open: hubOpen,
+		{#snippet children({ open: hubOpen,
 		})}
 			<CollapsibleTabs
 				id={`${hubKey}:hub`}
@@ -70,7 +69,7 @@
 					>Proposals</a>
 				{/snippet}
 
-				{#snippet children({ open: _paneOpen })}
+				{#snippet body({ open: _paneOpen })}
 					<section
 						id={`${hubKey}:networks`}
 						data-scroll-marker-label="Networks"

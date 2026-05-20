@@ -18,6 +18,7 @@
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -235,7 +236,7 @@
 					>Trending casts</a>
 				{/snippet}
 
-				{#snippet children({ open: _open })}
+				{#snippet body({ open: _open })}
 					<section data-scroll-marker-label="Feeds">
 						<FarcasterFeedsView
 							collapsible={false}
@@ -295,7 +296,7 @@
 					>Users</a>
 				{/snippet}
 
-				{#snippet children({ open: _open })}
+				{#snippet body({ open: _open })}
 					<section data-scroll-marker-label="Channels">
 						<FarcasterChannelsView
 							entityFieldReference={{
@@ -347,7 +348,7 @@
 					>Connected accounts</a>
 				{/snippet}
 
-				{#snippet children({ open: _open })}
+				{#snippet body({ open: _open })}
 					<section data-scroll-marker-label="Connected accounts">
 						<BlockheadFarcasterAccountConnectionsView
 							entityFieldReference={{

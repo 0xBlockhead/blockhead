@@ -4,14 +4,14 @@
 	import { resolve } from '$app/paths'
 
 	import Page from '$/components/Page.svelte'
-	import ContractView from '$/views/ContractView.svelte'
+	import EvmContractView from '$/views/EvmContractView.svelte'
 
 	let { data }: PageProps = $props()
 </script>
 
 
 <Page>
-	<ContractView
+	<EvmContractView
 		entityId={data.entityId}
 		href={resolve(
 			'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',

@@ -15,10 +15,11 @@
 
 	// Props
 	let {
-		children,
+		children: _children,
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -80,6 +81,7 @@
 	{href}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 		<ResourceBoundary resource={lensAccount}>
@@ -93,7 +95,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.address}
 		</span>
@@ -116,7 +118,7 @@
 							<div>
 								<dt>Profile address</dt>
 								<dd data-text="mono">
-									{@render Id()}
+									{@render Title()}
 								</dd>
 							</div>
 						{/if}
@@ -168,7 +170,7 @@
 					>Publications (Lens v3)</a>
 				{/snippet}
 
-				{#snippet children(_ctx)}
+				{#snippet body(_ctx)}
 					<section
 						data-scroll-marker-label="Record"
 						id={`${idKey}:lens-account-record`}
@@ -192,15 +194,14 @@
 								address: entityId.address,
 							})}
 							id={`${idKey}:posts-list`}
-							open={false}
 						/>
 					</section>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>
 
-		{#if children}
-			{@render children()}
+		{#if _children}
+			{@render _children()}
 		{/if}
 	{/snippet}
 </EntityView>

@@ -2,10 +2,15 @@
  * Standard Ethereum beacon node REST (`/eth/v1/...`) — @see https://github.com/ethereum/beacon-APIs
  */
 
-import { proxyFetch, throwHttpError } from '$/lib/http.ts'
+import { throwHttpError } from '$/lib/http.ts'
 import { with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
-import type { BeaconHeader, BeaconValidatorSummary } from '$/sources/Beacon/Rest/types.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import type {
+	BeaconFinalityCheckpoints,
+	BeaconForkScheduleEntry,
+	BeaconHeader,
+	BeaconValidatorSummary,
+} from '$/sources/Beacon/Rest/types.ts'
+import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 
 type BeaconHeaderHeadWire = {
 	data?: {
@@ -35,7 +40,7 @@ type BeaconHeaderWire = {
 
 export const getBeaconHeadSlot = async (beaconRestBaseUrl: string): Promise<number> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await proxyFetch(`${base}/eth/v1/beacon/headers/head`, {
+	const res = await fetch(`${base}/eth/v1/beacon/headers/head`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET head', res)
@@ -58,7 +63,7 @@ export const getBeaconHeader = async (
 	blockId: string | number,
 ): Promise<BeaconHeader> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await proxyFetch(`${base}/eth/v1/beacon/headers/${blockId}`, {
+	const res = await fetch(`${base}/eth/v1/beacon/headers/${blockId}`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET header', res)
@@ -152,7 +157,7 @@ export const getBeaconValidatorSummaryAtHead = async (
 	validatorIndex: number,
 ): Promise<BeaconValidatorSummary | null> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await proxyFetch(
+	const res = await fetch(
 		`${base}/eth/v1/beacon/states/head/validators/${String(validatorIndex)}`,
 		{
 			headers: { accept: 'application/json' },
@@ -196,38 +201,183 @@ export const getBeaconValidatorSummaryAtHead = async (
 	}
 }
 
-const beaconConsensusWireAsJsonString = (wire: JsonValue): string => (
-	JSON.stringify(wire)
-)
+const checkpointFromWire = (
+	checkpointWire: JsonValue | undefined,
+): BeaconFinalityCheckpoints['finalized'] | undefined => {
+	if (!isJsonObject(checkpointWire)) return undefined
+	const epochRaw = checkpointWire.epoch
+	const rootRaw = checkpointWire.root
+	if (epochRaw == null || rootRaw == null) return undefined
+	const epoch = Number.parseInt(String(epochRaw), 10)
+	if (!Number.isFinite(epoch)) return undefined
+	const root = String(rootRaw)
+	if (!root.startsWith('0x')) return undefined
+	return {
+		epoch,
+		root: root as `0x${string}`,
+	}
+}
+
+export const beaconFinalityCheckpointsFromWire = (
+	wire: JsonValue,
+): BeaconFinalityCheckpoints | undefined => {
+	if (!isJsonObject(wire)) return undefined
+	const data = wire.data
+	if (!isJsonObject(data)) return undefined
+	const previousJustified = checkpointFromWire(data.previous_justified)
+	const currentJustified = checkpointFromWire(data.current_justified)
+	const finalized = checkpointFromWire(data.finalized)
+	if (
+		previousJustified == null
+		|| currentJustified == null
+		|| finalized == null
+	) return undefined
+	return {
+		previousJustified,
+		currentJustified,
+		finalized,
+	}
+}
+
+export const beaconForkScheduleFromWire = (
+	wire: JsonValue,
+): BeaconForkScheduleEntry[] => {
+	if (!isJsonObject(wire)) return []
+	const data = wire.data
+	if (!Array.isArray(data)) return []
+	return (
+		data.flatMap((entryWire) => {
+			if (!isJsonObject(entryWire)) return []
+			const epochRaw = entryWire.epoch
+			const previousVersionRaw = (
+				entryWire.previousVersion
+				?? entryWire.previous_version
+			)
+			const currentVersionRaw = (
+				entryWire.currentVersion
+				?? entryWire.current_version
+			)
+			if (
+				epochRaw == null
+				|| previousVersionRaw == null
+				|| currentVersionRaw == null
+			) return []
+			const epoch = Number.parseInt(String(epochRaw), 10)
+			if (!Number.isFinite(epoch)) return []
+			const previousVersion = String(previousVersionRaw)
+			const currentVersion = String(currentVersionRaw)
+			if (
+				!previousVersion.startsWith('0x')
+				|| !currentVersion.startsWith('0x')
+			) return []
+			return [
+				{
+					epoch,
+					previousVersion: previousVersion as `0x${string}`,
+					currentVersion: currentVersion as `0x${string}`,
+				},
+			]
+		})
+	)
+}
+
+export const getBeaconFinalityCheckpoints = async (
+	beaconRestBaseUrl: string,
+): Promise<BeaconFinalityCheckpoints | undefined> => {
+	const base = beaconRestBaseUrl.replace(/\/$/, '')
+	const res = await fetch(`${base}/eth/v1/beacon/states/head/finality_checkpoints`, {
+		headers: { accept: 'application/json' },
+	})
+	if (!res.ok) await throwHttpError('Beacon GET finality_checkpoints', res)
+	const wire = await res.json<JsonValue>()
+	return beaconFinalityCheckpointsFromWire(wire)
+}
+
+export const getBeaconForkSchedule = async (
+	beaconRestBaseUrl: string,
+): Promise<BeaconForkScheduleEntry[]> => {
+	const base = beaconRestBaseUrl.replace(/\/$/, '')
+	const res = await fetch(`${base}/eth/v1/config/fork_schedule`, {
+		headers: { accept: 'application/json' },
+	})
+	if (!res.ok) await throwHttpError('Beacon GET fork_schedule', res)
+	const wire = await res.json<JsonValue>()
+	return beaconForkScheduleFromWire(wire)
+}
+
+export const beaconForkScheduleEntriesFromJsonString = (
+	json: string,
+): BeaconForkScheduleEntry[] => {
+	let parsed: JsonValue
+	try {
+		parsed = JSON.parse(json) as JsonValue
+	} catch {
+		return []
+	}
+	if (!Array.isArray(parsed)) return []
+	return (
+		parsed.flatMap((entryWire) => {
+			if (!isJsonObject(entryWire)) return []
+			const epochRaw = entryWire.epoch
+			const previousVersionRaw = (
+				entryWire.previousVersion
+				?? entryWire.previous_version
+			)
+			const currentVersionRaw = (
+				entryWire.currentVersion
+				?? entryWire.current_version
+			)
+			if (
+				epochRaw == null
+				|| previousVersionRaw == null
+				|| currentVersionRaw == null
+			) return []
+			const epoch = Number.parseInt(String(epochRaw), 10)
+			if (!Number.isFinite(epoch)) return []
+			const previousVersion = String(previousVersionRaw)
+			const currentVersion = String(currentVersionRaw)
+			if (
+				!previousVersion.startsWith('0x')
+				|| !currentVersion.startsWith('0x')
+			) return []
+			return [
+				{
+					epoch,
+					previousVersion: previousVersion as `0x${string}`,
+					currentVersion: currentVersion as `0x${string}`,
+				},
+			]
+		})
+	)
+}
 
 /**
  * Beacon consensus-layer fork epochs (`previous_version` / `current_version` boundaries).
  * @see https://github.com/ethereum/beacon-APIs (`GET /eth/v1/config/fork_schedule`)
  */
-export const getBeaconForkScheduleJsonString = async (
-	beaconRestBaseUrl: string,
-): Promise<string | null> => {
-	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await proxyFetch(`${base}/eth/v1/config/fork_schedule`, {
-		headers: { accept: 'application/json' },
-	})
-	if (!res.ok) await throwHttpError('Beacon GET fork_schedule', res)
-	const wire = await res.json<JsonValue>()
-	return beaconConsensusWireAsJsonString(wire)
+type BeaconGenesisWire = {
+	data?: {
+		genesis_time?: string
+	}
 }
 
-/**
- * Justified / finalized checkpoint roots at beacon head state.
- * @see https://github.com/ethereum/beacon-APIs (`GET /eth/v1/beacon/states/{state_id}/finality_checkpoints`)
- */
-export const getBeaconFinalityCheckpointsJsonString = async (
+export const getBeaconGenesisTimeSeconds = async (
 	beaconRestBaseUrl: string,
-): Promise<string | null> => {
+): Promise<number | undefined> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await proxyFetch(`${base}/eth/v1/beacon/states/head/finality_checkpoints`, {
+	const res = await fetch(`${base}/eth/v1/beacon/genesis`, {
 		headers: { accept: 'application/json' },
 	})
-	if (!res.ok) await throwHttpError('Beacon GET finality_checkpoints', res)
-	const wire = await res.json<JsonValue>()
-	return beaconConsensusWireAsJsonString(wire)
+	if (!res.ok) await throwHttpError('Beacon GET genesis', res)
+	const wire = await res.json<BeaconGenesisWire>()
+	const genesisTimeRaw = wire.data?.genesis_time
+	if (genesisTimeRaw == null) return undefined
+	const genesisTimeSeconds = Number.parseInt(String(genesisTimeRaw), 10)
+	return (
+		Number.isFinite(genesisTimeSeconds) ?
+			genesisTimeSeconds
+		:
+			undefined
+	)
 }
+

@@ -1,4 +1,5 @@
 import { CoinId } from '$/constants/Coin.ts'
+import { MarketVenueId } from '$/constants/MarketVenue.ts'
 
 /** Free vs bearer-auth hosts (REST path {@link pathPrefix}). */
 export const freeOrigin = 'https://api.coinpaprika.com' as const
@@ -62,3 +63,23 @@ export const decimalsByCoinId: Partial<Record<CoinId, number>> = Object.fromEntr
 )
 
 export const coinpaprikaCatalogCoinIds: readonly CoinId[] = catalog.map((entry) => entry.coinId)
+
+/** Hostname fragment → catalog venue (from `market_url` on coin markets). */
+export const coinpaprikaMarketVenueIdByHostnameFragment = [
+	['binance.', MarketVenueId.Binance],
+	['coinbase.', MarketVenueId.Coinbase],
+	['kraken.', MarketVenueId.Kraken],
+	['kucoin.', MarketVenueId.Kucoin],
+	['okx.', MarketVenueId.Okx],
+	['deribit.', MarketVenueId.Deribit],
+	['uniswap.', MarketVenueId.Uniswap],
+	['pancakeswap.', MarketVenueId.PancakeSwap],
+] as const satisfies readonly [string, MarketVenueId][]
+
+/** Quote wire ids treated as USD legs for catalog markets. */
+export const coinpaprikaUsdQuoteWireIds = [
+	'usdt-tether',
+	'usdc-usd-coin',
+	'busd-binance-usd',
+	'dai-dai',
+] as const

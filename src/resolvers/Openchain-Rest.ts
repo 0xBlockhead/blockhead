@@ -1,8 +1,6 @@
-import { defineEntityFieldResolver, defineEntityResolver } from '$/resolvers/$resolvers.ts'
-import type { EntityId } from '$/schema/$schema.ts'
+import { defineEntityResolver } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
@@ -46,29 +44,5 @@ export default {
 		}),
 	],
 
-	entityFieldResolvers: [
-		defineEntityFieldResolver({
-			entityType: EntityType._Global,
-			fieldName: '$$evmSelectors',
-			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>) => {
-				throw new Error('Openchain_Rest: $$evmSelectors listing unsupported; query selector ids directly')
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType._Global,
-			fieldName: '$$evmTopics',
-			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>) => {
-				throw new Error('Openchain_Rest: $$evmTopics listing unsupported; query topic ids directly')
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType._Global,
-			fieldName: '$$evmErrors',
-			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>) => {
-				throw new Error('Openchain_Rest: $$evmErrors listing unsupported; query error ids directly')
-			},
-		}),
-	],
+	entityFieldResolvers: [],
 }

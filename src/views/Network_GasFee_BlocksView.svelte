@@ -97,10 +97,10 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Each row is keyed by an execution block height; fee-history fields describe the EIP-1559 fee market at that height from <code>eth_feeHistory</code>.
+			Recent blocks from <code>eth_feeHistory</code>: base fee, fullness ratio, and priority fee at the 50th percentile per height.
 		</p>
 		<p>
-			Legacy gas price and max priority fee calls reflect the RPC’s current tip hints when the snapshot resolves, not necessarily historical values at older heights.
+			The head block row also includes suggested gas price and max priority fee from the RPC at resolve time.
 		</p>
 	{/snippet}
 

@@ -16,11 +16,12 @@
 
 	// Props
 	let {
-		children,
+		children: _children,
 		entityId,
 		href,
 		layout,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -93,6 +94,7 @@
 	bind:open
 	title={`Slot ${String(entityId.slot)}`}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 
@@ -110,7 +112,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.relayHost}
 		</span>
@@ -200,14 +202,14 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<a
 						data-scroll-marker-label="Block"
 						href={`#${payloadIdKey}:mev-included-block`}
 					>Block</a>
 				{/snippet}
 
-				{#snippet children(_ctx)}
+				{#snippet body(_ctx)}
 					<section
 						data-scroll-marker-label="Block"
 						id={`${payloadIdKey}:mev-included-block`}
@@ -230,7 +232,6 @@
 											)}
 											id={`${String(entityId.$network.chainId)}:${String(mevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id].blockNumber)}:mev-exec-block`}
 											layout={EntityLayout.Summary}
-											open={false}
 										/>
 									{:else}
 										<div data-row="wrap align-center gap-2">
@@ -256,8 +257,8 @@
 			</CollapsibleTabs>
 		</div>
 
-		{#if children}
-			{@render children()}
+		{#if _children}
+			{@render _children()}
 		{/if}
 	{/snippet}
 </EntityView>

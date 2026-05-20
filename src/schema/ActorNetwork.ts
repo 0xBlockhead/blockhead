@@ -78,6 +78,15 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'isContract',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
+		},
+		{
 			name: 'nftCount',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
@@ -88,6 +97,24 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmTransaction,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
+		},
+		{
+			name: '$$tokenTransfers',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmTransaction,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
+		},
+		{
+			name: '$$internalTransactions',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmTransaction,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
 		},
 		{
 			name: '$$ownedCoins',
@@ -103,6 +130,9 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.ActorCoinAllowance,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
 		},
 		{
 			name: 'contractPositions',

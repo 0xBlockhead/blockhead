@@ -15,6 +15,7 @@ import {
 	candleEntityFromOhlcWireRow,
 } from '$/lib/marketOhlcCandles.ts'
 import { catalogCoinUsdMarketId } from '$/constants/MarketCatalog.ts'
+import { marketTimestampFieldsFromObservation } from '$/resolvers/_marketSpotTimestamp.ts'
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
@@ -32,7 +33,7 @@ export default {
 
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.MarketPrice,
+			entityType: EntityType.Market_Timestamp,
 			resolve: async (entityId) => {
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				const { getCurrentPrices } = await import('$/sources/Defillama/OpenApi/queries.ts')
@@ -44,13 +45,6 @@ export default {
 				const llamaId = (
 					entityId.feedKey?.trim() ?
 						entityId.feedKey.trim()
-					: entityId.$network != null ?
-						(
-							coinId === CoinId.ETH && entityId.$network.chainId === 1 ?
-								defillamaCurrentPriceIdByCoinId[CoinId.ETH]
-							:
-								undefined
-						)
 					: coinId != null ?
 						defillamaCurrentPriceIdByCoinId[coinId]
 					:
@@ -59,15 +53,16 @@ export default {
 				if (llamaId == null) throw new Error('Defillama_OpenApi: no price id')
 				const priceRow = (await getCurrentPrices([llamaId])).coins[llamaId]
 				if (priceRow == null) throw new Error('Defillama_OpenApi: price row missing')
-				const timestampSeconds = priceRow.timestamp
-				return {
-					[EntityMetaKey.Id]: entityId,
+				const timestampMs = priceRow.timestamp * 1000
+				if (entityId.timestampMs !== timestampMs) {
+					throw new Error('Defillama_OpenApi: Market_Timestamp id does not match price clock')
+				}
+				return marketTimestampFieldsFromObservation({
+					timestampMs,
 					price: BigInt(Math.round(priceRow.price * 1e8)),
-					timestampMs: timestampSeconds * 1000,
-					updatedAt: timestampSeconds * 1000,
 					transport: 'defillama-usd-1e8',
 					providerAssetId: llamaId,
-				}
+				})
 			},
 		}),
 
@@ -265,6 +260,47 @@ export default {
 						))
 						.slice(0, lim)
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.MarketPrice,
+			fieldName: '$$quotes',
+			resolve: async (entityId) => {
+				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
+				const { getCurrentPrices } = await import('$/sources/Defillama/OpenApi/queries.ts')
+				const coinId = (
+					entityId.$market.$base.kind === MarketAssetKind.Coin ?
+						entityId.$market.$base.$coin.coinId
+					:	undefined
+				)
+				const llamaId = (
+					entityId.feedKey?.trim() ?
+						entityId.feedKey.trim()
+					: entityId.$network != null ?
+						(
+							coinId === CoinId.ETH && entityId.$network.chainId === 1 ?
+								defillamaCurrentPriceIdByCoinId[CoinId.ETH]
+							:
+								undefined
+						)
+					: coinId != null ?
+						defillamaCurrentPriceIdByCoinId[coinId]
+					:
+						undefined
+				)
+				if (llamaId == null) return []
+				const priceRow = (await getCurrentPrices([llamaId])).coins[llamaId]
+				if (priceRow == null) return []
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$market: entityId.$market,
+							timestampMs: priceRow.timestamp * 1000,
+							...(llamaId != null && llamaId !== '' && { feedKey: llamaId }),
+						},
+					},
+				]
 			},
 		}),
 

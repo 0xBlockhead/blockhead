@@ -6,8 +6,11 @@
 	import {
 		formatMarketIdLabel,
 		MarketAssetKind,
+		MarketKind,
+		marketDerivativeObservationSources,
+		marketKindLabelByKind,
 	} from '$/constants/Market.ts'
-	import { marketVenueById } from '$/constants/MarketVenue.ts'
+	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
@@ -23,6 +26,7 @@
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -43,14 +47,43 @@
 	> = $props()
 
 
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+
+	const market = useEntity(
+		EntityType.Market,
+		entityId,
+		{
+			$: (
+				entityId.marketKind === MarketKind.Spot ?
+					[]
+				:
+					[...marketDerivativeObservationSources]
+			),
+			...(open && entityId.marketKind !== MarketKind.Spot && {
+				fundingRate: {},
+				openInterestUsd: {},
+				indexBasisPercent: {},
+				expiredAtMs: {},
+				derivativeLastTradedAtMs: {},
+			}),
+		},
+	)
+
+
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import CoinView from '$/views/CoinView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
+	import CoinView from '$/views/CoinView.svelte'
+	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 	import CurrencyView from '$/views/CurrencyView.svelte'
 	import MarketOhlcHub from '$/views/MarketOhlcHub.svelte'
 	import MarketPricesView from '$/views/MarketPricesView.svelte'
+	import MarketVenueView from '$/views/MarketVenueView.svelte'
 </script>
 
 
@@ -62,16 +95,66 @@
 	{...entityViewRest}
 	title={formatMarketIdLabel(entityId)}
 >
-	{#snippet Heading()}
-		{formatMarketIdLabel(entityId)}
-	{/snippet}
-
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			<div>
-				<dt>Venue</dt>
-				<dd>{marketVenueById[entityId.$marketVenue.marketVenueId].label}</dd>
+				<dt>Kind</dt>
+				<dd>{marketKindLabelByKind[entityId.marketKind]}</dd>
 			</div>
+			<div>
+				<dt>Venue</dt>
+				<dd>
+					<MarketVenueView
+						entityId={entityId.$marketVenue}
+						href={resolve(
+							'/(assets)/(marketVenues)/market-venue/[marketVenueId]',
+							{ marketVenueId: entityId.$marketVenue.marketVenueId },
+						)}
+						layout={EntityLayout.Title}
+						open={false}
+						showTypeAnnotation={false}
+					/>
+				</dd>
+			</div>
+			{#if entityId.marketKind !== MarketKind.Spot}
+				<ResourceBoundary resource={market}>
+					{#if market.fundingRate != null}
+						<div>
+							<dt>Funding rate</dt>
+							<dd>{market.fundingRate}%</dd>
+						</div>
+					{/if}
+					{#if market.openInterestUsd != null}
+						<div>
+							<dt>Open interest</dt>
+							<dd>
+								<CurrencyAmount
+									currency="USD"
+									scale={1}
+									value={market.openInterestUsd}
+								/>
+							</dd>
+						</div>
+					{/if}
+					{#if market.indexBasisPercent != null}
+						<div>
+							<dt>Index basis</dt>
+							<dd>{market.indexBasisPercent}%</dd>
+						</div>
+					{/if}
+					{#if entityId.marketKind === MarketKind.Futures && market.expiredAtMs != null}
+						<div>
+							<dt>Expires</dt>
+							<dd>
+								<Timestamp
+									timestampMs={market.expiredAtMs}
+									format={TimestampFormat.Datetime}
+								/>
+							</dd>
+						</div>
+					{/if}
+				</ResourceBoundary>
+			{/if}
 			<div>
 				<dt>Base</dt>
 				<dd>
@@ -82,15 +165,26 @@
 								'/(assets)/(coins)/coin/[coinId]',
 								{ coinId: entityId.$base.$coin.coinId },
 							)}
-							layout={EntityLayout.Id}
+							layout={EntityLayout.Title}
 							open={false}
 							showTypeAnnotation={false}
 						/>
 					{:else if entityId.$base.kind === MarketAssetKind.CoinInstance}
 						<CoinInstanceView
 							entityId={entityId.$base.$coinInstance}
-							href={_href}
-							layout={EntityLayout.Id}
+							href={resolve(
+								'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
+								{
+									chainId: String(entityId.$base.$coinInstance.$network.chainId),
+									coinInstanceSlug: (
+										entityId.$base.$coinInstance.type === CoinInstanceType.NativeCurrency ?
+											'native'
+										:
+											entityId.$base.$coinInstance.$contract.address
+									),
+								},
+							)}
+							layout={EntityLayout.Title}
 							open={false}
 							showTypeAnnotation={false}
 						/>
@@ -101,7 +195,7 @@
 								'/(assets)/(currencies)/currency/[iso4217]',
 								{ iso4217: entityId.$base.$currency.iso4217 },
 							)}
-							layout={EntityLayout.Id}
+							layout={EntityLayout.Title}
 							open={false}
 							showTypeAnnotation={false}
 						/>
@@ -118,15 +212,26 @@
 								'/(assets)/(coins)/coin/[coinId]',
 								{ coinId: entityId.$quote.$coin.coinId },
 							)}
-							layout={EntityLayout.Id}
+							layout={EntityLayout.Title}
 							open={false}
 							showTypeAnnotation={false}
 						/>
 					{:else if entityId.$quote.kind === MarketAssetKind.CoinInstance}
 						<CoinInstanceView
 							entityId={entityId.$quote.$coinInstance}
-							href={_href}
-							layout={EntityLayout.Id}
+							href={resolve(
+								'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
+								{
+									chainId: String(entityId.$quote.$coinInstance.$network.chainId),
+									coinInstanceSlug: (
+										entityId.$quote.$coinInstance.type === CoinInstanceType.NativeCurrency ?
+											'native'
+										:
+											entityId.$quote.$coinInstance.$contract.address
+									),
+								},
+							)}
+							layout={EntityLayout.Title}
 							open={false}
 							showTypeAnnotation={false}
 						/>
@@ -137,7 +242,7 @@
 								'/(assets)/(currencies)/currency/[iso4217]',
 								{ iso4217: entityId.$quote.$currency.iso4217 },
 							)}
-							layout={EntityLayout.Id}
+							layout={EntityLayout.Title}
 							open={false}
 							showTypeAnnotation={false}
 						/>
@@ -165,27 +270,29 @@
 			{entityId}
 		/>
 
-		<section data-scroll-marker-label="Spot">
-			<MarketPricesView
-				collapsible={false}
-				entityFieldReference={{
-					entityType: EntityType.Market,
-					entityId,
-					fieldName: '$$marketPrices',
-				}}
-				href={pricingHubHref ?? href}
-				id={`${marketIdKey}:market-prices`}
-				title="Spot"
-			/>
-		</section>
+		{#if entityId.marketKind === MarketKind.Spot}
+			<section data-scroll-marker-label="Spot">
+				<MarketPricesView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Market,
+						entityId,
+						fieldName: '$$marketPrices',
+					}}
+					href={pricingHubHref ?? href}
+					id={`${marketIdKey}:market-prices`}
+					title="Spot"
+				/>
+			</section>
 
-		<section data-scroll-marker-label="OHLC">
-			<MarketOhlcHub
-				candlesListTitle="Candles"
-				id={`${marketIdKey}:market-ohlc`}
-				market={entityId}
-			/>
-		</section>
+			<section data-scroll-marker-label="OHLC">
+				<MarketOhlcHub
+					candlesListTitle="Candles"
+					id={`${marketIdKey}:market-ohlc`}
+					market={entityId}
+				/>
+			</section>
+		{/if}
 
 		{#if children}
 			{@render children()}

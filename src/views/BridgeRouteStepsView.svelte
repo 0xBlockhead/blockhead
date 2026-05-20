@@ -17,6 +17,7 @@
 		href,
 		title = 'Steps',
 		open = $bindable(true),
+		collapsible = true,
 		...entitiesListProps
 	}: WithRest<
 		{
@@ -43,47 +44,6 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					$: [
-						Source.Constants_Internal,
-						Source.Lifi_Rest,
-					],
-					[entityFieldReference.fieldName]: {
-						$: [
-							Source.Constants_Internal,
-							Source.Lifi_Rest,
-						],
-					},
-				}
-			:
-				{}
-		),
-	)
-
-	const steps = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.BridgeRouteStep>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return (
-				rows
-					.toSorted((a, b) => (
-						a[EntityMetaKey.Id].index - b[EntityMetaKey.Id].index
-					))
-					.map((value) => ({
-						value,
-					}))
-			)
-		},
-	)
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -96,11 +56,7 @@
 	entityType={EntityType.BridgeRouteStep}
 	{title}
 	bind:open
-	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	getSortValue={(envelope) => String(envelope.value[EntityMetaKey.Id].index)}
-	placeholderKeys={new SvelteSet()}
-	resource={steps}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{collapsible}
 	{...entitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -115,14 +71,66 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: envelope })}
-		{#if envelope}
-			<BridgeRouteStepView
-				entityId={envelope.value[EntityMetaKey.Id]}
-				{href}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [
+						Source.Constants_Internal,
+						Source.Lifi_Rest,
+					],
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Constants_Internal,
+							Source.Lifi_Rest,
+						],
+					},
+				},
+			)}
+			{@const steps = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.BridgeRouteStep>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						rows.map((value) => ({
+							value,
+						}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.BridgeRouteStep}
+				{title}
+				open={true}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getSortValue={(envelope) => String(envelope.value[EntityMetaKey.Id].index)}
+				placeholderKeys={new SvelteSet()}
+				resource={steps}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No steps on this route.
+					</p>
+				{/snippet}
+
+				{#snippet Item({ item: envelope })}
+					{#if envelope}
+						<BridgeRouteStepView
+							entityId={envelope.value[EntityMetaKey.Id]}
+							{href}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

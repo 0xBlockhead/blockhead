@@ -136,6 +136,7 @@
 	{layout}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
@@ -148,7 +149,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{`${proposalCategoryById[entityId.category].label}-${entityId.number}`}
 		</span>
@@ -248,7 +249,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<a
 						data-scroll-marker-label="Document body"
 						href={`#${proposalDomId}:document-body`}
@@ -259,7 +260,7 @@
 					>Metadata</a>
 				{/snippet}
 
-				{#snippet children(_childrenContext)}
+				{#snippet body(_childrenContext)}
 					<section
 						id={`${proposalDomId}:document-body`}
 					>

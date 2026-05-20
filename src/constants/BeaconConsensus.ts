@@ -1,28 +1,33 @@
 // Types
 import { ChainId } from '$/constants/ChainId.ts'
+import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 
 
 // Constants
 export const slotsPerEpoch = 32
 
-/** Consensus (beacon) layer rows: execution `chainId` → beacon REST `/eth/v1/…` (browser: `proxyFetch` + hooks allow-list). */
+/** Execution L1 networks with a paired beacon (consensus) REST API — not L2 rollups or execution-only chains. */
 export const beaconRestBases = [
 	{
 		chainId: ChainId.Ethereum,
 		restBaseUrl: 'https://ethereum-beacon-api.publicnode.com',
+		consensusProtocol: ConsensusProtocol.EthereumBeacon,
 	},
 	{
 		chainId: ChainId.EthereumSepolia,
 		restBaseUrl: 'https://ethereum-sepolia-beacon-api.publicnode.com',
+		consensusProtocol: ConsensusProtocol.EthereumBeacon,
 	},
 	{
 		/** Holesky execution L1 (EIP-6969). */
 		chainId: 17_000,
 		restBaseUrl: 'https://ethereum-holesky-beacon-api.publicnode.com',
+		consensusProtocol: ConsensusProtocol.EthereumBeacon,
 	},
 ] as const satisfies readonly {
 	chainId: number
 	restBaseUrl: string
+	consensusProtocol: ConsensusProtocol
 }[]
 
 
@@ -32,4 +37,19 @@ export const beaconRestBaseByExecutionChainId: Readonly<Record<number, string>> 
 		row.chainId,
 		row.restBaseUrl,
 	]),
+)
+
+export const consensusProtocolByExecutionChainId: Readonly<Record<number, ConsensusProtocol>> = (
+	Object.fromEntries(
+		beaconRestBases.map((row) => [
+			row.chainId,
+			row.consensusProtocol,
+		]),
+	)
+)
+
+export const consensusProtocolForExecutionChainId = (
+	chainId: number,
+): ConsensusProtocol | undefined => (
+	consensusProtocolByExecutionChainId[chainId]
 )

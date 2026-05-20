@@ -112,7 +112,7 @@ export default {
 				return (
 					((await singleFlight(redditListPopularLinks)(publicEnv, limit)).data.children ?? [])
 						.flatMap((child) => (
-							child.kind !== 't3' || typeof child.data.name !== 'string' ?
+							child.kind !== 't3' || child.data.name == null ?
 								[]
 							:	[
 								{
@@ -134,7 +134,7 @@ export default {
 				return (
 					((await singleFlight(redditListSubredditLinks)(publicEnv, entityId.name, limit)).data.children ?? [])
 						.flatMap((child) => (
-							child.kind !== 't3' || typeof child.data.name !== 'string' ?
+							child.kind !== 't3' || child.data.name == null ?
 								[]
 							:	[
 								{
@@ -156,19 +156,17 @@ export default {
 				const info = (await singleFlight(redditGetInfo)(publicEnv, entityId.fullname)).data.children[0]
 				const permalink = (
 					info != null
-					&& info.kind === 't3'
-					&& typeof info.data.permalink === 'string'
-					&& info.data.permalink.optionalTrimmedString() !== ''
-				) ?
-					info.data.permalink.optionalTrimmedString()
-				:	undefined
+					&& info.kind === 't3' ?
+						optionalTrimmedString(info.data.permalink)
+					:	undefined
+				)
 				if (permalink == null) {
 					throw new Error('Reddit_Rest: link permalink missing for comments')
 				}
 				return (
 					((await singleFlight(redditGetLinkComments)(publicEnv, permalink, limit))[1]?.data.children ?? [])
 						.flatMap((child) => (
-							child.kind !== 't1' || typeof child.data.name !== 'string' ?
+							child.kind !== 't1' || child.data.name == null ?
 								[]
 							:	[{ [EntityMetaKey.Id]: { fullname: child.data.name } }]
 						))

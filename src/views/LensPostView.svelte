@@ -77,8 +77,9 @@
 	{href}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.id}
 		</span>
@@ -132,7 +133,8 @@
 										href={resolve('/(social)/lens/account/[address]', {
 											address: lensPost.$author[EntityMetaKey.Id].address,
 										})}
-										layout={EntityLayout.Id}
+										layout={EntityLayout.Title}
+										open={false}
 										showTypeAnnotation={false}
 									/>
 								</dd>
@@ -205,8 +207,7 @@
 					{/if}
 				{/snippet}
 
-				{#snippet children({
-					open: _paneOpen,
+				{#snippet body({ open: _paneOpen,
 				})}
 					<section
 						data-scroll-marker-label="Record"

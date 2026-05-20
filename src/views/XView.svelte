@@ -191,7 +191,7 @@
 					>Examples</a>
 				{/snippet}
 
-				{#snippet children({ open: _o })}
+				{#snippet body({ open: _o })}
 					<section
 						id={`${networkIdKey}:profiles`}
 						data-scroll-marker-label="Profiles"

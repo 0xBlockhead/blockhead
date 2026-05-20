@@ -14,7 +14,6 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import FarcasterUserView from '$/views/FarcasterUserView.svelte'
 
 
@@ -25,6 +24,7 @@
 		href = resolve('/farcaster/users'),
 		title = 'Users',
 		open = $bindable(true),
+		collapsible = true,
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.FarcasterUser>
 		id?: string
@@ -40,35 +40,6 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-
-	const parentNetwork = useEntity(
-		EntityType.FarcasterNetwork,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					$: [Source.Farcaster_Rest],
-					protocolName: {},
-					$$users: { $: [Source.Snapchain_Rest] },
-				}
-			:
-				{}
-		),
-	)
-
-	const users = derive(
-		parentNetwork,
-		(parentNetwork) => (
-			[...(parentNetwork.$$users ?? [])]
-				.toSorted((a, b) => (
-					a[EntityMetaKey.Id].fid - b[EntityMetaKey.Id].fid
-				))
-				.map((value) => ({
-					value,
-				}))
-		),
-	)
 </script>
 
 
@@ -78,11 +49,7 @@
 	{href}
 	{title}
 	bind:open
-	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-	getSortValue={(row) => row.value[EntityMetaKey.Id].fid}
-	placeholderKeys={new SvelteSet()}
-	placeholderText="Loading Farcaster users…"
-	resource={users}
+	{collapsible}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -99,17 +66,60 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			{@const userId = props.item.value[EntityMetaKey.Id]}
-			<FarcasterUserView
-				entityId={{ fid: userId.fid }}
-				href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-					userId: String(userId.fid),
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const parentNetwork = useEntity(
+				EntityType.FarcasterNetwork,
+				entityFieldReference.entityId,
+				{
+					$: [Source.Farcaster_Rest],
+					protocolName: {},
+					$$users: { $: [Source.Snapchain_Rest] },
+				},
+			)}
+			{@const users = derive(
+				parentNetwork,
+				(parentNetwork) => (
+					[...(parentNetwork.$$users ?? [])]
+						.map((value) => ({
+							value,
+						}))
+				),
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.FarcasterUser}
+				id={`${id}-items`}
+				{href}
+				{title}
+				open={true}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getSortValue={(row) => row.value[EntityMetaKey.Id].fid}
+				placeholderKeys={new SvelteSet()}
+				placeholderText="Loading Farcaster users…"
+				resource={users}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No Farcaster users in this list yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item(props)}
+					{#if props.item}
+						{@const userId = props.item.value[EntityMetaKey.Id]}
+						<FarcasterUserView
+							entityId={{ fid: userId.fid }}
+							href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+								userId: String(userId.fid),
+							})}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

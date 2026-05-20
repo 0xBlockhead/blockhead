@@ -79,8 +79,9 @@
 	{layout}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.id}
 		</span>

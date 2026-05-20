@@ -1,4 +1,4 @@
-import { MarketAssetKind } from '$/constants/Market.ts'
+import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
 import {
 	catalogMarketsWithCurrencyAsBase,
 	catalogMarketsWithCurrencyAsQuote,
@@ -37,6 +37,8 @@ export default {
 				return {
 					[EntityMetaKey.Id]: entityId,
 					price: BigInt(Math.round(quote.price * 1e8)),
+					transport: 'tradingview-crypto-quotes-usd-1e8',
+					providerAssetId: market.ticker,
 				}
 			},
 		}),
@@ -60,6 +62,7 @@ export default {
 								$marketVenue: {
 									marketVenueId: market.marketVenueId,
 								},
+								marketKind: MarketKind.Spot,
 							} as const,
 						}))
 				)
@@ -84,6 +87,7 @@ export default {
 									$marketVenue: {
 										marketVenueId: market.marketVenueId,
 									},
+									marketKind: MarketKind.Spot,
 								} as const,
 							},
 						}))
@@ -111,6 +115,7 @@ export default {
 							$marketVenue: {
 								marketVenueId: market.marketVenueId,
 							},
+							marketKind: MarketKind.Spot,
 						} as const,
 					},
 				]

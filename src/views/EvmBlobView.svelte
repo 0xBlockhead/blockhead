@@ -16,7 +16,7 @@
 
 	// Props
 	let {
-		children,
+		children: _children,
 		entityId,
 		href,
 		open = $bindable(true),
@@ -267,12 +267,12 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<a
 						data-scroll-marker-label="Blob primer"
 						href={`#${blobIdKey}:blob-semantics`}
 					>Consensus + execution roles</a>
-					{#if children}
+					{#if _children}
 						<a
 							data-scroll-marker-label="Route"
 							href={`#${blobIdKey}:page-content`}
@@ -280,7 +280,7 @@
 					{/if}
 				{/snippet}
 
-				{#snippet children(_ctx)}
+				{#snippet body(_ctx)}
 					<section
 						id={`${blobIdKey}:blob-semantics`}
 					>
@@ -298,11 +298,11 @@
 						</div>
 					</section>
 
-					{#if children}
+					{#if _children}
 						<section
 							id={`${blobIdKey}:page-content`}
 						>
-							{@render children()}
+							{@render _children()}
 						</section>
 					{/if}
 				{/snippet}

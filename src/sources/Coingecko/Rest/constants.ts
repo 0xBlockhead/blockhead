@@ -2062,3 +2062,14 @@ export const coingeckoCatalogCoinIds: readonly CoinId[] = catalog.flatMap((entry
 		[]
 :	[entry.coinId]
 ))
+
+
+/** CoinGecko derivatives exchange id per catalog venue (`binance` spot vs `binance_futures`). */
+export const coingeckoDerivativesExchangeIdByMarketVenueId = {
+	Binance: 'binance_futures',
+	Coinbase: 'coinbase_international_derivatives',
+	Deribit: 'deribit',
+	Kraken: 'kraken_futures',
+	Kucoin: 'kucoin_futures',
+	Okx: 'okex_swap',
+} as const

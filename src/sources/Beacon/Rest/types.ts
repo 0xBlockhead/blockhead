@@ -16,3 +16,21 @@ export type BeaconValidatorSummary = {
 	slashed: boolean
 	status: string
 }
+
+export type BeaconFinalityCheckpoint = {
+	epoch: number
+	root: `0x${string}`
+}
+
+export type BeaconFinalityCheckpoints = {
+	previousJustified: BeaconFinalityCheckpoint
+	currentJustified: BeaconFinalityCheckpoint
+	finalized: BeaconFinalityCheckpoint
+}
+
+/** One row from `GET /eth/v1/config/fork_schedule`. */
+export type BeaconForkScheduleEntry = {
+	epoch: number
+	previousVersion: `0x${string}`
+	currentVersion: `0x${string}`
+}

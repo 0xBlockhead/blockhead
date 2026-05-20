@@ -22,6 +22,7 @@
 		variant = 'hub',
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -48,6 +49,7 @@
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	const cast = useEntity(
 		EntityType.FarcasterCast,
@@ -114,6 +116,7 @@
 	{href}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Icon()}
 		{#if variant === 'feed'}
@@ -157,7 +160,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.hash}
 		</span>
@@ -438,8 +441,7 @@
 					{/if}
 				{/snippet}
 
-				{#snippet children({
-					open: _paneOpen,
+				{#snippet body({ open: _paneOpen,
 				})}
 					<section
 						data-scroll-marker-label="Record"

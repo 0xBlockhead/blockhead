@@ -22,6 +22,7 @@
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -89,6 +90,7 @@
 	{href}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
@@ -121,7 +123,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.localAccountId}
 		</span>
@@ -164,7 +166,7 @@
 						<div>
 							<dt>Local account id</dt>
 							<dd data-text="mono">
-								{@render Id()}
+								{@render Title()}
 							</dd>
 						</div>
 					{/if}
@@ -237,7 +239,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<a
 						data-scroll-marker-label="Profile"
 						href={`#${idKey}:mastodon-profile`}
@@ -248,7 +250,7 @@
 					>Outbox</a>
 				{/snippet}
 
-				{#snippet children(_activityChildrenContext)}
+				{#snippet body(_activityChildrenContext)}
 					<section
 						data-scroll-marker-label="Profile"
 						id={`${idKey}:mastodon-profile`}

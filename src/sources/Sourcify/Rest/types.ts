@@ -17,13 +17,6 @@ export type SourcifyContractMetadataWire = {
 	[key: string]: JsonValue
 }
 
-export type SourcifyContractSourceMetadata = {
-	compiler?: string
-	language?: string
-	sources?: Record<string, JsonValue>
-	fullyQualifiedName?: string
-}
-
 export type SourcifyContractCompilationWire = {
 	compiler?: string
 	compilerVersion?: string
@@ -42,6 +35,15 @@ export type SourcifyContractDeploymentWire = {
 	[key: string]: JsonValue
 }
 
+export type SourcifyProxyResolutionWire = {
+	isProxy?: boolean
+	proxyType?: string
+	implementations?: {
+		address?: string
+	}[]
+	[key: string]: JsonValue
+}
+
 export type SourcifyContractLookupWire = {
 	matchId?: string | null
 	creationMatch?: string | null
@@ -55,5 +57,7 @@ export type SourcifyContractLookupWire = {
 	deployment?: SourcifyContractDeploymentWire
 	sources?: Record<string, SourcifyContractSourceWire>
 	metadata?: SourcifyContractMetadataWire
+	storageLayout?: JsonValue
+	proxyResolution?: SourcifyProxyResolutionWire
 	[key: string]: JsonValue
 }

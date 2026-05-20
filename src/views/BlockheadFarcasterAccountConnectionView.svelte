@@ -37,6 +37,7 @@
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -98,6 +99,7 @@
 	{href}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
@@ -115,7 +117,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			FID {String(entityId.fid)}
 		</span>
@@ -247,7 +249,7 @@
 					>Farcaster feed</a>
 				{/snippet}
 
-				{#snippet children(_childrenContext)}
+				{#snippet body(_childrenContext)}
 					<section
 						id={`${connectionIdKey}:feed`}
 					>

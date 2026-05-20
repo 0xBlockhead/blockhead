@@ -12,12 +12,17 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
 		children,
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -95,8 +100,9 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Address from '$/views/Address.svelte'
 	import CoinBridgeCapabilitiesView from '$/views/CoinBridgeCapabilitiesView.svelte'
+	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
+	import EvmContractView from '$/views/EvmContractView.svelte'
 	import MarketsView from '$/views/MarketsView.svelte'
 </script>
 
@@ -107,6 +113,7 @@
 	{entityId}
 	{href}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Icon()}
 		<ResourceBoundary
@@ -135,7 +142,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={coinInstance}
 			placeholderText=""
@@ -173,9 +180,18 @@
 							{#if entityId.type === CoinInstanceType.NativeCurrency}
 								Native
 							{:else}
-								<Address
-									network={entityId.$contract.$network}
-									address={entityId.$contract.address}
+								<EvmContractView
+									entityId={entityId.$contract}
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+										{
+											networkId: String(entityId.$contract.$network.chainId),
+											address: entityId.$contract.address,
+										},
+									)}
+									layout={EntityLayout.Title}
+									open={false}
+									showTypeAnnotation={false}
 								/>
 							{/if}
 						</dd>
@@ -232,8 +248,22 @@
 								<dd>
 									<CoinInstanceView
 										entityId={coinInstance.$canonicalInstance[EntityMetaKey.Id]}
-										href={_href}
-										layout={EntityLayout.Id}
+										href={resolve(
+											'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
+											{
+												chainId: String(
+													coinInstance.$canonicalInstance[EntityMetaKey.Id].$network.chainId,
+												),
+												coinInstanceSlug: (
+													coinInstance.$canonicalInstance[EntityMetaKey.Id].type
+														=== CoinInstanceType.NativeCurrency ?
+														'native'
+													:
+														coinInstance.$canonicalInstance[EntityMetaKey.Id].$contract.address
+												),
+											},
+										)}
+										layout={EntityLayout.Title}
 										open={false}
 										showTypeAnnotation={false}
 									/>
@@ -273,7 +303,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<ResourceBoundary resource={coinInstance}>
 						{#snippet children(coinInstance)}
 							{#if (coinInstance.$$outboundBridgeCapabilities ?? []).length}
@@ -293,7 +323,7 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet children(_childrenContext)}
+				{#snippet body(_childrenContext)}
 					<ResourceBoundary resource={coinInstance}>
 						{#snippet children(coinInstance)}
 							{#if (coinInstance.$$outboundBridgeCapabilities ?? []).length}
@@ -309,7 +339,6 @@
 											fieldName: '$$outboundBridgeCapabilities',
 										}}
 										{href}
-										open={false}
 										title="Outbound"
 									/>
 								</section>
@@ -328,7 +357,6 @@
 											fieldName: '$$inboundBridgeCapabilities',
 										}}
 										{href}
-										open={false}
 										title="Inbound"
 									/>
 								</section>
@@ -353,7 +381,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<ResourceBoundary resource={coinInstance}>
 						{#snippet children(coinInstance)}
 							{#if (coinInstance.$$marketsWithInstanceAsBase ?? []).length}
@@ -373,7 +401,7 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet children(_childrenContext)}
+				{#snippet body(_childrenContext)}
 					<ResourceBoundary resource={coinInstance}>
 						{#snippet children(coinInstance)}
 							{#if (coinInstance.$$marketsWithInstanceAsBase ?? []).length}
@@ -387,7 +415,6 @@
 										}}
 										{href}
 										id={`${coinInstanceKey}:markets-base`}
-										open={false}
 										title="Base"
 									/>
 								</section>
@@ -404,7 +431,6 @@
 										}}
 										{href}
 										id={`${coinInstanceKey}:markets-quote`}
-										open={false}
 										title="Quote"
 									/>
 								</section>

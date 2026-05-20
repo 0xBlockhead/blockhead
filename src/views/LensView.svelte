@@ -148,7 +148,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<a
 						data-scroll-marker-label="Profiles"
 						href={`#${networkIdKey}:registry-accounts`}
@@ -163,7 +163,7 @@
 					>Examples</a>
 				{/snippet}
 
-				{#snippet children()}
+				{#snippet body({ open: _open })}
 					<section
 						data-scroll-marker-label="Profiles"
 						id={`${networkIdKey}:registry-accounts`}

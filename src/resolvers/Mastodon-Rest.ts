@@ -18,7 +18,7 @@ const mastodonAvatarUrl = (
 	value: string | null | undefined,
 	options?: { siteOrigin?: string },
 ) => {
-	const raw = typeof value === 'string' ? value.trim() : ''
+	const raw = value?.trim() ?? ''
 	if (raw.length === 0) return undefined
 	const withOrigin = (
 		raw.startsWith('/') && options?.siteOrigin != null ?

@@ -4,8 +4,8 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { stringify } from 'devalue'
 	import { schema } from '$/schema/index.ts'
-	import { quoteIso4217FromMarketId } from '$/constants/Currency.ts'
 	import { formatMarketIdLabel } from '$/constants/Market.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -56,21 +56,21 @@
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_OpenApi,
 				Source.TradingView_Rest,
+				Source.Blockscout_Rest,
 			],
 			$$parentMarket: {},
-			...(open && {
-				$$quotes: {
-					$: [
-						Source.TradingView_Rest,
-					],
-				},
-			}),
-			caip19: {},
-			price: {},
-			providerAssetId: {},
-			timestampMs: {},
-			transport: {},
-			updatedAt: {},
+			$$quotes: {
+				$: [
+					Source.Blockscout_Rest,
+					Source.Coingecko_Rest,
+					Source.Coingecko_OpenApi,
+					Source.CoinMarketCap_Rest,
+					Source.Coinpaprika_OpenApi,
+					Source.Defillama_OpenApi,
+					Source.TradingView_Rest,
+				],
+				$limit: 32,
+			},
 		},
 	)
 
@@ -79,11 +79,9 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
-	import MarketView from '$/views/MarketView.svelte'
+	import Market_TimestampView from '$/views/Market_TimestampView.svelte'
 	import Market_TimestampsView from '$/views/Market_TimestampsView.svelte'
-	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 </script>
 
 
@@ -102,12 +100,13 @@
 	{open}
 	title={formatMarketIdLabel(entityId.$market)}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 		{formatMarketIdLabel(entityId.$market)}
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{(
 				entityId.feedKey != null && entityId.feedKey !== '' ?
@@ -123,84 +122,27 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={marketPrice}
-			placeholderText="Loading price…"
+			placeholderText="Loading quotes…"
 		>
 			{#snippet children(marketPrice)}
-				{#if (
-					marketPrice.price !== undefined
-					|| marketPrice.caip19 !== undefined
-					|| marketPrice.timestampMs !== undefined
-					|| open && (
-						marketPrice.updatedAt !== undefined
-						|| marketPrice.transport !== undefined
-						|| marketPrice.providerAssetId !== undefined
-					)
+				{@const headQuoteId = (
+					(marketPrice.$$quotes ?? [])
+						.toSorted((
+							leftQuote,
+							rightQuote,
+						) => (
+							rightQuote[EntityMetaKey.Id].timestampMs
+								- leftQuote[EntityMetaKey.Id].timestampMs
+						))[0]
+						?.[EntityMetaKey.Id]
 				)}
-					<dl data-column-item="center">
-						{#if marketPrice.price !== undefined}
-							<div>
-								<dt>Quoted price ({quoteIso4217FromMarketId(entityId.$market)}, spot or composite index)</dt>
-								<dd>
-									<CurrencyAmount
-										currency={quoteIso4217FromMarketId(entityId.$market)}
-										showDecimalPlaces={6}
-										value={marketPrice.price}
-									/>
-								</dd>
-							</div>
-						{/if}
-
-						{#if marketPrice.caip19 !== undefined}
-							<div>
-								<dt>CAIP-19</dt>
-								<dd>
-									<code>{marketPrice.caip19}</code>
-								</dd>
-							</div>
-						{/if}
-
-						{#if marketPrice.timestampMs !== undefined}
-							<div>
-								<dt>Index / quote clock</dt>
-								<dd>
-									<Timestamp
-										timestamp={marketPrice.timestampMs}
-										format={TimestampFormat.Both}
-									/>
-								</dd>
-							</div>
-						{/if}
-
-						{#if open}
-							{#if marketPrice.updatedAt !== undefined}
-								<div>
-									<dt>Updated</dt>
-									<dd>
-										<Timestamp
-											timestamp={marketPrice.updatedAt}
-											format={TimestampFormat.Both}
-										/>
-									</dd>
-								</div>
-							{/if}
-
-							{#if marketPrice.transport !== undefined}
-								<div>
-									<dt>Transport</dt>
-									<dd>{marketPrice.transport}</dd>
-								</div>
-							{/if}
-
-							{#if marketPrice.providerAssetId !== undefined}
-								{#if marketPrice.providerAssetId !== null}
-									<div>
-										<dt>Provider asset id</dt>
-										<dd>{marketPrice.providerAssetId}</dd>
-									</div>
-								{/if}
-							{/if}
-						{/if}
-					</dl>
+				{#if headQuoteId}
+					<Market_TimestampView
+						entityId={headQuoteId}
+						layout={EntityLayout.Summary}
+						open={false}
+						showTypeAnnotation={false}
+					/>
 				{:else}
 					<div data-row="wrap align-center gap-2">
 						<p data-text="muted">
@@ -209,15 +151,13 @@
 						<Tooltip contentProps={{ side: 'top' }}>
 							{#snippet Content()}
 								<p>
-									OHLC ranges aggregate trades or mids into open, high, low, close buckets per interval for the same base/quote/venue.
-								</p>
-								<p>
-									A market price row is one timestamped spot or index print—not a rolled candle.
+									Quotes are timestamped rows on <code>Market_Timestamp</code>
+									(<code>$$quotes</code>), not fields on this stream header.
 								</p>
 							{/snippet}
 							<abbr
 								class="entity-heading-tip"
-								aria-label="Quote vs OHLC ranges"
+								aria-label="Quote stream vs timestamp rows"
 							>ⓘ</abbr>
 						</Tooltip>
 					</div>
@@ -234,41 +174,16 @@
 			{entityId}
 		/>
 
-		<section data-scroll-marker-label="Quote history">
-			<Market_TimestampsView
-				collapsible={false}
-				entityFieldReference={{
-					entityType: EntityType.MarketPrice,
-					entityId,
-					fieldName: '$$quotes',
-				}}
-				href={resolve('/(assets)/(markets)/market/[marketKey]', {
-					marketKey: encodeURIComponent(stringify(entityId.$market)),
-				})}
-				id={`${stringify(entityId)}:quotes`}
-				title="Quotes (timestamped)"
-			/>
-		</section>
-
-		<section data-scroll-marker-label="Pair market">
-			<MarketView
-				entityId={entityId.$market}
-				href={resolve(
-					'/(assets)/(markets)/market/[marketKey]',
-					{
-						marketKey: (
-							encodeURIComponent(
-								stringify(entityId.$market),
-							)
-						),
-					},
-				)}
-				id={`${stringify(entityId)}:parent-market`}
-				layout={EntityLayout.Id}
-				open={false}
-				showTypeAnnotation={false}
-			/>
-		</section>
+		<Market_TimestampsView
+			collapsible={false}
+			entityFieldReference={{
+				entityType: EntityType.MarketPrice,
+				entityId,
+				fieldName: '$$quotes',
+			}}
+			open={false}
+			title="Quotes"
+		/>
 
 		{#if children}
 			{@render children()}

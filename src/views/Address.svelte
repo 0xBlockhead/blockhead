@@ -15,6 +15,8 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 
+	import { blo } from 'blo'
+
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import Icon, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -77,9 +79,10 @@
 				<span data-row="inline wrap gap-1 align-center">
 					{#if showAvatar}
 						<Icon
-							shape={IconShape.Circle}
-							icon="◉"
+							shape={IconShape.Square}
+							src={blo(shownAddress)}
 							size="1.5em"
+							alt=""
 						/>
 					{/if}
 
@@ -120,21 +123,12 @@
 				<span data-row="inline wrap gap-1 align-center">
 					{#if showAvatar}
 						{@const avatarHref = actor.$icon?.[EntityMetaKey.Id].url}
-						{#if avatarHref}
-							<Icon
-								shape={IconShape.Circle}
-								src={avatarHref}
-								size="1.5em"
-								alt={ensNameProp ?? ''}
-							/>
-						{:else}
-							<Icon
-								shape={IconShape.Circle}
-								icon="◉"
-								size="1.5em"
-								alt=""
-							/>
-						{/if}
+						<Icon
+							shape={avatarHref ? IconShape.Circle : IconShape.Square}
+							src={avatarHref ?? blo(shownAddress)}
+							size="1.5em"
+							alt={ensNameProp ?? ''}
+						/>
 					{/if}
 
 					<span data-text="font-monospace">

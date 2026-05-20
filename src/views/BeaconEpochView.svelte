@@ -101,6 +101,7 @@
 	bind:open
 	idDragPlainText={String(entityId.epoch)}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 
@@ -109,9 +110,16 @@
 		</span>
 	{/snippet}
 
-	{#snippet Id()}
-		<span data-text="font-monospace">
-			chain {String(entityId.$network.chainId)}
+	{#snippet Title()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Epoch </span>
+			<span
+				data-badge="small"
+				data-text="font-monospace"
+				data-epoch-number={String(entityId.epoch)}
+			>
+				{String(entityId.epoch)}
+			</span>
 		</span>
 	{/snippet}
 
@@ -187,7 +195,7 @@
 					>Slots</a>
 				{/snippet}
 
-				{#snippet children(_childrenContext)}
+				{#snippet body(_childrenContext)}
 					<section>
 						<BeaconSlotsView
 							entityFieldReference={{
@@ -202,7 +210,6 @@
 								},
 							)}
 							id={`${epochIdKey}:beacon-slots`}
-							open={false}
 							title="Slots"
 						/>
 					</section>

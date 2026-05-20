@@ -33,6 +33,7 @@
 		entityFieldReference,
 		title = 'Agent conversations',
 		open = $bindable(true),
+		collapsible = true,
 		href = resolve('/~/agents'),
 		id = 'agents',
 		...entitiesListForward
@@ -57,34 +58,6 @@
 	const globalId = (
 		{} satisfies EntityId<typeof schema, EntityType._Global>
 	)
-
-	const global = useEntity(
-		EntityType._Global,
-		entityFieldReference?.entityId ?? globalId,
-		(
-			open ?
-				{
-					$: [
-						Source.Local_Internal,
-					],
-					$$blockheadAgentConversations: {},
-				}
-			:
-				{
-					$: [
-						Source.Local_Internal,
-					],
-				}
-		),
-	)
-
-	const conversations = derive(
-		global,
-		(global) => (
-			global.$$blockheadAgentConversations
-			?? []
-		),
-	)
 </script>
 
 
@@ -93,12 +66,8 @@
 	{href}
 	{id}
 	bind:open
-	getKey={(conversation) => stringify(conversation[EntityMetaKey.Id])}
-	getSortValue={(conversation) => conversation.updatedAt}
-	placeholderText="Loading conversations…"
-	resource={conversations}
+	{collapsible}
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListForward}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -116,29 +85,70 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: conversation })}
-		{#if conversation}
-			<BlockheadAgentConversationView
-				entityId={{
-					id: conversation[EntityMetaKey.Id].id,
-				}}
-				href={(
-					href.includes('/~/agents') ?
-						`/~/agents/conversations/conversation/${encodeURIComponent(conversation[EntityMetaKey.Id].id)}`
-					:
-						resolve(
-							'/(explore)/(agents)/agent/[agentId]',
-							{
-								agentId: encodeURIComponent(
-									conversation[EntityMetaKey.Id].id,
-								),
-							},
-						)
-				)}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const global = useEntity(
+				EntityType._Global,
+				entityFieldReference?.entityId ?? globalId,
+				{
+					$: [
+						Source.Local_Internal,
+					],
+					$$blockheadAgentConversations: {},
+				},
+			)}
+			{@const conversations = derive(
+				global,
+				(global) => (
+					global.$$blockheadAgentConversations
+					?? []
+				),
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.BlockheadAgentConversation}
+				{href}
+				id={`${id}-items`}
+				open={true}
+				getKey={(conversation) => stringify(conversation[EntityMetaKey.Id])}
+				getSortValue={(conversation) => -conversation.updatedAt}
+				placeholderText="Loading conversations…"
+				resource={conversations}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No conversations yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item({ item: conversation })}
+					{#if conversation}
+						<BlockheadAgentConversationView
+							entityId={{
+								id: conversation[EntityMetaKey.Id].id,
+							}}
+							href={(
+								href.includes('/~/agents') ?
+									`/~/agents/conversations/conversation/${encodeURIComponent(conversation[EntityMetaKey.Id].id)}`
+								:
+									resolve(
+										'/(explore)/(agents)/agent/[agentId]',
+										{
+											agentId: encodeURIComponent(
+												conversation[EntityMetaKey.Id].id,
+											),
+										},
+									)
+							)}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>
-

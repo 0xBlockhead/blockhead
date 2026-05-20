@@ -79,8 +79,9 @@
 	{href}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.feedId}
 		</span>
@@ -186,8 +187,7 @@
 					{/if}
 				{/snippet}
 
-				{#snippet children({
-					open: _paneOpen,
+				{#snippet body({ open: _paneOpen,
 				})}
 					<section
 						data-scroll-marker-label="Record"
@@ -211,7 +211,6 @@
 							href={href}
 							id={`${feedDetailKey}:entries`}
 							{limit}
-							open={false}
 							title="Feed"
 						/>
 					</section>

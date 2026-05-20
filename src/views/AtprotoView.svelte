@@ -42,6 +42,7 @@
 
 	let {
 		open = $bindable(true),
+		collapsible = true,
 	}: {
 		open?: boolean
 	} = $props()
@@ -179,7 +180,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<a
 						data-scroll-marker-label="Accounts"
 						href={`#${networkIdKey}:registry-actors`}
@@ -194,7 +195,7 @@
 					>Examples</a>
 				{/snippet}
 
-				{#snippet children()}
+				{#snippet body({ open: _open })}
 					<section
 						data-scroll-marker-label="Accounts"
 						id={`${networkIdKey}:registry-actors`}

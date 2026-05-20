@@ -20,6 +20,7 @@
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -42,6 +43,7 @@
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	const bridgeRoute = useEntity(
 		EntityType.BridgeRoute,
@@ -87,6 +89,7 @@
 	{entityId}
 	{href}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
@@ -101,7 +104,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			LI.FI quote
 		</span>
@@ -129,7 +132,7 @@
 									'/(explore)/(networks)/network/[networkId]',
 									{ networkId: String(entityId.fromChainId) },
 								)}
-								layout={EntityLayout.Id}
+								layout={EntityLayout.Title}
 								open={false}
 								showTypeAnnotation={false}
 							/>
@@ -144,7 +147,7 @@
 									'/(explore)/(networks)/network/[networkId]',
 									{ networkId: String(entityId.toChainId) },
 								)}
-								layout={EntityLayout.Id}
+								layout={EntityLayout.Title}
 								open={false}
 								showTypeAnnotation={false}
 							/>

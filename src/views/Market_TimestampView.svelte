@@ -21,6 +21,7 @@
 		href,
 		layout,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -46,16 +47,27 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+
 	const marketTimestamp = useEntity(
 		EntityType.Market_Timestamp,
 		entityId,
 		{
-			$: [Source.TradingView_Rest],
+			$: [
+				Source.Blockscout_Rest,
+				Source.Coingecko_Rest,
+				Source.Coingecko_OpenApi,
+				Source.CoinMarketCap_Rest,
+				Source.Coinpaprika_OpenApi,
+				Source.Defillama_OpenApi,
+				Source.TradingView_Rest,
+			],
 			price: {},
 			...(open && {
 				caip19: {},
 				marketCap: {},
 				volume24h: {},
+				transport: {},
+				providerAssetId: {},
 			}),
 		},
 	)
@@ -142,7 +154,7 @@
 										marketKey: encodeURIComponent(stringify(entityId.$market)),
 									},
 								)}
-								layout={EntityLayout.Id}
+								layout={EntityLayout.Title}
 								open={false}
 								showTypeAnnotation={false}
 							/>
@@ -181,6 +193,22 @@
 									<code>{marketTimestamp.caip19}</code>
 								</dd>
 							</div>
+						{/if}
+
+						{#if marketTimestamp.transport !== undefined}
+							<div>
+								<dt>Transport</dt>
+								<dd>{marketTimestamp.transport}</dd>
+							</div>
+						{/if}
+
+						{#if marketTimestamp.providerAssetId !== undefined}
+							{#if marketTimestamp.providerAssetId !== null}
+								<div>
+									<dt>Provider asset id</dt>
+									<dd>{marketTimestamp.providerAssetId}</dd>
+								</div>
+							{/if}
 						{/if}
 					{/if}
 				</dl>

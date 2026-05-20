@@ -19,6 +19,7 @@
 	let {
 		title = 'Spot stream',
 		open = $bindable(true),
+		collapsible = true,
 		entityFieldReference,
 		...entitiesListRest
 	}: WithRest<
@@ -41,53 +42,10 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const fieldName = entityFieldReference.fieldName
-
-	const market = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [
-				Source.Constants_Internal,
-				...(
-					open ?
-						[
-							Source.TradingView_Rest,
-							Source.Coingecko_Rest,
-						]
-					:
-						[]
-				),
-			],
-			...(open && {
-				[fieldName]: {
-					$: [
-						Source.TradingView_Rest,
-					],
-					$limit: 2048,
-				},
-			}),
-		},
-	)
-
-	const quotes = derive(
-		market,
-		(market) => {
-			const rows: Entity<typeof schema, EntityType.Market_Timestamp>[] = market[fieldName] ?? []
-			return (
-				rows
-					.map((value) => ({
-						value,
-					}))
-			)
-		},
-	)
-
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import Market_TimestampView from '$/views/Market_TimestampView.svelte'
 </script>
 
@@ -95,13 +53,9 @@
 <EntitiesList
 	{...entitiesListRest}
 	bind:open
+	{collapsible}
 	entityType={EntityType.Market_Timestamp}
-	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-	getSortValue={(row) => String(row.value[EntityMetaKey.Id].timestampMs)}
-	placeholderKeys={new SvelteSet<string>()}
-	resource={quotes}
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -118,18 +72,83 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			{@const row = props.item.value}
-			<Market_TimestampView
-				entityId={row[EntityMetaKey.Id]}
-				href={resolve('/(assets)/(markets)/market/[marketKey]', {
-					marketKey: encodeURIComponent(stringify(row[EntityMetaKey.Id].$market)),
-				})}
-				id={stringify(row[EntityMetaKey.Id])}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const fieldName = entityFieldReference.fieldName}
+			{@const market = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [
+						Source.Constants_Internal,
+						Source.Blockscout_Rest,
+						Source.Coingecko_Rest,
+						Source.Coingecko_OpenApi,
+						Source.CoinMarketCap_Rest,
+						Source.Coinpaprika_OpenApi,
+						Source.Defillama_OpenApi,
+						Source.TradingView_Rest,
+					],
+					[fieldName]: {
+						$: [
+							Source.Blockscout_Rest,
+							Source.Coingecko_Rest,
+							Source.Coingecko_OpenApi,
+							Source.CoinMarketCap_Rest,
+							Source.Coinpaprika_OpenApi,
+							Source.Defillama_OpenApi,
+							Source.TradingView_Rest,
+						],
+						$limit: 2048,
+					},
+				},
+			)}
+			{@const quotes = derive(
+				market,
+				(market) => {
+					const rows: Entity<typeof schema, EntityType.Market_Timestamp>[] = market[fieldName] ?? []
+					return (
+						rows
+							.map((value) => ({
+								value,
+							}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				{...entitiesListRest}
+				entityType={EntityType.Market_Timestamp}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getSortValue={(row) => String(row.value[EntityMetaKey.Id].timestampMs)}
+				placeholderKeys={new SvelteSet<string>()}
+				resource={quotes}
+				{title}
+				open={true}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No spot quotes yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item(props)}
+					{#if props.item}
+						{@const row = props.item.value}
+						<Market_TimestampView
+							entityId={row[EntityMetaKey.Id]}
+							href={resolve('/(assets)/(markets)/market/[marketKey]', {
+								marketKey: encodeURIComponent(stringify(row[EntityMetaKey.Id].$market)),
+							})}
+							id={stringify(row[EntityMetaKey.Id])}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

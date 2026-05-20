@@ -11,6 +11,16 @@ import {
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
+import type { BeaconFinalityCheckpoints } from '$/sources/Beacon/Rest/types.ts'
+
+const beaconFinalityCheckpointsForChain = async (
+	chainId: number,
+): Promise<BeaconFinalityCheckpoints | undefined> => {
+	const base = beaconRestBaseByExecutionChainId[chainId]
+	if (base == null) return undefined
+	const { getBeaconFinalityCheckpoints } = await import('$/sources/Beacon/Rest/queries.ts')
+	return singleFlight(getBeaconFinalityCheckpoints)(base)
+}
 
 export default {
 	source: Source.Beacon_Rest,
@@ -188,27 +198,73 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Network,
-			fieldName: 'beaconFinalityCheckpointsJson',
+			fieldName: 'beaconPreviousJustifiedCheckpointEpoch',
 			resolve: async (entityId) => {
-				const { chainId } = entityId
-				const base = beaconRestBaseByExecutionChainId[chainId]
-				if (base == null) return undefined
-				const { getBeaconFinalityCheckpointsJsonString } = await import('$/sources/Beacon/Rest/queries.ts')
-				const json = await singleFlight(getBeaconFinalityCheckpointsJsonString)(base)
-				return json ?? undefined
+				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
+				return checkpoints?.previousJustified.epoch
 			},
 		}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Network,
-			fieldName: 'beaconForkScheduleJson',
+			fieldName: 'beaconPreviousJustifiedCheckpointRoot',
+			resolve: async (entityId) => {
+				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
+				return checkpoints?.previousJustified.root
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: 'beaconCurrentJustifiedCheckpointEpoch',
+			resolve: async (entityId) => {
+				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
+				return checkpoints?.currentJustified.epoch
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: 'beaconCurrentJustifiedCheckpointRoot',
+			resolve: async (entityId) => {
+				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
+				return checkpoints?.currentJustified.root
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: 'beaconFinalizedCheckpointEpoch',
+			resolve: async (entityId) => {
+				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
+				return checkpoints?.finalized.epoch
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: 'beaconFinalizedCheckpointRoot',
+			resolve: async (entityId) => {
+				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
+				return checkpoints?.finalized.root
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: 'beaconForkScheduleEntriesJson',
 			resolve: async (entityId) => {
 				const { chainId } = entityId
 				const base = beaconRestBaseByExecutionChainId[chainId]
 				if (base == null) return undefined
-				const { getBeaconForkScheduleJsonString } = await import('$/sources/Beacon/Rest/queries.ts')
-				const json = await singleFlight(getBeaconForkScheduleJsonString)(base)
-				return json ?? undefined
+				const { getBeaconForkSchedule } = await import('$/sources/Beacon/Rest/queries.ts')
+				const entries = await singleFlight(getBeaconForkSchedule)(base)
+				return (
+					entries.length ?
+						JSON.stringify(entries)
+					:
+						undefined
+				)
 			},
 		}),
 	],

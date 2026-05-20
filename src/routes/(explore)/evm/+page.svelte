@@ -25,8 +25,7 @@
 		title={'EVM'}
 		href={resolve('/evm')}
 	>
-		{#snippet children({
-			open: hubOpen,
+		{#snippet children({ open: hubOpen,
 		})}
 			<CollapsibleTabs
 				id={`${hubKey}:hub`}
@@ -60,9 +59,13 @@
 						data-scroll-marker-label="Errors"
 						href={`#${hubKey}:errors`}
 					>Errors</a>
+					<a
+						data-scroll-marker-label="Decoder"
+						href={`#${hubKey}:decoder`}
+					>Decoder</a>
 				{/snippet}
 
-				{#snippet children({ open: _paneOpen })}
+				{#snippet body({ open: _paneOpen })}
 					<section
 						id={`${hubKey}:topics`}
 						data-scroll-marker-label="Topics"
@@ -109,6 +112,25 @@
 							id="errors"
 							open={hubOpen}
 						/>
+					</section>
+
+					<section
+						id={`${hubKey}:decoder`}
+						data-scroll-marker-label="Decoder"
+						data-card
+						data-column
+					>
+						<header data-row="wrap align-center gap-2">
+							<HeadingComponent>
+								Calldata decoder
+							</HeadingComponent>
+						</header>
+						<p>
+							Paste transaction input or event log hex to resolve selectors and topics via OpenChain, then decode ABI arguments.
+						</p>
+						<a href={resolve('/evm/calldata-decoder')}>
+							Open calldata decoder
+						</a>
 					</section>
 				{/snippet}
 			</CollapsibleTabs>

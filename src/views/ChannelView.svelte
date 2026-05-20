@@ -13,10 +13,11 @@
 
 	// Props
 	let {
-		children,
+		children: _children,
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -85,6 +86,7 @@
 	import { resolve } from '$app/paths'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import ActorView from '$/views/ActorView.svelte'
 	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
 	import BlockheadRoomView from '$/views/BlockheadRoomView.svelte'
@@ -97,8 +99,9 @@
 	{entityId}
 	{href}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.id}
 		</span>
@@ -220,15 +223,34 @@
 						<div>
 							<dt>Participant 0</dt>
 							<dd>
-								<ActorView
-									entityId={stateChannel.$participant0[EntityMetaKey.Id]}
-									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-										accountId: stateChannel.$participant0[EntityMetaKey.Id].address,
-									})}
-									layout={EntityLayout.Summary}
-									open={false}
-									showTypeAnnotation={false}
-								/>
+								{#if stateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
+									<ActorNetworkView
+										entityId={{
+											$network: stateChannel.$network[EntityMetaKey.Id],
+											$actor: stateChannel.$participant0[EntityMetaKey.Id],
+										}}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+											{
+												networkId: String(stateChannel.$network[EntityMetaKey.Id].chainId),
+												address: stateChannel.$participant0[EntityMetaKey.Id].address,
+											},
+										)}
+										layout={EntityLayout.Summary}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{:else}
+									<ActorView
+										entityId={stateChannel.$participant0[EntityMetaKey.Id]}
+										href={resolve('/account/[address]', {
+											address: stateChannel.$participant0[EntityMetaKey.Id].address,
+										})}
+										layout={EntityLayout.Summary}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{/if}
 							</dd>
 						</div>
 					{/if}
@@ -237,15 +259,34 @@
 						<div>
 							<dt>Participant 1</dt>
 							<dd>
-								<ActorView
-									entityId={stateChannel.$participant1[EntityMetaKey.Id]}
-									href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-										accountId: stateChannel.$participant1[EntityMetaKey.Id].address,
-									})}
-									layout={EntityLayout.Summary}
-									open={false}
-									showTypeAnnotation={false}
-								/>
+								{#if stateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
+									<ActorNetworkView
+										entityId={{
+											$network: stateChannel.$network[EntityMetaKey.Id],
+											$actor: stateChannel.$participant1[EntityMetaKey.Id],
+										}}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+											{
+												networkId: String(stateChannel.$network[EntityMetaKey.Id].chainId),
+												address: stateChannel.$participant1[EntityMetaKey.Id].address,
+											},
+										)}
+										layout={EntityLayout.Summary}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{:else}
+									<ActorView
+										entityId={stateChannel.$participant1[EntityMetaKey.Id]}
+										href={resolve('/account/[address]', {
+											address: stateChannel.$participant1[EntityMetaKey.Id].address,
+										})}
+										layout={EntityLayout.Summary}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{/if}
 							</dd>
 						</div>
 					{/if}
@@ -315,8 +356,8 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{#if children}
-			{@render children()}
+		{#if _children}
+			{@render _children()}
 		{:else}
 			<EntityDetails
 				entityType={EntityType.StateChannel}
@@ -342,7 +383,7 @@
 						</header>
 					{/snippet}
 
-					{#snippet Markers()}
+					{#snippet Markers(_context)}
 						<ResourceBoundary
 							resource={stateChannel}
 							placeholderText=""
@@ -384,7 +425,7 @@
 						</ResourceBoundary>
 					{/snippet}
 
-					{#snippet children(_ctx)}
+					{#snippet body(_ctx)}
 						<ResourceBoundary
 							resource={stateChannel}
 							placeholderText="Loading state channel…"
@@ -401,27 +442,61 @@
 										>
 											<div data-column="gap-2">
 												{#if stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined}
-													<ActorView
-														entityId={stateChannel.$participant0[EntityMetaKey.Id]}
-														href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-															accountId: stateChannel.$participant0[EntityMetaKey.Id].address,
-														})}
-														layout={EntityLayout.Summary}
-														open={false}
-														showTypeAnnotation={false}
-													/>
+													{#if stateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
+														<ActorNetworkView
+															entityId={{
+																$network: stateChannel.$network[EntityMetaKey.Id],
+																$actor: stateChannel.$participant0[EntityMetaKey.Id],
+															}}
+															href={resolve(
+																'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+																{
+																	networkId: String(stateChannel.$network[EntityMetaKey.Id].chainId),
+																	address: stateChannel.$participant0[EntityMetaKey.Id].address,
+																},
+															)}
+															layout={EntityLayout.Summary}
+															showTypeAnnotation={false}
+														/>
+													{:else}
+														<ActorView
+															entityId={stateChannel.$participant0[EntityMetaKey.Id]}
+															href={resolve('/account/[address]', {
+																address: stateChannel.$participant0[EntityMetaKey.Id].address,
+															})}
+															layout={EntityLayout.Summary}
+															showTypeAnnotation={false}
+														/>
+													{/if}
 												{/if}
 
 												{#if stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
-													<ActorView
-														entityId={stateChannel.$participant1[EntityMetaKey.Id]}
-														href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-															accountId: stateChannel.$participant1[EntityMetaKey.Id].address,
-														})}
-														layout={EntityLayout.Summary}
-														open={false}
-														showTypeAnnotation={false}
-													/>
+													{#if stateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
+														<ActorNetworkView
+															entityId={{
+																$network: stateChannel.$network[EntityMetaKey.Id],
+																$actor: stateChannel.$participant1[EntityMetaKey.Id],
+															}}
+															href={resolve(
+																'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+																{
+																	networkId: String(stateChannel.$network[EntityMetaKey.Id].chainId),
+																	address: stateChannel.$participant1[EntityMetaKey.Id].address,
+																},
+															)}
+															layout={EntityLayout.Summary}
+															showTypeAnnotation={false}
+														/>
+													{:else}
+														<ActorView
+															entityId={stateChannel.$participant1[EntityMetaKey.Id]}
+															href={resolve('/account/[address]', {
+																address: stateChannel.$participant1[EntityMetaKey.Id].address,
+															})}
+															layout={EntityLayout.Summary}
+															showTypeAnnotation={false}
+														/>
+													{/if}
 												{/if}
 											</div>
 										</section>
@@ -436,7 +511,6 @@
 												entityId={stateChannel.$asset[EntityMetaKey.Id]}
 												{href}
 												layout={EntityLayout.Summary}
-												open={false}
 												showTypeAnnotation={false}
 											/>
 										</section>
@@ -454,7 +528,6 @@
 													{ networkId: String(stateChannel.$network[EntityMetaKey.Id].chainId) },
 												)}
 												layout={EntityLayout.Summary}
-												open={false}
 												showTypeAnnotation={false}
 											/>
 										</section>
@@ -472,7 +545,6 @@
 													{ roomId: stateChannel.$room[EntityMetaKey.Id].id },
 												)}
 												layout={EntityLayout.Summary}
-												open={false}
 												showTypeAnnotation={false}
 											/>
 										</section>

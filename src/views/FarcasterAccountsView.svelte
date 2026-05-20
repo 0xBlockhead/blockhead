@@ -26,6 +26,7 @@
 		href = resolve('/farcaster/accounts'),
 		title = 'Accounts',
 		open = $bindable(true),
+		collapsible = true,
 		...entitiesListProps
 	}: WithRest<
 		{
@@ -50,32 +51,6 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	const global = useEntity(
-		EntityType._Global,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					$: [Source.Local_Internal],
-					$$blockheadFarcasterAccountConnections: {},
-				}
-			:
-				{}
-		),
-	)
-
-	const connections = derive(
-		global,
-		(global) => (
-			(global['$$blockheadFarcasterAccountConnections'] ?? [])
-				.toSorted((a, b) => (
-					a[EntityMetaKey.Id].fid - b[EntityMetaKey.Id].fid
-				))
-				.map((result) => ({
-					result,
-				}))
-		),
-	)
 </script>
 
 
@@ -85,11 +60,7 @@
 	{href}
 	{title}
 	bind:open
-	getKey={(row) => row.result[EntityMetaKey.Id].fid}
-	getSortValue={(row) => row.result[EntityMetaKey.Id].fid}
-	placeholderKeys={new SvelteSet()}
-	placeholderText="Loading connected Farcaster accounts…"
-	resource={connections}
+	{collapsible}
 	{...entitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -107,18 +78,60 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			{@const fid = props.item.result[EntityMetaKey.Id]}
-			<BlockheadFarcasterAccountConnectionView
-				entityId={{ fid: fid.fid }}
-				href={resolve('/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]', {
-					accountId: String(fid.fid),
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-				title="Farcaster account"
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const global = useEntity(
+				EntityType._Global,
+				entityFieldReference.entityId,
+				{
+					$: [Source.Local_Internal],
+					$$blockheadFarcasterAccountConnections: {},
+				},
+			)}
+			{@const connections = derive(
+				global,
+				(global) => (
+					(global['$$blockheadFarcasterAccountConnections'] ?? [])
+						.map((result) => ({
+							result,
+						}))
+				),
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.BlockheadFarcasterAccountConnection}
+				id={`${id}-items`}
+				{href}
+				{title}
+				open={true}
+				getKey={(row) => row.result[EntityMetaKey.Id].fid}
+				getSortValue={(row) => row.result[EntityMetaKey.Id].fid}
+				placeholderKeys={new SvelteSet()}
+				placeholderText="Loading connected Farcaster accounts…"
+				resource={connections}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No connected accounts yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item(props)}
+					{#if props.item}
+						{@const fid = props.item.result[EntityMetaKey.Id]}
+						<BlockheadFarcasterAccountConnectionView
+							entityId={{ fid: fid.fid }}
+							href={resolve('/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]', {
+								accountId: String(fid.fid),
+							})}
+							layout={EntityLayout.Summary}
+							open={false}
+							title="Farcaster account"
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

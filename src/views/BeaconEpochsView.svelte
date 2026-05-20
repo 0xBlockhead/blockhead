@@ -35,6 +35,7 @@
 		entityFieldReference,
 		title = 'Epochs',
 		open = $bindable(true),
+		collapsible = true,
 		...entitiesListProps
 	}: WithRest<
 		{
@@ -47,33 +48,6 @@
 			'entityType'
 		>
 	> = $props()
-
-	const network = useEntity(
-		EntityType.Network,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					blockHeight: { $: [Source.Voltaire_JsonRpc] },
-					$$beaconEpochs: { $: [Source.Beacon_Rest] },
-				}
-			:
-				{
-					$: [Source.Constants_Internal],
-				}
-		),
-	)
-
-	const epochs = derive(
-		network,
-		(network): Entity<typeof schema, EntityType.BeaconEpoch>[] => (
-			(network.$$beaconEpochs ?? [])
-				.toSorted((a, b) => (
-					Number(b[EntityMetaKey.Id].epoch - a[EntityMetaKey.Id].epoch)
-				))
-				.slice(0, 16)
-		),
-	)
 </script>
 
 
@@ -90,49 +64,68 @@
 	{/snippet}
 
 	{#snippet body()}
-		{#key stringify(entityFieldReference.entityId)}
-			<ResourceBoundary
-				resource={epochs}
-				placeholderText="Loading epochs…"
-			>
-				{#snippet children(epochs)}
-					<OrderedList
-						items={epochs}
-						getKey={(epoch) => (
-							epoch[EntityMetaKey.Id].epoch
-						)}
-						placeholderRanges={[]}
-						orientation={ListOrientation.Column}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No epochs yet.
-							</p>
-						{/snippet}
+		{#if open}
+			{@const network = useEntity(
+				EntityType.Network,
+				entityFieldReference.entityId,
+				{
+					blockHeight: { $: [Source.Voltaire_JsonRpc] },
+					$$beaconEpochs: { $: [Source.Beacon_Rest] },
+				},
+			)}
+			{@const epochs = derive(
+				network,
+				(network): Entity<typeof schema, EntityType.BeaconEpoch>[] => (
+					(network.$$beaconEpochs ?? []).slice(0, 16)
+				),
+			)}
+			{#key stringify(entityFieldReference.entityId)}
+				<ResourceBoundary
+					resource={epochs}
+					placeholderText="Loading epochs…"
+				>
+					{#snippet children(epochs)}
+						<OrderedList
+							items={epochs}
+							getKey={(epoch) => (
+								epoch[EntityMetaKey.Id].epoch
+							)}
+							getSortKey={(epoch) => (
+								-Number(epoch[EntityMetaKey.Id].epoch)
+							)}
+							placeholderRanges={[]}
+							orientation={ListOrientation.Column}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">
+									No epochs yet.
+								</p>
+							{/snippet}
 
-						{#snippet Item({ item: epoch })}
-							{#if epoch}
-								<BeaconEpochView
-									entityId={epoch[EntityMetaKey.Id]}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
-										{
-											networkId: String(
-												epoch[EntityMetaKey.Id].$network.chainId,
-											),
-											epochNumber: String(
-												epoch[EntityMetaKey.Id].epoch,
-											),
-										},
-									)}
-									layout={EntityLayout.Summary}
-									open={false}
-								/>
-							{/if}
-						{/snippet}
-					</OrderedList>
-				{/snippet}
-			</ResourceBoundary>
-		{/key}
+							{#snippet Item({ item: epoch })}
+								{#if epoch}
+									<BeaconEpochView
+										entityId={epoch[EntityMetaKey.Id]}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
+											{
+												networkId: String(
+													epoch[EntityMetaKey.Id].$network.chainId,
+												),
+												epochNumber: String(
+													epoch[EntityMetaKey.Id].epoch,
+												),
+											},
+										)}
+										layout={EntityLayout.Summary}
+										open={false}
+									/>
+								{/if}
+							{/snippet}
+						</OrderedList>
+					{/snippet}
+				</ResourceBoundary>
+			{/key}
+		{/if}
 	{/snippet}
 </EntitiesList>

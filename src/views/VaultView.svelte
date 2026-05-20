@@ -9,6 +9,10 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
 		children,
@@ -68,11 +72,11 @@
 
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import Address from '$/views/Address.svelte'
+	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
 
 
@@ -82,8 +86,9 @@
 	{href}
 	{open}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.id}
 		</span>
@@ -119,18 +124,36 @@
 					<div>
 						<dt>Token 0</dt>
 						<dd>
-							<Address
-								network={vault.$token0.$network}
-								address={vault.$token0.address}
+							<EvmContractView
+								entityId={vault.$token0}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+									{
+										networkId: String(vault.$token0.$network.chainId),
+										address: vault.$token0.address,
+									},
+								)}
+								layout={EntityLayout.Title}
+								open={false}
+								showTypeAnnotation={false}
 							/>
 						</dd>
 					</div>
 					<div>
 						<dt>Token 1</dt>
 						<dd>
-							<Address
-								network={vault.$token1.$network}
-								address={vault.$token1.address}
+							<EvmContractView
+								entityId={vault.$token1}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+									{
+										networkId: String(vault.$token1.$network.chainId),
+										address: vault.$token1.address,
+									},
+								)}
+								layout={EntityLayout.Title}
+								open={false}
+								showTypeAnnotation={false}
 							/>
 						</dd>
 					</div>
@@ -220,9 +243,18 @@
 							<div>
 								<dt>Hooks</dt>
 								<dd>
-									<Address
-										network={vault.$hooks.$network}
-										address={vault.$hooks.address}
+									<EvmContractView
+										entityId={vault.$hooks}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+											{
+												networkId: String(vault.$hooks.$network.chainId),
+												address: vault.$hooks.address,
+											},
+										)}
+										layout={EntityLayout.Title}
+										open={false}
+										showTypeAnnotation={false}
 									/>
 								</dd>
 							</div>

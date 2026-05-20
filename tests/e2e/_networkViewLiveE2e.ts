@@ -2,6 +2,7 @@ import { expect, type ConsoleMessage, type Page } from '@playwright/test'
 
 import {
 	assertMainSettled,
+	clearOriginOpfs,
 	collectIssues,
 	installChainlistRpcsJsonStub,
 	jsonStringifyForExpectMessage,
@@ -80,6 +81,8 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 	}
 	page.on('console', onBlockStreamTypeBlocks)
 	try {
+		await page.goto('/', { waitUntil: 'domcontentloaded' })
+		await clearOriginOpfs(page)
 		await page.goto(`/network/${String(chainId)}`, { waitUntil: 'load' })
 		await expect(page.locator('#main')).toBeVisible()
 		await assertMainSettled(page, 120_000)

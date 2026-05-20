@@ -19,6 +19,7 @@
 		entityFieldReference,
 		title = 'State channels',
 		open = $bindable(true),
+		collapsible = true,
 		href,
 		id,
 		...entitiesListRest
@@ -45,40 +46,6 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					[entityFieldReference.fieldName]: {
-						$: [Source.Local_Internal],
-					},
-				}
-			:
-				{}
-		),
-	)
-
-	const stateChannels = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.StateChannel>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return (
-				rows
-					.toSorted((a, b) => (
-						a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
-					))
-					.map((value) => ({
-						value,
-					}))
-			)
-		},
-	)
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -91,15 +58,11 @@
 <EntitiesList
 	{...entitiesListRest}
 	bind:open
+	{collapsible}
 	entityType={EntityType.StateChannel}
-	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
 	{href}
 	{id}
-	placeholderKeys={new SvelteSet()}
-	resource={stateChannels}
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet Empty()}
 		<div data-row="wrap align-center gap-2">
@@ -123,17 +86,80 @@
 		</div>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			{@const channelId = props.item.value[EntityMetaKey.Id]}
-			<ChannelView
-				entityId={channelId}
-				href={resolve('/(assets)/(channels)/channel/[channelId]', {
-					channelId: channelId.id,
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					[entityFieldReference.fieldName]: {
+						$: [Source.Local_Internal],
+					},
+				},
+			)}
+			{@const stateChannels = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.StateChannel>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						rows.map((value) => ({
+							value,
+						}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.StateChannel}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
+				{href}
+				id={`${id}-items`}
+				placeholderKeys={new SvelteSet()}
+				open={true}
+				resource={stateChannels}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<div data-row="wrap align-center gap-2">
+						<p data-text="muted">
+							No state channels in this datastore yet.
+						</p>
+						<Tooltip contentProps={{ side: 'top' }}>
+							{#snippet Content()}
+								<p>
+									Participants update a joint ledger off-chain and settle or challenge on-chain if cooperation stops.
+								</p>
+								<p>
+									Not chat apps, AMM pools, or receipt logs.
+								</p>
+							{/snippet}
+							<abbr
+								class="entity-heading-tip"
+								aria-label="About state channels"
+							>ⓘ</abbr>
+						</Tooltip>
+					</div>
+				{/snippet}
+
+				{#snippet Item(props)}
+					{#if props.item}
+						{@const channelId = props.item.value[EntityMetaKey.Id]}
+						<ChannelView
+							entityId={channelId}
+							href={resolve('/(assets)/(channels)/channel/[channelId]', {
+								channelId: channelId.id,
+							})}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

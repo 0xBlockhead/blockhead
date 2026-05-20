@@ -26,6 +26,8 @@ export type VoltaireTxRpc = {
 	input?: string
 	gas?: string
 	gasPrice?: string
+	maxFeePerGas?: string
+	maxPriorityFeePerGas?: string
 	type?: string
 	blobVersionedHashes?: readonly string[]
 }

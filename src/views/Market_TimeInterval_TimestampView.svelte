@@ -22,6 +22,7 @@
 		href,
 		layout,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -47,6 +48,7 @@
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	const marketTimeIntervalTimestamp = useEntity(
 		EntityType.Market_TimeInterval_Timestamp,
@@ -89,8 +91,9 @@
 	bind:open
 	title={`Market interval OHLC · ${formatMarketTimeIntervalLabel(entityId.timeInterval)} · candle at interval boundary`}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			interval start (candle boundary)
 		</span>
@@ -141,7 +144,7 @@
 										marketKey: encodeURIComponent(stringify(entityId.$market)),
 									},
 								)}
-								layout={EntityLayout.Id}
+								layout={EntityLayout.Title}
 								open={false}
 								showTypeAnnotation={false}
 							/>

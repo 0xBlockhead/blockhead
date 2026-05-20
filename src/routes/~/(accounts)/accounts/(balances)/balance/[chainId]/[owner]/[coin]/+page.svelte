@@ -29,6 +29,13 @@
 				},
 			},
 		}}
-		href={resolve('/~/accounts/balances')}
+		href={resolve(
+			'/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]',
+			{
+				chainId: params.chainId,
+				owner: params.owner,
+				coin: params.coin,
+			},
+		)}
 	/>
 </Page>

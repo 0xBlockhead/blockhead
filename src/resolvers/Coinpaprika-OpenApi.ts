@@ -19,6 +19,7 @@ import {
 	candleEntityFromOhlcWireRow,
 } from '$/lib/marketOhlcCandles.ts'
 import { catalogCoinUsdMarketId } from '$/constants/MarketCatalog.ts'
+import { marketTimestampFieldsFromObservation } from '$/resolvers/_marketSpotTimestamp.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
@@ -65,7 +66,7 @@ export default {
 		}),
 
 		defineEntityResolver({
-			entityType: EntityType.MarketPrice,
+			entityType: EntityType.Market_Timestamp,
 			resolve: async (entityId, context) => {
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 				const { getCoinpaprikaTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
@@ -93,16 +94,17 @@ export default {
 				if (price == null || !Number.isFinite(price) || !Number.isFinite(updatedAtMs)) {
 					throw new Error('Coinpaprika_OpenApi: ticker invalid')
 				}
-				const updatedAtSec = updatedAtMs / 1000
+				const timestampMs = updatedAtMs
+				if (entityId.timestampMs !== timestampMs) {
+					throw new Error('Coinpaprika_OpenApi: Market_Timestamp id does not match ticker clock')
+				}
 
-				return {
-					[EntityMetaKey.Id]: entityId,
+				return marketTimestampFieldsFromObservation({
+					timestampMs,
 					price: BigInt(Math.round(price * 1e8)),
-					timestampMs: updatedAtSec * 1000,
-					updatedAt: updatedAtSec * 1000,
 					transport: 'coinpaprika-usd-1e8',
 					providerAssetId: coinpaprikaId,
-				}
+				})
 			},
 		}),
 
@@ -227,17 +229,42 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsBase',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>, context) => {
+				const { stringify } = await import('devalue')
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-				if (idByCoinId[entityId.coinId] == null) {
+				const { collectCoinpaprikaMarketEntityIdsForCoin } = await import(
+					'$/sources/Coinpaprika/OpenApi/queries.ts'
+				)
+				const coinpaprikaId = idByCoinId[entityId.coinId]
+				if (coinpaprikaId == null) {
 					throw new Error(`Coinpaprika_OpenApi: $$marketsWithCoinAsBase unsupported for coin ${entityId.coinId}`)
 				}
+				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
+				const lim = resolverLoadSubsetRowLimit(context)
+				const venueMarketIds = await collectCoinpaprikaMarketEntityIdsForCoin({
+					publicEnv,
+					catalogCoinId: entityId.coinId,
+					coinpaprikaId,
+				})
+				const seen = new Set<string>()
 				return (
 					[
-						{
-							[EntityMetaKey.Id]: catalogCoinUsdMarketId(entityId.coinId),
-						},
+						catalogCoinUsdMarketId(entityId.coinId),
+						...venueMarketIds,
 					]
+						.flatMap((marketId) => {
+							const key = stringify(marketId)
+							if (seen.has(key)) {
+								return []
+							}
+							seen.add(key)
+							return [
+								{
+									[EntityMetaKey.Id]: marketId,
+								},
+							]
+						})
+						.slice(0, lim)
 				)
 			},
 		}),
@@ -348,6 +375,39 @@ export default {
 						))
 						.slice(0, lim)
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.MarketPrice,
+			fieldName: '$$quotes',
+			resolve: async (entityId, context) => {
+				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
+				const { getCoinpaprikaTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
+				const coinId = (
+					entityId.$market.$base.kind === MarketAssetKind.Coin ?
+						entityId.$market.$base.$coin.coinId
+					:	undefined
+				)
+				if (coinId == null) return []
+				const coinpaprikaId = idByCoinId[coinId]
+				if (coinpaprikaId == null) return []
+				const ticker = await getCoinpaprikaTickerById({ publicEnv, coinpaprikaId })
+				const updatedAtMs = (
+					ticker.last_updated == null || ticker.last_updated === '' ?
+						NaN
+					:	Date.parse(ticker.last_updated)
+				)
+				if (!Number.isFinite(updatedAtMs)) return []
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$market: entityId.$market,
+							timestampMs: updatedAtMs,
+						},
+					},
+				]
 			},
 		}),
 

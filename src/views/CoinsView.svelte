@@ -28,6 +28,7 @@
 		marketsOpen = false,
 		deploymentsOpen = false,
 		open = $bindable(true),
+		collapsible = true,
 		entityFieldReference,
 		href,
 		...entitiesListRest
@@ -100,94 +101,6 @@
 		[...catalogCoinIdentitySources].filter((source) => enabledSources.has(source))
 	)
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					$: catalogCoinSources,
-					[fieldName]: {
-						$: catalogCoinSources,
-						$orderBy: globalCoinsFieldOrderBy,
-						$limit: Math.max(limit, 250),
-					},
-				}
-			:
-				{}
-		),
-	)
-
-	const coins = derive(
-		parent,
-		(parent): Entity<typeof schema, EntityType.Coin>[] => {
-			const list = parent[fieldName]
-			const rows = (
-				list == null ?
-					[]
-				:
-					[...list]
-			)
-			const presorted = (
-				(
-					rows.some((row) => (
-						typeof row.marketCapRank === 'number'
-						&& Number.isFinite(row.marketCapRank)
-					)) ?
-						rows.filter((row) => (
-							typeof row.marketCapRank === 'number'
-							&& Number.isFinite(row.marketCapRank)
-						))
-					:	rows
-				).toSorted((a, b) => {
-					const ra = a.marketCapRank
-					const rb = b.marketCapRank
-					const raN = (
-						typeof ra === 'number' && Number.isFinite(ra) ?
-							ra
-						:	Number.POSITIVE_INFINITY
-					)
-					const rbN = (
-						typeof rb === 'number' && Number.isFinite(rb) ?
-							rb
-						:	Number.POSITIVE_INFINITY
-					)
-					if (raN !== rbN)
-						return raN - rbN
-					const ca = a.marketCapUsd
-					const cb = b.marketCapUsd
-					const caN = (
-						typeof ca === 'number' && Number.isFinite(ca) ?
-							ca
-						:	-Number.POSITIVE_INFINITY
-					)
-					const cbN = (
-						typeof cb === 'number' && Number.isFinite(cb) ?
-							cb
-						:	-Number.POSITIVE_INFINITY
-					)
-					if (caN !== cbN)
-						return cbN - caN
-					return (
-						a[EntityMetaKey.Id].coinId.localeCompare(
-							b[EntityMetaKey.Id].coinId,
-						)
-					)
-				})
-			)
-			const seenCoinIds = new SvelteSet<string>()
-			const deduped = (
-				presorted.flatMap((row) => {
-					const coinId = row[EntityMetaKey.Id].coinId
-					if (seenCoinIds.has(coinId)) return []
-					seenCoinIds.add(coinId)
-					return [row]
-				})
-			)
-			return deduped.slice(0, limit)
-		},
-	)
-
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
@@ -228,16 +141,79 @@
 			</p>
 		{/snippet}
 		{#snippet body()}
-			<ResourceBoundary
-				resource={coins}
-			>
-				{#snippet children(coins)}
-					<UnorderedList
-						items={coins}
-						getKey={(row) => stringify(row[EntityMetaKey.Id])}
-						placeholderKeys={new SvelteSet<string | number>()}
-						orientation={ListOrientation.Column}
-					>
+			{#if open}
+				{@const parent = useEntity(
+					entityFieldReference.entityType,
+					entityFieldReference.entityId,
+					{
+						$: catalogCoinSources,
+						[fieldName]: {
+							$: catalogCoinSources,
+							$orderBy: globalCoinsFieldOrderBy,
+							$limit: Math.max(limit, 250),
+						},
+					},
+				)}
+				{@const coins = derive(
+					parent,
+					(parent): Entity<typeof schema, EntityType.Coin>[] => {
+						const list = parent[fieldName]
+						const rows = (
+							list == null ?
+								[]
+							:
+								[...list]
+						)
+						const filtered = (
+							rows.some((row) => (
+								typeof row.marketCapRank === 'number'
+								&& Number.isFinite(row.marketCapRank)
+							)) ?
+								rows.filter((row) => (
+									typeof row.marketCapRank === 'number'
+									&& Number.isFinite(row.marketCapRank)
+								))
+							:	rows
+						)
+						const seenCoinIds = new SvelteSet<string>()
+						const deduped = (
+							filtered.flatMap((row) => {
+								const coinId = row[EntityMetaKey.Id].coinId
+								if (seenCoinIds.has(coinId)) return []
+								seenCoinIds.add(coinId)
+								return [row]
+							})
+						)
+						return deduped.slice(0, limit)
+					},
+				)}
+				<ResourceBoundary
+					resource={coins}
+				>
+					{#snippet children(coins)}
+						<UnorderedList
+							items={coins}
+							getKey={(row) => stringify(row[EntityMetaKey.Id])}
+							getSortValue={(row) => {
+								const rank = row.marketCapRank
+								const rankN = (
+									typeof rank === 'number' && Number.isFinite(rank) ?
+										rank
+									:	Number.POSITIVE_INFINITY
+								)
+								const cap = row.marketCapUsd
+								const capN = (
+									typeof cap === 'number' && Number.isFinite(cap) ?
+										cap
+									:	-Number.POSITIVE_INFINITY
+								)
+								return (
+									`${String(rankN).padStart(12, '0')}\0${String(-capN).padStart(24, '0')}\0${row[EntityMetaKey.Id].coinId}`
+								)
+							}}
+							placeholderKeys={new SvelteSet<string | number>()}
+							orientation={ListOrientation.Column}
+						>
 						{#snippet Empty()}
 							<p data-text="muted">
 								No coins to show yet.
@@ -260,9 +236,10 @@
 								/>
 							{/if}
 						{/snippet}
-					</UnorderedList>
-				{/snippet}
-			</ResourceBoundary>
+						</UnorderedList>
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
 		{/snippet}
 	</EntitiesList>
 
@@ -296,7 +273,7 @@
 				>Spot quote index</a>
 			{/snippet}
 
-			{#snippet children(_childrenContext)}
+			{#snippet body(_childrenContext)}
 				<p data-text="muted">
 					<a href={resolve('/coins/prices')}>Spot quote index</a>
 					— point-in-time spot and index readings (not venue order books).
@@ -350,7 +327,7 @@
 				>Candle index</a>
 			{/snippet}
 
-			{#snippet children(_childrenContext)}
+			{#snippet body(_childrenContext)}
 				<div data-row="wrap align-center gap-2">
 					<a href={resolve('/coins/candles')}>
 						OHLC candles
@@ -380,7 +357,6 @@
 						href={resolve('/coins/candles')}
 						id={`${id}:ohlc-candles-preview`}
 						limit={48}
-						open={false}
 						title="Recent candles"
 					/>
 				</section>
@@ -417,7 +393,7 @@
 				>Market index</a>
 			{/snippet}
 
-			{#snippet children(_childrenContext)}
+			{#snippet body(_childrenContext)}
 				<div data-row="wrap align-center gap-2">
 					<a href={resolve('/markets')}>
 						All markets
@@ -492,7 +468,7 @@
 			>Sample</a>
 		{/snippet}
 
-		{#snippet children(_childrenContext)}
+		{#snippet body(_childrenContext)}
 			<p data-text="muted">
 				Per-chain deployments are listed on each
 				<a href={resolve('/coin/ETH')}>coin detail</a>

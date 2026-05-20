@@ -16,6 +16,7 @@
 		entityFieldReference,
 		title = 'Bridges',
 		open = $bindable(true),
+		collapsible = true,
 		...entitiesListProps
 	}: WithRest<
 		{
@@ -35,55 +36,10 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [
-				Source.Constants_Internal,
-				...(
-					open ?
-						[
-							Source.Chainlist_Rest,
-							Source.EthereumLists_Rest,
-						]
-					:
-						[]
-				),
-			],
-			...(open && {
-				[entityFieldReference.fieldName]: {
-					$: [
-						Source.Chainlist_Rest,
-						Source.EthereumLists_Rest,
-					],
-				},
-			}),
-		},
-	)
-
-	const bridges = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.NetworkBridge>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-				.toSorted((a, b) => (
-					a[EntityMetaKey.Id].url.localeCompare(b[EntityMetaKey.Id].url)
-				))
-			return (
-				rows.map((value) => ({
-					value,
-				}))
-			)
-		},
-	)
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import NetworkBridgeView from '$/views/NetworkBridgeView.svelte'
 </script>
 
@@ -92,11 +48,7 @@
 	entityType={EntityType.NetworkBridge}
 	{title}
 	bind:open
-	getKey={(envelope) => envelope.value[EntityMetaKey.Id].url}
-	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].url}
-	placeholderKeys={new SvelteSet()}
-	resource={bridges}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{collapsible}
 	{...entitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -114,14 +66,67 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: envelope })}
-		{#if envelope}
-			<NetworkBridgeView
-				entityId={envelope.value[EntityMetaKey.Id]}
-				href={envelope.value[EntityMetaKey.Id].url}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [
+						Source.Constants_Internal,
+						Source.Chainlist_Rest,
+						Source.EthereumLists_Rest,
+					],
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Chainlist_Rest,
+							Source.EthereumLists_Rest,
+						],
+					},
+				},
+			)}
+			{@const bridges = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.NetworkBridge>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						rows.map((value) => ({
+							value,
+						}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.NetworkBridge}
+				{title}
+				open={true}
+				getKey={(envelope) => envelope.value[EntityMetaKey.Id].url}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].url}
+				placeholderKeys={new SvelteSet()}
+				resource={bridges}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No bridges yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item({ item: envelope })}
+					{#if envelope}
+						<NetworkBridgeView
+							entityId={envelope.value[EntityMetaKey.Id]}
+							href={envelope.value[EntityMetaKey.Id].url}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

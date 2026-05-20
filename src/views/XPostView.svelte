@@ -77,8 +77,9 @@
 	{href}
 	{open}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.id}
 		</span>
@@ -208,8 +209,7 @@
 					>Post</a>
 				{/snippet}
 
-				{#snippet children({
-					open: _paneOpen,
+				{#snippet body({ open: _paneOpen,
 				})}
 					<section
 						data-scroll-marker-label="Author"
@@ -232,7 +232,6 @@
 											},
 										)}
 										layout={EntityLayout.Summary}
-										open={false}
 									/>
 								{/if}
 							{/snippet}

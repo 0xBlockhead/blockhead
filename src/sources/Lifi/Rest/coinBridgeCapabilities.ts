@@ -2,7 +2,7 @@
  * Coin-scoped bridge capability rows: Coingecko deployments × LI.FI `/v1/tools` catalog × local mechanics.
  */
 
-import { coinBridgeCapabilityEntityRowsFromInstancesAndTools } from '$/lib/bridge/coinBridgeCapabilitiesFromInstances.ts'
+import { coinBridgeCapabilityEntityRowsFromInstancesAndTools } from '$/sources/Lifi/Rest/coinBridgeCapabilityEntityRows.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'

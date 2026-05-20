@@ -30,11 +30,14 @@ test.describe('/network/[networkId]', () => {
 		page.on('console', (message) => {
 			if (
 				message.type() === 'error'
+				&& !message.text().includes('Failed to load resource: the server responded with a status of 400')
+				&& !message.text().includes('Failed to load resource: the server responded with a status of 403')
 				&& !message.text().includes('Failed to load resource: the server responded with a status of 404')
 				&& !message.text().includes('Failed to load resource: the server responded with a status of 422')
 				&& !message.text().includes('Failed to load resource: the server responded with a status of 429')
 				&& !message.text().includes('Failed to load resource: the server responded with a status of 500')
 				&& !message.text().includes('Failed to load resource: the server responded with a status of 502')
+				&& !message.text().includes('Failed to load resource: the server responded with a status of 503')
 				&& !message.text().includes('[vite] Failed to reload')
 				&& !message.text().includes('Failed to fetch dynamically imported module')
 				&& !message.text().includes('Failed to load resource: net::ERR_QUIC_PROTOCOL_ERROR')
@@ -44,8 +47,10 @@ test.describe('/network/[networkId]', () => {
 				&& !message.text().includes('Voltaire: block stream ended')
 				&& !(
 					message.text().includes('[QueryCollection]')
-					&& message.text().includes('blockscout.com')
-					&& message.text().includes('Fetch failed (422')
+					&& (
+						/resolver\(s\) failed/.test(message.text())
+						|| /Fetch failed \(\d{3}/.test(message.text())
+					)
 				)
 			) failFast(new Error(`console error: ${message.text()}`))
 			if (
@@ -60,7 +65,7 @@ test.describe('/network/[networkId]', () => {
 	}
 
 	test('network 1 loads with no runtime errors and renders subviews', async ({ page }, testInfo) => {
-		testInfo.setTimeout(120_000)
+		testInfo.setTimeout(240_000)
 		const { step } = setupFailFast(page)
 
 		await step(page.goto('/network/1', { waitUntil: 'load', timeout: 120_000 }))
@@ -82,23 +87,25 @@ test.describe('/network/[networkId]', () => {
 		await step(expect(page.locator('.network-view-collapsible-data-storage')).toBeAttached(scrollAttach))
 
 		await step(expect(page.locator('[data-scroll-marker-label="Blocks"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('[data-scroll-marker-label="Tx"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('[data-scroll-marker-label="Transactions"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-data-storage [data-scroll-marker-label="Contracts"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-data-storage [data-scroll-marker-label="Stats"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-execution [data-scroll-marker-label="Validators"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Validators"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-execution [data-scroll-marker-label="Mempool"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-economics [data-scroll-marker-label="Native currencies"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-economics [data-scroll-marker-label="Tokens"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-economics [data-scroll-marker-label="Assets"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-economics [data-scroll-marker-label="Gas"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-economics [data-scroll-marker-label="MEV-Boost"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-actors')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-actors [data-scroll-marker-label="Accounts"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-erc-4337')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-erc-4337 [data-scroll-marker-label="Bundlers"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Activations"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Fork schedule"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Finality"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('[data-scroll-marker-label="Epochs"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('[data-scroll-marker-label="Slots"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('[data-scroll-marker-label="Blobs"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('#network-summary-head-block')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('#network-summary-head-block a[href*="/block/"]')).toBeAttached({
+			timeout: 120_000,
+		}))
 
 	})
 

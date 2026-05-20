@@ -14,11 +14,9 @@
 	}: {
 		navigationItems: NavigationItem[]
 		HeaderActions?: Snippet
-		LabelSnippet?: Snippet<[
-			{
-				node: NavigationItem
-			},
-		]>
+		LabelSnippet?: Snippet<[context?: {
+			node?: NavigationItem,
+		}]>
 	} = $props()
 
 

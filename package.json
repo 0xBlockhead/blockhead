@@ -35,6 +35,7 @@
 		"sources:openapi:download:coingecko": "pnpm run sources:openapi -- download Coingecko",
 		"sources:openapi:generate:coingecko": "pnpm run sources:openapi -- generate Coingecko",
 		"sources:openapi:sync:coingecko": "pnpm run sources:openapi -- sync Coingecko",
+		"sources:lifi:check-bridge-tools": "pnpm exec tsx scripts/lifi-bridge-tools-diff.ts",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test"
@@ -68,6 +69,7 @@
 	},
 	"dependencies": {
 		"@chenglou/pretext": "^0.0.4",
+		"@ensdomains/content-hash": "3.0.0",
 		"@fontsource/ubuntu": "^5.2.8",
 		"@journeyapps/wa-sqlite": "1.5.0",
 		"@tanstack/browser-db-sqlite-persistence": "^0.1.9",
@@ -80,6 +82,7 @@
 		"arkregex": "^0.0.5",
 		"arktype": "^2.2.0",
 		"bits-ui": "^2.18.0",
+		"blo": "^2.0.0",
 		"devalue": "^5.7.1",
 		"file-type": "^22.0.1",
 		"gql.tada": "^1.9.2",

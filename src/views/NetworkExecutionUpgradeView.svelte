@@ -16,6 +16,7 @@
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -71,8 +72,9 @@
 	bind:open
 	title={`Execution upgrade · ${String(entityId.upgradeId)}`}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.upgradeId}
 		</span>
@@ -89,7 +91,11 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content()}
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: contentOpen,
+	})}
 		<ResourceBoundary
 			resource={networkExecutionUpgrade}
 			placeholderText="Loading execution upgrade…"

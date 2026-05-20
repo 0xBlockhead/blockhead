@@ -77,6 +77,7 @@
 	{open}
 	title="Mempool"
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 		<Timestamp
@@ -94,7 +95,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			chain {String(entityId.$network.chainId)}
 		</span>

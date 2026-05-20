@@ -162,14 +162,14 @@
 						</header>
 					{/snippet}
 
-					{#snippet Markers()}
+					{#snippet Markers(_context)}
 						<a
 							data-scroll-marker-label="Content"
 							href={`#${calldataKey}:calldata-extra`}
 						>Content</a>
 					{/snippet}
 
-					{#snippet children(_childrenContext)}
+					{#snippet body(_childrenContext)}
 						<section id={`${calldataKey}:calldata-extra`}>
 							{@render children()}
 						</section>

@@ -11,7 +11,9 @@ import {
 } from '$/constants/Currency.ts'
 import {
 	MarketAssetKind,
+	MarketKind,
 } from '$/constants/Market.ts'
+import { catalogCoinUsdMarketId } from '$/constants/MarketCatalog.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import {
 	proposalCategoryById,
@@ -35,6 +37,235 @@ import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
+import type { Entity } from '$/schema/$schema.ts'
+import { beaconRestBaseByExecutionChainId } from '$/constants/BeaconConsensus.ts'
+import { singleFlight } from '$/lib/singleFlight.ts'
+import { jsonRpcUrlWithTransportForChain } from '$/resolvers/Voltaire-JsonRpc.ts'
+
+const BEACON_SLOTS_PER_EPOCH = 32
+const BEACON_SECONDS_PER_SLOT = 12
+
+const executionBlockActivationTimestampSecondsByKey = new Map<string, number | undefined>()
+
+const beaconGenesisTimeSecondsForBase = singleFlight(
+	async (beaconRestBaseUrl: string) => {
+		const { getBeaconGenesisTimeSeconds } = await import('$/sources/Beacon/Rest/queries.ts')
+		return getBeaconGenesisTimeSeconds(beaconRestBaseUrl)
+	},
+)
+
+const activationTimestampSecondsForSort = (
+	activationTimestamp: number,
+): number => (
+	activationTimestamp < 1e12 ?
+		activationTimestamp
+	:
+		Math.floor(activationTimestamp / 1000)
+)
+
+const consensusEpochActivationTimestampSeconds = async (
+	chainId: number,
+	activationEpoch: number,
+): Promise<number | undefined> => {
+	const beaconRestBaseUrl = beaconRestBaseByExecutionChainId[chainId]
+	if (beaconRestBaseUrl == null) {
+		return undefined
+	}
+	const genesisTimeSeconds = await beaconGenesisTimeSecondsForBase(beaconRestBaseUrl)
+	if (genesisTimeSeconds == null) {
+		return undefined
+	}
+	return (
+		genesisTimeSeconds + activationEpoch * BEACON_SLOTS_PER_EPOCH * BEACON_SECONDS_PER_SLOT
+	)
+}
+
+const executionBlockActivationTimestampSeconds = async (
+	chainId: number,
+	activationBlock: number,
+): Promise<number | undefined> => {
+	const cacheKey = `${chainId}:${activationBlock}`
+	if (executionBlockActivationTimestampSecondsByKey.has(cacheKey)) {
+		return executionBlockActivationTimestampSecondsByKey.get(cacheKey)
+	}
+	const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainId)
+	if (jsonRpcTransport == null) {
+		executionBlockActivationTimestampSecondsByKey.set(cacheKey, undefined)
+		return undefined
+	}
+	const { getBlockByNumber } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
+	const { getHttpProvider } = await import('$/lib/voltaire.ts')
+	const block = await getBlockByNumber({
+		provider: getHttpProvider(jsonRpcTransport.rpcUrl),
+		blockNumber: BigInt(activationBlock),
+	})
+	const activationTimestampSeconds = (
+		block?.timestamp == null ?
+			undefined
+		:	activationTimestampSecondsForSort(Number(block.timestamp))
+	)
+	executionBlockActivationTimestampSecondsByKey.set(cacheKey, activationTimestampSeconds)
+	return activationTimestampSeconds
+}
+
+const enrichNetworkExecutionUpgradeActivationTimestamp = async (
+	row: Entity<typeof schema, EntityType.NetworkExecutionUpgrade>,
+): Promise<Entity<typeof schema, EntityType.NetworkExecutionUpgrade>> => {
+	if (row.activationTimestamp != null) {
+		return row
+	}
+	if (row.activationBlock != null) {
+		const activationTimestamp = await executionBlockActivationTimestampSeconds(
+			row[EntityMetaKey.Id].$network.chainId,
+			row.activationBlock,
+		)
+		return (
+			activationTimestamp == null ?
+				row
+			:	{
+					...row,
+					activationTimestamp,
+				}
+		)
+	}
+	if (row.activationEpoch != null) {
+		const activationTimestamp = await consensusEpochActivationTimestampSeconds(
+			row[EntityMetaKey.Id].$network.chainId,
+			row.activationEpoch,
+		)
+		return (
+			activationTimestamp == null ?
+				row
+			:	{
+					...row,
+					activationTimestamp,
+				}
+		)
+	}
+	return row
+}
+
+const enrichNetworkConsensusUpgradeActivationTimestamp = async (
+	row: Entity<typeof schema, EntityType.NetworkConsensusUpgrade>,
+): Promise<Entity<typeof schema, EntityType.NetworkConsensusUpgrade>> => {
+	if (row.activationTimestamp != null) {
+		return row
+	}
+	if (row.activationEpoch != null) {
+		const activationTimestamp = await consensusEpochActivationTimestampSeconds(
+			row[EntityMetaKey.Id].$network.chainId,
+			row.activationEpoch,
+		)
+		return (
+			activationTimestamp == null ?
+				row
+			:	{
+					...row,
+					activationTimestamp,
+				}
+		)
+	}
+	if (row.activationBlock != null) {
+		const activationTimestamp = await executionBlockActivationTimestampSeconds(
+			row[EntityMetaKey.Id].$network.chainId,
+			row.activationBlock,
+		)
+		return (
+			activationTimestamp == null ?
+				row
+			:	{
+					...row,
+					activationTimestamp,
+				}
+		)
+	}
+	return row
+}
+
+const enrichNetworkUpgradeActivationTimestamp = async (
+	row: Entity<typeof schema, EntityType.NetworkUpgrade>,
+): Promise<Entity<typeof schema, EntityType.NetworkUpgrade>> => {
+	const {
+		networkExecutionUpgradeByChainIdAndUpgradeId,
+		networkConsensusUpgradeByChainIdAndUpgradeId,
+	} = await import('$/constants/NetworkUpgrades.ts')
+	const executionRow = networkExecutionUpgradeByChainIdAndUpgradeId[
+		`${row.$networkExecutionUpgrade[EntityMetaKey.Id].$network.chainId}:${row.$networkExecutionUpgrade[EntityMetaKey.Id].upgradeId}`
+	]
+	const consensusRow = (
+		row.$networkConsensusUpgrade == null ?
+			null
+		:	networkConsensusUpgradeByChainIdAndUpgradeId[
+			`${row.$networkConsensusUpgrade[EntityMetaKey.Id].$network.chainId}:${row.$networkConsensusUpgrade[EntityMetaKey.Id].upgradeId}`
+		]
+	)
+	const executionTimestamp = (
+		executionRow == null ?
+			undefined
+		:	(await enrichNetworkExecutionUpgradeActivationTimestamp(executionRow)).activationTimestamp
+	)
+	const consensusTimestamp = (
+		consensusRow == null ?
+			undefined
+		:	(await enrichNetworkConsensusUpgradeActivationTimestamp(consensusRow)).activationTimestamp
+	)
+	const activationTimestamp = (
+		[
+			row.activationTimestamp,
+			executionTimestamp,
+			consensusTimestamp,
+		]
+			.filter((timestamp): timestamp is number => timestamp != null)
+			.reduce(
+				(latest, timestamp) => (
+					timestamp > latest ?
+						timestamp
+					:
+						latest
+				),
+				-Infinity,
+			)
+	)
+	return (
+		activationTimestamp > -Infinity ?
+			{
+				...row,
+				activationTimestamp,
+			}
+		:
+			row
+	)
+}
+
+const enrichNetworkUpgradeRowsActivationTimestamp = async <
+	Row extends Entity<typeof schema, EntityType.NetworkUpgrade>,
+>(
+	rows: Row[],
+): Promise<Row[]> => (
+	Promise.all(
+		rows.map((row) => enrichNetworkUpgradeActivationTimestamp(row)),
+	)
+)
+
+const enrichNetworkExecutionUpgradeRowsActivationTimestamp = async <
+	Row extends Entity<typeof schema, EntityType.NetworkExecutionUpgrade>,
+>(
+	rows: Row[],
+): Promise<Row[]> => (
+	Promise.all(
+		rows.map((row) => enrichNetworkExecutionUpgradeActivationTimestamp(row)),
+	)
+)
+
+const enrichNetworkConsensusUpgradeRowsActivationTimestamp = async <
+	Row extends Entity<typeof schema, EntityType.NetworkConsensusUpgrade>,
+>(
+	rows: Row[],
+): Promise<Row[]> => (
+	Promise.all(
+		rows.map((row) => enrichNetworkConsensusUpgradeActivationTimestamp(row)),
+	)
+)
 
 export default {
 	source: Source.Constants_Internal,
@@ -55,10 +286,10 @@ export default {
 				if (upgradeDefinition == null) {
 					throw new Error(`Constants_Internal: NetworkUpgrade not found for ${entityId.$network.chainId}:${entityId.upgradeId}`)
 				}
-				return {
+				return enrichNetworkUpgradeActivationTimestamp({
 					...upgradeDefinition,
 					...resolveNetworkUpgradeDenormalizedFields(upgradeDefinition),
-				}
+				})
 			},
 		}),
 
@@ -74,7 +305,7 @@ export default {
 				if (upgradeDefinition == null) {
 					throw new Error(`Constants_Internal: NetworkExecutionUpgrade not found for ${entityId.$network.chainId}:${entityId.upgradeId}`)
 				}
-				return { ...upgradeDefinition }
+				return enrichNetworkExecutionUpgradeActivationTimestamp({ ...upgradeDefinition })
 			},
 		}),
 
@@ -90,7 +321,7 @@ export default {
 				if (upgradeDefinition == null) {
 					throw new Error(`Constants_Internal: NetworkConsensusUpgrade not found for ${entityId.$network.chainId}:${entityId.upgradeId}`)
 				}
-				return { ...upgradeDefinition }
+				return enrichNetworkConsensusUpgradeActivationTimestamp({ ...upgradeDefinition })
 			},
 		}),
 
@@ -169,29 +400,6 @@ export default {
 			resolve: async (entityId) => ({
 				toolKey: entityId.toolKey,
 				...coinBridgeCapabilityFieldsForToolKey(entityId.toolKey),
-			}),
-		}),
-
-		defineEntityResolver({
-			entityType: EntityType.BridgeRoute,
-			resolve: async (entityId) => ({
-				$fromNetwork: { chainId: entityId.fromChainId },
-				$toNetwork: { chainId: entityId.toChainId },
-				fromAmount: BigInt(entityId.fromAmount),
-				toAmount: 0n,
-				toAmountMin: 0n,
-				gasCostUsd: 0,
-				estimatedDurationSeconds: 0,
-				tags: [],
-			}),
-		}),
-
-		defineEntityResolver({
-			entityType: EntityType.BridgeRouteStep,
-			resolve: async (entityId) => ({
-				stepType: 'lifi',
-				$fromNetwork: { chainId: entityId.$route.fromChainId },
-				$toNetwork: { chainId: entityId.$route.toChainId },
 			}),
 		}),
 
@@ -317,11 +525,11 @@ export default {
 					networkUpgrades,
 					resolveNetworkUpgradeDenormalizedFields,
 				} = await import('$/constants/NetworkUpgrades.ts')
-				return (
+				return enrichNetworkUpgradeRowsActivationTimestamp(
 					networkUpgrades.map((upgradeRow) => ({
 						...upgradeRow,
 						...resolveNetworkUpgradeDenormalizedFields(upgradeRow),
-					}))
+					})),
 				)
 			},
 		}),
@@ -423,22 +631,13 @@ export default {
 			fieldName: '$$markets',
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { coins } = await import('$/constants/Coin.ts')
-				return [
-					...coins.map((coin) => (
+				return (
+					coins.map((coin) => (
 						{
-							[EntityMetaKey.Id]: {
-								$base: {
-									kind: MarketAssetKind.Coin,
-									$coin: { coinId: coin.id },
-								},
-								$quote: usdCurrencyMarketAssetLeg,
-								$marketVenue: {
-									marketVenueId: MarketVenueId.SpotIndex,
-								},
-							} as const,
+							[EntityMetaKey.Id]: catalogCoinUsdMarketId(coin.id),
 						}
-					)),
-				]
+					))
+				)
 			},
 		}),
 
@@ -447,24 +646,15 @@ export default {
 			fieldName: '$$marketPrices',
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { coins } = await import('$/constants/Coin.ts')
-				return [
-					...coins.map((coin) => (
+				return (
+					coins.map((coin) => (
 						{
 							[EntityMetaKey.Id]: {
-								$market: {
-									$base: {
-										kind: MarketAssetKind.Coin,
-										$coin: { coinId: coin.id },
-									},
-									$quote: usdCurrencyMarketAssetLeg,
-									$marketVenue: {
-										marketVenueId: MarketVenueId.SpotIndex,
-									},
-								} as const,
+								$market: catalogCoinUsdMarketId(coin.id),
 							},
 						}
-					)),
-				]
+					))
+				)
 			},
 		}),
 
@@ -474,16 +664,7 @@ export default {
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => (
 				[
 					{
-						[EntityMetaKey.Id]: {
-							$base: {
-								kind: MarketAssetKind.Coin,
-								$coin: { coinId: entityId.coinId },
-							},
-							$quote: usdCurrencyMarketAssetLeg,
-							$marketVenue: {
-								marketVenueId: MarketVenueId.SpotIndex,
-							},
-						} as const,
+						[EntityMetaKey.Id]: catalogCoinUsdMarketId(entityId.coinId),
 					},
 				]
 			),
@@ -519,18 +700,6 @@ export default {
 					]
 				:	[]
 			),
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.Coin,
-			fieldName: '$$bridgeCapabilities',
-			resolve: async () => [],
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.BridgeRoute,
-			fieldName: '$$steps',
-			resolve: async () => [],
 		}),
 
 		defineEntityFieldResolver({
@@ -658,13 +827,22 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Network,
+			fieldName: 'consensusProtocol',
+			resolve: async (entityId) => {
+				const { consensusProtocolForExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
+				return consensusProtocolForExecutionChainId(entityId.chainId)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
 			fieldName: '$$upgrades',
 			resolve: async (entityId) => {
 				const {
 					networkUpgrades,
 					resolveNetworkUpgradeDenormalizedFields,
 				} = await import('$/constants/NetworkUpgrades.ts')
-				return (
+				return enrichNetworkUpgradeRowsActivationTimestamp(
 					networkUpgrades
 						.filter((upgradeRow) => (
 							upgradeRow[EntityMetaKey.Id].$network.chainId === entityId.chainId
@@ -672,7 +850,7 @@ export default {
 						.map((upgradeRow) => ({
 							...upgradeRow,
 							...resolveNetworkUpgradeDenormalizedFields(upgradeRow),
-						}))
+						})),
 				)
 			},
 		}),
@@ -682,10 +860,12 @@ export default {
 			fieldName: '$$executionUpgrades',
 			resolve: async (entityId) => {
 				const { networkExecutionUpgrades } = await import('$/constants/NetworkUpgrades.ts')
-				return (
+				return enrichNetworkExecutionUpgradeRowsActivationTimestamp(
 					networkExecutionUpgrades
-						.filter((upgradeRow) => upgradeRow[EntityMetaKey.Id].$network.chainId === entityId.chainId)
-						.map((upgradeRow) => ({ ...upgradeRow }))
+						.filter((upgradeRow) => (
+							upgradeRow[EntityMetaKey.Id].$network.chainId === entityId.chainId
+						))
+						.map((upgradeRow) => ({ ...upgradeRow })),
 				)
 			},
 		}),
@@ -695,10 +875,12 @@ export default {
 			fieldName: '$$consensusUpgrades',
 			resolve: async (entityId) => {
 				const { networkConsensusUpgrades } = await import('$/constants/NetworkUpgrades.ts')
-				return (
+				return enrichNetworkConsensusUpgradeRowsActivationTimestamp(
 					networkConsensusUpgrades
-						.filter((upgradeRow) => upgradeRow[EntityMetaKey.Id].$network.chainId === entityId.chainId)
-						.map((upgradeRow) => ({ ...upgradeRow }))
+						.filter((upgradeRow) => (
+							upgradeRow[EntityMetaKey.Id].$network.chainId === entityId.chainId
+						))
+						.map((upgradeRow) => ({ ...upgradeRow })),
 				)
 			},
 		}),

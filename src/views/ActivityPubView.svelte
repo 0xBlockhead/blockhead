@@ -29,6 +29,7 @@
 
 	let {
 		open = $bindable(true),
+		collapsible = true,
 	} = $props()
 
 	const entityId = (
@@ -177,7 +178,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<a
 						data-scroll-marker-label="Actors"
 						href={`#${networkIdKey}:public-actors`}
@@ -188,7 +189,7 @@
 					>Outbox</a>
 				{/snippet}
 
-				{#snippet children(_carousel)}
+				{#snippet body(_carousel)}
 					<section
 						data-scroll-marker-label="Actors"
 						id={`${networkIdKey}:public-actors`}

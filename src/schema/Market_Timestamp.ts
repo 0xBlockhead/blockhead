@@ -7,6 +7,7 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import Market from '$/schema/Market.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.Market_Timestamp,
@@ -17,6 +18,7 @@ export default {
 	id: type({
 		$market: Market.id,
 		timestampMs: 'number',
+		'feedKey?': 'string',
 	}),
 
 	fields: [
@@ -25,6 +27,27 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Blockscout_Rest,
+				Source.Coingecko_Rest,
+				Source.Coingecko_OpenApi,
+				Source.CoinMarketCap_Rest,
+				Source.Coinpaprika_OpenApi,
+				Source.Defillama_OpenApi,
+				Source.TradingView_Rest,
+			],
+		},
+		{
+			name: 'transport',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'providerAssetId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string | null'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'marketCap',

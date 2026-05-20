@@ -25,6 +25,7 @@
 	let {
 		entityFieldReference,
 		open = $bindable(true),
+		collapsible = true,
 		title = '4-byte selectors',
 		id,
 		href,
@@ -49,43 +50,6 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const global = useEntity(
-		EntityType._Global,
-		entityFieldReference.entityId,
-		{
-			...(open ? {
-				$$evmSelectors: {
-					$: [
-						Source.Openchain_Rest,
-					],
-				},
-			} : {}),
-		},
-	)
-
-	const selectors = derive(
-		global,
-		(global): Entity<typeof schema, EntityType.EvmSelector>[] => {
-			const rows = (
-				global.$$evmSelectors
-				?? []
-			)
-			return (
-				rows.toSorted((a, b) => (
-					a[EntityMetaKey.Id].hex
-						> b[EntityMetaKey.Id].hex ?
-						1
-					:
-						a[EntityMetaKey.Id].hex
-							< b[EntityMetaKey.Id].hex ?
-							-1
-						:
-							0
-				))
-			)
-		},
-	)
 </script>
 
 
@@ -102,7 +66,7 @@
 			Four-byte function selectors prefix calldata for contract calls; catalogs map them to human-readable signatures.
 		</p>
 		<p>
-			Event topic zeros and error selectors follow different decoding rules on receipts and reverts.
+			Receipt logs and error selectors follow different decoding rules on receipts and reverts.
 		</p>
 		<p>
 			Rows filter the shared OpenChain-style directory for the current slice.
@@ -110,41 +74,63 @@
 	{/snippet}
 
 	{#snippet body()}
-		<div data-column="gap-3">
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmSelector}
-				id={`${id}-items`}
-				{href}
-				{title}
-				open={true}
-				getKey={(row) => row[EntityMetaKey.Id].hex}
-				getSortValue={(row) => row[EntityMetaKey.Id].hex}
-				placeholderKeys={new SvelteSet()}
-				placeholderText="Loading 4-byte selectors…"
-				resource={selectors}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No selectors yet.
-					</p>
-				{/snippet}
+		{#if open}
+			{@const global = useEntity(
+				EntityType._Global,
+				entityFieldReference.entityId,
+				{
+					$$evmSelectors: {
+						$: [
+							Source.Local_Internal,
+						],
+					},
+				},
+			)}
+			{@const selectors = derive(
+				global,
+				(global): Entity<typeof schema, EntityType.EvmSelector>[] => (
+					global.$$evmSelectors
+					?? []
+				),
+			)}
+			<div data-column="gap-3">
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.EvmSelector}
+					id={`${id}-items`}
+					{href}
+					{title}
+					open={true}
+					getKey={(row) => row[EntityMetaKey.Id].hex}
+					getSortValue={(row) => row[EntityMetaKey.Id].hex}
+					placeholderKeys={new SvelteSet()}
+					placeholderText="Loading 4-byte selectors…"
+					resource={selectors}
+					UnorderedListProps={{ orientation: ListOrientation.Column }}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No selectors yet.
+						</p>
+					{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<EvmSelectorView
-							entityId={props.item[EntityMetaKey.Id]}
-							href={resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
-								hex: props.item[EntityMetaKey.Id].hex,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
-				{/snippet}
-			</EntitiesList>
-		</div>
+					{#snippet Item(props)}
+						{#if props.item}
+							<EvmSelectorView
+								entityId={props.item[EntityMetaKey.Id]}
+								href={resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
+									hex: props.item[EntityMetaKey.Id].hex,
+								})}
+								layout={EntityLayout.Summary}
+								open={false}
+								collapsible={false}
+								showTypeAnnotation={false}
+							/>
+						{/if}
+					{/snippet}
+				</EntitiesList>
+			</div>
+		{/if}
 	{/snippet}
 </EntitiesList>

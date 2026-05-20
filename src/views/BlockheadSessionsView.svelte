@@ -33,6 +33,7 @@
 		entityFieldReference,
 		title = 'Simulator sessions',
 		open = $bindable(true),
+		collapsible = true,
 		href,
 		id,
 		...entitiesListRest
@@ -49,45 +50,6 @@
 		},
 		Omit<ComponentProps<typeof EntitiesList>, 'entityType'>
 	> = $props()
-
-
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					[entityFieldReference.fieldName]: {
-						$: [
-							Source.Local_Internal,
-						],
-					},
-				}
-			:
-				{
-					$: [
-						Source.Local_Internal,
-					],
-				}
-		),
-	)
-
-	const sessions = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.BlockheadSession>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-				.toSorted((a, b) => (
-					stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
-				))
-			return (
-				rows.map((value) => ({
-					value,
-				}))
-			)
-		},
-	)
 </script>
 
 
@@ -97,10 +59,7 @@
 	{id}
 	{title}
 	bind:open
-	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	resource={sessions}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{collapsible}
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -118,17 +77,68 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: envelope })}
-		{#if envelope}
-			<BlockheadSessionView
-				entityId={envelope.value[EntityMetaKey.Id]}
-				href={resolve(
-					'/~/(manage)/manage/(profiles)/profile/[profileId]',
-					{ profileId: envelope.value[EntityMetaKey.Id].id },
-				)}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [
+						Source.Local_Internal,
+					],
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Local_Internal,
+						],
+					},
+				},
+			)}
+			{@const sessions = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.BlockheadSession>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						rows.map((value) => ({
+							value,
+						}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.BlockheadSession}
+				{href}
+				id={`${id}-items`}
+				{title}
+				open={true}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				resource={sessions}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No sessions yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item({ item: envelope })}
+					{#if envelope}
+						<BlockheadSessionView
+							entityId={envelope.value[EntityMetaKey.Id]}
+							href={resolve(
+								'/~/(manage)/manage/(profiles)/profile/[profileId]',
+								{ profileId: envelope.value[EntityMetaKey.Id].id },
+							)}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

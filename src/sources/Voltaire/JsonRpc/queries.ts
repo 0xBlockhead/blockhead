@@ -19,6 +19,7 @@ import { ethBlockNumber } from '$/sources/Evm/JsonRpc/queries.ts'
 import type { RpcBlockHeaderWire, RpcLogWire, RpcReceiptWire, RpcTxWire } from '$/sources/Evm/JsonRpc/types.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
+import { parseRawCallTraceWire } from '$/lib/evm-trace.ts'
 import type { VoltaireBlockRpc, VoltaireReceiptRpc, VoltaireTxRpc } from './types.ts'
 
 
@@ -64,6 +65,8 @@ export const narrowVoltaireTxRpc = (raw: JsonValue): VoltaireTxRpc | null => (
 				input: typeof raw['input'] === 'string' ? raw['input'] : undefined,
 				gas: typeof raw['gas'] === 'string' ? raw['gas'] : undefined,
 				gasPrice: typeof raw['gasPrice'] === 'string' ? raw['gasPrice'] : undefined,
+				maxFeePerGas: typeof raw['maxFeePerGas'] === 'string' ? raw['maxFeePerGas'] : undefined,
+				maxPriorityFeePerGas: typeof raw['maxPriorityFeePerGas'] === 'string' ? raw['maxPriorityFeePerGas'] : undefined,
 				type: typeof raw['type'] === 'string' ? raw['type'] : undefined,
 				...(blobVersionedHashes != null && { blobVersionedHashes }),
 			}
@@ -424,6 +427,31 @@ export const getTransactionByHashForRpcUrl = async ({
 	)
 }
 
+export const debugTraceTransactionForRpcUrl = async ({
+	rpcUrl,
+	transportType,
+	txHash,
+}: {
+	rpcUrl: string
+	transportType: TransportType
+	txHash: `0x${string}`
+}) => {
+	const provider = getVoltaireProviderForExecutionUrl({ url: rpcUrl, transportType })
+	try {
+		return parseRawCallTraceWire(
+			await provider.request({
+				method: 'debug_traceTransaction',
+				params: [
+					Hex(txHash),
+					{ tracer: 'callTracer' },
+				],
+			}),
+		)
+	} catch {
+		return null
+	}
+}
+
 export const getTransactionReceiptForRpcUrl = async ({
 	rpcUrl,
 	transportType,
@@ -484,6 +512,8 @@ export const voltaireTxWireAsRpcTx = (
 	to: tx.to,
 	gas: tx.gas,
 	gasPrice: tx.gasPrice,
+	...(tx.maxFeePerGas != null && { maxFeePerGas: tx.maxFeePerGas }),
+	...(tx.maxPriorityFeePerGas != null && { maxPriorityFeePerGas: tx.maxPriorityFeePerGas }),
 	input: tx.input,
 	nonce: tx.nonce,
 	transactionIndex: tx.transactionIndex,

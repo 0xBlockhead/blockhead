@@ -25,6 +25,7 @@
 	let {
 		entityFieldReference,
 		open = $bindable(true),
+		collapsible = true,
 		title = 'Error selectors',
 		id,
 		href,
@@ -47,43 +48,6 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const global = useEntity(
-		EntityType._Global,
-		entityFieldReference.entityId,
-		{
-			...(open ? {
-				$$evmErrors: {
-					$: [
-						Source.Openchain_Rest,
-					],
-				},
-			} : {}),
-		},
-	)
-
-	const errors = derive(
-		global,
-		(global): Entity<typeof schema, EntityType.EvmError>[] => {
-			const rows = (
-				global.$$evmErrors
-				?? []
-			)
-			return (
-				rows.toSorted((a, b) => (
-					a[EntityMetaKey.Id].hex
-						> b[EntityMetaKey.Id].hex ?
-						1
-					:
-						a[EntityMetaKey.Id].hex
-							< b[EntityMetaKey.Id].hex ?
-							-1
-						:
-							0
-				))
-			)
-		},
-	)
 </script>
 
 
@@ -108,40 +72,62 @@
 	{/snippet}
 
 	{#snippet body()}
-		<div data-column="gap-3">
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmError}
-				id={`${id}-items`}
-				{href}
-				{title}
-				open={true}
-				getKey={(row) => row[EntityMetaKey.Id].hex}
-				getSortValue={(row) => row[EntityMetaKey.Id].hex}
-				placeholderText="Loading revert/error selectors…"
-				resource={errors}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No error selectors yet.
-					</p>
-				{/snippet}
+		{#if open}
+			{@const global = useEntity(
+				EntityType._Global,
+				entityFieldReference.entityId,
+				{
+					$$evmErrors: {
+						$: [
+							Source.Local_Internal,
+						],
+					},
+				},
+			)}
+			{@const errors = derive(
+				global,
+				(global): Entity<typeof schema, EntityType.EvmError>[] => (
+					global.$$evmErrors
+					?? []
+				),
+			)}
+			<div data-column="gap-3">
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.EvmError}
+					id={`${id}-items`}
+					{href}
+					{title}
+					open={true}
+					getKey={(row) => row[EntityMetaKey.Id].hex}
+					getSortValue={(row) => row[EntityMetaKey.Id].hex}
+					placeholderText="Loading revert/error selectors…"
+					resource={errors}
+					UnorderedListProps={{ orientation: ListOrientation.Column }}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No error selectors yet.
+						</p>
+					{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<EvmErrorView
-							entityId={props.item[EntityMetaKey.Id]}
-							href={resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
-								hex: props.item[EntityMetaKey.Id].hex,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
-				{/snippet}
-			</EntitiesList>
-		</div>
+					{#snippet Item(props)}
+						{#if props.item}
+							<EvmErrorView
+								entityId={props.item[EntityMetaKey.Id]}
+								href={resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
+									hex: props.item[EntityMetaKey.Id].hex,
+								})}
+								layout={EntityLayout.Summary}
+								open={false}
+								collapsible={false}
+								showTypeAnnotation={false}
+							/>
+						{/if}
+					{/snippet}
+				</EntitiesList>
+			</div>
+		{/if}
 	{/snippet}
 </EntitiesList>

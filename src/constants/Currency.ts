@@ -1,7 +1,7 @@
 // Types
 
 import { coins } from '$/constants/Coin.ts'
-import { MarketAssetKind } from '$/constants/Market.ts'
+import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
 import {
 	catalogFiatUsdCrossMarketVenueId,
 	catalogMarketVenueIdForCoin,
@@ -391,6 +391,7 @@ export const catalogMarketsWithCurrencyAsQuote = (
 				$marketVenue: {
 					marketVenueId: catalogMarketVenueIdForCoin(coin.id),
 				},
+				marketKind: MarketKind.Spot,
 			}]
 		))
 )
@@ -410,6 +411,7 @@ export const catalogMarketsWithCurrencyAsBase = (
 		$marketVenue: {
 			marketVenueId: catalogFiatUsdCrossMarketVenueId,
 		},
+		marketKind: MarketKind.Spot,
 	}]
 )
 

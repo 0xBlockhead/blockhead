@@ -26,6 +26,7 @@
 		title,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -99,6 +100,7 @@
 	{href}
 	{title}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Icon()}
 		{#if icon}
@@ -113,7 +115,7 @@
 		{title}
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.id}
 		</span>
@@ -150,10 +152,14 @@
 										address: accounts[0],
 									},
 								}}
-								href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-									accountId: accounts[0],
-								})}
-								layout={EntityLayout.Id}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+									{
+										networkId: String(chainId),
+										address: accounts[0],
+									},
+								)}
+								layout={EntityLayout.Title}
 								open={false}
 								showTypeAnnotation={false}
 							/>
@@ -162,10 +168,10 @@
 								entityId={{
 									address: accounts[0],
 								}}
-								href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-									accountId: accounts[0],
+								href={resolve('/account/[address]', {
+									address: accounts[0],
 								})}
-								layout={EntityLayout.Id}
+								layout={EntityLayout.Title}
 								open={false}
 								showTypeAnnotation={false}
 							/>
@@ -243,7 +249,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					{#if accounts.length}
 						<a
 							data-scroll-marker-label="Accounts"
@@ -256,7 +262,7 @@
 					>Actions</a>
 				{/snippet}
 
-				{#snippet children(_childrenContext)}
+				{#snippet body(_childrenContext)}
 					{#if accounts.length}
 						<section id={`${walletConnectionKey}:wallet-accounts`}>
 							<ul
@@ -271,18 +277,20 @@
 													$network: { chainId },
 													$actor: { address },
 												}}
-												href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-													accountId: address,
-												})}
-												open={false}
+												href={resolve(
+													'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+													{
+														networkId: String(chainId),
+														address: address,
+													},
+												)}
 											/>
 										{:else}
 											<ActorView
 												entityId={{ address }}
-												href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-													accountId: address,
+												href={resolve('/account/[address]', {
+													address: address,
 												})}
-												open={false}
 											/>
 										{/if}
 									</li>

@@ -110,6 +110,30 @@ export const ethereumNetworkMarketingUmbrellas = [
 
 const ETHEREUM_NETWORK_UPGRADE_UMBRELLA_CHAIN_IDS = new Set(ethereumNetworkUpgradeUmbrellaChainIds)
 
+const activationFieldsFromActivation = (
+	activation: NetworkUpgradeActivation['activation'],
+) => (
+	activation == null ?
+		{}
+	:	{
+			...(activation.block != null && { activationBlock: activation.block }),
+			...(activation.timestamp != null && { activationTimestamp: activation.timestamp }),
+			...(activation.epoch != null && { activationEpoch: activation.epoch }),
+		}
+)
+
+const maxActivationTimestamp = (
+	...timestamps: (number | undefined)[]
+): number | undefined => {
+	const defined = timestamps.filter((timestamp): timestamp is number => timestamp != null)
+	return (
+		defined.length > 0 ?
+			Math.max(...defined)
+		:
+			undefined
+	)
+}
+
 const proposalStubs = (
 	proposalIds: NonNullable<NetworkUpgradeActivation['proposalIds']>,
 ): Entity<typeof schema, EntityType.Proposal>[] => (
@@ -163,9 +187,7 @@ const networkExecutionUpgradeEntityFromSource = (
 			slug: slugValue,
 			layer: NetworkExecutionUpgradeLayer.Blob,
 			protocol: ExecutionProtocol.OpStack,
-			...(activation?.block != null && { activationBlock: activation.block }),
-			...(activation?.timestamp != null && { activationTimestamp: activation.timestamp }),
-			...(activation?.epoch != null && { activationEpoch: activation.epoch }),
+			...activationFieldsFromActivation(activation),
 			...(forkHash != null && { forkHash }),
 			...(links?.ethereumOrg != null && { linkEthereumOrg: links.ethereumOrg }),
 			...(links?.executionSpecs != null && { linkExecutionDocs: links.executionSpecs }),
@@ -185,9 +207,7 @@ const networkExecutionUpgradeEntityFromSource = (
 		name: name ?? upgradeId,
 		slug: slugValue,
 		...(activationSource.executionProtocol != null && { protocol: activationSource.executionProtocol }),
-		...(activation?.block != null && { activationBlock: activation.block }),
-		...(activation?.timestamp != null && { activationTimestamp: activation.timestamp }),
-		...(activation?.epoch != null && { activationEpoch: activation.epoch }),
+		...activationFieldsFromActivation(activation),
 		...(forkHash != null && { forkHash }),
 		...(links?.ethereumOrg != null && { linkEthereumOrg: links.ethereumOrg }),
 		...(links?.executionSpecs != null && { linkExecutionDocs: links.executionSpecs }),
@@ -223,9 +243,7 @@ const networkConsensusUpgradeEntityFromSource = (
 			slugOverride: slugMaybe,
 		}),
 		protocol: activationSource.consensusProtocol,
-		...(activation?.block != null && { activationBlock: activation.block }),
-		...(activation?.timestamp != null && { activationTimestamp: activation.timestamp }),
-		...(activation?.epoch != null && { activationEpoch: activation.epoch }),
+		...activationFieldsFromActivation(activation),
 		...(links?.ethereumOrg != null && { linkEthereumOrg: links.ethereumOrg }),
 		...(links?.consensusSpecs != null && { linkConsensusDocs: links.consensusSpecs }),
 		...(links?.forkcast != null && { linkForkcast: links.forkcast }),
@@ -550,7 +568,10 @@ export const resolveNetworkUpgradeDenormalizedFields = (
 	)
 
 	const activationBlock = executionRow?.activationBlock ?? consensusRow?.activationBlock
-	const activationTimestamp = executionRow?.activationTimestamp ?? consensusRow?.activationTimestamp
+	const activationTimestamp = maxActivationTimestamp(
+		executionRow?.activationTimestamp,
+		consensusRow?.activationTimestamp,
+	)
 	const activationEpoch = consensusRow?.activationEpoch ?? executionRow?.activationEpoch
 
 	const executionProposals = executionRow?.$$proposals

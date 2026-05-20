@@ -92,6 +92,68 @@ export const collectIssues = (page: Page) => {
 	return issues
 }
 
+/**
+ * Fail-fast gate for live network pages: `step()` races each await against first pageerror / critical console.error.
+ * Matches filters in `network.e2e.ts` (ignore HTTP 4xx/5xx, resolver fetch noise, WSS drop copy).
+ */
+export const setupNetworkLiveFailFast = (page: Page) => {
+	let failed = false
+	let rejectRuntimeError: ((error: Error) => void) | undefined
+	const runtimeError = new Promise<never>((_, reject) => {
+		rejectRuntimeError = reject
+	})
+	const failFast = (error: Error) => {
+		if (failed) return
+		failed = true
+		rejectRuntimeError?.(error)
+	}
+	const step = async <_Value>(promise: Promise<_Value>) => {
+		await Promise.race([promise, runtimeError])
+	}
+
+	page.on('pageerror', (error) => {
+		failFast(new Error(`pageerror: ${error.message}`))
+	})
+
+	page.on('crash', () => {
+		failFast(new Error('Browser tab crashed'))
+	})
+
+	page.on('console', (message) => {
+		if (
+			message.type() === 'error'
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 400')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 403')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 404')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 422')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 429')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 500')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 502')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 503')
+			&& !message.text().includes('[vite] Failed to reload')
+			&& !message.text().includes('Failed to fetch dynamically imported module')
+			&& !message.text().includes('Failed to load resource: net::ERR_QUIC_PROTOCOL_ERROR')
+			&& !message.text().includes('Failed to load resource: net::ERR_CONNECTION_REFUSED')
+			&& !message.text().includes('Failed to load resource: net::ERR_FAILED')
+			&& !message.text().includes('has been blocked by CORS policy')
+			&& !message.text().includes('Voltaire: block stream ended')
+			&& !(
+				message.text().includes('[QueryCollection]')
+				&& (
+					/resolver\(s\) failed/.test(message.text())
+					|| /Fetch failed \(\d{3}/.test(message.text())
+				)
+			)
+		) failFast(new Error(`console error: ${message.text()}`))
+		if (
+			message.type() === 'warning'
+			&& message.text().includes('Calling .preload() on a collection with syncMode "on-demand" is a no-op')
+		) failFast(new Error(`console warning: ${message.text()}`))
+	})
+
+	return { step }
+}
+
 export const clearOriginOpfs = (page: Page) => (
 	page.evaluate(async () => {
 		const root = await navigator.storage.getDirectory()
@@ -545,14 +607,65 @@ const blockPathNumberFromHref = (href: string | null) => {
 	}
 }
 
-/** Parses head block height from `#network-summary-head-block` block link (`EvmBlockView`); raw `innerText` is often not a lone decimal anymore. */
+/** Parses head block height from `#network-summary-head-block` only. */
 export const readNetworkHeadBlockBigint = async (
 	page: Page,
 	linkWaitMs = 120_000,
 ) => {
-	const link = page.locator('#network-summary-head-block').locator('a[href*="/block/"]').first()
+	const summaryLink = page.locator('#network-summary-head-block').locator('a[href*="/block/"]').first()
+	await summaryLink.waitFor({ state: 'attached', timeout: linkWaitMs })
+	return blockPathNumberFromHref(await summaryLink.getAttribute('href'))
+}
+
+const beaconPathNumberFromHref = (
+	href: string | null,
+	segment: 'epoch' | 'slot',
+) => {
+	if (href == null) return null
+	const m = new RegExp(`/${segment}/([0-9]+)\\b`).exec(href)
+	if (m == null) return null
+	try {
+		return BigInt(m[1])
+	} catch {
+		return null
+	}
+}
+
+/** Head epoch from summary `<dl>` (`BeaconEpochView` link). */
+export const readNetworkHeadEpochBigint = async (
+	page: Page,
+	linkWaitMs = 120_000,
+) => {
+	const link = page
+		.locator('.network-summary-head')
+		.locator('a[href*="/epoch/"]')
+		.first()
 	await link.waitFor({ state: 'attached', timeout: linkWaitMs })
-	return blockPathNumberFromHref(await link.getAttribute('href'))
+	return beaconPathNumberFromHref(await link.getAttribute('href'), 'epoch')
+}
+
+/** Head slot from summary `<dl>` (`BeaconSlotView` link). */
+export const readNetworkHeadSlotBigint = async (
+	page: Page,
+	linkWaitMs = 120_000,
+) => {
+	const link = page
+		.locator('.network-summary-head')
+		.locator('a[href*="/slot/"]')
+		.first()
+	await link.waitFor({ state: 'attached', timeout: linkWaitMs })
+	return beaconPathNumberFromHref(await link.getAttribute('href'), 'slot')
+}
+
+/** Collapse the network `EntityView` card (summary `<dl>` stays mounted). */
+export const collapseNetworkEntityView = async (page: Page) => {
+	const networkCard = page.locator('article').filter({
+		has: page.locator('#network-summary-head-block'),
+	})
+	const details = networkCard.locator('> details').first()
+	await expect(details).toHaveAttribute('open', '')
+	await details.locator('> summary').click()
+	await expect(details).not.toHaveAttribute('open', '')
 }
 
 /** Scroll host (`layout-carousel`) — execution carousel pane host uses `network-carousel-execution`; panes are direct children (no `[data-carousel-panes]` wrapper). */

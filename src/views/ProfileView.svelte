@@ -81,6 +81,7 @@
 	bind:open
 	title="Profile"
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
@@ -112,7 +113,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			FID {String(farcasterUserId.fid)}
 		</span>
@@ -177,10 +178,10 @@
 										entityId={{
 											address: farcasterUser.verifiedAddress,
 										}}
-										href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-											accountId: farcasterUser.verifiedAddress,
+										href={resolve('/account/[address]', {
+											address: farcasterUser.verifiedAddress,
 										})}
-										layout={EntityLayout.Id}
+										layout={EntityLayout.Title}
 										open={false}
 										showTypeAnnotation={false}
 									/>

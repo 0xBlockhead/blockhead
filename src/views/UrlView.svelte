@@ -77,8 +77,9 @@
 	{href}
 	{open}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.url}
 		</span>

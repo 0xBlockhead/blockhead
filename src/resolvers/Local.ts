@@ -359,5 +359,47 @@ export default {
 					}))
 			),
 		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType._Global,
+			fieldName: '$$evmSelectors',
+			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				sliceCatalogRowsForSubset(
+					readNormalizedLocalInternalCatalog().evmSelectors,
+					context,
+				)
+					.map((row) => ({
+						[EntityMetaKey.Id]: { hex: row.hex },
+					}))
+			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType._Global,
+			fieldName: '$$evmTopics',
+			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				sliceCatalogRowsForSubset(
+					readNormalizedLocalInternalCatalog().evmTopics,
+					context,
+				)
+					.map((row) => ({
+						[EntityMetaKey.Id]: { hex: row.hex },
+					}))
+			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType._Global,
+			fieldName: '$$evmErrors',
+			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				sliceCatalogRowsForSubset(
+					readNormalizedLocalInternalCatalog().evmErrors,
+					context,
+				)
+					.map((row) => ({
+						[EntityMetaKey.Id]: { hex: row.hex },
+					}))
+			),
+		}),
 	],
 }

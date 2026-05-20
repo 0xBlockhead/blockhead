@@ -33,30 +33,55 @@ export default {
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Actor,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Sourcify_Rest,
+				Source.Blockscout_Rest,
+				Source.Etherscan_Rest,
+			],
 		},
 		{
 			name: '$creationTransaction',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmTransaction,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Blockscout_Rest,
+				Source.Sourcify_Rest,
+				Source.Etherscan_Rest,
+			],
 		},
 		{
 			name: '$implementation',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Blockscout_Rest,
+				Source.Sourcify_Rest,
+				Source.Etherscan_Rest,
+			],
 		},
 		{
 			name: 'bytecodeHash',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
+				Source.Etherscan_Rest,
+			],
 		},
 		{
 			name: 'code',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
+				Source.Etherscan_Rest,
+			],
 		},
 		{
 			name: 'abi',
@@ -66,15 +91,7 @@ export default {
 			defaultSources: [
 				Source.Sourcify_Rest,
 				Source.Etherscan_Rest,
-			],
-		},
-		{
-			name: 'storageLayoutJson',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Sourcify_Rest,
+				Source.Blockscout_Rest,
 			],
 		},
 		{
@@ -84,13 +101,18 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
+				Source.Etherscan_Rest,
 			],
 		},
 		{
-			name: '$verifiedSource',
+			name: '$verification',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmContractSource,
+			entityType: EntityType.EvmContractVerification,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Sourcify_Rest,
+			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

@@ -26,6 +26,7 @@
 		entityFieldReference,
 		title = 'Blocks',
 		open = $bindable(true),
+		collapsible = true,
 		id,
 		href,
 		...entitiesListRest
@@ -34,6 +35,7 @@
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmBlock>
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 			id: string
 			href: string
 		},
@@ -47,45 +49,6 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const network = useEntity(
-		EntityType.Network,
-		entityFieldReference.entityId,
-		{
-			...(open ? {
-				blockHeight: {
-					$: [
-						Source.Voltaire_JsonRpc,
-					],
-				},
-				$$blocks: {
-					$: [
-						Source.Voltaire_JsonRpc,
-					],
-				},
-			} : {}),
-		},
-	)
-
-	const blocks = derive(
-		network,
-		(network): Entity<typeof schema, EntityType.EvmBlock>[] => {
-			const rows = (
-				network.$$blocks
-				?? []
-			)
-			return (
-				rows
-					.toSorted((a, b) => (
-						Number(
-							b[EntityMetaKey.Id].blockNumber
-							- a[EntityMetaKey.Id].blockNumber,
-						)
-					))
-					.slice(0, 16)
-			)
-		},
-	)
 </script>
 
 
@@ -102,7 +65,7 @@
 			Execution blocks group ordered transactions under one header: gas usage, fee market, and parent hash linkage.
 		</p>
 		<p>
-			Receipts carry event logs with indexed topics; blob transactions add data availability commitments without changing how contracts are decoded.
+			Receipts carry receipt logs (<code>LOG</code> opcodes) with indexed topics; blob transactions add data availability commitments without changing how contracts are decoded.
 		</p>
 		<p>
 			Recent block lists are often capped for RPC cost.
@@ -110,47 +73,76 @@
 	{/snippet}
 
 	{#snippet body()}
-		<div data-column="gap-3">
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmBlock}
-				id={`${id}-items`}
-				{href}
-				{title}
-				open={true}
-				getKey={(row) => row[EntityMetaKey.Id].blockNumber}
-				placeholderText="Loading execution blocks…"
-				resource={blocks}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No recent blocks yet.
-					</p>
-				{/snippet}
+		{#if open}
+			{@const fieldName = entityFieldReference.fieldName}
+			{@const network = useEntity(
+				EntityType.Network,
+				entityFieldReference.entityId,
+				{
+					blockHeight: {
+						$: [
+							Source.Voltaire_JsonRpc,
+						],
+					},
+					[fieldName]: {
+						$: [
+							Source.Voltaire_JsonRpc,
+						],
+						$limit: 16,
+					},
+				},
+			)}
+			{@const blocks = derive(
+				network,
+				(network): Entity<typeof schema, EntityType.EvmBlock>[] => (
+					(network[fieldName] ?? []).slice(0, 16)
+				),
+			)}
+			<div data-column="gap-3">
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.EvmBlock}
+					id={`${id}-items`}
+					{href}
+					{title}
+					open={true}
+					getKey={(row) => row[EntityMetaKey.Id].blockNumber}
+					getSortValue={(row) => (
+						-Number(row[EntityMetaKey.Id].blockNumber)
+					)}
+					placeholderText="Loading execution blocks…"
+					resource={blocks}
+					UnorderedListProps={{ orientation: ListOrientation.Column }}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No recent blocks yet.
+						</p>
+					{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<EvmBlockView
-							entityId={props.item[EntityMetaKey.Id]}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
-								{
-									networkId: String(
-										props.item[EntityMetaKey.Id].$network.chainId,
-									),
-									blockNumber: String(
-										props.item[EntityMetaKey.Id].blockNumber,
-									),
-								},
-							)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
-				{/snippet}
-			</EntitiesList>
-		</div>
+					{#snippet Item(props)}
+						{#if props.item}
+							<EvmBlockView
+								entityId={props.item[EntityMetaKey.Id]}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
+									{
+										networkId: String(
+											props.item[EntityMetaKey.Id].$network.chainId,
+										),
+										blockNumber: String(
+											props.item[EntityMetaKey.Id].blockNumber,
+										),
+									},
+								)}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</EntitiesList>
+			</div>
+		{/if}
 	{/snippet}
 </EntitiesList>

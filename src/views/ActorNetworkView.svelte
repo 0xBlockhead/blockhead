@@ -9,7 +9,6 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { blockscoutExplorerRestV2SupportedForChain } from '$/sources/Blockscout/Rest/constants.ts'
 
 
 	// Context
@@ -18,7 +17,7 @@
 
 	// Props
 	let {
-		children,
+		pageContent: _pageContent,
 		entityId,
 		title = 'Wallet on network',
 		href,
@@ -27,7 +26,7 @@
 		...entityViewRest
 	}: WithRest<
 		{
-			children?: Snippet
+			pageContent?: Snippet
 			entityId: EntityId<typeof schema, EntityType.ActorNetwork>
 			title?: string
 			href: string
@@ -45,9 +44,6 @@
 			| 'Details'
 		>
 	> = $props()
-
-
-	const blockscoutRestV2ForNetwork = blockscoutExplorerRestV2SupportedForChain(entityId.$network.chainId)
 
 
 	// State
@@ -77,6 +73,12 @@
 				),
 			],
 			name: {},
+			$icon: {
+				$: [
+					Source.Constants_Internal,
+					Source.Chainlist_Rest,
+				],
+			},
 		},
 	)
 
@@ -102,22 +104,48 @@
 						Source.Allium_Rest,
 					],
 				},
-				$$erc20TokenAllowances: {},
-				...(blockscoutRestV2ForNetwork ?
-					{
-						$$transactions: {
-							$: [
-								Source.Blockscout_Rest,
-							],
-						},
-					}
-				:
-					{}),
-				transactionsCount: {},
-				transactionCount: {},
+				$$erc20TokenAllowances: {
+					$: [
+						Source.Blockscout_Rest,
+					],
+				},
+				isContract: {
+					$: [
+						Source.Blockscout_Rest,
+					],
+				},
+				$$transactions: {
+					$: [
+						Source.Blockscout_Rest,
+					],
+				},
+				$$tokenTransfers: {
+					$: [
+						Source.Blockscout_Rest,
+					],
+				},
+				$$internalTransactions: {
+					$: [
+						Source.Blockscout_Rest,
+					],
+				},
+				transactionsCount: {
+					$: [
+						Source.Blockscout_Rest,
+					],
+				},
+				transactionCount: {
+					$: [
+						Source.Blockscout_Rest,
+					],
+				},
+				tokenTransferCount: {
+					$: [
+						Source.Blockscout_Rest,
+					],
+				},
 				firstTransactionAt: {},
 				lastTransactionAt: {},
-				tokenTransferCount: {},
 				nftCount: {},
 				contractPositions: {},
 			}
@@ -127,8 +155,8 @@
 
 	const allowances = derive(
 		actorNetwork,
-		(actorNetwork) => (
-			[...(row.$$erc20TokenAllowances ?? [])].map((value) => ({
+		(networkRow) => (
+			[...(networkRow.$$erc20TokenAllowances ?? [])].map((value) => ({
 				value,
 			}))
 		),
@@ -144,8 +172,10 @@
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import Address from '$/views/Address.svelte'
 	import BalancesView from '$/views/BalancesView.svelte'
+	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -161,6 +191,7 @@
 	{layout}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Icon()}
 		<ResourceBoundary
@@ -202,7 +233,7 @@
 		</small>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<Address
 			address={entityId.$actor.address}
 			network={entityId.$network}
@@ -253,7 +284,7 @@
 												'/(explore)/(networks)/network/[networkId]',
 												{ networkId: String(entityId.$network.chainId) },
 											)}
-											layout={EntityLayout.Id}
+											layout={EntityLayout.Title}
 											open={false}
 											showTypeAnnotation={false}
 										/>
@@ -269,6 +300,13 @@
 										<div>
 											<dt>Transactions (count)</dt>
 											<dd data-text="mono">{String(actorNetwork.transactionsCount)}</dd>
+										</div>
+									{/if}
+
+									{#if actorNetwork.isContract !== undefined}
+										<div>
+											<dt>Contract</dt>
+											<dd data-text="mono">{actorNetwork.isContract ? 'Yes' : 'No'}</dd>
 										</div>
 									{/if}
 
@@ -341,7 +379,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					{#if !actorNetwork.ready || (actorNetwork.current.$$ownedCoins ?? []).length > 0}
 						<a
 							data-scroll-marker-label="Tokens"
@@ -364,7 +402,7 @@
 					{/if}
 				{/snippet}
 
-				{#snippet children(_balancesCarousel)}
+				{#snippet body(_balancesCarousel)}
 					<section id={`${actorNetworkDetailAnchorKey}:actor-balances-tokens`}>
 						<BalancesView
 							collapsible={false}
@@ -375,7 +413,6 @@
 							}}
 							href={href}
 							id={`${actorNetworkDetailAnchorKey}:actor-owned-coins`}
-							open={false}
 							title="Tokens"
 						/>
 					</section>
@@ -391,7 +428,6 @@
 							placeholderKeys={new SvelteSet<string>()}
 							placeholderText="Loading allowances…"
 							resource={allowances}
-							open={false}
 							UnorderedListProps={{
 								orientation: ListOrientation.Column,
 							}}
@@ -406,14 +442,39 @@
 									{@const row = props.item.value[EntityMetaKey.Id]}
 									<div data-row="wrap align-center gap-3">
 										<span data-text="annotation">Spender</span>
-										<Address address={row.$spender.address} />
+										<ActorNetworkView
+											entityId={{
+												$network: entityId.$network,
+												$actor: { address: row.$spender.address },
+											}}
+											href={resolve(
+												'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+												{
+													networkId: String(entityId.$network.chainId),
+													address: row.$spender.address,
+												},
+											)}
+											layout={EntityLayout.Title}
+											showTypeAnnotation={false}
+										/>
 										<span data-text="annotation">Asset</span>
 										{#if row.$actorCoin.$coinInstance.type === CoinInstanceType.NativeCurrency}
 											<span data-text="muted">Native gas token</span>
 										{:else if row.$actorCoin.$coinInstance.type === CoinInstanceType.Erc20Token}
-											<Address
-												network={entityId.$network}
-												address={row.$actorCoin.$coinInstance.$contract.address}
+											<EvmContractView
+												entityId={{
+													$network: entityId.$network,
+													address: row.$actorCoin.$coinInstance.$contract.address,
+												}}
+												href={resolve(
+													'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+													{
+														networkId: String(entityId.$network.chainId),
+														address: row.$actorCoin.$coinInstance.$contract.address,
+													},
+												)}
+												layout={EntityLayout.Title}
+												showTypeAnnotation={false}
 											/>
 										{:else}
 											<span data-text="muted">—</span>
@@ -438,13 +499,24 @@
 													<span data-text="muted">{row.protocol.name}</span>
 												</div>
 												{#if row.pool != null}
-													<div data-text="mono">
-														<Address
-															network={entityId.$network}
-															address={row.pool.address}
+													<div data-row="wrap align-center gap-2">
+														<EvmContractView
+															entityId={{
+																$network: entityId.$network,
+																address: row.pool.address,
+															}}
+															href={resolve(
+																'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+																{
+																	networkId: String(entityId.$network.chainId),
+																	address: row.pool.address,
+																},
+															)}
+															layout={EntityLayout.Title}
+															showTypeAnnotation={false}
 														/>
 														{#if row.pool.name != null}
-															{' '}· {row.pool.name}
+															<span data-text="muted">{row.pool.name}</span>
 														{/if}
 													</div>
 												{/if}
@@ -465,9 +537,8 @@
 				{/snippet}
 			</CollapsibleTabs>
 
-			{#if blockscoutRestV2ForNetwork}
-				<CollapsibleTabs
-					id={`${actorNetworkDetailAnchorKey}:carousel-activity`}
+			<CollapsibleTabs
+				id={`${actorNetworkDetailAnchorKey}:carousel-activity`}
 					{...{ 'data-card': '' }}
 					class="actor-network-view-collapsible-activity"
 					scrollContainerProps={{
@@ -480,7 +551,7 @@
 						</header>
 					{/snippet}
 
-					{#snippet Markers()}
+					{#snippet Markers(_context)}
 						{#if (
 							actorNetwork.current.transactionsCount !== undefined
 							|| actorNetwork.current.transactionCount !== undefined
@@ -498,19 +569,32 @@
 							data-scroll-marker-label="Transactions"
 							href={`#${actorNetworkDetailAnchorKey}:activity-transactions`}
 						>Transactions</a>
-						{#if actorNetwork.current.tokenTransferCount !== undefined}
+						{#if (
+							actorNetwork.current.tokenTransferCount !== undefined
+							|| !actorNetwork.ready
+							|| (actorNetwork.current.$$tokenTransfers ?? []).length > 0
+						)}
 							<a
-								data-scroll-marker-label="Transfers"
-								href={`#${actorNetworkDetailAnchorKey}:activity-transfers`}
-							>Transfers</a>
+								data-scroll-marker-label="Token transfers"
+								href={`#${actorNetworkDetailAnchorKey}:activity-token-transfers`}
+							>Token transfers</a>
+						{/if}
+						{#if (
+							!actorNetwork.ready
+							|| (actorNetwork.current.$$internalTransactions ?? []).length > 0
+						)}
+							<a
+								data-scroll-marker-label="Internal transactions"
+								href={`#${actorNetworkDetailAnchorKey}:activity-internal-transactions`}
+							>Internal transactions</a>
 						{/if}
 						<a
-							data-scroll-marker-label="Events"
-							href={`#${actorNetworkDetailAnchorKey}:activity-events`}
-						>Events</a>
+							data-scroll-marker-label="Receipt logs"
+							href={`#${actorNetworkDetailAnchorKey}:activity-receipt-logs`}
+						>Receipt logs</a>
 					{/snippet}
 
-					{#snippet children(_activityChildren)}
+					{#snippet body(_activityChildren)}
 						<ResourceBoundary
 							resource={actorNetwork}
 							placeholderText="Loading activity…"
@@ -586,46 +670,56 @@
 										}}
 										href={href}
 										id={`${actorNetworkDetailAnchorKey}:activity-tx`}
-										open={false}
 									/>
 								</section>
 
-								{#if actorNetwork.tokenTransferCount !== undefined}
-									<section
-										data-scroll-marker-label="Transfers"
-										id={`${actorNetworkDetailAnchorKey}:activity-transfers`}
-									>
-										<div class="entity-details">
-											<div data-row="wrap align-center gap-2">
-												<span data-text="annotation">Token transfers (indexer total)</span>
-												<span data-text="mono">{String(actorNetwork.tokenTransferCount)}</span>
-												<Tooltip contentProps={{ side: 'top' }}>
-													{#snippet Content()}
-														<p>Per-transfer rows are not modeled on <code>ActorNetwork</code> in this schema; use the count when the indexer provided it.</p>
-													{/snippet}
-													<abbr
-														class="entity-heading-tip"
-														aria-label="Token transfer rows"
-													>ⓘ</abbr>
-												</Tooltip>
-											</div>
-										</div>
-									</section>
-								{/if}
+								<section
+									data-scroll-marker-label="Token transfers"
+									id={`${actorNetworkDetailAnchorKey}:activity-token-transfers`}
+								>
+									<EvmTransactionsView
+										collapsible={false}
+										entityFieldReference={{
+											entityType: EntityType.ActorNetwork,
+											entityId,
+											fieldName: '$$tokenTransfers',
+										}}
+										href={href}
+										id={`${actorNetworkDetailAnchorKey}:activity-token-tx-transfers`}
+										title="Token transfers"
+									/>
+								</section>
 
 								<section
-									data-scroll-marker-label="Events"
-									id={`${actorNetworkDetailAnchorKey}:activity-events`}
+									data-scroll-marker-label="Internal transactions"
+									id={`${actorNetworkDetailAnchorKey}:activity-internal-transactions`}
+								>
+									<EvmTransactionsView
+										collapsible={false}
+										entityFieldReference={{
+											entityType: EntityType.ActorNetwork,
+											entityId,
+											fieldName: '$$internalTransactions',
+										}}
+										href={href}
+										id={`${actorNetworkDetailAnchorKey}:activity-internal-tx`}
+										title="Internal transactions"
+									/>
+								</section>
+
+								<section
+									data-scroll-marker-label="Receipt logs"
+									id={`${actorNetworkDetailAnchorKey}:activity-receipt-logs`}
 								>
 									<div data-row="wrap align-center gap-2">
-										<span data-text="annotation">Events</span>
-										<Tooltip contentProps={{ side: 'top' }}>
-											{#snippet Content()}
-												<p>Open a transaction above for receipt log lines (<code>EvmTransaction.logs</code>) when returned.</p>
-											{/snippet}
+										<span data-text="annotation">Receipt logs</span>
+										<Tooltip
+											content="Open a transaction above for receipt log rows resolved as EvmLog entities on that transaction’s $$logs field."
+											contentProps={{ side: 'top' }}
+										>
 											<abbr
 												class="entity-heading-tip"
-												aria-label="Event logs"
+												aria-label="Receipt logs"
 											>ⓘ</abbr>
 										</Tooltip>
 									</div>
@@ -634,11 +728,10 @@
 						</ResourceBoundary>
 					{/snippet}
 				</CollapsibleTabs>
-			{/if}
 		</div>
 
-		{#if children}
-			{@render children()}
+		{#if _pageContent}
+			{@render _pageContent()}
 		{/if}
 	{/snippet}
 </EntityView>

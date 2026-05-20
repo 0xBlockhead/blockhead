@@ -4,14 +4,32 @@
  * @see https://docs.coingecko.com/reference/coins-id
  */
 
+import { stringify } from 'devalue'
+
 import { throwHttpError } from '$/lib/http.ts'
-import { coingeckoOhlcDayWindowLengths } from '$/constants/Market.ts'
+import type { CoinId } from '$/constants/Coin.ts'
+import { MarketAssetKind, coingeckoOhlcDayWindowLengths } from '$/constants/Market.ts'
+import type { EntityId } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/$EntityType.ts'
+import { schema } from '$/schema/index.ts'
+import type { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import {
+	catalogCoinIdByCoingeckoId,
+	marketEntityIdFromCoingeckoDerivativesExchangeTicker,
+	marketEntityIdFromCoingeckoSpotTicker,
+} from '$/sources/Coingecko/marketKind.ts'
 import { coingeckoOpenApiFetch } from '$/sources/Coingecko/OpenApi/client.ts'
+import {
+	coingeckoDerivativesExchangeIdByMarketVenueId,
+} from '$/sources/Coingecko/Rest/constants.ts'
 import type {
+	CoingeckoDerivativesExchangeById,
+	CoingeckoDerivativesTickersListItem,
 	CoingeckoOpenApiCoinById,
 	CoingeckoOpenApiCoinsOhlc,
+	CoingeckoOpenApiCoinTicker,
 } from '$/sources/Coingecko/OpenApi/types.ts'
 
 const coingeckoOpenApiOhlcDaysByWindow = {
@@ -117,4 +135,173 @@ export const getCoingeckoOpenApiCoinOhlc = async ({
 	if (!response.ok) await throwHttpError(`CoinGecko OpenApi /coins/${coingeckoId}/ohlc`, response)
 
 	return response.json<CoingeckoOpenApiCoinsOhlc>()
+}
+
+
+/** `GET /coins/{id}/tickers` — venue spot books. @see https://docs.coingecko.com/reference/coins-id-tickers */
+export const getCoingeckoOpenApiCoinTickers = async ({
+	publicEnv,
+	coingeckoId,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Coingecko_OpenApi>
+	coingeckoId: string
+}): Promise<CoingeckoOpenApiCoinTicker[]> => {
+	if (coingeckoId.trim() === '') {
+		return []
+	}
+
+	const searchParams = new URLSearchParams()
+	searchParams.set('order', 'volume_desc')
+
+	const response = await coingeckoOpenApiFetch(
+		publicEnv,
+		`/coins/${encodeURIComponent(coingeckoId)}/tickers?${searchParams.toString()}`,
+	)
+
+	if (response.status === 404) {
+		return []
+	}
+	if (!response.ok) {
+		await throwHttpError(`CoinGecko OpenApi /coins/${coingeckoId}/tickers`, response)
+	}
+
+	const body = await response.json<{ tickers?: CoingeckoOpenApiCoinTicker[] }>()
+	return body.tickers ?? []
+}
+
+
+/** Spot venue markets for one catalog coin from exchange tickers. */
+export const collectCoingeckoOpenApiSpotMarketEntityIdsForCoin = async ({
+	publicEnv,
+	catalogCoinId,
+	coingeckoId,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Coingecko_OpenApi>
+	catalogCoinId: CoinId
+	coingeckoId: string
+}): Promise<EntityId<typeof schema, EntityType.Market>[]> => {
+	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
+	const catalogCoinIdByCoingeckoIdMap = catalogCoinIdByCoingeckoId(idByCoinId)
+	const tickers = await getCoingeckoOpenApiCoinTickers({
+		publicEnv,
+		coingeckoId,
+	})
+	const seen = new Set<string>()
+	return (
+		tickers.flatMap((ticker) => {
+			const marketId = marketEntityIdFromCoingeckoSpotTicker(
+				ticker,
+				catalogCoinId,
+				catalogCoinIdByCoingeckoIdMap,
+			)
+			if (marketId == null) {
+				return []
+			}
+			const key = stringify(marketId)
+			if (seen.has(key)) {
+				return []
+			}
+			seen.add(key)
+			return [marketId]
+		})
+	)
+}
+
+
+/** All derivative tickers (perpetual + dated futures). @see https://docs.coingecko.com/reference/derivatives-tickers */
+export const getCoingeckoOpenApiDerivativesTickers = async ({
+	publicEnv,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Coingecko_OpenApi>
+}): Promise<CoingeckoDerivativesTickersListItem[]> => {
+	const response = await coingeckoOpenApiFetch(publicEnv, '/derivatives')
+
+	if (!response.ok) await throwHttpError('CoinGecko OpenApi /derivatives', response)
+
+	return response.json<CoingeckoDerivativesTickersListItem[]>()
+}
+
+
+/** One derivatives exchange with optional embedded tickers. @see https://docs.coingecko.com/reference/derivatives-exchanges-id */
+export const getCoingeckoOpenApiDerivativesExchangeById = async ({
+	publicEnv,
+	exchangeId,
+	includeTickers = 'unexpired',
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Coingecko_OpenApi>
+	exchangeId: string
+	includeTickers?: 'all' | 'unexpired'
+}): Promise<CoingeckoDerivativesExchangeById | undefined> => {
+	if (exchangeId.trim() === '') return undefined
+
+	const searchParams = new URLSearchParams()
+	searchParams.set('include_tickers', includeTickers)
+
+	const response = await coingeckoOpenApiFetch(
+		publicEnv,
+		`/derivatives/exchanges/${encodeURIComponent(exchangeId)}?${searchParams.toString()}`,
+	)
+
+	if (response.status === 404) return undefined
+	if (!response.ok) {
+		await throwHttpError(`CoinGecko OpenApi /derivatives/exchanges/${exchangeId}`, response)
+	}
+
+	return response.json<CoingeckoDerivativesExchangeById>()
+}
+
+
+/** @see https://docs.coingecko.com/reference/derivatives-exchanges-id */
+export const collectCoingeckoOpenApiDerivativeMarketEntityIds = async ({
+	publicEnv,
+	catalogCoinId,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Coingecko_OpenApi>
+	catalogCoinId?: CoinId
+}): Promise<EntityId<typeof schema, EntityType.Market>[]> => {
+	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
+	const catalogCoinIdByCoingeckoIdMap = catalogCoinIdByCoingeckoId(idByCoinId)
+	const seen = new Set<string>()
+
+	return (
+		(
+			await Promise.all(
+				Object.entries(coingeckoDerivativesExchangeIdByMarketVenueId).map(
+					async ([marketVenueId, exchangeId]) => {
+						const exchange = await getCoingeckoOpenApiDerivativesExchangeById({
+							publicEnv,
+							exchangeId,
+						})
+						return (
+							(exchange?.tickers ?? []).flatMap((ticker) => {
+								const marketId = marketEntityIdFromCoingeckoDerivativesExchangeTicker(
+									ticker,
+									marketVenueId as MarketVenueId,
+									catalogCoinIdByCoingeckoIdMap,
+								)
+								if (marketId == null) {
+									return []
+								}
+								if (
+									catalogCoinId != null
+									&& (
+										marketId.$base.kind !== MarketAssetKind.Coin
+										|| marketId.$base.$coin.coinId !== catalogCoinId
+									)
+								) {
+									return []
+								}
+								const key = stringify(marketId)
+								if (seen.has(key)) {
+									return []
+								}
+								seen.add(key)
+								return [marketId]
+							})
+						)
+					},
+				),
+			)
+		).flat()
+	)
 }

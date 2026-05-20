@@ -27,6 +27,7 @@
 		id,
 		limit = 25,
 		open = $bindable(true),
+		collapsible = true,
 		fieldOpen = true,
 		title = 'Posts',
 		...entitiesListRest
@@ -53,79 +54,6 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const atprotoNetworkOrAccount = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			entityFieldReference.entityType === EntityType.AtprotoNetwork ?
-				(
-					open ?
-						(
-							fieldOpen ?
-								{
-									$: [Source.Constants_Internal],
-									protocolName: {},
-									$$atprotoPosts: {
-										$: [
-											Source.Constants_Internal,
-											Source.Atproto_Xrpc,
-										],
-									},
-								}
-							:
-								{
-									$: [Source.Constants_Internal],
-									protocolName: {},
-								}
-						)
-					:
-						{
-							$: [Source.Constants_Internal],
-						}
-				)
-			:
-				(
-					fieldOpen ?
-						{
-							$: [Source.Atproto_Xrpc],
-							$$posts: {},
-						}
-					:
-						{
-							$: [Source.Atproto_Xrpc],
-						}
-				)
-		),
-	)
-
-	const posts = derive(
-		atprotoNetworkOrAccount,
-		(atprotoNetworkOrAccount) => {
-			const sortPosts = <
-				R extends Entity<typeof schema, EntityType.AtprotoPost>[],
-			>(rows: R) => (
-				rows
-					.toSorted((a, b) => {
-						const timeDelta = (
-							(b.createdAt ?? 0) - (a.createdAt ?? 0)
-						)
-						return (
-							timeDelta !== 0 ?
-								timeDelta
-							:
-								a[EntityMetaKey.Id].uri.localeCompare(b[EntityMetaKey.Id].uri)
-						)
-					})
-					.slice(0, limit)
-			)
-
-			if (entityFieldReference.entityType === EntityType.AtprotoNetwork) {
-				return sortPosts(atprotoNetworkOrAccount.$$atprotoPosts ?? [])
-			}
-			return sortPosts(atprotoNetworkOrAccount.$$posts ?? [])
-		},
-	)
 </script>
 
 
@@ -151,42 +79,93 @@
 	{/snippet}
 
 	{#snippet body()}
-		{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}`}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.AtprotoPost}
-				id={`${id}-items`}
-				{href}
-				{title}
-				open={true}
-				getKey={(row) => row[EntityMetaKey.Id].uri}
-				getSortValue={(row) => (
-					-(row.createdAt ?? 0)
-				)}
-				placeholderKeys={new SvelteSet()}
-				placeholderText={`Loading ${title.toLowerCase()}…`}
-				resource={posts}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No posts yet.
-					</p>
-				{/snippet}
+		{#if open}
+			{@const atprotoNetworkOrAccount = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				(
+					entityFieldReference.entityType === EntityType.AtprotoNetwork ?
+						(
+							fieldOpen ?
+								{
+									$: [Source.Constants_Internal],
+									protocolName: {},
+									$$atprotoPosts: {
+										$: [
+											Source.Constants_Internal,
+											Source.Atproto_Xrpc,
+										],
+									},
+								}
+							:
+								{
+									$: [Source.Constants_Internal],
+									protocolName: {},
+								}
+						)
+					:
+						(
+							fieldOpen ?
+								{
+									$: [Source.Atproto_Xrpc],
+									$$posts: {},
+								}
+							:
+								{
+									$: [Source.Atproto_Xrpc],
+								}
+						)
+				),
+			)}
+			{@const posts = derive(
+				atprotoNetworkOrAccount,
+				(atprotoNetworkOrAccount) => {
+					const rows: Entity<typeof schema, EntityType.AtprotoPost>[] = (
+						entityFieldReference.entityType === EntityType.AtprotoNetwork ?
+							(atprotoNetworkOrAccount.$$atprotoPosts ?? [])
+						:
+							(atprotoNetworkOrAccount.$$posts ?? [])
+					)
+					return rows.slice(0, limit)
+				},
+			)}
+			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}`}
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.AtprotoPost}
+					id={`${id}-items`}
+					{href}
+					{title}
+					open={true}
+					getKey={(row) => row[EntityMetaKey.Id].uri}
+					getSortValue={(row) => (
+						`${String(-(row.createdAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Id].uri}`
+					)}
+					placeholderKeys={new SvelteSet()}
+					placeholderText={`Loading ${title.toLowerCase()}…`}
+					resource={posts}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No posts yet.
+						</p>
+					{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<AtprotoPostView
-							entityId={{ uri: props.item[EntityMetaKey.Id].uri }}
-							href={resolve('/(social)/atproto/post/[uri]', {
-								uri: encodeURIComponent(props.item[EntityMetaKey.Id].uri),
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
-				{/snippet}
-			</EntitiesList>
-		{/key}
+					{#snippet Item(props)}
+						{#if props.item}
+							<AtprotoPostView
+								entityId={{ uri: props.item[EntityMetaKey.Id].uri }}
+								href={resolve('/(social)/atproto/post/[uri]', {
+									uri: encodeURIComponent(props.item[EntityMetaKey.Id].uri),
+								})}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</EntitiesList>
+			{/key}
+		{/if}
 	{/snippet}
 </EntitiesList>

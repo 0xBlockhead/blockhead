@@ -32,6 +32,7 @@
 		entityFieldReference,
 		title = 'Panel layouts',
 		open = $bindable(true),
+		collapsible = true,
 		...entitiesListRest
 	}: WithRest<
 		{
@@ -44,41 +45,14 @@
 			'entityType'
 		>
 	> = $props()
-
-
-	const global = useEntity(
-		EntityType._Global,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					$: [Source.Local_Internal],
-					$$blockheadPanelTrees: {},
-				}
-			:
-				{
-					$: [Source.Local_Internal],
-				}
-		),
-	)
-
-	const panelTrees = derive(
-		global,
-		(global) => (
-			global['$$blockheadPanelTrees'] ?? []
-		),
-	)
 </script>
 
 
 <EntitiesList
 	entityType={EntityType.BlockheadPanelTree}
-	getKey={(row) => stringify(row[EntityMetaKey.Id])}
-	getSortValue={(row) => row[EntityMetaKey.Id].id}
 	{title}
 	bind:open
-	resource={panelTrees}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{collapsible}
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -96,14 +70,50 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: row })}
-		{#if row}
-			<BlockheadPanelTreeView
-				entityId={row[EntityMetaKey.Id]}
-				href={resolve(`/dashboard/${row[EntityMetaKey.Id].id}`)}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const global = useEntity(
+				EntityType._Global,
+				entityFieldReference.entityId,
+				{
+					$: [Source.Local_Internal],
+					$$blockheadPanelTrees: {},
+				},
+			)}
+			{@const panelTrees = derive(
+				global,
+				(global) => (
+					global['$$blockheadPanelTrees'] ?? []
+				),
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.BlockheadPanelTree}
+				{title}
+				open={true}
+				getKey={(row) => stringify(row[EntityMetaKey.Id])}
+				getSortValue={(row) => row[EntityMetaKey.Id].id}
+				resource={panelTrees}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No saved layouts yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item({ item: row })}
+					{#if row}
+						<BlockheadPanelTreeView
+							entityId={row[EntityMetaKey.Id]}
+							href={resolve(`/dashboard/${row[EntityMetaKey.Id].id}`)}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

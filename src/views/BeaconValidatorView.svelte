@@ -13,12 +13,13 @@
 		entityId,
 		title: titleProp,
 		open = $bindable(true),
-		Title,
+		collapsible = true,
+		HeadingTitle,
 	}: {
 		entityId: EntityId<typeof schema, EntityType.BeaconValidator>
 		title?: string
 		open?: boolean
-		Title?: Snippet
+		HeadingTitle?: Snippet
 	} = $props()
 
 
@@ -30,6 +31,7 @@
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	const validator = useEntity(
 		EntityType.BeaconValidator,
@@ -65,17 +67,18 @@
 	{entityId}
 	layout={EntityLayout.Summary}
 	bind:open
+	summaryUsesHeading={true}
 	{title}
 >
 	{#snippet Heading()}
-		{#if Title}
-			{@render Title()}
+		{#if HeadingTitle}
+			{@render HeadingTitle()}
 		{:else}
 			{title}
 		{/if}
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			<NumberValue value={entityId.validatorIndex} />
 		</span>

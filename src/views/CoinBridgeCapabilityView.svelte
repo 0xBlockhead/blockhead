@@ -17,6 +17,7 @@
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -39,6 +40,7 @@
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	const capability = useEntity(
 		EntityType.CoinBridgeCapability,
@@ -72,6 +74,7 @@
 	{href}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
@@ -84,7 +87,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.toolKey}
 		</span>
@@ -126,7 +129,7 @@
 							<CoinInstanceView
 								entityId={entityId.$fromInstance}
 								href={capabilityHref}
-								layout={EntityLayout.Id}
+								layout={EntityLayout.Title}
 								open={false}
 								showTypeAnnotation={false}
 							/>
@@ -138,7 +141,7 @@
 							<CoinInstanceView
 								entityId={entityId.$toInstance}
 								href={capabilityHref}
-								layout={EntityLayout.Id}
+								layout={EntityLayout.Title}
 								open={false}
 								showTypeAnnotation={false}
 							/>

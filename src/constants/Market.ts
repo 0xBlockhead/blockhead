@@ -20,10 +20,18 @@ export type MarketAssetLegLabelInput =
 	}
 
 
+/** Spot CEX/DEX book vs perpetual vs dated futures (see `$/sources/Coingecko/marketKind.ts` for provider mapping). */
+export enum MarketKind {
+	Spot = 'Spot',
+	Perpetual = 'Perpetual',
+	Futures = 'Futures',
+}
+
 export type MarketIdLabelInput = {
 	$base: MarketAssetLegLabelInput
 	$quote: MarketAssetLegLabelInput
 	$marketVenue: { marketVenueId: MarketVenueId }
+	marketKind: MarketKind
 }
 
 
@@ -34,8 +42,8 @@ export type MarketIdLabelInput = {
  *   `CoinInstance`, or fiat `Currency` via `$currency` → `Currency`). Embedded in `Market.id`
  *   and in `MarketPrice` / OHLC parents via `.$market`.
  * - **Market** — `{$base, $quote, $marketVenue}`; venue is a real trading book (`Binance`, `Coinbase`, …).
- * - **MarketPrice** — stream identity: `{$market, feedKey?, $network?}`; observation: `price` and
- *   time fields in entity payload (as-of is not part of the id, so the same id can update over time).
+ * - **MarketPrice** — stream identity: `{$market, feedKey?, $network?}`; spot/index prints live on
+ *   **`Market_Timestamp`** rows referenced from `$$quotes` (`{$market, timestampMs, feedKey?}`).
  * - **Market_TimeInterval_Timestamp** — one OHLC candle per row (`{$market, timeInterval, timestampNs}`).
  */
 
@@ -82,6 +90,12 @@ export const catalogCoinIdentitySources = [
 	Source.Coingecko_Rest,
 	Source.CoinMarketCap_Rest,
 	Source.Coinpaprika_OpenApi,
+] as const
+
+/** Resolvers for derivative-only `Market` observation fields (`fundingRate`, open interest, …). */
+export const marketDerivativeObservationSources = [
+	Source.Coingecko_OpenApi,
+	Source.Coingecko_Rest,
 ] as const
 
 /** Resolvers for `MarketPrice` / `$$marketPrice` (spot USD streams). */
@@ -143,9 +157,19 @@ export const formatMarketAssetSymbol = (
 )
 
 
-/** Human-readable market id: `Venue:BASE-QUOTE` (e.g. `Binance:ETH-USD`). */
+export const marketKindLabelByKind = {
+	[MarketKind.Spot]: 'Spot',
+	[MarketKind.Perpetual]: 'Perpetual',
+	[MarketKind.Futures]: 'Futures',
+} as const satisfies Record<MarketKind, string>
+
+
+/** Human-readable market id: `Venue:BASE-QUOTE` or `Venue:BASE-QUOTE (Perpetual)`. */
 export const formatMarketIdLabel = (
 	marketId: MarketIdLabelInput,
 ) => (
-	`${marketId.$marketVenue.marketVenueId}:${formatMarketAssetSymbol(marketId.$base)}-${formatMarketAssetSymbol(marketId.$quote)}`
+	marketId.marketKind === MarketKind.Spot ?
+		`${marketId.$marketVenue.marketVenueId}:${formatMarketAssetSymbol(marketId.$base)}-${formatMarketAssetSymbol(marketId.$quote)}`
+	:
+		`${marketId.$marketVenue.marketVenueId}:${formatMarketAssetSymbol(marketId.$base)}-${formatMarketAssetSymbol(marketId.$quote)} (${marketKindLabelByKind[marketId.marketKind]})`
 )

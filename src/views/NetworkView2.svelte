@@ -19,14 +19,14 @@
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
-		Title,
+		HeadingTitle,
 	}: {
 		children?: Snippet
 		entityId: EntityId<typeof schema, EntityType.Network>
 		href: string
 		layout?: EntityLayout
 		open?: boolean
-		Title?: Snippet
+		HeadingTitle?: Snippet
 	} = $props()
 </script>
 
@@ -38,6 +38,6 @@
 		{href}
 		bind:open
 		{layout}
-		{Title}
+		{HeadingTitle}
 	/>
 </div>

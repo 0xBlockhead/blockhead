@@ -21,6 +21,7 @@
 		entityFieldReference,
 		title = 'Channels',
 		open = $bindable(true),
+		collapsible = true,
 		href,
 		id,
 		...entitiesListProps
@@ -52,90 +53,99 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ChannelView from '$/views/ChannelView.svelte'
+</script>
+
+
+<EntitiesList
+	entityType={EntityType.StateChannel}
+	{href}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
+	{...entitiesListProps}
+>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			State channels move balances or assets under agreed rules before final settlement on-chain.
+		</p>
+		<p>
+			Shared contacts and collaboration rooms are separate lists.
+		</p>
+	{/snippet}
+
+	{#snippet Empty()}
+		<p data-text="muted">
+			No channels yet.
+		</p>
+	{/snippet}
+
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
 				{
 					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Local_Internal,
 						],
 					},
-				}
-			:
-				{}
-		),
-	)
+				},
+			)}
+			{@const channels = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.StateChannel>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						rows.map((value) => ({
+							value,
+						}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.StateChannel}
+				{href}
+				id={`${id}-items`}
+				{title}
+				open={true}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
+				placeholderKeys={new SvelteSet()}
+				placeholderText="Loading channels…"
+				resource={channels}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No channels yet.
+					</p>
+				{/snippet}
 
-	const channels = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.StateChannel>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-				.toSorted((a, b) => (
-					a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
-				))
-			return (
-				rows.map((value) => ({
-					value,
-				}))
-			)
-		},
-	)
-
-
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ChannelView from '$/views/ChannelView.svelte'
-</script>
-
-
-	<EntitiesList
-		entityType={EntityType.StateChannel}
-		{href}
-		{id}
-		{title}
-		bind:open
-		getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-		getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
-		placeholderKeys={new SvelteSet()}
-		placeholderText="Loading channels…"
-		resource={channels}
-		UnorderedListProps={{ orientation: ListOrientation.Column }}
-		{...entitiesListProps}
-	>
-		{#snippet TypeAnnotationTooltip()}
-			<p>
-				State channels move balances or assets under agreed rules before final settlement on-chain.
-			</p>
-			<p>
-				Shared contacts and collaboration rooms are separate lists.
-			</p>
-		{/snippet}
-		{#snippet Empty()}
-			<p data-text="muted">
-				No channels yet.
-			</p>
-		{/snippet}
-
-		{#snippet Item({ item })}
-			{#if item}
-				{@const channelId = item.value[EntityMetaKey.Id]}
-				<ChannelView
-					entityId={channelId}
-					href={resolve('/(assets)/(channels)/channel/[channelId]', {
-						channelId: channelId.id,
-					})}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{/if}
-		{/snippet}
-	</EntitiesList>
-
-
+				{#snippet Item({ item })}
+					{#if item}
+						{@const channelId = item.value[EntityMetaKey.Id]}
+						<ChannelView
+							entityId={channelId}
+							href={resolve('/(assets)/(channels)/channel/[channelId]', {
+								channelId: channelId.id,
+							})}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
+		{/if}
+	{/snippet}
+</EntitiesList>

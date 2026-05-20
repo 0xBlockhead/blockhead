@@ -19,6 +19,7 @@
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -74,7 +75,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
-	import Address from '$/views/Address.svelte'
+	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
 
 
@@ -84,8 +85,9 @@
 	{href}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.$coin.coinId}
 		</span>
@@ -117,10 +119,14 @@
 									$network: entityId.$coinInstance.$network,
 									$actor: entityId.$actor,
 								}}
-								href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-									accountId: entityId.$actor.address,
-								})}
-								layout={EntityLayout.Id}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+									{
+										networkId: String(entityId.$coinInstance.$network.chainId),
+										address: entityId.$actor.address,
+									},
+								)}
+								layout={EntityLayout.Title}
 								open={false}
 								showTypeAnnotation={false}
 							/>
@@ -132,9 +138,18 @@
 							{#if entityId.$coinInstance.type === CoinInstanceType.NativeCurrency}
 								Native gas token (chain issuance)
 							{:else if entityId.$coinInstance.type === CoinInstanceType.Erc20Token}
-								<Address
-									network={entityId.$coinInstance.$contract.$network}
-									address={entityId.$coinInstance.$contract.address}
+								<EvmContractView
+									entityId={entityId.$coinInstance.$contract}
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+										{
+											networkId: String(entityId.$coinInstance.$contract.$network.chainId),
+											address: entityId.$coinInstance.$contract.address,
+										},
+									)}
+									layout={EntityLayout.Title}
+									open={false}
+									showTypeAnnotation={false}
 								/>
 							{:else}
 								—
@@ -199,7 +214,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<a
 						data-scroll-marker-label="Overview"
 						href={`#${actorCoinDetailAnchorKey}:coin-overview`}
@@ -212,7 +227,7 @@
 					{/if}
 				{/snippet}
 
-				{#snippet children(_relatedChildren)}
+				{#snippet body(_relatedChildren)}
 					<section
 						data-scroll-marker-label="Overview"
 						id={`${actorCoinDetailAnchorKey}:coin-overview`}

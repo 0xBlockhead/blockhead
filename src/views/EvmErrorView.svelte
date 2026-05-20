@@ -11,16 +11,26 @@
 
 	// Props
 	let {
-		children,
+		children: _children,
 		entityId,
 		href,
-		open = $bindable(true),
+		layout = EntityLayout.SummaryDetails,
+		summaryUsesHeading = (
+			layout === EntityLayout.SummaryDetails
+			|| layout === EntityLayout.Details
+		),
+		open = $bindable(
+			layout === EntityLayout.SummaryDetails,
+		),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
 			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmError>
 			href: string
+			layout?: EntityLayout
+			summaryUsesHeading?: boolean
 			open?: boolean
 		},
 		Omit<
@@ -43,6 +53,7 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+
 	const evmError = useEntity(
 		EntityType.EvmError,
 		entityId,
@@ -58,12 +69,9 @@
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import Heading from '$/components/Heading.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
@@ -72,10 +80,13 @@
 	entityType={EntityType.EvmError}
 	{entityId}
 	{href}
+	{layout}
+	{summaryUsesHeading}
 	bind:open
+	{collapsible}
 	{...entityViewRest}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.hex}
 		</span>
@@ -101,51 +112,57 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: contentOpen,
+	})}
 		<div data-column="gap-1">
-		<dl data-column-item="center">
-			<div>
-				<dt>Revert selector (4-byte)</dt>
-				<dd>
-					<TruncatedValue
-						value={entityId.hex}
-						format={TruncatedValueFormat.Visual}
-					/>
-				</dd>
-			</div>
-			{#if open}
-				<ResourceBoundary
-					resource={evmError}
-					placeholderText="Loading catalog matches…"
-				>
-					{#snippet children(evmError)}
-						{#if evmError.signatures?.length}
-							<div>
-								<dt>
-									Decoded revert / custom error selectors
-								</dt>
-								<dd>
-									<ul>
-										{#each evmError.signatures as sig (sig)}
-											<li><code>{sig}</code></li>
-										{/each}
-									</ul>
-								</dd>
-							</div>
-						{:else}
-							<div>
-								<dt>
-									Decoded revert / custom error selectors
-								</dt>
-								<dd>
-									<p data-text="muted">No catalog matches for this revert/error selector.</p>
-								</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-		</dl>
+			<dl data-column-item="center">
+				{#if !summaryUsesHeading}
+					<div>
+						<dt>Revert selector (4-byte)</dt>
+						<dd>
+							<TruncatedValue
+								value={entityId.hex}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</dd>
+					</div>
+				{/if}
+				{#if contentOpen}
+					<ResourceBoundary
+						resource={evmError}
+						placeholderText="Loading catalog matches…"
+					>
+						{#snippet children(evmError)}
+							{#if evmError.signatures?.length}
+								<div>
+									<dt>
+										Decoded revert / custom error selectors
+									</dt>
+									<dd>
+										<ul>
+											{#each evmError.signatures as sig (sig)}
+												<li><code>{sig}</code></li>
+											{/each}
+										</ul>
+									</dd>
+								</div>
+							{:else}
+								<div>
+									<dt>
+										Decoded revert / custom error selectors
+									</dt>
+									<dd>
+										<p data-text="muted">No catalog matches for this revert/error selector.</p>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/if}
+			</dl>
 		</div>
 	{/snippet}
 
@@ -155,40 +172,10 @@
 			{entityId}
 		/>
 
-		{#if children}
-			<div
-				class="entity-view-detail-carousels"
-				data-column="gap-3"
-			>
-				<CollapsibleTabs
-					id={`${errorIdKey}:carousel-more`}
-					{...{ 'data-card': '' }}
-					scrollContainerProps={{
-						'data-row': 'start align-start',
-					}}
-				>
-					{#snippet Summary({ open: _isOpen })}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<Heading>Page</Heading>
-						</header>
-					{/snippet}
-
-					{#snippet Markers()}
-						<a
-							data-scroll-marker-label="Route"
-							href={`#${errorIdKey}:page-content`}
-						>Route</a>
-					{/snippet}
-
-					{#snippet children(_ctx)}
-						<section
-							id={`${errorIdKey}:page-content`}
-						>
-							{@render children()}
-						</section>
-					{/snippet}
-				</CollapsibleTabs>
-			</div>
+		{#if _children}
+			<section id={`${errorIdKey}:page-content`}>
+				{@render _children()}
+			</section>
 		{/if}
 	{/snippet}
 </EntityView>

@@ -33,7 +33,9 @@
 
 		open = $bindable(true),
 
-		title = 'User userOperations',
+		collapsible = true,
+
+		title = 'User operations',
 
 		id,
 
@@ -46,6 +48,8 @@
 
 			open?: boolean
 
+			collapsible?: boolean
+
 			title?: string
 
 			id: string
@@ -57,38 +61,6 @@
 			'entityType' | 'href' | 'id' | 'title'
 		>
 	> = $props()
-
-
-	// State
-	const network = useEntity(
-		EntityType.Network,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					blockHeight: {
-						$: [
-							Source.Voltaire_JsonRpc,
-						],
-					},
-					$$userOperations: {
-						$: [
-							Source.Blockscout_Rest,
-						],
-					},
-				}
-			:
-				{}
-		),
-	)
-
-	const userOperations = derive(
-		network,
-		(network): Entity<typeof schema, EntityType.EvmUserOperation>[] => (
-			network.$$userOperations
-			?? []
-		),
-	)
 </script>
 
 
@@ -102,48 +74,75 @@
 	{...entitiesListProps}
 >
 	{#snippet body()}
-		<div data-column="gap-3">
-			<ResourceBoundary
-				placeholderText="Loading user userOperations…"
-				resource={userOperations}
-			>
-				{#snippet children(userOperations)}
-					<UnorderedList
-						getKey={(row) => stringify(row[EntityMetaKey.Id])}
-						items={userOperations}
-						orientation={ListOrientation.Column}
-						placeholderRanges={[]}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">No user userOperations.</p>
-						{/snippet}
+		{#if open}
+			{@const fieldName = entityFieldReference.fieldName}
+			{@const network = useEntity(
+				EntityType.Network,
+				entityFieldReference.entityId,
+				{
+					blockHeight: {
+						$: [
+							Source.Voltaire_JsonRpc,
+						],
+					},
+					[fieldName]: {
+						$: [
+							Source.Blockscout_Rest,
+						],
+						$limit: 16,
+					},
+				},
+			)}
+			{@const userOperations = derive(
+				network,
+				(network): Entity<typeof schema, EntityType.EvmUserOperation>[] => (
+					network[fieldName]
+					?? []
+				),
+			)}
+			<div data-column="gap-3">
+				<ResourceBoundary
+					placeholderText="Loading user operations…"
+					resource={userOperations}
+				>
+					{#snippet children(userOperations)}
+						<UnorderedList
+							getKey={(row) => stringify(row[EntityMetaKey.Id])}
+							items={userOperations}
+							orientation={ListOrientation.Column}
+							placeholderRanges={[]}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">No user operations.</p>
+							{/snippet}
 
-						{#snippet Item({ item })}
-							{#if item}
-								<EvmUserOperationView
-									entityId={item[EntityMetaKey.Id]}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/user-operation/[userOperationHash]',
-										{
-											networkId: String(item[EntityMetaKey.Id].$network.chainId),
-											userOperationHash: item[EntityMetaKey.Id].hash,
-										},
-									)}
-									layout={EntityLayout.Summary}
-									open={false}
-								>
-									{#snippet HeadingSnippet()}
-										<TruncatedValue
-											format={TruncatedValueFormat.Visual}
-											value={item[EntityMetaKey.Id].hash}
-										/>
-									{/snippet}
-								</EvmUserOperationView>
-							{/if}
-						{/snippet}
-					</UnorderedList>
-				{/snippet}
-			</ResourceBoundary>
-		</div>
+							{#snippet Item({ item })}
+								{#if item}
+									<EvmUserOperationView
+										entityId={item[EntityMetaKey.Id]}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/user-operation/[userOperationHash]',
+											{
+												networkId: String(item[EntityMetaKey.Id].$network.chainId),
+												userOperationHash: item[EntityMetaKey.Id].hash,
+											},
+										)}
+										layout={EntityLayout.Summary}
+										open={false}
+									>
+										{#snippet HeadingSnippet()}
+											<TruncatedValue
+												format={TruncatedValueFormat.Visual}
+												value={item[EntityMetaKey.Id].hash}
+											/>
+										{/snippet}
+									</EvmUserOperationView>
+								{/if}
+							{/snippet}
+						</UnorderedList>
+					{/snippet}
+				</ResourceBoundary>
+			</div>
+		{/if}
 	{/snippet}
 </EntitiesList>

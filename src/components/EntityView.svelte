@@ -1,6 +1,6 @@
 <script module lang="ts">
 	export enum EntityLayout {
-		Id = 'Id',
+		Title = 'Title',
 		/** Collapsible card: summary row; details when open. */
 		Summary = 'Summary',
 		/**
@@ -49,16 +49,18 @@
 		title,
 		href,
 
-		/** Override `text/plain` when dragging the default `Id` summary heading; default is `stringify(entityId)`. */
+		/** Override `text/plain` when dragging the default title row; default is `stringify(entityId)`. */
 		idDragPlainText,
 
 		layout = EntityLayout.SummaryDetails,
 		showTypeAnnotation = !(isInsideEntityList ?? false),
+		/** Collapsible summary row uses `#snippet Heading` instead of `#snippet Title`. */
+		summaryUsesHeading = false,
 
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		ontoggle,
 
-		Id,
+		Title,
 		Icon,
 		Heading,
 		HeadingAfter,
@@ -79,11 +81,12 @@
 
 			layout?: EntityLayout
 			showTypeAnnotation?: boolean
+			summaryUsesHeading?: boolean
 
 			open?: boolean
 			ontoggle?: (e: Event) => void
 
-			Id?: Snippet
+			Title?: Snippet
 			Icon?: Snippet
 			Heading?: Snippet
 			HeadingAfter?: Snippet
@@ -102,10 +105,8 @@
 		SvelteHTMLElements['article']
 	> = $props()
 
-	/** Type label beside / before id in `EntitySummary` — not on list rows (list already homogenous). */
-	const showEntitySummaryTypeIdPrefix = $derived(
-		!showTypeAnnotation && !(isInsideEntityList ?? false),
-	)
+	/** Type label only via collapsible annotation — never prefixed on title rows. */
+	const showEntitySummaryTypeTitlePrefix = false
 
 
 	// Functions
@@ -119,7 +120,7 @@
 </script>
 
 
-{#if layout === EntityLayout.Id}
+{#if layout === EntityLayout.Title}
 	<div
 		data-row-item="flexible"
 		data-row="align-center wrap"
@@ -130,10 +131,11 @@
 			{title}
 			{href}
 			{idDragPlainText}
-			showEntityTypeIdPrefix={showEntitySummaryTypeIdPrefix}
+			showEntityTypeTitlePrefix={showEntitySummaryTypeTitlePrefix}
+			useHeading={false}
 			{Icon}
 			{Heading}
-			{Id}
+			{Title}
 			{HeadingAfter}
 		/>
 	</div>
@@ -149,20 +151,18 @@
 			{title}
 			{href}
 			{idDragPlainText}
-			showEntityTypeIdPrefix={showEntitySummaryTypeIdPrefix}
+			showEntityTypeTitlePrefix={showEntitySummaryTypeTitlePrefix}
+			summaryUsesHeading={summaryUsesHeading}
 			{Icon}
 			{Heading}
-			{Id}
+			{Title}
 			{HeadingAfter}
 		>
-			{#snippet children({
-				title,
-				href,
-			})}
+			{#snippet children(_context)}
 				{#if Content}
 					{@render Content({
-						title,
-						href,
+						title: _context?.title,
+						href: _context?.href,
 						open: true,
 					})}
 				{/if}
@@ -172,10 +172,10 @@
 		{#if showTypeAnnotation}
 			<div data-row="wrap">
 				{#if TypeAnnotationTooltip}
-					<Tooltip contentProps={{ side: 'top' }}>
-						{#snippet Content()}
-							{@render TypeAnnotationTooltip()}
-						{/snippet}
+					<Tooltip
+						contentProps={{ side: 'top' }}
+						Content={TypeAnnotationTooltip}
+					>
 						{#snippet children()}
 							<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
 						{/snippet}
@@ -210,12 +210,12 @@
 		id={stringify(entityId)}
 		style:view-transition-name={`EntityView-${stringify(entityId)}`}
 	>
-		{#snippet Annotation()}
+		{#snippet Annotation(_context)}
 			{#if TypeAnnotationTooltip}
-				<Tooltip contentProps={{ side: 'top' }}>
-					{#snippet Content()}
-						{@render TypeAnnotationTooltip()}
-					{/snippet}
+				<Tooltip
+					contentProps={{ side: 'top' }}
+					Content={TypeAnnotationTooltip}
+				>
 					{#snippet children()}
 						<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
 					{/snippet}
@@ -238,56 +238,54 @@
 			}}
 			Annotation={showTypeAnnotation ? Annotation : undefined}
 		>
-			{#snippet Summary({
-				open,
-			})}
+			{#snippet Summary(_context)}
+				{@const summaryOpen = _context?.open ?? false}
 				<EntitySummary
 					{entityType}
 					{entityId}
 					{title}
 					{href}
 					{idDragPlainText}
-					showEntityTypeIdPrefix={showEntitySummaryTypeIdPrefix}
+					showEntityTypeTitlePrefix={showEntitySummaryTypeTitlePrefix}
+					summaryUsesHeading={summaryUsesHeading}
 					{Icon}
 					{Heading}
-					{Id}
+					{Title}
 					{HeadingAfter}
 				>
-					{#snippet children({
-						title,
-						href,
-					})}
-						{#if Content && !open}
+					{#snippet children(_childContext)}
+						{#if Content && !summaryOpen}
 							{@render Content({
-								title,
-								href,
-								open,
+								title: _childContext?.title,
+								href: _childContext?.href,
+								open: summaryOpen,
 							})}
 						{/if}
 					{/snippet}
 				</EntitySummary>
 			{/snippet}
 
-			{#snippet children({ open })}
+			{#snippet children(_context)}
+				{@const detailsOpen = _context?.open ?? false}
 				{#if (
 					_Details
-					&& open
+					&& detailsOpen
 					&& (
 						layout === EntityLayout.Summary
 						|| layout === EntityLayout.SummaryDetails
 					)
 				)}
 					<div data-column>
-						{#if Content && open}
+						{#if Content && detailsOpen}
 							{@render Content({
 								title,
 								href,
-								open,
+								open: detailsOpen,
 							})}
 						{/if}
 
 						{@render _Details({
-							open,
+							open: detailsOpen,
 						})}
 					</div>
 				{/if}

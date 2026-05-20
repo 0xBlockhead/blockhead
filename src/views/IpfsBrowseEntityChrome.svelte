@@ -292,8 +292,7 @@
 					{/if}
 				{/snippet}
 
-				{#snippet children({
-					open: _paneOpen,
+				{#snippet body({ open: _paneOpen,
 				})}
 					<section
 						class="ipfs-browser"

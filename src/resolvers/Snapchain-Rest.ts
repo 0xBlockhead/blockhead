@@ -28,7 +28,7 @@ const optionalTrimmedString = (value: string | undefined) => (
 )
 
 const snapchainUserDataPfpHttpUrl = (value: string | null | undefined) => {
-	const raw = typeof value === 'string' ? value.trim() : ''
+	const raw = value?.trim() ?? ''
 	if (raw.length === 0) return undefined
 	return resolveMediaUrlTransport(raw)?.url
 }
@@ -125,7 +125,7 @@ export default {
 					:	undefined,
 					parentUrl: optionalTrimmedString(castAddBody?.parentUrl),
 					timestamp: (
-						typeof farcasterTimestamp === 'number' ?
+						farcasterTimestamp != null && Number.isFinite(farcasterTimestamp) ?
 							(
 								farcasterTimestamp >= 1e12 ?
 									farcasterTimestamp

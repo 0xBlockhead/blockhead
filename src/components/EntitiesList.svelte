@@ -108,7 +108,7 @@
 			HeadingProps?: HeadingForwardProps
 			href: string
 			id: string
-			Item?: Snippet<[ListItemProps]>
+			Item?: Snippet<[context?: ListItemProps]>
 			/** Ignored when `resource` is set; list rows come from the boundary resolution. */
 			items?: ItemsInput
 			open?: boolean
@@ -310,11 +310,11 @@
 			}}
 			{...{ 'data-card': '' }}
 		>
-			{#snippet Summary()}
+			{#snippet Summary(_context)}
 				{@render SummaryHeader()}
 			{/snippet}
 
-			{#snippet Annotation()}
+			{#snippet Annotation(_context)}
 				{@render SummaryAnnotation()}
 			{/snippet}
 

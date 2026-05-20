@@ -15,10 +15,16 @@ import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { getCoingeckoCoinWithAssetPlatforms } from '$/sources/Coingecko/Rest/queries.ts'
 import type { CoingeckoCoin } from '$/sources/Coingecko/Rest/types.ts'
+import type {
+	LifiToken,
+	LifiTokensResponse,
+} from '$/sources/Lifi/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { Source } from '$/sources/$Source.ts'
 import { stringify } from 'devalue'
 
+
+const NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 type CoinInstanceEntityId = EntityId<typeof schema, EntityType.CoinInstance>
 
@@ -31,10 +37,44 @@ const isEvmContractAddress = (value: string) => (
 	/^0x[a-fA-F0-9]{40}$/.test(value.trim())
 )
 
+const lifiCoinKeyByChainIdAndAddress = (
+	tokensByChainId: LifiTokensResponse['tokens'],
+) => {
+	const lookup = new Map<string, string>()
+
+	for (const [chainIdString, tokens] of Object.entries(tokensByChainId)) {
+		for (const token of tokens) {
+			const coinKey = token.coinKey?.trim()
+			if (coinKey == null || coinKey === '') continue
+			lookup.set(
+				`${chainIdString}:${token.address.toLowerCase()}`,
+				coinKey,
+			)
+		}
+	}
+
+	return lookup
+}
+
+const lifiCoinKeyForInstance = (
+	instanceId: CoinInstanceEntityId,
+	lookup: ReadonlyMap<string, string>,
+) => {
+	const chainId = instanceId.$network.chainId
+	const address = (
+		instanceId.type === CoinInstanceType.NativeCurrency ?
+			NATIVE_TOKEN_ADDRESS
+		:
+			instanceId.$contract.address
+	)
+	return lookup.get(`${chainId}:${address.toLowerCase()}`)
+}
+
 const coinInstanceStubRowsFromCoingeckoCoin = (
 	coinId: CoinId,
 	coin: CoingeckoCoin,
 	chainIdByPlatformId: ReadonlyMap<string, number>,
+	lifiCoinKeyByAddress: ReadonlyMap<string, string>,
 ) => {
 	const seenKeys = new Set<string>()
 	const rows: CoinInstanceStubRow[] = []
@@ -64,6 +104,7 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 						nativeChainId != null
 						&& instanceId.$network.chainId === nativeChainId
 					),
+					lifiCoinKey: lifiCoinKeyForInstance(instanceId, lifiCoinKeyByAddress),
 				},
 			),
 		})
@@ -118,10 +159,22 @@ export const fetchCoinInstanceStubRowsForCoin = async (
 			]),
 	)
 
+	let lifiCoinKeyByAddress = new Map<string, string>()
+
+	try {
+		const { fetchLifiTokensCatalog } = await import('$/sources/Lifi/Rest/queries.ts')
+		const { tokens } = await fetchLifiTokensCatalog()
+		lifiCoinKeyByAddress = lifiCoinKeyByChainIdAndAddress(tokens)
+	}
+	catch {
+		lifiCoinKeyByAddress = new Map()
+	}
+
 	return coinInstanceStubRowsFromCoingeckoCoin(
 		coinId,
 		coin,
 		chainIdByPlatformId,
+		lifiCoinKeyByAddress,
 	)
 }
 

@@ -1,6 +1,7 @@
 import { type } from 'arktype'
 import { CoinId } from '$/constants/Coin.ts'
 import { NetworkEnvironment } from '$/constants/NetworkEnvironment.ts'
+import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 import { ExecutionRpcProvider } from '$/constants/ExecutionRpcProvider.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import {
@@ -256,6 +257,15 @@ export default {
 			],
 		},
 		{
+			name: 'consensusProtocol',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(ConsensusProtocol),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
+		},
+		{
 			name: 'consensusSpecsConfigYaml',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
@@ -366,6 +376,17 @@ export default {
 			],
 		},
 		{
+			name: '$$gasEstimateTimestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Network_GasEstimate_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Blockscout_Rest,
+				Source.Etherscan_Rest,
+				Source.Voltaire_JsonRpc,
+			],
+		},
+		{
 			name: '$$txpoolTimestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Network_Txpool_Timestamp,
@@ -393,36 +414,36 @@ export default {
 			],
 		},
 		{
-			name: '$$accountAbstractionSmartAccounts',
+			name: '$$erc4337SmartAccounts',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmAccountAbstractionAddress,
+			entityType: EntityType.Erc4337SmartAccount,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Blockscout_Rest,
 			],
 		},
 		{
-			name: '$$accountAbstractionBundlers',
+			name: '$$erc4337Bundlers',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmAccountAbstractionAddress,
+			entityType: EntityType.Erc4337Bundler,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Blockscout_Rest,
 			],
 		},
 		{
-			name: '$$accountAbstractionPaymasters',
+			name: '$$erc4337Paymasters',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmAccountAbstractionAddress,
+			entityType: EntityType.Erc4337Paymaster,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Blockscout_Rest,
 			],
 		},
 		{
-			name: '$$accountAbstractionFactories',
+			name: '$$erc4337AccountFactories',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmAccountAbstractionAddress,
+			entityType: EntityType.Erc4337AccountFactory,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Blockscout_Rest,
@@ -438,16 +459,16 @@ export default {
 			],
 		},
 		{
-			name: 'blockscoutStatsJson',
+			name: 'beaconPreviousJustifiedCheckpointEpoch',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
-				Source.Blockscout_Rest,
+				Source.Beacon_Rest,
 			],
 		},
 		{
-			name: 'beaconFinalityCheckpointsJson',
+			name: 'beaconPreviousJustifiedCheckpointRoot',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -456,7 +477,43 @@ export default {
 			],
 		},
 		{
-			name: 'beaconForkScheduleJson',
+			name: 'beaconCurrentJustifiedCheckpointEpoch',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		{
+			name: 'beaconCurrentJustifiedCheckpointRoot',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		{
+			name: 'beaconFinalizedCheckpointEpoch',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		{
+			name: 'beaconFinalizedCheckpointRoot',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		{
+			name: 'beaconForkScheduleEntriesJson',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

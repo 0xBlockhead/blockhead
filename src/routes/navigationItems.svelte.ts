@@ -133,6 +133,12 @@ export const useNavigationItems = () => {
 							icon: '📦',
 						},
 						{
+							id: 'explore-evm-calldata-decoder',
+							title: 'Calldata decoder',
+							href: '/evm/calldata-decoder',
+							icon: '🔍',
+						},
+						{
 							id: 'explore-evm-selectors',
 							title: 'Selectors',
 							href: '/evm/selectors',
@@ -190,6 +196,12 @@ export const useNavigationItems = () => {
 					title: 'Markets',
 					href: '/markets',
 					icon: '🔀',
+				},
+				{
+					id: 'assets-market-venues',
+					title: 'Market venues',
+					href: '/market-venues',
+					icon: '🏛️',
 				},
 				{
 					id: 'assets-currencies',

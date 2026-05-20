@@ -21,6 +21,7 @@
 		title,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -90,8 +91,9 @@
 	{entityId}
 	{href}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		{#if title !== undefined}
 			<span>{title}</span>
 		{:else}
@@ -132,7 +134,7 @@
 						<div>
 							<dt>Shown as</dt>
 							<dd data-text="mono">
-								{@render Id()}
+								{@render Title()}
 							</dd>
 						</div>
 
@@ -168,10 +170,14 @@
 													$network: sharedAddress.$network[EntityMetaKey.Id],
 													$actor: sharedAddress.$account[EntityMetaKey.Id],
 												}}
-												href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-													accountId: sharedAddress.$account[EntityMetaKey.Id].address,
-												})}
-												layout={EntityLayout.Id}
+												href={resolve(
+													'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+													{
+														networkId: String(sharedAddress.$network[EntityMetaKey.Id].chainId),
+														address: sharedAddress.$account[EntityMetaKey.Id].address,
+													},
+												)}
+												layout={EntityLayout.Title}
 												open={false}
 												showTypeAnnotation={false}
 											/>
@@ -247,7 +253,7 @@
 					{/if}
 				{/snippet}
 
-				{#snippet children(_childrenContext)}
+				{#snippet body(_childrenContext)}
 					<section
 						id={`${contactKey}:contact-overview`}
 					>

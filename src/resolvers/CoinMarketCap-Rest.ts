@@ -15,6 +15,7 @@ import {
 	catalogMarketsWithCurrencyAsQuote,
 	usdCurrencyMarketAssetLeg,
 } from '$/constants/Currency.ts'
+import { marketTimestampFieldsFromObservation } from '$/resolvers/_marketSpotTimestamp.ts'
 import {
 	assertCoingeckoDayOhlcTimeInterval,
 	candleEntitiesFromOhlcWireRows,
@@ -70,7 +71,7 @@ export default {
 		}),
 
 		defineEntityResolver({
-			entityType: EntityType.MarketPrice,
+			entityType: EntityType.Market_Timestamp,
 			resolve: async (entityId, context) => {
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				const publicEnv = sourcePublicEnv(context, Source.CoinMarketCap_Rest)
@@ -107,6 +108,10 @@ export default {
 				if (!Number.isFinite(price) || !Number.isFinite(updatedAt)) {
 					throw new Error('CoinMarketCap_Rest: quote invalid')
 				}
+				const timestampMs = Math.floor(updatedAt)
+				if (entityId.timestampMs !== timestampMs) {
+					throw new Error('CoinMarketCap_Rest: Market_Timestamp id does not match quote clock')
+				}
 				const p = (
 					infoResponse.data == null
 						? undefined
@@ -121,15 +126,13 @@ export default {
 						undefined
 				)
 
-				return {
-					[EntityMetaKey.Id]: entityId,
+				return marketTimestampFieldsFromObservation({
+					timestampMs,
 					price: BigInt(Math.round(price * 1e8)),
-					timestampMs: Math.floor(updatedAt),
-					updatedAt,
 					transport: 'coinmarketcap-v2-quotes-and-info-usd-1e8',
 					providerAssetId: String(coinMarketCapId),
 					...(caip19 != null && { caip19 }),
-				}
+				})
 			},
 		}),
 
@@ -350,6 +353,46 @@ export default {
 						))
 						.slice(0, lim)
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.MarketPrice,
+			fieldName: '$$quotes',
+			resolve: async (entityId, context) => {
+				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
+				const publicEnv = sourcePublicEnv(context, Source.CoinMarketCap_Rest)
+				const coinId = (
+					entityId.$market.$base.kind === MarketAssetKind.Coin ?
+						entityId.$market.$base.$coin.coinId
+					:	undefined
+				)
+				if (coinId == null) throw new Error('CoinMarketCap_Rest: market base is not a catalog coin')
+				const coinMarketCapId = idByCoinId[coinId]
+				if (coinMarketCapId == null) return []
+				const { getCoinMarketCapQuotesLatest } = await import(
+					'$/sources/CoinMarketCap/Rest/queries.ts',
+				)
+				const quoteResponse = await getCoinMarketCapQuotesLatest({
+					publicEnv,
+					id: coinMarketCapId,
+				})
+				const quote = (
+					quoteResponse.data == null ?
+						undefined
+					:	Object.values(quoteResponse.data)[0]
+				)
+				const lastUpdated = quote?.quote?.USD?.last_updated
+				const updatedAt = Date.parse(lastUpdated ?? '')
+				if (!Number.isFinite(updatedAt)) return []
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$market: entityId.$market,
+							timestampMs: Math.floor(updatedAt),
+						},
+					},
+				]
 			},
 		}),
 

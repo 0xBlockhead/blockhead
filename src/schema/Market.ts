@@ -2,6 +2,7 @@
  * Tradable book or index: two market asset legs (`$base`, `$quote`) and a venue reference to merge or split providers.
  */
 import { type } from 'arktype'
+import { MarketKind } from '$/constants/Market.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -18,6 +19,7 @@ const id = type({
 	$base: MarketAsset.id,
 	$quote: MarketAsset.id,
 	$marketVenue: MarketVenue.id,
+	marketKind: type.valueOf(MarketKind),
 })
 
 export { id }
@@ -72,6 +74,56 @@ export default {
 			entityType: EntityType.Market_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [Source.TradingView_Rest],
+		},
+		{
+			name: 'fundingRate',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Coingecko_OpenApi,
+				Source.Coingecko_Rest,
+			],
+		},
+		{
+			name: 'openInterestUsd',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Coingecko_OpenApi,
+				Source.Coingecko_Rest,
+			],
+		},
+		{
+			name: 'indexBasisPercent',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Coingecko_OpenApi,
+				Source.Coingecko_Rest,
+			],
+		},
+		{
+			name: 'expiredAtMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Coingecko_OpenApi,
+				Source.Coingecko_Rest,
+			],
+		},
+		{
+			name: 'derivativeLastTradedAtMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Coingecko_OpenApi,
+				Source.Coingecko_Rest,
+			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

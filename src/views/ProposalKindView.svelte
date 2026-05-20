@@ -78,6 +78,7 @@
 	{layout}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 
@@ -86,7 +87,7 @@
 		</span>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{`${proposalRealmById[entityId.realm].label} · ${proposalCategoryById[entityId.category].label}`}
 		</span>

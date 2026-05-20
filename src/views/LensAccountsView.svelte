@@ -19,6 +19,7 @@
 		href,
 		id,
 		open = $bindable(true),
+		collapsible = true,
 		title = 'Lens v3 profiles',
 		...entitiesListRest
 	}: WithRest<
@@ -42,34 +43,6 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const lensNetwork = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					$: [Source.Constants_Internal],
-					protocolName: {},
-					$$lensAccounts: {
-						$: [
-							Source.Constants_Internal,
-							Source.Lens_Graphql,
-						],
-					},
-				}
-			:
-				{}
-		),
-	)
-
-	const accounts = derive(
-		lensNetwork,
-		(lensNetwork) => (
-			lensNetwork.$$lensAccounts
-			?? []
-		),
-	)
 
 
 	// Components
@@ -97,40 +70,63 @@
 	{/snippet}
 
 	{#snippet body()}
-		{#key stringify(entityFieldReference.entityId)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.LensAccount}
-				id={`${id}-items`}
-				{href}
-				{title}
-				open={true}
-				getKey={(row) => stringify(row[EntityMetaKey.Id])}
-				getSortValue={(row) => row[EntityMetaKey.Id].address}
-				placeholderKeys={new SvelteSet()}
-				placeholderText="Loading Lens network…"
-				resource={accounts}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No Lens profiles for this slice yet.
-					</p>
-				{/snippet}
+		{#if open}
+			{@const lensNetwork = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [Source.Constants_Internal],
+					protocolName: {},
+					$$lensAccounts: {
+						$: [
+							Source.Constants_Internal,
+							Source.Lens_Graphql,
+						],
+					},
+				},
+			)}
+			{@const accounts = derive(
+				lensNetwork,
+				(lensNetwork) => (
+					lensNetwork.$$lensAccounts
+					?? []
+				),
+			)}
+			{#key stringify(entityFieldReference.entityId)}
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.LensAccount}
+					id={`${id}-items`}
+					{href}
+					{title}
+					open={true}
+					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getSortValue={(row) => row[EntityMetaKey.Id].address}
+					placeholderKeys={new SvelteSet()}
+					placeholderText="Loading Lens network…"
+					resource={accounts}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No Lens profiles for this slice yet.
+						</p>
+					{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<LensAccountView
-							entityId={{ address: props.item[EntityMetaKey.Id].address }}
-							href={resolve('/(social)/lens/account/[address]', {
-								address: props.item[EntityMetaKey.Id].address,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
-				{/snippet}
-			</EntitiesList>
-		{/key}
+					{#snippet Item(props)}
+						{#if props.item}
+							<LensAccountView
+								entityId={{ address: props.item[EntityMetaKey.Id].address }}
+								href={resolve('/(social)/lens/account/[address]', {
+									address: props.item[EntityMetaKey.Id].address,
+								})}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</EntitiesList>
+			{/key}
+		{/if}
 	{/snippet}
 </EntitiesList>

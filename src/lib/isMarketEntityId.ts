@@ -1,4 +1,4 @@
-import { MarketAssetKind } from '$/constants/Market.ts'
+import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -26,6 +26,8 @@ export const isMarketEntityId = (
 	&& '$base' in v
 	&& '$quote' in v
 	&& '$marketVenue' in v
+	&& 'marketKind' in v
+	&& Object.values(MarketKind).includes((v as { marketKind: MarketKind }).marketKind)
 	&& legShapeOk((v as { $base: unknown }).$base)
 	&& legShapeOk((v as { $quote: unknown }).$quote)
 )

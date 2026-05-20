@@ -51,6 +51,7 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+
 	const global = useEntity(
 		EntityType._Global,
 		entityId,
@@ -195,8 +196,7 @@
 						>Usage</a>
 					{/snippet}
 
-					{#snippet children({
-						open: _paneOpen,
+					{#snippet body({ open: _paneOpen,
 					})}
 						<section
 							id={`setting:${entityId.scope}:nav`}

@@ -35,7 +35,7 @@ export default {
 		{
 			name: '$sender',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmContract,
+			entityType: EntityType.Erc4337SmartAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Blockscout_Rest,

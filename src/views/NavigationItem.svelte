@@ -6,6 +6,7 @@
 
 	// Context
 	import { preloadData } from '$app/navigation'
+	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -16,7 +17,9 @@
 	}: {
 		items: NavigationItem[]
 		currentPathname?: string
-		LabelSnippet?: Snippet<[{ node: NavigationItem }]>
+		LabelSnippet?: Snippet<[context?: {
+			node?: NavigationItem,
+		}]>
 	} = $props()
 
 
@@ -51,7 +54,9 @@
 	import Icon from '$/components/Icon.svelte'
 	import SearchableText from '$/components/SearchableText.svelte'
 	import Tree from '$/components/Tree.svelte'
-	import ActorIdentityRow from '$/views/ActorIdentityRow.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import ActorView from '$/views/ActorView.svelte'
 </script>
 
 
@@ -156,15 +161,32 @@
 						{:else}
 							{#if node.address}
 								{#if node.address.network}
-									<span data-row="inline wrap align-center gap-2">
-										<ActorIdentityRow entityId={{ address: node.address.address }} />
-
-										<small data-text="muted">
-											 · execution-layer chain {node.address.network.chainId}
-										</small>
-									</span>
+									<ActorNetworkView
+										entityId={{
+											$network: node.address.network,
+											$actor: { address: node.address.address },
+										}}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+											{
+												networkId: String(node.address.network.chainId),
+												address: node.address.address,
+											},
+										)}
+										layout={EntityLayout.Title}
+										open={false}
+										showTypeAnnotation={false}
+									/>
 								{:else}
-									<ActorIdentityRow entityId={{ address: node.address.address }} />
+									<ActorView
+										entityId={{ address: node.address.address }}
+										href={resolve('/account/[address]', {
+											address: node.address.address,
+										})}
+										layout={EntityLayout.Title}
+										open={false}
+										showTypeAnnotation={false}
+									/>
 								{/if}
 							{:else if node.icon}
 								<Icon
@@ -203,7 +225,7 @@
 							{#if node.manualWatch}
 								<Icon
 									icon="★"
-									aria-label="Pinned"
+									label="Pinned"
 									size="1em"
 								/>
 							{/if}
@@ -221,15 +243,32 @@
 						{:else}
 							{#if node.address}
 								{#if node.address.network}
-									<span data-row="inline wrap align-center gap-2">
-										<ActorIdentityRow entityId={{ address: node.address.address }} />
-
-										<small data-text="muted">
-											 · execution-layer chain {node.address.network.chainId}
-										</small>
-									</span>
+									<ActorNetworkView
+										entityId={{
+											$network: node.address.network,
+											$actor: { address: node.address.address },
+										}}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+											{
+												networkId: String(node.address.network.chainId),
+												address: node.address.address,
+											},
+										)}
+										layout={EntityLayout.Title}
+										open={false}
+										showTypeAnnotation={false}
+									/>
 								{:else}
-									<ActorIdentityRow entityId={{ address: node.address.address }} />
+									<ActorView
+										entityId={{ address: node.address.address }}
+										href={resolve('/account/[address]', {
+											address: node.address.address,
+										})}
+										layout={EntityLayout.Title}
+										open={false}
+										showTypeAnnotation={false}
+									/>
 								{/if}
 							{:else if node.icon}
 								<Icon
@@ -268,7 +307,7 @@
 							{#if node.manualWatch}
 								<Icon
 									icon="★"
-									aria-label="Pinned"
+									label="Pinned"
 									size="1em"
 								/>
 							{/if}

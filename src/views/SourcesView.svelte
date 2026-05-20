@@ -2,8 +2,6 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 
-	import EntitiesList from '$/components/EntitiesList.svelte'
-
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -25,6 +23,7 @@
 		entityFieldReference,
 		title = 'Saved sources',
 		open = $bindable(true),
+		collapsible = true,
 		href,
 		id,
 		...entitiesListRest
@@ -47,42 +46,9 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					[entityFieldReference.fieldName]: {
-						$: [
-							Source.Local_Internal,
-						],
-					},
-				}
-			:
-				{}
-		),
-	)
-
-	const sources = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.BlockheadSource>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-				.toSorted((a, b) => (
-					stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
-				))
-			return (
-				rows.map((value) => ({
-					value,
-				}))
-			)
-		},
-	)
-
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import BlockheadSourceView from '$/views/BlockheadSourceView.svelte'
@@ -92,15 +58,11 @@
 <EntitiesList
 	{...entitiesListRest}
 	bind:open
+	{collapsible}
 	entityType={EntityType.BlockheadSource}
-	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 	{href}
 	{id}
-	placeholderKeys={new SvelteSet()}
-	resource={sources}
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -120,20 +82,68 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			{@const srcId = props.item.value[EntityMetaKey.Id]}
-			<BlockheadSourceView
-				href={resolve(
-					'/~/(manage)/manage/(sources)/source/[sourceId]',
-					{ sourceId: srcId.id },
-				)}
-				layout={EntityLayout.Summary}
-				open={false}
-				sourceId={srcId.id}
-				title="Source"
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Local_Internal,
+						],
+					},
+				},
+			)}
+			{@const sources = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.BlockheadSource>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						rows.map((value) => ({
+							value,
+						}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.BlockheadSource}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				{href}
+				id={`${id}-items`}
+				placeholderKeys={new SvelteSet()}
+				open={true}
+				resource={sources}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No saved endpoints yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item(props)}
+					{#if props.item}
+						{@const srcId = props.item.value[EntityMetaKey.Id]}
+						<BlockheadSourceView
+							href={resolve(
+								'/~/(manage)/manage/(sources)/source/[sourceId]',
+								{ sourceId: srcId.id },
+							)}
+							layout={EntityLayout.Summary}
+							open={false}
+							sourceId={srcId.id}
+							title="Source"
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>
-

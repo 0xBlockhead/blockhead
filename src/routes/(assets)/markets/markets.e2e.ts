@@ -6,6 +6,7 @@ const marketKeyEthUsdBinance = encodeURIComponent(
 		$base: { kind: 'Coin', $coin: { coinId: 'ETH' } },
 		$quote: { kind: 'Currency', $currency: { iso4217: 'USD' } },
 		$marketVenue: { marketVenueId: 'Binance' },
+		marketKind: 'Spot',
 	}),
 )
 
@@ -46,9 +47,9 @@ test.describe('Markets routes', () => {
 
 		await step(page.goto('/markets', { waitUntil: 'load', timeout: 120_000 }))
 
-		await step(expect(page.locator('#markets-page')).toBeVisible({ timeout: 120_000 }))
+		await step(expect(page.getByRole('heading', { name: 'Markets' })).toBeVisible({ timeout: 120_000 }))
 		await step(expect(page.getByText('Not found')).toHaveCount(0))
-		await step(expect(page.locator('#markets-page a[href*="/market/"]').first()).toBeAttached(attach))
+		await step(expect(page.locator('#main a[href*="/market/"]').first()).toBeAttached(attach))
 	})
 
 	test('market detail renders asset and pricing carousels with data', async ({ page }, testInfo) => {

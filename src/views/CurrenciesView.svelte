@@ -18,6 +18,7 @@
 	let {
 		title = 'Currencies',
 		open = $bindable(true),
+		collapsible = true,
 		entityFieldReference,
 		...entitiesListRest
 	}: WithRest<
@@ -78,44 +79,10 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const fieldName = entityFieldReference.fieldName
-
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [
-				Source.Constants_Internal,
-			],
-			...(open && {
-				[fieldName]: {
-					$orderBy: globalCurrenciesFieldOrderBy,
-					$limit: 512,
-					$$timestamps: {
-						$: [
-							Source.Constants_Internal,
-						],
-						$orderBy: currencyTimestampsFieldOrderBy,
-						$limit: 1,
-						marketCap: {},
-					},
-				},
-			}),
-		},
-	)
-
-	const currencies = derive(
-		parent,
-		(parent) => (
-			parent[fieldName] ?? []
-		),
-	)
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import CurrencyView from '$/views/CurrencyView.svelte'
 </script>
 
@@ -123,13 +90,8 @@
 <EntitiesList
 	{...entitiesListRest}
 	bind:open
+	{collapsible}
 	entityType={EntityType.Currency}
-	getKey={(row) => row[EntityMetaKey.Id].iso4217}
-	getSortValue={(row) => (
-		-Number(row.$$timestamps?.[0]?.marketCap ?? 0)
-	)}
-	placeholderKeys={new SvelteSet()}
-	resource={currencies}
 	{title}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -141,17 +103,76 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item })}
-		{#if item}
-			<CurrencyView
-				entityId={item[EntityMetaKey.Id]}
-				href={resolve(
-					'/(assets)/(currencies)/currency/[iso4217]',
-					{ iso4217: item[EntityMetaKey.Id].iso4217 },
+	{#snippet Empty()}
+		<p data-text="muted">
+			No currencies in this context yet.
+		</p>
+	{/snippet}
+
+	{#snippet body()}
+		{#if open}
+			{@const fieldName = entityFieldReference.fieldName}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [
+						Source.Constants_Internal,
+					],
+					[fieldName]: {
+						$orderBy: globalCurrenciesFieldOrderBy,
+						$limit: 512,
+						$$timestamps: {
+							$: [
+								Source.Constants_Internal,
+							],
+							$orderBy: currencyTimestampsFieldOrderBy,
+							$limit: 1,
+							marketCap: {},
+						},
+					},
+				},
+			)}
+			{@const currencies = derive(
+				parent,
+				(parent) => (
+					parent[fieldName] ?? []
+				),
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				{...entitiesListRest}
+				entityType={EntityType.Currency}
+				getKey={(row) => row[EntityMetaKey.Id].iso4217}
+				getSortValue={(row) => (
+					-Number(row.$$timestamps?.[0]?.marketCap ?? 0)
 				)}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+				placeholderKeys={new SvelteSet()}
+				resource={currencies}
+				{title}
+				open={true}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No currencies in this context yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item({ item })}
+					{#if item}
+						<CurrencyView
+							entityId={item[EntityMetaKey.Id]}
+							href={resolve(
+								'/(assets)/(currencies)/currency/[iso4217]',
+								{ iso4217: item[EntityMetaKey.Id].iso4217 },
+							)}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

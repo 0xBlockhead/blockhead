@@ -27,6 +27,7 @@
 		entityFieldReference,
 		title = 'Balances',
 		open = $bindable(true),
+		collapsible = true,
 		...entitiesListRest
 	}: WithRest<
 		{
@@ -42,39 +43,6 @@
 
 	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					[entityFieldReference.fieldName]: {
-						$: [
-							Source.Allium_Rest,
-						],
-					},
-				}
-			:
-				{
-					$: [
-						Source.Allium_Rest,
-					],
-				}
-		),
-	)
-
-	const tokenBalances = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.ActorCoin>[] = parent[entityFieldReference.fieldName] ?? []
-			return (
-				rows.map((value) => ({
-					value,
-				}))
-			)
-		},
-	)
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -88,15 +56,10 @@
 	entityType={EntityType.ActorCoin}
 	{title}
 	bind:open
+	{collapsible}
 	data-entity-field-name={entityFieldReference.fieldName}
 	data-entity-field-type={entityFieldReference.entityType}
 	data-entity-field-parent={stringify(entityFieldReference.entityId)}
-	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	placeholderKeys={new SvelteSet<string>()}
-	placeholderText={`Loading ${title.toLowerCase()}…`}
-	resource={tokenBalances}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -109,29 +72,83 @@
 	{/snippet}
 
 	{#snippet Empty()}
-			<p data-text="muted">
-				No balances for this wallet yet.
-			</p>
-		{/snippet}
+		<p data-text="muted">
+			No balances for this wallet yet.
+		</p>
+	{/snippet}
 
-		{#snippet Item(props)}
-			{#if props.item}
-				{@const id = props.item.value[EntityMetaKey.Id]}
-				<ActorCoinView
-					entityId={id}
-					href={resolve('/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]', {
-						chainId: String(id.$coinInstance.$network.chainId),
-						owner: id.$actor.address,
-						coin: (
-							id.$coinInstance.type === CoinInstanceType.Erc20Token ?
-								id.$coinInstance.$contract.address
-							:
-								pathNativeCoin
-						),
-					})}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{/if}
-		{/snippet}
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [
+						Source.Allium_Rest,
+					],
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Allium_Rest,
+						],
+					},
+				},
+			)}
+			{@const tokenBalances = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.ActorCoin>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						rows.map((value) => ({
+							value,
+						}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.ActorCoin}
+				{title}
+				open={true}
+				data-entity-field-name={entityFieldReference.fieldName}
+				data-entity-field-type={entityFieldReference.entityType}
+				data-entity-field-parent={stringify(entityFieldReference.entityId)}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				placeholderKeys={new SvelteSet<string>()}
+				placeholderText={`Loading ${title.toLowerCase()}…`}
+				resource={tokenBalances}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No balances for this wallet yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item(props)}
+					{#if props.item}
+						{@const id = props.item.value[EntityMetaKey.Id]}
+						<ActorCoinView
+							entityId={id}
+							href={resolve('/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]', {
+								chainId: String(id.$coinInstance.$network.chainId),
+								owner: id.$actor.address,
+								coin: (
+									id.$coinInstance.type === CoinInstanceType.Erc20Token ?
+										id.$coinInstance.$contract.address
+									:
+										pathNativeCoin
+								),
+							})}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
+		{/if}
+	{/snippet}
 </EntitiesList>

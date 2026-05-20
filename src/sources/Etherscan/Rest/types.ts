@@ -32,3 +32,48 @@ export type EtherscanStringStatusWire = {
 	message: string
 	result: string
 }
+
+/**
+ * `module=gastracker`, `action=gasoracle`.
+ * @see https://docs.etherscan.io/api-reference/endpoint/gasoracle
+ */
+export type EtherscanGasOracleResultWire = {
+	LastBlock: string
+	SafeGasPrice: string
+	ProposeGasPrice: string
+	FastGasPrice: string
+	suggestBaseFee?: string
+	gasUsedRatio?: string
+}
+
+export type EtherscanGasOracleWire = {
+	status: string
+	message: string
+	result: EtherscanGasOracleResultWire
+}
+
+export type EtherscanContractCreationRowWire = {
+	contractAddress?: string
+	contractCreator?: string
+	txHash?: string
+}
+
+export type EtherscanContractCreationWire = {
+	status: string
+	message: string
+	result: EtherscanContractCreationRowWire[] | string
+}
+
+export type EtherscanContractSourceRowWire = {
+	SourceCode?: string
+	ABI?: string
+	ContractName?: string
+	Implementation?: string
+	Proxy?: string
+}
+
+export type EtherscanContractSourceCodeWire = {
+	status: string
+	message: string
+	result: EtherscanContractSourceRowWire[] | string
+}

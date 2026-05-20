@@ -24,8 +24,7 @@
 		title={'Multiplayer'}
 		href={resolve('/~/multiplayer')}
 	>
-		{#snippet children({
-			open: hubOpen,
+		{#snippet children({ open: hubOpen,
 		})}
 			<CollapsibleTabs
 				id={`${hubKey}:hub`}
@@ -57,7 +56,7 @@
 					>Contacts</a>
 				{/snippet}
 
-				{#snippet children({ open: _paneOpen })}
+				{#snippet body({ open: _paneOpen })}
 					<section
 						id={`${hubKey}:rooms`}
 						data-scroll-marker-label="Rooms"

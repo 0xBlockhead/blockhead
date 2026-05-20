@@ -9,6 +9,7 @@
  */
 
 import type {
+	EtherscanGasOracleWire,
 	EtherscanProxyJsonRpcWire,
 	EtherscanStringStatusWire,
 } from '$/sources/Etherscan/Rest/types.ts'
@@ -171,7 +172,162 @@ export const getContractAbiJsonString = async ({
 		},
 		options,
 	})
-	if (wire == null || wire.status !== '1' || typeof wire.result !== 'string' || !wire.result.trim())
-		return null
+	if (wire?.status === '1' && typeof wire.result === 'string' && wire.result.trim()) {
+		return wire.result
+	}
+	const sourceRow = await getContractSourceCodeRow({
+		publicEnv,
+		chainId,
+		address,
+		options,
+	})
+	const abi = sourceRow?.ABI
+	return typeof abi === 'string' && abi.trim() ? abi : null
+}
+
+/**
+ * **`module=contract`**, **`action=getsourcecode`**, **`address`**.
+ * @see https://docs.etherscan.io/api-reference/endpoint/getsourcecode
+ */
+export const getContractSourceCodeRow = async ({
+	publicEnv,
+	chainId,
+	address,
+	options,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	chainId: number
+	address: `0x${string}`
+	options?: { apiKey?: string }
+}) => {
+	const wire = await etherscanV2GetJson<import('$/sources/Etherscan/Rest/types.ts').EtherscanContractSourceCodeWire>({
+		chainId,
+		publicEnv,
+		query: {
+			module: 'contract',
+			action: 'getsourcecode',
+			address,
+		},
+		options,
+	})
+	if (wire == null || wire.status !== '1' || !Array.isArray(wire.result)) return null
+	return wire.result[0] ?? null
+}
+
+/**
+ * **`module=contract`**, **`action=getcontractcreation`**, **`contractaddresses`**.
+ * @see https://docs.etherscan.io/api-reference/endpoint/getcontractcreation
+ */
+export const getContractCreationRow = async ({
+	publicEnv,
+	chainId,
+	address,
+	options,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	chainId: number
+	address: `0x${string}`
+	options?: { apiKey?: string }
+}) => {
+	const wire = await etherscanV2GetJson<import('$/sources/Etherscan/Rest/types.ts').EtherscanContractCreationWire>({
+		chainId,
+		publicEnv,
+		query: {
+			module: 'contract',
+			action: 'getcontractcreation',
+			contractaddresses: address,
+		},
+		options,
+	})
+	if (wire == null || wire.status !== '1' || !Array.isArray(wire.result)) return null
+	return (
+		wire.result.find((row) => (
+			row.contractAddress?.toLowerCase() === address.toLowerCase()
+		))
+		?? wire.result[0]
+		?? null
+	)
+}
+
+/** **`module=proxy`**, **`action=eth_getCode`**. */
+export const proxyEthGetCode = async ({
+	publicEnv,
+	chainId,
+	address,
+	options,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	chainId: number
+	address: `0x${string}`
+	options?: { apiKey?: string }
+}): Promise<`0x${string}` | null> => (
+	etherscanV2UnwrapProxyResult(
+		await etherscanV2GetJson<EtherscanProxyJsonRpcWire<`0x${string}`>>({
+			chainId,
+			publicEnv,
+			query: {
+				module: 'proxy',
+				action: 'eth_getCode',
+				address,
+				tag: 'latest',
+			},
+			options,
+		}),
+	)
+)
+
+/** **`module=proxy`**, **`action=eth_getStorageAt`**. */
+export const proxyEthGetStorageAt = async ({
+	publicEnv,
+	chainId,
+	address,
+	slotQuantityHex,
+	options,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	chainId: number
+	address: `0x${string}`
+	slotQuantityHex: `0x${string}`
+	options?: { apiKey?: string }
+}): Promise<`0x${string}` | null> => (
+	etherscanV2UnwrapProxyResult(
+		await etherscanV2GetJson<EtherscanProxyJsonRpcWire<`0x${string}`>>({
+			chainId,
+			publicEnv,
+			query: {
+				module: 'proxy',
+				action: 'eth_getStorageAt',
+				address,
+				position: slotQuantityHex,
+				tag: 'latest',
+			},
+			options,
+		}),
+	)
+)
+
+/**
+ * **`module=gastracker`**, **`action=gasoracle`** — slow / average / fast tiers in gwei.
+ * @see https://docs.etherscan.io/api-reference/endpoint/gasoracle
+ */
+export const gastrackerGasOracle = async ({
+	publicEnv,
+	chainId,
+	options,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	chainId: number
+	options?: { apiKey?: string }
+}) => {
+	const wire = await etherscanV2GetJson<EtherscanGasOracleWire>({
+		chainId,
+		publicEnv,
+		query: {
+			module: 'gastracker',
+			action: 'gasoracle',
+		},
+		options,
+	})
+	if (wire == null || wire.status !== '1' || wire.result == null) return null
 	return wire.result
 }

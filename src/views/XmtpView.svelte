@@ -175,7 +175,7 @@
 					>Inbox</a>
 				{/snippet}
 
-				{#snippet children({ open: _o })}
+				{#snippet body({ open: _o })}
 					<section
 						id={`${networkIdKey}:accounts`}
 						data-scroll-marker-label="Accounts"

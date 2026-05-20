@@ -56,33 +56,6 @@
 		:
 			resolve('/farcaster/feed')
 	)
-
-	const parentNetwork = useEntity(
-		EntityType.FarcasterNetwork,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					$$feeds: { $: [Source.Farcaster_Rest] },
-				}
-			:
-				{}
-		),
-	)
-
-	const feeds = derive(
-		parentNetwork,
-		(parentNetwork) => (
-			[...(parentNetwork.$$feeds ?? [])]
-				.toSorted((a, b) => (
-					stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
-				))
-				.slice(0, limit)
-				.map((value) => ({
-					value,
-				}))
-		),
-	)
 </script>
 
 
@@ -93,11 +66,6 @@
 	{title}
 	{collapsible}
 	bind:open
-	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-	getSortValue={(row) => stringify(row.value[EntityMetaKey.Id])}
-	placeholderKeys={new SvelteSet()}
-	placeholderText="Loading Farcaster feeds (trending, FID, channel)…"
-	resource={feeds}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -114,15 +82,57 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			{@const feedId = props.item.value[EntityMetaKey.Id]}
-			<FarcasterFeedView
-				entityId={feedId}
-				href={summaryHref(feedId)}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const parentNetwork = useEntity(
+				EntityType.FarcasterNetwork,
+				entityFieldReference.entityId,
+				{
+					$$feeds: { $: [Source.Farcaster_Rest] },
+				},
+			)}
+			{@const feeds = derive(
+				parentNetwork,
+				(parentNetwork) => (
+					[...(parentNetwork.$$feeds ?? [])]
+						.slice(0, limit)
+						.map((value) => ({
+							value,
+						}))
+				),
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.FarcasterFeed}
+				{id}
+				{href}
+				{title}
+				open={true}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getSortValue={(row) => stringify(row.value[EntityMetaKey.Id])}
+				placeholderKeys={new SvelteSet()}
+				placeholderText="Loading Farcaster feeds (trending, FID, channel)…"
+				resource={feeds}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No feeds yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item(props)}
+					{#if props.item}
+						{@const feedId = props.item.value[EntityMetaKey.Id]}
+						<FarcasterFeedView
+							entityId={feedId}
+							href={summaryHref(feedId)}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

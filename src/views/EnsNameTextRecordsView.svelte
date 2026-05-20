@@ -8,6 +8,7 @@
 		ensTextRecordDisplayRank,
 		getEnsTextRecordLabel,
 	} from '$/constants/Ens.ts'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 
@@ -27,6 +28,8 @@
 		href,
 		id = 'ens-text-records',
 		open = $bindable(true),
+		collapsible = true,
+		excludeRecordKeys: excludeRecordKeysProp,
 		recordKeys: recordKeysProp,
 		title = 'Text records',
 		...entitiesListRest
@@ -36,6 +39,7 @@
 			href: string
 			id?: string
 			open?: boolean
+			excludeRecordKeys?: readonly string[]
 			recordKeys?: string[]
 			title?: string
 		},
@@ -57,8 +61,8 @@
 				Source.Voltaire_JsonRpc,
 				Source.TheGraph_Graphql,
 			],
+			textRecords: {},
 			...(open ? {
-				textRecords: {},
 				resolverTextKeys: {},
 			} : {}),
 		},
@@ -71,9 +75,21 @@
 			9999
 	)
 
+	const excludeRecordKeys = $derived(
+		excludeRecordKeysProp === undefined ?
+			null
+		:
+			new SvelteSet(excludeRecordKeysProp),
+	)
+
 	const textRecords = derive(ens, (ens) => (
 		recordKeysProp !== undefined ?
-			[...recordKeysProp].toSorted((a, b) => (
+			[...recordKeysProp]
+				.filter((key) => (
+					excludeRecordKeys == null
+					|| !excludeRecordKeys.has(key)
+				))
+				.toSorted((a, b) => (
 				rank(a) !== rank(b) ?
 					rank(a) - rank(b)
 				:	a.localeCompare(b)
@@ -88,7 +104,11 @@
 							Object.keys(row.textRecords)
 					),
 					...(row.resolverTextKeys ?? []),
-				]),
+				])
+					.filter((key) => (
+						excludeRecordKeys == null
+						|| !excludeRecordKeys.has(key)
+					)),
 			].toSorted((a, b) => (
 				rank(a) !== rank(b) ?
 					rank(a) - rank(b)
@@ -130,6 +150,12 @@
 		{#snippet Item(props)}
 			{#if props.item}
 				{@const recordLabel = getEnsTextRecordLabel(props.item)}
+				{@const recordValue = (
+					ens.ready ?
+						ens.current.textRecords?.[props.item]
+					:
+						undefined
+				)}
 				<a
 					data-link
 					href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/(records)/record/[recordId]', {
@@ -137,10 +163,20 @@
 						recordId: props.item,
 					})}
 				>
-					{recordLabel}
-					{#if recordLabel !== props.item}
-						<small data-text="muted"> ({props.item})</small>
-					{/if}
+					<span data-column>
+						<span>
+							{recordLabel}
+							{#if recordLabel !== props.item}
+								<small data-text="muted"> ({props.item})</small>
+							{/if}
+						</span>
+						{#if recordValue != null && recordValue !== ''}
+							<TruncatedValue
+								value={recordValue}
+								format={TruncatedValueFormat.Visual}
+							/>
+						{/if}
+					</span>
 				</a>
 			{/if}
 		{/snippet}

@@ -16,10 +16,11 @@
 
 	// Props
 	let {
-		children,
+		children: _children,
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -46,6 +47,7 @@
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	const block = useEntity(
 		EntityType.EvmBlock,
@@ -79,7 +81,7 @@
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import ActorView from '$/views/ActorView.svelte'
+	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
@@ -103,7 +105,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Block </span>
 			<span
@@ -116,7 +118,11 @@
 		</span>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: contentOpen,
+	})}
 		<ResourceBoundary
 			resource={block}
 			placeholderText="Loading block…"
@@ -215,7 +221,8 @@
 												blockNumber: String(block.$parent[EntityMetaKey.Id].blockNumber),
 											},
 										)}
-										layout={EntityLayout.Summary}
+										layout={EntityLayout.Title}
+										open={false}
 										showTypeAnnotation={false}
 									/>
 								</dd>
@@ -226,12 +233,20 @@
 							<div>
 								<dt>Miner / validator</dt>
 								<dd>
-									<ActorView
-										entityId={block.$miner[EntityMetaKey.Id]}
-										href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-											accountId: block.$miner[EntityMetaKey.Id].address,
-										})}
-										layout={EntityLayout.Summary}
+									<ActorNetworkView
+										entityId={{
+											$network: entityId.$network,
+											$actor: block.$miner[EntityMetaKey.Id],
+										}}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+											{
+												networkId: String(entityId.$network.chainId),
+												address: block.$miner[EntityMetaKey.Id].address,
+											},
+										)}
+										layout={EntityLayout.Title}
+										open={false}
 										showTypeAnnotation={false}
 									/>
 								</dd>
@@ -243,7 +258,9 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({
+		open: detailsOpen,
+	})}
 		<EntityDetails
 			entityType={EntityType.EvmBlock}
 			{entityId}
@@ -280,7 +297,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<ResourceBoundary
 						resource={block}
 						placeholderText=""
@@ -298,7 +315,7 @@
 						data-scroll-marker-label="Transactions"
 						href={`#${blockIdKey}:transactions`}
 					>Tx</a>
-					{#if children}
+					{#if _children}
 						<a
 							data-scroll-marker-label="Content"
 							href={`#${blockIdKey}:page-content`}
@@ -306,7 +323,7 @@
 					{/if}
 				{/snippet}
 
-				{#snippet children(_ctx)}
+				{#snippet body(_ctx)}
 					<ResourceBoundary
 						resource={block}
 						placeholderText="Loading chain info…"
@@ -325,7 +342,7 @@
 												blockNumber: String(block.$parent[EntityMetaKey.Id].blockNumber),
 											},
 										)}
-										layout={EntityLayout.Summary}
+										layout={EntityLayout.Title}
 										showTypeAnnotation={false}
 									/>
 								</section>
@@ -349,15 +366,16 @@
 								},
 							)}
 							id="transactions"
-							open={false}
+							collapsible={false}
+							open={true}
 						/>
 					</section>
 
-					{#if children}
+					{#if _children}
 						<section
 							id={`${blockIdKey}:page-content`}
 						>
-							{@render children()}
+							{@render _children()}
 						</section>
 					{/if}
 				{/snippet}

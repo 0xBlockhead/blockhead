@@ -61,6 +61,26 @@
 	}
 	type ItemsInput = Iterable<_Item>
 
+	type ItemSnippetContext = {
+		key?: OrderedListKey,
+		isVisible?: boolean,
+	} & (
+		| {
+				item?: _Item,
+				isPlaceholder?: false,
+			}
+		| {
+				item?: never,
+				isPlaceholder?: true,
+			}
+	)
+
+	type PlaceholderRangeSnippetContext = {
+		range?: [number, number],
+		isVisibleStart?: boolean,
+		isVisibleEnd?: boolean,
+	}
+
 
 	// Functions
 	const mergeRanges = (ranges: Iterable<[number, number] | readonly [number, number]>): [number, number][] => {
@@ -286,24 +306,8 @@
 		pagination?: ListPagination
 		listViewTransition?: boolean
 		virtual?: VirtualRowMeasurement<Row>
-		Item: Snippet<
-			[
-				{
-					key: OrderedListKey
-					isVisible: boolean
-				} & (
-					| { item: _Item; isPlaceholder: false }
-					| { item?: never; isPlaceholder: true }
-				),
-			]
-		>
-		PlaceholderRange?: Snippet<[
-			{
-				range: [number, number]
-				isVisibleStart: boolean
-				isVisibleEnd: boolean
-			},
-		]>
+		Item: Snippet<[context?: ItemSnippetContext]>
+		PlaceholderRange?: Snippet<[context?: PlaceholderRangeSnippetContext]>
 		Empty?: Snippet<[]>
 	} = $props()
 

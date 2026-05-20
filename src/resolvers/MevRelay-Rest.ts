@@ -15,37 +15,29 @@ import { Source } from '$/sources/$Source.ts'
 const parsePayloadSlot = (row: ProposerPayloadDeliveredRowWire): number | undefined => {
 	const raw = row.slot
 	if (raw == null) return undefined
-	const n = typeof raw === 'number' ? raw : Number.parseInt(String(raw), 10)
-	return Number.isFinite(n) ? n : undefined
+	const slot = Number(raw)
+	return Number.isFinite(slot) ? slot : undefined
 }
 
 const parsePayloadValueWei = (row: ProposerPayloadDeliveredRowWire): bigint | undefined => {
 	const raw = row.value
 	if (raw == null) return undefined
-	if (typeof raw === 'number') return BigInt(Math.trunc(raw))
-	if (typeof raw === 'string') {
-		try {
-			return BigInt(raw.trim())
-		} catch {
-			return undefined
-		}
+	try {
+		return BigInt(String(raw).trim())
+	} catch {
+		return undefined
 	}
-	return undefined
 }
 
 const parsePayloadBlockNumber = (row: ProposerPayloadDeliveredRowWire): bigint | undefined => {
 	const raw = row.block_number ?? row.blockNumber
 	if (raw == null) return undefined
-	if (typeof raw === 'number') return BigInt(Math.trunc(raw))
-	if (typeof raw === 'string') {
-		try {
-			const trimmed = raw.trim()
-			return BigInt(trimmed.startsWith('0x') || trimmed.startsWith('0X') ? trimmed : trimmed)
-		} catch {
-			return undefined
-		}
+	try {
+		const trimmed = String(raw).trim()
+		return BigInt(trimmed.startsWith('0x') || trimmed.startsWith('0X') ? trimmed : trimmed)
+	} catch {
+		return undefined
 	}
-	return undefined
 }
 
 export default {
@@ -64,7 +56,7 @@ export default {
 				const row = rows.find((entry) => {
 					const slot = parsePayloadSlot(entry)
 					const bh = entry.block_hash ?? entry.blockHash
-					if (slot !== entityId.slot || typeof bh !== 'string') return false
+					if (slot !== entityId.slot || bh == null) return false
 					const normalized = hexLowerOfByteSize(bh, 32)
 					return normalized === wantHash
 				})
@@ -75,7 +67,7 @@ export default {
 				const valueWei = parsePayloadValueWei(row)
 				return {
 					[EntityMetaKey.Id]: entityId,
-					...(typeof builderPubkey === 'string' && builderPubkey.length > 0 && { builderPubkey }),
+					...(builderPubkey != null && builderPubkey !== '' && { builderPubkey }),
 					...(valueWei != null && { value: valueWei }),
 					...(blockNumber != null && {
 							blockNumber,
@@ -125,7 +117,7 @@ export default {
 					for (const row of rows) {
 						const slot = parsePayloadSlot(row)
 						const bhRaw = row.block_hash ?? row.blockHash
-						if (slot == null || typeof bhRaw !== 'string') continue
+						if (slot == null || bhRaw == null) continue
 						const blockHash = hexLowerOfByteSize(bhRaw, 32)
 						if (blockHash == null) continue
 						const idKey = stringify({

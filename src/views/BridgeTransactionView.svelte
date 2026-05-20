@@ -58,6 +58,7 @@
 	{href}
 	{title}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
 		{title}
@@ -72,7 +73,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.id}
 		</span>
@@ -89,7 +90,7 @@
 						href={resolve('/(explore)/(networks)/network/[networkId]', {
 							networkId: String(entityId.$sourceTx.$network.chainId),
 						})}
-						layout={EntityLayout.Id}
+						layout={EntityLayout.Title}
 						open={false}
 						showTypeAnnotation={false}
 					/>
@@ -107,7 +108,7 @@
 								transactionId: entityId.$sourceTx.txHash,
 							},
 						)}
-						layout={EntityLayout.Id}
+						layout={EntityLayout.Title}
 						open={false}
 						showTypeAnnotation={false}
 					/>
@@ -131,10 +132,14 @@
 								$network: entityId.$sourceTx.$network,
 								$actor: entityId.$account,
 							}}
-							href={resolve('/~/(accounts)/accounts/account/[accountId]', {
-								accountId: entityId.$account.address,
-							})}
-							layout={EntityLayout.Id}
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+								{
+									networkId: String(entityId.$sourceTx.$network.chainId),
+									address: entityId.$account.address,
+								},
+							)}
+							layout={EntityLayout.Title}
 							open={false}
 							showTypeAnnotation={false}
 						/>

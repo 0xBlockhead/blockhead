@@ -8,7 +8,9 @@
 		onLoadMore: () => void
 		loading?: boolean
 		label?: string
-		Placeholder?: Snippet<[{ loading: boolean }]>
+		Placeholder?: Snippet<[context?: {
+			loading?: boolean,
+		}]>
 	}
 
 	export enum FilterDisplayType {
@@ -53,7 +55,7 @@
 		| (FilterGroupBase<_Item, _FilterId> &
 				FilterGroupSelection<_FilterId> & {
 					displayType: FilterDisplayType.Snippet
-					Snippet: import('svelte').Snippet<[FilterGroupSnippetProps<_Item, _FilterId>]>
+					Snippet: import('svelte').Snippet<[context?: FilterGroupSnippetProps<_Item, _FilterId>]>
 				})
 		| (FilterGroupBase<_Item, _FilterId> &
 				FilterGroupSelection<_FilterId> & {
@@ -86,6 +88,25 @@
 
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
+
+	type GroupHeaderSnippetContext = {
+		groupKey?: _GroupKey,
+	}
+
+	type ItemSnippetContext = {
+		key?: _Key,
+	} & (
+		| {
+				item?: _Item,
+				isPlaceholder?: false,
+				searchQuery?: string,
+				matches?: SvelteSet<Match>,
+			}
+		| {
+				item?: never,
+				isPlaceholder?: true,
+			}
+	)
 
 
 	// State
@@ -162,22 +183,8 @@
 			displayedItems?: _Item[]
 			filter?: (item: _Item) => boolean
 
-			GroupHeader?: import('svelte').Snippet<[{
-				groupKey: _GroupKey,
-			}]>
-			Item: import('svelte').Snippet<[
-				{
-					key: _Key,
-				} & (
-					| {
-							item: _Item
-							isPlaceholder: false
-							searchQuery?: string
-							matches?: SvelteSet<Match>
-						}
-					| { item?: never, isPlaceholder: true }
-				),
-			]>
+			GroupHeader?: import('svelte').Snippet<[context?: GroupHeaderSnippetContext]>
+			Item: import('svelte').Snippet<[context?: ItemSnippetContext]>
 			Empty?: import('svelte').Snippet
 			ToolbarExtra?: import('svelte').Snippet
 

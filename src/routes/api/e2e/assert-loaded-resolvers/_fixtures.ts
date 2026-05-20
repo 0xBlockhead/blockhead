@@ -2,7 +2,7 @@ import { stringify } from 'devalue'
 
 import { CoinId } from '$/constants/Coin.ts'
 import { Iso4217, usdCurrencyMarketAssetLeg } from '$/constants/Currency.ts'
-import { MarketAssetKind, MarketTimeIntervalUnit } from '$/constants/Market.ts'
+import { MarketAssetKind, MarketKind, MarketTimeIntervalUnit } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { ProposalCategory, ProposalRealm } from '$/constants/Proposal.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -19,9 +19,21 @@ const VITALIK_ADDRESS = '0xd8da6bf26964af9d7eed9e403e826090792bed6a' as const
 
 const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const
 
-const SAMPLE_TX_HASH = (
+export const SAMPLE_TX_HASH = (
 	'0xdacd6abf5b2814b28c68c59981f269c615796e7f0cba2009f4bf5edfdd9595ab' as const
 )
+
+/** EVM explorer routes for e2e smoke / boundary (see also `routeViewSmokePaths`). */
+export const e2eEvmExplorerRoutePaths = {
+	hub: '/evm',
+	calldata: '/evm/calldata',
+	calldataDecoder: '/evm/calldata-decoder',
+	selectors: '/evm/selectors',
+	topics: '/evm/topics',
+	errors: '/evm/errors',
+	networkTransaction: `/network/1/tx/${SAMPLE_TX_HASH}`,
+	networkTransactionLog: `/network/1/tx/${SAMPLE_TX_HASH}/log/0`,
+} as const satisfies Record<string, `/${string}`>
 
 /** Mainnet type‑3 tx with EIP‑4844 sidecars — exercised by Blobscan REST probes. */
 const SAMPLE_BLOB_TX_HASH = (
@@ -42,6 +54,7 @@ export const ethUsdCatalogMarket = {
 	$base: { kind: MarketAssetKind.Coin, $coin: { coinId: CoinId.ETH } },
 	$quote: usdCurrencyMarketAssetLeg,
 	$marketVenue: { marketVenueId: MarketVenueId.Binance },
+	marketKind: MarketKind.Spot,
 } as const
 
 const mainnet = { chainId: 1 }
@@ -100,6 +113,18 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		$coinInstance: coinInstanceUsdcMainnet,
 	},
 
+	[EntityType.ActorCoinAllowance]: {
+		$actorCoin: {
+			$actor: actorMainnetVitalik,
+			$coinInstance: coinInstanceUsdcMainnet,
+		},
+		$spender: {
+			address: '0x0000000000000000000000000000000000000001',
+		},
+	},
+
+	[EntityType.ActorNetwork]: actorNetworkMainnetVitalik,
+
 	[EntityType.AtprotoActor]: { did: 'did:plc:z72i7hdynmk6x22kvon7fdpk' },
 	[EntityType.AtprotoNetwork]: { scope: 'AtprotoNetwork' },
 	[EntityType.AtprotoPost]: {
@@ -108,8 +133,21 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 
 	[EntityType.BeaconEpoch]: { $network: mainnet, epoch: 300_000 },
 	[EntityType.BeaconSlot]: { $network: mainnet, slot: 9_500_000 },
+	[EntityType.BeaconValidator]: {
+		$network: mainnet,
+		validatorIndex: 0,
+	},
 
 	[EntityType.BlockheadFarcasterAccountConnection]: { fid: 3 },
+
+	[EntityType.BlockheadSource]: { id: 'e2e-probe-source' },
+	[EntityType.BlockheadPanelTree]: { id: 'e2e-probe-panel-tree' },
+	[EntityType.BlockheadRoom]: { id: 'e2e-probe-room' },
+	[EntityType.BlockheadSession]: { id: 'e2e-probe-session' },
+	[EntityType.BlockheadRoomPeer]: { id: 'e2e-probe-room-peer' },
+	[EntityType.BlockheadSharedAddress]: { id: 'e2e-probe-shared-address' },
+	[EntityType.StateChannel]: { id: 'e2e-probe-state-channel' },
+	[EntityType.BlockheadAgentConversation]: { id: 'e2e-probe-agent-conversation' },
 
 	[EntityType.BridgeTransaction]: {
 		$account: actorMainnetVitalik,
@@ -156,15 +194,45 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		$network: mainnet,
 		blockNumber: 18_000_000n,
 	},
+	[EntityType.Erc4337SmartAccount]: {
+		$network: mainnet,
+		address: USDC_ADDRESS,
+	},
+	[EntityType.Erc4337Bundler]: {
+		$network: mainnet,
+		address: USDC_ADDRESS,
+	},
+	[EntityType.Erc4337Paymaster]: {
+		$network: mainnet,
+		address: USDC_ADDRESS,
+	},
+	[EntityType.Erc4337AccountFactory]: {
+		$network: mainnet,
+		address: USDC_ADDRESS,
+	},
 	[EntityType.EvmContract]: {
 		$network: mainnet,
 		address: USDC_ADDRESS,
 	},
-	[EntityType.EvmContractSource]: {
+	[EntityType.EvmContractVerification]: {
 		$network: mainnet,
 		address: USDC_ADDRESS,
 	},
+	[EntityType.EvmContractCompilation]: {
+		$network: mainnet,
+		address: USDC_ADDRESS,
+	},
+	[EntityType.EvmContractSourceBundle]: {
+		$network: mainnet,
+		address: USDC_ADDRESS,
+	},
+	[EntityType.EvmCalldata]: { hex: TRANSFER_SELECTOR },
 	[EntityType.EvmError]: { hex: ERROR_SELECTOR },
+	[EntityType.EvmLog]: {
+		$network: mainnet,
+		txHash: SAMPLE_TX_HASH,
+		logIndex: 0,
+	},
 	[EntityType.EvmSelector]: { hex: TRANSFER_SELECTOR },
 	[EntityType.EvmTopic]: {
 		hex: TRANSFER_TOPIC,
@@ -172,6 +240,10 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	[EntityType.EvmTransaction]: {
 		$network: mainnet,
 		txHash: SAMPLE_TX_HASH,
+	},
+	[EntityType.EvmUserOperation]: {
+		$network: mainnet,
+		hash: SAMPLE_TX_HASH,
 	},
 
 	[EntityType.FarcasterCast]: { fid: 3, hash: CAST_HASH_32 },
@@ -235,6 +307,10 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	[EntityType.Network_GasFee_Block]: {
 		$network: mainnet,
 		blockNumber: 18_000_000n,
+	},
+	[EntityType.Network_GasEstimate_Timestamp]: {
+		$network: mainnet,
+		timestampMs: 0,
 	},
 	[EntityType.Network_Txpool_Timestamp]: {
 		$network: mainnet,

@@ -21,6 +21,7 @@
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -39,13 +40,14 @@
 			| 'Content'
 			| 'Details'
 			| 'Heading'
-			| 'Id'
+			| 'Title'
 		>
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	const networkUpgrade = useEntity(
 		EntityType.NetworkUpgrade,
@@ -131,7 +133,8 @@
 											blockNumber: String(networkUpgrade.activationBlock),
 										},
 									)}
-									layout={EntityLayout.Id}
+									layout={EntityLayout.Title}
+									open={false}
 									showTypeAnnotation={false}
 								/>
 							</dd>

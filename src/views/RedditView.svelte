@@ -177,8 +177,7 @@
 					>Submissions</a>
 				{/snippet}
 
-				{#snippet children({
-					open: _sectionOpen,
+				{#snippet body({ open: _sectionOpen,
 				})}
 					<section
 						id={`${networkIdKey}:subreddits`}

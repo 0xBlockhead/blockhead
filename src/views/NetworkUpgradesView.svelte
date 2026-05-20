@@ -6,7 +6,6 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import type { Entity } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -56,29 +55,14 @@
 		},
 	)
 
-	const upgradeSortValue = (row: Entity<typeof schema, EntityType.NetworkUpgrade>) => (
-		row.activationBlock
-		?? row.activationTimestamp
-		?? row.activationEpoch
-		?? 0
-	)
-
 	const upgrades = derive(
 		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.NetworkUpgrade>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return (
-				rows
-					.toSorted((a, b) => (
-						upgradeSortValue(b) - upgradeSortValue(a)
-					))
-					.map((value) => ({
-						value,
-					}))
-			)
-		},
+		(parent) => (
+			(parent[entityFieldReference.fieldName] ?? [])
+				.map((value) => ({
+					value,
+				}))
+		),
 	)
 
 
@@ -95,7 +79,6 @@
 	{title}
 	bind:open
 	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	getSortValue={(envelope) => upgradeSortValue(envelope.value)}
 	placeholderKeys={new SvelteSet()}
 	resource={upgrades}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}

@@ -56,8 +56,9 @@
 	{layout}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{proposalRealmById[entityId.realm].slug}
 		</span>

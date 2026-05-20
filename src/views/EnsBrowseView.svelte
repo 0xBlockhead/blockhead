@@ -89,7 +89,8 @@
 
 
 	// Components
-	import Address from '$/views/Address.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 </script>
 
 
@@ -186,9 +187,21 @@
 				<div>
 					<dt>Address</dt>
 					<dd>
-						<Address
-							network={{ chainId: ensEthereumChainId }}
-							address={reverseResult.address}
+						<ActorNetworkView
+							entityId={{
+								$network: { chainId: ensEthereumChainId },
+								$actor: { address: reverseResult.address },
+							}}
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+								{
+									networkId: String(ensEthereumChainId),
+									address: reverseResult.address,
+								},
+							)}
+							layout={EntityLayout.Title}
+							open={false}
+							showTypeAnnotation={false}
 						/>
 					</dd>
 				</div>

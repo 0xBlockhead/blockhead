@@ -17,7 +17,7 @@
 
 
 	// Components
-	import ContractView from '$/views/ContractView.svelte'
+	import Erc4337SmartAccountView from '$/views/Erc4337SmartAccountView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 
 
@@ -25,9 +25,16 @@
 	let {
 		entityId,
 
-		layout = EntityLayout.Summary,
+		layout = EntityLayout.SummaryDetails,
 
-		open = $bindable(layout === EntityLayout.SummaryDetails),
+		summaryUsesHeading = (
+			layout === EntityLayout.SummaryDetails
+			|| layout === EntityLayout.Details
+		),
+
+		open = $bindable(
+			layout === EntityLayout.SummaryDetails,
+		),
 
 		title = 'User operation',
 
@@ -39,6 +46,8 @@
 			entityId: EntityId<typeof schema, EntityType.EvmUserOperation>
 
 			layout?: EntityLayout
+
+			summaryUsesHeading?: boolean
 
 			open?: boolean
 
@@ -82,6 +91,7 @@
 	entityType={EntityType.EvmUserOperation}
 	{entityId}
 	{layout}
+	{summaryUsesHeading}
 	bind:open
 	{title}
 	{...entityViewProps}
@@ -97,29 +107,35 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Abbr}
 			value={entityId.hash}
 		/>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: contentOpen,
+	})}
 		<ResourceBoundary
 			placeholderText="Loading user operation…"
 			resource={operation}
 		>
 			{#snippet children(operation)}
 				<dl data-column-item="center">
-					<div>
-						<dt>Operation hash</dt>
-						<dd>
-							<TruncatedValue
-								format={TruncatedValueFormat.Visual}
-								value={entityId.hash}
-							/>
-						</dd>
-					</div>
+					{#if !summaryUsesHeading}
+						<div>
+							<dt>Operation hash</dt>
+							<dd>
+								<TruncatedValue
+									format={TruncatedValueFormat.Visual}
+									value={entityId.hash}
+								/>
+							</dd>
+						</div>
+					{/if}
 
 					{#if operation.finalized !== undefined}
 						<div>
@@ -165,14 +181,16 @@
 							)}
 							layout={EntityLayout.Summary}
 							open={false}
+							collapsible={false}
+							showTypeAnnotation={false}
 						/>
 					{/if}
 
 					{#if operation.$sender != null}
-						<ContractView
+						<Erc4337SmartAccountView
 							entityId={operation.$sender[EntityMetaKey.Id]}
 							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+								'/(explore)/(networks)/network/[networkId]/(network)/erc-4337/smart-account/[address]',
 								{
 									networkId: String(entityId.$network.chainId),
 									address: operation.$sender[EntityMetaKey.Id].address,
@@ -180,7 +198,9 @@
 							)}
 							layout={EntityLayout.Summary}
 							open={false}
-							title="Sender contract"
+							collapsible={false}
+							showTypeAnnotation={false}
+							title="Sender smart account"
 						/>
 					{/if}
 				</div>

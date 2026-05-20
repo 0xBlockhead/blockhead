@@ -17,6 +17,7 @@
 		href,
 		title = 'Bridge capabilities',
 		open = $bindable(true),
+		collapsible = true,
 		...entitiesListProps
 	}: WithRest<
 		{
@@ -43,61 +44,10 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					$: (
-						entityFieldReference.entityType === EntityType.Coin ?
-							[
-								Source.Constants_Internal,
-								Source.Coingecko_Rest,
-							]
-						:
-							[
-								Source.Constants_Internal,
-								Source.Coingecko_Rest,
-								Source.Lifi_Rest,
-							]
-					),
-					[entityFieldReference.fieldName]: {
-						$: [
-							Source.Constants_Internal,
-							Source.Lifi_Rest,
-						],
-					},
-				}
-			:
-				{}
-		),
-	)
-
-	const capabilities = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.CoinBridgeCapability>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return (
-				rows
-					.toSorted((a, b) => (
-						stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
-					))
-					.map((value) => ({
-						value,
-					}))
-			)
-		},
-	)
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import CoinBridgeCapabilityView from '$/views/CoinBridgeCapabilityView.svelte'
 </script>
 
@@ -106,11 +56,7 @@
 	entityType={EntityType.CoinBridgeCapability}
 	{title}
 	bind:open
-	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	placeholderKeys={new SvelteSet()}
-	resource={capabilities}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{collapsible}
 	{...entitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -131,14 +77,76 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: envelope })}
-		{#if envelope}
-			<CoinBridgeCapabilityView
-				entityId={envelope.value[EntityMetaKey.Id]}
-				{href}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: (
+						entityFieldReference.entityType === EntityType.Coin ?
+							[
+								Source.Constants_Internal,
+								Source.Coingecko_Rest,
+							]
+						:
+							[
+								Source.Constants_Internal,
+								Source.Coingecko_Rest,
+								Source.Lifi_Rest,
+							]
+					),
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Constants_Internal,
+							Source.Lifi_Rest,
+						],
+					},
+				},
+			)}
+			{@const capabilities = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.CoinBridgeCapability>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						rows
+							.map((value) => ({
+								value,
+							}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.CoinBridgeCapability}
+				{title}
+				open={true}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				placeholderKeys={new SvelteSet()}
+				resource={capabilities}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No bridge capabilities yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item({ item: envelope })}
+					{#if envelope}
+						<CoinBridgeCapabilityView
+							entityId={envelope.value[EntityMetaKey.Id]}
+							{href}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

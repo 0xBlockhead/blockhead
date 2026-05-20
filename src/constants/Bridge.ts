@@ -498,9 +498,27 @@ export const coinInstanceRepresentationFor = (
 		chainId: number
 		type: CoinInstanceType
 		isNativeChain?: boolean
+		lifiCoinKey?: string
 	},
 ) => {
 	const symbolTrimmed = symbol.trim()
+	const lifiCoinKeyTrimmed = context?.lifiCoinKey?.trim()
+
+	if (
+		coinId === CoinId.USDC
+		&& lifiCoinKeyTrimmed != null
+		&& lifiCoinKeyTrimmed !== ''
+	) {
+		if (
+			/\.?e$/i.test(lifiCoinKeyTrimmed)
+			|| lifiCoinKeyTrimmed.toLowerCase() === 'usdce'
+		) {
+			return CoinInstanceRepresentation.BridgeWrapped
+		}
+		if (lifiCoinKeyTrimmed.toUpperCase() === 'USDC') {
+			return CoinInstanceRepresentation.IssuerNative
+		}
+	}
 
 	if (coinId === CoinId.USDC && /\.e$/i.test(symbolTrimmed)) {
 		return CoinInstanceRepresentation.BridgeWrapped

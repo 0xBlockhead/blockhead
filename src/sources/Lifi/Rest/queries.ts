@@ -77,3 +77,9 @@ export const fetchLifiToolsCatalog = singleFlight(
 		fetchLifiTools()
 	),
 )
+
+export const fetchLifiTokensCatalog = singleFlight(
+	async (): Promise<LifiTokensResponse> => (
+		fetchLifiTokens({ chainTypes: 'EVM' })
+	),
+)

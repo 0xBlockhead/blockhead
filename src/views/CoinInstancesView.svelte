@@ -3,6 +3,7 @@
 	import type { ComponentProps } from 'svelte'
 
 	import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
+	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -16,6 +17,7 @@
 	let {
 		title = 'Deployments',
 		open = $bindable(true),
+		collapsible = true,
 		href,
 		id,
 		entityFieldReference,
@@ -41,63 +43,16 @@
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
+	import { resolve } from '$app/paths'
+
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					$: [
-						Source.Coingecko_Rest,
-						Source.CoinMarketCap_Rest,
-						Source.Coinpaprika_OpenApi,
-						Source.Defillama_OpenApi,
-						Source.Constants_Internal,
-					],
-					[entityFieldReference.fieldName]: {
-						$: [
-							Source.Constants_Internal,
-							Source.Coingecko_Rest,
-						],
-					},
-				}
-			:
-				{}
-		),
-	)
-
-	const coinInstances = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.CoinInstance>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return (
-				rows
-					.filter((row) => (
-						representationFilter == null
-						|| row.representation === representationFilter
-					))
-					.toSorted((a, b) => (
-						stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
-					))
-					.map((value) => ({
-						value,
-					}))
-			)
-		},
-	)
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
 </script>
 
@@ -106,16 +61,11 @@
 	<EntitiesList
 		{...entitiesListRest}
 		bind:open
+		{collapsible}
 		entityType={EntityType.CoinInstance}
-		getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-		getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 		{href}
 		{id}
-		placeholderKeys={new SvelteSet()}
-		placeholderText="Loading deployments…"
-		resource={coinInstances}
 		{title}
-		UnorderedListProps={{ orientation: ListOrientation.Column }}
 	>
 		{#snippet TypeAnnotationTooltip()}
 			<p>
@@ -125,6 +75,7 @@
 				The same logical coin can exist on many networks; each row is one chain-specific instance.
 			</p>
 		{/snippet}
+
 		{#snippet Empty()}
 			<p data-text="muted">
 				{representationFilter === CoinInstanceRepresentation.BridgeWrapped ?
@@ -134,15 +85,93 @@
 			</p>
 		{/snippet}
 
-		{#snippet Item({ item })}
-			{#if item}
-				<CoinInstanceView
-					entityId={item.value[EntityMetaKey.Id]}
+		{#snippet body()}
+			{#if open}
+				{@const parent = useEntity(
+					entityFieldReference.entityType,
+					entityFieldReference.entityId,
+					{
+						$: [
+							Source.Coingecko_Rest,
+							Source.CoinMarketCap_Rest,
+							Source.Coinpaprika_OpenApi,
+							Source.Defillama_OpenApi,
+							Source.Constants_Internal,
+						],
+						[entityFieldReference.fieldName]: {
+							$: [
+								Source.Constants_Internal,
+								Source.Coingecko_Rest,
+							],
+						},
+					},
+				)}
+				{@const coinInstances = derive(
+					parent,
+					(parent) => {
+						const rows: Entity<typeof schema, EntityType.CoinInstance>[] = (
+							parent[entityFieldReference.fieldName] ?? []
+						)
+						return (
+							rows
+								.filter((row) => (
+									representationFilter == null
+									|| row.representation === representationFilter
+								))
+								.map((value) => ({
+									value,
+								}))
+						)
+					},
+				)}
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.CoinInstance}
 					{href}
-					id={stringify(item.value[EntityMetaKey.Id])}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
+					id={`${id}-items`}
+					{title}
+					open={true}
+					getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+					getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+					placeholderKeys={new SvelteSet()}
+					placeholderText="Loading deployments…"
+					resource={coinInstances}
+					UnorderedListProps={{ orientation: ListOrientation.Column }}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							{representationFilter === CoinInstanceRepresentation.BridgeWrapped ?
+								'No bridge-wrapped deployments classified for this coin yet.'
+							:
+								'No deployments yet.'}
+						</p>
+					{/snippet}
+
+					{#snippet Item({ item })}
+						{#if item}
+							{@const coinInstanceId = item.value[EntityMetaKey.Id]}
+							<CoinInstanceView
+								entityId={coinInstanceId}
+								href={resolve(
+									'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
+									{
+										chainId: String(coinInstanceId.$network.chainId),
+										coinInstanceSlug: (
+											coinInstanceId.type === CoinInstanceType.NativeCurrency ?
+												'native'
+											:
+												coinInstanceId.$contract.address
+										),
+									},
+								)}
+								id={stringify(coinInstanceId)}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</EntitiesList>
 			{/if}
 		{/snippet}
 	</EntitiesList>

@@ -69,8 +69,9 @@
 	bind:open
 	{href}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.id}
 		</span>
@@ -82,7 +83,7 @@
 			placeholderText="Loading source…"
 		>
 			{#snippet children(source)}
-				{@render Id()}
+				{@render Title()}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

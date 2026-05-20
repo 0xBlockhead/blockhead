@@ -11,6 +11,7 @@ import {
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.ActorCoinAllowance,
@@ -30,12 +31,18 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
 		},
 		{
 			name: 'lastChecked',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
 		},
 		{
 			name: '$spenderContract',

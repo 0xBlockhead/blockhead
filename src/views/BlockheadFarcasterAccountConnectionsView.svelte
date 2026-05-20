@@ -30,6 +30,7 @@
 		entityFieldReference,
 		title = 'Linked Farcaster accounts',
 		open = $bindable(true),
+		collapsible = true,
 		...entitiesListRest
 	}: WithRest<
 		{
@@ -45,41 +46,14 @@
 			'entityType'
 		>
 	> = $props()
-
-
-	const global = useEntity(
-		EntityType._Global,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					$: [Source.Local_Internal],
-					$$blockheadFarcasterAccountConnections: {},
-				}
-			:
-				{
-					$: [Source.Local_Internal],
-				}
-		),
-	)
-
-	const connections = derive(
-		global,
-		(global) => (
-			global['$$blockheadFarcasterAccountConnections'] ?? []
-		),
-	)
 </script>
 
 
 <EntitiesList
 	entityType={EntityType.BlockheadFarcasterAccountConnection}
-	getKey={(row) => String(row[EntityMetaKey.Id].fid)}
-	getSortValue={(row) => String(row[EntityMetaKey.Id].fid)}
 	{title}
 	bind:open
-	resource={connections}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{collapsible}
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -97,17 +71,53 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({ item: row })}
-		{#if row}
-			<BlockheadFarcasterAccountConnectionView
-				entityId={{ fid: row[EntityMetaKey.Id].fid }}
-				href={resolve('/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]', {
-					accountId: String(row[EntityMetaKey.Id].fid),
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-				title="Account"
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const global = useEntity(
+				EntityType._Global,
+				entityFieldReference.entityId,
+				{
+					$: [Source.Local_Internal],
+					$$blockheadFarcasterAccountConnections: {},
+				},
+			)}
+			{@const connections = derive(
+				global,
+				(global) => (
+					global['$$blockheadFarcasterAccountConnections'] ?? []
+				),
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.BlockheadFarcasterAccountConnection}
+				getKey={(row) => String(row[EntityMetaKey.Id].fid)}
+				getSortValue={(row) => row[EntityMetaKey.Id].fid}
+				{title}
+				open={true}
+				resource={connections}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No linked accounts yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item({ item: row })}
+					{#if row}
+						<BlockheadFarcasterAccountConnectionView
+							entityId={{ fid: row[EntityMetaKey.Id].fid }}
+							href={resolve('/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]', {
+								accountId: String(row[EntityMetaKey.Id].fid),
+							})}
+							layout={EntityLayout.Summary}
+							open={false}
+							title="Account"
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

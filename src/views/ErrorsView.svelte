@@ -22,6 +22,7 @@
 	let {
 		entityFieldReference,
 		open = $bindable(true),
+		collapsible = true,
 		title = 'Revert data',
 		id,
 		href,
@@ -39,37 +40,6 @@
 			'entityType'
 		>
 	> = $props()
-
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			...(open ? {
-				[entityFieldReference.fieldName]: {
-					$: [
-						Source.Openchain_Rest,
-					],
-				},
-			} : {}),
-		},
-	)
-
-	const errors = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.EvmError>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-				.toSorted((a, b) => (
-					a[EntityMetaKey.Id].hex.localeCompare(b[EntityMetaKey.Id].hex)
-				))
-			return (
-				rows.map((evmEntity) => ({
-					evmEntity,
-				}))
-			)
-		},
-	)
 
 
 	// Components
@@ -101,40 +71,68 @@
 	{/snippet}
 
 	{#snippet body()}
-		<div data-column="gap-3">
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmError}
-				id={`${id}-items`}
-				{href}
-				{title}
-				open={true}
-				getKey={(envelope) => envelope.evmEntity[EntityMetaKey.Id].hex}
-				getSortValue={(envelope) => envelope.evmEntity[EntityMetaKey.Id].hex}
-				placeholderText="Loading revert data…"
-				resource={errors}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No revert selectors yet.
-					</p>
-				{/snippet}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Openchain_Rest,
+						],
+					},
+				},
+			)}
+			{@const errors = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.EvmError>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						rows.map((evmEntity) => ({
+							evmEntity,
+						}))
+					)
+				},
+			)}
+			<div data-column="gap-3">
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.EvmError}
+					id={`${id}-items`}
+					{href}
+					{title}
+					open={true}
+					getKey={(envelope) => envelope.evmEntity[EntityMetaKey.Id].hex}
+					getSortValue={(envelope) => envelope.evmEntity[EntityMetaKey.Id].hex}
+					placeholderText="Loading revert data…"
+					resource={errors}
+					UnorderedListProps={{ orientation: ListOrientation.Column }}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No revert selectors yet.
+						</p>
+					{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<EvmErrorView
-							entityId={props.item.evmEntity[EntityMetaKey.Id]}
-							href={resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
-								hex: props.item.evmEntity[EntityMetaKey.Id].hex,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
-				{/snippet}
-			</EntitiesList>
-		</div>
+					{#snippet Item(props)}
+						{#if props.item}
+							<EvmErrorView
+								entityId={props.item.evmEntity[EntityMetaKey.Id]}
+								href={resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
+									hex: props.item.evmEntity[EntityMetaKey.Id].hex,
+								})}
+								layout={EntityLayout.Summary}
+								open={false}
+								collapsible={false}
+								showTypeAnnotation={false}
+							/>
+						{/if}
+					{/snippet}
+				</EntitiesList>
+			</div>
+		{/if}
 	{/snippet}
 </EntitiesList>

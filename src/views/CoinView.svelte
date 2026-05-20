@@ -4,6 +4,7 @@
 
 	import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
 	import { catalogCoinIdentitySources } from '$/constants/Market.ts'
+	import { Source } from '$/sources/$Source.ts'
 	import { catalogCoinUsdMarketId } from '$/constants/MarketCatalog.ts'
 	import { formatMarketIdLabel } from '$/constants/Market.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -25,6 +26,7 @@
 		href,
 		layout,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -63,7 +65,29 @@
 			name: {},
 			symbol: {},
 			marketCapRank: {},
-			marketCapUsd: {},
+			marketCapUsd: {
+				$: catalogCoinIdentitySources,
+			},
+			$$timestamps: {
+				$: [
+					Source.Blockscout_Rest,
+				],
+				$limit: 8,
+			},
+			...(open && {
+				$$coinInstances: {
+					$: [
+						Source.Constants_Internal,
+						Source.Coingecko_Rest,
+					],
+				},
+				$$bridgeCapabilities: {
+					$: [
+						Source.Constants_Internal,
+						Source.Lifi_Rest,
+					],
+				},
+			}),
 		},
 	)
 
@@ -97,6 +121,7 @@
 	import CoinInstancesView from '$/views/CoinInstancesView.svelte'
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 	import MarketsView from '$/views/MarketsView.svelte'
+	import Coin_TimestampView from '$/views/Coin_TimestampView.svelte'
 </script>
 
 
@@ -107,6 +132,7 @@
 	{href}
 	{layout}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Icon()}
 		<ResourceBoundary
@@ -135,7 +161,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.coinId}
 		</span>
@@ -177,6 +203,34 @@
 								/>
 							</dd>
 						</div>
+					{/if}
+
+					{#if (coin.$$timestamps ?? []).length}
+						{@const headTimestampId = (
+							(coin.$$timestamps ?? [])
+								.toSorted((
+									leftRow,
+									rightRow,
+								) => (
+									rightRow[EntityMetaKey.Id].timestampMs
+										- leftRow[EntityMetaKey.Id].timestampMs
+								))[0]
+								?.[EntityMetaKey.Id]
+						)}
+						{#if headTimestampId}
+							<div>
+								<dt>Fundamentals</dt>
+								<dd>
+									<Coin_TimestampView
+										entityId={headTimestampId}
+										href={href}
+										layout={EntityLayout.Title}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								</dd>
+							</div>
+						{/if}
 					{/if}
 
 					{#if open}
@@ -236,21 +290,33 @@
 				{/snippet}
 
 				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Instances"
-						href={`#${idPrefix}:coin-instances`}
-					>Instances</a>
-					<a
-						data-scroll-marker-label="Wrapped"
-						href={`#${idPrefix}:coin-wrapped`}
-					>Wrapped</a>
-					<a
-						data-scroll-marker-label="Bridge capabilities"
-						href={`#${idPrefix}:coin-bridge-capabilities`}
-					>Bridge capabilities</a>
+					<ResourceBoundary resource={coin}>
+						{#snippet children(coin)}
+							<a
+								data-scroll-marker-label="Instances"
+								href={`#${idPrefix}:coin-instances`}
+							>Instances</a>
+
+							{#if (coin.$$coinInstances ?? []).some((row) => (
+								row.representation === CoinInstanceRepresentation.BridgeWrapped
+							))}
+								<a
+									data-scroll-marker-label="Wrapped"
+									href={`#${idPrefix}:coin-wrapped`}
+								>Wrapped</a>
+							{/if}
+
+							{#if (coin.$$bridgeCapabilities ?? []).length}
+								<a
+									data-scroll-marker-label="Bridge capabilities"
+									href={`#${idPrefix}:coin-bridge-capabilities`}
+								>Bridge capabilities</a>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet children({ open: _detailsOpen })}
+				{#snippet body({ open: _detailsOpen })}
 					<section data-scroll-marker-label="Instances">
 						<CoinInstancesView
 							collapsible={false}
@@ -265,34 +331,40 @@
 						/>
 					</section>
 
-					<section data-scroll-marker-label="Wrapped">
-						<CoinInstancesView
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.Coin,
-								entityId,
-								fieldName: '$$coinInstances',
-							}}
-							{href}
-							id={`${idPrefix}:coin-wrapped`}
-							representationFilter={CoinInstanceRepresentation.BridgeWrapped}
-							title="Wrapped"
-						/>
-					</section>
+					{#if (coin.$$coinInstances ?? []).some((row) => (
+						row.representation === CoinInstanceRepresentation.BridgeWrapped
+					))}
+						<section data-scroll-marker-label="Wrapped">
+							<CoinInstancesView
+								collapsible={false}
+								entityFieldReference={{
+									entityType: EntityType.Coin,
+									entityId,
+									fieldName: '$$coinInstances',
+								}}
+								{href}
+								id={`${idPrefix}:coin-wrapped`}
+								representationFilter={CoinInstanceRepresentation.BridgeWrapped}
+								title="Wrapped"
+							/>
+						</section>
+					{/if}
 
-					<section data-scroll-marker-label="Bridge capabilities">
-						<CoinBridgeCapabilitiesView
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.Coin,
-								entityId,
-								fieldName: '$$bridgeCapabilities',
-							}}
-							{href}
-							id={`${idPrefix}:coin-bridge-capabilities`}
-							title="Bridge capabilities"
-						/>
-					</section>
+					{#if (coin.$$bridgeCapabilities ?? []).length}
+						<section data-scroll-marker-label="Bridge capabilities">
+							<CoinBridgeCapabilitiesView
+								collapsible={false}
+								entityFieldReference={{
+									entityType: EntityType.Coin,
+									entityId,
+									fieldName: '$$bridgeCapabilities',
+								}}
+								{href}
+								id={`${idPrefix}:coin-bridge-capabilities`}
+								title="Bridge capabilities"
+							/>
+						</section>
+					{/if}
 				{/snippet}
 			</CollapsibleTabs>
 
@@ -343,7 +415,7 @@
 					>Quote</a>
 				{/snippet}
 
-				{#snippet children({ open: _detailsOpen })}
+				{#snippet body({ open: _detailsOpen })}
 					<section
 						data-scroll-marker-label="USD market"
 						id={`${idPrefix}:catalog-usd-market`}

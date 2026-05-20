@@ -42,6 +42,7 @@
       "dependencies": [
         "npm:@chenglou/pretext@^0.0.4",
         "npm:@dotenvx/dotenvx@^1.61.1",
+        "npm:@ensdomains/content-hash@3.0.0",
         "npm:@fontsource/ubuntu@^5.2.8",
         "npm:@gql.tada/cli-utils@^1.7.3",
         "npm:@journeyapps/wa-sqlite@1.5.0",
@@ -63,6 +64,7 @@
         "npm:arktype@^2.2.0",
         "npm:autoprefixer@^10.5.0",
         "npm:bits-ui@^2.18.0",
+        "npm:blo@2",
         "npm:devalue@^5.7.1",
         "npm:file-type@^22.0.1",
         "npm:gql.tada@^1.9.2",

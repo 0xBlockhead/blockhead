@@ -38,7 +38,7 @@
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import ContractView from '$/views/ContractView.svelte'
+	import EvmContractView from '$/views/EvmContractView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -61,7 +61,7 @@
 				/>
 			</section>
 
-			<ContractView
+			<EvmContractView
 				entityId={contractId}
 				{href}
 				title="Resolver contract"

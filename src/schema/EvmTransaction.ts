@@ -1,6 +1,6 @@
 import { type } from 'arktype'
 
-import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -8,16 +8,9 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { evmTraceTreeNode } from '$/schema/EvmTrace.ts'
 import Network from '$/schema/Network.ts'
-
-const evmLogRow = type({
-	'address?': EvmAddress,
-	'topics?': type.string.array(),
-	'data?': 'string',
-	'blockNumber?': 'string | number',
-	'transactionHash?': ZeroExHex,
-	'logIndex?': 'string | number',
-})
+import { Source } from '$/sources/$Source.ts'
 
 // Signed execution-layer transaction (RPC/indexer). No ERC-4337 UserOperation / paymaster bundle fields on this entity.
 export default {
@@ -117,10 +110,45 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'logs',
+			name: 'maxFeePerGas',
 			type: EntityFieldType.Primitive,
-			primitiveType: evmLogRow.array(),
-			cardinality: EntityFieldCardinality.One,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'maxPriorityFeePerGas',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$logs',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmLog,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Blockscout_Rest,
+				Source.Voltaire_JsonRpc,
+			],
+		},
+		{
+			name: 'traceRoot',
+			type: EntityFieldType.Primitive,
+			primitiveType: evmTraceTreeNode,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
+		},
+		{
+			name: 'traceUnavailable',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Blockscout_Rest,
+				Source.Voltaire_JsonRpc,
+			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

@@ -39,7 +39,9 @@
 		getIsOpen: IsOpen
 		onIsOpenChange?: (node: _Node, open: boolean) => void
 		getIsHidden?: IsHidden
-		Content: Snippet<[{ node: _Node }]>
+		Content: Snippet<[context?: {
+			node?: _Node,
+		}]>
 		listTag?: ListTag
 		listAttrs?: Partial<SvelteHTMLElements[ListTag]>
 		detailsAttrs?: Partial<SvelteHTMLElements['details']>

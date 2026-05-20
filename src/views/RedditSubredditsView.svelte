@@ -21,6 +21,7 @@
 		href,
 		id,
 		open = $bindable(true),
+		collapsible = true,
 		title = 'Subreddits',
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.RedditSubreddit>
@@ -34,49 +35,6 @@
 	// State
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const fieldName = entityFieldReference.fieldName
-
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [
-				Source.Constants_Internal,
-				Source.Reddit_Rest,
-			],
-			...(
-				open ?
-					{
-						[fieldName]: {
-							$: [
-								Source.Reddit_Rest,
-							],
-						},
-					}
-				:
-					{}
-			),
-		},
-	)
-
-	const subreddits = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.RedditSubreddit>[] = (
-				parent[fieldName] ?? []
-			)
-			return (
-				rows
-					.toSorted((a, b) => (
-						stringify(a[EntityMetaKey.Id]).localeCompare(stringify(b[EntityMetaKey.Id]))
-					))
-					.map((value) => ({
-						entityId: value[EntityMetaKey.Id],
-					}))
-			)
-		},
-	)
 
 
 	// Components
@@ -92,11 +50,7 @@
 	{id}
 	{title}
 	bind:open
-	resource={subreddits}
-	placeholderText="Loading subreddits…"
-	getKey={(row) => stringify(row.entityId)}
-	getSortValue={(row) => row.entityId.name}
-	placeholderKeys={new SvelteSet<string>()}
+	{collapsible}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -116,19 +70,72 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({
-		item: row,
-	})}
-		{#if row}
-			<RedditSubredditView
-				entityId={row.entityId}
-				href={resolve('/(social)/reddit/r/[name]', {
-					name: encodeURIComponent(row.entityId.name),
+	{#snippet body()}
+		{#if open}
+			{@const fieldName = entityFieldReference.fieldName}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [
+						Source.Constants_Internal,
+						Source.Reddit_Rest,
+					],
+					[fieldName]: {
+						$: [
+							Source.Reddit_Rest,
+						],
+					},
+				},
+			)}
+			{@const subreddits = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.RedditSubreddit>[] = (
+						parent[fieldName] ?? []
+					)
+					return (
+						rows.map((value) => ({
+							entityId: value[EntityMetaKey.Id],
+						}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.RedditSubreddit}
+				{href}
+				id={`${id}-items`}
+				{title}
+				open={true}
+				resource={subreddits}
+				placeholderText="Loading subreddits…"
+				getKey={(row) => stringify(row.entityId)}
+				getSortValue={(row) => row.entityId.name}
+				placeholderKeys={new SvelteSet<string>()}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No subreddits in this Reddit hub yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item({
+					item: row,
 				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+					{#if row}
+						<RedditSubredditView
+							entityId={row.entityId}
+							href={resolve('/(social)/reddit/r/[name]', {
+								name: encodeURIComponent(row.entityId.name),
+							})}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>
-

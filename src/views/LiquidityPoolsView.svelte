@@ -18,6 +18,7 @@
 	let {
 		entityFieldReference,
 		open = $bindable(true),
+		collapsible = true,
 		title = 'Liquidity pools',
 		limit = 300,
 		...entitiesListRest
@@ -42,43 +43,6 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					[entityFieldReference.fieldName]: {
-						$: [
-							Source.Dexscreener_OpenApi,
-						],
-						limit,
-					},
-				}
-			:
-				{}
-		),
-	)
-
-	const liquidityPools = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.LiquidityPool>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return (
-				rows
-					.toSorted((a, b) => (
-						a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
-					))
-					.map((value) => ({
-						value,
-					}))
-			)
-		},
-	)
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -91,15 +55,12 @@
 <EntitiesList
 	{...entitiesListRest}
 	bind:open
+	{collapsible}
 	data-entity-field-name={entityFieldReference.fieldName}
 	data-entity-field-parent={stringify(entityFieldReference.entityId)}
 	data-entity-field-type={entityFieldReference.entityType}
 	entityType={EntityType.LiquidityPool}
-	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
-	resource={liquidityPools}
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet Empty()}
 		<div data-row="wrap align-center gap-2">
@@ -123,16 +84,82 @@
 		</div>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			<LiquidityPoolView
-				entityId={props.item.value[EntityMetaKey.Id]}
-				href={resolve('/(assets)/(pools)/pool/[poolId]', {
-					poolId: props.item.value[EntityMetaKey.Id].id,
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Dexscreener_OpenApi,
+						],
+						limit,
+					},
+				},
+			)}
+			{@const liquidityPools = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.LiquidityPool>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						rows.map((value) => ({
+							value,
+						}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				data-entity-field-name={entityFieldReference.fieldName}
+				data-entity-field-parent={stringify(entityFieldReference.entityId)}
+				data-entity-field-type={entityFieldReference.entityType}
+				entityType={EntityType.LiquidityPool}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
+				open={true}
+				resource={liquidityPools}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<div data-row="wrap align-center gap-2">
+						<p data-text="muted">
+							No concentrated-liquidity pools in this slice yet.
+						</p>
+						<Tooltip contentProps={{ side: 'top' }}>
+							{#snippet Content()}
+								<p>
+									Each row is the shared pool curve (pair, fee, ticks, aggregate liquidity).
+								</p>
+								<p>
+									Individual LP ranges are listed under positions, not here.
+								</p>
+							{/snippet}
+							<abbr
+								class="entity-heading-tip"
+								aria-label="About pool rows"
+							>ⓘ</abbr>
+						</Tooltip>
+					</div>
+				{/snippet}
+
+				{#snippet Item(props)}
+					{#if props.item}
+						<LiquidityPoolView
+							entityId={props.item.value[EntityMetaKey.Id]}
+							href={resolve('/(assets)/(pools)/pool/[poolId]', {
+								poolId: props.item.value[EntityMetaKey.Id].id,
+							})}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

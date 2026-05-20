@@ -25,6 +25,7 @@
 		href,
 		id,
 		open = $bindable(true),
+		collapsible = true,
 		title = 'ATProto handles',
 		...entitiesListRest
 	}: WithRest<
@@ -51,36 +52,6 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const atprotoNetwork = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [Source.Constants_Internal],
-			...(open ?
-				{
-					protocolName: {},
-					$$atprotoActors: {
-						$: [
-							Source.Constants_Internal,
-							Source.Atproto_Xrpc,
-						],
-					},
-				}
-			:
-				{}),
-		},
-	)
-
-	const actors = derive(
-		atprotoNetwork,
-		(atprotoNetwork) => (
-			(atprotoNetwork.$$atprotoActors ?? [])
-				.toSorted((a, b) => (
-					a[EntityMetaKey.Id].did.localeCompare(b[EntityMetaKey.Id].did)
-				))
-		),
-	)
 </script>
 
 
@@ -105,41 +76,63 @@
 	{/snippet}
 
 	{#snippet body()}
-		{#key stringify(entityFieldReference.entityId)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.AtprotoActor}
-				id={`${id}-items`}
-				{href}
-				{title}
-				open={true}
-				getKey={(row) => stringify(row[EntityMetaKey.Id])}
-				getSortValue={(row) => row[EntityMetaKey.Id].did}
-				placeholderKeys={new SvelteSet()}
-				placeholderText="Loading DID directory…"
-				resource={actors}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No actors yet.
-					</p>
-				{/snippet}
+		{#if open}
+			{@const atprotoNetwork = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [Source.Constants_Internal],
+					protocolName: {},
+					$$atprotoActors: {
+						$: [
+							Source.Constants_Internal,
+							Source.Atproto_Xrpc,
+						],
+					},
+				},
+			)}
+			{@const actors = derive(
+				atprotoNetwork,
+				(atprotoNetwork) => (
+					atprotoNetwork.$$atprotoActors ?? []
+				),
+			)}
+			{#key stringify(entityFieldReference.entityId)}
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.AtprotoActor}
+					id={`${id}-items`}
+					{href}
+					{title}
+					open={true}
+					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getSortValue={(row) => row[EntityMetaKey.Id].did}
+					placeholderKeys={new SvelteSet()}
+					placeholderText="Loading DID directory…"
+					resource={actors}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No actors yet.
+						</p>
+					{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const actorId = props.item[EntityMetaKey.Id]}
-						<AtprotoActorView
-							entityId={{ did: actorId.did }}
-							href={resolve('/(social)/atproto/actor/[did]', {
-								did: encodeURIComponent(actorId.did),
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
-				{/snippet}
-			</EntitiesList>
-		{/key}
+					{#snippet Item(props)}
+						{#if props.item}
+							{@const actorId = props.item[EntityMetaKey.Id]}
+							<AtprotoActorView
+								entityId={{ did: actorId.did }}
+								href={resolve('/(social)/atproto/actor/[did]', {
+									did: encodeURIComponent(actorId.did),
+								})}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</EntitiesList>
+			{/key}
+		{/if}
 	{/snippet}
 </EntitiesList>

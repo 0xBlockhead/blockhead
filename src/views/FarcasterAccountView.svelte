@@ -11,10 +11,11 @@
 
 	// Props
 	let {
-		children,
+		children: _children,
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -40,6 +41,7 @@
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	const connection = useEntity(
 		EntityType.BlockheadFarcasterAccountConnection,
@@ -82,6 +84,7 @@
 	{href}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Icon()}
 		<ResourceBoundary
@@ -131,7 +134,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			FID {String(entityId.fid)}
 		</span>
@@ -208,7 +211,7 @@
 			{entityId}
 		/>
 
-		{#if children}
+		{#if _children}
 			<div
 				class="entity-view-detail-carousels"
 				data-column="gap-3"
@@ -226,16 +229,16 @@
 						</header>
 					{/snippet}
 
-					{#snippet Markers()}
+					{#snippet Markers(_context)}
 						<a
 							data-scroll-marker-label="Route"
 							href={`#farcaster-account:${String(entityId.fid)}:page-content`}
 						>Route</a>
 					{/snippet}
 
-					{#snippet children(_ctx)}
+					{#snippet body(_ctx)}
 						<section id={`farcaster-account:${String(entityId.fid)}:page-content`}>
-							{@render children()}
+							{@render _children()}
 						</section>
 					{/snippet}
 				</CollapsibleTabs>

@@ -13,7 +13,7 @@
 		Markers,
 		Toolbar,
 		Annotation,
-		children,
+		body,
 
 		scrollContainerProps = {},
 
@@ -24,20 +24,20 @@
 			ontoggle?: (e: Event) => void
 			onclose?: (id?: string) => void
 
-			Annotation?: Snippet<[{
-				open: boolean,
+			Annotation?: Snippet<[context?: {
+				open?: boolean,
 			}]>
-			Toolbar?: Snippet<[{
-				open: boolean,
+			Toolbar?: Snippet<[context?: {
+				open?: boolean,
 			}]>
-			Summary?: Snippet<[{
-				open: boolean,
+			Summary?: Snippet<[context?: {
+				open?: boolean,
 			}]>
-			Markers?: Snippet<[{
-				open: boolean,
+			Markers?: Snippet<[context?: {
+				open?: boolean,
 			}]>
-			children?: Snippet<[{
-				open: boolean,
+			body?: Snippet<[context?: {
+				open?: boolean,
 			}]>
 			scrollContainerProps?: Record<string, unknown>
 		},
@@ -154,7 +154,7 @@
 		</div>
 	</summary>
 
-	{#if children}
+	{#if body && open}
 		<div
 			data-column-item="flexible"
 			data-column="layout-flex"
@@ -167,9 +167,7 @@
 				data-scroll-container={collapsibleTabsPaneScrollContainer}
 				style={collapsibleTabsPaneStyleMerged}
 			>
-				{@render children({
-					open,
-				})}
+				{@render body()}
 			</div>
 		</div>
 	{/if}

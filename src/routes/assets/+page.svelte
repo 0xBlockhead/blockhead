@@ -26,8 +26,7 @@
 		href={resolve('/assets')}
 		open
 	>
-		{#snippet children({
-			open: hubOpen,
+		{#snippet children({ open: hubOpen,
 		})}
 			<CollapsibleTabs
 				id={`${hubKey}:hub`}
@@ -63,7 +62,7 @@
 					>Pools</a>
 				{/snippet}
 
-				{#snippet children({ open: _paneOpen })}
+				{#snippet body({ open: _paneOpen })}
 					<section
 						id={`${hubKey}:coins`}
 						data-scroll-marker-label="Coins"

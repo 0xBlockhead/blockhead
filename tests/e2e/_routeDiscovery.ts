@@ -20,6 +20,7 @@ const marketKeyEthUsdBinance = stringify({
 	$base: { kind: 'Coin', $coin: { coinId: 'ETH' } },
 	$quote: { kind: 'Currency', $currency: { iso4217: 'USD' } },
 	$marketVenue: { marketVenueId: 'Binance' },
+	marketKind: 'Spot',
 })
 
 /**

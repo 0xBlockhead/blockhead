@@ -20,6 +20,7 @@
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -43,17 +44,22 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+
 	const coinTimestamp = useEntity(
 		EntityType.Coin_Timestamp,
 		entityId,
 		{
 			$: [
+				Source.Blockscout_Rest,
 				Source.Local_Internal,
 			],
 			marketCap: {},
+			change24hPercent: {},
 			...(open ?
 				{
 					totalSupply: {},
+					transport: {},
+					providerAssetId: {},
 				}
 				:
 				{}),
@@ -79,6 +85,7 @@
 	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
 	import CoinView from '$/views/CoinView.svelte'
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
@@ -124,6 +131,17 @@
 							</dd>
 						</div>
 					{/if}
+					{#if coinTimestamp.change24hPercent != null && Number.isFinite(coinTimestamp.change24hPercent)}
+						<div>
+							<dt>24h change</dt>
+							<dd>
+								<NumberValue
+									value={coinTimestamp.change24hPercent}
+									options={{ maximumFractionDigits: 2, signDisplay: 'exceptZero' }}
+								/>%
+							</dd>
+						</div>
+					{/if}
 					<div>
 						<dt>Snapshot wall time</dt>
 						<dd>
@@ -142,7 +160,7 @@
 									'/(assets)/(coins)/coin/[coinId]',
 									{ coinId: entityId.$coin.coinId },
 								)}
-								layout={EntityLayout.Id}
+								layout={EntityLayout.Title}
 								open={false}
 								showTypeAnnotation={false}
 							/>
@@ -153,6 +171,18 @@
 							<div>
 								<dt>Recorded total supply</dt>
 								<dd>{String(coinTimestamp.totalSupply)}</dd>
+							</div>
+						{/if}
+						{#if coinTimestamp.transport !== undefined}
+							<div>
+								<dt>Transport</dt>
+								<dd><code>{coinTimestamp.transport}</code></dd>
+							</div>
+						{/if}
+						{#if coinTimestamp.providerAssetId !== undefined}
+							<div>
+								<dt>Provider asset id</dt>
+								<dd><code>{coinTimestamp.providerAssetId}</code></dd>
 							</div>
 						{/if}
 					{/if}

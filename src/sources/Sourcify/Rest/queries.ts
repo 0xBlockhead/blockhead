@@ -2,7 +2,7 @@ import { zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { sourcifyGetJsonOrNull } from '$/sources/Sourcify/Rest/client.ts'
 import type { SourcifyContractLookupWire } from '$/sources/Sourcify/Rest/types.ts'
 
-const sourcifyContractLookupFields = 'abi,compilation,deployment,metadata,sources'
+const sourcifyContractLookupFields = 'abi,compilation,deployment,metadata,sources,storageLayout,proxyResolution'
 
 export const sourcifyContractLookupPath = ({
 	chainId,

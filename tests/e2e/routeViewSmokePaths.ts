@@ -1,4 +1,8 @@
 /** Routes exercised by `route-views-smoke.e2e.ts` and boundary-settle checks. */
+const SAMPLE_TX_HASH = (
+	'0xdacd6abf5b2814b28c68c59981f269c615796e7f0cba2009f4bf5edfdd9595ab' as const
+)
+
 export const ADDR = '0xd8da6bf26964af9d7eed9e403e826090792bed6a' as const
 
 export const routeViewSmokePathByLabel: Record<string, `/${string}`> = {
@@ -14,7 +18,12 @@ export const routeViewSmokePathByLabel: Record<string, `/${string}`> = {
 	networkBeaconSlots: '/network/1/beacon-slots',
 	networkUpgrades: '/network/1/upgrades',
 	networkBlock: '/network/1/block/18000000',
+	networkTransaction: `/network/1/tx/${SAMPLE_TX_HASH}`,
+	networkTransactionLog: `/network/1/tx/${SAMPLE_TX_HASH}/log/0`,
 	evmHub: '/evm',
+	evmCalldata: '/evm/calldata',
+	evmCalldataDecoder: '/evm/calldata-decoder',
+	evmErrors: '/evm/errors',
 	contractsGlobal: '/contracts',
 	upgradesGlobal: '/upgrades',
 	ensHub: '/ens',
@@ -37,6 +46,8 @@ export const routeViewSmokePathByLabel: Record<string, `/${string}`> = {
 	coinsPrices: '/coins/prices',
 	marketsHub: '/markets',
 	marketsMarketInvalid: '/market/%7B%7D',
+	marketVenuesHub: '/market-venues',
+	marketVenuesBinance: '/market-venue/Binance',
 	vaultsHub: '/vaults',
 	poolsHub: '/pools',
 	channelsHub: '/channels',
@@ -46,7 +57,9 @@ export const routeViewSmokePathByLabel: Record<string, `/${string}`> = {
 	exploreManage: '/~/manage',
 	multiplayerHub: '/~/multiplayer',
 	dashboardsHub: '/~/dashboards',
-	accountActor: `/~/accounts/account/${ADDR}`,
+	accountActor: `/account/${ADDR}`,
+	accountActorNetwork: `/network/1/account/${ADDR}`,
+	coinInstanceNative: '/coin-instance/1/native',
 	liquidityPositions: '/~/accounts/positions',
 	lensAccount: `/lens/account/${ADDR}`,
 	lensAccountPosts: `/lens/account/${ADDR}/posts`,

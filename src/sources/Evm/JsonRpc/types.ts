@@ -21,6 +21,8 @@ export type RpcTxWire = {
 	to?: string | null
 	gas?: string
 	gasPrice?: string
+	maxFeePerGas?: string
+	maxPriorityFeePerGas?: string
 	input?: string
 	nonce?: string
 	transactionIndex?: string

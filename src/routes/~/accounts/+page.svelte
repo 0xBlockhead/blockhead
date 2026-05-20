@@ -25,8 +25,7 @@
 		title="Accounts"
 		href={resolve('/~/accounts')}
 	>
-		{#snippet children({
-			open: hubOpen,
+		{#snippet children({ open: hubOpen,
 		})}
 			<CollapsibleTabs
 				id={`${hubKey}:hub`}
@@ -62,7 +61,7 @@
 					>Balances</a>
 				{/snippet}
 
-				{#snippet children({ open: _paneOpen })}
+				{#snippet body({ open: _paneOpen })}
 					<section
 						id={`${hubKey}:connections`}
 						data-scroll-marker-label="Connections"

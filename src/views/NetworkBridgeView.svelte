@@ -13,6 +13,7 @@
 		entityId,
 		href = entityId.url,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -35,6 +36,7 @@
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 
 	const bridge = useEntity(
 		EntityType.NetworkBridge,

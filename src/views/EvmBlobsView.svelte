@@ -26,6 +26,7 @@
 		entityFieldReference,
 		title = 'Blobs',
 		open = $bindable(true),
+		collapsible = true,
 		id,
 		href,
 		...entitiesListRest
@@ -34,6 +35,7 @@
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmBlob>
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 			id: string
 			href: string
 		},
@@ -47,50 +49,6 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const network = useEntity(
-		EntityType.Network,
-		entityFieldReference.entityId,
-		{
-			...(open ? {
-				blockHeight: {
-					$: [
-						Source.Voltaire_JsonRpc,
-					],
-				},
-				$$blobs: {
-					$: [
-						Source.Voltaire_JsonRpc,
-					],
-				},
-			} : {}),
-		},
-	)
-
-	const blobs = derive(
-		network,
-		(network) => {
-			const rows = (
-				network.$$blobs
-				?? []
-			)
-			return (
-				rows
-					.toSorted((a, b) => (
-						stringify(b[EntityMetaKey.Id])
-							> stringify(a[EntityMetaKey.Id]) ?
-							1
-						:
-							stringify(b[EntityMetaKey.Id])
-								< stringify(a[EntityMetaKey.Id]) ?
-								-1
-							:
-								0
-					))
-					.slice(0, 32)
-			)
-		},
-	)
 </script>
 
 
@@ -115,46 +73,73 @@
 	{/snippet}
 
 	{#snippet body()}
-		<div data-column="gap-3">
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmBlob}
-				id={`${id}-items`}
-				{href}
-				{title}
-				open={true}
-				getKey={(row) => stringify(row[EntityMetaKey.Id])}
-				placeholderText="Loading blobs…"
-				resource={blobs}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No blobs in this sample yet.
-					</p>
-				{/snippet}
+		{#if open}
+			{@const fieldName = entityFieldReference.fieldName}
+			{@const network = useEntity(
+				EntityType.Network,
+				entityFieldReference.entityId,
+				{
+					blockHeight: {
+						$: [
+							Source.Voltaire_JsonRpc,
+						],
+					},
+					[fieldName]: {
+						$: [
+							Source.Voltaire_JsonRpc,
+						],
+						$limit: 32,
+					},
+				},
+			)}
+			{@const blobs = derive(
+				network,
+				(network) => (
+					(network[fieldName] ?? []).slice(0, 32)
+				),
+			)}
+			<div data-column="gap-3">
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.EvmBlob}
+					id={`${id}-items`}
+					{href}
+					{title}
+					open={true}
+					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
+					placeholderText="Loading blobs…"
+					resource={blobs}
+					UnorderedListProps={{ orientation: ListOrientation.Column }}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No blobs in this sample yet.
+						</p>
+					{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<EvmBlobView
-							entityId={props.item[EntityMetaKey.Id]}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(blobs)/blob/[transactionId]/[blobIndex]',
-								{
-									networkId: String(
-										props.item[EntityMetaKey.Id].$network.chainId,
-									),
-									transactionId: props.item[EntityMetaKey.Id].txHash,
-									blobIndex: String(props.item[EntityMetaKey.Id].blobIndex),
-								},
-							)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
-				{/snippet}
-			</EntitiesList>
-		</div>
+					{#snippet Item(props)}
+						{#if props.item}
+							<EvmBlobView
+								entityId={props.item[EntityMetaKey.Id]}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(blobs)/blob/[transactionId]/[blobIndex]',
+									{
+										networkId: String(
+											props.item[EntityMetaKey.Id].$network.chainId,
+										),
+										transactionId: props.item[EntityMetaKey.Id].txHash,
+										blobIndex: String(props.item[EntityMetaKey.Id].blobIndex),
+									},
+								)}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</EntitiesList>
+			</div>
+		{/if}
 	{/snippet}
 </EntitiesList>

@@ -1,7 +1,7 @@
 // Types/constants
 import type { CoinId } from '$/constants/Coin.ts'
 import { Iso4217 } from '$/constants/Currency.ts'
-import { MarketAssetKind } from '$/constants/Market.ts'
+import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { tradingViewMarketByCoinId } from '$/sources/TradingView/Rest/constants.ts'
 
@@ -27,5 +27,6 @@ export const catalogCoinUsdMarketId = (coinId: string) => (
 		$marketVenue: {
 			marketVenueId: catalogMarketVenueIdForCoin(coinId),
 		},
+		marketKind: MarketKind.Spot,
 	}
 )

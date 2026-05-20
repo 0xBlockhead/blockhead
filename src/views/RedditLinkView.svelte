@@ -86,8 +86,9 @@
 	{layout}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.id}
 		</span>
@@ -245,8 +246,7 @@
 					>Thread</a>
 				{/snippet}
 
-				{#snippet children({
-					open: _sectionOpen,
+				{#snippet body({ open: _sectionOpen,
 				})}
 					<section
 						id={`${idKey}:comments`}
@@ -262,7 +262,6 @@
 								fullname: encodeURIComponent(entityId.fullname),
 							})}
 							id={`${idKey}:reddit-comments`}
-							open={false}
 						/>
 					</section>
 				{/snippet}

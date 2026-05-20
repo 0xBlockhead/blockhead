@@ -18,7 +18,7 @@ export default {
 
 	/**
 	 * Quote stream id: which market, optional per-feed key, optional on-chain context.
-	 * Latest price and as-of time live in fields (not in the id) so the row can update in place.
+	 * Timestamped spot/index prints live on `Market_Timestamp` (`$$quotes`).
 	 */
 	id: type({
 		$market: Market.id,
@@ -46,43 +46,15 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Market_Timestamp,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.TradingView_Rest],
-		},
-		{
-			name: 'price',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'timestampMs',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'updatedAt',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'transport',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'providerAssetId',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string | null'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'caip19',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Blockscout_Rest,
+				Source.Coingecko_Rest,
+				Source.Coingecko_OpenApi,
+				Source.CoinMarketCap_Rest,
+				Source.Coinpaprika_OpenApi,
+				Source.Defillama_OpenApi,
+				Source.TradingView_Rest,
+			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

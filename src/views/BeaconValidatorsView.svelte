@@ -8,8 +8,6 @@
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import OrderedList from '$/components/OrderedList.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -17,6 +15,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import BeaconValidatorView from '$/views/BeaconValidatorView.svelte'
 
 
@@ -25,45 +25,20 @@
 		entityFieldReference,
 		title = 'Validators',
 		open = $bindable(true),
+		collapsible = true,
 		...entitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BeaconValidator>
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
 			'entityType'
 		>
 	> = $props()
-
-
-	// State
-	const network = useEntity(
-		EntityType.Network,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					$$beaconValidators: {
-						$: [
-							Source.Beacon_Rest,
-						],
-					},
-				}
-			:
-				{}
-		),
-	)
-
-	const validators = derive(
-		network,
-		(network): Entity<typeof schema, EntityType.BeaconValidator>[] => (
-			network.$$beaconValidators
-			?? []
-		),
-	)
 </script>
 
 
@@ -75,38 +50,60 @@
 	{...entitiesListProps}
 >
 	{#snippet body()}
-		{#key stringify(entityFieldReference.entityId)}
-			<ResourceBoundary
-				placeholderText="Loading validators…"
-				resource={validators}
-			>
-				{#snippet children(validators)}
-					<OrderedList
-						getKey={(row) => (
-							String(row[EntityMetaKey.Id].validatorIndex)
-						)}
-						items={validators}
-						orientation={ListOrientation.Column}
-						placeholderRanges={[]}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No validator indices yet.
-							</p>
-						{/snippet}
+		{#if open}
+			{@const fieldName = entityFieldReference.fieldName}
+			{@const network = useEntity(
+				EntityType.Network,
+				entityFieldReference.entityId,
+				{
+					[fieldName]: {
+						$: [
+							Source.Beacon_Rest,
+						],
+						$limit: 16,
+					},
+				},
+			)}
+			{@const validators = derive(
+				network,
+				(network): Entity<typeof schema, EntityType.BeaconValidator>[] => (
+					network[fieldName]
+					?? []
+				),
+			)}
+			{#key stringify(entityFieldReference.entityId)}
+				<ResourceBoundary
+					placeholderText="Loading validators…"
+					resource={validators}
+				>
+					{#snippet children(validators)}
+						<OrderedList
+							getKey={(row) => (
+								String(row[EntityMetaKey.Id].validatorIndex)
+							)}
+							items={validators}
+							orientation={ListOrientation.Column}
+							placeholderRanges={[]}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">
+									No validator indices yet.
+								</p>
+							{/snippet}
 
-						{#snippet Item({ item })}
-							{#if item}
-								<BeaconValidatorView
-									entityId={item[EntityMetaKey.Id]}
-									layout={EntityLayout.Summary}
-									open={false}
-								/>
-							{/if}
-						{/snippet}
-					</OrderedList>
-				{/snippet}
-			</ResourceBoundary>
-		{/key}
+							{#snippet Item({ item })}
+								{#if item}
+									<BeaconValidatorView
+										entityId={item[EntityMetaKey.Id]}
+										layout={EntityLayout.Summary}
+										open={false}
+									/>
+								{/if}
+							{/snippet}
+						</OrderedList>
+					{/snippet}
+				</ResourceBoundary>
+			{/key}
+		{/if}
 	{/snippet}
 </EntitiesList>

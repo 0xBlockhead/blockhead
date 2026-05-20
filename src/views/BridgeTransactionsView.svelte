@@ -26,6 +26,7 @@
 		entityFieldReference,
 		title = 'Bridge transactions',
 		open = $bindable(true),
+		collapsible = true,
 		...entitiesListRest
 	}: WithRest<
 		{
@@ -51,41 +52,6 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { SvelteSet } from 'svelte/reactivity'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
-				{
-					[entityFieldReference.fieldName]: {
-						$: [
-							Source.Local_Internal,
-						],
-					},
-				}
-			:
-				{}
-		),
-	)
-
-	const bridgeTransactions = derive(
-		parent,
-		(parent): BridgeTxRow[] => {
-			const rows: Entity<typeof schema, EntityType.BridgeTransaction>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-				.toSorted((a, b) => (
-					`${String(a[EntityMetaKey.Id].createdAt)}\0${stringify(a[EntityMetaKey.Id])}`
-						.localeCompare(`${String(b[EntityMetaKey.Id].createdAt)}\0${stringify(b[EntityMetaKey.Id])}`)
-				))
-			return (
-				rows.map((value) => ({
-					value,
-				}))
-			)
-		},
-	)
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -99,14 +65,7 @@
 	entityType={EntityType.BridgeTransaction}
 	{title}
 	bind:open
-	resource={bridgeTransactions}
-	placeholderText="Loading bridge transactions…"
-	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-	getSortValue={(row) => (
-		`${String(row.value[EntityMetaKey.Id].createdAt)}\0${stringify(row.value[EntityMetaKey.Id])}`
-	)}
-	placeholderKeys={new SvelteSet<string | number>()}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{collapsible}
 	{...entitiesListRest}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -124,25 +83,75 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item({
-		item: row,
-	})}
-		{#if row}
-			{@const id = row.value[EntityMetaKey.Id]}
-			<BridgeTransactionView
-				entityId={id}
-				href={resolve(
-					'/~/(accounts)/accounts/(transactions)/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]',
-					{
-						chainId: String(id.$account.$network.chainId),
-						address: id.$account.address,
-						sourceTxHash: id.$sourceTx.txHash,
-						createdAt: String(id.createdAt),
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Local_Internal,
+						],
 					},
+				},
+			)}
+			{@const bridgeTransactions = derive(
+				parent,
+				(parent): BridgeTxRow[] => {
+					const rows: Entity<typeof schema, EntityType.BridgeTransaction>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						rows.map((value) => ({
+							value,
+						}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.BridgeTransaction}
+				{title}
+				open={true}
+				resource={bridgeTransactions}
+				placeholderText="Loading bridge transactions…"
+				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getSortValue={(row) => (
+					`${String(row.value[EntityMetaKey.Id].createdAt)}\0${stringify(row.value[EntityMetaKey.Id])}`
 				)}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+				placeholderKeys={new SvelteSet<string | number>()}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No bridge transactions yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item({
+					item: row,
+				})}
+					{#if row}
+						{@const id = row.value[EntityMetaKey.Id]}
+						<BridgeTransactionView
+							entityId={id}
+							href={resolve(
+								'/~/(accounts)/accounts/(transactions)/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]',
+								{
+									chainId: String(id.$account.$network.chainId),
+									address: id.$account.address,
+									sourceTxHash: id.$sourceTx.txHash,
+									createdAt: String(id.createdAt),
+								},
+							)}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

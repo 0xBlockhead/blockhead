@@ -18,7 +18,6 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import EvmTopicView from '$/views/EvmTopicView.svelte'
 
 
@@ -26,6 +25,7 @@
 	let {
 		entityFieldReference,
 		open = $bindable(true),
+		collapsible = true,
 
 		title = 'Log topics',
 		...entitiesListRest
@@ -45,77 +45,88 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const global = useEntity(
-		EntityType._Global,
-		entityFieldReference.entityId,
-		{
-			...(open ?
-				{
-					$: [
-						Source.Openchain_Rest,
-					],
-					$$evmTopics: {
-						$limit: 4096,
-					},
-				}
-			:
-				{}),
-		},
-	)
-
-	const topics = derive(
-		global,
-		(global) => {
-			const rows: Entity<typeof schema, EntityType.EvmTopic>[] = (
-				global.$$evmTopics
-				?? []
-			)
-			return (
-				rows.toSorted((first, second) => (
-					first[EntityMetaKey.Id].hex.localeCompare(second[EntityMetaKey.Id].hex)
-				))
-			)
-		},
-	)
 </script>
 
 
 <EntitiesList
 	entityType={EntityType.EvmTopic}
-	getKey={(topic) => topic[EntityMetaKey.Id].hex}
-	getSortValue={(topic) => topic[EntityMetaKey.Id].hex}
-	placeholderText="Loading indexed log topics…"
-	resource={topics}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{title}
 	bind:open
+	{collapsible}
 	{...entitiesListRest}
 >
-		{#snippet TypeAnnotationTooltip()}
-			<p>
-				Log topics are the hashed event signatures that appear in the topic position of EVM event logs.
-			</p>
-			<p>
-				They identify which event fired, distinct from function selectors used in contract calls.
-			</p>
-		{/snippet}
-		{#snippet Empty()}
-			<p data-text="muted">
-				No indexed log topics yet.
-			</p>
-		{/snippet}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Log topics are 32-byte words in receipt logs. Topic 0 often matches a keccak hash of an ABI log signature, but raw <code>LOG</code> emissions are not required to follow that convention.
+		</p>
+		<p>
+			They are distinct from four-byte function selectors on calldata.
+		</p>
+	{/snippet}
 
-		{#snippet Item(props)}
-			{#if props.item}
-				<EvmTopicView
-					entityId={props.item[EntityMetaKey.Id]}
-					href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
-						hex: props.item[EntityMetaKey.Id].hex,
-					})}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{/if}
-		{/snippet}
+	{#snippet Empty()}
+		<p data-text="muted">
+			No indexed log topics yet.
+		</p>
+	{/snippet}
+
+	{#snippet body()}
+		{#if open}
+			{@const global = useEntity(
+				EntityType._Global,
+				entityFieldReference.entityId,
+				{
+					$: [
+						Source.Local_Internal,
+					],
+					$$evmTopics: {
+						$limit: 4096,
+					},
+				},
+			)}
+			{@const topics = derive(
+				global,
+				(global) => {
+					const rows: Entity<typeof schema, EntityType.EvmTopic>[] = (
+						global.$$evmTopics
+						?? []
+					)
+					return rows
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.EvmTopic}
+				getKey={(topic) => topic[EntityMetaKey.Id].hex}
+				getSortValue={(topic) => topic[EntityMetaKey.Id].hex}
+				placeholderText="Loading indexed log topics…"
+				resource={topics}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				{title}
+				open={true}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No indexed log topics yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item(props)}
+					{#if props.item}
+						<EvmTopicView
+							entityId={props.item[EntityMetaKey.Id]}
+							href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
+								hex: props.item[EntityMetaKey.Id].hex,
+							})}
+							layout={EntityLayout.Summary}
+							open={false}
+							collapsible={false}
+							showTypeAnnotation={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
+		{/if}
+	{/snippet}
 </EntitiesList>

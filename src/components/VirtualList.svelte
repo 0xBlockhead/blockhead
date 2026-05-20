@@ -32,12 +32,10 @@
 			rowInsetBlock?: number
 			itemGap?: number
 			overscan?: number
-			Item: Snippet<[
-				{
-					item: _Item
-					index: number
-				},
-			]>
+			Item: Snippet<[context?: {
+				item?: _Item,
+				index?: number,
+			}]>
 		},
 		SvelteHTMLElements['div']
 	> = $props()

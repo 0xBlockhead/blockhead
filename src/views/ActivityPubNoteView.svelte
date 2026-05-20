@@ -23,6 +23,7 @@
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -92,8 +93,9 @@
 	{layout}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.uri}
 		</span>
@@ -247,7 +249,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<a
 						data-scroll-marker-label="Metadata"
 						href={`#${idKey}:note-details`}
@@ -258,7 +260,7 @@
 					>Thread</a>
 				{/snippet}
 
-				{#snippet children(_threadChildrenContext)}
+				{#snippet body(_threadChildrenContext)}
 					<section
 						data-scroll-marker-label="Metadata"
 						id={`${idKey}:note-details`}

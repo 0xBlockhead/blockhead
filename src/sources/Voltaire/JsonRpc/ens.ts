@@ -67,6 +67,28 @@ const RESOLVER_CONTENTHASH_ABI = new Abi([
 	},
 ])
 
+const RESOLVER_ABI_RECORD_ABI = new Abi([
+	{
+		type: 'function',
+		name: 'ABI',
+		stateMutability: 'view',
+		inputs: [
+			{ type: 'bytes32', name: 'node' },
+			{ type: 'uint256', name: 'contentTypes' },
+		],
+		outputs: [
+			{ type: 'uint256', name: '' },
+			{ type: 'bytes', name: '' },
+		],
+	},
+])
+
+const ensResolverAbiContentTypesMask = 15n
+
+const ensResolverAbiContentTypeJson = 1n
+
+const ensResolverAbiContentTypeUri = 4n
+
 const RESOLVER_MULTICOIN_ADDR_ABI = new Abi([
 	{
 		type: 'function',
@@ -93,6 +115,10 @@ const NAME_RESOLVER_ABI = new Abi([
 const ADDRESS_OUTPUT = [{ type: 'address' as const, name: '' }] as const
 const STRING_OUTPUT = [{ type: 'string' as const, name: '' }] as const
 const BYTES_OUTPUT = [{ type: 'bytes' as const, name: '' }] as const
+const RESOLVER_ABI_OUTPUT = [
+	{ type: 'uint256' as const, name: '' },
+	{ type: 'bytes' as const, name: '' },
+] as const
 
 const bytes32FromNamehash = (nodeBytes: Uint8Array): `0x${string}` => {
 	const hex = hexFromBytes(nodeBytes)
@@ -252,6 +278,69 @@ const resolveContentHash = async ({
 		: contentHash
 }
 
+const resolverAbiJsonFromWire = (
+	contentType: bigint,
+	data: Uint8Array,
+) => {
+	if (data.length === 0) return null
+	if (
+		contentType === ensResolverAbiContentTypeJson
+		|| contentType === ensResolverAbiContentTypeUri
+	) {
+		const text = new TextDecoder().decode(data).trim()
+		return text === '' ? null : text
+	}
+	return null
+}
+
+const resolveResolverAbiJson = async ({
+	rpcUrl,
+	transportType,
+	resolverAddress,
+	node,
+}: {
+	rpcUrl: string
+	transportType: TransportType
+	resolverAddress: `0x${string}`
+	node: `0x${string}`
+}) => {
+	const provider = getVoltaireProviderForExecutionUrl({
+		url: rpcUrl,
+		transportType,
+	})
+	const response = await provider.request({
+		method: 'eth_call',
+		params: [
+			{
+				to: resolverAddress,
+				data: encodeFunction(RESOLVER_ABI_RECORD_ABI, 'ABI', [
+					node,
+					ensResolverAbiContentTypesMask,
+				]),
+			},
+			'latest',
+		],
+	})
+	if (response == null || typeof response !== 'string' || response === '0x') return null
+	const [contentType, data] = decodeParameters(RESOLVER_ABI_OUTPUT, toBytes(response))
+	const contentTypeBigInt = (
+		typeof contentType === 'bigint' ?
+			contentType
+		: typeof contentType === 'number' ?
+			BigInt(contentType)
+		:	null
+	)
+	const dataBytes = (
+		data instanceof Uint8Array ?
+			data
+		: typeof data === 'string' ?
+			toBytes(data)
+		:	null
+	)
+	if (contentTypeBigInt == null || dataBytes == null) return null
+	return resolverAbiJsonFromWire(contentTypeBigInt, dataBytes)
+}
+
 const resolveMulticoinAddr = async ({
 	rpcUrl,
 	transportType,
@@ -366,10 +455,11 @@ export const resolveEnsForwardForRpcUrl = async ({
 			resolver: null,
 			textRecords: { ...emptyStringRecord },
 			contentHash: null,
+			resolverAbiJson: null,
 			coinAddresses: { ...emptyStringRecord },
 		}
 	}
-	const [address, textRecords, contentHash, coinAddresses] = await Promise.all([
+	const [address, textRecords, contentHash, resolverAbiJson, coinAddresses] = await Promise.all([
 		resolveAddr({
 			rpcUrl,
 			transportType,
@@ -392,6 +482,12 @@ export const resolveEnsForwardForRpcUrl = async ({
 		)
 			.then((entries) => Object.fromEntries(entries.filter(([, value]) => value !== ''))),
 		resolveContentHash({
+			rpcUrl,
+			transportType,
+			resolverAddress,
+			node,
+		}),
+		resolveResolverAbiJson({
 			rpcUrl,
 			transportType,
 			resolverAddress,
@@ -423,6 +519,7 @@ export const resolveEnsForwardForRpcUrl = async ({
 		resolver: resolverAddress,
 		textRecords,
 		contentHash,
+		resolverAbiJson,
 		coinAddresses,
 	}
 }

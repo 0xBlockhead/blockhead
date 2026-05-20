@@ -13,8 +13,7 @@ import type { DexscreenerPair } from '$/sources/Dexscreener/OpenApi/types.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const isEvmContractAddress = (value: string | null | undefined): value is `0x${string}` => (
-	typeof value === 'string'
-	&& /^0x[a-fA-F0-9]{40}$/.test(value.trim())
+	hexLowerOfByteSize(value ?? '', 20) != null
 )
 
 const entityFieldsFromDexPair = ({

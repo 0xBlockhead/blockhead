@@ -33,7 +33,7 @@ const optionalTrimmedString = (value: string | undefined | null) => (
 )
 
 const normalizeMediaUrl = (value: string | null | undefined): string | undefined => {
-	const raw = typeof value === 'string' ? value.trim() : ''
+	const raw = value?.trim() ?? ''
 	if (raw.length === 0) return undefined
 	if (placeholderIconFragments.some((fragment) => raw.toLowerCase().includes(fragment))) return undefined
 	return resolveMediaUrlTransport(raw)?.url
@@ -117,30 +117,30 @@ export default {
 								[EntityMetaKey.Id]: { fid: moderatorFid },
 							}]
 					)),
-					createdAt: ((rawCreatedAt) => (
-						typeof rawCreatedAt === 'number' && Number.isFinite(rawCreatedAt) ?
-							rawCreatedAt >= 1e12 ?
-								rawCreatedAt
+					createdAt: (
+						channel.createdAt != null && Number.isFinite(channel.createdAt) ?
+							channel.createdAt >= 1e12 ?
+								channel.createdAt
 							:
-								rawCreatedAt * 1000
+								channel.createdAt * 1000
 						:
 							undefined
-					))(channel.createdAt),
+					),
 					followerCount: channel.followerCount,
 					memberCount: channel.memberCount,
 					pinnedCastHash: trimmedNonEmptyString(channel.pinnedCastHash),
 					publicCasting: channel.publicCasting,
 					externalLinkTitle: trimmedNonEmptyString(channel.externalLink?.title),
 					externalLinkUrl: trimmedNonEmptyString(channel.externalLink?.url),
-					followedAt: ((rawFollowedAt) => (
-						typeof rawFollowedAt === 'number' && Number.isFinite(rawFollowedAt) ?
-							rawFollowedAt >= 1e12 ?
-								rawFollowedAt
+					followedAt: (
+						channel.followedAt != null && Number.isFinite(channel.followedAt) ?
+							channel.followedAt >= 1e12 ?
+								channel.followedAt
 							:
-								rawFollowedAt * 1000
+								channel.followedAt * 1000
 						:
 							undefined
-					))(channel.followedAt),
+					),
 				}
 			},
 		}),

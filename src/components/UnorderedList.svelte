@@ -77,6 +77,25 @@
 	}
 	type ItemsInput = Iterable<_Item>
 
+	type GroupHeaderSnippetContext = {
+		groupKey?: _GroupKey,
+	}
+
+	type ItemSnippetContext = {
+		key?: _Key,
+	} & (
+		| {
+				item?: _Item,
+				isPlaceholder?: false,
+				searchQuery?: string,
+				matches?: SvelteSet<Match>,
+			}
+		| {
+				item?: never,
+				isPlaceholder?: true,
+			}
+	)
+
 
 	// Props
 	let {
@@ -127,22 +146,8 @@
 		searchQuery?: string
 		matchesForItem?: SvelteMap<_Item, SvelteSet<Match>>
 		virtual?: VirtualRowMeasurement<ListRow>
-		GroupHeader?: Snippet<[{ groupKey: _GroupKey }]>
-		Item: Snippet<
-			[
-				{
-					key: _Key
-				} & (
-					| {
-							item: _Item
-							isPlaceholder: false
-							searchQuery?: string
-							matches?: SvelteSet<Match>
-						}
-					| { item?: never; isPlaceholder: true }
-				),
-			]
-		>
+		GroupHeader?: Snippet<[context?: GroupHeaderSnippetContext]>
+		Item: Snippet<[context?: ItemSnippetContext]>
 		Empty?: Snippet<[]>
 	} = $props()
 

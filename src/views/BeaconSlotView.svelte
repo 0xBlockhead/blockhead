@@ -17,6 +17,7 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 
 
@@ -98,6 +99,7 @@
 	bind:open
 	idDragPlainText={String(entityId.slot)}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -112,9 +114,16 @@
 		</span>
 	{/snippet}
 
-	{#snippet Id()}
-		<span data-text="font-monospace">
-			chain {String(entityId.$network.chainId)}
+	{#snippet Title()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Slot </span>
+			<span
+				data-badge="small"
+				data-text="font-monospace"
+				data-slot-number={String(entityId.slot)}
+			>
+				{String(entityId.slot)}
+			</span>
 		</span>
 	{/snippet}
 
@@ -136,7 +145,22 @@
 							<div>
 								<dt>Epoch</dt>
 								<dd>
-									<NumberValue value={slot.epoch} />
+									<BeaconEpochView
+										entityId={{
+											$network: entityId.$network,
+											epoch: slot.epoch,
+										}}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
+											{
+												networkId: String(entityId.$network.chainId),
+												epochNumber: String(slot.epoch),
+											},
+										)}
+										layout={EntityLayout.Title}
+										open={false}
+										showTypeAnnotation={false}
+									/>
 								</dd>
 							</div>
 						{/if}

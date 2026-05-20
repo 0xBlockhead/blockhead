@@ -35,6 +35,7 @@
 		entityFieldReference,
 		title = 'Slots',
 		open = $bindable(true),
+		collapsible = true,
 		...entitiesListProps
 	}: WithRest<
 		{
@@ -47,40 +48,6 @@
 			'entityType'
 		>
 	> = $props()
-
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			open ?
-				(
-					entityFieldReference.entityType === EntityType.Network ?
-						({
-							blockHeight: { $: [Source.Voltaire_JsonRpc] },
-							$$beaconSlots: { $: [Source.Beacon_Rest] },
-						})
-					:
-						({
-							$$beaconSlots: { $: [Source.Beacon_Rest] },
-						})
-				)
-			:
-				{
-					$: [Source.Beacon_Rest],
-				}
-		),
-	)
-
-	const slots = derive(
-		parent,
-		(parent): Entity<typeof schema, EntityType.BeaconSlot>[] => (
-			(parent.$$beaconSlots ?? [])
-				.toSorted((a, b) => (
-					b[EntityMetaKey.Id].slot - a[EntityMetaKey.Id].slot
-				))
-				.slice(0, 32)
-		),
-	)
 </script>
 
 
@@ -97,51 +64,76 @@
 	{/snippet}
 
 	{#snippet body()}
-		{#key stringify(entityFieldReference.entityId)}
-			<ResourceBoundary
-				resource={slots}
-				placeholderText="Loading slots…"
-			>
-				{#snippet children(slots)}
-					<OrderedList
-						items={slots}
-						getKey={(slot) => stringify(slot[EntityMetaKey.Id])}
-						getSortKey={(slot) => slot[EntityMetaKey.Id].slot}
-						placeholderRanges={[]}
-						orientation={ListOrientation.Column}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No slots yet.
-							</p>
-						{/snippet}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				(
+					entityFieldReference.entityType === EntityType.Network ?
+						({
+							blockHeight: { $: [Source.Voltaire_JsonRpc] },
+							$$beaconSlots: { $: [Source.Beacon_Rest] },
+						})
+					:
+						({
+							$$beaconSlots: { $: [Source.Beacon_Rest] },
+						})
+				),
+			)}
+			{@const slots = derive(
+				parent,
+				(parent): Entity<typeof schema, EntityType.BeaconSlot>[] => (
+					(parent.$$beaconSlots ?? []).slice(0, 32)
+				),
+			)}
+			{#key stringify(entityFieldReference.entityId)}
+				<ResourceBoundary
+					resource={slots}
+					placeholderText="Loading slots…"
+				>
+					{#snippet children(slots)}
+						<OrderedList
+							items={slots}
+							getKey={(slot) => stringify(slot[EntityMetaKey.Id])}
+							getSortKey={(slot) => (
+								-slot[EntityMetaKey.Id].slot
+							)}
+							placeholderRanges={[]}
+							orientation={ListOrientation.Column}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">
+									No slots yet.
+								</p>
+							{/snippet}
 
-						{#snippet Item({ item: slot })}
-							{#if slot}
-								<BeaconSlotView
-									entityId={slot[EntityMetaKey.Id]}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(beacon-slots)/slot/[slotNumber]',
-										{
-											networkId: String(
-												entityFieldReference.entityType === EntityType.Network ?
-													entityFieldReference.entityId.chainId
-												:
-													entityFieldReference.entityId.$network.chainId,
-											),
-											slotNumber: String(
-												slot[EntityMetaKey.Id].slot,
-											),
-										},
-									)}
-									layout={EntityLayout.Summary}
-									open={false}
-								/>
-							{/if}
-						{/snippet}
-					</OrderedList>
-				{/snippet}
-			</ResourceBoundary>
-		{/key}
+							{#snippet Item({ item: slot })}
+								{#if slot}
+									<BeaconSlotView
+										entityId={slot[EntityMetaKey.Id]}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(beacon-slots)/slot/[slotNumber]',
+											{
+												networkId: String(
+													entityFieldReference.entityType === EntityType.Network ?
+														entityFieldReference.entityId.chainId
+													:
+														entityFieldReference.entityId.$network.chainId,
+												),
+												slotNumber: String(
+													slot[EntityMetaKey.Id].slot,
+												),
+											},
+										)}
+										layout={EntityLayout.Summary}
+										open={false}
+									/>
+								{/if}
+							{/snippet}
+						</OrderedList>
+					{/snippet}
+				</ResourceBoundary>
+			{/key}
+		{/if}
 	{/snippet}
 </EntitiesList>

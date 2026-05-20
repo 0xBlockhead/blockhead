@@ -25,6 +25,7 @@
 		href,
 		id,
 		open = $bindable(true),
+		collapsible = true,
 		title = 'Federated actors',
 		...entitiesListRest
 	}: WithRest<
@@ -51,46 +52,6 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const activityPubNetwork = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [Source.Constants_Internal],
-			...(open ?
-				{
-					protocolName: {},
-					$$activityPubActors: {
-						$: [
-							Source.Constants_Internal,
-							Source.Mastodon_Rest,
-						],
-					},
-				}
-			:
-				{}),
-		},
-	)
-
-	const actors = derive(
-		activityPubNetwork,
-		(activityPubNetwork) => (
-			(activityPubNetwork.$$activityPubActors ?? [])
-				.toSorted((a, b) => {
-					const left = a[EntityMetaKey.Id]
-					const right = b[EntityMetaKey.Id]
-					const originCompare = (
-						left.instanceOrigin.localeCompare(right.instanceOrigin)
-					)
-					return (
-						originCompare !== 0 ?
-							originCompare
-						:
-							left.localAccountId.localeCompare(right.localAccountId)
-					)
-				})
-		),
-	)
 </script>
 
 
@@ -115,45 +76,70 @@
 	{/snippet}
 
 	{#snippet body()}
-		{#key stringify(entityFieldReference.entityId)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.ActivityPubActor}
-				id={`${id}-items`}
-				{href}
-				{title}
-				open={true}
-				getKey={(row) => stringify(row[EntityMetaKey.Id])}
-				getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
-				placeholderKeys={new SvelteSet()}
-				placeholderText="Loading Mastodon actor directory…"
-				resource={actors}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No actors yet.
-					</p>
-				{/snippet}
+		{#if open}
+			{@const activityPubNetwork = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [Source.Constants_Internal],
+					protocolName: {},
+					$$activityPubActors: {
+						$: [
+							Source.Constants_Internal,
+							Source.Mastodon_Rest,
+						],
+					},
+				},
+			)}
+			{@const actors = derive(
+				activityPubNetwork,
+				(activityPubNetwork) => (
+					activityPubNetwork.$$activityPubActors ?? []
+				),
+			)}
+			{#key stringify(entityFieldReference.entityId)}
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.ActivityPubActor}
+					id={`${id}-items`}
+					{href}
+					{title}
+					open={true}
+					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getSortValue={(row) => {
+						const actorId = row[EntityMetaKey.Id]
+						return `${actorId.instanceOrigin}\0${actorId.localAccountId}`
+					}}
+					placeholderKeys={new SvelteSet()}
+					placeholderText="Loading Mastodon actor directory…"
+					resource={actors}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No actors yet.
+						</p>
+					{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const actorId = props.item[EntityMetaKey.Id]}
-						<ActivityPubActorView
-							entityId={{
-								instanceOrigin: actorId.instanceOrigin,
-								localAccountId: actorId.localAccountId,
-							}}
-							href={resolve('/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
-								instanceOrigin: encodeURIComponent(actorId.instanceOrigin),
-								localAccountId: encodeURIComponent(actorId.localAccountId),
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
-				{/snippet}
-			</EntitiesList>
-		{/key}
+					{#snippet Item(props)}
+						{#if props.item}
+							{@const actorId = props.item[EntityMetaKey.Id]}
+							<ActivityPubActorView
+								entityId={{
+									instanceOrigin: actorId.instanceOrigin,
+									localAccountId: actorId.localAccountId,
+								}}
+								href={resolve('/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+									instanceOrigin: encodeURIComponent(actorId.instanceOrigin),
+									localAccountId: encodeURIComponent(actorId.localAccountId),
+								})}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</EntitiesList>
+			{/key}
+		{/if}
 	{/snippet}
 </EntitiesList>

@@ -1,4 +1,5 @@
 import { jsonRpc } from '$/sources/Evm/JsonRpc/client.ts'
+import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	RpcBlockHeaderWire,
 	RpcFeeHistoryWire,
@@ -137,6 +138,50 @@ export const ethGetStorageAt = ({
 		params: [
 			address,
 			slotQuantityHex,
+			blockTag,
+		],
+	})
+)
+
+/** `eth_getCode` — runtime bytecode at `address` for `blockTag`. */
+export const ethGetCode = ({
+	rpcUrl,
+	address,
+	blockTag = 'latest',
+}: {
+	rpcUrl: string
+	address: `0x${string}`
+	blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
+}) => (
+	jsonRpc<`0x${string}`>({
+		rpcUrl,
+		method: 'eth_getCode',
+		params: [
+			address,
+			blockTag,
+		],
+	})
+)
+
+export const ethCall = ({
+	rpcUrl,
+	to,
+	data,
+	blockTag = 'latest',
+}: {
+	rpcUrl: string
+	to: `0x${string}`
+	data: `0x${string}`
+	blockTag?: `0x${string}` | 'latest' | 'pending' | 'safe' | 'finalized'
+}) => (
+	jsonRpc<`0x${string}`>({
+		rpcUrl,
+		method: 'eth_call',
+		params: [
+			{
+				to,
+				data,
+			} satisfies JsonValue as JsonValue,
 			blockTag,
 		],
 	})

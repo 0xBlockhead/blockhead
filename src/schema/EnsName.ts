@@ -111,6 +111,15 @@ export default {
 			],
 		},
 		{
+			name: 'resolverAbiJson',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
+		},
+		{
 			name: 'coinAddresses',
 			type: EntityFieldType.Primitive,
 			primitiveType: type.Record(type.string, type.string),
@@ -166,6 +175,96 @@ export default {
 		},
 		{
 			name: 'expiryDate',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.TheGraph_Graphql,
+			],
+		},
+		{
+			name: 'subgraphId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.TheGraph_Graphql,
+			],
+		},
+		{
+			name: '$subgraphResolvedActor',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Actor,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.TheGraph_Graphql,
+			],
+		},
+		{
+			name: '$subgraphOwnerActor',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Actor,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.TheGraph_Graphql,
+			],
+		},
+		{
+			name: '$registrantActor',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Actor,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.TheGraph_Graphql,
+			],
+		},
+		{
+			name: '$wrappedOwnerActor',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Actor,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.TheGraph_Graphql,
+			],
+		},
+		{
+			name: 'wrappedExpiryDate',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.TheGraph_Graphql,
+			],
+		},
+		{
+			name: 'wrappedFuses',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.TheGraph_Graphql,
+			],
+		},
+		{
+			name: 'registrationDate',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.TheGraph_Graphql,
+			],
+		},
+		{
+			name: 'registrationCost',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.TheGraph_Graphql,
+			],
+		},
+		{
+			name: 'registrationExpiryDate',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

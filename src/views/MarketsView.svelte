@@ -8,7 +8,9 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import type { MarketKind } from '$/constants/Market.ts'
 	import { marketCatalogFieldSources } from '$/constants/Market.ts'
+	import type { MarketVenueId } from '$/constants/MarketVenue.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
@@ -20,13 +22,18 @@
 	let {
 		title = 'Markets',
 		open = $bindable(true),
+		collapsible = true,
 		entityFieldReference,
+		filterMarketVenueId,
+		filterMarketKind,
 		...entitiesListRest
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Market>
+			filterMarketVenueId?: MarketVenueId
+			filterMarketKind?: MarketKind
 		},
 		Omit<
 			ComponentProps<typeof EntitiesList>,
@@ -43,59 +50,9 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 
-	const fieldName = entityFieldReference.fieldName
-
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [
-				...(
-					open ?
-						[...marketCatalogFieldSources]
-					:
-						[Source.Constants_Internal]
-				),
-			],
-			...(open && {
-				[fieldName]: {
-					$limit: 8192,
-				},
-			}),
-		},
-	)
-
-	const markets = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.Market>[] = parent[fieldName] ?? []
-			return (
-				Object.values(
-					Object.groupBy(
-						rows,
-						(marketRow) => stringify(marketRow[EntityMetaKey.Id]),
-					),
-				)
-					.flatMap((group) => (
-						group == null ?
-							[]
-						:
-							[group[0]]
-					))
-					.toSorted((first, second) => (
-						stringify(first[EntityMetaKey.Id]).localeCompare(
-							stringify(second[EntityMetaKey.Id]),
-						)
-					))
-			)
-		},
-	)
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import MarketView from '$/views/MarketView.svelte'
 </script>
 
@@ -103,20 +60,19 @@
 <EntitiesList
 	{...entitiesListRest}
 	bind:open
+	{collapsible}
 	entityType={EntityType.Market}
-	getKey={(row) => stringify(row[EntityMetaKey.Id])}
-	getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
-	placeholderKeys={new SvelteSet()}
-	resource={markets}
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			A market pairs a base asset with a quote so feeds can publish prices, volume, and related stats.
 		</p>
 		<p>
-			Spot best bids/asks and index marks are point samples; OHLC ranges aggregate trades or mid-prices into interval buckets for charts.
+			Each row is a venue book with a kind: spot (CEX/DEX cash markets), perpetual (funding + open interest), or dated futures.
+		</p>
+		<p>
+			Spot rows expose quote streams and OHLC where wired; perpetual and futures rows may include funding and open interest when a provider supplies them.
 		</p>
 	{/snippet}
 
@@ -126,20 +82,86 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			<MarketView
-				entityId={props.item[EntityMetaKey.Id]}
-				href={resolve(
-					'/(assets)/(markets)/market/[marketKey]',
-					{
-						marketKey: encodeURIComponent(stringify(props.item[EntityMetaKey.Id])),
+	{#snippet body()}
+		{#if open}
+			{@const fieldName = entityFieldReference.fieldName}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [
+						...marketCatalogFieldSources,
+					],
+					[fieldName]: {
+						$limit: 8192,
 					},
-				)}
-				id={stringify(props.item[EntityMetaKey.Id])}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+				},
+			)}
+			{@const markets = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.Market>[] = parent[fieldName] ?? []
+					return (
+						Object.values(
+							Object.groupBy(
+								rows,
+								(marketRow) => stringify(marketRow[EntityMetaKey.Id]),
+							),
+						)
+							.flatMap((group) => (
+								group == null ?
+									[]
+								:
+									[group[0]]
+							))
+							.filter((marketRow) => (
+								(
+									filterMarketVenueId == null
+									|| marketRow[EntityMetaKey.Id].$marketVenue.marketVenueId === filterMarketVenueId
+								)
+								&& (
+									filterMarketKind == null
+									|| marketRow[EntityMetaKey.Id].marketKind === filterMarketKind
+								)
+							))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.Market}
+				getKey={(row) => stringify(row[EntityMetaKey.Id])}
+				getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
+				placeholderKeys={new SvelteSet()}
+				open={true}
+				resource={markets}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No markets in this context yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item(props)}
+					{#if props.item}
+						<MarketView
+							entityId={props.item[EntityMetaKey.Id]}
+							href={resolve(
+								'/(assets)/(markets)/market/[marketKey]',
+								{
+									marketKey: encodeURIComponent(stringify(props.item[EntityMetaKey.Id])),
+								},
+							)}
+							id={stringify(props.item[EntityMetaKey.Id])}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/if}
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

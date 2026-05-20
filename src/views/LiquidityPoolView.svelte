@@ -9,6 +9,10 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
 		children,
@@ -69,11 +73,11 @@
 
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Tooltip from '$/components/Tooltipool.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import Address from '$/views/Address.svelte'
+	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
 
 
@@ -83,8 +87,9 @@
 	{href}
 	{open}
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={pool}
 			placeholderText="Loading pool…"
@@ -141,18 +146,36 @@
 					<div>
 						<dt>Token 0</dt>
 						<dd>
-							<Address
-								network={pool.$token0.$network}
-								address={pool.$token0.address}
+							<EvmContractView
+								entityId={pool.$token0}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+									{
+										networkId: String(pool.$token0.$network.chainId),
+										address: pool.$token0.address,
+									},
+								)}
+								layout={EntityLayout.Title}
+								open={false}
+								showTypeAnnotation={false}
 							/>
 						</dd>
 					</div>
 					<div>
 						<dt>Token 1</dt>
 						<dd>
-							<Address
-								network={pool.$token1.$network}
-								address={pool.$token1.address}
+							<EvmContractView
+								entityId={pool.$token1}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+									{
+										networkId: String(pool.$token1.$network.chainId),
+										address: pool.$token1.address,
+									},
+								)}
+								layout={EntityLayout.Title}
+								open={false}
+								showTypeAnnotation={false}
 							/>
 						</dd>
 					</div>
@@ -175,9 +198,18 @@
 							<div>
 								<dt>Hooks</dt>
 								<dd>
-									<Address
-										network={pool.$hooks.$network}
-										address={pool.$hooks.address}
+									<EvmContractView
+										entityId={pool.$hooks}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+											{
+												networkId: String(pool.$hooks.$network.chainId),
+												address: pool.$hooks.address,
+											},
+										)}
+										layout={EntityLayout.Title}
+										open={false}
+										showTypeAnnotation={false}
 									/>
 								</dd>
 							</div>

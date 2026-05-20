@@ -35,11 +35,11 @@
 			open?: boolean
 			ontoggle?: (e: Event) => void
 
-			Summary?: Snippet<[{
-				open: boolean,
+			Summary?: Snippet<[context?: {
+				open?: boolean,
 			}]>
-			children?: Snippet<[{
-				open: boolean,
+			children?: Snippet<[context?: {
+				open?: boolean,
 			}]>
 		},
 		ComponentProps<typeof Collapsible>

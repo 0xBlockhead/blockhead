@@ -18,6 +18,7 @@
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -84,6 +85,7 @@
 	{href}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
 	{#snippet Icon()}
 		<ResourceBoundary
@@ -116,7 +118,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.did}
 		</span>
@@ -158,7 +160,7 @@
 						<div>
 							<dt>DID</dt>
 							<dd data-text="mono">
-								{@render Id()}
+								{@render Title()}
 							</dd>
 						</div>
 					{/if}
@@ -220,7 +222,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<a
 						data-scroll-marker-label="Lexicon identity"
 						href={`#${idKey}:profile-details`}
@@ -231,7 +233,7 @@
 					>Posts</a>
 				{/snippet}
 
-				{#snippet children(_profileCarouselContext)}
+				{#snippet body(_profileCarouselContext)}
 					<section
 						data-scroll-marker-label="Lexicon identity"
 						id={`${idKey}:profile-details`}
@@ -287,7 +289,6 @@
 							})}
 							id={`${idKey}:posts`}
 							fieldOpen={_open}
-							open={false}
 							title="Posts"
 						/>
 					</section>

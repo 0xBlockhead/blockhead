@@ -49,6 +49,7 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+
 	const currency = useEntity(
 		EntityType.Currency,
 		entityId,
@@ -96,8 +97,9 @@
 	{layout}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.iso4217}
 		</span>
@@ -161,7 +163,7 @@
 				entityId={currencyTimestampEntityId(entityId.iso4217)}
 				{href}
 				id={`${idPrefix}:catalog-snapshot`}
-				layout={EntityLayout.Id}
+				layout={EntityLayout.Title}
 				open={false}
 				showTypeAnnotation={false}
 			/>
@@ -214,7 +216,7 @@
 					>Quote</a>
 				{/snippet}
 
-				{#snippet children({ open: _detailsOpen })}
+				{#snippet body({ open: _detailsOpen })}
 					{#if entityId.iso4217 === Iso4217.USD}
 						<p data-text="muted">
 							<a href={resolve('/markets')}>All catalog markets</a>

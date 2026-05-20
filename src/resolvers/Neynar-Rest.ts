@@ -31,13 +31,11 @@ const zeroXLowerHexCastHash = (hash: string): CastHash => {
 type NeynarCastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
 type NeynarUserEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterUser>
 type NeynarChannelEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterChannel>
-type NeynarCastWire = import('$/sources/Neynar/Rest/types.ts').NeynarCastWire
-
 const neynarPfpHttpUrl = (
 	value: string | null | undefined,
 	options?: { pageBaseUrl?: string },
 ) => {
-	const raw = typeof value === 'string' ? value.trim() : ''
+	const raw = value?.trim() ?? ''
 	if (raw.length === 0) return undefined
 	return resolveMediaUrlTransport(
 		raw.startsWith('/') && options?.pageBaseUrl != null ?
@@ -49,26 +47,6 @@ const neynarPfpHttpUrl = (
 
 const optionalTrimmedString = (value: string | undefined | null) => (
 	value?.trim() ? value.trim() : undefined
-)
-
-const farcasterCastEntityFromOptionalFidHash = (
-	fid: number | undefined,
-	hash: string | undefined,
-): NeynarCastEntity | undefined => (
-	fid == null || hash == null || String(hash).trim() === '' ?
-		undefined
-	: {
-			[EntityMetaKey.Id]: {
-				fid,
-				hash: zeroXLowerHexCastHash(String(hash)),
-			},
-		} satisfies NeynarCastEntity
-)
-
-const farcasterCastEntitiesFromNeynarCastFeed = (casts: NeynarCastWire[]) => (
-	casts
-		.map((cast) => farcasterCastEntityFromOptionalFidHash(cast.author?.fid, cast.hash))
-		.filter((ref): ref is NeynarCastEntity => ref != null)
 )
 
 export default {
@@ -113,7 +91,7 @@ export default {
 						}
 					))(mediaFromUrl(neynarPfpHttpUrl(user.pfp_url), MediaType.Image)),
 					bio: optionalTrimmedString(
-						typeof bioRaw === 'string' ? bioRaw : bioRaw?.text,
+						bioRaw != null && typeof bioRaw === 'object' ? bioRaw.text : bioRaw ?? undefined,
 					),
 					...verifiedPart,
 				}
@@ -154,7 +132,7 @@ export default {
 						}
 					))(mediaFromUrl(neynarPfpHttpUrl(user.pfp_url), MediaType.Image)),
 					bio: optionalTrimmedString(
-						typeof bioRaw === 'string' ? bioRaw : bioRaw?.text,
+						bioRaw != null && typeof bioRaw === 'object' ? bioRaw.text : bioRaw ?? undefined,
 					),
 					...(ethList.length > 0 && { verifications: ethList }),
 				}
@@ -202,7 +180,18 @@ export default {
 							} satisfies NeynarUserEntity)
 					),
 					text: optionalTrimmedString(cast.text),
-					$parentCast: farcasterCastEntityFromOptionalFidHash(cast.parent_author?.fid, cast.parent_hash),
+					$parentCast: (
+						cast.parent_author?.fid == null
+						|| cast.parent_hash == null
+						|| String(cast.parent_hash).trim() === '' ?
+							undefined
+						:	{
+								[EntityMetaKey.Id]: {
+									fid: cast.parent_author.fid,
+									hash: zeroXLowerHexCastHash(String(cast.parent_hash)),
+								},
+							} satisfies NeynarCastEntity
+					),
 					parentUrl: optionalTrimmedString(cast.parent_url ?? cast.root_parent_url),
 					timestamp: Number.isFinite(timestamp) ? timestamp : undefined,
 					mentions: cast.mentions,
@@ -219,9 +208,19 @@ export default {
 							url: optionalTrimmedString(embed.url),
 							$embeddedCast: (
 								embed.cast?.hash != null && embed.cast.author?.fid != null ?
-									farcasterCastEntityFromOptionalFidHash(embed.cast.author.fid, embed.cast.hash)
+									{
+										[EntityMetaKey.Id]: {
+											fid: embed.cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(embed.cast.hash)),
+										},
+									} satisfies NeynarCastEntity
 								: embed.cast_id?.fid != null && embed.cast_id.hash != null ?
-									farcasterCastEntityFromOptionalFidHash(embed.cast_id.fid, embed.cast_id.hash)
+									{
+										[EntityMetaKey.Id]: {
+											fid: embed.cast_id.fid,
+											hash: zeroXLowerHexCastHash(String(embed.cast_id.hash)),
+										},
+									} satisfies NeynarCastEntity
 								:	undefined
 							),
 							title: optionalTrimmedString(embed.metadata?.html?.ogTitle),
@@ -233,7 +232,7 @@ export default {
 									$icon: iconMedia,
 								}
 							))(mediaFromUrl(neynarPfpHttpUrl(
-								typeof og0 === 'string' ? og0 : undefined,
+								og0 ?? undefined,
 								{ pageBaseUrl: optionalTrimmedString(embed.url) },
 							), MediaType.Image)),
 							quotedPreviewText: optionalTrimmedString(embed.cast?.text),
@@ -273,7 +272,21 @@ export default {
 						},
 					)
 					if (page == null) throw new Error('Neynar_Rest: feed response missing')
-					return farcasterCastEntitiesFromNeynarCastFeed(page.casts ?? [])
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+								|| cast.hash == null
+								|| String(cast.hash).trim() === '' ?
+									[]
+								:	[{
+										[EntityMetaKey.Id]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies NeynarCastEntity]
+							))
+					)
 				}
 				if (entityId.variant === 'byUser') {
 					const page = await singleFlight(getFeed)(
@@ -286,7 +299,21 @@ export default {
 						},
 					)
 					if (page == null) throw new Error('Neynar_Rest: feed response missing')
-					return farcasterCastEntitiesFromNeynarCastFeed(page.casts ?? [])
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+								|| cast.hash == null
+								|| String(cast.hash).trim() === '' ?
+									[]
+								:	[{
+										[EntityMetaKey.Id]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies NeynarCastEntity]
+							))
+					)
 				}
 				if (entityId.variant === 'byChannel') {
 					const page = await singleFlight(getFeed)(
@@ -299,7 +326,21 @@ export default {
 						},
 					)
 					if (page == null) throw new Error('Neynar_Rest: feed response missing')
-					return farcasterCastEntitiesFromNeynarCastFeed(page.casts ?? [])
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+								|| cast.hash == null
+								|| String(cast.hash).trim() === '' ?
+									[]
+								:	[{
+										[EntityMetaKey.Id]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies NeynarCastEntity]
+							))
+					)
 				}
 				throw new Error(`Neynar_Rest: unsupported FarcasterFeed variant ${JSON.stringify(entityId)}`)
 			},
@@ -322,7 +363,21 @@ export default {
 					},
 				)
 				if (page == null) throw new Error('Neynar_Rest: feed response missing')
-				return farcasterCastEntitiesFromNeynarCastFeed(page.casts ?? [])
+				return (
+					(page.casts ?? [])
+						.flatMap((cast) => (
+							cast.author?.fid == null
+							|| cast.hash == null
+							|| String(cast.hash).trim() === '' ?
+								[]
+							:	[{
+									[EntityMetaKey.Id]: {
+										fid: cast.author.fid,
+										hash: zeroXLowerHexCastHash(String(cast.hash)),
+									},
+								} satisfies NeynarCastEntity]
+						))
+				)
 			},
 		}),
 
@@ -343,7 +398,21 @@ export default {
 					},
 				)
 				if (page == null) throw new Error('Neynar_Rest: feed response missing')
-				return farcasterCastEntitiesFromNeynarCastFeed(page.casts ?? [])
+				return (
+					(page.casts ?? [])
+						.flatMap((cast) => (
+							cast.author?.fid == null
+							|| cast.hash == null
+							|| String(cast.hash).trim() === '' ?
+								[]
+							:	[{
+									[EntityMetaKey.Id]: {
+										fid: cast.author.fid,
+										hash: zeroXLowerHexCastHash(String(cast.hash)),
+									},
+								} satisfies NeynarCastEntity]
+						))
+				)
 			},
 		}),
 

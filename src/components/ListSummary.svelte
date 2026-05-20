@@ -13,10 +13,10 @@
 		title?: string
 		showLoadedCount?: boolean
 		showTotalCount?: boolean
-		Title?: Snippet<[{
-			title: string
-			showLoadedCount: boolean
-			showTotalCount: boolean
+		Title?: Snippet<[context?: {
+			title?: string
+			showLoadedCount?: boolean
+			showTotalCount?: boolean
 		}]>
 	} = $props()
 

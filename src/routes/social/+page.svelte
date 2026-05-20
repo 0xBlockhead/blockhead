@@ -54,10 +54,8 @@
 		entityId={{}}
 		title={'Social'}
 		href={resolve('/social')}
-		open={false}
 	>
-		{#snippet children({
-			open: hubOpen,
+		{#snippet children({ open: hubOpen,
 		})}
 			<CollapsibleTabs
 				id={`${hubKey}:hub`}
@@ -89,7 +87,7 @@
 					>Farcaster</a>
 				{/snippet}
 
-				{#snippet children({ open: _paneOpen })}
+				{#snippet body({ open: _paneOpen })}
 					<section
 						id={`${hubKey}:protocols`}
 						data-scroll-marker-label="Protocols"

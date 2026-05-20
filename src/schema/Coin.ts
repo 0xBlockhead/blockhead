@@ -50,6 +50,18 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Coingecko_Rest,
+			],
+		},
+		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Coin_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
 		},
 		{
 			name: '$logo',

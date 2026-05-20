@@ -81,8 +81,9 @@
 	{layout}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.name}
 		</span>
@@ -176,8 +177,7 @@
 					>Submissions</a>
 				{/snippet}
 
-				{#snippet children({
-					open: _sectionOpen,
+				{#snippet body({ open: _sectionOpen,
 				})}
 					<section
 						id={`${idKey}:links`}
@@ -193,7 +193,6 @@
 								name: encodeURIComponent(entityId.name),
 							})}
 							id={`${idKey}:reddit-links`}
-							open={false}
 						/>
 					</section>
 				{/snippet}

@@ -6,24 +6,15 @@
 	}
 
 	export type SubiconProps = {
-		icon?: string
-		html?: string
-		src?: string
-		alt?: string
-		size?: number | string
-		backgroundColor?: string
+		src: string
 		shape?: IconShape
 	}
 </script>
 
 
 <script lang="ts">
-	// State
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { SvelteHTMLElements } from 'svelte/elements'
-
+	// Props
 	let {
-		class: className,
 		icon,
 		html,
 		src,
@@ -32,55 +23,31 @@
 		title = undefined,
 		size = '1em',
 		shape = IconShape.Square,
-		backgroundColor,
 		subicon,
-		loading = 'lazy',
-		decoding = 'async',
-		fetchPriority = 'auto',
-		referrerPolicy = 'no-referrer',
-		...spanProps
-	}: WithRest<
-		{
-			class?: string
-			icon?: string
-			html?: string
-			src?: string
-			alt?: string
-			label?: string
-			title?: string
-			size?: number | string
-			shape?: IconShape
-			backgroundColor?: string
-			subicon?: SubiconProps
-			loading?: import('svelte/elements').SvelteHTMLElements['img']['loading']
-			decoding?: import('svelte/elements').SvelteHTMLElements['img']['decoding']
-			fetchPriority?: import('svelte/elements').SvelteHTMLElements['img']['fetchpriority']
-			referrerPolicy?: import('svelte/elements').SvelteHTMLElements['img']['referrerpolicy']
-		},
-		SvelteHTMLElements['span']
-	> = $props()
+	}: {
+		icon?: string
+		html?: string
+		src?: string
+		alt?: string
+		label?: string
+		title?: string
+		size?: number | string
+		shape?: IconShape
+		subicon?: SubiconProps
+	} = $props()
 
 	const a11yLabel = $derived(
 		label ?? alt
 	)
-
-
-	// Components
-	import Icon from '$/components/Icon.svelte'
 </script>
 
 
 <span
-	{...spanProps}
-	class={`icon shape-${shape}${className ?
-		` ${className}`
-		: ''}`}
+	class="icon shape-{shape}"
 	data-row="center"
 	style={`--icon-size: ${typeof size === 'number' ?
 		`${size}px`
-		: size}${backgroundColor !== undefined ?
-		`; --icon-bg: ${backgroundColor}`
-		: ''}`}
+		: size}`}
 	aria-label={a11yLabel || undefined}
 	aria-hidden={a11yLabel ?
 		undefined
@@ -98,12 +65,11 @@
 			<img
 				{src}
 				{alt}
-				width={typeof size === 'number' ? size : undefined}
-				height={typeof size === 'number' ? size : undefined}
-				{loading}
-				{decoding}
-				fetchpriority={fetchPriority}
-				referrerpolicy={referrerPolicy}
+				width={typeof size === 'number' ? size : 20}
+				height={typeof size === 'number' ? size : 20}
+				loading="lazy"
+				decoding="async"
+				referrerpolicy="no-referrer"
 			/>
 		{:else if html}
 			{@html html}
@@ -113,14 +79,27 @@
 	</span>
 
 	{#if subicon}
-		<Icon
-			class="icon-subicon"
-			src={subicon.src}
-			alt={subicon.alt}
-			size={subicon.size ?? '40%'}
-			shape={subicon.shape ?? IconShape.Square}
-			backgroundColor={subicon.backgroundColor}
-		/>
+		<span
+			class="icon icon-subicon shape-{subicon.shape ?? IconShape.Square}"
+			data-row="center"
+			style="--icon-size: 40%;"
+			aria-hidden="true"
+		>
+			<span
+				data-row
+				class="icon-main"
+			>
+				<img
+					src={subicon.src}
+					alt=""
+					width={20}
+					height={20}
+					loading="lazy"
+					decoding="async"
+					referrerpolicy="no-referrer"
+				/>
+			</span>
+		</span>
 	{/if}
 </span>
 

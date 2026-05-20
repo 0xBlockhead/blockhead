@@ -11,7 +11,7 @@
 
 	// Props
 	let {
-		children,
+		children: _children,
 		entityId,
 		title = 'Calldata',
 		href,
@@ -126,7 +126,7 @@
 			{entityId}
 		/>
 
-		{#if children}
+		{#if _children}
 			<div
 				class="entity-view-detail-carousels"
 				data-column="gap-3"
@@ -144,18 +144,18 @@
 						</header>
 					{/snippet}
 
-					{#snippet Markers()}
+					{#snippet Markers(_context)}
 						<a
 							data-scroll-marker-label="Route"
 							href={`#${calldataIdKey}:page-content`}
 						>Route</a>
 					{/snippet}
 
-					{#snippet children(_ctx)}
+					{#snippet body(_ctx)}
 						<section
 							id={`${calldataIdKey}:page-content`}
 						>
-							{@render children()}
+							{@render _children()}
 						</section>
 					{/snippet}
 				</CollapsibleTabs>

@@ -29,11 +29,12 @@
 		title,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
-			children?: Snippet<[{
-				open: boolean,
+			children?: Snippet<[context?: {
+				open?: boolean,
 			}]>
 			entityId: EntityId<typeof schema, EntityType._Global>
 			title: string
@@ -224,8 +225,7 @@
 						>Usage</a>
 					{/snippet}
 
-					{#snippet children({
-						open: _paneOpen,
+					{#snippet body({ open: _paneOpen,
 					})}
 						<section
 							id={`global:${entityId.scope}:nav`}

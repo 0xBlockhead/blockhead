@@ -19,7 +19,7 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ContractView from '$/views/ContractView.svelte'
+	import EvmContractView from '$/views/EvmContractView.svelte'
 
 
 	// Props
@@ -29,6 +29,8 @@
 		title = 'Contracts',
 
 		open = $bindable(true),
+
+		collapsible = true,
 
 		id,
 
@@ -40,6 +42,7 @@
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmContract>
 			title?: string
 			open?: boolean
+			collapsible?: boolean
 			id: string
 			href: string
 		},
@@ -53,50 +56,6 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const network = useEntity(
-		EntityType.Network,
-		entityFieldReference.entityId,
-		{
-			...(open ? {
-				blockHeight: {
-					$: [
-						Source.Voltaire_JsonRpc,
-					],
-				},
-				$$contracts: {
-					$: [
-						Source.Blockscout_Rest,
-					],
-				},
-			} : {}),
-		},
-	)
-
-	const contracts = derive(
-		network,
-		(network): Entity<typeof schema, EntityType.EvmContract>[] => {
-			const rows = (
-				network.$$contracts
-				?? []
-			)
-			return (
-				rows
-					.toSorted((a, b) => (
-						stringify(b[EntityMetaKey.Id])
-							> stringify(a[EntityMetaKey.Id]) ?
-							1
-						:
-							stringify(b[EntityMetaKey.Id])
-								< stringify(a[EntityMetaKey.Id]) ?
-								-1
-							:
-								0
-					))
-					.slice(0, 16)
-			)
-		},
-	)
 </script>
 
 
@@ -121,46 +80,72 @@
 	{/snippet}
 
 	{#snippet body()}
-		<div data-column="gap-3">
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.EvmContract}
-				id={`${id}-items`}
-				{href}
-				{title}
-				open={true}
-				getKey={(row) => stringify(row[EntityMetaKey.Id])}
-				getSortValue={(row) => BigInt(row[EntityMetaKey.Id].address)}
-				placeholderText="Loading verified contracts…"
-				resource={contracts}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No verified contracts yet.
-					</p>
-				{/snippet}
+		{#if open}
+			{@const fieldName = entityFieldReference.fieldName}
+			{@const network = useEntity(
+				EntityType.Network,
+				entityFieldReference.entityId,
+				{
+					blockHeight: {
+						$: [
+							Source.Voltaire_JsonRpc,
+						],
+					},
+					[fieldName]: {
+						$: [
+							Source.Blockscout_Rest,
+						],
+						$limit: 16,
+					},
+				},
+			)}
+			{@const contracts = derive(
+				network,
+				(network): Entity<typeof schema, EntityType.EvmContract>[] => (
+					(network[fieldName] ?? []).slice(0, 16)
+				),
+			)}
+			<div data-column="gap-3">
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.EvmContract}
+					id={`${id}-items`}
+					{href}
+					{title}
+					open={true}
+					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getSortValue={(row) => BigInt(row[EntityMetaKey.Id].address)}
+					placeholderText="Loading verified contracts…"
+					resource={contracts}
+					UnorderedListProps={{ orientation: ListOrientation.Column }}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No verified contracts yet.
+						</p>
+					{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<ContractView
-							entityId={props.item[EntityMetaKey.Id]}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-								{
-									networkId: String(
-										props.item[EntityMetaKey.Id].$network.chainId,
-									),
-									address: props.item[EntityMetaKey.Id].address,
-								},
-							)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
-				{/snippet}
-			</EntitiesList>
-		</div>
+					{#snippet Item(props)}
+						{#if props.item}
+							<EvmContractView
+								entityId={props.item[EntityMetaKey.Id]}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+									{
+										networkId: String(
+											props.item[EntityMetaKey.Id].$network.chainId,
+										),
+										address: props.item[EntityMetaKey.Id].address,
+									},
+								)}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/if}
+					{/snippet}
+				</EntitiesList>
+			</div>
+		{/if}
 	{/snippet}
 </EntitiesList>

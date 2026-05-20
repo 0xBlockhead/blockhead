@@ -18,6 +18,7 @@
 		entityId,
 		href,
 		open = $bindable(true),
+		collapsible = true,
 		...entityViewRest
 	}: WithRest<
 		{
@@ -85,8 +86,9 @@
 	{href}
 	bind:open
 	{...entityViewRest}
+	summaryUsesHeading={true}
 >
-	{#snippet Id()}
+	{#snippet Title()}
 		<span data-text="font-monospace">
 			{entityId.uri}
 		</span>
@@ -271,7 +273,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers()}
+				{#snippet Markers(_context)}
 					<a
 						data-scroll-marker-label="Repository metadata"
 						href={`#${idKey}:post-repo-record`}
@@ -282,7 +284,7 @@
 					>Lexicon body</a>
 				{/snippet}
 
-				{#snippet children()}
+				{#snippet body({ open: _open })}
 					<section
 						data-scroll-marker-label="Repository metadata"
 						id={`${idKey}:post-repo-record`}

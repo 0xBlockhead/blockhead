@@ -4,16 +4,148 @@
  * @see https://docs.coinpaprika.com/api-reference/tickers/get-ticker-for-a-specific-coin.md
  */
 
-import { coingeckoOhlcDayWindowLengths } from '$/constants/Market.ts'
+import { stringify } from 'devalue'
+
+import type { CoinId } from '$/constants/Coin.ts'
+import { Iso4217 } from '$/constants/Currency.ts'
+import { MarketAssetKind, MarketKind, coingeckoOhlcDayWindowLengths } from '$/constants/Market.ts'
+import type { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { optionalPublicEnvString } from '$/lib/sources.ts'
+import type { EntityId } from '$/schema/$schema.ts'
+import { EntityType } from '$/schema/$EntityType.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import {
+	coinpaprikaMarketVenueIdByHostnameFragment,
+	coinpaprikaUsdQuoteWireIds,
+	coinIdByWireId,
+} from '$/sources/Coinpaprika/OpenApi/constants.ts'
 import { getCoinpaprikaJson } from '$/sources/Coinpaprika/OpenApi/client.ts'
 import type {
 	CoinpaprikaCoin,
+	CoinpaprikaMarket,
 	CoinpaprikaOhlcvRow,
 	CoinpaprikaTicker,
 } from '$/sources/Coinpaprika/OpenApi/types.ts'
+
+
+export const marketKindFromCoinpaprikaMarketCategory = (
+	category: string | undefined,
+): MarketKind => (
+	category === 'Futures' ?
+		MarketKind.Futures
+	: category === 'Perpetuals' || category === 'Perpetual' ?
+		MarketKind.Perpetual
+	:
+		MarketKind.Spot
+)
+
+
+export const marketVenueIdFromCoinpaprikaMarketUrl = (
+	marketUrl: string | undefined,
+): MarketVenueId | null => {
+	if (marketUrl == null || marketUrl === '') {
+		return null
+	}
+	try {
+		const host = new URL(marketUrl).hostname.toLowerCase()
+		for (const [fragment, marketVenueId] of coinpaprikaMarketVenueIdByHostnameFragment) {
+			if (host.includes(fragment)) {
+				return marketVenueId
+			}
+		}
+	} catch {
+		return null
+	}
+	return null
+}
+
+
+export const marketEntityIdFromCoinpaprikaMarket = (
+	market: CoinpaprikaMarket,
+	catalogCoinId: CoinId,
+): EntityId<typeof schema, EntityType.Market> | null => {
+	const baseWireId = market.base_currency_id
+	const quoteWireId = market.quote_currency_id
+	if (
+		baseWireId == null
+		|| quoteWireId == null
+		|| coinIdByWireId[baseWireId] !== catalogCoinId
+	) {
+		return null
+	}
+	const marketVenueId = marketVenueIdFromCoinpaprikaMarketUrl(market.market_url)
+	if (marketVenueId == null) {
+		return null
+	}
+	const quoteCoinId = coinIdByWireId[quoteWireId]
+	const marketKind = marketKindFromCoinpaprikaMarketCategory(market.category)
+	if (
+		(
+			coinpaprikaUsdQuoteWireIds as readonly string[]
+		).includes(quoteWireId)
+	) {
+		return {
+			$base: {
+				kind: MarketAssetKind.Coin,
+				$coin: { coinId: catalogCoinId },
+			},
+			$quote: {
+				kind: MarketAssetKind.Currency,
+				$currency: { iso4217: Iso4217.USD },
+			},
+			$marketVenue: { marketVenueId },
+			marketKind,
+		}
+	}
+	if (quoteCoinId != null) {
+		return {
+			$base: {
+				kind: MarketAssetKind.Coin,
+				$coin: { coinId: catalogCoinId },
+			},
+			$quote: {
+				kind: MarketAssetKind.Coin,
+				$coin: { coinId: quoteCoinId },
+			},
+			$marketVenue: { marketVenueId },
+			marketKind,
+		}
+	}
+	return null
+}
+
+
+export const collectCoinpaprikaMarketEntityIdsForCoin = async ({
+	publicEnv,
+	catalogCoinId,
+	coinpaprikaId,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
+	catalogCoinId: CoinId
+	coinpaprikaId: string
+}): Promise<EntityId<typeof schema, EntityType.Market>[]> => {
+	const markets = await getCoinpaprikaCoinMarkets({
+		publicEnv,
+		coinpaprikaId,
+	})
+	const seen = new Set<string>()
+	return (
+		markets.flatMap((market) => {
+			const marketId = marketEntityIdFromCoinpaprikaMarket(market, catalogCoinId)
+			if (marketId == null) {
+				return []
+			}
+			const key = stringify(marketId)
+			if (seen.has(key)) {
+				return []
+			}
+			seen.add(key)
+			return [marketId]
+		})
+	)
+}
 
 /**
  * OHLC range windows registered for Coinpaprika: multi-day historical needs pro API key
@@ -40,6 +172,25 @@ export const getCoinpaprikaCoinById = async ({
 		`/coins/${coinpaprikaId}`,
 	)
 )
+
+/**
+ * `GET /coins/{coin_id}/markets`
+ * @see https://docs.coinpaprika.com/api-reference/coins/get-markets-for-a-coin.md
+ */
+export const getCoinpaprikaCoinMarkets = async ({
+	publicEnv,
+	coinpaprikaId,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>
+	coinpaprikaId: string
+}) => (
+	await getCoinpaprikaJson<CoinpaprikaMarket[]>(
+		publicEnv,
+		`/coins/${coinpaprikaId}/markets?quotes=USD`,
+	)
+	?? []
+)
+
 
 export const getCoinpaprikaTickerById = async ({
 	publicEnv,

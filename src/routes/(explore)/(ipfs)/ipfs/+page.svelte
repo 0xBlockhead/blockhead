@@ -21,8 +21,7 @@
 		title="IPFS"
 		href={resolve('/ipfs')}
 	>
-		{#snippet children({
-			open: _hubOpen,
+		{#snippet children({ open: _hubOpen,
 		})}
 			<CollapsibleTabs
 				id={`${hubKey}:hub`}
@@ -50,7 +49,7 @@
 					>Browse</a>
 				{/snippet}
 
-				{#snippet children({ open: _paneOpen })}
+				{#snippet body({ open: _paneOpen })}
 					<section
 						id={`${hubKey}:browse`}
 						data-scroll-marker-label="Browse"

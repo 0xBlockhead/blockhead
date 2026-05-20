@@ -17,10 +17,12 @@
 		title: _title,
 		href,
 		idDragPlainText,
-		showEntityTypeIdPrefix = false,
+		showEntityTypeTitlePrefix = false,
+		useHeading = true,
+		summaryUsesHeading = false,
 		Icon,
 		Heading,
-		Id,
+		Title,
 		HeadingAfter,
 		children: _children,
 	}: {
@@ -30,11 +32,15 @@
 		href?: string
 		/** `text/plain` for summary drag; default `stringify(entityId)`. */
 		idDragPlainText?: string
-		/** Prefix secondary (or primary fallback) id with the entity type label (e.g. in lists). */
-		showEntityTypeIdPrefix?: boolean
+		/** Prefix secondary (or primary fallback) title with the entity type label (e.g. in lists). */
+		showEntityTypeTitlePrefix?: boolean
+		/** Card / page summaries use `<Heading>`; inline `<dl>` refs do not. */
+		useHeading?: boolean
+		/** Collapsible summary row uses `#snippet Heading` instead of `#snippet Title`. */
+		summaryUsesHeading?: boolean
 		Icon?: Snippet
 		Heading?: Snippet
-		Id?: Snippet
+		Title?: Snippet
 		HeadingAfter?: Snippet
 		children?: Snippet<[context?: {
 			title?: string
@@ -50,9 +56,13 @@
 		entityDefinitionByType[entityType].label,
 	)
 
+	const summaryPrefersHeading = $derived(
+		useHeading && summaryUsesHeading,
+	)
+
 
 	// Functions
-	const onIdDragStart = (e: DragEvent) => {
+	const onTitleDragStart = (e: DragEvent) => {
 		e.dataTransfer?.setData('text/plain', idDragPlainText ?? stringify(entityId))
 		if (href !== undefined && href.length > 0) {
 			e.dataTransfer?.setData('text/uri', href)
@@ -65,7 +75,67 @@
 </script>
 
 
-<header
+{#snippet TitleDraggable()}
+	{#if href}
+		<a
+			class="entity-summary-title-draggable"
+			{href}
+			draggable={true}
+			ondragstart={onTitleDragStart}
+		>
+			<span data-row="inline wrap align-center gap-2">
+				{#if Icon}
+					{@render Icon()}
+				{/if}
+				<span>
+					{#if summaryPrefersHeading && Heading}
+						{@render Heading()}
+					{:else if Title}
+						{#if showEntityTypeTitlePrefix}
+							<span data-text="annotation">{entityTypeLabel}</span>
+						{/if}
+						{@render Title()}
+					{:else if Heading}
+						{@render Heading()}
+					{:else}
+						{title}
+					{/if}
+				</span>
+			</span>
+		</a>
+	{:else}
+		<span
+			class="entity-summary-title-draggable"
+			role="group"
+			draggable={true}
+			ondragstart={onTitleDragStart}
+		>
+			<span data-row="inline wrap align-center gap-2">
+				{#if Icon}
+					{@render Icon()}
+				{/if}
+				<span>
+					{#if summaryPrefersHeading && Heading}
+						{@render Heading()}
+					{:else if Title}
+						{#if showEntityTypeTitlePrefix}
+							<span data-text="annotation">{entityTypeLabel}</span>
+						{/if}
+						{@render Title()}
+					{:else if Heading}
+						{@render Heading()}
+					{:else}
+						{title}
+					{/if}
+				</span>
+			</span>
+		</span>
+	{/if}
+{/snippet}
+
+
+<svelte:element
+	this={useHeading ? 'header' : 'div'}
 	class="entity-summary"
 	data-row-item="flexible"
 	data-row="wrap gap-2"
@@ -76,61 +146,15 @@
 		data-row="wrap"
 	>
 		<div data-row="start wrap">
-			<HeadingComponent>
-				{#if href}
-					<a
-						class="entity-summary-id-draggable"
-						{href}
-						draggable={true}
-						ondragstart={onIdDragStart}
-					>
-						<span data-row="inline wrap align-center gap-2">
-							{#if Icon}
-								{@render Icon()}
-							{/if}
-							<span>
-								{#if Heading}
-									{@render Heading()}
-								{:else if Id}
-									{#if showEntityTypeIdPrefix}
-										<span data-text="annotation">{entityTypeLabel}</span>
-									{/if}
-									{@render Id()}
-								{:else}
-									{title}
-								{/if}
-							</span>
-						</span>
-					</a>
-				{:else}
-					<span
-						class="entity-summary-id-draggable"
-						role="group"
-						draggable={true}
-						ondragstart={onIdDragStart}
-					>
-						<span data-row="inline wrap align-center gap-2">
-							{#if Icon}
-								{@render Icon()}
-							{/if}
-							<span>
-								{#if Heading}
-									{@render Heading()}
-								{:else if Id}
-									{#if showEntityTypeIdPrefix}
-										<span data-text="annotation">{entityTypeLabel}</span>
-									{/if}
-									{@render Id()}
-								{:else}
-									{title}
-								{/if}
-							</span>
-						</span>
-					</span>
-				{/if}
-			</HeadingComponent>
+			{#if useHeading}
+				<HeadingComponent>
+					{@render TitleDraggable()}
+				</HeadingComponent>
+			{:else}
+				{@render TitleDraggable()}
+			{/if}
 
-			{#if HeadingAfter}
+			{#if useHeading && HeadingAfter}
 				{@render HeadingAfter()}
 			{/if}
 		</div>
@@ -142,4 +166,4 @@
 			})}
 		{/if}
 	</div>
-</header>
+</svelte:element>

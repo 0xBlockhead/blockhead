@@ -141,10 +141,21 @@ export default {
 					|| token.decimals == null
 				) throw new Error('Allium_Rest: wallet token row incomplete')
 
+				const balance = BigInt(row.raw_balance_str ?? String(row.raw_balance ?? 0))
+
 				return {
 					symbol: token.info.symbol.trim().toUpperCase(),
 					decimals: token.decimals,
-					balance: BigInt(row.raw_balance_str ?? String(row.raw_balance ?? 0)),
+					balance,
+					...(token.price != null
+						&& Number.isFinite(token.price)
+						&& Number.isFinite(token.decimals)
+						&& token.decimals >= 0 ?
+							{
+								usdValue: (Number(balance) / 10 ** token.decimals) * token.price,
+							}
+						:
+							{}),
 				}
 			},
 		}),
