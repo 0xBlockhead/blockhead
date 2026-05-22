@@ -114,7 +114,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			FID {String(farcasterUserId.fid)}
 		</span>
 	{/snippet}
@@ -142,90 +142,129 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={farcasterUser}
-			placeholderText="Loading profile…"
-		>
-			{#snippet children(farcasterUser)}
-				<div data-column>
-					<dl data-column-item="center">
-						{#if farcasterUser.bio != null}
-							{#if farcasterUser.bio !== ''}
-								<div>
-									<dt>Bio</dt>
-									<dd>{farcasterUser.bio}</dd>
-								</div>
-							{/if}
-						{/if}
+		<dl data-column-item="center">
+			{#if farcasterUser.bio != null}
+				{#if farcasterUser.bio !== ''}
+					<div>
+						<dt>Bio</dt>
+						<dd>
+							<ResourceBoundary
+								resource={farcasterUser}
+								placeholderText="Loading profile…"
+							>
+								{#snippet children(farcasterUser)}
+									{farcasterUser.bio}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+			{/if}
 
-						{#if farcasterUser.url != null}
-							<div>
-								<dt>URL</dt>
-								<dd>
-									<a
-										href={farcasterUser.url}
-										data-text="muted"
-									>{farcasterUser.url}</a>
-								</dd>
-							</div>
-						{/if}
-
-						{#if farcasterUser.verifiedAddress !== undefined}
-							<div>
-								<dt>Verified address</dt>
-								<dd>
-									<ActorView
-										entityId={{
-											address: farcasterUser.verifiedAddress,
-										}}
-										href={resolve('/account/[address]', {
-											address: farcasterUser.verifiedAddress,
-										})}
-										layout={EntityLayout.Title}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								</dd>
-							</div>
-						{/if}
-
-						{#if open}
-							{#if farcasterUser.displayName != null}
-								<div>
-									<dt>Display name</dt>
-									<dd>{farcasterUser.displayName}</dd>
-								</div>
-							{/if}
-						{/if}
-
-						{#if open}
-							{#if farcasterUser.username != null}
-								<div>
-									<dt>Username</dt>
-									<dd>{farcasterUser.username}</dd>
-								</div>
-							{/if}
-						{/if}
-
-						{#if open}
-							{#if farcasterUser.$icon}
-								{#if farcasterUser.$icon[EntityMetaKey.Id].url != null}
-									<div>
-										<dt>Profile image</dt>
-										<dd>
-											<Media
-												media={{ url: farcasterUser.$icon[EntityMetaKey.Id].url }}
-												alt={farcasterUser.displayName ?? farcasterUser.username ?? ''}
-											/>
-										</dd>
-									</div>
-								{/if}
-							{/if}
-						{/if}
-					</dl>
+			{#if farcasterUser.url != null}
+				<div>
+					<dt>URL</dt>
+					<dd>
+						<ResourceBoundary
+							resource={farcasterUser}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(farcasterUser)}
+								<a
+									href={farcasterUser.url}
+									data-text="muted"
+								>{farcasterUser.url}</a>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
 				</div>
-			{/snippet}
-		</ResourceBoundary>
+			{/if}
+
+			{#if farcasterUser.verifiedAddress !== undefined}
+				<div>
+					<dt>Verified address</dt>
+					<dd>
+						<ResourceBoundary
+							resource={farcasterUser}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(farcasterUser)}
+								<ActorView
+									entityId={{
+										address: farcasterUser.verifiedAddress,
+									}}
+									href={resolve('/account/[address]', {
+										address: farcasterUser.verifiedAddress,
+									})}
+									layout={EntityLayout.Title}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if open}
+				{#if farcasterUser.displayName != null}
+					<div>
+						<dt>Display name</dt>
+						<dd>
+							<ResourceBoundary
+								resource={farcasterUser}
+								placeholderText="Loading profile…"
+							>
+								{#snippet children(farcasterUser)}
+									{farcasterUser.displayName}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+			{/if}
+
+			{#if open}
+				{#if farcasterUser.username != null}
+					<div>
+						<dt>Username</dt>
+						<dd>
+							<ResourceBoundary
+								resource={farcasterUser}
+								placeholderText="Loading profile…"
+							>
+								{#snippet children(farcasterUser)}
+									{farcasterUser.username}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+			{/if}
+
+			{#if open}
+				{#if farcasterUser.$icon}
+					{#if farcasterUser.$icon[EntityMetaKey.Id].url != null}
+						<div>
+							<dt>Profile image</dt>
+							<dd>
+								<ResourceBoundary
+									resource={farcasterUser}
+									placeholderText="Loading profile…"
+								>
+									{#snippet children(farcasterUser)}
+										<Media
+											media={{ url: farcasterUser.$icon[EntityMetaKey.Id].url }}
+											alt={farcasterUser.displayName ?? farcasterUser.username ?? ''}
+										/>
+									{/snippet}
+								</ResourceBoundary>
+							</dd>
+						</div>
+					{/if}
+				{/if}
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

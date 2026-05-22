@@ -105,7 +105,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			LI.FI quote
 		</span>
 	{/snippet}
@@ -117,105 +117,150 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: routeHref })}
-		<ResourceBoundary
-			resource={bridgeRoute}
-			placeholderText="Loading route…"
-		>
-			{#snippet children(bridgeRoute)}
-				<dl data-column-item="center">
-					<div>
-						<dt>From chain</dt>
-						<dd>
-							<NetworkView
-								entityId={{ chainId: entityId.fromChainId }}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]',
-									{ networkId: String(entityId.fromChainId) },
-								)}
-								layout={EntityLayout.Title}
-								open={false}
-								showTypeAnnotation={false}
-							/>
-						</dd>
-					</div>
-					<div>
-						<dt>To chain</dt>
-						<dd>
-							<NetworkView
-								entityId={{ chainId: entityId.toChainId }}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]',
-									{ networkId: String(entityId.toChainId) },
-								)}
-								layout={EntityLayout.Title}
-								open={false}
-								showTypeAnnotation={false}
-							/>
-						</dd>
-					</div>
-					{#if open}
-						{#if bridgeRoute.fromAmount !== undefined}
-							<div>
-								<dt>From amount</dt>
-								<dd data-text="font-monospace">{String(bridgeRoute.fromAmount)}</dd>
-							</div>
-						{/if}
+		<dl data-column-item="center">
+			<div>
+				<dt>From chain</dt>
+				<dd>
+					<NetworkView
+						entityId={{ chainId: entityId.fromChainId }}
+						href={resolve(
+							'/(explore)/(networks)/network/[networkId]',
+							{ networkId: String(entityId.fromChainId) },
+						)}
+						layout={EntityLayout.Title}
+						open={false}
+						showTypeAnnotation={false}
+					/>
+				</dd>
+			</div>
+			<div>
+				<dt>To chain</dt>
+				<dd>
+					<NetworkView
+						entityId={{ chainId: entityId.toChainId }}
+						href={resolve(
+							'/(explore)/(networks)/network/[networkId]',
+							{ networkId: String(entityId.toChainId) },
+						)}
+						layout={EntityLayout.Title}
+						open={false}
+						showTypeAnnotation={false}
+					/>
+				</dd>
+			</div>
+			{#if open}
+				<div>
+					<dt>From amount</dt>
+					<dd data-text="font-monospace">
+						<ResourceBoundary
+							resource={bridgeRoute}
+							placeholderText="Loading route…"
+						>
+							{#snippet children(bridgeRoute)}
+								{#if bridgeRoute.fromAmount !== undefined}
+									{String(bridgeRoute.fromAmount)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if bridgeRoute.toAmount !== undefined}
-							<div>
-								<dt>To amount</dt>
-								<dd data-text="font-monospace">{String(bridgeRoute.toAmount)}</dd>
-							</div>
-						{/if}
+				<div>
+					<dt>To amount</dt>
+					<dd data-text="font-monospace">
+						<ResourceBoundary
+							resource={bridgeRoute}
+							placeholderText="Loading route…"
+						>
+							{#snippet children(bridgeRoute)}
+								{#if bridgeRoute.toAmount !== undefined}
+									{String(bridgeRoute.toAmount)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if bridgeRoute.toAmountMin !== undefined}
-							<div>
-								<dt>Min received</dt>
-								<dd data-text="font-monospace">{String(bridgeRoute.toAmountMin)}</dd>
-							</div>
-						{/if}
+				<div>
+					<dt>Min received</dt>
+					<dd data-text="font-monospace">
+						<ResourceBoundary
+							resource={bridgeRoute}
+							placeholderText="Loading route…"
+						>
+							{#snippet children(bridgeRoute)}
+								{#if bridgeRoute.toAmountMin !== undefined}
+									{String(bridgeRoute.toAmountMin)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if bridgeRoute.gasCostUsd !== undefined}
-							<div>
-								<dt>Gas (USD)</dt>
-								<dd>
+				<div>
+					<dt>Gas (USD)</dt>
+					<dd>
+						<ResourceBoundary
+							resource={bridgeRoute}
+							placeholderText="Loading route…"
+						>
+							{#snippet children(bridgeRoute)}
+								{#if bridgeRoute.gasCostUsd !== undefined}
 									<CurrencyAmount
 										value={bridgeRoute.gasCostUsd}
 										scale={1}
 									/>
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if bridgeRoute.estimatedDurationSeconds !== undefined}
-							<div>
-								<dt>ETA</dt>
-								<dd>{String(bridgeRoute.estimatedDurationSeconds)} s</dd>
-							</div>
-						{/if}
+				<div>
+					<dt>ETA</dt>
+					<dd>
+						<ResourceBoundary
+							resource={bridgeRoute}
+							placeholderText="Loading route…"
+						>
+							{#snippet children(bridgeRoute)}
+								{#if bridgeRoute.estimatedDurationSeconds !== undefined}
+									{String(bridgeRoute.estimatedDurationSeconds)} s
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if (bridgeRoute.tags ?? []).length}
-							<div>
-								<dt>Tags</dt>
-								<dd>{(bridgeRoute.tags ?? []).join(', ')}</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
+				<div>
+					<dt>Tags</dt>
+					<dd>
+						<ResourceBoundary
+							resource={bridgeRoute}
+							placeholderText="Loading route…"
+						>
+							{#snippet children(bridgeRoute)}
+								{#if (bridgeRoute.tags ?? []).length}
+									{(bridgeRoute.tags ?? []).join(', ')}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 
-				{#if open}
-					<BridgeRouteStepsView
-						entityFieldReference={{
-							entityType: EntityType.BridgeRoute,
-							entityId,
-							fieldName: '$$steps',
-						}}
-						href={routeHref}
-						id={`${stringify(entityId)}:steps`}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		{#if open}
+			<BridgeRouteStepsView
+				entityFieldReference={{
+					entityType: EntityType.BridgeRoute,
+					entityId,
+					fieldName: '$$steps',
+				}}
+				href={routeHref}
+				id={`${stringify(entityId)}:steps`}
+			/>
+		{/if}
 	{/snippet}
 
 	{#snippet Details()}

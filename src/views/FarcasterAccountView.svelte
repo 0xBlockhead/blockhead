@@ -135,7 +135,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			FID {String(entityId.fid)}
 		</span>
 	{/snippet}

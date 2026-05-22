@@ -543,35 +543,39 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary
-					resource={network}
-					placeholderText="Loading network…"
-				>
-					{#snippet children(network)}
-						{#if network.environment !== undefined}
-							<div>
-								<dt>Environment</dt>
-								<dd>{network.environment}</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+				{#if network.environment !== undefined}
+					<div>
+						<dt>Environment</dt>
+						<dd>
+							<ResourceBoundary
+								resource={network}
+								placeholderText="Loading network…"
+							>
+								{#snippet children(network)}
+									{network.environment}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary
-					resource={network}
-					placeholderText="Loading network…"
-				>
-					{#snippet children(network)}
-						{#if network.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
-							<div>
-								<dt>Parent</dt>
-								<dd>Chain {String(network.$parentLayer[EntityMetaKey.Id].chainId)}</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+				{#if network.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
+					<div>
+						<dt>Parent</dt>
+						<dd>
+							<ResourceBoundary
+								resource={network}
+								placeholderText="Loading network…"
+							>
+								{#snippet children(network)}
+									Chain {String(network.$parentLayer[EntityMetaKey.Id].chainId)}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
 			{/if}
 
 			{#if contentOpen}
@@ -582,51 +586,51 @@
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary
-					resource={network}
-				>
-					{#snippet children(network)}
-						{#if network.registryStatus !== undefined}
-							<div>
-								<dt>Registry status</dt>
-								<dd>{network.registryStatus}</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+				{#if network.registryStatus !== undefined}
+					<div>
+						<dt>Registry status</dt>
+						<dd>
+							<ResourceBoundary resource={network}>
+								{#snippet children(network)}
+									{network.registryStatus}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary
-					resource={network}
-				>
-					{#snippet children(network)}
-						{#if (
-							network.peeringId !== undefined
-							&& network.peeringId !== entityId.chainId
-						)}
-							<div>
-								<dt>Peering ID</dt>
-								<dd>{String(network.peeringId)}</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+				{#if (
+					network.peeringId !== undefined
+					&& network.peeringId !== entityId.chainId
+				)}
+					<div>
+						<dt>Peering ID</dt>
+						<dd>
+							<ResourceBoundary resource={network}>
+								{#snippet children(network)}
+									{String(network.peeringId)}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
 			{/if}
 
 			{#if contentOpen}
-				<ResourceBoundary
-					resource={network}
-				>
-					{#snippet children(network)}
-						{#if network.slip44 !== undefined}
-							<div>
-								<dt>SLIP-44</dt>
-								<dd>{String(network.slip44)}</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+				{#if network.slip44 !== undefined}
+					<div>
+						<dt>SLIP-44</dt>
+						<dd>
+							<ResourceBoundary resource={network}>
+								{#snippet children(network)}
+									{String(network.slip44)}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
 			{/if}
 		</dl>
 	{/snippet}
@@ -1661,10 +1665,6 @@
 
 
 <style>
-	.network-summary-head {
-		flex-basis: 100%;
-	}
-
 	.network-view-carousel-groups :global(.carousel) {
 		&[data-scroll-container] {
 			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
@@ -1673,18 +1673,6 @@
 			&[data-scroll-container~='layout-carousel'] {
 				--carousel-basis: 40ch;
 			}
-		}
-	}
-
-	.network-beacon-fork-schedule {
-		inline-size: 100%;
-		border-collapse: collapse;
-
-		th,
-		td {
-			padding: 0.25rem 0.5rem;
-			text-align: start;
-			vertical-align: top;
 		}
 	}
 </style>

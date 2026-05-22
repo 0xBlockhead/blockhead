@@ -113,25 +113,32 @@
 		open: contentOpen,
 	})}
 		{#if contentOpen}
-			<ResourceBoundary
-				resource={sourceBundle}
-				placeholderText="Loading source files…"
-			>
-				{#snippet children(sourceBundle)}
-					{#if Object.keys(sourceBundle.files ?? {}).length > 0}
-						<div data-column="gap-2">
-							{#each Object.entries(sourceBundle.files ?? {}) as [path, content] (path)}
-								<details>
-									<summary><code>{path}</code></summary>
-									<pre data-text="font-monospace">{content}</pre>
-								</details>
-							{/each}
-						</div>
-					{:else}
-						<p data-text="muted">No source files in this bundle.</p>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			<dl data-column-item="center">
+				<div>
+					<dt>Source files</dt>
+					<dd>
+						<ResourceBoundary
+							resource={sourceBundle}
+							placeholderText="Loading source files…"
+						>
+							{#snippet children(sourceBundle)}
+								{#if Object.keys(sourceBundle.files ?? {}).length > 0}
+									<div data-column="gap-2">
+										{#each Object.entries(sourceBundle.files ?? {}) as [path, content] (path)}
+											<details>
+												<summary><code>{path}</code></summary>
+												<pre data-text="font-monospace">{content}</pre>
+											</details>
+										{/each}
+									</div>
+								{:else}
+									<p data-text="muted">No source files in this bundle.</p>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			</dl>
 		{/if}
 	{/snippet}
 

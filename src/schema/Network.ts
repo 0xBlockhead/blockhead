@@ -410,6 +410,7 @@ export default {
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
+				Source.Constants_Internal,
 				Source.Blockscout_Rest,
 			],
 		},

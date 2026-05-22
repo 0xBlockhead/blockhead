@@ -10,7 +10,7 @@ export const atprotoNetworkFieldValues = {
 	homeUrl: 'https://atproto.com',
 	protocolName: 'AT Protocol (Bluesky / appviews)',
 	registryLabel: 'Curated seed actors + public appview feeds',
-	topology: 'network -> actors -> posts',
+	topology: 'Constants seeds + live XRPC -> network -> actors -> posts',
 } as const
 
 export const atprotoNetworkSeedActors: readonly EntityId<typeof schema, EntityType.AtprotoActor>[] = [

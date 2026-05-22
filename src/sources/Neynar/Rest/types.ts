@@ -6,6 +6,8 @@
 export type NeynarUserWire = {
 	object?: 'user' | 'user_dehydrated'
 	fid: number
+	follower_count?: number
+	following_count?: number
 	username?: string
 	display_name?: string
 	pfp_url?: string
@@ -115,6 +117,13 @@ export type NeynarFeedQuery =
 		limit?: number
 		cursor?: string
 		membersOnly?: boolean
+		viewerFid?: number
+	}
+	| {
+		feedType: 'following'
+		fid: number
+		limit?: number
+		cursor?: string
 		viewerFid?: number
 	}
 

@@ -188,16 +188,16 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			placeholderText="Loading ENS name…"
-			resource={ens}
-		>
-			{#snippet children(ens)}
-				<dl data-column-item="center">
-					{#if ens.$resolvedActor !== undefined}
-						<div>
-							<dt>Resolved address</dt>
-							<dd>
+		<dl data-column-item="center">
+			<div>
+				<dt>Resolved address</dt>
+				<dd>
+					<ResourceBoundary
+						placeholderText="Loading ENS name…"
+						resource={ens}
+					>
+						{#snippet children(ens)}
+							{#if ens.$resolvedActor !== undefined}
 								<ActorView
 									entityId={ens.$resolvedActor[EntityMetaKey.Id]}
 									href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
@@ -207,53 +207,96 @@
 									open={false}
 									showTypeAnnotation={false}
 								/>
-							</dd>
-						</div>
-					{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if ens.textRecords !== undefined}
-						{@const textRecordCount = Object.keys(ens.textRecords).length}
-						{#if textRecordCount > 0}
-							<div>
-								<dt>Text records</dt>
-								<dd>{String(textRecordCount)}</dd>
-							</div>
-						{/if}
-					{/if}
+			<div>
+				<dt>Text records</dt>
+				<dd>
+					<ResourceBoundary
+						placeholderText="Loading ENS name…"
+						resource={ens}
+					>
+						{#snippet children(ens)}
+							{#if ens.textRecords !== undefined}
+								{@const textRecordCount = Object.keys(ens.textRecords).length}
+								{#if textRecordCount > 0}
+									{String(textRecordCount)}
+								{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if (ens.subdomainCount ?? 0) > 0}
-						<div>
-							<dt>Subdomains</dt>
-							<dd>{String(ens.subdomainCount)}</dd>
-						</div>
-					{/if}
+			<div>
+				<dt>Subdomains</dt>
+				<dd>
+					<ResourceBoundary
+						placeholderText="Loading ENS name…"
+						resource={ens}
+					>
+						{#snippet children(ens)}
+							{#if (ens.subdomainCount ?? 0) > 0}
+								{String(ens.subdomainCount)}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if ens.coinAddresses !== undefined}
-						{@const coinCount = Object.keys(ens.coinAddresses).length}
-						{#if coinCount > 0}
-							<div>
-								<dt>Coin records</dt>
-								<dd>{String(coinCount)}</dd>
-							</div>
-						{/if}
-					{/if}
+			<div>
+				<dt>Coin records</dt>
+				<dd>
+					<ResourceBoundary
+						placeholderText="Loading ENS name…"
+						resource={ens}
+					>
+						{#snippet children(ens)}
+							{#if ens.coinAddresses !== undefined}
+								{@const coinCount = Object.keys(ens.coinAddresses).length}
+								{#if coinCount > 0}
+									{String(coinCount)}
+								{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if ens.expiryDate !== undefined}
-						{@const expiryMs = Number(ens.expiryDate)}
-						{#if Number.isFinite(expiryMs)}
-							<div>
-								<dt>Registration</dt>
-								<dd>{ensRegistrationStatusLabel(ensRegistrationStatusFromExpiryMs(expiryMs))}</dd>
-							</div>
-						{/if}
-					{/if}
+			<div>
+				<dt>Registration</dt>
+				<dd>
+					<ResourceBoundary
+						placeholderText="Loading ENS name…"
+						resource={ens}
+					>
+						{#snippet children(ens)}
+							{#if ens.expiryDate !== undefined}
+								{@const expiryMs = Number(ens.expiryDate)}
+								{#if Number.isFinite(expiryMs)}
+									{ensRegistrationStatusLabel(ensRegistrationStatusFromExpiryMs(expiryMs))}
+								{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if ens.contentHash != null && ens.contentHash !== ''}
-						{@const decodedContentHash = decodeEnsContentHash(ens.contentHash)}
-						{@const contentHashBrowseHref = getEnsContentHashBrowseHref(ens.contentHash)}
-						<div>
-							<dt>Content hash</dt>
-							<dd data-column="gap-1">
+			<div>
+				<dt>Content hash</dt>
+				<dd data-column="gap-1">
+					<ResourceBoundary
+						placeholderText="Loading ENS name…"
+						resource={ens}
+					>
+						{#snippet children(ens)}
+							{#if ens.contentHash != null && ens.contentHash !== ''}
+								{@const decodedContentHash = decodeEnsContentHash(ens.contentHash)}
+								{@const contentHashBrowseHref = getEnsContentHashBrowseHref(ens.contentHash)}
 								<TruncatedValue
 									value={ens.contentHash}
 									format={TruncatedValueFormat.Visual}
@@ -269,22 +312,38 @@
 										{/if}
 									</span>
 								{/if}
-							</dd>
-						</div>
-					{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if ens.isMigrated !== undefined}
-						<div>
-							<dt>Migrated</dt>
-							<dd>{ens.isMigrated ? 'Yes' : 'No'}</dd>
-						</div>
-					{/if}
+			<div>
+				<dt>Migrated</dt>
+				<dd>
+					<ResourceBoundary
+						placeholderText="Loading ENS name…"
+						resource={ens}
+					>
+						{#snippet children(ens)}
+							{#if ens.isMigrated !== undefined}
+								{ens.isMigrated ? 'Yes' : 'No'}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if open}
-						{#if ens.$ownerActor !== undefined}
-							<div>
-								<dt>Owner</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Owner</dt>
+					<dd>
+						<ResourceBoundary
+							placeholderText="Loading ENS name…"
+							resource={ens}
+						>
+							{#snippet children(ens)}
+								{#if ens.$ownerActor !== undefined}
 									<ActorNetworkView
 										entityId={{
 											$network: { chainId: ensEthereumChainId },
@@ -301,30 +360,37 @@
 										open={false}
 										showTypeAnnotation={false}
 									/>
-								</dd>
-							</div>
-						{/if}
-					{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if ens.expiryDate !== undefined}
-							{@const expiryMs = Number(ens.expiryDate)}
-							{#if Number.isFinite(expiryMs)}
-								<div>
-									<dt>Expiry</dt>
-									<dd>
+			{#if open}
+				<div>
+					<dt>Expiry</dt>
+					<dd>
+						<ResourceBoundary
+							placeholderText="Loading ENS name…"
+							resource={ens}
+						>
+							{#snippet children(ens)}
+								{#if ens.expiryDate !== undefined}
+									{@const expiryMs = Number(ens.expiryDate)}
+									{#if Number.isFinite(expiryMs)}
 										<Timestamp
 											timestamp={expiryMs}
 											format={TimestampFormat.Both}
 										/>
-									</dd>
-								</div>
-							{/if}
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+									{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

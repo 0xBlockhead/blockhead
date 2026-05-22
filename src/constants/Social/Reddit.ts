@@ -10,7 +10,7 @@ export const redditNetworkFieldValues = {
 	homeUrl: 'https://www.reddit.com',
 	protocolName: 'Reddit data API',
 	registryLabel: 'Curated seed subreddits + live subreddit hot feeds',
-	topology: 'network -> subreddits -> links -> comments',
+	topology: 'Constants seeds + live JSON API -> network -> subreddits -> links -> comments',
 } as const
 
 /** Subreddit `name` matches Reddit’s canonical id: lowercase, no `r/` prefix. */

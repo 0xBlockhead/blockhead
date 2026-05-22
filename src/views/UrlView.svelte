@@ -107,53 +107,75 @@
 
 	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
 		<dl data-column-item="center">
-			<ResourceBoundary resource={url}>
-				{#snippet children(url)}
-					{#if contentOpen}
-						{#if url.openGraphDescription != null}
-							<div>
-								<dt>Description</dt>
-								<dd>{url.openGraphDescription}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if contentOpen}
+				<div>
+					<dt>Description</dt>
+					<dd>
+						<ResourceBoundary resource={url}>
+							{#snippet children(url)}
+								{#if url.openGraphDescription != null}
+									{url.openGraphDescription}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if url.publisher != null}
-						<div>
-							<dt>Publisher</dt>
-							<dd>{url.publisher}</dd>
-						</div>
-					{/if}
+			<div>
+				<dt>Publisher</dt>
+				<dd>
+					<ResourceBoundary resource={url}>
+						{#snippet children(url)}
+							{#if url.publisher != null}
+								{url.publisher}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if contentOpen}
-						{#if url.catalogStandard != null}
-							<div>
-								<dt>Explorer standard</dt>
-								<dd>{url.catalogStandard}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if contentOpen}
+				<div>
+					<dt>Explorer standard</dt>
+					<dd>
+						<ResourceBoundary resource={url}>
+							{#snippet children(url)}
+								{#if url.catalogStandard != null}
+									{url.catalogStandard}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if contentOpen}
-						{#if url.$openGraphImage != null}
-							{#if url.$openGraphImage[EntityMetaKey.Id].url}
-								<div>
-									<dt>Preview</dt>
-									<dd>
+			{#if contentOpen}
+				<div>
+					<dt>Preview</dt>
+					<dd>
+						<ResourceBoundary resource={url}>
+							{#snippet children(url)}
+								{#if url.$openGraphImage != null}
+									{#if url.$openGraphImage[EntityMetaKey.Id].url}
 										<Media
 											alt={url.openGraphTitle ?? ''}
 											media={{ url: url.$openGraphImage[EntityMetaKey.Id].url }}
 										/>
-									</dd>
-								</div>
-							{/if}
-						{/if}
-					{/if}
+									{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if url.openGraphTitle != null}
-						<div>
-							<dt>Website</dt>
-							<dd>
+			<div>
+				<dt>Website</dt>
+				<dd>
+					<ResourceBoundary resource={url}>
+						{#snippet children(url)}
+							{#if url.openGraphTitle != null}
 								<a
 									href={entityId.url}
 									rel="noreferrer"
@@ -161,13 +183,8 @@
 								>
 									{entityId.url}
 								</a>
-							</dd>
-						</div>
-					{:else}
-						{#if url.catalogName != null}
-							<div>
-								<dt>Website</dt>
-								<dd>
+							{:else}
+								{#if url.catalogName != null}
 									<a
 										href={entityId.url}
 										rel="noreferrer"
@@ -175,12 +192,12 @@
 									>
 										{entityId.url}
 									</a>
-								</dd>
-							</div>
-						{/if}
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+								{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 		</dl>
 	{/snippet}
 

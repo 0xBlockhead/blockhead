@@ -75,7 +75,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.upgradeId}
 		</span>
 	{/snippet}
@@ -96,23 +96,25 @@
 		href: _href,
 		open: contentOpen,
 	})}
-		<ResourceBoundary
-			resource={networkConsensusUpgrade}
-			placeholderText="Loading consensus upgrade…"
-		>
-			{#snippet children(networkConsensusUpgrade)}
-				<dl data-column-item="center">
-					{#if open}
-						{#if networkConsensusUpgrade.protocol !== undefined}
-							<div>
-								<dt>Consensus fork</dt>
-								<dd>{networkConsensusUpgrade.protocol}</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+		<dl data-column-item="center">
+			{#if contentOpen}
+				{#if networkConsensusUpgrade.protocol !== undefined}
+					<div>
+						<dt>Consensus fork</dt>
+						<dd>
+							<ResourceBoundary
+								resource={networkConsensusUpgrade}
+								placeholderText="Loading consensus upgrade…"
+							>
+								{#snippet children(networkConsensusUpgrade)}
+									{networkConsensusUpgrade.protocol}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

@@ -82,35 +82,37 @@
 >
 	{#snippet Heading()}
 
-		<span data-text="font-monospace">
+		<span>
 			{entityId.kind}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{`${proposalRealmById[entityId.realm].label} · ${proposalCategoryById[entityId.category].label}`}
 		</span>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={kind}
-			placeholderText="Loading proposal kind…"
-		>
-			{#snippet children(kind)}
-				<dl data-column-item="center">
-					{#if open}
-						{#if kind.labelPlural !== undefined}
-							<div>
-								<dt>Label plural</dt>
-								<dd>{kind.labelPlural}</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+		<dl data-column-item="center">
+			{#if open}
+				{#if kind.labelPlural !== undefined}
+					<div>
+						<dt>Label plural</dt>
+						<dd>
+							<ResourceBoundary
+								resource={kind}
+								placeholderText="Loading proposal kind…"
+							>
+								{#snippet children(kind)}
+									{kind.labelPlural}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

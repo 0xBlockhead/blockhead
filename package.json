@@ -38,7 +38,8 @@
 		"sources:lifi:check-bridge-tools": "pnpm exec tsx scripts/lifi-bridge-tools-diff.ts",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
-		"test:e2e": "playwright test"
+		"test:e2e": "playwright test",
+		"test:e2e:cors": "playwright test tests/e2e/cors-policy.e2e.ts"
 	},
 	"devDependencies": {
 		"@dotenvx/dotenvx": "^1.61.1",

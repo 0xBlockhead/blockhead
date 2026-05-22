@@ -354,12 +354,10 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
-			<TruncatedValue
-				format={TruncatedValueFormat.Visual}
-				value={entityId.address}
-			/>
-		</span>
+		<TruncatedValue
+			format={TruncatedValueFormat.Visual}
+			value={entityId.address}
+		/>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -384,61 +382,54 @@
 		href: _href,
 		open: contentOpen,
 	})}
-		<ResourceBoundary
-			resource={actor}
-			placeholderText="Loading account…"
-		>
-			{#snippet children(actor)}
-				<dl data-column-item="center">
-					{#if contentOpen}
-						{#if entityId.interopAddress}
-							<div>
-								<dt>Interop address</dt>
-								<dd>
-									<TruncatedValue
-										value={entityId.interopAddress}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</dd>
-							</div>
-						{/if}
-					{/if}
+		<dl data-column-item="center">
+			{#if contentOpen}
+				{#if entityId.interopAddress}
+					<div>
+						<dt>Interop address</dt>
+						<dd>
+							<TruncatedValue
+								value={entityId.interopAddress}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</dd>
+					</div>
+				{/if}
+			{/if}
 
-					{#if contentOpen}
-						{#if flattenedCoinItems.length}
-							<div>
-								<dt>Indexed balances</dt>
-								<dd>{String(flattenedCoinItems.length)} token row{flattenedCoinItems.length === 1 ? '' : 's'}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if contentOpen}
+				{#if flattenedCoinItems.length}
+					<div>
+						<dt>Indexed balances</dt>
+						<dd>{String(flattenedCoinItems.length)} token row{flattenedCoinItems.length === 1 ? '' : 's'}</dd>
+					</div>
+				{/if}
+			{/if}
 
-					{#if contentOpen && firstContractChainId != null}
-						<div>
-							<dt>Contract</dt>
-							<dd>
-								<EvmContractView
-									entityId={{
-										$network: { chainId: firstContractChainId },
-										address: entityId.address,
-									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-										{
-											networkId: String(firstContractChainId),
-											address: entityId.address,
-										},
-									)}
-									layout={EntityLayout.Title}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+			{#if contentOpen && firstContractChainId != null}
+				<div>
+					<dt>Contract</dt>
+					<dd>
+						<EvmContractView
+							entityId={{
+								$network: { chainId: firstContractChainId },
+								address: entityId.address,
+							}}
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+								{
+									networkId: String(firstContractChainId),
+									address: entityId.address,
+								},
+							)}
+							layout={EntityLayout.Title}
+							open={false}
+							showTypeAnnotation={false}
+						/>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

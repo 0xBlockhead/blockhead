@@ -125,7 +125,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('TradingView_Rest: $$marketsWithCoinAsQuote is not implemented')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -153,13 +155,17 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Currency,
 			fieldName: '$$marketsWithCurrencyAsBase',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => (
-				catalogMarketsWithCurrencyAsBase(entityId.iso4217).map((marketId) => (
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+				const markets = catalogMarketsWithCurrencyAsBase(entityId.iso4217).map((marketId) => (
 					{
 						[EntityMetaKey.Id]: marketId,
 					}
 				))
-			),
+				if (markets.length === 0) {
+					throw new Error(`TradingView_Rest: no catalog markets with ${entityId.iso4217} as base`)
+				}
+				return markets
+			},
 		}),
 
 		defineEntityFieldResolver({

@@ -81,7 +81,9 @@ export default {
 				const { fetchSuperchainNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 				const networks = await fetchSuperchainNetworks()
 				const network = networks.find((candidate) => candidate.chainId === entityId.chainId)
-				if (network == null || network.namespace !== superchainMainnetIdentifier) return []
+				if (network == null || network.namespace !== superchainMainnetIdentifier) {
+					throw new Error('Superchain_Github: $$testnets only for Superchain mainnet networks')
+				}
 				return stableSortNetworkIds(
 					networks.flatMap((candidate) => (
 						candidate.namespace === superchainMainnetIdentifier

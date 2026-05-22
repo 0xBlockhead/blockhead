@@ -89,7 +89,7 @@
 	{entityId}
 	{href}
 	bind:open
-	title={`Network upgrade · ${entityId.upgradeId}`}
+	title={entityId.upgradeId}
 	{...entityViewRest}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -111,16 +111,16 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={networkUpgrade}
-			placeholderText=""
-		>
-			{#snippet children(networkUpgrade)}
-				<dl data-column-item="center">
+		<dl data-column-item="center">
 					{#if networkUpgrade.activationBlock !== undefined}
 						<div>
 							<dt>Activation block</dt>
 							<dd>
+								<ResourceBoundary
+									resource={networkUpgrade}
+									placeholderText=""
+								>
+									{#snippet children(networkUpgrade)}
 								<EvmBlockView
 									entityId={{
 										$network: { chainId: entityId.$network.chainId },
@@ -137,6 +137,8 @@
 									open={false}
 									showTypeAnnotation={false}
 								/>
+									{/snippet}
+								</ResourceBoundary>
 							</dd>
 						</div>
 					{/if}
@@ -145,7 +147,14 @@
 						<div>
 							<dt>Activation epoch</dt>
 							<dd>
-								<NumberValue value={networkUpgrade.activationEpoch} />
+								<ResourceBoundary
+									resource={networkUpgrade}
+									placeholderText=""
+								>
+									{#snippet children(networkUpgrade)}
+										<NumberValue value={networkUpgrade.activationEpoch} />
+									{/snippet}
+								</ResourceBoundary>
 							</dd>
 						</div>
 					{/if}
@@ -154,15 +163,22 @@
 						<div>
 							<dt>Activation time</dt>
 							<dd>
-								<Timestamp
-									timestamp={(
-										networkUpgrade.activationTimestamp < 1e12 ?
-											networkUpgrade.activationTimestamp * 1000
-										:
-											networkUpgrade.activationTimestamp
-									)}
-									format={TimestampFormat.Both}
-								/>
+								<ResourceBoundary
+									resource={networkUpgrade}
+									placeholderText=""
+								>
+									{#snippet children(networkUpgrade)}
+										<Timestamp
+											timestamp={(
+												networkUpgrade.activationTimestamp < 1e12 ?
+													networkUpgrade.activationTimestamp * 1000
+												:
+													networkUpgrade.activationTimestamp
+											)}
+											format={TimestampFormat.Both}
+										/>
+									{/snippet}
+								</ResourceBoundary>
 							</dd>
 						</div>
 					{/if}
@@ -171,6 +187,11 @@
 						<div>
 							<dt>Execution layer</dt>
 							<dd>
+								<ResourceBoundary
+									resource={networkUpgrade}
+									placeholderText=""
+								>
+									{#snippet children(networkUpgrade)}
 								<NetworkExecutionUpgradeView
 									entityId={networkUpgrade.$networkExecutionUpgrade[EntityMetaKey.Id]}
 									href={resolve(
@@ -187,6 +208,8 @@
 									open={false}
 									showTypeAnnotation={false}
 								/>
+									{/snippet}
+								</ResourceBoundary>
 							</dd>
 						</div>
 
@@ -194,6 +217,11 @@
 							<div>
 								<dt>Consensus layer</dt>
 								<dd>
+									<ResourceBoundary
+										resource={networkUpgrade}
+										placeholderText=""
+									>
+										{#snippet children(networkUpgrade)}
 									<NetworkConsensusUpgradeView
 										entityId={networkUpgrade.$networkConsensusUpgrade[EntityMetaKey.Id]}
 										href={resolve(
@@ -210,13 +238,13 @@
 										open={false}
 										showTypeAnnotation={false}
 									/>
+										{/snippet}
+									</ResourceBoundary>
 								</dd>
 							</div>
 						{/if}
 					{/if}
 				</dl>
-			{/snippet}
-		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details()}

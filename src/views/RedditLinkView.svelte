@@ -115,86 +115,122 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={link}
-			placeholderText="Loading Reddit submission…"
-		>
-			{#snippet children(link)}
-				{#if !link.selftext}
-					<p data-text="muted">No submission text.</p>
-				{:else}
-					<p>{link.selftext}</p>
-				{/if}
-				<dl data-column-item="center">
-					{#if open}
-						<div>
-							<dt>Submission fullname</dt>
-							<dd>
-								<span data-text="mono">
-									{entityId.fullname}
-								</span>
-							</dd>
-						</div>
-					{/if}
+		<dl data-column-item="center">
+			{#if !open}
+				<div>
+					<dt>Submission</dt>
+					<dd>
+						<ResourceBoundary
+							resource={link}
+							placeholderText="Loading Reddit submission…"
+						>
+							{#snippet children(link)}
+								{#if !link.selftext}
+									<p data-text="muted">No submission text.</p>
+								{:else}
+									<p>{link.selftext}</p>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if open}
+				<div>
+					<dt>Submission fullname</dt>
+					<dd>
+						<span data-text="mono">
+							{entityId.fullname}
+						</span>
+					</dd>
+				</div>
 
-					{#if open}
-						<div>
-							<dt>Submission title</dt>
-							<dd>{link.title}</dd>
-						</div>
-					{/if}
+				<div>
+					<dt>Submission title</dt>
+					<dd>
+						<ResourceBoundary
+							resource={link}
+							placeholderText="Loading Reddit submission…"
+						>
+							{#snippet children(link)}
+								{link.title}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-					{#if open}
-						<div>
-							<dt>Author</dt>
-							<dd>link/{link.author}</dd>
-						</div>
-					{/if}
+				<div>
+					<dt>Author</dt>
+					<dd>
+						<ResourceBoundary
+							resource={link}
+							placeholderText="Loading Reddit submission…"
+						>
+							{#snippet children(link)}
+								link/{link.author}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-					{#if open}
-						<div>
-							<dt>Posted in</dt>
-							<dd>
+				<div>
+					<dt>Posted in</dt>
+					<dd>
+						<ResourceBoundary
+							resource={link}
+							placeholderText="Loading Reddit submission…"
+						>
+							{#snippet children(link)}
 								<a
 									href={resolve(
 										'/(social)/reddit/r/[name]',
 										{ name: encodeURIComponent(link.$subreddit[EntityMetaKey.Id].name) },
 									)}
 								>r/{link.$subreddit[EntityMetaKey.Id].name}</a>
-							</dd>
-						</div>
-					{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-					{#if open}
-						<div>
-							<dt>URL</dt>
-							<dd>
+				<div>
+					<dt>URL</dt>
+					<dd>
+						<ResourceBoundary
+							resource={link}
+							placeholderText="Loading Reddit submission…"
+						>
+							{#snippet children(link)}
 								<a
 									href={link.url}
 									rel="noreferrer"
 									target="_blank"
 								>{link.url}</a>
-							</dd>
-						</div>
-					{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-					{#if open}
-						{#if link.permalink}
-							<div>
-								<dt>Permalink</dt>
-								<dd>
+				<div>
+					<dt>Permalink</dt>
+					<dd>
+						<ResourceBoundary
+							resource={link}
+							placeholderText="Loading Reddit submission…"
+						>
+							{#snippet children(link)}
+								{#if link.permalink}
 									<a
 										href={`https://reddit.com${link.permalink}`}
 										rel="noreferrer"
 										target="_blank"
 									>reddit.com{link.permalink}</a>
-								</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

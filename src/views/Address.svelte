@@ -86,24 +86,22 @@
 						/>
 					{/if}
 
-					<span data-text="font-monospace">
-						<TruncatedValue
-							value={shownAddress}
-							startLength={
-								format === AddressFormat.Full ?
-									shownAddress.length
-								:
-									6
-							}
-							endLength={
-								format === AddressFormat.Full ?
-									0
-								:
-									4
-							}
-							format={TruncatedValueFormat.Visual}
-						/>
-					</span>
+					<TruncatedValue
+						value={shownAddress}
+						startLength={
+							format === AddressFormat.Full ?
+								shownAddress.length
+							:
+								6
+						}
+						endLength={
+							format === AddressFormat.Full ?
+								0
+							:
+								4
+						}
+						format={TruncatedValueFormat.Visual}
+					/>
 
 					{#if ensNameProp}
 						<small>
@@ -131,24 +129,22 @@
 						/>
 					{/if}
 
-					<span data-text="font-monospace">
-						<TruncatedValue
-							value={shownAddress}
-							startLength={
-								format === AddressFormat.Full ?
-									shownAddress.length
-								:
-									6
-							}
-							endLength={
-								format === AddressFormat.Full ?
-									0
-								:
-									4
-							}
-							format={TruncatedValueFormat.Visual}
-						/>
-					</span>
+					<TruncatedValue
+						value={shownAddress}
+						startLength={
+							format === AddressFormat.Full ?
+								shownAddress.length
+							:
+								6
+						}
+						endLength={
+							format === AddressFormat.Full ?
+								0
+							:
+								4
+						}
+						format={TruncatedValueFormat.Visual}
+					/>
 
 					{#if ensNameProp}
 						<small>
@@ -173,24 +169,22 @@
 		</ResourceBoundary>
 	{:else}
 		<span data-row="inline wrap gap-1 align-center">
-			<span data-text="font-monospace">
-				<TruncatedValue
-					value={shownAddress}
-					startLength={
-						format === AddressFormat.Full ?
-							shownAddress.length
-						:
-							6
-					}
-					endLength={
-						format === AddressFormat.Full ?
-							0
-						:
-							4
-					}
-					format={TruncatedValueFormat.Visual}
-				/>
-			</span>
+			<TruncatedValue
+				value={shownAddress}
+				startLength={
+					format === AddressFormat.Full ?
+						shownAddress.length
+					:
+						6
+				}
+				endLength={
+					format === AddressFormat.Full ?
+						0
+					:
+						4
+				}
+				format={TruncatedValueFormat.Visual}
+			/>
 
 			<small>
 				(<span data-text="font-monospace">{ensNameProp}</span>)

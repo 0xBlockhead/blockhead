@@ -3,12 +3,13 @@ import type {
 	TadaDocumentNode,
 } from 'gql.tada'
 
-import { throwHttpError } from '$/lib/http.ts'
+import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import {
 	optionalPublicEnvString,
 } from '$/lib/sources.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import TheGraph from '$/sources/TheGraph/index.ts'
 
 export const queryTheGraph = async <
 	_Result extends {
@@ -37,17 +38,20 @@ export const queryTheGraph = async <
 		throw new Error('PUBLIC_THEGRAPH_API_KEY is required for The Graph gateway queries')
 	}
 
-	const response = await fetch(endpointUrl, {
-		method: 'POST',
-		headers: {
-			Accept: 'application/json',
-			'Content-Type': 'application/json',
-			...(apiKey != null && { Authorization: `Bearer ${apiKey}` }),
+	const response = await corsFetch(endpointUrl, {
+		origins: TheGraph.origins ?? [],
+		init: {
+			method: 'POST',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+				...(apiKey != null && { Authorization: `Bearer ${apiKey}` }),
+			},
+			body: JSON.stringify({
+				query: print(document),
+				variables,
+			}),
 		},
-		body: JSON.stringify({
-			query: print(document),
-			variables,
-		}),
 	})
 
 	if (!response.ok) await throwHttpError('The Graph API', response)

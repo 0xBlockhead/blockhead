@@ -74,7 +74,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.id}
 		</span>
 	{/snippet}
@@ -101,36 +101,49 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
-			<ResourceBoundary resource={peer}>
-				{#snippet children(peer)}
+			<div>
+				<dt>Connected to you</dt>
+				<dd>
+					<ResourceBoundary resource={peer}>
+						{#snippet children(peer)}
+							{peer.isConnected ? 'Yes' : 'No'}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					<div>
-						<dt>Connected to you</dt>
-						<dd>{peer.isConnected ? 'Yes' : 'No'}</dd>
-					</div>
+			<div>
+				<dt>Multiplayer role</dt>
+				<dd>
+					Session collaborator visibility.
+				</dd>
+			</div>
 
-					<div>
-						<dt>Multiplayer role</dt>
-						<dd>
-							Session collaborator visibility.
-						</dd>
-					</div>
+			{#if open && peer.peerId !== undefined && peer.peerId !== ''}
+				<div>
+					<dt>libp2p peer ID</dt>
+					<dd>
+						<ResourceBoundary resource={peer}>
+							{#snippet children(peer)}
+								{peer.peerId}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open && peer.peerId !== undefined && peer.peerId !== ''}
-						<div>
-							<dt>libp2p peer ID</dt>
-							<dd>{peer.peerId}</dd>
-						</div>
-					{/if}
-
-					{#if open && peer.$room?.id != null && peer.$room.id !== ''}
-						<div>
-							<dt>Room session</dt>
-							<dd>{peer.$room.id}</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+			{#if open && peer.$room?.id != null && peer.$room.id !== ''}
+				<div>
+					<dt>Room session</dt>
+					<dd>
+						<ResourceBoundary resource={peer}>
+							{#snippet children(peer)}
+								{peer.$room.id}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 		</dl>
 	{/snippet}
 

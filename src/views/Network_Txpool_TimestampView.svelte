@@ -96,45 +96,52 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			chain {String(entityId.$network.chainId)}
 		</span>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			placeholderText="Loading mempool snapshot…"
-			resource={networkTxpoolTimestamp}
-		>
-			{#snippet children(networkTxpoolTimestamp)}
-				<dl data-column-item="center">
+		<dl data-column-item="center">
 
-					<div>
-						<dt>As of</dt>
-						<dd>
-							<Timestamp
-								format={TimestampFormat.Both}
-								timestamp={entityId.timestampMs}
-							/>
-						</dd>
-					</div>
-					{#if open}
-						<div>
-							<dt>Pending (executable)</dt>
-							<dd>
+			<div>
+				<dt>As of</dt>
+				<dd>
+					<Timestamp
+						format={TimestampFormat.Both}
+						timestamp={entityId.timestampMs}
+					/>
+				</dd>
+			</div>
+			{#if open}
+				<div>
+					<dt>Pending (executable)</dt>
+					<dd>
+						<ResourceBoundary
+							placeholderText="Loading mempool snapshot…"
+							resource={networkTxpoolTimestamp}
+						>
+							{#snippet children(networkTxpoolTimestamp)}
 								<NumberValue value={networkTxpoolTimestamp.pendingCount} />
-							</dd>
-						</div>
-						<div>
-							<dt>Queued (non-executable)</dt>
-							<dd>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+				<div>
+					<dt>Queued (non-executable)</dt>
+					<dd>
+						<ResourceBoundary
+							placeholderText="Loading mempool snapshot…"
+							resource={networkTxpoolTimestamp}
+						>
+							{#snippet children(networkTxpoolTimestamp)}
 								<NumberValue value={networkTxpoolTimestamp.queuedCount} />
-							</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

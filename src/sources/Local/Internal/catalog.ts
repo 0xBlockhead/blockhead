@@ -2,6 +2,7 @@ import type { EntityId } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
 import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+import { XmtpConversationConsentState } from '$/schema/XmtpConversation.ts'
 import { schema } from '$/schema/index.ts'
 
 
@@ -11,6 +12,10 @@ export type NormalizedActorCatalogRow = {
 
 export type NormalizedXmtpConversationCatalogRow = {
 	id: string
+	peerInboxId?: string
+	topic?: string
+	createdAtMs?: number
+	consentState?: XmtpConversationConsentState
 }
 
 export type NormalizedBlockheadSourceCatalogRow = {
@@ -266,12 +271,21 @@ const defaultEvmErrorCatalog: readonly NormalizedEvmErrorCatalogRow[] = [
 ]
 
 const defaultNormalizedLocalInternalCatalog: NormalizedLocalInternalCatalog = {
-	actors: [],
-	xmtpConversations: [],
+	actors: [
+		{ address: '0xd8da6bf26964af9d7eed9e403e826090792bed6a' },
+	],
+	xmtpConversations: [
+		{
+			id: 'e2e-probe-conversation',
+			peerInboxId: 'e2e-probe-peer',
+		},
+	],
 	blockheadSources: [probeBlockheadSourceCatalogRow],
 	blockheadSessions: [probeBlockheadSessionCatalogRow],
 	blockheadPanelTrees: [probeBlockheadPanelTreeCatalogRow],
-	blockheadFarcasterAccountConnections: [],
+	blockheadFarcasterAccountConnections: [
+		{ fid: 3 },
+	],
 	blockheadAgentConversations: [probeBlockheadAgentConversationCatalogRow],
 	bridgeTransactions: [probeBridgeTransactionCatalogRow],
 	blockheadRoomPeers: [probeBlockheadRoomPeerCatalogRow],

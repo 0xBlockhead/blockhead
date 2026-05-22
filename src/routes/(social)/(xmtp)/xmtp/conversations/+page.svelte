@@ -14,8 +14,8 @@
 <Page>
 	<XmtpConversationsView
 		entityFieldReference={{
-			entityType: EntityType._Global,
-			entityId: {},
+			entityType: EntityType.XmtpNetwork,
+			entityId: { scope: 'XmtpNetwork' },
 			fieldName: '$$xmtpConversations',
 		}}
 		href={resolve('/xmtp/conversations')}

@@ -4,5 +4,5 @@ export const farcasterNetworkFieldValues = {
 	homeUrl: 'https://www.farcaster.xyz',
 	protocolName: 'Farcaster',
 	registryLabel: 'Client API registries + Snapchain / Neynar feeds',
-	topology: 'network -> feeds / channels / users -> casts',
+	topology: 'live REST hub + indexer -> network -> feeds / channels / users -> casts',
 } as const

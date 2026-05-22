@@ -1,13 +1,17 @@
-import { fetchFailedMessage } from '$/lib/http.ts'
+import { corsFetch, fetchFailedMessage } from '$/lib/http.ts'
+import Dexscreener from '$/sources/Dexscreener/index.ts'
 import { baseUrl } from '$/sources/Dexscreener/OpenApi/constants.ts'
 
 export const getDexscreenerJson = async <_Response>(
 	pathAndQuery: string,
 ): Promise<_Response> => {
 	const href = `${baseUrl}${pathAndQuery}`
-	const response = await fetch(href, {
-		headers: {
-			Accept: 'application/json',
+	const response = await corsFetch(href, {
+		origins: Dexscreener.origins ?? [],
+		init: {
+			headers: {
+				Accept: 'application/json',
+			},
 		},
 	})
 

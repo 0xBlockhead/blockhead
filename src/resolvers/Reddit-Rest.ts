@@ -5,12 +5,28 @@ import {
 	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const optionalTrimmedString = (value: string | undefined) => (
 	value?.trim() ? value.trim() : undefined
+)
+
+const optionalFiniteNumber = (value: number | undefined) => (
+	value != null && Number.isFinite(value) ?
+		value
+	:
+		undefined
+)
+
+const redditCreatedAtMs = (createdUtc: number | undefined) => (
+	createdUtc != null && Number.isFinite(createdUtc) ?
+		createdUtc * 1000
+	:
+		undefined
 )
 
 export default {
@@ -26,6 +42,24 @@ export default {
 				return {
 					title: optionalTrimmedString(d.title),
 					publicDescription: optionalTrimmedString(d.public_description),
+					...(optionalFiniteNumber(d.subscribers) != null && {
+						subscriberCount: optionalFiniteNumber(d.subscribers),
+					}),
+					...(optionalFiniteNumber(d.active_user_count) != null && {
+						activeUserCount: optionalFiniteNumber(d.active_user_count),
+					}),
+					...(redditCreatedAtMs(d.created_utc) != null && {
+						createdAt: redditCreatedAtMs(d.created_utc),
+					}),
+					...(d.over18 === true && { over18: true }),
+					...(d.over18 === false && { over18: false }),
+					...((
+						iconMedia,
+					) => (
+						iconMedia != null && {
+							$icon: iconMedia,
+						}
+					))(mediaFromUrl(optionalTrimmedString(d.icon_img), MediaType.Image)),
 				}
 			},
 		}),
@@ -44,6 +78,15 @@ export default {
 					selftext: optionalTrimmedString(t.data.selftext),
 					url: optionalTrimmedString(t.data.url),
 					author: optionalTrimmedString(t.data.author),
+					...(optionalFiniteNumber(t.data.score) != null && {
+						score: optionalFiniteNumber(t.data.score),
+					}),
+					...(optionalFiniteNumber(t.data.num_comments) != null && {
+						commentCount: optionalFiniteNumber(t.data.num_comments),
+					}),
+					...(redditCreatedAtMs(t.data.created_utc) != null && {
+						createdAt: redditCreatedAtMs(t.data.created_utc),
+					}),
 					$subreddit: (
 						sub == null ?
 							undefined
@@ -68,6 +111,15 @@ export default {
 				return {
 					body: optionalTrimmedString(t.data.body),
 					author: optionalTrimmedString(t.data.author),
+					...(optionalFiniteNumber(t.data.score) != null && {
+						score: optionalFiniteNumber(t.data.score),
+					}),
+					...(redditCreatedAtMs(t.data.created_utc) != null && {
+						createdAt: redditCreatedAtMs(t.data.created_utc),
+					}),
+					...(optionalFiniteNumber(t.data.depth) != null && {
+						depth: optionalFiniteNumber(t.data.depth),
+					}),
 					$link: (
 						linkId == null ?
 							undefined

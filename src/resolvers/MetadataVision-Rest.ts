@@ -46,13 +46,16 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.Url,
 			resolve: async (entityId) => {
+				const { getOpenGraphWireForPublicHttpUrl } = await import('$/sources/MetadataVision/Rest/queries.ts')
 				try {
-					const { getOpenGraphWireForPublicHttpUrl } = await import('$/sources/MetadataVision/Rest/queries.ts')
 					const wire = await getOpenGraphWireForPublicHttpUrl(entityId.url)
 					return entityFieldsFromOpenGraphWire(wire)
 				}
-				catch {
-					return {}
+				catch (error) {
+					throw new Error(
+						`MetadataVision_Rest: Open Graph fetch failed for ${entityId.url}`,
+						{ cause: error },
+					)
 				}
 			},
 		}),

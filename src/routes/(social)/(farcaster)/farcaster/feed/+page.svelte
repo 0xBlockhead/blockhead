@@ -23,6 +23,5 @@
 		id="feed-index"
 		limit={36}
 		title="Feeds"
-		open={true}
 	/>
 </Page>

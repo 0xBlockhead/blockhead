@@ -554,10 +554,15 @@ export const resolveNetworkUpgradeDenormalizedFields = (
 		| '$$proposals'
 	>
 > => {
-	const execRef = row.$networkExecutionUpgrade[EntityMetaKey.Id]
-	const executionRow = networkExecutionUpgradeByChainIdAndUpgradeId[
-		`${execRef.$network.chainId}:${execRef.upgradeId}`
-	]
+	const execRef = row.$networkExecutionUpgrade?.[EntityMetaKey.Id]
+	const executionRow = (
+		execRef == null ?
+			null
+		:
+			networkExecutionUpgradeByChainIdAndUpgradeId[
+				`${execRef.$network.chainId}:${execRef.upgradeId}`
+			]
+	)
 	const consRef = row.$networkConsensusUpgrade
 	const consensusRow = (
 		consRef == null

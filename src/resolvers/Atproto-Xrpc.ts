@@ -14,6 +14,16 @@ const optionalTrimmedString = (value: string | undefined) => (
 	value?.trim() ? value.trim() : undefined
 )
 
+const optionalFiniteNumber = (value: number | undefined) => (
+	value != null && Number.isFinite(value) ? value : undefined
+)
+
+const optionalTimestampMs = (value: string | undefined) => (
+	((parsed) => (
+		Number.isFinite(parsed) ? parsed : undefined
+	))(Date.parse(value ?? ''))
+)
+
 export default {
 	source: Source.Atproto_Xrpc,
 
@@ -34,6 +44,19 @@ export default {
 							$icon: iconMedia,
 						}
 					))(mediaFromUrl(profile.avatar, MediaType.Image)),
+					...((
+						bannerMedia,
+					) => (
+						bannerMedia != null && {
+							$banner: bannerMedia,
+						}
+					))(mediaFromUrl(profile.banner, MediaType.Image)),
+					followersCount: optionalFiniteNumber(profile.followersCount),
+					followsCount: optionalFiniteNumber(profile.followsCount),
+					postsCount: optionalFiniteNumber(profile.postsCount),
+					...(optionalTimestampMs(profile.indexedAt) != null && {
+						indexedAt: optionalTimestampMs(profile.indexedAt),
+					}),
 					description: optionalTrimmedString(profile.description),
 				}
 			},
@@ -54,6 +77,12 @@ export default {
 					$author: authorDid == null ? undefined : { [EntityMetaKey.Id]: { did: authorDid } },
 					text: optionalTrimmedString(rec?.text),
 					...(Number.isFinite(createdAt) && { createdAt }),
+					...(optionalTimestampMs(p.indexedAt) != null && {
+						indexedAt: optionalTimestampMs(p.indexedAt),
+					}),
+					likeCount: optionalFiniteNumber(p.likeCount),
+					repostCount: optionalFiniteNumber(p.repostCount),
+					replyCount: optionalFiniteNumber(p.replyCount),
 					...(parentUri != null && { $parent: { [EntityMetaKey.Id]: { uri: parentUri } } }),
 					...(rootUri != null && { $root: { [EntityMetaKey.Id]: { uri: rootUri } } }),
 				}
@@ -124,6 +153,44 @@ export default {
 							return [{ [EntityMetaKey.Id]: { uri } }]
 						})
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.AtprotoPost,
+			fieldName: '$$thread',
+			resolve: async (entityId, context) => {
+				const { bskyGetPostThread } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				const { thread } = await singleFlight(bskyGetPostThread)(entityId.uri)
+				if (thread == null || optionalTrimmedString(thread.post?.uri) == null) {
+					throw new Error(`Atproto_Xrpc: post thread not found for ${entityId.uri}`)
+				}
+				const seen = new Set<string>()
+				const ancestors: { [EntityMetaKey.Id]: { uri: string } }[] = []
+				let parent = thread?.parent
+				while (parent != null) {
+					const uri = optionalTrimmedString(parent.post?.uri)
+					if (uri == null) break
+					if (uri !== entityId.uri && !seen.has(uri)) {
+						seen.add(uri)
+						ancestors.unshift({ [EntityMetaKey.Id]: { uri } })
+					}
+					parent = parent.parent
+				}
+				const descendants: { [EntityMetaKey.Id]: { uri: string } }[] = []
+				const walkReplies = (node: NonNullable<typeof thread>) => {
+					for (const reply of node.replies ?? []) {
+						const uri = optionalTrimmedString(reply?.post?.uri)
+						if (uri != null && uri !== entityId.uri && !seen.has(uri)) {
+							seen.add(uri)
+							descendants.push({ [EntityMetaKey.Id]: { uri } })
+						}
+						if (optionalTrimmedString(reply?.post?.uri) != null) walkReplies(reply)
+					}
+				}
+				walkReplies(thread)
+				return [...ancestors, ...descendants].slice(0, limit)
 			},
 		}),
 	],

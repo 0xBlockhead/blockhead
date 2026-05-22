@@ -216,7 +216,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$marketTimeIntervalTimestamps',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('CoinMarketCap_Rest: $$marketTimeIntervalTimestamps is not implemented')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -260,7 +262,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('CoinMarketCap_Rest: $$marketsWithCoinAsQuote is not implemented')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -288,13 +292,17 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Currency,
 			fieldName: '$$marketsWithCurrencyAsBase',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => (
-				catalogMarketsWithCurrencyAsBase(entityId.iso4217).map((marketId) => (
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+				const markets = catalogMarketsWithCurrencyAsBase(entityId.iso4217).map((marketId) => (
 					{
 						[EntityMetaKey.Id]: marketId,
 					}
 				))
-			),
+				if (markets.length === 0) {
+					throw new Error(`CoinMarketCap_Rest: no catalog markets with ${entityId.iso4217} as base`)
+				}
+				return markets
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -310,7 +318,8 @@ export default {
 						entityId.$base.$coin.coinId
 					:	undefined
 				)
-				if (coinId == null || idByCoinId[coinId] == null) return []
+				if (coinId == null) throw new Error('CoinMarketCap_Rest: OHLC market base is not a catalog coin')
+				if (idByCoinId[coinId] == null) throw new Error('CoinMarketCap_Rest: OHLC coin not mapped')
 				const publicEnv = sourcePublicEnv(context, Source.CoinMarketCap_Rest)
 				const coinMarketCapId = idByCoinId[coinId]
 				if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: OHLC coin not mapped')
@@ -369,7 +378,7 @@ export default {
 				)
 				if (coinId == null) throw new Error('CoinMarketCap_Rest: market base is not a catalog coin')
 				const coinMarketCapId = idByCoinId[coinId]
-				if (coinMarketCapId == null) return []
+				if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: coin price not mapped')
 				const { getCoinMarketCapQuotesLatest } = await import(
 					'$/sources/CoinMarketCap/Rest/queries.ts',
 				)
@@ -384,7 +393,9 @@ export default {
 				)
 				const lastUpdated = quote?.quote?.USD?.last_updated
 				const updatedAt = Date.parse(lastUpdated ?? '')
-				if (!Number.isFinite(updatedAt)) return []
+				if (!Number.isFinite(updatedAt)) {
+					throw new Error('CoinMarketCap_Rest: quote invalid')
+				}
 				return [
 					{
 						[EntityMetaKey.Id]: {

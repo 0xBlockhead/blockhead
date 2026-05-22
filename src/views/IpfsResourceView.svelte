@@ -113,159 +113,222 @@
 		{/if}
 	{/snippet}
 
+
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary resource={ipfs}>
-			{#snippet children(ipfs)}
-				{#if ipfs.contentType !== undefined || open}
-					<dl data-column-item="center">
-						{#if ipfs.contentType !== undefined}
-							<div>
-								<dt>Content type</dt>
-								<dd>
-									<TruncatedValue
-										value={ipfs.contentType}
-										format={TruncatedValueFormat.Visual}
-									/>
-									{#if ipfs.isContentTypeInferred}
-										{' '}<span data-text="muted">(inferred)</span>
-									{/if}
-								</dd>
-							</div>
-						{/if}
-
-						{#if open}
-							<div>
-								<dt>Canonical URI</dt>
-								<dd>
-									<TruncatedValue
-										value={ipfs.canonicalUri}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</dd>
-							</div>
-
-							<div>
-								<dt>Gateway</dt>
-								<dd>
-									<TruncatedValue
-										value={ipfs.gatewayOrigin}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</dd>
-							</div>
-
-							<div>
-								<dt>Gateway URL</dt>
-								<dd>
-									<a
-										href={ipfs.gatewayUrl}
-										target="_blank"
-										rel="noreferrer noopener"
-									>
-										<TruncatedValue
-											value={ipfs.gatewayUrl}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</a>
-								</dd>
-							</div>
-
-							{#if ipfs.contentLength !== undefined}
-								<div>
-									<dt>Content length</dt>
-									<dd
-									>
-										<NumberValue
-											value={ipfs.contentLength}
-											options={{ maximumFractionDigits: 0 }}
-										/>
-										{' '}
-										bytes
-									</dd>
-								</div>
-							{/if}
-
-							{#if ipfs.fileName !== undefined}
-								<div>
-									<dt>File name</dt>
-									<dd>
-										<TruncatedValue
-											value={ipfs.fileName}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</dd>
-								</div>
-							{/if}
-
-							{#if ipfs.extension !== undefined}
-								<div>
-									<dt>Extension</dt>
-									<dd>.{ipfs.extension}</dd>
-								</div>
-							{/if}
-							<div>
-								<dt>Display type</dt>
-								<dd>{ipfs.displayType}</dd>
-							</div>
-							{#if entityId.namespace === 'ipfs'}
-								{#if ipfs.cidVersion !== undefined}
-									<div>
-										<dt>Content identifier version</dt>
-										<dd>{String(ipfs.cidVersion)}</dd>
-									</div>
-									{#if ipfs.cidMultibase !== undefined}
-										<div>
-											<dt>Multibase</dt>
-											<dd>
-												<TruncatedValue
-													value={ipfs.cidMultibase}
-													format={TruncatedValueFormat.Visual}
-												/>
-											</dd>
-										</div>
-									{/if}
-
-									{#if ipfs.cidMulticodecCode !== undefined}
-										<div>
-											<dt>Multicodec code</dt>
-											<dd>{String(ipfs.cidMulticodecCode)}</dd>
-										</div>
-									{/if}
-
-									{#if ipfs.cidMultihashCode !== undefined}
-										<div>
-											<dt>Multihash code</dt>
-											<dd>{String(ipfs.cidMultihashCode)}</dd>
-										</div>
-									{/if}
-
-									{#if ipfs.cidMultihashDigestHex !== undefined}
-										<div>
-											<dt>Multihash digest</dt>
-											<dd>
-												<TruncatedValue
-													value={ipfs.cidMultihashDigestHex}
-													format={TruncatedValueFormat.Visual}
-												/>
-											</dd>
-										</div>
-									{/if}
-
-									{#if ipfs.isCidSubdomainSafe !== undefined}
-										<div>
-											<dt>Subdomain-safe</dt>
-											<dd>{ipfs.isCidSubdomainSafe ? 'Yes' : 'No'}</dd>
-										</div>
-									{/if}
+		<dl data-column-item="center">
+			<div>
+				<dt>Content type</dt>
+				<dd>
+					<ResourceBoundary resource={ipfs}>
+						{#snippet children(ipfs)}
+							{#if ipfs.contentType !== undefined}
+								<TruncatedValue
+									value={ipfs.contentType}
+									format={TruncatedValueFormat.Visual}
+								/>
+								{#if ipfs.isContentTypeInferred}
+									{' '}<span data-text="muted">(inferred)</span>
 								{/if}
+							{:else if !open}
+								<span data-text="muted">Content type unavailable.</span>
 							{/if}
-						{/if}
-					</dl>
-				{:else}
-					<p data-text="muted">Content type unavailable.</p>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			{#if open}
+				<div>
+					<dt>Canonical URI</dt>
+					<dd>
+						<ResourceBoundary resource={ipfs}>
+							{#snippet children(ipfs)}
+								<TruncatedValue
+									value={ipfs.canonicalUri}
+									format={TruncatedValueFormat.Visual}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Gateway</dt>
+					<dd>
+						<ResourceBoundary resource={ipfs}>
+							{#snippet children(ipfs)}
+								<TruncatedValue
+									value={ipfs.gatewayOrigin}
+									format={TruncatedValueFormat.Visual}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Gateway URL</dt>
+					<dd>
+						<ResourceBoundary resource={ipfs}>
+							{#snippet children(ipfs)}
+								<a
+									href={ipfs.gatewayUrl}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
+									<TruncatedValue
+										value={ipfs.gatewayUrl}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</a>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Content length</dt>
+					<dd>
+						<ResourceBoundary resource={ipfs}>
+							{#snippet children(ipfs)}
+								{#if ipfs.contentLength !== undefined}
+									<NumberValue
+										value={ipfs.contentLength}
+										options={{ maximumFractionDigits: 0 }}
+									/>
+									{' '}
+									bytes
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>File name</dt>
+					<dd>
+						<ResourceBoundary resource={ipfs}>
+							{#snippet children(ipfs)}
+								{#if ipfs.fileName !== undefined}
+									<TruncatedValue
+										value={ipfs.fileName}
+										format={TruncatedValueFormat.Visual}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Extension</dt>
+					<dd>
+						<ResourceBoundary resource={ipfs}>
+							{#snippet children(ipfs)}
+								{#if ipfs.extension !== undefined}
+									.{ipfs.extension}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+				<div>
+					<dt>Display type</dt>
+					<dd>
+						<ResourceBoundary resource={ipfs}>
+							{#snippet children(ipfs)}
+								{ipfs.displayType}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+				{#if entityId.namespace === 'ipfs'}
+					<div>
+						<dt>Content identifier version</dt>
+						<dd>
+							<ResourceBoundary resource={ipfs}>
+								{#snippet children(ipfs)}
+									{#if ipfs.cidVersion !== undefined}
+										{String(ipfs.cidVersion)}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+					<div>
+						<dt>Multibase</dt>
+						<dd>
+							<ResourceBoundary resource={ipfs}>
+								{#snippet children(ipfs)}
+									{#if ipfs.cidMultibase !== undefined}
+										<TruncatedValue
+											value={ipfs.cidMultibase}
+											format={TruncatedValueFormat.Visual}
+										/>
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+
+					<div>
+						<dt>Multicodec code</dt>
+						<dd>
+							<ResourceBoundary resource={ipfs}>
+								{#snippet children(ipfs)}
+									{#if ipfs.cidMulticodecCode !== undefined}
+										{String(ipfs.cidMulticodecCode)}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+
+					<div>
+						<dt>Multihash code</dt>
+						<dd>
+							<ResourceBoundary resource={ipfs}>
+								{#snippet children(ipfs)}
+									{#if ipfs.cidMultihashCode !== undefined}
+										{String(ipfs.cidMultihashCode)}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+
+					<div>
+						<dt>Multihash digest</dt>
+						<dd>
+							<ResourceBoundary resource={ipfs}>
+								{#snippet children(ipfs)}
+									{#if ipfs.cidMultihashDigestHex !== undefined}
+										<TruncatedValue
+											value={ipfs.cidMultihashDigestHex}
+											format={TruncatedValueFormat.Visual}
+										/>
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+
+					<div>
+						<dt>Subdomain-safe</dt>
+						<dd>
+							<ResourceBoundary resource={ipfs}>
+								{#snippet children(ipfs)}
+									{#if ipfs.isCidSubdomainSafe !== undefined}
+										{ipfs.isCidSubdomainSafe ? 'Yes' : 'No'}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
 				{/if}
-			{/snippet}
-		</ResourceBoundary>
+			{/if}
+		</dl>
+	{/snippet}
 	{/snippet}
 
 	{#snippet Details({

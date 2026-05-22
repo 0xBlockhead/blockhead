@@ -111,7 +111,11 @@ const globalPairSearchEntityRows = async ({
 
 	const lim = resolverLoadSubsetRowLimit(context)
 
-	return rows.slice(0, lim)
+	const sliced = rows.slice(0, lim)
+	if (sliced.length === 0) {
+		throw new Error(`Dexscreener_OpenApi: pair search ${JSON.stringify(q)} returned no liquidity pools`)
+	}
+	return sliced
 }
 
 export default {

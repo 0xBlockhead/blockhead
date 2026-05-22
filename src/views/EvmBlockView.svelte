@@ -110,7 +110,6 @@
 			<span>Block </span>
 			<span
 				data-badge="small"
-				data-text="font-monospace"
 				data-block-number={String(entityId.blockNumber)}
 			>
 				{String(entityId.blockNumber)}
@@ -123,95 +122,161 @@
 		href: _href,
 		open: contentOpen,
 	})}
-		<ResourceBoundary
-			resource={block}
-			placeholderText="Loading block…"
-		>
-			{#snippet children(block)}
-				<div data-column="gap-1">
-					<dl data-column-item="center">
-						{#if entityId.hash || block.hash}
-							<div>
-								<dt>Hash</dt>
-								<dd>
-									<TruncatedValue
-										value={entityId.hash || block.hash}
-										format={TruncatedValueFormat.Abbr}
-									/>
-								</dd>
-							</div>
-						{/if}
+		<dl data-column-item="center">
+			<div>
+				<dt>Hash</dt>
+				<dd>
+					<ResourceBoundary
+						resource={block}
+						placeholderText="Loading block…"
+					>
+						{#snippet children(block)}
+							{#if entityId.hash || block.hash}
+								<TruncatedValue
+									value={entityId.hash || block.hash}
+									format={TruncatedValueFormat.Abbr}
+								/>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-						{#if block.transactionCount !== undefined}
-							<div>
-								<dt>Transactions</dt>
-								<dd>
-									<NumberValue value={block.transactionCount} />
-								</dd>
-							</div>
-						{/if}
+			<div>
+				<dt>Transactions</dt>
+				<dd>
+					<ResourceBoundary
+						resource={block}
+						placeholderText="Loading block…"
+					>
+						{#snippet children(block)}
+							{#if block.transactionCount !== undefined}
+								<NumberValue value={block.transactionCount} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-						{#if block.timestamp !== undefined}
-							<div>
-								<dt>Timestamp</dt>
-								<dd>
-									<Timestamp
-										timestamp={block.timestamp}
-										format={TimestampFormat.Both}
-									/>
-								</dd>
-							</div>
-						{/if}
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={block}
+						placeholderText="Loading block…"
+					>
+						{#snippet children(block)}
+							{#if block.timestamp !== undefined}
+								<Timestamp
+									timestamp={block.timestamp}
+									format={TimestampFormat.Both}
+								/>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-						{#if open && block.gasUsed !== undefined}
-							<div>
-								<dt>Gas used</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Gas used</dt>
+					<dd>
+						<ResourceBoundary
+							resource={block}
+							placeholderText="Loading block…"
+						>
+							{#snippet children(block)}
+								{#if block.gasUsed !== undefined}
 									<NumberValue value={block.gasUsed} />
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-						{#if open && block.gasLimit !== undefined}
-							<div>
-								<dt>Gas limit</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Gas limit</dt>
+					<dd>
+						<ResourceBoundary
+							resource={block}
+							placeholderText="Loading block…"
+						>
+							{#snippet children(block)}
+								{#if block.gasLimit !== undefined}
 									<NumberValue value={block.gasLimit} />
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-						{#if open && block.baseFeePerGas !== undefined}
-							<div>
-								<dt>Base fee (EIP‑1559)</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Base fee (EIP‑1559)</dt>
+					<dd>
+						<ResourceBoundary
+							resource={block}
+							placeholderText="Loading block…"
+						>
+							{#snippet children(block)}
+								{#if block.baseFeePerGas !== undefined}
 									<NumberValue value={block.baseFeePerGas} />
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-						{#if open && block.blobGasUsed !== undefined}
-							<div>
-								<dt>Blob gas used (EIP‑4844)</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Blob gas used (EIP‑4844)</dt>
+					<dd>
+						<ResourceBoundary
+							resource={block}
+							placeholderText="Loading block…"
+						>
+							{#snippet children(block)}
+								{#if block.blobGasUsed !== undefined}
 									<NumberValue value={block.blobGasUsed} />
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-						{#if open && block.excessBlobGas !== undefined}
-							<div>
-								<dt>Excess blob gas</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Excess blob gas</dt>
+					<dd>
+						<ResourceBoundary
+							resource={block}
+							placeholderText="Loading block…"
+						>
+							{#snippet children(block)}
+								{#if block.excessBlobGas !== undefined}
 									<NumberValue value={block.excessBlobGas} />
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-						{#if open && block.$parent}
-							<div>
-								<dt>Parent block</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Parent block</dt>
+					<dd>
+						<ResourceBoundary
+							resource={block}
+							placeholderText="Loading block…"
+						>
+							{#snippet children(block)}
+								{#if block.$parent}
 									<EvmBlockView
 										entityId={block.$parent[EntityMetaKey.Id]}
 										href={resolve(
@@ -225,14 +290,23 @@
 										open={false}
 										showTypeAnnotation={false}
 									/>
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-						{#if open && block.$miner}
-							<div>
-								<dt>Miner / validator</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Miner / validator</dt>
+					<dd>
+						<ResourceBoundary
+							resource={block}
+							placeholderText="Loading block…"
+						>
+							{#snippet children(block)}
+								{#if block.$miner}
 									<ActorNetworkView
 										entityId={{
 											$network: entityId.$network,
@@ -249,13 +323,13 @@
 										open={false}
 										showTypeAnnotation={false}
 									/>
-								</dd>
-							</div>
-						{/if}
-					</dl>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
 				</div>
-			{/snippet}
-		</ResourceBoundary>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

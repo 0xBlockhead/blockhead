@@ -140,7 +140,9 @@ export default {
 					entityId,
 					sourcePublicEnv(context, Source.Coingecko_Rest),
 				)
-				if (coinId == null) return []
+				if (coinId == null) {
+					throw new Error('Lifi_Rest: coin instance not mapped to catalog coin')
+				}
 				const rows = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
 				return filterCoinBridgeCapabilityRowsForInstance(rows, entityId, 'outbound')
 			},
@@ -157,7 +159,9 @@ export default {
 					entityId,
 					sourcePublicEnv(context, Source.Coingecko_Rest),
 				)
-				if (coinId == null) return []
+				if (coinId == null) {
+					throw new Error('Lifi_Rest: coin instance not mapped to catalog coin')
+				}
 				const rows = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
 				return filterCoinBridgeCapabilityRowsForInstance(rows, entityId, 'inbound')
 			},

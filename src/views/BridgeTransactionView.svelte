@@ -74,7 +74,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.id}
 		</span>
 	{/snippet}
@@ -82,61 +82,30 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<div data-column="gap-1">
 			<dl data-column-item="center">
-			<div>
-				<dt>Origin chain</dt>
-				<dd>
-					<NetworkView
-						entityId={entityId.$sourceTx.$network}
-						href={resolve('/(explore)/(networks)/network/[networkId]', {
-							networkId: String(entityId.$sourceTx.$network.chainId),
-						})}
-						layout={EntityLayout.Title}
-						open={false}
-						showTypeAnnotation={false}
-					/>
-				</dd>
-			</div>
-			<div>
-				<dt>Origin transaction</dt>
-				<dd>
-					<EvmTransactionView
-						entityId={entityId.$sourceTx}
-						href={resolve(
-							'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
-							{
-								networkId: String(entityId.$sourceTx.$network.chainId),
-								transactionId: entityId.$sourceTx.txHash,
-							},
-						)}
-						layout={EntityLayout.Title}
-						open={false}
-						showTypeAnnotation={false}
-					/>
-				</dd>
-			</div>
-			<div>
-				<dt>Recorded at</dt>
-				<dd>
-					<Timestamp
-						timestamp={entityId.createdAt}
-						format={TimestampFormat.Both}
-					/>
-				</dd>
-			</div>
-			{#if open}
 				<div>
-					<dt>Initiator</dt>
+					<dt>Origin chain</dt>
 					<dd>
-						<ActorNetworkView
-							entityId={{
-								$network: entityId.$sourceTx.$network,
-								$actor: entityId.$account,
-							}}
+						<NetworkView
+							entityId={entityId.$sourceTx.$network}
+							href={resolve('/(explore)/(networks)/network/[networkId]', {
+								networkId: String(entityId.$sourceTx.$network.chainId),
+								})}
+							layout={EntityLayout.Title}
+							open={false}
+							showTypeAnnotation={false}
+						/>
+					</dd>
+				</div>
+				<div>
+					<dt>Origin transaction</dt>
+					<dd>
+						<EvmTransactionView
+							entityId={entityId.$sourceTx}
 							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
 								{
 									networkId: String(entityId.$sourceTx.$network.chainId),
-									address: entityId.$account.address,
+									transactionId: entityId.$sourceTx.txHash,
 								},
 							)}
 							layout={EntityLayout.Title}
@@ -145,7 +114,38 @@
 						/>
 					</dd>
 				</div>
-			{/if}
+				<div>
+					<dt>Recorded at</dt>
+					<dd>
+						<Timestamp
+							timestamp={entityId.createdAt}
+							format={TimestampFormat.Both}
+						/>
+					</dd>
+				</div>
+				{#if open}
+					<div>
+						<dt>Initiator</dt>
+						<dd>
+							<ActorNetworkView
+								entityId={{
+									$network: entityId.$sourceTx.$network,
+									$actor: entityId.$account,
+								}}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+									{
+										networkId: String(entityId.$sourceTx.$network.chainId),
+										address: entityId.$account.address,
+									},
+								)}
+								layout={EntityLayout.Title}
+								open={false}
+								showTypeAnnotation={false}
+							/>
+						</dd>
+					</div>
+				{/if}
 			</dl>
 		</div>
 	{/snippet}

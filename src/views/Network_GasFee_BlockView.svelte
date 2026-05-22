@@ -85,7 +85,7 @@
 >
 	{#snippet Heading()}
 
-		<span data-text="font-monospace">
+		<span>
 			block {String(entityId.blockNumber)}
 		</span>
 	{/snippet}
@@ -100,7 +100,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			chain {String(entityId.$network.chainId)}
 		</span>
 	{/snippet}
@@ -119,47 +119,47 @@
 								<dt>Base fee</dt>
 								<dd>
 									<NumberValue value={networkGasFeeBlock.baseFeePerGas} /> wei
-								</dd>
-							</div>
-						{/if}
+									</dd>
+								</div>
+							{/if}
 
-						{#if networkGasFeeBlock.legacyGasPrice !== undefined}
-							<div>
-								<dt>Suggested gas price</dt>
-								<dd>
-									<NumberValue value={networkGasFeeBlock.legacyGasPrice} /> wei
-								</dd>
-							</div>
-						{/if}
+							{#if networkGasFeeBlock.legacyGasPrice !== undefined}
+								<div>
+									<dt>Suggested gas price</dt>
+									<dd>
+										<NumberValue value={networkGasFeeBlock.legacyGasPrice} /> wei
+										</dd>
+									</div>
+								{/if}
 
-						{#if networkGasFeeBlock.maxPriorityFeePerGas !== undefined}
-							<div>
-								<dt>Max priority fee</dt>
-								<dd>
-									<NumberValue value={networkGasFeeBlock.maxPriorityFeePerGas} /> wei
-								</dd>
-							</div>
-						{/if}
+								{#if networkGasFeeBlock.maxPriorityFeePerGas !== undefined}
+									<div>
+										<dt>Max priority fee</dt>
+										<dd>
+											<NumberValue value={networkGasFeeBlock.maxPriorityFeePerGas} /> wei
+											</dd>
+										</div>
+									{/if}
 
-						{#if networkGasFeeBlock.gasUsedRatio !== undefined}
-							<div>
-								<dt>Gas used ratio</dt>
-								<dd>{String(networkGasFeeBlock.gasUsedRatio)}</dd>
-							</div>
-						{/if}
+									{#if networkGasFeeBlock.gasUsedRatio !== undefined}
+										<div>
+											<dt>Gas used ratio</dt>
+											<dd>{String(networkGasFeeBlock.gasUsedRatio)}</dd>
+										</div>
+									{/if}
 
-						{#if networkGasFeeBlock.priorityFeeRewardAt50thPercentile !== undefined}
-							<div>
-								<dt>Priority fee at 50th percentile</dt>
-								<dd>
-									<NumberValue value={networkGasFeeBlock.priorityFeeRewardAt50thPercentile} /> wei
-								</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+									{#if networkGasFeeBlock.priorityFeeRewardAt50thPercentile !== undefined}
+										<div>
+											<dt>Priority fee at 50th percentile</dt>
+											<dd>
+												<NumberValue value={networkGasFeeBlock.priorityFeeRewardAt50thPercentile} /> wei
+												</dd>
+											</div>
+										{/if}
+									{/if}
+								</dl>
+							{/snippet}
+						</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details()}

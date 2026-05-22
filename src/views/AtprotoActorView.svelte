@@ -145,55 +145,82 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open })}
-		<ResourceBoundary
-			resource={actor}
-			placeholderText="Loading profile…"
-		>
-			{#snippet children(actor)}
-				{@const atprotoSummaryHeadingLine = (
-					actor.displayName
-					?? actor.handle
-					?? entityId.did
-				)}
-				<dl data-column-item="center">
-					{#if atprotoSummaryHeadingLine !== entityId.did}
-						<div>
-							<dt>DID</dt>
-							<dd data-text="mono">
+		<dl data-column-item="center">
+			<div>
+				<dt>DID</dt>
+				<dd data-text="mono">
+					<ResourceBoundary
+						resource={actor}
+						placeholderText="Loading profile…"
+					>
+						{#snippet children(actor)}
+							{@const atprotoSummaryHeadingLine = (
+								actor.displayName
+								?? actor.handle
+								?? entityId.did
+							)}
+							{#if atprotoSummaryHeadingLine !== entityId.did}
 								{@render Title()}
-							</dd>
-						</div>
-					{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if open}
-						{#if actor.displayName}
-							<div>
-								<dt>Display name</dt>
-								<dd>{actor.displayName}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Display name</dt>
+					<dd>
+						<ResourceBoundary
+							resource={actor}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(actor)}
+								{#if actor.displayName}
+									{actor.displayName}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if actor.handle}
-							<div>
-								<dt>Federation handle</dt>
-								<dd>{actor.handle}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Federation handle</dt>
+					<dd>
+						<ResourceBoundary
+							resource={actor}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(actor)}
+								{#if actor.handle}
+									{actor.handle}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if actor.description}
-							<div>
-								<dt>Bio</dt>
-								<dd>{actor.description}</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+			{#if open}
+				<div>
+					<dt>Bio</dt>
+					<dd>
+						<ResourceBoundary
+							resource={actor}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(actor)}
+								{#if actor.description}
+									{actor.description}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

@@ -133,18 +133,18 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open })}
-		<ResourceBoundary
-			resource={post}
-			placeholderText="Loading lexicon record…"
-		>
-			{#snippet children(post)}
-				<dl data-column-item="center">
-					{#if open}
-						{#if post.$author}
-							{@const authorDid = post.$author[EntityMetaKey.Id].did}
-							<div>
-								<dt>Author DID</dt>
-								<dd>
+		<dl data-column-item="center">
+			{#if open}
+				<div>
+					<dt>Author DID</dt>
+					<dd>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading lexicon record…"
+						>
+							{#snippet children(post)}
+								{#if post.$author}
+									{@const authorDid = post.$author[EntityMetaKey.Id].did}
 									<a
 										data-link
 										href={resolve(
@@ -161,17 +161,24 @@
 											value={authorDid}
 										/>
 									</a>
-								</dd>
-							</div>
-						{/if}
-					{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if post.$parent}
-							{@const parentUri = post.$parent[EntityMetaKey.Id].uri}
-							<div>
-								<dt>Reply to</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Reply to</dt>
+					<dd>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading lexicon record…"
+						>
+							{#snippet children(post)}
+								{#if post.$parent}
+									{@const parentUri = post.$parent[EntityMetaKey.Id].uri}
 									<a
 										data-link
 										href={resolve(
@@ -188,17 +195,24 @@
 											value={parentUri}
 										/>
 									</a>
-								</dd>
-							</div>
-						{/if}
-					{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if post.$root && post.$root[EntityMetaKey.Id].uri !== post.$parent?.[EntityMetaKey.Id].uri}
-							{@const rootUri = post.$root[EntityMetaKey.Id].uri}
-							<div>
-								<dt>Thread root</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Thread root</dt>
+					<dd>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading lexicon record…"
+						>
+							{#snippet children(post)}
+								{#if post.$root && post.$root[EntityMetaKey.Id].uri !== post.$parent?.[EntityMetaKey.Id].uri}
+									{@const rootUri = post.$root[EntityMetaKey.Id].uri}
 									<a
 										data-link
 										href={resolve(
@@ -215,36 +229,52 @@
 											value={rootUri}
 										/>
 									</a>
-								</dd>
-							</div>
-						{/if}
-					{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if post.text}
-							<div>
-								<dt>Record text</dt>
-								<dd>{post.text}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Record text</dt>
+					<dd>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading lexicon record…"
+						>
+							{#snippet children(post)}
+								{#if post.text}
+									{post.text}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if post.createdAt != null}
-							<div>
-								<dt>Indexed at</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Indexed at</dt>
+					<dd>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading lexicon record…"
+						>
+							{#snippet children(post)}
+								{#if post.createdAt != null}
 									<Timestamp
 										timestamp={post.createdAt}
 										format={TimestampFormat.Both}
 									/>
-								</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

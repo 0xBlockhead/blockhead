@@ -22,6 +22,27 @@ export const evmLogIndexFromWire = (
 		)
 )
 
+const evmRpcQuantityToBigInt = (
+	raw: string | undefined,
+): bigint | undefined => (
+	raw == null ?
+		undefined
+	:	((value) => (
+			value < 0n ?
+				undefined
+			:
+				value
+		))(
+			(() => {
+				try {
+					return BigInt(raw)
+				} catch {
+					return undefined
+				}
+			})() ?? -1n,
+		)
+)
+
 export const evmLogEntityIdFromWire = ({
 	$network,
 	txHash,
@@ -47,11 +68,25 @@ export const evmLogEntityFromIdAndWire = (
 	log: RpcLogWire,
 ): Entity<typeof schema, EntityType.EvmLog> => {
 	const address = hexLowerOfByteSize(log.address ?? '', 20)
+	const blockHash = hexLowerOfByteSize(log.blockHash ?? '', 32)
+	const blockNumber = evmRpcQuantityToBigInt(log.blockNumber)
+	const transactionIndex = evmLogIndexFromWire(log.transactionIndex)
+	const topics = (
+		(log.topics ?? [])
+			.flatMap((topic) => {
+				const normalized = hexLowerOfByteSize(topic, 32)
+				return normalized == null ? [] : [normalized]
+			})
+	)
 	return {
 		[EntityMetaKey.Id]: entityId,
-		topics: log.topics ?? [],
+		topics,
 		...(address != null && { address }),
 		...(log.data != null && { data: log.data }),
+		...(blockNumber != null && { blockNumber }),
+		...(blockHash != null && { blockHash }),
+		...(transactionIndex != null && { transactionIndex }),
+		...(log.removed != null && { removed: log.removed }),
 		...(address != null && {
 			$emitter: {
 				[EntityMetaKey.Id]: {

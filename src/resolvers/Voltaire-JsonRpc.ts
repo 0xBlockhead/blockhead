@@ -953,6 +953,17 @@ export default {
 							return undefined
 						}
 					})())),
+					...(receipt?.cumulativeGasUsed != null && ((value) => (
+						value != null
+						&& !(value < 0n)
+						&& { cumulativeGasUsed: value }
+					))((() => {
+						try {
+							return BigInt(receipt.cumulativeGasUsed)
+						} catch {
+							return undefined
+						}
+					})())),
 					...(receipt?.effectiveGasPrice != null && ((value) => (
 						value != null
 						&& !(value < 0n)
@@ -1087,6 +1098,40 @@ export default {
 							)
 						})
 					)
+					const writeRecentBlocksForTransport = async (
+						jsonRpcTransport: (typeof candidateTransports)[number],
+						recentBlockDepth = 16,
+					) => {
+						const { getRecentVoltaireBlockWiresForRpcUrl } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
+						const { wires } = await getRecentVoltaireBlockWiresForRpcUrl({
+							...jsonRpcTransport,
+							recentBlockDepth,
+						})
+						const evmBlockRows = (
+							wires
+								.flatMap((wire) => (
+									wire == null ?
+										[]
+									: (() => {
+										const value = networkScopedEvmBlockFieldsFromVoltaireBlockRpc(
+											parentEntityId.chainId,
+											wire,
+										)
+										return (
+											value == null ?
+												[]
+											:	[{
+												source: Source.Voltaire_JsonRpc,
+												value,
+											}]
+										)
+									})()
+								))
+						)
+						if (evmBlockRows.length > 0) {
+							writeEntityFieldUpserts('$$blocks', evmBlockRows)
+						}
+					}
 					while (!signal.aborted) {
 						for (const jsonRpcTransport of candidateTransports) {
 							if (signal.aborted) break
@@ -1101,6 +1146,7 @@ export default {
 									source: Source.Voltaire_JsonRpc,
 									value: currentHead,
 								}])
+								await writeRecentBlocksForTransport(jsonRpcTransport)
 								for await (const event of iterateBlockStreamEvents({
 									provider,
 									include: 'header',
@@ -1135,6 +1181,7 @@ export default {
 										source: Source.Voltaire_JsonRpc,
 										value: event.metadata.chainHead,
 									}])
+									await invalidate(['$$blocks'])
 
 									if (event.blocks.length > 0) {
 										const latestBlock = event.blocks[event.blocks.length - 1]
@@ -1184,7 +1231,11 @@ export default {
 										)
 										if (evmBlockRows.length > 0) {
 											writeEntityFieldUpserts('$$blocks', evmBlockRows)
+										} else {
+											await writeRecentBlocksForTransport(jsonRpcTransport, 1)
 										}
+									} else {
+										await writeRecentBlocksForTransport(jsonRpcTransport, 1)
 									}
 
 									if (
@@ -1497,7 +1548,7 @@ export default {
 					txHash: entityId.txHash,
 				})
 				const receipt = receiptWire == null ? null : voltaireReceiptWireAsRpcReceipt(receiptWire)
-				return (
+				const entities = (
 					(receipt?.logs ?? [])
 						.flatMap((log) => {
 							const id = evmLogEntityIdFromWire({
@@ -1518,6 +1569,10 @@ export default {
 							left[EntityMetaKey.Id].logIndex - right[EntityMetaKey.Id].logIndex
 						))
 				)
+				if (entities.length === 0) {
+					throw new Error('Voltaire_JsonRpc: EvmTransaction $$logs returned no log entities')
+				}
+				return entities
 			},
 		}),
 

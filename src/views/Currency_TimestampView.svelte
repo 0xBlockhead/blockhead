@@ -81,7 +81,7 @@
 	{...entityViewRest}
 >
 	{#snippet Heading()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.$currency.iso4217}
 		</span>
 	{/snippet}

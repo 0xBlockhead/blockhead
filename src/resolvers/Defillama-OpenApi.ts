@@ -124,7 +124,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$marketTimeIntervalTimestamps',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Defillama_OpenApi: $$marketTimeIntervalTimestamps is not implemented')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -171,7 +173,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Defillama_OpenApi: $$marketsWithCoinAsQuote is not implemented')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -199,13 +203,17 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Currency,
 			fieldName: '$$marketsWithCurrencyAsBase',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => (
-				catalogMarketsWithCurrencyAsBase(entityId.iso4217).map((marketId) => (
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+				const markets = catalogMarketsWithCurrencyAsBase(entityId.iso4217).map((marketId) => (
 					{
 						[EntityMetaKey.Id]: marketId,
 					}
 				))
-			),
+				if (markets.length === 0) {
+					throw new Error(`Defillama_OpenApi: no catalog markets with ${entityId.iso4217} as base`)
+				}
+				return markets
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -219,7 +227,10 @@ export default {
 						entityId.$base.$coin.coinId
 					:	undefined
 				)
-				if (coinId == null || defillamaCurrentPriceIdByCoinId[coinId] == null) return []
+				if (coinId == null) throw new Error('Defillama_OpenApi: OHLC market base is not a catalog coin')
+				if (defillamaCurrentPriceIdByCoinId[coinId] == null) {
+					throw new Error('Defillama_OpenApi: OHLC coin not mapped')
+				}
 				const llamaId = defillamaCurrentPriceIdByCoinId[coinId]
 				if (llamaId == null) throw new Error('Defillama_OpenApi: OHLC coin not mapped')
 				const lim = resolverLoadSubsetRowLimit(context)
@@ -289,9 +300,9 @@ export default {
 					:
 						undefined
 				)
-				if (llamaId == null) return []
+				if (llamaId == null) throw new Error('Defillama_OpenApi: no price id')
 				const priceRow = (await getCurrentPrices([llamaId])).coins[llamaId]
-				if (priceRow == null) return []
+				if (priceRow == null) throw new Error('Defillama_OpenApi: price row missing')
 				return [
 					{
 						[EntityMetaKey.Id]: {

@@ -82,7 +82,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.id}
 		</span>
 	{/snippet}
@@ -113,50 +113,73 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={comment}
-			placeholderText="Loading Reddit comment…"
-		>
-			{#snippet children(comment)}
-				{#if !comment.body}
-					<p data-text="muted">No comment text.</p>
-				{:else}
-					<p>{comment.body}</p>
-				{/if}
-				<dl data-column-item="center">
-					{#if open}
-						<div>
-							<dt>Reddit fullname</dt>
-							<dd>
-								<span data-text="mono">
-									<TruncatedValue
-										value={entityId.fullname}
-										format={TruncatedValueFormat.Visual}
-									/>
-								</span>
-							</dd>
-						</div>
-						<div>
-							<dt>Author</dt>
-							<dd>u/{comment.author}</dd>
-						</div>
-						{#if comment.$link !== undefined}
-							<div>
-								<dt>Submission</dt>
-								<dd>
+		<dl data-column-item="center">
+			{#if !open}
+				<div>
+					<dt>Comment</dt>
+					<dd>
+						<ResourceBoundary
+							resource={comment}
+							placeholderText="Loading Reddit comment…"
+						>
+							{#snippet children(comment)}
+								{#if !comment.body}
+									<p data-text="muted">No comment text.</p>
+								{:else}
+									<p>{comment.body}</p>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if open}
+				<div>
+					<dt>Reddit fullname</dt>
+					<dd>
+						<span data-text="mono">
+							<TruncatedValue
+								value={entityId.fullname}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</span>
+					</dd>
+				</div>
+				<div>
+					<dt>Author</dt>
+					<dd>
+						<ResourceBoundary
+							resource={comment}
+							placeholderText="Loading Reddit comment…"
+						>
+							{#snippet children(comment)}
+								u/{comment.author}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+				<div>
+					<dt>Submission</dt>
+					<dd>
+						<ResourceBoundary
+							resource={comment}
+							placeholderText="Loading Reddit comment…"
+						>
+							{#snippet children(comment)}
+								{#if comment.$link !== undefined}
 									<a
 										href={resolve(
 											'/(social)/reddit/link/[fullname]',
 											{ fullname: encodeURIComponent(comment.$link[EntityMetaKey.Id].fullname) },
 										)}
 									>{comment.$link[EntityMetaKey.Id].fullname}</a>
-								</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

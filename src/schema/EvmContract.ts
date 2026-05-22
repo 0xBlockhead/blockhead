@@ -29,6 +29,15 @@ export default {
 
 	fields: [
 		{
+			name: 'precompileName',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
+		},
+		{
 			name: '$deployer',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Actor,

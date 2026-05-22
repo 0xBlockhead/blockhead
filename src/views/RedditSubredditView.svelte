@@ -84,7 +84,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.name}
 		</span>
 	{/snippet}
@@ -110,30 +110,44 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={subreddit}
-			placeholderText="Loading subreddit…"
-		>
-			{#snippet children(subreddit)}
-				{#if !subreddit.publicDescription}
-					<p data-text="muted">No subreddit description.</p>
-				{:else}
-					{#if !open}
-						<p data-text="muted">{subreddit.publicDescription}</p>
-					{/if}
-				{/if}
-				<dl data-column-item="center">
-					{#if open}
-						{#if subreddit.publicDescription}
-							<div>
-								<dt>Description</dt>
-								<dd>{subreddit.publicDescription}</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+		<dl data-column-item="center">
+			{#if !open}
+				<div>
+					<dt>Description</dt>
+					<dd>
+						<ResourceBoundary
+							resource={subreddit}
+							placeholderText="Loading subreddit…"
+						>
+							{#snippet children(subreddit)}
+								{#if !subreddit.publicDescription}
+									<p data-text="muted">No subreddit description.</p>
+								{:else}
+									<p data-text="muted">{subreddit.publicDescription}</p>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if open}
+				<div>
+					<dt>Description</dt>
+					<dd>
+						<ResourceBoundary
+							resource={subreddit}
+							placeholderText="Loading subreddit…"
+						>
+							{#snippet children(subreddit)}
+								{#if subreddit.publicDescription}
+									{subreddit.publicDescription}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

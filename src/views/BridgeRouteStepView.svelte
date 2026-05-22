@@ -99,7 +99,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			#{entityId.index}
 		</span>
 	{/snippet}
@@ -111,90 +111,137 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={step}
-			placeholderText="Loading step…"
-		>
-			{#snippet children(step)}
-				<dl data-column-item="center">
-					{#if step.stepType !== undefined}
-						<div>
-							<dt>Type</dt>
-							<dd>{step.stepType}</dd>
-						</div>
-					{/if}
+		<dl data-column-item="center">
+			<div>
+				<dt>Type</dt>
+				<dd>
+					<ResourceBoundary
+						resource={step}
+						placeholderText="Loading step…"
+					>
+						{#snippet children(step)}
+							{#if step.stepType !== undefined}
+								{step.stepType}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if step.tool !== undefined}
-						<div>
-							<dt>Tool</dt>
-							<dd>{step.tool}</dd>
-						</div>
-					{/if}
+			<div>
+				<dt>Tool</dt>
+				<dd>
+					<ResourceBoundary
+						resource={step}
+						placeholderText="Loading step…"
+					>
+						{#snippet children(step)}
+							{#if step.tool !== undefined}
+								{step.tool}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if open}
-						{#if step.railId !== undefined}
-							<div>
-								<dt>Rail</dt>
-								<dd>{bridgeRailById[step.railId]?.label ?? step.railId}</dd>
-							</div>
-						{/if}
+			{#if open}
+				<div>
+					<dt>Rail</dt>
+					<dd>
+						<ResourceBoundary
+							resource={step}
+							placeholderText="Loading step…"
+						>
+							{#snippet children(step)}
+								{#if step.railId !== undefined}
+									{bridgeRailById[step.railId]?.label ?? step.railId}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if step.settlementModel !== undefined}
-							<div>
-								<dt>Settlement</dt>
-								<dd>{step.settlementModel}</dd>
-							</div>
-						{/if}
+				<div>
+					<dt>Settlement</dt>
+					<dd>
+						<ResourceBoundary
+							resource={step}
+							placeholderText="Loading step…"
+						>
+							{#snippet children(step)}
+								{#if step.settlementModel !== undefined}
+									{step.settlementModel}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if step.verificationModel !== undefined}
-							<div>
-								<dt>Verification</dt>
-								<dd>{step.verificationModel}</dd>
-							</div>
-						{/if}
+				<div>
+					<dt>Verification</dt>
+					<dd>
+						<ResourceBoundary
+							resource={step}
+							placeholderText="Loading step…"
+						>
+							{#snippet children(step)}
+								{#if step.verificationModel !== undefined}
+									{step.verificationModel}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if step.assetOutcome !== undefined}
-							<div>
-								<dt>Asset outcome</dt>
-								<dd>{step.assetOutcome}</dd>
-							</div>
-						{/if}
-					{/if}
+				<div>
+					<dt>Asset outcome</dt>
+					<dd>
+						<ResourceBoundary
+							resource={step}
+							placeholderText="Loading step…"
+						>
+							{#snippet children(step)}
+								{#if step.assetOutcome !== undefined}
+									{step.assetOutcome}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					<div>
-						<dt>From chain</dt>
-						<dd>
-							<NetworkView
-								entityId={{ chainId: entityId.$route.fromChainId }}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]',
-									{ networkId: String(entityId.$route.fromChainId) },
-								)}
-								layout={EntityLayout.Title}
-								open={false}
-								showTypeAnnotation={false}
-							/>
-						</dd>
-					</div>
+			<div>
+				<dt>From chain</dt>
+				<dd>
+					<NetworkView
+						entityId={{ chainId: entityId.$route.fromChainId }}
+						href={resolve(
+							'/(explore)/(networks)/network/[networkId]',
+							{ networkId: String(entityId.$route.fromChainId) },
+						)}
+						layout={EntityLayout.Title}
+						open={false}
+						showTypeAnnotation={false}
+					/>
+				</dd>
+			</div>
 
-					<div>
-						<dt>To chain</dt>
-						<dd>
-							<NetworkView
-								entityId={{ chainId: entityId.$route.toChainId }}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]',
-									{ networkId: String(entityId.$route.toChainId) },
-								)}
-								layout={EntityLayout.Title}
-								open={false}
-								showTypeAnnotation={false}
-							/>
-						</dd>
-					</div>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+			<div>
+				<dt>To chain</dt>
+				<dd>
+					<NetworkView
+						entityId={{ chainId: entityId.$route.toChainId }}
+						href={resolve(
+							'/(explore)/(networks)/network/[networkId]',
+							{ networkId: String(entityId.$route.toChainId) },
+						)}
+						layout={EntityLayout.Title}
+						open={false}
+						showTypeAnnotation={false}
+					/>
+				</dd>
+			</div>
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

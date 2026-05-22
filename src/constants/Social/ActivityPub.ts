@@ -1,4 +1,5 @@
 // Types
+import { fediDefaultInstanceOrigin } from '$/constants/Fedi.ts'
 import { mastodonDefaultInstanceOrigin } from '$/constants/Mastodon.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -10,8 +11,8 @@ export const activityPubNetworkFieldValues = {
 	docsUrl: 'https://w3c.github.io/activitypub/',
 	homeUrl: 'https://www.w3.org/TR/activitypub/',
 	protocolName: 'ActivityPub (federated)',
-	registryLabel: 'Configured Mastodon instance + curated seed actors',
-	topology: 'network -> actors -> notes -> thread',
+	registryLabel: 'Configured Mastodon-compatible instances + curated seed actors',
+	topology: 'Constants seeds + live REST (multi-instance) -> network -> actors -> notes -> thread',
 } as const
 
 export const activityPubNetworkSeedActors: readonly EntityId<typeof schema, EntityType.ActivityPubActor>[] = [
@@ -22,5 +23,13 @@ export const activityPubNetworkSeedActors: readonly EntityId<typeof schema, Enti
 	{
 		instanceOrigin: mastodonDefaultInstanceOrigin,
 		localAccountId: 'mastodon@mastodon.social',
+	},
+	{
+		instanceOrigin: fediDefaultInstanceOrigin,
+		localAccountId: 'fosstodon@fosstodon.org',
+	},
+	{
+		instanceOrigin: fediDefaultInstanceOrigin,
+		localAccountId: 'matt@fosstodon.org',
 	},
 ]

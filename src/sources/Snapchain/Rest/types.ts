@@ -85,3 +85,27 @@ export type SnapchainUsernameProofsResponse = {
 	}[]
 	nextPageToken?: string
 }
+
+export type SnapchainLinkWire = {
+	data?: {
+		linkBody?: {
+			type?: string
+			targetFid?: number
+		}
+	}
+}
+
+export type SnapchainOnChainEventWire = {
+	type?: string
+	blockTimestamp?: number
+	fid?: number
+	idRegisterEventBody?: {
+		to?: string
+		eventType?: string
+	}
+}
+
+export type SnapchainOnChainEventsPage = {
+	events?: SnapchainOnChainEventWire[]
+	nextPageToken?: string
+}

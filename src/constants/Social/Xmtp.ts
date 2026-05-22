@@ -4,5 +4,5 @@ export const xmtpNetworkFieldValues = {
 	homeUrl: 'https://xmtp.org',
 	protocolName: 'XMTP (wallet messaging)',
 	registryLabel: 'Session-local wallets + conversations',
-	topology: 'network -> conversations',
+	topology: 'Constants metadata + session-local -> network -> conversations',
 } as const

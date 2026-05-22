@@ -1,0 +1,26 @@
+<script lang="ts">
+	// Context
+	import { resolve } from '$app/paths'
+
+
+	// Props
+	let {
+		data,
+	} = $props()
+
+
+	// Components
+	import Page from '$/components/Page.svelte'
+	import RssItemView from '$/views/RssItemView.svelte'
+</script>
+
+
+<Page>
+	<RssItemView
+		entityId={data.entityId}
+		href={resolve('/(social)/(rss)/rss/item/[feedKey]/[guid]', {
+			feedKey: encodeURIComponent(data.entityId.feedUrl),
+			guid: encodeURIComponent(data.entityId.guid),
+		})}
+	/>
+</Page>

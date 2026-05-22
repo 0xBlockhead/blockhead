@@ -124,7 +124,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.localAccountId}
 		</span>
 	{/snippet}
@@ -150,67 +150,101 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open })}
-		<ResourceBoundary
-			resource={actor}
-			placeholderText="Loading actor…"
-		>
-			{#snippet children(actor)}
-				{@const activityPubSummaryHeadingLine = (
-					actor.displayName
-					?? actor.acct
-					?? actor.username
-					?? entityId.localAccountId
-				)}
-				<dl data-column-item="center">
-					{#if activityPubSummaryHeadingLine !== entityId.localAccountId}
-						<div>
-							<dt>Local account id</dt>
-							<dd data-text="mono">
+		<dl data-column-item="center">
+			<div>
+				<dt>Local account id</dt>
+				<dd data-text="mono">
+					<ResourceBoundary
+						resource={actor}
+						placeholderText="Loading actor…"
+					>
+						{#snippet children(actor)}
+							{@const activityPubSummaryHeadingLine = (
+								actor.displayName
+								?? actor.acct
+								?? actor.username
+								?? entityId.localAccountId
+							)}
+							{#if activityPubSummaryHeadingLine !== entityId.localAccountId}
 								{@render Title()}
-							</dd>
-						</div>
-					{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if open}
-						{#if actor.username}
-							<div>
-								<dt>Username on instance</dt>
-								<dd>{actor.username}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Username on instance</dt>
+					<dd>
+						<ResourceBoundary
+							resource={actor}
+							placeholderText="Loading actor…"
+						>
+							{#snippet children(actor)}
+								{#if actor.username}
+									{actor.username}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if actor.acct}
-							<div>
-								<dt>Federated handle (acct)</dt>
-								<dd>{actor.acct}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Federated handle (acct)</dt>
+					<dd>
+						<ResourceBoundary
+							resource={actor}
+							placeholderText="Loading actor…"
+						>
+							{#snippet children(actor)}
+								{#if actor.acct}
+									{actor.acct}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if actor.displayName}
-							<div>
-								<dt>Display name</dt>
-								<dd>{actor.displayName}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Display name</dt>
+					<dd>
+						<ResourceBoundary
+							resource={actor}
+							placeholderText="Loading actor…"
+						>
+							{#snippet children(actor)}
+								{#if actor.displayName}
+									{actor.displayName}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if actor.note}
-							<div>
-								<dt>Bio (plain text)</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Bio (plain text)</dt>
+					<dd>
+						<ResourceBoundary
+							resource={actor}
+							placeholderText="Loading actor…"
+						>
+							{#snippet children(actor)}
+								{#if actor.note}
 									{htmlToPlainText(actor.note)}
-								</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

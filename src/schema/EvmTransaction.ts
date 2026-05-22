@@ -104,6 +104,12 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'cumulativeGasUsed',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: 'effectiveGasPrice',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
@@ -122,13 +128,31 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$$tokenTransfers',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmTokenTransfer,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
+		},
+		{
+			name: '$$internalTransfers',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmInternalTransfer,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
+		},
+		{
 			name: '$$logs',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmLog,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
-				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
 			],
 		},
 		{

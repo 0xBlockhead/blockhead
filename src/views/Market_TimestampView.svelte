@@ -114,21 +114,23 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			placeholderText="Loading quote…"
-			resource={marketTimestamp}
-		>
-			{#snippet children(marketTimestamp)}
-				<dl data-column-item="center">
+		<dl data-column-item="center">
 					{#if marketTimestamp.price !== undefined}
 						<div>
 							<dt>Last (index, {quoteIso4217FromMarketId(entityId.$market)})</dt>
 							<dd>
-								<CurrencyAmount
-									currency={quoteIso4217FromMarketId(entityId.$market)}
-									showDecimalPlaces={6}
-									value={marketTimestamp.price}
-								/>
+								<ResourceBoundary
+									placeholderText="Loading quote…"
+									resource={marketTimestamp}
+								>
+									{#snippet children(marketTimestamp)}
+										<CurrencyAmount
+											currency={quoteIso4217FromMarketId(entityId.$market)}
+											showDecimalPlaces={6}
+											value={marketTimestamp.price}
+										/>
+									{/snippet}
+								</ResourceBoundary>
 							</dd>
 						</div>
 					{/if}
@@ -146,18 +148,25 @@
 					<div>
 						<dt>Market</dt>
 						<dd>
-							<MarketView
-								entityId={entityId.$market}
-								href={resolve(
-									'/(assets)/(markets)/market/[marketKey]',
-									{
-										marketKey: encodeURIComponent(stringify(entityId.$market)),
-									},
-								)}
-								layout={EntityLayout.Title}
-								open={false}
-								showTypeAnnotation={false}
-							/>
+							<ResourceBoundary
+								placeholderText="Loading quote…"
+								resource={marketTimestamp}
+							>
+								{#snippet children(marketTimestamp)}
+									<MarketView
+										entityId={entityId.$market}
+										href={resolve(
+											'/(assets)/(markets)/market/[marketKey]',
+											{
+												marketKey: encodeURIComponent(stringify(entityId.$market)),
+											},
+										)}
+										layout={EntityLayout.Title}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{/snippet}
+							</ResourceBoundary>
 						</dd>
 					</div>
 
@@ -166,10 +175,17 @@
 							<div>
 								<dt>Market cap</dt>
 								<dd>
-									<CurrencyAmount
-										currency={quoteIso4217FromMarketId(entityId.$market)}
-										value={marketTimestamp.marketCap}
-									/>
+									<ResourceBoundary
+										placeholderText="Loading quote…"
+										resource={marketTimestamp}
+									>
+										{#snippet children(marketTimestamp)}
+											<CurrencyAmount
+												currency={quoteIso4217FromMarketId(entityId.$market)}
+												value={marketTimestamp.marketCap}
+											/>
+										{/snippet}
+									</ResourceBoundary>
 								</dd>
 							</div>
 						{/if}
@@ -178,10 +194,17 @@
 							<div>
 								<dt>24h volume</dt>
 								<dd>
-									<CurrencyAmount
-										currency={quoteIso4217FromMarketId(entityId.$market)}
-										value={marketTimestamp.volume24h}
-									/>
+									<ResourceBoundary
+										placeholderText="Loading quote…"
+										resource={marketTimestamp}
+									>
+										{#snippet children(marketTimestamp)}
+											<CurrencyAmount
+												currency={quoteIso4217FromMarketId(entityId.$market)}
+												value={marketTimestamp.volume24h}
+											/>
+										{/snippet}
+									</ResourceBoundary>
 								</dd>
 							</div>
 						{/if}
@@ -190,7 +213,14 @@
 							<div>
 								<dt>CAIP-19</dt>
 								<dd>
-									<code>{marketTimestamp.caip19}</code>
+									<ResourceBoundary
+										placeholderText="Loading quote…"
+										resource={marketTimestamp}
+									>
+										{#snippet children(marketTimestamp)}
+											<code>{marketTimestamp.caip19}</code>
+										{/snippet}
+									</ResourceBoundary>
 								</dd>
 							</div>
 						{/if}
@@ -198,7 +228,16 @@
 						{#if marketTimestamp.transport !== undefined}
 							<div>
 								<dt>Transport</dt>
-								<dd>{marketTimestamp.transport}</dd>
+								<dd>
+									<ResourceBoundary
+										placeholderText="Loading quote…"
+										resource={marketTimestamp}
+									>
+										{#snippet children(marketTimestamp)}
+											{marketTimestamp.transport}
+										{/snippet}
+									</ResourceBoundary>
+								</dd>
 							</div>
 						{/if}
 
@@ -206,14 +245,21 @@
 							{#if marketTimestamp.providerAssetId !== null}
 								<div>
 									<dt>Provider asset id</dt>
-									<dd>{marketTimestamp.providerAssetId}</dd>
+									<dd>
+										<ResourceBoundary
+											placeholderText="Loading quote…"
+											resource={marketTimestamp}
+										>
+											{#snippet children(marketTimestamp)}
+												{marketTimestamp.providerAssetId}
+											{/snippet}
+										</ResourceBoundary>
+									</dd>
 								</div>
 							{/if}
 						{/if}
 					{/if}
 				</dl>
-			{/snippet}
-		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details()}

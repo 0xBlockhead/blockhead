@@ -80,7 +80,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.id}
 		</span>
 	{/snippet}
@@ -115,58 +115,89 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
-		<ResourceBoundary
-			resource={post}
-			placeholderText="Loading X post…"
-		>
-			{#snippet children(post)}
-				{#if post.text}
-					{#if !contentOpen}
-						<p>
-							{post.text}
-						</p>
-					{/if}
-				{/if}
+		<dl data-column-item="center">
+			{#if !contentOpen}
+				<div>
+					<dt>Post</dt>
+					<dd>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading X post…"
+						>
+							{#snippet children(post)}
+								{#if post.text}
+									<p>
+										{post.text}
+									</p>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-				{#if post.$author}
-					<p data-text="muted">
-						<a
-							href={resolve(
-								'/(social)/x/user/[userId]',
-								{
-									userId: encodeURIComponent(
-										post.$author[EntityMetaKey.Id].id,
-									),
-								},
-							)}
-						>Profile (id {post.$author[EntityMetaKey.Id].id})</a>
-					</p>
-				{/if}
-				<dl data-column-item="center">
+			<div>
+				<dt>Author</dt>
+				<dd>
+					<ResourceBoundary
+						resource={post}
+						placeholderText="Loading X post…"
+					>
+						{#snippet children(post)}
+							{#if post.$author}
+								<a
+									href={resolve(
+										'/(social)/x/user/[userId]',
+										{
+											userId: encodeURIComponent(
+												post.$author[EntityMetaKey.Id].id,
+											),
+										},
+									)}
+								>Profile (id {post.$author[EntityMetaKey.Id].id})</a>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if contentOpen}
-						{#if post.text}
-							<div>
-								<dt>Text</dt>
-								<dd>{post.text}</dd>
-							</div>
-						{/if}
+			{#if contentOpen}
+				<div>
+					<dt>Text</dt>
+					<dd>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading X post…"
+						>
+							{#snippet children(post)}
+								{#if post.text}
+									{post.text}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if post.createdAt != null}
-							<div>
-								<dt>Created at</dt>
-								<dd>
+				<div>
+					<dt>Created at</dt>
+					<dd>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading X post…"
+						>
+							{#snippet children(post)}
+								{#if post.createdAt != null}
 									<Timestamp
 										timestamp={post.createdAt}
 										format={TimestampFormat.Both}
 									/>
-								</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

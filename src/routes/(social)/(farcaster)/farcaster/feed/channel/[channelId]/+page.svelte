@@ -30,6 +30,5 @@
 		entityId={entityId}
 		href={resolve(`/farcaster/feed/channel/${encodeURIComponent(params.channelId)}`)}
 		limit={50}
-		open={true}
 	/>
 </Page>

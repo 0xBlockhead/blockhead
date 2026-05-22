@@ -119,47 +119,67 @@
 		href: _href,
 		open: contentOpen,
 	})}
-		<ResourceBoundary
-			placeholderText="Loading user operation…"
-			resource={operation}
-		>
-			{#snippet children(operation)}
-				<dl data-column-item="center">
-					{#if !summaryUsesHeading}
-						<div>
-							<dt>Operation hash</dt>
-							<dd>
-								<TruncatedValue
-									format={TruncatedValueFormat.Visual}
-									value={entityId.hash}
-								/>
-							</dd>
-						</div>
-					{/if}
+		<dl data-column-item="center">
+			{#if !summaryUsesHeading}
+				<div>
+					<dt>Operation hash</dt>
+					<dd>
+						<TruncatedValue
+							format={TruncatedValueFormat.Visual}
+							value={entityId.hash}
+						/>
+					</dd>
+				</div>
+			{/if}
 
-					{#if operation.finalized !== undefined}
-						<div>
-							<dt>Finalized</dt>
-							<dd>{String(operation.finalized)}</dd>
-						</div>
-					{/if}
+			<div>
+				<dt>Finalized</dt>
+				<dd>
+					<ResourceBoundary
+						placeholderText="Loading user operation…"
+						resource={operation}
+					>
+						{#snippet children(operation)}
+							{#if operation.finalized !== undefined}
+								{String(operation.finalized)}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if operation.blockNumber !== undefined}
-						<div>
-							<dt>Bundled block</dt>
-							<dd>{String(operation.blockNumber)}</dd>
-						</div>
-					{/if}
+			<div>
+				<dt>Bundled block</dt>
+				<dd>
+					<ResourceBoundary
+						placeholderText="Loading user operation…"
+						resource={operation}
+					>
+						{#snippet children(operation)}
+							{#if operation.blockNumber !== undefined}
+								{String(operation.blockNumber)}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if operation.fee != null && operation.fee !== ''}
-						<div>
-							<dt>Fee</dt>
-							<dd>{operation.fee}</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+			<div>
+				<dt>Fee</dt>
+				<dd>
+					<ResourceBoundary
+						placeholderText="Loading user operation…"
+						resource={operation}
+					>
+						{#snippet children(operation)}
+							{#if operation.fee != null && operation.fee !== ''}
+								{operation.fee}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

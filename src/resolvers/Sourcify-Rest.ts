@@ -118,7 +118,12 @@ const sourcifyVerificationFieldsFromLookup = (
 	...(wire.runtimeMatch != null
 		&& wire.runtimeMatch !== ''
 		&& { runtimeMatch: wire.runtimeMatch }),
-	...(wire.verifiedAt != null && wire.verifiedAt !== '' && { verifiedAt: wire.verifiedAt }),
+	...(wire.verifiedAt != null && wire.verifiedAt !== '' && ((parsed) => (
+		Number.isFinite(parsed) && parsed >= 0 ?
+			{ verifiedAtMs: parsed }
+		:
+			{}
+	))(Date.parse(wire.verifiedAt))),
 	...(wire.matchId != null && wire.matchId !== '' && { matchId: String(wire.matchId) }),
 	$compilation: {
 		[EntityMetaKey.Id]: entityId,

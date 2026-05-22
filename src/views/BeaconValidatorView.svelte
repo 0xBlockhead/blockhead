@@ -79,7 +79,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			<NumberValue value={entityId.validatorIndex} />
 		</span>
 	{/snippet}

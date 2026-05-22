@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
@@ -38,6 +39,48 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'followerCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'followingCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'tweetCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'verified',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'createdAt',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'location',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'profileUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: '$icon',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Media,
@@ -45,6 +88,21 @@ export default {
 			defaultSources: [
 				Source.X_Rest,
 			],
+		},
+		{
+			name: '$profileBanner',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Media,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.X_Rest,
+			],
+		},
+		{
+			name: 'listedCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$$posts',

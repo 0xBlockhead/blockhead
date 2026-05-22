@@ -75,7 +75,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.upgradeId}
 		</span>
 	{/snippet}
@@ -96,23 +96,25 @@
 		href: _href,
 		open: contentOpen,
 	})}
-		<ResourceBoundary
-			resource={networkExecutionUpgrade}
-			placeholderText="Loading execution upgrade…"
-		>
-			{#snippet children(networkExecutionUpgrade)}
-				<dl data-column-item="center">
-					{#if open}
-						{#if networkExecutionUpgrade.protocol !== undefined}
-							<div>
-								<dt>Execution fork</dt>
-								<dd>{networkExecutionUpgrade.protocol}</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+		<dl data-column-item="center">
+			{#if contentOpen}
+				{#if networkExecutionUpgrade.protocol !== undefined}
+					<div>
+						<dt>Execution fork</dt>
+						<dd>
+							<ResourceBoundary
+								resource={networkExecutionUpgrade}
+								placeholderText="Loading execution upgrade…"
+							>
+								{#snippet children(networkExecutionUpgrade)}
+									{networkExecutionUpgrade.protocol}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

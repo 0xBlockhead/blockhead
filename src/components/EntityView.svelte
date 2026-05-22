@@ -1,15 +1,16 @@
 <script module lang="ts">
 	export enum EntityLayout {
+		/** Kind prefix + identity (`#snippet Title`); default card / prose inline. */
 		Title = 'Title',
+		/** Value-only identity (`#snippet Value`); use when a parent `<dt>` already names the kind. */
+		Value = 'Value',
 		/** Collapsible card: summary row; details when open. */
-		Summary = 'Summary',
+		SummaryDetails = 'SummaryDetails',
 		/**
-		 * Same `EntitySummary` markup as the summary row, without `article` or nested `Collapsible`
+		 * Same identity row as the summary row, without `article` or nested `Collapsible`
 		 * (e.g. nested under `ParentPageCollapsible`).
 		 */
 		SummaryInline = 'SummaryInline',
-		Details = 'Details',
-		SummaryDetails = 'SummaryDetails',
 	}
 </script>
 
@@ -54,15 +55,16 @@
 
 		layout = EntityLayout.SummaryDetails,
 		showTypeAnnotation = !(isInsideEntityList ?? false),
-		/** Collapsible summary row uses `#snippet Heading` instead of `#snippet Title`. */
-		summaryUsesHeading = false,
 
-		open = $bindable(layout === EntityLayout.SummaryDetails),
+		open = $bindable(
+			layout === EntityLayout.SummaryDetails
+			&& !(isInsideEntityList ?? false),
+		),
 		ontoggle,
 
 		Title,
+		Value,
 		Icon,
-		Heading,
 		HeadingAfter,
 		TypeAnnotationTooltip,
 		Content,
@@ -81,14 +83,14 @@
 
 			layout?: EntityLayout
 			showTypeAnnotation?: boolean
-			summaryUsesHeading?: boolean
 
 			open?: boolean
 			ontoggle?: (e: Event) => void
 
 			Title?: Snippet
+			/** Value-only identity; used when `layout` is `EntityLayout.Value`. */
+			Value?: Snippet
 			Icon?: Snippet
-			Heading?: Snippet
 			HeadingAfter?: Snippet
 			/** Tooltip body (e.g. `<p>` paragraphs) shown when hovering the entity type label; omitted when `showTypeAnnotation` is false. */
 			TypeAnnotationTooltip?: Snippet
@@ -105,8 +107,9 @@
 		SvelteHTMLElements['article']
 	> = $props()
 
-	/** Type label only via collapsible annotation — never prefixed on title rows. */
-	const showEntitySummaryTypeTitlePrefix = false
+	const entityTitle = $derived(
+		title ?? entityDefinitionByType[entityType].label,
+	)
 
 
 	// Functions
@@ -115,29 +118,95 @@
 
 	// Components
 	import Collapsible from '$/components/Collapsible.svelte'
+	import Heading from '$/components/Heading.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
-	import EntitySummary from './EntitySummary.svelte'
+	import EntityIdComponent from './EntityId.svelte'
 </script>
 
 
-{#if layout === EntityLayout.Title}
+{#snippet CardSummaryHeader(context?: {
+	summaryOpen?: boolean
+	showCollapsedContent?: boolean
+	contentOpen?: boolean
+})}
+	{@const summaryOpen = context?.summaryOpen ?? false}
+	{@const showCollapsedContent = context?.showCollapsedContent ?? false}
+	{@const contentOpen = context?.contentOpen ?? summaryOpen}
+	<header
+		class="entity-view-summary"
+		data-row-item="flexible"
+		data-row="wrap gap-2"
+	>
+		<div
+			data-row-item="flexible"
+			data-row="wrap"
+		>
+			<div data-row="start wrap">
+				<Heading>
+					<EntityIdComponent
+						{entityId}
+						{href}
+						{idDragPlainText}
+						{Icon}
+					>
+						{#snippet children()}
+							{#if Title}
+								{@render Title()}
+							{:else if Value}
+								{@render Value()}
+							{:else}
+								{entityTitle}
+							{/if}
+						{/snippet}
+					</EntityIdComponent>
+				</Heading>
+
+				{#if HeadingAfter}
+					{@render HeadingAfter()}
+				{/if}
+			</div>
+
+			{#if showCollapsedContent && Content && !summaryOpen}
+				{@render Content({
+					title,
+					href,
+					open: contentOpen,
+				})}
+			{/if}
+		</div>
+	</header>
+{/snippet}
+
+
+{#if layout === EntityLayout.Title || layout === EntityLayout.Value}
 	<div
 		data-row-item="flexible"
 		data-row="align-center wrap"
 	>
-		<EntitySummary
-			entityType={entityType}
-			entityId={entityId}
-			{title}
+		<EntityIdComponent
+			{entityId}
 			{href}
 			{idDragPlainText}
-			showEntityTypeTitlePrefix={showEntitySummaryTypeTitlePrefix}
-			useHeading={false}
 			{Icon}
-			{Heading}
-			{Title}
-			{HeadingAfter}
-		/>
+		>
+			{#snippet children()}
+				{#if layout === EntityLayout.Value}
+					{#if Value}
+						{@render Value()}
+					{:else if Title}
+						{@render Title()}
+					{:else}
+						{entityTitle}
+					{/if}
+				{:else if Title}
+					{@render Title()}
+				{:else if Value}
+					{@render Value()}
+				{:else}
+					{entityTitle}
+				{/if}
+			{/snippet}
+		</EntityIdComponent>
 	</div>
 
 {:else if layout === EntityLayout.SummaryInline}
@@ -145,29 +214,10 @@
 		data-row-item="flexible"
 		data-row="align-center wrap"
 	>
-		<EntitySummary
-			entityType={entityType}
-			entityId={entityId}
-			{title}
-			{href}
-			{idDragPlainText}
-			showEntityTypeTitlePrefix={showEntitySummaryTypeTitlePrefix}
-			summaryUsesHeading={summaryUsesHeading}
-			{Icon}
-			{Heading}
-			{Title}
-			{HeadingAfter}
-		>
-			{#snippet children(_context)}
-				{#if Content}
-					{@render Content({
-						title: _context?.title,
-						href: _context?.href,
-						open: true,
-					})}
-				{/if}
-			{/snippet}
-		</EntitySummary>
+		{@render CardSummaryHeader({
+			showCollapsedContent: true,
+			contentOpen: true,
+		})}
 
 		{#if showTypeAnnotation}
 			<div data-row="wrap">
@@ -184,23 +234,6 @@
 					<span data-text="annotation">{entityDefinitionByType[entityType].label}</span>
 				{/if}
 			</div>
-		{/if}
-	</div>
-
-{:else if layout === EntityLayout.Details}
-	<div data-column>
-		{#if Content}
-			{@render Content({
-				title,
-				href,
-				open: true,
-			})}
-		{/if}
-
-		{#if _Details}
-			{@render _Details({
-				open: true,
-			})}
 		{/if}
 	</div>
 
@@ -239,42 +272,15 @@
 			Annotation={showTypeAnnotation ? Annotation : undefined}
 		>
 			{#snippet Summary(_context)}
-				{@const summaryOpen = _context?.open ?? false}
-				<EntitySummary
-					{entityType}
-					{entityId}
-					{title}
-					{href}
-					{idDragPlainText}
-					showEntityTypeTitlePrefix={showEntitySummaryTypeTitlePrefix}
-					summaryUsesHeading={summaryUsesHeading}
-					{Icon}
-					{Heading}
-					{Title}
-					{HeadingAfter}
-				>
-					{#snippet children(_childContext)}
-						{#if Content && !summaryOpen}
-							{@render Content({
-								title: _childContext?.title,
-								href: _childContext?.href,
-								open: summaryOpen,
-							})}
-						{/if}
-					{/snippet}
-				</EntitySummary>
+				{@render CardSummaryHeader({
+					summaryOpen: _context?.open ?? false,
+					showCollapsedContent: true,
+				})}
 			{/snippet}
 
 			{#snippet children(_context)}
 				{@const detailsOpen = _context?.open ?? false}
-				{#if (
-					_Details
-					&& detailsOpen
-					&& (
-						layout === EntityLayout.Summary
-						|| layout === EntityLayout.SummaryDetails
-					)
-				)}
+				{#if _Details && detailsOpen}
 					<div data-column>
 						{#if Content && detailsOpen}
 							{@render Content({

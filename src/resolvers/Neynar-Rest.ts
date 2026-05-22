@@ -93,6 +93,12 @@ export default {
 					bio: optionalTrimmedString(
 						bioRaw != null && typeof bioRaw === 'object' ? bioRaw.text : bioRaw ?? undefined,
 					),
+					...(user.follower_count != null && {
+						followerCount: user.follower_count,
+					}),
+					...(user.following_count != null && {
+						followingCount: user.following_count,
+					}),
 					...verifiedPart,
 				}
 			},
@@ -322,6 +328,32 @@ export default {
 							feedType: 'filter',
 							filterType: 'channel_id',
 							channelId: entityId.channelId,
+							limit,
+						},
+					)
+					if (page == null) throw new Error('Neynar_Rest: feed response missing')
+					return (
+						(page.casts ?? [])
+							.flatMap((cast) => (
+								cast.author?.fid == null
+								|| cast.hash == null
+								|| String(cast.hash).trim() === '' ?
+									[]
+								:	[{
+										[EntityMetaKey.Id]: {
+											fid: cast.author.fid,
+											hash: zeroXLowerHexCastHash(String(cast.hash)),
+										},
+									} satisfies NeynarCastEntity]
+							))
+					)
+				}
+				if (entityId.variant === 'following') {
+					const page = await singleFlight(getFeed)(
+						publicEnv,
+						{
+							feedType: 'following',
+							fid: entityId.viewerFid,
 							limit,
 						},
 					)

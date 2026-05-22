@@ -134,12 +134,10 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
-			<TruncatedValue
-				format={TruncatedValueFormat.Visual}
-				value={entityId.address}
-			/>
-		</span>
+		<TruncatedValue
+			format={TruncatedValueFormat.Visual}
+			value={entityId.address}
+		/>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

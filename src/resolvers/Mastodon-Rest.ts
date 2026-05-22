@@ -14,6 +14,16 @@ const optionalTrimmedString = (value: string | undefined) => (
 	value?.trim() ? value.trim() : undefined
 )
 
+const optionalFiniteNumber = (value: number | undefined) => (
+	value != null && Number.isFinite(value) ? value : undefined
+)
+
+const optionalTimestampMs = (value: string | undefined) => (
+	((parsed) => (
+		Number.isFinite(parsed) ? parsed : undefined
+	))(Date.parse(value ?? ''))
+)
+
 const mastodonAvatarUrl = (
 	value: string | null | undefined,
 	options?: { siteOrigin?: string },
@@ -52,6 +62,24 @@ export default {
 							$icon: iconMedia,
 						}
 					))(mediaFromUrl(mastodonAvatarUrl(a.avatar, { siteOrigin: entityId.instanceOrigin }), MediaType.Image)),
+					...((
+						headerMedia,
+					) => (
+						headerMedia != null && {
+							$headerImage: headerMedia,
+						}
+					))(mediaFromUrl(mastodonAvatarUrl(a.header, { siteOrigin: entityId.instanceOrigin }), MediaType.Image)),
+					...(optionalTrimmedString(a.url) != null && {
+						profileUrl: optionalTrimmedString(a.url),
+					}),
+					followersCount: optionalFiniteNumber(a.followers_count),
+					followingCount: optionalFiniteNumber(a.following_count),
+					statusesCount: optionalFiniteNumber(a.statuses_count),
+					...(a.bot != null && { bot: a.bot }),
+					...(a.locked != null && { locked: a.locked }),
+					...(optionalTimestampMs(a.created_at) != null && {
+						createdAt: optionalTimestampMs(a.created_at),
+					}),
 				}
 			},
 		}),
@@ -70,6 +98,15 @@ export default {
 				return {
 					content: optionalTrimmedString(s.content),
 					...(Number.isFinite(createdAt) && { createdAt }),
+					favouriteCount: optionalFiniteNumber(s.favourites_count),
+					reblogCount: optionalFiniteNumber(s.reblogs_count),
+					replyCount: optionalFiniteNumber(s.replies_count),
+					visibility: optionalTrimmedString(s.visibility),
+					...(s.sensitive != null && { sensitive: s.sensitive }),
+					...(optionalTrimmedString(s.language ?? undefined) != null && {
+						language: optionalTrimmedString(s.language ?? undefined),
+					}),
+					spoilerText: optionalTrimmedString(s.spoiler_text),
 					$author: (
 						s.account == null || s.account.id == null ?
 							undefined

@@ -126,45 +126,83 @@
 		open: contentOpen,
 	})}
 		{#if contentOpen}
-			<ResourceBoundary
-				resource={verification}
-				placeholderText="Loading verification record…"
-			>
-				{#snippet children(verification)}
-					<dl data-column-item="center">
-						{#if verification.match}
-							<div>
-								<dt>Match</dt>
-								<dd><code>{verification.match}</code></dd>
-							</div>
-						{/if}
-						{#if verification.creationMatch}
-							<div>
-								<dt>Creation match</dt>
-								<dd><code>{verification.creationMatch}</code></dd>
-							</div>
-						{/if}
-						{#if verification.runtimeMatch}
-							<div>
-								<dt>Runtime match</dt>
-								<dd><code>{verification.runtimeMatch}</code></dd>
-							</div>
-						{/if}
-						{#if verification.verifiedAt}
-							<div>
-								<dt>Verified at</dt>
-								<dd>{verification.verifiedAt}</dd>
-							</div>
-						{/if}
-						{#if verification.matchId}
-							<div>
-								<dt>Match id</dt>
-								<dd>{verification.matchId}</dd>
-							</div>
-						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
+			<dl data-column-item="center">
+				{#if verification.match}
+					<div>
+						<dt>Match</dt>
+						<dd>
+							<ResourceBoundary
+								resource={verification}
+								placeholderText="Loading verification record…"
+							>
+								{#snippet children(verification)}
+									<code>{verification.match}</code>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+				{#if verification.creationMatch}
+					<div>
+						<dt>Creation match</dt>
+						<dd>
+							<ResourceBoundary
+								resource={verification}
+								placeholderText="Loading verification record…"
+							>
+								{#snippet children(verification)}
+									<code>{verification.creationMatch}</code>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+				{#if verification.runtimeMatch}
+					<div>
+						<dt>Runtime match</dt>
+						<dd>
+							<ResourceBoundary
+								resource={verification}
+								placeholderText="Loading verification record…"
+							>
+								{#snippet children(verification)}
+									<code>{verification.runtimeMatch}</code>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+				{#if verification.verifiedAt}
+					<div>
+						<dt>Verified at</dt>
+						<dd>
+							<ResourceBoundary
+								resource={verification}
+								placeholderText="Loading verification record…"
+							>
+								{#snippet children(verification)}
+									{verification.verifiedAt}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+				{#if verification.matchId}
+					<div>
+						<dt>Match id</dt>
+						<dd>
+							<ResourceBoundary
+								resource={verification}
+								placeholderText="Loading verification record…"
+							>
+								{#snippet children(verification)}
+									{verification.matchId}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+			</dl>
 		{/if}
 	{/snippet}
 

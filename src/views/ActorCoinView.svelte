@@ -88,7 +88,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.$coin.coinId}
 		</span>
 	{/snippet}
@@ -105,87 +105,107 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open })}
-		<ResourceBoundary
-			resource={actorCoin}
-			placeholderText="Loading balance…"
-		>
-			{#snippet children(actorCoin)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Wallet · chain</dt>
-						<dd>
-							<ActorNetworkView
-								entityId={{
-									$network: entityId.$coinInstance.$network,
-									$actor: entityId.$actor,
-								}}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-									{
-										networkId: String(entityId.$coinInstance.$network.chainId),
-										address: entityId.$actor.address,
-									},
-								)}
-								layout={EntityLayout.Title}
-								open={false}
-								showTypeAnnotation={false}
-							/>
-						</dd>
-					</div>
-					<div>
-						<dt>Asset</dt>
-						<dd>
-							{#if entityId.$coinInstance.type === CoinInstanceType.NativeCurrency}
-								Native gas token (chain issuance)
-							{:else if entityId.$coinInstance.type === CoinInstanceType.Erc20Token}
-								<EvmContractView
-									entityId={entityId.$coinInstance.$contract}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-										{
-											networkId: String(entityId.$coinInstance.$contract.$network.chainId),
-											address: entityId.$coinInstance.$contract.address,
-										},
-									)}
-									layout={EntityLayout.Title}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							{:else}
-								—
-							{/if}
-						</dd>
-					</div>
-
-					{#if open}
-						{#if actorCoin.balance !== undefined}
-							<div>
-								<dt>Balance (raw)</dt>
-								<dd>{String(actorCoin.balance)}</dd>
-							</div>
-						{/if}
+		<dl data-column-item="center">
+			<div>
+				<dt>Wallet · chain</dt>
+				<dd>
+					<ActorNetworkView
+						entityId={{
+							$network: entityId.$coinInstance.$network,
+							$actor: entityId.$actor,
+						}}
+						href={resolve(
+							'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+							{
+								networkId: String(entityId.$coinInstance.$network.chainId),
+								address: entityId.$actor.address,
+							},
+						)}
+						layout={EntityLayout.Title}
+						open={false}
+						showTypeAnnotation={false}
+					/>
+				</dd>
+			</div>
+			<div>
+				<dt>Asset</dt>
+				<dd>
+					{#if entityId.$coinInstance.type === CoinInstanceType.NativeCurrency}
+						Native gas token (chain issuance)
+					{:else if entityId.$coinInstance.type === CoinInstanceType.Erc20Token}
+						<EvmContractView
+							entityId={entityId.$coinInstance.$contract}
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+								{
+									networkId: String(entityId.$coinInstance.$contract.$network.chainId),
+									address: entityId.$coinInstance.$contract.address,
+								},
+							)}
+							layout={EntityLayout.Title}
+							open={false}
+							showTypeAnnotation={false}
+						/>
+					{:else}
+						—
 					{/if}
+				</dd>
+			</div>
 
-					{#if open}
-						{#if actorCoin.usdValue !== undefined}
-							<div>
-								<dt>USD (estimate)</dt>
-								<dd>{String(actorCoin.usdValue)}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Balance (raw)</dt>
+					<dd>
+						<ResourceBoundary
+							resource={actorCoin}
+							placeholderText="Loading balance…"
+						>
+							{#snippet children(actorCoin)}
+								{#if actorCoin.balance !== undefined}
+									{String(actorCoin.balance)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if actorCoin.decimals !== undefined}
-							<div>
-								<dt>Decimals</dt>
-								<dd>{String(actorCoin.decimals)}</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+			{#if open}
+				<div>
+					<dt>USD (estimate)</dt>
+					<dd>
+						<ResourceBoundary
+							resource={actorCoin}
+							placeholderText="Loading balance…"
+						>
+							{#snippet children(actorCoin)}
+								{#if actorCoin.usdValue !== undefined}
+									{String(actorCoin.usdValue)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if open}
+				<div>
+					<dt>Decimals</dt>
+					<dd>
+						<ResourceBoundary
+							resource={actorCoin}
+							placeholderText="Loading balance…"
+						>
+							{#snippet children(actorCoin)}
+								{#if actorCoin.decimals !== undefined}
+									{String(actorCoin.decimals)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

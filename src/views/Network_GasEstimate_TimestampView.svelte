@@ -107,95 +107,139 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			chain {String(entityId.$network.chainId)}
 		</span>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			placeholderText="Loading gas estimate…"
-			resource={networkGasEstimateTimestamp}
-		>
-			{#snippet children(networkGasEstimateTimestamp)}
-				<dl data-column-item="center">
-					<div>
-						<dt>As of</dt>
-						<dd>
-							<Timestamp
-								format={TimestampFormat.Both}
-								timestamp={entityId.timestampMs}
-							/>
-						</dd>
-					</div>
-					{#if networkGasEstimateTimestamp.slowGwei != null}
-						<div>
-							<dt>Slow</dt>
-							<dd>
+		<dl data-column-item="center">
+			<div>
+				<dt>As of</dt>
+				<dd>
+					<Timestamp
+						format={TimestampFormat.Both}
+						timestamp={entityId.timestampMs}
+					/>
+				</dd>
+			</div>
+			{#if networkGasEstimateTimestamp.slowGwei != null}
+				<div>
+					<dt>Slow</dt>
+					<dd>
+						<ResourceBoundary
+							placeholderText="Loading gas estimate…"
+							resource={networkGasEstimateTimestamp}
+						>
+							{#snippet children(networkGasEstimateTimestamp)}
 								<NumberValue
 									value={networkGasEstimateTimestamp.slowGwei}
 									options={{ maximumFractionDigits: 4 }}
 								/> gwei
-							</dd>
-						</div>
-					{/if}
-					{#if networkGasEstimateTimestamp.averageGwei != null}
-						<div>
-							<dt>Average</dt>
-							<dd>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if networkGasEstimateTimestamp.averageGwei != null}
+				<div>
+					<dt>Average</dt>
+					<dd>
+						<ResourceBoundary
+							placeholderText="Loading gas estimate…"
+							resource={networkGasEstimateTimestamp}
+						>
+							{#snippet children(networkGasEstimateTimestamp)}
 								<NumberValue
 									value={networkGasEstimateTimestamp.averageGwei}
 									options={{ maximumFractionDigits: 4 }}
 								/> gwei
-							</dd>
-						</div>
-					{/if}
-					{#if networkGasEstimateTimestamp.fastGwei != null}
-						<div>
-							<dt>Fast</dt>
-							<dd>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if networkGasEstimateTimestamp.fastGwei != null}
+				<div>
+					<dt>Fast</dt>
+					<dd>
+						<ResourceBoundary
+							placeholderText="Loading gas estimate…"
+							resource={networkGasEstimateTimestamp}
+						>
+							{#snippet children(networkGasEstimateTimestamp)}
 								<NumberValue
 									value={networkGasEstimateTimestamp.fastGwei}
 									options={{ maximumFractionDigits: 4 }}
 								/> gwei
-							</dd>
-						</div>
-					{/if}
-					{#if open}
-						{#if networkGasEstimateTimestamp.legacyGasPriceWei !== undefined}
-							<div>
-								<dt><code>eth_gasPrice</code></dt>
-								<dd>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if open}
+				{#if networkGasEstimateTimestamp.legacyGasPriceWei !== undefined}
+					<div>
+						<dt><code>eth_gasPrice</code></dt>
+						<dd>
+							<ResourceBoundary
+								placeholderText="Loading gas estimate…"
+								resource={networkGasEstimateTimestamp}
+							>
+								{#snippet children(networkGasEstimateTimestamp)}
 									<NumberValue value={networkGasEstimateTimestamp.legacyGasPriceWei} /> wei
-								</dd>
-							</div>
-						{/if}
-						{#if networkGasEstimateTimestamp.maxPriorityFeePerGasWei !== undefined}
-							<div>
-								<dt>Max priority fee</dt>
-								<dd>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+				{#if networkGasEstimateTimestamp.maxPriorityFeePerGasWei !== undefined}
+					<div>
+						<dt>Max priority fee</dt>
+						<dd>
+							<ResourceBoundary
+								placeholderText="Loading gas estimate…"
+								resource={networkGasEstimateTimestamp}
+							>
+								{#snippet children(networkGasEstimateTimestamp)}
 									<NumberValue value={networkGasEstimateTimestamp.maxPriorityFeePerGasWei} /> wei
-								</dd>
-							</div>
-						{/if}
-						{#if networkGasEstimateTimestamp.baseFeePerGasWei !== undefined}
-							<div>
-								<dt>Base fee</dt>
-								<dd>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+				{#if networkGasEstimateTimestamp.baseFeePerGasWei !== undefined}
+					<div>
+						<dt>Base fee</dt>
+						<dd>
+							<ResourceBoundary
+								placeholderText="Loading gas estimate…"
+								resource={networkGasEstimateTimestamp}
+							>
+								{#snippet children(networkGasEstimateTimestamp)}
 									<NumberValue value={networkGasEstimateTimestamp.baseFeePerGasWei} /> wei
-								</dd>
-							</div>
-						{/if}
-						{#if networkGasEstimateTimestamp.transport !== undefined}
-							<div>
-								<dt>Transport</dt>
-								<dd><code>{networkGasEstimateTimestamp.transport}</code></dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+				{#if networkGasEstimateTimestamp.transport !== undefined}
+					<div>
+						<dt>Transport</dt>
+						<dd>
+							<ResourceBoundary
+								placeholderText="Loading gas estimate…"
+								resource={networkGasEstimateTimestamp}
+							>
+								{#snippet children(networkGasEstimateTimestamp)}
+									<code>{networkGasEstimateTimestamp.transport}</code>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

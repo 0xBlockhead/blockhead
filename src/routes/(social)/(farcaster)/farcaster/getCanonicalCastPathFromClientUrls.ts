@@ -1,6 +1,8 @@
 import { resolve } from '$app/paths'
 
+import { getJson } from '$/lib/http.ts'
 import type { CastHash } from '$/schema/FarcasterCast.ts'
+import { farcasterApiOrigins } from '$/sources/Farcaster/Rest/constants.ts'
 import { getCastByUsernameAndHashPrefix } from '$/sources/Farcaster/Rest/queries.ts'
 import { getCastByClientUrl } from '$/sources/Neynar/Rest/queries.ts'
 import type { Source } from '$/sources/$Source.ts'
@@ -86,13 +88,16 @@ const castRefFromHaatzCastEndpoint = async (clientUrl: string) => {
 	if (url.hostname !== 'haatz.quilibrium.com') return undefined
 	if (!url.pathname.startsWith('/v2/farcaster/cast')) return undefined
 
-	const response = await fetch(url.toString())
-	if (!response.ok) return undefined
-	const payload = await response.json<JsonValue>()
-	if (!isJsonObject(payload)) return undefined
-	const result = payload.result
-	const nestedCast = isJsonObject(result) ? result.cast : undefined
-	return castRefFromWire(payload.cast) ?? (nestedCast == null ? undefined : castRefFromWire(nestedCast))
+	try {
+		const payload = await getJson<JsonValue>(url.toString(), { origins: farcasterApiOrigins })
+		if (!isJsonObject(payload)) return undefined
+		const result = payload.result
+		const nestedCast = isJsonObject(result) ? result.cast : undefined
+		return castRefFromWire(payload.cast) ?? (nestedCast == null ? undefined : castRefFromWire(nestedCast))
+	}
+	catch {
+		return undefined
+	}
 }
 
 export const getCanonicalCastPathFromClientUrls = async (

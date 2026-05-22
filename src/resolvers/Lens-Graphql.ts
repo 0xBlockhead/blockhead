@@ -6,13 +6,19 @@ import {
 } from '$/resolvers/$resolvers.ts'
 import { with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 
-const optionalTrimmedString = (value: string | undefined) => (
+const optionalTrimmedString = (value: string | undefined | null) => (
 	value?.trim() ? value.trim() : undefined
+)
+
+const optionalFiniteNumber = (value: number | undefined) => (
+	value != null && Number.isFinite(value) ? value : undefined
 )
 
 /** Lens / subgraph wire — may omit `0x` or use mixed case. */
@@ -37,6 +43,15 @@ export default {
 				if (a == null) throw new Error('Lens_Graphql: account not found')
 				return {
 					localName: optionalTrimmedString(a.username?.localName),
+					displayName: optionalTrimmedString(a.metadata?.name),
+					bio: optionalTrimmedString(a.metadata?.bio),
+					...((
+						iconMedia,
+					) => (
+						iconMedia != null && {
+							$icon: iconMedia,
+						}
+					))(mediaFromUrl(optionalTrimmedString(a.metadata?.picture), MediaType.Image)),
 				}
 			},
 		}),
@@ -48,6 +63,7 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
 				const p = (await singleFlight(lensQueryPost)(publicEnv, entityId.id)).post
 				if (p == null) throw new Error('Lens_Graphql: post not found')
+				const commentOnSlug = optionalTrimmedString(p.commentOn?.slug)
 				return {
 					text: optionalTrimmedString(p.metadata?.content),
 					timestamp: ((ts) => (
@@ -55,6 +71,12 @@ export default {
 							Number.isFinite(_parsedTimestampMs) ? _parsedTimestampMs : undefined
 						))(ts != null ? Date.parse(ts) : NaN)
 					))(optionalTrimmedString(p.timestamp)),
+					commentCount: optionalFiniteNumber(p.stats?.comments),
+					shareCount: optionalFiniteNumber(p.stats?.reposts),
+					bookmarkCount: optionalFiniteNumber(p.stats?.bookmarks),
+					...(commentOnSlug != null && {
+						$commentOn: { [EntityMetaKey.Id]: { id: commentOnSlug } },
+					}),
 					$author: (
 						((addr) => (
 							addr != null && /^0x[a-fA-F0-9]{40}$/.test(addr) ?
@@ -101,6 +123,29 @@ export default {
 				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
 				return (
 					((await singleFlight(lensQueryLatestPosts)(publicEnv, pageSize)).posts?.items ?? [])
+						.flatMap((item) => (
+							item.__typename === 'Post' && item.slug != null ?
+								[
+									{
+										[EntityMetaKey.Id]: { id: item.slug },
+									},
+								]
+							:	[]
+						))
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.LensPost,
+			fieldName: '$$comments',
+			resolve: async (entityId, context) => {
+				const { lensQueryPostComments } = await import('$/sources/Lens/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Lens_Graphql)
+				const limit = resolverLoadSubsetRowLimit(context)
+				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
+				return (
+					((await singleFlight(lensQueryPostComments)(publicEnv, entityId.id, pageSize)).postReferences?.items ?? [])
 						.flatMap((item) => (
 							item.__typename === 'Post' && item.slug != null ?
 								[

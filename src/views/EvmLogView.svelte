@@ -102,7 +102,7 @@
 	{...entityViewRest}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			log #{entityId.logIndex}
 		</span>
 	{/snippet}

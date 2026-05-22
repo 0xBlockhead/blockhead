@@ -109,7 +109,7 @@
 
 	{#snippet Heading()}
 
-		<span data-text="font-monospace">
+		<span>
 			{entityId.slot}
 		</span>
 	{/snippet}
@@ -119,7 +119,6 @@
 			<span>Slot </span>
 			<span
 				data-badge="small"
-				data-text="font-monospace"
 				data-slot-number={String(entityId.slot)}
 			>
 				{String(entityId.slot)}
@@ -129,22 +128,29 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={slot}
-				placeholderText="Loading slot…"
-			>
-				{#snippet children(slot)}
-					<div>
-						<dt>Consensus proposer index</dt>
-						<dd>
+			<div>
+				<dt>Consensus proposer index</dt>
+				<dd>
+					<ResourceBoundary
+						resource={slot}
+						placeholderText="Loading slot…"
+					>
+						{#snippet children(slot)}
 							<NumberValue value={slot.proposerIndex} />
-						</dd>
-					</div>
-					{#if open}
-						{#if slot.epoch !== undefined}
-							<div>
-								<dt>Epoch</dt>
-								<dd>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			{#if open}
+				<div>
+					<dt>Epoch</dt>
+					<dd>
+						<ResourceBoundary
+							resource={slot}
+							placeholderText="Loading slot…"
+						>
+							{#snippet children(slot)}
+								{#if slot.epoch !== undefined}
 									<BeaconEpochView
 										entityId={{
 											$network: entityId.$network,
@@ -161,67 +167,104 @@
 										open={false}
 										showTypeAnnotation={false}
 									/>
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if slot.root !== undefined && slot.root !== ''}
-							<div>
-								<dt>Root</dt>
-								<dd>
+				<div>
+					<dt>Root</dt>
+					<dd>
+						<ResourceBoundary
+							resource={slot}
+							placeholderText="Loading slot…"
+						>
+							{#snippet children(slot)}
+								{#if slot.root !== undefined && slot.root !== ''}
 									<TruncatedValue
 										value={slot.root}
 										format={TruncatedValueFormat.Abbr}
 									/>
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if slot.canonical !== undefined}
-							<div>
-								<dt>Canonical</dt>
-								<dd>{slot.canonical ? 'Yes' : 'No'}</dd>
-							</div>
-						{/if}
+				<div>
+					<dt>Canonical</dt>
+					<dd>
+						<ResourceBoundary
+							resource={slot}
+							placeholderText="Loading slot…"
+						>
+							{#snippet children(slot)}
+								{#if slot.canonical !== undefined}
+									{slot.canonical ? 'Yes' : 'No'}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if slot.parentRoot !== undefined && slot.parentRoot !== ''}
-							<div>
-								<dt>Parent root</dt>
-								<dd>
+				<div>
+					<dt>Parent root</dt>
+					<dd>
+						<ResourceBoundary
+							resource={slot}
+							placeholderText="Loading slot…"
+						>
+							{#snippet children(slot)}
+								{#if slot.parentRoot !== undefined && slot.parentRoot !== ''}
 									<TruncatedValue
 										value={slot.parentRoot}
 										format={TruncatedValueFormat.Abbr}
 									/>
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if slot.stateRoot !== undefined && slot.stateRoot !== ''}
-							<div>
-								<dt>State root</dt>
-								<dd>
+				<div>
+					<dt>State root</dt>
+					<dd>
+						<ResourceBoundary
+							resource={slot}
+							placeholderText="Loading slot…"
+						>
+							{#snippet children(slot)}
+								{#if slot.stateRoot !== undefined && slot.stateRoot !== ''}
 									<TruncatedValue
 										value={slot.stateRoot}
 										format={TruncatedValueFormat.Abbr}
 									/>
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if slot.bodyRoot !== undefined && slot.bodyRoot !== ''}
-							<div>
-								<dt>Body root</dt>
-								<dd>
+				<div>
+					<dt>Body root</dt>
+					<dd>
+						<ResourceBoundary
+							resource={slot}
+							placeholderText="Loading slot…"
+						>
+							{#snippet children(slot)}
+								{#if slot.bodyRoot !== undefined && slot.bodyRoot !== ''}
 									<TruncatedValue
 										value={slot.bodyRoot}
 										format={TruncatedValueFormat.Abbr}
 									/>
-								</dd>
-							</div>
-						{/if}
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 		</dl>
 	{/snippet}
 

@@ -21,8 +21,7 @@
 		href={resolve('/(explore)/(networks)/network/[networkId]', {
 			networkId: '1',
 		})}
-		layout={EntityLayout.Summary}
-		open={false}
+		layout={EntityLayout.SummaryDetails}
 	/>
 
 	<ActorView

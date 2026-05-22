@@ -38,6 +38,30 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'indexedAt',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'likeCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'repostCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'replyCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: '$parent',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.AtprotoPost,
@@ -48,6 +72,12 @@ export default {
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.AtprotoPost,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$thread',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.AtprotoPost,
+			cardinality: EntityFieldCardinality.Many,
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

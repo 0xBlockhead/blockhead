@@ -2,6 +2,7 @@ import { oauthGetJson } from '$/sources/Reddit/Rest/client.ts'
 import type {
 	RedditApiInfoResponseWire,
 	RedditApiListingWire,
+	RedditApiSubredditAboutWire,
 } from '$/sources/Reddit/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -16,10 +17,7 @@ export const redditGetInfo = async (publicEnv: SourcePublicEnvFor<Source.Reddit_
 )
 
 export const redditGetSubredditAbout = async (publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>, name: string) => (
-	oauthGetJson<{
-		kind: 't5'
-		data: { display_name: string, title: string, public_description: string }
-	}>(publicEnv, `/r/${encodeURIComponent(name)}/about?raw_json=1` as const)
+	oauthGetJson<RedditApiSubredditAboutWire>(publicEnv, `/r/${encodeURIComponent(name)}/about?raw_json=1` as const)
 )
 
 export const redditListSubredditLinks = async (

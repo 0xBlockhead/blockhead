@@ -162,7 +162,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.coinId}
 		</span>
 	{/snippet}
@@ -182,68 +182,84 @@
 		title: _contentTitle,
 		href: _contentHref,
 	})}
-		<ResourceBoundary resource={coin}>
-			{#snippet children(coin)}
-				<dl data-column-item="center">
-					{#if coin.marketCapRank != null && Number.isFinite(coin.marketCapRank)}
-						<div>
-							<dt>Market cap rank</dt>
-							<dd>{String(coin.marketCapRank)}</dd>
-						</div>
-					{/if}
+		<dl data-column-item="center">
+			<div>
+				<dt>Market cap rank</dt>
+				<dd>
+					<ResourceBoundary resource={coin}>
+						{#snippet children(coin)}
+							{#if coin.marketCapRank != null && Number.isFinite(coin.marketCapRank)}
+								{String(coin.marketCapRank)}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if coin.marketCapUsd != null && Number.isFinite(coin.marketCapUsd)}
-						<div>
-							<dt>Market cap</dt>
-							<dd>
+			<div>
+				<dt>Market cap</dt>
+				<dd>
+					<ResourceBoundary resource={coin}>
+						{#snippet children(coin)}
+							{#if coin.marketCapUsd != null && Number.isFinite(coin.marketCapUsd)}
 								<CurrencyAmount
 									currency="USD"
 									scale={1}
 									value={coin.marketCapUsd}
 								/>
-							</dd>
-						</div>
-					{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if (coin.$$timestamps ?? []).length}
-						{@const headTimestampId = (
-							(coin.$$timestamps ?? [])
-								.toSorted((
-									leftRow,
-									rightRow,
-								) => (
-									rightRow[EntityMetaKey.Id].timestampMs
-										- leftRow[EntityMetaKey.Id].timestampMs
-								))[0]
-								?.[EntityMetaKey.Id]
-						)}
-						{#if headTimestampId}
-							<div>
-								<dt>Fundamentals</dt>
-								<dd>
+			<div>
+				<dt>Fundamentals</dt>
+				<dd>
+					<ResourceBoundary resource={coin}>
+						{#snippet children(coin)}
+							{#if (coin.$$timestamps ?? []).length}
+								{@const headTimestampId = (
+									(coin.$$timestamps ?? [])
+										.toSorted((
+											leftRow,
+											rightRow,
+										) => (
+											rightRow[EntityMetaKey.Id].timestampMs
+												- leftRow[EntityMetaKey.Id].timestampMs
+										))[0]
+										?.[EntityMetaKey.Id]
+								)}
+								{#if headTimestampId}
 									<Coin_TimestampView
 										entityId={headTimestampId}
-										href={href}
+										{href}
 										layout={EntityLayout.Title}
 										open={false}
 										showTypeAnnotation={false}
 									/>
-								</dd>
-							</div>
-						{/if}
-					{/if}
+								{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if open}
-						{#if coin.decimals !== undefined}
-							<div>
-								<dt>Decimals</dt>
-								<dd>{String(coin.decimals)}</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+			{#if open}
+				<div>
+					<dt>Decimals</dt>
+					<dd>
+						<ResourceBoundary resource={coin}>
+							{#snippet children(coin)}
+								{#if coin.decimals !== undefined}
+									{String(coin.decimals)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

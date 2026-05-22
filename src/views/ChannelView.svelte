@@ -102,7 +102,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.id}
 		</span>
 	{/snippet}
@@ -133,224 +133,313 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<div data-column="gap-1">
+		<dl data-column-item="center">
+			<div>
+				<dt>Status</dt>
+				<dd>
+					<ResourceBoundary
+						resource={stateChannel}
+						placeholderText="Loading state channel…"
+					>
+						{#snippet children(stateChannel)}
+							{#if stateChannel.status !== undefined}
+								{stateChannel.status}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			<dl data-column-item="center">
+			{#if !open}
+				<div>
+					<dt>Last activity</dt>
+					<dd>
+						<ResourceBoundary
+							resource={stateChannel}
+							placeholderText="Loading state channel…"
+						>
+							{#snippet children(stateChannel)}
+								{#if stateChannel.updatedAt !== undefined}
+									<Timestamp
+										timestamp={stateChannel.updatedAt}
+										format={TimestampFormat.Both}
+									/>
+								{:else}
+									{#if stateChannel.createdAt !== undefined}
+										<Timestamp
+											timestamp={stateChannel.createdAt}
+											format={TimestampFormat.Both}
+										/>
+									{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-			<ResourceBoundary
-				resource={stateChannel}
-				placeholderText="Loading state channel…"
-			>
-				{#snippet children(stateChannel)}
-					{#if stateChannel.status !== undefined}
-						<div>
-							<dt>Status</dt>
-							<dd>{stateChannel.status}</dd>
-						</div>
-					{/if}
+			{#if open}
+				<div>
+					<dt>Total deposited</dt>
+					<dd>
+						<ResourceBoundary
+							resource={stateChannel}
+							placeholderText="Loading state channel…"
+						>
+							{#snippet children(stateChannel)}
+								{#if stateChannel.totalDeposited !== undefined}
+									{String(stateChannel.totalDeposited)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-					{#if !open && stateChannel.updatedAt !== undefined}
-						<div>
-							<dt>Last activity</dt>
-							<dd>
-								<Timestamp
-									timestamp={stateChannel.updatedAt}
-									format={TimestampFormat.Both}
-								/>
-							</dd>
-						</div>
-					{/if}
+				<div>
+					<dt>Balance (participant 0)</dt>
+					<dd>
+						<ResourceBoundary
+							resource={stateChannel}
+							placeholderText="Loading state channel…"
+						>
+							{#snippet children(stateChannel)}
+								{#if stateChannel.balance0 !== undefined}
+									{String(stateChannel.balance0)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-					{#if !open && stateChannel.updatedAt === undefined && stateChannel.createdAt !== undefined}
-						<div>
-							<dt>Last activity</dt>
-							<dd>
-								<Timestamp
-									timestamp={stateChannel.createdAt}
-									format={TimestampFormat.Both}
-								/>
-							</dd>
-						</div>
-					{/if}
+				<div>
+					<dt>Balance (participant 1)</dt>
+					<dd>
+						<ResourceBoundary
+							resource={stateChannel}
+							placeholderText="Loading state channel…"
+						>
+							{#snippet children(stateChannel)}
+								{#if stateChannel.balance1 !== undefined}
+									{String(stateChannel.balance1)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-					{#if open && stateChannel.totalDeposited !== undefined}
-						<div>
-							<dt>Total deposited</dt>
-							<dd>{String(stateChannel.totalDeposited)}</dd>
-						</div>
-					{/if}
+				<div>
+					<dt>Turn</dt>
+					<dd>
+						<ResourceBoundary
+							resource={stateChannel}
+							placeholderText="Loading state channel…"
+						>
+							{#snippet children(stateChannel)}
+								{#if stateChannel.turnNum !== undefined}
+									{String(stateChannel.turnNum)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-					{#if open && stateChannel.balance0 !== undefined}
-						<div>
-							<dt>Balance (participant 0)</dt>
-							<dd>{String(stateChannel.balance0)}</dd>
-						</div>
-					{/if}
-
-					{#if open && stateChannel.balance1 !== undefined}
-						<div>
-							<dt>Balance (participant 1)</dt>
-							<dd>{String(stateChannel.balance1)}</dd>
-						</div>
-					{/if}
-
-					{#if open && stateChannel.turnNum !== undefined}
-						<div>
-							<dt>Turn</dt>
-							<dd>{String(stateChannel.turnNum)}</dd>
-						</div>
-					{/if}
-
-					{#if open && stateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
-						<div>
-							<dt>Network</dt>
-							<dd>
-								<NetworkView
-									entityId={stateChannel.$network[EntityMetaKey.Id]}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]',
-										{ networkId: String(stateChannel.$network[EntityMetaKey.Id].chainId) },
-									)}
-									layout={EntityLayout.Summary}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined}
-						<div>
-							<dt>Participant 0</dt>
-							<dd>
+				<div>
+					<dt>Network</dt>
+					<dd>
+						<ResourceBoundary
+							resource={stateChannel}
+							placeholderText="Loading state channel…"
+						>
+							{#snippet children(stateChannel)}
 								{#if stateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
-									<ActorNetworkView
-										entityId={{
-											$network: stateChannel.$network[EntityMetaKey.Id],
-											$actor: stateChannel.$participant0[EntityMetaKey.Id],
-										}}
+									<NetworkView
+										entityId={stateChannel.$network[EntityMetaKey.Id]}
 										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-											{
-												networkId: String(stateChannel.$network[EntityMetaKey.Id].chainId),
+											'/(explore)/(networks)/network/[networkId]',
+											{ networkId: String(stateChannel.$network[EntityMetaKey.Id].chainId) },
+										)}
+										layout={EntityLayout.Summary}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Participant 0</dt>
+					<dd>
+						<ResourceBoundary
+							resource={stateChannel}
+							placeholderText="Loading state channel…"
+						>
+							{#snippet children(stateChannel)}
+								{#if stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined}
+									{#if stateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
+										<ActorNetworkView
+											entityId={{
+												$network: stateChannel.$network[EntityMetaKey.Id],
+												$actor: stateChannel.$participant0[EntityMetaKey.Id],
+											}}
+											href={resolve(
+												'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+												{
+													networkId: String(stateChannel.$network[EntityMetaKey.Id].chainId),
+													address: stateChannel.$participant0[EntityMetaKey.Id].address,
+												},
+											)}
+											layout={EntityLayout.Summary}
+											open={false}
+											showTypeAnnotation={false}
+										/>
+									{:else}
+										<ActorView
+											entityId={stateChannel.$participant0[EntityMetaKey.Id]}
+											href={resolve('/account/[address]', {
 												address: stateChannel.$participant0[EntityMetaKey.Id].address,
-											},
-										)}
-										layout={EntityLayout.Summary}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								{:else}
-									<ActorView
-										entityId={stateChannel.$participant0[EntityMetaKey.Id]}
-										href={resolve('/account/[address]', {
-											address: stateChannel.$participant0[EntityMetaKey.Id].address,
-										})}
-										layout={EntityLayout.Summary}
-										open={false}
-										showTypeAnnotation={false}
-									/>
+											})}
+											layout={EntityLayout.Summary}
+											open={false}
+											showTypeAnnotation={false}
+										/>
+									{/if}
 								{/if}
-							</dd>
-						</div>
-					{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-					{#if open && stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
-						<div>
-							<dt>Participant 1</dt>
-							<dd>
-								{#if stateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
-									<ActorNetworkView
-										entityId={{
-											$network: stateChannel.$network[EntityMetaKey.Id],
-											$actor: stateChannel.$participant1[EntityMetaKey.Id],
-										}}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-											{
-												networkId: String(stateChannel.$network[EntityMetaKey.Id].chainId),
+				<div>
+					<dt>Participant 1</dt>
+					<dd>
+						<ResourceBoundary
+							resource={stateChannel}
+							placeholderText="Loading state channel…"
+						>
+							{#snippet children(stateChannel)}
+								{#if stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
+									{#if stateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
+										<ActorNetworkView
+											entityId={{
+												$network: stateChannel.$network[EntityMetaKey.Id],
+												$actor: stateChannel.$participant1[EntityMetaKey.Id],
+											}}
+											href={resolve(
+												'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+												{
+													networkId: String(stateChannel.$network[EntityMetaKey.Id].chainId),
+													address: stateChannel.$participant1[EntityMetaKey.Id].address,
+												},
+											)}
+											layout={EntityLayout.Summary}
+											open={false}
+											showTypeAnnotation={false}
+										/>
+									{:else}
+										<ActorView
+											entityId={stateChannel.$participant1[EntityMetaKey.Id]}
+											href={resolve('/account/[address]', {
 												address: stateChannel.$participant1[EntityMetaKey.Id].address,
-											},
-										)}
-										layout={EntityLayout.Summary}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								{:else}
-									<ActorView
-										entityId={stateChannel.$participant1[EntityMetaKey.Id]}
-										href={resolve('/account/[address]', {
-											address: stateChannel.$participant1[EntityMetaKey.Id].address,
-										})}
+											})}
+											layout={EntityLayout.Summary}
+											open={false}
+											showTypeAnnotation={false}
+										/>
+									{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Asset</dt>
+					<dd>
+						<ResourceBoundary
+							resource={stateChannel}
+							placeholderText="Loading state channel…"
+						>
+							{#snippet children(stateChannel)}
+								{#if stateChannel.$asset?.[EntityMetaKey.Id] !== undefined}
+									<CoinInstanceView
+										entityId={stateChannel.$asset[EntityMetaKey.Id]}
+										{href}
 										layout={EntityLayout.Summary}
 										open={false}
 										showTypeAnnotation={false}
 									/>
 								{/if}
-							</dd>
-						</div>
-					{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-					{#if open && stateChannel.$asset?.[EntityMetaKey.Id] !== undefined}
-						<div>
-							<dt>Asset</dt>
-							<dd>
-								<CoinInstanceView
-									entityId={stateChannel.$asset[EntityMetaKey.Id]}
-									{href}
-									layout={EntityLayout.Summary}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
+				<div>
+					<dt>Room</dt>
+					<dd>
+						<ResourceBoundary
+							resource={stateChannel}
+							placeholderText="Loading state channel…"
+						>
+							{#snippet children(stateChannel)}
+								{#if stateChannel.$room?.[EntityMetaKey.Id].id !== undefined}
+									<BlockheadRoomView
+										entityId={stateChannel.$room[EntityMetaKey.Id]}
+										href={resolve(
+											'/~/(multiplayer)/multiplayer/(rooms)/room/[roomId]',
+											{ roomId: stateChannel.$room[EntityMetaKey.Id].id },
+										)}
+										layout={EntityLayout.Summary}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-					{#if open && stateChannel.$room?.[EntityMetaKey.Id].id !== undefined}
-						<div>
-							<dt>Room</dt>
-							<dd>
-								<BlockheadRoomView
-									entityId={stateChannel.$room[EntityMetaKey.Id]}
-									href={resolve(
-										'/~/(multiplayer)/multiplayer/(rooms)/room/[roomId]',
-										{ roomId: stateChannel.$room[EntityMetaKey.Id].id },
-									)}
-									layout={EntityLayout.Summary}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							</dd>
-						</div>
-					{/if}
+				<div>
+					<dt>Opened</dt>
+					<dd>
+						<ResourceBoundary
+							resource={stateChannel}
+							placeholderText="Loading state channel…"
+						>
+							{#snippet children(stateChannel)}
+								{#if stateChannel.createdAt !== undefined}
+									<Timestamp
+										timestamp={stateChannel.createdAt}
+										format={TimestampFormat.Both}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-					{#if open && stateChannel.createdAt !== undefined}
-						<div>
-							<dt>Opened</dt>
-							<dd>
-								<Timestamp
-									timestamp={stateChannel.createdAt}
-									format={TimestampFormat.Both}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if open && stateChannel.updatedAt !== undefined}
-						<div>
-							<dt>Last updated</dt>
-							<dd>
-								<Timestamp
-									timestamp={stateChannel.updatedAt}
-									format={TimestampFormat.Both}
-								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+				<div>
+					<dt>Last updated</dt>
+					<dd>
+						<ResourceBoundary
+							resource={stateChannel}
+							placeholderText="Loading state channel…"
+						>
+							{#snippet children(stateChannel)}
+								{#if stateChannel.updatedAt !== undefined}
+									<Timestamp
+										timestamp={stateChannel.updatedAt}
+										format={TimestampFormat.Both}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 		</dl>
-		</div>
 	{/snippet}
 
 	{#snippet Details({

@@ -1,10 +1,15 @@
 import { xApiV2Get } from '$/sources/X/Rest/client.ts'
-import type { XApiV2TweetWire, XApiV2UserTweetsWire, XApiV2UserWire } from '$/sources/X/Rest/types.ts'
+import type {
+	XApiV2SearchRecentTweetsWire,
+	XApiV2TweetWire,
+	XApiV2UserTweetsWire,
+	XApiV2UserWire,
+} from '$/sources/X/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const userFields = 'id,name,username,description,profile_image_url'
-const tweetFields = 'id,text,author_id,created_at'
+const userFields = 'id,name,username,description,profile_image_url,public_metrics,verified,created_at,location,url'
+const tweetFields = 'id,text,author_id,created_at,public_metrics,conversation_id,referenced_tweets'
 
 export const xGetUser = async (publicEnv: SourcePublicEnvFor<Source.X_Rest>, id: string) => (
 	xApiV2Get<XApiV2UserWire>(
@@ -38,7 +43,7 @@ export const xListUserTweets = async (
 		`/users/${encodeURIComponent(userId)}/tweets?${(
 			new URLSearchParams({
 				max_results: String(Math.min(100, Math.max(5, maxResults))),
-				'tweet.fields': 'id',
+				'tweet.fields': tweetFields,
 			}).toString()
 		)}` as const,
 	)
@@ -48,25 +53,15 @@ export const xSearchRecentTweets = async (
 	publicEnv: SourcePublicEnvFor<Source.X_Rest>,
 	maxResults: number,
 ) => (
-	xApiV2Get<{
-		data?: {
-			author_id?: string
-			id: string
-		}[]
-		includes?: {
-			users?: {
-				id: string
-			}[]
-		}
-	}>(
+	xApiV2Get<XApiV2SearchRecentTweetsWire>(
 		publicEnv,
 		`/tweets/search/recent?${(
 			new URLSearchParams({
 				query: 'lang:en -is:retweet',
 				max_results: String(Math.min(100, Math.max(10, maxResults))),
 				expansions: 'author_id',
-				'tweet.fields': 'id,author_id',
-				'user.fields': 'id',
+				'tweet.fields': tweetFields,
+				'user.fields': userFields,
 			}).toString()
 		)}` as const,
 	)

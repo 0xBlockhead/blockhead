@@ -32,7 +32,11 @@ export default {
 			fieldName: 'consensusSpecsConfigYaml',
 			resolve: async (entityId) => {
 				const preset = consensusSpecsPresetForChainId(entityId.chainId)
-				if (preset == null) return undefined
+				if (preset == null) {
+					throw new Error(
+						`EthereumSpecs_Github: no consensus preset for chain ${String(entityId.chainId)}`,
+					)
+				}
 				const { fetchConsensusSpecsConfigYaml } = await import('$/sources/EthereumSpecs/Github/queries.ts')
 				return fetchConsensusSpecsConfigYaml({ preset })
 			},
@@ -42,7 +46,11 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: 'goEthereumParamsConfigGo',
 			resolve: async (entityId) => {
-				if (!ethereumReferenceForkMetadataChainIds.has(entityId.chainId)) return undefined
+				if (!ethereumReferenceForkMetadataChainIds.has(entityId.chainId)) {
+					throw new Error(
+						`EthereumSpecs_Github: go-ethereum params unsupported for chain ${String(entityId.chainId)}`,
+					)
+				}
 				const { fetchGoEthereumParamsConfigGo } = await import('$/sources/EthereumSpecs/Github/queries.ts')
 				return fetchGoEthereumParamsConfigGo()
 			},

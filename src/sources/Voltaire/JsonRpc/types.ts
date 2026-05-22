@@ -35,6 +35,7 @@ export type VoltaireTxRpc = {
 export type VoltaireReceiptRpc = {
 	status?: string
 	gasUsed?: string
+	cumulativeGasUsed?: string
 	contractAddress?: string | null
 	effectiveGasPrice?: string
 	logs?: RpcLogWire[]

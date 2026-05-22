@@ -31,6 +31,36 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'subscriberCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'activeUserCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'createdAt',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'over18',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$icon',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Media,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: '$$links',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.RedditLink,

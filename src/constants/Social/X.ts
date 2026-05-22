@@ -10,7 +10,7 @@ export const xNetworkFieldValues = {
 	homeUrl: 'https://x.com',
 	protocolName: 'X (API v2)',
 	registryLabel: 'Curated seed users + live user timelines',
-	topology: 'network -> users -> posts',
+	topology: 'Constants seeds + live REST -> network -> users -> posts',
 } as const
 
 /** User `id` is X’s string user id (REST `id` / `id_str`), not @handle. */

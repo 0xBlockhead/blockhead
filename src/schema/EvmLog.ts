@@ -30,18 +30,18 @@ export default {
 			primitiveType: EvmAddress,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
-				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
 			],
 		},
 		{
 			name: 'topics',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string[]'),
+			primitiveType: ZeroExHex.array(),
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
-				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
 			],
 		},
 		{
@@ -50,8 +50,48 @@ export default {
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
-				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
+			],
+		},
+		{
+			name: 'blockNumber',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
+			],
+		},
+		{
+			name: 'blockHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
+			],
+		},
+		{
+			name: 'transactionIndex',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
+			],
+		},
+		{
+			name: 'removed',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
 			],
 		},
 		{
@@ -60,8 +100,8 @@ export default {
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
-				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

@@ -36,14 +36,19 @@ export const getFeed = async (
 ): Promise<NeynarFeedResponse | undefined> => {
 	const searchParams = new URLSearchParams()
 	searchParams.set('feed_type', query.feedType)
-	searchParams.set('filter_type', query.filterType)
-	if (query.filterType === 'fids' && query.fids.length > 0) {
-		searchParams.set('fids', query.fids.join(','))
+	if (query.feedType === 'following') {
+		searchParams.set('fid', String(query.fid))
 	}
-	if (query.filterType === 'channel_id') {
-		searchParams.set('channel_id', query.channelId)
-		if (query.membersOnly != null) {
-			searchParams.set('members_only', String(query.membersOnly))
+	else {
+		searchParams.set('filter_type', query.filterType)
+		if (query.filterType === 'fids' && query.fids.length > 0) {
+			searchParams.set('fids', query.fids.join(','))
+		}
+		if (query.filterType === 'channel_id') {
+			searchParams.set('channel_id', query.channelId)
+			if (query.membersOnly != null) {
+				searchParams.set('members_only', String(query.membersOnly))
+			}
 		}
 	}
 	const clampedFeedLimit = Math.min(

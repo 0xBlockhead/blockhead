@@ -1,5 +1,6 @@
 import { regex } from 'arkregex'
-import { jsonErrorHintFromResponse } from '$/lib/http.ts'
+import { corsFetch, jsonErrorHintFromResponse } from '$/lib/http.ts'
+import Ipfs from '$/sources/Ipfs/index.ts'
 import { gatewayUrls } from '$/sources/Ipfs/Rest/constants.ts'
 import type {
 	IpfsBrowseResult,
@@ -111,7 +112,10 @@ export const fetchIpfsBrowseResult = async ({
 			gatewayOrigin,
 		})
 
-		const response = await fetch(gatewayUrl, { signal })
+		const response = await corsFetch(gatewayUrl, {
+			origins: Ipfs.origins ?? [],
+			init: { signal },
+		})
 		if (!response.ok) {
 			const hint = await jsonErrorHintFromResponse(response)
 			failures.push(

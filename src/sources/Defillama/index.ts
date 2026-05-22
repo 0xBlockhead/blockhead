@@ -16,11 +16,11 @@ export default {
 	origins: [
 		{
 			origin: coinsOrigin,
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 		{
 			origin: proOrigin,
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 	],
 	sources: [

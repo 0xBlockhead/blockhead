@@ -49,8 +49,8 @@
 
 
 	// Context
+	import { getIsInsideEntityList, setIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { getIsInsidePage } from '$/context/isInsidePage.ts'
-	import { setIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { incrementHeadingLevel } from '$/context/headingLevel.ts'
 	import {
 		getOnNestedCollapsibleClose,
@@ -66,7 +66,9 @@
 		id,
 		title,
 		href,
-		open = $bindable(true),
+		open = $bindable(
+			!(getIsInsideEntityList() ?? false),
+		),
 		items,
 		getKey,
 		getSortValue,

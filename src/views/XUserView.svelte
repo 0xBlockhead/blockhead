@@ -149,48 +149,80 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
-		<ResourceBoundary
-			resource={user}
-			placeholderText="Loading X profile…"
-		>
-			{#snippet children(user)}
-				{#if user.description}
-					{#if !contentOpen}
-						<p data-text="muted">
-							{user.description}
-						</p>
-					{/if}
-				{/if}
-				<dl data-column-item="center">
-					{#if contentOpen}
-						{#if user.name}
-							<div>
-								<dt>Name</dt>
-								<dd>{user.name}</dd>
-							</div>
-						{/if}
-					{/if}
+		<dl data-column-item="center">
+			{#if !contentOpen}
+				<div>
+					<dt>Description</dt>
+					<dd>
+						<ResourceBoundary
+							resource={user}
+							placeholderText="Loading X profile…"
+						>
+							{#snippet children(user)}
+								{#if user.description}
+									<p data-text="muted">
+										{user.description}
+									</p>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if contentOpen}
+				<div>
+					<dt>Name</dt>
+					<dd>
+						<ResourceBoundary
+							resource={user}
+							placeholderText="Loading X profile…"
+						>
+							{#snippet children(user)}
+								{#if user.name}
+									{user.name}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if contentOpen}
-						{#if user.username}
-							<div>
-								<dt>Username</dt>
-								<dd>{user.username}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if contentOpen}
+				<div>
+					<dt>Username</dt>
+					<dd>
+						<ResourceBoundary
+							resource={user}
+							placeholderText="Loading X profile…"
+						>
+							{#snippet children(user)}
+								{#if user.username}
+									{user.username}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if contentOpen}
-						{#if user.description}
-							<div>
-								<dt>Description</dt>
-								<dd>{user.description}</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+			{#if contentOpen}
+				<div>
+					<dt>Description</dt>
+					<dd>
+						<ResourceBoundary
+							resource={user}
+							placeholderText="Loading X profile…"
+						>
+							{#snippet children(user)}
+								{#if user.description}
+									{user.description}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

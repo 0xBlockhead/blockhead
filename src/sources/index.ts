@@ -13,6 +13,7 @@ import {
 
 import Allium from '$/sources/Allium/index.ts'
 import AtprotoBsky from '$/sources/AtprotoBsky/index.ts'
+import AtprotoBskySocial from '$/sources/AtprotoBskySocial/index.ts'
 import Beacon from '$/sources/Beacon/index.ts'
 import Blobscan from '$/sources/Blobscan/index.ts'
 import Blockscout from '$/sources/Blockscout/index.ts'
@@ -31,17 +32,26 @@ import EthereumLists from '$/sources/EthereumLists/index.ts'
 import EthereumSpecs from '$/sources/EthereumSpecs/index.ts'
 import Etherscan from '$/sources/Etherscan/index.ts'
 import Farcaster from '$/sources/Farcaster/index.ts'
+import Fedi from '$/sources/Fedi/index.ts'
+import FxEmbed from '$/sources/FxEmbed/index.ts'
 import Ipfs from '$/sources/Ipfs/index.ts'
 import L2Beat from '$/sources/L2Beat/index.ts'
 import Lifi from '$/sources/Lifi/index.ts'
 import Lens from '$/sources/Lens/index.ts'
+import LensHey from '$/sources/LensHey/index.ts'
 import Local from '$/sources/Local/index.ts'
 import Mastodon from '$/sources/Mastodon/index.ts'
 import MetadataVision from '$/sources/MetadataVision/index.ts'
 import MevRelay from '$/sources/MevRelay/index.ts'
 import Neynar from '$/sources/Neynar/index.ts'
+import NostrBand from '$/sources/NostrBand/index.ts'
 import Openchain from '$/sources/Openchain/index.ts'
+import Piped from '$/sources/Piped/index.ts'
+import Primal from '$/sources/Primal/index.ts'
 import Reddit from '$/sources/Reddit/index.ts'
+import RedditPublic from '$/sources/RedditPublic/index.ts'
+import Rss from '$/sources/Rss/index.ts'
+import Rss2Json from '$/sources/Rss2Json/index.ts'
 import Snapchain from '$/sources/Snapchain/index.ts'
 import Sourcify from '$/sources/Sourcify/index.ts'
 import Superchain from '$/sources/Superchain/index.ts'
@@ -50,12 +60,14 @@ import TheGraph from '$/sources/TheGraph/index.ts'
 import TradingView from '$/sources/TradingView/index.ts'
 import Voltaire from '$/sources/Voltaire/index.ts'
 import X from '$/sources/X/index.ts'
+import Youtube from '$/sources/Youtube/index.ts'
 
 export { Source }
 
 const sourceProviderDefinitions = [
 	Allium,
 	AtprotoBsky,
+	AtprotoBskySocial,
 	Beacon,
 	Blobscan,
 	Blockscout,
@@ -74,17 +86,26 @@ const sourceProviderDefinitions = [
 	EthereumSpecs,
 	Etherscan,
 	Farcaster,
+	Fedi,
+	FxEmbed,
 	Ipfs,
 	L2Beat,
 	Lens,
+	LensHey,
 	Lifi,
 	Local,
 	Mastodon,
 	MetadataVision,
 	MevRelay,
 	Neynar,
+	NostrBand,
 	Openchain,
+	Piped,
+	Primal,
 	Reddit,
+	RedditPublic,
+	Rss,
+	Rss2Json,
 	Snapchain,
 	Sourcify,
 	Superchain,
@@ -93,6 +114,7 @@ const sourceProviderDefinitions = [
 	TradingView,
 	Voltaire,
 	X,
+	Youtube,
 ] as const satisfies readonly SourceProviderDefinition[]
 
 export const sourceProviders: readonly SourceProviderDefinition[] = sourceProviderDefinitions
@@ -121,6 +143,8 @@ export type SourcePublicEnvFor<_Source extends Source> = (
 		SchemaEnv<typeof Dune.env>
 	: _Source extends Source.Lens_Graphql ?
 		SchemaEnv<typeof Lens.env>
+	: _Source extends Source.Lens_HeyGraphql ?
+		SchemaEnv<typeof LensHey.env>
 	: _Source extends Source.Reddit_Rest ?
 		SchemaEnv<typeof Reddit.env>
 	: _Source extends Source.Etherscan_Rest ?
@@ -129,8 +153,12 @@ export type SourcePublicEnvFor<_Source extends Source> = (
 		SchemaEnv<typeof Neynar.env>
 	: _Source extends Source.TheGraph_Graphql ?
 		SchemaEnv<typeof TheGraph.env>
+	: _Source extends Source.Piped_Rest ?
+		SchemaEnv<typeof Piped.env>
 	: _Source extends Source.X_Rest ?
 		SchemaEnv<typeof X.env>
+	: _Source extends Source.Youtube_Rest ?
+		SchemaEnv<typeof Youtube.env>
 	:
 		{}
 )

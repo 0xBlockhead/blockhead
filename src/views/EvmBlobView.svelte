@@ -90,7 +90,6 @@
 		<span data-row="inline align-center gap-2 wrap">
 			<span
 				data-badge="small"
-				data-text="font-monospace"
 			>
 				#{String(entityId.blobIndex)}
 			</span>
@@ -120,84 +119,126 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={blob}
-			placeholderText="Loading blob…"
-		>
-			{#snippet children(blob)}
-				<div data-column="gap-1">
-				<dl data-column-item="center">
-					<div>
-						<dt>Blob index</dt>
-						<dd>
-							<NumberValue value={entityId.blobIndex} />
-						</dd>
-					</div>
-					{#if blob.versionedHash !== undefined}
-						<div>
-							<dt>Blob commitment (KZG versioned hash)</dt>
-							<dd>
+		<dl data-column-item="center">
+			<div>
+				<dt>Blob index</dt>
+				<dd>
+					<NumberValue value={entityId.blobIndex} />
+				</dd>
+			</div>
+			<div>
+				<dt>Blob commitment (KZG versioned hash)</dt>
+				<dd>
+					<ResourceBoundary
+						resource={blob}
+						placeholderText="Loading blob…"
+					>
+						{#snippet children(blob)}
+							{#if blob.versionedHash !== undefined}
 								<TruncatedValue
 									value={blob.versionedHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
-							</dd>
-						</div>
-						{#if entityId.$network.chainId === ChainId.Ethereum}
-							<div>
-								<dt>Blobscan</dt>
-								<dd>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			{#if entityId.$network.chainId === ChainId.Ethereum}
+				<div>
+					<dt>Blobscan</dt>
+					<dd>
+						<ResourceBoundary
+							resource={blob}
+							placeholderText="Loading blob…"
+						>
+							{#snippet children(blob)}
+								{#if blob.versionedHash !== undefined}
 									<a
 										href={`https://blobscan.com/blob/${blob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
 									>Open explorer</a>
-								</dd>
-							</div>
-						{:else if entityId.$network.chainId === ChainId.EthereumSepolia}
-							<div>
-								<dt>Blobscan</dt>
-								<dd>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{:else if entityId.$network.chainId === ChainId.EthereumSepolia}
+				<div>
+					<dt>Blobscan</dt>
+					<dd>
+						<ResourceBoundary
+							resource={blob}
+							placeholderText="Loading blob…"
+						>
+							{#snippet children(blob)}
+								{#if blob.versionedHash !== undefined}
 									<a
 										href={`https://sepolia.blobscan.com/blob/${blob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
 									>Open explorer</a>
-								</dd>
-							</div>
-						{:else if entityId.$network.chainId === ChainId.Gnosis}
-							<div>
-								<dt>Blobscan</dt>
-								<dd>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{:else if entityId.$network.chainId === ChainId.Gnosis}
+				<div>
+					<dt>Blobscan</dt>
+					<dd>
+						<ResourceBoundary
+							resource={blob}
+							placeholderText="Loading blob…"
+						>
+							{#snippet children(blob)}
+								{#if blob.versionedHash !== undefined}
 									<a
 										href={`https://gnosis.blobscan.com/blob/${blob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
 									>Open explorer</a>
-								</dd>
-							</div>
-						{:else if entityId.$network.chainId === 560048}
-							<div>
-								<dt>Blobscan</dt>
-								<dd>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{:else if entityId.$network.chainId === 560048}
+				<div>
+					<dt>Blobscan</dt>
+					<dd>
+						<ResourceBoundary
+							resource={blob}
+							placeholderText="Loading blob…"
+						>
+							{#snippet children(blob)}
+								{#if blob.versionedHash !== undefined}
 									<a
 										href={`https://hoodi.blobscan.com/blob/${blob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
 									>Open explorer</a>
-								</dd>
-							</div>
-						{/if}
-					{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if blob.blobscanBlobJson !== undefined}
-						<div>
-							<dt>Blobscan indexer payload</dt>
-							<dd data-column="gap-1">
+			<div>
+				<dt>Blobscan indexer payload</dt>
+				<dd data-column="gap-1">
+					<ResourceBoundary
+						resource={blob}
+						placeholderText="Loading blob…"
+					>
+						{#snippet children(blob)}
+							{#if blob.blobscanBlobJson !== undefined}
 								<div data-row="wrap align-start gap-2">
 									<TruncatedValue
 										format={TruncatedValueFormat.Visual}
@@ -213,35 +254,34 @@
 										>ⓘ</abbr>
 									</Tooltip>
 								</div>
-							</dd>
-						</div>
-					{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if open}
-						<div>
-							<dt>Type‑3 transaction hash</dt>
-							<dd>
-								<a
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
-										{
-											networkId: String(entityId.$network.chainId),
-											transactionId: entityId.txHash,
-										},
-									)}
-								>
-									<TruncatedValue
-										value={entityId.txHash}
-										format={TruncatedValueFormat.Abbr}
-									/>
-								</a>
-							</dd>
-						</div>
-					{/if}
-				</dl>
+			{#if open}
+				<div>
+					<dt>Type‑3 transaction hash</dt>
+					<dd>
+						<a
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+								{
+									networkId: String(entityId.$network.chainId),
+									transactionId: entityId.txHash,
+								},
+							)}
+						>
+							<TruncatedValue
+								value={entityId.txHash}
+								format={TruncatedValueFormat.Abbr}
+							/>
+						</a>
+					</dd>
 				</div>
-			{/snippet}
-		</ResourceBoundary>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

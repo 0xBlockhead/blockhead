@@ -59,7 +59,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{proposalRealmById[entityId.realm].slug}
 		</span>
 	{/snippet}

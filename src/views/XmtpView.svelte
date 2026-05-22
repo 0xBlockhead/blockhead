@@ -65,7 +65,7 @@
 	title="XMTP"
 >
 	{#snippet Heading()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.scope}
 		</span>
 	{/snippet}

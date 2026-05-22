@@ -12,6 +12,11 @@ const gqlAccount = `
 		account(request: { address: $address }) {
 			address
 			username { localName }
+			metadata {
+				name
+				bio
+				picture
+			}
 		}
 	}
 `
@@ -24,6 +29,12 @@ const gqlPost = `
 				slug
 				timestamp
 				author { address }
+				commentOn { slug }
+				stats {
+					comments
+					reposts
+					bookmarks
+				}
 				metadata {
 					... on TextOnlyMetadata {
 						content
@@ -37,6 +48,25 @@ const gqlPost = `
 const gqlPostsByAuthor = `
 	query LensPostsByAuthor($address: EvmAddress!, $pageSize: PageSize!) {
 		posts(request: { pageSize: $pageSize, filter: { authors: [$address] } }) {
+			items {
+				__typename
+				... on Post {
+					slug
+				}
+			}
+		}
+	}
+`
+
+const gqlPostComments = `
+	query LensPostComments($post: PostId!, $pageSize: PageSize!) {
+		postReferences(request: {
+			referencedPost: $post
+			referenceTypes: [COMMENT_ON]
+			visibilityFilter: VISIBLE
+			relevancyFilter: ALL
+			pageSize: $pageSize
+		}) {
 			items {
 				__typename
 				... on Post {
@@ -111,5 +141,26 @@ export const lensQueryLatestPosts = async (
 	}>(publicEnv, {
 		query: gqlLatestPosts,
 		variables: { pageSize },
+	})
+)
+
+export const lensQueryPostComments = async (
+	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
+	postId: string,
+	pageSize: 'TEN' | 'FIFTY' = 'TEN',
+) => (
+	lensGraphql<{
+		postReferences?: {
+			items?: {
+				__typename?: string
+				slug?: string
+			}[]
+		} | null
+	}>(publicEnv, {
+		query: gqlPostComments,
+		variables: {
+			post: postId,
+			pageSize,
+		},
 	})
 )

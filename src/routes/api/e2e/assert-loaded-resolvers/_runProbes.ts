@@ -6,19 +6,25 @@ import {
 } from '$/collections/assertLoadedCollectionRows.ts'
 import {
 	EntityFieldCardinality,
+	EntityFieldType,
 	EntityMetaKey,
+	type EntityDefinition,
+	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
+import { EntityType } from '$/schema/$EntityType.ts'
 import { entityDefinitionByType } from '$/schema/index.ts'
 import {
 	entityFieldResolvers,
 	entityResolvers,
 } from '$/resolvers/index.ts'
+import { Source } from '$/sources/$Source.ts'
 import { resolverPublicEnvBySource } from '$/sources/index.ts'
 
 import {
 	entityFieldValueForAssert,
 	parentEntityIdForFieldResolver,
 	probeEntityIdByType,
+	resolveProbeEntityId,
 } from './_fixtures.ts'
 
 
@@ -49,9 +55,67 @@ export type AssertLoadedResolverProbeResult = {
 }
 
 
+const entityResolvePayloadEmptyForProbe = (
+	entityDefinition: EntityDefinition,
+	fields: unknown,
+	source: Source,
+): string | undefined => {
+	if (fields == null || typeof fields !== 'object' || Array.isArray(fields)) {
+		return 'entity resolve did not return a fields object'
+	}
+
+	const record = fields as Record<string, unknown>
+	const requiredPrimitivesForSource = entityDefinition.fields.filter((field) => (
+		field.type === EntityFieldType.Primitive
+		&& field.cardinality === EntityFieldCardinality.One
+		&& field.defaultSources?.includes(source)
+	))
+
+	for (const field of requiredPrimitivesForSource) {
+		if (record[field.name] === undefined) {
+			return `entity resolve missing required field ${field.name}`
+		}
+	}
+
+	return undefined
+}
+
+
+const fieldResolvePayloadEmptyForProbe = (
+	fieldDefinition: EntityFieldDefinition,
+	raw: unknown,
+	source: Source,
+): string | undefined => {
+	const isListField = (
+		fieldDefinition.cardinality === EntityFieldCardinality.Many
+		|| fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrMany
+	)
+	if (!isListField || !fieldDefinition.defaultSources?.includes(source)) {
+		return undefined
+	}
+
+	if (
+		fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrMany
+		&& fieldDefinition.defaultSources.length !== 1
+	) {
+		return undefined
+	}
+
+	return (
+		!Array.isArray(raw)
+		|| raw.length === 0
+	) ?
+		'field resolve returned empty array'
+	:	undefined
+}
+
+
 export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResolverProbeResult> => {
 	for (const resolver of entityResolvers) {
-		if (probeEntityIdByType[resolver.entityType] === undefined) {
+		if (
+			probeEntityIdByType[resolver.entityType] === undefined
+			&& resolver.entityType !== EntityType.Coin_Timestamp
+		) {
 			throw new Error(
 				`Missing probeEntityIdByType[${resolver.entityType}] (${resolver.source})`,
 			)
@@ -60,7 +124,7 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 
 	const entityCases = await Promise.all(
 		entityResolvers.map(async (resolver) => {
-			const entityId = probeEntityIdByType[resolver.entityType]!
+			const entityId = await resolveProbeEntityId(resolver.entityType)
 			const entityDef = entityDefinitionByType[resolver.entityType]
 			if (entityDef == null) {
 				throw new Error(`No entityDefinitionByType[${resolver.entityType}]`)
@@ -83,6 +147,21 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 					key,
 					resolveRejected: true,
 					assertThrew: false,
+				} satisfies AssertLoadedResolverProbeCase)
+			}
+
+			const emptyPayloadError = entityResolvePayloadEmptyForProbe(
+				entityDef,
+				fields,
+				resolver.source,
+			)
+			if (emptyPayloadError != null) {
+				return ({
+					kind: 'entity',
+					key,
+					resolveRejected: false,
+					assertThrew: true,
+					assertError: emptyPayloadError,
 				} satisfies AssertLoadedResolverProbeCase)
 			}
 
@@ -156,17 +235,30 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 				} satisfies AssertLoadedResolverProbeCase)
 			}
 
+			const emptyPayloadError = fieldResolvePayloadEmptyForProbe(
+				fieldDef,
+				raw,
+				fieldResolver.source,
+			)
+			if (emptyPayloadError != null) {
+				return ({
+					kind: 'field',
+					key,
+					resolveRejected: false,
+					assertThrew: true,
+					assertError: emptyPayloadError,
+				} satisfies AssertLoadedResolverProbeCase)
+			}
+
 			const innerValues = (
 				fieldDef.cardinality === EntityFieldCardinality.ZeroOrMany
 				|| fieldDef.cardinality === EntityFieldCardinality.Many ?
 					Array.isArray(raw) ?
 						raw
-					:
-						[]
+					:	[]
 				: raw == null ?
 					[]
-				:
-					[raw]
+				:	[raw]
 			)
 
 			let assertThrew = false

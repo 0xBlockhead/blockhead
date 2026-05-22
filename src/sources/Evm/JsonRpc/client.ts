@@ -1,4 +1,5 @@
-import { throwHttpError } from '$/lib/http.ts'
+import { corsFetch, throwHttpError } from '$/lib/http.ts'
+import { executionHttpRpcOrigins } from '$/constants/ExecutionRpcOrigins.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
@@ -24,15 +25,22 @@ export const jsonRpc = async <_Result>({
 	method: string
 	params: JsonValue[]
 }): Promise<_Result> => {
-	const response = await fetch(rpcUrl, {
-		method: 'POST',
-		headers: jsonRpcHeaders,
-		body: JSON.stringify({
-			jsonrpc: jsonRpcVersion,
-			id: 1,
-			method,
-			params,
-		}),
+	const rpcOrigin = new URL(rpcUrl).origin
+	const knownExecutionRpc = executionHttpRpcOrigins.some((entry) => entry.origin === rpcOrigin)
+	const response = await corsFetch(rpcUrl, {
+		...(knownExecutionRpc ?
+			{ origins: executionHttpRpcOrigins }
+		:	{ corsEnabled: true }),
+		init: {
+			method: 'POST',
+			headers: jsonRpcHeaders,
+			body: JSON.stringify({
+				jsonrpc: jsonRpcVersion,
+				id: 1,
+				method,
+				params,
+			}),
+		},
 	})
 	if (!response.ok) await throwHttpError(`JsonRpc ${method}`, response)
 

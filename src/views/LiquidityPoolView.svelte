@@ -102,7 +102,7 @@
 
 	{#snippet Heading()}
 		<span data-text="muted">
-			<span data-text="font-monospace">
+			<span>
 				{entityId.id}
 			</span>
 		</span>

@@ -2,8 +2,9 @@
  * Standard Ethereum beacon node REST (`/eth/v1/...`) — @see https://github.com/ethereum/beacon-APIs
  */
 
-import { throwHttpError } from '$/lib/http.ts'
+import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
+import Beacon from '$/sources/Beacon/index.ts'
 import type {
 	BeaconFinalityCheckpoints,
 	BeaconForkScheduleEntry,
@@ -38,9 +39,19 @@ type BeaconHeaderWire = {
 	}
 }
 
+const beaconFetch = (
+	url: string,
+	init?: RequestInit,
+) => (
+	corsFetch(url, {
+		origins: Beacon.origins ?? [],
+		init,
+	})
+)
+
 export const getBeaconHeadSlot = async (beaconRestBaseUrl: string): Promise<number> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await fetch(`${base}/eth/v1/beacon/headers/head`, {
+	const res = await beaconFetch(`${base}/eth/v1/beacon/headers/head`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET head', res)
@@ -63,7 +74,7 @@ export const getBeaconHeader = async (
 	blockId: string | number,
 ): Promise<BeaconHeader> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await fetch(`${base}/eth/v1/beacon/headers/${blockId}`, {
+	const res = await beaconFetch(`${base}/eth/v1/beacon/headers/${blockId}`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET header', res)
@@ -157,7 +168,7 @@ export const getBeaconValidatorSummaryAtHead = async (
 	validatorIndex: number,
 ): Promise<BeaconValidatorSummary | null> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await fetch(
+	const res = await beaconFetch(
 		`${base}/eth/v1/beacon/states/head/validators/${String(validatorIndex)}`,
 		{
 			headers: { accept: 'application/json' },
@@ -285,7 +296,7 @@ export const getBeaconFinalityCheckpoints = async (
 	beaconRestBaseUrl: string,
 ): Promise<BeaconFinalityCheckpoints | undefined> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await fetch(`${base}/eth/v1/beacon/states/head/finality_checkpoints`, {
+	const res = await beaconFetch(`${base}/eth/v1/beacon/states/head/finality_checkpoints`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET finality_checkpoints', res)
@@ -297,7 +308,7 @@ export const getBeaconForkSchedule = async (
 	beaconRestBaseUrl: string,
 ): Promise<BeaconForkScheduleEntry[]> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await fetch(`${base}/eth/v1/config/fork_schedule`, {
+	const res = await beaconFetch(`${base}/eth/v1/config/fork_schedule`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET fork_schedule', res)
@@ -365,7 +376,7 @@ export const getBeaconGenesisTimeSeconds = async (
 	beaconRestBaseUrl: string,
 ): Promise<number | undefined> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await fetch(`${base}/eth/v1/beacon/genesis`, {
+	const res = await beaconFetch(`${base}/eth/v1/beacon/genesis`, {
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET genesis', res)

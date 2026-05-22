@@ -181,32 +181,19 @@
 		</ResourceBoundary>
 	{/snippet}
 
+
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={cast}
-			placeholderText="Loading Farcaster cast (author FID + cast hash)…"
-		>
-			{#snippet children(cast)}
-				{@const channelId = (
-					cast.$channel === undefined ?
-						undefined
-					:
-						cast.$channel[EntityMetaKey.Id].id
-				)}
-				{@const channelPageHref = (
-					channelId === undefined ?
-						undefined
-					:
-						resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
-							channelId,
-						})
-				)}
-				{@const flatText = cast.text.replaceAll('\n', ' ')}
-				<dl>
-					{#if flatText !== ''}
-						<div>
-							<dt>Cast</dt>
-							<dd>
+		<dl>
+			<div>
+				<dt>Cast</dt>
+				<dd>
+					<ResourceBoundary
+						resource={cast}
+						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+					>
+						{#snippet children(cast)}
+							{@const flatText = cast.text.replaceAll('\n', ' ')}
+							{#if flatText !== ''}
 								{#if variant === 'feed'}
 									<p>
 										<TruncatedValue
@@ -221,171 +208,262 @@
 										{cast.text}
 									</p>
 								{/if}
-							</dd>
-						</div>
-					{/if}
-					<div>
-						<dt>Timestamp</dt>
-						<dd>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			<div>
+				<dt>Timestamp</dt>
+				<dd>
+					<ResourceBoundary
+						resource={cast}
+						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+					>
+						{#snippet children(cast)}
 							<Timestamp
 								timestamp={cast.timestamp}
 								format={TimestampFormat.Both}
 							/>
-						</dd>
-					</div>
-						{#if cast.likeCount !== undefined}
-							<div>
-								<dt>Likes</dt>
-								<dd>{String(cast.likeCount)}</dd>
-							</div>
-						{/if}
-
-						{#if cast.recastCount !== undefined}
-							<div>
-								<dt>Recasts</dt>
-								<dd>{String(cast.recastCount)}</dd>
-							</div>
-						{/if}
-
-						{#if cast.replyCount !== undefined}
-							<div>
-								<dt>Replies</dt>
-								<dd>{String(cast.replyCount)}</dd>
-							</div>
-						{/if}
-
-						{#if channelPageHref !== undefined}
-							{#if channelId !== undefined}
-								<div>
-									<dt>Channel</dt>
-									<dd>
-										<a href={channelPageHref}>
-											/{channelId}
-										</a>
-									</dd>
-								</div>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			<div>
+				<dt>Likes</dt>
+				<dd>
+					<ResourceBoundary
+						resource={cast}
+						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+					>
+						{#snippet children(cast)}
+							{#if cast.likeCount !== undefined}
+								{String(cast.likeCount)}
 							{/if}
-						{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-						{#if open}
-							{@const parentCastIdOpen = (
-								cast.$parentCast === undefined ?
+			<div>
+				<dt>Recasts</dt>
+				<dd>
+					<ResourceBoundary
+						resource={cast}
+						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+					>
+						{#snippet children(cast)}
+							{#if cast.recastCount !== undefined}
+								{String(cast.recastCount)}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Replies</dt>
+				<dd>
+					<ResourceBoundary
+						resource={cast}
+						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+					>
+						{#snippet children(cast)}
+							{#if cast.replyCount !== undefined}
+								{String(cast.replyCount)}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Channel</dt>
+				<dd>
+					<ResourceBoundary
+						resource={cast}
+						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+					>
+						{#snippet children(cast)}
+							{@const channelId = (
+								cast.$channel === undefined ?
 									undefined
 								:
-									cast.$parentCast[EntityMetaKey.Id]
+									cast.$channel[EntityMetaKey.Id].id
 							)}
-							{@const authorUsernameOpen = cast.$author.username}
-							{@const threadNormOpen = (
-								(() => {
-									const th = (
-										cast.threadHash === undefined ?
-											''
-										:
-											cast.threadHash.trim()
-									)
-									if (th === '') {
-										return undefined
-									}
-									const hex = (
-										th.startsWith('0x') || th.startsWith('0X') ?
-											th.slice(2)
-										:
-											th
-									)
-									return `0x${hex.toLowerCase()}` satisfies CastHash
-								})()
-							)}
-							{@const warpcastThreadHrefOpen = (
-								threadNormOpen !== undefined && threadNormOpen !== entityId.hash ?
-									`https://warpcast.com/~/conversations/${threadNormOpen}`
-								:
-									undefined
-							)}
-							{@const farcasterWebCastHrefOpen = (
-								authorUsernameOpen === undefined ?
+							{@const channelPageHref = (
+								channelId === undefined ?
 									undefined
 								:
-									`https://farcaster.xyz/${authorUsernameOpen}/${entityId.hash}`
-							)}
-							{@const parentCastHrefOpen = (
-								parentCastIdOpen === undefined ?
-									undefined
-								:
-									resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
-										fid: String(parentCastIdOpen.fid),
-										hash: parentCastIdOpen.hash,
+									resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
+										channelId,
 									})
 							)}
-							<div>
-								<dt>FID</dt>
-								<dd>{String(entityId.fid)}</dd>
-							</div>
-							{#if parentCastHrefOpen !== undefined}
-								<div>
-									<dt>Parent cast</dt>
-									<dd>
-										<a href={parentCastHrefOpen}>View parent cast</a>
-									</dd>
-								</div>
-							{/if}
-
-							{#if cast.parentUrl !== undefined}
-								<div>
-									<dt>Parent URL</dt>
-									<dd>
-										<a href={cast.parentUrl}>{cast.parentUrl}</a>
-									</dd>
-								</div>
-							{/if}
-
-							{#if cast.mentions !== undefined}
-								{#if cast.mentions.length}
-									<div>
-										<dt>Mentions</dt>
-										<dd>
-											<ul data-cast="wrap gap-2">
-												{#each cast.mentions as mention (String(mention))}
-													<li>
-														<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-															userId: String(mention),
-														})}>
-															FID {String(mention)}
-														</a>
-													</li>
-												{/each}
-											</ul>
-										</dd>
-									</div>
+							{#if channelPageHref !== undefined}
+								{#if channelId !== undefined}
+									<a href={channelPageHref}>
+										/{channelId}
+									</a>
 								{/if}
 							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-							{#if farcasterWebCastHrefOpen !== undefined}
-								<div>
-									<dt>On web</dt>
-									<dd>
-										<a
-											href={farcasterWebCastHrefOpen}
-											rel="noreferrer"
-										>Open on Farcaster</a>
-									</dd>
-								</div>
-							{/if}
+			{#if open}
+				<div>
+					<dt>FID</dt>
+					<dd>{String(entityId.fid)}</dd>
+				</div>
+				<div>
+					<dt>Parent cast</dt>
+					<dd>
+						<ResourceBoundary
+							resource={cast}
+							placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+						>
+							{#snippet children(cast)}
+								{@const parentCastIdOpen = (
+									cast.$parentCast === undefined ?
+										undefined
+									:
+										cast.$parentCast[EntityMetaKey.Id]
+								)}
+								{@const parentCastHrefOpen = (
+									parentCastIdOpen === undefined ?
+										undefined
+									:
+										resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
+											fid: String(parentCastIdOpen.fid),
+											hash: parentCastIdOpen.hash,
+										})
+								)}
+								{#if parentCastHrefOpen !== undefined}
+									<a href={parentCastHrefOpen}>View parent cast</a>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-							{#if warpcastThreadHrefOpen !== undefined}
-								<div>
-									<dt>Thread</dt>
-									<dd>
-										<a
-											href={warpcastThreadHrefOpen}
-											rel="noreferrer"
-										>Open thread on Warpcast</a>
-									</dd>
-								</div>
-							{/if}
-						{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				<div>
+					<dt>Parent URL</dt>
+					<dd>
+						<ResourceBoundary
+							resource={cast}
+							placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+						>
+							{#snippet children(cast)}
+								{#if cast.parentUrl !== undefined}
+									<a href={cast.parentUrl}>{cast.parentUrl}</a>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Mentions</dt>
+					<dd>
+						<ResourceBoundary
+							resource={cast}
+							placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+						>
+							{#snippet children(cast)}
+								{#if cast.mentions !== undefined}
+									{#if cast.mentions.length}
+										<ul data-cast="wrap gap-2">
+											{#each cast.mentions as mention (String(mention))}
+												<li>
+													<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+														userId: String(mention),
+													})}>
+														FID {String(mention)}
+													</a>
+												</li>
+											{/each}
+										</ul>
+									{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>On web</dt>
+					<dd>
+						<ResourceBoundary
+							resource={cast}
+							placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+						>
+							{#snippet children(cast)}
+								{@const authorUsernameOpen = cast.$author.username}
+								{@const farcasterWebCastHrefOpen = (
+									authorUsernameOpen === undefined ?
+										undefined
+									:
+										`https://farcaster.xyz/${authorUsernameOpen}/${entityId.hash}`
+								)}
+								{#if farcasterWebCastHrefOpen !== undefined}
+									<a
+										href={farcasterWebCastHrefOpen}
+										rel="noreferrer"
+									>Open on Farcaster</a>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Thread</dt>
+					<dd>
+						<ResourceBoundary
+							resource={cast}
+							placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+						>
+							{#snippet children(cast)}
+								{@const threadNormOpen = (
+									(() => {
+										const th = (
+											cast.threadHash === undefined ?
+												''
+											:
+												cast.threadHash.trim()
+										)
+										if (th === '') {
+											return undefined
+										}
+										const hex = (
+											th.startsWith('0x') || th.startsWith('0X') ?
+												th.slice(2)
+											:
+												th
+										)
+										return `0x${hex.toLowerCase()}` satisfies CastHash
+									})()
+								)}
+								{@const warpcastThreadHrefOpen = (
+									threadNormOpen !== undefined && threadNormOpen !== entityId.hash ?
+										`https://warpcast.com/~/conversations/${threadNormOpen}`
+									:
+										undefined
+								)}
+								{#if warpcastThreadHrefOpen !== undefined}
+									<a
+										href={warpcastThreadHrefOpen}
+										rel="noreferrer"
+									>Open thread on Warpcast</a>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
+	{/snippet}
 	{/snippet}
 
 	{#snippet Details({
@@ -684,14 +762,12 @@
 																			hash: embeddedCastId.hash,
 																		})}>
 																			Quoted cast · FID {String(embeddedCastId.fid)} ·{' '}
-																			<span data-text="font-monospace">
-																				<TruncatedValue
-																					value={embeddedCastId.hash}
-																					startLength={8}
-																					endLength={6}
-																					format={TruncatedValueFormat.Visual}
-																				/>
-																			</span>
+																			<TruncatedValue
+																				value={embeddedCastId.hash}
+																				startLength={8}
+																				endLength={6}
+																				format={TruncatedValueFormat.Visual}
+																			/>
 																		</a>
 																	</p>
 																{/if}

@@ -1,4 +1,8 @@
 <script lang="ts">
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Components
 	import Page from '$/components/Page.svelte'
 	import RedditView from '$/views/RedditView.svelte'
@@ -6,5 +10,8 @@
 
 
 <Page>
-	<RedditView />
+	<RedditView
+		entityId={{ scope: 'RedditNetwork' }}
+		href={resolve('/(social)/reddit')}
+	/>
 </Page>

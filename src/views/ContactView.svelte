@@ -111,7 +111,7 @@
 	{/snippet}
 
 	{#snippet Heading()}
-		<span data-text="font-monospace">{entityId.id}</span>
+		<span>{entityId.id}</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

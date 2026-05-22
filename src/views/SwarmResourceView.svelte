@@ -112,146 +112,168 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary resource={swarm}>
-			{#snippet children(swarm)}
-				{#if swarm.contentType !== undefined || open}
-					<dl data-column-item="center">
-						{#if swarm.contentType !== undefined}
-							<div>
-								<dt>Content type</dt>
-								<dd>
+		<dl data-column-item="center">
+			<div>
+				<dt>Content type</dt>
+				<dd>
+					<ResourceBoundary resource={swarm}>
+						{#snippet children(swarm)}
+							{#if swarm.contentType !== undefined}
+								<TruncatedValue
+									value={swarm.contentType}
+									format={TruncatedValueFormat.Visual}
+								/>
+								{#if swarm.isContentTypeInferred}
+									{' '}<span data-text="muted">(inferred)</span>
+								{/if}
+							{:else if !open}
+								<p data-text="muted">Content type unavailable.</p>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			{#if open}
+				<div>
+					<dt>Canonical URI</dt>
+					<dd>
+						<ResourceBoundary resource={swarm}>
+							{#snippet children(swarm)}
+								<TruncatedValue
+									value={swarm.canonicalUri}
+									format={TruncatedValueFormat.Visual}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Gateway</dt>
+					<dd>
+						<ResourceBoundary resource={swarm}>
+							{#snippet children(swarm)}
+								<TruncatedValue
+									value={swarm.gatewayOrigin}
+									format={TruncatedValueFormat.Visual}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Gateway URL</dt>
+					<dd>
+						<ResourceBoundary resource={swarm}>
+							{#snippet children(swarm)}
+								<a
+									href={swarm.gatewayUrl}
+									target="_blank"
+									rel="noreferrer noopener"
+								>
 									<TruncatedValue
-										value={swarm.contentType}
+										value={swarm.gatewayUrl}
 										format={TruncatedValueFormat.Visual}
 									/>
-									{#if swarm.isContentTypeInferred}
-										{' '}<span data-text="muted">(inferred)</span>
-									{/if}
-								</dd>
-							</div>
-						{/if}
+								</a>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if open}
-							<div>
-								<dt>Canonical URI</dt>
-								<dd>
+				<div>
+					<dt>Content length</dt>
+					<dd>
+						<ResourceBoundary resource={swarm}>
+							{#snippet children(swarm)}
+								{#if swarm.contentLength !== undefined}
+									<NumberValue
+										value={swarm.contentLength}
+										options={{ maximumFractionDigits: 0 }}
+									/>
+									{' '}
+									bytes
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>File name</dt>
+					<dd>
+						<ResourceBoundary resource={swarm}>
+							{#snippet children(swarm)}
+								{#if swarm.fileName !== undefined}
 									<TruncatedValue
-										value={swarm.canonicalUri}
+										value={swarm.fileName}
 										format={TruncatedValueFormat.Visual}
 									/>
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if open}
-							<div>
-								<dt>Gateway</dt>
-								<dd>
+				<div>
+					<dt>Extension</dt>
+					<dd>
+						<ResourceBoundary resource={swarm}>
+							{#snippet children(swarm)}
+								{#if swarm.extension !== undefined}
+									.{swarm.extension}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Display type</dt>
+					<dd>
+						<ResourceBoundary resource={swarm}>
+							{#snippet children(swarm)}
+								{swarm.displayType}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Text</dt>
+					<dd>
+						<ResourceBoundary resource={swarm}>
+							{#snippet children(swarm)}
+								{#if swarm.text !== undefined}
 									<TruncatedValue
-										value={swarm.gatewayOrigin}
+										value={swarm.text}
 										format={TruncatedValueFormat.Visual}
 									/>
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if open}
-							<div>
-								<dt>Gateway URL</dt>
-								<dd>
-									<a
-										href={swarm.gatewayUrl}
-										target="_blank"
-										rel="noreferrer noopener"
-									>
-										<TruncatedValue
-											value={swarm.gatewayUrl}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</a>
-								</dd>
-							</div>
-						{/if}
-
-						{#if open}
-							{#if swarm.contentLength !== undefined}
-								<div>
-									<dt>Content length</dt>
-									<dd>
-										<NumberValue
-											value={swarm.contentLength}
-											options={{ maximumFractionDigits: 0 }}
-										/>
-										{' '}
-										bytes
-									</dd>
-								</div>
-							{/if}
-						{/if}
-
-						{#if open}
-							{#if swarm.fileName !== undefined}
-								<div>
-									<dt>File name</dt>
-									<dd>
-										<TruncatedValue
-											value={swarm.fileName}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</dd>
-								</div>
-							{/if}
-						{/if}
-
-						{#if open}
-							{#if swarm.extension !== undefined}
-								<div>
-									<dt>Extension</dt>
-									<dd>.{swarm.extension}</dd>
-								</div>
-							{/if}
-						{/if}
-
-						{#if open}
-							<div>
-								<dt>Display type</dt>
-								<dd>{swarm.displayType}</dd>
-							</div>
-						{/if}
-
-						{#if open}
-							{#if swarm.text !== undefined}
-								<div>
-									<dt>Text</dt>
-									<dd>
-										<TruncatedValue
-											value={swarm.text}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</dd>
-								</div>
-							{/if}
-						{/if}
-
-						{#if open}
-							{#if swarm.$media?.[EntityMetaKey.Id].url !== undefined}
-								<div>
-									<dt>Media</dt>
-									<dd>
-										<Media
-											media={{ url: swarm.$media[EntityMetaKey.Id].url }}
-											alt={swarm.fileName ?? ''}
-										/>
-									</dd>
-								</div>
-							{/if}
-						{/if}
-					</dl>
-				{:else}
-					<p data-text="muted">Content type unavailable.</p>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+				<div>
+					<dt>Media</dt>
+					<dd>
+						<ResourceBoundary resource={swarm}>
+							{#snippet children(swarm)}
+								{#if swarm.$media?.[EntityMetaKey.Id].url !== undefined}
+									<Media
+										media={{ url: swarm.$media[EntityMetaKey.Id].url }}
+										alt={swarm.fileName ?? ''}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

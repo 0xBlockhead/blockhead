@@ -107,7 +107,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{(
 				entityId.feedKey != null && entityId.feedKey !== '' ?
 					entityId.feedKey
@@ -120,50 +120,57 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={marketPrice}
-			placeholderText="Loading quotes…"
-		>
-			{#snippet children(marketPrice)}
-				{@const headQuoteId = (
-					(marketPrice.$$quotes ?? [])
-						.toSorted((
-							leftQuote,
-							rightQuote,
-						) => (
-							rightQuote[EntityMetaKey.Id].timestampMs
-								- leftQuote[EntityMetaKey.Id].timestampMs
-						))[0]
-						?.[EntityMetaKey.Id]
-				)}
-				{#if headQuoteId}
-					<Market_TimestampView
-						entityId={headQuoteId}
-						layout={EntityLayout.Summary}
-						open={false}
-						showTypeAnnotation={false}
-					/>
-				{:else}
-					<div data-row="wrap align-center gap-2">
-						<p data-text="muted">
-							No spot or index quote yet.
-						</p>
-						<Tooltip contentProps={{ side: 'top' }}>
-							{#snippet Content()}
-								<p>
-									Quotes are timestamped rows on <code>Market_Timestamp</code>
-									(<code>$$quotes</code>), not fields on this stream header.
-								</p>
-							{/snippet}
-							<abbr
-								class="entity-heading-tip"
-								aria-label="Quote stream vs timestamp rows"
-							>ⓘ</abbr>
-						</Tooltip>
-					</div>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+		<dl data-column-item="center">
+			<div>
+				<dt>Latest quote</dt>
+				<dd>
+					<ResourceBoundary
+						resource={marketPrice}
+						placeholderText="Loading quotes…"
+					>
+						{#snippet children(marketPrice)}
+							{@const headQuoteId = (
+								(marketPrice.$$quotes ?? [])
+									.toSorted((
+										leftQuote,
+										rightQuote,
+									) => (
+										rightQuote[EntityMetaKey.Id].timestampMs
+											- leftQuote[EntityMetaKey.Id].timestampMs
+									))[0]
+									?.[EntityMetaKey.Id]
+							)}
+							{#if headQuoteId}
+								<Market_TimestampView
+									entityId={headQuoteId}
+									layout={EntityLayout.Summary}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							{:else}
+								<div data-row="wrap align-center gap-2">
+									<p data-text="muted">
+										No spot or index quote yet.
+									</p>
+									<Tooltip contentProps={{ side: 'top' }}>
+										{#snippet Content()}
+											<p>
+												Quotes are timestamped rows on <code>Market_Timestamp</code>
+												(<code>$$quotes</code>), not fields on this stream header.
+											</p>
+										{/snippet}
+										<abbr
+											class="entity-heading-tip"
+											aria-label="Quote stream vs timestamp rows"
+										>ⓘ</abbr>
+									</Tooltip>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

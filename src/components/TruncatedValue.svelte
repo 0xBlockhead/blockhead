@@ -33,7 +33,10 @@
 {#if rendered.length <= startLength + endLength}
 	{rendered}
 {:else if format === TruncatedValueFormat.Abbr}
-	<abbr title={rendered}>
+	<abbr
+		data-text="font-monospace"
+		title={rendered}
+	>
 		{`${rendered.slice(0, startLength)}⸱⸱⸱${rendered.slice(-endLength)}`}
 	</abbr>
 {:else if format === TruncatedValueFormat.Visual}
@@ -45,6 +48,7 @@
 
 	<span
 		class="truncated-value format-visual"
+		data-text="font-monospace"
 		role="button"
 		tabindex="0"
 		aria-label={rendered}
@@ -58,6 +62,7 @@
 {:else if format === TruncatedValueFormat.VisualCharacters}
 	<span
 		class="truncated-value format-visual-characters"
+		data-text="font-monospace"
 		role="button"
 		tabindex="0"
 		aria-label={rendered}

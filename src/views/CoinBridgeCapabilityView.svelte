@@ -88,7 +88,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.toolKey}
 		</span>
 	{/snippet}
@@ -101,55 +101,84 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: capabilityHref })}
-		<ResourceBoundary
-			resource={capability}
-			placeholderText="Loading capability…"
-		>
-			{#snippet children(capability)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Rail</dt>
-						<dd>{bridgeRailById[capability.railId]?.label ?? capability.railId}</dd>
-					</div>
-					<div>
-						<dt>Settlement</dt>
-						<dd>{capability.settlementModel}</dd>
-					</div>
-					<div>
-						<dt>Verification</dt>
-						<dd>{capability.verificationModel}</dd>
-					</div>
-					<div>
-						<dt>Asset outcome</dt>
-						<dd>{capability.assetOutcome}</dd>
-					</div>
-					<div>
-						<dt>From</dt>
-						<dd>
-							<CoinInstanceView
-								entityId={entityId.$fromInstance}
-								href={capabilityHref}
-								layout={EntityLayout.Title}
-								open={false}
-								showTypeAnnotation={false}
-							/>
-						</dd>
-					</div>
-					<div>
-						<dt>To</dt>
-						<dd>
-							<CoinInstanceView
-								entityId={entityId.$toInstance}
-								href={capabilityHref}
-								layout={EntityLayout.Title}
-								open={false}
-								showTypeAnnotation={false}
-							/>
-						</dd>
-					</div>
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+		<dl data-column-item="center">
+			<div>
+				<dt>Rail</dt>
+				<dd>
+					<ResourceBoundary
+						resource={capability}
+						placeholderText="Loading capability…"
+					>
+						{#snippet children(capability)}
+							{bridgeRailById[capability.railId]?.label ?? capability.railId}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			<div>
+				<dt>Settlement</dt>
+				<dd>
+					<ResourceBoundary
+						resource={capability}
+						placeholderText="Loading capability…"
+					>
+						{#snippet children(capability)}
+							{capability.settlementModel}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			<div>
+				<dt>Verification</dt>
+				<dd>
+					<ResourceBoundary
+						resource={capability}
+						placeholderText="Loading capability…"
+					>
+						{#snippet children(capability)}
+							{capability.verificationModel}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			<div>
+				<dt>Asset outcome</dt>
+				<dd>
+					<ResourceBoundary
+						resource={capability}
+						placeholderText="Loading capability…"
+					>
+						{#snippet children(capability)}
+							{capability.assetOutcome}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			<div>
+				<dt>From</dt>
+				<dd>
+					<CoinInstanceView
+						entityId={entityId.$fromInstance}
+						href={capabilityHref}
+						layout={EntityLayout.Title}
+						open={false}
+						showTypeAnnotation={false}
+					/>
+				</dd>
+			</div>
+			<div>
+				<dt>To</dt>
+				<dd>
+					<CoinInstanceView
+						entityId={entityId.$toInstance}
+						href={capabilityHref}
+						layout={EntityLayout.Title}
+						open={false}
+						showTypeAnnotation={false}
+					/>
+				</dd>
+			</div>
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

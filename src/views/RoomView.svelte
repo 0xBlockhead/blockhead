@@ -76,7 +76,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.id}
 		</span>
 	{/snippet}
@@ -106,44 +106,62 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={room}
-			placeholderText="Loading room…"
-		>
-			{#snippet children(room)}
-				<dl data-column-item="center">
-					{#if room.createdAt !== undefined}
-						<div>
-							<dt>Created</dt>
-							<dd>
+		<dl data-column-item="center">
+			<div>
+				<dt>Created</dt>
+				<dd>
+					<ResourceBoundary
+						resource={room}
+						placeholderText="Loading room…"
+					>
+						{#snippet children(room)}
+							{#if room.createdAt !== undefined}
 								<Timestamp
 									timestamp={room.createdAt}
 									format={TimestampFormat.Both}
 								/>
-							</dd>
-						</div>
-					{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if open}
-						{#if room.name !== undefined && room.name !== ''}
-							<div>
-								<dt>Name</dt>
-								<dd>{room.name}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Name</dt>
+					<dd>
+						<ResourceBoundary
+							resource={room}
+							placeholderText="Loading room…"
+						>
+							{#snippet children(room)}
+								{#if room.name !== undefined && room.name !== ''}
+									{room.name}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if room.createdBy !== undefined && room.createdBy !== ''}
-							<div>
-								<dt>Opened by</dt>
-								<dd>{room.createdBy}</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+			{#if open}
+				<div>
+					<dt>Opened by</dt>
+					<dd>
+						<ResourceBoundary
+							resource={room}
+							placeholderText="Loading room…"
+						>
+							{#snippet children(room)}
+								{#if room.createdBy !== undefined && room.createdBy !== ''}
+									{room.createdBy}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

@@ -146,23 +146,17 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open })}
-		<ResourceBoundary
-			resource={note}
-			placeholderText="Loading note…"
-		>
-			{#snippet children(note)}
-				{@const mastodonPlainBodyText = (
-					note.content == null ?
-						''
-					:
-						htmlToPlainText(note.content)
-				)}
-				<dl data-column-item="center">
-					{#if open}
-						{#if note.$author}
-							<div>
-								<dt>Author</dt>
-								<dd>
+		<dl data-column-item="center">
+			{#if open}
+				<div>
+					<dt>Author</dt>
+					<dd>
+						<ResourceBoundary
+							resource={note}
+							placeholderText="Loading note…"
+						>
+							{#snippet children(note)}
+								{#if note.$author}
 									<a
 										href={resolve(
 											'/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]',
@@ -172,16 +166,23 @@
 											},
 										)}
 									>Open actor</a>
-								</dd>
-							</div>
-						{/if}
-					{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if note.$inReplyTo}
-							<div>
-								<dt>In reply to</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>In reply to</dt>
+					<dd>
+						<ResourceBoundary
+							resource={note}
+							placeholderText="Loading note…"
+						>
+							{#snippet children(note)}
+								{#if note.$inReplyTo}
 									<a
 										href={resolve(
 											'/(social)/activitypub/note/[instanceOrigin]/[localStatusId]',
@@ -191,36 +192,44 @@
 											},
 										)}
 									>Open parent status</a>
-								</dd>
-							</div>
-						{/if}
-					{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if note.content != null}
-							{#if mastodonPlainBodyText !== ''}
-								<div>
-									<dt>Plain text body</dt>
-									<dd>
-										{htmlToPlainText(note.content)}
-									</dd>
-								</div>
-							{/if}
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Plain text body</dt>
+					<dd>
+						<ResourceBoundary
+							resource={note}
+							placeholderText="Loading note…"
+						>
+							{#snippet children(note)}
+								{#if note.content != null}
+									{@const mastodonPlainBodyText = htmlToPlainText(note.content)}
+									{#if mastodonPlainBodyText !== ''}
+										{mastodonPlainBodyText}
+									{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if entityId.instanceOrigin}
-							<div>
-								<dt>Origin instance</dt>
-								<dd data-text="mono muted">{entityId.instanceOrigin}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				{#if entityId.instanceOrigin}
+					<div>
+						<dt>Origin instance</dt>
+						<dd data-text="mono muted">{entityId.instanceOrigin}</dd>
+					</div>
+				{/if}
+			{/if}
 
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

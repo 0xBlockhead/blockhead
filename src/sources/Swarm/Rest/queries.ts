@@ -1,5 +1,6 @@
 import { regex } from 'arkregex'
-import { jsonErrorHintFromResponse } from '$/lib/http.ts'
+import { corsFetch, jsonErrorHintFromResponse } from '$/lib/http.ts'
+import Swarm from '$/sources/Swarm/index.ts'
 import { gatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
 import type {
 	ParsedSwarmBrowseInput,
@@ -141,7 +142,10 @@ export const fetchSwarmBrowseResult = async ({
 			gatewayOrigin,
 		})
 
-		const response = await fetch(gatewayUrl, { signal })
+		const response = await corsFetch(gatewayUrl, {
+			origins: Swarm.origins ?? [],
+			init: { signal },
+		})
 		if (!response.ok) {
 			const hint = await jsonErrorHintFromResponse(response)
 			failures.push(

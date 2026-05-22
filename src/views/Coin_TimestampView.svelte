@@ -99,7 +99,7 @@
 >
 	{#snippet Heading()}
 
-		<span data-text="font-monospace">
+		<span>
 			{entityId.$coin.coinId}
 		</span>
 	{/snippet}

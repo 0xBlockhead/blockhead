@@ -12,5 +12,11 @@ export const GET: RequestHandler = async () => {
 		return new Response('Not Found', { status: 404 })
 	}
 
-	return json(await runAssertLoadedResolverProbes())
+	try {
+		return json(await runAssertLoadedResolverProbes())
+	} catch (error) {
+		const message = error instanceof Error ? error.message : String(error)
+		const stack = error instanceof Error ? error.stack : undefined
+		return json({ probeRunnerError: message, stack }, { status: 500 })
+	}
 }

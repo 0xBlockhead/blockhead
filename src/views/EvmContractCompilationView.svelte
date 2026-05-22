@@ -118,61 +118,104 @@
 		open: contentOpen,
 	})}
 		{#if contentOpen}
-			<ResourceBoundary
-				resource={compilation}
-				placeholderText="Loading compilation metadata…"
-			>
-				{#snippet children(compilation)}
-					<dl data-column-item="center">
-						{#if compilation.language}
-							<div>
-								<dt>Language</dt>
-								<dd>{compilation.language}</dd>
-							</div>
-						{/if}
-						{#if compilation.compiler}
-							<div>
-								<dt>Compiler</dt>
-								<dd>{compilation.compiler}</dd>
-							</div>
-						{/if}
-						{#if compilation.compilerVersion}
-							<div>
-								<dt>Compiler version</dt>
-								<dd>{compilation.compilerVersion}</dd>
-							</div>
-						{/if}
-						{#if compilation.fullyQualifiedName}
-							<div>
-								<dt>Fully qualified name</dt>
-								<dd><code>{compilation.fullyQualifiedName}</code></dd>
-							</div>
-						{/if}
-						{#if compilation.compilerSettingsJson}
-							<div>
-								<dt>Compiler settings (JSON)</dt>
-								<dd>
+			<dl data-column-item="center">
+				<div>
+					<dt>Language</dt>
+					<dd>
+						<ResourceBoundary
+							resource={compilation}
+							placeholderText="Loading compilation metadata…"
+						>
+							{#snippet children(compilation)}
+								{#if compilation.language}
+									{compilation.language}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+				<div>
+					<dt>Compiler</dt>
+					<dd>
+						<ResourceBoundary
+							resource={compilation}
+							placeholderText="Loading compilation metadata…"
+						>
+							{#snippet children(compilation)}
+								{#if compilation.compiler}
+									{compilation.compiler}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+				<div>
+					<dt>Compiler version</dt>
+					<dd>
+						<ResourceBoundary
+							resource={compilation}
+							placeholderText="Loading compilation metadata…"
+						>
+							{#snippet children(compilation)}
+								{#if compilation.compilerVersion}
+									{compilation.compilerVersion}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+				<div>
+					<dt>Fully qualified name</dt>
+					<dd>
+						<ResourceBoundary
+							resource={compilation}
+							placeholderText="Loading compilation metadata…"
+						>
+							{#snippet children(compilation)}
+								{#if compilation.fullyQualifiedName}
+									<code>{compilation.fullyQualifiedName}</code>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+				<div>
+					<dt>Compiler settings (JSON)</dt>
+					<dd>
+						<ResourceBoundary
+							resource={compilation}
+							placeholderText="Loading compilation metadata…"
+						>
+							{#snippet children(compilation)}
+								{#if compilation.compilerSettingsJson}
 									<TruncatedValue
 										value={compilation.compilerSettingsJson}
 										format={TruncatedValueFormat.Visual}
 									/>
-								</dd>
-							</div>
-						{/if}
-						{#if compilation.storageLayoutJson}
-							<div>
-								<dt>Storage layout (JSON)</dt>
-								<dd>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+				<div>
+					<dt>Storage layout (JSON)</dt>
+					<dd>
+						<ResourceBoundary
+							resource={compilation}
+							placeholderText="Loading compilation metadata…"
+						>
+							{#snippet children(compilation)}
+								{#if compilation.storageLayoutJson}
 									<TruncatedValue
 										value={compilation.storageLayoutJson}
 										format={TruncatedValueFormat.Visual}
 									/>
-								</dd>
-							</div>
-						{/if}
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			</dl>
 		{/if}
 	{/snippet}
 

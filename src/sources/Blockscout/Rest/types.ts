@@ -158,6 +158,7 @@ export type BlockscoutTransactionWire = {
 }
 
 export type BlockscoutSmartContractForListWire = {
+	address?: BlockscoutAddressWire
 	address_hash?: string | BlockscoutAddressWire
 	compiler_version?: string
 	language?: string
@@ -177,6 +178,21 @@ export type BlockscoutTransactionLogWire = {
 export type BlockscoutErc4337RegistryEntryWire = {
 	address?: BlockscoutAddressWire
 	total_ops?: number
+	total_accounts?: number
+	factory?: BlockscoutAddressWire | null
+}
+
+export type BlockscoutErc4337BundleWire = {
+	bundler?: BlockscoutAddressWire
+	total_ops?: number
+}
+
+export type BlockscoutErc4337SmartAccountListItemWire = BlockscoutErc4337RegistryEntryWire
+
+export type BlockscoutUserOperationDetailWire = BlockscoutUserOperationListItemWire & {
+	raw?: {
+		paymaster_and_data?: string
+	}
 }
 
 export type BlockscoutUserOperationListItemWire = {

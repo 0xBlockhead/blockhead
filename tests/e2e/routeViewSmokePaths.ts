@@ -1,9 +1,20 @@
+import {
+	e2eNostrYouTubeOptionalDetailRoutePaths,
+	e2eNostrYouTubeRoutePaths,
+} from '$/routes/api/e2e/assert-loaded-resolvers/_fixtures.ts'
+
+
 /** Routes exercised by `route-views-smoke.e2e.ts` and boundary-settle checks. */
 const SAMPLE_TX_HASH = (
 	'0xdacd6abf5b2814b28c68c59981f269c615796e7f0cba2009f4bf5edfdd9595ab' as const
 )
 
 export const ADDR = '0xd8da6bf26964af9d7eed9e403e826090792bed6a' as const
+
+/** Detail routes depending on live NostrBand / YouTube / Piped payloads (not in default smoke set). */
+export const routeViewSmokeOptionalDetailPathByLabel: Record<string, `/${string}`> = (
+	e2eNostrYouTubeOptionalDetailRoutePaths
+)
 
 export const routeViewSmokePathByLabel: Record<string, `/${string}`> = {
 	exploreHub: '/explore',
@@ -32,11 +43,29 @@ export const routeViewSmokePathByLabel: Record<string, `/${string}`> = {
 	farcasterChannels: '/farcaster/channels',
 	farcasterFeeds: '/farcaster/feed',
 	xHub: '/x',
+	xUsers: '/x/users',
+	xPosts: '/x/posts',
 	atprotoHub: '/atproto',
+	atprotoActors: '/atproto/actors',
+	atprotoPosts: '/atproto/posts',
 	activitypubHub: '/activitypub',
+	activitypubActors: '/activitypub/actors',
+	activitypubNotes: '/activitypub/notes',
 	redditHub: '/reddit',
+	redditSubreddits: '/reddit/subreddits',
+	redditLinks: '/reddit/links',
+	rssHub: '/rss',
+	rssFeeds: '/rss/feeds',
+	rssItems: '/rss/items',
 	lensHub: '/lens',
+	lensAccounts: '/lens/accounts',
+	lensPosts: '/lens/posts',
+	nostrHub: '/nostr',
+	nostrProfiles: '/nostr/profiles',
+	nostrNotes: '/nostr/notes',
+	...e2eNostrYouTubeRoutePaths,
 	xmtpHub: '/xmtp',
+	youtubeHub: '/youtube',
 	ipfsHub: '/ipfs',
 	ipfsResourceCidEncodings: '/ipfs/ipfs/QmYwAPJzv5CZsnA625s3Xf2nemtYgPpHdWEz79ojWnPbdG',
 	swarmHub: '/swarm',

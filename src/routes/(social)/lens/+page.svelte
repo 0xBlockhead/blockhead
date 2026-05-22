@@ -1,4 +1,8 @@
 <script lang="ts">
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Components
 	import Page from '$/components/Page.svelte'
 	import LensView from '$/views/LensView.svelte'
@@ -6,5 +10,10 @@
 
 
 <Page>
-	<LensView />
+	<LensView
+		entityId={{
+			scope: 'LensNetwork',
+		}}
+		href={resolve('/lens')}
+	/>
 </Page>

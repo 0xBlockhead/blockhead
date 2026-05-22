@@ -1,4 +1,4 @@
-import { getJson as fetchGetJson, getText as fetchGetText } from '$/lib/http.ts'
+import { corsFetch, getJson as fetchGetJson, getText as fetchGetText } from '$/lib/http.ts'
 import { githubHttpAllowedOrigins } from '$/sources/Github/githubHttpOrigins.ts'
 import { restHeaders, restOrigin } from '$/sources/Github/Rest/constants.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
@@ -12,7 +12,10 @@ const githubInit = (url: string): RequestInit | undefined => (
 )
 
 export const githubHttp = ({ url }: { url: string }): Promise<Response> => (
-	fetch(url, githubInit(url) ?? {})
+	corsFetch(url, {
+		origins: githubHttpAllowedOrigins,
+		init: githubInit(url),
+	})
 )
 
 export const getJson = ({ url }: { url: string }): Promise<JsonValue> => (

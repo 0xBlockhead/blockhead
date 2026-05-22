@@ -148,7 +148,7 @@
 			placeholderText=""
 		>
 			{#snippet children(coinInstance)}
-				<span data-text="font-monospace">
+				<span>
 					{coinInstance.coinId}
 				</span>
 			{/snippet}

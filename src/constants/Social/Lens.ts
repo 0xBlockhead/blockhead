@@ -10,7 +10,7 @@ export const lensNetworkFieldValues = {
 	homeUrl: 'https://lens.xyz',
 	protocolName: 'Lens',
 	registryLabel: 'Curated seed accounts + GraphQL author feeds',
-	topology: 'network -> accounts -> posts',
+	topology: 'Constants seeds + live GraphQL -> network -> accounts -> posts',
 } as const
 
 export const lensNetworkSeedAccounts: readonly EntityId<typeof schema, EntityType.LensAccount>[] = [

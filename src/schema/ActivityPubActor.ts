@@ -55,6 +55,63 @@ export default {
 			],
 		},
 		{
+			name: '$headerImage',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Media,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Mastodon_Rest,
+			],
+		},
+		{
+			name: 'profileUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'website',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'followersCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'followingCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'statusesCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'bot',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'locked',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'createdAt',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: '$$notes',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.ActivityPubNote,

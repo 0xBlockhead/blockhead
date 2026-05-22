@@ -105,7 +105,7 @@
 >
 	{#snippet Heading()}
 
-		<span data-text="font-monospace">
+		<span>
 			{entityId.epoch}
 		</span>
 	{/snippet}
@@ -115,7 +115,6 @@
 			<span>Epoch </span>
 			<span
 				data-badge="small"
-				data-text="font-monospace"
 				data-epoch-number={String(entityId.epoch)}
 			>
 				{String(entityId.epoch)}
@@ -125,41 +124,45 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={epoch}
-				placeholderText="Loading epoch…"
-			>
-				{#snippet children(epoch)}
-					{#if epoch.startSlot !== undefined}
-						{#if epoch.endSlot !== undefined}
-							<div>
-								<dt>Consensus slot range</dt>
-								<dd>
+			<div>
+				<dt>Consensus slot range</dt>
+				<dd>
+					<ResourceBoundary
+						resource={epoch}
+						placeholderText="Loading epoch…"
+					>
+						{#snippet children(epoch)}
+							{#if epoch.startSlot !== undefined}
+								{#if epoch.endSlot !== undefined}
 									<NumberValue value={epoch.startSlot} />
 									to
 									<NumberValue value={epoch.endSlot} />
-								</dd>
-							</div>
-						{/if}
-					{/if}
+								{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if open}
-						{#if epoch.slotCount !== undefined}
-							<div>
-								<dt>Slots in this epoch</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Slots in this epoch</dt>
+					<dd>
+						<ResourceBoundary
+							resource={epoch}
+							placeholderText="Loading epoch…"
+						>
+							{#snippet children(epoch)}
+								{#if epoch.slotCount !== undefined}
 									<NumberValue value={epoch.slotCount} />
-								</dd>
-							</div>
-						{:else}
-							<div>
-								<dt>Slots in this epoch</dt>
-								<dd data-text="muted">Slot span unavailable from beacon API.</dd>
-							</div>
-						{/if}
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+								{:else}
+									<span data-text="muted">Slot span unavailable from beacon API.</span>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 		</dl>
 	{/snippet}
 

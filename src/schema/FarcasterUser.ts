@@ -63,6 +63,26 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'followerCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Neynar_Rest,
+				Source.Snapchain_Rest,
+			],
+		},
+		{
+			name: 'followingCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Neynar_Rest,
+				Source.Snapchain_Rest,
+			],
+		},
+		{
 			name: '$$casts',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FarcasterCast,

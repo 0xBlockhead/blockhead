@@ -1,8 +1,10 @@
 import {
 	optionalPublicEnvString,
 } from '$/lib/sources.ts'
+import { corsFetch } from '$/lib/http.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import Coingecko from '$/sources/Coingecko/index.ts'
 import {
 	demoBaseUrl,
 	proBaseUrl,
@@ -27,11 +29,14 @@ export const coingeckoOpenApiFetch = (
 			.forEach((value, key) => headers.set(key, value))
 	}
 
-	return fetch(
+	return corsFetch(
 		`${proApiKey != null ? proBaseUrl : demoBaseUrl}${path}`,
 		{
-			...init,
-			headers,
+			origins: Coingecko.origins ?? [],
+			init: {
+				...init,
+				headers,
+			},
 		},
 	)
 }

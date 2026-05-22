@@ -5,38 +5,90 @@
 
 	const hubKey = 'social'
 
-	const socialLinks = [
-		{
-			label: 'AT Protocol (Bluesky appview / XRPC)',
-			route: '/(social)/atproto',
-		},
+	const socialProtocolGroups = [
 		{
 			label: 'ActivityPub (Mastodon API v1)',
-			route: '/(social)/activitypub',
+			hubRoute: '/(social)/activitypub',
+			lists: [
+				{ label: 'Actors', route: '/(social)/(activitypub)/activitypub/actors' },
+				{ label: 'Notes', route: '/(social)/(activitypub)/activitypub/notes' },
+			],
+		},
+		{
+			label: 'AT Protocol (Bluesky appview / XRPC)',
+			hubRoute: '/(social)/atproto',
+			lists: [
+				{ label: 'Actors', route: '/(social)/(atproto)/atproto/actors' },
+				{ label: 'Posts', route: '/(social)/(atproto)/atproto/posts' },
+			],
 		},
 		{
 			label: 'Lens',
-			route: '/(social)/lens',
+			hubRoute: '/(social)/lens',
+			lists: [
+				{ label: 'Accounts', route: '/(social)/(lens)/lens/accounts' },
+				{ label: 'Posts', route: '/(social)/(lens)/lens/posts' },
+			],
 		},
 		{
-			label: 'X (API v2)',
-			route: '/(social)/x',
+			label: 'Nostr (NostrBand / Primal indexers)',
+			hubRoute: '/(social)/nostr',
+			lists: [
+				{ label: 'Relays', route: '/(social)/(nostr)/nostr/relays' },
+				{ label: 'Profiles', route: '/(social)/(nostr)/nostr/profiles' },
+				{ label: 'Notes', route: '/(social)/(nostr)/nostr/notes' },
+				{ label: 'Reposts', route: '/(social)/(nostr)/nostr/reposts' },
+				{ label: 'Articles', route: '/(social)/(nostr)/nostr/articles' },
+			],
 		},
 		{
 			label: 'Reddit',
-			route: '/(social)/reddit',
+			hubRoute: '/(social)/reddit',
+			lists: [
+				{ label: 'Subreddits', route: '/(social)/(reddit)/reddit/subreddits' },
+				{ label: 'Submissions', route: '/(social)/(reddit)/reddit/links' },
+			],
+		},
+		{
+			label: 'RSS / Atom syndication',
+			hubRoute: '/(social)/rss',
+			lists: [
+				{ label: 'Feeds', route: '/(social)/(rss)/rss/feeds' },
+				{ label: 'Items', route: '/(social)/(rss)/rss/items' },
+			],
+		},
+		{
+			label: 'X (API v2)',
+			hubRoute: '/(social)/x',
+			lists: [
+				{ label: 'Users', route: '/(social)/(x)/x/users' },
+				{ label: 'Posts', route: '/(social)/(x)/x/posts' },
+			],
+		},
+		{
+			label: 'YouTube (Data API v3 / Piped)',
+			hubRoute: '/(social)/youtube',
+			lists: [
+				{ label: 'Channels', route: '/(social)/(youtube)/youtube/channels' },
+				{ label: 'Videos', route: '/(social)/(youtube)/youtube/videos' },
+				{ label: 'Playlists', route: '/(social)/(youtube)/youtube/playlists' },
+			],
 		},
 		{
 			label: 'XMTP',
-			route: '/(social)/xmtp',
-		},
-		{
-			label: 'Farcaster (feed / hub)',
-			route: '/(social)/(farcaster)/farcaster',
+			hubRoute: '/(social)/xmtp',
+			lists: [
+				{ label: 'Accounts', route: '/(social)/(xmtp)/xmtp/accounts' },
+				{ label: 'Conversations', route: '/(social)/(xmtp)/xmtp/conversations' },
+			],
 		},
 	] as const satisfies ReadonlyArray<{
-		label: string,
-		route: string,
+		label: string
+		hubRoute: string
+		lists: ReadonlyArray<{
+			label: string
+			route: string
+		}>
 	}>
 
 
@@ -52,7 +104,7 @@
 <Page>
 	<GlobalView
 		entityId={{}}
-		title={'Social'}
+		title="Social"
 		href={resolve('/social')}
 	>
 		{#snippet children({ open: hubOpen,
@@ -94,12 +146,36 @@
 						data-column
 					>
 						<h2>Protocols & networks</h2>
-						<ul>
-							{#each socialLinks as { label, route } (route)}
+						<ul class="social-protocol-groups">
+							{#each socialProtocolGroups as { label, hubRoute, lists } (hubRoute)}
 								<li>
-									<a href={resolve(route)}>{label}</a>
+									<a href={resolve(hubRoute)}>{label}</a>
+									<ul>
+										{#each lists as { label: listLabel, route } (route)}
+											<li>
+												<a href={resolve(route)}>{listLabel}</a>
+											</li>
+										{/each}
+									</ul>
 								</li>
 							{/each}
+							<li>
+								<a href={resolve('/(social)/(farcaster)/farcaster')}>Farcaster (feed / hub)</a>
+								<ul>
+									<li>
+										<a href={resolve('/farcaster/accounts')}>Accounts</a>
+									</li>
+									<li>
+										<a href={resolve('/farcaster/feed')}>Feed</a>
+									</li>
+									<li>
+										<a href={resolve('/farcaster/channels')}>Channels</a>
+									</li>
+									<li>
+										<a href={resolve('/farcaster/users')}>Users</a>
+									</li>
+								</ul>
+							</li>
 						</ul>
 					</section>
 
@@ -120,3 +196,15 @@
 		{/snippet}
 	</GlobalView>
 </Page>
+
+
+<style>
+	.social-protocol-groups {
+		> li {
+			> ul {
+				margin-block: 0.25em 0.75em;
+				padding-inline-start: 1.25em;
+			}
+		}
+	}
+</style>

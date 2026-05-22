@@ -70,7 +70,7 @@
 >
 	{#snippet Heading()}
 
-		<span data-text="font-monospace">
+		<span>
 			{entityId.bridgeId}
 		</span>
 	{/snippet}

@@ -17,6 +17,8 @@ import {
 import type {
 	SnapchainCastWire,
 	SnapchainFidsPage,
+	SnapchainLinkWire,
+	SnapchainOnChainEventsPage,
 	SnapchainPage,
 	SnapchainReactionWire,
 	SnapchainUserDataWire,
@@ -253,6 +255,101 @@ export const getLikeAndRecastCountsForCast = async ({
 	])
 	return { likeCount, recastCount }
 }
+
+const countCastsByParent = async ({
+	fid,
+	hash,
+}: {
+	fid: number
+	hash: `0x${string}`
+}) => {
+	let replyCount = 0
+	let pageToken: string | undefined
+	do {
+		const page = await getCastsByParent({
+			fid,
+			hash,
+			pageToken,
+		})
+		replyCount += page.messages?.length ?? 0
+		pageToken = page.nextPageToken
+	} while (pageToken != null)
+	return replyCount
+}
+
+export const getCastEngagementCountsForCast = async ({
+	targetFid,
+	targetHash,
+	likeReactionType,
+	recastReactionType,
+}: {
+	targetFid: number
+	targetHash: `0x${string}`
+	likeReactionType: number | string
+	recastReactionType: number | string
+}) => {
+	const [{ likeCount, recastCount }, replyCount] = await Promise.all([
+		getLikeAndRecastCountsForCast({
+			targetFid,
+			targetHash,
+			likeReactionType,
+			recastReactionType,
+		}),
+		countCastsByParent({
+			fid: targetFid,
+			hash: targetHash,
+		}),
+	])
+	return { likeCount, recastCount, replyCount }
+}
+
+/**
+ * `GET /v1/linksByFid`
+ */
+export const getLinksByFid = ({
+	fid,
+	linkType = 'follow',
+	pageSize = snapchainMaxPageSize,
+	pageToken,
+	reverse,
+}: {
+	fid: number
+	linkType?: string
+	pageSize?: number
+	pageToken?: string
+	reverse?: boolean
+}) => (
+	snapchainGet<SnapchainPage<SnapchainLinkWire>>('/v1/linksByFid', {
+		fid,
+		link_type: linkType,
+		pageSize,
+		pageToken,
+		reverse,
+	})
+)
+
+/**
+ * `GET /v1/onChainEventsByFid` — ID registry events for custody address lookup.
+ */
+export const getOnChainIdRegisterEventsByFid = ({
+	fid,
+	pageSize = snapchainMaxPageSize,
+	pageToken,
+	reverse,
+}: {
+	fid: number
+	pageSize?: number
+	pageToken?: string
+	reverse?: boolean
+}) => (
+	snapchainGet<SnapchainOnChainEventsPage>('/v1/onChainEventsByFid', {
+		fid,
+		event_type: 'EVENT_TYPE_ID_REGISTER',
+		pageSize,
+		pageToken,
+		reverse,
+	})
+)
 
 export const getSnapchainUserBundleByFid = async ({ fid }: { fid: number }) => {
 	const [userData, usernameProofs, verifications] = await Promise.all([

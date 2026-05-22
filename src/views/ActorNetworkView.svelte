@@ -245,112 +245,175 @@
 		href: _href,
 		open: contentOpen,
 	})}
-		<ResourceBoundary
-			resource={actor}
-			placeholderText=""
-		>
-			{#snippet children(actor)}
-				<ResourceBoundary
-					resource={network}
-					placeholderText="Loading network…"
-				>
-					{#snippet children(network)}
-						<dl data-column-item="center">
-							{#if contentOpen}
+		<dl data-column-item="center">
+			{#if contentOpen}
+				<div>
+					<dt>Primary ENS</dt>
+					<dd data-text="mono">
+						<ResourceBoundary
+							resource={actor}
+							placeholderText=""
+						>
+							{#snippet children(actor)}
 								{#if actor.$primaryName}
-									<div>
-										<dt>Primary ENS</dt>
-										<dd data-text="mono">
-											{actor.$primaryName[EntityMetaKey.Id].name}
-										</dd>
-									</div>
+									{actor.$primaryName[EntityMetaKey.Id].name}
 								{/if}
-							{/if}
-							{#if contentOpen}
-								<div>
-									<dt>CAIP-2</dt>
-									<dd data-text="mono">
-										<code>eip155:{String(entityId.$network.chainId)}</code>
-									</dd>
-								</div>
-							{/if}
-							{#if contentOpen}
-								<div>
-									<dt>Network</dt>
-									<dd>
-										<NetworkView
-											entityId={entityId.$network}
-											href={resolve(
-												'/(explore)/(networks)/network/[networkId]',
-												{ networkId: String(entityId.$network.chainId) },
-											)}
-											layout={EntityLayout.Title}
-											open={false}
-											showTypeAnnotation={false}
-										/>
-									</dd>
-								</div>
-							{/if}
-							<ResourceBoundary
-								resource={actorNetwork}
-								placeholderText="Loading network activity…"
-							>
-								{#snippet children(actorNetwork)}
-									{#if actorNetwork.transactionsCount !== undefined}
-										<div>
-											<dt>Transactions (count)</dt>
-											<dd data-text="mono">{String(actorNetwork.transactionsCount)}</dd>
-										</div>
-									{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if contentOpen}
+				<div>
+					<dt>CAIP-2</dt>
+					<dd data-text="mono">
+						<code>eip155:{String(entityId.$network.chainId)}</code>
+					</dd>
+				</div>
+			{/if}
+			{#if contentOpen}
+				<div>
+					<dt>Network</dt>
+					<dd>
+						<NetworkView
+							entityId={entityId.$network}
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]',
+								{ networkId: String(entityId.$network.chainId) },
+							)}
+							layout={EntityLayout.Title}
+							open={false}
+							showTypeAnnotation={false}
+						/>
+					</dd>
+				</div>
+			{/if}
+			{#if contentOpen}
+				<div>
+					<dt>Transactions (count)</dt>
+					<dd data-text="mono">
+						<ResourceBoundary
+							resource={actorNetwork}
+							placeholderText="Loading network activity…"
+						>
+							{#snippet children(actorNetwork)}
+								{#if actorNetwork.transactionsCount !== undefined}
+									{String(actorNetwork.transactionsCount)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-									{#if actorNetwork.isContract !== undefined}
-										<div>
-											<dt>Contract</dt>
-											<dd data-text="mono">{actorNetwork.isContract ? 'Yes' : 'No'}</dd>
-										</div>
-									{/if}
+			{#if contentOpen}
+				<div>
+					<dt>Contract</dt>
+					<dd data-text="mono">
+						<ResourceBoundary
+							resource={actorNetwork}
+							placeholderText="Loading network activity…"
+						>
+							{#snippet children(actorNetwork)}
+								{#if actorNetwork.isContract !== undefined}
+									{actorNetwork.isContract ? 'Yes' : 'No'}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-									{#if actorNetwork.transactionCount !== undefined}
-										<div>
-											<dt>Transaction count</dt>
-											<dd data-text="mono">{String(actorNetwork.transactionCount)}</dd>
-										</div>
-									{/if}
+			{#if contentOpen}
+				<div>
+					<dt>Transaction count</dt>
+					<dd data-text="mono">
+						<ResourceBoundary
+							resource={actorNetwork}
+							placeholderText="Loading network activity…"
+						>
+							{#snippet children(actorNetwork)}
+								{#if actorNetwork.transactionCount !== undefined}
+									{String(actorNetwork.transactionCount)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-									{#if actorNetwork.tokenTransferCount !== undefined}
-										<div>
-											<dt>Token transfers</dt>
-											<dd data-text="mono">{String(actorNetwork.tokenTransferCount)}</dd>
-										</div>
-									{/if}
+			{#if contentOpen}
+				<div>
+					<dt>Token transfers</dt>
+					<dd data-text="mono">
+						<ResourceBoundary
+							resource={actorNetwork}
+							placeholderText="Loading network activity…"
+						>
+							{#snippet children(actorNetwork)}
+								{#if actorNetwork.tokenTransferCount !== undefined}
+									{String(actorNetwork.tokenTransferCount)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-									{#if actorNetwork.nftCount !== undefined}
-										<div>
-											<dt>NFT items</dt>
-											<dd data-text="mono">{String(actorNetwork.nftCount)}</dd>
-										</div>
-									{/if}
+			{#if contentOpen}
+				<div>
+					<dt>NFT items</dt>
+					<dd data-text="mono">
+						<ResourceBoundary
+							resource={actorNetwork}
+							placeholderText="Loading network activity…"
+						>
+							{#snippet children(actorNetwork)}
+								{#if actorNetwork.nftCount !== undefined}
+									{String(actorNetwork.nftCount)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-									{#if actorNetwork.firstTransactionAt !== undefined}
-										<div>
-											<dt>First activity at</dt>
-											<dd data-text="mono">{String(actorNetwork.firstTransactionAt)}</dd>
-										</div>
-									{/if}
+			{#if contentOpen}
+				<div>
+					<dt>First activity at</dt>
+					<dd data-text="mono">
+						<ResourceBoundary
+							resource={actorNetwork}
+							placeholderText="Loading network activity…"
+						>
+							{#snippet children(actorNetwork)}
+								{#if actorNetwork.firstTransactionAt !== undefined}
+									{String(actorNetwork.firstTransactionAt)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-									{#if actorNetwork.lastTransactionAt !== undefined}
-										<div>
-											<dt>Last activity at</dt>
-											<dd data-text="mono">{String(actorNetwork.lastTransactionAt)}</dd>
-										</div>
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-						</dl>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+			{#if contentOpen}
+				<div>
+					<dt>Last activity at</dt>
+					<dd data-text="mono">
+						<ResourceBoundary
+							resource={actorNetwork}
+							placeholderText="Loading network activity…"
+						>
+							{#snippet children(actorNetwork)}
+								{#if actorNetwork.lastTransactionAt !== undefined}
+									{String(actorNetwork.lastTransactionAt)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

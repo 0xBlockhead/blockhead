@@ -1,4 +1,8 @@
 <script lang="ts">
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Components
 	import Page from '$/components/Page.svelte'
 	import ActivityPubView from '$/views/ActivityPubView.svelte'
@@ -6,5 +10,10 @@
 
 
 <Page>
-	<ActivityPubView />
+	<ActivityPubView
+		entityId={{
+			scope: 'ActivityPubNetwork',
+		}}
+		href={resolve('/activitypub')}
+	/>
 </Page>

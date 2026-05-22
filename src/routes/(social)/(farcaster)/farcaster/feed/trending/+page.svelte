@@ -25,6 +25,5 @@
 		{entityId}
 		href={resolve('/farcaster/feed/trending')}
 		limit={50}
-		open={true}
 	/>
 </Page>

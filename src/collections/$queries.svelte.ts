@@ -40,6 +40,27 @@ import {
 /** Subset rows for `useEntity` field live queries; required by resolvers that reject unbounded loads. */
 const defaultEntityFieldLiveQueryLimit = 64
 
+const dedupeEntityReferenceManyField = <_Value>(
+	values: _Value[],
+): _Value[] => {
+	const seenIdKeys = new Set<string>()
+	return values.flatMap((value) => {
+		if (
+			value == null
+			|| typeof value !== 'object'
+			|| !(EntityMetaKey.Id in value)
+		) {
+			return [value]
+		}
+		const idKey = stringify(
+			(value as { [EntityMetaKey.Id]: unknown })[EntityMetaKey.Id],
+		)
+		if (seenIdKeys.has(idKey)) return []
+		seenIdKeys.add(idKey)
+		return [value]
+	})
+}
+
 
 const ENTITY_SELECTION_META_KEYS = new Set([
 	'$',
@@ -681,7 +702,7 @@ export const useEntity3 = <
 							fieldName,
 							cardinality === EntityFieldCardinality.Many
 							|| cardinality === EntityFieldCardinality.ZeroOrMany ?
-								[
+								dedupeEntityReferenceManyField([
 									...entityRows.flatMap(({ entityRow }) => (
 										Array.isArray(entityRow[EntityMetaKey.Fields][fieldName]) ?
 											entityRow[EntityMetaKey.Fields][fieldName]
@@ -691,7 +712,7 @@ export const useEntity3 = <
 									...(fieldRowsByField[fieldName] ?? []).map(({ fieldRow }) => (
 										fieldRow[EntityMetaKey.Value]
 									)),
-								]
+								])
 							:
 								[
 									...entityRows.map(({ entityRow }) => (

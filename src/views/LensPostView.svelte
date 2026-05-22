@@ -132,7 +132,7 @@
 										entityId={lensPost.$author[EntityMetaKey.Id]}
 										href={resolve('/(social)/lens/account/[address]', {
 											address: lensPost.$author[EntityMetaKey.Id].address,
-										})}
+											})}
 										layout={EntityLayout.Title}
 										open={false}
 										showTypeAnnotation={false}

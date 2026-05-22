@@ -76,7 +76,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.id}
 		</span>
 	{/snippet}
@@ -102,45 +102,54 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={room}
-			placeholderText="Loading room…"
-		>
-			{#snippet children(room)}
-				<dl>
+		<dl>
 
-					<div>
-						<dt>Room kind</dt>
-						<dd>
-							Realtime collaboration workspace.
-						</dd>
-					</div>
+			<div>
+				<dt>Room kind</dt>
+				<dd>
+					Realtime collaboration workspace.
+				</dd>
+			</div>
 
-					{#if open}
-						{#if room.createdAt !== undefined}
-							<div>
-								<dt>Created</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Created</dt>
+					<dd>
+						<ResourceBoundary
+							resource={room}
+							placeholderText="Loading room…"
+						>
+							{#snippet children(room)}
+								{#if room.createdAt !== undefined}
 									<Timestamp
 										timestamp={room.createdAt}
 										format={TimestampFormat.Both}
 									/>
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if room.createdBy !== undefined}
-							{#if room.createdBy !== ''}
-								<div>
-									<dt>Opened by</dt>
-									<dd>{room.createdBy}</dd>
-								</div>
-							{/if}
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				<div>
+					<dt>Opened by</dt>
+					<dd>
+						<ResourceBoundary
+							resource={room}
+							placeholderText="Loading room…"
+						>
+							{#snippet children(room)}
+								{#if room.createdBy !== undefined}
+									{#if room.createdBy !== ''}
+										{room.createdBy}
+									{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

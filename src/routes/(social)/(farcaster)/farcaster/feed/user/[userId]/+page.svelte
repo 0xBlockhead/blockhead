@@ -30,6 +30,5 @@
 		entityId={entityId}
 		href={resolve(`/farcaster/feed/user/${params.userId}`)}
 		limit={50}
-		open={true}
 	/>
 </Page>

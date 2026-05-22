@@ -1,3 +1,6 @@
+export const TIMESTAMP_RECENT_MAX_MS = 7 * 24 * 60 * 60 * 1000
+
+
 export const formatRelativeTime = (ms: number) => {
 	if (!Number.isFinite(ms) || Math.abs(ms) < 1000) {
 		return 'now'

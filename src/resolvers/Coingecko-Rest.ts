@@ -472,7 +472,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Coingecko_Rest: $$marketsWithCoinAsQuote is not implemented')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -500,13 +502,17 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Currency,
 			fieldName: '$$marketsWithCurrencyAsBase',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => (
-				catalogMarketsWithCurrencyAsBase(entityId.iso4217).map((marketId) => (
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+				const markets = catalogMarketsWithCurrencyAsBase(entityId.iso4217).map((marketId) => (
 					{
 						[EntityMetaKey.Id]: marketId,
 					}
 				))
-			),
+				if (markets.length === 0) {
+					throw new Error(`Coingecko_Rest: no catalog markets with ${entityId.iso4217} as base`)
+				}
+				return markets
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -558,7 +564,7 @@ export default {
 			fieldName: '$$marketTimeIntervalTimestamps',
 			resolve: async (entityId, context) => {
 				if (entityId.marketKind !== MarketKind.Spot) {
-					return []
+					throw new Error('Coingecko_Rest: OHLC is spot-only')
 				}
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 				const { getCoingeckoCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
@@ -631,9 +637,9 @@ export default {
 				)
 				if (coinId == null) throw new Error('Coingecko_Rest: market base is not a catalog coin')
 				const coingeckoId = idByCoinId[coinId]
-				if (coingeckoId == null) return []
+				if (coingeckoId == null) throw new Error('Coingecko_Rest: coin price not mapped')
 				const spot = await getCoingeckoCoinMarketSpot(publicEnv, coingeckoId)
-				if (spot == null) return []
+				if (spot == null) throw new Error('Coingecko_Rest: coin market spot not returned')
 				return [
 					{
 						[EntityMetaKey.Id]: {

@@ -65,10 +65,12 @@ import EvmContractCompilationSchema from '$/schema/EvmContractCompilation.ts'
 import EvmContractSourceBundleSchema from '$/schema/EvmContractSourceBundle.ts'
 import EvmContractVerificationSchema from '$/schema/EvmContractVerification.ts'
 import EvmErrorSchema from '$/schema/EvmError.ts'
+import EvmInternalTransferSchema from '$/schema/EvmInternalTransfer.ts'
 import EvmLogSchema from '$/schema/EvmLog.ts'
 import EvmMempoolSchema from '$/schema/EvmMempool.ts'
 import EvmSelectorSchema from '$/schema/EvmSelector.ts'
 import EvmTopicSchema from '$/schema/EvmTopic.ts'
+import EvmTokenTransferSchema from '$/schema/EvmTokenTransfer.ts'
 import EvmTransactionSchema from '$/schema/EvmTransaction.ts'
 import EvmUserOperationSchema from '$/schema/EvmUserOperation.ts'
 import FarcasterCastSchema from '$/schema/FarcasterCast.ts'
@@ -93,6 +95,13 @@ import NetworkBridgeSchema from '$/schema/NetworkBridge.ts'
 import Network_GasFee_BlockSchema from '$/schema/Network_GasFee_Block.ts'
 import Network_GasEstimate_TimestampSchema from '$/schema/Network_GasEstimate_Timestamp.ts'
 import Network_Txpool_TimestampSchema from '$/schema/Network_Txpool_Timestamp.ts'
+import NostrArticleSchema from '$/schema/NostrArticle.ts'
+import NostrNetworkSchema from '$/schema/NostrNetwork.ts'
+import NostrNoteSchema from '$/schema/NostrNote.ts'
+import NostrProfileSchema from '$/schema/NostrProfile.ts'
+import NostrReactionSchema from '$/schema/NostrReaction.ts'
+import NostrRelaySchema from '$/schema/NostrRelay.ts'
+import NostrRepostSchema from '$/schema/NostrRepost.ts'
 import ProposalKindSchema from '$/schema/ProposalKind.ts'
 import ProposalRealmSchema from '$/schema/ProposalRealm.ts'
 import ProposalSchema from '$/schema/Proposal.ts'
@@ -100,6 +109,9 @@ import RedditCommentSchema from '$/schema/RedditComment.ts'
 import RedditLinkSchema from '$/schema/RedditLink.ts'
 import RedditSubredditSchema from '$/schema/RedditSubreddit.ts'
 import RedditNetworkSchema from '$/schema/RedditNetwork.ts'
+import RssFeedSchema from '$/schema/RssFeed.ts'
+import RssItemSchema from '$/schema/RssItem.ts'
+import RssNetworkSchema from '$/schema/RssNetwork.ts'
 import StateChannelSchema from '$/schema/StateChannel.ts'
 import StateChannelDepositSchema from '$/schema/StateChannelDeposit.ts'
 import StateChannelStateSchema from '$/schema/StateChannelState.ts'
@@ -113,6 +125,11 @@ import XUserSchema from '$/schema/XUser.ts'
 import XNetworkSchema from '$/schema/XNetwork.ts'
 import XmtpConversationSchema from '$/schema/XmtpConversation.ts'
 import XmtpNetworkSchema from '$/schema/XmtpNetwork.ts'
+import YouTubeChannelSchema from '$/schema/YouTubeChannel.ts'
+import YouTubeCommentSchema from '$/schema/YouTubeComment.ts'
+import YouTubeNetworkSchema from '$/schema/YouTubeNetwork.ts'
+import YouTubePlaylistSchema from '$/schema/YouTubePlaylist.ts'
+import YouTubeVideoSchema from '$/schema/YouTubeVideo.ts'
 import NetworkUpgradeSchema from '$/schema/Upgrade.ts'
 
 export const schema = [
@@ -181,10 +198,12 @@ export const schema = [
 	EvmContractSourceBundleSchema,
 	EvmContractVerificationSchema,
 	EvmErrorSchema,
+	EvmInternalTransferSchema,
 	EvmLogSchema,
 	EvmMempoolSchema,
 	EvmSelectorSchema,
 	EvmTopicSchema,
+	EvmTokenTransferSchema,
 	EvmTransactionSchema,
 	EvmUserOperationSchema,
 	FarcasterCastSchema,
@@ -209,6 +228,13 @@ export const schema = [
 	Network_GasFee_BlockSchema,
 	Network_GasEstimate_TimestampSchema,
 	Network_Txpool_TimestampSchema,
+	NostrArticleSchema,
+	NostrNetworkSchema,
+	NostrNoteSchema,
+	NostrProfileSchema,
+	NostrReactionSchema,
+	NostrRelaySchema,
+	NostrRepostSchema,
 	ProposalKindSchema,
 	ProposalRealmSchema,
 	ProposalSchema,
@@ -216,6 +242,9 @@ export const schema = [
 	RedditLinkSchema,
 	RedditSubredditSchema,
 	RedditNetworkSchema,
+	RssFeedSchema,
+	RssItemSchema,
+	RssNetworkSchema,
 	StateChannelSchema,
 	StateChannelDepositSchema,
 	StateChannelStateSchema,
@@ -230,6 +259,11 @@ export const schema = [
 	XNetworkSchema,
 	XmtpConversationSchema,
 	XmtpNetworkSchema,
+	YouTubeChannelSchema,
+	YouTubeCommentSchema,
+	YouTubeNetworkSchema,
+	YouTubePlaylistSchema,
+	YouTubeVideoSchema,
 ] as const satisfies Schema
 
 export type RegisteredEntityType = (typeof schema)[number]['entityType']

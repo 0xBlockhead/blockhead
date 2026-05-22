@@ -82,7 +82,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.feedId}
 		</span>
 	{/snippet}
@@ -112,32 +112,34 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={feed}
-			placeholderText="Loading Farcaster feed (variant, FID or channel id, cast stream)…"
-		>
-			{#snippet children(feed)}
-				<dl>
-					<div>
-						<dt>Variant</dt>
-						<dd>{entityId.variant}</dd>
-					</div>
-					{#if entityId.variant === 'following'}
-						<div>
-							<dt>Viewer FID</dt>
-							<dd>{String(entityId.viewerFid)}</dd>
-						</div>
-					{/if}
+		<dl>
+			<div>
+				<dt>Variant</dt>
+				<dd>{entityId.variant}</dd>
+			</div>
+			{#if entityId.variant === 'following'}
+				<div>
+					<dt>Viewer FID</dt>
+					<dd>{String(entityId.viewerFid)}</dd>
+				</div>
+			{/if}
 
-					{#if feed.label != null && feed.label !== ''}
-						<div>
-							<dt>Label</dt>
-							<dd>{feed.label}</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+			<div>
+				<dt>Label</dt>
+				<dd>
+					<ResourceBoundary
+						resource={feed}
+						placeholderText="Loading Farcaster feed (variant, FID or channel id, cast stream)…"
+					>
+						{#snippet children(feed)}
+							{#if feed.label != null && feed.label !== ''}
+								{feed.label}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

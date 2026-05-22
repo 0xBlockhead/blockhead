@@ -1,6 +1,7 @@
 <script module lang="ts">
 	// Types/constants
 	export enum TimestampFormat {
+		Auto = 'auto',
 		Absolute = 'absolute',
 		Relative = 'relative',
 		Both = 'both',
@@ -10,13 +11,13 @@
 
 <script lang="ts">
 	// Types/constants
-	import { formatRelativeTime } from '$/lib/time.ts'
+	import { formatRelativeTime, TIMESTAMP_RECENT_MAX_MS } from '$/lib/time.ts'
 
 
 	// Props
 	let {
 		timestamp,
-		format = TimestampFormat.Absolute,
+		format = TimestampFormat.Auto,
 	}: {
 		timestamp: number | null | undefined
 		format?: TimestampFormat
@@ -51,11 +52,23 @@
 		:
 			undefined
 	)
+	const displayFormat = $derived(
+		format === TimestampFormat.Auto ?
+			(
+				timestamp !== undefined && typeof timestamp === 'number' && Number.isFinite(timestamp)
+				&& Math.abs(now - timestamp) <= TIMESTAMP_RECENT_MAX_MS ?
+					TimestampFormat.Relative
+				:
+					TimestampFormat.Absolute
+			)
+		:
+			format
+	)
 
 
 	// Effects
 	$effect(() => {
-		if (format === TimestampFormat.Relative || format === TimestampFormat.Both) {
+		if (displayFormat === TimestampFormat.Relative || displayFormat === TimestampFormat.Both) {
 			const interval = setInterval(() => {
 				now = Date.now()
 			}, 1000)
@@ -71,19 +84,19 @@
 {#if timestamp === undefined || typeof timestamp !== 'number' || !Number.isFinite(timestamp)}
 	–
 
-{:else if format === TimestampFormat.Absolute}
+{:else if displayFormat === TimestampFormat.Absolute}
 	<time
 		datetime={isoString}
 		title={relativeTime}
 	>{absoluteTime}</time>
 
-{:else if format === TimestampFormat.Relative}
+{:else if displayFormat === TimestampFormat.Relative}
 	<time
 		datetime={isoString}
 		title={absoluteTime}
 	>{relativeTime}</time>
 
-{:else if format === TimestampFormat.Both}
+{:else if displayFormat === TimestampFormat.Both}
 	<time
 		datetime={isoString}
 		title={`${absoluteTime} (${relativeTime})`}

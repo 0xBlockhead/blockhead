@@ -122,189 +122,301 @@
 	{/snippet}
 
 	{#snippet Heading()}
-		<span data-text="font-monospace">
+		<span>
 			/{entityId.id}
 		</span>
 	{/snippet}
 
+
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={channel}
-			placeholderText="Loading Farcaster channel (channel id / slug)…"
-		>
-			{#snippet children(channel)}
-				<dl>
-						{#if channel.followerCount !== undefined}
-							<div>
-								<dt>Followers</dt>
-								<dd>{String(channel.followerCount)}</dd>
-							</div>
-						{/if}
-
-						{#if channel.memberCount !== undefined}
-							<div>
-								<dt>Members</dt>
-								<dd>{String(channel.memberCount)}</dd>
-							</div>
-						{/if}
-
-						{#if channel.publicCasting !== undefined}
-							<div>
-								<dt>Public casting</dt>
-								<dd>{channel.publicCasting ? 'Yes' : 'No'}</dd>
-							</div>
-						{/if}
-
-						{#if open}
-							{#if channel.name !== undefined}
-								<div>
-									<dt>Name</dt>
-									<dd>{channel.name}</dd>
-								</div>
+		<dl>
+			<div>
+				<dt>Followers</dt>
+				<dd>
+					<ResourceBoundary
+						resource={channel}
+						placeholderText="Loading Farcaster channel (channel id / slug)…"
+					>
+						{#snippet children(channel)}
+							{#if channel.followerCount !== undefined}
+								{String(channel.followerCount)}
 							{/if}
-							{#if channel.url !== undefined}
-								<div>
-									<dt>URL</dt>
-									<dd>
-										<a href={channel.url}>{channel.url}</a>
-									</dd>
-								</div>
-							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-							{#if channel.description !== undefined}
-								<div>
-									<dt>Description</dt>
-									<dd>{channel.description}</dd>
-								</div>
+			<div>
+				<dt>Members</dt>
+				<dd>
+					<ResourceBoundary
+						resource={channel}
+						placeholderText="Loading Farcaster channel (channel id / slug)…"
+					>
+						{#snippet children(channel)}
+							{#if channel.memberCount !== undefined}
+								{String(channel.memberCount)}
 							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-							{#if channel.$icon !== undefined}
-								{#if channel.$icon[EntityMetaKey.Id].url !== undefined}
-									<div>
-										<dt>Logo</dt>
-										<dd data-column>
-											<Media
-												media={{ url: channel.$icon[EntityMetaKey.Id].url }}
-												alt=""
-											/>
-											<a href={channel.$icon[EntityMetaKey.Id].url}>{channel.$icon[EntityMetaKey.Id].url}</a>
-										</dd>
-									</div>
+			<div>
+				<dt>Public casting</dt>
+				<dd>
+					<ResourceBoundary
+						resource={channel}
+						placeholderText="Loading Farcaster channel (channel id / slug)…"
+					>
+						{#snippet children(channel)}
+							{#if channel.publicCasting !== undefined}
+								{channel.publicCasting ? 'Yes' : 'No'}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			{#if open}
+				<div>
+					<dt>Name</dt>
+					<dd>
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel (channel id / slug)…"
+						>
+							{#snippet children(channel)}
+								{#if channel.name !== undefined}
+									{channel.name}
 								{/if}
-							{/if}
-
-							{#if channel.$lead !== undefined}
-								{#if channel.$lead[EntityMetaKey.Id].fid !== undefined}
-									<div>
-										<dt>Lead</dt>
-										<dd>
-											<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-												userId: String(channel.$lead[EntityMetaKey.Id].fid),
-											})}>
-												FID {String(channel.$lead[EntityMetaKey.Id].fid)}
-											</a>
-										</dd>
-									</div>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+				<div>
+					<dt>URL</dt>
+					<dd>
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel (channel id / slug)…"
+						>
+							{#snippet children(channel)}
+								{#if channel.url !== undefined}
+									<a href={channel.url}>{channel.url}</a>
 								{/if}
-							{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-							{#if channel.$moderator !== undefined}
-								{#if channel.$moderator[EntityMetaKey.Id].fid !== undefined}
-									<div>
-										<dt>Moderator</dt>
-										<dd>
-											<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-												userId: String(channel.$moderator[EntityMetaKey.Id].fid),
-											})}>
-												FID {String(channel.$moderator[EntityMetaKey.Id].fid)}
-											</a>
-										</dd>
-									</div>
+				<div>
+					<dt>Description</dt>
+					<dd>
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel (channel id / slug)…"
+						>
+							{#snippet children(channel)}
+								{#if channel.description !== undefined}
+									{channel.description}
 								{/if}
-							{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-							{#if channel.$$moderators.length}
-								<div>
-									<dt>Moderators</dt>
-									<dd>
-										<ul>
-											{#each channel.$$moderators as mod (String(mod[EntityMetaKey.Id].fid))}
-												<li>
-													<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-														userId: String(mod[EntityMetaKey.Id].fid),
-													})}>
-														FID {String(mod[EntityMetaKey.Id].fid)}
-													</a>
-												</li>
-											{/each}
-										</ul>
-									</dd>
-								</div>
-							{/if}
-
-							{#if channel.createdAt !== undefined}
-								<div>
-									<dt>Created</dt>
-									<dd>
-										<Timestamp
-											timestamp={channel.createdAt}
-											format={TimestampFormat.Both}
+				<div>
+					<dt>Logo</dt>
+					<dd data-column>
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel (channel id / slug)…"
+						>
+							{#snippet children(channel)}
+								{#if channel.$icon !== undefined}
+									{#if channel.$icon[EntityMetaKey.Id].url !== undefined}
+										<Media
+											media={{ url: channel.$icon[EntityMetaKey.Id].url }}
+											alt=""
 										/>
-									</dd>
-								</div>
-							{/if}
+										<a href={channel.$icon[EntityMetaKey.Id].url}>{channel.$icon[EntityMetaKey.Id].url}</a>
+									{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-							{#if channel.pinnedCastHash !== undefined}
-								<div>
-									<dt>Pinned cast hash</dt>
-									<dd>
-										<span data-text="font-monospace">
-											<TruncatedValue
-												value={channel.pinnedCastHash}
-												startLength={10}
-												endLength={8}
-												format={TruncatedValueFormat.Visual}
-											/>
-										</span>
-									</dd>
-								</div>
-							{/if}
-
-							{#if channel.externalLinkUrl !== undefined}
-								<div>
-									<dt>External link</dt>
-									<dd>
-										<a href={channel.externalLinkUrl}>
-											{channel.externalLinkTitle ?? channel.externalLinkUrl}
+				<div>
+					<dt>Lead</dt>
+					<dd>
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel (channel id / slug)…"
+						>
+							{#snippet children(channel)}
+								{#if channel.$lead !== undefined}
+									{#if channel.$lead[EntityMetaKey.Id].fid !== undefined}
+										<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+											userId: String(channel.$lead[EntityMetaKey.Id].fid),
+										})}>
+											FID {String(channel.$lead[EntityMetaKey.Id].fid)}
 										</a>
-									</dd>
-								</div>
-							{/if}
+									{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-							{#if channel.followedAt !== undefined}
-								<div>
-									<dt>Followed at</dt>
-									<dd>
-										<Timestamp
-											timestamp={channel.followedAt}
-											format={TimestampFormat.Both}
+				<div>
+					<dt>Moderator</dt>
+					<dd>
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel (channel id / slug)…"
+						>
+							{#snippet children(channel)}
+								{#if channel.$moderator !== undefined}
+									{#if channel.$moderator[EntityMetaKey.Id].fid !== undefined}
+										<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+											userId: String(channel.$moderator[EntityMetaKey.Id].fid),
+										})}>
+											FID {String(channel.$moderator[EntityMetaKey.Id].fid)}
+										</a>
+									{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Moderators</dt>
+					<dd>
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel (channel id / slug)…"
+						>
+							{#snippet children(channel)}
+								{#if channel.$$moderators.length}
+									<ul>
+										{#each channel.$$moderators as mod (String(mod[EntityMetaKey.Id].fid))}
+											<li>
+												<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+													userId: String(mod[EntityMetaKey.Id].fid),
+												})}>
+													FID {String(mod[EntityMetaKey.Id].fid)}
+												</a>
+											</li>
+										{/each}
+									</ul>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Created</dt>
+					<dd>
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel (channel id / slug)…"
+						>
+							{#snippet children(channel)}
+								{#if channel.createdAt !== undefined}
+									<Timestamp
+										timestamp={channel.createdAt}
+										format={TimestampFormat.Both}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Pinned cast hash</dt>
+					<dd>
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel (channel id / slug)…"
+						>
+							{#snippet children(channel)}
+								{#if channel.pinnedCastHash !== undefined}
+									<span>
+										<TruncatedValue
+											value={channel.pinnedCastHash}
+											startLength={10}
+											endLength={8}
+											format={TruncatedValueFormat.Visual}
 										/>
-									</dd>
-								</div>
-						{/if}
-					{/if}
+									</span>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-					{#if channel.description !== undefined}
-						{#if !open}
-							<div>
-								<dt>Description</dt>
-								<dd data-text="muted">{channel.description}</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				<div>
+					<dt>External link</dt>
+					<dd>
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel (channel id / slug)…"
+						>
+							{#snippet children(channel)}
+								{#if channel.externalLinkUrl !== undefined}
+									<a href={channel.externalLinkUrl}>
+										{channel.externalLinkTitle ?? channel.externalLinkUrl}
+									</a>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Followed at</dt>
+					<dd>
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel (channel id / slug)…"
+						>
+							{#snippet children(channel)}
+								{#if channel.followedAt !== undefined}
+									<Timestamp
+										timestamp={channel.followedAt}
+										format={TimestampFormat.Both}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if !open}
+				<div>
+					<dt>Description</dt>
+					<dd data-text="muted">
+						<ResourceBoundary
+							resource={channel}
+							placeholderText="Loading Farcaster channel (channel id / slug)…"
+						>
+							{#snippet children(channel)}
+								{#if channel.description !== undefined}
+									{channel.description}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
+	{/snippet}
 	{/snippet}
 
 	{#snippet Details({

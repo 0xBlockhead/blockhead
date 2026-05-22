@@ -150,7 +150,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{`${proposalCategoryById[entityId.category].label}-${entityId.number}`}
 		</span>
 	{/snippet}
@@ -167,66 +167,77 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={proposal}
-			placeholderText="Loading proposal…"
-		>
-			{#snippet children(proposal)}
-				<dl data-column-item="center">
-					{#if proposal.documentCategory}
-						<div>
-							<dt>Category</dt>
-							<dd>{proposal.documentCategory}</dd>
-						</div>
-					{/if}
-					<div>
-						<dt>Status</dt>
-						<dd>{proposal.documentStatus}</dd>
-					</div>
-					{#if open}
-						<div>
-							<dt>Realm</dt>
-							<dd>
-								<a href={resolve(`/proposals/${proposalRealmById[entityId.realm].slug}`)}>
-									{proposalRealmById[entityId.realm].label}
-								</a>
-							</dd>
-						</div>
-					{/if}
+		<dl data-column-item="center">
+			<div>
+				<dt>Category</dt>
+				<dd>
+					<ResourceBoundary
+						resource={proposal}
+						placeholderText="Loading proposal…"
+					>
+						{#snippet children(proposal)}
+							{#if proposal.documentCategory}
+								{proposal.documentCategory}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			<div>
+				<dt>Status</dt>
+				<dd>
+					<ResourceBoundary
+						resource={proposal}
+						placeholderText="Loading proposal…"
+					>
+						{#snippet children(proposal)}
+							{proposal.documentStatus}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			{#if open}
+				<div>
+					<dt>Realm</dt>
+					<dd>
+						<a href={resolve(`/proposals/${proposalRealmById[entityId.realm].slug}`)}>
+							{proposalRealmById[entityId.realm].label}
+						</a>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						<div>
-							<dt>Kind</dt>
-							<dd>
-								<a href={resolve(`/proposals/${proposalRealmById[entityId.realm].slug}/${proposalCategoryById[entityId.category].slug}`)}>
-									{proposalCategoryById[entityId.category].labelPlural}
-								</a>
-							</dd>
-						</div>
-					{/if}
+			{#if open}
+				<div>
+					<dt>Kind</dt>
+					<dd>
+						<a href={resolve(`/proposals/${proposalRealmById[entityId.realm].slug}/${proposalCategoryById[entityId.category].slug}`)}>
+							{proposalCategoryById[entityId.category].labelPlural}
+						</a>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						<div>
-							<dt>Governance votes</dt>
-							<dd data-row="wrap align-center gap-2">
-								<span>Not shown here.</span>
-								<Tooltip contentProps={{ side: 'top' }}>
-									{#snippet Content()}
-										<proposal>
-											Standards repositories document process and normative text; DAO vote totals and treasury spend need the chain, Snapshot, or each org’s own dashboards.
-										</proposal>
-									{/snippet}
-									<abbr
-										class="entity-heading-tip"
-										aria-label="Why tallies are absent"
-									>ⓘ</abbr>
-								</Tooltip>
-							</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+			{#if open}
+				<div>
+					<dt>Governance votes</dt>
+					<dd data-row="wrap align-center gap-2">
+						<span>Not shown here.</span>
+						<Tooltip contentProps={{ side: 'top' }}>
+							{#snippet Content()}
+								<proposal>
+									Standards repositories document process and normative text; DAO vote totals and treasury spend need the chain, Snapshot, or each org’s own dashboards.
+								</proposal>
+							{/snippet}
+							<abbr
+								class="entity-heading-tip"
+								aria-label="Why tallies are absent"
+							>ⓘ</abbr>
+						</Tooltip>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

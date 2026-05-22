@@ -1,5 +1,7 @@
 // Types
 
+import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
+
 /**
  * Blockscout REST API v2 base path.
  * @see https://docs.blockscout.com/devs/apis/rest
@@ -94,6 +96,17 @@ export const blockscoutHostedNetworks = [
 	label: string
 	host: string
 }[]
+
+/** `/api-proxy` allow-list + `corsFetch` routing for hosted Blockscout explorers (no browser CORS). */
+export const blockscoutExplorerOrigins = (
+	blockscoutHostedNetworks
+		.map((entry) => (
+			{
+				origin: `https://${entry.host}`,
+				corsEnabled: false,
+			}
+		))
+) as const satisfies readonly SourceOrigin[]
 
 
 // Lookups

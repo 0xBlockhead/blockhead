@@ -203,7 +203,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$marketTimeIntervalTimestamps',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Coinpaprika_OpenApi: $$marketTimeIntervalTimestamps is not implemented')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -272,7 +274,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Coinpaprika_OpenApi: $$marketsWithCoinAsQuote is not implemented')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -300,13 +304,17 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Currency,
 			fieldName: '$$marketsWithCurrencyAsBase',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => (
-				catalogMarketsWithCurrencyAsBase(entityId.iso4217).map((marketId) => (
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
+				const markets = catalogMarketsWithCurrencyAsBase(entityId.iso4217).map((marketId) => (
 					{
 						[EntityMetaKey.Id]: marketId,
 					}
 				))
-			),
+				if (markets.length === 0) {
+					throw new Error(`Coinpaprika_OpenApi: no catalog markets with ${entityId.iso4217} as base`)
+				}
+				return markets
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -324,7 +332,8 @@ export default {
 						entityId.$base.$coin.coinId
 					:	undefined
 				)
-				if (coinId == null || idByCoinId[coinId] == null) return []
+				if (coinId == null) throw new Error('Coinpaprika_OpenApi: OHLC market base is not a catalog coin')
+				if (idByCoinId[coinId] == null) throw new Error('Coinpaprika_OpenApi: OHLC coin not mapped')
 				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
 				const ohlcDayWindows = coinpaprikaOhlcDayWindowValues(publicEnv)
 				const coinpaprikaId = idByCoinId[coinId]
@@ -390,16 +399,18 @@ export default {
 						entityId.$market.$base.$coin.coinId
 					:	undefined
 				)
-				if (coinId == null) return []
+				if (coinId == null) throw new Error('Coinpaprika_OpenApi: market base is not a catalog coin')
 				const coinpaprikaId = idByCoinId[coinId]
-				if (coinpaprikaId == null) return []
+				if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: coin price not mapped')
 				const ticker = await getCoinpaprikaTickerById({ publicEnv, coinpaprikaId })
 				const updatedAtMs = (
 					ticker.last_updated == null || ticker.last_updated === '' ?
 						NaN
 					:	Date.parse(ticker.last_updated)
 				)
-				if (!Number.isFinite(updatedAtMs)) return []
+				if (!Number.isFinite(updatedAtMs)) {
+					throw new Error('Coinpaprika_OpenApi: ticker invalid')
+				}
 				return [
 					{
 						[EntityMetaKey.Id]: {

@@ -20,6 +20,14 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 
+const throwIfEtherscanRestUnsupportedChainId = async (chainId: number) => {
+	const { isEtherscanRestSupportedChainId } = await import('$/sources/Etherscan/Rest/client.ts')
+	if (!isEtherscanRestSupportedChainId(chainId)) {
+		throw new Error(`Etherscan_Rest: unsupported chain ${String(chainId)}`)
+	}
+}
+
+
 export default {
 	source: Source.Etherscan_Rest,
 
@@ -28,13 +36,8 @@ export default {
 			entityType: EntityType.Network_GasEstimate_Timestamp,
 			resolve: async (entityId, context) => {
 				const { gastrackerGasOracle } = await import('$/sources/Etherscan/Rest/queries.ts')
-				const { isEtherscanRestSupportedChainId } = await import('$/sources/Etherscan/Rest/client.ts')
 				const chainId = entityId.$network.chainId
-				if (!isEtherscanRestSupportedChainId(chainId)) {
-					throw new Error(
-						`Etherscan_Rest: Network_GasEstimate_Timestamp unsupported for chain ${String(chainId)}`,
-					)
-				}
+				await throwIfEtherscanRestUnsupportedChainId(chainId)
 				const oracle = await singleFlight(gastrackerGasOracle)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
@@ -65,9 +68,8 @@ export default {
 			fieldName: 'abi',
 			resolve: async (entityId, context) => {
 				const { getContractAbiJsonString } = await import('$/sources/Etherscan/Rest/queries.ts')
-				const { isEtherscanRestSupportedChainId } = await import('$/sources/Etherscan/Rest/client.ts')
 				const chainId = entityId.$network.chainId
-				if (!isEtherscanRestSupportedChainId(chainId)) return undefined
+				await throwIfEtherscanRestUnsupportedChainId(chainId)
 				const abi = await singleFlight(getContractAbiJsonString)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
@@ -82,9 +84,8 @@ export default {
 			fieldName: '$deployer',
 			resolve: async (entityId, context) => {
 				const { getContractCreationRow } = await import('$/sources/Etherscan/Rest/queries.ts')
-				const { isEtherscanRestSupportedChainId } = await import('$/sources/Etherscan/Rest/client.ts')
 				const chainId = entityId.$network.chainId
-				if (!isEtherscanRestSupportedChainId(chainId)) return undefined
+				await throwIfEtherscanRestUnsupportedChainId(chainId)
 				const row = await singleFlight(getContractCreationRow)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
@@ -107,9 +108,8 @@ export default {
 			fieldName: '$creationTransaction',
 			resolve: async (entityId, context) => {
 				const { getContractCreationRow } = await import('$/sources/Etherscan/Rest/queries.ts')
-				const { isEtherscanRestSupportedChainId } = await import('$/sources/Etherscan/Rest/client.ts')
 				const chainId = entityId.$network.chainId
-				if (!isEtherscanRestSupportedChainId(chainId)) return undefined
+				await throwIfEtherscanRestUnsupportedChainId(chainId)
 				const row = await singleFlight(getContractCreationRow)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
@@ -133,9 +133,8 @@ export default {
 			fieldName: '$implementation',
 			resolve: async (entityId, context) => {
 				const { getContractSourceCodeRow } = await import('$/sources/Etherscan/Rest/queries.ts')
-				const { isEtherscanRestSupportedChainId } = await import('$/sources/Etherscan/Rest/client.ts')
 				const chainId = entityId.$network.chainId
-				if (!isEtherscanRestSupportedChainId(chainId)) return undefined
+				await throwIfEtherscanRestUnsupportedChainId(chainId)
 				const row = await singleFlight(getContractSourceCodeRow)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
@@ -159,9 +158,8 @@ export default {
 			fieldName: 'code',
 			resolve: async (entityId, context) => {
 				const { proxyEthGetCode } = await import('$/sources/Etherscan/Rest/queries.ts')
-				const { isEtherscanRestSupportedChainId } = await import('$/sources/Etherscan/Rest/client.ts')
 				const chainId = entityId.$network.chainId
-				if (!isEtherscanRestSupportedChainId(chainId)) return undefined
+				await throwIfEtherscanRestUnsupportedChainId(chainId)
 				const codeHex = await singleFlight(proxyEthGetCode)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
@@ -177,9 +175,8 @@ export default {
 			fieldName: 'bytecodeHash',
 			resolve: async (entityId, context) => {
 				const { proxyEthGetCode } = await import('$/sources/Etherscan/Rest/queries.ts')
-				const { isEtherscanRestSupportedChainId } = await import('$/sources/Etherscan/Rest/client.ts')
 				const chainId = entityId.$network.chainId
-				if (!isEtherscanRestSupportedChainId(chainId)) return undefined
+				await throwIfEtherscanRestUnsupportedChainId(chainId)
 				const codeHex = await singleFlight(proxyEthGetCode)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
@@ -195,9 +192,8 @@ export default {
 			fieldName: 'storageSlotReads',
 			resolve: async (entityId, context) => {
 				const { proxyEthGetStorageAt } = await import('$/sources/Etherscan/Rest/queries.ts')
-				const { isEtherscanRestSupportedChainId } = await import('$/sources/Etherscan/Rest/client.ts')
 				const chainId = entityId.$network.chainId
-				if (!isEtherscanRestSupportedChainId(chainId)) return []
+				await throwIfEtherscanRestUnsupportedChainId(chainId)
 				const depth = Math.min(32, Math.max(1, resolverLoadSubsetRowLimit(context)))
 				return evmContractStorageSlotReadsFromEthGetStorageAt({
 					address: entityId.address,
@@ -221,8 +217,7 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$$gasEstimateTimestamps',
 			resolve: async (entityId) => {
-				const { isEtherscanRestSupportedChainId } = await import('$/sources/Etherscan/Rest/client.ts')
-				if (!isEtherscanRestSupportedChainId(entityId.chainId)) return []
+				await throwIfEtherscanRestUnsupportedChainId(entityId.chainId)
 				return [
 					{
 						[EntityMetaKey.Id]: {

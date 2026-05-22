@@ -6,6 +6,7 @@ import {
 } from '$/sources/AtprotoBsky/Rest/constants.ts'
 import type {
 	BskyAppViewGetAuthorFeedResponseWire,
+	BskyAppViewGetPostThreadResponseWire,
 	BskyAppViewGetPostsResponseWire,
 	BskyAppViewProfileWire,
 } from '$/sources/AtprotoBsky/Rest/types.ts'
@@ -25,6 +26,26 @@ export const bskyGetPosts = async (uris: string[]) => (
 			new URLSearchParams(uris.map((u) => ['uris', u])).toString()
 		)}`,
 		{ origins: atprotoBskyOrigins },
+	)
+)
+
+export const bskyGetPostThread = async (
+	uri: string,
+	{
+		depth = 6,
+		parentHeight = 80,
+	}: {
+		depth?: number
+		parentHeight?: number
+	} = {},
+) => (
+	bskyPublicXrpcGet<BskyAppViewGetPostThreadResponseWire>(
+		'/app.bsky.feed.getPostThread',
+		{
+			uri,
+			depth,
+			parentHeight,
+		},
 	)
 )
 

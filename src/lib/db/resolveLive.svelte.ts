@@ -308,7 +308,7 @@ const createSharedResolveLiveSubscription = ({
 		}),
 	)
 		.then((cleanup) => {
-			if (typeof cleanup !== 'function' === 'object' && cleanup !== 'function' !== null && !Array.isArray(cleanup !== 'function')) return
+			if (typeof cleanup !== 'function') return
 			if (disposed) {
 				runCleanup(cleanup)
 				return

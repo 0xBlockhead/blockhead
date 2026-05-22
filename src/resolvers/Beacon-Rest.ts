@@ -13,11 +13,18 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { BeaconFinalityCheckpoints } from '$/sources/Beacon/Rest/types.ts'
 
+const requireBeaconRestBaseUrl = (chainId: number) => {
+	const base = beaconRestBaseByExecutionChainId[chainId]
+	if (base == null) {
+		throw new Error(`Beacon_Rest: no beacon REST base for chain ${String(chainId)}`)
+	}
+	return base
+}
+
 const beaconFinalityCheckpointsForChain = async (
 	chainId: number,
 ): Promise<BeaconFinalityCheckpoints | undefined> => {
-	const base = beaconRestBaseByExecutionChainId[chainId]
-	if (base == null) return undefined
+	const base = requireBeaconRestBaseUrl(chainId)
 	const { getBeaconFinalityCheckpoints } = await import('$/sources/Beacon/Rest/queries.ts')
 	return singleFlight(getBeaconFinalityCheckpoints)(base)
 }
@@ -43,10 +50,7 @@ export default {
 			resolve: async (entityId) => {
 				const { getBeaconHeader } = await import('$/sources/Beacon/Rest/queries.ts')
 				const { $network, slot } = entityId
-				const base = beaconRestBaseByExecutionChainId[$network.chainId]
-				if (base == null) return {
-					epoch: Math.floor(slot / slotsPerEpoch),
-				}
+				const base = requireBeaconRestBaseUrl($network.chainId)
 				const header = await singleFlight(getBeaconHeader)(base, slot)
 				return {
 					bodyRoot: header.bodyRoot,
@@ -65,10 +69,13 @@ export default {
 			resolve: async (entityId) => {
 				const { getBeaconValidatorSummaryAtHead } = await import('$/sources/Beacon/Rest/queries.ts')
 				const { $network, validatorIndex } = entityId
-				const base = beaconRestBaseByExecutionChainId[$network.chainId]
-				if (base == null) return {}
+				const base = requireBeaconRestBaseUrl($network.chainId)
 				const summary = await singleFlight(getBeaconValidatorSummaryAtHead)(base, validatorIndex)
-				if (summary == null) return {}
+				if (summary == null) {
+					throw new Error(
+						`Beacon_Rest: validator summary not returned for index ${String(validatorIndex)}`,
+					)
+				}
 				return {
 					balanceGwei: summary.balanceGwei,
 					effectiveBalanceGwei: summary.effectiveBalanceGwei,
@@ -201,7 +208,12 @@ export default {
 			fieldName: 'beaconPreviousJustifiedCheckpointEpoch',
 			resolve: async (entityId) => {
 				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
-				return checkpoints?.previousJustified.epoch
+				if (checkpoints == null) {
+					throw new Error(
+						`Beacon_Rest: finality checkpoints not returned for chain ${String(entityId.chainId)}`,
+					)
+				}
+				return checkpoints.previousJustified.epoch
 			},
 		}),
 
@@ -210,7 +222,12 @@ export default {
 			fieldName: 'beaconPreviousJustifiedCheckpointRoot',
 			resolve: async (entityId) => {
 				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
-				return checkpoints?.previousJustified.root
+				if (checkpoints == null) {
+					throw new Error(
+						`Beacon_Rest: finality checkpoints not returned for chain ${String(entityId.chainId)}`,
+					)
+				}
+				return checkpoints.previousJustified.root
 			},
 		}),
 
@@ -219,7 +236,12 @@ export default {
 			fieldName: 'beaconCurrentJustifiedCheckpointEpoch',
 			resolve: async (entityId) => {
 				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
-				return checkpoints?.currentJustified.epoch
+				if (checkpoints == null) {
+					throw new Error(
+						`Beacon_Rest: finality checkpoints not returned for chain ${String(entityId.chainId)}`,
+					)
+				}
+				return checkpoints.currentJustified.epoch
 			},
 		}),
 
@@ -228,7 +250,12 @@ export default {
 			fieldName: 'beaconCurrentJustifiedCheckpointRoot',
 			resolve: async (entityId) => {
 				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
-				return checkpoints?.currentJustified.root
+				if (checkpoints == null) {
+					throw new Error(
+						`Beacon_Rest: finality checkpoints not returned for chain ${String(entityId.chainId)}`,
+					)
+				}
+				return checkpoints.currentJustified.root
 			},
 		}),
 
@@ -237,7 +264,12 @@ export default {
 			fieldName: 'beaconFinalizedCheckpointEpoch',
 			resolve: async (entityId) => {
 				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
-				return checkpoints?.finalized.epoch
+				if (checkpoints == null) {
+					throw new Error(
+						`Beacon_Rest: finality checkpoints not returned for chain ${String(entityId.chainId)}`,
+					)
+				}
+				return checkpoints.finalized.epoch
 			},
 		}),
 
@@ -246,7 +278,12 @@ export default {
 			fieldName: 'beaconFinalizedCheckpointRoot',
 			resolve: async (entityId) => {
 				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
-				return checkpoints?.finalized.root
+				if (checkpoints == null) {
+					throw new Error(
+						`Beacon_Rest: finality checkpoints not returned for chain ${String(entityId.chainId)}`,
+					)
+				}
+				return checkpoints.finalized.root
 			},
 		}),
 
@@ -255,16 +292,13 @@ export default {
 			fieldName: 'beaconForkScheduleEntriesJson',
 			resolve: async (entityId) => {
 				const { chainId } = entityId
-				const base = beaconRestBaseByExecutionChainId[chainId]
-				if (base == null) return undefined
+				const base = requireBeaconRestBaseUrl(chainId)
 				const { getBeaconForkSchedule } = await import('$/sources/Beacon/Rest/queries.ts')
 				const entries = await singleFlight(getBeaconForkSchedule)(base)
-				return (
-					entries.length ?
-						JSON.stringify(entries)
-					:
-						undefined
-				)
+				if (entries.length === 0) {
+					throw new Error(`Beacon_Rest: fork schedule empty for chain ${String(chainId)}`)
+				}
+				return JSON.stringify(entries)
 			},
 		}),
 	],

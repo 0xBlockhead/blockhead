@@ -110,23 +110,20 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<div data-column>
-			<ResourceBoundary resource={lensAccount}>
-				{#snippet children(lensAccount)}
-					<dl data-column-item="center">
-						{#if lensAccount.localName}
-							<div>
-								<dt>Profile address</dt>
-								<dd data-text="mono">
-									{@render Title()}
-								</dd>
-							</div>
-						{/if}
-
-					</dl>
-				{/snippet}
-			</ResourceBoundary>
-		</div>
+		<dl data-column-item="center">
+			<div>
+				<dt>Profile address</dt>
+				<dd data-text="mono">
+					<ResourceBoundary resource={lensAccount}>
+						{#snippet children(lensAccount)}
+							{#if lensAccount.localName}
+								{@render Title()}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

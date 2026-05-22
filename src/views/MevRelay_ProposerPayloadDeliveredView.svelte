@@ -98,7 +98,7 @@
 >
 	{#snippet Heading()}
 
-		<span data-text="font-monospace">
+		<span>
 			{entityId.slot}
 		</span>
 	{/snippet}
@@ -113,49 +113,71 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.relayHost}
 		</span>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			placeholderText="Loading builder bid…"
-			resource={mevRelayProposerPayloadDelivered}
-		>
-			{#snippet children(mevRelayProposerPayloadDelivered)}
-				{#if mevRelayProposerPayloadDelivered.value !== undefined || mevRelayProposerPayloadDelivered.builderPubkey !== undefined}
-					<dl data-column-item="center">
-						{#if mevRelayProposerPayloadDelivered.value !== undefined}
-							<div>
-								<dt>Delivered bid value (wei)</dt>
-								<dd>
-									<NumberValue value={mevRelayProposerPayloadDelivered.value} /> wei
-								</dd>
-							</div>
-						{/if}
+		<dl data-column-item="center">
+			{#if mevRelayProposerPayloadDelivered.value !== undefined}
+				<div>
+					<dt>Delivered bid value (wei)</dt>
+					<dd>
+						<ResourceBoundary
+							placeholderText="Loading builder bid…"
+							resource={mevRelayProposerPayloadDelivered}
+						>
+							{#snippet children(mevRelayProposerPayloadDelivered)}
+								<NumberValue value={mevRelayProposerPayloadDelivered.value} /> wei
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-						{#if mevRelayProposerPayloadDelivered.builderPubkey !== undefined}
-							<div>
-								<dt>Builder pubkey</dt>
-								<dd>
-									<TruncatedValue
-										format={TruncatedValueFormat.Abbr}
-										startLength={10}
-										endLength={8}
-										value={mevRelayProposerPayloadDelivered.builderPubkey}
-									/>
-								</dd>
-							</div>
-						{/if}
-					</dl>
-				{:else}
-					<mevRelayProposerPayloadDelivered data-text="muted">
-						No bid / builder pubkey fields mevRelayProposerPayloadDelivered yet.
-					</mevRelayProposerPayloadDelivered>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
+			{#if mevRelayProposerPayloadDelivered.builderPubkey !== undefined}
+				<div>
+					<dt>Builder pubkey</dt>
+					<dd>
+						<ResourceBoundary
+							placeholderText="Loading builder bid…"
+							resource={mevRelayProposerPayloadDelivered}
+						>
+							{#snippet children(mevRelayProposerPayloadDelivered)}
+								<TruncatedValue
+									format={TruncatedValueFormat.Abbr}
+									startLength={10}
+									endLength={8}
+									value={mevRelayProposerPayloadDelivered.builderPubkey}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if (
+				mevRelayProposerPayloadDelivered.value === undefined
+				&& mevRelayProposerPayloadDelivered.builderPubkey === undefined
+			)}
+				<div>
+					<dt>Builder bid</dt>
+					<dd>
+						<ResourceBoundary
+							placeholderText="Loading builder bid…"
+							resource={mevRelayProposerPayloadDelivered}
+						>
+							{#snippet children(_mevRelayProposerPayloadDelivered)}
+								<p data-text="muted">
+									No bid / builder pubkey fields yet.
+								</p>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

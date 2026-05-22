@@ -23,6 +23,41 @@ export const SAMPLE_TX_HASH = (
 	'0xdacd6abf5b2814b28c68c59981f269c615796e7f0cba2009f4bf5edfdd9595ab' as const
 )
 
+const ERC4337_SMART_ACCOUNT_ADDRESS = '0x0000000000001d8a2e7bf6bc369525a2654aa298' as const
+
+const ERC4337_BUNDLER_ADDRESS = '0xf0ac778fb2e56bab4edd7f25c2ed2f333d165b8d' as const
+
+const ERC4337_PAYMASTER_ADDRESS = '0x6599bba2a055f3c769cba1a2d462a75429bd7bf7' as const
+
+const ERC4337_ACCOUNT_FACTORY_ADDRESS = '0xcad776fce9c3b3db6724aeb4c7fa2f5f3c088253' as const
+
+const SAMPLE_USER_OPERATION_HASH = (
+	'0xca87534346367dbf4ff6675627a3e43635db5a36bd8ef99ffcd20a63d1555ef5' as const
+)
+
+/** Mainnet tx with ERC-20 token transfers and internal calls (Blockscout v2). */
+const SAMPLE_TOKEN_TRANSFER_TX = (
+	'0x5e4763cd6b6f129869fff1d60bfadf1d37e1677cb8f1d8997299680da09d5b01' as const
+)
+
+const NOSTR_PROBE_PUBKEY = (
+	'82341f880b9929660a178be448011edd0e5839858c4fc1480b5fd4b6205d127b' as const
+)
+
+const NOSTR_PROBE_RELAY_URL = 'wss://relay.damus.io' as const
+
+const NOSTR_PROBE_REPOST_EVENT_ID = `${'b'.repeat(64)}` as const
+
+const NOSTR_PROBE_REACTION_EVENT_ID = `${'c'.repeat(64)}` as const
+
+const NOSTR_PROBE_ARTICLE_IDENTIFIER = 'e2e-probe-article' as const
+
+const YOUTUBE_PROBE_PLAYLIST_ID = 'UU_x5XG1OV2P6uZZ5FSM9Ttw' as const
+
+const YOUTUBE_PROBE_VIDEO_ID = 'jNQXAC9IVRw' as const
+
+const YOUTUBE_PROBE_COMMENT_ID = 'e2e-probe-comment' as const
+
 /** EVM explorer routes for e2e smoke / boundary (see also `routeViewSmokePaths`). */
 export const e2eEvmExplorerRoutePaths = {
 	hub: '/evm',
@@ -33,6 +68,28 @@ export const e2eEvmExplorerRoutePaths = {
 	errors: '/evm/errors',
 	networkTransaction: `/network/1/tx/${SAMPLE_TX_HASH}`,
 	networkTransactionLog: `/network/1/tx/${SAMPLE_TX_HASH}/log/0`,
+} as const satisfies Record<string, `/${string}`>
+
+/** Nostr / YouTube list routes for route-view smoke (see also `routeViewSmokePaths`). */
+export const e2eNostrYouTubeRoutePaths = {
+	nostrRelays: '/nostr/relays',
+	nostrReposts: '/nostr/reposts',
+	nostrArticles: '/nostr/articles',
+	youtubePlaylists: '/youtube/playlists',
+} as const satisfies Record<string, `/${string}`>
+
+/** Detail routes that depend on live indexer/API payloads; opt in via `routeViewSmokeOptionalDetailPathByLabel`. */
+export const e2eNostrYouTubeOptionalDetailRoutePaths = {
+	nostrRelay: `/nostr/relay/${encodeURIComponent(NOSTR_PROBE_RELAY_URL)}`,
+	nostrRepost: `/nostr/repost/${NOSTR_PROBE_REPOST_EVENT_ID}`,
+	nostrReaction: `/nostr/reaction/${NOSTR_PROBE_REACTION_EVENT_ID}`,
+	nostrArticle: (
+		`/nostr/article/${NOSTR_PROBE_PUBKEY}/${encodeURIComponent(NOSTR_PROBE_ARTICLE_IDENTIFIER)}`
+	),
+	youtubePlaylist: `/youtube/playlist/${encodeURIComponent(YOUTUBE_PROBE_PLAYLIST_ID)}`,
+	youtubeComment: (
+		`/youtube/comment/${encodeURIComponent(YOUTUBE_PROBE_VIDEO_ID)}/${encodeURIComponent(YOUTUBE_PROBE_COMMENT_ID)}`
+	),
 } as const satisfies Record<string, `/${string}`>
 
 /** Mainnet type‑3 tx with EIP‑4844 sidecars — exercised by Blobscan REST probes. */
@@ -63,9 +120,12 @@ const actorMainnetVitalik = {
 	address: VITALIK_ADDRESS,
 }
 
-const actorNetworkMainnetVitalik = {
+/** Blockscout-hosted mainnet omits Vitalik address activity; USDC contract has token + internal rows. */
+const actorNetworkMainnetUsdc = {
 	$network: mainnet,
-	$actor: actorMainnetVitalik,
+	$actor: {
+		address: USDC_ADDRESS,
+	},
 }
 
 const coinInstanceUsdcMainnet = {
@@ -123,7 +183,7 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		},
 	},
 
-	[EntityType.ActorNetwork]: actorNetworkMainnetVitalik,
+	[EntityType.ActorNetwork]: actorNetworkMainnetUsdc,
 
 	[EntityType.AtprotoActor]: { did: 'did:plc:z72i7hdynmk6x22kvon7fdpk' },
 	[EntityType.AtprotoNetwork]: { scope: 'AtprotoNetwork' },
@@ -196,19 +256,19 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	},
 	[EntityType.Erc4337SmartAccount]: {
 		$network: mainnet,
-		address: USDC_ADDRESS,
+		address: ERC4337_SMART_ACCOUNT_ADDRESS,
 	},
 	[EntityType.Erc4337Bundler]: {
 		$network: mainnet,
-		address: USDC_ADDRESS,
+		address: ERC4337_BUNDLER_ADDRESS,
 	},
 	[EntityType.Erc4337Paymaster]: {
 		$network: mainnet,
-		address: USDC_ADDRESS,
+		address: ERC4337_PAYMASTER_ADDRESS,
 	},
 	[EntityType.Erc4337AccountFactory]: {
 		$network: mainnet,
-		address: USDC_ADDRESS,
+		address: ERC4337_ACCOUNT_FACTORY_ADDRESS,
 	},
 	[EntityType.EvmContract]: {
 		$network: mainnet,
@@ -239,11 +299,21 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	},
 	[EntityType.EvmTransaction]: {
 		$network: mainnet,
-		txHash: SAMPLE_TX_HASH,
+		txHash: SAMPLE_TOKEN_TRANSFER_TX,
+	},
+	[EntityType.EvmTokenTransfer]: {
+		$network: mainnet,
+		txHash: SAMPLE_TOKEN_TRANSFER_TX,
+		transferIndex: 0,
+	},
+	[EntityType.EvmInternalTransfer]: {
+		$network: mainnet,
+		txHash: SAMPLE_TOKEN_TRANSFER_TX,
+		internalIndex: 0,
 	},
 	[EntityType.EvmUserOperation]: {
 		$network: mainnet,
-		hash: SAMPLE_TX_HASH,
+		hash: SAMPLE_USER_OPERATION_HASH,
 	},
 
 	[EntityType.FarcasterCast]: { fid: 3, hash: CAST_HASH_32 },
@@ -331,6 +401,27 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		upgradeId: 'Deneb',
 	},
 
+	[EntityType.NostrNetwork]: { scope: 'NostrNetwork' },
+	[EntityType.NostrArticle]: {
+		pubkey: NOSTR_PROBE_PUBKEY,
+		identifier: NOSTR_PROBE_ARTICLE_IDENTIFIER,
+	},
+	[EntityType.NostrProfile]: {
+		pubkey: NOSTR_PROBE_PUBKEY,
+	},
+	[EntityType.NostrNote]: {
+		eventId: `${'a'.repeat(64)}`,
+	},
+	[EntityType.NostrReaction]: {
+		eventId: NOSTR_PROBE_REACTION_EVENT_ID,
+	},
+	[EntityType.NostrRelay]: {
+		relayUrl: NOSTR_PROBE_RELAY_URL,
+	},
+	[EntityType.NostrRepost]: {
+		eventId: NOSTR_PROBE_REPOST_EVENT_ID,
+	},
+
 	[EntityType.Proposal]: {
 		realm: ProposalRealm.Ethereum,
 		category: ProposalCategory.Eip,
@@ -357,6 +448,56 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	[EntityType.XmtpNetwork]: { scope: 'XmtpNetwork' },
 	[EntityType.XPost]: { id: '1855943488122347520' },
 	[EntityType.XUser]: { id: '12' },
+
+	[EntityType.YouTubeNetwork]: { scope: 'YouTubeNetwork' },
+	[EntityType.YouTubeChannel]: { channelId: 'UC_x5XG1OV2P6uZZ5FSM9Ttw' },
+	[EntityType.YouTubeComment]: {
+		videoId: YOUTUBE_PROBE_VIDEO_ID,
+		commentId: YOUTUBE_PROBE_COMMENT_ID,
+	},
+	[EntityType.YouTubePlaylist]: {
+		playlistId: YOUTUBE_PROBE_PLAYLIST_ID,
+	},
+	[EntityType.YouTubeVideo]: { videoId: YOUTUBE_PROBE_VIDEO_ID },
+}
+
+
+export const resolveProbeEntityId = async (
+	entityType: EntityType,
+): Promise<EntityId<typeof schema, EntityType>> => {
+	if (entityType === EntityType.Coin_Timestamp) {
+		const {
+			blockscoutExplorerOriginForChain,
+			blockscoutRestV2AtExplorerOrigin,
+		} = await import('$/sources/Blockscout/Rest/constants.ts')
+		const { getBlockscoutStats } = await import('$/sources/Blockscout/Rest/queries.ts')
+		const origin = blockscoutExplorerOriginForChain(mainnet.chainId)
+		if (
+			origin == null
+			|| !blockscoutRestV2AtExplorerOrigin(origin)
+		) {
+			throw new Error('assert-loaded-resolvers: mainnet Blockscout stats unavailable for Coin_Timestamp probe')
+		}
+		const stats = await getBlockscoutStats({ explorerOrigin: origin })
+		const updatedAtMs = (
+			stats.gas_price_updated_at != null ?
+				Date.parse(stats.gas_price_updated_at)
+			: NaN
+		)
+		if (!Number.isFinite(updatedAtMs)) {
+			throw new Error('assert-loaded-resolvers: Blockscout stats clock missing for Coin_Timestamp probe')
+		}
+		return {
+			$coin: { coinId: CoinId.ETH },
+			timestampMs: updatedAtMs,
+		}
+	}
+
+	const entityId = probeEntityIdByType[entityType]
+	if (entityId === undefined) {
+		throw new Error(`Missing probeEntityIdByType[${entityType}]`)
+	}
+	return entityId
 }
 
 
@@ -370,7 +511,7 @@ export const parentEntityIdForFieldResolver = (
 	: entityType === EntityType.Actor ?
 		actorMainnetVitalik
 	: entityType === EntityType.ActorNetwork ?
-		actorNetworkMainnetVitalik
+		actorNetworkMainnetUsdc
 	: entityType === EntityType.EvmBlock ?
 		({
 			$network: mainnet,
@@ -378,14 +519,32 @@ export const parentEntityIdForFieldResolver = (
 		})
 	: entityType === EntityType.AtprotoActor ?
 		{ did: 'did:plc:z72i7hdynmk6x22kvon7fdpk' }
+	: entityType === EntityType.AtprotoPost ?
+		probeEntityIdByType[EntityType.AtprotoPost]
 	: entityType === EntityType.ActivityPubNetwork ?
 		{ scope: 'ActivityPubNetwork' }
+	: entityType === EntityType.ActivityPubActor ?
+		probeEntityIdByType[EntityType.ActivityPubActor]
+	: entityType === EntityType.ActivityPubNote ?
+		probeEntityIdByType[EntityType.ActivityPubNote]
 	: entityType === EntityType.AtprotoNetwork ?
 		{ scope: 'AtprotoNetwork' }
 	: entityType === EntityType.LensNetwork ?
 		{ scope: 'LensNetwork' }
 	: entityType === EntityType.RedditNetwork ?
 		{ scope: 'RedditNetwork' }
+	: entityType === EntityType.RedditSubreddit ?
+		probeEntityIdByType[EntityType.RedditSubreddit]
+	: entityType === EntityType.RedditLink ?
+		probeEntityIdByType[EntityType.RedditLink]
+	: entityType === EntityType.LensAccount ?
+		probeEntityIdByType[EntityType.LensAccount]
+	: entityType === EntityType.XUser ?
+		probeEntityIdByType[EntityType.XUser]
+	: entityType === EntityType.NostrNetwork ?
+		{ scope: 'NostrNetwork' }
+	: entityType === EntityType.YouTubeNetwork ?
+		{ scope: 'YouTubeNetwork' }
 	: entityType === EntityType.XNetwork ?
 		{ scope: 'XNetwork' }
 	: entityType === EntityType.XmtpNetwork ?

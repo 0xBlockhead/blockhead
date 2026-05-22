@@ -1,7 +1,8 @@
-import { throwHttpError } from '$/lib/http.ts'
+import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { optionalPublicEnvString } from '$/lib/sources.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import Coinpaprika from '$/sources/Coinpaprika/index.ts'
 import {
 	freeBaseUrl,
 	proBaseUrl,
@@ -12,12 +13,15 @@ export const getCoinpaprikaJson = async <_Response>(
 	pathAndQuery: string,
 ): Promise<_Response> => {
 	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_COINPAPRIKA_API_KEY')
-	const response = await fetch(
+	const response = await corsFetch(
 		`${apiKey == null ? freeBaseUrl : proBaseUrl}${pathAndQuery}`,
 		{
-			headers: {
-				Accept: 'application/json',
-				...(apiKey != null && { Authorization: `Bearer ${apiKey}` }),
+			origins: Coinpaprika.origins ?? [],
+			init: {
+				headers: {
+					Accept: 'application/json',
+					...(apiKey != null && { Authorization: `Bearer ${apiKey}` }),
+				},
 			},
 		},
 	)

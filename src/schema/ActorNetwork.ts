@@ -101,7 +101,7 @@ export default {
 		{
 			name: '$$tokenTransfers',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmTransaction,
+			entityType: EntityType.EvmTokenTransfer,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Blockscout_Rest,
@@ -110,7 +110,7 @@ export default {
 		{
 			name: '$$internalTransactions',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmTransaction,
+			entityType: EntityType.EvmInternalTransfer,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Blockscout_Rest,

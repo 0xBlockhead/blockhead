@@ -297,7 +297,7 @@
 									/>
 								{/snippet}
 
-								{#snippet Heading()}
+								{#snippet Title()}
 									<ResourceBoundary
 										resource={selectorEntity}
 										placeholderText="Loading function signature…"
@@ -312,7 +312,7 @@
 									</ResourceBoundary>
 								{/snippet}
 
-								{#snippet Title()}
+								{#snippet Value()}
 									<span data-text="muted">Selector: {selector}</span>
 								{/snippet}
 
@@ -397,7 +397,7 @@
 									/>
 								{/snippet}
 
-								{#snippet Heading()}
+								{#snippet Title()}
 									<ResourceBoundary
 										resource={topicEntity}
 										placeholderText="Loading event signature…"
@@ -412,7 +412,7 @@
 									</ResourceBoundary>
 								{/snippet}
 
-								{#snippet Title()}
+								{#snippet Value()}
 									<span data-text="muted">Topic: {topic}</span>
 								{/snippet}
 

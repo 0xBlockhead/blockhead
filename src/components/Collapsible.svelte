@@ -1,11 +1,17 @@
 <script lang="ts">
+	// Context
+	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
+
+
 	// State
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 	import type { Snippet } from 'svelte'
 
 	let {
-		open = $bindable(true),
+		open = $bindable(
+			!(getIsInsideEntityList() ?? false),
+		),
 		ontoggle,
 		onclose,
 

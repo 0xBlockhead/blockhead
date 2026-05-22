@@ -777,3 +777,24 @@ export const clickInternalNavHrefs = async (
 		await assertMainSettled(page)
 	}
 }
+
+/** Matches Chromium console copy for cross-origin fetches blocked in the browser (not proxied). */
+export const browserCorsPolicyConsolePattern = /has been blocked by CORS policy/i
+
+/** Append-only collector — register before `page.goto`. */
+export const collectBrowserCorsPolicyViolations = (page: Page) => {
+	const violations: string[] = []
+	page.on('console', (message) => {
+		const text = message.text()
+		if (!browserCorsPolicyConsolePattern.test(text)) return
+		const loc = message.location()
+		const locStr = (
+			loc.url ?
+				` ${loc.url}:${loc.lineNumber}:${loc.columnNumber}`
+			:	''
+		)
+		violations.push(`${text}${locStr}`)
+		forwardBrowserConsoleLine(message.type(), text, loc)
+	})
+	return violations
+}

@@ -47,7 +47,17 @@ export default {
 			resolve: async (entityId) => {
 				const trimmedId = entityId.id.trim()
 				if (trimmedId === '') throw new Error('Local_Internal: XMTP conversation id is empty')
-				return {}
+				const catalog = readNormalizedLocalInternalCatalog()
+				const row = catalog.xmtpConversations.find((candidate) => candidate.id === trimmedId)
+				if (row == null) {
+					throw new Error('Local_Internal: XmtpConversation not present in local catalog')
+				}
+				return {
+					...(row.peerInboxId != null && { peerInboxId: row.peerInboxId }),
+					...(row.topic != null && { topic: row.topic }),
+					...(row.createdAtMs != null && { createdAtMs: row.createdAtMs }),
+					...(row.consentState != null && { consentState: row.consentState }),
+				}
 			},
 		}),
 
@@ -185,6 +195,11 @@ export default {
 				}
 			},
 		}),
+
+		defineEntityResolver({
+			entityType: EntityType.EvmContract,
+			resolve: async () => ({}),
+		}),
 	],
 
 	entityFieldResolvers: [
@@ -203,6 +218,20 @@ export default {
 			entityType: EntityType._Global,
 			fieldName: '$$xmtpConversations',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
+				sliceCatalogRowsForSubset(
+					readNormalizedLocalInternalCatalog().xmtpConversations,
+					context,
+				)
+					.map((row) => ({
+						[EntityMetaKey.Id]: { id: row.id },
+					}))
+			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.XmtpNetwork,
+			fieldName: '$$xmtpConversations',
+			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType.XmtpNetwork>, context) => (
 				sliceCatalogRowsForSubset(
 					readNormalizedLocalInternalCatalog().xmtpConversations,
 					context,

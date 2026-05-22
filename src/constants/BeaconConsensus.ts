@@ -48,6 +48,12 @@ export const consensusProtocolByExecutionChainId: Readonly<Record<number, Consen
 	)
 )
 
+export const hasPairedBeaconRestForExecutionChainId = (
+	chainId: number,
+): boolean => (
+	chainId in beaconRestBaseByExecutionChainId
+)
+
 export const consensusProtocolForExecutionChainId = (
 	chainId: number,
 ): ConsensusProtocol | undefined => (

@@ -201,7 +201,9 @@ export default {
 				}
 				if (ethereumListsRowImpliesTestnet(chain)) return []
 				const sourceFamilyKey = pairingFamilyKey(chain)
-				if (sourceFamilyKey == null) return []
+				if (sourceFamilyKey == null) {
+					throw new Error('EthereumLists_Rest: cannot pair testnets (no family key)')
+				}
 				const sourceIsEthereumExecutionRoot = catalogChainIsEthereumExecutionRoot(chain)
 				return [
 					...new Set(
@@ -234,7 +236,9 @@ export default {
 				}
 				if (!ethereumListsRowImpliesTestnet(chain)) return undefined
 				const sourceFamilyKey = pairingFamilyKey(chain)
-				if (sourceFamilyKey == null) return undefined
+				if (sourceFamilyKey == null) {
+					throw new Error('EthereumLists_Rest: cannot pair mainnet (no family key)')
+				}
 				const testnetIsEthereumExecutionRoot = catalogChainIsEthereumExecutionRoot(chain)
 				const mainnet = selectBestMainnetCandidate({
 					testnetChainId: chain.chainId,

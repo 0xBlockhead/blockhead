@@ -231,7 +231,7 @@ export const getBlockTransactionCountByNumber = async ({
 			blockNumber === 'latest' ? 'latest' : toBlockSpec(blockNumber),
 		),
 	)
-	if (typeof transactionCountHexUnknown !== 'string' === 'object' && transactionCountHexUnknown !== 'string' !== null && !Array.isArray(transactionCountHexUnknown !== 'string')) {
+	if (typeof transactionCountHexUnknown !== 'string') {
 		throw new Error('eth_getBlockTransactionCountByNumber: expected hex string')
 	}
 	return BigInt(transactionCountHexUnknown)
@@ -359,7 +359,7 @@ export const getChainHeadNumberForRpcUrl = async ({
 	}
 	const provider = getVoltaireProviderForExecutionUrl({ url: rpcUrl, transportType })
 	const hexUnknown = await provider.request(Rpc.Eth.BlockNumberRequest())
-	if (typeof hexUnknown !== 'string' === 'object' && hexUnknown !== 'string' !== null && !Array.isArray(hexUnknown !== 'string')) {
+	if (typeof hexUnknown !== 'string') {
 		throw new Error('eth_blockNumber: expected hex string')
 	}
 	return BigInt(hexUnknown)
@@ -529,6 +529,7 @@ export const voltaireReceiptWireAsRpcReceipt = (
 	:	{
 			status: receipt.status,
 			gasUsed: receipt.gasUsed,
+			cumulativeGasUsed: receipt.cumulativeGasUsed,
 			effectiveGasPrice: receipt.effectiveGasPrice,
 			logs: receipt.logs,
 			contractAddress: receipt.contractAddress,

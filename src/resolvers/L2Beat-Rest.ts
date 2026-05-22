@@ -53,10 +53,18 @@ export default {
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
 				const projectId = l2BeatProjectIdByChainId[String(entityId.chainId)]
-				if (projectId == null) return undefined
+				if (projectId == null) {
+					throw new Error(
+						`L2Beat_Rest: no scaling project for chain ${String(entityId.chainId)}`,
+					)
+				}
 				const summary = await fetchScalingSummary()
 				const project = summary.projects[projectId]
-				if (project == null || project.isArchived === true) return undefined
+				if (project == null || project.isArchived === true) {
+					throw new Error(
+						`L2Beat_Rest: scaling project archived or missing for chain ${String(entityId.chainId)}`,
+					)
+				}
 				const parentChainId = l2beatHostChainToParentChainId[project.hostChain]
 				if (parentChainId == null || parentChainId === entityId.chainId) return undefined
 				return {

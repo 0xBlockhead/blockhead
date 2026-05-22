@@ -100,7 +100,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.iso4217}
 		</span>
 	{/snippet}
@@ -116,40 +116,58 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={currency}
-			placeholderText="Loading currency…"
-		>
-			{#snippet children(currency)}
-				<dl data-column-item="center">
-					{#if currency.$$timestamps?.[0]?.marketCap !== undefined}
-						<div>
-							<dt>FX turnover weight (USD)</dt>
-							<dd>
+		<dl data-column-item="center">
+			<div>
+				<dt>FX turnover weight (USD)</dt>
+				<dd>
+					<ResourceBoundary
+						resource={currency}
+						placeholderText="Loading currency…"
+					>
+						{#snippet children(currency)}
+							{#if currency.$$timestamps?.[0]?.marketCap !== undefined}
 								<CurrencyAmount
 									currency="USD"
 									value={currency.$$timestamps[0].marketCap}
 								/>
-							</dd>
-						</div>
-					{/if}
-					{#if currency.symbol != null && currency.symbol !== ''}
-						<div>
-							<dt>Symbol</dt>
-							<dd>{currency.symbol}</dd>
-						</div>
-					{/if}
-					{#if open}
-						{#if currency.minorUnitExponent !== undefined}
-							<div>
-								<dt>Minor unit exponent</dt>
-								<dd>{String(currency.minorUnitExponent)}</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			<div>
+				<dt>Symbol</dt>
+				<dd>
+					<ResourceBoundary
+						resource={currency}
+						placeholderText="Loading currency…"
+					>
+						{#snippet children(currency)}
+							{#if currency.symbol != null && currency.symbol !== ''}
+								{currency.symbol}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			{#if open}
+				<div>
+					<dt>Minor unit exponent</dt>
+					<dd>
+						<ResourceBoundary
+							resource={currency}
+							placeholderText="Loading currency…"
+						>
+							{#snippet children(currency)}
+								{#if currency.minorUnitExponent !== undefined}
+									{String(currency.minorUnitExponent)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details()}

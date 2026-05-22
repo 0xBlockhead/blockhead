@@ -35,13 +35,17 @@ export type RpcLogWire = {
 	topics?: string[]
 	data?: string
 	blockNumber?: string
+	blockHash?: string
 	transactionHash?: string
+	transactionIndex?: string
 	logIndex?: string
+	removed?: boolean
 }
 
 export type RpcReceiptWire = {
 	status?: string
 	gasUsed?: string
+	cumulativeGasUsed?: string
 	effectiveGasPrice?: string
 	logs?: RpcLogWire[]
 	contractAddress?: string | null

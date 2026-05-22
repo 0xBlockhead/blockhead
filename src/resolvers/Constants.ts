@@ -24,12 +24,25 @@ import {
 import { activityPubNetworkFieldValues, activityPubNetworkSeedActors } from '$/constants/Social/ActivityPub.ts'
 import { atprotoNetworkFieldValues, atprotoNetworkSeedActors } from '$/constants/Social/Atproto.ts'
 import { lensNetworkFieldValues, lensNetworkSeedAccounts } from '$/constants/Social/Lens.ts'
+import {
+	nostrNetworkFieldValues,
+	nostrNetworkSeedProfiles,
+	nostrNetworkSeedRelays,
+} from '$/constants/Social/Nostr.ts'
 import { redditNetworkFieldValues, redditNetworkSeedSubreddits } from '$/constants/Social/Reddit.ts'
+import { rssNetworkFieldValues, rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
+import {
+	youtubeNetworkFieldValues,
+	youtubeNetworkSeedChannels,
+	youtubeNetworkSeedPlaylists,
+	youtubeNetworkSeedVideos,
+} from '$/constants/Social/YouTube.ts'
 import { xNetworkFieldValues, xNetworkSeedUsers } from '$/constants/Social/X.ts'
 import { xmtpNetworkFieldValues } from '$/constants/Social/Xmtp.ts'
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
+	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { CoinInstanceType } from '$/schema/CoinInstance.ts'
@@ -40,6 +53,8 @@ import { Source } from '$/sources/$Source.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { beaconRestBaseByExecutionChainId } from '$/constants/BeaconConsensus.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { getPrecompileNameForAddress, getPrecompilesForChain } from '$/constants/precompiles/index.ts'
+import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { jsonRpcUrlWithTransportForChain } from '$/resolvers/Voltaire-JsonRpc.ts'
 
 const BEACON_SLOTS_PER_EPOCH = 32
@@ -356,6 +371,26 @@ export default {
 		}),
 
 		defineEntityResolver({
+			entityType: EntityType.EvmContract,
+			resolve: async (entityId) => {
+				const address = hexLowerOfByteSize(entityId.address, 20)
+				if (address == null) {
+					throw new Error('Constants_Internal: EvmContract address not normalized')
+				}
+				const precompileName = getPrecompileNameForAddress(
+					entityId.$network.chainId,
+					address,
+				)
+				if (precompileName == null) {
+					throw new Error(`Constants_Internal: EvmContract ${address} is not a catalog precompile on chain ${String(entityId.$network.chainId)}`)
+				}
+				return {
+					precompileName,
+				}
+			},
+		}),
+
+		defineEntityResolver({
 			entityType: EntityType.Coin,
 			resolve: async (entityId) => {
 				const { coinById } = await import('$/constants/Coin.ts')
@@ -486,12 +521,32 @@ export default {
 		}),
 
 		defineEntityResolver({
+			entityType: EntityType.NostrNetwork,
+			resolve: async (entityId) => {
+				if (entityId.scope !== 'NostrNetwork') {
+					throw new Error('Constants: unexpected NostrNetwork id')
+				}
+				return nostrNetworkFieldValues
+			},
+		}),
+
+		defineEntityResolver({
 			entityType: EntityType.RedditNetwork,
 			resolve: async (entityId) => {
 				if (entityId.scope !== 'RedditNetwork') {
 					throw new Error('Constants: unexpected RedditNetwork id')
 				}
 				return redditNetworkFieldValues
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.RssNetwork,
+			resolve: async (entityId) => {
+				if (entityId.scope !== 'RssNetwork') {
+					throw new Error('Constants: unexpected RssNetwork id')
+				}
+				return rssNetworkFieldValues
 			},
 		}),
 
@@ -512,6 +567,16 @@ export default {
 					throw new Error('Constants: unexpected XmtpNetwork id')
 				}
 				return xmtpNetworkFieldValues
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.YouTubeNetwork,
+			resolve: async (entityId) => {
+				if (entityId.scope !== 'YouTubeNetwork') {
+					throw new Error('Constants: unexpected YouTubeNetwork id')
+				}
+				return youtubeNetworkFieldValues
 			},
 		}),
 	],
@@ -673,7 +738,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$marketsWithCoinAsQuote is not implemented')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -705,13 +772,17 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.CoinInstance,
 			fieldName: '$$outboundBridgeCapabilities',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$outboundBridgeCapabilities is not implemented')
+			},
 		}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType.CoinInstance,
 			fieldName: '$$inboundBridgeCapabilities',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$inboundBridgeCapabilities is not implemented')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -775,7 +846,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Market,
 			fieldName: '$$marketTimeIntervalTimestamps',
-			resolve: async () => [],
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$marketTimeIntervalTimestamps is not implemented')
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -924,10 +997,14 @@ export default {
 				} = await import('$/constants/NetworkUpgrades.ts')
 				const upgradeRow = networkUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
 				if (upgradeRow == null) {
-					return []
+					throw new Error(`Constants_Internal: unknown NetworkUpgrade ${entityId.$network.chainId}:${entityId.upgradeId}`)
 				}
 				const denorm = resolveNetworkUpgradeDenormalizedFields(upgradeRow)
-				return [...(denorm.$$proposals ?? [])]
+				const proposals = [...(denorm.$$proposals ?? [])]
+				if (proposals.length === 0) {
+					throw new Error(`Constants_Internal: NetworkUpgrade ${entityId.upgradeId} has no $$proposals`)
+				}
+				return proposals
 			},
 		}),
 
@@ -937,7 +1014,11 @@ export default {
 			resolve: async (entityId) => {
 				const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import('$/constants/NetworkUpgrades.ts')
 				const upgradeRow = networkExecutionUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
-				return [...(upgradeRow?.$$proposals ?? [])]
+				const proposals = [...(upgradeRow?.$$proposals ?? [])]
+				if (proposals.length === 0) {
+					throw new Error(`Constants_Internal: NetworkExecutionUpgrade ${entityId.upgradeId} has no $$proposals`)
+				}
+				return proposals
 			},
 		}),
 
@@ -945,9 +1026,27 @@ export default {
 			entityType: EntityType.NetworkConsensusUpgrade,
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
-				const { networkConsensusUpgradeByChainIdAndUpgradeId } = await import('$/constants/NetworkUpgrades.ts')
+				const {
+					networkConsensusUpgradeByChainIdAndUpgradeId,
+					networkUpgrades,
+					resolveNetworkUpgradeDenormalizedFields,
+				} = await import('$/constants/NetworkUpgrades.ts')
 				const upgradeRow = networkConsensusUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
-				return [...(upgradeRow?.$$proposals ?? [])]
+				const directProposals = [...(upgradeRow?.$$proposals ?? [])]
+				if (directProposals.length > 0) {
+					return directProposals
+				}
+				const umbrellaRow = networkUpgrades.find((networkUpgrade) => (
+					networkUpgrade.$networkConsensusUpgrade?.[EntityMetaKey.Id].$network.chainId === entityId.$network.chainId
+					&& networkUpgrade.$networkConsensusUpgrade?.[EntityMetaKey.Id].upgradeId === entityId.upgradeId
+				))
+				if (umbrellaRow != null) {
+					const linkedProposals = [...(resolveNetworkUpgradeDenormalizedFields(umbrellaRow).$$proposals ?? [])]
+					if (linkedProposals.length > 0) {
+						return linkedProposals
+					}
+				}
+				throw new Error(`Constants_Internal: NetworkConsensusUpgrade ${entityId.upgradeId} has no $$proposals`)
 			},
 		}),
 
@@ -966,6 +1065,50 @@ export default {
 			fieldName: '$$lensPosts',
 			resolve: async () => {
 				throw new Error('Constants_Internal: $$lensPosts is unsupported')
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.NostrNetwork,
+			fieldName: '$$nostrProfiles',
+			resolve: async () => (
+				nostrNetworkSeedProfiles.map((profile) => ({
+					[EntityMetaKey.Id]: profile,
+				}))
+			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.NostrNetwork,
+			fieldName: '$$nostrNotes',
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$nostrNotes is unsupported')
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.NostrNetwork,
+			fieldName: '$$nostrRelays',
+			resolve: async () => (
+				nostrNetworkSeedRelays.map((relay) => ({
+					[EntityMetaKey.Id]: relay,
+				}))
+			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.NostrNetwork,
+			fieldName: '$$nostrReposts',
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$nostrReposts is unsupported')
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.NostrNetwork,
+			fieldName: '$$nostrArticles',
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$nostrArticles is unsupported')
 			},
 		}),
 
@@ -1024,6 +1167,24 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
+			entityType: EntityType.RssNetwork,
+			fieldName: '$$rssFeeds',
+			resolve: async () => (
+				rssNetworkSeedFeeds.map((feed) => ({
+					[EntityMetaKey.Id]: feed,
+				}))
+			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.RssNetwork,
+			fieldName: '$$rssItems',
+			resolve: async () => {
+				throw new Error('Constants_Internal: $$rssItems is unsupported')
+			},
+		}),
+
+		defineEntityFieldResolver({
 			entityType: EntityType.XNetwork,
 			fieldName: '$$xUsers',
 			resolve: async () => (
@@ -1050,6 +1211,36 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
+			entityType: EntityType.YouTubeNetwork,
+			fieldName: '$$youtubeChannels',
+			resolve: async () => (
+				youtubeNetworkSeedChannels.map((channel) => ({
+					[EntityMetaKey.Id]: channel,
+				}))
+			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.YouTubeNetwork,
+			fieldName: '$$youtubeVideos',
+			resolve: async () => (
+				youtubeNetworkSeedVideos.map((video) => ({
+					[EntityMetaKey.Id]: video,
+				}))
+			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.YouTubeNetwork,
+			fieldName: '$$youtubePlaylists',
+			resolve: async () => (
+				youtubeNetworkSeedPlaylists.map((playlist) => ({
+					[EntityMetaKey.Id]: playlist,
+				}))
+			),
+		}),
+
+		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$liquidityPositions',
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
@@ -1062,6 +1253,42 @@ export default {
 			fieldName: '$$eip8004Services',
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				throw new Error('Constants_Internal: $$eip8004Services is unsupported')
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmContract,
+			fieldName: 'precompileName',
+			resolve: async (entityId) => {
+				const address = hexLowerOfByteSize(entityId.address, 20)
+				if (address == null) {
+					throw new Error('Constants_Internal: EvmContract address not normalized')
+				}
+				return getPrecompileNameForAddress(
+					entityId.$network.chainId,
+					address,
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$contracts',
+			resolve: async (entityId, context) => {
+				const limit = resolverLoadSubsetRowLimit(context)
+				return getPrecompilesForChain(entityId.chainId)
+					.slice(0, limit)
+					.flatMap((precompile) => {
+						const address = hexLowerOfByteSize(precompile.address, 20)
+						return address == null ?
+							[]
+						:	[{
+							[EntityMetaKey.Id]: {
+								$network: { chainId: entityId.chainId },
+								address,
+							},
+						}]
+					})
 			},
 		}),
 	],

@@ -94,7 +94,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			interval start (candle boundary)
 		</span>
 	{/snippet}
@@ -104,21 +104,23 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={marketTimeIntervalTimestamp}
-			placeholderText="Loading OHLC candle…"
-		>
-			{#snippet children(marketTimeIntervalTimestamp)}
-				<dl data-column-item="center">
+		<dl data-column-item="center">
 					{#if marketTimeIntervalTimestamp.close !== undefined}
 						<div>
 							<dt>Close</dt>
 							<dd>
-								<CurrencyAmount
-									currency={quoteIso4217FromMarketId(entityId.$market)}
-									showDecimalPlaces={6}
-									value={marketTimeIntervalTimestamp.close}
-								/>
+								<ResourceBoundary
+									resource={marketTimeIntervalTimestamp}
+									placeholderText="Loading OHLC candle…"
+								>
+									{#snippet children(marketTimeIntervalTimestamp)}
+										<CurrencyAmount
+											currency={quoteIso4217FromMarketId(entityId.$market)}
+											showDecimalPlaces={6}
+											value={marketTimeIntervalTimestamp.close}
+										/>
+									{/snippet}
+								</ResourceBoundary>
 							</dd>
 						</div>
 					{/if}
@@ -136,18 +138,25 @@
 					<div>
 						<dt>Market</dt>
 						<dd>
-							<MarketView
-								entityId={entityId.$market}
-								href={resolve(
-									'/(assets)/(markets)/market/[marketKey]',
-									{
-										marketKey: encodeURIComponent(stringify(entityId.$market)),
-									},
-								)}
-								layout={EntityLayout.Title}
-								open={false}
-								showTypeAnnotation={false}
-							/>
+							<ResourceBoundary
+								resource={marketTimeIntervalTimestamp}
+								placeholderText="Loading OHLC candle…"
+							>
+								{#snippet children(marketTimeIntervalTimestamp)}
+									<MarketView
+										entityId={entityId.$market}
+										href={resolve(
+											'/(assets)/(markets)/market/[marketKey]',
+											{
+												marketKey: encodeURIComponent(stringify(entityId.$market)),
+											},
+										)}
+										layout={EntityLayout.Title}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{/snippet}
+							</ResourceBoundary>
 						</dd>
 					</div>
 
@@ -156,11 +165,18 @@
 							<div>
 								<dt>Open</dt>
 								<dd>
-									<CurrencyAmount
-										currency={quoteIso4217FromMarketId(entityId.$market)}
-										showDecimalPlaces={6}
-										value={marketTimeIntervalTimestamp.open}
-									/>
+									<ResourceBoundary
+										resource={marketTimeIntervalTimestamp}
+										placeholderText="Loading OHLC candle…"
+									>
+										{#snippet children(marketTimeIntervalTimestamp)}
+											<CurrencyAmount
+												currency={quoteIso4217FromMarketId(entityId.$market)}
+												showDecimalPlaces={6}
+												value={marketTimeIntervalTimestamp.open}
+											/>
+										{/snippet}
+									</ResourceBoundary>
 								</dd>
 							</div>
 						{/if}
@@ -169,11 +185,18 @@
 							<div>
 								<dt>High</dt>
 								<dd>
-									<CurrencyAmount
-										currency={quoteIso4217FromMarketId(entityId.$market)}
-										showDecimalPlaces={6}
-										value={marketTimeIntervalTimestamp.high}
-									/>
+									<ResourceBoundary
+										resource={marketTimeIntervalTimestamp}
+										placeholderText="Loading OHLC candle…"
+									>
+										{#snippet children(marketTimeIntervalTimestamp)}
+											<CurrencyAmount
+												currency={quoteIso4217FromMarketId(entityId.$market)}
+												showDecimalPlaces={6}
+												value={marketTimeIntervalTimestamp.high}
+											/>
+										{/snippet}
+									</ResourceBoundary>
 								</dd>
 							</div>
 						{/if}
@@ -182,18 +205,23 @@
 							<div>
 								<dt>Low</dt>
 								<dd>
-									<CurrencyAmount
-										currency={quoteIso4217FromMarketId(entityId.$market)}
-										showDecimalPlaces={6}
-										value={marketTimeIntervalTimestamp.low}
-									/>
+									<ResourceBoundary
+										resource={marketTimeIntervalTimestamp}
+										placeholderText="Loading OHLC candle…"
+									>
+										{#snippet children(marketTimeIntervalTimestamp)}
+											<CurrencyAmount
+												currency={quoteIso4217FromMarketId(entityId.$market)}
+												showDecimalPlaces={6}
+												value={marketTimeIntervalTimestamp.low}
+											/>
+										{/snippet}
+									</ResourceBoundary>
 								</dd>
 							</div>
 						{/if}
 					{/if}
 				</dl>
-			{/snippet}
-		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details()}

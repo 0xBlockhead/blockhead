@@ -80,7 +80,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.id}
 		</span>
 	{/snippet}
@@ -106,86 +106,113 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={session}
-			placeholderText="Loading session…"
-		>
-			{#snippet children(session)}
-				<dl data-column-item="center">
+		<dl data-column-item="center">
 
-					<div>
-						<dt>Session kind</dt>
-						<dd>
-							Persisted sandbox notebook.
-						</dd>
-					</div>
+			<div>
+				<dt>Session kind</dt>
+				<dd>
+					Persisted sandbox notebook.
+				</dd>
+			</div>
 
-					<div>
-						<dt>Status</dt>
-						<dd>{session.status}</dd>
-					</div>
+			<div>
+				<dt>Status</dt>
+				<dd>
+					<ResourceBoundary
+						resource={session}
+						placeholderText="Loading session…"
+					>
+						{#snippet children(session)}
+							{session.status}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					{#if !open}
-						{#if session.updatedAt !== undefined}
-							<div>
-								<dt>Last activity</dt>
-								<dd>
+			{#if !open}
+				<div>
+					<dt>Last activity</dt>
+					<dd>
+						<ResourceBoundary
+							resource={session}
+							placeholderText="Loading session…"
+						>
+							{#snippet children(session)}
+								{#if session.updatedAt !== undefined}
 									<Timestamp
 										timestamp={session.updatedAt}
 										format={TimestampFormat.Both}
 									/>
-								</dd>
-							</div>
-						{:else}
-							{#if session.createdAt !== undefined}
-								<div>
-									<dt>Last activity</dt>
-									<dd>
+								{:else}
+									{#if session.createdAt !== undefined}
 										<Timestamp
 											timestamp={session.createdAt}
 											format={TimestampFormat.Both}
 										/>
-									</dd>
-								</div>
-							{/if}
-						{/if}
-					{/if}
+									{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if session.createdAt !== undefined}
-							<div>
-								<dt>Created</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Created</dt>
+					<dd>
+						<ResourceBoundary
+							resource={session}
+							placeholderText="Loading session…"
+						>
+							{#snippet children(session)}
+								{#if session.createdAt !== undefined}
 									<Timestamp
 										timestamp={session.createdAt}
 										format={TimestampFormat.Both}
 									/>
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if session.updatedAt !== undefined}
-							<div>
-								<dt>Updated</dt>
-								<dd>
+				<div>
+					<dt>Updated</dt>
+					<dd>
+						<ResourceBoundary
+							resource={session}
+							placeholderText="Loading session…"
+						>
+							{#snippet children(session)}
+								{#if session.updatedAt !== undefined}
 									<Timestamp
 										timestamp={session.updatedAt}
 										format={TimestampFormat.Both}
 									/>
-								</dd>
-							</div>
-						{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 
-						{#if session.simulationCount !== undefined}
-							<div>
-								<dt>Simulation count</dt>
-								<dd>{String(session.simulationCount)}</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				<div>
+					<dt>Simulation count</dt>
+					<dd>
+						<ResourceBoundary
+							resource={session}
+							placeholderText="Loading session…"
+						>
+							{#snippet children(session)}
+								{#if session.simulationCount !== undefined}
+									{String(session.simulationCount)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({

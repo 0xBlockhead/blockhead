@@ -36,5 +36,35 @@ export default {
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
+		{
+			name: 'commentCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'shareCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'bookmarkCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$commentOn',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.LensPost,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$comments',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.LensPost,
+			cardinality: EntityFieldCardinality.Many,
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

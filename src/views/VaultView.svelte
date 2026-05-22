@@ -89,7 +89,7 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			{entityId.id}
 		</span>
 	{/snippet}
@@ -115,15 +115,15 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={vault}
-			placeholderText="Loading vault…"
-		>
-			{#snippet children(vault)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Token 0</dt>
-						<dd>
+		<dl data-column-item="center">
+			<div>
+				<dt>Token 0</dt>
+				<dd>
+					<ResourceBoundary
+						resource={vault}
+						placeholderText="Loading vault…"
+					>
+						{#snippet children(vault)}
 							<EvmContractView
 								entityId={vault.$token0}
 								href={resolve(
@@ -137,11 +137,18 @@
 								open={false}
 								showTypeAnnotation={false}
 							/>
-						</dd>
-					</div>
-					<div>
-						<dt>Token 1</dt>
-						<dd>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			<div>
+				<dt>Token 1</dt>
+				<dd>
+					<ResourceBoundary
+						resource={vault}
+						placeholderText="Loading vault…"
+					>
+						{#snippet children(vault)}
 							<EvmContractView
 								entityId={vault.$token1}
 								href={resolve(
@@ -155,94 +162,182 @@
 								open={false}
 								showTypeAnnotation={false}
 							/>
-						</dd>
-					</div>
-					{#if open}
-						{#if vault.token0Decimals !== undefined}
-							<div>
-								<dt>Token 0 decimals</dt>
-								<dd>{String(vault.token0Decimals)}</dd>
-							</div>
-						{/if}
-					{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+			{#if open}
+				<div>
+					<dt>Token 0 decimals</dt>
+					<dd>
+						<ResourceBoundary
+							resource={vault}
+							placeholderText="Loading vault…"
+						>
+							{#snippet children(vault)}
+								{#if vault.token0Decimals !== undefined}
+									{String(vault.token0Decimals)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if vault.token1Decimals !== undefined}
-							<div>
-								<dt>Token 1 decimals</dt>
-								<dd>{String(vault.token1Decimals)}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Token 1 decimals</dt>
+					<dd>
+						<ResourceBoundary
+							resource={vault}
+							placeholderText="Loading vault…"
+						>
+							{#snippet children(vault)}
+								{#if vault.token1Decimals !== undefined}
+									{String(vault.token1Decimals)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if vault.fee !== undefined}
-							<div>
-								<dt>Fee</dt>
-								<dd>{String(vault.fee)}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Fee</dt>
+					<dd>
+						<ResourceBoundary
+							resource={vault}
+							placeholderText="Loading vault…"
+						>
+							{#snippet children(vault)}
+								{#if vault.fee !== undefined}
+									{String(vault.fee)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if vault.tickSpacing !== undefined}
-							<div>
-								<dt>Tick spacing</dt>
-								<dd>{String(vault.tickSpacing)}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Tick spacing</dt>
+					<dd>
+						<ResourceBoundary
+							resource={vault}
+							placeholderText="Loading vault…"
+						>
+							{#snippet children(vault)}
+								{#if vault.tickSpacing !== undefined}
+									{String(vault.tickSpacing)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if vault.sqrtPriceX96 !== undefined}
-							<div>
-								<dt>Sqrt price X96</dt>
-								<dd>{String(vault.sqrtPriceX96)}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Sqrt price X96</dt>
+					<dd>
+						<ResourceBoundary
+							resource={vault}
+							placeholderText="Loading vault…"
+						>
+							{#snippet children(vault)}
+								{#if vault.sqrtPriceX96 !== undefined}
+									{String(vault.sqrtPriceX96)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if vault.liquidity !== undefined}
-							<div>
-								<dt>Liquidity</dt>
-								<dd>{String(vault.liquidity)}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Liquidity</dt>
+					<dd>
+						<ResourceBoundary
+							resource={vault}
+							placeholderText="Loading vault…"
+						>
+							{#snippet children(vault)}
+								{#if vault.liquidity !== undefined}
+									{String(vault.liquidity)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if vault.tick !== undefined}
-							<div>
-								<dt>Tick</dt>
-								<dd>{String(vault.tick)}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Tick</dt>
+					<dd>
+						<ResourceBoundary
+							resource={vault}
+							placeholderText="Loading vault…"
+						>
+							{#snippet children(vault)}
+								{#if vault.tick !== undefined}
+									{String(vault.tick)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if vault.volumeUSD !== undefined}
-							<div>
-								<dt>Volume USD</dt>
-								<dd>{String(vault.volumeUSD)}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>Volume USD</dt>
+					<dd>
+						<ResourceBoundary
+							resource={vault}
+							placeholderText="Loading vault…"
+						>
+							{#snippet children(vault)}
+								{#if vault.volumeUSD !== undefined}
+									{String(vault.volumeUSD)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if vault.totalValueLockedUSD !== undefined}
-							<div>
-								<dt>TVL USD</dt>
-								<dd>{String(vault.totalValueLockedUSD)}</dd>
-							</div>
-						{/if}
-					{/if}
+			{#if open}
+				<div>
+					<dt>TVL USD</dt>
+					<dd>
+						<ResourceBoundary
+							resource={vault}
+							placeholderText="Loading vault…"
+						>
+							{#snippet children(vault)}
+								{#if vault.totalValueLockedUSD !== undefined}
+									{String(vault.totalValueLockedUSD)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if vault.$hooks !== undefined}
-							<div>
-								<dt>Hooks</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Hooks</dt>
+					<dd>
+						<ResourceBoundary
+							resource={vault}
+							placeholderText="Loading vault…"
+						>
+							{#snippet children(vault)}
+								{#if vault.$hooks !== undefined}
 									<EvmContractView
 										entityId={vault.$hooks}
 										href={resolve(
@@ -256,27 +351,34 @@
 										open={false}
 										showTypeAnnotation={false}
 									/>
-								</dd>
-							</div>
-						{/if}
-					{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open}
-						{#if vault.v4PoolId !== undefined}
-							<div>
-								<dt>Pool id</dt>
-								<dd>
+			{#if open}
+				<div>
+					<dt>Pool id</dt>
+					<dd>
+						<ResourceBoundary
+							resource={vault}
+							placeholderText="Loading vault…"
+						>
+							{#snippet children(vault)}
+								{#if vault.v4PoolId !== undefined}
 									<TruncatedValue
 										value={vault.v4PoolId}
 										format={TruncatedValueFormat.Visual}
 									/>
-								</dd>
-							</div>
-						{/if}
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: _open })}

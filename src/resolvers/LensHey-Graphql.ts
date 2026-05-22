@@ -1,0 +1,185 @@
+import {
+	defineEntityFieldResolver,
+	defineEntityResolver,
+	resolverLoadSubsetRowLimit,
+	sourcePublicEnv,
+} from '$/resolvers/$resolvers.ts'
+import { with0xHex, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
+import { singleFlight } from '$/lib/singleFlight.ts'
+import { mediaFromUrl } from '$/lib/media.ts'
+import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { MediaType } from '$/schema/Media.ts'
+import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
+
+
+const optionalTrimmedString = (value: string | undefined | null) => (
+	value?.trim() ? value.trim() : undefined
+)
+
+const optionalFiniteNumber = (value: number | undefined) => (
+	value != null && Number.isFinite(value) ? value : undefined
+)
+
+/** Lens / subgraph wire — may omit `0x` or use mixed case. */
+const lensEvmAddressFromWire = (a: string): `0x${string}` => {
+	const t = optionalTrimmedString(a)
+	if (t == null) throw new Error('Lens_HeyGraphql: invalid EVM address')
+	const n = with0xHex(t)
+	if (!/^0x[0-9a-f]{40}$/.test(n)) throw new Error('Lens_HeyGraphql: invalid EVM address')
+	return n
+}
+
+export default {
+	source: Source.Lens_HeyGraphql,
+
+	entityResolvers: [
+		defineEntityResolver({
+			entityType: EntityType.LensAccount,
+			resolve: async (entityId, context) => {
+				const { lensHeyQueryAccount } = await import('$/sources/LensHey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
+				const a = (await singleFlight(lensHeyQueryAccount)(publicEnv, zeroExLowerCase(entityId.address))).account
+				if (a == null) throw new Error('Lens_HeyGraphql: account not found')
+				return {
+					localName: optionalTrimmedString(a.username?.localName),
+					displayName: optionalTrimmedString(a.metadata?.name),
+					bio: optionalTrimmedString(a.metadata?.bio),
+					...((
+						iconMedia,
+					) => (
+						iconMedia != null && {
+							$icon: iconMedia,
+						}
+					))(mediaFromUrl(optionalTrimmedString(a.metadata?.picture), MediaType.Image)),
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.LensPost,
+			resolve: async (entityId, context) => {
+				const { lensHeyQueryPost } = await import('$/sources/LensHey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
+				const p = (await singleFlight(lensHeyQueryPost)(publicEnv, entityId.id)).post
+				if (p == null) throw new Error('Lens_HeyGraphql: post not found')
+				const commentOnSlug = optionalTrimmedString(p.commentOn?.slug)
+				return {
+					text: optionalTrimmedString(p.metadata?.content),
+					timestamp: ((ts) => (
+						((_parsedTimestampMs) => (
+							Number.isFinite(_parsedTimestampMs) ? _parsedTimestampMs : undefined
+						))(ts != null ? Date.parse(ts) : NaN)
+					))(optionalTrimmedString(p.timestamp)),
+					commentCount: optionalFiniteNumber(p.stats?.comments),
+					shareCount: optionalFiniteNumber(p.stats?.reposts),
+					bookmarkCount: optionalFiniteNumber(p.stats?.bookmarks),
+					...(commentOnSlug != null && {
+						$commentOn: { [EntityMetaKey.Id]: { id: commentOnSlug } },
+					}),
+					$author: (
+						((addr) => (
+							addr != null && /^0x[a-fA-F0-9]{40}$/.test(addr) ?
+								{
+									[EntityMetaKey.Id]: { address: lensEvmAddressFromWire(addr) },
+								}
+							:	undefined
+						))(p.author?.address)
+					),
+				}
+			},
+		}),
+	],
+
+	entityFieldResolvers: [
+		defineEntityFieldResolver({
+			entityType: EntityType.LensNetwork,
+			fieldName: '$$lensAccounts',
+			resolve: async (_entityId, context) => {
+				const { lensHeyQueryLatestPosts } = await import('$/sources/LensHey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
+				const limit = resolverLoadSubsetRowLimit(context)
+				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
+				const byAddress = new Map<string, { [EntityMetaKey.Id]: { address: `0x${string}` } }>()
+				for (const item of ((await singleFlight(lensHeyQueryLatestPosts)(publicEnv, pageSize)).posts?.items ?? [])) {
+					const address = item.author?.address
+					if (item.__typename !== 'Post' || address == null || !/^0x[a-fA-F0-9]{40}$/.test(address)) continue
+					const normalizedAddress = lensEvmAddressFromWire(address)
+					byAddress.set(normalizedAddress, {
+						[EntityMetaKey.Id]: { address: normalizedAddress },
+					})
+				}
+				return [...byAddress.values()]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.LensNetwork,
+			fieldName: '$$lensPosts',
+			resolve: async (_entityId, context) => {
+				const { lensHeyQueryLatestPosts } = await import('$/sources/LensHey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
+				const limit = resolverLoadSubsetRowLimit(context)
+				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
+				return (
+					((await singleFlight(lensHeyQueryLatestPosts)(publicEnv, pageSize)).posts?.items ?? [])
+						.flatMap((item) => (
+							item.__typename === 'Post' && item.slug != null ?
+								[
+									{
+										[EntityMetaKey.Id]: { id: item.slug },
+									},
+								]
+							:	[]
+						))
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.LensPost,
+			fieldName: '$$comments',
+			resolve: async (entityId, context) => {
+				const { lensHeyQueryPostComments } = await import('$/sources/LensHey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
+				const limit = resolverLoadSubsetRowLimit(context)
+				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
+				return (
+					((await singleFlight(lensHeyQueryPostComments)(publicEnv, entityId.id, pageSize)).postReferences?.items ?? [])
+						.flatMap((item) => (
+							item.__typename === 'Post' && item.slug != null ?
+								[
+									{
+										[EntityMetaKey.Id]: { id: item.slug },
+									},
+								]
+							:	[]
+						))
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.LensAccount,
+			fieldName: '$$posts',
+			resolve: async (entityId, context) => {
+				const { lensHeyQueryPostsByAuthor } = await import('$/sources/LensHey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
+				const limit = resolverLoadSubsetRowLimit(context)
+				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
+				return (
+					((await singleFlight(lensHeyQueryPostsByAuthor)(publicEnv, zeroExLowerCase(entityId.address), pageSize)).posts?.items ?? [])
+						.flatMap((item) => (
+							item.__typename === 'Post' && item.slug != null ?
+								[
+									{
+										[EntityMetaKey.Id]: { id: item.slug },
+									},
+								]
+							:	[]
+						))
+				)
+			},
+		}),
+	],
+}

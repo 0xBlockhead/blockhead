@@ -47,9 +47,9 @@ export default {
 			],
 		},
 		{
-			name: 'verifiedAt',
+			name: 'verifiedAtMs',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Sourcify_Rest,

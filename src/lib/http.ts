@@ -41,7 +41,7 @@ const resolveCorsEnabled = (url: string, options: CorsAwareFetchOptions): boolea
 		)
 )
 
-const httpFetch = async (
+export const corsFetch = async (
 	url: string,
 	options: CorsAwareFetchOptions,
 ): Promise<Response> => (
@@ -141,7 +141,7 @@ export const getText = async (
 	url: string,
 	options: CorsAwareFetchOptions,
 ): Promise<string> => {
-	const response = await httpFetch(url, options)
+	const response = await corsFetch(url, options)
 
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage(url, response))
@@ -157,7 +157,7 @@ export const getJson = async <T = JsonValue>(
 	url: string,
 	options: CorsAwareFetchOptions,
 ): Promise<T> => {
-	const response = await httpFetch(url, options)
+	const response = await corsFetch(url, options)
 
 	if (!response.ok)
 		throw new Error(await fetchFailedMessage(url, response))

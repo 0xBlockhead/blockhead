@@ -118,7 +118,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-text="font-monospace">
+		<span>
 			FID {String(entityId.fid)}
 		</span>
 	{/snippet}
@@ -164,56 +164,72 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={connection}
-				placeholderText="Loading profile…"
-			>
-				{#snippet Pending()}{/snippet}
-				{#snippet children(connection)}
-					<div>
-						<dt>Link role</dt>
-						<dd data-text="muted">
-							Binds a Farcaster signer to a numeric FID so hub APIs can load custody, verifications, and casts for that identity. This is social-graph state—not wallet session keys, automated trading bots, or IPFS storage.
-						</dd>
-					</div>
-					{#if open}
-						<div>
-							<dt>Bio</dt>
-							<dd>
+			<div>
+				<dt>Link role</dt>
+				<dd data-text="muted">
+					Binds a Farcaster signer to a numeric FID so hub APIs can load custody, verifications, and casts for that identity. This is social-graph state—not wallet session keys, automated trading bots, or IPFS storage.
+				</dd>
+			</div>
+			{#if open}
+				<div>
+					<dt>Bio</dt>
+					<dd>
+						<ResourceBoundary
+							resource={connection}
+							placeholderText="Loading profile…"
+						>
+							{#snippet Pending()}{/snippet}
+							{#snippet children(connection)}
 								{#if connection.bio != null && connection.bio !== ''}
 									{connection.bio}
 								{:else}
 									<span data-text="muted">No profile bio is set.</span>
 								{/if}
-							</dd>
-						</div>
-					{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open && connection.custody}
-						<div>
-							<dt>Custody</dt>
-							<dd>
+			{#if open && connection.custody}
+				<div>
+					<dt>Custody</dt>
+					<dd>
+						<ResourceBoundary
+							resource={connection}
+							placeholderText="Loading profile…"
+						>
+							{#snippet Pending()}{/snippet}
+							{#snippet children(connection)}
 								<TruncatedValue
 									value={connection.custody}
 									format={TruncatedValueFormat.Visual}
 								/>
-							</dd>
-						</div>
-					{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					{#if open && connection.signedAt !== undefined}
-						<div>
-							<dt>Signed in</dt>
-							<dd>
+			{#if open && connection.signedAt !== undefined}
+				<div>
+					<dt>Signed in</dt>
+					<dd>
+						<ResourceBoundary
+							resource={connection}
+							placeholderText="Loading profile…"
+						>
+							{#snippet Pending()}{/snippet}
+							{#snippet children(connection)}
 								<Timestamp
 									timestamp={connection.signedAt}
 									format={TimestampFormat.Both}
 								/>
-							</dd>
-						</div>
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 		</dl>
 	{/snippet}
 

@@ -4,10 +4,11 @@
  * @see https://docs.neynar.com/reference
  */
 
-import { throwHttpError } from '$/lib/http.ts'
+import { corsFetch, throwHttpError } from '$/lib/http.ts'
 import { optionalPublicEnvString } from '$/lib/sources.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import Neynar from '$/sources/Neynar/index.ts'
 import { baseUrl } from '$/sources/Neynar/Rest/constants.ts'
 
 export const neynarRequestHeaders = (
@@ -30,9 +31,12 @@ export async function neynarFetch<T>(
 ): Promise<T | undefined> {
 	const headers = neynarRequestHeaders(publicEnv)
 	if (headers == null) return undefined
-	const res = await fetch(`${baseUrl}${path}`, {
-		...init,
-		headers: { ...headers, ...init?.headers },
+	const res = await corsFetch(`${baseUrl}${path}`, {
+		origins: Neynar.origins ?? [],
+		init: {
+			...init,
+			headers: { ...headers, ...init?.headers },
+		},
 	})
 	if (res.status === 401 || res.status === 403) return undefined
 	if (!res.ok) await throwHttpError('Neynar API', res)

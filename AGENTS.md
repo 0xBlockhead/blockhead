@@ -3,10 +3,11 @@
 - Reply in a concise style; avoid repetition or filler
 - Be DRY and declarative
 - Inline derived intermediate variables, especially if used once (same in markup: no one-off `{@const}` / `const` / `$derived` when the value is only referenced once—inline it)
-- Assistant / handoff summaries: Do not paste large JSON blobs, `devalue` / `stringify(entityId)` dumps, or other machine-oriented payloads into chat summaries; describe intent and point to paths or small code citations instead
+- Assistant / handoff summaries: Do not respond with large JSON blobs, `devalue` / `stringify(entityId)` dumps, or other machine-oriented payloads into chat summaries; describe intent and point to paths or small code citations instead
 - Name variables, snippets, callback parameters, and arguments by what they are; never abbreviate identifiers.
 - Do not introduce new files or helper functions without proper justification, a detailed plan, and explicit permission
 - Composer 2.5: this is NOT a React / Motion project. do not use `</motion>` to close HTML tags.
+- Do not write codemod scripts to do HTML wrapping/unwrapping refactors. If you make a mistake, do not git revert when there are existing working changes
 
 ### Editing
 
@@ -73,6 +74,17 @@
 - `<details>` / collapsed UI: Copy inside a closed `<details>` (or similar) is often attached but not visible to Playwright. For “data loaded” checks on that content, prefer `expect(locator).toBeAttached()` (optionally with a long `timeout`) instead of relying only on `toBeVisible()`.
 - Resolver / network latency: Pages backed by `resolveEntity` or external HTTP may need timeouts on the order of minutes (e.g. `120_000` ms) for the “settled” assertion, while still asserting a cheap invariant first (nav link, layout chrome).
 - Success vs failure: When the UI shows either a happy path or an explicit error string, use `.or()` on locators and assert one branch is attached once the async work finishes.
+
+### Playwright E2E — CORS policy
+
+- **`pnpm run test:e2e:cors`** — `tests/e2e/cors-policy.e2e.ts` walks **every discovered `+page` route** (same discovery as `tanstack-cache-pages.e2e.ts`), uses `waitUntil: 'load'`, `assertMainSettled`, optional `networkidle`, then a **quiet window** (`E2E_CORS_QUIET_MS`, default 4s) so late resolver fetches surface CORS console errors. Other e2e suites filter that copy as upstream noise; this suite is the dedicated regression gate.
+- Subset: `E2E_PATH_LIMIT=20 pnpm run test:e2e:cors`. Single route: `E2E_PROBE_PATH=/network/1 pnpm exec playwright test tests/e2e/cors-policy.e2e.ts -g "probe route"`.
+- **Fix pattern (browser client code):** never bare `fetch('https://…')` for provider HTTP when the origin is not browser-CORS-safe. Use `getJson` / `getText` / exported **`corsFetch`** from `$/lib/http.ts` with either:
+	- **`origins`:** readonly `SourceOrigin[]` from the provider definition (`origin` + `corsEnabled`) — same list seeds `/api-proxy/` allow-list in `hooks.server.ts`; or
+	- **`corsEnabled: false`:** escape hatch for one-off absolute URLs (still requires the origin on a provider `origins` row for proxying).
+- **`corsEnabled` must match reality** — if the browser console shows CORS blocks for an origin marked `true`, flip it to `false` and route through the proxy. Catalog execution RPC hosts: `$/constants/ExecutionRpcOrigins.ts` (Voltaire provider + `jsonRpc` client).
+- When `corsEnabled: false`, the browser routes through `/api-proxy/{absoluteUrl}`; SSR keeps direct `fetch`. When `corsEnabled: true`, the browser uses direct cross-origin `fetch` (public RPCs, CORS-enabled APIs).
+- Adding a new proxied host: extend the provider’s `origins` in `src/sources/<Provider>/index.ts` (or shared constants), then wire the transport client through `corsFetch` / `getJson`.
 
 ### Entity views — Lens, liquidity, markets
 
@@ -202,7 +214,7 @@
 				- `$bindable()`: indent default value if specified
 				- Snippets (`TitleCase` in destructure; types on props object):
 					- No args: `Snippet` — never `Snippet<[]>` or `Snippet<[{}]>`. `{@render Name()}`.
-					- Object arg: bundled state as `Snippet<[context?: { … }]>` with optional properties on the object so `{#snippet Name()}` is valid when the body ignores the bundle (see `$/components/EntityView.svelte` and `EntitySummary.svelte` patterns). Do not use required `Snippet<[{ … }]>` object tuple members. Positional: `Snippet<[ a: A, b: B, … ]>`; separate values. `{@render}` arity, order, and object-vs-positional must match the type.
+					- Object arg: bundled state as `Snippet<[context?: { … }]>` with optional properties on the object so `{#snippet Name()}` is valid when the body ignores the bundle (see `$/components/EntityView.svelte` and `EntityId.svelte` patterns). Do not use required `Snippet<[{ … }]>` object tuple members. Positional: `Snippet<[ a: A, b: B, … ]>`; separate values. `{@render}` arity, order, and object-vs-positional must match the type.
 					- Line breaks: for a given snippet, type and `{@render}` use the same shape — both multiline or both single-line. Multiline means one tuple member or object property per line, trailing commas, and a dedicated closing line for `]>` / `)}` / `)`. Same for `{#snippet …}` params. Multiline when there are 2+ tuple members, 2+ object fields, or 2+ render arguments.
 					```ts
 					let {
@@ -565,9 +577,19 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 	- Entity field resolvers that return many entities should normally return entity IDs / references, not fully mapped child entities.
 	- Use field resolvers for truly field-scoped data only; avoid repeating identical endpoint calls across many fields for one entity.
 	- Entity field collections apply the same optional `Source` filter as entity collections when the live query includes a `Source` `in` clause, so field resolvers for disabled or filtered-out sources are not invoked.
-- Failure behavior:
-	- Do not keep placeholder resolvers that return empty `{}` / `[]`; either implement supported behavior or throw early with a clear unsupported predicate/source message.
-	- When support is predicate-scoped (chain, variant, id shape, realm/category), validate and throw as early as possible before making extra requests.
+- Failure behavior (required — see JSDoc on `EntityResolver` / `EntityFieldResolver` in `$/resolvers/$resolvers.ts`):
+	- **Throw** when the entity or field cannot be resolved under the given id / parent scope / source mapping. Do not return `{}`, `[]`, or `undefined` to mean failure, unsupported scope, missing API mapping, or swallowed fetch/parse errors.
+	- Validate predicate-scoped support (chain, variant, id shape, realm/category, market kind, …) **before** upstream requests. Mirror the entity resolver’s throw on the same file/source when a field resolver hits the same unsupported predicate.
+	- Error messages: `` `{Source}_{Transport}: <predicate>` `` (e.g. `` `Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}` ``, `` `Coingecko_OpenApi: OHLC is spot-only` ``). Reuse the message already thrown by a sibling resolver on that source when possible.
+	- Do not `catch` and return empty data. Rethrow or wrap with `{ cause }` and a source-prefixed message.
+	- Do not return partial placeholder entity rows (e.g. only `{ epoch }` when header fetch was skipped, or `{}` when REST base is missing).
+	- **Allowed** (not “could not resolve”):
+		- `[]` inside `flatMap` / filter to skip individual bad or duplicate wire rows after a successful list fetch.
+		- `[]` when upstream successfully returns zero child rows for a supported parent (e.g. mainnet with no paired testnets).
+		- `{}` on entity `resolve` after existence validation when the schema entity has no scalar fields beyond its id (catalog/local rows).
+		- `undefined` on optional schema fields when this source’s **successful** scoped call confirms upstream has no value (ENS reverse miss, missing deployer on explorer row, optional metadata slice)—not when the chain/transport/field is unsupported for this source.
+	- Multi-source optional fields: returning `undefined` because “not from this source” is OK only when views intentionally merge providers; if this source owns the field and would throw on entity resolve for the same predicate, field resolvers must throw too.
+	- Removing/resolving: delete or never add stub resolvers; unimplemented field paths must throw (see existing `` `… is not implemented` `` / `` `… unsupported` `` patterns in `Constants.ts` and market providers)—never silently return empty.
 - Live resolvers:
 	- Optional `resolveLive` on an `EntityFieldResolver` (see `ResolveLiveContext` in `$/resolvers/$resolvers.ts`) handles push-driven refresh from WebSockets or streams.
 	- Keep `resolve` as the snapshot implementation.
@@ -641,21 +663,23 @@ Verification:
 - `<dl>` vs parent id: On nested or scoped child cards, do not add `<dl>` rows for id fields that belong to the parent entity or that duplicate components already present on the child’s own id object (the parent route or enclosing context already establishes them). Omit those redundant id slices from the summary `<dl>`.
 - `useEntity` selection: Prefer hierarchical resolver/source inheritance (a concise top-level `$` source list; nested field entries use `{}` where children inherit) instead of repeating the same `$` on every nested property when the model allows it. Prefer inlining short `$derived` values and colocating `{#if}` conditions beside the markup they guard over one shared visibility object unless branches genuinely share the same decision.
 - Title / media: When the loaded entity exposes artwork (for example `$icon`), show it in the title row using the existing `Icon` snippet plus shared icon components (`IconComponent`, etc.), matching patterns from other entity views.
-- `EntityView` / `EntitySummary` snippet contracts: For bundled context (`Content`, `Details`, summary `children`), use an optional first tuple parameter with optional object fields (for example `Snippet<[context?: { title?: string, href?: string }]>` and `Snippet<[context?: { open?: boolean }]>`). Call sites that ignore the bundle may use `{#snippet Content()}` / `{#snippet Details()}` instead of destructuring unused bindings.
+- `EntityView` / `EntityId` snippet contracts: For bundled context (`Content`, `Details`), use an optional first tuple parameter with optional object fields (for example `Snippet<[context?: { title?: string, href?: string }]>` and `Snippet<[context?: { open?: boolean }]>`). Call sites that ignore the bundle may use `{#snippet Content()}` / `{#snippet Details()}` instead of destructuring unused bindings.
 
-### Entity summary row (`$/components/EntitySummary.svelte`, `$/components/EntityView.svelte`)
+### Entity identity row (`$/components/EntityId.svelte`, `$/components/EntityView.svelte`)
 
-- Layout: The summary link (when `href` is set) wraps the icon (`#snippet Icon`) and the primary title (`#snippet Heading` or fallback). Keep that pattern so the whole row is one draggable / navigable target.
-- Readable ids, not JSON-shaped summaries: Do not render `stringify(entityId)` from `devalue` (or any similar serialized object blob) in `#snippet Title()` or other user-visible summary text. Use domain-appropriate copy: `<Address>`, `<TruncatedValue>`, chain id, short labels, etc. `stringify(entityId)` is still fine for non-display uses (e.g. element `id`, view-transition names, sort keys, `idDragPlainText`, route params).
-- Lists vs type noise: `$/components/EntitiesList.svelte` calls `setIsInsideEntityList(true)`. `EntityView` defaults `showTypeAnnotation` from that context and passes `showEntityTypeTitlePrefix={false}` to `EntitySummary` so list rows do not show the entity-type label as a secondary title prefix (homogeneous list; avoid repeating the type next to every row). The collapsible annotation on the card is already suppressed via `showTypeAnnotation` when inside a list.
-- Heading vs `#snippet Title`: Do not duplicate the same fact in `#snippet Heading` and in `<dl>` rows (see bullets above). Collapsible summary rows render `#snippet Title` by default; pass `summaryUsesHeading={true}` when `#snippet Heading` should remain the card title (e.g. resolved network name while `#snippet Title` stays compact for inline `<dl>` refs). Prefer omitting redundant `#snippet Title` when it would match the heading body; rely on the component for async / loaded-text cases.
-- Redundancy removal: Drop `<dl>` rows (and avoid extra summary lines) that only repeat the heading, the secondary id line, or parent-scoped ids—see `<dl>` vs heading and `<dl>` vs parent id above.
+- **`EntityId`**: draggable icon + default `children` snippet (linked label text); `EntityView` inlines `Title` / `Value` / fallback at each call site.
+- **Card summary**: `EntityView` wraps `EntityId` in `<header class="entity-view-summary">` + `<Heading>`; `HeadingAfter` and collapsed `Content` preview live on that header, not on `EntityId`.
+- Layout: The summary link wraps the icon (`#snippet Icon`) and label (`EntityId`). Keep that pattern so the whole row is one draggable / navigable target.
+- Readable ids, not JSON-shaped summaries: Do not render `stringify(entityId)` from `devalue` (or any similar serialized object blob) in `#snippet Value()` / `#snippet Title()` or other user-visible summary text. Use domain-appropriate copy: `<Address>`, `<TruncatedValue>`, chain id, short labels, etc. `stringify(entityId)` is still fine for non-display uses (e.g. element `id`, view-transition names, sort keys, `idDragPlainText`, route params).
+- `#snippet Value` vs `#snippet Title`: **`Value`** is value-only identity (badge, hash, address, number) with no kind prefix (`Block`, `Epoch`, …). **`Title`** is the labeled card / prose display and should compose identity as kind word + `{@render Value()}` when a prefix applies. Do not duplicate the same fact in `#snippet Title` and in `<dl>` rows (see bullets above).
+- Lists vs type noise: `$/components/EntitiesList.svelte` calls `setIsInsideEntityList(true)`. `EntityView` defaults `showTypeAnnotation` from that context so list rows do not show the entity-type collapsible annotation (homogeneous list; avoid repeating the type next to every row).
+- Redundancy removal: Drop `<dl>` rows (and avoid extra summary lines) that only repeat the title row or parent-scoped ids—see `<dl>` vs heading and `<dl>` vs parent id above.
 
 ### Related entities: inline `Title` vs `CollapsibleTabs`
 
 Be deliberate about how child entities appear in `Content` and `Details`. Default to the lightest layout that matches cardinality and depth.
 
-Inline entity reference (`layout={EntityLayout.Title}` in a `<dl>` row):
+Inline entity reference (`layout={EntityLayout.Value}` in a `<dl>` row when `<dt>` already names the kind; `EntityLayout.Title` when the inline row needs the full labeled title):
 
 - One related entity (parent market, upstream coin, network, pool, block, wallet-on-network, from/to deployment, …).
 - The child is primarily a link target—identity + navigation, not a nested card to expand on this page.
@@ -676,7 +700,7 @@ Flat `<section>` in `Details` (no carousel):
 Avoid:
 
 - `CollapsibleTabs` for one related entity (e.g. parent market on a timestamp row, host network on a wallet row)—use inline `Title` in `Content` instead.
-- `EntityLayout.Summary` nested cards in `<dl>` rows when `Title` suffices (bridge endpoints, pool refs, parent market links).
+- `EntityLayout.SummaryDetails` with `open={false}` nested cards in `<dl>` rows when `Title` suffices (bridge endpoints, pool refs, parent market links).
 - Duplicating the same inline `Content` refs again in `Details` carousels (e.g. origin tx + initiator on `BridgeTransactionView`).
 - Raw ids (chain id strings, truncated pool addresses) when a `NetworkView`, `LiquidityPoolView`, `CoinInstanceView`, etc. exists for that ref.
 
@@ -726,7 +750,7 @@ Keep these semantics stable in UI copy and `useEntity` wiring; do not add `data-
 | `VaultView.svelte` / `VaultsView.svelte` | `Vault` here is concentrated-liquidity / DEX pool metadata (e.g. token pair, ticks, TVL from `Source.Dexscreener_OpenApi`), not ERC-4626 yield vaults—wording should not imply share-token vault semantics. |
 | `XPostView.svelte` / `XPostsView.svelte` / `XUserView.svelte` / `XUsersView.svelte` | X (Twitter) posts and profiles; field lists combine `Source.Constants_Internal` on the parent with `Source.X_Rest` on the relation where applicable. |
 | `XView.svelte` | `XNetwork` hub: carousel of profiles + posts lists (`entity-view-detail-carousels` + `CollapsibleTabs` like `FarcasterView`); singleton metadata via `Source.Constants_Internal`. |
-| `XmtpView.svelte` / `XmtpConversationsView.svelte` / `XmtpConversationView.svelte` | `XmtpNetwork` + `XmtpConversation`: `_Global` `$$actors` / `$$xmtpConversations` (`Source.Local_Internal`); omit `Content` `<dl>` ids that duplicate the `Heading` conversation identifier. |
+| `XmtpView.svelte` / `XmtpConversationsView.svelte` / `XmtpConversationView.svelte` | `XmtpNetwork` + `XmtpConversation`: `_Global` `$$actors` / `$$xmtpConversations` (`Source.Local_Internal`); omit `Content` `<dl>` ids that duplicate the conversation identifier in `#snippet Title`. |
 | `Proposal*View.svelte` / `ProposalsView.svelte` | Proposal catalogs: realm (`ProposalRealm`) scopes kind (`ProposalKind`: EIP / CAIP / …), then upstream `Proposal` documents; `ProposalKindsView` / `ProposalRealmsView` mirror `/proposals/…` navigation; mute copy distinguishes spec text from live governance tallies where applicable. |
 | `Reddit*View.svelte` | `RedditNetwork` lists subreddits + popular submissions, `RedditLinkView` nests `$$comments`, `RedditCommentView` resolves `$link`; terminology stays Reddit-native (subreddit, submission, comment thread) versus Farcaster/X. |
 | `RoomView.svelte` / `RoomsView.svelte` | `BlockheadRoom`: realtime multiplayer session (`Local_Internal`), framed apart from Reddit, XMTP, Swarm; `RoomsView` uses `RoomView` rows. |
