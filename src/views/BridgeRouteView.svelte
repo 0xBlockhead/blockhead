@@ -104,10 +104,14 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			LI.FI quote
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

@@ -21,6 +21,9 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.Market_Timestamp,
 			resolve: async (entityId) => {
+				if (entityId.$market.marketKind !== MarketKind.Spot) {
+					throw new Error('TradingView_Rest: Market_Timestamp is spot-only')
+				}
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 				const { getTradingViewCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
 				const coinId = (
@@ -125,8 +128,17 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => {
-				throw new Error('TradingView_Rest: $$marketsWithCoinAsQuote is not implemented')
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+				const { coinById } = await import('$/constants/Coin.ts')
+				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
+				if (coinById[entityId.coinId as keyof typeof coinById] == null) {
+					throw new Error(`TradingView_Rest: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`)
+				}
+				return (
+					tradingViewMarketByCoinId[entityId.coinId] == null ?
+						[]
+					:	[]
+				)
 			},
 		}),
 
@@ -172,6 +184,9 @@ export default {
 			entityType: EntityType.MarketPrice,
 			fieldName: '$$quotes',
 			resolve: async (entityId) => {
+				if (entityId.$market.marketKind !== MarketKind.Spot) {
+					throw new Error('TradingView_Rest: MarketPrice $$quotes is spot-only')
+				}
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 				const { getTradingViewCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
 				const coinId = (
@@ -200,6 +215,9 @@ export default {
 			entityType: EntityType.Market,
 			fieldName: '$$quotes',
 			resolve: async (entityId) => {
+				if (entityId.marketKind !== MarketKind.Spot) {
+					throw new Error('TradingView_Rest: Market $$quotes is spot-only')
+				}
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 				const { getTradingViewCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
 				const coinId = (

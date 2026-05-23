@@ -442,6 +442,104 @@ const loadedSubsetMetadataKey = (loadSubsetOptions: LoadSubsetOptions) => (
 		.join(':')
 )
 
+type BlockheadPersistenceProbeDecision = (
+	| 'hydrated-rows'
+	| 'loaded-marker'
+	| 'snapshot'
+	| 'remote'
+)
+
+type BlockheadPersistenceProbeEvent = (
+	| {
+		kind: 'loadSubset'
+		collectionId: string
+		decision: BlockheadPersistenceProbeDecision
+		loadedKey: string
+		at: number
+	}
+	| {
+		kind: 'queryFn'
+		collectionId: string
+		loadedKey: string
+		at: number
+	}
+	| {
+		kind: 'markLoaded'
+		collectionId: string
+		loadedKey: string
+		at: number
+	}
+)
+
+const PERSISTENCE_PROBE_STORAGE_KEY = '__blockheadPersistenceProbe'
+
+const readPersistenceProbeFromStorage = (): BlockheadPersistenceProbeEvent[] => {
+	if (typeof sessionStorage === 'undefined') return []
+	const stored = sessionStorage.getItem(PERSISTENCE_PROBE_STORAGE_KEY)
+	if (stored == null || stored === '') return []
+	try {
+		return JSON.parse(stored) as BlockheadPersistenceProbeEvent[]
+	} catch {
+		return []
+	}
+}
+
+const writePersistenceProbeToStorage = (
+	events: BlockheadPersistenceProbeEvent[],
+) => {
+	if (typeof sessionStorage === 'undefined') return
+	sessionStorage.setItem(PERSISTENCE_PROBE_STORAGE_KEY, JSON.stringify(events))
+}
+
+const pushPersistenceProbeEvent = (
+	event: BlockheadPersistenceProbeEvent,
+) => {
+	if (typeof window === 'undefined') return
+	const windowWithProbe = window as typeof window & {
+		__blockheadPersistenceProbe?: BlockheadPersistenceProbeEvent[]
+	}
+	const probe = (
+		windowWithProbe.__blockheadPersistenceProbe
+		?? readPersistenceProbeFromStorage()
+	)
+	probe.push(event)
+	windowWithProbe.__blockheadPersistenceProbe = probe
+	writePersistenceProbeToStorage(probe)
+}
+
+const recordPersistenceLoadSubsetDecision = (
+	collectionId: string,
+	decision: BlockheadPersistenceProbeDecision,
+	loadedKey: string,
+) => {
+	pushPersistenceProbeEvent({
+		kind: 'loadSubset',
+		collectionId,
+		decision,
+		loadedKey,
+		at: Date.now(),
+	})
+}
+
+const wrapQueryFnWithPersistenceProbe = <
+	_QueryContext extends { meta?: { loadSubsetOptions?: LoadSubsetOptions } },
+	_Result,
+>(
+	collectionId: string,
+	queryFn: (_QueryContext) => Promise<_Result>,
+) => async (queryContext: _QueryContext) => {
+	const loadSubsetOptions = queryContext.meta?.loadSubsetOptions
+	if (loadSubsetOptions != null)
+		pushPersistenceProbeEvent({
+			kind: 'queryFn',
+			collectionId,
+			loadedKey: loadedSubsetMetadataKey(loadSubsetOptions),
+			at: Date.now(),
+		})
+
+	return queryFn(queryContext)
+}
+
 const valueAtPath = (value: unknown, path: readonly unknown[]): unknown => (
 	path.reduce<unknown>((current, part) => (
 		current != null && typeof current === 'object' ?
@@ -572,7 +670,10 @@ const collectionSnapshotHasChanges = <
 		})
 }
 
-const persistOnDemandSubsets = <_Options>(options: _Options) => {
+const persistOnDemandSubsets = <_Options>(
+	options: _Options,
+	probeCollectionId: string,
+) => {
 	const outerSync = (options as _Options & {
 		sync: PersistOnDemandSubsetSync<object, string | number>
 	}).sync
@@ -603,13 +704,25 @@ const persistOnDemandSubsets = <_Options>(options: _Options) => {
 							|| collectionHasHydratedSubset(params.collection, loadSubsetOptions)
 						)
 
-						if (collectionHasHydratedSubset(params.collection, loadSubsetOptions))
+						if (collectionHasHydratedSubset(params.collection, loadSubsetOptions)) {
+							recordPersistenceLoadSubsetDecision(
+								probeCollectionId,
+								'hydrated-rows',
+								loadedKey,
+							)
 							return true
+						}
 						if (
 							params.metadata?.collection.get(loadedKey) === true
 							&& everyListedSourceHydrated
-						)
+						) {
+							recordPersistenceLoadSubsetDecision(
+								probeCollectionId,
+								'loaded-marker',
+								loadedKey,
+							)
 							return true
+						}
 
 						const markLoaded = () => {
 							if (params.begin == null || params.commit == null || params.metadata == null)
@@ -623,8 +736,19 @@ const persistOnDemandSubsets = <_Options>(options: _Options) => {
 							params.begin()
 							params.metadata.collection.set(loadedKey, true)
 							params.commit()
+							pushPersistenceProbeEvent({
+								kind: 'markLoaded',
+								collectionId: probeCollectionId,
+								loadedKey,
+								at: Date.now(),
+							})
 						}
 						const loadRemoteAndMarkLoaded = () => {
+							recordPersistenceLoadSubsetDecision(
+								probeCollectionId,
+								'remote',
+								loadedKey,
+							)
 							const remote = syncResult.loadSubset?.(loadSubsetOptions)
 							if (remote != null && typeof remote === 'object' && 'then' in remote)
 								return remote.then(() => {
@@ -642,8 +766,14 @@ const persistOnDemandSubsets = <_Options>(options: _Options) => {
 
 						if (hasSnapshotChanges === undefined)
 							return loadRemoteAndMarkLoaded()
-						if (hasSnapshotChanges && everyListedSourceHydrated)
+						if (hasSnapshotChanges && everyListedSourceHydrated) {
+							recordPersistenceLoadSubsetDecision(
+								probeCollectionId,
+								'snapshot',
+								loadedKey,
+							)
 							return true
+						}
 
 						return loadRemoteAndMarkLoaded()
 					},
@@ -669,6 +799,7 @@ const createEntityCollection = <
 	queryClient: QueryClient
 	schemaVersion: number
 }) => {
+	const entityCollectionId = `EntityCollection:${entityType}`
 	const collection = createCollection(
 		persistedCollectionOptions<
 			EntityCollectionItem<_Schema, _EntityType>,
@@ -706,7 +837,9 @@ const createEntityCollection = <
 
 				staleTime: collectionStaleTime,
 
-				queryFn: async (queryContext) => {
+				queryFn: wrapQueryFnWithPersistenceProbe(
+					entityCollectionId,
+					async (queryContext) => {
 					const subsetBase = parseLoadSubsetForQueryFn(queryContext.meta?.loadSubsetOptions)
 
 					const { filters } = subsetBase
@@ -800,6 +933,7 @@ const createEntityCollection = <
 							.flat()
 					) as EntityCollectionItem<_Schema, _EntityType>[]
 				},
+				),
 
 				getKey: (entityItem) => (
 					[
@@ -810,7 +944,7 @@ const createEntityCollection = <
 				),
 
 				queryClient,
-			})),
+			}), entityCollectionId),
 
 			id: `EntityCollection:${entityType}`,
 
@@ -842,6 +976,7 @@ const createEntityFieldCollection = <
 	queryClient: QueryClient
 	schemaVersion: number
 }) => {
+	const entityFieldCollectionId = `EntityFieldCollection:${entityType}:${fieldDefinition.name}`
 	const collection = createCollection(
 		persistedCollectionOptions<
 			EntityFieldCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>,
@@ -880,7 +1015,9 @@ const createEntityFieldCollection = <
 
 				staleTime: collectionStaleTime,
 
-				queryFn: async (queryContext) => {
+				queryFn: wrapQueryFnWithPersistenceProbe(
+					entityFieldCollectionId,
+					async (queryContext) => {
 					const subsetBase = parseLoadSubsetForQueryFn(queryContext.meta?.loadSubsetOptions)
 
 					const { filters } = subsetBase
@@ -1026,11 +1163,12 @@ const createEntityFieldCollection = <
 
 					return loadedRows
 				},
+				),
 
 				getKey: (entityFieldItem) => entityFieldCollectionItemKey(entityFieldItem),
 
 				queryClient,
-			})),
+			}), entityFieldCollectionId),
 
 			id: `EntityFieldCollection:${entityType}:${fieldDefinition.name}`,
 

@@ -38,7 +38,7 @@
 	const onNestedCollapsibleClose = getOnNestedCollapsibleClose()
 
 
-	// State
+	// Props
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
@@ -64,6 +64,7 @@
 
 		Title,
 		Value,
+		Heading,
 		Icon,
 		HeadingAfter,
 		TypeAnnotationTooltip,
@@ -90,6 +91,8 @@
 			Title?: Snippet
 			/** Value-only identity; used when `layout` is `EntityLayout.Value`. */
 			Value?: Snippet
+			/** Loaded summary label when richer than `Title`; card header prefers this over `Title`. */
+			Heading?: Snippet
 			Icon?: Snippet
 			HeadingAfter?: Snippet
 			/** Tooltip body (e.g. `<p>` paragraphs) shown when hovering the entity type label; omitted when `showTypeAnnotation` is false. */
@@ -107,6 +110,9 @@
 		SvelteHTMLElements['article']
 	> = $props()
 
+
+	// (Derived)
+
 	const entityTitle = $derived(
 		title ?? entityDefinitionByType[entityType].label,
 	)
@@ -118,7 +124,7 @@
 
 	// Components
 	import Collapsible from '$/components/Collapsible.svelte'
-	import Heading from '$/components/Heading.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import EntityIdComponent from './EntityId.svelte'
 </script>
@@ -142,7 +148,7 @@
 			data-row="wrap"
 		>
 			<div data-row="start wrap">
-				<Heading>
+				<HeadingComponent>
 					<EntityIdComponent
 						{entityId}
 						{href}
@@ -150,7 +156,9 @@
 						{Icon}
 					>
 						{#snippet children()}
-							{#if Title}
+							{#if Heading}
+								{@render Heading()}
+							{:else if Title}
 								{@render Title()}
 							{:else if Value}
 								{@render Value()}
@@ -159,7 +167,7 @@
 							{/if}
 						{/snippet}
 					</EntityIdComponent>
-				</Heading>
+				</HeadingComponent>
 
 				{#if HeadingAfter}
 					{@render HeadingAfter()}

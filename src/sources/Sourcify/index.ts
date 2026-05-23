@@ -12,7 +12,7 @@ export default {
 	origins: [
 		{
 			origin,
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 	],
 	sources: [

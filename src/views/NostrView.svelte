@@ -123,6 +123,14 @@
 	{...entityViewRest}
 	title="Nostr"
 >
+	{#snippet Value()}
+		{entityId.scope}
+	{/snippet}
+
+	{#snippet Title()}
+		Nostr
+	{/snippet}
+
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			Relays propagate signed events over WebSocket (<code>wss://</code>). Profiles (kind 0), notes (kind 1), reposts (kind 6), reactions (kind 7), and articles (kind 30023) load here via Constants seeds plus NostrBand and Primal HTTP indexers—not direct relay subscriptions.
@@ -365,16 +373,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 36ch;
-			}
-		}
-	}
-</style>

@@ -8,7 +8,7 @@
 	import { stringify } from 'devalue'
 
 
-	// State
+	// Props
 	let {
 		children,
 		params,

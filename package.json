@@ -19,9 +19,9 @@
 		"sources:graphql:download:thegraph:ens": "pnpm run sources:graphql -- download TheGraph/Graphql/Ens",
 		"sources:graphql:generate:thegraph:ens": "pnpm run sources:graphql -- generate TheGraph/Graphql/Ens",
 		"sources:graphql:sync:thegraph:ens": "pnpm run sources:graphql -- sync TheGraph/Graphql/Ens",
-		"sources:graphql:download:thegraph:messari:aavev3:ethereum": "pnpm run sources:graphql -- download TheGraph/Graphql/Messari/AaveV3/Ethereum",
-		"sources:graphql:generate:thegraph:messari:aavev3:ethereum": "pnpm run sources:graphql -- generate TheGraph/Graphql/Messari/AaveV3/Ethereum",
-		"sources:graphql:sync:thegraph:messari:aavev3:ethereum": "pnpm run sources:graphql -- sync TheGraph/Graphql/Messari/AaveV3/Ethereum",
+		"sources:graphql:download:lens": "pnpm run sources:graphql -- download Lens/Graphql",
+		"sources:graphql:generate:lens": "pnpm run sources:graphql -- generate Lens/Graphql",
+		"sources:graphql:sync:lens": "pnpm run sources:graphql -- sync Lens/Graphql",
 		"sources:openapi": "pnpm exec tsx scripts/openapi-source.ts",
 		"sources:openapi:download:coinpaprika": "pnpm run sources:openapi -- download Coinpaprika",
 		"sources:openapi:generate:coinpaprika": "pnpm run sources:openapi -- generate Coinpaprika",
@@ -36,10 +36,13 @@
 		"sources:openapi:generate:coingecko": "pnpm run sources:openapi -- generate Coingecko",
 		"sources:openapi:sync:coingecko": "pnpm run sources:openapi -- sync Coingecko",
 		"sources:lifi:check-bridge-tools": "pnpm exec tsx scripts/lifi-bridge-tools-diff.ts",
+		"sources:precompiles:sync": "pnpm exec tsx scripts/precompiles-source.ts sync",
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
-		"test:e2e:cors": "playwright test tests/e2e/cors-policy.e2e.ts"
+		"test:e2e:cors": "playwright test tests/e2e/cors-policy.e2e.ts",
+		"test:e2e:persistence": "PLAYWRIGHT_DEDICATED_SERVER=1 E2E_REAL_PERSISTENCE_PATHS=/network/1,/networks playwright test tests/e2e/tanstack-db-persistence.e2e.ts",
+		"test:e2e:persistence:full": "PLAYWRIGHT_DEDICATED_SERVER=1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts"
 	},
 	"devDependencies": {
 		"@dotenvx/dotenvx": "^1.61.1",

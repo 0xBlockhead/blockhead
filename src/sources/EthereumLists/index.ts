@@ -14,11 +14,11 @@ export default {
 	origins: [
 		{
 			origin,
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 		{
 			origin: githubApiOrigin,
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 	],
 	sources: [

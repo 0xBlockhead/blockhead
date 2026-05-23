@@ -1,9 +1,14 @@
 <script lang="ts">
 	// Context
 	import { resolve } from '$app/paths'
-	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 
+
+	// Props
 	let { children } = $props()
+
+
+	// Components
+	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 </script>
 
 

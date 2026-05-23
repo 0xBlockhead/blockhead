@@ -1,12 +1,19 @@
 <script lang="ts">
+	// Types/constants
 	import type { PageProps } from './$types.ts'
 
+
+	// Context
 	import { resolve } from '$app/paths'
 
+
+	// Props
+	let { data }: PageProps = $props()
+
+
+	// Components
 	import Page from '$/components/Page.svelte'
 	import Erc4337SmartAccountView from '$/views/Erc4337SmartAccountView.svelte'
-
-	let { data }: PageProps = $props()
 </script>
 
 

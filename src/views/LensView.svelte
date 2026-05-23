@@ -71,11 +71,17 @@
 		</p>
 	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Value()}
+		{entityId.scope}
 
-		<span>
-			{entityId.scope}
-		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		Lens
+	{/snippet}
+
+	{#snippet Heading()}
+		{@render Title()}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -128,13 +134,13 @@
 		<div
 			class="lens-network-detail-carousels"
 			data-column="gap-3"
+			data-carousel-basis="40ch"
 		>
 			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-registry`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
-					style: '--carousel-basis: 40ch',
 				}}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
@@ -226,16 +232,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.lens-network-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 40ch;
-			}
-		}
-	}
-</style>

@@ -16,18 +16,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import BlockheadAgentConversationView from '$/views/BlockheadAgentConversationView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -55,9 +43,20 @@
 	> = $props()
 
 
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
 	const globalId = (
 		{} satisfies EntityId<typeof schema, EntityType._Global>
 	)
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import BlockheadAgentConversationView from '$/views/BlockheadAgentConversationView.svelte'
 </script>
 
 

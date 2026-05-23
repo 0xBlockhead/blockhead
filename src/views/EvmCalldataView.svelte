@@ -75,6 +75,16 @@
 	bind:open
 	{...entityViewRest}
 >
+	{#snippet Value()}
+		<span data-text="font-monospace">
+			{entityId.hex}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
+	{/snippet}
+
 	{#snippet Heading()}
 
 		<span data-text="font-monospace">

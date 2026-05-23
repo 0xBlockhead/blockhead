@@ -68,6 +68,7 @@ export const narrowVoltaireTxRpc = (raw: JsonValue): VoltaireTxRpc | null => (
 				maxFeePerGas: typeof raw['maxFeePerGas'] === 'string' ? raw['maxFeePerGas'] : undefined,
 				maxPriorityFeePerGas: typeof raw['maxPriorityFeePerGas'] === 'string' ? raw['maxPriorityFeePerGas'] : undefined,
 				type: typeof raw['type'] === 'string' ? raw['type'] : undefined,
+				maxFeePerBlobGas: typeof raw['maxFeePerBlobGas'] === 'string' ? raw['maxFeePerBlobGas'] : undefined,
 				...(blobVersionedHashes != null && { blobVersionedHashes }),
 			}
 		})()
@@ -153,8 +154,10 @@ const narrowVoltaireReceiptRpc = (raw: JsonValue): VoltaireReceiptRpc | null => 
 			return {
 				status: typeof raw['status'] === 'string' ? raw['status'] : undefined,
 				gasUsed: typeof raw['gasUsed'] === 'string' ? raw['gasUsed'] : undefined,
+				cumulativeGasUsed: typeof raw['cumulativeGasUsed'] === 'string' ? raw['cumulativeGasUsed'] : undefined,
 				contractAddress,
 				effectiveGasPrice: typeof raw['effectiveGasPrice'] === 'string' ? raw['effectiveGasPrice'] : undefined,
+				blobGasUsed: typeof raw['blobGasUsed'] === 'string' ? raw['blobGasUsed'] : undefined,
 				...(logs != null && { logs }),
 			}
 		})()
@@ -514,6 +517,7 @@ export const voltaireTxWireAsRpcTx = (
 	gasPrice: tx.gasPrice,
 	...(tx.maxFeePerGas != null && { maxFeePerGas: tx.maxFeePerGas }),
 	...(tx.maxPriorityFeePerGas != null && { maxPriorityFeePerGas: tx.maxPriorityFeePerGas }),
+	...(tx.maxFeePerBlobGas != null && { maxFeePerBlobGas: tx.maxFeePerBlobGas }),
 	input: tx.input,
 	nonce: tx.nonce,
 	transactionIndex: tx.transactionIndex,
@@ -531,6 +535,7 @@ export const voltaireReceiptWireAsRpcReceipt = (
 			gasUsed: receipt.gasUsed,
 			cumulativeGasUsed: receipt.cumulativeGasUsed,
 			effectiveGasPrice: receipt.effectiveGasPrice,
+			blobGasUsed: receipt.blobGasUsed,
 			logs: receipt.logs,
 			contractAddress: receipt.contractAddress,
 		}

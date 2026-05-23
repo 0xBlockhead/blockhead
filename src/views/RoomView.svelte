@@ -61,7 +61,7 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 </script>
 
@@ -75,10 +75,14 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			{entityId.id}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 
@@ -118,7 +122,6 @@
 							{#if room.createdAt !== undefined}
 								<Timestamp
 									timestamp={room.createdAt}
-									format={TimestampFormat.Both}
 								/>
 							{/if}
 						{/snippet}

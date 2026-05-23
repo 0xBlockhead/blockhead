@@ -10,21 +10,19 @@
 	import { resolve } from '$app/paths'
 
 
+	// Props
+	let {
+		open = $bindable(true),
+		collapsible = true,
+	}: {
+		open?: boolean
+	} = $props()
+
+
 	// State
 	import { stringify } from 'devalue'
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-
-	// Components
-	import AtprotoActorsView from '$/views/AtprotoActorsView.svelte'
-	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-
 
 	const entityId = (
 		{
@@ -39,13 +37,6 @@
 	const examplePostUri = (
 		'at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3la6vijfoie2r' as const
 	)
-
-	let {
-		open = $bindable(true),
-		collapsible = true,
-	}: {
-		open?: boolean
-	} = $props()
 
 	const networkIdKey = $derived(
 		stringify(entityId),
@@ -68,6 +59,16 @@
 				{}),
 		},
 	)
+
+
+	// Components
+	import AtprotoActorsView from '$/views/AtprotoActorsView.svelte'
+	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -78,11 +79,17 @@
 	bind:open
 	title="AT Protocol"
 >
-	{#snippet Heading()}
+	{#snippet Value()}
+		{entityId.scope}
 
-		<span>
-			{entityId.scope}
-		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		AT Protocol
+	{/snippet}
+
+	{#snippet Heading()}
+		{@render Title()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -166,7 +173,6 @@
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
-					style: '--carousel-basis: 36ch',
 				}}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
@@ -256,16 +262,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-
-<style>
-	.atproto-network-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 36ch;
-			}
-		}
-	}
-</style>

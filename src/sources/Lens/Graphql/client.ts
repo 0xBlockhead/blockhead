@@ -1,30 +1,62 @@
+import { print } from 'graphql'
+import {
+	initGraphQLTada,
+	type TadaDocumentNode,
+} from 'gql.tada'
+
 import { getJson } from '$/lib/http.ts'
-import { lensApiOrigins, lensGraphqlUrl } from '$/sources/Lens/Graphql/constants.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { Source } from '$/sources/$Source.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import { lensGraphqlUrl } from '$/sources/Lens/Graphql/constants.ts'
+import Lens from '$/sources/Lens/index.ts'
 
-type LensGqlResponse<T> = { data: T, errors?: readonly { message?: string }[] }
+import type { introspection } from './graphql-env.d.ts'
 
-export const lensGraphql = async <T>(
+export type { introspection }
+
+export const graphql = initGraphQLTada<{
+	introspection: introspection
+}>()
+
+type LensGqlResponse<_Result> = {
+	data: _Result
+	errors?: readonly {
+		message?: string
+	}[]
+}
+
+export const queryLens = async <
+	_Result extends {
+		[key: string]: any
+	},
+	_Variables extends {
+		[key: string]: any
+	},
+>(
 	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
-	body: { query: string, variables?: Record<string, JsonValue> },
-): Promise<T> => {
-	const k = publicEnv.PUBLIC_LENS_API_KEY
-	const out = await getJson<LensGqlResponse<T>>(lensGraphqlUrl, {
-		origins: lensApiOrigins,
+	document: TadaDocumentNode<_Result, _Variables>,
+	variables?: _Variables,
+): Promise<_Result> => {
+	const apiKey = publicEnv.PUBLIC_LENS_API_KEY
+	const out = await getJson<LensGqlResponse<_Result>>(lensGraphqlUrl, {
+		origins: Lens.origins ?? [],
 		init: {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 				Accept: 'application/json',
-				...(typeof k === 'string' && k.trim() !== '' && { 'x-lens-app': k.trim() }),
+				...(typeof apiKey === 'string' && apiKey.trim() !== '' && { 'x-lens-app': apiKey.trim() }),
 			},
-			body: JSON.stringify(body),
+			body: JSON.stringify({
+				query: print(document),
+				variables,
+			}),
 		},
 	})
+
 	if (out.errors?.[0]?.message != null) {
 		throw new Error(`Lens_Graphql: ${out.errors[0].message}`)
 	}
+
 	return out.data
 }

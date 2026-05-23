@@ -89,6 +89,12 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
+	{#snippet Value()}
+		<span data-text="font-monospace">
+			{entityId.id}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
 		<ResourceBoundary
 			resource={pool}
@@ -102,9 +108,7 @@
 
 	{#snippet Heading()}
 		<span data-text="muted">
-			<span>
-				{entityId.id}
-			</span>
+			{@render Value()}
 		</span>
 	{/snippet}
 

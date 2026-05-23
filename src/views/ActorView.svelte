@@ -100,46 +100,16 @@
 						}
 					:
 						{}),
-					$$transactions: {
-						$: [
-							Source.Blockscout_Rest,
-						],
-					},
-					$$tokenTransfers: {
-						$: [
-							Source.Blockscout_Rest,
-						],
-					},
-					$$internalTransactions: {
-						$: [
-							Source.Blockscout_Rest,
-						],
-					},
-					$$erc20TokenAllowances: {
-						$: [
-							Source.Blockscout_Rest,
-						],
-					},
-					isContract: {
-						$: [
-							Source.Blockscout_Rest,
-						],
-					},
-					transactionsCount: {
-						$: [
-							Source.Blockscout_Rest,
-						],
-					},
-					transactionCount: {
-						$: [
-							Source.Blockscout_Rest,
-						],
-					},
-					tokenTransferCount: {
-						$: [
-							Source.Blockscout_Rest,
-						],
-					},
+					$: [
+						Source.Blockscout_Rest,
+					],
+					$$transactions: {},
+					$$tokenTransfers: {},
+					$$internalTransactions: {},
+					$$erc20TokenAllowances: {},
+					isContract: {},
+					transactionsCount: {},
+					tokenTransferCount: {},
 					firstTransactionAt: {},
 					lastTransactionAt: {},
 					nftCount: {},
@@ -154,43 +124,10 @@
 		return index === -1 ? undefined : actorNetworkPortfolioSlices[index]
 	}
 
-	const actorContractBytecodeOnSliceChains = actorNetworkSliceChainIds.map((chainId) => (
-		useEntity(
-			EntityType.EvmContract,
-			{
-				$network: { chainId },
-				address: entityId.address,
-			},
-			open ?
-				{
-					code: {
-						$: [
-							Source.Voltaire_JsonRpc,
-						],
-					},
-				}
-			:
-				{},
-		)
-	))
-
 	const firstContractChainId = $derived.by(() => {
 		for (let index = 0; index < actorNetworkSliceChainIds.length; index += 1) {
 			const chainId = actorNetworkSliceChainIds[index]
-			const slice = portfolioSliceAtChain(chainId)
-			if (slice?.current.isContract === true) {
-				return chainId
-			}
-			const contractRow = actorContractBytecodeOnSliceChains[index]
-			if (contractRow.ready !== true) {
-				continue
-			}
-			const codeHex = contractRow.current.code
-			if (
-				typeof codeHex === 'string'
-				&& codeHex.length > 2
-				&& codeHex !== '0x'
-			) {
+			if (portfolioSliceAtChain(chainId)?.current.isContract === true) {
 				return chainId
 			}
 		}
@@ -229,9 +166,7 @@
 		for (const line of flattenedCoinItems) {
 			const row = line.value
 			const assetKey = (
-				'symbol' in row
-				&& typeof row.symbol === 'string'
-				&& row.symbol !== '' ?
+				row.symbol !== '' ?
 					row.symbol
 				:
 					stringify(row[EntityMetaKey.Id])
@@ -299,9 +234,9 @@
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import BalancesView from '$/views/BalancesView.svelte'
 	import ActorCoinView from '$/views/ActorCoinView.svelte'
+	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 </script>
 
@@ -353,11 +288,15 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Visual}
 			value={entityId.address}
 		/>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -406,28 +345,30 @@
 				{/if}
 			{/if}
 
-			{#if contentOpen && firstContractChainId != null}
-				<div>
-					<dt>Contract</dt>
-					<dd>
-						<EvmContractView
-							entityId={{
-								$network: { chainId: firstContractChainId },
-								address: entityId.address,
-							}}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-								{
-									networkId: String(firstContractChainId),
+			{#if contentOpen}
+				{#if firstContractChainId != null}
+					<div>
+						<dt>Contract</dt>
+						<dd>
+							<EvmContractView
+								entityId={{
+									$network: { chainId: firstContractChainId },
 									address: entityId.address,
-								},
-							)}
-							layout={EntityLayout.Title}
-							open={false}
-							showTypeAnnotation={false}
-						/>
-					</dd>
-				</div>
+								}}
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+									{
+										networkId: String(firstContractChainId),
+										address: entityId.address,
+									},
+								)}
+								layout={EntityLayout.Title}
+								open={false}
+								showTypeAnnotation={false}
+							/>
+						</dd>
+					</div>
+				{/if}
 			{/if}
 		</dl>
 	{/snippet}
@@ -718,74 +659,28 @@
 
 					{#snippet body(_activityChildren)}
 						{#each actorNetworkSliceChainIds as facetChainId (facetChainId)}
-							{@const actorNetwork = portfolioSliceAtChain(facetChainId)}
 							<section
 								data-scroll-marker-label={`${chainFacetLabel(facetChainId)} activity`}
 								id={`${idKey}:activity-net-${facetChainId}`}
 							>
-								{#if actorNetwork}
-									<ResourceBoundary
-										resource={actorNetwork}
-										placeholderText="Loading activity summary…"
-									>
-										{#snippet children(actorNetwork)}
-											{#if (
-												actorNetwork.transactionsCount !== undefined
-												|| actorNetwork.transactionCount !== undefined
-												|| actorNetwork.tokenTransferCount !== undefined
-												|| actorNetwork.nftCount !== undefined
-												|| actorNetwork.firstTransactionAt !== undefined
-												|| actorNetwork.lastTransactionAt !== undefined
-											)}
-												<dl data-column-item="center">
-													{#if actorNetwork.transactionsCount !== undefined}
-														<div>
-															<dt>Transactions (count)</dt>
-															<dd>
-																<NumberValue value={actorNetwork.transactionsCount} />
-															</dd>
-														</div>
-													{/if}
-
-													{#if actorNetwork.transactionCount !== undefined}
-														<div>
-															<dt>Transaction count</dt>
-															<dd data-text="mono">{String(actorNetwork.transactionCount)}</dd>
-														</div>
-													{/if}
-
-													{#if actorNetwork.tokenTransferCount !== undefined}
-														<div>
-															<dt>Token transfers (indexer)</dt>
-															<dd data-text="mono">{String(actorNetwork.tokenTransferCount)}</dd>
-														</div>
-													{/if}
-
-													{#if actorNetwork.nftCount !== undefined}
-														<div>
-															<dt>NFT items (indexer)</dt>
-															<dd data-text="mono">{String(actorNetwork.nftCount)}</dd>
-														</div>
-													{/if}
-
-													{#if actorNetwork.firstTransactionAt !== undefined}
-														<div>
-															<dt>First activity at</dt>
-															<dd data-text="mono">{String(actorNetwork.firstTransactionAt)}</dd>
-														</div>
-													{/if}
-
-													{#if actorNetwork.lastTransactionAt !== undefined}
-														<div>
-															<dt>Last activity at</dt>
-															<dd data-text="mono">{String(actorNetwork.lastTransactionAt)}</dd>
-														</div>
-													{/if}
-												</dl>
-											{/if}
-										{/snippet}
-									</ResourceBoundary>
-								{/if}
+								<ActorNetworkView
+									entityId={{
+										$network: {
+											chainId: facetChainId,
+										},
+										$actor: entityId,
+									}}
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+										{
+											networkId: String(facetChainId),
+											address: entityId.address,
+										},
+									)}
+									layout={EntityLayout.Title}
+									open={false}
+									showTypeAnnotation={false}
+								/>
 
 								<EvmTransactionsView
 									collapsible={false}
@@ -847,19 +742,6 @@
 										title={`${chainFacetLabel(facetChainId)} · Internal transactions`}
 									/>
 								</section>
-
-								<div data-row="wrap align-center gap-2">
-									<span data-text="annotation">Events</span>
-									<Tooltip contentProps={{ side: 'top' }}>
-										{#snippet Content()}
-											<p>Open a transaction above for receipt log lines available from the indexer or node.</p>
-										{/snippet}
-										<abbr
-											class="entity-heading-tip"
-											aria-label="Event logs"
-										>ⓘ</abbr>
-									</Tooltip>
-								</div>
 							</section>
 						{/each}
 					{/snippet}
@@ -872,16 +754,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.actor-view-carousel-groups :global(.carousel) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 40ch;
-			}
-		}
-	}
-</style>

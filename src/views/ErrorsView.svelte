@@ -12,12 +12,9 @@
 	import { resolve } from '$app/paths'
 
 
-	// State
+	// Props
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 	let {
 		entityFieldReference,
@@ -40,6 +37,11 @@
 			'entityType'
 		>
 	> = $props()
+
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
 	// Components

@@ -69,7 +69,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -84,6 +84,16 @@
 	{open}
 	{...entityViewRest}
 >
+	{#snippet Value()}
+		<span data-text="font-monospace">
+			{entityId.id}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
+	{/snippet}
+
 	{#snippet Heading()}
 
 		<span>
@@ -203,7 +213,6 @@
 							<dd>
 								<Timestamp
 									timestamp={leverage.createdAtTimestamp}
-									format={TimestampFormat.Both}
 								/>
 							</dd>
 						</div>

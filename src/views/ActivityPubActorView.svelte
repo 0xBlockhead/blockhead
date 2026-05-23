@@ -123,10 +123,14 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			{entityId.localAccountId}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -259,7 +263,6 @@
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
-					style: '--carousel-basis: 36ch',
 				}}
 			>
 				{#snippet Summary({ open: _activitySummaryOpen })}
@@ -353,16 +356,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-
-<style>
-	.activitypub-actor-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 36ch;
-			}
-		}
-	}
-</style>

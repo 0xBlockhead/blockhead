@@ -65,14 +65,23 @@
 	{entityId}
 	{href}
 	bind:open
-	title={`Network bridge pairing · Chainlist/Ethereum Lists · execution ${String(entityId.$fromNetwork.chainId)} → ${String(entityId.$toNetwork.chainId)}`}
+	title={`Execution bridge Chain ${String(entityId.$fromNetwork.chainId)} → Chain ${String(entityId.$toNetwork.chainId)}`}
 	{...entityViewRest}
 >
-	{#snippet Heading()}
-
+	{#snippet Value()}
 		<span>
 			{entityId.bridgeId}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		<span>
+			Execution bridge Chain {String(entityId.$fromNetwork.chainId)} → Chain {String(entityId.$toNetwork.chainId)}
+		</span>
+	{/snippet}
+
+	{#snippet Heading()}
+		{@render Title()}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

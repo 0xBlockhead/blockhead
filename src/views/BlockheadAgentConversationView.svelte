@@ -8,17 +8,6 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-
 	// Props
 	let {
 		children: childrenSnippet,
@@ -46,6 +35,9 @@
 	> = $props()
 
 
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const conversation = useEntity(
 		EntityType.BlockheadAgentConversation,
 		entityId,
@@ -58,6 +50,13 @@
 			updatedAt: {},
 		},
 	)
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -69,10 +68,14 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			{entityId.id}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Heading()}
@@ -103,7 +106,6 @@
 							<dd>
 								<Timestamp
 									timestamp={conversation.updatedAt}
-									format={TimestampFormat.Both}
 								/>
 							</dd>
 						</div>
@@ -114,7 +116,6 @@
 								<dd>
 									<Timestamp
 										timestamp={conversation.createdAt}
-										format={TimestampFormat.Both}
 									/>
 								</dd>
 							</div>
@@ -128,7 +129,6 @@
 								<dd>
 									<Timestamp
 										timestamp={conversation.createdAt}
-										format={TimestampFormat.Both}
 									/>
 								</dd>
 							</div>
@@ -140,7 +140,6 @@
 								<dd>
 									<Timestamp
 										timestamp={conversation.updatedAt}
-										format={TimestampFormat.Both}
 									/>
 								</dd>
 							</div>

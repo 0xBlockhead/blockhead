@@ -16,12 +16,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmContractView from '$/views/EvmContractView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -56,6 +50,12 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
 
 
@@ -69,13 +69,10 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Explorer-verified contracts pair immutable bytecode with published ABI metadata so calldata, events, and errors decode predictably.
+			Verified explorer contracts only—bytecode and ABI metadata the explorer indexed for this network.
 		</p>
 		<p>
-			Blob commitments for rollups are separate from interface metadata at the address.
-		</p>
-		<p>
-			Rows mirror recent deployments the explorer indexed for this network.
+			Precompiles and unverified addresses are listed separately.
 		</p>
 	{/snippet}
 

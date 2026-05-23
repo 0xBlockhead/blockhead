@@ -103,7 +103,7 @@
 		</span>
 	{/snippet}
 
-		{Title()}
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={comment}
 			placeholderText="Loading YouTube comment…"

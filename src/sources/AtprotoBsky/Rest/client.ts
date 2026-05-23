@@ -1,8 +1,6 @@
 import { getJson } from '$/lib/http.ts'
-import {
-	atprotoBskyOrigins,
-	publicAppViewXrpcBase,
-} from '$/sources/AtprotoBsky/Rest/constants.ts'
+import AtprotoBsky from '$/sources/AtprotoBsky/index.ts'
+import { publicAppViewXrpcBase } from '$/sources/AtprotoBsky/Rest/constants.ts'
 
 const toQuery = (params: Record<string, string | number | undefined>) => {
 	const sp = new URLSearchParams()
@@ -20,6 +18,6 @@ export const bskyPublicXrpcGet = async <T>(
 ): Promise<T> => (
 	getJson<T>(
 		`${publicAppViewXrpcBase}${path}${toQuery(params)}`,
-		{ origins: atprotoBskyOrigins },
+		{ origins: AtprotoBsky.origins ?? [] },
 	)
 )

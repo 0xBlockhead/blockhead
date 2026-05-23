@@ -80,6 +80,12 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
+	{#snippet Value()}
+		<span>
+			{entityId.kind}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 
 		<span>
@@ -88,8 +94,9 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span>
-			{`${proposalRealmById[entityId.realm].label} · ${proposalCategoryById[entityId.category].label}`}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>{proposalCategoryById[entityId.category].label} </span>
+			{@render Value()}
 		</span>
 	{/snippet}
 

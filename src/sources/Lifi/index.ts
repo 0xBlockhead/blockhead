@@ -15,7 +15,7 @@ export default {
 	origins: [
 		{
 			origin,
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 		{
 			origin: stagingOrigin,

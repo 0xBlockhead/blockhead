@@ -47,12 +47,12 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.MevRelay_ProposerPayloadDelivered,
 			resolve: async (entityId) => {
+				const wantHash = hexLowerOfByteSize(entityId.blockHash, 32)
+				if (wantHash == null) throw new Error('MevRelay_Rest: invalid block hash in entity id')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 				const rows = await getProposerPayloadDeliveredForRelayHost(entityId.relayHost, {
 					limit: 1_000,
 				})
-				const wantHash = hexLowerOfByteSize(entityId.blockHash, 32)
-				if (wantHash == null) throw new Error('MevRelay_Rest: invalid block hash in entity id')
 				const row = rows.find((entry) => {
 					const slot = parsePayloadSlot(entry)
 					const bh = entry.block_hash ?? entry.blockHash

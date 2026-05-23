@@ -25,7 +25,91 @@ declare global {
 		__e2eViewTransitionStarts?: number
 		__e2eViewTransitionFinishes?: number
 		__e2eViewTransitionUpdates?: number
+		__blockheadPersistenceProbe?: BlockheadPersistenceProbeEvent[]
 	}
+}
+
+export type BlockheadPersistenceProbeDecision = (
+	| 'hydrated-rows'
+	| 'loaded-marker'
+	| 'snapshot'
+	| 'remote'
+)
+
+export type BlockheadPersistenceProbeEvent = (
+	| {
+		kind: 'loadSubset'
+		collectionId: string
+		decision: BlockheadPersistenceProbeDecision
+		loadedKey: string
+		at: number
+	}
+	| {
+		kind: 'queryFn'
+		collectionId: string
+		loadedKey: string
+		at: number
+	}
+	| {
+		kind: 'markLoaded'
+		collectionId: string
+		loadedKey: string
+		at: number
+	}
+)
+
+export const networksCatalogFieldCollectionId = 'EntityFieldCollection:_Global:$$networks'
+
+export const installPersistenceProbe = (page: Page) => (
+	page.addInitScript((storageKey) => {
+		const stored = sessionStorage.getItem(storageKey)
+		window.__blockheadPersistenceProbe = (
+			stored != null && stored !== '' ?
+				JSON.parse(stored)
+			:
+				[]
+		)
+	}, '__blockheadPersistenceProbe')
+)
+
+export const clearPersistenceProbe = (page: Page) => (
+	page.evaluate(() => {
+		sessionStorage.removeItem('__blockheadPersistenceProbe')
+		window.__blockheadPersistenceProbe = []
+	})
+)
+
+export const getPersistenceProbeEvents = (page: Page) => (
+	page.evaluate(() => (
+		window.__blockheadPersistenceProbe ?? []
+	))
+)
+
+export const waitForPersistenceMarkLoaded = (
+	page: Page,
+	collectionId: string,
+) => (
+	page.waitForFunction(
+		(expectedCollectionId) => (
+			(window.__blockheadPersistenceProbe ?? []).some((event) => (
+				event.kind === 'markLoaded'
+				&& event.collectionId === expectedCollectionId
+			))
+		),
+		collectionId,
+		{ timeout: 120_000 },
+	)
+)
+
+export const waitForNetworksListRendered = async (page: Page) => {
+	await expect(page.locator('#networks')).toBeVisible()
+	await expect(page.locator('#networks').getByText('Loading networks…')).toHaveCount(
+		0,
+		{ timeout: 120_000 },
+	)
+	await expect(page.locator('#networks').locator('a[href$="/network/1"]').first()).toBeVisible({
+		timeout: 120_000,
+	})
 }
 
 const forwardBrowserConsoleLine = (
@@ -336,6 +420,14 @@ export const ethereumListsChainsJsonWire = (url: string, method: string) => (
 	&& (
 		url.includes('chainid.network')
 		|| (url.includes('api-proxy') && url.includes('chainid.network'))
+	)
+)
+
+export const catalogWire = (url: string, method: string) => (
+	method === 'GET'
+	&& (
+		chainlistRpcsWire(url)
+		|| ethereumListsChainsJsonWire(url, method)
 	)
 )
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-	// State
+	// Props
 	import type { Snippet } from 'svelte'
 
 	let {

@@ -3,12 +3,14 @@
 	import { ipfsResourceAddressFromRouteParams, ipfsResourceHref } from '$/lib/ipfs.ts'
 
 
-	// State
-	import Page from '$/components/Page.svelte'
+	// Props
 
 	let {
 		params,
 	} = $props()
+
+
+	// (Derived)
 
 	const entityId = $derived(
 		ipfsResourceAddressFromRouteParams({
@@ -20,6 +22,7 @@
 
 
 	// Components
+	import Page from '$/components/Page.svelte'
 	import IpfsResourceView from '$/views/IpfsResourceView.svelte'
 </script>
 

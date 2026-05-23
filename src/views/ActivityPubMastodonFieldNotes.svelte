@@ -12,14 +12,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { htmlToPlainText } from '$/lib/html.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
+	// Props
 	let {
 		href,
 		id,
@@ -37,6 +30,15 @@
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.ActivityPubNote>
 		fieldOpen?: boolean
 	} = $props()
+
+
+	// State
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { htmlToPlainText } from '$/lib/html.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 	const parent = useEntity(
 		entityFieldReference.entityType,

@@ -116,7 +116,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import Icon from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import { ensEthereumChainId } from '$/constants/Ens.ts'
@@ -137,13 +137,17 @@
 	title={entityId.name}
 	{...entityViewRest}
 >
+	{#snippet Value()}
+		<span data-text="font-monospace">
+			{entityId.name}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		{#if HeadingTitle}
 			{@render HeadingTitle()}
 		{:else}
-			<span data-text="font-monospace">
-				{entityId.name}
-			</span>
+			{@render Value()}
 		{/if}
 	{/snippet}
 
@@ -381,7 +385,6 @@
 									{#if Number.isFinite(expiryMs)}
 										<Timestamp
 											timestamp={expiryMs}
-											format={TimestampFormat.Both}
 										/>
 									{/if}
 								{/if}
@@ -710,7 +713,6 @@
 												<dd>
 													<Timestamp
 														timestamp={createdMs}
-														format={TimestampFormat.Both}
 													/>
 												</dd>
 											</div>
@@ -725,7 +727,6 @@
 												<dd>
 													<Timestamp
 														timestamp={registrationMs}
-														format={TimestampFormat.Both}
 													/>
 												</dd>
 											</div>
@@ -740,7 +741,6 @@
 												<dd>
 													<Timestamp
 														timestamp={registrationExpiryMs}
-														format={TimestampFormat.Both}
 													/>
 												</dd>
 											</div>
@@ -764,7 +764,6 @@
 												<dd>
 													<Timestamp
 														timestamp={wrappedExpiryMs}
-														format={TimestampFormat.Both}
 													/>
 												</dd>
 											</div>
@@ -1092,14 +1091,4 @@
 		border-radius: var(--card-radius, 0.5rem);
 	}
 
-	.ens-view-carousel-groups :global(.carousel) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 40ch;
-			}
-		}
-	}
 </style>

@@ -143,12 +143,20 @@ export const getCoingeckoCoinWithAssetPlatforms = async (
 }
 
 export const findCoingeckoAssetPlatformByChainId = async (
-	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
+	_publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
 	chainId: number,
-): Promise<CoingeckoAssetPlatform | undefined> => (
-	(await fetchCoingeckoAssetPlatforms(publicEnv))
-		.find((assetPlatform) => assetPlatform.chain_identifier === chainId)
-)
+): Promise<CoingeckoAssetPlatform | undefined> => {
+	const { coingeckoAssetPlatformIdByChainId } = await import('$/sources/Coingecko/Rest/constants.ts')
+	const platformId = coingeckoAssetPlatformIdByChainId[chainId]
+	if (platformId == null) {
+		return undefined
+	}
+	return {
+		id: platformId,
+		name: platformId,
+		chain_identifier: chainId,
+	}
+}
 
 export const getCoingeckoSimplePriceUsd = async ({
 	publicEnv,

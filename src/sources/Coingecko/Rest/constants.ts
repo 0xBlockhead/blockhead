@@ -2073,3 +2073,23 @@ export const coingeckoDerivativesExchangeIdByMarketVenueId = {
 	Kucoin: 'kucoin_futures',
 	Okx: 'okex_swap',
 } as const
+
+
+/**
+ * CoinGecko asset platform id (`/coins/{platform}/contract/…`) keyed by EVM chain id.
+ * Avoids downloading the full asset-platform catalog for contract lookups.
+ */
+export const coingeckoAssetPlatformIdByChainId = {
+	1: 'ethereum',
+	5: 'ethereum',
+	10: 'optimistic-ethereum',
+	56: 'binance-smart-chain',
+	100: 'xdai',
+	137: 'polygon-pos',
+	8453: 'base',
+	42161: 'arbitrum-one',
+	43114: 'avalanche',
+	11155111: 'ethereum',
+	17000: 'ethereum',
+	84532: 'base',
+} as const satisfies Partial<Record<number, string>>

@@ -15,12 +15,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmTokenTransferView from '$/views/EvmTokenTransferView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -51,6 +45,12 @@
 	import { stringify } from 'devalue'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EvmTokenTransferView from '$/views/EvmTokenTransferView.svelte'
 </script>
 
 
@@ -81,7 +81,10 @@
 				entityFieldReference.entityId,
 				{
 					[fieldName]: {
-						$: [Source.Blockscout_Rest],
+						$: [
+							Source.Blockscout_Rest,
+							Source.Voltaire_JsonRpc,
+						],
 					},
 				},
 			)}
@@ -99,7 +102,7 @@
 				showSummary={false}
 				entityType={EntityType.EvmTokenTransfer}
 				getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
-				getSortValue={(line) => line.value[EntityMetaKey.Id].transferIndex}
+				getSortValue={(line) => line.value[EntityMetaKey.Id].logIndex}
 				placeholderText="Loading token transfers…"
 				resource={transfers}
 				{title}
@@ -120,10 +123,11 @@
 						<EvmTokenTransferView
 							entityId={transferId}
 							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]/log/[logIndex]',
 								{
 									networkId: String(transferId.$network.chainId),
 									transactionId: transferId.txHash,
+									logIndex: String(transferId.logIndex),
 								},
 							)}
 							layout={EntityLayout.SummaryDetails}

@@ -7,7 +7,7 @@
 	import { getHeadingLevel } from '$/context/headingLevel.ts'
 
 
-	// State
+	// Props
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 	import type { Snippet } from 'svelte'

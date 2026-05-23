@@ -1963,6 +1963,41 @@ details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers] {
 	}
 }
 
+/**
+ * Entity view detail carousels — `CollapsibleTabs` pane scroll hosts in entity `Details`.
+ * Default pane basis 36ch; set `data-carousel-basis="40ch"` on the wrapper for wider panes.
+ */
+[class$='-detail-carousels'] {
+	--entity-view-detail-carousel-basis: 36ch;
+
+	&[data-carousel-basis='40ch'] {
+		--entity-view-detail-carousel-basis: 40ch;
+	}
+
+	[data-collapsible-tabs-pane-host][data-scroll-container] {
+		--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+		max-block-size: var(--scrollContainer-sizeBlock);
+
+		&[data-scroll-container~='layout-carousel'] {
+			--carousel-basis: var(--entity-view-detail-carousel-basis);
+		}
+	}
+}
+
+/**
+ * Entity view carousel groups — multi-tab `CollapsibleTabs` groups (network, actor, ENS, …).
+ */
+[class$='-carousel-groups'] {
+	.carousel[data-scroll-container] {
+		--scrollContainer-sizeBlock: calc(80cqb - 6rem);
+		max-block-size: var(--scrollContainer-sizeBlock);
+
+		&[data-scroll-container~='layout-carousel'] {
+			--carousel-basis: 40ch;
+		}
+	}
+}
+
 @keyframes NoAnimation {}
 
 @keyframes InitialScrollSnapDisableAnimation {

@@ -28,6 +28,7 @@ export type RpcTxWire = {
 	transactionIndex?: string
 	type?: string
 	value?: string
+	maxFeePerBlobGas?: string
 }
 
 export type RpcLogWire = {
@@ -47,6 +48,7 @@ export type RpcReceiptWire = {
 	gasUsed?: string
 	cumulativeGasUsed?: string
 	effectiveGasPrice?: string
+	blobGasUsed?: string
 	logs?: RpcLogWire[]
 	contractAddress?: string | null
 }

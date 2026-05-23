@@ -87,10 +87,14 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			{entityId.toolKey}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

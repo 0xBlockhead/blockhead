@@ -1,5 +1,6 @@
 // Types
 
+import { CoinId } from '$/constants/Coin.ts'
 import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
 
 /**
@@ -40,61 +41,73 @@ export const blockscoutHostedNetworks = [
 		chainId: 1,
 		label: 'Ethereum',
 		host: 'eth.blockscout.com',
+		nativeCoinId: CoinId.ETH,
 	},
 	{
 		chainId: 5,
 		label: 'Goerli',
 		host: 'eth-goerli.blockscout.com',
+		nativeCoinId: CoinId.ETH,
 	},
 	{
 		chainId: 10,
 		label: 'Optimism',
 		host: 'optimism.blockscout.com',
+		nativeCoinId: CoinId.ETH,
 	},
 	{
 		chainId: 56,
 		label: 'BNB Smart Chain',
 		host: 'bnb.blockscout.com',
+		nativeCoinId: CoinId.BNB,
 	},
 	{
 		chainId: 100,
 		label: 'Gnosis Chain',
 		host: 'gnosis.blockscout.com',
+		nativeCoinId: CoinId.XDAI,
 	},
 	{
 		chainId: 137,
 		label: 'Polygon',
 		host: 'polygon.blockscout.com',
+		nativeCoinId: CoinId.POL,
 	},
 	{
 		chainId: 8453,
 		label: 'Base Chain',
 		host: 'base.blockscout.com',
+		nativeCoinId: CoinId.ETH,
 	},
 	{
 		chainId: 42161,
 		label: 'Arbitrum One',
 		host: 'arbitrum.blockscout.com',
+		nativeCoinId: CoinId.ETH,
 	},
 	{
 		chainId: 11155111,
 		label: 'Sepolia',
 		host: 'eth-sepolia.blockscout.com',
+		nativeCoinId: CoinId.ETH,
 	},
 	{
 		chainId: 17000,
 		label: 'Holesky',
 		host: 'eth-holesky.blockscout.com',
+		nativeCoinId: CoinId.ETH,
 	},
 	{
 		chainId: 84532,
 		label: 'Base Sepolia',
 		host: 'base-sepolia.blockscout.com',
+		nativeCoinId: CoinId.ETH,
 	},
 ] as const satisfies readonly {
 	chainId: number
 	label: string
 	host: string
+	nativeCoinId: CoinId
 }[]
 
 /** `/api-proxy` allow-list + `corsFetch` routing for hosted Blockscout explorers (no browser CORS). */
@@ -121,10 +134,7 @@ export const blockscoutExplorerOriginByChainId: Partial<Record<number, string>> 
 
 export const blockscoutExplorerOriginForChain = (
 	chainId: number,
-): string | undefined => {
-	const v = blockscoutExplorerOriginByChainId[chainId]
-	return typeof v === 'string' ? v : undefined
-}
+): string | undefined => blockscoutExplorerOriginByChainId[chainId]
 
 /** Same predicate Blockscout resolvers use before calling REST v2 list endpoints. */
 export const blockscoutExplorerRestV2SupportedForChain = (chainId: number): boolean => {

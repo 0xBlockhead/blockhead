@@ -104,7 +104,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
@@ -160,10 +160,14 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<span data-text="font-monospace">
 			{entityId.hash}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -223,7 +227,6 @@
 						{#snippet children(cast)}
 							<Timestamp
 								timestamp={cast.timestamp}
-								format={TimestampFormat.Both}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -464,7 +467,6 @@
 			{/if}
 		</dl>
 	{/snippet}
-	{/snippet}
 
 	{#snippet Details({
 		open: _open,
@@ -616,7 +618,6 @@
 											<p data-text="muted">
 												<Timestamp
 													timestamp={cast.timestamp}
-													format={TimestampFormat.Absolute}
 												/>
 											</p>
 											{#if postedViaAppId !== undefined}
@@ -811,16 +812,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 36ch;
-			}
-		}
-	}
-</style>

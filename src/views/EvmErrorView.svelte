@@ -86,10 +86,25 @@
 	{collapsible}
 	{...entityViewRest}
 >
-	{#snippet Title()}
+	{#snippet Value()}
 		<span data-text="font-monospace">
 			{entityId.hex}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		<ResourceBoundary
+			resource={evmError}
+			placeholderText="Loading error…"
+		>
+			{#snippet children(evmError)}
+				{#if evmError.signatures?.[0]}
+					{evmError.signatures[0]}
+				{:else}
+					{@render Value()}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Heading()}

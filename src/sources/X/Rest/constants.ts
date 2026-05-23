@@ -8,6 +8,6 @@ export const xApiV2Base = `${xApiOrigin}/2` as const
 export const xApiOrigins: readonly SourceOrigin[] = [
 	{
 		origin: xApiOrigin,
-		corsEnabled: true,
+		corsEnabled: false,
 	},
 ]

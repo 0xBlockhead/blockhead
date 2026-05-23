@@ -1,6 +1,7 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
+	resolverLoadSubsetRowLimit,
 	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { Hex } from '@tevm/voltaire/Hex'
@@ -228,9 +229,71 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$actorCoins',
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
-				[]
-			),
+			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
+				const { readNormalizedLocalInternalCatalog } = await import('$/sources/Local/Internal/catalog.ts')
+				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
+				const { getAlliumLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
+				type ActorCoinEntityId = EntityId<typeof schema, EntityType.ActorCoin>
+
+				const publicEnv = sourcePublicEnv(context, Source.Allium_Rest)
+				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
+				const actorCoinRows: { [EntityMetaKey.Id]: ActorCoinEntityId }[] = []
+
+				for (const actor of readNormalizedLocalInternalCatalog().actors) {
+					if (actorCoinRows.length >= subsetRowLimit) break
+					for (const chainIdString of Object.keys(apiChainByChainId)) {
+						if (actorCoinRows.length >= subsetRowLimit) break
+						const chainId = Number(chainIdString)
+						const apiChain = apiChainByChainId[chainId]
+						if (apiChain == null) continue
+						actorCoinRows.push(
+							...(await getAlliumLatestWalletBalances({
+								publicEnv,
+								address: actor.address,
+								apiChain,
+								withLiquidityInfo: false,
+							}))
+								.items
+								.flatMap<{ [EntityMetaKey.Id]: ActorCoinEntityId }>((balanceRow) => (
+									balanceRow.token?.type === 'native' ?
+										[{
+											[EntityMetaKey.Id]: {
+												$actor: { address: actor.address },
+												$coinInstance: {
+													$network: { chainId },
+													type: CoinInstanceType.NativeCurrency,
+												},
+											},
+										} satisfies { [EntityMetaKey.Id]: ActorCoinEntityId }]
+									: balanceRow.token?.type === 'evm_erc20'
+										&& Hex.isHex(balanceRow.token.address)
+										&& Hex.size(balanceRow.token.address) === 20 ?
+										((address) => (
+											address == null ?
+												[]
+											:	[{
+													[EntityMetaKey.Id]: {
+														$actor: { address: actor.address },
+														$coinInstance: {
+															$network: { chainId },
+															type: CoinInstanceType.Erc20Token,
+															$contract: {
+																$network: { chainId },
+																address,
+															},
+														},
+													},
+												} satisfies { [EntityMetaKey.Id]: ActorCoinEntityId }]
+										))(hexLowerOfByteSize(balanceRow.token.address.toLowerCase(), 20))
+									:
+										[]
+								)),
+						)
+					}
+				}
+
+				return actorCoinRows.slice(0, subsetRowLimit)
+			},
 		}),
 	],
 }

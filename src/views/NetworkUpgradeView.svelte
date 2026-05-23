@@ -75,7 +75,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import NetworkConsensusUpgradeView from '$/views/NetworkConsensusUpgradeView.svelte'
 	import NetworkExecutionUpgradeView from '$/views/NetworkExecutionUpgradeView.svelte'
@@ -99,6 +99,16 @@
 		<p>
 			Activation timing and EIP/ERC specification proposals are taken from the linked execution-layer fork when that row lists them; otherwise from the consensus fork row.
 		</p>
+	{/snippet}
+
+	{#snippet Value()}
+		<span>
+			{entityId.upgradeId}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Heading()}
@@ -175,7 +185,6 @@
 												:
 													networkUpgrade.activationTimestamp
 											)}
-											format={TimestampFormat.Both}
 										/>
 									{/snippet}
 								</ResourceBoundary>

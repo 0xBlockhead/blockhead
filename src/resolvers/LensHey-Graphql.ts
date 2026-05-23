@@ -51,7 +51,7 @@ export default {
 						iconMedia != null && {
 							$icon: iconMedia,
 						}
-					))(mediaFromUrl(optionalTrimmedString(a.metadata?.picture), MediaType.Image)),
+					))(mediaFromUrl(optionalTrimmedString(a.metadata?.picture != null ? String(a.metadata.picture) : null), MediaType.Image)),
 				}
 			},
 		}),
@@ -62,15 +62,19 @@ export default {
 				const { lensHeyQueryPost } = await import('$/sources/LensHey/Graphql/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
 				const p = (await singleFlight(lensHeyQueryPost)(publicEnv, entityId.id)).post
-				if (p == null) throw new Error('Lens_HeyGraphql: post not found')
-				const commentOnSlug = optionalTrimmedString(p.commentOn?.slug)
+				if (p == null || p.__typename !== 'Post') throw new Error('Lens_HeyGraphql: post not found')
+				const commentOnSlug = optionalTrimmedString(p.commentOn?.slug != null ? String(p.commentOn.slug) : null)
 				return {
-					text: optionalTrimmedString(p.metadata?.content),
+					text: (
+						p.metadata?.__typename === 'TextOnlyMetadata' ?
+							optionalTrimmedString(p.metadata.content)
+						:	undefined
+					),
 					timestamp: ((ts) => (
 						((_parsedTimestampMs) => (
 							Number.isFinite(_parsedTimestampMs) ? _parsedTimestampMs : undefined
 						))(ts != null ? Date.parse(ts) : NaN)
-					))(optionalTrimmedString(p.timestamp)),
+					))(optionalTrimmedString(p.timestamp != null ? String(p.timestamp) : null)),
 					commentCount: optionalFiniteNumber(p.stats?.comments),
 					shareCount: optionalFiniteNumber(p.stats?.reposts),
 					bookmarkCount: optionalFiniteNumber(p.stats?.bookmarks),
@@ -79,9 +83,9 @@ export default {
 					}),
 					$author: (
 						((addr) => (
-							addr != null && /^0x[a-fA-F0-9]{40}$/.test(addr) ?
+							addr != null && /^0x[a-fA-F0-9]{40}$/.test(String(addr)) ?
 								{
-									[EntityMetaKey.Id]: { address: lensEvmAddressFromWire(addr) },
+									[EntityMetaKey.Id]: { address: lensEvmAddressFromWire(String(addr)) },
 								}
 							:	undefined
 						))(p.author?.address)
@@ -102,9 +106,10 @@ export default {
 				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
 				const byAddress = new Map<string, { [EntityMetaKey.Id]: { address: `0x${string}` } }>()
 				for (const item of ((await singleFlight(lensHeyQueryLatestPosts)(publicEnv, pageSize)).posts?.items ?? [])) {
+					if (item.__typename !== 'Post') continue
 					const address = item.author?.address
-					if (item.__typename !== 'Post' || address == null || !/^0x[a-fA-F0-9]{40}$/.test(address)) continue
-					const normalizedAddress = lensEvmAddressFromWire(address)
+					if (address == null || !/^0x[a-fA-F0-9]{40}$/.test(String(address))) continue
+					const normalizedAddress = lensEvmAddressFromWire(String(address))
 					byAddress.set(normalizedAddress, {
 						[EntityMetaKey.Id]: { address: normalizedAddress },
 					})
@@ -127,7 +132,7 @@ export default {
 							item.__typename === 'Post' && item.slug != null ?
 								[
 									{
-										[EntityMetaKey.Id]: { id: item.slug },
+										[EntityMetaKey.Id]: { id: String(item.slug) },
 									},
 								]
 							:	[]
@@ -150,7 +155,7 @@ export default {
 							item.__typename === 'Post' && item.slug != null ?
 								[
 									{
-										[EntityMetaKey.Id]: { id: item.slug },
+										[EntityMetaKey.Id]: { id: String(item.slug) },
 									},
 								]
 							:	[]
@@ -173,7 +178,7 @@ export default {
 							item.__typename === 'Post' && item.slug != null ?
 								[
 									{
-										[EntityMetaKey.Id]: { id: item.slug },
+										[EntityMetaKey.Id]: { id: String(item.slug) },
 									},
 								]
 							:	[]

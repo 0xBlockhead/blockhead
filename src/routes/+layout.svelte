@@ -60,7 +60,7 @@
 	)
 
 
-	// State
+	// Props
 	let {
 		children,
 	} = $props()

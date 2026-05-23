@@ -1,5 +1,6 @@
 import { type } from 'arktype'
 
+import { EvmTokenStandard } from '$/constants/EvmTokenTransfer.ts'
 import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
@@ -11,12 +12,6 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/$Source.ts'
 
-export enum EvmTokenStandard {
-	Erc20 = 'ERC-20',
-	Erc721 = 'ERC-721',
-	Erc1155 = 'ERC-1155',
-}
-
 export default {
 	entityType: EntityType.EvmTokenTransfer,
 
@@ -26,16 +21,10 @@ export default {
 	id: type({
 		$network: Network.id,
 		txHash: ZeroExHex,
-		transferIndex: 'number',
+		logIndex: 'number',
 	}),
 
 	fields: [
-		{
-			name: 'logIndex',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
 		{
 			name: 'standard',
 			type: EntityFieldType.Primitive,
@@ -85,6 +74,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Blockscout_Rest,
+				Source.Etherscan_Rest,
 			],
 		},
 		{
@@ -94,6 +84,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Blockscout_Rest,
+				Source.Etherscan_Rest,
 			],
 		},
 		{
@@ -103,6 +94,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Blockscout_Rest,
+				Source.Etherscan_Rest,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

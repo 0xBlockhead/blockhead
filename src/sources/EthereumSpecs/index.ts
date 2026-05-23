@@ -11,7 +11,7 @@ export default {
 	origins: [
 		{
 			origin: rawOrigin,
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 	],
 	sources: [

@@ -21,11 +21,13 @@ export const pipedApiBaseUrl = (
 
 export const pipedApiOriginsForPublicEnv = (
 	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
+	baseOrigins: readonly SourceOrigin[],
 ): readonly SourceOrigin[] => {
 	const origin = new URL(pipedApiBaseUrl(publicEnv)).origin
+	const defaultOrigin = baseOrigins[0]?.origin
 	return (
-		origin === pipedApiDefaultOrigin ?
-			pipedApiOrigins
+		defaultOrigin != null && origin === defaultOrigin ?
+			baseOrigins
 		:	[{
 				origin,
 				corsEnabled: false,

@@ -82,7 +82,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import CoinView from '$/views/CoinView.svelte'
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
@@ -94,13 +94,26 @@
 	bind:open
 	{entityId}
 	href={resolvedHref}
-	title={`${entityId.$coin.coinId} · local snapshot`}
+	title={`Coin snapshot ${entityId.$coin.coinId}`}
 	{...entityViewRest}
 >
-	{#snippet Heading()}
-
+	{#snippet Value()}
 		<span>
 			{entityId.$coin.coinId}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Coin snapshot </span>
+			<Timestamp timestampMs={entityId.timestampMs} />
+		</span>
+	{/snippet}
+
+	{#snippet Heading()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>{entityId.$coin.coinId} snapshot </span>
+			<Timestamp timestampMs={entityId.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -147,7 +160,6 @@
 						<dd>
 							<Timestamp
 								timestamp={entityId.timestampMs}
-								format={TimestampFormat.Both}
 							/>
 						</dd>
 					</div>

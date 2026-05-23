@@ -23,12 +23,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
-
-
 	// Props
 	let {
 		title = 'Networks',
@@ -97,6 +91,12 @@
 			)
 		},
 	)
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 

@@ -59,7 +59,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import CurrencyView from '$/views/CurrencyView.svelte'
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
@@ -77,12 +77,26 @@
 			{ iso4217: entityId.$currency.iso4217 },
 		)
 	}
-	title={`${entityId.$currency.iso4217} · catalog snapshot`}
+	title={`Currency snapshot ${entityId.$currency.iso4217}`}
 	{...entityViewRest}
 >
-	{#snippet Heading()}
+	{#snippet Value()}
 		<span>
 			{entityId.$currency.iso4217}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Currency snapshot </span>
+			<Timestamp timestampMs={entityId.timestampMs} />
+		</span>
+	{/snippet}
+
+	{#snippet Heading()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>{entityId.$currency.iso4217} snapshot </span>
+			<Timestamp timestampMs={entityId.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -132,7 +146,6 @@
 						<dd>
 							<Timestamp
 								timestamp={entityId.timestampMs}
-								format={TimestampFormat.Both}
 							/>
 						</dd>
 					</div>

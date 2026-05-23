@@ -109,7 +109,7 @@
 	)
 
 
-	// State
+	// Props
 	let {
 		items,
 

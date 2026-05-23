@@ -1,9 +1,7 @@
 import { getJson } from '$/lib/http.ts'
 import { bskySocialXrpcGet } from '$/sources/AtprotoBskySocial/Rest/client.ts'
-import {
-	atprotoBskySocialOrigins,
-	bskySocialXrpcBase,
-} from '$/sources/AtprotoBskySocial/Rest/constants.ts'
+import AtprotoBskySocial from '$/sources/AtprotoBskySocial/index.ts'
+import { bskySocialXrpcBase } from '$/sources/AtprotoBskySocial/Rest/constants.ts'
 import type {
 	BskyAppViewGetAuthorFeedResponseWire,
 	BskyAppViewGetPostThreadResponseWire,
@@ -25,7 +23,7 @@ export const bskySocialGetPosts = async (uris: string[]) => (
 		`${bskySocialXrpcBase}/app.bsky.feed.getPosts?${(
 			new URLSearchParams(uris.map((u) => ['uris', u])).toString()
 		)}`,
-		{ origins: atprotoBskySocialOrigins },
+		{ origins: AtprotoBskySocial.origins ?? [] },
 	)
 )
 

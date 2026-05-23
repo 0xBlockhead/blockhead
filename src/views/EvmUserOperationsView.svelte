@@ -22,11 +22,6 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
-	// Components
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import EvmUserOperationView from '$/views/EvmUserOperationView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -61,6 +56,11 @@
 			'entityType' | 'href' | 'id' | 'title'
 		>
 	> = $props()
+
+
+	// Components
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EvmUserOperationView from '$/views/EvmUserOperationView.svelte'
 </script>
 
 
@@ -76,27 +76,32 @@
 	{#snippet body()}
 		{#if open}
 			{@const fieldName = entityFieldReference.fieldName}
-			{@const network = useEntity(
-				EntityType.Network,
+			{@const parentEntityType = entityFieldReference.entityType}
+			{@const parent = useEntity(
+				parentEntityType,
 				entityFieldReference.entityId,
 				{
-					blockHeight: {
-						$: [
-							Source.Voltaire_JsonRpc,
-						],
-					},
+					...(parentEntityType === EntityType.Network && {
+						blockHeight: {
+							$: [
+								Source.Voltaire_JsonRpc,
+							],
+						},
+					}),
 					[fieldName]: {
 						$: [
 							Source.Blockscout_Rest,
 						],
-						$limit: 16,
+						...(parentEntityType === EntityType.Network && {
+							$limit: 16,
+						}),
 					},
 				},
 			)}
 			{@const userOperations = derive(
-				network,
-				(network): Entity<typeof schema, EntityType.EvmUserOperation>[] => (
-					network[fieldName]
+				parent,
+				(parent): Entity<typeof schema, EntityType.EvmUserOperation>[] => (
+					parent[fieldName]
 					?? []
 				),
 			)}

@@ -1,5 +1,6 @@
 import { getJson } from '$/lib/http.ts'
-import { youtubeApiOrigins, youtubeApiV3Base } from '$/sources/Youtube/Rest/constants.ts'
+import Youtube from '$/sources/Youtube/index.ts'
+import { youtubeApiV3Base } from '$/sources/Youtube/Rest/constants.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -18,6 +19,6 @@ export const youtubeApiV3Get = async <T>(
 			...params,
 		}).toString()
 	)}`, {
-		origins: youtubeApiOrigins,
+		origins: Youtube.origins ?? [],
 	})
 }

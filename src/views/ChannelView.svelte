@@ -82,7 +82,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import { resolve } from '$app/paths'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -101,10 +101,14 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			{entityId.id}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Heading()}
@@ -162,13 +166,11 @@
 								{#if stateChannel.updatedAt !== undefined}
 									<Timestamp
 										timestamp={stateChannel.updatedAt}
-										format={TimestampFormat.Both}
 									/>
 								{:else}
 									{#if stateChannel.createdAt !== undefined}
 										<Timestamp
 											timestamp={stateChannel.createdAt}
-											format={TimestampFormat.Both}
 										/>
 									{/if}
 								{/if}
@@ -412,7 +414,6 @@
 								{#if stateChannel.createdAt !== undefined}
 									<Timestamp
 										timestamp={stateChannel.createdAt}
-										format={TimestampFormat.Both}
 									/>
 								{/if}
 							{/snippet}
@@ -431,7 +432,6 @@
 								{#if stateChannel.updatedAt !== undefined}
 									<Timestamp
 										timestamp={stateChannel.updatedAt}
-										format={TimestampFormat.Both}
 									/>
 								{/if}
 							{/snippet}
@@ -456,6 +456,7 @@
 			<div
 				class="entity-view-detail-carousels"
 				data-column="gap-3"
+				data-carousel-basis="40ch"
 			>
 				<CollapsibleTabs
 					id={`${channelKey}:carousel-relationships`}
@@ -648,16 +649,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 40ch;
-			}
-		}
-	}
-</style>

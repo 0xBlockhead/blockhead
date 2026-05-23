@@ -1,7 +1,7 @@
 import { getJson } from '$/lib/http.ts'
+import TradingView from '$/sources/TradingView/index.ts'
 import {
 	baseUrl,
-	origin,
 	tradingViewCryptoScannerPath,
 } from '$/sources/TradingView/Rest/constants.ts'
 import type {
@@ -19,12 +19,7 @@ export const tradingViewScannerFetch = async ({
 	await getJson<TradingViewScannerResponse>(
 		`${baseUrl}${tradingViewCryptoScannerPath}`,
 		{
-			origins: [
-				{
-					origin,
-					corsEnabled: false,
-				},
-			],
+			origins: TradingView.origins ?? [],
 			init: {
 				method: 'POST',
 				headers: {

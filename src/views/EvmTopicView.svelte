@@ -86,10 +86,25 @@
 	{collapsible}
 	{...entityViewRest}
 >
-	{#snippet Title()}
+	{#snippet Value()}
 		<span data-text="font-monospace">
 			{entityId.hex}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		<ResourceBoundary
+			resource={topic}
+			placeholderText="Loading log topic…"
+		>
+			{#snippet children(topic)}
+				{#if topic.signatures?.[0]}
+					{topic.signatures[0]}
+				{:else}
+					{@render Value()}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Heading()}

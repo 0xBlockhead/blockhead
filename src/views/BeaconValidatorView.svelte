@@ -78,10 +78,14 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			<NumberValue value={entityId.validatorIndex} />
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

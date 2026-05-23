@@ -106,7 +106,7 @@
 		{formatMarketIdLabel(entityId.$market)}
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			{(
 				entityId.feedKey != null && entityId.feedKey !== '' ?
@@ -117,6 +117,10 @@
 					'Quote stream'
 			)}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

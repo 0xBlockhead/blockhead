@@ -19,7 +19,7 @@
 	let {
 		pageContent: _pageContent,
 		entityId,
-		title = 'Wallet on network',
+		title = 'Network account',
 		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
@@ -47,6 +47,7 @@
 
 
 	// State
+	import { blo } from 'blo'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
@@ -104,46 +105,16 @@
 						Source.Allium_Rest,
 					],
 				},
-				$$erc20TokenAllowances: {
-					$: [
-						Source.Blockscout_Rest,
-					],
-				},
-				isContract: {
-					$: [
-						Source.Blockscout_Rest,
-					],
-				},
-				$$transactions: {
-					$: [
-						Source.Blockscout_Rest,
-					],
-				},
-				$$tokenTransfers: {
-					$: [
-						Source.Blockscout_Rest,
-					],
-				},
-				$$internalTransactions: {
-					$: [
-						Source.Blockscout_Rest,
-					],
-				},
-				transactionsCount: {
-					$: [
-						Source.Blockscout_Rest,
-					],
-				},
-				transactionCount: {
-					$: [
-						Source.Blockscout_Rest,
-					],
-				},
-				tokenTransferCount: {
-					$: [
-						Source.Blockscout_Rest,
-					],
-				},
+				$: [
+					Source.Blockscout_Rest,
+				],
+				$$erc20TokenAllowances: {},
+				isContract: {},
+				$$transactions: {},
+				$$tokenTransfers: {},
+				$$internalTransactions: {},
+				transactionsCount: {},
+				tokenTransferCount: {},
 				firstTransactionAt: {},
 				lastTransactionAt: {},
 				nftCount: {},
@@ -171,9 +142,10 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import Address from '$/views/Address.svelte'
+	import ActorView from '$/views/ActorView.svelte'
 	import BalancesView from '$/views/BalancesView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
@@ -198,15 +170,23 @@
 			resource={actor}
 			placeholderText=""
 		>
+			{#snippet Pending()}
+				<IconComponent
+					alt=""
+					shape={IconShape.Square}
+					src={blo(entityId.$actor.address)}
+					size="1.5em"
+				/>
+			{/snippet}
+
 			{#snippet children(actor)}
-				{#if actor.$icon}
-					<IconComponent
-						shape={IconShape.Circle}
-						src={actor.$icon[EntityMetaKey.Id].url}
-						size="1.5em"
-						alt=""
-					/>
-				{/if}
+				{@const avatarUrl = actor.$icon?.[EntityMetaKey.Id].url}
+				<IconComponent
+					alt=""
+					shape={avatarUrl ? IconShape.Circle : IconShape.Square}
+					src={avatarUrl ?? blo(entityId.$actor.address)}
+					size="1.5em"
+				/>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -221,7 +201,7 @@
 			{/snippet}
 		</ResourceBoundary>
 		<small data-text="muted">
-			{' '}·{' '}
+			{' '}on{' '}
 			<ResourceBoundary
 				resource={network}
 				placeholderText="···"
@@ -233,11 +213,15 @@
 		</small>
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<Address
 			address={entityId.$actor.address}
 			network={entityId.$network}
 		/>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content({
@@ -248,18 +232,17 @@
 		<dl data-column-item="center">
 			{#if contentOpen}
 				<div>
-					<dt>Primary ENS</dt>
-					<dd data-text="mono">
-						<ResourceBoundary
-							resource={actor}
-							placeholderText=""
-						>
-							{#snippet children(actor)}
-								{#if actor.$primaryName}
-									{actor.$primaryName[EntityMetaKey.Id].name}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+					<dt>Account</dt>
+					<dd>
+						<ActorView
+							entityId={entityId.$actor}
+							href={resolve('/account/[address]', {
+								address: entityId.$actor.address,
+							})}
+							layout={EntityLayout.Title}
+							open={false}
+							showTypeAnnotation={false}
+						/>
 					</dd>
 				</div>
 			{/if}
@@ -290,123 +273,115 @@
 			{/if}
 			{#if contentOpen}
 				<div>
-					<dt>Transactions (count)</dt>
-					<dd data-text="mono">
+					<dt>Transactions</dt>
+					<dd>
 						<ResourceBoundary
 							resource={actorNetwork}
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(actorNetwork)}
 								{#if actorNetwork.transactionsCount !== undefined}
-									{String(actorNetwork.transactionsCount)}
+									<NumberValue value={actorNetwork.transactionsCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
-
 			{#if contentOpen}
-				<div>
-					<dt>Contract</dt>
-					<dd data-text="mono">
-						<ResourceBoundary
-							resource={actorNetwork}
-							placeholderText="Loading network activity…"
-						>
-							{#snippet children(actorNetwork)}
-								{#if actorNetwork.isContract !== undefined}
-									{actorNetwork.isContract ? 'Yes' : 'No'}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+				<ResourceBoundary
+					resource={actorNetwork}
+					placeholderText="Loading network activity…"
+				>
+					{#snippet children(actorNetwork)}
+						{#if actorNetwork.isContract === true}
+							<div>
+								<dt>Contract</dt>
+								<dd>
+									<EvmContractView
+										entityId={{
+											$network: entityId.$network,
+											address: entityId.$actor.address,
+										}}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+											{
+												networkId: String(entityId.$network.chainId),
+												address: entityId.$actor.address,
+											},
+										)}
+										layout={EntityLayout.Title}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
-
-			{#if contentOpen}
-				<div>
-					<dt>Transaction count</dt>
-					<dd data-text="mono">
-						<ResourceBoundary
-							resource={actorNetwork}
-							placeholderText="Loading network activity…"
-						>
-							{#snippet children(actorNetwork)}
-								{#if actorNetwork.transactionCount !== undefined}
-									{String(actorNetwork.transactionCount)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
 			{#if contentOpen}
 				<div>
 					<dt>Token transfers</dt>
-					<dd data-text="mono">
+					<dd>
 						<ResourceBoundary
 							resource={actorNetwork}
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(actorNetwork)}
 								{#if actorNetwork.tokenTransferCount !== undefined}
-									{String(actorNetwork.tokenTransferCount)}
+									<NumberValue value={actorNetwork.tokenTransferCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
-
 			{#if contentOpen}
 				<div>
 					<dt>NFT items</dt>
-					<dd data-text="mono">
+					<dd>
 						<ResourceBoundary
 							resource={actorNetwork}
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(actorNetwork)}
 								{#if actorNetwork.nftCount !== undefined}
-									{String(actorNetwork.nftCount)}
+									<NumberValue value={actorNetwork.nftCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
-
 			{#if contentOpen}
 				<div>
 					<dt>First activity at</dt>
-					<dd data-text="mono">
+					<dd>
 						<ResourceBoundary
 							resource={actorNetwork}
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(actorNetwork)}
 								{#if actorNetwork.firstTransactionAt !== undefined}
-									{String(actorNetwork.firstTransactionAt)}
+									<Timestamp timestamp={actorNetwork.firstTransactionAt} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
-
 			{#if contentOpen}
 				<div>
 					<dt>Last activity at</dt>
-					<dd data-text="mono">
+					<dd>
 						<ResourceBoundary
 							resource={actorNetwork}
 							placeholderText="Loading network activity…"
 						>
 							{#snippet children(actorNetwork)}
 								{#if actorNetwork.lastTransactionAt !== undefined}
-									{String(actorNetwork.lastTransactionAt)}
+									<Timestamp timestamp={actorNetwork.lastTransactionAt} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -615,26 +590,13 @@
 					{/snippet}
 
 					{#snippet Markers(_context)}
-						{#if (
-							actorNetwork.current.transactionsCount !== undefined
-							|| actorNetwork.current.transactionCount !== undefined
-							|| actorNetwork.current.tokenTransferCount !== undefined
-							|| actorNetwork.current.nftCount !== undefined
-							|| actorNetwork.current.firstTransactionAt !== undefined
-							|| actorNetwork.current.lastTransactionAt !== undefined
-						)}
-							<a
-								data-scroll-marker-label="Summary"
-								href={`#${actorNetworkDetailAnchorKey}:activity-summary`}
-							>Summary</a>
-						{/if}
 						<a
 							data-scroll-marker-label="Transactions"
 							href={`#${actorNetworkDetailAnchorKey}:activity-transactions`}
 						>Transactions</a>
 						{#if (
-							actorNetwork.current.tokenTransferCount !== undefined
-							|| !actorNetwork.ready
+							!actorNetwork.ready
+							|| actorNetwork.current.tokenTransferCount !== undefined
 							|| (actorNetwork.current.$$tokenTransfers ?? []).length > 0
 						)}
 							<a
@@ -651,144 +613,55 @@
 								href={`#${actorNetworkDetailAnchorKey}:activity-internal-transactions`}
 							>Internal transactions</a>
 						{/if}
-						<a
-							data-scroll-marker-label="Receipt logs"
-							href={`#${actorNetworkDetailAnchorKey}:activity-receipt-logs`}
-						>Receipt logs</a>
 					{/snippet}
 
 					{#snippet body(_activityChildren)}
-						<ResourceBoundary
-							resource={actorNetwork}
-							placeholderText="Loading activity…"
+						<section id={`${actorNetworkDetailAnchorKey}:activity-transactions`}>
+							<EvmTransactionsView
+								collapsible={false}
+								entityFieldReference={{
+									entityType: EntityType.ActorNetwork,
+									entityId,
+									fieldName: '$$transactions',
+								}}
+								href={href}
+								id={`${actorNetworkDetailAnchorKey}:activity-tx`}
+							/>
+						</section>
+
+						<section
+							data-scroll-marker-label="Token transfers"
+							id={`${actorNetworkDetailAnchorKey}:activity-token-transfers`}
 						>
-							{#snippet children(actorNetwork)}
-								{#if (
-									actorNetwork.transactionsCount !== undefined
-									|| actorNetwork.transactionCount !== undefined
-									|| actorNetwork.tokenTransferCount !== undefined
-									|| actorNetwork.nftCount !== undefined
-									|| actorNetwork.firstTransactionAt !== undefined
-									|| actorNetwork.lastTransactionAt !== undefined
-								)}
-									<section
-										data-scroll-marker-label="Summary"
-										id={`${actorNetworkDetailAnchorKey}:activity-summary`}
-									>
-										<dl data-column-item="center">
-											{#if actorNetwork.transactionsCount !== undefined}
-												<div>
-													<dt>Transactions (count)</dt>
-													<dd>
-														<NumberValue value={actorNetwork.transactionsCount} />
-													</dd>
-												</div>
-											{/if}
+							<EvmTransactionsView
+								collapsible={false}
+								entityFieldReference={{
+									entityType: EntityType.ActorNetwork,
+									entityId,
+									fieldName: '$$tokenTransfers',
+								}}
+								href={href}
+								id={`${actorNetworkDetailAnchorKey}:activity-token-tx-transfers`}
+								title="Token transfers"
+							/>
+						</section>
 
-											{#if actorNetwork.transactionCount !== undefined}
-												<div>
-													<dt>Transaction count</dt>
-													<dd data-text="mono">{String(actorNetwork.transactionCount)}</dd>
-												</div>
-											{/if}
-
-											{#if actorNetwork.tokenTransferCount !== undefined}
-												<div>
-													<dt>Token transfers (indexer)</dt>
-													<dd data-text="mono">{String(actorNetwork.tokenTransferCount)}</dd>
-												</div>
-											{/if}
-
-											{#if actorNetwork.nftCount !== undefined}
-												<div>
-													<dt>NFT items (indexer)</dt>
-													<dd data-text="mono">{String(actorNetwork.nftCount)}</dd>
-												</div>
-											{/if}
-
-											{#if actorNetwork.firstTransactionAt !== undefined}
-												<div>
-													<dt>First activity at</dt>
-													<dd data-text="mono">{String(actorNetwork.firstTransactionAt)}</dd>
-												</div>
-											{/if}
-
-											{#if actorNetwork.lastTransactionAt !== undefined}
-												<div>
-													<dt>Last activity at</dt>
-													<dd data-text="mono">{String(actorNetwork.lastTransactionAt)}</dd>
-												</div>
-											{/if}
-										</dl>
-									</section>
-								{/if}
-
-								<section id={`${actorNetworkDetailAnchorKey}:activity-transactions`}>
-									<EvmTransactionsView
-										collapsible={false}
-										entityFieldReference={{
-											entityType: EntityType.ActorNetwork,
-											entityId,
-											fieldName: '$$transactions',
-										}}
-										href={href}
-										id={`${actorNetworkDetailAnchorKey}:activity-tx`}
-									/>
-								</section>
-
-								<section
-									data-scroll-marker-label="Token transfers"
-									id={`${actorNetworkDetailAnchorKey}:activity-token-transfers`}
-								>
-									<EvmTransactionsView
-										collapsible={false}
-										entityFieldReference={{
-											entityType: EntityType.ActorNetwork,
-											entityId,
-											fieldName: '$$tokenTransfers',
-										}}
-										href={href}
-										id={`${actorNetworkDetailAnchorKey}:activity-token-tx-transfers`}
-										title="Token transfers"
-									/>
-								</section>
-
-								<section
-									data-scroll-marker-label="Internal transactions"
-									id={`${actorNetworkDetailAnchorKey}:activity-internal-transactions`}
-								>
-									<EvmTransactionsView
-										collapsible={false}
-										entityFieldReference={{
-											entityType: EntityType.ActorNetwork,
-											entityId,
-											fieldName: '$$internalTransactions',
-										}}
-										href={href}
-										id={`${actorNetworkDetailAnchorKey}:activity-internal-tx`}
-										title="Internal transactions"
-									/>
-								</section>
-
-								<section
-									data-scroll-marker-label="Receipt logs"
-									id={`${actorNetworkDetailAnchorKey}:activity-receipt-logs`}
-								>
-									<div data-row="wrap align-center gap-2">
-										<span data-text="annotation">Receipt logs</span>
-										<Tooltip
-											content="Open a transaction above for receipt log rows resolved as EvmLog entities on that transaction’s $$logs field."
-											contentProps={{ side: 'top' }}
-										>
-											<abbr
-												class="entity-heading-tip"
-												aria-label="Receipt logs"
-											>ⓘ</abbr>
-										</Tooltip>
-									</div>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
+						<section
+							data-scroll-marker-label="Internal transactions"
+							id={`${actorNetworkDetailAnchorKey}:activity-internal-transactions`}
+						>
+							<EvmTransactionsView
+								collapsible={false}
+								entityFieldReference={{
+									entityType: EntityType.ActorNetwork,
+									entityId,
+									fieldName: '$$internalTransactions',
+								}}
+								href={href}
+								id={`${actorNetworkDetailAnchorKey}:activity-internal-tx`}
+								title="Internal transactions"
+							/>
+						</section>
 					{/snippet}
 				</CollapsibleTabs>
 		</div>
@@ -799,16 +672,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.actor-network-view-carousel-groups :global(.carousel) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 40ch;
-			}
-		}
-	}
-</style>

@@ -13,15 +13,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
-
-
 	// Props
 	let {
 		children,
@@ -66,6 +57,15 @@
 		'/(explore)/(networks)/network/[networkId]',
 		{ networkId: String(entityId.$network.chainId) },
 	)
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
@@ -79,9 +79,14 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
+	{#snippet Value()}
+		<span>
+			chain {String(entityId.$network.chainId)}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 		<Timestamp
-			format={TimestampFormat.Both}
 			timestamp={entityId.timestampMs}
 		/>
 	{/snippet}
@@ -108,7 +113,6 @@
 				<dt>As of</dt>
 				<dd>
 					<Timestamp
-						format={TimestampFormat.Both}
 						timestamp={entityId.timestampMs}
 					/>
 				</dd>

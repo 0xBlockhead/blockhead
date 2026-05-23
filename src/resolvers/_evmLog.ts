@@ -1,9 +1,39 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import { EvmLogInterpretationKind } from '$/constants/EvmLog.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { Entity, EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { RpcLogWire } from '$/sources/Evm/JsonRpc/types.ts'
+
+const ERC20_TRANSFER_TOPIC = (
+	'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+)
+const ERC20_APPROVAL_TOPIC = (
+	'0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e80d49a8a6f947aeb'
+)
+const UNISWAP_V2_SWAP_TOPIC = (
+	'0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822'
+)
+const UNISWAP_V3_SWAP_TOPIC = (
+	'0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67'
+)
+
+export const evmLogInterpretationKindFromTopics = (
+	topics: readonly string[],
+): EvmLogInterpretationKind => {
+	const topic0 = topics[0]?.toLowerCase()
+	if (topic0 == null) return EvmLogInterpretationKind.Unknown
+	if (topic0 === ERC20_TRANSFER_TOPIC.toLowerCase()) return EvmLogInterpretationKind.Transfer
+	if (topic0 === ERC20_APPROVAL_TOPIC.toLowerCase()) return EvmLogInterpretationKind.Approval
+	if (
+		topic0 === UNISWAP_V2_SWAP_TOPIC.toLowerCase()
+		|| topic0 === UNISWAP_V3_SWAP_TOPIC.toLowerCase()
+	) {
+		return EvmLogInterpretationKind.Swap
+	}
+	return EvmLogInterpretationKind.Unknown
+}
 
 export const evmLogIndexFromWire = (
 	raw: string | undefined,
@@ -81,6 +111,7 @@ export const evmLogEntityFromIdAndWire = (
 	return {
 		[EntityMetaKey.Id]: entityId,
 		topics,
+		interpretationKind: evmLogInterpretationKindFromTopics(topics),
 		...(address != null && { address }),
 		...(log.data != null && { data: log.data }),
 		...(blockNumber != null && { blockNumber }),

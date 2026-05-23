@@ -130,13 +130,14 @@ export default {
 
 				const chainId = entityId.$network.chainId
 				const apiChainId = apiChainIdByChainId[chainId]
+				if (apiChainId == null) {
+					throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
+				}
 				const latestDexPair = (
-					apiChainId == null ?
-						undefined
-					:	(await getDexscreenerLatestPairs({
-							chainId: apiChainId,
-							pairId: entityId.id,
-						})).pairs?.[0]
+					(await getDexscreenerLatestPairs({
+						chainId: apiChainId,
+						pairId: entityId.id,
+					})).pairs?.[0]
 				)
 
 				if (latestDexPair == null) {
@@ -158,18 +159,18 @@ export default {
 
 				const chainId = entityId.$network.chainId
 				const apiChainId = apiChainIdByChainId[chainId]
+				if (apiChainId == null) {
+					throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
+				}
 				const latestDexPair = (
-					apiChainId == null ?
-						undefined
-					:	(await getDexscreenerLatestPairs({
-							chainId: apiChainId,
-							pairId: entityId.id,
-						})).pairs?.[0]
+					(await getDexscreenerLatestPairs({
+						chainId: apiChainId,
+						pairId: entityId.id,
+					})).pairs?.[0]
 				)
 
 				if (
-					apiChainId == null
-					|| latestDexPair == null
+					latestDexPair == null
 					|| !isEvmContractAddress(latestDexPair.baseToken?.address)
 					|| !isEvmContractAddress(latestDexPair.quoteToken?.address)
 				) {

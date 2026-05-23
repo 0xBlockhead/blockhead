@@ -1,10 +1,12 @@
 <script lang="ts">
-	// Components
-	import Page from '$/components/Page.svelte'
-
+	// Props
 	let {
 		params,
 	} = $props()
+
+
+	// Components
+	import Page from '$/components/Page.svelte'
 </script>
 
 

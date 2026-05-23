@@ -1,6 +1,7 @@
 import { CoinId } from '$/constants/Coin.ts'
 import {
 	MarketAssetKind,
+	MarketKind,
 	MarketTimeIntervalUnit,
 	coingeckoOhlcDayWindowLengths,
 } from '$/constants/Market.ts'
@@ -35,6 +36,9 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.Market_Timestamp,
 			resolve: async (entityId) => {
+				if (entityId.$market.marketKind !== MarketKind.Spot) {
+					throw new Error('Defillama_OpenApi: Market_Timestamp is spot-only')
+				}
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				const { getCurrentPrices } = await import('$/sources/Defillama/OpenApi/queries.ts')
 				const coinId = (
@@ -69,6 +73,9 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: async (entityId, _context) => {
+				if (entityId.$market.marketKind !== MarketKind.Spot) {
+					throw new Error('Defillama_OpenApi: OHLC is spot-only')
+				}
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				const { getDefillamaChartOhlcRowsCoingeckoShape } = await import('$/sources/Defillama/OpenApi/queries.ts')
 				assertCoingeckoDayOhlcTimeInterval(entityId.timeInterval, 'Defillama_OpenApi')
@@ -173,8 +180,26 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => {
-				throw new Error('Defillama_OpenApi: $$marketsWithCoinAsQuote is not implemented')
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+				const { coinById } = await import('$/constants/Coin.ts')
+				const { catalogMarketsWithCoinAsQuote } = await import('$/constants/MarketCatalog.ts')
+				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
+				if (coinById[entityId.coinId as keyof typeof coinById] == null) {
+					throw new Error(`Defillama_OpenApi: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`)
+				}
+				if (defillamaCurrentPriceIdByCoinId[entityId.coinId] == null) {
+					return []
+				}
+				return (
+					catalogMarketsWithCoinAsQuote(
+						entityId.coinId,
+						(baseCoinId) => defillamaCurrentPriceIdByCoinId[baseCoinId] != null,
+					).map((marketId) => (
+						{
+							[EntityMetaKey.Id]: marketId,
+						}
+					))
+				)
 			},
 		}),
 
@@ -220,6 +245,9 @@ export default {
 			entityType: EntityType.Market,
 			fieldName: '$$marketTimeIntervalTimestamps',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>, context) => {
+				if (entityId.marketKind !== MarketKind.Spot) {
+					throw new Error('Defillama_OpenApi: OHLC is spot-only')
+				}
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				const { getDefillamaChartOhlcRowsCoingeckoShape } = await import('$/sources/Defillama/OpenApi/queries.ts')
 				const coinId = (
@@ -278,6 +306,9 @@ export default {
 			entityType: EntityType.MarketPrice,
 			fieldName: '$$quotes',
 			resolve: async (entityId) => {
+				if (entityId.$market.marketKind !== MarketKind.Spot) {
+					throw new Error('Defillama_OpenApi: MarketPrice $$quotes is spot-only')
+				}
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				const { getCurrentPrices } = await import('$/sources/Defillama/OpenApi/queries.ts')
 				const coinId = (

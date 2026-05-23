@@ -99,10 +99,14 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			{entityId.iso4217}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Heading()}

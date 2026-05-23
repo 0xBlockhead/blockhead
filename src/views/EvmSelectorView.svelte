@@ -86,10 +86,25 @@
 	{collapsible}
 	{...entityViewRest}
 >
-	{#snippet Title()}
+	{#snippet Value()}
 		<span data-text="font-monospace">
 			{entityId.selector}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		<ResourceBoundary
+			resource={selector}
+			placeholderText="Loading decoded function selector…"
+		>
+			{#snippet children(selector)}
+				{#if selector.signatures?.[0]}
+					{selector.signatures[0]}
+				{:else}
+					{@render Value()}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Heading()}

@@ -53,7 +53,8 @@ import { Source } from '$/sources/$Source.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { beaconRestBaseByExecutionChainId } from '$/constants/BeaconConsensus.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
-import { getPrecompileNameForAddress, getPrecompilesForChain } from '$/constants/precompiles/index.ts'
+import { getPrecompileNameForAddress } from '$/constants/precompiles/index.ts'
+import { getPrecompilesActiveAtBlock } from '$/data/precompiles/load.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { jsonRpcUrlWithTransportForChain } from '$/resolvers/Voltaire-JsonRpc.ts'
 
@@ -368,26 +369,6 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.Market,
 			resolve: async (_entityId) => ({}),
-		}),
-
-		defineEntityResolver({
-			entityType: EntityType.EvmContract,
-			resolve: async (entityId) => {
-				const address = hexLowerOfByteSize(entityId.address, 20)
-				if (address == null) {
-					throw new Error('Constants_Internal: EvmContract address not normalized')
-				}
-				const precompileName = getPrecompileNameForAddress(
-					entityId.$network.chainId,
-					address,
-				)
-				if (precompileName == null) {
-					throw new Error(`Constants_Internal: EvmContract ${address} is not a catalog precompile on chain ${String(entityId.$network.chainId)}`)
-				}
-				return {
-					precompileName,
-				}
-			},
 		}),
 
 		defineEntityResolver({
@@ -738,8 +719,19 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => {
-				throw new Error('Constants_Internal: $$marketsWithCoinAsQuote is not implemented')
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+				const { coinById } = await import('$/constants/Coin.ts')
+				const { catalogMarketsWithCoinAsQuote } = await import('$/constants/MarketCatalog.ts')
+				if (coinById[entityId.coinId as keyof typeof coinById] == null) {
+					throw new Error(`Constants_Internal: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`)
+				}
+				return (
+					catalogMarketsWithCoinAsQuote(entityId.coinId).map((marketId) => (
+						{
+							[EntityMetaKey.Id]: marketId,
+						}
+					))
+				)
 			},
 		}),
 
@@ -1273,10 +1265,17 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Network,
-			fieldName: '$$contracts',
+			fieldName: '$$precompiles',
 			resolve: async (entityId, context) => {
 				const limit = resolverLoadSubsetRowLimit(context)
-				return getPrecompilesForChain(entityId.chainId)
+				const chainId = entityId.chainId
+				let blockNumber: number | undefined
+				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainId)
+				if (jsonRpcTransport != null) {
+					const { getChainHeadNumberForRpcUrl } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
+					blockNumber = Number(await getChainHeadNumberForRpcUrl(jsonRpcTransport))
+				}
+				return getPrecompilesActiveAtBlock(chainId, blockNumber)
 					.slice(0, limit)
 					.flatMap((precompile) => {
 						const address = hexLowerOfByteSize(precompile.address, 20)
@@ -1284,7 +1283,7 @@ export default {
 							[]
 						:	[{
 							[EntityMetaKey.Id]: {
-								$network: { chainId: entityId.chainId },
+								$network: { chainId },
 								address,
 							},
 						}]

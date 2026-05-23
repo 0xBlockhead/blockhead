@@ -77,3 +77,71 @@ export type EtherscanContractSourceCodeWire = {
 	message: string
 	result: EtherscanContractSourceRowWire[] | string
 }
+
+/**
+ * `module=account` list endpoints — **`status`** **`1`** / **`0`**, **`result`** row array or message string.
+ * @see https://docs.etherscan.io/api-reference/endpoint/tokentx
+ * @see https://docs.etherscan.io/api-reference/endpoint/txlistinternal
+ */
+export type EtherscanAccountArrayWire<T> = {
+	status: string
+	message: string
+	result: T[] | string
+}
+
+/** Shared fields on Etherscan account token-transfer rows (`tokentx`, `tokennfttx`, `token1155tx`). */
+export type EtherscanTokenTransferRowWire = {
+	blockNumber?: string
+	timeStamp?: string
+	hash?: string
+	nonce?: string
+	blockHash?: string
+	from?: string
+	to?: string
+	contractAddress?: string
+	tokenName?: string
+	tokenSymbol?: string
+	tokenDecimal?: string
+	transactionIndex?: string
+	gas?: string
+	gasPrice?: string
+	gasUsed?: string
+	cumulativeGasUsed?: string
+	input?: string
+	confirmations?: string
+	logIndex?: string
+}
+
+/** `module=account`, **`action=tokentx`** — ERC-20 token transfers. */
+export type EtherscanErc20TokenTransferRowWire = EtherscanTokenTransferRowWire & {
+	value?: string
+}
+
+/** `module=account`, **`action=tokennfttx`** — ERC-721 token transfers. */
+export type EtherscanErc721TokenTransferRowWire = EtherscanTokenTransferRowWire & {
+	tokenID?: string
+}
+
+/** `module=account`, **`action=token1155tx`** — ERC-1155 token transfers. */
+export type EtherscanErc1155TokenTransferRowWire = EtherscanTokenTransferRowWire & {
+	tokenID?: string
+	tokenValue?: string
+}
+
+/** `module=account`, **`action=txlistinternal`** — internal transactions. */
+export type EtherscanInternalTransactionRowWire = {
+	blockNumber?: string
+	timeStamp?: string
+	hash?: string
+	from?: string
+	to?: string
+	value?: string
+	contractAddress?: string
+	input?: string
+	type?: string
+	gas?: string
+	gasUsed?: string
+	traceId?: string
+	isError?: string
+	errCode?: string
+}

@@ -12,12 +12,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FarcasterFeedView from '$/views/FarcasterFeedView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -56,6 +50,12 @@
 		:
 			resolve('/farcaster/feed')
 	)
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import FarcasterFeedView from '$/views/FarcasterFeedView.svelte'
 </script>
 
 

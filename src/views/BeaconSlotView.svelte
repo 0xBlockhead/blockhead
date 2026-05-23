@@ -12,19 +12,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-
 	// Props
 	let {
 		children,
@@ -57,6 +44,9 @@
 	> = $props()
 
 
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const href = (
 		hrefProp ?? resolve(
 			'/(explore)/(networks)/network/[networkId]/(network)/(beacon-slots)/slot/[slotNumber]',
@@ -66,9 +56,7 @@
 			},
 		)
 	)
-
 	const title = titleProp ?? `Slot ${entityId.slot.toLocaleString()}`
-
 	const slot = useEntity(
 		EntityType.BeaconSlot,
 		entityId,
@@ -87,6 +75,15 @@
 			}),
 		},
 	)
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
@@ -114,15 +111,19 @@
 		</span>
 	{/snippet}
 
+	{#snippet Value()}
+		<span
+			data-badge="small"
+			data-slot-number={String(entityId.slot)}
+		>
+			{String(entityId.slot)}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Slot </span>
-			<span
-				data-badge="small"
-				data-slot-number={String(entityId.slot)}
-			>
-				{String(entityId.slot)}
-			</span>
+			{@render Value()}
 		</span>
 	{/snippet}
 

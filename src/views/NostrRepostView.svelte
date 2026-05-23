@@ -86,7 +86,7 @@
 		/>
 	{/snippet}
 
-		{Title()}
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={repost}
 			placeholderText="Loading repost…"

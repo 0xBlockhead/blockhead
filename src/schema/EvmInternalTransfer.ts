@@ -8,6 +8,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { EvmInternalCallType } from '$/constants/EvmTransaction.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -45,7 +46,7 @@ export default {
 		{
 			name: 'callType',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type.valueOf(EvmInternalCallType),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

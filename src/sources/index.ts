@@ -136,11 +136,15 @@ export type SourcePublicEnvFor<_Source extends Source> = (
 	: _Source extends Source.CoinMarketCap_Rest ?
 		SchemaEnv<typeof CoinMarketCap.env>
 	: _Source extends Source.Coingecko_OpenApi | Source.Coingecko_Rest ?
-		SourcePublicEnvWire
+		SchemaEnv<typeof Coingecko.env>
 	: _Source extends Source.Coinpaprika_OpenApi ?
 		SchemaEnv<typeof Coinpaprika.env>
 	: _Source extends Source.Dune_Rest ?
 		SchemaEnv<typeof Dune.env>
+	: _Source extends Source.Fedi_Rest ?
+		SchemaEnv<typeof Fedi.env>
+	: _Source extends Source.Mastodon_Rest ?
+		SchemaEnv<typeof Mastodon.env>
 	: _Source extends Source.Lens_Graphql ?
 		SchemaEnv<typeof Lens.env>
 	: _Source extends Source.Lens_HeyGraphql ?

@@ -97,7 +97,7 @@
 		/>
 	{/snippet}
 
-		{Title()}
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={item}
 			placeholderText="Loading item…"

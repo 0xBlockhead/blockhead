@@ -71,21 +71,18 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			{entityId.id}
 		</span>
 	{/snippet}
 
+	{#snippet Title()}
+		{title}
+	{/snippet}
+
 	{#snippet Heading()}
-		<ResourceBoundary
-			resource={source}
-			placeholderText="Loading source…"
-		>
-			{#snippet children(source)}
-				{@render Title()}
-			{/snippet}
-		</ResourceBoundary>
+		{@render Title()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

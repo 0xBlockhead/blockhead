@@ -14,23 +14,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { entityResolversByEntityType } from '$/resolvers/index.ts'
-
-
-	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import IconComponent, { IconShape } from '$/components/Icon.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
-
-
 	// Props
 	let {
 		children,
@@ -62,11 +45,13 @@
 	> = $props()
 
 
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { entityResolversByEntityType } from '$/resolvers/index.ts'
+
 	const connectionIdKey = $derived(
 		stringify(entityId),
 	)
-
-
 	const connection = useEntity(
 		EntityType.BlockheadFarcasterAccountConnection,
 		entityId,
@@ -90,6 +75,18 @@
 				{}),
 		},
 	)
+
+
+	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 </script>
 
 
@@ -117,10 +114,14 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			FID {String(entityId.fid)}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Icon()}
@@ -191,44 +192,47 @@
 				</div>
 			{/if}
 
-			{#if open && connection.custody}
-				<div>
-					<dt>Custody</dt>
-					<dd>
-						<ResourceBoundary
-							resource={connection}
-							placeholderText="Loading profile…"
-						>
-							{#snippet Pending()}{/snippet}
-							{#snippet children(connection)}
-								<TruncatedValue
-									value={connection.custody}
-									format={TruncatedValueFormat.Visual}
-								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+			{#if open}
+				{#if connection.custody}
+					<div>
+						<dt>Custody</dt>
+						<dd>
+							<ResourceBoundary
+								resource={connection}
+								placeholderText="Loading profile…"
+							>
+								{#snippet Pending()}{/snippet}
+								{#snippet children(connection)}
+									<TruncatedValue
+										value={connection.custody}
+										format={TruncatedValueFormat.Visual}
+									/>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
 			{/if}
 
-			{#if open && connection.signedAt !== undefined}
-				<div>
-					<dt>Signed in</dt>
-					<dd>
-						<ResourceBoundary
-							resource={connection}
-							placeholderText="Loading profile…"
-						>
-							{#snippet Pending()}{/snippet}
-							{#snippet children(connection)}
-								<Timestamp
-									timestamp={connection.signedAt}
-									format={TimestampFormat.Both}
-								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+			{#if open}
+				{#if connection.signedAt !== undefined}
+					<div>
+						<dt>Signed in</dt>
+						<dd>
+							<ResourceBoundary
+								resource={connection}
+								placeholderText="Loading profile…"
+							>
+								{#snippet Pending()}{/snippet}
+								{#snippet children(connection)}
+									<Timestamp
+										timestamp={connection.signedAt}
+									/>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
 			{/if}
 		</dl>
 	{/snippet}

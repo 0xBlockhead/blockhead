@@ -3,6 +3,7 @@ import {
 	getGithubRawUserContentUrl,
 	getGithubRestRepoContentsUrl,
 } from '$/sources/Github/Rest/queries.ts'
+import Caips from '$/sources/Caips/index.ts'
 
 import { caipOfficialHumanBaseUrl, caipsGithubRepo } from './constants.ts'
 
@@ -44,7 +45,10 @@ export const getCaipHumanDocUrl = ({ number }: { number: number }) => (
 	`${caipOfficialHumanBaseUrl}${number}`
 )
 
-export const getCaipsGithubContents = () => getJson({ url: getCaipsGithubContentsUrl() })
+export const getCaipsGithubContents = () => getJson({
+	url: getCaipsGithubContentsUrl(),
+	origins: Caips.origins ?? [],
+})
 
 export const getCaipsRawMarkdownText = ({
 	fileName,
@@ -52,8 +56,14 @@ export const getCaipsRawMarkdownText = ({
 }: {
 	fileName: string
 	downloadUrl: string | null | undefined
-}) => getText({ url: getCaipsRawMarkdownUrl({ fileName, downloadUrl }) })
+}) => getText({
+	url: getCaipsRawMarkdownUrl({ fileName, downloadUrl }),
+	origins: Caips.origins ?? [],
+})
 
 export const getCaipMarkdownTextForNumber = ({ number }: { number: number }) => (
-	getText({ url: getCaipMarkdownUrlForNumber({ number }) })
+	getText({
+		url: getCaipMarkdownUrlForNumber({ number }),
+		origins: Caips.origins ?? [],
+	})
 )

@@ -515,7 +515,7 @@ CLI (via `package.json`):
 pnpm run sources:graphql -- <download|generate|sync> <SourceModule>
 ```
 
-`<SourceModule>` is the path under `src/sources/` to the folder that contains `schema-source.ts` (no filename), e.g. `TheGraph/Graphql/Ens` or `TheGraph/Graphql/Messari/AaveV3/Ethereum`. Actions match OpenAPI: `download`, `generate`, `sync`.
+`<SourceModule>` is the path under `src/sources/` to the folder that contains `schema-source.ts` (no filename), e.g. `TheGraph/Graphql/Ens`. Actions match OpenAPI: `download`, `generate`, `sync`.
 
 Manifest: add `src/sources/<SourceModule>/schema-source.ts` and export `schemaSource`:
 
@@ -646,9 +646,26 @@ Local behavior in `persistOnDemandSubsets(...)`:
 
 Verification:
 
-- Use `tests/e2e/tanstack-db-persistence.e2e.ts` for real-request OPFS persistence checks. It clears OPFS from a same-origin blank page, cold-loads discovered views, records real Chainlist / EthereumLists catalog requests, reloads with those catalog URLs blocked, and fails if warm reload tries to request them again.
+- Use `tests/e2e/tanstack-db-persistence.e2e.ts` for real-request OPFS persistence checks. It clears OPFS from a same-origin blank page, cold-loads views, records real Chainlist / EthereumLists catalog requests, reloads with those catalog URLs blocked, and fails if warm reload tries to request them again.
+- **CI / pre-merge gate:** `pnpm run test:e2e:persistence` (canonical routes only: `/network/1`, `/networks`; dedicated dev server). Full route discovery: `pnpm run test:e2e:persistence:full` (slow; may fail on unrelated page console errors before reaching the warm-reload assertion).
 - Real-network suites may need provider-specific noise filtering for unrelated upstream 400/404/422/fetch failures, but must not filter Chainlist / EthereumLists catalog requests during the warm reload assertion.
 - Current focused status: `/network/1` and `/networks` pass the real TanStack DB persistence test together.
+
+Regression history (do not reintroduce):
+
+1. **Finite `staleTime` / `persistedGcTime`** — TanStack Query background refetch bypasses `persistOnDemandSubsets` and repeats resolver HTTP on warm reload. Keep both `Number.POSITIVE_INFINITY` in `$collections.ts` unless a replacement refresh path is verified with `test:e2e:persistence`.
+2. **`collectionSnapshotHasChanges` short-circuit without `everyListedSourceHydrated`** ([coins / `$$coins` thread](9bcb00da-fbfa-409d-8b45-31c2ec5ef194)) — Constants-only rows could satisfy a limited ordered snapshot while Coingecko (or other `Source in (…)`) never loaded; wrapper returned `true` and skipped remote fetch forever. Fix: require `everyListedSourceHydrated` before short-circuiting on snapshot changes; multi-source live queries must list **enabled** sources only (disabled providers never produce rows → subset never “complete”).
+3. **Unfiltered catalog subsets** — Global `$$networks` and similar lists have `filters.length === 0`; `collectionHasHydratedSubset` alone is insufficient. `markLoaded()` must persist the `blockhead:loaded-subset:…` metadata marker after a successful remote load.
+4. **`schemaVersion` bumps** (`+layout.svelte`) — intentional OPFS wipe; first visit after bump will refetch catalogs. Bump only when persisted row shape changes, not for unrelated features.
+5. **Stale reused Vite dev server during Playwright** — `playwright.config.ts` notes mid-HMR `.svelte-kit/generated` can 500; use `PLAYWRIGHT_DEDICATED_SERVER=1` (or stop port 5173) for persistence runs. Warm-reload catalog assertion can pass while the test still fails on unrelated `pageerror` / HMR noise.
+6. **Live `resolveLive` invalidations** — Voltaire block streams call `invalidateEntityFieldQueries` for head block / tx lists; that is expected live refresh, not catalog persistence failure. Do not confuse with Chainlist / EthereumLists refetch.
+
+Change checklist (any edit touching collections, layout persistence, or catalog field queries):
+
+- Run `pnpm run test:e2e:persistence` after `$collections.ts`, `schemaVersion`, or Chainlist / EthereumLists field resolver changes.
+- Never remove or route-around `persistOnDemandSubsets`; do not add view-local “already loaded” guards instead.
+- New `Source in (…)` multi-provider field lists: filter to `enabledSources`; verify each listed source can hydrate rows for the subset.
+- After schema/id shape changes: bump `schemaVersion` once and re-verify cold + warm reload.
 
 
 ---
@@ -667,13 +684,12 @@ Verification:
 
 ### Entity identity row (`$/components/EntityId.svelte`, `$/components/EntityView.svelte`)
 
-- **`EntityId`**: draggable icon + default `children` snippet (linked label text); `EntityView` inlines `Title` / `Value` / fallback at each call site.
-- **Card summary**: `EntityView` wraps `EntityId` in `<header class="entity-view-summary">` + `<Heading>`; `HeadingAfter` and collapsed `Content` preview live on that header, not on `EntityId`.
-- Layout: The summary link wraps the icon (`#snippet Icon`) and label (`EntityId`). Keep that pattern so the whole row is one draggable / navigable target.
-- Readable ids, not JSON-shaped summaries: Do not render `stringify(entityId)` from `devalue` (or any similar serialized object blob) in `#snippet Value()` / `#snippet Title()` or other user-visible summary text. Use domain-appropriate copy: `<Address>`, `<TruncatedValue>`, chain id, short labels, etc. `stringify(entityId)` is still fine for non-display uses (e.g. element `id`, view-transition names, sort keys, `idDragPlainText`, route params).
-- `#snippet Value` vs `#snippet Title`: **`Value`** is value-only identity (badge, hash, address, number) with no kind prefix (`Block`, `Epoch`, …). **`Title`** is the labeled card / prose display and should compose identity as kind word + `{@render Value()}` when a prefix applies. Do not duplicate the same fact in `#snippet Title` and in `<dl>` rows (see bullets above).
-- Lists vs type noise: `$/components/EntitiesList.svelte` calls `setIsInsideEntityList(true)`. `EntityView` defaults `showTypeAnnotation` from that context so list rows do not show the entity-type collapsible annotation (homogeneous list; avoid repeating the type next to every row).
-- Redundancy removal: Drop `<dl>` rows (and avoid extra summary lines) that only repeat the title row or parent-scoped ids—see `<dl>` vs heading and `<dl>` vs parent id above.
+- `Value` / `Title` / `Heading` snippets: value-only id (no kind prefix); labeled card/link text; loaded summary when resolver data beats the raw id.
+- Card summary: `Heading` → `Title` → `Value` → `title` prop. `EntityLayout.Value` → `Value` only; `EntityLayout.Title` → `Title` then `Value`. Do not use bare `{@render Value()}` for `Title` when a loaded label exists.
+- `Title` / `Heading` patterns — kind + `{@render Value()}` (`EvmBlockView`); `ResourceBoundary` + fallback (`YouTubeVideoView`, `EvmSelectorView`); `Heading` loaded, `Value` id + `EntityLayout.Value` inline (`CoinView`); `Title` prose vs `Value` id (`LiquidityPoolView`, `EnsView`); hub/protocol name, not `entityId.scope` (`FarcasterView`, `GlobalView`). No `·` in title copy.
+- `EntityId`: icon + linked label; summary link wraps `#snippet Icon` and label so the row is one draggable target. `EntityView` header uses the HTML `<Heading>` component; `HeadingAfter` and collapsed `Content` live there, not on `EntityId`.
+- Readable ids: no `stringify(entityId)` in user-visible snippets; use `<Address>`, `<TruncatedValue>`, domain labels. Fine for `id`, view-transition names, drag text, route params.
+- Do not repeat summary identity in `<dl>` rows (see `<dl>` vs heading above). `EntitiesList` context hides per-row type annotation.
 
 ### Related entities: inline `Title` vs `CollapsibleTabs`
 

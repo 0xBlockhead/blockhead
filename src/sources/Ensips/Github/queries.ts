@@ -3,6 +3,7 @@ import {
 	getGithubRawUserContentUrl,
 	getGithubRestRepoContentsUrl,
 } from '$/sources/Github/Rest/queries.ts'
+import Ensips from '$/sources/Ensips/index.ts'
 
 import { ensipsGithubRepo } from './constants.ts'
 
@@ -24,8 +25,14 @@ export const getEnsipProposalMarkdownUrl = ({ number }: { number: number }) => (
 	})
 )
 
-export const getEnsipsGithubContents = () => getJson({ url: getEnsipsGithubContentsUrl() })
+export const getEnsipsGithubContents = () => getJson({
+	url: getEnsipsGithubContentsUrl(),
+	origins: Ensips.origins ?? [],
+})
 
 export const getEnsipProposalMarkdownText = ({ number }: { number: number }) => (
-	getText({ url: getEnsipProposalMarkdownUrl({ number }) })
+	getText({
+		url: getEnsipProposalMarkdownUrl({ number }),
+		origins: Ensips.origins ?? [],
+	})
 )

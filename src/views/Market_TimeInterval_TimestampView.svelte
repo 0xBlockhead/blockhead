@@ -72,7 +72,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import MarketView from '$/views/MarketView.svelte'
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 </script>
@@ -89,14 +89,18 @@
 	)}
 	{layout}
 	bind:open
-	title={`Market interval OHLC · ${formatMarketTimeIntervalLabel(entityId.timeInterval)} · candle at interval boundary`}
+	title={`${formatMarketTimeIntervalLabel(entityId.timeInterval)} OHLC candle`}
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			interval start (candle boundary)
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Heading()}
@@ -129,7 +133,6 @@
 						<dt>Interval start</dt>
 						<dd>
 							<Timestamp
-								format={TimestampFormat.Both}
 								timestamp={entityId.timestampMs}
 							/>
 						</dd>

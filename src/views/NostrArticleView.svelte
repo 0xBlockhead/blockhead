@@ -97,7 +97,7 @@
 		/>
 	{/snippet}
 
-		{Title()}
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={article}
 			placeholderText="Loading article…"
@@ -263,16 +263,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 36ch;
-			}
-		}
-	}
-</style>

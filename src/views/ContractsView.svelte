@@ -59,10 +59,10 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Verified contracts pair execution-layer addresses with bytecode and an ABI so calldata and logs decode to human-readable functions and events.
+			Verified explorer contracts only—bytecode and ABI metadata the explorer indexed for this network.
 		</p>
 		<p>
-			Explorers index these artifacts when publish-submitted metadata is available.
+			Precompiles and unverified addresses are listed separately.
 		</p>
 	{/snippet}
 

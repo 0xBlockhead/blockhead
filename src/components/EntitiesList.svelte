@@ -58,7 +58,7 @@
 	} from '$/context/onNestedCollapsibleClose.ts'
 
 
-	// State
+	// Props
 	import { SvelteSet } from 'svelte/reactivity'
 
 	let {
@@ -145,10 +145,16 @@
 		incrementHeadingLevel()
 	}
 
+
+	// State
+
 	let listSummary = $state({
 		loaded: 0,
 		total: undefined,
 	})
+
+
+	// (Derived)
 
 	const loadedCount = $derived(
 		items !== undefined || resource !== undefined ?

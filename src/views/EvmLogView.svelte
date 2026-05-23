@@ -8,6 +8,7 @@
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
+	import { EvmLogInterpretationKind, evmLogInterpretationKindLabelById } from '$/constants/EvmLog.ts'
 	import { getEvmTopicPath, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
 
 
@@ -71,6 +72,7 @@
 				Source.Voltaire_JsonRpc,
 			],
 			topics: {},
+			interpretationKind: {},
 			...(open && {
 				address: {},
 				data: {},
@@ -101,10 +103,14 @@
 	{collapsible}
 	{...entityViewRest}
 >
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			log #{entityId.logIndex}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Heading()}
@@ -176,6 +182,12 @@
 					placeholderText="Loading receipt log…"
 				>
 					{#snippet children(log)}
+					{#if log.interpretationKind != null && log.interpretationKind !== EvmLogInterpretationKind.Unknown}
+						<div>
+							<dt>Interpretation</dt>
+							<dd>{evmLogInterpretationKindLabelById[log.interpretationKind]}</dd>
+						</div>
+					{/if}
 					{#if log.$emitter}
 						<div>
 							<dt>Emitter contract</dt>

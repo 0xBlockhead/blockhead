@@ -1,9 +1,7 @@
 import { getJson } from '$/lib/http.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
-import {
-	blobscanRestApiOriginForChainId,
-	blobscanRestOrigins,
-} from '$/sources/Blobscan/Rest/constants.ts'
+import Blobscan from '$/sources/Blobscan/index.ts'
+import { blobscanRestApiOriginForChainId } from '$/sources/Blobscan/Rest/constants.ts'
 
 
 import type { JsonObject } from '$/typescript/JsonValue.ts'
@@ -39,7 +37,7 @@ const getBlobscanBlobJsonStringInner = async ({
 	try {
 		tx = await getJson<BlobscanTransactionWire>(
 			txUrl,
-			{ origins: blobscanRestOrigins },
+			{ origins: Blobscan.origins ?? [] },
 		)
 	}
 	catch {
@@ -57,7 +55,7 @@ const getBlobscanBlobJsonStringInner = async ({
 	try {
 		detail = await getJson<BlobscanBlobDetailWire>(
 			blobUrl,
-			{ origins: blobscanRestOrigins },
+			{ origins: Blobscan.origins ?? [] },
 		)
 	}
 	catch {

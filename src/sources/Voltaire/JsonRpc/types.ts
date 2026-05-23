@@ -29,6 +29,7 @@ export type VoltaireTxRpc = {
 	maxFeePerGas?: string
 	maxPriorityFeePerGas?: string
 	type?: string
+	maxFeePerBlobGas?: string
 	blobVersionedHashes?: readonly string[]
 }
 
@@ -38,5 +39,6 @@ export type VoltaireReceiptRpc = {
 	cumulativeGasUsed?: string
 	contractAddress?: string | null
 	effectiveGasPrice?: string
+	blobGasUsed?: string
 	logs?: RpcLogWire[]
 }

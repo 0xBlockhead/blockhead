@@ -1,7 +1,9 @@
-import { env } from '$env/dynamic/public'
-
 import { getJson } from '$/lib/http.ts'
-import { mastodonApiBase, mastodonOrigins } from '$/sources/Mastodon/Rest/constants.ts'
+import { optionalPublicEnvString } from '$/lib/sources.ts'
+import { Source } from '$/sources/$Source.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import { mastodonApiBase } from '$/sources/Mastodon/Rest/constants.ts'
+import Mastodon from '$/sources/Mastodon/index.ts'
 
 const qs = (o: Record<string, string | undefined>) => {
 	const s = new URLSearchParams()
@@ -13,19 +15,23 @@ const qs = (o: Record<string, string | undefined>) => {
 	return t ? `?${t}` : ''
 }
 
-const authHeaders = (): Record<string, string> => {
-	const t = env.PUBLIC_MASTODON_ACCESS_TOKEN
+const authHeaders = (publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>): Record<string, string> => {
+	const token = optionalPublicEnvString(publicEnv, 'PUBLIC_MASTODON_ACCESS_TOKEN')
 	return (
-		typeof t === 'string' && t.trim() !== '' ?
-			{ Authorization: `Bearer ${t.trim()}` as const }
+		token != null ?
+			{ Authorization: `Bearer ${token}` as const }
 		:
 			{}
 	)
 }
 
-export const mastodonGet = async <T>(path: string, search?: Record<string, string | undefined>) => (
+export const mastodonGet = async <T>(
+	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+	path: string,
+	search?: Record<string, string | undefined>,
+) => (
 	getJson<T>(`${mastodonApiBase}${path}${qs(search ?? {})}`, {
-		origins: mastodonOrigins,
-		init: { headers: authHeaders() },
+		origins: Mastodon.origins ?? [],
+		init: { headers: authHeaders(publicEnv) },
 	})
 )

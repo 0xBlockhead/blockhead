@@ -82,7 +82,7 @@
 		/>
 	{/snippet}
 
-		{Title()}
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={relay}
 			placeholderText="Loading relay…"

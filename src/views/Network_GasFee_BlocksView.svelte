@@ -19,12 +19,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import Network_GasFee_BlockView from '$/views/Network_GasFee_BlockView.svelte'
-
-
 	// Props
 	let {
 		title = 'Gas',
@@ -78,6 +72,12 @@
 			)
 		},
 	)
+
+
+	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import Network_GasFee_BlockView from '$/views/Network_GasFee_BlockView.svelte'
 </script>
 
 

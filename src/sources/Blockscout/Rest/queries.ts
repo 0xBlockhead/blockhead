@@ -7,8 +7,8 @@
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { corsFetch } from '$/lib/http.ts'
 import { getJson } from '$/sources/Blockscout/Rest/client.ts'
+import Blockscout from '$/sources/Blockscout/index.ts'
 import {
-	blockscoutExplorerOrigins,
 	blockscoutV2ItemsCountMax,
 	restPath,
 } from '$/sources/Blockscout/Rest/constants.ts'
@@ -148,7 +148,7 @@ export const getBlockscoutStats = async ({
 		const url = new URL(explorerOrigin)
 		url.pathname = `${url.pathname.replace(/\/$/, '')}${restPath}/stats`
 		const res = await corsFetch(url.toString(), {
-			origins: blockscoutExplorerOrigins,
+			origins: Blockscout.origins ?? [],
 			init: { headers: { accept: 'application/json' } },
 		})
 		if (!res.ok) return null
@@ -691,6 +691,31 @@ const getBlockscoutErc4337RegistryDetail = async ({
 	})
 	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${path}`)
 	return raw
+}
+
+export const getBlockscoutUserOperationsForTransaction = async ({
+	explorerOrigin,
+	txHash,
+	limit,
+}: {
+	explorerOrigin: string
+	txHash: `0x${string}`
+	limit: number
+}): Promise<BlockscoutUserOperationListItemWire[]> => {
+	if (limit <= 0) return []
+	const relativePath = '/proxy/account-abstraction/operations'
+	const raw = await getJson<
+		BlockscoutPaginatedWire<BlockscoutUserOperationListItemWire> & { error?: unknown }
+	>({
+		explorerOrigin,
+		path: relativePath,
+		searchParams: {
+			transaction_hash: txHash,
+			page_size: blockscoutItemsCount(limit),
+		},
+	})
+	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
+	return raw.items ?? []
 }
 
 export const getBlockscoutUserOperationsPage = async ({

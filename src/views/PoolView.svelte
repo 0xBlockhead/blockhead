@@ -8,10 +8,6 @@
 	import { schema } from '$/schema/index.ts'
 
 
-	// Components
-	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
-
-
 	// Props
 	let {
 		children,
@@ -34,6 +30,10 @@
 			| 'open'
 		>
 	> = $props()
+
+
+	// Components
+	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
 </script>
 
 

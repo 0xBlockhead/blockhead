@@ -323,6 +323,22 @@
 		},
 	)
 
+	const latestGasEstimateTimestampId = derive(
+		network,
+		(network) => {
+			const gasEstimateTimestamps = network.$$gasEstimateTimestamps
+			if (!(gasEstimateTimestamps?.length)) {
+				return undefined
+			}
+			return gasEstimateTimestamps
+				.toSorted((leftTimestamp, rightTimestamp) => (
+					rightTimestamp[EntityMetaKey.Id].timestampMs
+					- leftTimestamp[EntityMetaKey.Id].timestampMs
+				))[0]
+				?.[EntityMetaKey.Id]
+		},
+	)
+
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
@@ -345,13 +361,16 @@
 	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
 	import EvmBlocksView from '$/views/EvmBlocksView.svelte'
 	import EvmContractsView from '$/views/EvmContractsView.svelte'
+	import EvmPrecompilesView from '$/views/EvmPrecompilesView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
 	import EvmUserOperationsView from '$/views/EvmUserOperationsView.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import NetworkConsensusUpgradesView from '$/views/NetworkConsensusUpgradesView.svelte'
 	import NetworkExecutionUpgradesView from '$/views/NetworkExecutionUpgradesView.svelte'
 	import UrlsView from '$/views/UrlsView.svelte'
+	import Network_GasEstimate_TimestampView from '$/views/Network_GasEstimate_TimestampView.svelte'
 	import Network_GasEstimate_TimestampsView from '$/views/Network_GasEstimate_TimestampsView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 	import Network_GasFee_BlocksView from '$/views/Network_GasFee_BlocksView.svelte'
 	import Network_Txpool_TimestampsView from '$/views/Network_Txpool_TimestampsView.svelte'
 	import Erc4337AccountFactoriesView from '$/views/Erc4337AccountFactoriesView.svelte'
@@ -417,10 +436,14 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			Chain {String(entityId.chainId)}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -432,7 +455,7 @@
 	{#snippet Content({
 		title: _title,
 		href: _href,
-		open: contentOpen,
+		open,
 	})}
 		<dl
 			class="network-summary-head"
@@ -507,7 +530,9 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+			{/if}
 
+			{#if separateConsensusProtocol === ConsensusProtocol.EthereumBeacon}
 				<div>
 					<dt>Slot</dt>
 					<dd>
@@ -542,7 +567,7 @@
 				</div>
 			{/if}
 
-			{#if contentOpen}
+			{#if open}
 				{#if network.environment !== undefined}
 					<div>
 						<dt>Environment</dt>
@@ -560,7 +585,57 @@
 				{/if}
 			{/if}
 
-			{#if contentOpen}
+			{#if open}
+				{#if network.layerNumber !== undefined}
+					<div>
+						<dt>Layer</dt>
+						<dd>
+							<ResourceBoundary resource={network}>
+								{#snippet children(network)}
+									<NumberValue value={network.layerNumber} />
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+			{/if}
+
+			{#if open}
+				{#if network.shortName !== undefined}
+					<div>
+						<dt>Short name</dt>
+						<dd>
+							<ResourceBoundary resource={network}>
+								{#snippet children(network)}
+									<code>{network.shortName}</code>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+			{/if}
+
+			{#if open}
+				{#if network.nativeCurrencies?.[0]?.symbol}
+					<div>
+						<dt>Native currency</dt>
+						<dd>
+							<ResourceBoundary resource={network}>
+								{#snippet children(network)}
+									{@const nativeCurrency = network.nativeCurrencies[0]}
+									{#if nativeCurrency.name !== nativeCurrency.symbol}
+										{nativeCurrency.name} ({nativeCurrency.symbol})
+									{:else}
+										{nativeCurrency.symbol}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+			{/if}
+
+			{#if open}
 				{#if network.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
 					<div>
 						<dt>Parent</dt>
@@ -570,7 +645,13 @@
 								placeholderText="Loading network…"
 							>
 								{#snippet children(network)}
-									Chain {String(network.$parentLayer[EntityMetaKey.Id].chainId)}
+									<NetworkView
+										entityId={network.$parentLayer[EntityMetaKey.Id]}
+										href={networkHref(network.$parentLayer[EntityMetaKey.Id].chainId)}
+										layout={EntityLayout.Title}
+										open={false}
+										showTypeAnnotation={false}
+									/>
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
@@ -578,14 +659,83 @@
 				{/if}
 			{/if}
 
-			{#if contentOpen}
+			{#if open}
+				{#if (
+					network.environment === NetworkEnvironment.Testnet
+					&& network.$mainnet?.[EntityMetaKey.Id].chainId !== undefined
+				)}
+					<div>
+						<dt>Mainnet</dt>
+						<dd>
+							<ResourceBoundary
+								resource={network}
+								placeholderText="Loading network…"
+							>
+								{#snippet children(network)}
+									<NetworkView
+										entityId={network.$mainnet[EntityMetaKey.Id]}
+										href={networkHref(network.$mainnet[EntityMetaKey.Id].chainId)}
+										layout={EntityLayout.Title}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+			{/if}
+
+			{#if open}
+				{#if (
+					network.consensusProtocol !== undefined
+					|| separateConsensusProtocol != null
+				)}
+					<div>
+						<dt>Consensus</dt>
+						<dd>
+							<ResourceBoundary resource={network}>
+								{#snippet children(network)}
+									{network.consensusProtocol ?? separateConsensusProtocol}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+			{/if}
+
+			{#if open}
+				{#if latestGasEstimateTimestampId}
+					<div>
+						<dt>Gas estimate</dt>
+						<dd>
+							<ResourceBoundary
+								resource={latestGasEstimateTimestampId}
+								placeholderText="Loading gas estimate…"
+							>
+								{#snippet children(gasEstimateTimestampId)}
+									<Network_GasEstimate_TimestampView
+										entityId={gasEstimateTimestampId}
+										href={href}
+										layout={EntityLayout.Summary}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+			{/if}
+
+			{#if open}
 				<div>
 					<dt>CAIP-2</dt>
 					<dd data-row="inline wrap"><code>eip155:{String(entityId.chainId)}</code></dd>
 				</div>
 			{/if}
 
-			{#if contentOpen}
+			{#if open}
 				{#if network.registryStatus !== undefined}
 					<div>
 						<dt>Registry status</dt>
@@ -600,7 +750,7 @@
 				{/if}
 			{/if}
 
-			{#if contentOpen}
+			{#if open}
 				{#if (
 					network.peeringId !== undefined
 					&& network.peeringId !== entityId.chainId
@@ -618,7 +768,7 @@
 				{/if}
 			{/if}
 
-			{#if contentOpen}
+			{#if open}
 				{#if network.slip44 !== undefined}
 					<div>
 						<dt>SLIP-44</dt>
@@ -1612,9 +1762,13 @@
 
 				{#snippet Markers(_context)}
 					<a
-						data-scroll-marker-label="Contracts"
+						data-scroll-marker-label="Precompiles"
+						href={`#${networkIdKey}:data-precompiles`}
+					>Precompiles</a>
+					<a
+						data-scroll-marker-label="Verified"
 						href={`#${networkIdKey}:data-contracts`}
-					>Contracts</a>
+					>Verified</a>
 					<a
 						data-scroll-marker-label="Blobs"
 						href={`#${networkIdKey}:data-storage-blobs`}
@@ -1622,6 +1776,21 @@
 				{/snippet}
 
 				{#snippet body(_childrenContext)}
+					<section id={`${networkIdKey}:data-precompiles`}>
+						<EvmPrecompilesView
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.Network,
+								entityId,
+								fieldName: '$$precompiles',
+							}}
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/precompiles',
+								{ networkId: String(entityId.chainId) },
+							)}
+							id={`${networkIdKey}:precompiles-list`}
+						/>
+					</section>
 					<section id={`${networkIdKey}:data-contracts`}>
 						<EvmContractsView
 							collapsible={false}
@@ -1663,16 +1832,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.network-view-carousel-groups :global(.carousel) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 40ch;
-			}
-		}
-	}
-</style>

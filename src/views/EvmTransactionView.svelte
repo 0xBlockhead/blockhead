@@ -7,6 +7,12 @@
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import {
+		EvmTransactionEnvelopeType,
+		evmTransactionEnvelopeTypeLabelById,
+		evmTransactionExecutionStatusLabelById,
+		evmTransactionKindLabelById,
+	} from '$/constants/EvmTransaction.ts'
 	import { stringify } from 'devalue'
 
 
@@ -63,7 +69,9 @@
 			$to: {},
 			$contract: {},
 			value: {},
-			status: {},
+			kind: {},
+			envelopeType: {},
+			executionStatus: {},
 			gasUsed: {},
 			input: {},
 			...(open ?
@@ -72,8 +80,11 @@
 					transactionIndex: {},
 					gas: {},
 					gasPrice: {},
-					type: {},
+					maxFeePerGas: {},
+					maxPriorityFeePerGas: {},
 					effectiveGasPrice: {},
+					blobGasUsed: {},
+					maxFeePerBlobGas: {},
 				}
 			:
 				{}),
@@ -85,13 +96,19 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import Heading from '$/components/Heading.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EvmAssetMovementsView from '$/views/EvmAssetMovementsView.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
+	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmLogsView from '$/views/EvmLogsView.svelte'
+	import EvmTraceTreeView from '$/views/EvmTraceTreeView.svelte'
+	import EvmTransactionInputDecode from '$/views/EvmTransactionInputDecode.svelte'
+	import EvmUserOperationsView from '$/views/EvmUserOperationsView.svelte'
 </script>
 
 
@@ -104,14 +121,22 @@
 	bind:open
 	{...entityViewRest}
 >
-	{#snippet Heading()}
-
+	{#snippet Value()}
 		<span data-tx-hash={entityId.txHash}>
 			<TruncatedValue
 				value={entityId.txHash}
 				format={TruncatedValueFormat.Abbr}
 			/>
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
+	{/snippet}
+
+	{#snippet Heading()}
+
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -129,6 +154,20 @@
 		open: contentOpen,
 	})}
 		<dl data-column-item="center">
+			<div>
+				<dt>Kind</dt>
+				<dd>
+					<ResourceBoundary
+						resource={evmTransaction}
+						placeholderText="Loading transaction…"
+					>
+						{#snippet children(evmTransaction)}
+							{evmTransactionKindLabelById[evmTransaction.kind]}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
 			<div>
 				<dt>Value</dt>
 				<dd>
@@ -153,8 +192,8 @@
 						placeholderText="Loading transaction…"
 					>
 						{#snippet children(evmTransaction)}
-							{#if evmTransaction.status !== undefined}
-								{String(evmTransaction.status)}
+							{#if evmTransaction.executionStatus !== undefined}
+								{evmTransactionExecutionStatusLabelById[evmTransaction.executionStatus]}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -376,8 +415,8 @@
 							placeholderText="Loading transaction…"
 						>
 							{#snippet children(evmTransaction)}
-								{#if evmTransaction.type !== undefined}
-									{String(evmTransaction.type)}
+								{#if evmTransaction.envelopeType !== undefined}
+									{evmTransactionEnvelopeTypeLabelById[evmTransaction.envelopeType]}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -394,17 +433,22 @@
 							placeholderText="Loading transaction…"
 						>
 							{#snippet children(evmTransaction)}
-								{#if evmTransaction.type === 2}
-									<span>Not listed here</span>
-									<Tooltip
-										content="EIP-1559 type-2 txs publish maxFeePerGas and maxPriorityFeePerGas caps; some explorers only index the effective price paid after inclusion. After inclusion, effective gas price reflects the base fee burned plus the validator tip."
-										contentProps={{ side: 'top' }}
-									>
-										<abbr
-											class="entity-heading-tip"
-											aria-label="Type 2 gas fields"
-										>ⓘ</abbr>
-									</Tooltip>
+								{#if evmTransaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket}
+									{#if evmTransaction.maxFeePerGas !== undefined}
+										<span>
+											max{' '}
+											<NumberValue value={evmTransaction.maxFeePerGas} />
+										</span>
+									{/if}
+									{#if evmTransaction.maxPriorityFeePerGas !== undefined}
+										<span>
+											priority{' '}
+											<NumberValue value={evmTransaction.maxPriorityFeePerGas} />
+										</span>
+									{/if}
+									{#if evmTransaction.maxFeePerGas === undefined && evmTransaction.maxPriorityFeePerGas === undefined}
+										<span data-text="muted">Caps not indexed</span>
+									{/if}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -450,6 +494,34 @@
 					</dd>
 				</div>
 			{/if}
+
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={evmTransaction}
+					placeholderText="Loading transaction…"
+				>
+					{#snippet children(evmTransaction)}
+						{#if evmTransaction.envelopeType === EvmTransactionEnvelopeType.Blob}
+							{#if evmTransaction.blobGasUsed !== undefined}
+								<div>
+									<dt>Blob gas used</dt>
+									<dd>
+										<NumberValue value={evmTransaction.blobGasUsed} />
+									</dd>
+								</div>
+							{/if}
+							{#if evmTransaction.maxFeePerBlobGas !== undefined}
+								<div>
+									<dt>Max fee per blob gas</dt>
+									<dd>
+										<NumberValue value={evmTransaction.maxFeePerBlobGas} />
+									</dd>
+								</div>
+							{/if}
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
 		</dl>
 	{/snippet}
 
@@ -461,21 +533,205 @@
 			{entityId}
 		/>
 
-		<EvmLogsView
-			entityFieldReference={{
-				entityType: EntityType.EvmTransaction,
-				entityId,
-				fieldName: '$$logs',
-			}}
-			collapsible={false}
-			open={true}
-			showTypeAnnotation={false}
-		/>
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
+			<CollapsibleTabs
+				id={`${txIdKey}:carousel-execution`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({ open: _summaryOpen })}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<Heading>Execution</Heading>
+					</header>
+				{/snippet}
 
-		{#if _children}
-			<section id={`${txIdKey}:page-content`}>
-				{@render _children()}
-			</section>
-		{/if}
+				{#snippet Markers(_context)}
+					<a
+						data-scroll-marker-label="Movements"
+						href={`#${txIdKey}:movements`}
+					>Movements</a>
+					<a
+						data-scroll-marker-label="Call"
+						href={`#${txIdKey}:call`}
+					>Call</a>
+					<a
+						data-scroll-marker-label="Events"
+						href={`#${txIdKey}:events`}
+					>Events</a>
+					<a
+						data-scroll-marker-label="Trace"
+						href={`#${txIdKey}:trace`}
+					>Trace</a>
+					<ResourceBoundary
+						resource={evmTransaction}
+						placeholderText=""
+					>
+						{#snippet children(evmTransaction)}
+							{#if evmTransaction.envelopeType === EvmTransactionEnvelopeType.Blob}
+								<a
+									data-scroll-marker-label="Blobs"
+									href={`#${txIdKey}:blobs`}
+								>Blobs</a>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+					<a
+						data-scroll-marker-label="User operations"
+						href={`#${txIdKey}:user-operations`}
+					>User ops</a>
+				{/snippet}
+
+				{#snippet body({ open: tabOpen })}
+					<section
+						id={`${txIdKey}:movements`}
+						data-scroll-marker-label="Movements"
+					>
+						<EvmAssetMovementsView
+							{entityId}
+							href={href}
+							id={`${txIdKey}:movements`}
+							open={tabOpen}
+						/>
+					</section>
+
+					<section
+						id={`${txIdKey}:call`}
+						data-scroll-marker-label="Call"
+					>
+						<ResourceBoundary
+							resource={evmTransaction}
+							placeholderText="Loading transaction input…"
+						>
+							{#snippet children(evmTransaction)}
+								{#if evmTransaction.input != null}
+									<EvmTransactionInputDecode
+										input={evmTransaction.input}
+										open={tabOpen}
+									/>
+								{:else}
+									<p data-text="muted">No calldata on this transaction.</p>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</section>
+
+					<section
+						id={`${txIdKey}:events`}
+						data-scroll-marker-label="Events"
+					>
+						<EvmLogsView
+							entityFieldReference={{
+								entityType: EntityType.EvmTransaction,
+								entityId,
+								fieldName: '$$logs',
+							}}
+							collapsible={false}
+							href={href}
+							id={`${txIdKey}:events`}
+							open={tabOpen}
+							showTypeAnnotation={false}
+							title="Receipt logs"
+						/>
+					</section>
+
+					<section
+						id={`${txIdKey}:trace`}
+						data-scroll-marker-label="Trace"
+					>
+						{#if tabOpen}
+							{@const txTrace = useEntity(
+								EntityType.EvmTransaction,
+								entityId,
+								{
+									$: [
+										Source.Blockscout_Rest,
+										Source.Voltaire_JsonRpc,
+									],
+									traceRoot: {},
+									traceUnavailable: {},
+								},
+							)}
+							<ResourceBoundary
+								resource={txTrace}
+								placeholderText="Loading call trace…"
+							>
+								{#snippet children(txTrace)}
+									{#if txTrace.traceRoot != null}
+										<EvmTraceTreeView
+											traceRoot={txTrace.traceRoot}
+											chainId={entityId.$network.chainId}
+										/>
+									{:else if txTrace.traceUnavailable}
+										<p data-text="muted">
+											Call trace is not available from the configured RPC or explorer for this chain.
+										</p>
+									{:else}
+										<p data-text="muted">No call trace for this transaction.</p>
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						{/if}
+					</section>
+
+					<ResourceBoundary
+						resource={evmTransaction}
+						placeholderText=""
+					>
+						{#snippet children(evmTransaction)}
+							{#if evmTransaction.envelopeType === EvmTransactionEnvelopeType.Blob}
+								<section
+									id={`${txIdKey}:blobs`}
+									data-scroll-marker-label="Blobs"
+								>
+									<EvmBlobsView
+										entityFieldReference={{
+											entityType: EntityType.EvmTransaction,
+											entityId,
+											fieldName: '$$blobs',
+										}}
+										collapsible={false}
+										href={href}
+										id={`${txIdKey}:blobs`}
+										open={tabOpen}
+										showTypeAnnotation={false}
+										title="Blob sidecars"
+									/>
+								</section>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<section
+						id={`${txIdKey}:user-operations`}
+						data-scroll-marker-label="User operations"
+					>
+						<EvmUserOperationsView
+							entityFieldReference={{
+								entityType: EntityType.EvmTransaction,
+								entityId,
+								fieldName: '$$userOperations',
+							}}
+							collapsible={false}
+							href={href}
+							id={`${txIdKey}:user-operations`}
+							open={tabOpen}
+							showTypeAnnotation={false}
+							title="User operations"
+						/>
+					</section>
+
+					{#if _children}
+						<section id={`${txIdKey}:page-content`}>
+							{@render _children()}
+						</section>
+					{/if}
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
 	{/snippet}
 </EntityView>

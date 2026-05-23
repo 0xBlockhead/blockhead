@@ -64,10 +64,24 @@ export default {
 			resolve: async (entityId) => {
 				type UserFields = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterUser>
 				type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerificationWire
-				const { getSnapchainUserBundleByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
-				const { userData, usernameProofs, verifications } = await getSnapchainUserBundleByFid({
-					fid: entityId.fid,
-				})
+				const {
+					getSnapchainUserBundleByFid,
+					countLinksByFid,
+				} = await import('$/sources/Snapchain/Rest/queries.ts')
+				const [{ userData, usernameProofs, verifications }, followerCount, followingCount] = await Promise.all([
+					getSnapchainUserBundleByFid({
+						fid: entityId.fid,
+					}),
+					singleFlight(countLinksByFid)({
+						fid: entityId.fid,
+						linkType: 'follow',
+						reverse: true,
+					}),
+					singleFlight(countLinksByFid)({
+						fid: entityId.fid,
+						linkType: 'follow',
+					}),
+				])
 				const verifiedAddressWire = (
 					(verifications.messages ?? [])
 						.map((message: SnapVerify) => {
@@ -86,6 +100,8 @@ export default {
 				)
 				const userFields: Partial<UserFields> = {
 					username: optionalTrimmedString(usernameProofs.proofs?.[0]?.name),
+					followerCount,
+					followingCount,
 				}
 				if (!(verifiedParsed instanceof arktype.errors)) userFields.verifiedAddress = verifiedParsed
 				for (const message of (userData.messages ?? [])) {

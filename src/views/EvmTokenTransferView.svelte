@@ -6,7 +6,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { EvmTokenStandard } from '$/schema/EvmTokenTransfer.ts'
+	import { EvmTokenStandard } from '$/constants/EvmTokenTransfer.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
@@ -63,7 +63,6 @@
 				tokenId: {},
 				tokenDecimals: {},
 				tokenName: {},
-				logIndex: {},
 				$from: {},
 				$to: {},
 				$tokenContract: {},
@@ -93,12 +92,17 @@
 	bind:open
 	{...entityViewRest}
 >
+	{#snippet Value()}
+		<span>
+			log #{entityId.logIndex}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={transfer}
-			placeholderText="Loading token transfer…"
-		>
-					</ResourceBoundary>
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Token transfer </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -113,8 +117,7 @@
 				resource={transfer}
 				placeholderText="Loading token transfer…"
 			>
-							{#snippet children(transfer)}
-				
+				{#snippet children(transfer)}
 					{#if showParentTransaction}
 						<div>
 							<dt>Transaction</dt>
@@ -142,10 +145,58 @@
 						<dd>{transfer.standard}</dd>
 					</div>
 
-					{#if transfer.logIndex !== undefined}
+					<div>
+						<dt>Amount</dt>
+						<dd>
+							<NumberValue value={transfer.amount} />
+						</dd>
+					</div>
+
+					{#if transfer.$from?.[EntityMetaKey.Id].address !== undefined}
 						<div>
-							<dt>Log index</dt>
-							<dd>{String(transfer.logIndex)}</dd>
+							<dt>From</dt>
+							<dd>
+								<ActorNetworkView
+									entityId={{
+										$network: entityId.$network,
+										$actor: transfer.$from[EntityMetaKey.Id],
+									}}
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+										{
+											networkId: String(entityId.$network.chainId),
+											address: transfer.$from[EntityMetaKey.Id].address,
+										},
+									)}
+									layout={EntityLayout.Title}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if transfer.$to?.[EntityMetaKey.Id].address !== undefined}
+						<div>
+							<dt>To</dt>
+							<dd>
+								<ActorNetworkView
+									entityId={{
+										$network: entityId.$network,
+										$actor: transfer.$to[EntityMetaKey.Id],
+									}}
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+										{
+											networkId: String(entityId.$network.chainId),
+											address: transfer.$to[EntityMetaKey.Id].address,
+										},
+									)}
+									layout={EntityLayout.Title}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							</dd>
 						</div>
 					{/if}
 
@@ -188,8 +239,7 @@
 							</dd>
 						</div>
 					{/if}
-				
-			{/snippet}
+				{/snippet}
 			</ResourceBoundary>
 		</dl>
 	{/snippet}

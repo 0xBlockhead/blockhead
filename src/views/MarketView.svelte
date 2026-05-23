@@ -76,7 +76,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
 	import CoinView from '$/views/CoinView.svelte'
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
@@ -147,8 +147,7 @@
 							<dt>Expires</dt>
 							<dd>
 								<Timestamp
-									timestampMs={market.expiredAtMs}
-									format={TimestampFormat.Datetime}
+									timestamp={market.expiredAtMs}
 								/>
 							</dd>
 						</div>

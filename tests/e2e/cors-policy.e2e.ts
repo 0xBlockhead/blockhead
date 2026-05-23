@@ -117,9 +117,6 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 			:	all
 		)
 
-		await page.goto('/', { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
-		await expect(page.locator('#main')).toBeVisible({ timeout: settleTimeoutMs })
-
 		for (const path of pageUrls) {
 			await test.step(path, async () => {
 				const violations = collectBrowserCorsPolicyViolations(page)

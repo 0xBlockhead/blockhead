@@ -182,7 +182,7 @@ export const getBeaconValidatorSummaryAtHead = async (
 	const validatorNested = data.validator
 	const pubkeyRaw = validatorNested?.pubkey
 	const pubkey = (
-		typeof pubkeyRaw === 'string' && pubkeyRaw.startsWith('0x') ?
+		pubkeyRaw?.startsWith('0x') ?
 			zeroExLowerCase(with0xHex(pubkeyRaw.slice(2)))
 		:
 			null
@@ -200,7 +200,7 @@ export const getBeaconValidatorSummaryAtHead = async (
 		pubkey == null
 		|| balanceGwei == null
 		|| effectiveBalanceGwei == null
-		|| typeof status !== 'string'
+		|| status == null
 		|| status.length === 0
 	) return null
 	return {

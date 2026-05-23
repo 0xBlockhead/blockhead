@@ -87,7 +87,7 @@
 		/>
 	{/snippet}
 
-		{Title()}
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={reaction}
 			placeholderText="Loading reaction…"

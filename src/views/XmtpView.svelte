@@ -8,15 +8,17 @@
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { stringify } from 'devalue'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
+	// Props
 
 	let {
 		open = $bindable(true),
 	} = $props()
+
+
+	// State
+	import { stringify } from 'devalue'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const entityId = {
 		scope: 'XmtpNetwork' as const,
@@ -64,10 +66,17 @@
 	bind:open
 	title="XMTP"
 >
+	{#snippet Value()}
+		{entityId.scope}
+
+	{/snippet}
+
+	{#snippet Title()}
+		XMTP
+	{/snippet}
+
 	{#snippet Heading()}
-		<span>
-			{entityId.scope}
-		</span>
+		{@render Title()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -150,7 +159,6 @@
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
-					style: '--carousel-basis: 36ch',
 				}}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
@@ -214,16 +222,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 36ch;
-			}
-		}
-	}
-</style>

@@ -16,7 +16,7 @@ export default {
 	origins: [
 		{
 			origin: gatewayOrigin,
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 	],
 	sources: [

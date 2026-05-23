@@ -304,7 +304,7 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	[EntityType.EvmTokenTransfer]: {
 		$network: mainnet,
 		txHash: SAMPLE_TOKEN_TRANSFER_TX,
-		transferIndex: 0,
+		logIndex: 373,
 	},
 	[EntityType.EvmInternalTransfer]: {
 		$network: mainnet,

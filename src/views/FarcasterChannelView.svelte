@@ -87,7 +87,7 @@
 	import IconComponent from '$/components/Icon.svelte'
 	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
@@ -100,6 +100,12 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
+	{#snippet Value()}
+		<span>
+			/{entityId.id}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
 		<ResourceBoundary resource={channel}>
 			{#snippet children(channel)}
@@ -329,7 +335,6 @@
 								{#if channel.createdAt !== undefined}
 									<Timestamp
 										timestamp={channel.createdAt}
-										format={TimestampFormat.Both}
 									/>
 								{/if}
 							{/snippet}
@@ -389,7 +394,6 @@
 								{#if channel.followedAt !== undefined}
 									<Timestamp
 										timestamp={channel.followedAt}
-										format={TimestampFormat.Both}
 									/>
 								{/if}
 							{/snippet}
@@ -416,7 +420,6 @@
 				</div>
 			{/if}
 		</dl>
-	{/snippet}
 	{/snippet}
 
 	{#snippet Details({
@@ -516,16 +519,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 36ch;
-			}
-		}
-	}
-</style>

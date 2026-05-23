@@ -77,7 +77,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import MarketView from '$/views/MarketView.svelte'
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 </script>
@@ -97,11 +97,18 @@
 	title="Spot"
 	{...entityViewRest}
 >
-	{#snippet Heading()}
+	{#snippet Value()}
 		<Timestamp
-			format={TimestampFormat.Both}
 			timestamp={entityId.timestampMs}
 		/>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
+	{/snippet}
+
+	{#snippet Heading()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -139,7 +146,6 @@
 						<dt>Quote time</dt>
 						<dd>
 							<Timestamp
-								format={TimestampFormat.Both}
 								timestamp={entityId.timestampMs}
 							/>
 						</dd>

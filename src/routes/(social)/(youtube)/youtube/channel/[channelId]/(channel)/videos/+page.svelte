@@ -5,7 +5,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 
 
-	// State
+	// Props
 	let {
 		params,
 	} = $props()

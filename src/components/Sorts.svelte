@@ -6,7 +6,7 @@
 	import type { Sort } from '$/components/RefinableList.svelte'
 
 
-	// State
+	// Props
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 

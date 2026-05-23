@@ -16,11 +16,6 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
-	// Components
-	import Erc4337SmartAccountView from '$/views/Erc4337SmartAccountView.svelte'
-	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
-
-
 	// Props
 	let {
 		entityId,
@@ -84,6 +79,11 @@
 			fee: {},
 		},
 	)
+
+
+	// Components
+	import Erc4337SmartAccountView from '$/views/Erc4337SmartAccountView.svelte'
+	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 </script>
 
 
@@ -107,11 +107,15 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Abbr}
 			value={entityId.hash}
 		/>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content({

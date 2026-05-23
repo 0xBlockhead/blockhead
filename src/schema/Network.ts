@@ -405,12 +405,20 @@ export default {
 			],
 		},
 		{
-			name: '$$contracts',
+			name: '$$precompiles',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmContract,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Constants_Internal,
+			],
+		},
+		{
+			name: '$$contracts',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
 				Source.Blockscout_Rest,
 			],
 		},

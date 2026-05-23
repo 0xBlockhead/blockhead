@@ -19,7 +19,7 @@ export default {
 	origins: [
 		{
 			origin: freeOrigin,
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 		{
 			origin: proOrigin,

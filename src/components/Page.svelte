@@ -1,12 +1,15 @@
 <script lang="ts">
 	// Types/constants
 	import type { Snippet } from 'svelte'
+
+
+	// Context
 	import { setIsInsidePage } from '$/context/isInsidePage.ts'
 
-
-	// State
 	setIsInsidePage(true)
 
+
+	// Props
 	let {
 		children,
 	}: {

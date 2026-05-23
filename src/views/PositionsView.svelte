@@ -19,13 +19,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
-	import LiquidityPositionView from '$/views/LiquidityPositionView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -74,6 +67,13 @@
 			)
 		},
 	)
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import LiquidityPositionView from '$/views/LiquidityPositionView.svelte'
 </script>
 
 

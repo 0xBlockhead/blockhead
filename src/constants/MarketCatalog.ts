@@ -1,5 +1,6 @@
 // Types/constants
 import type { CoinId } from '$/constants/Coin.ts'
+import { coins } from '$/constants/Coin.ts'
 import { Iso4217 } from '$/constants/Currency.ts'
 import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
@@ -29,4 +30,29 @@ export const catalogCoinUsdMarketId = (coinId: string) => (
 		},
 		marketKind: MarketKind.Spot,
 	}
+)
+
+export const catalogMarketsWithCoinAsQuote = (
+	quoteCoinId: string,
+	coinIdFilter?: (baseCoinId: string) => boolean,
+) => (
+	coins.flatMap((coin) => (
+		coin.id === quoteCoinId
+		|| coinIdFilter != null && !coinIdFilter(coin.id) ?
+			[]
+		:	[{
+			$base: {
+				kind: MarketAssetKind.Coin,
+				$coin: { coinId: coin.id },
+			},
+			$quote: {
+				kind: MarketAssetKind.Coin,
+				$coin: { coinId: quoteCoinId },
+			},
+			$marketVenue: {
+				marketVenueId: catalogMarketVenueIdForCoin(coin.id),
+			},
+			marketKind: MarketKind.Spot,
+		}]
+	))
 )

@@ -1,5 +1,6 @@
 import { getJson } from '$/lib/http.ts'
-import { xApiOrigins, xApiV2Base } from '$/sources/X/Rest/constants.ts'
+import X from '$/sources/X/index.ts'
+import { xApiV2Base } from '$/sources/X/Rest/constants.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -16,7 +17,7 @@ export const xApiV2Get = async <T>(
 	path: `/${string}`,
 ): Promise<T> => (
 	getJson<T>(`${xApiV2Base}${path}`, {
-		origins: xApiOrigins,
+		origins: X.origins ?? [],
 		init: { headers: xBearerHeader(publicEnv) },
 	})
 )

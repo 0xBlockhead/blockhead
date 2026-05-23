@@ -79,12 +79,27 @@
 <EntityView
 	entityType={EntityType.EvmBlob}
 	{entityId}
-	title={`Blob sidecar #${String(entityId.blobIndex)} · EIP‑4844`}
+	title={`Blob sidecar #${String(entityId.blobIndex)} (EIP-4844)`}
 	{href}
 	idDragPlainText={stringify(entityId)}
 	bind:open
 	{...entityViewRest}
 >
+	{#snippet Value()}
+		<span
+			data-badge="small"
+		>
+			#{String(entityId.blobIndex)}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Blob </span>
+			{@render Value()}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 
 		<span data-row="inline align-center gap-2 wrap">

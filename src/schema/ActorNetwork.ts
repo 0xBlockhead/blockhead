@@ -105,6 +105,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Blockscout_Rest,
+				Source.Etherscan_Rest,
 			],
 		},
 		{
@@ -114,6 +115,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Blockscout_Rest,
+				Source.Etherscan_Rest,
 			],
 		},
 		{

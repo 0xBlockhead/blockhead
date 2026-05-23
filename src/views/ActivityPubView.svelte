@@ -11,26 +11,17 @@
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { stringify } from 'devalue'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-
-	// Components
-	import ActivityPubActorsView from '$/views/ActivityPubActorsView.svelte'
-	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-
-
+	// Props
 	let {
 		open = $bindable(true),
 		collapsible = true,
 	} = $props()
+
+
+	// State
+	import { stringify } from 'devalue'
+
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const entityId = (
 		{
@@ -59,6 +50,16 @@
 				{}),
 		},
 	)
+
+
+	// Components
+	import ActivityPubActorsView from '$/views/ActivityPubActorsView.svelte'
+	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -69,11 +70,17 @@
 	bind:open
 	title="ActivityPub / Mastodon"
 >
-	{#snippet Heading()}
+	{#snippet Value()}
+		{entityId.scope}
 
-		<span>
-			{entityId.scope}
-		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		ActivityPub / Mastodon
+	{/snippet}
+
+	{#snippet Heading()}
+		{@render Title()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -164,7 +171,6 @@
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
-					style: '--carousel-basis: 36ch',
 				}}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
@@ -229,16 +235,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-
-<style>
-	.activitypub-network-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 36ch;
-			}
-		}
-	}
-</style>

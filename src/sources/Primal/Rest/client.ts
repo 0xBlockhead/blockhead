@@ -1,8 +1,6 @@
 import { getJson } from '$/lib/http.ts'
-import {
-	primalApiBaseUrl,
-	primalApiOrigins,
-} from '$/sources/Primal/Rest/constants.ts'
+import Primal from '$/sources/Primal/index.ts'
+import { primalApiBaseUrl } from '$/sources/Primal/Rest/constants.ts'
 
 const primalUrl = (path: string) => (
 	`${primalApiBaseUrl}${path.startsWith('/') ? path : `/${path}`}`
@@ -10,13 +8,13 @@ const primalUrl = (path: string) => (
 
 export const primalGet = async <T>(path: string) => (
 	getJson<T>(primalUrl(path), {
-		origins: primalApiOrigins,
+		origins: Primal.origins ?? [],
 	})
 )
 
 export const primalPost = async <T>(path: string, body: unknown) => (
 	getJson<T>(primalUrl(path), {
-		origins: primalApiOrigins,
+		origins: Primal.origins ?? [],
 		init: {
 			method: 'POST',
 			headers: {

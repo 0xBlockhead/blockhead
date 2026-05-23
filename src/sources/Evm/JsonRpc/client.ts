@@ -1,5 +1,5 @@
 import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import { executionHttpRpcOrigins } from '$/constants/ExecutionRpcOrigins.ts'
+import Voltaire from '$/sources/Voltaire/index.ts'
 import { jsonRpcHeaders, jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
@@ -26,10 +26,11 @@ export const jsonRpc = async <_Result>({
 	params: JsonValue[]
 }): Promise<_Result> => {
 	const rpcOrigin = new URL(rpcUrl).origin
-	const knownExecutionRpc = executionHttpRpcOrigins.some((entry) => entry.origin === rpcOrigin)
+	const executionRpcOrigins = Voltaire.origins ?? []
+	const knownExecutionRpc = executionRpcOrigins.some((entry) => entry.origin === rpcOrigin)
 	const response = await corsFetch(rpcUrl, {
 		...(knownExecutionRpc ?
-			{ origins: executionHttpRpcOrigins }
+			{ origins: executionRpcOrigins }
 		:	{ corsEnabled: true }),
 		init: {
 			method: 'POST',

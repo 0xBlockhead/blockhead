@@ -15,12 +15,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmInternalTransferView from '$/views/EvmInternalTransferView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -51,6 +45,12 @@
 	import { stringify } from 'devalue'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EvmInternalTransferView from '$/views/EvmInternalTransferView.svelte'
 </script>
 
 
@@ -81,7 +81,10 @@
 				entityFieldReference.entityId,
 				{
 					[fieldName]: {
-						$: [Source.Blockscout_Rest],
+						$: [
+							Source.Blockscout_Rest,
+							Source.Voltaire_JsonRpc,
+						],
 					},
 				},
 			)}

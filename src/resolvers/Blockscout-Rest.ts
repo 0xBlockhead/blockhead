@@ -39,6 +39,10 @@ import {
 	findBlockscoutInternalTransferWireForEntityId,
 } from '$/resolvers/_evmInternalTransfer.ts'
 import {
+	evmTransactionBlobFieldsFromRpc,
+	evmTransactionDiscriminatorFields,
+} from '$/resolvers/_evmTransaction.ts'
+import {
 	evmTokenTransferEntityFromWire,
 	findBlockscoutTokenTransferWireForEntityId,
 } from '$/resolvers/_evmTokenTransfer.ts'
@@ -85,14 +89,8 @@ const blockscoutStatsForChain = async (
 const blockscoutStatsForNativeCoinId = async (
 	coinId: string,
 ): Promise<BlockscoutStatsWire | null> => {
-	const { coinBySymbol } = await import('$/constants/Coin.ts')
 	const { blockscoutHostedNetworks } = await import('$/sources/Blockscout/Rest/constants.ts')
-	const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
-	const chains = await singleFlight(fetchRpcsJson)()
-	for (const { chainId } of blockscoutHostedNetworks) {
-		const chain = chains.find((candidate) => candidate.chainId === chainId)
-		if (chain == null) continue
-		const nativeCoinId = coinBySymbol[chain.nativeCurrency.symbol.trim().toUpperCase()]?.id
+	for (const { chainId, nativeCoinId } of blockscoutHostedNetworks) {
 		if (nativeCoinId !== coinId) continue
 		const stats = await blockscoutStatsForChain(chainId)
 		if (stats != null) return stats
@@ -171,11 +169,9 @@ const erc4337RegistryEntitiesFromBlockscoutWires = <
 >({
 	chainId,
 	items,
-	fieldName,
 }: {
 	chainId: number
 	items: readonly { address?: { hash?: string } }[]
-	fieldName: string
 }) => {
 	const entities = items.flatMap((row) => {
 		const address = hexLowerOfByteSize(row.address?.hash ?? '', 20)
@@ -188,9 +184,6 @@ const erc4337RegistryEntitiesFromBlockscoutWires = <
 					},
 				} satisfies Entity<typeof schema, _Type>]
 	})
-	if (entities.length === 0) {
-		throw new Error(`Blockscout_Rest: ${fieldName} returned no entities for chain ${chainId}`)
-	}
 	return entities
 }
 
@@ -507,27 +500,41 @@ export default {
 							}
 						})()) : undefined
 					),
-					type: (
-						jsonRpcTransaction.type != null ? ((parsed) => (
-							Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
-								parsed
-							:
-								undefined
-						))(Number(jsonRpcTransaction.type)) : undefined
-					),
 				} satisfies Entity<typeof schema, EntityType.EvmTransaction>
 				const receipt = await singleFlight(getTransactionReceiptBlockscout)({
 					explorerOrigin: origin,
 					txHash: entityId.txHash,
 				})
+				const createdContractAddress = (
+					receipt?.contractAddress != null ?
+						hexLowerOfByteSize(receipt.contractAddress, 20)
+					:
+						undefined
+				)
+				const rpcTypeByte = (
+					jsonRpcTransaction.type != null ? ((parsed) => (
+						Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
+							parsed
+						:
+							undefined
+					))(Number(jsonRpcTransaction.type)) : undefined
+				)
 				return {
 					...base,
-					...(receipt?.status != null && ((parsed) => (
-						Number.isFinite(parsed)
-						&& Number.isInteger(parsed)
-						&& parsed >= 0
-						&& { status: parsed }
-					))(Number(receipt.status))),
+					...evmTransactionDiscriminatorFields({
+						rpcTypeByte,
+						receiptPresent: receipt != null,
+						receiptStatus: (
+							receipt?.status != null ?
+								Number(receipt.status)
+							:
+								undefined
+						),
+						value: base.value,
+						toAddress: to,
+						input: jsonRpcTransaction.input,
+						createdContractAddress,
+					}),
 					...(receipt?.gasUsed != null && ((value) => (
 						value != null
 						&& !(value < 0n)
@@ -570,8 +577,7 @@ export default {
 								},
 							} satisfies Entity<typeof schema, EntityType.EvmContract>,
 						}
-					))(hexLowerOfByteSize(receipt.contractAddress, 20))),
-					traceUnavailable: true,
+					))(createdContractAddress)),
 				}
 			},
 		}),
@@ -633,7 +639,6 @@ export default {
 				const entity = evmTokenTransferEntityFromWire({
 					$network: entityId.$network,
 					txHash: entityId.txHash,
-					transferIndex: entityId.transferIndex,
 					wire,
 				})
 				if (entity == null) {
@@ -892,11 +897,6 @@ export default {
 					:
 						BigInt(counters.transactions_count)
 				)
-				const transactionCount = (
-					transactionsCount != null ?
-						Number(transactionsCount)
-					:	undefined
-				)
 				const tokenTransferCount = (
 					counters.token_transfers_count == null ?
 						undefined
@@ -910,9 +910,6 @@ export default {
 							{}),
 					...(transactionsCount != null && {
 						transactionsCount,
-					}),
-					...(transactionCount != null && {
-						transactionCount,
 					}),
 					...(tokenTransferCount != null && {
 						tokenTransferCount: Number(tokenTransferCount),
@@ -1256,9 +1253,6 @@ export default {
 							[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
 						}))
 				)
-				if (entities.length === 0) {
-					throw new Error(`Blockscout_Rest: no token transfers for ${address} on chain ${entityId.$network.chainId}`)
-				}
 				return entities
 			},
 		}),
@@ -1306,9 +1300,6 @@ export default {
 							[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
 						}))
 				)
-				if (entities.length === 0) {
-					throw new Error(`Blockscout_Rest: no internal transactions for ${address} on chain ${entityId.$network.chainId}`)
-				}
 				return entities
 			},
 		}),
@@ -1392,9 +1383,6 @@ export default {
 						}]
 					})
 				)
-				if (entities.length === 0) {
-					throw new Error('Blockscout_Rest: $$erc20TokenAllowances found no approve rows for wallet')
-				}
 				return entities
 			},
 		}),
@@ -1472,7 +1460,6 @@ export default {
 				return erc4337RegistryEntitiesFromBlockscoutWires<EntityType.Erc4337SmartAccount>({
 					chainId: entityId.chainId,
 					items: wires,
-					fieldName: '$$erc4337SmartAccounts',
 				})
 			},
 		}),
@@ -1506,7 +1493,6 @@ export default {
 				return erc4337RegistryEntitiesFromBlockscoutWires<EntityType.Erc4337Bundler>({
 					chainId: entityId.chainId,
 					items: wires,
-					fieldName: '$$erc4337Bundlers',
 				})
 			},
 		}),
@@ -1540,7 +1526,6 @@ export default {
 				return erc4337RegistryEntitiesFromBlockscoutWires<EntityType.Erc4337Paymaster>({
 					chainId: entityId.chainId,
 					items: wires,
-					fieldName: '$$erc4337Paymasters',
 				})
 			},
 		}),
@@ -1574,7 +1559,6 @@ export default {
 				return erc4337RegistryEntitiesFromBlockscoutWires<EntityType.Erc4337AccountFactory>({
 					chainId: entityId.chainId,
 					items: wires,
-					fieldName: '$$erc4337AccountFactories',
 				})
 			},
 		}),
@@ -1615,9 +1599,6 @@ export default {
 								} satisfies Entity<typeof schema, EntityType.EvmUserOperation>]
 					})
 				)
-				if (entities.length === 0) {
-					throw new Error(`Blockscout_Rest: $$userOperations returned no entities for chain ${entityId.chainId}`)
-				}
 				return entities
 			},
 		}),
@@ -1842,6 +1823,49 @@ export default {
 						.map((entity) => ({
 							[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
 						}))
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmTransaction,
+			fieldName: '$$userOperations',
+			resolve: async (entityId, context) => {
+				const {
+					blockscoutExplorerOriginForChain,
+					blockscoutRestV2AtExplorerOrigin,
+					blockscoutV2ItemsCountMax,
+				} = await import('$/sources/Blockscout/Rest/constants.ts')
+				const { getBlockscoutUserOperationsForTransaction } = await import('$/sources/Blockscout/Rest/queries.ts')
+				const limit = Math.min(
+					resolverLoadSubsetRowLimit(context),
+					blockscoutV2ItemsCountMax,
+				)
+				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
+					chainId: entityId.$network.chainId,
+					blockscoutExplorerOriginForChain,
+					blockscoutRestV2AtExplorerOrigin,
+				})
+				if (origin == null) {
+					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${entityId.$network.chainId}`)
+				}
+				const wires = await getBlockscoutUserOperationsForTransaction({
+					explorerOrigin: origin,
+					txHash: entityId.txHash,
+					limit,
+				})
+				return (
+					wires.flatMap((wire) => {
+						const hashRaw = wire.hash != null ? hexLowerOfByteSize(wire.hash, 32) : undefined
+						return hashRaw == null ?
+								[]
+							:	[{
+									[EntityMetaKey.Id]: {
+										$network: entityId.$network,
+										hash: hashRaw,
+									},
+								} satisfies Entity<typeof schema, EntityType.EvmUserOperation>]
+					})
 				)
 			},
 		}),

@@ -8,10 +8,6 @@
 	import { schema } from '$/schema/index.ts'
 
 
-	// Components
-	import NetworkView from '$/views/NetworkView.svelte'
-
-
 	// Props
 	let {
 		children,
@@ -28,6 +24,10 @@
 		open?: boolean
 		HeadingTitle?: Snippet
 	} = $props()
+
+
+	// Components
+	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 

@@ -74,6 +74,16 @@
 	{title}
 	{...entityViewRest}
 >
+	{#snippet Value()}
+		<span data-text="font-monospace">
+			{entityId.hex}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
+	{/snippet}
+
 	{#snippet Heading()}
 		<span data-text="font-monospace">
 			{entityId.hex}
@@ -180,16 +190,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.calldata-carousel-groups :global(.carousel) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 40ch;
-			}
-		}
-	}
-</style>

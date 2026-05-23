@@ -149,29 +149,6 @@ export default {
 
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.EvmContract,
-			resolve: async (entityId) => {
-				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
-				if (contractLookup == null) throw new Error('Sourcify_Rest: contract not verified')
-				const abi = abiJsonStringFromSourcifyLookup(contractLookup)
-				const deployer = contractLookup.deployment?.deployer
-				return {
-					...(abi != null && { abi }),
-					...(deployer != null && deployer.startsWith('0x') && {
-						$deployer: {
-							[EntityMetaKey.Id]: {
-								address: deployer.toLowerCase() as `0x${string}`,
-							},
-						},
-					}),
-					$verification: {
-						[EntityMetaKey.Id]: entityId,
-					},
-				}
-			},
-		}),
-
-		defineEntityResolver({
 			entityType: EntityType.EvmContractVerification,
 			resolve: async (entityId) => {
 				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)

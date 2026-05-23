@@ -9,10 +9,15 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { evmTraceTreeNode } from '$/schema/EvmTrace.ts'
+import {
+	EvmTransactionEnvelopeType,
+	EvmTransactionExecutionStatus,
+	EvmTransactionKind,
+} from '$/constants/EvmTransaction.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/$Source.ts'
 
-// Signed execution-layer transaction (RPC/indexer). No ERC-4337 UserOperation / paymaster bundle fields on this entity.
+// Signed execution-layer transaction (RPC/indexer).
 export default {
 	entityType: EntityType.EvmTransaction,
 
@@ -80,21 +85,27 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'kind',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(EvmTransactionKind),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'envelopeType',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(EvmTransactionEnvelopeType),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'executionStatus',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(EvmTransactionExecutionStatus),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: 'gasPrice',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'type',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
-			name: 'status',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
@@ -128,12 +139,50 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'blobGasUsed',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
+		},
+		{
+			name: 'maxFeePerBlobGas',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
+		},
+		{
+			name: '$$blobs',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmBlob,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+			],
+		},
+		{
+			name: '$$userOperations',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmUserOperation,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
+		},
+		{
 			name: '$$tokenTransfers',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmTokenTransfer,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.Blockscout_Rest,
+				Source.Etherscan_Rest,
+				Source.Voltaire_JsonRpc,
 			],
 		},
 		{
@@ -143,6 +192,8 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.Blockscout_Rest,
+				Source.Etherscan_Rest,
+				Source.Voltaire_JsonRpc,
 			],
 		},
 		{

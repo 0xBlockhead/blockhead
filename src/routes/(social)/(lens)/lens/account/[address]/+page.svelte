@@ -5,7 +5,7 @@
 	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 
 
-	// State
+	// Props
 	let {
 		params,
 	} = $props()

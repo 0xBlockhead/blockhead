@@ -42,10 +42,16 @@
 			...(open ?
 				{
 					$$tokenTransfers: {
-						$: [Source.Blockscout_Rest],
+						$: [
+							Source.Blockscout_Rest,
+							Source.Voltaire_JsonRpc,
+						],
 					},
 					$$internalTransfers: {
-						$: [Source.Blockscout_Rest],
+						$: [
+							Source.Blockscout_Rest,
+							Source.Voltaire_JsonRpc,
+						],
 					},
 				}
 			:

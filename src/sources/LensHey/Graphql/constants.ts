@@ -17,10 +17,10 @@ export const lensHeyGraphqlUrls = [
 export const lensHeyApiOrigins: readonly SourceOrigin[] = [
 	{
 		origin: lensHeyApiOrigin,
-		corsEnabled: true,
+		corsEnabled: false,
 	},
 	{
 		origin: lensV2ApiOrigin,
-		corsEnabled: true,
+		corsEnabled: false,
 	},
 ]

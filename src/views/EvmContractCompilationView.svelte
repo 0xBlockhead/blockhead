@@ -87,8 +87,12 @@
 	{collapsible}
 	{...entityViewRest}
 >
-	{#snippet Title()}
+	{#snippet Value()}
 		Compilation run
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Heading()}

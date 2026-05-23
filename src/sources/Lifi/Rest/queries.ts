@@ -59,6 +59,12 @@ export const fetchLifiChainsCatalog = singleFlight(
 	),
 )
 
+export const findLifiChainByChainId = async (
+	chainId: number,
+): Promise<LifiChainsResponse['chains'][number] | undefined> => (
+	(await fetchLifiChainsCatalog()).chains.find((row) => row.id === chainId)
+)
+
 /**
  * `GET /v1/tools` — supported bridges (and exchanges; callers use `bridges`).
  * @see https://docs.li.fi/li.fi-api/li.fi-api/requesting-all-supported-tools

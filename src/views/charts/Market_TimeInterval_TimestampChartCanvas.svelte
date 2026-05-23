@@ -6,10 +6,6 @@
 	import { schema } from '$/schema/index.ts'
 
 
-	// Components
-	import Tooltip from '$/components/Tooltip.svelte'
-
-
 	// Props
 	let {
 		title = 'OHLC',
@@ -59,6 +55,10 @@
 		:
 			`${title} candlestick chart: ${String(chartRangeSummary.count)} OHLC candles spanning ${new Date(chartRangeSummary.firstMs).toLocaleDateString()}–${new Date(chartRangeSummary.lastMs).toLocaleDateString()}`
 	))
+
+
+	// Components
+	import Tooltip from '$/components/Tooltip.svelte'
 </script>
 
 

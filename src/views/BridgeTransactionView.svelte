@@ -44,7 +44,7 @@
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -73,10 +73,14 @@
 		</p>
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			{entityId.id}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -119,7 +123,6 @@
 					<dd>
 						<Timestamp
 							timestamp={entityId.createdAt}
-							format={TimestampFormat.Both}
 						/>
 					</dd>
 				</div>

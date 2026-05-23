@@ -1,5 +1,6 @@
 import { type } from 'arktype'
 
+import { EvmLogInterpretationKind } from '$/constants/EvmLog.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
@@ -88,6 +89,16 @@ export default {
 			name: 'removed',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Voltaire_JsonRpc,
+				Source.Blockscout_Rest,
+			],
+		},
+		{
+			name: 'interpretationKind',
+			type: EntityFieldType.Primitive,
+			primitiveType: type.valueOf(EvmLogInterpretationKind),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,

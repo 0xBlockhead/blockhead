@@ -13,12 +13,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -52,6 +46,12 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
 </script>
 
 

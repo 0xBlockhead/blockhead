@@ -17,19 +17,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import OrderedList from '$/components/OrderedList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -48,6 +35,19 @@
 			'entityType'
 		>
 	> = $props()
+
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import OrderedList from '$/components/OrderedList.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
 </script>
 
 

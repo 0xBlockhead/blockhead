@@ -11,7 +11,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// State
+	// Props
 	let {
 		params,
 	} = $props()

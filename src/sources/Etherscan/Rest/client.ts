@@ -7,7 +7,10 @@
  * @see https://docs.etherscan.io/getting-started
  */
 
-import type { EtherscanProxyJsonRpcWire } from '$/sources/Etherscan/Rest/types.ts'
+import type {
+	EtherscanAccountArrayWire,
+	EtherscanProxyJsonRpcWire,
+} from '$/sources/Etherscan/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { getJson } from '$/lib/http.ts'
 import {
@@ -34,6 +37,34 @@ export const etherscanV2UnwrapProxyResult = <T>(wire: EtherscanProxyJsonRpcWire<
 		? null
 	:	(wire.result ?? null)
 )
+
+const etherscanAccountEmptyMessages = new Set([
+	'No transactions found',
+	'No records found',
+])
+
+/**
+ * `module=account` list endpoints — empty list on zero rows; **`null`** on hard failure.
+ */
+export const etherscanV2UnwrapAccountResultArray = <T>(
+	wire: EtherscanAccountArrayWire<T> | null,
+): T[] | null => {
+	if (wire == null) return null
+	if (wire.status === '1' && Array.isArray(wire.result)) return wire.result
+	if (
+		wire.status === '0'
+		&& (
+			etherscanAccountEmptyMessages.has(wire.message)
+			|| (
+				typeof wire.result === 'string'
+				&& etherscanAccountEmptyMessages.has(wire.result)
+			)
+		)
+	) {
+		return []
+	}
+	return null
+}
 
 /**
  * Resolves Etherscan **`apikey`** for a request (optional; lower rate limits without a key).

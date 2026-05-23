@@ -13,20 +13,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import HeadingComponent from '$/components/Heading.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
-	import BeaconSlotsView from '$/views/BeaconSlotsView.svelte'
-
-
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-
 	// Props
 	let {
 		children,
@@ -59,6 +45,9 @@
 	> = $props()
 
 
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const href = (
 		hrefProp ?? resolve(
 			'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
@@ -68,13 +57,10 @@
 			},
 		)
 	)
-
 	const title = titleProp ?? `Epoch ${entityId.epoch.toLocaleString()}`
-
 	const epochIdKey = $derived(
 		stringify(entityId),
 	)
-
 	const epoch = useEntity(
 		EntityType.BeaconEpoch,
 		entityId,
@@ -89,6 +75,16 @@
 			}),
 		},
 	)
+
+
+	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
+	import BeaconSlotsView from '$/views/BeaconSlotsView.svelte'
 </script>
 
 
@@ -110,15 +106,19 @@
 		</span>
 	{/snippet}
 
+	{#snippet Value()}
+		<span
+			data-badge="small"
+			data-epoch-number={String(entityId.epoch)}
+		>
+			{String(entityId.epoch)}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Epoch </span>
-			<span
-				data-badge="small"
-				data-epoch-number={String(entityId.epoch)}
-			>
-				{String(entityId.epoch)}
-			</span>
+			{@render Value()}
 		</span>
 	{/snippet}
 

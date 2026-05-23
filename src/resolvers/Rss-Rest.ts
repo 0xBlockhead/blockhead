@@ -8,10 +8,6 @@ import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import {
-	normalizeRssFeedUrl,
-	rssItemGuidFromParts,
-} from '$/sources/Rss/Rest/constants.ts'
 
 const optionalTrimmedString = (value: string | undefined) => (
 	value?.trim() ?
@@ -27,6 +23,7 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.RssFeed,
 			resolve: async (entityId) => {
+				const { normalizeRssFeedUrl } = await import('$/sources/Rss/Rest/constants.ts')
 				const { rssGetFeed } = await import('$/sources/Rss/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
 				const feed = await singleFlight(rssGetFeed)(feedUrl)
@@ -56,6 +53,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.RssItem,
 			resolve: async (entityId) => {
+				const {
+					normalizeRssFeedUrl,
+					rssItemGuidFromParts,
+				} = await import('$/sources/Rss/Rest/constants.ts')
 				const { rssGetFeed } = await import('$/sources/Rss/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
 				const item = (await singleFlight(rssGetFeed)(feedUrl)).items.find((candidate) => (
@@ -94,6 +95,10 @@ export default {
 			entityType: EntityType.RssNetwork,
 			fieldName: '$$rssItems',
 			resolve: async (_entityId, context) => {
+				const {
+					normalizeRssFeedUrl,
+					rssItemGuidFromParts,
+				} = await import('$/sources/Rss/Rest/constants.ts')
 				const { rssListFeedItems } = await import('$/sources/Rss/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const perFeedLimit = Math.max(1, Math.ceil(limit / rssNetworkSeedFeeds.length))
@@ -119,6 +124,10 @@ export default {
 			entityType: EntityType.RssFeed,
 			fieldName: '$$items',
 			resolve: async (entityId, context) => {
+				const {
+					normalizeRssFeedUrl,
+					rssItemGuidFromParts,
+				} = await import('$/sources/Rss/Rest/constants.ts')
 				const { rssListFeedItems } = await import('$/sources/Rss/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
 				const limit = resolverLoadSubsetRowLimit(context)

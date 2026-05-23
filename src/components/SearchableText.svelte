@@ -26,8 +26,7 @@
 	}
 
 
-	// State
-	import { untrack } from 'svelte'
+	// Props
 	import { SvelteSet } from 'svelte/reactivity'
 
 	let {
@@ -39,6 +38,10 @@
 		query: string
 		matches?: SvelteSet<Match>
 	} = $props()
+
+
+	// State
+	import { untrack } from 'svelte'
 
 	let previousRanges: Match[] = []
 

@@ -7,6 +7,7 @@ import {
 import type { CoinId } from '$/constants/Coin.ts'
 import {
 	MarketAssetKind,
+	MarketKind,
 	MarketTimeIntervalUnit,
 	coingeckoOhlcDayWindowLengths,
 } from '$/constants/Market.ts'
@@ -73,6 +74,9 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.Market_Timestamp,
 			resolve: async (entityId, context) => {
+				if (entityId.$market.marketKind !== MarketKind.Spot) {
+					throw new Error('CoinMarketCap_Rest: Market_Timestamp is spot-only')
+				}
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				const publicEnv = sourcePublicEnv(context, Source.CoinMarketCap_Rest)
 				const coinId = (
@@ -262,8 +266,26 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => {
-				throw new Error('CoinMarketCap_Rest: $$marketsWithCoinAsQuote is not implemented')
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+				const { coinById } = await import('$/constants/Coin.ts')
+				const { catalogMarketsWithCoinAsQuote } = await import('$/constants/MarketCatalog.ts')
+				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
+				if (coinById[entityId.coinId as keyof typeof coinById] == null) {
+					throw new Error(`CoinMarketCap_Rest: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`)
+				}
+				if (idByCoinId[entityId.coinId] == null) {
+					throw new Error(`CoinMarketCap_Rest: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`)
+				}
+				return (
+					catalogMarketsWithCoinAsQuote(
+						entityId.coinId,
+						(baseCoinId) => idByCoinId[baseCoinId] != null,
+					).map((marketId) => (
+						{
+							[EntityMetaKey.Id]: marketId,
+						}
+					))
+				)
 			},
 		}),
 
@@ -369,6 +391,9 @@ export default {
 			entityType: EntityType.MarketPrice,
 			fieldName: '$$quotes',
 			resolve: async (entityId, context) => {
+				if (entityId.$market.marketKind !== MarketKind.Spot) {
+					throw new Error('CoinMarketCap_Rest: MarketPrice $$quotes is spot-only')
+				}
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
 				const publicEnv = sourcePublicEnv(context, Source.CoinMarketCap_Rest)
 				const coinId = (

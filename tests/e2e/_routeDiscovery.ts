@@ -31,6 +31,7 @@ const PARAM_FIXTURES: Record<string, string> = {
 	networkId: '1',
 	contractId: `1:${USDC_MAINNET}`,
 	coinId: 'ETH',
+	iso4217: 'USD',
 	ensName: 'vitalik.eth',
 	agentId: 'bc550000-0000-4000-a001-000000000001',
 	upgradeSlug: 'Homestead',

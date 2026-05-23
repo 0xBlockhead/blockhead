@@ -67,7 +67,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -79,10 +79,14 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			{entityId.id}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Heading()}
@@ -141,13 +145,11 @@
 								{#if session.updatedAt !== undefined}
 									<Timestamp
 										timestamp={session.updatedAt}
-										format={TimestampFormat.Both}
 									/>
 								{:else}
 									{#if session.createdAt !== undefined}
 										<Timestamp
 											timestamp={session.createdAt}
-											format={TimestampFormat.Both}
 										/>
 									{/if}
 								{/if}
@@ -169,7 +171,6 @@
 								{#if session.createdAt !== undefined}
 									<Timestamp
 										timestamp={session.createdAt}
-										format={TimestampFormat.Both}
 									/>
 								{/if}
 							{/snippet}
@@ -188,7 +189,6 @@
 								{#if session.updatedAt !== undefined}
 									<Timestamp
 										timestamp={session.updatedAt}
-										format={TimestampFormat.Both}
 									/>
 								{/if}
 							{/snippet}

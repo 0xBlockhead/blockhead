@@ -3,6 +3,7 @@ import {
 	getGithubRawUserContentUrl,
 	getGithubRestRepoContentsUrl,
 } from '$/sources/Github/Rest/queries.ts'
+import EthereumEips from '$/sources/EthereumEips/index.ts'
 
 import {
 	ethereumEipSpecGithubRepoByLedger,
@@ -60,7 +61,10 @@ export const getEthereumEipSpecProposalMarkdownUrl = ({
 }
 
 export const getEthereumEipSpecGithubContents = ({ ledger }: { ledger: EthereumEipSpecLedger }) => (
-	getJson({ url: getEthereumEipSpecGithubContentsUrl({ ledger }) })
+	getJson({
+		url: getEthereumEipSpecGithubContentsUrl({ ledger }),
+		origins: EthereumEips.origins ?? [],
+	})
 )
 
 export const getEthereumEipSpecRawMarkdownText = ({
@@ -71,7 +75,10 @@ export const getEthereumEipSpecRawMarkdownText = ({
 	ledger: EthereumEipSpecLedger
 	fileName: string
 	downloadUrl: string | null | undefined
-}) => getText({ url: getEthereumEipSpecRawMarkdownUrl({ ledger, fileName, downloadUrl }) })
+}) => getText({
+	url: getEthereumEipSpecRawMarkdownUrl({ ledger, fileName, downloadUrl }),
+	origins: EthereumEips.origins ?? [],
+})
 
 export const getEthereumEipSpecProposalMarkdownText = ({
 	ledger,
@@ -79,4 +86,7 @@ export const getEthereumEipSpecProposalMarkdownText = ({
 }: {
 	ledger: EthereumEipSpecLedger
 	number: number
-}) => getText({ url: getEthereumEipSpecProposalMarkdownUrl({ ledger, number }) })
+}) => getText({
+	url: getEthereumEipSpecProposalMarkdownUrl({ ledger, number }),
+	origins: EthereumEips.origins ?? [],
+})

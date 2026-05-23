@@ -7,7 +7,7 @@
 	import NetworkView from '$/views/NetworkView.svelte'
 
 
-	// State
+	// Props
 	let {
 		children,
 		params,

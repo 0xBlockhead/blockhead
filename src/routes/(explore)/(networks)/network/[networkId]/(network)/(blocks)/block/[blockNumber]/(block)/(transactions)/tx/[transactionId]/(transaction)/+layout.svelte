@@ -1,5 +1,5 @@
 <script lang="ts">
-	// State
+	// Props
 	let { children } = $props()
 </script>
 

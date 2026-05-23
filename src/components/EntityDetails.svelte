@@ -8,7 +8,7 @@
 	import type { EntityType } from '$/schema/$EntityType.ts'
 
 
-	// State
+	// Props
 	import type { Snippet } from 'svelte'
 
 	let {

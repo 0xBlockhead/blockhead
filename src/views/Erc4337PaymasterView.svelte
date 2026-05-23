@@ -15,10 +15,6 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
-	// Components
-	import EvmContractView from '$/views/EvmContractView.svelte'
-
-
 	// Props
 	let {
 		entityId,
@@ -58,6 +54,10 @@
 			userOperationsCount: {},
 		},
 	)
+
+
+	// Components
+	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
 
 
@@ -70,6 +70,17 @@
 	{title}
 	{...entityViewRest}
 >
+	{#snippet Value()}
+		<TruncatedValue
+			format={TruncatedValueFormat.Visual}
+			value={entityId.address}
+		/>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
+	{/snippet}
+
 	{#snippet Heading()}
 		<TruncatedValue
 			format={TruncatedValueFormat.Visual}

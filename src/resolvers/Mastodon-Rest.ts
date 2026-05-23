@@ -2,6 +2,7 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
+	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
@@ -45,10 +46,11 @@ export default {
 	entityResolvers: [
 		defineEntityResolver({
 			entityType: EntityType.ActivityPubActor,
-			resolve: async (entityId) => {
+			resolve: async (entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const { assertInstanceMatches, mastodonGetAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
-				const a = await singleFlight(mastodonGetAccount)(entityId.localAccountId)
+				const a = await singleFlight(mastodonGetAccount)(publicEnv, entityId.localAccountId)
 				if (a == null) throw new Error('Mastodon_Rest: account not found')
 				return {
 					username: optionalTrimmedString(a.username),
@@ -86,13 +88,14 @@ export default {
 
 		defineEntityResolver({
 			entityType: EntityType.ActivityPubNote,
-			resolve: async (entityId) => {
+			resolve: async (entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const {
 					assertInstanceMatches,
 					mastodonGetStatus,
 				} = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
-				const s = await singleFlight(mastodonGetStatus)(entityId.localStatusId)
+				const s = await singleFlight(mastodonGetStatus)(publicEnv, entityId.localStatusId)
 				if (s == null) throw new Error('Mastodon_Rest: status not found')
 				const createdAt = Date.parse(s.created_at ?? '')
 				return {
@@ -137,11 +140,12 @@ export default {
 			entityType: EntityType.ActivityPubNetwork,
 			fieldName: '$$activityPubActors',
 			resolve: async (_entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const { mastodonInstanceOrigin } = await import('$/sources/Mastodon/Rest/constants.ts')
 				const { mastodonListPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const byId = new Map<string, { [EntityMetaKey.Id]: { instanceOrigin: string, localAccountId: string } }>()
-				for (const status of await singleFlight(mastodonListPublicTimeline)(limit)) {
+				for (const status of await singleFlight(mastodonListPublicTimeline)(publicEnv, limit)) {
 					const accountId = status.account?.id == null ? undefined : String(status.account.id)
 					if (accountId == null) continue
 					byId.set(accountId, {
@@ -159,11 +163,12 @@ export default {
 			entityType: EntityType.ActivityPubNetwork,
 			fieldName: '$$activityPubNotes',
 			resolve: async (_entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const { mastodonInstanceOrigin } = await import('$/sources/Mastodon/Rest/constants.ts')
 				const { mastodonListPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
-					(await singleFlight(mastodonListPublicTimeline)(limit))
+					(await singleFlight(mastodonListPublicTimeline)(publicEnv, limit))
 						.flatMap((status) => (
 							status.id == null ?
 								[]
@@ -184,11 +189,12 @@ export default {
 			entityType: EntityType.ActivityPubActor,
 			fieldName: '$$notes',
 			resolve: async (entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const { assertInstanceMatches, mastodonListAccountStatuses } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
-					(await singleFlight(mastodonListAccountStatuses)(entityId.localAccountId, limit))
+					(await singleFlight(mastodonListAccountStatuses)(publicEnv, entityId.localAccountId, limit))
 						.flatMap((s) => (
 							s.id == null ?
 								[]
@@ -208,13 +214,14 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.ActivityPubNote,
 			fieldName: '$$thread',
-			resolve: async (entityId) => {
+			resolve: async (entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const {
 					assertInstanceMatches,
 					mastodonGetStatusContext,
 				} = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
-				const { ancestors = [], descendants = [] } = await singleFlight(mastodonGetStatusContext)(entityId.localStatusId)
+				const { ancestors = [], descendants = [] } = await singleFlight(mastodonGetStatusContext)(publicEnv, entityId.localStatusId)
 				return (
 					[...ancestors, ...descendants]
 						.flatMap((s) => (

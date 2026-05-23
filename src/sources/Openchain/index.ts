@@ -15,11 +15,11 @@ export default {
 	origins: [
 		{
 			origin: signatureOrigin,
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 		{
 			origin: directoryOrigin,
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 	],
 	sources: [

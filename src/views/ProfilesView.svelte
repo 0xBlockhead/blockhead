@@ -18,12 +18,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import FarcasterUserView from '$/views/FarcasterUserView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -73,6 +67,12 @@
 			)
 		},
 	)
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import FarcasterUserView from '$/views/FarcasterUserView.svelte'
 </script>
 
 

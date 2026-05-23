@@ -6,11 +6,11 @@ export const githubHttpAllowedOrigins = (
 	[
 		{
 			origin: restOrigin,
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 		{
 			origin: rawOrigin,
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 	] as const
 ) satisfies readonly SourceOrigin[]

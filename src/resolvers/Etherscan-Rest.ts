@@ -60,6 +60,79 @@ export default {
 				})
 			},
 		}),
+
+		defineEntityResolver({
+			entityType: EntityType.EvmTokenTransfer,
+			resolve: async (entityId, context) => {
+				const {
+					accountTokenTransfersByTransaction,
+					etherscanAccountListMaxOffset,
+				} = await import('$/sources/Etherscan/Rest/queries.ts')
+				const {
+					evmTokenTransferEntityFromEtherscanWire,
+					findEtherscanTokenTransferWireForEntityId,
+				} = await import('$/resolvers/_evmTokenTransferEtherscan.ts')
+				const chainId = entityId.$network.chainId
+				await throwIfEtherscanRestUnsupportedChainId(chainId)
+				const wires = await singleFlight(accountTokenTransfersByTransaction)({
+					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
+					chainId,
+					txHash: entityId.txHash,
+					offset: etherscanAccountListMaxOffset,
+				})
+				if (wires == null) {
+					throw new Error('Etherscan_Rest: token transfers by transaction returned no result')
+				}
+				const wire = findEtherscanTokenTransferWireForEntityId(wires, entityId)
+				if (wire == null) {
+					throw new Error('Etherscan_Rest: token transfer not found for EvmTokenTransfer')
+				}
+				const entity = evmTokenTransferEntityFromEtherscanWire({
+					$network: entityId.$network,
+					txHash: entityId.txHash,
+					wire,
+				})
+				if (entity == null) {
+					throw new Error('Etherscan_Rest: token transfer wire did not map to EvmTokenTransfer')
+				}
+				return entity
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.EvmInternalTransfer,
+			resolve: async (entityId, context) => {
+				const { accountInternalTransactionsByTxHash } = await import('$/sources/Etherscan/Rest/queries.ts')
+				const {
+					evmInternalTransferEntityFromEtherscanWire,
+					findEtherscanInternalTransferWireForEntityId,
+				} = await import('$/resolvers/_evmInternalTransferEtherscan.ts')
+				const chainId = entityId.$network.chainId
+				await throwIfEtherscanRestUnsupportedChainId(chainId)
+				const wires = await singleFlight(accountInternalTransactionsByTxHash)({
+					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
+					chainId,
+					txHash: entityId.txHash,
+				})
+				if (wires == null) {
+					throw new Error('Etherscan_Rest: internal transactions by tx hash returned no result')
+				}
+				const wire = findEtherscanInternalTransferWireForEntityId(wires, entityId)
+				if (wire == null) {
+					throw new Error('Etherscan_Rest: internal transfer not found for EvmInternalTransfer')
+				}
+				const entity = evmInternalTransferEntityFromEtherscanWire({
+					$network: entityId.$network,
+					txHash: entityId.txHash,
+					internalIndex: entityId.internalIndex,
+					wire,
+				})
+				if (entity == null) {
+					throw new Error('Etherscan_Rest: internal transfer wire did not map to EvmInternalTransfer')
+				}
+				return entity
+			},
+		}),
 	],
 
 	entityFieldResolvers: [
@@ -226,6 +299,152 @@ export default {
 						},
 					},
 				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.ActorNetwork,
+			fieldName: '$$tokenTransfers',
+			resolve: async (entityId, context) => {
+				const {
+					accountTokenTransfersByAddress,
+					etherscanAccountListMaxOffset,
+				} = await import('$/sources/Etherscan/Rest/queries.ts')
+				const { evmTokenTransferEntityIdsFromEtherscanAddressWires } = await import('$/resolvers/_evmTokenTransferEtherscan.ts')
+				const chainId = entityId.$network.chainId
+				await throwIfEtherscanRestUnsupportedChainId(chainId)
+				const address = hexLowerOfByteSize(entityId.$actor.address, 20)
+				if (address == null) {
+					throw new Error('Etherscan_Rest: ActorNetwork wallet address not normalized')
+				}
+				const limit = Math.min(
+					resolverLoadSubsetRowLimit(context),
+					etherscanAccountListMaxOffset,
+				)
+				const wires = await accountTokenTransfersByAddress({
+					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
+					chainId,
+					address,
+					offset: limit,
+				})
+				if (wires == null) {
+					throw new Error('Etherscan_Rest: address token transfers returned no result')
+				}
+				return (
+					evmTokenTransferEntityIdsFromEtherscanAddressWires({
+						$network: entityId.$network,
+						wires,
+					})
+						.map((entity) => ({
+							[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
+						}))
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.ActorNetwork,
+			fieldName: '$$internalTransactions',
+			resolve: async (entityId, context) => {
+				const {
+					accountInternalTransactionsByAddress,
+					etherscanAccountListMaxOffset,
+				} = await import('$/sources/Etherscan/Rest/queries.ts')
+				const { evmInternalTransferEntityIdsFromEtherscanAddressWires } = await import('$/resolvers/_evmInternalTransferEtherscan.ts')
+				const chainId = entityId.$network.chainId
+				await throwIfEtherscanRestUnsupportedChainId(chainId)
+				const address = hexLowerOfByteSize(entityId.$actor.address, 20)
+				if (address == null) {
+					throw new Error('Etherscan_Rest: ActorNetwork wallet address not normalized')
+				}
+				const limit = Math.min(
+					resolverLoadSubsetRowLimit(context),
+					etherscanAccountListMaxOffset,
+				)
+				const wires = await accountInternalTransactionsByAddress({
+					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
+					chainId,
+					address,
+					offset: limit,
+				})
+				if (wires == null) {
+					throw new Error('Etherscan_Rest: address internal transactions returned no result')
+				}
+				return (
+					evmInternalTransferEntityIdsFromEtherscanAddressWires({
+						$network: entityId.$network,
+						wires,
+					})
+						.map((entity) => ({
+							[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
+						}))
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmTransaction,
+			fieldName: '$$tokenTransfers',
+			resolve: async (entityId, context) => {
+				const {
+					accountTokenTransfersByTransaction,
+					etherscanAccountListMaxOffset,
+				} = await import('$/sources/Etherscan/Rest/queries.ts')
+				const { evmTokenTransferEntityIdsFromEtherscanWires } = await import('$/resolvers/_evmTokenTransferEtherscan.ts')
+				const chainId = entityId.$network.chainId
+				await throwIfEtherscanRestUnsupportedChainId(chainId)
+				const limit = Math.min(
+					resolverLoadSubsetRowLimit(context),
+					etherscanAccountListMaxOffset,
+				)
+				const wires = await singleFlight(accountTokenTransfersByTransaction)({
+					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
+					chainId,
+					txHash: entityId.txHash,
+					offset: limit,
+				})
+				if (wires == null) {
+					throw new Error('Etherscan_Rest: transaction token transfers returned no result')
+				}
+				return (
+					evmTokenTransferEntityIdsFromEtherscanWires({
+						$network: entityId.$network,
+						txHash: entityId.txHash,
+						wires,
+					})
+						.map((entity) => ({
+							[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
+						}))
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmTransaction,
+			fieldName: '$$internalTransfers',
+			resolve: async (entityId, context) => {
+				const { accountInternalTransactionsByTxHash } = await import('$/sources/Etherscan/Rest/queries.ts')
+				const { evmInternalTransferEntityIdsFromEtherscanWires } = await import('$/resolvers/_evmInternalTransferEtherscan.ts')
+				const chainId = entityId.$network.chainId
+				await throwIfEtherscanRestUnsupportedChainId(chainId)
+				const wires = await singleFlight(accountInternalTransactionsByTxHash)({
+					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
+					chainId,
+					txHash: entityId.txHash,
+				})
+				if (wires == null) {
+					throw new Error('Etherscan_Rest: transaction internal transfers returned no result')
+				}
+				return (
+					evmInternalTransferEntityIdsFromEtherscanWires({
+						$network: entityId.$network,
+						txHash: entityId.txHash,
+						wires,
+					})
+						.map((entity) => ({
+							[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
+						}))
+				)
 			},
 		}),
 	],

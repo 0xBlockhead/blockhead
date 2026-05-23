@@ -78,7 +78,7 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import Heading from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
@@ -105,15 +105,19 @@
 		</p>
 	{/snippet}
 
+	{#snippet Value()}
+		<span
+			data-badge="small"
+			data-block-number={String(entityId.blockNumber)}
+		>
+			{String(entityId.blockNumber)}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Block </span>
-			<span
-				data-badge="small"
-				data-block-number={String(entityId.blockNumber)}
-			>
-				{String(entityId.blockNumber)}
-			</span>
+			{@render Value()}
 		</span>
 	{/snippet}
 
@@ -169,7 +173,6 @@
 							{#if block.timestamp !== undefined}
 								<Timestamp
 									timestamp={block.timestamp}
-									format={TimestampFormat.Both}
 								/>
 							{/if}
 						{/snippet}

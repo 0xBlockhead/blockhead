@@ -4,9 +4,9 @@
  */
 
 import { getJson } from '$/lib/http.ts'
+import Farcaster from '$/sources/Farcaster/index.ts'
 import {
 	clientBaseUrl,
-	farcasterApiOrigins,
 	webBaseUrl,
 } from '$/sources/Farcaster/Rest/constants.ts'
 
@@ -27,5 +27,5 @@ export async function farcasterGet<T>(
 	params?: Record<string, string | number | boolean | undefined>,
 ): Promise<T> {
 	const baseUrl = path.startsWith('/~api/') ? webBaseUrl : clientBaseUrl
-	return getJson<T>(`${baseUrl}${path}${toQueryString(params)}`, { origins: farcasterApiOrigins })
+	return getJson<T>(`${baseUrl}${path}${toQueryString(params)}`, { origins: Farcaster.origins ?? [] })
 }

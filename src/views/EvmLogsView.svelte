@@ -14,12 +14,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmLogView from '$/views/EvmLogView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -48,6 +42,12 @@
 	import { stringify } from 'devalue'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EvmLogView from '$/views/EvmLogView.svelte'
 </script>
 
 
@@ -106,6 +106,8 @@
 				placeholderText="Loading receipt logs…"
 				resource={logs}
 				{title}
+				href={entitiesListRest.href ?? ''}
+				id={`${entitiesListRest.id ?? 'receipt-logs'}:items`}
 				open={true}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>

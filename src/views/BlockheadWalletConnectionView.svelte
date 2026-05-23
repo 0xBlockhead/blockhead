@@ -87,7 +87,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import ActorView from '$/views/ActorView.svelte'
 </script>
@@ -115,10 +115,14 @@
 		{title}
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			{entityId.id}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -203,7 +207,6 @@
 							<dd>
 								<Timestamp
 									timestamp={walletConnection.connectedAt}
-									format={TimestampFormat.Both}
 								/>
 							</dd>
 						</div>
@@ -233,6 +236,7 @@
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
+			data-carousel-basis="40ch"
 		>
 			<CollapsibleTabs
 				id={`${walletConnectionKey}:carousel-wallet`}
@@ -324,14 +328,4 @@
 
 <style>
 
-	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 40ch;
-			}
-		}
-	}
 </style>

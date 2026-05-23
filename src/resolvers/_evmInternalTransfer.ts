@@ -3,6 +3,8 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { Entity, EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { evmInternalCallTypeFromWire } from '$/resolvers/_evmTransaction.ts'
+import type { RawCallTraceWire } from '$/lib/evm-trace.ts'
 import type { BlockscoutInternalTransactionWire } from '$/sources/Blockscout/Rest/types.ts'
 
 const blockscoutQuantityToBigInt = (
@@ -50,7 +52,9 @@ export const evmInternalTransferEntityFromWire = ({
 	return {
 		[EntityMetaKey.Id]: entityId,
 		value,
-		...(wire.type != null && { callType: wire.type }),
+		...(wire.type != null && ((callType) => (
+			callType != null && { callType }
+		))(evmInternalCallTypeFromWire(wire.type))),
 		...(wire.success != null && { success: wire.success }),
 		...(fromAddress != null && {
 			$from: {
@@ -125,3 +129,54 @@ export const findBlockscoutInternalTransferWireForEntityId = (
 ): BlockscoutInternalTransactionWire | undefined => (
 	wires.find((wire) => wire.index === entityId.internalIndex)
 )
+
+export const evmInternalTransferEntitiesFromRawCallTrace = ({
+	$network,
+	txHash,
+	trace,
+}: {
+	$network: { chainId: number }
+	txHash: `0x${string}`
+	trace: RawCallTraceWire
+}): Entity<typeof schema, EntityType.EvmInternalTransfer>[] => {
+	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
+	if (normalizedTxHash == null) return []
+	const entities: Entity<typeof schema, EntityType.EvmInternalTransfer>[] = []
+	let internalIndex = 0
+	const walk = (call: RawCallTraceWire) => {
+		const value = blockscoutQuantityToBigInt(call.value) ?? 0n
+		if (value > 0n) {
+			const fromAddress = hexLowerOfByteSize(call.from ?? '', 20)
+			const toAddress = hexLowerOfByteSize(call.to ?? '', 20)
+			entities.push({
+				[EntityMetaKey.Id]: {
+					$network,
+					txHash: normalizedTxHash,
+					internalIndex,
+				},
+				value,
+				...(call.type != null && ((callType) => (
+					callType != null && { callType }
+				))(evmInternalCallTypeFromWire(call.type))),
+				...(call.error == null && { success: true }),
+				...(call.error != null && { success: false }),
+				...(fromAddress != null && {
+					$from: {
+						[EntityMetaKey.Id]: { address: fromAddress },
+					} satisfies Entity<typeof schema, EntityType.Actor>,
+				}),
+				...(toAddress != null && {
+					$to: {
+						[EntityMetaKey.Id]: { address: toAddress },
+					} satisfies Entity<typeof schema, EntityType.Actor>,
+				}),
+			})
+			internalIndex += 1
+		}
+		for (const child of call.calls ?? []) {
+			walk(child)
+		}
+	}
+	walk(trace)
+	return entities
+}

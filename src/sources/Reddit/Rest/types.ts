@@ -1,5 +1,10 @@
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
+export type RedditOAuthTokenResponseWire = {
+	access_token?: string
+	expires_in?: number
+}
+
 export type RedditApiThingWire = {
 	kind: string
 	data: Record<string, JsonValue> & {

@@ -6,6 +6,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { evmInternalCallTypeLabelById } from '$/constants/EvmTransaction.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -85,12 +86,17 @@
 	bind:open
 	{...entityViewRest}
 >
+	{#snippet Value()}
+		<span>
+			#{entityId.internalIndex}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={transfer}
-			placeholderText="Loading internal transfer…"
-		>
-					</ResourceBoundary>
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Internal transfer </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -137,7 +143,7 @@
 					{#if transfer.callType}
 						<div>
 							<dt>Call type</dt>
-							<dd>{transfer.callType}</dd>
+							<dd>{evmInternalCallTypeLabelById[transfer.callType]}</dd>
 						</div>
 					{/if}
 

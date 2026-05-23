@@ -7,6 +7,7 @@ import {
 import type { CoinId } from '$/constants/Coin.ts'
 import {
 	MarketAssetKind,
+	MarketKind,
 	MarketTimeIntervalUnit,
 } from '$/constants/Market.ts'
 import {
@@ -68,6 +69,9 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.Market_Timestamp,
 			resolve: async (entityId, context) => {
+				if (entityId.$market.marketKind !== MarketKind.Spot) {
+					throw new Error('Coinpaprika_OpenApi: Market_Timestamp is spot-only')
+				}
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 				const { getCoinpaprikaTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
@@ -111,6 +115,9 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
 			resolve: async (entityId, context) => {
+				if (entityId.$market.marketKind !== MarketKind.Spot) {
+					throw new Error('Coinpaprika_OpenApi: OHLC is spot-only')
+				}
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 				const {
 					coinpaprikaOhlcDayWindowValues,
@@ -274,8 +281,29 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async () => {
-				throw new Error('Coinpaprika_OpenApi: $$marketsWithCoinAsQuote is not implemented')
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>, context) => {
+				const { coinById } = await import('$/constants/Coin.ts')
+				const { catalogMarketsWithCoinAsQuote } = await import('$/constants/MarketCatalog.ts')
+				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
+				if (coinById[entityId.coinId as keyof typeof coinById] == null) {
+					throw new Error(`Coinpaprika_OpenApi: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`)
+				}
+				if (idByCoinId[entityId.coinId] == null) {
+					throw new Error(`Coinpaprika_OpenApi: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`)
+				}
+				const lim = resolverLoadSubsetRowLimit(context)
+				return (
+					catalogMarketsWithCoinAsQuote(
+						entityId.coinId,
+						(baseCoinId) => idByCoinId[baseCoinId] != null,
+					)
+						.slice(0, lim)
+						.map((marketId) => (
+							{
+								[EntityMetaKey.Id]: marketId,
+							}
+						))
+				)
 			},
 		}),
 
@@ -391,6 +419,9 @@ export default {
 			entityType: EntityType.MarketPrice,
 			fieldName: '$$quotes',
 			resolve: async (entityId, context) => {
+				if (entityId.$market.marketKind !== MarketKind.Spot) {
+					throw new Error('Coinpaprika_OpenApi: MarketPrice $$quotes is spot-only')
+				}
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 				const { getCoinpaprikaTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)

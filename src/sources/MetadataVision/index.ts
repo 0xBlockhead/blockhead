@@ -11,7 +11,7 @@ export default {
 	origins: [
 		{
 			origin: new URL(metadataVisionOrigin).origin,
-			corsEnabled: true,
+			corsEnabled: false,
 		},
 	],
 	sources: [

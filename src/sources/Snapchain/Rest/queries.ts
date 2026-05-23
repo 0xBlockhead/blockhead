@@ -328,6 +328,30 @@ export const getLinksByFid = ({
 	})
 )
 
+export const countLinksByFid = async ({
+	fid,
+	linkType = 'follow',
+	reverse,
+}: {
+	fid: number
+	linkType?: string
+	reverse?: boolean
+}) => {
+	let linkCount = 0
+	let pageToken: string | undefined
+	do {
+		const page = await getLinksByFid({
+			fid,
+			linkType,
+			pageToken,
+			reverse,
+		})
+		linkCount += page.messages?.length ?? 0
+		pageToken = page.nextPageToken
+	} while (pageToken != null)
+	return linkCount
+}
+
 /**
  * `GET /v1/onChainEventsByFid` — ID registry events for custody address lookup.
  */

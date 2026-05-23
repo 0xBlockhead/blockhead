@@ -3,7 +3,7 @@
 	import { page } from '$app/state'
 
 
-	// State
+	// Props
 	import type { Snippet } from 'svelte'
 	import type { NavigationItem } from '$/routes/NavigationItem.ts'
 

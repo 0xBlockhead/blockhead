@@ -17,11 +17,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
-
-
 	// Props
 	let {
 		entityId,
@@ -115,6 +110,11 @@
 				:	a.localeCompare(b)
 			))
 	))
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
 </script>
 
 

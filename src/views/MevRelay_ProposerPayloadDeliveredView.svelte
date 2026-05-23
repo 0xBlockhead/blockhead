@@ -96,6 +96,12 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
+	{#snippet Value()}
+		<span>
+			{entityId.slot}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 
 		<span>
@@ -189,6 +195,7 @@
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
+			data-carousel-basis="40ch"
 		>
 			<CollapsibleTabs
 				id={`${payloadIdKey}:carousel-payload`}
@@ -285,16 +292,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 40ch;
-			}
-		}
-	}
-</style>

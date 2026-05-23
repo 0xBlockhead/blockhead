@@ -6,12 +6,14 @@
 	} from '$/sources/Swarm/Rest/queries.ts'
 
 
-	// State
-	import Page from '$/components/Page.svelte'
+	// Props
 
 	let {
 		params,
 	} = $props()
+
+
+	// (Derived)
 
 	const entityId = $derived(
 		swarmResourceAddressFromRouteParams({
@@ -22,6 +24,7 @@
 
 
 	// Components
+	import Page from '$/components/Page.svelte'
 	import SwarmResourceView from '$/views/SwarmResourceView.svelte'
 </script>
 

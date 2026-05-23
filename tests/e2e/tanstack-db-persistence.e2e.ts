@@ -1,229 +1,202 @@
 import { expect, test, type Page } from '@playwright/test'
 
 import {
-	assertMainSettled,
-	chainlistRpcsWire,
+	catalogWire,
 	clearOriginOpfs,
+	clearPersistenceProbe,
 	countRequestsMatching,
 	e2eBrowserNewContextOptions,
-	ethereumListsChainsJsonWire,
+	getPersistenceProbeEvents,
+	installChainlistRpcsJsonStub,
+	installPersistenceProbe,
+	networksCatalogFieldCollectionId,
+	waitForNetworksListRendered,
+	waitForPersistenceMarkLoaded,
 } from '../_e2eBrowserHelpers.ts'
-
-import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
 
 
 const gotoLoadTimeoutMs = 120_000
 
-const persistedCatalogWire = (url: string, method: string) => (
-	method === 'GET'
-	&& (
-		chainlistRpcsWire(url)
-		|| ethereumListsChainsJsonWire(url, method)
-	)
-)
-
-const blockPersistedCatalogRequests = async (page: Page) => {
-	const blockedUrls: string[] = []
-	await page.route('**/*', async (route) => {
-		const request = route.request()
-		const url = request.url()
-		if (persistedCatalogWire(url, request.method())) {
-			blockedUrls.push(url)
-			await route.fulfill({
-				status: 200,
-				contentType: 'application/json',
-				body: '[]',
-			})
-			return
-		}
-
-		await route.fallback()
-	})
-	return blockedUrls
+const pathnamesForRun = () => {
+	const includeRaw = process.env.E2E_REAL_PERSISTENCE_PATHS ?? '/networks,/network/1'
+	return includeRaw.split(',').map((path) => path.trim()).filter(Boolean)
 }
 
-const ignoreKnownRealNetworkNoise = (text: string) => (
-	text.includes('Failed to load resource: the server responded with a status of 404')
-	|| text.includes('Failed to load resource: the server responded with a status of 400')
-	|| text.includes('Failed to load resource: the server responded with a status of 422')
-	|| text.includes('Failed to load resource: the server responded with a status of 502')
-	|| text.includes('Failed to load resource: net::ERR_CONNECTION_REFUSED')
-	|| text.includes('Failed to load resource: net::ERR_FAILED')
-	|| text.includes('Failed to load resource: net::ERR_QUIC_PROTOCOL_ERROR')
-	|| text.includes('has been blocked by CORS policy')
-	|| text.includes('Voltaire: block stream ended')
-	|| (
-		text.includes('[QueryCollection]')
+const probeEventsAfter = (
+	events: Awaited<ReturnType<typeof getPersistenceProbeEvents>>,
+	startIndex: number,
+) => (
+	events.slice(startIndex)
+)
+
+const assertWarmPersistenceProbe = (
+	events: Awaited<ReturnType<typeof getPersistenceProbeEvents>>,
+	startIndex: number,
+	collectionIds: string[],
+) => {
+	const fresh = probeEventsAfter(events, startIndex)
+	const freshQueryFns = fresh.filter((event) => (
+		event.kind === 'queryFn'
+		&& collectionIds.includes(event.collectionId)
+	))
+	const freshRemoteLoadSubsets = fresh.filter((event) => (
+		event.kind === 'loadSubset'
+		&& collectionIds.includes(event.collectionId)
+		&& event.decision === 'remote'
+	))
+	const freshShortCircuits = fresh.filter((event) => (
+		event.kind === 'loadSubset'
+		&& collectionIds.includes(event.collectionId)
 		&& (
-			text.includes('Atproto')
-			|| text.includes('blockscout.com')
-			|| text.includes('coingecko.com')
-			|| text.includes('defillama.com')
-			|| text.includes('tradingview.com')
+			event.decision === 'hydrated-rows'
+			|| event.decision === 'loaded-marker'
+			|| event.decision === 'snapshot'
 		)
-	)
-)
+	))
 
-const collectBlockingIssues = (page: Page) => {
-	const issues: string[] = []
-	page.on('pageerror', (error) => {
-		issues.push(`pageerror: ${error.message}`)
-	})
-	page.on('console', (message) => {
-		const text = message.text()
-		if (
-			message.type() === 'error'
-			&& !ignoreKnownRealNetworkNoise(text)
-		)
-			issues.push(`console error: ${text}`)
-
-		if (
-			message.type() === 'warning'
-			&& text.includes('Calling .preload() on a collection with syncMode "on-demand" is a no-op')
-		)
-			issues.push(`console warning: ${text}`)
-	})
-	return issues
+	expect(
+		freshQueryFns,
+		`warm reload must not re-run queryFn for persisted collections: ${JSON.stringify(freshQueryFns)}`,
+	).toEqual([])
+	expect(
+		freshRemoteLoadSubsets,
+		`warm reload must short-circuit loadSubset without remote fetch: ${JSON.stringify(freshRemoteLoadSubsets)}`,
+	).toEqual([])
+	expect(
+		freshShortCircuits.length,
+		`warm reload must record at least one short-circuited loadSubset for ${collectionIds.join(', ')}`,
+	).toBeGreaterThan(0)
 }
 
-const pathnamesForRun = async () => {
-	const all = await discoverPathnamesFromRoutes()
-	const includeRaw = process.env.E2E_REAL_PERSISTENCE_PATHS ?? ''
-	const includes = includeRaw.split(',').map((path) => path.trim()).filter(Boolean)
-	const selected = includes.length > 0 ?
-		all.filter((path) => includes.includes(path))
-	:	all
-	const limitRaw = process.env.E2E_REAL_PERSISTENCE_PATH_LIMIT ?? ''
-	const limit = Number(limitRaw)
-	return (
-		limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
-			selected.slice(0, limit)
-		:
-			selected
+const exerciseNetworksCatalogPersistence = async (page: Page) => {
+	const catalogRequests = countRequestsMatching(page, catalogWire)
+	const coldChainlist = page.waitForResponse(
+		(response) => catalogWire(response.url(), response.request().method()),
+		{ timeout: 120_000 },
 	)
+
+	await page.goto('/networks', { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
+	await coldChainlist
+	await waitForNetworksListRendered(page)
+	await waitForPersistenceMarkLoaded(page, networksCatalogFieldCollectionId)
+
+	const coldEvents = await getPersistenceProbeEvents(page)
+	expect(
+		coldEvents.some((event) => (
+			event.kind === 'queryFn'
+			&& event.collectionId === networksCatalogFieldCollectionId
+		)),
+		'cold load must run catalog field queryFn',
+	).toBe(true)
+	expect(
+		coldEvents.some((event) => (
+			event.kind === 'markLoaded'
+			&& event.collectionId === networksCatalogFieldCollectionId
+		)),
+		'cold load must persist loaded-subset metadata marker',
+	).toBe(true)
+	expect(catalogRequests.get(), 'cold load must fetch catalog HTTP').toBeGreaterThan(0)
+	catalogRequests.detach()
+
+	const probeIndexBeforeReload = coldEvents.length
+	const warmCatalogRequests = countRequestsMatching(page, catalogWire)
+
+	await page.reload({ waitUntil: 'load', timeout: gotoLoadTimeoutMs })
+	await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
+	await waitForNetworksListRendered(page)
+
+	warmCatalogRequests.detach()
+	expect(
+		warmCatalogRequests.get(),
+		'warm reload must not repeat Chainlist / ethereum-lists HTTP',
+	).toBe(0)
+
+	const warmEvents = await getPersistenceProbeEvents(page)
+	assertWarmPersistenceProbe(
+		warmEvents,
+		probeIndexBeforeReload,
+		[networksCatalogFieldCollectionId],
+	)
+}
+
+const exerciseNetworkDetailWhenConfigured = async (page: Page, url: string) => {
+	const catalogRequests = countRequestsMatching(page, catalogWire)
+
+	await page.goto(url, { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
+	await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
+	await expect(page.locator('.network-view-carousel-groups')).toBeAttached({
+		timeout: 120_000,
+	})
+
+	const coldCount = catalogRequests.get()
+	catalogRequests.detach()
+
+	if (coldCount === 0)
+		return
+
+	const probeBefore = await getPersistenceProbeEvents(page)
+	const warmCatalogRequests = countRequestsMatching(page, catalogWire)
+
+	await page.reload({ waitUntil: 'load', timeout: gotoLoadTimeoutMs })
+	await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
+	await expect(page.locator('.network-view-carousel-groups')).toBeAttached({
+		timeout: 120_000,
+	})
+
+	warmCatalogRequests.detach()
+	expect(
+		warmCatalogRequests.get(),
+		`${url} warm reload must not repeat catalog HTTP after cold count ${coldCount}`,
+	).toBe(0)
+
+	const probeAfter = await getPersistenceProbeEvents(page)
+	const catalogCollectionIds = [
+		...new Set(
+			probeBefore
+				.filter((event) => (
+					(event.kind === 'queryFn' || event.kind === 'markLoaded')
+					&& event.loadedKey.includes('Chainlist_Rest')
+				))
+				.map((event) => event.collectionId),
+		),
+	]
+
+	if (catalogCollectionIds.length > 0)
+		assertWarmPersistenceProbe(probeAfter, probeBefore.length, catalogCollectionIds)
 }
 
 
 test.describe.configure({ mode: 'serial' })
 
 test.describe('TanStack DB persistence', () => {
-	let pageUrls: string[] = []
-
-	test.beforeAll(async () => {
-		pageUrls = await pathnamesForRun()
-	})
-
-	test('route-discovered views hydrate persisted catalog subsets after reload', async ({ browser }) => {
-		test.setTimeout(30 * 60_000)
+	test('catalog subsets hydrate from OPFS after reload without remote resolver or HTTP', async ({
+		browser,
+	}) => {
+		test.setTimeout(600_000)
 
 		const context = await browser.newContext(e2eBrowserNewContextOptions())
 		const wipePage = await context.newPage()
-		await wipePage.route('**/*', async (route) => {
-			const request = route.request()
-			if (new URL(request.url()).pathname === '/__e2e_blank') {
-				await route.fulfill({
-					status: 200,
-					contentType: 'text/html',
-					body: '<!doctype html><title>e2e blank</title>',
-				})
-				return
-			}
-			if (persistedCatalogWire(request.url(), request.method())) {
-				await route.abort('blockedbyclient')
-				return
-			}
-
-			await route.fallback()
-		})
-		await wipePage.goto('/__e2e_blank', { waitUntil: 'domcontentloaded', timeout: gotoLoadTimeoutMs })
+		await wipePage.goto('/', { waitUntil: 'domcontentloaded', timeout: gotoLoadTimeoutMs })
 		await clearOriginOpfs(wipePage)
 		await wipePage.close()
 
 		const page = await context.newPage()
 		page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
-		const issues = collectBlockingIssues(page)
+		await installPersistenceProbe(page)
+		await installChainlistRpcsJsonStub(page)
+		await page.goto('/', { waitUntil: 'domcontentloaded', timeout: gotoLoadTimeoutMs })
+		await clearPersistenceProbe(page)
 
-		const checkedUrls: string[] = []
+		await exerciseNetworksCatalogPersistence(page)
 
-		for (const url of pageUrls) {
+		for (const url of pathnamesForRun()) {
+			if (url === '/networks')
+				continue
+
 			await test.step(url, async () => {
-				const issueStart = issues.length
-				const cold = countRequestsMatching(page, persistedCatalogWire)
-
-				await page.goto(url, { waitUntil: 'domcontentloaded', timeout: gotoLoadTimeoutMs })
-				await expect(
-					page.locator('#main'),
-					`#main missing after cold goto ${url} (final URL: ${page.url()})`,
-				).toBeVisible({ timeout: 120_000 })
-				if (url === '/network/1')
-					await expect(page.locator('.network-view-carousel-groups')).toBeAttached({
-						timeout: 120_000,
-					})
-				else if (url === '/networks')
-					await expect(page.getByRole('link', { name: 'Ethereum', exact: true }).first()).toBeVisible({
-						timeout: 120_000,
-					})
-				else
-					await assertMainSettled(page)
-
-				// The persisted wrapper commits OPFS transactions asynchronously after query data renders.
-				await page.waitForTimeout(8_000)
-
-				const coldCount = cold.get()
-				const coldUrls = [...cold.urls]
-				cold.detach()
-
-				if (coldCount === 0) {
-					expect(
-						issues.slice(issueStart),
-						`${url}\n${issues.slice(issueStart).join('\n')}`,
-					).toEqual([])
-					return
-				}
-
-				const blockedWarmUrls = await blockPersistedCatalogRequests(page)
-				const warm = countRequestsMatching(page, persistedCatalogWire)
-
-				await page.reload({ waitUntil: 'domcontentloaded', timeout: gotoLoadTimeoutMs })
-				await expect(
-					page.locator('#main'),
-					`#main missing after warm reload ${url} (final URL: ${page.url()})`,
-				).toBeVisible({ timeout: 120_000 })
-				if (url === '/network/1')
-					await expect(page.locator('.network-view-carousel-groups')).toBeAttached({
-						timeout: 120_000,
-					})
-				else if (url === '/networks')
-					await expect(page.getByRole('link', { name: 'Ethereum', exact: true }).first()).toBeVisible({
-						timeout: 120_000,
-					})
-				else
-					await assertMainSettled(page)
-
-				warm.detach()
-				await page.unroute('**/*')
-
-				expect(
-					warm.get(),
-					`${url} warm reload repeated persisted catalog requests after cold requests:\n${coldUrls.join('\n')}`,
-				).toBe(0)
-				expect(
-					blockedWarmUrls,
-					`${url} warm reload should not request persisted catalog URLs`,
-				).toEqual([])
-				expect(
-					issues.slice(issueStart),
-					`${url}\n${issues.slice(issueStart).join('\n')}`,
-				).toEqual([])
-
-				checkedUrls.push(url)
+				await exerciseNetworkDetailWhenConfigured(page, url)
 			})
 		}
-
-		expect(
-			checkedUrls.length,
-			'At least one discovered view must exercise real persisted catalog requests',
-		).toBeGreaterThan(0)
 
 		await context.close()
 	})

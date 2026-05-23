@@ -7,6 +7,6 @@ export const lensGraphqlUrl = `${lensApiOrigin}/graphql` as const
 export const lensApiOrigins: readonly SourceOrigin[] = [
 	{
 		origin: lensApiOrigin,
-		corsEnabled: true,
+		corsEnabled: false,
 	},
 ]

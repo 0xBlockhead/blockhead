@@ -13,13 +13,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
-
-
 	// Props
 	let {
 		children,
@@ -70,6 +63,13 @@
 			blockNumber: String(entityId.blockNumber),
 		},
 	)
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
@@ -83,6 +83,12 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
+	{#snippet Value()}
+		<span>
+			block {String(entityId.blockNumber)}
+		</span>
+	{/snippet}
+
 	{#snippet Heading()}
 
 		<span>

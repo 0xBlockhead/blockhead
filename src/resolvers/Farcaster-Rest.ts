@@ -47,15 +47,9 @@ export default {
 			entityType: EntityType.FarcasterUser,
 			resolve: async (entityId) => {
 				const { getPrimaryAddress } = await import('$/sources/Farcaster/Rest/queries.ts')
-				const [ethRaw, solRaw] = await Promise.all([
-					singleFlight(getPrimaryAddress)({
-						fid: entityId.fid,
-					}),
-					singleFlight(getPrimaryAddress)({
-						fid: entityId.fid,
-						protocol: 'solana',
-					}),
-				])
+				const ethRaw = await singleFlight(getPrimaryAddress)({
+					fid: entityId.fid,
+				})
 				const ethTrimmed = optionalTrimmedString(ethRaw ?? undefined)
 				const ethParsed = (
 					ethTrimmed == null ?
@@ -64,7 +58,13 @@ export default {
 						EvmAddress(ethTrimmed)
 				)
 				if (!(ethParsed instanceof arktype.errors)) return { verifiedAddress: ethParsed }
-				if (ethRaw == null && solRaw == null) throw new Error('Farcaster_Rest: verified address not found')
+				if (ethRaw == null) {
+					const solRaw = await singleFlight(getPrimaryAddress)({
+						fid: entityId.fid,
+						protocol: 'solana',
+					})
+					if (solRaw == null) throw new Error('Farcaster_Rest: verified address not found')
+				}
 				throw new Error('Farcaster_Rest: only ethereum verified addresses are supported')
 			},
 		}),

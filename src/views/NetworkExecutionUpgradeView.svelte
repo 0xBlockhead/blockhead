@@ -70,14 +70,18 @@
 	{entityId}
 	{href}
 	bind:open
-	title={`Execution upgrade · ${String(entityId.upgradeId)}`}
+	title={`Execution upgrade ${String(entityId.upgradeId)}`}
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			{entityId.upgradeId}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Heading()}

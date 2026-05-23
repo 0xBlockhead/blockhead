@@ -66,6 +66,17 @@
 	title={titleProp ?? 'Conversation'}
 	{...entityViewRest}
 >
+	{#snippet Value()}
+		<TruncatedValue
+			value={entityId.id}
+			format={TruncatedValueFormat.Visual}
+		/>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
+	{/snippet}
+
 	{#snippet Heading()}
 		<TruncatedValue
 			value={entityId.id}

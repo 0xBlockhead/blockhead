@@ -57,6 +57,8 @@
 		entityId,
 		{
 			$: [
+				Source.Local_Internal,
+				Source.Constants_Internal,
 				Source.Sourcify_Rest,
 				Source.Blockscout_Rest,
 				Source.Etherscan_Rest,
@@ -67,6 +69,11 @@
 				:
 					[]),
 			],
+			precompileName: {
+				$: [
+					Source.Constants_Internal,
+				],
+			},
 			...(open && {
 				$deployer: {},
 				$creationTransaction: {},
@@ -94,6 +101,7 @@
 
 
 	// Components
+	import Address from '$/views/Address.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
@@ -118,12 +126,18 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Heading()}
-		{title}
+		{contract.ready && contract.current.precompileName ?
+			'Precompile'
+		:
+			title}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			Smart-contract bytecode at this address answers calls with ABI-encoded calldata.
+		</p>
+		<p>
+			Precompiles are native protocol contracts with fixed addresses—no deployer, creation transaction, or published ABI.
 		</p>
 		<p>
 			A published ABI explains functions, return data, and ABI event declarations—separate from receipt logs, name-service text records, or EIP-4844 blob sidecars.
@@ -133,27 +147,54 @@
 		</p>
 	{/snippet}
 
-	{#snippet Title()}
-		<TruncatedValue
-			format={TruncatedValueFormat.Visual}
-			value={entityId.address}
-		/>
+	{#snippet Value()}
+		{#if contract.ready && contract.current.precompileName}
+			{contract.current.precompileName}
+		{:else}
+			<TruncatedValue
+				format={TruncatedValueFormat.Visual}
+				value={entityId.address}
+			/>
+		{/if}
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Title()}
+		{contract.ready && contract.current.precompileName ?
+			'Precompile'
+		:
+			title}
+	{/snippet}
+
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: contentOpen,
+	})}
 		<div data-column="gap-1">
 			<dl data-column-item="center">
 				<div>
 					<dt>Chain ID</dt>
 					<dd>{String(entityId.$network.chainId)}</dd>
 				</div>
-				{#if open}
+				{#if contentOpen}
 					<ResourceBoundary
 						placeholderText="Loading contract details…"
 						resource={contract}
 					>
 						{#snippet children(contract)}
-							{#if contract.$deployer}
+							{#if contract.precompileName}
+								<div>
+									<dt>Address</dt>
+									<dd>
+										<Address
+											network={entityId.$network}
+											address={entityId.address}
+										/>
+									</dd>
+								</div>
+							{/if}
+
+							{#if !contract.precompileName && contract.$deployer}
 								<div>
 									<dt>Deployer</dt>
 									<dd>
@@ -177,7 +218,7 @@
 								</div>
 							{/if}
 
-							{#if contract.$creationTransaction}
+							{#if !contract.precompileName && contract.$creationTransaction}
 								<div>
 									<dt>Creation transaction</dt>
 									<dd>
@@ -197,7 +238,7 @@
 								</div>
 							{/if}
 
-							{#if contract.$implementation}
+							{#if !contract.precompileName && contract.$implementation}
 								<div>
 									<dt>Implementation (proxy)</dt>
 									<dd>
@@ -242,21 +283,23 @@
 								</div>
 							{/if}
 
-							{#if contract.abi !== undefined}
-								<div>
-									<dt>ABI (JSON)</dt>
-									<dd>
-										<TruncatedValue
-											value={contract.abi}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</dd>
-								</div>
-							{:else}
-								<div>
-									<dt>ABI (JSON)</dt>
-									<dd>No ABI JSON yet.</dd>
-								</div>
+							{#if !contract.precompileName}
+								{#if contract.abi !== undefined}
+									<div>
+										<dt>ABI (JSON)</dt>
+										<dd>
+											<TruncatedValue
+												value={contract.abi}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</dd>
+									</div>
+								{:else}
+									<div>
+										<dt>ABI (JSON)</dt>
+										<dd>No ABI JSON yet.</dd>
+									</div>
+								{/if}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -274,6 +317,7 @@
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
+			data-carousel-basis="40ch"
 		>
 			<CollapsibleTabs
 				id={`${contractIdKey}:carousel-execution`}
@@ -357,14 +401,14 @@
 				{#snippet Markers(_context)}
 					<ResourceBoundary resource={contract}>
 						{#snippet children(contract)}
-							{#if contract.$deployer || contract.$creationTransaction}
+							{#if !contract.precompileName && (contract.$deployer || contract.$creationTransaction)}
 								<a
 									data-scroll-marker-label="Deployment"
 									href={`#${contractIdKey}:contract-deployment`}
 								>Deployment</a>
 							{/if}
 
-							{#if contract.$verification}
+							{#if !contract.precompileName && contract.$verification}
 								<a
 									data-scroll-marker-label="Verification"
 									href={`#${contractIdKey}:contract-verification`}
@@ -385,7 +429,7 @@
 								>Slots</a>
 							{/if}
 
-							{#if contract.$implementation}
+							{#if !contract.precompileName && contract.$implementation}
 								<a
 									data-scroll-marker-label="Proxy"
 									href={`#${contractIdKey}:contract-proxy`}
@@ -398,7 +442,7 @@
 				{#snippet body(_ctx)}
 					<ResourceBoundary resource={contract}>
 						{#snippet children(contract)}
-							{#if contract.$deployer || contract.$creationTransaction}
+							{#if !contract.precompileName && (contract.$deployer || contract.$creationTransaction)}
 								<section id={`${contractIdKey}:contract-deployment`}>
 									{#if contract.$deployer}
 										<div class="entity-details">
@@ -438,7 +482,7 @@
 								</section>
 							{/if}
 
-							{#if contract.$verification}
+							{#if !contract.precompileName && contract.$verification}
 								<section id={`${contractIdKey}:contract-verification`}>
 									<EvmContractVerificationView
 										entityId={contract.$verification[EntityMetaKey.Id]}
@@ -531,7 +575,7 @@
 								</section>
 							{/if}
 
-							{#if contract.$implementation}
+							{#if !contract.precompileName && contract.$implementation}
 								<section id={`${contractIdKey}:contract-proxy`}>
 									<div class="entity-details">
 										<svelte:self
@@ -557,16 +601,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 40ch;
-			}
-		}
-	}
-</style>

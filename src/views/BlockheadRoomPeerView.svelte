@@ -73,10 +73,14 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
-	{#snippet Title()}
+	{#snippet Value()}
 		<span>
 			{entityId.id}
 		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Heading()}
@@ -119,30 +123,34 @@
 				</dd>
 			</div>
 
-			{#if open && peer.peerId !== undefined && peer.peerId !== ''}
-				<div>
-					<dt>libp2p peer ID</dt>
-					<dd>
-						<ResourceBoundary resource={peer}>
-							{#snippet children(peer)}
-								{peer.peerId}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+			{#if open}
+				{#if peer.peerId !== undefined && peer.peerId !== ''}
+					<div>
+						<dt>libp2p peer ID</dt>
+						<dd>
+							<ResourceBoundary resource={peer}>
+								{#snippet children(peer)}
+									{peer.peerId}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
 			{/if}
 
-			{#if open && peer.$room?.id != null && peer.$room.id !== ''}
-				<div>
-					<dt>Room session</dt>
-					<dd>
-						<ResourceBoundary resource={peer}>
-							{#snippet children(peer)}
-								{peer.$room.id}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+			{#if open}
+				{#if peer.$room?.id != null && peer.$room.id !== ''}
+					<div>
+						<dt>Room session</dt>
+						<dd>
+							<ResourceBoundary resource={peer}>
+								{#snippet children(peer)}
+									{peer.$room.id}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
 			{/if}
 		</dl>
 	{/snippet}

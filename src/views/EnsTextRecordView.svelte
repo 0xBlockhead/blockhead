@@ -48,6 +48,14 @@
 	{href}
 	title={getEnsTextRecordLabel(recordId)}
 >
+	{#snippet Value()}
+		<span>{getEnsTextRecordLabel(recordId)}</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
+	{/snippet}
+
 	{#snippet Heading()}
 		<span>{getEnsTextRecordLabel(recordId)}</span>
 	{/snippet}

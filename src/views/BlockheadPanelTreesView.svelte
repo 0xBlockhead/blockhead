@@ -14,19 +14,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { Source } from '$/sources/$Source.ts'
-
-
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import BlockheadPanelTreeView from '$/views/BlockheadPanelTreeView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -45,6 +32,19 @@
 			'entityType'
 		>
 	> = $props()
+
+
+	// State
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { Source } from '$/sources/$Source.ts'
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import BlockheadPanelTreeView from '$/views/BlockheadPanelTreeView.svelte'
 </script>
 
 

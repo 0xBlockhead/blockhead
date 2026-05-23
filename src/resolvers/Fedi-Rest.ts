@@ -2,6 +2,7 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
+	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
@@ -45,10 +46,11 @@ export default {
 	entityResolvers: [
 		defineEntityResolver({
 			entityType: EntityType.ActivityPubActor,
-			resolve: async (entityId) => {
+			resolve: async (entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Fedi_Rest)
 				const { assertInstanceMatches, fediGetAccount } = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
-				const a = await singleFlight(fediGetAccount)(entityId.localAccountId)
+				const a = await singleFlight(fediGetAccount)(publicEnv, entityId.localAccountId)
 				if (a == null) throw new Error('Fedi_Rest: account not found')
 				return {
 					username: optionalTrimmedString(a.username),
@@ -86,13 +88,14 @@ export default {
 
 		defineEntityResolver({
 			entityType: EntityType.ActivityPubNote,
-			resolve: async (entityId) => {
+			resolve: async (entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Fedi_Rest)
 				const {
 					assertInstanceMatches,
 					fediGetStatus,
 				} = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
-				const s = await singleFlight(fediGetStatus)(entityId.localStatusId)
+				const s = await singleFlight(fediGetStatus)(publicEnv, entityId.localStatusId)
 				if (s == null) throw new Error('Fedi_Rest: status not found')
 				const createdAt = Date.parse(s.created_at ?? '')
 				return {
@@ -137,11 +140,12 @@ export default {
 			entityType: EntityType.ActivityPubNetwork,
 			fieldName: '$$activityPubActors',
 			resolve: async (_entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Fedi_Rest)
 				const { fediInstanceOrigin } = await import('$/sources/Fedi/Rest/constants.ts')
 				const { fediListPublicTimeline } = await import('$/sources/Fedi/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const byId = new Map<string, { [EntityMetaKey.Id]: { instanceOrigin: string, localAccountId: string } }>()
-				for (const status of await singleFlight(fediListPublicTimeline)(limit)) {
+				for (const status of await singleFlight(fediListPublicTimeline)(publicEnv, limit)) {
 					const accountId = status.account?.id == null ? undefined : String(status.account.id)
 					if (accountId == null) continue
 					byId.set(accountId, {
@@ -159,11 +163,12 @@ export default {
 			entityType: EntityType.ActivityPubNetwork,
 			fieldName: '$$activityPubNotes',
 			resolve: async (_entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Fedi_Rest)
 				const { fediInstanceOrigin } = await import('$/sources/Fedi/Rest/constants.ts')
 				const { fediListPublicTimeline } = await import('$/sources/Fedi/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
-					(await singleFlight(fediListPublicTimeline)(limit))
+					(await singleFlight(fediListPublicTimeline)(publicEnv, limit))
 						.flatMap((status) => (
 							status.id == null ?
 								[]
@@ -184,11 +189,12 @@ export default {
 			entityType: EntityType.ActivityPubActor,
 			fieldName: '$$notes',
 			resolve: async (entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Fedi_Rest)
 				const { assertInstanceMatches, fediListAccountStatuses } = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
-					(await singleFlight(fediListAccountStatuses)(entityId.localAccountId, limit))
+					(await singleFlight(fediListAccountStatuses)(publicEnv, entityId.localAccountId, limit))
 						.flatMap((s) => (
 							s.id == null ?
 								[]
@@ -208,13 +214,14 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.ActivityPubNote,
 			fieldName: '$$thread',
-			resolve: async (entityId) => {
+			resolve: async (entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Fedi_Rest)
 				const {
 					assertInstanceMatches,
 					fediGetStatusContext,
 				} = await import('$/sources/Fedi/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
-				const { ancestors = [], descendants = [] } = await singleFlight(fediGetStatusContext)(entityId.localStatusId)
+				const { ancestors = [], descendants = [] } = await singleFlight(fediGetStatusContext)(publicEnv, entityId.localStatusId)
 				return (
 					[...ancestors, ...descendants]
 						.flatMap((s) => (

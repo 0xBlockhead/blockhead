@@ -112,6 +112,15 @@
 	{...entityViewRest}
 	title="YouTube"
 >
+	{#snippet Value()}
+		{entityId.scope}
+
+	{/snippet}
+
+	{#snippet Title()}
+		YouTube
+	{/snippet}
+
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			Channels and videos resolve through Google’s YouTube Data API when configured, with Piped as a read-only fallback for the same UC… / 11-char ids.
@@ -280,16 +289,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 36ch;
-			}
-		}
-	}
-</style>

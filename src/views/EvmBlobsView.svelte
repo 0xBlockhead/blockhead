@@ -15,12 +15,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EvmBlobView from '$/views/EvmBlobView.svelte'
-
-
 	// Props
 	let {
 		entityFieldReference,
@@ -49,6 +43,12 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EvmBlobView from '$/views/EvmBlobView.svelte'
 </script>
 
 
@@ -75,27 +75,35 @@
 	{#snippet body()}
 		{#if open}
 			{@const fieldName = entityFieldReference.fieldName}
-			{@const network = useEntity(
-				EntityType.Network,
+			{@const parentEntityType = entityFieldReference.entityType}
+			{@const parent = useEntity(
+				parentEntityType,
 				entityFieldReference.entityId,
 				{
-					blockHeight: {
-						$: [
-							Source.Voltaire_JsonRpc,
-						],
-					},
+					...(parentEntityType === EntityType.Network && {
+						blockHeight: {
+							$: [
+								Source.Voltaire_JsonRpc,
+							],
+						},
+					}),
 					[fieldName]: {
 						$: [
 							Source.Voltaire_JsonRpc,
 						],
-						$limit: 32,
+						...(parentEntityType === EntityType.Network && {
+							$limit: 32,
+						}),
 					},
 				},
 			)}
 			{@const blobs = derive(
-				network,
-				(network) => (
-					(network[fieldName] ?? []).slice(0, 32)
+				parent,
+				(parent) => (
+					parentEntityType === EntityType.Network ?
+						(parent[fieldName] ?? []).slice(0, 32)
+					:
+						(parent[fieldName] ?? [])
 				),
 			)}
 			<div data-column="gap-3">

@@ -19,13 +19,6 @@
 	import { resolve } from '$app/paths'
 
 
-	// Components
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
-	import Network_Txpool_TimestampView from '$/views/Network_Txpool_TimestampView.svelte'
-
-
 	// Props
 	let {
 		title = 'Mempool',
@@ -79,6 +72,13 @@
 			)
 		},
 	)
+
+
+	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import Network_Txpool_TimestampView from '$/views/Network_Txpool_TimestampView.svelte'
 </script>
 
 

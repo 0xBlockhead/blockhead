@@ -12,7 +12,7 @@
 	const onNestedCollapsibleClose = getOnNestedCollapsibleClose()
 
 
-	// State
+	// Props
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 

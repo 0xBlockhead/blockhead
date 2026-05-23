@@ -1,33 +1,54 @@
+import { print } from 'graphql'
+import type { TadaDocumentNode } from 'gql.tada'
+
 import { getJson } from '$/lib/http.ts'
+import { Source } from '$/sources/$Source.ts'
+import type { SourcePublicEnvFor } from '$/sources/index.ts'
+import { graphql } from '$/sources/Lens/Graphql/client.ts'
 import {
-	lensHeyApiOrigins,
 	lensHeyGraphqlUrls,
 } from '$/sources/LensHey/Graphql/constants.ts'
-import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { Source } from '$/sources/$Source.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import LensHey from '$/sources/LensHey/index.ts'
 
-type LensHeyGqlResponse<T> = { data: T, errors?: readonly { message?: string }[] }
+export { graphql }
 
-export const lensHeyGraphql = async <T>(
+type LensHeyGqlResponse<_Result> = {
+	data: _Result
+	errors?: readonly {
+		message?: string
+	}[]
+}
+
+export const queryLensHey = async <
+	_Result extends {
+		[key: string]: any
+	},
+	_Variables extends {
+		[key: string]: any
+	},
+>(
 	publicEnv: SourcePublicEnvFor<Source.Lens_HeyGraphql>,
-	body: { query: string, variables?: Record<string, JsonValue> },
-): Promise<T> => {
-	const k = publicEnv.PUBLIC_LENS_HEY_API_KEY
+	document: TadaDocumentNode<_Result, _Variables>,
+	variables?: _Variables,
+): Promise<_Result> => {
+	const apiKey = publicEnv.PUBLIC_LENS_HEY_API_KEY
 	const init = {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 			Accept: 'application/json',
-			...(typeof k === 'string' && k.trim() !== '' && { 'x-lens-app': k.trim() }),
+			...(typeof apiKey === 'string' && apiKey.trim() !== '' && { 'x-lens-app': apiKey.trim() }),
 		},
-		body: JSON.stringify(body),
+		body: JSON.stringify({
+			query: print(document),
+			variables,
+		}),
 	}
 	let lastError: Error | undefined
 	for (const url of lensHeyGraphqlUrls) {
 		try {
-			const out = await getJson<LensHeyGqlResponse<T>>(url, {
-				origins: lensHeyApiOrigins,
+			const out = await getJson<LensHeyGqlResponse<_Result>>(url, {
+				origins: LensHey.origins ?? [],
 				init,
 			})
 			if (out.errors?.[0]?.message != null) {

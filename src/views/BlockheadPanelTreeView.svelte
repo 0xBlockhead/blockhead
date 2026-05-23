@@ -9,12 +9,6 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
-	// Components
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-
-
 	// Props
 	let {
 		children,
@@ -55,6 +49,12 @@
 			],
 		},
 	)
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
 
 
@@ -66,6 +66,16 @@
 	bind:open
 	{...entityViewRest}
 >
+	{#snippet Value()}
+		<span>
+			{entityId.id}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
+	{/snippet}
+
 	{#snippet Heading()}
 
 		<span>

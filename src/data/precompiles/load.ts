@@ -1,9 +1,10 @@
 /**
  * Load precompiles from synced shemnon/precompiles JSON (src/data/precompiles/*.json).
- * Used by src/constants/precompiles/index.ts. Run deno task precompiles:sync to populate data.
+ * Used by src/constants/precompiles/index.ts. Run pnpm run sources:precompiles:sync to populate data.
  */
 
 import type { PrecompileEntry } from '$/constants/precompiles/types.ts'
+import { standardPrecompiles } from '$/constants/precompiles/standard.ts'
 
 type ShemnonSchedule = Record<string, string[]>
 type ShemnonPrecompile = {
@@ -102,8 +103,29 @@ for (const { path, data } of entries) {
 /** Chain IDs that have a schedule in the synced shemnon data. */
 export const syncedChainIds = new Set(chainIdsFromSchedules)
 
-/** Precompiles per chain from shemnon data. Empty if sync never run. */
+/** Precompiles per chain from shemnon data end-state. Empty if sync never run. */
 export const syncedPrecompilesByChainId = precompilesByChainId
+
+/** Precompiles active at or before blockNumber; end-state when blockNumber is undefined. */
+export const getPrecompilesActiveAtBlock = (
+	chainId: number,
+	blockNumber: number | undefined,
+): PrecompileEntry[] => {
+	const schedule = syncedScheduleByChainId.get(chainId)
+	if (schedule == null) {
+		return [...standardPrecompiles]
+	}
+	if (blockNumber == null) {
+		return precompilesByChainId.get(chainId) ?? [...standardPrecompiles]
+	}
+	const ids = new Set<string>()
+	for (const [blockKey, precompileIds] of Object.entries(schedule)) {
+		if (!/^\d+$/.test(blockKey)) continue
+		if (BigInt(blockKey) > BigInt(blockNumber)) continue
+		for (const id of precompileIds) ids.add(id)
+	}
+	return resolvePrecompileIds([...ids])
+}
 
 /** Precompiles introduced at the given block (from schedule). Returns [] if no schedule or no entry for that block. */
 export function getPrecompilesIntroducedAtBlock(

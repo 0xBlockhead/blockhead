@@ -9,7 +9,12 @@
  */
 
 import type {
+	EtherscanAccountArrayWire,
+	EtherscanErc1155TokenTransferRowWire,
+	EtherscanErc20TokenTransferRowWire,
+	EtherscanErc721TokenTransferRowWire,
 	EtherscanGasOracleWire,
+	EtherscanInternalTransactionRowWire,
 	EtherscanProxyJsonRpcWire,
 	EtherscanStringStatusWire,
 } from '$/sources/Etherscan/Rest/types.ts'
@@ -22,8 +27,49 @@ import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { Source } from '$/sources/$Source.ts'
 import {
 	etherscanV2GetJson,
+	etherscanV2UnwrapAccountResultArray,
 	etherscanV2UnwrapProxyResult,
 } from '$/sources/Etherscan/Rest/client.ts'
+
+/** Etherscan account list endpoints cap at 10_000 rows per request. */
+export const etherscanAccountListMaxOffset = 10_000
+
+const etherscanAccountListQuery = ({
+	address,
+	offset,
+}: {
+	address: `0x${string}`
+	offset: number
+}) => ({
+	module: 'account',
+	address,
+	startblock: '0',
+	endblock: '99999999',
+	page: '1',
+	offset: String(Math.min(Math.max(1, offset), etherscanAccountListMaxOffset)),
+	sort: 'asc',
+})
+
+const etherscanAccountListRows = async <T>({
+	publicEnv,
+	chainId,
+	query,
+	options,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	chainId: number
+	query: Record<string, string | undefined>
+	options?: { apiKey?: string }
+}): Promise<T[] | null> => (
+	etherscanV2UnwrapAccountResultArray(
+		await etherscanV2GetJson<EtherscanAccountArrayWire<T>>({
+			chainId,
+			publicEnv,
+			query,
+			options,
+		}),
+	)
+)
 
 /**
  * **`module=proxy`**, **`action=eth_getTransactionByHash`**, **`txhash`**.
@@ -331,3 +377,331 @@ export const gastrackerGasOracle = async ({
 	if (wire == null || wire.status !== '1' || wire.result == null) return null
 	return wire.result
 }
+
+/**
+ * **`module=account`**, **`action=tokentx`** — ERC-20 token transfers by address.
+ * @see https://docs.etherscan.io/api-reference/endpoint/tokentx
+ */
+export const accountErc20TokenTransfersByAddress = async ({
+	publicEnv,
+	chainId,
+	address,
+	offset,
+	options,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	chainId: number
+	address: `0x${string}`
+	offset: number
+	options?: { apiKey?: string }
+}): Promise<EtherscanErc20TokenTransferRowWire[] | null> => (
+	etherscanAccountListRows<EtherscanErc20TokenTransferRowWire>({
+		publicEnv,
+		chainId,
+		query: {
+			...etherscanAccountListQuery({
+				address,
+				offset,
+			}),
+			action: 'tokentx',
+		},
+		options,
+	})
+)
+
+/**
+ * **`module=account`**, **`action=tokennfttx`** — ERC-721 token transfers by address.
+ * @see https://docs.etherscan.io/api-reference/endpoint/tokennfttx
+ */
+export const accountErc721TokenTransfersByAddress = async ({
+	publicEnv,
+	chainId,
+	address,
+	offset,
+	options,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	chainId: number
+	address: `0x${string}`
+	offset: number
+	options?: { apiKey?: string }
+}): Promise<EtherscanErc721TokenTransferRowWire[] | null> => (
+	etherscanAccountListRows<EtherscanErc721TokenTransferRowWire>({
+		publicEnv,
+		chainId,
+		query: {
+			...etherscanAccountListQuery({
+				address,
+				offset,
+			}),
+			action: 'tokennfttx',
+		},
+		options,
+	})
+)
+
+/**
+ * **`module=account`**, **`action=token1155tx`** — ERC-1155 token transfers by address.
+ * @see https://docs.etherscan.io/api-reference/endpoint/token1155tx
+ */
+export const accountErc1155TokenTransfersByAddress = async ({
+	publicEnv,
+	chainId,
+	address,
+	offset,
+	options,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	chainId: number
+	address: `0x${string}`
+	offset: number
+	options?: { apiKey?: string }
+}): Promise<EtherscanErc1155TokenTransferRowWire[] | null> => (
+	etherscanAccountListRows<EtherscanErc1155TokenTransferRowWire>({
+		publicEnv,
+		chainId,
+		query: {
+			...etherscanAccountListQuery({
+				address,
+				offset,
+			}),
+			action: 'token1155tx',
+		},
+		options,
+	})
+)
+
+/**
+ * ERC-20 / ERC-721 / ERC-1155 token transfers for an address (merged, deduped).
+ */
+export const accountTokenTransfersByAddress = async ({
+	publicEnv,
+	chainId,
+	address,
+	offset,
+	options,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	chainId: number
+	address: `0x${string}`
+	offset: number
+	options?: { apiKey?: string }
+}): Promise<(
+	| {
+		standard: 'erc20'
+		row: EtherscanErc20TokenTransferRowWire
+	}
+	| {
+		standard: 'erc721'
+		row: EtherscanErc721TokenTransferRowWire
+	}
+	| {
+		standard: 'erc1155'
+		row: EtherscanErc1155TokenTransferRowWire
+	}
+)[] | null> => {
+	const [
+		erc20Rows,
+		erc721Rows,
+		erc1155Rows,
+	] = await Promise.all([
+		accountErc20TokenTransfersByAddress({
+			publicEnv,
+			chainId,
+			address,
+			offset,
+			options,
+		}),
+		accountErc721TokenTransfersByAddress({
+			publicEnv,
+			chainId,
+			address,
+			offset,
+			options,
+		}),
+		accountErc1155TokenTransfersByAddress({
+			publicEnv,
+			chainId,
+			address,
+			offset,
+			options,
+		}),
+	])
+	if (erc20Rows == null || erc721Rows == null || erc1155Rows == null) return null
+	const seen = new Set<string>()
+	return [
+		...erc20Rows.map((row) => ({
+			standard: 'erc20' as const,
+			row,
+		})),
+		...erc721Rows.map((row) => ({
+			standard: 'erc721' as const,
+			row,
+		})),
+		...erc1155Rows.map((row) => ({
+			standard: 'erc1155' as const,
+			row,
+		})),
+	].filter(({ standard, row }) => {
+		const key = [
+			row.hash?.toLowerCase() ?? '',
+			row.logIndex ?? '',
+			row.transactionIndex ?? '',
+			row.from?.toLowerCase() ?? '',
+			row.to?.toLowerCase() ?? '',
+			row.contractAddress?.toLowerCase() ?? '',
+			standard === 'erc20' ?
+				row.value ?? ''
+			: standard === 'erc721' ?
+				row.tokenID ?? ''
+			:
+				`${row.tokenID ?? ''}:${row.tokenValue ?? ''}`,
+		].join(':')
+		if (seen.has(key)) return false
+		seen.add(key)
+		return true
+	})
+}
+
+/**
+ * Token transfers within one transaction — Etherscan has no `tokentx` by tx hash; loads
+ * **`from`** / **`to`** participant address lists and filters by **`hash`**.
+ */
+export const accountTokenTransfersByTransaction = async ({
+	publicEnv,
+	chainId,
+	txHash,
+	offset,
+	options,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	chainId: number
+	txHash: `0x${string}`
+	offset: number
+	options?: { apiKey?: string }
+}): Promise<(
+	| {
+		standard: 'erc20'
+		row: EtherscanErc20TokenTransferRowWire
+	}
+	| {
+		standard: 'erc721'
+		row: EtherscanErc721TokenTransferRowWire
+	}
+	| {
+		standard: 'erc1155'
+		row: EtherscanErc1155TokenTransferRowWire
+	}
+)[] | null> => {
+	const tx = await proxyEthGetTransactionByHash({
+		publicEnv,
+		chainId,
+		txHash,
+		options,
+	})
+	if (tx == null) return null
+	const participantAddresses = [
+		...new Set(
+			[
+				tx.from,
+				tx.to,
+			]
+				.filter((address): address is `0x${string}` => (
+					address != null && address !== ''
+				)),
+		),
+	]
+	if (participantAddresses.length === 0) return []
+	const participantRows = await Promise.all(
+		participantAddresses.map((address) => (
+			accountTokenTransfersByAddress({
+				publicEnv,
+				chainId,
+				address,
+				offset,
+				options,
+			})
+		)),
+	)
+	if (participantRows.some((rows) => rows == null)) return null
+	const merged = participantRows.flatMap((rows) => rows ?? [])
+	const normalizedTxHash = txHash.toLowerCase()
+	const seen = new Set<string>()
+	return merged.filter(({ standard, row }) => {
+		if (row.hash?.toLowerCase() !== normalizedTxHash) return false
+		const key = [
+			row.logIndex ?? '',
+			row.transactionIndex ?? '',
+			row.from?.toLowerCase() ?? '',
+			row.to?.toLowerCase() ?? '',
+			row.contractAddress?.toLowerCase() ?? '',
+			standard === 'erc20' ?
+				row.value ?? ''
+			: standard === 'erc721' ?
+				row.tokenID ?? ''
+			:
+				`${row.tokenID ?? ''}:${row.tokenValue ?? ''}`,
+		].join(':')
+		if (seen.has(key)) return false
+		seen.add(key)
+		return true
+	})
+}
+
+/**
+ * **`module=account`**, **`action=txlistinternal`** — internal transactions by address.
+ * @see https://docs.etherscan.io/api-reference/endpoint/txlistinternal
+ */
+export const accountInternalTransactionsByAddress = async ({
+	publicEnv,
+	chainId,
+	address,
+	offset,
+	options,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	chainId: number
+	address: `0x${string}`
+	offset: number
+	options?: { apiKey?: string }
+}): Promise<EtherscanInternalTransactionRowWire[] | null> => (
+	etherscanAccountListRows<EtherscanInternalTransactionRowWire>({
+		publicEnv,
+		chainId,
+		query: {
+			...etherscanAccountListQuery({
+				address,
+				offset,
+			}),
+			action: 'txlistinternal',
+		},
+		options,
+	})
+)
+
+/**
+ * **`module=account`**, **`action=txlistinternal`**, **`txhash`** — internal transactions in one tx.
+ * @see https://docs.etherscan.io/api-reference/endpoint/txlistinternal-txhash
+ */
+export const accountInternalTransactionsByTxHash = async ({
+	publicEnv,
+	chainId,
+	txHash,
+	options,
+}: {
+	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
+	chainId: number
+	txHash: `0x${string}`
+	options?: { apiKey?: string }
+}): Promise<EtherscanInternalTransactionRowWire[] | null> => (
+	etherscanAccountListRows<EtherscanInternalTransactionRowWire>({
+		publicEnv,
+		chainId,
+		query: {
+			module: 'account',
+			action: 'txlistinternal',
+			txhash: txHash,
+		},
+		options,
+	})
+)

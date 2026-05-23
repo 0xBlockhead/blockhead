@@ -81,7 +81,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
-	import Timestamp, { TimestampFormat } from '$/components/Timestamp.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -93,6 +93,10 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
+	{#snippet Value()}
+		<span>{entityId.id}</span>
+	{/snippet}
+
 	{#snippet Title()}
 		{#if title !== undefined}
 			<span>{title}</span>
@@ -153,7 +157,6 @@
 								<dd>
 									<Timestamp
 										timestamp={sharedAddress.sharedAt}
-										format={TimestampFormat.Both}
 									/>
 								</dd>
 							</div>
@@ -224,6 +227,7 @@
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
+			data-carousel-basis="40ch"
 		>
 			<CollapsibleTabs
 				id={`${contactKey}:carousel-more`}
@@ -304,16 +308,3 @@
 	{/snippet}
 </EntityView>
 
-
-<style>
-	.entity-view-detail-carousels :global(.collapsible-tabs-scroll[data-scroll-container]) {
-		&[data-scroll-container] {
-			--scrollContainer-sizeBlock: calc(80cqb - 6rem);
-			max-block-size: var(--scrollContainer-sizeBlock);
-
-			&[data-scroll-container~='layout-carousel'] {
-				--carousel-basis: 40ch;
-			}
-		}
-	}
-</style>

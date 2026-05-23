@@ -1,16 +1,9 @@
 import { type } from 'arktype'
 
 import { getJson } from '$/lib/http.ts'
+import MetadataVision from '$/sources/MetadataVision/index.ts'
 import { metadataVisionOrigin } from '$/sources/MetadataVision/Rest/constants.ts'
 import type { MetadataVisionOpenGraphDataWire } from '$/sources/MetadataVision/Rest/types.ts'
-import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
-
-const metadataVisionOrigins: readonly SourceOrigin[] = [
-	{
-		origin: new URL(metadataVisionOrigin).origin,
-		corsEnabled: true,
-	},
-]
 
 const metadataVisionDataWire = type({
 	url: 'string',
@@ -49,7 +42,7 @@ export const getOpenGraphWireForPublicHttpUrl = async (
 	publicHttpUrl: string,
 ): Promise<MetadataVisionOpenGraphDataWire> => {
 	const requestUrl = `${metadataVisionOrigin}/${publicHttpUrl}`
-	const json = await getJson(requestUrl, { origins: metadataVisionOrigins })
+	const json = await getJson(requestUrl, { origins: MetadataVision.origins ?? [] })
 	const parsed = metadataVisionResponseWire(json)
 	if (parsed instanceof type.errors) {
 		throw new Error(`MetadataVision_Rest: unexpected JSON for ${requestUrl}`)

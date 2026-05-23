@@ -268,6 +268,37 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
+			entityType: EntityType.Coin,
+			fieldName: '$$marketsWithCoinAsQuote',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>, context) => {
+				const { coinById } = await import('$/constants/Coin.ts')
+				const { catalogMarketsWithCoinAsQuote } = await import('$/constants/MarketCatalog.ts')
+				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
+				if (coinById[entityId.coinId as keyof typeof coinById] == null) {
+					throw new Error(
+						`Coingecko_OpenApi: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`,
+					)
+				}
+				if (idByCoinId[entityId.coinId] == null) {
+					return []
+				}
+				const lim = resolverLoadSubsetRowLimit(context)
+				return (
+					catalogMarketsWithCoinAsQuote(
+						entityId.coinId,
+						(baseCoinId) => idByCoinId[baseCoinId] != null,
+					)
+						.slice(0, lim)
+						.map((marketId) => (
+							{
+								[EntityMetaKey.Id]: marketId,
+							}
+						))
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$marketPrices',
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {

@@ -14,7 +14,6 @@ import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
-import { filterCoinBridgeCapabilityRowsForInstance } from '$/sources/Lifi/Rest/coinBridgeCapabilities.ts'
 import type { LifiChain } from '$/sources/Lifi/Rest/types.ts'
 
 
@@ -81,9 +80,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.Network,
 			resolve: async (entityId, context) => {
-				const network = (await globalNetworkEntitiesFieldResolver.resolve({}, context)).find((row) => row[EntityMetaKey.Id].chainId === entityId.chainId)
-				if (network == null) throw new Error('Lifi_Rest: chain not in LiFi catalog')
-				return network
+				const { findLifiChainByChainId } = await import('$/sources/Lifi/Rest/queries.ts')
+				const lifiChain = await findLifiChainByChainId(entityId.chainId)
+				if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog')
+				return networkEntityFieldsFromLifiChain(lifiChain)
 			},
 		}),
 
@@ -136,6 +136,9 @@ export default {
 				const { resolveCoinIdForCoinInstanceEntityId } = await import(
 					'$/sources/Coingecko/Rest/coinInstances.ts'
 				)
+				const { filterCoinBridgeCapabilityRowsForInstance } = await import(
+					'$/sources/Lifi/Rest/coinBridgeCapabilities.ts'
+				)
 				const coinId = await resolveCoinIdForCoinInstanceEntityId(
 					entityId,
 					sourcePublicEnv(context, Source.Coingecko_Rest),
@@ -154,6 +157,9 @@ export default {
 			resolve: async (entityId, context) => {
 				const { resolveCoinIdForCoinInstanceEntityId } = await import(
 					'$/sources/Coingecko/Rest/coinInstances.ts'
+				)
+				const { filterCoinBridgeCapabilityRowsForInstance } = await import(
+					'$/sources/Lifi/Rest/coinBridgeCapabilities.ts'
 				)
 				const coinId = await resolveCoinIdForCoinInstanceEntityId(
 					entityId,
@@ -186,8 +192,8 @@ export default {
 					blockExplorerCatalogWireFromExplorersAndInfoUrl,
 					urlEntitiesDeduplicatedSortedFromBlockExplorerCatalog,
 				} = await import('$/resolvers/_networkCatalogUrlEntities.ts')
-				const { fetchLifiChainsCatalog } = await import('$/sources/Lifi/Rest/queries.ts')
-				const lifiChain = (await fetchLifiChainsCatalog()).chains.find((row) => row.id === entityId.chainId)
+				const { findLifiChainByChainId } = await import('$/sources/Lifi/Rest/queries.ts')
+				const lifiChain = await findLifiChainByChainId(entityId.chainId)
 				if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog for block explorer URLs')
 				return urlEntitiesDeduplicatedSortedFromBlockExplorerCatalog(
 					blockExplorerCatalogWireFromExplorersAndInfoUrl({

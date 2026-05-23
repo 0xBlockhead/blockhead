@@ -7,6 +7,6 @@ export const fxEmbedApiV2Base = `${fxEmbedApiOrigin}/2` as const
 export const fxEmbedApiOrigins: readonly SourceOrigin[] = [
 	{
 		origin: fxEmbedApiOrigin,
-		corsEnabled: true,
+		corsEnabled: false,
 	},
 ]
