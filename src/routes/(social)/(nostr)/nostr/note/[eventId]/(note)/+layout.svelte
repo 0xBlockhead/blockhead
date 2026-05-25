@@ -1,6 +1,5 @@
 <script lang="ts">
-	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 
@@ -8,12 +7,15 @@
 	// Props
 	let { children } = $props()
 
+
+	// (Derived)
 	const eventId = $derived(
 		decodeURIComponent(page.params.eventId ?? '').trim().toLowerCase(),
 	)
 
 
 	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NostrNoteView from '$/views/NostrNoteView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 </script>
@@ -28,9 +30,6 @@
 	{#snippet Summary({ open: _open })}
 		<NostrNoteView
 			entityId={{ eventId }}
-			href={resolve('/(social)/(nostr)/nostr/note/[eventId]', {
-				eventId,
-			})}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

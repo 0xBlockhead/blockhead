@@ -1,15 +1,10 @@
+import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineEntityFieldResolver,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-
-const stableSortNetworkIds = (chainIds: number[]) => (
-	[...new Set(chainIds)].toSorted((leftChainId, rightChainId) => (
-		leftChainId - rightChainId
-	))
-)
 
 export default {
 	source: Source.Superchain_Github,
@@ -22,7 +17,7 @@ export default {
 			fieldName: '$parentLayer',
 			resolve: async (entityId) => {
 				const { fetchSuperchainNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-				const network = (await fetchSuperchainNetworks()).find((candidate) => candidate.chainId === entityId.chainId)
+				const network = (await singleFlight(fetchSuperchainNetworks)()).find((candidate) => candidate.chainId === entityId.chainId)
 				return (
 					network?.parentChainId == null ?
 						undefined
@@ -44,7 +39,7 @@ export default {
 					superchainSepoliaIdentifier,
 				} = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchSuperchainNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-				const networks = await fetchSuperchainNetworks()
+				const networks = await singleFlight(fetchSuperchainNetworks)()
 				const namespaceFilter = (
 					entityId.chainId === 1 ?
 						superchainMainnetIdentifier
@@ -53,23 +48,19 @@ export default {
 					:
 						undefined
 				)
-				return stableSortNetworkIds(
-					networks.flatMap((network) => (
-						network.parentChainId !== entityId.chainId
-						|| (
-							namespaceFilter != null
-							&& network.namespace !== namespaceFilter
-						) ?
-							[]
-						:	[
-								network.chainId,
-							]
-					)),
-				).map((chainId) => ({
-					[EntityMetaKey.Id]: {
-						chainId,
-					},
-				}))
+				return networks.flatMap((network) => (
+					network.parentChainId !== entityId.chainId
+					|| (
+						namespaceFilter != null
+						&& network.namespace !== namespaceFilter
+					) ?
+						[]
+					:	[{
+							[EntityMetaKey.Id]: {
+								chainId: network.chainId,
+							},
+						}]
+				))
 			},
 		}),
 
@@ -79,25 +70,21 @@ export default {
 			resolve: async (entityId) => {
 				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchSuperchainNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-				const networks = await fetchSuperchainNetworks()
+				const networks = await singleFlight(fetchSuperchainNetworks)()
 				const network = networks.find((candidate) => candidate.chainId === entityId.chainId)
 				if (network == null || network.namespace !== superchainMainnetIdentifier) {
 					throw new Error('Superchain_Github: $$testnets only for Superchain mainnet networks')
 				}
-				return stableSortNetworkIds(
-					networks.flatMap((candidate) => (
-						candidate.namespace === superchainMainnetIdentifier
-						|| candidate.slug !== network.slug ?
-							[]
-						:	[
-								candidate.chainId,
-							]
-					)),
-				).map((chainId) => ({
-					[EntityMetaKey.Id]: {
-						chainId,
-					},
-				}))
+				return networks.flatMap((candidate) => (
+					candidate.namespace === superchainMainnetIdentifier
+					|| candidate.slug !== network.slug ?
+						[]
+					:	[{
+							[EntityMetaKey.Id]: {
+								chainId: candidate.chainId,
+							},
+						}]
+				))
 			},
 		}),
 
@@ -107,7 +94,7 @@ export default {
 			resolve: async (entityId) => {
 				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchSuperchainNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-				const networks = await fetchSuperchainNetworks()
+				const networks = await singleFlight(fetchSuperchainNetworks)()
 				const network = networks.find((candidate) => candidate.chainId === entityId.chainId)
 				if (network == null || network.namespace === superchainMainnetIdentifier) return undefined
 				const mainnet = networks.find((candidate) => (

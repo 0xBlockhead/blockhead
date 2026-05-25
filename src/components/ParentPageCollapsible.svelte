@@ -1,21 +1,21 @@
 <script lang="ts">
 	// Types/constants
-	import type { ResolvedPathname } from '$app/types'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { ComponentProps, Snippet } from 'svelte'
 
 
 	// Context
+	import type { ResolvedPathname } from '$app/types'
+
 	import {
 		getOnNestedCollapsibleClose,
 		setOnNestedCollapsibleClose,
 	} from '$/context/onNestedCollapsibleClose.ts'
 
-	const onNestedCollapsibleClose = getOnNestedCollapsibleClose()
+	import { goto } from '$app/navigation'
 
 
 	// Props
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { ComponentProps, Snippet } from 'svelte'
-
 	let {
 		title,
 		href,
@@ -35,22 +35,20 @@
 			open?: boolean
 			ontoggle?: (e: Event) => void
 
-			Summary?: Snippet<[context?: {
+			Summary?: Snippet<[{
 				open?: boolean,
 			}]>
-			children?: Snippet<[context?: {
-				open?: boolean,
-			}]>
+			children?: Snippet
 		},
 		ComponentProps<typeof Collapsible>
 	> = $props()
 
 
 	// Inner context
-	import { goto } from '$app/navigation'
+	const onNestedCollapsibleClose = getOnNestedCollapsibleClose()
 
 	setOnNestedCollapsibleClose((collapsibleId?: string) => {
-		if(href)
+		if (href)
 			goto(
 				collapsibleId ?
 					`${href.replace(/#.*$/, '')}#${encodeURIComponent(collapsibleId)}`
@@ -69,16 +67,14 @@
 <Collapsible
 	bind:open
 	{ontoggle}
-	onclose={id => onNestedCollapsibleClose?.(id ?? undefined)}
+	onclose={(id) => onNestedCollapsibleClose?.(id ?? undefined)}
 	data-card
 	{...CollapsibleProps}
 >
-	{#snippet Summary({
-		open,
-	})}
+	{#snippet Summary({ open: _open })}
 		{#if _Summary}
 			{@render _Summary({
-				open,
+				open: _open,
 			})}
 		{:else}
 			<Heading>
@@ -94,13 +90,9 @@
 		{/if}
 	{/snippet}
 
-	{#snippet children({
-		open,
-	})}
+	{#snippet children({ open: _open })}
 		{#if _children}
-			{@render _children({
-				open,
-			})}
+			{@render _children()}
 		{/if}
 	{/snippet}
 </Collapsible>

@@ -15,23 +15,20 @@
 
 
 	// Components
-	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
+	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
 	import Page from '$/components/Page.svelte'
 	import { EntityType } from '$/schema/$EntityType.ts'
 </script>
 
 
 <Page>
-	<ActivityPubMastodonFieldNotes
+	<ActivityPubNotesView
+		href={resolve('/activitypub/notes')}
 		entityFieldReference={{
 			entityType: EntityType.ActivityPubActor,
 			entityId,
 			fieldName: '$$notes',
 		}}
-		href={resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]/(actor)/notes', {
-			instanceOrigin: encodeURIComponent(entityId.instanceOrigin),
-			localAccountId: encodeURIComponent(entityId.localAccountId),
-		})}
 		id="activitypub-actor-notes"
 		orderByCreatedAt="desc"
 		placeholderText="Loading statuses…"

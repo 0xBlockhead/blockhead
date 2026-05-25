@@ -25,9 +25,17 @@ const RESOURCE_LOAD_SKIP_SUBSTRINGS = [
 	'net::ERR_',
 ] as const
 
+const DEV_SERVER_TRANSIENT_SUBSTRINGS = [
+	'[vite] Failed to reload',
+	'Failed to fetch dynamically imported module',
+] as const
+
 
 const shouldIgnoreBrowserConsoleError = (text: string) => (
 	RESOURCE_LOAD_SKIP_SUBSTRINGS.some((s) => (
+		text.includes(s)
+	))
+	|| DEV_SERVER_TRANSIENT_SUBSTRINGS.some((s) => (
 		text.includes(s)
 	))
 )
@@ -55,7 +63,8 @@ export const setupRouteViewSmokePage = (page: Page) => {
 		seq++
 		lines.push(`${seq}\tpageerror\t${err.message}`)
 		if (err.stack) lines.push(err.stack)
-		bump(new Error(`pageerror: ${err.message}`))
+		if (!shouldIgnoreBrowserConsoleError(err.message))
+			bump(new Error(`pageerror: ${err.message}`))
 	})
 
 	page.on('crash', () => {

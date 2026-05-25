@@ -12,9 +12,10 @@ import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
+import type { XApiV2Media } from '$/sources/X/Rest/types.ts'
 
 const optionalTrimmedString = (value: string | undefined) => (
-	value?.trim() ? value.trim() : undefined
+	value?.trim() || undefined
 )
 
 const optionalUrlString = (value: string | undefined) => {
@@ -23,6 +24,44 @@ const optionalUrlString = (value: string | undefined) => {
 	const parsed = UrlString(trimmed)
 	return parsed instanceof type.errors ? undefined : parsed
 }
+
+const xPostUrl = (postId: string) => (
+	optionalUrlString(`https://x.com/i/web/status/${postId.trim()}`)
+)
+
+const mediaTypeFromWire = (wireType: string | undefined) => (
+	wireType === 'video' ?
+		MediaType.Video
+	:
+		MediaType.Image
+)
+
+const mediaByKeyFromIncludes = (includes?: {
+	media?: XApiV2Media[]
+}) => (
+	new Map(
+		(includes?.media ?? []).flatMap((row) => (
+			row.media_key == null ?
+				[]
+			:	[[row.media_key, row] as const]
+		)),
+	)
+)
+
+const mediaEntitiesFromTweet = (
+	attachments: {
+		media_keys?: string[]
+	} | undefined,
+	mediaByKey: Map<string, XApiV2Media>,
+) => (
+	(attachments?.media_keys ?? []).flatMap((mediaKey) => {
+		const wire = mediaByKey.get(mediaKey)
+		if (wire == null) return []
+		const previewUrl = wire.preview_image_url ?? wire.url
+		const media = mediaFromUrl(previewUrl, mediaTypeFromWire(wire.type))
+		return media == null ? [] : [media]
+	})
+)
 
 export default {
 	source: Source.X_Rest,
@@ -53,6 +92,9 @@ export default {
 					...(d.public_metrics?.tweet_count != null && {
 						tweetCount: d.public_metrics.tweet_count,
 					}),
+					...(d.public_metrics?.listed_count != null && {
+						listedCount: d.public_metrics.listed_count,
+					}),
 					...((
 						iconMedia,
 					) => (
@@ -60,6 +102,13 @@ export default {
 							$icon: iconMedia,
 						}
 					))(mediaFromUrl(d.profile_image_url, MediaType.Image)),
+					...((
+						bannerMedia,
+					) => (
+						bannerMedia != null && {
+							$profileBanner: bannerMedia,
+						}
+					))(mediaFromUrl(d.profile_banner_url, MediaType.Image)),
 				}
 			},
 		}),
@@ -68,8 +117,10 @@ export default {
 			entityType: EntityType.XPost,
 			resolve: async (entityId, context) => {
 				const { xGetTweet } = await import('$/sources/X/Rest/queries.ts')
-				const t = (await singleFlight(xGetTweet)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
+				const response = await singleFlight(xGetTweet)(sourcePublicEnv(context, Source.X_Rest), entityId.id)
+				const t = response.data
 				if (t == null) throw new Error('X_Rest: post not found')
+				const mediaByKey = mediaByKeyFromIncludes(response.includes)
 				const createdAt = Date.parse(t.created_at ?? '')
 				const conversationId = optionalTrimmedString(t.conversation_id)
 				const replyToId = optionalTrimmedString(
@@ -78,6 +129,7 @@ export default {
 				const quotedId = optionalTrimmedString(
 					t.referenced_tweets?.find((ref) => ref.type === 'quoted')?.id,
 				)
+				const postUrl = xPostUrl(entityId.id)
 				return {
 					text: optionalTrimmedString(t.text),
 					...(Number.isFinite(createdAt) && { createdAt }),
@@ -100,6 +152,8 @@ export default {
 					...(quotedId != null && {
 						$quotedPost: { [EntityMetaKey.Id]: { id: quotedId } },
 					}),
+					...(postUrl != null && { postUrl }),
+					$$media: mediaEntitiesFromTweet(t.attachments, mediaByKey),
 					$author: (
 						t.author_id == null ?
 							undefined
@@ -121,24 +175,24 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.X_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
 				const result = await singleFlight(xSearchRecentTweets)(publicEnv, limit)
-				const byId = new Map<string, { [EntityMetaKey.Id]: { id: string } }>()
-				for (const user of result.includes?.users ?? []) {
-					const userId = optionalTrimmedString(user.id)
-					if (userId != null) {
-						byId.set(userId, {
-							[EntityMetaKey.Id]: { id: userId },
-						})
-					}
-				}
-				for (const tweet of result.data ?? []) {
-					const authorId = optionalTrimmedString(tweet.author_id)
-					if (authorId != null) {
-						byId.set(authorId, {
-							[EntityMetaKey.Id]: { id: authorId },
-						})
-					}
-				}
-				return [...byId.values()]
+				return [
+					...(result.includes?.users ?? [])
+						.flatMap((user) => {
+							const userId = optionalTrimmedString(user.id)
+							if (userId == null) return []
+							return [{
+								[EntityMetaKey.Id]: { id: userId },
+							}]
+						}),
+					...(result.data ?? [])
+						.flatMap((tweet) => {
+							const authorId = optionalTrimmedString(tweet.author_id)
+							if (authorId == null) return []
+							return [{
+								[EntityMetaKey.Id]: { id: authorId },
+							}]
+						}),
+				]
 			},
 		}),
 

@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
 	import XView from '$/views/XView.svelte'
@@ -14,6 +10,5 @@
 		entityId={{
 			scope: 'XNetwork',
 		}}
-		href={resolve('/x')}
 	/>
 </Page>

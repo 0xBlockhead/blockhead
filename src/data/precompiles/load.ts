@@ -6,11 +6,18 @@
 import type { PrecompileEntry } from '$/constants/precompiles/types.ts'
 import { standardPrecompiles } from '$/constants/precompiles/standard.ts'
 
-type ShemnonSchedule = Record<string, string[]>
+type ShemnonSchedule = {
+	name?: string
+} & Record<`${number}`, string[]>
+
 type ShemnonPrecompile = {
 	name: string
 	address?: { full?: string; hex?: string }
 }
+
+const numericScheduleKey = (
+	key: string,
+): key is `${number}` => /^\d+$/.test(key)
 
 const glob = import.meta.glob<{ default: ShemnonSchedule | ShemnonPrecompile }>(
 	'/src/data/precompiles/*.json',
@@ -27,9 +34,13 @@ const precompileRe = /eip155-(\d+)-0x([0-9a-fA-F]+)\.json$/
 function parseAddress(raw: ShemnonPrecompile['address']): `0x${string}` {
 	if (!raw) return '0x0000000000000000000000000000000000000000'
 	const full = raw.full
-	if (full && full.length === 66) return full as `0x${string}`
+	if (full && full.length === 66) {
+		const address: `0x${string}` = full
+		return address
+	}
 	const hex = (raw.hex ?? '').replace(/^0x/, '')
-	return (`0x${hex.padStart(40, '0')}`) as `0x${string}`
+	const address: `0x${string}` = `0x${hex.padStart(40, '0')}`
+	return address
 }
 
 const precompileDefs = new Map<string, PrecompileEntry>()
@@ -43,20 +54,20 @@ for (const { path, data } of entries) {
 		continue
 	}
 	const precompileMatch = path.match(precompileRe)
-	if (precompileMatch) {
+	if (precompileMatch && 'address' in data) {
 		const id = path.slice(path.lastIndexOf('/') + 1).replace('.json', '')
-		const d = data as ShemnonPrecompile
 		precompileDefs.set(id, {
-			address: parseAddress(d.address),
-			name: d.name ?? id,
+			address: parseAddress(data.address),
+			name: data.name ?? id,
 		})
 	}
 }
 
 function precompileIdsFromSchedule(schedule: ShemnonSchedule): string[] {
 	const ids = new Set<string>()
-	for (const arr of Object.values(schedule)) {
-		if (Array.isArray(arr)) for (const id of arr) ids.add(id)
+	for (const key of Object.keys(schedule)) {
+		if (!numericScheduleKey(key)) continue
+		for (const id of schedule[key]) ids.add(id)
 	}
 	return [...ids]
 }
@@ -90,10 +101,12 @@ for (const { path, data } of entries) {
 	const scheduleMatch = path.match(scheduleRe)
 	if (!scheduleMatch) continue
 	const chainId = Number(scheduleMatch[1])
-	const schedule = data as ShemnonSchedule
+	if (!('name' in data)) continue
+	const schedule: ShemnonSchedule = data
 	const byBlock: Record<string, string[]> = {}
-	for (const [key, arr] of Object.entries(schedule)) {
-		if (key !== 'name' && Array.isArray(arr)) byBlock[key] = arr
+	for (const key of Object.keys(schedule)) {
+		if (!numericScheduleKey(key)) continue
+		byBlock[key] = schedule[key]
 	}
 	syncedScheduleByChainId.set(chainId, byBlock)
 	const ids = precompileIdsFromSchedule(schedule)

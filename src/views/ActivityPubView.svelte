@@ -1,50 +1,86 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { mastodonDefaultInstanceOrigin } from '$/constants/Mastodon.ts'
+	import { fediDefaultInstanceOrigin } from '$/constants/Fedi.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
+	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
 
 	// Props
 	let {
-		open = $bindable(true),
+		entityId,
+		href = resolve('/activitypub'),
+		open = $bindable(
+			!(getIsInsideEntityList() ?? false),
+		),
 		collapsible = true,
-	} = $props()
+		...EntityViewProps
+	}: WithRest<
+		{
+			entityId: EntityId<typeof schema, EntityType.ActivityPubNetwork>
+			href?: string
+			open?: boolean
+		},
+		never
+	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const entityId = (
-		{
-			scope: 'ActivityPubNetwork' as const,
-		} satisfies EntityId<typeof schema, EntityType.ActivityPubNetwork>
-	)
-
-	const networkIdKey = $derived(
-		stringify(entityId),
-	)
 
 	const activityPubNetwork = useEntity(
 		EntityType.ActivityPubNetwork,
 		entityId,
 		{
 			$: [Source.Constants_Internal],
+			protocolName: {},
+			registryLabel: {},
 			...(open ?
 				{
-					protocolName: {},
 					homeUrl: {},
 					docsUrl: {},
-					$$activityPubActors: {},
-					$$activityPubNotes: {},
+					topology: {},
+					mastodonInstanceTitle: {
+						$: [Source.Mastodon_Rest],
+					},
+					mastodonInstanceDescription: {
+						$: [Source.Mastodon_Rest],
+					},
+					mastodonInstanceVersion: {
+						$: [Source.Mastodon_Rest],
+					},
+					fediInstanceTitle: {
+						$: [Source.Fedi_Rest],
+					},
+					fediInstanceDescription: {
+						$: [Source.Fedi_Rest],
+					},
+					fediInstanceVersion: {
+						$: [Source.Fedi_Rest],
+					},
+					$$activityPubActors: {
+						$: [
+							Source.Constants_Internal,
+							Source.Mastodon_Rest,
+							Source.Fedi_Rest,
+						],
+					},
+					$$activityPubNotes: {
+						$: [
+							Source.Mastodon_Rest,
+							Source.Fedi_Rest,
+						],
+					},
 				}
 			:
 				{}),
@@ -52,12 +88,18 @@
 	)
 
 
+	// (Derived)
+	const networkIdKey = $derived(
+		stringify(entityId),
+	)
+
+
 	// Components
 	import ActivityPubActorsView from '$/views/ActivityPubActorsView.svelte'
-	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
+	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
@@ -66,13 +108,15 @@
 <EntityView
 	entityType={EntityType.ActivityPubNetwork}
 	{entityId}
-	href={resolve('/(social)/activitypub')}
+	href={href}
+	layout={EntityLayout.SummaryDetails}
 	bind:open
+	{collapsible}
+	{...EntityViewProps}
 	title="ActivityPub / Mastodon"
 >
 	{#snippet Value()}
 		{entityId.scope}
-
 	{/snippet}
 
 	{#snippet Title()}
@@ -85,73 +129,124 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			ActivityPub ties independent Mastodon-style instances into one federation: each actor id is scoped to an origin host, with WebFinger and HTTPS collections for inbox, outbox, and public keys.
+			ActivityPub is the W3C federation protocol; this hub loads Mastodon-compatible REST v1 data from configured instance hosts (public timelines and account lookups)—not direct inbox/outbox/WebFinger fetches.
 		</p>
 		<p>
-			Directory and status rows list actors and posts the hub has already synchronized from known federated instances—not the live state of every ActivityPub server.
+			Actor and status rows come from Constants seeds plus live REST against those hosts; they are not a synchronized copy of every federated server.
 		</p>
 	{/snippet}
 
-	{#snippet Content({
-		title: _title,
-		href: _href,
-		open: _contentOpen,
-	})}
-		<ResourceBoundary
-			resource={activityPubNetwork}
-			placeholderText="Loading ActivityPub federation slice…"
-		>
-			{#snippet children(activityPubNetwork)}
-				<dl data-column-item="center">
-					{#if _contentOpen}
+	{#snippet Content({ title: _title, href: _href })}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={activityPubNetwork}
+				placeholderText="Loading ActivityPub federation slice…"
+			>
+				{#snippet children(loadedActivityPubNetwork)}
+					{#if loadedActivityPubNetwork.registryLabel}
 						<div>
-							<dt>Local Mastodon cache</dt>
-							<dd data-text="muted">
-								{String(activityPubNetwork.$$activityPubActors?.length ?? 0)} actors · {String(activityPubNetwork.$$activityPubNotes?.length ?? 0)} statuses
-							</dd>
+							<dt>Registry</dt>
+							<dd>{loadedActivityPubNetwork.registryLabel}</dd>
 						</div>
-					{/if}
-
-					{#if _contentOpen}
+					{:else if loadedActivityPubNetwork.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{activityPubNetwork.protocolName ?? 'ActivityPub (Mastodon-compatible)'}</dd>
+							<dd>{loadedActivityPubNetwork.protocolName}</dd>
 						</div>
 					{/if}
 
-					{#if _contentOpen}
-						{#if activityPubNetwork.homeUrl}
+					{#if open}
+						<div>
+							<dt>Actors</dt>
+							<dd>{String(activityPubNetwork.$$activityPubActors?.length ?? 0)}</dd>
+						</div>
+						<div>
+							<dt>Statuses</dt>
+							<dd>{String(activityPubNetwork.$$activityPubNotes?.length ?? 0)}</dd>
+						</div>
+
+						{#if loadedActivityPubNetwork.topology}
+							<div>
+								<dt>Topology</dt>
+								<dd>{loadedActivityPubNetwork.topology}</dd>
+							</div>
+						{/if}
+
+						{#if loadedActivityPubNetwork.homeUrl}
 							<div>
 								<dt>Project home</dt>
 								<dd>
-									<a href={activityPubNetwork.homeUrl}>{activityPubNetwork.homeUrl}</a>
+									<a href={loadedActivityPubNetwork.homeUrl}>{loadedActivityPubNetwork.homeUrl}</a>
 								</dd>
 							</div>
 						{/if}
-					{/if}
 
-					{#if _contentOpen}
-						{#if activityPubNetwork.docsUrl}
+						{#if loadedActivityPubNetwork.docsUrl}
 							<div>
 								<dt>Specification</dt>
 								<dd>
-									<a href={activityPubNetwork.docsUrl}>
-										{activityPubNetwork.docsUrl}
+									<a href={loadedActivityPubNetwork.docsUrl}>
+										{loadedActivityPubNetwork.docsUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
-					{/if}
 
-					{#if _contentOpen}
+						{#if loadedActivityPubNetwork.mastodonInstanceTitle}
+							<div>
+								<dt>Mastodon instance title</dt>
+								<dd>{loadedActivityPubNetwork.mastodonInstanceTitle}</dd>
+							</div>
+						{/if}
+
+						{#if loadedActivityPubNetwork.mastodonInstanceDescription}
+							<div>
+								<dt>Mastodon instance description</dt>
+								<dd>{loadedActivityPubNetwork.mastodonInstanceDescription}</dd>
+							</div>
+						{/if}
+
+						{#if loadedActivityPubNetwork.mastodonInstanceVersion}
+							<div>
+								<dt>Mastodon instance version</dt>
+								<dd data-text="mono muted">{loadedActivityPubNetwork.mastodonInstanceVersion}</dd>
+							</div>
+						{/if}
+
+						{#if loadedActivityPubNetwork.fediInstanceTitle}
+							<div>
+								<dt>Fedi instance title</dt>
+								<dd>{loadedActivityPubNetwork.fediInstanceTitle}</dd>
+							</div>
+						{/if}
+
+						{#if loadedActivityPubNetwork.fediInstanceDescription}
+							<div>
+								<dt>Fedi instance description</dt>
+								<dd>{loadedActivityPubNetwork.fediInstanceDescription}</dd>
+							</div>
+						{/if}
+
+						{#if loadedActivityPubNetwork.fediInstanceVersion}
+							<div>
+								<dt>Fedi instance version</dt>
+								<dd data-text="mono muted">{loadedActivityPubNetwork.fediInstanceVersion}</dd>
+							</div>
+						{/if}
+
 						<div>
 							<dt>Default Mastodon instance host</dt>
 							<dd data-text="mono muted">{mastodonDefaultInstanceOrigin}</dd>
 						</div>
+
+						<div>
+							<dt>Default Fedi instance host</dt>
+							<dd data-text="mono muted">{fediDefaultInstanceOrigin}</dd>
+						</div>
 					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 
 	{#snippet Details({
@@ -161,9 +256,8 @@
 			entityType={EntityType.ActivityPubNetwork}
 			{entityId}
 		/>
-
 		<div
-			class="activitypub-network-detail-carousels"
+			class="entity-view-detail-carousels activitypub-network-detail-carousels"
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
@@ -184,46 +278,46 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet Markers({ open: _markersOpen })}
 					<a
 						data-scroll-marker-label="Actors"
 						href={`#${networkIdKey}:public-actors`}
 					>Actors</a>
 					<a
-						data-scroll-marker-label="Outbox"
+						data-scroll-marker-label="Public timeline"
 						href={`#${networkIdKey}:public-notes`}
-					>Outbox</a>
+					>Public timeline</a>
 				{/snippet}
 
-				{#snippet body(_carousel)}
+				{#snippet body({ open: _bodyOpen })}
 					<section
 						data-scroll-marker-label="Actors"
 						id={`${networkIdKey}:public-actors`}
 					>
 						<ActivityPubActorsView
+							href={resolve('/activitypub/actors')}
 							entityFieldReference={{
 								entityType: EntityType.ActivityPubNetwork,
 								entityId,
 								fieldName: '$$activityPubActors',
 							}}
-							href={resolve('/(social)/activitypub')}
 							id={`${networkIdKey}:actors`}
 							open={_open}
 						/>
 					</section>
 
 					<section
-						data-scroll-marker-label="Outbox"
+						data-scroll-marker-label="Public timeline"
 						id={`${networkIdKey}:public-notes`}
 					>
-						<ActivityPubMastodonFieldNotes
+						<ActivityPubNotesView
+							href={resolve('/activitypub/notes')}
 							entityFieldReference={{
 								entityType: EntityType.ActivityPubNetwork,
 								entityId,
 								fieldName: '$$activityPubNotes',
 							}}
 							fieldOpen={_open}
-							href={resolve('/(social)/activitypub')}
 							id={`${networkIdKey}:notes`}
 							orderByCreatedAt="desc"
 							placeholderText="Loading federation statuses…"

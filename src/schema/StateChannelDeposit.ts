@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+// Per-account collateral slice for state channels; catalog rows via Local_Internal.
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -18,6 +20,12 @@ export default {
 	}),
 
 	fields: [
+		{
+			name: '$channel',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.StateChannel,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: '$network',
 			type: EntityFieldType.EntityReference,

@@ -674,70 +674,7 @@ export const executionEndpoints = [
 
 
 // Lookups
-export const executionEndpointsByChainId: Partial<Record<number, ExecutionEndpoint[]>> = Object.groupBy(
+export const executionEndpointsByChainId = Object.groupBy(
 	executionEndpoints,
 	(e) => e.chainId,
-)
-
-export const executionEndpointsForChainId = (chainId: number): ExecutionEndpoint[] => {
-	for (const [key, group] of Object.entries(executionEndpointsByChainId)) {
-		if (Number(key) === chainId) return group ?? []
-	}
-	return []
-}
-
-export const getDefaultExecutionEndpoint = (
-	chainId: number,
-): ExecutionEndpoint | undefined =>
-	executionEndpointsByChainId[chainId]?.[0]
-
-export const getDefaultExecutionEndpointForLive = (
-	chainId: number,
-): ExecutionEndpoint | undefined => {
-	const list = executionEndpointsByChainId[chainId] ?? []
-	const ws = list.find((e) => e.transportType === TransportType.WebSocket)
-	return ws ?? list[0]
-}
-
-/** HTTP URLs for chain marked tevmForkTransportCompatible (order matches constants). Use to retry simulation when the first fork RPC fails. */
-export const listTevmForkTransportCompatibleHttpUrls = (chainId: number): string[] => {
-	const list = executionEndpointsByChainId[chainId] ?? []
-	return list
-		.filter((e) => (
-			e.transportType === TransportType.Http &&
-			'tevmForkTransportCompatible' in e &&
-			e.tevmForkTransportCompatible === true
-		))
-		.map((e) => e.url)
-}
-
-/** First HTTP endpoint for chain with tevmForkTransportCompatible === true; otherwise first HTTP endpoint. Use for Tevm fork-based simulation. */
-export const getTevmForkTransportCompatibleExecutionEndpoint = (
-	chainId: number,
-): ExecutionEndpoint | undefined => {
-	const list = executionEndpointsByChainId[chainId] ?? []
-	const http = list.filter((e) => e.transportType === TransportType.Http)
-	return (
-		http.find((e) => (
-			'tevmForkTransportCompatible' in e &&
-			e.tevmForkTransportCompatible === true
-		))
-		?? http[0]
-	)
-}
-
-const chainIds: number[] = Object.keys(executionEndpointsByChainId).map(Number)
-
-export const defaultExecutionClientUrls: Partial<Record<ChainId, string>> = Object.fromEntries(
-	chainIds.flatMap((c) => {
-		const ep = executionEndpointsByChainId[c]?.[0]
-		return ep ? [[c, ep.url] as const] : []
-	}),
-)
-
-export const defaultLiveExecutionClientUrls: Partial<Record<ChainId, string>> = Object.fromEntries(
-	chainIds.flatMap((c) => {
-		const ep = getDefaultExecutionEndpointForLive(c)
-		return ep ? [[c, ep.url] as const] : []
-	}),
 )

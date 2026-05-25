@@ -25,6 +25,18 @@ export default {
 
 	fields: [
 		{
+			name: 'kind',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'pubkey',
+			type: EntityFieldType.Primitive,
+			primitiveType: NostrPubkey,
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
 			name: 'title',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),

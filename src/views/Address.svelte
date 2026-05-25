@@ -1,4 +1,6 @@
 <script module lang="ts">
+
+
 	// Types/constants
 	export enum AddressFormat {
 		Full = 'full',
@@ -14,13 +16,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { blo } from 'blo'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import Icon, { IconShape } from '$/components/Icon.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 
 
 	// Props
@@ -45,13 +41,9 @@
 	} = $props()
 
 
-	// (Derived)
-	const shownAddress = $derived(
-		actorId?.address ?? address ?? undefined,
-	)
-
-
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const actor = useEntity(
 		EntityType.Actor,
 		actorId
@@ -66,14 +58,27 @@
 			$icon: {},
 		},
 	)
+
+
+	// (Derived)
+	const shownAddress = $derived(
+		actorId?.address ?? address ?? undefined,
+	)
+
+
+	// Components
+	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
-{#if shownAddress}
-	{#if showAvatar || ensNameProp === undefined}
-		<ResourceBoundary
+{#if (
+	shownAddress
+	&& (showAvatar || ensNameProp === undefined)
+)}
+	<ResourceBoundary
 			resource={actor}
-			placeholderText=""
 		>
 			{#snippet Pending()}
 				<span data-row="inline wrap gap-1 align-center">
@@ -102,7 +107,6 @@
 						}
 						format={TruncatedValueFormat.Visual}
 					/>
-
 					{#if ensNameProp}
 						<small>
 							(<span data-text="font-monospace">{ensNameProp}</span>)
@@ -117,10 +121,10 @@
 				</span>
 			{/snippet}
 
-			{#snippet children(actor)}
+			{#snippet children(loadedActor)}
 				<span data-row="inline wrap gap-1 align-center">
 					{#if showAvatar}
-						{@const avatarHref = actor.$icon?.[EntityMetaKey.Id].url}
+						{@const avatarHref = loadedActor.$icon?.[EntityMetaKey.Id].url}
 						<Icon
 							shape={avatarHref ? IconShape.Circle : IconShape.Square}
 							src={avatarHref ?? blo(shownAddress)}
@@ -145,13 +149,12 @@
 						}
 						format={TruncatedValueFormat.Visual}
 					/>
-
 					{#if ensNameProp}
 						<small>
 							(<span data-text="font-monospace">{ensNameProp}</span>)
 						</small>
 					{:else}
-						{@const forwardResolution = actor.$primaryName?.[EntityMetaKey.Id].name}
+						{@const forwardResolution = loadedActor.$primaryName?.[EntityMetaKey.Id].name}
 						{#if forwardResolution}
 							<small>
 								(<span data-text="font-monospace">{forwardResolution}</span>)
@@ -185,7 +188,6 @@
 				}
 				format={TruncatedValueFormat.Visual}
 			/>
-
 			<small>
 				(<span data-text="font-monospace">{ensNameProp}</span>)
 			</small>
@@ -196,5 +198,4 @@
 				</small>
 			{/if}
 		</span>
-	{/if}
 {/if}

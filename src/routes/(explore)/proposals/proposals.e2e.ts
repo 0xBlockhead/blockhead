@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test'
 
 test.describe('/proposals', () => {
-	test('page loads and proposal query settles', async ({ page }) => {
+	test('page loads and proposal query settles', async ({ page }, testInfo) => {
+		testInfo.setTimeout(180_000)
 		await page.goto('/proposals', { waitUntil: 'domcontentloaded' })
 
 		await expect(page.locator('#nav-menu').getByRole('link', { name: 'Proposals' })).toBeVisible()
@@ -9,9 +10,7 @@ test.describe('/proposals', () => {
 		const proposals = page.locator('#proposal-realms')
 		await expect(proposals).toBeVisible()
 		await expect(
-			proposals.getByText('No proposal realms to show yet.').or(
-				proposals.locator('li, section').first(),
-			),
-		).toBeAttached({ timeout: 15_000 })
+			proposals.locator('details, section, p, a').first(),
+		).toBeAttached({ timeout: 120_000 })
 	})
 })

@@ -1,10 +1,9 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Props
-	let { params } = $props()
+	let {
+		data,
+		params,
+	} = $props()
 
 
 	// Components
@@ -14,16 +13,7 @@
 
 
 <Page>
-		<EvmBlobView
-		entityId={{
-			$network: { chainId: Number(params.networkId) },
-			txHash: params.transactionId as `0x${string}`,
-			blobIndex: Number(params.blobIndex),
-		}}
-		href={resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/(blobs)/blob/[transactionId]/[blobIndex]',
-			params,
-		)}
+	<EvmBlobView
+		entityId={data.entityId}
 	/>
 </Page>
-

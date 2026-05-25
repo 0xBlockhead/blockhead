@@ -1,46 +1,43 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-
-
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { blockheadSessionStatuses } from '$/constants/Blockhead.ts'
 	import { Source } from '$/sources/$Source.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+			'/~/(manage)/manage/(profiles)/profile/[profileId]',
+			{ profileId: entityId.id },
+		),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.BlockheadSession>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
+			| 'layout'
 		>
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const session = useEntity(
 		EntityType.BlockheadSession,
@@ -74,10 +71,9 @@
 <EntityView
 	entityType={EntityType.BlockheadSession}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -94,8 +90,8 @@
 			resource={session}
 			placeholderText="Loading session…"
 		>
-			{#snippet children(session)}
-				{session.name ?? entityId.id}
+			{#snippet children(loadedSession)}
+				{loadedSession.name ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -126,8 +122,8 @@
 						resource={session}
 						placeholderText="Loading session…"
 					>
-						{#snippet children(session)}
-							{session.status}
+						{#snippet children(loadedSession)}
+							{blockheadSessionStatuses[loadedSession.status].label}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -141,15 +137,15 @@
 							resource={session}
 							placeholderText="Loading session…"
 						>
-							{#snippet children(session)}
-								{#if session.updatedAt !== undefined}
+							{#snippet children(loadedSession)}
+								{#if loadedSession.updatedAt !== undefined}
 									<Timestamp
-										timestamp={session.updatedAt}
+										timestamp={loadedSession.updatedAt}
 									/>
 								{:else}
-									{#if session.createdAt !== undefined}
+									{#if loadedSession.createdAt !== undefined}
 										<Timestamp
-											timestamp={session.createdAt}
+											timestamp={loadedSession.createdAt}
 										/>
 									{/if}
 								{/if}
@@ -167,10 +163,10 @@
 							resource={session}
 							placeholderText="Loading session…"
 						>
-							{#snippet children(session)}
-								{#if session.createdAt !== undefined}
+							{#snippet children(loadedSession)}
+								{#if loadedSession.createdAt !== undefined}
 									<Timestamp
-										timestamp={session.createdAt}
+										timestamp={loadedSession.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -185,10 +181,10 @@
 							resource={session}
 							placeholderText="Loading session…"
 						>
-							{#snippet children(session)}
-								{#if session.updatedAt !== undefined}
+							{#snippet children(loadedSession)}
+								{#if loadedSession.updatedAt !== undefined}
 									<Timestamp
-										timestamp={session.updatedAt}
+										timestamp={loadedSession.updatedAt}
 									/>
 								{/if}
 							{/snippet}
@@ -203,8 +199,8 @@
 							resource={session}
 							placeholderText="Loading session…"
 						>
-							{#snippet children(session)}
-								{#if session.simulationCount !== undefined}
+							{#snippet children(loadedSession)}
+								{#if loadedSession.simulationCount !== undefined}
 									{String(session.simulationCount)}
 								{/if}
 							{/snippet}
@@ -218,14 +214,6 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{#if children}
-			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.BlockheadSession}
-				{entityId}
-			/>
 
-		{/if}
 	{/snippet}
 </EntityView>

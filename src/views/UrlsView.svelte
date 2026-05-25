@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -9,6 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -18,7 +19,7 @@
 		title = 'URLs',
 		emptyText = 'No URLs in this list yet.',
 		open = $bindable(true),
-		...entitiesListProps
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Url>
@@ -27,9 +28,29 @@
 			emptyText?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'body'
+			| 'collapsible'
+			| 'CollapsibleProps'
+			| 'Empty'
+			| 'getKey'
+			| 'getSortValue'
+			| 'HeadingProps'
+			| 'href'
+			| 'id'
+			| 'Item'
+			| 'ItemPlaceholder'
+			| 'items'
+			| 'layout'
+			| 'limit'
+			| 'panelStyle'
+			| 'placeholderKeys'
+			| 'placeholderText'
+			| 'resource'
+			| 'showSummary'
+			| 'TypeAnnotationTooltip'
+			| 'UnorderedListProps'
 		>
 	> = $props()
 
@@ -37,7 +58,6 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { SvelteSet } from 'svelte/reactivity'
 
 	const parent = useEntity(
 		entityFieldReference.entityType,
@@ -63,9 +83,6 @@
 			}
 			return (
 				[...byUrl.values()]
-					.toSorted((left, right) => (
-						left[EntityMetaKey.Id].url.localeCompare(right[EntityMetaKey.Id].url)
-					))
 					.map((value) => ({ value }))
 			)
 		},
@@ -86,10 +103,9 @@
 	bind:open
 	getKey={(envelope) => envelope.value[EntityMetaKey.Id].url}
 	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].url}
-	placeholderKeys={new SvelteSet()}
 	resource={urls}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...entitiesListProps}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -107,13 +123,10 @@
 		{/snippet}
 
 		{#snippet Item({ item: envelope })}
-			{#if envelope}
-				<UrlView
-					entityId={envelope.value[EntityMetaKey.Id]}
-					href={envelope.value[EntityMetaKey.Id].url}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{/if}
+			<UrlView
+				entityId={envelope.value[EntityMetaKey.Id]}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
 		{/snippet}
 </EntitiesList>

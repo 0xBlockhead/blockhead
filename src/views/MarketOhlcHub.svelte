@@ -2,14 +2,19 @@
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
+
 	import {
 		coingeckoOhlcDayWindowLengths,
-		formatMarketTimeIntervalLabel,
 		MarketAssetKind,
 		MarketTimeIntervalUnit,
 	} from '$/constants/Market.ts'
+
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -38,6 +43,20 @@
 		candlesListTitle?: string
 	} = $props()
 
+
+	// (Derived)
+	const timeIntervalLabel = $derived(
+		timeInterval.unit === MarketTimeIntervalUnit.Day ?
+			`${String(timeInterval.value)}d`
+		: timeInterval.unit === MarketTimeIntervalUnit.Hour ?
+			`${String(timeInterval.value)}h`
+		: timeInterval.unit === MarketTimeIntervalUnit.Minute ?
+			`${String(timeInterval.value)}m`
+		: timeInterval.unit === MarketTimeIntervalUnit.Second ?
+			`${String(timeInterval.value)}s`
+		:
+			`${String(timeInterval.value)}`
+	)
 
 	const entityFieldReference = $derived(
 		({
@@ -83,10 +102,7 @@
 					)
 				}}
 			>
-				{formatMarketTimeIntervalLabel({
-					unit: MarketTimeIntervalUnit.Day,
-					value: windowLength,
-				})}
+				{`${String(windowLength)}d`}
 			</button>
 		{/each}
 	</nav>
@@ -96,23 +112,23 @@
 		{timeInterval}
 		title={
 			chartTitlePrefix != null ?
-				`${chartTitlePrefix} · ${formatMarketTimeIntervalLabel(timeInterval)} · USD`
+				`${chartTitlePrefix} · ${timeIntervalLabel} · USD`
 			:	`${
 					market.$base.kind === MarketAssetKind.Coin ?
 						market.$base.$coin.coinId
 					:
 						'Market'
-				} · ${formatMarketTimeIntervalLabel(timeInterval)} · USD OHLC`
+				} · ${timeIntervalLabel} · USD OHLC`
 		}
 	/>
-
 	<Market_TimeInterval_TimestampsView
+		href={resolve('/markets')}
 		collapsible
 		entityFieldReference={entityFieldReference}
 		id={`${id}:candles`}
 		open={listOpen}
 		{timeInterval}
-		title={`${candlesListTitle} · ${formatMarketTimeIntervalLabel(timeInterval)}`}
+		title={`${candlesListTitle} · ${timeIntervalLabel}`}
 	/>
 </section>
 

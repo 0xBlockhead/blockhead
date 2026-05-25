@@ -3,11 +3,11 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -18,30 +18,26 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve(
+			'/(social)/(rss)/rss/item/[feedKey]/[guid]',
+			{
+				feedKey: encodeURIComponent(entityId.feedKey),
+				guid: encodeURIComponent(entityId.guid),
+			},
+		),
 		layout,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.RssItem>
-			href: string
-			layout?: EntityLayout
+			href?: string
+			layout?: import('$/components/EntityView.svelte').EntityLayout
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'layout'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-		>
+		never
 	> = $props()
 
 
@@ -57,14 +53,18 @@
 				Source.Rss2Json_Rest,
 			],
 			title: {},
+			link: {},
+			publishedAt: {},
 			$feed: {},
 			...(open ?
 				{
-					link: {},
 					description: {},
 					content: {},
 					author: {},
-					publishedAt: {},
+					updatedAt: {},
+					categories: {},
+					enclosureUrl: {},
+					commentsUrl: {},
 				}
 			:
 				{}),
@@ -73,8 +73,10 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -85,10 +87,10 @@
 <EntityView
 	entityType={EntityType.RssItem}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
@@ -97,22 +99,19 @@
 		/>
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Heading()}
 		<ResourceBoundary
 			resource={item}
 			placeholderText="Loading item…"
 		>
-			{#snippet children(item)}
-				{#if item.title}
-					{item.title}
-				{:else}
-					<TruncatedValue
-						value={entityId.guid}
-						format={TruncatedValueFormat.Visual}
-					/>
-				{/if}
+			{#snippet children(loadedItem)}
+				{loadedItem.title ?? entityId.guid}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -127,13 +126,12 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary
 			resource={item}
-			placeholderText=""
 		>
-			{#snippet children(item)}
-				{#if item.publishedAt != null}
+			{#snippet children(loadedItem)}
+				{#if loadedItem.publishedAt != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={item.publishedAt}
+							timestamp={loadedItem.publishedAt}
 						/>
 					</span>
 				{/if}
@@ -144,79 +142,112 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			<div>
-				<dt>Feed</dt>
+				<dt>GUID</dt>
 				<dd>
-					<ResourceBoundary
-						resource={item}
-						placeholderText="Loading item…"
-					>
-						{#snippet children(item)}
-							{#if item.$feed}
-								<RssFeedView
-									entityId={item.$feed[EntityMetaKey.Id]}
-									href={resolve('/(social)/(rss)/rss/feed/[feedKey]', {
-										feedKey: encodeURIComponent(item.$feed[EntityMetaKey.Id].feedUrl),
-										})}
-									layout={EntityLayout.Value}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					<TruncatedValue
+						endLength={12}
+						format={TruncatedValueFormat.Visual}
+						startLength={20}
+						value={entityId.guid}
+					/>
 				</dd>
 			</div>
 
-			{#if open}
+			{#if loadedItem.$feed}
 				<div>
-					<dt>Author</dt>
+					<dt>Feed</dt>
 					<dd>
-						<ResourceBoundary
-							resource={item}
-							placeholderText="Loading item…"
-						>
-							{#snippet children(item)}
-								{#if item.author}
-									{item.author}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+						<RssFeedView
+							entityId={loadedItem.$feed[EntityMetaKey.Id]}
+							layout={EntityLayout.Value}
+							open={false}
+						/>
 					</dd>
 				</div>
+			{/if}
 
+			{#if loadedItem.author}
+				<div>
+					<dt>Author</dt>
+					<dd>{loadedItem.author}</dd>
+				</div>
+			{/if}
+
+			{#if loadedItem.link}
 				<div>
 					<dt>Link</dt>
 					<dd>
-						<ResourceBoundary
-							resource={item}
-							placeholderText="Loading item…"
-						>
-							{#snippet children(item)}
-								{#if item.link}
-									<a
-										href={item.link}
-										rel="noreferrer"
-										target="_blank"
-									>{item.link}</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+						<a
+							href={loadedItem.link}
+							rel="noreferrer"
+							target="_blank"
+						>{loadedItem.link}</a>
 					</dd>
 				</div>
+			{/if}
 
+			{#if (
+				open
+				&& item.publishedAt != null
+			)}
 				<div>
-					<dt>Description</dt>
+					<dt>Published</dt>
 					<dd>
-						<ResourceBoundary
-							resource={item}
-							placeholderText="Loading item…"
-						>
-							{#snippet children(item)}
-								{#if item.description}
-									{item.description}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+						<Timestamp
+							timestamp={loadedItem.publishedAt}
+						/>
+					</dd>
+				</div>
+			{/if}
+			{#if (
+				open
+				&& item.updatedAt != null
+			)}
+				<div>
+					<dt>Updated</dt>
+					<dd>
+						<Timestamp
+							timestamp={loadedItem.updatedAt}
+						/>
+					</dd>
+				</div>
+			{/if}
+			{#if (
+				open
+				&& item.categories
+			)}
+				<div>
+					<dt>Categories</dt>
+					<dd>{loadedItem.categories.join(', ')}</dd>
+				</div>
+			{/if}
+			{#if (
+				open
+				&& item.enclosureUrl
+			)}
+				<div>
+					<dt>Enclosure</dt>
+					<dd>
+						<a
+							href={loadedItem.enclosureUrl}
+							rel="noreferrer"
+							target="_blank"
+						>{loadedItem.enclosureUrl}</a>
+					</dd>
+				</div>
+			{/if}
+			{#if (
+				open
+				&& item.commentsUrl
+			)}
+				<div>
+					<dt>Comments</dt>
+					<dd>
+						<a
+							href={loadedItem.commentsUrl}
+							rel="noreferrer"
+							target="_blank"
+						>{loadedItem.commentsUrl}</a>
 					</dd>
 				</div>
 			{/if}
@@ -226,25 +257,83 @@
 	{#snippet Details({
 		open: _open,
 	})}
+		{@const idKey = stringify(entityId)}
 		<EntityDetails
 			entityType={EntityType.RssItem}
 			{entityId}
 		/>
-
-		{#if _open}
-			<ResourceBoundary
-				resource={item}
-				placeholderText="Loading item…"
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
+		>
+			<CollapsibleTabs
+				id={`${idKey}:carousel-item`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
-				{#snippet children(item)}
-					{#if item.content}
-						<section data-column="gap-2">
-							<h2>Content</h2>
-							<p>{item.content}</p>
-						</section>
-					{/if}
+				{#snippet Summary({ open: _summaryOpen })}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<HeadingComponent>
+							Item detail
+						</HeadingComponent>
+					</header>
 				{/snippet}
-			</ResourceBoundary>
-		{/if}
+
+				{#snippet Markers({ open: _markersOpen })}
+					<a
+						data-scroll-marker-label="Description"
+						href={`#${idKey}:description`}
+					>Description</a>
+					<a
+						data-scroll-marker-label="Content"
+						href={`#${idKey}:content`}
+					>Content</a>
+				{/snippet}
+
+				{#snippet body({ open: _sectionOpen })}
+					<section
+						data-scroll-marker-label="Description"
+						id={`${idKey}:description`}
+					>
+						<ResourceBoundary
+							resource={item}
+							placeholderText="Loading item…"
+						>
+							{#snippet children(loadedItem)}
+								{#if loadedItem.description}
+									<p>{loadedItem.description}</p>
+								{:else}
+									<p data-text="muted">No description.</p>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</section>
+
+					<section
+						data-scroll-marker-label="Content"
+						id={`${idKey}:content`}
+					>
+						<ResourceBoundary
+							resource={item}
+							placeholderText="Loading item…"
+						>
+							{#snippet children(loadedItem)}
+								{#if loadedItem.content}
+									<p>{loadedItem.content}</p>
+								{:else}
+									<p data-text="muted">No full content.</p>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</section>
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
 	{/snippet}
 </EntityView>
+

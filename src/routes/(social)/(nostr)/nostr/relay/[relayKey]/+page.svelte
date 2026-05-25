@@ -1,5 +1,7 @@
 <script lang="ts">
+	// Types/constants
 	import type { PageProps } from './$types.ts'
+
 
 	// Context
 	import { resolve } from '$app/paths'
@@ -18,8 +20,5 @@
 <Page>
 	<NostrRelayView
 		entityId={data.entityId}
-		href={resolve('/(social)/(nostr)/nostr/relay/[relayKey]', {
-			relayKey: encodeURIComponent(data.entityId.relayUrl),
-		})}
 	/>
 </Page>

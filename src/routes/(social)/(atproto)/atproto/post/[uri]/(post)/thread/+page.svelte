@@ -27,9 +27,6 @@
 			entityId,
 			fieldName: '$$thread',
 		}}
-		href={resolve('/(social)/(atproto)/atproto/post/[uri]/(post)/thread', {
-			uri: encodeURIComponent(entityId.uri),
-		})}
 		id="atproto-post-thread"
 		title="Thread"
 	/>

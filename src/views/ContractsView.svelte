@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -9,10 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -21,23 +18,21 @@
 		title = 'Contracts',
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListProps
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmContract>
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -55,7 +50,7 @@
 	entityType={EntityType.EvmContract}
 	{title}
 	bind:open
-	{...entitiesListProps}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -66,7 +61,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const network = useEntity(
 				EntityType.Network,
@@ -105,23 +100,12 @@
 								</p>
 							{/snippet}
 
-							{#snippet Item({ item: row })}
-								{#if row}
-									<EvmContractView
-										entityId={row[EntityMetaKey.Id]}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-											{
-												networkId: String(
-													row[EntityMetaKey.Id].$network.chainId,
-												),
-												address: row[EntityMetaKey.Id].address,
-											},
-										)}
-										layout={EntityLayout.Summary}
-										open={false}
-									/>
-								{/if}
+							{#snippet Item({ item: contract })}
+								<EvmContractView
+									entityId={contract[EntityMetaKey.Id]}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
 							{/snippet}
 						</OrderedList>
 					{/snippet}

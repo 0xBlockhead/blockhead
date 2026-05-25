@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Props
 	let {
 		params,
@@ -21,10 +17,6 @@
 			$network: { chainId: Number(params.networkId) },
 			txHash: params.transactionId as `0x${string}`,
 		}}
-		href={resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId]',
-			params,
-		)}
 	/>
 </Page>
 

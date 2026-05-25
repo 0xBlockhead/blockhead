@@ -1,4 +1,4 @@
-export type Rss2JsonFeedWire = {
+export type Rss2JsonFeed = {
 	title?: string
 	link?: string
 	description?: string
@@ -7,7 +7,7 @@ export type Rss2JsonFeedWire = {
 	image?: string
 }
 
-export type Rss2JsonItemWire = {
+export type Rss2JsonItem = {
 	title?: string
 	pubDate?: string
 	link?: string
@@ -16,10 +16,16 @@ export type Rss2JsonItemWire = {
 	content?: string
 	author?: string
 	thumbnail?: string
+	categories?: string[]
+	enclosure?: readonly {
+		url?: string
+		type?: string
+		length?: string
+	}[]
 }
 
-export type Rss2JsonResponseWire = {
+export type Rss2JsonResponse = {
 	status: string
-	feed?: Rss2JsonFeedWire
-	items?: Rss2JsonItemWire[]
+	feed?: Rss2JsonFeed
+	items?: Rss2JsonItem[]
 }

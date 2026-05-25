@@ -8,8 +8,8 @@
  */
 
 import type {
-	EtherscanAccountArrayWire,
-	EtherscanProxyJsonRpcWire,
+	EtherscanAccountArray,
+	EtherscanProxyJsonRpc,
 } from '$/sources/Etherscan/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { getJson } from '$/lib/http.ts'
@@ -23,14 +23,10 @@ import {
 	supportedByChainId,
 } from '$/sources/Etherscan/Rest/constants.ts'
 
-export const isEtherscanRestSupportedChainId = (chainId: number): boolean => (
-	supportedByChainId[chainId] === true
-)
-
 /**
  * Etherscan proxy wire: JSON-RPC `result`, or treat **`status: "0"`** / **`error`** as failure (not RPC data).
  */
-export const etherscanV2UnwrapProxyResult = <T>(wire: EtherscanProxyJsonRpcWire<T> | null): T | null => (
+export const etherscanV2UnwrapProxyResult = <T>(wire: EtherscanProxyJsonRpc<T> | null): T | null => (
 	wire == null
 	|| wire.error != null
 	|| wire.status === '0'
@@ -47,7 +43,7 @@ const etherscanAccountEmptyMessages = new Set([
  * `module=account` list endpoints — empty list on zero rows; **`null`** on hard failure.
  */
 export const etherscanV2UnwrapAccountResultArray = <T>(
-	wire: EtherscanAccountArrayWire<T> | null,
+	wire: EtherscanAccountArray<T> | null,
 ): T[] | null => {
 	if (wire == null) return null
 	if (wire.status === '1' && Array.isArray(wire.result)) return wire.result
@@ -93,7 +89,7 @@ export const etherscanV2GetJson = async <T>({
 	publicEnv: SourcePublicEnvFor<Source.Etherscan_Rest>
 	options?: { apiKey?: string }
 }): Promise<T | null> => {
-	if (!isEtherscanRestSupportedChainId(chainId)) return null
+	if (supportedByChainId[chainId] !== true) return null
 	const search = new URLSearchParams()
 	search.set('chainid', String(chainId))
 	for (const [key, value] of Object.entries(query)) {

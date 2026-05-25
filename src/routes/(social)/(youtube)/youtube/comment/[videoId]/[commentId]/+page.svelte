@@ -23,12 +23,5 @@
 <Page>
 	<YouTubeCommentView
 		{entityId}
-		href={resolve(
-			'/(social)/(youtube)/youtube/comment/[videoId]/[commentId]',
-			{
-				videoId: encodeURIComponent(entityId.videoId),
-				commentId: encodeURIComponent(entityId.commentId),
-			},
-		)}
 	/>
 </Page>

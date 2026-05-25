@@ -1,3 +1,4 @@
+import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
@@ -30,17 +31,18 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Allium_Rest)
 				if (entityId.type === CoinInstanceType.NativeCurrency) {
 					const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
-					const chain = (await fetchRpcsJson())
+					const chain = (await singleFlight(fetchRpcsJson)())
 						.find((chain) => chain.chainId === entityId.$network.chainId)
 					const nativeCurrency = chain?.nativeCurrency
 					if (nativeCurrency == null) throw new Error('Allium_Rest: native coin chain not in chainlist')
 
 					const symbol = nativeCurrency.symbol.trim().toUpperCase()
 					const coinId = coinBySymbol[symbol]?.id ?? CoinId.Unknown
+					const nativeCurrencyName = nativeCurrency.name.trim()
 
 					return {
 						coinId,
-						...(nativeCurrency.name.trim() !== '' && { name: nativeCurrency.name.trim() }),
+						...(nativeCurrencyName !== '' && { name: nativeCurrencyName }),
 						symbol,
 						decimals: nativeCurrency.decimals,
 						...(chain.slip44 != null && {
@@ -230,7 +232,7 @@ export default {
 			entityType: EntityType._Global,
 			fieldName: '$$actorCoins',
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
-				const { readNormalizedLocalInternalCatalog } = await import('$/sources/Local/Internal/catalog.ts')
+				const { readNormalizedLocalInternal } = await import('$/sources/Local/Internal/catalog.ts')
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
 				const { getAlliumLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
 				type ActorCoinEntityId = EntityId<typeof schema, EntityType.ActorCoin>
@@ -239,7 +241,7 @@ export default {
 				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
 				const actorCoinRows: { [EntityMetaKey.Id]: ActorCoinEntityId }[] = []
 
-				for (const actor of readNormalizedLocalInternalCatalog().actors) {
+				for (const actor of readNormalizedLocalInternal().actors) {
 					if (actorCoinRows.length >= subsetRowLimit) break
 					for (const chainIdString of Object.keys(apiChainByChainId)) {
 						if (actorCoinRows.length >= subsetRowLimit) break

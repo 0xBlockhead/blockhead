@@ -1,19 +1,8 @@
+import { singleFlight } from '$/lib/singleFlight.ts'
 import { defineEntityFieldResolver } from '$/resolvers/$resolvers.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import type { ConsensusSpecsNetworkPreset } from '$/sources/EthereumSpecs/Github/types.ts'
 
-
-const consensusSpecsPresetForChainId = (chainId: number): ConsensusSpecsNetworkPreset | undefined => (
-	chainId === 1 ?
-		'mainnet'
-	: 	chainId === 11_155_111 ?
-		'sepolia'
-	: chainId === 17_000 ?
-		'holesky'
-	:
-		undefined
-)
 
 const ethereumReferenceForkMetadataChainIds = new Set([
 	1,
@@ -31,14 +20,23 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: 'consensusSpecsConfigYaml',
 			resolve: async (entityId) => {
-				const preset = consensusSpecsPresetForChainId(entityId.chainId)
+				const preset = (
+					entityId.chainId === 1 ?
+						'mainnet'
+					: entityId.chainId === 11_155_111 ?
+						'sepolia'
+					: entityId.chainId === 17_000 ?
+						'holesky'
+					:
+						undefined
+				)
 				if (preset == null) {
 					throw new Error(
 						`EthereumSpecs_Github: no consensus preset for chain ${String(entityId.chainId)}`,
 					)
 				}
 				const { fetchConsensusSpecsConfigYaml } = await import('$/sources/EthereumSpecs/Github/queries.ts')
-				return fetchConsensusSpecsConfigYaml({ preset })
+				return singleFlight(fetchConsensusSpecsConfigYaml)({ preset })
 			},
 		}),
 
@@ -52,7 +50,7 @@ export default {
 					)
 				}
 				const { fetchGoEthereumParamsConfigGo } = await import('$/sources/EthereumSpecs/Github/queries.ts')
-				return fetchGoEthereumParamsConfigGo()
+				return singleFlight(fetchGoEthereumParamsConfigGo)()
 			},
 		}),
 
@@ -67,7 +65,7 @@ export default {
 				const filename = row?.executionSpecsPinnedMarkdownFilename
 				if (filename == null) return undefined
 				const { fetchExecutionSpecsMainnetUpgradeMarkdown } = await import('$/sources/EthereumSpecs/Github/queries.ts')
-				return fetchExecutionSpecsMainnetUpgradeMarkdown({ filename })
+				return singleFlight(fetchExecutionSpecsMainnetUpgradeMarkdown)({ filename })
 			},
 		}),
 	],

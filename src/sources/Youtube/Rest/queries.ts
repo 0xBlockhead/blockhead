@@ -1,18 +1,18 @@
 import { youtubeApiV3Get } from '$/sources/Youtube/Rest/client.ts'
 import type {
-	YoutubeApiChannelsListWire,
-	YoutubeApiCommentThreadsListWire,
-	YoutubeApiCommentsListWire,
-	YoutubeApiPlaylistItemsListWire,
-	YoutubeApiPlaylistsListWire,
-	YoutubeApiSearchListWire,
-	YoutubeApiVideosListWire,
+	YoutubeApiChannelsListResponse,
+	YoutubeApiCommentThreadsListResponse,
+	YoutubeApiCommentsListResponse,
+	YoutubeApiPlaylistItemsListResponse,
+	YoutubeApiPlaylistsListResponse,
+	YoutubeApiSearchListResponse,
+	YoutubeApiVideosListResponse,
 } from '$/sources/Youtube/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const channelParts = 'snippet,statistics'
-const videoParts = 'snippet,statistics'
+const videoParts = 'snippet,statistics,contentDetails'
 const playlistParts = 'snippet,contentDetails'
 const playlistItemParts = 'snippet,contentDetails'
 const commentThreadParts = 'snippet,replies'
@@ -26,7 +26,7 @@ export const youtubeGetChannel = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	channelId: string,
 ) => (
-	youtubeApiV3Get<YoutubeApiChannelsListWire>(
+	youtubeApiV3Get<YoutubeApiChannelsListResponse>(
 		publicEnv,
 		'/channels',
 		{
@@ -40,7 +40,7 @@ export const youtubeGetVideo = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	videoId: string,
 ) => (
-	youtubeApiV3Get<YoutubeApiVideosListWire>(
+	youtubeApiV3Get<YoutubeApiVideosListResponse>(
 		publicEnv,
 		'/videos',
 		{
@@ -54,7 +54,7 @@ export const youtubeGetComment = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	commentId: string,
 ) => (
-	youtubeApiV3Get<YoutubeApiCommentsListWire>(
+	youtubeApiV3Get<YoutubeApiCommentsListResponse>(
 		publicEnv,
 		'/comments',
 		{
@@ -64,11 +64,25 @@ export const youtubeGetComment = async (
 	)
 )
 
+export const youtubeGetCommentThread = async (
+	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
+	commentThreadId: string,
+) => (
+	youtubeApiV3Get<YoutubeApiCommentThreadsListResponse>(
+		publicEnv,
+		'/commentThreads',
+		{
+			part: commentThreadParts,
+			id: commentThreadId,
+		},
+	)
+)
+
 export const youtubeGetPlaylist = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	playlistId: string,
 ) => (
-	youtubeApiV3Get<YoutubeApiPlaylistsListWire>(
+	youtubeApiV3Get<YoutubeApiPlaylistsListResponse>(
 		publicEnv,
 		'/playlists',
 		{
@@ -83,7 +97,7 @@ export const youtubeListChannelPlaylists = async (
 	channelId: string,
 	limit: number,
 ) => (
-	youtubeApiV3Get<YoutubeApiPlaylistsListWire>(
+	youtubeApiV3Get<YoutubeApiPlaylistsListResponse>(
 		publicEnv,
 		'/playlists',
 		{
@@ -99,7 +113,7 @@ export const youtubeListPlaylistItems = async (
 	playlistId: string,
 	limit: number,
 ) => (
-	youtubeApiV3Get<YoutubeApiPlaylistItemsListWire>(
+	youtubeApiV3Get<YoutubeApiPlaylistItemsListResponse>(
 		publicEnv,
 		'/playlistItems',
 		{
@@ -114,14 +128,16 @@ export const youtubeListCommentThreads = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	videoId: string,
 	limit: number,
+	pageToken?: string,
 ) => (
-	youtubeApiV3Get<YoutubeApiCommentThreadsListWire>(
+	youtubeApiV3Get<YoutubeApiCommentThreadsListResponse>(
 		publicEnv,
 		'/commentThreads',
 		{
 			part: commentThreadParts,
 			videoId,
 			maxResults: String(clampYoutubeMaxResults(limit)),
+			...(pageToken != null && { pageToken }),
 		},
 	)
 )
@@ -130,14 +146,16 @@ export const youtubeListCommentReplies = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	parentId: string,
 	limit: number,
+	pageToken?: string,
 ) => (
-	youtubeApiV3Get<YoutubeApiCommentsListWire>(
+	youtubeApiV3Get<YoutubeApiCommentsListResponse>(
 		publicEnv,
 		'/comments',
 		{
 			part: commentParts,
 			parentId,
 			maxResults: String(clampYoutubeMaxResults(limit)),
+			...(pageToken != null && { pageToken }),
 		},
 	)
 )
@@ -146,7 +164,7 @@ export const youtubeListPopularVideos = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	limit: number,
 ) => (
-	youtubeApiV3Get<YoutubeApiVideosListWire>(
+	youtubeApiV3Get<YoutubeApiVideosListResponse>(
 		publicEnv,
 		'/videos',
 		{
@@ -162,7 +180,7 @@ export const youtubeSearchChannels = async (
 	query: string,
 	limit: number,
 ) => (
-	youtubeApiV3Get<YoutubeApiSearchListWire>(
+	youtubeApiV3Get<YoutubeApiSearchListResponse>(
 		publicEnv,
 		'/search',
 		{
@@ -179,7 +197,7 @@ export const youtubeSearchChannelVideos = async (
 	channelId: string,
 	limit: number,
 ) => (
-	youtubeApiV3Get<YoutubeApiSearchListWire>(
+	youtubeApiV3Get<YoutubeApiSearchListResponse>(
 		publicEnv,
 		'/search',
 		{

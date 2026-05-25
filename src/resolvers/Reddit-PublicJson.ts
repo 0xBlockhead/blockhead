@@ -4,14 +4,19 @@ import {
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { EntityType } from '$/schema/$EntityType.ts'
-import { Source } from '$/sources/$Source.ts'
+import type {
+	RedditPublicApiListing,
+	RedditPublicApiThing,
+} from '$/sources/RedditPublic/Rest/types.ts'
+
 
 const optionalTrimmedString = (value: string | undefined) => (
-	value?.trim() ? value.trim() : undefined
+	value?.trim() || undefined
 )
 
 const optionalFiniteNumber = (value: number | undefined) => (
@@ -27,6 +32,66 @@ const redditCreatedAtMs = (createdUtc: number | undefined) => (
 	:
 		undefined
 )
+
+const redditSubredditIconUrl = (
+	iconImg: string | undefined,
+	communityIcon: string | undefined,
+) => {
+	const community = optionalTrimmedString(communityIcon?.replaceAll('&amp;', '&'))
+	const icon = optionalTrimmedString(iconImg?.replaceAll('&amp;', '&'))
+	return community ?? icon
+}
+
+const redditLinkArticleIdFromFullname = (fullname: string) => {
+	if (!fullname.startsWith('t3_')) {
+		throw new Error('Reddit: link fullname must start with t3_')
+	}
+	const articleId = fullname.slice(3)
+	if (!articleId) {
+		throw new Error('Reddit: link article id missing')
+	}
+	return articleId
+}
+
+const redditRepliesListingFromThing = (
+	replies: RedditPublicApiListing | '' | undefined,
+): RedditPublicApiListing | undefined => (
+	replies != null && replies !== '' ?
+		replies
+	:
+		undefined
+)
+
+const redditDirectReplyRefsByParentFromCommentForest = (
+	children: readonly RedditPublicApiThing[] | undefined,
+): Map<string, { [EntityMetaKey.Id]: { fullname: string } }[]> => {
+	const byParent = new Map<string, { [EntityMetaKey.Id]: { fullname: string } }[]>()
+
+	const visit = (thing: RedditPublicApiThing) => {
+		if (thing.kind !== 't1' || thing.data.name == null) return
+		const ref = { [EntityMetaKey.Id]: { fullname: thing.data.name } }
+		const listing = redditRepliesListingFromThing(thing.data.replies)
+		const directReplies = (listing?.data.children ?? []).flatMap((child) => (
+			child.kind === 't1' && child.data.name != null ?
+				[{ [EntityMetaKey.Id]: { fullname: child.data.name } }]
+			:
+				[]
+		))
+		if (directReplies.length > 0) {
+			byParent.set(ref[EntityMetaKey.Id].fullname, directReplies)
+		}
+		for (const child of listing?.data.children ?? []) {
+			visit(child)
+		}
+	}
+
+	for (const child of children ?? []) {
+		visit(child)
+	}
+
+	return byParent
+}
+
 
 export default {
 	source: Source.Reddit_PublicJson,
@@ -58,7 +123,7 @@ export default {
 						iconMedia != null && {
 							$icon: iconMedia,
 						}
-					))(mediaFromUrl(optionalTrimmedString(d.icon_img), MediaType.Image)),
+					))(mediaFromUrl(redditSubredditIconUrl(d.icon_img, d.community_icon), MediaType.Image)),
 				}
 			},
 		}),
@@ -107,6 +172,7 @@ export default {
 					.children[0]
 				if (t == null || t.kind !== 't1') throw new Error('Reddit_PublicJson: comment not found')
 				const linkId = optionalTrimmedString(t.data.link_id)
+				const parentId = optionalTrimmedString(t.data.parent_id)
 				return {
 					body: optionalTrimmedString(t.data.body),
 					author: optionalTrimmedString(t.data.author),
@@ -126,6 +192,9 @@ export default {
 								[EntityMetaKey.Id]: { fullname: linkId },
 							}
 					),
+					...(parentId?.startsWith('t1_') === true && {
+						$parentComment: { [EntityMetaKey.Id]: { fullname: parentId } },
+					}),
 				}
 			},
 		}),
@@ -138,17 +207,17 @@ export default {
 			resolve: async (_entityId, context) => {
 				const { redditJsonListSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				const byName = new Map<string, { [EntityMetaKey.Id]: { name: string } }>()
-				for (const child of ((await singleFlight(redditJsonListSubredditHot)('popular', limit)).data.children ?? [])) {
-					if (child.kind !== 't3') continue
-					const name = optionalTrimmedString(child.data.subreddit)
-					if (name == null) continue
-					const ref = {
-						[EntityMetaKey.Id]: { name: name.toLowerCase() },
-					}
-					byName.set(ref[EntityMetaKey.Id].name, ref)
-				}
-				return [...byName.values()]
+				return (
+					((await singleFlight(redditJsonListSubredditHot)('popular', limit)).data.children ?? [])
+						.flatMap((child) => {
+							if (child.kind !== 't3') return []
+							const name = optionalTrimmedString(child.data.subreddit)
+							if (name == null) return []
+							return [{
+								[EntityMetaKey.Id]: { name: name.toLowerCase() },
+							}]
+						})
+				)
 			},
 		}),
 
@@ -198,26 +267,42 @@ export default {
 			entityType: EntityType.RedditLink,
 			fieldName: '$$comments',
 			resolve: async (entityId, context) => {
-				const { redditJsonGetInfo, redditJsonGetComments } = await import('$/sources/RedditPublic/Rest/queries.ts')
+				const { redditJsonGetCommentsByArticleId } = await import('$/sources/RedditPublic/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				const info = (await singleFlight(redditJsonGetInfo)(entityId.fullname)).data.children[0]
-				const permalink = (
-					info != null
-					&& info.kind === 't3' ?
-						optionalTrimmedString(info.data.permalink)
-					:	undefined
-				)
-				if (permalink == null) {
-					throw new Error('Reddit_PublicJson: link permalink missing for comments')
-				}
+				const articleId = redditLinkArticleIdFromFullname(entityId.fullname)
 				return (
-					((await singleFlight(redditJsonGetComments)(permalink, limit))[1]?.data.children ?? [])
+					((await singleFlight(redditJsonGetCommentsByArticleId)(articleId, limit))[1]?.data.children ?? [])
 						.flatMap((child) => (
-							child.kind !== 't1' || child.data.name == null ?
+							child.kind === 't1' && child.data.name != null ?
+								[{ [EntityMetaKey.Id]: { fullname: child.data.name } }]
+							:
 								[]
-							:	[{ [EntityMetaKey.Id]: { fullname: child.data.name } }]
 						))
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.RedditComment,
+			fieldName: '$$replies',
+			resolve: async (entityId, context) => {
+				const { redditJsonGetInfo, redditJsonGetCommentsByArticleId } = await import('$/sources/RedditPublic/Rest/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				const t = (await singleFlight(redditJsonGetInfo)(entityId.fullname))
+					.data
+					.children[0]
+				if (t == null || t.kind !== 't1') {
+					throw new Error('Reddit_PublicJson: comment not found for replies')
+				}
+				const linkId = optionalTrimmedString(t.data.link_id)
+				if (linkId == null) {
+					throw new Error('Reddit_PublicJson: comment link_id missing')
+				}
+				const articleId = redditLinkArticleIdFromFullname(linkId)
+				const byParent = redditDirectReplyRefsByParentFromCommentForest(
+					((await singleFlight(redditJsonGetCommentsByArticleId)(articleId, limit))[1]?.data.children ?? []),
+				)
+				return byParent.get(entityId.fullname) ?? []
 			},
 		}),
 	],

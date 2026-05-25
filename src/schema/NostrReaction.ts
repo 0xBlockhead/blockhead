@@ -11,6 +11,10 @@ const NostrEventId = type(
 	'/^[0-9a-f]{64}$/' as type.cast<string>,
 )
 
+const NostrPubkey = type(
+	'/^[0-9a-f]{64}$/' as type.cast<string>,
+)
+
 export default {
 	entityType: EntityType.NostrReaction,
 
@@ -22,6 +26,18 @@ export default {
 	}),
 
 	fields: [
+		{
+			name: 'kind',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: 'pubkey',
+			type: EntityFieldType.Primitive,
+			primitiveType: NostrPubkey,
+			cardinality: EntityFieldCardinality.One,
+		},
 		{
 			name: 'createdAt',
 			type: EntityFieldType.Primitive,
@@ -38,6 +54,12 @@ export default {
 			name: '$targetNote',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NostrNote,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$targetArticle',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.NostrArticle,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

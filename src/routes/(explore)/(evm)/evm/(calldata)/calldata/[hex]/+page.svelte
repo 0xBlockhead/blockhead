@@ -20,6 +20,5 @@
 <Page>
 	<EvmCalldataView
 		entityId={data.entityId}
-		href={resolve('/evm/calldata')}
 	/>
 </Page>

@@ -1,10 +1,13 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
+	// Types/constants
 	import { EntityType } from '$/schema/$EntityType.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
+	// State
 	const hubKey = 'manage'
 
 
@@ -62,12 +65,12 @@
 						data-scroll-marker-label="Profiles"
 					>
 						<BlockheadSessionsView
+							href={resolve('/~/manage/profiles')}
 							entityFieldReference={{
 								entityType: EntityType._Global,
 								entityId: {},
 								fieldName: '$$blockheadSessions',
 							}}
-							href={resolve('/~/manage/profiles')}
 							id="profiles"
 							open={hubOpen}
 						/>
@@ -78,12 +81,12 @@
 						data-scroll-marker-label="Sources"
 					>
 						<BlockheadSourcesView
+							href={resolve('/~/manage/sources')}
 							entityFieldReference={{
 								entityType: EntityType._Global,
 								entityId: {},
 								fieldName: '$$blockheadSources',
 							}}
-							href={resolve('/~/manage/sources')}
 							id="sources"
 							open={hubOpen}
 						/>

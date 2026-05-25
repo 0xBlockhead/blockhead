@@ -10,11 +10,16 @@ import {
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import type { EntityId } from '$/schema/$schema.ts'
+import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
-import type { BeaconFinalityCheckpoints } from '$/sources/Beacon/Rest/types.ts'
+import type {
+	BeaconFinalityCheckpoints,
+	BeaconForkScheduleEntry,
+} from '$/sources/Beacon/Rest/types.ts'
 
 const requireBeaconRestBaseUrl = (chainId: number) => {
-	const base = beaconRestBaseByExecutionChainId[chainId]
+	const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
 	if (base == null) {
 		throw new Error(`Beacon_Rest: no beacon REST base for chain ${String(chainId)}`)
 	}
@@ -27,6 +32,24 @@ const beaconFinalityCheckpointsForChain = async (
 	const base = requireBeaconRestBaseUrl(chainId)
 	const { getBeaconFinalityCheckpoints } = await import('$/sources/Beacon/Rest/queries.ts')
 	return singleFlight(getBeaconFinalityCheckpoints)(base)
+}
+
+const beaconForkScheduleEntryForNetworkConsensusUpgrade = async (
+	entityId: EntityId<typeof schema, EntityType.NetworkConsensusUpgrade>,
+): Promise<BeaconForkScheduleEntry | undefined> => {
+	const { chainId } = entityId.$network
+	const { networkConsensusUpgradeByChainIdAndUpgradeId } = await import('$/constants/NetworkUpgrades.ts')
+	const consensusUpgrade = networkConsensusUpgradeByChainIdAndUpgradeId[
+		`${chainId}:${entityId.upgradeId}`
+	]
+	const activationEpoch = consensusUpgrade?.activationEpoch
+	if (activationEpoch == null) {
+		return undefined
+	}
+	const base = requireBeaconRestBaseUrl(chainId)
+	const { getBeaconForkSchedule } = await import('$/sources/Beacon/Rest/queries.ts')
+	const schedule = await singleFlight(getBeaconForkSchedule)(base)
+	return schedule.find((entry) => entry.epoch === activationEpoch)
 }
 
 export default {
@@ -116,7 +139,7 @@ export default {
 				const { getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const { chainId } = entityId
-				const base = beaconRestBaseByExecutionChainId[chainId]
+				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
 				if (base == null) {
 					throw new Error(`Beacon_Rest: $$beaconEpochs unsupported for chain ${String(chainId)}`)
 				}
@@ -150,7 +173,7 @@ export default {
 				const { getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const { chainId } = entityId
-				const base = beaconRestBaseByExecutionChainId[chainId]
+				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
 				if (base == null) {
 					throw new Error(`Beacon_Rest: $$beaconSlots unsupported for chain ${String(chainId)}`)
 				}
@@ -183,7 +206,7 @@ export default {
 				const { getBeaconRecentProposerValidatorIndices } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const { chainId } = entityId
-				const base = beaconRestBaseByExecutionChainId[chainId]
+				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
 				if (base == null) {
 					throw new Error(`Beacon_Rest: $$beaconValidators unsupported for chain ${String(chainId)}`)
 				}
@@ -288,17 +311,20 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
-			fieldName: 'beaconForkScheduleEntriesJson',
+			entityType: EntityType.NetworkConsensusUpgrade,
+			fieldName: 'previousForkVersion',
 			resolve: async (entityId) => {
-				const { chainId } = entityId
-				const base = requireBeaconRestBaseUrl(chainId)
-				const { getBeaconForkSchedule } = await import('$/sources/Beacon/Rest/queries.ts')
-				const entries = await singleFlight(getBeaconForkSchedule)(base)
-				if (entries.length === 0) {
-					throw new Error(`Beacon_Rest: fork schedule empty for chain ${String(chainId)}`)
-				}
-				return JSON.stringify(entries)
+				const entry = await beaconForkScheduleEntryForNetworkConsensusUpgrade(entityId)
+				return entry?.previousVersion
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.NetworkConsensusUpgrade,
+			fieldName: 'currentForkVersion',
+			resolve: async (entityId) => {
+				const entry = await beaconForkScheduleEntryForNetworkConsensusUpgrade(entityId)
+				return entry?.currentVersion
 			},
 		}),
 	],

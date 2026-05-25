@@ -36,5 +36,11 @@ export default {
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
+		{
+			name: '$$peers',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BlockheadRoomPeer,
+			cardinality: EntityFieldCardinality.Many,
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

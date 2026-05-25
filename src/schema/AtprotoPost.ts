@@ -62,6 +62,24 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'quoteCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'langs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string[]'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'selfLabelValues',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string[]'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: '$parent',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.AtprotoPost,

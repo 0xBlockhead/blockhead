@@ -32,12 +32,13 @@ export const queryLensHey = async <
 	variables?: _Variables,
 ): Promise<_Result> => {
 	const apiKey = publicEnv.PUBLIC_LENS_HEY_API_KEY
+	const trimmedApiKey = typeof apiKey === 'string' ? apiKey.trim() : ''
 	const init = {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
 			Accept: 'application/json',
-			...(typeof apiKey === 'string' && apiKey.trim() !== '' && { 'x-lens-app': apiKey.trim() }),
+			...(trimmedApiKey !== '' && { 'x-lens-app': trimmedApiKey }),
 		},
 		body: JSON.stringify({
 			query: print(document),

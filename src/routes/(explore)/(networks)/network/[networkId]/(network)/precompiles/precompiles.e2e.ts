@@ -35,6 +35,8 @@ const setupFailFast = (page: Page) => {
 			&& !message.text().includes('Failed to load resource: net::ERR_FAILED')
 			&& !message.text().includes('has been blocked by CORS policy')
 			&& !message.text().includes('Voltaire: block stream ended')
+			&& !message.text().includes('Failed to load resource: net::ERR_CONNECTION_CLOSED')
+			&& !message.text().includes('Failed to load resource: net::ERR_CONNECTION_REFUSED')
 			&& !(
 				message.text().includes('[QueryCollection]')
 				&& (

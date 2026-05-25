@@ -1,5 +1,5 @@
 /**
- * Primal HTTP API v1 wire shapes.
+ * Primal HTTP API v1 API shapes.
  * @see https://api.primal.net/v1/profile/{id}
  * @see https://api.primal.net/v1/timeline/profile/notes
  * @see https://api.primal.net/v1/timeline/profile/reposts
@@ -11,7 +11,20 @@
  * @see https://api.primal.net/v1/events/{id}
  */
 
-export type PrimalNostrEventWire = {
+/** NIP-01 profile metadata JSON (`kind:0` content object). */
+export type PrimalNostrProfileMetadata = {
+	name?: string
+	display_name?: string
+	about?: string
+	picture?: string
+	banner?: string
+	website?: string
+	nip05?: string
+	lud16?: string
+	lud06?: string
+}
+
+export type PrimalNostrEvent = {
 	id?: string
 	pubkey?: string
 	kind?: number
@@ -22,41 +35,41 @@ export type PrimalNostrEventWire = {
 }
 
 /** GET /v1/profile/{id} */
-export type PrimalProfileWire = {
-	metadata?: PrimalNostrEventWire
-	profile?: PrimalNostrEventWire
-	user?: PrimalNostrEventWire
-	events?: PrimalNostrEventWire[]
-} & PrimalNostrEventWire
+export type PrimalProfile = {
+	metadata?: PrimalNostrEvent
+	profile?: PrimalNostrEvent
+	user?: PrimalNostrEvent
+	events?: PrimalNostrEvent[]
+} & PrimalNostrEvent
 
 /** POST /v1/timeline/profile/* and /v1/timeline/thread */
-export type PrimalTimelineEventsWire =
-	| PrimalNostrEventWire[]
+export type PrimalTimelineEvents =
+	| PrimalNostrEvent[]
 	| {
-		notes?: PrimalNostrEventWire[]
-		posts?: PrimalNostrEventWire[]
-		events?: PrimalNostrEventWire[]
-		items?: PrimalNostrEventWire[]
-		reposts?: PrimalNostrEventWire[]
-		articles?: PrimalNostrEventWire[]
-		actions?: PrimalNostrEventWire[]
+		notes?: PrimalNostrEvent[]
+		posts?: PrimalNostrEvent[]
+		events?: PrimalNostrEvent[]
+		items?: PrimalNostrEvent[]
+		reposts?: PrimalNostrEvent[]
+		articles?: PrimalNostrEvent[]
+		actions?: PrimalNostrEvent[]
 	}
 
 /** POST /v1/search/events */
-export type PrimalSearchEventsWire = PrimalTimelineEventsWire
+export type PrimalSearchEvents = PrimalTimelineEvents
 
 /** POST /v1/search/users */
-export type PrimalSearchUsersWire =
-	| PrimalNostrEventWire[]
+export type PrimalSearchUsers =
+	| PrimalNostrEvent[]
 	| {
-		users?: PrimalNostrEventWire[]
-		profiles?: PrimalNostrEventWire[]
-		events?: PrimalNostrEventWire[]
+		users?: PrimalNostrEvent[]
+		profiles?: PrimalNostrEvent[]
+		events?: PrimalNostrEvent[]
 	}
 
 /** GET /v1/events/{id} */
-export type PrimalEventByIdWire = {
-	event?: PrimalNostrEventWire
-	events?: PrimalNostrEventWire[]
-	note?: PrimalNostrEventWire
-} & PrimalNostrEventWire
+export type PrimalEventById = {
+	event?: PrimalNostrEvent
+	events?: PrimalNostrEvent[]
+	note?: PrimalNostrEvent
+} & PrimalNostrEvent

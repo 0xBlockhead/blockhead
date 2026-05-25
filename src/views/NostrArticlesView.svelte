@@ -8,6 +8,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -18,35 +19,33 @@
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		limit = 25,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
+		fieldOpen = true,
 		title = 'Articles',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.NostrArticle>
-			href: string
 			id: string
 			limit?: number
 			open?: boolean
+			fieldOpen?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -60,13 +59,12 @@
 
 <EntitiesList
 	entityType={EntityType.NostrArticle}
-	{href}
 	{id}
 	bind:open
 	placeholderText={`Loading ${title.toLowerCase()}…`}
 	{title}
 	{collapsible}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -77,30 +75,46 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				(
 					entityFieldReference.entityType === EntityType.NostrNetwork ?
-						{
-							$: [Source.Constants_Internal],
-							[fieldName]: {
-								$: [
-									Source.NostrBand_Rest,
-									Source.Primal_Rest,
-								],
-							},
-						}
+						(
+							fieldOpen ?
+								{
+									$: [Source.Constants_Internal],
+									$$nostrArticles: {
+										$: [Source.NostrBand_Rest],
+									},
+									$$nostrProfiles: {
+										$: [
+											Source.Constants_Internal,
+											Source.NostrBand_Rest,
+											Source.Primal_Rest,
+										],
+										$$articles: {
+											$: [
+												Source.NostrBand_Rest,
+												Source.Primal_Rest,
+											],
+										},
+									},
+								}
+							:
+								{
+									$: [Source.Constants_Internal],
+								}
+						)
 					:
 						{
 							$: [
 								Source.NostrBand_Rest,
 								Source.Primal_Rest,
 							],
-							[fieldName]: {
+							[entityFieldReference.fieldName]: {
 								$: [
 									Source.NostrBand_Rest,
 									Source.Primal_Rest,
@@ -113,46 +127,47 @@
 				parent,
 				(parent) => {
 					const rows: Entity<typeof schema, EntityType.NostrArticle>[] = (
-						parent[fieldName] ?? []
+						entityFieldReference.entityType === EntityType.NostrNetwork ?
+							[
+								...(parent.$$nostrArticles ?? []),
+								...(parent.$$nostrProfiles ?? [])
+									.flatMap((profile) => profile.$$articles ?? []),
+							]
+						:
+							(parent[entityFieldReference.fieldName] ?? [])
 					)
 					return rows.slice(0, limit)
 				},
 			)}
-			<EntitiesList
-				collapsible={false}
-				showSummary={false}
-				entityType={EntityType.NostrArticle}
-				id={`${id}-items`}
-				{href}
-				{title}
-				getKey={(row) => stringify(row[EntityMetaKey.Id])}
-				getSortValue={(row) => (
-					`${String(-(row.publishedAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Id].identifier}`
-				)}
-				placeholderKeys={new SvelteSet()}
-				placeholderText={`Loading ${title.toLowerCase()}…`}
-				resource={articles}
-			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No articles yet.
-					</p>
-				{/snippet}
+			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}`}
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.NostrArticle}
+					id={`${id}-items`}
+					{title}
+					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getSortValue={(row) => (
+						`${String(-(row.publishedAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Id].identifier}`
+					)}
+					placeholderText={`Loading ${title.toLowerCase()}…`}
+					resource={articles}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No articles yet.
+						</p>
+					{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
+					{#snippet Item({ item })}
 						<NostrArticleView
-							entityId={props.item[EntityMetaKey.Id]}
-							href={resolve('/nostr/article/[pubkey]/[identifier]', {
-								pubkey: props.item[EntityMetaKey.Id].pubkey,
-								identifier: encodeURIComponent(props.item[EntityMetaKey.Id].identifier),
-							})}
+							entityId={item[EntityMetaKey.Id]}
 							layout={EntityLayout.SummaryDetails}
 							open={false}
 						/>
-					{/if}
-				{/snippet}
-			</EntitiesList>
+					{/snippet}
+				</EntitiesList>
+			{/key}
 		{/if}
 	{/snippet}
 </EntitiesList>

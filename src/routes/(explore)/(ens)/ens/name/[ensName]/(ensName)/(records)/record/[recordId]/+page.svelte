@@ -18,7 +18,6 @@
 <Page>
 	<EnsTextRecordView
 		entityId={{ name: params.ensName }}
-		href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/(records)/record/[recordId]', params)}
 		recordId={params.recordId}
 	/>
 </Page>

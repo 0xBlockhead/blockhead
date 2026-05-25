@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -9,40 +8,42 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
-		children,
 		sourceId,
+		href = resolve(
+			'/~/(manage)/manage/(sources)/source/[sourceId]',
+			{ sourceId },
+		),
 		title = 'Resolver source',
-		href,
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			sourceId: string
+			href?: string
 			title?: string
-			href: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
+			| 'layout'
 		>
 	> = $props()
 
 
-	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-
+	// Functions
 	const entityId = (
 		{ id: sourceId } satisfies EntityId<typeof schema, EntityType.BlockheadSource>
 	)
+
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const source = useEntity(
 		EntityType.BlockheadSource,
@@ -65,11 +66,10 @@
 <EntityView
 	entityType={EntityType.BlockheadSource}
 	{entityId}
+	href={href}
 	{title}
 	bind:open
-	{href}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -101,9 +101,5 @@
 			entityType={EntityType.BlockheadSource}
 			{entityId}
 		/>
-
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>

@@ -3,6 +3,7 @@
 	import { resolve } from '$app/paths'
 
 
+	// State
 	const hubKey = 'social'
 
 	const socialProtocolGroups = [
@@ -187,7 +188,6 @@
 							entityId={{
 								scope: 'FarcasterNetwork',
 							}}
-							href={resolve('/farcaster')}
 							open={hubOpen}
 						/>
 					</section>

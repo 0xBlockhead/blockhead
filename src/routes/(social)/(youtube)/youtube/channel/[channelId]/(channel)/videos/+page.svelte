@@ -1,8 +1,10 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
-
-	import { EntityType } from '$/schema/$EntityType.ts'
 
 
 	// Props
@@ -23,14 +25,12 @@
 
 <Page>
 	<YouTubeVideosView
+		href={resolve('/youtube/videos')}
 		entityFieldReference={{
 			entityType: EntityType.YouTubeChannel,
 			entityId,
 			fieldName: '$$videos',
 		}}
-		href={resolve('/(social)/(youtube)/youtube/channel/[channelId]/(channel)/videos', {
-			channelId: encodeURIComponent(entityId.channelId),
-		})}
 		id="youtube-channel-videos"
 	/>
 </Page>

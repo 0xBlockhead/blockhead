@@ -1,5 +1,5 @@
 /**
- * Etherscan API V2 wire shapes used by **`Rest/queries.ts`**.
+ * Etherscan API V2 API shapes used by **`Rest/queries.ts`**.
  *
  * @see https://docs.etherscan.io/api-reference/endpoint/ethgettransactionbyhash
  * @see https://docs.etherscan.io/api-reference/endpoint/getabi
@@ -11,7 +11,7 @@
  * **`{ status: "0", message: "NOTOK" | "NOTOK-…", result: "<explanation>" }`**
  * (e.g. free API not available for a chain). Do not use `result` from the latter as RPC data.
  */
-export type EtherscanProxyJsonRpcWire<T> = {
+export type EtherscanProxyJsonRpc<T> = {
 	jsonrpc?: string
 	id?: number
 	status?: string
@@ -27,7 +27,7 @@ export type EtherscanProxyJsonRpcWire<T> = {
  * `module=contract` **`action=getabi`** (and similar) — **`status`** **`1`** / **`0`**, **`result`** string or message.
  * @see https://docs.etherscan.io/api-reference/endpoint/getabi
  */
-export type EtherscanStringStatusWire = {
+export type EtherscanStringStatus = {
 	status: string
 	message: string
 	result: string
@@ -37,7 +37,7 @@ export type EtherscanStringStatusWire = {
  * `module=gastracker`, `action=gasoracle`.
  * @see https://docs.etherscan.io/api-reference/endpoint/gasoracle
  */
-export type EtherscanGasOracleResultWire = {
+export type EtherscanGasOracleResult = {
 	LastBlock: string
 	SafeGasPrice: string
 	ProposeGasPrice: string
@@ -46,25 +46,25 @@ export type EtherscanGasOracleResultWire = {
 	gasUsedRatio?: string
 }
 
-export type EtherscanGasOracleWire = {
+export type EtherscanGasOracle = {
 	status: string
 	message: string
-	result: EtherscanGasOracleResultWire
+	result: EtherscanGasOracleResult
 }
 
-export type EtherscanContractCreationRowWire = {
+export type EtherscanContractCreationResult = {
 	contractAddress?: string
 	contractCreator?: string
 	txHash?: string
 }
 
-export type EtherscanContractCreationWire = {
+export type EtherscanContractCreation = {
 	status: string
 	message: string
-	result: EtherscanContractCreationRowWire[] | string
+	result: EtherscanContractCreationResult[] | string
 }
 
-export type EtherscanContractSourceRowWire = {
+export type EtherscanContractSourceResult = {
 	SourceCode?: string
 	ABI?: string
 	ContractName?: string
@@ -72,10 +72,10 @@ export type EtherscanContractSourceRowWire = {
 	Proxy?: string
 }
 
-export type EtherscanContractSourceCodeWire = {
+export type EtherscanContractSourceCode = {
 	status: string
 	message: string
-	result: EtherscanContractSourceRowWire[] | string
+	result: EtherscanContractSourceResult[] | string
 }
 
 /**
@@ -83,14 +83,14 @@ export type EtherscanContractSourceCodeWire = {
  * @see https://docs.etherscan.io/api-reference/endpoint/tokentx
  * @see https://docs.etherscan.io/api-reference/endpoint/txlistinternal
  */
-export type EtherscanAccountArrayWire<T> = {
+export type EtherscanAccountArray<T> = {
 	status: string
 	message: string
 	result: T[] | string
 }
 
 /** Shared fields on Etherscan account token-transfer rows (`tokentx`, `tokennfttx`, `token1155tx`). */
-export type EtherscanTokenTransferRowWire = {
+export type EtherscanTokenTransfer = {
 	blockNumber?: string
 	timeStamp?: string
 	hash?: string
@@ -113,23 +113,39 @@ export type EtherscanTokenTransferRowWire = {
 }
 
 /** `module=account`, **`action=tokentx`** — ERC-20 token transfers. */
-export type EtherscanErc20TokenTransferRowWire = EtherscanTokenTransferRowWire & {
+export type EtherscanErc20TokenTransfer = EtherscanTokenTransfer & {
 	value?: string
 }
 
 /** `module=account`, **`action=tokennfttx`** — ERC-721 token transfers. */
-export type EtherscanErc721TokenTransferRowWire = EtherscanTokenTransferRowWire & {
+export type EtherscanErc721TokenTransfer = EtherscanTokenTransfer & {
 	tokenID?: string
 }
 
 /** `module=account`, **`action=token1155tx`** — ERC-1155 token transfers. */
-export type EtherscanErc1155TokenTransferRowWire = EtherscanTokenTransferRowWire & {
+export type EtherscanErc1155TokenTransfer = EtherscanTokenTransfer & {
 	tokenID?: string
 	tokenValue?: string
 }
 
+/** Discriminated union for ERC-20 / ERC-721 / ERC-1155 token transfer rows. */
+export type EtherscanTokenTransferTagged = (
+	| {
+		standard: 'erc20'
+		row: EtherscanErc20TokenTransfer
+	}
+	| {
+		standard: 'erc721'
+		row: EtherscanErc721TokenTransfer
+	}
+	| {
+		standard: 'erc1155'
+		row: EtherscanErc1155TokenTransfer
+	}
+)
+
 /** `module=account`, **`action=txlistinternal`** — internal transactions. */
-export type EtherscanInternalTransactionRowWire = {
+export type EtherscanInternalTransaction = {
 	blockNumber?: string
 	timeStamp?: string
 	hash?: string

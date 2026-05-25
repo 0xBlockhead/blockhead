@@ -13,8 +13,15 @@ export const atprotoNetworkFieldValues = {
 	topology: 'Constants seeds + live XRPC -> network -> actors -> posts',
 } as const
 
+/** Stable Bluesky DID used in E2E probes, smoke routes, and hub examples. */
+export const atprotoProbeDid = 'did:plc:z72i7hdynmk6r22z27h6tvur' as const
+
+export const atprotoProbePostUri = (
+	'at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3l6oveex3ii2l' as const
+)
+
 export const atprotoNetworkSeedActors: readonly EntityId<typeof schema, EntityType.AtprotoActor>[] = [
 	{
-		did: 'did:plc:z72i7hdynmk6r22z27h6tvur',
+		did: atprotoProbeDid,
 	},
 ]

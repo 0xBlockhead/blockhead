@@ -8,6 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
@@ -18,7 +20,6 @@
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		limit = 50,
 		open = $bindable(
@@ -26,27 +27,41 @@
 		),
 		collapsible = true,
 		title = 'Thread',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.AtprotoPost>
-			href: string
 			id: string
 			limit?: number
 			open?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'body'
+			| 'collapsible'
+			| 'CollapsibleProps'
+			| 'Empty'
+			| 'getKey'
+			| 'getSortValue'
+			| 'HeadingProps'
+			| 'Item'
+			| 'ItemPlaceholder'
+			| 'items'
+			| 'layout'
+			| 'panelStyle'
+			| 'placeholderKeys'
+			| 'placeholderText'
+			| 'resource'
+			| 'showSummary'
+			| 'TypeAnnotationTooltip'
+			| 'UnorderedListProps',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -80,11 +95,6 @@
 			)
 			return (
 				rows
-					.toSorted((leftPost, rightPost) => (
-						(leftPost.createdAt ?? 0) - (rightPost.createdAt ?? 0)
-						|| leftPost[EntityMetaKey.Id].uri.localeCompare(rightPost[EntityMetaKey.Id].uri)
-					))
-					.slice(0, limit)
 					.map((value) => ({
 						value,
 					}))
@@ -102,7 +112,6 @@
 
 <EntitiesList
 	entityType={EntityType.AtprotoPost}
-	{href}
 	{id}
 	bind:open
 	{collapsible}
@@ -110,11 +119,11 @@
 	getSortValue={(row) => (
 		`${String(row.value.createdAt ?? 0).padStart(20, '0')}\0${row.value[EntityMetaKey.Id].uri}`
 	)}
-	placeholderKeys={new SvelteSet()}
 	placeholderText={`Loading ${title.toLowerCase()}…`}
 	resource={threadPosts}
 	{title}
-	{...entitiesListRest}
+	UnorderedListProps={{ limit }}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -131,16 +140,11 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			<AtprotoPostView
-				entityId={{ uri: props.item.value[EntityMetaKey.Id].uri }}
-				href={resolve('/(social)/(atproto)/atproto/post/[uri]', {
-					uri: encodeURIComponent(props.item.value[EntityMetaKey.Id].uri),
-				})}
-				layout={EntityLayout.SummaryDetails}
-				open={false}
-			/>
-		{/if}
+	{#snippet Item({ item })}
+		<AtprotoPostView
+			entityId={{ uri: item.value[EntityMetaKey.Id].uri }}
+						layout={EntityLayout.Summary}
+						open={false}
+		/>
 	{/snippet}
 </EntitiesList>

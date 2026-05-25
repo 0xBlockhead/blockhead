@@ -9,7 +9,7 @@ import { neynarFetch } from '$/sources/Neynar/Rest/client.ts'
 import { neynarFeedDefaultLimit, neynarFeedMaxLimit } from '$/sources/Neynar/Rest/constants.ts'
 import type {
 	NeynarBulkUsersResponse,
-	NeynarCastWire,
+	NeynarCast,
 	NeynarFeedQuery,
 	NeynarFeedResponse,
 } from '$/sources/Neynar/Rest/types.ts'
@@ -68,12 +68,12 @@ export const getFeed = async (
 export const getCastByHash = async (
 	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>,
 	hash: `0x${string}`,
-): Promise<NeynarCastWire | undefined> => {
+): Promise<NeynarCast | undefined> => {
 	const searchParams = new URLSearchParams({
 		identifier: hash,
 		type: 'hash',
 	})
-	const response = await neynarFetch<{ cast?: NeynarCastWire }>(
+	const response = await neynarFetch<{ cast?: NeynarCast }>(
 		publicEnv,
 		`/v2/farcaster/cast/?${searchParams}`,
 	)
@@ -87,12 +87,12 @@ export const getCastByHash = async (
 export const getCastByClientUrl = async (
 	publicEnv: SourcePublicEnvFor<Source.Neynar_Rest>,
 	clientUrl: string,
-): Promise<NeynarCastWire | undefined> => {
+): Promise<NeynarCast | undefined> => {
 	const searchParams = new URLSearchParams({
 		identifier: clientUrl,
 		type: 'url',
 	})
-	const response = await neynarFetch<{ cast?: NeynarCastWire }>(
+	const response = await neynarFetch<{ cast?: NeynarCast }>(
 		publicEnv,
 		`/v2/farcaster/cast/?${searchParams}`,
 	)

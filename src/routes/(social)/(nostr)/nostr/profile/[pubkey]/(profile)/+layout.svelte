@@ -1,6 +1,5 @@
 <script lang="ts">
-	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 
@@ -8,12 +7,15 @@
 	// Props
 	let { children } = $props()
 
+
+	// (Derived)
 	const pubkey = $derived(
 		page.params.pubkey ?? '',
 	)
 
 
 	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import NostrProfileView from '$/views/NostrProfileView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 </script>
@@ -28,9 +30,6 @@
 	{#snippet Summary({ open: _open })}
 		<NostrProfileView
 			entityId={{ pubkey }}
-			href={resolve('/(social)/(nostr)/nostr/profile/[pubkey]', {
-				pubkey,
-			})}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

@@ -4,7 +4,7 @@ import { type as arktype, type Type } from 'arktype'
 import {
 	Source,
 	type SourceDefinition,
-	type SourcePublicEnvWire,
+	type SourcePublicEnv,
 } from '$/sources/$Source.ts'
 
 import {
@@ -25,6 +25,7 @@ import Coinpaprika from '$/sources/Coinpaprika/index.ts'
 import Constants from '$/sources/Constants/index.ts'
 import Defillama from '$/sources/Defillama/index.ts'
 import Dexscreener from '$/sources/Dexscreener/index.ts'
+import Eip8004Scan from '$/sources/Eip8004Scan/index.ts'
 import Dune from '$/sources/Dune/index.ts'
 import Ensips from '$/sources/Ensips/index.ts'
 import EthereumEips from '$/sources/EthereumEips/index.ts'
@@ -79,6 +80,7 @@ const sourceProviderDefinitions = [
 	Constants,
 	Defillama,
 	Dexscreener,
+	Eip8004Scan,
 	Dune,
 	Ensips,
 	EthereumEips,
@@ -137,6 +139,8 @@ export type SourcePublicEnvFor<_Source extends Source> = (
 		SchemaEnv<typeof CoinMarketCap.env>
 	: _Source extends Source.Coingecko_OpenApi | Source.Coingecko_Rest ?
 		SchemaEnv<typeof Coingecko.env>
+	: _Source extends Source.Defillama_Rest ?
+		SchemaEnv<typeof Defillama.env>
 	: _Source extends Source.Coinpaprika_OpenApi ?
 		SchemaEnv<typeof Coinpaprika.env>
 	: _Source extends Source.Dune_Rest ?
@@ -175,11 +179,11 @@ export const resolverPublicEnv = (
 			value ?? '',
 		]),
 	)
-) satisfies SourcePublicEnvWire
+) satisfies SourcePublicEnv
 
 const envSubsetFromSchema = (
 	envSchema: SourceProviderDefinition['env']  ,
-): SourcePublicEnvWire | null => {
+): SourcePublicEnv | null => {
 	if (envSchema == null) return {}
 	const out = envSchema(resolverPublicEnv)
 	if (out instanceof arktype.errors || typeof out !== 'object' || out == null) return null
@@ -228,7 +232,7 @@ export const sources = (
 ) satisfies readonly SourceDefinition[]
 
 /** Per-source public env passed to resolvers: validated subset when provider/source declare `env`; otherwise full {@link resolverPublicEnv}. */
-export const resolverPublicEnvBySource: ReadonlyMap<Source, SourcePublicEnvWire> = new Map(
+export const resolverPublicEnvBySource: ReadonlyMap<Source, SourcePublicEnv> = new Map(
 	enabledSourceEntries.map(([sourceDefinition, sourcePublicEnv]) => ([
 		sourceDefinition.source,
 		sourcePublicEnv,

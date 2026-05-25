@@ -1,5 +1,6 @@
 import { type } from 'arktype'
 
+// Signed channel state snapshot (Nitro-style); not wired to Local catalog or resolvers yet.
 import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,

@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-
 	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 
 
@@ -31,12 +30,5 @@
 <Page>
 	<CoinInstanceView
 		entityId={data.entityId}
-		href={resolve(
-			'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
-			{
-				chainId: String(data.entityId.$network.chainId),
-				coinInstanceSlug,
-			},
-		)}
 	/>
 </Page>

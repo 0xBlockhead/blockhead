@@ -16,32 +16,30 @@
 
 	// Props
 	let {
-		children: _children,
+		routeChildren,
 		entityId,
-		href,
+		href = resolve(
+		'/(explore)/(networks)/network/[networkId]/(network)/(blobs)/blob/[transactionId]/[blobIndex]',
+		{
+			networkId: String(entityId.$network.chainId),
+			transactionId: entityId.txHash,
+			blobIndex: String(entityId.blobIndex),
+		},
+	),
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
+			routeChildren?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmBlob>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
+			| 'layout'
 		>
 	> = $props()
-
-	const blobIdKey = $derived(
-		stringify(entityId),
-	)
 
 
 	// State
@@ -64,11 +62,17 @@
 	)
 
 
+	// (Derived)
+	const blobIdKey = $derived(
+		stringify(entityId),
+	)
+
+
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
-	import Heading from '$/components/Heading.svelte'
+	import SectionHeading from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -79,11 +83,11 @@
 <EntityView
 	entityType={EntityType.EvmBlob}
 	{entityId}
+	href={href}
 	title={`Blob sidecar #${String(entityId.blobIndex)} (EIP-4844)`}
-	{href}
 	idDragPlainText={stringify(entityId)}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span
@@ -112,10 +116,10 @@
 				resource={blob}
 				placeholderText="Loading blob…"
 			>
-				{#snippet children(blob)}
+				{#snippet children(loadedBlob)}
 					<small>
 						<TruncatedValue
-							value={blob.versionedHash}
+							value={loadedBlob.versionedHash}
 							format={TruncatedValueFormat.Abbr}
 						/>
 					</small>
@@ -129,11 +133,15 @@
 			Blob-bearing transactions anchor large binary payloads beside the usual execution payload: commitments and blob gas live in header metadata while the opaque bytes ride in sidecars.
 		</p>
 		<p>
-			The short <strong>versioned hash</strong> shown here summarizes the cryptographic commitment validators agreed on—not contract bytecode nor log fingerprints.
+			The <strong>versioned hash</strong> is the blob’s committed identifier in EIP‑4844 (derived from the KZG commitment)—not contract bytecode nor log fingerprints.
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: contentOpen,
+	})}
 		<dl data-column-item="center">
 			<div>
 				<dt>Blob index</dt>
@@ -142,16 +150,16 @@
 				</dd>
 			</div>
 			<div>
-				<dt>Blob commitment (KZG versioned hash)</dt>
+				<dt>Versioned hash (EIP‑4844)</dt>
 				<dd>
 					<ResourceBoundary
 						resource={blob}
 						placeholderText="Loading blob…"
 					>
-						{#snippet children(blob)}
-							{#if blob.versionedHash !== undefined}
+						{#snippet children(loadedBlob)}
+							{#if loadedBlob.versionedHash !== undefined}
 								<TruncatedValue
-									value={blob.versionedHash}
+									value={loadedBlob.versionedHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							{/if}
@@ -167,10 +175,10 @@
 							resource={blob}
 							placeholderText="Loading blob…"
 						>
-							{#snippet children(blob)}
-								{#if blob.versionedHash !== undefined}
+							{#snippet children(loadedBlob)}
+								{#if loadedBlob.versionedHash !== undefined}
 									<a
-										href={`https://blobscan.com/blob/${blob.versionedHash}`}
+										href={`https://blobscan.com/blob/${loadedBlob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
@@ -188,10 +196,10 @@
 							resource={blob}
 							placeholderText="Loading blob…"
 						>
-							{#snippet children(blob)}
-								{#if blob.versionedHash !== undefined}
+							{#snippet children(loadedBlob)}
+								{#if loadedBlob.versionedHash !== undefined}
 									<a
-										href={`https://sepolia.blobscan.com/blob/${blob.versionedHash}`}
+										href={`https://sepolia.blobscan.com/blob/${loadedBlob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
@@ -209,10 +217,10 @@
 							resource={blob}
 							placeholderText="Loading blob…"
 						>
-							{#snippet children(blob)}
-								{#if blob.versionedHash !== undefined}
+							{#snippet children(loadedBlob)}
+								{#if loadedBlob.versionedHash !== undefined}
 									<a
-										href={`https://gnosis.blobscan.com/blob/${blob.versionedHash}`}
+										href={`https://gnosis.blobscan.com/blob/${loadedBlob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
@@ -230,10 +238,10 @@
 							resource={blob}
 							placeholderText="Loading blob…"
 						>
-							{#snippet children(blob)}
-								{#if blob.versionedHash !== undefined}
+							{#snippet children(loadedBlob)}
+								{#if loadedBlob.versionedHash !== undefined}
 									<a
-										href={`https://hoodi.blobscan.com/blob/${blob.versionedHash}`}
+										href={`https://hoodi.blobscan.com/blob/${loadedBlob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
@@ -252,22 +260,28 @@
 						resource={blob}
 						placeholderText="Loading blob…"
 					>
-						{#snippet children(blob)}
-							{#if blob.blobscanBlobJson !== undefined}
+						{#snippet children(loadedBlob)}
+							{#if loadedBlob.blobscanBlobJson !== undefined}
 								<div data-row="wrap align-start gap-2">
 									<TruncatedValue
 										format={TruncatedValueFormat.Visual}
-										value={blob.blobscanBlobJson}
+										value={loadedBlob.blobscanBlobJson}
 									/>
-									<Tooltip contentProps={{ side: 'top' }}>
-										{#snippet Content()}
+									{#if true}
+										<Tooltip
+											contentProps={{ side: 'top' }}
+											Content={BlobscanIndexerPayloadTooltip}
+										>
+											<abbr
+												class="entity-heading-tip"
+												aria-label="Blobscan indexer payload"
+											>ⓘ</abbr>
+										</Tooltip>
+
+										{#snippet BlobscanIndexerPayloadTooltip()}
 											<p><code>{'GET /blobs/{versionedHash}'}</code> JSON from the Blobscan REST API (commitment, proof, sizes, storage references). Only on chains their indexer hosts.</p>
 										{/snippet}
-										<abbr
-											class="entity-heading-tip"
-											aria-label="Blobscan indexer payload"
-										>ⓘ</abbr>
-									</Tooltip>
+									{/if}
 								</div>
 							{/if}
 						{/snippet}
@@ -275,7 +289,7 @@
 				</dd>
 			</div>
 
-			{#if open}
+			{#if contentOpen}
 				<div>
 					<dt>Type‑3 transaction hash</dt>
 					<dd>
@@ -283,8 +297,8 @@
 							href={resolve(
 								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
 								{
-									networkId: String(entityId.$network.chainId),
-									transactionId: entityId.txHash,
+								networkId: String(entityId.$network.chainId),
+								transactionId: entityId.txHash,
 								},
 							)}
 						>
@@ -299,35 +313,42 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({
+		open: _detailsOpen,
+	})}
 		<EntityDetails
 			entityType={EntityType.EvmBlob}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
 		>
-			<CollapsibleTabs
-				id={`${blobIdKey}:carousel-blob`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({ open: _isOpen })}
+			{#if true}
+				<CollapsibleTabs
+					id={`${blobIdKey}:carousel-blob`}
+					Summary={BlobCarouselSummary}
+					Markers={BlobCarouselMarkers}
+					body={BlobCarouselBody}
+					{...{ 'data-card': '' }}
+					scrollContainerProps={{
+						'data-row': 'start align-start',
+					}}
+				/>
+				{#snippet BlobCarouselSummary({ open: _isOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
-						<Heading>Type‑3 execution payload</Heading>
+						<SectionHeading>Type‑3 execution payload</SectionHeading>
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet BlobCarouselMarkers({
+					open: _blobCarouselMarkersOpen,
+				})}
 					<a
 						data-scroll-marker-label="Blob primer"
 						href={`#${blobIdKey}:blob-semantics`}
 					>Consensus + execution roles</a>
-					{#if _children}
+					{#if routeChildren}
 						<a
 							data-scroll-marker-label="Route"
 							href={`#${blobIdKey}:page-content`}
@@ -335,33 +356,39 @@
 					{/if}
 				{/snippet}
 
-				{#snippet body(_ctx)}
+				{#snippet BlobCarouselBody({ open: _tabOpen })}
 					<section
 						id={`${blobIdKey}:blob-semantics`}
 					>
 						<div data-row="wrap align-center gap-2">
 							<span data-text="annotation">Consensus + execution roles</span>
-							<Tooltip contentProps={{ side: 'top' }}>
-								{#snippet Content()}
+							{#if true}
+								<Tooltip
+									contentProps={{ side: 'top' }}
+									Content={BlobSemanticsTooltip}
+								>
+									<abbr
+										class="entity-heading-tip"
+										aria-label="Blob semantics"
+									>ⓘ</abbr>
+								</Tooltip>
+
+								{#snippet BlobSemanticsTooltip()}
 									<p>Blobs extend execution payloads with large binaries whose integrity is proved via KZG commitments — versioned hashes bind each sidecar to a succinct witness apart from execution gas; EIP‑4844 blob gas and pruning follow their own schedule while rollups may persist data off-chain.</p>
 								{/snippet}
-								<abbr
-									class="entity-heading-tip"
-									aria-label="Blob semantics"
-								>ⓘ</abbr>
-							</Tooltip>
+							{/if}
 						</div>
 					</section>
 
-					{#if _children}
+					{#if routeChildren}
 						<section
 							id={`${blobIdKey}:page-content`}
 						>
-							{@render _children()}
+							{@render routeChildren()}
 						</section>
 					{/if}
 				{/snippet}
-			</CollapsibleTabs>
+			{/if}
 		</div>
 	{/snippet}
 </EntityView>

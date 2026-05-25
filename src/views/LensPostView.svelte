@@ -7,6 +7,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -15,46 +16,54 @@
 
 	// Props
 	let {
-		children,
+		routeChildren,
 		entityId,
-		href,
+		href = resolve('/(social)/lens/post/[postId]', {
+			postId: entityId.id,
+		}),
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
+			routeChildren?: Snippet
 			entityId: EntityId<typeof schema, EntityType.LensPost>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'HeadingAfter'
-			| 'Content'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const lensPost = useEntity(
 		EntityType.LensPost,
 		entityId,
 		{
-			$: [Source.Lens_Graphql],
+			$: [
+				Source.Lens_Graphql,
+				Source.Lens_HeyGraphql,
+			],
 			text: {},
 			timestamp: {},
+			isEdited: {},
+			isDeleted: {},
+			commentCount: {},
+			repostCount: {},
+			quoteCount: {},
+			bookmarkCount: {},
+			collectCount: {},
+			reactionCount: {},
 			$author: {},
+			$commentOn: {},
+			$quoteOf: {},
+			$repostOf: {},
+			$root: {},
 		},
 	)
 
@@ -67,22 +76,32 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 	import LensAccountView from '$/views/LensAccountView.svelte'
+	import LensCommentsView from '$/views/LensCommentsView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.LensPost}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span data-text="font-monospace">
-			{entityId.id}
-		</span>
+		<TruncatedValue
+			format={TruncatedValueFormat.Visual}
+			startLength={24}
+			endLength={12}
+			value={entityId.id}
+		/>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Lens v3 publications are on-chain posts keyed by slug; author profiles, comment threads, and engagement counts resolve from Lens GraphQL indexers.
+		</p>
 	{/snippet}
 
 	{#snippet Title()}
@@ -91,17 +110,17 @@
 
 	{#snippet Heading()}
 		<ResourceBoundary
-			placeholderText="Loading Lens v3 publication…"
+			placeholderText="Loading Lens publication…"
 			resource={lensPost}
 		>
-			{#snippet children(lensPost)}
+			{#snippet children(loadedLensPost)}
 				<TruncatedValue
 					format={TruncatedValueFormat.Visual}
 					startLength={42}
 					endLength={14}
 					value={(
 						lensPost.text
-							? lensPost.text
+							? loadedLensPost.text
 						:
 							entityId.id
 					)}
@@ -110,59 +129,198 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet HeadingAfter()}
 		<ResourceBoundary
-			placeholderText="Loading Lens v3 publication…"
 			resource={lensPost}
 		>
-			{#snippet children(lensPost)}
-				<div data-column>
-					{#if lensPost.text}
-						<p>
-							<TruncatedValue
-								value={lensPost.text}
-								format={TruncatedValueFormat.Visual}
-								startLength={64}
-								endLength={24}
-							/>
-						</p>
-					{/if}
-					<dl data-column-item="center">
-						{#if lensPost.$author}
-							<div>
-								<dt>Author (Lens v3 profile)</dt>
-								<dd>
-									<LensAccountView
-										entityId={lensPost.$author[EntityMetaKey.Id]}
-										href={resolve('/(social)/lens/account/[address]', {
-											address: lensPost.$author[EntityMetaKey.Id].address,
-											})}
-										layout={EntityLayout.Title}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								</dd>
-							</div>
-						{/if}
+			{#snippet children(loadedLensPost)}
+				{#if loadedLensPost.timestamp != null}
+					<span data-text="muted">
+						<Timestamp
+							timestamp={loadedLensPost.timestamp}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
 
-						{#if lensPost.timestamp != null}
-							<div>
-								<dt>Created at</dt>
-								<dd>
-									<Timestamp
-										timestamp={lensPost.timestamp}
-									/>
-								</dd>
-							</div>
-						{/if}
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: contentOpen,
+	})}
+		<ResourceBoundary
+			placeholderText="Loading Lens publication…"
+			resource={lensPost}
+		>
+			{#snippet children(loadedLensPost)}
+				<dl data-column-item="center">
+					{#if loadedLensPost.text != null && loadedLensPost.text !== ''}
 						<div>
-							<dt>Publication id (Lens v3 on-chain)</dt>
-							<dd data-text="mono">
-								{entityId.id}
+							<dt>Publication</dt>
+							<dd>{loadedLensPost.text}</dd>
+						</div>
+					{/if}
+
+					{#if loadedLensPost.timestamp != null}
+						<div>
+							<dt>Published</dt>
+							<dd>
+								<Timestamp
+									timestamp={loadedLensPost.timestamp}
+								/>
 							</dd>
 						</div>
-					</dl>
-				</div>
+					{/if}
+
+					{#if contentOpen && loadedLensPost.$author}
+						<div>
+							<dt>Author</dt>
+							<dd>
+								<LensAccountView
+									entityId={loadedLensPost.$author[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen && loadedLensPost.$repostOf}
+						<div>
+							<dt>Repost of</dt>
+							<dd>
+								<LensPostView
+									entityId={loadedLensPost.$repostOf[EntityMetaKey.Id]}
+									layout={EntityLayout.SummaryDetails}
+									open={true}
+									showTypeAnnotation={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen && loadedLensPost.$quoteOf}
+						<div>
+							<dt>Quote of</dt>
+							<dd>
+								<LensPostView
+									entityId={loadedLensPost.$quoteOf[EntityMetaKey.Id]}
+									layout={EntityLayout.SummaryDetails}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen && loadedLensPost.$commentOn}
+						<div>
+							<dt>Comment on</dt>
+							<dd>
+								<LensPostView
+									entityId={loadedLensPost.$commentOn[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen && loadedLensPost.isEdited === true}
+						<div>
+							<dt>Edited</dt>
+							<dd>Yes</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen && lensPost.isDeleted === true}
+						<div>
+							<dt>Deleted</dt>
+							<dd>Yes</dd>
+						</div>
+					{/if}
+
+					{#if (
+						contentOpen
+						&& lensPost.commentCount != null
+					)}
+						<div>
+							<dt>Comments</dt>
+							<dd>
+								<NumberValue
+									value={loadedLensPost.commentCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+					{#if (
+						contentOpen
+						&& lensPost.repostCount != null
+					)}
+						<div>
+							<dt>Reposts</dt>
+							<dd>
+								<NumberValue
+									value={loadedLensPost.repostCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+					{#if (
+						contentOpen
+						&& lensPost.quoteCount != null
+					)}
+						<div>
+							<dt>Quotes</dt>
+							<dd>
+								<NumberValue
+									value={loadedLensPost.quoteCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+					{#if (
+						contentOpen
+						&& lensPost.bookmarkCount != null
+					)}
+						<div>
+							<dt>Bookmarks</dt>
+							<dd>
+								<NumberValue
+									value={loadedLensPost.bookmarkCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+					{#if (
+						contentOpen
+						&& lensPost.collectCount != null
+					)}
+						<div>
+							<dt>Collects</dt>
+							<dd>
+								<NumberValue
+									value={loadedLensPost.collectCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+					{#if (
+						contentOpen
+						&& lensPost.reactionCount != null
+					)}
+						<div>
+							<dt>Reactions</dt>
+							<dd>
+								<NumberValue
+									value={loadedLensPost.reactionCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -175,34 +333,42 @@
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
 		>
-			<CollapsibleTabs
-				id={`${postDetailKey}:carousel-lens-post`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({
-					open: _summaryOpen,
-				})}
+			{#if true}
+				<CollapsibleTabs
+					id={`${postDetailKey}:carousel-lens-post`}
+					Summary={LensPublicationCarouselSummary}
+					Markers={LensPublicationCarouselMarkers}
+					body={LensPublicationCarouselBody}
+					{...{ 'data-card': '' }}
+					scrollContainerProps={{
+						'data-row': 'start align-start',
+					}}
+				/>
+				{#snippet LensPublicationCarouselSummary({ open: _summaryOpen })}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
 					>
 						<HeadingComponent>
-							Lens v3 publication
+							Lens publication
 						</HeadingComponent>
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
+				{#snippet LensPublicationCarouselMarkers({ open: _markersOpen })}
+					<a
+						data-scroll-marker-label="Text"
+						href={`#${postDetailKey}:lens-post-text`}
+					>Text</a>
+					<a
+						data-scroll-marker-label="Comments"
+						href={`#${postDetailKey}:lens-post-comments`}
+					>Comments</a>
 					<a
 						data-scroll-marker-label="Record"
 						href={`#${postDetailKey}:lens-post-record`}
 					>Record</a>
-					{#if children}
+					{#if routeChildren}
 						<a
 							data-scroll-marker-label="More"
 							href={`#${postDetailKey}:lens-post-more`}
@@ -210,8 +376,45 @@
 					{/if}
 				{/snippet}
 
-				{#snippet body({ open: _paneOpen,
-				})}
+				{#snippet LensPublicationCarouselBody({ open: sectionOpen })}
+					<section
+						data-scroll-marker-label="Text"
+						id={`${postDetailKey}:lens-post-text`}
+					>
+						<ResourceBoundary
+							resource={lensPost}
+							placeholderText="Loading Lens publication…"
+						>
+							{#snippet children(loadedLensPost)}
+								{#if loadedLensPost.text}
+									<p>{loadedLensPost.text}</p>
+								{:else}
+									<p data-text="muted">
+										No text yet.
+									</p>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</section>
+
+					<section
+						data-scroll-marker-label="Comments"
+						id={`${postDetailKey}:lens-post-comments`}
+					>
+						<LensCommentsView
+							href={resolve('/lens')}
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.LensPost,
+								entityId,
+								fieldName: '$$comments',
+							}}
+							id={`${postDetailKey}:comments`}
+							open={sectionOpen}
+							title="Comments"
+						/>
+					</section>
+
 					<section
 						data-scroll-marker-label="Record"
 						id={`${postDetailKey}:lens-post-record`}
@@ -221,16 +424,17 @@
 							{entityId}
 						/>
 					</section>
-					{#if children}
+
+					{#if routeChildren}
 						<section
 							data-scroll-marker-label="More"
 							id={`${postDetailKey}:lens-post-more`}
 						>
-							{@render children()}
+							{@render routeChildren()}
 						</section>
 					{/if}
 				{/snippet}
-			</CollapsibleTabs>
+			{/if}
 		</div>
 	{/snippet}
 </EntityView>

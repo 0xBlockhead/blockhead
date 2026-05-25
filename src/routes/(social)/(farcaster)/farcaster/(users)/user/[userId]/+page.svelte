@@ -4,6 +4,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 
+
 	// Context
 	import { resolve } from '$app/paths'
 
@@ -11,6 +12,8 @@
 	// Props
 	let { params } = $props()
 
+
+	// (Derived)
 	const userFeedId = $derived(
 		({
 			variant: 'byUser' as const,
@@ -29,22 +32,19 @@
 <Page>
 	<FarcasterUserView
 		entityId={{ fid: Number(params.userId) }}
-		href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', params)}
-	>
-		{#snippet children()}
-			<section>
-				<FarcasterCastsView
-					entityFieldReference={{
-						entityType: EntityType.FarcasterFeed,
-						entityId: userFeedId,
-						fieldName: '$$entries',
-					}}
-					id="casts"
-					title="Feed"
-					href={resolve(`/farcaster/feed/user/${params.userId}`)}
-					limit={50}
-				/>
-			</section>
-		{/snippet}
-	</FarcasterUserView>
+	/>
+
+	<section>
+		<FarcasterCastsView
+			href={resolve(`/farcaster/feed/user/${params.userId}`)}
+			entityFieldReference={{
+				entityType: EntityType.FarcasterFeed,
+				entityId: userFeedId,
+				fieldName: '$$entries',
+			}}
+			id="casts"
+			title="Feed"
+			limit={50}
+		/>
+	</section>
 </Page>

@@ -1,11 +1,11 @@
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-export type RedditOAuthTokenResponseWire = {
+export type RedditOAuthTokenResponse = {
 	access_token?: string
 	expires_in?: number
 }
 
-export type RedditApiThingWire = {
+export type RedditApiThing = {
 	kind: string
 	data: Record<string, JsonValue> & {
 		name?: string
@@ -17,26 +17,28 @@ export type RedditApiThingWire = {
 		body?: string
 		permalink?: string
 		link_id?: string
+		parent_id?: string
 		score?: number
 		num_comments?: number
 		created_utc?: number
 		depth?: number
+		replies?: RedditApiListing | ''
 	}
 }
 
-export type RedditApiListingWire = {
+export type RedditApiListing = {
 	kind: 'Listing'
 	data: {
-		children?: readonly RedditApiThingWire[]
+		children?: readonly RedditApiThing[]
 	}
 }
 
-export type RedditApiInfoResponseWire = {
+export type RedditApiInfoResponse = {
 	kind: 'Listing'
-	data: { children: RedditApiThingWire[] }
+	data: { children: RedditApiThing[] }
 }
 
-export type RedditApiSubredditAboutWire = {
+export type RedditApiSubredditAbout = {
 	kind: 't5'
 	data: {
 		display_name: string
@@ -47,5 +49,6 @@ export type RedditApiSubredditAboutWire = {
 		created_utc?: number
 		over18?: boolean
 		icon_img?: string
+		community_icon?: string
 	}
 }

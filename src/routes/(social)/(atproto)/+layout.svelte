@@ -1,6 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { stringify } from 'devalue'
 
 
@@ -13,6 +12,7 @@
 
 
 	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import AtprotoView from '$/views/AtprotoView.svelte'
 </script>
@@ -29,7 +29,6 @@
 			entityId={{
 				scope: 'AtprotoNetwork',
 			}}
-			href={resolve('/atproto')}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

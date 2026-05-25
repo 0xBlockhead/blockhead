@@ -1,5 +1,5 @@
 /**
- * Snapchain node HTTP wire shapes.
+ * Snapchain node HTTP API shapes.
  * @see https://snapchain.farcaster.xyz/reference/httpapi/casts
  * @see https://snapchain.farcaster.xyz/reference/httpapi/reactions
  * @see https://snapchain.farcaster.xyz/reference/httpapi/userdata
@@ -19,7 +19,7 @@ export type SnapchainNodeEndpoint = {
 	url: string
 }
 
-export type SnapchainCastEmbedWire = {
+export type SnapchainCastEmbed = {
 	url?: string
 	castId?: {
 		fid?: number
@@ -27,7 +27,7 @@ export type SnapchainCastEmbedWire = {
 	}
 }
 
-export type SnapchainCastWire = {
+export type SnapchainCast = {
 	hash: `0x${string}`
 	data?: {
 		fid?: number
@@ -40,18 +40,18 @@ export type SnapchainCastWire = {
 				hash?: `0x${string}`
 			}
 			parentUrl?: string
-			embeds?: SnapchainCastEmbedWire[]
+			embeds?: SnapchainCastEmbed[]
 		}
 	}
 }
 
-export type SnapchainReactionWire = {
+export type SnapchainReaction = {
 	data?: {
 		fid?: number
 	}
 }
 
-export type SnapchainVerificationWire = {
+export type SnapchainVerification = {
 	data?: {
 		verificationAddAddressBody?: {
 			address?: string
@@ -60,7 +60,7 @@ export type SnapchainVerificationWire = {
 	}
 }
 
-export type SnapchainUserDataWire = {
+export type SnapchainUserData = {
 	data?: {
 		userDataBody?: {
 			type?: string | number
@@ -86,7 +86,7 @@ export type SnapchainUsernameProofsResponse = {
 	nextPageToken?: string
 }
 
-export type SnapchainLinkWire = {
+export type SnapchainLink = {
 	data?: {
 		linkBody?: {
 			type?: string
@@ -95,7 +95,7 @@ export type SnapchainLinkWire = {
 	}
 }
 
-export type SnapchainOnChainEventWire = {
+export type SnapchainOnChainEvent = {
 	type?: string
 	blockTimestamp?: number
 	fid?: number
@@ -106,6 +106,6 @@ export type SnapchainOnChainEventWire = {
 }
 
 export type SnapchainOnChainEventsPage = {
-	events?: SnapchainOnChainEventWire[]
+	events?: SnapchainOnChainEvent[]
 	nextPageToken?: string
 }

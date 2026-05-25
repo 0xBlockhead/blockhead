@@ -2,6 +2,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+
 	// Props
 	let {
 		params,
@@ -16,6 +17,5 @@
 <Page>
 	<EnsNameTextRecordsView
 		entityId={{ name: params.ensName }}
-		href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', params)}
 	/>
 </Page>

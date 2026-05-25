@@ -7,43 +7,37 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		open = $bindable(true),
 		collapsible = true,
 		title = 'Federated actors',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<
 				typeof schema,
 				EntityType.ActivityPubActor
 			>
-			href: string
 			id: string
 			open?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -57,11 +51,10 @@
 
 <EntitiesList
 	entityType={EntityType.ActivityPubActor}
-	{href}
 	{id}
 	bind:open
 	{title}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -71,11 +64,11 @@
 			Actor rows are discovery records—handles, inbox/outbox, and public keys live behind WebFinger and collection endpoints on the home instance.
 		</p>
 		<p>
-			Sorted like the instance directory collection response.
+			Rows merge catalog seeds with authors discovered from public timelines on configured instances; sorted by origin then local account id.
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const activityPubNetwork = useEntity(
 				entityFieldReference.entityType,
@@ -87,6 +80,7 @@
 						$: [
 							Source.Constants_Internal,
 							Source.Mastodon_Rest,
+							Source.Fedi_Rest,
 						],
 					},
 				},
@@ -103,7 +97,6 @@
 					showSummary={false}
 					entityType={EntityType.ActivityPubActor}
 					id={`${id}-items`}
-					{href}
 					{title}
 					open={true}
 					getKey={(row) => stringify(row[EntityMetaKey.Id])}
@@ -111,7 +104,6 @@
 						const actorId = row[EntityMetaKey.Id]
 						return `${actorId.instanceOrigin}\0${actorId.localAccountId}`
 					}}
-					placeholderKeys={new SvelteSet()}
 					placeholderText="Loading Mastodon actor directory…"
 					resource={actors}
 				>
@@ -121,22 +113,16 @@
 						</p>
 					{/snippet}
 
-					{#snippet Item(props)}
-						{#if props.item}
-							{@const actorId = props.item[EntityMetaKey.Id]}
-							<ActivityPubActorView
-								entityId={{
-									instanceOrigin: actorId.instanceOrigin,
-									localAccountId: actorId.localAccountId,
-								}}
-								href={resolve('/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
-									instanceOrigin: encodeURIComponent(actorId.instanceOrigin),
-									localAccountId: encodeURIComponent(actorId.localAccountId),
-								})}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/if}
+					{#snippet Item({ item })}
+						{@const actorId = item[EntityMetaKey.Id]}
+						<ActivityPubActorView
+							entityId={{
+								instanceOrigin: actorId.instanceOrigin,
+								localAccountId: actorId.localAccountId,
+							}}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
 					{/snippet}
 				</EntitiesList>
 			{/key}

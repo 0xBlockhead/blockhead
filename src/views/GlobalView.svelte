@@ -5,13 +5,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 	type GlobalNavItem =
 		| { key: 'self', label: string }
@@ -30,7 +30,7 @@
 		href,
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			children?: Snippet<[context?: {
@@ -38,26 +38,16 @@
 			}]>
 			entityId: EntityId<typeof schema, EntityType._Global>
 			title: string
+			/** href override: hub pages (`/assets`, `/explore`, `/social`, …) each pass their canonical URL. */
 			href: string
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'title'
-			| 'href'
-			| 'open'
-			| 'Details'
-			| 'Content'
-		>
+		never
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { SvelteSet } from 'svelte/reactivity'
-
 
 	const global = useEntity(
 		EntityType._Global,
@@ -82,7 +72,6 @@
 		},
 	)
 
-
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
 	} as const
@@ -105,7 +94,7 @@
 	{title}
 	{href}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		{entityId.scope}
@@ -129,16 +118,16 @@
 					resource={global}
 					placeholderText="Loading usage…"
 				>
-					{#snippet children(global)}
+					{#snippet children(loadedGlobal)}
 						<dl data-column-item="center">
-							{#if global.duneCreditsUsed !== undefined}
+							{#if loadedGlobal.duneCreditsUsed !== undefined}
 								<div>
 									<dt>Query credits used</dt>
 									<dd>{String(global.duneCreditsUsed)}</dd>
 								</div>
 							{/if}
 
-							{#if global.duneCreditsIncluded !== undefined}
+							{#if loadedGlobal.duneCreditsIncluded !== undefined}
 								<div>
 									<dt>Query credits included</dt>
 									<dd>{String(global.duneCreditsIncluded)}</dd>
@@ -180,7 +169,6 @@
 				entityType={EntityType._Global}
 				{entityId}
 			/>
-
 			<div
 				class="entity-view-detail-carousels"
 				data-column="gap-3"
@@ -280,20 +268,17 @@
 								}
 								getKey={(row) => row.key}
 								getSortValue={(row) => row.key}
-								placeholderKeys={new SvelteSet()}
 								orientation={ListOrientation.Column}
 							>
 								{#snippet Item({ item })}
-									{#if item}
-										{#if item.key === 'self'}
-											<a href={resolve(href as `/${string}`)}>
-												{item.label}
-											</a>
-										{:else}
-											<a href={resolve(item.path)}>
-												{item.label}
-											</a>
-										{/if}
+									{#if item.key === 'self'}
+										<a href={resolve(href as `/${string}`)}>
+											{item.label}
+										</a>
+									{:else}
+										<a href={resolve(item.path)}>
+											{item.label}
+										</a>
 									{/if}
 								{/snippet}
 							</UnorderedList>
@@ -307,16 +292,16 @@
 								resource={global}
 								placeholderText="Loading usage…"
 							>
-								{#snippet children(global)}
+								{#snippet children(loadedGlobal)}
 									<dl data-column-item="center">
-										{#if global.duneCreditsUsed !== undefined}
+										{#if loadedGlobal.duneCreditsUsed !== undefined}
 											<div>
 												<dt>Query credits used</dt>
 												<dd>{String(global.duneCreditsUsed)}</dd>
 											</div>
 										{/if}
 
-										{#if global.duneCreditsIncluded !== undefined}
+										{#if loadedGlobal.duneCreditsIncluded !== undefined}
 											<div>
 												<dt>Query credits included</dt>
 												<dd>{String(global.duneCreditsIncluded)}</dd>

@@ -1,8 +1,7 @@
 <script lang="ts">
 	// Types/constants
-	import type { Eip6963ProviderDetail } from '$/lib/eip6963.ts'
-
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { SvelteMap } from 'svelte/reactivity'
 
 	type WalletConnection = {
 		detail: Eip6963ProviderDetail
@@ -20,41 +19,16 @@
 	// Props
 	let {
 		id,
-		href,
 		title = 'Wallet connections',
 		open = $bindable(true),
 	}: {
 		id: string
-		href: string
 		title?: string
 		open?: boolean
 	} = $props()
 
 
-	// State
-	import {
-		subscribeEip6963Providers,
-	} from '$/lib/eip6963.ts'
-	import {
-		getChainId,
-		onAccountsChanged,
-		onChainChanged,
-		requestAccounts,
-	} from '$/lib/eip1193.ts'
-	import { SvelteMap } from 'svelte/reactivity'
-
-	const cleanupByRdns = new SvelteMap<string, () => void>()
-
-	let providers = $state<Eip6963ProviderDetail[]>([])
-
-	let connections = $state<WalletConnection[]>([])
-
-	let eip6963Hydrated = $state(false)
-
-	const accountsHref = resolve('/~/accounts')
-
-
-	// Actions
+	// Functions
 	const updateConnection = (
 		rdns: string,
 		getNextConnection: (connection: WalletConnection | null) => WalletConnection,
@@ -110,6 +84,31 @@
 		})
 	}
 
+
+	// State
+	import type { Eip6963ProviderDetail } from '$/lib/eip6963.ts'
+
+	import {
+		subscribeEip6963Providers,
+	} from '$/lib/eip6963.ts'
+
+	import {
+		getChainId,
+		onAccountsChanged,
+		onChainChanged,
+		requestAccounts,
+	} from '$/lib/eip1193.ts'
+
+	const cleanupByRdns = new SvelteMap<string, () => void>()
+
+	let providers = $state<Eip6963ProviderDetail[]>([])
+
+	let connections = $state<WalletConnection[]>([])
+
+	let eip6963Hydrated = $state(false)
+
+	const accountsHref = resolve('/~/accounts')
+
 	const connect = async (detail: Eip6963ProviderDetail) => {
 		updateConnection(detail.info.rdns, (connection) => ({
 			detail,
@@ -152,7 +151,6 @@
 		}
 	}
 
-
 	$effect(() => (
 		subscribeEip6963Providers((nextProviders) => {
 			providers = nextProviders
@@ -181,7 +179,7 @@
 <EntitiesList
 	entityType={EntityType.BlockheadWalletConnection}
 	{id}
-	{href}
+	href={resolve('/~/accounts')}
 	{title}
 	bind:open
 	placeholderText="Resolving browser wallets…"
@@ -198,7 +196,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if !eip6963Hydrated}
 			<div
 				data-card

@@ -40,6 +40,8 @@
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
+		"test:e2e:boundaries": "playwright test tests/e2e/boundary-updates.e2e.ts",
+		"test:e2e:failfast": "playwright test tests/e2e/route-errors-failfast.e2e.ts",
 		"test:e2e:cors": "playwright test tests/e2e/cors-policy.e2e.ts",
 		"test:e2e:persistence": "PLAYWRIGHT_DEDICATED_SERVER=1 E2E_REAL_PERSISTENCE_PATHS=/network/1,/networks playwright test tests/e2e/tanstack-db-persistence.e2e.ts",
 		"test:e2e:persistence:full": "PLAYWRIGHT_DEDICATED_SERVER=1 playwright test tests/e2e/tanstack-db-persistence.e2e.ts"

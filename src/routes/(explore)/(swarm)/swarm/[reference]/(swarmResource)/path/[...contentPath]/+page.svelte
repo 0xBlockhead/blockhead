@@ -1,5 +1,5 @@
 <script lang="ts">
-	// Functions
+	// Types/constants
 	import {
 		swarmResourceAddressFromRouteParams,
 		swarmResourceHref,
@@ -7,7 +7,6 @@
 
 
 	// Props
-
 	let {
 		params,
 	} = $props()
@@ -33,7 +32,6 @@
 	<Page>
 		<SwarmResourceView
 			{entityId}
-			href={swarmResourceHref(entityId)}
 			open
 		/>
 	</Page>

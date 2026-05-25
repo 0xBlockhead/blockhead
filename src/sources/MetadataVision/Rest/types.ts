@@ -1,4 +1,4 @@
-export type MetadataVisionOpenGraphDataWire = {
+export type MetadataVisionOpenGraphData = {
 	url: string
 	logo: string | null
 	author: string | null

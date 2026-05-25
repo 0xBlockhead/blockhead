@@ -1,10 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-
-
 	// Props
 	let {
 		params,
@@ -30,15 +24,15 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import LensAccountView from '$/views/LensAccountView.svelte'
+
+
+	// State
+	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 </script>
 
 
 <Page>
 	<LensAccountView
 		{entityId}
-		href={resolve(
-			'/(social)/(lens)/lens/account/[address]',
-			{ address: entityId.address },
-		)}
 	/>
 </Page>

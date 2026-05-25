@@ -1,6 +1,6 @@
 import { type } from 'arktype'
 
-import { EvmTokenStandard } from '$/constants/EvmTokenTransfer.ts'
+import { EvmTokenStandard } from '$/constants/Evm.ts'
 import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,

@@ -15,19 +15,19 @@ import {
 import { type as arktype } from 'arktype'
 
 import type {
-	BlockscoutErc4337RegistryEntryWire,
-	BlockscoutAddressCountersWire,
-	BlockscoutAddressDetailsWire,
-	BlockscoutBlockWire,
-	BlockscoutInternalTransactionWire,
-	BlockscoutPaginatedWire,
-	BlockscoutSmartContractForListWire,
-	BlockscoutStatsWire,
-	BlockscoutTokenTransferWire,
-	BlockscoutTransactionLogWire,
-	BlockscoutTransactionWire,
-	BlockscoutUserOperationDetailWire,
-	BlockscoutUserOperationListItemWire,
+	BlockscoutErc4337RegistryEntry,
+	BlockscoutAddressCounters,
+	BlockscoutAddressDetails,
+	BlockscoutBlock,
+	BlockscoutInternalTransaction,
+	BlockscoutPaginated,
+	BlockscoutSmartContractForList,
+	BlockscoutStats,
+	BlockscoutTokenTransfer,
+	BlockscoutTransactionLog,
+	BlockscoutTransaction,
+	BlockscoutUserOperationDetail,
+	BlockscoutUserOperationListItem,
 } from '$/sources/Blockscout/Rest/types.ts'
 
 const blockscoutStatsWireSchema = arktype({
@@ -47,12 +47,12 @@ const blockscoutStatsWireSchema = arktype({
 	'total_blocks?': 'string',
 	'total_transactions?': 'string',
 	'transactions_today?': 'string',
-}) satisfies arktype.Type<BlockscoutStatsWire>
+}) satisfies arktype.Type<BlockscoutStats>
 import type {
-	RpcBlockHeaderWire,
-	RpcLogWire,
-	RpcReceiptWire,
-	RpcTxWire,
+	RpcBlockHeader,
+	RpcLog,
+	RpcReceipt,
+	RpcTransaction,
 } from '$/sources/Evm/JsonRpc/types.ts'
 
 const quantityHex = (value: string | number | bigint | undefined) => (
@@ -75,16 +75,16 @@ const blockscoutItemsCount = (limit: number) => (
 )
 
 const addressHash = (
-	wire: string | BlockscoutBlockWire['miner']   | BlockscoutTransactionWire['to']   | BlockscoutTransactionLogWire['address_hash'] | BlockscoutSmartContractForListWire['address_hash'] | undefined,
+	wire: string | BlockscoutBlock['miner']   | BlockscoutTransaction['to']   | BlockscoutTransactionLog['address_hash'] | BlockscoutSmartContractForList['address_hash'] | undefined,
 ) => (
 	typeof wire === 'string' ?
 		wire
 	:	wire?.hash
 )
 
-const blockscoutBlockWireAsRpcBlockHeaderWire = (
-	wire: BlockscoutBlockWire,
-): RpcBlockHeaderWire => ({
+const blockscoutBlockWireAsRpcBlockHeader = (
+	wire: BlockscoutBlock,
+): RpcBlockHeader => ({
 	number: `0x${wire.height.toString(16)}`,
 	hash: wire.hash,
 	parentHash: wire.parent_hash,
@@ -98,9 +98,9 @@ const blockscoutBlockWireAsRpcBlockHeaderWire = (
 	...(wire.excess_blob_gas != null && { excessBlobGas: quantityHex(wire.excess_blob_gas) }),
 })
 
-const blockscoutTransactionWireAsRpcTxWire = (
-	wire: BlockscoutTransactionWire,
-): RpcTxWire => ({
+const blockscoutTransactionWireAsRpcTransaction = (
+	wire: BlockscoutTransaction,
+): RpcTransaction => ({
 	blockHash: wire.block_hash,
 	blockNumber: wire.block_number != null ? `0x${wire.block_number.toString(16)}` : undefined,
 	hash: wire.hash,
@@ -118,8 +118,8 @@ const blockscoutTransactionWireAsRpcTxWire = (
 })
 
 const blockscoutTransactionLogWiresAsRpcReceiptLogs = (
-	logs: BlockscoutTransactionLogWire[],
-): RpcLogWire[] => (
+	logs: BlockscoutTransactionLog[],
+): RpcLog[] => (
 	logs.map((log) => {
 		const logAddress = addressHash(log.address_hash)
 		return {
@@ -143,7 +143,7 @@ export const getBlockscoutStats = async ({
 	explorerOrigin,
 }: {
 	explorerOrigin: string
-}): Promise<BlockscoutStatsWire | null> => {
+}): Promise<BlockscoutStats | null> => {
 	try {
 		const url = new URL(explorerOrigin)
 		url.pathname = `${url.pathname.replace(/\/$/, '')}${restPath}/stats`
@@ -167,15 +167,15 @@ export const getBlockByNumberBlockscout = async ({
 }: {
 	explorerOrigin: string
 	blockNumber: bigint
-}): Promise<RpcBlockHeaderWire | null> => {
+}): Promise<RpcBlockHeader | null> => {
 	if (blockNumber == null || typeof blockNumber !== 'bigint') {
 		return null
 	}
-	const wire = await getJson<BlockscoutBlockWire | null>({
+	const wire = await getJson<BlockscoutBlock | null>({
 		explorerOrigin,
 		path: `/blocks/${blockNumber}`,
 	})
-	return wire != null ? blockscoutBlockWireAsRpcBlockHeaderWire(wire) : null
+	return wire != null ? blockscoutBlockWireAsRpcBlockHeader(wire) : null
 }
 
 export const getBlockscoutBlocks = async ({
@@ -184,16 +184,16 @@ export const getBlockscoutBlocks = async ({
 }: {
 	explorerOrigin: string
 	limit: number
-}): Promise<RpcBlockHeaderWire[]> => {
+}): Promise<RpcBlockHeader[]> => {
 	if (limit <= 0) return []
-	const wire = await getJson<BlockscoutPaginatedWire<BlockscoutBlockWire>>({
+	const wire = await getJson<BlockscoutPaginated<BlockscoutBlock>>({
 		explorerOrigin,
 		path: '/blocks',
 		searchParams: {
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
-	return wire.items.map(blockscoutBlockWireAsRpcBlockHeaderWire)
+	return wire.items.map(blockscoutBlockWireAsRpcBlockHeader)
 }
 
 export const getBlockTransactionsBlockscout = async ({
@@ -204,19 +204,19 @@ export const getBlockTransactionsBlockscout = async ({
 	explorerOrigin: string
 	blockNumber: bigint
 	limit: number
-}): Promise<RpcTxWire[]> => {
+}): Promise<RpcTransaction[]> => {
 	if (limit <= 0) return []
 	if (blockNumber == null || typeof blockNumber !== 'bigint') {
 		return []
 	}
-	const wire = await getJson<BlockscoutPaginatedWire<BlockscoutTransactionWire>>({
+	const wire = await getJson<BlockscoutPaginated<BlockscoutTransaction>>({
 		explorerOrigin,
 		path: `/blocks/${blockNumber}/transactions`,
 		searchParams: {
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
-	return wire.items.map(blockscoutTransactionWireAsRpcTxWire)
+	return wire.items.map(blockscoutTransactionWireAsRpcTransaction)
 }
 
 export const getTransactionByHashBlockscout = async ({
@@ -225,12 +225,12 @@ export const getTransactionByHashBlockscout = async ({
 }: {
 	explorerOrigin: string
 	txHash: `0x${string}`
-}): Promise<RpcTxWire | null> => {
-	const wire = await getJson<BlockscoutTransactionWire | null>({
+}): Promise<RpcTransaction | null> => {
+	const wire = await getJson<BlockscoutTransaction | null>({
 		explorerOrigin,
 		path: `/transactions/${txHash}`,
 	})
-	return wire != null ? blockscoutTransactionWireAsRpcTxWire(wire) : null
+	return wire != null ? blockscoutTransactionWireAsRpcTransaction(wire) : null
 }
 
 export const getBlockscoutTransactions = async ({
@@ -239,16 +239,16 @@ export const getBlockscoutTransactions = async ({
 }: {
 	explorerOrigin: string
 	limit: number
-}): Promise<RpcTxWire[]> => {
+}): Promise<RpcTransaction[]> => {
 	if (limit <= 0) return []
-	const wire = await getJson<BlockscoutPaginatedWire<BlockscoutTransactionWire>>({
+	const wire = await getJson<BlockscoutPaginated<BlockscoutTransaction>>({
 		explorerOrigin,
 		path: '/transactions',
 		searchParams: {
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
-	return wire.items.map(blockscoutTransactionWireAsRpcTxWire)
+	return wire.items.map(blockscoutTransactionWireAsRpcTransaction)
 }
 
 /** REST v2: transactions where this wallet participates on the configured explorer (`0x`-prefixed **`address`** normalized to 20-byte lower-case hex). */
@@ -260,18 +260,18 @@ export const getBlockscoutAddressTransactions = async ({
 	explorerOrigin: string
 	address: `0x${string}`
 	limit: number
-}): Promise<RpcTxWire[]> => {
+}): Promise<RpcTransaction[]> => {
 	if (limit <= 0) return []
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null) return []
-	const wire = await getJson<BlockscoutPaginatedWire<BlockscoutTransactionWire>>({
+	const wire = await getJson<BlockscoutPaginated<BlockscoutTransaction>>({
 		explorerOrigin,
 		path: `/addresses/${normalized}/transactions`,
 		searchParams: {
 			items_count: blockscoutItemsCount(limit),
 		},
 	})
-	return wire.items.map(blockscoutTransactionWireAsRpcTxWire)
+	return wire.items.map(blockscoutTransactionWireAsRpcTransaction)
 }
 
 /** Unique normalized tx hashes (`32`-byte lower-case `0x` hex) from transfer/internal wires. */
@@ -299,12 +299,12 @@ export const getBlockscoutAddressDetails = async ({
 }: {
 	explorerOrigin: string
 	address: `0x${string}`
-}): Promise<BlockscoutAddressDetailsWire> => {
+}): Promise<BlockscoutAddressDetails> => {
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null) {
 		throw new Error('Blockscout address detail: invalid address')
 	}
-	return getJson<BlockscoutAddressDetailsWire>({
+	return getJson<BlockscoutAddressDetails>({
 		explorerOrigin,
 		path: `/addresses/${normalized}`,
 	})
@@ -317,12 +317,12 @@ export const getBlockscoutAddressCounters = async ({
 }: {
 	explorerOrigin: string
 	address: `0x${string}`
-}): Promise<BlockscoutAddressCountersWire> => {
+}): Promise<BlockscoutAddressCounters> => {
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null) {
 		throw new Error('Blockscout address counters: invalid address')
 	}
-	return getJson<BlockscoutAddressCountersWire>({
+	return getJson<BlockscoutAddressCounters>({
 		explorerOrigin,
 		path: `/addresses/${normalized}/counters`,
 	})
@@ -339,11 +339,11 @@ export const getBlockscoutAddressTokenTransfers = async ({
 	address: `0x${string}`
 	limit: number
 	searchParams?: Record<string, string | number | undefined>
-}): Promise<BlockscoutTokenTransferWire[]> => {
+}): Promise<BlockscoutTokenTransfer[]> => {
 	if (limit <= 0) return []
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null) return []
-	const wire = await getJson<BlockscoutPaginatedWire<BlockscoutTokenTransferWire>>({
+	const wire = await getJson<BlockscoutPaginated<BlockscoutTokenTransfer>>({
 		explorerOrigin,
 		path: `/addresses/${normalized}/token-transfers`,
 		searchParams: {
@@ -363,11 +363,11 @@ export const getBlockscoutTransactionTokenTransfers = async ({
 	explorerOrigin: string
 	txHash: `0x${string}`
 	limit: number
-}): Promise<BlockscoutTokenTransferWire[]> => {
+}): Promise<BlockscoutTokenTransfer[]> => {
 	if (limit <= 0) return []
 	const normalized = hexLowerOfByteSize(txHash, 32)
 	if (normalized == null) return []
-	const wire = await getJson<BlockscoutPaginatedWire<BlockscoutTokenTransferWire>>({
+	const wire = await getJson<BlockscoutPaginated<BlockscoutTokenTransfer>>({
 		explorerOrigin,
 		path: `/transactions/${normalized}/token-transfers`,
 		searchParams: {
@@ -386,11 +386,11 @@ export const getBlockscoutTransactionInternalTransactions = async ({
 	explorerOrigin: string
 	txHash: `0x${string}`
 	limit: number
-}): Promise<BlockscoutInternalTransactionWire[]> => {
+}): Promise<BlockscoutInternalTransaction[]> => {
 	if (limit <= 0) return []
 	const normalized = hexLowerOfByteSize(txHash, 32)
 	if (normalized == null) return []
-	const wire = await getJson<BlockscoutPaginatedWire<BlockscoutInternalTransactionWire>>({
+	const wire = await getJson<BlockscoutPaginated<BlockscoutInternalTransaction>>({
 		explorerOrigin,
 		path: `/transactions/${normalized}/internal-transactions`,
 		searchParams: {
@@ -411,11 +411,11 @@ export const getBlockscoutAddressInternalTransactions = async ({
 	address: `0x${string}`
 	limit: number
 	searchParams?: Record<string, string | number | undefined>
-}): Promise<BlockscoutInternalTransactionWire[]> => {
+}): Promise<BlockscoutInternalTransaction[]> => {
 	if (limit <= 0) return []
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null) return []
-	const wire = await getJson<BlockscoutPaginatedWire<BlockscoutInternalTransactionWire>>({
+	const wire = await getJson<BlockscoutPaginated<BlockscoutInternalTransaction>>({
 		explorerOrigin,
 		path: `/addresses/${normalized}/internal-transactions`,
 		searchParams: {
@@ -432,11 +432,11 @@ export const getTransactionLogsBlockscout = async ({
 }: {
 	explorerOrigin: string
 	txHash: `0x${string}`
-}): Promise<RpcReceiptWire['logs']> => {
-	const logs: NonNullable<RpcReceiptWire['logs']> = []
+}): Promise<RpcReceipt['logs']> => {
+	const logs: NonNullable<RpcReceipt['logs']> = []
 	let nextPageParams: Record<string, string | number> | undefined
 	do {
-		const wire = await getJson<BlockscoutPaginatedWire<BlockscoutTransactionLogWire>>({
+		const wire = await getJson<BlockscoutPaginated<BlockscoutTransactionLog>>({
 			explorerOrigin,
 			path: `/transactions/${txHash}/logs`,
 			searchParams: nextPageParams,
@@ -453,8 +453,8 @@ export const getTransactionReceiptBlockscout = async ({
 }: {
 	explorerOrigin: string
 	txHash: `0x${string}`
-}): Promise<RpcReceiptWire | null> => {
-	const tx = await getJson<BlockscoutTransactionWire | null>({
+}): Promise<RpcReceipt | null> => {
+	const tx = await getJson<BlockscoutTransaction | null>({
 		explorerOrigin,
 		path: `/transactions/${txHash}`,
 	})
@@ -473,7 +473,7 @@ export const getTransactionReceiptBlockscout = async ({
 }
 
 export const evmAddressFromBlockscoutContractListWire = (
-	w: BlockscoutSmartContractForListWire,
+	w: BlockscoutSmartContractForList,
 ): `0x${string}` | null => {
 	const h = addressHash(w.address ?? w.address_hash)
 	if (h == null || h === '') return null
@@ -487,9 +487,9 @@ export const getBlockscoutSmartContracts = async ({
 }: {
 	explorerOrigin: string
 	limit: number
-}): Promise<BlockscoutSmartContractForListWire[]> => {
+}): Promise<BlockscoutSmartContractForList[]> => {
 	if (limit <= 0) return []
-	const wire = await getJson<BlockscoutPaginatedWire<BlockscoutSmartContractForListWire>>({
+	const wire = await getJson<BlockscoutPaginated<BlockscoutSmartContractForList>>({
 		explorerOrigin,
 		path: '/smart-contracts',
 		searchParams: {
@@ -500,7 +500,7 @@ export const getBlockscoutSmartContracts = async ({
 }
 
 const blockscoutLegacyAbiFromWire = (
-	wire: import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractStatusWire,
+	wire: import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractStatus,
 ): string | null => {
 	if (wire.status === '1' && typeof wire.result === 'string' && wire.result.trim()) {
 		return wire.result
@@ -522,7 +522,7 @@ export const getBlockscoutContractAbiJsonString = async ({
 	const { getBlockscoutLegacyJson } = await import('$/sources/Blockscout/Rest/client.ts')
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null) return null
-	const abiWire = await getBlockscoutLegacyJson<import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractStatusWire>({
+	const abiWire = await getBlockscoutLegacyJson<import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractStatus>({
 		explorerOrigin,
 		query: {
 			module: 'contract',
@@ -532,7 +532,7 @@ export const getBlockscoutContractAbiJsonString = async ({
 	})
 	const abiFromGetAbi = blockscoutLegacyAbiFromWire(abiWire)
 	if (abiFromGetAbi != null) return abiFromGetAbi
-	const sourceWire = await getBlockscoutLegacyJson<import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractStatusWire>({
+	const sourceWire = await getBlockscoutLegacyJson<import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractStatus>({
 		explorerOrigin,
 		query: {
 			module: 'contract',
@@ -550,11 +550,11 @@ export const getBlockscoutContractSourceCodeRow = async ({
 }: {
 	explorerOrigin: string
 	address: `0x${string}`
-}): Promise<import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractSourceRowWire | null> => {
+}): Promise<import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractSource | null> => {
 	const { getBlockscoutLegacyJson } = await import('$/sources/Blockscout/Rest/client.ts')
 	const normalized = hexLowerOfByteSize(address, 20)
 	if (normalized == null) return null
-	const wire = await getBlockscoutLegacyJson<import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractStatusWire>({
+	const wire = await getBlockscoutLegacyJson<import('$/sources/Blockscout/Rest/types.ts').BlockscoutLegacyContractStatus>({
 		explorerOrigin,
 		query: {
 			module: 'contract',
@@ -653,12 +653,12 @@ const getBlockscoutErc4337TopRegistryList = async ({
 	explorerOrigin: string
 	limit: number
 	relativePath: string
-}): Promise<BlockscoutErc4337RegistryEntryWire[]> => {
+}): Promise<BlockscoutErc4337RegistryEntry[]> => {
 	if (limit <= 0) {
 		throw new Error(`Blockscout GET ${relativePath}: limit must be positive`)
 	}
 	const raw = await getJson<
-		BlockscoutPaginatedWire<BlockscoutErc4337RegistryEntryWire> & { error?: unknown }
+		BlockscoutPaginated<BlockscoutErc4337RegistryEntry> & { error?: unknown }
 	>({
 		explorerOrigin,
 		path: relativePath,
@@ -682,40 +682,15 @@ const getBlockscoutErc4337RegistryDetail = async ({
 	explorerOrigin: string
 	address: `0x${string}`
 	relativePath: string
-}): Promise<BlockscoutErc4337RegistryEntryWire> => {
+}): Promise<BlockscoutErc4337RegistryEntry> => {
 	const normalized = blockscoutErc4337PathHash(address, 20, 'Blockscout ERC-4337 registry detail')
 	const path = `${relativePath}/${normalized}`
-	const raw = await getJson<BlockscoutErc4337RegistryEntryWire & { error?: unknown }>({
+	const raw = await getJson<BlockscoutErc4337RegistryEntry & { error?: unknown }>({
 		explorerOrigin,
 		path,
 	})
 	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${path}`)
 	return raw
-}
-
-export const getBlockscoutUserOperationsForTransaction = async ({
-	explorerOrigin,
-	txHash,
-	limit,
-}: {
-	explorerOrigin: string
-	txHash: `0x${string}`
-	limit: number
-}): Promise<BlockscoutUserOperationListItemWire[]> => {
-	if (limit <= 0) return []
-	const relativePath = '/proxy/account-abstraction/operations'
-	const raw = await getJson<
-		BlockscoutPaginatedWire<BlockscoutUserOperationListItemWire> & { error?: unknown }
-	>({
-		explorerOrigin,
-		path: relativePath,
-		searchParams: {
-			transaction_hash: txHash,
-			page_size: blockscoutItemsCount(limit),
-		},
-	})
-	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
-	return raw.items ?? []
 }
 
 export const getBlockscoutUserOperationsPage = async ({
@@ -724,10 +699,10 @@ export const getBlockscoutUserOperationsPage = async ({
 }: {
 	explorerOrigin: string
 	limit: number
-}): Promise<BlockscoutUserOperationListItemWire[]> => {
+}): Promise<BlockscoutUserOperationListItem[]> => {
 	const relativePath = '/proxy/account-abstraction/operations'
 	const raw = await getJson<
-		BlockscoutPaginatedWire<BlockscoutUserOperationListItemWire> & { error?: unknown }
+		BlockscoutPaginated<BlockscoutUserOperationListItem> & { error?: unknown }
 	>({
 		explorerOrigin,
 		path: relativePath,
@@ -749,11 +724,11 @@ export const getBlockscoutUserOperationDetail = async ({
 }: {
 	explorerOrigin: string
 	hash: `0x${string}`
-}): Promise<BlockscoutUserOperationDetailWire> => {
+}): Promise<BlockscoutUserOperationDetail> => {
 	const normalized = blockscoutErc4337PathHash(hash, 32, 'Blockscout user operation detail')
 	const path = `/proxy/account-abstraction/operations/${normalized}`
 	const raw = await getJson<
-		BlockscoutUserOperationDetailWire & { error?: unknown }
+		BlockscoutUserOperationDetail & { error?: unknown }
 	>({
 		explorerOrigin,
 		path,

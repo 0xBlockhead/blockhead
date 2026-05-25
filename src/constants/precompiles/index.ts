@@ -15,13 +15,9 @@ const normalizeAddress = (address: `0x${string}`): string => (
 	address.slice(2).toLowerCase().padStart(40, '0')
 )
 
-
-/** Precompiles for a chain: from synced shemnon data or standard set. Deduped and sorted by address. */
-export const getPrecompilesForChain = (chainId: number): PrecompileEntry[] => {
-	const list = (
-		syncedPrecompilesByChainId.get(chainId)
-		?? [...standardPrecompiles]
-	)
+const dedupeSortPrecompiles = (
+	list: readonly PrecompileEntry[],
+): PrecompileEntry[] => {
 	const seen = new Set<string>()
 	const out: PrecompileEntry[] = []
 	for (const precompile of list) {
@@ -43,23 +39,13 @@ export const getPrecompilesForChain = (chainId: number): PrecompileEntry[] => {
 export const precompileChainIds = syncedChainIds
 
 
-/** Address → name map for a chain's precompiles. */
-export const getPrecompileAddressToName = (
-	chainId: number,
-): Record<string, string> => (
-	Object.fromEntries(
-		getPrecompilesForChain(chainId).map((precompile) => [
-			normalizeAddress(precompile.address),
-			precompile.name,
-		]),
-	)
-)
-
-
-/** Catalog precompile name for this contract address on the chain, if any. */
-export const getPrecompileNameForAddress = (
-	chainId: number,
-	address: `0x${string}`,
-): string | undefined => (
-	getPrecompileAddressToName(chainId)[normalizeAddress(address)]
+/** Precompiles per chain (synced schedule or standard set). */
+export const precompilesByChainId = Object.fromEntries(
+	[...syncedChainIds].map((chainId) => [
+		chainId,
+		dedupeSortPrecompiles(
+			syncedPrecompilesByChainId.get(chainId)
+			?? standardPrecompiles,
+		),
+	]),
 )

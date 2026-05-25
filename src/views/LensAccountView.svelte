@@ -2,11 +2,12 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { stringify } from 'devalue'
 	import { schema } from '$/schema/index.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -15,31 +16,23 @@
 
 	// Props
 	let {
-		children: _children,
 		entityId,
-		href,
+		href = resolve('/(social)/lens/account/[address]', {
+			address: entityId.address,
+		}),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.LensAccount>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Heading'
-			| 'HeadingAfter'
-			| 'Content'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -52,15 +45,19 @@
 	const lensAccount = useEntity(
 		EntityType.LensAccount,
 		entityId,
-		(
-			open ?
-				{
-					$: [Source.Lens_Graphql],
-					localName: {},
-				}
-			:
-				{}
-		),
+		{
+			$: [
+				Source.Lens_Graphql,
+				Source.Lens_HeyGraphql,
+			],
+			localName: {},
+			displayName: {},
+			bio: {},
+			createdAt: {},
+			followerCount: {},
+			followingCount: {},
+			$icon: {},
+		},
 	)
 
 
@@ -72,25 +69,33 @@
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import LensPostsView from '$/views/LensPostsView.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.LensAccount}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Lens v3 profiles are on-chain accounts keyed by EVM address; usernames and avatars resolve from Lens GraphQL metadata, not legacy v2 profile ids.
+		</p>
+	{/snippet}
+
 	{#snippet Heading()}
-		<ResourceBoundary resource={lensAccount}>
-			{#snippet children(lensAccount)}
-				{#if lensAccount.localName}
-					{lensAccount.localName}
-				{:else}
-					{entityId.address}
-				{/if}
+		<ResourceBoundary
+			resource={lensAccount}
+			placeholderText="Loading Lens profile…"
+		>
+			{#snippet children(loadedLensAccount)}
+				{loadedLensAccount.displayName
+					?? loadedLensAccount.localName
+					?? entityId.address}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -106,27 +111,128 @@
 	{/snippet}
 
 	{#snippet Icon()}
-		<IconComponent
-			shape={IconShape.Circle}
-			icon="L"
-			label="Lens"
-		/>
+		<ResourceBoundary
+			resource={lensAccount}
+			placeholderText="Loading Lens profile…"
+		>
+			{#snippet children(loadedLensAccount)}
+				{#if loadedLensAccount.$icon?.[EntityMetaKey.Id].url}
+					<IconComponent
+						shape={IconShape.Circle}
+						src={loadedLensAccount.$icon[EntityMetaKey.Id].url}
+						alt=""
+					/>
+				{:else}
+					<IconComponent
+						shape={IconShape.Circle}
+						icon="L"
+						label="Lens"
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary
+			resource={lensAccount}
+		>
+			{#snippet children(loadedLensAccount)}
+				{#if (
+					lensAccount.localName != null
+					&& lensAccount.localName !== ''
+					&& lensAccount.localName !== (
+						lensAccount.displayName
+						?? loadedLensAccount.localName
+						?? entityId.address
+					)
+				)}
+					<span data-text="muted">
+						@{loadedLensAccount.localName}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			<div>
-				<dt>Profile address</dt>
-				<dd data-text="mono">
-					<ResourceBoundary resource={lensAccount}>
-						{#snippet children(lensAccount)}
-							{#if lensAccount.localName}
-								{@render Title()}
+				<dt>Bio</dt>
+				<dd>
+					<ResourceBoundary
+						resource={lensAccount}
+						placeholderText="Loading Lens profile…"
+					>
+						{#snippet children(loadedLensAccount)}
+							{#if loadedLensAccount.bio != null && loadedLensAccount.bio !== ''}
+								{loadedLensAccount.bio}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
+
+			{#if (
+				open
+				&& lensAccount.followerCount != null
+			)}
+				<div>
+					<dt>Followers</dt>
+					<dd>
+						<ResourceBoundary
+							resource={lensAccount}
+							placeholderText="Loading Lens profile…"
+						>
+							{#snippet children(loadedLensAccount)}
+								<NumberValue
+									value={loadedLensAccount.followerCount}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if (
+				open
+				&& lensAccount.followingCount != null
+			)}
+				<div>
+					<dt>Following</dt>
+					<dd>
+						<ResourceBoundary
+							resource={lensAccount}
+							placeholderText="Loading Lens profile…"
+						>
+							{#snippet children(loadedLensAccount)}
+								<NumberValue
+									value={loadedLensAccount.followingCount}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if (
+				open
+				&& lensAccount.createdAt != null
+			)}
+				<div>
+					<dt>Account created</dt>
+					<dd>
+						<ResourceBoundary
+							resource={lensAccount}
+							placeholderText="Loading Lens profile…"
+						>
+							{#snippet children(loadedLensAccount)}
+								<Timestamp
+									timestamp={loadedLensAccount.createdAt}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 		</dl>
 	{/snippet}
 
@@ -152,7 +258,7 @@
 						data-row="wrap gap-4"
 					>
 						<HeadingComponent>
-							Lens v3 profile &amp; publications
+							Lens profile &amp; publications
 						</HeadingComponent>
 					</header>
 				{/snippet}
@@ -167,10 +273,10 @@
 					<a
 						data-scroll-marker-label="Publications"
 						href={`#${idKey}:posts`}
-					>Publications (Lens v3)</a>
+					>Publications</a>
 				{/snippet}
 
-				{#snippet body(_ctx)}
+				{#snippet body({ open: _bodyOpen })}
 					<section
 						data-scroll-marker-label="Record"
 						id={`${idKey}:lens-account-record`}
@@ -180,19 +286,21 @@
 							{entityId}
 						/>
 					</section>
+
 					<section
 						data-scroll-marker-label="Publications"
 						id={`${idKey}:posts`}
 					>
 						<LensPostsView
+							href={resolve(
+			'/(social)/(lens)/lens/account/[address]/(account)/posts',
+			{ address: entityId.address },
+		)}
 							entityFieldReference={{
 								entityType: EntityType.LensAccount,
 								entityId,
 								fieldName: '$$posts',
 							}}
-							href={resolve('/(social)/lens/account/[address]/(account)/posts', {
-								address: entityId.address,
-							})}
 							id={`${idKey}:posts-list`}
 						/>
 					</section>
@@ -200,9 +308,5 @@
 			</CollapsibleTabs>
 		</div>
 
-		{#if _children}
-			{@render _children()}
-		{/if}
 	{/snippet}
 </EntityView>
-

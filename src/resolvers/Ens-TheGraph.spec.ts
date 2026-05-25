@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import type { EnsDomainWire } from '$/resolvers/Ens-TheGraph.ts'
+import type { EnsSubgraphDomain } from '$/sources/TheGraph/Graphql/Ens/types.ts'
 
 
 const getEnsName = vi.fn()
@@ -77,7 +77,7 @@ const vitalikDomainWire = {
 	createdAt: '1700000000',
 	expiryDate: '1800000000',
 	subdomainCount: 1,
-} satisfies EnsDomainWire
+} satisfies EnsSubgraphDomain
 
 describe('Ens-TheGraph entity resolver', () => {
 	it('maps gql EnsDomain wire into schema fields without runtime typeof guards', async () => {
@@ -115,8 +115,8 @@ describe('Ens-TheGraph entity resolver', () => {
 				},
 			},
 			ttl: 300n,
-			createdAt: 1700000000n,
-			expiryDate: 1800000000n,
+			createdAt: 1700000000000n,
+			expiryDate: 1800000000000n,
 			subdomainCount: 1,
 			isMigrated: true,
 			contentHash: '0xcontent',

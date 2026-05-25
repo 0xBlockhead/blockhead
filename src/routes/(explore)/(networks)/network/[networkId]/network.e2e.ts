@@ -88,16 +88,29 @@ test.describe('/network/[networkId]', () => {
 
 		await step(expect(page.locator('[data-scroll-marker-label="Blocks"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('[data-scroll-marker-label="Transactions"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-data-storage [data-scroll-marker-label="Contracts"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-data-storage [data-scroll-marker-label="Verified"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Validators"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-execution [data-scroll-marker-label="Mempool"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-economics [data-scroll-marker-label="Assets"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-economics [data-scroll-marker-label="Gas"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-economics [data-scroll-marker-label="MEV-Boost"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-erc-4337')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-erc-4337 [data-scroll-marker-label="Bundlers"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Activations"]')).toBeAttached(scrollAttach))
-		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Fork schedule"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-erc-4337 [data-scroll-marker-label="Smart accounts"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-erc-4337 [data-scroll-marker-label="User operations"]')).toBeAttached(scrollAttach))
+
+		const smartAccountsSection = page.locator('[id$=":aa-smart-accounts-list"]')
+		const userOperationsSection = page.locator('[id$=":aa-user-operations-list"]')
+		await step(expect(
+			smartAccountsSection.locator('a[href*="/erc-4337/smart-account/"]')
+				.or(smartAccountsSection.locator('p[data-text="muted"]'))
+				.or(smartAccountsSection.locator('[data-card] p')),
+		).toBeAttached({ timeout: 120_000 }))
+		await step(expect(
+			userOperationsSection.locator('a[href*="/user-operation/"]')
+				.or(userOperationsSection.locator('p[data-text="muted"]'))
+				.or(userOperationsSection.locator('[data-card] p')),
+		).toBeAttached({ timeout: 120_000 }))
+		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Upgrades"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Finality"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('[data-scroll-marker-label="Epochs"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('[data-scroll-marker-label="Slots"]')).toBeAttached(scrollAttach))

@@ -1,13 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
-	import { resolve } from '$app/paths'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,35 +8,39 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/erc-4337/bundler/[address]',
+			{
+				networkId: String(entityId.$network.chainId),
+				address: entityId.address,
+			},
+		),
 		layout = EntityLayout.Summary,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		title = 'ERC-4337 bundler',
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.Erc4337Bundler>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			open?: boolean
 			title?: string
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'layout'
-			| 'open'
-			| 'title'
-		>
+		never
 	> = $props()
 
 
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const bundler = useEntity(
 		EntityType.Erc4337Bundler,
 		entityId,
@@ -57,6 +54,9 @@
 
 
 	// Components
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ActorView from '$/views/ActorView.svelte'
 </script>
 
@@ -64,11 +64,11 @@
 <EntityView
 	entityType={EntityType.Erc4337Bundler}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
 	bind:open
 	{title}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
@@ -97,9 +97,9 @@
 			placeholderText="Loading bundler…"
 			resource={bundler}
 		>
-			{#snippet children(bundler)}
+			{#snippet children(loadedBundler)}
 				<dl data-column-item="center">
-					{#if bundler.userOperationsCount !== undefined}
+					{#if loadedBundler.userOperationsCount !== undefined}
 						<div>
 							<dt>User operations</dt>
 							<dd data-text="mono">{String(bundler.userOperationsCount)}</dd>
@@ -117,7 +117,6 @@
 								})}
 								layout={EntityLayout.Title}
 								open={false}
-								showTypeAnnotation={false}
 								title="Bundler operator"
 							/>
 						</dd>
@@ -133,3 +132,4 @@
 		</p>
 	{/snippet}
 </EntityView>
+

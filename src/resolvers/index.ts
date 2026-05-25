@@ -20,6 +20,7 @@ import ConstantsResolvers from '$/resolvers/Constants.ts'
 import DefillamaOpenApiResolvers from '$/resolvers/Defillama-OpenApi.ts'
 import DefillamaRestResolvers from '$/resolvers/Defillama-Rest.ts'
 import DexscreenerOpenApiResolvers from '$/resolvers/Dexscreener-OpenApi.ts'
+import Eip8004ScanRestResolvers from '$/resolvers/Eip8004Scan-Rest.ts'
 import DuneRestResolvers from '$/resolvers/Dune-Rest.ts'
 import EnsTheGraphResolvers from '$/resolvers/Ens-TheGraph.ts'
 import EnsipsGithubResolvers from '$/resolvers/Ensips-Github.ts'
@@ -76,6 +77,7 @@ const enabledResolverModulesAfterSourceGate = (
 		DefillamaOpenApiResolvers,
 		DefillamaRestResolvers,
 		DexscreenerOpenApiResolvers,
+		Eip8004ScanRestResolvers,
 		DuneRestResolvers,
 		EnsTheGraphResolvers,
 		EnsipsGithubResolvers,

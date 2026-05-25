@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Props
 	let {
 		params,
@@ -22,9 +18,5 @@
 <Page>
 	<YouTubeVideoView
 		{entityId}
-		href={resolve(
-			'/(social)/(youtube)/youtube/video/[videoId]',
-			{ videoId: encodeURIComponent(entityId.videoId) },
-		)}
 	/>
 </Page>

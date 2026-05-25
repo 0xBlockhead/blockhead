@@ -1,62 +1,7 @@
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { graphql, queryEns } from '$/sources/TheGraph/Graphql/Ens/client.ts'
-
-const Domain = graphql(`
-	fragment EnsDomain on Domain @_unmask {
-		id
-		name
-		labelName
-		labelhash
-		parent {
-			id
-			name
-		}
-		subdomains {
-			id
-			name
-		}
-		resolvedAddress {
-			id
-		}
-		owner {
-			id
-		}
-		registrant {
-			id
-		}
-		wrappedOwner {
-			id
-		}
-		wrappedDomain {
-			expiryDate
-			fuses
-		}
-		registration {
-			registrationDate
-			expiryDate
-			cost
-			registrant {
-				id
-			}
-		}
-		resolver {
-			id
-			address
-			addr {
-				id
-			}
-			contentHash
-			texts
-			coinTypes
-		}
-		ttl
-		isMigrated
-		createdAt
-		expiryDate
-		subdomainCount
-	}
-`)
+import { EnsDomainFragment } from '$/sources/TheGraph/Graphql/Ens/types.ts'
 
 export const getEnsName = async ({
 	publicEnv,
@@ -81,7 +26,7 @@ export const getEnsName = async ({
 					}
 				}
 			`, [
-				Domain,
+				EnsDomainFragment,
 			]),
 			{
 				name,
@@ -93,9 +38,11 @@ export const getEnsName = async ({
 export const getEnsDomainsContaining = async ({
 	publicEnv,
 	query,
+	limit,
 }: {
 	publicEnv: SourcePublicEnvFor<Source.TheGraph_Graphql>
 	query: string
+	limit: number
 }) => (
 	(
 		await queryEns(
@@ -103,23 +50,25 @@ export const getEnsDomainsContaining = async ({
 			graphql(`
 				query EnsDomainsContaining(
 					$query: String!
+					$limit: Int!
 				) {
 					domains(
 						where: {
 							name_contains: $query
-							name_not: $query
 						}
 						orderBy: name
 						orderDirection: asc
+						first: $limit
 					) {
 						...EnsDomain
 					}
 				}
 			`, [
-				Domain,
+				EnsDomainFragment,
 			]),
 			{
 				query,
+				limit,
 			},
 		)
 	).domains
@@ -150,7 +99,7 @@ export const getEnsDomainsByOwner = async ({
 					}
 				}
 			`, [
-				Domain,
+				EnsDomainFragment,
 			]),
 			{
 				owner,

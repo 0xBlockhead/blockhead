@@ -7,6 +7,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -15,37 +16,40 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+			'/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]',
+			{
+				chainId: String(entityId.$coinInstance.$network.chainId),
+				owner: entityId.$actor.address,
+				coin: (
+					entityId.$coinInstance.type === CoinInstanceType.Erc20Token ?
+						entityId.$coinInstance.$contract.address
+					:
+						pathNativeCoin
+				),
+			},
+		),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.ActorCoin>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
+			| 'layout'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' as const
 
 	const actorCoinDetailAnchorKey = stringify(entityId)
 
@@ -82,10 +86,9 @@
 <EntityView
 	entityType={EntityType.ActorCoin}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -102,13 +105,13 @@
 			resource={actorCoin}
 			placeholderText="Loading holding…"
 		>
-			{#snippet children(actorCoin)}
-				{actorCoin.symbol ?? 'Balance'}
+			{#snippet children(loadedActorCoin)}
+				{loadedActorCoin.symbol ?? 'Balance'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href, open })}
+	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
 				<dt>Wallet · chain</dt>
@@ -118,16 +121,8 @@
 							$network: entityId.$coinInstance.$network,
 							$actor: entityId.$actor,
 						}}
-						href={resolve(
-							'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-							{
-								networkId: String(entityId.$coinInstance.$network.chainId),
-								address: entityId.$actor.address,
-							},
-						)}
 						layout={EntityLayout.Title}
 						open={false}
-						showTypeAnnotation={false}
 					/>
 				</dd>
 			</div>
@@ -139,14 +134,7 @@
 					{:else if entityId.$coinInstance.type === CoinInstanceType.Erc20Token}
 						<EvmContractView
 							entityId={entityId.$coinInstance.$contract}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-								{
-									networkId: String(entityId.$coinInstance.$contract.$network.chainId),
-									address: entityId.$coinInstance.$contract.address,
-								},
-							)}
-							layout={EntityLayout.Title}
+							layout={EntityLayout.SummaryDetails}
 							open={false}
 							showTypeAnnotation={false}
 						/>
@@ -156,7 +144,7 @@
 				</dd>
 			</div>
 
-			{#if open}
+			{#if contentOpen}
 				<div>
 					<dt>Balance (raw)</dt>
 					<dd>
@@ -164,8 +152,8 @@
 							resource={actorCoin}
 							placeholderText="Loading balance…"
 						>
-							{#snippet children(actorCoin)}
-								{#if actorCoin.balance !== undefined}
+							{#snippet children(loadedActorCoin)}
+								{#if loadedActorCoin.balance !== undefined}
 									{String(actorCoin.balance)}
 								{/if}
 							{/snippet}
@@ -174,7 +162,7 @@
 				</div>
 			{/if}
 
-			{#if open}
+			{#if contentOpen}
 				<div>
 					<dt>USD (estimate)</dt>
 					<dd>
@@ -182,8 +170,8 @@
 							resource={actorCoin}
 							placeholderText="Loading balance…"
 						>
-							{#snippet children(actorCoin)}
-								{#if actorCoin.usdValue !== undefined}
+							{#snippet children(loadedActorCoin)}
+								{#if loadedActorCoin.usdValue !== undefined}
 									{String(actorCoin.usdValue)}
 								{/if}
 							{/snippet}
@@ -192,7 +180,7 @@
 				</div>
 			{/if}
 
-			{#if open}
+			{#if contentOpen}
 				<div>
 					<dt>Decimals</dt>
 					<dd>
@@ -200,8 +188,8 @@
 							resource={actorCoin}
 							placeholderText="Loading balance…"
 						>
-							{#snippet children(actorCoin)}
-								{#if actorCoin.decimals !== undefined}
+							{#snippet children(loadedActorCoin)}
+								{#if loadedActorCoin.decimals !== undefined}
 									{String(actorCoin.decimals)}
 								{/if}
 							{/snippet}
@@ -237,20 +225,14 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet Markers({ open: _markersOpen })}
 					<a
 						data-scroll-marker-label="Overview"
 						href={`#${actorCoinDetailAnchorKey}:coin-overview`}
 					>Overview</a>
-					{#if children}
-						<a
-							data-scroll-marker-label="Related"
-							href={`#${actorCoinDetailAnchorKey}:coin-related`}
-						>Related</a>
-					{/if}
 				{/snippet}
 
-				{#snippet body(_relatedChildren)}
+				{#snippet body({ open: _bodyOpen })}
 					<section
 						data-scroll-marker-label="Overview"
 						id={`${actorCoinDetailAnchorKey}:coin-overview`}
@@ -259,47 +241,40 @@
 							entityType={EntityType.ActorCoin}
 							{entityId}
 						/>
-
 						<ResourceBoundary
 							resource={actorCoin}
 							placeholderText="Loading holding…"
 						>
-							{#snippet children(actorCoin)}
-								{#if actorCoin.symbol == null}
-									{#if actorCoin.decimals == null}
-										{#if actorCoin.balance == null}
-											<div data-row="wrap align-center gap-2">
-												<p data-text="muted">
-													No balance yet.
+							{#snippet children(loadedActorCoin)}
+								{#if (
+									actorCoin.symbol == null
+									&& actorCoin.decimals == null
+									&& actorCoin.balance == null
+								)}
+									<div data-row="wrap align-center gap-2">
+										<p data-text="muted">
+											No balance yet.
+										</p>
+										<Tooltip contentProps={{ side: 'top' }}>
+											{#snippet Content()}
+												<p>
+													Symbol, decimals, and balance appear once this holding is resolved for the wallet on this network.
 												</p>
-												<Tooltip contentProps={{ side: 'top' }}>
-													{#snippet Content()}
-														<p>
-															Symbol, decimals, and balance appear once this holding is resolved for the wallet on this network.
-														</p>
-													{/snippet}
-													<abbr
-														class="entity-heading-tip"
-														aria-label="Token balance"
-													>ⓘ</abbr>
-												</Tooltip>
-											</div>
-										{/if}
-									{/if}
+											{/snippet}
+											<abbr
+												class="entity-heading-tip"
+												aria-label="Token balance"
+											>ⓘ</abbr>
+										</Tooltip>
+									</div>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</section>
-					{#if children}
-						<section
-							data-scroll-marker-label="Related"
-							id={`${actorCoinDetailAnchorKey}:coin-related`}
-						>
-							{@render children()}
-						</section>
-					{/if}
+
 				{/snippet}
 			</CollapsibleTabs>
 		</div>
 	{/snippet}
 </EntityView>
+

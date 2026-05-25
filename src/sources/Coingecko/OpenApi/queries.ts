@@ -255,9 +255,11 @@ export const getCoingeckoOpenApiDerivativesExchangeById = async ({
 export const collectCoingeckoOpenApiDerivativeMarketEntityIds = async ({
 	publicEnv,
 	catalogCoinId,
+	marketVenueId,
 }: {
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_OpenApi>
 	catalogCoinId?: CoinId
+	marketVenueId?: MarketVenueId
 }): Promise<EntityId<typeof schema, EntityType.Market>[]> => {
 	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 	const catalogCoinIdByCoingeckoIdMap = catalogCoinIdByCoingeckoId(idByCoinId)
@@ -266,19 +268,29 @@ export const collectCoingeckoOpenApiDerivativeMarketEntityIds = async ({
 	return (
 		(
 			await Promise.all(
-				Object.entries(coingeckoDerivativesExchangeIdByMarketVenueId).map(
-					async ([marketVenueId, exchangeId]) => {
-						const exchange = await getCoingeckoOpenApiDerivativesExchangeById({
-							publicEnv,
-							exchangeId,
-						})
-						return (
-							(exchange?.tickers ?? []).flatMap((ticker) => {
-								const marketId = marketEntityIdFromCoingeckoDerivativesExchangeTicker(
-									ticker,
-									marketVenueId as MarketVenueId,
-									catalogCoinIdByCoingeckoIdMap,
-								)
+				(
+					Object.entries(coingeckoDerivativesExchangeIdByMarketVenueId) as [
+						MarketVenueId,
+						string,
+					][]
+				)
+					.filter(([venueId]) => (
+						marketVenueId == null
+						|| venueId === marketVenueId
+					))
+					.map(
+						async ([venueId, exchangeId]) => {
+							const exchange = await getCoingeckoOpenApiDerivativesExchangeById({
+								publicEnv,
+								exchangeId,
+							})
+							return (
+								(exchange?.tickers ?? []).flatMap((ticker) => {
+									const marketId = marketEntityIdFromCoingeckoDerivativesExchangeTicker(
+										ticker,
+										venueId,
+										catalogCoinIdByCoingeckoIdMap,
+									)
 								if (marketId == null) {
 									return []
 								}

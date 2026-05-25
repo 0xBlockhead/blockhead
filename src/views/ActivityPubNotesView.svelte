@@ -1,0 +1,137 @@
+<script lang="ts">
+	// Types/constants
+	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
+	import type { Entity } from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+
+
+	// Props
+	let {
+		id,
+		limit = 50,
+		open = $bindable(true),
+		orderByCreatedAt,
+		placeholderText,
+		title,
+		entityFieldReference,
+		fieldOpen = true,
+	}: {
+		id: string
+		limit?: number
+		open?: boolean
+		orderByCreatedAt: 'asc' | 'desc'
+		placeholderText: string
+		title: string
+		entityFieldReference: EntityFieldReference<typeof schema, EntityType.ActivityPubNote>
+		fieldOpen?: boolean
+	} = $props()
+
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ActivityPubNoteView from '$/views/ActivityPubNoteView.svelte'
+</script>
+
+
+<EntitiesList
+	collapsible={true}
+	entityType={EntityType.ActivityPubNote}
+	{id}
+	bind:open
+	{title}
+>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Mastodon public timeline statuses for this facet—each row resolves note text, visibility, and engagement from the instance REST API.
+		</p>
+		<p>
+			Ordering follows Mastodon status id (snowflake) when the collection returns id-only refs; activate the facet to load the timeline.
+		</p>
+	{/snippet}
+
+	{#snippet body({ open: _bodyOpen })}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				(
+					fieldOpen ?
+						{
+							[entityFieldReference.fieldName]: {
+								$: [
+									Source.Mastodon_Rest,
+									Source.Fedi_Rest,
+								],
+							},
+						}
+					:
+						{}
+				),
+			)}
+			{@const notes = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.ActivityPubNote>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return rows
+				},
+			)}
+			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}-${orderByCreatedAt}`}
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.ActivityPubNote}
+					id={`${id}-items`}
+					{title}
+					open={true}
+					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getSortValue={(row) => (
+						orderByCreatedAt === 'asc' ?
+							Number(row[EntityMetaKey.Id].localStatusId) || 0
+						:
+							-(Number(row[EntityMetaKey.Id].localStatusId) || 0)
+					)}
+					placeholderText={(
+						fieldOpen ?
+							placeholderText
+						:
+							'Facet idle—no timeline request.'
+					)}
+					resource={notes}
+					UnorderedListProps={{ limit }}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No notes yet.
+						</p>
+					{/snippet}
+
+					{#snippet Item({ item })}
+						{@const noteId = item[EntityMetaKey.Id]}
+						<ActivityPubNoteView
+							entityId={{
+								instanceOrigin: noteId.instanceOrigin,
+								localStatusId: noteId.localStatusId,
+							}}
+							layout={EntityLayout.Summary}
+							open={false}
+							showTypeAnnotation={false}
+						/>
+					{/snippet}
+				</EntitiesList>
+			{/key}
+		{/if}
+	{/snippet}
+</EntitiesList>

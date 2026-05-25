@@ -1,5 +1,4 @@
 import { throwHttpError } from '$/lib/http.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { coingeckoRestFetch } from '$/sources/Coingecko/Rest/client.ts'
@@ -116,7 +115,7 @@ export const getCoingeckoCoinByAssetPlatformContract = async ({
 	return res.json<CoingeckoCoin>()
 }
 
-const fetchCoingeckoAssetPlatformsOnce = async (
+export const fetchCoingeckoAssetPlatforms = async (
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
 ): Promise<CoingeckoAssetPlatform[]> => {
 	const res = await coingeckoRestFetch(publicEnv, '/asset_platforms')
@@ -126,7 +125,6 @@ const fetchCoingeckoAssetPlatformsOnce = async (
 	return res.json<CoingeckoAssetPlatform[]>()
 }
 
-export const fetchCoingeckoAssetPlatforms = singleFlight(fetchCoingeckoAssetPlatformsOnce)
 
 export const getCoingeckoCoinWithAssetPlatforms = async (
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
@@ -175,16 +173,16 @@ export const getCoingeckoSimplePriceUsd = async ({
 	if (res.status === 404) return undefined
 	if (!res.ok) await throwHttpError('CoinGecko /simple/price', res)
 
-	type CoingeckoSimplePriceWire = Record<string, {
+	type CoingeckoSimplePrice = Record<string, {
 		usd?: number
 		last_updated_at?: number
 	}>
-	const payload = await res.json<CoingeckoSimplePriceWire>()
+	const payload = await res.json<CoingeckoSimplePrice>()
 
 	return payload[coingeckoId]
 }
 
-export type CoingeckoCoinsMarketRowWire = {
+export type CoingeckoCoinsMarket = {
 	id: string
 	symbol: string
 	name: string
@@ -204,7 +202,7 @@ export const getCoingeckoCoinsMarketsPage = async ({
 	order: 'market_cap_desc'
 	perPage: number
 	page: number
-}): Promise<CoingeckoCoinsMarketRowWire[]> => {
+}): Promise<CoingeckoCoinsMarket[]> => {
 	const searchParams = new URLSearchParams()
 	searchParams.set('vs_currency', vsCurrency)
 	searchParams.set('order', order)
@@ -219,7 +217,7 @@ export const getCoingeckoCoinsMarketsPage = async ({
 
 	if (!res.ok) await throwHttpError('CoinGecko /coins/markets', res)
 
-	return res.json<CoingeckoCoinsMarketRowWire[]>()
+	return res.json<CoingeckoCoinsMarket[]>()
 }
 
 export const getCoingeckoCoinOhlc = async ({

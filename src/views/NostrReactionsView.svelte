@@ -8,6 +8,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
@@ -18,7 +19,6 @@
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		limit = 50,
 		open = $bindable(
@@ -26,26 +26,42 @@
 		),
 		collapsible = true,
 		title = 'Reactions',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.NostrReaction>
-			href: string
 			id: string
 			limit?: number
 			open?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'body'
+			| 'collapsible'
+			| 'CollapsibleProps'
+			| 'Empty'
+			| 'getKey'
+			| 'getSortValue'
+			| 'HeadingProps'
+			| 'href'
+			| 'id'
+			| 'Item'
+			| 'ItemPlaceholder'
+			| 'items'
+			| 'layout'
+			| 'panelStyle'
+			| 'placeholderKeys'
+			| 'placeholderText'
+			| 'resource'
+			| 'showSummary'
+			| 'TypeAnnotationTooltip'
+			| 'UnorderedListProps'
 		>
 	> = $props()
 
 
 	// State
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -59,12 +75,11 @@
 
 <EntitiesList
 	entityType={EntityType.NostrReaction}
-	{href}
 	{id}
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -81,9 +96,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -92,7 +106,7 @@
 						Source.NostrBand_Rest,
 						Source.Primal_Rest,
 					],
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$: [
 							Source.NostrBand_Rest,
 							Source.Primal_Rest,
@@ -104,17 +118,10 @@
 				parent,
 				(parent) => {
 					const rows: Entity<typeof schema, EntityType.NostrReaction>[] = (
-						parent[fieldName] ?? []
+						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
 						rows
-							.toSorted((a, b) => (
-								`${String(-(b.createdAt ?? 0)).padStart(20, '0')}\0${b[EntityMetaKey.Id].eventId}`
-									.localeCompare(
-										`${String(-(a.createdAt ?? 0)).padStart(20, '0')}\0${a[EntityMetaKey.Id].eventId}`,
-									)
-							))
-							.slice(0, limit)
 							.map((reaction) => ({
 								entityId: reaction[EntityMetaKey.Id],
 								sortKey: (
@@ -129,13 +136,13 @@
 				showSummary={false}
 				entityType={EntityType.NostrReaction}
 				id={`${id}-items`}
-				{href}
 				{title}
 				resource={reactions}
 				placeholderText="Loading reactions…"
 				getKey={(row) => row.entityId.eventId}
 				getSortValue={(row) => row.sortKey}
 				placeholderKeys={new SvelteSet<string>()}
+				UnorderedListProps={{ limit }}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
@@ -144,18 +151,13 @@
 				{/snippet}
 
 				{#snippet Item({
-					item: row,
+					item: reaction,
 				})}
-					{#if row}
-						<NostrReactionView
-							entityId={row.entityId}
-							href={resolve('/nostr/reaction/[eventId]', {
-								eventId: row.entityId.eventId,
-							})}
-							layout={EntityLayout.SummaryDetails}
-							open={false}
-						/>
-					{/if}
+					<NostrReactionView
+						entityId={reaction.entityId}
+						layout={EntityLayout.SummaryDetails}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

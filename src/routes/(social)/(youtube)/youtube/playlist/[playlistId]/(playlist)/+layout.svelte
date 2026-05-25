@@ -1,6 +1,5 @@
 <script lang="ts">
-	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 
@@ -8,12 +7,15 @@
 	// Props
 	let { children } = $props()
 
+
+	// (Derived)
 	const playlistId = $derived(
 		page.params.playlistId ?? '',
 	)
 
 
 	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import YouTubePlaylistView from '$/views/YouTubePlaylistView.svelte'
 </script>
@@ -28,9 +30,6 @@
 	{#snippet Summary({ open: _open })}
 		<YouTubePlaylistView
 			entityId={{ playlistId: decodeURIComponent(playlistId) }}
-			href={resolve('/(social)/(youtube)/youtube/playlist/[playlistId]', {
-				playlistId: encodeURIComponent(playlistId),
-			})}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

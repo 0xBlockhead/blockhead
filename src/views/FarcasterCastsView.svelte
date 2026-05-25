@@ -7,22 +7,19 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Props
 	let {
 		entityFieldReference,
 		id = 'casts',
-		href = resolve('/farcaster/feed'),
 		title = 'Casts',
 		limit = 25,
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListProps
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<
@@ -30,22 +27,18 @@
 				EntityType.FarcasterCast
 			>
 			id?: string
-			href?: string
 			title?: string
 			limit?: number
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -60,11 +53,10 @@
 <EntitiesList
 	entityType={EntityType.FarcasterCast}
 	{id}
-	{href}
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListProps}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -81,7 +73,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parentFeed = useEntity(
 				EntityType.FarcasterFeed,
@@ -111,12 +103,11 @@
 				showSummary={false}
 				entityType={EntityType.FarcasterCast}
 				id={`${id}-items`}
-				{href}
+				href={EntitiesListProps.href}
 				{title}
 				open={true}
 				getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
 				getSortValue={(row) => stringify(row.result[EntityMetaKey.Id])}
-				placeholderKeys={new SvelteSet()}
 				placeholderText="Loading feed casts (Farcaster FID + cast hash)…"
 				resource={casts}
 			>
@@ -126,23 +117,17 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const castId = props.item.result[EntityMetaKey.Id]}
-						<FarcasterCastView
-							entityId={{
-								fid: castId.fid,
-								hash: castId.hash,
-							}}
-							href={resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
-								fid: String(castId.fid),
-								hash: String(castId.hash),
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-							variant="feed"
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const castId = item.result[EntityMetaKey.Id]}
+					<FarcasterCastView
+						entityId={{
+							fid: castId.fid,
+							hash: castId.hash,
+						}}
+						layout={EntityLayout.Summary}
+						open={false}
+						variant="feed"
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

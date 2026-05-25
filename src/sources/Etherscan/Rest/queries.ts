@@ -9,19 +9,19 @@
  */
 
 import type {
-	EtherscanAccountArrayWire,
-	EtherscanErc1155TokenTransferRowWire,
-	EtherscanErc20TokenTransferRowWire,
-	EtherscanErc721TokenTransferRowWire,
-	EtherscanGasOracleWire,
-	EtherscanInternalTransactionRowWire,
-	EtherscanProxyJsonRpcWire,
-	EtherscanStringStatusWire,
+	EtherscanAccountArray,
+	EtherscanErc1155TokenTransfer,
+	EtherscanErc20TokenTransfer,
+	EtherscanErc721TokenTransfer,
+	EtherscanGasOracle,
+	EtherscanInternalTransaction,
+	EtherscanProxyJsonRpc,
+	EtherscanStringStatus,
 } from '$/sources/Etherscan/Rest/types.ts'
 import type {
-	RpcBlockHeaderWire,
-	RpcReceiptWire,
-	RpcTxWire,
+	RpcBlockHeader,
+	RpcReceipt,
+	RpcTransaction,
 } from '$/sources/Evm/JsonRpc/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -62,7 +62,7 @@ const etherscanAccountListRows = async <T>({
 	options?: { apiKey?: string }
 }): Promise<T[] | null> => (
 	etherscanV2UnwrapAccountResultArray(
-		await etherscanV2GetJson<EtherscanAccountArrayWire<T>>({
+		await etherscanV2GetJson<EtherscanAccountArray<T>>({
 			chainId,
 			publicEnv,
 			query,
@@ -89,9 +89,9 @@ export const proxyEthGetTransactionByHash = async ({
 	chainId: number
 	txHash: `0x${string}`
 	options?: { apiKey?: string }
-}): Promise<RpcTxWire | null> => (
+}): Promise<RpcTransaction | null> => (
 	etherscanV2UnwrapProxyResult(
-		await etherscanV2GetJson<EtherscanProxyJsonRpcWire<RpcTxWire>>({
+		await etherscanV2GetJson<EtherscanProxyJsonRpc<RpcTransaction>>({
 			chainId,
 			publicEnv,
 			query: {
@@ -118,9 +118,9 @@ export const proxyEthGetTransactionReceipt = async ({
 	chainId: number
 	txHash: `0x${string}`
 	options?: { apiKey?: string }
-}): Promise<RpcReceiptWire | null> => (
+}): Promise<RpcReceipt | null> => (
 	etherscanV2UnwrapProxyResult(
-		await etherscanV2GetJson<EtherscanProxyJsonRpcWire<RpcReceiptWire>>({
+		await etherscanV2GetJson<EtherscanProxyJsonRpc<RpcReceipt>>({
 			chainId,
 			publicEnv,
 			query: {
@@ -147,7 +147,7 @@ export const proxyEthBlockNumber = async ({
 	options?: { apiKey?: string }
 }): Promise<string | null> => {
 	const blockNumberHex = etherscanV2UnwrapProxyResult(
-		await etherscanV2GetJson<EtherscanProxyJsonRpcWire<string>>({
+		await etherscanV2GetJson<EtherscanProxyJsonRpc<string>>({
 			chainId,
 			publicEnv,
 			query: {
@@ -176,9 +176,9 @@ export const proxyEthGetBlockByNumber = async ({
 	tag: string
 	boolean: boolean
 	options?: { apiKey?: string }
-}): Promise<RpcBlockHeaderWire | null> => (
+}): Promise<RpcBlockHeader | null> => (
 	etherscanV2UnwrapProxyResult(
-		await etherscanV2GetJson<EtherscanProxyJsonRpcWire<RpcBlockHeaderWire>>({
+		await etherscanV2GetJson<EtherscanProxyJsonRpc<RpcBlockHeader>>({
 			chainId,
 			publicEnv,
 			query: {
@@ -208,7 +208,7 @@ export const getContractAbiJsonString = async ({
 	address: `0x${string}`
 	options?: { apiKey?: string }
 }): Promise<string | null> => {
-	const wire = await etherscanV2GetJson<EtherscanStringStatusWire>({
+	const wire = await etherscanV2GetJson<EtherscanStringStatus>({
 		chainId,
 		publicEnv,
 		query: {
@@ -221,7 +221,7 @@ export const getContractAbiJsonString = async ({
 	if (wire?.status === '1' && typeof wire.result === 'string' && wire.result.trim()) {
 		return wire.result
 	}
-	const sourceRow = await getContractSourceCodeRow({
+	const sourceRow = await getContractSourceCode({
 		publicEnv,
 		chainId,
 		address,
@@ -235,7 +235,7 @@ export const getContractAbiJsonString = async ({
  * **`module=contract`**, **`action=getsourcecode`**, **`address`**.
  * @see https://docs.etherscan.io/api-reference/endpoint/getsourcecode
  */
-export const getContractSourceCodeRow = async ({
+export const getContractSourceCode = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -246,7 +246,7 @@ export const getContractSourceCodeRow = async ({
 	address: `0x${string}`
 	options?: { apiKey?: string }
 }) => {
-	const wire = await etherscanV2GetJson<import('$/sources/Etherscan/Rest/types.ts').EtherscanContractSourceCodeWire>({
+	const wire = await etherscanV2GetJson<import('$/sources/Etherscan/Rest/types.ts').EtherscanContractSourceCode>({
 		chainId,
 		publicEnv,
 		query: {
@@ -264,7 +264,7 @@ export const getContractSourceCodeRow = async ({
  * **`module=contract`**, **`action=getcontractcreation`**, **`contractaddresses`**.
  * @see https://docs.etherscan.io/api-reference/endpoint/getcontractcreation
  */
-export const getContractCreationRow = async ({
+export const getContractCreation = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -275,7 +275,7 @@ export const getContractCreationRow = async ({
 	address: `0x${string}`
 	options?: { apiKey?: string }
 }) => {
-	const wire = await etherscanV2GetJson<import('$/sources/Etherscan/Rest/types.ts').EtherscanContractCreationWire>({
+	const wire = await etherscanV2GetJson<import('$/sources/Etherscan/Rest/types.ts').EtherscanContractCreation>({
 		chainId,
 		publicEnv,
 		query: {
@@ -308,7 +308,7 @@ export const proxyEthGetCode = async ({
 	options?: { apiKey?: string }
 }): Promise<`0x${string}` | null> => (
 	etherscanV2UnwrapProxyResult(
-		await etherscanV2GetJson<EtherscanProxyJsonRpcWire<`0x${string}`>>({
+		await etherscanV2GetJson<EtherscanProxyJsonRpc<`0x${string}`>>({
 			chainId,
 			publicEnv,
 			query: {
@@ -337,7 +337,7 @@ export const proxyEthGetStorageAt = async ({
 	options?: { apiKey?: string }
 }): Promise<`0x${string}` | null> => (
 	etherscanV2UnwrapProxyResult(
-		await etherscanV2GetJson<EtherscanProxyJsonRpcWire<`0x${string}`>>({
+		await etherscanV2GetJson<EtherscanProxyJsonRpc<`0x${string}`>>({
 			chainId,
 			publicEnv,
 			query: {
@@ -365,7 +365,7 @@ export const gastrackerGasOracle = async ({
 	chainId: number
 	options?: { apiKey?: string }
 }) => {
-	const wire = await etherscanV2GetJson<EtherscanGasOracleWire>({
+	const wire = await etherscanV2GetJson<EtherscanGasOracle>({
 		chainId,
 		publicEnv,
 		query: {
@@ -394,8 +394,8 @@ export const accountErc20TokenTransfersByAddress = async ({
 	address: `0x${string}`
 	offset: number
 	options?: { apiKey?: string }
-}): Promise<EtherscanErc20TokenTransferRowWire[] | null> => (
-	etherscanAccountListRows<EtherscanErc20TokenTransferRowWire>({
+}): Promise<EtherscanErc20TokenTransfer[] | null> => (
+	etherscanAccountListRows<EtherscanErc20TokenTransfer>({
 		publicEnv,
 		chainId,
 		query: {
@@ -425,8 +425,8 @@ export const accountErc721TokenTransfersByAddress = async ({
 	address: `0x${string}`
 	offset: number
 	options?: { apiKey?: string }
-}): Promise<EtherscanErc721TokenTransferRowWire[] | null> => (
-	etherscanAccountListRows<EtherscanErc721TokenTransferRowWire>({
+}): Promise<EtherscanErc721TokenTransfer[] | null> => (
+	etherscanAccountListRows<EtherscanErc721TokenTransfer>({
 		publicEnv,
 		chainId,
 		query: {
@@ -456,8 +456,8 @@ export const accountErc1155TokenTransfersByAddress = async ({
 	address: `0x${string}`
 	offset: number
 	options?: { apiKey?: string }
-}): Promise<EtherscanErc1155TokenTransferRowWire[] | null> => (
-	etherscanAccountListRows<EtherscanErc1155TokenTransferRowWire>({
+}): Promise<EtherscanErc1155TokenTransfer[] | null> => (
+	etherscanAccountListRows<EtherscanErc1155TokenTransfer>({
 		publicEnv,
 		chainId,
 		query: {
@@ -489,15 +489,15 @@ export const accountTokenTransfersByAddress = async ({
 }): Promise<(
 	| {
 		standard: 'erc20'
-		row: EtherscanErc20TokenTransferRowWire
+		row: EtherscanErc20TokenTransfer
 	}
 	| {
 		standard: 'erc721'
-		row: EtherscanErc721TokenTransferRowWire
+		row: EtherscanErc721TokenTransfer
 	}
 	| {
 		standard: 'erc1155'
-		row: EtherscanErc1155TokenTransferRowWire
+		row: EtherscanErc1155TokenTransfer
 	}
 )[] | null> => {
 	const [
@@ -582,15 +582,15 @@ export const accountTokenTransfersByTransaction = async ({
 }): Promise<(
 	| {
 		standard: 'erc20'
-		row: EtherscanErc20TokenTransferRowWire
+		row: EtherscanErc20TokenTransfer
 	}
 	| {
 		standard: 'erc721'
-		row: EtherscanErc721TokenTransferRowWire
+		row: EtherscanErc721TokenTransfer
 	}
 	| {
 		standard: 'erc1155'
-		row: EtherscanErc1155TokenTransferRowWire
+		row: EtherscanErc1155TokenTransfer
 	}
 )[] | null> => {
 	const tx = await proxyEthGetTransactionByHash({
@@ -664,8 +664,8 @@ export const accountInternalTransactionsByAddress = async ({
 	address: `0x${string}`
 	offset: number
 	options?: { apiKey?: string }
-}): Promise<EtherscanInternalTransactionRowWire[] | null> => (
-	etherscanAccountListRows<EtherscanInternalTransactionRowWire>({
+}): Promise<EtherscanInternalTransaction[] | null> => (
+	etherscanAccountListRows<EtherscanInternalTransaction>({
 		publicEnv,
 		chainId,
 		query: {
@@ -693,8 +693,8 @@ export const accountInternalTransactionsByTxHash = async ({
 	chainId: number
 	txHash: `0x${string}`
 	options?: { apiKey?: string }
-}): Promise<EtherscanInternalTransactionRowWire[] | null> => (
-	etherscanAccountListRows<EtherscanInternalTransactionRowWire>({
+}): Promise<EtherscanInternalTransaction[] | null> => (
+	etherscanAccountListRows<EtherscanInternalTransaction>({
 		publicEnv,
 		chainId,
 		query: {

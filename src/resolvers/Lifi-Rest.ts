@@ -1,20 +1,110 @@
-import { coinBridgeCapabilityFieldsForToolKey } from '$/constants/Bridge.ts'
+import { type } from 'arktype'
+
+import { bridgeToolByKey } from '$/constants/Bridge.ts'
 import { ExecutionRpcProvider } from '$/constants/ExecutionRpcProvider.ts'
 import { TransportType } from '$/constants/TransportType.ts'
+import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
-import { urlEntitiesDeduplicatedSortedFromFaucetUrlStrings } from '$/resolvers/_networkCatalogUrlEntities.ts'
-import { mediaFromUrl } from '$/lib/media.ts'
+import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import type { Entity } from '$/schema/$schema.ts'
+import type { EntityId } from '$/schema/$schema.ts'
+import { UrlString } from '$/schema/$Url.ts'
+import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/$Source.ts'
-import type { EntityId } from '$/schema/$schema.ts'
-import type { schema } from '$/schema/index.ts'
-import type { LifiChain } from '$/sources/Lifi/Rest/types.ts'
+import type {
+	LifiBlockExplorerUrlLike,
+	LifiChain,
+} from '$/sources/Lifi/Rest/types.ts'
+
+const canonicalPublicHttpUrlFromCatalogString = (raw: string): string => {
+	const trimmed = raw.trim()
+	const absolute = (
+		trimmed.startsWith('http://')
+		|| trimmed.startsWith('https://') ?
+			trimmed
+		: trimmed.startsWith('//') ?
+			`https:${trimmed}`
+		:	`https://${trimmed}`
+	)
+	return new URL(absolute).toString()
+}
+
+const blockExplorerLikeFromExplorersAndInfoUrl = ({
+	explorers,
+	infoURL,
+}: {
+	explorers: LifiBlockExplorerUrlLike[] | undefined
+	infoURL: string | undefined | null
+}) => {
+	const infoUrlTrimmed = infoURL?.trim() ?? ''
+	return [
+		...(explorers ?? []).flatMap((explorer) => {
+			const url = explorer.url.trim()
+			if (url === '') return []
+			const name = explorer.name.trim()
+			const standard = explorer.standard == null ? '' : String(explorer.standard).trim()
+			const icon = explorer.icon == null ? '' : String(explorer.icon).trim()
+			return [{
+				origin: url,
+				...(name !== '' && { name }),
+				...(standard !== '' && { standard }),
+				...(icon !== '' && { icon }),
+			}]
+		}),
+		...(
+			infoUrlTrimmed !== ''
+			&& !(explorers ?? []).some((explorer) => explorer.url.trim() === infoUrlTrimmed) ?
+				[{ origin: infoUrlTrimmed }]
+			:
+				[]
+		),
+	]
+}
+
+const urlEntitiesFromBlockExplorerCatalog = (
+	blockExplorers: ReturnType<typeof blockExplorerLikeFromExplorersAndInfoUrl>,
+): Entity<typeof schema, EntityType.Url>[] =>
+	blockExplorers.flatMap((explorer) => {
+		if (explorer.origin === '') return []
+		const url = canonicalPublicHttpUrlFromCatalogString(explorer.origin)
+		const hrefAsUrlString = UrlString(url)
+		if (hrefAsUrlString instanceof type.errors) return []
+		const catalogIconResolved = (
+			explorer.icon == null || explorer.icon === '' ?
+				undefined
+			:	resolveMediaUrlTransport(explorer.icon)?.url
+		)
+		let catalogIconAsUrlString: typeof hrefAsUrlString | undefined
+		if (catalogIconResolved != null) {
+			const iconParsed = UrlString(catalogIconResolved)
+			if (!(iconParsed instanceof type.errors)) catalogIconAsUrlString = iconParsed
+		}
+		return [{
+			[EntityMetaKey.Id]: { url: hrefAsUrlString },
+			...(explorer.name != null && explorer.name !== '' && { catalogName: explorer.name }),
+			...(explorer.standard != null && explorer.standard !== '' && { catalogStandard: explorer.standard }),
+			...(catalogIconAsUrlString != null && { catalogIcon: catalogIconAsUrlString }),
+		} as Entity<typeof schema, EntityType.Url>]
+	})
+
+const urlEntitiesFromFaucetUrlStrings = (
+	faucetUrls: string[],
+): Entity<typeof schema, EntityType.Url>[] =>
+	faucetUrls.flatMap((raw) => {
+		const trimmed = raw.trim()
+		if (trimmed === '') return []
+		const url = canonicalPublicHttpUrlFromCatalogString(trimmed)
+		const hrefAsUrlString = UrlString(url)
+		if (hrefAsUrlString instanceof type.errors) return []
+		return [{ [EntityMetaKey.Id]: { url: hrefAsUrlString } } as Entity<typeof schema, EntityType.Url>]
+	})
 
 
 const networkEntityFieldsFromLifiChain = (lifiChain: LifiChain) => {
@@ -47,7 +137,7 @@ const networkEntityFieldsFromLifiChain = (lifiChain: LifiChain) => {
 					}
 				))
 		),
-		$$rpcUrls: urlEntitiesDeduplicatedSortedFromFaucetUrlStrings(metamaskRpcUrls),
+		$$rpcUrls: urlEntitiesFromFaucetUrlStrings(metamaskRpcUrls),
 	}
 }
 
@@ -55,8 +145,8 @@ const globalNetworkEntitiesFieldResolver = defineEntityFieldResolver({
 	entityType: EntityType._Global,
 	fieldName: '$$networks',
 	resolve: async () => {
-		const { fetchLifiChainsCatalog } = await import('$/sources/Lifi/Rest/queries.ts')
-		return (await fetchLifiChainsCatalog()).chains.map(networkEntityFieldsFromLifiChain)
+		const { fetchLifiChains } = await import('$/sources/Lifi/Rest/queries.ts')
+		return (await singleFlight(fetchLifiChains)()).chains.map(networkEntityFieldsFromLifiChain)
 	},
 })
 
@@ -64,12 +154,14 @@ const coinBridgeCapabilityRowsForCoin = async (
 	entityId: EntityId<typeof schema, EntityType.Coin>,
 	context: Parameters<typeof sourcePublicEnv>[0],
 ) => {
+	const { fetchLifiTools } = await import('$/sources/Lifi/Rest/queries.ts')
 	const { fetchCoinBridgeCapabilityRowsForCoin } = await import(
 		'$/sources/Lifi/Rest/coinBridgeCapabilities.ts'
 	)
 	return fetchCoinBridgeCapabilityRowsForCoin(
 		entityId.coinId,
 		sourcePublicEnv(context, Source.Coingecko_Rest),
+		await singleFlight(fetchLifiTools)(),
 	)
 }
 
@@ -80,8 +172,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.Network,
 			resolve: async (entityId, context) => {
-				const { findLifiChainByChainId } = await import('$/sources/Lifi/Rest/queries.ts')
-				const lifiChain = await findLifiChainByChainId(entityId.chainId)
+				const { fetchLifiChains } = await import('$/sources/Lifi/Rest/queries.ts')
+				const lifiChain = (await singleFlight(fetchLifiChains)()).chains.find((row) => row.id === entityId.chainId)
 				if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog')
 				return networkEntityFieldsFromLifiChain(lifiChain)
 			},
@@ -89,29 +181,42 @@ export default {
 
 		defineEntityResolver({
 			entityType: EntityType.CoinBridgeCapability,
-			resolve: async (entityId) => ({
-				toolKey: entityId.toolKey,
-				...coinBridgeCapabilityFieldsForToolKey(entityId.toolKey),
-			}),
+			resolve: async (entityId) => {
+				const coinBridgeCapabilityFields = bridgeToolByKey[entityId.toolKey]
+				if (coinBridgeCapabilityFields == null) {
+					throw new Error(`Bridge: unknown LI.FI tool key ${entityId.toolKey}`)
+				}
+				return {
+					toolKey: entityId.toolKey,
+					...coinBridgeCapabilityFields,
+				}
+			},
 		}),
 
 		defineEntityResolver({
 			entityType: EntityType.BridgeRoute,
 			resolve: async (entityId) => {
-				const { resolveBridgeRouteBundleForQuoteId } = await import(
+				const { fetchBridgeRouteBundleForQuoteId } = await import(
 					'$/sources/Lifi/Rest/routes.ts'
 				)
-				return (await resolveBridgeRouteBundleForQuoteId(entityId)).routeFields
+				return (await singleFlight(fetchBridgeRouteBundleForQuoteId)(entityId)).routeFields
 			},
 		}),
 
 		defineEntityResolver({
 			entityType: EntityType.BridgeRouteStep,
 			resolve: async (entityId) => {
-				const { resolveBridgeRouteStepRowForEntityId } = await import(
+				const { fetchBridgeRouteBundleForQuoteId } = await import(
 					'$/sources/Lifi/Rest/routes.ts'
 				)
-				const { [EntityMetaKey.Id]: _id, ...fields } = await resolveBridgeRouteStepRowForEntityId(entityId)
+				const bundle = await singleFlight(fetchBridgeRouteBundleForQuoteId)(entityId.$route)
+				const step = bundle.steps[entityId.index]
+				if (step == null) {
+					throw new Error(
+						`Lifi_Rest: BridgeRouteStep index ${entityId.index} missing on quote route`,
+					)
+				}
+				const { [EntityMetaKey.Id]: _id, ...fields } = step
 				return fields
 			},
 		}),
@@ -124,9 +229,13 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$bridgeCapabilities',
-			resolve: async (entityId, context) => (
-				coinBridgeCapabilityRowsForCoin(entityId, context)
-			),
+			resolve: async (entityId, context) => {
+				const rows = await coinBridgeCapabilityRowsForCoin(entityId, context)
+				if (rows.length === 0) {
+					throw new Error(`Lifi_Rest: no bridge capabilities for coin ${entityId.coinId}`)
+				}
+				return rows
+			},
 		}),
 
 		defineEntityFieldResolver({
@@ -177,10 +286,10 @@ export default {
 			entityType: EntityType.BridgeRoute,
 			fieldName: '$$steps',
 			resolve: async (entityId) => {
-				const { resolveBridgeRouteBundleForQuoteId } = await import(
+				const { fetchBridgeRouteBundleForQuoteId } = await import(
 					'$/sources/Lifi/Rest/routes.ts'
 				)
-				return (await resolveBridgeRouteBundleForQuoteId(entityId)).steps
+				return (await singleFlight(fetchBridgeRouteBundleForQuoteId)(entityId)).steps
 			},
 		}),
 
@@ -188,15 +297,11 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$$blockExplorerUrls',
 			resolve: async (entityId, _context) => {
-				const {
-					blockExplorerCatalogWireFromExplorersAndInfoUrl,
-					urlEntitiesDeduplicatedSortedFromBlockExplorerCatalog,
-				} = await import('$/resolvers/_networkCatalogUrlEntities.ts')
-				const { findLifiChainByChainId } = await import('$/sources/Lifi/Rest/queries.ts')
-				const lifiChain = await findLifiChainByChainId(entityId.chainId)
+				const { fetchLifiChains } = await import('$/sources/Lifi/Rest/queries.ts')
+				const lifiChain = (await singleFlight(fetchLifiChains)()).chains.find((row) => row.id === entityId.chainId)
 				if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog for block explorer URLs')
-				return urlEntitiesDeduplicatedSortedFromBlockExplorerCatalog(
-					blockExplorerCatalogWireFromExplorersAndInfoUrl({
+				return urlEntitiesFromBlockExplorerCatalog(
+					blockExplorerLikeFromExplorersAndInfoUrl({
 						explorers: (
 							(lifiChain.metamask?.blockExplorerUrls ?? [])
 								.map((u) => u.trim())

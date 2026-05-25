@@ -22,14 +22,12 @@
 
 <Page>
 	<LensCommentsView
+		href={resolve('/lens')}
 		entityFieldReference={{
 			entityType: EntityType.LensPost,
 			entityId,
 			fieldName: '$$comments',
 		}}
-		href={resolve('/(social)/(lens)/lens/post/[postId]/(post)/comments', {
-			postId: encodeURIComponent(entityId.id),
-		})}
 		id="lens-post-comments"
 	/>
 </Page>

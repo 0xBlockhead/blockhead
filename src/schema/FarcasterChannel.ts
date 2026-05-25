@@ -127,6 +127,7 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FarcasterCast,
 			cardinality: EntityFieldCardinality.Many,
+			// Channel routes load casts via FarcasterFeed $$entries (byChannel); this field is Snapchain channel-scoped lists elsewhere.
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

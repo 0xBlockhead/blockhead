@@ -29,4 +29,13 @@ describe('ensContentHashBrowseHref', () => {
 		const href = ensContentHashBrowseHref(encoded)
 		expect(href?.startsWith('/ipfs/')).toBe(true)
 	})
+
+	it('maps bzz URI to swarm resource href', () => {
+		const href = ensContentHashBrowseHref(
+			'bzz://0000000000000000000000000000000000000000000000000000000000000001',
+		)
+		expect(href).toBe(
+			'/swarm/0000000000000000000000000000000000000000000000000000000000000001',
+		)
+	})
 })

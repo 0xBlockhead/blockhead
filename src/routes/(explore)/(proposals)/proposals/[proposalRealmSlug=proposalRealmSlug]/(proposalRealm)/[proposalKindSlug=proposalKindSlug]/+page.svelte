@@ -2,7 +2,7 @@
 	// Types/constants
 	import {
 		proposalCategoryBySlug,
-		proposalKindAllowedInRealm,
+		proposalKindAllowedInRealmByKey,
 		proposalRealmBySlug,
 	} from '$/constants/Proposal.ts'
 
@@ -17,21 +17,15 @@
 	} = $props()
 
 	const realm = $derived(
-		params.proposalRealmSlug in proposalRealmBySlug ?
-			proposalRealmBySlug[params.proposalRealmSlug]!.id
-		:
-			undefined,
+		proposalRealmBySlug[params.proposalRealmSlug]?.id,
 	)
 
 	const category = $derived(
-		params.proposalKindSlug in proposalCategoryBySlug ?
-			proposalCategoryBySlug[params.proposalKindSlug]!.id
-		:
-			undefined,
+		proposalCategoryBySlug[params.proposalKindSlug]?.id,
 	)
 
 	const entityId = $derived(
-		realm !== undefined && category !== undefined && proposalKindAllowedInRealm(realm, category) ?
+		realm != null && category != null && proposalKindAllowedInRealmByKey[`${realm}:${category}`] != null ?
 			{
 				realm,
 				category,
@@ -51,7 +45,6 @@
 	{#if entityId !== undefined}
 		<ProposalKindView
 			{entityId}
-			href={resolve(`/proposals/${params.proposalRealmSlug}/${params.proposalKindSlug}`)}
 			open
 		/>
 	{:else}

@@ -25,34 +25,15 @@
 	} = $props()
 
 
-	// Functions
+	// State
 	import {
 		decodeLogWithContractAbiJson,
 		decodeLogWithSignature,
 		formatDecodedParamValue,
 	} from '$/lib/calldata-decode.ts'
+
 	import { getEvmTopicPath, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
-
-
-	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-
-	const topic0Hex = $derived(
-		topics[0]?.startsWith('0x') ?
-			normalizeEvmTopicHex(topics[0] as `0x${string}`)
-		:
-			null,
-	)
-
-	const topicEntityId = $derived(
-		(
-			topic0Hex != null ?
-				{ hex: topic0Hex }
-			:
-				{ hex: `0x${'0'.repeat(64)}` }
-		) satisfies EntityId<typeof schema, EntityType.EvmTopic>,
-	)
 
 	const topic = useEntity(
 		EntityType.EvmTopic,
@@ -89,6 +70,22 @@
 
 
 	// (Derived)
+	const topic0Hex = $derived(
+		topics[0]?.startsWith('0x') ?
+			normalizeEvmTopicHex(topics[0] as `0x${string}`)
+		:
+			null,
+	)
+
+	const topicEntityId = $derived(
+		(
+			topic0Hex != null ?
+				{ hex: topic0Hex }
+			:
+				{ hex: `0x${'0'.repeat(64)}` }
+		) satisfies EntityId<typeof schema, EntityType.EvmTopic>,
+	)
+
 	const decodedLog = $derived.by(() => {
 		if (!open || topic0Hex == null || data == null) return null
 		for (const signature of topic.current.signatures ?? []) {
@@ -130,7 +127,7 @@
 				resource={topic}
 				placeholderText="Loading log topic signatures…"
 			>
-				{#snippet children(_topicEntity)}
+				{#snippet children(_readyData)}
 					{#if decodedLog}
 						<div data-column="gap-1">
 							<span data-text="annotation">

@@ -2,6 +2,10 @@
 	// Types/constants
 	import { ensEthereumChainId } from '$/constants/Ens.ts'
 	import { TransportType } from '$/constants/TransportType.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
+
 	import {
 		normalizeEnsName,
 		resolveEnsReverseForRpcUrl,
@@ -9,18 +13,10 @@
 
 
 	// Context
-	import { goto } from '$app/navigation'
 	import { resolve } from '$app/paths'
 
 
-	// State
-	let searchInput = $state('')
-	let searchError = $state<string | null>(null)
-	let reverseInput = $state('')
-	let reverseResult = $state<{ address: `0x${string}`, name: string } | null>(null)
-	let reverseLoading = $state(false)
-	let reverseError = $state<string | null>(null)
-
+	// Functions
 	const ethereumRpcUrl = (
 		import.meta.env.PUBLIC_ETH_RPC_URL !== undefined
 		&& String(import.meta.env.PUBLIC_ETH_RPC_URL).trim().length > 0 ?
@@ -29,20 +25,32 @@
 			undefined
 	)
 
-
-	// Actions
 	const onNameSubmit = (event: SubmitEvent) => {
 		event.preventDefault()
 		const trimmed = searchInput.trim()
 		if (!trimmed) return
 		searchError = null
-		try {
-			const name = normalizeEnsName(trimmed)
-			goto(resolve('/(explore)/(ens)/ens/name/[ensName]', { ensName: name }))
-		} catch {
-			searchError = 'Invalid ENS name'
-		}
+		searchTerm = trimmed
 	}
+
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+	let searchInput = $state('')
+
+	let searchTerm = $state<string | undefined>(undefined)
+
+	let searchError = $state<string | null>(null)
+
+	let reverseInput = $state('')
+
+	let reverseResult = $state<{ address: `0x${string}`, name: string } | null>(null)
+
+	let reverseLoading = $state(false)
+
+	let reverseError = $state<string | null>(null)
 
 	const onReverseSubmit = async (event: SubmitEvent) => {
 		event.preventDefault()
@@ -88,9 +96,43 @@
 	}
 
 
+	// (Derived)
+	const ensSearch = $derived(
+		searchTerm == null ?
+			undefined
+		:	useEntity(
+				EntityType.EnsSearch,
+				{
+					query: searchTerm,
+				},
+				{
+					$$ensNames: {
+						$: [
+							Source.TheGraph_Graphql,
+						],
+						$limit: 32,
+					},
+				},
+			),
+	)
+
+	const ensSearchMatches = $derived(
+		ensSearch == null ?
+			undefined
+		:	derive(
+				ensSearch,
+				(ensSearch) => (
+					ensSearch.$$ensNames ?? []
+				),
+			),
+	)
+
+
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EnsView from '$/views/EnsView.svelte'
 </script>
 
 
@@ -137,6 +179,35 @@
 			<p data-text="muted">{searchError}</p>
 		{/if}
 	</form>
+
+	{#if ensSearchMatches !== undefined}
+		<EntitiesList
+			collapsible={false}
+			entityType={EntityType.EnsName}
+			getKey={(ensName) => ensName[EntityMetaKey.Id].name}
+			getSortValue={(ensName) => ensName[EntityMetaKey.Id].name}
+			href={resolve('/ens')}
+			id="ens-substring-search-results"
+			resource={ensSearchMatches}
+			showSummary={true}
+			title={`Substring matches for "${searchTerm}"`}
+		>
+			{#snippet Empty()}
+				<p data-text="muted">
+					No ENS names contain "{searchTerm}".
+				</p>
+			{/snippet}
+
+			{#snippet Item({ item })}
+				<EnsView
+					entityId={item[EntityMetaKey.Id]}
+					layout={EntityLayout.Summary}
+					open={false}
+					showTypeAnnotation={false}
+				/>
+			{/snippet}
+		</EntitiesList>
+	{/if}
 
 	<form
 		class="ens-browser-form"
@@ -192,16 +263,8 @@
 								$network: { chainId: ensEthereumChainId },
 								$actor: { address: reverseResult.address },
 							}}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-								{
-									networkId: String(ensEthereumChainId),
-									address: reverseResult.address,
-								},
-							)}
 							layout={EntityLayout.Title}
 							open={false}
-							showTypeAnnotation={false}
 						/>
 					</dd>
 				</div>
@@ -224,3 +287,4 @@
 		gap: 0.5rem;
 	}
 </style>
+

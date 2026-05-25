@@ -1,4 +1,8 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 
@@ -8,28 +12,30 @@
 		params,
 	} = $props()
 
+
+	// (Derived)
 	const entityId = $derived(
 		{ did: decodeURIComponent(params.did) },
 	)
 
 
 	// Components
-	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
 	import Page from '$/components/Page.svelte'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
 </script>
 
 
 <Page>
 	<AtprotoPostsView
+		href={resolve(
+			'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
+			{ did: encodeURIComponent(entityId.did) },
+		)}
 		entityFieldReference={{
 			entityType: EntityType.AtprotoActor,
 			entityId,
 			fieldName: '$$posts',
 		}}
-		href={resolve('/(social)/(atproto)/atproto/actor/[did]/(actor)/posts', {
-			did: encodeURIComponent(entityId.did),
-		})}
 		id="atproto-actor-posts"
 	/>
 </Page>

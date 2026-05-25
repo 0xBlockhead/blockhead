@@ -7,12 +7,14 @@
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+
 	import {
 		EvmTransactionEnvelopeType,
-		evmTransactionEnvelopeTypeLabelById,
-		evmTransactionExecutionStatusLabelById,
-		evmTransactionKindLabelById,
-	} from '$/constants/EvmTransaction.ts'
+		evmTransactionEnvelopeTypes,
+		evmTransactionExecutionStatuses,
+		evmTransactionKinds,
+	} from '$/constants/Evm.ts'
+
 	import { stringify } from 'devalue'
 
 
@@ -22,35 +24,31 @@
 
 	// Props
 	let {
-		children: _children,
 		entityId,
-		title = 'Transaction',
-		href,
+		href = resolve(
+		'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+		{
+			networkId: String(entityId.$network.chainId),
+			transactionId: entityId.txHash,
+		},
+	),
+		title = entityId.txHash,
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmTransaction>
 			title?: string
-			href: string
+			/** href override: block-scoped tx URL when listed under `EvmBlock`. */
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'TypeAnnotationTooltip'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-	const txIdKey = $derived(
-		stringify(entityId),
-	)
 
 
 	// State
@@ -92,6 +90,12 @@
 	)
 
 
+	// (Derived)
+	const txIdKey = $derived(
+		stringify(entityId),
+	)
+
+
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -115,30 +119,12 @@
 <EntityView
 	entityType={EntityType.EvmTransaction}
 	{entityId}
+	href={href}
 	{title}
-	{href}
 	idDragPlainText={entityId.txHash}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
-	{#snippet Value()}
-		<span data-tx-hash={entityId.txHash}>
-			<TruncatedValue
-				value={entityId.txHash}
-				format={TruncatedValueFormat.Abbr}
-			/>
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Heading()}
-
-		{@render Value()}
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			Signed execution-layer transaction (legacy or type-2 envelope). From and to are addresses; either may be a contract.
@@ -148,391 +134,253 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({
-		title: _title,
-		href: _href,
-		open: contentOpen,
-	})}
-		<dl data-column-item="center">
-			<div>
-				<dt>Kind</dt>
-				<dd>
-					<ResourceBoundary
-						resource={evmTransaction}
-						placeholderText="Loading transaction…"
-					>
-						{#snippet children(evmTransaction)}
-							{evmTransactionKindLabelById[evmTransaction.kind]}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+	{#snippet Content(context)}
+		{@const contentOpen = context?.open ?? false}
+		<ResourceBoundary
+			resource={evmTransaction}
+			placeholderText="Loading transaction…"
+		>
+			{#snippet children(loadedTransaction)}
+				<dl data-column-item="center">
+					<div>
+						<dt>Kind</dt>
+						<dd>{evmTransactionKinds[loadedTransaction.kind].label}</dd>
+					</div>
 
-			<div>
-				<dt>Value</dt>
-				<dd>
-					<ResourceBoundary
-						resource={evmTransaction}
-						placeholderText="Loading transaction…"
-					>
-						{#snippet children(evmTransaction)}
-							{#if evmTransaction.value !== undefined}
-								<NumberValue value={evmTransaction.value} />
+					<div>
+						<dt>Value</dt>
+						<dd>
+							{#if loadedTransaction.value !== undefined}
+								<NumberValue value={loadedTransaction.value} />
 							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+						</dd>
+					</div>
 
-			<div>
-				<dt>Status</dt>
-				<dd>
-					<ResourceBoundary
-						resource={evmTransaction}
-						placeholderText="Loading transaction…"
-					>
-						{#snippet children(evmTransaction)}
-							{#if evmTransaction.executionStatus !== undefined}
-								{evmTransactionExecutionStatusLabelById[evmTransaction.executionStatus]}
+					<div>
+						<dt>Status</dt>
+						<dd>
+							{#if loadedTransaction.executionStatus !== undefined}
+								{evmTransactionExecutionStatuses[loadedTransaction.executionStatus].label}
 							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+						</dd>
+					</div>
 
-			<div>
-				<dt>Gas used</dt>
-				<dd>
-					<ResourceBoundary
-						resource={evmTransaction}
-						placeholderText="Loading transaction…"
-					>
-						{#snippet children(evmTransaction)}
-							{#if evmTransaction.gasUsed !== undefined}
-								<NumberValue value={evmTransaction.gasUsed} />
+					<div>
+						<dt>Gas used</dt>
+						<dd>
+							{#if loadedTransaction.gasUsed !== undefined}
+								<NumberValue value={loadedTransaction.gasUsed} />
 							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+						</dd>
+					</div>
 
-			<div>
-				<dt>Block</dt>
-				<dd>
-					<ResourceBoundary
-						resource={evmTransaction}
-						placeholderText="Loading transaction…"
-					>
-						{#snippet children(evmTransaction)}
-							{#if evmTransaction.$block?.[EntityMetaKey.Id].blockNumber !== undefined}
+					<div>
+						<dt>Block</dt>
+						<dd>
+							{#if loadedTransaction.$block?.[EntityMetaKey.Id].blockNumber !== undefined}
 								<EvmBlockView
-									entityId={evmTransaction.$block[EntityMetaKey.Id]}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
-										{
-											networkId: String(entityId.$network.chainId),
-											blockNumber: String(evmTransaction.$block[EntityMetaKey.Id].blockNumber),
-										},
-									)}
+									entityId={loadedTransaction.$block[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
-									showTypeAnnotation={false}
 								/>
 							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+						</dd>
+					</div>
 
-			<div>
-				<dt>From</dt>
-				<dd>
-					<ResourceBoundary
-						resource={evmTransaction}
-						placeholderText="Loading transaction…"
-					>
-						{#snippet children(evmTransaction)}
-							{#if evmTransaction.$from?.[EntityMetaKey.Id].address !== undefined}
+					<div>
+						<dt>From</dt>
+						<dd>
+							{#if loadedTransaction.$from?.[EntityMetaKey.Id].address !== undefined}
 								<ActorNetworkView
 									entityId={{
 										$network: entityId.$network,
-										$actor: evmTransaction.$from[EntityMetaKey.Id],
+										$actor: loadedTransaction.$from[EntityMetaKey.Id],
 									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-										{
-											networkId: String(entityId.$network.chainId),
-											address: evmTransaction.$from[EntityMetaKey.Id].address,
-										},
-									)}
 									layout={EntityLayout.Title}
 									open={false}
-									showTypeAnnotation={false}
 								/>
 							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+						</dd>
+					</div>
 
-			<div>
-				<dt>To</dt>
-				<dd>
-					<ResourceBoundary
-						resource={evmTransaction}
-						placeholderText="Loading transaction…"
-					>
-						{#snippet children(evmTransaction)}
-							{#if evmTransaction.$to?.[EntityMetaKey.Id].address !== undefined}
+					<div>
+						<dt>To</dt>
+						<dd>
+							{#if loadedTransaction.$to?.[EntityMetaKey.Id].address !== undefined}
 								<ActorNetworkView
 									entityId={{
 										$network: entityId.$network,
-										$actor: evmTransaction.$to[EntityMetaKey.Id],
+										$actor: loadedTransaction.$to[EntityMetaKey.Id],
 									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-										{
-											networkId: String(entityId.$network.chainId),
-											address: evmTransaction.$to[EntityMetaKey.Id].address,
-										},
-									)}
 									layout={EntityLayout.Title}
 									open={false}
-									showTypeAnnotation={false}
 								/>
 							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+						</dd>
+					</div>
 
-			<div>
-				<dt>Contract</dt>
-				<dd>
-					<ResourceBoundary
-						resource={evmTransaction}
-						placeholderText="Loading transaction…"
-					>
-						{#snippet children(evmTransaction)}
-							{#if evmTransaction.$contract?.[EntityMetaKey.Id].address !== undefined}
+					<div>
+						<dt>Contract</dt>
+						<dd>
+							{#if loadedTransaction.$contract?.[EntityMetaKey.Id].address !== undefined}
 								<EvmContractView
-									entityId={evmTransaction.$contract[EntityMetaKey.Id]}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-										{
-											networkId: String(entityId.$network.chainId),
-											address: evmTransaction.$contract[EntityMetaKey.Id].address,
-										},
-									)}
-									layout={EntityLayout.Title}
+									entityId={loadedTransaction.$contract[EntityMetaKey.Id]}
+									layout={EntityLayout.SummaryDetails}
 									open={false}
 									showTypeAnnotation={false}
 								/>
 							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+						</dd>
+					</div>
 
-			{#if contentOpen}
-				<div>
-					<dt>Nonce</dt>
-					<dd>
-						<ResourceBoundary
-							resource={evmTransaction}
-							placeholderText="Loading transaction…"
-						>
-							{#snippet children(evmTransaction)}
-								{#if evmTransaction.nonce !== undefined}
-									{String(evmTransaction.nonce)}
+					{#if contentOpen}
+						<div>
+							<dt>Nonce</dt>
+							<dd>
+								{#if loadedTransaction.nonce !== undefined}
+									{String(loadedTransaction.nonce)}
 								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if contentOpen}
-				<div>
-					<dt>Position in block</dt>
-					<dd>
-						<ResourceBoundary
-							resource={evmTransaction}
-							placeholderText="Loading transaction…"
-						>
-							{#snippet children(evmTransaction)}
-								{#if evmTransaction.transactionIndex !== undefined}
-									{String(evmTransaction.transactionIndex)}
+					{#if contentOpen}
+						<div>
+							<dt>Position in block</dt>
+							<dd>
+								{#if loadedTransaction.transactionIndex !== undefined}
+									{String(loadedTransaction.transactionIndex)}
 								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if contentOpen}
-				<div>
-					<dt>Gas limit</dt>
-					<dd>
-						<ResourceBoundary
-							resource={evmTransaction}
-							placeholderText="Loading transaction…"
-						>
-							{#snippet children(evmTransaction)}
-								{#if evmTransaction.gas !== undefined}
-									<NumberValue value={evmTransaction.gas} />
+					{#if contentOpen}
+						<div>
+							<dt>Gas limit</dt>
+							<dd>
+								{#if loadedTransaction.gas !== undefined}
+									<NumberValue value={loadedTransaction.gas} />
 								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if contentOpen}
-				<div>
-					<dt>Gas price (legacy type 0/1)</dt>
-					<dd>
-						<ResourceBoundary
-							resource={evmTransaction}
-							placeholderText="Loading transaction…"
-						>
-							{#snippet children(evmTransaction)}
-								{#if evmTransaction.gasPrice !== undefined}
-									<NumberValue value={evmTransaction.gasPrice} />
+					{#if contentOpen}
+						<div>
+							<dt>Gas price (legacy type 0/1)</dt>
+							<dd>
+								{#if loadedTransaction.gasPrice !== undefined}
+									<NumberValue value={loadedTransaction.gasPrice} />
 								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if contentOpen}
-				<div>
-					<dt>Transaction envelope type</dt>
-					<dd>
-						<ResourceBoundary
-							resource={evmTransaction}
-							placeholderText="Loading transaction…"
-						>
-							{#snippet children(evmTransaction)}
-								{#if evmTransaction.envelopeType !== undefined}
-									{evmTransactionEnvelopeTypeLabelById[evmTransaction.envelopeType]}
+					{#if contentOpen}
+						<div>
+							<dt>Transaction envelope type</dt>
+							<dd>
+								{#if loadedTransaction.envelopeType !== undefined}
+									{evmTransactionEnvelopeTypes[loadedTransaction.envelopeType].label}
 								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if contentOpen}
-				<div>
-					<dt>EIP-1559 max fee / priority (type 2)</dt>
-					<dd data-row="wrap align-center gap-2">
-						<ResourceBoundary
-							resource={evmTransaction}
-							placeholderText="Loading transaction…"
-						>
-							{#snippet children(evmTransaction)}
-								{#if evmTransaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket}
-									{#if evmTransaction.maxFeePerGas !== undefined}
-										<span>
-											max{' '}
-											<NumberValue value={evmTransaction.maxFeePerGas} />
-										</span>
-									{/if}
-									{#if evmTransaction.maxPriorityFeePerGas !== undefined}
-										<span>
-											priority{' '}
-											<NumberValue value={evmTransaction.maxPriorityFeePerGas} />
-										</span>
-									{/if}
-									{#if evmTransaction.maxFeePerGas === undefined && evmTransaction.maxPriorityFeePerGas === undefined}
-										<span data-text="muted">Caps not indexed</span>
-									{/if}
+					{#if contentOpen}
+						<div>
+							<dt>EIP-1559 max fee / priority (type 2)</dt>
+							<dd data-row="wrap align-center gap-2">
+								{#if (
+									loadedTransaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+									&& loadedTransaction.maxFeePerGas !== undefined
+								)}
+									<span>
+										max{' '}
+										<NumberValue value={loadedTransaction.maxFeePerGas} />
+									</span>
 								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if contentOpen}
-				<div>
-					<dt>Effective gas price paid (base + tip after inclusion)</dt>
-					<dd>
-						<ResourceBoundary
-							resource={evmTransaction}
-							placeholderText="Loading transaction…"
-						>
-							{#snippet children(evmTransaction)}
-								{#if evmTransaction.effectiveGasPrice !== undefined}
-									<NumberValue value={evmTransaction.effectiveGasPrice} />
+								{#if (
+									loadedTransaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+									&& loadedTransaction.maxPriorityFeePerGas !== undefined
+								)}
+									<span>
+										priority{' '}
+										<NumberValue value={loadedTransaction.maxPriorityFeePerGas} />
+									</span>
 								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+								{#if (
+									loadedTransaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+									&& loadedTransaction.maxFeePerGas === undefined
+									&& loadedTransaction.maxPriorityFeePerGas === undefined
+								)}
+									<span data-text="muted">Caps not indexed</span>
+								{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if contentOpen}
-				<div>
-					<dt>Input data</dt>
-					<dd>
-						<ResourceBoundary
-							resource={evmTransaction}
-							placeholderText="Loading transaction…"
-						>
-							{#snippet children(evmTransaction)}
-								{#if evmTransaction.input !== undefined}
+					{#if contentOpen}
+						<div>
+							<dt>Effective gas price paid (base + tip after inclusion)</dt>
+							<dd>
+								{#if loadedTransaction.effectiveGasPrice !== undefined}
+									<NumberValue value={loadedTransaction.effectiveGasPrice} />
+								{/if}
+							</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen}
+						<div>
+							<dt>Input data</dt>
+							<dd>
+								{#if loadedTransaction.input !== undefined}
 									<TruncatedValue
-										value={evmTransaction.input}
+										value={loadedTransaction.input}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							</dd>
+						</div>
+					{/if}
 
-			{#if contentOpen}
-				<ResourceBoundary
-					resource={evmTransaction}
-					placeholderText="Loading transaction…"
-				>
-					{#snippet children(evmTransaction)}
-						{#if evmTransaction.envelopeType === EvmTransactionEnvelopeType.Blob}
-							{#if evmTransaction.blobGasUsed !== undefined}
-								<div>
-									<dt>Blob gas used</dt>
-									<dd>
-										<NumberValue value={evmTransaction.blobGasUsed} />
-									</dd>
-								</div>
-							{/if}
-							{#if evmTransaction.maxFeePerBlobGas !== undefined}
-								<div>
-									<dt>Max fee per blob gas</dt>
-									<dd>
-										<NumberValue value={evmTransaction.maxFeePerBlobGas} />
-									</dd>
-								</div>
-							{/if}
+					{#if contentOpen}
+						{#if (
+							loadedTransaction.envelopeType === EvmTransactionEnvelopeType.Blob
+							&& loadedTransaction.blobGasUsed !== undefined
+						)}
+							<div>
+								<dt>Blob gas used</dt>
+								<dd>
+									<NumberValue value={loadedTransaction.blobGasUsed} />
+								</dd>
+							</div>
 						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
-		</dl>
+						{#if (
+							loadedTransaction.envelopeType === EvmTransactionEnvelopeType.Blob
+							&& loadedTransaction.maxFeePerBlobGas !== undefined
+						)}
+							<div>
+								<dt>Max fee per blob gas</dt>
+								<dd>
+									<NumberValue value={loadedTransaction.maxFeePerBlobGas} />
+								</dd>
+							</div>
+						{/if}
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({
-		open: _detailsOpen,
-	})}
+	{#snippet Details(context)}
+		{@const _detailsOpen = context?.open ?? false}
 		<EntityDetails
 			entityType={EntityType.EvmTransaction}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -544,13 +392,15 @@
 					'data-row': 'start align-start',
 				}}
 			>
-				{#snippet Summary({ open: _summaryOpen })}
+				{#snippet Summary(context)}
+					{@const _summaryOpen = context?.open ?? false}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<Heading>Execution</Heading>
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet Markers(context)}
+					{@const _executionMarkersOpen = context?.open ?? false}
 					<a
 						data-scroll-marker-label="Movements"
 						href={`#${txIdKey}:movements`}
@@ -571,8 +421,8 @@
 						resource={evmTransaction}
 						placeholderText=""
 					>
-						{#snippet children(evmTransaction)}
-							{#if evmTransaction.envelopeType === EvmTransactionEnvelopeType.Blob}
+						{#snippet children(loadedTransaction)}
+							{#if loadedTransaction.envelopeType === EvmTransactionEnvelopeType.Blob}
 								<a
 									data-scroll-marker-label="Blobs"
 									href={`#${txIdKey}:blobs`}
@@ -586,14 +436,14 @@
 					>User ops</a>
 				{/snippet}
 
-				{#snippet body({ open: tabOpen })}
+				{#snippet body(context)}
+					{@const tabOpen = context?.open ?? false}
 					<section
 						id={`${txIdKey}:movements`}
 						data-scroll-marker-label="Movements"
 					>
 						<EvmAssetMovementsView
 							{entityId}
-							href={href}
 							id={`${txIdKey}:movements`}
 							open={tabOpen}
 						/>
@@ -607,10 +457,10 @@
 							resource={evmTransaction}
 							placeholderText="Loading transaction input…"
 						>
-							{#snippet children(evmTransaction)}
-								{#if evmTransaction.input != null}
+							{#snippet children(loadedTransaction)}
+								{#if loadedTransaction.input != null}
 									<EvmTransactionInputDecode
-										input={evmTransaction.input}
+										input={loadedTransaction.input}
 										open={tabOpen}
 									/>
 								{:else}
@@ -625,13 +475,19 @@
 						data-scroll-marker-label="Events"
 					>
 						<EvmLogsView
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+								{
+								networkId: String(entityId.$network.chainId),
+								transactionId: entityId.txHash,
+								},
+		)}
 							entityFieldReference={{
 								entityType: EntityType.EvmTransaction,
 								entityId,
 								fieldName: '$$logs',
 							}}
 							collapsible={false}
-							href={href}
 							id={`${txIdKey}:events`}
 							open={tabOpen}
 							showTypeAnnotation={false}
@@ -660,13 +516,13 @@
 								resource={txTrace}
 								placeholderText="Loading call trace…"
 							>
-								{#snippet children(txTrace)}
-									{#if txTrace.traceRoot != null}
+								{#snippet children(loadedTrace)}
+									{#if loadedTrace.traceRoot != null}
 										<EvmTraceTreeView
-											traceRoot={txTrace.traceRoot}
+											traceRoot={loadedTrace.traceRoot}
 											chainId={entityId.$network.chainId}
 										/>
-									{:else if txTrace.traceUnavailable}
+									{:else if loadedTrace.traceUnavailable}
 										<p data-text="muted">
 											Call trace is not available from the configured RPC or explorer for this chain.
 										</p>
@@ -682,8 +538,8 @@
 						resource={evmTransaction}
 						placeholderText=""
 					>
-						{#snippet children(evmTransaction)}
-							{#if evmTransaction.envelopeType === EvmTransactionEnvelopeType.Blob}
+						{#snippet children(loadedTransaction)}
+							{#if loadedTransaction.envelopeType === EvmTransactionEnvelopeType.Blob}
 								<section
 									id={`${txIdKey}:blobs`}
 									data-scroll-marker-label="Blobs"
@@ -695,7 +551,13 @@
 											fieldName: '$$blobs',
 										}}
 										collapsible={false}
-										href={href}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+											{
+											networkId: String(entityId.$network.chainId),
+											transactionId: entityId.txHash,
+											},
+										)}
 										id={`${txIdKey}:blobs`}
 										open={tabOpen}
 										showTypeAnnotation={false}
@@ -717,7 +579,6 @@
 								fieldName: '$$userOperations',
 							}}
 							collapsible={false}
-							href={href}
 							id={`${txIdKey}:user-operations`}
 							open={tabOpen}
 							showTypeAnnotation={false}
@@ -725,13 +586,10 @@
 						/>
 					</section>
 
-					{#if _children}
-						<section id={`${txIdKey}:page-content`}>
-							{@render _children()}
-						</section>
-					{/if}
+
 				{/snippet}
 			</CollapsibleTabs>
 		</div>
 	{/snippet}
 </EntityView>
+

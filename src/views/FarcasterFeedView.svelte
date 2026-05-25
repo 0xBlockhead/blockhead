@@ -5,42 +5,44 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { farcasterFeedKinds } from '$/constants/Social/Farcaster.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
-		limit = 50,
+		href = entityId.variant === 'trending' ?
+			resolve('/farcaster/feed/trending')
+		: entityId.variant === 'byUser' ?
+			resolve(`/farcaster/feed/user/${String(entityId.fid)}`)
+		: entityId.variant === 'byChannel' ?
+			resolve(`/farcaster/feed/channel/${encodeURIComponent(entityId.channelId)}`)
+		:
+			resolve('/farcaster/feed'),
+				limit = 50,
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.FarcasterFeed>
-			href: string
+			href?: string
 			limit?: number
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Heading'
+			| 'layout'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { mountEntityResolveLive } from '$/lib/db/resolveLive.svelte.ts'
 
@@ -69,6 +71,7 @@
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import FarcasterCastsView from '$/views/FarcasterCastsView.svelte'
 </script>
 
@@ -76,19 +79,42 @@
 <EntityView
 	entityType={EntityType.FarcasterFeed}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>
-			{entityId.feedId}
-		</span>
+		{#if entityId.variant === 'byUser'}
+			<span>
+				{String(entityId.fid)}
+			</span>
+		{:else if entityId.variant === 'byChannel'}
+			<TruncatedValue
+				value={entityId.channelId}
+				format={TruncatedValueFormat.Visual}
+			/>
+		{:else if entityId.variant === 'following'}
+			<span>
+				{String(entityId.viewerFid)}
+			</span>
+		{:else}
+			<span>
+				{farcasterFeedKinds[entityId.variant].label}
+			</span>
+		{/if}
 	{/snippet}
 
 	{#snippet Title()}
 		{@render Value()}
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Feed variants scope cast streams: trending hub, one FID, one channel id, or a viewer’s following graph.
+		</p>
+		<p>
+			Empty streams usually mean the indexer returned no hashes for that filter—not that Farcaster halted.
+		</p>
 	{/snippet}
 
 	{#snippet Heading()}
@@ -96,20 +122,18 @@
 			resource={feed}
 			placeholderText="Loading Farcaster feed (variant, FID or channel id, cast stream)…"
 		>
-			{#snippet children(feed)}
+			{#snippet children(loadedFeed)}
 				{(
 					feed.label != null
 					&& feed.label !== ''
 				) ?
-					feed.label
-				: entityId.variant === 'trending' ?
-					'Trending'
+					loadedFeed.label
 				: entityId.variant === 'byUser' ?
 					`FID ${String(entityId.fid)}`
 				: entityId.variant === 'byChannel' ?
 					entityId.channelId
 				:
-					'Following'
+					farcasterFeedKinds[entityId.variant].label
 				}
 			{/snippet}
 		</ResourceBoundary>
@@ -119,12 +143,31 @@
 		<dl>
 			<div>
 				<dt>Variant</dt>
-				<dd>{entityId.variant}</dd>
+				<dd>{farcasterFeedKinds[entityId.variant].label}</dd>
 			</div>
 			{#if entityId.variant === 'following'}
 				<div>
 					<dt>Viewer FID</dt>
 					<dd>{String(entityId.viewerFid)}</dd>
+				</div>
+			{/if}
+
+			{#if entityId.variant === 'byUser'}
+				<div>
+					<dt>Author FID</dt>
+					<dd>{String(entityId.fid)}</dd>
+				</div>
+			{/if}
+
+			{#if entityId.variant === 'byChannel'}
+				<div>
+					<dt>Channel id</dt>
+					<dd>
+						<TruncatedValue
+							value={entityId.channelId}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</dd>
 				</div>
 			{/if}
 
@@ -135,9 +178,9 @@
 						resource={feed}
 						placeholderText="Loading Farcaster feed (variant, FID or channel id, cast stream)…"
 					>
-						{#snippet children(feed)}
-							{#if feed.label != null && feed.label !== ''}
-								{feed.label}
+						{#snippet children(loadedFeed)}
+							{#if loadedFeed.label != null && loadedFeed.label !== ''}
+								{loadedFeed.label}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -185,12 +228,6 @@
 						data-scroll-marker-label="Casts"
 						href={`#${feedDetailKey}:feed-entries`}
 					>Casts</a>
-					{#if children}
-						<a
-							data-scroll-marker-label="More"
-							href={`#${feedDetailKey}:feed-more`}
-						>More</a>
-					{/if}
 				{/snippet}
 
 				{#snippet body({ open: _paneOpen,
@@ -204,30 +241,24 @@
 							{entityId}
 						/>
 					</section>
+
 					<section
 						data-scroll-marker-label="Casts"
 						id={`${feedDetailKey}:feed-entries`}
 					>
 						<FarcasterCastsView
+							href={resolve('/farcaster/feed')}
 							entityFieldReference={{
 								entityType: EntityType.FarcasterFeed,
 								entityId,
 								fieldName: '$$entries',
 							}}
-							href={href}
 							id={`${feedDetailKey}:entries`}
 							{limit}
 							title="Feed"
 						/>
 					</section>
-					{#if children}
-						<section
-							data-scroll-marker-label="More"
-							id={`${feedDetailKey}:feed-more`}
-						>
-							{@render children()}
-						</section>
-					{/if}
+
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

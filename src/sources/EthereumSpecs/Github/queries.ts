@@ -4,7 +4,6 @@
  * `$/sources/Superchain/Github/queries.ts`.
  */
 import { getText } from '$/lib/http.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 
 import EthereumSpecs from '$/sources/EthereumSpecs/index.ts'
 
@@ -24,7 +23,7 @@ const consensusSpecsConfigYamlUrlByPreset = {
 	holesky: consensusHoleskyYamlUrl,
 } as const satisfies Record<ConsensusSpecsNetworkPreset, string>
 
-const fetchConsensusSpecsConfigYamlForPresetOnce = async ({
+export const fetchConsensusSpecsConfigYaml = async ({
 	preset,
 }: {
 	preset: ConsensusSpecsNetworkPreset
@@ -35,18 +34,16 @@ const fetchConsensusSpecsConfigYamlForPresetOnce = async ({
 	)
 )
 
-export const fetchConsensusSpecsConfigYaml = singleFlight(fetchConsensusSpecsConfigYamlForPresetOnce)
 
-const fetchGoEthereumParamsConfigGoOnce = async () => (
+export const fetchGoEthereumParamsConfigGo = async () => (
 	getText(
 		goEthereumParamsConfigGoUrl,
 		{ origins: EthereumSpecs.origins },
 	)
 )
 
-export const fetchGoEthereumParamsConfigGo = singleFlight(fetchGoEthereumParamsConfigGoOnce)
 
-const fetchExecutionSpecsMainnetUpgradeMarkdownOnce = async ({
+export const fetchExecutionSpecsMainnetUpgradeMarkdown = async ({
 	filename,
 }: {
 	filename: string
@@ -57,6 +54,3 @@ const fetchExecutionSpecsMainnetUpgradeMarkdownOnce = async ({
 	)
 )
 
-export const fetchExecutionSpecsMainnetUpgradeMarkdown = singleFlight(
-	fetchExecutionSpecsMainnetUpgradeMarkdownOnce,
-)

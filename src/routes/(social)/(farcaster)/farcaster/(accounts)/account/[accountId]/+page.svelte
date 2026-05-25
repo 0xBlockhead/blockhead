@@ -2,6 +2,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+
 	// Props
 	let {
 		params,
@@ -17,9 +18,5 @@
 	<BlockheadFarcasterAccountConnectionView
 		entityId={{ fid: Number(params.accountId) }}
 		title={'Account'}
-		href={resolve(
-			'/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]',
-			params,
-		)}
 	/>
 </Page>

@@ -6,6 +6,8 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
@@ -16,7 +18,6 @@
 	let {
 		entityFieldReference,
 		id = 'farcaster-feeds',
-		href = resolve('/farcaster/feed'),
 		title = 'Feeds',
 		open = $bindable(true),
 		limit = 120,
@@ -24,7 +25,6 @@
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.FarcasterFeed>
 		id?: string
-		href?: string
 		title?: string
 		open?: boolean
 		limit?: number
@@ -32,14 +32,7 @@
 	} = $props()
 
 
-	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-
+	// Functions
 	const summaryHref = (idArg: EntityId<typeof schema, EntityType.FarcasterFeed>) => (
 		idArg.variant === 'trending' ?
 			resolve('/farcaster/feed/trending')
@@ -52,6 +45,11 @@
 	)
 
 
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+
+
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -62,14 +60,13 @@
 <EntitiesList
 	entityType={EntityType.FarcasterFeed}
 	{id}
-	{href}
 	{title}
 	{collapsible}
 	bind:open
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Farcaster feed definitions address hub APIs: trending timelines, numeric feed ids, per-user casts, or channel-scoped streams.
+			Farcaster feed definitions address hub APIs: trending timelines, per-user casts, channel-scoped streams, or following feeds.
 		</p>
 		<p>
 			Each row’s parameters determine which cast hashes the hub returns—different ids are not interchangeable.
@@ -82,7 +79,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parentNetwork = useEntity(
 				EntityType.FarcasterNetwork,
@@ -106,12 +103,10 @@
 				showSummary={false}
 				entityType={EntityType.FarcasterFeed}
 				{id}
-				{href}
 				{title}
 				open={true}
 				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
 				getSortValue={(row) => stringify(row.value[EntityMetaKey.Id])}
-				placeholderKeys={new SvelteSet()}
 				placeholderText="Loading Farcaster feeds (trending, FID, channel)…"
 				resource={feeds}
 			>
@@ -121,16 +116,13 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const feedId = props.item.value[EntityMetaKey.Id]}
-						<FarcasterFeedView
-							entityId={feedId}
-							href={summaryHref(feedId)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const feedId = item.value[EntityMetaKey.Id]}
+					<FarcasterFeedView
+						entityId={feedId}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

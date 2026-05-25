@@ -7,6 +7,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -16,35 +17,27 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve('/(social)/(atproto)/atproto/actor/[did]', {
+			did: entityId.did,
+		}),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.AtprotoActor>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Heading'
-			| 'HeadingAfter'
-			| 'Content'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const idKey = stringify(entityId)
@@ -53,13 +46,20 @@
 		EntityType.AtprotoActor,
 		entityId,
 		{
-			$: [Source.Atproto_Xrpc],
+			$: [
+				Source.Atproto_Xrpc,
+				Source.Atproto_BskySocial_Xrpc,
+			],
 			displayName: {},
 			handle: {},
 			$icon: {},
 			...(open ?
 				{
 					description: {},
+					followersCount: {},
+					followsCount: {},
+					postsCount: {},
+					indexedAt: {},
 				}
 			:
 				{}),
@@ -75,28 +75,34 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.AtprotoActor}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			AT Protocol profiles are DIDs with Bluesky App View metadata (handle, avatar, counts); the repo record lives behind the DID, not a legacy numeric profile id.
+		</p>
+	{/snippet}
+
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={actor}
-			placeholderText=""
 		>
-			{#snippet children(actor)}
-				{@const atprotoBrandIconSrc = actor.$icon?.[EntityMetaKey.Id].url}
+			{#snippet children(loadedActor)}
+				{@const atprotoBrandIconSrc = loadedActor.$icon?.[EntityMetaKey.Id].url}
 				{#if atprotoBrandIconSrc}
 					<IconComponent
-						alt={actor.displayName ?? actor.handle ?? ''}
+						alt={loadedActor.displayName ?? loadedActor.handle ?? ''}
 						shape={IconShape.Circle}
 						src={atprotoBrandIconSrc}
 					/>
@@ -110,9 +116,9 @@
 			resource={actor}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(actor)}
-				{actor.displayName
-					?? actor.handle
+			{#snippet children(loadedActor)}
+				{loadedActor.displayName
+					?? loadedActor.handle
 					?? entityId.did}
 			{/snippet}
 		</ResourceBoundary>
@@ -131,57 +137,51 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary
 			resource={actor}
-			placeholderText=""
 		>
-			{#snippet children(actor)}
+			{#snippet children(loadedActor)}
 				{@const atprotoSummaryHeadingLine = (
 					actor.displayName
-					?? actor.handle
+					?? loadedActor.handle
 					?? entityId.did
 				)}
-				{#if actor.handle && actor.handle !== atprotoSummaryHeadingLine}
+				{#if loadedActor.handle && loadedActor.handle !== atprotoSummaryHeadingLine}
 					<span data-text="muted">
-						@{actor.handle}
+						@{loadedActor.handle}
 					</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href, open })}
+	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
-				<dt>DID</dt>
-				<dd data-text="mono">
+				<dt>Bio</dt>
+				<dd>
 					<ResourceBoundary
 						resource={actor}
 						placeholderText="Loading profile…"
 					>
-						{#snippet children(actor)}
-							{@const atprotoSummaryHeadingLine = (
-								actor.displayName
-								?? actor.handle
-								?? entityId.did
-							)}
-							{#if atprotoSummaryHeadingLine !== entityId.did}
-								{@render Title()}
+						{#snippet children(loadedActor)}
+							{#if loadedActor.description}
+								{loadedActor.description}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
 			</div>
 
-			{#if open}
+			{#if contentOpen}
 				<div>
-					<dt>Display name</dt>
+					<dt>Handle</dt>
 					<dd>
 						<ResourceBoundary
 							resource={actor}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(actor)}
-								{#if actor.displayName}
-									{actor.displayName}
+							{#snippet children(loadedActor)}
+								{#if loadedActor.handle}
+									{loadedActor.handle}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -189,38 +189,58 @@
 				</div>
 			{/if}
 
-			{#if open}
+			{#if (
+				contentOpen
+				&& actor.followersCount != null
+			)}
 				<div>
-					<dt>Federation handle</dt>
+					<dt>Followers</dt>
 					<dd>
-						<ResourceBoundary
-							resource={actor}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(actor)}
-								{#if actor.handle}
-									{actor.handle}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+						<NumberValue
+							value={loadedActor.followersCount}
+						/>
 					</dd>
 				</div>
 			{/if}
 
-			{#if open}
+			{#if (
+				contentOpen
+				&& actor.followsCount != null
+			)}
 				<div>
-					<dt>Bio</dt>
+					<dt>Following</dt>
 					<dd>
-						<ResourceBoundary
-							resource={actor}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(actor)}
-								{#if actor.description}
-									{actor.description}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+						<NumberValue
+							value={loadedActor.followsCount}
+						/>
+					</dd>
+				</div>
+			{/if}
+
+			{#if (
+				contentOpen
+				&& actor.postsCount != null
+			)}
+				<div>
+					<dt>Posts</dt>
+					<dd>
+						<NumberValue
+							value={loadedActor.postsCount}
+						/>
+					</dd>
+				</div>
+			{/if}
+
+			{#if (
+				contentOpen
+				&& actor.indexedAt != null
+			)}
+				<div>
+					<dt>Indexed</dt>
+					<dd>
+						<Timestamp
+							timestamp={loadedActor.indexedAt}
+						/>
 					</dd>
 				</div>
 			{/if}
@@ -231,7 +251,7 @@
 		open: _open,
 	})}
 		<div
-			class="atproto-actor-detail-carousels"
+			class="entity-view-detail-carousels atproto-actor-detail-carousels"
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
@@ -252,7 +272,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet Markers({ open: _markersOpen })}
 					<a
 						data-scroll-marker-label="Lexicon identity"
 						href={`#${idKey}:profile-details`}
@@ -263,7 +283,7 @@
 					>Posts</a>
 				{/snippet}
 
-				{#snippet body(_profileCarouselContext)}
+				{#snippet body({ open: _bodyOpen })}
 					<section
 						data-scroll-marker-label="Lexicon identity"
 						id={`${idKey}:profile-details`}
@@ -272,12 +292,11 @@
 							entityType={EntityType.AtprotoActor}
 							{entityId}
 						/>
-
 						<ResourceBoundary
 							resource={actor}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(actor)}
+							{#snippet children(loadedActor)}
 								{@const atprotoProfileUnset = (
 									actor.handle == null
 									&& actor.displayName == null
@@ -304,19 +323,21 @@
 							{/snippet}
 						</ResourceBoundary>
 					</section>
+
 					<section
 						data-scroll-marker-label="Posts"
 						id={`${idKey}:activity-posts`}
 					>
 						<AtprotoPostsView
+							href={resolve(
+								'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
+								{ did: encodeURIComponent(entityId.did) },
+							)}
 							entityFieldReference={{
 								entityType: EntityType.AtprotoActor,
 								entityId,
 								fieldName: '$$posts',
 							}}
-							href={resolve('/(social)/atproto/actor/[did]/(actor)/posts', {
-								did: encodeURIComponent(entityId.did),
-							})}
 							id={`${idKey}:posts`}
 							fieldOpen={_open}
 							title="Posts"

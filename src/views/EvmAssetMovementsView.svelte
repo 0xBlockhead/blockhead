@@ -14,12 +14,10 @@
 	// Props
 	let {
 		entityId,
-		href,
 		id,
 		open = true,
 	}: {
 		entityId: EntityId<typeof schema, EntityType.EvmTransaction>
-		href: string
 		id: string
 		open?: boolean
 	} = $props()
@@ -75,74 +73,70 @@
 		resource={evmTransaction}
 		placeholderText="Loading asset movements…"
 	>
-		{#snippet children(evmTransaction)}
-			{#if evmTransaction.value !== undefined && evmTransaction.value > 0n}
+		{#snippet children(loadedEvmTransaction)}
+			{#if loadedEvmTransaction.value !== undefined && loadedEvmTransaction.value > 0n}
 				<div data-row="wrap gap-2 align-baseline">
 					<span data-text="annotation">Signed envelope</span>
-					{#if evmTransaction.$from?.[EntityMetaKey.Id].address !== undefined}
+					{#if loadedEvmTransaction.$from?.[EntityMetaKey.Id].address !== undefined}
 						<ActorNetworkView
 							entityId={{
 								$network: entityId.$network,
-								$actor: evmTransaction.$from[EntityMetaKey.Id],
+								$actor: loadedEvmTransaction.$from[EntityMetaKey.Id],
 							}}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-								{
-									networkId: String(entityId.$network.chainId),
-									address: evmTransaction.$from[EntityMetaKey.Id].address,
-								},
-							)}
 							layout={EntityLayout.Title}
 							open={false}
-							showTypeAnnotation={false}
 						/>
 					{/if}
 					<span data-text="muted">sent</span>
-					<NumberValue value={evmTransaction.value} />
+					<NumberValue value={loadedEvmTransaction.value} />
 					<span data-text="muted">to</span>
-					{#if evmTransaction.$to?.[EntityMetaKey.Id].address !== undefined}
+					{#if loadedEvmTransaction.$to?.[EntityMetaKey.Id].address !== undefined}
 						<ActorNetworkView
 							entityId={{
 								$network: entityId.$network,
-								$actor: evmTransaction.$to[EntityMetaKey.Id],
+								$actor: loadedEvmTransaction.$to[EntityMetaKey.Id],
 							}}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-								{
-									networkId: String(entityId.$network.chainId),
-									address: evmTransaction.$to[EntityMetaKey.Id].address,
-								},
-							)}
 							layout={EntityLayout.Title}
 							open={false}
-							showTypeAnnotation={false}
 						/>
 					{/if}
 				</div>
 			{/if}
 
 			<EvmInternalTransfersView
+				href={resolve(
+					'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+					{
+					networkId: String(entityId.$network.chainId),
+					transactionId: entityId.txHash,
+					},
+		)}
 				entityFieldReference={{
 					entityType: EntityType.EvmTransaction,
 					entityId,
 					fieldName: '$$internalTransfers',
 				}}
-				{href}
 				id={`${id}:internal-transfers`}
 				collapsible={false}
 				title="Internal native transfers"
 			/>
-
 			<EvmTokenTransfersView
+				href={resolve(
+					'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+					{
+					networkId: String(entityId.$network.chainId),
+					transactionId: entityId.txHash,
+					},
+		)}
 				entityFieldReference={{
 					entityType: EntityType.EvmTransaction,
 					entityId,
 					fieldName: '$$tokenTransfers',
 				}}
-				{href}
 				id={`${id}:token-transfers`}
 				collapsible={false}
 			/>
 		{/snippet}
 	</ResourceBoundary>
 </section>
+

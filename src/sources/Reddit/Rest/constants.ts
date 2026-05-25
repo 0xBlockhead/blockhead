@@ -9,4 +9,4 @@ export const redditApiOrigins: readonly SourceOrigin[] = [
 	{ origin: redditWwwOrigin, corsEnabled: false },
 ]
 
-export const redditUserAgent = 'Blockhead/0.0.0' as const
+export const redditUserAgent = 'Blockhead/1.0.0 (+https://blockhead.vision) by /u/blockhead' as const

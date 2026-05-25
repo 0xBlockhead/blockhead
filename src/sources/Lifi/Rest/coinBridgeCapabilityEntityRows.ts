@@ -1,7 +1,4 @@
-import {
-	bridgeTools,
-	coinBridgeCapabilityFieldsForToolKey,
-} from '$/constants/Bridge.ts'
+import { bridgeToolByKey, bridgeTools } from '$/constants/Bridge.ts'
 import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
@@ -16,7 +13,7 @@ type CoinInstanceEntityId = EntityId<typeof schema, EntityType.CoinInstance>
 type CoinBridgeCapabilityEntityId = EntityId<typeof schema, EntityType.CoinBridgeCapability>
 
 const bridgeToolsCatalogKeys: Set<string> = new Set(
-	bridgeTools.map((row) => row.key),
+	Object.keys(bridgeToolByKey),
 )
 
 export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
@@ -45,16 +42,17 @@ export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 	const rows: {
 		[EntityMetaKey.Id]: CoinBridgeCapabilityEntityId
 		toolKey: string
-		railId: ReturnType<typeof coinBridgeCapabilityFieldsForToolKey>['railId']
-		settlementModel: ReturnType<typeof coinBridgeCapabilityFieldsForToolKey>['settlementModel']
-		verificationModel: ReturnType<typeof coinBridgeCapabilityFieldsForToolKey>['verificationModel']
-		assetOutcome: ReturnType<typeof coinBridgeCapabilityFieldsForToolKey>['assetOutcome']
+		railId: (typeof bridgeTools)[number]['railId']
+		settlementModel: (typeof bridgeTools)[number]['settlementModel']
+		verificationModel: (typeof bridgeTools)[number]['verificationModel']
+		assetOutcome: (typeof bridgeTools)[number]['assetOutcome']
 	}[] = []
 
 	for (const tool of tools) {
 		if (!bridgeToolsCatalogKeys.has(tool.key)) continue
 
-		const mechanics = coinBridgeCapabilityFieldsForToolKey(tool.key)
+		const mechanics = bridgeToolByKey[tool.key]
+		if (mechanics == null) continue
 
 		for (const { fromChainId, toChainId } of tool.supportedChains) {
 			const fromInstance = instanceByChainId[fromChainId]

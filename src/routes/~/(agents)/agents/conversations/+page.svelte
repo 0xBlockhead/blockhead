@@ -11,7 +11,7 @@
 
 <Page>
 	<BlockheadAgentConversationsView
-		href={resolve('/~/agents/conversations')}
+		href={resolve('/~/agents')}
 		id="conversations"
 		title={'Conversations'}
 	/>

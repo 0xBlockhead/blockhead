@@ -3,32 +3,33 @@ import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { fediGet } from '$/sources/Fedi/Rest/client.ts'
 import { fediInstanceOrigin } from '$/sources/Fedi/Rest/constants.ts'
 import type {
-	MastodonApiV1AccountWire,
-	MastodonApiV1ContextWire,
-	MastodonApiV1StatusWire,
-} from '$/sources/Fedi/Rest/types.ts'
+	MastodonApiV1Account,
+	MastodonApiV1Context,
+	MastodonApiV1Instance,
+	MastodonApiV1Status,
+} from '$/sources/Mastodon/Rest/types.ts'
 
 export const fediGetAccount = async (
 	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
 	localAccountId: string,
 ) => (
 	localAccountId.includes('@') ?
-		fediGet<MastodonApiV1AccountWire>(publicEnv, '/accounts/lookup', { acct: localAccountId })
-	:	fediGet<MastodonApiV1AccountWire>(publicEnv, `/accounts/${encodeURIComponent(localAccountId)}`)
+		fediGet<MastodonApiV1Account>(publicEnv, '/accounts/lookup', { acct: localAccountId })
+	:	fediGet<MastodonApiV1Account>(publicEnv, `/accounts/${encodeURIComponent(localAccountId)}`)
 )
 
 export const fediGetStatus = async (
 	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
 	localStatusId: string,
 ) => (
-	fediGet<MastodonApiV1StatusWire>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}`)
+	fediGet<MastodonApiV1Status>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}`)
 )
 
 export const fediGetStatusContext = async (
 	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
 	localStatusId: string,
 ) => (
-	fediGet<MastodonApiV1ContextWire>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}/context`)
+	fediGet<MastodonApiV1Context>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}/context`)
 )
 
 export const fediListAccountStatuses = async (
@@ -37,26 +38,32 @@ export const fediListAccountStatuses = async (
 	limit: number,
 ) => {
 	if (localAccountId.includes('@')) {
-		const a = await fediGet<MastodonApiV1AccountWire>(publicEnv, '/accounts/lookup', { acct: localAccountId })
+		const a = await fediGet<MastodonApiV1Account>(publicEnv, '/accounts/lookup', { acct: localAccountId })
 		if (a?.id == null) return []
-		return fediGet<MastodonApiV1StatusWire[]>(
+		return fediGet<MastodonApiV1Status[]>(
 			publicEnv,
 			`/accounts/${encodeURIComponent(String(a.id))}/statuses`,
 			{ limit: String(Math.min(80, Math.max(1, limit))) },
 		)
 	}
-	return fediGet<MastodonApiV1StatusWire[]>(
+	return fediGet<MastodonApiV1Status[]>(
 		publicEnv,
 		`/accounts/${encodeURIComponent(localAccountId)}/statuses`,
 		{ limit: String(Math.min(80, Math.max(1, limit))) },
 	)
 }
 
+export const fediGetInstance = async (
+	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
+) => (
+	fediGet<MastodonApiV1Instance>(publicEnv, '/instance')
+)
+
 export const fediListPublicTimeline = async (
 	publicEnv: SourcePublicEnvFor<Source.Fedi_Rest>,
 	limit: number,
 ) => (
-	fediGet<MastodonApiV1StatusWire[]>(
+	fediGet<MastodonApiV1Status[]>(
 		publicEnv,
 		'/timelines/public',
 		{ limit: String(Math.min(80, Math.max(1, limit))) },

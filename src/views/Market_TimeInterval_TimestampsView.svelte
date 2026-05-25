@@ -4,20 +4,14 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { marketOhlcCandleSources, type MarketTimeInterval } from '$/constants/Market.ts'
-	import {
-		dedupeCandleEntitiesById,
-		marketTimeIntervalsEqual,
-	} from '$/lib/marketOhlcCandles.ts'
+	import type { MarketTimeInterval } from '$/constants/Market.ts'
+	import { marketOhlcCandleSources } from '$/constants/Market.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -28,7 +22,7 @@
 		limit = 4096,
 		timeInterval,
 		entityFieldReference,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
@@ -40,16 +34,19 @@
 				EntityType.Market_TimeInterval_Timestamp
 			>
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
+			| 'id'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
+	import {
+		dedupeCandleEntitiesById,
+		marketTimeIntervalsEqual,
+	} from '$/lib/marketOhlcCandles.ts'
 
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
@@ -63,7 +60,7 @@
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	{collapsible}
 	entityType={EntityType.Market_TimeInterval_Timestamp}
@@ -74,7 +71,7 @@
 			Candle rows sit on interval boundaries: open, high, low, close for each bucket start.
 		</p>
 		<p>
-			They differ from tick-level spot quotes, which are timestamped prints rather than rolled OHLC.
+			Candles load from every configured OHLC provider on the parent market row (Coingecko, Defillama, Coinpaprika, CoinMarketCap, …).
 		</p>
 	{/snippet}
 
@@ -84,18 +81,14 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const market = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				{
-					$: [
-						Source.Constants_Internal,
-						...marketOhlcCandleSources,
-					],
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
+						$: [...marketOhlcCandleSources],
 						$limit: limit,
 					},
 				},
@@ -104,7 +97,7 @@
 				market,
 				(market) => {
 					const rows: Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[] = (
-						market[fieldName] ?? []
+						market[entityFieldReference.fieldName] ?? []
 					)
 					return (
 						(
@@ -141,19 +134,14 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const row = props.item.value}
-						<Market_TimeInterval_TimestampView
-							entityId={row[EntityMetaKey.Id]}
-							href={resolve('/(assets)/(markets)/market/[marketKey]', {
-								marketKey: encodeURIComponent(stringify(row[EntityMetaKey.Id].$market)),
-							})}
-							id={stringify(row[EntityMetaKey.Id])}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const row = item.value}
+					<Market_TimeInterval_TimestampView
+						entityId={row[EntityMetaKey.Id]}
+						id={stringify(row[EntityMetaKey.Id])}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

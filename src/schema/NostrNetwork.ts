@@ -72,6 +72,8 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.Constants_Internal,
+				Source.NostrBand_Rest,
+				Source.Primal_Rest,
 			],
 		},
 		{
@@ -80,7 +82,8 @@ export default {
 			entityType: EntityType.NostrNote,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
-				Source.Constants_Internal,
+				Source.NostrBand_Rest,
+				Source.Primal_Rest,
 			],
 		},
 		{
@@ -90,6 +93,7 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.Constants_Internal,
+				Source.NostrBand_Rest,
 			],
 		},
 		{
@@ -98,7 +102,8 @@ export default {
 			entityType: EntityType.NostrRepost,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
-				Source.Constants_Internal,
+				Source.NostrBand_Rest,
+				Source.Primal_Rest,
 			],
 		},
 		{
@@ -107,7 +112,8 @@ export default {
 			entityType: EntityType.NostrArticle,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
-				Source.Constants_Internal,
+				Source.NostrBand_Rest,
+				Source.Primal_Rest,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

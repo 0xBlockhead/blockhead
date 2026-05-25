@@ -7,21 +7,17 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Props
 	let {
 		entityFieldReference,
 		id = 'accounts',
-		href = resolve('/farcaster/accounts'),
 		title = 'Accounts',
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListProps
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<
@@ -29,20 +25,36 @@
 				EntityType.BlockheadFarcasterAccountConnection
 			>
 			id?: string
-			href?: string
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'body'
+			| 'collapsible'
+			| 'CollapsibleProps'
+			| 'Empty'
+			| 'getKey'
+			| 'getSortValue'
+			| 'HeadingProps'
+			| 'Item'
+			| 'ItemPlaceholder'
+			| 'items'
+			| 'layout'
+			| 'limit'
+			| 'panelStyle'
+			| 'placeholderKeys'
+			| 'placeholderText'
+			| 'resource'
+			| 'showSummary'
+			| 'TypeAnnotationTooltip'
+			| 'UnorderedListProps',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -57,11 +69,10 @@
 <EntitiesList
 	entityType={EntityType.BlockheadFarcasterAccountConnection}
 	{id}
-	{href}
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListProps}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -78,7 +89,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const global = useEntity(
 				EntityType._Global,
@@ -102,12 +113,10 @@
 				showSummary={false}
 				entityType={EntityType.BlockheadFarcasterAccountConnection}
 				id={`${id}-items`}
-				{href}
 				{title}
 				open={true}
 				getKey={(row) => row.result[EntityMetaKey.Id].fid}
 				getSortValue={(row) => row.result[EntityMetaKey.Id].fid}
-				placeholderKeys={new SvelteSet()}
 				placeholderText="Loading connected Farcaster accounts…"
 				resource={connections}
 			>
@@ -117,19 +126,14 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const fid = props.item.result[EntityMetaKey.Id]}
-						<BlockheadFarcasterAccountConnectionView
-							entityId={{ fid: fid.fid }}
-							href={resolve('/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]', {
-								accountId: String(fid.fid),
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-							title="Farcaster account"
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const fid = item.result[EntityMetaKey.Id]}
+					<BlockheadFarcasterAccountConnectionView
+						entityId={{ fid: fid.fid }}
+						layout={EntityLayout.Summary}
+						open={false}
+						title="Farcaster account"
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

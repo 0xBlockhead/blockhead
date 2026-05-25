@@ -25,6 +25,8 @@
 		height?: string
 	} = $props()
 
+
+	// Functions
 	const formatChartPrice = (value: number) => (
 		new Intl.NumberFormat(undefined, {
 			maximumFractionDigits: priceDecimals,
@@ -32,6 +34,8 @@
 		}).format(value)
 	)
 
+
+	// (Derived)
 	const chartRangeSummary = $derived.by(() => {
 		if (points.length === 0)
 			return null

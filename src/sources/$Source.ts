@@ -3,7 +3,7 @@ import type { Type } from 'arktype'
 import type { SourceProvider } from '$/sources/$SourceProvider.ts'
 
 /** String-keyed map of public env (matches `$env/dynamic/public` after coercing missing values to `''`). */
-export type SourcePublicEnvWire = Record<string, string>
+export type SourcePublicEnv = Record<string, string>
 
 export enum Source {
 	Allium_Rest = 'Allium_Rest',
@@ -22,6 +22,7 @@ export enum Source {
 	Defillama_OpenApi = 'Defillama_OpenApi',
 	Defillama_Rest = 'Defillama_Rest',
 	Dexscreener_OpenApi = 'Dexscreener_OpenApi',
+	Eip8004Scan_Rest = 'Eip8004Scan_Rest',
 	Dune_Rest = 'Dune_Rest',
 	Ensips_Github = 'Ensips_Github',
 	EthereumEips_Github = 'EthereumEips_Github',
@@ -64,5 +65,5 @@ export type SourceDefinition = {
 	provider: SourceProvider
 	source: Source
 	label: string
-	env?: Type<SourcePublicEnvWire>
+	env?: Type<SourcePublicEnv>
 }

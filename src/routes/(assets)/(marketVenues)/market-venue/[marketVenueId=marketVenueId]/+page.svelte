@@ -1,15 +1,10 @@
 <script lang="ts">
 	// Types/constants
-	import { marketVenueById, type MarketVenueId } from '$/constants/MarketVenue.ts'
-
-
-	const marketVenueIdFromParam = (param: string): MarketVenueId | null => (
-		marketVenueById[param as MarketVenueId]?.id ?? null
-	)
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import {
+		marketVenueById,
+		marketVenues,
+		type MarketVenueId,
+	} from '$/constants/MarketVenue.ts'
 
 
 	// Props
@@ -29,6 +24,12 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import MarketVenueView from '$/views/MarketVenueView.svelte'
+
+
+	// Functions
+	const marketVenueIdFromParam = (param: string): MarketVenueId | null => (
+		marketVenues.find((marketVenue) => marketVenue.id === param)?.id ?? null
+	)
 </script>
 
 
@@ -50,10 +51,6 @@
 	{:else}
 		<MarketVenueView
 			entityId={{ marketVenueId: route.marketVenueId }}
-			href={resolve(
-				'/(assets)/(marketVenues)/market-venue/[marketVenueId]',
-				{ marketVenueId: route.marketVenueId },
-			)}
 		/>
 	{/if}
 </Page>

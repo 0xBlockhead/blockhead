@@ -1,11 +1,13 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { resolve } from '$app/paths'
 	import { stringify } from 'devalue'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -40,6 +42,10 @@
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
+
+
+	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -59,8 +65,8 @@
 					href={resolve(
 						'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
 						{
-							networkId: params.networkId,
-							blockNumber: String(blockEntityId.blockNumber),
+						networkId: params.networkId,
+						blockNumber: String(blockEntityId.blockNumber),
 						},
 					)}
 					id={stringify(blockEntityId)}
@@ -68,13 +74,6 @@
 					{#snippet Summary({ open: _open })}
 						<EvmBlockView
 							entityId={blockEntityId}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
-								{
-									networkId: params.networkId,
-									blockNumber: String(blockEntityId.blockNumber),
-								},
-							)}
 							layout={EntityLayout.SummaryInline}
 						/>
 					{/snippet}

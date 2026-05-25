@@ -1,12 +1,11 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { stringify } from 'devalue'
-
 	import BeaconEpochSchema from '$/schema/BeaconEpoch.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -15,32 +14,29 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href: hrefProp,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
+			{
+				networkId: String(entityId.$network.chainId),
+				epochNumber: String(entityId.epoch),
+			},
+		),
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: typeof BeaconEpochSchema.id.infer
 			href?: string
 			layout?: EntityLayout
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'Content'
-			| 'Details'
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'layout'
-			| 'open'
-			| 'title'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -48,19 +44,6 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const href = (
-		hrefProp ?? resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
-			{
-				networkId: String(entityId.$network.chainId),
-				epochNumber: String(entityId.epoch),
-			},
-		)
-	)
-	const title = titleProp ?? `Epoch ${entityId.epoch.toLocaleString()}`
-	const epochIdKey = $derived(
-		stringify(entityId),
-	)
 	const epoch = useEntity(
 		EntityType.BeaconEpoch,
 		entityId,
@@ -74,6 +57,16 @@
 				slotCount: {},
 			}),
 		},
+	)
+
+
+	// (Derived)
+	const title = $derived(
+		titleProp ?? `Epoch ${entityId.epoch.toLocaleString()}`,
+	)
+
+	const epochIdKey = $derived(
+		stringify(entityId),
 	)
 
 
@@ -91,16 +84,14 @@
 <EntityView
 	entityType={EntityType.BeaconEpoch}
 	{entityId}
+	href={href}
 	{title}
-	{href}
 	{layout}
 	bind:open
 	idDragPlainText={String(entityId.epoch)}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Heading()}
-
 		<span>
 			{entityId.epoch}
 		</span>
@@ -118,7 +109,12 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Epoch </span>
-			{@render Value()}
+			<span
+				data-badge="small"
+				data-epoch-number={String(entityId.epoch)}
+			>
+				{String(entityId.epoch)}
+			</span>
 		</span>
 	{/snippet}
 
@@ -131,13 +127,14 @@
 						resource={epoch}
 						placeholderText="Loading epoch…"
 					>
-						{#snippet children(epoch)}
-							{#if epoch.startSlot !== undefined}
-								{#if epoch.endSlot !== undefined}
-									<NumberValue value={epoch.startSlot} />
-									to
-									<NumberValue value={epoch.endSlot} />
-								{/if}
+						{#snippet children(loadedEpoch)}
+							{#if (
+								loadedEpoch.startSlot !== undefined
+								&& loadedEpoch.endSlot !== undefined
+							)}
+								<NumberValue value={loadedEpoch.startSlot} />
+								to
+								<NumberValue value={loadedEpoch.endSlot} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -152,9 +149,9 @@
 							resource={epoch}
 							placeholderText="Loading epoch…"
 						>
-							{#snippet children(epoch)}
-								{#if epoch.slotCount !== undefined}
-									<NumberValue value={epoch.slotCount} />
+							{#snippet children(loadedEpoch)}
+								{#if loadedEpoch.slotCount !== undefined}
+									<NumberValue value={loadedEpoch.slotCount} />
 								{:else}
 									<span data-text="muted">Slot span unavailable from beacon API.</span>
 								{/if}
@@ -173,7 +170,6 @@
 			entityType={EntityType.BeaconEpoch}
 			{entityId}
 		/>
-
 		<div
 			class="beacon-epoch-view-carousel-groups"
 			data-column="gap-3"
@@ -198,7 +194,7 @@
 					>Slots</a>
 				{/snippet}
 
-				{#snippet body(_childrenContext)}
+				{#snippet body({ open: _bodyOpen })}
 					<section>
 						<BeaconSlotsView
 							entityFieldReference={{
@@ -206,12 +202,6 @@
 								entityId,
 								fieldName: '$$beaconSlots',
 							}}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/beacon-slots',
-								{
-									networkId: String(entityId.$network.chainId),
-								},
-							)}
 							id={`${epochIdKey}:beacon-slots`}
 							title="Slots"
 						/>
@@ -220,8 +210,5 @@
 			</CollapsibleTabs>
 		</div>
 
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>

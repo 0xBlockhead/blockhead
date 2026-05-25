@@ -1,10 +1,10 @@
 <script lang="ts">
-	// Types/constants
-	import { markdownToHtml } from '$/lib/markdown.ts'
-
-
 	// Props
 	let { content = null }: { content?: string | null } = $props()
+
+
+	// State
+	import { markdownToHtml } from '$/lib/markdown.ts'
 </script>
 
 

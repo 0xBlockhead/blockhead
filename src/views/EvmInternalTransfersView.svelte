@@ -1,13 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
@@ -23,7 +24,7 @@
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<
@@ -34,15 +35,15 @@
 			open?: boolean
 			collapsible?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -59,7 +60,7 @@
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -73,14 +74,13 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				{
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Blockscout_Rest,
 							Source.Voltaire_JsonRpc,
@@ -91,7 +91,7 @@
 			{@const transfers = derive(
 				parent,
 				(parent) => (
-					[...(parent[fieldName] ?? [])]
+					[...(parent[entityFieldReference.fieldName] ?? [])]
 						.map((value) => ({
 							value,
 						}))
@@ -106,8 +106,8 @@
 				placeholderText="Loading internal transfers…"
 				resource={transfers}
 				{title}
-				href={entitiesListRest.href ?? ''}
-				id={`${entitiesListRest.id ?? 'internal-transfers'}:items`}
+				href={EntitiesListProps.href ?? ''}
+				id={`${EntitiesListProps.id ?? 'internal-transfers'}:items`}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
@@ -116,25 +116,16 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const line = props.item.value}
-						{@const transferId = line[EntityMetaKey.Id]}
-						<EvmInternalTransferView
-							entityId={transferId}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
-								{
-									networkId: String(transferId.$network.chainId),
-									transactionId: transferId.txHash,
-								},
-							)}
-							layout={EntityLayout.SummaryDetails}
-							open={false}
-							showParentTransaction={false}
-							showTypeAnnotation={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const line = item.value}
+					{@const transferId = line[EntityMetaKey.Id]}
+					<EvmInternalTransferView
+						entityId={transferId}
+						layout={EntityLayout.SummaryDetails}
+						open={false}
+						showParentTransaction={false}
+						showTypeAnnotation={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

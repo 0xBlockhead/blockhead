@@ -38,10 +38,13 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 			data: await singleFlight(getEthereumEipSpecGithubContents)({ ledger }),
 		})),
 	)
-	const rowsByProposalKey = new Map<
-		string,
-		{ [EntityMetaKey.Id]: { realm: typeof ProposalRealm.Ethereum, category: typeof ProposalCategory.Eip | typeof ProposalCategory.Erc, number: number } }
-	>()
+	const rows: {
+		[EntityMetaKey.Id]: {
+			realm: typeof ProposalRealm.Ethereum
+			category: typeof ProposalCategory.Eip | typeof ProposalCategory.Erc
+			number: number
+		}
+	}[] = []
 	for (const { category: cat, data } of byLedger) {
 		for (const entry of data) {
 			if (entry.type !== 'file' || !entry.name.endsWith('.md')) continue
@@ -49,10 +52,10 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 			const proposalNumber = proposalNumberRaw != null ? parseInt(proposalNumberRaw, 10) : null
 			if (proposalNumber == null) continue
 			const id = { realm: ProposalRealm.Ethereum, category: cat, number: proposalNumber }
-			rowsByProposalKey.set(`${id.realm}:${id.category}:${id.number}`, { [EntityMetaKey.Id]: id })
+			rows.push({ [EntityMetaKey.Id]: id })
 		}
 	}
-	return [...rowsByProposalKey.values()]
+	return rows
 }
 
 export default {

@@ -56,6 +56,12 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'imageUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: '$$items',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.RssItem,

@@ -1,15 +1,22 @@
 <script lang="ts">
 	// Types/constants
 	import {
+		bridgeAssetOutcomes,
 		bridgeRailById,
+		bridgeRouteStepTypeByWire,
+		bridgeSettlementModels,
 		bridgeToolByKey,
+		bridgeVerificationModels,
 	} from '$/constants/Bridge.ts'
+
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 
 
 	// Context
@@ -19,32 +26,31 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve(
+			'/bridge/route/[routeId]/step/[stepIndex]',
+			{
+				routeId: entityId.routeId,
+				stepIndex: String(entityId.stepIndex),
+			},
+		),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.BridgeRouteStep>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
+			| 'layout'
 		>
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const step = useEntity(
 		EntityType.BridgeRouteStep,
@@ -54,6 +60,10 @@
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
+			$fromNetwork: {},
+			$toNetwork: {},
+			$fromToken: {},
+			$toToken: {},
 			...(open && {
 				stepType: {},
 				tool: {},
@@ -70,6 +80,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -77,20 +88,19 @@
 <EntityView
 	entityType={EntityType.BridgeRouteStep}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={step}
 			placeholderText="Loading…"
 		>
-			{#snippet children(step)}
+			{#snippet children(loadedStep)}
 				{(
-					step.tool != null && step.tool !== '' ?
-						(bridgeToolByKey[step.tool]?.label ?? step.tool)
+					step.tool != null && loadedStep.tool !== '' ?
+						(bridgeToolByKey[loadedStep.tool]?.label ?? loadedStep.tool)
 					:
 						`Step ${entityId.index + 1}`
 				)}
@@ -123,9 +133,9 @@
 						resource={step}
 						placeholderText="Loading step…"
 					>
-						{#snippet children(step)}
-							{#if step.stepType !== undefined}
-								{step.stepType}
+						{#snippet children(loadedStep)}
+							{#if loadedStep.stepType !== undefined}
+								{bridgeRouteStepTypeByWire[loadedStep.stepType]?.label ?? loadedStep.stepType}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -139,9 +149,14 @@
 						resource={step}
 						placeholderText="Loading step…"
 					>
-						{#snippet children(step)}
-							{#if step.tool !== undefined}
-								{step.tool}
+						{#snippet children(loadedStep)}
+							{#if loadedStep.tool !== undefined}
+								{(
+									step.tool !== '' ?
+										(bridgeToolByKey[loadedStep.tool]?.label ?? loadedStep.tool)
+									:
+										loadedStep.tool
+								)}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -156,9 +171,9 @@
 							resource={step}
 							placeholderText="Loading step…"
 						>
-							{#snippet children(step)}
-								{#if step.railId !== undefined}
-									{bridgeRailById[step.railId]?.label ?? step.railId}
+							{#snippet children(loadedStep)}
+								{#if loadedStep.railId !== undefined}
+									{bridgeRailById[loadedStep.railId]?.label ?? loadedStep.railId}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -172,9 +187,9 @@
 							resource={step}
 							placeholderText="Loading step…"
 						>
-							{#snippet children(step)}
-								{#if step.settlementModel !== undefined}
-									{step.settlementModel}
+							{#snippet children(loadedStep)}
+								{#if loadedStep.settlementModel !== undefined}
+									{bridgeSettlementModels[loadedStep.settlementModel].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -188,9 +203,9 @@
 							resource={step}
 							placeholderText="Loading step…"
 						>
-							{#snippet children(step)}
-								{#if step.verificationModel !== undefined}
-									{step.verificationModel}
+							{#snippet children(loadedStep)}
+								{#if loadedStep.verificationModel !== undefined}
+									{bridgeVerificationModels[loadedStep.verificationModel].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -204,9 +219,9 @@
 							resource={step}
 							placeholderText="Loading step…"
 						>
-							{#snippet children(step)}
-								{#if step.assetOutcome !== undefined}
-									{step.assetOutcome}
+							{#snippet children(loadedStep)}
+								{#if loadedStep.assetOutcome !== undefined}
+									{bridgeAssetOutcomes[loadedStep.assetOutcome].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -217,41 +232,94 @@
 			<div>
 				<dt>From chain</dt>
 				<dd>
-					<NetworkView
-						entityId={{ chainId: entityId.$route.fromChainId }}
-						href={resolve(
-							'/(explore)/(networks)/network/[networkId]',
-							{ networkId: String(entityId.$route.fromChainId) },
-						)}
-						layout={EntityLayout.Title}
-						open={false}
-						showTypeAnnotation={false}
-					/>
+					<ResourceBoundary
+						resource={step}
+						placeholderText="Loading step…"
+					>
+						{#snippet children(loadedStep)}
+							{#if loadedStep.$fromNetwork}
+								<NetworkView
+									entityId={loadedStep.$fromNetwork[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 
 			<div>
 				<dt>To chain</dt>
 				<dd>
-					<NetworkView
-						entityId={{ chainId: entityId.$route.toChainId }}
-						href={resolve(
-							'/(explore)/(networks)/network/[networkId]',
-							{ networkId: String(entityId.$route.toChainId) },
-						)}
-						layout={EntityLayout.Title}
-						open={false}
-						showTypeAnnotation={false}
-					/>
+					<ResourceBoundary
+						resource={step}
+						placeholderText="Loading step…"
+					>
+						{#snippet children(loadedStep)}
+							{#if loadedStep.$toNetwork}
+								<NetworkView
+									entityId={loadedStep.$toNetwork[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
+
+			{#if open}
+				<div>
+					<dt>From token</dt>
+					<dd>
+						<ResourceBoundary
+							resource={step}
+							placeholderText="Loading step…"
+						>
+							{#snippet children(loadedStep)}
+								{#if loadedStep.$fromToken}
+									<CoinInstanceView
+										entityId={loadedStep.$fromToken[EntityMetaKey.Id]}
+										layout={EntityLayout.SummaryDetails}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>To token</dt>
+					<dd>
+						<ResourceBoundary
+							resource={step}
+							placeholderText="Loading step…"
+						>
+							{#snippet children(loadedStep)}
+								{#if loadedStep.$toToken}
+									<CoinInstanceView
+										entityId={loadedStep.$toToken[EntityMetaKey.Id]}
+										layout={EntityLayout.SummaryDetails}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 		</dl>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.BridgeRouteStep}
 			{entityId}
 		/>
 	{/snippet}
 </EntityView>
+

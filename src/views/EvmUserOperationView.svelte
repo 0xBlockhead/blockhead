@@ -1,13 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-
-	import { resolve } from '$app/paths'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
@@ -16,9 +9,20 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
 		entityId,
+		href = resolve(
+		'/(explore)/(networks)/network/[networkId]/(network)/user-operation/[userOperationHash]',
+		{
+			networkId: String(entityId.$network.chainId),
+			userOperationHash: entityId.hash,
+		},
+	),
 
 		layout = EntityLayout.SummaryDetails,
 
@@ -39,7 +43,7 @@
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.EvmUserOperation>
-
+			href?: string
 			layout?: EntityLayout
 
 			summaryUsesHeading?: boolean
@@ -50,20 +54,13 @@
 
 			HeadingSnippet?: Snippet
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'Heading'
-			| 'href'
-			| 'layout'
-			| 'open'
-			| 'title'
-		>
+		never
 	> = $props()
 
 
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const operation = useEntity(
 		EntityType.EvmUserOperation,
 		entityId,
@@ -82,6 +79,9 @@
 
 
 	// Components
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import Erc4337SmartAccountView from '$/views/Erc4337SmartAccountView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 </script>
@@ -90,8 +90,8 @@
 <EntityView
 	entityType={EntityType.EvmUserOperation}
 	{entityId}
+	href={href}
 	{layout}
-	{summaryUsesHeading}
 	bind:open
 	{title}
 	{...entityViewProps}
@@ -143,8 +143,8 @@
 						placeholderText="Loading user operation…"
 						resource={operation}
 					>
-						{#snippet children(operation)}
-							{#if operation.finalized !== undefined}
+						{#snippet children(loadedOperation)}
+							{#if loadedOperation.finalized !== undefined}
 								{String(operation.finalized)}
 							{/if}
 						{/snippet}
@@ -159,8 +159,8 @@
 						placeholderText="Loading user operation…"
 						resource={operation}
 					>
-						{#snippet children(operation)}
-							{#if operation.blockNumber !== undefined}
+						{#snippet children(loadedOperation)}
+							{#if loadedOperation.blockNumber !== undefined}
 								{String(operation.blockNumber)}
 							{/if}
 						{/snippet}
@@ -175,9 +175,9 @@
 						placeholderText="Loading user operation…"
 						resource={operation}
 					>
-						{#snippet children(operation)}
-							{#if operation.fee != null && operation.fee !== ''}
-								{operation.fee}
+						{#snippet children(loadedOperation)}
+							{#if loadedOperation.fee != null && loadedOperation.fee !== ''}
+								{loadedOperation.fee}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -186,21 +186,21 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<ResourceBoundary resource={operation}>
-			{#snippet children(operation)}
+			{#snippet children(loadedOperation)}
 				<div class="entity-details" data-column="gap-2">
-					{#if operation.bundledTransactionHash != null}
+					{#if loadedOperation.bundledTransactionHash != null}
 						<EvmTransactionView
 							entityId={{
 								$network: entityId.$network,
-								txHash: operation.bundledTransactionHash,
+								txHash: loadedOperation.bundledTransactionHash,
 							}}
 							href={resolve(
 								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
 								{
-									networkId: String(entityId.$network.chainId),
-									transactionId: operation.bundledTransactionHash,
+								networkId: String(entityId.$network.chainId),
+								transactionId: loadedOperation.bundledTransactionHash,
 								},
 							)}
 							layout={EntityLayout.Summary}
@@ -210,16 +210,9 @@
 						/>
 					{/if}
 
-					{#if operation.$sender != null}
+					{#if loadedOperation.$sender != null}
 						<Erc4337SmartAccountView
-							entityId={operation.$sender[EntityMetaKey.Id]}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/erc-4337/smart-account/[address]',
-								{
-									networkId: String(entityId.$network.chainId),
-									address: operation.$sender[EntityMetaKey.Id].address,
-								},
-							)}
+							entityId={loadedOperation.$sender[EntityMetaKey.Id]}
 							layout={EntityLayout.Summary}
 							open={false}
 							collapsible={false}

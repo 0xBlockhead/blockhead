@@ -6,18 +6,31 @@
 
 // Types
 
+export type MastodonInstanceKey = 'mastodon_social'
+
 
 // Constants
-export const mastodonInstanceByKey = {
-	mastodon_social: {
-		origin: 'https://mastodon.social' as const,
-	},
-} as const
 
-export type MastodonInstanceKey = keyof typeof mastodonInstanceByKey
+const mastodonInstanceRows = [
+	{
+		key: 'mastodon_social',
+		origin: 'https://mastodon.social',
+	},
+] as const satisfies readonly {
+	key: MastodonInstanceKey
+	origin: `https://${string}`
+}[]
 
 export const mastodonDefaultInstanceKey: MastodonInstanceKey = 'mastodon_social'
 
-export const mastodonDefaultInstanceOrigin = (
-	mastodonInstanceByKey[mastodonDefaultInstanceKey].origin
+
+// Lookups
+
+export const mastodonInstanceByKey = Object.fromEntries(
+	mastodonInstanceRows.map((row) => [
+		row.key,
+		row,
+	]),
 )
+
+export const mastodonDefaultInstanceOrigin = mastodonInstanceByKey[mastodonDefaultInstanceKey].origin

@@ -1,0 +1,158 @@
+/**
+ * Visits every discovered `+page` route, records QueryBoundary / ResourceBoundary /
+ * svelte:boundary updates, and reports routes whose boundaries failed, stayed loading,
+ * or left `#main` empty after settle.
+ *
+ * ```
+ * pnpm run test:e2e:boundaries
+ * E2E_PATH_LIMIT=20 pnpm run test:e2e:boundaries
+ * E2E_PROBE_PATH=/network/1 pnpm exec playwright test tests/e2e/boundary-updates.e2e.ts -g probe
+ * E2E_BOUNDARY_REPORT_ONLY=1 pnpm run test:e2e:boundaries
+ * ```
+ */
+import { expect, test } from '@playwright/test'
+
+import {
+	formatBoundaryReportSummary,
+	getBoundaryProbeEvents,
+	installBoundaryProbe,
+	installChainlistRpcsJsonStub,
+	resetBoundaryProbe,
+	type RouteBoundaryReport,
+	summarizeRouteBoundaryReport,
+	waitForBoundarySettle,
+} from '../_e2eBrowserHelpers.ts'
+
+import { e2eBoundaryLiveOptionalPathnames } from './_routeParamFixtures.ts'
+import { discoverPathnamesFromRoutes } from './_routeDiscovery.ts'
+
+
+const gotoLoadTimeoutMs = 120_000
+
+const settleTimeoutMs = (() => {
+	const raw = process.env.E2E_BOUNDARY_SETTLE_MS?.trim()
+		?? process.env.E2E_MAIN_MS?.trim()
+	if (!raw) return 180_000
+	const parsed = Number(raw)
+	return Number.isFinite(parsed) ? parsed : 180_000
+})()
+
+const quietMs = (() => {
+	const raw = process.env.E2E_BOUNDARY_QUIET_MS?.trim()
+	if (!raw) return 4_000
+	const parsed = Number(raw)
+	return Number.isFinite(parsed) ? parsed : 4_000
+})()
+
+const reportOnly = process.env.E2E_BOUNDARY_REPORT_ONLY === '1'
+const probePath = process.env.E2E_PROBE_PATH?.trim()
+
+const collectRouteBoundaryReport = async (
+	page: import('@playwright/test').Page,
+	pathname: string,
+) => {
+	await resetBoundaryProbe(page)
+	await page.goto(pathname, {
+		waitUntil: 'load',
+		timeout: gotoLoadTimeoutMs,
+	})
+
+	const main = page.locator('#main')
+	await main.waitFor({
+		state: 'attached',
+		timeout: settleTimeoutMs,
+	}).catch(() => {})
+	await page.waitForLoadState('networkidle', { timeout: 30_000 }).catch(() => {})
+	const mainVisible = await main.isVisible().catch(() => false)
+	const snapshot = await waitForBoundarySettle(page, {
+		timeoutMs: settleTimeoutMs,
+		quietMs,
+	})
+	const updates = await getBoundaryProbeEvents(page)
+
+	return summarizeRouteBoundaryReport(
+		pathname,
+		page.url(),
+		mainVisible,
+		updates,
+		snapshot,
+	)
+}
+
+const attachBoundaryArtifacts = async (
+	testInfo: import('@playwright/test').TestInfo,
+	reports: RouteBoundaryReport[],
+) => {
+	const summary = formatBoundaryReportSummary(reports, e2eBoundaryLiveOptionalPathnames)
+	console.log(`\n--- boundary updates ---\n${summary}`)
+
+	await testInfo.attach('boundary-updates-summary.txt', {
+		body: summary,
+		contentType: 'text/plain',
+	})
+	await testInfo.attach('boundary-updates-report.json', {
+		body: JSON.stringify(reports, null, 2),
+		contentType: 'application/json',
+	})
+}
+
+const assertBoundaryReports = (reports: RouteBoundaryReport[]) => {
+	const issueRoutes = reports.filter((report) => (
+		report.issues.length > 0
+		&& !e2eBoundaryLiveOptionalPathnames.has(report.pathname)
+	))
+	expect(
+		issueRoutes.map((report) => (
+			`${report.pathname}\n  ${report.issues.join('\n  ')}`
+		)),
+		formatBoundaryReportSummary(reports, e2eBoundaryLiveOptionalPathnames),
+	).toEqual([])
+}
+
+test.describe('boundary updates (every +page route)', () => {
+	test.describe.configure({ mode: 'serial' })
+
+	test('probe route', async ({ page }, testInfo) => {
+		test.skip(probePath == null || probePath === '', 'set E2E_PROBE_PATH')
+		testInfo.setTimeout(settleTimeoutMs + gotoLoadTimeoutMs + 60_000)
+		page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+		await installBoundaryProbe(page)
+		await installChainlistRpcsJsonStub(page)
+
+		const report = await collectRouteBoundaryReport(page, probePath!)
+		await attachBoundaryArtifacts(testInfo, [report])
+		if (!reportOnly)
+			assertBoundaryReports([report])
+	})
+
+	test('every +page URL', async ({ page }, testInfo) => {
+		test.skip(probePath != null && probePath !== '', 'E2E_PROBE_PATH skips full matrix')
+		page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
+		await installBoundaryProbe(page)
+		await installChainlistRpcsJsonStub(page)
+
+		const all = await discoverPathnamesFromRoutes()
+		const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
+		const limit = Number(limitRaw)
+		const pageUrls = (
+			limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
+				all.slice(0, limit)
+			:	all
+		)
+
+		const perRouteBudgetMs = settleTimeoutMs + gotoLoadTimeoutMs + 60_000
+		testInfo.setTimeout(pageUrls.length * perRouteBudgetMs + 60_000)
+
+		const reports: RouteBoundaryReport[] = []
+
+		for (const pathname of pageUrls) {
+			await test.step(pathname, async () => {
+				reports.push(await collectRouteBoundaryReport(page, pathname))
+			})
+		}
+
+		await attachBoundaryArtifacts(testInfo, reports)
+		if (!reportOnly)
+			assertBoundaryReports(reports)
+	})
+})

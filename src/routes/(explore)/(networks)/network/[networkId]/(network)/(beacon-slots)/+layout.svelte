@@ -1,7 +1,10 @@
 <script lang="ts">
 	// Types/constants
-	import { resolve } from '$app/paths'
 	import { stringify } from 'devalue'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props

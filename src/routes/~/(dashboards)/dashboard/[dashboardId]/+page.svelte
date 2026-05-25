@@ -2,6 +2,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+
 	// Props
 	let {
 		params,
@@ -16,6 +17,5 @@
 <Page>
 	<BlockheadPanelTreeView
 		entityId={{ id: params.dashboardId }}
-		href={resolve(`/dashboard/${params.dashboardId}`)}
 	/>
 </Page>

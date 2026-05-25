@@ -1,9 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
-	import { stringify } from 'devalue'
-
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -11,14 +8,13 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 	type BridgeTxRow = {
 		value: Entity<typeof schema, EntityType.BridgeTransaction>
 	}
-
-
-	// Context
-	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -27,22 +23,17 @@
 		title = 'Bridge transactions',
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BridgeTransaction>
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'entityType'
-			| 'getKey'
-			| 'getSortValue'
-			| 'items'
-			| 'resource'
-			| 'Item'
-			| 'body'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
@@ -50,13 +41,11 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import BridgeTransactionView from '$/views/BridgeTransactionView.svelte'
 </script>
 
@@ -66,7 +55,7 @@
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -83,7 +72,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -131,25 +120,14 @@
 				{/snippet}
 
 				{#snippet Item({
-					item: row,
+					item: bridgeTransaction,
 				})}
-					{#if row}
-						{@const id = row.value[EntityMetaKey.Id]}
-						<BridgeTransactionView
-							entityId={id}
-							href={resolve(
-								'/~/(accounts)/accounts/(transactions)/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]',
-								{
-									chainId: String(id.$account.$network.chainId),
-									address: id.$account.address,
-									sourceTxHash: id.$sourceTx.txHash,
-									createdAt: String(id.createdAt),
-								},
-							)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+					{@const id = bridgeTransaction.value[EntityMetaKey.Id]}
+					<BridgeTransactionView
+						entityId={id}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

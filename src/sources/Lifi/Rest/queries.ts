@@ -5,7 +5,6 @@
  */
 
 import { throwIfHttpNotOk } from '$/lib/http.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { lifiRestFetch } from '$/sources/Lifi/Rest/client.ts'
 import type {
 	FetchLifiChainsOptions,
@@ -52,17 +51,10 @@ export async function fetchLifiTokens(
 	return res.json<LifiTokensResponse>()
 }
 
-/** Deduped default chain catalog for resolvers (no query options). */
-export const fetchLifiChainsCatalog = singleFlight(
-	async (): Promise<LifiChainsResponse> => (
-		fetchLifiChains()
-	),
-)
-
 export const findLifiChainByChainId = async (
 	chainId: number,
 ): Promise<LifiChainsResponse['chains'][number] | undefined> => (
-	(await fetchLifiChainsCatalog()).chains.find((row) => row.id === chainId)
+	(await fetchLifiChains()).chains.find((row) => row.id === chainId)
 )
 
 /**
@@ -77,15 +69,3 @@ export async function fetchLifiTools(
 	await throwIfHttpNotOk(res, path)
 	return res.json<LifiToolsResponse>()
 }
-
-export const fetchLifiToolsCatalog = singleFlight(
-	async (): Promise<LifiToolsResponse> => (
-		fetchLifiTools()
-	),
-)
-
-export const fetchLifiTokensCatalog = singleFlight(
-	async (): Promise<LifiTokensResponse> => (
-		fetchLifiTokens({ chainTypes: 'EVM' })
-	),
-)

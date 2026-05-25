@@ -23,7 +23,6 @@
 			entityId: { chainId: Number(params.networkId) },
 			fieldName: '$$beaconEpochs',
 		}}
-		href={resolve('/(explore)/(networks)/network/[networkId]/(network)/beacon-epochs', params)}
 		id="beacon-epochs"
 	/>
 </Page>

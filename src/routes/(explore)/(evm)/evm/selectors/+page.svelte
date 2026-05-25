@@ -1,8 +1,10 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
-
-	import { EntityType } from '$/schema/$EntityType.ts'
 
 
 	// Components
@@ -13,12 +15,14 @@
 
 <Page>
 	<EvmSelectorsView
+		href={resolve('/evm/selectors')}
 		entityFieldReference={{
-			entityType: EntityType._Global,
-			entityId: {},
+			entityType: EntityType.EvmProtocol,
+			entityId: {
+				scope: 'EvmProtocol',
+			},
 			fieldName: '$$evmSelectors',
 		}}
-		href={resolve('/evm/selectors')}
 		id="selectors"
 	/>
 </Page>

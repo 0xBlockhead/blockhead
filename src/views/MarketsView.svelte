@@ -4,7 +4,6 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,10 +11,9 @@
 	import { marketCatalogFieldSources } from '$/constants/Market.ts'
 	import type { MarketVenueId } from '$/constants/MarketVenue.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -26,7 +24,7 @@
 		entityFieldReference,
 		filterMarketVenueId,
 		filterMarketKind,
-		...entitiesListRest
+				...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
@@ -35,17 +33,15 @@
 			filterMarketVenueId?: MarketVenueId
 			filterMarketKind?: MarketKind
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -58,7 +54,7 @@
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	{collapsible}
 	entityType={EntityType.Market}
@@ -82,9 +78,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -92,7 +87,7 @@
 					$: [
 						...marketCatalogFieldSources,
 					],
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$limit: 8192,
 					},
 				},
@@ -100,12 +95,12 @@
 			{@const markets = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.Market>[] = parent[fieldName] ?? []
+					const rows: Entity<typeof schema, EntityType.Market>[] = parent[entityFieldReference.fieldName] ?? []
 					return (
 						Object.values(
 							Object.groupBy(
 								rows,
-								(marketRow) => stringify(marketRow[EntityMetaKey.Id]),
+								(market) => stringify(market[EntityMetaKey.Id]),
 							),
 						)
 							.flatMap((group) => (
@@ -114,14 +109,14 @@
 								:
 									[group[0]]
 							))
-							.filter((marketRow) => (
+							.filter((market) => (
 								(
 									filterMarketVenueId == null
-									|| marketRow[EntityMetaKey.Id].$marketVenue.marketVenueId === filterMarketVenueId
+									|| market[EntityMetaKey.Id].$marketVenue.marketVenueId === filterMarketVenueId
 								)
 								&& (
 									filterMarketKind == null
-									|| marketRow[EntityMetaKey.Id].marketKind === filterMarketKind
+									|| market[EntityMetaKey.Id].marketKind === filterMarketKind
 								)
 							))
 					)
@@ -133,7 +128,6 @@
 				entityType={EntityType.Market}
 				getKey={(row) => stringify(row[EntityMetaKey.Id])}
 				getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
-				placeholderKeys={new SvelteSet()}
 				open={true}
 				resource={markets}
 				{title}
@@ -145,21 +139,13 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<MarketView
-							entityId={props.item[EntityMetaKey.Id]}
-							href={resolve(
-								'/(assets)/(markets)/market/[marketKey]',
-								{
-									marketKey: encodeURIComponent(stringify(props.item[EntityMetaKey.Id])),
-								},
-							)}
-							id={stringify(props.item[EntityMetaKey.Id])}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					<MarketView
+						entityId={item[EntityMetaKey.Id]}
+						id={stringify(item[EntityMetaKey.Id])}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

@@ -1,8 +1,10 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
-
-	import { EntityType } from '$/schema/$EntityType.ts'
 
 
 	// Components
@@ -13,13 +15,13 @@
 
 <Page>
 	<FarcasterFeedsView
+		href={resolve('/farcaster/feed')}
 		collapsible={false}
 		entityFieldReference={{
 			entityType: EntityType.FarcasterNetwork,
 			entityId: { scope: 'FarcasterNetwork' },
 			fieldName: '$$feeds',
 		}}
-		href={resolve('/farcaster/feed')}
 		id="feed-index"
 		limit={36}
 		title="Feeds"

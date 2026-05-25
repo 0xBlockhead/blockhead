@@ -54,5 +54,17 @@ export default {
 			entityType: EntityType.RedditLink,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
+		{
+			name: '$parentComment',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.RedditComment,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$replies',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.RedditComment,
+			cardinality: EntityFieldCardinality.Many,
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

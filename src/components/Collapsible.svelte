@@ -1,13 +1,16 @@
 <script lang="ts">
-	// Context
-	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-
-
-	// Props
+	// Types/constants
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 	import type { Snippet } from 'svelte'
 
+
+	// Context
+	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
+	import { incrementHeadingLevel } from '$/context/headingLevel.ts'
+
+
+	// Props
 	let {
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -27,16 +30,16 @@
 			ontoggle?: (e: Event) => void
 			onclose?: (id?: string) => void
 
-			Annotation?: Snippet<[context?: {
+			Annotation?: Snippet<[{
 				open?: boolean,
 			}]>
-			Toolbar?: Snippet<[context?: {
+			Toolbar?: Snippet<[{
 				open?: boolean,
 			}]>
-			Summary?: Snippet<[context?: {
+			Summary?: Snippet<[{
 				open?: boolean,
 			}]>
-			children?: Snippet<[context?: {
+			children?: Snippet<[{
 				open?: boolean,
 			}]>
 		},
@@ -44,9 +47,7 @@
 	> = $props()
 
 
-	// Inner context
-	import { incrementHeadingLevel } from '$/context/headingLevel.ts'
-
+	// State
 	incrementHeadingLevel()
 </script>
 

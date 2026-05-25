@@ -2,13 +2,19 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { stringify } from 'devalue'
 	import { schema } from '$/schema/index.ts'
-	import { formatMarketIdLabel } from '$/constants/Market.ts'
+
+	import {
+		MarketAssetKind,
+		MarketKind,
+		marketKinds,
+	} from '$/constants/Market.ts'
+
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -17,28 +23,40 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+		'/(assets)/(markets)/market/[marketKey]',
+		{
+			marketKey: encodeURIComponent(stringify(entityId.$market)),
+		},
+	),
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.MarketPrice>
 			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
+			| 'id'
+			| 'layout'
 		>
 	> = $props()
+
+
+	// Functions
+	const marketAssetSymbol = (
+		leg: typeof entityId.$market.$base,
+	) => (
+		leg.kind === MarketAssetKind.Coin ?
+			leg.$coin.coinId
+		: leg.kind === MarketAssetKind.CoinInstance ?
+			`instance-${stringify(leg.$coinInstance).slice(0, 12)}`
+		:
+			leg.$currency.iso4217
+	)
 
 
 	// State
@@ -75,6 +93,15 @@
 	)
 
 
+	// (Derived)
+	const marketIdLabel = $derived(
+		entityId.$market.marketKind === MarketKind.Spot ?
+			`${entityId.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$market.$base)}-${marketAssetSymbol(entityId.$market.$quote)}`
+		:
+			`${entityId.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$market.$base)}-${marketAssetSymbol(entityId.$market.$quote)} (${marketKinds[entityId.$market.marketKind].label})`
+	)
+
+
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -88,22 +115,13 @@
 <EntityView
 	entityType={EntityType.MarketPrice}
 	{entityId}
-	href={
-		href
-		?? resolve(
-			'/(assets)/(markets)/market/[marketKey]',
-			{
-				marketKey: encodeURIComponent(stringify(entityId.$market)),
-			},
-		)
-	}
+	href={href}
 	{open}
-	title={formatMarketIdLabel(entityId.$market)}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	title={marketIdLabel}
+	{...EntityViewProps}
 >
 	{#snippet Heading()}
-		{formatMarketIdLabel(entityId.$market)}
+		{marketIdLabel}
 	{/snippet}
 
 	{#snippet Value()}
@@ -132,7 +150,7 @@
 						resource={marketPrice}
 						placeholderText="Loading quotes…"
 					>
-						{#snippet children(marketPrice)}
+						{#snippet children(loadedMarketPrice)}
 							{@const headQuoteId = (
 								(marketPrice.$$quotes ?? [])
 									.toSorted((
@@ -184,8 +202,8 @@
 			entityType={EntityType.MarketPrice}
 			{entityId}
 		/>
-
 		<Market_TimestampsView
+			href={resolve('/markets')}
 			collapsible={false}
 			entityFieldReference={{
 				entityType: EntityType.MarketPrice,
@@ -195,9 +213,5 @@
 			open={false}
 			title="Quotes"
 		/>
-
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>

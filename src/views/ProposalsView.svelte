@@ -1,13 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
-	import {
-		proposalCategoryById,
-		proposalRealmById,
-	} from '$/constants/Proposal.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -15,13 +8,9 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
 
 
 	// Props
@@ -38,30 +27,34 @@
 			open?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Proposal>
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'entityType'
-			| 'items'
-			| 'body'
+			| 'collapsible'
+			| 'CollapsibleProps'
+			| 'Empty'
+			| 'getKey'
+			| 'getSortValue'
+			| 'HeadingProps'
+			| 'href'
+			| 'id'
+			| 'Item'
+			| 'ItemPlaceholder'
+			| 'layout'
+			| 'limit'
+			| 'panelStyle'
+			| 'placeholderKeys'
+			| 'placeholderText'
+			| 'resource'
+			| 'showSummary'
+			| 'TypeAnnotationTooltip'
+			| 'UnorderedListProps'
 		>
 	> = $props()
-
-
-	// Functions
-	const proposalKey = (row: { result: Entity<typeof schema, EntityType.Proposal> }) => (
-		stringify(row.result[EntityMetaKey.Id])
-	)
-
-	const proposalSortValue = (row: { result: Entity<typeof schema, EntityType.Proposal> }) => (
-		row.result[EntityMetaKey.Id].number
-	)
 
 
 	// State
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const fieldName = $derived(entityFieldReference.fieldName)
 
 	const parent = useEntity(
 		entityFieldReference.entityType,
@@ -73,7 +66,7 @@
 				Source.Ensips_Github,
 				Source.Caips_Github,
 			],
-			[fieldName]: {
+			[entityFieldReference.fieldName]: {
 				$: [
 					Source.EthereumEips_Github,
 					Source.Ensips_Github,
@@ -87,15 +80,11 @@
 	const proposals = derive(
 		parent,
 		(parent) => {
-			const rows: Entity<typeof schema, EntityType.Proposal>[] = parent[fieldName] ?? []
+			const rows: Entity<typeof schema, EntityType.Proposal>[] = parent[entityFieldReference.fieldName] ?? []
 			return (
 				rows
-					.toSorted((first, second) => (
-						first[EntityMetaKey.Id].number
-						- second[EntityMetaKey.Id].number
-					))
-					.map((proposalRow) => ({
-						result: proposalRow,
+					.map((proposal) => ({
+						result: proposal,
 					}))
 			)
 		},
@@ -103,8 +92,8 @@
 
 
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import ProposalView from '$/views/ProposalView.svelte'
 </script>
 
@@ -114,8 +103,8 @@
 	entityType={EntityType.Proposal}
 	{title}
 	bind:open
-	getKey={proposalKey}
-	getSortValue={proposalSortValue}
+	getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
+	getSortValue={(row) => row.result[EntityMetaKey.Id].number}
 	layout={EntitiesListLayout.Default}
 	placeholderKeys={new SvelteSet<string | number>()}
 	resource={proposals}
@@ -135,22 +124,12 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			{@const proposalEntityId = props.item.result[EntityMetaKey.Id]}
-			<ProposalView
-				entityId={proposalEntityId}
-				href={resolve(
-					'/(explore)/(proposals)/proposals/[proposalRealmSlug=proposalRealmSlug]/(proposalRealm)/[proposalKindSlug=proposalKindSlug]/(proposalKind)/[proposalRef=proposalRef]',
-					{
-						proposalRealmSlug: proposalRealmById[proposalEntityId.realm].slug,
-						proposalKindSlug: proposalCategoryById[proposalEntityId.category].slug,
-						proposalRef: `${proposalCategoryById[proposalEntityId.category].slug}-${proposalEntityId.number}`,
-					},
-				)}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
+	{#snippet Item({ item })}
+		{@const proposalEntityId = item.result[EntityMetaKey.Id]}
+		<ProposalView
+			entityId={proposalEntityId}
+			layout={EntityLayout.SummaryInline}
+			open={false}
+		/>
 	{/snippet}
 </EntitiesList>

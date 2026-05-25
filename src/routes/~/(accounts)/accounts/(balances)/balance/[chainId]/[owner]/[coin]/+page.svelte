@@ -2,6 +2,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+
 	// Props
 	let {
 		params,
@@ -29,13 +30,5 @@
 				},
 			},
 		}}
-		href={resolve(
-			'/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]',
-			{
-				chainId: params.chainId,
-				owner: params.owner,
-				coin: params.coin,
-			},
-		)}
 	/>
 </Page>

@@ -6,10 +6,8 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { Source } from '$/sources/$Source.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -18,7 +16,8 @@
 		title = 'Linked Farcaster accounts',
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListRest
+				id = 'farcaster-accounts',
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<
@@ -26,11 +25,11 @@
 				EntityType.BlockheadFarcasterAccountConnection
 			>
 			title?: string
-			open?: boolean
+			open?: boolean			id?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
@@ -38,23 +37,22 @@
 	// State
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { Source } from '$/sources/$Source.ts'
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import BlockheadFarcasterAccountConnectionView from '$/views/BlockheadFarcasterAccountConnectionView.svelte'
 </script>
 
 
 <EntitiesList
 	entityType={EntityType.BlockheadFarcasterAccountConnection}
+	{id}
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -71,7 +69,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const global = useEntity(
 				EntityType._Global,
@@ -104,18 +102,13 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item({ item: row })}
-					{#if row}
-						<BlockheadFarcasterAccountConnectionView
-							entityId={{ fid: row[EntityMetaKey.Id].fid }}
-							href={resolve('/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]', {
-								accountId: String(row[EntityMetaKey.Id].fid),
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-							title="Account"
-						/>
-					{/if}
+				{#snippet Item({ item: connection })}
+					<BlockheadFarcasterAccountConnectionView
+						entityId={{ fid: connection[EntityMetaKey.Id].fid }}
+						layout={EntityLayout.Summary}
+						open={false}
+						title="Account"
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

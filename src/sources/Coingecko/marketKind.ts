@@ -1,5 +1,5 @@
 import type { CoinId } from '$/constants/Coin.ts'
-import { Iso4217, usdCurrencyMarketAssetLeg } from '$/constants/Currency.ts'
+import { Iso4217 } from '$/constants/Currency.ts'
 import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import type { MarketVenueId as _MarketVenueId } from '$/constants/MarketVenue.ts'
@@ -193,7 +193,7 @@ export const derivativeTickerMatchesMarket = (
 ): boolean => (
 	marketId.$base.kind === MarketAssetKind.Coin
 	&& marketId.$quote.kind === MarketAssetKind.Currency
-	&& marketId.$quote.$currency.iso4217 === usdCurrencyMarketAssetLeg.$currency.iso4217
+	&& marketId.$quote.$currency.iso4217 === Iso4217.USD
 	&& ticker.coin_id != null
 	&& catalogCoinIdByCoingeckoIdMap[ticker.coin_id] === marketId.$base.$coin.coinId
 	&& (

@@ -23,7 +23,6 @@
 			entityId: { chainId: Number(params.networkId) },
 			fieldName: '$$precompiles',
 		}}
-		href={resolve('/(explore)/(networks)/network/[networkId]/(network)/precompiles', params)}
 		id="precompiles"
 	/>
 </Page>

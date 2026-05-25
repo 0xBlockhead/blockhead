@@ -1,7 +1,5 @@
 <script lang="ts">
-	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 
@@ -11,6 +9,8 @@
 
 
 	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import FarcasterUserView from '$/views/FarcasterUserView.svelte'
 </script>
 
@@ -22,7 +22,6 @@
 	{#snippet Summary({ open: _open })}
 		<FarcasterUserView
 			entityId={{ fid: Number(page.params.userId) }}
-			href={resolve(`/farcaster/user/${page.params.userId}`)}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

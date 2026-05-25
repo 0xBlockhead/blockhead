@@ -4,11 +4,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 
-	// Context
-	import { resolve } from '$app/paths'
 
-
-	// State
+	// Functions
 	const entityId = ({
 		variant: 'trending' as const,
 	}) satisfies EntityId<typeof schema, EntityType.FarcasterFeed>
@@ -23,7 +20,6 @@
 <Page>
 	<FarcasterFeedView
 		{entityId}
-		href={resolve('/farcaster/feed/trending')}
 		limit={50}
 	/>
 </Page>

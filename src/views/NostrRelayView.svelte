@@ -8,31 +8,32 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve(
+			'/(social)/(nostr)/nostr/relay/[relayKey]',
+			{ relayKey: entityId.relayKey },
+		),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.NostrRelay>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Content'
+			| 'layout'
 		>
 	> = $props()
 
@@ -51,8 +52,6 @@
 			description: {},
 			software: {},
 			version: {},
-			nip11Name: {},
-			nip11Description: {},
 			supportedNipCount: {},
 			isPaid: {},
 			limit: {},
@@ -71,9 +70,9 @@
 <EntityView
 	entityType={EntityType.NostrRelay}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
@@ -87,9 +86,9 @@
 			resource={relay}
 			placeholderText="Loading relay…"
 		>
-			{#snippet children(relay)}
-				{#if relay.name}
-					{relay.name}
+			{#snippet children(loadedRelay)}
+				{#if loadedRelay.name}
+					{loadedRelay.name}
 				{:else}
 					<TruncatedValue
 						value={entityId.relayUrl}
@@ -111,115 +110,121 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			{#if open}
-				{#if relay.description}
-					<div>
-						<dt>Description</dt>
-						<dd>
-							<ResourceBoundary
-								resource={relay}
-								placeholderText="Loading relay…"
-							>
-								{#snippet children(relay)}
-									{relay.description}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& relay.description
+			)}
+				<div>
+					<dt>Description</dt>
+					<dd>
+						<ResourceBoundary
+							resource={relay}
+							placeholderText="Loading relay…"
+						>
+							{#snippet children(loadedRelay)}
+								{loadedRelay.description}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if relay.software}
-					<div>
-						<dt>Software</dt>
-						<dd>
-							<ResourceBoundary
-								resource={relay}
-								placeholderText="Loading relay…"
-							>
-								{#snippet children(relay)}
-									{relay.software}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& relay.software
+			)}
+				<div>
+					<dt>Software</dt>
+					<dd>
+						<ResourceBoundary
+							resource={relay}
+							placeholderText="Loading relay…"
+						>
+							{#snippet children(loadedRelay)}
+								{loadedRelay.software}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if relay.version}
-					<div>
-						<dt>Version</dt>
-						<dd>
-							<ResourceBoundary
-								resource={relay}
-								placeholderText="Loading relay…"
-							>
-								{#snippet children(relay)}
-									{relay.version}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& relay.version
+			)}
+				<div>
+					<dt>Version</dt>
+					<dd>
+						<ResourceBoundary
+							resource={relay}
+							placeholderText="Loading relay…"
+						>
+							{#snippet children(loadedRelay)}
+								{loadedRelay.version}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if relay.supportedNipCount != null}
-					<div>
-						<dt>Supported NIPs</dt>
-						<dd>
-							<ResourceBoundary
-								resource={relay}
-								placeholderText="Loading relay…"
-							>
-								{#snippet children(relay)}
-									{String(relay.supportedNipCount)}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& relay.supportedNipCount != null
+			)}
+				<div>
+					<dt>Supported NIPs</dt>
+					<dd>
+						<ResourceBoundary
+							resource={relay}
+							placeholderText="Loading relay…"
+						>
+							{#snippet children(loadedRelay)}
+								{String(relay.supportedNipCount)}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if relay.isPaid != null}
-					<div>
-						<dt>Paid relay</dt>
-						<dd>
-							<ResourceBoundary
-								resource={relay}
-								placeholderText="Loading relay…"
-							>
-								{#snippet children(relay)}
-									{String(relay.isPaid)}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& relay.isPaid != null
+			)}
+				<div>
+					<dt>Paid relay</dt>
+					<dd>
+						<ResourceBoundary
+							resource={relay}
+							placeholderText="Loading relay…"
+						>
+							{#snippet children(loadedRelay)}
+								{loadedRelay.isPaid ? 'Yes' : 'No'}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if relay.limit != null}
-					<div>
-						<dt>Event limit</dt>
-						<dd>
-							<ResourceBoundary
-								resource={relay}
-								placeholderText="Loading relay…"
-							>
-								{#snippet children(relay)}
-									{String(relay.limit)}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& relay.limit != null
+			)}
+				<div>
+					<dt>Event limit</dt>
+					<dd>
+						<ResourceBoundary
+							resource={relay}
+							placeholderText="Loading relay…"
+						>
+							{#snippet children(loadedRelay)}
+								{String(relay.limit)}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 		</dl>
-{/snippet}
+	{/snippet}
 
 	{#snippet Details({
 		open: _open,

@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Props
 	let {
 		data,
@@ -18,8 +14,5 @@
 <Page>
 	<RssFeedView
 		entityId={data.entityId}
-		href={resolve('/(social)/(rss)/rss/feed/[feedKey]', {
-			feedKey: encodeURIComponent(data.entityId.feedUrl),
-		})}
 	/>
 </Page>

@@ -6,7 +6,6 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { SvelteSet } from 'svelte/reactivity'
 
 
@@ -18,7 +17,6 @@
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		limit = 25,
 		open = $bindable(
@@ -28,8 +26,7 @@
 		title = 'Videos',
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.YouTubeVideo>
-		href: string
-		id: string
+			id: string
 		limit?: number
 		open?: boolean
 		title?: string
@@ -68,12 +65,11 @@
 	</div>
 
 	<EntitiesList
-		entityType={EntityType.YouTubeVideo}
-		{href}
-		{id}
-		{title}
-		bind:open
-		{collapsible}
+	entityType={EntityType.YouTubeVideo}
+	{id}
+	{title}
+	bind:open
+	{collapsible}
 	>
 		{#snippet Empty()}
 			<div data-row="wrap align-center gap-2">
@@ -97,9 +93,8 @@
 			</div>
 		{/snippet}
 
-		{#snippet body()}
+		{#snippet body({ open: _bodyOpen })}
 			{#if open}
-				{@const fieldName = entityFieldReference.fieldName}
 				{@const parent = useEntity(
 					entityFieldReference.entityType,
 					entityFieldReference.entityId,
@@ -109,7 +104,7 @@
 							Source.Youtube_Rest,
 							Source.Piped_Rest,
 						],
-						[fieldName]: {
+						[entityFieldReference.fieldName]: {
 							$: [
 								Source.Youtube_Rest,
 								Source.Piped_Rest,
@@ -122,7 +117,7 @@
 					parent,
 					(parent) => {
 						const rows: Entity<typeof schema, EntityType.YouTubeVideo>[] = (
-							parent[fieldName] ?? []
+							parent[entityFieldReference.fieldName] ?? []
 						)
 						return (
 							rows.map((video) => ({
@@ -136,7 +131,6 @@
 					collapsible={false}
 					showSummary={false}
 					entityType={EntityType.YouTubeVideo}
-					{href}
 					id={`${id}-items`}
 					{title}
 					resource={videos}
@@ -168,18 +162,13 @@
 					{/snippet}
 
 					{#snippet Item({
-						item: row,
+						item: video,
 					})}
-						{#if row}
-							<YouTubeVideoView
-								entityId={{ videoId: row.videoId }}
-								href={resolve('/(social)/(youtube)/youtube/video/[videoId]', {
-									videoId: encodeURIComponent(row.videoId),
-								})}
-								layout={EntityLayout.SummaryDetails}
-								open={false}
-							/>
-						{/if}
+						<YouTubeVideoView
+							entityId={{ videoId: video.videoId }}
+							layout={EntityLayout.SummaryDetails}
+							open={false}
+						/>
 					{/snippet}
 				</EntitiesList>
 			{/if}

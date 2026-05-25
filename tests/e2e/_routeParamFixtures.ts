@@ -1,0 +1,214 @@
+import { stringify } from 'devalue'
+
+import { atprotoProbeDid, atprotoProbePostUri } from '$/constants/Social/Atproto.ts'
+import { MarketVenueId } from '$/constants/MarketVenue.ts'
+import { swarmDocsLandingReference } from '$/sources/Swarm/Rest/constants.ts'
+import {
+	CAST_HASH_32,
+	NOSTR_PROBE_PUBKEY,
+	SAMPLE_BLOB_TX_HASH,
+	SAMPLE_TX_HASH,
+	e2eNostrYouTubeOptionalDetailRoutePaths,
+} from '$/routes/api/e2e/assert-loaded-resolvers/_fixtures.ts'
+
+
+const VITALIK_ADDRESS = '0xd8da6bf26964af9d7eed9e403e826090792bed6a' as const
+
+const USDC_ADDRESS = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as const
+
+const ERC4337_SMART_ACCOUNT_ADDRESS = '0x0000000000001d8a2e7bf6bc369525a2654aa298' as const
+
+const ERC4337_BUNDLER_ADDRESS = '0xf0ac778fb2e56bab4edd7f25c2ed2f333d165b8d' as const
+
+const ERC4337_PAYMASTER_ADDRESS = '0x6599bba2a055f3c769cba1a2d462a75429bd7bf7' as const
+
+const ERC4337_ACCOUNT_FACTORY_ADDRESS = '0xcad776fce9c3b3db6724aeb4c7fa2f5f3c088253' as const
+
+const SAMPLE_USER_OPERATION_HASH = (
+	'0xca87534346367dbf4ff6675627a3e43635db5a36bd8ef99ffcd20a63d1555ef5' as const
+)
+
+const NOSTR_PROBE_RELAY_URL = 'wss://relay.damus.io' as const
+
+const NOSTR_PROBE_NOTE_EVENT_ID = `${'a'.repeat(64)}` as const
+
+const NOSTR_PROBE_REPOST_EVENT_ID = `${'b'.repeat(64)}` as const
+
+const NOSTR_PROBE_REACTION_EVENT_ID = `${'c'.repeat(64)}` as const
+
+const NOSTR_PROBE_ARTICLE_IDENTIFIER = 'e2e-probe-article' as const
+
+const YOUTUBE_PROBE_CHANNEL_ID = 'UC_x5XG1OV2P6uZZ5FSM9Ttw' as const
+
+const YOUTUBE_PROBE_VIDEO_ID = 'jNQXAC9IVRw' as const
+
+const YOUTUBE_PROBE_PLAYLIST_ID = 'UU_x5XG1OV2P6uZZ5FSM9Ttw' as const
+
+const YOUTUBE_PROBE_COMMENT_ID = 'e2e-probe-comment' as const
+
+const RSS_PROBE_FEED_URL = 'https://blog.svelte.dev/feed.xml' as const
+
+const LENS_PROBE_POST_ID = '161m1s2r2av9deyh2a3' as const
+
+const MARKET_KEY_ETH_USD_BINANCE = stringify({
+	$base: { kind: 'Coin', $coin: { coinId: 'ETH' } },
+	$quote: { kind: 'Currency', $currency: { iso4217: 'USD' } },
+	$marketVenue: { marketVenueId: MarketVenueId.Binance },
+	marketKind: 'Spot',
+})
+
+
+/** Default param values for `discoverPathnamesFromRoutes()` — aligned with smoke + resolver probes. */
+export const e2eRouteParamFixtures: Record<string, string> = {
+	networkId: '1',
+	chainId: '1',
+	contractId: `1:${USDC_ADDRESS}`,
+	coinId: 'ETH',
+	iso4217: 'USD',
+	ensName: 'vitalik.eth',
+	upgradeSlug: 'Homestead',
+	blockNumber: '18000000',
+	transactionId: SAMPLE_TX_HASH,
+	address: VITALIK_ADDRESS,
+	caipId: '25',
+	profileId: 'e2e-probe-session',
+	sourceId: 'e2e-probe-source',
+	dashboardId: 'c0000000-0000-4000-8000-000000000003',
+	userId: '3',
+	accountId: '3',
+	fid: '3',
+	fname: 'vitalik',
+	hex: '0xa9059cbb',
+	recordId: 'com.twitter',
+	proposalRealmSlug: 'ethereum',
+	proposalKindSlug: 'eip',
+	proposalRef: 'eip-1559',
+	positionId: '354198',
+	poolId: '0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640',
+	vaultId: '0x8ad599c3A0ff1De082011EFDDc58f1908eb6e6D8',
+	owner: VITALIK_ADDRESS,
+	coin: USDC_ADDRESS,
+	sourceTxHash: SAMPLE_TX_HASH,
+	createdAt: '1700000000',
+	namespace: 'ipfs',
+	target: 'bafybeigdyrzt3sfp7vd2lvdwqcedebyb6utyghj6v7k5vcheck7l1vprfw',
+	test: 'test',
+	marketKey: MARKET_KEY_ETH_USD_BINANCE,
+	instanceOrigin: 'https://mastodon.social',
+	did: atprotoProbeDid,
+	uri: atprotoProbePostUri,
+	epochNumber: '300000',
+	slotNumber: '9500000',
+	timestampMs: '0',
+	sampleKey: 'Etherscan_Rest:gastracker:gasoracle',
+	observerKey: 'Voltaire_JsonRpc:txpool_status:ethereum.publicnode.com',
+	observer: 'ethereum.publicnode.com',
+	observationScope: 'nodeLocal',
+	relayHost: 'relay.ultrasound.money',
+	slot: '9500000',
+	blockHash: '0x0000000000000000000000000000000000000000000000000000000000000001',
+	direction: 'proposerPayloadDelivered',
+	name: 'ethereum',
+	fullname: 't3_1h7t8a',
+	identityId: '104776',
+	reference: swarmDocsLandingReference,
+	pubkey: NOSTR_PROBE_PUBKEY,
+	eventId: NOSTR_PROBE_NOTE_EVENT_ID,
+	relayKey: NOSTR_PROBE_RELAY_URL,
+	identifier: NOSTR_PROBE_ARTICLE_IDENTIFIER,
+	videoId: YOUTUBE_PROBE_VIDEO_ID,
+	playlistId: YOUTUBE_PROBE_PLAYLIST_ID,
+	commentId: YOUTUBE_PROBE_COMMENT_ID,
+	feedKey: RSS_PROBE_FEED_URL,
+	guid: 'e2e-probe-rss-item',
+	blobIndex: '0',
+	logIndex: '0',
+	userOperationHash: SAMPLE_USER_OPERATION_HASH,
+	coinInstanceSlug: 'native',
+	marketVenueId: MarketVenueId.Binance,
+	localAccountId: '13179',
+	localStatusId: '116539053870420123',
+	hash: CAST_HASH_32,
+	postId: LENS_PROBE_POST_ID,
+	conversationId: 'e2e-probe-agent-conversation',
+	channelId: 'e2e-probe-state-channel',
+	contactId: 'e2e-probe-room-peer',
+	roomId: 'e2e-probe-room',
+}
+
+
+export const e2eRouteRestSegmentFixtures: Record<string, string> = {
+	contentPath: 'index.html',
+}
+
+
+/**
+ * Routes that depend on live upstream rows the probes treat as optional / synthetic.
+ * Still visited and reported; excluded from hard boundary failure by default.
+ */
+export const e2eBoundaryLiveOptionalPathnames = new Set<string>([
+	...Object.values(e2eNostrYouTubeOptionalDetailRoutePaths),
+	`/youtube/comment/${encodeURIComponent(YOUTUBE_PROBE_VIDEO_ID)}/${encodeURIComponent(YOUTUBE_PROBE_COMMENT_ID)}`,
+	`/farcaster/cast/3/${CAST_HASH_32}`,
+])
+
+
+export const e2eRouteParamFixtureForContext = (
+	paramKey: string,
+	staticSegments: readonly string[],
+) => {
+	const path = staticSegments.join('/')
+
+	if (paramKey === 'channelId') {
+		if (path.includes('youtube'))
+			return YOUTUBE_PROBE_CHANNEL_ID
+		if (path.includes('farcaster'))
+			return 'memes'
+		return 'e2e-probe-state-channel'
+	}
+
+	if (paramKey === 'conversationId') {
+		if (path.includes('xmtp'))
+			return 'e2e-probe-conversation'
+		return 'e2e-probe-agent-conversation'
+	}
+
+	if (paramKey === 'chainId' && path.includes('services/agent'))
+		return '56'
+
+	if (paramKey === 'transactionId' && path.includes('/blob/'))
+		return SAMPLE_BLOB_TX_HASH
+
+	if (paramKey === 'address') {
+		if (path.includes('/contract/'))
+			return USDC_ADDRESS
+		if (path.includes('smart-account'))
+			return ERC4337_SMART_ACCOUNT_ADDRESS
+		if (path.includes('bundler'))
+			return ERC4337_BUNDLER_ADDRESS
+		if (path.includes('paymaster'))
+			return ERC4337_PAYMASTER_ADDRESS
+		if (path.includes('account-factory'))
+			return ERC4337_ACCOUNT_FACTORY_ADDRESS
+		return VITALIK_ADDRESS
+	}
+
+	if (paramKey === 'postId') {
+		if (path.includes('/x/'))
+			return '1855943488122347520'
+		return LENS_PROBE_POST_ID
+	}
+
+	if (paramKey === 'eventId') {
+		if (path.includes('/repost/'))
+			return NOSTR_PROBE_REPOST_EVENT_ID
+		if (path.includes('/reaction/'))
+			return NOSTR_PROBE_REACTION_EVENT_ID
+		return NOSTR_PROBE_NOTE_EVENT_ID
+	}
+
+	if (paramKey === 'userId' && path.includes('/x/'))
+		return '12'
+
+	return e2eRouteParamFixtures[paramKey]
+}

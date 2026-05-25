@@ -4,15 +4,13 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
@@ -24,22 +22,25 @@
 		title = 'Mempool',
 		open = $bindable(true),
 		entityFieldReference,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Network_Txpool_Timestamp>
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'collapsible'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	const fieldName = entityFieldReference.fieldName
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const parent = useEntity(
 		entityFieldReference.entityType,
@@ -49,7 +50,7 @@
 				Source.Constants_Internal,
 				Source.Voltaire_JsonRpc,
 			],
-			[fieldName]: {
+			[entityFieldReference.fieldName]: {
 				$: [
 					Source.Voltaire_JsonRpc,
 				],
@@ -62,7 +63,7 @@
 		parent,
 		(parent) => {
 			const list: Entity<typeof schema, EntityType.Network_Txpool_Timestamp>[] = (
-				parent[fieldName] ?? []
+				parent[entityFieldReference.fieldName] ?? []
 			)
 			return (
 				list
@@ -83,7 +84,7 @@
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	entityType={EntityType.Network_Txpool_Timestamp}
 	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
@@ -111,19 +112,17 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			{@const row = props.item.value}
-			<Network_Txpool_TimestampView
-				entityId={row[EntityMetaKey.Id]}
-				href={resolve(
-					'/(explore)/(networks)/network/[networkId]',
-					{ networkId: String(row[EntityMetaKey.Id].$network.chainId) },
-				)}
-				id={stringify(row[EntityMetaKey.Id])}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
+	{#snippet Item({ item })}
+		{@const row = item.value}
+		<Network_Txpool_TimestampView
+			entityId={row[EntityMetaKey.Id]}
+			href={resolve(
+				'/(explore)/(networks)/network/[networkId]',
+				{ networkId: String(row[EntityMetaKey.Id].$network.chainId) },
+			)}
+			id={stringify(row[EntityMetaKey.Id])}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
 	{/snippet}
 </EntitiesList>

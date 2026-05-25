@@ -1,5 +1,5 @@
 /**
- * Wire types for `GET https://l2beat.com/api/scaling/summary`.
+ * Types for `GET https://l2beat.com/api/scaling/summary`.
  * @see https://l2beat.com/api/scaling/summary
  */
 

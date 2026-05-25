@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -9,12 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
 	import { SvelteSet } from 'svelte/reactivity'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -23,16 +18,16 @@
 		open = $bindable(true),
 		collapsible = true,
 		title = 'Selectors',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmSelector>
 			open?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
@@ -45,13 +40,12 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import EvmSelectorView from '$/views/EvmSelectorView.svelte'
 </script>
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	{collapsible}
 	entityType={EntityType.EvmSelector}
@@ -72,7 +66,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -104,7 +98,6 @@
 				entityType={EntityType.EvmSelector}
 				getKey={(envelope) => envelope.value[EntityMetaKey.Id].hex}
 				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].hex}
-				placeholderKeys={new SvelteSet()}
 				open={true}
 				resource={selectors}
 				{title}
@@ -116,19 +109,14 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<EvmSelectorView
-							entityId={props.item.value[EntityMetaKey.Id]}
-							href={resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
-								hex: props.item.value[EntityMetaKey.Id].hex,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-							collapsible={false}
-							showTypeAnnotation={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					<EvmSelectorView
+						entityId={item.value[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+						collapsible={false}
+						showTypeAnnotation={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

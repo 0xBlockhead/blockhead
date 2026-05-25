@@ -1,6 +1,19 @@
 <script lang="ts">
 	// Types/constants
-	import { type Match, fuzzyMatch } from '$/lib/string.ts'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { untrack } from 'svelte'
+
+
+	// Props
+	let {
+		text,
+		query,
+		matches,
+	}: {
+		text: string
+		query: string
+		matches?: SvelteSet<Match>
+	} = $props()
 
 
 	// Functions
@@ -26,22 +39,8 @@
 	}
 
 
-	// Props
-	import { SvelteSet } from 'svelte/reactivity'
-
-	let {
-		text,
-		query,
-		matches,
-	}: {
-		text: string
-		query: string
-		matches?: SvelteSet<Match>
-	} = $props()
-
-
 	// State
-	import { untrack } from 'svelte'
+	import { type Match, fuzzyMatch } from '$/lib/string.ts'
 
 	let previousRanges: Match[] = []
 

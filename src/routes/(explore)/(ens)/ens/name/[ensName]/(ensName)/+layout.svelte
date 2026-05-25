@@ -1,7 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { stringify } from 'devalue'
+
+
+	// Context
 	import { resolve } from '$app/paths'
 
 
@@ -15,6 +17,10 @@
 	// Components
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import EnsView from '$/views/EnsView.svelte'
+
+
+	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -26,7 +32,6 @@
 		{#snippet Summary({ open: _open })}
 			<EnsView
 				entityId={{ name: params.ensName }}
-				href={resolve('/(explore)/(ens)/ens/name/[ensName]', params)}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

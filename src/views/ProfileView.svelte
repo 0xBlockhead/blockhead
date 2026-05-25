@@ -15,31 +15,19 @@
 
 	// Props
 	let {
-		children,
 		entityId: farcasterUserId,
-		href,
+		href = resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+			userId: String(farcasterUserId.fid),
+		}),
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.FarcasterUser>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'HeadingAfter'
-			| 'Content'
-			| 'Heading'
-		>
+		never
 	> = $props()
 
 
@@ -77,20 +65,19 @@
 <EntityView
 	entityType={EntityType.FarcasterUser}
 	entityId={farcasterUserId}
-	{href}
+	href={href}
 	bind:open
 	title="Profile"
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={farcasterUser}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(farcasterUser)}
-				{farcasterUser.displayName
-					?? farcasterUser.username
+			{#snippet children(loadedFarcasterUser)}
+				{loadedFarcasterUser.displayName
+					?? loadedFarcasterUser.username
 					?? String(farcasterUserId.fid)}
 			{/snippet}
 		</ResourceBoundary>
@@ -101,11 +88,11 @@
 			resource={farcasterUser}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(farcasterUser)}
-				{#if farcasterUser.$icon?.[EntityMetaKey.Id].url !== undefined}
+			{#snippet children(loadedFarcasterUser)}
+				{#if loadedFarcasterUser.$icon?.[EntityMetaKey.Id].url !== undefined}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={farcasterUser.$icon[EntityMetaKey.Id].url}
+						src={loadedFarcasterUser.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -128,17 +115,17 @@
 			resource={farcasterUser}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(farcasterUser)}
+			{#snippet children(loadedFarcasterUser)}
 				{#if (
 					farcasterUser.username !== undefined
 					&& farcasterUser.username !== (
 						farcasterUser.displayName
-						?? farcasterUser.username
+						?? loadedFarcasterUser.username
 						?? String(farcasterUserId.fid)
 					)
 				)}
 					<span data-text="muted">
-						@{farcasterUser.username}
+						@{loadedFarcasterUser.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -147,25 +134,26 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			{#if farcasterUser.bio != null}
-				{#if farcasterUser.bio !== ''}
-					<div>
-						<dt>Bio</dt>
-						<dd>
-							<ResourceBoundary
-								resource={farcasterUser}
-								placeholderText="Loading profile…"
-							>
-								{#snippet children(farcasterUser)}
-									{farcasterUser.bio}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				farcasterUser.bio != null
+				&& farcasterUser.bio !== ''
+			)}
+				<div>
+					<dt>Bio</dt>
+					<dd>
+						<ResourceBoundary
+							resource={farcasterUser}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(loadedFarcasterUser)}
+								{loadedFarcasterUser.bio}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if farcasterUser.url != null}
+			{#if loadedFarcasterUser.url != null}
 				<div>
 					<dt>URL</dt>
 					<dd>
@@ -173,18 +161,18 @@
 							resource={farcasterUser}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(farcasterUser)}
+							{#snippet children(loadedFarcasterUser)}
 								<a
-									href={farcasterUser.url}
+									href={loadedFarcasterUser.url}
 									data-text="muted"
-								>{farcasterUser.url}</a>
+								>{loadedFarcasterUser.url}</a>
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
 
-			{#if farcasterUser.verifiedAddress !== undefined}
+			{#if loadedFarcasterUser.verifiedAddress !== undefined}
 				<div>
 					<dt>Verified address</dt>
 					<dd>
@@ -192,17 +180,16 @@
 							resource={farcasterUser}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(farcasterUser)}
+							{#snippet children(loadedFarcasterUser)}
 								<ActorView
 									entityId={{
-										address: farcasterUser.verifiedAddress,
+										address: loadedFarcasterUser.verifiedAddress,
 									}}
 									href={resolve('/account/[address]', {
-										address: farcasterUser.verifiedAddress,
+										address: loadedFarcasterUser.verifiedAddress,
 									})}
 									layout={EntityLayout.Title}
 									open={false}
-									showTypeAnnotation={false}
 								/>
 							{/snippet}
 						</ResourceBoundary>
@@ -210,63 +197,64 @@
 				</div>
 			{/if}
 
-			{#if open}
-				{#if farcasterUser.displayName != null}
-					<div>
-						<dt>Display name</dt>
-						<dd>
-							<ResourceBoundary
-								resource={farcasterUser}
-								placeholderText="Loading profile…"
-							>
-								{#snippet children(farcasterUser)}
-									{farcasterUser.displayName}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& farcasterUser.displayName != null
+			)}
+				<div>
+					<dt>Display name</dt>
+					<dd>
+						<ResourceBoundary
+							resource={farcasterUser}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(loadedFarcasterUser)}
+								{loadedFarcasterUser.displayName}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if farcasterUser.username != null}
-					<div>
-						<dt>Username</dt>
-						<dd>
-							<ResourceBoundary
-								resource={farcasterUser}
-								placeholderText="Loading profile…"
-							>
-								{#snippet children(farcasterUser)}
-									{farcasterUser.username}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& farcasterUser.username != null
+			)}
+				<div>
+					<dt>Username</dt>
+					<dd>
+						<ResourceBoundary
+							resource={farcasterUser}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(loadedFarcasterUser)}
+								{loadedFarcasterUser.username}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if farcasterUser.$icon}
-					{#if farcasterUser.$icon[EntityMetaKey.Id].url != null}
-						<div>
-							<dt>Profile image</dt>
-							<dd>
-								<ResourceBoundary
-									resource={farcasterUser}
-									placeholderText="Loading profile…"
-								>
-									{#snippet children(farcasterUser)}
-										<Media
-											media={{ url: farcasterUser.$icon[EntityMetaKey.Id].url }}
-											alt={farcasterUser.displayName ?? farcasterUser.username ?? ''}
-										/>
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-					{/if}
-				{/if}
+			{#if (
+				open
+				&& farcasterUser.$icon?.[EntityMetaKey.Id].url != null
+			)}
+				<div>
+					<dt>Profile image</dt>
+					<dd>
+						<ResourceBoundary
+							resource={farcasterUser}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(loadedFarcasterUser)}
+								<Media
+									media={{ url: loadedFarcasterUser.$icon[EntityMetaKey.Id].url }}
+									alt={loadedFarcasterUser.displayName ?? loadedFarcasterUser.username ?? ''}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 		</dl>
 	{/snippet}
@@ -274,13 +262,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{#if children}
-			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.FarcasterUser}
-				entityId={farcasterUserId}
-			/>
-		{/if}
+
 	{/snippet}
 </EntityView>
+

@@ -13,7 +13,7 @@ import {
 	EvmTransactionEnvelopeType,
 	EvmTransactionExecutionStatus,
 	EvmTransactionKind,
-} from '$/constants/EvmTransaction.ts'
+} from '$/constants/Evm.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/$Source.ts'
 

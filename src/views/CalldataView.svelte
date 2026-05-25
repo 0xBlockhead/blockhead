@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -10,40 +9,33 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
-		children,
 		entityId,
+		href = resolve(
+			'/(explore)/(evm)/evm/(calldata)/calldata/[calldataId]',
+			{ calldataId: entityId.id },
+		),
 		title = 'Calldata',
-		href,
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmCalldata>
+			href?: string
 			title?: string
-			href: string
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-		>
+		never
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const calldataKey = $derived(
-		stringify(entityId),
-	)
 
 	const calldata = useEntity(
 		EntityType.EvmCalldata,
@@ -70,9 +62,9 @@
 	entityType={EntityType.EvmCalldata}
 	bind:open
 	{entityId}
-	{href}
+	href={href}
 	{title}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
@@ -94,7 +86,7 @@
 		<p>
 			<strong>Raw calldata</strong>
 			is ABI-encoded execution bytes (<code>0x</code>
-			prefix; four-byte selector then arguments). Match length and selector to the contract you target before any wallet prompt—human-readable strings are not calldata.
+			prefix; four-byte selector then arguments). Match length and selector to the contract you target before any wallet prompt—human-readable strings are not loadedCalldata.
 		</p>
 	{/snippet}
 
@@ -127,7 +119,7 @@
 					placeholderText="Loading calldata…"
 					resource={calldata}
 				>
-					{#snippet children(calldata)}
+					{#snippet children(loadedCalldata)}
 						<div>
 							<dt>Hex</dt>
 							<dd>
@@ -151,42 +143,6 @@
 			entityType={EntityType.EvmCalldata}
 			{entityId}
 		/>
-
-		{#if children}
-			<div
-				class="calldata-carousel-groups"
-				data-column="gap-3"
-			>
-				<CollapsibleTabs
-					id={`${calldataKey}:carousel-extra`}
-					{...{ 'data-card': '' }}
-					scrollContainerProps={{
-						'data-row': 'start align-start',
-					}}
-				>
-					{#snippet Summary({ open: _isOpen })}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>
-								More
-							</HeadingComponent>
-						</header>
-					{/snippet}
-
-					{#snippet Markers(_context)}
-						<a
-							data-scroll-marker-label="Content"
-							href={`#${calldataKey}:calldata-extra`}
-						>Content</a>
-					{/snippet}
-
-					{#snippet body(_childrenContext)}
-						<section id={`${calldataKey}:calldata-extra`}>
-							{@render children()}
-						</section>
-					{/snippet}
-				</CollapsibleTabs>
-			</div>
-		{/if}
 	{/snippet}
 </EntityView>
 

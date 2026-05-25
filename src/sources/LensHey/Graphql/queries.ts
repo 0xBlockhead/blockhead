@@ -9,8 +9,23 @@ const LensHeyPostSlug = graphql(`
 	}
 `)
 
+const LensHeyRepostSlug = graphql(`
+	fragment LensHeyRepostSlug on Repost @_unmask {
+		slug
+	}
+`)
+
 const LensHeyPostWithAuthor = graphql(`
 	fragment LensHeyPostWithAuthor on Post @_unmask {
+		slug
+		author {
+			address
+		}
+	}
+`)
+
+const LensHeyRepostWithAuthor = graphql(`
+	fragment LensHeyRepostWithAuthor on Repost @_unmask {
 		slug
 		author {
 			address
@@ -22,21 +37,89 @@ const LensHeyPostDetail = graphql(`
 	fragment LensHeyPostDetail on Post @_unmask {
 		slug
 		timestamp
+		isEdited
+		isDeleted
 		author {
 			address
 		}
 		commentOn {
 			slug
 		}
+		quoteOf {
+			slug
+		}
+		root {
+			slug
+		}
 		stats {
 			comments
 			reposts
+			quotes
 			bookmarks
+			collects
+			reactions
 		}
 		metadata {
+			__typename
 			... on TextOnlyMetadata {
 				content
 			}
+			... on ArticleMetadata {
+				content
+			}
+			... on AudioMetadata {
+				content
+			}
+			... on ImageMetadata {
+				content
+			}
+			... on VideoMetadata {
+				content
+			}
+			... on LinkMetadata {
+				content
+			}
+			... on EmbedMetadata {
+				content
+			}
+			... on EventMetadata {
+				content
+			}
+			... on LivestreamMetadata {
+				content
+			}
+			... on CheckingInMetadata {
+				content
+			}
+			... on MintMetadata {
+				content
+			}
+			... on SpaceMetadata {
+				content
+			}
+			... on StoryMetadata {
+				content
+			}
+			... on ThreeDMetadata {
+				content
+			}
+			... on TransactionMetadata {
+				content
+			}
+		}
+	}
+`)
+
+const LensHeyRepostDetail = graphql(`
+	fragment LensHeyRepostDetail on Repost @_unmask {
+		slug
+		timestamp
+		isDeleted
+		author {
+			address
+		}
+		repostOf {
+			slug
 		}
 	}
 `)
@@ -51,6 +134,7 @@ const LensHeyAccountDocument = graphql(`
 			}
 		) {
 			address
+			createdAt
 			username {
 				localName
 			}
@@ -58,6 +142,16 @@ const LensHeyAccountDocument = graphql(`
 				name
 				bio
 				picture
+			}
+		}
+		accountStats(
+			request: {
+				account: $address
+			}
+		) {
+			graphFollowStats {
+				followers
+				following
 			}
 		}
 	}
@@ -76,10 +170,14 @@ const LensHeyPostDocument = graphql(`
 			... on Post {
 				...LensHeyPostDetail
 			}
+			... on Repost {
+				...LensHeyRepostDetail
+			}
 		}
 	}
 `, [
 	LensHeyPostDetail,
+	LensHeyRepostDetail,
 ])
 
 const LensHeyPostsByAuthorDocument = graphql(`
@@ -100,11 +198,15 @@ const LensHeyPostsByAuthorDocument = graphql(`
 				... on Post {
 					...LensHeyPostSlug
 				}
+				... on Repost {
+					...LensHeyRepostSlug
+				}
 			}
 		}
 	}
 `, [
 	LensHeyPostSlug,
+	LensHeyRepostSlug,
 ])
 
 const LensHeyPostCommentsDocument = graphql(`
@@ -126,11 +228,15 @@ const LensHeyPostCommentsDocument = graphql(`
 				... on Post {
 					...LensHeyPostSlug
 				}
+				... on Repost {
+					...LensHeyRepostSlug
+				}
 			}
 		}
 	}
 `, [
 	LensHeyPostSlug,
+	LensHeyRepostSlug,
 ])
 
 const LensHeyLatestPostsDocument = graphql(`
@@ -147,11 +253,15 @@ const LensHeyLatestPostsDocument = graphql(`
 				... on Post {
 					...LensHeyPostWithAuthor
 				}
+				... on Repost {
+					...LensHeyRepostWithAuthor
+				}
 			}
 		}
 	}
 `, [
 	LensHeyPostWithAuthor,
+	LensHeyRepostWithAuthor,
 ])
 
 export const lensHeyQueryAccount = async (

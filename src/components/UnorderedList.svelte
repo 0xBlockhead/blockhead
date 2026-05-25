@@ -83,18 +83,14 @@
 
 	type ItemSnippetContext = {
 		key?: _Key,
-	} & (
-		| {
-				item?: _Item,
-				isPlaceholder?: false,
-				searchQuery?: string,
-				matches?: SvelteSet<Match>,
-			}
-		| {
-				item?: never,
-				isPlaceholder?: true,
-			}
-	)
+		item: _Item,
+		searchQuery?: string,
+		matches?: SvelteSet<Match>,
+	}
+
+	type ItemPlaceholderSnippetContext = {
+		key: _Key,
+	}
 
 
 	// Props
@@ -109,7 +105,7 @@
 		summary = $bindable({ loaded: 0, total: undefined }),
 		visiblePlaceholderKeys = $bindable<_Key[]>([]),
 		onLoadMorePlaceholders,
-		sliceLimit: sliceLimitProp,
+		limit,
 		placeholderKeys = new SvelteSet<_Key>(),
 		scrollPosition = 'Auto',
 		listElement = 'ul',
@@ -123,6 +119,7 @@
 		virtual,
 		GroupHeader,
 		Item,
+		ItemPlaceholder,
 		Empty,
 		...rootProps
 	}: {
@@ -136,7 +133,7 @@
 		summary?: { loaded: number; total?: number }
 		visiblePlaceholderKeys?: _Key[]
 		onLoadMorePlaceholders?: () => void
-		sliceLimit?: number
+		limit?: number
 		placeholderKeys?: Set<_Key>
 		scrollPosition?: 'Start' | 'End' | 'Auto'
 		listElement?: 'ul' | 'ol'
@@ -148,6 +145,7 @@
 		virtual?: VirtualRowMeasurement<ListRow>
 		GroupHeader?: Snippet<[context?: GroupHeaderSnippetContext]>
 		Item: Snippet<[context?: ItemSnippetContext]>
+		ItemPlaceholder?: Snippet<[context?: ItemPlaceholderSnippetContext]>
 		Empty?: Snippet<[]>
 	} = $props()
 
@@ -272,7 +270,7 @@
 					...buildRenderRows(
 						allRows.slice(
 							0,
-							sliceLimit,
+							rowLimit,
 						),
 						true,
 					),
@@ -505,8 +503,8 @@
 		:
 			[]
 	)
-	const sliceLimit = $derived(
-		sliceLimitProp ?? (onLoadMorePlaceholders ? 200 : 100)
+	const rowLimit = $derived(
+		limit ?? (onLoadMorePlaceholders ? 200 : 100)
 	)
 	const summaryTotal = $derived.by(() => (
 		placeholderKeys.size > 0 ? placeholderKeys.size : undefined
@@ -760,7 +758,11 @@
 			style:--index={index}
 			style:min-block-size={rowHeight !== undefined ? `${rowHeight}px` : undefined}
 		>
-			{@render Item({ key: row.key, isPlaceholder: true as const })}
+			{#if ItemPlaceholder}
+				{@render ItemPlaceholder({ key: row.key })}
+			{:else}
+				<span aria-hidden="true">&nbsp;</span>
+			{/if}
 		</li>
 	{:else if isPaginationRow(row)}
 		<li
@@ -809,7 +811,6 @@
 			{@render Item({
 				key: row.key,
 				item: row.item,
-				isPlaceholder: false as const,
 				searchQuery: row.searchQuery,
 				matches: row.matches,
 			})}

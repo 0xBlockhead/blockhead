@@ -13,10 +13,10 @@ import {
 import type {
 	FarcasterChannelResponse,
 	FarcasterPage,
-	FarcasterChannelWire,
+	FarcasterChannel,
 	FarcasterChannelsResponse,
 	FarcasterPrimaryAddressResponse,
-	FarcasterThreadCastWire,
+	FarcasterThreadCast,
 	FarcasterUserThreadCastsResponse,
 } from '$/sources/Farcaster/Rest/types.ts'
 
@@ -37,7 +37,7 @@ export const getAllChannelsPage = async ({
 )
 
 export const getAllChannels = async () => {
-	const channels = new Map<string, FarcasterChannelWire>()
+	const channels = new Map<string, FarcasterChannel>()
 	let cursor: string | undefined
 
 	do {
@@ -107,7 +107,7 @@ export const getCastByUsernameAndHashPrefix = async ({
 }: {
 	username: string
 	castHashPrefix: string
-}): Promise<FarcasterThreadCastWire | undefined> => (
+}): Promise<FarcasterThreadCast | undefined> => (
 	(await getUserThreadCasts({
 		username,
 		castHashPrefix,
@@ -159,10 +159,84 @@ export const fetchUserFollowingChannels = ({
 	cursor?: string
 	limit?: number
 }) => (
-	farcasterGet<FarcasterPage<{ channels: FarcasterChannelWire[] }>>(
+	farcasterGet<FarcasterPage<{ channels: FarcasterChannel[] }>>(
 		'/v1/user-following-channels',
 		{ fid, cursor, limit },
 	)
+)
+
+const countRowsAcrossFarcasterPages = async <_Result, _Row>({
+	loadPage,
+	selectRows,
+}: {
+	loadPage: (cursor?: string) => Promise<FarcasterPage<_Result>>
+	selectRows: (result: _Result | undefined) => _Row[] | undefined
+}) => {
+	let count = 0
+	let cursor: string | undefined
+	do {
+		const page = await loadPage(cursor)
+		count += selectRows(page.result)?.length ?? 0
+		cursor = page.next?.cursor
+	} while (cursor != null && cursor !== '')
+	return count
+}
+
+export const getChannelFollowersCount = async ({
+	channelId,
+}: {
+	channelId: string
+}) => (
+	countRowsAcrossFarcasterPages({
+		loadPage: (cursor) => (
+			fetchChannelFollowers({
+				channelId,
+				cursor,
+				limit: 100,
+			})
+		),
+		selectRows: (result) => (
+			result?.users
+		),
+	})
+)
+
+export const getChannelMembersCount = async ({
+	channelId,
+}: {
+	channelId: string
+}) => (
+	countRowsAcrossFarcasterPages({
+		loadPage: (cursor) => (
+			fetchChannelMembers({
+				channelId,
+				cursor,
+				limit: 100,
+			})
+		),
+		selectRows: (result) => (
+			result?.members
+		),
+	})
+)
+
+export const getUserFollowingChannelsCount = async ({
+	fid,
+}: {
+	fid: number
+}) => (
+	countRowsAcrossFarcasterPages({
+		loadPage: (cursor) => (
+			fetchUserFollowingChannels({
+				fid,
+				cursor,
+				limit: 100,
+			})
+		),
+		selectRows: (result) => (
+			result?.channels
+		),
+	})
 )
 
 /**

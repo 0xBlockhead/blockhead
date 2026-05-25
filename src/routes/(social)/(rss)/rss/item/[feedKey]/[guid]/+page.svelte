@@ -18,9 +18,5 @@
 <Page>
 	<RssItemView
 		entityId={data.entityId}
-		href={resolve('/(social)/(rss)/rss/item/[feedKey]/[guid]', {
-			feedKey: encodeURIComponent(data.entityId.feedUrl),
-			guid: encodeURIComponent(data.entityId.guid),
-		})}
 	/>
 </Page>

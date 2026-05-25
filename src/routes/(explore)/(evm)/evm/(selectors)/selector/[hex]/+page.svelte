@@ -3,10 +3,6 @@
 	import type { PageProps } from './$types.ts'
 
 
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Props
 	let { data }: PageProps = $props()
 
@@ -20,6 +16,5 @@
 <Page>
 	<EvmSelectorView
 		entityId={data.entityId}
-		href={resolve('/evm/selectors')}
 	/>
 </Page>

@@ -1,8 +1,10 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { resolve } from '$app/paths'
 	import { stringify } from 'devalue'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -22,6 +24,10 @@
 	// Components
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
+
+
+	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -35,10 +41,6 @@
 	{#snippet Summary({ open: _open })}
 		<EvmBlockView
 			entityId={blockEntityId}
-			href={resolve(
-				'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
-				params,
-			)}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

@@ -9,36 +9,29 @@
 	import { stringify } from 'devalue'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
-		children: _children,
 		entityId,
+		href = resolve(
+			'/(explore)/(evm)/evm/(calldata)/calldata/[hex]',
+			{ hex: entityId.hex },
+		),
 		title = 'Calldata',
-		href,
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmCalldata>
+			href?: string
 			title?: string
-			href: string
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-		>
+		never
 	> = $props()
-
-	const calldataIdKey = $derived(
-		stringify(entityId),
-	)
 
 
 	// State
@@ -69,11 +62,11 @@
 <EntityView
 	entityType={EntityType.EvmCalldata}
 	{entityId}
+	href={href}
 	{title}
-	{href}
 	idDragPlainText={stringify(entityId)}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
@@ -106,7 +99,7 @@
 			placeholderText="Loading calldata…"
 			resource={calldata}
 		>
-			{#snippet children(calldata)}
+			{#snippet children(loadedCalldata)}
 				<div data-column="gap-1">
 				<dl data-column-item="center">
 					<div>
@@ -130,46 +123,10 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.EvmCalldata}
 			{entityId}
 		/>
-
-		{#if _children}
-			<div
-				class="entity-view-detail-carousels"
-				data-column="gap-3"
-			>
-				<CollapsibleTabs
-					id={`${calldataIdKey}:carousel-more`}
-					{...{ 'data-card': '' }}
-					scrollContainerProps={{
-						'data-row': 'start align-start',
-					}}
-				>
-					{#snippet Summary({ open: _isOpen })}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<Heading>Page</Heading>
-						</header>
-					{/snippet}
-
-					{#snippet Markers(_context)}
-						<a
-							data-scroll-marker-label="Route"
-							href={`#${calldataIdKey}:page-content`}
-						>Route</a>
-					{/snippet}
-
-					{#snippet body(_ctx)}
-						<section
-							id={`${calldataIdKey}:page-content`}
-						>
-							{@render _children()}
-						</section>
-					{/snippet}
-				</CollapsibleTabs>
-			</div>
-		{/if}
 	{/snippet}
 </EntityView>

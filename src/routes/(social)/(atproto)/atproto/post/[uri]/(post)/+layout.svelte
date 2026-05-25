@@ -1,6 +1,5 @@
 <script lang="ts">
-	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 
@@ -8,12 +7,15 @@
 	// Props
 	let { children } = $props()
 
+
+	// (Derived)
 	const uri = $derived(
 		page.params.uri ?? '',
 	)
 
 
 	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AtprotoPostView from '$/views/AtprotoPostView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 </script>
@@ -28,9 +30,6 @@
 	{#snippet Summary({ open: _open })}
 		<AtprotoPostView
 			entityId={{ uri: decodeURIComponent(uri) }}
-			href={resolve('/(social)/(atproto)/atproto/post/[uri]', {
-				uri: encodeURIComponent(uri),
-			})}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

@@ -6,15 +6,7 @@ import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import type { SourcifyContractLookupWire } from '$/sources/Sourcify/Rest/types.ts'
-
-const abiJsonStringFromSourcifyLookup = (
-	wire: SourcifyContractLookupWire,
-) => (
-	Array.isArray(wire.abi) ?
-		JSON.stringify(wire.abi)
-	:	undefined
-)
+import type { SourcifyContractLookup } from '$/sources/Sourcify/Rest/types.ts'
 
 const sourcifyFirstStorageLayoutRecord = (
 	root: unknown,
@@ -22,8 +14,8 @@ const sourcifyFirstStorageLayoutRecord = (
 	const visited = new WeakSet<object>()
 	const walk = (node: unknown): Record<string, unknown> | undefined => {
 		if (node === null || typeof node !== 'object') return undefined
-		if (visited.has(node as object)) return undefined
-		visited.add(node as object)
+		if (visited.has(node)) return undefined
+		visited.add(node)
 		if (Array.isArray(node)) {
 			for (const child of node) {
 				const found = walk(child)
@@ -46,7 +38,7 @@ const sourcifyFirstStorageLayoutRecord = (
 }
 
 const sourcifyStorageLayoutJsonFromLookup = (
-	wire: SourcifyContractLookupWire,
+	wire: SourcifyContractLookup,
 ) => {
 	const layoutObject = (
 		sourcifyFirstStorageLayoutRecord(wire.storageLayout)
@@ -58,7 +50,7 @@ const sourcifyStorageLayoutJsonFromLookup = (
 }
 
 const sourcifySourceFilesFromLookup = (
-	wire: SourcifyContractLookupWire,
+	wire: SourcifyContractLookup,
 ) => (
 	Object.fromEntries(
 		Object.entries(wire.sources ?? wire.metadata?.sources ?? {})
@@ -72,7 +64,7 @@ const sourcifySourceFilesFromLookup = (
 )
 
 const sourcifyCompilationFieldsFromLookup = (
-	wire: SourcifyContractLookupWire,
+	wire: SourcifyContractLookup,
 ) => {
 	const compiler = (
 		wire.metadata?.compiler?.version
@@ -105,7 +97,7 @@ const sourcifyCompilationFieldsFromLookup = (
 }
 
 const sourcifyVerificationFieldsFromLookup = (
-	wire: SourcifyContractLookupWire,
+	wire: SourcifyContractLookup,
 	entityId: {
 		$network: { chainId: number }
 		address: `0x${string}`
@@ -185,7 +177,11 @@ export default {
 			resolve: async (entityId) => {
 				const contractLookup = await getSourcifyContractLookupForEntityId(entityId)
 				if (contractLookup == null) return undefined
-				return abiJsonStringFromSourcifyLookup(contractLookup)
+				return (
+					Array.isArray(contractLookup.abi) ?
+						JSON.stringify(contractLookup.abi)
+					:	undefined
+				)
 			},
 		}),
 

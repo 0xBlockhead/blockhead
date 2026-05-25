@@ -1,48 +1,48 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { stringify } from 'devalue'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
 	let {
-		children,
 		entityId,
+		href = resolve(
+			'/~/(multiplayer)/multiplayer/(rooms)/room/[roomId]/peer/[peerId]',
+			{
+				roomId: entityId.roomId,
+				peerId: entityId.peerId,
+			},
+		),
 		title: titleProp,
-		href,
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.BlockheadRoomPeer>
+			href?: string
 			title?: string
-			href: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
+			| 'layout'
 		>
 	> = $props()
 
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const peer = useEntity(
 		EntityType.BlockheadRoomPeer,
@@ -62,16 +62,21 @@
 				{}),
 		},
 	)
+
+
+	// Components
+	import EntityDetails from '$/components/EntityDetails.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import EntityView from '$/components/EntityView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.BlockheadRoomPeer}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -88,8 +93,8 @@
 			resource={peer}
 			placeholderText="Loading peer…"
 		>
-			{#snippet children(peer)}
-				{titleProp ?? peer.displayName ?? peer.peerId ?? entityId.id}
+			{#snippet children(loadedPeer)}
+				{titleProp ?? loadedPeer.displayName ?? loadedPeer.peerId ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -109,8 +114,8 @@
 				<dt>Connected to you</dt>
 				<dd>
 					<ResourceBoundary resource={peer}>
-						{#snippet children(peer)}
-							{peer.isConnected ? 'Yes' : 'No'}
+						{#snippet children(loadedPeer)}
+							{loadedPeer.isConnected ? 'Yes' : 'No'}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -123,34 +128,36 @@
 				</dd>
 			</div>
 
-			{#if open}
-				{#if peer.peerId !== undefined && peer.peerId !== ''}
-					<div>
-						<dt>libp2p peer ID</dt>
-						<dd>
-							<ResourceBoundary resource={peer}>
-								{#snippet children(peer)}
-									{peer.peerId}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& peer.peerId !== undefined && peer.peerId !== ''
+			)}
+				<div>
+					<dt>libp2p peer ID</dt>
+					<dd>
+						<ResourceBoundary resource={peer}>
+							{#snippet children(loadedPeer)}
+								{loadedPeer.peerId}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if peer.$room?.id != null && peer.$room.id !== ''}
-					<div>
-						<dt>Room session</dt>
-						<dd>
-							<ResourceBoundary resource={peer}>
-								{#snippet children(peer)}
-									{peer.$room.id}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& peer.$room?.id != null && peer.$room.id !== ''
+			)}
+				<div>
+					<dt>Room session</dt>
+					<dd>
+						<ResourceBoundary resource={peer}>
+							{#snippet children(loadedPeer)}
+								{loadedPeer.$room.id}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 		</dl>
 	{/snippet}
@@ -162,9 +169,5 @@
 			entityType={EntityType.BlockheadRoomPeer}
 			{entityId}
 		/>
-
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>

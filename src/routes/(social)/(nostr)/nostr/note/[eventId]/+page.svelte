@@ -1,8 +1,6 @@
 <script lang="ts">
+	// Types/constants
 	import type { PageProps } from './$types.ts'
-
-	// Context
-	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -18,8 +16,5 @@
 <Page>
 	<NostrNoteView
 		entityId={data.entityId}
-		href={resolve('/(social)/(nostr)/nostr/note/[eventId]', {
-			eventId: data.entityId.eventId,
-		})}
 	/>
 </Page>

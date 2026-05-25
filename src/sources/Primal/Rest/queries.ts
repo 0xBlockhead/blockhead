@@ -1,10 +1,10 @@
 import { primalGet, primalPost } from '$/sources/Primal/Rest/client.ts'
 import type {
-	PrimalEventByIdWire,
-	PrimalProfileWire,
-	PrimalSearchEventsWire,
-	PrimalSearchUsersWire,
-	PrimalTimelineEventsWire,
+	PrimalEventById,
+	PrimalProfile,
+	PrimalSearchEvents,
+	PrimalSearchUsers,
+	PrimalTimelineEvents,
 } from '$/sources/Primal/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -30,7 +30,7 @@ const profileTimelinePost = (
 	pubkey: string,
 	limit: number,
 ) => (
-	primalPost<PrimalTimelineEventsWire>(path, {
+	primalPost<PrimalTimelineEvents>(path, {
 		pubkey: normalizePubkey(pubkey),
 		limit: clampPrimalLimit(limit),
 	})
@@ -43,7 +43,7 @@ export const getProfile = async (
 	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
 	pubkeyOrNpub: string,
 ) => (
-	primalGet<PrimalProfileWire>(`/profile/${encodeProfileId(pubkeyOrNpub)}`)
+	primalGet<PrimalProfile>(`/profile/${encodeProfileId(pubkeyOrNpub)}`)
 )
 
 /**
@@ -87,14 +87,24 @@ export const getNoteThread = async (
 	eventId: string,
 	limit: number,
 ) => (
-	primalPost<PrimalTimelineEventsWire>('/timeline/thread', {
+	primalPost<PrimalTimelineEvents>('/timeline/thread', {
 		event_id: normalizeEventId(eventId),
 		limit: clampPrimalLimit(limit),
 	})
 )
 
-/** Alias for {@link getNoteThread} — thread reply notes (kind 1). */
-export const getNoteReplies = getNoteThread
+/** POST /v1/timeline/event/actions — kind-1 direct replies for a note. */
+export const getNoteReplies = async (
+	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
+	eventId: string,
+	limit: number,
+) => (
+	primalPost<PrimalTimelineEvents>('/timeline/event/actions', {
+		event_id: normalizeEventId(eventId),
+		kind: 1,
+		limit: clampPrimalLimit(limit),
+	})
+)
 
 /**
  * POST /v1/timeline/event/actions — kind-7 reactions for a note.
@@ -104,7 +114,7 @@ export const getNoteReactions = async (
 	eventId: string,
 	limit: number,
 ) => (
-	primalPost<PrimalTimelineEventsWire>('/timeline/event/actions', {
+	primalPost<PrimalTimelineEvents>('/timeline/event/actions', {
 		event_id: normalizeEventId(eventId),
 		kind: 7,
 		limit: clampPrimalLimit(limit),
@@ -120,7 +130,7 @@ export const searchEvents = async (
 	limit: number,
 	kinds?: readonly number[],
 ) => (
-	primalPost<PrimalSearchEventsWire>('/search/events', {
+	primalPost<PrimalSearchEvents>('/search/events', {
 		query: query.trim(),
 		...(kinds != null && kinds.length > 0 && { kinds: [...kinds] }),
 		limit: clampPrimalLimit(limit),
@@ -135,7 +145,7 @@ export const searchEventReactions = async (
 	eventId: string,
 	limit: number,
 ) => (
-	primalPost<PrimalSearchEventsWire>('/search/events', {
+	primalPost<PrimalSearchEvents>('/search/events', {
 		'#e': [normalizeEventId(eventId)],
 		kinds: [7],
 		limit: clampPrimalLimit(limit),
@@ -150,7 +160,7 @@ export const searchUsers = async (
 	query: string,
 	limit: number,
 ) => (
-	primalPost<PrimalSearchUsersWire>('/search/users', {
+	primalPost<PrimalSearchUsers>('/search/users', {
 		query: query.trim(),
 		limit: clampPrimalLimit(limit),
 	})
@@ -163,5 +173,5 @@ export const getEventById = async (
 	_publicEnv: SourcePublicEnvFor<Source.Primal_Rest>,
 	eventId: string,
 ) => (
-	primalGet<PrimalEventByIdWire>(`/events/${encodeURIComponent(normalizeEventId(eventId))}`)
+	primalGet<PrimalEventById>(`/events/${encodeURIComponent(normalizeEventId(eventId))}`)
 )

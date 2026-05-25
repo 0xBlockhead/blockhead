@@ -1,7 +1,6 @@
 // Types
 
-import { CoinId } from '$/constants/Coin.ts'
-import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+import { BridgeRouteTag } from '$/schema/BridgeRoute.ts'
 
 
 export enum BridgeRailId {
@@ -350,6 +349,170 @@ export const bridgeTools = [
 	},
 ] as const satisfies readonly BridgeToolRow[]
 
+const bridgeSettlementModelRows = [
+	{
+		settlementModel: BridgeSettlementModel.AtomicSwap,
+		label: 'Atomic swap',
+	},
+	{
+		settlementModel: BridgeSettlementModel.BurnMint,
+		label: 'Burn and mint',
+	},
+	{
+		settlementModel: BridgeSettlementModel.CanonicalDeposit,
+		label: 'Canonical deposit',
+	},
+	{
+		settlementModel: BridgeSettlementModel.ChainAbstraction,
+		label: 'Chain abstraction',
+	},
+	{
+		settlementModel: BridgeSettlementModel.IntentFill,
+		label: 'Intent fill',
+	},
+	{
+		settlementModel: BridgeSettlementModel.LiquidityNetwork,
+		label: 'Liquidity network',
+	},
+	{
+		settlementModel: BridgeSettlementModel.LockMint,
+		label: 'Lock and mint',
+	},
+	{
+		settlementModel: BridgeSettlementModel.LockUnlock,
+		label: 'Lock and unlock',
+	},
+] as const satisfies readonly {
+	settlementModel: BridgeSettlementModel
+	label: string
+}[]
+
+const bridgeVerificationModelRows = [
+	{
+		verificationModel: BridgeVerificationModel.External,
+		label: 'External verifier',
+	},
+	{
+		verificationModel: BridgeVerificationModel.Issuer,
+		label: 'Issuer attestation',
+	},
+	{
+		verificationModel: BridgeVerificationModel.Local,
+		label: 'Local verification',
+	},
+	{
+		verificationModel: BridgeVerificationModel.Native,
+		label: 'Native (L1) verification',
+	},
+	{
+		verificationModel: BridgeVerificationModel.Optimistic,
+		label: 'Optimistic verification',
+	},
+] as const satisfies readonly {
+	verificationModel: BridgeVerificationModel
+	label: string
+}[]
+
+const bridgeAssetOutcomeRows = [
+	{
+		assetOutcome: BridgeAssetOutcome.LiquidityPoolNative,
+		label: 'Liquidity pool native asset',
+	},
+	{
+		assetOutcome: BridgeAssetOutcome.MappedSwap,
+		label: 'Mapped swap',
+	},
+	{
+		assetOutcome: BridgeAssetOutcome.MessageOnly,
+		label: 'Message only',
+	},
+	{
+		assetOutcome: BridgeAssetOutcome.SameNative,
+		label: 'Same native asset',
+	},
+	{
+		assetOutcome: BridgeAssetOutcome.WrappedMint,
+		label: 'Wrapped mint',
+	},
+] as const satisfies readonly {
+	assetOutcome: BridgeAssetOutcome
+	label: string
+}[]
+
+const coinInstanceRepresentationRows = [
+	{
+		representation: CoinInstanceRepresentation.BridgeWrapped,
+		label: 'Bridge-wrapped token',
+	},
+	{
+		representation: CoinInstanceRepresentation.CanonicalL2Native,
+		label: 'Canonical L2 native',
+	},
+	{
+		representation: CoinInstanceRepresentation.IssuerNative,
+		label: 'Issuer-native token',
+	},
+	{
+		representation: CoinInstanceRepresentation.LiquidityNetworkReceipt,
+		label: 'Liquidity network receipt',
+	},
+	{
+		representation: CoinInstanceRepresentation.OmnichainFungible,
+		label: 'Omnichain fungible token',
+	},
+	{
+		representation: CoinInstanceRepresentation.Unknown,
+		label: 'Unknown representation',
+	},
+] as const satisfies readonly {
+	representation: CoinInstanceRepresentation
+	label: string
+}[]
+
+const bridgeRouteStepTypeRows = [
+	{
+		stepType: 'swap',
+		label: 'Swap',
+	},
+	{
+		stepType: 'cross',
+		label: 'Cross-chain',
+	},
+	{
+		stepType: 'lifi',
+		label: 'LI.FI aggregate',
+	},
+	{
+		stepType: 'protocol',
+		label: 'Protocol',
+	},
+] as const satisfies readonly {
+	stepType: string
+	label: string
+}[]
+
+const bridgeRouteTagRows = [
+	{
+		tag: BridgeRouteTag.Best,
+		label: 'Best overall',
+	},
+	{
+		tag: BridgeRouteTag.Cheapest,
+		label: 'Cheapest',
+	},
+	{
+		tag: BridgeRouteTag.Fastest,
+		label: 'Fastest',
+	},
+	{
+		tag: BridgeRouteTag.Recommended,
+		label: 'Recommended',
+	},
+] as const satisfies readonly {
+	tag: BridgeRouteTag
+	label: string
+}[]
+
 
 // Lookups
 
@@ -358,9 +521,7 @@ export const bridgeToolByKey = Object.fromEntries(
 		bridgeTool.key,
 		bridgeTool,
 	]),
-) as {
-	[Key in (typeof bridgeTools)[number]['key']]: Extract<(typeof bridgeTools)[number], { key: Key }>
-}
+)
 
 export const bridgeRails = [
 	{
@@ -473,79 +634,46 @@ export const bridgeRailById = Object.fromEntries(
 		bridgeRail.railId,
 		bridgeRail,
 	]),
-) as {
-	[Id in BridgeRailId]: Extract<(typeof bridgeRails)[number], { railId: Id }>
-}
+)
 
-export const coinBridgeCapabilityFieldsForToolKey = (toolKey: string) => {
-	const bridgeTool = bridgeTools.find((row) => row.key === toolKey)
-	if (bridgeTool == null) {
-		throw new Error(`Bridge: unknown LI.FI tool key ${toolKey}`)
-	}
-	return {
-		railId: bridgeTool.railId,
-		settlementModel: bridgeTool.settlementModel,
-		verificationModel: bridgeTool.verificationModel,
-		assetOutcome: bridgeTool.assetOutcome,
-	}
-}
+export const bridgeSettlementModels = Object.fromEntries(
+	bridgeSettlementModelRows.map((row) => [
+		row.settlementModel,
+		row,
+	]),
+)
 
+export const bridgeVerificationModels = Object.fromEntries(
+	bridgeVerificationModelRows.map((row) => [
+		row.verificationModel,
+		row,
+	]),
+)
 
-export const coinInstanceRepresentationFor = (
-	coinId: CoinId,
-	symbol: string,
-	context?: {
-		chainId: number
-		type: CoinInstanceType
-		isNativeChain?: boolean
-		lifiCoinKey?: string
-	},
-) => {
-	const symbolTrimmed = symbol.trim()
-	const lifiCoinKeyTrimmed = context?.lifiCoinKey?.trim()
+export const bridgeAssetOutcomes = Object.fromEntries(
+	bridgeAssetOutcomeRows.map((row) => [
+		row.assetOutcome,
+		row,
+	]),
+)
 
-	if (
-		coinId === CoinId.USDC
-		&& lifiCoinKeyTrimmed != null
-		&& lifiCoinKeyTrimmed !== ''
-	) {
-		if (
-			/\.?e$/i.test(lifiCoinKeyTrimmed)
-			|| lifiCoinKeyTrimmed.toLowerCase() === 'usdce'
-		) {
-			return CoinInstanceRepresentation.BridgeWrapped
-		}
-		if (lifiCoinKeyTrimmed.toUpperCase() === 'USDC') {
-			return CoinInstanceRepresentation.IssuerNative
-		}
-	}
+export const coinInstanceRepresentations = Object.fromEntries(
+	coinInstanceRepresentationRows.map((row) => [
+		row.representation,
+		row,
+	]),
+)
 
-	if (coinId === CoinId.USDC && /\.e$/i.test(symbolTrimmed)) {
-		return CoinInstanceRepresentation.BridgeWrapped
-	}
+export const bridgeRouteStepTypeByWire = Object.fromEntries(
+	bridgeRouteStepTypeRows.map((row) => [
+		row.stepType,
+		row,
+	]),
+)
 
-	if (coinId === CoinId.USDC) {
-		return CoinInstanceRepresentation.IssuerNative
-	}
-
-	if (
-		coinId === CoinId.ETH
-		&& context?.type === CoinInstanceType.Erc20Token
-		&& context.isNativeChain === false
-	) {
-		return CoinInstanceRepresentation.CanonicalL2Native
-	}
-
-	if (coinId === CoinId.ETH && symbolTrimmed.toUpperCase().startsWith('W')) {
-		return CoinInstanceRepresentation.CanonicalL2Native
-	}
-
-	if (
-		coinId === CoinId.ETH
-		&& context?.type === CoinInstanceType.NativeCurrency
-	) {
-		return CoinInstanceRepresentation.IssuerNative
-	}
-
-	return CoinInstanceRepresentation.Unknown
-}
+export const bridgeRouteTags = Object.fromEntries(
+	bridgeRouteTagRows.map((row) => [
+		row.tag,
+		row,
+	]),
+)

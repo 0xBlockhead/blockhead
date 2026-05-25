@@ -1,8 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
@@ -10,10 +8,9 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -22,16 +19,17 @@
 		title = 'Execution forks',
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListProps
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.NetworkExecutionUpgrade>
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
@@ -39,7 +37,6 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Components
@@ -54,7 +51,7 @@
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListProps}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -71,7 +68,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -110,7 +107,6 @@
 				open={true}
 				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-				placeholderKeys={new SvelteSet()}
 				resource={upgrades}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
@@ -121,21 +117,12 @@
 				{/snippet}
 
 				{#snippet Item({ item: envelope })}
-					{#if envelope}
-						{@const slug = envelope.value.slug ?? envelope.value[EntityMetaKey.Id].upgradeId}
-						<NetworkExecutionUpgradeView
-							entityId={envelope.value[EntityMetaKey.Id]}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(upgrades)/upgrade/[upgradeSlug]',
-								{
-									networkId: String(envelope.value[EntityMetaKey.Id].$network.chainId),
-									upgradeSlug: slug,
-								},
-							)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+					{@const slug = envelope.value.slug ?? envelope.value[EntityMetaKey.Id].upgradeId}
+					<NetworkExecutionUpgradeView
+						entityId={envelope.value[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

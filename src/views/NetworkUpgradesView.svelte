@@ -1,18 +1,15 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -20,16 +17,18 @@
 		entityFieldReference,
 		title = 'Upgrades',
 		open = $bindable(true),
-		...entitiesListProps
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.NetworkUpgrade>
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'collapsible'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
@@ -37,7 +36,6 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { SvelteSet } from 'svelte/reactivity'
 
 	const parent = useEntity(
 		entityFieldReference.entityType,
@@ -79,10 +77,9 @@
 	{title}
 	bind:open
 	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	placeholderKeys={new SvelteSet()}
 	resource={upgrades}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...entitiesListProps}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -100,20 +97,11 @@
 	{/snippet}
 
 	{#snippet Item({ item: envelope })}
-		{#if envelope}
-			{@const slug = envelope.value.slug ?? envelope.value[EntityMetaKey.Id].upgradeId}
-			<NetworkUpgradeView
-				entityId={envelope.value[EntityMetaKey.Id]}
-				href={resolve(
-					'/(explore)/(networks)/network/[networkId]/(network)/(upgrades)/upgrade/[upgradeSlug]',
-					{
-						networkId: String(envelope.value[EntityMetaKey.Id].$network.chainId),
-						upgradeSlug: slug,
-					},
-				)}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
+		{@const slug = envelope.value.slug ?? envelope.value[EntityMetaKey.Id].upgradeId}
+		<NetworkUpgradeView
+			entityId={envelope.value[EntityMetaKey.Id]}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
 	{/snippet}
 </EntitiesList>

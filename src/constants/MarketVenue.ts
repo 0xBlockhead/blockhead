@@ -10,7 +10,6 @@ export enum MarketVenueId {
 	Kucoin = 'Kucoin',
 	Okx = 'Okx',
 	PancakeSwap = 'PancakeSwap',
-	SpotIndex = 'SpotIndex',
 	Uniswap = 'Uniswap',
 }
 
@@ -44,10 +43,6 @@ export const marketVenues = [
 		label: 'PancakeSwap',
 	},
 	{
-		id: MarketVenueId.SpotIndex,
-		label: 'Spot index',
-	},
-	{
 		id: MarketVenueId.Uniswap,
 		label: 'Uniswap',
 	},
@@ -64,6 +59,4 @@ export const marketVenueById = Object.fromEntries(
 		marketVenue.id,
 		marketVenue,
 	]),
-) as {
-	[Id in MarketVenueId]: Extract<(typeof marketVenues)[number], { id: Id }>
-}
+)

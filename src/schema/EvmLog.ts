@@ -1,6 +1,6 @@
 import { type } from 'arktype'
 
-import { EvmLogInterpretationKind } from '$/constants/EvmLog.ts'
+import { EvmLogInterpretationKind } from '$/constants/Evm.ts'
 import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,

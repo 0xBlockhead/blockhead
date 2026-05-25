@@ -1,4 +1,5 @@
 import { type } from 'arktype'
+import { mastodonVisibilities } from '$/constants/Social/MastodonVisibility.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -7,6 +8,11 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
+import { Source } from '$/sources/$Source.ts'
+
+const mastodonVisibilityPrimitive = type.or(
+	...mastodonVisibilities.map((visibility) => type.unit(visibility)),
+)
 
 export default {
 	entityType: EntityType.ActivityPubNote,
@@ -39,6 +45,18 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'editedAt',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'activityStreamsUri',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: 'favouriteCount',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
@@ -59,7 +77,7 @@ export default {
 		{
 			name: 'visibility',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: mastodonVisibilityPrimitive,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
@@ -81,10 +99,32 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'statusUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: '$inReplyTo',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ActivityPubNote,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$reblogOf',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.ActivityPubNote,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$media',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Media,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Mastodon_Rest,
+				Source.Fedi_Rest,
+			],
 		},
 		{
 			name: '$$thread',

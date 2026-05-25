@@ -3,10 +3,10 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -16,41 +16,32 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
-		limit = 25,
+		href = resolve('/(social)/(rss)/rss/feed/[feedKey]', {
+			feedKey: entityId.feedKey,
+		}),
+				limit = 25,
 		layout,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.RssFeed>
-			href: string
+			href?: string
 			limit?: number
-			layout?: EntityLayout
+			layout?: import('$/components/EntityView.svelte').EntityLayout
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'layout'
-			| 'title'
-			| 'Details'
-			| 'Icon'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const feed = useEntity(
@@ -62,13 +53,20 @@
 				Source.Rss2Json_Rest,
 			],
 			title: {},
+			description: {},
+			link: {},
+			siteUrl: {},
+			language: {},
+			lastBuildDate: {},
+			imageUrl: {},
 			...(open ?
 				{
-					description: {},
-					link: {},
-					siteUrl: {},
-					language: {},
-					lastBuildDate: {},
+					$$items: {
+						$: [
+							Source.Rss_Rest,
+							Source.Rss2Json_Rest,
+						],
+					},
 				}
 			:
 				{}),
@@ -93,10 +91,10 @@
 <EntityView
 	entityType={EntityType.RssFeed}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
@@ -105,123 +103,122 @@
 		/>
 	{/snippet}
 
-	{#snippet Title()}
+	{#snippet Heading()}
 		<ResourceBoundary
 			resource={feed}
 			placeholderText="Loading feed…"
 		>
-			{#snippet children(feed)}
-				{#if feed.title}
-					{feed.title}
-				{:else}
-					<TruncatedValue
-						value={entityId.feedUrl}
-						format={TruncatedValueFormat.Visual}
-					/>
-				{/if}
+			{#snippet children(loadedFeed)}
+				{loadedFeed.title ?? entityId.feedUrl}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet Title()}
+		{@render Value()}
+	{/snippet}
+
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			An RSS 2.0 or Atom syndication document keyed by feedUrl; items are keyed by guid within that feed.
+			An RSS 2.0 or Atom syndication document keyed by feedUrl; items are keyed by guid within that loadedFeed.
 		</p>
 		<p>
 			Metadata resolves from Rss_Rest (direct XML fetch) or Rss2Json (rss2json API proxy) when enabled.
 		</p>
 	{/snippet}
 
+	{#snippet HeadingAfter()}
+		<ResourceBoundary
+			resource={feed}
+		>
+			{#snippet children(loadedFeed)}
+				{#if loadedFeed.lastBuildDate != null}
+					<span data-text="muted">
+						<Timestamp
+							timestamp={loadedFeed.lastBuildDate}
+						/>
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			{#if open}
+			<div>
+				<dt>Feed URL</dt>
+				<dd>{entityId.feedUrl}</dd>
+			</div>
+
+			{#if loadedFeed.description}
 				<div>
 					<dt>Description</dt>
-					<dd>
-						<ResourceBoundary
-							resource={feed}
-							placeholderText="Loading feed…"
-						>
-							{#snippet children(feed)}
-								{#if feed.description}
-									{feed.description}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
+					<dd>{loadedFeed.description}</dd>
 				</div>
+			{/if}
 
+			{#if loadedFeed.link}
 				<div>
 					<dt>Link</dt>
 					<dd>
-						<ResourceBoundary
-							resource={feed}
-							placeholderText="Loading feed…"
-						>
-							{#snippet children(feed)}
-								{#if feed.link}
-									<a
-										href={feed.link}
-										rel="noreferrer"
-										target="_blank"
-									>{feed.link}</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+						<a
+							href={loadedFeed.link}
+							rel="noreferrer"
+							target="_blank"
+						>{loadedFeed.link}</a>
 					</dd>
 				</div>
+			{/if}
 
+			{#if (
+				open
+				&& feed.siteUrl
+			)}
 				<div>
 					<dt>Site</dt>
 					<dd>
-						<ResourceBoundary
-							resource={feed}
-							placeholderText="Loading feed…"
-						>
-							{#snippet children(feed)}
-								{#if feed.siteUrl}
-									<a
-										href={feed.siteUrl}
-										rel="noreferrer"
-										target="_blank"
-									>{feed.siteUrl}</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+						<a
+							href={loadedFeed.siteUrl}
+							rel="noreferrer"
+							target="_blank"
+						>{loadedFeed.siteUrl}</a>
 					</dd>
 				</div>
-
+			{/if}
+			{#if (
+				open
+				&& feed.language
+			)}
 				<div>
 					<dt>Language</dt>
-					<dd>
-						<ResourceBoundary
-							resource={feed}
-							placeholderText="Loading feed…"
-						>
-							{#snippet children(feed)}
-								{#if feed.language}
-									{feed.language}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
+					<dd>{loadedFeed.language}</dd>
 				</div>
-
+			{/if}
+			{#if (
+				open
+				&& feed.lastBuildDate != null
+			)}
 				<div>
 					<dt>Last build</dt>
 					<dd>
-						<ResourceBoundary
-							resource={feed}
-							placeholderText="Loading feed…"
-						>
-							{#snippet children(feed)}
-								{#if feed.lastBuildDate != null}
-									<Timestamp
-										timestamp={feed.lastBuildDate}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+						<Timestamp
+							timestamp={loadedFeed.lastBuildDate}
+						/>
+					</dd>
+				</div>
+			{/if}
+			{#if (
+				open
+				&& feed.imageUrl
+			)}
+				<div>
+					<dt>Image</dt>
+					<dd>
+						<a
+							href={loadedFeed.imageUrl}
+							rel="noreferrer"
+							target="_blank"
+						>{loadedFeed.imageUrl}</a>
 					</dd>
 				</div>
 			{/if}
@@ -262,12 +259,6 @@
 						data-scroll-marker-label="Items"
 						href={`#${idKey}:feed-items`}
 					>Items</a>
-					{#if children}
-						<a
-							data-scroll-marker-label="More"
-							href={`#${idKey}:feed-more`}
-						>More</a>
-					{/if}
 				{/snippet}
 
 				{#snippet body({ open: _paneOpen })}
@@ -286,14 +277,13 @@
 						id={`${idKey}:feed-items`}
 					>
 						<RssItemsView
+							href={resolve('/rss/items')}
+							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.RssFeed,
 								entityId,
 								fieldName: '$$items',
 							}}
-							href={resolve('/(social)/(rss)/rss/feed/[feedKey]/(feed)/items', {
-								feedKey: encodeURIComponent(entityId.feedUrl),
-							})}
 							id={`${idKey}:feed-items-list`}
 							{limit}
 							open={_paneOpen}
@@ -301,17 +291,9 @@
 						/>
 					</section>
 
-					{#if children}
-						<section
-							data-scroll-marker-label="More"
-							id={`${idKey}:feed-more`}
-						>
-							{@render children()}
-						</section>
-					{/if}
+
 				{/snippet}
 			</CollapsibleTabs>
 		</div>
 	{/snippet}
 </EntityView>
-

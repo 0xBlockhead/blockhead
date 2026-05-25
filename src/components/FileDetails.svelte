@@ -1,22 +1,4 @@
 <script lang="ts">
-	// Types/constants
-	import type { IpfsDisplayType } from '$/lib/contentType.ts'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import { formatByteCount } from '$/lib/bytes.ts'
-
-	const displayIconByType = {
-		text: '📄',
-		image: '🖼️',
-		video: '🎥',
-		audio: '🔊',
-		json: '🗒️',
-		xml: '🗒️',
-		pdf: '📄',
-		iframe: '🌐',
-		binary: '📦',
-	} as const satisfies Record<IpfsDisplayType, string>
-
-
 	// Props
 	let {
 		contentSize,
@@ -37,25 +19,7 @@
 	} = $props()
 
 
-	// (Derived)
-	const mediaType = $derived(
-		contentType?.split(/;\s*/)[0],
-	)
-	const prettyText = $derived.by(() => {
-		if (text === undefined) return undefined
-		if (displayType !== 'json') return text
-
-		try {
-			return JSON.stringify(
-				JSON.parse(text),
-				null,
-				2,
-			)
-		} catch {
-			return text
-		}
-	})
-
+	// Functions
 	const openSource = () => {
 		if (src === undefined) return
 		window.open(
@@ -72,6 +36,48 @@
 		link.download = fileName ?? ''
 		link.click()
 	}
+
+
+	// State
+	import type { IpfsDisplayType } from '$/lib/contentType.ts'
+	import { formatByteCount } from '$/lib/bytes.ts'
+
+	const displayIconByType = {
+		text: '📄',
+		image: '🖼️',
+		video: '🎥',
+		audio: '🔊',
+		json: '🗒️',
+		xml: '🗒️',
+		pdf: '📄',
+		iframe: '🌐',
+		binary: '📦',
+	} as const satisfies Record<IpfsDisplayType, string>
+
+
+	// (Derived)
+	const mediaType = $derived(
+		contentType?.split(/;\s*/)[0],
+	)
+
+	const prettyText = $derived.by(() => {
+		if (text === undefined) return undefined
+		if (displayType !== 'json') return text
+
+		try {
+			return JSON.stringify(
+				JSON.parse(text),
+				null,
+				2,
+			)
+		} catch {
+			return text
+		}
+	})
+
+
+	// Components
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 

@@ -8,44 +8,38 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		limit = 25,
 		open = $bindable(true),
 		collapsible = true,
 		fieldOpen = true,
 		title = 'Posts',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.AtprotoPost>
-			href: string
 			id: string
 			limit?: number
 			open?: boolean
 			fieldOpen?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -59,12 +53,11 @@
 
 <EntitiesList
 	entityType={EntityType.AtprotoPost}
-	{href}
 	{id}
 	bind:open
 	placeholderText={`Loading ${title.toLowerCase()}…`}
 	{title}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -74,11 +67,11 @@
 			Collection scope follows the repo or list you navigated from; URIs are stable handles for the same bytes across relays.
 		</p>
 		<p>
-			The list keeps a capped newest-first slice; navigating a post resolves the full at-URI record, including embeds, facets, and reply parent linkage when the API returns them.
+			The list keeps a capped newest-first slice; navigating a post resolves text, reply parent/root links, and engagement counts from the AppView API.
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const atprotoNetworkOrAccount = useEntity(
 				entityFieldReference.entityType,
@@ -90,11 +83,18 @@
 								{
 									$: [Source.Constants_Internal],
 									protocolName: {},
-									$$atprotoPosts: {
+									$$atprotoActors: {
 										$: [
 											Source.Constants_Internal,
 											Source.Atproto_Xrpc,
+											Source.Atproto_BskySocial_Xrpc,
 										],
+										$$posts: {
+											$: [
+												Source.Atproto_Xrpc,
+												Source.Atproto_BskySocial_Xrpc,
+											],
+										},
 									},
 								}
 							:
@@ -107,13 +107,15 @@
 						(
 							fieldOpen ?
 								{
-									$: [Source.Atproto_Xrpc],
-									$$posts: {},
+									$$posts: {
+										$: [
+											Source.Atproto_Xrpc,
+											Source.Atproto_BskySocial_Xrpc,
+										],
+									},
 								}
 							:
-								{
-									$: [Source.Atproto_Xrpc],
-								}
+								{}
 						)
 				),
 			)}
@@ -122,7 +124,8 @@
 				(atprotoNetworkOrAccount) => {
 					const rows: Entity<typeof schema, EntityType.AtprotoPost>[] = (
 						entityFieldReference.entityType === EntityType.AtprotoNetwork ?
-							(atprotoNetworkOrAccount.$$atprotoPosts ?? [])
+							(atprotoNetworkOrAccount.$$atprotoActors ?? [])
+								.flatMap((actor) => actor.$$posts ?? [])
 						:
 							(atprotoNetworkOrAccount.$$posts ?? [])
 					)
@@ -135,14 +138,12 @@
 					showSummary={false}
 					entityType={EntityType.AtprotoPost}
 					id={`${id}-items`}
-					{href}
 					{title}
 					open={true}
 					getKey={(row) => row[EntityMetaKey.Id].uri}
 					getSortValue={(row) => (
 						`${String(-(row.createdAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Id].uri}`
 					)}
-					placeholderKeys={new SvelteSet()}
 					placeholderText={`Loading ${title.toLowerCase()}…`}
 					resource={posts}
 				>
@@ -152,17 +153,12 @@
 						</p>
 					{/snippet}
 
-					{#snippet Item(props)}
-						{#if props.item}
-							<AtprotoPostView
-								entityId={{ uri: props.item[EntityMetaKey.Id].uri }}
-								href={resolve('/(social)/atproto/post/[uri]', {
-									uri: encodeURIComponent(props.item[EntityMetaKey.Id].uri),
-								})}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/if}
+					{#snippet Item({ item })}
+						<AtprotoPostView
+							entityId={{ uri: item[EntityMetaKey.Id].uri }}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
 					{/snippet}
 				</EntitiesList>
 			{/key}

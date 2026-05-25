@@ -8,11 +8,21 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
-		children: _children,
 		entityId,
-		href,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]/source-bundle/[bundleId]',
+			{
+				networkId: String(entityId.$network.chainId),
+				address: entityId.$contract.address,
+				bundleId: entityId.bundleId,
+			},
+		),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -22,32 +32,21 @@
 			layout === EntityLayout.SummaryDetails,
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmContractSourceBundle>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
-		>
+		never
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const sourceBundle = useEntity(
 		EntityType.EvmContractSourceBundle,
@@ -73,12 +72,11 @@
 <EntityView
 	entityType={EntityType.EvmContractSourceBundle}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
-	{summaryUsesHeading}
 	bind:open
 	{collapsible}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		Verified source files
@@ -93,7 +91,7 @@
 			resource={sourceBundle}
 			placeholderText="Loading source bundle…"
 		>
-			{#snippet children(sourceBundle)}
+			{#snippet children(loadedSourceBundle)}
 				{Object.keys(sourceBundle.files ?? {}).length} file{(
 					Object.keys(sourceBundle.files ?? {}).length === 1 ?
 						''
@@ -125,7 +123,7 @@
 							resource={sourceBundle}
 							placeholderText="Loading source files…"
 						>
-							{#snippet children(sourceBundle)}
+							{#snippet children(loadedSourceBundle)}
 								{#if Object.keys(sourceBundle.files ?? {}).length > 0}
 									<div data-column="gap-2">
 										{#each Object.entries(sourceBundle.files ?? {}) as [path, content] (path)}
@@ -146,16 +144,10 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.EvmContractSourceBundle}
 			{entityId}
 		/>
-
-		{#if _children}
-			<section>
-				{@render _children()}
-			</section>
-		{/if}
 	{/snippet}
 </EntityView>

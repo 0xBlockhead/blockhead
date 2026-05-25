@@ -13,10 +13,10 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { YouTubeLiveBroadcastContent } from '$/schema/YouTubeVideo.ts'
 import { Source } from '$/sources/$Source.ts'
-import type { PipedCommentWire } from '$/sources/Piped/Rest/types.ts'
+import type { PipedComment } from '$/sources/Piped/Rest/types.ts'
 
 const optionalTrimmedString = (value: string | undefined) => (
-	value?.trim() ? value.trim() : undefined
+	value?.trim() || undefined
 )
 
 const optionalFiniteNumber = (value: number | undefined) => (
@@ -42,27 +42,13 @@ const pipedLiveBroadcastContent = (livestream: boolean | undefined) => (
 		undefined
 )
 
-const pipedCommentRef = (
-	videoId: string,
-	commentId: string | undefined,
-) => (
-	commentId == null ?
-		[]
-	:	[{
-			[EntityMetaKey.Id]: {
-				videoId,
-				commentId,
-			},
-		}]
-)
-
 const pipedChannelIdFromCommentorUrl = (commentorUrl: string | undefined) => (
 	commentorUrl?.match(/\/channel\/([^/?]+)/)?.[1]
 )
 
 const pipedCommentEntityFields = (
 	videoId: string,
-	comment: PipedCommentWire,
+	comment: PipedComment,
 ) => ({
 	text: optionalTrimmedString(comment.commentText),
 	authorDisplayName: optionalTrimmedString(comment.author),
@@ -201,15 +187,17 @@ export default {
 				const { pipedChannelIdFromUploaderUrl, pipedListTrending } = await import('$/sources/Piped/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Piped_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
-				const byChannelId = new Map<string, { [EntityMetaKey.Id]: { channelId: string } }>()
-				for (const item of (await singleFlight(pipedListTrending)(publicEnv, limit))) {
-					const channelId = pipedChannelIdFromUploaderUrl(item.uploaderUrl)
-					if (channelId == null) continue
-					byChannelId.set(channelId, {
-						[EntityMetaKey.Id]: { channelId },
-					})
-				}
-				return [...byChannelId.values()]
+				return (
+					(await singleFlight(pipedListTrending)(publicEnv, limit))
+						.flatMap((item) => {
+							const channelId = pipedChannelIdFromUploaderUrl(item.uploaderUrl)
+							return channelId == null ?
+								[]
+							:	[{
+									[EntityMetaKey.Id]: { channelId },
+								}]
+						})
+				)
 			},
 		}),
 
@@ -238,9 +226,9 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.YouTubeNetwork,
 			fieldName: '$$youtubePlaylists',
-			resolve: async (_entityId, _context) => {
-				throw new Error('Piped_Rest: $$youtubePlaylists unsupported')
-			},
+			resolve: async () => (
+				[]
+			),
 		}),
 
 		defineEntityFieldResolver({
@@ -268,8 +256,25 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.YouTubeChannel,
 			fieldName: '$$playlists',
-			resolve: async (entityId, _context) => {
-				throw new Error(`Piped_Rest: $$playlists unsupported for channel ${entityId.channelId}`)
+			resolve: async (entityId, context) => {
+				const {
+					pipedListChannelPlaylists,
+					pipedPlaylistIdFromUrl,
+				} = await import('$/sources/Piped/Rest/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Piped_Rest)
+				const limit = resolverLoadSubsetRowLimit(context)
+				return (
+					((await singleFlight(pipedListChannelPlaylists)(publicEnv, entityId.channelId, limit)).items ?? [])
+						.flatMap((item) => (
+							((playlistId) => (
+								playlistId == null ?
+									[]
+								:	[{
+										[EntityMetaKey.Id]: { playlistId },
+									}]
+							))(pipedPlaylistIdFromUrl(item.url))
+						))
+				)
 			},
 		}),
 
@@ -308,9 +313,17 @@ export default {
 				}
 				return (
 					(page.comments ?? [])
-						.flatMap((comment) => (
-							pipedCommentRef(entityId.videoId, optionalTrimmedString(comment.commentId))
-						))
+						.flatMap((comment) => {
+							const commentId = optionalTrimmedString(comment.commentId)
+							return commentId == null ?
+								[]
+							:	[{
+									[EntityMetaKey.Id]: {
+										videoId: entityId.videoId,
+										commentId,
+									},
+								}]
+						})
 				)
 			},
 		}),

@@ -3,11 +3,12 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+
 	import {
-		currencyByIso4217,
-		currencyTimestampEntityId,
+		currencyCatalogSnapshotTimestampMs,
 		Iso4217,
 	} from '$/constants/Currency.ts'
+
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -19,36 +20,31 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+		'/(assets)/(currencies)/currency/[iso4217]',
+		{ iso4217: entityId.iso4217 },
+	),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.Currency>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'title'
-			| 'open'
-			| 'layout'
-			| 'Details'
+			| 'id'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const currency = useEntity(
 		EntityType.Currency,
@@ -57,6 +53,7 @@
 			$: [
 				Source.Constants_Internal,
 			],
+			name: {},
 			$$timestamps: {
 				$: [
 					Source.Constants_Internal,
@@ -65,12 +62,13 @@
 				marketCap: {},
 			},
 			...(open && {
-				name: {},
 				symbol: {},
 				minorUnitExponent: {},
 			}),
 		},
 	)
+
+	const idPrefix = entityId.iso4217
 
 
 	// Components
@@ -83,21 +81,17 @@
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 	import Currency_TimestampView from '$/views/Currency_TimestampView.svelte'
 	import MarketsView from '$/views/MarketsView.svelte'
-
-
-	const idPrefix = entityId.iso4217
 </script>
 
 
 <EntityView
 	entityType={EntityType.Currency}
 	{entityId}
-	{href}
-	title={currencyByIso4217[entityId.iso4217].name}
+	href={href}
+	title={currency.name ?? entityId.iso4217}
 	{layout}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -110,7 +104,14 @@
 	{/snippet}
 
 	{#snippet Heading()}
-		{currencyByIso4217[entityId.iso4217].name}
+		<ResourceBoundary
+			resource={currency}
+			placeholderText="Loading currency…"
+		>
+			{#snippet children(loadedCurrency)}
+				{loadedCurrency.name ?? entityId.iso4217}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -128,11 +129,11 @@
 						resource={currency}
 						placeholderText="Loading currency…"
 					>
-						{#snippet children(currency)}
-							{#if currency.$$timestamps?.[0]?.marketCap !== undefined}
+						{#snippet children(loadedCurrency)}
+							{#if loadedCurrency.$$timestamps?.[0]?.marketCap !== undefined}
 								<CurrencyAmount
 									currency="USD"
-									value={currency.$$timestamps[0].marketCap}
+									value={loadedCurrency.$$timestamps[0].marketCap}
 								/>
 							{/if}
 						{/snippet}
@@ -146,9 +147,9 @@
 						resource={currency}
 						placeholderText="Loading currency…"
 					>
-						{#snippet children(currency)}
-							{#if currency.symbol != null && currency.symbol !== ''}
-								{currency.symbol}
+						{#snippet children(loadedCurrency)}
+							{#if loadedCurrency.symbol != null && loadedCurrency.symbol !== ''}
+								{loadedCurrency.symbol}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -162,8 +163,8 @@
 							resource={currency}
 							placeholderText="Loading currency…"
 						>
-							{#snippet children(currency)}
-								{#if currency.minorUnitExponent !== undefined}
+							{#snippet children(loadedCurrency)}
+								{#if loadedCurrency.minorUnitExponent !== undefined}
 									{String(currency.minorUnitExponent)}
 								{/if}
 							{/snippet}
@@ -174,20 +175,20 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.Currency}
 			{entityId}
 		/>
-
 		<section data-scroll-marker-label="Catalog snapshot">
 			<Currency_TimestampView
-				entityId={currencyTimestampEntityId(entityId.iso4217)}
-				{href}
+				entityId={{
+					$currency: { iso4217: entityId.iso4217 },
+					timestampMs: currencyCatalogSnapshotTimestampMs,
+				}}
 				id={`${idPrefix}:catalog-snapshot`}
 				layout={EntityLayout.Title}
 				open={false}
-				showTypeAnnotation={false}
 			/>
 		</section>
 
@@ -248,13 +249,13 @@
 
 					<section data-scroll-marker-label="Base">
 						<MarketsView
+							href={resolve('/markets')}
 							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.Currency,
 								entityId,
 								fieldName: '$$marketsWithCurrencyAsBase',
 							}}
-							{href}
 							id={`${idPrefix}:markets-as-base`}
 							title="Base"
 						/>
@@ -262,13 +263,13 @@
 
 					<section data-scroll-marker-label="Quote">
 						<MarketsView
+							href={resolve('/markets')}
 							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.Currency,
 								entityId,
 								fieldName: '$$marketsWithCurrencyAsQuote',
 							}}
-							{href}
 							id={`${idPrefix}:markets-as-quote`}
 							title="Quote"
 						/>
@@ -277,8 +278,6 @@
 			</CollapsibleTabs>
 		</div>
 
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>
+

@@ -17,30 +17,19 @@ const githubCaipProposalIndexRows = async (
 ) => {
 	const { ProposalCategory, ProposalRealm } = await import('$/constants/Proposal.ts')
 	const markdownFiles = data.filter((entry) => entry.type === 'file' && entry.name.endsWith('.md'))
-	return [...markdownFiles
-		.flatMap((markdownFile) => {
-			const caipNumberRaw = regex('^caip-(?<caipNumber>\\d+)\\.md$').exec(markdownFile.name)?.groups?.caipNumber
-			const caipNumber = caipNumberRaw != null ? parseInt(caipNumberRaw, 10) : null
-			return caipNumber == null ?
-				[]
-			:	[{
-					[EntityMetaKey.Id]: {
-						realm: ProposalRealm.ChainAgnostic,
-						category: ProposalCategory.Caip,
-						number: caipNumber,
-					},
-				}]
-		})
-		.reduce((rowsByProposalKey, proposalRow) => (
-			rowsByProposalKey.set(
-				`${proposalRow[EntityMetaKey.Id].realm}:${proposalRow[EntityMetaKey.Id].category}:${proposalRow[EntityMetaKey.Id].number}`,
-				proposalRow,
-			)
-		), new Map())]
-		.map(([, proposalRow]) => proposalRow)
-		.sort((firstRow, secondRow) => (
-			firstRow[EntityMetaKey.Id].number - secondRow[EntityMetaKey.Id].number
-		))
+	return markdownFiles.flatMap((markdownFile) => {
+		const caipNumberRaw = regex('^caip-(?<caipNumber>\\d+)\\.md$').exec(markdownFile.name)?.groups?.caipNumber
+		const caipNumber = caipNumberRaw != null ? parseInt(caipNumberRaw, 10) : null
+		return caipNumber == null ?
+			[]
+		:	[{
+				[EntityMetaKey.Id]: {
+					realm: ProposalRealm.ChainAgnostic,
+					category: ProposalCategory.Caip,
+					number: caipNumber,
+				},
+			}]
+	})
 }
 
 export default {

@@ -165,9 +165,13 @@
 
 ## Constants (`src/constants/**`)
 
-- Two blank lines between `// Types` → `// Constants` → `// Lookups` (same rhythm as script sections).
-- Types — imports to type the catalog. Constants — optional string enum / ids; one `as const` list, `as const satisfies …` (TypeScript above). Lookups — `Object.fromEntries` maps; keys stay aligned with the list.
-- File `Domain.ts`; export plural list + `thingById`-style maps. Example: `$/constants/Coin.ts`.
+- No exported functions; only row arrays and lookup maps. Build maps with module-local code at load time; use logic outside `constants/` at call sites.
+- One canonical `as const` row array per catalog (`as const satisfies …` on the array). Lookups in `// Lookups` are derived from that array (`Object.fromEntries`, group-by)—do not maintain a second copy of the same data.
+- Lookup values must be catalog or domain rows (or arrays of them): `currencyByIso4217`, `coinById`, enum-label rows (`networkEnvironments`), grouped catalog ids (`catalogCoinUsdMarketIdByCoinId`, `catalogMarketsWithCoinAsQuoteByQuoteCoinId`). Do not prebuild schema field shapes in constants (entity ids, market asset legs, `{ $currency, timestampMs }` maps)—inline those at resolvers/views from the catalog key you already have.
+- Do not export maps or `Set`s whose values are primitives only (REST URL strings, venue ids, booleans, `*LabelById` strings, wire-key `Set`s, id→enum scalar). Read primitives from a row (`beaconRestBaseByExecutionChainId[chainId].restBaseUrl`).
+- Lookup exports from `Object.fromEntries` / `Object.groupBy`: no `: Record<…>` on the binding and no `satisfies` on the call—let inference carry the map type.
+- Sections: `// Types` → `// Constants` → `// Lookups`, with two blank lines between each.
+- Enum labels: unexported `*Rows`, one plural map per schema field; views use `lookup[value].label`. Colocate related catalogs in one `Domain.ts` file.
 
 
 ## Library helpers (`src/lib/**`)
@@ -341,7 +345,7 @@
 		{/if}
 		```
 		- (Only wrap in `{#if true}` to distinguish from sibling markup)
-	- List `Item` snippets (`UnorderedList`, `OrderedList`, `RefinableList`, …): only destructure or branch on `isPlaceholder` when the snippet renders placeholder-specific UI for `isPlaceholder === true`. If you only render real rows, gate on `item` (e.g. `{#if item}`) instead of `{#if isPlaceholder === false}` with no placeholder branch — placeholder rows omit `item`.
+	- List `Item` snippets (`UnorderedList`, `EntitiesList`, `RefinableList`, …): `Item` is only invoked for loaded rows (`item` is always set). Optional `PlaceholderItem` covers placeholder keys. Do not wrap `Item` in `{#if item}` or branch on `isPlaceholder` inside `Item`.
 
 - `{@const}`: prefer inlining one-off derived logic into markup with `{@const}`; `{@const}` must be immediate child of `{#snippet}`, `{#if}`, `{:else if}`, `{:else}`, `{#each}`, `{:then}`, `{:catch}`, `<svelte:fragment>`, `<svelte:boundary>`, or `<Component>`
 
@@ -406,7 +410,7 @@ If a lower layer starts importing a higher one, move the shared code down into `
 Definitions in `$/schema/*.ts`; register in `$/schema/index.ts`. ArkType types entity ids and primitives; child rows use `$$…` entity-reference fields.
 
 - Timestamped observations: As-of metrics (quotes, gas tiers, mempool counts, OHLC, …) live on `*_Timestamp` entities (`timestampMs` in the id; extra id keys when needed, e.g. `feedKey?`, candle `timeInterval`). Parents hold stable identity only—no snapshot scalars such as `price` or tiered gas on the header row.
-- Resolvers / views: `defineEntityResolver` per snapshot; parent `defineEntityFieldResolver` returns entity refs. When upstream exposes one stats clock, `entityId.timestampMs` must match it. Latest row: sort `$$…` by `timestampMs`, nest `*_TimestampView`; history: `*_TimestampsView`. Shared observation field mappers only (not id wrappers): `$/resolvers/_marketSpotTimestamp.ts`, `_coinTimestamp.ts`, `_networkGasEstimateTimestamp.ts`.
+- Resolvers / views: `defineEntityResolver` per snapshot; parent `defineEntityFieldResolver` returns entity refs. When upstream exposes one stats clock, `entityId.timestampMs` must match it. Latest row: sort `$$…` by `timestampMs`, nest `*_TimestampView`; history: `*_TimestampsView`.
 - Examples: `MarketPrice` / `$$quotes` → `Market_Timestamp`; `Coin` / `$$timestamps` → `Coin_Timestamp`; `Market` → `Market_Timestamp`, `Market_TimeInterval_Timestamp`; `Network` / `$$gasEstimateTimestamps` → `Network_GasEstimate_Timestamp`, `$$txpoolTimestamps` → `Network_Txpool_Timestamp`; `Currency` / `$$timestamps` → `Currency_Timestamp`.
 - Lifecycle timestamps: `createdAt`, `updatedAt`, etc. on sessions, social, bridges, ENS stay on the owning record—they are not metric streams.
 
@@ -560,6 +564,7 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 	- Register new modules in `$/resolvers/index.ts`; each default export includes `source: Source`, and the registry filters modules by `enabledSources` from `$/sources/index.ts`.
 - Source boundary:
 	- Put all `fetch` / HTTP / provider transport logic under `src/sources/**`. Resolvers call source query functions; they do not fetch external URLs directly.
+	- **singleFlight:** Do not use in `src/sources/**` (plain async `queries.ts` exports only—no `*Once` helpers or `export const x = singleFlight(fn)`). In `src/resolvers/**`, dedupe at the call site with `await singleFlight(queryFn)(...)`; do not bind `singleFlight(queryFn)` to a module-level constant.
 	- In resolvers, do not top-level import `$/sources//queries.ts` or `$/sources//constants.ts`; load them with inline `await import(...)` inside each `resolve(...)`.
 	- Resolver-only type imports for wire payloads should prefer `$/sources/**/types.ts` (or generated OpenAPI components), not `queries.ts`.
 	- `ResolverLoadSubset` (from `$/resolvers/$resolvers.ts`) includes `publicEnv`, the per-source slice from `resolverPublicEnvBySource` or full `resolverPublicEnv`. `$/collections/$collections.ts` passes it on every `resolve()` call; prefer `context.publicEnv` over `import.meta.env` so behavior matches source gating.
@@ -567,7 +572,7 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 - Resolver boundaries:
 	- `resolve(...)` returns schema-shaped field data, not raw wire payloads.
 	- Keep resolver modules shaped around resolver entries, not shared mapper layers. Put source-to-schema mapping inline in the relevant `resolve(...)` body unless a helper is clearly justified and explicitly approved.
-	- Do not add trivial id/entity constructor helpers (e.g. `fooEntityRef`, `barFromWireId`) that only wrap `{ [EntityMetaKey.Id]: { … } }` or a one-line null check. Inline those at the call site in `resolve` / field resolvers. Shared `$/resolvers/_*.ts` modules are for non-trivial wire parsing, observation field mapping, or logic reused across multiple providers—not thin id wrappers.
+- Do not add trivial id/entity constructor helpers (e.g. `fooEntityRef`, `barFromWireId`) that only wrap `{ [EntityMetaKey.Id]: { … } }` or a one-line null check. Inline those at the call site in `resolve` / field resolvers.
 	- Do not use `typeof` / `Array.isArray` / similar runtime shape checks on provider wire data when generated or hand-written **wire types** already define the field (gql.tada fragments, OpenAPI components, `types.ts` aliases). Prefer null/empty checks, optional chaining, and domain validators (`hexLowerOfByteSize`, ArkType at boundaries). Same bar as **Linting and quality → Runtime shape guards**; `typeof` remains for environment probes (`window`, `document`, `globalThis`) and genuinely untyped scalars (e.g. GraphQL `BigInt` as `unknown` until normalized with `BigInt(String(value))`, not `typeof value === 'string'`).
 	- One resolver should make one primary upstream source request whenever feasible.
 	- Do not create resolver waterfalls. If a second request enriches only a specific field, move that work to a field resolver or the owning `sources/**/queries.ts` function.
@@ -646,10 +651,10 @@ Local behavior in `persistOnDemandSubsets(...)`:
 
 Verification:
 
-- Use `tests/e2e/tanstack-db-persistence.e2e.ts` for real-request OPFS persistence checks. It clears OPFS from a same-origin blank page, cold-loads views, records real Chainlist / EthereumLists catalog requests, reloads with those catalog URLs blocked, and fails if warm reload tries to request them again.
-- **CI / pre-merge gate:** `pnpm run test:e2e:persistence` (canonical routes only: `/network/1`, `/networks`; dedicated dev server). Full route discovery: `pnpm run test:e2e:persistence:full` (slow; may fail on unrelated page console errors before reaching the warm-reload assertion).
-- Real-network suites may need provider-specific noise filtering for unrelated upstream 400/404/422/fetch failures, but must not filter Chainlist / EthereumLists catalog requests during the warm reload assertion.
-- Current focused status: `/network/1` and `/networks` pass the real TanStack DB persistence test together.
+- Use `tests/e2e/tanstack-db-persistence.e2e.ts` for OPFS persistence checks. It clears OPFS, installs the `$collections.ts` persistence probe (`window.__blockheadPersistenceProbe` / sessionStorage), cold-loads routes, waits for cold `markLoaded` on catalog field collections, reloads, then waits for warm `loadSubset` short-circuits (`hydrated-rows` | `loaded-marker` | `snapshot`) with the **same `loadedKey`** as cold — and asserts no warm `queryFn` or `remote` loadSubset for those collections. Helpers: `tests/_e2eBrowserHelpers.ts` (`waitForPersistenceMarkLoaded`, `waitForPersistenceShortCircuit`, `persistenceMarkLoadedEvent`). `/networks` asserts `EntityFieldCollection:_Global:$$networks` only (nested list `NetworkView` rows may still fetch per-network catalog HTTP independently). `/network/1` additionally asserts warm catalog HTTP count stays zero for Chainlist-marked collections that completed cold `markLoaded`.
+- **CI / pre-merge gate:** `pnpm run test:e2e:persistence` (canonical routes: `/networks`, `/network/1`; dedicated dev server). Full route discovery: `pnpm run test:e2e:persistence:full` (slow; may fail on unrelated page console errors).
+- Real-network suites may need provider-specific noise filtering for unrelated upstream 400/404/422/fetch failures.
+- Current focused status: `/network/1` and `/networks` pass the TanStack DB persistence test together.
 
 Regression history (do not reintroduce):
 
@@ -657,7 +662,7 @@ Regression history (do not reintroduce):
 2. **`collectionSnapshotHasChanges` short-circuit without `everyListedSourceHydrated`** ([coins / `$$coins` thread](9bcb00da-fbfa-409d-8b45-31c2ec5ef194)) — Constants-only rows could satisfy a limited ordered snapshot while Coingecko (or other `Source in (…)`) never loaded; wrapper returned `true` and skipped remote fetch forever. Fix: require `everyListedSourceHydrated` before short-circuiting on snapshot changes; multi-source live queries must list **enabled** sources only (disabled providers never produce rows → subset never “complete”).
 3. **Unfiltered catalog subsets** — Global `$$networks` and similar lists have `filters.length === 0`; `collectionHasHydratedSubset` alone is insufficient. `markLoaded()` must persist the `blockhead:loaded-subset:…` metadata marker after a successful remote load.
 4. **`schemaVersion` bumps** (`+layout.svelte`) — intentional OPFS wipe; first visit after bump will refetch catalogs. Bump only when persisted row shape changes, not for unrelated features.
-5. **Stale reused Vite dev server during Playwright** — `playwright.config.ts` notes mid-HMR `.svelte-kit/generated` can 500; use `PLAYWRIGHT_DEDICATED_SERVER=1` (or stop port 5173) for persistence runs. Warm-reload catalog assertion can pass while the test still fails on unrelated `pageerror` / HMR noise.
+5. **Stale reused Vite dev server during Playwright** — `playwright.config.ts` notes mid-HMR `.svelte-kit/generated` can 500; use `PLAYWRIGHT_DEDICATED_SERVER=1` (or stop port 5173) for persistence runs. Do not use page-wide catalog HTTP count on `/networks` warm reload as the persistence signal — list rows mount summary `NetworkView` instances that fetch per-network catalog fields independently; rely on the probe for `$$networks` instead.
 6. **Live `resolveLive` invalidations** — Voltaire block streams call `invalidateEntityFieldQueries` for head block / tx lists; that is expected live refresh, not catalog persistence failure. Do not confuse with Chainlist / EthereumLists refetch.
 
 Change checklist (any edit touching collections, layout persistence, or catalog field queries):
@@ -678,6 +683,7 @@ Change checklist (any edit touching collections, layout persistence, or catalog 
 - `EntityView` + `<dl>` (required): At most one `<dl>` per card, and it must appear only in the `Content` snippet. Do not use `<dl>` inside `Details` or other detail-only sections; put extra metadata as additional rows in that same `Content` `<dl>` (with `{#if open}` when rows should only show when expanded). Each optional row is its own `{#if}…{/if}` (one row per guard). Do not use a single `{#if}` wrapping multiple rows. Do not use one `{#if}` with compound conditions like `open && x`; use nested `{#if}` blocks instead. A nested `<EntityView>` (e.g. inline entity link) is its own card and may have its own `Content` `<dl>` — the limit is per `EntityView` instance, not the whole page.
 - `<dl>` vs heading: Do not add `<dl>` rows that repeat fields already shown in the `EntityView` heading (linked title, subtitle line, icon-backed identity, badges or labels rendered in the title row). Surface that information in the heading or in the `<dl>`, not both.
 - `<dl>` vs parent id: On nested or scoped child cards, do not add `<dl>` rows for id fields that belong to the parent entity or that duplicate components already present on the child’s own id object (the parent route or enclosing context already establishes them). Omit those redundant id slices from the summary `<dl>`.
+- **Enum labels in `<dd>`:** Every user-facing enum value shown in a `<dd>` (or equivalent detail copy inside `Content` `<dl>`) must use a human-readable label from `src/constants/**`, not the raw enum member string. Follow the Constants section: field-keyed rows in an internal `*Rows` list, exported plural lookup map (`networkEnvironments`, `bridgeSettlementModels`, `evmTransactionKinds`, …), then `.label` in markup (e.g. `<dd>{bridgeSettlementModels[step.settlementModel].label}</dd>`). Wire-shaped free strings (API status text, Chainlist `relationshipType`, proposal `documentCategory`) stay as-is unless promoted to a schema enum with labels.
 - `useEntity` selection: Prefer hierarchical resolver/source inheritance (a concise top-level `$` source list; nested field entries use `{}` where children inherit) instead of repeating the same `$` on every nested property when the model allows it. Prefer inlining short `$derived` values and colocating `{#if}` conditions beside the markup they guard over one shared visibility object unless branches genuinely share the same decision.
 - Title / media: When the loaded entity exposes artwork (for example `$icon`), show it in the title row using the existing `Icon` snippet plus shared icon components (`IconComponent`, etc.), matching patterns from other entity views.
 - `EntityView` / `EntityId` snippet contracts: For bundled context (`Content`, `Details`), use an optional first tuple parameter with optional object fields (for example `Snippet<[context?: { title?: string, href?: string }]>` and `Snippet<[context?: { open?: boolean }]>`). Call sites that ignore the bundle may use `{#snippet Content()}` / `{#snippet Details()}` instead of destructuring unused bindings.
@@ -702,10 +708,15 @@ Inline entity reference (`layout={EntityLayout.Value}` in a `<dl>` row when `<dt
 - Set `open={false}` and `showTypeAnnotation={false}` on nested views inside another entity’s `<dl>`.
 - Prefer `Address`, `TruncatedValue`, or plain catalog strings only when there is no schema-backed entity row to link (or the field is not modeled as an entity ref).
 
+Intrinsic / definitional refs (especially smart contracts that are part of the parent’s identity—not contextual links like owner, network, or thread parent):
+
+- Render as an embedded child `EntityView` with `layout={EntityLayout.SummaryDetails}` and `showTypeAnnotation={false}`.
+- Prefer `open={true}` when the ref is the main subject (pool on a position, registry on an 8004 service, contract on an ERC-4337 row, market base/quote); `open={false}` when there are several sibling refs (pair tokens on a pool, step tokens in a route).
+
 Flat `<section>` in `Details` (no carousel):
 
 - One or two substantive blocks that are not single-entity links: a field list (`*View` with `entityFieldReference`), a chart hub (`MarketOhlcHub`), route-local `children`, etc.
-- Example: `MarketView` — spot (`MarketPricesView`) + OHLC (`MarketOhlcHub`) as sibling sections; base/quote legs stay inline in `Content`.
+- Example: `MarketView` — spot (`MarketPricesView`) + OHLC (`MarketOhlcHub`) as sibling sections; base/quote legs use embedded `SummaryDetails` in `Content`.
 
 `CollapsibleTabs` + `entity-view-detail-carousels`:
 
@@ -716,7 +727,7 @@ Flat `<section>` in `Details` (no carousel):
 Avoid:
 
 - `CollapsibleTabs` for one related entity (e.g. parent market on a timestamp row, host network on a wallet row)—use inline `Title` in `Content` instead.
-- `EntityLayout.SummaryDetails` with `open={false}` nested cards in `<dl>` rows when `Title` suffices (bridge endpoints, pool refs, parent market links).
+- `EntityLayout.Title` nested cards in `<dl>` rows when the ref is intrinsic to the parent (use `SummaryDetails` per above)—`Title` remains for relational one-line links (host network, owner, parent comment).
 - Duplicating the same inline `Content` refs again in `Details` carousels (e.g. origin tx + initiator on `BridgeTransactionView`).
 - Raw ids (chain id strings, truncated pool addresses) when a `NetworkView`, `LiquidityPoolView`, `CoinInstanceView`, etc. exists for that ref.
 
@@ -736,7 +747,7 @@ Keep these semantics stable in UI copy and `useEntity` wiring; do not add `data-
 | `EvmTopicsView.svelte` | `_Global` `$$evmTopics` catalog (`Source.Local_Internal`); `/evm` hub carousel + `/evm/topics` list. |
 | `EvmErrorsView.svelte` | `_Global` `$$evmErrors` catalog (`Source.Local_Internal`); `/evm/errors` list + hub carousel. |
 | `EvmSelectorView.svelte` / `EvmTopicView.svelte` / `EvmErrorView.svelte` | Per-hex signature lookup (`Source.Openchain_Rest`); routes under `/evm/selector|topic|error/[hex]`. |
-| `EvmLogView.svelte` | EvmLog by network + tx hash + log index; topics link to EvmTopicView, emitter EvmContractView (`EntityLayout.Title`); topic 0 in heading via nested EvmTopicView. |
+| `EvmLogView.svelte` | EvmLog by network + tx hash + log index; topics link to EvmTopicView, emitter `EvmContractView` (`EntityLayout.SummaryDetails`); topic 0 in heading via nested EvmTopicView. |
 | `EvmLogsView.svelte` | Receipt log list from parent `$$logs` on EvmTransaction; rows link to `/network/…/tx/…/log/[logIndex]`. |
 | `EvmTraceTreeView.svelte` | Recursive EvmTrace call tree on a transaction; each frame renders EvmTraceContentView (selectors, value transfers). |
 | `EvmTraceContentView.svelte` | Single trace frame: selector signatures, value transfers, nested calls. |

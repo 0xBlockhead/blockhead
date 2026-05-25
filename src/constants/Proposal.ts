@@ -85,7 +85,7 @@ type ProposalCategoryRow = (typeof proposalCategories)[number]
 
 
 // Lookups
-export const proposalRealmById: Record<ProposalRealm, ProposalRealmRow> = Object.fromEntries(
+export const proposalRealmById = Object.fromEntries(
 	proposalRealms
 		.map((row) => [
 			row.id,
@@ -93,7 +93,7 @@ export const proposalRealmById: Record<ProposalRealm, ProposalRealmRow> = Object
 		]),
 )
 
-export const proposalRealmBySlug: Record<string, ProposalRealmRow> = Object.fromEntries(
+export const proposalRealmBySlug = Object.fromEntries(
 	proposalRealms
 		.map((row) => [
 			row.slug,
@@ -101,7 +101,7 @@ export const proposalRealmBySlug: Record<string, ProposalRealmRow> = Object.from
 		]),
 )
 
-export const proposalCategoryById: Record<ProposalCategory, ProposalCategoryRow> = Object.fromEntries(
+export const proposalCategoryById = Object.fromEntries(
 	proposalCategories
 		.map((row) => [
 			row.id,
@@ -109,7 +109,7 @@ export const proposalCategoryById: Record<ProposalCategory, ProposalCategoryRow>
 		]),
 )
 
-export const proposalCategoryBySlug: Record<string, ProposalCategoryRow> = Object.fromEntries(
+export const proposalCategoryBySlug = Object.fromEntries(
 	proposalCategories
 		.map((row) => [
 			row.slug,
@@ -125,28 +125,24 @@ const isProposalCategory = (value: string): value is ProposalCategory => (
 	value in proposalCategoryById
 )
 
-export const proposalKindAllowedInRealm = (realm: ProposalRealm, category: ProposalCategory) => (
-	(
-		realm === ProposalRealm.Ethereum
-		&& (category === ProposalCategory.Eip || category === ProposalCategory.Erc)
-	)
-	|| (
-		realm === ProposalRealm.Ens
-		&& category === ProposalCategory.Ensip
-	)
-	|| (
-		realm === ProposalRealm.ChainAgnostic
-		&& category === ProposalCategory.Caip
-	)
-)
-
 export const proposalKindIds = proposalRealms
 	.flatMap((realmRow) => (
 		proposalCategories
 			.filter((categoryRow) => (
-				proposalKindAllowedInRealm(
-					realmRow.id,
-					categoryRow.id,
+				(
+					realmRow.id === ProposalRealm.Ethereum
+					&& (
+						categoryRow.id === ProposalCategory.Eip
+						|| categoryRow.id === ProposalCategory.Erc
+					)
+				)
+				|| (
+					realmRow.id === ProposalRealm.Ens
+					&& categoryRow.id === ProposalCategory.Ensip
+				)
+				|| (
+					realmRow.id === ProposalRealm.ChainAgnostic
+					&& categoryRow.id === ProposalCategory.Caip
 				)
 			))
 			.map((categoryRow) => ({
@@ -158,11 +154,14 @@ export const proposalKindIds = proposalRealms
 		firstKind.realm.localeCompare(secondKind.realm) || firstKind.category.localeCompare(secondKind.category)
 	))
 
-export const proposalKindIdsForRealm = (realm: ProposalRealm) => (
-	proposalKindIds.filter((kind) => kind.realm === realm)
+export const proposalKindAllowedInRealmByKey = Object.fromEntries(
+	proposalKindIds.map((proposalKindId) => [
+		`${proposalKindId.realm}:${proposalKindId.category}`,
+		proposalKindId,
+	]),
 )
 
-export const proposalWireParts = (wire: JsonValue): {
+const proposalWireParts = (wire: JsonValue): {
 	realm: ProposalRealm
 	category: ProposalCategory
 	number: number
@@ -174,7 +173,7 @@ export const proposalWireParts = (wire: JsonValue): {
 		|| typeof category !== 'string' || !isProposalCategory(category)
 		|| typeof number !== 'number' || !Number.isFinite(number)
 	) return null
-	if (!proposalKindAllowedInRealm(realm, category)) return null
+	if (proposalKindAllowedInRealmByKey[`${realm}:${category}`] == null) return null
 	return {
 		realm,
 		category,

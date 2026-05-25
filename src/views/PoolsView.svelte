@@ -4,19 +4,13 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -24,21 +18,44 @@
 		entityFieldReference,
 		open = $bindable(true),
 		title = 'Pools',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.LiquidityPool>
 			open?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'body'
+			| 'collapsible'
+			| 'CollapsibleProps'
+			| 'Empty'
+			| 'getKey'
+			| 'getSortValue'
+			| 'HeadingProps'
+			| 'href'
+			| 'id'
+			| 'Item'
+			| 'ItemPlaceholder'
+			| 'items'
+			| 'layout'
+			| 'limit'
+			| 'panelStyle'
+			| 'placeholderKeys'
+			| 'placeholderText'
+			| 'resource'
+			| 'showSummary'
+			| 'TypeAnnotationTooltip'
+			| 'UnorderedListProps'
 		>
 	> = $props()
 
 
 	// State
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
@@ -57,9 +74,6 @@
 			const rows: Entity<typeof schema, EntityType.LiquidityPool>[] = (
 				parent[entityFieldReference.fieldName] ?? []
 			)
-				.toSorted((a, b) => (
-					a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
-				))
 			return (
 				rows.map((value) => ({
 					value,
@@ -78,12 +92,11 @@
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	entityType={EntityType.LiquidityPool}
 	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
-	placeholderKeys={new SvelteSet()}
 	placeholderText="Loading liquidity pools…"
 	resource={pools}
 	{title}
@@ -104,16 +117,11 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			<LiquidityPoolView
-				entityId={props.item.value[EntityMetaKey.Id]}
-				href={resolve('/(assets)/(pools)/pool/[poolId]', {
-					poolId: props.item.value[EntityMetaKey.Id].id,
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
+	{#snippet Item({ item })}
+		<LiquidityPoolView
+			entityId={item.value[EntityMetaKey.Id]}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
 	{/snippet}
 </EntitiesList>

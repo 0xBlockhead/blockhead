@@ -4,41 +4,58 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { SvelteSet } from 'svelte/reactivity'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
 	let {
 		entityFieldReference,
 		id = 'profiles',
-		href = resolve('/farcaster/users'),
 		title = 'Farcaster profiles',
 		open = $bindable(true),
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.FarcasterUser>
 			id?: string
-			href?: string
 			title?: string
 			open?: boolean
 		},
-		Omit<ComponentProps<typeof EntitiesList>, 'entityType'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'body'
+			| 'collapsible'
+			| 'CollapsibleProps'
+			| 'Empty'
+			| 'getKey'
+			| 'getSortValue'
+			| 'HeadingProps'
+			| 'href'
+			| 'Item'
+			| 'ItemPlaceholder'
+			| 'items'
+			| 'layout'
+			| 'limit'
+			| 'panelStyle'
+			| 'placeholderKeys'
+			| 'placeholderText'
+			| 'resource'
+			| 'showSummary'
+			| 'TypeAnnotationTooltip'
+			| 'UnorderedListProps'
+		>
 	> = $props()
 
 
 	// State
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
@@ -57,9 +74,6 @@
 			const rows: Entity<typeof schema, EntityType.FarcasterUser>[] = (
 				parent[entityFieldReference.fieldName] ?? []
 			)
-				.toSorted((a, b) => (
-					a[EntityMetaKey.Id].fid - b[EntityMetaKey.Id].fid
-				))
 			return (
 				rows.map((value) => ({
 					value,
@@ -79,7 +93,6 @@
 <EntitiesList
 	entityType={EntityType.FarcasterUser}
 	{id}
-	{href}
 	{title}
 	bind:open
 	getKey={(envelope) => envelope.value[EntityMetaKey.Id].fid}
@@ -88,7 +101,7 @@
 	placeholderText="Loading profiles…"
 	resource={users}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -105,17 +118,12 @@
 		</p>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			{@const userId = props.item.value[EntityMetaKey.Id]}
-			<FarcasterUserView
-				entityId={{ fid: userId.fid }}
-				href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-					userId: String(userId.fid),
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
+	{#snippet Item({ item })}
+		{@const userId = item.value[EntityMetaKey.Id]}
+		<FarcasterUserView
+			entityId={{ fid: userId.fid }}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
 	{/snippet}
 </EntitiesList>

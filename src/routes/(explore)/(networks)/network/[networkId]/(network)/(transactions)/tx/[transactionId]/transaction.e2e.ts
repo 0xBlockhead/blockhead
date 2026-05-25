@@ -76,8 +76,9 @@ test.describe('/network/[networkId]/tx/[transactionId]', () => {
 		}))
 
 		await step(expect(
-			page.locator('[data-scroll-marker-label="Movements"]')
-				.or(page.locator('[data-scroll-marker-label="Events"]')),
+			page.locator('section[data-scroll-marker-label="Movements"]')
+				.or(page.locator('section[data-scroll-marker-label="Events"]'))
+				.first(),
 		).toBeAttached({
 			timeout: 120_000,
 		}))

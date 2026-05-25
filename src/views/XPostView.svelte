@@ -17,26 +17,21 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve('/(social)/x/post/[postId]', {
+			postId: entityId.id,
+		}),
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.XPost>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'Content'
-			| 'Details'
-			| 'entityId'
-			| 'entityType'
-			| 'Heading'
-			| 'Icon'
-			| 'href'
-			| 'open'
-			| 'title'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -54,19 +49,39 @@
 			),
 			text: {},
 			createdAt: {},
-			$author: {},
+			$author: {
+				username: {},
+				name: {},
+			},
+			...(open ?
+				{
+					likeCount: {},
+					retweetCount: {},
+					replyCount: {},
+					quoteCount: {},
+					conversationId: {},
+					$replyToPost: {},
+					$quotedPost: {},
+					postUrl: {},
+					$$media: {},
+				}
+			:
+				{}),
 		},
 	)
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
+	import XPostView from '$/views/XPostView.svelte'
 	import XUserView from '$/views/XUserView.svelte'
 </script>
 
@@ -74,15 +89,15 @@
 <EntityView
 	entityType={EntityType.XPost}
 	{entityId}
-	{href}
-	{open}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	href={href}
+	bind:open
+	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>
-			{entityId.id}
-		</span>
+		<TruncatedValue
+			value={entityId.id}
+			format={TruncatedValueFormat.Visual}
+		/>
 	{/snippet}
 
 	{#snippet Title()}
@@ -94,16 +109,32 @@
 			resource={post}
 			placeholderText="Loading X post…"
 		>
-			{#snippet children(post)}
-				{#if post.text}
+			{#snippet children(loadedPost)}
+				{#if loadedPost.text}
 					<TruncatedValue
 						endLength={8}
 						format={TruncatedValueFormat.Visual}
 						startLength={88}
-						value={post.text}
+						value={loadedPost.text}
 					/>
 				{:else}
-					{entityId.id}
+					{@render Title()}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary
+			resource={post}
+		>
+			{#snippet children(loadedPost)}
+				{#if loadedPost.createdAt != null}
+					<span data-text="muted">
+						<Timestamp
+							timestamp={loadedPost.createdAt}
+						/>
+					</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -120,26 +151,6 @@
 
 	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
 		<dl data-column-item="center">
-			{#if !contentOpen}
-				<div>
-					<dt>Post</dt>
-					<dd>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading X post…"
-						>
-							{#snippet children(post)}
-								{#if post.text}
-									<p>
-										{post.text}
-									</p>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
 			<div>
 				<dt>Author</dt>
 				<dd>
@@ -147,18 +158,13 @@
 						resource={post}
 						placeholderText="Loading X post…"
 					>
-						{#snippet children(post)}
-							{#if post.$author}
-								<a
-									href={resolve(
-										'/(social)/x/user/[userId]',
-										{
-											userId: encodeURIComponent(
-												post.$author[EntityMetaKey.Id].id,
-											),
-										},
-									)}
-								>Profile (id {post.$author[EntityMetaKey.Id].id})</a>
+						{#snippet children(loadedPost)}
+							{#if loadedPost.$author}
+								<XUserView
+									entityId={loadedPost.$author[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -173,9 +179,9 @@
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(post)}
-								{#if post.text}
-									{post.text}
+							{#snippet children(loadedPost)}
+								{#if loadedPost.text}
+									{loadedPost.text}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -183,17 +189,136 @@
 				</div>
 
 				<div>
-					<dt>Created at</dt>
+					<dt>Likes</dt>
 					<dd>
 						<ResourceBoundary
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(post)}
-								{#if post.createdAt != null}
-									<Timestamp
-										timestamp={post.createdAt}
+							{#snippet children(loadedPost)}
+								{#if loadedPost.likeCount != null}
+									<NumberValue
+										value={loadedPost.likeCount}
 									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Reposts</dt>
+					<dd>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading X post…"
+						>
+							{#snippet children(loadedPost)}
+								{#if loadedPost.retweetCount != null}
+									<NumberValue
+										value={loadedPost.retweetCount}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Replies</dt>
+					<dd>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading X post…"
+						>
+							{#snippet children(loadedPost)}
+								{#if loadedPost.replyCount != null}
+									<NumberValue
+										value={loadedPost.replyCount}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Quotes</dt>
+					<dd>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading X post…"
+						>
+							{#snippet children(loadedPost)}
+								{#if loadedPost.quoteCount != null}
+									<NumberValue
+										value={loadedPost.quoteCount}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Reply to</dt>
+					<dd>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading X post…"
+						>
+							{#snippet children(loadedPost)}
+								{#if loadedPost.$replyToPost}
+									<XPostView
+										entityId={loadedPost.$replyToPost[EntityMetaKey.Id]}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Quoted post</dt>
+					<dd>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading X post…"
+						>
+							{#snippet children(loadedPost)}
+								{#if loadedPost.$quotedPost}
+									<XPostView
+										entityId={loadedPost.$quotedPost[EntityMetaKey.Id]}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Post URL</dt>
+					<dd>
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading X post…"
+						>
+							{#snippet children(loadedPost)}
+								{#if loadedPost.postUrl}
+									<a
+										href={loadedPost.postUrl}
+										rel="noreferrer noopener"
+										target="_blank"
+									>
+										<TruncatedValue
+											format={TruncatedValueFormat.Visual}
+											value={loadedPost.postUrl}
+										/>
+									</a>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -206,6 +331,10 @@
 	{#snippet Details({
 		open: _open,
 	})}
+		<EntityDetails
+			entityType={EntityType.XPost}
+			{entityId}
+		/>
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -237,10 +366,16 @@
 						data-scroll-marker-label="Author"
 						href={`#x-post:${entityId.id}:author`}
 					>Author</a>
-					<a
-						data-scroll-marker-label="Post"
-						href={`#x-post:${entityId.id}:post`}
-					>Post</a>
+					{#if _open}
+						<a
+							data-scroll-marker-label="Thread"
+							href={`#x-post:${entityId.id}:thread`}
+						>Thread</a>
+						<a
+							data-scroll-marker-label="Media"
+							href={`#x-post:${entityId.id}:media`}
+						>Media</a>
+					{/if}
 				{/snippet}
 
 				{#snippet body({ open: _paneOpen,
@@ -253,55 +388,101 @@
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(post)}
-								{#if post.$author}
+							{#snippet children(loadedPost)}
+								{#if loadedPost.$author}
 									<XUserView
-										entityId={post.$author[EntityMetaKey.Id]}
-										href={resolve(
-											'/(social)/x/user/[userId]',
-											{
-												userId: encodeURIComponent(
-													post.$author[EntityMetaKey.Id].id,
-												),
-											},
-										)}
+										entityId={loadedPost.$author[EntityMetaKey.Id]}
 										layout={EntityLayout.Summary}
 									/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</section>
-					<section
-						data-scroll-marker-label="Post"
-						id={`x-post:${entityId.id}:post`}
-					>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading X post…"
-						>
-							{#snippet children(post)}
-								<dl data-column-item="center">
-									{#if post.text}
-										<div>
-											<dt>Text</dt>
-											<dd>{post.text}</dd>
-										</div>
-									{/if}
 
-									{#if post.createdAt != null}
-										<div>
-											<dt>Created at</dt>
-											<dd>
-												<Timestamp
-													timestamp={post.createdAt}
+					{#if _open}
+						<section
+							data-scroll-marker-label="Thread"
+							id={`x-post:${entityId.id}:thread`}
+						>
+							<dl data-column-item="center">
+								{#if loadedPost.$replyToPost}
+									<div>
+										<dt>Reply to</dt>
+										<dd>
+											<ResourceBoundary
+												resource={post}
+												placeholderText="Loading X post…"
+											>
+												{#snippet children(loadedPost)}
+													<XPostView
+														entityId={loadedPost.$replyToPost[EntityMetaKey.Id]}
+														layout={EntityLayout.Title}
+														open={false}
+													/>
+												{/snippet}
+											</ResourceBoundary>
+										</dd>
+									</div>
+								{/if}
+
+								{#if loadedPost.$quotedPost}
+									<div>
+										<dt>Quoted post</dt>
+										<dd>
+											<ResourceBoundary
+												resource={post}
+												placeholderText="Loading X post…"
+											>
+												{#snippet children(loadedPost)}
+													<XPostView
+														entityId={loadedPost.$quotedPost[EntityMetaKey.Id]}
+														layout={EntityLayout.Title}
+														open={false}
+													/>
+												{/snippet}
+											</ResourceBoundary>
+										</dd>
+									</div>
+								{/if}
+
+								{#if (
+									post.$replyToPost == null
+									&& post.$quotedPost == null
+								)}
+									<p data-text="muted">
+										No reply or quote references on this loadedPost.
+									</p>
+								{/if}
+							</dl>
+						</section>
+
+						<section
+							data-scroll-marker-label="Media"
+							id={`x-post:${entityId.id}:media`}
+						>
+							<ResourceBoundary
+								resource={post}
+								placeholderText="Loading X post…"
+							>
+								{#snippet children(loadedPost)}
+									{#if (post.$$media?.length ?? 0) > 0}
+										<div data-column="gap-3">
+											{#each loadedPost.$$media ?? [] as media (media[EntityMetaKey.Id].url)}
+												<Media
+													alt=""
+													media={{ url: media[EntityMetaKey.Id].url }}
 												/>
-											</dd>
+											{/each}
 										</div>
+									{:else}
+										<p data-text="muted">
+											No media attachments on this loadedPost.
+										</p>
 									{/if}
-								</dl>
-							{/snippet}
-						</ResourceBoundary>
-					</section>
+								{/snippet}
+							</ResourceBoundary>
+						</section>
+					{/if}
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

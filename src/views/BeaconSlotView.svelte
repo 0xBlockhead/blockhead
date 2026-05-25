@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-
 	import BeaconSlotSchema from '$/schema/BeaconSlot.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -14,32 +13,29 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href: hrefProp,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(beacon-slots)/slot/[slotNumber]',
+			{
+				networkId: String(entityId.$network.chainId),
+				slotNumber: String(entityId.slot),
+			},
+		),
 		layout = EntityLayout.Summary,
 		title: titleProp,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: typeof BeaconSlotSchema.id.infer
 			href?: string
 			layout?: EntityLayout
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'Content'
-			| 'Details'
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'layout'
-			| 'open'
-			| 'title'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -47,16 +43,6 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const href = (
-		hrefProp ?? resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/(beacon-slots)/slot/[slotNumber]',
-			{
-				networkId: String(entityId.$network.chainId),
-				slotNumber: String(entityId.slot),
-			},
-		)
-	)
-	const title = titleProp ?? `Slot ${entityId.slot.toLocaleString()}`
 	const slot = useEntity(
 		EntityType.BeaconSlot,
 		entityId,
@@ -77,6 +63,12 @@
 	)
 
 
+	// (Derived)
+	const title = $derived(
+		titleProp ?? `Slot ${entityId.slot.toLocaleString()}`,
+	)
+
+
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -90,13 +82,12 @@
 <EntityView
 	entityType={EntityType.BeaconSlot}
 	{entityId}
+	href={href}
 	{title}
-	{href}
 	{layout}
 	bind:open
 	idDragPlainText={String(entityId.slot)}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -105,7 +96,6 @@
 	{/snippet}
 
 	{#snippet Heading()}
-
 		<span>
 			{entityId.slot}
 		</span>
@@ -123,7 +113,12 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Slot </span>
-			{@render Value()}
+			<span
+				data-badge="small"
+				data-slot-number={String(entityId.slot)}
+			>
+				{String(entityId.slot)}
+			</span>
 		</span>
 	{/snippet}
 
@@ -136,8 +131,8 @@
 						resource={slot}
 						placeholderText="Loading slot…"
 					>
-						{#snippet children(slot)}
-							<NumberValue value={slot.proposerIndex} />
+						{#snippet children(loadedSlot)}
+							<NumberValue value={loadedSlot.proposerIndex} />
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -150,23 +145,15 @@
 							resource={slot}
 							placeholderText="Loading slot…"
 						>
-							{#snippet children(slot)}
-								{#if slot.epoch !== undefined}
+							{#snippet children(loadedSlot)}
+								{#if loadedSlot.epoch !== undefined}
 									<BeaconEpochView
 										entityId={{
 											$network: entityId.$network,
-											epoch: slot.epoch,
+											epoch: loadedSlot.epoch,
 										}}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
-											{
-												networkId: String(entityId.$network.chainId),
-												epochNumber: String(slot.epoch),
-											},
-										)}
 										layout={EntityLayout.Title}
 										open={false}
-										showTypeAnnotation={false}
 									/>
 								{/if}
 							{/snippet}
@@ -181,10 +168,10 @@
 							resource={slot}
 							placeholderText="Loading slot…"
 						>
-							{#snippet children(slot)}
-								{#if slot.root !== undefined && slot.root !== ''}
+							{#snippet children(loadedSlot)}
+								{#if loadedSlot.root !== undefined && loadedSlot.root !== ''}
 									<TruncatedValue
-										value={slot.root}
+										value={loadedSlot.root}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
@@ -200,9 +187,9 @@
 							resource={slot}
 							placeholderText="Loading slot…"
 						>
-							{#snippet children(slot)}
-								{#if slot.canonical !== undefined}
-									{slot.canonical ? 'Yes' : 'No'}
+							{#snippet children(loadedSlot)}
+								{#if loadedSlot.canonical !== undefined}
+									{loadedSlot.canonical ? 'Yes' : 'No'}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -216,10 +203,10 @@
 							resource={slot}
 							placeholderText="Loading slot…"
 						>
-							{#snippet children(slot)}
-								{#if slot.parentRoot !== undefined && slot.parentRoot !== ''}
+							{#snippet children(loadedSlot)}
+								{#if loadedSlot.parentRoot !== undefined && loadedSlot.parentRoot !== ''}
 									<TruncatedValue
-										value={slot.parentRoot}
+										value={loadedSlot.parentRoot}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
@@ -235,10 +222,10 @@
 							resource={slot}
 							placeholderText="Loading slot…"
 						>
-							{#snippet children(slot)}
-								{#if slot.stateRoot !== undefined && slot.stateRoot !== ''}
+							{#snippet children(loadedSlot)}
+								{#if loadedSlot.stateRoot !== undefined && loadedSlot.stateRoot !== ''}
 									<TruncatedValue
-										value={slot.stateRoot}
+										value={loadedSlot.stateRoot}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
@@ -254,10 +241,10 @@
 							resource={slot}
 							placeholderText="Loading slot…"
 						>
-							{#snippet children(slot)}
-								{#if slot.bodyRoot !== undefined && slot.bodyRoot !== ''}
+							{#snippet children(loadedSlot)}
+								{#if loadedSlot.bodyRoot !== undefined && loadedSlot.bodyRoot !== ''}
 									<TruncatedValue
-										value={slot.bodyRoot}
+										value={loadedSlot.bodyRoot}
 										format={TruncatedValueFormat.Abbr}
 									/>
 								{/if}
@@ -276,9 +263,6 @@
 			entityType={EntityType.BeaconSlot}
 			{entityId}
 		/>
-
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>
+

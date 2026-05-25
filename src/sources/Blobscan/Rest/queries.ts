@@ -1,26 +1,15 @@
 import { getJson } from '$/lib/http.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import Blobscan from '$/sources/Blobscan/index.ts'
 import { blobscanRestApiOriginForChainId } from '$/sources/Blobscan/Rest/constants.ts'
 
 
-import type { JsonObject } from '$/typescript/JsonValue.ts'
+import type {
+	BlobscanBlobDetail,
+	BlobscanTransaction,
+} from '$/sources/Blobscan/Rest/types.ts'
 
 
-type BlobscanTransactionBlobRow = {
-	versionedHash?: string
-}
-
-
-type BlobscanTransactionWire = {
-	blobs?: BlobscanTransactionBlobRow[]
-}
-
-
-type BlobscanBlobDetailWire = JsonObject
-
-
-const getBlobscanBlobJsonStringInner = async ({
+export const getBlobscanBlobJsonString = async ({
 	chainId,
 	txHash,
 	blobIndex,
@@ -33,9 +22,9 @@ const getBlobscanBlobJsonStringInner = async ({
 	if (apiOrigin == null) return undefined
 
 	const txUrl = `${apiOrigin}/transactions/${encodeURIComponent(txHash)}`
-	let tx: BlobscanTransactionWire
+	let tx: BlobscanTransaction
 	try {
-		tx = await getJson<BlobscanTransactionWire>(
+		tx = await getJson<BlobscanTransaction>(
 			txUrl,
 			{ origins: Blobscan.origins ?? [] },
 		)
@@ -51,9 +40,9 @@ const getBlobscanBlobJsonStringInner = async ({
 	if (versionedHash == null || versionedHash === '') return undefined
 
 	const blobUrl = `${apiOrigin}/blobs/${encodeURIComponent(versionedHash)}`
-	let detail: BlobscanBlobDetailWire
+	let detail: BlobscanBlobDetail
 	try {
-		detail = await getJson<BlobscanBlobDetailWire>(
+		detail = await getJson<BlobscanBlobDetail>(
 			blobUrl,
 			{ origins: Blobscan.origins ?? [] },
 		)
@@ -66,4 +55,3 @@ const getBlobscanBlobJsonStringInner = async ({
 }
 
 
-export const getBlobscanBlobJsonString = singleFlight(getBlobscanBlobJsonStringInner)

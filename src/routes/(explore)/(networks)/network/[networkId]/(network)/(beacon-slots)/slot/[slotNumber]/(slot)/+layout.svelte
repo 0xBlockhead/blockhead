@@ -1,8 +1,10 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { resolve } from '$app/paths'
 	import { stringify } from 'devalue'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -22,6 +24,10 @@
 	// Components
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
+
+
+	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -35,10 +41,6 @@
 	{#snippet Summary({ open: _open })}
 		<BeaconSlotView
 			entityId={slotEntityId}
-			href={resolve(
-				'/(explore)/(networks)/network/[networkId]/(network)/(beacon-slots)/slot/[slotNumber]',
-				params,
-			)}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

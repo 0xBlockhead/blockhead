@@ -1,6 +1,34 @@
 import { describe, expect, it } from 'vitest'
 
-import { blockscoutRestV2AtExplorerOrigin } from '$/sources/Blockscout/Rest/constants.ts'
+import {
+	blockscoutErc4337OperationsSupported,
+	blockscoutErc4337RegistryListsSupported,
+	blockscoutHostedNetworks,
+	blockscoutRestV2AtExplorerOrigin,
+} from '$/sources/Blockscout/Rest/constants.ts'
+
+describe('blockscoutErc4337OperationsSupported', () => {
+	it('is true for hosted chains with AA proxy indexing', () => {
+		expect(blockscoutErc4337OperationsSupported(1)).toBe(true)
+		expect(blockscoutErc4337OperationsSupported(8453)).toBe(true)
+		expect(blockscoutErc4337OperationsSupported(11155111)).toBe(true)
+	})
+
+	it('is false for hosted chains without AA proxy indexing', () => {
+		for (const chainId of [5, 17000]) {
+			expect(
+				blockscoutHostedNetworks.some((network) => network.chainId === chainId),
+				`fixture chain ${chainId}`,
+			).toBe(true)
+			expect(blockscoutErc4337OperationsSupported(chainId)).toBe(false)
+		}
+	})
+
+	it('matches registry list helper on supported chains', () => {
+		expect(blockscoutErc4337RegistryListsSupported(42161)).toBe(true)
+		expect(blockscoutErc4337RegistryListsSupported(5)).toBe(false)
+	})
+})
 
 describe('blockscoutRestV2AtExplorerOrigin', () => {
 	it('is true for Blockscout hosted explorer hostnames', () => {

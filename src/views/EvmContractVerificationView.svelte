@@ -16,9 +16,15 @@
 
 	// Props
 	let {
-		children: _children,
 		entityId,
-		href,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]/verification/[verificationId]',
+			{
+				networkId: String(entityId.$network.chainId),
+				address: entityId.$contract.address,
+				verificationId: entityId.verificationId,
+			},
+		),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -28,36 +34,21 @@
 			layout === EntityLayout.SummaryDetails,
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmContractVerification>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
-		>
+		never
 	> = $props()
-
-	const verificationIdKey = $derived(
-		stringify(entityId),
-	)
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const verification = useEntity(
 		EntityType.EvmContractVerification,
@@ -79,6 +70,12 @@
 	)
 
 
+	// (Derived)
+	const verificationIdKey = $derived(
+		stringify(entityId),
+	)
+
+
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -91,12 +88,11 @@
 <EntityView
 	entityType={EntityType.EvmContractVerification}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
-	{summaryUsesHeading}
 	bind:open
 	{collapsible}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		Source verification
@@ -210,12 +206,11 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.EvmContractVerification}
 			{entityId}
 		/>
-
 		<ResourceBoundary resource={verification}>
 			{#snippet children(verification)}
 				<div
@@ -226,13 +221,6 @@
 						<section id={`${verificationIdKey}:compilation`}>
 							<EvmContractCompilationView
 								entityId={verification.$compilation[EntityMetaKey.Id]}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-									{
-										networkId: String(entityId.$network.chainId),
-										address: entityId.address,
-									},
-								)}
 								layout={EntityLayout.SummaryDetails}
 								open={true}
 							/>
@@ -243,13 +231,6 @@
 						<section id={`${verificationIdKey}:source-bundle`}>
 							<EvmContractSourceBundleView
 								entityId={verification.$sourceBundle[EntityMetaKey.Id]}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-									{
-										networkId: String(entityId.$network.chainId),
-										address: entityId.address,
-									},
-								)}
 								layout={EntityLayout.SummaryDetails}
 								open={true}
 							/>
@@ -259,10 +240,6 @@
 			{/snippet}
 		</ResourceBoundary>
 
-		{#if _children}
-			<section id={`${verificationIdKey}:page-content`}>
-				{@render _children()}
-			</section>
-		{/if}
+
 	{/snippet}
 </EntityView>

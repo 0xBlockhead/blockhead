@@ -2,6 +2,7 @@
 	// Types/constants
 	import type { NavigationItem } from '$/routes/NavigationItem.ts'
 	import type { Snippet } from 'svelte'
+	import { SvelteMap } from 'svelte/reactivity'
 
 
 	// Context
@@ -33,8 +34,6 @@
 
 
 	// State
-	import { SvelteMap } from 'svelte/reactivity'
-
 	let searchValue = $state(
 		'',
 	)
@@ -113,7 +112,6 @@
 			if (event.key === 'Escape') event.currentTarget.blur()
 		}}
 	/>
-
 	<Tree
 		{items}
 		getKey={(item) => item.id}
@@ -159,35 +157,24 @@
 						{#if LabelSnippet}
 							{@render LabelSnippet({ node })}
 						{:else}
-							{#if node.address}
-								{#if node.address.network}
-									<ActorNetworkView
-										entityId={{
-											$network: node.address.network,
-											$actor: { address: node.address.address },
-										}}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-											{
-												networkId: String(node.address.network.chainId),
-												address: node.address.address,
-											},
-										)}
-										layout={EntityLayout.Title}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								{:else}
-									<ActorView
-										entityId={{ address: node.address.address }}
-										href={resolve('/account/[address]', {
-											address: node.address.address,
-										})}
-										layout={EntityLayout.Title}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								{/if}
+							{#if node.address?.network}
+								<ActorNetworkView
+									entityId={{
+										$network: node.address.network,
+										$actor: { address: node.address.address },
+									}}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{:else if node.address}
+								<ActorView
+									entityId={{ address: node.address.address }}
+									href={resolve('/account/[address]', {
+										address: node.address.address,
+									})}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
 							{:else if node.icon}
 								<Icon
 									{...navIconProps(node.icon)}
@@ -241,35 +228,24 @@
 						{#if LabelSnippet}
 							{@render LabelSnippet({ node })}
 						{:else}
-							{#if node.address}
-								{#if node.address.network}
-									<ActorNetworkView
-										entityId={{
-											$network: node.address.network,
-											$actor: { address: node.address.address },
-										}}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-											{
-												networkId: String(node.address.network.chainId),
-												address: node.address.address,
-											},
-										)}
-										layout={EntityLayout.Title}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								{:else}
-									<ActorView
-										entityId={{ address: node.address.address }}
-										href={resolve('/account/[address]', {
-											address: node.address.address,
-										})}
-										layout={EntityLayout.Title}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								{/if}
+							{#if node.address?.network}
+								<ActorNetworkView
+									entityId={{
+										$network: node.address.network,
+										$actor: { address: node.address.address },
+									}}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{:else if node.address}
+								<ActorView
+									entityId={{ address: node.address.address }}
+									href={resolve('/account/[address]', {
+										address: node.address.address,
+									})}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
 							{:else if node.icon}
 								<Icon
 									{...navIconProps(node.icon)}
@@ -388,3 +364,4 @@
 		}
 	}
 </style>
+

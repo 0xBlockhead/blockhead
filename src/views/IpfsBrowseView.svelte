@@ -3,11 +3,6 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import {
-		ipfsResourceAddressFromInput,
-		ipfsResourceCanonicalUri,
-		ipfsResourceHref,
-	} from '$/lib/ipfs.ts'
 
 
 	// Props
@@ -46,6 +41,22 @@
 			uri: ipfsResourceCanonicalUri(address),
 		}
 	}
+
+	const openSample = (href: string) => {
+		window.location.assign(href)
+	}
+
+	const openDocsSample = (href: string) => {
+		window.open(href, '_blank', 'noopener,noreferrer')
+	}
+
+
+	// State
+	import {
+		ipfsResourceAddressFromInput,
+		ipfsResourceCanonicalUri,
+		ipfsResourceHref,
+	} from '$/lib/ipfs.ts'
 
 	const samples = [
 		sample({
@@ -88,20 +99,13 @@
 		window.location.assign(ipfsResourceHref(next))
 	}
 
-	const openSample = (href: string) => {
-		window.location.assign(href)
-	}
-
-	const openDocsSample = (href: string) => {
-		window.open(href, '_blank', 'noopener,noreferrer')
-	}
-
 
 	// Components
 	import IpfsBrowseEntityChrome from '$/views/IpfsBrowseEntityChrome.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 </script>
+
 
 {#snippet Form()}
 	<form

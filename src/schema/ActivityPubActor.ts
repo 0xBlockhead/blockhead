@@ -52,6 +52,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Mastodon_Rest,
+				Source.Fedi_Rest,
 			],
 		},
 		{
@@ -61,10 +62,17 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Mastodon_Rest,
+				Source.Fedi_Rest,
 			],
 		},
 		{
 			name: 'profileUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'activityStreamsUri',
 			type: EntityFieldType.Primitive,
 			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,

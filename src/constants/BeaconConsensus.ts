@@ -32,30 +32,10 @@ export const beaconRestBases = [
 
 
 // Lookups
-export const beaconRestBaseByExecutionChainId: Readonly<Record<number, string>> = Object.fromEntries(
-	beaconRestBases.map((row) => [
-		row.chainId,
-		row.restBaseUrl,
+
+export const beaconRestBaseByExecutionChainId = Object.fromEntries(
+	beaconRestBases.map((beaconRow) => [
+		beaconRow.chainId,
+		beaconRow,
 	]),
-)
-
-export const consensusProtocolByExecutionChainId: Readonly<Record<number, ConsensusProtocol>> = (
-	Object.fromEntries(
-		beaconRestBases.map((row) => [
-			row.chainId,
-			row.consensusProtocol,
-		]),
-	)
-)
-
-export const hasPairedBeaconRestForExecutionChainId = (
-	chainId: number,
-): boolean => (
-	chainId in beaconRestBaseByExecutionChainId
-)
-
-export const consensusProtocolForExecutionChainId = (
-	chainId: number,
-): ConsensusProtocol | undefined => (
-	consensusProtocolByExecutionChainId[chainId]
 )

@@ -1,4 +1,3 @@
-import { stringify } from 'devalue'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import {
 	defineEntityFieldResolver,
@@ -9,17 +8,17 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { schema } from '$/schema/index.ts'
-import type { ProposerPayloadDeliveredRowWire } from '$/sources/MevRelay/Rest/types.ts'
+import type { ProposerPayloadDelivered } from '$/sources/MevRelay/Rest/types.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const parsePayloadSlot = (row: ProposerPayloadDeliveredRowWire): number | undefined => {
+const parsePayloadSlot = (row: ProposerPayloadDelivered): number | undefined => {
 	const raw = row.slot
 	if (raw == null) return undefined
 	const slot = Number(raw)
 	return Number.isFinite(slot) ? slot : undefined
 }
 
-const parsePayloadValueWei = (row: ProposerPayloadDeliveredRowWire): bigint | undefined => {
+const parsePayloadValueWei = (row: ProposerPayloadDelivered): bigint | undefined => {
 	const raw = row.value
 	if (raw == null) return undefined
 	try {
@@ -29,7 +28,7 @@ const parsePayloadValueWei = (row: ProposerPayloadDeliveredRowWire): bigint | un
 	}
 }
 
-const parsePayloadBlockNumber = (row: ProposerPayloadDeliveredRowWire): bigint | undefined => {
+const parsePayloadBlockNumber = (row: ProposerPayloadDelivered): bigint | undefined => {
 	const raw = row.block_number ?? row.blockNumber
 	if (raw == null) return undefined
 	try {
@@ -89,11 +88,11 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$$mevProposerPayloadDelivered',
 			resolve: async (entityId, context) => {
-				const { mevRelayHostsByChainId } = await import('$/constants/MevRelayHosts.ts')
+				const { mevRelayHostRows } = await import('$/constants/MevRelayHosts.ts')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
-				const hostsForChain = Object.entries(mevRelayHostsByChainId).find(([key]) => (
-					Number(key) === entityId.chainId
-				))?.[1]
+				const hostsForChain = mevRelayHostRows
+					.filter((row) => row.chainId === entityId.chainId)
+					.map((row) => row.host)
 				if (hostsForChain == null) {
 					throw new Error(
 						`MevRelay_Rest: no MEV-Boost relay mapping for chain ${String(entityId.chainId)}`,
@@ -101,7 +100,6 @@ export default {
 				}
 				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
 				const hosts = [...hostsForChain]
-				const seen = new Set<string>()
 				const out: {
 					[EntityMetaKey.Id]: {
 						$network: typeof entityId
@@ -120,13 +118,6 @@ export default {
 						if (slot == null || bhRaw == null) continue
 						const blockHash = hexLowerOfByteSize(bhRaw, 32)
 						if (blockHash == null) continue
-						const idKey = stringify({
-							relayHost,
-							slot,
-							blockHash,
-						})
-						if (seen.has(idKey)) continue
-						seen.add(idKey)
 						out.push({
 							[EntityMetaKey.Id]: {
 								$network: entityId,

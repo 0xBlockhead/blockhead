@@ -3,12 +3,18 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
-	import { quoteIso4217FromMarketId } from '$/constants/Currency.ts'
-	import { formatMarketTimeIntervalLabel } from '$/constants/Market.ts'
+	import { Iso4217 } from '$/constants/Currency.ts'
+
+	import {
+		MarketAssetKind,
+		MarketTimeIntervalUnit,
+		marketOhlcCandleSources,
+	} from '$/constants/Market.ts'
+
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -17,31 +23,28 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+		'/(assets)/(markets)/market/[marketKey]',
+		{
+			marketKey: encodeURIComponent(stringify(entityId.$market)),
+		},
+	),
 		layout,
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'layout'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
+			| 'id'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -49,14 +52,13 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-
 	const marketTimeIntervalTimestamp = useEntity(
 		EntityType.Market_TimeInterval_Timestamp,
 		entityId,
 		{
 			$: [
-				Source.Coingecko_Rest,
 				Source.Constants_Internal,
+				...marketOhlcCandleSources,
 			],
 			close: {},
 			...(open && {
@@ -65,6 +67,28 @@
 				low: {},
 			}),
 		},
+	)
+
+
+	// (Derived)
+	const timeIntervalLabel = $derived(
+		entityId.timeInterval.unit === MarketTimeIntervalUnit.Day ?
+			`${String(entityId.timeInterval.value)}d`
+		: entityId.timeInterval.unit === MarketTimeIntervalUnit.Hour ?
+			`${String(entityId.timeInterval.value)}h`
+		: entityId.timeInterval.unit === MarketTimeIntervalUnit.Minute ?
+			`${String(entityId.timeInterval.value)}m`
+		: entityId.timeInterval.unit === MarketTimeIntervalUnit.Second ?
+			`${String(entityId.timeInterval.value)}s`
+		:
+			`${String(entityId.timeInterval.value)}`
+	)
+
+	const quoteCurrency = $derived(
+		entityId.$market.$quote.kind === MarketAssetKind.Currency ?
+			entityId.$market.$quote.$currency.iso4217
+		:
+			Iso4217.USD
 	)
 
 
@@ -81,17 +105,11 @@
 <EntityView
 	entityType={EntityType.Market_TimeInterval_Timestamp}
 	{entityId}
-	href={href ?? resolve(
-		'/(assets)/(markets)/market/[marketKey]',
-		{
-			marketKey: encodeURIComponent(stringify(entityId.$market)),
-		},
-	)}
+	href={href}
 	{layout}
 	bind:open
-	title={`${formatMarketTimeIntervalLabel(entityId.timeInterval)} OHLC candle`}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	title={`${timeIntervalLabel} OHLC candle`}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -104,12 +122,12 @@
 	{/snippet}
 
 	{#snippet Heading()}
-		{`${formatMarketTimeIntervalLabel(entityId.timeInterval)} OHLC`}
+		{`${timeIntervalLabel} OHLC`}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-					{#if marketTimeIntervalTimestamp.close !== undefined}
+					{#if loadedMarketTimeIntervalTimestamp.close !== undefined}
 						<div>
 							<dt>Close</dt>
 							<dd>
@@ -117,11 +135,11 @@
 									resource={marketTimeIntervalTimestamp}
 									placeholderText="Loading OHLC candle…"
 								>
-									{#snippet children(marketTimeIntervalTimestamp)}
+									{#snippet children(loadedMarketTimeIntervalTimestamp)}
 										<CurrencyAmount
-											currency={quoteIso4217FromMarketId(entityId.$market)}
+											currency={quoteCurrency}
 											showDecimalPlaces={6}
-											value={marketTimeIntervalTimestamp.close}
+											value={loadedMarketTimeIntervalTimestamp.close}
 										/>
 									{/snippet}
 								</ResourceBoundary>
@@ -145,96 +163,91 @@
 								resource={marketTimeIntervalTimestamp}
 								placeholderText="Loading OHLC candle…"
 							>
-								{#snippet children(marketTimeIntervalTimestamp)}
+								{#snippet children(loadedMarketTimeIntervalTimestamp)}
 									<MarketView
 										entityId={entityId.$market}
-										href={resolve(
-											'/(assets)/(markets)/market/[marketKey]',
-											{
-												marketKey: encodeURIComponent(stringify(entityId.$market)),
-											},
-										)}
 										layout={EntityLayout.Title}
 										open={false}
-										showTypeAnnotation={false}
 									/>
 								{/snippet}
 							</ResourceBoundary>
 						</dd>
 					</div>
 
-					{#if open}
-						{#if marketTimeIntervalTimestamp.open !== undefined}
-							<div>
-								<dt>Open</dt>
-								<dd>
-									<ResourceBoundary
-										resource={marketTimeIntervalTimestamp}
-										placeholderText="Loading OHLC candle…"
-									>
-										{#snippet children(marketTimeIntervalTimestamp)}
-											<CurrencyAmount
-												currency={quoteIso4217FromMarketId(entityId.$market)}
-												showDecimalPlaces={6}
-												value={marketTimeIntervalTimestamp.open}
-											/>
-										{/snippet}
-									</ResourceBoundary>
-								</dd>
-							</div>
-						{/if}
-
-						{#if marketTimeIntervalTimestamp.high !== undefined}
-							<div>
-								<dt>High</dt>
-								<dd>
-									<ResourceBoundary
-										resource={marketTimeIntervalTimestamp}
-										placeholderText="Loading OHLC candle…"
-									>
-										{#snippet children(marketTimeIntervalTimestamp)}
-											<CurrencyAmount
-												currency={quoteIso4217FromMarketId(entityId.$market)}
-												showDecimalPlaces={6}
-												value={marketTimeIntervalTimestamp.high}
-											/>
-										{/snippet}
-									</ResourceBoundary>
-								</dd>
-							</div>
-						{/if}
-
-						{#if marketTimeIntervalTimestamp.low !== undefined}
-							<div>
-								<dt>Low</dt>
-								<dd>
-									<ResourceBoundary
-										resource={marketTimeIntervalTimestamp}
-										placeholderText="Loading OHLC candle…"
-									>
-										{#snippet children(marketTimeIntervalTimestamp)}
-											<CurrencyAmount
-												currency={quoteIso4217FromMarketId(entityId.$market)}
-												showDecimalPlaces={6}
-												value={marketTimeIntervalTimestamp.low}
-											/>
-										{/snippet}
-									</ResourceBoundary>
-								</dd>
-							</div>
-						{/if}
+					{#if (
+						open
+						&& marketTimeIntervalTimestamp.open !== undefined
+					)}
+						<div>
+							<dt>Open</dt>
+							<dd>
+								<ResourceBoundary
+									resource={marketTimeIntervalTimestamp}
+									placeholderText="Loading OHLC candle…"
+								>
+									{#snippet children(loadedMarketTimeIntervalTimestamp)}
+										<CurrencyAmount
+											currency={quoteCurrency}
+											showDecimalPlaces={6}
+											value={loadedMarketTimeIntervalTimestamp.open}
+										/>
+									{/snippet}
+								</ResourceBoundary>
+							</dd>
+						</div>
+					{/if}
+					{#if (
+						open
+						&& marketTimeIntervalTimestamp.high !== undefined
+					)}
+						<div>
+							<dt>High</dt>
+							<dd>
+								<ResourceBoundary
+									resource={marketTimeIntervalTimestamp}
+									placeholderText="Loading OHLC candle…"
+								>
+									{#snippet children(loadedMarketTimeIntervalTimestamp)}
+										<CurrencyAmount
+											currency={quoteCurrency}
+											showDecimalPlaces={6}
+											value={loadedMarketTimeIntervalTimestamp.high}
+										/>
+									{/snippet}
+								</ResourceBoundary>
+							</dd>
+						</div>
+					{/if}
+					{#if (
+						open
+						&& marketTimeIntervalTimestamp.low !== undefined
+					)}
+						<div>
+							<dt>Low</dt>
+							<dd>
+								<ResourceBoundary
+									resource={marketTimeIntervalTimestamp}
+									placeholderText="Loading OHLC candle…"
+								>
+									{#snippet children(loadedMarketTimeIntervalTimestamp)}
+										<CurrencyAmount
+											currency={quoteCurrency}
+											showDecimalPlaces={6}
+											value={loadedMarketTimeIntervalTimestamp.low}
+										/>
+									{/snippet}
+								</ResourceBoundary>
+							</dd>
+						</div>
 					{/if}
 				</dl>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.Market_TimeInterval_Timestamp}
 			{entityId}
 		/>
-
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>
+

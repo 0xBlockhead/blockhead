@@ -1,9 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { stringify } from 'devalue'
-
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -11,10 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -23,16 +18,17 @@
 		title = 'Slots',
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListProps
+				...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BeaconSlot>
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
@@ -54,8 +50,7 @@
 <EntitiesList
 	entityType={EntityType.BeaconSlot}
 	{title}
-	bind:open
-	{...entitiesListProps}
+	bind:open	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -63,7 +58,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -108,27 +103,11 @@
 							{/snippet}
 
 							{#snippet Item({ item: slot })}
-								{#if slot}
-									<BeaconSlotView
-										entityId={slot[EntityMetaKey.Id]}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(beacon-slots)/slot/[slotNumber]',
-											{
-												networkId: String(
-													entityFieldReference.entityType === EntityType.Network ?
-														entityFieldReference.entityId.chainId
-													:
-														entityFieldReference.entityId.$network.chainId,
-												),
-												slotNumber: String(
-													slot[EntityMetaKey.Id].slot,
-												),
-											},
-										)}
-										layout={EntityLayout.Summary}
-										open={false}
-									/>
-								{/if}
+								<BeaconSlotView
+									entityId={slot[EntityMetaKey.Id]}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
 							{/snippet}
 						</OrderedList>
 					{/snippet}

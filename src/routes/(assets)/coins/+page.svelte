@@ -15,12 +15,12 @@
 
 <Page>
 	<CoinsView
+		href={resolve('/coins')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
 			entityId: {},
 			fieldName: '$$coins',
 		}}
-		href={resolve('/coins')}
 		id="coins"
 		limit={120}
 	/>

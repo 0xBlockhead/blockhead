@@ -1,23 +1,26 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
-	import { EntityType } from '$/schema/$EntityType.ts'
+	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
 </script>
 
 
 <Page>
-	<ActivityPubMastodonFieldNotes
+	<ActivityPubNotesView
+		href={resolve('/activitypub/notes')}
 		entityFieldReference={{
 			entityType: EntityType.ActivityPubNetwork,
 			entityId: { scope: 'ActivityPubNetwork' },
 			fieldName: '$$activityPubNotes',
 		}}
-		href={resolve('/activitypub/notes')}
 		id="activitypub-notes"
 		orderByCreatedAt="desc"
 		placeholderText="Loading Mastodon public timeline…"

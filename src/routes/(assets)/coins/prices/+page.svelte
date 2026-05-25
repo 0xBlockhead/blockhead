@@ -1,8 +1,10 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
-
-	import { EntityType } from '$/schema/$EntityType.ts'
 
 
 	// Components
@@ -23,13 +25,13 @@
 	</p>
 
 	<MarketPricesView
+		href={resolve('/markets')}
 		collapsible={false}
 		entityFieldReference={{
 			entityType: EntityType._Global,
 			entityId: {},
 			fieldName: '$$marketPrices',
 		}}
-		href={resolve('/coins/prices')}
 		id="coin-prices-page"
 		limit={96}
 		title="Spot quote index"

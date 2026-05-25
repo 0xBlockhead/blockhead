@@ -7,7 +7,6 @@
  * @see https://snapchain.farcaster.xyz/reference/httpapi/verification#verificationsbyfid
  */
 
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { snapchainGet } from '$/sources/Snapchain/Rest/client.ts'
 import {
 	defaultShardId,
@@ -15,15 +14,15 @@ import {
 	snapchainMaxPageSize,
 } from '$/sources/Snapchain/Rest/constants.ts'
 import type {
-	SnapchainCastWire,
+	SnapchainCast,
 	SnapchainFidsPage,
-	SnapchainLinkWire,
+	SnapchainLink,
 	SnapchainOnChainEventsPage,
 	SnapchainPage,
-	SnapchainReactionWire,
-	SnapchainUserDataWire,
+	SnapchainReaction,
+	SnapchainUserData,
 	SnapchainUsernameProofsResponse,
-	SnapchainVerificationWire,
+	SnapchainVerification,
 } from '$/sources/Snapchain/Rest/types.ts'
 
 /**
@@ -58,7 +57,7 @@ export const getCastById = ({
 	fid: number
 	hash: `0x${string}`
 }) => (
-	snapchainGet<SnapchainCastWire>('/v1/castById', {
+	snapchainGet<SnapchainCast>('/v1/castById', {
 		fid,
 		hash,
 	})
@@ -82,7 +81,7 @@ export const getCastsByFid = ({
 	startTimestamp?: number
 	stopTimestamp?: number
 }) => (
-	snapchainGet<SnapchainPage<SnapchainCastWire>>('/v1/castsByFid', {
+	snapchainGet<SnapchainPage<SnapchainCast>>('/v1/castsByFid', {
 		fid,
 		pageSize,
 		pageToken,
@@ -108,7 +107,7 @@ export const getCastsByParent = ({
 	pageSize?: number
 	pageToken?: string
 }) => (
-	snapchainGet<SnapchainPage<SnapchainCastWire>>('/v1/castsByParent', {
+	snapchainGet<SnapchainPage<SnapchainCast>>('/v1/castsByParent', {
 		url,
 		fid,
 		hash,
@@ -135,7 +134,7 @@ export const getReactionsByCast = ({
 	pageToken?: string
 	reverse?: boolean
 }) => (
-	snapchainGet<SnapchainPage<SnapchainReactionWire>>('/v1/reactionsByCast', {
+	snapchainGet<SnapchainPage<SnapchainReaction>>('/v1/reactionsByCast', {
 		target_fid: targetFid,
 		target_hash: targetHash,
 		reaction_type: reactionType,
@@ -159,7 +158,7 @@ export const getUserDataByFid = ({
 	pageToken?: string
 	reverse?: boolean
 }) => (
-	snapchainGet<SnapchainPage<SnapchainUserDataWire>>('/v1/userDataByFid', {
+	snapchainGet<SnapchainPage<SnapchainUserData>>('/v1/userDataByFid', {
 		fid,
 		pageSize,
 		pageToken,
@@ -205,7 +204,7 @@ export const getVerificationsByFid = ({
 	pageToken?: string
 	reverse?: boolean
 }) => (
-	snapchainGet<SnapchainPage<SnapchainVerificationWire>>('/v1/verificationsByFid', {
+	snapchainGet<SnapchainPage<SnapchainVerification>>('/v1/verificationsByFid', {
 		fid,
 		address,
 		pageSize,
@@ -319,7 +318,7 @@ export const getLinksByFid = ({
 	pageToken?: string
 	reverse?: boolean
 }) => (
-	snapchainGet<SnapchainPage<SnapchainLinkWire>>('/v1/linksByFid', {
+	snapchainGet<SnapchainPage<SnapchainLink>>('/v1/linksByFid', {
 		fid,
 		link_type: linkType,
 		pageSize,
@@ -377,9 +376,9 @@ export const getOnChainIdRegisterEventsByFid = ({
 
 export const getSnapchainUserBundleByFid = async ({ fid }: { fid: number }) => {
 	const [userData, usernameProofs, verifications] = await Promise.all([
-		singleFlight(getUserDataByFid)({ fid }),
-		singleFlight(getUsernameProofsByFid)({ fid }),
-		singleFlight(getVerificationsByFid)({ fid }),
+		getUserDataByFid({ fid }),
+		getUsernameProofsByFid({ fid }),
+		getVerificationsByFid({ fid }),
 	])
 	return { userData, usernameProofs, verifications }
 }

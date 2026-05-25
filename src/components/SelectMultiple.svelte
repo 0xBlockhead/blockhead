@@ -25,7 +25,7 @@
 
 		Before,
 		After,
-		Item: _Item,
+		Item,
 		children,
 
 		placeholder,
@@ -170,8 +170,8 @@
 													✓
 												</span>
 
-												{#if _Item}
-													{@render _Item(item.item, selected)}
+												{#if Item}
+													{@render Item(item.item, selected)}
 												{:else}
 													{item.label}
 												{/if}
@@ -198,8 +198,8 @@
 											✓
 										</span>
 
-										{#if _Item}
-											{@render _Item(item.item, selected)}
+										{#if Item}
+											{@render Item(item.item, selected)}
 										{:else}
 											{item.label}
 										{/if}

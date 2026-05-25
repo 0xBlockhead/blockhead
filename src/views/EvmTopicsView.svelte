@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -9,10 +8,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -20,18 +16,18 @@
 		entityFieldReference,
 		open = $bindable(true),
 		collapsible = true,
-
 		title = 'Log topics',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmTopic>
 			open?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
@@ -52,8 +48,7 @@
 	entityType={EntityType.EvmTopic}
 	{title}
 	bind:open
-	{collapsible}
-	{...entitiesListRest}
+	{collapsible}	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -70,25 +65,25 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const global = useEntity(
-				EntityType._Global,
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				{
 					$: [
 						Source.Local_Internal,
 					],
-					$$evmTopics: {
+					[entityFieldReference.fieldName]: {
 						$limit: 4096,
 					},
 				},
 			)}
 			{@const topics = derive(
-				global,
-				(global) => {
+				parent,
+				(parent) => {
 					const rows: Entity<typeof schema, EntityType.EvmTopic>[] = (
-						global.$$evmTopics
+						parent[entityFieldReference.fieldName]
 						?? []
 					)
 					return rows
@@ -112,19 +107,14 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<EvmTopicView
-							entityId={props.item[EntityMetaKey.Id]}
-							href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
-								hex: props.item[EntityMetaKey.Id].hex,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-							collapsible={false}
-							showTypeAnnotation={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					<EvmTopicView
+						entityId={item[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+						collapsible={false}
+						showTypeAnnotation={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

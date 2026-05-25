@@ -1,8 +1,10 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
-
-	import { EntityType } from '$/schema/$EntityType.ts'
 
 
 	// Components
@@ -13,12 +15,12 @@
 
 <Page>
 	<ActorsView
+		href={resolve('/~/accounts')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
 			entityId: {},
 			fieldName: '$$actors',
 		}}
-		href={resolve('/xmtp/accounts')}
 		id="accounts"
 	/>
 </Page>

@@ -1,4 +1,4 @@
-export type FxEmbedUserWire = {
+export type FxEmbedUser = {
 	type?: 'profile'
 	id?: string
 	name?: string
@@ -16,14 +16,14 @@ export type FxEmbedUserWire = {
 	}
 }
 
-export type FxEmbedUserResponseWire = {
+export type FxEmbedUserResponse = {
 	code?: number
 	message?: string
-	user?: FxEmbedUserWire
+	user?: FxEmbedUser
 	reason?: 'suspended'
 }
 
-export type FxEmbedTwitterStatusWire = {
+export type FxEmbedTwitterStatus = {
 	type?: 'status' | 'tombstone' | 'thread'
 	id?: string
 	text?: string
@@ -33,7 +33,7 @@ export type FxEmbedTwitterStatusWire = {
 	reposts?: number
 	replies?: number
 	quotes?: number
-	author?: FxEmbedUserWire
+	author?: FxEmbedUser
 	provider?: string
 	replying_to?: {
 		status?: string
@@ -43,13 +43,13 @@ export type FxEmbedTwitterStatusWire = {
 	} | null
 }
 
-export type FxEmbedSocialThreadWire = {
+export type FxEmbedSocialThread = {
 	code?: number
-	status?: FxEmbedTwitterStatusWire | null
-	author?: FxEmbedUserWire | null
+	status?: FxEmbedTwitterStatus | null
+	author?: FxEmbedUser | null
 }
 
-export type FxEmbedSearchResultsWire = {
+export type FxEmbedSearchResults = {
 	code?: number
-	results?: FxEmbedTwitterStatusWire[]
+	results?: FxEmbedTwitterStatus[]
 }

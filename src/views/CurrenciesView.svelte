@@ -2,16 +2,12 @@
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
-	import type { DeclarativeOrderBy } from '$/lib/tanstackDb/orderBySteps.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Props
@@ -20,26 +16,26 @@
 		open = $bindable(true),
 		collapsible = true,
 		entityFieldReference,
-		...entitiesListRest
+				...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
-			open?: boolean
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Currency>
+			open?: boolean			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Currency>
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
 
+	// Functions
 	const globalCurrenciesFieldOrderBy = (
 		[
 			[
-				({ fieldRow }) => (
+				({ field }) => (
 					(
-						fieldRow[EntityMetaKey.Value] as {
+						field[EntityMetaKey.Value] as {
 							$$timestamps?: { marketCap?: bigint }[]
 						}
 					).$$timestamps?.[0]?.marketCap
@@ -50,32 +46,31 @@
 				},
 			],
 			[
-				({ fieldRow }) => (
-					(fieldRow[EntityMetaKey.Value] as { [EntityMetaKey.Id]: { iso4217: string } })[EntityMetaKey.Id].iso4217
+				({ field }) => (
+					(field[EntityMetaKey.Value] as { [EntityMetaKey.Id]: { iso4217: string } })[EntityMetaKey.Id].iso4217
 				),
 				'asc',
 			],
-		] as const satisfies DeclarativeOrderBy<{ fieldRow: unknown }>
+		] as const satisfies DeclarativeOrderBy<{ field: unknown }>
 	)
 
 	const currencyTimestampsFieldOrderBy = (
 		[
 			[
-				({ fieldRow }) => (
-					(fieldRow[EntityMetaKey.Value] as { marketCap?: bigint }).marketCap
+				({ field }) => (
+					(field[EntityMetaKey.Value] as { marketCap?: bigint }).marketCap
 				),
 				{
 					direction: 'desc',
 					nulls: 'last',
 				},
 			],
-		] as const satisfies DeclarativeOrderBy<{ fieldRow: unknown }>
+		] as const satisfies DeclarativeOrderBy<{ field: unknown }>
 	)
 
 
 	// State
-	import { SvelteSet } from 'svelte/reactivity'
-
+	import type { DeclarativeOrderBy } from '$/lib/tanstackDb/orderBySteps.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -88,7 +83,7 @@
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	{collapsible}
 	entityType={EntityType.Currency}
@@ -109,9 +104,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -119,7 +113,7 @@
 					$: [
 						Source.Constants_Internal,
 					],
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$orderBy: globalCurrenciesFieldOrderBy,
 						$limit: 512,
 						$$timestamps: {
@@ -136,19 +130,18 @@
 			{@const currencies = derive(
 				parent,
 				(parent) => (
-					parent[fieldName] ?? []
+					parent[entityFieldReference.fieldName] ?? []
 				),
 			)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
-				{...entitiesListRest}
+				{...EntitiesListProps}
 				entityType={EntityType.Currency}
 				getKey={(row) => row[EntityMetaKey.Id].iso4217}
 				getSortValue={(row) => (
 					-Number(row.$$timestamps?.[0]?.marketCap ?? 0)
 				)}
-				placeholderKeys={new SvelteSet()}
 				resource={currencies}
 				{title}
 				open={true}
@@ -160,17 +153,11 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{#if item}
-						<CurrencyView
-							entityId={item[EntityMetaKey.Id]}
-							href={resolve(
-								'/(assets)/(currencies)/currency/[iso4217]',
-								{ iso4217: item[EntityMetaKey.Id].iso4217 },
-							)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+					<CurrencyView
+						entityId={item[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

@@ -1,16 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
 	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
@@ -19,38 +16,26 @@
 
 	// Props
 	let {
-		children,
 		entityId,
+		href = resolve('/~/manage'),
 		title = 'Manage',
-		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType._Global>
+			href?: string
 			title?: string
-			href: string
 			layout?: EntityLayout
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'layout'
-			| 'title'
-			| 'Details'
-		>
+		never
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const global = useEntity(
 		EntityType._Global,
@@ -77,6 +62,7 @@
 
 
 	// Components
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -89,11 +75,11 @@
 <EntityView
 	entityType={EntityType._Global}
 	{entityId}
+	href={href}
 	{title}
-	{href}
 	{layout}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		{entityId.scope}
@@ -121,15 +107,15 @@
 		{#if summaryOpen}
 		<dl data-column-item="center">
 			<ResourceBoundary resource={global}>
-				{#snippet children(global)}
-					{#if global.duneCreditsUsed !== undefined}
+				{#snippet children(loadedGlobal)}
+					{#if loadedGlobal.duneCreditsUsed !== undefined}
 						<div>
 							<dt>Dune credits used</dt>
 							<dd>{String(global.duneCreditsUsed)}</dd>
 						</div>
 					{/if}
 
-					{#if global.duneCreditsIncluded !== undefined}
+					{#if loadedGlobal.duneCreditsIncluded !== undefined}
 						<div>
 							<dt>Dune credits included</dt>
 							<dd>{String(global.duneCreditsIncluded)}</dd>
@@ -144,145 +130,9 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{#if children}
-			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType._Global}
-				{entityId}
-			/>
 
-			<div
-				class="entity-view-detail-carousels"
-				data-column="gap-3"
-			>
-				<CollapsibleTabs
-					id={`setting:${entityId.scope}:carousel-manage`}
-					{...{ 'data-card': '' }}
-					scrollContainerProps={{
-						'data-row': 'start align-start',
-					}}
-				>
-					{#snippet Summary({
-						open: _summaryOpen,
-					})}
-						<header
-							data-row-item="flexible"
-							data-row="wrap gap-4 align-center"
-						>
-							<HeadingComponent>
-								Manage
-							</HeadingComponent>
-							<Tooltip contentProps={{ side: 'top' }}>
-								{#snippet Content()}
-								<p>
-									Per-profile preferences and API credit counters are ordinary web storage concerns—separate artifacts from seed phrases or hardware keys.
-								</p>
-								<p>
-									RPC, REST, and GraphQL transport bases stay in their own configuration records so URLs, headers, and keys are not collapsed into generic key-value settings blobs.
-								</p>
-								{/snippet}
-								<abbr
-									class="entity-heading-tip"
-									aria-label="Manage sections"
-								>ⓘ</abbr>
-							</Tooltip>
-						</header>
-					{/snippet}
 
-					{#snippet Markers({
-						open: _markersOpen,
-					})}
-						<a
-							data-scroll-marker-label="Navigation"
-							href={`#setting:${entityId.scope}:nav`}
-						>Navigation</a>
-						<a
-							data-scroll-marker-label="Usage"
-							href={`#setting:${entityId.scope}:usage`}
-						>Usage</a>
-					{/snippet}
-
-					{#snippet body({ open: _paneOpen,
-					})}
-						<section
-							id={`setting:${entityId.scope}:nav`}
-						>
-							<UnorderedList
-								items={new SvelteSet([
-									{
-										key: 'self',
-										href,
-										label: title,
-									},
-									{
-										key: 'explore',
-										href: resolve('/explore'),
-										label: 'Explore',
-									},
-									...(
-										href === resolve('/assets') ?
-											[
-												{
-													key: 'assets-coins',
-													href: resolve('/coins'),
-													label: 'Coins',
-												},
-												{
-													key: 'assets-pools',
-													href: resolve('/pools'),
-													label: 'Pools',
-												},
-											]
-										:
-											[]
-									),
-									...(
-										href === resolve('/~/accounts') ?
-											[
-												{
-													key: 'accounts-balances',
-													href: resolve('/~/accounts/balances'),
-													label: 'Balances',
-												},
-											]
-										:
-											[]
-									),
-								])}
-								getKey={(row) => row.key}
-								getSortValue={(row) => row.key}
-								placeholderKeys={new SvelteSet()}
-								orientation={ListOrientation.Column}
-							>
-								{#snippet Item({
-									item,
-								})}
-									<a href={item.href}>
-										{item.label}
-									</a>
-								{/snippet}
-							</UnorderedList>
-						</section>
-
-						<section
-							id={`setting:${entityId.scope}:usage`}
-							data-scroll-marker-label="Usage"
-						>
-							<ResourceBoundary
-								resource={global}
-								placeholderText="Loading usage…"
-							>
-								{#snippet children(global)}
-									<dl data-column-item="center">
-										{#if global.duneCreditsUsed !== undefined}
-											<div>
-												<dt>Dune credits used</dt>
-												<dd>{String(global.duneCreditsUsed)}</dd>
-											</div>
-										{/if}
-
-										{#if global.duneCreditsIncluded !== undefined}
+										{#if loadedGlobal.duneCreditsIncluded !== undefined}
 											<div>
 												<dt>Dune credits included</dt>
 												<dd>{String(global.duneCreditsIncluded)}</dd>

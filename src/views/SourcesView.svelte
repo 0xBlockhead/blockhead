@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -9,13 +8,9 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -24,9 +19,8 @@
 		title = 'Saved sources',
 		open = $bindable(true),
 		collapsible = true,
-		href,
 		id,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<
@@ -35,10 +29,12 @@
 			>
 			title?: string
 			open?: boolean
-			href: string
 			id: string
 		},
-		Omit<ComponentProps<typeof EntitiesList>, 'entityType'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+		>
 	> = $props()
 
 
@@ -50,17 +46,15 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import BlockheadSourceView from '$/views/BlockheadSourceView.svelte'
 </script>
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	{collapsible}
 	entityType={EntityType.BlockheadSource}
-	{href}
 	{id}
 	{title}
 >
@@ -82,7 +76,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -114,9 +108,7 @@
 				entityType={EntityType.BlockheadSource}
 				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 				getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-				{href}
 				id={`${id}-items`}
-				placeholderKeys={new SvelteSet()}
 				open={true}
 				resource={sources}
 				{title}
@@ -128,20 +120,14 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const srcId = props.item.value[EntityMetaKey.Id]}
-						<BlockheadSourceView
-							href={resolve(
-								'/~/(manage)/manage/(sources)/source/[sourceId]',
-								{ sourceId: srcId.id },
-							)}
-							layout={EntityLayout.Summary}
-							open={false}
-							sourceId={srcId.id}
-							title="Source"
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const srcId = item.value[EntityMetaKey.Id]}
+					<BlockheadSourceView
+						layout={EntityLayout.Summary}
+						open={false}
+						sourceId={srcId.id}
+						title="Source"
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

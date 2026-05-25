@@ -17,13 +17,18 @@
 
 
 <Page>
-		<EvmBlobsView
+	<EvmBlobsView
 		entityFieldReference={{
 			entityType: EntityType.Network,
 			entityId: { chainId: Number(params.networkId) },
 			fieldName: '$$blobs',
 		}}
-		href={resolve('/(explore)/(networks)/network/[networkId]/(network)/blobs', params)}
+		href={resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/blobs',
+			{
+			networkId: params.networkId,
+			},
+		)}
 		id="blobs"
 	/>
 </Page>

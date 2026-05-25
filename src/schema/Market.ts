@@ -48,11 +48,6 @@ export default {
 			defaultSources: [
 				Source.Constants_Internal,
 				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.CoinMarketCap_Rest,
-				Source.Coinpaprika_OpenApi,
-				Source.Defillama_OpenApi,
-				Source.TradingView_Rest,
 			],
 		},
 		{
@@ -82,7 +77,6 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Coingecko_OpenApi,
-				Source.Coingecko_Rest,
 			],
 		},
 		{
@@ -92,7 +86,6 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Coingecko_OpenApi,
-				Source.Coingecko_Rest,
 			],
 		},
 		{
@@ -102,7 +95,6 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Coingecko_OpenApi,
-				Source.Coingecko_Rest,
 			],
 		},
 		{
@@ -112,7 +104,6 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Coingecko_OpenApi,
-				Source.Coingecko_Rest,
 			],
 		},
 		{
@@ -122,7 +113,6 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Coingecko_OpenApi,
-				Source.Coingecko_Rest,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

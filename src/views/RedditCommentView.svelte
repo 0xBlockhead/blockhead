@@ -1,14 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -17,32 +16,23 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve('/(social)/(reddit)/reddit/comment/[fullname]', {
+			fullname: entityId.fullname,
+		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.RedditComment>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'layout'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Content'
-			| 'Heading'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -56,34 +46,46 @@
 		{
 			$: [
 				Source.Reddit_Rest,
+				Source.Reddit_PublicJson,
 			],
 			body: {},
 			author: {},
+			score: {},
+			createdAt: {},
+			depth: {},
 			$link: {},
+			$parentComment: {},
 		},
 	)
 
+	const idKey = stringify(entityId)
+
 
 	// Components
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
+	import HeadingComponent from '$/components/Heading.svelte'
+	import Markdown from '$/components/Markdown.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
+	import RedditCommentsView from '$/views/RedditCommentsView.svelte'
+	import RedditLinkView from '$/views/RedditLinkView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.RedditComment}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>
-			{entityId.id}
+		<span data-text="font-monospace">
+			{entityId.fullname}
 		</span>
 	{/snippet}
 
@@ -96,13 +98,29 @@
 			resource={comment}
 			placeholderText="Loading Reddit comment…"
 		>
-			{#snippet children(comment)}
+			{#snippet children(loadedComment)}
 				{(
 					comment.body ?
-						comment.body
+						loadedComment.body
 					:
 						entityId.fullname
 				)}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary
+			resource={comment}
+		>
+			{#snippet children(loadedComment)}
+				{#if loadedComment.createdAt != null}
+					<span data-text="muted">
+						<Timestamp
+							timestamp={loadedComment.createdAt}
+						/>
+					</span>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -116,94 +134,166 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
-		<dl data-column-item="center">
-			{#if !open}
-				<div>
-					<dt>Comment</dt>
-					<dd>
-						<ResourceBoundary
-							resource={comment}
-							placeholderText="Loading Reddit comment…"
-						>
-							{#snippet children(comment)}
-								{#if !comment.body}
-									<p data-text="muted">No comment text.</p>
-								{:else}
-									<p>{comment.body}</p>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-			{#if open}
-				<div>
-					<dt>Reddit fullname</dt>
-					<dd>
-						<span data-text="mono">
-							<TruncatedValue
-								value={entityId.fullname}
-								format={TruncatedValueFormat.Visual}
-							/>
-						</span>
-					</dd>
-				</div>
-				<div>
-					<dt>Author</dt>
-					<dd>
-						<ResourceBoundary
-							resource={comment}
-							placeholderText="Loading Reddit comment…"
-						>
-							{#snippet children(comment)}
-								u/{comment.author}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Submission</dt>
-					<dd>
-						<ResourceBoundary
-							resource={comment}
-							placeholderText="Loading Reddit comment…"
-						>
-							{#snippet children(comment)}
-								{#if comment.$link !== undefined}
-									<a
-										href={resolve(
-											'/(social)/reddit/link/[fullname]',
-											{ fullname: encodeURIComponent(comment.$link[EntityMetaKey.Id].fullname) },
-										)}
-									>{comment.$link[EntityMetaKey.Id].fullname}</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-		</dl>
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: contentOpen,
+	})}
+		<ResourceBoundary
+			resource={comment}
+			placeholderText="Loading Reddit comment…"
+		>
+			{#snippet children(loadedComment)}
+				<dl data-column-item="center">
+					<div>
+						<dt>Body</dt>
+						<dd>
+							{#if !loadedComment.body}
+								<p data-text="muted">No comment text.</p>
+							{:else}
+								<Markdown content={loadedComment.body} />
+							{/if}
+						</dd>
+					</div>
+
+					{#if loadedComment.score != null}
+						<div>
+							<dt>Score</dt>
+							<dd>
+								<NumberValue
+									value={loadedComment.score}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if loadedComment.depth != null}
+						<div>
+							<dt>Depth</dt>
+							<dd>
+								<NumberValue
+									value={loadedComment.depth}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					<div>
+						<dt>Author</dt>
+						<dd>
+							{#if loadedComment.author}
+								u/{loadedComment.author}
+							{:else}
+								<span data-text="muted">[deleted]</span>
+							{/if}
+						</dd>
+					</div>
+
+					<div>
+						<dt>Reply to</dt>
+						<dd>
+							{#if loadedComment.$parentComment}
+								<RedditCommentView
+									entityId={loadedComment.$parentComment[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">Top-level reply to submission</span>
+							{/if}
+						</dd>
+					</div>
+
+					{#if loadedComment.$link}
+						<div>
+							<dt>Submission</dt>
+							<dd>
+								<RedditLinkView
+									entityId={loadedComment.$link[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.RedditComment}
-			{entityId}
+		<div
+			class="entity-view-detail-carousels"
+			data-column="gap-3"
 		>
-			<ResourceBoundary
-				resource={comment}
-				placeholderText="Loading Reddit comment…"
+			<CollapsibleTabs
+				id={`${idKey}:carousel-comment`}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
 			>
-				{#snippet children(comment)}
+				{#snippet Summary({
+					open: _summaryOpen,
+				})}
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
+					>
+						<HeadingComponent>
+							Comment & replies
+						</HeadingComponent>
+					</header>
 				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
 
-		{#if children}
-			{@render children()}
-		{/if}
+				{#snippet Markers({
+					open: _markersOpen,
+				})}
+					<a
+						data-scroll-marker-label="Metadata"
+						href={`#${idKey}:comment-details`}
+					>Metadata</a>
+					<a
+						data-scroll-marker-label="Replies"
+						href={`#${idKey}:comment-replies`}
+					>Replies</a>
+				{/snippet}
+
+				{#snippet body({
+					open: _sectionOpen,
+				})}
+					<section
+						id={`${idKey}:comment-details`}
+						data-scroll-marker-label="Metadata"
+					>
+						<EntityDetails
+							entityType={EntityType.RedditComment}
+							{entityId}
+						/>
+					</section>
+
+					<section
+						id={`${idKey}:comment-replies`}
+						data-scroll-marker-label="Replies"
+					>
+						<RedditCommentsView
+							href={resolve('/reddit/comments')}
+							entityFieldReference={{
+								entityType: EntityType.RedditComment,
+								entityId,
+								fieldName: '$$replies',
+							}}
+							id={`${idKey}:reddit-replies`}
+							sortMode="createdAtAsc"
+							title="Replies"
+						/>
+					</section>
+				{/snippet}
+			</CollapsibleTabs>
+		</div>
+
 	{/snippet}
 </EntityView>
+

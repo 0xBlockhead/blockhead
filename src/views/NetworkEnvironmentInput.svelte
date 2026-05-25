@@ -1,6 +1,4 @@
 <script lang="ts">
-	// Types/constants — resolver catalog chrome (not live wallet chain)
-
 	// Props
 	let {
 		label = 'Mainnet',

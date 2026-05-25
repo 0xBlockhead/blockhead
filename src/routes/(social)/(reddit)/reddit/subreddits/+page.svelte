@@ -1,8 +1,10 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
-
-	import { EntityType } from '$/schema/$EntityType.ts'
 
 
 	// Components
@@ -13,12 +15,12 @@
 
 <Page>
 	<RedditSubredditsView
+		href={resolve('/reddit/subreddits')}
 		entityFieldReference={{
 			entityType: EntityType.RedditNetwork,
 			entityId: { scope: 'RedditNetwork' },
 			fieldName: '$$redditSubreddits',
 		}}
-		href={resolve('/reddit/subreddits')}
 		id="subreddits"
 	/>
 </Page>

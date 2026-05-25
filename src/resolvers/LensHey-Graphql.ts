@@ -14,12 +14,19 @@ import { Source } from '$/sources/$Source.ts'
 
 
 const optionalTrimmedString = (value: string | undefined | null) => (
-	value?.trim() ? value.trim() : undefined
+	value?.trim() || undefined
 )
 
 const optionalFiniteNumber = (value: number | undefined) => (
 	value != null && Number.isFinite(value) ? value : undefined
 )
+
+const lensTimestampMsFromWire = (timestamp: string | null | undefined) => (
+	((parsedTimestampMs) => (
+		Number.isFinite(parsedTimestampMs) ? parsedTimestampMs : undefined
+	))(timestamp != null ? Date.parse(String(timestamp)) : NaN)
+)
+
 
 /** Lens / subgraph wire — may omit `0x` or use mixed case. */
 const lensEvmAddressFromWire = (a: string): `0x${string}` => {
@@ -30,6 +37,47 @@ const lensEvmAddressFromWire = (a: string): `0x${string}` => {
 	return n
 }
 
+const lensAuthorRefFromWire = (
+	address: string | null | undefined,
+) => {
+	if (address == null) throw new Error('Lens_HeyGraphql: post author address missing')
+	return {
+		[EntityMetaKey.Id]: {
+			address: lensEvmAddressFromWire(String(address)),
+		},
+	}
+}
+
+const lensMetadataTextFromWire = (
+	metadata:
+		| {
+			__typename: string
+			content?: string | null
+		}
+		| null
+		| undefined,
+) => (
+	metadata?.__typename === 'UnknownPostMetadata' ?
+		undefined
+	:
+		optionalTrimmedString(metadata?.content != null ? String(metadata.content) : null)
+)
+
+const lensAnyPostSlugFromWire = (
+	item:
+		| {
+			__typename: string
+			slug?: string | null
+		}
+		| null
+		| undefined,
+) => (
+	item?.__typename === 'Post' || item?.__typename === 'Repost' ?
+		optionalTrimmedString(item.slug != null ? String(item.slug) : null)
+	:
+		undefined
+)
+
 export default {
 	source: Source.Lens_HeyGraphql,
 
@@ -39,12 +87,16 @@ export default {
 			resolve: async (entityId, context) => {
 				const { lensHeyQueryAccount } = await import('$/sources/LensHey/Graphql/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
-				const a = (await singleFlight(lensHeyQueryAccount)(publicEnv, zeroExLowerCase(entityId.address))).account
+				const wire = await singleFlight(lensHeyQueryAccount)(publicEnv, zeroExLowerCase(entityId.address))
+				const a = wire.account
 				if (a == null) throw new Error('Lens_HeyGraphql: account not found')
 				return {
 					localName: optionalTrimmedString(a.username?.localName),
 					displayName: optionalTrimmedString(a.metadata?.name),
 					bio: optionalTrimmedString(a.metadata?.bio),
+					createdAt: lensTimestampMsFromWire(a.createdAt != null ? String(a.createdAt) : null),
+					followerCount: optionalFiniteNumber(wire.accountStats?.graphFollowStats?.followers),
+					followingCount: optionalFiniteNumber(wire.accountStats?.graphFollowStats?.following),
 					...((
 						iconMedia,
 					) => (
@@ -62,34 +114,50 @@ export default {
 				const { lensHeyQueryPost } = await import('$/sources/LensHey/Graphql/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
 				const p = (await singleFlight(lensHeyQueryPost)(publicEnv, entityId.id)).post
-				if (p == null || p.__typename !== 'Post') throw new Error('Lens_HeyGraphql: post not found')
-				const commentOnSlug = optionalTrimmedString(p.commentOn?.slug != null ? String(p.commentOn.slug) : null)
+				if (p == null) throw new Error('Lens_HeyGraphql: post not found')
+
+				if (p.__typename === 'Repost') {
+					return {
+						timestamp: lensTimestampMsFromWire(p.timestamp != null ? String(p.timestamp) : null),
+						isDeleted: p.isDeleted,
+						$author: lensAuthorRefFromWire(p.author?.address),
+						...((postSlug) => (
+							postSlug != null && {
+								$repostOf: { [EntityMetaKey.Id]: { id: postSlug } },
+							}
+						))(optionalTrimmedString(p.repostOf?.slug != null ? String(p.repostOf.slug) : null)),
+					}
+				}
+
+				if (p.__typename !== 'Post') throw new Error(`Lens_HeyGraphql: unsupported post type ${p.__typename}`)
+
 				return {
-					text: (
-						p.metadata?.__typename === 'TextOnlyMetadata' ?
-							optionalTrimmedString(p.metadata.content)
-						:	undefined
-					),
-					timestamp: ((ts) => (
-						((_parsedTimestampMs) => (
-							Number.isFinite(_parsedTimestampMs) ? _parsedTimestampMs : undefined
-						))(ts != null ? Date.parse(ts) : NaN)
-					))(optionalTrimmedString(p.timestamp != null ? String(p.timestamp) : null)),
+					text: lensMetadataTextFromWire(p.metadata),
+					timestamp: lensTimestampMsFromWire(p.timestamp != null ? String(p.timestamp) : null),
+					isEdited: p.isEdited,
+					isDeleted: p.isDeleted,
 					commentCount: optionalFiniteNumber(p.stats?.comments),
-					shareCount: optionalFiniteNumber(p.stats?.reposts),
+					repostCount: optionalFiniteNumber(p.stats?.reposts),
+					quoteCount: optionalFiniteNumber(p.stats?.quotes),
 					bookmarkCount: optionalFiniteNumber(p.stats?.bookmarks),
-					...(commentOnSlug != null && {
-						$commentOn: { [EntityMetaKey.Id]: { id: commentOnSlug } },
-					}),
-					$author: (
-						((addr) => (
-							addr != null && /^0x[a-fA-F0-9]{40}$/.test(String(addr)) ?
-								{
-									[EntityMetaKey.Id]: { address: lensEvmAddressFromWire(String(addr)) },
-								}
-							:	undefined
-						))(p.author?.address)
-					),
+					collectCount: optionalFiniteNumber(p.stats?.collects),
+					reactionCount: optionalFiniteNumber(p.stats?.reactions),
+					...((postSlug) => (
+						postSlug != null && {
+							$commentOn: { [EntityMetaKey.Id]: { id: postSlug } },
+						}
+					))(optionalTrimmedString(p.commentOn?.slug != null ? String(p.commentOn.slug) : null)),
+					...((postSlug) => (
+						postSlug != null && {
+							$quoteOf: { [EntityMetaKey.Id]: { id: postSlug } },
+						}
+					))(optionalTrimmedString(p.quoteOf?.slug != null ? String(p.quoteOf.slug) : null)),
+					...((postSlug) => (
+						postSlug != null && {
+							$root: { [EntityMetaKey.Id]: { id: postSlug } },
+						}
+					))(optionalTrimmedString(p.root?.slug != null ? String(p.root.slug) : null)),
+					$author: lensAuthorRefFromWire(p.author?.address),
 				}
 			},
 		}),
@@ -104,17 +172,17 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
 				const limit = resolverLoadSubsetRowLimit(context)
 				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
-				const byAddress = new Map<string, { [EntityMetaKey.Id]: { address: `0x${string}` } }>()
-				for (const item of ((await singleFlight(lensHeyQueryLatestPosts)(publicEnv, pageSize)).posts?.items ?? [])) {
-					if (item.__typename !== 'Post') continue
-					const address = item.author?.address
-					if (address == null || !/^0x[a-fA-F0-9]{40}$/.test(String(address))) continue
-					const normalizedAddress = lensEvmAddressFromWire(String(address))
-					byAddress.set(normalizedAddress, {
-						[EntityMetaKey.Id]: { address: normalizedAddress },
-					})
-				}
-				return [...byAddress.values()]
+				return (
+					((await singleFlight(lensHeyQueryLatestPosts)(publicEnv, pageSize)).posts?.items ?? [])
+						.flatMap((item) => {
+							const address = item.author?.address
+							if (address == null || !/^0x[a-fA-F0-9]{40}$/.test(String(address))) return []
+							const normalizedAddress = lensEvmAddressFromWire(String(address))
+							return [{
+								[EntityMetaKey.Id]: { address: normalizedAddress },
+							}]
+						})
+				)
 			},
 		}),
 
@@ -129,13 +197,16 @@ export default {
 				return (
 					((await singleFlight(lensHeyQueryLatestPosts)(publicEnv, pageSize)).posts?.items ?? [])
 						.flatMap((item) => (
-							item.__typename === 'Post' && item.slug != null ?
-								[
-									{
-										[EntityMetaKey.Id]: { id: String(item.slug) },
-									},
-								]
-							:	[]
+							((postSlug) => (
+								postSlug != null ?
+									[
+										{
+											[EntityMetaKey.Id]: { id: postSlug },
+										},
+									]
+								:
+									[]
+							))(lensAnyPostSlugFromWire(item))
 						))
 				)
 			},
@@ -152,13 +223,16 @@ export default {
 				return (
 					((await singleFlight(lensHeyQueryPostComments)(publicEnv, entityId.id, pageSize)).postReferences?.items ?? [])
 						.flatMap((item) => (
-							item.__typename === 'Post' && item.slug != null ?
-								[
-									{
-										[EntityMetaKey.Id]: { id: String(item.slug) },
-									},
-								]
-							:	[]
+							((postSlug) => (
+								postSlug != null ?
+									[
+										{
+											[EntityMetaKey.Id]: { id: postSlug },
+										},
+									]
+								:
+									[]
+							))(lensAnyPostSlugFromWire(item))
 						))
 				)
 			},
@@ -175,13 +249,16 @@ export default {
 				return (
 					((await singleFlight(lensHeyQueryPostsByAuthor)(publicEnv, zeroExLowerCase(entityId.address), pageSize)).posts?.items ?? [])
 						.flatMap((item) => (
-							item.__typename === 'Post' && item.slug != null ?
-								[
-									{
-										[EntityMetaKey.Id]: { id: String(item.slug) },
-									},
-								]
-							:	[]
+							((postSlug) => (
+								postSlug != null ?
+									[
+										{
+											[EntityMetaKey.Id]: { id: postSlug },
+										},
+									]
+								:
+									[]
+							))(lensAnyPostSlugFromWire(item))
 						))
 				)
 			},

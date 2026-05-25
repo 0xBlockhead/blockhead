@@ -6,6 +6,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -15,38 +16,26 @@
 
 	// Props
 	let {
-		children,
 		entityId = {
 			scope: 'RssNetwork' as const,
 		},
-		href = resolve('/(social)/rss'),
+		href = resolve('/rss'),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId?: EntityId<typeof schema, EntityType.RssNetwork>
 			href?: string
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-		>
+		never
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const networkIdKey = stringify(entityId)
@@ -101,10 +90,10 @@
 <EntityView
 	entityType={EntityType.RssNetwork}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
 	{collapsible}
-	{...entityViewRest}
+	{...EntityViewProps}
 	title="RSS / Atom"
 >
 	{#snippet Value()}
@@ -134,16 +123,16 @@
 			resource={rssNetwork}
 			placeholderText="Loading RSS hub directory…"
 			>
-			{#snippet children(rssNetwork)}
-				{#if rssNetwork.registryLabel}
+			{#snippet children(loadedRssNetwork)}
+				{#if loadedRssNetwork.registryLabel}
 					<div>
 						<dt>Registry</dt>
-						<dd>{rssNetwork.registryLabel}</dd>
+						<dd>{loadedRssNetwork.registryLabel}</dd>
 					</div>
-					{:else if rssNetwork.protocolName}
+					{:else if loadedRssNetwork.protocolName}
 					<div>
 						<dt>Protocol</dt>
-						<dd>{rssNetwork.protocolName}</dd>
+						<dd>{loadedRssNetwork.protocolName}</dd>
 					</div>
 				{/if}
 
@@ -157,28 +146,28 @@
 						<dd>{String(rssNetwork.$rssItems.length)}</dd>
 					</div>
 
-					{#if rssNetwork.homeUrl}
+					{#if loadedRssNetwork.homeUrl}
 						<div>
 							<dt>Home</dt>
 							<dd>
-							<a href={rssNetwork.homeUrl}>{rssNetwork.homeUrl}</a>
+							<a href={loadedRssNetwork.homeUrl}>{loadedRssNetwork.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if rssNetwork.docsUrl}
+					{#if loadedRssNetwork.docsUrl}
 						<div>
 							<dt>Docs</dt>
 							<dd>
-							<a href={rssNetwork.docsUrl}>{rssNetwork.docsUrl}</a>
+							<a href={loadedRssNetwork.docsUrl}>{loadedRssNetwork.docsUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if rssNetwork.topology}
+					{#if loadedRssNetwork.topology}
 						<div>
 							<dt>Topology</dt>
-							<dd>{rssNetwork.topology}</dd>
+							<dd>{loadedRssNetwork.topology}</dd>
 						</div>
 					{/if}
 				{/if}
@@ -194,7 +183,6 @@
 			entityType={EntityType.RssNetwork}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -229,12 +217,12 @@
 				{#snippet body({ open: _sectionOpen })}
 					<section data-scroll-marker-label="Feeds">
 						<RssFeedsView
+							href={resolve('/rss/feeds')}
 							entityFieldReference={{
 								entityType: EntityType.RssNetwork,
 								entityId,
 								fieldName: '$$rssFeeds',
 							}}
-							href={resolve('/rss/feeds')}
 							id={`${networkIdKey}:feeds`}
 							open={_sectionOpen}
 						/>
@@ -242,12 +230,12 @@
 
 					<section data-scroll-marker-label="Recent items">
 						<RssItemsView
+							href={resolve('/rss/items')}
 							entityFieldReference={{
 								entityType: EntityType.RssNetwork,
 								entityId,
 								fieldName: '$$rssItems',
 							}}
-							href={resolve('/rss/items')}
 							id={`${networkIdKey}:items`}
 							limit={25}
 							open={_sectionOpen}
@@ -258,9 +246,6 @@
 			</CollapsibleTabs>
 		</div>
 
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>
 

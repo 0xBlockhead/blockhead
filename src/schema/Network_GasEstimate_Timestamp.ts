@@ -12,8 +12,8 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	entityType: EntityType.Network_GasEstimate_Timestamp,
 
-	label: 'Gas estimate snapshot',
-	labelPlural: 'Gas estimate snapshots',
+	label: 'Gas oracle snapshot',
+	labelPlural: 'Gas oracle snapshots',
 
 	id: type({
 		$network: Network.id,
@@ -39,7 +39,6 @@ export default {
 			defaultSources: [
 				Source.Blockscout_Rest,
 				Source.Etherscan_Rest,
-				Source.Voltaire_JsonRpc,
 			],
 		},
 		{
@@ -50,33 +49,6 @@ export default {
 			defaultSources: [
 				Source.Blockscout_Rest,
 				Source.Etherscan_Rest,
-			],
-		},
-		{
-			name: 'legacyGasPriceWei',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
-		},
-		{
-			name: 'maxPriorityFeePerGasWei',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
-			],
-		},
-		{
-			name: 'baseFeePerGasWei',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Voltaire_JsonRpc,
 			],
 		},
 		{

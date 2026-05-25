@@ -7,43 +7,55 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		open = $bindable(true),
 		collapsible = true,
 		title = 'ATProto handles',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<
 				typeof schema,
 				EntityType.AtprotoActor
 			>
-			href: string
 			id: string
 			open?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'body'
+			| 'collapsible'
+			| 'CollapsibleProps'
+			| 'Empty'
+			| 'getKey'
+			| 'getSortValue'
+			| 'HeadingProps'
+			| 'Item'
+			| 'ItemPlaceholder'
+			| 'items'
+			| 'layout'
+			| 'limit'
+			| 'panelStyle'
+			| 'placeholderKeys'
+			| 'placeholderText'
+			| 'resource'
+			| 'showSummary'
+			| 'TypeAnnotationTooltip'
+			| 'UnorderedListProps',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -57,11 +69,10 @@
 
 <EntitiesList
 	entityType={EntityType.AtprotoActor}
-	{href}
 	{id}
 	bind:open
 	{title}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -75,7 +86,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const atprotoNetwork = useEntity(
 				entityFieldReference.entityType,
@@ -87,6 +98,7 @@
 						$: [
 							Source.Constants_Internal,
 							Source.Atproto_Xrpc,
+							Source.Atproto_BskySocial_Xrpc,
 						],
 					},
 				},
@@ -103,12 +115,10 @@
 					showSummary={false}
 					entityType={EntityType.AtprotoActor}
 					id={`${id}-items`}
-					{href}
 					{title}
 					open={true}
 					getKey={(row) => stringify(row[EntityMetaKey.Id])}
 					getSortValue={(row) => row[EntityMetaKey.Id].did}
-					placeholderKeys={new SvelteSet()}
 					placeholderText="Loading DID directory…"
 					resource={actors}
 				>
@@ -118,18 +128,13 @@
 						</p>
 					{/snippet}
 
-					{#snippet Item(props)}
-						{#if props.item}
-							{@const actorId = props.item[EntityMetaKey.Id]}
-							<AtprotoActorView
-								entityId={{ did: actorId.did }}
-								href={resolve('/(social)/atproto/actor/[did]', {
-									did: encodeURIComponent(actorId.did),
-								})}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/if}
+					{#snippet Item({ item })}
+						{@const actorId = item[EntityMetaKey.Id]}
+						<AtprotoActorView
+							entityId={{ did: actorId.did }}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
 					{/snippet}
 				</EntitiesList>
 			{/key}

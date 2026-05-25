@@ -7,6 +7,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -16,35 +17,27 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve('/(social)/(atproto)/atproto/post/[uri]', {
+			uri: encodeURIComponent(entityId.uri),
+		}),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.AtprotoPost>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'Content'
-			| 'Details'
-			| 'entityId'
-			| 'entityType'
-			| 'Heading'
-			| 'HeadingAfter'
-			| 'Icon'
-			| 'href'
-			| 'open'
-			| 'title'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const idKey = stringify(entityId)
@@ -53,7 +46,10 @@
 		EntityType.AtprotoPost,
 		entityId,
 		{
-			$: [Source.Atproto_Xrpc],
+			$: [
+				Source.Atproto_Xrpc,
+				Source.Atproto_BskySocial_Xrpc,
+			],
 			text: {},
 			createdAt: {},
 			...(open ?
@@ -61,6 +57,13 @@
 					$author: {},
 					$parent: {},
 					$root: {},
+					indexedAt: {},
+					replyCount: {},
+					repostCount: {},
+					likeCount: {},
+					quoteCount: {},
+					langs: {},
+					selfLabelValues: {},
 				}
 			:
 				{}),
@@ -69,29 +72,39 @@
 
 
 	// Components
+	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
+	import AtprotoPostThreadView from '$/views/AtprotoPostThreadView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.AtprotoPost}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Bluesky posts are AT Protocol repository records keyed by at-URI; text, reply parent/root, and engagement counts come from the public App View API.
+		</p>
+	{/snippet}
+
 	{#snippet Value()}
-		<span data-text="font-monospace">
-			{entityId.uri}
-		</span>
+		<TruncatedValue
+			endLength={12}
+			format={TruncatedValueFormat.Visual}
+			startLength={20}
+			value={entityId.uri}
+		/>
 	{/snippet}
 
 	{#snippet Title()}
@@ -103,16 +116,16 @@
 			resource={post}
 			placeholderText="Loading post…"
 		>
-			{#snippet children(post)}
-				{#if post.text}
+			{#snippet children(loadedPost)}
+				{#if loadedPost.text}
 					<TruncatedValue
 						endLength={8}
 						format={TruncatedValueFormat.Visual}
 						startLength={88}
-						value={post.text}
+						value={loadedPost.text}
 					/>
 				{:else}
-					{entityId.uri}
+					{@render Value()}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -121,13 +134,12 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary
 			resource={post}
-			placeholderText=""
 		>
-			{#snippet children(post)}
-				{#if post.createdAt}
+			{#snippet children(loadedPost)}
+				{#if loadedPost.createdAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={post.createdAt}
+							timestamp={loadedPost.createdAt}
 						/>
 					</span>
 				{/if}
@@ -135,261 +147,228 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href, open })}
-		<dl data-column-item="center">
-			{#if open}
-				<div>
-					<dt>Author DID</dt>
-					<dd>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading lexicon record…"
-						>
-							{#snippet children(post)}
-								{#if post.$author}
-									{@const authorDid = post.$author[EntityMetaKey.Id].did}
-									<a
-										data-link
-										href={resolve(
-											'/(social)/atproto/actor/[did]',
-											{
-												did: encodeURIComponent(authorDid),
-											},
-										)}
-									>
-										<TruncatedValue
-											endLength={12}
-											format={TruncatedValueFormat.Visual}
-											startLength={20}
-											value={authorDid}
-										/>
-									</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: contentOpen,
+	})}
+		<ResourceBoundary
+			resource={post}
+			placeholderText="Loading post…"
+		>
+			{#snippet children(loadedPost)}
+				<dl data-column-item="center">
+					{#if loadedPost.text}
+						<div>
+							<dt>Text</dt>
+							<dd>{loadedPost.text}</dd>
+						</div>
+					{/if}
 
-			{#if open}
-				<div>
-					<dt>Reply to</dt>
-					<dd>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading lexicon record…"
-						>
-							{#snippet children(post)}
-								{#if post.$parent}
-									{@const parentUri = post.$parent[EntityMetaKey.Id].uri}
-									<a
-										data-link
-										href={resolve(
-											'/(social)/atproto/post/[uri]',
-											{
-												uri: encodeURIComponent(parentUri),
-											},
-										)}
-									>
-										<TruncatedValue
-											endLength={12}
-											format={TruncatedValueFormat.Visual}
-											startLength={20}
-											value={parentUri}
-										/>
-									</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+					{#if loadedPost.createdAt}
+						<div>
+							<dt>Published</dt>
+							<dd>
+								<Timestamp
+									timestamp={loadedPost.createdAt}
+								/>
+							</dd>
+						</div>
+					{/if}
 
-			{#if open}
-				<div>
-					<dt>Thread root</dt>
-					<dd>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading lexicon record…"
-						>
-							{#snippet children(post)}
-								{#if post.$root && post.$root[EntityMetaKey.Id].uri !== post.$parent?.[EntityMetaKey.Id].uri}
-									{@const rootUri = post.$root[EntityMetaKey.Id].uri}
-									<a
-										data-link
-										href={resolve(
-											'/(social)/atproto/post/[uri]',
-											{
-												uri: encodeURIComponent(rootUri),
-											},
-										)}
-									>
-										<TruncatedValue
-											endLength={12}
-											format={TruncatedValueFormat.Visual}
-											startLength={20}
-											value={rootUri}
-										/>
-									</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+					{#if contentOpen && loadedPost.$author}
+						<div>
+							<dt>Author</dt>
+							<dd>
+								<AtprotoActorView
+									entityId={loadedPost.$author[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
 
-			{#if open}
-				<div>
-					<dt>Record text</dt>
-					<dd>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading lexicon record…"
-						>
-							{#snippet children(post)}
-								{#if post.text}
-									{post.text}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+					{#if contentOpen && loadedPost.$parent}
+						<div>
+							<dt>Reply to</dt>
+							<dd>
+								<AtprotoPostView
+									entityId={loadedPost.$parent[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
 
-			{#if open}
-				<div>
-					<dt>Indexed at</dt>
-					<dd>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading lexicon record…"
-						>
-							{#snippet children(post)}
-								{#if post.createdAt != null}
-									<Timestamp
-										timestamp={post.createdAt}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-		</dl>
+					{#if contentOpen && loadedPost.$root && loadedPost.$root[EntityMetaKey.Id].uri !== loadedPost.$parent?.[EntityMetaKey.Id].uri}
+						<div>
+							<dt>Thread root</dt>
+							<dd>
+								<AtprotoPostView
+									entityId={loadedPost.$root[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen && loadedPost.replyCount != null}
+						<div>
+							<dt>Replies</dt>
+							<dd>
+								<NumberValue
+									value={loadedPost.replyCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen && loadedPost.repostCount != null}
+						<div>
+							<dt>Reposts</dt>
+							<dd>
+								<NumberValue
+									value={loadedPost.repostCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen && loadedPost.likeCount != null}
+						<div>
+							<dt>Likes</dt>
+							<dd>
+								<NumberValue
+									value={loadedPost.likeCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen && post.quoteCount != null}
+						<div>
+							<dt>Quotes</dt>
+							<dd>
+								<NumberValue
+									value={loadedPost.quoteCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen && post.langs?.length}
+						<div>
+							<dt>Languages</dt>
+							<dd>{loadedPost.langs.join(', ')}</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen && loadedPost.selfLabelValues?.length}
+						<div>
+							<dt>Self labels</dt>
+							<dd>{loadedPost.selfLabelValues.join(', ')}</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen && loadedPost.indexedAt}
+						<div>
+							<dt>Indexed</dt>
+							<dd>
+								<Timestamp
+									timestamp={loadedPost.indexedAt}
+								/>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
 		open: _open,
 	})}
 		<div
-			class="atproto-post-detail-carousels"
+			class="entity-view-detail-carousels atproto-post-detail-carousels"
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
-				id={`${idKey}:carousel-record`}
+				id={`${idKey}:carousel-post`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
 				}}
 			>
-				{#snippet Summary({ open: _lexiconSummary })}
+				{#snippet Summary({ open: _postSummaryOpen })}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
 					>
-				<HeadingComponent>
-					Repository commit & record
-				</HeadingComponent>
+						<HeadingComponent>
+							Thread & repository
+						</HeadingComponent>
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet Markers({ open: _markersOpen })}
 					<a
-						data-scroll-marker-label="Repository metadata"
-						href={`#${idKey}:post-repo-record`}
-					>Repository metadata</a>
+						data-scroll-marker-label="Thread"
+						href={`#${idKey}:thread`}
+					>Thread</a>
 					<a
-						data-scroll-marker-label="Lexicon body"
-						href={`#${idKey}:post-lexicon-body`}
-					>Lexicon body</a>
+						data-scroll-marker-label="Repository"
+						href={`#${idKey}:repository`}
+					>Repository</a>
 				{/snippet}
 
-				{#snippet body({ open: _open })}
-					<section
-						data-scroll-marker-label="Repository metadata"
-						id={`${idKey}:post-repo-record`}
+				<section
+					id={`${idKey}:thread`}
+					{...{ 'data-card': '' }}
+				>
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
 					>
-						<EntityDetails
-							entityType={EntityType.AtprotoPost}
-							{entityId}
-						/>
+						<HeadingComponent>
+							Thread
+						</HeadingComponent>
+					</header>
 
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading lexicon record…"
-						>
-							{#snippet children(post)}
-								{@const atprotoRecordNotReady = (
-									post.createdAt == null
-									&& (
-										post.text === undefined
-										|| post.text === ''
-									)
-								)}
-								{#if atprotoRecordNotReady}
-									<div data-row="wrap align-center gap-2">
-										<p data-text="muted">
-											Record not ready.
-										</p>
-										<Tooltip contentProps={{ side: 'top' }}>
-											{#snippet Content()}
-												<p>Text and timestamp appear after this record is read from the author repository.</p>
-											{/snippet}
-											<abbr
-												class="entity-heading-tip"
-												aria-label="Lexicon record"
-											>ⓘ</abbr>
-										</Tooltip>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-					<section
-						data-scroll-marker-label="Lexicon body"
-						id={`${idKey}:post-lexicon-body`}
+					<AtprotoPostThreadView
+						entityFieldReference={{
+							entityType: EntityType.AtprotoPost,
+							entityId,
+							fieldName: '$$thread',
+						}}
+						id={`${idKey}:thread-list`}
+						open={true}
+						title="Thread"
+					/>
+				</section>
+
+				<section
+					id={`${idKey}:repository`}
+					{...{ 'data-card': '' }}
+				>
+					<header
+						data-row-item="flexible"
+						data-row="wrap gap-4"
 					>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading lexicon record…"
-						>
-							{#snippet children(post)}
-								{#if post.text}
-									<p>
-										{post.text}
-									</p>
-								{:else}
-									<div data-row="wrap align-center gap-2">
-										<p data-text="muted">
-											No text yet.
-										</p>
-										<Tooltip contentProps={{ side: 'top' }}>
-											{#snippet Content()}
-												<p>Post body fills in when the lexicon record syncs from the backing repo.</p>
-											{/snippet}
-											<abbr
-												class="entity-heading-tip"
-												aria-label="Post text"
-											>ⓘ</abbr>
-										</Tooltip>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-				{/snippet}
+						<HeadingComponent>
+							Repository
+						</HeadingComponent>
+					</header>
+
+					<EntityDetails
+						entityType={EntityType.AtprotoPost}
+						{entityId}
+					/>
+				</section>
 			</CollapsibleTabs>
 		</div>
 	{/snippet}
 </EntityView>
+

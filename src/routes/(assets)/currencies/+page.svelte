@@ -20,12 +20,12 @@
 
 <Page>
 	<CurrenciesView
+		href={resolve('/currencies')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
 			entityId: {},
 			fieldName: '$$currencies',
 		}}
-		href={resolve('/currencies')}
 		open
 	/>
 </Page>

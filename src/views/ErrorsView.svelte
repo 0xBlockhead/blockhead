@@ -6,35 +6,29 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import type { ComponentProps } from 'svelte'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
-	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-
 	let {
 		entityFieldReference,
 		open = $bindable(true),
 		collapsible = true,
 		title = 'Revert data',
 		id,
-		href,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmError>
 			open?: boolean
 			title?: string
 			id: string
-			href: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
@@ -46,7 +40,6 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmErrorView from '$/views/EvmErrorView.svelte'
 </script>
@@ -54,11 +47,11 @@
 
 <EntitiesList
 	entityType={EntityType.EvmError}
+
 	{id}
-	{href}
 	{title}
 	bind:open
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -72,7 +65,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -104,7 +97,6 @@
 					showSummary={false}
 					entityType={EntityType.EvmError}
 					id={`${id}-items`}
-					{href}
 					{title}
 					open={true}
 					getKey={(envelope) => envelope.evmEntity[EntityMetaKey.Id].hex}
@@ -119,19 +111,14 @@
 						</p>
 					{/snippet}
 
-					{#snippet Item(props)}
-						{#if props.item}
-							<EvmErrorView
-								entityId={props.item.evmEntity[EntityMetaKey.Id]}
-								href={resolve('/(explore)/(evm)/evm/(errors)/error/[hex]', {
-									hex: props.item.evmEntity[EntityMetaKey.Id].hex,
-								})}
-								layout={EntityLayout.Summary}
-								open={false}
-								collapsible={false}
-								showTypeAnnotation={false}
-							/>
-						{/if}
+					{#snippet Item({ item })}
+						<EvmErrorView
+							entityId={item.evmEntity[EntityMetaKey.Id]}
+							layout={EntityLayout.Summary}
+							open={false}
+							collapsible={false}
+							showTypeAnnotation={false}
+						/>
 					{/snippet}
 				</EntitiesList>
 			</div>

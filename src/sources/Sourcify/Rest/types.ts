@@ -1,23 +1,23 @@
 import type { JsonValue } from '$/typescript/JsonValue.ts'
-export type SourcifyContractSourceWire = {
+export type SourcifyContractSource = {
 	content?: string
 	keccak256?: string
 	license?: string
 	[key: string]: JsonValue
 }
 
-export type SourcifyContractMetadataWire = {
+export type SourcifyContractMetadata = {
 	compiler?: {
 		version?: string
 		[key: string]: JsonValue
 	}
 	language?: string
-	sources?: Record<string, SourcifyContractSourceWire>
+	sources?: Record<string, SourcifyContractSource>
 	fullyQualifiedName?: string
 	[key: string]: JsonValue
 }
 
-export type SourcifyContractCompilationWire = {
+export type SourcifyContractCompilation = {
 	compiler?: string
 	compilerVersion?: string
 	language?: string
@@ -27,7 +27,7 @@ export type SourcifyContractCompilationWire = {
 	[key: string]: JsonValue
 }
 
-export type SourcifyContractDeploymentWire = {
+export type SourcifyContractDeployment = {
 	deployer?: string
 	transactionHash?: string
 	blockNumber?: string
@@ -35,7 +35,7 @@ export type SourcifyContractDeploymentWire = {
 	[key: string]: JsonValue
 }
 
-export type SourcifyProxyResolutionWire = {
+export type SourcifyProxyResolution = {
 	isProxy?: boolean
 	proxyType?: string
 	implementations?: {
@@ -44,7 +44,7 @@ export type SourcifyProxyResolutionWire = {
 	[key: string]: JsonValue
 }
 
-export type SourcifyContractLookupWire = {
+export type SourcifyContractLookup = {
 	matchId?: string | null
 	creationMatch?: string | null
 	runtimeMatch?: string | null
@@ -53,11 +53,11 @@ export type SourcifyContractLookupWire = {
 	chainId?: string
 	address?: string
 	abi?: JsonValue[]
-	compilation?: SourcifyContractCompilationWire
-	deployment?: SourcifyContractDeploymentWire
-	sources?: Record<string, SourcifyContractSourceWire>
-	metadata?: SourcifyContractMetadataWire
+	compilation?: SourcifyContractCompilation
+	deployment?: SourcifyContractDeployment
+	sources?: Record<string, SourcifyContractSource>
+	metadata?: SourcifyContractMetadata
 	storageLayout?: JsonValue
-	proxyResolution?: SourcifyProxyResolutionWire
+	proxyResolution?: SourcifyProxyResolution
 	[key: string]: JsonValue
 }

@@ -6,7 +6,6 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
@@ -19,7 +18,6 @@
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		limit = 25,
 		open = $bindable(
@@ -29,8 +27,7 @@
 		title = 'Playlists',
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.YouTubePlaylist>
-		href: string
-		id: string
+			id: string
 		limit?: number
 		open?: boolean
 		title?: string
@@ -52,7 +49,6 @@
 
 <EntitiesList
 	entityType={EntityType.YouTubePlaylist}
-	{href}
 	{id}
 	{title}
 	bind:open
@@ -63,7 +59,7 @@
 			YouTube playlists group ordered video ids under a curator channel—not Reddit threads or Nostr events.
 		</p>
 		<p>
-			Playlist ids are opaque strings from the Data API; items resolve to 11-character watch keys.
+			Channel-scoped lists use YouTube Data API or Piped channel tabs; the network hub carousel uses seeds plus Data API only.
 		</p>
 	{/snippet}
 
@@ -73,9 +69,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -85,13 +80,11 @@
 							$: [
 								Source.Constants_Internal,
 								Source.Youtube_Rest,
-								Source.Piped_Rest,
 							],
-							[fieldName]: {
+							[entityFieldReference.fieldName]: {
 								$: [
 									Source.Constants_Internal,
 									Source.Youtube_Rest,
-									Source.Piped_Rest,
 								],
 								limit,
 							},
@@ -102,7 +95,7 @@
 								Source.Youtube_Rest,
 								Source.Piped_Rest,
 							],
-							[fieldName]: {
+							[entityFieldReference.fieldName]: {
 								$: [
 									Source.Youtube_Rest,
 									Source.Piped_Rest,
@@ -116,7 +109,7 @@
 				parent,
 				(parent) => {
 					const rows: Entity<typeof schema, EntityType.YouTubePlaylist>[] = (
-						parent[fieldName] ?? []
+						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
 						rows.map((playlist) => ({
@@ -130,7 +123,6 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.YouTubePlaylist}
-				{href}
 				id={`${id}-items`}
 				{title}
 				resource={playlists}
@@ -146,18 +138,13 @@
 				{/snippet}
 
 				{#snippet Item({
-					item: row,
+					item: playlist,
 				})}
-					{#if row}
-						<YouTubePlaylistView
-							entityId={row.entityId}
-							href={resolve('/(social)/(youtube)/youtube/playlist/[playlistId]', {
-								playlistId: encodeURIComponent(row.entityId.playlistId),
-							})}
-							layout={EntityLayout.SummaryDetails}
-							open={false}
-						/>
-					{/if}
+					<YouTubePlaylistView
+						entityId={playlist.entityId}
+						layout={EntityLayout.SummaryDetails}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

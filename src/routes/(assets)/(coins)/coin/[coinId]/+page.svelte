@@ -4,15 +4,6 @@
 	import { coinById, coins } from '$/constants/Coin.ts'
 
 
-	const coinIdFromParam = (param: string): CoinId | null => (
-		coins.find((c) => c.id === param)?.id ?? null
-	)
-
-
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Props
 	let {
 		params,
@@ -30,6 +21,12 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import CoinView from '$/views/CoinView.svelte'
+
+
+	// Functions
+	const coinIdFromParam = (param: string): CoinId | null => (
+		coins.find((c) => c.id === param)?.id ?? null
+	)
 </script>
 
 
@@ -59,7 +56,6 @@
 				entityId={{
 					coinId: route.coinId,
 				}}
-				href={resolve('/(assets)/(coins)/coin/[coinId]', params)}
 			/>
 		</div>
 	{/if}

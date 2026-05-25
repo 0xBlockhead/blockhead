@@ -6,7 +6,6 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { entityResolversByEntityType } from '$/resolvers/index.ts'
-	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -16,27 +15,19 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve('/position/[positionId]', {
+			positionId: entityId.positionId,
+		}),
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.Leverage>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-		>
+		never
 	> = $props()
 
 
@@ -49,7 +40,7 @@
 		{
 			$: (
 				entityResolversByEntityType[EntityType.Leverage]?.map((r) => r.source)
-				?? [Source.Local_Internal]
+				?? []
 			),
 			$pool: {},
 			$owner: {},
@@ -79,10 +70,9 @@
 <EntityView
 	entityType={EntityType.Leverage}
 	{entityId}
-	{href}
-	title={entityId.id}
+	href={href}
 	{open}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
@@ -91,25 +81,47 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<ResourceBoundary
+			resource={leverage}
+			placeholderText="Loading leverage row…"
+		>
+			{#snippet children(loadedLeverage)}
+				{loadedLeverage.tokenId != null ?
+					`NFT #${String(leverage.tokenId)}`
+				:
+					entityId.id
+				}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Heading()}
-
-		<span>
-			{entityId.id}
+		<span data-text="muted">
+			{@render Value()}
 		</span>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Concentrated-liquidity LP position accounting: owner, tick range, in-range liquidity, uncollected fees, optional ERC-721 token id.
+		</p>
+		<p>
+			Not CEX margin, borrow APR, or liquidation. Requires an on-chain resolver—Dexscreener pool rows do not supply position-scoped state.
+		</p>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary resource={leverage}>
-			{#snippet children(leverage)}
+		<ResourceBoundary
+			resource={leverage}
+			placeholderText="Loading leverage row…"
+		>
+			{#snippet children(loadedLeverage)}
 				<dl data-column-item="center">
 					{#if open}
 						<div>
 							<dt>Note</dt>
 							<dd data-text="muted">
-								Here “leverage” names concentrated-liquidity position accounting—tick range, in-range liquidity, uncollected fees, ERC-721 token id—not perpetual margin, borrow APR, or liquidation state from a CEX.
+								Here “leverage” names concentrated-liquidity position accounting—tick range, in-range liquidity, uncollected fees, ERC-721 token id—not perpetual margin, borrow APR, or liquidation state from a CEX. No position indexer is wired in this app yet.
 							</dd>
 						</div>
 					{/if}
@@ -117,14 +129,9 @@
 						<dt>Network</dt>
 						<dd>
 							<NetworkView
-								entityId={leverage.$pool.$network}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]',
-									{ networkId: String(leverage.$pool.$network.chainId) },
-								)}
+								entityId={loadedLeverage.$pool.$network}
 								layout={EntityLayout.Title}
 								open={false}
-								showTypeAnnotation={false}
 							/>
 						</dd>
 					</div>
@@ -132,12 +139,9 @@
 						<dt>AMM pool (Uniswap v3-style)</dt>
 						<dd>
 							<LiquidityPoolView
-								entityId={leverage.$pool[EntityMetaKey.Id]}
-								href={resolve('/(assets)/(pools)/pool/[poolId]', {
-									poolId: leverage.$pool[EntityMetaKey.Id].id,
-								})}
-								layout={EntityLayout.Title}
-								open={false}
+								entityId={loadedLeverage.$pool[EntityMetaKey.Id]}
+								layout={EntityLayout.SummaryDetails}
+								open={true}
 								showTypeAnnotation={false}
 							/>
 						</dd>
@@ -148,71 +152,70 @@
 							<dd>
 								<ActorNetworkView
 									entityId={{
-										$network: leverage.$pool.$network,
-										$actor: leverage.$owner[EntityMetaKey.Id],
+										$network: loadedLeverage.$pool.$network,
+										$actor: loadedLeverage.$owner[EntityMetaKey.Id],
 									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-										{
-											networkId: String(leverage.$pool.$network.chainId),
-											address: leverage.$owner[EntityMetaKey.Id].address,
-										},
-									)}
 									layout={EntityLayout.Title}
 									open={false}
-									showTypeAnnotation={false}
 								/>
 							</dd>
 						</div>
-						{#if leverage.tickLower !== undefined}
+						{#if loadedLeverage.tickLower !== undefined}
 							<div>
 								<dt>LP NFT range · tick lower</dt>
 								<dd>{String(leverage.tickLower)}</dd>
 							</div>
 						{/if}
 
-						{#if leverage.tickUpper !== undefined}
+						{#if loadedLeverage.tickUpper !== undefined}
 							<div>
 								<dt>LP NFT range · tick upper</dt>
 								<dd>{String(leverage.tickUpper)}</dd>
 							</div>
 						{/if}
 
-						{#if leverage.liquidity !== undefined}
+						{#if loadedLeverage.liquidity !== undefined}
 							<div>
-								<dt>Range liquidity</dt>
+								<dt>Position liquidity (NFT range)</dt>
 								<dd>{String(leverage.liquidity)}</dd>
 							</div>
 						{/if}
 
-						{#if leverage.token0Owed !== undefined}
+						{#if loadedLeverage.token0Owed !== undefined}
 							<div>
 								<dt>Token0 owed</dt>
 								<dd>{String(leverage.token0Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if leverage.token1Owed !== undefined}
+						{#if loadedLeverage.token1Owed !== undefined}
 							<div>
 								<dt>Token1 owed</dt>
 								<dd>{String(leverage.token1Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if leverage.origin}
+						{#if loadedLeverage.tokenId !== undefined}
+							<div>
+								<dt>Position NFT token id</dt>
+								<dd>{String(leverage.tokenId)}</dd>
+							</div>
+						{/if}
+
+						{#if loadedLeverage.origin}
 							<div>
 								<dt>Origin</dt>
-								<dd>{leverage.origin}</dd>
+								<dd>{loadedLeverage.origin}</dd>
 							</div>
 						{/if}
 					{/if}
 
-					{#if leverage.createdAtTimestamp !== undefined}
+					{#if loadedLeverage.createdAtTimestamp !== undefined}
 						<div>
 							<dt>Created at</dt>
 							<dd>
 								<Timestamp
-									timestamp={leverage.createdAtTimestamp}
+									timestamp={loadedLeverage.createdAtTimestamp}
 								/>
 							</dd>
 						</div>
@@ -225,13 +228,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{#if children}
-			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.Leverage}
-				{entityId}
-			/>
-		{/if}
+
 	{/snippet}
 </EntityView>
+

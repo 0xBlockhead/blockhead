@@ -1,7 +1,5 @@
 // Types
 
-import { stringify } from 'devalue'
-
 import type { MarketVenueId } from '$/constants/MarketVenue.ts'
 
 
@@ -44,7 +42,7 @@ export type MarketIdLabelInput = {
  * - **Market** — `{$base, $quote, $marketVenue}`; venue is a real trading book (`Binance`, `Coinbase`, …).
  * - **MarketPrice** — stream identity: `{$market, feedKey?, $network?}`; spot/index prints live on
  *   **`Market_Timestamp`** rows referenced from `$$quotes` (`{$market, timestampMs, feedKey?}`).
- * - **Market_TimeInterval_Timestamp** — one OHLC candle per row (`{$market, timeInterval, timestampNs}`).
+ * - **Market_TimeInterval_Timestamp** — one OHLC candle per row (`{$market, timeInterval, timestampMs}`).
  */
 
 /**
@@ -95,10 +93,9 @@ export const catalogCoinIdentitySources = [
 /** Resolvers for derivative-only `Market` observation fields (`fundingRate`, open interest, …). */
 export const marketDerivativeObservationSources = [
 	Source.Coingecko_OpenApi,
-	Source.Coingecko_Rest,
 ] as const
 
-/** Resolvers for `MarketPrice` / `$$marketPrice` (spot USD streams). */
+/** Resolvers for `MarketPrice` / `$$marketPrices` (spot USD streams). */
 export const marketSpotPriceSources = [
 	Source.Constants_Internal,
 	Source.Coingecko_Rest,
@@ -128,48 +125,38 @@ export const marketCatalogFieldSources = [
 	Source.TradingView_Rest,
 ] as const
 
+/** Parent `$` sources when loading `MarketVenue.$$markets`. */
+export const marketVenueCatalogFieldSources = [
+	Source.Constants_Internal,
+	Source.Coingecko_OpenApi,
+	Source.Coinpaprika_OpenApi,
+] as const
+
+
+const marketKindRows = [
+	{
+		marketKind: MarketKind.Spot,
+		label: 'Spot',
+	},
+	{
+		marketKind: MarketKind.Perpetual,
+		label: 'Perpetual',
+	},
+	{
+		marketKind: MarketKind.Futures,
+		label: 'Futures',
+	},
+] as const satisfies readonly {
+	marketKind: MarketKind
+	label: string
+}[]
+
 
 // Lookups
 
-export const formatMarketTimeIntervalLabel = (timeInterval: MarketTimeInterval) => (
-	timeInterval.unit === MarketTimeIntervalUnit.Day ?
-		`${String(timeInterval.value)}d`
-	: timeInterval.unit === MarketTimeIntervalUnit.Hour ?
-		`${String(timeInterval.value)}h`
-	: timeInterval.unit === MarketTimeIntervalUnit.Minute ?
-		`${String(timeInterval.value)}m`
-	: timeInterval.unit === MarketTimeIntervalUnit.Second ?
-		`${String(timeInterval.value)}s`
-	:
-		`${String(timeInterval.value)}`
-)
-
-
-export const formatMarketAssetSymbol = (
-	leg: MarketAssetLegLabelInput,
-) => (
-	leg.kind === MarketAssetKind.Coin ?
-		leg.$coin.coinId
-	: leg.kind === MarketAssetKind.CoinInstance ?
-		`instance-${stringify(leg.$coinInstance).slice(0, 12)}`
-	:
-		leg.$currency.iso4217
-)
-
-
-export const marketKindLabelByKind = {
-	[MarketKind.Spot]: 'Spot',
-	[MarketKind.Perpetual]: 'Perpetual',
-	[MarketKind.Futures]: 'Futures',
-} as const satisfies Record<MarketKind, string>
-
-
-/** Human-readable market id: `Venue:BASE-QUOTE` or `Venue:BASE-QUOTE (Perpetual)`. */
-export const formatMarketIdLabel = (
-	marketId: MarketIdLabelInput,
-) => (
-	marketId.marketKind === MarketKind.Spot ?
-		`${marketId.$marketVenue.marketVenueId}:${formatMarketAssetSymbol(marketId.$base)}-${formatMarketAssetSymbol(marketId.$quote)}`
-	:
-		`${marketId.$marketVenue.marketVenueId}:${formatMarketAssetSymbol(marketId.$base)}-${formatMarketAssetSymbol(marketId.$quote)} (${marketKindLabelByKind[marketId.marketKind]})`
+export const marketKinds = Object.fromEntries(
+	marketKindRows.map((row) => [
+		row.marketKind,
+		row,
+	]),
 )

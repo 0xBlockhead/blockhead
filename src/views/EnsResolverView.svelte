@@ -15,10 +15,8 @@
 	// Props
 	let {
 		entityId,
-		href,
 	}: {
 		entityId: EntityId<typeof schema, EntityType.EnsName>
-		href: string
 	} = $props()
 
 
@@ -47,15 +45,12 @@
 	placeholderText="Loading resolver…"
 	resource={ens}
 >
-	{#snippet children(ens)}
-		{@const contractId = ens.$resolverContract?.[EntityMetaKey.Id]}
+	{#snippet children(loadedEns)}
+		{@const contractId = loadedEns.$resolverContract?.[EntityMetaKey.Id]}
 		{#if contractId}
 			<section>
 				<NetworkView
 					entityId={{ chainId: ensEthereumChainId }}
-					href={resolve('/(explore)/(networks)/network/[networkId]', {
-						networkId: String(ensEthereumChainId),
-					})}
 					layout={EntityLayout.Summary}
 					open={false}
 				/>
@@ -63,7 +58,6 @@
 
 			<EvmContractView
 				entityId={contractId}
-				{href}
 				title="Resolver contract"
 			/>
 		{:else}

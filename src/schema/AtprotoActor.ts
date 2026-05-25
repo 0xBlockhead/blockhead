@@ -38,6 +38,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Atproto_Xrpc,
+				Source.Atproto_BskySocial_Xrpc,
 			],
 		},
 		{
@@ -47,6 +48,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Atproto_Xrpc,
+				Source.Atproto_BskySocial_Xrpc,
 			],
 		},
 		{

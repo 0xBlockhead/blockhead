@@ -1,7 +1,12 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps, Snippet } from 'svelte'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -9,20 +14,30 @@
 
 
 	// Props
-
 	let {
-		open = $bindable(true),
-	} = $props()
+		entityId,
+		href = resolve(
+			'/xmtp',
+			entityId,
+		),
+					open = $bindable(true),
+		collapsible = true,
+		...EntityViewProps
+	}: WithRest<
+		{
+			entityId: EntityId<typeof schema, EntityType.XmtpNetwork>
+			href?: string
+			open?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView>,
+			| 'layout'
+		>
+	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const entityId = {
-		scope: 'XmtpNetwork' as const,
-	}
 
 	const networkIdKey = stringify(entityId)
 
@@ -34,6 +49,8 @@
 			protocolName: {},
 			homeUrl: {},
 			docsUrl: {},
+			registryLabel: {},
+			topology: {},
 		},
 	)
 
@@ -62,8 +79,9 @@
 <EntityView
 	entityType={EntityType.XmtpNetwork}
 	{entityId}
-	href={resolve('/(social)/xmtp')}
+	href={href}
 	bind:open
+	{...EntityViewProps}
 	title="XMTP"
 >
 	{#snippet Value()}
@@ -81,10 +99,10 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			XMTP transports double‑ratcheted payloads between wallet-controlled identities; only holders of the session material can read ciphertext.
+			XMTP transports encrypted payloads between inbox identities; conversation rows here are local catalog stubs until a live XMTP client is wired.
 		</p>
 		<p>
-			Message bodies therefore stay off calldata and most explorers—unlike public Farcaster casts or federated ActivityPub notes on HTTPS.
+			“Demo accounts” are generic EVM actors from the local catalog—not XMTP inbox IDs or installations.
 		</p>
 	{/snippet}
 
@@ -98,9 +116,9 @@
 				resource={registry}
 				placeholderText="Loading local inbox…"
 			>
-				{#snippet children(registry)}
+				{#snippet children(loadedRegistry)}
 					<div>
-						<dt>Accounts</dt>
+						<dt>Demo accounts</dt>
 						<dd>{String(registry['$$actors'].length)}</dd>
 					</div>
 					<div>
@@ -114,30 +132,39 @@
 					resource={network}
 					placeholderText="Loading XMTP network…"
 				>
-					{#snippet children(network)}
+					{#snippet children(loadedNetwork)}
 						<div>
 							<dt>Protocol name</dt>
-							<dd>{network.protocolName}</dd>
+							<dd>{loadedNetwork.protocolName}</dd>
+						</div>
+						<div>
+							<dt>Registry label</dt>
+							<dd>{loadedNetwork.registryLabel}</dd>
+						</div>
+						<div>
+							<dt>Topology</dt>
+							<dd>{loadedNetwork.topology}</dd>
 						</div>
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={network.homeUrl}>
-									{network.homeUrl}
+								<a href={loadedNetwork.homeUrl}>
+									{loadedNetwork.homeUrl}
 								</a>
 							</dd>
 						</div>
-						{#if network.docsUrl != null}
-							{#if network.docsUrl !== ''}
-								<div>
-									<dt>Docs</dt>
-									<dd>
-										<a href={network.docsUrl}>
-											{network.docsUrl}
-										</a>
-									</dd>
-								</div>
-							{/if}
+						{#if (
+							network.docsUrl != null
+							&& network.docsUrl !== ''
+						)}
+							<div>
+								<dt>Docs</dt>
+								<dd>
+									<a href={loadedNetwork.docsUrl}>
+										{loadedNetwork.docsUrl}
+									</a>
+								</dd>
+							</div>
 						{/if}
 					{/snippet}
 				</ResourceBoundary>
@@ -152,7 +179,6 @@
 			entityType={EntityType.XmtpNetwork}
 			{entityId}
 		/>
-
 		<div class="entity-view-detail-carousels" data-column="gap-3">
 			<CollapsibleTabs
 				id={`${networkIdKey}:registry`}
@@ -174,30 +200,30 @@
 
 				{#snippet Markers({ open: _markersOpen })}
 					<a
-						data-scroll-marker-label="Accounts"
+						data-scroll-marker-label="Demo accounts"
 						href={`#${networkIdKey}:accounts`}
-					>Accounts</a>
+					>Demo accounts</a>
 					<a
 						data-scroll-marker-label="Conversations"
 						href={`#${networkIdKey}:conversations`}
-					>Inbox</a>
+					>Conversations</a>
 				{/snippet}
 
 				{#snippet body({ open: _o })}
 					<section
 						id={`${networkIdKey}:accounts`}
-						data-scroll-marker-label="Accounts"
+						data-scroll-marker-label="Demo accounts"
 					>
 						<ActorsView
+							href={resolve('/~/accounts')}
 							entityFieldReference={{
 								entityType: EntityType._Global,
 								entityId: {},
 								fieldName: '$$actors',
 							}}
-							href={resolve('/xmtp/accounts')}
 							id="accounts"
 							open={_open}
-							title="Accounts"
+							title="Demo accounts"
 						/>
 					</section>
 
@@ -206,12 +232,12 @@
 						data-scroll-marker-label="Conversations"
 					>
 						<XmtpConversationsView
+							href={resolve('/xmtp')}
 							entityFieldReference={{
-								entityType: EntityType._Global,
-								entityId: {},
+								entityType: EntityType.XmtpNetwork,
+								entityId,
 								fieldName: '$$xmtpConversations',
 							}}
-							href={resolve('/xmtp/conversations')}
 							id="conversations"
 							open={_open}
 						/>
@@ -219,6 +245,6 @@
 				{/snippet}
 			</CollapsibleTabs>
 		</div>
+
 	{/snippet}
 </EntityView>
-

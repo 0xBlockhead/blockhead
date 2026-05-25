@@ -1,7 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
 	// Props
 	let {
 		params,
@@ -20,6 +17,5 @@
 			fid: Number(params.fid),
 			hash: params.hash as `0x${string}`,
 		}}
-		href={resolve('/farcaster/feed')}
 	/>
 </Page>

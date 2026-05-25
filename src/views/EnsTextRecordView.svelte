@@ -1,24 +1,34 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
+
 	import {
-		getEnsTextRecordHref,
-		getEnsTextRecordLabel,
+		ensTextRecordLabels,
+		ensTextRecordLinkEntries as ensTextRecordLinks,
+		EnsTextRecordHrefMode,
 	} from '$/constants/Ens.ts'
+
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
 		entityId,
+		href = resolve(
+			'/(explore)/(ens)/ens/name/[ensName]',
+			{ ensName: entityId.name },
+		),
 		recordId,
-		href,
 	}: {
 		entityId: EntityId<typeof schema, EntityType.EnsName>
+		href?: string
 		recordId: string
-		href: string
 	} = $props()
 
 
@@ -35,6 +45,12 @@
 	)
 
 
+	// (Derived)
+	const recordLabel = $derived(
+		ensTextRecordLabels[recordId]?.label ?? recordId,
+	)
+
+
 	// Components
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -45,11 +61,11 @@
 <EntityView
 	entityType={EntityType.EnsName}
 	{entityId}
-	{href}
-	title={getEnsTextRecordLabel(recordId)}
+	href={href}
+	title={recordLabel}
 >
 	{#snippet Value()}
-		<span>{getEnsTextRecordLabel(recordId)}</span>
+		<span>{recordLabel}</span>
 	{/snippet}
 
 	{#snippet Title()}
@@ -57,7 +73,7 @@
 	{/snippet}
 
 	{#snippet Heading()}
-		<span>{getEnsTextRecordLabel(recordId)}</span>
+		<span>{recordLabel}</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -71,11 +87,25 @@
 			placeholderText="Loading text record…"
 			resource={ens}
 		>
-			{#snippet children(ens)}
-				{@const recordValue = ens.textRecords?.[recordId]}
+			{#snippet children(loadedEns)}
+				{@const recordValue = loadedEns.textRecords?.[recordId]}
+				{@const textRecordLinkEntry = ensTextRecordLinks.find((candidate) => (
+					candidate.keys.some((candidateKey) => candidateKey === recordId)
+				))}
 				{@const externalHref = (
-					recordValue !== undefined ?
-						getEnsTextRecordHref(recordId, recordValue)
+					recordValue !== undefined && textRecordLinkEntry != null ?
+						(
+							textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.Value ?
+								recordValue
+							: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.Mailto ?
+								`mailto:${recordValue}`
+							: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.Prefix ?
+								`${textRecordLinkEntry.urlPrefix ?? ''}${recordValue}`
+							: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.PrefixStripAt ?
+								`${textRecordLinkEntry.urlPrefix ?? ''}${recordValue.startsWith('@') ? recordValue.slice(1) : recordValue}`
+							:
+								null
+						)
 					:
 						undefined
 				)}
@@ -87,31 +117,37 @@
 					<div>
 						<dt>Value</dt>
 						<dd>
-							{#if recordValue !== undefined}
-								{#if externalHref !== undefined && (externalHref.startsWith('http://') || externalHref.startsWith('https://') || externalHref.startsWith('mailto:'))}
-									<button
-										data-button="unstyled"
-										data-link
-										onclick={() => {
-											window.open(
-												externalHref,
-												'_blank',
-												'noopener,noreferrer',
-											)
-										}}
-										type="button"
-									>
-										<TruncatedValue
-											value={recordValue}
-											format={TruncatedValueFormat.Visual}
-										/>
-									</button>
-								{:else}
+							{#if (
+								recordValue !== undefined
+								&& externalHref !== undefined
+								&& (
+									externalHref.startsWith('http://')
+									|| externalHref.startsWith('https://')
+									|| externalHref.startsWith('mailto:')
+								)
+							)}
+								<button
+									data-button="unstyled"
+									data-link
+									onclick={() => {
+										window.open(
+											externalHref,
+											'_blank',
+											'noopener,noreferrer',
+										)
+									}}
+									type="button"
+								>
 									<TruncatedValue
 										value={recordValue}
 										format={TruncatedValueFormat.Visual}
 									/>
-								{/if}
+								</button>
+							{:else if recordValue !== undefined}
+								<TruncatedValue
+									value={recordValue}
+									format={TruncatedValueFormat.Visual}
+								/>
 							{:else}
 								<span data-text="muted">
 									No value for this key on the Voltaire resolver row yet.

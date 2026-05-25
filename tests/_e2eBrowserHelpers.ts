@@ -1,7 +1,8 @@
 import { expect, type Locator, type Page } from '@playwright/test'
 
 import { TransportType } from '$/constants/TransportType.ts'
-import { gatewayUrls } from '$/sources/Ipfs/Rest/constants.ts'
+import { gatewayUrls as ipfsGatewayUrls } from '$/sources/Ipfs/Rest/constants.ts'
+import { gatewayUrls as swarmGatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
 import { jsonRpcUrlWithTransportForChain } from '$/resolvers/Voltaire-JsonRpc.ts'
 
 export { e2eBrowserNewContextOptions } from '../playwright.env.ts'
@@ -26,7 +27,45 @@ declare global {
 		__e2eViewTransitionFinishes?: number
 		__e2eViewTransitionUpdates?: number
 		__blockheadPersistenceProbe?: BlockheadPersistenceProbeEvent[]
+		__blockheadBoundaryProbe?: BoundaryUpdateEvent[]
 	}
+}
+
+export type BoundaryUpdateEvent = {
+	at: number
+	kind: (
+		| 'console-failed'
+		| 'console-uncaught'
+		| 'dom-failed'
+		| 'dom-loading'
+		| 'dom-resolved'
+	)
+	key: string | null
+	message: string
+}
+
+export type BoundaryDomRow = {
+	key: string | null
+	state: 'failed' | 'loading'
+	message: string
+}
+
+export type BoundaryMainSnapshot = {
+	failed: BoundaryDomRow[]
+	loading: BoundaryDomRow[]
+	empty: boolean
+	emptyReason: string | null
+	textLength: number
+	contentMarkerCount: number
+}
+
+export type RouteBoundaryReport = {
+	pathname: string
+	finalUrl: string
+	mainVisible: boolean
+	updates: BoundaryUpdateEvent[]
+	snapshot: BoundaryMainSnapshot
+	issues: string[]
 }
 
 export type BlockheadPersistenceProbeDecision = (
@@ -85,6 +124,12 @@ export const getPersistenceProbeEvents = (page: Page) => (
 	))
 )
 
+export const persistenceShortCircuitDecisions: readonly BlockheadPersistenceProbeDecision[] = [
+	'hydrated-rows',
+	'loaded-marker',
+	'snapshot',
+]
+
 export const waitForPersistenceMarkLoaded = (
 	page: Page,
 	collectionId: string,
@@ -100,6 +145,452 @@ export const waitForPersistenceMarkLoaded = (
 		{ timeout: 120_000 },
 	)
 )
+
+export const waitForPersistenceShortCircuit = (
+	page: Page,
+	collectionId: string,
+	options?: {
+		startIndex?: number
+		loadedKey?: string
+	},
+) => (
+	page.waitForFunction(
+		({
+			expectedCollectionId,
+			fromIndex,
+			expectedLoadedKey,
+			shortCircuitDecisions,
+		}) => (
+			(window.__blockheadPersistenceProbe ?? [])
+				.slice(fromIndex)
+				.some((event) => (
+					event.kind === 'loadSubset'
+					&& event.collectionId === expectedCollectionId
+					&& shortCircuitDecisions.includes(event.decision)
+					&& (
+						expectedLoadedKey == null
+						|| event.loadedKey === expectedLoadedKey
+					)
+				))
+		),
+		{
+			expectedCollectionId: collectionId,
+			fromIndex: options?.startIndex ?? 0,
+			expectedLoadedKey: options?.loadedKey,
+			shortCircuitDecisions: persistenceShortCircuitDecisions,
+		},
+		{ timeout: 120_000 },
+	)
+)
+
+export const persistenceMarkLoadedEvent = (
+	events: BlockheadPersistenceProbeEvent[],
+	collectionId: string,
+) => (
+	events.find((event) => (
+		event.kind === 'markLoaded'
+		&& event.collectionId === collectionId
+	))
+)
+
+export const installBoundaryProbe = (page: Page) => (
+	page.addInitScript(() => {
+		const rowMessage = (element: Element) => {
+			const ariaLabel = element.getAttribute('aria-label')?.trim()
+			if (ariaLabel)
+				return ariaLabel.slice(0, 500)
+			return (
+				element.textContent?.replace(/\s+/g, ' ').trim().slice(0, 500)
+				?? ''
+			)
+		}
+
+		const domKindForElement = (element: Element) => (
+			element.matches('[data-error], [role="alert"]') ?
+				'dom-failed' as const
+			: element.matches('[data-tag].inline-placeholder:not([aria-busy="true"])') ?
+				'dom-failed' as const
+			: element.matches('.loading, [aria-busy="true"]') ?
+				'dom-loading' as const
+			: null
+		)
+
+		window.__blockheadBoundaryProbe = []
+
+		const pushBoundaryEvent = (
+			kind: BoundaryUpdateEvent['kind'],
+			key: string | null,
+			message: string,
+		) => {
+			(window.__blockheadBoundaryProbe ??= []).push({
+				at: Date.now(),
+				kind,
+				key,
+				message,
+			})
+		}
+
+		const origConsoleError = console.error
+		console.error = (...args: unknown[]) => {
+			const text = args.map((arg) => String(arg)).join(' ')
+			if (text.includes('[blockhead:boundary:uncaught]')) {
+				const keyMatch = text.match(/\[blockhead:boundary:uncaught\]\s+(\S+)/)
+				pushBoundaryEvent(
+					'console-uncaught',
+					keyMatch?.[1] ?? null,
+					text,
+				)
+			}
+			else if (text.includes('[blockhead:boundary]')) {
+				const keyMatch = text.match(/\[blockhead:boundary\]\s+(\S+)/)
+				pushBoundaryEvent(
+					'console-failed',
+					keyMatch?.[1] ?? null,
+					text,
+				)
+			}
+			origConsoleError.apply(console, args)
+		}
+
+		const observeBoundaryNode = (node: Node) => {
+			if (!(node instanceof Element)) return
+
+			const candidates = (
+				node.matches('[data-error], [role="alert"], [data-tag].inline-placeholder, .loading, [aria-busy="true"]') ?
+					[node]
+				:
+					[...node.querySelectorAll('[data-error], [role="alert"], [data-tag].inline-placeholder, .loading, [aria-busy="true"]')]
+			)
+
+			for (const element of candidates) {
+				const kind = domKindForElement(element)
+				if (kind == null) continue
+				pushBoundaryEvent(
+					kind,
+					element.getAttribute('data-error'),
+					rowMessage(element),
+				)
+			}
+		}
+
+		const observeResolvedNode = (node: Node) => {
+			if (!(node instanceof Element)) return
+			pushBoundaryEvent(
+				'dom-resolved',
+				node.getAttribute('data-error'),
+				rowMessage(node),
+			)
+		}
+
+		const attachMainObserver = (main: Element) => {
+			const observer = new MutationObserver((records) => {
+				for (const record of records) {
+					for (const node of record.addedNodes)
+						observeBoundaryNode(node)
+					for (const node of record.removedNodes) {
+						if (
+							node instanceof Element
+							&& (
+								node.matches('[data-error], [role="alert"], [data-tag].inline-placeholder, .loading, [aria-busy="true"]')
+								|| node.querySelector('[data-error], [role="alert"], [data-tag].inline-placeholder, .loading, [aria-busy="true"]')
+							)
+						) observeResolvedNode(node)
+					}
+				}
+			})
+			observer.observe(main, {
+				childList: true,
+				subtree: true,
+				attributes: true,
+				attributeFilter: [
+					'data-error',
+					'aria-busy',
+					'class',
+				],
+			})
+			observeBoundaryNode(main)
+		}
+
+		const tryAttach = () => {
+			const main = document.querySelector('#main')
+			if (main != null) {
+				attachMainObserver(main)
+				return true
+			}
+			return false
+		}
+
+		if (!tryAttach()) {
+			const bootObserver = new MutationObserver(() => {
+				if (tryAttach())
+					bootObserver.disconnect()
+			})
+			bootObserver.observe(document.documentElement, {
+				childList: true,
+				subtree: true,
+			})
+		}
+	})
+)
+
+export const resetBoundaryProbe = (page: Page) => (
+	page.url().startsWith('about:') ?
+		Promise.resolve()
+	:
+		page.evaluate(() => {
+			window.__blockheadBoundaryProbe = []
+		})
+)
+
+export const clearBoundaryProbe = resetBoundaryProbe
+
+export const getBoundaryProbeEvents = (page: Page) => (
+	page.evaluate(() => (
+		window.__blockheadBoundaryProbe ?? []
+	))
+)
+
+export const snapshotBoundaryMain = (page: Page) => (
+	page.evaluate(() => {
+		const rowMessage = (element: Element) => {
+			const ariaLabel = element.getAttribute('aria-label')?.trim()
+			if (ariaLabel)
+				return ariaLabel.slice(0, 500)
+			return (
+				element.textContent?.replace(/\s+/g, ' ').trim().slice(0, 500)
+				?? ''
+			)
+		}
+
+		const main = document.querySelector('#main')
+		if (main == null) {
+			return {
+				failed: [],
+				loading: [],
+				empty: true,
+				emptyReason: 'no-main',
+				textLength: 0,
+				contentMarkerCount: 0,
+			} satisfies BoundaryMainSnapshot
+		}
+
+		const failed = [
+			...main.querySelectorAll('[data-error], [role="alert"]'),
+			...main.querySelectorAll('[data-tag].inline-placeholder:not([aria-busy="true"])'),
+		].map((element) => ({
+			key: (
+				element.getAttribute('data-error')
+				?? element.getAttribute('aria-label')
+			),
+			state: 'failed' as const,
+			message: rowMessage(element),
+		}))
+
+		const loading = [...main.querySelectorAll('.loading, [aria-busy="true"]')].map((element) => ({
+			key: element.getAttribute('data-error'),
+			state: 'loading' as const,
+			message: rowMessage(element),
+		}))
+
+		const contentMarkerCount = main.querySelectorAll(
+			'section, dl, ul, ol, [data-card], h1, h2, h3, table, pre, canvas',
+		).length
+		const textLength = main.textContent?.replace(/\s+/g, ' ').trim().length ?? 0
+
+		const empty = (
+			failed.length === 0
+			&& loading.length === 0
+			&& contentMarkerCount === 0
+			&& textLength < 24
+		)
+
+		return {
+			failed,
+			loading,
+			empty,
+			emptyReason: (
+				empty ?
+					(
+						textLength === 0 ?
+							'main-has-no-text'
+						:
+							'main-has-no-content-markers'
+					)
+				:
+					null
+			),
+			textLength,
+			contentMarkerCount,
+		} satisfies BoundaryMainSnapshot
+	})
+)
+
+export const waitForBoundarySettle = async (
+	page: Page,
+	{
+		timeoutMs = 180_000,
+		quietMs = 4_000,
+	}: {
+		timeoutMs?: number
+		quietMs?: number
+	} = {},
+) => {
+	const deadline = Date.now() + timeoutMs
+	let lastSignature = ''
+	let quietSince = Date.now()
+
+	while (Date.now() < deadline) {
+		let snapshot: BoundaryMainSnapshot
+		let events: BoundaryUpdateEvent[]
+		try {
+			snapshot = await snapshotBoundaryMain(page)
+			events = await getBoundaryProbeEvents(page)
+		}
+		catch {
+			return snapshotBoundaryMain(page).catch(() => ({
+				failed: [],
+				loading: [],
+				empty: true,
+				emptyReason: 'page-closed',
+				textLength: 0,
+				contentMarkerCount: 0,
+			}))
+		}
+		const signature = JSON.stringify({
+			loading: snapshot.loading.length,
+			failed: snapshot.failed.length,
+			events: events.length,
+		})
+
+		if (
+			signature === lastSignature
+			&& snapshot.loading.length === 0
+		) {
+			if (Date.now() - quietSince >= quietMs)
+				return snapshot
+		}
+		else {
+			lastSignature = signature
+			quietSince = Date.now()
+		}
+
+		await page.waitForTimeout(250)
+	}
+
+	return snapshotBoundaryMain(page)
+}
+
+export const summarizeRouteBoundaryReport = (
+	pathname: string,
+	finalUrl: string,
+	mainVisible: boolean,
+	updates: BoundaryUpdateEvent[],
+	snapshot: BoundaryMainSnapshot,
+) => {
+	const issues: string[] = []
+
+	if (!mainVisible)
+		issues.push('main-not-visible')
+
+	for (const row of snapshot.failed) {
+		issues.push(
+			`failed:${row.key ?? 'unknown'}:${row.message || '(no message)'}`,
+		)
+	}
+
+	for (const row of snapshot.loading) {
+		issues.push(
+			`still-loading:${row.key ?? 'unknown'}:${row.message || '(no message)'}`,
+		)
+	}
+
+	if (snapshot.empty)
+		issues.push(`empty:${snapshot.emptyReason ?? 'unknown'}`)
+
+	const consoleFailures = updates.filter((event) => (
+		event.kind === 'console-failed'
+		|| event.kind === 'console-uncaught'
+	))
+
+	for (const event of consoleFailures) {
+		const token = `console:${event.kind}:${event.key ?? 'unknown'}`
+		if (!issues.some((issue) => issue.includes(event.key ?? 'unknown') && issue.startsWith('failed:')))
+			issues.push(`${token}:${event.message}`)
+	}
+
+	return {
+		pathname,
+		finalUrl,
+		mainVisible,
+		updates,
+		snapshot,
+		issues,
+	} satisfies RouteBoundaryReport
+}
+
+export const formatBoundaryReportSummary = (
+	reports: RouteBoundaryReport[],
+	optionalPathnames: ReadonlySet<string> = new Set(),
+) => {
+	const failedRoutes = reports.filter((report) => (
+		report.snapshot.failed.length > 0
+		|| report.updates.some((event) => (
+			event.kind === 'console-failed'
+			|| event.kind === 'console-uncaught'
+		))
+	))
+	const emptyRoutes = reports.filter((report) => report.snapshot.empty)
+	const loadingRoutes = reports.filter((report) => report.snapshot.loading.length > 0)
+	const issueRoutes = reports.filter((report) => report.issues.length > 0)
+	const optionalIssueRoutes = issueRoutes.filter((report) => optionalPathnames.has(report.pathname))
+	const blockingIssueRoutes = issueRoutes.filter((report) => !optionalPathnames.has(report.pathname))
+
+	const lines = [
+		`routes ${reports.length}`,
+		`with issues ${issueRoutes.length}`,
+		`blocking ${blockingIssueRoutes.length}`,
+		`optional-live ${optionalIssueRoutes.length}`,
+		`failed ${failedRoutes.length}`,
+		`still loading ${loadingRoutes.length}`,
+		`empty ${emptyRoutes.length}`,
+		'',
+	]
+
+	if (failedRoutes.length > 0) {
+		lines.push('Failed boundaries:')
+		for (const report of failedRoutes) {
+			const tag = optionalPathnames.has(report.pathname) ? ' (optional-live)' : ''
+			lines.push(`  ${report.pathname}${tag}`)
+			for (const row of report.snapshot.failed)
+				lines.push(`    [dom] ${row.key ?? 'unknown'}: ${row.message}`)
+			for (const event of report.updates.filter((entry) => (
+				entry.kind === 'console-failed'
+				|| entry.kind === 'console-uncaught'
+			)))
+				lines.push(`    [${event.kind}] ${event.key ?? 'unknown'}: ${event.message}`)
+		}
+		lines.push('')
+	}
+
+	if (loadingRoutes.length > 0) {
+		lines.push('Still loading after settle:')
+		for (const report of loadingRoutes) {
+			lines.push(`  ${report.pathname}`)
+			for (const row of report.snapshot.loading)
+				lines.push(`    ${row.key ?? 'unknown'}: ${row.message}`)
+		}
+		lines.push('')
+	}
+
+	if (emptyRoutes.length > 0) {
+		lines.push('Empty main after settle:')
+		for (const report of emptyRoutes)
+			lines.push(`  ${report.pathname} (${report.snapshot.emptyReason ?? 'unknown'})`)
+		lines.push('')
+	}
+
+	return lines.join('\n')
+}
 
 export const waitForNetworksListRendered = async (page: Page) => {
 	await expect(page.locator('#networks')).toBeVisible()
@@ -255,9 +746,21 @@ export const chainlistRpcsWire = (url: string) => (
 export const ipfsPublicGatewayGetWire = (url: string) => {
 	try {
 		const u = new URL(url)
-		if (!gatewayUrls.some((origin) => origin === u.origin))
+		if (!ipfsGatewayUrls.some((origin) => origin === u.origin))
 			return false
 		return u.pathname.includes('/ipfs/') || u.pathname.includes('/ipns/')
+	} catch {
+		return false
+	}
+}
+
+/** Matches GETs to public Swarm HTTP gateways (`{origin}/bzz/…`). */
+export const swarmPublicGatewayGetWire = (url: string) => {
+	try {
+		const u = new URL(url)
+		if (!swarmGatewayUrls.some((origin) => origin === u.origin))
+			return false
+		return u.pathname.includes('/bzz/')
 	} catch {
 		return false
 	}
@@ -505,6 +1008,14 @@ export const installChainlistRpcsJsonStub = async (page: Page) => {
 				status: 200,
 				contentType: 'text/plain; charset=utf-8',
 				body: 'e2e ipfs gateway stub',
+			})
+			return
+		}
+		if (method === 'GET' && swarmPublicGatewayGetWire(url)) {
+			await route.fulfill({
+				status: 200,
+				contentType: 'text/html; charset=utf-8',
+				body: '<!DOCTYPE html><html><head><title>Swarm e2e stub</title></head><body><p>e2e swarm gateway stub</p></body></html>',
 			})
 			return
 		}

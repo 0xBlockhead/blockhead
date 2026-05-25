@@ -28,14 +28,15 @@ export const rssItemGuidFromParts = (
 	|| 'unknown'
 )
 
-export const rssPublishedAtMs = (value: string | undefined) => (
-	value?.trim() ?
-		(
-			Number.isFinite(Date.parse(value)) ?
-				Date.parse(value)
+export const rssPublishedAtMs = (value: string | undefined) => {
+	const trimmed = value?.trim()
+	return (
+		trimmed ?
+			Number.isFinite(Date.parse(trimmed)) ?
+				Date.parse(trimmed)
 			:
 				undefined
-		)
-	:
-		undefined
-)
+		:
+			undefined
+	)
+}

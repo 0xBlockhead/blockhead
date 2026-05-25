@@ -1,48 +1,40 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { Source } from '$/sources/$Source.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+			'/~/(multiplayer)/multiplayer/(rooms)/room/[roomId]',
+			{ roomId: entityId.id },
+		),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.BlockheadRoom>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'layout'
-			| 'title'
-			| 'Heading'
-			| 'Details'
-			| 'Content'
-		>
+		never
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { Source } from '$/sources/$Source.ts'
 
 	const room = useEntity(
 		EntityType.BlockheadRoom,
@@ -59,6 +51,7 @@
 
 
 	// Components
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
@@ -69,11 +62,10 @@
 <EntityView
 	entityType={EntityType.BlockheadRoom}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -92,8 +84,8 @@
 			resource={room}
 			placeholderText="Loading room…"
 		>
-			{#snippet children(room)}
-				{room.name ?? entityId.id}
+			{#snippet children(loadedRoom)}
+				{loadedRoom.name ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -118,10 +110,10 @@
 						resource={room}
 						placeholderText="Loading room…"
 					>
-						{#snippet children(room)}
-							{#if room.createdAt !== undefined}
+						{#snippet children(loadedRoom)}
+							{#if loadedRoom.createdAt !== undefined}
 								<Timestamp
-									timestamp={room.createdAt}
+									timestamp={loadedRoom.createdAt}
 								/>
 							{/if}
 						{/snippet}
@@ -137,9 +129,9 @@
 							resource={room}
 							placeholderText="Loading room…"
 						>
-							{#snippet children(room)}
-								{#if room.name !== undefined && room.name !== ''}
-									{room.name}
+							{#snippet children(loadedRoom)}
+								{#if loadedRoom.name !== undefined && loadedRoom.name !== ''}
+									{loadedRoom.name}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -155,9 +147,9 @@
 							resource={room}
 							placeholderText="Loading room…"
 						>
-							{#snippet children(room)}
-								{#if room.createdBy !== undefined && room.createdBy !== ''}
-									{room.createdBy}
+							{#snippet children(loadedRoom)}
+								{#if loadedRoom.createdBy !== undefined && loadedRoom.createdBy !== ''}
+									{loadedRoom.createdBy}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -170,29 +162,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{#if children}
-			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.BlockheadRoom}
-				{entityId}
-			/>
-			<ResourceBoundary
-				resource={room}
-				placeholderText="Loading room…"
-			>
-				{#snippet children(room)}
-					{#if open}
-						{#if (
-							(room.name === undefined || room.name === '')
-							&& (room.createdBy === undefined || room.createdBy === '')
-							&& room.createdAt === undefined
-						)}
-							<p data-text="muted">
-								No room details are available yet.
-							</p>
-						{/if}
-					{/if}
+
 				{/snippet}
 			</ResourceBoundary>
 		{/if}

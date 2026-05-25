@@ -6,41 +6,29 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = ipfsResourceHref(entityId),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.IpfsResource>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
-		>
+		never
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
+	import { ipfsResourceCanonicalUri, ipfsResourceHref } from '$/lib/ipfs.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { ipfsResourceCanonicalUri } from '$/lib/ipfs.ts'
 
 	const ipfs = useEntity(
 		EntityType.IpfsResource,
@@ -84,14 +72,13 @@
 <EntityView
 	entityType={EntityType.IpfsResource}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.cid}
+			{entityId.target}
 		</span>
 	{/snippet}
 
@@ -124,13 +111,13 @@
 				<dt>Content type</dt>
 				<dd>
 					<ResourceBoundary resource={ipfs}>
-						{#snippet children(ipfs)}
-							{#if ipfs.contentType !== undefined}
+						{#snippet children(loadedIpfs)}
+							{#if loadedIpfs.contentType !== undefined}
 								<TruncatedValue
-									value={ipfs.contentType}
+									value={loadedIpfs.contentType}
 									format={TruncatedValueFormat.Visual}
 								/>
-								{#if ipfs.isContentTypeInferred}
+								{#if loadedIpfs.isContentTypeInferred}
 									{' '}<span data-text="muted">(inferred)</span>
 								{/if}
 							{:else if !open}
@@ -146,9 +133,9 @@
 					<dt>Canonical URI</dt>
 					<dd>
 						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
+							{#snippet children(loadedIpfs)}
 								<TruncatedValue
-									value={ipfs.canonicalUri}
+									value={loadedIpfs.canonicalUri}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -160,9 +147,9 @@
 					<dt>Gateway</dt>
 					<dd>
 						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
+							{#snippet children(loadedIpfs)}
 								<TruncatedValue
-									value={ipfs.gatewayOrigin}
+									value={loadedIpfs.gatewayOrigin}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -174,14 +161,14 @@
 					<dt>Gateway URL</dt>
 					<dd>
 						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
+							{#snippet children(loadedIpfs)}
 								<a
-									href={ipfs.gatewayUrl}
+									href={loadedIpfs.gatewayUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue
-										value={ipfs.gatewayUrl}
+										value={loadedIpfs.gatewayUrl}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</a>
@@ -194,10 +181,10 @@
 					<dt>Content length</dt>
 					<dd>
 						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								{#if ipfs.contentLength !== undefined}
+							{#snippet children(loadedIpfs)}
+								{#if loadedIpfs.contentLength !== undefined}
 									<NumberValue
-										value={ipfs.contentLength}
+										value={loadedIpfs.contentLength}
 										options={{ maximumFractionDigits: 0 }}
 									/>
 									{' '}
@@ -212,10 +199,10 @@
 					<dt>File name</dt>
 					<dd>
 						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								{#if ipfs.fileName !== undefined}
+							{#snippet children(loadedIpfs)}
+								{#if loadedIpfs.fileName !== undefined}
 									<TruncatedValue
-										value={ipfs.fileName}
+										value={loadedIpfs.fileName}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -228,31 +215,33 @@
 					<dt>Extension</dt>
 					<dd>
 						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								{#if ipfs.extension !== undefined}
-									.{ipfs.extension}
+							{#snippet children(loadedIpfs)}
+								{#if loadedIpfs.extension !== undefined}
+									.{loadedIpfs.extension}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
 				</div>
+
 				<div>
 					<dt>Display type</dt>
 					<dd>
 						<ResourceBoundary resource={ipfs}>
-							{#snippet children(ipfs)}
-								{ipfs.displayType}
+							{#snippet children(loadedIpfs)}
+								{loadedIpfs.displayType}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
 				</div>
+
 				{#if entityId.namespace === 'ipfs'}
 					<div>
 						<dt>Content identifier version</dt>
 						<dd>
 							<ResourceBoundary resource={ipfs}>
-								{#snippet children(ipfs)}
-									{#if ipfs.cidVersion !== undefined}
+								{#snippet children(loadedIpfs)}
+									{#if loadedIpfs.cidVersion !== undefined}
 										{String(ipfs.cidVersion)}
 									{/if}
 								{/snippet}
@@ -263,10 +252,10 @@
 						<dt>Multibase</dt>
 						<dd>
 							<ResourceBoundary resource={ipfs}>
-								{#snippet children(ipfs)}
-									{#if ipfs.cidMultibase !== undefined}
+								{#snippet children(loadedIpfs)}
+									{#if loadedIpfs.cidMultibase !== undefined}
 										<TruncatedValue
-											value={ipfs.cidMultibase}
+											value={loadedIpfs.cidMultibase}
 											format={TruncatedValueFormat.Visual}
 										/>
 									{/if}
@@ -279,8 +268,8 @@
 						<dt>Multicodec code</dt>
 						<dd>
 							<ResourceBoundary resource={ipfs}>
-								{#snippet children(ipfs)}
-									{#if ipfs.cidMulticodecCode !== undefined}
+								{#snippet children(loadedIpfs)}
+									{#if loadedIpfs.cidMulticodecCode !== undefined}
 										{String(ipfs.cidMulticodecCode)}
 									{/if}
 								{/snippet}
@@ -292,8 +281,8 @@
 						<dt>Multihash code</dt>
 						<dd>
 							<ResourceBoundary resource={ipfs}>
-								{#snippet children(ipfs)}
-									{#if ipfs.cidMultihashCode !== undefined}
+								{#snippet children(loadedIpfs)}
+									{#if loadedIpfs.cidMultihashCode !== undefined}
 										{String(ipfs.cidMultihashCode)}
 									{/if}
 								{/snippet}
@@ -305,10 +294,10 @@
 						<dt>Multihash digest</dt>
 						<dd>
 							<ResourceBoundary resource={ipfs}>
-								{#snippet children(ipfs)}
-									{#if ipfs.cidMultihashDigestHex !== undefined}
+								{#snippet children(loadedIpfs)}
+									{#if loadedIpfs.cidMultihashDigestHex !== undefined}
 										<TruncatedValue
-											value={ipfs.cidMultihashDigestHex}
+											value={loadedIpfs.cidMultihashDigestHex}
 											format={TruncatedValueFormat.Visual}
 										/>
 									{/if}
@@ -321,9 +310,9 @@
 						<dt>Subdomain-safe</dt>
 						<dd>
 							<ResourceBoundary resource={ipfs}>
-								{#snippet children(ipfs)}
-									{#if ipfs.isCidSubdomainSafe !== undefined}
-										{ipfs.isCidSubdomainSafe ? 'Yes' : 'No'}
+								{#snippet children(loadedIpfs)}
+									{#if loadedIpfs.isCidSubdomainSafe !== undefined}
+										{loadedIpfs.isCidSubdomainSafe ? 'Yes' : 'No'}
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
@@ -384,10 +373,10 @@
 						href={`#${detailKey}:ipfs-record`}
 					>Record</a>
 					{#if entityId.namespace === 'ipfs' && _open}
-					<a
-						data-scroll-marker-label="Encodings"
-						href={`#${detailKey}:ipfs-cid`}
-					>Encodings</a>
+						<a
+							data-scroll-marker-label="Encodings"
+							href={`#${detailKey}:ipfs-cid`}
+						>Encodings</a>
 					{/if}
 
 					{#if _open}
@@ -398,8 +387,7 @@
 					{/if}
 				{/snippet}
 
-				{#snippet body({ open: _paneOpen,
-				})}
+				{#snippet body({ open: _paneOpen })}
 					<section
 						data-scroll-marker-label="Record"
 						id={`${detailKey}:ipfs-record`}
@@ -429,15 +417,15 @@
 							<ResourceBoundary
 								resource={ipfs}
 							>
-								{#snippet children(ipfs)}
+								{#snippet children(loadedIpfs)}
 									<FileDetails
-										contentSize={ipfs.contentLength}
-										contentType={ipfs.contentType}
-										displayType={ipfs.displayType}
-										extension={ipfs.extension}
-										fileName={ipfs.fileName}
-										src={ipfs.gatewayUrl}
-										text={ipfs.text}
+										contentSize={loadedIpfs.contentLength}
+										contentType={loadedIpfs.contentType}
+										displayType={loadedIpfs.displayType}
+										extension={loadedIpfs.extension}
+										fileName={loadedIpfs.fileName}
+										src={loadedIpfs.gatewayUrl}
+										text={loadedIpfs.text}
 									/>
 								{/snippet}
 							</ResourceBoundary>
@@ -447,9 +435,6 @@
 			</CollapsibleTabs>
 		</div>
 
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>
 

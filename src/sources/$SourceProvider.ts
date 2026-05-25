@@ -1,6 +1,6 @@
 import type { Type } from 'arktype'
 
-import type { SourceDefinition, SourcePublicEnvWire } from '$/sources/$Source.ts'
+import type { SourceDefinition, SourcePublicEnv } from '$/sources/$Source.ts'
 
 export type SourceOrigin = {
 	origin: string
@@ -11,7 +11,7 @@ export type SourceOrigin = {
 export type SourceProviderDefinition = {
 	provider: SourceProvider
 	label: string
-	env?: Type<SourcePublicEnvWire>
+	env?: Type<SourcePublicEnv>
 	origins?: readonly SourceOrigin[]
 	sources: readonly SourceDefinition[]
 }
@@ -31,6 +31,7 @@ export enum SourceProvider {
 	Coinpaprika = 'Coinpaprika',
 	Defillama = 'Defillama',
 	Dexscreener = 'Dexscreener',
+	Eip8004Scan = 'Eip8004Scan',
 	Dune = 'Dune',
 	Ensips = 'Ensips',
 	EthereumEips = 'EthereumEips',

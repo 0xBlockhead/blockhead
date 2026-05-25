@@ -8,118 +8,142 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		open = $bindable(true),
+		collapsible = true,
 		title = 'Vaults',
-		...entitiesListRest
+		limit = 300,
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Vault>
-			href: string
 			id: string
 			open?: boolean
 			title?: string
+			limit?: number
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Dexscreener_OpenApi,
-				],
-			},
-		},
-	)
-
-	const vaults = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.Vault>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-				.toSorted((a, b) => (
-					a[EntityMetaKey.Id].id.localeCompare(b[EntityMetaKey.Id].id)
-				))
-			return (
-				rows.map((value) => ({
-					value,
-				}))
-			)
-		},
-	)
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+	import Tooltip from '$/components/Tooltip.svelte'
 	import VaultView from '$/views/VaultView.svelte'
 </script>
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
+	{collapsible}
+	data-entity-field-name={entityFieldReference.fieldName}
+	data-entity-field-parent={stringify(entityFieldReference.entityId)}
+	data-entity-field-type={entityFieldReference.entityType}
 	entityType={EntityType.Vault}
-	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
-	{href}
 	{id}
-	placeholderKeys={new SvelteSet()}
-	resource={vaults}
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			In DEX aggregators, “vault” often denotes a concentrated-liquidity pool: a pair, fee tier, and measures such as TVL—not an ERC-4626 share vault.
+			Dexscreener “vault” rows are concentrated-liquidity trading pairs (token pair, volume, liquidity USD)—not ERC-4626 share vaults.
 		</p>
 		<p>
-			That usage is unrelated to IPFS roots, object storage, or social-graph identities.
+			The global catalog slice uses a fixed Dexscreener search probe (<code>ETH/USDT</code>), not an exhaustive on-chain registry.
 		</p>
 	{/snippet}
 
 	{#snippet Empty()}
-		<p data-text="muted">
-			No DEX pool rows yet.
-		</p>
+		<div data-row="wrap align-center gap-2">
+			<p data-text="muted">
+				No Dexscreener pair rows in this slice yet.
+			</p>
+			<Tooltip contentProps={{ side: 'top' }}>
+				{#snippet Content()}
+					<p>
+						Each row is a Dexscreener pair id on a supported network.
+					</p>
+				{/snippet}
+				<abbr
+					class="entity-heading-tip"
+					aria-label="About vault rows"
+				>ⓘ</abbr>
+			</Tooltip>
+		</div>
 	{/snippet}
 
-	{#snippet Item(props)}
-		{#if props.item}
-			<VaultView
-				entityId={props.item.value[EntityMetaKey.Id]}
-				href={resolve('/(assets)/(vaults)/vault/[vaultId]', {
-					vaultId: props.item.value[EntityMetaKey.Id].id,
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
+	{#snippet body({ open: _bodyOpen })}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Dexscreener_OpenApi,
+						],
+						limit,
+					},
+				},
+			)}
+			{@const vaults = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.Vault>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						rows.map((value) => ({
+							value,
+						}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				data-entity-field-name={entityFieldReference.fieldName}
+				data-entity-field-parent={stringify(entityFieldReference.entityId)}
+				data-entity-field-type={entityFieldReference.entityType}
+				entityType={EntityType.Vault}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
+				open={true}
+				resource={vaults}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No Dexscreener pair rows in this slice yet.
+					</p>
+				{/snippet}
+
+				{#snippet Item({ item })}
+					<VaultView
+						entityId={item.value[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

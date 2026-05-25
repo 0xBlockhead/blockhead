@@ -2,7 +2,6 @@
 	// Types/constants
 	import { MediaType } from '$/schema/Media.ts'
 
-
 	type MediaObjectWire = {
 		url: string
 		width?: number
@@ -43,6 +42,7 @@
 		&& typeof m === 'object'
 		&& 'type' in m
 	)
+
 	const inferTypeFromUrl = (u: string | undefined): MediaType => {
 		if (!u) return MediaType.Other
 		const path = u.split('?')[0].toLowerCase()
@@ -73,6 +73,7 @@
 								: media.original
 			: undefined
 	)
+
 	const url = $derived(
 		format?.url
 		?? (
@@ -84,13 +85,13 @@
 				: undefined
 		)
 	)
+
 	const mediaType = $derived(
 		isFullMedia(media)
 			? media.type
 			: inferTypeFromUrl(url)
 	)
 </script>
-
 
 
 {#if url}

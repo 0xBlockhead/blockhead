@@ -12,6 +12,5 @@
 <Page>
 	<EvmCalldataView
 		entityId={{ hex: '0x00000000' }}
-		href={resolve('/evm/calldata')}
 	/>
 </Page>

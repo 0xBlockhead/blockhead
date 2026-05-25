@@ -1,10 +1,10 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import { stringify } from 'devalue'
+
+
+	// Context
 	import { resolve } from '$app/paths'
-	import NetworkView from '$/views/NetworkView.svelte'
 
 
 	// Props
@@ -12,6 +12,12 @@
 		children,
 		params,
 	} = $props()
+
+
+	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
 
@@ -23,7 +29,6 @@
 		{#snippet Summary({ open: _open })}
 			<NetworkView
 				entityId={{ chainId: Number(params.networkId) }}
-				href={resolve('/(explore)/(networks)/network/[networkId]', params)}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

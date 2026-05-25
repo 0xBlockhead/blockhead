@@ -3,9 +3,10 @@ import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { mastodonGet } from '$/sources/Mastodon/Rest/client.ts'
 import { mastodonInstanceOrigin } from '$/sources/Mastodon/Rest/constants.ts'
 import type {
-	MastodonApiV1AccountWire,
-	MastodonApiV1ContextWire,
-	MastodonApiV1StatusWire,
+	MastodonApiV1Account,
+	MastodonApiV1Context,
+	MastodonApiV1Instance,
+	MastodonApiV1Status,
 } from '$/sources/Mastodon/Rest/types.ts'
 
 export const mastodonGetAccount = async (
@@ -13,22 +14,22 @@ export const mastodonGetAccount = async (
 	localAccountId: string,
 ) => (
 	localAccountId.includes('@') ?
-		mastodonGet<MastodonApiV1AccountWire>(publicEnv, '/accounts/lookup', { acct: localAccountId })
-	:	mastodonGet<MastodonApiV1AccountWire>(publicEnv, `/accounts/${encodeURIComponent(localAccountId)}`)
+		mastodonGet<MastodonApiV1Account>(publicEnv, '/accounts/lookup', { acct: localAccountId })
+	:	mastodonGet<MastodonApiV1Account>(publicEnv, `/accounts/${encodeURIComponent(localAccountId)}`)
 )
 
 export const mastodonGetStatus = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 	localStatusId: string,
 ) => (
-	mastodonGet<MastodonApiV1StatusWire>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}`)
+	mastodonGet<MastodonApiV1Status>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}`)
 )
 
 export const mastodonGetStatusContext = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 	localStatusId: string,
 ) => (
-	mastodonGet<MastodonApiV1ContextWire>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}/context`)
+	mastodonGet<MastodonApiV1Context>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}/context`)
 )
 
 export const mastodonListAccountStatuses = async (
@@ -37,26 +38,32 @@ export const mastodonListAccountStatuses = async (
 	limit: number,
 ) => {
 	if (localAccountId.includes('@')) {
-		const a = await mastodonGet<MastodonApiV1AccountWire>(publicEnv, '/accounts/lookup', { acct: localAccountId })
+		const a = await mastodonGet<MastodonApiV1Account>(publicEnv, '/accounts/lookup', { acct: localAccountId })
 		if (a?.id == null) return []
-		return mastodonGet<MastodonApiV1StatusWire[]>(
+		return mastodonGet<MastodonApiV1Status[]>(
 			publicEnv,
 			`/accounts/${encodeURIComponent(String(a.id))}/statuses`,
 			{ limit: String(Math.min(80, Math.max(1, limit))) },
 		)
 	}
-	return mastodonGet<MastodonApiV1StatusWire[]>(
+	return mastodonGet<MastodonApiV1Status[]>(
 		publicEnv,
 		`/accounts/${encodeURIComponent(localAccountId)}/statuses`,
 		{ limit: String(Math.min(80, Math.max(1, limit))) },
 	)
 }
 
+export const mastodonGetInstance = async (
+	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
+) => (
+	mastodonGet<MastodonApiV1Instance>(publicEnv, '/instance')
+)
+
 export const mastodonListPublicTimeline = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 	limit: number,
 ) => (
-	mastodonGet<MastodonApiV1StatusWire[]>(
+	mastodonGet<MastodonApiV1Status[]>(
 		publicEnv,
 		'/timelines/public',
 		{ limit: String(Math.min(80, Math.max(1, limit))) },

@@ -1,32 +1,40 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { stringify } from 'devalue'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
+	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
 
 	// Props
 	let {
-		open = $bindable(true),
-	}: {
-		open?: boolean
-	} = $props()
+		entityId,
+		href = resolve('/(social)/(lens)/lens'),
+		open = $bindable(
+			!(getIsInsideEntityList() ?? false),
+		),
+		collapsible = true,
+		...EntityViewProps
+	}: WithRest<
+		{
+			entityId: EntityId<typeof schema, EntityType.LensNetwork>
+			href?: string
+			open?: boolean
+		},
+		never
+	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const entityId = (
-		{
-			scope: 'LensNetwork' as const,
-		} satisfies EntityId<typeof schema, EntityType.LensNetwork>
-	)
 
 	const networkIdKey = stringify(entityId)
 
@@ -36,18 +44,36 @@
 		{
 			$: [Source.Constants_Internal],
 			protocolName: {},
-			homeUrl: {},
-			docsUrl: {},
-			$$lensAccounts: {},
-			$$lensPosts: {},
+			registryLabel: {},
+			...(open ?
+				{
+					homeUrl: {},
+					docsUrl: {},
+					topology: {},
+					$$lensAccounts: {
+						$: [
+							Source.Constants_Internal,
+							Source.Lens_Graphql,
+							Source.Lens_HeyGraphql,
+						],
+					},
+					$$lensPosts: {
+						$: [
+							Source.Lens_Graphql,
+							Source.Lens_HeyGraphql,
+						],
+					},
+				}
+			:
+				{}),
 		},
 	)
 
 
 	// Components
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import LensAccountsView from '$/views/LensAccountsView.svelte'
@@ -58,9 +84,12 @@
 <EntityView
 	entityType={EntityType.LensNetwork}
 	{entityId}
-	href={resolve('/(social)/lens')}
+	href={href}
+	layout={EntityLayout.SummaryDetails}
 	bind:open
-	title="Lens Protocol v3"
+	{collapsible}
+	{...EntityViewProps}
+	title="Lens"
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -73,7 +102,6 @@
 
 	{#snippet Value()}
 		{entityId.scope}
-
 	{/snippet}
 
 	{#snippet Title()}
@@ -81,46 +109,79 @@
 	{/snippet}
 
 	{#snippet Heading()}
-		{@render Title()}
+		<ResourceBoundary
+			resource={lensNetwork}
+			placeholderText="Loading Lens…"
+		>
+			{#snippet children(loadedLensNetwork)}
+				{loadedLensNetwork.protocolName ?? 'Lens'}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary resource={lensNetwork}>
-			{#snippet children(lensNetwork)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Profiles</dt>
-						<dd>{String(lensNetwork.$$lensAccounts.length)}</dd>
-					</div>
-					<div>
-						<dt>Publications</dt>
-						<dd>{String(lensNetwork.$$lensPosts.length)}</dd>
-					</div>
-					{#if open}
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: contentOpen,
+	})}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={lensNetwork}
+				placeholderText="Loading Lens…"
+			>
+				{#snippet children(loadedLensNetwork)}
+					{#if loadedLensNetwork.registryLabel}
 						<div>
-							<dt>Protocol name</dt>
-							<dd>{lensNetwork.protocolName}</dd>
+							<dt>Registry</dt>
+							<dd>{loadedLensNetwork.registryLabel}</dd>
+						</div>
+					{:else if loadedLensNetwork.protocolName}
+						<div>
+							<dt>Protocol</dt>
+							<dd>{loadedLensNetwork.protocolName}</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen}
+						<div>
+							<dt>Profiles</dt>
+							<dd>{String(lensNetwork.$$lensAccounts?.length ?? 0)}</dd>
 						</div>
 						<div>
-							<dt>Home</dt>
-							<dd>
-								<a href={lensNetwork.homeUrl}>{lensNetwork.homeUrl}</a>
-							</dd>
+							<dt>Publications</dt>
+							<dd>{String(lensNetwork.$$lensPosts?.length ?? 0)}</dd>
 						</div>
-						{#if lensNetwork.docsUrl !== undefined}
+
+						{#if loadedLensNetwork.topology}
+							<div>
+								<dt>Topology</dt>
+								<dd>{loadedLensNetwork.topology}</dd>
+							</div>
+						{/if}
+
+						{#if loadedLensNetwork.homeUrl}
+							<div>
+								<dt>Home</dt>
+								<dd>
+									<a href={loadedLensNetwork.homeUrl}>{loadedLensNetwork.homeUrl}</a>
+								</dd>
+							</div>
+						{/if}
+
+						{#if loadedLensNetwork.docsUrl !== undefined}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={lensNetwork.docsUrl}>
-										{lensNetwork.docsUrl}
+									<a href={loadedLensNetwork.docsUrl}>
+										{loadedLensNetwork.docsUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
 					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 
 	{#snippet Details({
@@ -130,9 +191,8 @@
 			entityType={EntityType.LensNetwork}
 			{entityId}
 		/>
-
 		<div
-			class="lens-network-detail-carousels"
+			class="entity-view-detail-carousels lens-network-detail-carousels"
 			data-column="gap-3"
 			data-carousel-basis="40ch"
 		>
@@ -154,13 +214,13 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet Markers({ open: _markersOpen })}
 					<a
 						data-scroll-marker-label="Profiles"
 						href={`#${networkIdKey}:registry-accounts`}
 					>Profiles</a>
 					<a
-						data-scroll-marker-label="Recent publications"
+						data-scroll-marker-label="Publications"
 						href={`#${networkIdKey}:registry-posts`}
 					>Publications</a>
 					<a
@@ -169,34 +229,34 @@
 					>Examples</a>
 				{/snippet}
 
-				{#snippet body({ open: _open })}
+				{#snippet body({ open: _sectionOpen })}
 					<section
 						data-scroll-marker-label="Profiles"
 						id={`${networkIdKey}:registry-accounts`}
 					>
 						<LensAccountsView
+							href={resolve('/lens/accounts')}
 							entityFieldReference={{
 								entityType: EntityType.LensNetwork,
 								entityId,
 								fieldName: '$$lensAccounts',
 							}}
-							href={resolve('/(social)/lens')}
 							id={`${networkIdKey}:accounts`}
 							open={_open}
 						/>
 					</section>
 
 					<section
-						data-scroll-marker-label="Recent publications"
+						data-scroll-marker-label="Publications"
 						id={`${networkIdKey}:registry-posts`}
 					>
 						<LensPostsView
+							href={resolve('/lens/posts')}
 							entityFieldReference={{
 								entityType: EntityType.LensNetwork,
 								entityId,
 								fieldName: '$$lensPosts',
 							}}
-							href={resolve('/(social)/lens')}
 							id={`${networkIdKey}:posts`}
 							open={_open}
 							title="Recent Lens v3 publications"
@@ -216,12 +276,8 @@
 								</a>
 							</li>
 							<li>
-								<a href={resolve('/(social)/lens/post/[postId]', {
-									postId: encodeURIComponent(
-										'0x0000000000000000000000000000000000000000000000000000000000000001',
-									),
-								})}>
-									Lens v3 publication example
+								<a href={resolve('/(social)/(lens)/lens/posts')}>
+									Browse recent publications
 								</a>
 							</li>
 						</ul>
@@ -231,4 +287,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-

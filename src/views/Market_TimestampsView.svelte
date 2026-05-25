@@ -4,15 +4,13 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -21,24 +19,21 @@
 		open = $bindable(true),
 		collapsible = true,
 		entityFieldReference,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Market_Timestamp>
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -51,7 +46,7 @@
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	{collapsible}
 	entityType={EntityType.Market_Timestamp}
@@ -72,9 +67,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const market = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -89,7 +83,7 @@
 						Source.Defillama_OpenApi,
 						Source.TradingView_Rest,
 					],
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Blockscout_Rest,
 							Source.Coingecko_Rest,
@@ -106,7 +100,7 @@
 			{@const quotes = derive(
 				market,
 				(market) => {
-					const rows: Entity<typeof schema, EntityType.Market_Timestamp>[] = market[fieldName] ?? []
+					const rows: Entity<typeof schema, EntityType.Market_Timestamp>[] = market[entityFieldReference.fieldName] ?? []
 					return (
 						rows
 							.map((value) => ({
@@ -118,7 +112,7 @@
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
-				{...entitiesListRest}
+				{...EntitiesListProps}
 				entityType={EntityType.Market_Timestamp}
 				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
 				getSortValue={(row) => String(row.value[EntityMetaKey.Id].timestampMs)}
@@ -134,19 +128,14 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const row = props.item.value}
-						<Market_TimestampView
-							entityId={row[EntityMetaKey.Id]}
-							href={resolve('/(assets)/(markets)/market/[marketKey]', {
-								marketKey: encodeURIComponent(stringify(row[EntityMetaKey.Id].$market)),
-							})}
-							id={stringify(row[EntityMetaKey.Id])}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const row = item.value}
+					<Market_TimestampView
+						entityId={row[EntityMetaKey.Id]}
+						id={stringify(row[EntityMetaKey.Id])}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

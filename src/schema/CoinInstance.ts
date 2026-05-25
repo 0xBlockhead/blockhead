@@ -1,4 +1,5 @@
 import { type } from 'arktype'
+// Per-chain deployment of a catalog Coin (native or ERC-20). $$marketsWithInstanceAs* require a venue indexer—not wired yet (Constants/Coingecko resolvers throw).
 import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
 import { CoinId } from '$/constants/Coin.ts'
 import {
@@ -77,20 +78,12 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Market,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Coingecko_Rest,
-			],
 		},
 		{
 			name: '$$marketsWithInstanceAsQuote',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Market,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [
-				Source.Constants_Internal,
-				Source.Coingecko_Rest,
-			],
 		},
 		{
 			name: 'representation',
@@ -108,7 +101,6 @@ export default {
 			entityType: EntityType.CoinInstance,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Coingecko_Rest,
 			],
 		},
@@ -118,7 +110,6 @@ export default {
 			entityType: EntityType.CoinBridgeCapability,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},
@@ -128,7 +119,6 @@ export default {
 			entityType: EntityType.CoinBridgeCapability,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
 		},

@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Props
 	let {
 		params,
@@ -18,6 +14,5 @@
 <Page>
 	<EnsView
 		entityId={{ name: params.ensName }}
-		href={resolve('/(explore)/(ens)/ens/name/[ensName]', params)}
 	/>
 </Page>

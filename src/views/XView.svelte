@@ -9,11 +9,10 @@
 
 
 	// Props
-
 	let {
+		href = resolve('/x'),
 		open = $bindable(true),
 	} = $props()
-
 
 	// State
 	import { stringify } from 'devalue'
@@ -37,11 +36,22 @@
 			protocolName: {},
 			homeUrl: {},
 			docsUrl: {},
-			$$xUsers: {},
-			$$xPosts: {},
+			registryLabel: {},
+			topology: {},
+			$$xUsers: {
+				$: [
+					Source.X_Rest,
+					Source.X_FxEmbed_Rest,
+				],
+			},
+			$$xPosts: {
+				$: [
+					Source.X_Rest,
+					Source.X_FxEmbed_Rest,
+				],
+			},
 		},
 	)
-
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
@@ -58,7 +68,7 @@
 <EntityView
 	entityType={EntityType.XNetwork}
 	{entityId}
-	href={resolve('/(social)/x')}
+	href={href}
 	bind:open
 	title="X"
 >
@@ -94,7 +104,7 @@
 				resource={network}
 				placeholderText="Loading X network…"
 			>
-				{#snippet children(network)}
+				{#snippet children(loadedNetwork)}
 					<div>
 						<dt>Profiles</dt>
 						<dd>{String(network['$$xUsers'].length)}</dd>
@@ -106,7 +116,21 @@
 					{#if contentOpen}
 						<div>
 							<dt>Protocol name</dt>
-							<dd>{network.protocolName}</dd>
+							<dd>{loadedNetwork.protocolName}</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen}
+						<div>
+							<dt>Registry label</dt>
+							<dd>{loadedNetwork.registryLabel}</dd>
+						</div>
+					{/if}
+
+					{#if contentOpen}
+						<div>
+							<dt>Topology</dt>
+							<dd>{loadedNetwork.topology}</dd>
 						</div>
 					{/if}
 
@@ -114,26 +138,26 @@
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={network.homeUrl}>
-									{network.homeUrl}
+								<a href={loadedNetwork.homeUrl}>
+									{loadedNetwork.homeUrl}
 								</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen}
-						{#if network.docsUrl != null}
-							{#if network.docsUrl !== ''}
-								<div>
-									<dt>Docs</dt>
-									<dd>
-										<a href={network.docsUrl}>
-											{network.docsUrl}
-										</a>
-									</dd>
-								</div>
-							{/if}
-						{/if}
+					{#if (
+						contentOpen
+						&& network.docsUrl != null
+						&& network.docsUrl !== ''
+					)}
+						<div>
+							<dt>Docs</dt>
+							<dd>
+								<a href={loadedNetwork.docsUrl}>
+									{loadedNetwork.docsUrl}
+								</a>
+							</dd>
+						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
@@ -147,7 +171,6 @@
 			entityType={EntityType.XNetwork}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels x-network-detail-carousels"
 			data-column="gap-3"
@@ -205,12 +228,12 @@
 						data-scroll-marker-label="Profiles"
 					>
 						<XUsersView
+							href={resolve('/x/users')}
 							entityFieldReference={{
 								entityType: EntityType.XNetwork,
 								entityId,
 								fieldName: '$$xUsers',
 							}}
-							href={resolve('/(social)/x')}
 							id={`${networkIdKey}:users`}
 							open={_open}
 							title="Profiles"
@@ -222,12 +245,12 @@
 						data-scroll-marker-label="Recent posts"
 					>
 						<XPostsView
+							href={resolve('/x/posts')}
 							entityFieldReference={{
 								entityType: EntityType.XNetwork,
 								entityId,
 								fieldName: '$$xPosts',
 							}}
-							href={resolve('/(social)/x')}
 							id={`${networkIdKey}:posts`}
 							open={_open}
 							title="Recent posts"

@@ -1,24 +1,31 @@
 import type { ChainId } from '$/constants/ChainId.ts'
+import { type } from 'arktype'
 import {
-	coinBridgeCapabilityFieldsForToolKey,
-	coinInstanceRepresentationFor,
+	bridgeToolByKey,
+	CoinInstanceRepresentation,
 } from '$/constants/Bridge.ts'
 import { CoinId } from '$/constants/Coin.ts'
 import {
 	currencies,
 	currencyByIso4217,
-	usdCurrencyMarketAssetLeg,
 } from '$/constants/Currency.ts'
+import { ensProtocolFieldValues } from '$/constants/EnsProtocol.ts'
+import { evmProtocolFieldValues } from '$/constants/EvmProtocol.ts'
+import { ipfsProtocolFieldValues } from '$/constants/IpfsProtocol.ts'
 import {
 	MarketAssetKind,
 	MarketKind,
 } from '$/constants/Market.ts'
-import { catalogCoinUsdMarketId } from '$/constants/MarketCatalog.ts'
+import {
+	catalogCoinUsdMarketIdByCoinId,
+	catalogMarketsWithCoinAsQuoteByQuoteCoinId,
+} from '$/constants/MarketCatalog.ts'
+import { stringify } from 'devalue'
+import { NetworkExecutionUpgradeLayer } from '$/schema/NetworkUpgradeProtocols.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import {
 	proposalCategoryById,
-	proposalKindIds,
-	proposalKindIdsForRealm,
+	proposalKindAllowedInRealmByKey,
 	proposalRealmById,
 } from '$/constants/Proposal.ts'
 import { activityPubNetworkFieldValues, activityPubNetworkSeedActors } from '$/constants/Social/ActivityPub.ts'
@@ -31,6 +38,7 @@ import {
 } from '$/constants/Social/Nostr.ts'
 import { redditNetworkFieldValues, redditNetworkSeedSubreddits } from '$/constants/Social/Reddit.ts'
 import { rssNetworkFieldValues, rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
+import { swarmProtocolFieldValues } from '$/constants/SwarmProtocol.ts'
 import {
 	youtubeNetworkFieldValues,
 	youtubeNetworkSeedChannels,
@@ -51,24 +59,124 @@ import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { Entity } from '$/schema/$schema.ts'
+import { UrlString } from '$/schema/$Url.ts'
 import { beaconRestBaseByExecutionChainId } from '$/constants/BeaconConsensus.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
-import { getPrecompileNameForAddress } from '$/constants/precompiles/index.ts'
-import { getPrecompilesActiveAtBlock } from '$/data/precompiles/load.ts'
+import {
+	precompilesByChainId,
+} from '$/constants/precompiles/index.ts'
+import { standardPrecompiles } from '$/constants/precompiles/standard.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { jsonRpcUrlWithTransportForChain } from '$/resolvers/Voltaire-JsonRpc.ts'
+
+const networkUpgradeDenormalizedFields = (
+	row: Entity<typeof schema, EntityType.NetworkUpgrade>,
+	networkExecutionUpgradeByChainIdAndUpgradeId: Record<
+		string,
+		Entity<typeof schema, EntityType.NetworkExecutionUpgrade>
+	>,
+	networkConsensusUpgradeByChainIdAndUpgradeId: Record<
+		string,
+		Entity<typeof schema, EntityType.NetworkConsensusUpgrade>
+	>,
+): Partial<
+	Pick<
+		Entity<typeof schema, EntityType.NetworkUpgrade>,
+		| 'activationBlock'
+		| 'activationTimestamp'
+		| 'activationEpoch'
+		| '$$proposals'
+	>
+> => {
+	const execRef = row.$networkExecutionUpgrade?.[EntityMetaKey.Id]
+	const executionRow = (
+		execRef == null ?
+			null
+		:	networkExecutionUpgradeByChainIdAndUpgradeId[
+				`${execRef.$network.chainId}:${execRef.upgradeId}`
+			]
+	)
+	const consRef = row.$networkConsensusUpgrade
+	const consensusRow = (
+		consRef == null ?
+			null
+		:	networkConsensusUpgradeByChainIdAndUpgradeId[
+				`${consRef[EntityMetaKey.Id].$network.chainId}:${consRef[EntityMetaKey.Id].upgradeId}`
+			]
+	)
+
+	const activationBlock = executionRow?.activationBlock ?? consensusRow?.activationBlock
+	const activationTimestamps = [
+		executionRow?.activationTimestamp,
+		consensusRow?.activationTimestamp,
+	].filter((timestamp): timestamp is number => timestamp != null)
+	const activationTimestamp = (
+		activationTimestamps.length > 0 ?
+			Math.max(...activationTimestamps)
+		:	undefined
+	)
+	const activationEpoch = consensusRow?.activationEpoch ?? executionRow?.activationEpoch
+
+	const executionProposals = executionRow?.$$proposals
+	const consensusProposals = consensusRow?.$$proposals
+	const linkedProposals = (
+		executionProposals != null && executionProposals.length > 0 ?
+			[...executionProposals]
+		: consensusProposals != null && consensusProposals.length > 0 ?
+			[...consensusProposals]
+		:	(() => {
+				const seen = new Set<string>()
+				const out: Entity<typeof schema, EntityType.Proposal>[] = []
+				for (const proposal of [
+					...(executionProposals ?? []),
+					...(consensusProposals ?? []),
+				]) {
+					const key = stringify(proposal[EntityMetaKey.Id])
+					if (seen.has(key)) continue
+					seen.add(key)
+					out.push(proposal)
+				}
+				return out
+			})()
+	)
+
+	return {
+		...(activationBlock != null && { activationBlock }),
+		...(activationTimestamp != null && { activationTimestamp }),
+		...(activationEpoch != null && { activationEpoch }),
+		...(linkedProposals.length > 0 && { $$proposals: linkedProposals }),
+	}
+}
+
+const canonicalPublicHttpUrlFromCatalogString = (raw: string): string => {
+	const trimmed = raw.trim()
+	const absolute = (
+		trimmed.startsWith('http://')
+		|| trimmed.startsWith('https://') ?
+			trimmed
+		: trimmed.startsWith('//') ?
+			`https:${trimmed}`
+		:	`https://${trimmed}`
+	)
+	return new URL(absolute).toString()
+}
+
+const urlEntitiesFromFaucetUrlStrings = (
+	faucetUrls: string[],
+): Entity<typeof schema, EntityType.Url>[] =>
+	faucetUrls.flatMap((raw) => {
+		const trimmed = raw.trim()
+		if (trimmed === '') return []
+		const url = canonicalPublicHttpUrlFromCatalogString(trimmed)
+		const hrefAsUrlString = UrlString(url)
+		if (hrefAsUrlString instanceof type.errors) return []
+		return [{ [EntityMetaKey.Id]: { url: hrefAsUrlString } } as Entity<typeof schema, EntityType.Url>]
+	})
 
 const BEACON_SLOTS_PER_EPOCH = 32
 const BEACON_SECONDS_PER_SLOT = 12
 
 const executionBlockActivationTimestampSecondsByKey = new Map<string, number | undefined>()
-
-const beaconGenesisTimeSecondsForBase = singleFlight(
-	async (beaconRestBaseUrl: string) => {
-		const { getBeaconGenesisTimeSeconds } = await import('$/sources/Beacon/Rest/queries.ts')
-		return getBeaconGenesisTimeSeconds(beaconRestBaseUrl)
-	},
-)
 
 const activationTimestampSecondsForSort = (
 	activationTimestamp: number,
@@ -83,11 +191,12 @@ const consensusEpochActivationTimestampSeconds = async (
 	chainId: number,
 	activationEpoch: number,
 ): Promise<number | undefined> => {
-	const beaconRestBaseUrl = beaconRestBaseByExecutionChainId[chainId]
+	const beaconRestBaseUrl = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
 	if (beaconRestBaseUrl == null) {
 		return undefined
 	}
-	const genesisTimeSeconds = await beaconGenesisTimeSecondsForBase(beaconRestBaseUrl)
+	const { getBeaconGenesisTimeSeconds } = await import('$/sources/Beacon/Rest/queries.ts')
+	const genesisTimeSeconds = await singleFlight(getBeaconGenesisTimeSeconds)(beaconRestBaseUrl)
 	if (genesisTimeSeconds == null) {
 		return undefined
 	}
@@ -292,7 +401,8 @@ export default {
 			resolve: async (entityId) => {
 				const {
 					networkUpgradeByChainIdAndUpgradeId,
-					resolveNetworkUpgradeDenormalizedFields,
+					networkExecutionUpgradeByChainIdAndUpgradeId,
+					networkConsensusUpgradeByChainIdAndUpgradeId,
 				} = await import(
 					'$/constants/NetworkUpgrades.ts'
 				)
@@ -304,7 +414,11 @@ export default {
 				}
 				return enrichNetworkUpgradeActivationTimestamp({
 					...upgradeDefinition,
-					...resolveNetworkUpgradeDenormalizedFields(upgradeDefinition),
+					...networkUpgradeDenormalizedFields(
+						upgradeDefinition,
+						networkExecutionUpgradeByChainIdAndUpgradeId,
+						networkConsensusUpgradeByChainIdAndUpgradeId,
+					),
 				})
 			},
 		}),
@@ -372,6 +486,29 @@ export default {
 		}),
 
 		defineEntityResolver({
+			entityType: EntityType.EvmContract,
+			resolve: async (entityId) => {
+				const address = hexLowerOfByteSize(entityId.address, 20)
+				if (address == null) {
+					throw new Error('Constants_Internal: EvmContract address not normalized')
+				}
+				const chainPrecompiles = (
+					precompilesByChainId[entityId.$network.chainId]
+					?? standardPrecompiles
+				)
+				const precompileName = chainPrecompiles.find((precompile) => (
+					precompile.address.toLowerCase() === address.toLowerCase()
+				))?.name
+				if (precompileName == null) {
+					throw new Error(`Constants_Internal: EvmContract ${address} is not a catalog precompile on chain ${String(entityId.$network.chainId)}`)
+				}
+				return {
+					precompileName,
+				}
+			},
+		}),
+
+		defineEntityResolver({
 			entityType: EntityType.Coin,
 			resolve: async (entityId) => {
 				const { coinById } = await import('$/constants/Coin.ts')
@@ -398,25 +535,23 @@ export default {
 					coinId: CoinId.ETH,
 					symbol: 'ETH',
 					decimals: 18,
-					representation: coinInstanceRepresentationFor(
-						CoinId.ETH,
-						'ETH',
-						{
-							chainId: 1,
-							type: CoinInstanceType.NativeCurrency,
-							isNativeChain: true,
-						},
-					),
+					representation: CoinInstanceRepresentation.IssuerNative,
 				}
 			},
 		}),
 
 		defineEntityResolver({
 			entityType: EntityType.CoinBridgeCapability,
-			resolve: async (entityId) => ({
-				toolKey: entityId.toolKey,
-				...coinBridgeCapabilityFieldsForToolKey(entityId.toolKey),
-			}),
+			resolve: async (entityId) => {
+				const coinBridgeCapabilityFields = bridgeToolByKey[entityId.toolKey]
+				if (coinBridgeCapabilityFields == null) {
+					throw new Error(`Bridge: unknown LI.FI tool key ${entityId.toolKey}`)
+				}
+				return {
+					toolKey: entityId.toolKey,
+					...coinBridgeCapabilityFields,
+				}
+			},
 		}),
 
 		defineEntityResolver({
@@ -439,14 +574,11 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.Network,
 			resolve: async (entityId) => {
-				const { urlEntitiesDeduplicatedSortedFromFaucetUrlStrings } = await import(
-					'$/resolvers/_networkCatalogUrlEntities.ts'
-				)
 				const { executionEndpointsByChainId } = await import('$/constants/ExecutionEndpoints.ts')
 				const list = executionEndpointsByChainId[entityId.chainId as ChainId] ?? []
 				return {
 					executionEndpoints: [...list],
-					$$rpcUrls: urlEntitiesDeduplicatedSortedFromFaucetUrlStrings(list.map((endpoint) => endpoint.url)),
+					$$rpcUrls: urlEntitiesFromFaucetUrlStrings(list.map((endpoint) => endpoint.url)),
 				}
 			},
 		}),
@@ -488,6 +620,46 @@ export default {
 					throw new Error('Constants: unexpected AtprotoNetwork id')
 				}
 				return atprotoNetworkFieldValues
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.EnsProtocol,
+			resolve: async (entityId) => {
+				if (entityId.scope !== 'EnsProtocol') {
+					throw new Error('Constants: unexpected EnsProtocol id')
+				}
+				return ensProtocolFieldValues
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.EvmProtocol,
+			resolve: async (entityId) => {
+				if (entityId.scope !== 'EvmProtocol') {
+					throw new Error('Constants: unexpected EvmProtocol id')
+				}
+				return evmProtocolFieldValues
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.IpfsProtocol,
+			resolve: async (entityId) => {
+				if (entityId.scope !== 'IpfsProtocol') {
+					throw new Error('Constants: unexpected IpfsProtocol id')
+				}
+				return ipfsProtocolFieldValues
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.SwarmProtocol,
+			resolve: async (entityId) => {
+				if (entityId.scope !== 'SwarmProtocol') {
+					throw new Error('Constants: unexpected SwarmProtocol id')
+				}
+				return swarmProtocolFieldValues
 			},
 		}),
 
@@ -569,12 +741,17 @@ export default {
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const {
 					networkUpgrades,
-					resolveNetworkUpgradeDenormalizedFields,
+					networkExecutionUpgradeByChainIdAndUpgradeId,
+					networkConsensusUpgradeByChainIdAndUpgradeId,
 				} = await import('$/constants/NetworkUpgrades.ts')
 				return enrichNetworkUpgradeRowsActivationTimestamp(
 					networkUpgrades.map((upgradeRow) => ({
 						...upgradeRow,
-						...resolveNetworkUpgradeDenormalizedFields(upgradeRow),
+						...networkUpgradeDenormalizedFields(
+							upgradeRow,
+							networkExecutionUpgradeByChainIdAndUpgradeId,
+							networkConsensusUpgradeByChainIdAndUpgradeId,
+						),
 					})),
 				)
 			},
@@ -608,9 +785,13 @@ export default {
 			entityType: EntityType.ProposalRealm,
 			fieldName: '$$proposalKinds',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.ProposalRealm>) => (
-				proposalKindIdsForRealm(entityId.realm).map((proposalKindId) => ({
-					[EntityMetaKey.Id]: proposalKindId,
-				}))
+				proposalKindIds
+					.filter((proposalKindId) => (
+						proposalKindId.realm === entityId.realm
+					))
+					.map((proposalKindId) => ({
+						[EntityMetaKey.Id]: proposalKindId,
+					}))
 			),
 		}),
 
@@ -659,6 +840,29 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
+			entityType: EntityType.MarketVenue,
+			fieldName: '$$markets',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketVenue>) => {
+				const { coins } = await import('$/constants/Coin.ts')
+				return (
+					coins.flatMap((coin) => {
+						const marketId = catalogCoinUsdMarketIdByCoinId[coin.id]
+						return (
+							marketId.$marketVenue.marketVenueId === entityId.marketVenueId ?
+								[
+									{
+										[EntityMetaKey.Id]: marketId,
+									},
+								]
+							:
+								[]
+						)
+					})
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$currencies',
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
@@ -680,7 +884,7 @@ export default {
 				return (
 					coins.map((coin) => (
 						{
-							[EntityMetaKey.Id]: catalogCoinUsdMarketId(coin.id),
+							[EntityMetaKey.Id]: catalogCoinUsdMarketIdByCoinId[coin.id],
 						}
 					))
 				)
@@ -696,7 +900,7 @@ export default {
 					coins.map((coin) => (
 						{
 							[EntityMetaKey.Id]: {
-								$market: catalogCoinUsdMarketId(coin.id),
+								$market: catalogCoinUsdMarketIdByCoinId[coin.id],
 							},
 						}
 					))
@@ -710,7 +914,7 @@ export default {
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => (
 				[
 					{
-						[EntityMetaKey.Id]: catalogCoinUsdMarketId(entityId.coinId),
+						[EntityMetaKey.Id]: catalogCoinUsdMarketIdByCoinId[entityId.coinId],
 					},
 				]
 			),
@@ -719,20 +923,11 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
-				const { coinById } = await import('$/constants/Coin.ts')
-				const { catalogMarketsWithCoinAsQuote } = await import('$/constants/MarketCatalog.ts')
-				if (coinById[entityId.coinId as keyof typeof coinById] == null) {
-					throw new Error(`Constants_Internal: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`)
-				}
-				return (
-					catalogMarketsWithCoinAsQuote(entityId.coinId).map((marketId) => (
-						{
-							[EntityMetaKey.Id]: marketId,
-						}
-					))
-				)
-			},
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => (
+				(catalogMarketsWithCoinAsQuoteByQuoteCoinId[entityId.coinId] ?? []).map((marketId) => ({
+					[EntityMetaKey.Id]: marketId,
+				}))
+			),
 		}),
 
 		defineEntityFieldResolver({
@@ -746,15 +941,7 @@ export default {
 								$network: { chainId: 1 },
 								type: CoinInstanceType.NativeCurrency,
 							},
-							representation: coinInstanceRepresentationFor(
-								CoinId.ETH,
-								'ETH',
-								{
-									chainId: 1,
-									type: CoinInstanceType.NativeCurrency,
-									isNativeChain: true,
-								},
-							),
+							representation: CoinInstanceRepresentation.IssuerNative,
 						},
 					]
 				:	[]
@@ -793,15 +980,7 @@ export default {
 					entityId.type === CoinInstanceType.NativeCurrency
 					&& entityId.$network.chainId === 1
 				) {
-					return coinInstanceRepresentationFor(
-						CoinId.ETH,
-						'ETH',
-						{
-							chainId: 1,
-							type: CoinInstanceType.NativeCurrency,
-							isNativeChain: true,
-						},
-					)
+					return CoinInstanceRepresentation.IssuerNative
 				}
 				throw new Error('Constants_Internal: CoinInstance representation unsupported')
 			},
@@ -825,13 +1004,19 @@ export default {
 			entityType: EntityType.Market,
 			fieldName: '$$marketPrices',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>) => (
-				[
-					{
-						[EntityMetaKey.Id]: {
-							$market: entityId,
+				(
+					entityId.$base.kind === MarketAssetKind.Coin
+					&& stringify(catalogCoinUsdMarketIdByCoinId[entityId.$base.$coin.coinId]) === stringify(entityId)
+				) ?
+					[
+						{
+							[EntityMetaKey.Id]: {
+								$market: entityId,
+							},
 						},
-					},
-				]
+					]
+				:
+					[]
 			),
 		}),
 
@@ -883,9 +1068,12 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: 'hasBlobParameterExecutionUpgrade',
 			resolve: async (entityId) => {
-				const { networkHasBlobParameterExecutionUpgrade } = await import('$/constants/NetworkUpgrades.ts')
+				const { networkExecutionUpgrades } = await import('$/constants/NetworkUpgrades.ts')
 				return (
-					networkHasBlobParameterExecutionUpgrade(entityId.chainId)
+					networkExecutionUpgrades.some((executionUpgrade) => (
+						executionUpgrade[EntityMetaKey.Id].$network.chainId === entityId.chainId
+						&& executionUpgrade.layer === NetworkExecutionUpgradeLayer.Blob
+					))
 				)
 			},
 		}),
@@ -894,8 +1082,8 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: 'consensusProtocol',
 			resolve: async (entityId) => {
-				const { consensusProtocolForExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
-				return consensusProtocolForExecutionChainId(entityId.chainId)
+				const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
+				return beaconRestBaseByExecutionChainId[entityId.chainId]?.consensusProtocol
 			},
 		}),
 
@@ -905,7 +1093,8 @@ export default {
 			resolve: async (entityId) => {
 				const {
 					networkUpgrades,
-					resolveNetworkUpgradeDenormalizedFields,
+					networkExecutionUpgradeByChainIdAndUpgradeId,
+					networkConsensusUpgradeByChainIdAndUpgradeId,
 				} = await import('$/constants/NetworkUpgrades.ts')
 				return enrichNetworkUpgradeRowsActivationTimestamp(
 					networkUpgrades
@@ -914,7 +1103,11 @@ export default {
 						))
 						.map((upgradeRow) => ({
 							...upgradeRow,
-							...resolveNetworkUpgradeDenormalizedFields(upgradeRow),
+							...networkUpgradeDenormalizedFields(
+								upgradeRow,
+								networkExecutionUpgradeByChainIdAndUpgradeId,
+								networkConsensusUpgradeByChainIdAndUpgradeId,
+							),
 						})),
 				)
 			},
@@ -985,13 +1178,18 @@ export default {
 			resolve: async (entityId) => {
 				const {
 					networkUpgradeByChainIdAndUpgradeId,
-					resolveNetworkUpgradeDenormalizedFields,
+					networkExecutionUpgradeByChainIdAndUpgradeId,
+					networkConsensusUpgradeByChainIdAndUpgradeId,
 				} = await import('$/constants/NetworkUpgrades.ts')
 				const upgradeRow = networkUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
 				if (upgradeRow == null) {
 					throw new Error(`Constants_Internal: unknown NetworkUpgrade ${entityId.$network.chainId}:${entityId.upgradeId}`)
 				}
-				const denorm = resolveNetworkUpgradeDenormalizedFields(upgradeRow)
+				const denorm = networkUpgradeDenormalizedFields(
+					upgradeRow,
+					networkExecutionUpgradeByChainIdAndUpgradeId,
+					networkConsensusUpgradeByChainIdAndUpgradeId,
+				)
 				const proposals = [...(denorm.$$proposals ?? [])]
 				if (proposals.length === 0) {
 					throw new Error(`Constants_Internal: NetworkUpgrade ${entityId.upgradeId} has no $$proposals`)
@@ -1020,8 +1218,8 @@ export default {
 			resolve: async (entityId) => {
 				const {
 					networkConsensusUpgradeByChainIdAndUpgradeId,
+					networkExecutionUpgradeByChainIdAndUpgradeId,
 					networkUpgrades,
-					resolveNetworkUpgradeDenormalizedFields,
 				} = await import('$/constants/NetworkUpgrades.ts')
 				const upgradeRow = networkConsensusUpgradeByChainIdAndUpgradeId[`${entityId.$network.chainId}:${entityId.upgradeId}`]
 				const directProposals = [...(upgradeRow?.$$proposals ?? [])]
@@ -1033,7 +1231,11 @@ export default {
 					&& networkUpgrade.$networkConsensusUpgrade?.[EntityMetaKey.Id].upgradeId === entityId.upgradeId
 				))
 				if (umbrellaRow != null) {
-					const linkedProposals = [...(resolveNetworkUpgradeDenormalizedFields(umbrellaRow).$$proposals ?? [])]
+					const linkedProposals = [...(networkUpgradeDenormalizedFields(
+						umbrellaRow,
+						networkExecutionUpgradeByChainIdAndUpgradeId,
+						networkConsensusUpgradeByChainIdAndUpgradeId,
+					).$$proposals ?? [])]
 					if (linkedProposals.length > 0) {
 						return linkedProposals
 					}
@@ -1241,14 +1443,6 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType._Global,
-			fieldName: '$$eip8004Services',
-			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
-				throw new Error('Constants_Internal: $$eip8004Services is unsupported')
-			},
-		}),
-
-		defineEntityFieldResolver({
 			entityType: EntityType.EvmContract,
 			fieldName: 'precompileName',
 			resolve: async (entityId) => {
@@ -1256,26 +1450,25 @@ export default {
 				if (address == null) {
 					throw new Error('Constants_Internal: EvmContract address not normalized')
 				}
-				return getPrecompileNameForAddress(
-					entityId.$network.chainId,
-					address,
+				const chainPrecompiles = (
+					precompilesByChainId[entityId.$network.chainId]
+					?? standardPrecompiles
 				)
+				return chainPrecompiles.find((precompile) => (
+					precompile.address.toLowerCase() === address.toLowerCase()
+				))?.name
 			},
 		}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Network,
-			fieldName: '$$precompiles',
+			fieldName: '$$contracts',
 			resolve: async (entityId, context) => {
 				const limit = resolverLoadSubsetRowLimit(context)
-				const chainId = entityId.chainId
-				let blockNumber: number | undefined
-				const jsonRpcTransport = await jsonRpcUrlWithTransportForChain(chainId)
-				if (jsonRpcTransport != null) {
-					const { getChainHeadNumberForRpcUrl } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
-					blockNumber = Number(await getChainHeadNumberForRpcUrl(jsonRpcTransport))
-				}
-				return getPrecompilesActiveAtBlock(chainId, blockNumber)
+				return (
+					precompilesByChainId[entityId.chainId]
+					?? standardPrecompiles
+				)
 					.slice(0, limit)
 					.flatMap((precompile) => {
 						const address = hexLowerOfByteSize(precompile.address, 20)
@@ -1283,7 +1476,7 @@ export default {
 							[]
 						:	[{
 							[EntityMetaKey.Id]: {
-								$network: { chainId },
+								$network: { chainId: entityId.chainId },
 								address,
 							},
 						}]

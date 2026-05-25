@@ -2,20 +2,6 @@
 	// Types/constants
 	import { parse } from 'devalue'
 
-	import { isMarketEntityId } from '$/lib/isMarketEntityId.ts'
-
-	const tryDecodeMarketKeyParam = (raw: string): string => {
-		try {
-			return decodeURIComponent(raw)
-		} catch {
-			return raw
-		}
-	}
-
-
-	// Context
-	import { resolve } from '$app/paths'
-
 
 	// Props
 	let {
@@ -50,6 +36,20 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import MarketView from '$/views/MarketView.svelte'
+
+
+	// Functions
+	const tryDecodeMarketKeyParam = (raw: string): string => {
+		try {
+			return decodeURIComponent(raw)
+		} catch {
+			return raw
+		}
+	}
+
+
+	// State
+	import { isMarketEntityId } from '$/lib/isMarketEntityId.ts'
 </script>
 
 
@@ -71,12 +71,6 @@
 	{:else}
 		<MarketView
 			entityId={route.marketId}
-			href={(
-				resolve(
-					'/(assets)/(markets)/market/[marketKey]',
-					{ marketKey: params.marketKey },
-				)
-			)}
 		/>
 	{/if}
 </Page>

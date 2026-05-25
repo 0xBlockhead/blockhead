@@ -11,9 +11,8 @@
 
 	// Props
 	let {
-		children: _children,
 		entityId,
-		href,
+		href = getEvmTopicPath(entityId.hex),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -23,36 +22,25 @@
 			layout === EntityLayout.SummaryDetails,
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmTopic>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
-	const topicIdKey = $derived(
-		stringify(entityId),
-	)
-
 
 	// State
+	import { getEvmTopicPath } from '$/lib/signature-paths.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const topic = useEntity(
 		EntityType.EvmTopic,
@@ -79,12 +67,11 @@
 <EntityView
 	entityType={EntityType.EvmTopic}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
-	{summaryUsesHeading}
 	bind:open
 	{collapsible}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
@@ -97,9 +84,9 @@
 			resource={topic}
 			placeholderText="Loading log topic…"
 		>
-			{#snippet children(topic)}
-				{#if topic.signatures?.[0]}
-					{topic.signatures[0]}
+			{#snippet children(loadedTopic)}
+				{#if loadedTopic.signatures?.[0]}
+					{loadedTopic.signatures[0]}
 				{:else}
 					{@render Value()}
 				{/if}
@@ -112,8 +99,8 @@
 			resource={topic}
 			placeholderText="Loading log topic…"
 		>
-			{#snippet children(topic)}
-				{topic.signatures?.[0] ?? entityId.hex}
+			{#snippet children(loadedTopic)}
+				{loadedTopic.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -150,13 +137,13 @@
 					resource={topic}
 					placeholderText="Loading topic catalog signatures…"
 				>
-					{#snippet children(topic)}
-						{#if topic.signatures?.length}
+					{#snippet children(loadedTopic)}
+						{#if loadedTopic.signatures?.length}
 							<div>
 								<dt>Catalog signatures</dt>
 								<dd>
 									<ul>
-										{#each topic.signatures as sig (sig)}
+										{#each loadedTopic.signatures as sig (sig)}
 											<li><code>{sig}</code></li>
 										{/each}
 									</ul>
@@ -177,16 +164,10 @@
 		</div>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.EvmTopic}
 			{entityId}
 		/>
-
-		{#if _children}
-			<section id={`${topicIdKey}:page-content`}>
-				{@render _children()}
-			</section>
-		{/if}
 	{/snippet}
 </EntityView>

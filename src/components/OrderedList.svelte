@@ -63,17 +63,9 @@
 
 	type ItemSnippetContext = {
 		key?: OrderedListKey,
+		item: _Item,
 		isVisible?: boolean,
-	} & (
-		| {
-				item?: _Item,
-				isPlaceholder?: false,
-			}
-		| {
-				item?: never,
-				isPlaceholder?: true,
-			}
-	)
+	}
 
 	type PlaceholderRangeSnippetContext = {
 		range?: [number, number],
@@ -243,7 +235,7 @@
 				rows: [
 					...allRows.slice(
 						0,
-						sliceLimit,
+						rowLimit,
 					),
 					...(
 						pagination?.hasMore ?
@@ -280,7 +272,7 @@
 		summary = $bindable({ loaded: 0, total: undefined }),
 		visiblePlaceholderRanges = $bindable(new Set<string>()),
 		onLoadMorePlaceholders,
-		sliceLimit: sliceLimitProp,
+		limit,
 		scrollPosition = 'Auto',
 		orientation = ListOrientation.Column,
 		pagination,
@@ -300,14 +292,14 @@
 		summary?: { loaded: number; total?: number }
 		visiblePlaceholderRanges?: Set<string>
 		onLoadMorePlaceholders?: () => void
-		sliceLimit?: number
+		limit?: number
 		scrollPosition?: 'Start' | 'End' | 'Auto'
 		orientation?: ListOrientation
 		pagination?: ListPagination
 		listViewTransition?: boolean
 		virtual?: VirtualRowMeasurement<Row>
-		Item: Snippet<[context?: ItemSnippetContext]>
-		PlaceholderRange?: Snippet<[context?: PlaceholderRangeSnippetContext]>
+		Item: Snippet<[ItemSnippetContext]>
+		PlaceholderRange?: Snippet<[PlaceholderRangeSnippetContext]>
 		Empty?: Snippet<[]>
 	} = $props()
 
@@ -410,8 +402,8 @@
 		]
 	))
 	const isEmpty = $derived(allRows.length === 0)
-	const sliceLimit = $derived(
-		sliceLimitProp ?? (onLoadMorePlaceholders ? 200 : 100),
+	const rowLimit = $derived(
+		limit ?? (onLoadMorePlaceholders ? 200 : 100),
 	)
 	const nextRenderState = $derived.by(getNextRenderState)
 	const nextRenderFingerprint = $derived(
@@ -617,7 +609,6 @@
 			{@render Item({
 				key: row.key,
 				item: row.item,
-				isPlaceholder: false as const,
 				isVisible: visibleItemKeys.has(eachKeyString(row.key)),
 			})}
 		</li>

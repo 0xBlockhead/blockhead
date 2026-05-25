@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -12,38 +11,34 @@
 		swarmResourceCanonicalUri,
 	} from '$/sources/Swarm/Rest/queries.ts'
 
+	import { stringify } from 'devalue'
+
+
+	// Context
+	import { resolve } from '$app/paths'
+
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+			'/(explore)/(swarm)/swarm/resource/[resourceKey]',
+			{ resourceKey: entityId.resourceKey },
+		),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.SwarmResource>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
-		>
+		never
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const swarm = useEntity(
@@ -60,8 +55,8 @@
 			contentLength: {},
 			displayType: {},
 			isContentTypeInferred: {},
+			text: {},
 			...(open && {
-				text: {},
 				$media: {},
 			}),
 		},
@@ -70,24 +65,23 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import FileDetails from '$/components/FileDetails.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
+	import SwarmBrowseForm from '$/views/SwarmBrowseForm.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.SwarmResource}
 	{entityId}
-	{href}
-	{open}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	href={href}
+	bind:open
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
@@ -100,10 +94,20 @@
 	{/snippet}
 
 	{#snippet Heading()}
-		<TruncatedValue
-			value={swarmResourceCanonicalUri(entityId)}
-			format={TruncatedValueFormat.Visual}
-		/>
+		{#if href}
+			<a
+			>
+				<TruncatedValue
+					value={swarmResourceCanonicalUri(entityId)}
+					format={TruncatedValueFormat.Visual}
+				/>
+			</a>
+		{:else}
+			<TruncatedValue
+				value={swarmResourceCanonicalUri(entityId)}
+				format={TruncatedValueFormat.Visual}
+			/>
+		{/if}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -115,13 +119,13 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
 				<dt>Content type</dt>
 				<dd>
-					<ResourceBoundary resource={swarm}>
-						{#snippet children(swarm)}
+					{#if true}
+						{#snippet SwarmContentTypeRow(swarm)}
 							{#if swarm.contentType !== undefined}
 								<TruncatedValue
 									value={swarm.contentType}
@@ -131,47 +135,62 @@
 									{' '}<span data-text="muted">(inferred)</span>
 								{/if}
 							{:else if !open}
-								<p data-text="muted">Content type unavailable.</p>
+								<span data-text="muted">Content type unavailable.</span>
 							{/if}
 						{/snippet}
-					</ResourceBoundary>
+
+						<ResourceBoundary
+							children={SwarmContentTypeRow}
+							resource={swarm}
+						/>
+					{/if}
 				</dd>
 			</div>
 
-			{#if open}
+			{#if contentOpen}
 				<div>
 					<dt>Canonical URI</dt>
 					<dd>
-						<ResourceBoundary resource={swarm}>
-							{#snippet children(swarm)}
+						{#if true}
+							{#snippet SwarmCanonicalUriRow(swarm)}
 								<TruncatedValue
 									value={swarm.canonicalUri}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
-						</ResourceBoundary>
+
+							<ResourceBoundary
+								children={SwarmCanonicalUriRow}
+								resource={swarm}
+							/>
+						{/if}
 					</dd>
 				</div>
 
 				<div>
 					<dt>Gateway</dt>
 					<dd>
-						<ResourceBoundary resource={swarm}>
-							{#snippet children(swarm)}
+						{#if true}
+							{#snippet SwarmGatewayOriginRow(swarm)}
 								<TruncatedValue
 									value={swarm.gatewayOrigin}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
-						</ResourceBoundary>
+
+							<ResourceBoundary
+								children={SwarmGatewayOriginRow}
+								resource={swarm}
+							/>
+						{/if}
 					</dd>
 				</div>
 
 				<div>
 					<dt>Gateway URL</dt>
 					<dd>
-						<ResourceBoundary resource={swarm}>
-							{#snippet children(swarm)}
+						{#if true}
+							{#snippet SwarmGatewayUrlRow(swarm)}
 								<a
 									href={swarm.gatewayUrl}
 									target="_blank"
@@ -183,15 +202,20 @@
 									/>
 								</a>
 							{/snippet}
-						</ResourceBoundary>
+
+							<ResourceBoundary
+								children={SwarmGatewayUrlRow}
+								resource={swarm}
+							/>
+						{/if}
 					</dd>
 				</div>
 
 				<div>
 					<dt>Content length</dt>
 					<dd>
-						<ResourceBoundary resource={swarm}>
-							{#snippet children(swarm)}
+						{#if true}
+							{#snippet SwarmContentLengthRow(swarm)}
 								{#if swarm.contentLength !== undefined}
 									<NumberValue
 										value={swarm.contentLength}
@@ -201,15 +225,20 @@
 									bytes
 								{/if}
 							{/snippet}
-						</ResourceBoundary>
+
+							<ResourceBoundary
+								children={SwarmContentLengthRow}
+								resource={swarm}
+							/>
+						{/if}
 					</dd>
 				</div>
 
 				<div>
 					<dt>File name</dt>
 					<dd>
-						<ResourceBoundary resource={swarm}>
-							{#snippet children(swarm)}
+						{#if true}
+							{#snippet SwarmFileNameRow(swarm)}
 								{#if swarm.fileName !== undefined}
 									<TruncatedValue
 										value={swarm.fileName}
@@ -217,63 +246,46 @@
 									/>
 								{/if}
 							{/snippet}
-						</ResourceBoundary>
+
+							<ResourceBoundary
+								children={SwarmFileNameRow}
+								resource={swarm}
+							/>
+						{/if}
 					</dd>
 				</div>
 
 				<div>
 					<dt>Extension</dt>
 					<dd>
-						<ResourceBoundary resource={swarm}>
-							{#snippet children(swarm)}
+						{#if true}
+							{#snippet SwarmExtensionRow(swarm)}
 								{#if swarm.extension !== undefined}
 									.{swarm.extension}
 								{/if}
 							{/snippet}
-						</ResourceBoundary>
+
+							<ResourceBoundary
+								children={SwarmExtensionRow}
+								resource={swarm}
+							/>
+						{/if}
 					</dd>
 				</div>
 
 				<div>
 					<dt>Display type</dt>
 					<dd>
-						<ResourceBoundary resource={swarm}>
-							{#snippet children(swarm)}
+						{#if true}
+							{#snippet SwarmDisplayTypeRow(swarm)}
 								{swarm.displayType}
 							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
 
-				<div>
-					<dt>Text</dt>
-					<dd>
-						<ResourceBoundary resource={swarm}>
-							{#snippet children(swarm)}
-								{#if swarm.text !== undefined}
-									<TruncatedValue
-										value={swarm.text}
-										format={TruncatedValueFormat.Visual}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
-				<div>
-					<dt>Media</dt>
-					<dd>
-						<ResourceBoundary resource={swarm}>
-							{#snippet children(swarm)}
-								{#if swarm.$media?.[EntityMetaKey.Id].url !== undefined}
-									<Media
-										media={{ url: swarm.$media[EntityMetaKey.Id].url }}
-										alt={swarm.fileName ?? ''}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+							<ResourceBoundary
+								children={SwarmDisplayTypeRow}
+								resource={swarm}
+							/>
+						{/if}
 					</dd>
 				</div>
 			{/if}
@@ -305,20 +317,6 @@
 						<HeadingComponent>
 							Resource
 						</HeadingComponent>
-						<Tooltip contentProps={{ side: 'top' }}>
-							{#snippet Content()}
-								<p>
-									Swarm stores content in a distributed chunk network addressed by bzz URIs.
-								</p>
-								<p>
-									What you see here is the object behind that reference, often fetched via an HTTP gateway for display.
-								</p>
-							{/snippet}
-							<abbr
-								class="entity-heading-tip"
-								aria-label="Swarm resource notes"
-							>ⓘ</abbr>
-						</Tooltip>
 					</header>
 				{/snippet}
 
@@ -326,23 +324,30 @@
 					open: _markersOpen,
 				})}
 					<a
+						data-scroll-marker-label="Browse"
+						href={`#${detailKey}:swarm-browse`}
+					>Browse</a>
+					<a
 						data-scroll-marker-label="Record"
 						href={`#${detailKey}:swarm-record`}
 					>Record</a>
 					{#if _open}
 						<a
-							data-scroll-marker-label="Content"
-							href={`#${detailKey}:swarm-content`}
-						>Content</a>
-						<a
-							data-scroll-marker-label="Media"
-							href={`#${detailKey}:swarm-media`}
-						>Media</a>
+							data-scroll-marker-label="Preview"
+							href={`#${detailKey}:swarm-preview`}
+						>Preview</a>
 					{/if}
 				{/snippet}
 
 				{#snippet body({ open: _paneOpen,
 				})}
+					<section
+						data-scroll-marker-label="Browse"
+						id={`${detailKey}:swarm-browse`}
+					>
+						<SwarmBrowseForm {entityId} />
+					</section>
+
 					<section
 						data-scroll-marker-label="Record"
 						id={`${detailKey}:swarm-record`}
@@ -352,45 +357,35 @@
 							{entityId}
 						/>
 					</section>
+
 					{#if _open}
 						<section
-							data-scroll-marker-label="Content"
-							id={`${detailKey}:swarm-content`}
+							data-scroll-marker-label="Preview"
+							id={`${detailKey}:swarm-preview`}
 						>
-							<ResourceBoundary resource={swarm}>
-								{#snippet children(swarm)}
-									{#if swarm.text !== undefined}
-										<pre>{swarm.text}</pre>
-									{:else}
-										<p data-text="muted">No text content.</p>
-									{/if}
+							{#if true}
+								{#snippet SwarmPreviewBody(swarm)}
+									<FileDetails
+										contentSize={swarm.contentLength}
+										contentType={swarm.contentType}
+										displayType={swarm.displayType}
+										extension={swarm.extension}
+										fileName={swarm.fileName}
+										src={swarm.gatewayUrl}
+										text={swarm.text}
+									/>
 								{/snippet}
-							</ResourceBoundary>
-						</section>
-						<section
-							data-scroll-marker-label="Media"
-							id={`${detailKey}:swarm-media`}
-						>
-							<ResourceBoundary resource={swarm}>
-								{#snippet children(swarm)}
-									{#if swarm.$media?.[EntityMetaKey.Id].url !== undefined}
-										<Media
-											media={{ url: swarm.$media[EntityMetaKey.Id].url }}
-											alt={swarm.fileName ?? ''}
-										/>
-									{:else}
-										<p data-text="muted">No media content.</p>
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
+
+								<ResourceBoundary
+									children={SwarmPreviewBody}
+									resource={swarm}
+								/>
+							{/if}
 						</section>
 					{/if}
 				{/snippet}
 			</CollapsibleTabs>
 		</div>
 
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>

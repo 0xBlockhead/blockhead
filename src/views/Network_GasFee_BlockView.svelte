@@ -3,7 +3,6 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -15,34 +14,34 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+		'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
+		{
+			networkId: String(entityId.$network.chainId),
+			blockNumber: String(entityId.blockNumber),
+		},
+	),
 		layout,
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.Network_GasFee_Block>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'layout'
-			| 'open'
-			| 'title'
-			| 'Details'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const networkGasFeeBlock = useEntity(
 		EntityType.Network_GasFee_Block,
 		entityId,
@@ -53,14 +52,6 @@
 			maxPriorityFeePerGas: {},
 			gasUsedRatio: {},
 			priorityFeeRewardAt50thPercentile: {},
-		},
-	)
-
-	const defaultHref = resolve(
-		'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
-		{
-			networkId: String(entityId.$network.chainId),
-			blockNumber: String(entityId.blockNumber),
 		},
 	)
 
@@ -76,12 +67,11 @@
 <EntityView
 	entityType={EntityType.Network_GasFee_Block}
 	{entityId}
-	href={href ?? defaultHref}
+	href={href}
 	{layout}
 	{open}
 	title="Gas"
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -98,7 +88,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Fee-market snapshot for one execution block: base fee per gas from <code>eth_feeHistory</code>, plus optional live RPC hints for legacy and priority fees.
+			Block-keyed fee-market snapshot: base fee and fullness are tied to one execution height, with optional current RPC fee hints on the head block.
 		</p>
 		<p>
 			EIP-1559 sets base fee from parent fullness; priority fee percentiles describe inclusion bids around this height.
@@ -116,66 +106,70 @@
 			placeholderText="Loading gas snapshot…"
 			resource={networkGasFeeBlock}
 		>
-			{#snippet children(networkGasFeeBlock)}
+			{#snippet children(loadedNetworkGasFeeBlock)}
 				<dl data-column-item="center">
+					{#if networkGasFeeBlock.baseFeePerGas !== undefined}
+						<div>
+							<dt>Base fee</dt>
+							<dd>
+								<NumberValue value={loadedNetworkGasFeeBlock.baseFeePerGas} />
+								wei
+							</dd>
+						</div>
+					{/if}
 
-					{#if open}
-						{#if networkGasFeeBlock.baseFeePerGas !== undefined}
-							<div>
-								<dt>Base fee</dt>
-								<dd>
-									<NumberValue value={networkGasFeeBlock.baseFeePerGas} /> wei
-									</dd>
-								</div>
-							{/if}
+					{#if networkGasFeeBlock.legacyGasPrice !== undefined}
+						<div>
+							<dt>Suggested gas price</dt>
+							<dd>
+								<NumberValue value={loadedNetworkGasFeeBlock.legacyGasPrice} />
+								wei
+							</dd>
+						</div>
+					{/if}
 
-							{#if networkGasFeeBlock.legacyGasPrice !== undefined}
-								<div>
-									<dt>Suggested gas price</dt>
-									<dd>
-										<NumberValue value={networkGasFeeBlock.legacyGasPrice} /> wei
-										</dd>
-									</div>
-								{/if}
+					{#if networkGasFeeBlock.maxPriorityFeePerGas !== undefined}
+						<div>
+							<dt>Max priority fee</dt>
+							<dd>
+								<NumberValue value={loadedNetworkGasFeeBlock.maxPriorityFeePerGas} />
+								wei
+							</dd>
+						</div>
+					{/if}
 
-								{#if networkGasFeeBlock.maxPriorityFeePerGas !== undefined}
-									<div>
-										<dt>Max priority fee</dt>
-										<dd>
-											<NumberValue value={networkGasFeeBlock.maxPriorityFeePerGas} /> wei
-											</dd>
-										</div>
-									{/if}
+					{#if (
+						open
+						&& networkGasFeeBlock.gasUsedRatio !== undefined
+					)}
+						<div>
+							<dt>Gas used ratio</dt>
+							<dd>{String(networkGasFeeBlock.gasUsedRatio)}</dd>
+						</div>
+					{/if}
 
-									{#if networkGasFeeBlock.gasUsedRatio !== undefined}
-										<div>
-											<dt>Gas used ratio</dt>
-											<dd>{String(networkGasFeeBlock.gasUsedRatio)}</dd>
-										</div>
-									{/if}
+					{#if (
+						open
+						&& networkGasFeeBlock.priorityFeeRewardAt50thPercentile !== undefined
+					)}
+						<div>
+							<dt>Priority fee at 50th percentile</dt>
+							<dd>
+								<NumberValue value={loadedNetworkGasFeeBlock.priorityFeeRewardAt50thPercentile} />
+								wei
+							</dd>
+						</div>
+					{/if}
 
-									{#if networkGasFeeBlock.priorityFeeRewardAt50thPercentile !== undefined}
-										<div>
-											<dt>Priority fee at 50th percentile</dt>
-											<dd>
-												<NumberValue value={networkGasFeeBlock.priorityFeeRewardAt50thPercentile} /> wei
-												</dd>
-											</div>
-										{/if}
-									{/if}
-								</dl>
-							{/snippet}
-						</ResourceBoundary>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.Network_GasFee_Block}
 			{entityId}
 		/>
-
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>

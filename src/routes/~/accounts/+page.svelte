@@ -1,10 +1,13 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
+	// Types/constants
 	import { EntityType } from '$/schema/$EntityType.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
+	// State
 	const hubKey = 'accounts'
 
 
@@ -67,7 +70,6 @@
 						data-scroll-marker-label="Connections"
 					>
 						<BlockheadWalletConnectionsView
-							href={resolve('/~/accounts')}
 							id="wallet-connections"
 							open={hubOpen}
 						/>
@@ -78,12 +80,12 @@
 						data-scroll-marker-label="Wallets"
 					>
 						<ActorsView
+							href={resolve('/~/accounts')}
 							entityFieldReference={{
 								entityType: EntityType._Global,
 								entityId: {},
 								fieldName: '$$actors',
 							}}
-							href={resolve('/~/accounts')}
 							id="accounts"
 							open={hubOpen}
 						/>
@@ -94,12 +96,12 @@
 						data-scroll-marker-label="Balances"
 					>
 						<ActorCoinsView
+							href={resolve('/~/(accounts)/accounts/balances')}
 							entityFieldReference={{
 								entityType: EntityType._Global,
 								entityId: {},
 								fieldName: '$$actorCoins',
 							}}
-							href={resolve('/~/accounts/balances')}
 							id="balances"
 							open={hubOpen}
 						/>

@@ -1,5 +1,8 @@
 <script lang="ts">
+	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+
 
 	// Context
 	import { resolve } from '$app/paths'
@@ -12,20 +15,20 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import NostrNotesView from '$/views/NostrNotesView.svelte'
-	import { EntityType } from '$/schema/$EntityType.ts'
 </script>
 
 
 <Page>
 	<NostrNotesView
+		href={resolve(
+			'/(social)/(nostr)/nostr/profile/[pubkey]/(profile)/notes',
+			{ pubkey: data.entityId.pubkey },
+		)}
 		entityFieldReference={{
 			entityType: EntityType.NostrProfile,
 			entityId: data.entityId,
 			fieldName: '$$notes',
 		}}
-		href={resolve('/(social)/(nostr)/nostr/profile/[pubkey]/(profile)/notes', {
-			pubkey: data.entityId.pubkey,
-		})}
 		id="nostr-profile-notes"
 	/>
 </Page>

@@ -54,6 +54,24 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'previousForkVersion',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		{
+			name: 'currentForkVersion',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		{
 			name: 'protocol',
 			type: EntityFieldType.Primitive,
 			primitiveType: type.valueOf(ConsensusProtocol),

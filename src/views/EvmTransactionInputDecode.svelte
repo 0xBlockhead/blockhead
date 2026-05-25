@@ -20,17 +20,28 @@
 	} = $props()
 
 
-	// Functions
+	// State
 	import {
 		decodeCalldataWithSignature,
 		formatDecodedParamValue,
 	} from '$/lib/calldata-decode.ts'
+
 	import { getEvmSelectorPath } from '$/lib/signature-paths.ts'
-
-
-	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+	const selector = useEntity(
+		EntityType.EvmSelector,
+		selectorEntityId,
+		{
+			$: [
+				Source.Openchain_Rest,
+			],
+			signatures: {},
+		},
+	)
+
+
+	// (Derived)
 	const selectorHex = $derived(
 		input.startsWith('0x') && input.length >= 10 ?
 			`0x${input.slice(2, 10).toLowerCase()}`
@@ -47,19 +58,6 @@
 		) satisfies EntityId<typeof schema, EntityType.EvmSelector>,
 	)
 
-	const selector = useEntity(
-		EntityType.EvmSelector,
-		selectorEntityId,
-		{
-			$: [
-				Source.Openchain_Rest,
-			],
-			signatures: {},
-		},
-	)
-
-
-	// (Derived)
 	const decodedCall = $derived.by(() => {
 		if (!open) return null
 		const signatures = selector.current.signatures
@@ -98,7 +96,7 @@
 				resource={selector}
 				placeholderText="Loading function signatures…"
 			>
-				{#snippet children(_selectorEntity)}
+				{#snippet children(_readyData)}
 					{#if decodedCall}
 						<div data-column="gap-1">
 							<code>{decodedCall.signature}</code>

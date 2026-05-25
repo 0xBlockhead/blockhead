@@ -2,6 +2,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+
 	// Props
 	let {
 		params,
@@ -16,6 +17,5 @@
 <Page>
 	<BlockheadRoomView
 		entityId={{ id: params.roomId }}
-		href={resolve('/~/multiplayer/rooms')}
 	/>
 </Page>

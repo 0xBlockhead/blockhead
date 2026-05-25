@@ -8,7 +8,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import { EvmInternalCallType } from '$/constants/EvmTransaction.ts'
+import { EvmInternalCallType } from '$/constants/Evm.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/$Source.ts'
 

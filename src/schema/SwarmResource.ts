@@ -9,6 +9,8 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 
+// Gateway-backed Swarm object (BZZ root hash + optional manifest path). `reference` is the 32-byte content address (64 hex chars); encrypted refs can be longer.
+
 export default {
 	entityType: EntityType.SwarmResource,
 

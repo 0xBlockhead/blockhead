@@ -1,16 +1,17 @@
 import type { EntityId } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { BlockheadAgentConversationTurnStatus } from '$/schema/BlockheadAgentConversationTurn.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
 import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 import { XmtpConversationConsentState } from '$/schema/XmtpConversation.ts'
 import { schema } from '$/schema/index.ts'
 
 
-export type NormalizedActorCatalogRow = {
+export type NormalizedActor = {
 	address: string
 }
 
-export type NormalizedXmtpConversationCatalogRow = {
+export type NormalizedXmtpConversation = {
 	id: string
 	peerInboxId?: string
 	topic?: string
@@ -18,26 +19,26 @@ export type NormalizedXmtpConversationCatalogRow = {
 	consentState?: XmtpConversationConsentState
 }
 
-export type NormalizedBlockheadSourceCatalogRow = {
+export type NormalizedBlockheadSource = {
 	id: string
 }
 
-export type NormalizedBlockheadPanelTreeCatalogRow = {
+export type NormalizedBlockheadPanelTree = {
 	id: string
 }
 
-export type NormalizedBlockheadFarcasterAccountConnectionCatalogRow = {
+export type NormalizedBlockheadFarcasterAccountConnection = {
 	fid: number
 }
 
-export type NormalizedBlockheadRoomCatalogRow = {
+export type NormalizedBlockheadRoom = {
 	id: string
 	createdAt: number
 	createdBy: string
 	name?: string
 }
 
-export type NormalizedBlockheadSessionCatalogRow = {
+export type NormalizedBlockheadSession = {
 	id: string
 	name?: string
 	status: BlockheadSessionStatus
@@ -47,7 +48,7 @@ export type NormalizedBlockheadSessionCatalogRow = {
 	simulationCount?: number
 }
 
-export type NormalizedBlockheadRoomPeerCatalogRow = {
+export type NormalizedBlockheadRoomPeer = {
 	id: string
 	roomId: string
 	peerId: string
@@ -59,7 +60,7 @@ export type NormalizedBlockheadRoomPeerCatalogRow = {
 	isConnected: boolean
 }
 
-export type NormalizedBlockheadSharedAddressCatalogRow = {
+export type NormalizedBlockheadSharedAddress = {
 	id: string
 	chainId: number
 	roomId: string
@@ -69,16 +70,16 @@ export type NormalizedBlockheadSharedAddressCatalogRow = {
 	sharedAt: number
 }
 
-export type NormalizedStateChannelCatalogAsset =
+export type NormalizedStateChannelAsset =
 	| { kind: 'native' }
 	| { kind: 'erc20', tokenAddress: string }
 
-export type NormalizedStateChannelCatalogRow = {
+export type NormalizedStateChannel = {
 	id: string
 	chainId: number
 	participant0: string
 	participant1: string
-	asset: NormalizedStateChannelCatalogAsset
+	asset: NormalizedStateChannelAsset
 	totalDeposited: bigint
 	balance0: bigint
 	balance1: bigint
@@ -89,7 +90,44 @@ export type NormalizedStateChannelCatalogRow = {
 	updatedAt: number
 }
 
-export type NormalizedBlockheadAgentConversationCatalogRow = {
+export type NormalizedStateChannelTransfer = {
+	id: string
+	channelId: string
+	from: string
+	to: string
+	amount: bigint
+	turnNum: number
+	timestamp: number
+	status: 'pending' | 'confirmed' | 'failed'
+}
+
+export type NormalizedStateChannelState = {
+	id: string
+	channelId: string
+	intent: number
+	version: number
+	stateData: `0x${string}`
+	allocations: readonly {
+		destination: string
+		token: string
+		amount: bigint
+	}[]
+	signatures: readonly `0x${string}`[]
+	isFinal: boolean
+	timestamp: number
+}
+
+export type NormalizedStateChannelDeposit = {
+	id: string
+	channelId: string
+	chainId: number
+	accountAddress: string
+	availableBalance: bigint
+	lockedBalance: bigint
+	lastUpdated: number
+}
+
+export type NormalizedBlockheadAgentConversation = {
 	id: string
 	name: string
 	pinned: boolean
@@ -100,118 +138,227 @@ export type NormalizedBlockheadAgentConversationCatalogRow = {
 	updatedAt: number
 }
 
-export type NormalizedBridgeTransactionCatalogRow = {
+export type NormalizedBlockheadAgentConversationTurn = {
+	id: string
+	conversationId: string
+	parentId: string | null
+	userPrompt: string
+	assistantText: string | null
+	providerId: string | null
+	status: BlockheadAgentConversationTurnStatus
+	error?: string
+	createdAt: number
+	promptVersion: string
+}
+
+export type NormalizedBridgeTransaction = {
 	accountAddress: string
 	chainId: number
 	txHash: string
 	createdAt: number
 }
 
-export type NormalizedEvmSelectorCatalogRow = {
+export type NormalizedEvmSelector = {
 	hex: `0x${string}`
 }
 
-export type NormalizedEvmTopicCatalogRow = {
+export type NormalizedEvmTopic = {
 	hex: `0x${string}`
 }
 
-export type NormalizedEvmErrorCatalogRow = {
+export type NormalizedEvmError = {
 	hex: `0x${string}`
 }
 
-export type NormalizedLocalInternalCatalog = {
-	actors: readonly NormalizedActorCatalogRow[]
-	xmtpConversations: readonly NormalizedXmtpConversationCatalogRow[]
-	blockheadSources: readonly NormalizedBlockheadSourceCatalogRow[]
-	blockheadSessions: readonly NormalizedBlockheadSessionCatalogRow[]
-	blockheadPanelTrees: readonly NormalizedBlockheadPanelTreeCatalogRow[]
-	blockheadFarcasterAccountConnections: readonly NormalizedBlockheadFarcasterAccountConnectionCatalogRow[]
-	blockheadAgentConversations: readonly NormalizedBlockheadAgentConversationCatalogRow[]
-	bridgeTransactions: readonly NormalizedBridgeTransactionCatalogRow[]
-	blockheadRoomPeers: readonly NormalizedBlockheadRoomPeerCatalogRow[]
-	blockheadRooms: readonly NormalizedBlockheadRoomCatalogRow[]
-	stateChannels: readonly NormalizedStateChannelCatalogRow[]
-	blockheadSharedAddresses: readonly NormalizedBlockheadSharedAddressCatalogRow[]
-	evmSelectors: readonly NormalizedEvmSelectorCatalogRow[]
-	evmTopics: readonly NormalizedEvmTopicCatalogRow[]
-	evmErrors: readonly NormalizedEvmErrorCatalogRow[]
+export type NormalizedLocalInternal = {
+	actors: readonly NormalizedActor[]
+	xmtpConversations: readonly NormalizedXmtpConversation[]
+	blockheadSources: readonly NormalizedBlockheadSource[]
+	blockheadSessions: readonly NormalizedBlockheadSession[]
+	blockheadPanelTrees: readonly NormalizedBlockheadPanelTree[]
+	blockheadFarcasterAccountConnections: readonly NormalizedBlockheadFarcasterAccountConnection[]
+	blockheadAgentConversations: readonly NormalizedBlockheadAgentConversation[]
+	blockheadAgentConversationTurns: readonly NormalizedBlockheadAgentConversationTurn[]
+	bridgeTransactions: readonly NormalizedBridgeTransaction[]
+	blockheadRoomPeers: readonly NormalizedBlockheadRoomPeer[]
+	blockheadRooms: readonly NormalizedBlockheadRoom[]
+	stateChannels: readonly NormalizedStateChannel[]
+	stateChannelTransfers: readonly NormalizedStateChannelTransfer[]
+	stateChannelStates: readonly NormalizedStateChannelState[]
+	stateChannelDeposits: readonly NormalizedStateChannelDeposit[]
+	blockheadSharedAddresses: readonly NormalizedBlockheadSharedAddress[]
+	evmSelectors: readonly NormalizedEvmSelector[]
+	evmTopics: readonly NormalizedEvmTopic[]
+	evmErrors: readonly NormalizedEvmError[]
 }
 
 
 /** Mirrors `probeEntityIdByType[EntityType.BridgeTransaction]` in assert-loaded-resolvers fixtures. */
-const probeBridgeTransactionCatalogRow = {
+const probeBridgeTransaction = {
 	accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 	chainId: 1,
 	txHash: '0xdacd6abf5b2814b28c68c59981f269c615796e7f0cba2009f4bf5edfdd9595ab',
 	createdAt: 0,
-} as const satisfies NormalizedBridgeTransactionCatalogRow
+} as const satisfies NormalizedBridgeTransaction
 
-const probeBlockheadSourceCatalogRow = {
+const probeBlockheadSource = {
 	id: 'e2e-probe-source',
-} as const satisfies NormalizedBlockheadSourceCatalogRow
+} as const satisfies NormalizedBlockheadSource
 
-const probeBlockheadPanelTreeCatalogRow = {
+const probeBlockheadPanelTree = {
 	id: 'e2e-probe-panel-tree',
-} as const satisfies NormalizedBlockheadPanelTreeCatalogRow
+} as const satisfies NormalizedBlockheadPanelTree
 
-const probeBlockheadRoomCatalogRow = {
+const probeBlockheadRoom = {
 	id: 'e2e-probe-room',
 	createdAt: 0,
 	createdBy: 'e2e',
-} as const satisfies NormalizedBlockheadRoomCatalogRow
+} as const satisfies NormalizedBlockheadRoom
 
-const probeBlockheadSessionCatalogRow = {
+const probeBlockheadSession = {
 	id: 'e2e-probe-session',
 	status: BlockheadSessionStatus.Draft,
 	createdAt: 0,
 	updatedAt: 0,
-} as const satisfies NormalizedBlockheadSessionCatalogRow
+} as const satisfies NormalizedBlockheadSession
 
-const probeBlockheadRoomPeerCatalogRow = {
+const probeBlockheadRoomPeer = {
 	id: 'e2e-probe-room-peer',
-	roomId: probeBlockheadRoomCatalogRow.id,
+	roomId: probeBlockheadRoom.id,
 	peerId: 'e2e-peer',
 	joinedAt: 0,
 	isConnected: false,
-} as const satisfies NormalizedBlockheadRoomPeerCatalogRow
+} as const satisfies NormalizedBlockheadRoomPeer
 
-const probeBlockheadSharedAddressCatalogRow = {
+const probeBlockheadSharedAddress = {
 	id: 'e2e-probe-shared-address',
 	chainId: 1,
-	roomId: probeBlockheadRoomCatalogRow.id,
+	roomId: probeBlockheadRoom.id,
 	peerId: 'e2e-peer',
 	accountAddress: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 	targetPeerIds: [],
 	sharedAt: 0,
-} as const satisfies NormalizedBlockheadSharedAddressCatalogRow
+} as const satisfies NormalizedBlockheadSharedAddress
 
-const probeStateChannelCatalogRow = {
+const probeStateChannel = {
 	id: 'e2e-probe-state-channel',
 	chainId: 1,
 	participant0: '0xd8da6bf26964af9d7eed9e403e826090792bed6a',
 	participant1: '0x0000000000000000000000000000000000000001',
 	asset: { kind: 'native' },
-	totalDeposited: 0n,
-	balance0: 0n,
-	balance1: 0n,
-	turnNum: 0,
+	totalDeposited: 1_000_000_000_000_000_000n,
+	balance0: 950_000_000_000_000_000n,
+	balance1: 50_000_000_000_000_000n,
+	turnNum: 2,
 	status: 'active',
 	createdAt: 0,
 	updatedAt: 0,
-} as const satisfies NormalizedStateChannelCatalogRow
+} as const satisfies NormalizedStateChannel
 
-const probeBlockheadAgentConversationCatalogRow = {
+const probeStateChannelTransfers = [
+	{
+		id: 'e2e-probe-state-channel-transfer-1',
+		channelId: probeStateChannel.id,
+		from: probeStateChannel.participant0,
+		to: probeStateChannel.participant1,
+		amount: 100_000_000_000_000_000n,
+		turnNum: 1,
+		timestamp: 1,
+		status: 'confirmed',
+	},
+	{
+		id: 'e2e-probe-state-channel-transfer-2',
+		channelId: probeStateChannel.id,
+		from: probeStateChannel.participant1,
+		to: probeStateChannel.participant0,
+		amount: 50_000_000_000_000_000n,
+		turnNum: 2,
+		timestamp: 2,
+		status: 'confirmed',
+	},
+] as const satisfies readonly NormalizedStateChannelTransfer[]
+
+const probeStateChannelStates = [
+	{
+		id: 'e2e-probe-state-channel-state-1',
+		channelId: probeStateChannel.id,
+		intent: 1,
+		version: 1,
+		stateData: '0x01',
+		allocations: [
+			{
+				destination: probeStateChannel.participant0,
+				token: '0x0000000000000000000000000000000000000000',
+				amount: 900_000_000_000_000_000n,
+			},
+			{
+				destination: probeStateChannel.participant1,
+				token: '0x0000000000000000000000000000000000000000',
+				amount: 100_000_000_000_000_000n,
+			},
+		],
+		signatures: ['0x01'],
+		isFinal: false,
+		timestamp: 1,
+	},
+	{
+		id: 'e2e-probe-state-channel-state-2',
+		channelId: probeStateChannel.id,
+		intent: 1,
+		version: 2,
+		stateData: '0x02',
+		allocations: [
+			{
+				destination: probeStateChannel.participant0,
+				token: '0x0000000000000000000000000000000000000000',
+				amount: 950_000_000_000_000_000n,
+			},
+			{
+				destination: probeStateChannel.participant1,
+				token: '0x0000000000000000000000000000000000000000',
+				amount: 50_000_000_000_000_000n,
+			},
+		],
+		signatures: ['0x01', '0x02'],
+		isFinal: false,
+		timestamp: 2,
+	},
+] as const satisfies readonly NormalizedStateChannelState[]
+
+const probeStateChannelDeposit = {
+	id: 'e2e-probe-state-channel-deposit-0',
+	channelId: probeStateChannel.id,
+	chainId: probeStateChannel.chainId,
+	accountAddress: probeStateChannel.participant0,
+	availableBalance: 1_000_000_000_000_000_000n,
+	lockedBalance: 0n,
+	lastUpdated: 0,
+} as const satisfies NormalizedStateChannelDeposit
+
+const probeBlockheadAgentConversation = {
 	id: 'e2e-probe-agent-conversation',
-	name: 'E2E probe',
-	pinned: false,
-	systemPrompt: '',
-	defaultConnectionId: 'e2e',
-	defaultModelId: 'e2e',
-	createdAt: 0,
-	updatedAt: 0,
-} as const satisfies NormalizedBlockheadAgentConversationCatalogRow
+	name: 'E2E probe conversation',
+	pinned: true,
+	systemPrompt: 'You are a helpful assistant.',
+	defaultConnectionId: 'e2e-probe-connection',
+	defaultModelId: 'e2e-probe-model',
+	createdAt: 1_700_000_000_000,
+	updatedAt: 1_700_000_000_001,
+} as const satisfies NormalizedBlockheadAgentConversation
 
-const defaultEvmSelectorCatalog: readonly NormalizedEvmSelectorCatalogRow[] = [
+const probeBlockheadAgentConversationTurn = {
+	id: 'e2e-probe-agent-conversation-turn',
+	conversationId: probeBlockheadAgentConversation.id,
+	parentId: null,
+	userPrompt: 'Summarize what this conversation row is for.',
+	assistantText: 'It is a catalog probe for agent chat turns in e2e smoke.',
+	providerId: 'e2e-probe-provider',
+	status: BlockheadAgentConversationTurnStatus.Complete,
+	createdAt: 1_700_000_000_002,
+	promptVersion: 'e2e-probe-v1',
+} as const satisfies NormalizedBlockheadAgentConversationTurn
+
+const defaultEvmSelectors: readonly NormalizedEvmSelector[] = [
 	{ hex: '0xa9059cbb' },
 	{ hex: '0x095ea7b3' },
 	{ hex: '0x70a08231' },
@@ -224,7 +371,7 @@ const defaultEvmSelectorCatalog: readonly NormalizedEvmSelectorCatalogRow[] = [
 	{ hex: '0x42842e0e' },
 ]
 
-const defaultEvmTopicCatalog: readonly NormalizedEvmTopicCatalogRow[] = [
+const defaultEvmTopics: readonly NormalizedEvmTopic[] = [
 	{
 		hex: '0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef',
 	},
@@ -257,7 +404,7 @@ const defaultEvmTopicCatalog: readonly NormalizedEvmTopicCatalogRow[] = [
 	},
 ]
 
-const defaultEvmErrorCatalog: readonly NormalizedEvmErrorCatalogRow[] = [
+const defaultEvmErrors: readonly NormalizedEvmError[] = [
 	{ hex: '0x08c379a0' },
 	{ hex: '0x4e487b71' },
 	{ hex: '0x1e4fbdf7' },
@@ -270,7 +417,7 @@ const defaultEvmErrorCatalog: readonly NormalizedEvmErrorCatalogRow[] = [
 	{ hex: '0xfe0d94c1' },
 ]
 
-const defaultNormalizedLocalInternalCatalog: NormalizedLocalInternalCatalog = {
+const defaultNormalizedLocalInternal: NormalizedLocalInternal = {
 	actors: [
 		{ address: '0xd8da6bf26964af9d7eed9e403e826090792bed6a' },
 	],
@@ -278,35 +425,42 @@ const defaultNormalizedLocalInternalCatalog: NormalizedLocalInternalCatalog = {
 		{
 			id: 'e2e-probe-conversation',
 			peerInboxId: 'e2e-probe-peer',
+			topic: 'e2e-probe-topic',
+			createdAtMs: 1_700_000_000_000,
+			consentState: XmtpConversationConsentState.Allowed,
 		},
 	],
-	blockheadSources: [probeBlockheadSourceCatalogRow],
-	blockheadSessions: [probeBlockheadSessionCatalogRow],
-	blockheadPanelTrees: [probeBlockheadPanelTreeCatalogRow],
+	blockheadSources: [probeBlockheadSource],
+	blockheadSessions: [probeBlockheadSession],
+	blockheadPanelTrees: [probeBlockheadPanelTree],
 	blockheadFarcasterAccountConnections: [
 		{ fid: 3 },
 	],
-	blockheadAgentConversations: [probeBlockheadAgentConversationCatalogRow],
-	bridgeTransactions: [probeBridgeTransactionCatalogRow],
-	blockheadRoomPeers: [probeBlockheadRoomPeerCatalogRow],
-	blockheadRooms: [probeBlockheadRoomCatalogRow],
-	stateChannels: [probeStateChannelCatalogRow],
-	blockheadSharedAddresses: [probeBlockheadSharedAddressCatalogRow],
-	evmSelectors: defaultEvmSelectorCatalog,
-	evmTopics: defaultEvmTopicCatalog,
-	evmErrors: defaultEvmErrorCatalog,
+	blockheadAgentConversations: [probeBlockheadAgentConversation],
+	blockheadAgentConversationTurns: [probeBlockheadAgentConversationTurn],
+	bridgeTransactions: [probeBridgeTransaction],
+	blockheadRoomPeers: [probeBlockheadRoomPeer],
+	blockheadRooms: [probeBlockheadRoom],
+	stateChannels: [probeStateChannel],
+	stateChannelTransfers: probeStateChannelTransfers,
+	stateChannelStates: probeStateChannelStates,
+	stateChannelDeposits: [probeStateChannelDeposit],
+	blockheadSharedAddresses: [probeBlockheadSharedAddress],
+	evmSelectors: defaultEvmSelectors,
+	evmTopics: defaultEvmTopics,
+	evmErrors: defaultEvmErrors,
 }
 
 
-export const readNormalizedLocalInternalCatalog = (): NormalizedLocalInternalCatalog => (
-	defaultNormalizedLocalInternalCatalog
+export const readNormalizedLocalInternal = (): NormalizedLocalInternal => (
+	defaultNormalizedLocalInternal
 )
 
 
 export const findNormalizedBridgeTransactionRow = (
-	catalog: NormalizedLocalInternalCatalog,
+	catalog: NormalizedLocalInternal,
 	entityId: EntityId<typeof schema, EntityType.BridgeTransaction>,
-): NormalizedBridgeTransactionCatalogRow | undefined => (
+): NormalizedBridgeTransaction | undefined => (
 	catalog.bridgeTransactions.find((row) => (
 		row.accountAddress === entityId.$account.address
 		&& row.chainId === entityId.$sourceTx.$network.chainId
@@ -317,7 +471,7 @@ export const findNormalizedBridgeTransactionRow = (
 
 
 export const coinInstanceIdForNormalizedStateChannelRow = (
-	row: NormalizedStateChannelCatalogRow,
+	row: NormalizedStateChannel,
 ): EntityId<typeof schema, EntityType.CoinInstance> => (
 	row.asset.kind === 'native' ?
 		{

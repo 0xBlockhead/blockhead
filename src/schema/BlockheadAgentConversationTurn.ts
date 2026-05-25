@@ -33,6 +33,7 @@ export default {
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
+			// Prior turn id in the same conversation; null for the transcript root.
 			name: 'parentId',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string | null'),
@@ -79,12 +80,6 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: '$paymentWalletConnection',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BlockheadWalletConnection,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

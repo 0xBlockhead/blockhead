@@ -1,5 +1,7 @@
 <script lang="ts">
+	// Types/constants
 	import type { PageProps } from './$types.ts'
+
 
 	// Context
 	import { resolve } from '$app/paths'
@@ -18,9 +20,5 @@
 <Page>
 	<NostrArticleView
 		entityId={data.entityId}
-		href={resolve('/(social)/(nostr)/nostr/article/[pubkey]/[identifier]', {
-			pubkey: data.entityId.pubkey,
-			identifier: encodeURIComponent(data.entityId.identifier),
-		})}
 	/>
 </Page>

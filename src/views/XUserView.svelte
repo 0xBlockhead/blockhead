@@ -18,28 +18,21 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve('/(social)/x/user/[userId]', {
+			userId: entityId.id,
+		}),
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.XUser>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Heading'
-			| 'Details'
-			| 'Icon'
-			| 'Content'
-			| 'HeadingAfter'
-			| 'TypeAnnotationTooltip'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -58,7 +51,16 @@
 			username: {},
 			name: {},
 			description: {},
+			location: {},
+			profileUrl: {},
+			verified: {},
+			createdAt: {},
+			followerCount: {},
+			followingCount: {},
+			tweetCount: {},
+			listedCount: {},
 			$icon: {},
+			$profileBanner: {},
 			$$posts: {},
 		},
 	)
@@ -72,6 +74,9 @@
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import Media from '$/components/Media.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 	import XPostsView from '$/views/XPostsView.svelte'
 </script>
 
@@ -79,18 +84,17 @@
 <EntityView
 	entityType={EntityType.XUser}
 	{entityId}
-	{href}
+	href={href}
 	{open}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={user}
 			placeholderText="Loading X profile…"
 		>
-			{#snippet children(user)}
-				{user.name ?? user.username ?? entityId.id}
+			{#snippet children(loadedUser)}
+				{loadedUser.name ?? loadedUser.username ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -111,12 +115,12 @@
 			resource={user}
 			placeholderText="Loading X profile…"
 		>
-			{#snippet children(user)}
-				{#if user.$icon !== undefined}
+			{#snippet children(loadedUser)}
+				{#if loadedUser.$icon !== undefined}
 					<IconComponent
-						alt={user.name ?? user.username ?? ''}
+						alt={loadedUser.name ?? loadedUser.username ?? ''}
 						shape={IconShape.Circle}
-						src={user.$icon[EntityMetaKey.Id].url}
+						src={loadedUser.$icon[EntityMetaKey.Id].url}
 					/>
 				{/if}
 			{/snippet}
@@ -137,15 +141,15 @@
 			resource={user}
 			placeholderText="Loading X profile…"
 		>
-			{#snippet children(user)}
+			{#snippet children(loadedUser)}
 				{#if (
 					user.username !== undefined
 					&& user.username !== (
-						user.name ?? user.username ?? entityId.id
+						user.name ?? loadedUser.username ?? entityId.id
 					)
 				)}
 					<span data-text="muted">
-						@{user.username}
+						@{loadedUser.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -162,10 +166,10 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(user)}
-								{#if user.description}
+							{#snippet children(loadedUser)}
+								{#if loadedUser.description}
 									<p data-text="muted">
-										{user.description}
+										{loadedUser.description}
 									</p>
 								{/if}
 							{/snippet}
@@ -181,9 +185,9 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(user)}
-								{#if user.name}
-									{user.name}
+							{#snippet children(loadedUser)}
+								{#if loadedUser.name}
+									{loadedUser.name}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -199,9 +203,9 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(user)}
-								{#if user.username}
-									{user.username}
+							{#snippet children(loadedUser)}
+								{#if loadedUser.username}
+									{loadedUser.username}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -217,9 +221,152 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(user)}
-								{#if user.description}
-									{user.description}
+							{#snippet children(loadedUser)}
+								{#if loadedUser.description}
+									{loadedUser.description}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if contentOpen}
+				<div>
+					<dt>Followers</dt>
+					<dd>
+						<ResourceBoundary
+							resource={user}
+							placeholderText="Loading X profile…"
+						>
+							{#snippet children(loadedUser)}
+								{#if loadedUser.followerCount != null}
+									<NumberValue
+										value={loadedUser.followerCount}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if contentOpen}
+				<div>
+					<dt>Following</dt>
+					<dd>
+						<ResourceBoundary
+							resource={user}
+							placeholderText="Loading X profile…"
+						>
+							{#snippet children(loadedUser)}
+								{#if loadedUser.followingCount != null}
+									<NumberValue
+										value={loadedUser.followingCount}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if contentOpen}
+				<div>
+					<dt>Posts</dt>
+					<dd>
+						<ResourceBoundary
+							resource={user}
+							placeholderText="Loading X profile…"
+						>
+							{#snippet children(loadedUser)}
+								{#if loadedUser.tweetCount != null}
+									<NumberValue
+										value={loadedUser.tweetCount}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if contentOpen}
+				<div>
+					<dt>Verified</dt>
+					<dd>
+						<ResourceBoundary
+							resource={user}
+							placeholderText="Loading X profile…"
+						>
+							{#snippet children(loadedUser)}
+								{#if loadedUser.verified != null}
+									{loadedUser.verified ? 'Yes' : 'No'}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if contentOpen}
+				<div>
+					<dt>Profile URL</dt>
+					<dd>
+						<ResourceBoundary
+							resource={user}
+							placeholderText="Loading X profile…"
+						>
+							{#snippet children(loadedUser)}
+								{#if loadedUser.profileUrl}
+									<a
+										href={loadedUser.profileUrl}
+										rel="noreferrer noopener"
+										target="_blank"
+									>
+										<TruncatedValue
+											format={TruncatedValueFormat.Visual}
+											value={loadedUser.profileUrl}
+										/>
+									</a>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if contentOpen}
+				<div>
+					<dt>Location</dt>
+					<dd>
+						<ResourceBoundary
+							resource={user}
+							placeholderText="Loading X profile…"
+						>
+							{#snippet children(loadedUser)}
+								{#if loadedUser.location}
+									{loadedUser.location}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if contentOpen}
+				<div>
+					<dt>Joined</dt>
+					<dd>
+						<ResourceBoundary
+							resource={user}
+							placeholderText="Loading X profile…"
+						>
+							{#snippet children(loadedUser)}
+								{#if loadedUser.createdAt != null}
+									<Timestamp
+										timestamp={loadedUser.createdAt}
+									/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -237,7 +384,6 @@
 			entityType={EntityType.XUser}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -260,13 +406,13 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet Markers({ open: _markersOpen })}
 					<a
 						data-scroll-marker-label="Profile"
 						href={`#${userIdKey}:profile`}
 					>Profile</a>
 					<ResourceBoundary resource={user}>
-						{#snippet children(user)}
+						{#snippet children(loadedUser)}
 							{#if (user.$$posts?.length)}
 								<a
 									data-scroll-marker-label="Posts"
@@ -277,44 +423,64 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet body(_childrenContext)}
+				{#snippet body({ open: _bodyOpen })}
 					<section data-scroll-marker-label="Profile">
 						<ResourceBoundary
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(user)}
-								{#if (
-									user.name === undefined
-									&& user.username === undefined
-									&& user.description === undefined
-									&& user.$icon === undefined
-								)}
-									<p data-text="muted">
-										User details are not available yet.
-									</p>
-								{/if}
+							{#snippet children(loadedUser)}
+								<dl data-column-item="center">
+									{#if loadedUser.description}
+										<div>
+											<dt>Description</dt>
+											<dd>{loadedUser.description}</dd>
+										</div>
+									{/if}
+
+									{#if loadedUser.$profileBanner?.[EntityMetaKey.Id].url != null}
+										<div>
+											<dt>Banner</dt>
+											<dd>
+												<Media
+													alt=""
+													media={{ url: loadedUser.$profileBanner[EntityMetaKey.Id].url }}
+												/>
+											</dd>
+										</div>
+									{/if}
+
+									{#if (
+										user.name === undefined
+										&& user.username === undefined
+										&& user.description === undefined
+										&& user.$icon === undefined
+										&& user.$profileBanner === undefined
+									)}
+										<p data-text="muted">
+											User details are not available yet.
+										</p>
+									{/if}
+								</dl>
 							{/snippet}
 						</ResourceBoundary>
 					</section>
 
 					<ResourceBoundary resource={user}>
-						{#snippet children(user)}
+						{#snippet children(loadedUser)}
 							{#if (user.$$posts?.length)}
 								<section data-scroll-marker-label="Posts">
 									<XPostsView
 										collapsible={false}
+										href={resolve(
+											'/(social)/x/user/[userId]',
+											{ userId: entityId.id },
+										)}
 										entityFieldReference={{
 											entityType: EntityType.XUser,
 											entityId,
 											fieldName: '$$posts',
 										}}
-										href={resolve(
-											'/(social)/x/user/[userId]',
-											{
-												userId: encodeURIComponent(entityId.id),
-											},
-										)}
 										id={`${userIdKey}:posts`}
 										title="Posts"
 									/>

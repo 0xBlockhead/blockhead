@@ -7,9 +7,8 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EvmLogInterpretationKind, evmLogInterpretationKinds } from '$/constants/Evm.ts'
 	import { stringify } from 'devalue'
-	import { EvmLogInterpretationKind, evmLogInterpretationKindLabelById } from '$/constants/EvmLog.ts'
-	import { getEvmTopicPath, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
 
 
 	// Context
@@ -18,9 +17,15 @@
 
 	// Props
 	let {
-		children: _children,
 		entityId,
-		href,
+		href = resolve(
+		'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]/log/[logIndex]',
+		{
+			networkId: String(entityId.$network.chainId),
+			transactionId: entityId.txHash,
+			logIndex: String(entityId.logIndex),
+		},
+	),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -31,37 +36,26 @@
 			layout === EntityLayout.SummaryDetails,
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmLog>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
 			showParentTransaction?: boolean
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
-	const logIdKey = $derived(
-		stringify(entityId),
-	)
-
 
 	// State
+	import { getEvmTopicPath, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const log = useEntity(
 		EntityType.EvmLog,
@@ -96,12 +90,11 @@
 <EntityView
 	entityType={EntityType.EvmLog}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
-	{summaryUsesHeading}
 	bind:open
 	{collapsible}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -118,19 +111,17 @@
 			resource={log}
 			placeholderText="Loading receipt log…"
 		>
-			{#snippet children(log)}
+			{#snippet children(loadedLog)}
 				<span data-row="wrap gap-2 align-baseline">
 					<span>
 						Receipt log #{entityId.logIndex}
 					</span>
-					{#if log.topics?.[0]?.startsWith('0x')}
+					{#if loadedLog.topics?.[0]?.startsWith('0x')}
 						{@const topic0Hex = normalizeEvmTopicHex(log.topics[0] as `0x${string}`)}
 						<EvmTopicView
 							entityId={{ hex: topic0Hex }}
-							href={getEvmTopicPath(topic0Hex)}
 							layout={EntityLayout.Title}
 							open={false}
-							showTypeAnnotation={false}
 						/>
 					{/if}
 				</span>
@@ -163,8 +154,8 @@
 								href={resolve(
 									'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
 									{
-										networkId: String(entityId.$network.chainId),
-										transactionId: entityId.txHash,
+									networkId: String(entityId.$network.chainId),
+									transactionId: entityId.txHash,
 									},
 								)}
 							>
@@ -181,61 +172,47 @@
 					resource={log}
 					placeholderText="Loading receipt log…"
 				>
-					{#snippet children(log)}
-					{#if log.interpretationKind != null && log.interpretationKind !== EvmLogInterpretationKind.Unknown}
+					{#snippet children(loadedLog)}
+					{#if loadedLog.interpretationKind != null && loadedLog.interpretationKind !== EvmLogInterpretationKind.Unknown}
 						<div>
 							<dt>Interpretation</dt>
-							<dd>{evmLogInterpretationKindLabelById[log.interpretationKind]}</dd>
+							<dd>{evmLogInterpretationKinds[loadedLog.interpretationKind].label}</dd>
 						</div>
 					{/if}
-					{#if log.$emitter}
+					{#if loadedLog.$emitter}
 						<div>
 							<dt>Emitter contract</dt>
 							<dd>
 								<EvmContractView
-									entityId={log.$emitter[EntityMetaKey.Id]}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-										{
-											networkId: String(log.$emitter[EntityMetaKey.Id].$network.chainId),
-											address: log.$emitter[EntityMetaKey.Id].address,
-										},
-									)}
-									layout={EntityLayout.Title}
-									open={false}
+									entityId={loadedLog.$emitter[EntityMetaKey.Id]}
+									layout={EntityLayout.SummaryDetails}
+									open={true}
 									showTypeAnnotation={false}
 								/>
 							</dd>
 						</div>
-					{:else if log.address}
+					{:else if loadedLog.address}
 						<div>
 							<dt>Emitter contract</dt>
 							<dd>
 								<EvmContractView
 									entityId={{
 										$network: entityId.$network,
-										address: log.address,
+										address: loadedLog.address,
 									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-										{
-											networkId: String(entityId.$network.chainId),
-											address: log.address,
-										},
-									)}
-									layout={EntityLayout.Title}
-									open={false}
+									layout={EntityLayout.SummaryDetails}
+									open={true}
 									showTypeAnnotation={false}
 								/>
 							</dd>
 						</div>
 					{/if}
-					{#if log.topics?.length}
+					{#if loadedLog.topics?.length}
 						<div>
 							<dt>Topics</dt>
 							<dd>
 								<ul>
-									{#each log.topics as topic, topicIndex (`${topicIndex}:${topic ?? ''}`)}
+									{#each loadedLog.topics as topic, topicIndex (`${topicIndex}:${topic ?? ''}`)}
 										<li>
 											<span data-text="muted">topic {topicIndex}</span>
 											{#if topic?.startsWith('0x')}
@@ -265,25 +242,25 @@
 							</dd>
 						</div>
 					{/if}
-					{#if log.data}
+					{#if loadedLog.data}
 						<div>
 							<dt>Data</dt>
 							<dd>
 								<TruncatedValue
-									value={log.data}
+									value={loadedLog.data}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
 						</div>
 					{/if}
-					{#if log.topics?.length && log.data != null && contentOpen}
+					{#if loadedLog.topics?.length && loadedLog.data != null && contentOpen}
 						<div>
 							<dt>ABI decode</dt>
 							<dd>
 								<EvmLogDecode
-									topics={log.topics}
-									data={log.data}
-									emitterContractId={log.$emitter?.[EntityMetaKey.Id]}
+									topics={loadedLog.topics}
+									data={loadedLog.data}
+									emitterContractId={loadedLog.$emitter?.[EntityMetaKey.Id]}
 									open={contentOpen}
 								/>
 							</dd>
@@ -295,16 +272,11 @@
 		</div>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.EvmLog}
 			{entityId}
 		/>
-
-		{#if _children}
-			<section id={`${logIdKey}:page-content`}>
-				{@render _children()}
-			</section>
-		{/if}
 	{/snippet}
 </EntityView>
+

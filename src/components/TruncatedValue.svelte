@@ -23,7 +23,7 @@
 	} = $props()
 
 
-	// Derived
+	// (Derived)
 	const rendered = $derived(
 		value ?? '',
 	)

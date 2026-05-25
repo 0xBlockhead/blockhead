@@ -3,7 +3,6 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { currencyByIso4217 } from '$/constants/Currency.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -16,26 +15,26 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+			'/(assets)/(currencies)/currency/[iso4217]/timestamp/[timestampMs]',
+			{
+				iso4217: entityId.$currency.iso4217,
+				timestampMs: String(entityId.timestampMs),
+			},
+		),
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.Currency_Timestamp>
 			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -51,6 +50,17 @@
 				Source.Constants_Internal,
 			],
 			marketCap: {},
+		},
+	)
+
+	const currency = useEntity(
+		EntityType.Currency,
+		entityId.$currency,
+		{
+			$: [
+				Source.Constants_Internal,
+			],
+			name: {},
 		},
 	)
 
@@ -70,15 +80,9 @@
 	entityType={EntityType.Currency_Timestamp}
 	bind:open
 	{entityId}
-	href={
-		href
-		?? resolve(
-			'/(assets)/(currencies)/currency/[iso4217]',
-			{ iso4217: entityId.$currency.iso4217 },
-		)
-	}
+	href={href}
 	title={`Currency snapshot ${entityId.$currency.iso4217}`}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -111,9 +115,9 @@
 			resource={currencyTimestamp}
 			placeholderText="Loading snapshot…"
 		>
-			{#snippet children(currencyTimestamp)}
+			{#snippet children(loadedCurrencyTimestamp)}
 				<dl data-column-item="center">
-					{#if currencyTimestamp.marketCap !== undefined}
+					{#if loadedCurrencyTimestamp.marketCap !== undefined}
 						<div>
 							<dt>
 								FX turnover weight (USD)
@@ -132,14 +136,23 @@
 							<dd>
 								<CurrencyAmount
 									currency="USD"
-									value={currencyTimestamp.marketCap}
+									value={loadedCurrencyTimestamp.marketCap}
 								/>
 							</dd>
 						</div>
 					{/if}
 					<div>
 						<dt>Currency</dt>
-						<dd>{currencyByIso4217[entityId.$currency.iso4217].name}</dd>
+						<dd>
+							<ResourceBoundary
+								resource={currency}
+								placeholderText="Loading currency…"
+							>
+								{#snippet children(loadedCurrency)}
+									{loadedCurrency.name ?? entityId.$currency.iso4217}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
 					</div>
 					<div>
 						<dt>Snapshot wall time</dt>
@@ -154,26 +167,18 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.Currency_Timestamp}
 			{entityId}
 		/>
-
 		<section data-scroll-marker-label="Currency">
 			<CurrencyView
 				entityId={entityId.$currency}
-				href={resolve(
-					'/(assets)/(currencies)/currency/[iso4217]',
-					{ iso4217: entityId.$currency.iso4217 },
-				)}
 				id={`${stringify(entityId)}:currency`}
 				open={false}
 			/>
 		</section>
 
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>

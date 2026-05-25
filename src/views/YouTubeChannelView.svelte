@@ -1,15 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { stringify } from 'devalue'
 
 
@@ -20,30 +17,24 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve('/(social)/(youtube)/youtube/channel/[channelId]', {
+			channelId: entityId.channelId,
+		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
 			layout === EntityLayout.SummaryDetails,
 		),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.YouTubeChannel>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'layout'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Content'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -91,6 +82,7 @@
 
 
 	// Components
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -104,10 +96,10 @@
 <EntityView
 	entityType={EntityType.YouTubeChannel}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -120,8 +112,8 @@
 			resource={channel}
 			placeholderText="Loading channel…"
 		>
-			{#snippet children(channel)}
-				{channel.title ?? entityId.channelId}
+			{#snippet children(loadedChannel)}
+				{loadedChannel.title ?? entityId.channelId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -131,15 +123,16 @@
 			resource={channel}
 			placeholderText="Loading channel…"
 		>
-			{#snippet children(channel)}
-				{#if channel.$icon}
-					{#if channel.$icon[EntityMetaKey.Id].url}
-						<IconComponent
-							shape={IconShape.Circle}
-							src={channel.$icon[EntityMetaKey.Id].url}
-							alt=""
-						/>
-					{/if}
+			{#snippet children(loadedChannel)}
+				{#if (
+					channel.$icon
+					&& channel.$icon[EntityMetaKey.Id].url
+				)}
+					<IconComponent
+						shape={IconShape.Circle}
+						src={loadedChannel.$icon[EntityMetaKey.Id].url}
+						alt=""
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -163,9 +156,9 @@
 						resource={channel}
 						placeholderText="Loading channel…"
 					>
-						{#snippet children(channel)}
-							{#if channel.description}
-								{channel.description}
+						{#snippet children(loadedChannel)}
+							{#if loadedChannel.description}
+								{loadedChannel.description}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -179,8 +172,8 @@
 							resource={channel}
 							placeholderText="Loading channel…"
 						>
-							{#snippet children(channel)}
-								{#if channel.subscriberCount != null}
+							{#snippet children(loadedChannel)}
+								{#if loadedChannel.subscriberCount != null}
 									{String(channel.subscriberCount)}
 								{/if}
 							{/snippet}
@@ -194,8 +187,8 @@
 							resource={channel}
 							placeholderText="Loading channel…"
 						>
-							{#snippet children(channel)}
-								{#if channel.videoCount != null}
+							{#snippet children(loadedChannel)}
+								{#if loadedChannel.videoCount != null}
 									{String(channel.videoCount)}
 								{/if}
 							{/snippet}
@@ -209,8 +202,8 @@
 							resource={channel}
 							placeholderText="Loading channel…"
 						>
-							{#snippet children(channel)}
-								{#if channel.viewCount != null}
+							{#snippet children(loadedChannel)}
+								{#if loadedChannel.viewCount != null}
 									{String(channel.viewCount)}
 								{/if}
 							{/snippet}
@@ -224,9 +217,9 @@
 							resource={channel}
 							placeholderText="Loading channel…"
 						>
-							{#snippet children(channel)}
-								{#if channel.publishedAt != null}
-									{channel.publishedAt}
+							{#snippet children(loadedChannel)}
+								{#if loadedChannel.publishedAt != null}
+									{loadedChannel.publishedAt}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -239,9 +232,9 @@
 							resource={channel}
 							placeholderText="Loading channel…"
 						>
-							{#snippet children(channel)}
-								{#if channel.customUrl}
-									{channel.customUrl}
+							{#snippet children(loadedChannel)}
+								{#if loadedChannel.customUrl}
+									{loadedChannel.customUrl}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -258,7 +251,6 @@
 			entityType={EntityType.YouTubeChannel}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -299,14 +291,12 @@
 				{#snippet body({ open: _sectionOpen })}
 					<section data-scroll-marker-label="Videos">
 						<YouTubeVideosView
+							href={resolve('/youtube/videos')}
 							entityFieldReference={{
 								entityType: EntityType.YouTubeChannel,
 								entityId,
 								fieldName: '$$videos',
 							}}
-							href={resolve('/(social)/(youtube)/youtube/channel/[channelId]/(channel)/videos', {
-								channelId: encodeURIComponent(entityId.channelId),
-							})}
 							id={`${idKey}:youtube-videos`}
 							open={_open}
 						/>
@@ -314,14 +304,12 @@
 
 					<section data-scroll-marker-label="Playlists">
 						<YouTubePlaylistsView
+							href={resolve('/youtube/playlists')}
 							entityFieldReference={{
 								entityType: EntityType.YouTubeChannel,
 								entityId,
 								fieldName: '$$playlists',
 							}}
-							href={resolve('/(social)/(youtube)/youtube/channel/[channelId]/(channel)/playlists', {
-								channelId: encodeURIComponent(entityId.channelId),
-							})}
 							id={`${idKey}:youtube-playlists`}
 							open={_open}
 						/>

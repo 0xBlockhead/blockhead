@@ -1,14 +1,11 @@
 <script lang="ts">
+	// Types/constants
 	import { useLiveQuery } from '@tanstack/svelte-db'
-
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { schema } from '$/schema/index.ts'
-	import NumberValue from '$/views/NumberValue.svelte'
 
+
+	// State
 	const entityQueryByEntityType = Object.fromEntries(
 		schema.map((entityDefinition) => [
 			entityDefinition.entityType,
@@ -37,6 +34,15 @@
 			),
 		] as const),
 	)
+
+
+	// Components
+	import {
+		entityCollectionByEntityType,
+		entityFieldCollections,
+	} from '$/routes/+layout.svelte'
+
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 

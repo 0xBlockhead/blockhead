@@ -1,10 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import type { Sort } from '$/components/RefinableList.svelte'
-	import RefinableList from '$/components/RefinableList.svelte'
-
 	type Row = { id: string, label: string }
 
+
+	// State
 	const items: Row[] = [
 		{ id: 'a', label: 'Alpha' },
 		{ id: 'b', label: 'Bravo' },
@@ -23,6 +22,11 @@
 			compare: (x, y) => y.label.localeCompare(x.label),
 		},
 	]
+
+
+	// Components
+	import type { Sort } from '$/components/RefinableList.svelte'
+	import RefinableList from '$/components/RefinableList.svelte'
 </script>
 
 
@@ -41,12 +45,12 @@
 		searchPlaceholder="Filter"
 		listViewTransition={false}
 	>
-		{#snippet Item({ item, isPlaceholder })}
-			{#if isPlaceholder}
-				<span>…</span>
-			{:else}
-				<span data-e2e="row-label">{item.label}</span>
-			{/if}
+		{#snippet ItemPlaceholder()}
+			<span>…</span>
+		{/snippet}
+
+		{#snippet Item({ item })}
+			<span data-e2e="row-label">{item.label}</span>
 		{/snippet}
 	</RefinableList>
 </main>

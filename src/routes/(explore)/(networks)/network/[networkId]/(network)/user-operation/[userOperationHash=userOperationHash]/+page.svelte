@@ -3,10 +3,6 @@
 	import type { PageProps } from './$types.ts'
 
 
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Props
 	let { data }: PageProps = $props()
 
@@ -20,12 +16,5 @@
 <Page>
 	<EvmUserOperationView
 		entityId={data.entityId}
-		href={resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/user-operation/[userOperationHash]',
-			{
-				networkId: String(data.entityId.$network.chainId),
-				userOperationHash: data.entityId.hash,
-			},
-		)}
 	/>
 </Page>

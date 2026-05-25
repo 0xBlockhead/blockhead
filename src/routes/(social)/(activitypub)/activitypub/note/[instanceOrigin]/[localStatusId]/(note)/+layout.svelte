@@ -1,6 +1,5 @@
 <script lang="ts">
-	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 
@@ -8,6 +7,8 @@
 	// Props
 	let { children } = $props()
 
+
+	// (Derived)
 	const instanceOrigin = $derived(
 		page.params.instanceOrigin ?? '',
 	)
@@ -18,6 +19,7 @@
 
 
 	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ActivityPubNoteView from '$/views/ActivityPubNoteView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 </script>
@@ -36,10 +38,6 @@
 				instanceOrigin: decodeURIComponent(instanceOrigin),
 				localStatusId: decodeURIComponent(localStatusId),
 			}}
-			href={resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {
-				instanceOrigin: encodeURIComponent(instanceOrigin),
-				localStatusId: encodeURIComponent(localStatusId),
-			})}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

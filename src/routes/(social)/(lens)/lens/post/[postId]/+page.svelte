@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Props
 	let {
 		params,
@@ -22,10 +18,6 @@
 <Page>
 	<LensPostView
 		{entityId}
-		href={resolve(
-			'/(social)/(lens)/lens/post/[postId]',
-			{ postId: encodeURIComponent(entityId.id) },
-		)}
 	>
 	</LensPostView>
 </Page>

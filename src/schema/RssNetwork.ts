@@ -80,7 +80,8 @@ export default {
 			entityType: EntityType.RssItem,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
-				Source.Constants_Internal,
+				Source.Rss_Rest,
+				Source.Rss2Json_Rest,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

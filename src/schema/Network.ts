@@ -1,6 +1,5 @@
 import { type } from 'arktype'
-import { CoinId } from '$/constants/Coin.ts'
-import { NetworkEnvironment } from '$/constants/NetworkEnvironment.ts'
+import { NetworkEnvironment } from '$/constants/Network.ts'
 import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 import { ExecutionRpcProvider } from '$/constants/ExecutionRpcProvider.ts'
 import { TransportType } from '$/constants/TransportType.ts'
@@ -18,14 +17,6 @@ const executionEndpointField = type({
 	url: UrlString,
 	serviceProvider: type.valueOf(ExecutionRpcProvider),
 	transportType: type.valueOf(TransportType),
-})
-
-const nativeCurrencyField = type({
-	name: 'string',
-	symbol: 'string',
-	decimals: 'number',
-	'coinId?': type.valueOf(CoinId),
-	'slip44?': 'number',
 })
 
 export default {
@@ -50,10 +41,20 @@ export default {
 			],
 		},
 		{
-			name: 'nativeCurrencies',
-			type: EntityFieldType.Primitive,
-			primitiveType: nativeCurrencyField,
-			cardinality: EntityFieldCardinality.Many,
+			name: '$nativeCoin',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Coin,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Chainlist_Rest,
+				Source.EthereumLists_Rest,
+			],
+		},
+		{
+			name: '$nativeCoinInstance',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.CoinInstance,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
@@ -383,7 +384,6 @@ export default {
 			defaultSources: [
 				Source.Blockscout_Rest,
 				Source.Etherscan_Rest,
-				Source.Voltaire_JsonRpc,
 			],
 		},
 		{
@@ -514,15 +514,6 @@ export default {
 		},
 		{
 			name: 'beaconFinalizedCheckpointRoot',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
-		},
-		{
-			name: 'beaconForkScheduleEntriesJson',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

@@ -7,39 +7,35 @@
 	import { schema } from '$/schema/index.ts'
 	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import type { ComponentProps } from 'svelte'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
-	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-
 	let {
 		entityFieldReference,
 		title = 'Balances',
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.ActorCoin>
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -49,7 +45,6 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ActorCoinView from '$/views/ActorCoinView.svelte'
 </script>
 
@@ -62,7 +57,7 @@
 	data-entity-field-name={entityFieldReference.fieldName}
 	data-entity-field-type={entityFieldReference.entityType}
 	data-entity-field-parent={stringify(entityFieldReference.entityId)}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -79,7 +74,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -130,25 +125,13 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const id = props.item.value[EntityMetaKey.Id]}
-						<ActorCoinView
-							entityId={id}
-							href={resolve('/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]', {
-								chainId: String(id.$coinInstance.$network.chainId),
-								owner: id.$actor.address,
-								coin: (
-									id.$coinInstance.type === CoinInstanceType.Erc20Token ?
-										id.$coinInstance.$contract.address
-									:
-										pathNativeCoin
-								),
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const id = item.value[EntityMetaKey.Id]}
+					<ActorCoinView
+						entityId={id}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

@@ -1,8 +1,10 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
-
-	import { EntityType } from '$/schema/$EntityType.ts'
 
 
 	// Props
@@ -24,7 +26,6 @@
 			entityId: { chainId: Number(params.networkId) },
 			fieldName: '$$upgrades',
 		}}
-		href={resolve('/(explore)/(networks)/network/[networkId]/(network)/upgrades', params)}
 		id="upgrades"
 	/>
 </Page>

@@ -1,5 +1,8 @@
 <script lang="ts">
+	// Types/constants
 	import type { PageProps } from './$types.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+
 
 	// Context
 	import { resolve } from '$app/paths'
@@ -11,34 +14,27 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import NostrNotesView from '$/views/NostrNotesView.svelte'
 	import NostrReactionsView from '$/views/NostrReactionsView.svelte'
-	import { EntityType } from '$/schema/$EntityType.ts'
 </script>
 
 
 <Page>
 	{#if data.noteEntityId}
 		<NostrReactionsView
+			href={resolve('/nostr/reactions')}
 			entityFieldReference={{
 				entityType: EntityType.NostrNote,
 				entityId: data.noteEntityId,
 				fieldName: '$$reactions',
 			}}
-			href={`${resolve('/(social)/(nostr)/nostr/reactions')}?note=${data.noteEntityId.eventId}`}
 			id="nostr-reactions"
 			title="Reactions"
 		/>
 	{:else}
-		<NostrNotesView
-			entityFieldReference={{
-				entityType: EntityType.NostrNetwork,
-				entityId: { scope: 'NostrNetwork' },
-				fieldName: '$$nostrNotes',
-			}}
-			href={resolve('/(social)/(nostr)/nostr/reactions')}
-			id="nostr-reactions-notes"
-			title="Notes"
-		/>
+		<p data-text="muted">
+			Open reactions for a specific note with
+			<code>?note=</code>
+			followed by the 64-character kind-1 event id, or navigate from a note’s reactions carousel.
+		</p>
 	{/if}
 </Page>

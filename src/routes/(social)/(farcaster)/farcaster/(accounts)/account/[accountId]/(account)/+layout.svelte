@@ -1,7 +1,5 @@
 <script lang="ts">
-	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
+	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 
@@ -11,18 +9,22 @@
 
 
 	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import BlockheadFarcasterAccountConnectionView from '$/views/BlockheadFarcasterAccountConnectionView.svelte'
 </script>
 
 
 <ParentPageCollapsible
-	href={resolve(`/farcaster/account/${page.params.accountId}`)}
+	href={resolve(
+		'/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]',
+		{ accountId: String(page.params.accountId) },
+	)}
 	id={page.params.accountId}
 >
 	{#snippet Summary({ open: _open })}
 		<BlockheadFarcasterAccountConnectionView
 			entityId={{ fid: Number(page.params.accountId) }}
-			href={resolve(`/farcaster/account/${page.params.accountId}`)}
 			layout={EntityLayout.SummaryInline}
 			title="Account"
 		/>

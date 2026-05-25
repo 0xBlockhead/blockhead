@@ -1,4 +1,8 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 
@@ -12,18 +16,22 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
-	import { EntityType } from '$/schema/$EntityType.ts'
 </script>
 
 
 <Page>
-		<EvmTransactionsView
+	<EvmTransactionsView
+		href={resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/transactions',
+			{
+				networkId: String(params.networkId),
+			},
+		)}
 		entityFieldReference={{
 			entityType: EntityType.Network,
 			entityId: { chainId: Number(params.networkId) },
 			fieldName: '$$transactions',
 		}}
-		href={resolve('/(explore)/(networks)/network/[networkId]/(network)/transactions', params)}
 		id="transactions"
 	/>
 </Page>

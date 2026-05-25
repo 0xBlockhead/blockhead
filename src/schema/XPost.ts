@@ -6,6 +6,8 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { UrlString } from '$/schema/$Url.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.XPost,
@@ -77,6 +79,21 @@ export default {
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.XPost,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'postUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: UrlString,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$media',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Media,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.X_Rest,
+			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

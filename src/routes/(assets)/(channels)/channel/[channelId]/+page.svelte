@@ -1,7 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
 	// Props
 	let {
 		params,
@@ -16,6 +13,5 @@
 <Page>
 	<ChannelView
 		entityId={{ id: params.channelId }}
-		href={resolve('/(assets)/(channels)/channel/[channelId]', params)}
 	/>
 </Page>

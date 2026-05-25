@@ -7,6 +7,8 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
@@ -15,39 +17,34 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+			userId: String(entityId.fid),
+		}),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.FarcasterUser>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Heading'
-			| 'HeadingAfter'
-			| 'Content'
+			| 'CollapsibleProps'
+			| 'idDragPlainText'
+			| 'layout'
+			| 'ontoggle'
+			| 'showTypeAnnotation'
+			| 'Title'
+			| 'TypeAnnotationTooltip'
+			| 'Value'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -70,16 +67,10 @@
 		},
 	)
 
-	const casts = derive(
-		farcasterUser,
-		(farcasterUser) => (
-			[...(farcasterUser.$$casts ?? [])]
-				.toSorted((a, b) => (
-					stringify(b[EntityMetaKey.Id]).localeCompare(stringify(a[EntityMetaKey.Id]))
-				))
-				.map((result) => ({
-					result,
-				}))
+	const casts = derive(farcasterUser, (loadedFarcasterUser) => (
+			[...(farcasterUser.$$casts ?? [])].map((result) => ({
+				result,
+			}))
 		),
 	)
 
@@ -101,19 +92,18 @@
 <EntityView
 	entityType={EntityType.FarcasterUser}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={farcasterUser}
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
-			{#snippet children(farcasterUser)}
-				{farcasterUser.displayName
-					?? farcasterUser.username
+			{#snippet children(loadedFarcasterUser)}
+				{loadedFarcasterUser.displayName
+					?? loadedFarcasterUser.username
 					?? `FID ${String(entityId.fid)}`}
 			{/snippet}
 		</ResourceBoundary>
@@ -129,20 +119,30 @@
 		{@render Value()}
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Farcaster profile keyed by FID: fname, display name, bio, and verified addresses from Neynar or Snapchain.
+		</p>
+		<p>
+			Casts on the profile are hub snapshots—not a complete archival export of every client.
+		</p>
+	{/snippet}
+
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={farcasterUser}
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
-			{#snippet children(farcasterUser)}
-				{#if farcasterUser.$icon}
-					{#if farcasterUser.$icon[EntityMetaKey.Id].url}
-						<IconComponent
-							shape={IconShape.Circle}
-							src={farcasterUser.$icon[EntityMetaKey.Id].url}
-							alt=""
-						/>
-					{/if}
+			{#snippet children(loadedFarcasterUser)}
+				{#if (
+					farcasterUser.$icon
+					&& farcasterUser.$icon[EntityMetaKey.Id].url
+				)}
+					<IconComponent
+						shape={IconShape.Circle}
+						src={loadedFarcasterUser.$icon[EntityMetaKey.Id].url}
+						alt=""
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -153,17 +153,17 @@
 			resource={farcasterUser}
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
-			{#snippet children(farcasterUser)}
+			{#snippet children(loadedFarcasterUser)}
 				{#if (
 					farcasterUser.username !== undefined
 					&& farcasterUser.username !== (
 						farcasterUser.displayName
-						?? farcasterUser.username
+						?? loadedFarcasterUser.username
 						?? `FID ${String(entityId.fid)}`
 					)
 				)}
 					<span data-text="muted">
-						@{farcasterUser.username}
+						@{loadedFarcasterUser.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -179,9 +179,9 @@
 						resource={farcasterUser}
 						placeholderText="Loading Farcaster profile (FID)…"
 					>
-						{#snippet children(farcasterUser)}
-							{#if farcasterUser.bio != null && farcasterUser.bio !== ''}
-								{farcasterUser.bio}
+						{#snippet children(loadedFarcasterUser)}
+							{#if loadedFarcasterUser.bio != null && loadedFarcasterUser.bio !== ''}
+								{loadedFarcasterUser.bio}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -202,12 +202,12 @@
 						resource={farcasterUser}
 						placeholderText="Loading Farcaster profile (FID)…"
 					>
-						{#snippet children(farcasterUser)}
-							{#if farcasterUser.url}
+						{#snippet children(loadedFarcasterUser)}
+							{#if loadedFarcasterUser.url}
 								<a
-									href={farcasterUser.url}
+									href={loadedFarcasterUser.url}
 									data-text="muted"
-								>{farcasterUser.url}</a>
+								>{loadedFarcasterUser.url}</a>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -222,18 +222,17 @@
 							resource={farcasterUser}
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
-							{#snippet children(farcasterUser)}
-								{#if farcasterUser.verifiedAddress !== undefined}
+							{#snippet children(loadedFarcasterUser)}
+								{#if loadedFarcasterUser.verifiedAddress !== undefined}
 									<ActorView
 										entityId={{
-											address: farcasterUser.verifiedAddress,
+											address: loadedFarcasterUser.verifiedAddress,
 										}}
 										href={resolve('/account/[address]', {
-											address: farcasterUser.verifiedAddress,
+											address: loadedFarcasterUser.verifiedAddress,
 										})}
 										layout={EntityLayout.Title}
 										open={false}
-										showTypeAnnotation={false}
 									/>
 								{/if}
 							{/snippet}
@@ -250,9 +249,9 @@
 							resource={farcasterUser}
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
-							{#snippet children(farcasterUser)}
-								{#if farcasterUser.displayName}
-									{farcasterUser.displayName}
+							{#snippet children(loadedFarcasterUser)}
+								{#if loadedFarcasterUser.displayName}
+									{loadedFarcasterUser.displayName}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -268,9 +267,9 @@
 							resource={farcasterUser}
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
-							{#snippet children(farcasterUser)}
-								{#if farcasterUser.username}
-									@{farcasterUser.username}
+							{#snippet children(loadedFarcasterUser)}
+								{#if loadedFarcasterUser.username}
+									@{loadedFarcasterUser.username}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -286,14 +285,15 @@
 							resource={farcasterUser}
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
-							{#snippet children(farcasterUser)}
-								{#if farcasterUser.$icon}
-									{#if farcasterUser.$icon[EntityMetaKey.Id].url}
-										<Media
-											media={{ url: farcasterUser.$icon[EntityMetaKey.Id].url }}
-											alt={(farcasterUser.displayName ?? farcasterUser.username) ?? ''}
-										/>
-									{/if}
+							{#snippet children(loadedFarcasterUser)}
+								{#if (
+									farcasterUser.$icon
+									&& farcasterUser.$icon[EntityMetaKey.Id].url
+								)}
+									<Media
+										media={{ url: loadedFarcasterUser.$icon[EntityMetaKey.Id].url }}
+										alt={(farcasterUser.displayName ?? loadedFarcasterUser.username) ?? ''}
+									/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -345,12 +345,6 @@
 						data-scroll-marker-label="Casts"
 						href={`#farcaster-user:${String(entityId.fid)}:casts`}
 					>Casts</a>
-					{#if children}
-						<a
-							data-scroll-marker-label="More"
-							href={`#farcaster-user:${String(entityId.fid)}:more`}
-						>More</a>
-					{/if}
 				{/snippet}
 
 				{#snippet body({ open: _paneOpen,
@@ -364,6 +358,7 @@
 							{entityId}
 						/>
 					</section>
+
 					<section
 						data-scroll-marker-label="Profile"
 						id={`farcaster-user:${String(entityId.fid)}:overview`}
@@ -372,13 +367,14 @@
 							resource={farcasterUser}
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
-							{#snippet children(farcasterUser)}
+							{#snippet children(loadedFarcasterUser)}
 								<section data-column>
 									<h3>Farcaster profile</h3>
 								</section>
 							{/snippet}
 						</ResourceBoundary>
 					</section>
+
 					<section
 						data-scroll-marker-label="Casts"
 						id={`farcaster-user:${String(entityId.fid)}:casts`}
@@ -387,11 +383,15 @@
 							entityType={EntityType.FarcasterCast}
 							href={resolve('/farcaster/feed')}
 							id={`farcaster-user:${String(entityId.fid)}:casts-list`}
-							placeholderKeys={new SvelteSet()}
 							placeholderText="Loading casts (Farcaster FID + cast hash)…"
 							resource={casts}
 							title="Casts"
 							getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
+							getSortValue={(row) => (
+								[...stringify(row.result[EntityMetaKey.Id])].map((character) => (
+									String.fromCharCode(0xffff - character.charCodeAt(0))
+								)).join('')
+							)}
 						>
 							{#snippet Empty()}
 								<p data-text="muted">
@@ -399,36 +399,23 @@
 								</p>
 							{/snippet}
 
-							{#snippet Item(props)}
-								{#if props.item}
-									{@const castId = props.item.result[EntityMetaKey.Id]}
-									<FarcasterCastView
-										entityId={{
-											fid: castId.fid,
-											hash: castId.hash,
-										}}
-										href={resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
-											fid: String(castId.fid),
-											hash: String(castId.hash),
-										})}
-										layout={EntityLayout.Summary}
-										variant="feed"
-									/>
-								{/if}
+							{#snippet Item({ item })}
+								{@const castId = item.result[EntityMetaKey.Id]}
+								<FarcasterCastView
+									entityId={{
+										fid: castId.fid,
+										hash: castId.hash,
+									}}
+									layout={EntityLayout.Summary}
+									variant="feed"
+								/>
 							{/snippet}
 						</EntitiesList>
 					</section>
-					{#if children}
-						<section
-							data-scroll-marker-label="More"
-							id={`farcaster-user:${String(entityId.fid)}:more`}
-						>
-							{@render children()}
-						</section>
-					{/if}
 				{/snippet}
 			</CollapsibleTabs>
 		</div>
 	{/snippet}
 </EntityView>
+
 

@@ -6,7 +6,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { evmInternalCallTypeLabelById } from '$/constants/EvmTransaction.ts'
+	import { evmInternalCallTypes } from '$/constants/Evm.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -16,33 +16,32 @@
 
 	// Props
 	let {
-		children: _children,
 		entityId,
-		href,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]/internal/[internalIndex]',
+			{
+				networkId: String(entityId.$network.chainId),
+				transactionId: entityId.$transaction.txHash,
+				internalIndex: String(entityId.internalIndex),
+			},
+		),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
 			layout === EntityLayout.SummaryDetails,
 		),
 		showParentTransaction = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmInternalTransfer>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			open?: boolean
 			showParentTransaction?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -81,10 +80,10 @@
 <EntityView
 	entityType={EntityType.EvmInternalTransfer}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -111,8 +110,8 @@
 				resource={transfer}
 				placeholderText="Loading internal transfer…"
 			>
-							{#snippet children(transfer)}
-				
+							{#snippet children(loadedTransfer)}
+
 					{#if showParentTransaction}
 						<div>
 							<dt>Transaction</dt>
@@ -121,8 +120,8 @@
 									href={resolve(
 										'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
 										{
-											networkId: String(entityId.$network.chainId),
-											transactionId: entityId.txHash,
+										networkId: String(entityId.$network.chainId),
+										transactionId: entityId.txHash,
 										},
 									)}
 								>
@@ -140,47 +139,40 @@
 						<dd>{String(entityId.internalIndex)}</dd>
 					</div>
 
-					{#if transfer.callType}
+					{#if loadedTransfer.callType}
 						<div>
 							<dt>Call type</dt>
-							<dd>{evmInternalCallTypeLabelById[transfer.callType]}</dd>
+							<dd>{evmInternalCallTypes[loadedTransfer.callType].label}</dd>
 						</div>
 					{/if}
 
-					{#if transfer.success !== undefined}
+					{#if loadedTransfer.success !== undefined}
 						<div>
 							<dt>Success</dt>
-							<dd>{transfer.success ? 'Yes' : 'No'}</dd>
+							<dd>{loadedTransfer.success ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if transfer.$createdContract}
+					{#if loadedTransfer.$createdContract}
 						<div>
 							<dt>Created contract</dt>
 							<dd>
 								<EvmContractView
-									entityId={transfer.$createdContract[EntityMetaKey.Id]}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-										{
-											networkId: String(entityId.$network.chainId),
-											address: transfer.$createdContract[EntityMetaKey.Id].address,
-										},
-									)}
-									layout={EntityLayout.Title}
-									open={false}
+									entityId={loadedTransfer.$createdContract[EntityMetaKey.Id]}
+									layout={EntityLayout.SummaryDetails}
+									open={true}
 									showTypeAnnotation={false}
 								/>
 							</dd>
 						</div>
 					{/if}
-				
+
 			{/snippet}
 			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.EvmInternalTransfer}
 			{entityId}

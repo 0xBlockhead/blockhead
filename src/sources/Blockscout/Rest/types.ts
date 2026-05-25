@@ -1,9 +1,9 @@
-export type BlockscoutAddressWire = {
+export type BlockscoutAddress = {
 	hash?: string
 }
 
 /** Nested token summary on address detail (`GET /addresses/{address}`). */
-export type BlockscoutAddressDetailTokenWire = {
+export type BlockscoutAddressDetailToken = {
 	address_hash?: string
 	bridge_type?: string | null
 	circulating_market_cap?: string | null
@@ -21,8 +21,8 @@ export type BlockscoutAddressDetailTokenWire = {
 	volume_24h?: string | null
 }
 
-/** Wire for Blockscout `GET /addresses/{address}` — balance, flags, ENS, embedded token metadata. */
-export type BlockscoutAddressDetailsWire = {
+/** Blockscout `GET /addresses/{address}` — balance, flags, ENS, embedded token metadata. */
+export type BlockscoutAddressDetails = {
 	block_number_balance_updated_at?: number | null
 	coin_balance?: string | null
 	creation_status?: string | null
@@ -49,13 +49,13 @@ export type BlockscoutAddressDetailsWire = {
 	proxy_type?: string | null
 	public_tags?: unknown[]
 	reputation?: string
-	token?: BlockscoutAddressDetailTokenWire | null
+	token?: BlockscoutAddressDetailToken | null
 	watchlist_address_id?: number | null
 	watchlist_names?: unknown[]
 }
 
-/** Wire for Blockscout `GET /addresses/{address}/counters`. */
-export type BlockscoutAddressCountersWire = {
+/** Blockscout `GET /addresses/{address}/counters`. */
+export type BlockscoutAddressCounters = {
 	gas_usage_count?: string
 	token_transfers_count?: string
 	transactions_count?: string
@@ -63,7 +63,7 @@ export type BlockscoutAddressCountersWire = {
 }
 
 /** Token metadata on a token-transfer row (`GET …/token-transfers`). */
-export type BlockscoutTokenTransferTokenWire = {
+export type BlockscoutTokenTransferToken = {
 	address_hash?: string
 	circulating_market_cap?: string
 	decimals?: string
@@ -77,46 +77,46 @@ export type BlockscoutTokenTransferTokenWire = {
 }
 
 /** `total` payload varies by ERC standard on token-transfer rows. */
-export type BlockscoutTokenTransferTotalWire = {
+export type BlockscoutTokenTransferTotal = {
 	decimals?: string | null
 	token_id?: string
 	token_instance?: unknown
 	value?: string
 }
 
-/** Wire item for Blockscout `GET /addresses/{address}/token-transfers`. */
-export type BlockscoutTokenTransferWire = {
+/** Blockscout `GET /addresses/{address}/token-transfers` item. */
+export type BlockscoutTokenTransfer = {
 	block_hash?: string
 	block_number?: number
-	from?: BlockscoutAddressWire
+	from?: BlockscoutAddress
 	log_index?: number
 	method?: string
 	timestamp?: string
-	to?: BlockscoutAddressWire
-	token?: BlockscoutTokenTransferTokenWire
+	to?: BlockscoutAddress
+	token?: BlockscoutTokenTransferToken
 	token_type?: string
-	total?: BlockscoutTokenTransferTotalWire
+	total?: BlockscoutTokenTransferTotal
 	transaction_hash?: string
 	type?: string
 }
 
-/** Wire item for Blockscout `GET /addresses/{address}/internal-transactions`. */
-export type BlockscoutInternalTransactionWire = {
+/** Blockscout `GET /addresses/{address}/internal-transactions` item. */
+export type BlockscoutInternalTransaction = {
 	block_number?: number
-	created_contract?: BlockscoutAddressWire | null
+	created_contract?: BlockscoutAddress | null
 	error?: string
-	from?: BlockscoutAddressWire
+	from?: BlockscoutAddress
 	gas_limit?: string
 	index?: number
 	success?: boolean
 	timestamp?: string
-	to?: BlockscoutAddressWire
+	to?: BlockscoutAddress
 	transaction_hash?: string
 	type?: string
 	value?: string
 }
 
-export type BlockscoutBlockWire = {
+export type BlockscoutBlock = {
 	base_fee_per_gas?: string
 	blob_gas_used?: string | number
 	excess_blob_gas?: string | number
@@ -124,22 +124,22 @@ export type BlockscoutBlockWire = {
 	gas_used?: string
 	hash?: string
 	height: number
-	miner?: BlockscoutAddressWire
+	miner?: BlockscoutAddress
 	parent_hash?: string
 	timestamp?: string
 	transactions_count?: number
 }
 
-export type BlockscoutPaginatedWire<_Item> = {
+export type BlockscoutPaginated<_Item> = {
 	items: _Item[]
 	next_page_params?: Record<string, string | number>
 }
 
-export type BlockscoutTransactionWire = {
+export type BlockscoutTransaction = {
 	block_hash?: string
 	block_number?: number
-	created_contract?: BlockscoutAddressWire | null
-	from?: BlockscoutAddressWire
+	created_contract?: BlockscoutAddress | null
+	from?: BlockscoutAddress
 	gas_limit?: string
 	gas_price?: string
 	gas_used?: string
@@ -151,53 +151,83 @@ export type BlockscoutTransactionWire = {
 	priority_fee?: string
 	raw_input?: string
 	status?: 'error' | 'ok' | string
-	to?: BlockscoutAddressWire | null
+	to?: BlockscoutAddress | null
 	transaction_burnt_fee?: string
 	type?: number
 	value?: string
 }
 
-export type BlockscoutSmartContractForListWire = {
-	address?: BlockscoutAddressWire
-	address_hash?: string | BlockscoutAddressWire
+export type BlockscoutSmartContractForList = {
+	address?: BlockscoutAddress
+	address_hash?: string | BlockscoutAddress
 	compiler_version?: string
 	language?: string
 	verified_at?: string
 }
 
-export type BlockscoutTransactionLogWire = {
-	address_hash?: BlockscoutAddressWire | string | null
+export type BlockscoutTransactionLog = {
+	address_hash?: BlockscoutAddress | string | null
 	block_number?: number
 	data?: string
 	index?: number
-	smart_contract?: BlockscoutAddressWire | null
+	smart_contract?: BlockscoutAddress | null
 	topics?: string[]
 	transaction_hash?: string
 }
 
-export type BlockscoutErc4337RegistryEntryWire = {
-	address?: BlockscoutAddressWire
+export type BlockscoutErc4337RegistryEntry = {
+	address?: BlockscoutAddress
 	total_ops?: number
 	total_accounts?: number
-	factory?: BlockscoutAddressWire | null
+	factory?: BlockscoutAddress | null
 }
 
-export type BlockscoutErc4337BundleWire = {
-	bundler?: BlockscoutAddressWire
+export type BlockscoutErc4337Bundle = {
+	bundler?: BlockscoutAddress
 	total_ops?: number
 }
 
-export type BlockscoutErc4337SmartAccountListItemWire = BlockscoutErc4337RegistryEntryWire
+export type BlockscoutErc4337SmartAccountListItem = BlockscoutErc4337RegistryEntry
 
-export type BlockscoutUserOperationDetailWire = BlockscoutUserOperationListItemWire & {
-	raw?: {
-		paymaster_and_data?: string
-	}
+export type BlockscoutUserOperationRaw = {
+	call_data?: string
+	call_gas_limit?: string
+	init_code?: string
+	max_fee_per_gas?: string
+	max_priority_fee_per_gas?: string
+	nonce?: string
+	paymaster_and_data?: string
+	pre_verification_gas?: string
+	sender?: string
+	signature?: string
+	verification_gas_limit?: string
 }
 
-export type BlockscoutUserOperationListItemWire = {
-	address?: BlockscoutAddressWire
+export type BlockscoutUserOperationDetail = BlockscoutUserOperationListItem & {
+	bundle_index?: number
+	call_gas_limit?: string
+	consensus?: boolean
+	gas?: string
+	gas_price?: string
+	gas_used?: string
+	index?: number
+	max_fee_per_gas?: string
+	max_priority_fee_per_gas?: string
+	nonce?: string
+	paymaster?: BlockscoutAddress | null
+	pre_verification_gas?: string
+	raw?: BlockscoutUserOperationRaw
+	sender?: BlockscoutAddress
+	sponsor_type?: string
+	verification_gas_limit?: string
+}
+
+export type BlockscoutUserOperationListItem = {
+	address?: BlockscoutAddress
 	block_number?: string | number | null
+	bundler?: BlockscoutAddress | null
+	entry_point?: BlockscoutAddress
+	entry_point_version?: string
 	fee?: string
 	hash?: string
 	status?: boolean
@@ -205,8 +235,8 @@ export type BlockscoutUserOperationListItemWire = {
 	transaction_hash?: string | null
 }
 
-/** Wire shape for Blockscout `GET /api/v2/stats` when the instance exposes it. */
-export type BlockscoutStatsWire = {
+/** Blockscout `GET /api/v2/stats` when the instance exposes it. */
+export type BlockscoutStats = {
 	average_block_time?: number
 	coin_price?: string
 	coin_price_change_percentage?: number
@@ -226,13 +256,13 @@ export type BlockscoutStatsWire = {
 }
 
 /** Blockscout legacy RPC API `module=contract` status envelope. */
-export type BlockscoutLegacyContractStatusWire = {
+export type BlockscoutLegacyContractStatus = {
 	status?: string
 	message?: string
-	result?: string | BlockscoutLegacyContractSourceRowWire[]
+	result?: string | BlockscoutLegacyContractSource[]
 }
 
-export type BlockscoutLegacyContractSourceRowWire = {
+export type BlockscoutLegacyContractSource = {
 	SourceCode?: string
 	ABI?: string
 	ContractName?: string

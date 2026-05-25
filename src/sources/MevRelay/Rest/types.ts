@@ -1,4 +1,4 @@
-export type ProposerPayloadDeliveredRowWire = {
+export type ProposerPayloadDelivered = {
 	slot?: string | number
 	block_hash?: string
 	blockHash?: string

@@ -1,15 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { stringify } from 'devalue'
 
 
@@ -20,29 +17,22 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve('/(social)/(reddit)/reddit/link/[fullname]', {
+			fullname: entityId.fullname,
+		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.RedditLink>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'layout'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Content'
-			| 'Heading'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -56,12 +46,16 @@
 		{
 			$: [
 				Source.Reddit_Rest,
+				Source.Reddit_PublicJson,
 			],
 			title: {},
 			selftext: {},
 			url: {},
 			permalink: {},
 			author: {},
+			score: {},
+			commentCount: {},
+			createdAt: {},
 			$subreddit: {},
 		},
 	)
@@ -70,27 +64,30 @@
 
 
 	// Components
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import Markdown from '$/components/Markdown.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 	import RedditCommentsView from '$/views/RedditCommentsView.svelte'
+	import RedditSubredditView from '$/views/RedditSubredditView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.RedditLink}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.id}
+			{entityId.fullname}
 		</span>
 	{/snippet}
 
@@ -103,8 +100,24 @@
 			resource={link}
 			placeholderText="Loading Reddit submission…"
 		>
-			{#snippet children(link)}
-				{link.title ?? entityId.fullname}
+			{#snippet children(loadedLink)}
+				{loadedLink.title ?? entityId.fullname}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet HeadingAfter()}
+		<ResourceBoundary
+			resource={link}
+		>
+			{#snippet children(loadedLink)}
+				{#if loadedLink.createdAt != null}
+					<span data-text="muted">
+						<Timestamp
+							timestamp={loadedLink.createdAt}
+						/>
+					</span>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -119,122 +132,93 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl data-column-item="center">
-			{#if !open}
-				<div>
-					<dt>Submission</dt>
-					<dd>
-						<ResourceBoundary
-							resource={link}
-							placeholderText="Loading Reddit submission…"
-						>
-							{#snippet children(link)}
-								{#if !link.selftext}
-									<p data-text="muted">No submission text.</p>
-								{:else}
-									<p>{link.selftext}</p>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-			{#if open}
-				<div>
-					<dt>Submission fullname</dt>
-					<dd>
-						<span data-text="mono">
-							{entityId.fullname}
-						</span>
-					</dd>
-				</div>
+		<ResourceBoundary
+			resource={link}
+			placeholderText="Loading Reddit submission…"
+		>
+			{#snippet children(loadedLink)}
+				<dl data-column-item="center">
+					<div>
+						<dt>Body</dt>
+						<dd>
+							{#if !loadedLink.selftext}
+								<p data-text="muted">No submission text.</p>
+							{:else}
+								<Markdown content={loadedLink.selftext} />
+							{/if}
+						</dd>
+					</div>
 
-				<div>
-					<dt>Submission title</dt>
-					<dd>
-						<ResourceBoundary
-							resource={link}
-							placeholderText="Loading Reddit submission…"
-						>
-							{#snippet children(link)}
-								{link.title}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+					{#if loadedLink.score != null}
+						<div>
+							<dt>Score</dt>
+							<dd>
+								<NumberValue
+									value={loadedLink.score}
+								/>
+							</dd>
+						</div>
+					{/if}
 
-				<div>
-					<dt>Author</dt>
-					<dd>
-						<ResourceBoundary
-							resource={link}
-							placeholderText="Loading Reddit submission…"
-						>
-							{#snippet children(link)}
-								link/{link.author}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+					{#if loadedLink.commentCount != null}
+						<div>
+							<dt>Comments</dt>
+							<dd>
+								<NumberValue
+									value={loadedLink.commentCount}
+								/>
+							</dd>
+						</div>
+					{/if}
 
-				<div>
-					<dt>Posted in</dt>
-					<dd>
-						<ResourceBoundary
-							resource={link}
-							placeholderText="Loading Reddit submission…"
-						>
-							{#snippet children(link)}
+					{#if loadedLink.author}
+						<div>
+							<dt>Author</dt>
+							<dd>u/{loadedLink.author}</dd>
+						</div>
+					{/if}
+
+					{#if loadedLink.$subreddit}
+						<div>
+							<dt>Posted in</dt>
+							<dd>
+								<RedditSubredditView
+									entityId={loadedLink.$subreddit[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if loadedLink.url}
+						<div>
+							<dt>URL</dt>
+							<dd>
 								<a
-									href={resolve(
-										'/(social)/reddit/r/[name]',
-										{ name: encodeURIComponent(link.$subreddit[EntityMetaKey.Id].name) },
-									)}
-								>r/{link.$subreddit[EntityMetaKey.Id].name}</a>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
-				<div>
-					<dt>URL</dt>
-					<dd>
-						<ResourceBoundary
-							resource={link}
-							placeholderText="Loading Reddit submission…"
-						>
-							{#snippet children(link)}
-								<a
-									href={link.url}
+									href={loadedLink.url}
 									rel="noreferrer"
 									target="_blank"
-								>{link.url}</a>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+								>{loadedLink.url}</a>
+							</dd>
+						</div>
+					{/if}
 
-				<div>
-					<dt>Permalink</dt>
-					<dd>
-						<ResourceBoundary
-							resource={link}
-							placeholderText="Loading Reddit submission…"
-						>
-							{#snippet children(link)}
-								{#if link.permalink}
-									<a
-										href={`https://reddit.com${link.permalink}`}
-										rel="noreferrer"
-										target="_blank"
-									>reddit.com{link.permalink}</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-		</dl>
+					{#if loadedLink.permalink}
+						<div>
+							<dt>Permalink</dt>
+							<dd>
+								<a
+									href={`https://reddit.com${loadedLink.permalink}`}
+									rel="noreferrer"
+									target="_blank"
+								>reddit.com{loadedLink.permalink}</a>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -243,16 +227,7 @@
 		<EntityDetails
 			entityType={EntityType.RedditLink}
 			{entityId}
-		>
-			<ResourceBoundary
-				resource={link}
-				placeholderText="Loading Reddit submission…"
-			>
-				{#snippet children(link)}
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
-
+		/>
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -272,7 +247,7 @@
 						data-row="wrap gap-4"
 					>
 						<HeadingComponent>
-							Comment thread
+							Top-level comments
 						</HeadingComponent>
 					</header>
 				{/snippet}
@@ -281,26 +256,24 @@
 					open: _markersOpen,
 				})}
 					<a
-						data-scroll-marker-label="Comment thread"
+						data-scroll-marker-label="Top-level comments"
 						href={`#${idKey}:comments`}
-					>Thread</a>
+					>Comments</a>
 				{/snippet}
 
 				{#snippet body({ open: _sectionOpen,
 				})}
 					<section
 						id={`${idKey}:comments`}
-						data-scroll-marker-label="Comment thread"
+						data-scroll-marker-label="Top-level comments"
 					>
 						<RedditCommentsView
+							href={resolve('/reddit/comments')}
 							entityFieldReference={{
 								entityType: EntityType.RedditLink,
 								entityId,
 								fieldName: '$$comments',
 							}}
-							href={resolve('/(social)/reddit/link/[fullname]/(link)/comments', {
-								fullname: encodeURIComponent(entityId.fullname),
-							})}
 							id={`${idKey}:reddit-comments`}
 						/>
 					</section>
@@ -309,4 +282,5 @@
 		</div>
 	{/snippet}
 </EntityView>
+
 

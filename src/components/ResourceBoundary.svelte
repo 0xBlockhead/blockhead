@@ -22,8 +22,8 @@
 	// Props
 	let {
 		children,
-		Pending: _Pending,
-		Failed: _Failed,
+		Pending,
+		Failed,
 		placeholderText = 'Loading…',
 		resource: resourceRaw,
 		boundaryKey = 'ResourceBoundary',
@@ -55,8 +55,8 @@
 
 <Boundary {boundaryKey}>
 	{#if resource.error !== undefined}
-		{#if _Failed}
-			{@render _Failed(
+		{#if Failed}
+			{@render Failed(
 				resource.error,
 				() => {},
 			)}
@@ -74,8 +74,8 @@
 			</div>
 		{/if}
 	{:else if !resource.ready}
-		{#if _Pending}
-			{@render _Pending()}
+		{#if Pending}
+			{@render Pending()}
 		{:else}
 			{#if layout === Layout.Inline}
 				<span

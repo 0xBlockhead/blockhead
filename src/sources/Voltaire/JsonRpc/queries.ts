@@ -12,171 +12,168 @@ import type { Provider } from '@tevm/voltaire/provider'
 
 import type { ExecutionEndpoint } from '$/constants/ExecutionEndpoints.ts'
 import { TransportType } from '$/constants/TransportType.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { getHttpProvider, getWebsocketProvider } from '$/lib/voltaire.ts'
 
 import { ethBlockNumber } from '$/sources/Evm/JsonRpc/queries.ts'
-import type { RpcBlockHeaderWire, RpcLogWire, RpcReceiptWire, RpcTxWire } from '$/sources/Evm/JsonRpc/types.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import type { RpcBlockHeader, RpcLog, RpcReceipt, RpcTransaction } from '$/sources/Evm/JsonRpc/types.ts'
+import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 
-import { parseRawCallTraceWire } from '$/lib/evm-trace.ts'
+import { parseRawCallTrace } from '$/lib/evm-trace.ts'
 import type { VoltaireBlockRpc, VoltaireReceiptRpc, VoltaireTxRpc } from './types.ts'
 
+/** Voltaire `Provider.request` is EIP-1193 — JSON-shaped but untyped at the boundary. */
+const jsonValueFromProviderRequest = async (
+	// oxlint-disable-next-line typescript/no-restricted-types -- EIP-1193 Provider.request return
+	requestPromise: Promise<unknown>,
+): Promise<JsonValue> => {
+	const result = await requestPromise
+	// @ts-expect-error EIP-1193 JSON-RPC result is JSON-shaped but untyped on Provider.request
+	const json: JsonValue = result
+	return json
+}
 
-const narrowRpcLogWire = (entry: JsonValue): RpcLogWire | null => (
-	entry === null || typeof entry !== 'object' || !(typeof entry === 'object' && entry !== null && !Array.isArray(entry)) ?
-		null
-	:	{
-			address: typeof entry['address'] === 'string' ? entry['address'] : undefined,
-			topics: (
-				Array.isArray(entry['topics'])
-				&& entry['topics'].every((t) => typeof t === 'string') ?
-					entry['topics']
-				:	undefined
-			),
-			data: typeof entry['data'] === 'string' ? entry['data'] : undefined,
-			blockNumber: typeof entry['blockNumber'] === 'string' ? entry['blockNumber'] : undefined,
-			transactionHash: typeof entry['transactionHash'] === 'string' ? entry['transactionHash'] : undefined,
-			logIndex: typeof entry['logIndex'] === 'string' ? entry['logIndex'] : undefined,
-		}
-)
 
-export const narrowVoltaireTxRpc = (raw: JsonValue): VoltaireTxRpc | null => (
-	raw == null || typeof raw !== 'object' ?
-		null
-	: !(typeof raw === 'object' && raw !== null && !Array.isArray(raw)) ?
-		null
-	:	(() => {
-			const blobRaw = raw['blobVersionedHashes']
-			const blobVersionedHashes = (
-				Array.isArray(blobRaw) && blobRaw.every((h) => typeof h === 'string') ?
-					blobRaw
-				:	undefined
-			)
-			return {
-				hash: typeof raw['hash'] === 'string' ? raw['hash'] : undefined,
-				blockNumber: typeof raw['blockNumber'] === 'string' ? raw['blockNumber'] : undefined,
-				blockHash: typeof raw['blockHash'] === 'string' ? raw['blockHash'] : undefined,
-				transactionIndex: typeof raw['transactionIndex'] === 'string' ? raw['transactionIndex'] : undefined,
-				from: typeof raw['from'] === 'string' ? raw['from'] : undefined,
-				to: raw['to'] === null ? null : typeof raw['to'] === 'string' ? raw['to'] : undefined,
-				value: typeof raw['value'] === 'string' ? raw['value'] : undefined,
-				nonce: typeof raw['nonce'] === 'string' ? raw['nonce'] : undefined,
-				input: typeof raw['input'] === 'string' ? raw['input'] : undefined,
-				gas: typeof raw['gas'] === 'string' ? raw['gas'] : undefined,
-				gasPrice: typeof raw['gasPrice'] === 'string' ? raw['gasPrice'] : undefined,
-				maxFeePerGas: typeof raw['maxFeePerGas'] === 'string' ? raw['maxFeePerGas'] : undefined,
-				maxPriorityFeePerGas: typeof raw['maxPriorityFeePerGas'] === 'string' ? raw['maxPriorityFeePerGas'] : undefined,
-				type: typeof raw['type'] === 'string' ? raw['type'] : undefined,
-				maxFeePerBlobGas: typeof raw['maxFeePerBlobGas'] === 'string' ? raw['maxFeePerBlobGas'] : undefined,
-				...(blobVersionedHashes != null && { blobVersionedHashes }),
-			}
-		})()
-)
+const narrowRpcLog = (entry: JsonValue): RpcLog | null => {
+	if (!isJsonObject(entry)) return null
+	return {
+		address: typeof entry['address'] === 'string' ? entry['address'] : undefined,
+		topics: (
+			Array.isArray(entry['topics'])
+			&& entry['topics'].every((t) => typeof t === 'string') ?
+				entry['topics']
+			:	undefined
+		),
+		data: typeof entry['data'] === 'string' ? entry['data'] : undefined,
+		blockNumber: typeof entry['blockNumber'] === 'string' ? entry['blockNumber'] : undefined,
+		transactionHash: typeof entry['transactionHash'] === 'string' ? entry['transactionHash'] : undefined,
+		logIndex: typeof entry['logIndex'] === 'string' ? entry['logIndex'] : undefined,
+	}
+}
 
-export const narrowVoltaireBlockRpc = (raw: JsonValue): VoltaireBlockRpc | null => (
-	raw == null || typeof raw !== 'object' ?
-		null
-	: !(typeof raw === 'object' && raw !== null && !Array.isArray(raw)) ?
-		null
-	:	(() => {
-			const number = raw['number']
-			const hash = raw['hash']
-			const parentHash = raw['parentHash']
-			const miner = raw['miner']
-			const gasUsed = raw['gasUsed']
-			const gasLimit = raw['gasLimit']
-			if (
-				typeof number !== 'string'
-				|| typeof hash !== 'string'
-				|| typeof parentHash !== 'string'
-				|| typeof miner !== 'string'
-				|| typeof gasUsed !== 'string'
-				|| typeof gasLimit !== 'string'
-			) return null
-			const timestampRaw = raw['timestamp']
-			if (typeof timestampRaw !== 'string' && typeof timestampRaw !== 'number') return null
-			const baseFeePerGas = raw['baseFeePerGas']
-			const blobGasUsed = raw['blobGasUsed']
-			const excessBlobGas = raw['excessBlobGas']
-			const txs = raw['transactions']
-			const transactions = (
-				!Array.isArray(txs) ?
-					undefined
-				: txs.length === 0 ?
-					[]
-				: txs.every((t) => typeof t === 'string') ?
-					txs
-				: txs.every((t) => typeof t === 'object' && t !== null && !Array.isArray(t)) ?
-					txs
-						.map((t) => narrowVoltaireTxRpc(t as JsonValue))
-						.filter((t): t is VoltaireTxRpc => t != null)
-				:
-					undefined
-			)
-			return {
-				number,
-				hash,
-				parentHash,
-				timestamp: timestampRaw,
-				miner,
-				gasUsed,
-				gasLimit,
-				...(typeof baseFeePerGas === 'string' && { baseFeePerGas }),
-				...(typeof blobGasUsed === 'string' && { blobGasUsed }),
-				...(typeof excessBlobGas === 'string' && { excessBlobGas }),
-				...(transactions != null && { transactions }),
-			}
-		})()
-)
+export const narrowVoltaireTxRpc = (raw: JsonValue): VoltaireTxRpc | null => {
+	if (!isJsonObject(raw)) return null
+	const blobRaw = raw['blobVersionedHashes']
+	const blobVersionedHashes = (
+		Array.isArray(blobRaw) && blobRaw.every((h) => typeof h === 'string') ?
+			blobRaw
+		:	undefined
+	)
+	return {
+		hash: typeof raw['hash'] === 'string' ? raw['hash'] : undefined,
+		blockNumber: typeof raw['blockNumber'] === 'string' ? raw['blockNumber'] : undefined,
+		blockHash: typeof raw['blockHash'] === 'string' ? raw['blockHash'] : undefined,
+		transactionIndex: typeof raw['transactionIndex'] === 'string' ? raw['transactionIndex'] : undefined,
+		from: typeof raw['from'] === 'string' ? raw['from'] : undefined,
+		to: raw['to'] === null ? null : typeof raw['to'] === 'string' ? raw['to'] : undefined,
+		value: typeof raw['value'] === 'string' ? raw['value'] : undefined,
+		nonce: typeof raw['nonce'] === 'string' ? raw['nonce'] : undefined,
+		input: typeof raw['input'] === 'string' ? raw['input'] : undefined,
+		gas: typeof raw['gas'] === 'string' ? raw['gas'] : undefined,
+		gasPrice: typeof raw['gasPrice'] === 'string' ? raw['gasPrice'] : undefined,
+		maxFeePerGas: typeof raw['maxFeePerGas'] === 'string' ? raw['maxFeePerGas'] : undefined,
+		maxPriorityFeePerGas: typeof raw['maxPriorityFeePerGas'] === 'string' ? raw['maxPriorityFeePerGas'] : undefined,
+		type: typeof raw['type'] === 'string' ? raw['type'] : undefined,
+		maxFeePerBlobGas: typeof raw['maxFeePerBlobGas'] === 'string' ? raw['maxFeePerBlobGas'] : undefined,
+		...(blobVersionedHashes != null && { blobVersionedHashes }),
+	}
+}
 
-const narrowVoltaireReceiptRpc = (raw: JsonValue): VoltaireReceiptRpc | null => (
-	raw == null || typeof raw !== 'object' ?
-		null
-	: !(typeof raw === 'object' && raw !== null && !Array.isArray(raw)) ?
-		null
-	:	(() => {
-			const logsRaw = raw['logs']
-			const logsParsed = Array.isArray(logsRaw) ? logsRaw.map(narrowRpcLogWire) : null
-			const logs = (
-				logsParsed != null && logsParsed.every((l) => l != null) ?
-					logsParsed.filter((l): l is RpcLogWire => l != null)
-				:	undefined
-			)
-			const contractAddressRaw = raw['contractAddress']
-			const contractAddress = (
-				contractAddressRaw === null ?
-					null
-				: typeof contractAddressRaw === 'string' ?
-					contractAddressRaw
-				:	undefined
-			)
-			return {
-				status: typeof raw['status'] === 'string' ? raw['status'] : undefined,
-				gasUsed: typeof raw['gasUsed'] === 'string' ? raw['gasUsed'] : undefined,
-				cumulativeGasUsed: typeof raw['cumulativeGasUsed'] === 'string' ? raw['cumulativeGasUsed'] : undefined,
-				contractAddress,
-				effectiveGasPrice: typeof raw['effectiveGasPrice'] === 'string' ? raw['effectiveGasPrice'] : undefined,
-				blobGasUsed: typeof raw['blobGasUsed'] === 'string' ? raw['blobGasUsed'] : undefined,
-				...(logs != null && { logs }),
-			}
-		})()
-)
+export const narrowVoltaireBlockRpc = (raw: JsonValue): VoltaireBlockRpc | null => {
+	if (!isJsonObject(raw)) return null
+	const number = raw['number']
+	const hash = raw['hash']
+	const parentHash = raw['parentHash']
+	const miner = raw['miner']
+	const gasUsed = raw['gasUsed']
+	const gasLimit = raw['gasLimit']
+	if (
+		typeof number !== 'string'
+		|| typeof hash !== 'string'
+		|| typeof parentHash !== 'string'
+		|| typeof miner !== 'string'
+		|| typeof gasUsed !== 'string'
+		|| typeof gasLimit !== 'string'
+	) return null
+	const timestampRaw = raw['timestamp']
+	if (typeof timestampRaw !== 'string' && typeof timestampRaw !== 'number') return null
+	const baseFeePerGas = raw['baseFeePerGas']
+	const blobGasUsed = raw['blobGasUsed']
+	const excessBlobGas = raw['excessBlobGas']
+	const txs = raw['transactions']
+	const transactions = (
+		!Array.isArray(txs) ?
+			undefined
+		: txs.length === 0 ?
+			[]
+		: txs.every((t) => typeof t === 'string') ?
+			txs
+		: txs.every((t) => typeof t === 'object' && t !== null && !Array.isArray(t)) ?
+			txs
+				.map((t) => narrowVoltaireTxRpc(t))
+				.filter((t): t is VoltaireTxRpc => t != null)
+		:
+			undefined
+	)
+	return {
+		number,
+		hash,
+		parentHash,
+		timestamp: timestampRaw,
+		miner,
+		gasUsed,
+		gasLimit,
+		...(typeof baseFeePerGas === 'string' && { baseFeePerGas }),
+		...(typeof blobGasUsed === 'string' && { blobGasUsed }),
+		...(typeof excessBlobGas === 'string' && { excessBlobGas }),
+		...(transactions != null && { transactions }),
+	}
+}
+
+const narrowVoltaireReceiptRpc = (raw: JsonValue): VoltaireReceiptRpc | null => {
+	if (!isJsonObject(raw)) return null
+	const logsRaw = raw['logs']
+	const logsParsed = Array.isArray(logsRaw) ? logsRaw.map(narrowRpcLog) : null
+	const logs = (
+		logsParsed != null && logsParsed.every((l) => l != null) ?
+			logsParsed.filter((l): l is RpcLog => l != null)
+		:	undefined
+	)
+	const contractAddressRaw = raw['contractAddress']
+	const contractAddress = (
+		contractAddressRaw === null ?
+			null
+		: typeof contractAddressRaw === 'string' ?
+			contractAddressRaw
+		:	undefined
+	)
+	return {
+		status: typeof raw['status'] === 'string' ? raw['status'] : undefined,
+		gasUsed: typeof raw['gasUsed'] === 'string' ? raw['gasUsed'] : undefined,
+		cumulativeGasUsed: typeof raw['cumulativeGasUsed'] === 'string' ? raw['cumulativeGasUsed'] : undefined,
+		contractAddress,
+		effectiveGasPrice: typeof raw['effectiveGasPrice'] === 'string' ? raw['effectiveGasPrice'] : undefined,
+		blobGasUsed: typeof raw['blobGasUsed'] === 'string' ? raw['blobGasUsed'] : undefined,
+		...(logs != null && { logs }),
+	}
+}
 
 
 export const streamBlockToVoltaireBlockRpcWire = (
 	block: StreamBlock<'header'>,
-): VoltaireBlockRpc => ({
-	number: String(Hex.fromBigInt(block.header.number)),
-	hash: String(Hex.fromBytes(block.hash)),
-	parentHash: String(Hex.fromBytes(block.header.parentHash)),
-	timestamp: String(Hex.fromBigInt(block.header.timestamp)),
-	miner: String(Hex.fromBytes(block.header.beneficiary)),
-	gasUsed: String(Hex.fromBigInt(block.header.gasUsed)),
-	gasLimit: String(Hex.fromBigInt(block.header.gasLimit)),
-	...(block.header.baseFeePerGas != null && { baseFeePerGas: String(Hex.fromBigInt(block.header.baseFeePerGas)) }),
-	transactions: [...block.body.transactions] as VoltaireBlockRpc['transactions'],
-})
+): VoltaireBlockRpc => {
+	const transactions: VoltaireBlockRpc['transactions'] = [...block.body.transactions]
+	return {
+		number: String(Hex.fromBigInt(block.header.number)),
+		hash: String(Hex.fromBytes(block.hash)),
+		parentHash: String(Hex.fromBytes(block.header.parentHash)),
+		timestamp: String(Hex.fromBigInt(block.header.timestamp)),
+		miner: String(Hex.fromBytes(block.header.beneficiary)),
+		gasUsed: String(Hex.fromBigInt(block.header.gasUsed)),
+		gasLimit: String(Hex.fromBigInt(block.header.gasLimit)),
+		...(block.header.baseFeePerGas != null && { baseFeePerGas: String(Hex.fromBigInt(block.header.baseFeePerGas)) }),
+		transactions,
+	}
+}
 
 export const toBlockSpec = (n: number | bigint | 'latest'): 'latest' | `0x${string}` => (
 	n === 'latest' ? 'latest' : Hex.fromBigInt(BigInt(n))
@@ -213,10 +210,12 @@ export const getBlockByNumber = async ({
 	fullTransactions?: boolean
 }): Promise<VoltaireBlockRpc | null> => (
 	narrowVoltaireBlockRpc(
-		await provider.request(
-			Rpc.Eth.GetBlockByNumberRequest(
-				blockNumber === 'latest' ? 'latest' : toBlockSpec(blockNumber),
-				fullTransactions,
+		await jsonValueFromProviderRequest(
+			provider.request(
+				Rpc.Eth.GetBlockByNumberRequest(
+					blockNumber === 'latest' ? 'latest' : toBlockSpec(blockNumber),
+					fullTransactions,
+				),
 			),
 		),
 	)
@@ -249,8 +248,12 @@ export const lookupTransactionByHash = async ({
 }): Promise<{ tx: VoltaireTxRpc; receipt: VoltaireReceiptRpc | null }> => {
 	const hashParam = Hex(txHash)
 	const [txUnknown, receiptUnknown] = await Promise.all([
-		provider.request(Rpc.Eth.GetTransactionByHashRequest(hashParam)),
-		provider.request(Rpc.Eth.GetTransactionReceiptRequest(hashParam)),
+		jsonValueFromProviderRequest(
+			provider.request(Rpc.Eth.GetTransactionByHashRequest(hashParam)),
+		),
+		jsonValueFromProviderRequest(
+			provider.request(Rpc.Eth.GetTransactionReceiptRequest(hashParam)),
+		),
 	])
 	const tx = narrowVoltaireTxRpc(txUnknown)
 	const receipt = narrowVoltaireReceiptRpc(receiptUnknown)
@@ -395,7 +398,7 @@ export const getRecentVoltaireBlockWiresForRpcUrl = async ({
 	blockNumbers: bigint[]
 	wires: (VoltaireBlockRpc | null)[]
 }> => {
-	const head = await singleFlight(getChainHeadNumberForRpcUrl)({ rpcUrl, transportType })
+	const head = await getChainHeadNumberForRpcUrl({ rpcUrl, transportType })
 	const blockNumbers = (
 		Array.from(
 			{ length: recentBlockDepth },
@@ -404,7 +407,7 @@ export const getRecentVoltaireBlockWiresForRpcUrl = async ({
 	)
 	const wires = await Promise.all(
 		blockNumbers.map((blockNumber) => (
-			singleFlight(getBlockByNumberForRpcUrl)({
+			getBlockByNumberForRpcUrl({
 				rpcUrl,
 				transportType,
 				blockNumber,
@@ -426,7 +429,9 @@ export const getTransactionByHashForRpcUrl = async ({
 }): Promise<VoltaireTxRpc | null> => {
 	const provider = getVoltaireProviderForExecutionUrl({ url: rpcUrl, transportType })
 	return narrowVoltaireTxRpc(
-		await provider.request(Rpc.Eth.GetTransactionByHashRequest(Hex(txHash))),
+		await jsonValueFromProviderRequest(
+			provider.request(Rpc.Eth.GetTransactionByHashRequest(Hex(txHash))),
+		),
 	)
 }
 
@@ -441,14 +446,20 @@ export const debugTraceTransactionForRpcUrl = async ({
 }) => {
 	const provider = getVoltaireProviderForExecutionUrl({ url: rpcUrl, transportType })
 	try {
-		return parseRawCallTraceWire(
-			await provider.request({
+		const traceJson = await jsonValueFromProviderRequest(
+			provider.request({
 				method: 'debug_traceTransaction',
 				params: [
 					Hex(txHash),
 					{ tracer: 'callTracer' },
 				],
 			}),
+		)
+		return (
+			isJsonObject(traceJson) ?
+				parseRawCallTrace(traceJson)
+			:
+				null
 		)
 	} catch {
 		return null
@@ -465,8 +476,10 @@ export const getTransactionReceiptForRpcUrl = async ({
 	txHash: `0x${string}`
 }): Promise<VoltaireReceiptRpc | null> => (
 	narrowVoltaireReceiptRpc(
-		await getVoltaireProviderForExecutionUrl({ url: rpcUrl, transportType }).request(
-			Rpc.Eth.GetTransactionReceiptRequest(Hex(txHash)),
+		await jsonValueFromProviderRequest(
+			getVoltaireProviderForExecutionUrl({ url: rpcUrl, transportType }).request(
+				Rpc.Eth.GetTransactionReceiptRequest(Hex(txHash)),
+			),
 		),
 	)
 )
@@ -486,7 +499,7 @@ export const lookupTransactionByHashForRpcUrl = async ({
 
 export const voltaireBlockWireAsRpcHeader = (
 	wire: VoltaireBlockRpc,
-): RpcBlockHeaderWire => ({
+): RpcBlockHeader => ({
 	number: wire.number,
 	hash: wire.hash,
 	parentHash: wire.parentHash,
@@ -507,7 +520,7 @@ export const voltaireBlockWireAsRpcHeader = (
 export const voltaireTxWireAsRpcTx = (
 	tx: VoltaireTxRpc,
 	txHash: `0x${string}`,
-): RpcTxWire => ({
+): RpcTransaction => ({
 	hash: tx.hash ?? txHash,
 	blockHash: tx.blockHash,
 	blockNumber: tx.blockNumber,
@@ -527,7 +540,7 @@ export const voltaireTxWireAsRpcTx = (
 
 export const voltaireReceiptWireAsRpcReceipt = (
 	receipt: VoltaireReceiptRpc | null,
-): RpcReceiptWire | null => (
+): RpcReceipt | null => (
 	receipt == null ?
 		null
 	:	{

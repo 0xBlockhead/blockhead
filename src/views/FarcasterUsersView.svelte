@@ -5,33 +5,26 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Props
 	let {
 		entityFieldReference,
 		id = 'users',
-		href = resolve('/farcaster/users'),
 		title = 'Users',
 		open = $bindable(true),
 		collapsible = true,
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.FarcasterUser>
 		id?: string
-		href?: string
 		title?: string
 		open?: boolean
 	} = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -46,7 +39,6 @@
 <EntitiesList
 	entityType={EntityType.FarcasterUser}
 	{id}
-	{href}
 	{title}
 	bind:open
 	{collapsible}
@@ -66,7 +58,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parentNetwork = useEntity(
 				EntityType.FarcasterNetwork,
@@ -91,12 +83,10 @@
 				showSummary={false}
 				entityType={EntityType.FarcasterUser}
 				id={`${id}-items`}
-				{href}
 				{title}
 				open={true}
 				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
 				getSortValue={(row) => row.value[EntityMetaKey.Id].fid}
-				placeholderKeys={new SvelteSet()}
 				placeholderText="Loading Farcaster users…"
 				resource={users}
 			>
@@ -106,18 +96,13 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const userId = props.item.value[EntityMetaKey.Id]}
-						<FarcasterUserView
-							entityId={{ fid: userId.fid }}
-							href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-								userId: String(userId.fid),
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const userId = item.value[EntityMetaKey.Id]}
+					<FarcasterUserView
+						entityId={{ fid: userId.fid }}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

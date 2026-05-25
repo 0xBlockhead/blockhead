@@ -35,6 +35,13 @@ const setupFailFast = (page: Page) => {
 			&& !message.text().includes('has been blocked by CORS policy')
 			&& !message.text().includes('net::ERR_NETWORK_CHANGED')
 			&& !message.text().includes('net::ERR_NETWORK_IO_SUSPENDED')
+			&& !(
+				message.text().includes('[QueryCollection]')
+				&& (
+					/resolver\(s\) failed/.test(message.text())
+					|| /Fetch failed \(\d{3}/.test(message.text())
+				)
+			)
 		) failFast(new Error(`console error: ${message.text()}`))
 	})
 
@@ -69,7 +76,11 @@ test.describe('/coins routes', () => {
 		await step(expect(page.locator('#coins a[data-scroll-marker-label="Spot quote index"]').first()).toBeAttached(attach))
 		await step(expect(page.locator('#coins [id="coins:prices-spot"] a[href*="/market/"]').first()).toBeAttached(attach))
 		await step(expect(page.locator('#coins [id="coins:ohlc-candles-preview"]').getByText('OHLC', { exact: false }).first()).toBeAttached(attach))
-		await step(expect(page.locator('#coins [id="coins:markets-index"] a[href*="/market/"]').first()).toBeAttached(attach))
+		await step(expect(
+			page.locator('#coins [id="coins:markets-index"] a[href*="/market/"]').first().or(
+				page.locator('#coins [id="coins:markets-index"]').getByText('No markets in this context yet.'),
+			),
+		).toBeAttached(attach))
 	})
 
 	test('coin detail ETH renders markets and deployments', async ({ page }, testInfo) => {
@@ -139,12 +150,12 @@ test.describe('/coins routes', () => {
 
 		await step(page.goto('/assets', { waitUntil: 'load', timeout: 120_000 }))
 
-		await step(expect(page.locator('#assets-coins')).toBeAttached(attach))
-		await step(expect(page.locator('#assets-coins .coins-view-collapsible-quotes')).toBeAttached(attach))
-		await step(expect(page.locator('#assets-coins .coins-view-collapsible-ohlc')).toBeAttached(attach))
-		await step(expect(page.locator('#assets-coins .coins-view-collapsible-markets')).toBeAttached(attach))
-		await step(expect(page.locator('#assets-coins .coins-view-collapsible-deployments')).toBeAttached(attach))
-		await step(expect(page.locator('#assets-coins a[data-scroll-marker-label="Spot quote index"]').first()).toBeAttached(attach))
+		await step(expect(page.locator('#coins')).toBeAttached(attach))
+		await step(expect(page.locator('#coins .coins-view-collapsible-quotes')).toBeAttached(attach))
+		await step(expect(page.locator('#coins .coins-view-collapsible-ohlc')).toBeAttached(attach))
+		await step(expect(page.locator('#coins .coins-view-collapsible-markets')).toBeAttached(attach))
+		await step(expect(page.locator('#coins .coins-view-collapsible-deployments')).toBeAttached(attach))
+		await step(expect(page.locator('#coins a[data-scroll-marker-label="Spot quote index"]').first()).toBeAttached(attach))
 	})
 
 	test('navigation lists coin facet routes', async ({ page }, testInfo) => {

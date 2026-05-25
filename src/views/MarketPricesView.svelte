@@ -9,10 +9,9 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -22,7 +21,7 @@
 		collapsible = true,
 		limit = 400,
 		entityFieldReference,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
@@ -30,17 +29,15 @@
 			limit?: number
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.MarketPrice>
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -48,13 +45,12 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import MarketPriceView from '$/views/MarketPriceView.svelte'
 </script>
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	{collapsible}
 	entityType={EntityType.MarketPrice}
@@ -75,9 +71,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const market = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -85,7 +80,7 @@
 					$: [
 						...marketCatalogFieldSources,
 					],
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$limit: limit,
 					},
 				},
@@ -94,7 +89,7 @@
 				market,
 				(market) => {
 					const rows: Entity<typeof schema, EntityType.MarketPrice>[] = (
-						market[fieldName] ?? []
+						market[entityFieldReference.fieldName] ?? []
 					)
 					return (
 						Object.values(
@@ -140,23 +135,13 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<MarketPriceView
-							entityId={props.item.value[EntityMetaKey.Id]}
-							href={resolve(
-								'/(assets)/(markets)/market/[marketKey]',
-								{
-									marketKey: encodeURIComponent(
-										stringify(props.item.value[EntityMetaKey.Id].$market),
-									),
-								},
-							)}
-							id={stringify(props.item.value[EntityMetaKey.Id])}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					<MarketPriceView
+						entityId={item.value[EntityMetaKey.Id]}
+						id={stringify(item.value[EntityMetaKey.Id])}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

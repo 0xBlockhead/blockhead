@@ -23,7 +23,7 @@
 	} = $props()
 
 
-	// Functions
+	// Inner context
 	const onDragStart = (e: DragEvent) => {
 		e.dataTransfer?.setData('text/plain', idDragPlainText ?? stringify(entityId))
 		if (href !== undefined && href.length > 0) {

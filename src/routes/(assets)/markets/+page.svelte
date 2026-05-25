@@ -20,12 +20,12 @@
 
 <Page>
 	<MarketsView
+		href={resolve('/markets')}
 		entityFieldReference={{
 			entityType: EntityType._Global,
 			entityId: {},
 			fieldName: '$$markets',
 		}}
-		href={resolve('/markets')}
 		open
 	/>
 </Page>

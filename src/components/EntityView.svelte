@@ -6,6 +6,8 @@
 		Value = 'Value',
 		/** Collapsible card: summary row; details when open. */
 		SummaryDetails = 'SummaryDetails',
+		/** Alias for nested list rows that pass `open={false}` on the summary card. */
+		Summary = 'Summary',
 		/**
 		 * Same identity row as the summary row, without `article` or nested `Collapsible`
 		 * (e.g. nested under `ParentPageCollapsible`).
@@ -43,6 +45,24 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 
+	type EntityViewLayoutProps =
+		| {
+			layout?: EntityLayout.SummaryDetails
+			showTypeAnnotation?: boolean
+		}
+		| {
+			layout: EntityLayout.Summary
+			showTypeAnnotation?: boolean
+		}
+		| {
+			layout: EntityLayout.SummaryInline
+			showTypeAnnotation?: boolean
+		}
+		| {
+			layout: EntityLayout.Title | EntityLayout.Value
+			showTypeAnnotation?: never
+		}
+
 	let {
 		entityType,
 		entityId,
@@ -70,7 +90,7 @@
 		TypeAnnotationTooltip,
 		Content,
 		CollapsibleProps,
-		Details: _Details,
+		Details,
 
 		...articleProps
 	}: WithRest<
@@ -81,9 +101,6 @@
 			title?: string
 			href?: string
 			idDragPlainText?: string
-
-			layout?: EntityLayout
-			showTypeAnnotation?: boolean
 
 			open?: boolean
 			ontoggle?: (e: Event) => void
@@ -106,7 +123,7 @@
 			Details?: Snippet<[context?: {
 				open?: boolean
 			}]>
-		},
+		} & EntityViewLayoutProps,
 		SvelteHTMLElements['article']
 	> = $props()
 
@@ -251,7 +268,7 @@
 		id={stringify(entityId)}
 		style:view-transition-name={`EntityView-${stringify(entityId)}`}
 	>
-		{#snippet Annotation(_context)}
+		{#snippet Annotation({ open: _annotationOpen })}
 			{#if TypeAnnotationTooltip}
 				<Tooltip
 					contentProps={{ side: 'top' }}
@@ -279,16 +296,16 @@
 			}}
 			Annotation={showTypeAnnotation ? Annotation : undefined}
 		>
-			{#snippet Summary(_context)}
+			{#snippet Summary({ open: _summaryOpen })}
 				{@render CardSummaryHeader({
-					summaryOpen: _context?.open ?? false,
+					summaryOpen: _summaryOpen ?? false,
 					showCollapsedContent: true,
 				})}
 			{/snippet}
 
-			{#snippet children(_context)}
-				{@const detailsOpen = _context?.open ?? false}
-				{#if _Details && detailsOpen}
+			{#snippet children({ open: _collapsibleOpen })}
+				{@const detailsOpen = _collapsibleOpen ?? false}
+				{#if Details && detailsOpen}
 					<div data-column>
 						{#if Content && detailsOpen}
 							{@render Content({
@@ -298,7 +315,7 @@
 							})}
 						{/if}
 
-						{@render _Details({
+						{@render Details({
 							open: detailsOpen,
 						})}
 					</div>

@@ -1,10 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
+	import { blockheadWalletConnectionStatuses } from '$/constants/Blockhead.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
@@ -23,11 +23,14 @@
 		error,
 		onRemove,
 		entityId,
+		href = resolve(
+			'/~/(accounts)/accounts/(connections)/connection/[connectionId]',
+			{ connectionId: entityId.id },
+		),
 		title,
-		href,
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			icon?: string
@@ -37,30 +40,16 @@
 			error: string | null
 			onRemove: () => void
 			entityId: EntityId<typeof schema, EntityType.BlockheadWalletConnection>
+			href?: string
 			title: string
-			href: string
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Icon'
-			| 'Content'
-			| 'Details'
-		>
+		never
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const walletConnectionKey = $derived(
-		stringify(entityId),
-	)
 
 	const walletConnection = useEntity(
 		EntityType.BlockheadWalletConnection,
@@ -77,6 +66,12 @@
 				:
 				{}),
 		},
+	)
+
+
+	// (Derived)
+	const walletConnectionKey = $derived(
+		stringify(entityId),
 	)
 
 
@@ -97,10 +92,9 @@
 	entityType={EntityType.BlockheadWalletConnection}
 	bind:open
 	{entityId}
-	{href}
+	href={href}
 	{title}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Icon()}
 		{#if icon}
@@ -141,7 +135,7 @@
 
 				<div>
 					<dt>Status</dt>
-					<dd>{status}</dd>
+					<dd>{blockheadWalletConnectionStatuses[status].label}</dd>
 				</div>
 
 				{#if accounts[0]}
@@ -156,16 +150,8 @@
 										address: accounts[0],
 									},
 								}}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-									{
-										networkId: String(chainId),
-										address: accounts[0],
-									},
-								)}
 								layout={EntityLayout.Title}
 								open={false}
-								showTypeAnnotation={false}
 							/>
 						{:else}
 							<ActorView
@@ -177,7 +163,6 @@
 								})}
 								layout={EntityLayout.Title}
 								open={false}
-								showTypeAnnotation={false}
 							/>
 						{/if}
 					</dd>
@@ -196,17 +181,17 @@
 					resource={walletConnection}
 					placeholderText="Loading wallet connection…"
 				>
-					{#snippet children(walletConnection)}
+					{#snippet children(loadedWalletConnection)}
 						<div>
 							<dt>Selected</dt>
-							<dd>{walletConnection.selected ? 'Yes' : 'No'}</dd>
+							<dd>{loadedWalletConnection.selected ? 'Yes' : 'No'}</dd>
 						</div>
 
 						<div>
 							<dt>Connected at</dt>
 							<dd>
 								<Timestamp
-									timestamp={walletConnection.connectedAt}
+									timestamp={loadedWalletConnection.connectedAt}
 								/>
 							</dd>
 						</div>
@@ -224,7 +209,6 @@
 			entityType={EntityType.BlockheadWalletConnection}
 			{entityId}
 		/>
-
 		{#if error}
 			<p
 				role="alert"
@@ -253,7 +237,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet Markers({ open: _markersOpen })}
 					{#if accounts.length}
 						<a
 							data-scroll-marker-label="Accounts"
@@ -266,7 +250,7 @@
 					>Actions</a>
 				{/snippet}
 
-				{#snippet body(_childrenContext)}
+				{#snippet body({ open: _bodyOpen })}
 					{#if accounts.length}
 						<section id={`${walletConnectionKey}:wallet-accounts`}>
 							<ul
@@ -281,13 +265,6 @@
 													$network: { chainId },
 													$actor: { address },
 												}}
-												href={resolve(
-													'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-													{
-														networkId: String(chainId),
-														address: address,
-													},
-												)}
 											/>
 										{:else}
 											<ActorView
@@ -329,3 +306,4 @@
 <style>
 
 </style>
+

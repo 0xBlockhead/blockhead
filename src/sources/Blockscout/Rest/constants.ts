@@ -141,3 +141,50 @@ export const blockscoutExplorerRestV2SupportedForChain = (chainId: number): bool
 	const origin = blockscoutExplorerOriginForChain(chainId)
 	return origin != null && blockscoutRestV2AtExplorerOrigin(origin)
 }
+
+/**
+ * Blockscout `/proxy/account-abstraction/*` routes on hosted explorers (`blockscoutHostedNetworks`).
+ * Operations and indexed smart accounts are the reliable surfaces; registry leaderboard lists often 504.
+ */
+export const blockscoutAccountAbstractionOperationsPath = '/proxy/account-abstraction/operations' as const
+
+export const blockscoutAccountAbstractionAccountsPath = '/proxy/account-abstraction/accounts' as const
+
+export const blockscoutAccountAbstractionRegistryListPaths = [
+	'/proxy/account-abstraction/bundlers',
+	'/proxy/account-abstraction/paymasters',
+	'/proxy/account-abstraction/factories',
+] as const
+
+/**
+ * Hosted Blockscout chains where AA operations + smart-account registry routes are expected to respond.
+ * Aligned with `blockscoutHostedNetworks` entries that expose account-abstraction indexing.
+ */
+export const blockscoutErc4337OperationsSupportedChainIds = [
+	1,
+	10,
+	56,
+	100,
+	137,
+	8453,
+	42161,
+	11155111,
+	84532,
+] as const satisfies readonly (typeof blockscoutHostedNetworks)[number]['chainId'][]
+
+const blockscoutErc4337OperationsSupportedChainIdSet = new Set<number>(
+	blockscoutErc4337OperationsSupportedChainIds,
+)
+
+/** `GET …/proxy/account-abstraction/operations` (+ smart-account registry) for this chain. */
+export const blockscoutErc4337OperationsSupported = (chainId: number): boolean => (
+	blockscoutErc4337OperationsSupportedChainIdSet.has(chainId)
+)
+
+/**
+ * Registry leaderboard lists (`bundlers`, `paymasters`, `factories` under `blockscoutAccountAbstractionRegistryListPaths`).
+ * Same hosted chains as operations; UI treats resolver failures as section-local (no fallback sources).
+ */
+export const blockscoutErc4337RegistryListsSupported = (chainId: number): boolean => (
+	blockscoutErc4337OperationsSupported(chainId)
+)

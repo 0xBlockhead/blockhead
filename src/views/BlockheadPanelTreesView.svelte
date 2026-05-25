@@ -1,17 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { stringify } from 'devalue'
-
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { Source } from '$/sources/$Source.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -20,16 +17,17 @@
 		title = 'Panel layouts',
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BlockheadPanelTree>
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
@@ -37,13 +35,11 @@
 	// State
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { Source } from '$/sources/$Source.ts'
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import BlockheadPanelTreeView from '$/views/BlockheadPanelTreeView.svelte'
 </script>
 
@@ -53,7 +49,7 @@
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -70,7 +66,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const global = useEntity(
 				EntityType._Global,
@@ -103,15 +99,12 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item({ item: row })}
-					{#if row}
-						<BlockheadPanelTreeView
-							entityId={row[EntityMetaKey.Id]}
-							href={resolve(`/dashboard/${row[EntityMetaKey.Id].id}`)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item: panelTree })}
+					<BlockheadPanelTreeView
+						entityId={panelTree[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

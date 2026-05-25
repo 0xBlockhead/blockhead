@@ -8,12 +8,51 @@
 	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
+
 	import {
 		apiChainByChainId,
 	} from '$/sources/Allium/Rest/constants.ts'
+
 	import { blockscoutHostedNetworks } from '$/sources/Blockscout/Rest/constants.ts'
+	import { blo } from 'blo'
+	import { stringify } from 'devalue'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+
+	type FlattenedBalanceLine = {
+		value: Entity<typeof schema, EntityType.ActorCoin>
+	}
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
+	// Props
+	let {
+		children,
+		entityId,
+		href = resolve('/account/[address]', { address: entityId.address }),
+		title = 'Account',
+		open = $bindable(true),
+		collapsible = true,
+		...EntityViewProps
+	}: WithRest<
+		{
+			children?: Snippet
+			entityId: EntityId<typeof schema, EntityType.Actor>
+			title?: string
+			href?: string
+			open?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
+
+
+	// Functions
 	const alliumWalletBalanceChainIds = (
 		Object.keys(apiChainByChainId)
 			.map((key) => Number(key))
@@ -32,54 +71,20 @@
 			.toSorted((a, b) => a - b)
 	) satisfies readonly number[]
 
-
-	// Context
-	import { resolve } from '$app/paths'
-
-
-	// Props
-	let {
-		children: _children,
-		entityId,
-		title = 'Account',
-		href,
-		open = $bindable(true),
-		collapsible = true,
-		...entityViewRest
-	}: WithRest<
-		{
-			children?: Snippet
-			entityId: EntityId<typeof schema, EntityType.Actor>
-			title?: string
-			href: string
-			open?: boolean
-		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'HeadingAfter'
-		>
-	> = $props()
-
-
 	const chainFacetLabel = (chainId: number) => (
 		blockscoutHostedNetworks.find((network) => network.chainId === chainId)?.label
 		?? apiChainByChainId[chainId]
 		?? `Chain · ${String(chainId)}`
 	)
 
+	const portfolioSliceAtChain = (chainId: number) => {
+		const index = actorNetworkSliceChainIds.indexOf(chainId)
+		return index === -1 ? undefined : actorNetworkPortfolioSlices[index]
+	}
+
 
 	// State
-	import { blo } from 'blo'
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const actorNetworkPortfolioSlices = actorNetworkSliceChainIds.map((chainId) => (
 		useEntity(
@@ -106,7 +111,6 @@
 					$$transactions: {},
 					$$tokenTransfers: {},
 					$$internalTransactions: {},
-					$$erc20TokenAllowances: {},
 					isContract: {},
 					transactionsCount: {},
 					tokenTransferCount: {},
@@ -118,68 +122,6 @@
 				{},
 		)
 	))
-
-	const portfolioSliceAtChain = (chainId: number) => {
-		const index = actorNetworkSliceChainIds.indexOf(chainId)
-		return index === -1 ? undefined : actorNetworkPortfolioSlices[index]
-	}
-
-	const firstContractChainId = $derived.by(() => {
-		for (let index = 0; index < actorNetworkSliceChainIds.length; index += 1) {
-			const chainId = actorNetworkSliceChainIds[index]
-			if (portfolioSliceAtChain(chainId)?.current.isContract === true) {
-				return chainId
-			}
-		}
-		return undefined
-	})
-
-	const flattenedCoinItems = $derived.by(() => {
-		const merged: {
-			value: Entity<typeof schema, EntityType.ActorCoin>
-		}[] = []
-
-		const pushSlice = (_index: number) => {
-			const sliceRow = actorNetworkPortfolioSlices[_index]
-			const chainFacetId = actorNetworkSliceChainIds[_index]
-			if (sliceRow.ready !== true || apiChainByChainId[chainFacetId] == null) return
-			for (const value of sliceRow.current.$$ownedCoins ?? []) merged.push({
-				value,
-			})
-		}
-
-		for (let index = 0; index < actorNetworkPortfolioSlices.length; index += 1) pushSlice(index)
-
-		return (
-			merged.toSorted((a, b) => (
-				stringify(a.value[EntityMetaKey.Id]).localeCompare(stringify(b.value[EntityMetaKey.Id]))
-			))
-		)
-	})
-
-	type FlattenedBalanceLine = {
-		value: Entity<typeof schema, EntityType.ActorCoin>
-	}
-
-	const balanceLinesByAssetKey = $derived.by(() => {
-		const groups = new Map<string, FlattenedBalanceLine[]>()
-		for (const line of flattenedCoinItems) {
-			const row = line.value
-			const assetKey = (
-				row.symbol !== '' ?
-					row.symbol
-				:
-					stringify(row[EntityMetaKey.Id])
-			)
-			const bucket = groups.get(assetKey)
-			if (bucket != null) bucket.push(line)
-			else groups.set(assetKey, [line])
-		}
-		return (
-			[...groups.entries()]
-				.toSorted(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
-		)
-	})
 
 	const idKey = stringify(entityId)
 
@@ -218,8 +160,58 @@
 		},
 	)
 
-
 	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
+
+
+	// (Derived)
+	const firstContractChainId = $derived.by(() => {
+		for (let index = 0; index < actorNetworkSliceChainIds.length; index += 1) {
+			const chainId = actorNetworkSliceChainIds[index]
+			if (portfolioSliceAtChain(chainId)?.current.isContract === true) {
+				return chainId
+			}
+		}
+		return undefined
+	})
+
+	const flattenedCoinItems = $derived.by(() => {
+		const merged: {
+			value: Entity<typeof schema, EntityType.ActorCoin>
+		}[] = []
+
+		const pushSlice = (_index: number) => {
+			const slice = actorNetworkPortfolioSlices[_index]
+			const chainFacetId = actorNetworkSliceChainIds[_index]
+			if (slice.ready !== true || apiChainByChainId[chainFacetId] == null) return
+			for (const value of slice.current.$$ownedCoins ?? []) merged.push({
+				value,
+			})
+		}
+
+		for (let index = 0; index < actorNetworkPortfolioSlices.length; index += 1) pushSlice(index)
+
+		return merged
+	})
+
+	const balanceLinesByAssetKey = $derived.by(() => {
+		const groups = new Map<string, FlattenedBalanceLine[]>()
+		for (const line of flattenedCoinItems) {
+			const row = line.value
+			const assetKey = (
+				row.symbol !== '' ?
+					row.symbol
+				:
+					stringify(row[EntityMetaKey.Id])
+			)
+			const bucket = groups.get(assetKey)
+			if (bucket != null) bucket.push(line)
+			else groups.set(assetKey, [line])
+		}
+		return (
+			[...groups.entries()]
+				.toSorted(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey))
+		)
+	})
 
 
 	// Components
@@ -228,7 +220,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import Icon, { IconShape } from '$/components/Icon.svelte'
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -237,26 +229,21 @@
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 </script>
 
 
 <EntityView
 	entityType={EntityType.Actor}
 	{entityId}
+	href={href}
 	{title}
-	{href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Icon()}
-		<ResourceBoundary
-			placeholderText=""
-			resource={actor}
-		>
-			{#snippet Pending()}
-				<Icon
+		{#if true}
+			{#snippet ActorIconPending()}
+				<IconComponent
 					alt=""
 					shape={IconShape.Square}
 					src={blo(entityId.address)}
@@ -264,9 +251,9 @@
 				/>
 			{/snippet}
 
-			{#snippet children(actor)}
+			{#snippet ActorIconBody(actor)}
 				{@const avatarUrl = actor.$icon?.[EntityMetaKey.Id].url}
-				<Icon
+				<IconComponent
 					alt=""
 					shape={avatarUrl ? IconShape.Circle : IconShape.Square}
 					src={avatarUrl ?? blo(entityId.address)}
@@ -274,18 +261,28 @@
 					title={actor.$primaryName?.[EntityMetaKey.Id].name ?? entityId.address}
 				/>
 			{/snippet}
-		</ResourceBoundary>
+
+			<ResourceBoundary
+				Pending={ActorIconPending}
+				children={ActorIconBody}
+				placeholderText=""
+				resource={actor}
+			/>
+		{/if}
 	{/snippet}
 
 	{#snippet Heading()}
-		<ResourceBoundary
-			resource={actor}
-			placeholderText="Loading account…"
-		>
-			{#snippet children(actor)}
+		{#if true}
+			{#snippet ActorHeadingBody(actor)}
 				{actor.$primaryName?.[EntityMetaKey.Id].name ?? entityId.address}
 			{/snippet}
-		</ResourceBoundary>
+
+			<ResourceBoundary
+				children={ActorHeadingBody}
+				placeholderText="Loading account…"
+				resource={actor}
+			/>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
@@ -299,21 +296,13 @@
 		{@render Value()}
 	{/snippet}
 
-	{#snippet HeadingAfter()}
-		<Tooltip contentProps={{ side: 'top' }}>
-			{#snippet Content()}
-				<p>
-					An EVM execution address: externally owned account or contract. Nothing here implies a dedicated wallet vs protocol-only role.
-				</p>
-				<p>
-					Primary label and owned ENS names load from configured resolvers when available. Token balances aggregate Allium-covered networks; explorers power per-chain transaction timelines when REST v2 is available on the host catalog.
-				</p>
-			{/snippet}
-			<abbr
-				class="entity-heading-tip"
-				aria-label="EVM address"
-			>ⓘ</abbr>
-		</Tooltip>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			An EVM execution address: externally owned account or contract. Nothing here implies a dedicated wallet vs protocol-only role.
+		</p>
+		<p>
+			Primary label and owned ENS names load from configured resolvers when available. Token balances aggregate Allium-covered networks; explorers power per-chain transaction timelines when REST v2 is available on the host catalog.
+		</p>
 	{/snippet}
 
 	{#snippet Content({
@@ -322,53 +311,49 @@
 		open: contentOpen,
 	})}
 		<dl data-column-item="center">
-			{#if contentOpen}
-				{#if entityId.interopAddress}
-					<div>
-						<dt>Interop address</dt>
-						<dd>
-							<TruncatedValue
-								value={entityId.interopAddress}
-								format={TruncatedValueFormat.Visual}
-							/>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				contentOpen
+				&& entityId.interopAddress
+			)}
+				<div>
+					<dt>Interop address</dt>
+					<dd>
+						<TruncatedValue
+							value={entityId.interopAddress}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</dd>
+				</div>
 			{/if}
 
-			{#if contentOpen}
-				{#if flattenedCoinItems.length}
-					<div>
-						<dt>Indexed balances</dt>
-						<dd>{String(flattenedCoinItems.length)} token row{flattenedCoinItems.length === 1 ? '' : 's'}</dd>
-					</div>
-				{/if}
+			{#if (
+				contentOpen
+				&& flattenedCoinItems.length
+			)}
+				<div>
+					<dt>Indexed balances</dt>
+					<dd>{String(flattenedCoinItems.length)} token row{flattenedCoinItems.length === 1 ? '' : 's'}</dd>
+				</div>
 			{/if}
 
-			{#if contentOpen}
-				{#if firstContractChainId != null}
-					<div>
-						<dt>Contract</dt>
-						<dd>
-							<EvmContractView
-								entityId={{
-									$network: { chainId: firstContractChainId },
-									address: entityId.address,
-								}}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-									{
-										networkId: String(firstContractChainId),
-										address: entityId.address,
-									},
-								)}
-								layout={EntityLayout.Title}
-								open={false}
-								showTypeAnnotation={false}
-							/>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				contentOpen
+				&& firstContractChainId != null
+			)}
+				<div>
+					<dt>Contract</dt>
+					<dd>
+						<EvmContractView
+							entityId={{
+								$network: { chainId: firstContractChainId },
+								address: entityId.address,
+							}}
+							layout={EntityLayout.SummaryDetails}
+							open={true}
+							showTypeAnnotation={false}
+						/>
+					</dd>
+				</div>
 			{/if}
 		</dl>
 	{/snippet}
@@ -380,7 +365,6 @@
 			entityType={EntityType.Actor}
 			{entityId}
 		/>
-
 		<div
 			class="actor-view-carousel-groups"
 			data-column="gap-3"
@@ -393,7 +377,7 @@
 					'data-row': 'start align-start',
 				}}
 			>
-				{#snippet Summary(_context)}
+				{#snippet Summary({ open: _summaryOpen })}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
@@ -402,23 +386,20 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet Markers({ open: _markersOpen })}
 					<a
 						data-scroll-marker-label="Labels"
 						href={`#${idKey}:actor-ens`}
 					>Labels</a>
 				{/snippet}
 
-				{#snippet body(_identityChildren)}
+				{#snippet body({ open: _bodyOpen })}
 					<section
 						data-scroll-marker-label="Labels"
 						id={`${idKey}:actor-ens`}
 					>
-						<ResourceBoundary
-							resource={actor}
-							placeholderText="Loading account…"
-						>
-							{#snippet children(actor)}
+						{#if true}
+							{#snippet ActorEnsNamesBody(actor)}
 								{#if (actor.$$ensNamesOwned ?? []).length}
 									<ul data-list="unstyled">
 										{#each actor.$$ensNamesOwned ?? [] as nameRef (`${nameRef[EntityMetaKey.Id].name}`)}
@@ -437,12 +418,10 @@
 										<p data-text="muted">
 											No ENS names.
 										</p>
-										<Tooltip contentProps={{ side: 'top' }}>
-											{#snippet Content()}
-												<p>
-													Names owned by this address appear when subgraphs expose them from TheGraph transport.
-												</p>
-											{/snippet}
+										<Tooltip
+											content="Names owned by this address appear when subgraphs expose them from TheGraph transport."
+											contentProps={{ side: 'top' }}
+										>
 											<abbr
 												class="entity-heading-tip"
 												aria-label="ENS names"
@@ -451,7 +430,13 @@
 									</div>
 								{/if}
 							{/snippet}
-						</ResourceBoundary>
+
+							<ResourceBoundary
+								children={ActorEnsNamesBody}
+								placeholderText="Loading account…"
+								resource={actor}
+							/>
+						{/if}
 					</section>
 				{/snippet}
 			</CollapsibleTabs>
@@ -464,13 +449,13 @@
 					'data-row': 'start align-start',
 				}}
 			>
-				{#snippet Summary(_context)}
+				{#snippet Summary({ open: _summaryOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Balances</HeadingComponent>
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet Markers({ open: _markersOpen })}
 					{#if flattenedCoinItems.length}
 						<a
 							data-scroll-marker-label="By asset"
@@ -497,13 +482,12 @@
 					{/if}
 				{/snippet}
 
-				{#snippet body(_balancesChildren)}
+				{#snippet body({ open: _bodyOpen })}
 					<section id={`${idKey}:balances-by-asset`}>
 						<EntitiesList
 							collapsible={false}
 							entityType={EntityType.ActorCoin}
 							title="By deployment (all indexed networks)"
-							href={href}
 							id={`${idKey}:balances-flat-list`}
 							getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
 							getSortValue={(line) => stringify(line.value[EntityMetaKey.Id])}
@@ -522,16 +506,6 @@
 									{@const balanceEntityId = props.item.value[EntityMetaKey.Id]}
 									<ActorCoinView
 										entityId={balanceEntityId}
-										href={resolve('/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]', {
-											chainId: String(balanceEntityId.$coinInstance.$network.chainId),
-											owner: balanceEntityId.$actor.address,
-											coin: (
-												balanceEntityId.$coinInstance.type === CoinInstanceType.Erc20Token ?
-													balanceEntityId.$coinInstance.$contract.address
-												:
-													pathNativeCoin
-											),
-										})}
 										layout={EntityLayout.Summary}
 									/>
 								{/if}
@@ -549,7 +523,6 @@
 									collapsible={false}
 									entityType={EntityType.ActorCoin}
 									title={`${assetKey} · by network`}
-									href={href}
 									id={`${idKey}:balances-coin-list-${String(coinGroupIndex)}`}
 									getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
 									getSortValue={(line) => stringify(line.value[EntityMetaKey.Id])}
@@ -568,16 +541,6 @@
 											{@const balanceEntityId = props.item.value[EntityMetaKey.Id]}
 											<ActorCoinView
 												entityId={balanceEntityId}
-												href={resolve('/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]', {
-													chainId: String(balanceEntityId.$coinInstance.$network.chainId),
-													owner: balanceEntityId.$actor.address,
-													coin: (
-														balanceEntityId.$coinInstance.type === CoinInstanceType.Erc20Token ?
-															balanceEntityId.$coinInstance.$contract.address
-														:
-															pathNativeCoin
-													),
-												})}
 												layout={EntityLayout.Summary}
 											/>
 										{/if}
@@ -593,6 +556,13 @@
 							id={`${idKey}:balances-net-${balancesChainId}`}
 						>
 							<BalancesView
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+									{
+										networkId: String(balancesChainId),
+										address: entityId.address,
+									},
+								)}
 								collapsible={false}
 								entityFieldReference={{
 									entityType: EntityType.ActorNetwork,
@@ -604,7 +574,6 @@
 									},
 									fieldName: '$$ownedCoins',
 								}}
-								href={href}
 								id={`${idKey}:balances-per-net-${balancesChainId}`}
 								title={chainFacetLabel(balancesChainId)}
 							/>
@@ -621,13 +590,13 @@
 						'data-row': 'start align-start',
 					}}
 				>
-					{#snippet Summary(_context)}
+					{#snippet Summary({ open: _summaryOpen })}
 						<header data-row-item="flexible" data-row="wrap gap-4">
 							<HeadingComponent>Activity</HeadingComponent>
 						</header>
 					{/snippet}
 
-					{#snippet Markers(_context)}
+					{#snippet Markers({ open: _markersOpen })}
 						{#each actorNetworkSliceChainIds as facetChainId (facetChainId)}
 							{@const activityLabel = chainFacetLabel(facetChainId)}
 							{@const facetSlice = portfolioSliceAtChain(facetChainId)}
@@ -657,7 +626,7 @@
 						{/each}
 					{/snippet}
 
-					{#snippet body(_activityChildren)}
+					{#snippet body({ open: _bodyOpen })}
 						{#each actorNetworkSliceChainIds as facetChainId (facetChainId)}
 							<section
 								data-scroll-marker-label={`${chainFacetLabel(facetChainId)} activity`}
@@ -670,6 +639,10 @@
 										},
 										$actor: entityId,
 									}}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+								<EvmTransactionsView
 									href={resolve(
 										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
 										{
@@ -677,12 +650,6 @@
 											address: entityId.address,
 										},
 									)}
-									layout={EntityLayout.Title}
-									open={false}
-									showTypeAnnotation={false}
-								/>
-
-								<EvmTransactionsView
 									collapsible={false}
 									entityFieldReference={{
 										entityType: EntityType.ActorNetwork,
@@ -694,16 +661,21 @@
 										},
 										fieldName: '$$transactions',
 									}}
-									href={href}
 									id={`${idKey}:activity-tx-${facetChainId}`}
 									title={`${chainFacetLabel(facetChainId)} · Transactions`}
 								/>
-
 								<section
 									data-scroll-marker-label={`${chainFacetLabel(facetChainId)} · Token transfers`}
 									id={`${idKey}:activity-net-${facetChainId}-transfers`}
 								>
 									<EvmTransactionsView
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+											{
+												networkId: String(facetChainId),
+												address: entityId.address,
+											},
+										)}
 										collapsible={false}
 										entityFieldReference={{
 											entityType: EntityType.ActorNetwork,
@@ -715,7 +687,6 @@
 											},
 											fieldName: '$$tokenTransfers',
 										}}
-										href={href}
 										id={`${idKey}:activity-token-transfers-${facetChainId}`}
 										title={`${chainFacetLabel(facetChainId)} · Token transfers`}
 									/>
@@ -726,6 +697,13 @@
 									id={`${idKey}:activity-net-${facetChainId}-internal`}
 								>
 									<EvmTransactionsView
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+											{
+												networkId: String(facetChainId),
+												address: entityId.address,
+											},
+										)}
 										collapsible={false}
 										entityFieldReference={{
 											entityType: EntityType.ActorNetwork,
@@ -737,7 +715,6 @@
 											},
 											fieldName: '$$internalTransactions',
 										}}
-										href={href}
 										id={`${idKey}:activity-internal-tx-${facetChainId}`}
 										title={`${chainFacetLabel(facetChainId)} · Internal transactions`}
 									/>
@@ -748,9 +725,10 @@
 				</CollapsibleTabs>
 		</div>
 
-		{#if _children}
-			{@render _children()}
+		{#if children}
+			{@render children()}
 		{/if}
 	{/snippet}
 </EntityView>
+
 

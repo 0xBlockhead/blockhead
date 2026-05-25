@@ -15,23 +15,20 @@
 
 
 	// Components
-	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
+	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
 	import Page from '$/components/Page.svelte'
 	import { EntityType } from '$/schema/$EntityType.ts'
 </script>
 
 
 <Page>
-	<ActivityPubMastodonFieldNotes
+	<ActivityPubNotesView
+		href={resolve('/activitypub/notes')}
 		entityFieldReference={{
 			entityType: EntityType.ActivityPubNote,
 			entityId,
 			fieldName: '$$thread',
 		}}
-		href={resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]/(note)/thread', {
-			instanceOrigin: encodeURIComponent(entityId.instanceOrigin),
-			localStatusId: encodeURIComponent(entityId.localStatusId),
-		})}
 		id="activitypub-note-thread"
 		orderByCreatedAt="asc"
 		placeholderText="Loading thread…"

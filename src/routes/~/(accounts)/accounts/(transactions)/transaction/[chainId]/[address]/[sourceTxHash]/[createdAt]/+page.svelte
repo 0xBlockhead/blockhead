@@ -1,7 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
 	// Props
 	let {
 		params,
@@ -29,8 +26,5 @@
 			},
 			createdAt: Number(params.createdAt),
 		}}
-		href={resolve(
-			`/~/accounts/transaction/${params.chainId}/${params.address}/${params.sourceTxHash}/${params.createdAt}`,
-		)}
 	/>
 </Page>

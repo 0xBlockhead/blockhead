@@ -11,9 +11,8 @@
 
 	// Props
 	let {
-		children: _children,
 		entityId,
-		href,
+		href = getEvmErrorPath(entityId.hex),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -23,36 +22,25 @@
 			layout === EntityLayout.SummaryDetails,
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmError>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
-	const errorIdKey = $derived(
-		stringify(entityId),
-	)
-
 
 	// State
+	import { getEvmErrorPath } from '$/lib/signature-paths.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const evmError = useEntity(
 		EntityType.EvmError,
@@ -79,12 +67,11 @@
 <EntityView
 	entityType={EntityType.EvmError}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
-	{summaryUsesHeading}
 	bind:open
 	{collapsible}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
@@ -97,9 +84,9 @@
 			resource={evmError}
 			placeholderText="Loading error…"
 		>
-			{#snippet children(evmError)}
-				{#if evmError.signatures?.[0]}
-					{evmError.signatures[0]}
+			{#snippet children(loadedEvmError)}
+				{#if loadedEvmError.signatures?.[0]}
+					{loadedEvmError.signatures[0]}
 				{:else}
 					{@render Value()}
 				{/if}
@@ -112,8 +99,8 @@
 			resource={evmError}
 			placeholderText="Loading error…"
 		>
-			{#snippet children(evmError)}
-				{evmError.signatures?.[0] ?? entityId.hex}
+			{#snippet children(loadedEvmError)}
+				{loadedEvmError.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -150,15 +137,15 @@
 						resource={evmError}
 						placeholderText="Loading catalog matches…"
 					>
-						{#snippet children(evmError)}
-							{#if evmError.signatures?.length}
+						{#snippet children(loadedEvmError)}
+							{#if loadedEvmError.signatures?.length}
 								<div>
 									<dt>
 										Decoded revert / custom error selectors
 									</dt>
 									<dd>
 										<ul>
-											{#each evmError.signatures as sig (sig)}
+											{#each loadedEvmError.signatures as sig (sig)}
 												<li><code>{sig}</code></li>
 											{/each}
 										</ul>
@@ -181,16 +168,10 @@
 		</div>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.EvmError}
 			{entityId}
 		/>
-
-		{#if _children}
-			<section id={`${errorIdKey}:page-content`}>
-				{@render _children()}
-			</section>
-		{/if}
 	{/snippet}
 </EntityView>

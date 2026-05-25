@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+// Off-chain bilateral payment channel (Lightning/Raiden-style ledger), not chat rooms or AMM pools.
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -6,6 +8,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.StateChannel,
@@ -89,6 +92,27 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$$transfers',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.StateChannelTransfer,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Local_Internal],
+		},
+		{
+			name: '$$states',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.StateChannelState,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Local_Internal],
+		},
+		{
+			name: '$$deposits',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.StateChannelDeposit,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [Source.Local_Internal],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

@@ -12,12 +12,11 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 import type {
-	FxEmbedTwitterStatusWire,
-	FxEmbedUserWire,
+	FxEmbedTwitterStatus,
 } from '$/sources/FxEmbed/Rest/types.ts'
 
 const optionalTrimmedString = (value: string | undefined) => (
-	value?.trim() ? value.trim() : undefined
+	value?.trim() || undefined
 )
 
 const optionalUrlString = (value: string | undefined) => {
@@ -26,79 +25,6 @@ const optionalUrlString = (value: string | undefined) => {
 	const parsed = UrlString(trimmed)
 	return parsed instanceof type.errors ? undefined : parsed
 }
-
-const userFieldsFromWire = (user: FxEmbedUserWire) => {
-	const createdAt = Date.parse(user.joined ?? '')
-	const profileUrl = optionalUrlString(user.url)
-	return {
-		username: optionalTrimmedString(user.screen_name),
-		name: optionalTrimmedString(user.name),
-		description: optionalTrimmedString(user.description),
-		location: optionalTrimmedString(user.location),
-		...(user.verification?.verified != null && {
-			verified: user.verification.verified,
-		}),
-		...(Number.isFinite(createdAt) && { createdAt }),
-		...(profileUrl != null && { profileUrl }),
-		...(user.followers != null && { followerCount: user.followers }),
-		...(user.following != null && { followingCount: user.following }),
-		...(user.statuses != null && { tweetCount: user.statuses }),
-		...((
-			iconMedia,
-		) => (
-			iconMedia != null && {
-				$icon: iconMedia,
-			}
-		))(mediaFromUrl(user.avatar_url ?? undefined, MediaType.Image)),
-	}
-}
-
-const postFieldsFromWire = (status: FxEmbedTwitterStatusWire) => {
-	const createdAt = (
-		status.created_timestamp != null ?
-			status.created_timestamp * 1000
-		: Date.parse(status.created_at ?? '')
-	)
-	const replyToId = optionalTrimmedString(status.replying_to?.status)
-	const quotedId = optionalTrimmedString(status.quote?.id)
-	return {
-		text: optionalTrimmedString(status.text),
-		...(Number.isFinite(createdAt) && { createdAt }),
-		...(replyToId != null && { conversationId: replyToId }),
-		...(status.likes != null && { likeCount: status.likes }),
-		...(status.reposts != null && { retweetCount: status.reposts }),
-		...(status.replies != null && { replyCount: status.replies }),
-		...(status.quotes != null && { quoteCount: status.quotes }),
-		...(replyToId != null && {
-			$replyToPost: {
-				[EntityMetaKey.Id]: { id: replyToId },
-			},
-		}),
-		...(quotedId != null && {
-			$quotedPost: {
-				[EntityMetaKey.Id]: { id: quotedId },
-			},
-		}),
-		$author: (
-			status.author?.id == null ?
-				undefined
-			:	{
-					[EntityMetaKey.Id]: { id: status.author.id },
-				}
-		),
-	}
-}
-
-const statusEntityRefs = (results: FxEmbedTwitterStatusWire[] | undefined) => (
-	(results ?? [])
-		.flatMap((row) => (
-			row.type === 'status' && row.id != null ?
-				[{
-					[EntityMetaKey.Id]: { id: row.id },
-				}]
-			:	[]
-		))
-)
 
 export default {
 	source: Source.X_FxEmbed_Rest,
@@ -111,7 +37,29 @@ export default {
 				const response = await singleFlight(fxEmbedGetUser)(entityId.id)
 				const user = response.user
 				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
-				return userFieldsFromWire(user)
+				const createdAt = Date.parse(user.joined ?? '')
+				const profileUrl = optionalUrlString(user.url)
+				return {
+					username: optionalTrimmedString(user.screen_name),
+					name: optionalTrimmedString(user.name),
+					description: optionalTrimmedString(user.description),
+					location: optionalTrimmedString(user.location),
+					...(user.verification?.verified != null && {
+						verified: user.verification.verified,
+					}),
+					...(Number.isFinite(createdAt) && { createdAt }),
+					...(profileUrl != null && { profileUrl }),
+					...(user.followers != null && { followerCount: user.followers }),
+					...(user.following != null && { followingCount: user.following }),
+					...(user.statuses != null && { tweetCount: user.statuses }),
+					...((
+						iconMedia,
+					) => (
+						iconMedia != null && {
+							$icon: iconMedia,
+						}
+					))(mediaFromUrl(user.avatar_url ?? undefined, MediaType.Image)),
+				}
 			},
 		}),
 
@@ -124,7 +72,42 @@ export default {
 				if (status?.type !== 'status' || status.id == null) {
 					throw new Error('X_FxEmbed_Rest: post not found')
 				}
-				return postFieldsFromWire(status)
+				const createdAt = (
+					status.created_timestamp != null ?
+						status.created_timestamp * 1000
+					: Date.parse(status.created_at ?? '')
+				)
+				const replyToId = optionalTrimmedString(status.replying_to?.status)
+				const quotedId = optionalTrimmedString(status.quote?.id)
+				const postId = optionalTrimmedString(status.id)
+				return {
+					text: optionalTrimmedString(status.text),
+					...(Number.isFinite(createdAt) && { createdAt }),
+					...(postId != null && {
+						postUrl: `https://x.com/i/web/status/${postId}`,
+					}),
+					...(status.likes != null && { likeCount: status.likes }),
+					...(status.reposts != null && { retweetCount: status.reposts }),
+					...(status.replies != null && { replyCount: status.replies }),
+					...(status.quotes != null && { quoteCount: status.quotes }),
+					...(replyToId != null && {
+						$replyToPost: {
+							[EntityMetaKey.Id]: { id: replyToId },
+						},
+					}),
+					...(quotedId != null && {
+						$quotedPost: {
+							[EntityMetaKey.Id]: { id: quotedId },
+						},
+					}),
+					$author: (
+						status.author?.id == null ?
+							undefined
+						:	{
+								[EntityMetaKey.Id]: { id: status.author.id },
+							}
+					),
+				}
 			},
 		}),
 	],
@@ -137,16 +120,16 @@ export default {
 				const { fxEmbedSearchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const result = await singleFlight(fxEmbedSearchStatuses)(limit)
-				const byId = new Map<string, { [EntityMetaKey.Id]: { id: string } }>()
-				for (const status of result.results ?? []) {
-					const authorId = optionalTrimmedString(status.author?.id)
-					if (authorId != null) {
-						byId.set(authorId, {
-							[EntityMetaKey.Id]: { id: authorId },
+				return (
+					(result.results ?? [])
+						.flatMap((status) => {
+							const authorId = optionalTrimmedString(status.author?.id)
+							if (authorId == null) return []
+							return [{
+								[EntityMetaKey.Id]: { id: authorId },
+							}]
 						})
-					}
-				}
-				return [...byId.values()]
+				)
 			},
 		}),
 
@@ -156,7 +139,16 @@ export default {
 			resolve: async (_entityId, context) => {
 				const { fxEmbedSearchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				return statusEntityRefs((await singleFlight(fxEmbedSearchStatuses)(limit)).results)
+				return (
+					((await singleFlight(fxEmbedSearchStatuses)(limit)).results ?? [])
+						.flatMap((row) => (
+							row.type === 'status' && row.id != null ?
+								[{
+									[EntityMetaKey.Id]: { id: row.id },
+								}]
+							:	[]
+						))
+				)
 			},
 		}),
 
@@ -166,9 +158,16 @@ export default {
 			resolve: async (entityId, context) => {
 				const { fxEmbedGetUserStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				return statusEntityRefs((
-					await singleFlight(fxEmbedGetUserStatuses)(entityId.id, limit)
-				).results)
+				return (
+					((await singleFlight(fxEmbedGetUserStatuses)(entityId.id, limit)).results ?? [])
+						.flatMap((row) => (
+							row.type === 'status' && row.id != null ?
+								[{
+									[EntityMetaKey.Id]: { id: row.id },
+								}]
+							:	[]
+						))
+				)
 			},
 		}),
 	],

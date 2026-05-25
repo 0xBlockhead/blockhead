@@ -76,6 +76,16 @@ export const coinpaprikaMarketVenueIdByHostnameFragment = [
 	['pancakeswap.', MarketVenueId.PancakeSwap],
 ] as const satisfies readonly [string, MarketVenueId][]
 
+/** Coinpaprika `GET /exchanges/{exchange_id}/markets` wire id per catalog venue. */
+export const coinpaprikaExchangeIdByMarketVenueId = {
+	[MarketVenueId.Binance]: 'binance',
+	[MarketVenueId.Coinbase]: 'gdax',
+	[MarketVenueId.Kraken]: 'kraken',
+	[MarketVenueId.Kucoin]: 'kucoin',
+	[MarketVenueId.Okx]: 'okex',
+	[MarketVenueId.Deribit]: 'deribit',
+} as const satisfies Partial<Record<MarketVenueId, string>>
+
 /** Quote wire ids treated as USD legs for catalog markets. */
 export const coinpaprikaUsdQuoteWireIds = [
 	'usdt-tether',

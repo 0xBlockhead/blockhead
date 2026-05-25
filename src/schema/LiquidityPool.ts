@@ -1,6 +1,6 @@
 import { type } from 'arktype'
 
-// On-chain concentrated-liquidity AMM pool. EntityType.Vault models the same Dexscreener-style rows under the route label Vault in places.
+// Concentrated-liquidity AMM pool row. Dexscreener-backed slices expose pair tokens, volume, and TVL only; on-chain curve fields are optional until an execution RPC or pool indexer maps them. EntityType.Vault models the same Dexscreener-style rows under the route label Vault in places.
 import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
@@ -39,13 +39,13 @@ export default {
 			name: 'fee',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'tickSpacing',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$hooks',
@@ -63,19 +63,19 @@ export default {
 			name: 'sqrtPriceX96',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.One,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'liquidity',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.One,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'tick',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.One,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'token0Symbol',
@@ -111,6 +111,48 @@ export default {
 			name: 'totalValueLockedUSD',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string | number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'dexId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'dexscreenerPairUrl',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'baseTokenPriceUsd',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'baseTokenPriceQuote',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'priceChangePercent24h',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'transactionBuys24h',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'transactionSells24h',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

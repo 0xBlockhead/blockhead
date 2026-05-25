@@ -12,11 +12,12 @@ import Network from '$/schema/Network.ts'
 export default {
 	entityType: EntityType.Eip8004Service,
 
-	label: 'EIP-8004 Service',
-	labelPlural: 'EIP-8004 Services',
+	label: 'Agent Service',
+	labelPlural: 'Agent Services',
 
 	id: type({
 		$network: Network.id,
+		/** ERC-8004 registry token id on `$network` (8004scan `token_id`). */
 		identityId: 'string',
 	}),
 

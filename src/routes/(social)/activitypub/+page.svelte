@@ -14,6 +14,5 @@
 		entityId={{
 			scope: 'ActivityPubNetwork',
 		}}
-		href={resolve('/activitypub')}
 	/>
 </Page>

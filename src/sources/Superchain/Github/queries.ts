@@ -1,5 +1,4 @@
 import { getJson } from '$/lib/http.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import Superchain from '$/sources/Superchain/index.ts'
 import {
 	chainListPath,
@@ -22,7 +21,7 @@ const splitIdentifier = (identifier: string): {
 	}
 }
 
-const fetchSuperchainChainListOnce = async (): Promise<SuperchainChainListEntry[]> => (
+const fetchSuperchainChainList = async (): Promise<SuperchainChainListEntry[]> => (
 	getJson<SuperchainChainListEntry[]>(
 		`${origin}${chainListPath}`,
 		{ origins: Superchain.origins },
@@ -66,8 +65,8 @@ const toSuperchainNetwork = (
 	}
 }
 
-const fetchSuperchainNetworksOnce = async (): Promise<SuperchainNetwork[]> => {
-	const chainList = await fetchSuperchainChainListOnce()
+export const fetchSuperchainNetworks = async (): Promise<SuperchainNetwork[]> => {
+	const chainList = await fetchSuperchainChainList()
 	const chainByIdentifier = new Map(
 		chainList.map((chain) => [
 			chain.identifier,
@@ -79,4 +78,3 @@ const fetchSuperchainNetworksOnce = async (): Promise<SuperchainNetwork[]> => {
 		.toSorted((leftChain, rightChain) => leftChain.chainId - rightChain.chainId)
 }
 
-export const fetchSuperchainNetworks = singleFlight(fetchSuperchainNetworksOnce)

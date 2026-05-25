@@ -1,5 +1,5 @@
 <script lang="ts">
-	// Types/constants
+	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 

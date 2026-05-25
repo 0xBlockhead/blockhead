@@ -1,15 +1,10 @@
 <script lang="ts">
 	// Types/constants
-	import { currencyByIso4217, type Iso4217 } from '$/constants/Currency.ts'
-
-
-	const iso4217FromParam = (param: string): Iso4217 | null => (
-		currencyByIso4217[param as Iso4217]?.iso4217 ?? null
-	)
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import {
+		currencies,
+		currencyByIso4217,
+		type Iso4217,
+	} from '$/constants/Currency.ts'
 
 
 	// Props
@@ -29,6 +24,12 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import CurrencyView from '$/views/CurrencyView.svelte'
+
+
+	// Functions
+	const iso4217FromParam = (param: string): Iso4217 | null => (
+		currencies.find((currency) => currency.iso4217 === param)?.iso4217 ?? null
+	)
 </script>
 
 
@@ -50,10 +51,6 @@
 	{:else}
 		<CurrencyView
 			entityId={{ iso4217: route.iso4217 }}
-			href={resolve(
-				'/(assets)/(currencies)/currency/[iso4217]',
-				{ iso4217: route.iso4217 },
-			)}
 		/>
 	{/if}
 </Page>

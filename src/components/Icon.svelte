@@ -36,6 +36,8 @@
 		subicon?: SubiconProps
 	} = $props()
 
+
+	// (Derived)
 	const a11yLabel = $derived(
 		label ?? alt
 	)

@@ -6,41 +6,44 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
+	import { executionProtocols } from '$/constants/Network.ts'
 	import { stringify } from 'devalue'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(upgrades)/upgrade/[upgradeSlug]',
+			{
+				networkId: String(entityId.$network.chainId),
+				upgradeSlug: entityId.upgradeId,
+			},
+		),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.NetworkExecutionUpgrade>
 			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Content'
-			| 'Details'
-			| 'Heading'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const networkExecutionUpgrade = useEntity(
 		EntityType.NetworkExecutionUpgrade,
 		entityId,
@@ -68,11 +71,10 @@
 <EntityView
 	entityType={EntityType.NetworkExecutionUpgrade}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
 	title={`Execution upgrade ${String(entityId.upgradeId)}`}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -89,8 +91,8 @@
 			resource={networkExecutionUpgrade}
 			placeholderText="Loading execution upgrade…"
 		>
-			{#snippet children(networkExecutionUpgrade)}
-				{networkExecutionUpgrade.name ?? entityId.upgradeId}
+			{#snippet children(loadedNetworkExecutionUpgrade)}
+				{loadedNetworkExecutionUpgrade.name ?? entityId.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -101,33 +103,34 @@
 		open: contentOpen,
 	})}
 		<dl data-column-item="center">
-			{#if contentOpen}
-				{#if networkExecutionUpgrade.protocol !== undefined}
-					<div>
-						<dt>Execution fork</dt>
-						<dd>
-							<ResourceBoundary
-								resource={networkExecutionUpgrade}
-								placeholderText="Loading execution upgrade…"
-							>
-								{#snippet children(networkExecutionUpgrade)}
-									{networkExecutionUpgrade.protocol}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				contentOpen
+				&& networkExecutionUpgrade.protocol !== undefined
+			)}
+				<div>
+					<dt>Execution fork</dt>
+					<dd>
+						<ResourceBoundary
+							resource={networkExecutionUpgrade}
+							placeholderText="Loading execution upgrade…"
+						>
+							{#snippet children(loadedNetworkExecutionUpgrade)}
+								{executionProtocols[loadedNetworkExecutionUpgrade.protocol].label}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 		</dl>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.NetworkExecutionUpgrade}
 			{entityId}
 		/>
-
 		<ProposalsView
+			href={resolve('/proposals')}
 			entityFieldReference={{
 				entityType: EntityType.NetworkExecutionUpgrade,
 				entityId,
@@ -137,9 +140,5 @@
 			open={false}
 			title="Specification proposals"
 		/>
-
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>

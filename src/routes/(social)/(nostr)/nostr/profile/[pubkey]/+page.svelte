@@ -1,8 +1,6 @@
 <script lang="ts">
+	// Types/constants
 	import type { PageProps } from './$types.ts'
-
-	// Context
-	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -18,8 +16,5 @@
 <Page>
 	<NostrProfileView
 		entityId={data.entityId}
-		href={resolve('/(social)/(nostr)/nostr/profile/[pubkey]', {
-			pubkey: data.entityId.pubkey,
-		})}
 	/>
 </Page>

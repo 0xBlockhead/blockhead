@@ -2,11 +2,8 @@
  * Coin deployment rows for a logical {@link CoinId}, derived from CoinGecko coin + asset platforms.
  */
 
-import {
-	CoinInstanceRepresentation,
-	coinInstanceRepresentationFor,
-} from '$/constants/Bridge.ts'
-import type { CoinId } from '$/constants/Coin.ts'
+import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
+import { CoinId } from '$/constants/Coin.ts'
 import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -28,7 +25,7 @@ const NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000'
 
 type CoinInstanceEntityId = EntityId<typeof schema, EntityType.CoinInstance>
 
-export type CoinInstanceStubRow = {
+export type CoinInstanceStub = {
 	[EntityMetaKey.Id]: CoinInstanceEntityId
 	representation: CoinInstanceRepresentation
 }
@@ -77,7 +74,7 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 	lifiCoinKeyByAddress: ReadonlyMap<string, string>,
 ) => {
 	const seenKeys = new Set<string>()
-	const rows: CoinInstanceStubRow[] = []
+	const rows: CoinInstanceStub[] = []
 
 	const nativePlatformId = coin.asset_platform_id ?? undefined
 	const nativeChainId = (
@@ -92,21 +89,46 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 		const key = stringify(instanceId)
 		if (seenKeys.has(key)) return
 		seenKeys.add(key)
+		const symbolTrimmed = (coin.symbol ?? '').trim()
+		const lifiCoinKeyTrimmed = lifiCoinKeyForInstance(instanceId, lifiCoinKeyByAddress)?.trim()
+		const isNativeChain = (
+			nativeChainId != null
+			&& instanceId.$network.chainId === nativeChainId
+		)
+		const representation = (
+			coinId === CoinId.USDC
+			&& lifiCoinKeyTrimmed != null
+			&& lifiCoinKeyTrimmed !== '' ?
+				(
+					/\.?e$/i.test(lifiCoinKeyTrimmed)
+					|| lifiCoinKeyTrimmed.toLowerCase() === 'usdce' ?
+						CoinInstanceRepresentation.BridgeWrapped
+					: lifiCoinKeyTrimmed.toUpperCase() === 'USDC' ?
+						CoinInstanceRepresentation.IssuerNative
+					:	CoinInstanceRepresentation.Unknown
+				)
+			: coinId === CoinId.USDC && /\.e$/i.test(symbolTrimmed) ?
+				CoinInstanceRepresentation.BridgeWrapped
+			: coinId === CoinId.USDC ?
+				CoinInstanceRepresentation.IssuerNative
+			: (
+				coinId === CoinId.ETH
+				&& instanceId.type === CoinInstanceType.Erc20Token
+				&& isNativeChain === false
+			) ?
+				CoinInstanceRepresentation.CanonicalL2Native
+			: coinId === CoinId.ETH && symbolTrimmed.toUpperCase().startsWith('W') ?
+				CoinInstanceRepresentation.CanonicalL2Native
+			: (
+				coinId === CoinId.ETH
+				&& instanceId.type === CoinInstanceType.NativeCurrency
+			) ?
+				CoinInstanceRepresentation.IssuerNative
+			:	CoinInstanceRepresentation.Unknown
+		)
 		rows.push({
 			[EntityMetaKey.Id]: instanceId,
-			representation: coinInstanceRepresentationFor(
-				coinId,
-				coin.symbol ?? '',
-				{
-					chainId: instanceId.$network.chainId,
-					type: instanceId.type,
-					isNativeChain: (
-						nativeChainId != null
-						&& instanceId.$network.chainId === nativeChainId
-					),
-					lifiCoinKey: lifiCoinKeyForInstance(instanceId, lifiCoinKeyByAddress),
-				},
-			),
+			representation,
 		})
 	}
 
@@ -137,7 +159,7 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 	return rows
 }
 
-export const fetchCoinInstanceStubRowsForCoin = async (
+export const fetchCoinInstanceStubsForCoin = async (
 	coinId: EntityId<typeof schema, EntityType.Coin>['coinId'],
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
 ) => {
@@ -162,8 +184,8 @@ export const fetchCoinInstanceStubRowsForCoin = async (
 	let lifiCoinKeyByAddress = new Map<string, string>()
 
 	try {
-		const { fetchLifiTokensCatalog } = await import('$/sources/Lifi/Rest/queries.ts')
-		const { tokens } = await fetchLifiTokensCatalog()
+		const { fetchLifiTokens } = await import('$/sources/Lifi/Rest/queries.ts')
+		const { tokens } = await fetchLifiTokens({ chainTypes: 'EVM' })
 		lifiCoinKeyByAddress = lifiCoinKeyByChainIdAndAddress(tokens)
 	}
 	catch {
@@ -193,7 +215,7 @@ const coinIdByInstanceKeyForEnv = async (
 	const map = new Map<string, CoinId>()
 
 	for (const coinId of Object.keys(idByCoinId)) {
-		const rows = await fetchCoinInstanceStubRowsForCoin(
+		const rows = await fetchCoinInstanceStubsForCoin(
 			coinId,
 			publicEnv,
 		)
@@ -221,7 +243,7 @@ export const resolveCoinInstanceRepresentation = async (
 	const coinId = await resolveCoinIdForCoinInstanceEntityId(instanceId, publicEnv)
 	if (coinId == null) return undefined
 
-	const rows = await fetchCoinInstanceStubRowsForCoin(coinId, publicEnv)
+	const rows = await fetchCoinInstanceStubsForCoin(coinId, publicEnv)
 	const instanceKey = stringify(instanceId)
 	return rows.find((row) => (
 		stringify(row[EntityMetaKey.Id]) === instanceKey
@@ -235,7 +257,7 @@ export const resolveCanonicalCoinInstanceEntityId = async (
 	const coinId = await resolveCoinIdForCoinInstanceEntityId(instanceId, publicEnv)
 	if (coinId == null) return undefined
 
-	const rows = await fetchCoinInstanceStubRowsForCoin(coinId, publicEnv)
+	const rows = await fetchCoinInstanceStubsForCoin(coinId, publicEnv)
 	const instanceKey = stringify(instanceId)
 	const self = rows.find((row) => (
 		stringify(row[EntityMetaKey.Id]) === instanceKey

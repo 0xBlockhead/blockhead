@@ -30,5 +30,16 @@ export default {
 				Source.Constants_Internal,
 			],
 		},
+		{
+			name: '$$markets',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Market,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Constants_Internal,
+				Source.Coingecko_OpenApi,
+				Source.Coinpaprika_OpenApi,
+			],
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

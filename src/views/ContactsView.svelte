@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -9,10 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -21,41 +18,39 @@
 		title = 'Contacts',
 		open = $bindable(true),
 		collapsible = true,
-		href,
 		id,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BlockheadSharedAddress>
 			title?: string
 			open?: boolean
-			href: string
 			id: string
 		},
-		Omit<ComponentProps<typeof EntitiesList>, 'entityType'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+		>
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ContactView from '$/views/ContactView.svelte'
 </script>
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	{collapsible}
 	entityType={EntityType.BlockheadSharedAddress}
-	{href}
 	{id}
 	{title}
 >
@@ -74,7 +69,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -106,9 +101,7 @@
 				entityType={EntityType.BlockheadSharedAddress}
 				getKey={(envelope) => envelope.value[EntityMetaKey.Id].id}
 				getSortValue={(envelope) => -envelope.value.sharedAt}
-				{href}
 				id={`${id}-items`}
-				placeholderKeys={new SvelteSet()}
 				resource={contacts}
 				{title}
 				open={true}
@@ -121,16 +114,11 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{#if item}
-						<ContactView
-							entityId={item.value[EntityMetaKey.Id]}
-							href={resolve('/~/(multiplayer)/multiplayer/(contacts)/contact/[contactId]', {
-								contactId: item.value[EntityMetaKey.Id].id,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+					<ContactView
+						entityId={item.value[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

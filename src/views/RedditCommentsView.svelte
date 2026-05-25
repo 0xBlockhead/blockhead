@@ -6,28 +6,23 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { SvelteSet } from 'svelte/reactivity'
-
-
-	// Context
-	import { resolve } from '$app/paths'
 
 
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		limit = 50,
 		open = $bindable(true),
+		sortMode = 'api',
 		title = 'Top-level comments',
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.RedditComment>
-		href: string
-		id: string
+			id: string
 		limit?: number
 		open?: boolean
+		sortMode?: 'api' | 'createdAtAsc' | 'createdAtDesc'
 		title?: string
 	} = $props()
 
@@ -35,8 +30,6 @@
 	// State
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const fieldName = entityFieldReference.fieldName
 
 	const parent = useEntity(
 		entityFieldReference.entityType,
@@ -46,11 +39,15 @@
 				Source.Constants_Internal,
 				Source.Reddit_Rest,
 			],
-			[fieldName]: {
+			[entityFieldReference.fieldName]: {
 				$: [
 					Source.Reddit_Rest,
+					Source.Reddit_PublicJson,
 				],
-				limit,
+		limit,
+				...(sortMode !== 'api' && {
+					createdAt: {},
+				}),
 			},
 		},
 	)
@@ -58,16 +55,19 @@
 	const comments = derive(
 		parent,
 		(parent) => {
-			const rows: Entity<typeof schema, EntityType.RedditComment>[] = parent[fieldName] ?? []
+			const rows: Entity<typeof schema, EntityType.RedditComment>[] = parent[entityFieldReference.fieldName] ?? []
 			return (
-				rows
-					.toSorted((a, b) => (
-						b[EntityMetaKey.IdKey].localeCompare(a[EntityMetaKey.IdKey])
-					))
-					.map((comment) => ({
-						...comment[EntityMetaKey.Id],
-						sortKey: comment[EntityMetaKey.IdKey],
-					}))
+				rows.map((comment, index) => ({
+					comment,
+					sortKey: (
+						sortMode === 'api' ?
+							index
+						: sortMode === 'createdAtAsc' ?
+							comment.createdAt ?? Number.POSITIVE_INFINITY
+						:
+							-(comment.createdAt ?? Number.NEGATIVE_INFINITY)
+					),
+				}))
 			)
 		},
 	)
@@ -76,7 +76,6 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import RedditCommentView from '$/views/RedditCommentView.svelte'
 </script>
 
@@ -84,19 +83,23 @@
 <div data-column="gap-2">
 	<EntitiesList
 		entityType={EntityType.RedditComment}
-		{href}
-		{id}
+	{id}
 		{title}
 		bind:open
 		resource={comments}
 		placeholderText="Loading comment thread…"
-		getKey={(row) => row.fullname}
+		getKey={(row) => row.comment[EntityMetaKey.Id].fullname}
 		getSortValue={(row) => row.sortKey}
 		placeholderKeys={new SvelteSet<string>()}
 	>
 		{#snippet TypeAnnotationTooltip()}
 			<p>
-				Top-level comments are direct replies to a Reddit submission, ordered for this thread listing.
+				{(
+					entityFieldReference.fieldName === '$$replies' ?
+						'Direct replies nested under this comment in Reddit’s threaded model.'
+					:
+						'Top-level comments are direct replies to a Reddit submission.'
+				)}
 			</p>
 			<p>
 				They are specific to Reddit’s data model—not Farcaster feeds or in-app multiplayer chat.
@@ -104,23 +107,23 @@
 		{/snippet}
 		{#snippet Empty()}
 			<p data-text="muted">
-				No comments yet.
+				{(
+					entityFieldReference.fieldName === '$$replies' ?
+						'No replies yet.'
+					:
+						'No comments yet.'
+				)}
 			</p>
 		{/snippet}
 
 		{#snippet Item({
-			item: row,
+			item: comment,
 		})}
-			{#if row}
-				<RedditCommentView
-					entityId={{ fullname: row.fullname }}
-					href={resolve('/(social)/reddit/comment/[fullname]', {
-						fullname: encodeURIComponent(row.fullname),
-					})}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
-			{/if}
+			<RedditCommentView
+				entityId={{ fullname: comment.fullname }}
+				layout={EntityLayout.Summary}
+				open={false}
+			/>
 		{/snippet}
 	</EntitiesList>
 </div>

@@ -1,8 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { stringify } from 'devalue'
-
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -10,10 +8,8 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -22,9 +18,8 @@
 		title = 'Simulator sessions',
 		open = $bindable(true),
 		collapsible = true,
-		href,
 		id,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<
@@ -32,11 +27,13 @@
 				EntityType.BlockheadSession
 			>
 			title?: string
-			open?: boolean
-			href: string
-			id: string
+			open?: boolean			id: string
 		},
-		Omit<ComponentProps<typeof EntitiesList>, 'entityType'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'id',
+			| 'href'
+		>
 	> = $props()
 
 
@@ -48,19 +45,17 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import BlockheadSessionView from '$/views/BlockheadSessionView.svelte'
 </script>
 
 
 <EntitiesList
 	entityType={EntityType.BlockheadSession}
-	{href}
 	{id}
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -77,7 +72,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -110,7 +105,6 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.BlockheadSession}
-				{href}
 				id={`${id}-items`}
 				{title}
 				open={true}
@@ -126,17 +120,11 @@
 				{/snippet}
 
 				{#snippet Item({ item: envelope })}
-					{#if envelope}
-						<BlockheadSessionView
-							entityId={envelope.value[EntityMetaKey.Id]}
-							href={resolve(
-								'/~/(manage)/manage/(profiles)/profile/[profileId]',
-								{ profileId: envelope.value[EntityMetaKey.Id].id },
-							)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+					<BlockheadSessionView
+						entityId={envelope.value[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

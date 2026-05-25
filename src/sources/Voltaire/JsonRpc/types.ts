@@ -1,4 +1,4 @@
-import type { RpcLogWire } from '$/sources/Evm/JsonRpc/types.ts'
+import type { RpcLog } from '$/sources/Evm/JsonRpc/types.ts'
 
 export type VoltaireBlockRpc = {
 	number: string
@@ -40,5 +40,5 @@ export type VoltaireReceiptRpc = {
 	contractAddress?: string | null
 	effectiveGasPrice?: string
 	blobGasUsed?: string
-	logs?: RpcLogWire[]
+	logs?: RpcLog[]
 }

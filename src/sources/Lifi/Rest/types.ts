@@ -26,6 +26,14 @@ export type LifiChainMetamask = {
 	rpcUrls?: string[]
 }
 
+/** Metamask `blockExplorerUrls` entries mapped before `Url` catalog normalization. */
+export type LifiBlockExplorerUrlLike = {
+	name: string
+	url: string
+	standard?: string | null
+	icon?: string | null
+}
+
 export type LifiChain = {
 	key: string
 	name: string
@@ -92,7 +100,7 @@ export type LifiQuoteRequest = {
 	slippage?: number
 }
 
-export type LifiQuoteStepWire = {
+export type LifiQuoteStepLike = {
 	type: string
 	tool: string
 	toolDetails?: {
@@ -104,6 +112,10 @@ export type LifiQuoteStepWire = {
 		toChainId: number
 		fromAmount?: string
 		toAmount?: string
+		fromToken: LifiToken
+		toToken: LifiToken
+		fromAddress?: string
+		toAddress?: string
 	}
 	estimate?: {
 		toAmount?: string
@@ -113,5 +125,13 @@ export type LifiQuoteStepWire = {
 			amount?: string
 			amountUSD?: string
 		}[]
+		feeCosts?: {
+			amount?: string
+			amountUSD?: string
+		}[]
 	}
+}
+
+export type LifiQuoteStep = LifiQuoteStepLike & {
+	includedSteps?: LifiQuoteStepLike[]
 }

@@ -1,7 +1,9 @@
 <script lang="ts">
-	// Props
+	// Types/constants
 	import type { Snippet } from 'svelte'
 
+
+	// Props
 	let {
 		children,
 		Pending,
@@ -18,7 +20,7 @@
 	} = $props()
 
 
-	// Functions
+	// State
 	import { serializeError } from '$/lib/errors.ts'
 	import { stringify } from '$/lib/json.ts'
 </script>

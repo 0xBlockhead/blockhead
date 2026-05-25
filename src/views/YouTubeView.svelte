@@ -6,6 +6,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -15,36 +16,30 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
-		open = $bindable(
+		href = resolve(
+			'/youtube',
+			entityId,
+		),
+					open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.YouTubeNetwork>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
+			| 'layout'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
@@ -77,7 +72,6 @@
 						$: [
 							Source.Constants_Internal,
 							Source.Youtube_Rest,
-							Source.Piped_Rest,
 						],
 					},
 				}
@@ -106,10 +100,10 @@
 <EntityView
 	entityType={EntityType.YouTubeNetwork}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
 	{collapsible}
-	{...entityViewRest}
+	{...EntityViewProps}
 	title="YouTube"
 >
 	{#snippet Value()}
@@ -126,7 +120,7 @@
 			Channels and videos resolve through Google’s YouTube Data API when configured, with Piped as a read-only fallback for the same UC… / 11-char ids.
 		</p>
 		<p>
-			Playlist ids are opaque PL… or channel-upload UU… strings—not Reddit threads, Nostr events, or blob CIDs.
+			Hub playlist discovery uses curated seeds plus YouTube Data API channel playlist lists when configured; Piped backs channel-scoped playlists but not the network playlist carousel.
 		</p>
 	{/snippet}
 
@@ -136,16 +130,16 @@
 			resource={network}
 			placeholderText="Loading YouTube hub directory…"
 			>
-			{#snippet children(network)}
-				{#if network.registryLabel}
+			{#snippet children(loadedNetwork)}
+				{#if loadedNetwork.registryLabel}
 					<div>
 						<dt>Registry</dt>
-						<dd>{network.registryLabel}</dd>
+						<dd>{loadedNetwork.registryLabel}</dd>
 					</div>
-					{:else if network.protocolName}
+					{:else if loadedNetwork.protocolName}
 					<div>
 						<dt>Protocol</dt>
-						<dd>{network.protocolName}</dd>
+						<dd>{loadedNetwork.protocolName}</dd>
 					</div>
 				{/if}
 
@@ -163,28 +157,28 @@
 						<dd>{String(network.$youtubePlaylists.length)}</dd>
 					</div>
 
-					{#if network.homeUrl}
+					{#if loadedNetwork.homeUrl}
 						<div>
 							<dt>Home</dt>
 							<dd>
-							<a href={network.homeUrl}>{network.homeUrl}</a>
+							<a href={loadedNetwork.homeUrl}>{loadedNetwork.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if network.docsUrl}
+					{#if loadedNetwork.docsUrl}
 						<div>
 							<dt>Docs</dt>
 							<dd>
-							<a href={network.docsUrl}>{network.docsUrl}</a>
+							<a href={loadedNetwork.docsUrl}>{loadedNetwork.docsUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if network.topology}
+					{#if loadedNetwork.topology}
 						<div>
 							<dt>Topology</dt>
-							<dd>{network.topology}</dd>
+							<dd>{loadedNetwork.topology}</dd>
 						</div>
 					{/if}
 				{/if}
@@ -201,7 +195,6 @@
 			entityType={EntityType.YouTubeNetwork}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -240,12 +233,12 @@
 				{#snippet body({ open: _sectionOpen })}
 					<section data-scroll-marker-label="Channels">
 						<YouTubeChannelsView
+							href={resolve('/youtube/channels')}
 							entityFieldReference={{
 								entityType: EntityType.YouTubeNetwork,
 								entityId,
 								fieldName: '$$youtubeChannels',
 							}}
-							href={resolve('/youtube/channels')}
 							id="channels"
 							open={_open}
 						/>
@@ -253,12 +246,12 @@
 
 					<section data-scroll-marker-label="Popular videos">
 						<YouTubeVideosView
+							href={resolve('/youtube/videos')}
 							entityFieldReference={{
 								entityType: EntityType.YouTubeNetwork,
 								entityId,
 								fieldName: '$$youtubeVideos',
 							}}
-							href={resolve('/youtube/videos')}
 							id="videos"
 							limit={25}
 							open={_open}
@@ -268,12 +261,12 @@
 
 					<section data-scroll-marker-label="Playlists">
 						<YouTubePlaylistsView
+							href={resolve('/youtube/playlists')}
 							entityFieldReference={{
 								entityType: EntityType.YouTubeNetwork,
 								entityId,
 								fieldName: '$$youtubePlaylists',
 							}}
-							href={resolve('/youtube/playlists')}
 							id="playlists"
 							open={_open}
 							title="Playlists"
@@ -283,9 +276,6 @@
 			</CollapsibleTabs>
 		</div>
 
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>
 

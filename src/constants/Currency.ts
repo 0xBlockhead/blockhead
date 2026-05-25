@@ -1,13 +1,5 @@
 // Types
 
-import { coins } from '$/constants/Coin.ts'
-import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
-import {
-	catalogFiatUsdCrossMarketVenueId,
-	catalogMarketVenueIdForCoin,
-} from '$/constants/MarketCatalog.ts'
-
-
 export enum Iso4217 {
 	USD = 'USD',
 	EUR = 'EUR',
@@ -300,49 +292,6 @@ export const currencyByIso4217 = Object.fromEntries(
 		currency.iso4217,
 		currency,
 	]),
-) as {
-	[Code in Iso4217]: Extract<(typeof currencies)[number], { iso4217: Code }>
-}
-
-
-export const currencyEntityId = (iso4217: Iso4217) => (
-	{
-		iso4217,
-	}
-)
-
-
-export const currencyTimestampEntityId = (iso4217: Iso4217) => (
-	{
-		$currency: currencyEntityId(iso4217),
-		timestampMs: currencyCatalogSnapshotTimestampMs,
-	}
-)
-
-
-export const currencyMarketAssetLeg = (iso4217: Iso4217) => (
-	{
-		kind: MarketAssetKind.Currency,
-		$currency: currencyEntityId(iso4217),
-	}
-)
-
-
-export const usdCurrencyMarketAssetLeg = currencyMarketAssetLeg(Iso4217.USD)
-
-
-export const iso4217FromMarketAssetLeg = (
-	leg: {
-		kind: MarketAssetKind.Currency
-		$currency: { iso4217: Iso4217 }
-	} | {
-		kind: Exclude<MarketAssetKind, MarketAssetKind.Currency>
-	},
-) => (
-	leg.kind === MarketAssetKind.Currency ?
-		leg.$currency.iso4217
-	:
-		undefined
 )
 
 
@@ -370,60 +319,3 @@ export const iso4217WithCatalogUsdCrossAsBase = [
 	Iso4217.PLN,
 	Iso4217.TRY,
 ] as const satisfies readonly Iso4217[]
-
-
-export const catalogMarketsWithCurrencyAsQuote = (
-	iso4217: Iso4217,
-	coinIdFilter?: (coinId: string) => boolean,
-) => (
-	iso4217 !== Iso4217.USD ?
-		[]
-	:
-		coins.flatMap((coin) => (
-			coinIdFilter != null && !coinIdFilter(coin.id) ?
-				[]
-			:	[{
-				$base: {
-					kind: MarketAssetKind.Coin,
-					$coin: { coinId: coin.id },
-				},
-				$quote: currencyMarketAssetLeg(iso4217),
-				$marketVenue: {
-					marketVenueId: catalogMarketVenueIdForCoin(coin.id),
-				},
-				marketKind: MarketKind.Spot,
-			}]
-		))
-)
-
-
-export const catalogMarketsWithCurrencyAsBase = (
-	iso4217: Iso4217,
-) => (
-	iso4217 === Iso4217.USD
-	|| !iso4217WithCatalogUsdCrossAsBase.includes(
-		iso4217 as (typeof iso4217WithCatalogUsdCrossAsBase)[number],
-	) ?
-		[]
-	:	[{
-		$base: currencyMarketAssetLeg(iso4217),
-		$quote: usdCurrencyMarketAssetLeg,
-		$marketVenue: {
-			marketVenueId: catalogFiatUsdCrossMarketVenueId,
-		},
-		marketKind: MarketKind.Spot,
-	}]
-)
-
-
-export const quoteIso4217FromMarketId = (
-	$market: {
-		$quote: {
-			kind: MarketAssetKind
-			$currency?: { iso4217: Iso4217 }
-		}
-	},
-) => (
-	iso4217FromMarketAssetLeg($market.$quote)
-	?? Iso4217.USD
-)

@@ -1,13 +1,13 @@
 export type TradingViewScannerColumn = 'name' | 'close' | 'update_mode'
 
-export type TradingViewScannerRow = {
+export type TradingViewScannerDatum = {
 	s?: string
 	d?: unknown[]
 }
 
 export type TradingViewScannerResponse = {
 	totalCount?: number
-	data?: TradingViewScannerRow[]
+	data?: TradingViewScannerDatum[]
 }
 
 export type TradingViewQuote = {

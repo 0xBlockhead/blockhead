@@ -17,28 +17,24 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve(
+			'/(social)/(nostr)/nostr/reaction/[eventId]',
+			{ eventId: entityId.eventId },
+		),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.NostrReaction>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Content'
+			| 'layout'
 		>
 	> = $props()
 
@@ -57,6 +53,7 @@
 			createdAt: {},
 			$author: {},
 			$targetNote: {},
+			$targetArticle: {},
 			content: {},
 		},
 	)
@@ -68,6 +65,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import NostrArticleView from '$/views/NostrArticleView.svelte'
 	import NostrNoteView from '$/views/NostrNoteView.svelte'
 	import NostrProfileView from '$/views/NostrProfileView.svelte'
 </script>
@@ -76,9 +74,9 @@
 <EntityView
 	entityType={EntityType.NostrReaction}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
@@ -92,24 +90,24 @@
 			resource={reaction}
 			placeholderText="Loading reaction…"
 		>
-			{#snippet children(reaction)}
-				{reaction.content ?? '+'}
+			{#snippet children(loadedReaction)}
+				{loadedReaction.content ?? '+'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Kind-7 reactions carry emoji or “+” content referencing a target kind-1 note event id in <code>e</code>-tags.
+			Kind-7 reactions carry emoji or “+” content referencing a target note (<code>e</code>-tag event id) or NIP-23 article (<code>a</code>-tag coordinate).
 		</p>
 		<p>
-			The reaction’s own event id is a 64-character lowercase hex hash distinct from the target note’s event id.
+			The reaction’s own event id is a 64-character lowercase hex hash distinct from the target document’s id.
 		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			{#if reaction.content}
+			{#if loadedReaction.content}
 				<div>
 					<dt>Content</dt>
 					<dd>
@@ -117,15 +115,15 @@
 							resource={reaction}
 							placeholderText="Loading reaction…"
 						>
-							{#snippet children(reaction)}
-								{reaction.content}
+							{#snippet children(loadedReaction)}
+								{loadedReaction.content}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
 
-			{#if reaction.createdAt != null}
+			{#if loadedReaction.createdAt != null}
 				<div>
 					<dt>Created</dt>
 					<dd>
@@ -133,9 +131,9 @@
 							resource={reaction}
 							placeholderText="Loading reaction…"
 						>
-							{#snippet children(reaction)}
+							{#snippet children(loadedReaction)}
 								<Timestamp
-									timestamp={reaction.createdAt}
+									timestamp={loadedReaction.createdAt}
 								/>
 							{/snippet}
 						</ResourceBoundary>
@@ -143,59 +141,76 @@
 				</div>
 			{/if}
 
-			{#if open}
-				{#if reaction.$author}
-					<div>
-						<dt>Author</dt>
-						<dd>
-							<ResourceBoundary
-								resource={reaction}
-								placeholderText="Loading reaction…"
-							>
-								{#snippet children(reaction)}
-									<NostrProfileView
-										entityId={reaction.$author[EntityMetaKey.Id]}
-										href={resolve('/nostr/profile/[pubkey]', {
-											pubkey: reaction.$author[EntityMetaKey.Id].pubkey,
-											})}
-										layout={EntityLayout.Value}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& reaction.$author
+			)}
+				<div>
+					<dt>Author</dt>
+					<dd>
+						<ResourceBoundary
+							resource={reaction}
+							placeholderText="Loading reaction…"
+						>
+							{#snippet children(loadedReaction)}
+								<NostrProfileView
+									entityId={loadedReaction.$author[EntityMetaKey.Id]}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if reaction.$targetNote}
-					<div>
-						<dt>Target note</dt>
-						<dd>
-							<ResourceBoundary
-								resource={reaction}
-								placeholderText="Loading reaction…"
-							>
-								{#snippet children(reaction)}
-									<NostrNoteView
-										entityId={reaction.$targetNote[EntityMetaKey.Id]}
-										href={resolve('/nostr/note/[eventId]', {
-											eventId: reaction.$targetNote[EntityMetaKey.Id].eventId,
-											})}
-										layout={EntityLayout.Value}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& reaction.$targetNote
+			)}
+				<div>
+					<dt>Target note</dt>
+					<dd>
+						<ResourceBoundary
+							resource={reaction}
+							placeholderText="Loading reaction…"
+						>
+							{#snippet children(loadedReaction)}
+								<NostrNoteView
+									entityId={loadedReaction.$targetNote[EntityMetaKey.Id]}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if (
+				open
+				&& reaction.$targetArticle
+			)}
+				<div>
+					<dt>Target article</dt>
+					<dd>
+						<ResourceBoundary
+							resource={reaction}
+							placeholderText="Loading reaction…"
+						>
+							{#snippet children(loadedReaction)}
+								<NostrArticleView
+									entityId={loadedReaction.$targetArticle[EntityMetaKey.Id]}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 		</dl>
-{/snippet}
+	{/snippet}
 
 	{#snippet Details({
 		open: _open,
@@ -206,3 +221,4 @@
 		/>
 	{/snippet}
 </EntityView>
+

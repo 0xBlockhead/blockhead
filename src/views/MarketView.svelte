@@ -3,13 +3,14 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+
 	import {
-		formatMarketIdLabel,
 		MarketAssetKind,
 		MarketKind,
 		marketDerivativeObservationSources,
-		marketKindLabelByKind,
+		marketKinds,
 	} from '$/constants/Market.ts'
+
 	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -24,32 +25,46 @@
 	let {
 		children,
 		entityId,
-		href,
+		href = resolve(
+		'/(assets)/(markets)/market/[marketKey]',
+		{
+			marketKey: encodeURIComponent(stringify(entityId)),
+		},
+	),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.Market>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
+			| 'id'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
+	// Functions
+	const marketAssetSymbol = (
+		leg: typeof entityId.$base,
+	) => (
+		leg.kind === MarketAssetKind.Coin ?
+			leg.$coin.coinId
+		: leg.kind === MarketAssetKind.CoinInstance ?
+			`instance-${stringify(leg.$coinInstance).slice(0, 12)}`
+		:
+			leg.$currency.iso4217
+	)
+
+
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const market = useEntity(
 		EntityType.Market,
@@ -90,28 +105,29 @@
 <EntityView
 	entityType={EntityType.Market}
 	{entityId}
-	{href}
+	href={href}
 	{open}
-	{...entityViewRest}
-	title={formatMarketIdLabel(entityId)}
+	{...EntityViewProps}
+	title={(
+		entityId.marketKind === MarketKind.Spot ?
+			`${entityId.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$base)}-${marketAssetSymbol(entityId.$quote)}`
+		:
+			`${entityId.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$base)}-${marketAssetSymbol(entityId.$quote)} (${marketKinds[entityId.marketKind].label})`
+	)}
 >
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			<div>
 				<dt>Kind</dt>
-				<dd>{marketKindLabelByKind[entityId.marketKind]}</dd>
+				<dd>{marketKinds[entityId.marketKind].label}</dd>
 			</div>
 			<div>
 				<dt>Venue</dt>
 				<dd>
 					<MarketVenueView
 						entityId={entityId.$marketVenue}
-						href={resolve(
-							'/(assets)/(marketVenues)/market-venue/[marketVenueId]',
-							{ marketVenueId: entityId.$marketVenue.marketVenueId },
-						)}
-						layout={EntityLayout.Title}
-						open={false}
+						layout={EntityLayout.SummaryDetails}
+						open={true}
 						showTypeAnnotation={false}
 					/>
 				</dd>
@@ -160,42 +176,22 @@
 					{#if entityId.$base.kind === MarketAssetKind.Coin}
 						<CoinView
 							entityId={entityId.$base.$coin}
-							href={resolve(
-								'/(assets)/(coins)/coin/[coinId]',
-								{ coinId: entityId.$base.$coin.coinId },
-							)}
-							layout={EntityLayout.Title}
-							open={false}
+							layout={EntityLayout.SummaryDetails}
+							open={true}
 							showTypeAnnotation={false}
 						/>
 					{:else if entityId.$base.kind === MarketAssetKind.CoinInstance}
 						<CoinInstanceView
 							entityId={entityId.$base.$coinInstance}
-							href={resolve(
-								'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
-								{
-									chainId: String(entityId.$base.$coinInstance.$network.chainId),
-									coinInstanceSlug: (
-										entityId.$base.$coinInstance.type === CoinInstanceType.NativeCurrency ?
-											'native'
-										:
-											entityId.$base.$coinInstance.$contract.address
-									),
-								},
-							)}
-							layout={EntityLayout.Title}
-							open={false}
+							layout={EntityLayout.SummaryDetails}
+							open={true}
 							showTypeAnnotation={false}
 						/>
 					{:else}
 						<CurrencyView
 							entityId={entityId.$base.$currency}
-							href={resolve(
-								'/(assets)/(currencies)/currency/[iso4217]',
-								{ iso4217: entityId.$base.$currency.iso4217 },
-							)}
-							layout={EntityLayout.Title}
-							open={false}
+							layout={EntityLayout.SummaryDetails}
+							open={true}
 							showTypeAnnotation={false}
 						/>
 					{/if}
@@ -207,42 +203,22 @@
 					{#if entityId.$quote.kind === MarketAssetKind.Coin}
 						<CoinView
 							entityId={entityId.$quote.$coin}
-							href={resolve(
-								'/(assets)/(coins)/coin/[coinId]',
-								{ coinId: entityId.$quote.$coin.coinId },
-							)}
-							layout={EntityLayout.Title}
-							open={false}
+							layout={EntityLayout.SummaryDetails}
+							open={true}
 							showTypeAnnotation={false}
 						/>
 					{:else if entityId.$quote.kind === MarketAssetKind.CoinInstance}
 						<CoinInstanceView
 							entityId={entityId.$quote.$coinInstance}
-							href={resolve(
-								'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
-								{
-									chainId: String(entityId.$quote.$coinInstance.$network.chainId),
-									coinInstanceSlug: (
-										entityId.$quote.$coinInstance.type === CoinInstanceType.NativeCurrency ?
-											'native'
-										:
-											entityId.$quote.$coinInstance.$contract.address
-									),
-								},
-							)}
-							layout={EntityLayout.Title}
-							open={false}
+							layout={EntityLayout.SummaryDetails}
+							open={true}
 							showTypeAnnotation={false}
 						/>
 					{:else}
 						<CurrencyView
 							entityId={entityId.$quote.$currency}
-							href={resolve(
-								'/(assets)/(currencies)/currency/[iso4217]',
-								{ iso4217: entityId.$quote.$currency.iso4217 },
-							)}
-							layout={EntityLayout.Title}
-							open={false}
+							layout={EntityLayout.SummaryDetails}
+							open={true}
 							showTypeAnnotation={false}
 						/>
 					{/if}
@@ -255,30 +231,20 @@
 		open: _open,
 	})}
 		{@const marketIdKey = stringify(entityId)}
-		{@const pricingHubHref = (
-			entityId.$base.kind === MarketAssetKind.Coin ?
-				resolve(
-					'/(assets)/(coins)/coin/[coinId]',
-					{ coinId: entityId.$base.$coin.coinId },
-				)
-			:
-				undefined
-		)}
 		<EntityDetails
 			entityType={EntityType.Market}
 			{entityId}
 		/>
-
 		{#if entityId.marketKind === MarketKind.Spot}
 			<section data-scroll-marker-label="Spot">
 				<MarketPricesView
+					href={resolve('/markets')}
 					collapsible={false}
 					entityFieldReference={{
 						entityType: EntityType.Market,
 						entityId,
 						fieldName: '$$marketPrices',
 					}}
-					href={pricingHubHref ?? href}
 					id={`${marketIdKey}:market-prices`}
 					title="Spot"
 				/>

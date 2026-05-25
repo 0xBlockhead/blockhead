@@ -1,6 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { mountEntityResolveLive } from '$/lib/db/resolveLive.svelte.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 
 
@@ -18,6 +17,10 @@
 		entityType: EntityType.Network,
 		entityId: () => ({ chainId }),
 	})
+
+
+	// State
+	import { mountEntityResolveLive } from '$/lib/db/resolveLive.svelte.ts'
 </script>
 
 

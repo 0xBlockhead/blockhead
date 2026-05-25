@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -9,10 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -22,26 +19,22 @@
 		collapsible = true,
 		title = '4-byte selectors',
 		id,
-		href,
-		...entitiesListRest
+				...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmSelector>
 			open?: boolean
 			title?: string
 			id: string
-			href: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -55,11 +48,11 @@
 
 <EntitiesList
 	entityType={EntityType.EvmSelector}
+
 	{id}
-	{href}
 	{title}
 	bind:open
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -73,13 +66,13 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const global = useEntity(
-				EntityType._Global,
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				{
-					$$evmSelectors: {
+					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Local_Internal,
 						],
@@ -87,9 +80,9 @@
 				},
 			)}
 			{@const selectors = derive(
-				global,
-				(global): Entity<typeof schema, EntityType.EvmSelector>[] => (
-					global.$$evmSelectors
+				parent,
+				(parent): Entity<typeof schema, EntityType.EvmSelector>[] => (
+					parent[entityFieldReference.fieldName]
 					?? []
 				),
 			)}
@@ -99,12 +92,10 @@
 					showSummary={false}
 					entityType={EntityType.EvmSelector}
 					id={`${id}-items`}
-					{href}
 					{title}
 					open={true}
 					getKey={(row) => row[EntityMetaKey.Id].hex}
 					getSortValue={(row) => row[EntityMetaKey.Id].hex}
-					placeholderKeys={new SvelteSet()}
 					placeholderText="Loading 4-byte selectors…"
 					resource={selectors}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -115,19 +106,14 @@
 						</p>
 					{/snippet}
 
-					{#snippet Item(props)}
-						{#if props.item}
-							<EvmSelectorView
-								entityId={props.item[EntityMetaKey.Id]}
-								href={resolve('/(explore)/(evm)/evm/(selectors)/selector/[hex]', {
-									hex: props.item[EntityMetaKey.Id].hex,
-								})}
-								layout={EntityLayout.Summary}
-								open={false}
-								collapsible={false}
-								showTypeAnnotation={false}
-							/>
-						{/if}
+					{#snippet Item({ item })}
+						<EvmSelectorView
+							entityId={item[EntityMetaKey.Id]}
+							layout={EntityLayout.Summary}
+							open={false}
+							collapsible={false}
+							showTypeAnnotation={false}
+						/>
 					{/snippet}
 				</EntitiesList>
 			</div>

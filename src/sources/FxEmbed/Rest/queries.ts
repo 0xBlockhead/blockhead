@@ -1,8 +1,8 @@
 import { fxEmbedGet } from '$/sources/FxEmbed/Rest/client.ts'
 import type {
-	FxEmbedSearchResultsWire,
-	FxEmbedSocialThreadWire,
-	FxEmbedUserResponseWire,
+	FxEmbedSearchResults,
+	FxEmbedSocialThread,
+	FxEmbedUserResponse,
 } from '$/sources/FxEmbed/Rest/types.ts'
 
 const clampFxEmbedCount = (count: number) => (
@@ -23,7 +23,7 @@ const profileHandleParam = (idOrUsername: string) => {
  * GET /2/profile/{handle} — numeric id as `id:{snowflake}` or username without @.
  */
 export const fxEmbedGetUser = async (idOrUsername: string) => (
-	fxEmbedGet<FxEmbedUserResponseWire>(
+	fxEmbedGet<FxEmbedUserResponse>(
 		`/profile/${encodeURIComponent(profileHandleParam(idOrUsername))}`,
 	)
 )
@@ -32,7 +32,7 @@ export const fxEmbedGetUser = async (idOrUsername: string) => (
  * GET /2/status/{id} — tweet/post snowflake id.
  */
 export const fxEmbedGetStatus = async (id: string) => (
-	fxEmbedGet<FxEmbedSocialThreadWire>(
+	fxEmbedGet<FxEmbedSocialThread>(
 		`/status/${encodeURIComponent(id.trim())}`,
 	)
 )
@@ -41,7 +41,7 @@ export const fxEmbedGetStatus = async (id: string) => (
  * GET /2/search
  */
 export const fxEmbedSearchStatuses = async (count: number) => (
-	fxEmbedGet<FxEmbedSearchResultsWire>(
+	fxEmbedGet<FxEmbedSearchResults>(
 		'/search',
 		{
 			q: 'lang:en -is:retweet',
@@ -58,7 +58,7 @@ export const fxEmbedGetUserStatuses = async (
 	idOrUsername: string,
 	count: number,
 ) => (
-	fxEmbedGet<FxEmbedSearchResultsWire>(
+	fxEmbedGet<FxEmbedSearchResults>(
 		`/profile/${encodeURIComponent(profileHandleParam(idOrUsername))}/statuses`,
 		{
 			count: clampFxEmbedCount(count),

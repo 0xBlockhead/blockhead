@@ -32,7 +32,6 @@
 	{#if entityId !== undefined}
 		<ProposalRealmView
 			{entityId}
-			href={resolve(`/proposals/${params.proposalRealmSlug}`)}
 			open
 		/>
 	{:else}

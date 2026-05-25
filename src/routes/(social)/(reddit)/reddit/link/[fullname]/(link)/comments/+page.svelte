@@ -22,14 +22,12 @@
 
 <Page>
 	<RedditCommentsView
+		href={resolve('/reddit/comments')}
 		entityFieldReference={{
 			entityType: EntityType.RedditLink,
 			entityId,
 			fieldName: '$$comments',
 		}}
-		href={resolve('/(social)/(reddit)/reddit/link/[fullname]/(link)/comments', {
-			fullname: encodeURIComponent(entityId.fullname),
-		})}
 		id="reddit-link-comments"
 	/>
 </Page>

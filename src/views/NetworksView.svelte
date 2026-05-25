@@ -4,23 +4,19 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+
 	import {
 		ethereumChainId,
 		l2BeatProjectChainIds,
 	} from '$/sources/L2Beat/Rest/constants.ts'
+
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify as stringifyId } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -28,28 +24,25 @@
 		title = 'Networks',
 		open = $bindable(true),
 		entityFieldReference,
-		...EntitiesListProps
+				...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
-			open?: boolean
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Network>
+			open?: boolean			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Network>
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'entityType'
-			| 'getKey'
-			| 'getSortValue'
-			| 'items'
-			| 'resource'
-			| 'Item'
-			| 'body'
+			| 'collapsible'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	const fieldName = entityFieldReference.fieldName
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const sortValueByChainId = new Map<number, number>([
 		[ethereumChainId, 0],
 		...l2BeatProjectChainIds.map(({ chainId }, index): [number, number] => (
@@ -69,7 +62,7 @@
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
 			],
-			[fieldName]: {
+			[entityFieldReference.fieldName]: {
 				$limit: 4096,
 			},
 		},
@@ -79,7 +72,7 @@
 		parent,
 		(parent) => {
 			const chainIds = new SvelteSet<number>()
-			const rows: Entity<typeof schema, EntityType.Network>[] = parent[fieldName] ?? []
+			const rows: Entity<typeof schema, EntityType.Network>[] = parent[entityFieldReference.fieldName] ?? []
 			return (
 				rows
 					.flatMap((value) => {
@@ -131,16 +124,11 @@
 	{/snippet}
 
 	{#snippet Item({ item: line })}
-		{#if line}
-			{@const chainId = line.value[EntityMetaKey.Id].chainId}
-			<NetworkView
-				entityId={{ chainId }}
-				href={resolve('/(explore)/(networks)/network/[networkId]', {
-					networkId: String(chainId),
-				})}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/if}
+		{@const chainId = line.value[EntityMetaKey.Id].chainId}
+		<NetworkView
+			entityId={{ chainId }}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
 	{/snippet}
 </EntitiesList>

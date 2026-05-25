@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Props
 	let {
 		params,
@@ -23,10 +19,6 @@
 <Page>
 	<RedditLinkView
 		{entityId}
-		href={resolve(
-			'/(social)/(reddit)/reddit/link/[fullname]',
-			{ fullname: encodeURIComponent(entityId.fullname) },
-		)}
 	>
 	</RedditLinkView>
 </Page>

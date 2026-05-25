@@ -1,6 +1,5 @@
 <script lang="ts">
-	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 
@@ -8,12 +7,15 @@
 	// Props
 	let { children } = $props()
 
+
+	// (Derived)
 	const feedUrl = $derived(
 		decodeURIComponent(page.params.feedKey ?? '').trim(),
 	)
 
 
 	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import RssFeedView from '$/views/RssFeedView.svelte'
 </script>
@@ -28,9 +30,6 @@
 	{#snippet Summary({ open: _open })}
 		<RssFeedView
 			entityId={{ feedUrl }}
-			href={resolve('/(social)/(rss)/rss/feed/[feedKey]', {
-				feedKey: encodeURIComponent(feedUrl),
-			})}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

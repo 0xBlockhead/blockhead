@@ -6,7 +6,7 @@ import {
 	redditWwwOrigin,
 } from '$/sources/Reddit/Rest/constants.ts'
 import Reddit from '$/sources/Reddit/index.ts'
-import type { RedditOAuthTokenResponseWire } from '$/sources/Reddit/Rest/types.ts'
+import type { RedditOAuthTokenResponse } from '$/sources/Reddit/Rest/types.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -20,7 +20,7 @@ const getAccessToken = async (publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>)
 	if (tokenCache != null && tokenCache.expMs > Date.now() + 5_000) {
 		return tokenCache.t
 	}
-	const j = await getJson<RedditOAuthTokenResponseWire>(
+	const j = await getJson<RedditOAuthTokenResponse>(
 		`${redditWwwOrigin}/api/v1/access_token`,
 		{
 			origins: Reddit.origins ?? [],

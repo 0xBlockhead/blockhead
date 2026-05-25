@@ -1,13 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
-	import { resolve } from '$app/paths'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,35 +8,42 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/erc-4337/smart-account/[address]',
+			{
+				networkId: String(entityId.$network.chainId),
+				address: entityId.address,
+			},
+		),
 		layout = EntityLayout.Summary,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		title = 'ERC-4337 smart account',
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.Erc4337SmartAccount>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			open?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'layout'
-			| 'open'
-			| 'title'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const smartAccount = useEntity(
 		EntityType.Erc4337SmartAccount,
 		entityId,
@@ -57,6 +57,9 @@
 
 
 	// Components
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
 
@@ -64,11 +67,11 @@
 <EntityView
 	entityType={EntityType.Erc4337SmartAccount}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
 	bind:open
 	{title}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
@@ -97,9 +100,9 @@
 			placeholderText="Loading smart account…"
 			resource={smartAccount}
 		>
-			{#snippet children(smartAccount)}
+			{#snippet children(loadedSmartAccount)}
 				<dl data-column-item="center">
-					{#if smartAccount.userOperationsCount !== undefined}
+					{#if loadedSmartAccount.userOperationsCount !== undefined}
 						<div>
 							<dt>User operations</dt>
 							<dd data-text="mono">{String(smartAccount.userOperationsCount)}</dd>
@@ -113,15 +116,8 @@
 									$network: entityId.$network,
 									address: entityId.address,
 								}}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-									{
-										networkId: String(entityId.$network.chainId),
-										address: entityId.address,
-									},
-								)}
-								layout={EntityLayout.Title}
-								open={false}
+								layout={EntityLayout.SummaryDetails}
+								open={true}
 								showTypeAnnotation={false}
 							/>
 						</dd>

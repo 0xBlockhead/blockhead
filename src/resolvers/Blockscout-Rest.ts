@@ -1,5 +1,7 @@
 import { stringify } from 'devalue'
-import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+import { keccak256, toHex } from '@tevm/voltaire/Hash'
+import { toBytes } from '@tevm/voltaire/Hex'
+import { hexLowerOfByteSize, zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineEntityFieldResolver,
@@ -7,46 +9,657 @@ import {
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import { toActorCoinAllowanceEntityId } from '$/schema/ActorCoinAllowance.ts'
 import { schema } from '$/schema/index.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
+import {
+	EvmInternalCallType,
+	EvmLogInterpretationKind,
+	EvmTokenStandard,
+	EvmTransactionEnvelopeType,
+	EvmTransactionExecutionStatus,
+	EvmTransactionKind,
+} from '$/constants/Evm.ts'
 import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
-import { catalogCoinUsdMarketId } from '$/constants/MarketCatalog.ts'
-import { coinTimestampFieldsFromObservation } from '$/resolvers/_coinTimestamp.ts'
-import {
-	evmContractBytecodeHashFromGetCodeHex,
-	evmContractRuntimeCodeFromGetCodeHex,
-	evmContractStorageSlotReadsFromEthGetStorageAt,
-} from '$/resolvers/_evmContractRpc.ts'
-import {
-	gasEstimateObservationFromBlockscoutStats,
-	networkGasEstimateTimestampFieldsFromObservation,
-} from '$/resolvers/_networkGasEstimateTimestamp.ts'
-import { marketTimestampFieldsFromObservation } from '$/resolvers/_marketSpotTimestamp.ts'
+import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+import { catalogCoinUsdMarketIdByCoinId } from '$/constants/MarketCatalog.ts'
 import type {
-	BlockscoutErc4337RegistryEntryWire,
-	BlockscoutStatsWire,
+	BlockscoutInternalTransaction,
+	BlockscoutErc4337RegistryEntry,
+	BlockscoutStats,
+	BlockscoutTokenTransfer,
 } from '$/sources/Blockscout/Rest/types.ts'
-import {
-	evmLogEntityFromIdAndWire,
-	evmLogEntityIdFromWire,
-	findReceiptLogWireForEvmLogId,
-} from '$/resolvers/_evmLog.ts'
-import {
-	evmInternalTransferEntityFromWire,
-	findBlockscoutInternalTransferWireForEntityId,
-} from '$/resolvers/_evmInternalTransfer.ts'
-import {
-	evmTransactionBlobFieldsFromRpc,
-	evmTransactionDiscriminatorFields,
-} from '$/resolvers/_evmTransaction.ts'
-import {
-	evmTokenTransferEntityFromWire,
-	findBlockscoutTokenTransferWireForEntityId,
-} from '$/resolvers/_evmTokenTransfer.ts'
-import type { RpcBlockHeaderWire } from '$/sources/Evm/JsonRpc/types.ts'
+import type { RpcBlockHeader, RpcLog } from '$/sources/Evm/JsonRpc/types.ts'
+
+const evmContractRuntimeCodeFromGetCodeHex = (
+	codeHex: `0x${string}`,
+): `0x${string}` | undefined => (
+	codeHex === '0x' || codeHex === '0x0' ?
+		undefined
+	:
+		zeroExLowerCase(codeHex)
+)
+
+const evmContractBytecodeHashFromGetCodeHex = (
+	codeHex: `0x${string}`,
+): `0x${string}` | undefined => {
+	const runtimeCode = evmContractRuntimeCodeFromGetCodeHex(codeHex)
+	return runtimeCode == null ?
+		undefined
+	:
+		toHex(keccak256(toBytes(runtimeCode)))
+}
+
+const evmContractStorageSlotReadsFromEthGetStorageAt = async ({
+	depth,
+	getStorageAt,
+}: {
+	address: `0x${string}`
+	depth: number
+	getStorageAt: (slotQuantityHex: `0x${string}`) => Promise<`0x${string}`>
+}) => {
+	const rows: { slot: `0x${string}`; value: `0x${string}` }[] = []
+	for (let slotIndex = 0; slotIndex < depth; slotIndex += 1) {
+		const slotQuantityHex = `0x${BigInt(slotIndex).toString(16).padStart(64, '0')}`
+		const valueHex = await getStorageAt(slotQuantityHex)
+		const slotNormalized = hexLowerOfByteSize(slotQuantityHex, 32)
+		const value = hexLowerOfByteSize(valueHex, 32)
+		if (slotNormalized == null || value == null) continue
+		rows.push({ slot: slotNormalized, value })
+	}
+	return rows
+}
+
+const ERC20_TRANSFER_TOPIC = (
+	'0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef'
+)
+const ERC20_APPROVAL_TOPIC = (
+	'0x8c5be1e5ebec7d5bd14f71427d1e84f3dd0314c0f7b2291e80d49a8a6f947aeb'
+)
+const UNISWAP_V2_SWAP_TOPIC = (
+	'0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822'
+)
+const UNISWAP_V3_SWAP_TOPIC = (
+	'0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67'
+)
+
+const evmLogInterpretationKindFromTopics = (
+	topics: readonly string[],
+): EvmLogInterpretationKind => {
+	const topic0 = topics[0]?.toLowerCase()
+	if (topic0 == null) return EvmLogInterpretationKind.Unknown
+	if (topic0 === ERC20_TRANSFER_TOPIC.toLowerCase()) return EvmLogInterpretationKind.Transfer
+	if (topic0 === ERC20_APPROVAL_TOPIC.toLowerCase()) return EvmLogInterpretationKind.Approval
+	if (
+		topic0 === UNISWAP_V2_SWAP_TOPIC.toLowerCase()
+		|| topic0 === UNISWAP_V3_SWAP_TOPIC.toLowerCase()
+	) {
+		return EvmLogInterpretationKind.Swap
+	}
+	return EvmLogInterpretationKind.Unknown
+}
+
+const evmLogIndexFromWire = (
+	raw: string | undefined,
+): number | undefined => (
+	raw == null ?
+		undefined
+	: ((parsed) => (
+		Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
+			parsed
+		:
+			undefined
+	))(
+		raw.startsWith('0x') || raw.startsWith('0X') ?
+			Number.parseInt(raw, 16)
+		:
+			Number(raw),
+	)
+)
+
+const evmRpcQuantityToBigInt = (
+	raw: string | undefined,
+): bigint | undefined => (
+	raw == null ?
+		undefined
+	: ((value) => (
+		value < 0n ?
+			undefined
+		:
+			value
+	))(
+		(() => {
+			try {
+				return BigInt(raw)
+			} catch {
+				return undefined
+			}
+		})() ?? -1n,
+	)
+)
+
+const evmLogEntityIdFromWire = ({
+	$network,
+	txHash,
+	log,
+}: {
+	$network: { chainId: number }
+	txHash: string
+	log: RpcLog
+}) => {
+	const logIndex = evmLogIndexFromWire(log.logIndex)
+	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
+	return logIndex == null || normalizedTxHash == null ?
+		undefined
+	: {
+		$network,
+		txHash: normalizedTxHash,
+		logIndex,
+	}
+}
+
+const evmLogEntityFromIdAndWire = (
+	entityId: Entity<typeof schema, EntityType.EvmLog>[typeof EntityMetaKey.Id],
+	log: RpcLog,
+): Entity<typeof schema, EntityType.EvmLog> => {
+	const address = hexLowerOfByteSize(log.address ?? '', 20)
+	const blockHash = hexLowerOfByteSize(log.blockHash ?? '', 32)
+	const blockNumber = evmRpcQuantityToBigInt(log.blockNumber)
+	const transactionIndex = evmLogIndexFromWire(log.transactionIndex)
+	const topics = (
+		(log.topics ?? [])
+			.flatMap((topic) => {
+				const normalized = hexLowerOfByteSize(topic, 32)
+				return normalized == null ? [] : [normalized]
+			})
+	)
+	return {
+		[EntityMetaKey.Id]: entityId,
+		topics,
+		interpretationKind: evmLogInterpretationKindFromTopics(topics),
+		...(address != null && { address }),
+		...(log.data != null && { data: log.data }),
+		...(blockNumber != null && { blockNumber }),
+		...(blockHash != null && { blockHash }),
+		...(transactionIndex != null && { transactionIndex }),
+		...(log.removed != null && { removed: log.removed }),
+		...(address != null && {
+			$emitter: {
+				[EntityMetaKey.Id]: {
+					$network: entityId.$network,
+					address,
+				},
+			} satisfies Entity<typeof schema, EntityType.EvmContract>,
+		}),
+	}
+}
+
+const findReceiptLogWireForEvmLogId = (
+	logs: readonly RpcLog[] | undefined,
+	logIndex: number,
+): RpcLog | undefined => (
+	(logs ?? []).find((log) => (
+		evmLogIndexFromWire(log.logIndex) === logIndex
+	))
+)
+
+const evmTransactionEnvelopeTypeFromRpcTypeByte = (
+	raw: number | undefined,
+): EvmTransactionEnvelopeType | undefined => (
+	raw == null || !Number.isFinite(raw) || !Number.isInteger(raw) ?
+		EvmTransactionEnvelopeType.Legacy
+	: raw === 0 ?
+		EvmTransactionEnvelopeType.Legacy
+	: raw === 1 ?
+		EvmTransactionEnvelopeType.AccessList
+	: raw === 2 ?
+		EvmTransactionEnvelopeType.FeeMarket
+	: raw === 3 ?
+		EvmTransactionEnvelopeType.Blob
+	: raw === 4 ?
+		EvmTransactionEnvelopeType.SetCode
+	:
+		EvmTransactionEnvelopeType.Unknown
+)
+
+const evmTransactionExecutionStatusFromReceiptStatus = (
+	raw: number | undefined,
+): EvmTransactionExecutionStatus | undefined => (
+	raw == null || !Number.isFinite(raw) || !Number.isInteger(raw) ?
+		undefined
+	: raw === 1 ?
+		EvmTransactionExecutionStatus.Success
+	: raw === 0 ?
+		EvmTransactionExecutionStatus.Failed
+	:
+		undefined
+)
+
+const evmTransactionExecutionStatusWhenReceiptMissing = (
+	receiptPresent: boolean | undefined,
+	receiptStatus: number | undefined,
+): EvmTransactionExecutionStatus | undefined => (
+	receiptPresent ?
+		evmTransactionExecutionStatusFromReceiptStatus(receiptStatus)
+	:
+		EvmTransactionExecutionStatus.Pending
+)
+
+const evmTransactionKindFromSignedFields = ({
+	value,
+	toAddress,
+	input,
+	createdContractAddress,
+}: {
+	value: bigint
+	toAddress?: string
+	input?: string
+	createdContractAddress?: string
+}): EvmTransactionKind => (
+	createdContractAddress != null || toAddress == null ?
+		EvmTransactionKind.ContractCreation
+	: input != null && input !== '0x' && input.length > 2 ?
+		value > 0n ?
+			EvmTransactionKind.NativeTransferAndCall
+		:
+			EvmTransactionKind.ContractCall
+	: value > 0n ?
+		EvmTransactionKind.NativeTransfer
+	:
+		EvmTransactionKind.ContractCall
+)
+
+const evmTransactionDiscriminatorFields = ({
+	rpcTypeByte,
+	receiptStatus,
+	receiptPresent,
+	value,
+	toAddress,
+	input,
+	createdContractAddress,
+}: {
+	rpcTypeByte: number | undefined
+	receiptStatus: number | undefined
+	receiptPresent?: boolean
+	value: bigint
+	toAddress?: string
+	input?: string
+	createdContractAddress?: string
+}) => {
+	const envelopeType = evmTransactionEnvelopeTypeFromRpcTypeByte(rpcTypeByte)
+	const executionStatus = evmTransactionExecutionStatusWhenReceiptMissing(
+		receiptPresent,
+		receiptStatus,
+	)
+	const kind = evmTransactionKindFromSignedFields({
+		value,
+		toAddress,
+		input,
+		createdContractAddress,
+	})
+	return {
+		envelopeType,
+		...(executionStatus != null && { executionStatus }),
+		kind,
+	}
+}
+
+const evmInternalCallTypeFromWire = (
+	raw: string | undefined,
+): EvmInternalCallType | undefined => (
+	raw == null || raw === '' ?
+		undefined
+	: ((normalized) => (
+		normalized === 'call' ?
+			EvmInternalCallType.Call
+		: normalized === 'callcode' ?
+			EvmInternalCallType.CallCode
+		: normalized === 'delegatecall' ?
+			EvmInternalCallType.DelegateCall
+		: normalized === 'staticcall' ?
+			EvmInternalCallType.StaticCall
+		: normalized === 'create' ?
+			EvmInternalCallType.Create
+		: normalized === 'create2' ?
+			EvmInternalCallType.Create2
+		: normalized === 'suicide' || normalized === 'selfdestruct' ?
+			EvmInternalCallType.SelfDestruct
+		:
+			EvmInternalCallType.Unknown
+	))(raw.trim().toLowerCase())
+)
+
+const blockscoutQuantityToBigInt = (
+	raw: string | undefined,
+): bigint | undefined => (
+	raw == null || raw === '' ?
+		undefined
+	: ((value) => (
+		value < 0n ?
+			undefined
+		:
+			value
+	))(
+		(() => {
+			try {
+				return BigInt(raw)
+			} catch {
+				return undefined
+			}
+		})() ?? -1n,
+	)
+)
+
+const evmInternalTransferEntityFromWire = ({
+	$network,
+	txHash,
+	wire,
+}: {
+	$network: { chainId: number }
+	txHash: `0x${string}`
+	wire: BlockscoutInternalTransaction
+}): Entity<typeof schema, EntityType.EvmInternalTransfer> | undefined => {
+	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
+	const internalIndex = wire.index
+	if (normalizedTxHash == null || internalIndex == null || internalIndex < 0) return undefined
+	const fromAddress = hexLowerOfByteSize(wire.from?.hash ?? '', 20)
+	const toAddress = hexLowerOfByteSize(wire.to?.hash ?? '', 20)
+	const createdAddress = hexLowerOfByteSize(wire.created_contract?.hash ?? '', 20)
+	const value = blockscoutQuantityToBigInt(wire.value) ?? 0n
+	return {
+		[EntityMetaKey.Id]: {
+			$network,
+			txHash: normalizedTxHash,
+			internalIndex,
+		},
+		value,
+		...(wire.type != null && ((callType) => (
+			callType != null && { callType }
+		))(evmInternalCallTypeFromWire(wire.type))),
+		...(wire.success != null && { success: wire.success }),
+		...(fromAddress != null && {
+			$from: {
+				[EntityMetaKey.Id]: { address: fromAddress },
+			} satisfies Entity<typeof schema, EntityType.Actor>,
+		}),
+		...(toAddress != null && {
+			$to: {
+				[EntityMetaKey.Id]: { address: toAddress },
+			} satisfies Entity<typeof schema, EntityType.Actor>,
+		}),
+		...(createdAddress != null && {
+			$createdContract: {
+				[EntityMetaKey.Id]: {
+					$network,
+					address: createdAddress,
+				},
+			} satisfies Entity<typeof schema, EntityType.EvmContract>,
+		}),
+	}
+}
+
+const evmInternalTransferEntityIdsFromBlockscoutWires = ({
+	$network,
+	txHash,
+	wires,
+}: {
+	$network: { chainId: number }
+	txHash: `0x${string}`
+	wires: readonly BlockscoutInternalTransaction[]
+}): Entity<typeof schema, EntityType.EvmInternalTransfer>[] => (
+	wires.flatMap((wire) => {
+		const entity = evmInternalTransferEntityFromWire({
+			$network,
+			txHash,
+			wire,
+		})
+		return entity == null ? [] : [entity]
+	})
+)
+
+const evmInternalTransferEntityIdsFromBlockscoutAddresss = ({
+	$network,
+	wires,
+}: {
+	$network: { chainId: number }
+	wires: readonly BlockscoutInternalTransaction[]
+}): Entity<typeof schema, EntityType.EvmInternalTransfer>[] => {
+	const wiresByTxHash = new Map<string, BlockscoutInternalTransaction[]>()
+	for (const wire of wires) {
+		const txHash = hexLowerOfByteSize(wire.transaction_hash ?? '', 32)
+		if (txHash == null) continue
+		const txWires = wiresByTxHash.get(txHash) ?? []
+		txWires.push(wire)
+		wiresByTxHash.set(txHash, txWires)
+	}
+	return (
+		[...wiresByTxHash.entries()]
+			.flatMap(([txHash, txWires]) => {
+				const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
+				return normalizedTxHash == null ?
+					[]
+				:	evmInternalTransferEntityIdsFromBlockscoutWires({
+						$network,
+						txHash: normalizedTxHash,
+						wires: txWires,
+					})
+			})
+	)
+}
+
+const findBlockscoutInternalTransferWireForEntityId = (
+	wires: readonly BlockscoutInternalTransaction[],
+	entityId: Entity<typeof schema, EntityType.EvmInternalTransfer>[typeof EntityMetaKey.Id],
+): BlockscoutInternalTransaction | undefined => (
+	wires.find((wire) => wire.index === entityId.internalIndex)
+)
+
+const blockscoutLogIndexFromWire = (
+	raw: string | number | undefined,
+): number | undefined => (
+	raw == null ?
+		undefined
+	: ((parsed) => (
+		Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
+			parsed
+		:
+			undefined
+	))(
+		typeof raw === 'number' ?
+			raw
+		: raw.startsWith('0x') || raw.startsWith('0X') ?
+			Number.parseInt(raw, 16)
+		:
+			Number(raw),
+	)
+)
+
+const evmTokenStandardFromBlockscoutWire = (
+	wire: BlockscoutTokenTransfer,
+): EvmTokenStandard => {
+	const tokenType = wire.token?.type?.toUpperCase() ?? ''
+	if (tokenType.includes('721')) return EvmTokenStandard.Erc721
+	if (tokenType.includes('1155')) return EvmTokenStandard.Erc1155
+	return EvmTokenStandard.Erc20
+}
+
+const evmTokenTransferEntityFromFields = ({
+	$network,
+	txHash,
+	logIndex,
+	standard,
+	fromAddress,
+	toAddress,
+	tokenAddress,
+	amount,
+	tokenId,
+	tokenSymbol,
+	tokenName,
+	tokenDecimals,
+}: {
+	$network: { chainId: number }
+	txHash: `0x${string}`
+	logIndex: number
+	standard: EvmTokenStandard
+	fromAddress?: `0x${string}`
+	toAddress?: `0x${string}`
+	tokenAddress?: `0x${string}`
+	amount: bigint
+	tokenId?: bigint
+	tokenSymbol?: string
+	tokenName?: string
+	tokenDecimals?: number
+}): Entity<typeof schema, EntityType.EvmTokenTransfer> => ({
+	[EntityMetaKey.Id]: {
+		$network,
+		txHash,
+		logIndex,
+	},
+	standard,
+	amount,
+	...(tokenId != null && { tokenId }),
+	...(tokenSymbol != null && { tokenSymbol }),
+	...(tokenName != null && { tokenName }),
+	...(tokenDecimals != null && Number.isFinite(tokenDecimals) && { tokenDecimals }),
+	...(fromAddress != null && {
+		$from: {
+			[EntityMetaKey.Id]: { address: fromAddress },
+		} satisfies Entity<typeof schema, EntityType.Actor>,
+	}),
+	...(toAddress != null && {
+		$to: {
+			[EntityMetaKey.Id]: { address: toAddress },
+		} satisfies Entity<typeof schema, EntityType.Actor>,
+	}),
+	...(tokenAddress != null && {
+		$tokenContract: {
+			[EntityMetaKey.Id]: {
+				$network,
+				address: tokenAddress,
+			},
+		} satisfies Entity<typeof schema, EntityType.EvmContract>,
+		...(standard === EvmTokenStandard.Erc20 && {
+			$coinInstance: {
+				[EntityMetaKey.Id]: {
+					$network,
+					type: CoinInstanceType.Erc20Token,
+					$contract: {
+						$network,
+						address: tokenAddress,
+					},
+				},
+			} satisfies Entity<typeof schema, EntityType.CoinInstance>,
+		}),
+	}),
+})
+
+const evmTokenTransferEntityFromWire = ({
+	$network,
+	txHash,
+	wire,
+	transferIndex,
+}: {
+	$network: { chainId: number }
+	txHash: `0x${string}`
+	wire: BlockscoutTokenTransfer
+	transferIndex?: number
+}): Entity<typeof schema, EntityType.EvmTokenTransfer> | undefined => {
+	const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
+	const logIndex = transferIndex ?? blockscoutLogIndexFromWire(wire.log_index)
+	if (normalizedTxHash == null || logIndex == null) return undefined
+	const standard = evmTokenStandardFromBlockscoutWire(wire)
+	const fromAddress = hexLowerOfByteSize(wire.from?.hash ?? '', 20)
+	const toAddress = hexLowerOfByteSize(wire.to?.hash ?? '', 20)
+	const tokenAddress = hexLowerOfByteSize(wire.token?.address_hash ?? '', 20)
+	const tokenId = blockscoutQuantityToBigInt(wire.total?.token_id)
+	const amount = (
+		standard === EvmTokenStandard.Erc721 ?
+			1n
+		:
+			blockscoutQuantityToBigInt(wire.total?.value) ?? 0n
+	)
+	const tokenDecimals = (
+		wire.total?.decimals != null && wire.total.decimals !== '' ?
+			Number(wire.total.decimals)
+		: wire.token?.decimals != null && wire.token.decimals !== '' ?
+			Number(wire.token.decimals)
+		:
+			undefined
+	)
+	return evmTokenTransferEntityFromFields({
+		$network,
+		txHash: normalizedTxHash,
+		logIndex,
+		standard,
+		fromAddress: fromAddress ?? undefined,
+		toAddress: toAddress ?? undefined,
+		tokenAddress: tokenAddress ?? undefined,
+		amount,
+		tokenId,
+		tokenSymbol: wire.token?.symbol,
+		tokenName: wire.token?.name,
+		tokenDecimals,
+	})
+}
+
+const evmTokenTransferEntityIdsFromBlockscoutWires = ({
+	$network,
+	txHash,
+	wires,
+}: {
+	$network: { chainId: number }
+	txHash: `0x${string}`
+	wires: readonly BlockscoutTokenTransfer[]
+}): Entity<typeof schema, EntityType.EvmTokenTransfer>[] => (
+	wires.flatMap((wire) => {
+		const entity = evmTokenTransferEntityFromWire({
+			$network,
+			txHash,
+			wire,
+		})
+		return entity == null ? [] : [entity]
+	})
+)
+
+const evmTokenTransferEntityIdsFromBlockscoutAddresss = ({
+	$network,
+	wires,
+}: {
+	$network: { chainId: number }
+	wires: readonly BlockscoutTokenTransfer[]
+}): Entity<typeof schema, EntityType.EvmTokenTransfer>[] => {
+	const wiresByTxHash = new Map<string, BlockscoutTokenTransfer[]>()
+	for (const wire of wires) {
+		const txHash = hexLowerOfByteSize(wire.transaction_hash ?? '', 32)
+		if (txHash == null) continue
+		const txWires = wiresByTxHash.get(txHash) ?? []
+		txWires.push(wire)
+		wiresByTxHash.set(txHash, txWires)
+	}
+	return (
+		[...wiresByTxHash.entries()]
+			.flatMap(([txHash, txWires]) => {
+				const normalizedTxHash = hexLowerOfByteSize(txHash, 32)
+				return normalizedTxHash == null ?
+					[]
+				:	evmTokenTransferEntityIdsFromBlockscoutWires({
+						$network,
+						txHash: normalizedTxHash,
+						wires: txWires,
+					})
+			})
+	)
+}
+
+const findBlockscoutTokenTransferForEntityId = (
+	wires: readonly BlockscoutTokenTransfer[],
+	entityId: Entity<typeof schema, EntityType.EvmTokenTransfer>[typeof EntityMetaKey.Id],
+): BlockscoutTokenTransfer | undefined => (
+	wires.find((wire) => (
+		blockscoutLogIndexFromWire(wire.log_index) === entityId.logIndex
+	))
+)
 
 const usdPriceStringToPrice1e8 = (
 	raw: string | undefined,
@@ -58,20 +671,51 @@ const usdPriceStringToPrice1e8 = (
 		:	undefined
 }
 
-const marketCapUsdFromBlockscoutStats = (
-	stats: BlockscoutStatsWire | null,
-): number | undefined => {
-	const raw = stats?.market_cap
-	if (raw == null || raw.trim() === '') return undefined
-	const usd = Number(raw)
-	return Number.isFinite(usd) && usd >= 0 ?
-			usd
-		:	undefined
+const gasEstimateObservationFromBlockscoutStats = (
+	stats: BlockscoutStats,
+) => {
+	const prices = stats.gas_prices
+	if (prices == null) return null
+	const hasTier = (
+		prices.slow != null
+		|| prices.average != null
+		|| prices.fast != null
+	)
+	if (!hasTier) return null
+	const updatedAtMs = (
+		stats.gas_price_updated_at != null ?
+			Date.parse(stats.gas_price_updated_at)
+		:	NaN
+	)
+	const timestampMs = (
+		Number.isFinite(updatedAtMs) ?
+			updatedAtMs
+		:	Date.now()
+	)
+	return {
+		timestampMs,
+		...(prices.slow != null
+			&& Number.isFinite(prices.slow)
+			&& prices.slow >= 0 && {
+			slowGwei: prices.slow,
+		}),
+		...(prices.average != null
+			&& Number.isFinite(prices.average)
+			&& prices.average >= 0 && {
+			averageGwei: prices.average,
+		}),
+		...(prices.fast != null
+			&& Number.isFinite(prices.fast)
+			&& prices.fast >= 0 && {
+			fastGwei: prices.fast,
+		}),
+		transport: 'blockscout-stats',
+	}
 }
 
 const blockscoutStatsForChain = async (
 	chainId: number,
-): Promise<BlockscoutStatsWire | null> => {
+): Promise<BlockscoutStats | null> => {
 	const {
 		blockscoutExplorerOriginForChain,
 		blockscoutRestV2AtExplorerOrigin,
@@ -88,7 +732,7 @@ const blockscoutStatsForChain = async (
 
 const blockscoutStatsForNativeCoinId = async (
 	coinId: string,
-): Promise<BlockscoutStatsWire | null> => {
+): Promise<BlockscoutStats | null> => {
 	const { blockscoutHostedNetworks } = await import('$/sources/Blockscout/Rest/constants.ts')
 	for (const { chainId, nativeCoinId } of blockscoutHostedNetworks) {
 		if (nativeCoinId !== coinId) continue
@@ -130,7 +774,7 @@ const requireBlockscoutV2ExplorerOrigin = async (chainId: number) => {
 }
 
 const erc4337RegistryCountFromBlockscoutWire = (
-	wire: BlockscoutErc4337RegistryEntryWire,
+	wire: BlockscoutErc4337RegistryEntry,
 ) => {
 	if (
 		wire.total_ops != null
@@ -151,7 +795,7 @@ const erc4337RegistryCountFromBlockscoutWire = (
 
 const erc4337RegistryFieldsFromBlockscoutWire = (
 	entityType: string,
-	wire: BlockscoutErc4337RegistryEntryWire,
+	wire: BlockscoutErc4337RegistryEntry,
 ) => {
 	const userOperationsCount = erc4337RegistryCountFromBlockscoutWire(wire)
 	if (userOperationsCount == null) {
@@ -221,7 +865,7 @@ export default {
 				}: {
 					chainId: number
 					blockNumber: bigint
-					wire: RpcBlockHeaderWire
+					wire: RpcBlockHeader
 				}): Entity<typeof schema, EntityType.EvmBlock> => {
 					const parentBlockNumber = blockNumber > 0n ? blockNumber - 1n : undefined
 					const blockHash = (
@@ -523,7 +1167,6 @@ export default {
 					...base,
 					...evmTransactionDiscriminatorFields({
 						rpcTypeByte,
-						receiptPresent: receipt != null,
 						receiptStatus: (
 							receipt?.status != null ?
 								Number(receipt.status)
@@ -578,6 +1221,7 @@ export default {
 							} satisfies Entity<typeof schema, EntityType.EvmContract>,
 						}
 					))(createdContractAddress)),
+					traceUnavailable: true,
 				}
 			},
 		}),
@@ -632,13 +1276,14 @@ export default {
 					txHash: entityId.txHash,
 					limit: blockscoutV2ItemsCountMax,
 				})
-				const wire = findBlockscoutTokenTransferWireForEntityId(wires, entityId)
+				const wire = findBlockscoutTokenTransferForEntityId(wires, entityId)
 				if (wire == null) {
 					throw new Error('Blockscout_Rest: token transfer not found for EvmTokenTransfer')
 				}
 				const entity = evmTokenTransferEntityFromWire({
 					$network: entityId.$network,
 					txHash: entityId.txHash,
+					transferIndex: entityId.transferIndex,
 					wire,
 				})
 				if (entity == null) {
@@ -822,7 +1467,29 @@ export default {
 					:
 						undefined
 				)
-				const senderAddress = hexLowerOfByteSize(wire.address?.hash ?? '', 20)
+				const senderAddress = hexLowerOfByteSize(
+					wire.sender?.hash ?? wire.address?.hash ?? '',
+					20,
+				)
+				const paymasterAddress = (
+					wire.paymaster?.hash != null ?
+						hexLowerOfByteSize(wire.paymaster.hash, 20)
+					:
+						undefined
+				)
+				const bundlerAddress = (
+					wire.bundler?.hash != null ?
+						hexLowerOfByteSize(wire.bundler.hash, 20)
+					:
+						undefined
+				)
+				const paymasterAndData = (
+					wire.raw?.paymaster_and_data != null
+					&& wire.raw.paymaster_and_data !== '0x' ?
+						wire.raw.paymaster_and_data
+					:
+						undefined
+				)
 				const blockNumberRaw = wire.block_number
 				const blockNumber = (
 					blockNumberRaw === null || blockNumberRaw === undefined ?
@@ -840,12 +1507,31 @@ export default {
 						Number.isFinite(time) && time >= 0 ? Math.floor(time / 1000) : undefined
 					))(Date.parse(wire.timestamp)) : undefined
 				)
-				const feeTrimmed = (
-					wire.fee != null && wire.fee.trim() !== '' ?
-						wire.fee.trim()
-					:
+				const feeTrimmed = wire.fee?.trim() || undefined
+				const optionalBigIntFromWire = (
+					value: string | number | null | undefined,
+				) => (
+					value === null || value === undefined ?
 						undefined
+					: (() => {
+						try {
+							return BigInt(`${value}`)
+						} catch {
+							return undefined
+						}
+					})()
 				)
+				const nonce = optionalBigIntFromWire(wire.nonce)
+				const callGasLimit = optionalBigIntFromWire(wire.call_gas_limit)
+				const verificationGasLimit = optionalBigIntFromWire(wire.verification_gas_limit)
+				const preVerificationGas = optionalBigIntFromWire(wire.pre_verification_gas)
+				const maxFeePerGas = optionalBigIntFromWire(wire.max_fee_per_gas)
+				const maxPriorityFeePerGas = optionalBigIntFromWire(wire.max_priority_fee_per_gas)
+				const gas = optionalBigIntFromWire(wire.gas)
+				const gasUsed = optionalBigIntFromWire(wire.gas_used)
+				const gasPrice = optionalBigIntFromWire(wire.gas_price)
+				const entryPointVersion = wire.entry_point_version?.trim() || undefined
+				const sponsorType = wire.sponsor_type?.trim() || undefined
 				return {
 					...(bundledTransactionHash != null && { bundledTransactionHash }),
 					...(senderAddress != null && {
@@ -856,10 +1542,38 @@ export default {
 							},
 						} satisfies Entity<typeof schema, EntityType.Erc4337SmartAccount>,
 					}),
+					...(paymasterAddress != null && {
+						$paymaster: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								address: paymasterAddress,
+							},
+						} satisfies Entity<typeof schema, EntityType.Erc4337Paymaster>,
+					}),
+					...(bundlerAddress != null && {
+						$bundler: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								address: bundlerAddress,
+							},
+						} satisfies Entity<typeof schema, EntityType.Erc4337Bundler>,
+					}),
 					...(blockNumber != null && { blockNumber }),
 					...(timestampSeconds != undefined && { timestampSeconds }),
 					...(wire.status === false || wire.status === true ? { finalized: wire.status } : {}),
 					...(feeTrimmed != null && { fee: feeTrimmed }),
+					...(nonce != null && { nonce }),
+					...(callGasLimit != null && { callGasLimit }),
+					...(verificationGasLimit != null && { verificationGasLimit }),
+					...(preVerificationGas != null && { preVerificationGas }),
+					...(maxFeePerGas != null && { maxFeePerGas }),
+					...(maxPriorityFeePerGas != null && { maxPriorityFeePerGas }),
+					...(gas != null && { gas }),
+					...(gasUsed != null && { gasUsed }),
+					...(gasPrice != null && { gasPrice }),
+					...(entryPointVersion != null && { entryPointVersion }),
+					...(sponsorType != null && { sponsorType }),
+					...(paymasterAndData != null && { paymasterAndData }),
 				}
 			},
 		}),
@@ -887,10 +1601,8 @@ export default {
 				if (address == null) {
 					throw new Error('Blockscout_Rest: ActorNetwork wallet address not normalized')
 				}
-				const [details, counters] = await Promise.all([
-					getBlockscoutAddressDetails({ explorerOrigin: origin, address }),
-					getBlockscoutAddressCounters({ explorerOrigin: origin, address }),
-				])
+				const details = await getBlockscoutAddressDetails({ explorerOrigin: origin, address })
+				const counters = await getBlockscoutAddressCounters({ explorerOrigin: origin, address })
 				const transactionsCount = (
 					counters.transactions_count == null ?
 						undefined
@@ -932,7 +1644,7 @@ export default {
 				if (coinId == null) {
 					throw new Error('Blockscout_Rest: market base is not a catalog coin')
 				}
-				const catalogMarketId = catalogCoinUsdMarketId(coinId)
+				const catalogMarketId = catalogCoinUsdMarketIdByCoinId[coinId]
 				if (stringify(entityId.$market) !== stringify(catalogMarketId)) {
 					throw new Error('Blockscout_Rest: Market_Timestamp only supports catalog USD spot markets')
 				}
@@ -954,12 +1666,11 @@ export default {
 				if (entityId.timestampMs !== timestampMs) {
 					throw new Error('Blockscout_Rest: Market_Timestamp id does not match stats clock')
 				}
-				return marketTimestampFieldsFromObservation({
-					timestampMs,
+				return {
 					price,
-					transport: 'blockscout-stats-usd-1e8',
-					providerAssetId: coinId,
-				})
+					...('blockscout-stats-usd-1e8' && { transport: 'blockscout-stats-usd-1e8' }),
+					...(coinId !== undefined && { providerAssetId: coinId }),
+				}
 			},
 		}),
 
@@ -979,7 +1690,12 @@ export default {
 				if (entityId.timestampMs !== observation.timestampMs) {
 					throw new Error('Blockscout_Rest: Network_GasEstimate_Timestamp id does not match stats clock')
 				}
-				return networkGasEstimateTimestampFieldsFromObservation(observation)
+				return {
+					...(observation.slowGwei != null && { slowGwei: observation.slowGwei }),
+					...(observation.averageGwei != null && { averageGwei: observation.averageGwei }),
+					...(observation.fastGwei != null && { fastGwei: observation.fastGwei }),
+					...(observation.transport != null && { transport: observation.transport }),
+				}
 			},
 		}),
 
@@ -1003,9 +1719,15 @@ export default {
 				if (entityId.timestampMs !== timestampMs) {
 					throw new Error('Blockscout_Rest: Coin_Timestamp id does not match stats clock')
 				}
-				const marketCapUsd = marketCapUsdFromBlockscoutStats(stats)
-				return coinTimestampFieldsFromObservation({
-					timestampMs,
+				const marketCapUsd = (() => {
+					const raw = stats?.market_cap
+					if (raw == null || raw.trim() === '') return undefined
+					const usd = Number(raw)
+					return Number.isFinite(usd) && usd >= 0 ?
+							usd
+						:	undefined
+				})()
+				return {
 					...(marketCapUsd != null && {
 						marketCap: BigInt(Math.round(marketCapUsd)),
 					}),
@@ -1013,9 +1735,11 @@ export default {
 						&& Number.isFinite(stats.coin_price_change_percentage) && {
 						change24hPercent: stats.coin_price_change_percentage,
 					}),
-					transport: 'blockscout-stats',
-					providerAssetId: entityId.$coin.coinId,
-				})
+					...('blockscout-stats' && { transport: 'blockscout-stats' }),
+					...(entityId.$coin.coinId != null && {
+						providerAssetId: entityId.$coin.coinId,
+					}),
+				}
 			},
 		}),
 	],
@@ -1222,7 +1946,6 @@ export default {
 				const {
 					getBlockscoutAddressTokenTransfers,
 				} = await import('$/sources/Blockscout/Rest/queries.ts')
-				const { evmTokenTransferEntityIdsFromBlockscoutAddressWires } = await import('$/resolvers/_evmTokenTransfer.ts')
 				const limit = Math.min(
 					resolverLoadSubsetRowLimit(context),
 					blockscoutV2ItemsCountMax,
@@ -1245,7 +1968,7 @@ export default {
 					limit,
 				})
 				const entities = (
-					evmTokenTransferEntityIdsFromBlockscoutAddressWires({
+					evmTokenTransferEntityIdsFromBlockscoutAddresss({
 						$network: entityId.$network,
 						wires,
 					})
@@ -1269,7 +1992,6 @@ export default {
 				const {
 					getBlockscoutAddressInternalTransactions,
 				} = await import('$/sources/Blockscout/Rest/queries.ts')
-				const { evmInternalTransferEntityIdsFromBlockscoutAddressWires } = await import('$/resolvers/_evmInternalTransfer.ts')
 				const limit = Math.min(
 					resolverLoadSubsetRowLimit(context),
 					blockscoutV2ItemsCountMax,
@@ -1292,7 +2014,7 @@ export default {
 					limit,
 				})
 				const entities = (
-					evmInternalTransferEntityIdsFromBlockscoutAddressWires({
+					evmInternalTransferEntityIdsFromBlockscoutAddresss({
 						$network: entityId.$network,
 						wires,
 					})
@@ -1307,83 +2029,10 @@ export default {
 		defineEntityFieldResolver({
 			entityType: EntityType.ActorNetwork,
 			fieldName: '$$erc20TokenAllowances',
-			resolve: async (entityId, context) => {
-				const {
-					blockscoutExplorerOriginForChain,
-					blockscoutRestV2AtExplorerOrigin,
-					blockscoutV2ItemsCountMax,
-				} = await import('$/sources/Blockscout/Rest/constants.ts')
-				const { getBlockscoutAddressTokenTransfers } = await import('$/sources/Blockscout/Rest/queries.ts')
-				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
-					blockscoutV2ItemsCountMax,
+			resolve: async (entityId) => {
+				throw new Error(
+					`Blockscout_Rest: $$erc20TokenAllowances unsupported for ${entityId.$actor.address} on chain ${entityId.$network.chainId}; Blockscout token-transfers omit ERC-20 Approval events`,
 				)
-				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
-					chainId: entityId.$network.chainId,
-					blockscoutExplorerOriginForChain,
-					blockscoutRestV2AtExplorerOrigin,
-				})
-				if (origin == null) {
-					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${entityId.$network.chainId}`)
-				}
-				const wallet = hexLowerOfByteSize(entityId.$actor.address, 20)
-				if (wallet == null) {
-					throw new Error('Blockscout_Rest: ActorNetwork wallet address not normalized')
-				}
-				const wires = await getBlockscoutAddressTokenTransfers({
-					explorerOrigin: origin,
-					address: wallet,
-					limit,
-				})
-				const seen = new Set<string>()
-				const entities = (
-					wires.flatMap((wire) => {
-						const method = wire.method != null ? wire.method.toLowerCase() : ''
-						if (method !== 'approve') {
-							return []
-						}
-						const fromHash = (
-							wire.from?.hash != null ?
-								hexLowerOfByteSize(wire.from.hash, 20)
-							:
-								undefined
-						)
-						if (fromHash !== wallet) {
-							return []
-						}
-						const rawToken = wire.token?.address_hash
-						const tokenAddr = hexLowerOfByteSize(
-							rawToken?.startsWith('0x') ?
-								rawToken
-							:	`0x${rawToken ?? ''}`,
-							20,
-						)
-						const rawSpender = wire.to?.hash
-						const spenderAddr = hexLowerOfByteSize(
-							rawSpender?.startsWith('0x') ?
-								rawSpender
-							:	`0x${rawSpender ?? ''}`,
-							20,
-						)
-						if (tokenAddr == null || spenderAddr == null) {
-							return []
-						}
-						const dedupeKey = `${tokenAddr}:${spenderAddr}`
-						if (seen.has(dedupeKey)) {
-							return []
-						}
-						seen.add(dedupeKey)
-						return [{
-							[EntityMetaKey.Id]: toActorCoinAllowanceEntityId(
-								entityId.$network.chainId,
-								wallet,
-								tokenAddr,
-								spenderAddr,
-							),
-						}]
-					})
-				)
-				return entities
 			},
 		}),
 
@@ -1670,7 +2319,7 @@ export default {
 				if (coinId == null) {
 					throw new Error('Blockscout_Rest: market base is not a catalog coin')
 				}
-				const catalogMarketId = catalogCoinUsdMarketId(coinId)
+				const catalogMarketId = catalogCoinUsdMarketIdByCoinId[coinId]
 				if (stringify(entityId.$market) !== stringify(catalogMarketId)) {
 					throw new Error('Blockscout_Rest: MarketPrice $$quotes only supports catalog native USD markets')
 				}
@@ -1735,12 +2384,6 @@ export default {
 										[EntityMetaKey.Id]: id,
 									}]
 						})
-						.sort((
-							left,
-							right,
-						) => (
-							left[EntityMetaKey.Id].logIndex - right[EntityMetaKey.Id].logIndex
-						))
 				)
 			},
 		}),
@@ -1755,7 +2398,6 @@ export default {
 					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const { getBlockscoutTransactionTokenTransfers } = await import('$/sources/Blockscout/Rest/queries.ts')
-				const { evmTokenTransferEntityIdsFromBlockscoutWires } = await import('$/resolvers/_evmTokenTransfer.ts')
 				const limit = Math.min(
 					resolverLoadSubsetRowLimit(context),
 					blockscoutV2ItemsCountMax,
@@ -1796,7 +2438,6 @@ export default {
 					blockscoutV2ItemsCountMax,
 				} = await import('$/sources/Blockscout/Rest/constants.ts')
 				const { getBlockscoutTransactionInternalTransactions } = await import('$/sources/Blockscout/Rest/queries.ts')
-				const { evmInternalTransferEntityIdsFromBlockscoutWires } = await import('$/resolvers/_evmInternalTransfer.ts')
 				const limit = Math.min(
 					resolverLoadSubsetRowLimit(context),
 					blockscoutV2ItemsCountMax,
@@ -1823,49 +2464,6 @@ export default {
 						.map((entity) => ({
 							[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
 						}))
-				)
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.EvmTransaction,
-			fieldName: '$$userOperations',
-			resolve: async (entityId, context) => {
-				const {
-					blockscoutExplorerOriginForChain,
-					blockscoutRestV2AtExplorerOrigin,
-					blockscoutV2ItemsCountMax,
-				} = await import('$/sources/Blockscout/Rest/constants.ts')
-				const { getBlockscoutUserOperationsForTransaction } = await import('$/sources/Blockscout/Rest/queries.ts')
-				const limit = Math.min(
-					resolverLoadSubsetRowLimit(context),
-					blockscoutV2ItemsCountMax,
-				)
-				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
-					chainId: entityId.$network.chainId,
-					blockscoutExplorerOriginForChain,
-					blockscoutRestV2AtExplorerOrigin,
-				})
-				if (origin == null) {
-					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${entityId.$network.chainId}`)
-				}
-				const wires = await getBlockscoutUserOperationsForTransaction({
-					explorerOrigin: origin,
-					txHash: entityId.txHash,
-					limit,
-				})
-				return (
-					wires.flatMap((wire) => {
-						const hashRaw = wire.hash != null ? hexLowerOfByteSize(wire.hash, 32) : undefined
-						return hashRaw == null ?
-								[]
-							:	[{
-									[EntityMetaKey.Id]: {
-										$network: entityId.$network,
-										hash: hashRaw,
-									},
-								} satisfies Entity<typeof schema, EntityType.EvmUserOperation>]
-					})
 				)
 			},
 		}),

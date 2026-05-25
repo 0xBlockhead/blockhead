@@ -1,7 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
 	// Props
 	let {
 		params,
@@ -22,8 +19,5 @@
 <Page>
 	<AtprotoActorView
 		{entityId}
-		href={resolve('/(social)/(atproto)/atproto/actor/[did]', {
-			did: encodeURIComponent(entityId.did),
-		})}
 	/>
 </Page>

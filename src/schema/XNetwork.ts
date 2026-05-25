@@ -72,6 +72,8 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.Constants_Internal,
+				Source.X_Rest,
+				Source.X_FxEmbed_Rest,
 			],
 		},
 		{
@@ -81,6 +83,8 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.Constants_Internal,
+				Source.X_Rest,
+				Source.X_FxEmbed_Rest,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

@@ -1,4 +1,8 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 
@@ -6,18 +10,17 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import FarcasterUsersView from '$/views/FarcasterUsersView.svelte'
-	import { EntityType } from '$/schema/$EntityType.ts'
 </script>
 
 
 <Page>
 	<FarcasterUsersView
+		href={resolve('/farcaster/users')}
 		entityFieldReference={{
 			entityType: EntityType.FarcasterNetwork,
 			entityId: { scope: 'FarcasterNetwork' },
 			fieldName: '$$users',
 		}}
-		href={resolve('/farcaster/users')}
 		id="users"
 	/>
 </Page>

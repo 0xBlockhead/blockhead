@@ -1,9 +1,14 @@
-import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
 import {
-	catalogMarketsWithCurrencyAsBase,
-	catalogMarketsWithCurrencyAsQuote,
-	usdCurrencyMarketAssetLeg,
-} from '$/constants/Currency.ts'
+	MarketAssetKind,
+	MarketKind,
+} from '$/constants/Market.ts'
+import {
+	catalogCoinUsdMarketIdByCoinId,
+	catalogMarketsWithCurrencyAsBaseByIso4217,
+	catalogMarketsWithCurrencyAsQuoteUsd,
+} from '$/constants/MarketCatalog.ts'
+import { Iso4217 } from '$/constants/Currency.ts'
+import { stringify } from 'devalue'
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
@@ -24,14 +29,12 @@ export default {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('TradingView_Rest: Market_Timestamp is spot-only')
 				}
+				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {
+					throw new Error('TradingView_Rest: Market_Timestamp is catalog coin USD market only')
+				}
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 				const { getTradingViewCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
-				const coinId = (
-					entityId.$market.$base.kind === MarketAssetKind.Coin ?
-						entityId.$market.$base.$coin.coinId
-					:	undefined
-				)
-				if (coinId == null) throw new Error('TradingView_Rest: market base is not a catalog coin')
+				const coinId = entityId.$market.$base.$coin.coinId
 				const market = tradingViewMarketByCoinId[coinId]
 				if (market == null) throw new Error('TradingView_Rest: coin market not mapped')
 				const quote = (await getTradingViewCryptoQuotes([market.ticker])).find((row) => row.ticker === market.ticker)
@@ -61,7 +64,10 @@ export default {
 									kind: MarketAssetKind.Coin,
 									$coin: { coinId },
 								},
-								$quote: usdCurrencyMarketAssetLeg,
+								$quote: {
+									kind: MarketAssetKind.Currency,
+									$currency: { iso4217: Iso4217.USD },
+								},
 								$marketVenue: {
 									marketVenueId: market.marketVenueId,
 								},
@@ -86,7 +92,10 @@ export default {
 										kind: MarketAssetKind.Coin,
 										$coin: { coinId },
 									},
-									$quote: usdCurrencyMarketAssetLeg,
+									$quote: {
+										kind: MarketAssetKind.Currency,
+										$currency: { iso4217: Iso4217.USD },
+									},
 									$marketVenue: {
 										marketVenueId: market.marketVenueId,
 									},
@@ -114,7 +123,10 @@ export default {
 								kind: MarketAssetKind.Coin,
 								$coin: { coinId: entityId.coinId },
 							},
-							$quote: usdCurrencyMarketAssetLeg,
+							$quote: {
+								kind: MarketAssetKind.Currency,
+								$currency: { iso4217: Iso4217.USD },
+							},
 							$marketVenue: {
 								marketVenueId: market.marketVenueId,
 							},
@@ -129,16 +141,7 @@ export default {
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
-				const { coinById } = await import('$/constants/Coin.ts')
-				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
-				if (coinById[entityId.coinId as keyof typeof coinById] == null) {
-					throw new Error(`TradingView_Rest: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`)
-				}
-				return (
-					tradingViewMarketByCoinId[entityId.coinId] == null ?
-						[]
-					:	[]
-				)
+				throw new Error(`TradingView_Rest: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`)
 			},
 		}),
 
@@ -146,21 +149,21 @@ export default {
 			entityType: EntityType.Currency,
 			fieldName: '$$marketsWithCurrencyAsQuote',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
-				const { coinById } = await import('$/constants/Coin.ts')
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
-				return (
-					catalogMarketsWithCurrencyAsQuote(
-						entityId.iso4217,
-						(coinId) => (
-							coinById[coinId as keyof typeof coinById] != null
-							&& tradingViewMarketByCoinId[coinId] != null
-						),
-					).map((marketId) => (
-						{
-							[EntityMetaKey.Id]: marketId,
-						}
-					))
-				)
+				const markets = (
+					entityId.iso4217 === Iso4217.USD ?
+						catalogMarketsWithCurrencyAsQuoteUsd.filter((marketId) => (
+							tradingViewMarketByCoinId[marketId.$base.$coin.coinId] != null
+						))
+					:
+						[]
+				).map((marketId) => ({
+					[EntityMetaKey.Id]: marketId,
+				}))
+				if (markets.length === 0) {
+					throw new Error(`TradingView_Rest: no catalog markets with ${entityId.iso4217} as quote`)
+				}
+				return markets
 			},
 		}),
 
@@ -168,11 +171,9 @@ export default {
 			entityType: EntityType.Currency,
 			fieldName: '$$marketsWithCurrencyAsBase',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
-				const markets = catalogMarketsWithCurrencyAsBase(entityId.iso4217).map((marketId) => (
-					{
+				const markets = (catalogMarketsWithCurrencyAsBaseByIso4217[entityId.iso4217] ?? []).map((marketId) => ({
 						[EntityMetaKey.Id]: marketId,
-					}
-				))
+					}))
 				if (markets.length === 0) {
 					throw new Error(`TradingView_Rest: no catalog markets with ${entityId.iso4217} as base`)
 				}
@@ -187,14 +188,12 @@ export default {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('TradingView_Rest: MarketPrice $$quotes is spot-only')
 				}
+				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {
+					throw new Error('TradingView_Rest: MarketPrice $$quotes is catalog coin USD market only')
+				}
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 				const { getTradingViewCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
-				const coinId = (
-					entityId.$market.$base.kind === MarketAssetKind.Coin ?
-						entityId.$market.$base.$coin.coinId
-					:	undefined
-				)
-				if (coinId == null) throw new Error('TradingView_Rest: market base is not a catalog coin')
+				const coinId = entityId.$market.$base.$coin.coinId
 				const market = tradingViewMarketByCoinId[coinId]
 				if (market == null) throw new Error('TradingView_Rest: coin market not mapped')
 				const quote = (await getTradingViewCryptoQuotes([market.ticker])).find((row) => row.ticker === market.ticker)
@@ -218,14 +217,12 @@ export default {
 				if (entityId.marketKind !== MarketKind.Spot) {
 					throw new Error('TradingView_Rest: Market $$quotes is spot-only')
 				}
+				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$base.$coin.coinId]) !== stringify(entityId)) {
+					throw new Error('TradingView_Rest: Market $$quotes is catalog coin USD market only')
+				}
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
 				const { getTradingViewCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
-				const coinId = (
-					entityId.$base.kind === MarketAssetKind.Coin ?
-						entityId.$base.$coin.coinId
-					:	undefined
-				)
-				if (coinId == null) throw new Error('TradingView_Rest: market base is not a catalog coin')
+				const coinId = entityId.$base.$coin.coinId
 				const market = tradingViewMarketByCoinId[coinId]
 				if (market == null) throw new Error('TradingView_Rest: coin market not mapped')
 				const quote = (await getTradingViewCryptoQuotes([market.ticker])).find((row) => row.ticker === market.ticker)

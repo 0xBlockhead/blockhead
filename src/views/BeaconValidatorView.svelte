@@ -1,28 +1,35 @@
 <script lang="ts">
 	// Types/constants
 	import type { Snippet } from 'svelte'
-
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
 		entityId,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]',
+			{ networkId: String(entityId.$network.chainId) },
+		),
 		title: titleProp,
 		open = $bindable(true),
 		collapsible = true,
-		HeadingTitle,
 	}: {
 		entityId: EntityId<typeof schema, EntityType.BeaconValidator>
+		href?: string
 		title?: string
 		open?: boolean
-		HeadingTitle?: Snippet
 	} = $props()
 
 
+	// Functions
 	const title = (
 		titleProp
 		?? `Validator ${entityId.validatorIndex.toLocaleString()}`
@@ -31,7 +38,6 @@
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const validator = useEntity(
 		EntityType.BeaconValidator,
@@ -65,17 +71,13 @@
 <EntityView
 	entityType={EntityType.BeaconValidator}
 	{entityId}
+	href={href}
 	layout={EntityLayout.Summary}
 	bind:open
-	summaryUsesHeading={true}
 	{title}
 >
 	{#snippet Heading()}
-		{#if HeadingTitle}
-			{@render HeadingTitle()}
-		{:else}
-			{title}
-		{/if}
+		{title}
 	{/snippet}
 
 	{#snippet Value()}
@@ -102,48 +104,48 @@
 						placeholderText="Loading beacon validator…"
 						resource={validator}
 					>
-						{#snippet children(validator)}
-							{#if validator.balanceGwei !== undefined}
+						{#snippet children(loadedValidator)}
+							{#if loadedValidator.balanceGwei !== undefined}
 								<div>
 									<dt>Balance</dt>
 									<dd>
-										<NumberValue value={validator.balanceGwei} />
+										<NumberValue value={loadedValidator.balanceGwei} />
 										gwei
 									</dd>
 								</div>
 							{/if}
 
-							{#if validator.effectiveBalanceGwei !== undefined}
+							{#if loadedValidator.effectiveBalanceGwei !== undefined}
 								<div>
 									<dt>Effective balance</dt>
 									<dd>
-										<NumberValue value={validator.effectiveBalanceGwei} />
+										<NumberValue value={loadedValidator.effectiveBalanceGwei} />
 										gwei
 									</dd>
 								</div>
 							{/if}
 
-							{#if validator.status !== undefined}
+							{#if loadedValidator.status !== undefined}
 								<div>
 									<dt>Status</dt>
-									<dd>{validator.status}</dd>
+									<dd>{loadedValidator.status}</dd>
 								</div>
 							{/if}
 
-							{#if validator.slashed !== undefined}
+							{#if loadedValidator.slashed !== undefined}
 								<div>
 									<dt>Slashed</dt>
-									<dd>{validator.slashed ? 'Yes' : 'No'}</dd>
+									<dd>{loadedValidator.slashed ? 'Yes' : 'No'}</dd>
 								</div>
 							{/if}
 
-							{#if validator.pubkey !== undefined}
+							{#if loadedValidator.pubkey !== undefined}
 								<div>
 									<dt>Pubkey</dt>
 									<dd>
 										<TruncatedValue
 											format={TruncatedValueFormat.Visual}
-											value={validator.pubkey}
+											value={loadedValidator.pubkey}
 										/>
 									</dd>
 								</div>

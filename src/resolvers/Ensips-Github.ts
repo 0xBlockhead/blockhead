@@ -30,9 +30,6 @@ const githubEnsipProposalIndexRows = async (
 			},
 		})
 	}
-	rows.sort((firstProposalRow, secondProposalRow) => (
-		firstProposalRow[EntityMetaKey.Id].number - secondProposalRow[EntityMetaKey.Id].number
-	))
 	return rows
 }
 

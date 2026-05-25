@@ -10,8 +10,8 @@ import { EntityType } from '$/schema/$EntityType.ts'
 export default {
 	entityType: EntityType.BlockheadAgentConversation,
 
-	label: 'Agent Conversation',
-	labelPlural: 'Agent Conversations',
+	label: 'Agent conversation',
+	labelPlural: 'Agent conversations',
 
 	id: type({
 		id: 'string',
@@ -49,12 +49,6 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$paymentWalletConnection',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BlockheadWalletConnection,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
 			name: 'createdAt',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
@@ -65,6 +59,12 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.One,
+		},
+		{
+			name: '$$turns',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.BlockheadAgentConversationTurn,
+			cardinality: EntityFieldCardinality.Many,
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

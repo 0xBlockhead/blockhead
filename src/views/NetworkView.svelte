@@ -1,20 +1,23 @@
 <script lang="ts">
 	// Types/constants
-	import type { Snippet } from 'svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { stringify } from 'devalue'
-	import { NetworkEnvironment } from '$/constants/NetworkEnvironment.ts'
 	import {
-		consensusProtocolForExecutionChainId,
+		consensusProtocols,
+		NetworkEnvironment,
+		networkEnvironments,
+	} from '$/constants/Network.ts'
+
+	import {
+		beaconRestBaseByExecutionChainId,
 		slotsPerEpoch,
 	} from '$/constants/BeaconConsensus.ts'
+
 	import { ConsensusProtocol } from '$/schema/NetworkUpgradeProtocols.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 	import { type Entity, type EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -23,19 +26,18 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]',
+			{ networkId: String(entityId.chainId) },
+		),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
-		HeadingTitle,
 	}: {
-		children?: Snippet
 		entityId: EntityId<typeof schema, EntityType.Network>
-		href: string
+			href?: string
 		layout?: EntityLayout
 		open?: boolean
-		HeadingTitle?: Snippet
 	} = $props()
 
 
@@ -43,18 +45,7 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const networkIdKey = $derived(
-		stringify(entityId),
-	)
-
-	const networkHref = (targetNetworkChainId: number) => (
-		resolve(
-			'/(explore)/(networks)/network/[networkId]',
-			{ networkId: String(targetNetworkChainId) },
-		)
-	)
-
-	const separateConsensusProtocol = consensusProtocolForExecutionChainId(entityId.chainId)
+	const separateConsensusProtocol = beaconRestBaseByExecutionChainId[entityId.chainId]?.consensusProtocol
 
 	const networkSummaryHead = useEntity(
 		EntityType.Network,
@@ -85,78 +76,6 @@
 					$limit: 1,
 				},
 			}),
-		},
-	)
-
-	const headBlockNumber = derive(
-		networkSummaryHead,
-		(network) => {
-			if (network.blockHeight !== undefined) {
-				return network.blockHeight
-			}
-			const blocks = network.$$blocks
-			if (!(blocks?.length)) {
-				return undefined
-			}
-			return blocks.reduce(
-				(highestBlockNumber, block) => {
-					const blockNumber = block[EntityMetaKey.Id].blockNumber
-					return (
-						highestBlockNumber == null || blockNumber > highestBlockNumber ?
-							blockNumber
-						:
-							highestBlockNumber
-					)
-				},
-				undefined as bigint | undefined,
-			)
-		},
-	)
-
-	const beaconHeadEpoch = derive(
-		networkSummaryHead,
-		(network) => {
-			const epochs: Entity<typeof schema, EntityType.BeaconEpoch>[] | undefined =
-				network.$$beaconEpochs
-			if (epochs?.length) {
-				return epochs
-					.toSorted((leftEpoch, rightEpoch) => (
-						rightEpoch[EntityMetaKey.Id].epoch - leftEpoch[EntityMetaKey.Id].epoch
-					))[0]
-					?.[EntityMetaKey.Id].epoch
-			}
-			const slots: Entity<typeof schema, EntityType.BeaconSlot>[] | undefined =
-				network.$$beaconSlots
-			if (!(slots?.length)) {
-				return undefined
-			}
-			const headSlot = slots
-				.toSorted((leftSlot, rightSlot) => (
-					rightSlot[EntityMetaKey.Id].slot - leftSlot[EntityMetaKey.Id].slot
-				))[0]
-				?.[EntityMetaKey.Id].slot
-			return (
-				headSlot != null ?
-					Math.floor(headSlot / slotsPerEpoch)
-				:
-					undefined
-			)
-		},
-	)
-
-	const beaconHeadSlot = derive(
-		networkSummaryHead,
-		(network) => {
-			const slots: Entity<typeof schema, EntityType.BeaconSlot>[] | undefined =
-				network.$$beaconSlots
-			if (!(slots?.length)) {
-				return undefined
-			}
-			return slots
-				.toSorted((leftSlot, rightSlot) => (
-					rightSlot[EntityMetaKey.Id].slot - leftSlot[EntityMetaKey.Id].slot
-				))[0]
-				?.[EntityMetaKey.Id].slot
 		},
 	)
 
@@ -201,7 +120,8 @@
 			$$rpcUrls: {},
 			$$blockExplorerUrls: {},
 			$icon: {},
-			nativeCurrencies: {},
+			$nativeCoin: {},
+			$nativeCoinInstance: {},
 			shortName: {},
 			registryStatus: {},
 			slip44: {},
@@ -232,7 +152,6 @@
 					$: [
 						Source.Blockscout_Rest,
 						Source.Etherscan_Rest,
-						Source.Voltaire_JsonRpc,
 					],
 					$limit: 64,
 				},
@@ -278,11 +197,6 @@
 						Source.Beacon_Rest,
 					],
 				},
-				beaconForkScheduleEntriesJson: {
-					$: [
-						Source.Beacon_Rest,
-					],
-				},
 				$$beaconValidators: {
 					$: [
 						Source.Beacon_Rest,
@@ -323,25 +237,39 @@
 		},
 	)
 
-	const latestGasEstimateTimestampId = derive(
+	const latestGasFeeBlockId = derive(
 		network,
-		(network) => {
-			const gasEstimateTimestamps = network.$$gasEstimateTimestamps
-			if (!(gasEstimateTimestamps?.length)) {
+		(loadedNetwork) => {
+			const gasFeeBlocks: Entity<typeof schema, EntityType.Network_GasFee_Block>[] | undefined =
+				loadedNetwork.$$gasFeeBlocks
+			if (!(gasFeeBlocks?.length)) {
 				return undefined
 			}
-			return gasEstimateTimestamps
-				.toSorted((leftTimestamp, rightTimestamp) => (
-					rightTimestamp[EntityMetaKey.Id].timestampMs
-					- leftTimestamp[EntityMetaKey.Id].timestampMs
+			return gasFeeBlocks
+				.toSorted((leftBlock, rightBlock) => (
+					rightBlock[EntityMetaKey.Id].blockNumber
+					=== leftBlock[EntityMetaKey.Id].blockNumber ?
+						0
+					: rightBlock[EntityMetaKey.Id].blockNumber
+						> leftBlock[EntityMetaKey.Id].blockNumber ?
+							1
+						:
+							-1
 				))[0]
 				?.[EntityMetaKey.Id]
 		},
 	)
 
 
+	// (Derived)
+	const networkIdKey = $derived(
+		stringify(entityId),
+	)
+
+
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import CollapsibleTabs2 from '$/components/CollapsibleTabs2.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
@@ -350,7 +278,6 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import { beaconForkScheduleEntriesFromJsonString } from '$/sources/Beacon/Rest/queries.ts'
 	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 	import BeaconEpochsView from '$/views/BeaconEpochsView.svelte'
 	import BeaconSlotView from '$/views/BeaconSlotView.svelte'
@@ -368,7 +295,7 @@
 	import NetworkConsensusUpgradesView from '$/views/NetworkConsensusUpgradesView.svelte'
 	import NetworkExecutionUpgradesView from '$/views/NetworkExecutionUpgradesView.svelte'
 	import UrlsView from '$/views/UrlsView.svelte'
-	import Network_GasEstimate_TimestampView from '$/views/Network_GasEstimate_TimestampView.svelte'
+	import Network_GasFee_BlockView from '$/views/Network_GasFee_BlockView.svelte'
 	import Network_GasEstimate_TimestampsView from '$/views/Network_GasEstimate_TimestampsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 	import Network_GasFee_BlocksView from '$/views/Network_GasFee_BlocksView.svelte'
@@ -388,25 +315,23 @@
 <EntityView
 	entityType={EntityType.Network}
 	{entityId}
-	{href}
 	{layout}
+	href={href}
 	bind:open
-	summaryUsesHeading={true}
 >
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={network}
-			placeholderText=""
 		>
 			{#snippet Pending()}
 				<IconComponent />
 			{/snippet}
 
-			{#snippet children(network)}
-				{#if network.$icon?.[EntityMetaKey.Id].url}
+			{#snippet children(loadedNetwork)}
+				{#if loadedNetwork.$icon?.[EntityMetaKey.Id].url}
 					<IconComponent
-						src={network.$icon[EntityMetaKey.Id].url}
-						alt={network.name ?? ''}
+						src={loadedNetwork.$icon[EntityMetaKey.Id].url}
+						alt={loadedNetwork.name ?? ''}
 					/>
 				{/if}
 			{/snippet}
@@ -414,26 +339,22 @@
 	{/snippet}
 
 	{#snippet Heading()}
-		{#if HeadingTitle}
-			{@render HeadingTitle()}
-		{:else}
-			<ResourceBoundary
-				resource={network}
-				placeholderText="Resolving name…"
-			>
-				{#snippet Pending()}
-					{@render Title()}
-				{/snippet}
+		<ResourceBoundary
+			resource={network}
+			placeholderText="Resolving name…"
+		>
+			{#snippet Pending()}
+				{@render Title()}
+			{/snippet}
 
-				{#snippet children(network)}
-					{#if network.name}
-						{network.name}
-					{:else}
-						{@render Title()}
-					{/if}
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
+			{#snippet children(loadedNetwork)}
+				{#if loadedNetwork.name}
+					{loadedNetwork.name}
+				{:else}
+					{@render Title()}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Value()}
@@ -453,8 +374,6 @@
 	{/snippet}
 
 	{#snippet Content({
-		title: _title,
-		href: _href,
 		open,
 	})}
 		<dl
@@ -468,7 +387,30 @@
 					id="network-summary-head-block"
 				>
 					<ResourceBoundary
-						resource={headBlockNumber}
+						resource={derive(
+							networkSummaryHead,
+							(loadedNetwork) => {
+								if (network.blockHeight !== undefined) {
+									return loadedNetwork.blockHeight
+								}
+								const blocks = loadedNetwork.$$blocks
+								if (!(blocks?.length)) {
+									return undefined
+								}
+								return blocks.reduce(
+									(highestBlockNumber, block) => {
+										const blockNumber = block[EntityMetaKey.Id].blockNumber
+										return (
+											highestBlockNumber == null || blockNumber > highestBlockNumber ?
+												blockNumber
+											:
+												highestBlockNumber
+										)
+									},
+									undefined as bigint | undefined,
+								)
+							},
+						)}
 						placeholderText="Loading head block…"
 					>
 						{#snippet children(blockNumber)}
@@ -478,16 +420,8 @@
 										$network: { chainId: entityId.chainId },
 										blockNumber,
 									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
-										{
-											networkId: String(entityId.chainId),
-											blockNumber: String(blockNumber),
-										},
-									)}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
-									showTypeAnnotation={false}
 								/>
 							{:else}
 								<span data-text="muted">—</span>
@@ -502,7 +436,36 @@
 					<dt>Epoch</dt>
 					<dd>
 						<ResourceBoundary
-							resource={beaconHeadEpoch}
+							resource={derive(
+								networkSummaryHead,
+								(loadedNetwork) => {
+									const epochs: Entity<typeof schema, EntityType.BeaconEpoch>[] | undefined =
+										loadedNetwork.$$beaconEpochs
+									if (epochs?.length) {
+										return epochs
+											.toSorted((leftEpoch, rightEpoch) => (
+												rightEpoch[EntityMetaKey.Id].epoch - leftEpoch[EntityMetaKey.Id].epoch
+											))[0]
+											?.[EntityMetaKey.Id].epoch
+									}
+									const slots: Entity<typeof schema, EntityType.BeaconSlot>[] | undefined =
+										loadedNetwork.$$beaconSlots
+									if (!(slots?.length)) {
+										return undefined
+									}
+									const headSlot = slots
+										.toSorted((leftSlot, rightSlot) => (
+											rightSlot[EntityMetaKey.Id].slot - leftSlot[EntityMetaKey.Id].slot
+										))[0]
+										?.[EntityMetaKey.Id].slot
+									return (
+										headSlot != null ?
+											Math.floor(headSlot / slotsPerEpoch)
+										:
+											undefined
+									)
+								},
+							)}
 							placeholderText="Loading head epoch…"
 						>
 							{#snippet children(beaconHeadEpochValue)}
@@ -512,16 +475,8 @@
 											$network: { chainId: entityId.chainId },
 											epoch: beaconHeadEpochValue,
 										}}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
-											{
-												networkId: String(entityId.chainId),
-												epochNumber: String(beaconHeadEpochValue),
-											},
-										)}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
-										showTypeAnnotation={false}
 									/>
 								{:else}
 									<span data-text="muted">—</span>
@@ -537,7 +492,21 @@
 					<dt>Slot</dt>
 					<dd>
 						<ResourceBoundary
-							resource={beaconHeadSlot}
+							resource={derive(
+								networkSummaryHead,
+								(loadedNetwork) => {
+									const slots: Entity<typeof schema, EntityType.BeaconSlot>[] | undefined =
+										loadedNetwork.$$beaconSlots
+									if (!(slots?.length)) {
+										return undefined
+									}
+									return slots
+										.toSorted((leftSlot, rightSlot) => (
+											rightSlot[EntityMetaKey.Id].slot - leftSlot[EntityMetaKey.Id].slot
+										))[0]
+										?.[EntityMetaKey.Id].slot
+								},
+							)}
 							placeholderText="Loading head slot…"
 						>
 							{#snippet children(beaconHeadSlotValue)}
@@ -547,16 +516,8 @@
 											$network: { chainId: entityId.chainId },
 											slot: beaconHeadSlotValue,
 										}}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(beacon-slots)/slot/[slotNumber]',
-											{
-												networkId: String(entityId.chainId),
-												slotNumber: String(beaconHeadSlotValue),
-											},
-										)}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
-										showTypeAnnotation={false}
 									/>
 								{:else}
 									<span data-text="muted">—</span>
@@ -567,165 +528,163 @@
 				</div>
 			{/if}
 
-			{#if open}
-				{#if network.environment !== undefined}
-					<div>
-						<dt>Environment</dt>
-						<dd>
-							<ResourceBoundary
-								resource={network}
-								placeholderText="Loading network…"
-							>
-								{#snippet children(network)}
-									{network.environment}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& network.environment !== undefined
+			)}
+				<div>
+					<dt>Environment</dt>
+					<dd>
+						<ResourceBoundary
+							resource={network}
+							placeholderText="Loading network…"
+						>
+							{#snippet children(loadedNetwork)}
+								{networkEnvironments[loadedNetwork.environment].label}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if network.layerNumber !== undefined}
-					<div>
-						<dt>Layer</dt>
-						<dd>
-							<ResourceBoundary resource={network}>
-								{#snippet children(network)}
-									<NumberValue value={network.layerNumber} />
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& network.layerNumber !== undefined
+			)}
+				<div>
+					<dt>Layer</dt>
+					<dd>
+						<ResourceBoundary resource={network}>
+							{#snippet children(loadedNetwork)}
+								<NumberValue value={loadedNetwork.layerNumber} />
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if network.shortName !== undefined}
-					<div>
-						<dt>Short name</dt>
-						<dd>
-							<ResourceBoundary resource={network}>
-								{#snippet children(network)}
-									<code>{network.shortName}</code>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& network.shortName !== undefined
+			)}
+				<div>
+					<dt>Short name</dt>
+					<dd>
+						<ResourceBoundary resource={network}>
+							{#snippet children(loadedNetwork)}
+								<code>{loadedNetwork.shortName}</code>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if network.nativeCurrencies?.[0]?.symbol}
-					<div>
-						<dt>Native currency</dt>
-						<dd>
-							<ResourceBoundary resource={network}>
-								{#snippet children(network)}
-									{@const nativeCurrency = network.nativeCurrencies[0]}
-									{#if nativeCurrency.name !== nativeCurrency.symbol}
-										{nativeCurrency.name} ({nativeCurrency.symbol})
-									{:else}
-										{nativeCurrency.symbol}
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
-			{/if}
-
-			{#if open}
-				{#if network.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
-					<div>
-						<dt>Parent</dt>
-						<dd>
-							<ResourceBoundary
-								resource={network}
-								placeholderText="Loading network…"
-							>
-								{#snippet children(network)}
-									<NetworkView
-										entityId={network.$parentLayer[EntityMetaKey.Id]}
-										href={networkHref(network.$parentLayer[EntityMetaKey.Id].chainId)}
+			{#if (
+				open
+				&& network.$nativeCoinInstance?.[EntityMetaKey.Id] !== undefined
+			)}
+				<div>
+					<dt>Native currency</dt>
+					<dd>
+						<ResourceBoundary resource={network}>
+							{#snippet children(loadedNetwork)}
+								{#if loadedNetwork.$nativeCoinInstance}
+									<CoinInstanceView
+										entityId={loadedNetwork.$nativeCoinInstance[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
-										showTypeAnnotation={false}
 									/>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if (
-					network.environment === NetworkEnvironment.Testnet
-					&& network.$mainnet?.[EntityMetaKey.Id].chainId !== undefined
-				)}
-					<div>
-						<dt>Mainnet</dt>
-						<dd>
-							<ResourceBoundary
-								resource={network}
-								placeholderText="Loading network…"
-							>
-								{#snippet children(network)}
-									<NetworkView
-										entityId={network.$mainnet[EntityMetaKey.Id]}
-										href={networkHref(network.$mainnet[EntityMetaKey.Id].chainId)}
-										layout={EntityLayout.Title}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& network.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined
+			)}
+				<div>
+					<dt>Parent</dt>
+					<dd>
+						<ResourceBoundary
+							resource={network}
+							placeholderText="Loading network…"
+						>
+							{#snippet children(loadedNetwork)}
+								<NetworkView
+									entityId={loadedNetwork.$parentLayer[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if (
+			{#if (
+				open
+				&& network.environment === NetworkEnvironment.Testnet
+				&& network.$mainnet?.[EntityMetaKey.Id].chainId !== undefined
+			)}
+				<div>
+					<dt>Mainnet</dt>
+					<dd>
+						<ResourceBoundary
+							resource={network}
+							placeholderText="Loading network…"
+						>
+							{#snippet children(loadedNetwork)}
+								<NetworkView
+									entityId={loadedNetwork.$mainnet[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if (
+				open
+				&& (
 					network.consensusProtocol !== undefined
 					|| separateConsensusProtocol != null
-				)}
-					<div>
-						<dt>Consensus</dt>
-						<dd>
-							<ResourceBoundary resource={network}>
-								{#snippet children(network)}
-									{network.consensusProtocol ?? separateConsensusProtocol}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+				)
+			)}
+				<div>
+					<dt>Consensus</dt>
+					<dd>
+						<ResourceBoundary resource={network}>
+							{#snippet children(loadedNetwork)}
+								{#if (loadedNetwork.consensusProtocol ?? separateConsensusProtocol) !== undefined}
+									{consensusProtocols[loadedNetwork.consensusProtocol ?? separateConsensusProtocol].label}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if latestGasEstimateTimestampId}
-					<div>
-						<dt>Gas estimate</dt>
-						<dd>
-							<ResourceBoundary
-								resource={latestGasEstimateTimestampId}
-								placeholderText="Loading gas estimate…"
-							>
-								{#snippet children(gasEstimateTimestampId)}
-									<Network_GasEstimate_TimestampView
-										entityId={gasEstimateTimestampId}
-										href={href}
-										layout={EntityLayout.Summary}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& latestGasFeeBlockId.ready
+				&& latestGasFeeBlockId.current != null
+			)}
+				<div>
+					<dt>Gas</dt>
+					<dd>
+						<Network_GasFee_BlockView
+							entityId={latestGasFeeBlockId.current}
+							layout={EntityLayout.Summary}
+							open={false}
+							showTypeAnnotation={false}
+						/>
+					</dd>
+				</div>
 			{/if}
 
 			{#if open}
@@ -735,52 +694,53 @@
 				</div>
 			{/if}
 
-			{#if open}
-				{#if network.registryStatus !== undefined}
-					<div>
-						<dt>Registry status</dt>
-						<dd>
-							<ResourceBoundary resource={network}>
-								{#snippet children(network)}
-									{network.registryStatus}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& network.registryStatus !== undefined
+			)}
+				<div>
+					<dt>Registry status</dt>
+					<dd>
+						<ResourceBoundary resource={network}>
+							{#snippet children(loadedNetwork)}
+								{loadedNetwork.registryStatus}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if (
-					network.peeringId !== undefined
-					&& network.peeringId !== entityId.chainId
-				)}
-					<div>
-						<dt>Peering ID</dt>
-						<dd>
-							<ResourceBoundary resource={network}>
-								{#snippet children(network)}
-									{String(network.peeringId)}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& network.peeringId !== undefined
+				&& network.peeringId !== entityId.chainId
+			)}
+				<div>
+					<dt>Peering ID</dt>
+					<dd>
+						<ResourceBoundary resource={network}>
+							{#snippet children(loadedNetwork)}
+								{String(network.peeringId)}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if network.slip44 !== undefined}
-					<div>
-						<dt>SLIP-44</dt>
-						<dd>
-							<ResourceBoundary resource={network}>
-								{#snippet children(network)}
-									{String(network.slip44)}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& network.slip44 !== undefined
+			)}
+				<div>
+					<dt>SLIP-44</dt>
+					<dd>
+						<ResourceBoundary resource={network}>
+							{#snippet children(loadedNetwork)}
+								{String(network.slip44)}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 		</dl>
 	{/snippet}
@@ -792,392 +752,447 @@
 			entityType={EntityType.Network}
 			{entityId}
 		/>
-
 		<div
 			class="network-view-carousel-groups"
 			data-column="gap-3"
 		>
-			<CollapsibleTabs
-				id={`${networkIdKey}:carousel-topology`}
+			<ResourceBoundary resource={network}>
+				{#snippet children(loadedNetwork)}
+					<CollapsibleTabs2
+						id={`${networkIdKey}:carousel-topology`}
+						sectionIdPrefix={networkIdKey}
+						sections={[
+							{
+								id: 'topology-upgrades',
+								label: 'Upgrades',
+								Content: SectionTopologyUpgrades,
+							},
+							...(
+								network.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined ?
+									[{
+										id: 'topology-parent-layer',
+										label: 'Parent',
+										Content: SectionTopologyParentLayer,
+									}]
+								:
+									[]
+							),
+							...(
+								(network.$$siblingShardNetworks ?? []).length ?
+									[{
+										id: 'topology-sibling-shards',
+										label: 'Shards',
+										Content: SectionTopologySiblingShards,
+									}]
+								:
+									[]
+							),
+							...(
+								network.environment === NetworkEnvironment.Mainnet ?
+									[{
+										id: 'topology-testnets',
+										label: 'Testnets',
+										Content: SectionTopologyTestnets,
+									}]
+								:
+									[]
+							),
+							...(
+								network.environment === NetworkEnvironment.Testnet ?
+									[{
+										id: 'topology-mainnet',
+										label: 'Mainnet',
+										Content: SectionTopologyMainnet,
+									}]
+								:
+									[]
+							),
+							...(
+								(network.$$childLayers ?? []).length ?
+									[{
+										id: 'topology-child-layers',
+										label: 'Layers',
+										Content: SectionTopologyChildLayers,
+									}]
+								:
+									[]
+							),
+							...(
+								(network.$$faucetUrls ?? []).length ?
+									[{
+										id: 'topology-faucets',
+										label: 'Faucets',
+										Content: SectionTopologyFaucets,
+									}]
+								:
+									[]
+							),
+						]}
+						{...{ 'data-card': '' }}
+						class="network-view-collapsible-topology"
+						scrollContainerProps={{
+							'data-row': 'start align-start',
+						}}
+					>
+						{#snippet Summary({
+					open: _erc4337SummaryOpen,
+				})}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Topology</HeadingComponent>
+							</header>
+						{/snippet}
+					</CollapsibleTabs2>
+				{/snippet}
+			</ResourceBoundary>
+
+			{#snippet SectionTopologyUpgrades({
+				id,
+				label,
+			})}
+				<NetworkUpgradesView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$upgrades',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionTopologyParentLayer({
+				id,
+				label,
+			})}
+				<ResourceBoundary resource={network}>
+					{#snippet children(loadedNetwork)}
+						<EntitiesList
+							collapsible={false}
+							entityType={EntityType.Network}
+							id={`${id}-list`}
+							title={label}
+						>
+							{#snippet body({ open: _bodyOpen })}
+								<NetworkView
+									entityId={loadedNetwork.$parentLayer[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							{/snippet}
+						</EntitiesList>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionTopologySiblingShards({
+				id,
+				label,
+			})}
+				<NetworksView
+					collapsible={false}
+					href={resolve('/networks')}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$siblingShardNetworks',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionTopologyTestnets({
+				id,
+				label,
+			})}
+				<NetworksView
+					collapsible={false}
+					href={resolve('/networks')}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$testnets',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionTopologyMainnet({
+				id,
+				label,
+			})}
+				<ResourceBoundary resource={network}>
+					{#snippet children(loadedNetwork)}
+						{#if loadedNetwork.$mainnet?.[EntityMetaKey.Id].chainId !== undefined}
+							<EntitiesList
+								collapsible={false}
+								entityType={EntityType.Network}
+								id={`${id}-list`}
+								title={label}
+							>
+								{#snippet body({ open: _bodyOpen })}
+									<NetworkView
+										entityId={loadedNetwork.$mainnet[EntityMetaKey.Id]}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								{/snippet}
+							</EntitiesList>
+						{:else}
+							<EntitiesList
+								collapsible={false}
+								entityType={EntityType.Network}
+								id={`${id}-list`}
+								title={label}
+							>
+								{#snippet body({ open: _bodyOpen })}
+									<div class="entity-details">
+										<div data-row="wrap align-center gap-2">
+											<p data-text="muted">
+												No mapped mainnet.
+											</p>
+											<Tooltip contentProps={{ side: 'top' }}>
+												{#snippet Content()}
+													<p>
+														Testnets often advertise a canonical Ethereum mainnet chain id so wallets and explorers can show “paired” networks in docs and defaults.
+													</p>
+													<p>
+														Without recorded bridge or lineage metadata, tools cannot infer which mainnet row corresponds to a given rollup or devnet id.
+													</p>
+												{/snippet}
+												<abbr
+													class="entity-heading-tip"
+													aria-label="Mainnet mapping"
+												>ⓘ</abbr>
+											</Tooltip>
+										</div>
+									</div>
+								{/snippet}
+							</EntitiesList>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionTopologyChildLayers({
+				id,
+				label,
+			})}
+				<NetworksView
+					collapsible={false}
+					href={resolve('/networks')}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$childLayers',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionTopologyFaucets({
+				id,
+				label,
+			})}
+				<UrlsView
+					href={resolve(
+						'/(explore)/(networks)/network/[networkId]',
+						{
+						networkId: String(entityId.chainId),
+						},
+					)}
+					collapsible={false}
+					emptyText="No faucets listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$faucetUrls',
+					}}
+					fieldSources={[
+						Source.Chainlist_Rest,
+						Source.EthereumLists_Rest,
+					]}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			<CollapsibleTabs2
+				id={`${networkIdKey}:carousel-erc-4337`}
+				sectionIdPrefix={networkIdKey}
+				sections={[
+					{
+						id: 'aa-smart-accounts',
+						label: 'Smart accounts',
+						Content: SectionErc4337SmartAccounts,
+					},
+					{
+						id: 'aa-bundlers',
+						label: 'Bundlers',
+						Content: SectionErc4337Bundlers,
+					},
+					{
+						id: 'aa-paymasters',
+						label: 'Paymasters',
+						Content: SectionErc4337Paymasters,
+					},
+					{
+						id: 'aa-user-operations',
+						label: 'User operations',
+						Content: SectionErc4337UserOperations,
+					},
+					{
+						id: 'aa-factories',
+						label: 'Factories',
+						Content: SectionErc4337Factories,
+					},
+				]}
 				{...{ 'data-card': '' }}
-				class="network-view-collapsible-topology"
+				class="network-view-collapsible-erc-4337"
 				scrollContainerProps={{
 					'data-row': 'start align-start',
 				}}
 			>
-				{#snippet Summary({ open: _isOpen })}
+				{#snippet Summary({
+					open: _erc4337SummaryOpen,
+				})}
 					<header data-row-item="flexible" data-row="wrap gap-4">
-						<ResourceBoundary resource={network}>
-							{#snippet children(network)}
-								<HeadingComponent>Topology</HeadingComponent>
+						<HeadingComponent>Smart accounts</HeadingComponent>
+						<Tooltip contentProps={{ side: 'top' }}>
+							{#snippet Content()}
+								<p>
+									Smart accounts, bundlers, paymasters, and account factories Blockscout indexes for this chain, plus recent user operations.
+								</p>
 							{/snippet}
-						</ResourceBoundary>
+							<abbr
+								class="entity-heading-tip"
+								aria-label="ERC-4337 on this network"
+							>ⓘ</abbr>
+						</Tooltip>
 					</header>
 				{/snippet}
+			</CollapsibleTabs2>
 
-				{#snippet Markers(_context)}
-					<ResourceBoundary resource={network}>
-						{#snippet children(network)}
-							<a
-								data-scroll-marker-label="Upgrades"
-								href={`#${networkIdKey}:topology-upgrades`}
-							>Upgrades</a>
-							{#if network.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
-								<a
-									data-scroll-marker-label="Parent"
-									href={`#${networkIdKey}:topology-parent-layer`}
-								>Parent</a>
-							{/if}
-
-							{#if (network.$$siblingShardNetworks ?? []).length}
-								<a
-									data-scroll-marker-label="Shards"
-									href={`#${networkIdKey}:topology-sibling-shards`}
-								>Shards</a>
-							{/if}
-
-							{#if network.environment === NetworkEnvironment.Mainnet}
-								<a
-									data-scroll-marker-label="Testnets"
-									href={`#${networkIdKey}:topology-testnets`}
-								>Testnets</a>
-							{:else if network.environment === NetworkEnvironment.Testnet}
-								<a
-									data-scroll-marker-label="Mainnet"
-									href={`#${networkIdKey}:topology-mainnet`}
-								>Mainnet</a>
-							{/if}
-
-							{#if (network.$$childLayers ?? []).length}
-								<a
-									data-scroll-marker-label="Layers"
-									href={`#${networkIdKey}:topology-child-layers`}
-								>Layers</a>
-							{/if}
-
-							{#if (network.$$faucetUrls ?? []).length}
-								<a
-									data-scroll-marker-label="Faucets"
-									href={`#${networkIdKey}:topology-faucets`}
-								>Faucets</a>
-							{/if}
-
-							{#if (network.$$bridges ?? []).length}
-								<a
-									data-scroll-marker-label="Bridges"
-									href={`#${networkIdKey}:topology-bridges`}
-								>Bridges</a>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-
-				{#snippet body(_childrenContext)}
-					<ResourceBoundary
-						resource={network}
-					>
-						{#snippet children(network)}
-								<section>
-									<NetworkUpgradesView
-										collapsible={false}
-										entityFieldReference={{
-											entityType: EntityType.Network,
-											entityId,
-											fieldName: '$$upgrades',
-										}}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/upgrades',
-											{ networkId: String(entityId.chainId) },
-										)}
-										id={`${networkIdKey}:topology-upgrades`}
-										title="Upgrades"
-									/>
-								</section>
-
-								{#if network.$parentLayer?.[EntityMetaKey.Id].chainId !== undefined}
-									<section>
-										<EntitiesList
-											collapsible={false}
-											entityType={EntityType.Network}
-											{href}
-											id={`${networkIdKey}:topology-parent-layer`}
-											title="Parent"
-										>
-											{#snippet body()}
-												<div class="entity-details">
-													<a href={networkHref(network.$parentLayer[EntityMetaKey.Id].chainId)}>
-														Chain {String(network.$parentLayer[EntityMetaKey.Id].chainId)}
-													</a>
-												</div>
-											{/snippet}
-										</EntitiesList>
-									</section>
-								{/if}
-
-								{#if (network.$$siblingShardNetworks ?? []).length}
-									<section data-scroll-marker-label="Shards">
-										<NetworksView
-											collapsible={false}
-											entityFieldReference={{
-												entityType: EntityType.Network,
-												entityId,
-												fieldName: '$$siblingShardNetworks',
-											}}
-											href={resolve(
-												'/(explore)/(networks)/network/[networkId]',
-												{ networkId: String(entityId.chainId) },
-											)}
-											id={`${networkIdKey}:topology-sibling-shards`}
-											title="Shards"
-										/>
-									</section>
-								{/if}
-
-								{#if network.environment === NetworkEnvironment.Mainnet}
-									<section>
-										<NetworksView
-											collapsible={false}
-											entityFieldReference={{
-												entityType: EntityType.Network,
-												entityId,
-												fieldName: '$$testnets',
-											}}
-											href={resolve(
-												'/(explore)/(networks)/network/[networkId]',
-												{ networkId: String(entityId.chainId) },
-											)}
-											id={`${networkIdKey}:topology-testnets`}
-											title="Testnets"
-										/>
-									</section>
-								{:else if network.environment === NetworkEnvironment.Testnet}
-									<section>
-										{#if network.$mainnet?.[EntityMetaKey.Id].chainId !== undefined}
-											<EntitiesList
-												collapsible={false}
-												entityType={EntityType.Network}
-												{href}
-												id={`${networkIdKey}:topology-mainnet`}
-												title="Mainnet"
-											>
-												{#snippet body()}
-													<div class="entity-details">
-														<a href={networkHref(network.$mainnet[EntityMetaKey.Id].chainId)}>
-															Chain {String(network.$mainnet[EntityMetaKey.Id].chainId)}
-														</a>
-													</div>
-												{/snippet}
-											</EntitiesList>
-										{:else}
-											<EntitiesList
-												collapsible={false}
-												entityType={EntityType.Network}
-												{href}
-												id={`${networkIdKey}:topology-mainnet`}
-												title="Mainnet"
-											>
-												{#snippet body()}
-													<div class="entity-details">
-														<div data-row="wrap align-center gap-2">
-															<p data-text="muted">
-																No mapped mainnet.
-															</p>
-															<Tooltip contentProps={{ side: 'top' }}>
-																{#snippet Content()}
-																	<p>
-																		Testnets often advertise a canonical Ethereum mainnet chain id so wallets and explorers can show “paired” networks in docs and defaults.
-																	</p>
-																	<p>
-																		Without recorded bridge or lineage metadata, tools cannot infer which mainnet row corresponds to a given rollup or devnet id.
-																	</p>
-																{/snippet}
-																<abbr
-																	class="entity-heading-tip"
-																	aria-label="Mainnet mapping"
-																>ⓘ</abbr>
-															</Tooltip>
-														</div>
-													</div>
-												{/snippet}
-											</EntitiesList>
-										{/if}
-									</section>
-								{/if}
-
-								{#if (network.$$childLayers ?? []).length}
-									<section>
-										<NetworksView
-											collapsible={false}
-											entityFieldReference={{
-												entityType: EntityType.Network,
-												entityId,
-												fieldName: '$$childLayers',
-											}}
-											href={resolve(
-												'/(explore)/(networks)/network/[networkId]',
-												{ networkId: String(entityId.chainId) },
-											)}
-											id={`${networkIdKey}:topology-child-layers`}
-											title="Layers"
-										/>
-									</section>
-								{/if}
-
-								{#if (network.$$faucetUrls ?? []).length}
-									<section>
-										<UrlsView
-											collapsible={false}
-											emptyText="No faucets listed for this network yet."
-											entityFieldReference={{
-												entityType: EntityType.Network,
-												entityId,
-												fieldName: '$$faucetUrls',
-											}}
-											fieldSources={[
-												Source.Chainlist_Rest,
-												Source.EthereumLists_Rest,
-											]}
-											id={`${networkIdKey}:topology-faucets`}
-											title="Faucets"
-										/>
-									</section>
-								{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</CollapsibleTabs>
-
-			<CollapsibleTabs
-				id={`${networkIdKey}:carousel-erc-4337`}
-					{...{ 'data-card': '' }}
-					class="network-view-collapsible-erc-4337"
-					scrollContainerProps={{
-						'data-row': 'start align-start',
+			{#snippet SectionErc4337SmartAccounts({
+				id,
+				label,
+			})}
+				<Erc4337SmartAccountsView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$erc4337SmartAccounts',
 					}}
-				>
-					{#snippet Summary({ open: _isOpen })}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Smart accounts</HeadingComponent>
-							<Tooltip contentProps={{ side: 'top' }}>
-								{#snippet Content()}
-									<p>
-										Smart accounts, bundlers, paymasters, and account factories Blockscout indexes for this chain, plus recent user operations.
-									</p>
-								{/snippet}
-								<abbr
-									class="entity-heading-tip"
-									aria-label="ERC-4337 on this network"
-								>ⓘ</abbr>
-							</Tooltip>
-						</header>
-					{/snippet}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
 
-					{#snippet Markers(_context)}
-						<a
-							data-scroll-marker-label="Smart accounts"
-							href={`#${networkIdKey}:aa-smart-accounts`}
-						>Smart accounts</a>
-						<a
-							data-scroll-marker-label="Bundlers"
-							href={`#${networkIdKey}:aa-bundlers`}
-						>Bundlers</a>
-						<a
-							data-scroll-marker-label="Paymasters"
-							href={`#${networkIdKey}:aa-paymasters`}
-						>Paymasters</a>
-						<a
-							data-scroll-marker-label="User operations"
-							href={`#${networkIdKey}:aa-user-operations`}
-						>User operations</a>
-						<a
-							data-scroll-marker-label="Factories"
-							href={`#${networkIdKey}:aa-factories`}
-						>Factories</a>
-					{/snippet}
+			{#snippet SectionErc4337Bundlers({
+				id,
+				label,
+			})}
+				<Erc4337BundlersView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$erc4337Bundlers',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
 
-					{#snippet body(_childrenContext)}
-						<section id={`${networkIdKey}:aa-smart-accounts`}>
-							<Erc4337SmartAccountsView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Network,
-									entityId,
-									fieldName: '$$erc4337SmartAccounts',
-								}}
-								href={href}
-								id={`${networkIdKey}:aa-smart-accounts-list`}
-								title="Smart accounts"
-							/>
-						</section>
-						<section id={`${networkIdKey}:aa-bundlers`}>
-							<Erc4337BundlersView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Network,
-									entityId,
-									fieldName: '$$erc4337Bundlers',
-								}}
-								href={href}
-								id={`${networkIdKey}:aa-bundlers-list`}
-								title="Bundlers"
-							/>
-						</section>
-						<section id={`${networkIdKey}:aa-paymasters`}>
-							<Erc4337PaymastersView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Network,
-									entityId,
-									fieldName: '$$erc4337Paymasters',
-								}}
-								href={href}
-								id={`${networkIdKey}:aa-paymasters-list`}
-								title="Paymasters"
-							/>
-						</section>
-						<section id={`${networkIdKey}:aa-user-operations`}>
-							<EvmUserOperationsView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Network,
-									entityId,
-									fieldName: '$$userOperations',
-								}}
-								href={href}
-								id={`${networkIdKey}:aa-user-operations-list`}
-							/>
-						</section>
-						<section id={`${networkIdKey}:aa-factories`}>
-							<Erc4337AccountFactoriesView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Network,
-									entityId,
-									fieldName: '$$erc4337AccountFactories',
-								}}
-								href={href}
-								id={`${networkIdKey}:aa-factories-list`}
-								title="Account factories"
-							/>
-						</section>
-					{/snippet}
-				</CollapsibleTabs>
+			{#snippet SectionErc4337Paymasters({
+				id,
+				label,
+			})}
+				<Erc4337PaymastersView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$erc4337Paymasters',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
 
-			<CollapsibleTabs
+			{#snippet SectionErc4337UserOperations({
+				id,
+			})}
+				<EvmUserOperationsView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$userOperations',
+					}}
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionErc4337Factories({
+				id,
+			})}
+				<Erc4337AccountFactoriesView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$erc4337AccountFactories',
+					}}
+					id={`${id}-list`}
+					title="Account factories"
+				/>
+			{/snippet}
+
+			<CollapsibleTabs2
 				id={`${networkIdKey}:carousel-economics`}
+				sectionIdPrefix={networkIdKey}
+				sections={[
+					{
+						id: 'economics-assets',
+						label: 'Assets',
+						Content: SectionEconomicsAssets,
+					},
+					{
+						id: 'economics-gas',
+						label: 'Fee market',
+						Content: SectionEconomicsGasBlocks,
+					},
+					{
+						id: 'economics-gas-estimates',
+						label: 'Gas oracles',
+						Content: SectionEconomicsGasEstimates,
+					},
+					{
+						id: 'economics-mev-boost',
+						label: 'MEV-Boost',
+						Content: SectionEconomicsMevBoost,
+					},
+				]}
 				{...{ 'data-card': '' }}
 				class="network-view-collapsible-economics"
 				scrollContainerProps={{
 					'data-row': 'start align-start',
 				}}
 			>
-				{#snippet Summary({ open: _isOpen })}
+				{#snippet Summary({
+					open: _erc4337SummaryOpen,
+				})}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Economics</HeadingComponent>
 						<Tooltip contentProps={{ side: 'top' }}>
 							{#snippet Content()}
 								<p>
-									Native coin deployment, linked catalog assets, recent per-block fee snapshots from <code>eth_feeHistory</code>, and optional MEV-Boost relay <code>proposer_payload_delivered</code> traces (builder winning bids— unrelated to bridge “relayers”).
+									Native coin deployment, block-keyed fee-market snapshots from <code>eth_feeHistory</code>, explorer gas-oracle suggestions, and optional MEV-Boost relay <code>proposer_payload_delivered</code> traces (builder winning bids, unrelated to bridge “relayers”).
 								</p>
 							{/snippet}
 							<abbr
@@ -1187,648 +1202,563 @@
 						</Tooltip>
 					</header>
 				{/snippet}
+			</CollapsibleTabs2>
 
-				{#snippet Markers(_context)}
-					<a
-						data-scroll-marker-label="Assets"
-						href={`#${networkIdKey}:economics-assets`}
-					>Assets</a>
-					<a
-						data-scroll-marker-label="Gas estimates"
-						href={`#${networkIdKey}:economics-gas-estimates`}
-					>Gas estimates</a>
-					<a
-						data-scroll-marker-label="Gas blocks"
-						href={`#${networkIdKey}:economics-gas`}
-					>Gas blocks</a>
-					<a
-						data-scroll-marker-label="MEV-Boost"
-						href={`#${networkIdKey}:economics-mev-boost`}
-					>MEV-Boost</a>
-				{/snippet}
-
-				{#snippet body(_childrenContext)}
-					<ResourceBoundary
-						resource={network}
-					>
-						{#snippet children(network)}
-							{@const nativeRows = network.nativeCurrencies ?? []}
-							{@const catalogCoinIds = (
-								[
-									...new Set(
-										nativeRows.flatMap((row) => (
-											row.coinId != null ?
-												[row.coinId]
-											:
-												[]
-										)),
-									),
-								]
-							)}
-							<section id={`${networkIdKey}:economics-assets`}>
-								<div data-column="gap-2">
-									<CoinInstanceView
-										entityId={{
-											$network: entityId,
-											type: CoinInstanceType.NativeCurrency,
-										}}
-										href={resolve(
-											'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
-											{
-												chainId: String(entityId.chainId),
-												coinInstanceSlug: 'native',
-											},
-										)}
-										layout={EntityLayout.Summary}
-										title="Native coin"
-									/>
-									{#each catalogCoinIds as coinId (coinId)}
-										<CoinView
-											entityId={{ coinId }}
-											href={resolve(
-												'/(assets)/(coins)/coin/[coinId]',
-												{ coinId },
-											)}
-											layout={EntityLayout.Summary}
-										/>
-									{/each}
-									{#if catalogCoinIds.length === 0}
-										<div data-row="wrap align-center gap-2">
-											<p data-text="muted">
-												No catalog coin ids on native rows.
+			{#snippet SectionEconomicsAssets({
+				id: _id,
+				label: _label,
+			})}
+				<ResourceBoundary
+					resource={network}
+				>
+					{#snippet children(loadedNetwork)}
+						<div data-column="gap-2">
+							{#if loadedNetwork.$nativeCoinInstance}
+								<CoinInstanceView
+									entityId={loadedNetwork.$nativeCoinInstance[EntityMetaKey.Id]}
+									layout={EntityLayout.Summary}
+									title="Native coin"
+								/>
+							{/if}
+							{#if loadedNetwork.$nativeCoin}
+								<CoinView
+									entityId={loadedNetwork.$nativeCoin[EntityMetaKey.Id]}
+									layout={EntityLayout.Summary}
+								/>
+							{:else if loadedNetwork.$nativeCoinInstance}
+								<div data-row="wrap align-center gap-2">
+									<p data-text="muted">
+										No logical coin catalog match for this native deployment.
+									</p>
+									<Tooltip contentProps={{ side: 'top' }}>
+										{#snippet Content()}
+											<p>
+												The deployment still resolves through <code>CoinInstance</code>; the registry symbol just does not map to a catalog <code>Coin</code> yet.
 											</p>
-											<Tooltip contentProps={{ side: 'top' }}>
-												{#snippet Content()}
-													<p>Browse contract deployments under Data → Contracts.</p>
-												{/snippet}
-												<abbr
-													class="entity-heading-tip"
-													aria-label="Finding token contracts"
-												>ⓘ</abbr>
-											</Tooltip>
-										</div>
-									{/if}
-									{#if nativeRows.length > 1}
-										<div class="entity-details" data-column="gap-3">
-											<p data-text="muted">
-												Additional registry native currency rows
-											</p>
-											{#each nativeRows as native}
-												<dl data-column-item="center">
-													<div>
-														<dt>Name</dt>
-														<dd>{native.name}</dd>
-													</div>
-													<div>
-														<dt>Symbol</dt>
-														<dd>{native.symbol}</dd>
-													</div>
-													<div>
-														<dt>Decimals</dt>
-														<dd>{String(native.decimals)}</dd>
-													</div>
-													{#if native.coinId !== undefined}
-														<div>
-															<dt>Catalog coin id</dt>
-															<dd>{String(native.coinId)}</dd>
-														</div>
-													{/if}
-													{#if native.slip44 !== undefined}
-														<div>
-															<dt>SLIP-44</dt>
-															<dd>{String(native.slip44)}</dd>
-														</div>
-													{/if}
-												</dl>
-											{/each}
-										</div>
-									{/if}
+										{/snippet}
+										<abbr
+											class="entity-heading-tip"
+											aria-label="Logical coin mapping"
+										>ⓘ</abbr>
+									</Tooltip>
 								</div>
-							</section>
-
-							<section id={`${networkIdKey}:economics-gas-estimates`}>
-								<Network_GasEstimate_TimestampsView
-									collapsible={false}
-									entityFieldReference={{
-										entityType: EntityType.Network,
-										entityId,
-										fieldName: '$$gasEstimateTimestamps',
-									}}
-									href={href}
-									id={`${networkIdKey}:economics-gas-estimates-list`}
-									title="Gas estimates"
-								/>
-							</section>
-
-							<section id={`${networkIdKey}:economics-gas`}>
-								<Network_GasFee_BlocksView
-									collapsible={false}
-									entityFieldReference={{
-										entityType: EntityType.Network,
-										entityId,
-										fieldName: '$$gasFeeBlocks',
-									}}
-									href={href}
-									id={`${networkIdKey}:economics-gas-list`}
-									title="Gas blocks"
-								/>
-							</section>
-
-							<section id={`${networkIdKey}:economics-mev-boost`}>
-								<MevRelay_ProposerPayloadDeliveredRowsView
-									collapsible={false}
-									entityFieldReference={{
-										entityType: EntityType.Network,
-										entityId,
-										fieldName: '$$mevProposerPayloadDelivered',
-									}}
-									href={href}
-									id={`${networkIdKey}:economics-mev-boost-deliveries`}
-									title="MEV-Boost deliveries"
-								/>
-							</section>
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</CollapsibleTabs>
-
-			<CollapsibleTabs
-				id={`${networkIdKey}:carousel-execution`}
-				{...{ 'data-card': '' }}
-				class="network-view-collapsible-execution"
-				scrollContainerProps={{
-					class: 'network-carousel-execution',
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({ open: _isOpen })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Execution</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet Markers(_context)}
-					<a
-						data-scroll-marker-label="Upgrades"
-						href={`#${networkIdKey}:execution-upgrades`}
-					>Upgrades</a>
-					<a
-						data-scroll-marker-label="Blocks"
-						href={`#${networkIdKey}:blocks`}
-					>Blocks</a>
-					<a
-						data-scroll-marker-label="Transactions"
-						href={`#${networkIdKey}:transactions`}
-					>Transactions</a>
-					<a
-						data-scroll-marker-label="Mempool"
-						href={`#${networkIdKey}:txpool`}
-					>Mempool</a>
-					<ResourceBoundary resource={network}>
-						{#snippet children(network)}
-							{#if (network.$$rpcUrls ?? []).length}
-								<a
-									data-scroll-marker-label="Providers"
-									href={`#${networkIdKey}:execution-rpcs`}
-								>Providers</a>
 							{/if}
-						{/snippet}
-					</ResourceBoundary>
-					<ResourceBoundary resource={network}>
-						{#snippet children(network)}
-							{#if (network.$$blockExplorerUrls ?? []).length}
-								<a
-									data-scroll-marker-label="Explorers"
-									href={`#${networkIdKey}:explorers`}
-								>Explorers</a>
+							{#if !loadedNetwork.$nativeCoinInstance}
+								<p data-text="muted">
+									No native coin deployment mapped for this network.
+								</p>
 							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
+						</div>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-				{#snippet body(_childrenContext)}
-						<section>
-							<NetworkExecutionUpgradesView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Network,
-									entityId,
-									fieldName: '$$executionUpgrades',
-								}}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/upgrades',
-									{ networkId: String(entityId.chainId) },
-								)}
-								id={`${networkIdKey}:execution-upgrades`}
-								title="Upgrades"
-							/>
-						</section>
-						<section>
-							<EvmBlocksView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Network,
-									entityId,
-									fieldName: '$$blocks',
-								}}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/blocks',
-									{ networkId: String(entityId.chainId) },
-								)}
-								id={`${networkIdKey}:blocks`}
-							/>
-						</section>
-						<section>
-							<EvmTransactionsView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Network,
-									entityId,
-									fieldName: '$$transactions',
-								}}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/transactions',
-									{ networkId: String(entityId.chainId) },
-								)}
-								id={`${networkIdKey}:transactions`}
-							/>
-						</section>
-						<section>
-							<Network_Txpool_TimestampsView
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Network,
-									entityId,
-									fieldName: '$$txpoolTimestamps',
-								}}
-								href={href}
-								id={`${networkIdKey}:txpool`}
-								title="Mempool"
-							/>
-						</section>
-						<ResourceBoundary resource={network}>
-							{#snippet children(network)}
-								{#if (network.$$rpcUrls ?? []).length}
-									<section>
-										<UrlsView
-											collapsible={false}
-											emptyText="No RPC endpoints listed for this network yet."
-											entityFieldReference={{
-												entityType: EntityType.Network,
-												entityId,
-												fieldName: '$$rpcUrls',
-											}}
-											fieldSources={[
-												Source.Constants_Internal,
-												Source.Chainlist_Rest,
-												Source.EthereumLists_Rest,
-												Source.Lifi_Rest,
-											]}
-											id={`${networkIdKey}:execution-rpcs`}
-											title="Providers"
-										/>
-									</section>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-						<ResourceBoundary
-							resource={network}
-						>
-							{#snippet children(network)}
-								{#if (network.$$blockExplorerUrls ?? []).length}
-									<section>
-										<UrlsView
-											collapsible={false}
-											emptyText="No block explorers listed for this network yet."
-											entityFieldReference={{
-												entityType: EntityType.Network,
-												entityId,
-												fieldName: '$$blockExplorerUrls',
-											}}
-											fieldSources={[
-												Source.Chainlist_Rest,
-												Source.EthereumLists_Rest,
-												Source.Lifi_Rest,
-											]}
-											id={`${networkIdKey}:explorers`}
-											title="Explorers"
-										/>
-									</section>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
+			{#snippet SectionEconomicsGasEstimates({
+				id,
+				label,
+			})}
+				<Network_GasEstimate_TimestampsView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$gasEstimateTimestamps',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionEconomicsGasBlocks({
+				id,
+				label,
+			})}
+				<Network_GasFee_BlocksView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$gasFeeBlocks',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionEconomicsMevBoost({
+				id,
+			})}
+				<MevRelay_ProposerPayloadDeliveredRowsView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$mevProposerPayloadDelivered',
+					}}
+					id={`${id}-deliveries`}
+					title="MEV-Boost deliveries"
+				/>
+			{/snippet}
+
+			<ResourceBoundary resource={network}>
+				{#snippet children(loadedNetwork)}
+					<CollapsibleTabs2
+						id={`${networkIdKey}:carousel-execution`}
+						sectionIdPrefix={networkIdKey}
+						sections={[
+							{
+								id: 'execution-upgrades',
+								label: 'Upgrades',
+								Content: SectionExecutionUpgrades,
+							},
+							{
+								id: 'blocks',
+								label: 'Blocks',
+								Content: SectionExecutionBlocks,
+							},
+							{
+								id: 'transactions',
+								label: 'Transactions',
+								Content: SectionExecutionTransactions,
+							},
+							{
+								id: 'txpool',
+								label: 'Mempool',
+								Content: SectionExecutionMempool,
+							},
+							...(
+								(network.$$rpcUrls ?? []).length ?
+									[{
+										id: 'execution-rpcs',
+										label: 'Providers',
+										Content: SectionExecutionProviders,
+									}]
+								:
+									[]
+							),
+							...(
+								(network.$$blockExplorerUrls ?? []).length ?
+									[{
+										id: 'explorers',
+										label: 'Explorers',
+										Content: SectionExecutionExplorers,
+									}]
+								:
+									[]
+							),
+						]}
+						{...{ 'data-card': '' }}
+						class="network-view-collapsible-execution"
+						scrollContainerProps={{
+							class: 'network-carousel-execution',
+							'data-row': 'start align-start',
+						}}
+					>
+						{#snippet Summary({
+					open: _erc4337SummaryOpen,
+				})}
+							<header data-row-item="flexible" data-row="wrap gap-4">
+								<HeadingComponent>Execution</HeadingComponent>
+							</header>
+						{/snippet}
+					</CollapsibleTabs2>
 				{/snippet}
-			</CollapsibleTabs>
+			</ResourceBoundary>
+
+			{#snippet SectionExecutionUpgrades({
+				id,
+				label,
+			})}
+				<NetworkExecutionUpgradesView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$executionUpgrades',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionExecutionBlocks({
+				id,
+			})}
+				<EvmBlocksView
+					href={resolve(
+						'/(explore)/(networks)/network/[networkId]/(network)/blocks',
+						{
+						networkId: String(entityId.chainId),
+						},
+					)}
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$blocks',
+					}}
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionExecutionTransactions({
+				id,
+			})}
+				<EvmTransactionsView
+					href={resolve(
+						'/(explore)/(networks)/network/[networkId]/(network)/transactions',
+						{
+						networkId: String(entityId.chainId),
+						},
+					)}
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$transactions',
+					}}
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionExecutionMempool({
+				id,
+				label,
+			})}
+				<Network_Txpool_TimestampsView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$txpoolTimestamps',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionExecutionProviders({
+				id,
+				label,
+			})}
+				<UrlsView
+					href={resolve(
+						'/(explore)/(networks)/network/[networkId]',
+						{
+						networkId: String(entityId.chainId),
+						},
+					)}
+					collapsible={false}
+					emptyText="No RPC endpoints listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$rpcUrls',
+					}}
+					fieldSources={[
+						Source.Constants_Internal,
+						Source.Chainlist_Rest,
+						Source.EthereumLists_Rest,
+						Source.Lifi_Rest,
+					]}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionExecutionExplorers({
+				id,
+				label,
+			})}
+				<UrlsView
+					href={resolve(
+						'/(explore)/(networks)/network/[networkId]',
+						{
+						networkId: String(entityId.chainId),
+						},
+					)}
+					collapsible={false}
+					emptyText="No block explorers listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$blockExplorerUrls',
+					}}
+					fieldSources={[
+						Source.Chainlist_Rest,
+						Source.EthereumLists_Rest,
+						Source.Lifi_Rest,
+					]}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
 
 			{#if separateConsensusProtocol === ConsensusProtocol.EthereumBeacon}
-			<CollapsibleTabs
-				id={`${networkIdKey}:carousel-consensus`}
+				<CollapsibleTabs2
+					id={`${networkIdKey}:carousel-consensus`}
+					sectionIdPrefix={networkIdKey}
+					sections={[
+						{
+							id: 'consensus-upgrades',
+							label: 'Upgrades',
+							Content: SectionConsensusUpgrades,
+						},
+						{
+							id: 'beacon-finality',
+							label: 'Finality',
+							Content: SectionBeaconFinality,
+						},
+						{
+							id: 'beacon-validators',
+							label: 'Validators',
+							Content: SectionBeaconValidators,
+						},
+						{
+							id: 'beacon-epochs',
+							label: 'Epochs',
+							Content: SectionBeaconEpochs,
+						},
+						{
+							id: 'beacon-slots',
+							label: 'Slots',
+							Content: SectionBeaconSlots,
+						},
+					]}
 					{...{ 'data-card': '' }}
 					class="network-view-collapsible-consensus"
 					scrollContainerProps={{
 						'data-row': 'start align-start',
 					}}
 				>
-				{#snippet Summary({ open: _isOpen })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Consensus</HeadingComponent>
-					</header>
+					{#snippet Summary({
+					open: _erc4337SummaryOpen,
+				})}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Consensus</HeadingComponent>
+						</header>
+					{/snippet}
+				</CollapsibleTabs2>
+
+				{#snippet SectionConsensusUpgrades({
+					id,
+					label,
+				})}
+					<NetworkConsensusUpgradesView
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.Network,
+							entityId,
+							fieldName: '$$consensusUpgrades',
+						}}
+						id={`${id}-list`}
+						title={label}
+					/>
 				{/snippet}
 
-				{#snippet Markers(_context)}
-						<a
-							data-scroll-marker-label="Activations"
-							href={`#${networkIdKey}:consensus-upgrades`}
-						>Activations</a>
-						<a
-							data-scroll-marker-label="Fork schedule"
-							href={`#${networkIdKey}:beacon-fork-schedule`}
-						>Fork schedule</a>
-						<a
-							data-scroll-marker-label="Finality"
-							href={`#${networkIdKey}:beacon-finality`}
-						>Finality</a>
-						<a
-							data-scroll-marker-label="Validators"
-							href={`#${networkIdKey}:beacon-validators`}
-						>Validators</a>
-						<a
-							data-scroll-marker-label="Epochs"
-							href={`#${networkIdKey}:beacon-epochs`}
-						>Epochs</a>
-						<a
-							data-scroll-marker-label="Slots"
-							href={`#${networkIdKey}:beacon-slots`}
-						>Slots</a>
-					{/snippet}
+				{#snippet SectionBeaconFinality({
+					label,
+				})}
+					<header data-row-item="flexible">
+						<HeadingComponent>{label}</HeadingComponent>
+					</header>
+					<div class="entity-details">
+						<ResourceBoundary
+							resource={network}
+							placeholderText="Loading finality…"
+						>
+							{#snippet children(loadedNetwork)}
+								{#if (
+									network.beaconFinalizedCheckpointEpoch !== undefined
+									&& network.beaconFinalizedCheckpointRoot !== undefined
+								)}
+									<dl>
+										{#if (
+											network.beaconCurrentJustifiedCheckpointEpoch !== undefined
+											&& network.beaconCurrentJustifiedCheckpointRoot !== undefined
+										)}
+											<div>
+												<dt>Justified</dt>
+												<dd data-row="wrap align-start gap-2">
+													<span>Epoch <NumberValue value={loadedNetwork.beaconCurrentJustifiedCheckpointEpoch} /></span>
+													<TruncatedValue
+														format={TruncatedValueFormat.Abbr}
+														value={loadedNetwork.beaconCurrentJustifiedCheckpointRoot}
+													/>
+												</dd>
+											</div>
+										{/if}
+										<div>
+											<dt>Finalized</dt>
+											<dd data-row="wrap align-start gap-2">
+												<span>Epoch <NumberValue value={loadedNetwork.beaconFinalizedCheckpointEpoch} /></span>
+												<TruncatedValue
+													format={TruncatedValueFormat.Abbr}
+													value={loadedNetwork.beaconFinalizedCheckpointRoot}
+												/>
+											</dd>
+										</div>
+										{#if (
+											network.beaconPreviousJustifiedCheckpointEpoch !== undefined
+											&& network.beaconPreviousJustifiedCheckpointRoot !== undefined
+										)}
+											<div>
+												<dt>Previous justified</dt>
+												<dd data-row="wrap align-start gap-2">
+													<span>Epoch <NumberValue value={loadedNetwork.beaconPreviousJustifiedCheckpointEpoch} /></span>
+													<TruncatedValue
+														format={TruncatedValueFormat.Abbr}
+														value={loadedNetwork.beaconPreviousJustifiedCheckpointRoot}
+													/>
+												</dd>
+											</div>
+										{/if}
+									</dl>
+								{:else}
+									<p data-text="muted">No finality checkpoints yet.</p>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</div>
+				{/snippet}
 
-					{#snippet body(_childrenContext)}
-							<section>
-								<NetworkConsensusUpgradesView
-									collapsible={false}
-									entityFieldReference={{
-										entityType: EntityType.Network,
-										entityId,
-										fieldName: '$$consensusUpgrades',
-									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/upgrades',
-										{ networkId: String(entityId.chainId) },
-									)}
-									id={`${networkIdKey}:consensus-upgrades`}
-									title="Activations"
-								/>
-							</section>
-							<section id={`${networkIdKey}:beacon-fork-schedule`}>
-								<header data-row-item="flexible">
-									<HeadingComponent>Fork schedule</HeadingComponent>
-								</header>
-								<div class="entity-details">
-									<ResourceBoundary
-										resource={network}
-										placeholderText="Loading fork schedule…"
-									>
-										{#snippet children(network)}
-											{#if network.beaconForkScheduleEntriesJson !== undefined}
-												{@const forkScheduleEntries = beaconForkScheduleEntriesFromJsonString(
-													network.beaconForkScheduleEntriesJson,
-												)}
-												{#if forkScheduleEntries.length}
-													<table class="network-beacon-fork-schedule">
-														<thead>
-															<tr>
-																<th scope="col">Epoch</th>
-																<th scope="col">Previous</th>
-																<th scope="col">Current</th>
-															</tr>
-														</thead>
-														<tbody>
-															{#each forkScheduleEntries as entry (entry.epoch)}
-																<tr>
-																	<td>
-																		<NumberValue value={entry.epoch} />
-																	</td>
-																	<td>
-																		<TruncatedValue
-																			format={TruncatedValueFormat.Abbr}
-																			value={entry.previousVersion}
-																		/>
-																	</td>
-																	<td>
-																		<TruncatedValue
-																			format={TruncatedValueFormat.Abbr}
-																			value={entry.currentVersion}
-																		/>
-																	</td>
-																</tr>
-															{/each}
-														</tbody>
-													</table>
-												{:else}
-													<p data-text="muted">No fork schedule rows.</p>
-												{/if}
-											{:else}
-												<p data-text="muted">No fork schedule yet.</p>
-											{/if}
-										{/snippet}
-									</ResourceBoundary>
-								</div>
-							</section>
-							<section id={`${networkIdKey}:beacon-finality`}>
-								<header data-row-item="flexible">
-									<HeadingComponent>Finality</HeadingComponent>
-								</header>
-								<div class="entity-details">
-									<ResourceBoundary
-										resource={network}
-										placeholderText="Loading finality…"
-									>
-										{#snippet children(network)}
-											{#if (
-												network.beaconFinalizedCheckpointEpoch !== undefined
-												&& network.beaconFinalizedCheckpointRoot !== undefined
-											)}
-												<dl>
-													{#if (
-														network.beaconCurrentJustifiedCheckpointEpoch !== undefined
-														&& network.beaconCurrentJustifiedCheckpointRoot !== undefined
-													)}
-														<div>
-															<dt>Justified</dt>
-															<dd data-row="wrap align-start gap-2">
-																<span>Epoch <NumberValue value={network.beaconCurrentJustifiedCheckpointEpoch} /></span>
-																<TruncatedValue
-																	format={TruncatedValueFormat.Abbr}
-																	value={network.beaconCurrentJustifiedCheckpointRoot}
-																/>
-															</dd>
-														</div>
-													{/if}
-													<div>
-														<dt>Finalized</dt>
-														<dd data-row="wrap align-start gap-2">
-															<span>Epoch <NumberValue value={network.beaconFinalizedCheckpointEpoch} /></span>
-															<TruncatedValue
-																format={TruncatedValueFormat.Abbr}
-																value={network.beaconFinalizedCheckpointRoot}
-															/>
-														</dd>
-													</div>
-													{#if (
-														network.beaconPreviousJustifiedCheckpointEpoch !== undefined
-														&& network.beaconPreviousJustifiedCheckpointRoot !== undefined
-													)}
-														<div>
-															<dt>Previous justified</dt>
-															<dd data-row="wrap align-start gap-2">
-																<span>Epoch <NumberValue value={network.beaconPreviousJustifiedCheckpointEpoch} /></span>
-																<TruncatedValue
-																	format={TruncatedValueFormat.Abbr}
-																	value={network.beaconPreviousJustifiedCheckpointRoot}
-																/>
-															</dd>
-														</div>
-													{/if}
-												</dl>
-											{:else}
-												<p data-text="muted">No finality checkpoints yet.</p>
-											{/if}
-										{/snippet}
-									</ResourceBoundary>
-								</div>
-							</section>
-							<section
-								id={`${networkIdKey}:beacon-validators`}
-							>
-								<BeaconValidatorsView
-									collapsible={false}
-									entityFieldReference={{
-										entityType: EntityType.Network,
-										entityId,
-										fieldName: '$$beaconValidators',
-									}}
-									href={href}
-									id={`${networkIdKey}:beacon-validator-indices`}
-									title="Recent proposers"
-								/>
-							</section>
-							<section>
-								<BeaconEpochsView
-									collapsible={false}
-									entityFieldReference={{
-										entityType: EntityType.Network,
-										entityId,
-										fieldName: '$$beaconEpochs',
-									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/beacon-epochs',
-										{ networkId: String(entityId.chainId) },
-									)}
-									id={`${networkIdKey}:beacon-epochs`}
-								/>
-							</section>
-							<section>
-								<BeaconSlotsView
-									collapsible={false}
-									entityFieldReference={{
-										entityType: EntityType.Network,
-										entityId,
-										fieldName: '$$beaconSlots',
-									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/beacon-slots',
-										{ networkId: String(entityId.chainId) },
-									)}
-									id={`${networkIdKey}:beacon-slots`}
-								/>
-							</section>
-					{/snippet}
-				</CollapsibleTabs>
+				{#snippet SectionBeaconValidators({
+					id,
+				})}
+					<BeaconValidatorsView
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.Network,
+							entityId,
+							fieldName: '$$beaconValidators',
+						}}
+						id={`${id}-validator-indices`}
+						title="Recent proposers"
+					/>
+				{/snippet}
+
+				{#snippet SectionBeaconEpochs({
+					id,
+				})}
+					<BeaconEpochsView
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.Network,
+							entityId,
+							fieldName: '$$beaconEpochs',
+						}}
+						id={`${id}-list`}
+					/>
+				{/snippet}
+
+				{#snippet SectionBeaconSlots({
+					id,
+				})}
+					<BeaconSlotsView
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.Network,
+							entityId,
+							fieldName: '$$beaconSlots',
+						}}
+						id={`${id}-list`}
+					/>
+				{/snippet}
 			{/if}
 
-			<CollapsibleTabs
+			<CollapsibleTabs2
 				id={`${networkIdKey}:carousel-data-storage`}
+				sectionIdPrefix={networkIdKey}
+				sections={[
+					{
+						id: 'data-precompiles',
+						label: 'Precompiles',
+						Content: SectionDataPrecompiles,
+					},
+					{
+						id: 'data-contracts',
+						label: 'Verified',
+						Content: SectionDataContracts,
+					},
+					{
+						id: 'data-storage-blobs',
+						label: 'Blobs',
+						Content: SectionDataBlobs,
+					},
+				]}
 				{...{ 'data-card': '' }}
 				class="network-view-collapsible-data-storage"
 				scrollContainerProps={{
 					'data-row': 'start align-start',
 				}}
 			>
-				{#snippet Summary({ open: _isOpen })}
+				{#snippet Summary({
+					open: _erc4337SummaryOpen,
+				})}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Data</HeadingComponent>
 					</header>
 				{/snippet}
+			</CollapsibleTabs2>
 
-				{#snippet Markers(_context)}
-					<a
-						data-scroll-marker-label="Precompiles"
-						href={`#${networkIdKey}:data-precompiles`}
-					>Precompiles</a>
-					<a
-						data-scroll-marker-label="Verified"
-						href={`#${networkIdKey}:data-contracts`}
-					>Verified</a>
-					<a
-						data-scroll-marker-label="Blobs"
-						href={`#${networkIdKey}:data-storage-blobs`}
-					>Blobs</a>
-				{/snippet}
+			{#snippet SectionDataPrecompiles({
+				id,
+			})}
+				<EvmPrecompilesView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$precompiles',
+					}}
+					id={`${id}-list`}
+				/>
+			{/snippet}
 
-				{#snippet body(_childrenContext)}
-					<section id={`${networkIdKey}:data-precompiles`}>
-						<EvmPrecompilesView
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.Network,
-								entityId,
-								fieldName: '$$precompiles',
-							}}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/precompiles',
-								{ networkId: String(entityId.chainId) },
-							)}
-							id={`${networkIdKey}:precompiles-list`}
-						/>
-					</section>
-					<section id={`${networkIdKey}:data-contracts`}>
-						<EvmContractsView
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.Network,
-								entityId,
-								fieldName: '$$contracts',
-							}}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/contracts',
-								{ networkId: String(entityId.chainId) },
-							)}
-							id={`${networkIdKey}:contracts-list`}
-						/>
-					</section>
-					<section>
-						<EvmBlobsView
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.Network,
-								entityId,
-								fieldName: '$$blobs',
-							}}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/blobs',
-								{ networkId: String(entityId.chainId) },
-							)}
-							id={`${networkIdKey}:data-storage-blobs`}
-							title="Blobs"
-						/>
-					</section>
-				{/snippet}
-			</CollapsibleTabs>
+			{#snippet SectionDataContracts({
+				id,
+			})}
+				<EvmContractsView
+					href={resolve(
+						'/(explore)/(networks)/network/[networkId]/(network)/contracts',
+						{
+						networkId: String(entityId.chainId),
+						},
+					)}
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$contracts',
+					}}
+					id={`${id}-list`}
+				/>
+			{/snippet}
+
+			{#snippet SectionDataBlobs({
+				id,
+				label,
+			})}
+				<EvmBlobsView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$blobs',
+					}}
+					href={resolve(
+						'/(explore)/(networks)/network/[networkId]/(network)/blobs',
+						{
+						networkId: String(entityId.chainId),
+						},
+					)}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
 		</div>
 
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>
+
 

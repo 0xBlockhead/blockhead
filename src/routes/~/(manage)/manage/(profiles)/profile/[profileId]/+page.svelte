@@ -2,6 +2,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+
 	// Props
 	let {
 		params,
@@ -16,9 +17,5 @@
 <Page>
 	<BlockheadSessionView
 		entityId={{ id: params.profileId }}
-		href={resolve(
-			'/~/(manage)/manage/(profiles)/profile/[profileId]',
-			params,
-		)}
 	/>
 </Page>

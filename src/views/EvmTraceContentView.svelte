@@ -1,7 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { EvmTraceTree } from '$/schema/EvmTrace.ts'
-	import { EntityLayout } from '$/components/EntityView.svelte'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -14,11 +17,8 @@
 	} = $props()
 
 
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import EvmTraceSelectorSignatures from '$/views/EvmTraceSelectorSignatures.svelte'
@@ -48,16 +48,8 @@
 						$network: { chainId },
 						$actor: { address: trace.from },
 					}}
-					href={resolve(
-						'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-						{
-							networkId: String(chainId),
-							address: trace.from,
-						},
-					)}
 					layout={EntityLayout.Title}
 					open={false}
-					showTypeAnnotation={false}
 				/>
 			</dd>
 		</div>
@@ -72,16 +64,8 @@
 						$network: { chainId },
 						$actor: { address: trace.to },
 					}}
-					href={resolve(
-						'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-						{
-							networkId: String(chainId),
-							address: trace.to,
-						},
-					)}
 					layout={EntityLayout.Title}
 					open={false}
-					showTypeAnnotation={false}
 				/>
 			</dd>
 		</div>
@@ -93,7 +77,8 @@
 			<dd>
 				<NumberValue
 					value={BigInt(trace.value)}
-				/> wei
+				/>
+				wei
 			</dd>
 		</div>
 	{/if}
@@ -147,3 +132,4 @@
 		</div>
 	{/if}
 </dl>
+

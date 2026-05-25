@@ -4,13 +4,12 @@
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 
-	// Context
-	import { resolve } from '$app/paths'
-
 
 	// Props
 	let { params } = $props()
 
+
+	// (Derived)
 	const entityId = $derived(
 		({
 			variant: 'byChannel' as const,
@@ -28,7 +27,6 @@
 <Page>
 	<FarcasterFeedView
 		entityId={entityId}
-		href={resolve(`/farcaster/feed/channel/${encodeURIComponent(params.channelId)}`)}
 		limit={50}
 	/>
 </Page>

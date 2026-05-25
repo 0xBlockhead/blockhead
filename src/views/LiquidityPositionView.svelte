@@ -6,7 +6,6 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { entityResolversByEntityType } from '$/resolvers/index.ts'
-	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -16,26 +15,22 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve('/~/accounts/positions/position/[chainId]/[positionId]', {
+			chainId: String(entityId.$network.chainId),
+			positionId: entityId.positionId,
+		}),
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.LiquidityPosition>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
+			| 'layout'
 		>
 	> = $props()
 
@@ -49,7 +44,7 @@
 		{
 			$: (
 				entityResolversByEntityType[EntityType.LiquidityPosition]?.map((r) => r.source)
-				?? [Source.Constants_Internal]
+				?? []
 			),
 			$pool: {},
 			$owner: {},
@@ -79,10 +74,9 @@
 <EntityView
 	entityType={EntityType.LiquidityPosition}
 	{entityId}
-	{href}
-	title={entityId.id}
+	href={href}
 	{open}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
@@ -91,25 +85,47 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<ResourceBoundary
+			resource={liquidityPosition}
+			placeholderText="Loading position…"
+		>
+			{#snippet children(loadedLiquidityPosition)}
+				{loadedLiquidityPosition.tokenId != null ?
+					`NFT #${String(liquidityPosition.tokenId)}`
+				:
+					entityId.id
+				}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Heading()}
-
-		<span>
-			{entityId.id}
+		<span data-text="muted">
+			{@render Value()}
 		</span>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Concentrated-liquidity LP position on a Uniswap v3-style pool: owner, tick range, in-range liquidity, uncollected fees, and optional ERC-721 token id.
+		</p>
+		<p>
+			Requires an on-chain resolver; Dexscreener pool rows do not supply position-scoped state.
+		</p>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary resource={liquidityPosition}>
-			{#snippet children(liquidityPosition)}
+		<ResourceBoundary
+			resource={liquidityPosition}
+			placeholderText="Loading position…"
+		>
+			{#snippet children(loadedLiquidityPosition)}
 				<dl data-column-item="center">
 					{#if open}
 						<div>
 							<dt>Note</dt>
 							<dd data-text="muted">
-								A concentrated-liquidity LP position on a Uniswap v3-style pool: owner, NFT-bound tick range on the shared curve, position-scoped liquidity, uncollected fees, and (when present) the ERC-721 position token id from the periphery manager.
+								A concentrated-liquidity LP position on a Uniswap v3-style pool: owner, NFT-bound tick range on the shared curve, position-scoped liquidity, uncollected fees, and (when present) the ERC-721 position token id from the periphery manager. No position indexer is wired in this app yet.
 							</dd>
 						</div>
 					{/if}
@@ -117,14 +133,9 @@
 						<dt>Network</dt>
 						<dd>
 							<NetworkView
-								entityId={liquidityPosition.$pool.$network}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]',
-									{ networkId: String(liquidityPosition.$pool.$network.chainId) },
-								)}
+								entityId={loadedLiquidityPosition.$pool.$network}
 								layout={EntityLayout.Title}
 								open={false}
-								showTypeAnnotation={false}
 							/>
 						</dd>
 					</div>
@@ -132,12 +143,9 @@
 						<dt>AMM pool (Uniswap v3-style)</dt>
 						<dd>
 							<LiquidityPoolView
-								entityId={liquidityPosition.$pool[EntityMetaKey.Id]}
-								href={resolve('/(assets)/(pools)/pool/[poolId]', {
-									poolId: liquidityPosition.$pool[EntityMetaKey.Id].id,
-								})}
-								layout={EntityLayout.Title}
-								open={false}
+								entityId={loadedLiquidityPosition.$pool[EntityMetaKey.Id]}
+								layout={EntityLayout.SummaryDetails}
+								open={true}
 								showTypeAnnotation={false}
 							/>
 						</dd>
@@ -148,71 +156,70 @@
 							<dd>
 								<ActorNetworkView
 									entityId={{
-										$network: liquidityPosition.$pool.$network,
-										$actor: liquidityPosition.$owner[EntityMetaKey.Id],
+										$network: loadedLiquidityPosition.$pool.$network,
+										$actor: loadedLiquidityPosition.$owner[EntityMetaKey.Id],
 									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-										{
-											networkId: String(liquidityPosition.$pool.$network.chainId),
-											address: liquidityPosition.$owner[EntityMetaKey.Id].address,
-										},
-									)}
 									layout={EntityLayout.Title}
 									open={false}
-									showTypeAnnotation={false}
 								/>
 							</dd>
 						</div>
-						{#if liquidityPosition.tickLower !== undefined}
+						{#if loadedLiquidityPosition.tickLower !== undefined}
 							<div>
 								<dt>LP NFT range · tick lower</dt>
 								<dd>{String(liquidityPosition.tickLower)}</dd>
 							</div>
 						{/if}
 
-						{#if liquidityPosition.tickUpper !== undefined}
+						{#if loadedLiquidityPosition.tickUpper !== undefined}
 							<div>
 								<dt>LP NFT range · tick upper</dt>
 								<dd>{String(liquidityPosition.tickUpper)}</dd>
 							</div>
 						{/if}
 
-						{#if liquidityPosition.liquidity !== undefined}
+						{#if loadedLiquidityPosition.liquidity !== undefined}
 							<div>
 								<dt>Position liquidity (NFT range)</dt>
 								<dd>{String(liquidityPosition.liquidity)}</dd>
 							</div>
 						{/if}
 
-						{#if liquidityPosition.token0Owed !== undefined}
+						{#if loadedLiquidityPosition.token0Owed !== undefined}
 							<div>
 								<dt>Token0 owed</dt>
 								<dd>{String(liquidityPosition.token0Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if liquidityPosition.token1Owed !== undefined}
+						{#if loadedLiquidityPosition.token1Owed !== undefined}
 							<div>
 								<dt>Token1 owed</dt>
 								<dd>{String(liquidityPosition.token1Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if liquidityPosition.origin}
+						{#if loadedLiquidityPosition.tokenId !== undefined}
+							<div>
+								<dt>Position NFT token id</dt>
+								<dd>{String(liquidityPosition.tokenId)}</dd>
+							</div>
+						{/if}
+
+						{#if loadedLiquidityPosition.origin}
 							<div>
 								<dt>Origin</dt>
-								<dd>{liquidityPosition.origin}</dd>
+								<dd>{loadedLiquidityPosition.origin}</dd>
 							</div>
 						{/if}
 					{/if}
 
-					{#if liquidityPosition.createdAtTimestamp !== undefined}
+					{#if loadedLiquidityPosition.createdAtTimestamp !== undefined}
 						<div>
 							<dt>Created at</dt>
 							<dd>
 								<Timestamp
-									timestamp={liquidityPosition.createdAtTimestamp}
+									timestamp={loadedLiquidityPosition.createdAtTimestamp}
 								/>
 							</dd>
 						</div>
@@ -225,13 +232,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		{#if children}
-			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.LiquidityPosition}
-				{entityId}
-			/>
-		{/if}
+
 	{/snippet}
 </EntityView>
+

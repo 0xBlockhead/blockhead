@@ -8,10 +8,9 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -20,28 +19,24 @@
 		title = 'State channels',
 		open = $bindable(true),
 		collapsible = true,
-		href,
 		id,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.StateChannel>
-			title?: string
-			open?: boolean
-			href: string
 			id: string
+			open?: boolean
+			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -49,21 +44,31 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import ChannelView from '$/views/ChannelView.svelte'
 </script>
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	{collapsible}
+	data-entity-field-name={entityFieldReference.fieldName}
+	data-entity-field-parent={stringify(entityFieldReference.entityId)}
+	data-entity-field-type={entityFieldReference.entityType}
 	entityType={EntityType.StateChannel}
-	{href}
 	{id}
 	{title}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			State channels are off-chain bilateral ledgers between two participants with on-chain settlement—not chat apps, AMM pools, or receipt logs.
+		</p>
+		<p>
+			Rows come from the local catalog until a live channel indexer is wired.
+		</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<div data-row="wrap align-center gap-2">
 			<p data-text="muted">
@@ -86,7 +91,7 @@
 		</div>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -113,12 +118,12 @@
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
+				data-entity-field-name={entityFieldReference.fieldName}
+				data-entity-field-parent={stringify(entityFieldReference.entityId)}
+				data-entity-field-type={entityFieldReference.entityType}
 				entityType={EntityType.StateChannel}
 				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
-				{href}
-				id={`${id}-items`}
-				placeholderKeys={new SvelteSet()}
 				open={true}
 				resource={stateChannels}
 				{title}
@@ -146,18 +151,12 @@
 					</div>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const channelId = props.item.value[EntityMetaKey.Id]}
-						<ChannelView
-							entityId={channelId}
-							href={resolve('/(assets)/(channels)/channel/[channelId]', {
-								channelId: channelId.id,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					<ChannelView
+						entityId={item.value[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

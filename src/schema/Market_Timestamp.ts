@@ -12,8 +12,8 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	entityType: EntityType.Market_Timestamp,
 
-	label: 'Spot quote',
-	labelPlural: 'Spot quotes',
+	label: 'Quote print',
+	labelPlural: 'Quote prints',
 
 	id: type({
 		$market: Market.id,
@@ -34,6 +34,7 @@ export default {
 				Source.CoinMarketCap_Rest,
 				Source.Coinpaprika_OpenApi,
 				Source.Defillama_OpenApi,
+				Source.Defillama_Rest,
 				Source.TradingView_Rest,
 			],
 		},

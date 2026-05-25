@@ -3,11 +3,11 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -16,40 +16,28 @@
 
 	// Props
 	let {
-		children,
 		entityId,
+		href = resolve('/~/multiplayer/contacts'),
 		title,
-		href,
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.BlockheadSharedAddress>
+			href?: string
 			title?: string
-			href: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'TypeAnnotationTooltip'
+			| 'layout'
 		>
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const contactKey = $derived(
-		stringify(entityId),
-	)
 
 	const sharedAddress = useEntity(
 		EntityType.BlockheadSharedAddress,
@@ -73,6 +61,12 @@
 	)
 
 
+	// (Derived)
+	const contactKey = $derived(
+		stringify(entityId),
+	)
+
+
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
@@ -89,9 +83,8 @@
 	entityType={EntityType.BlockheadSharedAddress}
 	bind:open
 	{entityId}
-	{href}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	href={href}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>{entityId.id}</span>
@@ -105,9 +98,9 @@
 				resource={sharedAddress}
 				placeholderText="Loading…"
 			>
-				{#snippet children(sharedAddress)}
+				{#snippet children(loadedSharedAddress)}
 					<span>
-						{sharedAddress.peerId ?? entityId.id}
+						{loadedSharedAddress.peerId ?? entityId.id}
 					</span>
 				{/snippet}
 			</ResourceBoundary>
@@ -133,7 +126,7 @@
 				resource={sharedAddress}
 				placeholderText="Loading contact…"
 			>
-				{#snippet children(sharedAddress)}
+				{#snippet children(loadedSharedAddress)}
 					<dl data-column-item="center">
 						<div>
 							<dt>Shown as</dt>
@@ -142,73 +135,72 @@
 							</dd>
 						</div>
 
-						{#if sharedAddress.peerId !== undefined}
-							{#if sharedAddress.peerId !== ''}
-								<div>
-									<dt>Peer ID</dt>
-									<dd>{sharedAddress.peerId}</dd>
-								</div>
-							{/if}
+						{#if (
+							sharedAddress.peerId !== undefined
+							&& sharedAddress.peerId !== ''
+						)}
+							<div>
+								<dt>Peer ID</dt>
+								<dd>{loadedSharedAddress.peerId}</dd>
+							</div>
 						{/if}
 
-						{#if sharedAddress.sharedAt !== undefined}
+						{#if loadedSharedAddress.sharedAt !== undefined}
 							<div>
 								<dt>Shared at</dt>
 								<dd>
 									<Timestamp
-										timestamp={sharedAddress.sharedAt}
+										timestamp={loadedSharedAddress.sharedAt}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if open}
-							{#if sharedAddress.$account !== undefined}
-								{#if sharedAddress.$network !== undefined}
-									<div>
-										<dt>Account</dt>
-										<dd>
-											<ActorNetworkView
-												entityId={{
-													$network: sharedAddress.$network[EntityMetaKey.Id],
-													$actor: sharedAddress.$account[EntityMetaKey.Id],
-												}}
-												href={resolve(
-													'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-													{
-														networkId: String(sharedAddress.$network[EntityMetaKey.Id].chainId),
-														address: sharedAddress.$account[EntityMetaKey.Id].address,
-													},
-												)}
-												layout={EntityLayout.Title}
-												open={false}
-												showTypeAnnotation={false}
-											/>
-										</dd>
-									</div>
-								{/if}
-							{/if}
-
-							{#if sharedAddress.$room !== undefined}
-								<div>
-									<dt>Room</dt>
-									<dd>{sharedAddress.$room.id}</dd>
-								</div>
-							{/if}
-
-							{#if sharedAddress.$network !== undefined}
-								<div>
-									<dt>Execution chain ID</dt>
-									<dd>{String(sharedAddress.$network.chainId)}</dd>
-								</div>
-							{/if}
-
-							{#if (sharedAddress.targetPeerIds ?? []).length}
-								<div>
-									<dt>Target peer IDs</dt>
-									<dd>{(sharedAddress.targetPeerIds ?? []).join(', ')}</dd>
-								</div>
-							{/if}
+						{#if (
+							open
+							&& sharedAddress.$account !== undefined
+							&& sharedAddress.$network !== undefined
+						)}
+							<div>
+								<dt>Account</dt>
+								<dd>
+									<ActorNetworkView
+										entityId={{
+											$network: loadedSharedAddress.$network[EntityMetaKey.Id],
+											$actor: loadedSharedAddress.$account[EntityMetaKey.Id],
+										}}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								</dd>
+							</div>
+						{/if}
+						{#if (
+							open
+							&& sharedAddress.$room !== undefined
+						)}
+							<div>
+								<dt>Room</dt>
+								<dd>{loadedSharedAddress.$room.id}</dd>
+							</div>
+						{/if}
+						{#if (
+							open
+							&& sharedAddress.$network !== undefined
+						)}
+							<div>
+								<dt>Execution chain ID</dt>
+								<dd>{String(sharedAddress.$network.chainId)}</dd>
+							</div>
+						{/if}
+						{#if (
+							open
+							&& (sharedAddress.targetPeerIds ?? []).length
+						)}
+							<div>
+								<dt>Target peer IDs</dt>
+								<dd>{(sharedAddress.targetPeerIds ?? []).join(', ')}</dd>
+							</div>
 						{/if}
 					</dl>
 				{/snippet}
@@ -223,7 +215,6 @@
 			entityType={EntityType.BlockheadSharedAddress}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -249,15 +240,9 @@
 						data-scroll-marker-label="Fields"
 						href={`#${contactKey}:contact-overview`}
 					>Fields</a>
-					{#if children}
-						<a
-							data-scroll-marker-label="Page"
-							href={`#${contactKey}:contact-extra`}
-						>Page</a>
-					{/if}
 				{/snippet}
 
-				{#snippet body(_childrenContext)}
+				{#snippet body({ open: _bodyOpen })}
 					<section
 						id={`${contactKey}:contact-overview`}
 					>
@@ -265,10 +250,10 @@
 							resource={sharedAddress}
 							placeholderText="Loading contact…"
 						>
-							{#snippet children(sharedAddress)}
+							{#snippet children(loadedSharedAddress)}
 								{#if (
-									(sharedAddress.peerId === undefined || sharedAddress.peerId === '')
-									&& !(sharedAddress.$account !== undefined && sharedAddress.$network !== undefined)
+									(sharedAddress.peerId === undefined || loadedSharedAddress.peerId === '')
+									&& !(sharedAddress.$account !== undefined && loadedSharedAddress.$network !== undefined)
 									&& sharedAddress.$room === undefined
 									&& sharedAddress.$network === undefined
 									&& !(sharedAddress.targetPeerIds ?? []).length
@@ -295,16 +280,11 @@
 						</ResourceBoundary>
 					</section>
 
-					{#if children}
-						<section
-							id={`${contactKey}:contact-extra`}
-						>
-							{@render children()}
-						</section>
-					{/if}
+
 				{/snippet}
 			</CollapsibleTabs>
 		</div>
 	{/snippet}
 </EntityView>
+
 

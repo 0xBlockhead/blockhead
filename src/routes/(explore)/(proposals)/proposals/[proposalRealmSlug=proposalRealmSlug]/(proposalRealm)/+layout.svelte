@@ -1,6 +1,5 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import { proposalRealmBySlug } from '$/constants/Proposal.ts'
 	import { stringify } from 'devalue'
 
@@ -28,6 +27,10 @@
 	// Components
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import ProposalRealmView from '$/views/ProposalRealmView.svelte'
+
+
+	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -39,7 +42,6 @@
 		{#snippet Summary({ open: _open })}
 			<ProposalRealmView
 				{entityId}
-				href={resolve(`/proposals/${params.proposalRealmSlug}`)}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

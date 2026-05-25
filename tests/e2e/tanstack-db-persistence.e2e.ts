@@ -10,8 +10,11 @@ import {
 	installChainlistRpcsJsonStub,
 	installPersistenceProbe,
 	networksCatalogFieldCollectionId,
+	persistenceMarkLoadedEvent,
+	persistenceShortCircuitDecisions,
 	waitForNetworksListRendered,
 	waitForPersistenceMarkLoaded,
+	waitForPersistenceShortCircuit,
 } from '../_e2eBrowserHelpers.ts'
 
 
@@ -32,8 +35,9 @@ const probeEventsAfter = (
 const assertWarmPersistenceProbe = (
 	events: Awaited<ReturnType<typeof getPersistenceProbeEvents>>,
 	startIndex: number,
-	collectionIds: string[],
+	collectionLoadedKeys: Readonly<Record<string, string>>,
 ) => {
+	const collectionIds = Object.keys(collectionLoadedKeys)
 	const fresh = probeEventsAfter(events, startIndex)
 	const freshQueryFns = fresh.filter((event) => (
 		event.kind === 'queryFn'
@@ -47,11 +51,8 @@ const assertWarmPersistenceProbe = (
 	const freshShortCircuits = fresh.filter((event) => (
 		event.kind === 'loadSubset'
 		&& collectionIds.includes(event.collectionId)
-		&& (
-			event.decision === 'hydrated-rows'
-			|| event.decision === 'loaded-marker'
-			|| event.decision === 'snapshot'
-		)
+		&& persistenceShortCircuitDecisions.includes(event.decision)
+		&& event.loadedKey === collectionLoadedKeys[event.collectionId]
 	))
 
 	expect(
@@ -64,7 +65,7 @@ const assertWarmPersistenceProbe = (
 	).toEqual([])
 	expect(
 		freshShortCircuits.length,
-		`warm reload must record at least one short-circuited loadSubset for ${collectionIds.join(', ')}`,
+		`warm reload must short-circuit loadSubset with the cold loadedKey for ${collectionIds.join(', ')}: ${JSON.stringify(freshShortCircuits)}`,
 	).toBeGreaterThan(0)
 }
 
@@ -81,6 +82,10 @@ const exerciseNetworksCatalogPersistence = async (page: Page) => {
 	await waitForPersistenceMarkLoaded(page, networksCatalogFieldCollectionId)
 
 	const coldEvents = await getPersistenceProbeEvents(page)
+	const coldMarkLoaded = persistenceMarkLoadedEvent(
+		coldEvents,
+		networksCatalogFieldCollectionId,
+	)
 	expect(
 		coldEvents.some((event) => (
 			event.kind === 'queryFn'
@@ -89,33 +94,34 @@ const exerciseNetworksCatalogPersistence = async (page: Page) => {
 		'cold load must run catalog field queryFn',
 	).toBe(true)
 	expect(
-		coldEvents.some((event) => (
-			event.kind === 'markLoaded'
-			&& event.collectionId === networksCatalogFieldCollectionId
-		)),
+		coldMarkLoaded,
 		'cold load must persist loaded-subset metadata marker',
-	).toBe(true)
+	).toBeDefined()
 	expect(catalogRequests.get(), 'cold load must fetch catalog HTTP').toBeGreaterThan(0)
 	catalogRequests.detach()
 
 	const probeIndexBeforeReload = coldEvents.length
-	const warmCatalogRequests = countRequestsMatching(page, catalogWire)
+	const networksCatalogLoadedKey = coldMarkLoaded!.loadedKey
 
 	await page.reload({ waitUntil: 'load', timeout: gotoLoadTimeoutMs })
 	await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
 	await waitForNetworksListRendered(page)
-
-	warmCatalogRequests.detach()
-	expect(
-		warmCatalogRequests.get(),
-		'warm reload must not repeat Chainlist / ethereum-lists HTTP',
-	).toBe(0)
+	await waitForPersistenceShortCircuit(
+		page,
+		networksCatalogFieldCollectionId,
+		{
+			startIndex: probeIndexBeforeReload,
+			loadedKey: networksCatalogLoadedKey,
+		},
+	)
 
 	const warmEvents = await getPersistenceProbeEvents(page)
 	assertWarmPersistenceProbe(
 		warmEvents,
 		probeIndexBeforeReload,
-		[networksCatalogFieldCollectionId],
+		{
+			[networksCatalogFieldCollectionId]: networksCatalogLoadedKey,
+		},
 	)
 }
 
@@ -135,6 +141,29 @@ const exerciseNetworkDetailWhenConfigured = async (page: Page, url: string) => {
 		return
 
 	const probeBefore = await getPersistenceProbeEvents(page)
+	const catalogCollectionLoadedKeys = Object.fromEntries(
+		[
+			...new Set(
+				probeBefore
+					.filter((event) => (
+						event.kind === 'markLoaded'
+						&& event.loadedKey.includes('Chainlist_Rest')
+					))
+					.map((event) => event.collectionId),
+			),
+		]
+			.map((collectionId) => {
+				const markLoaded = persistenceMarkLoadedEvent(probeBefore, collectionId)
+				return markLoaded != null ?
+					[
+						collectionId,
+						markLoaded.loadedKey,
+					]
+				:
+					undefined
+			})
+			.filter((entry): entry is [string, string] => entry != null),
+	)
 	const warmCatalogRequests = countRequestsMatching(page, catalogWire)
 
 	await page.reload({ waitUntil: 'load', timeout: gotoLoadTimeoutMs })
@@ -143,6 +172,16 @@ const exerciseNetworkDetailWhenConfigured = async (page: Page, url: string) => {
 		timeout: 120_000,
 	})
 
+	for (const [collectionId, loadedKey] of Object.entries(catalogCollectionLoadedKeys))
+		await waitForPersistenceShortCircuit(
+			page,
+			collectionId,
+			{
+				startIndex: probeBefore.length,
+				loadedKey,
+			},
+		)
+
 	warmCatalogRequests.detach()
 	expect(
 		warmCatalogRequests.get(),
@@ -150,19 +189,12 @@ const exerciseNetworkDetailWhenConfigured = async (page: Page, url: string) => {
 	).toBe(0)
 
 	const probeAfter = await getPersistenceProbeEvents(page)
-	const catalogCollectionIds = [
-		...new Set(
-			probeBefore
-				.filter((event) => (
-					(event.kind === 'queryFn' || event.kind === 'markLoaded')
-					&& event.loadedKey.includes('Chainlist_Rest')
-				))
-				.map((event) => event.collectionId),
-		),
-	]
-
-	if (catalogCollectionIds.length > 0)
-		assertWarmPersistenceProbe(probeAfter, probeBefore.length, catalogCollectionIds)
+	if (Object.keys(catalogCollectionLoadedKeys).length > 0)
+		assertWarmPersistenceProbe(
+			probeAfter,
+			probeBefore.length,
+			catalogCollectionLoadedKeys,
+		)
 }
 
 

@@ -9,35 +9,12 @@ import type {
 	BeaconFinalityCheckpoints,
 	BeaconForkScheduleEntry,
 	BeaconHeader,
+	BeaconHeaderHeadResponse,
+	BeaconHeaderResponse,
+	BeaconValidatorResponse,
 	BeaconValidatorSummary,
 } from '$/sources/Beacon/Rest/types.ts'
 import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
-
-type BeaconHeaderHeadWire = {
-	data?: {
-		header?: {
-			message?: {
-				slot?: string
-			}
-		}
-	}
-}
-
-type BeaconHeaderWire = {
-	data?: {
-		root?: string
-		canonical?: boolean
-		header?: {
-			message?: {
-				slot?: string
-				proposer_index?: string
-				parent_root?: string
-				state_root?: string
-				body_root?: string
-			}
-		}
-	}
-}
 
 const beaconFetch = (
 	url: string,
@@ -55,7 +32,7 @@ export const getBeaconHeadSlot = async (beaconRestBaseUrl: string): Promise<numb
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET head', res)
-	const wire = await res.json<BeaconHeaderHeadWire>()
+	const wire = await res.json<BeaconHeaderHeadResponse>()
 	const data = wire.data
 	if (data == null) throw new Error('Beacon: head response missing data')
 	const header = data.header
@@ -78,7 +55,7 @@ export const getBeaconHeader = async (
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET header', res)
-	const wire = await res.json<BeaconHeaderWire>()
+	const wire = await res.json<BeaconHeaderResponse>()
 	const data = wire.data
 	if (data == null) throw new Error('Beacon: header response missing data')
 	const root = data.root
@@ -143,19 +120,6 @@ export const getBeaconRecentProposerValidatorIndices = async ({
 	return ordered
 }
 
-type BeaconValidatorRestWire = {
-	data?: {
-		balance?: string
-		index?: string
-		status?: string
-		validator?: {
-			effective_balance?: string
-			pubkey?: string
-			slashed?: boolean
-		}
-	}
-}
-
 const nonNegativeDecimalBigIntFromWire = (raw: string | undefined): bigint | undefined => (
 	raw != null && /^[0-9]+$/.test(raw) ?
 		BigInt(raw)
@@ -176,7 +140,7 @@ export const getBeaconValidatorSummaryAtHead = async (
 	)
 	if (res.status === 404) return null
 	if (!res.ok) await throwHttpError('Beacon GET validator', res)
-	const wire = await res.json<BeaconValidatorRestWire>()
+	const wire = await res.json<BeaconValidatorResponse>()
 	const data = wire.data
 	if (data == null) throw new Error('Beacon: validator response missing data')
 	const validatorNested = data.validator
@@ -225,7 +189,7 @@ const checkpointFromWire = (
 	if (!root.startsWith('0x')) return undefined
 	return {
 		epoch,
-		root: root as `0x${string}`,
+		root: with0xHex(root.slice(2)),
 	}
 }
 
@@ -248,6 +212,18 @@ export const beaconFinalityCheckpointsFromWire = (
 		currentJustified,
 		finalized,
 	}
+}
+
+export const getBeaconFinalityCheckpoints = async (
+	beaconRestBaseUrl: string,
+): Promise<BeaconFinalityCheckpoints | undefined> => {
+	const base = beaconRestBaseUrl.replace(/\/$/, '')
+	const res = await beaconFetch(`${base}/eth/v1/beacon/states/head/finality_checkpoints`, {
+		headers: { accept: 'application/json' },
+	})
+	if (!res.ok) await throwHttpError('Beacon GET finality_checkpoints', res)
+	const wire = await res.json<JsonValue>()
+	return beaconFinalityCheckpointsFromWire(wire)
 }
 
 export const beaconForkScheduleFromWire = (
@@ -292,18 +268,6 @@ export const beaconForkScheduleFromWire = (
 	)
 }
 
-export const getBeaconFinalityCheckpoints = async (
-	beaconRestBaseUrl: string,
-): Promise<BeaconFinalityCheckpoints | undefined> => {
-	const base = beaconRestBaseUrl.replace(/\/$/, '')
-	const res = await beaconFetch(`${base}/eth/v1/beacon/states/head/finality_checkpoints`, {
-		headers: { accept: 'application/json' },
-	})
-	if (!res.ok) await throwHttpError('Beacon GET finality_checkpoints', res)
-	const wire = await res.json<JsonValue>()
-	return beaconFinalityCheckpointsFromWire(wire)
-}
-
 export const getBeaconForkSchedule = async (
 	beaconRestBaseUrl: string,
 ): Promise<BeaconForkScheduleEntry[]> => {
@@ -316,62 +280,6 @@ export const getBeaconForkSchedule = async (
 	return beaconForkScheduleFromWire(wire)
 }
 
-export const beaconForkScheduleEntriesFromJsonString = (
-	json: string,
-): BeaconForkScheduleEntry[] => {
-	let parsed: JsonValue
-	try {
-		parsed = JSON.parse(json) as JsonValue
-	} catch {
-		return []
-	}
-	if (!Array.isArray(parsed)) return []
-	return (
-		parsed.flatMap((entryWire) => {
-			if (!isJsonObject(entryWire)) return []
-			const epochRaw = entryWire.epoch
-			const previousVersionRaw = (
-				entryWire.previousVersion
-				?? entryWire.previous_version
-			)
-			const currentVersionRaw = (
-				entryWire.currentVersion
-				?? entryWire.current_version
-			)
-			if (
-				epochRaw == null
-				|| previousVersionRaw == null
-				|| currentVersionRaw == null
-			) return []
-			const epoch = Number.parseInt(String(epochRaw), 10)
-			if (!Number.isFinite(epoch)) return []
-			const previousVersion = String(previousVersionRaw)
-			const currentVersion = String(currentVersionRaw)
-			if (
-				!previousVersion.startsWith('0x')
-				|| !currentVersion.startsWith('0x')
-			) return []
-			return [
-				{
-					epoch,
-					previousVersion: previousVersion as `0x${string}`,
-					currentVersion: currentVersion as `0x${string}`,
-				},
-			]
-		})
-	)
-}
-
-/**
- * Beacon consensus-layer fork epochs (`previous_version` / `current_version` boundaries).
- * @see https://github.com/ethereum/beacon-APIs (`GET /eth/v1/config/fork_schedule`)
- */
-type BeaconGenesisWire = {
-	data?: {
-		genesis_time?: string
-	}
-}
-
 export const getBeaconGenesisTimeSeconds = async (
 	beaconRestBaseUrl: string,
 ): Promise<number | undefined> => {
@@ -380,7 +288,7 @@ export const getBeaconGenesisTimeSeconds = async (
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET genesis', res)
-	const wire = await res.json<BeaconGenesisWire>()
+	const wire = await res.json<import('$/sources/Beacon/Rest/types.ts').BeaconGenesisResponse>()
 	const genesisTimeRaw = wire.data?.genesis_time
 	if (genesisTimeRaw == null) return undefined
 	const genesisTimeSeconds = Number.parseInt(String(genesisTimeRaw), 10)

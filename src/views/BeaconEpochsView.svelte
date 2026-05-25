@@ -1,9 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { stringify } from 'devalue'
-
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -11,10 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -23,16 +18,17 @@
 		title = 'Epochs',
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListProps
+				...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BeaconEpoch>
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
@@ -54,8 +50,7 @@
 <EntitiesList
 	entityType={EntityType.BeaconEpoch}
 	{title}
-	bind:open
-	{...entitiesListProps}
+	bind:open	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -63,7 +58,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const network = useEntity(
 				EntityType.Network,
@@ -103,24 +98,11 @@
 							{/snippet}
 
 							{#snippet Item({ item: epoch })}
-								{#if epoch}
-									<BeaconEpochView
-										entityId={epoch[EntityMetaKey.Id]}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
-											{
-												networkId: String(
-													epoch[EntityMetaKey.Id].$network.chainId,
-												),
-												epochNumber: String(
-													epoch[EntityMetaKey.Id].epoch,
-												),
-											},
-										)}
-										layout={EntityLayout.Summary}
-										open={false}
-									/>
-								{/if}
+								<BeaconEpochView
+									entityId={epoch[EntityMetaKey.Id]}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
 							{/snippet}
 						</OrderedList>
 					{/snippet}

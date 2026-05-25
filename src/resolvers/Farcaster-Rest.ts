@@ -29,7 +29,7 @@ const placeholderIconFragments = [
 ] as const
 
 const optionalTrimmedString = (value: string | undefined | null) => (
-	value?.trim() ? value.trim() : undefined
+	value?.trim() || undefined
 )
 
 const normalizeMediaUrl = (value: string | null | undefined): string | undefined => {
@@ -74,7 +74,7 @@ export default {
 			resolve: async (entityId) => {
 				const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
 				const trimmedNonEmptyString = (value: string | undefined) => (
-					value?.trim() ? value.trim() : undefined
+					value?.trim() || undefined
 				)
 				const channel = await singleFlight(getChannel)(entityId.id)
 				if (channel == null) throw new Error('Farcaster_Rest: channel not found')
@@ -168,6 +168,28 @@ export default {
 	],
 
 	entityFieldResolvers: [
+		defineEntityFieldResolver({
+			entityType: EntityType.FarcasterChannel,
+			fieldName: 'followerCount',
+			resolve: async (entityId) => {
+				const { getChannelFollowersCount } = await import('$/sources/Farcaster/Rest/queries.ts')
+				return getChannelFollowersCount({
+					channelId: entityId.id,
+				})
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.FarcasterChannel,
+			fieldName: 'memberCount',
+			resolve: async (entityId) => {
+				const { getChannelMembersCount } = await import('$/sources/Farcaster/Rest/queries.ts')
+				return getChannelMembersCount({
+					channelId: entityId.id,
+				})
+			},
+		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.FarcasterNetwork,
 			fieldName: '$$feeds',

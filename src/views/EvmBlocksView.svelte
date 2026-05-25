@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -9,10 +8,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -22,8 +18,7 @@
 		open = $bindable(true),
 		collapsible = true,
 		id,
-		href,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmBlock>
@@ -31,11 +26,10 @@
 			open?: boolean
 			collapsible?: boolean
 			id: string
-			href: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
@@ -54,11 +48,11 @@
 
 <EntitiesList
 	entityType={EntityType.EvmBlock}
+
 	{id}
-	{href}
 	{title}
 	bind:open
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -72,9 +66,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const network = useEntity(
 				EntityType.Network,
 				entityFieldReference.entityId,
@@ -84,7 +77,7 @@
 							Source.Voltaire_JsonRpc,
 						],
 					},
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Voltaire_JsonRpc,
 						],
@@ -95,7 +88,7 @@
 			{@const blocks = derive(
 				network,
 				(network): Entity<typeof schema, EntityType.EvmBlock>[] => (
-					(network[fieldName] ?? []).slice(0, 16)
+					(network[entityFieldReference.fieldName] ?? []).slice(0, 16)
 				),
 			)}
 			<div data-column="gap-3">
@@ -104,7 +97,6 @@
 					showSummary={false}
 					entityType={EntityType.EvmBlock}
 					id={`${id}-items`}
-					{href}
 					{title}
 					open={true}
 					getKey={(row) => row[EntityMetaKey.Id].blockNumber}
@@ -121,25 +113,12 @@
 						</p>
 					{/snippet}
 
-					{#snippet Item(props)}
-						{#if props.item}
-							<EvmBlockView
-								entityId={props.item[EntityMetaKey.Id]}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
-									{
-										networkId: String(
-											props.item[EntityMetaKey.Id].$network.chainId,
-										),
-										blockNumber: String(
-											props.item[EntityMetaKey.Id].blockNumber,
-										),
-									},
-								)}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/if}
+					{#snippet Item({ item })}
+						<EvmBlockView
+							entityId={item[EntityMetaKey.Id]}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
 					{/snippet}
 				</EntitiesList>
 			</div>

@@ -3,11 +3,11 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
-
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -16,34 +16,26 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+			'/bridge/route/[routeId]',
+			{ routeId: entityId.routeId },
+		),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.BridgeRoute>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-		>
+		never
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const bridgeRoute = useEntity(
 		EntityType.BridgeRoute,
@@ -53,15 +45,14 @@
 				Source.Constants_Internal,
 				Source.Lifi_Rest,
 			],
+			$fromNetwork: {},
+			$toNetwork: {},
 			...(open && {
-				$fromNetwork: {},
-				$toNetwork: {},
 				fromAmount: {},
 				toAmount: {},
 				toAmountMin: {},
 				gasCostUsd: {},
 				estimatedDurationSeconds: {},
-				tags: {},
 				$$steps: {
 					$: [
 						Source.Constants_Internal,
@@ -77,8 +68,10 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import BridgeRouteStepsView from '$/views/BridgeRouteStepsView.svelte'
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
+	import Address from '$/views/Address.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
 </script>
 
@@ -87,16 +80,15 @@
 	entityType={EntityType.BridgeRoute}
 	bind:open
 	{entityId}
-	{href}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	href={href}
+	{...EntityViewProps}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={bridgeRoute}
 			placeholderText="Loading…"
 		>
-			{#snippet children(bridgeRoute)}
+			{#snippet children(loadedBridgeRoute)}
 				{entityId.fromChainId}
 				→
 				{entityId.toChainId}
@@ -125,43 +117,94 @@
 			<div>
 				<dt>From chain</dt>
 				<dd>
-					<NetworkView
-						entityId={{ chainId: entityId.fromChainId }}
-						href={resolve(
-							'/(explore)/(networks)/network/[networkId]',
-							{ networkId: String(entityId.fromChainId) },
-						)}
-						layout={EntityLayout.Title}
-						open={false}
-						showTypeAnnotation={false}
-					/>
+					<ResourceBoundary
+						resource={bridgeRoute}
+						placeholderText="Loading route…"
+					>
+						{#snippet children(loadedBridgeRoute)}
+							<NetworkView
+								entityId={
+									loadedBridgeRoute.$fromNetwork?.[EntityMetaKey.Id]
+									?? { chainId: entityId.fromChainId }
+								}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 			<div>
 				<dt>To chain</dt>
 				<dd>
-					<NetworkView
-						entityId={{ chainId: entityId.toChainId }}
-						href={resolve(
-							'/(explore)/(networks)/network/[networkId]',
-							{ networkId: String(entityId.toChainId) },
-						)}
-						layout={EntityLayout.Title}
-						open={false}
-						showTypeAnnotation={false}
-					/>
+					<ResourceBoundary
+						resource={bridgeRoute}
+						placeholderText="Loading route…"
+					>
+						{#snippet children(loadedBridgeRoute)}
+							<NetworkView
+								entityId={
+									loadedBridgeRoute.$toNetwork?.[EntityMetaKey.Id]
+									?? { chainId: entityId.toChainId }
+								}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+						{/snippet}
+					</ResourceBoundary>
 				</dd>
 			</div>
 			{#if open}
 				<div>
-					<dt>From amount</dt>
+					<dt>From token</dt>
+					<dd>
+						<TruncatedValue
+							value={entityId.fromToken}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</dd>
+				</div>
+
+				<div>
+					<dt>To token</dt>
+					<dd>
+						<TruncatedValue
+							value={entityId.toToken}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</dd>
+				</div>
+
+				<div>
+					<dt>From address</dt>
+					<dd>
+						<Address
+							address={entityId.fromAddress}
+						/>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Slippage</dt>
+					<dd>{String(entityId.slippage)}</dd>
+				</div>
+
+				<div>
+					<dt>Request amount</dt>
+					<dd data-text="font-monospace">
+						{entityId.fromAmount}
+					</dd>
+				</div>
+
+				<div>
+					<dt>From amount (base units)</dt>
 					<dd data-text="font-monospace">
 						<ResourceBoundary
 							resource={bridgeRoute}
 							placeholderText="Loading route…"
 						>
-							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.fromAmount !== undefined}
+							{#snippet children(loadedBridgeRoute)}
+								{#if loadedBridgeRoute.fromAmount !== undefined}
 									{String(bridgeRoute.fromAmount)}
 								{/if}
 							{/snippet}
@@ -170,14 +213,14 @@
 				</div>
 
 				<div>
-					<dt>To amount</dt>
+					<dt>To amount (base units)</dt>
 					<dd data-text="font-monospace">
 						<ResourceBoundary
 							resource={bridgeRoute}
 							placeholderText="Loading route…"
 						>
-							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.toAmount !== undefined}
+							{#snippet children(loadedBridgeRoute)}
+								{#if loadedBridgeRoute.toAmount !== undefined}
 									{String(bridgeRoute.toAmount)}
 								{/if}
 							{/snippet}
@@ -186,14 +229,14 @@
 				</div>
 
 				<div>
-					<dt>Min received</dt>
+					<dt>Min received (base units)</dt>
 					<dd data-text="font-monospace">
 						<ResourceBoundary
 							resource={bridgeRoute}
 							placeholderText="Loading route…"
 						>
-							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.toAmountMin !== undefined}
+							{#snippet children(loadedBridgeRoute)}
+								{#if loadedBridgeRoute.toAmountMin !== undefined}
 									{String(bridgeRoute.toAmountMin)}
 								{/if}
 							{/snippet}
@@ -202,16 +245,16 @@
 				</div>
 
 				<div>
-					<dt>Gas (USD)</dt>
+					<dt>Est. fees (USD)</dt>
 					<dd>
 						<ResourceBoundary
 							resource={bridgeRoute}
 							placeholderText="Loading route…"
 						>
-							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.gasCostUsd !== undefined}
+							{#snippet children(loadedBridgeRoute)}
+								{#if loadedBridgeRoute.gasCostUsd !== undefined}
 									<CurrencyAmount
-										value={bridgeRoute.gasCostUsd}
+										value={loadedBridgeRoute.gasCostUsd}
 										scale={1}
 									/>
 								{/if}
@@ -227,25 +270,9 @@
 							resource={bridgeRoute}
 							placeholderText="Loading route…"
 						>
-							{#snippet children(bridgeRoute)}
-								{#if bridgeRoute.estimatedDurationSeconds !== undefined}
+							{#snippet children(loadedBridgeRoute)}
+								{#if loadedBridgeRoute.estimatedDurationSeconds !== undefined}
 									{String(bridgeRoute.estimatedDurationSeconds)} s
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
-				<div>
-					<dt>Tags</dt>
-					<dd>
-						<ResourceBoundary
-							resource={bridgeRoute}
-							placeholderText="Loading route…"
-						>
-							{#snippet children(bridgeRoute)}
-								{#if (bridgeRoute.tags ?? []).length}
-									{(bridgeRoute.tags ?? []).join(', ')}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -256,18 +283,18 @@
 
 		{#if open}
 			<BridgeRouteStepsView
+				href={resolve('/bridge')}
 				entityFieldReference={{
 					entityType: EntityType.BridgeRoute,
 					entityId,
 					fieldName: '$$steps',
 				}}
-				href={routeHref}
 				id={`${stringify(entityId)}:steps`}
 			/>
 		{/if}
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.BridgeRoute}
 			{entityId}
@@ -276,3 +303,4 @@
 
 	{@render children?.()}
 </EntityView>
+

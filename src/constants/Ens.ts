@@ -1,7 +1,4 @@
 // Types
-import { ensContentHashBrowseHref } from '$/lib/ensContentHash.ts'
-import { resolveMediaUrlTransport } from '$/lib/media.ts'
-
 
 export enum EnsTextRecordHrefMode {
 	Value = 'value',
@@ -30,39 +27,141 @@ export const ensGracePeriodSeconds = (
 	90n * 24n * 60n * 60n
 )
 
-export const ensEvmCoinTypeId = (chainId: number) => (
+const evmEnsCoinTypeId = (chainId: number) => (
 	0x80000000 | chainId
 )
 
-export const ensTextRecordLabels = {
-	alias: 'Alias',
-	name: 'Name',
-	display: 'Display name',
-	avatar: 'Avatar',
-	header: 'Header',
-	description: 'Description',
-	location: 'Location',
-	keywords: 'Keywords',
-	notice: 'Notice',
-	url: 'Website',
-	website: 'Website',
-	email: 'Email',
-	mail: 'Mailing address',
-	phone: 'Phone',
-	timezone: 'Timezone',
-	language: 'Language',
-	theme: 'Theme',
-	'primary-contact': 'Primary contact',
-	'com.discord': 'Discord',
-	'com.github': 'GitHub',
-	'io.keybase': 'Keybase',
-	'com.linkedin': 'LinkedIn',
-	'com.peepeth': 'Peepeth',
-	'com.reddit': 'Reddit',
-	'org.telegram': 'Telegram',
-	'com.twitter': 'X (Twitter)',
-	'eth.ens.delegate': 'ENS delegate',
-} as const
+const ensRegistrationStatusRows = [
+	{
+		status: EnsRegistrationStatus.Active,
+		label: 'Active registration',
+	},
+	{
+		status: EnsRegistrationStatus.GracePeriod,
+		label: 'Grace period',
+	},
+	{
+		status: EnsRegistrationStatus.Expired,
+		label: 'Expired',
+	},
+] as const satisfies readonly {
+	status: EnsRegistrationStatus
+	label: string
+}[]
+
+const ensTextRecordLabelRows = [
+	{
+		key: 'alias',
+		label: 'Alias',
+	},
+	{
+		key: 'name',
+		label: 'Name',
+	},
+	{
+		key: 'display',
+		label: 'Display name',
+	},
+	{
+		key: 'avatar',
+		label: 'Avatar',
+	},
+	{
+		key: 'header',
+		label: 'Header',
+	},
+	{
+		key: 'description',
+		label: 'Description',
+	},
+	{
+		key: 'location',
+		label: 'Location',
+	},
+	{
+		key: 'keywords',
+		label: 'Keywords',
+	},
+	{
+		key: 'notice',
+		label: 'Notice',
+	},
+	{
+		key: 'url',
+		label: 'Website',
+	},
+	{
+		key: 'website',
+		label: 'Website',
+	},
+	{
+		key: 'email',
+		label: 'Email',
+	},
+	{
+		key: 'mail',
+		label: 'Mailing address',
+	},
+	{
+		key: 'phone',
+		label: 'Phone',
+	},
+	{
+		key: 'timezone',
+		label: 'Timezone',
+	},
+	{
+		key: 'language',
+		label: 'Language',
+	},
+	{
+		key: 'theme',
+		label: 'Theme',
+	},
+	{
+		key: 'primary-contact',
+		label: 'Primary contact',
+	},
+	{
+		key: 'com.discord',
+		label: 'Discord',
+	},
+	{
+		key: 'com.github',
+		label: 'GitHub',
+	},
+	{
+		key: 'io.keybase',
+		label: 'Keybase',
+	},
+	{
+		key: 'com.linkedin',
+		label: 'LinkedIn',
+	},
+	{
+		key: 'com.peepeth',
+		label: 'Peepeth',
+	},
+	{
+		key: 'com.reddit',
+		label: 'Reddit',
+	},
+	{
+		key: 'org.telegram',
+		label: 'Telegram',
+	},
+	{
+		key: 'com.twitter',
+		label: 'X (Twitter)',
+	},
+	{
+		key: 'eth.ens.delegate',
+		label: 'ENS delegate',
+	},
+] as const satisfies readonly {
+	key: string
+	label: string
+}[]
 
 export const ensGeneralTextRecordKeys = [
 	'name',
@@ -135,23 +234,71 @@ export const ensTextRecordDisplayOrder = [
 	'primary-contact',
 ] as const
 
-export const ensCoinTypeLabels = {
-	'0': 'BTC',
-	'2': 'LTC',
-	'3': 'DOGE',
-	'60': 'ETH',
-	'118': 'ATOM',
-	'144': 'XRP',
-	'145': 'BCH',
-	'501': 'SOL',
-	[String(ensEvmCoinTypeId(10))]: 'Optimism',
-	[String(ensEvmCoinTypeId(42161))]: 'Arbitrum One',
-	[String(ensEvmCoinTypeId(8453))]: 'Base',
-	[String(ensEvmCoinTypeId(137))]: 'Polygon',
-	[String(ensEvmCoinTypeId(59144))]: 'Linea',
-	[String(ensEvmCoinTypeId(534352))]: 'Scroll',
-	[String(ensEvmCoinTypeId(42220))]: 'Celo',
-} as const
+const ensCoinTypeLabelRows = [
+	{
+		key: '0',
+		label: 'BTC',
+	},
+	{
+		key: '2',
+		label: 'LTC',
+	},
+	{
+		key: '3',
+		label: 'DOGE',
+	},
+	{
+		key: '60',
+		label: 'ETH',
+	},
+	{
+		key: '118',
+		label: 'ATOM',
+	},
+	{
+		key: '144',
+		label: 'XRP',
+	},
+	{
+		key: '145',
+		label: 'BCH',
+	},
+	{
+		key: '501',
+		label: 'SOL',
+	},
+	{
+		key: String(evmEnsCoinTypeId(10)),
+		label: 'Optimism',
+	},
+	{
+		key: String(evmEnsCoinTypeId(42161)),
+		label: 'Arbitrum One',
+	},
+	{
+		key: String(evmEnsCoinTypeId(8453)),
+		label: 'Base',
+	},
+	{
+		key: String(evmEnsCoinTypeId(137)),
+		label: 'Polygon',
+	},
+	{
+		key: String(evmEnsCoinTypeId(59144)),
+		label: 'Linea',
+	},
+	{
+		key: String(evmEnsCoinTypeId(534352)),
+		label: 'Scroll',
+	},
+	{
+		key: String(evmEnsCoinTypeId(42220)),
+		label: 'Celo',
+	},
+] as const satisfies readonly {
+	key: string
+	label: string
+}[]
 
 export const ensCoinTypeIdsToResolve = [
 	0,
@@ -162,13 +309,13 @@ export const ensCoinTypeIdsToResolve = [
 	144,
 	145,
 	501,
-	ensEvmCoinTypeId(10),
-	ensEvmCoinTypeId(42161),
-	ensEvmCoinTypeId(8453),
-	ensEvmCoinTypeId(137),
-	ensEvmCoinTypeId(59144),
-	ensEvmCoinTypeId(534352),
-	ensEvmCoinTypeId(42220),
+	evmEnsCoinTypeId(10),
+	evmEnsCoinTypeId(42161),
+	evmEnsCoinTypeId(8453),
+	evmEnsCoinTypeId(137),
+	evmEnsCoinTypeId(59144),
+	evmEnsCoinTypeId(534352),
+	evmEnsCoinTypeId(42220),
 ].map(String)
 
 export const ensProfileTextRecordKeys = [
@@ -219,92 +366,34 @@ export const ensTextRecordLinkEntries = [
 
 
 // Lookups
-const ensTextRecordLabelsLookup: Record<string, string> = { ...ensTextRecordLabels }
 
-const ensCoinTypeLabelsLookup: Record<string, string> = { ...ensCoinTypeLabels }
-
-export const ensTextRecordDisplayRank = Object.fromEntries(
-	ensTextRecordDisplayOrder.map((key, index) => [
-		key,
-		index,
+export const ensRegistrationStatuses = Object.fromEntries(
+	ensRegistrationStatusRows.map((row) => [
+		row.status,
+		row,
 	]),
 )
 
-export const getEnsTextRecordHref = (key: string, value: string) => {
-	const entry = ensTextRecordLinkEntries.find((candidate) => (
-		candidate.keys.some((candidateKey) => candidateKey === key)
-	))
-	if (entry == null) return null
-
-	switch (entry.hrefMode) {
-		case EnsTextRecordHrefMode.Value:
-			return value
-		case EnsTextRecordHrefMode.Mailto:
-			return `mailto:${value}`
-		case EnsTextRecordHrefMode.Prefix:
-			return `${entry.urlPrefix ?? ''}${value}`
-		case EnsTextRecordHrefMode.PrefixStripAt:
-			return `${entry.urlPrefix ?? ''}${value.startsWith('@') ? value.slice(1) : value}`
-	}
-}
-
-export const getEnsTextRecordLabel = (key: string) => (
-	key in ensTextRecordLabelsLookup ?
-		ensTextRecordLabelsLookup[key]
-	:
-		key
+export const ensTextRecordLabels = Object.fromEntries(
+	ensTextRecordLabelRows.map((row) => [
+		row.key,
+		row,
+	]),
 )
 
-export const getEnsCoinTypeLabel = (coinType: string | number) => {
-	const key = String(coinType)
-	return key in ensCoinTypeLabelsLookup ?
-		ensCoinTypeLabelsLookup[key]
-	:
-		`Coin type ${coinType}`
-}
-
-export const ensAvatarUrlFromTextRecords = (
-	textRecords: Record<string, string> | undefined,
-) => {
-	const raw = textRecords?.avatar?.trim()
-	if (raw == null || raw === '') return undefined
-	return resolveMediaUrlTransport(raw)?.url
-}
-
-export const ensHeaderUrlFromTextRecords = (
-	textRecords: Record<string, string> | undefined,
-) => {
-	const raw = textRecords?.header?.trim()
-	if (raw == null || raw === '') return undefined
-	return resolveMediaUrlTransport(raw)?.url
-}
-
-export const ensDisplayAliasFromTextRecords = (
-	textRecords: Record<string, string> | undefined,
-) => {
-	const alias = textRecords?.alias?.trim()
-	if (alias != null && alias !== '') return alias
-	const legacyName = textRecords?.name?.trim()
-	if (legacyName != null && legacyName !== '') return legacyName
-	return undefined
-}
-
-export const ensRegistrationStatusFromExpiryMs = (expiryMs: number) => (
-	Date.now() < expiryMs ?
-		EnsRegistrationStatus.Active
-	: Date.now() < expiryMs + Number(ensGracePeriodSeconds) * 1000 ?
-		EnsRegistrationStatus.GracePeriod
-	:
-		EnsRegistrationStatus.Expired
+export const ensCoinTypeLabels = Object.fromEntries(
+	ensCoinTypeLabelRows.map((row) => [
+		row.key,
+		row,
+	]),
 )
 
-export const ensRegistrationStatusLabel = (status: EnsRegistrationStatus) => (
-	status === EnsRegistrationStatus.Active ?
-		'Active registration'
-	: status === EnsRegistrationStatus.GracePeriod ?
-		'Grace period'
-	:
-		'Expired'
+export const ensTextRecordDisplayRank = Object.fromEntries(
+	ensTextRecordDisplayOrder.map((key, rank) => [
+		key,
+		{
+			key,
+			rank,
+		},
+	]),
 )
-
-export const getEnsContentHashBrowseHref = ensContentHashBrowseHref

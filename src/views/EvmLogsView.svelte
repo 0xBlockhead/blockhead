@@ -1,17 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -20,7 +17,7 @@
 		title = 'Receipt logs',
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<
@@ -31,15 +28,15 @@
 			open?: boolean
 			collapsible?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -56,7 +53,7 @@
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -73,14 +70,13 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				{
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Blockscout_Rest,
 							Source.Voltaire_JsonRpc,
@@ -91,7 +87,7 @@
 			{@const logs = derive(
 				parent,
 				(parent) => (
-					[...(parent[fieldName] ?? [])]
+					[...(parent[entityFieldReference.fieldName] ?? [])]
 						.map((value) => ({
 							value,
 						}))
@@ -106,8 +102,8 @@
 				placeholderText="Loading receipt logs…"
 				resource={logs}
 				{title}
-				href={entitiesListRest.href ?? ''}
-				id={`${entitiesListRest.id ?? 'receipt-logs'}:items`}
+				href={EntitiesListProps.href ?? ''}
+				id={`${EntitiesListProps.id ?? 'receipt-logs'}:items`}
 				open={true}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
@@ -117,27 +113,17 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const line = props.item.value}
-						{@const logId = line[EntityMetaKey.Id]}
-						<EvmLogView
-							entityId={logId}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]/log/[logIndex]',
-								{
-									networkId: String(logId.$network.chainId),
-									transactionId: logId.txHash,
-									logIndex: String(logId.logIndex),
-								},
-							)}
-							layout={EntityLayout.Summary}
-							open={false}
-							collapsible={false}
-							showParentTransaction={false}
-							showTypeAnnotation={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const line = item.value}
+					{@const logId = line[EntityMetaKey.Id]}
+					<EvmLogView
+						entityId={logId}
+						layout={EntityLayout.Summary}
+						open={false}
+						collapsible={false}
+						showParentTransaction={false}
+						showTypeAnnotation={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

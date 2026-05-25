@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -14,29 +13,23 @@
 
 	// Props
 	let {
-		children,
 		entityId,
+		href = resolve('/~/accounts/transaction/[transactionId]', {
+			transactionId: entityId.transactionId,
+		}),
 		title = 'Bridge transaction',
-		href,
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.BridgeTransaction>
+			href?: string
 			title?: string
-			href: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'TypeAnnotationTooltip'
+			| 'layout'
 		>
 	> = $props()
 
@@ -45,6 +38,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
@@ -55,10 +49,9 @@
 	entityType={EntityType.BridgeTransaction}
 	bind:open
 	{entityId}
-	{href}
+	href={href}
 	{title}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Heading()}
 		{title}
@@ -74,9 +67,10 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<span>
-			{entityId.id}
-		</span>
+		<TruncatedValue
+			value={entityId.$sourceTx.txHash}
+			format={TruncatedValueFormat.Visual}
+		/>
 	{/snippet}
 
 	{#snippet Title()}
@@ -91,12 +85,8 @@
 					<dd>
 						<NetworkView
 							entityId={entityId.$sourceTx.$network}
-							href={resolve('/(explore)/(networks)/network/[networkId]', {
-								networkId: String(entityId.$sourceTx.$network.chainId),
-								})}
 							layout={EntityLayout.Title}
 							open={false}
-							showTypeAnnotation={false}
 						/>
 					</dd>
 				</div>
@@ -108,13 +98,12 @@
 							href={resolve(
 								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
 								{
-									networkId: String(entityId.$sourceTx.$network.chainId),
-									transactionId: entityId.$sourceTx.txHash,
+								networkId: String(entityId.$sourceTx.$network.chainId),
+								transactionId: entityId.$sourceTx.txHash,
 								},
 							)}
 							layout={EntityLayout.Title}
 							open={false}
-							showTypeAnnotation={false}
 						/>
 					</dd>
 				</div>
@@ -135,16 +124,8 @@
 									$network: entityId.$sourceTx.$network,
 									$actor: entityId.$account,
 								}}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-									{
-										networkId: String(entityId.$sourceTx.$network.chainId),
-										address: entityId.$account.address,
-									},
-								)}
 								layout={EntityLayout.Title}
 								open={false}
-								showTypeAnnotation={false}
 							/>
 						</dd>
 					</div>
@@ -158,9 +139,6 @@
 			entityType={EntityType.BridgeTransaction}
 			{entityId}
 		/>
-
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>
+

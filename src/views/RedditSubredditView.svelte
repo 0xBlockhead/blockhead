@@ -1,14 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { stringify } from 'devalue'
 
 
@@ -19,29 +17,22 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve('/(social)/(reddit)/reddit/r/[name]', {
+			name: entityId.name,
+		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.RedditSubreddit>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'layout'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Content'
-			| 'Heading'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -55,9 +46,15 @@
 		{
 			$: [
 				Source.Reddit_Rest,
+				Source.Reddit_PublicJson,
 			],
 			title: {},
 			publicDescription: {},
+			subscriberCount: {},
+			activeUserCount: {},
+			createdAt: {},
+			over18: {},
+			$icon: {},
 		},
 	)
 
@@ -65,11 +62,14 @@
 
 
 	// Components
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 	import RedditLinksView from '$/views/RedditLinksView.svelte'
 </script>
 
@@ -77,11 +77,10 @@
 <EntityView
 	entityType={EntityType.RedditSubreddit}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -98,8 +97,25 @@
 			resource={subreddit}
 			placeholderText="Loading subreddit…"
 		>
-			{#snippet children(subreddit)}
-				{subreddit.title ?? `r/${entityId.name}`}
+			{#snippet children(loadedSubreddit)}
+				{loadedSubreddit.title ?? `r/${entityId.name}`}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Icon()}
+		<ResourceBoundary
+			resource={subreddit}
+			placeholderText="Loading subreddit…"
+		>
+			{#snippet children(loadedSubreddit)}
+				{#if loadedSubreddit.$icon !== undefined}
+					<IconComponent
+						alt={loadedSubreddit.title ?? entityId.name}
+						shape={IconShape.Circle}
+						src={loadedSubreddit.$icon[EntityMetaKey.Id].url}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -114,44 +130,61 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl data-column-item="center">
-			{#if !open}
-				<div>
-					<dt>Description</dt>
-					<dd>
-						<ResourceBoundary
-							resource={subreddit}
-							placeholderText="Loading subreddit…"
-						>
-							{#snippet children(subreddit)}
-								{#if !subreddit.publicDescription}
-									<p data-text="muted">No subreddit description.</p>
-								{:else}
-									<p data-text="muted">{subreddit.publicDescription}</p>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-			{#if open}
-				<div>
-					<dt>Description</dt>
-					<dd>
-						<ResourceBoundary
-							resource={subreddit}
-							placeholderText="Loading subreddit…"
-						>
-							{#snippet children(subreddit)}
-								{#if subreddit.publicDescription}
-									{subreddit.publicDescription}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-		</dl>
+		<ResourceBoundary
+			resource={subreddit}
+			placeholderText="Loading subreddit…"
+		>
+			{#snippet children(loadedSubreddit)}
+				<dl data-column-item="center">
+					{#if loadedSubreddit.publicDescription}
+						<div>
+							<dt>Description</dt>
+							<dd>{loadedSubreddit.publicDescription}</dd>
+						</div>
+					{/if}
+
+					{#if loadedSubreddit.subscriberCount != null}
+						<div>
+							<dt>Subscribers</dt>
+							<dd>
+								<NumberValue
+									value={loadedSubreddit.subscriberCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if loadedSubreddit.activeUserCount != null}
+						<div>
+							<dt>Active users</dt>
+							<dd>
+								<NumberValue
+									value={loadedSubreddit.activeUserCount}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if loadedSubreddit.createdAt != null}
+						<div>
+							<dt>Created</dt>
+							<dd>
+								<Timestamp
+									timestamp={loadedSubreddit.createdAt}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if loadedSubreddit.over18 != null}
+						<div>
+							<dt>NSFW</dt>
+							<dd>{loadedSubreddit.over18 ? 'Yes' : 'No'}</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -161,7 +194,6 @@
 			entityType={EntityType.RedditSubreddit}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -202,14 +234,12 @@
 						data-scroll-marker-label="Submissions"
 					>
 						<RedditLinksView
+							href={resolve('/reddit/links')}
 							entityFieldReference={{
 								entityType: EntityType.RedditSubreddit,
 								entityId,
 								fieldName: '$$links',
 							}}
-							href={resolve('/(social)/reddit/r/[name]/(subreddit)/links', {
-								name: encodeURIComponent(entityId.name),
-							})}
 							id={`${idKey}:reddit-links`}
 						/>
 					</section>

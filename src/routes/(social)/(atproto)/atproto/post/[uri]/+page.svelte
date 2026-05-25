@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Props
 	let {
 		params,
@@ -23,10 +19,6 @@
 <Page>
 	<AtprotoPostView
 		{entityId}
-		href={resolve(
-			'/(social)/(atproto)/atproto/post/[uri]',
-			{ uri: encodeURIComponent(entityId.uri) },
-		)}
 	>
 	</AtprotoPostView>
 </Page>

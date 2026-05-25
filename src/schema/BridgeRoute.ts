@@ -26,6 +26,7 @@ export const bridgeRouteQuoteId = type({
 	fromAmount: 'string',
 	fromAddress: EvmAddress,
 	slippage: 'number',
+	'toAddress?': EvmAddress,
 })
 
 export default {
@@ -122,6 +123,7 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type.valueOf(BridgeRouteTag).array(),
 			cardinality: EntityFieldCardinality.One,
+			// LI.FI GET /v1/quote returns one executable route, not BEST/CHEAPEST/FASTEST comparison tags.
 			defaultSources: [
 				Source.Constants_Internal,
 				Source.Lifi_Rest,

@@ -1,8 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { stringify } from 'devalue'
-
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -10,10 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -22,9 +18,8 @@
 		title = 'Agent conversations',
 		open = $bindable(true),
 		collapsible = true,
-		href = resolve('/~/agents'),
-		id = 'agents',
-		...entitiesListForward
+				id = 'agents',
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference?: EntityFieldReference<
@@ -32,42 +27,40 @@
 				EntityType.BlockheadAgentConversation
 			>
 			title?: string
-			open?: boolean
-			href?: string
-			id?: string
+			open?: boolean			id?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
+
+
+	// Functions
+	const globalId = (
+		{} satisfies EntityId<typeof schema, EntityType._Global>
+	)
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const globalId = (
-		{} satisfies EntityId<typeof schema, EntityType._Global>
-	)
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import BlockheadAgentConversationView from '$/views/BlockheadAgentConversationView.svelte'
 </script>
 
 
 <EntitiesList
 	entityType={EntityType.BlockheadAgentConversation}
-	{href}
 	{id}
 	bind:open
 	{collapsible}
 	{title}
-	{...entitiesListForward}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -84,7 +77,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const global = useEntity(
 				EntityType._Global,
@@ -107,11 +100,10 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.BlockheadAgentConversation}
-				{href}
 				id={`${id}-items`}
 				open={true}
 				getKey={(conversation) => stringify(conversation[EntityMetaKey.Id])}
-				getSortValue={(conversation) => -conversation.updatedAt}
+				getSortValue={(conversation) => conversation[EntityMetaKey.Id].id}
 				placeholderText="Loading conversations…"
 				resource={conversations}
 				{title}
@@ -124,28 +116,13 @@
 				{/snippet}
 
 				{#snippet Item({ item: conversation })}
-					{#if conversation}
-						<BlockheadAgentConversationView
-							entityId={{
-								id: conversation[EntityMetaKey.Id].id,
-							}}
-							href={(
-								href.includes('/~/agents') ?
-									`/~/agents/conversations/conversation/${encodeURIComponent(conversation[EntityMetaKey.Id].id)}`
-								:
-									resolve(
-										'/(explore)/(agents)/agent/[agentId]',
-										{
-											agentId: encodeURIComponent(
-												conversation[EntityMetaKey.Id].id,
-											),
-										},
-									)
-							)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+					<BlockheadAgentConversationView
+						entityId={{
+							id: conversation[EntityMetaKey.Id].id,
+						}}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

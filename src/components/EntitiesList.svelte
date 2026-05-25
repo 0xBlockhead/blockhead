@@ -20,16 +20,14 @@
 
 	type ListItemProps = {
 		key: _Key
-	} & (
-		| {
-				item: _Item
-				isPlaceholder: false
-			}
-		| {
-				item?: never
-				isPlaceholder: true
-			}
-	)
+		item: _Item
+		searchQuery?: string
+		matches?: SvelteSet<Match>
+	}
+
+	type PlaceholderListItemProps = {
+		key: _Key
+	}
 
 	type CollapsibleForwardProps = Omit<
 		ComponentProps<typeof Collapsible>,
@@ -76,6 +74,7 @@
 		resource,
 		placeholderKeys = new SvelteSet<_Key>(),
 		Item,
+		ItemPlaceholder,
 		Empty,
 		body,
 		TypeAnnotationTooltip,
@@ -111,6 +110,7 @@
 			href: string
 			id: string
 			Item?: Snippet<[context?: ListItemProps]>
+			ItemPlaceholder?: Snippet<[context?: PlaceholderListItemProps]>
 			/** Ignored when `resource` is set; list rows come from the boundary resolution. */
 			items?: ItemsInput
 			open?: boolean
@@ -124,8 +124,8 @@
 	> = $props()
 
 	const onNestedCollapsibleClose = getOnNestedCollapsibleClose()
-	
-	
+
+
 	// Inner context
 	import { goto } from '$app/navigation'
 
@@ -229,7 +229,18 @@
 			<Heading {...HeadingProps}>
 				<a {href}>{title}</a>
 				{#if showCounts}
-					<small>({#if loadedCount !== undefined}<NumberValue value={loadedCount} />{/if}{#if showTotalCount} / {/if}{#if showTotalCount}<NumberValue value={totalCount!} />{/if}{#if loadedCount === undefined && totalCount !== undefined}<NumberValue value={totalCount} />{/if})</small>
+					<small>(
+						{#if loadedCount !== undefined}
+							<NumberValue value={loadedCount} />
+						{/if}
+						{#if showTotalCount}
+							/
+							<NumberValue value={totalCount!} />
+						{/if}
+						{#if loadedCount === undefined && totalCount !== undefined}
+							<NumberValue value={totalCount} />
+						{/if}
+					)</small>
 				{/if}
 			</Heading>
 		</header>
@@ -254,21 +265,19 @@
 		<UnorderedList
 			items={rows}
 			{placeholderKeys}
-			bind:summary={
-				() => listSummary,
-				(_listSummary) => { listSummary = _listSummary }
-			}
+			bind:summary={listSummary}
 			getKey={getKey!}
 			{getSortValue}
 			Item={Item!}
+			{ItemPlaceholder}
 			{...UnorderedListProps}
 			{...{
-				...layout === EntitiesListLayout.Carousel && {
+				...(layout === EntitiesListLayout.Carousel && {
 					orientation: ListOrientation.Row,
 					'data-scroll-container': 'inline layout-carousel',
 					'data-row': 'start align-start',
 					style: panelStyle ?? '--carousel-basis: min(40ch, 88cqi); gap: 0.5em',
-				}
+				}),
 			}}
 		>
 			{#snippet Empty()}
@@ -285,7 +294,10 @@
 				<ResourceBoundary
 					boundaryKey={id}
 					resource={resource}
-					placeholderText={placeholderText ?? `Loading ${entityDefinitionByType[entityType].labelPlural.toLowerCase()}…`}
+					placeholderText={
+						placeholderText
+						?? `Loading ${entityDefinitionByType[entityType].labelPlural.toLowerCase()}…`
+					}
 				>
 					{#snippet children(resource)}
 						{#key resource}
@@ -318,11 +330,11 @@
 			}}
 			{...{ 'data-card': '' }}
 		>
-			{#snippet Summary(_context)}
+			{#snippet Summary({ open: _summaryOpen })}
 				{@render SummaryHeader()}
 			{/snippet}
 
-			{#snippet Annotation(_context)}
+			{#snippet Annotation({ open: _annotationOpen })}
 				{@render SummaryAnnotation()}
 			{/snippet}
 

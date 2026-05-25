@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Props
 	let { params } = $props()
 
@@ -14,15 +10,11 @@
 
 
 <Page>
-		<BeaconEpochView
+	<BeaconEpochView
 		entityId={{
 			$network: { chainId: Number(params.networkId) },
 			epoch: Number(params.epochNumber),
 		}}
-		href={resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
-			params,
-		)}
 	/>
 </Page>
 

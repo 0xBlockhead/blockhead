@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -10,10 +9,7 @@
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -28,9 +24,8 @@
 
 		id,
 
-		href,
 
-		...entitiesListProps
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmContract>
@@ -38,11 +33,10 @@
 			open?: boolean
 			collapsible?: boolean
 			id: string
-			href: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
@@ -61,11 +55,11 @@
 
 <EntitiesList
 	entityType={EntityType.EvmContract}
+
 	{id}
-	{href}
 	{title}
 	bind:open
-	{...entitiesListProps}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -76,9 +70,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const network = useEntity(
 				EntityType.Network,
 				entityFieldReference.entityId,
@@ -88,7 +81,7 @@
 							Source.Voltaire_JsonRpc,
 						],
 					},
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Constants_Internal,
 						],
@@ -99,7 +92,7 @@
 			{@const precompiles = derive(
 				network,
 				(network): Entity<typeof schema, EntityType.EvmContract>[] => (
-					(network[fieldName] ?? []).slice(0, 64)
+					(network[entityFieldReference.fieldName] ?? []).slice(0, 64)
 				),
 			)}
 			<div data-column="gap-3">
@@ -108,7 +101,6 @@
 					showSummary={false}
 					entityType={EntityType.EvmContract}
 					id={`${id}-items`}
-					{href}
 					{title}
 					open={true}
 					getKey={(row) => stringify(row[EntityMetaKey.Id])}
@@ -123,23 +115,12 @@
 						</p>
 					{/snippet}
 
-					{#snippet Item(props)}
-						{#if props.item}
-							<EvmContractView
-								entityId={props.item[EntityMetaKey.Id]}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-									{
-										networkId: String(
-											props.item[EntityMetaKey.Id].$network.chainId,
-										),
-										address: props.item[EntityMetaKey.Id].address,
-									},
-								)}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/if}
+					{#snippet Item({ item })}
+						<EvmContractView
+							entityId={item[EntityMetaKey.Id]}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
 					{/snippet}
 				</EntitiesList>
 			</div>

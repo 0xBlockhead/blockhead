@@ -8,35 +8,38 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
 		entityId,
-		href = entityId.url,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/bridge/[bridgeId]',
+			{
+				networkId: String(entityId.$network.chainId),
+				bridgeId: entityId.bridgeId,
+			},
+		),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.NetworkBridge>
 			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
+			| 'layout'
 		>
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const bridge = useEntity(
 		EntityType.NetworkBridge,
@@ -63,10 +66,10 @@
 <EntityView
 	entityType={EntityType.NetworkBridge}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
 	title={`Execution bridge Chain ${String(entityId.$fromNetwork.chainId)} → Chain ${String(entityId.$toNetwork.chainId)}`}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -115,10 +118,10 @@
 					placeholderText="Loading Chainlist / Ethereum Lists bridge mapping…"
 					resource={bridge}
 				>
-					{#snippet children(bridge)}
+					{#snippet children(loadedBridge)}
 						<div>
 							<dt>Relationship</dt>
-							<dd>{bridge.relationshipType}</dd>
+							<dd>{loadedBridge.relationshipType}</dd>
 						</div>
 					{/snippet}
 				</ResourceBoundary>
@@ -126,7 +129,7 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.NetworkBridge}
 			{entityId}

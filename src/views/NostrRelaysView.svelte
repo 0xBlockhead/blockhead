@@ -8,6 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
@@ -18,33 +20,29 @@
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
 		title = 'Relays',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.NostrRelay>
-			href: string
 			id: string
 			open?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -58,12 +56,11 @@
 
 <EntitiesList
 	entityType={EntityType.NostrRelay}
-	{href}
 	{id}
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -80,9 +77,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -90,7 +86,7 @@
 					$: [
 						Source.Constants_Internal,
 					],
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$: [
 							Source.NostrBand_Rest,
 						],
@@ -101,7 +97,7 @@
 				parent,
 				(parent) => {
 					const rows: Entity<typeof schema, EntityType.NostrRelay>[] = (
-						parent[fieldName] ?? []
+						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
 						rows.map((relay) => ({
@@ -114,7 +110,6 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.NostrRelay}
-				{href}
 				id={`${id}-items`}
 				{title}
 				resource={relays}
@@ -130,18 +125,13 @@
 				{/snippet}
 
 				{#snippet Item({
-					item: row,
+					item: relay,
 				})}
-					{#if row}
-						<NostrRelayView
-							entityId={row.entityId}
-							href={resolve('/nostr/relay/[relayKey]', {
-								relayKey: encodeURIComponent(row.entityId.relayUrl),
-							})}
-							layout={EntityLayout.SummaryDetails}
-							open={false}
-						/>
-					{/if}
+					<NostrRelayView
+						entityId={relay.entityId}
+						layout={EntityLayout.SummaryDetails}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

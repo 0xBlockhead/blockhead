@@ -22,14 +22,12 @@
 
 <Page>
 	<RedditLinksView
+		href={resolve('/reddit/links')}
 		entityFieldReference={{
 			entityType: EntityType.RedditSubreddit,
 			entityId,
 			fieldName: '$$links',
 		}}
-		href={resolve('/(social)/(reddit)/reddit/r/[name]/(subreddit)/links', {
-			name: encodeURIComponent(entityId.name),
-		})}
 		id="reddit-subreddit-links"
 	/>
 </Page>

@@ -67,10 +67,10 @@ export const useNavigationItems = () => {
 					icon: '🪪',
 				},
 				{
-					id: 'explore-agents',
-					title: 'Agents',
-					href: '/agents',
-					icon: '🤖',
+					id: 'explore-services',
+					title: 'Services',
+					href: '/services',
+					icon: '⚙️',
 				},
 				{
 					id: 'explore-ipfs',
@@ -352,14 +352,14 @@ export const useNavigationItems = () => {
 					children: [
 						{
 							id: 'social-lens-accounts',
-							title: 'Accounts',
+							title: 'Profiles',
 							href: '/lens/accounts',
 							icon: '👤',
 							children: [],
 						},
 						{
 							id: 'social-lens-posts',
-							title: 'Posts',
+							title: 'Publications',
 							href: '/lens/posts',
 							icon: '📝',
 							children: [],

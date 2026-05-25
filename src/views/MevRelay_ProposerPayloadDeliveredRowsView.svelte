@@ -4,11 +4,13 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
@@ -21,7 +23,7 @@
 		open = $bindable(true),
 		collapsible = true,
 		entityFieldReference,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
@@ -32,17 +34,15 @@
 				EntityType.MevRelay_ProposerPayloadDelivered
 			>
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -55,7 +55,7 @@
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	{collapsible}
 	entityType={EntityType.MevRelay_ProposerPayloadDelivered}
@@ -76,9 +76,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -87,7 +86,7 @@
 						Source.Constants_Internal,
 						Source.MevRelay_Rest,
 					],
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$: [
 							Source.MevRelay_Rest,
 						],
@@ -99,7 +98,7 @@
 				parent,
 				(parent) => {
 					const list: Entity<typeof schema, EntityType.MevRelay_ProposerPayloadDelivered>[] = (
-						parent[fieldName] ?? []
+						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
 						list
@@ -129,20 +128,18 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const row = props.item.value}
-						<MevRelay_ProposerPayloadDeliveredView
-							entityId={row[EntityMetaKey.Id]}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]',
-								{ networkId: String(row[EntityMetaKey.Id].$network.chainId) },
-							)}
-							id={stringify(row[EntityMetaKey.Id])}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const row = item.value}
+					<MevRelay_ProposerPayloadDeliveredView
+						entityId={row[EntityMetaKey.Id]}
+						href={resolve(
+							'/(explore)/(networks)/network/[networkId]',
+							{ networkId: String(row[EntityMetaKey.Id].$network.chainId) },
+						)}
+						id={stringify(row[EntityMetaKey.Id])}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

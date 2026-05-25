@@ -1,5 +1,5 @@
 /**
- * NostrBand HTTP API v0 wire shapes.
+ * NostrBand HTTP API v0 API shapes.
  * @see https://api.nostr.band/v0/events/e/{id}
  * @see https://api.nostr.band/v0/events/e/{id}/related
  * @see https://api.nostr.band/v0/events/e/{id}/reply
@@ -11,7 +11,7 @@
  * @see https://api.nostr.band/v0/events/recent
  */
 
-export type NostrBandEventWire = {
+export type NostrEvent = {
 	id?: string
 	pubkey?: string
 	created_at?: number
@@ -21,7 +21,7 @@ export type NostrBandEventWire = {
 	sig?: string
 }
 
-export type NostrBandProfileMetadataWire = {
+export type NostrProfileMetadata = {
 	name?: string
 	display_name?: string
 	about?: string
@@ -34,28 +34,28 @@ export type NostrBandProfileMetadataWire = {
 }
 
 /** GET /v0/users/profile/{pubkey} */
-export type NostrBandProfileSearchWire = {
+export type NostrBandProfileSearch = {
 	pubkey?: string
-	profile?: NostrBandEventWire
-	metadata?: NostrBandProfileMetadataWire
+	profile?: NostrEvent
+	metadata?: NostrProfileMetadata
 }
 
 /** GET /v0/stats/profile/list */
-export type NostrBandTopProfileWire = {
+export type NostrBandTopProfile = {
 	pubkey?: string
-	profile?: NostrBandEventWire
+	profile?: NostrEvent
 	followers?: number
 	followers_count?: number
 	notes?: number
 	notes_count?: number
 }
 
-export type NostrBandTopProfilesListWire = {
-	profiles?: NostrBandTopProfileWire[]
+export type NostrBandTopProfilesList = {
+	profiles?: NostrBandTopProfile[]
 }
 
 /** GET /v0/stats/relay/list */
-export type NostrBandRelayStatsWire = {
+export type NostrBandRelayStats = {
 	url?: string
 	relay?: string
 	relay_url?: string
@@ -76,20 +76,20 @@ export type NostrBandRelayStatsWire = {
 	notes_count?: number
 }
 
-export type NostrBandTopRelaysListWire = {
-	relays?: NostrBandRelayStatsWire[]
+export type NostrBandTopRelaysList = {
+	relays?: NostrBandRelayStats[]
 }
 
 /** GET /v0/events/e/{id} */
-export type NostrBandEventByIdWire = {
-	event?: NostrBandEventWire
-	events?: NostrBandEventWire[]
+export type NostrBandEventById = {
+	event?: NostrEvent
+	events?: NostrEvent[]
 }
 
 /** GET /v0/events/recent | /v0/events/authors/{pubkey} | /v0/events/e/{id}/related | /v0/events/e/{id}/reply | /v0/events/search */
-export type NostrBandEventsListWire = {
-	events?: NostrBandEventWire[]
+export type NostrBandEventsList = {
+	events?: NostrEvent[]
 }
 
 /** GET /v0/events/recent */
-export type NostrBandRecentEventsWire = NostrBandEventsListWire
+export type NostrBandRecentEvents = NostrBandEventsList

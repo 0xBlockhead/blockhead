@@ -21,10 +21,16 @@ import { Source } from '$/sources/$Source.ts'
 import { resolverPublicEnvBySource } from '$/sources/index.ts'
 
 import {
+	assertLoadedResolverProbeCategories,
+	classifyAssertLoadedResolverProbeCase,
 	entityFieldValueForAssert,
+	isExpectedAssertLoadedResolverProbeFailure,
 	parentEntityIdForFieldResolver,
 	probeEntityIdByType,
 	resolveProbeEntityId,
+	type AssertLoadedResolverProbeCategory,
+	type AssertLoadedResolverProbeCategoryBucket,
+	type AssertLoadedResolverProbeCategorySummary,
 } from './_fixtures.ts'
 
 
@@ -38,7 +44,9 @@ const resolverContext = {
 export type AssertLoadedResolverProbeCase = {
 	kind: 'entity' | 'field'
 	key: string
+	category: AssertLoadedResolverProbeCategory
 	resolveRejected: boolean
+	resolveError?: string
 	assertThrew: boolean
 	assertError?: string
 }
@@ -51,8 +59,37 @@ export type AssertLoadedResolverProbeResult = {
 	fieldResolverCount: number
 	assertOk: number
 	resolveOk: number
+	/** Resolve succeeded but assertLoaded* failed — excludes classified expected gaps. */
 	fulfilledButAssertFailed: AssertLoadedResolverProbeCase[]
+	categorySummary: AssertLoadedResolverProbeCategorySummary
 }
+
+
+const emptyCategoryBucket = (): AssertLoadedResolverProbeCategoryBucket => ({
+	total: 0,
+	resolveOk: 0,
+	resolveRejected: 0,
+	assertOk: 0,
+	fulfilledButAssertFailed: 0,
+})
+
+
+const emptyCategorySummary = (): AssertLoadedResolverProbeCategorySummary => (
+	Object.fromEntries(
+		assertLoadedResolverProbeCategories.map((category) => [
+			category,
+			emptyCategoryBucket(),
+		]),
+	) as AssertLoadedResolverProbeCategorySummary
+)
+
+
+const finalizeProbeCase = (
+	probeCase: Omit<AssertLoadedResolverProbeCase, 'category'>,
+): AssertLoadedResolverProbeCase => ({
+	...probeCase,
+	category: classifyAssertLoadedResolverProbeCase(probeCase),
+})
 
 
 const entityResolvePayloadEmptyForProbe = (
@@ -124,7 +161,18 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 
 	const entityCases = await Promise.all(
 		entityResolvers.map(async (resolver) => {
-			const entityId = await resolveProbeEntityId(resolver.entityType)
+			let entityId: Awaited<ReturnType<typeof resolveProbeEntityId>>
+			try {
+				entityId = await resolveProbeEntityId(resolver.entityType)
+			} catch (error) {
+				return finalizeProbeCase({
+					kind: 'entity',
+					key: `entity:${resolver.entityType}:${resolver.source}`,
+					resolveRejected: true,
+					resolveError: error instanceof Error ? error.message : String(error),
+					assertThrew: false,
+				})
+			}
 			const entityDef = entityDefinitionByType[resolver.entityType]
 			if (entityDef == null) {
 				throw new Error(`No entityDefinitionByType[${resolver.entityType}]`)
@@ -141,13 +189,14 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 						publicEnv: resolverPublicEnvBySource.get(resolver.source) ?? {},
 					},
 				)
-			} catch {
-				return ({
+			} catch (error) {
+				return finalizeProbeCase({
 					kind: 'entity',
 					key,
 					resolveRejected: true,
+					resolveError: error instanceof Error ? error.message : String(error),
 					assertThrew: false,
-				} satisfies AssertLoadedResolverProbeCase)
+				})
 			}
 
 			const emptyPayloadError = entityResolvePayloadEmptyForProbe(
@@ -156,13 +205,13 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 				resolver.source,
 			)
 			if (emptyPayloadError != null) {
-				return ({
+				return finalizeProbeCase({
 					kind: 'entity',
 					key,
 					resolveRejected: false,
 					assertThrew: true,
 					assertError: emptyPayloadError,
-				} satisfies AssertLoadedResolverProbeCase)
+				})
 			}
 
 			const row = {
@@ -181,21 +230,21 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 			try {
 				assertEntityResolverResult(entityDef, row)
 			} catch (error) {
-				return ({
+				return finalizeProbeCase({
 					kind: 'entity',
 					key,
 					resolveRejected: false,
 					assertThrew: true,
 					assertError: error instanceof Error ? error.message : String(error),
-				} satisfies AssertLoadedResolverProbeCase)
+				})
 			}
 
-			return ({
+			return finalizeProbeCase({
 				kind: 'entity',
 				key,
 				resolveRejected: false,
 				assertThrew: false,
-			} satisfies AssertLoadedResolverProbeCase)
+			})
 		}),
 	)
 
@@ -226,13 +275,14 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 						publicEnv: resolverPublicEnvBySource.get(fieldResolver.source) ?? {},
 					},
 				)
-			} catch {
-				return ({
+			} catch (error) {
+				return finalizeProbeCase({
 					kind: 'field',
 					key,
 					resolveRejected: true,
+					resolveError: error instanceof Error ? error.message : String(error),
 					assertThrew: false,
-				} satisfies AssertLoadedResolverProbeCase)
+				})
 			}
 
 			const emptyPayloadError = fieldResolvePayloadEmptyForProbe(
@@ -241,13 +291,13 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 				fieldResolver.source,
 			)
 			if (emptyPayloadError != null) {
-				return ({
+				return finalizeProbeCase({
 					kind: 'field',
 					key,
 					resolveRejected: false,
 					assertThrew: true,
 					assertError: emptyPayloadError,
-				} satisfies AssertLoadedResolverProbeCase)
+				})
 			}
 
 			const innerValues = (
@@ -284,13 +334,13 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 				}
 			}
 
-			return ({
+			return finalizeProbeCase({
 				kind: 'field',
 				key,
 				resolveRejected: false,
 				assertThrew,
 				assertError,
-			} satisfies AssertLoadedResolverProbeCase)
+			})
 		}),
 	)
 
@@ -299,9 +349,26 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 	const fulfilledButAssertFailed = cases.filter((c) => (
 		!c.resolveRejected
 		&& c.assertThrew
+		&& !isExpectedAssertLoadedResolverProbeFailure(c)
 	))
 	const assertOk = cases.filter((c) => !c.resolveRejected && !c.assertThrew).length
 	const resolveOk = cases.filter((c) => !c.resolveRejected).length
+
+	const categorySummary = emptyCategorySummary()
+	for (const probeCase of cases) {
+		const bucket = categorySummary[probeCase.category]
+		bucket.total += 1
+		if (probeCase.resolveRejected) {
+			bucket.resolveRejected += 1
+		} else {
+			bucket.resolveOk += 1
+			if (!probeCase.assertThrew) {
+				bucket.assertOk += 1
+			} else if (!isExpectedAssertLoadedResolverProbeFailure(probeCase)) {
+				bucket.fulfilledButAssertFailed += 1
+			}
+		}
+	}
 
 	return {
 		cases,
@@ -310,5 +377,6 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 		assertOk,
 		resolveOk,
 		fulfilledButAssertFailed,
+		categorySummary,
 	}
 }

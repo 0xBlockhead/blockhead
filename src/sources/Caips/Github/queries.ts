@@ -6,6 +6,7 @@ import {
 import Caips from '$/sources/Caips/index.ts'
 
 import { caipOfficialHumanBaseUrl, caipsGithubRepo } from './constants.ts'
+import type { CaipsGithubContents } from './types.ts'
 
 export const getCaipsGithubContentsUrl = () => (
 	getGithubRestRepoContentsUrl({
@@ -45,7 +46,7 @@ export const getCaipHumanDocUrl = ({ number }: { number: number }) => (
 	`${caipOfficialHumanBaseUrl}${number}`
 )
 
-export const getCaipsGithubContents = () => getJson({
+export const getCaipsGithubContents = (): Promise<CaipsGithubContents> => getJson({
 	url: getCaipsGithubContentsUrl(),
 	origins: Caips.origins ?? [],
 })

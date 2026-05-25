@@ -7,40 +7,34 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		open = $bindable(true),
 		collapsible = true,
 		title = 'Lens v3 profiles',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.LensAccount>
-			href: string
 			id: string
 			open?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -54,11 +48,10 @@
 
 <EntitiesList
 	entityType={EntityType.LensAccount}
-	{href}
 	{id}
 	bind:open
 	{title}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -69,7 +62,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const lensNetwork = useEntity(
 				entityFieldReference.entityType,
@@ -81,6 +74,7 @@
 						$: [
 							Source.Constants_Internal,
 							Source.Lens_Graphql,
+							Source.Lens_HeyGraphql,
 						],
 					},
 				},
@@ -98,12 +92,10 @@
 					showSummary={false}
 					entityType={EntityType.LensAccount}
 					id={`${id}-items`}
-					{href}
 					{title}
 					open={true}
 					getKey={(row) => stringify(row[EntityMetaKey.Id])}
 					getSortValue={(row) => row[EntityMetaKey.Id].address}
-					placeholderKeys={new SvelteSet()}
 					placeholderText="Loading Lens network…"
 					resource={accounts}
 				>
@@ -113,17 +105,12 @@
 						</p>
 					{/snippet}
 
-					{#snippet Item(props)}
-						{#if props.item}
-							<LensAccountView
-								entityId={{ address: props.item[EntityMetaKey.Id].address }}
-								href={resolve('/(social)/lens/account/[address]', {
-									address: props.item[EntityMetaKey.Id].address,
-								})}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/if}
+					{#snippet Item({ item })}
+						<LensAccountView
+							entityId={{ address: item[EntityMetaKey.Id].address }}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
 					{/snippet}
 				</EntitiesList>
 			{/key}

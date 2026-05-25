@@ -1,13 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
-	import { resolve } from '$app/paths'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,35 +8,39 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/erc-4337/account-factory/[address]',
+			{
+				networkId: String(entityId.$network.chainId),
+				address: entityId.address,
+			},
+		),
 		layout = EntityLayout.Summary,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 		title = 'ERC-4337 account factory',
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.Erc4337AccountFactory>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			open?: boolean
 			title?: string
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'layout'
-			| 'open'
-			| 'title'
-		>
+		never
 	> = $props()
 
 
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const accountFactory = useEntity(
 		EntityType.Erc4337AccountFactory,
 		entityId,
@@ -57,6 +54,9 @@
 
 
 	// Components
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
 
@@ -64,11 +64,11 @@
 <EntityView
 	entityType={EntityType.Erc4337AccountFactory}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
 	bind:open
 	{title}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
@@ -97,9 +97,9 @@
 			placeholderText="Loading account factory…"
 			resource={accountFactory}
 		>
-			{#snippet children(accountFactory)}
+			{#snippet children(loadedAccountFactory)}
 				<dl data-column-item="center">
-					{#if accountFactory.userOperationsCount !== undefined}
+					{#if loadedAccountFactory.userOperationsCount !== undefined}
 						<div>
 							<dt>User operations</dt>
 							<dd data-text="mono">{String(accountFactory.userOperationsCount)}</dd>
@@ -113,15 +113,8 @@
 									$network: entityId.$network,
 									address: entityId.address,
 								}}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-									{
-										networkId: String(entityId.$network.chainId),
-										address: entityId.address,
-									},
-								)}
-								layout={EntityLayout.Title}
-								open={false}
+								layout={EntityLayout.SummaryDetails}
+								open={true}
 								showTypeAnnotation={false}
 							/>
 						</dd>

@@ -1,5 +1,5 @@
 /**
- * Wire types for `GET https://chainlist.org/rpcs.json` (array of chains).
+ * Types for `GET https://chainlist.org/rpcs.json` (array of chains).
  * @see https://chainlist.org/rpcs.json
  */
 
@@ -51,4 +51,26 @@ export type ChainlistRpcsJsonChain = {
 	redFlags?: string[]
 	isTestnet?: boolean
 	testnet?: boolean
+}
+
+/** Subset of `ChainlistRpcsJsonChain` used for mainnet/testnet pairing in resolvers. */
+export type ChainlistChainPairing = Pick<
+	ChainlistRpcsJsonChain,
+	| 'chainId'
+	| 'name'
+	| 'title'
+	| 'shortName'
+	| 'chainSlug'
+	| 'parent'
+	| 'nativeCurrency'
+	| 'isTestnet'
+	| 'testnet'
+>
+
+/** Explorer row (+ optional `infoURL`) normalized into `Url` catalog entities. */
+export type ChainlistExplorerLike = {
+	name: string
+	url: string
+	standard?: string | null
+	icon?: string | null
 }

@@ -1,3 +1,4 @@
+import { type as arktype } from 'arktype'
 
 import {
 	type SourceProviderDefinition,
@@ -13,6 +14,9 @@ import DefillamaRestSource from '$/sources/Defillama/Rest/index.ts'
 export default {
 	provider: SourceProvider.Defillama,
 	label: 'Defillama',
+	env: arktype({
+		PUBLIC_DEFILLAMA_PRO_API_KEY: 'string > 0?',
+	}),
 	origins: [
 		{
 			origin: coinsOrigin,

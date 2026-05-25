@@ -8,13 +8,32 @@ import type {
 	SwarmResourceAddress,
 } from '$/sources/Swarm/Rest/types.ts'
 
-const swarmBrowseUriPattern = regex('^bzz://(?<reference>[^/?#]+)(?<contentPath>/[^?#]*)?(?:[?#].*)?$', 'i')
+const swarmBrowseUriPattern = regex('^(?:bzz|swarm)://(?<reference>[^/?#]+)(?<contentPath>/[^?#]*)?(?:[?#].*)?$', 'i')
 const swarmBrowseGatewayPattern = regex('^https?://[^/]+/bzz/(?<reference>[^/?#]+)(?<contentPath>/[^?#]*)?(?:[?#].*)?$', 'i')
-const gatewayUrlLastSegment = regex('(?<fileName>[^/]+)$')
+
+const stripHexPrefix = (value: string) => (
+	value.toLowerCase().startsWith('0x') ?
+		value.slice(2)
+	:
+		value
+)
 
 const trimSlashes = (value: string) => (
 	value.replace(/^\/+|\/+$/g, '')
 )
+
+export const normalizeSwarmReference = (reference: string) => {
+	const trimmed = reference.trim()
+	const withoutScheme = (
+		trimmed.toLowerCase().startsWith('bzz://') ?
+			trimmed.slice('bzz://'.length)
+		: trimmed.toLowerCase().startsWith('swarm://') ?
+			trimmed.slice('swarm://'.length)
+		:
+			trimmed
+	)
+	return stripHexPrefix(trimSlashes(withoutScheme))
+}
 
 const splitRawTarget = (value: string): ParsedSwarmBrowseInput => {
 	const trimmed = trimSlashes(value)
@@ -38,7 +57,7 @@ export const parseSwarmBrowseInput = (value: string): ParsedSwarmBrowseInput => 
 	const uriMatch = swarmBrowseUriPattern.exec(trimmedValue)
 	if (uriMatch?.groups?.reference != null) {
 		return {
-			reference: trimSlashes(uriMatch.groups.reference),
+			reference: normalizeSwarmReference(uriMatch.groups.reference),
 			contentPath: trimSlashes(uriMatch.groups.contentPath ?? ''),
 		}
 	}
@@ -46,27 +65,40 @@ export const parseSwarmBrowseInput = (value: string): ParsedSwarmBrowseInput => 
 	const gatewayMatch = swarmBrowseGatewayPattern.exec(trimmedValue)
 	if (gatewayMatch?.groups?.reference != null) {
 		return {
-			reference: trimSlashes(gatewayMatch.groups.reference),
+			reference: normalizeSwarmReference(gatewayMatch.groups.reference),
 			contentPath: trimSlashes(gatewayMatch.groups.contentPath ?? ''),
 		}
 	}
 
-	return splitRawTarget(trimmedValue)
+	const split = splitRawTarget(normalizeSwarmReference(trimmedValue))
+
+	return {
+		reference: split.reference,
+		contentPath: trimSlashes(split.contentPath),
+	}
 }
 
 export const swarmResourceCanonicalUri = ({
 	reference,
 	contentPath,
-}: SwarmResourceAddress) => (
-	`bzz://${trimSlashes(reference)}${trimSlashes(contentPath) === '' ? '' : `/${trimSlashes(contentPath)}`}`
-)
+}: SwarmResourceAddress) => {
+	const normalizedReference = normalizeSwarmReference(reference)
+	const normalizedPath = trimSlashes(contentPath)
+	return (
+		`bzz://${normalizedReference}${normalizedPath === '' ? '' : `/${normalizedPath}`}`
+	)
+}
 
 export const swarmResourceHref = ({
 	reference,
 	contentPath,
-}: SwarmResourceAddress) => (
-	`/swarm/${encodeURIComponent(trimSlashes(reference))}${trimSlashes(contentPath) === '' ? '' : `/path/${trimSlashes(contentPath).split('/').map(encodeURIComponent).join('/')}`}`
-)
+}: SwarmResourceAddress) => {
+	const normalizedReference = normalizeSwarmReference(reference)
+	const normalizedPath = trimSlashes(contentPath)
+	return (
+		`/swarm/${encodeURIComponent(normalizedReference)}${normalizedPath === '' ? '' : `/path/${normalizedPath.split('/').map(encodeURIComponent).join('/')}`}`
+	)
+}
 
 export const swarmResourceAddressFromInput = ({
 	targetInput,
@@ -76,7 +108,7 @@ export const swarmResourceAddressFromInput = ({
 	contentPathInput?: string
 }): SwarmResourceAddress | undefined => {
 	const parsedTarget = parseSwarmBrowseInput(targetInput)
-	const reference = trimSlashes(parsedTarget.reference)
+	const reference = normalizeSwarmReference(parsedTarget.reference)
 	if (reference === '') return undefined
 
 	const contentPath = trimSlashes(
@@ -99,7 +131,7 @@ export const swarmResourceAddressFromRouteParams = ({
 	reference: string | null | undefined
 	contentPath?: string | null | undefined
 }): SwarmResourceAddress | undefined => {
-	const parsedReference = trimSlashes(reference ?? '')
+	const parsedReference = normalizeSwarmReference(reference ?? '')
 	if (parsedReference === '') return undefined
 
 	return {
@@ -117,7 +149,7 @@ export const swarmGatewayUrl = ({
 	contentPath?: string
 	gatewayOrigin: string
 }): string => {
-	const trimmedReference = trimSlashes(reference.trim())
+	const trimmedReference = normalizeSwarmReference(reference)
 	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
 	return `${gatewayOrigin}/bzz/${trimmedReference}${trimmedPath ? `/${trimmedPath}` : ''}`
 }
@@ -131,7 +163,7 @@ export const fetchSwarmBrowseResult = async ({
 	contentPath?: string
 	signal?: AbortSignal
 }): Promise<SwarmBrowseResult> => {
-	const trimmedReference = trimSlashes(reference.trim())
+	const trimmedReference = normalizeSwarmReference(reference)
 	const trimmedPath = trimSlashes(contentPath?.trim() ?? '')
 	const failures: string[] = []
 
@@ -160,7 +192,12 @@ export const fetchSwarmBrowseResult = async ({
 		const { parseIpfsContentResponse } = await import('$/lib/contentType.ts')
 		const parsedContent = await parseIpfsContentResponse({
 			response,
-			fileName: gatewayUrlLastSegment.exec(gatewayUrl)?.groups?.fileName,
+			fileName: (
+				trimmedPath !== '' ?
+					trimmedPath.split('/').at(-1)
+				:
+					undefined
+			),
 		})
 
 		return {

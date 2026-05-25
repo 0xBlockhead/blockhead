@@ -3,7 +3,6 @@
  * on [chainid.network](https://chainid.network).
  */
 import { getJson } from '$/lib/http.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import EthereumLists from '$/sources/EthereumLists/index.ts'
 import {
 	chainsJsonPath,
@@ -22,14 +21,13 @@ type GithubTreeResponse = {
 	}[]
 }
 
-const fetchChainsJsonOnce = async (): Promise<EthereumListsChainJson[]> => {
+export const fetchChainsJson = async (): Promise<EthereumListsChainJson[]> => {
 	const url = `${origin}${chainsJsonPath}`
 	return getJson<EthereumListsChainJson[]>(url, { origins: EthereumLists.origins })
 }
 
-export const fetchChainsJson = singleFlight(fetchChainsJsonOnce)
 
-const fetchIconSlugsOnce = async (): Promise<Set<string>> => {
+export const fetchIconSlugs = async (): Promise<Set<string>> => {
 	const result = await getJson<GithubTreeResponse>(
 		`${githubApiOrigin}/repos/ethereum-lists/chains/git/trees/master?recursive=1`,
 		{ origins: EthereumLists.origins },
@@ -45,9 +43,8 @@ const fetchIconSlugsOnce = async (): Promise<Set<string>> => {
 	)
 }
 
-export const fetchIconSlugs = singleFlight(fetchIconSlugsOnce)
 
-export const fetchIconJsonBySlug = singleFlight(async (
+export const fetchIconJsonBySlug = async (
 	slug: string,
 ): Promise<EthereumListsIconJson | undefined> => {
 	const trimmed = slug.trim()
@@ -57,4 +54,4 @@ export const fetchIconJsonBySlug = singleFlight(async (
 		`${origin}/icons/${encodeURIComponent(trimmed)}.json`,
 		{ origins: EthereumLists.origins },
 	)
-})
+}

@@ -8,11 +8,21 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
-		children: _children,
 		entityId,
-		href,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]/compilation/[compilationId]',
+			{
+				networkId: String(entityId.$network.chainId),
+				address: entityId.$contract.address,
+				compilationId: entityId.compilationId,
+			},
+		),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -22,32 +32,21 @@
 			layout === EntityLayout.SummaryDetails,
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmContractCompilation>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
-		>
+		never
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const compilation = useEntity(
 		EntityType.EvmContractCompilation,
@@ -80,12 +79,11 @@
 <EntityView
 	entityType={EntityType.EvmContractCompilation}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
-	{summaryUsesHeading}
 	bind:open
 	{collapsible}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		Compilation run
@@ -100,10 +98,10 @@
 			resource={compilation}
 			placeholderText="Loading compilation…"
 		>
-			{#snippet children(compilation)}
-				{compilation.fullyQualifiedName
-					?? compilation.name
-					?? compilation.language
+			{#snippet children(loadedCompilation)}
+				{loadedCompilation.fullyQualifiedName
+					?? loadedCompilation.name
+					?? loadedCompilation.language
 					?? 'Compilation'}
 			{/snippet}
 		</ResourceBoundary>
@@ -130,9 +128,9 @@
 							resource={compilation}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(compilation)}
-								{#if compilation.language}
-									{compilation.language}
+							{#snippet children(loadedCompilation)}
+								{#if loadedCompilation.language}
+									{loadedCompilation.language}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -145,9 +143,9 @@
 							resource={compilation}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(compilation)}
-								{#if compilation.compiler}
-									{compilation.compiler}
+							{#snippet children(loadedCompilation)}
+								{#if loadedCompilation.compiler}
+									{loadedCompilation.compiler}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -160,9 +158,9 @@
 							resource={compilation}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(compilation)}
-								{#if compilation.compilerVersion}
-									{compilation.compilerVersion}
+							{#snippet children(loadedCompilation)}
+								{#if loadedCompilation.compilerVersion}
+									{loadedCompilation.compilerVersion}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -175,9 +173,9 @@
 							resource={compilation}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(compilation)}
-								{#if compilation.fullyQualifiedName}
-									<code>{compilation.fullyQualifiedName}</code>
+							{#snippet children(loadedCompilation)}
+								{#if loadedCompilation.fullyQualifiedName}
+									<code>{loadedCompilation.fullyQualifiedName}</code>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -190,10 +188,10 @@
 							resource={compilation}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(compilation)}
-								{#if compilation.compilerSettingsJson}
+							{#snippet children(loadedCompilation)}
+								{#if loadedCompilation.compilerSettingsJson}
 									<TruncatedValue
-										value={compilation.compilerSettingsJson}
+										value={loadedCompilation.compilerSettingsJson}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -208,10 +206,10 @@
 							resource={compilation}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(compilation)}
-								{#if compilation.storageLayoutJson}
+							{#snippet children(loadedCompilation)}
+								{#if loadedCompilation.storageLayoutJson}
 									<TruncatedValue
-										value={compilation.storageLayoutJson}
+										value={loadedCompilation.storageLayoutJson}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -223,16 +221,10 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.EvmContractCompilation}
 			{entityId}
 		/>
-
-		{#if _children}
-			<section>
-				{@render _children()}
-			</section>
-		{/if}
 	{/snippet}
 </EntityView>

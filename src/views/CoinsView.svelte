@@ -3,7 +3,6 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import type { DeclarativeOrderBy } from '$/lib/tanstackDb/orderBySteps.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { CoinId } from '$/constants/Coin.ts'
 	import { catalogCoinIdentitySources } from '$/constants/Market.ts'
@@ -12,6 +11,9 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { enabledSources } from '$/sources/index.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
@@ -30,8 +32,7 @@
 		open = $bindable(true),
 		collapsible = true,
 		entityFieldReference,
-		href,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			id?: string
@@ -42,27 +43,21 @@
 			deploymentsOpen?: boolean
 			title?: string
 			open?: boolean
-			href: string
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Coin>
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'entityType'
-			| 'getKey'
-			| 'getSortValue'
-			| 'items'
-			| 'resource'
-			| 'Item'
-			| 'body'
+			| 'href'
 		>
 	> = $props()
 
 
+	// Functions
 	const globalCoinsFieldOrderBy = (
 		[
 			[
-				({ fieldRow }) => (
-					(fieldRow[EntityMetaKey.Value] as { marketCapRank?: number }).marketCapRank
+				({ field }) => (
+					(field[EntityMetaKey.Value] as { marketCapRank?: number }).marketCapRank
 				),
 				{
 					direction: 'asc',
@@ -70,8 +65,8 @@
 				},
 			],
 			[
-				({ fieldRow }) => (
-					(fieldRow[EntityMetaKey.Value] as { marketCapUsd?: number }).marketCapUsd
+				({ field }) => (
+					(field[EntityMetaKey.Value] as { marketCapUsd?: number }).marketCapUsd
 				),
 				{
 					direction: 'desc',
@@ -79,27 +74,23 @@
 				},
 			],
 			[
-				({ fieldRow }) => (
-					(fieldRow[EntityMetaKey.Value] as { [EntityMetaKey.IdKey]: string })[EntityMetaKey.IdKey]
+				({ field }) => (
+					(field[EntityMetaKey.Value] as { [EntityMetaKey.IdKey]: string })[EntityMetaKey.IdKey]
 				),
 				'asc',
 			],
-		] as const satisfies DeclarativeOrderBy<{ fieldRow: unknown }>
+		] as const satisfies DeclarativeOrderBy<{ field: unknown }>
 	)
-
-
-	// State
-	import { stringify } from 'devalue'
-
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	const fieldName = entityFieldReference.fieldName
 
 	const catalogCoinSources = (
 		[...catalogCoinIdentitySources].filter((source) => enabledSources.has(source))
 	)
+
+
+	// State
+	import type { DeclarativeOrderBy } from '$/lib/tanstackDb/orderBySteps.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
 	// Components
@@ -107,7 +98,6 @@
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Heading from '$/components/Heading.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import UnorderedList from '$/components/UnorderedList.svelte'
@@ -124,14 +114,13 @@
 	class="coins-view-carousel-groups entity-view-detail-carousels"
 	data-column="gap-3"
 >
-	<EntitiesList
-		{...entitiesListRest}
-		bind:open
-		entityType={EntityType.Coin}
-		{href}
-		id={`${id}-catalog`}
-		{title}
-	>
+				<EntitiesList
+					{...EntitiesListProps}
+					bind:open
+					entityType={EntityType.Coin}
+	id={`${id}-catalog`}
+					{title}
+				>
 		{#snippet TypeAnnotationTooltip()}
 			<p>
 				A logical asset id groups tickers, branding, and metadata that may span many chains.
@@ -140,14 +129,14 @@
 				Spot prices, OHLC candles, venue markets, and on-chain token contracts are different projections of that same asset—not interchangeable tables.
 			</p>
 		{/snippet}
-		{#snippet body()}
+		{#snippet body({ open: _bodyOpen })}
 			{#if open}
 				{@const parent = useEntity(
 					entityFieldReference.entityType,
 					entityFieldReference.entityId,
 					{
 						$: catalogCoinSources,
-						[fieldName]: {
+						[entityFieldReference.fieldName]: {
 							$: catalogCoinSources,
 							$orderBy: globalCoinsFieldOrderBy,
 							$limit: Math.max(limit, 250),
@@ -157,7 +146,7 @@
 				{@const coins = derive(
 					parent,
 					(parent): Entity<typeof schema, EntityType.Coin>[] => {
-						const list = parent[fieldName]
+						const list = parent[entityFieldReference.fieldName]
 						const rows = (
 							list == null ?
 								[]
@@ -221,20 +210,15 @@
 						{/snippet}
 
 						{#snippet Item({
-							item: row,
+							item: coin,
 						})}
-							{#if row}
-								{@const entityId = row[EntityMetaKey.Id]}
-								<CoinView
-									entityId={entityId}
-									href={resolve('/(assets)/(coins)/coin/[coinId]', {
-										coinId: entityId.coinId,
-									})}
-									id={stringify(entityId)}
-									layout={EntityLayout.Summary}
-									open={false}
-								/>
-							{/if}
+							{@const entityId = coin[EntityMetaKey.Id]}
+							<CoinView
+								entityId={entityId}
+								id={stringify(entityId)}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
 						{/snippet}
 						</UnorderedList>
 					{/snippet}
@@ -273,7 +257,7 @@
 				>Spot quote index</a>
 			{/snippet}
 
-			{#snippet body(_childrenContext)}
+			{#snippet body({ open: _bodyOpen })}
 				<p data-text="muted">
 					<a href={resolve('/coins/prices')}>Spot quote index</a>
 					— point-in-time spot and index readings (not venue order books).
@@ -282,13 +266,13 @@
 					data-scroll-marker-label="Spot quote index"
 				>
 					<MarketPricesView
+						href={resolve('/markets')}
 						collapsible={false}
 						entityFieldReference={{
 							entityType: EntityType._Global,
 							entityId: {},
 							fieldName: '$$marketPrices',
 						}}
-						href={resolve('/coins/prices')}
 						id={`${id}:prices-spot`}
 						open
 						title="Spot quote index"
@@ -327,7 +311,7 @@
 				>Candle index</a>
 			{/snippet}
 
-			{#snippet body(_childrenContext)}
+			{#snippet body({ open: _bodyOpen })}
 				<div data-row="wrap align-center gap-2">
 					<a href={resolve('/coins/candles')}>
 						OHLC candles
@@ -393,7 +377,7 @@
 				>Market index</a>
 			{/snippet}
 
-			{#snippet body(_childrenContext)}
+			{#snippet body({ open: _bodyOpen })}
 				<div data-row="wrap align-center gap-2">
 					<a href={resolve('/markets')}>
 						All markets
@@ -423,13 +407,13 @@
 				</div>
 				<section data-scroll-marker-label="Market index">
 					<MarketsView
+						href={resolve('/markets')}
 						collapsible={false}
 						entityFieldReference={{
 							entityType: EntityType._Global,
 							entityId: {},
 							fieldName: '$$markets',
 						}}
-						href={resolve('/markets')}
 						id={`${id}:markets-index`}
 						open
 						title="Market index"
@@ -468,7 +452,7 @@
 			>Sample</a>
 		{/snippet}
 
-		{#snippet body(_childrenContext)}
+		{#snippet body({ open: _bodyOpen })}
 			<p data-text="muted">
 				Per-chain deployments are listed on each
 				<a href={resolve('/coin/ETH')}>coin detail</a>
@@ -477,13 +461,13 @@
 			</p>
 			<section data-scroll-marker-label="Sample deployments">
 				<CoinInstancesView
+					href={resolve('/coins')}
 					collapsible={false}
 					entityFieldReference={{
 						entityType: EntityType.Coin,
 						entityId: { coinId: CoinId.ETH },
 						fieldName: '$$coinInstances',
 					}}
-					href={resolve('/coin/ETH')}
 					id={`${id}:deployments-eth`}
 					open={deploymentsOpen}
 					title="Ethereum (ETH)"

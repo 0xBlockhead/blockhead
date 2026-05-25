@@ -1,11 +1,11 @@
 import { jsonRpc } from '$/sources/Evm/JsonRpc/client.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
-	RpcBlockHeaderWire,
-	RpcFeeHistoryWire,
-	RpcReceiptWire,
-	RpcTxpoolStatusWire,
-	RpcTxWire,
+	RpcBlockHeader,
+	RpcFeeHistory,
+	RpcReceipt,
+	RpcTxpoolStatus,
+	RpcTransaction,
 } from '$/sources/Evm/JsonRpc/types.ts'
 
 const blockParam = (blockNumber: bigint | 'latest') => (
@@ -44,7 +44,7 @@ export const ethGetBlockByNumber = ({
 	blockNumber: bigint | 'latest'
 	txObjects: boolean
 }) => (
-	jsonRpc<RpcBlockHeaderWire | null>({
+	jsonRpc<RpcBlockHeader | null>({
 		rpcUrl,
 		method: 'eth_getBlockByNumber',
 		params: [blockParam(blockNumber), txObjects],
@@ -58,7 +58,7 @@ export const ethGetTransactionByHash = ({
 	rpcUrl: string
 	txHash: `0x${string}`
 }) => (
-	jsonRpc<RpcTxWire | null>({
+	jsonRpc<RpcTransaction | null>({
 		rpcUrl,
 		method: 'eth_getTransactionByHash',
 		params: [txHash],
@@ -72,7 +72,7 @@ export const ethGetTransactionReceipt = ({
 	rpcUrl: string
 	txHash: `0x${string}`
 }) => (
-	jsonRpc<RpcReceiptWire | null>({
+	jsonRpc<RpcReceipt | null>({
 		rpcUrl,
 		method: 'eth_getTransactionReceipt',
 		params: [txHash],
@@ -98,7 +98,7 @@ export const ethFeeHistory = ({
 	newestBlock: bigint | 'latest'
 	rewardPercentiles?: readonly number[]
 }) => (
-	jsonRpc<RpcFeeHistoryWire>({
+	jsonRpc<RpcFeeHistory>({
 		rpcUrl,
 		method: 'eth_feeHistory',
 		params: [
@@ -189,7 +189,7 @@ export const ethCall = ({
 
 /** Geth-compatible txpool inspection — often disabled on public RPCs. */
 export const txpoolStatus = ({ rpcUrl }: { rpcUrl: string }) => (
-	jsonRpc<RpcTxpoolStatusWire>({
+	jsonRpc<RpcTxpoolStatus>({
 		rpcUrl,
 		method: 'txpool_status',
 		params: [],

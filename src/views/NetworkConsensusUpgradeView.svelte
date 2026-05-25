@@ -6,41 +6,44 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
+	import { consensusProtocols } from '$/constants/Network.ts'
 	import { stringify } from 'devalue'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(upgrades)/upgrade/[upgradeSlug]',
+			{
+				networkId: String(entityId.$network.chainId),
+				upgradeSlug: entityId.upgradeId,
+			},
+		),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.NetworkConsensusUpgrade>
 			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Content'
-			| 'Details'
-			| 'Heading'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const networkConsensusUpgrade = useEntity(
 		EntityType.NetworkConsensusUpgrade,
 		entityId,
@@ -52,6 +55,16 @@
 			slug: {},
 			...(open && {
 				protocol: {},
+				previousForkVersion: {
+					$: [
+						Source.Beacon_Rest,
+					],
+				},
+				currentForkVersion: {
+					$: [
+						Source.Beacon_Rest,
+					],
+				},
 			}),
 		},
 	)
@@ -61,6 +74,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import ProposalsView from '$/views/ProposalsView.svelte'
 </script>
 
@@ -68,11 +82,10 @@
 <EntityView
 	entityType={EntityType.NetworkConsensusUpgrade}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
 	title={`Consensus upgrade ${entityId.upgradeId}`}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -89,8 +102,8 @@
 			resource={networkConsensusUpgrade}
 			placeholderText="Loading consensus upgrade…"
 		>
-			{#snippet children(networkConsensusUpgrade)}
-				{networkConsensusUpgrade.name ?? entityId.upgradeId}
+			{#snippet children(loadedNetworkConsensusUpgrade)}
+				{loadedNetworkConsensusUpgrade.name ?? entityId.upgradeId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -101,33 +114,70 @@
 		open: contentOpen,
 	})}
 		<dl data-column-item="center">
-			{#if contentOpen}
-				{#if networkConsensusUpgrade.protocol !== undefined}
-					<div>
-						<dt>Consensus fork</dt>
-						<dd>
-							<ResourceBoundary
-								resource={networkConsensusUpgrade}
-								placeholderText="Loading consensus upgrade…"
-							>
-								{#snippet children(networkConsensusUpgrade)}
-									{networkConsensusUpgrade.protocol}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				contentOpen
+				&& networkConsensusUpgrade.protocol !== undefined
+			)}
+				<div>
+					<dt>Consensus fork</dt>
+					<dd>
+						<ResourceBoundary
+							resource={networkConsensusUpgrade}
+							placeholderText="Loading consensus upgrade…"
+						>
+							{#snippet children(loadedNetworkConsensusUpgrade)}
+								{consensusProtocols[loadedNetworkConsensusUpgrade.protocol].label}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if contentOpen && loadedNetworkConsensusUpgrade.previousForkVersion !== undefined}
+				<div>
+					<dt>Previous fork version</dt>
+					<dd>
+						<ResourceBoundary
+							resource={networkConsensusUpgrade}
+							placeholderText="Loading consensus upgrade…"
+						>
+							{#snippet children(loadedNetworkConsensusUpgrade)}
+								<TruncatedValue
+									format={TruncatedValueFormat.Abbr}
+									value={loadedNetworkConsensusUpgrade.previousForkVersion}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if contentOpen && loadedNetworkConsensusUpgrade.currentForkVersion !== undefined}
+				<div>
+					<dt>Current fork version</dt>
+					<dd>
+						<ResourceBoundary
+							resource={networkConsensusUpgrade}
+							placeholderText="Loading consensus upgrade…"
+						>
+							{#snippet children(loadedNetworkConsensusUpgrade)}
+								<TruncatedValue
+									format={TruncatedValueFormat.Abbr}
+									value={loadedNetworkConsensusUpgrade.currentForkVersion}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 		</dl>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.NetworkConsensusUpgrade}
 			{entityId}
 		/>
-
 		<ProposalsView
+			href={resolve('/proposals')}
 			entityFieldReference={{
 				entityType: EntityType.NetworkConsensusUpgrade,
 				entityId,
@@ -137,9 +187,5 @@
 			open={false}
 			title="Specification proposals"
 		/>
-
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>

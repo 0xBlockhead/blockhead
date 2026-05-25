@@ -1,6 +1,6 @@
 import { zeroExLowerCase } from '$/lib/hexLowerOfByteSize.ts'
 import { sourcifyGetJsonOrNull } from '$/sources/Sourcify/Rest/client.ts'
-import type { SourcifyContractLookupWire } from '$/sources/Sourcify/Rest/types.ts'
+import type { SourcifyContractLookup } from '$/sources/Sourcify/Rest/types.ts'
 
 const sourcifyContractLookupFields = 'abi,compilation,deployment,metadata,sources,storageLayout,proxyResolution'
 
@@ -20,8 +20,8 @@ export const getSourcifyContractLookup = async ({
 }: {
 	chainId: number
 	address: `0x${string}`
-}): Promise<SourcifyContractLookupWire | null> => {
-	const json = await sourcifyGetJsonOrNull<SourcifyContractLookupWire>({
+}): Promise<SourcifyContractLookup | null> => {
+	const json = await sourcifyGetJsonOrNull<SourcifyContractLookup>({
 		path: sourcifyContractLookupPath({
 			chainId,
 			address: zeroExLowerCase(address),

@@ -5,7 +5,7 @@
  * @see https://docs.farcaster.xyz/reference/farcaster/api#get-user-primary-address
  */
 
-export type FarcasterChannelWire = {
+export type FarcasterChannel = {
 	id: string
 	url: string
 	name: string
@@ -34,32 +34,32 @@ export type FarcasterPage<Result> = {
 }
 
 export type FarcasterChannelsResponse = FarcasterPage<{
-	channels?: FarcasterChannelWire[]
+	channels?: FarcasterChannel[]
 }>
 
 export type FarcasterChannelResponse = FarcasterPage<{
-	channel?: FarcasterChannelWire
+	channel?: FarcasterChannel
 }>
 
-export type FarcasterPrimaryAddressWire = {
+export type FarcasterPrimaryAddress = {
 	fid?: number
 	protocol?: 'ethereum' | 'solana'
 	address?: string
 }
 
 export type FarcasterPrimaryAddressResponse = FarcasterPage<{
-	address?: FarcasterPrimaryAddressWire
+	address?: FarcasterPrimaryAddress
 }>
 
-export type FarcasterThreadCastAuthorWire = {
+export type FarcasterThreadCastAuthor = {
 	fid?: number
 	username?: string
 }
 
-export type FarcasterThreadCastWire = {
+export type FarcasterThreadCast = {
 	hash?: string
 	threadHash?: string
-	author?: FarcasterThreadCastAuthorWire
+	author?: FarcasterThreadCastAuthor
 	text?: string
 	timestamp?: number
 	replies?: {
@@ -76,6 +76,6 @@ export type FarcasterThreadCastWire = {
 
 export type FarcasterUserThreadCastsResponse = {
 	result?: {
-		casts?: FarcasterThreadCastWire[]
+		casts?: FarcasterThreadCast[]
 	}
 }

@@ -4,6 +4,10 @@ import {
 } from '@ensdomains/content-hash'
 
 import { ipfsResourceAddressFromInput, ipfsResourceHref } from '$/lib/ipfs.ts'
+import {
+	swarmResourceAddressFromInput,
+	swarmResourceHref,
+} from '$/sources/Swarm/Rest/queries.ts'
 
 
 export type EnsDecodedContentHash = {
@@ -59,7 +63,8 @@ export const ensContentHashBrowseHrefFromCanonicalUri = (canonicalUri: string) =
 		trimmed.startsWith('bzz://')
 		|| trimmed.startsWith('swarm://')
 	) {
-		return '/swarm'
+		const address = swarmResourceAddressFromInput({ targetInput: trimmed })
+		return address == null ? undefined : swarmResourceHref(address)
 	}
 
 	return undefined

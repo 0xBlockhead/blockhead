@@ -66,12 +66,68 @@ export default {
 			],
 		},
 		{
+			name: 'mastodonInstanceTitle',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Mastodon_Rest,
+			],
+		},
+		{
+			name: 'mastodonInstanceDescription',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Mastodon_Rest,
+			],
+		},
+		{
+			name: 'mastodonInstanceVersion',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Mastodon_Rest,
+			],
+		},
+		{
+			name: 'fediInstanceTitle',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Fedi_Rest,
+			],
+		},
+		{
+			name: 'fediInstanceDescription',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Fedi_Rest,
+			],
+		},
+		{
+			name: 'fediInstanceVersion',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Fedi_Rest,
+			],
+		},
+		{
 			name: '$$activityPubActors',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.ActivityPubActor,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.Constants_Internal,
+				Source.Mastodon_Rest,
+				Source.Fedi_Rest,
 			],
 		},
 		{
@@ -80,7 +136,8 @@ export default {
 			entityType: EntityType.ActivityPubNote,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
-				Source.Constants_Internal,
+				Source.Mastodon_Rest,
+				Source.Fedi_Rest,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

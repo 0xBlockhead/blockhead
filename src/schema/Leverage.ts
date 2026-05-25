@@ -1,4 +1,8 @@
 import { type } from 'arktype'
+
+// Concentrated-liquidity LP position accounting (Uniswap v3 NonfungiblePositionManager-style).
+// “Leverage” here is not CEX margin, borrow APR, or liquidation—see LeverageView copy.
+// Requires an execution RPC or subgraph resolver; same field shape as LiquidityPosition.
 import {
 	EntityFieldType,
 	EntityFieldCardinality,

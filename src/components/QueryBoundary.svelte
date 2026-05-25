@@ -17,8 +17,8 @@
 	// Props
 	let {
 		children,
-		Pending: _Pending,
-		Failed: _Failed,
+		Pending,
+		Failed,
 		placeholderText = 'Loading…',
 		query,
 		boundaryKey = 'QueryBoundary',
@@ -50,8 +50,8 @@
 		data-error={boundaryKey}
 		role="alert"
 	>
-		{#if _Failed}
-			{@render _Failed(err, () => {})}
+		{#if Failed}
+			{@render Failed(err, () => {})}
 		{:else if layout === Layout.Inline}
 			<span
 				data-badge
@@ -67,8 +67,8 @@
 		{/if}
 	</div>
 {:else if query.isLoading}
-	{#if _Pending}
-		{@render _Pending()}
+	{#if Pending}
+		{@render Pending()}
 	{:else if layout === Layout.Inline}
 		<span
 			data-badge

@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+// Directed transfer within a channel turn; not wired to Local catalog or resolvers yet.
 import {
 	EntityFieldType,
 	EntityFieldCardinality,

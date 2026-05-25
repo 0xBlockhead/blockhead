@@ -1,9 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { quintOut } from 'svelte/easing'
 	import { Tween, prefersReducedMotion } from 'svelte/motion'
-
-	import { formatValue } from '$/lib/number.ts'
 
 
 	// Props
@@ -22,72 +19,6 @@
 		tweenDuration?: number
 		formatValueOptions?: NonNullable<Parameters<typeof formatValue>[1]>
 	} = $props()
-
-
-	// State
-	const dPad = $derived(
-		formatValueOptions?.showDecimalPlaces
-			?? options.maximumFractionDigits
-			?? options.minimumFractionDigits
-			?? 0
-	)
-
-	let isFirstTweenSet = $state(
-		true,
-	)
-
-	const tweenedNumber = new Tween(0, {
-		duration: 0,
-		easing: quintOut,
-		interpolate: (from, to) => (step) => {
-			const dec = dPad
-			const logFrom = (from != 0 ? Math.log10(from) : -dec - 1)
-			const interpolated = (
-				10
-				** (
-					logFrom
-					+ step * (
-						(to != 0 ? Math.log10(to) : -dec - 1)
-						- logFrom
-					)
-				)
-			)
-			return (
-				to >= 100 && step < 0.9994
-					? (from < to ? Math.floor(interpolated) : Math.ceil(interpolated))
-				: interpolated
-			)
-		},
-	})
-
-	const displayNumber = $derived(
-		tween ?
-			tweenedNumber.current
-		:
-			(Number(value) || 0)
-	)
-
-	$effect(() => {
-		if (!tween) {
-			return
-		}
-		const instant = (
-			prefersReducedMotion.current
-			|| isFirstTweenSet
-		)
-		void tweenedNumber.set(
-			Number(value) || 0,
-			{
-				duration: (instant
-					? 0
-					: tweenDuration),
-				delay: (instant
-					? 0
-					: 1),
-			},
-		)
-		isFirstTweenSet = false
-	})
 
 
 	// Functions
@@ -121,6 +52,80 @@
 				)),
 		]
 	}
+
+
+	// State
+	import { formatValue } from '$/lib/number.ts'
+
+	let isFirstTweenSet = $state(
+		true,
+	)
+
+	const tweenedNumber = new Tween(0, {
+		duration: 0,
+		easing: quintOut,
+		interpolate: (from, to) => (step) => {
+			const dec = dPad
+			const logFrom = (from != 0 ? Math.log10(from) : -dec - 1)
+			const interpolated = (
+				10
+				** (
+					logFrom
+					+ step * (
+						(to != 0 ? Math.log10(to) : -dec - 1)
+						- logFrom
+					)
+				)
+			)
+			return (
+				to >= 100 && step < 0.9994
+					? (from < to ? Math.floor(interpolated) : Math.ceil(interpolated))
+				: interpolated
+			)
+		},
+	})
+
+
+	// (Derived)
+	const dPad = $derived(
+		formatValueOptions?.showDecimalPlaces
+			?? options.maximumFractionDigits
+			?? options.minimumFractionDigits
+			?? 0
+	)
+
+	const displayNumber = $derived(
+		tween ?
+			tweenedNumber.current
+		:
+			(Number(value) || 0)
+	)
+
+	$effect(() => {
+		if (!tween) {
+			return
+		}
+		const instant = (
+			prefersReducedMotion.current
+			|| isFirstTweenSet
+		)
+		void tweenedNumber.set(
+			Number(value) || 0,
+			{
+				duration: (instant
+					? 0
+					: tweenDuration),
+				delay: (instant
+					? 0
+					: 1),
+			},
+		)
+		isFirstTweenSet = false
+	})
+
+
+	// Transitions/animations
+	import { quintOut } from 'svelte/easing'
 </script>
 
 

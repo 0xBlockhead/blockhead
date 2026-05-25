@@ -8,19 +8,18 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import { singleFlight } from '$/lib/singleFlight.ts'
 import { throwIfHttpNotOk } from '$/lib/http.ts'
 import { bridgeRouteStepEntityFieldsFromLifiQuoteStep } from '$/sources/Lifi/Rest/bridgeRouteSteps.ts'
 import { lifiRestFetch } from '$/sources/Lifi/Rest/client.ts'
-import type { LifiQuoteRequest, LifiQuoteStepWire } from '$/sources/Lifi/Rest/types.ts'
+import type { LifiQuoteRequest, LifiQuoteStep } from '$/sources/Lifi/Rest/types.ts'
 type BridgeRouteQuoteId = EntityId<typeof schema, EntityType.BridgeRoute>
 
-type BridgeRouteStepRow = ReturnType<typeof bridgeRouteStepEntityFieldsFromLifiQuoteStep>
+type BridgeRouteStepFields = ReturnType<typeof bridgeRouteStepEntityFieldsFromLifiQuoteStep>
 
 export type BridgeRouteResolverBundle = {
 	routeFields: {
-		$fromNetwork: { chainId: number }
-		$toNetwork: { chainId: number }
+		$fromNetwork: { [EntityMetaKey.Id]: { chainId: number } }
+		$toNetwork: { [EntityMetaKey.Id]: { chainId: number } }
 		fromAmount: bigint
 		toAmount: bigint
 		toAmountMin: bigint
@@ -28,7 +27,7 @@ export type BridgeRouteResolverBundle = {
 		estimatedDurationSeconds: number
 		tags: BridgeRouteTag[]
 	}
-	steps: BridgeRouteStepRow[]
+	steps: BridgeRouteStepFields[]
 }
 
 const bridgeRouteQuoteIdToRequest = (
@@ -41,12 +40,13 @@ const bridgeRouteQuoteIdToRequest = (
 	fromAmount: quoteId.fromAmount,
 	fromAddress: quoteId.fromAddress,
 	slippage: quoteId.slippage,
+	...(quoteId.toAddress != null && { toAddress: quoteId.toAddress }),
 })
 
 export const fetchLifiQuoteStep = async (
 	params: LifiQuoteRequest,
 	options?: { baseUrl?: string },
-): Promise<LifiQuoteStepWire> => {
+): Promise<LifiQuoteStep> => {
 	const search = new URLSearchParams({
 		fromChain: String(params.fromChain),
 		toChain: String(params.toChain),
@@ -60,60 +60,94 @@ export const fetchLifiQuoteStep = async (
 	const path = `/v1/quote?${search}`
 	const res = await lifiRestFetch(path, undefined, options)
 	await throwIfHttpNotOk(res, path)
-	return res.json<LifiQuoteStepWire>()
+	return res.json<LifiQuoteStep>()
 }
 
-const gasCostUsdFromQuoteStep = (step: LifiQuoteStepWire) => (
-	(step.estimate?.gasCosts ?? [])
-		.reduce((sum, gas) => (
-			sum + Number.parseFloat(gas.amountUSD ?? '0')
-		), 0)
+const parseLifiQuoteAmountBigInt = (
+	value: string | undefined,
+	fallback: string,
+	label: string,
+) => {
+	const raw = (value ?? fallback).trim()
+	if (!/^\d+$/.test(raw)) {
+		throw new Error(`Lifi_Rest: invalid ${label} amount ${JSON.stringify(raw)}`)
+	}
+	return BigInt(raw)
+}
+
+const usdSumFromCostRows = (
+	rows: readonly { amountUSD?: string }[] | undefined,
+) => (
+	(rows ?? [])
+		.reduce((sum, row) => {
+			const parsed = Number.parseFloat(row.amountUSD ?? '0')
+			return sum + (Number.isFinite(parsed) ? parsed : 0)
+		}, 0)
+)
+
+const gasCostUsdFromQuoteStep = (step: LifiQuoteStep) => (
+	usdSumFromCostRows(step.estimate?.gasCosts)
+	+ usdSumFromCostRows(step.estimate?.feeCosts)
+)
+
+const lifiQuoteStepsForRoute = (
+	step: LifiQuoteStep,
+): LifiQuoteStepLike[] => (
+	step.includedSteps != null && step.includedSteps.length > 0 ?
+		step.includedSteps
+	:	[step]
 )
 
 const bridgeRouteBundleFromQuoteStep = (
 	quoteId: BridgeRouteQuoteId,
-	step: LifiQuoteStepWire,
+	step: LifiQuoteStep,
 ): BridgeRouteResolverBundle => {
-	const fromAmount = BigInt(step.action.fromAmount ?? quoteId.fromAmount)
-	const toAmount = BigInt(
-		step.estimate?.toAmount
-		?? step.action.toAmount
-		?? quoteId.fromAmount,
+	const fromAmount = parseLifiQuoteAmountBigInt(
+		step.action.fromAmount,
+		quoteId.fromAmount,
+		'from',
 	)
-	const toAmountMin = BigInt(
+	const toAmount = parseLifiQuoteAmountBigInt(
+		step.estimate?.toAmount
+		?? step.action.toAmount,
+		quoteId.fromAmount,
+		'to',
+	)
+	const toAmountMin = parseLifiQuoteAmountBigInt(
 		step.estimate?.toAmountMin
 		?? step.estimate?.toAmount
-		?? step.action.toAmount
-		?? quoteId.fromAmount,
+		?? step.action.toAmount,
+		quoteId.fromAmount,
+		'toAmountMin',
 	)
 
 	return {
 		routeFields: {
-			$fromNetwork: { chainId: step.action.fromChainId },
-			$toNetwork: { chainId: step.action.toChainId },
+			$fromNetwork: {
+				[EntityMetaKey.Id]: { chainId: step.action.fromChainId },
+			},
+			$toNetwork: {
+				[EntityMetaKey.Id]: { chainId: step.action.toChainId },
+			},
 			fromAmount,
 			toAmount,
 			toAmountMin,
 			gasCostUsd: gasCostUsdFromQuoteStep(step),
 			estimatedDurationSeconds: step.estimate?.executionDuration ?? 0,
-			tags: [BridgeRouteTag.Recommended],
+			tags: [],
 		},
-		steps: [
-			bridgeRouteStepEntityFieldsFromLifiQuoteStep(quoteId, 0, step),
-		],
+		steps: lifiQuoteStepsForRoute(step).map((routeStep, index) => (
+			bridgeRouteStepEntityFieldsFromLifiQuoteStep(quoteId, index, routeStep)
+		)),
 	}
 }
 
-const fetchBridgeRouteBundleOnce = async (
+export const fetchBridgeRouteBundleForQuoteId = async (
 	quoteId: BridgeRouteQuoteId,
 ): Promise<BridgeRouteResolverBundle> => {
 	const step = await fetchLifiQuoteStep(bridgeRouteQuoteIdToRequest(quoteId))
 	return bridgeRouteBundleFromQuoteStep(quoteId, step)
 }
-
-export const fetchBridgeRouteBundleForQuoteId = singleFlight(
-	fetchBridgeRouteBundleOnce,
-)
 
 export const resolveBridgeRouteBundleForQuoteId = (
 	quoteId: BridgeRouteQuoteId,
@@ -121,7 +155,7 @@ export const resolveBridgeRouteBundleForQuoteId = (
 	fetchBridgeRouteBundleForQuoteId(quoteId)
 )
 
-export const resolveBridgeRouteStepRowForEntityId = async (
+export const resolveBridgeRouteStepFieldsForEntityId = async (
 	entityId: EntityId<typeof schema, EntityType.BridgeRouteStep>,
 ) => {
 	const bundle = await resolveBridgeRouteBundleForQuoteId(entityId.$route)

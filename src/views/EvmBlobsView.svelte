@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -9,10 +8,7 @@
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -22,8 +18,7 @@
 		open = $bindable(true),
 		collapsible = true,
 		id,
-		href,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmBlob>
@@ -31,11 +26,10 @@
 			open?: boolean
 			collapsible?: boolean
 			id: string
-			href: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
@@ -55,10 +49,10 @@
 <EntitiesList
 	entityType={EntityType.EvmBlob}
 	{id}
-	{href}
 	{title}
 	bind:open
-	{...entitiesListRest}
+	{collapsible}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -72,9 +66,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parentEntityType = entityFieldReference.entityType}
 			{@const parent = useEntity(
 				parentEntityType,
@@ -87,12 +80,12 @@
 							],
 						},
 					}),
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Voltaire_JsonRpc,
 						],
 						...(parentEntityType === EntityType.Network && {
-							$limit: 32,
+							$limit: 8,
 						}),
 					},
 				},
@@ -101,9 +94,9 @@
 				parent,
 				(parent) => (
 					parentEntityType === EntityType.Network ?
-						(parent[fieldName] ?? []).slice(0, 32)
+						(parent[entityFieldReference.fieldName] ?? []).slice(0, 8)
 					:
-						(parent[fieldName] ?? [])
+						(parent[entityFieldReference.fieldName] ?? [])
 				),
 			)}
 			<div data-column="gap-3">
@@ -112,7 +105,6 @@
 					showSummary={false}
 					entityType={EntityType.EvmBlob}
 					id={`${id}-items`}
-					{href}
 					{title}
 					open={true}
 					getKey={(row) => stringify(row[EntityMetaKey.Id])}
@@ -127,24 +119,12 @@
 						</p>
 					{/snippet}
 
-					{#snippet Item(props)}
-						{#if props.item}
-							<EvmBlobView
-								entityId={props.item[EntityMetaKey.Id]}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(blobs)/blob/[transactionId]/[blobIndex]',
-									{
-										networkId: String(
-											props.item[EntityMetaKey.Id].$network.chainId,
-										),
-										transactionId: props.item[EntityMetaKey.Id].txHash,
-										blobIndex: String(props.item[EntityMetaKey.Id].blobIndex),
-									},
-								)}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/if}
+					{#snippet Item({ item })}
+						<EvmBlobView
+							entityId={item[EntityMetaKey.Id]}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
 					{/snippet}
 				</EntitiesList>
 			</div>

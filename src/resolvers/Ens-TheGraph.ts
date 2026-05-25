@@ -1,6 +1,7 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
+	resolverLoadSubsetRowLimit,
 	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { normalize as ensNormalizeNode, toString as ensToString } from '@tevm/voltaire/Ens'
@@ -11,16 +12,31 @@ import type { Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import type { getEnsName } from '$/sources/TheGraph/Graphql/Ens/queries.ts'
-
-
-type EnsDomainWire = NonNullable<Awaited<ReturnType<typeof getEnsName>>>[number]
 
 const bigintFromSubgraphScalar = (value: unknown) => (
 	value == null ?
 		null
 	:	BigInt(String(value))
 )
+
+const epochMsFromSubgraphScalar = (value: unknown) => {
+	const epochSeconds = bigintFromSubgraphScalar(value)
+	return (
+		epochSeconds == null ?
+			null
+		:	epochSeconds * 1000n
+	)
+}
+
+const normalizedEnsSearchQuery = (query: string): string => {
+	const trimmedQuery = query.trim()
+	if (trimmedQuery === '') throw new Error('TheGraph_Graphql: empty ENS search query')
+	try {
+		return ensToString(ensNormalizeNode(trimmedQuery))
+	} catch {
+		return trimmedQuery.toLowerCase()
+	}
+}
 
 const actorEntityFromSubgraphAccount = (
 	account: { id: string } | null | undefined,
@@ -79,8 +95,8 @@ export default {
 					))
 				)
 				const ttlBigInt = bigintFromSubgraphScalar(matchingEnsDomain.ttl)
-				const createdAtBigInt = bigintFromSubgraphScalar(matchingEnsDomain.createdAt)
-				const expiryDateBigInt = bigintFromSubgraphScalar(matchingEnsDomain.expiryDate)
+				const createdAtBigInt = epochMsFromSubgraphScalar(matchingEnsDomain.createdAt)
+				const expiryDateBigInt = epochMsFromSubgraphScalar(matchingEnsDomain.expiryDate)
 
 				const subgraphResolvedActor = actorEntityFromSubgraphAccount(matchingEnsDomain.resolvedAddress)
 				const subgraphOwnerActor = actorEntityFromSubgraphAccount(matchingEnsDomain.owner)
@@ -89,16 +105,16 @@ export default {
 					?? matchingEnsDomain.registration?.registrant,
 				)
 				const wrappedOwnerActor = actorEntityFromSubgraphAccount(matchingEnsDomain.wrappedOwner)
-				const wrappedExpiryDateBigInt = bigintFromSubgraphScalar(
+				const wrappedExpiryDateBigInt = epochMsFromSubgraphScalar(
 					matchingEnsDomain.wrappedDomain?.expiryDate,
 				)
-				const registrationDateBigInt = bigintFromSubgraphScalar(
+				const registrationDateBigInt = epochMsFromSubgraphScalar(
 					matchingEnsDomain.registration?.registrationDate,
 				)
 				const registrationCostBigInt = bigintFromSubgraphScalar(
 					matchingEnsDomain.registration?.cost,
 				)
-				const registrationExpiryDateBigInt = bigintFromSubgraphScalar(
+				const registrationExpiryDateBigInt = epochMsFromSubgraphScalar(
 					matchingEnsDomain.registration?.expiryDate,
 				)
 
@@ -121,6 +137,7 @@ export default {
 					...(subgraphOwnerActor != null && { $subgraphOwnerActor: subgraphOwnerActor }),
 					...(registrantActor != null && { $registrantActor: registrantActor }),
 					...(wrappedOwnerActor != null && { $wrappedOwnerActor: wrappedOwnerActor }),
+					...(wrappedExpiryDateBigInt != null && { wrappedExpiryDate: wrappedExpiryDateBigInt }),
 					...(matchingEnsDomain.resolver?.contentHash != null && {
 						contentHash: String(matchingEnsDomain.resolver.contentHash),
 					}),
@@ -151,6 +168,14 @@ export default {
 				}
 			},
 		}),
+
+		defineEntityResolver({
+			entityType: EntityType.EnsSearch,
+			resolve: async (entityId) => {
+				normalizedEnsSearchQuery(entityId.query)
+				return {}
+			},
+		}),
 	],
 
 	entityFieldResolvers: [
@@ -177,7 +202,31 @@ export default {
 				)
 			},
 		}),
+		defineEntityFieldResolver({
+			entityType: EntityType.EnsSearch,
+			fieldName: '$$ensNames',
+			resolve: async (entityId, context) => {
+				const { getEnsDomainsContaining } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.TheGraph_Graphql)
+				const limit = resolverLoadSubsetRowLimit(context)
+				const query = normalizedEnsSearchQuery(entityId.query)
+				return (
+					(await singleFlight(getEnsDomainsContaining)({
+						publicEnv,
+						query,
+						limit,
+					}))
+						.flatMap((domain) => (
+							domain.name != null && domain.name !== '' ?
+								[{
+									[EntityMetaKey.Id]: {
+										name: domain.name,
+									},
+								}]
+							:	[]
+						))
+				)
+			},
+		}),
 	],
 }
-
-export type { EnsDomainWire }

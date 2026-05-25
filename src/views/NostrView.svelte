@@ -6,6 +6,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -15,36 +16,27 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
-		open = $bindable(
+		href = resolve(
+			'/nostr',
+			entityId,
+		),
+					open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.NostrNetwork>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-		>
+		never
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
@@ -63,32 +55,22 @@
 					topology: {},
 					$$nostrProfiles: {
 						$: [
+							Source.Constants_Internal,
 							Source.NostrBand_Rest,
 							Source.Primal_Rest,
 						],
 					},
 					$$nostrNotes: {
-						$: [
-							Source.NostrBand_Rest,
-							Source.Primal_Rest,
-						],
+						$: [Source.NostrBand_Rest],
 					},
 					$$nostrRelays: {
-						$: [
-							Source.NostrBand_Rest,
-						],
+						$: [Source.NostrBand_Rest],
 					},
 					$$nostrReposts: {
-						$: [
-							Source.NostrBand_Rest,
-							Source.Primal_Rest,
-						],
+						$: [Source.NostrBand_Rest],
 					},
 					$$nostrArticles: {
-						$: [
-							Source.NostrBand_Rest,
-							Source.Primal_Rest,
-						],
+						$: [Source.NostrBand_Rest],
 					},
 				}
 			:
@@ -118,9 +100,10 @@
 <EntityView
 	entityType={EntityType.NostrNetwork}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
+	{collapsible}
+	{...EntityViewProps}
 	title="Nostr"
 >
 	{#snippet Value()}
@@ -133,10 +116,10 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Relays propagate signed events over WebSocket (<code>wss://</code>). Profiles (kind 0), notes (kind 1), reposts (kind 6), reactions (kind 7), and articles (kind 30023) load here via Constants seeds plus NostrBand and Primal HTTP indexers—not direct relay subscriptions.
+			Relays propagate signed events over WebSocket (<code>wss://</code>). Profiles (kind 0), notes (kind 1), reposts (kind 6), and articles (kind 30023) load here via Constants seeds plus NostrBand and Primal HTTP indexers—not direct relay subscriptions.
 		</p>
 		<p>
-			Author pubkeys are 64-character lowercase hex (secp256k1 x-only). Note, repost, and reaction event ids are 64-character hex hashes of each signed payload.
+			Reactions (kind 7) resolve on each note’s <code>$$reactions</code> field, not as a standalone network registry slice. Author pubkeys and event ids are 64-character lowercase hex.
 		</p>
 	{/snippet}
 
@@ -146,63 +129,63 @@
 			resource={network}
 			placeholderText="Loading Nostr hub directory…"
 			>
-			{#snippet children(network)}
-				{#if network.registryLabel}
+			{#snippet children(loadedNetwork)}
+				{#if loadedNetwork.registryLabel}
 					<div>
 						<dt>Registry</dt>
-						<dd>{network.registryLabel}</dd>
+						<dd>{loadedNetwork.registryLabel}</dd>
 					</div>
-					{:else if network.protocolName}
+					{:else if loadedNetwork.protocolName}
 					<div>
 						<dt>Protocol</dt>
-						<dd>{network.protocolName}</dd>
+						<dd>{loadedNetwork.protocolName}</dd>
 					</div>
 				{/if}
 
 				{#if open}
 					<div>
 						<dt>Profiles</dt>
-						<dd>{String(network.$nostrProfiles.length)}</dd>
+						<dd>{String(network.$$nostrProfiles.length)}</dd>
 					</div>
 					<div>
 						<dt>Notes</dt>
-						<dd>{String(network.$nostrNotes.length)}</dd>
+						<dd>{String(network.$$nostrNotes.length)}</dd>
 					</div>
 					<div>
 						<dt>Relays</dt>
-						<dd>{String(network.$nostrRelays.length)}</dd>
+						<dd>{String(network.$$nostrRelays.length)}</dd>
 					</div>
 					<div>
 						<dt>Reposts</dt>
-						<dd>{String(network.$nostrReposts.length)}</dd>
+						<dd>{String(network.$$nostrReposts.length)}</dd>
 					</div>
 					<div>
 						<dt>Articles</dt>
-						<dd>{String(network.$nostrArticles.length)}</dd>
+						<dd>{String(network.$$nostrArticles.length)}</dd>
 					</div>
 
-					{#if network.homeUrl}
+					{#if loadedNetwork.homeUrl}
 						<div>
 							<dt>Home</dt>
 							<dd>
-							<a href={network.homeUrl}>{network.homeUrl}</a>
+							<a href={loadedNetwork.homeUrl}>{loadedNetwork.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if network.docsUrl}
+					{#if loadedNetwork.docsUrl}
 						<div>
 							<dt>Docs</dt>
 							<dd>
-							<a href={network.docsUrl}>{network.docsUrl}</a>
+							<a href={loadedNetwork.docsUrl}>{loadedNetwork.docsUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if network.topology}
+					{#if loadedNetwork.topology}
 						<div>
 							<dt>Topology</dt>
-							<dd>{network.topology}</dd>
+							<dd>{loadedNetwork.topology}</dd>
 						</div>
 					{/if}
 				{/if}
@@ -219,7 +202,6 @@
 			entityType={EntityType.NostrNetwork}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -260,13 +242,14 @@
 				{#snippet body({ open: _sectionOpen })}
 					<section data-scroll-marker-label="Recent notes">
 						<NostrNotesView
+							href={resolve('/nostr/notes')}
 							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.NostrNetwork,
 								entityId,
 								fieldName: '$$nostrNotes',
 							}}
-							href={resolve('/nostr/notes')}
+							fieldOpen={_sectionOpen}
 							id={`${networkIdKey}:notes`}
 							limit={25}
 							open={_sectionOpen}
@@ -282,7 +265,7 @@
 								entityId,
 								fieldName: '$$nostrReposts',
 							}}
-							href={resolve('/nostr/reposts')}
+							fieldOpen={_sectionOpen}
 							id={`${networkIdKey}:reposts`}
 							limit={25}
 							open={_sectionOpen}
@@ -298,7 +281,7 @@
 								entityId,
 								fieldName: '$$nostrArticles',
 							}}
-							href={resolve('/nostr/articles')}
+							fieldOpen={_sectionOpen}
 							id={`${networkIdKey}:articles`}
 							limit={25}
 							open={_sectionOpen}
@@ -338,13 +321,13 @@
 				{#snippet body({ open: _sectionOpen })}
 					<section data-scroll-marker-label="Profiles">
 						<NostrProfilesView
+							href={resolve('/nostr/profiles')}
 							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.NostrNetwork,
 								entityId,
 								fieldName: '$$nostrProfiles',
 							}}
-							href={resolve('/nostr/profiles')}
 							id={`${networkIdKey}:profiles`}
 							open={_sectionOpen}
 						/>
@@ -352,13 +335,13 @@
 
 					<section data-scroll-marker-label="Relays">
 						<NostrRelaysView
+							href={resolve('/nostr/relays')}
 							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.NostrNetwork,
 								entityId,
 								fieldName: '$$nostrRelays',
 							}}
-							href={resolve('/nostr/relays')}
 							id={`${networkIdKey}:relays`}
 							open={_sectionOpen}
 						/>
@@ -367,9 +350,6 @@
 			</CollapsibleTabs>
 		</div>
 
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>
 

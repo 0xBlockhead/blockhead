@@ -2,6 +2,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+
 	// Props
 	let {
 		params,
@@ -16,6 +17,5 @@
 <Page>
 	<XmtpConversationView
 		entityId={{ id: params.conversationId }}
-		href={resolve(`/xmtp/conversation/${params.conversationId}`)}
 	/>
 </Page>

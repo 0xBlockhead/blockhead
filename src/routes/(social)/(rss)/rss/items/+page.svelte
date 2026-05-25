@@ -1,8 +1,10 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
-
-	import { EntityType } from '$/schema/$EntityType.ts'
 
 
 	// Components
@@ -13,12 +15,12 @@
 
 <Page>
 	<RssItemsView
+		href={resolve('/rss/items')}
 		entityFieldReference={{
 			entityType: EntityType.RssNetwork,
 			entityId: { scope: 'RssNetwork' },
 			fieldName: '$$rssItems',
 		}}
-		href={resolve('/rss/items')}
 		id="rss-items"
 		title="Recent items"
 	/>

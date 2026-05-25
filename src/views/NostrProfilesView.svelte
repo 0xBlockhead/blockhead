@@ -8,6 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
@@ -18,33 +20,29 @@
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
 		title = 'Profiles',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.NostrProfile>
-			href: string
 			id: string
 			open?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -58,19 +56,18 @@
 
 <EntitiesList
 	entityType={EntityType.NostrProfile}
-	{href}
 	{id}
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			Nostr profiles are kind-0 metadata events keyed by the author’s secp256k1 pubkey (64 lowercase hex characters).
 		</p>
 		<p>
-			Display name, bio, nip-05, and avatar come from the signed kind-0 JSON content, resolved via NostrBand and Primal indexers.
+			Display name, bio, nip-05, and avatar come from the signed kind-0 JSON content, resolved via NostrBand indexers.
 		</p>
 	{/snippet}
 
@@ -80,9 +77,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -90,8 +86,9 @@
 					$: [
 						Source.Constants_Internal,
 					],
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$: [
+							Source.Constants_Internal,
 							Source.NostrBand_Rest,
 							Source.Primal_Rest,
 						],
@@ -102,7 +99,7 @@
 				parent,
 				(parent) => {
 					const rows: Entity<typeof schema, EntityType.NostrProfile>[] = (
-						parent[fieldName] ?? []
+						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
 						rows.map((value) => ({
@@ -115,7 +112,6 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.NostrProfile}
-				{href}
 				id={`${id}-items`}
 				{title}
 				resource={profiles}
@@ -131,18 +127,13 @@
 				{/snippet}
 
 				{#snippet Item({
-					item: row,
+					item: profile,
 				})}
-					{#if row}
-						<NostrProfileView
-							entityId={row.entityId}
-							href={resolve('/nostr/profile/[pubkey]', {
-								pubkey: row.entityId.pubkey,
-							})}
-							layout={EntityLayout.SummaryDetails}
-							open={false}
-						/>
-					{/if}
+					<NostrProfileView
+						entityId={profile.entityId}
+						layout={EntityLayout.SummaryDetails}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

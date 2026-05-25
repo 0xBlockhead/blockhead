@@ -3,7 +3,6 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -15,34 +14,31 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+		'/(explore)/(networks)/network/[networkId]',
+		{ networkId: String(entityId.$network.chainId) },
+	),
 		layout,
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.Network_Txpool_Timestamp>
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
 			| 'href'
-			| 'layout'
-			| 'open'
-			| 'title'
-			| 'Details'
 		>
 	> = $props()
 
 
 	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
 	const networkTxpoolTimestamp = useEntity(
 		EntityType.Network_Txpool_Timestamp,
 		entityId,
@@ -51,11 +47,6 @@
 			pendingCount: {},
 			queuedCount: {},
 		},
-	)
-
-	const defaultHref = resolve(
-		'/(explore)/(networks)/network/[networkId]',
-		{ networkId: String(entityId.$network.chainId) },
 	)
 
 
@@ -72,12 +63,11 @@
 <EntityView
 	entityType={EntityType.Network_Txpool_Timestamp}
 	{entityId}
-	href={href ?? defaultHref}
+	href={href}
 	{layout}
 	{open}
 	title="Mempool"
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -125,8 +115,8 @@
 							placeholderText="Loading mempool snapshot…"
 							resource={networkTxpoolTimestamp}
 						>
-							{#snippet children(networkTxpoolTimestamp)}
-								<NumberValue value={networkTxpoolTimestamp.pendingCount} />
+							{#snippet children(loadedNetworkTxpoolTimestamp)}
+								<NumberValue value={loadedNetworkTxpoolTimestamp.pendingCount} />
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -138,8 +128,8 @@
 							placeholderText="Loading mempool snapshot…"
 							resource={networkTxpoolTimestamp}
 						>
-							{#snippet children(networkTxpoolTimestamp)}
-								<NumberValue value={networkTxpoolTimestamp.queuedCount} />
+							{#snippet children(loadedNetworkTxpoolTimestamp)}
+								<NumberValue value={loadedNetworkTxpoolTimestamp.queuedCount} />
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -148,14 +138,10 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.Network_Txpool_Timestamp}
 			{entityId}
 		/>
-
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>

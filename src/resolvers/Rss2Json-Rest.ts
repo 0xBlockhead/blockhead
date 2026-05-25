@@ -10,10 +10,7 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const optionalTrimmedString = (value: string | undefined) => (
-	value?.trim() ?
-		value.trim()
-	:
-		undefined
+	value?.trim() || undefined
 )
 
 export default {
@@ -45,6 +42,9 @@ export default {
 					}),
 					...(optionalTrimmedString(feed.url) != null && {
 						siteUrl: optionalTrimmedString(feed.url),
+					}),
+					...(optionalTrimmedString(feed.image) != null && {
+						imageUrl: optionalTrimmedString(feed.image),
 					}),
 				}
 			},
@@ -85,6 +85,12 @@ export default {
 					...(rssPublishedAtMs(item.pubDate) != null && {
 						publishedAt: rssPublishedAtMs(item.pubDate),
 					}),
+					...(item.categories != null && item.categories.length > 0 && {
+						categories: item.categories,
+					}),
+					...(optionalTrimmedString(item.enclosure?.[0]?.url) != null && {
+						enclosureUrl: optionalTrimmedString(item.enclosure?.[0]?.url),
+					}),
 					$feed: {
 						[EntityMetaKey.Id]: { feedUrl },
 					},
@@ -105,7 +111,7 @@ export default {
 				const { rss2JsonGetFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const perFeedLimit = Math.max(1, Math.ceil(limit / rssNetworkSeedFeeds.length))
-				const byKey = new Map<string, { [EntityMetaKey.Id]: { feedUrl: string, guid: string } }>()
+				const refs: { [EntityMetaKey.Id]: { feedUrl: string, guid: string } }[] = []
 				for (const seedFeed of rssNetworkSeedFeeds) {
 					const feedUrl = normalizeRssFeedUrl(seedFeed.feedUrl)
 					for (const item of (await singleFlight(rss2JsonGetFeed)(
@@ -114,16 +120,17 @@ export default {
 						context.publicEnv,
 					)).items ?? []) {
 						const guid = rssItemGuidFromParts(item.guid, item.link, item.title)
-						const key = `${feedUrl}\0${guid}`
-						byKey.set(key, {
+						refs.push({
 							[EntityMetaKey.Id]: {
 								feedUrl,
 								guid,
 							},
 						})
+						if (refs.length >= limit) break
 					}
+					if (refs.length >= limit) break
 				}
-				return [...byKey.values()].slice(0, limit)
+				return refs.slice(0, limit)
 			},
 		}),
 

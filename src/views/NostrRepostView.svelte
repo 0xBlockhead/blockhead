@@ -17,28 +17,24 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve(
+			'/(social)/(nostr)/nostr/repost/[eventId]',
+			{ eventId: entityId.eventId },
+		),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.NostrRepost>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Content'
+			| 'layout'
 		>
 	> = $props()
 
@@ -55,8 +51,11 @@
 				Source.Primal_Rest,
 			],
 			createdAt: {},
+			repostedEventId: {},
 			$author: {},
-			$repostedNote: {},
+			$repostedNote: {
+				content: {},
+			},
 		},
 	)
 
@@ -75,9 +74,9 @@
 <EntityView
 	entityType={EntityType.NostrRepost}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
@@ -91,27 +90,41 @@
 			resource={repost}
 			placeholderText="Loading repost…"
 		>
-			{#snippet children(_repost)}
-				<TruncatedValue
-					value={entityId.eventId}
-					format={TruncatedValueFormat.Visual}
-				/>
+			{#snippet children(loadedRepost)}
+				{#if loadedRepost.$repostedNote?.content}
+					<TruncatedValue
+						endLength={16}
+						format={TruncatedValueFormat.Visual}
+						startLength={64}
+						value={loadedRepost.$repostedNote.content}
+					/>
+				{:else if loadedRepost.repostedEventId}
+					<TruncatedValue
+						value={loadedRepost.repostedEventId}
+						format={TruncatedValueFormat.Visual}
+					/>
+				{:else}
+					<TruncatedValue
+						value={entityId.eventId}
+						format={TruncatedValueFormat.Visual}
+					/>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Kind-6 repost events reference an existing kind-1 note via an <code>e</code>-tag on the signed payload.
+			NIP-18 repost events (kind 6 legacy note reposts, kind 16 generic reposts) reference another event via an <code>e</code>-tag on the signed payload.
 		</p>
 		<p>
-			The repost event id is a 64-character lowercase hex hash of the kind-6 event—not the original note’s event id.
+			The repost event id is a 64-character lowercase hex hash of the repost event—not the referenced event’s id.
 		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			{#if repost.createdAt != null}
+			{#if loadedRepost.createdAt != null}
 				<div>
 					<dt>Created</dt>
 					<dd>
@@ -119,9 +132,9 @@
 							resource={repost}
 							placeholderText="Loading repost…"
 						>
-							{#snippet children(repost)}
+							{#snippet children(loadedRepost)}
 								<Timestamp
-									timestamp={repost.createdAt}
+									timestamp={loadedRepost.createdAt}
 								/>
 							{/snippet}
 						</ResourceBoundary>
@@ -129,59 +142,53 @@
 				</div>
 			{/if}
 
-			{#if open}
-				{#if repost.$author}
-					<div>
-						<dt>Author</dt>
-						<dd>
-							<ResourceBoundary
-								resource={repost}
-								placeholderText="Loading repost…"
-							>
-								{#snippet children(repost)}
-									<NostrProfileView
-										entityId={repost.$author[EntityMetaKey.Id]}
-										href={resolve('/nostr/profile/[pubkey]', {
-											pubkey: repost.$author[EntityMetaKey.Id].pubkey,
-											})}
-										layout={EntityLayout.Value}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& repost.$author
+			)}
+				<div>
+					<dt>Author</dt>
+					<dd>
+						<ResourceBoundary
+							resource={repost}
+							placeholderText="Loading repost…"
+						>
+							{#snippet children(loadedRepost)}
+								<NostrProfileView
+									entityId={loadedRepost.$author[EntityMetaKey.Id]}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if repost.$repostedNote}
-					<div>
-						<dt>Reposted note</dt>
-						<dd>
-							<ResourceBoundary
-								resource={repost}
-								placeholderText="Loading repost…"
-							>
-								{#snippet children(repost)}
-									<NostrNoteView
-										entityId={repost.$repostedNote[EntityMetaKey.Id]}
-										href={resolve('/nostr/note/[eventId]', {
-											eventId: repost.$repostedNote[EntityMetaKey.Id].eventId,
-											})}
-										layout={EntityLayout.Value}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& repost.$repostedNote
+			)}
+				<div>
+					<dt>Reposted note</dt>
+					<dd>
+						<ResourceBoundary
+							resource={repost}
+							placeholderText="Loading repost…"
+						>
+							{#snippet children(loadedRepost)}
+								<NostrNoteView
+									entityId={loadedRepost.$repostedNote[EntityMetaKey.Id]}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 		</dl>
-{/snippet}
+	{/snippet}
 
 	{#snippet Details({
 		open: _open,
@@ -192,3 +199,4 @@
 		/>
 	{/snippet}
 </EntityView>
+

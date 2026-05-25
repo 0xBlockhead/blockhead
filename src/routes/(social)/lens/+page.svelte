@@ -14,6 +14,5 @@
 		entityId={{
 			scope: 'LensNetwork',
 		}}
-		href={resolve('/lens')}
 	/>
 </Page>

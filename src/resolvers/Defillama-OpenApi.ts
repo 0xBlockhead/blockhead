@@ -5,18 +5,19 @@ import {
 	MarketTimeIntervalUnit,
 	coingeckoOhlcDayWindowLengths,
 } from '$/constants/Market.ts'
+import { Iso4217 } from '$/constants/Currency.ts'
 import {
-	catalogMarketsWithCurrencyAsBase,
-	catalogMarketsWithCurrencyAsQuote,
-	usdCurrencyMarketAssetLeg,
-} from '$/constants/Currency.ts'
+	catalogCoinUsdMarketIdByCoinId,
+	catalogMarketsWithCoinAsQuoteByQuoteCoinId,
+	catalogMarketsWithCurrencyAsBaseByIso4217,
+	catalogMarketsWithCurrencyAsQuoteUsd,
+} from '$/constants/MarketCatalog.ts'
 import {
 	assertCoingeckoDayOhlcTimeInterval,
 	candleEntitiesFromOhlcWireRows,
 	candleEntityFromOhlcWireRow,
 } from '$/lib/marketOhlcCandles.ts'
-import { catalogCoinUsdMarketId } from '$/constants/MarketCatalog.ts'
-import { marketTimestampFieldsFromObservation } from '$/resolvers/_marketSpotTimestamp.ts'
+import { stringify } from 'devalue'
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
@@ -39,20 +40,15 @@ export default {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Defillama_OpenApi: Market_Timestamp is spot-only')
 				}
+				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {
+					throw new Error('Defillama_OpenApi: Market_Timestamp is catalog coin USD market only')
+				}
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				const { getCurrentPrices } = await import('$/sources/Defillama/OpenApi/queries.ts')
-				const coinId = (
-					entityId.$market.$base.kind === MarketAssetKind.Coin ?
-						entityId.$market.$base.$coin.coinId
-					:	undefined
-				)
+				const coinId = entityId.$market.$base.$coin.coinId
 				const llamaId = (
-					entityId.feedKey?.trim() ?
-						entityId.feedKey.trim()
-					: coinId != null ?
-						defillamaCurrentPriceIdByCoinId[coinId]
-					:
-						undefined
+					entityId.feedKey?.trim()
+					?? defillamaCurrentPriceIdByCoinId[coinId]
 				)
 				if (llamaId == null) throw new Error('Defillama_OpenApi: no price id')
 				const priceRow = (await getCurrentPrices([llamaId])).coins[llamaId]
@@ -61,12 +57,11 @@ export default {
 				if (entityId.timestampMs !== timestampMs) {
 					throw new Error('Defillama_OpenApi: Market_Timestamp id does not match price clock')
 				}
-				return marketTimestampFieldsFromObservation({
-					timestampMs,
+				return {
 					price: BigInt(Math.round(priceRow.price * 1e8)),
-					transport: 'defillama-usd-1e8',
-					providerAssetId: llamaId,
-				})
+					...('defillama-usd-1e8' && { transport: 'defillama-usd-1e8' }),
+					...(llamaId !== undefined && { providerAssetId: llamaId }),
+				}
 			},
 		}),
 
@@ -76,15 +71,13 @@ export default {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Defillama_OpenApi: OHLC is spot-only')
 				}
+				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {
+					throw new Error('Defillama_OpenApi: OHLC is catalog coin USD market only')
+				}
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				const { getDefillamaChartOhlcRowsCoingeckoShape } = await import('$/sources/Defillama/OpenApi/queries.ts')
 				assertCoingeckoDayOhlcTimeInterval(entityId.timeInterval, 'Defillama_OpenApi')
-				const coinId = (
-					entityId.$market.$base.kind === MarketAssetKind.Coin ?
-						entityId.$market.$base.$coin.coinId
-					:	undefined
-				)
-				if (coinId == null) throw new Error('Defillama_OpenApi: OHLC market base is not a catalog coin')
+				const coinId = entityId.$market.$base.$coin.coinId
 				const llamaId = defillamaCurrentPriceIdByCoinId[coinId]
 				if (llamaId == null) throw new Error('Defillama_OpenApi: OHLC coin not mapped')
 				const rows = await getDefillamaChartOhlcRowsCoingeckoShape({
@@ -118,7 +111,7 @@ export default {
 							defillamaCurrentPriceIdByCoinId[coinId] != null ?
 								[
 									{
-										[EntityMetaKey.Id]: catalogCoinUsdMarketId(coinId),
+										[EntityMetaKey.Id]: catalogCoinUsdMarketIdByCoinId[coinId],
 									},
 								]
 							:
@@ -148,7 +141,7 @@ export default {
 								[
 									{
 										[EntityMetaKey.Id]: {
-											$market: catalogCoinUsdMarketId(coinId),
+											$market: catalogCoinUsdMarketIdByCoinId[coinId],
 										},
 									},
 								]
@@ -168,7 +161,7 @@ export default {
 					defillamaCurrentPriceIdByCoinId[entityId.coinId] != null ?
 						[
 							{
-								[EntityMetaKey.Id]: catalogCoinUsdMarketId(entityId.coinId),
+								[EntityMetaKey.Id]: catalogCoinUsdMarketIdByCoinId[entityId.coinId],
 							},
 						]
 					:
@@ -181,24 +174,20 @@ export default {
 			entityType: EntityType.Coin,
 			fieldName: '$$marketsWithCoinAsQuote',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
-				const { coinById } = await import('$/constants/Coin.ts')
-				const { catalogMarketsWithCoinAsQuote } = await import('$/constants/MarketCatalog.ts')
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
-				if (coinById[entityId.coinId as keyof typeof coinById] == null) {
-					throw new Error(`Defillama_OpenApi: $$marketsWithCoinAsQuote unsupported for coin ${entityId.coinId}`)
-				}
 				if (defillamaCurrentPriceIdByCoinId[entityId.coinId] == null) {
 					return []
 				}
 				return (
-					catalogMarketsWithCoinAsQuote(
-						entityId.coinId,
-						(baseCoinId) => defillamaCurrentPriceIdByCoinId[baseCoinId] != null,
-					).map((marketId) => (
-						{
-							[EntityMetaKey.Id]: marketId,
-						}
-					))
+					catalogMarketsWithCoinAsQuoteByQuoteCoinId[entityId.coinId] ?? []
+						.filter((marketId) => (
+							defillamaCurrentPriceIdByCoinId[marketId.$base.$coin.coinId] != null
+						))
+						.map((marketId) => (
+							{
+								[EntityMetaKey.Id]: marketId,
+							}
+						))
 				)
 			},
 		}),
@@ -207,20 +196,18 @@ export default {
 			entityType: EntityType.Currency,
 			fieldName: '$$marketsWithCurrencyAsQuote',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
-				const { coinById } = await import('$/constants/Coin.ts')
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				return (
-					catalogMarketsWithCurrencyAsQuote(
-						entityId.iso4217,
-						(coinId) => (
-							coinById[coinId as keyof typeof coinById] != null
-							&& defillamaCurrentPriceIdByCoinId[coinId] != null
-						),
-					).map((marketId) => (
-						{
-							[EntityMetaKey.Id]: marketId,
-						}
-					))
+					(
+						entityId.iso4217 === Iso4217.USD ?
+							catalogMarketsWithCurrencyAsQuoteUsd.filter((marketId) => (
+								defillamaCurrentPriceIdByCoinId[marketId.$base.$coin.coinId] != null
+							))
+						:
+							[]
+					).map((marketId) => ({
+						[EntityMetaKey.Id]: marketId,
+					}))
 				)
 			},
 		}),
@@ -229,11 +216,9 @@ export default {
 			entityType: EntityType.Currency,
 			fieldName: '$$marketsWithCurrencyAsBase',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
-				const markets = catalogMarketsWithCurrencyAsBase(entityId.iso4217).map((marketId) => (
-					{
+				const markets = (catalogMarketsWithCurrencyAsBaseByIso4217[entityId.iso4217] ?? []).map((marketId) => ({
 						[EntityMetaKey.Id]: marketId,
-					}
-				))
+					}))
 				if (markets.length === 0) {
 					throw new Error(`Defillama_OpenApi: no catalog markets with ${entityId.iso4217} as base`)
 				}
@@ -246,58 +231,42 @@ export default {
 			fieldName: '$$marketTimeIntervalTimestamps',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>, context) => {
 				if (entityId.marketKind !== MarketKind.Spot) {
-					throw new Error('Defillama_OpenApi: OHLC is spot-only')
+					return []
+				}
+				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$base.$coin.coinId]) !== stringify(entityId)) {
+					return []
 				}
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				const { getDefillamaChartOhlcRowsCoingeckoShape } = await import('$/sources/Defillama/OpenApi/queries.ts')
-				const coinId = (
-					entityId.$base.kind === MarketAssetKind.Coin ?
-						entityId.$base.$coin.coinId
-					:	undefined
-				)
-				if (coinId == null) throw new Error('Defillama_OpenApi: OHLC market base is not a catalog coin')
+				const coinId = entityId.$base.$coin.coinId
 				if (defillamaCurrentPriceIdByCoinId[coinId] == null) {
 					throw new Error('Defillama_OpenApi: OHLC coin not mapped')
 				}
 				const llamaId = defillamaCurrentPriceIdByCoinId[coinId]
 				if (llamaId == null) throw new Error('Defillama_OpenApi: OHLC coin not mapped')
 				const lim = resolverLoadSubsetRowLimit(context)
-				const candles = (
-					(
-						await Promise.all(
-							[...coingeckoOhlcDayWindowLengths].map(async (value) => {
-								const timeInterval = (
-									{
-										unit: MarketTimeIntervalUnit.Day,
-										value,
-									}
-								)
-								const rows = await getDefillamaChartOhlcRowsCoingeckoShape({
-									llamaCoinId: llamaId,
-									days: value,
-								})
-								return (
-									candleEntitiesFromOhlcWireRows(
-										entityId,
-										timeInterval,
-										rows,
-									)
-								)
-							}),
-						)
-					).flat()
-				)
+				const candles = []
+				for (const value of coingeckoOhlcDayWindowLengths) {
+					const timeInterval = (
+						{
+							unit: MarketTimeIntervalUnit.Day,
+							value,
+						}
+					)
+					const rows = await getDefillamaChartOhlcRowsCoingeckoShape({
+						llamaCoinId: llamaId,
+						days: value,
+					})
+					candles.push(
+						...candleEntitiesFromOhlcWireRows(
+							entityId,
+							timeInterval,
+							rows,
+						),
+					)
+				}
 				return (
-					candles
-						.toSorted((left, right) => (
-							left[EntityMetaKey.Id].timestampMs < right[EntityMetaKey.Id].timestampMs ?
-								1
-							: left[EntityMetaKey.Id].timestampMs > right[EntityMetaKey.Id].timestampMs ?
-								-1
-							:
-								0
-						))
-						.slice(0, lim)
+					candles.slice(0, lim)
 				)
 			},
 		}),
@@ -307,29 +276,26 @@ export default {
 			fieldName: '$$quotes',
 			resolve: async (entityId) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
-					throw new Error('Defillama_OpenApi: MarketPrice $$quotes is spot-only')
+					return []
+				}
+				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {
+					return []
 				}
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
 				const { getCurrentPrices } = await import('$/sources/Defillama/OpenApi/queries.ts')
-				const coinId = (
-					entityId.$market.$base.kind === MarketAssetKind.Coin ?
-						entityId.$market.$base.$coin.coinId
-					:	undefined
-				)
+				const coinId = entityId.$market.$base.$coin.coinId
 				const llamaId = (
-					entityId.feedKey?.trim() ?
-						entityId.feedKey.trim()
-					: entityId.$network != null ?
-						(
-							coinId === CoinId.ETH && entityId.$network.chainId === 1 ?
-								defillamaCurrentPriceIdByCoinId[CoinId.ETH]
-							:
-								undefined
-						)
-					: coinId != null ?
-						defillamaCurrentPriceIdByCoinId[coinId]
-					:
-						undefined
+					entityId.feedKey?.trim()
+					?? (
+						entityId.$network != null ?
+							(
+								coinId === CoinId.ETH && entityId.$network.chainId === 1 ?
+									defillamaCurrentPriceIdByCoinId[CoinId.ETH]
+								:
+									undefined
+							)
+						: defillamaCurrentPriceIdByCoinId[coinId]
+					)
 				)
 				if (llamaId == null) throw new Error('Defillama_OpenApi: no price id')
 				const priceRow = (await getCurrentPrices([llamaId])).coins[llamaId]

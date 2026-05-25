@@ -8,42 +8,36 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		limit = 25,
 		open = $bindable(true),
 		collapsible = true,
 		title = 'Lens v3 publications',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.LensPost>
-			href: string
 			id: string
 			limit?: number
 			open?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -57,11 +51,10 @@
 
 <EntitiesList
 	entityType={EntityType.LensPost}
-	{href}
 	{id}
 	bind:open
 	{title}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -72,7 +65,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const lensNetworkOrAccount = useEntity(
 				entityFieldReference.entityType,
@@ -84,18 +77,19 @@
 							protocolName: {},
 							$$lensPosts: {
 								$: [
-									Source.Constants_Internal,
 									Source.Lens_Graphql,
+									Source.Lens_HeyGraphql,
 								],
 							},
 						}
 					:
 						{
-							$: [
-								Source.Constants_Internal,
-								Source.Lens_Graphql,
-							],
-							$$posts: {},
+							$$posts: {
+								$: [
+									Source.Lens_Graphql,
+									Source.Lens_HeyGraphql,
+								],
+							},
 						}
 				),
 			)}
@@ -120,14 +114,12 @@
 					showSummary={false}
 					entityType={EntityType.LensPost}
 					id={`${id}-items`}
-					{href}
 					{title}
 					open={true}
 					getKey={(row) => row[EntityMetaKey.Id].id}
 					getSortValue={(row) => (
 						-(row.timestamp ?? 0)
 					)}
-					placeholderKeys={new SvelteSet()}
 					resource={posts}
 				>
 					{#snippet Empty()}
@@ -136,17 +128,12 @@
 						</p>
 					{/snippet}
 
-					{#snippet Item(props)}
-						{#if props.item}
-							<LensPostView
-								entityId={{ id: props.item[EntityMetaKey.Id].id }}
-								href={resolve('/(social)/lens/post/[postId]', {
-									postId: encodeURIComponent(props.item[EntityMetaKey.Id].id),
-								})}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/if}
+					{#snippet Item({ item })}
+						<LensPostView
+							entityId={{ id: item[EntityMetaKey.Id].id }}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
 					{/snippet}
 				</EntitiesList>
 			{/key}

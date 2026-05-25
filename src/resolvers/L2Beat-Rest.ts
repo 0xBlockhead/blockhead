@@ -1,3 +1,4 @@
+import { singleFlight } from '$/lib/singleFlight.ts'
 import {
 	defineEntityFieldResolver,
 } from '$/resolvers/$resolvers.ts'
@@ -21,7 +22,7 @@ export default {
 					l2BeatProjectChainIds,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-				const summary = await fetchScalingSummary()
+				const summary = await singleFlight(fetchScalingSummary)()
 				return [
 					{
 						[EntityMetaKey.Id]: { chainId: ethereumChainId },
@@ -58,7 +59,7 @@ export default {
 						`L2Beat_Rest: no scaling project for chain ${String(entityId.chainId)}`,
 					)
 				}
-				const summary = await fetchScalingSummary()
+				const summary = await singleFlight(fetchScalingSummary)()
 				const project = summary.projects[projectId]
 				if (project == null || project.isArchived === true) {
 					throw new Error(
@@ -94,7 +95,7 @@ export default {
 						))
 				)
 				if (hostLabels.length === 0) return []
-				const summary = await fetchScalingSummary()
+				const summary = await singleFlight(fetchScalingSummary)()
 				const chainIds = (
 					l2BeatProjectChainIds.flatMap(({ projectId }) => {
 						const chainId = chainIdByL2BeatProjectId[projectId]
@@ -104,13 +105,9 @@ export default {
 						return hostLabels.includes(project.hostChain) ? [chainId] : []
 					})
 				)
-				return (
-					[...new Set(chainIds)]
-						.toSorted((chainIdA, chainIdB) => chainIdA - chainIdB)
-						.map((chainId) => ({
-							[EntityMetaKey.Id]: { chainId },
-						}))
-				)
+				return chainIds.map((chainId) => ({
+					[EntityMetaKey.Id]: { chainId },
+				}))
 			},
 		}),
 	],

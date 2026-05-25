@@ -8,8 +8,23 @@ const LensPostSlug = graphql(`
 	}
 `)
 
+const LensRepostSlug = graphql(`
+	fragment LensRepostSlug on Repost @_unmask {
+		slug
+	}
+`)
+
 const LensPostWithAuthor = graphql(`
 	fragment LensPostWithAuthor on Post @_unmask {
+		slug
+		author {
+			address
+		}
+	}
+`)
+
+const LensRepostWithAuthor = graphql(`
+	fragment LensRepostWithAuthor on Repost @_unmask {
 		slug
 		author {
 			address
@@ -21,21 +36,89 @@ const LensPostDetail = graphql(`
 	fragment LensPostDetail on Post @_unmask {
 		slug
 		timestamp
+		isEdited
+		isDeleted
 		author {
 			address
 		}
 		commentOn {
 			slug
 		}
+		quoteOf {
+			slug
+		}
+		root {
+			slug
+		}
 		stats {
 			comments
 			reposts
+			quotes
 			bookmarks
+			collects
+			reactions
 		}
 		metadata {
+			__typename
 			... on TextOnlyMetadata {
 				content
 			}
+			... on ArticleMetadata {
+				content
+			}
+			... on AudioMetadata {
+				content
+			}
+			... on ImageMetadata {
+				content
+			}
+			... on VideoMetadata {
+				content
+			}
+			... on LinkMetadata {
+				content
+			}
+			... on EmbedMetadata {
+				content
+			}
+			... on EventMetadata {
+				content
+			}
+			... on LivestreamMetadata {
+				content
+			}
+			... on CheckingInMetadata {
+				content
+			}
+			... on MintMetadata {
+				content
+			}
+			... on SpaceMetadata {
+				content
+			}
+			... on StoryMetadata {
+				content
+			}
+			... on ThreeDMetadata {
+				content
+			}
+			... on TransactionMetadata {
+				content
+			}
+		}
+	}
+`)
+
+const LensRepostDetail = graphql(`
+	fragment LensRepostDetail on Repost @_unmask {
+		slug
+		timestamp
+		isDeleted
+		author {
+			address
+		}
+		repostOf {
+			slug
 		}
 	}
 `)
@@ -50,6 +133,7 @@ const LensAccountDocument = graphql(`
 			}
 		) {
 			address
+			createdAt
 			username {
 				localName
 			}
@@ -57,6 +141,16 @@ const LensAccountDocument = graphql(`
 				name
 				bio
 				picture
+			}
+		}
+		accountStats(
+			request: {
+				account: $address
+			}
+		) {
+			graphFollowStats {
+				followers
+				following
 			}
 		}
 	}
@@ -75,10 +169,14 @@ const LensPostDocument = graphql(`
 			... on Post {
 				...LensPostDetail
 			}
+			... on Repost {
+				...LensRepostDetail
+			}
 		}
 	}
 `, [
 	LensPostDetail,
+	LensRepostDetail,
 ])
 
 const LensPostsByAuthorDocument = graphql(`
@@ -99,11 +197,15 @@ const LensPostsByAuthorDocument = graphql(`
 				... on Post {
 					...LensPostSlug
 				}
+				... on Repost {
+					...LensRepostSlug
+				}
 			}
 		}
 	}
 `, [
 	LensPostSlug,
+	LensRepostSlug,
 ])
 
 const LensPostCommentsDocument = graphql(`
@@ -125,11 +227,15 @@ const LensPostCommentsDocument = graphql(`
 				... on Post {
 					...LensPostSlug
 				}
+				... on Repost {
+					...LensRepostSlug
+				}
 			}
 		}
 	}
 `, [
 	LensPostSlug,
+	LensRepostSlug,
 ])
 
 const LensLatestPostsDocument = graphql(`
@@ -146,11 +252,15 @@ const LensLatestPostsDocument = graphql(`
 				... on Post {
 					...LensPostWithAuthor
 				}
+				... on Repost {
+					...LensRepostWithAuthor
+				}
 			}
 		}
 	}
 `, [
 	LensPostWithAuthor,
+	LensRepostWithAuthor,
 ])
 
 export const lensQueryAccount = async (

@@ -16,38 +16,35 @@
 
 	// Props
 	let {
-		children: _children,
+		children,
 		entityId,
-		href,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
+			{
+				networkId: String(entityId.$network.chainId),
+				blockNumber: String(entityId.blockNumber),
+			},
+		),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmBlock>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-	const blockIdKey = $derived(
-		stringify(entityId),
-	)
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const block = useEntity(
 		EntityType.EvmBlock,
@@ -72,6 +69,12 @@
 	)
 
 
+	// (Derived)
+	const blockIdKey = $derived(
+		stringify(entityId),
+	)
+
+
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
@@ -90,11 +93,11 @@
 <EntityView
 	entityType={EntityType.EvmBlock}
 	{entityId}
+	href={href}
 	title={`Block #${String(entityId.blockNumber)}`}
-	{href}
 	idDragPlainText={String(entityId.blockNumber)}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -134,10 +137,10 @@
 						resource={block}
 						placeholderText="Loading block…"
 					>
-						{#snippet children(block)}
-							{#if entityId.hash || block.hash}
+						{#snippet children(loadedBlock)}
+							{#if entityId.hash || loadedBlock.hash}
 								<TruncatedValue
-									value={entityId.hash || block.hash}
+									value={entityId.hash || loadedBlock.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							{/if}
@@ -153,9 +156,9 @@
 						resource={block}
 						placeholderText="Loading block…"
 					>
-						{#snippet children(block)}
-							{#if block.transactionCount !== undefined}
-								<NumberValue value={block.transactionCount} />
+						{#snippet children(loadedBlock)}
+							{#if loadedBlock.transactionCount !== undefined}
+								<NumberValue value={loadedBlock.transactionCount} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -169,10 +172,10 @@
 						resource={block}
 						placeholderText="Loading block…"
 					>
-						{#snippet children(block)}
-							{#if block.timestamp !== undefined}
+						{#snippet children(loadedBlock)}
+							{#if loadedBlock.timestamp !== undefined}
 								<Timestamp
-									timestamp={block.timestamp}
+									timestamp={loadedBlock.timestamp}
 								/>
 							{/if}
 						{/snippet}
@@ -188,9 +191,9 @@
 							resource={block}
 							placeholderText="Loading block…"
 						>
-							{#snippet children(block)}
-								{#if block.gasUsed !== undefined}
-									<NumberValue value={block.gasUsed} />
+							{#snippet children(loadedBlock)}
+								{#if loadedBlock.gasUsed !== undefined}
+									<NumberValue value={loadedBlock.gasUsed} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -206,9 +209,9 @@
 							resource={block}
 							placeholderText="Loading block…"
 						>
-							{#snippet children(block)}
-								{#if block.gasLimit !== undefined}
-									<NumberValue value={block.gasLimit} />
+							{#snippet children(loadedBlock)}
+								{#if loadedBlock.gasLimit !== undefined}
+									<NumberValue value={loadedBlock.gasLimit} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -224,9 +227,9 @@
 							resource={block}
 							placeholderText="Loading block…"
 						>
-							{#snippet children(block)}
-								{#if block.baseFeePerGas !== undefined}
-									<NumberValue value={block.baseFeePerGas} />
+							{#snippet children(loadedBlock)}
+								{#if loadedBlock.baseFeePerGas !== undefined}
+									<NumberValue value={loadedBlock.baseFeePerGas} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -242,9 +245,9 @@
 							resource={block}
 							placeholderText="Loading block…"
 						>
-							{#snippet children(block)}
-								{#if block.blobGasUsed !== undefined}
-									<NumberValue value={block.blobGasUsed} />
+							{#snippet children(loadedBlock)}
+								{#if loadedBlock.blobGasUsed !== undefined}
+									<NumberValue value={loadedBlock.blobGasUsed} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -260,9 +263,9 @@
 							resource={block}
 							placeholderText="Loading block…"
 						>
-							{#snippet children(block)}
-								{#if block.excessBlobGas !== undefined}
-									<NumberValue value={block.excessBlobGas} />
+							{#snippet children(loadedBlock)}
+								{#if loadedBlock.excessBlobGas !== undefined}
+									<NumberValue value={loadedBlock.excessBlobGas} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -278,20 +281,12 @@
 							resource={block}
 							placeholderText="Loading block…"
 						>
-							{#snippet children(block)}
-								{#if block.$parent}
+							{#snippet children(loadedBlock)}
+								{#if loadedBlock.$parent}
 									<EvmBlockView
-										entityId={block.$parent[EntityMetaKey.Id]}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
-											{
-												networkId: String(entityId.$network.chainId),
-												blockNumber: String(block.$parent[EntityMetaKey.Id].blockNumber),
-											},
-										)}
+										entityId={loadedBlock.$parent[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
-										showTypeAnnotation={false}
 									/>
 								{/if}
 							{/snippet}
@@ -308,23 +303,15 @@
 							resource={block}
 							placeholderText="Loading block…"
 						>
-							{#snippet children(block)}
-								{#if block.$miner}
+							{#snippet children(loadedBlock)}
+								{#if loadedBlock.$miner}
 									<ActorNetworkView
 										entityId={{
 											$network: entityId.$network,
-											$actor: block.$miner[EntityMetaKey.Id],
+											$actor: loadedBlock.$miner[EntityMetaKey.Id],
 										}}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-											{
-												networkId: String(entityId.$network.chainId),
-												address: block.$miner[EntityMetaKey.Id].address,
-											},
-										)}
 										layout={EntityLayout.Title}
 										open={false}
-										showTypeAnnotation={false}
 									/>
 								{/if}
 							{/snippet}
@@ -342,7 +329,6 @@
 			entityType={EntityType.EvmBlock}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -374,13 +360,13 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet Markers({ open: _markersOpen })}
 					<ResourceBoundary
 						resource={block}
 						placeholderText=""
 					>
-						{#snippet children(block)}
-							{#if block.$parent}
+						{#snippet children(loadedBlock)}
+							{#if loadedBlock.$parent}
 								<a
 									data-scroll-marker-label="Chain"
 									href={`#${blockIdKey}:chain`}
@@ -392,7 +378,7 @@
 						data-scroll-marker-label="Transactions"
 						href={`#${blockIdKey}:transactions`}
 					>Tx</a>
-					{#if _children}
+					{#if children}
 						<a
 							data-scroll-marker-label="Content"
 							href={`#${blockIdKey}:page-content`}
@@ -400,27 +386,19 @@
 					{/if}
 				{/snippet}
 
-				{#snippet body(_ctx)}
+				{#snippet body({ open: _bodyOpen })}
 					<ResourceBoundary
 						resource={block}
 						placeholderText="Loading chain info…"
 					>
-						{#snippet children(block)}
-							{#if block.$parent}
+						{#snippet children(loadedBlock)}
+							{#if loadedBlock.$parent}
 								<section
 									id={`${blockIdKey}:chain`}
 								>
 									<EvmBlockView
-										entityId={block.$parent[EntityMetaKey.Id]}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
-											{
-												networkId: String(entityId.$network.chainId),
-												blockNumber: String(block.$parent[EntityMetaKey.Id].blockNumber),
-											},
-										)}
+										entityId={loadedBlock.$parent[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
-										showTypeAnnotation={false}
 									/>
 								</section>
 							{/if}
@@ -430,29 +408,29 @@
 						id={`${blockIdKey}:transactions`}
 					>
 						<EvmTransactionsView
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
+								{
+								networkId: String(entityId.$network.chainId),
+								blockNumber: String(entityId.blockNumber),
+								},
+		)}
 							entityFieldReference={{
 								entityType: EntityType.EvmBlock,
 								entityId,
 								fieldName: '$$transactions',
 							}}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
-								{
-									networkId: String(entityId.$network.chainId),
-									blockNumber: String(entityId.blockNumber),
-								},
-							)}
 							id="transactions"
 							collapsible={false}
 							open={true}
 						/>
 					</section>
 
-					{#if _children}
+					{#if children}
 						<section
 							id={`${blockIdKey}:page-content`}
 						>
-							{@render _children()}
+							{@render children()}
 						</section>
 					{/if}
 				{/snippet}
@@ -460,3 +438,4 @@
 		</div>
 	{/snippet}
 </EntityView>
+

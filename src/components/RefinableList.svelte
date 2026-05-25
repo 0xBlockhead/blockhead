@@ -95,18 +95,14 @@
 
 	type ItemSnippetContext = {
 		key?: _Key,
-	} & (
-		| {
-				item?: _Item,
-				isPlaceholder?: false,
-				searchQuery?: string,
-				matches?: SvelteSet<Match>,
-			}
-		| {
-				item?: never,
-				isPlaceholder?: true,
-			}
-	)
+		item: _Item,
+		searchQuery?: string,
+		matches?: SvelteSet<Match>,
+	}
+
+	type ItemPlaceholderSnippetContext = {
+		key: _Key,
+	}
 
 
 	// Props
@@ -144,6 +140,7 @@
 
 		GroupHeader,
 		Item,
+		ItemPlaceholder,
 		Empty,
 		ToolbarExtra,
 
@@ -183,8 +180,9 @@
 			displayedItems?: _Item[]
 			filter?: (item: _Item) => boolean
 
-			GroupHeader?: import('svelte').Snippet<[context?: GroupHeaderSnippetContext]>
-			Item: import('svelte').Snippet<[context?: ItemSnippetContext]>
+			GroupHeader?: import('svelte').Snippet<[GroupHeaderSnippetContext]>
+			Item: import('svelte').Snippet<[ItemSnippetContext]>
+			ItemPlaceholder?: import('svelte').Snippet<[ItemPlaceholderSnippetContext]>
 			Empty?: import('svelte').Snippet
 			ToolbarExtra?: import('svelte').Snippet
 
@@ -376,6 +374,7 @@
 		{matchesForItem}
 		{GroupHeader}
 		{Item}
+		{ItemPlaceholder}
 		{Empty}
 		{...ulProps}
 	/>

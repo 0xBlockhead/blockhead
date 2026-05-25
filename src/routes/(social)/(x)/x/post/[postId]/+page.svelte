@@ -1,8 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Props
 	let {
 		params,
@@ -23,10 +19,6 @@
 <Page>
 	<XPostView
 		{entityId}
-		href={resolve(
-			'/(social)/(x)/x/post/[postId]',
-			{ postId: encodeURIComponent(entityId.id) },
-		)}
 	>
 	</XPostView>
 </Page>

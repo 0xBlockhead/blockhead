@@ -15,10 +15,8 @@
 	// Props
 	let {
 		entityId,
-		href,
 	}: {
 		entityId: EntityId<typeof schema, EntityType.EnsName>
-		href: string
 	} = $props()
 
 
@@ -47,23 +45,24 @@
 	placeholderText="Loading forward resolution…"
 	resource={ens}
 >
-	{#snippet children(ens)}
-		{@const resolvedActorId = ens.$resolvedActor?.[EntityMetaKey.Id]}
+	{#snippet children(loadedEns)}
+		{@const resolvedActorId = loadedEns.$resolvedActor?.[EntityMetaKey.Id]}
 		{#if resolvedActorId}
 			<section>
 				<NetworkView
 					entityId={{ chainId: ensEthereumChainId }}
-					href={resolve('/(explore)/(networks)/network/[networkId]', {
-						networkId: String(ensEthereumChainId),
-					})}
 					layout={EntityLayout.Summary}
 					open={false}
 				/>
 			</section>
 
+			<!-- href override: card links to this resolves-to page, not /account/… -->
 			<ActorView
 				entityId={resolvedActorId}
-				{href}
+				href={resolve(
+					'/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to',
+					{ ensName: entityId.name },
+				)}
 				title="Addr record"
 			/>
 		{:else}

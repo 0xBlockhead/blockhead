@@ -4,13 +4,15 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+
 	import {
 		ensTextRecordDisplayRank,
-		getEnsTextRecordLabel,
+		ensTextRecordLabels,
 	} from '$/constants/Ens.ts'
-	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
@@ -20,31 +22,58 @@
 	// Props
 	let {
 		entityId,
-		href,
 		id = 'ens-text-records',
 		open = $bindable(true),
 		collapsible = true,
 		excludeRecordKeys: excludeRecordKeysProp,
 		recordKeys: recordKeysProp,
 		title = 'Text records',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.EnsName>
-			href: string
 			id?: string
 			open?: boolean
 			excludeRecordKeys?: readonly string[]
 			recordKeys?: string[]
 			title?: string
 		},
-		Omit<ComponentProps<typeof EntitiesList>, 'entityType'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'body'
+			| 'collapsible'
+			| 'CollapsibleProps'
+			| 'Empty'
+			| 'getKey'
+			| 'getSortValue'
+			| 'HeadingProps'
+			| 'href'
+			| 'Item'
+			| 'ItemPlaceholder'
+			| 'items'
+			| 'layout'
+			| 'limit'
+			| 'panelStyle'
+			| 'placeholderKeys'
+			| 'placeholderText'
+			| 'resource'
+			| 'showSummary'
+			| 'TypeAnnotationTooltip'
+			| 'UnorderedListProps'
+		>
 	> = $props()
 
 
-	// State
-	import { SvelteSet } from 'svelte/reactivity'
+	// Functions
+	const rank = (key: string) => (
+		key in ensTextRecordDisplayRank ?
+			ensTextRecordDisplayRank[key].rank
+		:
+			9999
+	)
 
+
+	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -63,13 +92,32 @@
 		},
 	)
 
-	const rank = (key: string) => (
-		key in ensTextRecordDisplayRank ?
-			ensTextRecordDisplayRank[key]
+	const textRecords = derive(ens, (loadedEns) => (
+		recordKeysProp !== undefined ?
+			[...recordKeysProp]
+				.filter((key) => (
+					excludeRecordKeys == null
+					|| !excludeRecordKeys.has(key)
+				))
 		:
-			9999
-	)
+			[
+				...[...new Set([
+					...(
+						loadedEns.textRecords === undefined ?
+							[]
+						:
+							Object.keys(loadedEns.textRecords)
+					),
+					...(loadedEns.resolverTextKeys ?? []),
+				])].filter((key) => (
+					excludeRecordKeys == null
+					|| !excludeRecordKeys.has(key)
+				)),
+			]
+	))
 
+
+	// (Derived)
 	const excludeRecordKeys = $derived(
 		excludeRecordKeysProp === undefined ?
 			null
@@ -77,42 +125,9 @@
 			new SvelteSet(excludeRecordKeysProp),
 	)
 
-	const textRecords = derive(ens, (ens) => (
-		recordKeysProp !== undefined ?
-			[...recordKeysProp]
-				.filter((key) => (
-					excludeRecordKeys == null
-					|| !excludeRecordKeys.has(key)
-				))
-				.toSorted((a, b) => (
-				rank(a) !== rank(b) ?
-					rank(a) - rank(b)
-				:	a.localeCompare(b)
-			))
-		:
-			[
-				...new Set([
-					...(
-						row.textRecords === undefined ?
-							[]
-						:
-							Object.keys(row.textRecords)
-					),
-					...(row.resolverTextKeys ?? []),
-				])
-					.filter((key) => (
-						excludeRecordKeys == null
-						|| !excludeRecordKeys.has(key)
-					)),
-			].toSorted((a, b) => (
-				rank(a) !== rank(b) ?
-					rank(a) - rank(b)
-				:	a.localeCompare(b)
-			))
-	))
-
 
 	// Components
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 </script>
@@ -120,16 +135,14 @@
 
 <div data-column="gap-3">
 	<EntitiesList
-		{...entitiesListRest}
+		{...EntitiesListProps}
 		bind:open
 		entityType={EntityType.EnsName}
 		getKey={(key) => key}
 		getSortValue={(key) => (
 			`${String(rank(key)).padStart(4, '0')}:${key}`
 		)}
-		{href}
 		{id}
-		placeholderKeys={new SvelteSet()}
 		resource={textRecords}
 		{title}
 	>
@@ -147,38 +160,41 @@
 			</p>
 		{/snippet}
 
-		{#snippet Item(props)}
-			{#if props.item}
-				{@const recordLabel = getEnsTextRecordLabel(props.item)}
-				{@const recordValue = (
-					ens.ready ?
-						ens.current.textRecords?.[props.item]
-					:
-						undefined
-				)}
-				<a
-					data-link
-					href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/(records)/record/[recordId]', {
-						ensName: entityId.name,
-						recordId: props.item,
-					})}
-				>
-					<span data-column>
-						<span>
-							{recordLabel}
-							{#if recordLabel !== props.item}
-								<small data-text="muted"> ({props.item})</small>
-							{/if}
-						</span>
-						{#if recordValue != null && recordValue !== ''}
-							<TruncatedValue
-								value={recordValue}
-								format={TruncatedValueFormat.Visual}
-							/>
+		{#snippet Item({ item })}
+			{@const recordLabel = (
+				item in ensTextRecordLabels ?
+					ensTextRecordLabels[item].label
+				:
+					item
+			)}
+			{@const recordValue = (
+				ens.ready ?
+					ens.current.textRecords?.[item]
+				:
+					undefined
+			)}
+			<a
+				data-link
+				href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/(records)/record/[recordId]', {
+					ensName: entityId.name,
+					recordId: item,
+				})}
+			>
+				<span data-column>
+					<span>
+						{recordLabel}
+						{#if recordLabel !== item}
+							<small data-text="muted"> ({item})</small>
 						{/if}
 					</span>
-				</a>
-			{/if}
+					{#if recordValue != null && recordValue !== ''}
+						<TruncatedValue
+							value={recordValue}
+							format={TruncatedValueFormat.Visual}
+						/>
+					{/if}
+				</span>
+			</a>
 		{/snippet}
 	</EntitiesList>
 </div>

@@ -1,13 +1,16 @@
 <script lang="ts">
-	// Context
-	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-
-
-	// Props
+	// Types/constants
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 	import type { Snippet } from 'svelte'
 
+
+	// Context
+	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
+	import { incrementHeadingLevel } from '$/context/headingLevel.ts'
+
+
+	// Props
 	let {
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -51,14 +54,11 @@
 	> = $props()
 
 
-	// Inner context
-	import { incrementHeadingLevel } from '$/context/headingLevel.ts'
-
+	// State
 	incrementHeadingLevel()
 
 
 	// (Derived)
-
 	const collapsibleTabsPaneScrollContainer = $derived(
 		typeof scrollContainerProps['data-scroll-container'] === 'string' ?
 			scrollContainerProps['data-scroll-container']

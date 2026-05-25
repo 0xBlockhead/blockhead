@@ -1,18 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
-	import { stringify } from 'devalue'
-
-	import { resolve } from '$app/paths'
-
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import UnorderedList from '$/components/UnorderedList.svelte'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -20,6 +8,12 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -34,9 +28,7 @@
 
 		id,
 
-		href,
-
-		...entitiesListProps
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmUserOperation>
@@ -48,17 +40,24 @@
 			title?: string
 
 			id: string
-
-			href: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType' | 'href' | 'id' | 'title'
+			| 'href'
 		>
 	> = $props()
 
 
+	// State
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+
 	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import UnorderedList from '$/components/UnorderedList.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EvmUserOperationView from '$/views/EvmUserOperationView.svelte'
 </script>
@@ -66,16 +65,13 @@
 
 <EntitiesList
 	entityType={EntityType.EvmUserOperation}
-	{entityFieldReference}
-	{href}
 	{id}
 	{title}
 	bind:open
-	{...entitiesListProps}
+	{...EntitiesListProps}
 >
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parentEntityType = entityFieldReference.entityType}
 			{@const parent = useEntity(
 				parentEntityType,
@@ -88,7 +84,7 @@
 							],
 						},
 					}),
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Blockscout_Rest,
 						],
@@ -101,7 +97,7 @@
 			{@const userOperations = derive(
 				parent,
 				(parent): Entity<typeof schema, EntityType.EvmUserOperation>[] => (
-					parent[fieldName]
+					parent[entityFieldReference.fieldName]
 					?? []
 				),
 			)}
@@ -122,27 +118,18 @@
 							{/snippet}
 
 							{#snippet Item({ item })}
-								{#if item}
-									<EvmUserOperationView
-										entityId={item[EntityMetaKey.Id]}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/user-operation/[userOperationHash]',
-											{
-												networkId: String(item[EntityMetaKey.Id].$network.chainId),
-												userOperationHash: item[EntityMetaKey.Id].hash,
-											},
-										)}
-										layout={EntityLayout.Summary}
-										open={false}
-									>
-										{#snippet HeadingSnippet()}
-											<TruncatedValue
-												format={TruncatedValueFormat.Visual}
-												value={item[EntityMetaKey.Id].hash}
-											/>
-										{/snippet}
-									</EvmUserOperationView>
-								{/if}
+								<EvmUserOperationView
+									entityId={item[EntityMetaKey.Id]}
+									layout={EntityLayout.Summary}
+									open={false}
+								>
+									{#snippet HeadingSnippet()}
+										<TruncatedValue
+											format={TruncatedValueFormat.Visual}
+											value={item[EntityMetaKey.Id].hash}
+										/>
+									{/snippet}
+								</EvmUserOperationView>
 							{/snippet}
 						</UnorderedList>
 					{/snippet}

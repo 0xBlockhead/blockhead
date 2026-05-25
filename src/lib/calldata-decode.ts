@@ -86,14 +86,14 @@ export const decodeEventDataWithSignature = (
 	const dataStart = 64 + parsed.indexedTypes.length * 64
 	const minDataLen = parsed.nonIndexedTypes.length * 64
 	if (raw.length < dataStart + minDataLen) return null
-	const topic0 = (`0x${raw.slice(0, 64).toLowerCase()}` as `0x${string}`)
+	const topic0 = `0x${raw.slice(0, 64).toLowerCase()}`
 	const expectedTopic = eventTopicFromSignature(signature)
 	if (expectedTopic && topic0 !== expectedTopic) return null
 	const params: DecodedParam[] = []
 	try {
 		for (let i = 0; i < parsed.indexedTypes.length; i++) {
 			const type = parsed.indexedTypes[i]
-			const topicHex = (`0x${raw.slice(64 + i * 64, 64 + (i + 1) * 64).toLowerCase()}` as `0x${string}`)
+			const topicHex = `0x${raw.slice(64 + i * 64, 64 + (i + 1) * 64).toLowerCase()}`
 			const decoded = decodeParameters(
 				[{ type, name: 'x' }] as unknown as Parameters<typeof decodeParameters>[0],
 				toBytes(topicHex),
@@ -101,7 +101,7 @@ export const decodeEventDataWithSignature = (
 			params.push({ type, value: decoded[0] })
 		}
 		if (parsed.nonIndexedTypes.length > 0) {
-			const dataHex = (`0x${raw.slice(dataStart)}` as `0x${string}`).toLowerCase() as `0x${string}`
+			const dataHex = `0x${raw.slice(dataStart)}`.toLowerCase()
 			const inputs = parsed.nonIndexedTypes.map((type, i) => ({ type, name: `param${i}` }))
 			const decoded = decodeParameters(
 				inputs as unknown as Parameters<typeof decodeParameters>[0],

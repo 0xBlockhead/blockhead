@@ -6,6 +6,10 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import type { ComponentProps } from 'svelte'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
@@ -13,36 +17,28 @@
 
 
 	// Props
-	import type { ComponentProps } from 'svelte'
-	import type { WithRest } from '$/typescript/WithRest.ts'
-
 	let {
 		entityFieldReference,
 		title = 'Linked wallets',
-		href,
 		id,
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Actor>
-			href: string
 			id: string
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -57,12 +53,11 @@
 
 <EntitiesList
 	entityType={EntityType.Actor}
-	{href}
 	{id}
 	bind:open
 	{collapsible}
 	{title}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -79,7 +74,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -110,7 +105,6 @@
 				showSummary={false}
 				entityType={EntityType.Actor}
 				id={`${id}-items`}
-				{href}
 				{title}
 				open={true}
 				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
@@ -125,19 +119,17 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const aid = props.item.value[EntityMetaKey.Id]}
-						<ActorView
-							entityId={aid}
-							href={resolve('/account/[address]', {
-								address: aid.address,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-							title="Account"
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const aid = item.value[EntityMetaKey.Id]}
+					<ActorView
+						entityId={aid}
+						href={resolve('/account/[address]', {
+							address: aid.address,
+						})}
+						layout={EntityLayout.Summary}
+						open={false}
+						title="Account"
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

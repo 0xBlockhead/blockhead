@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
 	import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
 	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
@@ -11,6 +10,13 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -18,16 +24,14 @@
 		title = 'Deployments',
 		open = $bindable(true),
 		collapsible = true,
-		href,
 		id,
 		entityFieldReference,
 		representationFilter,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
-			href: string
 			id: string
 			representationFilter?: CoinInstanceRepresentation
 			entityFieldReference: EntityFieldReference<
@@ -35,16 +39,14 @@
 				EntityType.CoinInstance
 			>
 		},
-		Omit<ComponentProps<typeof EntitiesList>, 'entityType'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'href'
+		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
-	import { resolve } from '$app/paths'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -52,18 +54,16 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
 </script>
 
 
 <div data-column="gap-2">
 	<EntitiesList
-		{...entitiesListRest}
+		{...EntitiesListProps}
 		bind:open
 		{collapsible}
 		entityType={EntityType.CoinInstance}
-		{href}
 		{id}
 		{title}
 	>
@@ -85,7 +85,7 @@
 			</p>
 		{/snippet}
 
-		{#snippet body()}
+		{#snippet body({ open: _bodyOpen })}
 			{#if open}
 				{@const parent = useEntity(
 					entityFieldReference.entityType,
@@ -128,13 +128,11 @@
 					collapsible={false}
 					showSummary={false}
 					entityType={EntityType.CoinInstance}
-					{href}
 					id={`${id}-items`}
 					{title}
 					open={true}
 					getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 					getSortValue={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-					placeholderKeys={new SvelteSet()}
 					placeholderText="Loading deployments…"
 					resource={coinInstances}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
@@ -149,27 +147,13 @@
 					{/snippet}
 
 					{#snippet Item({ item })}
-						{#if item}
-							{@const coinInstanceId = item.value[EntityMetaKey.Id]}
-							<CoinInstanceView
-								entityId={coinInstanceId}
-								href={resolve(
-									'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
-									{
-										chainId: String(coinInstanceId.$network.chainId),
-										coinInstanceSlug: (
-											coinInstanceId.type === CoinInstanceType.NativeCurrency ?
-												'native'
-											:
-												coinInstanceId.$contract.address
-										),
-									},
-								)}
-								id={stringify(coinInstanceId)}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/if}
+						{@const coinInstanceId = item.value[EntityMetaKey.Id]}
+						<CoinInstanceView
+							entityId={coinInstanceId}
+							id={stringify(coinInstanceId)}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
 					{/snippet}
 				</EntitiesList>
 			{/if}

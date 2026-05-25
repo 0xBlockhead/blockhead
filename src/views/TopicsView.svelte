@@ -8,10 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -20,27 +18,23 @@
 		title = 'Log topics',
 		open = $bindable(true),
 		collapsible = true,
-		href,
 		id,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmTopic>
 			title?: string
 			open?: boolean
-			href: string
 			id: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -48,17 +42,15 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import EvmTopicView from '$/views/EvmTopicView.svelte'
 </script>
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	{collapsible}
 	entityType={EntityType.EvmTopic}
-	{href}
 	{id}
 	{title}
 >
@@ -77,9 +69,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -88,7 +79,7 @@
 						Source.Constants_Internal,
 						Source.Openchain_Rest,
 					],
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$limit: 4096,
 					},
 				},
@@ -96,14 +87,13 @@
 			{@const topics = derive(
 				parent,
 				(parent) => (
-					parent[fieldName] ?? []
+					parent[entityFieldReference.fieldName] ?? []
 				),
 			)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.EvmTopic}
-				{href}
 				id={`${id}-items`}
 				{title}
 				open={true}
@@ -120,20 +110,15 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const topicId = props.item[EntityMetaKey.Id]}
-						<EvmTopicView
-							entityId={topicId}
-							href={resolve('/(explore)/(evm)/evm/(topics)/topic/[hex]', {
-								hex: topicId.hex,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-							collapsible={false}
-							showTypeAnnotation={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const topicId = item[EntityMetaKey.Id]}
+					<EvmTopicView
+						entityId={topicId}
+						layout={EntityLayout.Summary}
+						open={false}
+						collapsible={false}
+						showTypeAnnotation={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

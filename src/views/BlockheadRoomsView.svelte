@@ -1,17 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { stringify } from 'devalue'
-
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { Source } from '$/sources/$Source.ts'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -20,9 +17,8 @@
 		title = 'Collaboration rooms',
 		open = $bindable(true),
 		collapsible = true,
-		href,
 		id,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<
@@ -30,36 +26,35 @@
 				EntityType.BlockheadRoom
 			>
 			title?: string
-			open?: boolean
-			href: string
-			id: string
+			open?: boolean			id: string
 		},
-		Omit<ComponentProps<typeof EntitiesList>, 'entityType'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'id',
+			| 'href'
+		>
 	> = $props()
 
 
 	// State
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { Source } from '$/sources/$Source.ts'
 
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import BlockheadRoomView from '$/views/BlockheadRoomView.svelte'
 </script>
 
 
 <EntitiesList
 	entityType={EntityType.BlockheadRoom}
-	{href}
 	{id}
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -76,7 +71,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const global = useEntity(
 				EntityType._Global,
@@ -86,23 +81,24 @@
 					$$blockheadRooms: {},
 				},
 			)}
-			{@const rooms = derive(
-				global,
-				(global) => (
-					global['$$blockheadRooms'] ?? []
-				),
-			)}
+
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.BlockheadRoom}
-				{href}
 				id={`${id}-items`}
 				{title}
 				open={true}
 				getKey={(row) => stringify(row[EntityMetaKey.Id])}
 				getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
-				resource={rooms}
+				resource={
+					derive(
+						global,
+						(global) => (
+							global['$$blockheadRooms'] ?? []
+						),
+					)
+				}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
 				{#snippet Empty()}
@@ -111,18 +107,12 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item({ item: row })}
-					{#if row}
-						<BlockheadRoomView
-							entityId={row[EntityMetaKey.Id]}
-							href={resolve(
-								'/~/(multiplayer)/multiplayer/(rooms)/room/[roomId]',
-								{ roomId: row[EntityMetaKey.Id].id },
-							)}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item: room })}
+					<BlockheadRoomView
+						entityId={room[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

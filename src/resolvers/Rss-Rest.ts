@@ -10,10 +10,7 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const optionalTrimmedString = (value: string | undefined) => (
-	value?.trim() ?
-		value.trim()
-	:
-		undefined
+	value?.trim() || undefined
 )
 
 export default {
@@ -27,6 +24,7 @@ export default {
 				const { rssGetFeed } = await import('$/sources/Rss/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
 				const feed = await singleFlight(rssGetFeed)(feedUrl)
+				if (feed == null) throw new Error('Rss_Rest: feed not found')
 				return {
 					...(optionalTrimmedString(feed.title) != null && {
 						title: optionalTrimmedString(feed.title),
@@ -46,6 +44,9 @@ export default {
 					...(feed.lastBuildDate != null && {
 						lastBuildDate: feed.lastBuildDate,
 					}),
+					...(optionalTrimmedString(feed.imageUrl) != null && {
+						imageUrl: optionalTrimmedString(feed.imageUrl),
+					}),
 				}
 			},
 		}),
@@ -59,7 +60,9 @@ export default {
 				} = await import('$/sources/Rss/Rest/constants.ts')
 				const { rssGetFeed } = await import('$/sources/Rss/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
-				const item = (await singleFlight(rssGetFeed)(feedUrl)).items.find((candidate) => (
+				const feed = await singleFlight(rssGetFeed)(feedUrl)
+				if (feed == null) throw new Error('Rss_Rest: feed not found')
+				const item = feed.items.find((candidate) => (
 					rssItemGuidFromParts(candidate.guid, candidate.link, candidate.title) === entityId.guid
 				))
 				if (item == null) throw new Error('Rss_Rest: item not found')
@@ -82,6 +85,18 @@ export default {
 					...(item.publishedAt != null && {
 						publishedAt: item.publishedAt,
 					}),
+					...(item.updatedAt != null && {
+						updatedAt: item.updatedAt,
+					}),
+					...(item.categories != null && item.categories.length > 0 && {
+						categories: item.categories,
+					}),
+					...(optionalTrimmedString(item.enclosureUrl) != null && {
+						enclosureUrl: optionalTrimmedString(item.enclosureUrl),
+					}),
+					...(optionalTrimmedString(item.commentsUrl) != null && {
+						commentsUrl: optionalTrimmedString(item.commentsUrl),
+					}),
 					$feed: {
 						[EntityMetaKey.Id]: { feedUrl },
 					},
@@ -102,21 +117,22 @@ export default {
 				const { rssListFeedItems } = await import('$/sources/Rss/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const perFeedLimit = Math.max(1, Math.ceil(limit / rssNetworkSeedFeeds.length))
-				const byKey = new Map<string, { [EntityMetaKey.Id]: { feedUrl: string, guid: string } }>()
+				const refs: { [EntityMetaKey.Id]: { feedUrl: string, guid: string } }[] = []
 				for (const seedFeed of rssNetworkSeedFeeds) {
 					const feedUrl = normalizeRssFeedUrl(seedFeed.feedUrl)
 					for (const item of await singleFlight(rssListFeedItems)(feedUrl, perFeedLimit)) {
 						const guid = rssItemGuidFromParts(item.guid, item.link, item.title)
-						const key = `${feedUrl}\0${guid}`
-						byKey.set(key, {
+						refs.push({
 							[EntityMetaKey.Id]: {
 								feedUrl,
 								guid,
 							},
 						})
+						if (refs.length >= limit) break
 					}
+					if (refs.length >= limit) break
 				}
-				return [...byKey.values()].slice(0, limit)
+				return refs.slice(0, limit)
 			},
 		}),
 

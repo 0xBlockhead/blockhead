@@ -1,4 +1,5 @@
 import { CoinId } from '$/constants/Coin.ts'
+import { MarketVenueId } from '$/constants/MarketVenue.ts'
 
 /** Demo vs pro API hosts (REST path {@link pathPrefix}). */
 export const demoOrigin = 'https://api.coingecko.com' as const
@@ -2066,13 +2067,13 @@ export const coingeckoCatalogCoinIds: readonly CoinId[] = catalog.flatMap((entry
 
 /** CoinGecko derivatives exchange id per catalog venue (`binance` spot vs `binance_futures`). */
 export const coingeckoDerivativesExchangeIdByMarketVenueId = {
-	Binance: 'binance_futures',
-	Coinbase: 'coinbase_international_derivatives',
-	Deribit: 'deribit',
-	Kraken: 'kraken_futures',
-	Kucoin: 'kucoin_futures',
-	Okx: 'okex_swap',
-} as const
+	[MarketVenueId.Binance]: 'binance_futures',
+	[MarketVenueId.Coinbase]: 'coinbase_international_derivatives',
+	[MarketVenueId.Deribit]: 'deribit',
+	[MarketVenueId.Kraken]: 'kraken_futures',
+	[MarketVenueId.Kucoin]: 'kucoin_futures',
+	[MarketVenueId.Okx]: 'okex_swap',
+} as const satisfies Partial<Record<MarketVenueId, string>>
 
 
 /**

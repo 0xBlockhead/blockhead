@@ -72,6 +72,8 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.Constants_Internal,
+				Source.Reddit_Rest,
+				Source.Reddit_PublicJson,
 			],
 		},
 		{
@@ -80,7 +82,8 @@ export default {
 			entityType: EntityType.RedditLink,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
-				Source.Constants_Internal,
+				Source.Reddit_Rest,
+				Source.Reddit_PublicJson,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

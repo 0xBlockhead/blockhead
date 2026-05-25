@@ -8,10 +8,8 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -21,7 +19,7 @@
 		collapsible = true,
 		title = 'Liquidity pools',
 		limit = 300,
-		...entitiesListRest
+				...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.LiquidityPool>
@@ -29,16 +27,15 @@
 			title?: string
 			limit?: number
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -46,14 +43,13 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
 </script>
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	{collapsible}
 	data-entity-field-name={entityFieldReference.fieldName}
@@ -62,18 +58,27 @@
 	entityType={EntityType.LiquidityPool}
 	{title}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Dexscreener-backed concentrated-liquidity pair rows: token pair, volume, and TVL—not an exhaustive on-chain pool registry.
+		</p>
+		<p>
+			The global catalog slice uses a fixed Dexscreener search probe (<code>WETH/USDC</code>); on-chain curve fields require another source.
+		</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<div data-row="wrap align-center gap-2">
 			<p data-text="muted">
-				No concentrated-liquidity pools in this slice yet.
+				No Dexscreener pair rows in this slice yet.
 			</p>
 			<Tooltip contentProps={{ side: 'top' }}>
 				{#snippet Content()}
 					<p>
-						Each row is the shared pool curve (pair, fee, ticks, aggregate liquidity).
+						Each row is a Dexscreener pair id on a supported network.
 					</p>
 					<p>
-						Individual LP ranges are listed under positions, not here.
+						Individual LP NFT ranges are listed under positions, not here.
 					</p>
 				{/snippet}
 				<abbr
@@ -84,7 +89,7 @@
 		</div>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -128,12 +133,12 @@
 				{#snippet Empty()}
 					<div data-row="wrap align-center gap-2">
 						<p data-text="muted">
-							No concentrated-liquidity pools in this slice yet.
+							No Dexscreener pair rows in this slice yet.
 						</p>
 						<Tooltip contentProps={{ side: 'top' }}>
 							{#snippet Content()}
 								<p>
-									Each row is the shared pool curve (pair, fee, ticks, aggregate liquidity).
+									Each row is a Dexscreener pair id on a supported network (token pair, volume, TVL).
 								</p>
 								<p>
 									Individual LP ranges are listed under positions, not here.
@@ -147,17 +152,12 @@
 					</div>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<LiquidityPoolView
-							entityId={props.item.value[EntityMetaKey.Id]}
-							href={resolve('/(assets)/(pools)/pool/[poolId]', {
-								poolId: props.item.value[EntityMetaKey.Id].id,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					<LiquidityPoolView
+						entityId={item.value[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

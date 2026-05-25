@@ -38,6 +38,7 @@ export const queryLens = async <
 	variables?: _Variables,
 ): Promise<_Result> => {
 	const apiKey = publicEnv.PUBLIC_LENS_API_KEY
+	const trimmedApiKey = typeof apiKey === 'string' ? apiKey.trim() : ''
 	const out = await getJson<LensGqlResponse<_Result>>(lensGraphqlUrl, {
 		origins: Lens.origins ?? [],
 		init: {
@@ -45,7 +46,7 @@ export const queryLens = async <
 			headers: {
 				'Content-Type': 'application/json',
 				Accept: 'application/json',
-				...(typeof apiKey === 'string' && apiKey.trim() !== '' && { 'x-lens-app': apiKey.trim() }),
+				...(trimmedApiKey !== '' && { 'x-lens-app': trimmedApiKey }),
 			},
 			body: JSON.stringify({
 				query: print(document),

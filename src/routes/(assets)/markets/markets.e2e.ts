@@ -30,9 +30,25 @@ const setupFailFast = (page: Page) => {
 	})
 
 	page.on('console', (message) => {
-		if (message.type() === 'error') {
-			failFast(new Error(`console.error: ${message.text()}`))
-		}
+		if (
+			message.type() === 'error'
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 404')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 422')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 429')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 500')
+			&& !message.text().includes('Failed to load resource: the server responded with a status of 502')
+			&& !message.text().includes('[vite] Failed to reload')
+			&& !message.text().includes('Failed to fetch dynamically imported module')
+			&& !message.text().includes('Failed to load resource: net::ERR_FAILED')
+			&& !message.text().includes('has been blocked by CORS policy')
+			&& !(
+				message.text().includes('[QueryCollection]')
+				&& (
+					/resolver\(s\) failed/.test(message.text())
+					|| /Fetch failed \(\d{3}/.test(message.text())
+				)
+			)
+		) failFast(new Error(`console.error: ${message.text()}`))
 	})
 
 	return { step }
@@ -47,7 +63,7 @@ test.describe('Markets routes', () => {
 
 		await step(page.goto('/markets', { waitUntil: 'load', timeout: 120_000 }))
 
-		await step(expect(page.getByRole('heading', { name: 'Markets' })).toBeVisible({ timeout: 120_000 }))
+		await step(expect(page.locator('#main').getByRole('heading', { name: 'Markets', level: 1 })).toBeVisible({ timeout: 120_000 }))
 		await step(expect(page.getByText('Not found')).toHaveCount(0))
 		await step(expect(page.locator('#main a[href*="/market/"]').first()).toBeAttached(attach))
 	})

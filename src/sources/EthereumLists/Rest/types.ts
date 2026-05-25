@@ -1,5 +1,5 @@
 /**
- * Wire types for `GET https://chainid.network/chains.json` (array of chains).
+ * Types for `GET https://chainid.network/chains.json` (array of chains).
  * @see https://github.com/ethereum-lists/chains
  * @see https://chainid.network/chains.json
  */
@@ -34,4 +34,23 @@ export type EthereumListsChainJson = {
 		bridges?: { url: string }[]
 	}
 	redFlags?: string[]
+}
+
+/** Subset of `EthereumListsChainJson` used for mainnet/testnet pairing in resolvers. */
+export type EthereumListsChainPairing = Pick<
+	EthereumListsChainJson,
+	| 'chainId'
+	| 'name'
+	| 'title'
+	| 'shortName'
+	| 'parent'
+	| 'nativeCurrency'
+>
+
+/** Explorer row (+ optional `infoURL`) normalized into `Url` catalog entities. */
+export type EthereumListsExplorerLike = {
+	name: string
+	url: string
+	standard?: string | null
+	icon?: string | null
 }

@@ -7,21 +7,18 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Props
 	let {
 		entityFieldReference,
 		id = 'channels',
-		href = resolve('/farcaster/channels'),
 		title = 'Channels',
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListProps
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<
@@ -29,21 +26,17 @@
 				EntityType.FarcasterChannel
 			>
 			id?: string
-			href?: string
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -58,11 +51,10 @@
 <EntitiesList
 	entityType={EntityType.FarcasterChannel}
 	{id}
-	{href}
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListProps}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -79,7 +71,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parentNetwork = useEntity(
 				EntityType.FarcasterNetwork,
@@ -102,12 +94,10 @@
 				showSummary={false}
 				entityType={EntityType.FarcasterChannel}
 				id={`${id}-items`}
-				{href}
 				{title}
 				open={true}
 				getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
 				getSortValue={(row) => row.result[EntityMetaKey.Id].id}
-				placeholderKeys={new SvelteSet()}
 				placeholderText="Loading Farcaster channels (channel id / slug)…"
 				resource={channels}
 			>
@@ -117,18 +107,13 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const channelId = props.item.result[EntityMetaKey.Id]}
-						<FarcasterChannelView
-							entityId={{ id: channelId.id }}
-							href={resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
-								channelId: channelId.id,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const channelId = item.result[EntityMetaKey.Id]}
+					<FarcasterChannelView
+						entityId={{ id: channelId.id }}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

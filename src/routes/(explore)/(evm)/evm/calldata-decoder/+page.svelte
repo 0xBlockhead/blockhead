@@ -1,33 +1,27 @@
 <script lang="ts">
 	// Types/constants
 	import type { CalldataExample } from '$/constants/calldata-examples.ts'
-
-	const EMPTY_SIGNATURES: readonly string[] = []
-
-	const IDLE_SELECTOR_HEX = '0xffffffff' as `0x${string}`
-	const IDLE_TOPIC_HEX = `0x${'f'.repeat(64)}` as `0x${string}`
-
-	const TRUNCATE_PARAM_LENGTH = 28
+	import { calldataExamples } from '$/constants/calldata-examples.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { Source } from '$/sources/$Source.ts'
+	import { untrack } from 'svelte'
 
 
 	// Context
+	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { afterNavigate, goto } from '$app/navigation'
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
-	import { untrack } from 'svelte'
 
-	import { calldataExamples } from '$/constants/calldata-examples.ts'
+
+	// Functions
 	import {
 		decodeCalldataWithSignature,
 		decodeEventDataWithSignature,
 		formatDecodedParamValue,
 	} from '$/lib/calldata-decode.ts'
 	import { getEvmSelectorPath, getEvmTopicPath } from '$/lib/signature-paths.ts'
-	import { EntityType } from '$/schema/$EntityType.ts'
-	import { Source } from '$/sources/$Source.ts'
 
-
-	// Functions
 	const normalizeHex4 = (hex: `0x${string}`): `0x${string}` => {
 		const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase() : hex.toLowerCase()
 		return `0x${digits.padStart(8, '0').slice(-8)}`
@@ -54,137 +48,31 @@
 
 
 	// State
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+	const EMPTY_SIGNATURES: readonly string[] = []
+
+	const IDLE_SELECTOR_HEX = '0xffffffff' as `0x${string}`
+
+	const IDLE_TOPIC_HEX = `0x${'f'.repeat(64)}` as `0x${string}`
+
+	const TRUNCATE_PARAM_LENGTH = 28
 
 	let inputRaw = $state(
 		hexFromParam(page.url.searchParams.get('data')),
 	)
+
 	let selectedExample = $state<CalldataExample | undefined>(undefined)
+
 	let selectedSigIndex = $state(0)
+
 	let selectedEventSigIndex = $state(0)
 
-
-	// (Derived)
-	const hexWithPrefix = $derived(
-		inputRaw.startsWith('0x') ?
-			inputRaw
-		:
-			inputRaw ?
-				`0x${inputRaw}`
-			:
-				'',
-	)
-	const hexNormalized = $derived(
-		hexWithPrefix.slice(2).toLowerCase(),
-	)
-	const selector = $derived(
-		hexNormalized.length >= 8 ?
-			(`0x${hexNormalized.slice(0, 8).toLowerCase()}` as `0x${string}`)
-		:
-			null,
-	)
-	const topic = $derived(
-		hexNormalized.length >= 64 ?
-			(`0x${hexNormalized.slice(0, 64).toLowerCase()}` as `0x${string}`)
-		:
-			null,
-	)
-	const byteCount = $derived(
-		hexNormalized ? Math.floor(hexNormalized.length / 2) : 0,
-	)
-	const normalizedSelector = $derived(
-		selector ? normalizeHex4(selector) : null,
-	)
-	const normalizedTopic = $derived(
-		topic ? normalizeHex32(topic) : null,
-	)
-	const selectorEntityId = $derived(
-		selector ?
-			{ hex: normalizedSelector ?? selector }
-		:
-			{ hex: IDLE_SELECTOR_HEX },
-	)
-	const topicEntityId = $derived(
-		topic ?
-			{ hex: normalizedTopic ?? topic }
-		:
-			{ hex: IDLE_TOPIC_HEX },
-	)
-
-	const selectorEntity = useEntity(
-		EntityType.EvmSelector,
-		selectorEntityId,
-		{
-			$: [
-				Source.Openchain_Rest,
-			],
-			signatures: {},
-		},
-	)
-	const topicEntity = useEntity(
-		EntityType.EvmTopic,
-		topicEntityId,
-		{
-			$: [
-				Source.Openchain_Rest,
-			],
-			signatures: {},
-		},
-	)
-
-	const functionSignatures = $derived(
-		selector ?
-			(selectorEntity.current.signatures ?? EMPTY_SIGNATURES)
-		:
-			EMPTY_SIGNATURES,
-	)
-	const eventSignatures = $derived(
-		topic ?
-			(topicEntity.current.signatures ?? EMPTY_SIGNATURES)
-		:
-			EMPTY_SIGNATURES,
-	)
-	const signatureForDecode = $derived(
-		functionSignatures.length > 0
-			? functionSignatures[
-					Math.min(selectedSigIndex, functionSignatures.length - 1)
-				]
-			: null,
-	)
-	const decodedCall = $derived(
-		hexWithPrefix && selector && signatureForDecode
-			? decodeCalldataWithSignature(
-					signatureForDecode,
-					hexWithPrefix as `0x${string}`,
-				)
-			: null,
-	)
-	const eventSignatureForDecode = $derived(
-		eventSignatures.length > 0
-			? eventSignatures[
-					Math.min(selectedEventSigIndex, eventSignatures.length - 1)
-				]
-			: null,
-	)
-	const decodedEvent = $derived(
-		hexWithPrefix
-			&& hexNormalized.length >= 64
-			&& eventSignatureForDecode
-			? decodeEventDataWithSignature(
-					eventSignatureForDecode,
-					hexWithPrefix as `0x${string}`,
-				)
-			: null,
-	)
-
-
-	// Actions
 	afterNavigate(({ to }) => {
 		if (!to) return
 		const fromUrl = hexFromParam(to.url.searchParams.get('data'))
 		if (fromUrl === inputRaw) return
 		inputRaw = fromUrl
 	})
+
 	$effect(() => {
 		const hex = hexNormalized.length > 0 ? `0x${hexNormalized}` : ''
 		const curData = untrack(() =>
@@ -197,6 +85,7 @@
 			: pathname
 		void goto(url, { replaceState: true })
 	})
+
 	$effect(() => {
 		const example = selectedExample
 		if (!example) return
@@ -205,12 +94,144 @@
 	})
 
 
+	// (Derived)
+	const hexWithPrefix = $derived(
+		inputRaw.startsWith('0x') ?
+			inputRaw
+		:
+			inputRaw ?
+				`0x${inputRaw}`
+			:
+				'',
+	)
+
+	const hexNormalized = $derived(
+		hexWithPrefix.slice(2).toLowerCase(),
+	)
+
+	const selector = $derived(
+		hexNormalized.length >= 8 ?
+			(`0x${hexNormalized.slice(0, 8).toLowerCase()}` as `0x${string}`)
+		:
+			null,
+	)
+
+	const topic = $derived(
+		hexNormalized.length >= 64 ?
+			(`0x${hexNormalized.slice(0, 64).toLowerCase()}` as `0x${string}`)
+		:
+			null,
+	)
+
+	const normalizedSelector = $derived(
+		selector ? normalizeHex4(selector) : null,
+	)
+
+	const normalizedTopic = $derived(
+		topic ? normalizeHex32(topic) : null,
+	)
+
+	const selectorEntityId = $derived(
+		selector ?
+			{ hex: normalizedSelector ?? selector }
+		:
+			{ hex: IDLE_SELECTOR_HEX },
+	)
+
+	const topicEntityId = $derived(
+		topic ?
+			{ hex: normalizedTopic ?? topic }
+		:
+			{ hex: IDLE_TOPIC_HEX },
+	)
+
+
+	// State
+	const selectorEntity = useEntity(
+		EntityType.EvmSelector,
+		selectorEntityId,
+		{
+			$: [
+				Source.Openchain_Rest,
+			],
+			signatures: {},
+		},
+	)
+
+	const topicEntity = useEntity(
+		EntityType.EvmTopic,
+		topicEntityId,
+		{
+			$: [
+				Source.Openchain_Rest,
+			],
+			signatures: {},
+		},
+	)
+
+
+	// (Derived)
+	const byteCount = $derived(
+		hexNormalized ? Math.floor(hexNormalized.length / 2) : 0,
+	)
+
+	const functionSignatures = $derived(
+		selector ?
+			(selectorEntity.current.signatures ?? EMPTY_SIGNATURES)
+		:
+			EMPTY_SIGNATURES,
+	)
+
+	const eventSignatures = $derived(
+		topic ?
+			(topicEntity.current.signatures ?? EMPTY_SIGNATURES)
+		:
+			EMPTY_SIGNATURES,
+	)
+
+	const signatureForDecode = $derived(
+		functionSignatures.length > 0
+			? functionSignatures[
+					Math.min(selectedSigIndex, functionSignatures.length - 1)
+				]
+			: null,
+	)
+
+	const decodedCall = $derived(
+		hexWithPrefix && selector && signatureForDecode
+			? decodeCalldataWithSignature(
+					signatureForDecode,
+					hexWithPrefix as `0x${string}`,
+				)
+			: null,
+	)
+
+	const eventSignatureForDecode = $derived(
+		eventSignatures.length > 0
+			? eventSignatures[
+					Math.min(selectedEventSigIndex, eventSignatures.length - 1)
+				]
+			: null,
+	)
+
+	const decodedEvent = $derived(
+		hexWithPrefix
+			&& hexNormalized.length >= 64
+			&& eventSignatureForDecode
+			? decodeEventDataWithSignature(
+					eventSignatureForDecode,
+					hexWithPrefix as `0x${string}`,
+				)
+			: null,
+	)
+
+
 	// Components
-	import Page from '$/components/Page.svelte'
 	import Collapsible from '$/components/Collapsible.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import Heading from '$/components/Heading.svelte'
 	import Icon from '$/components/Icon.svelte'
+	import Page from '$/components/Page.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Select from '$/components/Select.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
@@ -278,219 +299,219 @@
 				{/snippet}
 
 				{#snippet children({ open: _childrenOpen })}
-				<ul
-					data-column="gap-4"
-					class="calldata-result"
-				>
-					{#if selector && normalizedSelector}
-						<li>
-							<EntityView
-								entityType={EntityType.EvmSelector}
-								entityId={{ hex: normalizedSelector }}
-								href={resolve(getEvmSelectorPath(normalizedSelector))}
-							>
-								{#snippet Icon()}
-									<Icon
-										icon="🔖"
-										label="EVM selector"
-										size="1.75rem"
-									/>
-								{/snippet}
+					<ul
+						data-column="gap-4"
+						class="calldata-result"
+					>
+						{#if selector && normalizedSelector}
+							<li>
+								<EntityView
+									entityType={EntityType.EvmSelector}
+									entityId={{ hex: normalizedSelector }}
+									href={resolve(getEvmSelectorPath(normalizedSelector))}
+								>
+									{#snippet Icon()}
+										<Icon
+											icon="🔖"
+											label="EVM selector"
+											size="1.75rem"
+										/>
+									{/snippet}
 
-								{#snippet Title()}
-									<ResourceBoundary
-										resource={selectorEntity}
-										placeholderText="Loading function signature…"
-									>
-										{#snippet children(row)}
-											<Heading>
-												<a href={resolve(getEvmSelectorPath(normalizedSelector))}>
-													{signatureForDecode ?? row.signatures?.[0] ?? normalizedSelector}
-												</a>
-											</Heading>
-										{/snippet}
-									</ResourceBoundary>
-								{/snippet}
+									{#snippet Title()}
+										<ResourceBoundary
+											resource={selectorEntity}
+											placeholderText="Loading function signature…"
+										>
+											{#snippet children(row)}
+												<Heading>
+													<a href={resolve(getEvmSelectorPath(normalizedSelector))}>
+														{signatureForDecode ?? row.signatures?.[0] ?? normalizedSelector}
+													</a>
+												</Heading>
+											{/snippet}
+										</ResourceBoundary>
+									{/snippet}
 
-								{#snippet Value()}
-									<span data-text="muted">Selector: {selector}</span>
-								{/snippet}
+									{#snippet Value()}
+										<span data-text="muted">Selector: {selector}</span>
+									{/snippet}
 
-								{#snippet Details()}
-									{#if functionSignatures.length > 0}
-										<dl data-definition-list="vertical">
-											<div>
-												<dt>Signature</dt>
-												<dd>
-													{#if functionSignatures.length > 1}
-														<select
-															bind:value={selectedSigIndex}
-															aria-label="Choose function signature for decoding"
-															class="calldata-result-select"
-														>
-															{#each functionSignatures as signature, index}
-																<option value={index}>{signature}</option>
-															{/each}
-														</select>
-													{:else}
-														<code>{functionSignatures[0]}</code>
-													{/if}
-												</dd>
-											</div>
-
-											{#if decodedCall}
+									{#snippet Details()}
+										{#if functionSignatures.length > 0}
+											<dl data-definition-list="vertical">
 												<div>
-													<dt>Arguments</dt>
+													<dt>Signature</dt>
 													<dd>
-														<dl
-															data-definition-list="vertical"
-															class="calldata-result-args"
-														>
-															{#each decodedCall.params as param, index}
-																<div class="calldata-result-arg">
-																	<dt>{index}</dt>
-																	<dd>
-																		{#if param.type === 'address' && typeof param.value === 'string'}
-																			<Address
-																				address={param.value as `0x${string}`}
-																				format={AddressFormat.Full}
-																			/>
-																		{:else}
-																			{@const displayValue = formatDecodedParamValue(param.type, param.value)}
-
-																			{#if displayValue.length > TRUNCATE_PARAM_LENGTH}
-																				<TruncatedValue
-																					value={displayValue}
-																					startLength={10}
-																					endLength={8}
-																				/>
-																			{:else}
-																				<span class="calldata-result-arg-value">{displayValue}</span>
-																			{/if}
-																		{/if}
-																	</dd>
-																</div>
-															{/each}
-														</dl>
+														{#if functionSignatures.length > 1}
+															<select
+																bind:value={selectedSigIndex}
+																aria-label="Choose function signature for decoding"
+																class="calldata-result-select"
+															>
+																{#each functionSignatures as signature, index}
+																	<option value={index}>{signature}</option>
+																{/each}
+															</select>
+														{:else}
+															<code>{functionSignatures[0]}</code>
+														{/if}
 													</dd>
 												</div>
-											{/if}
-										</dl>
-									{/if}
-								{/snippet}
-							</EntityView>
-						</li>
-					{/if}
 
-					{#if topic && normalizedTopic}
-						<li>
-							<EntityView
-								entityType={EntityType.EvmTopic}
-								entityId={{ hex: normalizedTopic }}
-								href={resolve(getEvmTopicPath(normalizedTopic))}
-							>
-								{#snippet Icon()}
-									<Icon
-										icon="📋"
-										label="EVM topic"
-										size="1.75rem"
-									/>
-								{/snippet}
-
-								{#snippet Title()}
-									<ResourceBoundary
-										resource={topicEntity}
-										placeholderText="Loading event signature…"
-									>
-										{#snippet children(row)}
-											<Heading>
-												<a href={resolve(getEvmTopicPath(normalizedTopic))}>
-													{eventSignatureForDecode ?? row.signatures?.[0] ?? normalizedTopic}
-												</a>
-											</Heading>
-										{/snippet}
-									</ResourceBoundary>
-								{/snippet}
-
-								{#snippet Value()}
-									<span data-text="muted">Topic: {topic}</span>
-								{/snippet}
-
-								{#snippet Details()}
-									{#if eventSignatures.length > 0}
-										<dl data-definition-list="vertical">
-											<div>
-												<dt>Signature</dt>
-												<dd>
-													{#if eventSignatures.length > 1}
-														<select
-															bind:value={selectedEventSigIndex}
-															aria-label="Choose event signature for decoding"
-															class="calldata-result-select"
-														>
-															{#each eventSignatures as signature, index}
-																<option value={index}>{signature}</option>
-															{/each}
-														</select>
-													{:else}
-														<code>{eventSignatures[0]}</code>
-													{/if}
-												</dd>
-											</div>
-
-											{#if decodedEvent}
-												<div>
-													<dt>Arguments</dt>
-													<dd>
-														<dl
-															data-definition-list="vertical"
-															class="calldata-result-args"
-														>
-															{#each decodedEvent.params as param, index}
-																<div class="calldata-result-arg">
-																	<dt>{index}</dt>
-																	<dd>
-																		{#if param.type === 'address' && typeof param.value === 'string'}
-																			<Address
-																				address={param.value as `0x${string}`}
-																				format={AddressFormat.Full}
-																			/>
-																		{:else}
-																			{@const displayValue = formatDecodedParamValue(param.type, param.value)}
-
-																			{#if displayValue.length > TRUNCATE_PARAM_LENGTH}
-																				<TruncatedValue
-																					value={displayValue}
-																					startLength={10}
-																					endLength={8}
+												{#if decodedCall}
+													<div>
+														<dt>Arguments</dt>
+														<dd>
+															<dl
+																data-definition-list="vertical"
+																class="calldata-result-args"
+															>
+																{#each decodedCall.params as param, index}
+																	<div class="calldata-result-arg">
+																		<dt>{index}</dt>
+																		<dd>
+																			{#if param.type === 'address' && typeof param.value === 'string'}
+																				<Address
+																					address={param.value as `0x${string}`}
+																					format={AddressFormat.Full}
 																				/>
 																			{:else}
-																				<span class="calldata-result-arg-value">{displayValue}</span>
+																				{@const displayValue = formatDecodedParamValue(param.type, param.value)}
+
+																				{#if displayValue.length > TRUNCATE_PARAM_LENGTH}
+																					<TruncatedValue
+																						value={displayValue}
+																						startLength={10}
+																						endLength={8}
+																					/>
+																				{:else}
+																					<span class="calldata-result-arg-value">{displayValue}</span>
+																				{/if}
 																			{/if}
-																		{/if}
-																	</dd>
-																</div>
-															{/each}
-														</dl>
+																		</dd>
+																	</div>
+																{/each}
+															</dl>
+														</dd>
+													</div>
+												{/if}
+											</dl>
+										{/if}
+									{/snippet}
+								</EntityView>
+							</li>
+						{/if}
+
+						{#if topic && normalizedTopic}
+							<li>
+								<EntityView
+									entityType={EntityType.EvmTopic}
+									entityId={{ hex: normalizedTopic }}
+									href={resolve(getEvmTopicPath(normalizedTopic))}
+								>
+									{#snippet Icon()}
+										<Icon
+											icon="📋"
+											label="EVM topic"
+											size="1.75rem"
+										/>
+									{/snippet}
+
+									{#snippet Title()}
+										<ResourceBoundary
+											resource={topicEntity}
+											placeholderText="Loading event signature…"
+										>
+											{#snippet children(row)}
+												<Heading>
+													<a href={resolve(getEvmTopicPath(normalizedTopic))}>
+														{eventSignatureForDecode ?? row.signatures?.[0] ?? normalizedTopic}
+													</a>
+												</Heading>
+											{/snippet}
+										</ResourceBoundary>
+									{/snippet}
+
+									{#snippet Value()}
+										<span data-text="muted">Topic: {topic}</span>
+									{/snippet}
+
+									{#snippet Details()}
+										{#if eventSignatures.length > 0}
+											<dl data-definition-list="vertical">
+												<div>
+													<dt>Signature</dt>
+													<dd>
+														{#if eventSignatures.length > 1}
+															<select
+																bind:value={selectedEventSigIndex}
+																aria-label="Choose event signature for decoding"
+																class="calldata-result-select"
+															>
+																{#each eventSignatures as signature, index}
+																	<option value={index}>{signature}</option>
+																{/each}
+															</select>
+														{:else}
+															<code>{eventSignatures[0]}</code>
+														{/if}
 													</dd>
 												</div>
-											{/if}
-										</dl>
-									{/if}
-								{/snippet}
-							</EntityView>
-						</li>
-					{/if}
 
-					<li>
-						<dl data-definition-list="vertical">
-							<div>
-								<dt>Bytes</dt>
-								<dd>{byteCount}</dd>
-							</div>
-						</dl>
-					</li>
-				</ul>
+												{#if decodedEvent}
+													<div>
+														<dt>Arguments</dt>
+														<dd>
+															<dl
+																data-definition-list="vertical"
+																class="calldata-result-args"
+															>
+																{#each decodedEvent.params as param, index}
+																	<div class="calldata-result-arg">
+																		<dt>{index}</dt>
+																		<dd>
+																			{#if param.type === 'address' && typeof param.value === 'string'}
+																				<Address
+																					address={param.value as `0x${string}`}
+																					format={AddressFormat.Full}
+																				/>
+																			{:else}
+																				{@const displayValue = formatDecodedParamValue(param.type, param.value)}
+
+																				{#if displayValue.length > TRUNCATE_PARAM_LENGTH}
+																					<TruncatedValue
+																						value={displayValue}
+																						startLength={10}
+																						endLength={8}
+																					/>
+																				{:else}
+																					<span class="calldata-result-arg-value">{displayValue}</span>
+																				{/if}
+																			{/if}
+																		</dd>
+																	</div>
+																{/each}
+															</dl>
+														</dd>
+													</div>
+												{/if}
+											</dl>
+										{/if}
+									{/snippet}
+								</EntityView>
+							</li>
+						{/if}
+
+						<li>
+							<dl data-definition-list="vertical">
+								<div>
+									<dt>Bytes</dt>
+									<dd>{byteCount}</dd>
+								</div>
+							</dl>
+						</li>
+					</ul>
 				{/snippet}
 			</Collapsible>
 		{:else if inputRaw.trim().length > 0}

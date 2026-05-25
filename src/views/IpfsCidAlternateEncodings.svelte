@@ -1,16 +1,8 @@
 <script lang="ts">
 	// Types/constants
-	type ShowEncodings = 'all' | 'common' | 'no-formatting-variants'
-
 	import type { CID } from 'multiformats/cid'
 
-	import { ipfsResourceHref } from '$/lib/ipfs.ts'
-	import {
-		checkIpfsCidIsValidSubdomain,
-		currentMultibaseNameForCidTarget,
-		getAllIpfsCidEncodings,
-		parseIpfsCid,
-	} from '$/lib/multiformats.ts'
+	type ShowEncodings = 'all' | 'common' | 'no-formatting-variants'
 
 
 	// Props
@@ -21,12 +13,6 @@
 		contentPath: string
 		target: string
 	} = $props()
-
-
-	// State
-	let showEncodings = $state<ShowEncodings>('common')
-
-	const cid = $derived(parseIpfsCid(target))
 
 
 	// Functions
@@ -50,6 +36,23 @@
 			)
 		))
 	)
+
+
+	// State
+	import { ipfsResourceHref } from '$/lib/ipfs.ts'
+
+	import {
+		checkIpfsCidIsValidSubdomain,
+		currentMultibaseNameForCidTarget,
+		getAllIpfsCidEncodings,
+		parseIpfsCid,
+	} from '$/lib/multiformats.ts'
+
+	let showEncodings = $state<ShowEncodings>('common')
+
+
+	// (Derived)
+	const cid = $derived(parseIpfsCid(target))
 
 
 	// Components

@@ -1421,17 +1421,23 @@
 
 
 <script lang="ts">
+	// Types/constants
 	import { QueryClient as _QueryClient } from '@tanstack/query-core'
+
 	import {
 		useLiveQuery,
 	} from '@tanstack/svelte-db'
 
-	import NumberValue from '$/views/NumberValue.svelte'
+	type OneOffLiveQueryShell = { data: JsonValue; isLoading: boolean; isError: boolean }
+
+
+	// Functions
+	const liveQueryDataRows = (data: JsonValue) => (data === undefined ? [] : Array.isArray(data) ? data : [data])
+
 
 	// State
 	const queryClient = new _QueryClient()
 
-	// --- Entity collections + entity field collections (`queryCollectionOptions` + `createCollection`) ---
 	const entityCollectionByEntityType = Object.fromEntries(
 		schema.map((definition) => [
 			definition.entityType,
@@ -1461,7 +1467,6 @@
 		] as const),
 	)
 
-	// --- Live scans: one query per entity + per entityField (keys follow `schema`) ---
 	const entityQueryByEntityType = Object.fromEntries(
 		schema
 			.map((entityDefinition) => [
@@ -1493,14 +1498,6 @@
 			)
 		] as const)
 	)
-
-	// Queries
-
-	// const proposalEntityId: EntityId<typeof schema, BlockheadEntityType.Proposal> = {
-	// 	realm: ProposalRealm.Ethereum,
-	// 	category: ProposalCategory.Eip,
-	// 	proposalId: 'eip-1',
-	// }
 
 	const proposalsNestedQuery = useLiveQuery(
 		queryBuilder => (
@@ -1699,183 +1696,6 @@
 		),
 	)
 
-	const liveQueryDataRows = (data: JsonValue) => (data === undefined ? [] : Array.isArray(data) ? data : [data])
-
-	type OneOffLiveQueryShell = { data: JsonValue; isLoading: boolean; isError: boolean }
-
-	// const networkQuery = useLiveQuery((queryBuilder) => (
-	// 	queryBuilder
-	// 		.from({ $network: entityFieldCollections[BlockheadEntityType._Global]['$$networks'] })
-	// 		.where(({ $network }) => (
-	// 			eq(
-	// 				$network[EntityMetaKey.ParentIdKey],
-	// 				stringify({}),
-	// 			)
-	// 		))
-	// 		.where(({ $network }) => (
-	// 			eq(
-	// 				$network[EntityMetaKey.Source],
-	// 				Source.Chainlist_Rest,
-	// 			)
-	// 		))
-	// 		.join(
-	// 			{ networkRow: entityCollectionByEntityType[BlockheadEntityType.Network] },
-	// 			({ $network, networkRow }) => (
-	// 				eq(
-	// 					$network[EntityMetaKey.Value][EntityMetaKey.IdKey],
-	// 					networkRow[EntityMetaKey.IdKey],
-	// 				)
-	// 			),
-	// 		)
-	// 		.where(({ networkRow }) => (
-	// 			eq(
-	// 				networkRow[EntityMetaKey.Source],
-	// 				Source.Chainlist_Rest,
-	// 			)
-	// 		))
-	// 		.join(
-	// 			{
-	// 				networkBlocksField: entityFieldCollections[BlockheadEntityType.Network][
-	// 					'$$blocks'
-	// 				],
-	// 			},
-	// 			({ networkRow, networkBlocksField }) => (
-	// 				eq(
-	// 					networkRow[EntityMetaKey.IdKey],
-	// 					networkBlocksField[EntityMetaKey.ParentIdKey],
-	// 				)
-	// 			),
-	// 		)
-	// 		.where(({ networkBlocksField }) => (
-	// 			eq(
-	// 				networkBlocksField[EntityMetaKey.Source],
-	// 				Source.Voltaire_JsonRpc,
-	// 			)
-	// 		))
-	// 		.join(
-	// 			{ blockRow: entityCollectionByEntityType[BlockheadEntityType.EvmBlock] },
-	// 			({ networkBlocksField, blockRow }) => (
-	// 				eq(
-	// 					networkBlocksField[EntityMetaKey.Value][EntityMetaKey.IdKey],
-	// 					blockRow[EntityMetaKey.IdKey],
-	// 				)
-	// 			),
-	// 		)
-	// 		.where(({ blockRow }) => (
-	// 			eq(
-	// 				blockRow[EntityMetaKey.Source],
-	// 				Source.Voltaire_JsonRpc,
-	// 			)
-	// 		))
-	// 		.join(
-	// 			{
-	// 				blockTransactionsField: entityFieldCollections[BlockheadEntityType.EvmBlock][
-	// 					'$$transactions'
-	// 				],
-	// 			},
-	// 			({ blockRow, blockTransactionsField }) => (
-	// 				eq(
-	// 					blockRow[EntityMetaKey.IdKey],
-	// 					blockTransactionsField[EntityMetaKey.ParentIdKey],
-	// 				)
-	// 			),
-	// 		)
-	// 		.where(({ blockTransactionsField }) => (
-	// 			eq(
-	// 				blockTransactionsField[EntityMetaKey.Source],
-	// 				Source.Voltaire_JsonRpc,
-	// 			)
-	// 		))
-	// 		.join(
-	// 			{ transactionRow: entityCollectionByEntityType[BlockheadEntityType.EvmTransaction] },
-	// 			({ blockTransactionsField, transactionRow }) => (
-	// 				eq(
-	// 					blockTransactionsField[EntityMetaKey.Value][EntityMetaKey.IdKey],
-	// 					transactionRow[EntityMetaKey.IdKey],
-	// 				)
-	// 			),
-	// 		)
-	// 		.where(({ transactionRow }) => (
-	// 			eq(
-	// 				transactionRow[EntityMetaKey.Source],
-	// 				Source.Voltaire_JsonRpc,
-	// 			)
-	// 		))
-	// 		.join(
-	// 			{
-	// 				receiptStatusField: entityFieldCollections[BlockheadEntityType.EvmTransaction].status,
-	// 			},
-	// 			({ transactionRow, receiptStatusField }) => (
-	// 				eq(
-	// 					transactionRow[EntityMetaKey.IdKey],
-	// 					receiptStatusField[EntityMetaKey.ParentIdKey],
-	// 				)
-	// 			),
-	// 		)
-	// 		.where(({ receiptStatusField }) => (
-	// 			eq(
-	// 				receiptStatusField[EntityMetaKey.Source],
-	// 				Source.Voltaire_JsonRpc,
-	// 			)
-	// 		))
-	// 		.join(
-	// 			{
-	// 				receiptGasUsedField: entityFieldCollections[BlockheadEntityType.EvmTransaction].gasUsed,
-	// 			},
-	// 			({ transactionRow, receiptGasUsedField }) => (
-	// 				eq(
-	// 					transactionRow[EntityMetaKey.IdKey],
-	// 					receiptGasUsedField[EntityMetaKey.ParentIdKey],
-	// 				)
-	// 			),
-	// 		)
-	// 		.where(({ receiptGasUsedField }) => (
-	// 			eq(
-	// 				receiptGasUsedField[EntityMetaKey.Source],
-	// 				Source.Voltaire_JsonRpc,
-	// 			)
-	// 		))
-	// 		.select(({
-	// 			networkRow,
-	// 			blockRow,
-	// 			transactionRow,
-	// 			receiptStatusField,
-	// 			receiptGasUsedField,
-	// 		}) => {
-	// 			const entityDevalueWire = (row: {
-	// 				[EntityMetaKey.IdKey]: JsonValue
-	// 				[EntityMetaKey.Id]: JsonValue
-	// 			}) => (
-	// 				typeof row[EntityMetaKey.IdKey] === 'string' ?
-	// 					row[EntityMetaKey.IdKey]
-	// 				: stringify(row[EntityMetaKey.Id])
-	// 			)
-	// 			const networkId = parse(entityDevalueWire(networkRow)) as EntityId<
-	// 				typeof schema,
-	// 				BlockheadEntityType.Network
-	// 			>
-	// 			const blockId = parse(entityDevalueWire(blockRow)) as EntityId<
-	// 				typeof schema,
-	// 				BlockheadEntityType.EvmBlock
-	// 			>
-	// 			const txId = parse(entityDevalueWire(transactionRow)) as EntityId<
-	// 				typeof schema,
-	// 				BlockheadEntityType.EvmTransaction
-	// 			>
-	// 			const tx = transactionRow as Partial<
-	// 				Entity<typeof schema, BlockheadEntityType.EvmTransaction>
-	// 			>
-	// 			return {
-	// 				chainId: networkId.chainId,
-	// 				blockNumber: blockId.blockNumber.toString(),
-	// 				txHash: txId.txHash,
-	// 				txValue: tx.value.toString(),
-	// 				status: receiptStatusField[EntityMetaKey.Value] ?? -1,
-	// 				gasUsed: receiptGasUsedField[EntityMetaKey.Value]?.toString() ?? '',
-	// 			}
-	// 		})
-	// ))
-
 	const networkQuery = useLiveQuery(
 		(queryBuilder) => (
 			queryBuilder
@@ -1934,6 +1754,10 @@
 		// 	query: networkQuery,
 		// },
 	]
+
+
+	// Components
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 

@@ -53,6 +53,8 @@ import Market_TimestampSchema from '$/schema/Market_Timestamp.ts'
 import MevRelay_ProposerPayloadDeliveredSchema from '$/schema/MevRelay_ProposerPayloadDelivered.ts'
 import Eip8004ServiceSchema from '$/schema/Eip8004Service.ts'
 import EnsNameSchema from '$/schema/EnsName.ts'
+import EnsProtocolSchema from '$/schema/EnsProtocol.ts'
+import EnsSearchSchema from '$/schema/EnsSearch.ts'
 import Erc4337AccountFactorySchema from '$/schema/Erc4337AccountFactory.ts'
 import Erc4337BundlerSchema from '$/schema/Erc4337Bundler.ts'
 import Erc4337PaymasterSchema from '$/schema/Erc4337Paymaster.ts'
@@ -65,6 +67,7 @@ import EvmContractCompilationSchema from '$/schema/EvmContractCompilation.ts'
 import EvmContractSourceBundleSchema from '$/schema/EvmContractSourceBundle.ts'
 import EvmContractVerificationSchema from '$/schema/EvmContractVerification.ts'
 import EvmErrorSchema from '$/schema/EvmError.ts'
+import EvmProtocolSchema from '$/schema/EvmProtocol.ts'
 import EvmInternalTransferSchema from '$/schema/EvmInternalTransfer.ts'
 import EvmLogSchema from '$/schema/EvmLog.ts'
 import EvmMempoolSchema from '$/schema/EvmMempool.ts'
@@ -81,6 +84,7 @@ import FarcasterNetworkSchema from '$/schema/FarcasterNetwork.ts'
 import FarcasterUserSchema from '$/schema/FarcasterUser.ts'
 import CurrencySchema from '$/schema/Currency.ts'
 import Currency_TimestampSchema from '$/schema/Currency_Timestamp.ts'
+import IpfsProtocolSchema from '$/schema/IpfsProtocol.ts'
 import IpfsResourceSchema from '$/schema/IpfsResource.ts'
 import LensAccountSchema from '$/schema/LensAccount.ts'
 import LensPostSchema from '$/schema/LensPost.ts'
@@ -116,6 +120,7 @@ import StateChannelSchema from '$/schema/StateChannel.ts'
 import StateChannelDepositSchema from '$/schema/StateChannelDeposit.ts'
 import StateChannelStateSchema from '$/schema/StateChannelState.ts'
 import StateChannelTransferSchema from '$/schema/StateChannelTransfer.ts'
+import SwarmProtocolSchema from '$/schema/SwarmProtocol.ts'
 import SwarmResourceSchema from '$/schema/SwarmResource.ts'
 import SwapQuoteSchema from '$/schema/SwapQuote.ts'
 import UrlSchema from '$/schema/Url.ts'
@@ -186,6 +191,8 @@ export const schema = [
 	MevRelay_ProposerPayloadDeliveredSchema,
 	Eip8004ServiceSchema,
 	EnsNameSchema,
+	EnsProtocolSchema,
+	EnsSearchSchema,
 	Erc4337AccountFactorySchema,
 	Erc4337BundlerSchema,
 	Erc4337PaymasterSchema,
@@ -198,6 +205,7 @@ export const schema = [
 	EvmContractSourceBundleSchema,
 	EvmContractVerificationSchema,
 	EvmErrorSchema,
+	EvmProtocolSchema,
 	EvmInternalTransferSchema,
 	EvmLogSchema,
 	EvmMempoolSchema,
@@ -214,6 +222,7 @@ export const schema = [
 	FarcasterUserSchema,
 	CurrencySchema,
 	Currency_TimestampSchema,
+	IpfsProtocolSchema,
 	IpfsResourceSchema,
 	LensAccountSchema,
 	LensPostSchema,
@@ -249,6 +258,7 @@ export const schema = [
 	StateChannelDepositSchema,
 	StateChannelStateSchema,
 	StateChannelTransferSchema,
+	SwarmProtocolSchema,
 	SwarmResourceSchema,
 	SwapQuoteSchema,
 	UrlSchema,

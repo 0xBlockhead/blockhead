@@ -1,7 +1,4 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
 	// Props
 	let {
 		params,
@@ -23,10 +20,6 @@
 <Page>
 	<ActivityPubNoteView
 		{entityId}
-		href={resolve('/(social)/(activitypub)/activitypub/note/[instanceOrigin]/[localStatusId]', {
-			instanceOrigin: encodeURIComponent(entityId.instanceOrigin),
-			localStatusId: encodeURIComponent(entityId.localStatusId),
-		})}
 	>
 	</ActivityPubNoteView>
 </Page>

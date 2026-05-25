@@ -6,39 +6,39 @@
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+			'/~/(multiplayer)/multiplayer/(rooms)/room/[roomId]',
+			{ roomId: entityId.id },
+		),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.BlockheadRoom>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const room = useEntity(
 		EntityType.BlockheadRoom,
@@ -60,6 +60,7 @@
 
 
 	// Components
+	import BlockheadRoomPeersView from '$/views/BlockheadRoomPeersView.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -70,10 +71,9 @@
 <EntityView
 	entityType={EntityType.BlockheadRoom}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -90,8 +90,8 @@
 			resource={room}
 			placeholderText="Loading room…"
 		>
-			{#snippet children(room)}
-				{room.name ?? entityId.id}
+			{#snippet children(loadedRoom)}
+				{loadedRoom.name ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -123,10 +123,10 @@
 							resource={room}
 							placeholderText="Loading room…"
 						>
-							{#snippet children(room)}
-								{#if room.createdAt !== undefined}
+							{#snippet children(loadedRoom)}
+								{#if loadedRoom.createdAt !== undefined}
 									<Timestamp
-										timestamp={room.createdAt}
+										timestamp={loadedRoom.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -141,11 +141,12 @@
 							resource={room}
 							placeholderText="Loading room…"
 						>
-							{#snippet children(room)}
-								{#if room.createdBy !== undefined}
-									{#if room.createdBy !== ''}
-										{room.createdBy}
-									{/if}
+							{#snippet children(loadedRoom)}
+								{#if (
+									room.createdBy !== undefined
+									&& room.createdBy !== ''
+								)}
+									{loadedRoom.createdBy}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -156,17 +157,12 @@
 	{/snippet}
 
 	{#snippet Details({
-		open: _open,
+		open: detailsOpen,
 	})}
-		{#if children}
-			{@render children()}
-		{:else}
-			<EntityDetails
-				entityType={EntityType.BlockheadRoom}
-				{entityId}
-			/>
-
-		{/if}
+		<EntityDetails
+			entityType={EntityType.BlockheadRoom}
+			{entityId}
+		/>
 	{/snippet}
 </EntityView>
 

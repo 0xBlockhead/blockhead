@@ -1,6 +1,5 @@
 <script lang="ts">
-	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 
@@ -8,12 +7,15 @@
 	// Props
 	let { children } = $props()
 
+
+	// (Derived)
 	const did = $derived(
 		page.params.did ?? '',
 	)
 
 
 	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 </script>
@@ -28,9 +30,6 @@
 	{#snippet Summary({ open: _open })}
 		<AtprotoActorView
 			entityId={{ did: decodeURIComponent(did) }}
-			href={resolve('/(social)/(atproto)/atproto/actor/[did]', {
-				did: encodeURIComponent(did),
-			})}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

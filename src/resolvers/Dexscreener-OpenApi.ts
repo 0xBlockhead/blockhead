@@ -54,6 +54,13 @@ const entityFieldsFromDexPair = ({
 		...(latestDexPair.quoteToken?.symbol != null && { token1Symbol: latestDexPair.quoteToken.symbol }),
 		...(latestDexPair.volume?.h24 != null && { volumeUSD: latestDexPair.volume.h24 }),
 		...(latestDexPair.liquidity?.usd != null && { totalValueLockedUSD: latestDexPair.liquidity.usd }),
+		...(latestDexPair.dexId != null && latestDexPair.dexId !== '' && { dexId: latestDexPair.dexId }),
+		...(latestDexPair.url != null && latestDexPair.url !== '' && { dexscreenerPairUrl: latestDexPair.url }),
+		...(latestDexPair.priceUsd != null && { baseTokenPriceUsd: latestDexPair.priceUsd }),
+		...(latestDexPair.priceNative != null && { baseTokenPriceQuote: latestDexPair.priceNative }),
+		...(latestDexPair.priceChange?.h24 != null && { priceChangePercent24h: latestDexPair.priceChange.h24 }),
+		...(latestDexPair.txns?.h24?.buys != null && { transactionBuys24h: latestDexPair.txns.h24.buys }),
+		...(latestDexPair.txns?.h24?.sells != null && { transactionSells24h: latestDexPair.txns.h24.sells }),
 	}
 )
 
@@ -162,10 +169,14 @@ export default {
 				if (apiChainId == null) {
 					throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
 				}
+				const pairId = hexLowerOfByteSize(entityId.id.trim(), 20)
+				if (pairId == null || !isEvmContractAddress(pairId)) {
+					throw new Error('Dexscreener_OpenApi: vault / pair not found for id')
+				}
 				const latestDexPair = (
 					(await getDexscreenerLatestPairs({
 						chainId: apiChainId,
-						pairId: entityId.id,
+						pairId,
 					})).pairs?.[0]
 				)
 
@@ -182,11 +193,12 @@ export default {
 						chainId,
 						latestDexPair,
 					}),
-					fee: 3000,
-					tickSpacing: 60,
-					sqrtPriceX96: 0n,
-					liquidity: 0n,
-					tick: 0,
+					...(latestDexPair.marketCap != null && { marketCapUsd: latestDexPair.marketCap }),
+					...(latestDexPair.fdv != null && { fdvUsd: latestDexPair.fdv }),
+					...(latestDexPair.pairCreatedAt != null && { pairCreatedAtMs: latestDexPair.pairCreatedAt }),
+					...(latestDexPair.labels != null && latestDexPair.labels.length > 0 && {
+						dexscreenerLabels: latestDexPair.labels,
+					}),
 				}
 			},
 		}),

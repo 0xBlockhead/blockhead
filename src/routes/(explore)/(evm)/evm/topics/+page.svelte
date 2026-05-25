@@ -15,12 +15,14 @@
 
 <Page>
 	<EvmTopicsView
+		href={resolve('/evm/topics')}
 		entityFieldReference={{
-			entityType: EntityType._Global,
-			entityId: {},
+			entityType: EntityType.EvmProtocol,
+			entityId: {
+				scope: 'EvmProtocol',
+			},
 			fieldName: '$$evmTopics',
 		}}
-		href={resolve('/evm/topics')}
 		id="topics"
 	/>
 </Page>

@@ -8,6 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
@@ -19,34 +21,29 @@
 	let {
 		entityFieldReference,
 		id = 'comments',
-		href,
 		limit = 50,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
 		title = 'Comments',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.LensPost>
 			id?: string
-			href: string
 			limit?: number
 			open?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -60,12 +57,12 @@
 
 <EntitiesList
 	entityType={EntityType.LensPost}
+
 	{id}
-	{href}
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -82,7 +79,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parentPost = useEntity(
 				EntityType.LensPost,
@@ -122,13 +119,11 @@
 				showSummary={false}
 				entityType={EntityType.LensPost}
 				id={`${id}-items`}
-				{href}
 				{title}
 				getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
 				getSortValue={(row) => (
 					String(row.feedIndex).padStart(6, '0')
 				)}
-				placeholderKeys={new SvelteSet()}
 				placeholderText="Loading Lens comments…"
 				resource={comments}
 			>
@@ -138,18 +133,13 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const commentId = props.item.result[EntityMetaKey.Id]}
-						<LensPostView
-							entityId={{ id: commentId.id }}
-							href={resolve('/(social)/(lens)/lens/post/[postId]', {
-								postId: encodeURIComponent(commentId.id),
-							})}
-							layout={EntityLayout.SummaryDetails}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					{@const commentId = item.result[EntityMetaKey.Id]}
+					<LensPostView
+						entityId={{ id: commentId.id }}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

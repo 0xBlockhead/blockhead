@@ -1,38 +1,41 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-	import { stringify } from 'devalue'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
 	let {
-		children,
 		entityId,
+		href = resolve(
+			'/~/(manage)/manage/(profiles)/profile/[profileId]/panel-tree/[panelTreeId]',
+			{
+				profileId: entityId.profileId,
+				panelTreeId: entityId.panelTreeId,
+			},
+		),
 		title = 'Panel tree',
-		href,
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.BlockheadPanelTree>
+			href?: string
 			title?: string
-			href: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
+			| 'layout'
 		>
 	> = $props()
 
@@ -61,10 +64,10 @@
 <EntityView
 	entityType={EntityType.BlockheadPanelTree}
 	{entityId}
+	href={href}
 	{title}
-	{href}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -110,7 +113,6 @@
 			entityType={EntityType.BlockheadPanelTree}
 			{entityId}
 		/>
-
 		<div
 			class="blockhead-panel-tree-carousel-groups"
 			data-column="gap-3"
@@ -121,7 +123,7 @@
 				id={`${stringify(entityId)}:metadata`}
 			>
 				<ResourceBoundary resource={panelTree}>
-					{#snippet children(panelTree)}
+					{#snippet children(loadedPanelTree)}
 						<p data-text="muted">
 							No saved panel layout metadata yet.
 						</p>
@@ -130,8 +132,5 @@
 			</section>
 		</div>
 
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>

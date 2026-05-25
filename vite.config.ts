@@ -29,6 +29,9 @@ export default defineConfig({
 		exclude: ['@tanstack/browser-db-sqlite-persistence'],
 	},
 	plugins: [sveltekit(), devtoolsJson()],
+	server: {
+		strictPort: true,
+	},
 	ssr: {
 		noExternal: [
 			/^@tevm\/voltaire/,

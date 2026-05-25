@@ -1,15 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { youTubeVideoCategories, youTubeVideoLiveBroadcastPhases } from '$/constants/Social/YouTube.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { stringify } from 'devalue'
 
 
@@ -20,30 +18,24 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve('/(social)/(youtube)/youtube/video/[videoId]', {
+			videoId: entityId.videoId,
+		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
 			layout === EntityLayout.SummaryDetails,
 		),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.YouTubeVideo>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'layout'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Content'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -89,6 +81,7 @@
 
 
 	// Components
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -102,10 +95,10 @@
 <EntityView
 	entityType={EntityType.YouTubeVideo}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -118,8 +111,8 @@
 			resource={video}
 			placeholderText="Loading video…"
 		>
-			{#snippet children(video)}
-				{video.title ?? entityId.videoId}
+			{#snippet children(loadedVideo)}
+				{loadedVideo.title ?? entityId.videoId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -142,9 +135,9 @@
 						resource={video}
 						placeholderText="Loading video…"
 					>
-						{#snippet children(video)}
-							{#if video.description}
-								{video.description}
+						{#snippet children(loadedVideo)}
+							{#if loadedVideo.description}
+								{loadedVideo.description}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -158,8 +151,8 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(video)}
-								{#if video.viewCount != null}
+							{#snippet children(loadedVideo)}
+								{#if loadedVideo.viewCount != null}
 									{String(video.viewCount)}
 								{/if}
 							{/snippet}
@@ -173,8 +166,8 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(video)}
-								{#if video.likeCount != null}
+							{#snippet children(loadedVideo)}
+								{#if loadedVideo.likeCount != null}
 									{String(video.likeCount)}
 								{/if}
 							{/snippet}
@@ -188,8 +181,8 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(video)}
-								{#if video.commentCount != null}
+							{#snippet children(loadedVideo)}
+								{#if loadedVideo.commentCount != null}
 									{String(video.commentCount)}
 								{/if}
 							{/snippet}
@@ -203,9 +196,9 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(video)}
-								{#if video.categoryId}
-									{video.categoryId}
+							{#snippet children(loadedVideo)}
+								{#if loadedVideo.categoryId}
+									{youTubeVideoCategories[loadedVideo.categoryId]?.label ?? loadedVideo.categoryId}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -218,9 +211,9 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(video)}
-								{#if video.liveBroadcastContent}
-									{video.liveBroadcastContent}
+							{#snippet children(loadedVideo)}
+								{#if loadedVideo.liveBroadcastContent}
+									{youTubeVideoLiveBroadcastPhases[loadedVideo.liveBroadcastContent].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -233,9 +226,9 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(video)}
-								{#if video.tagLine}
-									{video.tagLine}
+							{#snippet children(loadedVideo)}
+								{#if loadedVideo.tagLine}
+									{loadedVideo.tagLine}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -248,8 +241,8 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(video)}
-								{#if video.durationSeconds != null}
+							{#snippet children(loadedVideo)}
+								{#if loadedVideo.durationSeconds != null}
 									{String(video.durationSeconds)}
 								{/if}
 							{/snippet}
@@ -263,9 +256,9 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(video)}
-								{#if video.publishedAt != null}
-									{video.publishedAt}
+							{#snippet children(loadedVideo)}
+								{#if loadedVideo.publishedAt != null}
+									{loadedVideo.publishedAt}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -278,21 +271,12 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(video)}
-								{#if video.$author}
+							{#snippet children(loadedVideo)}
+								{#if loadedVideo.$author}
 									<YouTubeChannelView
-										entityId={video.$author[EntityMetaKey.Id]}
-										href={resolve(
-											'/(social)/(youtube)/youtube/channel/[channelId]',
-											{
-												channelId: encodeURIComponent(
-													video.$author[EntityMetaKey.Id].channelId,
-													),
-											},
-										)}
+										entityId={loadedVideo.$author[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
-										showTypeAnnotation={false}
 									/>
 								{/if}
 							{/snippet}
@@ -306,16 +290,16 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(video)}
-								{#if video.thumbnailUrl}
+							{#snippet children(loadedVideo)}
+								{#if loadedVideo.thumbnailUrl}
 									<a
-										href={video.thumbnailUrl}
+										href={loadedVideo.thumbnailUrl}
 										rel="noreferrer"
 										target="_blank"
 									>
 										<img
 											alt=""
-											src={video.thumbnailUrl}
+											src={loadedVideo.thumbnailUrl}
 										/>
 									</a>
 								{/if}
@@ -338,7 +322,7 @@
 				resource={video}
 				placeholderText="Loading video…"
 			>
-				{#snippet children(_video)}
+				{#snippet children(_readyData)}
 				{/snippet}
 			</ResourceBoundary>
 		</EntityDetails>
@@ -386,9 +370,9 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(video)}
-								{#if video.description}
-									<p>{video.description}</p>
+							{#snippet children(loadedVideo)}
+								{#if loadedVideo.description}
+									<p>{loadedVideo.description}</p>
 								{:else}
 									<div data-row="wrap align-center gap-2">
 										<p data-text="muted">
@@ -413,14 +397,15 @@
 
 					<section data-scroll-marker-label="Comment thread">
 						<YouTubeCommentsView
+							href={resolve(
+			'/(social)/(youtube)/youtube/video/[videoId]/(video)/comments',
+			{ videoId: encodeURIComponent(entityId.videoId) },
+		)}
 							entityFieldReference={{
 								entityType: EntityType.YouTubeVideo,
 								entityId,
 								fieldName: '$$comments',
 							}}
-							href={resolve('/(social)/(youtube)/youtube/video/[videoId]/(video)/comments', {
-								videoId: encodeURIComponent(entityId.videoId),
-							})}
 							id={`${idKey}:youtube-comments`}
 							open={_open}
 						/>
@@ -430,4 +415,5 @@
 		</div>
 	{/snippet}
 </EntityView>
+
 

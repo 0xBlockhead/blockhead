@@ -3,15 +3,11 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { marketVenueById } from '$/constants/MarketVenue.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Props
@@ -20,23 +16,22 @@
 		open = $bindable(true),
 		collapsible = true,
 		entityFieldReference,
-		...entitiesListRest
+				...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.MarketVenue>
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -49,7 +44,7 @@
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	{collapsible}
 	entityType={EntityType.MarketVenue}
@@ -70,9 +65,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -80,25 +74,26 @@
 					$: [
 						Source.Constants_Internal,
 					],
-					[fieldName]: {},
+					[entityFieldReference.fieldName]: {
+						label: {},
+					},
 				},
 			)}
 			{@const marketVenues = derive(
 				parent,
 				(parent) => (
-					parent[fieldName] ?? []
+					parent[entityFieldReference.fieldName] ?? []
 				),
 			)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
-				{...entitiesListRest}
+				{...EntitiesListProps}
 				entityType={EntityType.MarketVenue}
 				getKey={(row) => row[EntityMetaKey.Id].marketVenueId}
 				getSortValue={(row) => (
-					marketVenueById[row[EntityMetaKey.Id].marketVenueId].label
+					row.label ?? row[EntityMetaKey.Id].marketVenueId
 				)}
-				placeholderKeys={new SvelteSet()}
 				resource={marketVenues}
 				{title}
 				open={true}
@@ -110,18 +105,12 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					{#if item}
-						<MarketVenueView
-							entityId={item[EntityMetaKey.Id]}
-							href={resolve(
-								'/(assets)/(marketVenues)/market-venue/[marketVenueId]',
-								{ marketVenueId: item[EntityMetaKey.Id].marketVenueId },
-							)}
-							id={item[EntityMetaKey.Id].marketVenueId}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+					<MarketVenueView
+						entityId={item[EntityMetaKey.Id]}
+						id={item[EntityMetaKey.Id].marketVenueId}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

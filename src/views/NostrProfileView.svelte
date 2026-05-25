@@ -7,7 +7,6 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { stringify } from 'devalue'
 
 
@@ -19,28 +18,24 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve('/nostr/profile/[pubkey]', {
+			pubkey: entityId.pubkey,
+		}),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.NostrProfile>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Content'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -60,6 +55,7 @@
 			about: {},
 			nip05: {},
 			lud16: {},
+			lud06: {},
 			website: {},
 			createdAt: {},
 			$icon: {},
@@ -90,6 +86,7 @@
 		},
 	)
 
+
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
@@ -108,9 +105,9 @@
 <EntityView
 	entityType={EntityType.NostrProfile}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
@@ -124,9 +121,9 @@
 			resource={profile}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(profile)}
-				{#if profile.displayName}
-					{profile.displayName}
+			{#snippet children(loadedProfile)}
+				{#if loadedProfile.displayName}
+					{loadedProfile.displayName}
 				{:else}
 					<TruncatedValue
 						value={entityId.pubkey}
@@ -142,15 +139,16 @@
 			resource={profile}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(profile)}
-				{#if profile.$icon}
-					{#if profile.$icon[EntityMetaKey.Id].url}
-						<IconComponent
-							shape={IconShape.Circle}
-							src={profile.$icon[EntityMetaKey.Id].url}
-							alt=""
-						/>
-					{/if}
+			{#snippet children(loadedProfile)}
+				{#if (
+					profile.$icon
+					&& profile.$icon[EntityMetaKey.Id].url
+				)}
+					<IconComponent
+						shape={IconShape.Circle}
+						src={loadedProfile.$icon[EntityMetaKey.Id].url}
+						alt=""
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
@@ -167,7 +165,7 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			{#if profile.about}
+			{#if loadedProfile.about}
 				<div>
 					<dt>Bio</dt>
 					<dd>
@@ -175,15 +173,15 @@
 							resource={profile}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(profile)}
-								{profile.about}
+							{#snippet children(loadedProfile)}
+								{loadedProfile.about}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
 
-			{#if profile.nip05}
+			{#if loadedProfile.nip05}
 				<div>
 					<dt>NIP-05</dt>
 					<dd>
@@ -191,91 +189,113 @@
 							resource={profile}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(profile)}
-								{profile.nip05}
+							{#snippet children(loadedProfile)}
+								{loadedProfile.nip05}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
 				</div>
 			{/if}
 
-			{#if open}
-				{#if profile.$banner}
-					{#if profile.$banner[EntityMetaKey.Id].url}
-						<div>
-							<dt>Banner</dt>
-							<dd>
-								<ResourceBoundary
-									resource={profile}
-									placeholderText="Loading profile…"
-								>
-									{#snippet children(profile)}
-										<img
-											src={profile.$banner[EntityMetaKey.Id].url}
-											alt=""
-										/>
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-					{/if}
-				{/if}
+			{#if (
+				open
+				&& profile.$banner?.[EntityMetaKey.Id].url
+			)}
+				<div>
+					<dt>Banner</dt>
+					<dd>
+						<ResourceBoundary
+							resource={profile}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(loadedProfile)}
+								<img
+									src={loadedProfile.$banner[EntityMetaKey.Id].url}
+									alt=""
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if profile.website}
-					<div>
-						<dt>Website</dt>
-						<dd>
-							<ResourceBoundary
-								resource={profile}
-								placeholderText="Loading profile…"
-							>
-								{#snippet children(profile)}
-									<a
-										href={profile.website}
-										rel="noreferrer"
-										target="_blank"
-									>{profile.website}</a>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
-
-				{#if profile.lud16}
-					<div>
-						<dt>Lightning address</dt>
-						<dd>
-							<ResourceBoundary
-								resource={profile}
-								placeholderText="Loading profile…"
-							>
-								{#snippet children(profile)}
-									{profile.lud16}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
-
-				{#if profile.createdAt != null}
-					<div>
-						<dt>Created</dt>
-						<dd>
-							<ResourceBoundary
-								resource={profile}
-								placeholderText="Loading profile…"
-							>
-								{#snippet children(profile)}
-									<Timestamp
-										timestamp={profile.createdAt}
-									/>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& profile.website
+			)}
+				<div>
+					<dt>Website</dt>
+					<dd>
+						<ResourceBoundary
+							resource={profile}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(loadedProfile)}
+								<a
+									href={loadedProfile.website}
+									rel="noreferrer"
+									target="_blank"
+								>{loadedProfile.website}</a>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if (
+				open
+				&& profile.lud16
+			)}
+				<div>
+					<dt>Lightning address</dt>
+					<dd>
+						<ResourceBoundary
+							resource={profile}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(loadedProfile)}
+								{loadedProfile.lud16}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if (
+				open
+				&& profile.lud06
+			)}
+				<div>
+					<dt>Lightning URI</dt>
+					<dd>
+						<ResourceBoundary
+							resource={profile}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(loadedProfile)}
+								{loadedProfile.lud06}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if (
+				open
+				&& profile.createdAt != null
+			)}
+				<div>
+					<dt>Created</dt>
+					<dd>
+						<ResourceBoundary
+							resource={profile}
+							placeholderText="Loading profile…"
+						>
+							{#snippet children(loadedProfile)}
+								<Timestamp
+									timestamp={loadedProfile.createdAt}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 		</dl>
 	{/snippet}
@@ -288,7 +308,6 @@
 			entityType={EntityType.NostrProfile}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -329,15 +348,16 @@
 				{#snippet body({ open: _sectionOpen })}
 					<section data-scroll-marker-label="Notes">
 						<NostrNotesView
+							href={resolve(
+			'/(social)/(nostr)/nostr/profile/[pubkey]/(profile)/notes',
+			{ pubkey: entityId.pubkey },
+		)}
 							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.NostrProfile,
 								entityId,
 								fieldName: '$$notes',
 							}}
-							href={resolve('/nostr/profile/[pubkey]/notes', {
-								pubkey: entityId.pubkey,
-							})}
 							id={`${idKey}:notes`}
 							open={_sectionOpen}
 							title="Notes"
@@ -352,9 +372,6 @@
 								entityId,
 								fieldName: '$$articles',
 							}}
-							href={resolve('/nostr/profile/[pubkey]/articles', {
-								pubkey: entityId.pubkey,
-							})}
 							id={`${idKey}:articles`}
 							open={_sectionOpen}
 							title="Articles"
@@ -369,9 +386,6 @@
 								entityId,
 								fieldName: '$$reposts',
 							}}
-							href={resolve('/nostr/profile/[pubkey]/reposts', {
-								pubkey: entityId.pubkey,
-							})}
 							id={`${idKey}:reposts`}
 							open={_sectionOpen}
 							title="Reposts"

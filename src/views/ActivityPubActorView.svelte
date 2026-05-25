@@ -7,48 +7,39 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
 	import { resolve } from '$app/paths'
 
 
-	// Functions
-	import { htmlToPlainText } from '$/lib/html.ts'
-
-
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
+			instanceOrigin: encodeURIComponent(entityId.instanceOrigin),
+			localAccountId: entityId.localAccountId,
+		}),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.ActivityPubActor>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Heading'
-			| 'HeadingAfter'
-			| 'Content'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
+	import { htmlToPlainText } from '$/lib/html.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const idKey = stringify(entityId)
@@ -57,7 +48,10 @@
 		EntityType.ActivityPubActor,
 		entityId,
 		{
-			$: [Source.Mastodon_Rest],
+			$: [
+				Source.Mastodon_Rest,
+				Source.Fedi_Rest,
+			],
 			username: {},
 			acct: {},
 			displayName: {},
@@ -65,6 +59,16 @@
 			...(open ?
 				{
 					note: {},
+					profileUrl: {},
+					activityStreamsUri: {},
+					website: {},
+					followersCount: {},
+					followingCount: {},
+					statusesCount: {},
+					createdAt: {},
+					bot: {},
+					locked: {},
+					$headerImage: {},
 				}
 			:
 				{}),
@@ -73,34 +77,35 @@
 
 
 	// Components
-	import ActivityPubMastodonFieldNotes from '$/views/ActivityPubMastodonFieldNotes.svelte'
+	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.ActivityPubActor}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={actor}
 			placeholderText="Loading actor…"
 		>
-			{#snippet children(actor)}
-				{actor.displayName
-					?? actor.acct
-					?? actor.username
+			{#snippet children(loadedActor)}
+				{loadedActor.displayName
+					?? loadedActor.acct
+					?? loadedActor.username
 					?? entityId.localAccountId}
 			{/snippet}
 		</ResourceBoundary>
@@ -109,14 +114,13 @@
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={actor}
-			placeholderText=""
 		>
-			{#snippet children(actor)}
-				{#if actor.$icon}
+			{#snippet children(loadedActor)}
+				{#if loadedActor.$icon}
 					<IconComponent
-						alt={actor.displayName ?? actor.acct ?? actor.username ?? entityId.localAccountId}
+						alt={loadedActor.displayName ?? loadedActor.acct ?? loadedActor.username ?? entityId.localAccountId}
 						shape={IconShape.Circle}
-						src={actor.$icon[EntityMetaKey.Id].url}
+						src={loadedActor.$icon[EntityMetaKey.Id].url}
 					/>
 				{/if}
 			{/snippet}
@@ -133,61 +137,51 @@
 		{@render Value()}
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A federated ActivityPub Actor (Mastodon account) keyed by instance origin + local account id (acct or REST id).
+		</p>
+		<p>
+			Profile fields and outbox statuses resolve from the configured instance REST API—not a live crawl of every federated server.
+		</p>
+	{/snippet}
+
 	{#snippet HeadingAfter()}
 		<ResourceBoundary
 			resource={actor}
-			placeholderText=""
 		>
-			{#snippet children(actor)}
+			{#snippet children(loadedActor)}
 				{@const activityPubSummaryHeadingLine =
-					actor.displayName
-					?? actor.acct
-					?? actor.username
+					loadedActor.displayName
+					?? loadedActor.acct
+					?? loadedActor.username
 					?? entityId.localAccountId}
-				{#if actor.username && actor.username !== activityPubSummaryHeadingLine}
+				{#if loadedActor.username && loadedActor.username !== activityPubSummaryHeadingLine}
 					<span data-text="muted">
-						@{actor.username}
+						@{loadedActor.username}
 					</span>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href, open })}
+	{#snippet Content({
+		title: _title,
+		href: _href,
+		open: contentOpen,
+	})}
 		<dl data-column-item="center">
-			<div>
-				<dt>Local account id</dt>
-				<dd data-text="mono">
-					<ResourceBoundary
-						resource={actor}
-						placeholderText="Loading actor…"
-					>
-						{#snippet children(actor)}
-							{@const activityPubSummaryHeadingLine = (
-								actor.displayName
-								?? actor.acct
-								?? actor.username
-								?? entityId.localAccountId
-							)}
-							{#if activityPubSummaryHeadingLine !== entityId.localAccountId}
-								{@render Title()}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			{#if open}
+			{#if !contentOpen}
 				<div>
-					<dt>Username on instance</dt>
+					<dt>Bio</dt>
 					<dd>
 						<ResourceBoundary
 							resource={actor}
 							placeholderText="Loading actor…"
 						>
-							{#snippet children(actor)}
-								{#if actor.username}
-									{actor.username}
+							{#snippet children(loadedActor)}
+								{#if loadedActor.note}
+									{htmlToPlainText(actor.note)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -195,43 +189,36 @@
 				</div>
 			{/if}
 
-			{#if open}
-				<div>
-					<dt>Federated handle (acct)</dt>
-					<dd>
-						<ResourceBoundary
-							resource={actor}
-							placeholderText="Loading actor…"
-						>
-							{#snippet children(actor)}
-								{#if actor.acct}
-									{actor.acct}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={actor}
+					placeholderText="Loading actor…"
+				>
+					{#snippet children(loadedActor)}
+						{@const activityPubSummaryHeadingLine =
+							loadedActor.displayName
+							?? loadedActor.acct
+							?? loadedActor.username
+							?? entityId.localAccountId}
+
+						{#if loadedActor.acct && loadedActor.acct !== activityPubSummaryHeadingLine}
+							<div>
+								<dt>Federated handle (acct)</dt>
+								<dd>{loadedActor.acct}</dd>
+							</div>
+						{/if}
+
+						{#if loadedActor.displayName && loadedActor.displayName !== activityPubSummaryHeadingLine}
+							<div>
+								<dt>Display name</dt>
+								<dd>{loadedActor.displayName}</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 
-			{#if open}
-				<div>
-					<dt>Display name</dt>
-					<dd>
-						<ResourceBoundary
-							resource={actor}
-							placeholderText="Loading actor…"
-						>
-							{#snippet children(actor)}
-								{#if actor.displayName}
-									{actor.displayName}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
+			{#if contentOpen}
 				<div>
 					<dt>Bio (plain text)</dt>
 					<dd>
@@ -239,12 +226,130 @@
 							resource={actor}
 							placeholderText="Loading actor…"
 						>
-							{#snippet children(actor)}
-								{#if actor.note}
+							{#snippet children(loadedActor)}
+								{#if loadedActor.note}
 									{htmlToPlainText(actor.note)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={actor}
+					placeholderText="Loading actor…"
+				>
+					{#snippet children(loadedActor)}
+						{#if loadedActor.followersCount != null}
+							<div>
+								<dt>Followers</dt>
+								<dd>
+									<NumberValue
+										value={loadedActor.followersCount}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if loadedActor.followingCount != null}
+							<div>
+								<dt>Following</dt>
+								<dd>
+									<NumberValue
+										value={loadedActor.followingCount}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if loadedActor.statusesCount != null}
+							<div>
+								<dt>Statuses</dt>
+								<dd>
+									<NumberValue
+										value={loadedActor.statusesCount}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if loadedActor.createdAt != null}
+							<div>
+								<dt>Joined</dt>
+								<dd>
+									<Timestamp
+										timestamp={loadedActor.createdAt}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if loadedActor.profileUrl}
+							<div>
+								<dt>Profile</dt>
+								<dd>
+									<a
+										href={loadedActor.profileUrl}
+										rel="noreferrer"
+										target="_blank"
+									>{loadedActor.profileUrl}</a>
+								</dd>
+							</div>
+						{/if}
+
+						{#if loadedActor.activityStreamsUri}
+							<div>
+								<dt>Activity Streams URI</dt>
+								<dd>
+									<a
+										href={loadedActor.activityStreamsUri}
+										rel="noreferrer"
+										target="_blank"
+									>{loadedActor.activityStreamsUri}</a>
+								</dd>
+							</div>
+						{/if}
+
+						{#if loadedActor.website}
+							<div>
+								<dt>Website</dt>
+								<dd>
+									<a
+										href={loadedActor.website}
+										rel="noreferrer"
+										target="_blank"
+									>{loadedActor.website}</a>
+								</dd>
+							</div>
+						{/if}
+
+						{#if loadedActor.bot != null || loadedActor.locked != null}
+							<div>
+								<dt>Account flags</dt>
+								<dd>
+									{#if loadedActor.bot != null}
+										{loadedActor.bot ? 'Bot' : 'Not a bot'}
+									{/if}
+									{#if loadedActor.bot != null && loadedActor.locked != null}
+										{' · '}
+									{/if}
+									{#if loadedActor.locked != null}
+										{loadedActor.locked ? 'Locked' : 'Unlocked'}
+									{/if}
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+
+			{#if contentOpen}
+				<div>
+					<dt>Local account id</dt>
+					<dd data-text="mono">
+						{entityId.localAccountId}
 					</dd>
 				</div>
 			{/if}
@@ -276,7 +381,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet Markers({ open: _markersOpen })}
 					<a
 						data-scroll-marker-label="Profile"
 						href={`#${idKey}:mastodon-profile`}
@@ -287,7 +392,7 @@
 					>Outbox</a>
 				{/snippet}
 
-				{#snippet body(_activityChildrenContext)}
+				{#snippet body({ open: _bodyOpen })}
 					<section
 						data-scroll-marker-label="Profile"
 						id={`${idKey}:mastodon-profile`}
@@ -296,12 +401,11 @@
 							entityType={EntityType.ActivityPubActor}
 							{entityId}
 						/>
-
 						<ResourceBoundary
 							resource={actor}
 							placeholderText="Loading Mastodon profile…"
 						>
-							{#snippet children(actor)}
+							{#snippet children(loadedActor)}
 								{@const mastodonProfileUnset = (
 									actor.acct == null
 									&& actor.displayName == null
@@ -334,17 +438,14 @@
 						data-scroll-marker-label="Outbox"
 						id={`${idKey}:activity-statuses`}
 					>
-						<ActivityPubMastodonFieldNotes
+						<ActivityPubNotesView
+							href={resolve('/activitypub/notes')}
 							entityFieldReference={{
 								entityType: EntityType.ActivityPubActor,
 								entityId,
 								fieldName: '$$notes',
 							}}
 							fieldOpen={_open}
-							href={resolve('/(social)/activitypub/actor/[instanceOrigin]/[localAccountId]/(actor)/notes', {
-								instanceOrigin: encodeURIComponent(entityId.instanceOrigin),
-								localAccountId: encodeURIComponent(entityId.localAccountId),
-							})}
 							id={`${idKey}:activity-notes-list`}
 							orderByCreatedAt="desc"
 							placeholderText="Loading Mastodon outbox statuses…"

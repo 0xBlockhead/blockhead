@@ -14,14 +14,29 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.SwarmResource,
 			resolve: async (entityId) => {
+				const { swarmOnlyReferencePattern } = await import('$/sources/Swarm/Rest/constants.ts')
+				const normalizedReference = (
+					(await import('$/sources/Swarm/Rest/queries.ts')).normalizeSwarmReference(entityId.reference)
+				)
+				if (!swarmOnlyReferencePattern.test(normalizedReference)) {
+					throw new Error(`Swarm_Rest: invalid reference ${entityId.reference}`)
+				}
 				const {
 					fetchSwarmBrowseResult,
 					swarmResourceCanonicalUri,
 				} = await import('$/sources/Swarm/Rest/queries.ts')
-				const browseResult = await fetchSwarmBrowseResult({
-					reference: entityId.reference,
-					contentPath: entityId.contentPath,
-				})
+				let browseResult
+				try {
+					browseResult = await fetchSwarmBrowseResult({
+						reference: entityId.reference,
+						contentPath: entityId.contentPath,
+					})
+				} catch (error) {
+					throw new Error(
+						`Swarm_Rest: unable to load bzz://${entityId.reference}${entityId.contentPath ? `/${entityId.contentPath}` : ''}`,
+						{ cause: error },
+					)
+				}
 				const mediaEntity = ((
 					type,
 				) => (

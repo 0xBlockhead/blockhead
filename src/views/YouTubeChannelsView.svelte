@@ -6,7 +6,6 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
@@ -19,7 +18,6 @@
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -28,8 +26,7 @@
 		title = 'Channels',
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.YouTubeChannel>
-		href: string
-		id: string
+			id: string
 		open?: boolean
 		title?: string
 	} = $props()
@@ -49,7 +46,6 @@
 
 <EntitiesList
 	entityType={EntityType.YouTubeChannel}
-	{href}
 	{id}
 	{title}
 	bind:open
@@ -70,9 +66,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -82,7 +77,7 @@
 						Source.Youtube_Rest,
 						Source.Piped_Rest,
 					],
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Youtube_Rest,
 							Source.Piped_Rest,
@@ -94,7 +89,7 @@
 				parent,
 				(parent) => {
 					const rows: Entity<typeof schema, EntityType.YouTubeChannel>[] = (
-						parent[fieldName] ?? []
+						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
 						rows.map((value) => ({
@@ -107,7 +102,6 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.YouTubeChannel}
-				{href}
 				id={`${id}-items`}
 				{title}
 				resource={channels}
@@ -123,18 +117,13 @@
 				{/snippet}
 
 				{#snippet Item({
-					item: row,
+					item: channel,
 				})}
-					{#if row}
-						<YouTubeChannelView
-							entityId={row.entityId}
-							href={resolve('/(social)/(youtube)/youtube/channel/[channelId]', {
-								channelId: encodeURIComponent(row.entityId.channelId),
-							})}
-							layout={EntityLayout.SummaryDetails}
-							open={false}
-						/>
-					{/if}
+					<YouTubeChannelView
+						entityId={channel.entityId}
+						layout={EntityLayout.SummaryDetails}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

@@ -4,10 +4,6 @@
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { MarketTimeInterval } from '$/constants/Market.ts'
 	import { marketOhlcCandleSources } from '$/constants/Market.ts'
-	import {
-		dedupeCandleEntitiesById,
-		marketTimeIntervalsEqual,
-	} from '$/lib/marketOhlcCandles.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -38,10 +34,13 @@
 
 
 	// State
+	import {
+		dedupeCandleEntitiesById,
+		marketTimeIntervalsEqual,
+	} from '$/lib/marketOhlcCandles.ts'
+
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const fieldName = entityFieldReference.fieldName
 
 	const market = useEntity(
 		entityFieldReference.entityType,
@@ -51,8 +50,8 @@
 				Source.Constants_Internal,
 				...marketOhlcCandleSources,
 			],
-			[fieldName]: {
-				$: [Source.Coingecko_Rest],
+			[entityFieldReference.fieldName]: {
+				$: [...marketOhlcCandleSources],
 				$limit: limit,
 			},
 		},
@@ -62,7 +61,7 @@
 		market,
 		(market) => {
 			const rows: Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[] = (
-				market[fieldName] ?? []
+				market[entityFieldReference.fieldName] ?? []
 			)
 			return (
 				dedupeCandleEntitiesById(rows)
@@ -83,6 +82,7 @@
 			)
 		},
 	)
+
 
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'

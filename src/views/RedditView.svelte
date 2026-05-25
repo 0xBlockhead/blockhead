@@ -1,9 +1,11 @@
 <script lang="ts">
 	// Types/constants
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import type { ComponentProps } from 'svelte'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { stringify } from 'devalue'
 
 
@@ -12,17 +14,29 @@
 
 
 	// Props
-	const entityId = {
-		scope: 'RedditNetwork' as const,
-	}
+	let {
+		entityId,
+		href = resolve(
+			'/reddit',
+			entityId,
+		),
+					open = $bindable(true),
+		collapsible = true,
+		...EntityViewProps
+	}: WithRest<
+		{
+			entityId: EntityId<typeof schema, EntityType.RedditNetwork>
+			href?: string
+			open?: boolean
+		},
+		never
+	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const networkIdKey = stringify(entityId)
-
-	let open = $state(true)
 
 	const redditNetwork = useEntity(
 		EntityType.RedditNetwork,
@@ -31,19 +45,28 @@
 			$: [
 				Source.Constants_Internal,
 			],
-			docsUrl: {},
-			homeUrl: {},
 			protocolName: {},
-			$$redditLinks: {
-				$: [
-					Source.Reddit_Rest,
-				],
-			},
-			$$redditSubreddits: {
-				$: [
-					Source.Reddit_Rest,
-				],
-			},
+			registryLabel: {},
+			...(open ?
+				{
+					docsUrl: {},
+					homeUrl: {},
+					topology: {},
+					$$redditLinks: {
+						$: [
+							Source.Reddit_Rest,
+							Source.Reddit_PublicJson,
+						],
+					},
+					$$redditSubreddits: {
+						$: [
+							Source.Reddit_Rest,
+							Source.Reddit_PublicJson,
+						],
+					},
+				}
+			:
+				{}),
 		},
 	)
 
@@ -51,9 +74,9 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import RedditLinksView from '$/views/RedditLinksView.svelte'
 	import RedditSubredditsView from '$/views/RedditSubredditsView.svelte'
 </script>
@@ -62,9 +85,11 @@
 <EntityView
 	entityType={EntityType.RedditNetwork}
 	{entityId}
-	href={resolve('/(social)/reddit')}
+	href={href}
 	layout={EntityLayout.SummaryDetails}
 	bind:open
+	{collapsible}
+	{...EntityViewProps}
 	title="Reddit"
 >
 	{#snippet Value()}
@@ -90,53 +115,66 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<ResourceBoundary
-			resource={redditNetwork}
-			placeholderText="Loading Reddit…"
-		>
-			{#snippet children(redditNetwork)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Communities</dt>
-						<dd>{String(redditNetwork.$$redditSubreddits.length)}</dd>
-					</div>
-					<div>
-						<dt>Submissions</dt>
-						<dd>{String(redditNetwork.$$redditLinks.length)}</dd>
-					</div>
-					{#if open}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={redditNetwork}
+				placeholderText="Loading Reddit…"
+			>
+				{#snippet children(loadedRedditNetwork)}
+					{#if loadedRedditNetwork.registryLabel}
 						<div>
-							<dt>Protocol name</dt>
-							<dd>{String(redditNetwork.protocolName ?? 'Reddit')}</dd>
+							<dt>Registry</dt>
+							<dd>{loadedRedditNetwork.registryLabel}</dd>
+						</div>
+					{:else if loadedRedditNetwork.protocolName}
+						<div>
+							<dt>Protocol</dt>
+							<dd>{loadedRedditNetwork.protocolName}</dd>
 						</div>
 					{/if}
 
 					{#if open}
 						<div>
-							<dt>Home</dt>
-							<dd>
-								<a href={String(redditNetwork.homeUrl ?? '#')}>
-									{String(redditNetwork.homeUrl ?? '—')}
-								</a>
-							</dd>
+							<dt>Communities</dt>
+							<dd>{String(redditNetwork.$$redditSubreddits?.length ?? 0)}</dd>
 						</div>
-					{/if}
+						<div>
+							<dt>Submissions</dt>
+							<dd>{String(redditNetwork.$$redditLinks?.length ?? 0)}</dd>
+						</div>
 
-					{#if open}
-						{#if redditNetwork.docsUrl != null && redditNetwork.docsUrl !== ''}
+						{#if loadedRedditNetwork.homeUrl}
 							<div>
-								<dt>Docs</dt>
+								<dt>Home</dt>
 								<dd>
-									<a href={redditNetwork.docsUrl}>
-										{redditNetwork.docsUrl}
+									<a href={loadedRedditNetwork.homeUrl}>
+										{loadedRedditNetwork.homeUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
+
+						{#if loadedRedditNetwork.docsUrl}
+							<div>
+								<dt>Docs</dt>
+								<dd>
+									<a href={loadedRedditNetwork.docsUrl}>
+										{loadedRedditNetwork.docsUrl}
+									</a>
+								</dd>
+							</div>
+						{/if}
+
+						{#if loadedRedditNetwork.topology}
+							<div>
+								<dt>Topology</dt>
+								<dd>{loadedRedditNetwork.topology}</dd>
+							</div>
+						{/if}
 					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 
 	{#snippet Details({
@@ -146,7 +184,6 @@
 			entityType={EntityType.RedditNetwork}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -191,12 +228,12 @@
 						data-scroll-marker-label="Subreddits"
 					>
 						<RedditSubredditsView
+							href={resolve('/reddit/subreddits')}
 							entityFieldReference={{
 								entityType: EntityType.RedditNetwork,
 								entityId,
 								fieldName: '$$redditSubreddits',
 							}}
-							href={resolve('/(social)/reddit')}
 							id={`${networkIdKey}:subreddits-list`}
 							open={_open}
 						/>
@@ -207,12 +244,12 @@
 						data-scroll-marker-label="Popular submissions"
 					>
 						<RedditLinksView
+							href={resolve('/reddit/links')}
 							entityFieldReference={{
 								entityType: EntityType.RedditNetwork,
 								entityId,
 								fieldName: '$$redditLinks',
 							}}
-							href={resolve('/(social)/reddit')}
 							id={`${networkIdKey}:links-list`}
 							open={_open}
 							title="Popular submissions"

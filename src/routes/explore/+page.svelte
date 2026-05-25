@@ -1,10 +1,13 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
+	// Types/constants
 	import { EntityType } from '$/schema/$EntityType.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
+	// State
 	const hubKey = 'explore'
 
 
@@ -75,12 +78,12 @@
 						data-scroll-marker-label="Networks"
 					>
 						<NetworksView
+							href={resolve('/networks')}
 							entityFieldReference={{
 								entityType: EntityType._Global,
 								entityId: {},
 								fieldName: '$$networks',
 							}}
-							href={resolve('/networks')}
 							id="networks"
 							open={hubOpen}
 						/>
@@ -96,7 +99,6 @@
 								entityId: {},
 								fieldName: '$$networkUpgrades',
 							}}
-							href={resolve('/upgrades')}
 							id="upgrades"
 							open={hubOpen}
 						/>
@@ -140,7 +142,6 @@
 								entityId: {},
 								fieldName: '$$proposalRealms',
 							}}
-							href={resolve('/proposals')}
 							id="proposal-realms"
 							open={hubOpen}
 							title="Proposals"

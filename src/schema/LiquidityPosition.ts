@@ -1,4 +1,6 @@
 import { type } from 'arktype'
+
+// On-chain concentrated-liquidity LP position (Uniswap v3 NonfungiblePositionManager-style). Requires an execution RPC or subgraph resolver; Dexscreener pool rows do not populate this entity.
 import {
 	EntityFieldType,
 	EntityFieldCardinality,

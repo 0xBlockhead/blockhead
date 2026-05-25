@@ -1,4 +1,4 @@
-export type PipedStreamItemWire = {
+export type PipedStreamItem = {
 	url?: string
 	title?: string
 	thumbnail?: string
@@ -11,7 +11,7 @@ export type PipedStreamItemWire = {
 	views?: number
 }
 
-export type PipedStreamWire = {
+export type PipedStream = {
 	title?: string
 	description?: string
 	uploadDate?: string
@@ -24,15 +24,15 @@ export type PipedStreamWire = {
 	likes?: number
 	dislikes?: number
 	livestream?: boolean
-	relatedStreams?: PipedStreamItemWire[]
+	relatedStreams?: PipedStreamItem[]
 }
 
-export type PipedTabInfoWire = {
+export type PipedTabInfo = {
 	name?: string
 	data?: string
 }
 
-export type PipedChannelWire = {
+export type PipedChannel = {
 	id?: string
 	name?: string
 	avatarUrl?: string
@@ -41,21 +41,21 @@ export type PipedChannelWire = {
 	subscriberCount?: number
 	verified?: boolean
 	nextpage?: string | null
-	tabs?: PipedTabInfoWire[]
-	relatedStreams?: PipedStreamItemWire[]
+	tabs?: PipedTabInfo[]
+	relatedStreams?: PipedStreamItem[]
 }
 
-export type PipedChannelNextpageWire = {
+export type PipedChannelNextpage = {
 	nextpage?: string | null
-	relatedStreams?: PipedStreamItemWire[]
+	relatedStreams?: PipedStreamItem[]
 }
 
-export type PipedListChannelVideosWire = {
-	items: PipedStreamItemWire[]
+export type PipedListChannelVideos = {
+	items: PipedStreamItem[]
 	nextpage?: string | null
 }
 
-export type PipedCommentWire = {
+export type PipedComment = {
 	author?: string
 	commentId?: string
 	commentText?: string
@@ -69,17 +69,17 @@ export type PipedCommentWire = {
 	creatorReplied?: boolean
 }
 
-export type PipedCommentsWire = {
-	comments?: PipedCommentWire[]
+export type PipedComments = {
+	comments?: PipedComment[]
 	disabled?: boolean
 	nextpage?: string | null
 }
 
-export type PipedPlaylistWire = {
+export type PipedPlaylist = {
 	bannerUrl?: string
 	name?: string
 	nextpage?: string | null
-	relatedStreams?: PipedStreamItemWire[]
+	relatedStreams?: PipedStreamItem[]
 	thumbnailUrl?: string
 	uploader?: string
 	uploaderAvatar?: string
@@ -87,17 +87,17 @@ export type PipedPlaylistWire = {
 	videos?: number
 }
 
-export type PipedPlaylistNextpageWire = {
+export type PipedPlaylistNextpage = {
 	nextpage?: string | null
-	relatedStreams?: PipedStreamItemWire[]
+	relatedStreams?: PipedStreamItem[]
 }
 
-export type PipedListPlaylistVideosWire = {
-	items: PipedStreamItemWire[]
+export type PipedListPlaylistVideos = {
+	items: PipedStreamItem[]
 	nextpage?: string | null
 }
 
-export type PipedPlaylistSummaryWire = {
+export type PipedPlaylistSummary = {
 	type?: string
 	url?: string
 	name?: string
@@ -109,12 +109,12 @@ export type PipedPlaylistSummaryWire = {
 	videos?: number
 }
 
-export type PipedChannelTabWire = {
+export type PipedChannelTab = {
 	nextpage?: string | null
-	content?: PipedPlaylistSummaryWire[]
+	content?: PipedPlaylistSummary[]
 }
 
-export type PipedListChannelPlaylistsWire = {
-	items: PipedPlaylistSummaryWire[]
+export type PipedListChannelPlaylists = {
+	items: PipedPlaylistSummary[]
 	nextpage?: string | null
 }

@@ -8,14 +8,11 @@
 
 
 <script lang="ts">
-	// Popover API: popover="hint" (hover) | "auto" (click).
 	// Types/constants
 	import type { Snippet } from 'svelte'
 
 
 	// Props
-	const popoverId = $props.id()
-
 	let {
 		content = '',
 		triggerLabel = '',
@@ -37,14 +34,7 @@
 	} = $props()
 
 
-	const side = $derived((contentProps?.side as string) ?? 'top')
-	const sideOffset = $derived((contentProps?.sideOffset as number) ?? 6)
-
-
-	let triggerEl: HTMLElement | null = $state(null)
-	let popoverEl: HTMLElement | null = $state(null)
-
-
+	// Functions
 	const onTriggerEnter = () => {
 		if (triggerAction !== 'hover' || !triggerEl || !popoverEl) return
 		;(popoverEl as HTMLElement & { showPopover(opts?: { source?: HTMLElement }): void }).showPopover({
@@ -56,6 +46,20 @@
 		if (triggerAction !== 'hover' || !popoverEl) return
 		popoverEl.hidePopover()
 	}
+
+
+	// State
+	const popoverId = $props.id()
+
+	let triggerEl: HTMLElement | null = $state(null)
+
+	let popoverEl: HTMLElement | null = $state(null)
+
+
+	// (Derived)
+	const side = $derived((contentProps?.side as string) ?? 'top')
+
+	const sideOffset = $derived((contentProps?.sideOffset as number) ?? 6)
 </script>
 
 

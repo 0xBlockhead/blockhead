@@ -1,6 +1,5 @@
 <script lang="ts">
-	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
+	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
 
@@ -8,12 +7,15 @@
 	// Props
 	let { children } = $props()
 
+
+	// (Derived)
 	const postId = $derived(
 		page.params.postId ?? '',
 	)
 
 
 	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import LensPostView from '$/views/LensPostView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 </script>
@@ -28,9 +30,6 @@
 	{#snippet Summary({ open: _open })}
 		<LensPostView
 			entityId={{ id: decodeURIComponent(postId) }}
-			href={resolve('/(social)/(lens)/lens/post/[postId]', {
-				postId: encodeURIComponent(postId),
-			})}
 			layout={EntityLayout.SummaryInline}
 		/>
 	{/snippet}

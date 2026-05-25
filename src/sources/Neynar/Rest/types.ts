@@ -3,7 +3,7 @@
  * @see https://docs.neynar.com/reference
  */
 
-export type NeynarUserWire = {
+export type NeynarUser = {
 	object?: 'user' | 'user_dehydrated'
 	fid: number
 	follower_count?: number
@@ -26,7 +26,7 @@ export type NeynarUserWire = {
 	}
 }
 
-export type NeynarCastEmbedWire = {
+export type NeynarCastEmbed = {
 	url?: string
 	metadata?: {
 		html?: {
@@ -48,22 +48,22 @@ export type NeynarCastEmbedWire = {
 	}
 }
 
-export type NeynarCastReactionsWire = {
+export type NeynarCastReactions = {
 	likes_count?: number
 	recasts_count?: number
 }
 
-export type NeynarCastRepliesWire = {
+export type NeynarCastReplies = {
 	count?: number
 }
 
-export type NeynarCastChannelWire = {
+export type NeynarCastChannel = {
 	id?: string
 	name?: string
 	object?: string
 }
 
-export type NeynarCastWire = {
+export type NeynarCast = {
 	hash: string
 	parent_hash?: string
 	parent_url?: string
@@ -71,24 +71,24 @@ export type NeynarCastWire = {
 	parent_author?: {
 		fid?: number
 	}
-	author?: NeynarUserWire
-	app?: NeynarUserWire
+	author?: NeynarUser
+	app?: NeynarUser
 	text?: string
 	timestamp?: string
-	embeds?: NeynarCastEmbedWire[]
+	embeds?: NeynarCastEmbed[]
 	mentions?: number[]
 	likes?: number
 	recasts?: number
-	reactions?: NeynarCastReactionsWire
-	replies?: NeynarCastRepliesWire
+	reactions?: NeynarCastReactions
+	replies?: NeynarCastReplies
 	thread_hash?: string | null
-	channel?: NeynarCastChannelWire | null
+	channel?: NeynarCastChannel | null
 	mentioned_profiles?: { fid?: number }[]
 	mentioned_channels?: { id?: string }[]
 }
 
 export type NeynarFeedResponse = {
-	casts?: NeynarCastWire[]
+	casts?: NeynarCast[]
 	next?: {
 		cursor?: string | null
 	}
@@ -128,5 +128,5 @@ export type NeynarFeedQuery =
 	}
 
 export type NeynarBulkUsersResponse = {
-	users: NeynarUserWire[]
+	users: NeynarUser[]
 }

@@ -6,6 +6,7 @@ import {
 import Ensips from '$/sources/Ensips/index.ts'
 
 import { ensipsGithubRepo } from './constants.ts'
+import type { EnsipsGithubContents } from './types.ts'
 
 export const getEnsipsGithubContentsUrl = () => (
 	getGithubRestRepoContentsUrl({
@@ -25,7 +26,7 @@ export const getEnsipProposalMarkdownUrl = ({ number }: { number: number }) => (
 	})
 )
 
-export const getEnsipsGithubContents = () => getJson({
+export const getEnsipsGithubContents = (): Promise<EnsipsGithubContents> => getJson({
 	url: getEnsipsGithubContentsUrl(),
 	origins: Ensips.origins ?? [],
 })

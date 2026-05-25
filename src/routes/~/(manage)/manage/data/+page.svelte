@@ -1,15 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import {
-		entityCollectionByEntityType,
-		entityFieldCollections,
-	} from '$/routes/+layout.svelte'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { enabledSources } from '$/sources/index.ts'
-	import NumberValue from '$/views/NumberValue.svelte'
-
 	import { useCollectionCache } from './collectionCache.svelte.ts'
 
 
@@ -31,6 +25,15 @@
 			])
 		)),
 	)
+
+
+	// Components
+	import {
+		entityCollectionByEntityType,
+		entityFieldCollections,
+	} from '$/routes/+layout.svelte'
+
+	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
 

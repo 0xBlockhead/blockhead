@@ -23,7 +23,7 @@
 		getGroupLabel = (groupId: string) => groupId,
 		Before,
 		After,
-		Item: _Item,
+		Item,
 		children,
 		placeholder,
 		disabled,
@@ -194,7 +194,7 @@
 				aria-label={ariaLabel}
 				{placeholder}
 			>
-				{#snippet child({ props })}
+				{#snippet child()}
 					{@const mergedProps = {
 						...props,
 						onfocus: () => {
@@ -246,15 +246,15 @@
 										label={item.label}
 										disabled={item.disabled}
 									>
-										{#snippet children({ selected })}
+										{#snippet children()}
 											<span data-row="start gap-1">
 												<span data-row-item="flexible">
 													{#if Before}
 														{@render Before()}
 													{/if}
 
-													{#if _Item}
-														{@render _Item(item.item, selected)}
+													{#if Item}
+														{@render Item(item.item, selected)}
 													{:else}
 														{item.label}
 													{/if}
@@ -282,15 +282,15 @@
 								label={item.label}
 								disabled={item.disabled}
 							>
-								{#snippet children({ selected })}
+								{#snippet children()}
 									<span data-row="start gap-1">
 										<span data-row-item="flexible">
 											{#if Before}
 												{@render Before()}
 											{/if}
 
-											{#if _Item}
-												{@render _Item(item.item, selected)}
+											{#if Item}
+												{@render Item(item.item, selected)}
 											{:else}
 												{item.label}
 											{/if}

@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
-
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,34 +15,46 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
+		href = resolve(
+			'/(assets)/(coins)/coin/[coinId]/timestamp/[timestampMs]',
+			{
+				coinId: entityId.$coin.coinId,
+				timestampMs: String(entityId.timestampMs),
+			},
+		),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.Coin_Timestamp>
 			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
 			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
 
+	// Functions
+	const resolvedHref = (
+		href
+		?? resolve(
+			'/(assets)/(coins)/coin/[coinId]',
+			{
+				coinId: entityId.$coin.coinId,
+			},
+		)
+	)
+
+
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const coinTimestamp = useEntity(
 		EntityType.Coin_Timestamp,
@@ -67,17 +78,6 @@
 	)
 
 
-	const resolvedHref = (
-		href
-		?? resolve(
-			'/(assets)/(coins)/coin/[coinId]',
-			{
-				coinId: entityId.$coin.coinId,
-			},
-		)
-	)
-
-
 	// Components
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -93,9 +93,9 @@
 	entityType={EntityType.Coin_Timestamp}
 	bind:open
 	{entityId}
-	href={resolvedHref}
+	href={href}
 	title={`Coin snapshot ${entityId.$coin.coinId}`}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -131,25 +131,25 @@
 			resource={coinTimestamp}
 			placeholderText="Loading snapshot…"
 		>
-			{#snippet children(coinTimestamp)}
+			{#snippet children(loadedCoinTimestamp)}
 				<dl data-column-item="center">
-					{#if coinTimestamp.marketCap !== undefined}
+					{#if loadedCoinTimestamp.marketCap !== undefined}
 						<div>
 							<dt>Market cap</dt>
 							<dd>
 								<CurrencyAmount
 									currency="USD"
-									value={coinTimestamp.marketCap}
+									value={loadedCoinTimestamp.marketCap}
 								/>
 							</dd>
 						</div>
 					{/if}
-					{#if coinTimestamp.change24hPercent != null && Number.isFinite(coinTimestamp.change24hPercent)}
+					{#if loadedCoinTimestamp.change24hPercent != null && Number.isFinite(coinTimestamp.change24hPercent)}
 						<div>
 							<dt>24h change</dt>
 							<dd>
 								<NumberValue
-									value={coinTimestamp.change24hPercent}
+									value={loadedCoinTimestamp.change24hPercent}
 									options={{ maximumFractionDigits: 2, signDisplay: 'exceptZero' }}
 								/>%
 							</dd>
@@ -168,35 +168,37 @@
 						<dd>
 							<CoinView
 								entityId={entityId.$coin}
-								href={resolve(
-									'/(assets)/(coins)/coin/[coinId]',
-									{ coinId: entityId.$coin.coinId },
-								)}
 								layout={EntityLayout.Title}
 								open={false}
-								showTypeAnnotation={false}
 							/>
 						</dd>
 					</div>
-					{#if open}
-						{#if coinTimestamp.totalSupply !== undefined}
-							<div>
-								<dt>Recorded total supply</dt>
-								<dd>{String(coinTimestamp.totalSupply)}</dd>
-							</div>
-						{/if}
-						{#if coinTimestamp.transport !== undefined}
-							<div>
-								<dt>Transport</dt>
-								<dd><code>{coinTimestamp.transport}</code></dd>
-							</div>
-						{/if}
-						{#if coinTimestamp.providerAssetId !== undefined}
-							<div>
-								<dt>Provider asset id</dt>
-								<dd><code>{coinTimestamp.providerAssetId}</code></dd>
-							</div>
-						{/if}
+					{#if (
+						open
+						&& coinTimestamp.totalSupply !== undefined
+					)}
+						<div>
+							<dt>Recorded total supply</dt>
+							<dd>{String(coinTimestamp.totalSupply)}</dd>
+						</div>
+					{/if}
+					{#if (
+						open
+						&& coinTimestamp.transport !== undefined
+					)}
+						<div>
+							<dt>Transport</dt>
+							<dd><code>{loadedCoinTimestamp.transport}</code></dd>
+						</div>
+					{/if}
+					{#if (
+						open
+						&& coinTimestamp.providerAssetId !== undefined
+					)}
+						<div>
+							<dt>Provider asset id</dt>
+							<dd><code>{loadedCoinTimestamp.providerAssetId}</code></dd>
+						</div>
 					{/if}
 				</dl>
 			{/snippet}
@@ -210,9 +212,6 @@
 			entityType={EntityType.Coin_Timestamp}
 			{entityId}
 		/>
-
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>
+

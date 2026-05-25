@@ -1,13 +1,14 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
@@ -20,7 +21,7 @@
 		title = 'Transactions',
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<
@@ -31,15 +32,15 @@
 			open?: boolean
 			collapsible?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -55,8 +56,7 @@
 	entityType={EntityType.EvmTransaction}
 	{title}
 	bind:open
-	{collapsible}
-	{...entitiesListRest}
+	{collapsible}	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -73,15 +73,14 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				entityFieldReference.entityType === EntityType.EvmBlock ?
 					{
-						[fieldName]: {
+						[entityFieldReference.fieldName]: {
 							$: [
 								Source.Blockscout_Rest,
 								Source.Voltaire_JsonRpc,
@@ -91,7 +90,7 @@
 					}
 				:
 					{
-						[fieldName]: {
+						[entityFieldReference.fieldName]: {
 							$: [
 								Source.Blockscout_Rest,
 							],
@@ -102,7 +101,7 @@
 			{@const transactions = derive(
 				parent,
 				(parent) => (
-					[...(parent[fieldName] ?? [])]
+					[...(parent[entityFieldReference.fieldName] ?? [])]
 						.slice(
 							0,
 							entityFieldReference.entityType === EntityType.EvmBlock ?
@@ -141,50 +140,40 @@
 					</p>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						{@const line = props.item.value}
-						{@const t = line[EntityMetaKey.Id]}
-						{#if entityFieldReference.entityType === EntityType.EvmBlock}
-							<EvmTransactionView
-								entityId={t}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId]',
-									{
-										networkId: String(
-											entityFieldReference.entityId.$network.chainId,
-										),
-										blockNumber: String(
-											entityFieldReference.entityId.blockNumber,
-										),
-										transactionId: t.txHash,
-									},
-								)}
-								layout={EntityLayout.Summary}
-								open={false}
-								collapsible={false}
-								showTypeAnnotation={false}
-								showListInputSelector
-							/>
-						{:else if entityFieldReference.entityType === EntityType.Network || entityFieldReference.entityType === EntityType.ActorNetwork}
-							<EvmTransactionView
-								entityId={t}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
-									{
-										networkId: String(
-											t.$network.chainId,
-										),
-										transactionId: t.txHash,
-									},
-								)}
-								layout={EntityLayout.Summary}
-								open={false}
-								collapsible={false}
-								showTypeAnnotation={false}
-								showListInputSelector
-							/>
-						{/if}
+				{#snippet Item({ item })}
+					{@const line = item.value}
+					{@const t = line[EntityMetaKey.Id]}
+					{#if entityFieldReference.entityType === EntityType.EvmBlock}
+						<!-- href override: tx detail under block route, not network /transactions/tx -->
+						<EvmTransactionView
+							entityId={t}
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId]',
+								{
+								networkId: String(
+								entityFieldReference.entityId.$network.chainId,
+								),
+								blockNumber: String(
+								entityFieldReference.entityId.blockNumber,
+								),
+								transactionId: t.txHash,
+								},
+							)}
+							layout={EntityLayout.Summary}
+							open={false}
+							collapsible={false}
+							showTypeAnnotation={false}
+							showListInputSelector
+						/>
+					{:else if entityFieldReference.entityType === EntityType.Network || entityFieldReference.entityType === EntityType.ActorNetwork}
+						<EvmTransactionView
+							entityId={t}
+							layout={EntityLayout.Summary}
+							open={false}
+							collapsible={false}
+							showTypeAnnotation={false}
+							showListInputSelector
+						/>
 					{/if}
 				{/snippet}
 			</EntitiesList>

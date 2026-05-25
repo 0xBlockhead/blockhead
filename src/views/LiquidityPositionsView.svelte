@@ -7,11 +7,9 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -20,24 +18,22 @@
 		title = 'LP positions',
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.LiquidityPosition>
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'id',
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -45,14 +41,13 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import LiquidityPositionView from '$/views/LiquidityPositionView.svelte'
 </script>
 
 
 <EntitiesList
-	{...entitiesListRest}
+	{...EntitiesListProps}
 	bind:open
 	{collapsible}
 	data-entity-field-name={entityFieldReference.fieldName}
@@ -61,18 +56,27 @@
 	entityType={EntityType.LiquidityPosition}
 	{title}
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Concentrated-liquidity positions: owner, tick range, in-range liquidity, uncollected fees, and optional ERC-721 token id on a Uniswap v3-style pool.
+		</p>
+		<p>
+			No on-chain position indexer is wired yet; this catalog stays empty until a resolver maps wallet-held LP NFTs.
+		</p>
+	{/snippet}
+
 	{#snippet Empty()}
 		<div data-row="wrap align-center gap-2">
 			<p data-text="muted">
-				No concentrated liquidity positions yet.
+				No LP positions indexed yet.
 			</p>
 			<Tooltip contentProps={{ side: 'top' }}>
 				{#snippet Content()}
 					<p>
-						Concentrated-liquidity positions use range orders, fees, and NFT token ids (Uniswap v3–style).
+						Positions require an execution RPC or subgraph that reads NonfungiblePositionManager NFTs for connected accounts.
 					</p>
 					<p>
-						Import addresses or open an account view that holds LP NFTs to populate rows.
+						Pool pair rows from Dexscreener live under liquidity pools, not here.
 					</p>
 				{/snippet}
 				<abbr
@@ -83,20 +87,13 @@
 		</div>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				{
-					$: [
-						Source.Constants_Internal,
-					],
-					[entityFieldReference.fieldName]: {
-						$: [
-							Source.Constants_Internal,
-						],
-					},
+					[entityFieldReference.fieldName]: {},
 				},
 			)}
 			{@const liquidityPositions = derive(
@@ -121,7 +118,6 @@
 				entityType={EntityType.LiquidityPosition}
 				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
 				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
-				placeholderKeys={new SvelteSet()}
 				open={true}
 				resource={liquidityPositions}
 				{title}
@@ -130,15 +126,15 @@
 				{#snippet Empty()}
 					<div data-row="wrap align-center gap-2">
 						<p data-text="muted">
-							No concentrated liquidity positions yet.
+							No LP positions indexed yet.
 						</p>
 						<Tooltip contentProps={{ side: 'top' }}>
 							{#snippet Content()}
 								<p>
-									Concentrated-liquidity positions use range orders, fees, and NFT token ids (Uniswap v3–style).
+									Positions require an execution RPC or subgraph that reads NonfungiblePositionManager NFTs for connected accounts.
 								</p>
 								<p>
-									Import addresses or open an account view that holds LP NFTs to populate rows.
+									Pool pair rows from Dexscreener live under liquidity pools, not here.
 								</p>
 							{/snippet}
 							<abbr
@@ -149,18 +145,12 @@
 					</div>
 				{/snippet}
 
-				{#snippet Item(props)}
-					{#if props.item}
-						<LiquidityPositionView
-							entityId={props.item.value[EntityMetaKey.Id]}
-							href={resolve('/~/(accounts)/accounts/(positions)/position/[chainId]/[positionId]', {
-								chainId: String(props.item.value[EntityMetaKey.Id].$network.chainId),
-								positionId: props.item.value[EntityMetaKey.Id].id,
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+				{#snippet Item({ item })}
+					<LiquidityPositionView
+						entityId={item.value[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

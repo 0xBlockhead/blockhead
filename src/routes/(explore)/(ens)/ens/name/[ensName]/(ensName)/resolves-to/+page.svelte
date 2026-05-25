@@ -18,6 +18,5 @@
 <Page>
 	<EnsResolvesToView
 		entityId={{ name: params.ensName }}
-		href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', params)}
 	/>
 </Page>

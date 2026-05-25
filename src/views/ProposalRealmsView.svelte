@@ -1,10 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
-	import type EntitiesListComponent from '$/components/EntitiesList.svelte'
-
-	import { proposalRealmById } from '$/constants/Proposal.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -12,34 +8,27 @@
 	import { entityDefinitionByType, schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
+
+	type ProposalRealmsEntitiesListForward = Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'id'
+		>
 
 
 	// Context
 	import { goto } from '$app/navigation'
-	import { resolve } from '$app/paths'
 	import { getIsInsidePage } from '$/context/isInsidePage.ts'
+
 	import {
 		getOnNestedCollapsibleClose,
 		setOnNestedCollapsibleClose,
 	} from '$/context/onNestedCollapsibleClose.ts'
+
 	import { incrementHeadingLevel } from '$/context/headingLevel.ts'
 	import { setIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-
-
-	type ProposalRealmsEntitiesListForward = Omit<
-		ComponentProps<typeof EntitiesListComponent>,
-		| 'entityType'
-		| 'items'
-		| 'body'
-		| 'layout'
-		| 'getKey'
-		| 'getSortValue'
-		| 'resource'
-		| 'Item'
-	>
+	import { resolve } from '$app/paths'
 
 
 	// Props
@@ -48,6 +37,7 @@
 
 		open = $bindable(true),
 		entityFieldReference,
+		href = resolve('/proposals'),
 
 		collapsible = true,
 		showSummary = true,
@@ -55,7 +45,6 @@
 		CollapsibleProps = {},
 		placeholderKeys = new SvelteSet<string | number>(),
 		panelStyle,
-		href,
 		id,
 		placeholderText,
 
@@ -65,11 +54,13 @@
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.ProposalRealm>
+			href?: string
 		},
 		ProposalRealmsEntitiesListForward
 	> = $props()
 
 
+	// Inner context
 	const onNestedCollapsibleClose = getOnNestedCollapsibleClose()
 
 	setOnNestedCollapsibleClose((collapsibleId?: string) => (
@@ -89,7 +80,6 @@
 		onclose: userCollapsibleOnClose,
 		...collapsibleDetailsRest
 	} = CollapsibleProps
-
 
 	const collapsibleTabsPaneProps: Record<string, string> = {
 		'data-scroll-container': 'block',
@@ -127,8 +117,6 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const fieldName = entityFieldReference.fieldName
-
 	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
@@ -136,8 +124,9 @@
 			$: [
 				Source.Constants_Internal,
 			],
-			[fieldName]: {
+			[entityFieldReference.fieldName]: {
 				$limit: 512,
+				label: {},
 			},
 		},
 	)
@@ -145,11 +134,13 @@
 	const proposalRealms = derive(
 		parent,
 		(parent) => {
-			const rows: Entity<typeof schema, EntityType.ProposalRealm>[] = parent[fieldName] ?? []
+			const rows: Entity<typeof schema, EntityType.ProposalRealm>[] = parent[entityFieldReference.fieldName] ?? []
 			return (
 				rows
 					.toSorted((first, second) => (
-						stringify(first[EntityMetaKey.Id]).localeCompare(stringify(second[EntityMetaKey.Id]))
+						(first.label ?? stringify(first[EntityMetaKey.Id])).localeCompare(
+							second.label ?? stringify(second[EntityMetaKey.Id]),
+						)
 					))
 					.map((realm) => ({
 						result: realm,
@@ -158,6 +149,8 @@
 		},
 	)
 
+
+	// (Derived)
 	const loadedCount = $derived(
 		proposalRealms.ready ?
 			proposalRealms.current!.length
@@ -182,11 +175,11 @@
 
 
 	// Components
+	import type EntitiesListComponent from '$/components/EntitiesList.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
-
 	import NumberValue from '$/views/NumberValue.svelte'
 	import ProposalKindsView from '$/views/ProposalKindsView.svelte'
 </script>
@@ -227,21 +220,18 @@
 				{:else if !showSummary}
 					<div {...standaloneRealmPanelsProps}>
 						{#each rows as row (proposalRealmKey(row))}
-							{@const realmRow = row.result}
-							<section data-scroll-marker-label={proposalRealmById[realmRow[EntityMetaKey.Id].realm].label}>
+							{@const realm = row.result}
+							<section data-scroll-marker-label={realm.label ?? String(realm[EntityMetaKey.Id].realm)}>
 								<ProposalKindsView
 									collapsible={false}
 									entityFieldReference={{
 										entityType: EntityType.ProposalRealm,
-										entityId: { realm: realmRow[EntityMetaKey.Id].realm },
+										entityId: { realm: realm[EntityMetaKey.Id].realm },
 										fieldName: '$$proposalKinds',
 									}}
-									href={resolve(
-										`/proposals/${proposalRealmById[realmRow[EntityMetaKey.Id].realm].slug}`,
-									)}
-									id={realmPanelDomId(realmRow)}
+									id={realmPanelDomId(realm)}
 									open
-									title={proposalRealmById[realmRow[EntityMetaKey.Id].realm].label}
+									title={realm.label ?? String(realm[EntityMetaKey.Id].realm)}
 								/>
 							</section>
 						{/each}
@@ -301,32 +291,29 @@
 							open: _markersOpen,
 						})}
 							{#each rows as row (proposalRealmKey(row))}
-								{@const realmRow = row.result}
+								{@const realm = row.result}
 								<a
-									data-scroll-marker-label={proposalRealmById[realmRow[EntityMetaKey.Id].realm].label}
-									href={`#${realmPanelDomId(realmRow)}`}
-								>{proposalRealmById[realmRow[EntityMetaKey.Id].realm].label}</a>
+									data-scroll-marker-label={realm.label ?? String(realm[EntityMetaKey.Id].realm)}
+									href={`#${realmPanelDomId(realm)}`}
+								>{realm.label ?? String(realm[EntityMetaKey.Id].realm)}</a>
 							{/each}
 						{/snippet}
 
 						{#snippet body({ open: _sectionOpen,
 						})}
 							{#each rows as row (proposalRealmKey(row))}
-								{@const realmRow = row.result}
-								<section data-scroll-marker-label={proposalRealmById[realmRow[EntityMetaKey.Id].realm].label}>
+								{@const realm = row.result}
+								<section data-scroll-marker-label={realm.label ?? String(realm[EntityMetaKey.Id].realm)}>
 									<ProposalKindsView
 										collapsible={false}
 										entityFieldReference={{
 											entityType: EntityType.ProposalRealm,
-											entityId: { realm: realmRow[EntityMetaKey.Id].realm },
+											entityId: { realm: realm[EntityMetaKey.Id].realm },
 											fieldName: '$$proposalKinds',
 										}}
-										href={resolve(
-											`/proposals/${proposalRealmById[realmRow[EntityMetaKey.Id].realm].slug}`,
-										)}
-										id={realmPanelDomId(realmRow)}
+										id={realmPanelDomId(realm)}
 										open
-										title={proposalRealmById[realmRow[EntityMetaKey.Id].realm].label}
+										title={realm.label ?? String(realm[EntityMetaKey.Id].realm)}
 									/>
 								</section>
 							{/each}
@@ -373,11 +360,11 @@
 									data-row-item="flexible"
 								>
 									{#each rows as row (proposalRealmKey(row))}
-										{@const realmRow = row.result}
+										{@const realm = row.result}
 										<a
-											data-scroll-marker-label={proposalRealmById[realmRow[EntityMetaKey.Id].realm].label}
-											href={`#${realmPanelDomId(realmRow)}`}
-										>{proposalRealmById[realmRow[EntityMetaKey.Id].realm].label}</a>
+											data-scroll-marker-label={realm.label ?? String(realm[EntityMetaKey.Id].realm)}
+											href={`#${realmPanelDomId(realm)}`}
+										>{realm.label ?? String(realm[EntityMetaKey.Id].realm)}</a>
 									{/each}
 								</div>
 
@@ -394,21 +381,18 @@
 						>
 							<div {...standaloneRealmPanelsProps}>
 								{#each rows as row (proposalRealmKey(row))}
-									{@const realmRow = row.result}
-									<section data-scroll-marker-label={proposalRealmById[realmRow[EntityMetaKey.Id].realm].label}>
+									{@const realm = row.result}
+									<section data-scroll-marker-label={realm.label ?? String(realm[EntityMetaKey.Id].realm)}>
 										<ProposalKindsView
 											collapsible={false}
 											entityFieldReference={{
 												entityType: EntityType.ProposalRealm,
-												entityId: { realm: realmRow[EntityMetaKey.Id].realm },
+												entityId: { realm: realm[EntityMetaKey.Id].realm },
 												fieldName: '$$proposalKinds',
 											}}
-											href={resolve(
-												`/proposals/${proposalRealmById[realmRow[EntityMetaKey.Id].realm].slug}`,
-											)}
-											id={realmPanelDomId(realmRow)}
+											id={realmPanelDomId(realm)}
 											open
-											title={proposalRealmById[realmRow[EntityMetaKey.Id].realm].label}
+											title={realm.label ?? String(realm[EntityMetaKey.Id].realm)}
 										/>
 									</section>
 								{/each}

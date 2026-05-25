@@ -1,8 +1,10 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
-
-	import { EntityType } from '$/schema/$EntityType.ts'
 
 
 	// Props
@@ -19,14 +21,12 @@
 
 <Page>
 	<RssItemsView
+		href={resolve('/rss/items')}
 		entityFieldReference={{
 			entityType: EntityType.RssFeed,
 			entityId: data.entityId,
 			fieldName: '$$items',
 		}}
-		href={resolve('/(social)/(rss)/rss/feed/[feedKey]/(feed)/items', {
-			feedKey: encodeURIComponent(data.entityId.feedUrl),
-		})}
 		id="rss-feed-items"
 	/>
 </Page>

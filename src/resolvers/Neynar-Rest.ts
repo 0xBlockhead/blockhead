@@ -11,6 +11,7 @@ import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import type { CastHash } from '$/schema/FarcasterCast.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+import type { Entity } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -28,9 +29,6 @@ const zeroXLowerHexCastHash = (hash: string): CastHash => {
 	return `0x${hex.toLowerCase()}`
 }
 
-type NeynarCastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
-type NeynarUserEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterUser>
-type NeynarChannelEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterChannel>
 const neynarPfpHttpUrl = (
 	value: string | null | undefined,
 	options?: { pageBaseUrl?: string },
@@ -46,7 +44,7 @@ const neynarPfpHttpUrl = (
 }
 
 const optionalTrimmedString = (value: string | undefined | null) => (
-	value?.trim() ? value.trim() : undefined
+	value?.trim() || undefined
 )
 
 export default {
@@ -159,6 +157,12 @@ export default {
 				}
 				const castId: EntityIdCast = entityId
 				const timestamp = Date.parse(cast.timestamp ?? '')
+				if (cast.author?.fid == null) {
+					throw new Error('Neynar_Rest: cast missing author fid')
+				}
+				if (!Number.isFinite(timestamp)) {
+					throw new Error('Neynar_Rest: cast missing timestamp')
+				}
 				const mentionFids = (
 					(cast.mentioned_profiles ?? [])
 						.map((u) => u?.fid)
@@ -171,21 +175,17 @@ export default {
 				)
 				const channelId = optionalTrimmedString(cast.channel?.id)
 				return {
-					$author: (
-						cast.author?.fid == null ?
-							undefined
-						:	({
-								[EntityMetaKey.Id]: { fid: cast.author.fid },
-							} satisfies NeynarUserEntity)
-					),
+					$author: {
+						[EntityMetaKey.Id]: { fid: cast.author.fid },
+					} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
 					$postedViaApp: (
 						cast.app?.fid == null ?
 							undefined
 						:	({
 								[EntityMetaKey.Id]: { fid: cast.app.fid },
-							} satisfies NeynarUserEntity)
+							} satisfies Entity<typeof schema, EntityType.FarcasterUser>)
 					),
-					text: optionalTrimmedString(cast.text),
+					text: optionalTrimmedString(cast.text) ?? '',
 					$parentCast: (
 						cast.parent_author?.fid == null
 						|| cast.parent_hash == null
@@ -196,10 +196,10 @@ export default {
 									fid: cast.parent_author.fid,
 									hash: zeroXLowerHexCastHash(String(cast.parent_hash)),
 								},
-							} satisfies NeynarCastEntity
+							} satisfies Entity<typeof schema, EntityType.FarcasterCast>
 					),
 					parentUrl: optionalTrimmedString(cast.parent_url ?? cast.root_parent_url),
-					timestamp: Number.isFinite(timestamp) ? timestamp : undefined,
+					timestamp,
 					mentions: cast.mentions,
 					mentionedProfileFids: mentionFids.length > 0 ? mentionFids : undefined,
 					mentionedChannelIds: mentionChIds.length > 0 ? mentionChIds : undefined,
@@ -219,14 +219,14 @@ export default {
 											fid: embed.cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(embed.cast.hash)),
 										},
-									} satisfies NeynarCastEntity
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>
 								: embed.cast_id?.fid != null && embed.cast_id.hash != null ?
 									{
 										[EntityMetaKey.Id]: {
 											fid: embed.cast_id.fid,
 											hash: zeroXLowerHexCastHash(String(embed.cast_id.hash)),
 										},
-									} satisfies NeynarCastEntity
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>
 								:	undefined
 							),
 							title: optionalTrimmedString(embed.metadata?.html?.ogTitle),
@@ -253,7 +253,7 @@ export default {
 							[EntityMetaKey.Id]: {
 								id: channelId,
 							},
-						} satisfies NeynarChannelEntity
+						} satisfies Entity<typeof schema, EntityType.FarcasterChannel>
 					),
 				} satisfies Partial<FieldValuesCast>
 			},
@@ -290,7 +290,7 @@ export default {
 											fid: cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(cast.hash)),
 										},
-									} satisfies NeynarCastEntity]
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
 							))
 					)
 				}
@@ -317,7 +317,7 @@ export default {
 											fid: cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(cast.hash)),
 										},
-									} satisfies NeynarCastEntity]
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
 							))
 					)
 				}
@@ -344,7 +344,7 @@ export default {
 											fid: cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(cast.hash)),
 										},
-									} satisfies NeynarCastEntity]
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
 							))
 					)
 				}
@@ -370,7 +370,7 @@ export default {
 											fid: cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(cast.hash)),
 										},
-									} satisfies NeynarCastEntity]
+									} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
 							))
 					)
 				}
@@ -407,7 +407,7 @@ export default {
 										fid: cast.author.fid,
 										hash: zeroXLowerHexCastHash(String(cast.hash)),
 									},
-								} satisfies NeynarCastEntity]
+								} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
 						))
 				)
 			},
@@ -442,7 +442,7 @@ export default {
 										fid: cast.author.fid,
 										hash: zeroXLowerHexCastHash(String(cast.hash)),
 									},
-								} satisfies NeynarCastEntity]
+								} satisfies Entity<typeof schema, EntityType.FarcasterCast>]
 						))
 				)
 			},
@@ -450,6 +450,10 @@ export default {
 
 	],
 }
+
+
+
+
 
 
 

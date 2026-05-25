@@ -5,7 +5,7 @@
  */
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-export type BskyAppViewProfileWire = {
+export type BskyAppViewProfile = {
 	did?: string
 	handle?: string
 	displayName?: string
@@ -18,52 +18,76 @@ export type BskyAppViewProfileWire = {
 	indexedAt?: string
 }
 
-export type BskyAppViewPostViewWire = {
+export type BskyAppViewPostRecord = {
+	$type?: string
+	text?: string
+	createdAt?: string
+	langs?: string[]
+	labels?: {
+		values?: {
+			val?: string
+		}[]
+	}
+	reply?: {
+		parent?: { uri?: string, cid?: string }
+		root?: { uri?: string, cid?: string }
+	}
+}
+
+export type BskyAppViewPostView = {
 	uri?: string
+	cid?: string
 	indexedAt?: string
 	likeCount?: number
 	repostCount?: number
 	replyCount?: number
+	quoteCount?: number
+	bookmarkCount?: number
 	author?: {
 		did?: string
 		handle?: string
 	}
-	record?: {
-		$type?: string
-		text?: string
-		createdAt?: string
-		reply?: {
-			parent?: { uri?: string, cid?: string }
-			root?: { uri?: string, cid?: string }
-		}
-	}
+	record?: BskyAppViewPostRecord
 }
 
-export type BskyAppViewGetPostsResponseWire = {
-	posts?: BskyAppViewPostViewWire[]
+export type BskyAppViewGetPostsResponse = {
+	posts?: BskyAppViewPostView[]
 }
 
-export type BskyAppViewGetAuthorFeedResponseWire = {
+export type BskyAppViewGetAuthorFeedResponse = {
 	feed?: {
-		post: BskyAppViewPostViewWire
+		post: BskyAppViewPostView
 		reply?: JsonValue
+		reason?: {
+			$type?: string
+		}
 	}[]
 	cursor?: string
 }
 
-export type BskyAppViewThreadViewPostWire = {
+export type BskyAppViewThreadViewPost = {
 	$type?: string
-	post?: BskyAppViewPostViewWire
-	parent?: BskyAppViewThreadNodeWire
-	replies?: BskyAppViewThreadNodeWire[]
+	post?: BskyAppViewPostView
+	parent?: BskyAppViewThreadNode
+	replies?: BskyAppViewThreadNode[]
 }
 
-export type BskyAppViewThreadNodeWire = BskyAppViewThreadViewPostWire & {
+export type BskyAppViewThreadNode = BskyAppViewThreadViewPost & {
 	uri?: string
 	notFound?: boolean
 	blocked?: boolean
 }
 
-export type BskyAppViewGetPostThreadResponseWire = {
-	thread?: BskyAppViewThreadNodeWire
+export type BskyAppViewGetPostThreadResponse = {
+	thread?: BskyAppViewThreadNode
+}
+
+export type BskyAppViewSearchActorsTypeaheadResponse = {
+	actors?: {
+		did?: string
+	}[]
+}
+
+export type BskyAppViewSearchPostsResponse = {
+	posts?: BskyAppViewPostView[]
 }

@@ -127,14 +127,12 @@ export default {
 				Source.Allium_Rest,
 			],
 		},
+		// ERC-20 Approval allowance rows (owner × token × spender). No list indexer wired yet—Blockscout token transfers omit Approval events; Voltaire resolves scalar allowance when the id is known.
 		{
 			name: '$$erc20TokenAllowances',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.ActorCoinAllowance,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
-			defaultSources: [
-				Source.Blockscout_Rest,
-			],
 		},
 		{
 			name: 'contractPositions',

@@ -2,6 +2,7 @@
 	// Context
 	import { resolve } from '$app/paths'
 
+
 	// Props
 	let {
 		params,
@@ -16,6 +17,5 @@
 <Page>
 	<BlockheadSourceView
 		sourceId={params.sourceId}
-		href={resolve('/~/(manage)/manage/(sources)/source/[sourceId]', params)}
 	/>
 </Page>

@@ -1,5 +1,7 @@
 <script lang="ts">
+	// Types/constants
 	import type { PageProps } from './$types.ts'
+
 
 	// Context
 	import { resolve } from '$app/paths'
@@ -18,8 +20,5 @@
 <Page>
 	<NostrRepostView
 		entityId={data.entityId}
-		href={resolve('/(social)/(nostr)/nostr/repost/[eventId]', {
-			eventId: data.entityId.eventId,
-		})}
 	/>
 </Page>

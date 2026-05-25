@@ -5,7 +5,7 @@ export type CoinpaprikaCoin = components['schemas']['coin_extended']
 export type CoinpaprikaTicker = components['schemas']['tick']
 
 /** `components.schemas.coins_ohlcv` — today, latest, and historical OHLCV. */
-export type CoinpaprikaOhlcvRow = components['schemas']['coins_ohlcv']
+export type CoinpaprikaOhlcv = components['schemas']['coins_ohlcv']
 
 /** `GET /coins/{coin_id}/markets` row. */
 export type CoinpaprikaMarket = components['schemas']['market']

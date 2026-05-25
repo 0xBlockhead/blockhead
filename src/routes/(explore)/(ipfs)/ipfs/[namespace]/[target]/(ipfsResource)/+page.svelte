@@ -1,10 +1,5 @@
 <script lang="ts">
-	// Functions
-	import { ipfsResourceAddressFromRouteParams, ipfsResourceHref } from '$/lib/ipfs.ts'
-
-
 	// Props
-
 	let {
 		params,
 	} = $props()
@@ -23,6 +18,10 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import IpfsResourceView from '$/views/IpfsResourceView.svelte'
+
+
+	// State
+	import { ipfsResourceAddressFromRouteParams, ipfsResourceHref } from '$/lib/ipfs.ts'
 </script>
 
 
@@ -30,7 +29,6 @@
 	<Page>
 		<IpfsResourceView
 			{entityId}
-			href={ipfsResourceHref(entityId)}
 			open
 		/>
 	</Page>

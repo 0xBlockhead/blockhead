@@ -11,9 +11,8 @@
 
 	// Props
 	let {
-		children: _children,
 		entityId,
-		href,
+		href = getEvmSelectorPath(entityId.hex),
 		layout = EntityLayout.SummaryDetails,
 		summaryUsesHeading = (
 			layout === EntityLayout.SummaryDetails
@@ -23,36 +22,25 @@
 			layout === EntityLayout.SummaryDetails,
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmSelector>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			summaryUsesHeading?: boolean
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
-	const selectorIdKey = $derived(
-		stringify(entityId),
-	)
-
 
 	// State
+	import { getEvmSelectorPath } from '$/lib/signature-paths.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const selector = useEntity(
 		EntityType.EvmSelector,
@@ -79,16 +67,15 @@
 <EntityView
 	entityType={EntityType.EvmSelector}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
-	{summaryUsesHeading}
 	bind:open
 	{collapsible}
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
-			{entityId.selector}
+			{entityId.hex}
 		</span>
 	{/snippet}
 
@@ -97,9 +84,9 @@
 			resource={selector}
 			placeholderText="Loading decoded function selector…"
 		>
-			{#snippet children(selector)}
-				{#if selector.signatures?.[0]}
-					{selector.signatures[0]}
+			{#snippet children(loadedSelector)}
+				{#if loadedSelector.signatures?.[0]}
+					{loadedSelector.signatures[0]}
 				{:else}
 					{@render Value()}
 				{/if}
@@ -112,8 +99,8 @@
 			resource={selector}
 			placeholderText="Loading decoded function selector…"
 		>
-			{#snippet children(selector)}
-				{selector.signatures?.[0] ?? entityId.hex}
+			{#snippet children(loadedSelector)}
+				{loadedSelector.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -153,15 +140,15 @@
 								resource={selector}
 								placeholderText="Loading decoded calldata prefixes…"
 							>
-								{#snippet children(selector)}
-									{#if selector.signatures?.length}
+								{#snippet children(loadedSelector)}
+									{#if loadedSelector.signatures?.length}
 										<ul>
-											{#each selector.signatures as sig (sig)}
+											{#each loadedSelector.signatures as sig (sig)}
 												<li><code>{sig}</code></li>
 											{/each}
 										</ul>
 									{:else}
-										<p data-text="muted">No ABI signatures matched this function selector.</p>
+										<p data-text="muted">No ABI signatures matched this function loadedSelector.</p>
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
@@ -172,16 +159,10 @@
 		</div>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.EvmSelector}
 			{entityId}
 		/>
-
-		{#if _children}
-			<section id={`${selectorIdKey}:page-content`}>
-				{@render _children()}
-			</section>
-		{/if}
 	{/snippet}
 </EntityView>

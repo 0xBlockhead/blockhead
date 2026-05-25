@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -9,6 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { SvelteSet } from 'svelte/reactivity'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -17,16 +18,16 @@
 		title = 'Bridges',
 		open = $bindable(true),
 		collapsible = true,
-		...entitiesListProps
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.NetworkBridge>
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
@@ -34,7 +35,6 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Components
@@ -49,7 +49,7 @@
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListProps}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -66,7 +66,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -106,7 +106,6 @@
 				open={true}
 				getKey={(envelope) => envelope.value[EntityMetaKey.Id].url}
 				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].url}
-				placeholderKeys={new SvelteSet()}
 				resource={bridges}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
@@ -117,14 +116,11 @@
 				{/snippet}
 
 				{#snippet Item({ item: envelope })}
-					{#if envelope}
-						<NetworkBridgeView
-							entityId={envelope.value[EntityMetaKey.Id]}
-							href={envelope.value[EntityMetaKey.Id].url}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+					<NetworkBridgeView
+						entityId={envelope.value[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

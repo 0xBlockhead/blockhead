@@ -1,12 +1,14 @@
 <script lang="ts">
+	// Types/constants
+	import type { Snippet } from 'svelte'
+	import type { NavigationItem } from '$/routes/NavigationItem.ts'
+
+
 	// Context
 	import { page } from '$app/state'
 
 
 	// Props
-	import type { Snippet } from 'svelte'
-	import type { NavigationItem } from '$/routes/NavigationItem.ts'
-
 	let {
 		navigationItems,
 		HeaderActions,

@@ -5,6 +5,10 @@ import {
 	assertEntityResolverResult,
 	assertLoadedValue,
 } from '$/collections/assertLoadedCollectionRows.ts'
+import {
+	assertLoadedResolverProbeCategories,
+	isExpectedAssertLoadedResolverProbeFailure,
+} from '$/routes/api/e2e/assert-loaded-resolvers/_fixtures.ts'
 import type { AssertLoadedResolverProbeResult } from '$/routes/api/e2e/assert-loaded-resolvers/_runProbes.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -95,14 +99,26 @@ test.describe('assertLoaded verification', () => {
 
 		for (const c of cases) {
 			expect(typeof c.key === 'string' && c.key.length > 0).toBe(true)
+			expect(assertLoadedResolverProbeCategories.includes(c.category)).toBe(true)
 			expect(c.resolveRejected === true || c.resolveRejected === false).toBe(true)
 			expect(c.assertThrew === true || c.assertThrew === false).toBe(true)
+			if (c.resolveRejected) {
+				expect(typeof c.resolveError === 'string' && c.resolveError.length > 0).toBe(true)
+			}
 			if (c.assertThrew) {
 				expect(typeof c.assertError === 'string' && c.assertError.length > 0).toBe(true)
 			}
 		}
 
-		const failedAfterResolve = cases.filter((c) => !c.resolveRejected && c.assertThrew)
+		const failedAfterResolve = cases.filter((c) => (
+			!c.resolveRejected
+			&& c.assertThrew
+			&& !isExpectedAssertLoadedResolverProbeFailure(c)
+		))
 		expect(body.fulfilledButAssertFailed).toEqual(failedAfterResolve)
+
+		for (const category of assertLoadedResolverProbeCategories) {
+			expect(body.categorySummary[category]).toBeDefined()
+		}
 	})
 })

@@ -1,4 +1,4 @@
-export type ParsedRssFeedItemWire = {
+export type ParsedRssFeedItem = {
 	guid: string
 	title?: string
 	link?: string
@@ -6,14 +6,19 @@ export type ParsedRssFeedItemWire = {
 	content?: string
 	author?: string
 	publishedAt?: number
+	updatedAt?: number
+	categories?: string[]
+	enclosureUrl?: string
+	commentsUrl?: string
 }
 
-export type ParsedRssFeedWire = {
+export type ParsedRssFeed = {
 	title?: string
 	description?: string
 	link?: string
 	siteUrl?: string
 	language?: string
 	lastBuildDate?: number
-	items: ParsedRssFeedItemWire[]
+	imageUrl?: string
+	items: ParsedRssFeedItem[]
 }

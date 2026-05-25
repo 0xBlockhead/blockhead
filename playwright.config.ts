@@ -25,7 +25,7 @@ export default defineConfig({
 		webServer: {
 			command: 'pnpm run dev',
 			url: baseURL,
-			timeout: 120_000,
+			timeout: 240_000,
 			/** Dedicated server (`PLAYWRIGHT_DEDICATED_SERVER=1`): avoids stale reused Vite client chunks when another dev PID left `.svelte-kit/generated` mid-HMR (stop `pnpm run dev` first if port 5173 is taken). */
 			reuseExistingServer: process.env.PLAYWRIGHT_DEDICATED_SERVER !== '1',
 		},

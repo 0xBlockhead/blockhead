@@ -7,7 +7,6 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { stringify } from 'devalue'
 
 
@@ -19,28 +18,24 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve('/nostr/note/[eventId]', {
+			eventId: entityId.eventId,
+		}),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.NostrNote>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Content'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -59,6 +54,7 @@
 			content: {},
 			createdAt: {},
 			replyToEventId: {},
+			rootEventId: {},
 			$replyToNote: {},
 			$author: {},
 			...(open ?
@@ -100,9 +96,9 @@
 <EntityView
 	entityType={EntityType.NostrNote}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
@@ -116,13 +112,13 @@
 			resource={note}
 			placeholderText="Loading note…"
 		>
-			{#snippet children(note)}
-				{#if note.content}
+			{#snippet children(loadedNote)}
+				{#if loadedNote.content}
 					<TruncatedValue
 						endLength={8}
 						format={TruncatedValueFormat.Visual}
 						startLength={88}
-						value={note.content}
+						value={loadedNote.content}
 					/>
 				{:else}
 					<TruncatedValue
@@ -146,13 +142,12 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary
 			resource={note}
-			placeholderText=""
 		>
-			{#snippet children(note)}
-				{#if note.createdAt}
+			{#snippet children(loadedNote)}
+				{#if loadedNote.createdAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={note.createdAt}
+							timestamp={loadedNote.createdAt}
 						/>
 					</span>
 				{/if}
@@ -162,103 +157,113 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			{#if open}
-				{#if note.content}
-					<div>
-						<dt>Content</dt>
-						<dd>
-							<ResourceBoundary
-								resource={note}
-								placeholderText="Loading note…"
-							>
-								{#snippet children(note)}
-									{note.content}
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+			{#if (
+				open
+				&& note.$author
+			)}
+				<div>
+					<dt>Author</dt>
+					<dd>
+						<ResourceBoundary
+							resource={note}
+							placeholderText="Loading note…"
+						>
+							{#snippet children(loadedNote)}
+								<NostrProfileView
+									entityId={loadedNote.$author[EntityMetaKey.Id]}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if note.$author}
-					<div>
-						<dt>Author</dt>
-						<dd>
-							<ResourceBoundary
-								resource={note}
-								placeholderText="Loading note…"
-							>
-								{#snippet children(note)}
-									<NostrProfileView
-										entityId={note.$author[EntityMetaKey.Id]}
-										href={resolve('/nostr/profile/[pubkey]', {
-											pubkey: note.$author[EntityMetaKey.Id].pubkey,
-											})}
-										layout={EntityLayout.Value}
-										open={false}
-										showTypeAnnotation={false}
+			{#if (
+				open
+				&& note.$replyToNote
+			)}
+				<div>
+					<dt>Reply to</dt>
+					<dd>
+						<ResourceBoundary
+							resource={note}
+							placeholderText="Loading note…"
+						>
+							{#snippet children(loadedNote)}
+								<NostrNoteView
+									entityId={loadedNote.$replyToNote[EntityMetaKey.Id]}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{:else if (
+				open
+				&& note.replyToEventId
+			)}
+				<div>
+					<dt>Reply to</dt>
+					<dd>
+						<ResourceBoundary
+							resource={note}
+							placeholderText="Loading note…"
+						>
+							{#snippet children(loadedNote)}
+								<a
+									data-link
+									href={resolve('/nostr/note/[eventId]', {
+										eventId: loadedNote.replyToEventId,
+										})}
+								>
+									<TruncatedValue
+										endLength={12}
+										format={TruncatedValueFormat.Visual}
+										startLength={20}
+										value={loadedNote.replyToEventId}
 									/>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+								</a>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 
-			{#if open}
-				{#if note.$replyToNote}
-					<div>
-						<dt>Reply to</dt>
-						<dd>
-							<ResourceBoundary
-								resource={note}
-								placeholderText="Loading note…"
-							>
-								{#snippet children(note)}
-									<NostrNoteView
-										entityId={note.$replyToNote[EntityMetaKey.Id]}
-										href={resolve('/nostr/note/[eventId]', {
-											eventId: note.$replyToNote[EntityMetaKey.Id].eventId,
-											})}
-										layout={EntityLayout.Value}
-										open={false}
-										showTypeAnnotation={false}
+			{#if (
+				open
+				&& note.rootEventId && note.rootEventId !== loadedNote.replyToEventId
+			)}
+				<div>
+					<dt>Thread root</dt>
+					<dd>
+						<ResourceBoundary
+							resource={note}
+							placeholderText="Loading note…"
+						>
+							{#snippet children(loadedNote)}
+								<a
+									data-link
+									href={resolve('/nostr/note/[eventId]', {
+										eventId: loadedNote.rootEventId,
+									})}
+								>
+									<TruncatedValue
+										endLength={12}
+										format={TruncatedValueFormat.Visual}
+										startLength={20}
+										value={loadedNote.rootEventId}
 									/>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{:else if note.replyToEventId}
-					<div>
-						<dt>Reply to</dt>
-						<dd>
-							<ResourceBoundary
-								resource={note}
-								placeholderText="Loading note…"
-							>
-								{#snippet children(note)}
-									<a
-										data-link
-										href={resolve('/nostr/note/[eventId]', {
-											eventId: note.replyToEventId,
-											})}
-									>
-										<TruncatedValue
-											endLength={12}
-											format={TruncatedValueFormat.Visual}
-											startLength={20}
-											value={note.replyToEventId}
-										/>
-									</a>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
+								</a>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 		</dl>
-{/snippet}
+	{/snippet}
 
 	{#snippet Details({
 		open: _open,
@@ -268,7 +273,6 @@
 			entityType={EntityType.NostrNote}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -312,9 +316,9 @@
 							resource={note}
 							placeholderText="Loading note…"
 						>
-							{#snippet children(note)}
-								{#if note.content}
-									<p>{note.content}</p>
+							{#snippet children(loadedNote)}
+								{#if loadedNote.content}
+									<p>{loadedNote.content}</p>
 								{:else}
 									<div data-row="wrap align-center gap-2">
 										<p data-text="muted">
@@ -339,15 +343,16 @@
 
 					<section data-scroll-marker-label="Reply thread">
 						<NostrNotesView
+							href={resolve(
+			'/(social)/(nostr)/nostr/note/[eventId]/(note)/replies',
+			{ eventId: entityId.eventId },
+		)}
 							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.NostrNote,
 								entityId,
 								fieldName: '$$replies',
 							}}
-							href={resolve('/nostr/note/[eventId]/replies', {
-								eventId: entityId.eventId,
-							})}
 							id={`${idKey}:replies`}
 							open={_sectionOpen}
 							title="Reply thread"
@@ -356,13 +361,13 @@
 
 					<section data-scroll-marker-label="Reactions">
 						<NostrReactionsView
+							href={resolve('/nostr/reactions')}
 							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.NostrNote,
 								entityId,
 								fieldName: '$$reactions',
 							}}
-							href={`${resolve('/nostr/reactions')}?note=${entityId.eventId}`}
 							id={`${idKey}:reactions`}
 							open={_sectionOpen}
 						/>
@@ -372,4 +377,5 @@
 		</div>
 	{/snippet}
 </EntityView>
+
 

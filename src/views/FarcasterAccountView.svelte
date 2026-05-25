@@ -6,42 +6,36 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { blockheadFarcasterConnectionAuthMethods } from '$/constants/Blockhead.ts'
 	import { Source } from '$/sources/$Source.ts'
+
+
+	// Context
+	import { resolve } from '$app/paths'
 
 
 	// Props
 	let {
-		children: _children,
 		entityId,
-		href,
+		href = resolve(
+			'/(social)/(farcaster)/farcaster/(accounts)/account/[accountId]',
+			{ accountId: String(entityId.fid) },
+		),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.BlockheadFarcasterAccountConnection>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
-			| 'HeadingAfter'
-			| 'Content'
-		>
+		never
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const connection = useEntity(
 		EntityType.BlockheadFarcasterAccountConnection,
@@ -81,21 +75,20 @@
 <EntityView
 	entityType={EntityType.BlockheadFarcasterAccountConnection}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={connection}
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
-			{#snippet children(connection)}
-				{#if connection.$icon?.[EntityMetaKey.Id].url}
+			{#snippet children(loadedConnection)}
+				{#if loadedConnection.$icon?.[EntityMetaKey.Id].url}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={connection.$icon[EntityMetaKey.Id].url}
+						src={loadedConnection.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -108,8 +101,8 @@
 			resource={connection}
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
-			{#snippet children(connection)}
-				{connection.displayName ?? connection.username ?? String(entityId.fid)}
+			{#snippet children(loadedConnection)}
+				{loadedConnection.displayName ?? loadedConnection.username ?? String(entityId.fid)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -119,15 +112,15 @@
 			resource={connection}
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
-			{#snippet children(connection)}
+			{#snippet children(loadedConnection)}
 				{#if (
 					connection.username !== undefined
 					&& connection.username !== (
-						connection.displayName ?? connection.username ?? String(entityId.fid)
+						connection.displayName ?? loadedConnection.username ?? String(entityId.fid)
 					)
 				)}
 					<span data-text="muted">
-						@{connection.username}
+						@{loadedConnection.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -144,109 +137,90 @@
 		{@render Value()}
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Blockhead-linked Farcaster account: custody or auth-address connection stored for this browser session.
+		</p>
+		<p>
+			Verification rows are wallet proofs—not the same as a public hub profile cache alone.
+		</p>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={connection}
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
-			{#snippet children(connection)}
+			{#snippet children(loadedConnection)}
 				<dl data-column-item="center">
-					{#if open}
-						{#if connection.username}
-							<div>
-								<dt>fname</dt>
-								<dd>@{connection.username}</dd>
-							</div>
-						{/if}
-					{/if}
-
-					{#if connection.bio}
+					{#if (
+						open
+						&& connection.username
+					)}
 						<div>
-							<dt>Bio</dt>
-							<dd>{connection.bio}</dd>
+							<dt>fname</dt>
+							<dd>@{loadedConnection.username}</dd>
 						</div>
 					{/if}
 
-					{#if open}
-						{#if connection.authMethod}
-							<div>
-								<dt>Auth routing</dt>
-								<dd>{connection.authMethod}</dd>
-							</div>
-						{/if}
+					{#if loadedConnection.bio}
+						<div>
+							<dt>Bio</dt>
+							<dd>{loadedConnection.bio}</dd>
+						</div>
 					{/if}
 
-					{#if open}
-						{#if connection.custody}
-							<div>
-								<dt>Farcaster custody address</dt>
-								<dd>{connection.custody}</dd>
-							</div>
-						{/if}
+					{#if (
+						open
+						&& connection.authMethod
+					)}
+						<div>
+							<dt>Auth routing</dt>
+							<dd>
+								{blockheadFarcasterConnectionAuthMethods[loadedConnection.authMethod].label}
+							</dd>
+						</div>
 					{/if}
 
-					{#if open}
-						{#if connection.verifications}
-							{#if connection.verifications.length}
-								<div>
-									<dt>Verified signer addresses</dt>
-									<dd>{connection.verifications.join(', ')}</dd>
-								</div>
-							{/if}
-						{/if}
+					{#if (
+						open
+						&& connection.custody
+					)}
+						<div>
+							<dt>Farcaster custody address</dt>
+							<dd>{loadedConnection.custody}</dd>
+						</div>
 					{/if}
 
-					{#if open}
-						{#if connection.signedAt !== undefined}
-							<div>
-								<dt>Signed at</dt>
-								<dd>{new Date(connection.signedAt).toISOString()}</dd>
-							</div>
-						{/if}
+					{#if (
+						open
+						&& connection.verifications
+						&& connection.verifications.length
+					)}
+						<div>
+							<dt>Verified signer addresses</dt>
+							<dd>{loadedConnection.verifications.join(', ')}</dd>
+						</div>
+					{/if}
+
+					{#if (
+						open
+						&& connection.signedAt !== undefined
+					)}
+						<div>
+							<dt>Signed at</dt>
+							<dd>{new Date(connection.signedAt).toISOString()}</dd>
+						</div>
 					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.BlockheadFarcasterAccountConnection}
 			{entityId}
 		/>
-
-		{#if _children}
-			<div
-				class="entity-view-detail-carousels"
-				data-column="gap-3"
-			>
-				<CollapsibleTabs
-					id={`farcaster-account:${String(entityId.fid)}:carousel-more`}
-					{...{ 'data-card': '' }}
-					scrollContainerProps={{
-						'data-row': 'start align-start',
-					}}
-				>
-					{#snippet Summary({ open: _isOpen })}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<Heading>Page</Heading>
-						</header>
-					{/snippet}
-
-					{#snippet Markers(_context)}
-						<a
-							data-scroll-marker-label="Route"
-							href={`#farcaster-account:${String(entityId.fid)}:page-content`}
-						>Route</a>
-					{/snippet}
-
-					{#snippet body(_ctx)}
-						<section id={`farcaster-account:${String(entityId.fid)}:page-content`}>
-							{@render _children()}
-						</section>
-					{/snippet}
-				</CollapsibleTabs>
-			</div>
-		{/if}
 	{/snippet}
 </EntityView>

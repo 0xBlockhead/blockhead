@@ -18,6 +18,5 @@
 <Page>
 	<NetworkView
 		entityId={{ chainId: Number(params.networkId) }}
-		href={resolve('/(explore)/(networks)/network/[networkId]', params)}
 	/>
 </Page>

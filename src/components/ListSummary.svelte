@@ -1,7 +1,9 @@
 <script lang="ts">
-	// Props
+	// Types/constants
 	import type { Snippet } from 'svelte'
 
+
+	// Props
 	let {
 		summary,
 		title = '',

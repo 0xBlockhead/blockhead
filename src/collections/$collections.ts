@@ -472,13 +472,25 @@ type BlockheadPersistenceProbeEvent = (
 )
 
 const PERSISTENCE_PROBE_STORAGE_KEY = '__blockheadPersistenceProbe'
+const PERSISTENCE_PROBE_MAX_EVENTS = 256
+
+const trimPersistenceProbeEvents = (
+	events: BlockheadPersistenceProbeEvent[],
+): BlockheadPersistenceProbeEvent[] => (
+	events.length > PERSISTENCE_PROBE_MAX_EVENTS ?
+		events.slice(-PERSISTENCE_PROBE_MAX_EVENTS)
+	:
+		events
+)
 
 const readPersistenceProbeFromStorage = (): BlockheadPersistenceProbeEvent[] => {
 	if (typeof sessionStorage === 'undefined') return []
 	const stored = sessionStorage.getItem(PERSISTENCE_PROBE_STORAGE_KEY)
 	if (stored == null || stored === '') return []
 	try {
-		return JSON.parse(stored) as BlockheadPersistenceProbeEvent[]
+		return trimPersistenceProbeEvents(
+			JSON.parse(stored) as BlockheadPersistenceProbeEvent[],
+		)
 	} catch {
 		return []
 	}
@@ -488,7 +500,20 @@ const writePersistenceProbeToStorage = (
 	events: BlockheadPersistenceProbeEvent[],
 ) => {
 	if (typeof sessionStorage === 'undefined') return
-	sessionStorage.setItem(PERSISTENCE_PROBE_STORAGE_KEY, JSON.stringify(events))
+	const trimmed = trimPersistenceProbeEvents(events)
+	try {
+		sessionStorage.setItem(PERSISTENCE_PROBE_STORAGE_KEY, JSON.stringify(trimmed))
+	} catch {
+		try {
+			sessionStorage.removeItem(PERSISTENCE_PROBE_STORAGE_KEY)
+			sessionStorage.setItem(
+				PERSISTENCE_PROBE_STORAGE_KEY,
+				JSON.stringify(trimmed.slice(-32)),
+			)
+		} catch {
+			// Quota full — keep in-memory probe only; must not break loadSubset.
+		}
+	}
 }
 
 const pushPersistenceProbeEvent = (
@@ -498,11 +523,13 @@ const pushPersistenceProbeEvent = (
 	const windowWithProbe = window as typeof window & {
 		__blockheadPersistenceProbe?: BlockheadPersistenceProbeEvent[]
 	}
-	const probe = (
-		windowWithProbe.__blockheadPersistenceProbe
-		?? readPersistenceProbeFromStorage()
-	)
-	probe.push(event)
+	const probe = trimPersistenceProbeEvents([
+		...(
+			windowWithProbe.__blockheadPersistenceProbe
+			?? readPersistenceProbeFromStorage()
+		),
+		event,
+	])
 	windowWithProbe.__blockheadPersistenceProbe = probe
 	writePersistenceProbeToStorage(probe)
 }

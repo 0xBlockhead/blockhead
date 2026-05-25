@@ -3,13 +3,13 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
-
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
 	import { schema } from '$/schema/index.ts'
+	import { coinInstanceRepresentations } from '$/constants/Bridge.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -18,50 +18,30 @@
 
 	// Props
 	let {
-		children,
+		RouteContent,
 		entityId,
 		href,
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
+			RouteContent?: Snippet
 			entityId: EntityId<typeof schema, EntityType.CoinInstance>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
+			| 'layout'
+			| 'showTypeAnnotation'
 			| 'title'
-			| 'Details'
 		>
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const coinInstanceKey = $derived(
-		stringify(entityId),
-	)
-
-
-	const nativeOrErcTitle = (
-		entityId.type === CoinInstanceType.NativeCurrency ?
-			(
-				`Native (${entityId.$network.chainId})`
-			)
-		:
-			(
-				`ERC-20 (${entityId.$network.chainId})`
-			)
-	)
-
 
 	const coinInstance = useEntity(
 		EntityType.CoinInstance,
@@ -81,15 +61,46 @@
 					decimals: {},
 					caip19: {},
 					representation: {},
-					$canonicalInstance: {},
-					$$marketsWithInstanceAsBase: {},
-					$$marketsWithInstanceAsQuote: {},
-					$$outboundBridgeCapabilities: {},
-					$$inboundBridgeCapabilities: {},
+					$canonicalInstance: {
+						$: [Source.Coingecko_Rest],
+					},
+					$$outboundBridgeCapabilities: {
+						$: [Source.Lifi_Rest],
+					},
+					$$inboundBridgeCapabilities: {
+						$: [Source.Lifi_Rest],
+					},
 				}
 				:
 				{}),
 		},
+	)
+
+
+	// (Derived)
+	const coinInstanceKey = $derived(
+		stringify(entityId),
+	)
+
+	const coinInstanceHref = $derived(
+		href ?? (
+			entityId.type === CoinInstanceType.NativeCurrency ?
+				resolve(
+					'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
+					{
+						chainId: String(entityId.$network.chainId),
+						coinInstanceSlug: 'native',
+					},
+				)
+			:
+				resolve(
+					'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
+					{
+						chainId: String(entityId.$network.chainId),
+						coinInstanceSlug: entityId.$contract.address,
+					},
+				)
+		),
 	)
 
 
@@ -103,7 +114,6 @@
 	import CoinBridgeCapabilitiesView from '$/views/CoinBridgeCapabilitiesView.svelte'
 	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
-	import MarketsView from '$/views/MarketsView.svelte'
 </script>
 
 
@@ -111,20 +121,18 @@
 	entityType={EntityType.CoinInstance}
 	bind:open
 	{entityId}
-	{href}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	href={coinInstanceHref}
+	{...EntityViewProps}
 >
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={coinInstance}
-			placeholderText=""
 		>
-			{#snippet children(coinInstance)}
-				{#if coinInstance.$icon?.[EntityMetaKey.Id].url !== undefined}
+			{#snippet children(loadedCoinInstance)}
+				{#if loadedCoinInstance.$icon?.[EntityMetaKey.Id].url !== undefined}
 					<IconComponent
-						src={coinInstance.$icon[EntityMetaKey.Id].url}
-						alt={coinInstance.symbol ?? coinInstance.name ?? ''}
+						src={loadedCoinInstance.$icon[EntityMetaKey.Id].url}
+						alt={loadedCoinInstance.symbol ?? loadedCoinInstance.name ?? ''}
 					/>
 				{/if}
 			{/snippet}
@@ -136,8 +144,13 @@
 			resource={coinInstance}
 			placeholderText="Loading…"
 		>
-			{#snippet children(coinInstance)}
-				{coinInstance.symbol ?? coinInstance.name ?? nativeOrErcTitle}
+			{#snippet children(loadedCoinInstance)}
+				{loadedCoinInstance.symbol ?? loadedCoinInstance.name ?? (
+					entityId.type === CoinInstanceType.NativeCurrency ?
+						`Native (${entityId.$network.chainId})`
+					:
+						`ERC-20 (${entityId.$network.chainId})`
+				)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -145,25 +158,25 @@
 	{#snippet Value()}
 		<ResourceBoundary
 			resource={coinInstance}
-			placeholderText=""
 		>
-			{#snippet children(coinInstance)}
+			{#snippet children(loadedCoinInstance)}
 				<span>
-					{coinInstance.coinId}
+					{loadedCoinInstance.coinId}
 				</span>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		{@render Heading()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Per-chain <strong>deployment</strong>
-			of a logical coin: native asset or bytecode-bound token with resolver-backed fields—when upstream data allows, the row exposes an honest <strong>CAIP-19</strong>
-			asset id for cross-wallet routing and quote attribution.
+			Per-chain deployment of a logical coin: native asset or bytecode-bound token with resolver-backed fields—when upstream data allows, the row exposes an honest CAIP-19 asset id for cross-wallet routing.
+		</p>
+		<p>
+			Spot markets where this deployment is base or quote leg are not indexed yet; bridge capabilities use LiFi when configured.
 		</p>
 	{/snippet}
 
@@ -172,7 +185,7 @@
 			resource={coinInstance}
 			placeholderText="Loading coin instance…"
 		>
-			{#snippet children(coinInstance)}
+			{#snippet children(loadedCoinInstance)}
 				<dl data-column-item="center">
 					<div>
 						<dt>Chain</dt>
@@ -186,94 +199,79 @@
 							{:else}
 								<EvmContractView
 									entityId={entityId.$contract}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-										{
-											networkId: String(entityId.$contract.$network.chainId),
-											address: entityId.$contract.address,
-										},
-									)}
-									layout={EntityLayout.Title}
-									open={false}
+									layout={EntityLayout.SummaryDetails}
+									open={true}
 									showTypeAnnotation={false}
 								/>
 							{/if}
 						</dd>
 					</div>
-					{#if open}
-						{#if coinInstance.name !== undefined}
-							<div>
-								<dt>Name</dt>
-								<dd>{coinInstance.name}</dd>
-							</div>
-						{/if}
+					{#if (
+						open
+						&& coinInstance.name !== undefined
+					)}
+						<div>
+							<dt>Name</dt>
+							<dd>{loadedCoinInstance.name}</dd>
+						</div>
 					{/if}
 
-					{#if open}
-						{#if coinInstance.symbol !== undefined}
-							<div>
-								<dt>Symbol</dt>
-								<dd>{coinInstance.symbol}</dd>
-							</div>
-						{/if}
+					{#if (
+						open
+						&& coinInstance.symbol !== undefined
+					)}
+						<div>
+							<dt>Symbol</dt>
+							<dd>{loadedCoinInstance.symbol}</dd>
+						</div>
 					{/if}
 
-					{#if open}
-						{#if coinInstance.decimals !== undefined}
-							<div>
-								<dt>Decimals</dt>
-								<dd>{String(coinInstance.decimals)}</dd>
-							</div>
-						{/if}
+					{#if (
+						open
+						&& coinInstance.decimals !== undefined
+					)}
+						<div>
+							<dt>Decimals</dt>
+							<dd>{String(coinInstance.decimals)}</dd>
+						</div>
 					{/if}
 
-					{#if open}
-						{#if coinInstance.caip19 !== undefined}
-							<div>
-								<dt>CAIP-19</dt>
-								<dd>{coinInstance.caip19}</dd>
-							</div>
-						{/if}
+					{#if (
+						open
+						&& coinInstance.caip19 !== undefined
+					)}
+						<div>
+							<dt>CAIP-19</dt>
+							<dd>{loadedCoinInstance.caip19}</dd>
+						</div>
 					{/if}
 
-					{#if open}
-						{#if coinInstance.representation !== undefined}
-							<div>
-								<dt>Representation</dt>
-								<dd>{coinInstance.representation}</dd>
-							</div>
-						{/if}
+					{#if (
+						open
+						&& coinInstance.representation !== undefined
+					)}
+						<div>
+							<dt>Representation</dt>
+							<dd>
+								{coinInstanceRepresentations[loadedCoinInstance.representation].label}
+							</dd>
+						</div>
 					{/if}
 
-					{#if open}
-						{#if coinInstance.$canonicalInstance}
-							<div>
-								<dt>Canonical deployment</dt>
-								<dd>
-									<CoinInstanceView
-										entityId={coinInstance.$canonicalInstance[EntityMetaKey.Id]}
-										href={resolve(
-											'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
-											{
-												chainId: String(
-													coinInstance.$canonicalInstance[EntityMetaKey.Id].$network.chainId,
-												),
-												coinInstanceSlug: (
-													coinInstance.$canonicalInstance[EntityMetaKey.Id].type
-														=== CoinInstanceType.NativeCurrency ?
-														'native'
-													:
-														coinInstance.$canonicalInstance[EntityMetaKey.Id].$contract.address
-												),
-											},
-										)}
-										layout={EntityLayout.Title}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								</dd>
-							</div>
-						{/if}
+					{#if (
+						open
+						&& coinInstance.$canonicalInstance
+					)}
+						<div>
+							<dt>Canonical deployment</dt>
+							<dd>
+								<CoinInstanceView
+									entityId={loadedCoinInstance.$canonicalInstance[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
+							</dd>
+						</div>
 					{/if}
 				</dl>
 			{/snippet}
@@ -287,7 +285,6 @@
 			entityType={EntityType.CoinInstance}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -308,10 +305,10 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet Markers({ open: _markersOpen })}
 					<ResourceBoundary resource={coinInstance}>
-						{#snippet children(coinInstance)}
-							{#if (coinInstance.$$outboundBridgeCapabilities ?? []).length}
+						{#snippet children(loadedCoinInstance)}
+							{#if (loadedCoinInstance.$$outboundBridgeCapabilities ?? []).length}
 								<a
 									data-scroll-marker-label="Outbound"
 									href={`#${coinInstanceKey}:bridge-outbound`}
@@ -328,22 +325,22 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet body(_childrenContext)}
+				{#snippet body({ open: _bodyOpen })}
 					<ResourceBoundary resource={coinInstance}>
-						{#snippet children(coinInstance)}
-							{#if (coinInstance.$$outboundBridgeCapabilities ?? []).length}
+						{#snippet children(loadedCoinInstance)}
+							{#if (loadedCoinInstance.$$outboundBridgeCapabilities ?? []).length}
 								<section
 									data-scroll-marker-label="Outbound"
 									id={`${coinInstanceKey}:bridge-outbound`}
 								>
 									<CoinBridgeCapabilitiesView
+										href={resolve('/bridge')}
 										collapsible={false}
 										entityFieldReference={{
 											entityType: EntityType.CoinInstance,
 											entityId,
 											fieldName: '$$outboundBridgeCapabilities',
 										}}
-										{href}
 										title="Outbound"
 									/>
 								</section>
@@ -355,13 +352,13 @@
 									id={`${coinInstanceKey}:bridge-inbound`}
 								>
 									<CoinBridgeCapabilitiesView
+										href={resolve('/bridge')}
 										collapsible={false}
 										entityFieldReference={{
 											entityType: EntityType.CoinInstance,
 											entityId,
 											fieldName: '$$inboundBridgeCapabilities',
 										}}
-										{href}
 										title="Inbound"
 									/>
 								</section>
@@ -371,84 +368,11 @@
 				{/snippet}
 			</CollapsibleTabs>
 
-			<CollapsibleTabs
-				id={`${coinInstanceKey}:carousel-markets`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({ open: _isOpen })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>
-							Markets
-						</HeadingComponent>
-					</header>
-				{/snippet}
-
-				{#snippet Markers(_context)}
-					<ResourceBoundary resource={coinInstance}>
-						{#snippet children(coinInstance)}
-							{#if (coinInstance.$$marketsWithInstanceAsBase ?? []).length}
-								<a
-									data-scroll-marker-label="Base"
-									href={`#${coinInstanceKey}:markets-base`}
-								>Base</a>
-							{/if}
-
-							{#if (coinInstance.$$marketsWithInstanceAsQuote ?? []).length}
-								<a
-									data-scroll-marker-label="Quote"
-									href={`#${coinInstanceKey}:markets-quote`}
-								>Quote</a>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-
-				{#snippet body(_childrenContext)}
-					<ResourceBoundary resource={coinInstance}>
-						{#snippet children(coinInstance)}
-							{#if (coinInstance.$$marketsWithInstanceAsBase ?? []).length}
-								<section>
-									<MarketsView
-										collapsible={false}
-										entityFieldReference={{
-											entityType: EntityType.CoinInstance,
-											entityId,
-											fieldName: '$$marketsWithInstanceAsBase',
-										}}
-										{href}
-										id={`${coinInstanceKey}:markets-base`}
-										title="Base"
-									/>
-								</section>
-							{/if}
-
-							{#if (coinInstance.$$marketsWithInstanceAsQuote ?? []).length}
-								<section>
-									<MarketsView
-										collapsible={false}
-										entityFieldReference={{
-											entityType: EntityType.CoinInstance,
-											entityId,
-											fieldName: '$$marketsWithInstanceAsQuote',
-										}}
-										{href}
-										id={`${coinInstanceKey}:markets-quote`}
-										title="Quote"
-									/>
-								</section>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</CollapsibleTabs>
-
-			{#if children}
-				{@render children()}
+			{#if RouteContent}
+				{@render RouteContent()}
 			{/if}
 		</div>
 	{/snippet}
 </EntityView>
+
 

@@ -1,59 +1,72 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { atprotoProbeDid, atprotoProbePostUri } from '$/constants/Social/Atproto.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
+	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
 	import { resolve } from '$app/paths'
 
 
 	// Props
 	let {
-		open = $bindable(true),
+		entityId,
+		href = resolve(
+			'/atproto',
+			entityId,
+		),
+					layout = EntityLayout.SummaryDetails,
+		open = $bindable(
+			!(getIsInsideEntityList() ?? false),
+		),
 		collapsible = true,
-	}: {
-		open?: boolean
-	} = $props()
+		...EntityViewProps
+	}: WithRest<
+		{
+			entityId: EntityId<typeof schema, EntityType.AtprotoNetwork>
+			href?: string
+			layout?: EntityLayout
+			open?: boolean
+		},
+		never
+	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const entityId = (
-		{
-			scope: 'AtprotoNetwork' as const,
-		} satisfies EntityId<typeof schema, EntityType.AtprotoNetwork>
-	)
-
-	const exampleDid = (
-		'did:plc:z72i7hdynmk6r22z27h6tvur' as const
-	)
-
-	const examplePostUri = (
-		'at://did:plc:z72i7hdynmk6r22z27h6tvur/app.bsky.feed.post/3la6vijfoie2r' as const
-	)
-
-	const networkIdKey = $derived(
-		stringify(entityId),
-	)
 
 	const atprotoNetwork = useEntity(
 		EntityType.AtprotoNetwork,
 		entityId,
 		{
 			$: [Source.Constants_Internal],
+			protocolName: {},
+			registryLabel: {},
 			...(open ?
 				{
-					protocolName: {},
 					homeUrl: {},
 					docsUrl: {},
-					$$atprotoActors: {},
-					$$atprotoPosts: {},
+					topology: {},
+					$$atprotoActors: {
+						$: [
+							Source.Constants_Internal,
+							Source.Atproto_Xrpc,
+							Source.Atproto_BskySocial_Xrpc,
+						],
+						$$posts: {
+							$: [
+								Source.Atproto_Xrpc,
+								Source.Atproto_BskySocial_Xrpc,
+							],
+						},
+					},
 				}
 			:
 				{}),
@@ -61,12 +74,18 @@
 	)
 
 
+	// (Derived)
+	const networkIdKey = $derived(
+		stringify(entityId),
+	)
+
+
 	// Components
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import AtprotoActorsView from '$/views/AtprotoActorsView.svelte'
 	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 </script>
@@ -75,13 +94,15 @@
 <EntityView
 	entityType={EntityType.AtprotoNetwork}
 	{entityId}
-	href={resolve('/(social)/atproto')}
+	href={href}
+	{layout}
 	bind:open
+	{collapsible}
+	{...EntityViewProps}
 	title="AT Protocol"
 >
 	{#snippet Value()}
 		{entityId.scope}
-
 	{/snippet}
 
 	{#snippet Title()}
@@ -89,7 +110,14 @@
 	{/snippet}
 
 	{#snippet Heading()}
-		{@render Title()}
+		<ResourceBoundary
+			resource={atprotoNetwork}
+			placeholderText="Loading AT Protocol directory…"
+		>
+			{#snippet children(loadedAtprotoNetwork)}
+				{loadedAtprotoNetwork.protocolName ?? 'AT Protocol'}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -106,54 +134,68 @@
 		href: _href,
 		open: _contentOpen,
 	})}
-		<ResourceBoundary
-			resource={atprotoNetwork}
-			placeholderText="Loading AT Protocol directory…"
-		>
-			{#snippet children(atprotoNetwork)}
-				<dl data-column-item="center">
-					{#if _contentOpen}
+		<dl data-column-item="center">
+			<ResourceBoundary
+				resource={atprotoNetwork}
+				placeholderText="Loading AT Protocol directory…"
+			>
+				{#snippet children(loadedAtprotoNetwork)}
+					{#if loadedAtprotoNetwork.registryLabel}
+						<div>
+							<dt>Registry</dt>
+							<dd>{loadedAtprotoNetwork.registryLabel}</dd>
+						</div>
+					{:else if loadedAtprotoNetwork.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{atprotoNetwork.protocolName ?? 'AT Protocol'}</dd>
+							<dd>{loadedAtprotoNetwork.protocolName}</dd>
 						</div>
 					{/if}
 
 					{#if _contentOpen}
-						{#if atprotoNetwork.homeUrl}
+						<div>
+							<dt>Accounts</dt>
+							<dd>{String(atprotoNetwork.$$atprotoActors?.length ?? 0)}</dd>
+						</div>
+						<div>
+							<dt>Posts</dt>
+							<dd>{String(
+								(atprotoNetwork.$$atprotoActors ?? [])
+									.flatMap((actor) => actor.$$posts ?? [])
+									.length
+							)}</dd>
+						</div>
+
+						{#if loadedAtprotoNetwork.topology}
+							<div>
+								<dt>Topology</dt>
+								<dd>{loadedAtprotoNetwork.topology}</dd>
+							</div>
+						{/if}
+
+						{#if loadedAtprotoNetwork.homeUrl}
 							<div>
 								<dt>Home</dt>
 								<dd>
-									<a href={atprotoNetwork.homeUrl}>{atprotoNetwork.homeUrl}</a>
+									<a href={loadedAtprotoNetwork.homeUrl}>{loadedAtprotoNetwork.homeUrl}</a>
 								</dd>
 							</div>
 						{/if}
-					{/if}
 
-					{#if _contentOpen}
-						{#if atprotoNetwork.docsUrl != null && atprotoNetwork.docsUrl !== ''}
+						{#if loadedAtprotoNetwork.docsUrl != null && loadedAtprotoNetwork.docsUrl !== ''}
 							<div>
 								<dt>Documentation</dt>
 								<dd>
-									<a href={atprotoNetwork.docsUrl}>
-										{atprotoNetwork.docsUrl}
+									<a href={loadedAtprotoNetwork.docsUrl}>
+										{loadedAtprotoNetwork.docsUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
 					{/if}
-
-					{#if _contentOpen}
-						<div>
-							<dt>Local ATProto cache</dt>
-							<dd data-text="muted">
-								{String(atprotoNetwork.$$atprotoActors?.length ?? 0)} accounts · {String(atprotoNetwork.$$atprotoPosts?.length ?? 0)} records
-							</dd>
-						</div>
-					{/if}
-				</dl>
-			{/snippet}
-		</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
 	{/snippet}
 
 	{#snippet Details({
@@ -163,9 +205,8 @@
 			entityType={EntityType.AtprotoNetwork}
 			{entityId}
 		/>
-
 		<div
-			class="atproto-network-detail-carousels"
+			class="entity-view-detail-carousels atproto-network-detail-carousels"
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
@@ -186,7 +227,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers(_context)}
+				{#snippet Markers({ open: _markersOpen })}
 					<a
 						data-scroll-marker-label="Accounts"
 						href={`#${networkIdKey}:registry-actors`}
@@ -201,18 +242,18 @@
 					>Examples</a>
 				{/snippet}
 
-				{#snippet body({ open: _open })}
+				{#snippet body({ open: _sectionOpen })}
 					<section
 						data-scroll-marker-label="Accounts"
 						id={`${networkIdKey}:registry-actors`}
 					>
 						<AtprotoActorsView
+							href={resolve('/atproto/actors')}
 							entityFieldReference={{
 								entityType: EntityType.AtprotoNetwork,
 								entityId,
 								fieldName: '$$atprotoActors',
 							}}
-							href={resolve('/(social)/atproto')}
 							id={`${networkIdKey}:actors`}
 							open={_open}
 						/>
@@ -223,13 +264,13 @@
 						id={`${networkIdKey}:registry-posts`}
 					>
 						<AtprotoPostsView
+							href={resolve('/atproto/posts')}
 							entityFieldReference={{
 								entityType: EntityType.AtprotoNetwork,
 								entityId,
 								fieldName: '$$atprotoPosts',
 							}}
 							fieldOpen={_open}
-							href={resolve('/(social)/atproto')}
 							id={`${networkIdKey}:posts`}
 							open={_open}
 							title="Recent posts"
@@ -242,15 +283,15 @@
 					>
 						<ul>
 							<li>
-								<a href={resolve('/(social)/atproto/actor/[did]', {
-									did: encodeURIComponent(exampleDid),
+								<a href={resolve('/(social)/(atproto)/atproto/actor/[did]', {
+									did: encodeURIComponent(atprotoProbeDid),
 								})}>
 									Actor example
 								</a>
 							</li>
 							<li>
-								<a href={resolve('/(social)/atproto/post/[uri]', {
-									uri: encodeURIComponent(examplePostUri),
+								<a href={resolve('/(social)/(atproto)/atproto/post/[uri]', {
+									uri: encodeURIComponent(atprotoProbePostUri),
 								})}>
 									Post example
 								</a>

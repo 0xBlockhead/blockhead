@@ -1,9 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
-	import { stringify } from 'devalue'
-
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -11,10 +8,8 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { stringify } from 'devalue'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -23,9 +18,8 @@
 		title = 'Resolver sources',
 		open = $bindable(true),
 		collapsible = true,
-		href,
 		id,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<
@@ -33,11 +27,13 @@
 				EntityType.BlockheadSource
 			>
 			title?: string
-			open?: boolean
-			href: string
-			id: string
+			open?: boolean			id: string
 		},
-		Omit<ComponentProps<typeof EntitiesList>, 'entityType'>
+		Pick<
+			ComponentProps<typeof EntitiesList>,
+			| 'id',
+			| 'href'
+		>
 	> = $props()
 
 
@@ -49,7 +45,6 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import BlockheadSourceView from '$/views/BlockheadSourceView.svelte'
 </script>
 
@@ -57,12 +52,11 @@
 <div data-column="gap-2">
 	<EntitiesList
 		entityType={EntityType.BlockheadSource}
-		{href}
-		{id}
+	{id}
 		{title}
 		bind:open
 		{collapsible}
-		{...entitiesListRest}
+		{...EntitiesListProps}
 	>
 		{#snippet TypeAnnotationTooltip()}
 			<p>
@@ -73,7 +67,7 @@
 			</p>
 		{/snippet}
 
-		{#snippet body()}
+		{#snippet body({ open: _bodyOpen })}
 			{#if open}
 				{@const parent = useEntity(
 					entityFieldReference.entityType,
@@ -103,7 +97,6 @@
 					collapsible={false}
 					showSummary={false}
 					entityType={EntityType.BlockheadSource}
-					{href}
 					id={`${id}-items`}
 					{title}
 					open={true}
@@ -114,18 +107,12 @@
 					UnorderedListProps={{ orientation: ListOrientation.Column }}
 				>
 					{#snippet Item({ item: envelope })}
-						{#if envelope}
-							<BlockheadSourceView
-								layout={EntityLayout.Summary}
-								open={false}
-								sourceId={envelope.value[EntityMetaKey.Id].id}
-								title="Resolver source"
-								href={resolve(
-									'/~/(manage)/manage/(sources)/source/[sourceId]',
-									{ sourceId: envelope.value[EntityMetaKey.Id].id },
-								)}
-							/>
-						{/if}
+						<BlockheadSourceView
+							layout={EntityLayout.Summary}
+							open={false}
+							sourceId={envelope.value[EntityMetaKey.Id].id}
+							title="Resolver source"
+						/>
 					{/snippet}
 				</EntitiesList>
 			{/if}

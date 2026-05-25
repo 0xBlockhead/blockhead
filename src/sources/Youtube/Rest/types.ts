@@ -1,10 +1,10 @@
-export type YoutubeApiThumbnailWire = {
+export type YoutubeApiThumbnail = {
 	url?: string
 	width?: number
 	height?: number
 }
 
-export type YoutubeApiSnippetWire = {
+export type YoutubeApiSnippet = {
 	title?: string
 	description?: string
 	publishedAt?: string
@@ -13,10 +13,11 @@ export type YoutubeApiSnippetWire = {
 	customUrl?: string
 	categoryId?: string
 	liveBroadcastContent?: string
-	thumbnails?: Record<string, YoutubeApiThumbnailWire>
+	thumbnails?: Record<string, YoutubeApiThumbnail>
+	tags?: string[]
 }
 
-export type YoutubeApiStatisticsWire = {
+export type YoutubeApiStatistics = {
 	viewCount?: string
 	likeCount?: string
 	commentCount?: string
@@ -24,56 +25,56 @@ export type YoutubeApiStatisticsWire = {
 	videoCount?: string
 }
 
-export type YoutubeApiChannelWire = {
+export type YoutubeApiChannel = {
 	id?: string
-	snippet?: YoutubeApiSnippetWire
-	statistics?: YoutubeApiStatisticsWire
+	snippet?: YoutubeApiSnippet
+	statistics?: YoutubeApiStatistics
 }
 
-export type YoutubeApiContentDetailsWire = {
+export type YoutubeApiContentDetails = {
 	duration?: string
 }
 
-export type YoutubeApiVideoWire = {
+export type YoutubeApiVideo = {
 	id?: string
-	snippet?: YoutubeApiSnippetWire
-	statistics?: YoutubeApiStatisticsWire
-	contentDetails?: YoutubeApiContentDetailsWire
+	snippet?: YoutubeApiSnippet
+	statistics?: YoutubeApiStatistics
+	contentDetails?: YoutubeApiContentDetails
 }
 
-export type YoutubeApiPlaylistContentDetailsWire = {
+export type YoutubeApiPlaylistContentDetails = {
 	itemCount?: number
 }
 
-export type YoutubeApiPlaylistWire = {
+export type YoutubeApiPlaylist = {
 	id?: string
-	snippet?: YoutubeApiSnippetWire
-	contentDetails?: YoutubeApiPlaylistContentDetailsWire
+	snippet?: YoutubeApiSnippet
+	contentDetails?: YoutubeApiPlaylistContentDetails
 }
 
-export type YoutubeApiResourceIdWire = {
+export type YoutubeApiResourceId = {
 	kind?: string
 	videoId?: string
 }
 
-export type YoutubeApiPlaylistItemSnippetWire = YoutubeApiSnippetWire & {
+export type YoutubeApiPlaylistItemSnippet = YoutubeApiSnippet & {
 	playlistId?: string
 	position?: number
-	resourceId?: YoutubeApiResourceIdWire
+	resourceId?: YoutubeApiResourceId
 }
 
-export type YoutubeApiPlaylistItemContentDetailsWire = {
+export type YoutubeApiPlaylistItemContentDetails = {
 	videoId?: string
 	videoPublishedAt?: string
 }
 
-export type YoutubeApiPlaylistItemWire = {
+export type YoutubeApiPlaylistItem = {
 	id?: string
-	snippet?: YoutubeApiPlaylistItemSnippetWire
-	contentDetails?: YoutubeApiPlaylistItemContentDetailsWire
+	snippet?: YoutubeApiPlaylistItemSnippet
+	contentDetails?: YoutubeApiPlaylistItemContentDetails
 }
 
-export type YoutubeApiCommentSnippetWire = {
+export type YoutubeApiCommentSnippet = {
 	authorDisplayName?: string
 	authorProfileImageUrl?: string
 	authorChannelUrl?: string
@@ -87,63 +88,65 @@ export type YoutubeApiCommentSnippetWire = {
 	updatedAt?: string
 }
 
-export type YoutubeApiCommentWire = {
+export type YoutubeApiComment = {
 	id?: string
-	snippet?: YoutubeApiCommentSnippetWire
+	snippet?: YoutubeApiCommentSnippet
 }
 
-export type YoutubeApiCommentThreadSnippetWire = {
+export type YoutubeApiCommentThreadSnippet = {
 	channelId?: string
 	videoId?: string
-	topLevelComment?: YoutubeApiCommentWire
+	topLevelComment?: YoutubeApiComment
 	canReply?: boolean
 	totalReplyCount?: number
 	isPublic?: boolean
 }
 
-export type YoutubeApiCommentThreadRepliesWire = {
-	comments?: YoutubeApiCommentWire[]
+export type YoutubeApiCommentThreadReplies = {
+	comments?: YoutubeApiComment[]
 }
 
-export type YoutubeApiCommentThreadWire = {
+export type YoutubeApiCommentThread = {
 	id?: string
-	snippet?: YoutubeApiCommentThreadSnippetWire
-	replies?: YoutubeApiCommentThreadRepliesWire
+	snippet?: YoutubeApiCommentThreadSnippet
+	replies?: YoutubeApiCommentThreadReplies
 }
 
-export type YoutubeApiChannelsListWire = {
-	items?: YoutubeApiChannelWire[]
+export type YoutubeApiChannelsListResponse = {
+	items?: YoutubeApiChannel[]
 }
 
-export type YoutubeApiVideosListWire = {
-	items?: YoutubeApiVideoWire[]
+export type YoutubeApiVideosListResponse = {
+	items?: YoutubeApiVideo[]
 }
 
-export type YoutubeApiPlaylistsListWire = {
-	items?: YoutubeApiPlaylistWire[]
+export type YoutubeApiPlaylistsListResponse = {
+	items?: YoutubeApiPlaylist[]
 }
 
-export type YoutubeApiPlaylistItemsListWire = {
-	items?: YoutubeApiPlaylistItemWire[]
+export type YoutubeApiPlaylistItemsListResponse = {
+	items?: YoutubeApiPlaylistItem[]
 }
 
-export type YoutubeApiCommentThreadsListWire = {
-	items?: YoutubeApiCommentThreadWire[]
+export type YoutubeApiCommentThreadsListResponse = {
+	items?: YoutubeApiCommentThread[]
+	nextPageToken?: string
 }
 
-export type YoutubeApiCommentsListWire = {
-	items?: YoutubeApiCommentWire[]
+export type YoutubeApiCommentsListResponse = {
+	items?: YoutubeApiComment[]
+	nextPageToken?: string
 }
 
-export type YoutubeApiSearchResultWire = {
+export type YoutubeApiSearchResult = {
 	id?: {
 		kind?: string
 		channelId?: string
 		videoId?: string
 	}
-	snippet?: YoutubeApiSnippetWire
+	snippet?: YoutubeApiSnippet
 }
 
-export type YoutubeApiSearchListWire = {
-	items?: YoutubeApiSearchResultWire[]
+export type YoutubeApiSearchListResponse = {
+	items?: YoutubeApiSearchResult[]
 }

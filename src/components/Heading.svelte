@@ -1,17 +1,16 @@
 <script lang="ts">
-	// Context
-	import { getIsInsidePage } from '$/context/isInsidePage.ts'
-
-	const isInsidePage = getIsInsidePage()
-
-	import { getHeadingLevel } from '$/context/headingLevel.ts'
-
-
-	// Props
+	// Types/constants
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 	import type { Snippet } from 'svelte'
 
+
+	// Context
+	import { getIsInsidePage } from '$/context/isInsidePage.ts'
+	import { getHeadingLevel } from '$/context/headingLevel.ts'
+
+
+	// Props
 	let {
 		children,
 		...elementProps
@@ -21,6 +20,10 @@
 		},
 		SvelteHTMLElements['h1']
 	> = $props()
+
+
+	// State
+	const isInsidePage = getIsInsidePage()
 </script>
 
 

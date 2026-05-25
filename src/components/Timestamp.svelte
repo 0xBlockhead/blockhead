@@ -10,10 +10,6 @@
 
 
 <script lang="ts">
-	// Types/constants
-	import { formatRelativeTime, TIMESTAMP_RECENT_MAX_MS } from '$/lib/time.ts'
-
-
 	// Props
 	let {
 		timestamp,
@@ -24,6 +20,28 @@
 	} = $props()
 
 
+	// Inner context
+	$effect(() => {
+		if (displayFormat === TimestampFormat.Relative || displayFormat === TimestampFormat.Both) {
+			const interval = setInterval(() => {
+				now = Date.now()
+			}, 1000)
+
+			return () => {
+				clearInterval(interval)
+			}
+		}
+	})
+
+
+	// State
+	import { formatRelativeTime, TIMESTAMP_RECENT_MAX_MS } from '$/lib/time.ts'
+
+	let now = $state(
+		Date.now()
+	)
+
+
 	// (Derived)
 	const date = $derived(
 		timestamp !== undefined && typeof timestamp === 'number' && Number.isFinite(timestamp) ?
@@ -31,27 +49,22 @@
 		:
 			undefined
 	)
+
 	const isoString = $derived(
 		date?.toISOString()
 	)
+
 	const absoluteTime = $derived(
 		date?.toLocaleString()
 	)
 
-
-	// State
-	let now = $state(
-		Date.now()
-	)
-
-
-	// (Derived)
 	const relativeTime = $derived(
 		timestamp !== undefined && typeof timestamp === 'number' && Number.isFinite(timestamp) ?
 			formatRelativeTime(now - timestamp)
 		:
 			undefined
 	)
+
 	const displayFormat = $derived(
 		format === TimestampFormat.Auto ?
 			(
@@ -64,20 +77,6 @@
 		:
 			format
 	)
-
-
-	// Effects
-	$effect(() => {
-		if (displayFormat === TimestampFormat.Relative || displayFormat === TimestampFormat.Both) {
-			const interval = setInterval(() => {
-				now = Date.now()
-			}, 1000)
-
-			return () => {
-				clearInterval(interval)
-			}
-		}
-	})
 </script>
 
 

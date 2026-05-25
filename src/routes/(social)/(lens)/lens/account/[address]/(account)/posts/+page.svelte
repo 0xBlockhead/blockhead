@@ -1,8 +1,10 @@
 <script lang="ts">
+	// Types/constants
+	import { EntityType } from '$/schema/$EntityType.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
-
-	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 
 
 	// Props
@@ -10,6 +12,12 @@
 		params,
 	} = $props()
 
+
+	// Functions
+	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
+
+
+	// (Derived)
 	const entityId = $derived.by(() => {
 		const raw = decodeURIComponent(params.address).trim()
 		const with0x = raw.startsWith('0x') ? raw : `0x${raw}`
@@ -29,21 +37,21 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import { EntityType } from '$/schema/$EntityType.ts'
 	import LensPostsView from '$/views/LensPostsView.svelte'
 </script>
 
 
 <Page>
 	<LensPostsView
+		href={resolve(
+			'/(social)/(lens)/lens/account/[address]/(account)/posts',
+			{ address: entityId.address },
+		)}
 		entityFieldReference={{
 			entityType: EntityType.LensAccount,
 			entityId,
 			fieldName: '$$posts',
 		}}
-		href={resolve('/(social)/(lens)/lens/account/[address]/(account)/posts', {
-			address: entityId.address,
-		})}
 		id="lens-account-posts"
 	/>
 </Page>

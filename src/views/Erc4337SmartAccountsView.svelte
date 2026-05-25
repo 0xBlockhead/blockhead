@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -10,10 +9,7 @@
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-
-
-	// Context
-	import { resolve } from '$app/paths'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Props
@@ -23,8 +19,7 @@
 		open = $bindable(true),
 		collapsible = true,
 		id,
-		href,
-		...entitiesListProps
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Erc4337SmartAccount>
@@ -32,11 +27,10 @@
 			open?: boolean
 			collapsible?: boolean
 			id: string
-			href: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
@@ -49,17 +43,19 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ResourceBoundary, { Layout as ResourceBoundaryLayout } from '$/components/ResourceBoundary.svelte'
+	import UnorderedList from '$/components/UnorderedList.svelte'
 	import Erc4337SmartAccountView from '$/views/Erc4337SmartAccountView.svelte'
 </script>
 
 
 <EntitiesList
 	entityType={EntityType.Erc4337SmartAccount}
+
 	{id}
-	{href}
 	{title}
 	bind:open
-	{...entitiesListProps}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -67,7 +63,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const network = useEntity(
 				EntityType.Network,
@@ -89,45 +85,37 @@
 			{@const smartAccounts = derive(
 				network,
 				(network): Entity<typeof schema, EntityType.Erc4337SmartAccount>[] => (
-					(network.$$erc4337SmartAccounts ?? []).slice(0, 16)
+					network.$$erc4337SmartAccounts ?? []
 				),
 			)}
 			<div data-column="gap-3">
-				<EntitiesList
-					collapsible={false}
-					showSummary={false}
-					entityType={EntityType.Erc4337SmartAccount}
-					id={`${id}-items`}
-					{href}
-					{title}
-					open={true}
-					getKey={(row) => stringify(row[EntityMetaKey.Id])}
-					getSortValue={(row) => BigInt(row[EntityMetaKey.Id].address)}
+				<ResourceBoundary
+					layout={ResourceBoundaryLayout.Block}
 					placeholderText="Loading smart accounts…"
 					resource={smartAccounts}
-					UnorderedListProps={{ orientation: ListOrientation.Column }}
 				>
-					{#snippet Empty()}
-						<p data-text="muted">No indexed smart accounts yet.</p>
-					{/snippet}
+					{#snippet children(smartAccounts)}
+						<UnorderedList
+							getKey={(row) => stringify(row[EntityMetaKey.Id])}
+							getSortValue={(row) => BigInt(row[EntityMetaKey.Id].address)}
+							items={smartAccounts.slice(0, 16)}
+							orientation={ListOrientation.Column}
+							placeholderRanges={[]}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">No indexed smart accounts yet.</p>
+							{/snippet}
 
-					{#snippet Item(props)}
-						{#if props.item}
-							<Erc4337SmartAccountView
-								entityId={props.item[EntityMetaKey.Id]}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/erc-4337/smart-account/[address]',
-									{
-										networkId: String(props.item[EntityMetaKey.Id].$network.chainId),
-										address: props.item[EntityMetaKey.Id].address,
-									},
-								)}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/if}
+							{#snippet Item({ item })}
+								<Erc4337SmartAccountView
+									entityId={item[EntityMetaKey.Id]}
+									layout={EntityLayout.Summary}
+									open={false}
+								/>
+							{/snippet}
+						</UnorderedList>
 					{/snippet}
-				</EntitiesList>
+				</ResourceBoundary>
 			</div>
 		{/if}
 	{/snippet}

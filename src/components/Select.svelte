@@ -48,7 +48,7 @@
 		getGroupLabel = (groupId: string) => groupId,
 		Before,
 		After,
-		Item: _Item,
+		Item,
 		children,
 		placeholder,
 		disabled,
@@ -174,8 +174,8 @@
 				<optgroup label={group.label}>
 					{#each group.items as item (item.id)}
 						<option value={String(item.id)} disabled={item.disabled}>
-							{#if _Item}
-								{@render _Item(item.item, String(item.id) === valueStr)}
+							{#if Item}
+								{@render Item(item.item, String(item.id) === valueStr)}
 							{:else}
 								{item.label}
 							{/if}
@@ -186,8 +186,8 @@
 		{:else}
 			{#each normalizedItems as item (item.id)}
 				<option value={String(item.id)} disabled={item.disabled}>
-					{#if _Item}
-						{@render _Item(item.item, String(item.id) === valueStr)}
+					{#if Item}
+						{@render Item(item.item, String(item.id) === valueStr)}
 					{:else}
 						{item.label}
 					{/if}

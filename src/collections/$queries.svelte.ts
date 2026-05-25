@@ -19,12 +19,13 @@ import { derive, reduce } from '$/lib/svelte/RemoteResource.svelte.ts'
 import { normalizeBoundaryError } from '$/lib/errors.ts'
 
 import type {
+	EntityFieldDefinition,
 	EntityFieldName,
 	EntityId,
 	EntityType,
 	Schema,
 } from '$/schema/$schema.ts'
-import { EntityFieldCardinality, EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { EntityFieldCardinality, EntityFieldType, EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { entityCollectionByEntityType, entityFieldCollections } from '$/routes/+layout.svelte'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -70,22 +71,41 @@ const ENTITY_SELECTION_META_KEYS = new Set([
 ])
 
 
-export type EntitySelection<
-	_Schema extends Schema,
-	_EntityType extends EntityType<_Schema>,
-> = {
+type EntitySelectionMeta = {
 	/** Root source priority; nested field selections inherit this when their own `$` is omitted. */
 	$?: readonly Source[]
 	$limit?: number
 	/** Same tuples as chained `.orderBy(callback, options?)` on `{ fieldRow }`. */
 	$orderBy?: DeclarativeOrderBy<{ fieldRow: unknown }>
-	/** When clauses aren’t fingerprintable (e.g. non–field-ref expressions), set for live-query deps. */
+	/** When clauses aren't fingerprintable (e.g. non-field-ref expressions), set for live-query deps. */
 	$orderByDep?: string
-} & {
+}
+
+
+type EntitySelectionForField<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_FieldName extends EntityFieldName<_Schema, _EntityType>,
+> = (
+	EntityFieldDefinition<_Schema, _EntityType, _FieldName> extends {
+		type:
+			| EntityFieldType.EntityReference
+			| EntityFieldType.EntitiesReference
+		entityType: infer _RefEntityType extends EntityType<_Schema>
+	} ?
+		EntitySelection<_Schema, _RefEntityType>
+	:
+		EntitySelectionMeta
+)
+
+
+export type EntitySelection<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = EntitySelectionMeta & {
 	[
 		_FieldName in EntityFieldName<_Schema, _EntityType>
-	]?:
-		EntitySelection<_Schema, EntityType<_Schema>>
+	]?: EntitySelectionForField<_Schema, _EntityType, _FieldName>
 }
 
 
@@ -99,7 +119,7 @@ export const entitySelectionFieldEntries = <
 		!ENTITY_SELECTION_META_KEYS.has(fieldName)
 	)) as [
 		EntityFieldName<_Schema, _EntityType>,
-		EntitySelection<_Schema, EntityType<_Schema>> | undefined,
+		EntitySelectionForField<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>> | undefined,
 	][]
 )
 

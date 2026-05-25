@@ -24,7 +24,7 @@ const lowerHex0xCastHash = (hash: `0x${string}`): `0x${string}` => (
 )
 
 const optionalTrimmedString = (value: string | undefined) => (
-	value?.trim() ? value.trim() : undefined
+	value?.trim() || undefined
 )
 
 const channelIdFromParentUrl = (parentUrl: string | undefined) => {
@@ -63,7 +63,7 @@ export default {
 			entityType: EntityType.FarcasterUser,
 			resolve: async (entityId) => {
 				type UserFields = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterUser>
-				type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerificationWire
+				type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerification
 				const {
 					getSnapchainUserBundleByFid,
 					countLinksByFid,
@@ -145,13 +145,17 @@ export default {
 					likeReactionType: SnapchainReactionType.Like,
 					recastReactionType: SnapchainReactionType.Recast,
 				})
+				const timestamp = snapchainCastTimestampMs(farcasterTimestamp)
+				if (timestamp == null) {
+					throw new Error('Snapchain_Rest: cast missing timestamp')
+				}
 				return {
 					$author: {
 						[EntityMetaKey.Id]: {
 							fid: entityId.fid,
 						},
 					} satisfies Entity<typeof schema, EntityType.FarcasterUser>,
-					text: optionalTrimmedString(castAddBody?.text),
+					text: optionalTrimmedString(castAddBody?.text) ?? '',
 					$parentCast: (
 						castAddBody?.parentCastId?.fid != null
 						&& castAddBody.parentCastId.hash != null
@@ -164,7 +168,7 @@ export default {
 						} satisfies CastEntity
 					:	undefined,
 					parentUrl,
-					timestamp: snapchainCastTimestampMs(farcasterTimestamp),
+					timestamp,
 					mentions: castAddBody?.mentions,
 					$channel: (
 						channelId == null ?
@@ -211,15 +215,13 @@ export default {
 					typeof schema,
 					EntityType.BlockheadFarcasterAccountConnection
 				>
-				type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerificationWire
+				type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerification
 				const {
 					getOnChainIdRegisterEventsByFid,
 					getSnapchainUserBundleByFid,
 				} = await import('$/sources/Snapchain/Rest/queries.ts')
-				const [{ userData, usernameProofs, verifications }, idRegisterPage] = await Promise.all([
-					singleFlight(getSnapchainUserBundleByFid)({ fid: entityId.fid }),
-					singleFlight(getOnChainIdRegisterEventsByFid)({ fid: entityId.fid, reverse: true }),
-				])
+				const { userData, usernameProofs, verifications } = await singleFlight(getSnapchainUserBundleByFid)({ fid: entityId.fid })
+				const idRegisterPage = await singleFlight(getOnChainIdRegisterEventsByFid)({ fid: entityId.fid, reverse: true })
 				const ethList = (
 					(verifications.messages ?? [])
 						.map((message: SnapVerify) => {
@@ -325,7 +327,7 @@ export default {
 				const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
 				type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
-				type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCastWire
+				type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
 				const { getCastsByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
 				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
 				const casts: SnapCast[] = []
@@ -364,7 +366,7 @@ export default {
 				const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
 				type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
-				type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCastWire
+				type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
 				const { getChannel } = await import('$/sources/Farcaster/Rest/queries.ts')
 				const { getCastsByParent } = await import('$/sources/Snapchain/Rest/queries.ts')
 				const channel = await singleFlight(getChannel)(entityId.id)
@@ -411,7 +413,7 @@ export default {
 				const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
 
 				type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
-				type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCastWire
+				type SnapCast = import('$/sources/Snapchain/Rest/types.ts').SnapchainCast
 				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
 
 				if (entityId.variant === 'following') {
@@ -438,41 +440,31 @@ export default {
 						linksPageToken != null
 						&& followedFids.length < maxFollowedFids
 					)
-					const castEntries: { cast: SnapCast; sortMs: number }[] = []
+					const refs: CastEntity[] = []
 					const perAuthor = Math.max(
 						1,
 						Math.ceil(subsetRowLimit / Math.max(followedFids.length, 1)),
 					)
 					for (const fid of followedFids) {
-						if (castEntries.length >= subsetRowLimit) break
+						if (refs.length >= subsetRowLimit) break
 						const page = await singleFlight(getCastsByFid)({
 							fid,
 							pageSize: Math.min(perAuthor, snapchainMaxPageSize),
 							reverse: true,
 						})
 						for (const cast of page.messages ?? []) {
-							castEntries.push({
-								cast,
-								sortMs: snapchainCastTimestampMs(cast.data?.timestamp) ?? 0,
-							})
+							const authorFid = cast.data?.fid
+							if (authorFid == null) continue
+							refs.push({
+								[EntityMetaKey.Id]: {
+									fid: authorFid,
+									hash: lowerHex0xCastHash(cast.hash),
+								},
+							} satisfies CastEntity)
+							if (refs.length >= subsetRowLimit) break
 						}
 					}
-					return (
-						castEntries
-							.toSorted((left, right) => right.sortMs - left.sortMs)
-							.slice(0, subsetRowLimit)
-							.flatMap(({ cast }) => {
-								const authorFid = cast.data?.fid
-								return authorFid == null ?
-									[]
-								:	[{
-										[EntityMetaKey.Id]: {
-											fid: authorFid,
-											hash: lowerHex0xCastHash(cast.hash),
-										},
-									} satisfies CastEntity]
-							})
-					)
+					return refs
 				}
 
 				if (entityId.variant === 'byUser') {

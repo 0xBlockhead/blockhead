@@ -1,9 +1,13 @@
 <script lang="ts">
 	// Types/constants
 	import {
+		bridgeAssetOutcomes,
 		bridgeRailById,
+		bridgeSettlementModels,
 		bridgeToolByKey,
+		bridgeVerificationModels,
 	} from '$/constants/Bridge.ts'
+
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -12,35 +16,38 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve(
+			'/(assets)/(coins)/coin/[coinId]/bridge-capability/[capabilityId]',
+			{
+				coinId: entityId.$coin.coinId,
+				capabilityId: entityId.capabilityId,
+			},
+		),
 		open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.CoinBridgeCapability>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
+			| 'layout'
 		>
 	> = $props()
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
 
 	const capability = useEntity(
 		EntityType.CoinBridgeCapability,
@@ -71,17 +78,16 @@
 <EntityView
 	entityType={EntityType.CoinBridgeCapability}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Heading()}
 		<ResourceBoundary
 			resource={capability}
 			placeholderText="Loading…"
 		>
-			{#snippet children(capability)}
+			{#snippet children(loadedCapability)}
 				{bridgeToolByKey[entityId.toolKey]?.label ?? entityId.toolKey}
 			{/snippet}
 		</ResourceBoundary>
@@ -89,7 +95,7 @@
 
 	{#snippet Value()}
 		<span>
-			{entityId.toolKey}
+			{bridgeToolByKey[entityId.toolKey]?.label ?? entityId.toolKey}
 		</span>
 	{/snippet}
 
@@ -113,8 +119,8 @@
 						resource={capability}
 						placeholderText="Loading capability…"
 					>
-						{#snippet children(capability)}
-							{bridgeRailById[capability.railId]?.label ?? capability.railId}
+						{#snippet children(loadedCapability)}
+							{bridgeRailById[loadedCapability.railId]?.label ?? loadedCapability.railId}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -126,8 +132,8 @@
 						resource={capability}
 						placeholderText="Loading capability…"
 					>
-						{#snippet children(capability)}
-							{capability.settlementModel}
+						{#snippet children(loadedCapability)}
+							{bridgeSettlementModels[loadedCapability.settlementModel].label}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -139,8 +145,8 @@
 						resource={capability}
 						placeholderText="Loading capability…"
 					>
-						{#snippet children(capability)}
-							{capability.verificationModel}
+						{#snippet children(loadedCapability)}
+							{bridgeVerificationModels[loadedCapability.verificationModel].label}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -152,8 +158,8 @@
 						resource={capability}
 						placeholderText="Loading capability…"
 					>
-						{#snippet children(capability)}
-							{capability.assetOutcome}
+						{#snippet children(loadedCapability)}
+							{bridgeAssetOutcomes[loadedCapability.assetOutcome].label}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -163,9 +169,8 @@
 				<dd>
 					<CoinInstanceView
 						entityId={entityId.$fromInstance}
-						href={capabilityHref}
-						layout={EntityLayout.Title}
-						open={false}
+						layout={EntityLayout.SummaryDetails}
+						open={true}
 						showTypeAnnotation={false}
 					/>
 				</dd>
@@ -175,9 +180,8 @@
 				<dd>
 					<CoinInstanceView
 						entityId={entityId.$toInstance}
-						href={capabilityHref}
-						layout={EntityLayout.Title}
-						open={false}
+						layout={EntityLayout.SummaryDetails}
+						open={true}
 						showTypeAnnotation={false}
 					/>
 				</dd>
@@ -185,7 +189,7 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.CoinBridgeCapability}
 			{entityId}

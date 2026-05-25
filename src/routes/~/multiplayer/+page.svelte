@@ -1,10 +1,13 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
+	// Types/constants
 	import { EntityType } from '$/schema/$EntityType.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
+	// State
 	const hubKey = 'multiplayer'
 
 
@@ -62,12 +65,12 @@
 						data-scroll-marker-label="Rooms"
 					>
 						<BlockheadRoomsView
+							href={resolve('/~/multiplayer/rooms')}
 							entityFieldReference={{
 								entityType: EntityType._Global,
 								entityId: {},
 								fieldName: '$$blockheadRooms',
 							}}
-							href={resolve('/~/multiplayer/rooms')}
 							id="rooms"
 							open={hubOpen}
 						/>
@@ -78,12 +81,12 @@
 						data-scroll-marker-label="Contacts"
 					>
 						<BlockheadRoomPeersView
+							href={resolve('/~/multiplayer/contacts')}
 							entityFieldReference={{
 								entityType: EntityType._Global,
 								entityId: {},
 								fieldName: '$$blockheadRoomPeers',
 							}}
-							href={resolve('/~/multiplayer/contacts')}
 							id="contacts"
 							open={hubOpen}
 						/>

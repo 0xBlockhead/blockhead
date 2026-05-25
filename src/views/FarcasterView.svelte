@@ -6,6 +6,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -14,34 +15,36 @@
 
 	// Props
 	let {
-		children,
 		entityId,
-		href,
-		open = $bindable(true),
+		href = resolve(
+			'/farcaster',
+			entityId,
+		),
+					open = $bindable(true),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.FarcasterNetwork>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
+			| 'layout'
 		>
 	> = $props()
 
 
-	// State
-	import { stringify } from 'devalue'
+	// Functions
+	const trendingFeed = (
+		{
+			variant: 'trending' as const,
+		} satisfies EntityId<typeof schema, EntityType.FarcasterFeed>
+	)
 
+
+	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
@@ -62,12 +65,6 @@
 			:
 				{}),
 		},
-	)
-
-	const trendingFeed = (
-		{
-			variant: 'trending' as const,
-		} satisfies EntityId<typeof schema, EntityType.FarcasterFeed>
 	)
 
 	const trending = useEntity(
@@ -111,9 +108,9 @@
 <EntityView
 	entityType={EntityType.FarcasterNetwork}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 	title="Farcaster"
 >
 	{#snippet Value()}
@@ -130,10 +127,19 @@
 			resource={network}
 			placeholderText="Farcaster"
 		>
-			{#snippet children(network)}
-				{network.protocolName ?? 'Farcaster'}
+			{#snippet children(loadedNetwork)}
+				{loadedNetwork.protocolName ?? 'Farcaster'}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Farcaster profiles, channels, and casts: FID + hash identity with hub feeds from Neynar or Snapchain when configured.
+		</p>
+		<p>
+			Social timelines here are not on-chain markets, XMTP threads, or local agent chat logs.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -143,7 +149,7 @@
 					resource={network}
 					placeholderText="Loading Farcaster hub directory…"
 				>
-					{#snippet children(network)}
+					{#snippet children(loadedNetwork)}
 						<div>
 							<dt>Channels</dt>
 							<dd>{String(network.$$channels.length)}</dd>
@@ -152,42 +158,42 @@
 							<dt>Users (FID · fname on profile)</dt>
 							<dd>{String(network.$$users.length)}</dd>
 						</div>
-						{#if network.protocolName}
+						{#if loadedNetwork.protocolName}
 							<div>
 								<dt>Protocol</dt>
-								<dd>{network.protocolName}</dd>
+								<dd>{loadedNetwork.protocolName}</dd>
 							</div>
 						{/if}
 
-						{#if network.homeUrl}
+						{#if loadedNetwork.homeUrl}
 							<div>
 								<dt>Home</dt>
 								<dd>
-									<a href={network.homeUrl}>{network.homeUrl}</a>
+									<a href={loadedNetwork.homeUrl}>{loadedNetwork.homeUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if network.docsUrl}
+						{#if loadedNetwork.docsUrl}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={network.docsUrl}>{network.docsUrl}</a>
+									<a href={loadedNetwork.docsUrl}>{loadedNetwork.docsUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if network.registryLabel}
+						{#if loadedNetwork.registryLabel}
 							<div>
 								<dt>Registry</dt>
-								<dd>{network.registryLabel}</dd>
+								<dd>{loadedNetwork.registryLabel}</dd>
 							</div>
 						{/if}
 
-						{#if network.topology}
+						{#if loadedNetwork.topology}
 							<div>
 								<dt>Topology</dt>
-								<dd>{network.topology}</dd>
+								<dd>{loadedNetwork.topology}</dd>
 							</div>
 						{/if}
 					{/snippet}
@@ -196,7 +202,7 @@
 					resource={trending}
 					placeholderText="Loading trending feed (casts by FID + cast hash)…"
 				>
-					{#snippet children(trending)}
+					{#snippet children(loadedTrending)}
 						<div>
 							<dt>Trending casts (feed)</dt>
 							<dd>{String(trending.$$entries.length)}</dd>
@@ -215,7 +221,6 @@
 			entityType={EntityType.FarcasterNetwork}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -252,13 +257,13 @@
 				{#snippet body({ open: _open })}
 					<section data-scroll-marker-label="Feeds">
 						<FarcasterFeedsView
+							href={resolve('/farcaster/feed')}
 							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.FarcasterNetwork,
 								entityId: { scope: 'FarcasterNetwork' },
 								fieldName: '$$feeds',
 							}}
-							href={resolve('/farcaster/feed')}
 							id="feed-index"
 							limit={36}
 							open={_open}
@@ -267,12 +272,12 @@
 
 					<section data-scroll-marker-label="Trending casts">
 						<FarcasterCastsView
+							href={resolve('/farcaster/feed/trending')}
 							entityFieldReference={{
 								entityType: EntityType.FarcasterFeed,
 								entityId: trendingFeed,
 								fieldName: '$$entries',
 							}}
-							href={resolve('/farcaster/feed/trending')}
 							id="casts"
 							limit={25}
 							open={_open}
@@ -312,12 +317,12 @@
 				{#snippet body({ open: _open })}
 					<section data-scroll-marker-label="Channels">
 						<FarcasterChannelsView
+							href={resolve('/farcaster/channels')}
 							entityFieldReference={{
 								entityType: EntityType.FarcasterNetwork,
 								entityId,
 								fieldName: '$$channels',
 							}}
-							href={resolve('/farcaster/channels')}
 							id="channels"
 							open={_open}
 						/>
@@ -325,12 +330,12 @@
 
 					<section data-scroll-marker-label="Users">
 						<FarcasterUsersView
+							href={resolve('/farcaster/users')}
 							entityFieldReference={{
 								entityType: EntityType.FarcasterNetwork,
 								entityId,
 								fieldName: '$$users',
 							}}
-							href={resolve('/farcaster/users')}
 							id="users"
 							open={_open}
 						/>
@@ -364,12 +369,12 @@
 				{#snippet body({ open: _open })}
 					<section data-scroll-marker-label="Connected accounts">
 						<BlockheadFarcasterAccountConnectionsView
+							href={resolve('/farcaster/accounts')}
 							entityFieldReference={{
 								entityType: EntityType._Global,
 								entityId: {},
 								fieldName: '$$blockheadFarcasterAccountConnections',
 							}}
-							href={resolve('/farcaster/accounts')}
 							id="accounts"
 							open={_open}
 						/>
@@ -378,9 +383,6 @@
 			</CollapsibleTabs>
 		</div>
 
-		{#if children}
-			{@render children()}
-		{/if}
 	{/snippet}
 </EntityView>
 

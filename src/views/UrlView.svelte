@@ -9,29 +9,28 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
+	// Context
+	import { resolve } from '$app/paths'
+
+
 	// Props
 	let {
 		entityId,
-		href = entityId.url,
+		href = resolve(
+			'/url/[urlKey]',
+			{ urlKey: encodeURIComponent(entityId.url) },
+		),
 		open = $bindable(true),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.Url>
 			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
-			| 'Icon'
-			| 'Content'
+			| 'layout'
 		>
 	> = $props()
 
@@ -74,10 +73,9 @@
 <EntityView
 	entityType={EntityType.Url}
 	{entityId}
-	{href}
+	href={href}
 	{open}
-	{...entityViewRest}
-	summaryUsesHeading={true}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span data-text="font-monospace">
@@ -94,8 +92,8 @@
 			resource={url}
 			placeholderText="Loading URL entity…"
 		>
-			{#snippet children(url)}
-				{url.openGraphTitle ?? url.catalogName ?? entityId.url}
+			{#snippet children(loadedUrl)}
+				{loadedUrl.openGraphTitle ?? loadedUrl.catalogName ?? entityId.url}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -116,9 +114,9 @@
 					<dt>Description</dt>
 					<dd>
 						<ResourceBoundary resource={url}>
-							{#snippet children(url)}
-								{#if url.openGraphDescription != null}
-									{url.openGraphDescription}
+							{#snippet children(loadedUrl)}
+								{#if loadedUrl.openGraphDescription != null}
+									{loadedUrl.openGraphDescription}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -130,9 +128,9 @@
 				<dt>Publisher</dt>
 				<dd>
 					<ResourceBoundary resource={url}>
-						{#snippet children(url)}
-							{#if url.publisher != null}
-								{url.publisher}
+						{#snippet children(loadedUrl)}
+							{#if loadedUrl.publisher != null}
+								{loadedUrl.publisher}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -144,9 +142,9 @@
 					<dt>Explorer standard</dt>
 					<dd>
 						<ResourceBoundary resource={url}>
-							{#snippet children(url)}
-								{#if url.catalogStandard != null}
-									{url.catalogStandard}
+							{#snippet children(loadedUrl)}
+								{#if loadedUrl.catalogStandard != null}
+									{loadedUrl.catalogStandard}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -159,14 +157,15 @@
 					<dt>Preview</dt>
 					<dd>
 						<ResourceBoundary resource={url}>
-							{#snippet children(url)}
-								{#if url.$openGraphImage != null}
-									{#if url.$openGraphImage[EntityMetaKey.Id].url}
-										<Media
-											alt={url.openGraphTitle ?? ''}
-											media={{ url: url.$openGraphImage[EntityMetaKey.Id].url }}
-										/>
-									{/if}
+							{#snippet children(loadedUrl)}
+								{#if (
+									url.$openGraphImage != null
+									&& url.$openGraphImage[EntityMetaKey.Id].url
+								)}
+									<Media
+										alt={loadedUrl.openGraphTitle ?? ''}
+										media={{ url: loadedUrl.$openGraphImage[EntityMetaKey.Id].url }}
+									/>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -178,8 +177,8 @@
 				<dt>Website</dt>
 				<dd>
 					<ResourceBoundary resource={url}>
-						{#snippet children(url)}
-							{#if url.openGraphTitle != null}
+						{#snippet children(loadedUrl)}
+							{#if loadedUrl.openGraphTitle != null}
 								<a
 									href={entityId.url}
 									rel="noreferrer"
@@ -188,7 +187,7 @@
 									{entityId.url}
 								</a>
 							{:else}
-								{#if url.catalogName != null}
+								{#if loadedUrl.catalogName != null}
 									<a
 										href={entityId.url}
 										rel="noreferrer"

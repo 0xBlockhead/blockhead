@@ -8,6 +8,8 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { stringify } from 'devalue'
+	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
@@ -19,32 +21,27 @@
 	let {
 		entityFieldReference,
 		id = 'rss-feeds',
-		href = resolve('/rss/feeds'),
 		title = 'Feeds',
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.RssFeed>
 			id?: string
-			href?: string
 			title?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'href'
 		>
 	> = $props()
 
 
 	// State
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
@@ -58,12 +55,12 @@
 
 <EntitiesList
 	entityType={EntityType.RssFeed}
+
 	{id}
-	{href}
 	{title}
 	{collapsible}
 	bind:open
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -80,7 +77,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -114,7 +111,6 @@
 				showSummary={false}
 				entityType={EntityType.RssFeed}
 				{id}
-				{href}
 				{title}
 				resource={feeds}
 				placeholderText="Loading feeds…"
@@ -129,18 +125,13 @@
 				{/snippet}
 
 				{#snippet Item({
-					item: row,
+					item: feed,
 				})}
-					{#if row}
-						<RssFeedView
-							entityId={row.entityId}
-							href={resolve('/(social)/(rss)/rss/feed/[feedKey]', {
-								feedKey: encodeURIComponent(row.entityId.feedUrl),
-							})}
-							layout={EntityLayout.SummaryDetails}
-							open={false}
-						/>
-					{/if}
+					<RssFeedView
+						entityId={feed.entityId}
+						layout={EntityLayout.SummaryDetails}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

@@ -8,7 +8,6 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
@@ -21,7 +20,6 @@
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		limit = 50,
 		open = $bindable(
@@ -29,19 +27,36 @@
 		),
 		collapsible = true,
 		title = 'Top-level comments',
-		...entitiesListRest
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.YouTubeComment>
-			href: string
 			id: string
 			limit?: number
 			open?: boolean
 			title?: string
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntitiesList>,
-			'entityType'
+			| 'body'
+			| 'collapsible'
+			| 'CollapsibleProps'
+			| 'Empty'
+			| 'getKey'
+			| 'getSortValue'
+			| 'HeadingProps'
+			| 'href'
+			| 'Item'
+			| 'ItemPlaceholder'
+			| 'items'
+			| 'layout'
+			| 'panelStyle'
+			| 'placeholderKeys'
+			| 'placeholderText'
+			| 'resource'
+			| 'showSummary'
+			| 'TypeAnnotationTooltip'
+			| 'UnorderedListProps'
 		>
 	> = $props()
 
@@ -60,12 +75,11 @@
 
 <EntitiesList
 	entityType={EntityType.YouTubeComment}
-	{href}
 	{id}
 	{title}
 	bind:open
 	{collapsible}
-	{...entitiesListRest}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -82,9 +96,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -93,7 +106,7 @@
 						Source.Youtube_Rest,
 						Source.Piped_Rest,
 					],
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Youtube_Rest,
 							Source.Piped_Rest,
@@ -105,31 +118,22 @@
 			{@const comments = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.YouTubeComment>[] = parent[fieldName] ?? []
-					return (
-						rows
-							.toSorted((a, b) => (
-								(b.publishedAt ?? '').localeCompare(a.publishedAt ?? '')
-								|| b[EntityMetaKey.IdKey].localeCompare(a[EntityMetaKey.IdKey])
-							))
-							.map((comment) => ({
-								...comment[EntityMetaKey.Id],
-								sortKey: comment[EntityMetaKey.IdKey],
-							}))
-					)
+					const rows: Entity<typeof schema, EntityType.YouTubeComment>[] = parent[entityFieldReference.fieldName] ?? []
+					return rows.map((comment) => comment[EntityMetaKey.Id])
 				},
 			)}
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.YouTubeComment}
-				{href}
 				id={`${id}-items`}
 				{title}
 				resource={comments}
 				placeholderText="Loading comment thread…"
 				getKey={(row) => stringify(row)}
-				getSortValue={(row) => row.sortKey}
+				getSortValue={(row) => (
+					`${String(-(Date.parse(row.publishedAt ?? '') || 0)).padStart(20, '0')}\0${row.commentId}`
+				)}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}
@@ -139,22 +143,16 @@
 				{/snippet}
 
 				{#snippet Item({
-					item: row,
+					item: comment,
 				})}
-					{#if row}
-						<YouTubeCommentView
-							entityId={{
-								videoId: row.videoId,
-								commentId: row.commentId,
-							}}
-							href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
-								videoId: encodeURIComponent(row.videoId),
-								commentId: encodeURIComponent(row.commentId),
-							})}
-							layout={EntityLayout.SummaryDetails}
-							open={false}
-						/>
-					{/if}
+					<YouTubeCommentView
+						entityId={{
+							videoId: comment.videoId,
+							commentId: comment.commentId,
+						}}
+						layout={EntityLayout.SummaryDetails}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

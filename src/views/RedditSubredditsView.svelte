@@ -6,28 +6,22 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
-
-
-	// Context
-	import { resolve } from '$app/paths'
 
 
 	// Props
 	let {
 		entityFieldReference,
-		href,
 		id,
 		open = $bindable(true),
 		collapsible = true,
 		title = 'Subreddits',
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.RedditSubreddit>
-		href: string
-		id: string
+			id: string
 		open?: boolean
+		collapsible?: boolean
 		title?: string
 	} = $props()
 
@@ -46,7 +40,6 @@
 
 <EntitiesList
 	entityType={EntityType.RedditSubreddit}
-	{href}
 	{id}
 	{title}
 	bind:open
@@ -70,9 +63,8 @@
 		</p>
 	{/snippet}
 
-	{#snippet body()}
+	{#snippet body({ open: _bodyOpen })}
 		{#if open}
-			{@const fieldName = entityFieldReference.fieldName}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
@@ -81,9 +73,10 @@
 						Source.Constants_Internal,
 						Source.Reddit_Rest,
 					],
-					[fieldName]: {
+					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Reddit_Rest,
+							Source.Reddit_PublicJson,
 						],
 					},
 				},
@@ -92,7 +85,7 @@
 				parent,
 				(parent) => {
 					const rows: Entity<typeof schema, EntityType.RedditSubreddit>[] = (
-						parent[fieldName] ?? []
+						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
 						rows.map((value) => ({
@@ -105,7 +98,6 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.RedditSubreddit}
-				{href}
 				id={`${id}-items`}
 				{title}
 				open={true}
@@ -122,18 +114,13 @@
 				{/snippet}
 
 				{#snippet Item({
-					item: row,
+					item: subreddit,
 				})}
-					{#if row}
-						<RedditSubredditView
-							entityId={row.entityId}
-							href={resolve('/(social)/reddit/r/[name]', {
-								name: encodeURIComponent(row.entityId.name),
-							})}
-							layout={EntityLayout.Summary}
-							open={false}
-						/>
-					{/if}
+					<RedditSubredditView
+						entityId={subreddit.entityId}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
 				{/snippet}
 			</EntitiesList>
 		{/if}

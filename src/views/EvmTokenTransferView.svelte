@@ -6,7 +6,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { EvmTokenStandard } from '$/constants/EvmTokenTransfer.ts'
+	import { evmTokenStandards } from '$/constants/Evm.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
@@ -17,33 +17,32 @@
 
 	// Props
 	let {
-		children: _children,
 		entityId,
-		href,
+		href = resolve(
+			'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]/token-transfer/[logIndex]',
+			{
+				networkId: String(entityId.$network.chainId),
+				transactionId: entityId.$transaction.txHash,
+				logIndex: String(entityId.logIndex),
+			},
+		),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
 			layout === EntityLayout.SummaryDetails,
 		),
 		showParentTransaction = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
-			children?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmTokenTransfer>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			open?: boolean
 			showParentTransaction?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Heading'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -87,10 +86,10 @@
 <EntityView
 	entityType={EntityType.EvmTokenTransfer}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -117,7 +116,7 @@
 				resource={transfer}
 				placeholderText="Loading token transfer…"
 			>
-				{#snippet children(transfer)}
+				{#snippet children(loadedTransfer)}
 					{#if showParentTransaction}
 						<div>
 							<dt>Transaction</dt>
@@ -126,8 +125,8 @@
 									href={resolve(
 										'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
 										{
-											networkId: String(entityId.$network.chainId),
-											transactionId: entityId.txHash,
+										networkId: String(entityId.$network.chainId),
+										transactionId: entityId.txHash,
 										},
 									)}
 								>
@@ -142,97 +141,67 @@
 
 					<div>
 						<dt>Standard</dt>
-						<dd>{transfer.standard}</dd>
+						<dd>{evmTokenStandards[loadedTransfer.standard].label}</dd>
 					</div>
 
 					<div>
 						<dt>Amount</dt>
 						<dd>
-							<NumberValue value={transfer.amount} />
+							<NumberValue value={loadedTransfer.amount} />
 						</dd>
 					</div>
 
-					{#if transfer.$from?.[EntityMetaKey.Id].address !== undefined}
+					{#if loadedTransfer.$from?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>From</dt>
 							<dd>
 								<ActorNetworkView
 									entityId={{
 										$network: entityId.$network,
-										$actor: transfer.$from[EntityMetaKey.Id],
+										$actor: loadedTransfer.$from[EntityMetaKey.Id],
 									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-										{
-											networkId: String(entityId.$network.chainId),
-											address: transfer.$from[EntityMetaKey.Id].address,
-										},
-									)}
 									layout={EntityLayout.Title}
 									open={false}
-									showTypeAnnotation={false}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if transfer.$to?.[EntityMetaKey.Id].address !== undefined}
+					{#if loadedTransfer.$to?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>To</dt>
 							<dd>
 								<ActorNetworkView
 									entityId={{
 										$network: entityId.$network,
-										$actor: transfer.$to[EntityMetaKey.Id],
+										$actor: loadedTransfer.$to[EntityMetaKey.Id],
 									}}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-										{
-											networkId: String(entityId.$network.chainId),
-											address: transfer.$to[EntityMetaKey.Id].address,
-										},
-									)}
 									layout={EntityLayout.Title}
 									open={false}
-									showTypeAnnotation={false}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if transfer.$coinInstance}
+					{#if loadedTransfer.$coinInstance}
 						<div>
 							<dt>Token</dt>
 							<dd>
 								<CoinInstanceView
-									entityId={transfer.$coinInstance[EntityMetaKey.Id]}
-									href={resolve(
-										'/(explore)/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
-										{
-											chainId: String(transfer.$coinInstance[EntityMetaKey.Id].$network.chainId),
-											coinInstanceSlug: stringify(transfer.$coinInstance[EntityMetaKey.Id]),
-										},
-									)}
-									layout={EntityLayout.Title}
+									entityId={loadedTransfer.$coinInstance[EntityMetaKey.Id]}
+									layout={EntityLayout.SummaryDetails}
 									open={false}
 									showTypeAnnotation={false}
 								/>
 							</dd>
 						</div>
-					{:else if transfer.$tokenContract}
+					{:else if loadedTransfer.$tokenContract}
 						<div>
 							<dt>Token contract</dt>
 							<dd>
 								<EvmContractView
-									entityId={transfer.$tokenContract[EntityMetaKey.Id]}
-									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-										{
-											networkId: String(entityId.$network.chainId),
-											address: transfer.$tokenContract[EntityMetaKey.Id].address,
-										},
-									)}
-									layout={EntityLayout.Title}
+									entityId={loadedTransfer.$tokenContract[EntityMetaKey.Id]}
+									layout={EntityLayout.SummaryDetails}
 									open={false}
 									showTypeAnnotation={false}
 								/>
@@ -244,10 +213,11 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details()}
+	{#snippet Details({ open: _detailsOpen })}
 		<EntityDetails
 			entityType={EntityType.EvmTokenTransfer}
 			{entityId}
 		/>
 	{/snippet}
 </EntityView>
+

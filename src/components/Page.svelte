@@ -6,8 +6,6 @@
 	// Context
 	import { setIsInsidePage } from '$/context/isInsidePage.ts'
 
-	setIsInsidePage(true)
-
 
 	// Props
 	let {
@@ -15,6 +13,10 @@
 	}: {
 		children?: Snippet
 	} = $props()
+
+
+	// Inner context
+	setIsInsidePage(true)
 </script>
 
 

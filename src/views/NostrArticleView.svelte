@@ -7,7 +7,6 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { stringify } from 'devalue'
 
 
@@ -19,28 +18,28 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve(
+			'/(social)/(nostr)/nostr/article/[pubkey]/[identifier]',
+			{
+				pubkey: entityId.pubkey,
+				identifier: entityId.identifier,
+			},
+		),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.NostrArticle>
-			href: string
+			href?: string
 			open?: boolean
 		},
-		Omit<
+		Pick<
 			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Content'
+			| 'layout'
+			| 'showTypeAnnotation'
 		>
 	> = $props()
 
@@ -74,6 +73,7 @@
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
+	import Markdown from '$/components/Markdown.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -86,9 +86,9 @@
 <EntityView
 	entityType={EntityType.NostrArticle}
 	{entityId}
-	{href}
+	href={href}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<TruncatedValue
@@ -102,8 +102,8 @@
 			resource={article}
 			placeholderText="Loading article…"
 		>
-			{#snippet children(article)}
-				{article.title ?? entityId.identifier}
+			{#snippet children(loadedArticle)}
+				{loadedArticle.title ?? entityId.identifier}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -120,13 +120,12 @@
 	{#snippet HeadingAfter()}
 		<ResourceBoundary
 			resource={article}
-			placeholderText=""
 		>
-			{#snippet children(article)}
-				{#if article.publishedAt}
+			{#snippet children(loadedArticle)}
+				{#if loadedArticle.publishedAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={article.publishedAt}
+							timestamp={loadedArticle.publishedAt}
 						/>
 					</span>
 				{/if}
@@ -135,71 +134,47 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl data-column-item="center">
-			{#if article.summary}
-				<div>
-					<dt>Summary</dt>
-					<dd>
-						<ResourceBoundary
-							resource={article}
-							placeholderText="Loading article…"
-						>
-							{#snippet children(article)}
-								{article.summary}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+		<ResourceBoundary
+			resource={article}
+			placeholderText="Loading article…"
+		>
+			{#snippet children(loadedArticle)}
+				<dl data-column-item="center">
+					{#if loadedArticle.summary}
+						<div>
+							<dt>Summary</dt>
+							<dd>{loadedArticle.summary}</dd>
+						</div>
+					{/if}
 
-			{#if open}
-				{#if article.$author}
-					<div>
-						<dt>Author</dt>
-						<dd>
-							<ResourceBoundary
-								resource={article}
-								placeholderText="Loading article…"
-							>
-								{#snippet children(article)}
-									<NostrProfileView
-										entityId={article.$author[EntityMetaKey.Id]}
-										href={resolve('/nostr/profile/[pubkey]', {
-											pubkey: article.$author[EntityMetaKey.Id].pubkey,
-											})}
-										layout={EntityLayout.Value}
-										open={false}
-										showTypeAnnotation={false}
-									/>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
-			{/if}
+					{#if open && loadedArticle.$author}
+						<div>
+							<dt>Author</dt>
+							<dd>
+								<NostrProfileView
+									entityId={loadedArticle.$author[EntityMetaKey.Id]}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
 
-			{#if open}
-				{#if article.imageUrl}
-					<div>
-						<dt>Hero image</dt>
-						<dd>
-							<ResourceBoundary
-								resource={article}
-								placeholderText="Loading article…"
-							>
-								{#snippet children(article)}
-									<a
-										href={article.imageUrl}
-										rel="noreferrer"
-										target="_blank"
-									>{article.imageUrl}</a>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
-			{/if}
-		</dl>
+					{#if open && loadedArticle.imageUrl}
+						<div>
+							<dt>Hero image</dt>
+							<dd>
+								<a
+									href={loadedArticle.imageUrl}
+									rel="noreferrer"
+									target="_blank"
+								>{loadedArticle.imageUrl}</a>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -210,7 +185,6 @@
 			entityType={EntityType.NostrArticle}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -246,9 +220,9 @@
 							resource={article}
 							placeholderText="Loading article…"
 						>
-							{#snippet children(article)}
-								{#if article.content}
-									<p>{article.content}</p>
+							{#snippet children(loadedArticle)}
+								{#if loadedArticle.content}
+									<Markdown content={loadedArticle.content} />
 								{:else}
 									<p data-text="muted">
 										No article body yet.
@@ -262,4 +236,5 @@
 		</div>
 	{/snippet}
 </EntityView>
+
 

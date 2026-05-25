@@ -1,11 +1,11 @@
 <script lang="ts">
 	// Types/constants
-	import { EntityLayout } from '$/components/EntityView.svelte'
 	import {
 		proposalCategoryBySlug,
-		proposalKindAllowedInRealm,
+		proposalKindAllowedInRealmByKey,
 		proposalRealmBySlug,
 	} from '$/constants/Proposal.ts'
+
 	import { stringify } from 'devalue'
 
 
@@ -20,21 +20,15 @@
 	} = $props()
 
 	const realm = $derived(
-		params.proposalRealmSlug in proposalRealmBySlug ?
-			proposalRealmBySlug[params.proposalRealmSlug]!.id
-		:
-			undefined,
+		proposalRealmBySlug[params.proposalRealmSlug]?.id,
 	)
 
 	const category = $derived(
-		params.proposalKindSlug in proposalCategoryBySlug ?
-			proposalCategoryBySlug[params.proposalKindSlug]!.id
-		:
-			undefined,
+		proposalCategoryBySlug[params.proposalKindSlug]?.id,
 	)
 
 	const entityId = $derived(
-		realm !== undefined && category !== undefined && proposalKindAllowedInRealm(realm, category) ?
+		realm != null && category != null && proposalKindAllowedInRealmByKey[`${realm}:${category}`] != null ?
 			{
 				realm,
 				category,
@@ -47,6 +41,10 @@
 	// Components
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 	import ProposalKindView from '$/views/ProposalKindView.svelte'
+
+
+	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 </script>
 
 
@@ -58,7 +56,6 @@
 		{#snippet Summary({ open: _open })}
 			<ProposalKindView
 				{entityId}
-				href={resolve(`/proposals/${params.proposalRealmSlug}/${params.proposalKindSlug}`)}
 				layout={EntityLayout.SummaryInline}
 			/>
 		{/snippet}

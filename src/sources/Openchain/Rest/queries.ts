@@ -3,8 +3,9 @@ import Openchain from '$/sources/Openchain/index.ts'
 import { openchainGetJson } from '$/sources/Openchain/Rest/client.ts'
 import { directoryBaseUrl } from '$/sources/Openchain/Rest/constants.ts'
 import {
-	type OpenchainLookupResponseWire,
-	type OpenchainSignatureEntryWire,
+	type FourbyteSignaturesList,
+	type OpenchainLookupResponse,
+	type OpenchainSignatureEntry,
 	looksLikeSolidityErrorName,
 } from '$/sources/Openchain/Rest/types.ts'
 
@@ -26,22 +27,18 @@ const fourbyteHex32Query = (hex: `0x${string}`) => (
 	normalizeHex32(hex).slice(2).toLowerCase()
 )
 
-type FourbyteSignaturesListWire = {
-	results?: { text_signature: string }[]
-}
-
-const fourbyteFunctionEntries = async (hex: `0x${string}`): Promise<OpenchainSignatureEntryWire[]> => {
+const fourbyteFunctionEntries = async (hex: `0x${string}`): Promise<OpenchainSignatureEntry[]> => {
 	const searchParams = new URLSearchParams({ hex_signature: fourbyteHex4Query(hex) })
-	const json = await getJson<FourbyteSignaturesListWire>(
+	const json = await getJson<FourbyteSignaturesList>(
 		`${directoryBaseUrl}/signatures/?${searchParams}`,
 		{ origins: Openchain.origins },
 	)
 	return (json.results ?? []).map((row) => ({ name: row.text_signature }))
 }
 
-const fourbyteEventEntries = async (hex: `0x${string}`): Promise<OpenchainSignatureEntryWire[]> => {
+const fourbyteEventEntries = async (hex: `0x${string}`): Promise<OpenchainSignatureEntry[]> => {
 	const searchParams = new URLSearchParams({ hex_signature: fourbyteHex32Query(hex) })
-	const json = await getJson<FourbyteSignaturesListWire>(
+	const json = await getJson<FourbyteSignaturesList>(
 		`${directoryBaseUrl}/event-signatures/?${searchParams}`,
 		{ origins: Openchain.origins },
 	)
@@ -60,7 +57,7 @@ const lookupPath = (params: {
 	return `/lookup?${searchParams}`
 }
 
-const assertOpenchainOk = (json: OpenchainLookupResponseWire) => {
+const assertOpenchainOk = (json: OpenchainLookupResponse) => {
 	if (json.ok === false) throw new Error('Openchain: lookup rejected')
 }
 
@@ -74,9 +71,9 @@ export const getOpenchainFunctionEntries = async ({
 }: {
 	hex: `0x${string}`
 	filter?: boolean
-}): Promise<OpenchainSignatureEntryWire[]> => {
+}): Promise<OpenchainSignatureEntry[]> => {
 	const key = normalizeHex4(hex)
-	const json = await openchainGetJson<OpenchainLookupResponseWire>({
+	const json = await openchainGetJson<OpenchainLookupResponse>({
 		path: lookupPath({ function: key, filter }),
 	})
 	assertOpenchainOk(json)
@@ -93,9 +90,9 @@ export const getOpenchainEventEntries = async ({
 }: {
 	hex: `0x${string}`
 	filter?: boolean
-}): Promise<OpenchainSignatureEntryWire[]> => {
+}): Promise<OpenchainSignatureEntry[]> => {
 	const key = normalizeHex32(hex)
-	const json = await openchainGetJson<OpenchainLookupResponseWire>({
+	const json = await openchainGetJson<OpenchainLookupResponse>({
 		path: lookupPath({ event: key, filter }),
 	})
 	assertOpenchainOk(json)
@@ -112,7 +109,7 @@ export const getOpenchainErrorEntries = async ({
 }: {
 	hex: `0x${string}`
 	filter?: boolean
-}): Promise<OpenchainSignatureEntryWire[]> => {
+}): Promise<OpenchainSignatureEntry[]> => {
 	const all = await getOpenchainFunctionEntries({ hex, filter })
 	return all.filter((e) => looksLikeSolidityErrorName(e.name))
 }

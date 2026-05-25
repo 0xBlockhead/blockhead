@@ -42,7 +42,7 @@ const narrowRawCallTraceWire = (raw: JsonValue): RawCallTraceWire | null => (
 		})()
 )
 
-export const parseRawCallTraceWire = (raw: JsonValue): RawCallTraceWire | null => (
+export const parseRawCallTrace = (raw: JsonValue): RawCallTraceWire | null => (
 	narrowRawCallTraceWire(raw)
 )
 

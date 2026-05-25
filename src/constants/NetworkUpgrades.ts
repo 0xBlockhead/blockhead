@@ -25,11 +25,9 @@ import {
 	type NetworkUpgradeActivation,
 } from '$/constants/NetworkUpgradeActivations.ts'
 import {
-	ethereumNetworkMarketingNetworkUpgradeSlugs,
-	networkConsensusUpgradeSlugFromParts,
-	networkExecutionUpgradeSlugFromParts,
-	networkUpgradeSlugFromParts,
-	networkUpgradeSlugSegmentFromUpgradeId,
+	ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId,
+	networkConsensusUpgradeSlugByUpgradeId,
+	networkExecutionUpgradeSlugByUpgradeId,
 } from '$/constants/NetworkUpgradeSlugs.ts'
 import { ProposalRealm } from '$/constants/Proposal.ts'
 import { stringify } from 'devalue'
@@ -48,6 +46,37 @@ export type NetworkUpgradeMarketingUmbrellaTemplate = {
 
 
 // Constants
+
+const upgradeIdSlugSegment = (upgradeId: string): string => (
+	String(upgradeId).trim().toLowerCase().replace(/\s+/g, '-')
+)
+
+const networkExecutionUpgradeSlugFromParts = (args: {
+	readonly upgradeId: string
+	readonly slugOverride: string | undefined
+}): string => (
+	args.slugOverride
+	?? networkExecutionUpgradeSlugByUpgradeId[args.upgradeId]?.slug
+	?? upgradeIdSlugSegment(args.upgradeId)
+)
+
+const networkConsensusUpgradeSlugFromParts = (args: {
+	readonly upgradeId: string
+	readonly slugOverride: string | undefined
+}): string => (
+	args.slugOverride
+	?? networkConsensusUpgradeSlugByUpgradeId[args.upgradeId]?.slug
+	?? upgradeIdSlugSegment(args.upgradeId)
+)
+
+const networkUpgradeSlugFromParts = (args: {
+	readonly upgradeId: string
+	readonly slugOverride: string | undefined
+}): string => (
+	args.slugOverride
+	?? upgradeIdSlugSegment(args.upgradeId)
+)
+
 /** Canonical `*.md` under pinned `ethereum/execution-specs/.../network-upgrades/mainnet-upgrades/`. */
 const executionSpecsPinnedMarkdownFilenameFromLink = (
 	executionSpecsLink: string | undefined,
@@ -73,35 +102,35 @@ export const ethereumNetworkMarketingUmbrellas = [
 	{
 		[EntityMetaKey.Id]: { upgradeId: 'Merge' },
 		name: 'The Merge',
-		slug: ethereumNetworkMarketingNetworkUpgradeSlugs.Merge,
+		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Merge'].slug,
 		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Paris' } },
 		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Bellatrix' } },
 	},
 	{
 		[EntityMetaKey.Id]: { upgradeId: 'Shapella' },
 		name: 'Shapella',
-		slug: ethereumNetworkMarketingNetworkUpgradeSlugs.Shapella,
+		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Shapella'].slug,
 		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Shanghai' } },
 		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Capella' } },
 	},
 	{
 		[EntityMetaKey.Id]: { upgradeId: 'Dencun' },
 		name: 'Dencun',
-		slug: ethereumNetworkMarketingNetworkUpgradeSlugs.Dencun,
+		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Dencun'].slug,
 		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Cancun' } },
 		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Deneb' } },
 	},
 	{
 		[EntityMetaKey.Id]: { upgradeId: 'Pectra' },
 		name: 'Pectra',
-		slug: ethereumNetworkMarketingNetworkUpgradeSlugs.Pectra,
+		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Pectra'].slug,
 		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Prague' } },
 		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Electra' } },
 	},
 	{
 		[EntityMetaKey.Id]: { upgradeId: 'Fusaka' },
 		name: 'Fusaka',
-		slug: ethereumNetworkMarketingNetworkUpgradeSlugs.Fusaka,
+		slug: ethereumNetworkMarketingNetworkUpgradeSlugByUpgradeId['Fusaka'].slug,
 		$networkExecutionUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Osaka' } },
 		$networkConsensusUpgrade: { [EntityMetaKey.Id]: { upgradeId: 'Fulu' } },
 	},
@@ -430,96 +459,41 @@ const networkUpgradesBuilt = [
 	...networkUpgradeMarketingUmbrellaRows,
 ]
 
-export const networkExecutionUpgrades: readonly Entity<
-	typeof schema,
-	EntityType.NetworkExecutionUpgrade
->[] = networkExecutionUpgradesBuilt
+export const networkExecutionUpgrades = networkExecutionUpgradesBuilt
 
-export const networkConsensusUpgrades: readonly Entity<
-	typeof schema,
-	EntityType.NetworkConsensusUpgrade
->[] = networkConsensusUpgradesBuilt
+export const networkConsensusUpgrades = networkConsensusUpgradesBuilt
 
-export const networkUpgrades: readonly Entity<
-	typeof schema,
-	EntityType.NetworkUpgrade
->[] = networkUpgradesBuilt
+export const networkUpgrades = networkUpgradesBuilt
 
-
-/** Execution / consensus codename aliases → umbrella `NetworkUpgrade.upgradeId` on Ethereum L1 and those public testnets (mainnet 1, Sepolia, Holesky). */
-const ETHEREUM_MAINNET_NETWORK_UPGRADE_SLUG_ALIASES: Readonly<Record<string, string>> = {
-	paris: 'Merge',
-	bellatrix: 'Merge',
-	merge: 'Merge',
-	'the-merge': 'Merge',
-	'the merge': 'Merge',
-	shanghai: 'Shapella',
-	capella: 'Shapella',
-	cancun: 'Dencun',
-	deneb: 'Dencun',
-	prague: 'Pectra',
-	electra: 'Pectra',
-	osaka: 'Fusaka',
-	fulu: 'Fusaka',
-}
+/** Execution / consensus codename aliases → umbrella `NetworkUpgrade.upgradeId` on Ethereum L1 and those public testnets. */
+const ethereumMainnetNetworkUpgradeSlugAliasRows = [
+	{ segmentSlug: 'paris', umbrellaUpgradeId: 'Merge' },
+	{ segmentSlug: 'bellatrix', umbrellaUpgradeId: 'Merge' },
+	{ segmentSlug: 'merge', umbrellaUpgradeId: 'Merge' },
+	{ segmentSlug: 'the-merge', umbrellaUpgradeId: 'Merge' },
+	{ segmentSlug: 'the merge', umbrellaUpgradeId: 'Merge' },
+	{ segmentSlug: 'shanghai', umbrellaUpgradeId: 'Shapella' },
+	{ segmentSlug: 'capella', umbrellaUpgradeId: 'Shapella' },
+	{ segmentSlug: 'cancun', umbrellaUpgradeId: 'Dencun' },
+	{ segmentSlug: 'deneb', umbrellaUpgradeId: 'Dencun' },
+	{ segmentSlug: 'prague', umbrellaUpgradeId: 'Pectra' },
+	{ segmentSlug: 'electra', umbrellaUpgradeId: 'Pectra' },
+	{ segmentSlug: 'osaka', umbrellaUpgradeId: 'Fusaka' },
+	{ segmentSlug: 'fulu', umbrellaUpgradeId: 'Fusaka' },
+] as const satisfies readonly {
+	segmentSlug: string
+	umbrellaUpgradeId: string
+}[]
 
 
 // Lookups
-export const networkHasBlobParameterExecutionUpgrade = (chainId: number): boolean => (
-	networkExecutionUpgrades.some((executionUpgrade) => (
-		executionUpgrade[EntityMetaKey.Id].$network.chainId === chainId
-		&& executionUpgrade.layer === NetworkExecutionUpgradeLayer.Blob
-	))
+
+export const ethereumMainnetNetworkUpgradeSlugAliasBySegmentSlug = Object.fromEntries(
+	ethereumMainnetNetworkUpgradeSlugAliasRows.map((row) => [
+		row.segmentSlug,
+		row,
+	]),
 )
-
-export const networkUpgradeIdFromChainIdAndUrlSegment = (
-	chainId: number,
-	segment: string,
-): string | undefined => {
-	const direct = networkUpgrades.find((networkUpgrade) => {
-		const id = networkUpgrade[EntityMetaKey.Id]
-		if (id.$network.chainId !== chainId) return false
-		const slugRaw = networkUpgrade.slug
-		const slug = (
-			typeof slugRaw === 'string' && slugRaw.length > 0 ?
-				slugRaw
-			:
-				networkUpgradeSlugSegmentFromUpgradeId(id.upgradeId)
-		)
-		const { upgradeId } = id
-		return (
-			segment === upgradeId
-			|| segment === slug
-			|| segment.toLowerCase() === upgradeId.toLowerCase()
-			|| segment.toLowerCase() === slug.toLowerCase()
-			|| networkUpgradeSlugSegmentFromUpgradeId(segment) === networkUpgradeSlugSegmentFromUpgradeId(slug)
-			|| networkUpgradeSlugSegmentFromUpgradeId(segment) === networkUpgradeSlugSegmentFromUpgradeId(upgradeId)
-		)
-	})?.[EntityMetaKey.Id].upgradeId
-
-	if (direct != null) {
-		return direct
-	}
-
-	if (
-		chainId === 1
-		|| chainId === 11_155_111
-		|| chainId === 17_000
-	) {
-		const aliasTarget = ETHEREUM_MAINNET_NETWORK_UPGRADE_SLUG_ALIASES[networkUpgradeSlugSegmentFromUpgradeId(segment)]
-		if (aliasTarget != null) {
-			return (
-				networkUpgrades.find((networkUpgrade) => (
-					networkUpgrade[EntityMetaKey.Id].$network.chainId === chainId
-					&& networkUpgrade[EntityMetaKey.Id].upgradeId === aliasTarget
-				))
-				?.[EntityMetaKey.Id].upgradeId
-			)
-		}
-	}
-
-	return undefined
-}
 
 export const networkUpgradeByChainIdAndUpgradeId = Object.fromEntries(
 	networkUpgrades.map((networkUpgrade) => [
@@ -541,61 +515,3 @@ export const networkConsensusUpgradeByChainIdAndUpgradeId = Object.fromEntries(
 		consensusUpgrade,
 	]),
 )
-
-/** Fills `NetworkUpgrade` activation + `$$proposals` from linked fork rows (execution-layer proposals when present, else consensus). */
-export const resolveNetworkUpgradeDenormalizedFields = (
-	row: Entity<typeof schema, EntityType.NetworkUpgrade>,
-): Partial<
-	Pick<
-		Entity<typeof schema, EntityType.NetworkUpgrade>,
-		| 'activationBlock'
-		| 'activationTimestamp'
-		| 'activationEpoch'
-		| '$$proposals'
-	>
-> => {
-	const execRef = row.$networkExecutionUpgrade?.[EntityMetaKey.Id]
-	const executionRow = (
-		execRef == null ?
-			null
-		:
-			networkExecutionUpgradeByChainIdAndUpgradeId[
-				`${execRef.$network.chainId}:${execRef.upgradeId}`
-			]
-	)
-	const consRef = row.$networkConsensusUpgrade
-	const consensusRow = (
-		consRef == null
-			? null
-			: networkConsensusUpgradeByChainIdAndUpgradeId[
-				`${consRef[EntityMetaKey.Id].$network.chainId}:${consRef[EntityMetaKey.Id].upgradeId}`
-			]
-	)
-
-	const activationBlock = executionRow?.activationBlock ?? consensusRow?.activationBlock
-	const activationTimestamp = maxActivationTimestamp(
-		executionRow?.activationTimestamp,
-		consensusRow?.activationTimestamp,
-	)
-	const activationEpoch = consensusRow?.activationEpoch ?? executionRow?.activationEpoch
-
-	const executionProposals = executionRow?.$$proposals
-	const consensusProposals = consensusRow?.$$proposals
-	const linkedProposals = (
-		executionProposals != null && executionProposals.length > 0
-			? [...executionProposals]
-		: consensusProposals != null && consensusProposals.length > 0
-			? [...consensusProposals]
-		:	uniqueProposalsById([
-				...(executionProposals != null ? [...executionProposals] : []),
-				...(consensusProposals != null ? [...consensusProposals] : []),
-			])
-	)
-
-	return {
-		...(activationBlock != null && { activationBlock }),
-		...(activationTimestamp != null && { activationTimestamp }),
-		...(activationEpoch != null && { activationEpoch }),
-		...(linkedProposals.length > 0 && { $$proposals: linkedProposals }),
-	}
-}

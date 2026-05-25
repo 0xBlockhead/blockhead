@@ -1,15 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-
-	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
-
 	import { stringify } from 'devalue'
 
 
@@ -20,31 +17,22 @@
 	// Props
 	let {
 		entityId,
-		href,
+		href = resolve('/(social)/(youtube)/youtube/playlist/[playlistId]', {
+			playlistId: entityId.playlistId,
+		}),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
 			layout === EntityLayout.SummaryDetails,
 		),
-		...entityViewRest
+		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.YouTubePlaylist>
-			href: string
+			href?: string
 			layout?: EntityLayout
 			open?: boolean
 		},
-		Omit<
-			ComponentProps<typeof EntityView>,
-			| 'entityType'
-			| 'entityId'
-			| 'href'
-			| 'open'
-			| 'layout'
-			| 'title'
-			| 'Details'
-			| 'Icon'
-			| 'Content'
-		>
+		never
 	> = $props()
 
 
@@ -82,6 +70,7 @@
 
 
 	// Components
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -94,10 +83,10 @@
 <EntityView
 	entityType={EntityType.YouTubePlaylist}
 	{entityId}
-	{href}
+	href={href}
 	{layout}
 	bind:open
-	{...entityViewRest}
+	{...EntityViewProps}
 >
 	{#snippet Value()}
 		<span>
@@ -110,8 +99,8 @@
 			resource={playlist}
 			placeholderText="Loading playlist…"
 		>
-			{#snippet children(playlist)}
-				{playlist.title ?? entityId.playlistId}
+			{#snippet children(loadedPlaylist)}
+				{loadedPlaylist.title ?? entityId.playlistId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -127,80 +116,55 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			<div>
-				<dt>Description</dt>
-				<dd>
-					<ResourceBoundary
-						resource={playlist}
-						placeholderText="Loading playlist…"
-					>
-						{#snippet children(playlist)}
-							{#if playlist.description}
-								{playlist.description}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
 			{#if open}
-				<div>
-					<dt>Items</dt>
-					<dd>
-						<ResourceBoundary
-							resource={playlist}
-							placeholderText="Loading playlist…"
-						>
-							{#snippet children(playlist)}
-								{#if playlist.itemCount != null}
-									{String(playlist.itemCount)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Published</dt>
-					<dd>
-						<ResourceBoundary
-							resource={playlist}
-							placeholderText="Loading playlist…"
-						>
-							{#snippet children(playlist)}
-								{#if playlist.publishedAt != null}
-									{playlist.publishedAt}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Channel</dt>
-					<dd>
-						<ResourceBoundary
-							resource={playlist}
-							placeholderText="Loading playlist…"
-						>
-							{#snippet children(playlist)}
-								{#if playlist.$channel}
+				<ResourceBoundary
+					resource={playlist}
+					placeholderText="Loading playlist…"
+				>
+					{#snippet children(loadedPlaylist)}
+						{#if loadedPlaylist.description}
+							<div>
+								<dt>Description</dt>
+								<dd>{loadedPlaylist.description}</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/if}
+			{#if open}
+				<ResourceBoundary
+					resource={playlist}
+					placeholderText="Loading playlist…"
+				>
+					{#snippet children(loadedPlaylist)}
+						{#if loadedPlaylist.itemCount != null}
+							<div>
+								<dt>Items</dt>
+								<dd>{String(playlist.itemCount)}</dd>
+							</div>
+						{/if}
+
+						{#if loadedPlaylist.publishedAt != null}
+							<div>
+								<dt>Published</dt>
+								<dd>{loadedPlaylist.publishedAt}</dd>
+							</div>
+						{/if}
+
+						{#if loadedPlaylist.$channel}
+							<div>
+								<dt>Channel</dt>
+								<dd>
 									<YouTubeChannelView
-										entityId={playlist.$channel[EntityMetaKey.Id]}
-										href={resolve(
-											'/(social)/(youtube)/youtube/channel/[channelId]',
-											{
-												channelId: encodeURIComponent(
-													playlist.$channel[EntityMetaKey.Id].channelId,
-													),
-											},
-										)}
+										entityId={loadedPlaylist.$channel[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
-										showTypeAnnotation={false}
 									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 		</dl>
 	{/snippet}
@@ -212,7 +176,6 @@
 			entityType={EntityType.YouTubePlaylist}
 			{entityId}
 		/>
-
 		<div
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
@@ -249,14 +212,12 @@
 				{#snippet body({ open: _sectionOpen })}
 					<section data-scroll-marker-label="Videos">
 						<YouTubeVideosView
+							href={resolve('/youtube/videos')}
 							entityFieldReference={{
 								entityType: EntityType.YouTubePlaylist,
 								entityId,
 								fieldName: '$$videos',
 							}}
-							href={resolve('/(social)/(youtube)/youtube/playlist/[playlistId]/(playlist)/videos', {
-								playlistId: encodeURIComponent(entityId.playlistId),
-							})}
 							id={`${idKey}:youtube-videos`}
 							open={_open}
 						/>
@@ -266,4 +227,5 @@
 		</div>
 	{/snippet}
 </EntityView>
+
 

@@ -119,32 +119,7 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.Coingecko_Rest,
-				Source.Coingecko_OpenApi,
-				Source.Defillama_OpenApi,
-				Source.Coinpaprika_OpenApi,
-				Source.CoinMarketCap_Rest,
 			],
-		},
-		{
-			name: '$$evmTopics',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmTopic,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Local_Internal],
-		},
-		{
-			name: '$$evmSelectors',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmSelector,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Local_Internal],
-		},
-		{
-			name: '$$evmErrors',
-			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.EvmError,
-			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Local_Internal],
 		},
 		{
 			name: '$$actors',
@@ -207,7 +182,7 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.Eip8004Service,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Constants_Internal],
+			defaultSources: [Source.Eip8004Scan_Rest],
 		},
 		{
 			name: '$$bridgeTransactions',
@@ -242,7 +217,6 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.LiquidityPosition,
 			cardinality: EntityFieldCardinality.Many,
-			defaultSources: [Source.Constants_Internal],
 		},
 		{
 			name: '$$liquidityPools',
