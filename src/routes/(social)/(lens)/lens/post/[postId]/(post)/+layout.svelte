@@ -4,11 +4,10 @@
 	import { page } from '$app/state'
 
 
-	// Props
+	// State
 	let { children } = $props()
 
 
-	// (Derived)
 	const postId = $derived(
 		page.params.postId ?? '',
 	)

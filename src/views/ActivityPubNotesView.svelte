@@ -10,7 +10,7 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
-	// Props
+	// State
 	let {
 		id,
 		limit = 50,

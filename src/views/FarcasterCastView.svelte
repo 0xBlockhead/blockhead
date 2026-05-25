@@ -15,7 +15,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		children,
 		entityId,
@@ -482,6 +482,18 @@
 		>
 			<CollapsibleTabs
 				id={`${castDetailKey}:carousel-cast`}
+				sectionIdPrefix={castDetailKey}
+				sections={[
+					{ id: 'cast-record', label: 'Record' },
+					...(children ?
+						[{ id: 'cast-more', label: 'More' }]
+					:
+						[
+							{ id: 'cast-thread', label: 'Thread' },
+							...(open ? [{ id: 'cast-media', label: 'Embeds' }] : []),
+						]
+					),
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -500,316 +512,280 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Record"
-						href={`#${castDetailKey}:cast-record`}
-					>Record</a>
+				{#snippet SectionCastRecord({ id, label })}
+					<EntityDetails
+						entityType={EntityType.FarcasterCast}
+						{entityId}
+					/>
+				{/snippet}
+
+				{#snippet SectionCastMore({ id, label })}
 					{#if children}
-						<a
-							data-scroll-marker-label="More"
-							href={`#${castDetailKey}:cast-more`}
-						>More</a>
-					{:else}
-						<a
-							data-scroll-marker-label="Thread"
-							href={`#${castDetailKey}:cast-thread`}
-						>Thread</a>
-						{#if open}
-							<a
-								data-scroll-marker-label="Embeds"
-								href={`#${castDetailKey}:cast-media`}
-							>Embeds</a>
-						{/if}
+						{@render children()}
 					{/if}
 				{/snippet}
 
-				{#snippet body({ open: _paneOpen,
-				})}
-					<section
-						data-scroll-marker-label="Record"
-						id={`${castDetailKey}:cast-record`}
-					>
-						<EntityDetails
-							entityType={EntityType.FarcasterCast}
-							{entityId}
-						/>
-					</section>
-					{#if children}
-						<section
-							id={`${castDetailKey}:cast-more`}
+				{#snippet SectionCastThread({ id, label })}
+					{#if !children}
+						<ResourceBoundary
+							resource={cast}
+								placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 						>
-							{@render children()}
-						</section>
-					{:else}
-						<section
-							data-scroll-marker-label="Thread"
-							id={`${castDetailKey}:cast-thread`}
-						>
-							<ResourceBoundary
-								resource={cast}
-									placeholderText="Loading Farcaster cast (author FID + cast hash)…"
-							>
-								{#snippet children(loadedCast)}
-									{@const authorId = loadedCast.$author[EntityMetaKey.Id]}
-									{@const authorUsername = loadedCast.$author.username}
-									{@const authorDisplayName = loadedCast.$author.displayName}
-									{@const authorAvatarUrl = (
-										cast.$author.$icon === undefined ?
-											undefined
-										:
-											loadedCast.$author.$icon[EntityMetaKey.Id].url
-									)}
-									{@const postedViaAppId = (
-										cast.$postedViaApp === undefined ?
-											undefined
-										:
-											loadedCast.$postedViaApp[EntityMetaKey.Id]
-									)}
-									{@const postedViaUsername = (
-										cast.$postedViaApp === undefined ?
-											undefined
-										:
-											loadedCast.$postedViaApp.username
-									)}
-									{@const postedViaDisplayName = (
-										cast.$postedViaApp === undefined ?
-											undefined
-										:
-											loadedCast.$postedViaApp.displayName
-									)}
-									{@const channelId = (
-										cast.$channel === undefined ?
-											undefined
-										:
-											loadedCast.$channel[EntityMetaKey.Id].id
-									)}
-									{@const channelPageHref = (
-										channelId === undefined ?
-											undefined
-										:
-											resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
-												channelId,
-											})
-									)}
-									<section data-column>
-										<header data-cast="wrap gap-4">
-											<div data-cast="inline wrap gap-2">
-												{#if authorAvatarUrl !== undefined}
-													<IconComponent
-														shape={IconShape.Circle}
-														src={authorAvatarUrl}
-														alt=""
-														size="2.5rem"
-													/>
-												{/if}
-												<div data-column>
-													<strong>
-														{authorDisplayName ?? authorUsername ?? `FID ${String(authorId.fid)}`}
-													</strong>
-													{#if authorUsername !== undefined}
-														<span data-text="muted">
-															<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-																userId: String(authorId.fid),
-															})}>
-																@{authorUsername}
-															</a>
-														</span>
-													{/if}
-												</div>
-											</div>
-											<p data-text="muted">
-												<Timestamp
-													timestamp={loadedCast.timestamp}
+							{#snippet children(loadedCast)}
+								{@const authorId = loadedCast.$author[EntityMetaKey.Id]}
+								{@const authorUsername = loadedCast.$author.username}
+								{@const authorDisplayName = loadedCast.$author.displayName}
+								{@const authorAvatarUrl = (
+									cast.$author.$icon === undefined ?
+										undefined
+									:
+										loadedCast.$author.$icon[EntityMetaKey.Id].url
+								)}
+								{@const postedViaAppId = (
+									cast.$postedViaApp === undefined ?
+										undefined
+									:
+										loadedCast.$postedViaApp[EntityMetaKey.Id]
+								)}
+								{@const postedViaUsername = (
+									cast.$postedViaApp === undefined ?
+										undefined
+									:
+										loadedCast.$postedViaApp.username
+								)}
+								{@const postedViaDisplayName = (
+									cast.$postedViaApp === undefined ?
+										undefined
+									:
+										loadedCast.$postedViaApp.displayName
+								)}
+								{@const channelId = (
+									cast.$channel === undefined ?
+										undefined
+									:
+										loadedCast.$channel[EntityMetaKey.Id].id
+								)}
+								{@const channelPageHref = (
+									channelId === undefined ?
+										undefined
+									:
+										resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
+											channelId,
+										})
+								)}
+								<section data-column>
+									<header data-cast="wrap gap-4">
+										<div data-cast="inline wrap gap-2">
+											{#if authorAvatarUrl !== undefined}
+												<IconComponent
+													shape={IconShape.Circle}
+													src={authorAvatarUrl}
+													alt=""
+													size="2.5rem"
 												/>
+											{/if}
+											<div data-column>
+												<strong>
+													{authorDisplayName ?? authorUsername ?? `FID ${String(authorId.fid)}`}
+												</strong>
+												{#if authorUsername !== undefined}
+													<span data-text="muted">
+														<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+															userId: String(authorId.fid),
+														})}>
+															@{authorUsername}
+														</a>
+													</span>
+												{/if}
+											</div>
+										</div>
+										<p data-text="muted">
+											<Timestamp
+												timestamp={loadedCast.timestamp}
+											/>
+										</p>
+										{#if postedViaAppId !== undefined}
+											<p data-text="muted">
+												Cast via{' '}
+												<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+													userId: String(postedViaAppId.fid),
+												})}>
+													{postedViaDisplayName ?? postedViaUsername ?? `FID ${String(postedViaAppId.fid)}`}
+												</a>
 											</p>
-											{#if postedViaAppId !== undefined}
+										{/if}
+
+										{#if channelPageHref !== undefined}
+											{#if channelId !== undefined}
 												<p data-text="muted">
-													Cast via{' '}
-													<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-														userId: String(postedViaAppId.fid),
-													})}>
-														{postedViaDisplayName ?? postedViaUsername ?? `FID ${String(postedViaAppId.fid)}`}
+													<a href={channelPageHref}>
+														/{channelId}
 													</a>
 												</p>
 											{/if}
+										{/if}
+									</header>
 
-											{#if channelPageHref !== undefined}
-												{#if channelId !== undefined}
-													<p data-text="muted">
-														<a href={channelPageHref}>
-															/{channelId}
-														</a>
-													</p>
-												{/if}
-											{/if}
-										</header>
+									<p>
+										{loadedCast.text}
+									</p>
+								</section>
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
+				{/snippet}
 
-										<p>
-											{loadedCast.text}
-										</p>
-									</section>
-								{/snippet}
-							</ResourceBoundary>
-						</section>
-						{#if open}
-							<section
-								data-scroll-marker-label="Embeds"
-								id={`${castDetailKey}:cast-media`}
-							>
-								<ResourceBoundary
-									resource={cast}
-									placeholderText="Loading cast mentions, channel ids & embeds…"
-								>
-									{#snippet children(loadedCast)}
+				{#snippet SectionCastMedia({ id, label })}
+					{#if !children && open}
+						<ResourceBoundary
+							resource={cast}
+							placeholderText="Loading cast mentions, channel ids & embeds…"
+						>
+							{#snippet children(loadedCast)}
+								<section data-column>
+									{#if loadedCast.mentionedProfileFids !== undefined && loadedCast.mentionedProfileFids.length}
 										<section data-column>
-											{#if loadedCast.mentionedProfileFids !== undefined && loadedCast.mentionedProfileFids.length}
-												<section data-column>
-													<h3>Mentioned profiles (FID)</h3>
-													<ul data-row="wrap gap-2">
-														{#each loadedCast.mentionedProfileFids as mentionFid (String(mentionFid))}
-															<li>
-																<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
-																	userId: String(mentionFid),
-																})}>
-																	FID {String(mentionFid)}
-																</a>
-															</li>
-														{/each}
-													</ul>
-												</section>
-											{/if}
-
-											{#if loadedCast.mentionedChannelIds !== undefined && loadedCast.mentionedChannelIds.length}
-												<section data-column>
-													<h3>Mentioned channels</h3>
-													<ul data-row="wrap gap-2">
-														{#each loadedCast.mentionedChannelIds as mentionChId (mentionChId)}
-															<li>
-																<a href={resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
-																	channelId: mentionChId,
-																})}>
-																	/{mentionChId}
-																</a>
-															</li>
-														{/each}
-													</ul>
-												</section>
-											{/if}
-
-											{#if loadedCast.$$embeds.length}
-												<section data-column>
-													<h3>Embeds</h3>
-													<ul data-column>
-														{#each loadedCast.$$embeds as embed, embedIndex (String(embedIndex))}
-															{@const og = (
-																embed.$icon === undefined ?
-																	undefined
-																:
-																	embed.$icon[EntityMetaKey.Id].url
-															)}
-															{@const embeddedCastId = (
-																embed.$embeddedCast === undefined ?
-																	undefined
-																:
-																	embed.$embeddedCast[EntityMetaKey.Id]
-															)}
-															<li data-column>
-																{#if og !== undefined}
-																	<p>
-																		<a
-																			href={embed.url ?? og}
-																			rel="noreferrer"
-																		>
-																			<img
-																				src={og}
-																				alt=""
-																				loading="lazy"
-																			/>
-																		</a>
-																	</p>
-																{/if}
-
-																{#if embed.title !== undefined}
-																	<p>
-																		<strong>{embed.title}</strong>
-																	</p>
-																{/if}
-
-																{#if embed.description !== undefined}
-																	<p data-text="muted">
-																		{embed.description}
-																	</p>
-																{/if}
-
-																{#if embed.url !== undefined}
-																	<p>
-																		<a
-																			href={embed.url}
-																			rel="noreferrer"
-																		>{embed.url}</a>
-																	</p>
-																{/if}
-
-																{#if embed.quotedPreviewText !== undefined}
-																	<blockquote>
-																		<p>
-																			{embed.quotedPreviewText}
-																		</p>
-																	</blockquote>
-																{/if}
-
-																{#if embeddedCastId !== undefined}
-																	<p>
-																		<a href={resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
-																			fid: String(embeddedCastId.fid),
-																			hash: embeddedCastId.hash,
-																		})}>
-																			Quoted cast · FID {String(embeddedCastId.fid)} ·{' '}
-																			<TruncatedValue
-																				value={embeddedCastId.hash}
-																				startLength={8}
-																				endLength={6}
-																				format={TruncatedValueFormat.Visual}
-																			/>
-																		</a>
-																	</p>
-																{/if}
-															</li>
-														{/each}
-													</ul>
-												</section>
-											{/if}
-
-											{#if (
-												!(cast.mentionedProfileFids?.length)
-												&& !(cast.mentionedChannelIds?.length)
-												&& !loadedCast.$$embeds.length
-											)}
-												<div data-row="wrap align-center gap-2">
-													<p data-text="muted">
-														No mentions or embeds.
-													</p>
-													<Tooltip contentProps={{ side: 'top' }}>
-														{#snippet Content()}
-															<p>
-																Mentioned profiles, channels, and cast embeds appear when the provider returns them for this loadedCast.
-															</p>
-														{/snippet}
-														<abbr
-															class="entity-heading-tip"
-															aria-label="Mentions and embeds"
-														>ⓘ</abbr>
-													</Tooltip>
-												</div>
-											{/if}
+											<h3>Mentioned profiles (FID)</h3>
+											<ul data-row="wrap gap-2">
+												{#each loadedCast.mentionedProfileFids as mentionFid (String(mentionFid))}
+													<li>
+														<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
+															userId: String(mentionFid),
+														})}>
+															FID {String(mentionFid)}
+														</a>
+													</li>
+												{/each}
+											</ul>
 										</section>
-									{/snippet}
-								</ResourceBoundary>
-							</section>
-						{/if}
+									{/if}
+
+									{#if loadedCast.mentionedChannelIds !== undefined && loadedCast.mentionedChannelIds.length}
+										<section data-column>
+											<h3>Mentioned channels</h3>
+											<ul data-row="wrap gap-2">
+												{#each loadedCast.mentionedChannelIds as mentionChId (mentionChId)}
+													<li>
+														<a href={resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
+															channelId: mentionChId,
+														})}>
+															/{mentionChId}
+														</a>
+													</li>
+												{/each}
+											</ul>
+										</section>
+									{/if}
+
+									{#if loadedCast.$$embeds.length}
+										<section data-column>
+											<h3>Embeds</h3>
+											<ul data-column>
+												{#each loadedCast.$$embeds as embed, embedIndex (String(embedIndex))}
+													{@const og = (
+														embed.$icon === undefined ?
+															undefined
+														:
+															embed.$icon[EntityMetaKey.Id].url
+													)}
+													{@const embeddedCastId = (
+														embed.$embeddedCast === undefined ?
+															undefined
+														:
+															embed.$embeddedCast[EntityMetaKey.Id]
+													)}
+													<li data-column>
+														{#if og !== undefined}
+															<p>
+																<a
+																	href={embed.url ?? og}
+																	rel="noreferrer"
+																>
+																	<img
+																		src={og}
+																		alt=""
+																		loading="lazy"
+																	/>
+																</a>
+															</p>
+														{/if}
+
+														{#if embed.title !== undefined}
+															<p>
+																<strong>{embed.title}</strong>
+															</p>
+														{/if}
+
+														{#if embed.description !== undefined}
+															<p data-text="muted">
+																{embed.description}
+															</p>
+														{/if}
+
+														{#if embed.url !== undefined}
+															<p>
+																<a
+																	href={embed.url}
+																	rel="noreferrer"
+																>{embed.url}</a>
+															</p>
+														{/if}
+
+														{#if embed.quotedPreviewText !== undefined}
+															<blockquote>
+																<p>
+																	{embed.quotedPreviewText}
+																</p>
+															</blockquote>
+														{/if}
+
+														{#if embeddedCastId !== undefined}
+															<p>
+																<a href={resolve('/(social)/(farcaster)/farcaster/(feed)/cast/[fid]/[hash]', {
+																	fid: String(embeddedCastId.fid),
+																	hash: embeddedCastId.hash,
+																})}>
+																	Quoted cast · FID {String(embeddedCastId.fid)} ·{' '}
+																	<TruncatedValue
+																		value={embeddedCastId.hash}
+																		startLength={8}
+																		endLength={6}
+																		format={TruncatedValueFormat.Visual}
+																	/>
+																</a>
+															</p>
+														{/if}
+													</li>
+												{/each}
+											</ul>
+										</section>
+									{/if}
+
+									{#if (
+										!(cast.mentionedProfileFids?.length)
+										&& !(cast.mentionedChannelIds?.length)
+										&& !loadedCast.$$embeds.length
+									)}
+										<div data-row="wrap align-center gap-2">
+											<p data-text="muted">
+												No mentions or embeds.
+											</p>
+											<Tooltip contentProps={{ side: 'top' }}>
+												{#snippet Content()}
+													<p>
+														Mentioned profiles, channels, and cast embeds appear when the provider returns them for this loadedCast.
+													</p>
+												{/snippet}
+												<abbr
+													class="entity-heading-tip"
+													aria-label="Mentions and embeds"
+												>ⓘ</abbr>
+											</Tooltip>
+										</div>
+									{/if}
+								</section>
+							{/snippet}
+						</ResourceBoundary>
 					{/if}
 				{/snippet}
 			</CollapsibleTabs>

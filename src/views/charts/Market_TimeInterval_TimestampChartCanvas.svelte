@@ -6,7 +6,7 @@
 	import { schema } from '$/schema/index.ts'
 
 
-	// Props
+	// State
 	let {
 		title = 'OHLC',
 		points = [],
@@ -35,7 +35,6 @@
 	)
 
 
-	// (Derived)
 	const chartRangeSummary = $derived.by(() => {
 		if (points.length === 0)
 			return null

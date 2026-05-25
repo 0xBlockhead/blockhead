@@ -638,6 +638,46 @@ const collectionHasHydratedSubset = <
 	))
 }
 
+const collectionHasHydratedAnySource = <
+	_Row extends object,
+	_Key extends string | number,
+>(
+	collection: PersistOnDemandSubsetCollection<_Row, _Key>,
+	loadSubsetOptions: LoadSubsetOptions,
+) => {
+	if (collection.size === 0) return false
+	const filters = parseLoadSubsetForQueryFn(loadSubsetOptions).filters
+	if (filters.length === 0) return false
+	const sourceFilter = filters.find((filter) => (
+		filter.operator === 'in'
+		&& filter.field.length === 1
+		&& String(filter.field[0]) === EntityMetaKey.Source
+	))
+	if (sourceFilter != null) {
+		return (
+			(
+				Array.isArray(sourceFilter.value) ?
+					sourceFilter.value
+				:
+					[sourceFilter.value]
+			)
+				.some((source) => (
+					[...collection.values()].some((row) => (
+						filters.every((filter) => (
+							filter === sourceFilter ?
+								subsetValuesEqual(valueAtPath(row, filter.field), source)
+							:
+								rowMatchesSubsetFilter(row, filter)
+						))
+					))
+				))
+		)
+	}
+	return [...collection.values()].some((row) => (
+		filters.every((filter) => rowMatchesSubsetFilter(row, filter))
+	))
+}
+
 const collectionSnapshotHasChanges = <
 	_Row extends object,
 	_Key extends string | number,
@@ -730,6 +770,10 @@ const persistOnDemandSubsets = <_Options>(
 							!subsetListsMultipleSources
 							|| collectionHasHydratedSubset(params.collection, loadSubsetOptions)
 						)
+						const anySourceHasHydratedRows = (
+							!subsetListsMultipleSources
+							|| collectionHasHydratedAnySource(params.collection, loadSubsetOptions)
+						)
 
 						if (collectionHasHydratedSubset(params.collection, loadSubsetOptions)) {
 							recordPersistenceLoadSubsetDecision(
@@ -741,7 +785,7 @@ const persistOnDemandSubsets = <_Options>(
 						}
 						if (
 							params.metadata?.collection.get(loadedKey) === true
-							&& everyListedSourceHydrated
+							&& anySourceHasHydratedRows
 						) {
 							recordPersistenceLoadSubsetDecision(
 								probeCollectionId,
@@ -756,7 +800,7 @@ const persistOnDemandSubsets = <_Options>(
 								return
 							const subsetComplete = (
 								!subsetListsMultipleSources
-								|| collectionHasHydratedSubset(params.collection, loadSubsetOptions)
+								|| collectionHasHydratedAnySource(params.collection, loadSubsetOptions)
 							)
 							if (!subsetComplete)
 								return

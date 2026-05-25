@@ -27,7 +27,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		children,
 		entityId,
@@ -163,7 +163,6 @@
 	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
 
 
-	// (Derived)
 	const firstContractChainId = $derived.by(() => {
 		for (let index = 0; index < actorNetworkSliceChainIds.length; index += 1) {
 			const chainId = actorNetworkSliceChainIds[index]
@@ -371,6 +370,10 @@
 		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-identity`}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'actor-ens', label: 'Labels' },
+				]}
 				{...{ 'data-card': '' }}
 				class="actor-view-collapsible-identity"
 				scrollContainerProps={{
@@ -386,63 +389,55 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Labels"
-						href={`#${idKey}:actor-ens`}
-					>Labels</a>
-				{/snippet}
+				{#snippet SectionActorEns({ id, label })}
+					{#if true}
+						{#snippet ActorEnsNamesBody(actor)}
+							{#if (actor.$$ensNamesOwned ?? []).length}
+								<ul data-list="unstyled">
+									{#each actor.$$ensNamesOwned ?? [] as nameRef (`${nameRef[EntityMetaKey.Id].name}`)}
+										<li>
+											<a
+												data-link
+												href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
+													ensName: nameRef[EntityMetaKey.Id].name,
+												})}
+											>{nameRef[EntityMetaKey.Id].name}</a>
+										</li>
+									{/each}
+								</ul>
+							{:else}
+								<div data-row="wrap align-center gap-2">
+									<p data-text="muted">
+										No ENS names.
+									</p>
+									<Tooltip
+										content="Names owned by this address appear when subgraphs expose them from TheGraph transport."
+										contentProps={{ side: 'top' }}
+									>
+										<abbr
+											class="entity-heading-tip"
+											aria-label="ENS names"
+										>ⓘ</abbr>
+									</Tooltip>
+								</div>
+							{/if}
+						{/snippet}
 
-				{#snippet body({ open: _bodyOpen })}
-					<section
-						data-scroll-marker-label="Labels"
-						id={`${idKey}:actor-ens`}
-					>
-						{#if true}
-							{#snippet ActorEnsNamesBody(actor)}
-								{#if (actor.$$ensNamesOwned ?? []).length}
-									<ul data-list="unstyled">
-										{#each actor.$$ensNamesOwned ?? [] as nameRef (`${nameRef[EntityMetaKey.Id].name}`)}
-											<li>
-												<a
-													data-link
-													href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-														ensName: nameRef[EntityMetaKey.Id].name,
-													})}
-												>{nameRef[EntityMetaKey.Id].name}</a>
-											</li>
-										{/each}
-									</ul>
-								{:else}
-									<div data-row="wrap align-center gap-2">
-										<p data-text="muted">
-											No ENS names.
-										</p>
-										<Tooltip
-											content="Names owned by this address appear when subgraphs expose them from TheGraph transport."
-											contentProps={{ side: 'top' }}
-										>
-											<abbr
-												class="entity-heading-tip"
-												aria-label="ENS names"
-											>ⓘ</abbr>
-										</Tooltip>
-									</div>
-								{/if}
-							{/snippet}
-
-							<ResourceBoundary
-								children={ActorEnsNamesBody}
-								placeholderText="Loading account…"
-								resource={actor}
-							/>
-						{/if}
-					</section>
+						<ResourceBoundary
+							children={ActorEnsNamesBody}
+							placeholderText="Loading account…"
+							resource={actor}
+						/>
+					{/if}
 				{/snippet}
 			</CollapsibleTabs>
 
 			<CollapsibleTabs
 				id={`${idKey}:carousel-balances`}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'balances', label: 'Balances' },
+				]}
 				{...{ 'data-card': '' }}
 				class="actor-view-collapsible-balances"
 				scrollContainerProps={{
@@ -455,34 +450,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					{#if flattenedCoinItems.length}
-						<a
-							data-scroll-marker-label="By asset"
-							href={`#${idKey}:balances-by-asset`}
-						>Assets</a>
-						{#each balanceLinesByAssetKey as [assetKey, assetLines], coinGroupIndex (`coin-${String(coinGroupIndex)}`)}
-							{#if assetLines.length}
-								<a
-									data-scroll-marker-label={`${assetKey} · networks`}
-									href={`#${idKey}:balances-coin-${String(coinGroupIndex)}`}
-								>{assetKey}</a>
-							{/if}
-						{/each}
-						{#each alliumWalletBalanceChainIds as chainId (chainId)}
-							{@const balanceSlice = portfolioSliceAtChain(chainId)}
-							{#if balanceSlice?.ready === true && (balanceSlice.current.$$ownedCoins?.length ?? 0) > 0}
-								{@const facetLabel = chainFacetLabel(chainId)}
-								<a
-									data-scroll-marker-label={`${facetLabel} balances`}
-									href={`#${idKey}:balances-net-${chainId}`}
-								>{facetLabel}</a>
-							{/if}
-						{/each}
-					{/if}
-				{/snippet}
-
-				{#snippet body({ open: _bodyOpen })}
+				{#snippet SectionBalances({ id, label })}
 					<section id={`${idKey}:balances-by-asset`}>
 						<EntitiesList
 							collapsible={false}
@@ -584,64 +552,64 @@
 
 			<CollapsibleTabs
 				id={`${idKey}:carousel-activity`}
-					{...{ 'data-card': '' }}
-					class="actor-view-collapsible-activity"
-					scrollContainerProps={{
-						'data-row': 'start align-start',
-					}}
-				>
-					{#snippet Summary({ open: _summaryOpen })}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Activity</HeadingComponent>
-						</header>
-					{/snippet}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'activity', label: 'Activity' },
+				]}
+				{...{ 'data-card': '' }}
+				class="actor-view-collapsible-activity"
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({ open: _summaryOpen })}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Activity</HeadingComponent>
+					</header>
+				{/snippet}
 
-					{#snippet Markers({ open: _markersOpen })}
-						{#each actorNetworkSliceChainIds as facetChainId (facetChainId)}
-							{@const activityLabel = chainFacetLabel(facetChainId)}
-							{@const facetSlice = portfolioSliceAtChain(facetChainId)}
-							<a
-								data-scroll-marker-label={`${activityLabel} activity`}
-								href={`#${idKey}:activity-net-${facetChainId}`}
-							>{activityLabel}</a>
-							{#if (
-								!facetSlice?.ready
-								|| facetSlice.current.tokenTransferCount !== undefined
-								|| (facetSlice.current.$$tokenTransfers ?? []).length > 0
-							)}
-								<a
-									data-scroll-marker-label={`${activityLabel} · Token transfers`}
-									href={`#${idKey}:activity-net-${facetChainId}-transfers`}
-								>{activityLabel} · Token transfers</a>
-							{/if}
-							{#if (
-								!facetSlice?.ready
-								|| (facetSlice.current.$$internalTransactions ?? []).length > 0
-							)}
-								<a
-									data-scroll-marker-label={`${activityLabel} · Internal transactions`}
-									href={`#${idKey}:activity-net-${facetChainId}-internal`}
-								>{activityLabel} · Internal transactions</a>
-							{/if}
-						{/each}
-					{/snippet}
-
-					{#snippet body({ open: _bodyOpen })}
-						{#each actorNetworkSliceChainIds as facetChainId (facetChainId)}
-							<section
-								data-scroll-marker-label={`${chainFacetLabel(facetChainId)} activity`}
-								id={`${idKey}:activity-net-${facetChainId}`}
-							>
-								<ActorNetworkView
-									entityId={{
+				{#snippet SectionActivity({ id, label })}
+					{#each actorNetworkSliceChainIds as facetChainId (facetChainId)}
+						<section
+							data-scroll-marker-label={`${chainFacetLabel(facetChainId)} activity`}
+							id={`${idKey}:activity-net-${facetChainId}`}
+						>
+							<ActorNetworkView
+								entityId={{
+									$network: {
+										chainId: facetChainId,
+									},
+									$actor: entityId,
+								}}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
+							<EvmTransactionsView
+								href={resolve(
+									'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+									{
+										networkId: String(facetChainId),
+										address: entityId.address,
+									},
+								)}
+								collapsible={false}
+								entityFieldReference={{
+									entityType: EntityType.ActorNetwork,
+									entityId: {
 										$network: {
 											chainId: facetChainId,
 										},
 										$actor: entityId,
-									}}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
+									},
+									fieldName: '$$transactions',
+								}}
+								id={`${idKey}:activity-tx-${facetChainId}`}
+								title={`${chainFacetLabel(facetChainId)} · Transactions`}
+							/>
+							<section
+								data-scroll-marker-label={`${chainFacetLabel(facetChainId)} · Token transfers`}
+								id={`${idKey}:activity-net-${facetChainId}-transfers`}
+							>
 								<EvmTransactionsView
 									href={resolve(
 										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
@@ -659,70 +627,44 @@
 											},
 											$actor: entityId,
 										},
-										fieldName: '$$transactions',
+										fieldName: '$$tokenTransfers',
 									}}
-									id={`${idKey}:activity-tx-${facetChainId}`}
-									title={`${chainFacetLabel(facetChainId)} · Transactions`}
+									id={`${idKey}:activity-token-transfers-${facetChainId}`}
+									title={`${chainFacetLabel(facetChainId)} · Token transfers`}
 								/>
-								<section
-									data-scroll-marker-label={`${chainFacetLabel(facetChainId)} · Token transfers`}
-									id={`${idKey}:activity-net-${facetChainId}-transfers`}
-								>
-									<EvmTransactionsView
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-											{
-												networkId: String(facetChainId),
-												address: entityId.address,
-											},
-										)}
-										collapsible={false}
-										entityFieldReference={{
-											entityType: EntityType.ActorNetwork,
-											entityId: {
-												$network: {
-													chainId: facetChainId,
-												},
-												$actor: entityId,
-											},
-											fieldName: '$$tokenTransfers',
-										}}
-										id={`${idKey}:activity-token-transfers-${facetChainId}`}
-										title={`${chainFacetLabel(facetChainId)} · Token transfers`}
-									/>
-								</section>
-
-								<section
-									data-scroll-marker-label={`${chainFacetLabel(facetChainId)} · Internal transactions`}
-									id={`${idKey}:activity-net-${facetChainId}-internal`}
-								>
-									<EvmTransactionsView
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-											{
-												networkId: String(facetChainId),
-												address: entityId.address,
-											},
-										)}
-										collapsible={false}
-										entityFieldReference={{
-											entityType: EntityType.ActorNetwork,
-											entityId: {
-												$network: {
-													chainId: facetChainId,
-												},
-												$actor: entityId,
-											},
-											fieldName: '$$internalTransactions',
-										}}
-										id={`${idKey}:activity-internal-tx-${facetChainId}`}
-										title={`${chainFacetLabel(facetChainId)} · Internal transactions`}
-									/>
-								</section>
 							</section>
-						{/each}
-					{/snippet}
-				</CollapsibleTabs>
+
+							<section
+								data-scroll-marker-label={`${chainFacetLabel(facetChainId)} · Internal transactions`}
+								id={`${idKey}:activity-net-${facetChainId}-internal`}
+							>
+								<EvmTransactionsView
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+										{
+											networkId: String(facetChainId),
+											address: entityId.address,
+										},
+									)}
+									collapsible={false}
+									entityFieldReference={{
+										entityType: EntityType.ActorNetwork,
+										entityId: {
+											$network: {
+												chainId: facetChainId,
+											},
+											$actor: entityId,
+										},
+										fieldName: '$$internalTransactions',
+									}}
+									id={`${idKey}:activity-internal-tx-${facetChainId}`}
+									title={`${chainFacetLabel(facetChainId)} · Internal transactions`}
+								/>
+							</section>
+						</section>
+					{/each}
+				{/snippet}
+			</CollapsibleTabs>
 		</div>
 
 		{#if children}

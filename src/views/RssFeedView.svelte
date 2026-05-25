@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/(rss)/rss/feed/[feedKey]', {
@@ -234,6 +234,11 @@
 		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-feed`}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'feed-record', label: 'Record' },
+					{ id: 'feed-items', label: 'Items' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -250,48 +255,27 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Record"
-						href={`#${idKey}:feed-record`}
-					>Record</a>
-					<a
-						data-scroll-marker-label="Items"
-						href={`#${idKey}:feed-items`}
-					>Items</a>
+				{#snippet SectionFeedRecord({ id, label })}
+					<EntityDetails
+						entityType={EntityType.RssFeed}
+						{entityId}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _paneOpen })}
-					<section
-						data-scroll-marker-label="Record"
-						id={`${idKey}:feed-record`}
-					>
-						<EntityDetails
-							entityType={EntityType.RssFeed}
-							{entityId}
-						/>
-					</section>
-
-					<section
-						data-scroll-marker-label="Items"
-						id={`${idKey}:feed-items`}
-					>
-						<RssItemsView
-							href={resolve('/rss/items')}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.RssFeed,
-								entityId,
-								fieldName: '$$items',
-							}}
-							id={`${idKey}:feed-items-list`}
-							{limit}
-							open={_paneOpen}
-							title="Items"
-						/>
-					</section>
-
-
+				{#snippet SectionFeedItems({ id, label })}
+					<RssItemsView
+						href={resolve('/rss/items')}
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.RssFeed,
+							entityId,
+							fieldName: '$$items',
+						}}
+						id={`${idKey}:feed-items-list`}
+						{limit}
+						open={_paneOpen}
+						title="Items"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

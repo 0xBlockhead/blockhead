@@ -22,16 +22,16 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
-		'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
-		{
-			networkId: String(entityId.$network.chainId),
-			transactionId: entityId.txHash,
-		},
-	),
+			'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+			{
+				networkId: String(entityId.$network.chainId),
+				transactionId: entityId.txHash,
+			},
+		),
 		title = entityId.txHash,
 		open = $bindable(true),
 		...EntityViewProps
@@ -90,7 +90,6 @@
 	)
 
 
-	// (Derived)
 	const txIdKey = $derived(
 		stringify(entityId),
 	)
@@ -386,6 +385,15 @@
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
+				sectionIdPrefix={txIdKey}
+				sections={[
+					{ id: 'movements', label: 'Movements' },
+					{ id: 'call', label: 'Call' },
+					{ id: 'events', label: 'Events' },
+					{ id: 'trace', label: 'Trace' },
+					{ id: 'blobs', label: 'Blobs' },
+					{ id: 'user-operations', label: 'User operations' },
+				]}
 				id={`${txIdKey}:carousel-execution`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
@@ -399,194 +407,132 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers(context)}
-					{@const _executionMarkersOpen = context?.open ?? false}
-					<a
-						data-scroll-marker-label="Movements"
-						href={`#${txIdKey}:movements`}
-					>Movements</a>
-					<a
-						data-scroll-marker-label="Call"
-						href={`#${txIdKey}:call`}
-					>Call</a>
-					<a
-						data-scroll-marker-label="Events"
-						href={`#${txIdKey}:events`}
-					>Events</a>
-					<a
-						data-scroll-marker-label="Trace"
-						href={`#${txIdKey}:trace`}
-					>Trace</a>
-					<ResourceBoundary
-						resource={evmTransaction}
-						placeholderText=""
-					>
-						{#snippet children(loadedTransaction)}
-							{#if loadedTransaction.envelopeType === EvmTransactionEnvelopeType.Blob}
-								<a
-									data-scroll-marker-label="Blobs"
-									href={`#${txIdKey}:blobs`}
-								>Blobs</a>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-					<a
-						data-scroll-marker-label="User operations"
-						href={`#${txIdKey}:user-operations`}
-					>User ops</a>
+				{#snippet SectionMovements({ id: _movementsId, label: _movementsLabel })}
+					<EvmAssetMovementsView
+						{entityId}
+						id={`${txIdKey}:movements`}
+						open={true}
+					/>
 				{/snippet}
 
-				{#snippet body(context)}
-					{@const tabOpen = context?.open ?? false}
-					<section
-						id={`${txIdKey}:movements`}
-						data-scroll-marker-label="Movements"
+				{#snippet SectionCall({ id: _callId, label: _callLabel })}
+					<ResourceBoundary
+						resource={evmTransaction}
+						placeholderText="Loading transaction input…"
 					>
-						<EvmAssetMovementsView
-							{entityId}
-							id={`${txIdKey}:movements`}
-							open={tabOpen}
-						/>
-					</section>
+						{#snippet children(loadedTransaction)}
+							{#if loadedTransaction.input != null}
+								<EvmTransactionInputDecode
+									input={loadedTransaction.input}
+									open={true}
+								/>
+							{:else}
+								<p data-text="muted">No calldata on this transaction.</p>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
 
-					<section
-						id={`${txIdKey}:call`}
-						data-scroll-marker-label="Call"
-					>
-						<ResourceBoundary
-							resource={evmTransaction}
-							placeholderText="Loading transaction input…"
-						>
-							{#snippet children(loadedTransaction)}
-								{#if loadedTransaction.input != null}
-									<EvmTransactionInputDecode
-										input={loadedTransaction.input}
-										open={tabOpen}
-									/>
-								{:else}
-									<p data-text="muted">No calldata on this transaction.</p>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-
-					<section
+				{#snippet SectionEvents({ id: _eventsId, label: _eventsLabel })}
+					<EvmLogsView
+						href={resolve(
+							'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+							{
+							networkId: String(entityId.$network.chainId),
+							transactionId: entityId.txHash,
+							},
+	)}
+						entityFieldReference={{
+							entityType: EntityType.EvmTransaction,
+							entityId,
+							fieldName: '$$logs',
+						}}
+						collapsible={false}
 						id={`${txIdKey}:events`}
-						data-scroll-marker-label="Events"
-					>
-						<EvmLogsView
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
-								{
-								networkId: String(entityId.$network.chainId),
-								transactionId: entityId.txHash,
-								},
-		)}
-							entityFieldReference={{
-								entityType: EntityType.EvmTransaction,
-								entityId,
-								fieldName: '$$logs',
-							}}
-							collapsible={false}
-							id={`${txIdKey}:events`}
-							open={tabOpen}
-							showTypeAnnotation={false}
-							title="Receipt logs"
-						/>
-					</section>
+						open={true}
+						showTypeAnnotation={false}
+						title="Receipt logs"
+					/>
+				{/snippet}
 
-					<section
-						id={`${txIdKey}:trace`}
-						data-scroll-marker-label="Trace"
+				{#snippet SectionTrace({ id: _traceId, label: _traceLabel })}
+					{@const txTrace = useEntity(
+						EntityType.EvmTransaction,
+						entityId,
+						{
+							$: [
+								Source.Blockscout_Rest,
+								Source.Voltaire_JsonRpc,
+							],
+							traceRoot: {},
+							traceUnavailable: {},
+						},
+					)}
+					<ResourceBoundary
+						resource={txTrace}
+						placeholderText="Loading call trace…"
 					>
-						{#if tabOpen}
-							{@const txTrace = useEntity(
-								EntityType.EvmTransaction,
-								entityId,
-								{
-									$: [
-										Source.Blockscout_Rest,
-										Source.Voltaire_JsonRpc,
-									],
-									traceRoot: {},
-									traceUnavailable: {},
-								},
-							)}
-							<ResourceBoundary
-								resource={txTrace}
-								placeholderText="Loading call trace…"
-							>
-								{#snippet children(loadedTrace)}
-									{#if loadedTrace.traceRoot != null}
-										<EvmTraceTreeView
-											traceRoot={loadedTrace.traceRoot}
-											chainId={entityId.$network.chainId}
-										/>
-									{:else if loadedTrace.traceUnavailable}
-										<p data-text="muted">
-											Call trace is not available from the configured RPC or explorer for this chain.
-										</p>
-									{:else}
-										<p data-text="muted">No call trace for this transaction.</p>
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-						{/if}
-					</section>
+						{#snippet children(loadedTrace)}
+							{#if loadedTrace.traceRoot != null}
+								<EvmTraceTreeView
+									traceRoot={loadedTrace.traceRoot}
+									chainId={entityId.$network.chainId}
+								/>
+							{:else if loadedTrace.traceUnavailable}
+								<p data-text="muted">
+									Call trace is not available from the configured RPC or explorer for this chain.
+								</p>
+							{:else}
+								<p data-text="muted">No call trace for this transaction.</p>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
 
+				{#snippet SectionBlobs({ id: _blobsId, label: _blobsLabel })}
 					<ResourceBoundary
 						resource={evmTransaction}
 						placeholderText=""
 					>
 						{#snippet children(loadedTransaction)}
 							{#if loadedTransaction.envelopeType === EvmTransactionEnvelopeType.Blob}
-								<section
+								<EvmBlobsView
+									entityFieldReference={{
+										entityType: EntityType.EvmTransaction,
+										entityId,
+										fieldName: '$$blobs',
+									}}
+									collapsible={false}
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+										{
+										networkId: String(entityId.$network.chainId),
+										transactionId: entityId.txHash,
+										},
+									)}
 									id={`${txIdKey}:blobs`}
-									data-scroll-marker-label="Blobs"
-								>
-									<EvmBlobsView
-										entityFieldReference={{
-											entityType: EntityType.EvmTransaction,
-											entityId,
-											fieldName: '$$blobs',
-										}}
-										collapsible={false}
-										href={resolve(
-											'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
-											{
-											networkId: String(entityId.$network.chainId),
-											transactionId: entityId.txHash,
-											},
-										)}
-										id={`${txIdKey}:blobs`}
-										open={tabOpen}
-										showTypeAnnotation={false}
-										title="Blob sidecars"
-									/>
-								</section>
+									open={true}
+									showTypeAnnotation={false}
+									title="Blob sidecars"
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
+				{/snippet}
 
-					<section
+				{#snippet SectionUserOperations({ id: _userOpsId, label: _userOpsLabel })}
+					<EvmUserOperationsView
+						entityFieldReference={{
+							entityType: EntityType.EvmTransaction,
+							entityId,
+							fieldName: '$$userOperations',
+						}}
+						collapsible={false}
 						id={`${txIdKey}:user-operations`}
-						data-scroll-marker-label="User operations"
-					>
-						<EvmUserOperationsView
-							entityFieldReference={{
-								entityType: EntityType.EvmTransaction,
-								entityId,
-								fieldName: '$$userOperations',
-							}}
-							collapsible={false}
-							id={`${txIdKey}:user-operations`}
-							open={tabOpen}
-							showTypeAnnotation={false}
-							title="User operations"
-						/>
-					</section>
-
-
+						open={true}
+						showTypeAnnotation={false}
+						title="User operations"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

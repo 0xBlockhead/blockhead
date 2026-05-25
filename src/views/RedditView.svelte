@@ -13,7 +13,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -189,6 +189,11 @@
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
+				sectionIdPrefix={networkIdKey}
+				sections={[
+					{ id: 'subreddits', label: 'Subreddits' },
+					{ id: 'links', label: 'Popular submissions' },
+				]}
 				id={`${networkIdKey}:registry`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
@@ -208,53 +213,31 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Subreddits"
-						href={`#${networkIdKey}:subreddits`}
-					>Subreddits</a>
-					<a
-						data-scroll-marker-label="Popular submissions"
-						href={`#${networkIdKey}:links`}
-					>Submissions</a>
+				{#snippet SectionSubreddits({ id, label })}
+					<RedditSubredditsView
+						href={resolve('/reddit/subreddits')}
+						entityFieldReference={{
+							entityType: EntityType.RedditNetwork,
+							entityId,
+							fieldName: '$$redditSubreddits',
+						}}
+						id={`${networkIdKey}:subreddits-list`}
+						open={_open}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _sectionOpen,
-				})}
-					<section
-						id={`${networkIdKey}:subreddits`}
-						data-scroll-marker-label="Subreddits"
-					>
-						<RedditSubredditsView
-							href={resolve('/reddit/subreddits')}
-							entityFieldReference={{
-								entityType: EntityType.RedditNetwork,
-								entityId,
-								fieldName: '$$redditSubreddits',
-							}}
-							id={`${networkIdKey}:subreddits-list`}
-							open={_open}
-						/>
-					</section>
-
-					<section
-						id={`${networkIdKey}:links`}
-						data-scroll-marker-label="Popular submissions"
-					>
-						<RedditLinksView
-							href={resolve('/reddit/links')}
-							entityFieldReference={{
-								entityType: EntityType.RedditNetwork,
-								entityId,
-								fieldName: '$$redditLinks',
-							}}
-							id={`${networkIdKey}:links-list`}
-							open={_open}
-							title="Popular submissions"
-						/>
-					</section>
+				{#snippet SectionLinks({ id, label })}
+					<RedditLinksView
+						href={resolve('/reddit/links')}
+						entityFieldReference={{
+							entityType: EntityType.RedditNetwork,
+							entityId,
+							fieldName: '$$redditLinks',
+						}}
+						id={`${networkIdKey}:links-list`}
+						open={_open}
+						title="Popular submissions"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

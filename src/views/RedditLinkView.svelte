@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/(reddit)/reddit/link/[fullname]', {
@@ -233,6 +233,10 @@
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'comments', label: 'Top-level comments' },
+				]}
 				id={`${idKey}:carousel-comments`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
@@ -252,31 +256,16 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Top-level comments"
-						href={`#${idKey}:comments`}
-					>Comments</a>
-				{/snippet}
-
-				{#snippet body({ open: _sectionOpen,
-				})}
-					<section
-						id={`${idKey}:comments`}
-						data-scroll-marker-label="Top-level comments"
-					>
-						<RedditCommentsView
-							href={resolve('/reddit/comments')}
-							entityFieldReference={{
-								entityType: EntityType.RedditLink,
-								entityId,
-								fieldName: '$$comments',
-							}}
-							id={`${idKey}:reddit-comments`}
-						/>
-					</section>
+				{#snippet SectionComments({ id, label })}
+					<RedditCommentsView
+						href={resolve('/reddit/comments')}
+						entityFieldReference={{
+							entityType: EntityType.RedditLink,
+							entityId,
+							fieldName: '$$comments',
+						}}
+						id={`${idKey}:reddit-comments`}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

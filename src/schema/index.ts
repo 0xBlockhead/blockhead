@@ -96,6 +96,7 @@ import MediaSchema from '$/schema/Media.ts'
 import MediaObjectSchema from '$/schema/MediaObject.ts'
 import NetworkSchema from '$/schema/Network.ts'
 import NetworkBridgeSchema from '$/schema/NetworkBridge.ts'
+import Network_BeaconFinality_TimestampSchema from '$/schema/Network_BeaconFinality_Timestamp.ts'
 import Network_GasFee_BlockSchema from '$/schema/Network_GasFee_Block.ts'
 import Network_GasEstimate_TimestampSchema from '$/schema/Network_GasEstimate_Timestamp.ts'
 import Network_Txpool_TimestampSchema from '$/schema/Network_Txpool_Timestamp.ts'
@@ -234,6 +235,7 @@ export const schema = [
 	MediaObjectSchema,
 	NetworkSchema,
 	NetworkBridgeSchema,
+	Network_BeaconFinality_TimestampSchema,
 	Network_GasFee_BlockSchema,
 	Network_GasEstimate_TimestampSchema,
 	Network_Txpool_TimestampSchema,

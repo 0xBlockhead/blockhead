@@ -9,11 +9,10 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let { params } = $props()
 
 
-	// (Derived)
 	const userFeedId = $derived(
 		({
 			variant: 'byUser' as const,

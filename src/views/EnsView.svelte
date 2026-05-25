@@ -24,7 +24,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/ens/name/[ensName]', {
@@ -102,7 +102,6 @@
 	)
 
 
-	// (Derived)
 	const ensNameIdKey = $derived(
 		stringify(entityId),
 	)
@@ -416,80 +415,68 @@
 			class="ens-view-carousel-groups"
 			data-column="gap-3"
 		>
-			<CollapsibleTabs
-				id={`${ensNameIdKey}:carousel-profile`}
-				{...{ 'data-card': '' }}
-				class="ens-view-collapsible-profile"
-				scrollContainerProps={entityViewDetailCarouselScrollProps}
-			>
-				{#snippet Summary({ open: _isOpen })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Profile</HeadingComponent>
-					</header>
-				{/snippet}
+			<ResourceBoundary resource={ens}>
+			{#snippet children(loadedEns)}
+				<CollapsibleTabs
+					id={`${ensNameIdKey}:carousel-profile`}
+					sectionIdPrefix={ensNameIdKey}
+					sections={[
+						...(
+							loadedEns.textRecords?.header?.trim() != null
+							&& loadedEns.textRecords?.header?.trim() !== ''
+							&& resolveMediaUrlTransport(loadedEns.textRecords?.header?.trim())?.url != null ?
+								[{ id: 'profile-header', label: 'Header' }]
+							:
+								[]
+						),
+						{ id: 'profile-records', label: 'Profile records' },
+					]}
+					{...{ 'data-card': '' }}
+					class="ens-view-collapsible-profile"
+					scrollContainerProps={entityViewDetailCarouselScrollProps}
+				>
+					{#snippet Summary({ open: _isOpen })}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<HeadingComponent>Profile</HeadingComponent>
+						</header>
+					{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<ResourceBoundary resource={ens}>
-						{#snippet children(loadedEns)}
-							{@const headerMarkerRaw = loadedEns.textRecords?.header?.trim()}
-							{@const headerMarkerUrl = (
-								headerMarkerRaw != null && headerMarkerRaw !== '' ?
-									resolveMediaUrlTransport(headerMarkerRaw)?.url
-								:
-									undefined
-							)}
-							{#if headerMarkerUrl != null}
-								<a
-									data-scroll-marker-label="Header"
-									href={`#${ensNameIdKey}:profile-header`}
-								>Header</a>
-							{/if}
-							<a
-								data-scroll-marker-label="Profile records"
-								href={`#${ensNameIdKey}:profile-records`}
-							>Profile records</a>
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
+					{#snippet SectionProfileHeader({ id, label })}
+						{@const headerRaw = loadedEns.textRecords?.header?.trim()}
+						{@const headerUrl = (
+							headerRaw != null && headerRaw !== '' ?
+								resolveMediaUrlTransport(headerRaw)?.url
+							:
+								undefined
+						)}
+						{#if headerUrl != null}
+							<img
+								alt=""
+								class="ens-view-profile-header"
+								src={headerUrl}
+							/>
+						{/if}
+					{/snippet}
 
-				{#snippet body({ open: _bodyOpen })}
-					<ResourceBoundary
-						placeholderText="Loading profile…"
-						resource={ens}
-					>
-						{#snippet children(loadedEns)}
-							{@const headerRaw = loadedEns.textRecords?.header?.trim()}
-							{@const headerUrl = (
-								headerRaw != null && headerRaw !== '' ?
-									resolveMediaUrlTransport(headerRaw)?.url
-								:
-									undefined
-							)}
-							{#if headerUrl != null}
-								<section id={`${ensNameIdKey}:profile-header`}>
-									<img
-										alt=""
-										class="ens-view-profile-header"
-										src={headerUrl}
-									/>
-								</section>
-							{/if}
-
-							<section id={`${ensNameIdKey}:profile-records`}>
-								<EnsNameTextRecordsView
-									entityId={entityId}
-									id={`${ensNameIdKey}:profile-records-list`}
-									recordKeys={[...ensProfileTextRecordKeys]}
-									title="ENSIP-18 profile records"
-								/>
-							</section>
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-			</CollapsibleTabs>
+					{#snippet SectionProfileRecords({ id, label })}
+						<EnsNameTextRecordsView
+							entityId={entityId}
+							id={`${id}-list`}
+							recordKeys={[...ensProfileTextRecordKeys]}
+							title="ENSIP-18 profile records"
+						/>
+					{/snippet}
+				</CollapsibleTabs>
 
 			<CollapsibleTabs
 				id={`${ensNameIdKey}:carousel-registration`}
+				sectionIdPrefix={ensNameIdKey}
+				sections={[
+					...((loadedEns.$$subdomains ?? []).length ? [{ id: 'registration-subdomains', label: 'Subdomains' }] : []),
+					...(loadedEns.$parent !== undefined ? [{ id: 'registration-parent', label: 'Parent' }] : []),
+					{ id: 'registration-metadata', label: 'Metadata' },
+					...(loadedEns.$registrantActor !== undefined || loadedEns.$wrappedOwnerActor !== undefined ? [{ id: 'registration-accounts', label: 'Accounts' }] : []),
+				]}
 				{...{ 'data-card': '' }}
 				class="ens-view-collapsible-registration"
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
@@ -500,281 +487,248 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<ResourceBoundary resource={ens}>
-						{#snippet children(loadedEns)}
-							{#if (loadedEns.$$subdomains ?? []).length}
+				{#snippet SectionRegistrationSubdomains({ id, label })}
+					{#if (loadedEns.$$subdomains ?? []).length}
+						<EntitiesList
+							collapsible={false}
+							entityType={EntityType.EnsName}
+							getKey={(sub) => sub.name}
+							getSortValue={(sub) => sub.name}
+							href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
+								ensName: entityId.name,
+							})}
+							id={`${id}-list`}
+							items={loadedEns.$$subdomains.map((sub) => sub[EntityMetaKey.Id])}
+							title="Subdomains"
+						>
+							{#snippet Item({ item })}
 								<a
-									data-scroll-marker-label="Subdomains"
-									href={`#${ensNameIdKey}:registration-subdomains`}
-								>Subdomains</a>
-							{/if}
-
-							{#if loadedEns.$parent !== undefined}
-								<a
-									data-scroll-marker-label="Parent"
-									href={`#${ensNameIdKey}:registration-parent`}
-								>Parent</a>
-							{/if}
-
-							<a
-								data-scroll-marker-label="Registration metadata"
-								href={`#${ensNameIdKey}:registration-metadata`}
-							>Metadata</a>
-
-							{#if loadedEns.$registrantActor !== undefined || loadedEns.$wrappedOwnerActor !== undefined}
-								<a
-									data-scroll-marker-label="Accounts"
-									href={`#${ensNameIdKey}:registration-accounts`}
-								>Accounts</a>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+									data-link
+									href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
+										ensName: item.name,
+									})}
+								>{item.name}</a>
+							{/snippet}
+						</EntitiesList>
+					{/if}
 				{/snippet}
 
-				{#snippet body({ open: _bodyOpen })}
-					<ResourceBoundary
-						placeholderText="Loading registration…"
-						resource={ens}
-					>
-						{#snippet children(loadedEns)}
-							{#if (loadedEns.$$subdomains ?? []).length}
-								<section id={`${ensNameIdKey}:registration-subdomains`}>
-									<EntitiesList
-										collapsible={false}
-										entityType={EntityType.EnsName}
-										getKey={(sub) => sub.name}
-										getSortValue={(sub) => sub.name}
-										href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-											ensName: entityId.name,
-										})}
-										id={`${ensNameIdKey}:registration-subdomains-list`}
-										items={loadedEns.$$subdomains.map((sub) => sub[EntityMetaKey.Id])}
-										title="Subdomains"
-									>
-										{#snippet Item({ item })}
-											<a
-												data-link
-												href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-													ensName: item.name,
-												})}
-											>{item.name}</a>
-										{/snippet}
-									</EntitiesList>
-								</section>
-							{/if}
+				{#snippet SectionRegistrationParent({ id, label })}
+					{#if loadedEns.$parent !== undefined}
+						<EntitiesList
+							collapsible={false}
+							entityType={EntityType.EnsName}
+							href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
+								ensName: entityId.name,
+							})}
+							id={`${id}-list`}
+							title="Parent name"
+						>
+							{#snippet body({ open: _bodyOpen })}
+								<a
+									data-link
+									href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
+										ensName: loadedEns.$parent[EntityMetaKey.Id].name,
+									})}
+								>{loadedEns.$parent[EntityMetaKey.Id].name}</a>
+							{/snippet}
+						</EntitiesList>
+					{/if}
+				{/snippet}
 
-							{#if loadedEns.$parent !== undefined}
-								<section id={`${ensNameIdKey}:registration-parent`}>
-									<EntitiesList
-										collapsible={false}
-										entityType={EntityType.EnsName}
-										href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-											ensName: entityId.name,
-										})}
-										id={`${ensNameIdKey}:registration-parent-list`}
-										title="Parent name"
-									>
-										{#snippet body({ open: _bodyOpen })}
-											<a
-												data-link
-												href={resolve('/(explore)/(ens)/ens/name/[ensName]', {
-													ensName: loadedEns.$parent[EntityMetaKey.Id].name,
-												})}
-											>{loadedEns.$parent[EntityMetaKey.Id].name}</a>
-										{/snippet}
-									</EntitiesList>
-								</section>
-							{/if}
+				{#snippet SectionRegistrationAccounts({ id, label })}
+					<dl data-column-item="center">
+						{#if loadedEns.$ownerActor !== undefined}
+							<div>
+								<dt>Registry owner (RPC)</dt>
+								<dd>
+									<ActorNetworkView
+										entityId={{
+											$network: { chainId: ensEthereumChainId },
+											$actor: loadedEns.$ownerActor[EntityMetaKey.Id],
+										}}
+										layout={EntityLayout.Summary}
+										showTypeAnnotation={false}
+									/>
+								</dd>
+							</div>
+						{/if}
 
-							<section id={`${ensNameIdKey}:registration-accounts`}>
-								<dl data-column-item="center">
-									{#if loadedEns.$ownerActor !== undefined}
-										<div>
-											<dt>Registry owner (RPC)</dt>
-											<dd>
-												<ActorNetworkView
-													entityId={{
-														$network: { chainId: ensEthereumChainId },
-														$actor: loadedEns.$ownerActor[EntityMetaKey.Id],
-													}}
-													layout={EntityLayout.Summary}
-													showTypeAnnotation={false}
-												/>
-											</dd>
-										</div>
-									{/if}
+						{#if loadedEns.$subgraphOwnerActor !== undefined}
+							<div>
+								<dt>Subgraph owner</dt>
+								<dd>
+									<ActorNetworkView
+										entityId={{
+											$network: { chainId: ensEthereumChainId },
+											$actor: loadedEns.$subgraphOwnerActor[EntityMetaKey.Id],
+										}}
+										layout={EntityLayout.Summary}
+										showTypeAnnotation={false}
+									/>
+								</dd>
+							</div>
+						{/if}
 
-									{#if loadedEns.$subgraphOwnerActor !== undefined}
-										<div>
-											<dt>Subgraph owner</dt>
-											<dd>
-												<ActorNetworkView
-													entityId={{
-														$network: { chainId: ensEthereumChainId },
-														$actor: loadedEns.$subgraphOwnerActor[EntityMetaKey.Id],
-													}}
-													layout={EntityLayout.Summary}
-													showTypeAnnotation={false}
-												/>
-											</dd>
-										</div>
-									{/if}
+						{#if loadedEns.$registrantActor !== undefined}
+							<div>
+								<dt>Registrant (NFT)</dt>
+								<dd>
+									<ActorNetworkView
+										entityId={{
+											$network: { chainId: ensEthereumChainId },
+											$actor: loadedEns.$registrantActor[EntityMetaKey.Id],
+										}}
+										layout={EntityLayout.Summary}
+										showTypeAnnotation={false}
+									/>
+								</dd>
+							</div>
+						{/if}
 
-									{#if loadedEns.$registrantActor !== undefined}
-										<div>
-											<dt>Registrant (NFT)</dt>
-											<dd>
-												<ActorNetworkView
-													entityId={{
-														$network: { chainId: ensEthereumChainId },
-														$actor: loadedEns.$registrantActor[EntityMetaKey.Id],
-													}}
-													layout={EntityLayout.Summary}
-													showTypeAnnotation={false}
-												/>
-											</dd>
-										</div>
-									{/if}
+						{#if loadedEns.$wrappedOwnerActor !== undefined}
+							<div>
+								<dt>Name wrapper owner</dt>
+								<dd>
+									<ActorNetworkView
+										entityId={{
+											$network: { chainId: ensEthereumChainId },
+											$actor: loadedEns.$wrappedOwnerActor[EntityMetaKey.Id],
+										}}
+										layout={EntityLayout.Summary}
+										showTypeAnnotation={false}
+									/>
+								</dd>
+							</div>
+						{/if}
+					</dl>
+				{/snippet}
 
-									{#if loadedEns.$wrappedOwnerActor !== undefined}
-										<div>
-											<dt>Name wrapper owner</dt>
-											<dd>
-												<ActorNetworkView
-													entityId={{
-														$network: { chainId: ensEthereumChainId },
-														$actor: loadedEns.$wrappedOwnerActor[EntityMetaKey.Id],
-													}}
-													layout={EntityLayout.Summary}
-													showTypeAnnotation={false}
-												/>
-											</dd>
-										</div>
-									{/if}
-								</dl>
-							</section>
+				{#snippet SectionRegistrationMetadata({ id, label })}
+					<dl data-column-item="center">
+						{#if loadedEns.subgraphId != null && loadedEns.subgraphId !== ''}
+							<div>
+								<dt>Subgraph node id</dt>
+								<dd>
+									<TruncatedValue
+										value={loadedEns.subgraphId}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</dd>
+							</div>
+						{/if}
 
-							<section id={`${ensNameIdKey}:registration-metadata`}>
-								<dl data-column-item="center">
-									{#if loadedEns.subgraphId != null && loadedEns.subgraphId !== ''}
-										<div>
-											<dt>Subgraph node id</dt>
-											<dd>
-												<TruncatedValue
-													value={loadedEns.subgraphId}
-													format={TruncatedValueFormat.Visual}
-												/>
-											</dd>
-										</div>
-									{/if}
+						{#if loadedEns.labelName != null && loadedEns.labelName !== '' && loadedEns.labelName !== entityId.name}
+							<div>
+								<dt>Label</dt>
+								<dd>{loadedEns.labelName}</dd>
+							</div>
+						{/if}
 
-									{#if loadedEns.labelName != null && loadedEns.labelName !== '' && loadedEns.labelName !== entityId.name}
-										<div>
-											<dt>Label</dt>
-											<dd>{loadedEns.labelName}</dd>
-										</div>
-									{/if}
+						{#if loadedEns.labelhash != null && loadedEns.labelhash !== ''}
+							<div>
+								<dt>Labelhash</dt>
+								<dd>
+									<TruncatedValue
+										value={loadedEns.labelhash}
+										format={TruncatedValueFormat.Visual}
+									/>
+								</dd>
+							</div>
+						{/if}
 
-									{#if loadedEns.labelhash != null && loadedEns.labelhash !== ''}
-										<div>
-											<dt>Labelhash</dt>
-											<dd>
-												<TruncatedValue
-													value={loadedEns.labelhash}
-													format={TruncatedValueFormat.Visual}
-												/>
-											</dd>
-										</div>
-									{/if}
+						{#if loadedEns.ttl !== undefined}
+							<div>
+								<dt>TTL</dt>
+								<dd>{String(ens.ttl)}</dd>
+							</div>
+						{/if}
 
-									{#if loadedEns.ttl !== undefined}
-										<div>
-											<dt>TTL</dt>
-											<dd>{String(ens.ttl)}</dd>
-										</div>
-									{/if}
+						{#if (
+							ens.createdAt !== undefined
+							&& Number.isFinite(Number(ens.createdAt))
+						)}
+							<div>
+								<dt>Created (subgraph)</dt>
+								<dd>
+									<Timestamp
+										timestamp={Number(ens.createdAt)}
+									/>
+								</dd>
+							</div>
+						{/if}
 
-									{#if (
-										ens.createdAt !== undefined
-										&& Number.isFinite(Number(ens.createdAt))
-									)}
-										<div>
-											<dt>Created (subgraph)</dt>
-											<dd>
-												<Timestamp
-													timestamp={Number(ens.createdAt)}
-												/>
-											</dd>
-										</div>
-									{/if}
+						{#if (
+							ens.registrationDate !== undefined
+							&& Number.isFinite(Number(ens.registrationDate))
+						)}
+							<div>
+								<dt>Registered</dt>
+								<dd>
+									<Timestamp
+										timestamp={Number(ens.registrationDate)}
+									/>
+								</dd>
+							</div>
+						{/if}
 
-									{#if (
-										ens.registrationDate !== undefined
-										&& Number.isFinite(Number(ens.registrationDate))
-									)}
-										<div>
-											<dt>Registered</dt>
-											<dd>
-												<Timestamp
-													timestamp={Number(ens.registrationDate)}
-												/>
-											</dd>
-										</div>
-									{/if}
+						{#if (
+							ens.registrationExpiryDate !== undefined
+							&& Number.isFinite(Number(ens.registrationExpiryDate))
+						)}
+							<div>
+								<dt>Registration expiry</dt>
+								<dd>
+									<Timestamp
+										timestamp={Number(ens.registrationExpiryDate)}
+									/>
+								</dd>
+							</div>
+						{/if}
 
-									{#if (
-										ens.registrationExpiryDate !== undefined
-										&& Number.isFinite(Number(ens.registrationExpiryDate))
-									)}
-										<div>
-											<dt>Registration expiry</dt>
-											<dd>
-												<Timestamp
-													timestamp={Number(ens.registrationExpiryDate)}
-												/>
-											</dd>
-										</div>
-									{/if}
+						{#if loadedEns.registrationCost !== undefined}
+							<div>
+								<dt>Registration cost (wei)</dt>
+								<dd>
+									<NumberValue value={loadedEns.registrationCost} />
+								</dd>
+							</div>
+						{/if}
 
-									{#if loadedEns.registrationCost !== undefined}
-										<div>
-											<dt>Registration cost (wei)</dt>
-											<dd>
-												<NumberValue value={loadedEns.registrationCost} />
-											</dd>
-										</div>
-									{/if}
+						{#if (
+							ens.wrappedExpiryDate !== undefined
+							&& Number.isFinite(Number(ens.wrappedExpiryDate))
+						)}
+							<div>
+								<dt>Wrapper expiry</dt>
+								<dd>
+									<Timestamp
+										timestamp={Number(ens.wrappedExpiryDate)}
+									/>
+								</dd>
+							</div>
+						{/if}
 
-									{#if (
-										ens.wrappedExpiryDate !== undefined
-										&& Number.isFinite(Number(ens.wrappedExpiryDate))
-									)}
-										<div>
-											<dt>Wrapper expiry</dt>
-											<dd>
-												<Timestamp
-													timestamp={Number(ens.wrappedExpiryDate)}
-												/>
-											</dd>
-										</div>
-									{/if}
-
-									{#if loadedEns.wrappedFuses !== undefined}
-										<div>
-											<dt>Wrapper fuses</dt>
-											<dd>{String(ens.wrappedFuses)}</dd>
-										</div>
-									{/if}
-								</dl>
-							</section>
-						{/snippet}
-					</ResourceBoundary>
+						{#if loadedEns.wrappedFuses !== undefined}
+							<div>
+								<dt>Wrapper fuses</dt>
+								<dd>{String(ens.wrappedFuses)}</dd>
+							</div>
+						{/if}
+					</dl>
 				{/snippet}
 			</CollapsibleTabs>
 
 			<CollapsibleTabs
 				id={`${ensNameIdKey}:carousel-records`}
+				sectionIdPrefix={ensNameIdKey}
+				sections={[
+					{ id: 'records-text', label: 'Text records' },
+					...(loadedEns.contentHash != null && loadedEns.contentHash !== '' ? [{ id: 'records-content-hash', label: 'Content hash' }] : []),
+					...(loadedEns.resolverAbiJson != null && loadedEns.resolverAbiJson !== '' ? [{ id: 'records-abi', label: 'Resolver ABI' }] : []),
+					...(loadedEns.coinAddresses !== undefined && Object.keys(ens.coinAddresses).length > 0 ? [{ id: 'records-coins', label: 'Coin addresses' }] : []),
+					...((ens.resolverTextKeys ?? []).length || (ens.resolverCoinTypes ?? []).length ? [{ id: 'records-indexer', label: 'Indexer' }] : []),
+				]}
 				{...{ 'data-card': '' }}
 				class="ens-view-collapsible-records"
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
@@ -785,216 +739,175 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<ResourceBoundary resource={ens}>
-						{#snippet children(loadedEns)}
-							<a
-								data-scroll-marker-label="Text records"
-								href={`#${ensNameIdKey}:records-text`}
-							>Text records</a>
-							{#if loadedEns.contentHash != null && loadedEns.contentHash !== ''}
-								<a
-									data-scroll-marker-label="Content hash"
-									href={`#${ensNameIdKey}:records-content-hash`}
-								>Content hash</a>
-							{/if}
-
-							{#if loadedEns.resolverAbiJson != null && loadedEns.resolverAbiJson !== ''}
-								<a
-									data-scroll-marker-label="Resolver ABI"
-									href={`#${ensNameIdKey}:records-abi`}
-								>Resolver ABI</a>
-							{/if}
-
-							{#if loadedEns.coinAddresses !== undefined && Object.keys(ens.coinAddresses).length > 0}
-								<a
-									data-scroll-marker-label="Coin addresses"
-									href={`#${ensNameIdKey}:records-coins`}
-								>Coin addresses</a>
-							{/if}
-
-							{#if (ens.resolverTextKeys ?? []).length || (ens.resolverCoinTypes ?? []).length}
-								<a
-									data-scroll-marker-label="Indexer"
-									href={`#${ensNameIdKey}:records-indexer`}
-								>Indexer</a>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+				{#snippet SectionRecordsText({ id, label })}
+					<EnsNameTextRecordsView
+						entityId={entityId}
+						excludeRecordKeys={[...ensProfileTextRecordKeys]}
+						id={`${id}-list`}
+						title="General and social text records"
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _bodyOpen })}
-					<ResourceBoundary
-						placeholderText="Loading records…"
-						resource={ens}
-					>
-						{#snippet children(loadedEns)}
-							{#if loadedEns.contentHash != null && loadedEns.contentHash !== ''}
-								{@const decodedContentHash = decodeEnsContentHash(loadedEns.contentHash)}
-								{@const contentHashBrowseHref = ensContentHashBrowseHref(loadedEns.contentHash)}
-								<section id={`${ensNameIdKey}:records-content-hash`}>
-									<EntitiesList
-										collapsible={false}
-										entityType={EntityType.EnsName}
-										href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
-											ensName: entityId.name,
-										})}
-										id={`${ensNameIdKey}:records-content-hash-list`}
-										title="Content hash"
-									>
-										{#snippet body({ open: _bodyOpen })}
-											<dl data-column-item="center">
-												<div>
-													<dt>Encoded (EIP-1577)</dt>
-													<dd>
+				{#snippet SectionRecordsContentHash({ id, label })}
+					{#if loadedEns.contentHash != null && loadedEns.contentHash !== ''}
+						{@const decodedContentHash = decodeEnsContentHash(loadedEns.contentHash)}
+						{@const contentHashBrowseHref = ensContentHashBrowseHref(loadedEns.contentHash)}
+						<EntitiesList
+							collapsible={false}
+							entityType={EntityType.EnsName}
+							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
+								ensName: entityId.name,
+							})}
+							id={`${id}-list`}
+							title="Content hash"
+						>
+							{#snippet body({ open: _bodyOpen })}
+								<dl data-column-item="center">
+									<div>
+										<dt>Encoded (EIP-1577)</dt>
+										<dd>
+											<TruncatedValue
+												value={loadedEns.contentHash}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</dd>
+									</div>
+									{#if decodedContentHash != null}
+										<div>
+											<dt>Decoded</dt>
+											<dd>
+												{#if contentHashBrowseHref != null}
+													<a data-link href={contentHashBrowseHref}>
 														<TruncatedValue
-															value={loadedEns.contentHash}
+															value={decodedContentHash.canonicalUri}
 															format={TruncatedValueFormat.Visual}
 														/>
-													</dd>
-												</div>
-												{#if decodedContentHash != null}
-													<div>
-														<dt>Decoded</dt>
-														<dd>
-															{#if contentHashBrowseHref != null}
-																<a data-link href={contentHashBrowseHref}>
-																	<TruncatedValue
-																		value={decodedContentHash.canonicalUri}
-																		format={TruncatedValueFormat.Visual}
-																	/>
-																</a>
-															{:else}
-																<TruncatedValue
-																	value={decodedContentHash.canonicalUri}
-																	format={TruncatedValueFormat.Visual}
-																/>
-															{/if}
-														</dd>
-													</div>
+													</a>
+												{:else}
+													<TruncatedValue
+														value={decodedContentHash.canonicalUri}
+														format={TruncatedValueFormat.Visual}
+													/>
 												{/if}
-											</dl>
-										{/snippet}
-									</EntitiesList>
-								</section>
-							{/if}
+											</dd>
+										</div>
+									{/if}
+								</dl>
+							{/snippet}
+						</EntitiesList>
+					{/if}
+				{/snippet}
 
-							{#if loadedEns.resolverAbiJson != null && loadedEns.resolverAbiJson !== ''}
-								<section id={`${ensNameIdKey}:records-abi`}>
-									<EntitiesList
-										collapsible={false}
-										entityType={EntityType.EnsName}
-										href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
-											ensName: entityId.name,
-										})}
-										id={`${ensNameIdKey}:records-abi-list`}
-										title="Resolver ABI"
-									>
-										{#snippet body({ open: _bodyOpen })}
-											<dl data-column-item="center">
-												<div>
-													<dt>ABI (JSON)</dt>
-													<dd>
-														<TruncatedValue
-															value={loadedEns.resolverAbiJson}
-															format={TruncatedValueFormat.Visual}
-														/>
-													</dd>
-												</div>
-											</dl>
-										{/snippet}
-									</EntitiesList>
-								</section>
-							{/if}
+				{#snippet SectionRecordsAbi({ id, label })}
+					{#if loadedEns.resolverAbiJson != null && loadedEns.resolverAbiJson !== ''}
+						<EntitiesList
+							collapsible={false}
+							entityType={EntityType.EnsName}
+							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
+								ensName: entityId.name,
+							})}
+							id={`${id}-list`}
+							title="Resolver ABI"
+						>
+							{#snippet body({ open: _bodyOpen })}
+								<dl data-column-item="center">
+									<div>
+										<dt>ABI (JSON)</dt>
+										<dd>
+											<TruncatedValue
+												value={loadedEns.resolverAbiJson}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</dd>
+									</div>
+								</dl>
+							{/snippet}
+						</EntitiesList>
+					{/if}
+				{/snippet}
 
-							<section id={`${ensNameIdKey}:records-text`}>
-								<EnsNameTextRecordsView
-									entityId={entityId}
-									excludeRecordKeys={[...ensProfileTextRecordKeys]}
-									id={`${ensNameIdKey}:records-text-list`}
-									title="General and social text records"
-								/>
-							</section>
+				{#snippet SectionRecordsCoins({ id, label })}
+					{#if loadedEns.coinAddresses !== undefined && Object.keys(ens.coinAddresses).length > 0}
+						<EntitiesList
+							collapsible={false}
+							entityType={EntityType.EnsName}
+							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
+								ensName: entityId.name,
+							})}
+							id={`${id}-list`}
+							title="Coin addresses"
+						>
+							{#snippet body({ open: _bodyOpen })}
+								<dl data-column-item="center">
+									{#each Object.entries(ens.coinAddresses) as [coinType, addr] (coinType)}
+										<div>
+											<dt>{(
+												coinType in ensCoinTypeLabels ?
+													ensCoinTypeLabels[coinType].label
+												:
+													`Coin type ${coinType}`
+											)}</dt>
+											<dd>
+												<TruncatedValue
+													value={addr}
+													format={TruncatedValueFormat.Visual}
+												/>
+											</dd>
+										</div>
+									{/each}
+								</dl>
+							{/snippet}
+						</EntitiesList>
+					{/if}
+				{/snippet}
 
-							{#if loadedEns.coinAddresses !== undefined && Object.keys(ens.coinAddresses).length > 0}
-								<section id={`${ensNameIdKey}:records-coins`}>
-									<EntitiesList
-										collapsible={false}
-										entityType={EntityType.EnsName}
-										href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
-											ensName: entityId.name,
-										})}
-										id={`${ensNameIdKey}:records-coins-list`}
-										title="Coin addresses"
-									>
-										{#snippet body({ open: _bodyOpen })}
-											<dl data-column-item="center">
-												{#each Object.entries(ens.coinAddresses) as [coinType, addr] (coinType)}
-													<div>
-														<dt>{(
-															coinType in ensCoinTypeLabels ?
-																ensCoinTypeLabels[coinType].label
-															:
-																`Coin type ${coinType}`
-														)}</dt>
-														<dd>
-															<TruncatedValue
-																value={addr}
-																format={TruncatedValueFormat.Visual}
-															/>
-														</dd>
-													</div>
-												{/each}
-											</dl>
-										{/snippet}
-									</EntitiesList>
-								</section>
-							{/if}
-
-							{#if (ens.resolverTextKeys ?? []).length || (ens.resolverCoinTypes ?? []).length}
-								<section id={`${ensNameIdKey}:records-indexer`}>
-									<EntitiesList
-										collapsible={false}
-										entityType={EntityType.EnsName}
-										href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
-											ensName: entityId.name,
-										})}
-										id={`${ensNameIdKey}:records-indexer-list`}
-										title="Subgraph resolver index"
-									>
-										{#snippet body({ open: _bodyOpen })}
-											<dl data-column-item="center">
-												{#if (ens.resolverTextKeys ?? []).length}
-													<div>
-														<dt>Text keys (indexer)</dt>
-														<dd data-text="muted">{(ens.resolverTextKeys ?? []).join(', ')}</dd>
-													</div>
-												{/if}
-												{#if (ens.resolverCoinTypes ?? []).length}
-													<div>
-														<dt>Coin types (indexer)</dt>
-														<dd data-text="muted">
-															{(ens.resolverCoinTypes ?? []).map((coinType) => (
-																coinType in ensCoinTypeLabels ?
-																	ensCoinTypeLabels[coinType].label
-																:
-																	`Coin type ${coinType}`
-															)).join(', ')}
-														</dd>
-													</div>
-												{/if}
-											</dl>
-										{/snippet}
-									</EntitiesList>
-								</section>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+				{#snippet SectionRecordsIndexer({ id, label })}
+					{#if (ens.resolverTextKeys ?? []).length || (ens.resolverCoinTypes ?? []).length}
+						<EntitiesList
+							collapsible={false}
+							entityType={EntityType.EnsName}
+							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/records', {
+								ensName: entityId.name,
+							})}
+							id={`${id}-list`}
+							title="Subgraph resolver index"
+						>
+							{#snippet body({ open: _bodyOpen })}
+								<dl data-column-item="center">
+									{#if (ens.resolverTextKeys ?? []).length}
+										<div>
+											<dt>Text keys (indexer)</dt>
+											<dd data-text="muted">{(ens.resolverTextKeys ?? []).join(', ')}</dd>
+										</div>
+									{/if}
+									{#if (ens.resolverCoinTypes ?? []).length}
+										<div>
+											<dt>Coin types (indexer)</dt>
+											<dd data-text="muted">
+												{(ens.resolverCoinTypes ?? []).map((coinType) => (
+													coinType in ensCoinTypeLabels ?
+														ensCoinTypeLabels[coinType].label
+													:
+														`Coin type ${coinType}`
+												)).join(', ')}
+											</dd>
+										</div>
+									{/if}
+								</dl>
+							{/snippet}
+						</EntitiesList>
+					{/if}
 				{/snippet}
 			</CollapsibleTabs>
 
 			<CollapsibleTabs
 				id={`${ensNameIdKey}:carousel-resolution`}
+				sectionIdPrefix={ensNameIdKey}
+				sections={[
+					...(loadedEns.$resolvedActor !== undefined ? [{ id: 'resolution-addr', label: 'Addr record' }] : []),
+					...(loadedEns.$subgraphResolvedActor !== undefined ? [{ id: 'resolution-subgraph-addr', label: 'Subgraph addr' }] : []),
+					...(loadedEns.$resolverContract !== undefined ? [{ id: 'resolution-resolver', label: 'Resolver' }] : []),
+				]}
 				{...{ 'data-card': '' }}
 				class="ens-view-collapsible-resolution"
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
@@ -1005,73 +918,41 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<ResourceBoundary resource={ens}>
-						{#snippet children(loadedEns)}
-							{#if loadedEns.$resolvedActor !== undefined}
-								<a
-									data-scroll-marker-label="Addr record"
-									href={`#${ensNameIdKey}:resolution-addr`}
-								><code>addr</code></a>
-							{/if}
-							{#if loadedEns.$subgraphResolvedActor !== undefined}
-								<a
-									data-scroll-marker-label="Subgraph addr"
-									href={`#${ensNameIdKey}:resolution-subgraph-addr`}
-								>Subgraph <code>addr</code></a>
-							{/if}
-							{#if loadedEns.$resolverContract !== undefined}
-								<a
-									data-scroll-marker-label="Resolver"
-									href={`#${ensNameIdKey}:resolution-resolver`}
-								>Resolver</a>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+				{#snippet SectionResolutionAddr({ id, label })}
+					{#if loadedEns.$resolvedActor !== undefined}
+						<ActorView
+							entityId={loadedEns.$resolvedActor[EntityMetaKey.Id]}
+							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
+								ensName: entityId.name,
+							})}
+							title="Addr record (RPC)"
+						/>
+					{/if}
 				{/snippet}
 
-				{#snippet body({ open: _bodyOpen })}
-					<ResourceBoundary
-						placeholderText="Loading resolution…"
-						resource={ens}
-					>
-						{#snippet children(loadedEns)}
-							{#if loadedEns.$resolvedActor !== undefined}
-								<section id={`${ensNameIdKey}:resolution-addr`}>
-									<ActorView
-										entityId={loadedEns.$resolvedActor[EntityMetaKey.Id]}
-										href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
-											ensName: entityId.name,
-										})}
-										title="Addr record (RPC)"
-									/>
-								</section>
-							{/if}
+				{#snippet SectionResolutionSubgraphAddr({ id, label })}
+					{#if loadedEns.$subgraphResolvedActor !== undefined}
+						<ActorView
+							entityId={loadedEns.$subgraphResolvedActor[EntityMetaKey.Id]}
+							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
+								ensName: entityId.name,
+							})}
+							title="Resolved address (subgraph)"
+						/>
+					{/if}
+				{/snippet}
 
-							{#if loadedEns.$subgraphResolvedActor !== undefined}
-								<section id={`${ensNameIdKey}:resolution-subgraph-addr`}>
-									<ActorView
-										entityId={loadedEns.$subgraphResolvedActor[EntityMetaKey.Id]}
-										href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
-											ensName: entityId.name,
-										})}
-										title="Resolved address (subgraph)"
-									/>
-								</section>
-							{/if}
-
-							{#if loadedEns.$resolverContract !== undefined}
-								<section id={`${ensNameIdKey}:resolution-resolver`}>
-									<EvmContractView
-										entityId={loadedEns.$resolverContract[EntityMetaKey.Id]}
-										title="Resolver contract"
-									/>
-								</section>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+				{#snippet SectionResolutionResolver({ id, label })}
+					{#if loadedEns.$resolverContract !== undefined}
+						<EvmContractView
+							entityId={loadedEns.$resolverContract[EntityMetaKey.Id]}
+							title="Resolver contract"
+						/>
+					{/if}
 				{/snippet}
 			</CollapsibleTabs>
+		{/snippet}
+			</ResourceBoundary>
 		</div>
 	{/snippet}
 </EntityView>

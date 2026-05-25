@@ -1,5 +1,5 @@
 <script lang="ts">
-	// Props
+	// State
 	let {
 		value,
 		currency = 'USD',

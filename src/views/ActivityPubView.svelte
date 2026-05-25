@@ -16,7 +16,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/activitypub'),
@@ -88,7 +88,6 @@
 	)
 
 
-	// (Derived)
 	const networkIdKey = $derived(
 		stringify(entityId),
 	)
@@ -262,6 +261,11 @@
 		>
 			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-public`}
+				sectionIdPrefix={networkIdKey}
+				sections={[
+					{ id: 'public-actors', label: 'Actors' },
+					{ id: 'public-notes', label: 'Public timeline' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -278,52 +282,33 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Actors"
-						href={`#${networkIdKey}:public-actors`}
-					>Actors</a>
-					<a
-						data-scroll-marker-label="Public timeline"
-						href={`#${networkIdKey}:public-notes`}
-					>Public timeline</a>
+				{#snippet SectionPublicActors({ id: _id, label: _label })}
+					<ActivityPubActorsView
+						href={resolve('/activitypub/actors')}
+						entityFieldReference={{
+							entityType: EntityType.ActivityPubNetwork,
+							entityId,
+							fieldName: '$$activityPubActors',
+						}}
+						id={`${networkIdKey}:actors`}
+						open={_open}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _bodyOpen })}
-					<section
-						data-scroll-marker-label="Actors"
-						id={`${networkIdKey}:public-actors`}
-					>
-						<ActivityPubActorsView
-							href={resolve('/activitypub/actors')}
-							entityFieldReference={{
-								entityType: EntityType.ActivityPubNetwork,
-								entityId,
-								fieldName: '$$activityPubActors',
-							}}
-							id={`${networkIdKey}:actors`}
-							open={_open}
-						/>
-					</section>
-
-					<section
-						data-scroll-marker-label="Public timeline"
-						id={`${networkIdKey}:public-notes`}
-					>
-						<ActivityPubNotesView
-							href={resolve('/activitypub/notes')}
-							entityFieldReference={{
-								entityType: EntityType.ActivityPubNetwork,
-								entityId,
-								fieldName: '$$activityPubNotes',
-							}}
-							fieldOpen={_open}
-							id={`${networkIdKey}:notes`}
-							orderByCreatedAt="desc"
-							placeholderText="Loading federation statuses…"
-							title="Public timeline"
-						/>
-					</section>
+				{#snippet SectionPublicNotes({ id: _id, label: _label })}
+					<ActivityPubNotesView
+						href={resolve('/activitypub/notes')}
+						entityFieldReference={{
+							entityType: EntityType.ActivityPubNetwork,
+							entityId,
+							fieldName: '$$activityPubNotes',
+						}}
+						fieldOpen={_open}
+						id={`${networkIdKey}:notes`}
+						orderByCreatedAt="desc"
+						placeholderText="Loading federation statuses…"
+						title="Public timeline"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

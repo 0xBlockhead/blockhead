@@ -1,5 +1,5 @@
 <script lang="ts">
-	// Props
+	// State
 	let {
 		contentSize,
 		contentType,
@@ -55,7 +55,6 @@
 	} as const satisfies Record<IpfsDisplayType, string>
 
 
-	// (Derived)
 	const mediaType = $derived(
 		contentType?.split(/;\s*/)[0],
 	)

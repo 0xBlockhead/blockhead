@@ -31,7 +31,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		title = 'Proposal kinds',
 
@@ -151,7 +151,6 @@
 	)
 
 
-	// (Derived)
 	const loadedCount = $derived(
 		proposalKinds.ready ?
 			proposalKinds.current!.length
@@ -250,6 +249,11 @@
 								onNestedCollapsibleClose?.(id)
 							userCollapsibleOnClose?.(closeId)
 						}}
+						sectionIdPrefix="proposal-kind"
+						sections={[{
+							id: 'kinds',
+							label: entityDefinitionByType[EntityType.ProposalKind].labelPlural,
+						}]}
 						{...{ 'data-card': '' }}
 						scrollContainerProps={collapsibleTabsPaneProps}
 					>
@@ -292,23 +296,10 @@
 							</div>
 						{/snippet}
 
-						{#snippet Markers({
-							open: _markersOpen,
-						})}
+						{#snippet SectionKinds({ id: _sectionId, label: _sectionLabel })}
 							{#each rows as row (proposalKindKey(row))}
 								{@const kind = row.result}
-								<a
-									data-scroll-marker-label={kind.labelPlural ?? kind.label ?? String(kind[EntityMetaKey.Id].category)}
-									href={`#${kindPanelDomId(kind)}`}
-								>{kind.labelPlural ?? kind.label ?? String(kind[EntityMetaKey.Id].category)}</a>
-							{/each}
-						{/snippet}
-
-						{#snippet body({ open: _sectionOpen,
-						})}
-							{#each rows as row (proposalKindKey(row))}
-								{@const kind = row.result}
-								<section data-scroll-marker-label={kind.labelPlural ?? kind.label ?? String(kind[EntityMetaKey.Id].category)}>
+								<section id={kindPanelDomId(kind)}>
 									<ProposalsView
 										href={resolve('/proposals')}
 										collapsible={false}

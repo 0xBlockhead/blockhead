@@ -6,7 +6,7 @@
 	import type { Sort } from '$/components/RefinableList.svelte'
 
 
-	// Props
+	// State
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 
@@ -31,7 +31,6 @@
 	> = $props()
 
 
-	// (Derived)
 
 	const effectiveSortId = $derived(
 		(activeSortId === '' ? (defaultSortId ?? sortOptions[0]?.id) : activeSortId) ?? ''

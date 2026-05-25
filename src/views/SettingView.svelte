@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/~/manage'),
@@ -130,31 +130,33 @@
 	{#snippet Details({
 		open: _open,
 	})}
+		{#if _open}
+			<div>
+				<CollapsibleTabs sections={[]}>
+					<ResourceBoundary resource={global}>
+						{#snippet children(loadedGlobal)}
+							<dl>
+								{#if loadedGlobal.duneCreditsIncluded !== undefined}
+									<div>
+										<dt>Dune credits included</dt>
+										<dd>{String(global.duneCreditsIncluded)}</dd>
+									</div>
+								{/if}
 
-
-										{#if loadedGlobal.duneCreditsIncluded !== undefined}
-											<div>
-												<dt>Dune credits included</dt>
-												<dd>{String(global.duneCreditsIncluded)}</dd>
-											</div>
-										{/if}
-
-										{#if (
-											global.duneCreditsUsed === undefined
-											&& global.duneCreditsIncluded === undefined
-										)}
-											<div>
-												<dt>Status</dt>
-												<dd data-text="muted">
-													No usage totals global yet.
-												</dd>
-											</div>
-										{/if}
-									</dl>
-								{/snippet}
-							</ResourceBoundary>
-						</section>
-					{/snippet}
+								{#if (
+									global.duneCreditsUsed === undefined
+									&& global.duneCreditsIncluded === undefined
+								)}
+									<div>
+										<dt>Status</dt>
+										<dd data-text="muted">
+											No usage totals global yet.
+										</dd>
+									</div>
+								{/if}
+							</dl>
+						{/snippet}
+					</ResourceBoundary>
 				</CollapsibleTabs>
 			</div>
 		{/if}

@@ -3,7 +3,7 @@
 	import { greet } from './greet.ts'
 
 
-	// Props
+	// State
 	let { host = 'SvelteKit', guest = 'Vitest' } = $props()
 </script>
 

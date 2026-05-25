@@ -4,13 +4,12 @@
 	import { coinById, coins } from '$/constants/Coin.ts'
 
 
-	// Props
+	// State
 	let {
 		params,
 	} = $props()
 
 
-	// (Derived)
 	const route = $derived.by(() => {
 		const param = params.coinId ?? ''
 		const coinId = coinIdFromParam(param)

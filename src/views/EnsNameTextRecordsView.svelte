@@ -19,7 +19,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		id = 'ens-text-records',
@@ -117,7 +117,6 @@
 	))
 
 
-	// (Derived)
 	const excludeRecordKeys = $derived(
 		excludeRecordKeysProp === undefined ?
 			null

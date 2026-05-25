@@ -718,6 +718,35 @@ export const getBlockscoutUserOperationsPage = async ({
 	return items
 }
 
+export const getBlockscoutUserOperationsByTransaction = async ({
+	explorerOrigin,
+	txHash,
+	limit,
+}: {
+	explorerOrigin: string
+	txHash: `0x${string}`
+	limit: number
+}): Promise<BlockscoutUserOperationListItem[]> => {
+	const normalized = blockscoutErc4337PathHash(txHash, 32, 'Blockscout user operations by transaction')
+	const relativePath = '/proxy/account-abstraction/operations'
+	const raw = await getJson<
+		BlockscoutPaginated<BlockscoutUserOperationListItem> & { error?: unknown }
+	>({
+		explorerOrigin,
+		path: relativePath,
+		searchParams: {
+			page_size: blockscoutItemsCount(limit),
+			transaction_hash: normalized,
+		},
+	})
+	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
+	const items = raw.items ?? []
+	if (items.length === 0) {
+		throw new Error(`Blockscout_Rest: no user operations for transaction ${txHash}`)
+	}
+	return items
+}
+
 export const getBlockscoutUserOperationDetail = async ({
 	explorerOrigin,
 	hash,

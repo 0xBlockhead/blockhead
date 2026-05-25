@@ -7,13 +7,12 @@
 	} from '$/constants/MarketVenue.ts'
 
 
-	// Props
+	// State
 	let {
 		params,
 	} = $props()
 
 
-	// (Derived)
 	const route = $derived.by(() => {
 		const param = params.marketVenueId ?? ''
 		const marketVenueId = marketVenueIdFromParam(param)

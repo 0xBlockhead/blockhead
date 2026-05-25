@@ -14,7 +14,7 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
-	// Props
+	// State
 	let {
 		title = 'OHLC',
 		open = $bindable(true),

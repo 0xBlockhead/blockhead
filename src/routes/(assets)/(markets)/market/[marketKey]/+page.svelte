@@ -3,13 +3,12 @@
 	import { parse } from 'devalue'
 
 
-	// Props
+	// State
 	let {
 		params,
 	} = $props()
 
 
-	// (Derived)
 	const route = $derived.by(() => {
 		const raw = params.marketKey ?? ''
 		if (raw.length === 0) {

@@ -1,5 +1,5 @@
 <script lang="ts">
-	// Props
+	// State
 	let {
 		label = 'Mainnet',
 	}: {

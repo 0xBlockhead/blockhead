@@ -31,6 +31,11 @@
 		})}
 			<CollapsibleTabs
 				id={`${hubKey}:hub`}
+				sectionIdPrefix={hubKey}
+				sections={[
+					{ id: 'rooms', label: 'Rooms' },
+					{ id: 'contacts', label: 'Contacts' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -48,49 +53,30 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Rooms"
-						href={`#${hubKey}:rooms`}
-					>Rooms</a>
-					<a
-						data-scroll-marker-label="Contacts"
-						href={`#${hubKey}:contacts`}
-					>Contacts</a>
+				{#snippet SectionRooms({ id, label })}
+					<BlockheadRoomsView
+						href={resolve('/~/multiplayer/rooms')}
+						entityFieldReference={{
+							entityType: EntityType._Global,
+							entityId: {},
+							fieldName: '$$blockheadRooms',
+						}}
+						id="rooms"
+						open={hubOpen}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _paneOpen })}
-					<section
-						id={`${hubKey}:rooms`}
-						data-scroll-marker-label="Rooms"
-					>
-						<BlockheadRoomsView
-							href={resolve('/~/multiplayer/rooms')}
-							entityFieldReference={{
-								entityType: EntityType._Global,
-								entityId: {},
-								fieldName: '$$blockheadRooms',
-							}}
-							id="rooms"
-							open={hubOpen}
-						/>
-					</section>
-
-					<section
-						id={`${hubKey}:contacts`}
-						data-scroll-marker-label="Contacts"
-					>
-						<BlockheadRoomPeersView
-							href={resolve('/~/multiplayer/contacts')}
-							entityFieldReference={{
-								entityType: EntityType._Global,
-								entityId: {},
-								fieldName: '$$blockheadRoomPeers',
-							}}
-							id="contacts"
-							open={hubOpen}
-						/>
-					</section>
+				{#snippet SectionContacts({ id, label })}
+					<BlockheadRoomPeersView
+						href={resolve('/~/multiplayer/contacts')}
+						entityFieldReference={{
+							entityType: EntityType._Global,
+							entityId: {},
+							fieldName: '$$blockheadRoomPeers',
+						}}
+						id="contacts"
+						open={hubOpen}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		{/snippet}

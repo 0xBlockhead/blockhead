@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		icon,
 		accounts,
@@ -69,7 +69,6 @@
 	)
 
 
-	// (Derived)
 	const walletConnectionKey = $derived(
 		stringify(entityId),
 	)
@@ -224,6 +223,11 @@
 		>
 			<CollapsibleTabs
 				id={`${walletConnectionKey}:carousel-wallet`}
+				sectionIdPrefix={walletConnectionKey}
+				sections={[
+					{ id: 'wallet-accounts', label: 'Accounts' },
+					{ id: 'wallet-actions', label: 'Actions' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -237,65 +241,48 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
+				{#snippet SectionWalletAccounts()}
 					{#if accounts.length}
-						<a
-							data-scroll-marker-label="Accounts"
-							href={`#${walletConnectionKey}:wallet-accounts`}
-						>Accounts</a>
+						<ul
+							data-column="gap-1"
+							data-list="unstyled"
+						>
+							{#each accounts as address (address)}
+								<li>
+									{#if chainId !== null}
+										<ActorNetworkView
+											entityId={{
+												$network: { chainId },
+												$actor: { address },
+											}}
+										/>
+									{:else}
+										<ActorView
+											entityId={{ address }}
+											href={resolve('/account/[address]', {
+												address: address,
+											})}
+										/>
+									{/if}
+								</li>
+							{/each}
+						</ul>
+					{:else}
+						<p data-text="muted">
+							No accounts are connected to this wallet yet.
+						</p>
 					{/if}
-					<a
-						data-scroll-marker-label="Actions"
-						href={`#${walletConnectionKey}:wallet-actions`}
-					>Actions</a>
 				{/snippet}
 
-				{#snippet body({ open: _bodyOpen })}
-					{#if accounts.length}
-						<section id={`${walletConnectionKey}:wallet-accounts`}>
-							<ul
-								data-column="gap-1"
-								data-list="unstyled"
-							>
-								{#each accounts as address (address)}
-									<li>
-										{#if chainId !== null}
-											<ActorNetworkView
-												entityId={{
-													$network: { chainId },
-													$actor: { address },
-												}}
-											/>
-										{:else}
-											<ActorView
-												entityId={{ address }}
-												href={resolve('/account/[address]', {
-													address: address,
-												})}
-											/>
-										{/if}
-									</li>
-								{/each}
-							</ul>
-						</section>
-					{:else}
-						<section>
-							<p data-text="muted">
-								No accounts are connected to this wallet yet.
-							</p>
-						</section>
-					{/if}
-
-					<section id={`${walletConnectionKey}:wallet-actions`}>
-						<div data-row>
-							<button
-								type="button"
-								onclick={onRemove}
-							>
-								Remove
-							</button>
-						</div>
-					</section>
+				{#snippet SectionWalletActions()}
+					<div data-row>
+						<button
+							type="button"
+							onclick={onRemove}
+						>
+							Remove
+						</button>
+					</div>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

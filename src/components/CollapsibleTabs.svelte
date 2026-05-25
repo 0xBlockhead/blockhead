@@ -1,185 +1,209 @@
-<script lang="ts">
+<script lang="ts" module>
 	// Types/constants
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { SvelteHTMLElements } from 'svelte/elements'
 	import type { Snippet } from 'svelte'
 
 
-	// Context
-	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-	import { incrementHeadingLevel } from '$/context/headingLevel.ts'
+	export type CollapsibleTabsSectionContentProps = {
+		id: string
+		label: string
+	}
+
+	export type CollapsibleTabsSectionSnippet = Snippet<[
+		CollapsibleTabsSectionContentProps,
+	]>
 
 
-	// Props
-	let {
-		open = $bindable(
-			!(getIsInsideEntityList() ?? false),
-		),
-		ontoggle,
-		onclose,
-
-		Summary,
-		Markers,
-		Toolbar,
-		Annotation,
-		body,
-
-		scrollContainerProps = {},
-
-		...detailsProps
-	}: WithRest<
-		{
-			open?: boolean
-			ontoggle?: (e: Event) => void
-			onclose?: (id?: string) => void
-
-			Annotation?: Snippet<[context?: {
-				open?: boolean,
-			}]>
-			Toolbar?: Snippet<[context?: {
-				open?: boolean,
-			}]>
-			Summary?: Snippet<[context?: {
-				open?: boolean,
-			}]>
-			Markers?: Snippet<[context?: {
-				open?: boolean,
-			}]>
-			body?: Snippet<[context?: {
-				open?: boolean,
-			}]>
-			scrollContainerProps?: Record<string, unknown>
-		},
-		SvelteHTMLElements['details']
-	> = $props()
+	export type CollapsibleTabsSectionRow<SectionId extends string = string> = {
+		id: SectionId
+		label: string
+	}
 
 
-	// State
-	incrementHeadingLevel()
+	export type CollapsibleTabsSectionIds<
+		Sections extends readonly CollapsibleTabsSectionRow[],
+	> = Sections[number]['id']
 
 
-	// (Derived)
-	const collapsibleTabsPaneScrollContainer = $derived(
-		typeof scrollContainerProps['data-scroll-container'] === 'string' ?
-			scrollContainerProps['data-scroll-container']
+	type KebabToPascalCase<Segment extends string> = (
+		Segment extends `${infer Head}-${infer Tail}` ?
+			`${Capitalize<Head>}${KebabToPascalCase<Tail>}`
 		:
-			'inline layout-carousel'
+			Capitalize<Segment>
 	)
 
-	const collapsibleTabsPaneCarouselChrome = $derived(
-		collapsibleTabsPaneScrollContainer.includes('layout-carousel')
+	export type SectionSnippetName<SectionId extends string> = (
+		`Section${KebabToPascalCase<SectionId>}`
 	)
 
-	const collapsibleTabsPaneSpreadRest = $derived.by(() => {
-		const spread = { ...scrollContainerProps }
-		delete spread.class
-		delete spread.style
-		delete spread['data-scroll-container']
-		return spread
-	})
+	export type CollapsibleTabsSectionSnippets<
+		SectionId extends string,
+	> = {
+		[SectionKey in SectionId as SectionSnippetName<SectionKey>]: Snippet<[
+			CollapsibleTabsSectionContentProps,
+		]>
+	}
 
-	const collapsibleTabsPaneClassMerged = $derived(
-		[
-			...(collapsibleTabsPaneCarouselChrome ?
-				['carousel']
-			:
-				[]),
-			typeof scrollContainerProps.class === 'string' ?
-				scrollContainerProps.class
-			:
-				'',
-		]
-			.filter(Boolean)
-			.join(' ')
+	export type CollapsibleTabsOwnProps<
+		Sections extends readonly CollapsibleTabsSectionRow[],
+	> = {
+		sectionIdPrefix: string
+		sections: Sections
+
+		Summary?: Snippet<[context?: {
+			open?: boolean,
+		}]>
+		Toolbar?: Snippet<[context?: {
+			open?: boolean,
+		}]>
+		Annotation?: Snippet<[context?: {
+			open?: boolean,
+		}]>
+	} & CollapsibleTabsSectionSnippets<CollapsibleTabsSectionIds<Sections>>
+
+
+	export const collapsibleTabsSections = <
+		const Sections extends readonly CollapsibleTabsSectionRow[],
+	>(
+		sections: Sections,
+	) => sections
+
+
+	const kebabToPascalCase = (segment: string) => (
+		segment
+			.split('-')
+			.map((part) => (
+				part.charAt(0).toUpperCase() + part.slice(1)
+			))
+			.join('')
 	)
 
-	const collapsibleTabsPaneStyleMerged = $derived(
-		[
-			typeof scrollContainerProps.style === 'string' ?
-				scrollContainerProps.style
-			:
-				'',
-			...(collapsibleTabsPaneCarouselChrome ?
-				['scroll-marker-group: none']
-			:
-				[]),
-		]
-			.filter(Boolean)
-			.join('; ')
+	export const sectionSnippetName = <SectionId extends string>(
+		sectionId: SectionId,
+	): SectionSnippetName<SectionId> => (
+		`Section${kebabToPascalCase(sectionId)}` as SectionSnippetName<SectionId>
 	)
+
+
 </script>
 
 
-<!--
-	DOM markers: `[data-carousel-markers]` (`scroll-target-group` + `#…` links). Tab-strip styling: `details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers]` in components.css.
--->
-<details
-	bind:open
-	ontoggle={(e) => {
-		if (!e.currentTarget.open && onclose) {
-			setTimeout(() => onclose(detailsProps.id ?? undefined), 300)
-		}
-		ontoggle?.(e)
-	}}
-	data-scroll-container="block snap-block"
-	{...detailsProps}
+<script
+	lang="ts"
+	generics="const Sections extends readonly CollapsibleTabsSectionRow[]"
 >
-	<summary data-sticky>
-		<div data-row="align-center gap-4">
-			{#if Summary}
-				<div data-row-item="wrap-start">
-					{@render Summary({
-						open,
-					})}
-				</div>
-			{/if}
+	// Types/constants
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import type { ComponentProps } from 'svelte'
 
-			{#if Markers}
-				<div
-					data-carousel-markers
-					data-row-item="flexible"
-				>
-					{@render Markers({
-						open,
-					})}
-				</div>
-			{/if}
 
-			{#if Toolbar || Annotation}
-				<div data-row="wrap">
-					{#if Toolbar}
-						{@render Toolbar({
-							open,
-						})}
-					{/if}
+	// State
+	let {
+		sectionIdPrefix,
+		sections,
 
-					{#if Annotation}
-						{@render Annotation({
-							open,
-						})}
-					{/if}
-				</div>
-			{/if}
-		</div>
-	</summary>
+		Summary,
+		Toolbar,
+		Annotation,
 
-	{#if body && open}
-		<div
-			data-column-item="flexible"
-			data-column="layout-flex"
-			data-sticky-container
+		...collapsibleTabsAndSectionSnippets
+	}: WithRest<
+		CollapsibleTabsOwnProps<Sections>,
+		Omit<
+			ComponentProps<typeof CollapsibleTabs1>,
+			'Markers' | 'body' | 'Summary' | 'Toolbar' | 'Annotation'
 		>
-			<div
-				data-collapsible-tabs-pane-host=""
-				{...collapsibleTabsPaneSpreadRest}
-				class={collapsibleTabsPaneClassMerged}
-				data-scroll-container={collapsibleTabsPaneScrollContainer}
-				style={collapsibleTabsPaneStyleMerged}
+	> = $props()
+
+
+	// Functions
+	const sectionSnippetPropPrefix = 'Section'
+
+	const isSectionSnippetProp = (
+		propKey: string,
+	) => (
+		propKey.startsWith(sectionSnippetPropPrefix)
+	)
+
+	const sectionSnippets = (
+		Object
+			.entries(collapsibleTabsAndSectionSnippets)
+			.reduce(
+				(accumulator, [propKey, snippet]) => (
+					isSectionSnippetProp(propKey) ?
+						{
+							...accumulator,
+							[propKey]: snippet,
+						}
+					:
+						accumulator
+				),
+			{} as CollapsibleTabsSectionSnippets<
+				CollapsibleTabsSectionIds<Sections>
+			>,
+			)
+	)
+
+	const collapsibleTabsProps = (
+		Object.fromEntries(
+			Object
+				.entries(collapsibleTabsAndSectionSnippets)
+				.filter(([propKey]) => (
+					!isSectionSnippetProp(propKey)
+				)),
+		)
+	)
+
+
+	const sectionAnchorId = (
+		sectionId: CollapsibleTabsSectionIds<Sections>,
+	) => (
+		`${sectionIdPrefix}:${sectionId}`
+	)
+
+	const sectionSnippetForSection = (
+		section: Sections[number],
+	): CollapsibleTabsSectionSnippet => (
+		sectionSnippets[
+			sectionSnippetName(
+				section.id as CollapsibleTabsSectionIds<Sections>,
+			) as keyof CollapsibleTabsSectionSnippets<
+				CollapsibleTabsSectionIds<Sections>
 			>
-				{@render body({
-					open,
-				})}
-			</div>
-		</div>
-	{/if}
-</details>
+		] as CollapsibleTabsSectionSnippet
+	)
+
+
+	// Components
+	import CollapsibleTabs1 from '$/components/CollapsibleTabs1.svelte'
+</script>
+
+
+<CollapsibleTabs1
+	{...collapsibleTabsProps}
+	{Summary}
+	{Toolbar}
+	{Annotation}
+>
+	{#snippet Markers({ open: _markersOpen })}
+		{#each sections as section (section.id)}
+			<a
+				data-scroll-marker-label={section.label}
+				href={`#${sectionAnchorId(section.id)}`}
+			>{section.label}</a>
+		{/each}
+	{/snippet}
+
+	{#snippet body({ open: _bodyOpen })}
+		{#each sections as section (section.id)}
+			{@const sectionContentProps = {
+				id: sectionAnchorId(section.id),
+				label: section.label,
+			}}
+			<section id={sectionContentProps.id}>
+				{@render sectionSnippetForSection(section)(
+					sectionContentProps,
+				)}
+			</section>
+		{/each}
+	{/snippet}
+</CollapsibleTabs1>

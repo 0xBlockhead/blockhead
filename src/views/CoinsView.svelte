@@ -20,7 +20,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		title = 'Coins',
 		id = 'coins',
@@ -228,61 +228,58 @@
 	</EntitiesList>
 
 	<CollapsibleTabs
-			id={`${id}:hub-spot-quotes`}
-			class="coins-view-collapsible-quotes"
-			{...{ 'data-card': '' }}
-			open={quotesOpen}
-			scrollContainerProps={{
-				'data-row': 'start align-start',
-				style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
-			}}
-		>
-			{#snippet Summary({
-				open: _summaryOpen,
-			})}
-				<header
-					data-row-item="flexible"
-					data-row="wrap gap-4"
-				>
-					<Heading>
-						Spot quotes
-					</Heading>
-				</header>
-			{/snippet}
+		id={`${id}:hub-spot-quotes`}
+		sectionIdPrefix={id}
+		sections={[
+			{ id: 'prices-spot', label: 'Spot quote index' },
+		]}
+		class="coins-view-collapsible-quotes"
+		{...{ 'data-card': '' }}
+		open={quotesOpen}
+		scrollContainerProps={{
+			'data-row': 'start align-start',
+			style: '--carousel-basis: min(44ch, 100%); gap: 0.5em',
+		}}
+	>
+		{#snippet Summary({
+			open: _summaryOpen,
+		})}
+			<header
+				data-row-item="flexible"
+				data-row="wrap gap-4"
+			>
+				<Heading>
+					Spot quotes
+				</Heading>
+			</header>
+		{/snippet}
 
-			{#snippet Markers({ open: _markersOpen })}
-				<a
-					data-scroll-marker-label="Spot quote index"
-					href={`#${id}:prices-spot`}
-				>Spot quote index</a>
-			{/snippet}
-
-			{#snippet body({ open: _bodyOpen })}
-				<p data-text="muted">
-					<a href={resolve('/coins/prices')}>Spot quote index</a>
-					— point-in-time spot and index readings (not venue order books).
-				</p>
-				<section
-					data-scroll-marker-label="Spot quote index"
-				>
-					<MarketPricesView
-						href={resolve('/markets')}
-						collapsible={false}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							entityId: {},
-							fieldName: '$$marketPrices',
-						}}
-						id={`${id}:prices-spot`}
-						open
-						title="Spot quote index"
-					/>
-				</section>
-			{/snippet}
-		</CollapsibleTabs>
+		{#snippet SectionPricesSpot({ id, label })}
+			<p data-text="muted">
+				<a href={resolve('/coins/prices')}>Spot quote index</a>
+				— point-in-time spot and index readings (not venue order books).
+			</p>
+			<MarketPricesView
+				href={resolve('/markets')}
+				collapsible={false}
+				entityFieldReference={{
+					entityType: EntityType._Global,
+					entityId: {},
+					fieldName: '$$marketPrices',
+				}}
+				id={`${id}:prices-spot`}
+				open
+				title="Spot quote index"
+			/>
+		{/snippet}
+	</CollapsibleTabs>
 
 		<CollapsibleTabs
 			id={`${id}:hub-ohlc-ranges`}
+			sectionIdPrefix={id}
+			sections={[
+				{ id: 'ohlc-candles-preview', label: 'Candle index' },
+			]}
 			class="coins-view-collapsible-ohlc"
 			{...{ 'data-card': '' }}
 			open={ohlcOpen}
@@ -304,14 +301,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet Markers({ open: _markersOpen })}
-				<a
-					data-scroll-marker-label="Candle index"
-					href={`#${id}:ohlc-candles-preview`}
-				>Candle index</a>
-			{/snippet}
-
-			{#snippet body({ open: _bodyOpen })}
+			{#snippet SectionOhlcCandlesPreview({ id, label })}
 				<div data-row="wrap align-center gap-2">
 					<a href={resolve('/coins/candles')}>
 						OHLC candles
@@ -330,25 +320,27 @@
 						>ⓘ</abbr>
 					</Tooltip>
 				</div>
-				<section data-scroll-marker-label="Candle index">
-					<Market_TimeInterval_TimestampsView
-						collapsible={false}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							entityId: {},
-							fieldName: '$$marketTimeIntervalTimestamps',
-						}}
-						href={resolve('/coins/candles')}
-						id={`${id}:ohlc-candles-preview`}
-						limit={48}
-						title="Recent candles"
-					/>
-				</section>
+				<Market_TimeInterval_TimestampsView
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType._Global,
+						entityId: {},
+						fieldName: '$$marketTimeIntervalTimestamps',
+					}}
+					href={resolve('/coins/candles')}
+					id={`${id}:ohlc-candles-preview`}
+					limit={48}
+					title="Recent candles"
+				/>
 			{/snippet}
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
 			id={`${id}:hub-markets`}
+			sectionIdPrefix={id}
+			sections={[
+				{ id: 'markets-index', label: 'Market index' },
+			]}
 			class="coins-view-collapsible-markets"
 			{...{ 'data-card': '' }}
 			open={marketsOpen}
@@ -370,14 +362,7 @@
 				</header>
 			{/snippet}
 
-			{#snippet Markers({ open: _markersOpen })}
-				<a
-					data-scroll-marker-label="Market index"
-					href={`#${id}:markets-index`}
-				>Market index</a>
-			{/snippet}
-
-			{#snippet body({ open: _bodyOpen })}
+			{#snippet SectionMarketsIndex({ id, label })}
 				<div data-row="wrap align-center gap-2">
 					<a href={resolve('/markets')}>
 						All markets
@@ -405,25 +390,27 @@
 						>ⓘ</abbr>
 					</Tooltip>
 				</div>
-				<section data-scroll-marker-label="Market index">
-					<MarketsView
-						href={resolve('/markets')}
-						collapsible={false}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							entityId: {},
-							fieldName: '$$markets',
-						}}
-						id={`${id}:markets-index`}
-						open
-						title="Market index"
-					/>
-				</section>
+				<MarketsView
+					href={resolve('/markets')}
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType._Global,
+						entityId: {},
+						fieldName: '$$markets',
+					}}
+					id={`${id}:markets-index`}
+					open
+					title="Market index"
+				/>
 			{/snippet}
 		</CollapsibleTabs>
 
 	<CollapsibleTabs
 		id={`${id}:hub-deployments`}
+		sectionIdPrefix={id}
+		sections={[
+			{ id: 'deployments-eth', label: 'Sample deployments' },
+		]}
 		class="coins-view-collapsible-deployments"
 		{...{ 'data-card': '' }}
 		open={deploymentsOpen}
@@ -445,34 +432,25 @@
 			</header>
 		{/snippet}
 
-		{#snippet Markers({ open: _markersOpen })}
-			<a
-				data-scroll-marker-label="Sample deployments"
-				href={`#${id}:deployments-eth`}
-			>Sample</a>
-		{/snippet}
-
-		{#snippet body({ open: _bodyOpen })}
+		{#snippet SectionDeploymentsEth({ id, label })}
 			<p data-text="muted">
 				Per-chain deployments are listed on each
 				<a href={resolve('/coin/ETH')}>coin detail</a>
 				page. Preview for catalog
 				<a href={resolve('/coin/ETH')}>ETH</a>:
 			</p>
-			<section data-scroll-marker-label="Sample deployments">
-				<CoinInstancesView
-					href={resolve('/coins')}
-					collapsible={false}
-					entityFieldReference={{
-						entityType: EntityType.Coin,
-						entityId: { coinId: CoinId.ETH },
-						fieldName: '$$coinInstances',
-					}}
-					id={`${id}:deployments-eth`}
-					open={deploymentsOpen}
-					title="Ethereum (ETH)"
-				/>
-			</section>
+			<CoinInstancesView
+				href={resolve('/coins')}
+				collapsible={false}
+				entityFieldReference={{
+					entityType: EntityType.Coin,
+					entityId: { coinId: CoinId.ETH },
+					fieldName: '$$coinInstances',
+				}}
+				id={`${id}:deployments-eth`}
+				open={deploymentsOpen}
+				title="Ethereum (ETH)"
+			/>
 		{/snippet}
 	</CollapsibleTabs>
 </div>

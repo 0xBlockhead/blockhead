@@ -40,7 +40,7 @@
 	const onNestedCollapsibleClose = getOnNestedCollapsibleClose()
 
 
-	// Props
+	// State
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
@@ -128,7 +128,6 @@
 	> = $props()
 
 
-	// (Derived)
 
 	const entityTitle = $derived(
 		title ?? entityDefinitionByType[entityType].label,

@@ -15,7 +15,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -469,6 +469,11 @@
 		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-note`}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'note-details', label: 'Metadata' },
+					{ id: 'note-thread', label: 'Thread' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -485,75 +490,56 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Metadata"
-						href={`#${idKey}:note-details`}
-					>Metadata</a>
-					<a
-						data-scroll-marker-label="Thread"
-						href={`#${idKey}:note-thread`}
-					>Thread</a>
+				{#snippet SectionNoteDetails({ id: _id, label: _label })}
+					<EntityDetails
+						entityType={EntityType.ActivityPubNote}
+						{entityId}
+					/>
+					<ResourceBoundary
+						resource={note}
+						placeholderText="Loading note…"
+					>
+						{#snippet children(loadedNote)}
+							{@const mastodonThreadMetadataUnset = (
+								htmlToPlainText(note.content ?? '').trim() === ''
+								&& note.createdAt == null
+							)}
+							{#if mastodonThreadMetadataUnset}
+								<div data-row="wrap align-center gap-2">
+									<p data-text="muted">
+										No body or timestamp yet.
+									</p>
+									<Tooltip contentProps={{ side: 'top' }}>
+										{#snippet Content()}
+											<p>
+												Plain text and created time fill in when the status is fetched from the origin instance.
+											</p>
+										{/snippet}
+										<abbr
+											class="entity-heading-tip"
+											aria-label="Status metadata"
+										>ⓘ</abbr>
+									</Tooltip>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet body({ open: _bodyOpen })}
-					<section
-						data-scroll-marker-label="Metadata"
-						id={`${idKey}:note-details`}
-					>
-						<EntityDetails
-							entityType={EntityType.ActivityPubNote}
-							{entityId}
-						/>
-						<ResourceBoundary
-							resource={note}
-							placeholderText="Loading note…"
-						>
-							{#snippet children(loadedNote)}
-								{@const mastodonThreadMetadataUnset = (
-									htmlToPlainText(note.content ?? '').trim() === ''
-									&& note.createdAt == null
-								)}
-								{#if mastodonThreadMetadataUnset}
-									<div data-row="wrap align-center gap-2">
-										<p data-text="muted">
-											No body or timestamp yet.
-										</p>
-										<Tooltip contentProps={{ side: 'top' }}>
-											{#snippet Content()}
-												<p>
-													Plain text and created time fill in when the status is fetched from the origin instance.
-												</p>
-											{/snippet}
-											<abbr
-												class="entity-heading-tip"
-												aria-label="Status metadata"
-											>ⓘ</abbr>
-										</Tooltip>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-
-					<section
-						data-scroll-marker-label="Thread"
-						id={`${idKey}:note-thread`}
-					>
-						<ActivityPubNotesView
-							href={resolve('/activitypub/notes')}
-							entityFieldReference={{
-								entityType: EntityType.ActivityPubNote,
-								entityId,
-								fieldName: '$$thread',
-							}}
-							id={`${idKey}:note-thread-list`}
-							fieldOpen={_open}
-							orderByCreatedAt="asc"
-							placeholderText="Loading conversation…"
-							title="Thread"
-						/>
-					</section>
+				{#snippet SectionNoteThread({ id: _id, label: _label })}
+					<ActivityPubNotesView
+						href={resolve('/activitypub/notes')}
+						entityFieldReference={{
+							entityType: EntityType.ActivityPubNote,
+							entityId,
+							fieldName: '$$thread',
+						}}
+						id={`${idKey}:note-thread-list`}
+						fieldOpen={_open}
+						orderByCreatedAt="asc"
+						placeholderText="Loading conversation…"
+						title="Thread"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

@@ -9,7 +9,7 @@
 	import { SvelteSet } from 'svelte/reactivity'
 
 
-	// Props
+	// State
 	let {
 		entityFieldReference,
 		id = 'users',

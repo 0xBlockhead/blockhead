@@ -16,7 +16,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityFieldReference,
 
@@ -88,9 +88,7 @@
 						$: [
 							Source.Blockscout_Rest,
 						],
-						...(parentEntityType === EntityType.Network && {
-							$limit: 16,
-						}),
+						$limit: 16,
 					},
 				},
 			)}

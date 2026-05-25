@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -208,6 +208,12 @@
 		>
 			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-feed`}
+				sectionIdPrefix={networkIdKey}
+				sections={[
+					{ id: 'notes', label: 'Recent notes' },
+					{ id: 'reposts', label: 'Reposts' },
+					{ id: 'articles', label: 'Articles' },
+				] as const}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -224,75 +230,63 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Recent notes"
-						href={`#${networkIdKey}:notes`}
-					>Notes</a>
-					<a
-						data-scroll-marker-label="Reposts"
-						href={`#${networkIdKey}:reposts`}
-					>Reposts</a>
-					<a
-						data-scroll-marker-label="Articles"
-						href={`#${networkIdKey}:articles`}
-					>Articles</a>
+				{#snippet SectionNotes()}
+					<NostrNotesView
+						href={resolve('/nostr/notes')}
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.NostrNetwork,
+							entityId,
+							fieldName: '$$nostrNotes',
+						}}
+						fieldOpen={true}
+						id={`${networkIdKey}:notes`}
+						limit={25}
+						open={true}
+						title="Recent notes"
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _sectionOpen })}
-					<section data-scroll-marker-label="Recent notes">
-						<NostrNotesView
-							href={resolve('/nostr/notes')}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.NostrNetwork,
-								entityId,
-								fieldName: '$$nostrNotes',
-							}}
-							fieldOpen={_sectionOpen}
-							id={`${networkIdKey}:notes`}
-							limit={25}
-							open={_sectionOpen}
-							title="Recent notes"
-						/>
-					</section>
+				{#snippet SectionReposts()}
+					<NostrRepostsView
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.NostrNetwork,
+							entityId,
+							fieldName: '$$nostrReposts',
+						}}
+						fieldOpen={true}
+						id={`${networkIdKey}:reposts`}
+						limit={25}
+						open={true}
+						title="Recent reposts"
+					/>
+				{/snippet}
 
-					<section data-scroll-marker-label="Reposts">
-						<NostrRepostsView
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.NostrNetwork,
-								entityId,
-								fieldName: '$$nostrReposts',
-							}}
-							fieldOpen={_sectionOpen}
-							id={`${networkIdKey}:reposts`}
-							limit={25}
-							open={_sectionOpen}
-							title="Recent reposts"
-						/>
-					</section>
-
-					<section data-scroll-marker-label="Articles">
-						<NostrArticlesView
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.NostrNetwork,
-								entityId,
-								fieldName: '$$nostrArticles',
-							}}
-							fieldOpen={_sectionOpen}
-							id={`${networkIdKey}:articles`}
-							limit={25}
-							open={_sectionOpen}
-							title="Recent articles"
-						/>
-					</section>
+				{#snippet SectionArticles()}
+					<NostrArticlesView
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.NostrNetwork,
+							entityId,
+							fieldName: '$$nostrArticles',
+						}}
+						fieldOpen={true}
+						id={`${networkIdKey}:articles`}
+						limit={25}
+						open={true}
+						title="Recent articles"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 
 			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-directory`}
+				sectionIdPrefix={networkIdKey}
+				sections={[
+					{ id: 'profiles', label: 'Profiles' },
+					{ id: 'relays', label: 'Relays' },
+				] as const}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
@@ -307,45 +301,32 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Profiles"
-						href={`#${networkIdKey}:profiles`}
-					>Profiles</a>
-					<a
-						data-scroll-marker-label="Relays"
-						href={`#${networkIdKey}:relays`}
-					>Relays</a>
+				{#snippet SectionProfiles()}
+					<NostrProfilesView
+						href={resolve('/nostr/profiles')}
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.NostrNetwork,
+							entityId,
+							fieldName: '$$nostrProfiles',
+						}}
+						id={`${networkIdKey}:profiles`}
+						open={true}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _sectionOpen })}
-					<section data-scroll-marker-label="Profiles">
-						<NostrProfilesView
-							href={resolve('/nostr/profiles')}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.NostrNetwork,
-								entityId,
-								fieldName: '$$nostrProfiles',
-							}}
-							id={`${networkIdKey}:profiles`}
-							open={_sectionOpen}
-						/>
-					</section>
-
-					<section data-scroll-marker-label="Relays">
-						<NostrRelaysView
-							href={resolve('/nostr/relays')}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.NostrNetwork,
-								entityId,
-								fieldName: '$$nostrRelays',
-							}}
-							id={`${networkIdKey}:relays`}
-							open={_sectionOpen}
-						/>
-					</section>
+				{#snippet SectionRelays()}
+					<NostrRelaysView
+						href={resolve('/nostr/relays')}
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.NostrNetwork,
+							entityId,
+							fieldName: '$$nostrRelays',
+						}}
+						id={`${networkIdKey}:relays`}
+						open={true}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

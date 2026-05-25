@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/x/post/[postId]', {
@@ -340,6 +340,14 @@
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
+				sectionIdPrefix={`x-post:${entityId.id}`}
+				sections={[
+					{ id: 'author', label: 'Author' },
+					...(_open ? [
+						{ id: 'thread', label: 'Thread' },
+						{ id: 'media', label: 'Media' },
+					] : []),
+				]}
 				id={`x-post:${entityId.id}:carousel`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
@@ -359,129 +367,93 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Author"
-						href={`#x-post:${entityId.id}:author`}
-					>Author</a>
-					{#if _open}
-						<a
-							data-scroll-marker-label="Thread"
-							href={`#x-post:${entityId.id}:thread`}
-						>Thread</a>
-						<a
-							data-scroll-marker-label="Media"
-							href={`#x-post:${entityId.id}:media`}
-						>Media</a>
-					{/if}
+				{#snippet SectionAuthor({ id, label })}
+					<ResourceBoundary
+						resource={post}
+						placeholderText="Loading X post…"
+					>
+						{#snippet children(loadedPost)}
+							{#if loadedPost.$author}
+								<XUserView
+									entityId={loadedPost.$author[EntityMetaKey.Id]}
+									layout={EntityLayout.Summary}
+								/>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet body({ open: _paneOpen,
-				})}
-					<section
-						data-scroll-marker-label="Author"
-						id={`x-post:${entityId.id}:author`}
-					>
+				{#snippet SectionThread({ id, label })}
+					{#if _open}
 						<ResourceBoundary
 							resource={post}
 							placeholderText="Loading X post…"
 						>
 							{#snippet children(loadedPost)}
-								{#if loadedPost.$author}
-									<XUserView
-										entityId={loadedPost.$author[EntityMetaKey.Id]}
-										layout={EntityLayout.Summary}
-									/>
+								<dl data-column-item="center">
+									{#if loadedPost.$replyToPost}
+										<div>
+											<dt>Reply to</dt>
+											<dd>
+												<XPostView
+													entityId={loadedPost.$replyToPost[EntityMetaKey.Id]}
+													layout={EntityLayout.Title}
+													open={false}
+												/>
+											</dd>
+										</div>
+									{/if}
+
+									{#if loadedPost.$quotedPost}
+										<div>
+											<dt>Quoted post</dt>
+											<dd>
+												<XPostView
+													entityId={loadedPost.$quotedPost[EntityMetaKey.Id]}
+													layout={EntityLayout.Title}
+													open={false}
+												/>
+											</dd>
+										</div>
+									{/if}
+
+									{#if (
+										post.$replyToPost == null
+										&& post.$quotedPost == null
+									)}
+										<p data-text="muted">
+											No reply or quote references on this loadedPost.
+										</p>
+									{/if}
+								</dl>
+							{/snippet}
+						</ResourceBoundary>
+					{/if}
+				{/snippet}
+
+				{#snippet SectionMedia({ id, label })}
+					{#if _open}
+						<ResourceBoundary
+							resource={post}
+							placeholderText="Loading X post…"
+						>
+							{#snippet children(loadedPost)}
+								{#if (post.$$media?.length ?? 0) > 0}
+									<div data-column="gap-3">
+										{#each loadedPost.$$media ?? [] as media (media[EntityMetaKey.Id].url)}
+											<Media
+												alt=""
+												media={{ url: media[EntityMetaKey.Id].url }}
+											/>
+										{/each}
+									</div>
+								{:else}
+									<p data-text="muted">
+										No media attachments on this loadedPost.
+									</p>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-					</section>
-
-					{#if _open}
-						<section
-							data-scroll-marker-label="Thread"
-							id={`x-post:${entityId.id}:thread`}
-						>
-							<dl data-column-item="center">
-								{#if loadedPost.$replyToPost}
-									<div>
-										<dt>Reply to</dt>
-										<dd>
-											<ResourceBoundary
-												resource={post}
-												placeholderText="Loading X post…"
-											>
-												{#snippet children(loadedPost)}
-													<XPostView
-														entityId={loadedPost.$replyToPost[EntityMetaKey.Id]}
-														layout={EntityLayout.Title}
-														open={false}
-													/>
-												{/snippet}
-											</ResourceBoundary>
-										</dd>
-									</div>
-								{/if}
-
-								{#if loadedPost.$quotedPost}
-									<div>
-										<dt>Quoted post</dt>
-										<dd>
-											<ResourceBoundary
-												resource={post}
-												placeholderText="Loading X post…"
-											>
-												{#snippet children(loadedPost)}
-													<XPostView
-														entityId={loadedPost.$quotedPost[EntityMetaKey.Id]}
-														layout={EntityLayout.Title}
-														open={false}
-													/>
-												{/snippet}
-											</ResourceBoundary>
-										</dd>
-									</div>
-								{/if}
-
-								{#if (
-									post.$replyToPost == null
-									&& post.$quotedPost == null
-								)}
-									<p data-text="muted">
-										No reply or quote references on this loadedPost.
-									</p>
-								{/if}
-							</dl>
-						</section>
-
-						<section
-							data-scroll-marker-label="Media"
-							id={`x-post:${entityId.id}:media`}
-						>
-							<ResourceBoundary
-								resource={post}
-								placeholderText="Loading X post…"
-							>
-								{#snippet children(loadedPost)}
-									{#if (post.$$media?.length ?? 0) > 0}
-										<div data-column="gap-3">
-											{#each loadedPost.$$media ?? [] as media (media[EntityMetaKey.Id].url)}
-												<Media
-													alt=""
-													media={{ url: media[EntityMetaKey.Id].url }}
-												/>
-											{/each}
-										</div>
-									{:else}
-										<p data-text="muted">
-											No media attachments on this loadedPost.
-										</p>
-									{/if}
-								{/snippet}
-							</ResourceBoundary>
-						</section>
 					{/if}
 				{/snippet}
 			</CollapsibleTabs>

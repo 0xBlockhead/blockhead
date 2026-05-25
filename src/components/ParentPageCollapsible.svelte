@@ -15,7 +15,7 @@
 	import { goto } from '$app/navigation'
 
 
-	// Props
+	// State
 	let {
 		title,
 		href,

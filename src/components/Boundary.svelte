@@ -3,7 +3,7 @@
 	import type { Snippet } from 'svelte'
 
 
-	// Props
+	// State
 	let {
 		children,
 		Pending,

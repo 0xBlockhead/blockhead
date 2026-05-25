@@ -6,13 +6,12 @@
 	} from '$/sources/Swarm/Rest/queries.ts'
 
 
-	// Props
+	// State
 	let {
 		params,
 	} = $props()
 
 
-	// (Derived)
 
 	const entityId = $derived(
 		swarmResourceAddressFromRouteParams({

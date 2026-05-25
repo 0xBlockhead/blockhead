@@ -16,7 +16,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		RouteContent,
 		entityId,
@@ -77,7 +77,6 @@
 	)
 
 
-	// (Derived)
 	const coinInstanceKey = $derived(
 		stringify(entityId),
 	)
@@ -292,6 +291,11 @@
 		>
 			<CollapsibleTabs
 				id={`${coinInstanceKey}:carousel-bridging`}
+				sectionIdPrefix={coinInstanceKey}
+				sections={[
+					...((coinInstance.$$outboundBridgeCapabilities ?? []).length ? [{ id: 'bridge-outbound', label: 'Outbound' }] : []),
+					...((coinInstance.$$inboundBridgeCapabilities ?? []).length ? [{ id: 'bridge-inbound', label: 'Inbound' }] : []),
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -305,66 +309,36 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<ResourceBoundary resource={coinInstance}>
-						{#snippet children(loadedCoinInstance)}
-							{#if (loadedCoinInstance.$$outboundBridgeCapabilities ?? []).length}
-								<a
-									data-scroll-marker-label="Outbound"
-									href={`#${coinInstanceKey}:bridge-outbound`}
-								>Outbound</a>
-							{/if}
-
-							{#if (coinInstance.$$inboundBridgeCapabilities ?? []).length}
-								<a
-									data-scroll-marker-label="Inbound"
-									href={`#${coinInstanceKey}:bridge-inbound`}
-								>Inbound</a>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+				{#snippet SectionBridgeOutbound({ id, label })}
+					{#if (coinInstance.$$outboundBridgeCapabilities ?? []).length}
+						<CoinBridgeCapabilitiesView
+							href={resolve('/bridge')}
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.CoinInstance,
+								entityId,
+								fieldName: '$$outboundBridgeCapabilities',
+							}}
+							{id}
+							title="Outbound"
+						/>
+					{/if}
 				{/snippet}
 
-				{#snippet body({ open: _bodyOpen })}
-					<ResourceBoundary resource={coinInstance}>
-						{#snippet children(loadedCoinInstance)}
-							{#if (loadedCoinInstance.$$outboundBridgeCapabilities ?? []).length}
-								<section
-									data-scroll-marker-label="Outbound"
-									id={`${coinInstanceKey}:bridge-outbound`}
-								>
-									<CoinBridgeCapabilitiesView
-										href={resolve('/bridge')}
-										collapsible={false}
-										entityFieldReference={{
-											entityType: EntityType.CoinInstance,
-											entityId,
-											fieldName: '$$outboundBridgeCapabilities',
-										}}
-										title="Outbound"
-									/>
-								</section>
-							{/if}
-
-							{#if (coinInstance.$$inboundBridgeCapabilities ?? []).length}
-								<section
-									data-scroll-marker-label="Inbound"
-									id={`${coinInstanceKey}:bridge-inbound`}
-								>
-									<CoinBridgeCapabilitiesView
-										href={resolve('/bridge')}
-										collapsible={false}
-										entityFieldReference={{
-											entityType: EntityType.CoinInstance,
-											entityId,
-											fieldName: '$$inboundBridgeCapabilities',
-										}}
-										title="Inbound"
-									/>
-								</section>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+				{#snippet SectionBridgeInbound({ id, label })}
+					{#if (coinInstance.$$inboundBridgeCapabilities ?? []).length}
+						<CoinBridgeCapabilitiesView
+							href={resolve('/bridge')}
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.CoinInstance,
+								entityId,
+								fieldName: '$$inboundBridgeCapabilities',
+							}}
+							{id}
+							title="Inbound"
+						/>
+					{/if}
 				{/snippet}
 			</CollapsibleTabs>
 

@@ -5,11 +5,10 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 
 
-	// Props
+	// State
 	let { params } = $props()
 
 
-	// (Derived)
 	const entityId = $derived(
 		({
 			variant: 'byUser' as const,

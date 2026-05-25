@@ -45,32 +45,37 @@
 
 
 <script lang="ts">
-	// Types/constants
+	// Styles
 	import '$/styles/fonts.css'
 	import '$/styles/colors.css'
 	import '$/styles/reset.css'
 	import '$/styles/components.css'
 
 
+	// View transitions
+
+
+
 	// Context
 	import { useNavigationItems } from './navigationItems.svelte.ts'
 
 
-	// Props
+	// State
 	let {
 		children,
 	} = $props()
 
-
-	// Components
-	import Navigation from './Navigation.svelte'
-	import { asset } from '$app/paths'
-
-
-	// (Derived)
 	const navigationItems = $derived(
 		useNavigationItems().navigationItems
 	)
+
+
+	// Components
+	import Navigation from './Navigation.svelte'
+
+
+	// Functions
+	import { asset } from '$app/paths'
 </script>
 
 

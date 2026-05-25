@@ -7,13 +7,12 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		params,
 	} = $props()
 
 
-	// (Derived)
 	const entityId = $derived(
 		{ videoId: decodeURIComponent(params.videoId) },
 	)

@@ -15,7 +15,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
@@ -312,6 +312,12 @@
 		>
 			<CollapsibleTabs
 				id={`farcaster-user:${String(entityId.fid)}:carousel`}
+				sectionIdPrefix={`farcaster-user:${String(entityId.fid)}`}
+				sections={[
+					{ id: 'record', label: 'Record' },
+					{ id: 'overview', label: 'Profile' },
+					{ id: 'casts', label: 'Casts' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -330,88 +336,59 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Record"
-						href={`#farcaster-user:${String(entityId.fid)}:record`}
-					>Record</a>
-					<a
-						data-scroll-marker-label="Profile"
-						href={`#farcaster-user:${String(entityId.fid)}:overview`}
-					>Profile</a>
-					<a
-						data-scroll-marker-label="Casts"
-						href={`#farcaster-user:${String(entityId.fid)}:casts`}
-					>Casts</a>
+				{#snippet SectionRecord({ id, label })}
+					<EntityDetails
+						entityType={EntityType.FarcasterUser}
+						{entityId}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _paneOpen,
-				})}
-					<section
-						data-scroll-marker-label="Record"
-						id={`farcaster-user:${String(entityId.fid)}:record`}
+				{#snippet SectionOverview({ id, label })}
+					<ResourceBoundary
+						resource={farcasterUser}
+						placeholderText="Loading Farcaster profile (FID)…"
 					>
-						<EntityDetails
-							entityType={EntityType.FarcasterUser}
-							{entityId}
-						/>
-					</section>
+						{#snippet children(loadedFarcasterUser)}
+							<section data-column>
+								<h3>Farcaster profile</h3>
+							</section>
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
 
-					<section
-						data-scroll-marker-label="Profile"
-						id={`farcaster-user:${String(entityId.fid)}:overview`}
+				{#snippet SectionCasts({ id, label })}
+					<EntitiesList
+						entityType={EntityType.FarcasterCast}
+						href={resolve('/farcaster/feed')}
+						id={`${id}-list`}
+						placeholderText="Loading casts (Farcaster FID + cast hash)…"
+						resource={casts}
+						title="Casts"
+						getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
+						getSortValue={(row) => (
+							[...stringify(row.result[EntityMetaKey.Id])].map((character) => (
+								String.fromCharCode(0xffff - character.charCodeAt(0))
+							)).join('')
+						)}
 					>
-						<ResourceBoundary
-							resource={farcasterUser}
-							placeholderText="Loading Farcaster profile (FID)…"
-						>
-							{#snippet children(loadedFarcasterUser)}
-								<section data-column>
-									<h3>Farcaster profile</h3>
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					</section>
+						{#snippet Empty()}
+							<p data-text="muted">
+								No casts yet.
+							</p>
+						{/snippet}
 
-					<section
-						data-scroll-marker-label="Casts"
-						id={`farcaster-user:${String(entityId.fid)}:casts`}
-					>
-						<EntitiesList
-							entityType={EntityType.FarcasterCast}
-							href={resolve('/farcaster/feed')}
-							id={`farcaster-user:${String(entityId.fid)}:casts-list`}
-							placeholderText="Loading casts (Farcaster FID + cast hash)…"
-							resource={casts}
-							title="Casts"
-							getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
-							getSortValue={(row) => (
-								[...stringify(row.result[EntityMetaKey.Id])].map((character) => (
-									String.fromCharCode(0xffff - character.charCodeAt(0))
-								)).join('')
-							)}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">
-									No casts yet.
-								</p>
-							{/snippet}
-
-							{#snippet Item({ item })}
-								{@const castId = item.result[EntityMetaKey.Id]}
-								<FarcasterCastView
-									entityId={{
-										fid: castId.fid,
-										hash: castId.hash,
-									}}
-									layout={EntityLayout.Summary}
-									variant="feed"
-								/>
-							{/snippet}
-						</EntitiesList>
-					</section>
+						{#snippet Item({ item })}
+							{@const castId = item.result[EntityMetaKey.Id]}
+							<FarcasterCastView
+								entityId={{
+									fid: castId.fid,
+									hash: castId.hash,
+								}}
+								layout={EntityLayout.Summary}
+								variant="feed"
+							/>
+						{/snippet}
+					</EntitiesList>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

@@ -10,7 +10,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		input,
 		open = false,
@@ -41,7 +41,6 @@
 	)
 
 
-	// (Derived)
 	const selectorHex = $derived(
 		input.startsWith('0x') && input.length >= 10 ?
 			`0x${input.slice(2, 10).toLowerCase()}`

@@ -9,7 +9,7 @@
 	import { stringify } from 'devalue'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = getEvmErrorPath(entityId.hex),

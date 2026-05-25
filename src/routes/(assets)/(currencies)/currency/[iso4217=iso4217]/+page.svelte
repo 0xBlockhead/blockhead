@@ -7,13 +7,12 @@
 	} from '$/constants/Currency.ts'
 
 
-	// Props
+	// State
 	let {
 		params,
 	} = $props()
 
 
-	// (Derived)
 	const route = $derived.by(() => {
 		const param = params.iso4217 ?? ''
 		const iso4217 = iso4217FromParam(param)

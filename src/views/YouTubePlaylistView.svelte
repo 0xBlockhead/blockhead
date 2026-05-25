@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/(youtube)/youtube/playlist/[playlistId]', {
@@ -182,6 +182,10 @@
 		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-videos`}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'videos', label: 'Videos' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -200,28 +204,17 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Videos"
-						href={`#${idKey}:videos`}
-					>Videos</a>
-				{/snippet}
-
-				{#snippet body({ open: _sectionOpen })}
-					<section data-scroll-marker-label="Videos">
-						<YouTubeVideosView
-							href={resolve('/youtube/videos')}
-							entityFieldReference={{
-								entityType: EntityType.YouTubePlaylist,
-								entityId,
-								fieldName: '$$videos',
-							}}
-							id={`${idKey}:youtube-videos`}
-							open={_open}
-						/>
-					</section>
+				{#snippet SectionVideos({ id, label })}
+					<YouTubeVideosView
+						href={resolve('/youtube/videos')}
+						entityFieldReference={{
+							entityType: EntityType.YouTubePlaylist,
+							entityId,
+							fieldName: '$$videos',
+						}}
+						id={`${idKey}:youtube-videos`}
+						open={_open}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

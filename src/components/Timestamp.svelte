@@ -10,7 +10,7 @@
 
 
 <script lang="ts">
-	// Props
+	// State
 	let {
 		timestamp,
 		format = TimestampFormat.Auto,
@@ -42,7 +42,6 @@
 	)
 
 
-	// (Derived)
 	const date = $derived(
 		timestamp !== undefined && typeof timestamp === 'number' && Number.isFinite(timestamp) ?
 			new Date(timestamp)

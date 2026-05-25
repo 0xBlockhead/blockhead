@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		routeChildren,
 		entityId,
@@ -333,18 +333,21 @@
 			class="entity-view-detail-carousels"
 			data-column="gap-3"
 		>
-			{#if true}
-				<CollapsibleTabs
-					id={`${postDetailKey}:carousel-lens-post`}
-					Summary={LensPublicationCarouselSummary}
-					Markers={LensPublicationCarouselMarkers}
-					body={LensPublicationCarouselBody}
-					{...{ 'data-card': '' }}
-					scrollContainerProps={{
-						'data-row': 'start align-start',
-					}}
-				/>
-				{#snippet LensPublicationCarouselSummary({ open: _summaryOpen })}
+			<CollapsibleTabs
+				id={`${postDetailKey}:carousel-lens-post`}
+				sectionIdPrefix={postDetailKey}
+				sections={[
+					{ id: 'lens-post-text', label: 'Text' },
+					{ id: 'lens-post-comments', label: 'Comments' },
+					{ id: 'lens-post-record', label: 'Record' },
+					...(routeChildren ? [{ id: 'lens-post-more', label: 'More' }] : []),
+				] as const}
+				{...{ 'data-card': '' }}
+				scrollContainerProps={{
+					'data-row': 'start align-start',
+				}}
+			>
+				{#snippet Summary({ open: _summaryOpen })}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
@@ -355,86 +358,51 @@
 					</header>
 				{/snippet}
 
-				{#snippet LensPublicationCarouselMarkers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Text"
-						href={`#${postDetailKey}:lens-post-text`}
-					>Text</a>
-					<a
-						data-scroll-marker-label="Comments"
-						href={`#${postDetailKey}:lens-post-comments`}
-					>Comments</a>
-					<a
-						data-scroll-marker-label="Record"
-						href={`#${postDetailKey}:lens-post-record`}
-					>Record</a>
-					{#if routeChildren}
-						<a
-							data-scroll-marker-label="More"
-							href={`#${postDetailKey}:lens-post-more`}
-						>More</a>
-					{/if}
+				{#snippet SectionLensPostText()}
+					<ResourceBoundary
+						resource={lensPost}
+						placeholderText="Loading Lens publication…"
+					>
+						{#snippet children(loadedLensPost)}
+							{#if loadedLensPost.text}
+								<p>{loadedLensPost.text}</p>
+							{:else}
+								<p data-text="muted">
+									No text yet.
+								</p>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet LensPublicationCarouselBody({ open: sectionOpen })}
-					<section
-						data-scroll-marker-label="Text"
-						id={`${postDetailKey}:lens-post-text`}
-					>
-						<ResourceBoundary
-							resource={lensPost}
-							placeholderText="Loading Lens publication…"
-						>
-							{#snippet children(loadedLensPost)}
-								{#if loadedLensPost.text}
-									<p>{loadedLensPost.text}</p>
-								{:else}
-									<p data-text="muted">
-										No text yet.
-									</p>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-
-					<section
-						data-scroll-marker-label="Comments"
-						id={`${postDetailKey}:lens-post-comments`}
-					>
-						<LensCommentsView
-							href={resolve('/lens')}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.LensPost,
-								entityId,
-								fieldName: '$$comments',
-							}}
-							id={`${postDetailKey}:comments`}
-							open={sectionOpen}
-							title="Comments"
-						/>
-					</section>
-
-					<section
-						data-scroll-marker-label="Record"
-						id={`${postDetailKey}:lens-post-record`}
-					>
-						<EntityDetails
-							entityType={EntityType.LensPost}
-							{entityId}
-						/>
-					</section>
-
-					{#if routeChildren}
-						<section
-							data-scroll-marker-label="More"
-							id={`${postDetailKey}:lens-post-more`}
-						>
-							{@render routeChildren()}
-						</section>
-					{/if}
+				{#snippet SectionLensPostComments()}
+					<LensCommentsView
+						href={resolve('/lens')}
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.LensPost,
+							entityId,
+							fieldName: '$$comments',
+						}}
+						id={`${postDetailKey}:comments`}
+						open={true}
+						title="Comments"
+					/>
 				{/snippet}
-			{/if}
+
+				{#snippet SectionLensPostRecord()}
+					<EntityDetails
+						entityType={EntityType.LensPost}
+						{entityId}
+					/>
+				{/snippet}
+
+				{#if routeChildren}
+					{#snippet SectionLensPostMore()}
+						{@render routeChildren()}
+					{/snippet}
+				{/if}
+			</CollapsibleTabs>
 		</div>
 	{/snippet}
 </EntityView>

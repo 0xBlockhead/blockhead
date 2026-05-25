@@ -16,7 +16,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		id,
 		title = 'Wallet connections',

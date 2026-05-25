@@ -262,7 +262,7 @@
 	)
 
 
-	// Props
+	// State
 	let {
 		items = $bindable(new Set<_Item>()),
 		getKey,
@@ -325,7 +325,6 @@
 	let transitionsArmScheduled = false
 
 
-	// (Derived)
 	const hasVirtual = $derived(
 		browser && virtual !== undefined
 	)

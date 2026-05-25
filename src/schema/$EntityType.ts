@@ -93,6 +93,7 @@ export enum EntityType {
 	MevRelay_ProposerPayloadDelivered = 'MevRelay_ProposerPayloadDelivered',
 	Network = 'Network',
 	NetworkBridge = 'NetworkBridge',
+	Network_BeaconFinality_Timestamp = 'Network_BeaconFinality_Timestamp',
 	Network_GasFee_Block = 'Network_GasFee_Block',
 	Network_GasEstimate_Timestamp = 'Network_GasEstimate_Timestamp',
 	Network_Txpool_Timestamp = 'Network_Txpool_Timestamp',

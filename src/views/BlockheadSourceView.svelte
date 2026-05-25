@@ -12,7 +12,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		sourceId,
 		href = resolve(

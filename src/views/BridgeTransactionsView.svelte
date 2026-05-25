@@ -17,7 +17,7 @@
 	}
 
 
-	// Props
+	// State
 	let {
 		entityFieldReference,
 		title = 'Bridge transactions',

@@ -8,11 +8,10 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let { data }: PageProps = $props()
 
 
-	// (Derived)
 	const coinInstanceSlug = $derived(
 		data.entityId.type === CoinInstanceType.NativeCurrency ?
 			'native'

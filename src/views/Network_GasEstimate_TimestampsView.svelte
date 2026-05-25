@@ -17,7 +17,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		title = 'Gas estimates',
 		open = $bindable(true),

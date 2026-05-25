@@ -4,7 +4,7 @@
 	import { page } from '$app/state'
 
 
-	// Props
+	// State
 	let { children } = $props()
 
 

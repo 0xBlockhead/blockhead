@@ -15,7 +15,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		pageContent,
 		entityId,
@@ -472,6 +472,19 @@
 
 			<CollapsibleTabs
 				id={`${actorNetworkDetailAnchorKey}:carousel-activity`}
+				sectionIdPrefix={actorNetworkDetailAnchorKey}
+				sections={[
+					{ id: 'activity-transactions', label: 'Transactions' },
+					...(
+						!actorNetwork.ready
+						|| actorNetwork.current.tokenTransferCount !== undefined
+						|| (actorNetwork.current.$$tokenTransfers ?? []).length > 0
+					) ? [{ id: 'activity-token-transfers', label: 'Token transfers' }] : [],
+					...(
+						!actorNetwork.ready
+						|| (actorNetwork.current.$$internalTransactions ?? []).length > 0
+					) ? [{ id: 'activity-internal-transactions', label: 'Internal transactions' }] : [],
+				]}
 					{...{ 'data-card': '' }}
 					class="actor-network-view-collapsible-activity"
 					scrollContainerProps={{
@@ -484,97 +497,63 @@
 						</header>
 					{/snippet}
 
-					{#snippet Markers({ open: _markersOpen })}
-						<a
-							data-scroll-marker-label="Transactions"
-							href={`#${actorNetworkDetailAnchorKey}:activity-transactions`}
-						>Transactions</a>
-						{#if (
-							!actorNetwork.ready
-							|| actorNetwork.current.tokenTransferCount !== undefined
-							|| (actorNetwork.current.$$tokenTransfers ?? []).length > 0
-						)}
-							<a
-								data-scroll-marker-label="Token transfers"
-								href={`#${actorNetworkDetailAnchorKey}:activity-token-transfers`}
-							>Token transfers</a>
-						{/if}
-						{#if (
-							!actorNetwork.ready
-							|| (actorNetwork.current.$$internalTransactions ?? []).length > 0
-						)}
-							<a
-								data-scroll-marker-label="Internal transactions"
-								href={`#${actorNetworkDetailAnchorKey}:activity-internal-transactions`}
-							>Internal transactions</a>
-						{/if}
+					{#snippet SectionActivityTransactions({ id, label })}
+						<EvmTransactionsView
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+								{
+								networkId: String(entityId.$network.chainId),
+								address: entityId.$actor.address,
+								},
+	)}
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.ActorNetwork,
+								entityId,
+								fieldName: '$$transactions',
+							}}
+							id={`${actorNetworkDetailAnchorKey}:activity-tx`}
+						/>
 					{/snippet}
 
-					{#snippet body({ open: _bodyOpen })}
-						<section id={`${actorNetworkDetailAnchorKey}:activity-transactions`}>
-							<EvmTransactionsView
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-									{
-									networkId: String(entityId.$network.chainId),
-									address: entityId.$actor.address,
-									},
-		)}
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.ActorNetwork,
-									entityId,
-									fieldName: '$$transactions',
-								}}
-								id={`${actorNetworkDetailAnchorKey}:activity-tx`}
-							/>
-						</section>
+					{#snippet SectionActivityTokenTransfers({ id, label })}
+						<EvmTransactionsView
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+								{
+								networkId: String(entityId.$network.chainId),
+								address: entityId.$actor.address,
+								},
+	)}
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.ActorNetwork,
+								entityId,
+								fieldName: '$$tokenTransfers',
+							}}
+							id={`${actorNetworkDetailAnchorKey}:activity-token-tx-transfers`}
+							title="Token transfers"
+						/>
+					{/snippet}
 
-						<section
-							data-scroll-marker-label="Token transfers"
-							id={`${actorNetworkDetailAnchorKey}:activity-token-transfers`}
-						>
-							<EvmTransactionsView
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-									{
-									networkId: String(entityId.$network.chainId),
-									address: entityId.$actor.address,
-									},
-		)}
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.ActorNetwork,
-									entityId,
-									fieldName: '$$tokenTransfers',
-								}}
-								id={`${actorNetworkDetailAnchorKey}:activity-token-tx-transfers`}
-								title="Token transfers"
-							/>
-						</section>
-
-						<section
-							data-scroll-marker-label="Internal transactions"
-							id={`${actorNetworkDetailAnchorKey}:activity-internal-transactions`}
-						>
-							<EvmTransactionsView
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-									{
-									networkId: String(entityId.$network.chainId),
-									address: entityId.$actor.address,
-									},
-		)}
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.ActorNetwork,
-									entityId,
-									fieldName: '$$internalTransactions',
-								}}
-								id={`${actorNetworkDetailAnchorKey}:activity-internal-tx`}
-								title="Internal transactions"
-							/>
-						</section>
+					{#snippet SectionActivityInternalTransactions({ id, label })}
+						<EvmTransactionsView
+							href={resolve(
+								'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+								{
+								networkId: String(entityId.$network.chainId),
+								address: entityId.$actor.address,
+								},
+	)}
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.ActorNetwork,
+								entityId,
+								fieldName: '$$internalTransactions',
+							}}
+							id={`${actorNetworkDetailAnchorKey}:activity-internal-tx`}
+							title="Internal transactions"
+						/>
 					{/snippet}
 				</CollapsibleTabs>
 		</div>

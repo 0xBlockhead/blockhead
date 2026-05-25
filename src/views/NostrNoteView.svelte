@@ -15,7 +15,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/nostr/note/[eventId]', {
@@ -279,6 +279,12 @@
 		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-note`}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'content', label: 'Note text' },
+					{ id: 'replies', label: 'Reply thread' },
+					{ id: 'reactions', label: 'Reactions' },
+				] as const}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -295,83 +301,66 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Note text"
-						href={`#${idKey}:content`}
-					>Text</a>
-					<a
-						data-scroll-marker-label="Reply thread"
-						href={`#${idKey}:replies`}
-					>Replies</a>
-					<a
-						data-scroll-marker-label="Reactions"
-						href={`#${idKey}:reactions`}
-					>Reactions</a>
+				{#snippet SectionContent()}
+					<ResourceBoundary
+						resource={note}
+						placeholderText="Loading note…"
+					>
+						{#snippet children(loadedNote)}
+							{#if loadedNote.content}
+								<p>{loadedNote.content}</p>
+							{:else}
+								<div data-row="wrap align-center gap-2">
+									<p data-text="muted">
+										No text yet.
+									</p>
+									<Tooltip contentProps={{ side: 'top' }}>
+										{#snippet Content()}
+											<p>
+												Note body resolves when NostrBand or Primal returns the signed kind-1 event—not from a WebSocket relay subscription.
+											</p>
+										{/snippet}
+										<abbr
+											class="entity-heading-tip"
+											aria-label="Note content"
+										>ⓘ</abbr>
+									</Tooltip>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet body({ open: _sectionOpen })}
-					<section data-scroll-marker-label="Note text">
-						<ResourceBoundary
-							resource={note}
-							placeholderText="Loading note…"
-						>
-							{#snippet children(loadedNote)}
-								{#if loadedNote.content}
-									<p>{loadedNote.content}</p>
-								{:else}
-									<div data-row="wrap align-center gap-2">
-										<p data-text="muted">
-											No text yet.
-										</p>
-										<Tooltip contentProps={{ side: 'top' }}>
-											{#snippet Content()}
-												<p>
-													Note body resolves when NostrBand or Primal returns the signed kind-1 event—not from a WebSocket relay subscription.
-												</p>
-											{/snippet}
-											<abbr
-												class="entity-heading-tip"
-												aria-label="Note content"
-											>ⓘ</abbr>
-										</Tooltip>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-
-					<section data-scroll-marker-label="Reply thread">
-						<NostrNotesView
-							href={resolve(
+				{#snippet SectionReplies()}
+					<NostrNotesView
+						href={resolve(
 			'/(social)/(nostr)/nostr/note/[eventId]/(note)/replies',
 			{ eventId: entityId.eventId },
 		)}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.NostrNote,
-								entityId,
-								fieldName: '$$replies',
-							}}
-							id={`${idKey}:replies`}
-							open={_sectionOpen}
-							title="Reply thread"
-						/>
-					</section>
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.NostrNote,
+							entityId,
+							fieldName: '$$replies',
+						}}
+						id={`${idKey}:replies`}
+						open={true}
+						title="Reply thread"
+					/>
+				{/snippet}
 
-					<section data-scroll-marker-label="Reactions">
-						<NostrReactionsView
-							href={resolve('/nostr/reactions')}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.NostrNote,
-								entityId,
-								fieldName: '$$reactions',
-							}}
-							id={`${idKey}:reactions`}
-							open={_sectionOpen}
-						/>
-					</section>
+				{#snippet SectionReactions()}
+					<NostrReactionsView
+						href={resolve('/nostr/reactions')}
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.NostrNote,
+							entityId,
+							fieldName: '$$reactions',
+						}}
+						id={`${idKey}:reactions`}
+						open={true}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -132,7 +132,7 @@
 										$network: { chainId: entityId.$network.chainId },
 										blockNumber: loadedNetworkUpgrade.activationBlock,
 									}}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							</dd>

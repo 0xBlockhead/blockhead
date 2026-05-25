@@ -32,6 +32,12 @@
 		})}
 			<CollapsibleTabs
 				id={`${hubKey}:hub`}
+				sectionIdPrefix={hubKey}
+				sections={[
+					{ id: 'connections', label: 'Connections' },
+					{ id: 'wallets', label: 'Wallets' },
+					{ id: 'balances', label: 'Balances' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -49,63 +55,37 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Connections"
-						href={`#${hubKey}:connections`}
-					>Connections</a>
-					<a
-						data-scroll-marker-label="Wallets"
-						href={`#${hubKey}:wallets`}
-					>Wallets</a>
-					<a
-						data-scroll-marker-label="Balances"
-						href={`#${hubKey}:balances`}
-					>Balances</a>
+				{#snippet SectionConnections({ id, label })}
+					<BlockheadWalletConnectionsView
+						id="wallet-connections"
+						open={hubOpen}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _paneOpen })}
-					<section
-						id={`${hubKey}:connections`}
-						data-scroll-marker-label="Connections"
-					>
-						<BlockheadWalletConnectionsView
-							id="wallet-connections"
-							open={hubOpen}
-						/>
-					</section>
+				{#snippet SectionWallets({ id, label })}
+					<ActorsView
+						href={resolve('/~/accounts')}
+						entityFieldReference={{
+							entityType: EntityType._Global,
+							entityId: {},
+							fieldName: '$$actors',
+						}}
+						id="accounts"
+						open={hubOpen}
+					/>
+				{/snippet}
 
-					<section
-						id={`${hubKey}:wallets`}
-						data-scroll-marker-label="Wallets"
-					>
-						<ActorsView
-							href={resolve('/~/accounts')}
-							entityFieldReference={{
-								entityType: EntityType._Global,
-								entityId: {},
-								fieldName: '$$actors',
-							}}
-							id="accounts"
-							open={hubOpen}
-						/>
-					</section>
-
-					<section
-						id={`${hubKey}:balances`}
-						data-scroll-marker-label="Balances"
-					>
-						<ActorCoinsView
-							href={resolve('/~/(accounts)/accounts/balances')}
-							entityFieldReference={{
-								entityType: EntityType._Global,
-								entityId: {},
-								fieldName: '$$actorCoins',
-							}}
-							id="balances"
-							open={hubOpen}
-						/>
-					</section>
+				{#snippet SectionBalances({ id, label })}
+					<ActorCoinsView
+						href={resolve('/~/(accounts)/accounts/balances')}
+						entityFieldReference={{
+							entityType: EntityType._Global,
+							entityId: {},
+							fieldName: '$$actorCoins',
+						}}
+						id="balances"
+						open={hubOpen}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		{/snippet}

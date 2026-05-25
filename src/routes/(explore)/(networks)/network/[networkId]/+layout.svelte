@@ -3,7 +3,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 
 
-	// Props
+	// State
 	let {
 		children,
 		params,

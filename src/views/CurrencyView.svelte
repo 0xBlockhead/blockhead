@@ -18,7 +18,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -198,6 +198,11 @@
 		>
 			<CollapsibleTabs
 				id={`${idPrefix}:carousel-markets`}
+				sectionIdPrefix={idPrefix}
+				sections={[
+					{ id: 'markets-as-base', label: 'Base' },
+					{ id: 'markets-as-quote', label: 'Quote' },
+				]}
 				class="currency-view-collapsible-markets"
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
@@ -228,52 +233,38 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Base"
-						href={`#${idPrefix}:markets-as-base`}
-					>Base</a>
-					<a
-						data-scroll-marker-label="Quote"
-						href={`#${idPrefix}:markets-as-quote`}
-					>Quote</a>
-				{/snippet}
-
-				{#snippet body({ open: _detailsOpen })}
+				{#snippet SectionMarketsAsBase({ id, label })}
 					{#if entityId.iso4217 === Iso4217.USD}
 						<p data-text="muted">
 							<a href={resolve('/markets')}>All catalog markets</a>
 							— spot indices quote in USD.
 						</p>
 					{/if}
+					<MarketsView
+						href={resolve('/markets')}
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.Currency,
+							entityId,
+							fieldName: '$$marketsWithCurrencyAsBase',
+						}}
+						{id}
+						title="Base"
+					/>
+				{/snippet}
 
-					<section data-scroll-marker-label="Base">
-						<MarketsView
-							href={resolve('/markets')}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.Currency,
-								entityId,
-								fieldName: '$$marketsWithCurrencyAsBase',
-							}}
-							id={`${idPrefix}:markets-as-base`}
-							title="Base"
-						/>
-					</section>
-
-					<section data-scroll-marker-label="Quote">
-						<MarketsView
-							href={resolve('/markets')}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.Currency,
-								entityId,
-								fieldName: '$$marketsWithCurrencyAsQuote',
-							}}
-							id={`${idPrefix}:markets-as-quote`}
-							title="Quote"
-						/>
-					</section>
+				{#snippet SectionMarketsAsQuote({ id, label })}
+					<MarketsView
+						href={resolve('/markets')}
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.Currency,
+							entityId,
+							fieldName: '$$marketsWithCurrencyAsQuote',
+						}}
+						{id}
+						title="Quote"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

@@ -5,7 +5,7 @@
 	import { schema } from '$/schema/index.ts'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 	}: {

@@ -20,7 +20,7 @@
 	type MediaInput = MediaWire | { url: string }
 
 
-	// Props
+	// State
 	let {
 		media,
 		size = 'medium',
@@ -57,7 +57,6 @@
 	}
 
 
-	// (Derived)
 	const format = $derived(
 		isFullMedia(media)
 			? size === 'original'

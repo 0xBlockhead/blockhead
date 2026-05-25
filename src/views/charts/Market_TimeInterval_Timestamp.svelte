@@ -10,7 +10,7 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
-	// Props
+	// State
 	let {
 		title = 'OHLC',
 		entityFieldReference,

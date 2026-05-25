@@ -10,7 +10,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		items,
 		currentPathname,
@@ -43,7 +43,6 @@
 	)
 
 
-	// (Derived)
 	const searchFilter = $derived(
 		searchValue.trim().toLowerCase(),
 	)

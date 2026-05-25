@@ -22,7 +22,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		children,
 		entityId,
@@ -175,6 +175,11 @@
 			>
 				<CollapsibleTabs
 					id={`global:${entityId.scope}:carousel-app`}
+					sectionIdPrefix={`global:${entityId.scope}`}
+					sections={[
+						{ id: 'nav', label: 'Nav' },
+						{ id: 'usage', label: 'Usage' },
+					]}
 					{...{ 'data-card': '' }}
 					scrollContainerProps={entityViewDetailCarouselScrollProps}
 				>
@@ -205,125 +210,103 @@
 						</header>
 					{/snippet}
 
-					{#snippet Markers({
-						open: _markersOpen,
-					})}
-						<a
-							data-scroll-marker-label="Nav"
-							href={`#global:${entityId.scope}:nav`}
-						>Nav</a>
-						<a
-							data-scroll-marker-label="Usage"
-							href={`#global:${entityId.scope}:usage`}
-						>Usage</a>
+					{#snippet SectionNav({ id, label })}
+						<UnorderedList
+							items={
+								new SvelteSet<GlobalNavItem>([
+									{
+										key: 'self',
+										label: title,
+									},
+									{
+										key: 'explore',
+										label: 'Explore',
+										path: '/explore',
+									},
+									...(
+										href === resolve('/assets') ?
+											[
+												{
+													key: 'assets-coins',
+													label: 'Coins',
+													path: '/coins',
+												},
+												{
+													key: 'assets-pools',
+													label: 'Pools',
+													path: '/pools',
+												},
+											] as const
+										:
+											[]
+									),
+									...(
+										href === resolve('/~/accounts') ?
+											[
+												{
+													key: 'accounts-balances',
+													label: 'Balances',
+													path: '/~/accounts/balances',
+												},
+											] as const
+										:
+											[]
+									),
+								])
+							}
+							getKey={(row) => row.key}
+							getSortValue={(row) => row.key}
+							orientation={ListOrientation.Column}
+						>
+							{#snippet Item({ item })}
+								{#if item.key === 'self'}
+									<a href={resolve(href as `/${string}`)}>
+										{item.label}
+									</a>
+								{:else}
+									<a href={resolve(item.path)}>
+										{item.label}
+									</a>
+								{/if}
+							{/snippet}
+						</UnorderedList>
 					{/snippet}
 
-					{#snippet body({ open: _paneOpen,
-					})}
-						<section
-							id={`global:${entityId.scope}:nav`}
+					{#snippet SectionUsage({ id, label })}
+						<ResourceBoundary
+							resource={global}
+							placeholderText="Loading usage…"
 						>
-							<UnorderedList
-								items={
-									new SvelteSet<GlobalNavItem>([
-										{
-											key: 'self',
-											label: title,
-										},
-										{
-											key: 'explore',
-											label: 'Explore',
-											path: '/explore',
-										},
-										...(
-											href === resolve('/assets') ?
-												[
-													{
-														key: 'assets-coins',
-														label: 'Coins',
-														path: '/coins',
-													},
-													{
-														key: 'assets-pools',
-														label: 'Pools',
-														path: '/pools',
-													},
-												] as const
-											:
-												[]
-										),
-										...(
-											href === resolve('/~/accounts') ?
-												[
-													{
-														key: 'accounts-balances',
-														label: 'Balances',
-														path: '/~/accounts/balances',
-													},
-												] as const
-											:
-												[]
-										),
-									])
-								}
-								getKey={(row) => row.key}
-								getSortValue={(row) => row.key}
-								orientation={ListOrientation.Column}
-							>
-								{#snippet Item({ item })}
-									{#if item.key === 'self'}
-										<a href={resolve(href as `/${string}`)}>
-											{item.label}
-										</a>
-									{:else}
-										<a href={resolve(item.path)}>
-											{item.label}
-										</a>
+							{#snippet children(loadedGlobal)}
+								<dl data-column-item="center">
+									{#if loadedGlobal.duneCreditsUsed !== undefined}
+										<div>
+											<dt>Query credits used</dt>
+											<dd>{String(global.duneCreditsUsed)}</dd>
+										</div>
 									{/if}
-								{/snippet}
-							</UnorderedList>
-						</section>
 
-						<section
-							id={`global:${entityId.scope}:usage`}
-							data-scroll-marker-label="Usage"
-						>
-							<ResourceBoundary
-								resource={global}
-								placeholderText="Loading usage…"
-							>
-								{#snippet children(loadedGlobal)}
-									<dl data-column-item="center">
-										{#if loadedGlobal.duneCreditsUsed !== undefined}
-											<div>
-												<dt>Query credits used</dt>
-												<dd>{String(global.duneCreditsUsed)}</dd>
-											</div>
-										{/if}
+									{#if loadedGlobal.duneCreditsIncluded !== undefined}
+										<div>
+											<dt>Query credits included</dt>
+											<dd>{String(global.duneCreditsIncluded)}</dd>
+										</div>
+									{/if}
 
-										{#if loadedGlobal.duneCreditsIncluded !== undefined}
-											<div>
-												<dt>Query credits included</dt>
-												<dd>{String(global.duneCreditsIncluded)}</dd>
-											</div>
-										{/if}
-
-										{#if (
-											global.duneCreditsUsed === undefined
-											&& global.duneCreditsIncluded === undefined
-										)}
-											<div>
-												<dt>Status</dt>
-												<dd data-text="muted">
-													No usage totals yet.
-												</dd>
-											</div>
-										{/if}
-									</dl>
-								{/snippet}
-							</ResourceBoundary>
-						</section>
-
+									{#if (
+										global.duneCreditsUsed === undefined
+										&& global.duneCreditsIncluded === undefined
+									)}
+										<div>
+											<dt>Status</dt>
+											<dd data-text="muted">
+												No usage totals yet.
+											</dd>
+										</div>
+									{/if}
+								</dl>
+							{/snippet}
+						</ResourceBoundary>
 					{/snippet}
 				</CollapsibleTabs>
 			</div>

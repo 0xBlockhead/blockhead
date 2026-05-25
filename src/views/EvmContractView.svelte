@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		children: _children,
 		entityId,
@@ -95,7 +95,6 @@
 	)
 
 
-	// (Derived)
 	const contractIdKey = $derived(
 		stringify(entityId),
 	)
@@ -336,281 +335,244 @@
 			data-carousel-basis="40ch"
 		>
 			<CollapsibleTabs
+				sectionIdPrefix={contractIdKey}
+				sections={[
+					{ id: 'home-network', label: 'Home' },
+					...(_children ? [{ id: 'page-content', label: 'Route' }] : []),
+				]}
 				id={`${contractIdKey}:carousel-execution`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
 				}}
-				Summary={PlacementCarouselSummary}
-				Markers={PlacementCarouselMarkers}
-				body={PlacementCarouselBody}
-			/>
+			>
+				{#snippet Summary({ open: _isOpen })}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<Heading>Placement</Heading>
+						<Tooltip
+							contentProps={{ side: 'top' }}
+							Content={PlacementTooltipContent}
+						>
+							<abbr
+								class="entity-heading-tip"
+								aria-label="Execution placement"
+							>ⓘ</abbr>
+						</Tooltip>
+					</header>
+				{/snippet}
+
+				{#snippet SectionHomeNetwork({ id: _homeId, label: _homeLabel })}
+					<NetworkView
+						entityId={{
+							chainId: entityId.$network.chainId,
+						}}
+						href={resolve(
+							'/(explore)/(networks)/network/[networkId]',
+							{ networkId: String(entityId.$network.chainId) },
+						)}
+						layout={EntityLayout.Summary}
+					/>
+				{/snippet}
+
+				{#snippet SectionPageContent({ id: _contentId, label: _contentLabel })}
+					{#if _children}
+						{@render _children()}
+					{/if}
+				{/snippet}
+			</CollapsibleTabs>
 			<CollapsibleTabs
+				sectionIdPrefix={contractIdKey}
+				sections={[
+					{ id: 'contract-deployment', label: 'Deployment' },
+					{ id: 'contract-verification', label: 'Verification' },
+					{ id: 'contract-bytecode', label: 'Bytecode' },
+					{ id: 'contract-storage-slots', label: 'Slots' },
+					{ id: 'contract-proxy', label: 'Proxy' },
+				]}
 				id={`${contractIdKey}:carousel-contract-details`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
 				}}
-				Summary={ContractDetailsCarouselSummary}
-				Markers={ContractDetailsCarouselMarkers}
-				body={ContractDetailsCarouselBody}
-			/>
+			>
+				{#snippet Summary({ open: _isOpen })}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<Heading>Contract details</Heading>
+					</header>
+				{/snippet}
+
+				{#snippet SectionContractDeployment({ id: _depId, label: _depLabel })}
+					<ResourceBoundary resource={contract}>
+						{#snippet children(loadedContract)}
+							{#if !loadedContract.precompileName && (loadedContract.$deployer || loadedContract.$creationTransaction)}
+								{#if loadedContract.$deployer}
+									<div class="entity-details">
+										<ActorNetworkView
+											entityId={{
+												$network: entityId.$network,
+												$actor: loadedContract.$deployer[EntityMetaKey.Id],
+											}}
+											href={resolve(
+												'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+												{
+													networkId: String(entityId.$network.chainId),
+													address: loadedContract.$deployer[EntityMetaKey.Id].address,
+												},
+											)}
+											layout={EntityLayout.Title}
+										/>
+									</div>
+								{/if}
+
+								{#if loadedContract.$creationTransaction}
+									<div class="entity-details">
+										<EvmTransactionView
+											entityId={loadedContract.$creationTransaction[EntityMetaKey.Id]}
+											href={resolve(
+												'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+												{
+													networkId: String(entityId.$network.chainId),
+													transactionId: loadedContract.$creationTransaction[EntityMetaKey.Id].txHash,
+												},
+											)}
+											layout={EntityLayout.Title}
+										/>
+									</div>
+								{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+
+				{#snippet SectionContractVerification({ id: _verId, label: _verLabel })}
+					<ResourceBoundary resource={contract}>
+						{#snippet children(loadedContract)}
+							{#if !loadedContract.precompileName && loadedContract.$verification}
+								<EvmContractVerificationView
+									entityId={loadedContract.$verification[EntityMetaKey.Id]}
+									href={resolve(
+										'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+										{
+											networkId: String(entityId.$network.chainId),
+											address: entityId.address,
+										},
+									)}
+									layout={EntityLayout.SummaryDetails}
+									open={true}
+								/>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+
+				{#snippet SectionContractBytecode({ id: _bcId, label: _bcLabel })}
+					<ResourceBoundary resource={contract}>
+						{#snippet children(loadedContract)}
+							{#if loadedContract.bytecodeHash || loadedContract.code}
+								{#if loadedContract.bytecodeHash}
+									<div class="entity-details">
+										<div data-row="inline wrap gap-2 align-baseline">
+											<span data-text="annotation">Bytecode hash</span>
+											<TruncatedValue
+												value={loadedContract.bytecodeHash}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</div>
+									</div>
+								{/if}
+
+								{#if loadedContract.code}
+									<div class="entity-details">
+										<div data-row="inline wrap gap-2 align-baseline">
+											<span data-text="annotation">Runtime bytecode</span>
+											<TruncatedValue
+												value={loadedContract.code}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</div>
+									</div>
+								{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+
+				{#snippet SectionContractStorageSlots({ id: _slotsId, label: _slotsLabel })}
+					<ResourceBoundary resource={contract}>
+						{#snippet children(loadedContract)}
+							{#if (loadedContract.storageSlotReads ?? []).length > 0}
+								<div class="entity-details">
+									<div data-row="wrap align-center gap-2">
+										<span data-text="annotation">Sampled storage slots</span>
+										<Tooltip
+											contentProps={{ side: 'top' }}
+											Content={StorageSlotsTooltipContent}
+										>
+											<abbr
+												class="entity-heading-tip"
+												aria-label="Slot sampling"
+											>ⓘ</abbr>
+										</Tooltip>
+									</div>
+									<table>
+										<thead>
+											<tr>
+												<th scope="col" data-text="annotation">Slot</th>
+												<th scope="col" data-text="annotation">Value</th>
+											</tr>
+										</thead>
+										<tbody>
+											{#each (
+												loadedContract.storageSlotReads
+												?? []
+											) as row (`${row.slot}`)}
+												<tr>
+													<td>
+														<TruncatedValue
+															value={row.slot}
+															format={TruncatedValueFormat.Visual}
+														/>
+													</td>
+													<td>
+														<TruncatedValue
+															value={row.value}
+															format={TruncatedValueFormat.Visual}
+														/>
+													</td>
+												</tr>
+											{/each}
+										</tbody>
+									</table>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+
+				{#snippet SectionContractProxy({ id: _proxyId, label: _proxyLabel })}
+					<ResourceBoundary resource={contract}>
+						{#snippet children(loadedContract)}
+							{#if !loadedContract.precompileName && loadedContract.$implementation}
+								<div class="entity-details">
+									<EvmContractView
+										entityId={loadedContract.$implementation[EntityMetaKey.Id]}
+										href={resolve(
+											'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
+											{
+												networkId: String(entityId.$network.chainId),
+												address: loadedContract.$implementation[EntityMetaKey.Id].address,
+											},
+										)}
+										layout={EntityLayout.Title}
+										title="Implementation"
+									/>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</CollapsibleTabs>
 		</div>
 	{/snippet}
 </EntityView>
-
-
-{#snippet PlacementCarouselSummary({ open: _isOpen })}
-	<header data-row-item="flexible" data-row="wrap gap-4">
-		<Heading>Placement</Heading>
-		<Tooltip
-			contentProps={{ side: 'top' }}
-			Content={PlacementTooltipContent}
-		>
-			<abbr
-				class="entity-heading-tip"
-				aria-label="Execution placement"
-			>ⓘ</abbr>
-		</Tooltip>
-	</header>
-{/snippet}
-
-{#snippet PlacementCarouselMarkers({ open: _markersOpen })}
-	<a
-		data-scroll-marker-label="Home"
-		href={`#${contractIdKey}:home-network`}
-	>Home</a>
-	{#if _children}
-		<a
-			data-scroll-marker-label="Route"
-			href={`#${contractIdKey}:page-content`}
-		>Route</a>
-	{/if}
-{/snippet}
-
-{#snippet PlacementCarouselBody({ open: _bodyOpen })}
-	<section id={`${contractIdKey}:home-network`}>
-		<NetworkView
-			entityId={{
-				chainId: entityId.$network.chainId,
-			}}
-			href={resolve(
-				'/(explore)/(networks)/network/[networkId]',
-				{ networkId: String(entityId.$network.chainId) },
-			)}
-			layout={EntityLayout.Summary}
-		/>
-	</section>
-
-	{#if _children}
-		<section id={`${contractIdKey}:page-content`}>
-			{@render _children()}
-		</section>
-	{/if}
-{/snippet}
-
-{#snippet ContractDetailsCarouselSummary({ open: _isOpen })}
-	<header data-row-item="flexible" data-row="wrap gap-4">
-		<Heading>Contract details</Heading>
-	</header>
-{/snippet}
-
-{#snippet ContractDetailsCarouselMarkers({ open: _markersOpen })}
-	<ResourceBoundary resource={contract}>
-		{#snippet children(loadedContract)}
-			{#if !loadedContract.precompileName && (loadedContract.$deployer || loadedContract.$creationTransaction)}
-				<a
-					data-scroll-marker-label="Deployment"
-					href={`#${contractIdKey}:contract-deployment`}
-				>Deployment</a>
-			{/if}
-
-			{#if !loadedContract.precompileName && loadedContract.$verification}
-				<a
-					data-scroll-marker-label="Verification"
-					href={`#${contractIdKey}:contract-verification`}
-				>Verification</a>
-			{/if}
-
-			{#if loadedContract.bytecodeHash || loadedContract.code}
-				<a
-					data-scroll-marker-label="Bytecode"
-					href={`#${contractIdKey}:contract-bytecode`}
-				>Bytecode</a>
-			{/if}
-
-			{#if (loadedContract.storageSlotReads ?? []).length > 0}
-				<a
-					data-scroll-marker-label="Slots"
-					href={`#${contractIdKey}:contract-storage-slots`}
-				>Slots</a>
-			{/if}
-
-			{#if !loadedContract.precompileName && loadedContract.$implementation}
-				<a
-					data-scroll-marker-label="Proxy"
-					href={`#${contractIdKey}:contract-proxy`}
-				>Proxy</a>
-			{/if}
-		{/snippet}
-	</ResourceBoundary>
-{/snippet}
-
-{#snippet ContractDetailsCarouselBody({ open: _bodyOpen })}
-	<ResourceBoundary resource={contract}>
-		{#snippet children(loadedContract)}
-			{#if !loadedContract.precompileName && (loadedContract.$deployer || loadedContract.$creationTransaction)}
-				<section id={`${contractIdKey}:contract-deployment`}>
-					{#if loadedContract.$deployer}
-						<div class="entity-details">
-							<ActorNetworkView
-								entityId={{
-									$network: entityId.$network,
-									$actor: loadedContract.$deployer[EntityMetaKey.Id],
-								}}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
-									{
-										networkId: String(entityId.$network.chainId),
-										address: loadedContract.$deployer[EntityMetaKey.Id].address,
-									},
-								)}
-								layout={EntityLayout.Title}
-							/>
-						</div>
-					{/if}
-
-					{#if loadedContract.$creationTransaction}
-						<div class="entity-details">
-							<EvmTransactionView
-								entityId={loadedContract.$creationTransaction[EntityMetaKey.Id]}
-								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
-									{
-										networkId: String(entityId.$network.chainId),
-										transactionId: loadedContract.$creationTransaction[EntityMetaKey.Id].txHash,
-									},
-								)}
-								layout={EntityLayout.Title}
-							/>
-						</div>
-					{/if}
-				</section>
-			{/if}
-
-			{#if !loadedContract.precompileName && loadedContract.$verification}
-				<section id={`${contractIdKey}:contract-verification`}>
-					<EvmContractVerificationView
-						entityId={loadedContract.$verification[EntityMetaKey.Id]}
-						href={resolve(
-							'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-							{
-								networkId: String(entityId.$network.chainId),
-								address: entityId.address,
-							},
-						)}
-						layout={EntityLayout.SummaryDetails}
-						open={true}
-					/>
-				</section>
-			{/if}
-
-			{#if loadedContract.bytecodeHash || loadedContract.code}
-				<section id={`${contractIdKey}:contract-bytecode`}>
-					{#if loadedContract.bytecodeHash}
-						<div class="entity-details">
-							<div data-row="inline wrap gap-2 align-baseline">
-								<span data-text="annotation">Bytecode hash</span>
-								<TruncatedValue
-									value={loadedContract.bytecodeHash}
-									format={TruncatedValueFormat.Visual}
-								/>
-							</div>
-						</div>
-					{/if}
-
-					{#if loadedContract.code}
-						<div class="entity-details">
-							<div data-row="inline wrap gap-2 align-baseline">
-								<span data-text="annotation">Runtime bytecode</span>
-								<TruncatedValue
-									value={loadedContract.code}
-									format={TruncatedValueFormat.Visual}
-								/>
-							</div>
-						</div>
-					{/if}
-				</section>
-			{/if}
-
-			{#if (loadedContract.storageSlotReads ?? []).length > 0}
-				<section id={`${contractIdKey}:contract-storage-slots`}>
-					<div class="entity-details">
-						<div data-row="wrap align-center gap-2">
-							<span data-text="annotation">Sampled storage slots</span>
-							<Tooltip
-								contentProps={{ side: 'top' }}
-								Content={StorageSlotsTooltipContent}
-							>
-								<abbr
-									class="entity-heading-tip"
-									aria-label="Slot sampling"
-								>ⓘ</abbr>
-							</Tooltip>
-						</div>
-						<table>
-							<thead>
-								<tr>
-									<th scope="col" data-text="annotation">Slot</th>
-									<th scope="col" data-text="annotation">Value</th>
-								</tr>
-							</thead>
-							<tbody>
-								{#each (
-									loadedContract.storageSlotReads
-									?? []
-								) as row (`${row.slot}`)}
-									<tr>
-										<td>
-											<TruncatedValue
-												value={row.slot}
-												format={TruncatedValueFormat.Visual}
-											/>
-										</td>
-										<td>
-											<TruncatedValue
-												value={row.value}
-												format={TruncatedValueFormat.Visual}
-											/>
-										</td>
-									</tr>
-								{/each}
-							</tbody>
-						</table>
-					</div>
-				</section>
-			{/if}
-
-			{#if !loadedContract.precompileName && loadedContract.$implementation}
-				<section id={`${contractIdKey}:contract-proxy`}>
-					<div class="entity-details">
-						<EvmContractView
-							entityId={loadedContract.$implementation[EntityMetaKey.Id]}
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]',
-								{
-									networkId: String(entityId.$network.chainId),
-									address: loadedContract.$implementation[EntityMetaKey.Id].address,
-								},
-							)}
-							layout={EntityLayout.Title}
-							title="Implementation"
-						/>
-					</div>
-				</section>
-			{/if}
-		{/snippet}
-	</ResourceBoundary>
-{/snippet}
-
 

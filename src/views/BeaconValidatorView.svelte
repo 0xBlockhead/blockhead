@@ -11,7 +11,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -32,7 +32,7 @@
 	// Functions
 	const title = (
 		titleProp
-		?? `Validator ${entityId.validatorIndex.toLocaleString()}`
+		?? `Validator #${entityId.validatorIndex.toLocaleString()}`
 	)
 
 
@@ -93,12 +93,6 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<div data-column="gap-1">
 			<dl data-column-item="center">
-				<div>
-					<dt>Beacon index</dt>
-					<dd>
-						<NumberValue value={entityId.validatorIndex} />
-					</dd>
-				</div>
 				{#if open}
 					<ResourceBoundary
 						placeholderText="Loading beacon validator…"
@@ -159,7 +153,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Each index is a consensus validator that can propose or attest; this row comes from deduped recent beacon proposer duties near the chain head—not the full validator set.
+			Each validator can propose or attest; this row comes from deduped recent beacon proposer duties near the chain head—not the full validator set.
 		</p>
 	{/snippet}
 </EntityView>

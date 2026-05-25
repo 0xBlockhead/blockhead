@@ -1351,10 +1351,26 @@ export default {
 					explorerOrigin: origin,
 					address: entityId.address,
 				})
-				return erc4337RegistryFieldsFromBlockscoutWire(
-					EntityType.Erc4337SmartAccount,
-					wire,
+				const factoryAddress = (
+					wire.factory?.hash != null ?
+						hexLowerOfByteSize(wire.factory.hash, 20)
+					:
+						undefined
 				)
+				return {
+					...erc4337RegistryFieldsFromBlockscoutWire(
+						EntityType.Erc4337SmartAccount,
+						wire,
+					),
+					...(factoryAddress != null && {
+						$factory: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								address: factoryAddress,
+							},
+						} satisfies Entity<typeof schema, EntityType.Erc4337AccountFactory>,
+					}),
+				}
 			},
 		}),
 
@@ -2464,6 +2480,53 @@ export default {
 						.map((entity) => ({
 							[EntityMetaKey.Id]: entity[EntityMetaKey.Id],
 						}))
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmTransaction,
+			fieldName: '$$userOperations',
+			resolve: async (entityId, context) => {
+				const {
+					blockscoutExplorerOriginForChain,
+					blockscoutRestV2AtExplorerOrigin,
+					blockscoutV2ItemsCountMax,
+					blockscoutErc4337OperationsSupported,
+				} = await import('$/sources/Blockscout/Rest/constants.ts')
+				if (!blockscoutErc4337OperationsSupported(entityId.$network.chainId)) {
+					throw new Error(`Blockscout_Rest: ERC-4337 user operations not supported for chain ${entityId.$network.chainId}`)
+				}
+				const limit = Math.min(
+					resolverLoadSubsetRowLimit(context),
+					blockscoutV2ItemsCountMax,
+				)
+				const { getBlockscoutUserOperationsByTransaction } = await import('$/sources/Blockscout/Rest/queries.ts')
+				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
+					chainId: entityId.$network.chainId,
+					blockscoutExplorerOriginForChain,
+					blockscoutRestV2AtExplorerOrigin,
+				})
+				if (origin == null) {
+					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${entityId.$network.chainId}`)
+				}
+				const wires = await singleFlight(getBlockscoutUserOperationsByTransaction)({
+					explorerOrigin: origin,
+					txHash: entityId.txHash,
+					limit,
+				})
+				return (
+					wires.flatMap((w) => {
+						const hashRaw = w.hash != null ? hexLowerOfByteSize(w.hash, 32) : undefined
+						return hashRaw == null ?
+								[]
+							:	[{
+									[EntityMetaKey.Id]: {
+										$network: entityId.$network,
+										hash: hashRaw,
+									},
+								} satisfies Entity<typeof schema, EntityType.EvmUserOperation>]
+					})
 				)
 			},
 		}),

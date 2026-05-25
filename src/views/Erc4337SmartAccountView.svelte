@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -12,7 +13,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -52,6 +53,7 @@
 				Source.Blockscout_Rest,
 			],
 			userOperationsCount: {},
+			$factory: {},
 		},
 	)
 
@@ -60,6 +62,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import Erc4337AccountFactoryView from '$/views/Erc4337AccountFactoryView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
 
@@ -108,6 +111,21 @@
 							<dd data-text="mono">{String(smartAccount.userOperationsCount)}</dd>
 						</div>
 					{/if}
+
+					{#if loadedSmartAccount.$factory != null}
+						<div>
+							<dt>Factory</dt>
+							<dd>
+								<Erc4337AccountFactoryView
+									entityId={loadedSmartAccount.$factory[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+
 					<div>
 						<dt>Account contract</dt>
 						<dd>

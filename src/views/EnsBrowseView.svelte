@@ -96,7 +96,6 @@
 	}
 
 
-	// (Derived)
 	const ensSearch = $derived(
 		searchTerm == null ?
 			undefined

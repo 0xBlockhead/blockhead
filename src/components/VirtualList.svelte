@@ -10,7 +10,7 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
-	// Props
+	// State
 	let {
 		items,
 		getKey,
@@ -52,8 +52,6 @@
 	])
 	let totalHeight = $state(0)
 
-
-	// Derived
 	const visible = $derived.by(() => {
 		const n = items.length
 		const os = offsets

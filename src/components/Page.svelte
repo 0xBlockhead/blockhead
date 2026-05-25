@@ -7,7 +7,7 @@
 	import { setIsInsidePage } from '$/context/isInsidePage.ts'
 
 
-	// Props
+	// State
 	let {
 		children,
 	}: {

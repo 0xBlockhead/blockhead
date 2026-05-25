@@ -13,7 +13,7 @@
 
 
 <script lang="ts">
-	// Props
+	// State
 	let {
 		icon,
 		html,
@@ -37,7 +37,6 @@
 	} = $props()
 
 
-	// (Derived)
 	const a11yLabel = $derived(
 		label ?? alt
 	)

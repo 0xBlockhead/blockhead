@@ -16,7 +16,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityFieldReference,
 		title = 'Validators',
@@ -95,7 +95,7 @@
 						>
 							{#snippet Empty()}
 								<p data-text="muted">
-									No validator indices yet.
+									No validators yet.
 								</p>
 							{/snippet}
 

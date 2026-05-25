@@ -11,7 +11,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -63,7 +63,6 @@
 	)
 
 
-	// (Derived)
 	const title = $derived(
 		titleProp ?? `Slot ${entityId.slot.toLocaleString()}`,
 	)

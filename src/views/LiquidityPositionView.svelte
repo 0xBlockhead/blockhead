@@ -13,7 +13,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/~/accounts/positions/position/[chainId]/[positionId]', {

@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -201,6 +201,12 @@
 		>
 			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-registry`}
+				sectionIdPrefix={networkIdKey}
+				sections={[
+					{ id: 'channels', label: 'Channels' },
+					{ id: 'videos', label: 'Popular videos' },
+					{ id: 'playlists', label: 'Playlists' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
@@ -215,63 +221,46 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Channels"
-						href={`#${networkIdKey}:channels`}
-					>Channels</a>
-					<a
-						data-scroll-marker-label="Popular videos"
-						href={`#${networkIdKey}:videos`}
-					>Videos</a>
-					<a
-						data-scroll-marker-label="Playlists"
-						href={`#${networkIdKey}:playlists`}
-					>Playlists</a>
+				{#snippet SectionChannels({ id, label })}
+					<YouTubeChannelsView
+						href={resolve('/youtube/channels')}
+						entityFieldReference={{
+							entityType: EntityType.YouTubeNetwork,
+							entityId,
+							fieldName: '$$youtubeChannels',
+						}}
+						id="channels"
+						open={_open}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _sectionOpen })}
-					<section data-scroll-marker-label="Channels">
-						<YouTubeChannelsView
-							href={resolve('/youtube/channels')}
-							entityFieldReference={{
-								entityType: EntityType.YouTubeNetwork,
-								entityId,
-								fieldName: '$$youtubeChannels',
-							}}
-							id="channels"
-							open={_open}
-						/>
-					</section>
+				{#snippet SectionVideos({ id, label })}
+					<YouTubeVideosView
+						href={resolve('/youtube/videos')}
+						entityFieldReference={{
+							entityType: EntityType.YouTubeNetwork,
+							entityId,
+							fieldName: '$$youtubeVideos',
+						}}
+						id="videos"
+						limit={25}
+						open={_open}
+						title="Popular videos"
+					/>
+				{/snippet}
 
-					<section data-scroll-marker-label="Popular videos">
-						<YouTubeVideosView
-							href={resolve('/youtube/videos')}
-							entityFieldReference={{
-								entityType: EntityType.YouTubeNetwork,
-								entityId,
-								fieldName: '$$youtubeVideos',
-							}}
-							id="videos"
-							limit={25}
-							open={_open}
-							title="Popular videos"
-						/>
-					</section>
-
-					<section data-scroll-marker-label="Playlists">
-						<YouTubePlaylistsView
-							href={resolve('/youtube/playlists')}
-							entityFieldReference={{
-								entityType: EntityType.YouTubeNetwork,
-								entityId,
-								fieldName: '$$youtubePlaylists',
-							}}
-							id="playlists"
-							open={_open}
-							title="Playlists"
-						/>
-					</section>
+				{#snippet SectionPlaylists({ id, label })}
+					<YouTubePlaylistsView
+						href={resolve('/youtube/playlists')}
+						entityFieldReference={{
+							entityType: EntityType.YouTubeNetwork,
+							entityId,
+							fieldName: '$$youtubePlaylists',
+						}}
+						id="playlists"
+						open={_open}
+						title="Playlists"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

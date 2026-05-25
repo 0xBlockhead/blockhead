@@ -11,7 +11,7 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
-	// Props
+	// State
 	let {
 		entityFieldReference,
 		title = 'Receipt logs',

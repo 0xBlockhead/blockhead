@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/lens/account/[address]', {
@@ -245,6 +245,11 @@
 		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-activity`}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'lens-account-record', label: 'Record' },
+					{ id: 'posts', label: 'Publications' },
+				] as const}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -263,47 +268,26 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Record"
-						href={`#${idKey}:lens-account-record`}
-					>Record</a>
-					<a
-						data-scroll-marker-label="Publications"
-						href={`#${idKey}:posts`}
-					>Publications</a>
+				{#snippet SectionLensAccountRecord()}
+					<EntityDetails
+						entityType={EntityType.LensAccount}
+						{entityId}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _bodyOpen })}
-					<section
-						data-scroll-marker-label="Record"
-						id={`${idKey}:lens-account-record`}
-					>
-						<EntityDetails
-							entityType={EntityType.LensAccount}
-							{entityId}
-						/>
-					</section>
-
-					<section
-						data-scroll-marker-label="Publications"
-						id={`${idKey}:posts`}
-					>
-						<LensPostsView
-							href={resolve(
+				{#snippet SectionPosts()}
+					<LensPostsView
+						href={resolve(
 			'/(social)/(lens)/lens/account/[address]/(account)/posts',
 			{ address: entityId.address },
 		)}
-							entityFieldReference={{
-								entityType: EntityType.LensAccount,
-								entityId,
-								fieldName: '$$posts',
-							}}
-							id={`${idKey}:posts-list`}
-						/>
-					</section>
+						entityFieldReference={{
+							entityType: EntityType.LensAccount,
+							entityId,
+							fieldName: '$$posts',
+						}}
+						id={`${idKey}:posts-list`}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

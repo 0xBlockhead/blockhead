@@ -13,7 +13,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId: farcasterUserId,
 		href = resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {

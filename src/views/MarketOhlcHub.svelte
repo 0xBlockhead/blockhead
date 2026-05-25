@@ -17,7 +17,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		id,
 		market,
@@ -44,7 +44,6 @@
 	} = $props()
 
 
-	// (Derived)
 	const timeIntervalLabel = $derived(
 		timeInterval.unit === MarketTimeIntervalUnit.Day ?
 			`${String(timeInterval.value)}d`

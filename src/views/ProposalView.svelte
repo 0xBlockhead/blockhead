@@ -12,7 +12,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href: hrefProp,
@@ -130,7 +130,6 @@
 	)
 
 
-	// (Derived)
 	const href = $derived(
 		hrefProp ?? (
 			proposalRealm.slug != null && loadedProposalKind.slug != null ?

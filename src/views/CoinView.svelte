@@ -23,13 +23,13 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
-		'/(assets)/(coins)/coin/[coinId]',
-		{ coinId: entityId.coinId },
-	),
+			'/(assets)/(coins)/coin/[coinId]',
+			{ coinId: entityId.coinId },
+		),
 		layout,
 		open = $bindable(true),
 		collapsible = true,
@@ -47,23 +47,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// Functions
-	const formatCoinHeadingLabel = (
-		loadedCoin: {
-			name?: string
-			symbol?: string
-		},
-		coinId: EntityId<typeof schema, EntityType.Coin>['coinId'],
-	) => (
-		loadedCoin.name != null
-		&& loadedCoin.symbol != null
-		&& loadedCoin.name !== loadedCoin.symbol ?
-			`${loadedCoin.name} (${loadedCoin.symbol})`
-		:
-			loadedCoin.symbol ?? loadedCoin.name ?? coinId
-	)
 
 
 	// State
@@ -103,6 +86,23 @@
 				},
 			}),
 		},
+	)
+
+
+	// Functions
+	const formatCoinHeadingLabel = (
+		loadedCoin: {
+			name?: string
+			symbol?: string
+		},
+		coinId: EntityId<typeof schema, EntityType.Coin>['coinId'],
+	) => (
+		loadedCoin.name != null
+		&& loadedCoin.symbol != null
+		&& loadedCoin.name !== loadedCoin.symbol ?
+			`${loadedCoin.name} (${loadedCoin.symbol})`
+		:
+			loadedCoin.symbol ?? loadedCoin.name ?? coinId
 	)
 
 
@@ -291,6 +291,14 @@
 		>
 			<CollapsibleTabs
 				id={`${idPrefix}:carousel-topology`}
+				sectionIdPrefix={idPrefix}
+				sections={[
+					{ id: 'coin-instances', label: 'Instances' },
+					...((coin.$$coinInstances ?? []).some((row) => (
+						row.representation === CoinInstanceRepresentation.BridgeWrapped
+					)) ? [{ id: 'coin-wrapped', label: 'Wrapped' }] : []),
+					...((coin.$$bridgeCapabilities ?? []).length ? [{ id: 'coin-bridge-capabilities', label: 'Bridge capabilities' }] : []),
+				]}
 				class="coin-view-collapsible-topology"
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
@@ -310,35 +318,24 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<ResourceBoundary resource={coin}>
-						{#snippet children(coin)}
-							<a
-								data-scroll-marker-label="Instances"
-								href={`#${idPrefix}:coin-instances`}
-							>Instances</a>
-
-							{#if (coin.$$coinInstances ?? []).some((row) => (
-								row.representation === CoinInstanceRepresentation.BridgeWrapped
-							))}
-								<a
-									data-scroll-marker-label="Wrapped"
-									href={`#${idPrefix}:coin-wrapped`}
-								>Wrapped</a>
-							{/if}
-
-							{#if (coin.$$bridgeCapabilities ?? []).length}
-								<a
-									data-scroll-marker-label="Bridge capabilities"
-									href={`#${idPrefix}:coin-bridge-capabilities`}
-								>Bridge capabilities</a>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+				{#snippet SectionCoinInstances({ id, label })}
+					<CoinInstancesView
+						href={resolve('/coins')}
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.Coin,
+							entityId,
+							fieldName: '$$coinInstances',
+						}}
+						{id}
+						title="Instances"
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _detailsOpen })}
-					<section data-scroll-marker-label="Instances">
+				{#snippet SectionCoinWrapped({ id, label })}
+					{#if (coin.$$coinInstances ?? []).some((row) => (
+						row.representation === CoinInstanceRepresentation.BridgeWrapped
+					))}
 						<CoinInstancesView
 							href={resolve('/coins')}
 							collapsible={false}
@@ -347,50 +344,38 @@
 								entityId,
 								fieldName: '$$coinInstances',
 							}}
-							id={`${idPrefix}:coin-instances`}
-							title="Instances"
+							{id}
+							representationFilter={CoinInstanceRepresentation.BridgeWrapped}
+							title="Wrapped"
 						/>
-					</section>
-
-					{#if (coin.$$coinInstances ?? []).some((row) => (
-						row.representation === CoinInstanceRepresentation.BridgeWrapped
-					))}
-						<section data-scroll-marker-label="Wrapped">
-							<CoinInstancesView
-								href={resolve('/coins')}
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Coin,
-									entityId,
-									fieldName: '$$coinInstances',
-								}}
-								id={`${idPrefix}:coin-wrapped`}
-								representationFilter={CoinInstanceRepresentation.BridgeWrapped}
-								title="Wrapped"
-							/>
-						</section>
 					{/if}
+				{/snippet}
 
+				{#snippet SectionCoinBridgeCapabilities({ id, label })}
 					{#if (coin.$$bridgeCapabilities ?? []).length}
-						<section data-scroll-marker-label="Bridge capabilities">
-							<CoinBridgeCapabilitiesView
-								href={resolve('/bridge')}
-								collapsible={false}
-								entityFieldReference={{
-									entityType: EntityType.Coin,
-									entityId,
-									fieldName: '$$bridgeCapabilities',
-								}}
-								id={`${idPrefix}:coin-bridge-capabilities`}
-								title="Bridge capabilities"
-							/>
-						</section>
+						<CoinBridgeCapabilitiesView
+							href={resolve('/bridge')}
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.Coin,
+								entityId,
+								fieldName: '$$bridgeCapabilities',
+							}}
+							{id}
+							title="Bridge capabilities"
+						/>
 					{/if}
 				{/snippet}
 			</CollapsibleTabs>
 
 			<CollapsibleTabs
 				id={`${idPrefix}:carousel-markets`}
+				sectionIdPrefix={idPrefix}
+				sections={[
+					{ id: 'catalog-usd-market', label: 'USD market' },
+					{ id: 'markets-as-base', label: 'Base' },
+					{ id: 'markets-as-quote', label: 'Quote' },
+				]}
 				class="coin-view-collapsible-markets"
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
@@ -421,63 +406,43 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="USD market"
-						href={`#${idPrefix}:catalog-usd-market`}
-					>USD market</a>
-					<a
-						data-scroll-marker-label="Base"
-						href={`#${idPrefix}:markets-as-base`}
-					>Base</a>
-					<a
-						data-scroll-marker-label="Quote"
-						href={`#${idPrefix}:markets-as-quote`}
-					>Quote</a>
+				{#snippet SectionCatalogUsdMarket({ id, label })}
+					<p>
+						<a href={catalogUsdMarketHref}>
+							{catalogUsdMarketLabel}
+						</a>
+						<span data-text="muted">
+							— spot quote and OHLC on the market page.
+						</span>
+					</p>
 				{/snippet}
 
-				{#snippet body({ open: _detailsOpen })}
-					<section
-						data-scroll-marker-label="USD market"
-						id={`${idPrefix}:catalog-usd-market`}
-					>
-						<p>
-							<a href={catalogUsdMarketHref}>
-								{catalogUsdMarketLabel}
-							</a>
-							<span data-text="muted">
-								— spot quote and OHLC on the market page.
-							</span>
-						</p>
-					</section>
+				{#snippet SectionMarketsAsBase({ id, label })}
+					<MarketsView
+						href={resolve('/markets')}
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.Coin,
+							entityId,
+							fieldName: '$$marketsWithCoinAsBase',
+						}}
+						{id}
+						title="Base"
+					/>
+				{/snippet}
 
-					<section data-scroll-marker-label="Base">
-						<MarketsView
-							href={resolve('/markets')}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.Coin,
-								entityId,
-								fieldName: '$$marketsWithCoinAsBase',
-							}}
-							id={`${idPrefix}:markets-as-base`}
-							title="Base"
-						/>
-					</section>
-
-					<section data-scroll-marker-label="Quote">
-						<MarketsView
-							href={resolve('/markets')}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.Coin,
-								entityId,
-								fieldName: '$$marketsWithCoinAsQuote',
-							}}
-							id={`${idPrefix}:markets-as-quote`}
-							title="Quote"
-						/>
-					</section>
+				{#snippet SectionMarketsAsQuote({ id, label })}
+					<MarketsView
+						href={resolve('/markets')}
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.Coin,
+							entityId,
+							fieldName: '$$marketsWithCoinAsQuote',
+						}}
+						{id}
+						title="Quote"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

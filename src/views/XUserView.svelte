@@ -15,7 +15,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/x/user/[userId]', {
@@ -389,6 +389,13 @@
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
+				sectionIdPrefix={userIdKey}
+				sections={[
+					{ id: 'profile', label: 'Profile' },
+					...(user.$$posts?.length ? [
+						{ id: 'posts', label: 'Posts' },
+					] : []),
+				]}
 				id={`${userIdKey}:carousel-profile`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
@@ -406,85 +413,66 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Profile"
-						href={`#${userIdKey}:profile`}
-					>Profile</a>
-					<ResourceBoundary resource={user}>
+				{#snippet SectionProfile({ id, label })}
+					<ResourceBoundary
+						resource={user}
+						placeholderText="Loading X profile…"
+					>
 						{#snippet children(loadedUser)}
-							{#if (user.$$posts?.length)}
-								<a
-									data-scroll-marker-label="Posts"
-									href={`#${userIdKey}:posts`}
-								>Posts</a>
-							{/if}
+							<dl data-column-item="center">
+								{#if loadedUser.description}
+									<div>
+										<dt>Description</dt>
+										<dd>{loadedUser.description}</dd>
+									</div>
+								{/if}
+
+								{#if loadedUser.$profileBanner?.[EntityMetaKey.Id].url != null}
+									<div>
+										<dt>Banner</dt>
+										<dd>
+											<Media
+												alt=""
+												media={{ url: loadedUser.$profileBanner[EntityMetaKey.Id].url }}
+											/>
+										</dd>
+									</div>
+								{/if}
+
+								{#if (
+									user.name === undefined
+									&& user.username === undefined
+									&& user.description === undefined
+									&& user.$icon === undefined
+									&& user.$profileBanner === undefined
+								)}
+									<p data-text="muted">
+										User details are not available yet.
+									</p>
+								{/if}
+							</dl>
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet body({ open: _bodyOpen })}
-					<section data-scroll-marker-label="Profile">
-						<ResourceBoundary
-							resource={user}
-							placeholderText="Loading X profile…"
-						>
-							{#snippet children(loadedUser)}
-								<dl data-column-item="center">
-									{#if loadedUser.description}
-										<div>
-											<dt>Description</dt>
-											<dd>{loadedUser.description}</dd>
-										</div>
-									{/if}
-
-									{#if loadedUser.$profileBanner?.[EntityMetaKey.Id].url != null}
-										<div>
-											<dt>Banner</dt>
-											<dd>
-												<Media
-													alt=""
-													media={{ url: loadedUser.$profileBanner[EntityMetaKey.Id].url }}
-												/>
-											</dd>
-										</div>
-									{/if}
-
-									{#if (
-										user.name === undefined
-										&& user.username === undefined
-										&& user.description === undefined
-										&& user.$icon === undefined
-										&& user.$profileBanner === undefined
-									)}
-										<p data-text="muted">
-											User details are not available yet.
-										</p>
-									{/if}
-								</dl>
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-
+				{#snippet SectionPosts({ id, label })}
 					<ResourceBoundary resource={user}>
 						{#snippet children(loadedUser)}
 							{#if (user.$$posts?.length)}
-								<section data-scroll-marker-label="Posts">
-									<XPostsView
-										collapsible={false}
-										href={resolve(
-											'/(social)/x/user/[userId]',
-											{ userId: entityId.id },
-										)}
-										entityFieldReference={{
-											entityType: EntityType.XUser,
-											entityId,
-											fieldName: '$$posts',
-										}}
-										id={`${userIdKey}:posts`}
-										title="Posts"
-									/>
-								</section>
+								<XPostsView
+									collapsible={false}
+									href={resolve(
+										'/(social)/x/user/[userId]',
+										{ userId: entityId.id },
+									)}
+									entityFieldReference={{
+										entityType: EntityType.XUser,
+										entityId,
+										fieldName: '$$posts',
+									}}
+									id={`${userIdKey}:posts`}
+									title="Posts"
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>

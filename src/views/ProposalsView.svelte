@@ -13,7 +13,7 @@
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
 
 
-	// Props
+	// State
 	let {
 		title = 'Proposals',
 

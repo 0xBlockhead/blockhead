@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		children,
 		entityId,
@@ -69,7 +69,6 @@
 	)
 
 
-	// (Derived)
 	const blockIdKey = $derived(
 		stringify(entityId),
 	)
@@ -334,6 +333,12 @@
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
+				sectionIdPrefix={blockIdKey}
+				sections={[
+					{ id: 'chain', label: 'Chain' },
+					{ id: 'transactions', label: 'Transactions' },
+					...(children ? [{ id: 'page-content', label: 'Content' }] : []),
+				]}
 				id={`${blockIdKey}:carousel-related`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
@@ -360,78 +365,45 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<ResourceBoundary
-						resource={block}
-						placeholderText=""
-					>
-						{#snippet children(loadedBlock)}
-							{#if loadedBlock.$parent}
-								<a
-									data-scroll-marker-label="Chain"
-									href={`#${blockIdKey}:chain`}
-								>Chain</a>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-					<a
-						data-scroll-marker-label="Transactions"
-						href={`#${blockIdKey}:transactions`}
-					>Tx</a>
-					{#if children}
-						<a
-							data-scroll-marker-label="Content"
-							href={`#${blockIdKey}:page-content`}
-						>Content</a>
-					{/if}
-				{/snippet}
-
-				{#snippet body({ open: _bodyOpen })}
+				{#snippet SectionChain({ id: _chainId, label: _chainLabel })}
 					<ResourceBoundary
 						resource={block}
 						placeholderText="Loading chain info…"
 					>
 						{#snippet children(loadedBlock)}
 							{#if loadedBlock.$parent}
-								<section
-									id={`${blockIdKey}:chain`}
-								>
-									<EvmBlockView
-										entityId={loadedBlock.$parent[EntityMetaKey.Id]}
-										layout={EntityLayout.Title}
-									/>
-								</section>
+								<EvmBlockView
+									entityId={loadedBlock.$parent[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
-					<section
-						id={`${blockIdKey}:transactions`}
-					>
-						<EvmTransactionsView
-							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
-								{
-								networkId: String(entityId.$network.chainId),
-								blockNumber: String(entityId.blockNumber),
-								},
-		)}
-							entityFieldReference={{
-								entityType: EntityType.EvmBlock,
-								entityId,
-								fieldName: '$$transactions',
-							}}
-							id="transactions"
-							collapsible={false}
-							open={true}
-						/>
-					</section>
+				{/snippet}
 
+				{#snippet SectionTransactions({ id: _txId, label: _txLabel })}
+					<EvmTransactionsView
+						href={resolve(
+						'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
+						{
+							networkId: String(entityId.$network.chainId),
+							blockNumber: String(entityId.blockNumber),
+						},
+					)}
+						entityFieldReference={{
+							entityType: EntityType.EvmBlock,
+							entityId,
+							fieldName: '$$transactions',
+						}}
+						id="transactions"
+						collapsible={false}
+						open={true}
+					/>
+				{/snippet}
+
+				{#snippet SectionPageContent({ id: _contentId, label: _contentLabel })}
 					{#if children}
-						<section
-							id={`${blockIdKey}:page-content`}
-						>
-							{@render children()}
-						</section>
+						{@render children()}
 					{/if}
 				{/snippet}
 			</CollapsibleTabs>

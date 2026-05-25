@@ -21,16 +21,16 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		children,
 		entityId,
 		href = resolve(
-		'/(assets)/(markets)/market/[marketKey]',
-		{
-			marketKey: encodeURIComponent(stringify(entityId)),
-		},
-	),
+			'/(assets)/(markets)/market/[marketKey]',
+			{
+				marketKey: encodeURIComponent(stringify(entityId)),
+			},
+		),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -48,19 +48,6 @@
 			| 'showTypeAnnotation'
 		>
 	> = $props()
-
-
-	// Functions
-	const marketAssetSymbol = (
-		leg: typeof entityId.$base,
-	) => (
-		leg.kind === MarketAssetKind.Coin ?
-			leg.$coin.coinId
-		: leg.kind === MarketAssetKind.CoinInstance ?
-			`instance-${stringify(leg.$coinInstance).slice(0, 12)}`
-		:
-			leg.$currency.iso4217
-	)
 
 
 	// State
@@ -84,6 +71,19 @@
 				derivativeLastTradedAtMs: {},
 			}),
 		},
+	)
+
+
+	// Functions
+	const marketAssetSymbol = (
+		leg: typeof entityId.$base,
+	) => (
+		leg.kind === MarketAssetKind.Coin ?
+			leg.$coin.coinId
+		: leg.kind === MarketAssetKind.CoinInstance ?
+			`instance-${stringify(leg.$coinInstance).slice(0, 12)}`
+		:
+			leg.$currency.iso4217
 	)
 
 

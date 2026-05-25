@@ -19,7 +19,7 @@
 	import { blo } from 'blo'
 
 
-	// Props
+	// State
 	let {
 		actorId,
 		network,
@@ -60,7 +60,6 @@
 	)
 
 
-	// (Derived)
 	const shownAddress = $derived(
 		actorId?.address ?? address ?? undefined,
 	)

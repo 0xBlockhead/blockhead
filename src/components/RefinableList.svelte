@@ -105,7 +105,7 @@
 	}
 
 
-	// Props
+	// State
 	let {
 		items,
 
@@ -197,7 +197,6 @@
 	let hasAppliedDefaultFilters = $state(false)
 
 
-	// (Derived)
 	const hasFilterGroups = $derived(
 		filterGroups.length > 0 && filterGroups.some((g) => g.filters.length > 1)
 	)

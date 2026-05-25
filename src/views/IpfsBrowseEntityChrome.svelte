@@ -9,7 +9,7 @@
 	import { stringify } from 'devalue'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		Form,
@@ -25,7 +25,7 @@
 	import {
 		ipfsResourceCanonicalUri,
 		ipfsResourceHref,
-	} from '$/lib/loadedIpfs.ts'
+	} from '$/lib/ipfs.ts'
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
@@ -57,7 +57,6 @@
 	)
 
 
-	// (Derived)
 	const ipfsChromeKey = $derived(
 		stringify(entityId),
 	)
@@ -267,6 +266,13 @@
 		>
 			<CollapsibleTabs
 				id={`${ipfsChromeKey}:carousel-browser`}
+				sectionIdPrefix={ipfsChromeKey}
+				sections={[
+					{ id: 'ipfs-browser-form', label: 'CID & path' },
+					{ id: 'ipfs-browser-note', label: 'Current resource' },
+					{ id: 'ipfs-metadata', label: 'Metadata' },
+					{ id: 'ipfs-content', label: 'Content' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -285,46 +291,20 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="CID & path"
-						href={`#${ipfsChromeKey}:ipfs-browser-form`}
-					>CID & path</a>
-					<a
-						data-scroll-marker-label="Current resource"
-						href={`#${ipfsChromeKey}:ipfs-browser-note`}
-					>Current resource</a>
-					{#if markersOpen}
-						<a
-							data-scroll-marker-label="Metadata"
-							href={`#${ipfsChromeKey}:ipfs-metadata`}
-						>Metadata</a>
-						<a
-							data-scroll-marker-label="Content"
-							href={`#${ipfsChromeKey}:ipfs-content`}
-						>Content</a>
-					{/if}
-				{/snippet}
-
-				{#snippet body({ open: _paneOpen,
-				})}
+				{#snippet SectionIpfsBrowserForm()}
 					<section
 						class="ipfs-browser"
 						data-column
-						data-scroll-marker-label="CID & path"
-						id={`${ipfsChromeKey}:ipfs-browser-form`}
 					>
 						{@render Form()}
 					</section>
+				{/snippet}
 
+				{#snippet SectionIpfsBrowserNote()}
 					<section
 						class="ipfs-browser-note"
 						data-card
 						data-column
-						data-scroll-marker-label="Current resource"
-						id={`${ipfsChromeKey}:ipfs-browser-note`}
 					>
 						<header data-row="wrap align-center gap-2">
 							<h2>Browse IPFS</h2>
@@ -353,12 +333,12 @@
 							</code>
 						</p>
 					</section>
+				{/snippet}
 
+				{#snippet SectionIpfsMetadata()}
 					<section
 						data-card
 						data-column
-						data-scroll-marker-label="Metadata"
-						id={`${ipfsChromeKey}:ipfs-metadata`}
 					>
 						<header data-row="wrap align-center gap-2">
 							<h2>Metadata</h2>
@@ -505,12 +485,12 @@
 							{/snippet}
 						</ResourceBoundary>
 					</section>
+				{/snippet}
 
+				{#snippet SectionIpfsContent()}
 					<section
 						data-card
 						data-column
-						data-scroll-marker-label="Content"
-						id={`${ipfsChromeKey}:ipfs-content`}
 					>
 						<header data-row="wrap align-center gap-2">
 							<h2>Content</h2>

@@ -19,7 +19,7 @@
 	type IsHidden = (node: _Node, isHidden: IsHidden) => boolean
 
 
-	// Props
+	// State
 	let {
 		items,
 		getKey,

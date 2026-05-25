@@ -13,14 +13,14 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
 			'/xmtp',
 			entityId,
 		),
-					open = $bindable(true),
+		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
 	}: WithRest<
@@ -182,6 +182,11 @@
 		<div class="entity-view-detail-carousels" data-column="gap-3">
 			<CollapsibleTabs
 				id={`${networkIdKey}:registry`}
+				sectionIdPrefix={networkIdKey}
+				sections={[
+					{ id: 'demo-accounts', label: 'Demo accounts' },
+					{ id: 'conversations', label: 'Conversations' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -198,50 +203,31 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Demo accounts"
-						href={`#${networkIdKey}:accounts`}
-					>Demo accounts</a>
-					<a
-						data-scroll-marker-label="Conversations"
-						href={`#${networkIdKey}:conversations`}
-					>Conversations</a>
+				{#snippet SectionDemoAccounts({ id: _id, label: _label })}
+					<ActorsView
+						href={resolve('/~/accounts')}
+						entityFieldReference={{
+							entityType: EntityType._Global,
+							entityId: {},
+							fieldName: '$$actors',
+						}}
+						id="accounts"
+						open={_open}
+						title="Demo accounts"
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _o })}
-					<section
-						id={`${networkIdKey}:accounts`}
-						data-scroll-marker-label="Demo accounts"
-					>
-						<ActorsView
-							href={resolve('/~/accounts')}
-							entityFieldReference={{
-								entityType: EntityType._Global,
-								entityId: {},
-								fieldName: '$$actors',
-							}}
-							id="accounts"
-							open={_open}
-							title="Demo accounts"
-						/>
-					</section>
-
-					<section
-						id={`${networkIdKey}:conversations`}
-						data-scroll-marker-label="Conversations"
-					>
-						<XmtpConversationsView
-							href={resolve('/xmtp')}
-							entityFieldReference={{
-								entityType: EntityType.XmtpNetwork,
-								entityId,
-								fieldName: '$$xmtpConversations',
-							}}
-							id="conversations"
-							open={_open}
-						/>
-					</section>
+				{#snippet SectionConversations({ id: _id, label: _label })}
+					<XmtpConversationsView
+						href={resolve('/xmtp')}
+						entityFieldReference={{
+							entityType: EntityType.XmtpNetwork,
+							entityId,
+							fieldName: '$$xmtpConversations',
+						}}
+						id="conversations"
+						open={_open}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

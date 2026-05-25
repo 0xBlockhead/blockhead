@@ -56,7 +56,7 @@
 	} from '$/context/onNestedCollapsibleClose.ts'
 
 
-	// Props
+	// State
 	import { SvelteSet } from 'svelte/reactivity'
 
 	let {
@@ -154,7 +154,6 @@
 	})
 
 
-	// (Derived)
 
 	const loadedCount = $derived(
 		items !== undefined || resource !== undefined ?

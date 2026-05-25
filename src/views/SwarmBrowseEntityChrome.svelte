@@ -15,7 +15,7 @@
 	import { stringify } from 'devalue'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		Form,
@@ -52,7 +52,6 @@
 	)
 
 
-	// (Derived)
 	const swarmChromeKey = $derived(
 		stringify(entityId),
 	)
@@ -116,6 +115,13 @@
 		>
 			<CollapsibleTabs
 				id={`${swarmChromeKey}:carousel-browser`}
+				sectionIdPrefix={swarmChromeKey}
+				sections={[
+					{ id: 'swarm-browser-form', label: 'Reference & path' },
+					{ id: 'swarm-browser-note', label: 'Current resource' },
+					{ id: 'swarm-metadata', label: 'Metadata' },
+					{ id: 'swarm-content', label: 'Content' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -134,46 +140,20 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Reference & path"
-						href={`#${swarmChromeKey}:swarm-browser-form`}
-					>Reference & path</a>
-					<a
-						data-scroll-marker-label="Current resource"
-						href={`#${swarmChromeKey}:swarm-browser-note`}
-					>Current resource</a>
-					{#if markersOpen}
-						<a
-							data-scroll-marker-label="Metadata"
-							href={`#${swarmChromeKey}:swarm-metadata`}
-						>Metadata</a>
-						<a
-							data-scroll-marker-label="Content"
-							href={`#${swarmChromeKey}:swarm-content`}
-						>Content</a>
-					{/if}
-				{/snippet}
-
-				{#snippet body({ open: _paneOpen,
-				})}
+				{#snippet SectionSwarmBrowserForm()}
 					<section
 						class="swarm-browser"
 						data-column
-						data-scroll-marker-label="Reference & path"
-						id={`${swarmChromeKey}:swarm-browser-form`}
 					>
 						{@render Form()}
 					</section>
+				{/snippet}
 
+				{#snippet SectionSwarmBrowserNote()}
 					<section
 						class="swarm-browser-note"
 						data-card
 						data-column
-						data-scroll-marker-label="Current resource"
-						id={`${swarmChromeKey}:swarm-browser-note`}
 					>
 						<header data-row="wrap align-center gap-2">
 							<h2>Browse Swarm</h2>
@@ -197,158 +177,154 @@
 							</code>
 						</p>
 					</section>
+				{/snippet}
 
+				{#snippet SectionSwarmMetadata()}
 					<section
 						data-card
 						data-column
-						data-scroll-marker-label="Metadata"
-						id={`${swarmChromeKey}:swarm-metadata`}
 					>
 						<header data-row="wrap align-center gap-2">
 							<h2>Metadata</h2>
 						</header>
 
-						{#if true}
-							{#snippet SwarmChromeMetadataBody(swarm)}
-								<dl>
-									{#if swarm.canonicalUri !== undefined}
-										<div>
-											<dt>Canonical URI</dt>
-											<dd>
+						{#snippet SwarmChromeMetadataBody(swarm)}
+							<dl>
+								{#if swarm.canonicalUri !== undefined}
+									<div>
+										<dt>Canonical URI</dt>
+										<dd>
+											<TruncatedValue
+												value={swarm.canonicalUri}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</dd>
+									</div>
+								{/if}
+
+								{#if swarm.gatewayOrigin !== undefined}
+									<div>
+										<dt>Gateway origin</dt>
+										<dd>
+											<TruncatedValue
+												value={swarm.gatewayOrigin}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</dd>
+									</div>
+								{/if}
+
+								{#if swarm.gatewayUrl !== undefined}
+									<div>
+										<dt>Gateway URL</dt>
+										<dd>
+											<a
+												href={swarm.gatewayUrl}
+												target="_blank"
+												rel="noreferrer noopener"
+											>
 												<TruncatedValue
-													value={swarm.canonicalUri}
+													value={swarm.gatewayUrl}
 													format={TruncatedValueFormat.Visual}
 												/>
-											</dd>
-										</div>
-									{/if}
+											</a>
+										</dd>
+									</div>
+								{/if}
 
-									{#if swarm.gatewayOrigin !== undefined}
-										<div>
-											<dt>Gateway origin</dt>
-											<dd>
-												<TruncatedValue
-													value={swarm.gatewayOrigin}
-													format={TruncatedValueFormat.Visual}
-												/>
-											</dd>
-										</div>
-									{/if}
+								{#if swarm.contentLength !== undefined}
+									<div>
+										<dt>Content length</dt>
+										<dd>
+											<NumberValue
+												value={swarm.contentLength}
+												options={{ maximumFractionDigits: 0 }}
+											/>
+											{' '}
+											bytes
+										</dd>
+									</div>
+								{/if}
 
-									{#if swarm.gatewayUrl !== undefined}
-										<div>
-											<dt>Gateway URL</dt>
-											<dd>
-												<a
-													href={swarm.gatewayUrl}
-													target="_blank"
-													rel="noreferrer noopener"
-												>
-													<TruncatedValue
-														value={swarm.gatewayUrl}
-														format={TruncatedValueFormat.Visual}
-													/>
-												</a>
-											</dd>
-										</div>
-									{/if}
+								{#if swarm.fileName !== undefined}
+									<div>
+										<dt>File name</dt>
+										<dd>
+											<TruncatedValue
+												value={swarm.fileName}
+												format={TruncatedValueFormat.Visual}
+											/>
+										</dd>
+									</div>
+								{/if}
 
-									{#if swarm.contentLength !== undefined}
-										<div>
-											<dt>Content length</dt>
-											<dd>
-												<NumberValue
-													value={swarm.contentLength}
-													options={{ maximumFractionDigits: 0 }}
-												/>
+								{#if swarm.extension !== undefined}
+									<div>
+										<dt>Extension</dt>
+										<dd>.{swarm.extension}</dd>
+									</div>
+								{/if}
+
+								{#if swarm.contentType !== undefined}
+									<div>
+										<dt>Content type</dt>
+										<dd>
+											<TruncatedValue
+												value={swarm.contentType}
+												format={TruncatedValueFormat.Visual}
+											/>
+											{#if swarm.isContentTypeInferred}
 												{' '}
-												bytes
-											</dd>
-										</div>
-									{/if}
+												<span data-text="muted">(inferred)</span>
+											{/if}
+										</dd>
+									</div>
+								{/if}
 
-									{#if swarm.fileName !== undefined}
-										<div>
-											<dt>File name</dt>
-											<dd>
-												<TruncatedValue
-													value={swarm.fileName}
-													format={TruncatedValueFormat.Visual}
-												/>
-											</dd>
-										</div>
-									{/if}
+								{#if swarm.displayType !== undefined}
+									<div>
+										<dt>Display type</dt>
+										<dd>{swarm.displayType}</dd>
+									</div>
+								{/if}
+							</dl>
+						{/snippet}
 
-									{#if swarm.extension !== undefined}
-										<div>
-											<dt>Extension</dt>
-											<dd>.{swarm.extension}</dd>
-										</div>
-									{/if}
-
-									{#if swarm.contentType !== undefined}
-										<div>
-											<dt>Content type</dt>
-											<dd>
-												<TruncatedValue
-													value={swarm.contentType}
-													format={TruncatedValueFormat.Visual}
-												/>
-												{#if swarm.isContentTypeInferred}
-													{' '}
-													<span data-text="muted">(inferred)</span>
-												{/if}
-											</dd>
-										</div>
-									{/if}
-
-									{#if swarm.displayType !== undefined}
-										<div>
-											<dt>Display type</dt>
-											<dd>{swarm.displayType}</dd>
-										</div>
-									{/if}
-								</dl>
-							{/snippet}
-
-							<ResourceBoundary
-								children={SwarmChromeMetadataBody}
-								placeholderText="Loading metadata…"
-								resource={swarm}
-							/>
-						{/if}
+						<ResourceBoundary
+							children={SwarmChromeMetadataBody}
+							placeholderText="Loading metadata…"
+							resource={swarm}
+						/>
 					</section>
+				{/snippet}
 
+				{#snippet SectionSwarmContent()}
 					<section
 						data-card
 						data-column
-						data-scroll-marker-label="Content"
-						id={`${swarmChromeKey}:swarm-content`}
 					>
 						<header data-row="wrap align-center gap-2">
 							<h2>Content</h2>
 						</header>
 
-						{#if true}
-							{#snippet SwarmChromeTextBody(swarm)}
-								{#if swarm.text !== undefined}
-									<pre>{swarm.text}</pre>
-								{:else if swarm.$media?.[EntityMetaKey.Id].url !== undefined}
-									<Media
-										media={{ url: swarm.$media[EntityMetaKey.Id].url }}
-										alt={swarm.fileName ?? ''}
-									/>
-								{:else}
-									<p data-text="muted">No text or media preview available.</p>
-								{/if}
-							{/snippet}
+						{#snippet SwarmChromeTextBody(swarm)}
+							{#if swarm.text !== undefined}
+								<pre>{swarm.text}</pre>
+							{:else if swarm.$media?.[EntityMetaKey.Id].url !== undefined}
+								<Media
+									media={{ url: swarm.$media[EntityMetaKey.Id].url }}
+									alt={swarm.fileName ?? ''}
+								/>
+							{:else}
+								<p data-text="muted">No text or media preview available.</p>
+							{/if}
+						{/snippet}
 
-							<ResourceBoundary
-								children={SwarmChromeTextBody}
-								placeholderText="Loading content…"
-								resource={swarm}
-							/>
-						{/if}
+						<ResourceBoundary
+							children={SwarmChromeTextBody}
+							placeholderText="Loading content…"
+							resource={swarm}
+						/>
 					</section>
 				{/snippet}
 			</CollapsibleTabs>

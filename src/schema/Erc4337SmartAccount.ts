@@ -32,5 +32,14 @@ export default {
 				Source.Blockscout_Rest,
 			],
 		},
+		{
+			name: '$factory',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.Erc4337AccountFactory,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

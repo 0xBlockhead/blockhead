@@ -31,6 +31,11 @@
 		})}
 			<CollapsibleTabs
 				id={`${hubKey}:hub`}
+				sectionIdPrefix={hubKey}
+				sections={[
+					{ id: 'profiles', label: 'Profiles' },
+					{ id: 'sources', label: 'Sources' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -48,49 +53,30 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Profiles"
-						href={`#${hubKey}:profiles`}
-					>Profiles</a>
-					<a
-						data-scroll-marker-label="Sources"
-						href={`#${hubKey}:sources`}
-					>Sources</a>
+				{#snippet SectionProfiles({ id, label })}
+					<BlockheadSessionsView
+						href={resolve('/~/manage/profiles')}
+						entityFieldReference={{
+							entityType: EntityType._Global,
+							entityId: {},
+							fieldName: '$$blockheadSessions',
+						}}
+						id="profiles"
+						open={hubOpen}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _paneOpen })}
-					<section
-						id={`${hubKey}:profiles`}
-						data-scroll-marker-label="Profiles"
-					>
-						<BlockheadSessionsView
-							href={resolve('/~/manage/profiles')}
-							entityFieldReference={{
-								entityType: EntityType._Global,
-								entityId: {},
-								fieldName: '$$blockheadSessions',
-							}}
-							id="profiles"
-							open={hubOpen}
-						/>
-					</section>
-
-					<section
-						id={`${hubKey}:sources`}
-						data-scroll-marker-label="Sources"
-					>
-						<BlockheadSourcesView
-							href={resolve('/~/manage/sources')}
-							entityFieldReference={{
-								entityType: EntityType._Global,
-								entityId: {},
-								fieldName: '$$blockheadSources',
-							}}
-							id="sources"
-							open={hubOpen}
-						/>
-					</section>
+				{#snippet SectionSources({ id, label })}
+					<BlockheadSourcesView
+						href={resolve('/~/manage/sources')}
+						entityFieldReference={{
+							entityType: EntityType._Global,
+							entityId: {},
+							fieldName: '$$blockheadSources',
+						}}
+						id="sources"
+						open={hubOpen}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		{/snippet}

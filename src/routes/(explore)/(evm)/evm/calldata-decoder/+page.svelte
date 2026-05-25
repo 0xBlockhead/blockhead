@@ -94,7 +94,6 @@
 	})
 
 
-	// (Derived)
 	const hexWithPrefix = $derived(
 		inputRaw.startsWith('0x') ?
 			inputRaw
@@ -170,7 +169,6 @@
 	)
 
 
-	// (Derived)
 	const byteCount = $derived(
 		hexNormalized ? Math.floor(hexNormalized.length / 2) : 0,
 	)

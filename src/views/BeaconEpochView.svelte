@@ -12,7 +12,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -60,7 +60,6 @@
 	)
 
 
-	// (Derived)
 	const title = $derived(
 		titleProp ?? `Epoch ${entityId.epoch.toLocaleString()}`,
 	)
@@ -176,6 +175,10 @@
 		>
 			<CollapsibleTabs
 				id={`${epochIdKey}:carousel-slots`}
+				sectionIdPrefix={epochIdKey}
+				sections={[
+					{ id: 'beacon-slots', label: 'Slots' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -187,25 +190,15 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Slots"
-						href={`#${epochIdKey}:beacon-slots`}
-					>Slots</a>
-				{/snippet}
-
-				{#snippet body({ open: _bodyOpen })}
-					<section>
-						<BeaconSlotsView
-							entityFieldReference={{
-								entityType: EntityType.BeaconEpoch,
-								entityId,
-								fieldName: '$$beaconSlots',
-							}}
-							id={`${epochIdKey}:beacon-slots`}
-							title="Slots"
-						/>
-					</section>
+				{#snippet SectionBeaconSlots()}
+					<BeaconSlotsView
+						entityFieldReference={{
+							entityType: EntityType.BeaconEpoch,
+							entityId,
+							fieldName: '$$beaconSlots',
+						}}
+						title="Slots"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

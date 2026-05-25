@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/~/multiplayer/contacts'),
@@ -61,7 +61,6 @@
 	)
 
 
-	// (Derived)
 	const contactKey = $derived(
 		stringify(entityId),
 	)
@@ -222,6 +221,10 @@
 		>
 			<CollapsibleTabs
 				id={`${contactKey}:carousel-more`}
+				sectionIdPrefix={contactKey}
+				sections={[
+					{ id: 'contact-overview', label: 'Fields' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -235,52 +238,39 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Fields"
-						href={`#${contactKey}:contact-overview`}
-					>Fields</a>
-				{/snippet}
-
-				{#snippet body({ open: _bodyOpen })}
-					<section
-						id={`${contactKey}:contact-overview`}
+				{#snippet SectionContactOverview({ id, label })}
+					<ResourceBoundary
+						resource={sharedAddress}
+						placeholderText="Loading contact…"
 					>
-						<ResourceBoundary
-							resource={sharedAddress}
-							placeholderText="Loading contact…"
-						>
-							{#snippet children(loadedSharedAddress)}
-								{#if (
-									(sharedAddress.peerId === undefined || loadedSharedAddress.peerId === '')
-									&& !(sharedAddress.$account !== undefined && loadedSharedAddress.$network !== undefined)
-									&& sharedAddress.$room === undefined
-									&& sharedAddress.$network === undefined
-									&& !(sharedAddress.targetPeerIds ?? []).length
-									&& sharedAddress.sharedAt === undefined
-								)}
-									<div data-row="wrap align-center gap-2">
-										<p data-text="muted">
-											No session details yet.
-										</p>
-										<Tooltip contentProps={{ side: 'top' }}>
-											{#snippet Content()}
-												<p>
-													Peer id, shared time, linked account, room, chain, and target peers appear when this contact row is populated from a session.
-												</p>
-											{/snippet}
-											<abbr
-												class="entity-heading-tip"
-												aria-label="Contact fields"
-											>ⓘ</abbr>
-										</Tooltip>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-
-
+						{#snippet children(loadedSharedAddress)}
+							{#if (
+								(sharedAddress.peerId === undefined || loadedSharedAddress.peerId === '')
+								&& !(sharedAddress.$account !== undefined && loadedSharedAddress.$network !== undefined)
+								&& sharedAddress.$room === undefined
+								&& sharedAddress.$network === undefined
+								&& !(sharedAddress.targetPeerIds ?? []).length
+								&& sharedAddress.sharedAt === undefined
+							)}
+								<div data-row="wrap align-center gap-2">
+									<p data-text="muted">
+										No session details yet.
+									</p>
+									<Tooltip contentProps={{ side: 'top' }}>
+										{#snippet Content()}
+											<p>
+												Peer id, shared time, linked account, room, chain, and target peers appear when this contact row is populated from a session.
+											</p>
+										{/snippet}
+										<abbr
+											class="entity-heading-tip"
+											aria-label="Contact fields"
+										>ⓘ</abbr>
+									</Tooltip>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

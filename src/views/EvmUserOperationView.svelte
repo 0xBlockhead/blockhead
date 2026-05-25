@@ -13,7 +13,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -74,6 +74,20 @@
 			timestampSeconds: {},
 			finalized: {},
 			fee: {},
+			nonce: {},
+			entryPointVersion: {},
+			sponsorType: {},
+			$paymaster: {},
+			$bundler: {},
+			paymasterAndData: {},
+			callGasLimit: {},
+			verificationGasLimit: {},
+			preVerificationGas: {},
+			maxFeePerGas: {},
+			maxPriorityFeePerGas: {},
+			gas: {},
+			gasUsed: {},
+			gasPrice: {},
 		},
 	)
 
@@ -82,7 +96,10 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 	import Erc4337SmartAccountView from '$/views/Erc4337SmartAccountView.svelte'
+	import Erc4337PaymasterView from '$/views/Erc4337PaymasterView.svelte'
+	import Erc4337BundlerView from '$/views/Erc4337BundlerView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 </script>
 
@@ -183,6 +200,56 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+
+			<div>
+				<dt>Nonce</dt>
+				<dd>
+					<ResourceBoundary
+						placeholderText="Loading user operation…"
+						resource={operation}
+					>
+						{#snippet children(loadedOperation)}
+							{#if loadedOperation.nonce !== undefined}
+								<NumberValue value={loadedOperation.nonce} />
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			{#if contentOpen}
+				<div>
+					<dt>Entry point version</dt>
+					<dd>
+						<ResourceBoundary
+							placeholderText="Loading user operation…"
+							resource={operation}
+						>
+							{#snippet children(loadedOperation)}
+								{#if loadedOperation.entryPointVersion != null}
+									{loadedOperation.entryPointVersion}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Sponsor type</dt>
+					<dd>
+						<ResourceBoundary
+							placeholderText="Loading user operation…"
+							resource={operation}
+						>
+							{#snippet children(loadedOperation)}
+								{#if loadedOperation.sponsorType != null}
+									{loadedOperation.sponsorType}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 		</dl>
 	{/snippet}
 
@@ -220,6 +287,98 @@
 							title="Sender smart account"
 						/>
 					{/if}
+
+					{#if loadedOperation.$paymaster != null}
+						<Erc4337PaymasterView
+							entityId={loadedOperation.$paymaster[EntityMetaKey.Id]}
+							layout={EntityLayout.Summary}
+							open={false}
+							collapsible={false}
+							showTypeAnnotation={false}
+							title="Paymaster"
+						/>
+					{/if}
+
+					{#if loadedOperation.$bundler != null}
+						<Erc4337BundlerView
+							entityId={loadedOperation.$bundler[EntityMetaKey.Id]}
+							layout={EntityLayout.Summary}
+							open={false}
+							collapsible={false}
+							showTypeAnnotation={false}
+							title="Bundler"
+						/>
+					{/if}
+
+					<dl data-column-item="center">
+						{#if loadedOperation.callGasLimit !== undefined}
+							<div>
+								<dt>Call gas limit</dt>
+								<dd><NumberValue value={loadedOperation.callGasLimit} /></dd>
+							</div>
+						{/if}
+
+						{#if loadedOperation.verificationGasLimit !== undefined}
+							<div>
+								<dt>Verification gas limit</dt>
+								<dd><NumberValue value={loadedOperation.verificationGasLimit} /></dd>
+							</div>
+						{/if}
+
+						{#if loadedOperation.preVerificationGas !== undefined}
+							<div>
+								<dt>Pre-verification gas</dt>
+								<dd><NumberValue value={loadedOperation.preVerificationGas} /></dd>
+							</div>
+						{/if}
+
+						{#if loadedOperation.maxFeePerGas !== undefined}
+							<div>
+								<dt>Max fee per gas</dt>
+								<dd><NumberValue value={loadedOperation.maxFeePerGas} /></dd>
+							</div>
+						{/if}
+
+						{#if loadedOperation.maxPriorityFeePerGas !== undefined}
+							<div>
+								<dt>Max priority fee per gas</dt>
+								<dd><NumberValue value={loadedOperation.maxPriorityFeePerGas} /></dd>
+							</div>
+						{/if}
+
+						{#if loadedOperation.gas !== undefined}
+							<div>
+								<dt>Gas</dt>
+								<dd><NumberValue value={loadedOperation.gas} /></dd>
+							</div>
+						{/if}
+
+						{#if loadedOperation.gasUsed !== undefined}
+							<div>
+								<dt>Gas used</dt>
+								<dd><NumberValue value={loadedOperation.gasUsed} /></dd>
+							</div>
+						{/if}
+
+						{#if loadedOperation.gasPrice !== undefined}
+							<div>
+								<dt>Gas price</dt>
+								<dd><NumberValue value={loadedOperation.gasPrice} /></dd>
+							</div>
+						{/if}
+
+						{#if loadedOperation.paymasterAndData != null && loadedOperation.paymasterAndData !== '0x'}
+							<div>
+								<dt>Paymaster data</dt>
+								<dd>
+									<TruncatedValue
+										format={TruncatedValueFormat.Visual}
+										value={loadedOperation.paymasterAndData}
+									/>
+								</dd>
+							</div>
+						{/if}
+					</dl>
 				</div>
 			{/snippet}
 		</ResourceBoundary>

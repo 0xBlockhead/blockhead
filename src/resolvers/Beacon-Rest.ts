@@ -226,88 +226,39 @@ export default {
 			},
 		}),
 
-		defineEntityFieldResolver({
-			entityType: EntityType.Network,
-			fieldName: 'beaconPreviousJustifiedCheckpointEpoch',
+		defineEntityResolver({
+			entityType: EntityType.Network_BeaconFinality_Timestamp,
 			resolve: async (entityId) => {
-				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
+				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.$network.chainId)
 				if (checkpoints == null) {
 					throw new Error(
-						`Beacon_Rest: finality checkpoints not returned for chain ${String(entityId.chainId)}`,
+						`Beacon_Rest: finality checkpoints not returned for chain ${String(entityId.$network.chainId)}`,
 					)
 				}
-				return checkpoints.previousJustified.epoch
+				return {
+					currentJustifiedCheckpointEpoch: checkpoints.currentJustified.epoch,
+					currentJustifiedCheckpointRoot: checkpoints.currentJustified.root,
+					previousJustifiedCheckpointEpoch: checkpoints.previousJustified.epoch,
+					previousJustifiedCheckpointRoot: checkpoints.previousJustified.root,
+					finalizedCheckpointEpoch: checkpoints.finalized.epoch,
+					finalizedCheckpointRoot: checkpoints.finalized.root,
+				}
 			},
 		}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Network,
-			fieldName: 'beaconPreviousJustifiedCheckpointRoot',
-			resolve: async (entityId) => {
-				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
-				if (checkpoints == null) {
-					throw new Error(
-						`Beacon_Rest: finality checkpoints not returned for chain ${String(entityId.chainId)}`,
-					)
-				}
-				return checkpoints.previousJustified.root
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.Network,
-			fieldName: 'beaconCurrentJustifiedCheckpointEpoch',
-			resolve: async (entityId) => {
-				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
-				if (checkpoints == null) {
-					throw new Error(
-						`Beacon_Rest: finality checkpoints not returned for chain ${String(entityId.chainId)}`,
-					)
-				}
-				return checkpoints.currentJustified.epoch
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.Network,
-			fieldName: 'beaconCurrentJustifiedCheckpointRoot',
-			resolve: async (entityId) => {
-				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
-				if (checkpoints == null) {
-					throw new Error(
-						`Beacon_Rest: finality checkpoints not returned for chain ${String(entityId.chainId)}`,
-					)
-				}
-				return checkpoints.currentJustified.root
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.Network,
-			fieldName: 'beaconFinalizedCheckpointEpoch',
-			resolve: async (entityId) => {
-				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
-				if (checkpoints == null) {
-					throw new Error(
-						`Beacon_Rest: finality checkpoints not returned for chain ${String(entityId.chainId)}`,
-					)
-				}
-				return checkpoints.finalized.epoch
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.Network,
-			fieldName: 'beaconFinalizedCheckpointRoot',
-			resolve: async (entityId) => {
-				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.chainId)
-				if (checkpoints == null) {
-					throw new Error(
-						`Beacon_Rest: finality checkpoints not returned for chain ${String(entityId.chainId)}`,
-					)
-				}
-				return checkpoints.finalized.root
-			},
+			fieldName: '$$beaconFinalityTimestamps',
+			resolve: async (entityId) => (
+				[
+					{
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							timestampMs: Date.now(),
+						},
+					},
+				]
+			),
 		}),
 
 		defineEntityFieldResolver({

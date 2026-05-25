@@ -15,7 +15,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/nostr/profile/[pubkey]', {
@@ -314,6 +314,12 @@
 		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-profile-feed`}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'notes', label: 'Notes' },
+					{ id: 'articles', label: 'Articles' },
+					{ id: 'reposts', label: 'Reposts' },
+				] as const}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -330,67 +336,50 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Notes"
-						href={`#${idKey}:notes`}
-					>Notes</a>
-					<a
-						data-scroll-marker-label="Articles"
-						href={`#${idKey}:articles`}
-					>Articles</a>
-					<a
-						data-scroll-marker-label="Reposts"
-						href={`#${idKey}:reposts`}
-					>Reposts</a>
-				{/snippet}
-
-				{#snippet body({ open: _sectionOpen })}
-					<section data-scroll-marker-label="Notes">
-						<NostrNotesView
-							href={resolve(
+				{#snippet SectionNotes()}
+					<NostrNotesView
+						href={resolve(
 			'/(social)/(nostr)/nostr/profile/[pubkey]/(profile)/notes',
 			{ pubkey: entityId.pubkey },
 		)}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.NostrProfile,
-								entityId,
-								fieldName: '$$notes',
-							}}
-							id={`${idKey}:notes`}
-							open={_sectionOpen}
-							title="Notes"
-						/>
-					</section>
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.NostrProfile,
+							entityId,
+							fieldName: '$$notes',
+						}}
+						id={`${idKey}:notes`}
+						open={true}
+						title="Notes"
+					/>
+				{/snippet}
 
-					<section data-scroll-marker-label="Articles">
-						<NostrArticlesView
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.NostrProfile,
-								entityId,
-								fieldName: '$$articles',
-							}}
-							id={`${idKey}:articles`}
-							open={_sectionOpen}
-							title="Articles"
-						/>
-					</section>
+				{#snippet SectionArticles()}
+					<NostrArticlesView
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.NostrProfile,
+							entityId,
+							fieldName: '$$articles',
+						}}
+						id={`${idKey}:articles`}
+						open={true}
+						title="Articles"
+					/>
+				{/snippet}
 
-					<section data-scroll-marker-label="Reposts">
-						<NostrRepostsView
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.NostrProfile,
-								entityId,
-								fieldName: '$$reposts',
-							}}
-							id={`${idKey}:reposts`}
-							open={_sectionOpen}
-							title="Reposts"
-						/>
-					</section>
+				{#snippet SectionReposts()}
+					<NostrRepostsView
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.NostrProfile,
+							entityId,
+							fieldName: '$$reposts',
+						}}
+						id={`${idKey}:reposts`}
+						open={true}
+						title="Reposts"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

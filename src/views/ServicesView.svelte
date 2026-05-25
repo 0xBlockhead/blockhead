@@ -7,7 +7,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		hubOpen = true,
 	}: {
@@ -28,6 +28,10 @@
 
 <CollapsibleTabs
 	id={`${hubKey}:hub`}
+	sectionIdPrefix={hubKey}
+	sections={[
+		{ id: 'agents', label: 'Agent Services' },
+	]}
 	{...{ 'data-card': '' }}
 	scrollContainerProps={{
 		'data-row': 'start align-start',
@@ -45,28 +49,16 @@
 		</header>
 	{/snippet}
 
-	{#snippet Markers({ open: _markersOpen })}
-		<a
-			data-scroll-marker-label="Agent Services"
-			href={`#${hubKey}:agents`}
-		>Agent Services</a>
-	{/snippet}
-
-	{#snippet body({ open: _paneOpen })}
-		<section
-			id={`${hubKey}:agents`}
-			data-scroll-marker-label="Agent Services"
-		>
-			<Eip8004ServicesView
-				href={resolve('/services')}
-				entityFieldReference={{
-					entityType: EntityType._Global,
-					entityId: {},
-					fieldName: '$$eip8004Services',
-				}}
-				id="agents"
-				open={hubOpen}
-			/>
-		</section>
+	{#snippet SectionAgents({ id, label })}
+		<Eip8004ServicesView
+			href={resolve('/services')}
+			entityFieldReference={{
+				entityType: EntityType._Global,
+				entityId: {},
+				fieldName: '$$eip8004Services',
+			}}
+			id="agents"
+			open={hubOpen}
+		/>
 	{/snippet}
 </CollapsibleTabs>

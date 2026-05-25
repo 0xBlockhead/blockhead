@@ -13,7 +13,7 @@
 	import { swarmDocsLandingReference } from '$/sources/Swarm/Rest/constants.ts'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 	}: {

@@ -5,7 +5,7 @@
 	type ShowEncodings = 'all' | 'common' | 'no-formatting-variants'
 
 
-	// Props
+	// State
 	let {
 		contentPath,
 		target,
@@ -51,7 +51,6 @@
 	let showEncodings = $state<ShowEncodings>('common')
 
 
-	// (Derived)
 	const cid = $derived(parseIpfsCid(target))
 
 

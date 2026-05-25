@@ -31,7 +31,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		title = 'Proposal realms',
 
@@ -150,7 +150,6 @@
 	)
 
 
-	// (Derived)
 	const loadedCount = $derived(
 		proposalRealms.ready ?
 			proposalRealms.current!.length
@@ -245,6 +244,11 @@
 								onNestedCollapsibleClose?.(id)
 							userCollapsibleOnClose?.(closeId)
 						}}
+						sectionIdPrefix="proposal-realm"
+						sections={[{
+							id: 'realms',
+							label: entityDefinitionByType[EntityType.ProposalRealm].labelPlural,
+						}]}
 						{...{ 'data-card': '' }}
 						scrollContainerProps={collapsibleTabsPaneProps}
 					>
@@ -287,23 +291,10 @@
 							</div>
 						{/snippet}
 
-						{#snippet Markers({
-							open: _markersOpen,
-						})}
+						{#snippet SectionRealms({ id: _sectionId, label: _sectionLabel })}
 							{#each rows as row (proposalRealmKey(row))}
 								{@const realm = row.result}
-								<a
-									data-scroll-marker-label={realm.label ?? String(realm[EntityMetaKey.Id].realm)}
-									href={`#${realmPanelDomId(realm)}`}
-								>{realm.label ?? String(realm[EntityMetaKey.Id].realm)}</a>
-							{/each}
-						{/snippet}
-
-						{#snippet body({ open: _sectionOpen,
-						})}
-							{#each rows as row (proposalRealmKey(row))}
-								{@const realm = row.result}
-								<section data-scroll-marker-label={realm.label ?? String(realm[EntityMetaKey.Id].realm)}>
+								<section id={realmPanelDomId(realm)}>
 									<ProposalKindsView
 										collapsible={false}
 										entityFieldReference={{

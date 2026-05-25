@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/(reddit)/reddit/r/[name]', {
@@ -199,6 +199,10 @@
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'links', label: 'Submissions' },
+				]}
 				id={`${idKey}:carousel-posts`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
@@ -218,31 +222,16 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Submissions"
-						href={`#${idKey}:links`}
-					>Submissions</a>
-				{/snippet}
-
-				{#snippet body({ open: _sectionOpen,
-				})}
-					<section
-						id={`${idKey}:links`}
-						data-scroll-marker-label="Submissions"
-					>
-						<RedditLinksView
-							href={resolve('/reddit/links')}
-							entityFieldReference={{
-								entityType: EntityType.RedditSubreddit,
-								entityId,
-								fieldName: '$$links',
-							}}
-							id={`${idKey}:reddit-links`}
-						/>
-					</section>
+				{#snippet SectionLinks({ id, label })}
+					<RedditLinksView
+						href={resolve('/reddit/links')}
+						entityFieldReference={{
+							entityType: EntityType.RedditSubreddit,
+							entityId,
+							fieldName: '$$links',
+						}}
+						id={`${idKey}:reddit-links`}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

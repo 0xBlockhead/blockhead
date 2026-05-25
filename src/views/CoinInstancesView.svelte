@@ -19,7 +19,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		title = 'Deployments',
 		open = $bindable(true),

@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -209,6 +209,10 @@
 		>
 			<CollapsibleTabs
 				id={`${actorCoinDetailAnchorKey}:carousel-related`}
+				sectionIdPrefix={actorCoinDetailAnchorKey}
+				sections={[
+					{ id: 'coin-overview', label: 'Overview' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -225,52 +229,40 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Overview"
-						href={`#${actorCoinDetailAnchorKey}:coin-overview`}
-					>Overview</a>
-				{/snippet}
-
-				{#snippet body({ open: _bodyOpen })}
-					<section
-						data-scroll-marker-label="Overview"
-						id={`${actorCoinDetailAnchorKey}:coin-overview`}
+				{#snippet SectionCoinOverview({ id, label })}
+					<EntityDetails
+						entityType={EntityType.ActorCoin}
+						{entityId}
+					/>
+					<ResourceBoundary
+						resource={actorCoin}
+						placeholderText="Loading holding…"
 					>
-						<EntityDetails
-							entityType={EntityType.ActorCoin}
-							{entityId}
-						/>
-						<ResourceBoundary
-							resource={actorCoin}
-							placeholderText="Loading holding…"
-						>
-							{#snippet children(loadedActorCoin)}
-								{#if (
-									actorCoin.symbol == null
-									&& actorCoin.decimals == null
-									&& actorCoin.balance == null
-								)}
-									<div data-row="wrap align-center gap-2">
-										<p data-text="muted">
-											No balance yet.
-										</p>
-										<Tooltip contentProps={{ side: 'top' }}>
-											{#snippet Content()}
-												<p>
-													Symbol, decimals, and balance appear once this holding is resolved for the wallet on this network.
-												</p>
-											{/snippet}
-											<abbr
-												class="entity-heading-tip"
-												aria-label="Token balance"
-											>ⓘ</abbr>
-										</Tooltip>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
+						{#snippet children(loadedActorCoin)}
+							{#if (
+								actorCoin.symbol == null
+								&& actorCoin.decimals == null
+								&& actorCoin.balance == null
+							)}
+								<div data-row="wrap align-center gap-2">
+									<p data-text="muted">
+										No balance yet.
+									</p>
+									<Tooltip contentProps={{ side: 'top' }}>
+										{#snippet Content()}
+											<p>
+												Symbol, decimals, and balance appear once this holding is resolved for the wallet on this network.
+											</p>
+										{/snippet}
+										<abbr
+											class="entity-heading-tip"
+											aria-label="Token balance"
+										>ⓘ</abbr>
+									</Tooltip>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 
 				{/snippet}
 			</CollapsibleTabs>

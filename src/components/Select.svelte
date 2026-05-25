@@ -33,7 +33,7 @@
 	const _id = $props.id()
 
 
-	// Props
+	// State
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 	import type { Snippet } from 'svelte'
@@ -81,7 +81,6 @@
 	> = $props()
 
 
-	// (Derived)
 
 	const normalizedItems = $derived(
 		items.map((item) => ({

@@ -468,55 +468,10 @@ export default {
 			],
 		},
 		{
-			name: 'beaconPreviousJustifiedCheckpointEpoch',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
-		},
-		{
-			name: 'beaconPreviousJustifiedCheckpointRoot',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
-		},
-		{
-			name: 'beaconCurrentJustifiedCheckpointEpoch',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
-		},
-		{
-			name: 'beaconCurrentJustifiedCheckpointRoot',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
-		},
-		{
-			name: 'beaconFinalizedCheckpointEpoch',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
-		},
-		{
-			name: 'beaconFinalizedCheckpointRoot',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
+			name: '$$beaconFinalityTimestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Network_BeaconFinality_Timestamp,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Beacon_Rest,
 			],

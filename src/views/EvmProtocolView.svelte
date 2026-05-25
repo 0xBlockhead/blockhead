@@ -13,7 +13,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -180,6 +180,12 @@
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
+				sectionIdPrefix={protocolIdKey}
+				sections={[
+					{ id: 'topics', label: 'Topics' },
+					{ id: 'selectors', label: 'Selectors' },
+					{ id: 'errors', label: 'Errors' },
+				]}
 				id={`${protocolIdKey}:catalogs`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
@@ -195,73 +201,51 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Topics"
-						href={`#${protocolIdKey}:topics`}
-					>Topics</a>
-					<a
-						data-scroll-marker-label="Selectors"
-						href={`#${protocolIdKey}:selectors`}
-					>Selectors</a>
-					<a
-						data-scroll-marker-label="Errors"
-						href={`#${protocolIdKey}:errors`}
-					>Errors</a>
+				{#snippet SectionTopics({ id: _topicsId, label: _topicsLabel })}
+					<EvmTopicsView
+						href={resolve('/evm/topics')}
+						entityFieldReference={{
+							entityType: EntityType.EvmProtocol,
+							entityId,
+							fieldName: '$$evmTopics',
+						}}
+						id={`${protocolIdKey}:topics`}
+						open={true}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _sectionOpen })}
-					<section
-						id={`${protocolIdKey}:topics`}
-						data-scroll-marker-label="Topics"
-					>
-						<EvmTopicsView
-							href={resolve('/evm/topics')}
-							entityFieldReference={{
-								entityType: EntityType.EvmProtocol,
-								entityId,
-								fieldName: '$$evmTopics',
-							}}
-							id={`${protocolIdKey}:topics`}
-							open={_sectionOpen}
-						/>
-					</section>
-
-					<section
+				{#snippet SectionSelectors({ id: _selectorsId, label: _selectorsLabel })}
+					<EvmSelectorsView
+						href={resolve('/evm/selectors')}
+						entityFieldReference={{
+							entityType: EntityType.EvmProtocol,
+							entityId,
+							fieldName: '$$evmSelectors',
+						}}
 						id={`${protocolIdKey}:selectors`}
-						data-scroll-marker-label="Selectors"
-					>
-						<EvmSelectorsView
-							href={resolve('/evm/selectors')}
-							entityFieldReference={{
-								entityType: EntityType.EvmProtocol,
-								entityId,
-								fieldName: '$$evmSelectors',
-							}}
-							id={`${protocolIdKey}:selectors`}
-							open={_sectionOpen}
-						/>
-					</section>
+						open={true}
+					/>
+				{/snippet}
 
-					<section
+				{#snippet SectionErrors({ id: _errorsId, label: _errorsLabel })}
+					<EvmErrorsView
+						href={resolve('/evm/errors')}
+						entityFieldReference={{
+							entityType: EntityType.EvmProtocol,
+							entityId,
+							fieldName: '$$evmErrors',
+						}}
 						id={`${protocolIdKey}:errors`}
-						data-scroll-marker-label="Errors"
-					>
-						<EvmErrorsView
-							href={resolve('/evm/errors')}
-							entityFieldReference={{
-								entityType: EntityType.EvmProtocol,
-								entityId,
-								fieldName: '$$evmErrors',
-							}}
-							id={`${protocolIdKey}:errors`}
-							open={_sectionOpen}
-						/>
-					</section>
+						open={true}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 
 			<CollapsibleTabs
+				sectionIdPrefix={protocolIdKey}
+				sections={[
+					{ id: 'decoder', label: 'Decoder' },
+				]}
 				id={`${protocolIdKey}:tools`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
@@ -277,20 +261,8 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Decoder"
-						href={`#${protocolIdKey}:decoder`}
-					>Decoder</a>
-				{/snippet}
-
-				{#snippet body({ open: _sectionOpen })}
-					<section
-						id={`${protocolIdKey}:decoder`}
-						data-scroll-marker-label="Decoder"
-						data-card
-						data-column
-					>
+				{#snippet SectionDecoder({ id: _decoderId, label: _decoderLabel })}
+					<div data-card data-column>
 						<header data-row="wrap align-center gap-2">
 							<HeadingComponent>
 								Calldata decoder
@@ -302,7 +274,7 @@
 						<a href={resolve('/evm/calldata-decoder')}>
 							Open calldata decoder
 						</a>
-					</section>
+					</div>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

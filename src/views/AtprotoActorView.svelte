@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/(atproto)/atproto/actor/[did]', {
@@ -256,6 +256,11 @@
 		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-profile`}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'profile-details', label: 'Lexicon identity' },
+					{ id: 'activity-posts', label: 'Posts' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -272,77 +277,58 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Lexicon identity"
-						href={`#${idKey}:profile-details`}
-					>Lexicon identity</a>
-					<a
-						data-scroll-marker-label="Posts"
-						href={`#${idKey}:activity-posts`}
-					>Posts</a>
+				{#snippet SectionProfileDetails({ id: _id, label: _label })}
+					<EntityDetails
+						entityType={EntityType.AtprotoActor}
+						{entityId}
+					/>
+					<ResourceBoundary
+						resource={actor}
+						placeholderText="Loading profile…"
+					>
+						{#snippet children(loadedActor)}
+							{@const atprotoProfileUnset = (
+								actor.handle == null
+								&& actor.displayName == null
+								&& actor.description == null
+							)}
+							{#if atprotoProfileUnset}
+								<div data-row="wrap align-center gap-2">
+									<p data-text="muted">
+										No profile fields yet.
+									</p>
+									<Tooltip contentProps={{ side: 'top' }}>
+										{#snippet Content()}
+											<p>
+												Display name, handle, and description load from the configured ATProto repository when the DID resolves.
+											</p>
+										{/snippet}
+										<abbr
+											class="entity-heading-tip"
+											aria-label="Lexicon profile"
+										>ⓘ</abbr>
+									</Tooltip>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet body({ open: _bodyOpen })}
-					<section
-						data-scroll-marker-label="Lexicon identity"
-						id={`${idKey}:profile-details`}
-					>
-						<EntityDetails
-							entityType={EntityType.AtprotoActor}
-							{entityId}
-						/>
-						<ResourceBoundary
-							resource={actor}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(loadedActor)}
-								{@const atprotoProfileUnset = (
-									actor.handle == null
-									&& actor.displayName == null
-									&& actor.description == null
-								)}
-								{#if atprotoProfileUnset}
-									<div data-row="wrap align-center gap-2">
-										<p data-text="muted">
-											No profile fields yet.
-										</p>
-										<Tooltip contentProps={{ side: 'top' }}>
-											{#snippet Content()}
-												<p>
-													Display name, handle, and description load from the configured ATProto repository when the DID resolves.
-												</p>
-											{/snippet}
-											<abbr
-												class="entity-heading-tip"
-												aria-label="Lexicon profile"
-											>ⓘ</abbr>
-										</Tooltip>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-
-					<section
-						data-scroll-marker-label="Posts"
-						id={`${idKey}:activity-posts`}
-					>
-						<AtprotoPostsView
-							href={resolve(
-								'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
-								{ did: encodeURIComponent(entityId.did) },
-							)}
-							entityFieldReference={{
-								entityType: EntityType.AtprotoActor,
-								entityId,
-								fieldName: '$$posts',
-							}}
-							id={`${idKey}:posts`}
-							fieldOpen={_open}
-							title="Posts"
-						/>
-					</section>
+				{#snippet SectionActivityPosts({ id: _id, label: _label })}
+					<AtprotoPostsView
+						href={resolve(
+							'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
+							{ did: encodeURIComponent(entityId.did) },
+						)}
+						entityFieldReference={{
+							entityType: EntityType.AtprotoActor,
+							entityId,
+							fieldName: '$$posts',
+						}}
+						id={`${idKey}:posts`}
+						fieldOpen={_open}
+						title="Posts"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

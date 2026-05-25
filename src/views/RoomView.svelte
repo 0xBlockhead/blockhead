@@ -12,7 +12,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -76,8 +76,6 @@
 	{#snippet Title()}
 		{@render Value()}
 	{/snippet}
-
-
 
 	{#snippet Heading()}
 		<ResourceBoundary

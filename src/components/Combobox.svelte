@@ -12,7 +12,7 @@
 	const _id = $props.id()
 
 
-	// Props
+	// State
 	let {
 		items,
 		value = $bindable(),
@@ -58,7 +58,6 @@
 		Input?: Snippet<[props: Record<string, JsonValue>]>
 	} = $props()
 
-	// (Derived)
 	const normalizedItems = $derived(
 		items.map((item) => ({
 			item,
@@ -100,7 +99,6 @@
 		false
 	)
 
-	// (Derived)
 	$effect(() => {
 		if (isFocused) return
 		const singleValue = value ?? undefined

@@ -3,7 +3,7 @@
 	import type { PageProps } from './$types.ts'
 
 
-	// Props
+	// State
 	let { data }: PageProps = $props()
 
 

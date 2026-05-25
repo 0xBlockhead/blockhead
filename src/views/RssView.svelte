@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId = {
 			scope: 'RssNetwork' as const,
@@ -189,6 +189,11 @@
 		>
 			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-registry`}
+				sectionIdPrefix={networkIdKey}
+				sections={[
+					{ id: 'feeds', label: 'Feeds' },
+					{ id: 'items', label: 'Recent items' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
@@ -203,45 +208,32 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Feeds"
-						href={`#${networkIdKey}:feeds`}
-					>Feeds</a>
-					<a
-						data-scroll-marker-label="Recent items"
-						href={`#${networkIdKey}:items`}
-					>Items</a>
+				{#snippet SectionFeeds({ id, label })}
+					<RssFeedsView
+						href={resolve('/rss/feeds')}
+						entityFieldReference={{
+							entityType: EntityType.RssNetwork,
+							entityId,
+							fieldName: '$$rssFeeds',
+						}}
+						id={`${networkIdKey}:feeds`}
+						open={_sectionOpen}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _sectionOpen })}
-					<section data-scroll-marker-label="Feeds">
-						<RssFeedsView
-							href={resolve('/rss/feeds')}
-							entityFieldReference={{
-								entityType: EntityType.RssNetwork,
-								entityId,
-								fieldName: '$$rssFeeds',
-							}}
-							id={`${networkIdKey}:feeds`}
-							open={_sectionOpen}
-						/>
-					</section>
-
-					<section data-scroll-marker-label="Recent items">
-						<RssItemsView
-							href={resolve('/rss/items')}
-							entityFieldReference={{
-								entityType: EntityType.RssNetwork,
-								entityId,
-								fieldName: '$$rssItems',
-							}}
-							id={`${networkIdKey}:items`}
-							limit={25}
-							open={_sectionOpen}
-							title="Recent items"
-						/>
-					</section>
+				{#snippet SectionItems({ id, label })}
+					<RssItemsView
+						href={resolve('/rss/items')}
+						entityFieldReference={{
+							entityType: EntityType.RssNetwork,
+							entityId,
+							fieldName: '$$rssItems',
+						}}
+						id={`${networkIdKey}:items`}
+						limit={25}
+						open={_sectionOpen}
+						title="Recent items"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

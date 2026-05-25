@@ -3,7 +3,7 @@
 	import type { EvmTraceTree } from '$/schema/EvmTrace.ts'
 
 
-	// Props
+	// State
 	let {
 		traceRoot,
 		chainId,

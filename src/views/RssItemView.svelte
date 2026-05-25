@@ -15,7 +15,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -268,6 +268,11 @@
 		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-item`}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'description', label: 'Description' },
+					{ id: 'content', label: 'Content' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -284,53 +289,34 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Description"
-						href={`#${idKey}:description`}
-					>Description</a>
-					<a
-						data-scroll-marker-label="Content"
-						href={`#${idKey}:content`}
-					>Content</a>
+				{#snippet SectionDescription({ id, label })}
+					<ResourceBoundary
+						resource={item}
+						placeholderText="Loading item…"
+					>
+						{#snippet children(loadedItem)}
+							{#if loadedItem.description}
+								<p>{loadedItem.description}</p>
+							{:else}
+								<p data-text="muted">No description.</p>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet body({ open: _sectionOpen })}
-					<section
-						data-scroll-marker-label="Description"
-						id={`${idKey}:description`}
+				{#snippet SectionContent({ id, label })}
+					<ResourceBoundary
+						resource={item}
+						placeholderText="Loading item…"
 					>
-						<ResourceBoundary
-							resource={item}
-							placeholderText="Loading item…"
-						>
-							{#snippet children(loadedItem)}
-								{#if loadedItem.description}
-									<p>{loadedItem.description}</p>
-								{:else}
-									<p data-text="muted">No description.</p>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-
-					<section
-						data-scroll-marker-label="Content"
-						id={`${idKey}:content`}
-					>
-						<ResourceBoundary
-							resource={item}
-							placeholderText="Loading item…"
-						>
-							{#snippet children(loadedItem)}
-								{#if loadedItem.content}
-									<p>{loadedItem.content}</p>
-								{:else}
-									<p data-text="muted">No full content.</p>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
+						{#snippet children(loadedItem)}
+							{#if loadedItem.content}
+								<p>{loadedItem.content}</p>
+							{:else}
+								<p data-text="muted">No full content.</p>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

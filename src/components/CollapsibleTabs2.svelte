@@ -5,7 +5,7 @@
 	import type { Snippet } from 'svelte'
 
 
-	// Props
+	// State
 	let {
 		sectionIdPrefix,
 		sections,
@@ -31,7 +31,7 @@
 			}]>
 		},
 		Omit<
-			ComponentProps<typeof CollapsibleTabs>,
+			ComponentProps<typeof CollapsibleTabs1>,
 			'Markers' | 'body' | 'Summary' | 'Toolbar' | 'Annotation'
 		>
 	> = $props()
@@ -57,11 +57,11 @@
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs1 from '$/components/CollapsibleTabs1.svelte'
 </script>
 
 
-<CollapsibleTabs
+<CollapsibleTabs1
 	{...collapsibleTabsProps}
 	{Summary}
 	{Toolbar}
@@ -86,4 +86,4 @@
 			</section>
 		{/each}
 	{/snippet}
-</CollapsibleTabs>
+</CollapsibleTabs1>

@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -70,7 +70,6 @@
 	)
 
 
-	// (Derived)
 	const verificationIdKey = $derived(
 		stringify(entityId),
 	)

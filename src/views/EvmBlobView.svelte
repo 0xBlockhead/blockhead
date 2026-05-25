@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		routeChildren,
 		entityId,
@@ -62,7 +62,6 @@
 	)
 
 
-	// (Derived)
 	const blobIdKey = $derived(
 		stringify(entityId),
 	)
@@ -326,40 +325,24 @@
 		>
 			{#if true}
 				<CollapsibleTabs
+					sectionIdPrefix={blobIdKey}
+					sections={[
+						{ id: 'blob-semantics', label: 'Blob primer' },
+						...(routeChildren ? [{ id: 'page-content', label: 'Route' }] : []),
+					]}
 					id={`${blobIdKey}:carousel-blob`}
-					Summary={BlobCarouselSummary}
-					Markers={BlobCarouselMarkers}
-					body={BlobCarouselBody}
 					{...{ 'data-card': '' }}
 					scrollContainerProps={{
 						'data-row': 'start align-start',
 					}}
-				/>
-				{#snippet BlobCarouselSummary({ open: _isOpen })}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<SectionHeading>Type‑3 execution payload</SectionHeading>
-					</header>
-				{/snippet}
+				>
+					{#snippet Summary({ open: _isOpen })}
+						<header data-row-item="flexible" data-row="wrap gap-4">
+							<SectionHeading>Type‑3 execution payload</SectionHeading>
+						</header>
+					{/snippet}
 
-				{#snippet BlobCarouselMarkers({
-					open: _blobCarouselMarkersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Blob primer"
-						href={`#${blobIdKey}:blob-semantics`}
-					>Consensus + execution roles</a>
-					{#if routeChildren}
-						<a
-							data-scroll-marker-label="Route"
-							href={`#${blobIdKey}:page-content`}
-						>Route</a>
-					{/if}
-				{/snippet}
-
-				{#snippet BlobCarouselBody({ open: _tabOpen })}
-					<section
-						id={`${blobIdKey}:blob-semantics`}
-					>
+					{#snippet SectionBlobSemantics({ id: _semanticsId, label: _semanticsLabel })}
 						<div data-row="wrap align-center gap-2">
 							<span data-text="annotation">Consensus + execution roles</span>
 							{#if true}
@@ -378,16 +361,14 @@
 								{/snippet}
 							{/if}
 						</div>
-					</section>
+					{/snippet}
 
-					{#if routeChildren}
-						<section
-							id={`${blobIdKey}:page-content`}
-						>
+					{#snippet SectionPageContent({ id: _contentId, label: _contentLabel })}
+						{#if routeChildren}
 							{@render routeChildren()}
-						</section>
-					{/if}
-				{/snippet}
+						{/if}
+					{/snippet}
+				</CollapsibleTabs>
 			{/if}
 		</div>
 	{/snippet}

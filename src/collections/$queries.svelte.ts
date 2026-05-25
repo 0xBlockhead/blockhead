@@ -449,63 +449,30 @@ export const useLiveQueryResource = <_Data>(
 			startSync: true,
 		})
 	})
-	const state = new SvelteMap()
-	let current = $state<_Data | undefined>()
-	let status = $state<CollectionStatus>(
-		collection.status,
-	)
-	let error = $state<unknown>()
+
+	let _collectionUpdates = $state(0)
+	let _error = $state<unknown>()
+
 	let currentUnsubscribe: (() => void) | undefined
 
-	const assignCurrent = (raw: _Data | undefined) => {
-		current = (
-			raw === undefined ?
-				undefined
-			: options?.normalize !== undefined ?
-				options.normalize(raw)
-			:
-				raw
-		)
-	}
-
 	$effect(() => {
-		status = collection.status
-		currentUnsubscribe?.()
+		const coll = collection
 		untrack(() => {
-			state.clear()
-			for (const [key, value] of collection.entries()) {
-				state.set(key, value)
-			}
-			assignCurrent(
-				collection.config.singleResult ?
-					Array.from(collection.values())[0] as _Data | undefined
-				:
-					Array.from(collection.values()) as _Data,
-			)
+			_error = undefined
 		})
-		collection.onFirstReady(() => {
-			status = collection.status
+		currentUnsubscribe?.()
+
+		coll.onFirstReady(() => {
+			_collectionUpdates++
 		})
-		const subscription = collection.subscribeChanges((changes) => {
-			untrack(() => {
-				for (const change of changes) {
-					if (change.type === 'delete') state.delete(change.key)
-					else state.set(change.key, change.value)
-				}
-				assignCurrent(
-					collection.config.singleResult ?
-						Array.from(collection.values())[0] as _Data | undefined
-					:
-						Array.from(collection.values()) as _Data,
-				)
-			})
-			status = collection.status
+		const subscription = coll.subscribeChanges(() => {
+			_collectionUpdates++
 		}, {
-			includeInitialState: true,
+			includeInitialState: false,
 		})
-		collection.preload().catch((cause) => {
-			error = normalizeBoundaryError(cause)
-			status = 'error'
+		coll.preload().catch((cause) => {
+			_error = normalizeBoundaryError(cause)
+			_collectionUpdates++
 		})
 		currentUnsubscribe = subscription.unsubscribe.bind(subscription)
 		return () => {
@@ -513,6 +480,31 @@ export const useLiveQueryResource = <_Data>(
 			currentUnsubscribe = undefined
 		}
 	})
+
+	const current = $derived.by((): _Data | undefined => {
+		_collectionUpdates
+		const coll = collection
+
+		const raw = coll.config.singleResult ?
+			Array.from(coll.values())[0] as _Data | undefined
+		:
+			Array.from(coll.values()) as _Data
+
+		return (
+			raw === undefined ?
+				undefined
+			: options?.normalize !== undefined ?
+				options.normalize(raw)
+			:
+				raw
+		)
+	})
+
+	const status = $derived.by((): CollectionStatus | 'error' => {
+		_collectionUpdates
+		return _error !== undefined ? 'error' : collection.status
+	})
+
 	const promise = $derived(
 		Promise.resolve()
 			.then(tick)
@@ -520,31 +512,31 @@ export const useLiveQueryResource = <_Data>(
 	)
 
 	return {
-		get current() {
+		get current(): _Data | undefined {
 			return current
 		},
-		get data() {
+		get data(): _Data | undefined {
 			return current
 		},
-		get error() {
-			return error
+		get error(): unknown {
+			return _error
 		},
-		get isError() {
+		get isError(): boolean {
 			return status === 'error'
 		},
-		get isLoading() {
+		get isLoading(): boolean {
 			return status === 'loading'
 		},
-		get isReady() {
+		get isReady(): boolean {
 			return status === 'ready' || status === 'disabled'
 		},
-		get loading() {
+		get loading(): boolean {
 			return status === 'loading'
 		},
-		get ready() {
+		get ready(): boolean {
 			return status === 'ready' || status === 'disabled'
 		},
-		get status() {
+		get status(): CollectionStatus | 'error' {
 			return status
 		},
 		get then() {

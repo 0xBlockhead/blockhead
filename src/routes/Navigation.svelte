@@ -8,7 +8,7 @@
 	import { page } from '$app/state'
 
 
-	// Props
+	// State
 	let {
 		navigationItems,
 		HeaderActions,

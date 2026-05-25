@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/(reddit)/reddit/comment/[fullname]', {
@@ -229,6 +229,11 @@
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'comment-details', label: 'Metadata' },
+					{ id: 'comment-replies', label: 'Replies' },
+				]}
 				id={`${idKey}:carousel-comment`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
@@ -248,48 +253,25 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Metadata"
-						href={`#${idKey}:comment-details`}
-					>Metadata</a>
-					<a
-						data-scroll-marker-label="Replies"
-						href={`#${idKey}:comment-replies`}
-					>Replies</a>
+				{#snippet SectionCommentDetails({ id, label })}
+					<EntityDetails
+						entityType={EntityType.RedditComment}
+						{entityId}
+					/>
 				{/snippet}
 
-				{#snippet body({
-					open: _sectionOpen,
-				})}
-					<section
-						id={`${idKey}:comment-details`}
-						data-scroll-marker-label="Metadata"
-					>
-						<EntityDetails
-							entityType={EntityType.RedditComment}
-							{entityId}
-						/>
-					</section>
-
-					<section
-						id={`${idKey}:comment-replies`}
-						data-scroll-marker-label="Replies"
-					>
-						<RedditCommentsView
-							href={resolve('/reddit/comments')}
-							entityFieldReference={{
-								entityType: EntityType.RedditComment,
-								entityId,
-								fieldName: '$$replies',
-							}}
-							id={`${idKey}:reddit-replies`}
-							sortMode="createdAtAsc"
-							title="Replies"
-						/>
-					</section>
+				{#snippet SectionCommentReplies({ id, label })}
+					<RedditCommentsView
+						href={resolve('/reddit/comments')}
+						entityFieldReference={{
+							entityType: EntityType.RedditComment,
+							entityId,
+							fieldName: '$$replies',
+						}}
+						id={`${idKey}:reddit-replies`}
+						sortMode="createdAtAsc"
+						title="Replies"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

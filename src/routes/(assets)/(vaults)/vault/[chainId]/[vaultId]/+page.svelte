@@ -1,5 +1,5 @@
 <script lang="ts">
-	// Props
+	// State
 	let {
 		params,
 	} = $props()
@@ -17,8 +17,6 @@
 
 	// State
 	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-
-// Props
 </script>
 
 

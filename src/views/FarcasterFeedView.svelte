@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = entityId.variant === 'trending' ?
@@ -199,6 +199,11 @@
 		>
 			<CollapsibleTabs
 				id={`${feedDetailKey}:carousel-feed`}
+				sectionIdPrefix={feedDetailKey}
+				sections={[
+					{ id: 'feed-record', label: 'Record' },
+					{ id: 'feed-entries', label: 'Casts' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -217,48 +222,25 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Record"
-						href={`#${feedDetailKey}:feed-record`}
-					>Record</a>
-					<a
-						data-scroll-marker-label="Casts"
-						href={`#${feedDetailKey}:feed-entries`}
-					>Casts</a>
+				{#snippet SectionFeedRecord({ id, label })}
+					<EntityDetails
+						entityType={EntityType.FarcasterFeed}
+						{entityId}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _paneOpen,
-				})}
-					<section
-						data-scroll-marker-label="Record"
-						id={`${feedDetailKey}:feed-record`}
-					>
-						<EntityDetails
-							entityType={EntityType.FarcasterFeed}
-							{entityId}
-						/>
-					</section>
-
-					<section
-						data-scroll-marker-label="Casts"
-						id={`${feedDetailKey}:feed-entries`}
-					>
-						<FarcasterCastsView
-							href={resolve('/farcaster/feed')}
-							entityFieldReference={{
-								entityType: EntityType.FarcasterFeed,
-								entityId,
-								fieldName: '$$entries',
-							}}
-							id={`${feedDetailKey}:entries`}
-							{limit}
-							title="Feed"
-						/>
-					</section>
-
+				{#snippet SectionFeedEntries({ id, label })}
+					<FarcasterCastsView
+						href={resolve('/farcaster/feed')}
+						entityFieldReference={{
+							entityType: EntityType.FarcasterFeed,
+							entityId,
+							fieldName: '$$entries',
+						}}
+						id={`${feedDetailKey}:entries`}
+						{limit}
+						title="Feed"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

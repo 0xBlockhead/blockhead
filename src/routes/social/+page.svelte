@@ -83,14 +83,14 @@
 				{ label: 'Conversations', route: '/(social)/(xmtp)/xmtp/conversations' },
 			],
 		},
-	] as const satisfies ReadonlyArray<{
+	] as const satisfies readonly {
 		label: string
 		hubRoute: string
-		lists: ReadonlyArray<{
+		lists: readonly {
 			label: string
 			route: string
-		}>
-	}>
+		}[]
+	}[]
 
 
 	// Components
@@ -112,6 +112,11 @@
 		})}
 			<CollapsibleTabs
 				id={`${hubKey}:hub`}
+				sectionIdPrefix={hubKey}
+				sections={[
+					{ id: 'protocols', label: 'Protocols' },
+					{ id: 'farcaster', label: 'Farcaster' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -129,68 +134,48 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Protocols"
-						href={`#${hubKey}:protocols`}
-					>Protocols</a>
-					<a
-						data-scroll-marker-label="Farcaster"
-						href={`#${hubKey}:farcaster`}
-					>Farcaster</a>
-				{/snippet}
-
-				{#snippet body({ open: _paneOpen })}
-					<section
-						id={`${hubKey}:protocols`}
-						data-scroll-marker-label="Protocols"
-						data-column
-					>
-						<h2>Protocols & networks</h2>
-						<ul class="social-protocol-groups">
-							{#each socialProtocolGroups as { label, hubRoute, lists } (hubRoute)}
-								<li>
-									<a href={resolve(hubRoute)}>{label}</a>
-									<ul>
-										{#each lists as { label: listLabel, route } (route)}
-											<li>
-												<a href={resolve(route)}>{listLabel}</a>
-											</li>
-										{/each}
-									</ul>
-								</li>
-							{/each}
+				{#snippet SectionProtocols({ id, label })}
+					<h2>Protocols & networks</h2>
+					<ul class="social-protocol-groups">
+						{#each socialProtocolGroups as { label, hubRoute, lists } (hubRoute)}
 							<li>
-								<a href={resolve('/(social)/(farcaster)/farcaster')}>Farcaster (feed / hub)</a>
+								<a href={resolve(hubRoute)}>{label}</a>
 								<ul>
-									<li>
-										<a href={resolve('/farcaster/accounts')}>Accounts</a>
-									</li>
-									<li>
-										<a href={resolve('/farcaster/feed')}>Feed</a>
-									</li>
-									<li>
-										<a href={resolve('/farcaster/channels')}>Channels</a>
-									</li>
-									<li>
-										<a href={resolve('/farcaster/users')}>Users</a>
-									</li>
+									{#each lists as { label: listLabel, route } (route)}
+										<li>
+											<a href={resolve(route)}>{listLabel}</a>
+										</li>
+									{/each}
 								</ul>
 							</li>
-						</ul>
-					</section>
+						{/each}
+						<li>
+							<a href={resolve('/(social)/(farcaster)/farcaster')}>Farcaster (feed / hub)</a>
+							<ul>
+								<li>
+									<a href={resolve('/farcaster/accounts')}>Accounts</a>
+								</li>
+								<li>
+									<a href={resolve('/farcaster/feed')}>Feed</a>
+								</li>
+								<li>
+									<a href={resolve('/farcaster/channels')}>Channels</a>
+								</li>
+								<li>
+									<a href={resolve('/farcaster/users')}>Users</a>
+								</li>
+							</ul>
+						</li>
+					</ul>
+				{/snippet}
 
-					<section
-						id={`${hubKey}:farcaster`}
-						data-scroll-marker-label="Farcaster"
-					>
-						<FarcasterView
-							entityId={{
-								scope: 'FarcasterNetwork',
-							}}
-							open={hubOpen}
-						/>
-					</section>
+				{#snippet SectionFarcaster({ id, label })}
+					<FarcasterView
+						entityId={{
+							scope: 'FarcasterNetwork',
+						}}
+						open={hubOpen}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		{/snippet}

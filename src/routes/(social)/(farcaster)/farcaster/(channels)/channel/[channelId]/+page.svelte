@@ -9,11 +9,10 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let { params } = $props()
 
 
-	// (Derived)
 	const channelFeedId = $derived(
 		({
 			variant: 'byChannel' as const,

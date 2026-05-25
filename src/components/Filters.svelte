@@ -11,7 +11,7 @@
 	} from '$/components/RefinableList.svelte'
 
 
-	// Props
+	// State
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 

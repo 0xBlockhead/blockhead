@@ -5,50 +5,12 @@
 	import { schema } from '$/schema/index.ts'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 	}: {
 		entityId?: EntityId<typeof schema, EntityType.IpfsResource>
 	} = $props()
-
-
-	// Functions
-	const sample = ({
-		label,
-		targetInput,
-		contentPathInput = '',
-		sourceHref,
-		sourceLabel,
-	}: {
-		label: string
-		targetInput: string
-		contentPathInput?: string
-		sourceHref: string
-		sourceLabel: string
-	}) => {
-		const address = ipfsResourceAddressFromInput({
-			targetInput,
-			contentPathInput,
-		})
-		if (address == null) throw new Error(`Invalid IPFS example: ${targetInput}`)
-
-		return {
-			label,
-			sourceHref,
-			sourceLabel,
-			href: ipfsResourceHref(address),
-			uri: ipfsResourceCanonicalUri(address),
-		}
-	}
-
-	const openSample = (href: string) => {
-		window.location.assign(href)
-	}
-
-	const openDocsSample = (href: string) => {
-		window.open(href, '_blank', 'noopener,noreferrer')
-	}
 
 
 	// State
@@ -101,7 +63,46 @@
 
 
 	// Components
-	import IpfsBrowseEntityChrome from '$/views/IpfsBrowseEntityChrome.svelte'
+
+	// Functions
+	const sample = ({
+		label,
+		targetInput,
+		contentPathInput = '',
+		sourceHref,
+		sourceLabel,
+	}: {
+		label: string
+		targetInput: string
+		contentPathInput?: string
+		sourceHref: string
+		sourceLabel: string
+	}) => {
+		const address = ipfsResourceAddressFromInput({
+			targetInput,
+			contentPathInput,
+		})
+		if (address == null) throw new Error(`Invalid IPFS example: ${targetInput}`)
+
+		return {
+			label,
+			sourceHref,
+			sourceLabel,
+			href: ipfsResourceHref(address),
+			uri: ipfsResourceCanonicalUri(address),
+		}
+	}
+
+	const openSample = (href: string) => {
+		window.location.assign(href)
+	}
+
+	const openDocsSample = (href: string) => {
+		window.open(href, '_blank', 'noopener,noreferrer')
+	}
+
+
+	// Components
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 </script>

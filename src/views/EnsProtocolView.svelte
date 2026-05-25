@@ -13,7 +13,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -165,6 +165,10 @@
 		>
 			<CollapsibleTabs
 				id={`${protocolIdKey}:browse`}
+				sectionIdPrefix={protocolIdKey}
+				sections={[
+					{ id: 'browse', label: 'Browse' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
@@ -179,22 +183,8 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Browse"
-						href={`#${protocolIdKey}:browse`}
-					>Browse</a>
-				{/snippet}
-
-				{#snippet body({ open: _sectionOpen })}
-					<section
-						id={`${protocolIdKey}:browse`}
-						data-scroll-marker-label="Browse"
-					>
-						{#if _sectionOpen}
-							<EnsBrowseView />
-						{/if}
-					</section>
+				{#snippet SectionBrowse({ id, label })}
+					<EnsBrowseView />
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

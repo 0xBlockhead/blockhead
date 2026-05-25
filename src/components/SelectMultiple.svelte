@@ -13,7 +13,7 @@
 	const emptyItemList = <T,>(): T[] => []
 
 
-	// Props
+	// State
 	let {
 		items,
 		value = $bindable(emptyItemList<_Item>()),
@@ -60,7 +60,6 @@
 
 	} = $props()
 
-	// (Derived)
 	const normalizedItems = $derived(
 		items.map((item) => ({
 			item,

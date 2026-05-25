@@ -8,7 +8,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		href = resolve('/x'),
 		open = $bindable(true),
@@ -176,6 +176,12 @@
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
+				sectionIdPrefix={networkIdKey}
+				sections={[
+					{ id: 'profiles', label: 'Profiles' },
+					{ id: 'recent-posts', label: 'Recent posts' },
+					{ id: 'examples-list', label: 'Examples' },
+				]}
 				id={`${networkIdKey}:carousel-registry`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
@@ -207,77 +213,51 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Profiles"
-						href={`#${networkIdKey}:profiles`}
-					>Profiles</a>
-					<a
-						data-scroll-marker-label="Recent posts"
-						href={`#${networkIdKey}:recent-posts`}
-					>Posts</a>
-					<a
-						data-scroll-marker-label="Examples"
-						href={`#${networkIdKey}:examples-list`}
-					>Examples</a>
+				{#snippet SectionProfiles({ id, label })}
+					<XUsersView
+						href={resolve('/x/users')}
+						entityFieldReference={{
+							entityType: EntityType.XNetwork,
+							entityId,
+							fieldName: '$$xUsers',
+						}}
+						id={`${networkIdKey}:users`}
+						open={_open}
+						title="Profiles"
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _o })}
-					<section
-						id={`${networkIdKey}:profiles`}
-						data-scroll-marker-label="Profiles"
-					>
-						<XUsersView
-							href={resolve('/x/users')}
-							entityFieldReference={{
-								entityType: EntityType.XNetwork,
-								entityId,
-								fieldName: '$$xUsers',
-							}}
-							id={`${networkIdKey}:users`}
-							open={_open}
-							title="Profiles"
-						/>
-					</section>
+				{#snippet SectionRecentPosts({ id, label })}
+					<XPostsView
+						href={resolve('/x/posts')}
+						entityFieldReference={{
+							entityType: EntityType.XNetwork,
+							entityId,
+							fieldName: '$$xPosts',
+						}}
+						id={`${networkIdKey}:posts`}
+						open={_open}
+						title="Recent posts"
+					/>
+				{/snippet}
 
-					<section
-						id={`${networkIdKey}:recent-posts`}
-						data-scroll-marker-label="Recent posts"
-					>
-						<XPostsView
-							href={resolve('/x/posts')}
-							entityFieldReference={{
-								entityType: EntityType.XNetwork,
-								entityId,
-								fieldName: '$$xPosts',
-							}}
-							id={`${networkIdKey}:posts`}
-							open={_open}
-							title="Recent posts"
-						/>
-					</section>
-
-					<section
-						id={`${networkIdKey}:examples-list`}
-						data-scroll-marker-label="Examples"
-					>
-						<ul>
-							<li>
-								<a href={resolve('/(social)/x/user/[userId]', {
-									userId: encodeURIComponent(exampleUserId),
-								})}>
-									Example user
-								</a>
-							</li>
-							<li>
-								<a href={resolve('/(social)/x/post/[postId]', {
-									postId: examplePostId,
-								})}>
-									Example post
-								</a>
-							</li>
-						</ul>
-					</section>
+				{#snippet SectionExamplesList({ id, label })}
+					<ul>
+						<li>
+							<a href={resolve('/(social)/x/user/[userId]', {
+								userId: encodeURIComponent(exampleUserId),
+							})}>
+								Example user
+							</a>
+						</li>
+						<li>
+							<a href={resolve('/(social)/x/post/[postId]', {
+								postId: examplePostId,
+							})}>
+								Example post
+							</a>
+						</li>
+					</ul>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

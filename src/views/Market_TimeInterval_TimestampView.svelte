@@ -21,15 +21,15 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
-		'/(assets)/(markets)/market/[marketKey]',
-		{
-			marketKey: encodeURIComponent(stringify(entityId.$market)),
-		},
-	),
+			'/(assets)/(markets)/market/[marketKey]',
+			{
+				marketKey: encodeURIComponent(stringify(entityId.$market)),
+			},
+		),
 		layout,
 		open = $bindable(true),
 		collapsible = true,
@@ -70,7 +70,6 @@
 	)
 
 
-	// (Derived)
 	const timeIntervalLabel = $derived(
 		entityId.timeInterval.unit === MarketTimeIntervalUnit.Day ?
 			`${String(entityId.timeInterval.value)}d`
@@ -127,120 +126,120 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-					{#if loadedMarketTimeIntervalTimestamp.close !== undefined}
-						<div>
-							<dt>Close</dt>
-							<dd>
-								<ResourceBoundary
-									resource={marketTimeIntervalTimestamp}
-									placeholderText="Loading OHLC candle…"
-								>
-									{#snippet children(loadedMarketTimeIntervalTimestamp)}
-										<CurrencyAmount
-											currency={quoteCurrency}
-											showDecimalPlaces={6}
-											value={loadedMarketTimeIntervalTimestamp.close}
-										/>
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-					{/if}
+			{#if loadedMarketTimeIntervalTimestamp.close !== undefined}
+				<div>
+					<dt>Close</dt>
+					<dd>
+						<ResourceBoundary
+							resource={marketTimeIntervalTimestamp}
+							placeholderText="Loading OHLC candle…"
+						>
+							{#snippet children(loadedMarketTimeIntervalTimestamp)}
+								<CurrencyAmount
+									currency={quoteCurrency}
+									showDecimalPlaces={6}
+									value={loadedMarketTimeIntervalTimestamp.close}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
 
-					<div>
-						<dt>Interval start</dt>
-						<dd>
-							<Timestamp
-								timestamp={entityId.timestampMs}
+			<div>
+				<dt>Interval start</dt>
+				<dd>
+					<Timestamp
+						timestamp={entityId.timestampMs}
+					/>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Market</dt>
+				<dd>
+					<ResourceBoundary
+						resource={marketTimeIntervalTimestamp}
+						placeholderText="Loading OHLC candle…"
+					>
+						{#snippet children(loadedMarketTimeIntervalTimestamp)}
+							<MarketView
+								entityId={entityId.$market}
+								layout={EntityLayout.Title}
+								open={false}
 							/>
-						</dd>
-					</div>
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-					<div>
-						<dt>Market</dt>
-						<dd>
-							<ResourceBoundary
-								resource={marketTimeIntervalTimestamp}
-								placeholderText="Loading OHLC candle…"
-							>
-								{#snippet children(loadedMarketTimeIntervalTimestamp)}
-									<MarketView
-										entityId={entityId.$market}
-										layout={EntityLayout.Title}
-										open={false}
-									/>
-								{/snippet}
-							</ResourceBoundary>
-						</dd>
-					</div>
-
-					{#if (
-						open
-						&& marketTimeIntervalTimestamp.open !== undefined
-					)}
-						<div>
-							<dt>Open</dt>
-							<dd>
-								<ResourceBoundary
-									resource={marketTimeIntervalTimestamp}
-									placeholderText="Loading OHLC candle…"
-								>
-									{#snippet children(loadedMarketTimeIntervalTimestamp)}
-										<CurrencyAmount
-											currency={quoteCurrency}
-											showDecimalPlaces={6}
-											value={loadedMarketTimeIntervalTimestamp.open}
-										/>
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& marketTimeIntervalTimestamp.high !== undefined
-					)}
-						<div>
-							<dt>High</dt>
-							<dd>
-								<ResourceBoundary
-									resource={marketTimeIntervalTimestamp}
-									placeholderText="Loading OHLC candle…"
-								>
-									{#snippet children(loadedMarketTimeIntervalTimestamp)}
-										<CurrencyAmount
-											currency={quoteCurrency}
-											showDecimalPlaces={6}
-											value={loadedMarketTimeIntervalTimestamp.high}
-										/>
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& marketTimeIntervalTimestamp.low !== undefined
-					)}
-						<div>
-							<dt>Low</dt>
-							<dd>
-								<ResourceBoundary
-									resource={marketTimeIntervalTimestamp}
-									placeholderText="Loading OHLC candle…"
-								>
-									{#snippet children(loadedMarketTimeIntervalTimestamp)}
-										<CurrencyAmount
-											currency={quoteCurrency}
-											showDecimalPlaces={6}
-											value={loadedMarketTimeIntervalTimestamp.low}
-										/>
-									{/snippet}
-								</ResourceBoundary>
-							</dd>
-						</div>
-					{/if}
-				</dl>
+			{#if (
+				open
+				&& marketTimeIntervalTimestamp.open !== undefined
+			)}
+				<div>
+					<dt>Open</dt>
+					<dd>
+						<ResourceBoundary
+							resource={marketTimeIntervalTimestamp}
+							placeholderText="Loading OHLC candle…"
+						>
+							{#snippet children(loadedMarketTimeIntervalTimestamp)}
+								<CurrencyAmount
+									currency={quoteCurrency}
+									showDecimalPlaces={6}
+									value={loadedMarketTimeIntervalTimestamp.open}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if (
+				open
+				&& marketTimeIntervalTimestamp.high !== undefined
+			)}
+				<div>
+					<dt>High</dt>
+					<dd>
+						<ResourceBoundary
+							resource={marketTimeIntervalTimestamp}
+							placeholderText="Loading OHLC candle…"
+						>
+							{#snippet children(loadedMarketTimeIntervalTimestamp)}
+								<CurrencyAmount
+									currency={quoteCurrency}
+									showDecimalPlaces={6}
+									value={loadedMarketTimeIntervalTimestamp.high}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+			{#if (
+				open
+				&& marketTimeIntervalTimestamp.low !== undefined
+			)}
+				<div>
+					<dt>Low</dt>
+					<dd>
+						<ResourceBoundary
+							resource={marketTimeIntervalTimestamp}
+							placeholderText="Loading OHLC candle…"
+						>
+							{#snippet children(loadedMarketTimeIntervalTimestamp)}
+								<CurrencyAmount
+									currency={quoteCurrency}
+									showDecimalPlaces={6}
+									value={loadedMarketTimeIntervalTimestamp.low}
+								/>
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+		</dl>
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}

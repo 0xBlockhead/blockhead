@@ -12,7 +12,7 @@
 	import type { Snippet } from 'svelte'
 
 
-	// Props
+	// State
 	let {
 		content = '',
 		triggerLabel = '',
@@ -56,7 +56,6 @@
 	let popoverEl: HTMLElement | null = $state(null)
 
 
-	// (Derived)
 	const side = $derived((contentProps?.side as string) ?? 'top')
 
 	const sideOffset = $derived((contentProps?.sideOffset as number) ?? 6)

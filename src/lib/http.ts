@@ -1,6 +1,41 @@
 import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
+
+export type RetryOptions = {
+	/** Max retry attempts for 429 responses. Default 3. */
+	maxRetries?: number
+	/** Initial backoff delay in ms (doubles each retry). Default 1_000. */
+	baseDelayMs?: number
+	/** Max delay in ms. Default 30_000. */
+	maxDelayMs?: number
+}
+
+const defaultRetry: Required<RetryOptions> = {
+	maxRetries: 3,
+	baseDelayMs: 1_000,
+	maxDelayMs: 30_000,
+}
+
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
+
+/** Full jitter: random delay in [0, cap]. */
+const jitterBackoff = (attempt: number, baseDelayMs: number, maxDelayMs: number): number => {
+	const cap = Math.min(baseDelayMs * 2 ** attempt, maxDelayMs)
+	return Math.random() * cap
+}
+
+/** Parse `Retry-After` header: seconds (number) or HTTP-date. Returns ms delay or undefined. */
+const retryAfterMs = (response: Response): number | undefined => {
+	const header = response.headers.get('retry-after')
+	if (!header) return undefined
+	const seconds = Number(header)
+	if (!Number.isNaN(seconds)) return seconds * 1_000
+	const parsed = Date.parse(header)
+	if (!Number.isNaN(parsed)) return Math.max(0, parsed - Date.now())
+	return undefined
+}
+
 /** Client-side fetch via shared api-proxy (`hooks.server.ts`). Pass absolute `http(s):` URL; origin must be allow-listed. Browser uses `/api-proxy`; SSR uses direct `fetch`. */
 export const proxyFetch: typeof fetch = async (input, init) => {
 	const href = (
@@ -25,11 +60,13 @@ export type CorsAwareFetchOptions =
 		/** Provider-scoped rows — `corsEnabled` for `url`’s origin is read from here (single definition with `hooks` allow-list). */
 		origins: readonly SourceOrigin[]
 		init?: RequestInit
+		retry?: RetryOptions
 	}
 	| {
 		/** Escape hatch when the URL is not listed on a provider (ad-hoc RPC, arbitrary Blockscout host, …). */
 		corsEnabled: boolean
 		init?: RequestInit
+		retry?: RetryOptions
 	}
 
 const resolveCorsEnabled = (url: string, options: CorsAwareFetchOptions): boolean => (
@@ -41,7 +78,7 @@ const resolveCorsEnabled = (url: string, options: CorsAwareFetchOptions): boolea
 		)
 )
 
-export const corsFetch = async (
+const doFetch = async (
 	url: string,
 	options: CorsAwareFetchOptions,
 ): Promise<Response> => (
@@ -53,6 +90,28 @@ export const corsFetch = async (
 		proxyFetch(url, options.init)
 	:	fetch(url, options.init)
 )
+
+export const corsFetch = async (
+	url: string,
+	options: CorsAwareFetchOptions,
+): Promise<Response> => {
+	const retry: Required<RetryOptions> = {
+		...defaultRetry,
+		...options.retry,
+	}
+
+	for (let attempt = 0; ; attempt++) {
+		const response = await doFetch(url, options)
+
+		if (response.status !== 429 || attempt >= retry.maxRetries) return response
+
+		const delay = (
+			retryAfterMs(response)
+			?? jitterBackoff(attempt, retry.baseDelayMs, retry.maxDelayMs)
+		)
+		await sleep(delay)
+	}
+}
 
 
 /** Pull `{ message }` / `{ error: { message } }` from JSON bodies — generic gateways often return `{ message: "Internal Error" }`. */

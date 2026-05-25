@@ -13,7 +13,7 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
-	// Props
+	// State
 	let {
 		title = 'Finality',
 		open = $bindable(true),

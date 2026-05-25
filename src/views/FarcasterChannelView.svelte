@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
@@ -436,6 +436,11 @@
 		>
 			<CollapsibleTabs
 				id={`${channelDetailKey}:carousel-channel`}
+				sectionIdPrefix={channelDetailKey}
+				sections={[
+					{ id: 'channel-record', label: 'Record' },
+					{ id: 'channel-banner', label: 'Banner' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -454,57 +459,35 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Record"
-						href={`#${channelDetailKey}:channel-record`}
-					>Record</a>
-					<a
-						data-scroll-marker-label="Banner"
-						href={`#${channelDetailKey}:channel-banner`}
-					>Banner</a>
+				{#snippet SectionChannelRecord({ id, label })}
+					<EntityDetails
+						entityType={EntityType.FarcasterChannel}
+						{entityId}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _paneOpen,
-				})}
-					<section
-						data-scroll-marker-label="Record"
-						id={`${channelDetailKey}:channel-record`}
+				{#snippet SectionChannelBanner({ id, label })}
+					<ResourceBoundary
+						resource={channel}
+						placeholderText="Loading Farcaster channel banner…"
 					>
-						<EntityDetails
-							entityType={EntityType.FarcasterChannel}
-							{entityId}
-						/>
-					</section>
-
-					<section
-						data-scroll-marker-label="Banner"
-						id={`${channelDetailKey}:channel-banner`}
-					>
-						<ResourceBoundary
-							resource={channel}
-							placeholderText="Loading Farcaster channel banner…"
-						>
-							{#snippet children(loadedChannel)}
-								<section data-column>
-									<h3>Channel</h3>
-									{#if (
-										channel.$headerImage !== undefined
-										&& channel.$headerImage[EntityMetaKey.Id].url !== undefined
-									)}
-										<p>
-											<Media
-												media={{ url: loadedChannel.$headerImage[EntityMetaKey.Id].url }}
-												fit="cover"
-											/>
-										</p>
-									{/if}
-								</section>
-							{/snippet}
-						</ResourceBoundary>
-					</section>
+						{#snippet children(loadedChannel)}
+							<section data-column>
+								<h3>Channel</h3>
+								{#if (
+									channel.$headerImage !== undefined
+									&& channel.$headerImage[EntityMetaKey.Id].url !== undefined
+								)}
+									<p>
+										<Media
+											media={{ url: loadedChannel.$headerImage[EntityMetaKey.Id].url }}
+											fit="cover"
+										/>
+									</p>
+								{/if}
+							</section>
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

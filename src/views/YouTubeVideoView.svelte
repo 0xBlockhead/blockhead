@@ -15,7 +15,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/(youtube)/youtube/video/[videoId]', {
@@ -333,6 +333,11 @@
 		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-video`}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'description', label: 'Description' },
+					{ id: 'comments', label: 'Comment thread' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -351,65 +356,50 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Description"
-						href={`#${idKey}:description`}
-					>Text</a>
-					<a
-						data-scroll-marker-label="Comment thread"
-						href={`#${idKey}:comments`}
-					>Comments</a>
+				{#snippet SectionDescription({ id, label })}
+					<ResourceBoundary
+						resource={video}
+						placeholderText="Loading video…"
+					>
+						{#snippet children(loadedVideo)}
+							{#if loadedVideo.description}
+								<p>{loadedVideo.description}</p>
+							{:else}
+								<div data-row="wrap align-center gap-2">
+									<p data-text="muted">
+										No description yet.
+									</p>
+									<Tooltip contentProps={{ side: 'top' }}>
+										{#snippet Content()}
+											<p>
+												Description text fills in when Youtube_Rest or Piped_Rest returns stream metadata for this watch key.
+											</p>
+										{/snippet}
+										<abbr
+											class="entity-heading-tip"
+											aria-label="Video description"
+										>ⓘ</abbr>
+									</Tooltip>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet body({ open: _sectionOpen })}
-					<section data-scroll-marker-label="Description">
-						<ResourceBoundary
-							resource={video}
-							placeholderText="Loading video…"
-						>
-							{#snippet children(loadedVideo)}
-								{#if loadedVideo.description}
-									<p>{loadedVideo.description}</p>
-								{:else}
-									<div data-row="wrap align-center gap-2">
-										<p data-text="muted">
-											No description yet.
-										</p>
-										<Tooltip contentProps={{ side: 'top' }}>
-											{#snippet Content()}
-												<p>
-													Description text fills in when Youtube_Rest or Piped_Rest returns stream metadata for this watch key.
-												</p>
-											{/snippet}
-											<abbr
-												class="entity-heading-tip"
-												aria-label="Video description"
-											>ⓘ</abbr>
-										</Tooltip>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-
-					<section data-scroll-marker-label="Comment thread">
-						<YouTubeCommentsView
-							href={resolve(
+				{#snippet SectionComments({ id, label })}
+					<YouTubeCommentsView
+						href={resolve(
 			'/(social)/(youtube)/youtube/video/[videoId]/(video)/comments',
 			{ videoId: encodeURIComponent(entityId.videoId) },
 		)}
-							entityFieldReference={{
-								entityType: EntityType.YouTubeVideo,
-								entityId,
-								fieldName: '$$comments',
-							}}
-							id={`${idKey}:youtube-comments`}
-							open={_open}
-						/>
-					</section>
+						entityFieldReference={{
+							entityType: EntityType.YouTubeVideo,
+							entityId,
+							fieldName: '$$comments',
+						}}
+						id={`${idKey}:youtube-comments`}
+						open={_open}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

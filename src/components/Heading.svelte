@@ -10,7 +10,7 @@
 	import { getHeadingLevel } from '$/context/headingLevel.ts'
 
 
-	// Props
+	// State
 	let {
 		children,
 		...elementProps

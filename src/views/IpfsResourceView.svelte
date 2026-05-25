@@ -9,7 +9,7 @@
 	import { stringify } from 'devalue'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = ipfsResourceHref(entityId),
@@ -333,6 +333,12 @@
 		>
 			<CollapsibleTabs
 				id={`${detailKey}:carousel-ipfs-resource`}
+				sectionIdPrefix={detailKey}
+				sections={[
+					{ id: 'ipfs-record', label: 'Record' },
+					...(_open && entityId.namespace === 'ipfs' ? [{ id: 'ipfs-cid', label: 'Encodings' }] : []),
+					...(_open ? [{ id: 'ipfs-preview', label: 'Preview' }] : []),
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -365,72 +371,36 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Record"
-						href={`#${detailKey}:ipfs-record`}
-					>Record</a>
-					{#if entityId.namespace === 'ipfs' && _open}
-						<a
-							data-scroll-marker-label="Encodings"
-							href={`#${detailKey}:ipfs-cid`}
-						>Encodings</a>
-					{/if}
-
-					{#if _open}
-						<a
-							data-scroll-marker-label="Preview"
-							href={`#${detailKey}:ipfs-preview`}
-						>Preview</a>
-					{/if}
+				{#snippet SectionIpfsRecord()}
+					<EntityDetails
+						entityType={EntityType.IpfsResource}
+						{entityId}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _paneOpen })}
-					<section
-						data-scroll-marker-label="Record"
-						id={`${detailKey}:ipfs-record`}
-					>
-						<EntityDetails
-							entityType={EntityType.IpfsResource}
-							{entityId}
-						/>
-					</section>
-					{#if _open && entityId.namespace === 'ipfs'}
-						<section
-							data-scroll-marker-label="CID"
-							id={`${detailKey}:ipfs-cid`}
-						>
-							<IpfsCidAlternateEncodings
-								contentPath={entityId.contentPath}
-								target={entityId.target}
-							/>
-						</section>
-					{/if}
+				{#snippet SectionIpfsCid()}
+					<IpfsCidAlternateEncodings
+						contentPath={entityId.contentPath}
+						target={entityId.target}
+					/>
+				{/snippet}
 
-					{#if _open}
-						<section
-							data-scroll-marker-label="Preview"
-							id={`${detailKey}:ipfs-preview`}
-						>
-							<ResourceBoundary
-								resource={ipfs}
-							>
-								{#snippet children(loadedIpfs)}
-									<FileDetails
-										contentSize={loadedIpfs.contentLength}
-										contentType={loadedIpfs.contentType}
-										displayType={loadedIpfs.displayType}
-										extension={loadedIpfs.extension}
-										fileName={loadedIpfs.fileName}
-										src={loadedIpfs.gatewayUrl}
-										text={loadedIpfs.text}
-									/>
-								{/snippet}
-							</ResourceBoundary>
-						</section>
-					{/if}
+				{#snippet SectionIpfsPreview()}
+					<ResourceBoundary
+						resource={ipfs}
+					>
+						{#snippet children(loadedIpfs)}
+							<FileDetails
+								contentSize={loadedIpfs.contentLength}
+								contentType={loadedIpfs.contentType}
+								displayType={loadedIpfs.displayType}
+								extension={loadedIpfs.extension}
+								fileName={loadedIpfs.fileName}
+								src={loadedIpfs.gatewayUrl}
+								text={loadedIpfs.text}
+							/>
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

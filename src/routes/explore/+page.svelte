@@ -32,6 +32,14 @@
 		})}
 			<CollapsibleTabs
 				id={`${hubKey}:hub`}
+				sectionIdPrefix={hubKey}
+				sections={[
+					{ id: 'networks', label: 'Networks' },
+					{ id: 'upgrades', label: 'Upgrades' },
+					{ id: 'ipfs', label: 'IPFS' },
+					{ id: 'swarm', label: 'Swarm' },
+					{ id: 'proposals', label: 'Proposals' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -49,104 +57,62 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Networks"
-						href={`#${hubKey}:networks`}
-					>Networks</a>
-					<a
-						data-scroll-marker-label="Upgrades"
-						href={`#${hubKey}:upgrades`}
-					>Upgrades</a>
-					<a
-						data-scroll-marker-label="IPFS"
-						href={`#${hubKey}:ipfs`}
-					>IPFS</a>
-					<a
-						data-scroll-marker-label="Swarm"
-						href={`#${hubKey}:swarm`}
-					>Swarm</a>
-					<a
-						data-scroll-marker-label="Proposals"
-						href={`#${hubKey}:proposals`}
-					>Proposals</a>
+				{#snippet SectionNetworks({ id, label })}
+					<NetworksView
+						href={resolve('/networks')}
+						entityFieldReference={{
+							entityType: EntityType._Global,
+							entityId: {},
+							fieldName: '$$networks',
+						}}
+						id="networks"
+						open={hubOpen}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _paneOpen })}
-					<section
-						id={`${hubKey}:networks`}
-						data-scroll-marker-label="Networks"
-					>
-						<NetworksView
-							href={resolve('/networks')}
-							entityFieldReference={{
-								entityType: EntityType._Global,
-								entityId: {},
-								fieldName: '$$networks',
-							}}
-							id="networks"
-							open={hubOpen}
-						/>
-					</section>
+				{#snippet SectionUpgrades({ id, label })}
+					<NetworkUpgradesView
+						entityFieldReference={{
+							entityType: EntityType._Global,
+							entityId: {},
+							fieldName: '$$networkUpgrades',
+						}}
+						id="upgrades"
+						open={hubOpen}
+					/>
+				{/snippet}
 
-					<section
-						id={`${hubKey}:upgrades`}
-						data-scroll-marker-label="Upgrades"
-					>
-						<NetworkUpgradesView
-							entityFieldReference={{
-								entityType: EntityType._Global,
-								entityId: {},
-								fieldName: '$$networkUpgrades',
-							}}
-							id="upgrades"
-							open={hubOpen}
-						/>
-					</section>
+				{#snippet SectionIpfs({ id, label })}
+					<h2>
+						<a href={resolve('/ipfs')}>IPFS</a>
+					</h2>
 
-					<section
-						id={`${hubKey}:ipfs`}
-						data-scroll-marker-label="IPFS"
-						data-card
-					>
-						<h2>
-							<a href={resolve('/ipfs')}>IPFS</a>
-						</h2>
+					<p data-text="muted">
+						Open resolver-backed IPFS and IPNS resource pages from raw CIDs, protocol URIs, or public gateway URLs.
+					</p>
+				{/snippet}
 
-						<p data-text="muted">
-							Open resolver-backed IPFS and IPNS resource pages from raw CIDs, protocol URIs, or public gateway URLs.
-						</p>
-					</section>
+				{#snippet SectionSwarm({ id, label })}
+					<h2>
+						<a href={resolve('/swarm')}>Swarm</a>
+					</h2>
 
-					<section
-						id={`${hubKey}:swarm`}
-						data-scroll-marker-label="Swarm"
-						data-card
-					>
-						<h2>
-							<a href={resolve('/swarm')}>Swarm</a>
-						</h2>
+					<p data-text="muted">
+						Open resolver-backed Swarm BZZ resource pages from raw references, `bzz://` URIs, or public gateway URLs.
+					</p>
+				{/snippet}
 
-						<p data-text="muted">
-							Open resolver-backed Swarm BZZ resource pages from raw references, `bzz://` URIs, or public gateway URLs.
-						</p>
-					</section>
-
-					<section
-						id={`${hubKey}:proposals`}
-						data-scroll-marker-label="Proposals"
-					>
-						<ProposalRealmsView
-							entityFieldReference={{
-								entityType: EntityType._Global,
-								entityId: {},
-								fieldName: '$$proposalRealms',
-							}}
-							id="proposal-realms"
-							open={hubOpen}
-							title="Proposals"
-						/>
-					</section>
+				{#snippet SectionProposals({ id, label })}
+					<ProposalRealmsView
+						entityFieldReference={{
+							entityType: EntityType._Global,
+							entityId: {},
+							fieldName: '$$proposalRealms',
+						}}
+						id="proposal-realms"
+						open={hubOpen}
+						title="Proposals"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		{/snippet}

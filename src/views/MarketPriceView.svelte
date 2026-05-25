@@ -21,15 +21,15 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
-		'/(assets)/(markets)/market/[marketKey]',
-		{
-			marketKey: encodeURIComponent(stringify(entityId.$market)),
-		},
-	),
+			'/(assets)/(markets)/market/[marketKey]',
+			{
+				marketKey: encodeURIComponent(stringify(entityId.$market)),
+			},
+		),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
@@ -93,7 +93,6 @@
 	)
 
 
-	// (Derived)
 	const marketIdLabel = $derived(
 		entityId.$market.marketKind === MarketKind.Spot ?
 			`${entityId.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$market.$base)}-${marketAssetSymbol(entityId.$market.$quote)}`

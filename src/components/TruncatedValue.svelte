@@ -9,7 +9,7 @@
 
 
 <script lang="ts">
-	// Props
+	// State
 	let {
 		value,
 		startLength = 6,
@@ -23,7 +23,6 @@
 	} = $props()
 
 
-	// (Derived)
 	const rendered = $derived(
 		value ?? '',
 	)

@@ -18,7 +18,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -302,6 +302,12 @@
 		>
 			<CollapsibleTabs
 				id={`${detailKey}:carousel-swarm-resource`}
+				sectionIdPrefix={detailKey}
+				sections={[
+					{ id: 'swarm-browse', label: 'Browse' },
+					{ id: 'swarm-record', label: 'Record' },
+					...(_open ? [{ id: 'swarm-preview', label: 'Preview' }] : []),
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -320,69 +326,34 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Browse"
-						href={`#${detailKey}:swarm-browse`}
-					>Browse</a>
-					<a
-						data-scroll-marker-label="Record"
-						href={`#${detailKey}:swarm-record`}
-					>Record</a>
-					{#if _open}
-						<a
-							data-scroll-marker-label="Preview"
-							href={`#${detailKey}:swarm-preview`}
-						>Preview</a>
-					{/if}
+				{#snippet SectionSwarmBrowse()}
+					<SwarmBrowseForm {entityId} />
 				{/snippet}
 
-				{#snippet body({ open: _paneOpen,
-				})}
-					<section
-						data-scroll-marker-label="Browse"
-						id={`${detailKey}:swarm-browse`}
-					>
-						<SwarmBrowseForm {entityId} />
-					</section>
+				{#snippet SectionSwarmRecord()}
+					<EntityDetails
+						entityType={EntityType.SwarmResource}
+						{entityId}
+					/>
+				{/snippet}
 
-					<section
-						data-scroll-marker-label="Record"
-						id={`${detailKey}:swarm-record`}
-					>
-						<EntityDetails
-							entityType={EntityType.SwarmResource}
-							{entityId}
+				{#snippet SectionSwarmPreview()}
+					{#snippet SwarmPreviewBody(swarm)}
+						<FileDetails
+							contentSize={swarm.contentLength}
+							contentType={swarm.contentType}
+							displayType={swarm.displayType}
+							extension={swarm.extension}
+							fileName={swarm.fileName}
+							src={swarm.gatewayUrl}
+							text={swarm.text}
 						/>
-					</section>
+					{/snippet}
 
-					{#if _open}
-						<section
-							data-scroll-marker-label="Preview"
-							id={`${detailKey}:swarm-preview`}
-						>
-							{#if true}
-								{#snippet SwarmPreviewBody(swarm)}
-									<FileDetails
-										contentSize={swarm.contentLength}
-										contentType={swarm.contentType}
-										displayType={swarm.displayType}
-										extension={swarm.extension}
-										fileName={swarm.fileName}
-										src={swarm.gatewayUrl}
-										text={swarm.text}
-									/>
-								{/snippet}
-
-								<ResourceBoundary
-									children={SwarmPreviewBody}
-									resource={swarm}
-								/>
-							{/if}
-						</section>
-					{/if}
+					<ResourceBoundary
+						children={SwarmPreviewBody}
+						resource={swarm}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

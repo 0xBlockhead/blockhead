@@ -19,21 +19,22 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
-	// Props
+	// State
 	let {
 		title = 'Networks',
 		open = $bindable(true),
 		entityFieldReference,
-				...EntitiesListProps
+		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
-			open?: boolean			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Network>
+			open?: boolean
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Network>
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'collapsible'
-			| 'id',
+			| 'id'
 			| 'href'
 		>
 	> = $props()

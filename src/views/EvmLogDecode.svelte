@@ -11,7 +11,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		topics,
 		data,
@@ -69,7 +69,6 @@
 	)
 
 
-	// (Derived)
 	const topic0Hex = $derived(
 		topics[0]?.startsWith('0x') ?
 			normalizeEvmTopicHex(topics[0] as `0x${string}`)

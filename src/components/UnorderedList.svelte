@@ -93,7 +93,7 @@
 	}
 
 
-	// Props
+	// State
 	let {
 		items = $bindable(new SvelteSet()),
 		getKey,
@@ -440,7 +440,6 @@
 	let transitionsArmScheduled = false
 
 
-	// (Derived)
 	const hasVirtual = $derived(
 		browser && virtual !== undefined
 	)

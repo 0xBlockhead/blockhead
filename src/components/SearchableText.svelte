@@ -4,7 +4,7 @@
 	import { untrack } from 'svelte'
 
 
-	// Props
+	// State
 	let {
 		text,
 		query,

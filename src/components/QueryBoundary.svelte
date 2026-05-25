@@ -14,7 +14,7 @@
 	import type { QueryLike } from '$/lib/db/queryResource.svelte.ts'
 
 
-	// Props
+	// State
 	let {
 		children,
 		Pending,

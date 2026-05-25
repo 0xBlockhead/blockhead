@@ -10,7 +10,7 @@
 	import { incrementHeadingLevel } from '$/context/headingLevel.ts'
 
 
-	// Props
+	// State
 	let {
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),

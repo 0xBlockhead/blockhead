@@ -3,7 +3,7 @@
 	import { Tween, prefersReducedMotion } from 'svelte/motion'
 
 
-	// Props
+	// State
 	let {
 		value,
 		locales,
@@ -86,7 +86,6 @@
 	})
 
 
-	// (Derived)
 	const dPad = $derived(
 		formatValueOptions?.showDecimalPlaces
 			?? options.maximumFractionDigits

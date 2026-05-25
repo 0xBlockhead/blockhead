@@ -4,11 +4,10 @@
 	import { page } from '$app/state'
 
 
-	// Props
+	// State
 	let { children } = $props()
 
 
-	// (Derived)
 	const eventId = $derived(
 		decodeURIComponent(page.params.eventId ?? '').trim().toLowerCase(),
 	)

@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -57,7 +57,6 @@
 	)
 
 
-	// (Derived)
 	const payloadIdKey = $derived(
 		stringify(entityId),
 	)
@@ -188,6 +187,10 @@
 		>
 			<CollapsibleTabs
 				id={`${payloadIdKey}:carousel-payload`}
+				sectionIdPrefix={payloadIdKey}
+				sections={[
+					{ id: 'mev-included-block', label: 'Block' },
+				] as const}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -220,51 +223,39 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Block"
-						href={`#${payloadIdKey}:mev-included-block`}
-					>Block</a>
-				{/snippet}
-
-				{#snippet body({ open: _bodyOpen })}
-					<section
-						data-scroll-marker-label="Block"
-						id={`${payloadIdKey}:mev-included-block`}
+				{#snippet SectionMevIncludedBlock()}
+					<ResourceBoundary
+						resource={mevRelayProposerPayloadDelivered}
+						placeholderText="Loading block…"
 					>
-						<ResourceBoundary
-							resource={mevRelayProposerPayloadDelivered}
-							placeholderText="Loading block…"
-						>
-							{#snippet children(loadedMevRelayProposerPayloadDelivered)}
-								{#if (
-									open
-									&& mevRelayProposerPayloadDelivered.$executionBlock !== undefined
-								)}
-									<EvmBlockView
-									entityId={loadedMevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id]}
-									id={`${String(entityId.$network.chainId)}:${String(mevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id].blockNumber)}:mev-exec-block`}
-									layout={EntityLayout.Summary}
-									/>
-								{:else if open}
-									<div data-row="wrap align-center gap-2">
-									<mevRelayProposerPayloadDelivered data-text="muted">
-									No execution block linked yet.
-									</mevRelayProposerPayloadDelivered>
-									<Tooltip contentProps={{ side: 'top' }}>
-									{#snippet Content()}
-									<mevRelayProposerPayloadDelivered>Resolving the included EL header for a proposer-delivered (MEV-Boost) payload can lag until the relay or indexers tie bid metadata to an execution block.</mevRelayProposerPayloadDelivered>
-									{/snippet}
-									<abbr
-									class="entity-heading-tip"
-									aria-label="Execution block resolution"
-									>ⓘ</abbr>
-									</Tooltip>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
+						{#snippet children(loadedMevRelayProposerPayloadDelivered)}
+							{#if (
+								open
+								&& mevRelayProposerPayloadDelivered.$executionBlock !== undefined
+							)}
+								<EvmBlockView
+								entityId={loadedMevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id]}
+								id={`${String(entityId.$network.chainId)}:${String(mevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id].blockNumber)}:mev-exec-block`}
+								layout={EntityLayout.Summary}
+								/>
+							{:else if open}
+								<div data-row="wrap align-center gap-2">
+								<mevRelayProposerPayloadDelivered data-text="muted">
+								No execution block linked yet.
+								</mevRelayProposerPayloadDelivered>
+								<Tooltip contentProps={{ side: 'top' }}>
+								{#snippet Content()}
+								<mevRelayProposerPayloadDelivered>Resolving the included EL header for a proposer-delivered (MEV-Boost) payload can lag until the relay or indexers tie bid metadata to an execution block.</mevRelayProposerPayloadDelivered>
+								{/snippet}
+								<abbr
+								class="entity-heading-tip"
+								aria-label="Execution block resolution"
+								>ⓘ</abbr>
+								</Tooltip>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

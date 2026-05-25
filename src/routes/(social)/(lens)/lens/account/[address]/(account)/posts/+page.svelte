@@ -7,7 +7,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		params,
 	} = $props()
@@ -17,7 +17,6 @@
 	import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 
 
-	// (Derived)
 	const entityId = $derived.by(() => {
 		const raw = decodeURIComponent(params.address).trim()
 		const with0x = raw.startsWith('0x') ? raw : `0x${raw}`

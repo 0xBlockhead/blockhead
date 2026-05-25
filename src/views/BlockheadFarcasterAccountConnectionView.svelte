@@ -15,7 +15,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve(
@@ -67,7 +67,6 @@
 	)
 
 
-	// (Derived)
 	const connectionIdKey = $derived(
 		stringify(entityId),
 	)
@@ -255,6 +254,10 @@
 			data-column="gap-3"
 		>
 			<CollapsibleTabs
+				sectionIdPrefix={connectionIdKey}
+				sections={[
+					{ id: 'feed', label: 'Farcaster feed' },
+				]}
 				id={`${connectionIdKey}:carousel-feed`}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
@@ -267,31 +270,20 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Farcaster feed"
-						href={`#${connectionIdKey}:feed`}
-					>Farcaster feed</a>
-				{/snippet}
-
-				{#snippet body({ open: _bodyOpen })}
-					<section
-						id={`${connectionIdKey}:feed`}
-					>
-						<FarcasterCastsView
-							href={resolve(`/farcaster/feed/user/${String(entityId.fid)}`)}
-							entityFieldReference={{
-								entityType: EntityType.FarcasterFeed,
-								entityId: {
-									variant: 'byUser',
-									fid: entityId.fid,
-								},
-								fieldName: '$$entries',
-							}}
-							id={`${connectionIdKey}:feed-list`}
-							title="Farcaster feed"
-						/>
-					</section>
+				{#snippet SectionFeed({ id: _feedId, label: _feedLabel })}
+					<FarcasterCastsView
+						href={resolve(`/farcaster/feed/user/${String(entityId.fid)}`)}
+						entityFieldReference={{
+							entityType: EntityType.FarcasterFeed,
+							entityId: {
+								variant: 'byUser',
+								fid: entityId.fid,
+							},
+							fieldName: '$$entries',
+						}}
+						id={`${connectionIdKey}:feed-list`}
+						title="Farcaster feed"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

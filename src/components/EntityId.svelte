@@ -6,7 +6,7 @@
 	import type { Snippet } from 'svelte'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href,

@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/(youtube)/youtube/channel/[channelId]', {
@@ -257,6 +257,11 @@
 		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-channel`}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'videos', label: 'Videos' },
+					{ id: 'playlists', label: 'Playlists' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -275,45 +280,30 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({
-					open: _markersOpen,
-				})}
-					<a
-						data-scroll-marker-label="Videos"
-						href={`#${idKey}:videos`}
-					>Videos</a>
-					<a
-						data-scroll-marker-label="Playlists"
-						href={`#${idKey}:playlists`}
-					>Playlists</a>
+				{#snippet SectionVideos({ id, label })}
+					<YouTubeVideosView
+						href={resolve('/youtube/videos')}
+						entityFieldReference={{
+							entityType: EntityType.YouTubeChannel,
+							entityId,
+							fieldName: '$$videos',
+						}}
+						id={`${idKey}:youtube-videos`}
+						open={_open}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _sectionOpen })}
-					<section data-scroll-marker-label="Videos">
-						<YouTubeVideosView
-							href={resolve('/youtube/videos')}
-							entityFieldReference={{
-								entityType: EntityType.YouTubeChannel,
-								entityId,
-								fieldName: '$$videos',
-							}}
-							id={`${idKey}:youtube-videos`}
-							open={_open}
-						/>
-					</section>
-
-					<section data-scroll-marker-label="Playlists">
-						<YouTubePlaylistsView
-							href={resolve('/youtube/playlists')}
-							entityFieldReference={{
-								entityType: EntityType.YouTubeChannel,
-								entityId,
-								fieldName: '$$playlists',
-							}}
-							id={`${idKey}:youtube-playlists`}
-							open={_open}
-						/>
-					</section>
+				{#snippet SectionPlaylists({ id, label })}
+					<YouTubePlaylistsView
+						href={resolve('/youtube/playlists')}
+						entityFieldReference={{
+							entityType: EntityType.YouTubeChannel,
+							entityId,
+							fieldName: '$$playlists',
+						}}
+						id={`${idKey}:youtube-playlists`}
+						open={_open}
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

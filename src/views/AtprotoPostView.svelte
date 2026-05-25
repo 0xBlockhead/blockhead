@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/(atproto)/atproto/post/[uri]', {
@@ -297,6 +297,11 @@
 		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-post`}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'thread', label: 'Thread' },
+					{ id: 'repository', label: 'Repository' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -313,21 +318,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Thread"
-						href={`#${idKey}:thread`}
-					>Thread</a>
-					<a
-						data-scroll-marker-label="Repository"
-						href={`#${idKey}:repository`}
-					>Repository</a>
-				{/snippet}
-
-				<section
-					id={`${idKey}:thread`}
-					{...{ 'data-card': '' }}
-				>
+				{#snippet SectionThread({ id: _id, label: _label })}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
@@ -347,12 +338,9 @@
 						open={true}
 						title="Thread"
 					/>
-				</section>
+				{/snippet}
 
-				<section
-					id={`${idKey}:repository`}
-					{...{ 'data-card': '' }}
-				>
+				{#snippet SectionRepository({ id: _id, label: _label })}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
@@ -366,7 +354,7 @@
 						entityType={EntityType.AtprotoPost}
 						{entityId}
 					/>
-				</section>
+				{/snippet}
 			</CollapsibleTabs>
 		</div>
 	{/snippet}

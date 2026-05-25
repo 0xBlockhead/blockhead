@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/(activitypub)/activitypub/actor/[instanceOrigin]/[localAccountId]', {
@@ -365,6 +365,11 @@
 		>
 			<CollapsibleTabs
 				id={`${idKey}:carousel-activity`}
+				sectionIdPrefix={idKey}
+				sections={[
+					{ id: 'mastodon-profile', label: 'Profile' },
+					{ id: 'activity-statuses', label: 'Outbox' },
+				]}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -381,77 +386,58 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Profile"
-						href={`#${idKey}:mastodon-profile`}
-					>Profile</a>
-					<a
-						data-scroll-marker-label="Outbox"
-						href={`#${idKey}:activity-statuses`}
-					>Outbox</a>
+				{#snippet SectionMastodonProfile({ id: _id, label: _label })}
+					<EntityDetails
+						entityType={EntityType.ActivityPubActor}
+						{entityId}
+					/>
+					<ResourceBoundary
+						resource={actor}
+						placeholderText="Loading Mastodon profile…"
+					>
+						{#snippet children(loadedActor)}
+							{@const mastodonProfileUnset = (
+								actor.acct == null
+								&& actor.displayName == null
+								&& actor.username == null
+								&& actor.note == null
+							)}
+							{#if mastodonProfileUnset}
+								<div data-row="wrap align-center gap-2">
+									<p data-text="muted">
+										No profile fields yet.
+									</p>
+									<Tooltip contentProps={{ side: 'top' }}>
+										{#snippet Content()}
+											<p>
+												Handle, display name, and bio load from the configured Mastodon instance when the account is reachable.
+											</p>
+										{/snippet}
+										<abbr
+											class="entity-heading-tip"
+											aria-label="Profile fields"
+										>ⓘ</abbr>
+									</Tooltip>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet body({ open: _bodyOpen })}
-					<section
-						data-scroll-marker-label="Profile"
-						id={`${idKey}:mastodon-profile`}
-					>
-						<EntityDetails
-							entityType={EntityType.ActivityPubActor}
-							{entityId}
-						/>
-						<ResourceBoundary
-							resource={actor}
-							placeholderText="Loading Mastodon profile…"
-						>
-							{#snippet children(loadedActor)}
-								{@const mastodonProfileUnset = (
-									actor.acct == null
-									&& actor.displayName == null
-									&& actor.username == null
-									&& actor.note == null
-								)}
-								{#if mastodonProfileUnset}
-									<div data-row="wrap align-center gap-2">
-										<p data-text="muted">
-											No profile fields yet.
-										</p>
-										<Tooltip contentProps={{ side: 'top' }}>
-											{#snippet Content()}
-												<p>
-													Handle, display name, and bio load from the configured Mastodon instance when the account is reachable.
-												</p>
-											{/snippet}
-											<abbr
-												class="entity-heading-tip"
-												aria-label="Profile fields"
-											>ⓘ</abbr>
-										</Tooltip>
-									</div>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</section>
-
-					<section
-						data-scroll-marker-label="Outbox"
-						id={`${idKey}:activity-statuses`}
-					>
-						<ActivityPubNotesView
-							href={resolve('/activitypub/notes')}
-							entityFieldReference={{
-								entityType: EntityType.ActivityPubActor,
-								entityId,
-								fieldName: '$$notes',
-							}}
-							fieldOpen={_open}
-							id={`${idKey}:activity-notes-list`}
-							orderByCreatedAt="desc"
-							placeholderText="Loading Mastodon outbox statuses…"
-							title="Outbox"
-						/>
-					</section>
+				{#snippet SectionActivityStatuses({ id: _id, label: _label })}
+					<ActivityPubNotesView
+						href={resolve('/activitypub/notes')}
+						entityFieldReference={{
+							entityType: EntityType.ActivityPubActor,
+							entityId,
+							fieldName: '$$notes',
+						}}
+						fieldOpen={_open}
+						id={`${idKey}:activity-notes-list`}
+						orderByCreatedAt="desc"
+						placeholderText="Loading Mastodon outbox statuses…"
+						title="Outbox"
+					/>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>

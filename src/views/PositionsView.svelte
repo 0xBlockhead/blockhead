@@ -12,7 +12,7 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
-	// Props
+	// State
 	let {
 		entityFieldReference,
 		open = $bindable(true),

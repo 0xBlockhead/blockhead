@@ -14,7 +14,7 @@
 	import { resolve } from '$app/paths'
 
 
-	// Props
+	// State
 	let {
 		entityId,
 		href = resolve('/(social)/(lens)/lens'),
@@ -198,6 +198,12 @@
 		>
 			<CollapsibleTabs
 				id={`${networkIdKey}:carousel-registry`}
+				sectionIdPrefix={networkIdKey}
+				sections={[
+					{ id: 'registry-accounts', label: 'Profiles' },
+					{ id: 'registry-posts', label: 'Publications' },
+					{ id: 'examples-list', label: 'Examples' },
+				] as const}
 				{...{ 'data-card': '' }}
 				scrollContainerProps={{
 					'data-row': 'start align-start',
@@ -214,74 +220,48 @@
 					</header>
 				{/snippet}
 
-				{#snippet Markers({ open: _markersOpen })}
-					<a
-						data-scroll-marker-label="Profiles"
-						href={`#${networkIdKey}:registry-accounts`}
-					>Profiles</a>
-					<a
-						data-scroll-marker-label="Publications"
-						href={`#${networkIdKey}:registry-posts`}
-					>Publications</a>
-					<a
-						data-scroll-marker-label="Examples"
-						href={`#${networkIdKey}:examples-list`}
-					>Examples</a>
+				{#snippet SectionRegistryAccounts()}
+					<LensAccountsView
+						href={resolve('/lens/accounts')}
+						entityFieldReference={{
+							entityType: EntityType.LensNetwork,
+							entityId,
+							fieldName: '$$lensAccounts',
+						}}
+						id={`${networkIdKey}:accounts`}
+						open={_open}
+					/>
 				{/snippet}
 
-				{#snippet body({ open: _sectionOpen })}
-					<section
-						data-scroll-marker-label="Profiles"
-						id={`${networkIdKey}:registry-accounts`}
-					>
-						<LensAccountsView
-							href={resolve('/lens/accounts')}
-							entityFieldReference={{
-								entityType: EntityType.LensNetwork,
-								entityId,
-								fieldName: '$$lensAccounts',
-							}}
-							id={`${networkIdKey}:accounts`}
-							open={_open}
-						/>
-					</section>
+				{#snippet SectionRegistryPosts()}
+					<LensPostsView
+						href={resolve('/lens/posts')}
+						entityFieldReference={{
+							entityType: EntityType.LensNetwork,
+							entityId,
+							fieldName: '$$lensPosts',
+						}}
+						id={`${networkIdKey}:posts`}
+						open={_open}
+						title="Recent Lens v3 publications"
+					/>
+				{/snippet}
 
-					<section
-						data-scroll-marker-label="Publications"
-						id={`${networkIdKey}:registry-posts`}
-					>
-						<LensPostsView
-							href={resolve('/lens/posts')}
-							entityFieldReference={{
-								entityType: EntityType.LensNetwork,
-								entityId,
-								fieldName: '$$lensPosts',
-							}}
-							id={`${networkIdKey}:posts`}
-							open={_open}
-							title="Recent Lens v3 publications"
-						/>
-					</section>
-
-					<section
-						data-scroll-marker-label="Examples"
-						id={`${networkIdKey}:examples-list`}
-					>
-						<ul>
-							<li>
-								<a href={resolve('/(social)/lens/account/[address]', {
-									address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
-								})}>
-									Lens v3 profile example
-								</a>
-							</li>
-							<li>
-								<a href={resolve('/(social)/(lens)/lens/posts')}>
-									Browse recent publications
-								</a>
-							</li>
-						</ul>
-					</section>
+				{#snippet SectionExamplesList()}
+					<ul>
+						<li>
+							<a href={resolve('/(social)/lens/account/[address]', {
+								address: '0xd8dA6BF26964aF9D7eEd9e03E53415D37aA96045',
+							})}>
+								Lens v3 profile example
+							</a>
+						</li>
+						<li>
+							<a href={resolve('/(social)/(lens)/lens/posts')}>
+								Browse recent publications
+							</a>
+						</li>
+					</ul>
 				{/snippet}
 			</CollapsibleTabs>
 		</div>
