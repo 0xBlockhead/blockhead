@@ -85,5 +85,14 @@ export default {
 				Source.Beacon_Rest,
 			],
 		},
+		{
+			name: 'signature',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

@@ -62,6 +62,8 @@ export const getBeaconHeader = async (
 	if (root == null) throw new Error('Beacon: header response missing root')
 	const header = data.header
 	if (header == null) throw new Error('Beacon: header response missing header')
+	const signature = header.signature
+	if (signature == null) throw new Error('Beacon: header response missing signature')
 	const message = header.message
 	if (message == null) throw new Error('Beacon: header response missing message')
 	const slotRaw = message.slot
@@ -84,6 +86,7 @@ export const getBeaconHeader = async (
 		parentRoot,
 		proposerIndex,
 		root,
+		signature,
 		slot,
 		stateRoot,
 	}
@@ -299,4 +302,3 @@ export const getBeaconGenesisTimeSeconds = async (
 			undefined
 	)
 }
-

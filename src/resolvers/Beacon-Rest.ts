@@ -82,6 +82,7 @@ export default {
 					parentRoot: header.parentRoot,
 					proposerIndex: header.proposerIndex,
 					root: header.root,
+					signature: header.signature,
 					stateRoot: header.stateRoot,
 				}
 			},

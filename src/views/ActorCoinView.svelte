@@ -91,9 +91,14 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>
-			{entityId.$coin.coinId}
-		</span>
+		<ResourceBoundary
+			resource={actorCoin}
+			placeholderText="Loading balance…"
+		>
+			{#snippet children(loadedActorCoin)}
+				{loadedActorCoin.symbol ?? 'Balance'}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Title()}
@@ -269,4 +274,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-

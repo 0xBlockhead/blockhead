@@ -247,7 +247,9 @@ export default {
 					likeCount: cast.likes ?? cast.reactions?.likes_count,
 					recastCount: cast.recasts ?? cast.reactions?.recasts_count,
 					replyCount: cast.replies?.count,
-					threadHash: optionalTrimmedString(cast.thread_hash),
+					...(optionalTrimmedString(cast.thread_hash ?? undefined) != null && {
+						threadHash: zeroXLowerHexCastHash(String(cast.thread_hash)),
+					}),
 					$channel: (
 						channelId == null ? undefined : {
 							[EntityMetaKey.Id]: {
@@ -450,7 +452,6 @@ export default {
 
 	],
 }
-
 
 
 

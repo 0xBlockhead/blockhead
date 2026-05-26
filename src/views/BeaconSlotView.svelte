@@ -58,6 +58,7 @@
 				stateRoot: {},
 				bodyRoot: {},
 				canonical: {},
+				signature: {},
 			}),
 		},
 	)
@@ -161,7 +162,7 @@
 				</div>
 
 				<div>
-					<dt>Root</dt>
+					<dt>Block root</dt>
 					<dd>
 						<ResourceBoundary
 							resource={slot}
@@ -251,6 +252,25 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+
+				<div>
+					<dt>Signature</dt>
+					<dd>
+						<ResourceBoundary
+							resource={slot}
+							placeholderText="Loading slot…"
+						>
+							{#snippet children(loadedSlot)}
+								{#if loadedSlot.signature !== undefined && loadedSlot.signature !== ''}
+									<TruncatedValue
+										value={loadedSlot.signature}
+										format={TruncatedValueFormat.Abbr}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
 			{/if}
 		</dl>
 	{/snippet}
@@ -264,4 +284,3 @@
 		/>
 	{/snippet}
 </EntityView>
-

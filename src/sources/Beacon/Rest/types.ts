@@ -4,6 +4,7 @@ export type BeaconHeader = {
 	parentRoot: string
 	proposerIndex: number
 	root: string
+	signature: string
 	slot: number
 	stateRoot: string
 }
@@ -32,6 +33,7 @@ export type BeaconHeaderResponse = {
 				state_root?: string
 				body_root?: string
 			}
+			signature?: string
 		}
 	}
 }

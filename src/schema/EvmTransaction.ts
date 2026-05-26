@@ -75,7 +75,7 @@ export default {
 		{
 			name: 'input',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

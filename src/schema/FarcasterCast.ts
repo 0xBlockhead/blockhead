@@ -87,7 +87,7 @@ export default {
 		{
 			name: 'threadHash',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

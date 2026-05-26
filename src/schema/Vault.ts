@@ -3,6 +3,7 @@ import { type } from 'arktype'
 // Dexscreener-shaped concentrated-liquidity AMM row (Uniswap v3/v4-style curve).
 // Not ERC-4626 yield vault; Vault is a historical label in this schema.
 import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
+import { UrlString } from '$/schema/$Url.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -147,7 +148,7 @@ export default {
 		{
 			name: 'dexscreenerPairUrl',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

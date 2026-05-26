@@ -19,8 +19,8 @@
 		href = resolve(
 			'/(assets)/(vaults)/vault/[chainId]/[vaultId]',
 			{
-				chainId: String(entityId.chainId),
-				vaultId: entityId.vaultId,
+				chainId: String(entityId.$network.chainId),
+				vaultId: entityId.id,
 			},
 		),
 		open = $bindable(true),

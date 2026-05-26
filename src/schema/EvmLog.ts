@@ -48,7 +48,7 @@ export default {
 		{
 			name: 'data',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
