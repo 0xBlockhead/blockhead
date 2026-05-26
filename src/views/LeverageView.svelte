@@ -17,7 +17,7 @@
 	let {
 		entityId,
 		href = resolve('/position/[positionId]', {
-			positionId: entityId.positionId,
+			positionId: entityId.id,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
@@ -87,7 +87,7 @@
 		>
 			{#snippet children(loadedLeverage)}
 				{loadedLeverage.tokenId != null ?
-					`NFT #${String(leverage.tokenId)}`
+					`NFT #${String(loadedLeverage.tokenId)}`
 				:
 					entityId.id
 				}
@@ -163,42 +163,42 @@
 						{#if loadedLeverage.tickLower !== undefined}
 							<div>
 								<dt>LP NFT range · tick lower</dt>
-								<dd>{String(leverage.tickLower)}</dd>
+								<dd>{String(loadedLeverage.tickLower)}</dd>
 							</div>
 						{/if}
 
 						{#if loadedLeverage.tickUpper !== undefined}
 							<div>
 								<dt>LP NFT range · tick upper</dt>
-								<dd>{String(leverage.tickUpper)}</dd>
+								<dd>{String(loadedLeverage.tickUpper)}</dd>
 							</div>
 						{/if}
 
 						{#if loadedLeverage.liquidity !== undefined}
 							<div>
 								<dt>Position liquidity (NFT range)</dt>
-								<dd>{String(leverage.liquidity)}</dd>
+								<dd>{String(loadedLeverage.liquidity)}</dd>
 							</div>
 						{/if}
 
 						{#if loadedLeverage.token0Owed !== undefined}
 							<div>
 								<dt>Token0 owed</dt>
-								<dd>{String(leverage.token0Owed)}</dd>
+								<dd>{String(loadedLeverage.token0Owed)}</dd>
 							</div>
 						{/if}
 
 						{#if loadedLeverage.token1Owed !== undefined}
 							<div>
 								<dt>Token1 owed</dt>
-								<dd>{String(leverage.token1Owed)}</dd>
+								<dd>{String(loadedLeverage.token1Owed)}</dd>
 							</div>
 						{/if}
 
 						{#if loadedLeverage.tokenId !== undefined}
 							<div>
 								<dt>Position NFT token id</dt>
-								<dd>{String(leverage.tokenId)}</dd>
+								<dd>{String(loadedLeverage.tokenId)}</dd>
 							</div>
 						{/if}
 
@@ -231,4 +231,3 @@
 
 	{/snippet}
 </EntityView>
-

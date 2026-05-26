@@ -50,13 +50,13 @@
 					homeUrl: {},
 					docsUrl: {},
 					topology: {},
-					mastodonInstanceTitle: {
+					instanceTitle: {
 						$: [Source.Mastodon_Rest],
 					},
-					mastodonInstanceDescription: {
+					instanceDescription: {
 						$: [Source.Mastodon_Rest],
 					},
-					mastodonInstanceVersion: {
+					instanceVersion: {
 						$: [Source.Mastodon_Rest],
 					},
 					fediInstanceTitle: {
@@ -191,24 +191,24 @@
 							</div>
 						{/if}
 
-						{#if loadedActivityPubNetwork.mastodonInstanceTitle}
+						{#if loadedActivityPubNetwork.instanceTitle}
 							<div>
 								<dt>Mastodon instance title</dt>
-								<dd>{loadedActivityPubNetwork.mastodonInstanceTitle}</dd>
+								<dd>{loadedActivityPubNetwork.instanceTitle}</dd>
 							</div>
 						{/if}
 
-						{#if loadedActivityPubNetwork.mastodonInstanceDescription}
+						{#if loadedActivityPubNetwork.instanceDescription}
 							<div>
 								<dt>Mastodon instance description</dt>
-								<dd>{loadedActivityPubNetwork.mastodonInstanceDescription}</dd>
+								<dd>{loadedActivityPubNetwork.instanceDescription}</dd>
 							</div>
 						{/if}
 
-						{#if loadedActivityPubNetwork.mastodonInstanceVersion}
+						{#if loadedActivityPubNetwork.instanceVersion}
 							<div>
 								<dt>Mastodon instance version</dt>
-								<dd data-text="mono muted">{loadedActivityPubNetwork.mastodonInstanceVersion}</dd>
+								<dd data-text="mono muted">{loadedActivityPubNetwork.instanceVersion}</dd>
 							</div>
 						{/if}
 

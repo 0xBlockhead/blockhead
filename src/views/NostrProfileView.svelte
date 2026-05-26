@@ -165,7 +165,7 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			{#if loadedProfile.about}
+			{#if profile.about}
 				<div>
 					<dt>Bio</dt>
 					<dd>
@@ -181,7 +181,7 @@
 				</div>
 			{/if}
 
-			{#if loadedProfile.nip05}
+			{#if profile.nip05}
 				<div>
 					<dt>NIP-05</dt>
 					<dd>
@@ -385,4 +385,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-

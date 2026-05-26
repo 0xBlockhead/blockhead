@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -42,7 +43,7 @@ export default {
 		{
 			name: 'root',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Beacon_Rest,
@@ -51,7 +52,7 @@ export default {
 		{
 			name: 'parentRoot',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Beacon_Rest,
@@ -60,7 +61,7 @@ export default {
 		{
 			name: 'stateRoot',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Beacon_Rest,
@@ -69,7 +70,7 @@ export default {
 		{
 			name: 'bodyRoot',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Beacon_Rest,
@@ -86,4 +87,3 @@ export default {
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition
-

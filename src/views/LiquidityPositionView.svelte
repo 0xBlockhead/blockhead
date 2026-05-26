@@ -18,7 +18,7 @@
 		entityId,
 		href = resolve('/~/accounts/positions/position/[chainId]/[positionId]', {
 			chainId: String(entityId.$network.chainId),
-			positionId: entityId.positionId,
+			positionId: entityId.id,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
@@ -91,7 +91,7 @@
 		>
 			{#snippet children(loadedLiquidityPosition)}
 				{loadedLiquidityPosition.tokenId != null ?
-					`NFT #${String(liquidityPosition.tokenId)}`
+					`NFT #${String(loadedLiquidityPosition.tokenId)}`
 				:
 					entityId.id
 				}
@@ -167,42 +167,42 @@
 						{#if loadedLiquidityPosition.tickLower !== undefined}
 							<div>
 								<dt>LP NFT range · tick lower</dt>
-								<dd>{String(liquidityPosition.tickLower)}</dd>
+								<dd>{String(loadedLiquidityPosition.tickLower)}</dd>
 							</div>
 						{/if}
 
 						{#if loadedLiquidityPosition.tickUpper !== undefined}
 							<div>
 								<dt>LP NFT range · tick upper</dt>
-								<dd>{String(liquidityPosition.tickUpper)}</dd>
+								<dd>{String(loadedLiquidityPosition.tickUpper)}</dd>
 							</div>
 						{/if}
 
 						{#if loadedLiquidityPosition.liquidity !== undefined}
 							<div>
 								<dt>Position liquidity (NFT range)</dt>
-								<dd>{String(liquidityPosition.liquidity)}</dd>
+								<dd>{String(loadedLiquidityPosition.liquidity)}</dd>
 							</div>
 						{/if}
 
 						{#if loadedLiquidityPosition.token0Owed !== undefined}
 							<div>
 								<dt>Token0 owed</dt>
-								<dd>{String(liquidityPosition.token0Owed)}</dd>
+								<dd>{String(loadedLiquidityPosition.token0Owed)}</dd>
 							</div>
 						{/if}
 
 						{#if loadedLiquidityPosition.token1Owed !== undefined}
 							<div>
 								<dt>Token1 owed</dt>
-								<dd>{String(liquidityPosition.token1Owed)}</dd>
+								<dd>{String(loadedLiquidityPosition.token1Owed)}</dd>
 							</div>
 						{/if}
 
 						{#if loadedLiquidityPosition.tokenId !== undefined}
 							<div>
 								<dt>Position NFT token id</dt>
-								<dd>{String(liquidityPosition.tokenId)}</dd>
+								<dd>{String(loadedLiquidityPosition.tokenId)}</dd>
 							</div>
 						{/if}
 
@@ -235,4 +235,3 @@
 
 	{/snippet}
 </EntityView>
-

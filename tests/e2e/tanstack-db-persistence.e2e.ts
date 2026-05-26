@@ -97,6 +97,10 @@ const exerciseNetworksCatalogPersistence = async (page: Page) => {
 		coldMarkLoaded,
 		'cold load must persist loaded-subset metadata marker',
 	).toBeDefined()
+	expect(
+		coldMarkLoaded!.loadedKey,
+		'cold marker must use the current completeness-aware marker namespace',
+	).toContain('blockhead:loaded-subset:v2')
 	expect(catalogRequests.get(), 'cold load must fetch catalog HTTP').toBeGreaterThan(0)
 	catalogRequests.detach()
 
@@ -119,6 +123,36 @@ const exerciseNetworksCatalogPersistence = async (page: Page) => {
 	assertWarmPersistenceProbe(
 		warmEvents,
 		probeIndexBeforeReload,
+		{
+			[networksCatalogFieldCollectionId]: networksCatalogLoadedKey,
+		},
+	)
+
+	const probeIndexBeforeRemount = warmEvents.length
+	const remountCatalogRequests = countRequestsMatching(page, catalogWire)
+
+	await page.goto('/', { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
+	await page.goto('/networks', { waitUntil: 'load', timeout: gotoLoadTimeoutMs })
+	await expect(page.locator('#networks')).toBeVisible({ timeout: 120_000 })
+	await waitForNetworksListRendered(page)
+	await waitForPersistenceShortCircuit(
+		page,
+		networksCatalogFieldCollectionId,
+		{
+			startIndex: probeIndexBeforeRemount,
+			loadedKey: networksCatalogLoadedKey,
+		},
+	)
+
+	remountCatalogRequests.detach()
+	expect(
+		remountCatalogRequests.get(),
+		'warm remount must not repeat catalog HTTP after persisted reload',
+	).toBe(0)
+
+	assertWarmPersistenceProbe(
+		await getPersistenceProbeEvents(page),
+		probeIndexBeforeRemount,
 		{
 			[networksCatalogFieldCollectionId]: networksCatalogLoadedKey,
 		},

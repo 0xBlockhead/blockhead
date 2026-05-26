@@ -12,9 +12,7 @@ import AtprotoNetworkSchema from '$/schema/AtprotoNetwork.ts'
 import ActorCoinSchema from '$/schema/ActorCoin.ts'
 import ActorCoinAllowanceSchema from '$/schema/ActorCoinAllowance.ts'
 import ActorNetworkSchema from '$/schema/ActorNetwork.ts'
-import BeaconActionSchema from '$/schema/BeaconAction.ts'
 import BeaconEpochSchema from '$/schema/BeaconEpoch.ts'
-import BeaconQueueSchema from '$/schema/BeaconQueue.ts'
 import BeaconSlotSchema from '$/schema/BeaconSlot.ts'
 import BeaconValidatorSchema from '$/schema/BeaconValidator.ts'
 import BlockheadAgentConversationSchema from '$/schema/BlockheadAgentConversation.ts'
@@ -38,7 +36,6 @@ import CoinBridgeCapabilitySchema from '$/schema/CoinBridgeCapability.ts'
 import BridgeTransactionSchema from '$/schema/BridgeTransaction.ts'
 import CctpAllowanceSchema from '$/schema/CctpAllowance.ts'
 import CctpFeeSchema from '$/schema/CctpFee.ts'
-import ChannelProposalSchema from '$/schema/ChannelProposal.ts'
 import NetworkConsensusUpgradeSchema from '$/schema/ConsensusUpgrade.ts'
 import CoinSchema from '$/schema/Coin.ts'
 import CoinInstanceSchema from '$/schema/CoinInstance.ts'
@@ -70,7 +67,6 @@ import EvmErrorSchema from '$/schema/EvmError.ts'
 import EvmProtocolSchema from '$/schema/EvmProtocol.ts'
 import EvmInternalTransferSchema from '$/schema/EvmInternalTransfer.ts'
 import EvmLogSchema from '$/schema/EvmLog.ts'
-import EvmMempoolSchema from '$/schema/EvmMempool.ts'
 import EvmSelectorSchema from '$/schema/EvmSelector.ts'
 import EvmTopicSchema from '$/schema/EvmTopic.ts'
 import EvmTokenTransferSchema from '$/schema/EvmTokenTransfer.ts'
@@ -151,9 +147,7 @@ export const schema = [
 	ActorCoinSchema,
 	ActorCoinAllowanceSchema,
 	ActorNetworkSchema,
-	BeaconActionSchema,
 	BeaconEpochSchema,
-	BeaconQueueSchema,
 	BeaconSlotSchema,
 	BeaconValidatorSchema,
 	BlockheadAgentConversationSchema,
@@ -177,7 +171,6 @@ export const schema = [
 	BridgeTransactionSchema,
 	CctpAllowanceSchema,
 	CctpFeeSchema,
-	ChannelProposalSchema,
 	NetworkConsensusUpgradeSchema,
 	CoinSchema,
 	CoinInstanceSchema,
@@ -209,7 +202,6 @@ export const schema = [
 	EvmProtocolSchema,
 	EvmInternalTransferSchema,
 	EvmLogSchema,
-	EvmMempoolSchema,
 	EvmSelectorSchema,
 	EvmTopicSchema,
 	EvmTokenTransferSchema,

@@ -217,7 +217,7 @@
 							fieldName: '$$rssFeeds',
 						}}
 						id={`${networkIdKey}:feeds`}
-						open={_sectionOpen}
+						open={_open}
 					/>
 				{/snippet}
 
@@ -231,7 +231,7 @@
 						}}
 						id={`${networkIdKey}:items`}
 						limit={25}
-						open={_sectionOpen}
+						open={_open}
 						title="Recent items"
 					/>
 				{/snippet}
@@ -240,4 +240,3 @@
 
 	{/snippet}
 </EntityView>
-

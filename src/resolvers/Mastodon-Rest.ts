@@ -243,7 +243,7 @@ export default {
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
 			entityType: EntityType.ActivityPubNetwork,
-			fieldName: 'mastodonInstanceTitle',
+			fieldName: 'instanceTitle',
 			resolve: async (_entityId, context) => {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const { mastodonGetInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
@@ -255,7 +255,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.ActivityPubNetwork,
-			fieldName: 'mastodonInstanceDescription',
+			fieldName: 'instanceDescription',
 			resolve: async (_entityId, context) => {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const { mastodonGetInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
@@ -270,7 +270,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.ActivityPubNetwork,
-			fieldName: 'mastodonInstanceVersion',
+			fieldName: 'instanceVersion',
 			resolve: async (_entityId, context) => {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const { mastodonGetInstance } = await import('$/sources/Mastodon/Rest/queries.ts')

@@ -6,6 +6,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -33,7 +34,7 @@ export default {
 		{
 			name: 'currentJustifiedCheckpointRoot',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Beacon_Rest,
@@ -51,7 +52,7 @@ export default {
 		{
 			name: 'previousJustifiedCheckpointRoot',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Beacon_Rest,
@@ -69,7 +70,7 @@ export default {
 		{
 			name: 'finalizedCheckpointRoot',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Beacon_Rest,

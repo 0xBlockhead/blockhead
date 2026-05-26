@@ -18,7 +18,7 @@
 		entityId,
 		href = resolve('/pool/[chainId]/[poolId]', {
 			chainId: String(entityId.$network.chainId),
-			poolId: entityId.poolId,
+			poolId: entityId.id,
 		}),
 		open = $bindable(true),
 		...EntityViewProps
@@ -173,25 +173,25 @@
 					</div>
 					{#if (
 						open
-						&& pool.fee !== undefined
+						&& loadedPool.fee !== undefined
 					)}
 						<div>
 							<dt>Fee tier (v3 swap fee parameter)</dt>
-							<dd>{String(pool.fee)}</dd>
+							<dd>{String(loadedPool.fee)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.tickSpacing !== undefined
+						&& loadedPool.tickSpacing !== undefined
 					)}
 						<div>
 							<dt>Tick spacing (v3 grid step)</dt>
-							<dd>{String(pool.tickSpacing)}</dd>
+							<dd>{String(loadedPool.tickSpacing)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.$hooks
+						&& loadedPool.$hooks
 					)}
 						<div>
 							<dt>Hooks</dt>
@@ -207,13 +207,13 @@
 					{/if}
 					{#if (
 						open
-						&& pool.v4PoolId !== undefined
+						&& loadedPool.v4PoolId !== undefined
 					)}
 						<div>
 							<dt>v4 pool id</dt>
 							<dd>
 								<TruncatedValue
-									value={String(pool.v4PoolId)}
+									value={String(loadedPool.v4PoolId)}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
@@ -221,70 +221,70 @@
 					{/if}
 					{#if (
 						open
-						&& pool.sqrtPriceX96 !== undefined
+						&& loadedPool.sqrtPriceX96 !== undefined
 					)}
 						<div>
 							<dt>Sqrt price X96</dt>
-							<dd>{String(pool.sqrtPriceX96)}</dd>
+							<dd>{String(loadedPool.sqrtPriceX96)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.liquidity !== undefined
+						&& loadedPool.liquidity !== undefined
 					)}
 						<div>
 							<dt>Active liquidity</dt>
-							<dd>{String(pool.liquidity)}</dd>
+							<dd>{String(loadedPool.liquidity)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.tick !== undefined
+						&& loadedPool.tick !== undefined
 					)}
 						<div>
 							<dt>Tick</dt>
-							<dd>{String(pool.tick)}</dd>
+							<dd>{String(loadedPool.tick)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.token0Decimals !== undefined
+						&& loadedPool.token0Decimals !== undefined
 					)}
 						<div>
 							<dt>Token 0 decimals</dt>
-							<dd>{String(pool.token0Decimals)}</dd>
+							<dd>{String(loadedPool.token0Decimals)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.token1Decimals !== undefined
+						&& loadedPool.token1Decimals !== undefined
 					)}
 						<div>
 							<dt>Token 1 decimals</dt>
-							<dd>{String(pool.token1Decimals)}</dd>
+							<dd>{String(loadedPool.token1Decimals)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.volumeUSD !== undefined
+						&& loadedPool.volumeUSD !== undefined
 					)}
 						<div>
 							<dt>Volume USD (24h)</dt>
-							<dd>{String(pool.volumeUSD)}</dd>
+							<dd>{String(loadedPool.volumeUSD)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.totalValueLockedUSD !== undefined
+						&& loadedPool.totalValueLockedUSD !== undefined
 					)}
 						<div>
 							<dt>TVL USD</dt>
-							<dd>{String(pool.totalValueLockedUSD)}</dd>
+							<dd>{String(loadedPool.totalValueLockedUSD)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.dexId !== undefined
+						&& loadedPool.dexId !== undefined
 					)}
 						<div>
 							<dt>DEX</dt>
@@ -293,7 +293,7 @@
 					{/if}
 					{#if (
 						open
-						&& pool.dexscreenerPairUrl !== undefined
+						&& loadedPool.dexscreenerPairUrl !== undefined
 					)}
 						<div>
 							<dt>Dexscreener</dt>
@@ -308,7 +308,7 @@
 					{/if}
 					{#if (
 						open
-						&& pool.baseTokenPriceUsd !== undefined
+						&& loadedPool.baseTokenPriceUsd !== undefined
 					)}
 						<div>
 							<dt>Base price (USD)</dt>
@@ -317,7 +317,7 @@
 					{/if}
 					{#if (
 						open
-						&& pool.baseTokenPriceQuote !== undefined
+						&& loadedPool.baseTokenPriceQuote !== undefined
 					)}
 						<div>
 							<dt>Base price (quote)</dt>
@@ -326,29 +326,29 @@
 					{/if}
 					{#if (
 						open
-						&& pool.priceChangePercent24h !== undefined
+						&& loadedPool.priceChangePercent24h !== undefined
 					)}
 						<div>
 							<dt>Price change (24h)</dt>
-							<dd>{String(pool.priceChangePercent24h)}%</dd>
+							<dd>{String(loadedPool.priceChangePercent24h)}%</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.transactionBuys24h !== undefined
+						&& loadedPool.transactionBuys24h !== undefined
 					)}
 						<div>
 							<dt>Buys (24h)</dt>
-							<dd>{String(pool.transactionBuys24h)}</dd>
+							<dd>{String(loadedPool.transactionBuys24h)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& pool.transactionSells24h !== undefined
+						&& loadedPool.transactionSells24h !== undefined
 					)}
 						<div>
 							<dt>Sells (24h)</dt>
-							<dd>{String(pool.transactionSells24h)}</dd>
+							<dd>{String(loadedPool.transactionSells24h)}</dd>
 						</div>
 					{/if}
 				</dl>

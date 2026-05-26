@@ -1549,7 +1549,14 @@ export default {
 				const entryPointVersion = wire.entry_point_version?.trim() || undefined
 				const sponsorType = wire.sponsor_type?.trim() || undefined
 				return {
-					...(bundledTransactionHash != null && { bundledTransactionHash }),
+					...(bundledTransactionHash != null && {
+						$bundledTransaction: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								txHash: bundledTransactionHash,
+							},
+						} satisfies Entity<typeof schema, EntityType.EvmTransaction>,
+					}),
 					...(senderAddress != null && {
 						$sender: {
 							[EntityMetaKey.Id]: {
@@ -1574,9 +1581,16 @@ export default {
 							},
 						} satisfies Entity<typeof schema, EntityType.Erc4337Bundler>,
 					}),
-					...(blockNumber != null && { blockNumber }),
+					...(blockNumber != null && {
+						$block: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								blockNumber,
+							},
+						} satisfies Entity<typeof schema, EntityType.EvmBlock>,
+					}),
 					...(timestampSeconds != undefined && { timestampSeconds }),
-					...(wire.status === false || wire.status === true ? { finalized: wire.status } : {}),
+					...(wire.status === false || wire.status === true ? { successful: wire.status } : {}),
 					...(feeTrimmed != null && { fee: feeTrimmed }),
 					...(nonce != null && { nonce }),
 					...(callGasLimit != null && { callGasLimit }),

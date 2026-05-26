@@ -324,6 +324,7 @@ type PersistOnDemandSubsetCollection<
 	_Row extends object,
 	_Key extends string | number,
 > = Parameters<PersistOnDemandSubsetSync<_Row, _Key>['sync']>[0]['collection']
+const queryFnCompletenessByCollectionIdAndLoadedKey = new Map<string, Map<string, boolean>>()
 
 const comparisonsFromWhereLenient = (where: unknown): ParsedLoadSubset['filters'] => {
 	const expr = (
@@ -428,7 +429,7 @@ const parseLoadSubsetForQueryFn = (
 
 const loadedSubsetMetadataKey = (loadSubsetOptions: LoadSubsetOptions) => (
 	[
-		'blockhead:loaded-subset',
+		'blockhead:loaded-subset:v2',
 		stringify({
 			filters: parseLoadSubsetForQueryFn(loadSubsetOptions).filters.map((filter) => ({
 				field: filter.field.map((part) => String(part)),
@@ -553,7 +554,7 @@ const wrapQueryFnWithPersistenceProbe = <
 	_Result,
 >(
 	collectionId: string,
-	queryFn: (_QueryContext) => Promise<_Result>,
+	queryFn: (queryContext: _QueryContext) => Promise<_Result>,
 ) => async (queryContext: _QueryContext) => {
 	const loadSubsetOptions = queryContext.meta?.loadSubsetOptions
 	if (loadSubsetOptions != null)
@@ -622,46 +623,6 @@ const collectionHasHydratedSubset = <
 					[sourceFilter.value]
 			)
 				.every((source) => (
-					[...collection.values()].some((row) => (
-						filters.every((filter) => (
-							filter === sourceFilter ?
-								subsetValuesEqual(valueAtPath(row, filter.field), source)
-							:
-								rowMatchesSubsetFilter(row, filter)
-						))
-					))
-				))
-		)
-	}
-	return [...collection.values()].some((row) => (
-		filters.every((filter) => rowMatchesSubsetFilter(row, filter))
-	))
-}
-
-const collectionHasHydratedAnySource = <
-	_Row extends object,
-	_Key extends string | number,
->(
-	collection: PersistOnDemandSubsetCollection<_Row, _Key>,
-	loadSubsetOptions: LoadSubsetOptions,
-) => {
-	if (collection.size === 0) return false
-	const filters = parseLoadSubsetForQueryFn(loadSubsetOptions).filters
-	if (filters.length === 0) return false
-	const sourceFilter = filters.find((filter) => (
-		filter.operator === 'in'
-		&& filter.field.length === 1
-		&& String(filter.field[0]) === EntityMetaKey.Source
-	))
-	if (sourceFilter != null) {
-		return (
-			(
-				Array.isArray(sourceFilter.value) ?
-					sourceFilter.value
-				:
-					[sourceFilter.value]
-			)
-				.some((source) => (
 					[...collection.values()].some((row) => (
 						filters.every((filter) => (
 							filter === sourceFilter ?
@@ -770,10 +731,6 @@ const persistOnDemandSubsets = <_Options>(
 							!subsetListsMultipleSources
 							|| collectionHasHydratedSubset(params.collection, loadSubsetOptions)
 						)
-						const anySourceHasHydratedRows = (
-							!subsetListsMultipleSources
-							|| collectionHasHydratedAnySource(params.collection, loadSubsetOptions)
-						)
 
 						if (collectionHasHydratedSubset(params.collection, loadSubsetOptions)) {
 							recordPersistenceLoadSubsetDecision(
@@ -785,7 +742,6 @@ const persistOnDemandSubsets = <_Options>(
 						}
 						if (
 							params.metadata?.collection.get(loadedKey) === true
-							&& anySourceHasHydratedRows
 						) {
 							recordPersistenceLoadSubsetDecision(
 								probeCollectionId,
@@ -798,9 +754,18 @@ const persistOnDemandSubsets = <_Options>(
 						const markLoaded = () => {
 							if (params.begin == null || params.commit == null || params.metadata == null)
 								return
+							if (
+								queryFnCompletenessByCollectionIdAndLoadedKey
+									.get(probeCollectionId)
+									?.get(loadedKey) === false
+							)
+								return
 							const subsetComplete = (
 								!subsetListsMultipleSources
-								|| collectionHasHydratedAnySource(params.collection, loadSubsetOptions)
+								|| collectionHasHydratedSubset(params.collection, loadSubsetOptions)
+								|| queryFnCompletenessByCollectionIdAndLoadedKey
+									.get(probeCollectionId)
+									?.get(loadedKey) === true
 							)
 							if (!subsetComplete)
 								return
@@ -911,53 +876,52 @@ const createEntityCollection = <
 				queryFn: wrapQueryFnWithPersistenceProbe(
 					entityCollectionId,
 					async (queryContext) => {
-					const subsetBase = parseLoadSubsetForQueryFn(queryContext.meta?.loadSubsetOptions)
+						const subsetBase = parseLoadSubsetForQueryFn(queryContext.meta?.loadSubsetOptions)
 
-					const { filters } = subsetBase
+						const { filters } = subsetBase
 
-					const sources = new Set(
-						[
-							...(
-								filters
-									.filter((clause) => (
-										clause.field[clause.field.length - 1] === EntityMetaKey.Source
-										&& (clause.operator === 'in' || clause.operator === 'eq')
-									))
-									.flatMap((clause) => (
-										clause.operator === 'eq' ?
-											[clause.value]
-										: Array.isArray(clause.value) ?
-											clause.value
-										:
-											[clause.value]
-									))
-							) as Source[],
-						],
-					)
-					const idKeyFilterValues = new Set(
-						filters
-							.filter((clause) => (
-								clause.field[clause.field.length - 1] === EntityMetaKey.IdKey
-								&& (clause.operator === 'eq' || clause.operator === 'in')
-							))
-							.flatMap((clause) => (
-								clause.operator === 'eq' ?
-									[clause.value]
-								: Array.isArray(clause.value) ?
-									clause.value
-								:
-									[clause.value]
-							))
-					)
-					const entityIds = (
-						[...idKeyFilterValues]
-							.map((value) => (
-								subsetFilterEntityId(value) as EntityId<_Schema, _EntityType>
-							))
-					)
+						const sources = new Set(
+							[
+								...(
+									filters
+										.filter((clause) => (
+											clause.field[clause.field.length - 1] === EntityMetaKey.Source
+											&& (clause.operator === 'in' || clause.operator === 'eq')
+										))
+										.flatMap((clause) => (
+											clause.operator === 'eq' ?
+												[clause.value]
+											: Array.isArray(clause.value) ?
+												clause.value
+											:
+												[clause.value]
+										))
+								) as Source[],
+							],
+						)
+						const idKeyFilterValues = new Set(
+							filters
+								.filter((clause) => (
+									clause.field[clause.field.length - 1] === EntityMetaKey.IdKey
+									&& (clause.operator === 'eq' || clause.operator === 'in')
+								))
+								.flatMap((clause) => (
+									clause.operator === 'eq' ?
+										[clause.value]
+									: Array.isArray(clause.value) ?
+										clause.value
+									:
+										[clause.value]
+								))
+						)
+						const entityIds = (
+							[...idKeyFilterValues]
+								.map((value) => (
+									subsetFilterEntityId(value) as EntityId<_Schema, _EntityType>
+								))
+						)
 
-					return (
-						(await Promise.all(
+						const resolvedEntityRows = await Promise.all(
 							entityIds.map(async (entityId) => {
 								const resolvers = (
 									sources.size ?
@@ -995,15 +959,36 @@ const createEntityCollection = <
 										}),
 								)
 
-								return fulfilledOrThrow(
-									settled,
-									`All ${settled.length} resolver(s) failed for ${stringify(entityId)}`,
-								)
+								return {
+									complete: (
+										resolvers.length > 0
+										&& settled.every((result) => result.status === 'fulfilled')
+									),
+									rows: fulfilledOrThrow(
+										settled,
+										`All ${settled.length} resolver(s) failed for ${stringify(entityId)}`,
+									),
+								}
 							}),
-						))
-							.flat()
-					) as EntityCollectionItem<_Schema, _EntityType>[]
-				},
+						)
+
+						if (queryContext.meta?.loadSubsetOptions != null) {
+							const loadedKey = loadedSubsetMetadataKey(queryContext.meta.loadSubsetOptions)
+							queryFnCompletenessByCollectionIdAndLoadedKey.set(
+								entityCollectionId,
+								new Map([
+									...(queryFnCompletenessByCollectionIdAndLoadedKey.get(entityCollectionId) ?? []),
+									[
+										loadedKey,
+										entityIds.length > 0
+										&& resolvedEntityRows.every((result) => result.complete),
+									],
+								]),
+							)
+						}
+
+						return resolvedEntityRows.flatMap((result) => result.rows) as EntityCollectionItem<_Schema, _EntityType>[]
+					},
 				),
 
 				getKey: (entityItem) => (
@@ -1089,78 +1074,77 @@ const createEntityFieldCollection = <
 				queryFn: wrapQueryFnWithPersistenceProbe(
 					entityFieldCollectionId,
 					async (queryContext) => {
-					const subsetBase = parseLoadSubsetForQueryFn(queryContext.meta?.loadSubsetOptions)
+						const subsetBase = parseLoadSubsetForQueryFn(queryContext.meta?.loadSubsetOptions)
 
-					const { filters } = subsetBase
+						const { filters } = subsetBase
 
-					const sources = new Set(
-						[
-							...(
-								filters
-									.filter((clause) => (
-										clause.field[clause.field.length - 1] === EntityMetaKey.Source
-										&& (clause.operator === 'in' || clause.operator === 'eq')
-									))
-									.flatMap((clause) => (
-										clause.operator === 'eq' ?
-											[clause.value]
-										: Array.isArray(clause.value) ?
-											clause.value
-										:
-											[clause.value]
-									))
-							) as Source[],
-						],
-					)
-					const parentIdKeyFilterValues = new Set(
-						filters
-							.filter((clause) => (
-								String(clause.field[clause.field.length - 1] ?? '') === EntityMetaKey.ParentIdKey
-								&& (clause.operator === 'eq' || clause.operator === 'in')
-							))
-							.flatMap((clause) => (
-								clause.operator === 'eq' ?
-									[clause.value]
-								: Array.isArray(clause.value) ?
-									clause.value
-								:
-									[clause.value]
-							))
-					)
-
-					const globalRootIdKey = stringify({})
-
-					const parentEntityIds = (
-						[...parentIdKeyFilterValues]
-							.map((value) => (
-								subsetFilterEntityId(value) as EntityId<_Schema, _EntityType>
-							))
-					)
-
-					const parentsForResolvers = (
-						(
-							parentEntityIds.length > 0 ?
-								parentEntityIds
-							: entityType === '_Global' && (
-								fieldDefinition.cardinality === EntityFieldCardinality.Many
-								|| fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrMany
-							) ?
-								[{} as EntityId<_Schema, _EntityType>]
-							:
-								parentEntityIds
+						const sources = new Set(
+							[
+								...(
+									filters
+										.filter((clause) => (
+											clause.field[clause.field.length - 1] === EntityMetaKey.Source
+											&& (clause.operator === 'in' || clause.operator === 'eq')
+										))
+										.flatMap((clause) => (
+											clause.operator === 'eq' ?
+												[clause.value]
+											: Array.isArray(clause.value) ?
+												clause.value
+											:
+												[clause.value]
+										))
+								) as Source[],
+							],
 						)
-							.map((parentEntityId) => (
-								entityType === '_Global'
-								&& typeof parentEntityId === 'string'
-								&& parentEntityId === globalRootIdKey ?
-									({} as EntityId<_Schema, _EntityType>)
-								:
-									parentEntityId
-							))
-					)
+						const parentIdKeyFilterValues = new Set(
+							filters
+								.filter((clause) => (
+									String(clause.field[clause.field.length - 1] ?? '') === EntityMetaKey.ParentIdKey
+									&& (clause.operator === 'eq' || clause.operator === 'in')
+								))
+								.flatMap((clause) => (
+									clause.operator === 'eq' ?
+										[clause.value]
+									: Array.isArray(clause.value) ?
+										clause.value
+									:
+										[clause.value]
+								))
+						)
 
-					const loadedRows = (
-						(await Promise.all(
+						const globalRootIdKey = stringify({})
+
+						const parentEntityIds = (
+							[...parentIdKeyFilterValues]
+								.map((value) => (
+									subsetFilterEntityId(value) as EntityId<_Schema, _EntityType>
+								))
+						)
+
+						const parentsForResolvers = (
+							(
+								parentEntityIds.length > 0 ?
+									parentEntityIds
+								: entityType === '_Global' && (
+									fieldDefinition.cardinality === EntityFieldCardinality.Many
+									|| fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrMany
+								) ?
+									[{} as EntityId<_Schema, _EntityType>]
+								:
+									parentEntityIds
+							)
+								.map((parentEntityId) => (
+									entityType === '_Global'
+									&& typeof parentEntityId === 'string'
+									&& parentEntityId === globalRootIdKey ?
+										({} as EntityId<_Schema, _EntityType>)
+									:
+										parentEntityId
+								))
+						)
+
+						const resolvedFieldRows = await Promise.all(
 							parentsForResolvers
 								.map(async (parentEntityId) => {
 									const resolvers = (
@@ -1222,18 +1206,37 @@ const createEntityFieldCollection = <
 											}),
 									)
 
-									return fulfilledOrThrow(
-										settled,
-										`All ${settled.length} resolver(s) failed for parent ${stringify(parentEntityId)}`,
-									)
-										.flat()
+									return {
+										complete: (
+											resolvers.length > 0
+											&& settled.every((result) => result.status === 'fulfilled')
+										),
+										rows: fulfilledOrThrow(
+											settled,
+											`All ${settled.length} resolver(s) failed for parent ${stringify(parentEntityId)}`,
+										)
+											.flat(),
+									}
 								}),
-						))
-							.flat()
-					)
+						)
 
-					return loadedRows
-				},
+						if (queryContext.meta?.loadSubsetOptions != null) {
+							const loadedKey = loadedSubsetMetadataKey(queryContext.meta.loadSubsetOptions)
+							queryFnCompletenessByCollectionIdAndLoadedKey.set(
+								entityFieldCollectionId,
+								new Map([
+									...(queryFnCompletenessByCollectionIdAndLoadedKey.get(entityFieldCollectionId) ?? []),
+									[
+										loadedKey,
+										parentsForResolvers.length > 0
+										&& resolvedFieldRows.every((result) => result.complete),
+									],
+								]),
+							)
+						}
+
+						return resolvedFieldRows.flatMap((result) => result.rows)
+					},
 				),
 
 				getKey: (entityFieldItem) => entityFieldCollectionItemKey(entityFieldItem),

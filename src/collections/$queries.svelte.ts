@@ -481,63 +481,69 @@ export const useLiveQueryResource = <_Data>(
 		}
 	})
 
-	const current = $derived.by((): _Data | undefined => {
+	const getCurrent = (): _Data | undefined => {
 		_collectionUpdates
 		const coll = collection
+		
+		let raw: _Data | undefined
+		if (coll.config.singleResult) {
+			raw = Array.from(coll.values())[0] as _Data | undefined
+		} else {
+			raw = Array.from(coll.values()) as _Data
+		}
+			
+		if (raw === undefined) {
+			return undefined
+		}
+		if (options?.normalize !== undefined) {
+			return options.normalize(raw)
+		}
+		return raw
+	}
 
-		const raw = coll.config.singleResult ?
-			Array.from(coll.values())[0] as _Data | undefined
-		:
-			Array.from(coll.values()) as _Data
-
-		return (
-			raw === undefined ?
-				undefined
-			: options?.normalize !== undefined ?
-				options.normalize(raw)
-			:
-				raw
-		)
-	})
-
-	const status = $derived.by((): CollectionStatus | 'error' => {
+	const getStatus = (): CollectionStatus | 'error' => {
 		_collectionUpdates
-		return _error !== undefined ? 'error' : collection.status
-	})
+		if (_error !== undefined) {
+			return 'error'
+		}
+		return collection.status
+	}
 
 	const promise = $derived(
 		Promise.resolve()
 			.then(tick)
-			.then(() => current as _Data)
+			.then(() => getCurrent() as _Data)
 	)
 
 	return {
 		get current(): _Data | undefined {
-			return current
+			return getCurrent()
 		},
 		get data(): _Data | undefined {
-			return current
+			return getCurrent()
 		},
 		get error(): unknown {
 			return _error
 		},
 		get isError(): boolean {
-			return status === 'error'
+			return getStatus() === 'error'
 		},
 		get isLoading(): boolean {
-			return status === 'loading'
+			return getStatus() === 'loading'
 		},
 		get isReady(): boolean {
-			return status === 'ready' || status === 'disabled'
+			const s = getStatus()
+			return s === 'ready' || s === 'disabled'
 		},
 		get loading(): boolean {
-			return status === 'loading'
+			return getStatus() === 'loading'
 		},
 		get ready(): boolean {
-			return status === 'ready' || status === 'disabled'
+			const s = getStatus()
+			return s === 'ready' || s === 'disabled'
 		},
 		get status(): CollectionStatus | 'error' {
-			return status
+			return getStatus()
 		},
 		get then() {
 			return promise.then.bind(promise)

@@ -19,7 +19,7 @@
 		entityId,
 		href = resolve(
 			'/bridge/route/[routeId]',
-			{ routeId: entityId.routeId },
+			{ routeId: encodeURIComponent(stringify(entityId)) },
 		),
 		open = $bindable(true),
 		collapsible = true,
@@ -303,4 +303,3 @@
 
 	{@render children?.()}
 </EntityView>
-

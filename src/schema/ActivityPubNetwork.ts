@@ -66,7 +66,7 @@ export default {
 			],
 		},
 		{
-			name: 'mastodonInstanceTitle',
+			name: 'instanceTitle',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -75,7 +75,7 @@ export default {
 			],
 		},
 		{
-			name: 'mastodonInstanceDescription',
+			name: 'instanceDescription',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -84,7 +84,7 @@ export default {
 			],
 		},
 		{
-			name: 'mastodonInstanceVersion',
+			name: 'instanceVersion',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

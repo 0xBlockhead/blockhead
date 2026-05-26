@@ -16,20 +16,10 @@
 	import { Source } from '$/sources/$Source.ts'
 
 
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// State
 	let {
 		entityId,
-		href = resolve(
-			'/(assets)/(coins)/coin/[coinId]/bridge-capability/[capabilityId]',
-			{
-				coinId: entityId.$coin.coinId,
-				capabilityId: entityId.capabilityId,
-			},
-		),
+		href,
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps

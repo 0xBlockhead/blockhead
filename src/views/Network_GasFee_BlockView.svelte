@@ -108,7 +108,7 @@
 		>
 			{#snippet children(loadedNetworkGasFeeBlock)}
 				<dl data-column-item="center">
-					{#if networkGasFeeBlock.baseFeePerGas !== undefined}
+					{#if loadedNetworkGasFeeBlock.baseFeePerGas !== undefined}
 						<div>
 							<dt>Base fee</dt>
 							<dd>

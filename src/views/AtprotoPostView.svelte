@@ -248,7 +248,7 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && post.quoteCount != null}
+					{#if contentOpen && loadedPost.quoteCount != null}
 						<div>
 							<dt>Quotes</dt>
 							<dd>
@@ -259,7 +259,7 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && post.langs?.length}
+					{#if contentOpen && loadedPost.langs?.length}
 						<div>
 							<dt>Languages</dt>
 							<dd>{loadedPost.langs.join(', ')}</dd>
@@ -359,4 +359,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-

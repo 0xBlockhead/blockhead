@@ -24,9 +24,9 @@ export default {
 
 	fields: [
 		{
-			name: 'bundledTransactionHash',
-			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			name: '$bundledTransaction',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmTransaction,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Blockscout_Rest,
@@ -42,9 +42,9 @@ export default {
 			],
 		},
 		{
-			name: 'blockNumber',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
+			name: '$block',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmBlock,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Blockscout_Rest,
@@ -60,7 +60,7 @@ export default {
 			],
 		},
 		{
-			name: 'finalized',
+			name: 'successful',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('boolean'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

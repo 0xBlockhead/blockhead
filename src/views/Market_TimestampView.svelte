@@ -19,11 +19,11 @@
 	let {
 		entityId,
 		href = resolve(
-		'/(assets)/(markets)/market/[marketKey]',
-		{
-			marketKey: encodeURIComponent(stringify(entityId.$market)),
-		},
-	),
+			'/(assets)/(markets)/market/[marketKey]',
+			{
+				marketKey: encodeURIComponent(stringify(entityId.$market)),
+			},
+		),
 		layout,
 		open = $bindable(true),
 		collapsible = true,
@@ -114,33 +114,27 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl data-column-item="center">
+		{@const quoteCurrency = (
+			entityId.$market.$quote.kind === MarketAssetKind.Currency ?
+				entityId.$market.$quote.$currency.iso4217
+			:
+				Iso4217.USD
+		)}
+		<ResourceBoundary
+			placeholderText="Loading quote…"
+			resource={marketTimestamp}
+		>
+			{#snippet children(loadedMarketTimestamp)}
+				<dl data-column-item="center">
 					{#if loadedMarketTimestamp.price !== undefined}
 						<div>
-							<dt>Last (index, {(
-								entityId.$market.$quote.kind === MarketAssetKind.Currency ?
-									entityId.$market.$quote.$currency.iso4217
-								:
-									Iso4217.USD
-							)})</dt>
+							<dt>Last (index, {quoteCurrency})</dt>
 							<dd>
-								<ResourceBoundary
-									placeholderText="Loading quote…"
-									resource={marketTimestamp}
-								>
-									{#snippet children(loadedMarketTimestamp)}
-										<CurrencyAmount
-											currency={(
-								entityId.$market.$quote.kind === MarketAssetKind.Currency ?
-									entityId.$market.$quote.$currency.iso4217
-								:
-									Iso4217.USD
-							)}
-											showDecimalPlaces={6}
-											value={loadedMarketTimestamp.price}
-										/>
-									{/snippet}
-								</ResourceBoundary>
+								<CurrencyAmount
+									currency={quoteCurrency}
+									showDecimalPlaces={6}
+									value={loadedMarketTimestamp.price}
+								/>
 							</dd>
 						</div>
 					{/if}
@@ -157,128 +151,82 @@
 					<div>
 						<dt>Market</dt>
 						<dd>
-							<ResourceBoundary
-								placeholderText="Loading quote…"
-								resource={marketTimestamp}
-							>
-								{#snippet children(loadedMarketTimestamp)}
-									<MarketView
-										entityId={entityId.$market}
-										layout={EntityLayout.Title}
-										open={false}
-									/>
-								{/snippet}
-							</ResourceBoundary>
+							<MarketView
+								entityId={entityId.$market}
+								layout={EntityLayout.Title}
+								open={false}
+							/>
 						</dd>
 					</div>
 
 					{#if (
 						open
-						&& marketTimestamp.marketCap !== undefined
+						&& loadedMarketTimestamp.marketCap !== undefined
 					)}
 						<div>
 							<dt>Market cap</dt>
 							<dd>
-								<ResourceBoundary
-									placeholderText="Loading quote…"
-									resource={marketTimestamp}
-								>
-									{#snippet children(loadedMarketTimestamp)}
-										<CurrencyAmount
-											currency={(
-								entityId.$market.$quote.kind === MarketAssetKind.Currency ?
-									entityId.$market.$quote.$currency.iso4217
-								:
-									Iso4217.USD
-							)}
-											value={loadedMarketTimestamp.marketCap}
-										/>
-									{/snippet}
-								</ResourceBoundary>
+								<CurrencyAmount
+									currency={quoteCurrency}
+									value={loadedMarketTimestamp.marketCap}
+								/>
 							</dd>
 						</div>
 					{/if}
+
 					{#if (
 						open
-						&& marketTimestamp.volume24h !== undefined
+						&& loadedMarketTimestamp.volume24h !== undefined
 					)}
 						<div>
 							<dt>24h volume</dt>
 							<dd>
-								<ResourceBoundary
-									placeholderText="Loading quote…"
-									resource={marketTimestamp}
-								>
-									{#snippet children(loadedMarketTimestamp)}
-										<CurrencyAmount
-											currency={(
-								entityId.$market.$quote.kind === MarketAssetKind.Currency ?
-									entityId.$market.$quote.$currency.iso4217
-								:
-									Iso4217.USD
-							)}
-											value={loadedMarketTimestamp.volume24h}
-										/>
-									{/snippet}
-								</ResourceBoundary>
+								<CurrencyAmount
+									currency={quoteCurrency}
+									value={loadedMarketTimestamp.volume24h}
+								/>
 							</dd>
 						</div>
 					{/if}
+
 					{#if (
 						open
-						&& marketTimestamp.caip19 !== undefined
+						&& loadedMarketTimestamp.caip19 !== undefined
 					)}
 						<div>
 							<dt>CAIP-19</dt>
 							<dd>
-								<ResourceBoundary
-									placeholderText="Loading quote…"
-									resource={marketTimestamp}
-								>
-									{#snippet children(loadedMarketTimestamp)}
-										<code>{loadedMarketTimestamp.caip19}</code>
-									{/snippet}
-								</ResourceBoundary>
+								<code>{loadedMarketTimestamp.caip19}</code>
 							</dd>
 						</div>
 					{/if}
+
 					{#if (
 						open
-						&& marketTimestamp.transport !== undefined
+						&& loadedMarketTimestamp.transport !== undefined
 					)}
 						<div>
 							<dt>Transport</dt>
 							<dd>
-								<ResourceBoundary
-									placeholderText="Loading quote…"
-									resource={marketTimestamp}
-								>
-									{#snippet children(loadedMarketTimestamp)}
-										{loadedMarketTimestamp.transport}
-									{/snippet}
-								</ResourceBoundary>
+								{loadedMarketTimestamp.transport}
 							</dd>
 						</div>
 					{/if}
+
 					{#if (
 						open
-						&& marketTimestamp.providerAssetId != null
+						&& loadedMarketTimestamp.providerAssetId != null
 					)}
 						<div>
 							<dt>Provider asset id</dt>
 							<dd>
-								<ResourceBoundary
-									placeholderText="Loading quote…"
-									resource={marketTimestamp}
-								>
-									{#snippet children(loadedMarketTimestamp)}
-										{loadedMarketTimestamp.providerAssetId}
-									{/snippet}
-								</ResourceBoundary>
+								{loadedMarketTimestamp.providerAssetId}
 							</dd>
 						</div>
 					{/if}
 				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
@@ -288,4 +236,3 @@
 		/>
 	{/snippet}
 </EntityView>
-

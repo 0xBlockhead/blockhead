@@ -21,7 +21,7 @@
 		href = resolve(
 			'/(social)/(rss)/rss/item/[feedKey]/[guid]',
 			{
-				feedKey: encodeURIComponent(entityId.feedKey),
+				feedKey: encodeURIComponent(entityId.feedUrl),
 				guid: encodeURIComponent(entityId.guid),
 			},
 		),
@@ -140,118 +140,129 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl data-column-item="center">
-			<div>
-				<dt>GUID</dt>
-				<dd>
-					<TruncatedValue
-						endLength={12}
-						format={TruncatedValueFormat.Visual}
-						startLength={20}
-						value={entityId.guid}
-					/>
-				</dd>
-			</div>
+		<ResourceBoundary
+			resource={item}
+			placeholderText="Loading item…"
+		>
+			{#snippet children(loadedItem)}
+				<dl data-column-item="center">
+					<div>
+						<dt>GUID</dt>
+						<dd>
+							<TruncatedValue
+								endLength={12}
+								format={TruncatedValueFormat.Visual}
+								startLength={20}
+								value={entityId.guid}
+							/>
+						</dd>
+					</div>
 
-			{#if loadedItem.$feed}
-				<div>
-					<dt>Feed</dt>
-					<dd>
-						<RssFeedView
-							entityId={loadedItem.$feed[EntityMetaKey.Id]}
-							layout={EntityLayout.Value}
-							open={false}
-						/>
-					</dd>
-				</div>
-			{/if}
+					{#if loadedItem.$feed}
+						<div>
+							<dt>Feed</dt>
+							<dd>
+								<RssFeedView
+									entityId={loadedItem.$feed[EntityMetaKey.Id]}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							</dd>
+						</div>
+					{/if}
 
-			{#if loadedItem.author}
-				<div>
-					<dt>Author</dt>
-					<dd>{loadedItem.author}</dd>
-				</div>
-			{/if}
+					{#if loadedItem.author}
+						<div>
+							<dt>Author</dt>
+							<dd>{loadedItem.author}</dd>
+						</div>
+					{/if}
 
-			{#if loadedItem.link}
-				<div>
-					<dt>Link</dt>
-					<dd>
-						<a
-							href={loadedItem.link}
-							rel="noreferrer"
-							target="_blank"
-						>{loadedItem.link}</a>
-					</dd>
-				</div>
-			{/if}
+					{#if loadedItem.link}
+						<div>
+							<dt>Link</dt>
+							<dd>
+								<a
+									href={loadedItem.link}
+									rel="noreferrer"
+									target="_blank"
+								>{loadedItem.link}</a>
+							</dd>
+						</div>
+					{/if}
 
-			{#if (
-				open
-				&& item.publishedAt != null
-			)}
-				<div>
-					<dt>Published</dt>
-					<dd>
-						<Timestamp
-							timestamp={loadedItem.publishedAt}
-						/>
-					</dd>
-				</div>
-			{/if}
-			{#if (
-				open
-				&& item.updatedAt != null
-			)}
-				<div>
-					<dt>Updated</dt>
-					<dd>
-						<Timestamp
-							timestamp={loadedItem.updatedAt}
-						/>
-					</dd>
-				</div>
-			{/if}
-			{#if (
-				open
-				&& item.categories
-			)}
-				<div>
-					<dt>Categories</dt>
-					<dd>{loadedItem.categories.join(', ')}</dd>
-				</div>
-			{/if}
-			{#if (
-				open
-				&& item.enclosureUrl
-			)}
-				<div>
-					<dt>Enclosure</dt>
-					<dd>
-						<a
-							href={loadedItem.enclosureUrl}
-							rel="noreferrer"
-							target="_blank"
-						>{loadedItem.enclosureUrl}</a>
-					</dd>
-				</div>
-			{/if}
-			{#if (
-				open
-				&& item.commentsUrl
-			)}
-				<div>
-					<dt>Comments</dt>
-					<dd>
-						<a
-							href={loadedItem.commentsUrl}
-							rel="noreferrer"
-							target="_blank"
-						>{loadedItem.commentsUrl}</a>
-					</dd>
-				</div>
-			{/if}
-		</dl>
+					{#if (
+						open
+						&& loadedItem.publishedAt != null
+					)}
+						<div>
+							<dt>Published</dt>
+							<dd>
+								<Timestamp
+									timestamp={loadedItem.publishedAt}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if (
+						open
+						&& loadedItem.updatedAt != null
+					)}
+						<div>
+							<dt>Updated</dt>
+							<dd>
+								<Timestamp
+									timestamp={loadedItem.updatedAt}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if (
+						open
+						&& loadedItem.categories
+					)}
+						<div>
+							<dt>Categories</dt>
+							<dd>{loadedItem.categories.join(', ')}</dd>
+						</div>
+					{/if}
+
+					{#if (
+						open
+						&& loadedItem.enclosureUrl
+					)}
+						<div>
+							<dt>Enclosure</dt>
+							<dd>
+								<a
+									href={loadedItem.enclosureUrl}
+									rel="noreferrer"
+									target="_blank"
+								>{loadedItem.enclosureUrl}</a>
+							</dd>
+						</div>
+					{/if}
+
+					{#if (
+						open
+						&& loadedItem.commentsUrl
+					)}
+						<div>
+							<dt>Comments</dt>
+							<dd>
+								<a
+									href={loadedItem.commentsUrl}
+									rel="noreferrer"
+									target="_blank"
+								>{loadedItem.commentsUrl}</a>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Details({
@@ -322,4 +333,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-

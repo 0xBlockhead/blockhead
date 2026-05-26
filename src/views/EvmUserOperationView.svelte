@@ -68,11 +68,11 @@
 			$: [
 				Source.Blockscout_Rest,
 			],
-			bundledTransactionHash: {},
+			$bundledTransaction: {},
 			$sender: {},
-			blockNumber: {},
+			$block: {},
 			timestampSeconds: {},
-			finalized: {},
+			successful: {},
 			fee: {},
 			nonce: {},
 			entryPointVersion: {},
@@ -100,6 +100,7 @@
 	import Erc4337SmartAccountView from '$/views/Erc4337SmartAccountView.svelte'
 	import Erc4337PaymasterView from '$/views/Erc4337PaymasterView.svelte'
 	import Erc4337BundlerView from '$/views/Erc4337BundlerView.svelte'
+	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 </script>
 
@@ -154,15 +155,15 @@
 			{/if}
 
 			<div>
-				<dt>Finalized</dt>
+				<dt>Successful</dt>
 				<dd>
 					<ResourceBoundary
 						placeholderText="Loading user operation…"
 						resource={operation}
 					>
 						{#snippet children(loadedOperation)}
-							{#if loadedOperation.finalized !== undefined}
-								{String(operation.finalized)}
+							{#if loadedOperation.successful !== undefined}
+								{String(loadedOperation.successful)}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -177,8 +178,12 @@
 						resource={operation}
 					>
 						{#snippet children(loadedOperation)}
-							{#if loadedOperation.blockNumber !== undefined}
-								{String(operation.blockNumber)}
+							{#if loadedOperation.$block !== undefined}
+								<EvmBlockView
+									entityId={loadedOperation.$block[EntityMetaKey.Id]}
+									layout={EntityLayout.Title}
+									open={false}
+								/>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -257,17 +262,14 @@
 		<ResourceBoundary resource={operation}>
 			{#snippet children(loadedOperation)}
 				<div class="entity-details" data-column="gap-2">
-					{#if loadedOperation.bundledTransactionHash != null}
+					{#if loadedOperation.$bundledTransaction != null}
 						<EvmTransactionView
-							entityId={{
-								$network: entityId.$network,
-								txHash: loadedOperation.bundledTransactionHash,
-							}}
+							entityId={loadedOperation.$bundledTransaction[EntityMetaKey.Id]}
 							href={resolve(
 								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
 								{
 								networkId: String(entityId.$network.chainId),
-								transactionId: loadedOperation.bundledTransactionHash,
+								transactionId: loadedOperation.$bundledTransaction[EntityMetaKey.Id].txHash,
 								},
 							)}
 							layout={EntityLayout.Summary}

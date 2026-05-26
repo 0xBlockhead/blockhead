@@ -17,6 +17,7 @@
 	import { Source } from '$/sources/$Source.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+	import { stringify } from 'devalue'
 
 
 	// Context
@@ -29,8 +30,8 @@
 		href = resolve(
 			'/bridge/route/[routeId]/step/[stepIndex]',
 			{
-				routeId: entityId.routeId,
-				stepIndex: String(entityId.stepIndex),
+				routeId: encodeURIComponent(stringify(entityId.$route)),
+				stepIndex: String(entityId.index),
 			},
 		),
 		open = $bindable(true),
@@ -322,4 +323,3 @@
 		/>
 	{/snippet}
 </EntityView>
-

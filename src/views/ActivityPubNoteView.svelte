@@ -401,23 +401,14 @@
 							placeholderText="Loading note…"
 						>
 							{#snippet children(loadedNote)}
-								{#if (
-									note.favouriteCount != null || loadedNote.reblogCount != null || loadedNote.replyCount != null
-									&& note.favouriteCount != null
-								)}
-									{String(note.favouriteCount)} favourites
+								{#if loadedNote.favouriteCount != null}
+									{String(loadedNote.favouriteCount)} favourites
 								{/if}
-								{#if (
-									note.favouriteCount != null || loadedNote.reblogCount != null || loadedNote.replyCount != null
-									&& note.reblogCount != null
-								)}
-									· {String(note.reblogCount)} reblogs
+								{#if loadedNote.reblogCount != null}
+									· {String(loadedNote.reblogCount)} reblogs
 								{/if}
-								{#if (
-									note.favouriteCount != null || loadedNote.reblogCount != null || loadedNote.replyCount != null
-									&& note.replyCount != null
-								)}
-									· {String(note.replyCount)} replies
+								{#if loadedNote.replyCount != null}
+									· {String(loadedNote.replyCount)} replies
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

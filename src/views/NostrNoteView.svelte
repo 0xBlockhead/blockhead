@@ -234,7 +234,7 @@
 
 			{#if (
 				open
-				&& note.rootEventId && note.rootEventId !== loadedNote.replyToEventId
+				&& note.rootEventId && note.rootEventId !== note.replyToEventId
 			)}
 				<div>
 					<dt>Thread root</dt>
@@ -366,5 +366,4 @@
 		</div>
 	{/snippet}
 </EntityView>
-
 
