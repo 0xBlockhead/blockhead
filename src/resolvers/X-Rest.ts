@@ -74,7 +74,7 @@ export default {
 				const d = (await singleFlight(xGetUser)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
 				if (d == null) throw new Error('X_Rest: user not found')
 				const createdAt = Date.parse(d.created_at ?? '')
-				const profileUrl = optionalUrlString(d.url)
+				const websiteUrl = optionalUrlString(d.url)
 				return {
 					username: optionalTrimmedString(d.username),
 					name: optionalTrimmedString(d.name),
@@ -82,7 +82,7 @@ export default {
 					location: optionalTrimmedString(d.location),
 					...(d.verified != null && { verified: d.verified }),
 					...(Number.isFinite(createdAt) && { createdAt }),
-					...(profileUrl != null && { profileUrl }),
+					...(websiteUrl != null && { websiteUrl }),
 					...(d.public_metrics?.followers_count != null && {
 						followerCount: d.public_metrics.followers_count,
 					}),

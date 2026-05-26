@@ -12,6 +12,10 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import Network from '$/schema/Network.ts'
 import { Source } from '$/sources/$Source.ts'
 
+const EvmBlobVersionedHash = type(
+	'/^0x01[0-9a-fA-F]{62}$/' as type.cast<`0x01${string}`>,
+)
+
 export default {
 	entityType: EntityType.EvmBlob,
 
@@ -28,7 +32,7 @@ export default {
 		{
 			name: 'versionedHash',
 			type: EntityFieldType.Primitive,
-			primitiveType: ZeroExHex,
+			primitiveType: EvmBlobVersionedHash,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,

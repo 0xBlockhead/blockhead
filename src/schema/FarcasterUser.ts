@@ -57,10 +57,16 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'verifiedAddress',
+			name: 'primaryEvmAddress',
 			type: EntityFieldType.Primitive,
 			primitiveType: EvmAddress,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: '$$verifiedAddresses',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.FarcasterVerifiedAddress,
+			cardinality: EntityFieldCardinality.Many,
 		},
 		{
 			name: 'followerCount',

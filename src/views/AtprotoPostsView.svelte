@@ -61,7 +61,7 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			ATProto repository records—posts and reposts—addressed by at-URI inside a given DID’s repo.
+			ATProto app.bsky.feed.post records addressed by at-URI inside a given DID’s repo.
 		</p>
 		<p>
 			Collection scope follows the repo or list you navigated from; URIs are stable handles for the same bytes across relays.

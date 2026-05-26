@@ -67,6 +67,12 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'tags',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string[][]'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: '$author',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.NostrProfile,

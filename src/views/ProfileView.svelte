@@ -47,7 +47,8 @@
 			$icon: {},
 			bio: {},
 			url: {},
-			verifiedAddress: {},
+			primaryEvmAddress: {},
+			$$verifiedAddresses: {},
 		},
 	)
 
@@ -153,7 +154,7 @@
 				</div>
 			{/if}
 
-			{#if loadedFarcasterUser.url != null}
+			{#if farcasterUser.url != null}
 				<div>
 					<dt>URL</dt>
 					<dd>
@@ -172,30 +173,42 @@
 				</div>
 			{/if}
 
-			{#if loadedFarcasterUser.verifiedAddress !== undefined}
-				<div>
-					<dt>Verified address</dt>
-					<dd>
-						<ResourceBoundary
-							resource={farcasterUser}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(loadedFarcasterUser)}
-								<ActorView
-									entityId={{
-										address: loadedFarcasterUser.verifiedAddress,
-									}}
-									href={resolve('/account/[address]', {
-										address: loadedFarcasterUser.verifiedAddress,
-									})}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+			<div>
+				<dt>Verified addresses</dt>
+				<dd>
+					<ResourceBoundary
+						resource={farcasterUser}
+						placeholderText="Loading profile…"
+					>
+						{#snippet children(loadedFarcasterUser)}
+							{#if loadedFarcasterUser.$$verifiedAddresses.length}
+								<ul data-column="gap-2">
+									{#each loadedFarcasterUser.$$verifiedAddresses as verification (String(verification[EntityMetaKey.Id].protocol) + ':' + verification[EntityMetaKey.Id].address)}
+										<li>
+											{#if verification[EntityMetaKey.Id].protocol === 'ethereum'}
+												<ActorView
+													entityId={{
+														address: verification[EntityMetaKey.Id].address,
+													}}
+													href={resolve('/account/[address]', {
+														address: verification[EntityMetaKey.Id].address,
+													})}
+													layout={EntityLayout.Title}
+													open={false}
+												/>
+											{:else}
+												<span data-text="mono muted">
+													solana:{verification[EntityMetaKey.Id].address}
+												</span>
+											{/if}
+										</li>
+									{/each}
+								</ul>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
 			{#if (
 				open
@@ -265,4 +278,3 @@
 
 	{/snippet}
 </EntityView>
-

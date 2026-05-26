@@ -168,6 +168,33 @@ export default {
 			],
 		},
 		{
+			name: '$entryPoint',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
+		},
+		{
+			name: 'initCode',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
+		},
+		{
+			name: 'callData',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
+		},
+		{
 			name: 'sponsorType',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
@@ -178,6 +205,15 @@ export default {
 		},
 		{
 			name: 'paymasterAndData',
+			type: EntityFieldType.Primitive,
+			primitiveType: ZeroExHex,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
+		},
+		{
+			name: 'signature',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,

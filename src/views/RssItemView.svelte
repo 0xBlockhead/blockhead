@@ -42,6 +42,7 @@
 
 
 	// State
+	import { syndicationHtmlToSafeHtml } from '$/lib/markdown.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const item = useEntity(
@@ -307,7 +308,9 @@
 					>
 						{#snippet children(loadedItem)}
 							{#if loadedItem.description}
-								<p>{loadedItem.description}</p>
+								<div class="rss-html">
+									{@html syndicationHtmlToSafeHtml(loadedItem.description)}
+								</div>
 							{:else}
 								<p data-text="muted">No description.</p>
 							{/if}
@@ -322,7 +325,9 @@
 					>
 						{#snippet children(loadedItem)}
 							{#if loadedItem.content}
-								<p>{loadedItem.content}</p>
+								<div class="rss-html">
+									{@html syndicationHtmlToSafeHtml(loadedItem.content)}
+								</div>
 							{:else}
 								<p data-text="muted">No full content.</p>
 							{/if}
@@ -333,3 +338,18 @@
 		</div>
 	{/snippet}
 </EntityView>
+
+
+<style>
+	.rss-html {
+		:global(pre) {
+			white-space: pre-wrap;
+			word-break: break-word;
+		}
+
+		:global(img) {
+			max-width: 100%;
+			height: auto;
+		}
+	}
+</style>

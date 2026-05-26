@@ -75,7 +75,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'profileUrl',
+			name: 'websiteUrl',
 			type: EntityFieldType.Primitive,
 			primitiveType: UrlString,
 			cardinality: EntityFieldCardinality.ZeroOrOne,

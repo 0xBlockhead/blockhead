@@ -18,9 +18,9 @@
 	let {
 		entityId,
 		href = resolve('/(social)/(rss)/rss/feed/[feedKey]', {
-			feedKey: entityId.feedKey,
+			feedKey: encodeURIComponent(entityId.feedUrl),
 		}),
-				limit = 25,
+		limit = 25,
 		layout,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),

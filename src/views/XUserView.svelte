@@ -52,7 +52,7 @@
 			name: {},
 			description: {},
 			location: {},
-			profileUrl: {},
+			websiteUrl: {},
 			verified: {},
 			createdAt: {},
 			followerCount: {},
@@ -311,22 +311,22 @@
 
 			{#if contentOpen}
 				<div>
-					<dt>Profile URL</dt>
+					<dt>Website</dt>
 					<dd>
 						<ResourceBoundary
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
 							{#snippet children(loadedUser)}
-								{#if loadedUser.profileUrl}
+								{#if loadedUser.websiteUrl}
 									<a
-										href={loadedUser.profileUrl}
+										href={loadedUser.websiteUrl}
 										rel="noreferrer noopener"
 										target="_blank"
 									>
 										<TruncatedValue
 											format={TruncatedValueFormat.Visual}
-											value={loadedUser.profileUrl}
+											value={loadedUser.websiteUrl}
 										/>
 									</a>
 								{/if}
@@ -481,4 +481,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-

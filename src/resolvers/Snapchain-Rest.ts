@@ -82,28 +82,57 @@ export default {
 						linkType: 'follow',
 					}),
 				])
-				const verifiedAddressWire = (
+				const verifiedAddresses = (
 					(verifications.messages ?? [])
-						.map((message: SnapVerify) => {
+						.flatMap((message: SnapVerify) => {
 							const body = message.data?.verificationAddAddressBody
-							if (body?.protocol !== 'PROTOCOL_ETHEREUM') return undefined
-							return body.address
+							const address = optionalTrimmedString(body?.address)
+							const protocol = (
+								body?.protocol === 'PROTOCOL_ETHEREUM' ?
+									'ethereum'
+								: body?.protocol === 'PROTOCOL_SOLANA' ?
+									'solana'
+								:
+									undefined
+							)
+							return protocol == null || address == null ?
+								[]
+							:	[{
+									[EntityMetaKey.Id]: {
+										fid: entityId.fid,
+										protocol,
+										address,
+									},
+									$user: {
+										[EntityMetaKey.Id]: entityId,
+									},
+									protocol,
+									address,
+								}]
 						})
-						.find((address) => address != null)
+						.filter((verification, index, verificationsList) => (
+							verificationsList.findIndex((otherVerification) => (
+								otherVerification[EntityMetaKey.Id].protocol === verification[EntityMetaKey.Id].protocol
+								&& otherVerification[EntityMetaKey.Id].address === verification[EntityMetaKey.Id].address
+							)) === index
+						))
 				)
-				const verifiedTrimmed = optionalTrimmedString(verifiedAddressWire)
+				const primaryVerifiedEvmAddress = verifiedAddresses.find((verification) => (
+					verification[EntityMetaKey.Id].protocol === 'ethereum'
+				))?.[EntityMetaKey.Id].address
 				const verifiedParsed = (
-					verifiedTrimmed == null ?
+					primaryVerifiedEvmAddress == null ?
 						arktype.errors
 					:
-						EvmAddress(verifiedTrimmed)
+						EvmAddress(primaryVerifiedEvmAddress)
 				)
 				const userFields: Partial<UserFields> = {
 					username: optionalTrimmedString(usernameProofs.proofs?.[0]?.name),
 					followerCount,
 					followingCount,
+					$$verifiedAddresses: verifiedAddresses,
 				}
-				if (!(verifiedParsed instanceof arktype.errors)) userFields.verifiedAddress = verifiedParsed
+				if (!(verifiedParsed instanceof arktype.errors)) userFields.primaryEvmAddress = verifiedParsed
 				for (const message of (userData.messages ?? [])) {
 					const userDataType = message.data?.userDataBody?.type
 					const fieldValue = optionalTrimmedString(message.data?.userDataBody?.value)

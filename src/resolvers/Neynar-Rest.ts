@@ -63,19 +63,39 @@ export default {
 				const user = bulkUsers?.users?.find((neynarUser) => neynarUser.fid === entityId.fid)
 				if (user == null) throw new Error('Neynar_Rest: user not found')
 				const bioRaw = user.profile?.bio
-				const ethVerifiedCand = optionalTrimmedString(
-					user.verified_addresses?.primary?.eth_address
-					?? user.verified_addresses?.eth_addresses?.[0],
+				const ethAddresses = (
+					[
+						...(user.verified_addresses?.primary?.eth_address != null ?
+							[user.verified_addresses.primary.eth_address]
+						:
+							[]),
+						...(user.verified_addresses?.eth_addresses ?? []),
+					]
+						.map(optionalTrimmedString)
+						.filter((address): address is string => address != null)
+						.filter((address, index, addresses) => addresses.indexOf(address) === index)
+				)
+				const solAddresses = (
+					[
+						...(user.verified_addresses?.primary?.sol_address != null ?
+							[user.verified_addresses.primary.sol_address]
+						:
+							[]),
+						...(user.verified_addresses?.sol_addresses ?? []),
+					]
+						.map(optionalTrimmedString)
+						.filter((address): address is string => address != null)
+						.filter((address, index, addresses) => addresses.indexOf(address) === index)
 				)
 				const ethVerifiedParsed = (
-					ethVerifiedCand == null ?
+					ethAddresses[0] == null ?
 						arktype.errors
 					:
-						EvmAddress(ethVerifiedCand)
+						EvmAddress(ethAddresses[0])
 				)
 				const verifiedPart = (
 					!(ethVerifiedParsed instanceof arktype.errors) && {
-						verifiedAddress: ethVerifiedParsed,
+						primaryEvmAddress: ethVerifiedParsed,
 					}
 				)
 				return {
@@ -98,6 +118,32 @@ export default {
 						followingCount: user.following_count,
 					}),
 					...verifiedPart,
+					$$verifiedAddresses: [
+						...ethAddresses.map((address) => ({
+							[EntityMetaKey.Id]: {
+								fid: entityId.fid,
+								protocol: 'ethereum',
+								address,
+							},
+							$user: {
+								[EntityMetaKey.Id]: entityId,
+							},
+							protocol: 'ethereum',
+							address,
+						})),
+						...solAddresses.map((address) => ({
+							[EntityMetaKey.Id]: {
+								fid: entityId.fid,
+								protocol: 'solana',
+								address,
+							},
+							$user: {
+								[EntityMetaKey.Id]: entityId,
+							},
+							protocol: 'solana',
+							address,
+						})),
+					],
 				}
 			},
 		}),
@@ -452,7 +498,6 @@ export default {
 
 	],
 }
-
 
 
 

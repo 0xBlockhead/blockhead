@@ -55,6 +55,7 @@
 			createdAt: {},
 			replyToEventId: {},
 			rootEventId: {},
+			tags: {},
 			$replyToNote: {},
 			$author: {},
 			...(open ?
@@ -201,10 +202,7 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
-			{:else if (
-				open
-				&& note.replyToEventId
-			)}
+			{:else if open && note.replyToEventId}
 				<div>
 					<dt>Reply to</dt>
 					<dd>
@@ -217,7 +215,7 @@
 									data-link
 									href={resolve('/nostr/note/[eventId]', {
 										eventId: loadedNote.replyToEventId,
-										})}
+									})}
 								>
 									<TruncatedValue
 										endLength={12}
@@ -234,7 +232,8 @@
 
 			{#if (
 				open
-				&& note.rootEventId && note.rootEventId !== note.replyToEventId
+				&& note.rootEventId
+				&& note.rootEventId !== note.replyToEventId
 			)}
 				<div>
 					<dt>Thread root</dt>
@@ -366,4 +365,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-

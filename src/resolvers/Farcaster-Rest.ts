@@ -47,8 +47,10 @@ export default {
 			entityType: EntityType.FarcasterUser,
 			resolve: async (entityId) => {
 				const { getPrimaryAddress } = await import('$/sources/Farcaster/Rest/queries.ts')
-				const ethRaw = await singleFlight(getPrimaryAddress)({
+				const ethRaw = await singleFlight(getPrimaryAddress)({ fid: entityId.fid })
+				const solRaw = await singleFlight(getPrimaryAddress)({
 					fid: entityId.fid,
+					protocol: 'solana',
 				})
 				const ethTrimmed = optionalTrimmedString(ethRaw ?? undefined)
 				const ethParsed = (
@@ -57,15 +59,44 @@ export default {
 					:
 						EvmAddress(ethTrimmed)
 				)
-				if (!(ethParsed instanceof arktype.errors)) return { verifiedAddress: ethParsed }
-				if (ethRaw == null) {
-					const solRaw = await singleFlight(getPrimaryAddress)({
-						fid: entityId.fid,
-						protocol: 'solana',
-					})
-					if (solRaw == null) throw new Error('Farcaster_Rest: verified address not found')
+				const solTrimmed = optionalTrimmedString(solRaw ?? undefined)
+				const verifiedAddresses = [
+					...(ethTrimmed == null ?
+						[]
+					:	[{
+							[EntityMetaKey.Id]: {
+								fid: entityId.fid,
+								protocol: 'ethereum',
+								address: ethTrimmed,
+							},
+							$user: {
+								[EntityMetaKey.Id]: entityId,
+							},
+							protocol: 'ethereum',
+							address: ethTrimmed,
+						}]),
+					...(solTrimmed == null ?
+						[]
+					:	[{
+							[EntityMetaKey.Id]: {
+								fid: entityId.fid,
+								protocol: 'solana',
+								address: solTrimmed,
+							},
+							$user: {
+								[EntityMetaKey.Id]: entityId,
+							},
+							protocol: 'solana',
+							address: solTrimmed,
+						}]),
+				]
+				if (verifiedAddresses.length === 0) {
+					throw new Error('Farcaster_Rest: verified address not found')
 				}
-				throw new Error('Farcaster_Rest: only ethereum verified addresses are supported')
+				return {
+					...(ethParsed instanceof arktype.errors ? {} : { primaryEvmAddress: ethParsed }),
+					$$verifiedAddresses: verifiedAddresses,
+				}
 			},
 		}),
 

@@ -6,6 +6,7 @@
  * ```
  * pnpm run test:e2e:boundaries
  * E2E_PATH_LIMIT=20 pnpm run test:e2e:boundaries
+ * E2E_PATH_PATTERN='^/(activitypub|atproto|farcaster|lens|nostr|reddit|rss|x|xmtp|youtube)(/|$)' pnpm exec playwright test tests/e2e/boundary-updates.e2e.ts
  * E2E_PROBE_PATH=/network/1 pnpm exec playwright test tests/e2e/boundary-updates.e2e.ts -g probe
  * E2E_BOUNDARY_REPORT_ONLY=1 pnpm run test:e2e:boundaries
  * ```
@@ -46,6 +47,14 @@ const quietMs = (() => {
 
 const reportOnly = process.env.E2E_BOUNDARY_REPORT_ONLY === '1'
 const probePath = process.env.E2E_PROBE_PATH?.trim()
+const pathPattern = (
+	((raw) => (
+		raw == null || raw === '' ?
+			undefined
+		:
+			new RegExp(raw)
+	))(process.env.E2E_PATH_PATTERN?.trim())
+)
 
 const collectRouteBoundaryReport = async (
 	page: import('@playwright/test').Page,
@@ -131,7 +140,10 @@ test.describe('boundary updates (every +page route)', () => {
 		await installBoundaryProbe(page)
 		await installChainlistRpcsJsonStub(page)
 
-		const all = await discoverPathnamesFromRoutes()
+		const all = (
+			(await discoverPathnamesFromRoutes())
+				.filter((pathname) => pathPattern?.test(pathname) ?? true)
+		)
 		const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
 		const limit = Number(limitRaw)
 		const pageUrls = (

@@ -38,7 +38,7 @@ export default {
 				const user = response.user
 				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
 				const createdAt = Date.parse(user.joined ?? '')
-				const profileUrl = optionalUrlString(user.url)
+				const websiteUrl = optionalUrlString(user.url)
 				return {
 					username: optionalTrimmedString(user.screen_name),
 					name: optionalTrimmedString(user.name),
@@ -48,7 +48,7 @@ export default {
 						verified: user.verification.verified,
 					}),
 					...(Number.isFinite(createdAt) && { createdAt }),
-					...(profileUrl != null && { profileUrl }),
+					...(websiteUrl != null && { websiteUrl }),
 					...(user.followers != null && { followerCount: user.followers }),
 					...(user.following != null && { followingCount: user.following }),
 					...(user.statuses != null && { tweetCount: user.statuses }),

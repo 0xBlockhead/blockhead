@@ -48,6 +48,12 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'publishedAtMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: 'viewCount',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),

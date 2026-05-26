@@ -43,6 +43,12 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'publishedAtMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: '$channel',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.YouTubeChannel,

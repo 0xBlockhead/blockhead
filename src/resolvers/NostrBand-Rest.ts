@@ -151,7 +151,7 @@ const replyToEventIdFromTags = (tags: NostrEvent['tags']) => {
 	if (eventIds.length === 1) {
 		return eventIds[0]
 	}
-	return eventIds[1]
+	return eventIds[eventIds.length - 1]
 }
 
 const rootEventIdFromTags = (tags: NostrEvent['tags']) => (
@@ -228,7 +228,7 @@ const profileFieldValuesFromMetadata = (
 	lud06: optionalTrimmedString(metadata?.lud06),
 	website: optionalTrimmedString(metadata?.website),
 	...(nostrCreatedAtMs(profileEvent?.created_at) != null && {
-		createdAt: nostrCreatedAtMs(profileEvent?.created_at),
+		metadataUpdatedAt: nostrCreatedAtMs(profileEvent?.created_at),
 	}),
 	...((
 		iconMedia,
@@ -254,6 +254,7 @@ const noteFieldValuesFromEvent = (event: NostrEvent) => {
 			kind: 1,
 			pubkey: eventPubkey,
 			content: optionalTrimmedString(event.content),
+			...(event.tags != null && { tags: event.tags }),
 			...(nostrCreatedAtMs(event.created_at) != null && {
 				createdAt: nostrCreatedAtMs(event.created_at),
 			}),
@@ -288,6 +289,7 @@ const repostFieldValuesFromEvent = (event: NostrEvent) => {
 		((repostedEventId) => ({
 			kind,
 			pubkey: eventPubkey,
+			...(event.tags != null && { tags: event.tags }),
 			...(nostrCreatedAtMs(event.created_at) != null && {
 				createdAt: nostrCreatedAtMs(event.created_at),
 			}),
@@ -316,6 +318,7 @@ const reactionFieldValuesFromEvent = (event: NostrEvent) => {
 	return {
 		kind: 7,
 		pubkey: eventPubkey,
+		...(event.tags != null && { tags: event.tags }),
 		...(nostrCreatedAtMs(event.created_at) != null && {
 			createdAt: nostrCreatedAtMs(event.created_at),
 		}),
@@ -381,6 +384,7 @@ const articleFieldValuesFromEvent = (event: NostrEvent) => {
 			summary: optionalTrimmedString(tagValueFromTags(event.tags, 'summary')),
 			imageUrl: optionalTrimmedString(tagValueFromTags(event.tags, 'image')),
 			content: optionalTrimmedString(event.content),
+			...(event.tags != null && { tags: event.tags }),
 			...(publishedAt != null && { publishedAt }),
 			$author: ((normalizedPubkey) => (
 				normalizedPubkey == null ?
@@ -394,41 +398,46 @@ const articleFieldValuesFromEvent = (event: NostrEvent) => {
 }
 
 const eventFromJsonObject = (wire: JsonObject | undefined): NostrEvent | undefined => {
-  if (wire == null) return undefined
-  
-  // Validate required fields
-  if (typeof wire.id !== 'string') return undefined
-  if (typeof wire.pubkey !== 'string') return undefined
-  if (typeof wire.created_at !== 'number') return undefined
-  if (typeof wire.kind !== 'number') return undefined
-  if (typeof wire.content !== 'string' && wire.content !== null) return undefined
-  if (typeof wire.sig !== 'string' && wire.sig !== null) return undefined
-  
-  // Validate tags structure
-  let tags: (string[])[] | undefined = undefined
-  if (wire.tags != null) {
-    if (!Array.isArray(wire.tags)) return undefined
-    const processedTags = wire.tags.flatMap((tag) => {
-      if (!Array.isArray(tag)) return []
-      return tag.map((value) => {
-        if (typeof value !== 'string') return ''
-        return String(value)
-      }).filter(value => value !== '')
-    })
-    if (processedTags.length > 0) {
-      tags = processedTags
-    }
-  }
-  
-  return {
-    id: wire.id,
-    pubkey: wire.pubkey,
-    created_at: wire.created_at,
-    kind: wire.kind,
-    tags,
-    content: wire.content,
-    sig: wire.sig,
-  }
+	if (wire == null) return undefined
+	if (typeof wire.id !== 'string') return undefined
+	if (typeof wire.pubkey !== 'string') return undefined
+	if (typeof wire.created_at !== 'number') return undefined
+	if (typeof wire.kind !== 'number') return undefined
+	if (typeof wire.content !== 'string' && wire.content !== null) return undefined
+	if (typeof wire.sig !== 'string' && wire.sig !== null) return undefined
+
+	const tags = (
+		wire.tags == null ?
+			undefined
+		:	(
+				wire.tags
+					.flatMap((tag) => (
+						Array.isArray(tag) ?
+							[
+								tag
+									.flatMap((value) => (
+										typeof value === 'string' && value !== '' ?
+											[value]
+										:
+											[]
+									)),
+							]
+						:
+							[]
+					))
+					.filter((tag) => tag.length > 0)
+			)
+	)
+
+	return {
+		id: wire.id,
+		pubkey: wire.pubkey,
+		created_at: wire.created_at,
+		kind: wire.kind,
+		tags,
+		content: wire.content,
+		sig: wire.sig,
+	}
 }
 
 const eventFromWire = (wire: {
@@ -600,10 +609,15 @@ export default {
 					if (eventId == null || eventId !== entityId.eventId) {
 						throw new Error('NostrBand_Rest: reaction event id mismatch')
 					}
-					const values = reactionFieldValuesFromEvent(event)
-					return values
-				},
-			}),
+				const values = reactionFieldValuesFromEvent(event)
+				if (values.$targetNote == null) return values
+				const targetEventId = values.$targetNote[EntityMetaKey.Id].eventId
+				return reactionFieldValuesFromTargetEvent(
+					values,
+					eventFromWire(await singleFlight(getEventById)(targetEventId)),
+				)
+			},
+		}),
 
 		defineEntityResolver({
 			entityType: EntityType.NostrArticle,

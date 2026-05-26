@@ -135,7 +135,7 @@ const replyToEventIdFromTags = (tags: PrimalNostrEvent['tags']) => {
 	if (eventIds.length === 1) {
 		return eventIds[0]
 	}
-	return eventIds[1]
+	return eventIds[eventIds.length - 1]
 }
 
 const rootEventIdFromTags = (tags: PrimalNostrEvent['tags']) => (
@@ -212,7 +212,7 @@ const profileFieldValuesFromMetadata = (
 	lud06: optionalTrimmedString(metadata?.lud06),
 	website: optionalTrimmedString(metadata?.website),
 	...(nostrCreatedAtMs(profileEvent?.created_at) != null && {
-		createdAt: nostrCreatedAtMs(profileEvent?.created_at),
+		metadataUpdatedAt: nostrCreatedAtMs(profileEvent?.created_at),
 	}),
 	...((
 		iconMedia,
@@ -238,6 +238,7 @@ const noteFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 			kind: 1,
 			pubkey: eventPubkey,
 			content: optionalTrimmedString(event.content),
+			...(event.tags != null && { tags: event.tags }),
 			...(nostrCreatedAtMs(event.created_at) != null && {
 				createdAt: nostrCreatedAtMs(event.created_at),
 			}),
@@ -272,6 +273,7 @@ const repostFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 		((repostedEventId) => ({
 			kind,
 			pubkey: eventPubkey,
+			...(event.tags != null && { tags: event.tags }),
 			...(nostrCreatedAtMs(event.created_at) != null && {
 				createdAt: nostrCreatedAtMs(event.created_at),
 			}),
@@ -300,6 +302,7 @@ const reactionFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 	return {
 		kind: 7,
 		pubkey: eventPubkey,
+		...(event.tags != null && { tags: event.tags }),
 		...(nostrCreatedAtMs(event.created_at) != null && {
 			createdAt: nostrCreatedAtMs(event.created_at),
 		}),
@@ -365,6 +368,7 @@ const articleFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 			summary: optionalTrimmedString(tagValueFromTags(event.tags, 'summary')),
 			imageUrl: optionalTrimmedString(tagValueFromTags(event.tags, 'image')),
 			content: optionalTrimmedString(event.content),
+			...(event.tags != null && { tags: event.tags }),
 			...(publishedAt != null && { publishedAt }),
 			$author: ((normalizedPubkey) => (
 				normalizedPubkey == null ?

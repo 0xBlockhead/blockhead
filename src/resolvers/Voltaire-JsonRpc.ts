@@ -552,7 +552,7 @@ const evmBlobEntitiesFromVoltaireBlockWire = (
 			const h = bvh[blobIndex]
 			if (typeof h !== 'string') continue
 			const versionedHash = hexLowerOfByteSize(h, 32)
-			if (versionedHash == null) continue
+			if (versionedHash == null || !versionedHash.startsWith('0x01')) continue
 			out.push({
 				[EntityMetaKey.Id]: {
 					$network: { chainId },

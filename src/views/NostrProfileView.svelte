@@ -57,7 +57,7 @@
 			lud16: {},
 			lud06: {},
 			website: {},
-			createdAt: {},
+			metadataUpdatedAt: {},
 			$icon: {},
 			$banner: {},
 			...(open ?
@@ -279,10 +279,10 @@
 			{/if}
 			{#if (
 				open
-				&& profile.createdAt != null
+				&& profile.metadataUpdatedAt != null
 			)}
 				<div>
-					<dt>Created</dt>
+					<dt>Metadata updated</dt>
 					<dd>
 						<ResourceBoundary
 							resource={profile}
@@ -290,7 +290,7 @@
 						>
 							{#snippet children(loadedProfile)}
 								<Timestamp
-									timestamp={loadedProfile.createdAt}
+									timestamp={loadedProfile.metadataUpdatedAt}
 								/>
 							{/snippet}
 						</ResourceBoundary>

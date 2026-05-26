@@ -78,6 +78,7 @@ import FarcasterChannelSchema from '$/schema/FarcasterChannel.ts'
 import FarcasterFeedSchema from '$/schema/FarcasterFeed.ts'
 import FarcasterNetworkSchema from '$/schema/FarcasterNetwork.ts'
 import FarcasterUserSchema from '$/schema/FarcasterUser.ts'
+import FarcasterVerifiedAddressSchema from '$/schema/FarcasterVerifiedAddress.ts'
 import CurrencySchema from '$/schema/Currency.ts'
 import Currency_TimestampSchema from '$/schema/Currency_Timestamp.ts'
 import IpfsProtocolSchema from '$/schema/IpfsProtocol.ts'
@@ -213,6 +214,7 @@ export const schema = [
 	FarcasterFeedSchema,
 	FarcasterNetworkSchema,
 	FarcasterUserSchema,
+	FarcasterVerifiedAddressSchema,
 	CurrencySchema,
 	Currency_TimestampSchema,
 	IpfsProtocolSchema,

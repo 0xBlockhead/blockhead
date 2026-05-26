@@ -335,6 +335,11 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	[EntityType.FarcasterFeed]: { variant: 'trending' },
 	[EntityType.FarcasterNetwork]: { scope: 'FarcasterNetwork' },
 	[EntityType.FarcasterUser]: { fid: 3 },
+	[EntityType.FarcasterVerifiedAddress]: {
+		fid: 3,
+		protocol: 'ethereum',
+		address: VITALIK_ADDRESS,
+	},
 
 	[EntityType.IpfsProtocol]: { scope: 'IpfsProtocol' },
 
@@ -749,6 +754,12 @@ export const parentEntityIdForFieldResolver = (
 		({ variant: 'trending' })
 	: entityType === EntityType.FarcasterUser ?
 		{ fid: 3 }
+	: entityType === EntityType.FarcasterVerifiedAddress ?
+		{
+			fid: 3,
+			protocol: 'ethereum',
+			address: VITALIK_ADDRESS,
+		}
 	: entityType === EntityType.FarcasterChannel ?
 		{ id: 'memes' }
 	:

@@ -69,6 +69,7 @@ export enum EntityType {
 	FarcasterFeed = 'FarcasterFeed',
 	FarcasterNetwork = 'FarcasterNetwork',
 	FarcasterUser = 'FarcasterUser',
+	FarcasterVerifiedAddress = 'FarcasterVerifiedAddress',
 	Currency = 'Currency',
 	Currency_Timestamp = 'Currency_Timestamp',
 	IpfsProtocol = 'IpfsProtocol',

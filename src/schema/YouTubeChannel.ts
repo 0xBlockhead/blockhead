@@ -55,6 +55,12 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'publishedAtMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: 'customUrl',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),

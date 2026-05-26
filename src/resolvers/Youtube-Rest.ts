@@ -35,6 +35,15 @@ const optionalFiniteNumber = (value: number | undefined) => (
 		undefined
 )
 
+const optionalTimestampMs = (value: string | undefined) => (
+	((parsed) => (
+		Number.isFinite(parsed) ?
+			parsed
+		:
+			undefined
+	))(Date.parse(value ?? ''))
+)
+
 const youtubeThumbnailUrl = (thumbnails: YoutubeApiSnippet['thumbnails']) => (
 	optionalTrimmedString(
 		thumbnails?.maxres?.url
@@ -87,6 +96,9 @@ export default {
 					}),
 					...(optionalTrimmedString(d.snippet?.publishedAt) != null && {
 						publishedAt: optionalTrimmedString(d.snippet?.publishedAt),
+					}),
+					...(optionalTimestampMs(d.snippet?.publishedAt) != null && {
+						publishedAtMs: optionalTimestampMs(d.snippet?.publishedAt),
 					}),
 					...((
 						iconMedia,
@@ -141,6 +153,9 @@ export default {
 					...(optionalTrimmedString(d.snippet?.publishedAt) != null && {
 						publishedAt: optionalTrimmedString(d.snippet?.publishedAt),
 					}),
+					...(optionalTimestampMs(d.snippet?.publishedAt) != null && {
+						publishedAtMs: optionalTimestampMs(d.snippet?.publishedAt),
+					}),
 					...(optionalCountString(d.statistics?.viewCount) != null && {
 						viewCount: optionalCountString(d.statistics?.viewCount),
 					}),
@@ -186,6 +201,9 @@ export default {
 					}),
 					...(optionalTrimmedString(d.snippet?.publishedAt) != null && {
 						publishedAt: optionalTrimmedString(d.snippet?.publishedAt),
+					}),
+					...(optionalTimestampMs(d.snippet?.publishedAt) != null && {
+						publishedAtMs: optionalTimestampMs(d.snippet?.publishedAt),
 					}),
 					$channel: (
 						channelId == null ?
@@ -237,6 +255,9 @@ export default {
 					...(replyCount != null && { replyCount }),
 					...(optionalTrimmedString(snippet?.publishedAt) != null && {
 						publishedAt: optionalTrimmedString(snippet?.publishedAt),
+					}),
+					...(optionalTimestampMs(snippet?.publishedAt) != null && {
+						publishedAtMs: optionalTimestampMs(snippet?.publishedAt),
 					}),
 					$video: {
 						[EntityMetaKey.Id]: { videoId },

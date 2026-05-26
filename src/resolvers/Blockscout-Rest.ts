@@ -1499,10 +1499,37 @@ export default {
 					:
 						undefined
 				)
+				const entryPointAddress = (
+					wire.entry_point?.hash != null ?
+						hexLowerOfByteSize(wire.entry_point.hash, 20)
+					:
+						undefined
+				)
+				const initCode = (
+					wire.raw?.init_code != null
+					&& wire.raw.init_code !== '0x' ?
+						wire.raw.init_code
+					:
+						undefined
+				)
+				const callData = (
+					wire.raw?.call_data != null
+					&& wire.raw.call_data !== '0x' ?
+						wire.raw.call_data
+					:
+						undefined
+				)
 				const paymasterAndData = (
 					wire.raw?.paymaster_and_data != null
 					&& wire.raw.paymaster_and_data !== '0x' ?
 						wire.raw.paymaster_and_data
+					:
+						undefined
+				)
+				const signature = (
+					wire.raw?.signature != null
+					&& wire.raw.signature !== '0x' ?
+						wire.raw.signature
 					:
 						undefined
 				)
@@ -1581,6 +1608,14 @@ export default {
 							},
 						} satisfies Entity<typeof schema, EntityType.Erc4337Bundler>,
 					}),
+					...(entryPointAddress != null && {
+						$entryPoint: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								address: entryPointAddress,
+							},
+						} satisfies Entity<typeof schema, EntityType.EvmContract>,
+					}),
 					...(blockNumber != null && {
 						$block: {
 							[EntityMetaKey.Id]: {
@@ -1602,8 +1637,11 @@ export default {
 					...(gasUsed != null && { gasUsed }),
 					...(gasPrice != null && { gasPrice }),
 					...(entryPointVersion != null && { entryPointVersion }),
+					...(initCode != null && { initCode }),
+					...(callData != null && { callData }),
 					...(sponsorType != null && { sponsorType }),
 					...(paymasterAndData != null && { paymasterAndData }),
+					...(signature != null && { signature }),
 				}
 			},
 		}),

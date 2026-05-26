@@ -61,8 +61,9 @@
 			username: {},
 			bio: {},
 			url: {},
-			verifiedAddress: {},
+			primaryEvmAddress: {},
 			$icon: {},
+			$$verifiedAddresses: {},
 			$$casts: {},
 		},
 	)
@@ -121,7 +122,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Farcaster profile keyed by FID: fname, display name, bio, and verified addresses from Neynar or Snapchain.
+			Farcaster profile keyed by FID: fname, display name, bio, and verified addresses from Neynar, Snapchain, or Farcaster client APIs.
 		</p>
 		<p>
 			Casts on the profile are hub snapshots—not a complete archival export of every client.
@@ -216,24 +217,36 @@
 
 			{#if open}
 				<div>
-					<dt>Verified address</dt>
+					<dt>Verified addresses</dt>
 					<dd>
 						<ResourceBoundary
 							resource={farcasterUser}
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
 							{#snippet children(loadedFarcasterUser)}
-								{#if loadedFarcasterUser.verifiedAddress !== undefined}
-									<ActorView
-										entityId={{
-											address: loadedFarcasterUser.verifiedAddress,
-										}}
-										href={resolve('/account/[address]', {
-											address: loadedFarcasterUser.verifiedAddress,
-										})}
-										layout={EntityLayout.Title}
-										open={false}
-									/>
+								{#if loadedFarcasterUser.$$verifiedAddresses.length}
+									<ul data-column="gap-2">
+										{#each loadedFarcasterUser.$$verifiedAddresses as verification (stringify(verification[EntityMetaKey.Id]))}
+											<li>
+												{#if verification[EntityMetaKey.Id].protocol === 'ethereum'}
+													<ActorView
+														entityId={{
+															address: verification[EntityMetaKey.Id].address,
+														}}
+														href={resolve('/account/[address]', {
+															address: verification[EntityMetaKey.Id].address,
+														})}
+														layout={EntityLayout.Title}
+														open={false}
+													/>
+												{:else}
+													<span data-text="mono muted">
+														solana:{verification[EntityMetaKey.Id].address}
+													</span>
+												{/if}
+											</li>
+										{/each}
+									</ul>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -394,5 +407,4 @@
 		</div>
 	{/snippet}
 </EntityView>
-
 

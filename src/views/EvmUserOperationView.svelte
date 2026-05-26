@@ -76,10 +76,14 @@
 			fee: {},
 			nonce: {},
 			entryPointVersion: {},
+			$entryPoint: {},
+			initCode: {},
+			callData: {},
 			sponsorType: {},
 			$paymaster: {},
 			$bundler: {},
 			paymasterAndData: {},
+			signature: {},
 			callGasLimit: {},
 			verificationGasLimit: {},
 			preVerificationGas: {},
@@ -101,6 +105,7 @@
 	import Erc4337PaymasterView from '$/views/Erc4337PaymasterView.svelte'
 	import Erc4337BundlerView from '$/views/Erc4337BundlerView.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
+	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 </script>
 
@@ -240,6 +245,27 @@
 				</div>
 
 				<div>
+					<dt>EntryPoint</dt>
+					<dd>
+						<ResourceBoundary
+							placeholderText="Loading user operation…"
+							resource={operation}
+						>
+							{#snippet children(loadedOperation)}
+								{#if loadedOperation.$entryPoint != null}
+									<EvmContractView
+										entityId={loadedOperation.$entryPoint[EntityMetaKey.Id]}
+										layout={EntityLayout.Title}
+										open={false}
+										showTypeAnnotation={false}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
 					<dt>Sponsor type</dt>
 					<dd>
 						<ResourceBoundary
@@ -369,6 +395,30 @@
 							</div>
 						{/if}
 
+						{#if loadedOperation.initCode != null && loadedOperation.initCode !== '0x'}
+							<div>
+								<dt>Init code</dt>
+								<dd>
+									<TruncatedValue
+										format={TruncatedValueFormat.Visual}
+										value={loadedOperation.initCode}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if loadedOperation.callData != null && loadedOperation.callData !== '0x'}
+							<div>
+								<dt>Call data</dt>
+								<dd>
+									<TruncatedValue
+										format={TruncatedValueFormat.Visual}
+										value={loadedOperation.callData}
+									/>
+								</dd>
+							</div>
+						{/if}
+
 						{#if loadedOperation.paymasterAndData != null && loadedOperation.paymasterAndData !== '0x'}
 							<div>
 								<dt>Paymaster data</dt>
@@ -376,6 +426,18 @@
 									<TruncatedValue
 										format={TruncatedValueFormat.Visual}
 										value={loadedOperation.paymasterAndData}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if loadedOperation.signature != null && loadedOperation.signature !== '0x'}
+							<div>
+								<dt>Signature</dt>
+								<dd>
+									<TruncatedValue
+										format={TruncatedValueFormat.Visual}
+										value={loadedOperation.signature}
 									/>
 								</dd>
 							</div>

@@ -18,7 +18,7 @@
 		entityId,
 		href = resolve(
 			'/(social)/(nostr)/nostr/relay/[relayKey]',
-			{ relayKey: entityId.relayKey },
+			{ relayKey: encodeURIComponent(entityId.relayUrl) },
 		),
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),

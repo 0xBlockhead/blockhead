@@ -45,6 +45,12 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'tags',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string[][]'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: 'repostedEventId',
 			type: EntityFieldType.Primitive,
 			primitiveType: NostrEventId,

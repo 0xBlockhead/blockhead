@@ -83,31 +83,30 @@ const activityPubNoteFieldsFromMastodonStatus = (
 	status: MastodonApiV1Status,
 	instanceOrigin: string,
 ) => {
-	const bodyStatus = status.reblog ?? status
-	const createdAt = Date.parse(bodyStatus.created_at ?? status.created_at ?? '')
+	const createdAt = Date.parse(status.created_at ?? '')
 	const editedAt = optionalTimestampMs(
-		bodyStatus.edited_at ?? status.edited_at ?? undefined,
+		status.edited_at ?? undefined,
 	)
 	return {
-		content: optionalTrimmedString(bodyStatus.content),
+		content: optionalTrimmedString(status.content),
 		...(Number.isFinite(createdAt) && { createdAt }),
 		...(editedAt != null && { editedAt }),
-		favouriteCount: optionalFiniteNumber(bodyStatus.favourites_count),
-		reblogCount: optionalFiniteNumber(bodyStatus.reblogs_count),
-		replyCount: optionalFiniteNumber(bodyStatus.replies_count),
+		favouriteCount: optionalFiniteNumber(status.favourites_count),
+		reblogCount: optionalFiniteNumber(status.reblogs_count),
+		replyCount: optionalFiniteNumber(status.replies_count),
 		visibility: optionalTrimmedString(status.visibility),
-		...(bodyStatus.sensitive != null && { sensitive: bodyStatus.sensitive }),
-		...(optionalTrimmedString(bodyStatus.language ?? undefined) != null && {
-			language: optionalTrimmedString(bodyStatus.language ?? undefined),
+		...(status.sensitive != null && { sensitive: status.sensitive }),
+		...(optionalTrimmedString(status.language ?? undefined) != null && {
+			language: optionalTrimmedString(status.language ?? undefined),
 		}),
-		spoilerText: optionalTrimmedString(bodyStatus.spoiler_text),
+		spoilerText: optionalTrimmedString(status.spoiler_text),
 		...(optionalTrimmedString(status.url) != null && {
 			statusUrl: optionalTrimmedString(status.url),
 		}),
 		...(optionalTrimmedString(status.uri) != null && {
 			activityStreamsUri: optionalTrimmedString(status.uri),
 		}),
-		$$media: mediaEntitiesFromMastodonAttachments(bodyStatus.media_attachments),
+		$$media: mediaEntitiesFromMastodonAttachments(status.media_attachments),
 		$author: (
 			(() => {
 				const localAccountId = mastodonLocalAccountId(status.account)
@@ -124,12 +123,12 @@ const activityPubNoteFieldsFromMastodonStatus = (
 			})()
 		),
 		$inReplyTo: (
-			bodyStatus.in_reply_to_id == null || bodyStatus.in_reply_to_id === '' ?
+			status.in_reply_to_id == null || status.in_reply_to_id === '' ?
 				undefined
 			:	{
 					[EntityMetaKey.Id]: {
 						instanceOrigin,
-						localStatusId: String(bodyStatus.in_reply_to_id),
+						localStatusId: String(status.in_reply_to_id),
 					},
 				}
 		),

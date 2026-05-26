@@ -93,7 +93,7 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Lens v3 separates publisher profiles (addresses and account metadata) from publications (posts, mirrors, collects) surfaced as distinct entity lists.
+			Lens v3 separates publisher profiles (addresses and account metadata) from publications surfaced here as posts and reposts.
 		</p>
 		<p>
 			Counts here reflect the Graph-backed slice wired for this app; they index protocol activity the resolver exposes, not an exhaustive offline mirror of Lens.
