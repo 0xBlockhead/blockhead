@@ -319,11 +319,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`farcaster-user:${String(entityId.fid)}:carousel`}
 				sectionIdPrefix={`farcaster-user:${String(entityId.fid)}`}
 				sections={[
@@ -331,10 +327,7 @@
 					{ id: 'overview', label: 'Profile' },
 					{ id: 'casts', label: 'Casts' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -350,10 +343,6 @@
 				{/snippet}
 
 				{#snippet SectionRecord({ id, label })}
-					<EntityDetails
-						entityType={EntityType.FarcasterUser}
-						{entityId}
-					/>
 				{/snippet}
 
 				{#snippet SectionOverview({ id, label })}
@@ -403,8 +392,6 @@
 						{/snippet}
 					</EntitiesList>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>
-

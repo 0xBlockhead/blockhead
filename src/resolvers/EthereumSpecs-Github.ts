@@ -21,18 +21,18 @@ export default {
 			fieldName: 'consensusSpecsConfigYaml',
 			resolve: async (entityId) => {
 				const preset = (
-					entityId.chainId === 1 ?
+					Number(entityId.caip2.reference) === 1 ?
 						'mainnet'
-					: entityId.chainId === 11_155_111 ?
+					: Number(entityId.caip2.reference) === 11_155_111 ?
 						'sepolia'
-					: entityId.chainId === 17_000 ?
+					: Number(entityId.caip2.reference) === 17_000 ?
 						'holesky'
 					:
 						undefined
 				)
 				if (preset == null) {
 					throw new Error(
-						`EthereumSpecs_Github: no consensus preset for chain ${String(entityId.chainId)}`,
+						`EthereumSpecs_Github: no consensus preset for chain ${String(Number(entityId.caip2.reference))}`,
 					)
 				}
 				const { fetchConsensusSpecsConfigYaml } = await import('$/sources/EthereumSpecs/Github/queries.ts')
@@ -44,9 +44,9 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			fieldName: 'goEthereumParamsConfigGo',
 			resolve: async (entityId) => {
-				if (!ethereumReferenceForkMetadataChainIds.has(entityId.chainId)) {
+				if (!ethereumReferenceForkMetadataChainIds.has(Number(entityId.caip2.reference))) {
 					throw new Error(
-						`EthereumSpecs_Github: go-ethereum params unsupported for chain ${String(entityId.chainId)}`,
+						`EthereumSpecs_Github: go-ethereum params unsupported for chain ${String(Number(entityId.caip2.reference))}`,
 					)
 				}
 				const { fetchGoEthereumParamsConfigGo } = await import('$/sources/EthereumSpecs/Github/queries.ts')
@@ -60,7 +60,7 @@ export default {
 			resolve: async (entityId) => {
 				const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
 				const row = networkExecutionUpgradeByChainIdAndUpgradeId[
-					`${entityId.$network.chainId}:${entityId.upgradeId}`
+					`${Number(entityId.$network.caip2.reference)}:${entityId.upgradeId}`
 				]
 				const filename = row?.executionSpecsPinnedMarkdownFilename
 				if (filename == null) return undefined

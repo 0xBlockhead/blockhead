@@ -291,21 +291,14 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<div
-			class="entity-view-detail-carousels atproto-post-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${idKey}:carousel-post`}
 				sectionIdPrefix={idKey}
 				sections={[
 					{ id: 'thread', label: 'Thread' },
 					{ id: 'repository', label: 'Repository' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _postSummaryOpen })}
 					<header
@@ -350,12 +343,7 @@
 						</HeadingComponent>
 					</header>
 
-					<EntityDetails
-						entityType={EntityType.AtprotoPost}
-						{entityId}
-					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

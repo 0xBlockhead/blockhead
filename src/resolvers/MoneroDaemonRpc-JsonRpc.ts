@@ -2,7 +2,6 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -14,9 +13,11 @@ import type {
 
 const moneroDaemonRpcUrl = 'http://127.0.0.1:18081/json_rpc'
 
-const assertMoneroMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Monero || network.reference !== '418015bb9ae982a1975da7d79277c270') {
-		throw new Error(`MoneroDaemonRpc_JsonRpc: unsupported network ${network.namespace}:${network.reference}`)
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+
+const assertMoneroMainnet = (network: NetworkId) => {
+	if (!('caip2' in network) || network.caip2.namespace !== 'monero' || network.caip2.reference !== '418015bb9ae982a1975da7d79277c270') {
+		throw new Error('MoneroDaemonRpc_JsonRpc: unsupported network')
 	}
 }
 
@@ -38,10 +39,7 @@ const moneroTransactionOutputFields = (
 
 const moneroKeyImageFields = (
 	transactionId: {
-		$network: {
-			namespace: string
-			reference: string
-		}
+		$network: NetworkId
 		txHash: string
 	},
 	input: MoneroRpcTransactionInput,
@@ -72,10 +70,7 @@ const moneroRingMemberFields = (
 )
 
 const moneroTransactionFields = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: NetworkId,
 	transaction: MoneroRpcTransaction,
 ) => ({
 	...(!transaction.in_pool && {
@@ -134,10 +129,7 @@ const moneroTransactionFields = (
 })
 
 const getMoneroTransaction = async (entityId: {
-	$network: {
-		namespace: string
-		reference: string
-	}
+	$network: NetworkId
 	txHash: string
 }) => {
 	assertMoneroMainnet(entityId.$network)

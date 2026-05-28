@@ -1,13 +1,14 @@
 import {
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const assertLogosStack = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Logos || network.reference !== 'stack') {
-		throw new Error(`LogosDocs_Rest: unsupported network ${network.namespace}:${network.reference}`)
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+
+const assertLogosStack = (network: NetworkId) => {
+	if (!('networkSlug' in network) || network.networkSlug !== 'logos-testnet') {
+		throw new Error('LogosDocs_Rest: unsupported network')
 	}
 }
 

@@ -7,7 +7,6 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { hexLowerOfByteSize, with0xHex } from '$/lib/hexLowerOfByteSize.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -15,15 +14,9 @@ import { Source } from '$/sources/$Source.ts'
 
 const zeroGMainnetChainId = 16661
 
-const assertZeroGMainnetChain = (network: { chainId: number }) => {
-	if (network.chainId !== zeroGMainnetChainId) {
-		throw new Error(`ZeroGChain_JsonRpc: unsupported chain ${network.chainId}`)
-	}
-}
-
-const assertZeroGMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.ZeroG || network.reference !== 'mainnet') {
-		throw new Error(`ZeroGChain_JsonRpc: unsupported network ${network.namespace}:${network.reference}`)
+const assertZeroGMainnetChain = (network: { caip2: { namespace: string; reference: string } }) => {
+	if (network.caip2.namespace !== 'eip155' || network.caip2.reference !== String(zeroGMainnetChainId)) {
+		throw new Error('ZeroGChain_JsonRpc: unsupported chain')
 	}
 }
 
@@ -144,6 +137,7 @@ export default {
 				const contractAddress = hexLowerOfByteSize(receipt?.contractAddress ?? '', 20)
 				const blockNumber = quantityToBigInt(transaction.blockNumber)
 				const blockHash = hexLowerOfByteSize(transaction.blockHash ?? '', 32)
+				const envelopeType = transactionEnvelopeTypeFromRpcType(transaction.type)
 				if (fromAddress == null) throw new Error(`ZeroGChain_JsonRpc: transaction has invalid from address ${entityId.txHash}`)
 				return {
 					...(blockNumber != null && {
@@ -186,17 +180,27 @@ export default {
 						input: transaction.input,
 						contractAddress: receipt?.contractAddress,
 					}),
-					envelopeType: transactionEnvelopeTypeFromRpcType(transaction.type),
+					envelopeType,
 					...(receipt?.status === '0x1' && { executionStatus: EvmTransactionExecutionStatus.Success }),
 					...(receipt?.status === '0x0' && { executionStatus: EvmTransactionExecutionStatus.Failed }),
 					...(quantityToBigInt(transaction.gasPrice) != null && { gasPrice: quantityToBigInt(transaction.gasPrice) }),
 					...(quantityToBigInt(receipt?.gasUsed) != null && { gasUsed: quantityToBigInt(receipt?.gasUsed) }),
 					...(quantityToBigInt(receipt?.cumulativeGasUsed) != null && { cumulativeGasUsed: quantityToBigInt(receipt?.cumulativeGasUsed) }),
 					...(quantityToBigInt(receipt?.effectiveGasPrice) != null && { effectiveGasPrice: quantityToBigInt(receipt?.effectiveGasPrice) }),
-					...(quantityToBigInt(transaction.maxFeePerGas) != null && { maxFeePerGas: quantityToBigInt(transaction.maxFeePerGas) }),
-					...(quantityToBigInt(transaction.maxPriorityFeePerGas) != null && { maxPriorityFeePerGas: quantityToBigInt(transaction.maxPriorityFeePerGas) }),
-					...(quantityToBigInt(receipt?.blobGasUsed) != null && { blobGasUsed: quantityToBigInt(receipt?.blobGasUsed) }),
-					...(quantityToBigInt(transaction.maxFeePerBlobGas) != null && { maxFeePerBlobGas: quantityToBigInt(transaction.maxFeePerBlobGas) }),
+					...(
+						(
+							envelopeType === EvmTransactionEnvelopeType.FeeMarket
+							|| envelopeType === EvmTransactionEnvelopeType.Blob
+							|| envelopeType === EvmTransactionEnvelopeType.SetCode
+						) && {
+							...(quantityToBigInt(transaction.maxFeePerGas) != null && { maxFeePerGas: quantityToBigInt(transaction.maxFeePerGas) }),
+							...(quantityToBigInt(transaction.maxPriorityFeePerGas) != null && { maxPriorityFeePerGas: quantityToBigInt(transaction.maxPriorityFeePerGas) }),
+						}
+					),
+					...(envelopeType === EvmTransactionEnvelopeType.Blob && {
+						...(quantityToBigInt(receipt?.blobGasUsed) != null && { blobGasUsed: quantityToBigInt(receipt?.blobGasUsed) }),
+						...(quantityToBigInt(transaction.maxFeePerBlobGas) != null && { maxFeePerBlobGas: quantityToBigInt(transaction.maxFeePerBlobGas) }),
+					}),
 				}
 			},
 		}),

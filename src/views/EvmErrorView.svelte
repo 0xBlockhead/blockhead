@@ -169,9 +169,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.EvmError}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

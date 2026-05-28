@@ -400,15 +400,7 @@
 		open: _open,
 	})}
 		{@const userIdKey = stringify(entityId)}
-		<EntityDetails
-			entityType={EntityType.XUser}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				sectionIdPrefix={userIdKey}
 				sections={[
 					{ id: 'profile', label: 'Profile' },
@@ -417,10 +409,7 @@
 					] : []),
 				]}
 				id={`${userIdKey}:carousel-profile`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _isOpen })}
 					<header
@@ -480,7 +469,7 @@
 						{#snippet children(user)}
 							{#if (user.$$posts?.length)}
 								<XPostsView
-									collapsible={false}
+									CollapsibleProps={{ canToggle: false }}
 									href={resolve(
 										'/(social)/x/user/[userId]',
 										{ userId: entityId.id },
@@ -497,7 +486,6 @@
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

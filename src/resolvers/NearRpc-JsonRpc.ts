@@ -2,7 +2,6 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -15,9 +14,9 @@ import type {
 
 const nearMainnetRpcUrl = 'https://rpc.mainnet.near.org'
 
-const assertNearMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Near || network.reference !== 'mainnet') {
-		throw new Error(`NearRpc_JsonRpc: unsupported network ${network.namespace}:${network.reference}`)
+const assertNearMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
+	if (!('networkSlug' in network) || network.networkSlug !== 'near') {
+		throw new Error('NearRpc_JsonRpc: unsupported network')
 	}
 }
 
@@ -52,10 +51,7 @@ const nearAccessKeyFields = (accessKey: NearRpcAccessKey) => ({
 })
 
 const nearExecutionOutcomeFields = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
 	executionOutcome: NearRpcExecutionOutcome,
 ) => ({
 	status: (
@@ -74,10 +70,7 @@ const nearExecutionOutcomeFields = (
 })
 
 const nearTransactionFields = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
 	transactionStatus: NearRpcTransactionStatus,
 ) => ({
 	$signer: {
@@ -124,10 +117,7 @@ const nearTransactionFields = (
 })
 
 const getNearTransactionStatus = async (entityId: {
-	$network: {
-		namespace: string
-		reference: string
-	}
+	$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 	hash: string
 	signerAccountId?: string
 }) => {

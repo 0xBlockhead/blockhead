@@ -171,15 +171,7 @@
 		open: _open,
 	})}
 		{@const protocolIdKey = stringify(entityId)}
-		<EntityDetails
-			entityType={EntityType.EvmProtocol}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				sectionIdPrefix={protocolIdKey}
 				sections={[
 					{ id: 'topics', label: 'Topics' },
@@ -187,7 +179,7 @@
 					{ id: 'errors', label: 'Errors' },
 				]}
 				id={`${protocolIdKey}:catalogs`}
-				{...{ 'data-card': '' }}
+				data-card
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
@@ -203,6 +195,7 @@
 
 				{#snippet SectionTopics({ id: _topicsId, label: _topicsLabel })}
 					<EvmTopicsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/evm/topics')}
 						entityFieldReference={{
 							entityType: EntityType.EvmProtocol,
@@ -216,6 +209,7 @@
 
 				{#snippet SectionSelectors({ id: _selectorsId, label: _selectorsLabel })}
 					<EvmSelectorsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/evm/selectors')}
 						entityFieldReference={{
 							entityType: EntityType.EvmProtocol,
@@ -229,6 +223,7 @@
 
 				{#snippet SectionErrors({ id: _errorsId, label: _errorsLabel })}
 					<EvmErrorsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/evm/errors')}
 						entityFieldReference={{
 							entityType: EntityType.EvmProtocol,
@@ -239,15 +234,15 @@
 						open={true}
 					/>
 				{/snippet}
-			</CollapsibleTabs>
+		</CollapsibleTabs>
 
-			<CollapsibleTabs
+		<CollapsibleTabs
 				sectionIdPrefix={protocolIdKey}
 				sections={[
 					{ id: 'decoder', label: 'Decoder' },
 				]}
 				id={`${protocolIdKey}:tools`}
-				{...{ 'data-card': '' }}
+				data-card
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
@@ -276,8 +271,7 @@
 						</a>
 					</div>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

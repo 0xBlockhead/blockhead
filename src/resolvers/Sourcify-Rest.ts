@@ -99,7 +99,7 @@ const sourcifyCompilationFieldsFromLookup = (
 const sourcifyVerificationFieldsFromLookup = (
 	wire: SourcifyContractLookup,
 	entityId: {
-		$network: { chainId: number }
+		$network: { caip2: { namespace: 'eip155', reference: string } }
 		address: `0x${string}`
 	},
 ) => ({
@@ -126,12 +126,12 @@ const sourcifyVerificationFieldsFromLookup = (
 })
 
 const getSourcifyContractLookupForEntityId = async (entityId: {
-	$network: { chainId: number }
+	$network: { caip2: { namespace: 'eip155', reference: string } }
 	address: `0x${string}`
 }) => {
 	const { getSourcifyContractLookup } = await import('$/sources/Sourcify/Rest/queries.ts')
 	return singleFlight(getSourcifyContractLookup)({
-		chainId: entityId.$network.chainId,
+		chainId: Number(entityId.$network.caip2.reference),
 		address: entityId.address,
 	})
 }

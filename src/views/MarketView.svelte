@@ -231,10 +231,6 @@
 		open: _open,
 	})}
 		{@const marketIdKey = stringify(entityId)}
-		<EntityDetails
-			entityType={EntityType.Market}
-			{entityId}
-		/>
 		{#if entityId.marketKind === MarketKind.Spot}
 			<section data-scroll-marker-label="Spot">
 				<MarketPricesView

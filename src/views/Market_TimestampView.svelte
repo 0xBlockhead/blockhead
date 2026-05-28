@@ -230,9 +230,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.Market_Timestamp}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

@@ -21,4 +21,4 @@ export const evmTraceTreeScope = scope({
 
 export const evmTraceTreeNode = evmTraceTreeScope.export().EvmTraceTreeNode
 
-export type EvmTraceTree = typeof evmTraceTreeNode.in
+export type EvmTraceTree = typeof evmTraceTreeNode.infer

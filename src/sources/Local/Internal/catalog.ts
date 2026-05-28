@@ -3,6 +3,7 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { BlockheadAgentConversationTurnStatus } from '$/schema/BlockheadAgentConversationTurn.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import { XmtpConversationConsentState } from '$/schema/XmtpConversation.ts'
 import { schema } from '$/schema/index.ts'
 
@@ -463,7 +464,7 @@ export const findNormalizedBridgeTransactionRow = (
 ): NormalizedBridgeTransaction | undefined => (
 	catalog.bridgeTransactions.find((row) => (
 		row.accountAddress === entityId.$account.address
-		&& row.chainId === entityId.$sourceTx.$network.chainId
+		&& String(row.chainId) === entityId.$sourceTx.$network.caip2.reference
 		&& row.txHash === entityId.$sourceTx.txHash
 		&& row.createdAt === entityId.createdAt
 	))
@@ -475,16 +476,16 @@ export const coinInstanceIdForNormalizedStateChannelRow = (
 ): EntityId<typeof schema, EntityType.EvmCoinInstance> => (
 	row.asset.kind === 'native' ?
 		{
-			$network: { chainId: row.chainId },
+			$network: { caip2: { namespace: 'eip155', reference: String(row.chainId) } },
 			type: CoinInstanceType.NativeCurrency,
 		}
 	:
 		{
-			$network: { chainId: row.chainId },
+			$network: { caip2: { namespace: 'eip155', reference: String(row.chainId) } },
 			type: CoinInstanceType.Erc20Token,
 			$contract: {
-				$network: { chainId: row.chainId },
-				address: row.asset.tokenAddress,
+				$network: { caip2: { namespace: 'eip155', reference: String(row.chainId) } },
+				address: EvmAddress.assert(row.asset.tokenAddress),
 			},
 		}
 )

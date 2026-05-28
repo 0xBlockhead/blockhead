@@ -39,7 +39,7 @@
 			{ id: 'tron', label: 'TRON' },
 			{ id: 'zero-g', label: '0G' },
 		])}
-		{...{ 'data-card': '' }}
+		data-card
 		scrollContainerProps={{
 			'data-scroll-container': 'block',
 		}}

@@ -180,22 +180,14 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.RssNetwork}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-registry`}
 				sectionIdPrefix={networkIdKey}
 				sections={[
 					{ id: 'feeds', label: 'Feeds' },
 					{ id: 'items', label: 'Recent items' },
 				]}
-				{...{ 'data-card': '' }}
+				data-card
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
@@ -211,6 +203,7 @@
 
 				{#snippet SectionFeeds({ id, label })}
 					<RssFeedsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/rss/feeds')}
 						entityFieldReference={{
 							entityType: EntityType.RssNetwork,
@@ -224,6 +217,7 @@
 
 				{#snippet SectionItems({ id, label })}
 					<RssItemsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/rss/items')}
 						entityFieldReference={{
 							entityType: EntityType.RssNetwork,
@@ -236,8 +230,7 @@
 						title="Recent items"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

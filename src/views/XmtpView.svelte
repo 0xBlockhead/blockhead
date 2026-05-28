@@ -174,22 +174,14 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.XmtpNetwork}
-			{entityId}
-		/>
-		<div class="entity-view-detail-carousels" data-column="gap-3">
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${networkIdKey}:registry`}
 				sectionIdPrefix={networkIdKey}
 				sections={[
 					{ id: 'demo-accounts', label: 'Demo accounts' },
 					{ id: 'conversations', label: 'Conversations' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
@@ -204,6 +196,7 @@
 
 				{#snippet SectionDemoAccounts({ id: _id, label: _label })}
 					<ActorsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/~/accounts')}
 						entityFieldReference={{
 							entityType: EntityType._Global,
@@ -218,6 +211,7 @@
 
 				{#snippet SectionConversations({ id: _id, label: _label })}
 					<XmtpConversationsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/xmtp')}
 						entityFieldReference={{
 							entityType: EntityType.XmtpNetwork,
@@ -228,8 +222,7 @@
 						open={_open}
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

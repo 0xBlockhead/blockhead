@@ -454,21 +454,14 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<div
-			class="activitypub-note-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${idKey}:carousel-note`}
 				sectionIdPrefix={idKey}
 				sections={[
 					{ id: 'note-details', label: 'Metadata' },
 					{ id: 'note-thread', label: 'Thread' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _conversationSummaryOpen })}
 					<header
@@ -482,10 +475,6 @@
 				{/snippet}
 
 				{#snippet SectionNoteDetails({ id: _id, label: _label })}
-					<EntityDetails
-						entityType={EntityType.ActivityPubNote}
-						{entityId}
-					/>
 					<ResourceBoundary
 						resource={note}
 						placeholderText="Loading note…"
@@ -519,6 +508,7 @@
 
 				{#snippet SectionNoteThread({ id: _id, label: _label })}
 					<ActivityPubNotesView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/activitypub/notes')}
 						entityFieldReference={{
 							entityType: EntityType.ActivityPubNote,
@@ -532,8 +522,7 @@
 						title="Thread"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>
 
@@ -557,4 +546,3 @@
 		}
 	}
 </style>
-

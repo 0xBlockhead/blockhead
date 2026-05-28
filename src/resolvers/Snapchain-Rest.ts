@@ -87,11 +87,11 @@ export default {
 						.flatMap((message: SnapVerify) => {
 							const body = message.data?.verificationAddAddressBody
 							const address = optionalTrimmedString(body?.address)
-							const protocol = (
-								body?.protocol === 'PROTOCOL_ETHEREUM' ?
-									'ethereum'
-								: body?.protocol === 'PROTOCOL_SOLANA' ?
-									'solana'
+								const protocol = (
+									body?.protocol === 'PROTOCOL_ETHEREUM' ?
+										'ethereum' as const
+									: body?.protocol === 'PROTOCOL_SOLANA' ?
+										'solana' as const
 								:
 									undefined
 							)
@@ -132,7 +132,7 @@ export default {
 					followingCount,
 					$$verifiedAddresses: verifiedAddresses,
 				}
-				if (!(verifiedParsed instanceof arktype.errors)) userFields.primaryEvmAddress = verifiedParsed
+					if (!(verifiedParsed instanceof arktype.errors)) userFields.primaryEvmAddress = EvmAddress.assert(primaryVerifiedEvmAddress)
 				for (const message of (userData.messages ?? [])) {
 					const userDataType = message.data?.userDataBody?.type
 					const fieldValue = optionalTrimmedString(message.data?.userDataBody?.value)

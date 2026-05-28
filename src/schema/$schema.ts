@@ -2,6 +2,7 @@ import type { Type } from 'arktype'
 
 import {
 	EntityFieldCardinality,
+	type EntityFieldCondition,
 	EntityFieldType,
 	EntityMetaKey,
 	type EntityDefinition,
@@ -26,6 +27,63 @@ export type EntityFieldName<
 	_Schema extends Schema,
 	_EntityType extends EntityType<_Schema>,
 > = EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number]['name']
+
+export type EntityBaseFieldDefinition<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = Exclude<
+	EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number],
+	{ when: EntityFieldCondition }
+>
+
+export type EntityConditionalFieldDefinition<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = Extract<
+	EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number],
+	{ when: EntityFieldCondition }
+>
+
+export type EntityBaseFieldName<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = EntityBaseFieldDefinition<_Schema, _EntityType>['name']
+
+export type EntityConditionalDiscriminatorName<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+> = EntityConditionalFieldDefinition<_Schema, _EntityType>['when']['fieldName']
+
+export type EntityConditionalDiscriminatorValue<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
+> = Extract<
+	EntityConditionalFieldDefinition<_Schema, _EntityType>,
+	{ when: { fieldName: _DiscriminatorName } }
+>['when']['values'][number]
+
+export type EntityConditionalFieldName<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
+	_DiscriminatorValue extends EntityConditionalDiscriminatorValue<_Schema, _EntityType, _DiscriminatorName>,
+> = EntityConditionalFieldDefinition<_Schema, _EntityType> extends infer _FieldDefinition ?
+	_FieldDefinition extends {
+		name: infer _FieldName
+		when: {
+			fieldName: _DiscriminatorName
+			values: readonly (string | number)[]
+		}
+	} ?
+		_DiscriminatorValue extends _FieldDefinition['when']['values'][number] ?
+			_FieldName
+		:
+			never
+	:
+		never
+:
+	never
 
 export type EntityFieldDefinition<
 	_Schema extends Schema,

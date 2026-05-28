@@ -245,24 +245,13 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.BlockheadFarcasterAccountConnection}
-			{entityId}
-		/>
-		<div
-			class="blockhead-farcaster-connection-carousel-groups"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				sectionIdPrefix={connectionIdKey}
 				sections={[
 					{ id: 'feed', label: 'Farcaster feed' },
 				]}
 				id={`${connectionIdKey}:carousel-feed`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _isOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
@@ -272,6 +261,7 @@
 
 				{#snippet SectionFeed({ id: _feedId, label: _feedLabel })}
 					<FarcasterCastsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve(`/farcaster/feed/user/${String(entityId.fid)}`)}
 						entityFieldReference={{
 							entityType: EntityType.FarcasterFeed,
@@ -285,8 +275,7 @@
 						title="Farcaster feed"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

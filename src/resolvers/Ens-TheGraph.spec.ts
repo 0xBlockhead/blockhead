@@ -36,6 +36,8 @@ const ensNamesOwnedResolver = ensTheGraphResolvers.entityFieldResolvers.find((
 ))
 
 const resolverContext = {
+	filters: [],
+	sorts: [],
 	publicEnv: {},
 }
 

@@ -3,18 +3,15 @@ export type SourcifyContractSource = {
 	content?: string
 	keccak256?: string
 	license?: string
-	[key: string]: JsonValue
 }
 
 export type SourcifyContractMetadata = {
 	compiler?: {
 		version?: string
-		[key: string]: JsonValue
 	}
 	language?: string
 	sources?: Record<string, SourcifyContractSource>
 	fullyQualifiedName?: string
-	[key: string]: JsonValue
 }
 
 export type SourcifyContractCompilation = {
@@ -24,7 +21,6 @@ export type SourcifyContractCompilation = {
 	name?: string
 	fullyQualifiedName?: string
 	compilerSettings?: JsonValue
-	[key: string]: JsonValue
 }
 
 export type SourcifyContractDeployment = {
@@ -32,7 +28,6 @@ export type SourcifyContractDeployment = {
 	transactionHash?: string
 	blockNumber?: string
 	transactionIndex?: string
-	[key: string]: JsonValue
 }
 
 export type SourcifyProxyResolution = {
@@ -41,7 +36,6 @@ export type SourcifyProxyResolution = {
 	implementations?: {
 		address?: string
 	}[]
-	[key: string]: JsonValue
 }
 
 export type SourcifyContractLookup = {
@@ -59,5 +53,4 @@ export type SourcifyContractLookup = {
 	metadata?: SourcifyContractMetadata
 	storageLayout?: JsonValue
 	proxyResolution?: SourcifyProxyResolution
-	[key: string]: JsonValue
 }

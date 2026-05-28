@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
 
 
@@ -20,10 +21,12 @@
 		entityId,
 		id,
 		open = true,
+		CollapsibleProps = {},
 	}: {
 		entityId: EntityId<typeof schema, EntityType.EvmTransaction>
 		id: string
 		open?: boolean
+		CollapsibleProps?: ComponentProps<typeof EvmInternalTransfersView>['CollapsibleProps']
 	} = $props()
 
 
@@ -108,6 +111,7 @@
 			{/if}
 
 			<EvmInternalTransfersView
+				{CollapsibleProps}
 				href={resolve(
 					'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 					{
@@ -125,6 +129,7 @@
 				title="Internal native transfers"
 			/>
 			<EvmTokenTransfersView
+				{CollapsibleProps}
 				href={resolve(
 					'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 					{

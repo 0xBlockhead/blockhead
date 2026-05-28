@@ -277,9 +277,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.EvmLog}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

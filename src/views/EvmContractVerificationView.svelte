@@ -211,36 +211,27 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.EvmContractVerification}
-			{entityId}
-		/>
 		<ResourceBoundary resource={verification}>
 			{#snippet children(verification)}
-				<div
-					class="entity-view-detail-carousels"
-					data-column="gap-3"
-				>
-					{#if verification.$compilation}
-						<section id={`${verificationIdKey}:compilation`}>
-							<EvmContractCompilationView
-								entityId={verification.$compilation[EntityMetaKey.Id]}
-								layout={EntityLayout.SummaryDetails}
-								open={true}
-							/>
-						</section>
-					{/if}
+				{#if verification.$compilation}
+					<section id={`${verificationIdKey}:compilation`}>
+						<EvmContractCompilationView
+							entityId={verification.$compilation[EntityMetaKey.Id]}
+							layout={EntityLayout.SummaryDetails}
+							open={true}
+						/>
+					</section>
+				{/if}
 
-					{#if verification.$sourceBundle}
-						<section id={`${verificationIdKey}:source-bundle`}>
-							<EvmContractSourceBundleView
-								entityId={verification.$sourceBundle[EntityMetaKey.Id]}
-								layout={EntityLayout.SummaryDetails}
-								open={true}
-							/>
-						</section>
-					{/if}
-				</div>
+				{#if verification.$sourceBundle}
+					<section id={`${verificationIdKey}:source-bundle`}>
+						<EvmContractSourceBundleView
+							entityId={verification.$sourceBundle[EntityMetaKey.Id]}
+							layout={EntityLayout.SummaryDetails}
+							open={true}
+						/>
+					</section>
+				{/if}
 			{/snippet}
 		</ResourceBoundary>
 

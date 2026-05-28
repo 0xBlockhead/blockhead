@@ -64,37 +64,37 @@ export default {
 					...(ethTrimmed == null ?
 						[]
 					:	[{
-							[EntityMetaKey.Id]: {
-								fid: entityId.fid,
-								protocol: 'ethereum',
-								address: ethTrimmed,
-							},
+								[EntityMetaKey.Id]: {
+									fid: entityId.fid,
+									protocol: 'ethereum' as const,
+									address: ethTrimmed,
+								},
 							$user: {
 								[EntityMetaKey.Id]: entityId,
 							},
-							protocol: 'ethereum',
-							address: ethTrimmed,
-						}]),
+								protocol: 'ethereum' as const,
+								address: ethTrimmed,
+							}]),
 					...(solTrimmed == null ?
 						[]
 					:	[{
-							[EntityMetaKey.Id]: {
-								fid: entityId.fid,
-								protocol: 'solana',
-								address: solTrimmed,
-							},
+								[EntityMetaKey.Id]: {
+									fid: entityId.fid,
+									protocol: 'solana' as const,
+									address: solTrimmed,
+								},
 							$user: {
 								[EntityMetaKey.Id]: entityId,
 							},
-							protocol: 'solana',
-							address: solTrimmed,
+								protocol: 'solana' as const,
+								address: solTrimmed,
 						}]),
 				]
 				if (verifiedAddresses.length === 0) {
 					throw new Error('Farcaster_Rest: verified address not found')
 				}
 				return {
-					...(ethParsed instanceof arktype.errors ? {} : { primaryEvmAddress: ethParsed }),
+						...(ethParsed instanceof arktype.errors ? {} : { primaryEvmAddress: EvmAddress.assert(ethTrimmed) }),
 					$$verifiedAddresses: verifiedAddresses,
 				}
 			},
@@ -227,9 +227,9 @@ export default {
 			resolve: async () => (
 				[
 					{
-						[EntityMetaKey.Id]: {
-							variant: 'trending',
-						},
+							[EntityMetaKey.Id]: {
+								variant: 'trending' as const,
+							},
 					},
 				]
 			),

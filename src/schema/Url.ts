@@ -3,6 +3,7 @@ import {
 	EntityFieldCardinality,
 	EntityFieldType,
 	type EntityDefinition,
+	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
@@ -101,5 +102,5 @@ export default {
 				Source.MetadataVision_Rest,
 			],
 		},
-	],
-} satisfies EntityDefinition
+	] as const satisfies readonly EntityFieldDefinition[],
+} as const satisfies EntityDefinition

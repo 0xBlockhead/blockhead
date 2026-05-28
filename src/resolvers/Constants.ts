@@ -1,4 +1,3 @@
-import { type } from 'arktype'
 import {
 	bridgeToolByKey,
 	CoinInstanceRepresentation,
@@ -46,8 +45,10 @@ import {
 	nostrNetworkSeedProfiles,
 	nostrNetworkSeedRelays,
 } from '$/constants/Social/Nostr.ts'
+import { nearMainnetRpcEndpoints } from '$/constants/NearNetwork.ts'
 import { redditNetworkFieldValues, redditNetworkSeedSubreddits } from '$/constants/Social/Reddit.ts'
 import { rssNetworkFieldValues, rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
+import { solanaMainnetRpcEndpoints } from '$/constants/SolanaNetwork.ts'
 import { swarmProtocolFieldValues } from '$/constants/SwarmProtocol.ts'
 import {
 	youtubeNetworkFieldValues,
@@ -69,7 +70,6 @@ import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { Entity } from '$/schema/$schema.ts'
-import { UrlString } from '$/schema/$Url.ts'
 import { beaconRestBaseByExecutionChainId } from '$/constants/BeaconConsensus.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import {
@@ -77,9 +77,7 @@ import {
 } from '$/constants/precompiles/index.ts'
 import { standardPrecompiles } from '$/constants/precompiles/standard.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
-import { jsonRpcUrlWithTransportForChain } from '$/resolvers/Voltaire-JsonRpc.ts'
-
-const eip155Caip2Namespace: 'eip155' = 'eip155'
+import { jsonRpcUrlWithTransportForChain } from '$/sources/Evm/JsonRpc/client.ts'
 
 const networkUpgradeDenormalizedFields = (
 	row: Entity<typeof schema, EntityType.EthereumNetworkUpgrade>,
@@ -148,35 +146,6 @@ const networkUpgradeDenormalizedFields = (
 		...(linkedProposals.length > 0 && { $$proposals: linkedProposals }),
 	}
 }
-
-const canonicalPublicHttpUrlFromCatalogString = (raw: string): string => {
-	const trimmed = raw.trim()
-	const absolute = (
-		trimmed.startsWith('http://')
-		|| trimmed.startsWith('https://') ?
-			trimmed
-		: trimmed.startsWith('//') ?
-			`https:${trimmed}`
-		:	`https://${trimmed}`
-	)
-	return new URL(absolute).toString()
-}
-
-const urlEntitiesFromFaucetUrlStrings = (
-	faucetUrls: string[],
-): Entity<typeof schema, EntityType.Url>[] =>
-	faucetUrls.flatMap((raw) => {
-		const trimmed = raw.trim()
-		if (trimmed === '') return []
-		const url = canonicalPublicHttpUrlFromCatalogString(trimmed)
-		const hrefAsUrlString = UrlString(url)
-		if (hrefAsUrlString instanceof type.errors) return []
-		return [{
-			[EntityMetaKey.Id]: {
-				url: hrefAsUrlString,
-			},
-		} as Entity<typeof schema, EntityType.Url>]
-	})
 
 const BEACON_SLOTS_PER_EPOCH = 32
 const BEACON_SECONDS_PER_SLOT = 12
@@ -613,7 +582,6 @@ export default {
 					namespace: row.namespace,
 					environment: row.environment,
 					executionEndpoints: [...list],
-					$$rpcUrls: urlEntitiesFromFaucetUrlStrings(list.map((endpoint) => endpoint.url)),
 				}
 			},
 		}),
@@ -637,6 +605,45 @@ export default {
 					}),
 					namespace: row.namespace,
 					environment: row.environment,
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.NearNetwork,
+			resolve: async (entityId) => {
+				const row = networkBySlug[entityId.networkSlug]
+				if (row == null) throw new Error('Constants_Internal: NearNetwork not found')
+				return {
+					slug: row.slug,
+					name: row.name,
+					...('caip2' in row && {
+						caip2: row.caip2,
+					}),
+					namespace: row.namespace,
+					environment: row.environment,
+					rpcEndpoints: [
+						...nearMainnetRpcEndpoints,
+					],
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.SolanaNetwork,
+			resolve: async (entityId) => {
+				const row = networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+				if (row == null) throw new Error('Constants_Internal: SolanaNetwork not found')
+				if (!('caip2' in row)) throw new Error('Constants_Internal: SolanaNetwork missing CAIP-2')
+				return {
+					slug: row.slug,
+					name: row.name,
+					caip2: row.caip2,
+					namespace: row.namespace,
+					environment: row.environment,
+					rpcEndpoints: [
+						...solanaMainnetRpcEndpoints,
+					],
 				}
 			},
 		}),
@@ -1069,23 +1076,31 @@ export default {
 			),
 		}),
 
-			defineEntityFieldResolver({
-				entityType: EntityType.Coin,
-				fieldName: '$$coinInstances',
-				resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
-					if (entityId.coinId !== CoinId.ETH) return []
-					const nativeCurrencyType: CoinInstanceType.NativeCurrency = CoinInstanceType.NativeCurrency
-					return [
-						{
+				defineEntityFieldResolver({
+					entityType: EntityType.Coin,
+					fieldName: '$$coinInstances',
+					resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>) => {
+						if (entityId.coinId !== CoinId.ETH) return []
+						const ethNativeCoinInstance: Entity<typeof schema, EntityType.EvmCoinInstance> = {
 							[EntityMetaKey.Id]: {
-								$network: { caip2: { namespace: eip155Caip2Namespace, reference: '1' } },
-								type: nativeCurrencyType,
+								$network: {
+									caip2: {
+										namespace: 'eip155',
+										reference: '1',
+									},
+								},
+								type: CoinInstanceType.NativeCurrency,
 							},
+							coinId: CoinId.ETH,
+							symbol: 'ETH',
+							decimals: 18,
 							representation: CoinInstanceRepresentation.IssuerNative,
-						},
-					]
-				},
-			}),
+						}
+						return [
+							ethNativeCoinInstance,
+						]
+					},
+				}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType.EvmCoinInstance,

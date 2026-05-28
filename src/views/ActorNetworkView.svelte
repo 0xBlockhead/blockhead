@@ -374,18 +374,11 @@
 			entityType={EntityType.ActorNetwork}
 			{entityId}
 		/>
-		<div
-			class="actor-network-view-carousel-groups"
-			data-column="gap-3"
+		<CollapsibleTabs
+			id={`${actorNetworkDetailAnchorKey}:carousel-balances`}
+			data-card
+			class="actor-network-view-collapsible-balances"
 		>
-			<CollapsibleTabs
-				id={`${actorNetworkDetailAnchorKey}:carousel-balances`}
-				{...{ 'data-card': '' }}
-				class="actor-network-view-collapsible-balances"
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
 				{#snippet Summary({ open: _balancesSummary })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Balances</HeadingComponent>
@@ -411,6 +404,7 @@
 				{#snippet body({ open: _bodyOpen })}
 					<section id={`${actorNetworkDetailAnchorKey}:actor-balances-tokens`}>
 						<BalancesView
+							CollapsibleProps={{ canToggle: false }}
 							href={resolve(
 								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 								{
@@ -472,100 +466,97 @@
 						</ResourceBoundary>
 					</section>
 				{/snippet}
-			</CollapsibleTabs>
+		</CollapsibleTabs>
 
-			<CollapsibleTabs
-				id={`${actorNetworkDetailAnchorKey}:carousel-activity`}
-				sectionIdPrefix={actorNetworkDetailAnchorKey}
-				sections={[
-					{ id: 'activity-transactions', label: 'Transactions' },
-					...(
-						!actorNetwork.ready
-						|| actorNetwork.current.tokenTransferCount !== undefined
-						|| (actorNetwork.current.$$tokenTransfers ?? []).length > 0
-					) ? [{ id: 'activity-token-transfers', label: 'Token transfers' }] : [],
-					...(
-						!actorNetwork.ready
-						|| (actorNetwork.current.$$internalTransactions ?? []).length > 0
-					) ? [{ id: 'activity-internal-transactions', label: 'Internal transactions' }] : [],
-				]}
-					{...{ 'data-card': '' }}
-					class="actor-network-view-collapsible-activity"
-					scrollContainerProps={{
-						'data-row': 'start align-start',
+		<CollapsibleTabs
+			id={`${actorNetworkDetailAnchorKey}:carousel-activity`}
+			sectionIdPrefix={actorNetworkDetailAnchorKey}
+			sections={[
+				{ id: 'activity-transactions', label: 'Transactions' },
+				...(
+					!actorNetwork.ready
+					|| actorNetwork.current.tokenTransferCount !== undefined
+					|| (actorNetwork.current.$$tokenTransfers ?? []).length > 0
+				) ? [{ id: 'activity-token-transfers', label: 'Token transfers' }] : [],
+				...(
+					!actorNetwork.ready
+					|| (actorNetwork.current.$$internalTransactions ?? []).length > 0
+				) ? [{ id: 'activity-internal-transactions', label: 'Internal transactions' }] : [],
+			]}
+			data-card
+			class="actor-network-view-collapsible-activity"
+		>
+			{#snippet Summary({ open: _activitySummary })}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Activity</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionActivityTransactions({ id, label })}
+				<EvmTransactionsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve(
+						'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
+						{
+						...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+						address: entityId.$actor.address,
+						},
+					)}
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.ActorNetwork,
+						entityId,
+						fieldName: '$$transactions',
 					}}
-				>
-					{#snippet Summary({ open: _activitySummary })}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<HeadingComponent>Activity</HeadingComponent>
-						</header>
-					{/snippet}
+					id={`${actorNetworkDetailAnchorKey}:activity-tx`}
+				/>
+			{/snippet}
 
-					{#snippet SectionActivityTransactions({ id, label })}
-						<EvmTransactionsView
-							href={resolve(
-								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
-								{
-								...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
-								address: entityId.$actor.address,
-								},
-	)}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.ActorNetwork,
-								entityId,
-								fieldName: '$$transactions',
-							}}
-							id={`${actorNetworkDetailAnchorKey}:activity-tx`}
-						/>
-					{/snippet}
+			{#snippet SectionActivityTokenTransfers({ id, label })}
+				<EvmTransactionsView
+					CollapsibleProps={{ canToggle: false }}
+					href={resolve(
+						'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
+						{
+						...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+						address: entityId.$actor.address,
+						},
+					)}
+					collapsible={false}
+					entityFieldReference={{
+						entityType: EntityType.ActorNetwork,
+						entityId,
+						fieldName: '$$tokenTransfers',
+					}}
+					id={`${actorNetworkDetailAnchorKey}:activity-token-tx-transfers`}
+					title="Token transfers"
+				/>
+			{/snippet}
 
-					{#snippet SectionActivityTokenTransfers({ id, label })}
-						<EvmTransactionsView
-							href={resolve(
-								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
-								{
-								...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
-								address: entityId.$actor.address,
-								},
-	)}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.ActorNetwork,
-								entityId,
-								fieldName: '$$tokenTransfers',
-							}}
-							id={`${actorNetworkDetailAnchorKey}:activity-token-tx-transfers`}
-							title="Token transfers"
-						/>
-					{/snippet}
-
-					{#snippet SectionActivityInternalTransactions({ id, label })}
-						<EvmTransactionsView
-							href={resolve(
-								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
-								{
-								...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
-								address: entityId.$actor.address,
-								},
-	)}
-							collapsible={false}
-							entityFieldReference={{
-								entityType: EntityType.ActorNetwork,
-								entityId,
-								fieldName: '$$internalTransactions',
-							}}
-							id={`${actorNetworkDetailAnchorKey}:activity-internal-tx`}
-							title="Internal transactions"
-						/>
-					{/snippet}
-				</CollapsibleTabs>
-		</div>
+				{#snippet SectionActivityInternalTransactions({ id, label })}
+					<EvmTransactionsView
+						CollapsibleProps={{ canToggle: false }}
+						href={resolve(
+							'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
+							{
+							...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+							address: entityId.$actor.address,
+							},
+						)}
+						collapsible={false}
+						entityFieldReference={{
+							entityType: EntityType.ActorNetwork,
+							entityId,
+							fieldName: '$$internalTransactions',
+						}}
+						id={`${actorNetworkDetailAnchorKey}:activity-internal-tx`}
+						title="Internal transactions"
+					/>
+				{/snippet}
+		</CollapsibleTabs>
 
 		{#if pageContent}
 			{@render pageContent()}
 		{/if}
 	{/snippet}
 </EntityView>
-
-

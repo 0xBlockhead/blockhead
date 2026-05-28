@@ -115,10 +115,6 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.SpecificationRealm}
-			{entityId}
-		/>
 		<ProposalKindsView
 			{href}
 			entityFieldReference={{

@@ -82,10 +82,6 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.MarketVenue}
-			{entityId}
-		/>
 		<MarketsView
 			href={resolve('/markets')}
 			entityFieldReference={{

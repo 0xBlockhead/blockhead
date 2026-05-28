@@ -2,38 +2,21 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import type { BitcoinCoreTransaction } from '$/sources/BitcoinCore/JsonRpc/types.ts'
 
 const dogecoinCoreRpcUrl = 'http://127.0.0.1:22555'
 
-const assertDogecoinMainnet = (network: { namespace: string; reference: string }) => {
+const assertDogecoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
-		network.namespace !== NetworkNamespace.Dogecoin
-		|| network.reference !== '1a91e3dace36e2be3bf030a65679fe82'
+		!('caip2' in network)
+		|| network.caip2.namespace !== 'bip122'
+		|| network.caip2.reference !== '1a91e3dace36e2be3bf030a65679fe82'
 	) {
-		throw new Error(`DogecoinCore_JsonRpc: unsupported UTXO network ${network.namespace}:${network.reference}`)
+		throw new Error('DogecoinCore_JsonRpc: unsupported Dogecoin network')
 	}
 }
-
-const transactionEntityFromCoreTransaction = (
-	network: { namespace: string; reference: string },
-	transaction: BitcoinCoreTransaction,
-) => ({
-	[EntityMetaKey.Id]: {
-		$network: network,
-		txId: transaction.txid,
-	},
-	version: transaction.version,
-	lockTime: transaction.locktime,
-	sizeBytes: transaction.size,
-	virtualSizeBytes: transaction.vsize,
-	weightUnits: transaction.weight,
-	isCoinbase: transaction.vin.some((input) => input.coinbase != null),
-})
 
 export default {
 	source: Source.DogecoinCore_JsonRpc,
@@ -96,7 +79,16 @@ export default {
 					throw new Error('DogecoinCore_JsonRpc: expected verbose transaction')
 				}
 				return {
-					...transactionEntityFromCoreTransaction(entityId.$network, transaction),
+					[EntityMetaKey.Id]: {
+						$network: entityId.$network,
+						txId: transaction.txid,
+					},
+					version: transaction.version,
+					lockTime: transaction.locktime,
+					sizeBytes: transaction.size,
+					virtualSizeBytes: transaction.vsize,
+					weightUnits: transaction.weight,
+					isCoinbase: transaction.vin.some((input) => input.coinbase != null),
 				}
 			},
 		}),
@@ -131,7 +123,18 @@ export default {
 							},
 						}
 					:
-						transactionEntityFromCoreTransaction(entityId.$network, transaction)
+						{
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								txId: transaction.txid,
+							},
+							version: transaction.version,
+							lockTime: transaction.locktime,
+							sizeBytes: transaction.size,
+							virtualSizeBytes: transaction.vsize,
+							weightUnits: transaction.weight,
+							isCoinbase: transaction.vin.some((input) => input.coinbase != null),
+						}
 				))
 			},
 		}),

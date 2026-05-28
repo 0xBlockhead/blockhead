@@ -210,25 +210,13 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.BlockheadSharedAddress}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-			data-carousel-basis="40ch"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${contactKey}:carousel-more`}
 				sectionIdPrefix={contactKey}
 				sections={[
 					{ id: 'contact-overview', label: 'Fields' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _isOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
@@ -272,9 +260,6 @@
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>
-
-

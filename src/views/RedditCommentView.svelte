@@ -224,21 +224,14 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				sectionIdPrefix={idKey}
 				sections={[
 					{ id: 'comment-details', label: 'Metadata' },
 					{ id: 'comment-replies', label: 'Replies' },
 				]}
 				id={`${idKey}:carousel-comment`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -254,14 +247,11 @@
 				{/snippet}
 
 				{#snippet SectionCommentDetails({ id, label })}
-					<EntityDetails
-						entityType={EntityType.RedditComment}
-						{entityId}
-					/>
 				{/snippet}
 
 				{#snippet SectionCommentReplies({ id, label })}
 					<RedditCommentsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/reddit/comments')}
 						entityFieldReference={{
 							entityType: EntityType.RedditComment,
@@ -273,9 +263,7 @@
 						title="Replies"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>
-

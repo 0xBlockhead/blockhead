@@ -208,20 +208,13 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<div
-			class="actor-coin-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${actorCoinDetailAnchorKey}:carousel-related`}
 				sectionIdPrefix={actorCoinDetailAnchorKey}
 				sections={[
 					{ id: 'coin-overview', label: 'Overview' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _relatedSummaryOpen })}
 					<header
@@ -235,10 +228,6 @@
 				{/snippet}
 
 				{#snippet SectionCoinOverview({ id, label })}
-					<EntityDetails
-						entityType={EntityType.ActorCoin}
-						{entityId}
-					/>
 					<ResourceBoundary
 						resource={actorCoin}
 						placeholderText="Loading holding…"
@@ -270,7 +259,6 @@
 					</ResourceBoundary>
 
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

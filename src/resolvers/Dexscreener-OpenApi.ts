@@ -6,6 +6,7 @@ import {
 	type ResolverLoadSubset,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -27,26 +28,26 @@ const entityFieldsFromDexPair = ({
 		...(isEvmContractAddress(latestDexPair.baseToken?.address) && {
 				$baseToken: {
 					[EntityMetaKey.Id]: {
-						$network: {
-							chainId,
-						},
-						address: (
-							hexLowerOfByteSize(latestDexPair.baseToken.address.trim(), 20)
-							?? latestDexPair.baseToken.address.trim()
-						),
+							$network: {
+								caip2: { namespace: 'eip155' as const, reference: String(chainId) },
+							},
+							address: EvmAddress.assert(
+								hexLowerOfByteSize(latestDexPair.baseToken.address.trim(), 20)
+								?? latestDexPair.baseToken.address.trim()
+							),
 					},
 				},
 			}),
 		...(isEvmContractAddress(latestDexPair.quoteToken?.address) && {
 				$quoteToken: {
 					[EntityMetaKey.Id]: {
-						$network: {
-							chainId,
-						},
-						address: (
-							hexLowerOfByteSize(latestDexPair.quoteToken.address.trim(), 20)
-							?? latestDexPair.quoteToken.address.trim()
-						),
+							$network: {
+								caip2: { namespace: 'eip155' as const, reference: String(chainId) },
+							},
+							address: EvmAddress.assert(
+								hexLowerOfByteSize(latestDexPair.quoteToken.address.trim(), 20)
+								?? latestDexPair.quoteToken.address.trim()
+							),
 					},
 				},
 			}),
@@ -76,12 +77,12 @@ const globalPairSearchEntityRows = async ({
 		'$/sources/Dexscreener/OpenApi/constants.ts',
 	)
 
-	const rows: {
-		[EntityMetaKey.Id]: {
-			$network: { chainId: number }
-			id: string
-		}
-	}[] = []
+		const rows: {
+			[EntityMetaKey.Id]: {
+				$network: { caip2: { namespace: 'eip155', reference: string } }
+				id: string
+			}
+		}[] = []
 
 	const { pairs } = await getDexscreenerPairSearch({ q })
 
@@ -100,18 +101,18 @@ const globalPairSearchEntityRows = async ({
 
 		if (!isEvmContractAddress(pairIdCandidate)) continue
 
-		const already = rows.some((row) => (
-			row[EntityMetaKey.Id].id === pairIdCandidate
-			&& row[EntityMetaKey.Id].$network.chainId === chainIdNum
-		))
+			const already = rows.some((row) => (
+				row[EntityMetaKey.Id].id === pairIdCandidate
+				&& row[EntityMetaKey.Id].$network.caip2.reference === String(chainIdNum)
+			))
 		if (already) continue
 
 		rows.push({
 			[EntityMetaKey.Id]: {
-				$network: {
-					chainId: chainIdNum,
-				},
-				id: pairIdCandidate,
+					$network: {
+						caip2: { namespace: 'eip155' as const, reference: String(chainIdNum) },
+					},
+					id: pairIdCandidate,
 			},
 		})
 	}
@@ -135,7 +136,7 @@ export default {
 				const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
 				const { getDexscreenerLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
 
-				const chainId = entityId.$network.chainId
+					const chainId = Number(entityId.$network.caip2.reference)
 				const apiChainId = apiChainIdByChainId[chainId]
 				if (apiChainId == null) {
 					throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)

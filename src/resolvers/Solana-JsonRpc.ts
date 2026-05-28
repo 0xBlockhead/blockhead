@@ -2,7 +2,6 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -11,19 +10,20 @@ import type {
 	SolanaRpcTransactionWithMeta,
 } from '$/sources/Solana/JsonRpc/types.ts'
 
-const solanaMainnetRpcUrl = 'https://api.mainnet-beta.solana.com'
+const solanaMainnetRpcUrl = 'https://api.mainnet.solana.com'
 
-const assertSolanaMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Solana || network.reference !== '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp') {
-		throw new Error(`Solana_JsonRpc: unsupported network ${network.namespace}:${network.reference}`)
+const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
+	if (
+		!('caip2' in network)
+		|| network.caip2.namespace !== 'solana'
+		|| network.caip2.reference !== '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'
+	) {
+		throw new Error('Solana_JsonRpc: unsupported network')
 	}
 }
 
 const solanaTransactionFields = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
 	transaction: SolanaRpcTransactionWithMeta,
 	slot?: bigint,
 ) => ({
@@ -58,10 +58,7 @@ const solanaTransactionFields = (
 })
 
 const solanaInstructionFields = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
 	instruction: SolanaRpcInstruction,
 ) => ({
 	$program: {
@@ -83,15 +80,9 @@ const solanaInstructionFields = (
 })
 
 const solanaInstructionRows = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
 	transactionId: {
-		$network: {
-			namespace: string
-			reference: string
-		}
+		$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 		signature: string
 	},
 	transaction: SolanaRpcTransactionWithMeta,
@@ -123,10 +114,7 @@ const solanaInstructionRows = (
 ]
 
 const getTransaction = async (entityId: {
-	$network: {
-		namespace: string
-		reference: string
-	}
+	$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 	signature: string
 }) => {
 	assertSolanaMainnet(entityId.$network)

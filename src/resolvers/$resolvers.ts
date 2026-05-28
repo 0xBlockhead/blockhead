@@ -11,7 +11,6 @@ import type {
 import { schema } from '$/schema/index.ts'
 import type { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 export type ResolverLoadSubset<_Source extends Source = Source> = ReturnType<typeof parseLoadSubsetOptions> & {
 	/** Keys validated by provider+source env schemas for this resolver’s source (empty object when no env schema exists). */
@@ -67,7 +66,7 @@ export type ResolveLiveContext<
 			parentEntityId?: EntityId<_Schema, _EntityType>
 			parentIdKey?: string
 			source: Source
-			value: JsonValue
+			value: unknown
 		}[],
 	) => void
 }

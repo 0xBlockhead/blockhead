@@ -109,11 +109,7 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${swarmChromeKey}:carousel-browser`}
 				sectionIdPrefix={swarmChromeKey}
 				sections={[
@@ -122,10 +118,7 @@
 					{ id: 'swarm-metadata', label: 'Metadata' },
 					{ id: 'swarm-content', label: 'Content' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -327,8 +320,7 @@
 						/>
 					</section>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>
 

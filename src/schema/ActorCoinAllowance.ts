@@ -62,12 +62,12 @@ export const toActorCoinAllowanceEntityId = (
 	spenderAddress: `0x${string}`,
 ): EntityId<typeof schema, EntityType.ActorCoinAllowance> => ({
 	$actorCoin: {
-		$actor: { address },
-		$coinInstance: {
-			$network: { chainId },
-			type: CoinInstanceType.Erc20Token,
-			$contract: { $network: { chainId }, address: tokenContract },
+			$actor: { address },
+			$coinInstance: {
+				$network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } },
+				type: CoinInstanceType.Erc20Token,
+				$contract: { $network: { caip2: { namespace: 'eip155' as const, reference: String(chainId) } }, address: tokenContract },
+			},
 		},
-	},
 	$spender: { address: spenderAddress },
 })

@@ -157,15 +157,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.XNetwork}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels x-network-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				sectionIdPrefix={networkIdKey}
 				sections={[
 					{ id: 'profiles', label: 'Profiles' },
@@ -173,10 +165,7 @@
 					{ id: 'examples-list', label: 'Examples' },
 				]}
 				id={`${networkIdKey}:carousel-registry`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
@@ -205,6 +194,7 @@
 
 				{#snippet SectionProfiles({ id, label })}
 					<XUsersView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/x/users')}
 						entityFieldReference={{
 							entityType: EntityType.XNetwork,
@@ -219,6 +209,7 @@
 
 				{#snippet SectionRecentPosts({ id, label })}
 					<XPostsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/x/posts')}
 						entityFieldReference={{
 							entityType: EntityType.XNetwork,
@@ -249,7 +240,6 @@
 						</li>
 					</ul>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

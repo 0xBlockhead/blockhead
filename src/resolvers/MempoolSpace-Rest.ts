@@ -2,126 +2,24 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import type {
-	MempoolSpaceTransaction,
-	MempoolSpaceTransactionInput,
-	MempoolSpaceTransactionOutput,
-} from '$/sources/MempoolSpace/Rest/types.ts'
 
 const mempoolSpaceBitcoinMainnetRestBaseUrl = 'https://mempool.space/api'
 
-const assertBitcoinMainnet = (network: { namespace: string; reference: string }) => {
+const assertBitcoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
-		network.namespace !== NetworkNamespace.Bip122
-		|| network.reference !== '000000000019d6689c085ae165831e93'
+		!('caip2' in network)
+		|| network.caip2.namespace !== 'bip122'
+		|| network.caip2.reference !== '000000000019d6689c085ae165831e93'
 	) {
-		throw new Error(`MempoolSpace_Rest: unsupported UTXO network ${network.namespace}:${network.reference}`)
+		throw new Error('MempoolSpace_Rest: unsupported Bitcoin network')
 	}
 }
 
-const inputEntityFromMempoolSpaceInput = (
-	transactionId: {
-		$network: {
-			namespace: string
-			reference: string
-		}
-		txId: string
-	},
-	input: MempoolSpaceTransactionInput,
-	inputIndex: number,
-) => ({
-	[EntityMetaKey.Id]: {
-		$transaction: transactionId,
-		inputIndex,
-	},
-	...(input.txid != null && input.vout != null && {
-		$spentOutput: {
-			[EntityMetaKey.Id]: {
-				$transaction: {
-					$network: transactionId.$network,
-					txId: input.txid,
-				},
-				outputIndex: input.vout,
-			},
-		},
-	}),
-	...(input.scriptsig != null && {
-		coinbaseScript: input.scriptsig,
-	}),
-	...(input.scriptsig_asm != null && {
-		scriptSigAsm: input.scriptsig_asm,
-	}),
-	sequence: BigInt(input.sequence),
-	...(input.witness != null && {
-		witness: input.witness,
-	}),
-})
-
-const outputEntityFromMempoolSpaceOutput = (
-	transactionId: {
-		$network: {
-			namespace: string
-			reference: string
-		}
-		txId: string
-	},
-	output: MempoolSpaceTransactionOutput,
-	outputIndex: number,
-) => ({
-	[EntityMetaKey.Id]: {
-		$transaction: transactionId,
-		outputIndex,
-	},
-	valueSats: BigInt(output.value),
-	...(output.scriptpubkey_asm != null && {
-		scriptPubKeyAsm: output.scriptpubkey_asm,
-	}),
-	scriptPubKeyHex: output.scriptpubkey,
-	scriptPubKeyType: output.scriptpubkey_type,
-	...(output.scriptpubkey_address != null && {
-		address: output.scriptpubkey_address,
-	}),
-})
-
-const transactionEntityFromMempoolSpaceTransaction = (
-	network: { namespace: string; reference: string },
-	transaction: MempoolSpaceTransaction,
-) => ({
-	[EntityMetaKey.Id]: {
-		$network: network,
-		txId: transaction.txid,
-	},
-	...(transaction.status.block_height != null && {
-		$block: {
-			[EntityMetaKey.Id]: {
-				$network: network,
-				height: BigInt(transaction.status.block_height),
-				...(transaction.status.block_hash != null && {
-					hash: transaction.status.block_hash,
-				}),
-			},
-		},
-	}),
-	version: transaction.version,
-	lockTime: transaction.locktime,
-	sizeBytes: transaction.size,
-	weightUnits: transaction.weight,
-	virtualSizeBytes: Math.ceil(transaction.weight / 4),
-	...(transaction.fee != null && {
-		feeSats: BigInt(transaction.fee),
-	}),
-	isCoinbase: transaction.vin.some((input) => input.is_coinbase),
-})
-
 const getTransaction = async (entityId: {
-	$network: {
-		namespace: string
-		reference: string
-	}
+	$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 	txId: string
 }) => {
 	assertBitcoinMainnet(entityId.$network)
@@ -175,32 +73,91 @@ export default {
 
 		defineEntityResolver({
 			entityType: EntityType.UtxoTransaction,
-			resolve: async (entityId) => transactionEntityFromMempoolSpaceTransaction(
-				entityId.$network,
-				await getTransaction(entityId),
-			),
+			resolve: async (entityId) => {
+				const transaction = await getTransaction(entityId)
+				return {
+					[EntityMetaKey.Id]: {
+						$network: entityId.$network,
+						txId: transaction.txid,
+					},
+					...(transaction.status.block_height != null && {
+						$block: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								height: BigInt(transaction.status.block_height),
+								...(transaction.status.block_hash != null && {
+									hash: transaction.status.block_hash,
+								}),
+							},
+						},
+					}),
+					version: transaction.version,
+					lockTime: transaction.locktime,
+					sizeBytes: transaction.size,
+					weightUnits: transaction.weight,
+					virtualSizeBytes: Math.ceil(transaction.weight / 4),
+					...(transaction.fee != null && {
+						feeSats: BigInt(transaction.fee),
+					}),
+					isCoinbase: transaction.vin.some((input) => input.is_coinbase),
+				}
+			},
 		}),
 
 		defineEntityResolver({
 			entityType: EntityType.UtxoInput,
-			resolve: async (entityId) => (
-				inputEntityFromMempoolSpaceInput(
-					entityId.$transaction,
-					(await getTransaction(entityId.$transaction)).vin[entityId.inputIndex],
-					entityId.inputIndex,
-				)
-			),
+			resolve: async (entityId) => {
+				const input = (await getTransaction(entityId.$transaction)).vin[entityId.inputIndex]
+				return {
+					[EntityMetaKey.Id]: {
+						$transaction: entityId.$transaction,
+						inputIndex: entityId.inputIndex,
+					},
+					...(input.txid != null && input.vout != null && {
+						$spentOutput: {
+							[EntityMetaKey.Id]: {
+								$transaction: {
+									$network: entityId.$transaction.$network,
+									txId: input.txid,
+								},
+								outputIndex: input.vout,
+							},
+						},
+					}),
+					...(input.scriptsig != null && {
+						coinbaseScript: input.scriptsig,
+					}),
+					...(input.scriptsig_asm != null && {
+						scriptSigAsm: input.scriptsig_asm,
+					}),
+					sequence: BigInt(input.sequence),
+					...(input.witness != null && {
+						witness: input.witness,
+					}),
+				}
+			},
 		}),
 
 		defineEntityResolver({
 			entityType: EntityType.UtxoOutput,
-			resolve: async (entityId) => (
-				outputEntityFromMempoolSpaceOutput(
-					entityId.$transaction,
-					(await getTransaction(entityId.$transaction)).vout[entityId.outputIndex],
-					entityId.outputIndex,
-				)
-			),
+			resolve: async (entityId) => {
+				const output = (await getTransaction(entityId.$transaction)).vout[entityId.outputIndex]
+				return {
+					[EntityMetaKey.Id]: {
+						$transaction: entityId.$transaction,
+						outputIndex: entityId.outputIndex,
+					},
+					valueSats: BigInt(output.value),
+					...(output.scriptpubkey_asm != null && {
+						scriptPubKeyAsm: output.scriptpubkey_asm,
+					}),
+					scriptPubKeyHex: output.scriptpubkey,
+					scriptPubKeyType: output.scriptpubkey_type,
+					...(output.scriptpubkey_address != null && {
+						address: output.scriptpubkey_address,
+					}),
+				}
+			},
 		}),
 	],
 
@@ -236,11 +193,33 @@ export default {
 			fieldName: '$$inputs',
 			resolve: async (entityId) => (
 				(await getTransaction(entityId)).vin.map((input, inputIndex) => (
-					inputEntityFromMempoolSpaceInput(
-						entityId,
-						input,
-						inputIndex,
-					)
+					{
+						[EntityMetaKey.Id]: {
+							$transaction: entityId,
+							inputIndex,
+						},
+						...(input.txid != null && input.vout != null && {
+							$spentOutput: {
+								[EntityMetaKey.Id]: {
+									$transaction: {
+										$network: entityId.$network,
+										txId: input.txid,
+									},
+									outputIndex: input.vout,
+								},
+							},
+						}),
+						...(input.scriptsig != null && {
+							coinbaseScript: input.scriptsig,
+						}),
+						...(input.scriptsig_asm != null && {
+							scriptSigAsm: input.scriptsig_asm,
+						}),
+						sequence: BigInt(input.sequence),
+						...(input.witness != null && {
+							witness: input.witness,
+						}),
+					}
 				))
 			),
 		}),
@@ -250,11 +229,21 @@ export default {
 			fieldName: '$$outputs',
 			resolve: async (entityId) => (
 				(await getTransaction(entityId)).vout.map((output, outputIndex) => (
-					outputEntityFromMempoolSpaceOutput(
-						entityId,
-						output,
-						outputIndex,
-					)
+					{
+						[EntityMetaKey.Id]: {
+							$transaction: entityId,
+							outputIndex,
+						},
+						valueSats: BigInt(output.value),
+						...(output.scriptpubkey_asm != null && {
+							scriptPubKeyAsm: output.scriptpubkey_asm,
+						}),
+						scriptPubKeyHex: output.scriptpubkey,
+						scriptPubKeyType: output.scriptpubkey_type,
+						...(output.scriptpubkey_address != null && {
+							address: output.scriptpubkey_address,
+						}),
+					}
 				))
 			),
 		}),

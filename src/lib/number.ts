@@ -24,7 +24,7 @@ export function formatValue(
 		compactLargeValues = false,
 		locale,
 		toParts,
-	}: FormatValueOptions = {},
+	}: FormatValueOptions<boolean> = {},
 ): string | Intl.NumberFormatPart[] {
 	try {
 		const formatter = new Intl.NumberFormat(

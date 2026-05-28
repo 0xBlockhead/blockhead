@@ -155,21 +155,13 @@
 		open: _open,
 	})}
 		{@const protocolIdKey = stringify(entityId)}
-		<EntityDetails
-			entityType={EntityType.SwarmProtocol}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${protocolIdKey}:browse`}
 				sectionIdPrefix={protocolIdKey}
 				sections={[
 					{ id: 'browse', label: 'Browse' },
 				]}
-				{...{ 'data-card': '' }}
+				data-card
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
@@ -186,8 +178,7 @@
 				{#snippet SectionBrowse()}
 					<SwarmBrowseView />
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

@@ -108,6 +108,8 @@ export enum EntityType {
 	FilecoinActor = 'FilecoinActor',
 	FilecoinMiner = 'FilecoinMiner',
 	FilecoinSector = 'FilecoinSector',
+	NearNetwork = 'NearNetwork',
+	SolanaNetwork = 'SolanaNetwork',
 	SolanaBlock = 'SolanaBlock',
 	SolanaTransaction = 'SolanaTransaction',
 	SolanaInstruction = 'SolanaInstruction',

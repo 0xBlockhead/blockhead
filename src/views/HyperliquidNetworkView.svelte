@@ -76,22 +76,21 @@
 		</dl>
 	{/snippet}
 	{#snippet Details()}
-		<EntityDetails entityType={EntityType.Network} {entityId} />
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-hyperliquid`}
-			sectionIdPrefix={networkIdKey}
-			sections={[
-				{ id: 'hyperliquid-blocks', label: 'Blocks' },
-				{ id: 'hyperliquid-execution', label: 'Execution' },
-				{ id: 'hyperliquid-consensus', label: 'Consensus' },
-			]}
-			{...{ 'data-card': '' }}
-			scrollContainerProps={{ 'data-row': 'start align-start' }}
-		>
-			{#snippet Summary()}<header data-row-item="flexible" data-row="wrap gap-4"><HeadingComponent>Execution</HeadingComponent></header>{/snippet}
-			{#snippet SectionHyperliquidBlocks()}<ResourceBoundary resource={network} placeholderText="Loading head block…">{#snippet children(network)}<span data-text="muted">Latest head data is modeled by the dedicated block entity.</span>{/snippet}</ResourceBoundary>{/snippet}
-			{#snippet SectionHyperliquidExecution()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl>{#if network.$$executionEnvironments.length > 0}<div><dt>Execution</dt><dd>{network.$$executionEnvironments.map((environment) => environment.label).join(', ')}</dd></div>{/if}{#if network.$$nativeAssets.length > 0}<div><dt>Native asset</dt><dd>{network.$$nativeAssets.map((asset) => asset.symbol).join(', ')}</dd></div>{/if}</dl>{/snippet}</ResourceBoundary>{/snippet}
-			{#snippet SectionHyperliquidConsensus()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl>{#if network.$$consensusMechanisms.length > 0}<div><dt>Consensus</dt><dd>{network.$$consensusMechanisms.map((mechanism) => mechanism.label).join(', ')}</dd></div>{/if}</dl>{/snippet}</ResourceBoundary>{/snippet}
+				id={`${networkIdKey}:carousel-hyperliquid`}
+				sectionIdPrefix={networkIdKey}
+				sections={[
+					{ id: 'hyperliquid-blocks', label: 'Blocks' },
+					{ id: 'hyperliquid-execution', label: 'Execution' },
+					{ id: 'hyperliquid-consensus', label: 'Consensus' },
+				]}
+				data-card
+				scrollContainerProps={{ 'data-row': 'start align-start' }}
+			>
+				{#snippet Summary()}<header data-row-item="flexible" data-row="wrap gap-4"><HeadingComponent>Execution</HeadingComponent></header>{/snippet}
+				{#snippet SectionHyperliquidBlocks()}<ResourceBoundary resource={network} placeholderText="Loading head block…">{#snippet children(network)}<span data-text="muted">Latest head data is modeled by the dedicated block entity.</span>{/snippet}</ResourceBoundary>{/snippet}
+				{#snippet SectionHyperliquidExecution()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl>{#if network.$$executionEnvironments.length > 0}<div><dt>Execution</dt><dd>{network.$$executionEnvironments.map((environment) => environment.label).join(', ')}</dd></div>{/if}{#if network.$$nativeAssets.length > 0}<div><dt>Native asset</dt><dd>{network.$$nativeAssets.map((asset) => asset.symbol).join(', ')}</dd></div>{/if}</dl>{/snippet}</ResourceBoundary>{/snippet}
+				{#snippet SectionHyperliquidConsensus()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl>{#if network.$$consensusMechanisms.length > 0}<div><dt>Consensus</dt><dd>{network.$$consensusMechanisms.map((mechanism) => mechanism.label).join(', ')}</dd></div>{/if}</dl>{/snippet}</ResourceBoundary>{/snippet}
 		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

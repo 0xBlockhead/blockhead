@@ -168,10 +168,6 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.Currency_Timestamp}
-			{entityId}
-		/>
 		<section data-scroll-marker-label="Currency">
 			<CurrencyView
 				entityId={entityId.$currency}

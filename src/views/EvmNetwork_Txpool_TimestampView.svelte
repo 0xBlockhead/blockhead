@@ -143,9 +143,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.EvmNetwork_Txpool_Timestamp}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

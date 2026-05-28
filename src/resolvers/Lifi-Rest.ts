@@ -114,7 +114,7 @@ const networkEntityFieldsFromLifiChain = (lifiChain: LifiChain) => {
 			.filter((u) => u.length > 0)
 	)
 	return {
-		[EntityMetaKey.Id]: { chainId: lifiChain.id },
+		[EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(lifiChain.id) } },
 		...((
 			iconMedia,
 		) => (
@@ -173,7 +173,7 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			resolve: async (entityId, context) => {
 				const { fetchLifiChains } = await import('$/sources/Lifi/Rest/queries.ts')
-				const lifiChain = (await singleFlight(fetchLifiChains)()).chains.find((row) => row.id === entityId.chainId)
+					const lifiChain = (await singleFlight(fetchLifiChains)()).chains.find((row) => row.id === Number(entityId.caip2.reference))
 				if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog')
 				return networkEntityFieldsFromLifiChain(lifiChain)
 			},
@@ -298,7 +298,7 @@ export default {
 			fieldName: '$$blockExplorerUrls',
 			resolve: async (entityId, _context) => {
 				const { fetchLifiChains } = await import('$/sources/Lifi/Rest/queries.ts')
-				const lifiChain = (await singleFlight(fetchLifiChains)()).chains.find((row) => row.id === entityId.chainId)
+					const lifiChain = (await singleFlight(fetchLifiChains)()).chains.find((row) => row.id === Number(entityId.caip2.reference))
 				if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog for block explorer URLs')
 				return urlEntitiesFromBlockExplorerCatalog(
 					blockExplorerLikeFromExplorersAndInfoUrl({

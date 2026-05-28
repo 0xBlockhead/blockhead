@@ -222,9 +222,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.Eip8004Service}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

@@ -189,10 +189,6 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.EthereumExecutionUpgrade}
-			{entityId}
-		/>
 		<ProposalsView
 			href={resolve('/proposals')}
 			entityFieldReference={{

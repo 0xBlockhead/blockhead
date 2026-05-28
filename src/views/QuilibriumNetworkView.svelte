@@ -44,8 +44,7 @@
 	{#snippet TypeAnnotationTooltip()}<p>Quilibrium is modeled around frames, shards, provers, accounts, and pending transactions.</p>{/snippet}
 	{#snippet Content()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl><div><dt>Environment</dt><dd>{network.environment}</dd></div></dl>{/snippet}</ResourceBoundary>{/snippet}
 	{#snippet Details()}
-		<EntityDetails entityType={EntityType.Network} {entityId} />
-		<CollapsibleTabs id={`${networkIdKey}:carousel-quilibrium`} sectionIdPrefix={networkIdKey} sections={[{ id: 'quilibrium-frames', label: 'Frames' }, { id: 'quilibrium-execution', label: 'Execution' }, { id: 'quilibrium-consensus', label: 'Consensus' }]} {...{ 'data-card': '' }} scrollContainerProps={{ 'data-row': 'start align-start' }}>
+		<CollapsibleTabs id={`${networkIdKey}:carousel-quilibrium`} sectionIdPrefix={networkIdKey} sections={[{ id: 'quilibrium-frames', label: 'Frames' }, { id: 'quilibrium-execution', label: 'Execution' }, { id: 'quilibrium-consensus', label: 'Consensus' }]} data-card scrollContainerProps={{ 'data-row': 'start align-start' }}>
 			{#snippet Summary()}<header data-row-item="flexible" data-row="wrap gap-4"><HeadingComponent>Execution</HeadingComponent></header>{/snippet}
 			{#snippet SectionQuilibriumFrames()}<dl><div><dt>Frames</dt><dd>Frames are keyed by shard and frame number; live frame enumeration requires a node transport with shard context.</dd></div></dl>{/snippet}
 			{#snippet SectionQuilibriumExecution()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl>{#if network.$$executionEnvironments.length > 0}<div><dt>Execution</dt><dd>{network.$$executionEnvironments.map((environment) => environment.label).join(', ')}</dd></div>{/if}{#if network.$$nativeAssets.length > 0}<div><dt>Native asset</dt><dd>{network.$$nativeAssets.map((asset) => asset.symbol).join(', ')}</dd></div>{/if}</dl>{/snippet}</ResourceBoundary>{/snippet}

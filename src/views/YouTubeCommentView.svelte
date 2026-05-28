@@ -290,19 +290,6 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.YouTubeComment}
-			{entityId}
-		>
-			<ResourceBoundary
-				resource={comment}
-				placeholderText="Loading YouTube comment…"
-			>
-				{#snippet children()}
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
-
 		{#if _open}
 			{@const repliesParent = useEntity(
 				EntityType.YouTubeComment,

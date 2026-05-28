@@ -59,11 +59,11 @@ export default {
 				if (entityId.timestampMs !== timestampMs) {
 					throw new Error('Defillama_Rest: Market_Timestamp id does not match price clock')
 				}
-				return {
-					price: BigInt(Math.round(priceRow.price * 1e8)),
-					...('defillama-pro-current-usd-1e8' && { transport: 'defillama-pro-current-usd-1e8' }),
-					...(llamaId !== undefined && { providerAssetId: llamaId }),
-				}
+					return {
+						price: BigInt(Math.round(priceRow.price * 1e8)),
+						transport: 'defillama-pro-current-usd-1e8',
+						...(llamaId !== undefined && { providerAssetId: llamaId }),
+					}
 			},
 		}),
 	],
@@ -85,16 +85,19 @@ export default {
 				}
 				const coinId = (
 					entityId.$market.$base.kind === MarketAssetKind.Coin ?
-						entityId.$market.$base.$coin.coinId
-					:	undefined
-				)
-				const llamaId = (
-					entityId.feedKey?.trim()
-					?? (
-						entityId.$network != null ?
-							(
-								coinId === CoinId.ETH && entityId.$network.chainId === 1 ?
-									defillamaCurrentPriceIdByCoinId[CoinId.ETH]
+							entityId.$market.$base.$coin.coinId
+						:	undefined
+					)
+					if (entityId.$market.$base.kind !== MarketAssetKind.Coin) {
+						return []
+					}
+					const llamaId = (
+						entityId.feedKey?.trim()
+						?? (
+							entityId.$network != null ?
+								(
+									coinId === CoinId.ETH && entityId.$network.caip2.reference === '1' ?
+										defillamaCurrentPriceIdByCoinId[CoinId.ETH]
 								:
 									undefined
 							)

@@ -3,7 +3,7 @@ import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
 
 
 // Constants
-const mevRelayHosts = [
+export const mevRelayHosts = [
 	{
 		chainId: 1,
 		host: 'boost-relay.flashbots.net',
@@ -35,4 +35,4 @@ export const mevRelayHttpsOrigins = (
 				corsEnabled: false as const,
 			}
 		))
-) as const satisfies readonly SourceOrigin[]
+) satisfies readonly SourceOrigin[]

@@ -108,28 +108,19 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.BlockheadPanelTree}
-			{entityId}
-		/>
-		<div
-			class="blockhead-panel-tree-carousel-groups"
-			data-column="gap-3"
+		<section
+			data-card
+			data-column="gap-2"
+			id={`${stringify(entityId)}:metadata`}
 		>
-			<section
-				{...{ 'data-card': '' }}
-				data-column="gap-2"
-				id={`${stringify(entityId)}:metadata`}
-			>
-				<ResourceBoundary resource={panelTree}>
-					{#snippet children(panelTree)}
-						<p data-text="muted">
-							No saved panel layout metadata yet.
-						</p>
-					{/snippet}
-				</ResourceBoundary>
-			</section>
-		</div>
+			<ResourceBoundary resource={panelTree}>
+				{#snippet children(panelTree)}
+					<p data-text="muted">
+						No saved panel layout metadata yet.
+					</p>
+				{/snippet}
+			</ResourceBoundary>
+		</section>
 
 	{/snippet}
 </EntityView>

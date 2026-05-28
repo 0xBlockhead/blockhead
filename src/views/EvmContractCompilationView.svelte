@@ -226,9 +226,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.EvmContractCompilation}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

@@ -294,11 +294,7 @@
 		open: _open,
 	})}
 		{@const detailKey = stringify(entityId)}
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${detailKey}:carousel-swarm-resource`}
 				sectionIdPrefix={detailKey}
 				sections={[
@@ -306,10 +302,7 @@
 					{ id: 'swarm-record', label: 'Record' },
 					...(_open ? [{ id: 'swarm-preview', label: 'Preview' }] : []),
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -329,10 +322,6 @@
 				{/snippet}
 
 				{#snippet SectionSwarmRecord()}
-					<EntityDetails
-						entityType={EntityType.SwarmResource}
-						{entityId}
-					/>
 				{/snippet}
 
 				{#snippet SectionSwarmPreview()}
@@ -353,8 +342,7 @@
 						resource={swarm}
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

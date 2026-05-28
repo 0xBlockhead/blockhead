@@ -97,9 +97,5 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.BlockheadSource}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

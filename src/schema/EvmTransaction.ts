@@ -4,6 +4,7 @@ import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
+	conditionalOn,
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
@@ -16,6 +17,15 @@ import {
 } from '$/constants/Evm.ts'
 import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
+
+const evmTransactionDiscriminatorFields = [
+	{
+		name: 'envelopeType',
+		type: EntityFieldType.Primitive,
+		primitiveType: type.valueOf(EvmTransactionEnvelopeType),
+		cardinality: EntityFieldCardinality.One,
+	},
+] as const satisfies readonly EntityFieldDefinition[]
 
 // Signed execution-layer transaction (RPC/indexer).
 export default {
@@ -90,12 +100,7 @@ export default {
 			primitiveType: type.valueOf(EvmTransactionKind),
 			cardinality: EntityFieldCardinality.One,
 		},
-		{
-			name: 'envelopeType',
-			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(EvmTransactionEnvelopeType),
-			cardinality: EntityFieldCardinality.One,
-		},
+		...evmTransactionDiscriminatorFields,
 		{
 			name: 'executionStatus',
 			type: EntityFieldType.Primitive,
@@ -131,18 +136,43 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				evmTransactionDiscriminatorFields,
+				'envelopeType',
+				[
+					EvmTransactionEnvelopeType.FeeMarket,
+					EvmTransactionEnvelopeType.Blob,
+					EvmTransactionEnvelopeType.SetCode,
+				],
+			),
 		},
 		{
 			name: 'maxPriorityFeePerGas',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				evmTransactionDiscriminatorFields,
+				'envelopeType',
+				[
+					EvmTransactionEnvelopeType.FeeMarket,
+					EvmTransactionEnvelopeType.Blob,
+					EvmTransactionEnvelopeType.SetCode,
+				],
+			),
 		},
 		{
 			name: 'blobGasUsed',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				evmTransactionDiscriminatorFields,
+				'envelopeType',
+				[
+					EvmTransactionEnvelopeType.Blob,
+				],
+			),
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
 			],
@@ -152,6 +182,13 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				evmTransactionDiscriminatorFields,
+				'envelopeType',
+				[
+					EvmTransactionEnvelopeType.Blob,
+				],
+			),
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
 			],
@@ -161,6 +198,13 @@ export default {
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmBlob,
 			cardinality: EntityFieldCardinality.Many,
+			when: conditionalOn(
+				evmTransactionDiscriminatorFields,
+				'envelopeType',
+				[
+					EvmTransactionEnvelopeType.Blob,
+				],
+			),
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
 			],

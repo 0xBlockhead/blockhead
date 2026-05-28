@@ -329,11 +329,7 @@
 		open: _open,
 	})}
 		{@const postDetailKey = stringify(entityId)}
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${postDetailKey}:carousel-lens-post`}
 				sectionIdPrefix={postDetailKey}
 				sections={[
@@ -342,10 +338,7 @@
 					{ id: 'lens-post-record', label: 'Record' },
 					...(routeChildren ? [{ id: 'lens-post-more', label: 'More' }] : []),
 				] as const}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
@@ -377,8 +370,8 @@
 
 				{#snippet SectionLensPostComments()}
 					<LensCommentsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/lens')}
-						collapsible={false}
 						entityFieldReference={{
 							entityType: EntityType.LensPost,
 							entityId,
@@ -391,10 +384,6 @@
 				{/snippet}
 
 				{#snippet SectionLensPostRecord()}
-					<EntityDetails
-						entityType={EntityType.LensPost}
-						{entityId}
-					/>
 				{/snippet}
 
 				{#if routeChildren}
@@ -402,8 +391,6 @@
 						{@render routeChildren()}
 					{/snippet}
 				{/if}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>
-

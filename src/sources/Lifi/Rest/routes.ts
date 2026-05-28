@@ -22,8 +22,8 @@ type BridgeRouteStepFields = ReturnType<typeof bridgeRouteStepEntityFieldsFromLi
 
 export type BridgeRouteResolverBundle = {
 	routeFields: {
-		$fromNetwork: { [EntityMetaKey.Id]: { chainId: number } }
-		$toNetwork: { [EntityMetaKey.Id]: { chainId: number } }
+		$fromNetwork: { [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: string } } }
+		$toNetwork: { [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: string } } }
 		fromAmount: bigint
 		toAmount: bigint
 		toAmountMin: bigint
@@ -125,12 +125,12 @@ const bridgeRouteBundleFromQuoteStep = (
 
 	return {
 		routeFields: {
-			$fromNetwork: {
-				[EntityMetaKey.Id]: { chainId: step.action.fromChainId },
-			},
-			$toNetwork: {
-				[EntityMetaKey.Id]: { chainId: step.action.toChainId },
-			},
+				$fromNetwork: {
+					[EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(step.action.fromChainId) } },
+				},
+				$toNetwork: {
+					[EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(step.action.toChainId) } },
+				},
 			fromAmount,
 			toAmount,
 			toAmountMin,

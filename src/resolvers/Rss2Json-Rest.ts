@@ -2,6 +2,7 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
+	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
@@ -24,9 +25,9 @@ export default {
 				const { rss2JsonGetFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
 				const response = await singleFlight(rss2JsonGetFeed)(
-					feedUrl,
-					1,
-					context.publicEnv,
+						feedUrl,
+						1,
+						sourcePublicEnv(context, Source.Rss2Json_Rest),
 				)
 				const feed = response.feed
 				if (feed == null) throw new Error('Rss2Json_Rest: feed not found')
@@ -61,7 +62,7 @@ export default {
 				const { rss2JsonGetFeed } = await import('$/sources/Rss2Json/Rest/queries.ts')
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
 				const item = (
-					(await singleFlight(rss2JsonGetFeed)(feedUrl, 50, context.publicEnv)).items ?? []
+						(await singleFlight(rss2JsonGetFeed)(feedUrl, 50, sourcePublicEnv(context, Source.Rss2Json_Rest))).items ?? []
 				).find((candidate) => (
 					rssItemGuidFromParts(candidate.guid, candidate.link, candidate.title) === entityId.guid
 				))
@@ -115,9 +116,9 @@ export default {
 				for (const seedFeed of rssNetworkSeedFeeds) {
 					const feedUrl = normalizeRssFeedUrl(seedFeed.feedUrl)
 					for (const item of (await singleFlight(rss2JsonGetFeed)(
-						feedUrl,
-						perFeedLimit,
-						context.publicEnv,
+							feedUrl,
+							perFeedLimit,
+							sourcePublicEnv(context, Source.Rss2Json_Rest),
 					)).items ?? []) {
 						const guid = rssItemGuidFromParts(item.guid, item.link, item.title)
 						refs.push({
@@ -146,7 +147,7 @@ export default {
 				const feedUrl = normalizeRssFeedUrl(entityId.feedUrl)
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
-					((await singleFlight(rss2JsonGetFeed)(feedUrl, limit, context.publicEnv)).items ?? [])
+						((await singleFlight(rss2JsonGetFeed)(feedUrl, limit, sourcePublicEnv(context, Source.Rss2Json_Rest))).items ?? [])
 						.map((item) => ({
 							[EntityMetaKey.Id]: {
 								feedUrl,

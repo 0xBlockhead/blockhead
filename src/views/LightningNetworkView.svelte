@@ -214,10 +214,6 @@
 	{/snippet}
 
 	{#snippet Details()}
-		<EntityDetails
-			entityType={EntityType.LightningNetwork}
-			{entityId}
-		/>
 
 		<CollapsibleTabs
 			id={`${stringify(entityId)}:carousel-lightning`}
@@ -227,7 +223,7 @@
 				{ id: 'lightning-graph-channels', label: 'Channels' },
 				{ id: 'lightning-local-payments', label: 'Local payments' },
 			]}
-			{...{ 'data-card': '' }}
+			data-card
 			scrollContainerProps={{
 				'data-row': 'start align-start',
 			}}

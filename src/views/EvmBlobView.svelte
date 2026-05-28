@@ -319,32 +319,20 @@
 	{#snippet Details({
 		open: _detailsOpen,
 	})}
-		<EntityDetails
-			entityType={EntityType.EvmBlob}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			{#if true}
-				<CollapsibleTabs
-					sectionIdPrefix={blobIdKey}
-					sections={[
-						{ id: 'blob-semantics', label: 'Blob primer' },
-						...(routeChildren ? [{ id: 'page-content', label: 'Route' }] : []),
-					]}
-					id={`${blobIdKey}:carousel-blob`}
-					{...{ 'data-card': '' }}
-					scrollContainerProps={{
-						'data-row': 'start align-start',
-					}}
-				>
-					{#snippet Summary({ open: _isOpen })}
-						<header data-row-item="flexible" data-row="wrap gap-4">
-							<SectionHeading>Type‑3 execution payload</SectionHeading>
-						</header>
-					{/snippet}
+		<CollapsibleTabs
+				sectionIdPrefix={blobIdKey}
+				sections={[
+					{ id: 'blob-semantics', label: 'Blob primer' },
+					...(routeChildren ? [{ id: 'page-content', label: 'Route' }] : []),
+				]}
+				id={`${blobIdKey}:carousel-blob`}
+				data-card
+			>
+				{#snippet Summary({ open: _isOpen })}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<SectionHeading>Type‑3 execution payload</SectionHeading>
+					</header>
+				{/snippet}
 
 					{#snippet SectionBlobSemantics({ id: _semanticsId, label: _semanticsLabel })}
 						<div data-row="wrap align-center gap-2">
@@ -372,8 +360,6 @@
 							{@render routeChildren()}
 						{/if}
 					{/snippet}
-				</CollapsibleTabs>
-			{/if}
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

@@ -8,6 +8,8 @@ import { mediaFromUrl } from '$/lib/media.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import type { EntityFieldValues } from '$/schema/$schema.ts'
+import type { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/$Source.ts'
 import type {
@@ -82,7 +84,7 @@ const mediaEntitiesFromMastodonAttachments = (
 const activityPubNoteFieldsFromMastodonStatus = (
 	status: MastodonApiV1Status,
 	instanceOrigin: string,
-) => {
+): Partial<EntityFieldValues<typeof schema, EntityType.ActivityPubNote>> => {
 	const createdAt = Date.parse(status.created_at ?? '')
 	const editedAt = optionalTimestampMs(
 		status.edited_at ?? undefined,
@@ -94,7 +96,18 @@ const activityPubNoteFieldsFromMastodonStatus = (
 		favouriteCount: optionalFiniteNumber(status.favourites_count),
 		reblogCount: optionalFiniteNumber(status.reblogs_count),
 		replyCount: optionalFiniteNumber(status.replies_count),
-		visibility: optionalTrimmedString(status.visibility),
+		visibility: (
+				status.visibility === 'public' ?
+					'public' as const
+				: status.visibility === 'unlisted' ?
+					'unlisted' as const
+				: status.visibility === 'private' ?
+					'private' as const
+				: status.visibility === 'direct' ?
+					'direct' as const
+				:
+					undefined
+			),
 		...(status.sensitive != null && { sensitive: status.sensitive }),
 		...(optionalTrimmedString(status.language ?? undefined) != null && {
 			language: optionalTrimmedString(status.language ?? undefined),

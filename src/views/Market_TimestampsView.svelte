@@ -29,6 +29,7 @@
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'href'
+			| 'CollapsibleProps'
 		>
 	> = $props()
 

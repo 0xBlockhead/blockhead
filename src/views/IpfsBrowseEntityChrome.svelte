@@ -260,11 +260,7 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${ipfsChromeKey}:carousel-browser`}
 				sectionIdPrefix={ipfsChromeKey}
 				sections={[
@@ -273,10 +269,7 @@
 					{ id: 'ipfs-metadata', label: 'Metadata' },
 					{ id: 'ipfs-content', label: 'Content' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -510,8 +503,6 @@
 						</ResourceBoundary>
 					</section>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>
-

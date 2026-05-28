@@ -1,8 +1,9 @@
 // Types/constants
 import {
-	BaseQueryBuilder,
 	type Collection,
 	type CollectionStatus,
+	type InitialQueryBuilder,
+	type QueryBuilder,
 	createLiveQueryCollection,
 	eq,
 	inArray,
@@ -19,6 +20,10 @@ import { derive, reduce } from '$/lib/svelte/RemoteResource.svelte.ts'
 import { normalizeBoundaryError } from '$/lib/errors.ts'
 
 import type {
+	EntityBaseFieldName,
+	EntityConditionalDiscriminatorName,
+	EntityConditionalDiscriminatorValue,
+	EntityConditionalFieldName,
 	EntityFieldDefinition,
 	EntityFieldName,
 	EntityId,
@@ -26,6 +31,7 @@ import type {
 	Schema,
 } from '$/schema/$schema.ts'
 import { EntityFieldCardinality, EntityFieldType, EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+// @ts-expect-error Svelte module context named exports are available at runtime.
 import { entityCollectionByEntityType, entityFieldCollections } from '$/routes/+layout.svelte'
 import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -65,6 +71,7 @@ const dedupeEntityReferenceManyField = <_Value>(
 
 const ENTITY_SELECTION_META_KEYS = new Set([
 	'$',
+	'$case',
 	'$limit',
 	'$orderBy',
 	'$orderByDep',
@@ -79,6 +86,29 @@ type EntitySelectionMeta = {
 	$orderBy?: DeclarativeOrderBy<{ fieldRow: unknown }>
 	/** When clauses aren't fingerprintable (e.g. non-field-ref expressions), set for live-query deps. */
 	$orderByDep?: string
+}
+
+type EntitySelectionCase<
+	_Schema extends Schema,
+	_EntityType extends EntityType<_Schema>,
+	_DiscriminatorName extends EntityConditionalDiscriminatorName<_Schema, _EntityType>,
+> = {
+	[
+		_DiscriminatorValue in EntityConditionalDiscriminatorValue<
+			_Schema,
+			_EntityType,
+			_DiscriminatorName
+		> & PropertyKey
+	]?: {
+		[
+			_FieldName in EntityConditionalFieldName<
+				_Schema,
+				_EntityType,
+				_DiscriminatorName,
+				_DiscriminatorValue
+			> & EntityFieldName<_Schema, _EntityType>
+		]?: EntitySelectionForField<_Schema, _EntityType, _FieldName>
+	}
 }
 
 
@@ -104,8 +134,14 @@ export type EntitySelection<
 	_EntityType extends EntityType<_Schema>,
 > = EntitySelectionMeta & {
 	[
-		_FieldName in EntityFieldName<_Schema, _EntityType>
+		_FieldName in EntityBaseFieldName<_Schema, _EntityType>
 	]?: EntitySelectionForField<_Schema, _EntityType, _FieldName>
+} & {
+	$case?: {
+		[
+			_DiscriminatorName in EntityConditionalDiscriminatorName<_Schema, _EntityType> & string
+		]?: EntitySelectionCase<_Schema, _EntityType, _DiscriminatorName>
+	}
 }
 
 
@@ -114,14 +150,28 @@ export const entitySelectionFieldEntries = <
 	_EntityType extends EntityType<_Schema>,
 >(
 	selection: EntitySelection<_Schema, _EntityType>,
-) => (
-	Object.entries(selection).filter(([fieldName]) => (
-		!ENTITY_SELECTION_META_KEYS.has(fieldName)
-	)) as [
+) => {
+	const entries = new Map<string, unknown>()
+	for (const [fieldName, fieldSelection] of Object.entries(selection)) {
+		if (!ENTITY_SELECTION_META_KEYS.has(fieldName)) {
+			entries.set(fieldName, fieldSelection)
+		}
+	}
+	for (const [discriminatorFieldName, cases] of Object.entries(
+		(selection.$case ?? {}) as Record<string, Record<string, Record<string, unknown>>>,
+	)) {
+		entries.set(discriminatorFieldName, selection[discriminatorFieldName as EntityBaseFieldName<_Schema, _EntityType>])
+		for (const caseSelection of Object.values(cases ?? {})) {
+			for (const [fieldName, fieldSelection] of Object.entries(caseSelection ?? {})) {
+				entries.set(fieldName, fieldSelection)
+			}
+		}
+	}
+	return [...entries] as [
 		EntityFieldName<_Schema, _EntityType>,
 		EntitySelectionForField<_Schema, _EntityType, EntityFieldName<_Schema, _EntityType>> | undefined,
 	][]
-)
+}
 
 
 const fieldOrderDepsFingerprint = (
@@ -157,7 +207,7 @@ const entityFieldDefinitionFor = <
 	entityType: _EntityType,
 	fieldName: EntityFieldName<typeof schema, _EntityType>,
 ) => {
-	const fieldDefinition = entityFieldDefinitionsByEntityType[entityType][fieldName]
+	const fieldDefinition = (entityFieldDefinitionsByEntityType as any)[entityType][fieldName]
 	if (fieldDefinition === undefined) {
 		throw new Error(
 			`useEntity: ${entityType} has no field ${fieldName}`,
@@ -166,277 +216,8 @@ const entityFieldDefinitionFor = <
 	return fieldDefinition
 }
 
-export const useEntity1 = <
-	_EntityType extends EntityType<typeof schema>,
->(
-	entityType: _EntityType,
-	entityId: EntityId<typeof schema, _EntityType>,
-	selection: EntitySelection<typeof schema, _EntityType>,
-) => {
-	const idKey = $derived(
-		stringify(entityId),
-	)
-	const query = useLiveQuery(
-		(queryBuilder) => {
-			const idKey = stringify(entityId)
-			const selectedFieldEntries = entitySelectionFieldEntries(selection)
-			const fieldSourcesByName = Object.fromEntries(
-				selectedFieldEntries.map(([fieldName, fieldSelection]) => [
-					fieldName,
-					fieldSelection?.$ ?? selection.$ ?? [],
-				]),
-			)
-			const sourcePriority = [
-				...(selection.$ ?? []),
-				...Object.values(fieldSourcesByName).flat(),
-			].filter((source, index, sources) => (
-				sources.indexOf(source) === index
-			))
-
-			return queryBuilder
-				.from({ entityRow: entityCollectionByEntityType[entityType] })
-				.where(({ entityRow }) => (
-					eq(entityRow[EntityMetaKey.IdKey], idKey)
-				))
-				.where(({ entityRow }) => (
-					inArray(entityRow[EntityMetaKey.Source], sourcePriority)
-				))
-				.orderBy(({ entityRow }) => (
-					sourcePriority.indexOf(entityRow[EntityMetaKey.Source])
-				), 'asc')
-				.select(({ entityRow }) => {
-					return {
-						entity: {
-							[EntityMetaKey.Id]: entityId,
-							...Object.fromEntries(
-								selectedFieldEntries
-									.map(([fieldName]) => [
-										fieldName,
-										entityFieldDefinitionsByEntityType[entityType][fieldName].cardinality === EntityFieldCardinality.Many
-										|| entityFieldDefinitionsByEntityType[entityType][fieldName].cardinality === EntityFieldCardinality.ZeroOrMany ?
-											[
-												...[
-													entityRow,
-													...sourcePriority.flatMap((source) => (
-														[...entityCollectionByEntityType[entityType].values()]
-															.filter((row) => (
-																row[EntityMetaKey.IdKey] === idKey
-																&& row[EntityMetaKey.Source] === source
-															))
-													)),
-												].flatMap((row) => (
-													Array.isArray(row[EntityMetaKey.Fields][fieldName]) ?
-														row[EntityMetaKey.Fields][fieldName]
-													:
-														[]
-												)),
-												...(fieldSourcesByName[fieldName] ?? [])
-													.flatMap((source) => (
-														[...entityFieldCollections[entityType][fieldName as EntityFieldName<typeof schema, _EntityType>].values()]
-															.filter((fieldRow) => (
-																fieldRow[EntityMetaKey.ParentIdKey] === idKey
-																&& fieldRow[EntityMetaKey.Source] === source
-															))
-													))
-													.map((fieldRow) => (
-														fieldRow[EntityMetaKey.Value]
-													)),
-											]
-										:
-											[
-												...[
-													entityRow,
-													...sourcePriority.flatMap((source) => (
-														[...entityCollectionByEntityType[entityType].values()]
-															.filter((row) => (
-																row[EntityMetaKey.IdKey] === idKey
-																&& row[EntityMetaKey.Source] === source
-															))
-													)),
-												].map((row) => (
-													row[EntityMetaKey.Fields][fieldName]
-												)),
-												...(fieldSourcesByName[fieldName] ?? [])
-													.flatMap((source) => (
-														[...entityFieldCollections[entityType][fieldName as EntityFieldName<typeof schema, _EntityType>].values()]
-															.filter((fieldRow) => (
-																fieldRow[EntityMetaKey.ParentIdKey] === idKey
-																&& fieldRow[EntityMetaKey.Source] === source
-															))
-													))
-													.map((fieldRow) => (
-														fieldRow[EntityMetaKey.Value]
-													)),
-											].find((value) => value != null),
-									])
-									.filter(([, value]) => value != null),
-							),
-						},
-					}
-				})
-				.findOne()
-		},
-		[
-			() => idKey,
-			() => stringify(selection),
-		],
-	)
-
-	return {
-		get data() {
-			return query.data?.entity
-		},
-		get error() {
-			return query.error
-		},
-		get isError() {
-			return query.isError
-		},
-		get isLoading() {
-			return query.isLoading
-		},
-		get isReady() {
-			return query.isReady
-		},
-		get status() {
-			return query.status
-		},
-	}
-}
-
-export const useEntity2 = <
-	_EntityType extends EntityType<typeof schema>,
->(
-	entityType: _EntityType,
-	entityId: EntityId<typeof schema, _EntityType>,
-	selection: EntitySelection<typeof schema, _EntityType>,
-) => {
-	const idKey = $derived(
-		stringify(entityId),
-	)
-	const selectedFieldEntries = $derived(
-		entitySelectionFieldEntries(selection),
-	)
-	const fieldSourcesByName = $derived(
-		Object.fromEntries(
-			selectedFieldEntries.map(([fieldName, fieldSelection]) => [
-				fieldName,
-				fieldSelection?.$ ?? selection.$ ?? [],
-			]),
-		),
-	)
-	const sourcePriority = $derived(
-		[
-			...(selection.$ ?? []),
-			...Object.values(fieldSourcesByName).flat(),
-		].filter((source, index, sources) => (
-			sources.indexOf(source) === index
-		)),
-	)
-	const entityRowsQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ entityRow: entityCollectionByEntityType[entityType] })
-				.where(({ entityRow }) => (
-					eq(entityRow[EntityMetaKey.IdKey], idKey)
-				))
-				.where(({ entityRow }) => (
-					inArray(entityRow[EntityMetaKey.Source], sourcePriority)
-				))
-				.orderBy(({ entityRow }) => (
-					sourcePriority.indexOf(entityRow[EntityMetaKey.Source])
-				), 'asc')
-				.select(({ entityRow }) => ({
-					entityRow,
-				}))
-		),
-		[
-			() => idKey,
-			() => stringify(sourcePriority),
-		],
-	)
-	const fieldRowsQueries = $derived(
-		Object.fromEntries(
-			selectedFieldEntries.map(([fieldName]) => [
-				fieldName,
-				useLiveQuery(
-					(queryBuilder) => (
-						queryBuilder
-							.from({
-								fieldRow: entityFieldCollections[entityType][fieldName as EntityFieldName<typeof schema, _EntityType>],
-							})
-							.where(({ fieldRow }) => (
-								eq(fieldRow[EntityMetaKey.ParentIdKey], idKey)
-							))
-							.where(({ fieldRow }) => (
-								inArray(fieldRow[EntityMetaKey.Source], fieldSourcesByName[fieldName] ?? [])
-							))
-							.orderBy(({ fieldRow }) => (
-								(fieldSourcesByName[fieldName] ?? []).indexOf(fieldRow[EntityMetaKey.Source])
-							), 'asc')
-							.select(({ fieldRow }) => ({
-								fieldRow,
-							}))
-					),
-					[
-						() => idKey,
-						() => stringify(fieldSourcesByName[fieldName] ?? []),
-					],
-				),
-			]),
-		),
-	)
-	const query = $derived.by(() => {
-		return {
-			...entityRowsQuery,
-			data: (
-				entityRowsQuery.isReady
-				&& Object.values(fieldRowsQueries).every((fieldRowsQuery) => fieldRowsQuery.isReady) ?
-					{
-						[EntityMetaKey.Id]: entityId,
-						...Object.fromEntries(
-							selectedFieldEntries
-								.map(([fieldName]) => [
-									fieldName,
-									entityFieldDefinitionsByEntityType[entityType][fieldName].cardinality === EntityFieldCardinality.Many
-									|| entityFieldDefinitionsByEntityType[entityType][fieldName].cardinality === EntityFieldCardinality.ZeroOrMany ?
-										[
-											...(entityRowsQuery.data?.map(({ entityRow }) => entityRow) ?? []).flatMap((entityRow) => (
-												Array.isArray(entityRow[EntityMetaKey.Fields][fieldName]) ?
-													entityRow[EntityMetaKey.Fields][fieldName]
-												:
-													[]
-											)),
-											...(fieldRowsQueries[fieldName]?.data?.map(({ fieldRow }) => fieldRow[EntityMetaKey.Value]) ?? []),
-										]
-									:
-										[
-											...(entityRowsQuery.data?.map(({ entityRow }) => entityRow[EntityMetaKey.Fields][fieldName]) ?? []),
-											...(fieldRowsQueries[fieldName]?.data?.map(({ fieldRow }) => fieldRow[EntityMetaKey.Value]) ?? []),
-										].find((value) => value != null),
-								])
-								.filter(([, value]) => value != null),
-						),
-					}
-				:
-					undefined
-			),
-			isLoading: (
-				entityRowsQuery.isLoading
-				|| Object.values(fieldRowsQueries).some((fieldRowsQuery) => fieldRowsQuery.isLoading)
-			),
-			isReady: (
-				entityRowsQuery.isReady
-				&& Object.values(fieldRowsQueries).every((fieldRowsQuery) => fieldRowsQuery.isReady)
-			),
-		}
-	})
-
-	return query
-}
-
 export const useLiveQueryResource = <_Data>(
-	queryBuilderFunction: (queryBuilder: BaseQueryBuilder) => ReturnType<BaseQueryBuilder['from']>,
+	queryBuilderFunction: (queryBuilder: InitialQueryBuilder) => QueryBuilder<any>,
 	deps: (() => unknown)[] = [],
 	options?: {
 		normalize?: (data: _Data) => _Data
@@ -444,10 +225,7 @@ export const useLiveQueryResource = <_Data>(
 ): RemoteResource<_Data> => {
 	const collection = $derived.by(() => {
 		deps.forEach((dep) => dep())
-		return createLiveQueryCollection({
-			query: queryBuilderFunction,
-			startSync: true,
-		})
+		return createLiveQueryCollection(queryBuilderFunction)
 	})
 
 	let _collectionUpdates = $state(0)
@@ -485,12 +263,7 @@ export const useLiveQueryResource = <_Data>(
 		_collectionUpdates
 		const coll = collection
 		
-		let raw: _Data | undefined
-		if (coll.config.singleResult) {
-			raw = Array.from(coll.values())[0] as _Data | undefined
-		} else {
-			raw = Array.from(coll.values()) as _Data
-		}
+		const raw = Array.from(coll.values()) as _Data
 			
 		if (raw === undefined) {
 			return undefined
@@ -515,35 +288,20 @@ export const useLiveQueryResource = <_Data>(
 			.then(() => getCurrent() as _Data)
 	)
 
+	// @ts-expect-error `RemoteResource` is a discriminated getter union; readiness is computed at access time.
 	return {
 		get current(): _Data | undefined {
 			return getCurrent()
 		},
-		get data(): _Data | undefined {
-			return getCurrent()
-		},
 		get error(): unknown {
 			return _error
-		},
-		get isError(): boolean {
-			return getStatus() === 'error'
-		},
-		get isLoading(): boolean {
-			return getStatus() === 'loading'
-		},
-		get isReady(): boolean {
-			const s = getStatus()
-			return s === 'ready' || s === 'disabled'
 		},
 		get loading(): boolean {
 			return getStatus() === 'loading'
 		},
 		get ready(): boolean {
 			const s = getStatus()
-			return s === 'ready' || s === 'disabled'
-		},
-		get status(): CollectionStatus | 'error' {
-			return getStatus()
+			return s === 'ready'
 		},
 		get then() {
 			return promise.then.bind(promise)
@@ -577,7 +335,7 @@ export const useEntity3 = <
 				fieldName,
 				fieldSelection?.$ ?? selection.$ ?? [],
 			]),
-		),
+		) as Record<string, readonly Source[]>,
 	)
 	const sourcePriority = $derived(
 		[
@@ -613,11 +371,12 @@ export const useEntity3 = <
 		Object.fromEntries(
 			selectedFieldEntries.map(([fieldName]) => {
 				const fieldSelection = selection[fieldName]
+				const fieldCollection = (entityFieldCollections as any)[entityType][fieldName]
 				return [
 					fieldName,
 					useLiveQueryResource(
 						(queryBuilder) => {
-							const fieldDefinition = entityFieldDefinitionsByEntityType[entityType][fieldName]
+							const fieldDefinition = (entityFieldDefinitionsByEntityType as any)[entityType][fieldName]
 							if (fieldDefinition === undefined) {
 								throw new Error(
 									`useEntity: ${entityType} has no field ${fieldName}`,
@@ -627,20 +386,20 @@ export const useEntity3 = <
 							const base = foldOrderBySteps(
 								queryBuilder
 									.from({
-										fieldRow: entityFieldCollections[entityType][fieldName],
+										fieldRow: fieldCollection,
 									})
-									.where(({ fieldRow }) => (
+									.where(({ fieldRow }: { fieldRow: any }) => (
 										eq(fieldRow[EntityMetaKey.ParentIdKey], idKey)
 									))
-									.where(({ fieldRow }) => (
-										inArray(fieldRow[EntityMetaKey.Source], fieldSourcesByName[fieldName] ?? [])
-									)),
+										.where(({ fieldRow }: { fieldRow: any }) => (
+											inArray(fieldRow[EntityMetaKey.Source], (fieldSourcesByName[fieldName] ?? []) as any)
+										)),
 								fieldSelection?.$orderBy ?? selection.$orderBy ?? [],
 							)
-								.orderBy(({ fieldRow }) => (
+								.orderBy(({ fieldRow }: { fieldRow: any }) => (
 									(fieldSourcesByName[fieldName] ?? []).indexOf(fieldRow[EntityMetaKey.Source])
 								), 'asc')
-								.select(({ fieldRow }) => ({
+								.select(({ fieldRow }: { fieldRow: any }) => ({
 									fieldRow,
 								}))
 							return (
@@ -662,7 +421,7 @@ export const useEntity3 = <
 									fieldSourcesByName[fieldName] ?? [],
 									fieldSelection?.$limit ?? selection.$limit,
 									fieldOrderDepsFingerprint(
-										entityFieldCollections[entityType][fieldName],
+										fieldCollection,
 										fieldSelection?.$orderBy ?? selection.$orderBy ?? [],
 										fieldSelection?.$orderByDep ?? selection.$orderByDep,
 									),
@@ -674,7 +433,11 @@ export const useEntity3 = <
 			}),
 		),
 	)
-	const mergedAccum = reduce(
+	const emptyAccum = {
+		entityRows: [] as { entityRow: { [EntityMetaKey.Fields]: Record<string, unknown> } }[],
+		fieldRowsByField: {} as Record<string, { fieldRow: { [EntityMetaKey.Value]: unknown } }[]>,
+	}
+	const mergedAccum = reduce<any, typeof emptyAccum>(
 		[
 			derive(
 				entityRowsResource,
@@ -683,7 +446,7 @@ export const useEntity3 = <
 				}),
 			),
 			...selectedFieldEntries.map(([fieldName]) => (
-				derive(fieldRowsResources[fieldName], (rows) => ({
+				derive((fieldRowsResources as any)[fieldName], (rows) => ({
 					fieldRowsByField: {
 						[fieldName]: rows,
 					},
@@ -701,42 +464,39 @@ export const useEntity3 = <
 			},
 			...part,
 		}),
-		{
-			entityRows: [] as { entityRow: { [EntityMetaKey.Fields]: Record<string, unknown> } }[],
-			fieldRowsByField: {} as Record<string, { fieldRow: { [EntityMetaKey.Value]: unknown } }[]>,
-		},
+		emptyAccum,
 	)
 
 	const mergedEntity = $derived.by(() => {
-		const { entityRows, fieldRowsByField } = mergedAccum.current
+		const { entityRows, fieldRowsByField } = mergedAccum.current ?? emptyAccum
 
 		return {
 			[EntityMetaKey.Id]: entityId,
 			...Object.fromEntries(
 				selectedFieldEntries
 					.map(([fieldName]) => {
-						const cardinality = entityFieldDefinitionsByEntityType[entityType][fieldName].cardinality
+						const cardinality = (entityFieldDefinitionsByEntityType as any)[entityType][fieldName].cardinality
 						return [
 							fieldName,
 							cardinality === EntityFieldCardinality.Many
 							|| cardinality === EntityFieldCardinality.ZeroOrMany ?
 								dedupeEntityReferenceManyField([
-									...entityRows.flatMap(({ entityRow }) => (
+									...entityRows.flatMap(({ entityRow }: { entityRow: { [EntityMetaKey.Fields]: Record<string, unknown> } }) => (
 										Array.isArray(entityRow[EntityMetaKey.Fields][fieldName]) ?
 											entityRow[EntityMetaKey.Fields][fieldName]
 										:
 											[]
 									)),
-									...(fieldRowsByField[fieldName] ?? []).map(({ fieldRow }) => (
+									...(fieldRowsByField[fieldName] ?? []).map(({ fieldRow }: { fieldRow: { [EntityMetaKey.Value]: unknown } }) => (
 										fieldRow[EntityMetaKey.Value]
 									)),
 								])
 							:
 								[
-									...entityRows.map(({ entityRow }) => (
+									...entityRows.map(({ entityRow }: { entityRow: { [EntityMetaKey.Fields]: Record<string, unknown> } }) => (
 										entityRow[EntityMetaKey.Fields][fieldName]
 									)),
-									...(fieldRowsByField[fieldName] ?? []).map(({ fieldRow }) => (
+									...(fieldRowsByField[fieldName] ?? []).map(({ fieldRow }: { fieldRow: { [EntityMetaKey.Value]: unknown } }) => (
 										fieldRow[EntityMetaKey.Value]
 									)),
 								].find((value) => value != null),

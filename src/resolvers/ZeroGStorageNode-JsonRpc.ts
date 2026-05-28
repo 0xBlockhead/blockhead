@@ -2,16 +2,17 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const zeroGStorageNodeRpcUrl = 'http://127.0.0.1:5678'
 
-const assertZeroGMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.ZeroG || network.reference !== 'mainnet') {
-		throw new Error(`ZeroGStorageNode_JsonRpc: unsupported network ${network.namespace}:${network.reference}`)
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+
+const assertZeroGMainnet = (network: NetworkId) => {
+	if (!('networkSlug' in network) || network.networkSlug !== '0g') {
+		throw new Error('ZeroGStorageNode_JsonRpc: unsupported network')
 	}
 }
 
@@ -21,10 +22,7 @@ const localStorageNodeId = async () => {
 }
 
 const fileInfoForDataBlob = async (entityId: {
-	$network: {
-		namespace: string
-		reference: string
-	}
+	$network: NetworkId
 	dataRoot: string
 }) => {
 	assertZeroGMainnet(entityId.$network)

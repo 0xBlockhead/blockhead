@@ -197,10 +197,6 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.MarketPrice}
-			{entityId}
-		/>
 		<Market_TimestampsView
 			href={resolve('/markets')}
 			collapsible={false}

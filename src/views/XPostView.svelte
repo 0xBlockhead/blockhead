@@ -331,15 +331,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.XPost}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				sectionIdPrefix={`x-post:${entityId.id}`}
 				sections={[
 					{ id: 'author', label: 'Author' },
@@ -349,10 +341,7 @@
 					] : []),
 				]}
 				id={`x-post:${entityId.id}:carousel`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -456,8 +445,6 @@
 						</ResourceBoundary>
 					{/if}
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>
-

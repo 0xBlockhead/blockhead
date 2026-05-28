@@ -17,6 +17,14 @@ import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
+const evmNetworkIdFromChainId = (chainId: number) => ({
+	caip2: {
+		namespace: 'eip155',
+		reference: String(chainId),
+	},
+} as const)
+
+
 export default {
 	source: Source.Allium_Rest,
 
@@ -32,9 +40,9 @@ export default {
 				if (entityId.type === CoinInstanceType.NativeCurrency) {
 					const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 					const chain = (await singleFlight(fetchRpcsJson)())
-						.find((chain) => chain.chainId === entityId.$network.chainId)
+						.find((chain) => chain.chainId === Number(entityId.$network.caip2.reference))
 					const nativeCurrency = chain?.nativeCurrency
-					if (nativeCurrency == null) throw new Error('Allium_Rest: native coin chain not in chainlist')
+					if (chain == null || nativeCurrency == null) throw new Error('Allium_Rest: native coin chain not in chainlist')
 
 					const symbol = nativeCurrency.symbol.trim().toUpperCase()
 					const coinId = coinBySymbol[symbol]?.id ?? CoinId.Unknown
@@ -47,14 +55,14 @@ export default {
 						decimals: nativeCurrency.decimals,
 						...(chain.slip44 != null && {
 								caip19: caip19Slip44(
-									entityId.$network.chainId,
+									Number(entityId.$network.caip2.reference),
 									chain.slip44,
 								),
 							}),
 					}
 				}
 
-				const apiChain = apiChainByChainId[entityId.$network.chainId]
+				const apiChain = apiChainByChainId[Number(entityId.$network.caip2.reference)]
 				if (apiChain == null) throw new Error('Allium_Rest: chain not supported by Allium API')
 
 				const token = (
@@ -86,7 +94,7 @@ export default {
 							decimals: token.decimals,
 						}),
 					caip19: caip19Erc20(
-						entityId.$network.chainId,
+						Number(entityId.$network.caip2.reference),
 						entityId.$contract.address,
 					),
 					...((
@@ -109,7 +117,7 @@ export default {
 				const { getAlliumLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
 
 				const publicEnv = sourcePublicEnv(context, Source.Allium_Rest)
-				const apiChain = apiChainByChainId[entityId.$coinInstance.$network.chainId]
+				const apiChain = apiChainByChainId[Number(entityId.$coinInstance.$network.caip2.reference)]
 				if (apiChain == null) throw new Error('Allium_Rest: chain not supported for wallet balances')
 
 				const row = (
@@ -177,9 +185,9 @@ export default {
 				>
 
 				const publicEnv = sourcePublicEnv(context, Source.Allium_Rest)
-				const apiChain = apiChainByChainId[entityId.$network.chainId]
+				const apiChain = apiChainByChainId[Number(entityId.$network.caip2.reference)]
 				if (apiChain == null) {
-					throw new Error(`Allium_Rest: chain ${entityId.$network.chainId} not supported for wallet balances`)
+					throw new Error(`Allium_Rest: chain ${Number(entityId.$network.caip2.reference)} not supported for wallet balances`)
 				}
 
 				return (
@@ -247,6 +255,7 @@ export default {
 						if (actorCoinRows.length >= subsetRowLimit) break
 						const chainId = Number(chainIdString)
 						const apiChain = apiChainByChainId[chainId]
+						const networkId = evmNetworkIdFromChainId(chainId)
 						if (apiChain == null) continue
 						actorCoinRows.push(
 							...(await getAlliumLatestWalletBalances({
@@ -260,9 +269,9 @@ export default {
 									balanceRow.token?.type === 'native' ?
 										[{
 											[EntityMetaKey.Id]: {
-												$actor: { address: actor.address },
+												$actor: { address: actor.address as `0x${string}` },
 												$coinInstance: {
-													$network: { chainId },
+													$network: networkId,
 													type: CoinInstanceType.NativeCurrency,
 												},
 											},
@@ -275,12 +284,12 @@ export default {
 												[]
 											:	[{
 													[EntityMetaKey.Id]: {
-														$actor: { address: actor.address },
+														$actor: { address: actor.address as `0x${string}` },
 														$coinInstance: {
-															$network: { chainId },
+															$network: networkId,
 															type: CoinInstanceType.Erc20Token,
 															$contract: {
-																$network: { chainId },
+																$network: networkId,
 																address,
 															},
 														},

@@ -61,7 +61,10 @@ export const getEthereumEipSpecProposalMarkdownUrl = ({
 }
 
 export const getEthereumEipSpecGithubContents = ({ ledger }: { ledger: EthereumEipSpecLedger }) => (
-	getJson({
+	getJson<{
+		type: string
+		name: string
+	}[]>({
 		url: getEthereumEipSpecGithubContentsUrl({ ledger }),
 		origins: EthereumEips.origins ?? [],
 	})

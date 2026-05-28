@@ -13,6 +13,7 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const sliceNormalizedRowsForSubset = <_Row>(
@@ -140,15 +141,15 @@ export default {
 				const row = catalog.blockheadSharedAddresses.find((candidate) => candidate.id === entityId.id)
 				if (row == null) {
 					throw new Error('Local_Internal: BlockheadSharedAddress not present in local catalog')
-				}
-				return {
-					$network: { [EntityMetaKey.Id]: { chainId: row.chainId } },
-					$room: { [EntityMetaKey.Id]: { id: row.roomId } },
-					peerId: row.peerId,
-					$account: { [EntityMetaKey.Id]: { address: row.accountAddress } },
-					targetPeerIds: row.targetPeerIds,
-					sharedAt: row.sharedAt,
-				}
+					}
+					return {
+						$network: { [EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(row.chainId) } } },
+						$room: { [EntityMetaKey.Id]: { id: row.roomId } },
+						peerId: row.peerId,
+						$account: { [EntityMetaKey.Id]: { address: EvmAddress.assert(row.accountAddress) } },
+						targetPeerIds: row.targetPeerIds,
+						sharedAt: row.sharedAt,
+					}
 			},
 		}),
 
@@ -157,15 +158,15 @@ export default {
 			resolve: async (entityId) => {
 				const catalog = readNormalizedLocalInternal()
 				const row = catalog.stateChannels.find((candidate) => candidate.id === entityId.id)
-				if (row == null) throw new Error('Local_Internal: StateChannel not present in local catalog')
-				const assetId = coinInstanceIdForNormalizedStateChannelRow(row)
-				return {
-					$network: { [EntityMetaKey.Id]: { chainId: row.chainId } },
-					$participant0: { [EntityMetaKey.Id]: { address: row.participant0 } },
-					$participant1: { [EntityMetaKey.Id]: { address: row.participant1 } },
-					$asset: { [EntityMetaKey.Id]: assetId },
-					totalDeposited: row.totalDeposited,
-					balance0: row.balance0,
+					if (row == null) throw new Error('Local_Internal: StateChannel not present in local catalog')
+					const assetId = coinInstanceIdForNormalizedStateChannelRow(row)
+					return {
+							$network: { [EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(row.chainId) } } },
+						$participant0: { [EntityMetaKey.Id]: { address: EvmAddress.assert(row.participant0) } },
+						$participant1: { [EntityMetaKey.Id]: { address: EvmAddress.assert(row.participant1) } },
+						$asset: { [EntityMetaKey.Id]: assetId },
+						totalDeposited: row.totalDeposited,
+						balance0: row.balance0,
 					balance1: row.balance1,
 					turnNum: row.turnNum,
 					status: row.status,
@@ -183,14 +184,14 @@ export default {
 				const row = catalog.stateChannelDeposits.find((candidate) => candidate.id === entityId.id)
 				if (row == null) {
 					throw new Error('Local_Internal: StateChannelDeposit not present in local catalog')
-				}
-				return {
-					$channel: { [EntityMetaKey.Id]: { id: row.channelId } },
-					$network: { [EntityMetaKey.Id]: { chainId: row.chainId } },
-					$account: { [EntityMetaKey.Id]: { address: row.accountAddress } },
-					availableBalance: row.availableBalance,
-					lockedBalance: row.lockedBalance,
-					lastUpdated: row.lastUpdated,
+					}
+					return {
+						$channel: { [EntityMetaKey.Id]: { id: row.channelId } },
+							$network: { [EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(row.chainId) } } },
+						$account: { [EntityMetaKey.Id]: { address: EvmAddress.assert(row.accountAddress) } },
+						availableBalance: row.availableBalance,
+						lockedBalance: row.lockedBalance,
+						lastUpdated: row.lastUpdated,
 				}
 			},
 		}),
@@ -202,14 +203,14 @@ export default {
 				const row = catalog.stateChannelTransfers.find((candidate) => candidate.id === entityId.id)
 				if (row == null) {
 					throw new Error('Local_Internal: StateChannelTransfer not present in local catalog')
-				}
-				return {
-					$channel: { [EntityMetaKey.Id]: { id: row.channelId } },
-					$from: { [EntityMetaKey.Id]: { address: row.from } },
-					$to: { [EntityMetaKey.Id]: { address: row.to } },
-					amount: row.amount,
-					turnNum: row.turnNum,
-					timestamp: row.timestamp,
+					}
+					return {
+						$channel: { [EntityMetaKey.Id]: { id: row.channelId } },
+						$from: { [EntityMetaKey.Id]: { address: EvmAddress.assert(row.from) } },
+						$to: { [EntityMetaKey.Id]: { address: EvmAddress.assert(row.to) } },
+						amount: row.amount,
+						turnNum: row.turnNum,
+						timestamp: row.timestamp,
 					status: row.status,
 				}
 			},
@@ -227,12 +228,12 @@ export default {
 					$channel: { [EntityMetaKey.Id]: { id: row.channelId } },
 					intent: row.intent,
 					version: row.version,
-					stateData: row.stateData,
-					allocations: row.allocations.map((allocation) => ({
-						destination: allocation.destination,
-						token: allocation.token,
-						amount: allocation.amount,
-					})),
+						stateData: row.stateData,
+						allocations: row.allocations.map((allocation) => ({
+							destination: EvmAddress.assert(allocation.destination),
+							token: EvmAddress.assert(allocation.token),
+							amount: allocation.amount,
+						})),
 					signatures: [...row.signatures],
 					isFinal: row.isFinal,
 					timestamp: row.timestamp,
@@ -295,12 +296,12 @@ export default {
 			entityType: EntityType._Global,
 			fieldName: '$$actors',
 			resolve: async (_scopedEntityId: EntityId<typeof schema, EntityType._Global>, context) => (
-				sliceNormalizedRowsForSubset(readNormalizedLocalInternal().actors, context)
-					.map((row) => ({
-						[EntityMetaKey.Id]: { address: row.address },
-					}))
-			),
-		}),
+					sliceNormalizedRowsForSubset(readNormalizedLocalInternal().actors, context)
+						.map((row) => ({
+							[EntityMetaKey.Id]: { address: EvmAddress.assert(row.address) },
+						}))
+				),
+			}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
@@ -426,13 +427,13 @@ export default {
 					readNormalizedLocalInternal().bridgeTransactions,
 					context,
 				)
-					.map((row) => ({
-						[EntityMetaKey.Id]: {
-							$account: { address: row.accountAddress },
-							$sourceTx: {
-								$network: { chainId: row.chainId },
-								txHash: row.txHash,
-							},
+						.map((row) => ({
+							[EntityMetaKey.Id]: {
+								$account: { address: EvmAddress.assert(row.accountAddress) },
+								$sourceTx: {
+									$network: { caip2: { namespace: 'eip155' as const, reference: String(row.chainId) } },
+									txHash: ZeroExHex.assert(row.txHash),
+								},
 							createdAt: row.createdAt,
 						},
 					}))

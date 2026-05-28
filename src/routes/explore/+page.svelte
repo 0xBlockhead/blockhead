@@ -31,63 +31,63 @@
 		{#snippet children({ open: hubOpen,
 		})}
 			<CollapsibleTabs
-				id={`${hubKey}:hub`}
-				sectionIdPrefix={hubKey}
-				sections={[
-					{ id: 'networks', label: 'Networks' },
-					{ id: 'upgrades', label: 'Upgrades' },
-					{ id: 'ipfs', label: 'IPFS' },
-					{ id: 'swarm', label: 'Swarm' },
-					{ id: 'proposals', label: 'Proposals' },
-				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-					style: '--carousel-basis: 40ch',
-				}}
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Explore
-						</HeadingComponent>
-					</header>
-				{/snippet}
+					id={`${hubKey}:hub`}
+					sectionIdPrefix={hubKey}
+					sections={[
+						{ id: 'networks', label: 'Networks' },
+						{ id: 'upgrades', label: 'Upgrades' },
+						{ id: 'ipfs', label: 'IPFS' },
+						{ id: 'swarm', label: 'Swarm' },
+						{ id: 'proposals', label: 'Proposals' },
+					]}
+					data-card
+					scrollContainerProps={{
+						'data-row': 'start align-start',
+						style: '--carousel-basis: 40ch',
+					}}
+				>
+					{#snippet Summary({ open: _summaryOpen })}
+						<header
+							data-row-item="flexible"
+							data-row="wrap gap-4"
+						>
+							<HeadingComponent>
+								Explore
+							</HeadingComponent>
+						</header>
+					{/snippet}
 
-				{#snippet SectionNetworks({ id, label })}
-					<NetworksView
-						href={resolve('/networks')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							entityId: {},
-							fieldName: '$$networks',
-						}}
-						id="networks"
-						open={hubOpen}
-					/>
-				{/snippet}
+					{#snippet SectionNetworks({ id, label })}
+						<NetworksView
+							href={resolve('/networks')}
+							entityFieldReference={{
+								entityType: EntityType._Global,
+								entityId: {},
+								fieldName: '$$networks',
+							}}
+							id="networks"
+							open={hubOpen}
+						/>
+					{/snippet}
 
-				{#snippet SectionUpgrades({ id, label })}
-					<EthereumNetworkUpgradesView
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							entityId: {},
-							fieldName: '$$networkUpgrades',
-						}}
-						id="upgrades"
-						open={hubOpen}
-					/>
-				{/snippet}
+					{#snippet SectionUpgrades({ id, label })}
+						<EthereumNetworkUpgradesView
+							entityFieldReference={{
+								entityType: EntityType._Global,
+								entityId: {},
+								fieldName: '$$networkUpgrades',
+							}}
+							id="upgrades"
+							open={hubOpen}
+						/>
+					{/snippet}
 
-				{#snippet SectionIpfs({ id, label })}
-					<h2>
-						<a href={resolve('/ipfs')}>IPFS</a>
-					</h2>
+					{#snippet SectionIpfs({ id, label })}
+						<h2>
+							<a href={resolve('/ipfs')}>IPFS</a>
+						</h2>
 
-					<p data-text="muted">
+						<p data-text="muted">
 						Open resolver-backed IPFS and IPNS resource pages from raw CIDs, protocol URIs, or public gateway URLs.
 					</p>
 				{/snippet}

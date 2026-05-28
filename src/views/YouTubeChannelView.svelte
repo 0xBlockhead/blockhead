@@ -251,25 +251,14 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.YouTubeChannel}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${idKey}:carousel-channel`}
 				sectionIdPrefix={idKey}
 				sections={[
 					{ id: 'videos', label: 'Videos' },
 					{ id: 'playlists', label: 'Playlists' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -286,6 +275,7 @@
 
 				{#snippet SectionVideos({ id, label })}
 					<YouTubeVideosView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/youtube/videos')}
 						entityFieldReference={{
 							entityType: EntityType.YouTubeChannel,
@@ -299,6 +289,7 @@
 
 				{#snippet SectionPlaylists({ id, label })}
 					<YouTubePlaylistsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/youtube/playlists')}
 						entityFieldReference={{
 							entityType: EntityType.YouTubeChannel,
@@ -309,7 +300,6 @@
 						open={_open}
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

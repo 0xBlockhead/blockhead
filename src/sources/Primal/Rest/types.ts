@@ -30,7 +30,7 @@ export type PrimalNostrEvent = {
 	kind?: number
 	content?: string
 	created_at?: number
-	tags?: readonly (readonly string[])[]
+	tags?: string[][]
 	sig?: string
 }
 

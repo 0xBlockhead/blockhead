@@ -5,12 +5,22 @@ import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
+	conditionalOn,
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
+
+const evmTokenTransferDiscriminatorFields = [
+	{
+		name: 'standard',
+		type: EntityFieldType.Primitive,
+		primitiveType: type.valueOf(EvmTokenStandard),
+		cardinality: EntityFieldCardinality.One,
+	},
+] as const satisfies readonly EntityFieldDefinition[]
 
 export default {
 	entityType: EntityType.EvmTokenTransfer,
@@ -25,12 +35,7 @@ export default {
 	}),
 
 	fields: [
-		{
-			name: 'standard',
-			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(EvmTokenStandard),
-			cardinality: EntityFieldCardinality.One,
-		},
+		...evmTokenTransferDiscriminatorFields,
 		{
 			name: '$from',
 			type: EntityFieldType.EntityReference,
@@ -66,6 +71,14 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				evmTokenTransferDiscriminatorFields,
+				'standard',
+				[
+					EvmTokenStandard.Erc721,
+					EvmTokenStandard.Erc1155,
+				],
+			),
 		},
 		{
 			name: 'tokenSymbol',

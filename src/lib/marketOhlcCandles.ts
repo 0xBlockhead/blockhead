@@ -12,13 +12,7 @@ import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 
 
-export type OhlcWireRow = [
-	timestampMs: number,
-	open: number,
-	high: number,
-	low: number,
-	close: number,
-]
+export type OhlcCandle = readonly number[]
 
 
 export const marketTimeIntervalKey = (timeInterval: MarketTimeInterval) => (
@@ -48,11 +42,20 @@ export const marketTimeIntervalsEqual = (
 )
 
 
-export const candleEntityFromOhlcWireRow = (
+export const candleFromOhlc = (
 	$market: EntityId<typeof schema, EntityType.Market>,
 	timeInterval: MarketTimeInterval,
-	[timestampMs, open, high, low, close]: OhlcWireRow,
+	[timestampMs, open, high, low, close]: OhlcCandle,
 ) => {
+	if (
+		timestampMs == null
+		|| open == null
+		|| high == null
+		|| low == null
+		|| close == null
+	) {
+		throw new Error('OHLC row must contain timestamp, open, high, low, and close')
+	}
 	const id = (
 		{
 			$market,
@@ -73,13 +76,13 @@ export const candleEntityFromOhlcWireRow = (
 }
 
 
-export const candleEntitiesFromOhlcWireRows = (
+export const candlesFromOhlc = (
 	$market: EntityId<typeof schema, EntityType.Market>,
 	timeInterval: MarketTimeInterval,
-	rows: OhlcWireRow[],
+	rows: OhlcCandle[],
 ) => (
 	rows.map((row) => (
-		candleEntityFromOhlcWireRow(
+		candleFromOhlc(
 			$market,
 			timeInterval,
 			row,
@@ -89,7 +92,10 @@ export const candleEntitiesFromOhlcWireRows = (
 
 
 export const dedupeCandleEntitiesById = (
-	rows: Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[],
+	rows: (
+		Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>
+		& { [EntityMetaKey.IdKey]?: string }
+	)[],
 ) => {
 	const seenIdKeys = new Set<string>()
 

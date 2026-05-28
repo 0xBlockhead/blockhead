@@ -17,9 +17,10 @@ export default {
 				const { blobscanRestApiOriginForChainId } = await import(
 					'$/sources/Blobscan/Rest/constants.ts'
 				)
-				if (blobscanRestApiOriginForChainId(entityId.$network.chainId) == null) {
+				const chainId = Number(entityId.$network.caip2.reference)
+				if (blobscanRestApiOriginForChainId(chainId) == null) {
 					throw new Error(
-						`Blobscan_Rest: unsupported chain ${String(entityId.$network.chainId)}`,
+						`Blobscan_Rest: unsupported chain ${String(chainId)}`,
 					)
 				}
 				const { getBlobscanBlobJsonString } = await import(
@@ -28,7 +29,7 @@ export default {
 
 				return singleFlight(getBlobscanBlobJsonString)({
 					blobIndex: entityId.blobIndex,
-					chainId: entityId.$network.chainId,
+					chainId,
 					txHash: entityId.txHash,
 				})
 			},

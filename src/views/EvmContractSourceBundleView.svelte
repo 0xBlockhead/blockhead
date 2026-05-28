@@ -149,9 +149,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.EvmContractSourceBundle}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

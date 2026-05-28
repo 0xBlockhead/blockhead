@@ -54,20 +54,6 @@ const youtubeThumbnailUrl = (thumbnails: YoutubeApiSnippet['thumbnails']) => (
 	)
 )
 
-const youtubeCommentEntityId = (
-	videoId: string,
-	commentId: string | undefined,
-) => (
-	commentId == null ?
-		undefined
-	:	{
-			[EntityMetaKey.Id]: {
-				videoId,
-				commentId,
-			},
-		}
-)
-
 export default {
 	source: Source.Youtube_Rest,
 
@@ -267,7 +253,16 @@ export default {
 					$video: {
 						[EntityMetaKey.Id]: { videoId },
 					},
-					$parentComment: youtubeCommentEntityId(videoId, parentId),
+					$parentComment: (
+						parentId == null ?
+							undefined
+						:	{
+								[EntityMetaKey.Id]: {
+									videoId,
+									commentId: parentId,
+								},
+							}
+					),
 				}
 			},
 		}),
@@ -324,9 +319,9 @@ export default {
 				} = await import('$/sources/Youtube/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Youtube_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
-				const channelIds = [
-					...youtubeNetworkSeedChannels.map(({ channelId }) => channelId),
-				]
+					const channelIds: string[] = [
+						...youtubeNetworkSeedChannels.map(({ channelId }) => channelId),
+					]
 				for (const item of ((await singleFlight(youtubeListPopularVideos)(publicEnv, limit)).items ?? [])) {
 					const channelId = optionalTrimmedString(item.snippet?.channelId)
 					if (channelId != null) channelIds.push(channelId)
@@ -419,7 +414,13 @@ export default {
 				const { youtubeListCommentThreads } = await import('$/sources/Youtube/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Youtube_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
-				const refs: NonNullable<ReturnType<typeof youtubeCommentEntityId>>[] = []
+				const refs: {
+					[EntityMetaKey.Id]: {
+						videoId: string
+						commentId: string
+					}
+					publishedAtMs?: number
+				}[] = []
 				let pageToken: string | undefined
 				while (refs.length < limit) {
 					const page = await singleFlight(youtubeListCommentThreads)(
@@ -429,13 +430,13 @@ export default {
 						pageToken,
 					)
 					for (const thread of page.items ?? []) {
-						const commentRef = youtubeCommentEntityId(
-							entityId.videoId,
-							optionalTrimmedString(thread.snippet?.topLevelComment?.id),
-						)
-						if (commentRef == null) continue
+						const commentId = optionalTrimmedString(thread.snippet?.topLevelComment?.id)
+						if (commentId == null) continue
 						refs.push({
-							...commentRef,
+							[EntityMetaKey.Id]: {
+								videoId: entityId.videoId,
+								commentId,
+							},
 							...(optionalTimestampMs(thread.snippet?.topLevelComment?.snippet?.publishedAt) != null && {
 								publishedAtMs: optionalTimestampMs(thread.snippet?.topLevelComment?.snippet?.publishedAt),
 							}),
@@ -462,7 +463,13 @@ export default {
 					.items?.[0]
 				if (optionalTrimmedString(parent?.snippet?.parentId) != null) return []
 				const limit = resolverLoadSubsetRowLimit(context)
-				const refs: NonNullable<ReturnType<typeof youtubeCommentEntityId>>[] = []
+				const refs: {
+					[EntityMetaKey.Id]: {
+						videoId: string
+						commentId: string
+					}
+					publishedAtMs?: number
+				}[] = []
 				let pageToken: string | undefined
 				while (refs.length < limit) {
 					const page = await singleFlight(youtubeListCommentReplies)(
@@ -472,13 +479,13 @@ export default {
 						pageToken,
 					)
 					for (const item of page.items ?? []) {
-						const commentRef = youtubeCommentEntityId(
-							entityId.videoId,
-							optionalTrimmedString(item.id),
-						)
-						if (commentRef == null) continue
+						const commentId = optionalTrimmedString(item.id)
+						if (commentId == null) continue
 						refs.push({
-							...commentRef,
+							[EntityMetaKey.Id]: {
+								videoId: entityId.videoId,
+								commentId,
+							},
 							...(optionalTimestampMs(item.snippet?.publishedAt) != null && {
 								publishedAtMs: optionalTimestampMs(item.snippet?.publishedAt),
 							}),

@@ -14,6 +14,7 @@
 	type SpecificationRealmsEntitiesListForward = Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'id'
+			| 'CollapsibleProps'
 		>
 
 
@@ -249,7 +250,7 @@
 							id: 'realms',
 							label: entityDefinitionByType[EntityType.SpecificationRealm].labelPlural,
 						}]}
-						{...{ 'data-card': '' }}
+						data-card
 						scrollContainerProps={collapsibleTabsPaneProps}
 					>
 						{#snippet Annotation({
@@ -296,7 +297,7 @@
 								{@const realm = row.result}
 								<section id={realmPanelDomId(realm)}>
 									<ProposalKindsView
-										collapsible={false}
+										CollapsibleProps={{ canToggle: false }}
 										entityFieldReference={{
 											entityType: EntityType.SpecificationRealm,
 											entityId: { realm: realm[EntityMetaKey.Id].realm },
@@ -312,7 +313,7 @@
 					</CollapsibleTabs>
 				{:else}
 					<div
-						{...{ 'data-card': '' }}
+						data-card
 						data-scroll-container="block snap-block"
 					>
 						<div data-sticky>

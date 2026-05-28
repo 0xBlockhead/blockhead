@@ -192,15 +192,7 @@
 		open: _open,
 	})}
 		{@const networkIdKey = stringify(entityId)}
-		<EntityDetails
-			entityType={EntityType.YouTubeNetwork}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-registry`}
 				sectionIdPrefix={networkIdKey}
 				sections={[
@@ -208,7 +200,7 @@
 					{ id: 'videos', label: 'Popular videos' },
 					{ id: 'playlists', label: 'Playlists' },
 				]}
-				{...{ 'data-card': '' }}
+				data-card
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
@@ -224,6 +216,7 @@
 
 				{#snippet SectionChannels({ id, label })}
 					<YouTubeChannelsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/youtube/channels')}
 						entityFieldReference={{
 							entityType: EntityType.YouTubeNetwork,
@@ -237,6 +230,7 @@
 
 				{#snippet SectionVideos({ id, label })}
 					<YouTubeVideosView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/youtube/videos')}
 						entityFieldReference={{
 							entityType: EntityType.YouTubeNetwork,
@@ -252,6 +246,7 @@
 
 				{#snippet SectionPlaylists({ id, label })}
 					<YouTubePlaylistsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/youtube/playlists')}
 						entityFieldReference={{
 							entityType: EntityType.YouTubeNetwork,
@@ -263,8 +258,7 @@
 						title="Playlists"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

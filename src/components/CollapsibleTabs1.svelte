@@ -59,84 +59,84 @@
 </script>
 
 
-<!--
-	DOM markers: `[data-carousel-markers]` (`scroll-target-group` + `#…` links). Tab-strip styling: `details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers]` in components.css.
--->
-<details
-	bind:open
-	ontoggle={(e) => {
-		if (!e.currentTarget.open && onclose) {
-			setTimeout(() => onclose(detailsProps.id ?? undefined), 300)
-		}
-		ontoggle?.(e)
-	}}
-	data-column-item="flexible"
-	data-scroll-container="block snap-block"
-	{...detailsProps}
+<section
+	data-column-item="flexible basis-4"
+	data-column
 >
-	<summary data-sticky>
-		<div data-row="align-center gap-4">
-			{#if Summary}
-				<div data-row-item="wrap-start">
-					{@render Summary({
-						open,
-					})}
-				</div>
-			{/if}
-
-			{#if Markers}
-				<div
-					data-carousel-markers
-					data-scroll-container="layout-carousel"
-					data-row-item="flexible"
-				>
-					{@render Markers({
-						open,
-					})}
-				</div>
-			{/if}
-
-			{#if Toolbar || Annotation}
-				<div data-row="wrap">
-					{#if Toolbar}
-						{@render Toolbar({
+	<details
+		bind:open
+		ontoggle={(e) => {
+			if (!e.currentTarget.open && onclose) {
+				setTimeout(() => onclose(detailsProps.id ?? undefined), 300)
+			}
+			ontoggle?.(e)
+		}}
+		data-column-item="flexible"
+		data-scroll-container="block snap-block"
+		{...detailsProps}
+	>
+		<summary data-sticky>
+			<div data-row="align-center gap-4">
+				{#if Summary}
+					<div data-row-item="wrap-start">
+						{@render Summary({
 							open,
 						})}
-					{/if}
+					</div>
+				{/if}
 
-					{#if Annotation}
-						{@render Annotation({
+				{#if Markers}
+					<div
+						data-carousel-markers
+						data-scroll-container="layout-carousel"
+						data-row-item="flexible"
+					>
+						{@render Markers({
 							open,
 						})}
-					{/if}
-				</div>
-			{/if}
-		</div>
-	</summary>
+					</div>
+				{/if}
 
-	{#if body && open}
-		<div
-			data-column-item="flexible"
-			data-collapsible-tabs-pane-host
-			data-scroll-container="layout-carousel"
-			data-row="align-start"
-		>
-			{@render body({
-				open,
-			})}
-		</div>
-	{/if}
-</details>
+				{#if Toolbar || Annotation}
+					<div data-row="wrap">
+						{#if Toolbar}
+							{@render Toolbar({
+								open,
+							})}
+						{/if}
+
+						{#if Annotation}
+							{@render Annotation({
+								open,
+							})}
+						{/if}
+					</div>
+				{/if}
+			</div>
+		</summary>
+
+		{#if body && open}
+			<div
+				data-column-item="flexible"
+				data-collapsible-tabs-pane-host
+				data-scroll-container="layout-carousel"
+				data-row="align-start"
+			>
+				{@render body({
+					open,
+				})}
+			</div>
+		{/if}
+	</details>
+</section>
 
 
 
 <style>
 	[data-carousel-markers] {
-		&[data-scroll-container="layout-carousel"] {
+		&[data-scroll-container~="layout-carousel"] {
 			height: 2rem;
 			--carousel-basis: 6rem;
 		}
-		/* --scrollContainer-sizeBlock: 100vh;
-		--scrollContainer-sizeInline: 100cqi; */
 	}
 </style>

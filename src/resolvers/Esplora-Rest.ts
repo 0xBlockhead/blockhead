@@ -1,19 +1,19 @@
 import {
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const bitcoinMainnetEsploraUrl = 'https://blockstream.info/api'
 
-const assertBitcoinMainnet = (network: { namespace: string; reference: string }) => {
+const assertBitcoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
-		network.namespace !== NetworkNamespace.Bip122
-		|| network.reference !== '000000000019d6689c085ae165831e93'
+		!('caip2' in network)
+		|| network.caip2.namespace !== 'bip122'
+		|| network.caip2.reference !== '000000000019d6689c085ae165831e93'
 	) {
-		throw new Error(`Esplora_Rest: unsupported UTXO network ${network.namespace}:${network.reference}`)
+		throw new Error('Esplora_Rest: unsupported UTXO network')
 	}
 }
 

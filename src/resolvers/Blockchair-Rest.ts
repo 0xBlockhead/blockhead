@@ -2,27 +2,24 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import type {
-	BlockchairBitcoinLikeInput,
-	BlockchairBitcoinLikeOutput,
-	BlockchairBitcoinLikeTransactionDashboard,
-} from '$/sources/Blockchair/Rest/types.ts'
 import type { BlockchairBitcoinLikeChain } from '$/sources/Blockchair/Rest/constants.ts'
 
-const blockchairChain = (network: { namespace: string; reference: string }): BlockchairBitcoinLikeChain => {
+const blockchairChain = (
+	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
+): BlockchairBitcoinLikeChain => {
+	if (!('caip2' in network)) throw new Error('Blockchair_Rest: unsupported UTXO network')
 	if (
-		network.namespace === NetworkNamespace.Bip122
-		&& network.reference === '000000000019d6689c085ae165831e93'
+		network.caip2.namespace === 'bip122'
+		&& network.caip2.reference === '000000000019d6689c085ae165831e93'
 	) return 'bitcoin'
-	if (network.namespace === NetworkNamespace.Zcash && network.reference === '00040fe8ec8471911baa1db1266ea15') return 'zcash'
-	if (network.namespace === NetworkNamespace.Litecoin && network.reference === '12a765e31ffd4059bada1e25190f6e98') return 'litecoin'
-	if (network.namespace === NetworkNamespace.Dogecoin && network.reference === '1a91e3dace36e2be3bf030a65679fe82') return 'dogecoin'
-	if (network.namespace === NetworkNamespace.BitcoinCash && network.reference === '000000000000000000651ef99cb9fcbe') return 'bitcoin-cash'
-	throw new Error(`Blockchair_Rest: unsupported UTXO network ${network.namespace}:${network.reference}`)
+	if (network.caip2.namespace === 'bip122' && network.caip2.reference === '00040fe8ec8471911baa1db1266ea15') return 'zcash'
+	if (network.caip2.namespace === 'bip122' && network.caip2.reference === '12a765e31ffd4059bada1e25190f6e98') return 'litecoin'
+	if (network.caip2.namespace === 'bip122' && network.caip2.reference === '1a91e3dace36e2be3bf030a65679fe82') return 'dogecoin'
+	if (network.caip2.namespace === 'bip122' && network.caip2.reference === '000000000000000000651ef99cb9fcbe') return 'bitcoin-cash'
+	throw new Error(`Blockchair_Rest: unsupported UTXO network ${network.caip2.namespace}:${network.caip2.reference}`)
 }
 
 const firstDashboardRow = <_Row>(rows: Record<string, _Row>, subject: string) => {
@@ -32,10 +29,7 @@ const firstDashboardRow = <_Row>(rows: Record<string, _Row>, subject: string) =>
 }
 
 const getTransactionDashboard = async (entityId: {
-	$network: {
-		namespace: string
-		reference: string
-	}
+	$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 	txId: string
 }) => {
 	const { getBlockchairBitcoinLikeTransactionDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
@@ -49,75 +43,6 @@ const getTransactionDashboard = async (entityId: {
 		entityId.txId,
 	)
 }
-
-const outputEntityFromBlockchairOutput = (
-	transactionId: {
-		$network: {
-			namespace: string
-			reference: string
-		}
-		txId: string
-	},
-	output: BlockchairBitcoinLikeOutput,
-	outputIndex: number,
-) => ({
-	[EntityMetaKey.Id]: {
-		$transaction: transactionId,
-		outputIndex,
-	},
-	...(output.value != null && {
-		valueSats: BigInt(output.value),
-	}),
-	...(output.script_hex != null && {
-		scriptPubKeyHex: output.script_hex,
-	}),
-	...(output.type != null && {
-		scriptPubKeyType: output.type,
-	}),
-	...(output.recipient != null && {
-		address: output.recipient,
-	}),
-	isSpent: output.spending_transaction_hash != null,
-})
-
-const inputEntityFromBlockchairInput = (
-	transactionId: {
-		$network: {
-			namespace: string
-			reference: string
-		}
-		txId: string
-	},
-	input: BlockchairBitcoinLikeInput,
-	inputIndex: number,
-) => ({
-	[EntityMetaKey.Id]: {
-		$transaction: transactionId,
-		inputIndex,
-	},
-	...(input.transaction_hash != null && input.index != null && {
-		$spentOutput: {
-			[EntityMetaKey.Id]: {
-				$transaction: {
-					$network: transactionId.$network,
-					txId: input.transaction_hash,
-				},
-				outputIndex: input.index,
-			},
-		},
-	}),
-	...(input.script_hex != null && {
-		scriptSigAsm: input.script_hex,
-	}),
-	...(input.spending_sequence != null && {
-		sequence: BigInt(input.spending_sequence),
-	}),
-	...(input.spending_witness != null && {
-		witness: [
-			input.spending_witness,
-		],
-	}),
-})
 
 export default {
 	source: Source.Blockchair_Rest,
@@ -179,34 +104,67 @@ export default {
 
 		defineEntityResolver({
 			entityType: EntityType.UtxoInput,
-			resolve: async (entityId) => (
-				inputEntityFromBlockchairInput(
-					entityId.$transaction,
-					(await getTransactionDashboard(entityId.$transaction)).inputs[entityId.inputIndex],
-					entityId.inputIndex,
-				)
-			),
+			resolve: async (entityId) => {
+				const input = (await getTransactionDashboard(entityId.$transaction)).inputs[entityId.inputIndex]
+				return {
+					[EntityMetaKey.Id]: {
+						$transaction: entityId.$transaction,
+						inputIndex: entityId.inputIndex,
+					},
+					...(input.transaction_hash != null && input.index != null && {
+						$spentOutput: {
+							[EntityMetaKey.Id]: {
+								$transaction: {
+									$network: entityId.$transaction.$network,
+									txId: input.transaction_hash,
+								},
+								outputIndex: input.index,
+							},
+						},
+					}),
+					...(input.script_hex != null && {
+						scriptSigAsm: input.script_hex,
+					}),
+					...(input.spending_sequence != null && {
+						sequence: BigInt(input.spending_sequence),
+					}),
+					...(input.spending_witness != null && {
+						witness: [
+							input.spending_witness,
+						],
+					}),
+				}
+			},
 		}),
 
 		defineEntityResolver({
 			entityType: EntityType.UtxoOutput,
-			resolve: async (entityId) => (
-				outputEntityFromBlockchairOutput(
-					entityId.$transaction,
-					(await getTransactionDashboard(entityId.$transaction)).outputs[entityId.outputIndex],
-					entityId.outputIndex,
-				)
-			),
+			resolve: async (entityId) => {
+				const output = (await getTransactionDashboard(entityId.$transaction)).outputs[entityId.outputIndex]
+				return {
+					[EntityMetaKey.Id]: {
+						$transaction: entityId.$transaction,
+						outputIndex: entityId.outputIndex,
+					},
+					...(output.value != null && {
+						valueSats: BigInt(output.value),
+					}),
+					...(output.script_hex != null && {
+						scriptPubKeyHex: output.script_hex,
+					}),
+					...(output.type != null && {
+						scriptPubKeyType: output.type,
+					}),
+					...(output.recipient != null && {
+						address: output.recipient,
+					}),
+					isSpent: output.spending_transaction_hash != null,
+				}
+			},
 		}),
 	],
 
 	entityFieldResolvers: [
-
-
-
-
-
-
 		defineEntityFieldResolver({
 			entityType: EntityType.UtxoBlock,
 			fieldName: '$$transactions',
@@ -243,13 +201,36 @@ export default {
 			entityType: EntityType.UtxoTransaction,
 			fieldName: '$$inputs',
 			resolve: async (entityId) => {
-				const row: BlockchairBitcoinLikeTransactionDashboard = await getTransactionDashboard(entityId)
+				const row = await getTransactionDashboard(entityId)
 				return row.inputs.map((input, inputIndex) => (
-					inputEntityFromBlockchairInput(
-						entityId,
-						input,
-						inputIndex,
-					)
+					{
+						[EntityMetaKey.Id]: {
+							$transaction: entityId,
+							inputIndex,
+						},
+						...(input.transaction_hash != null && input.index != null && {
+							$spentOutput: {
+								[EntityMetaKey.Id]: {
+									$transaction: {
+										$network: entityId.$network,
+										txId: input.transaction_hash,
+									},
+									outputIndex: input.index,
+								},
+							},
+						}),
+						...(input.script_hex != null && {
+							scriptSigAsm: input.script_hex,
+						}),
+						...(input.spending_sequence != null && {
+							sequence: BigInt(input.spending_sequence),
+						}),
+						...(input.spending_witness != null && {
+							witness: [
+								input.spending_witness,
+							],
+						}),
+					}
 				))
 			},
 		}),
@@ -258,13 +239,27 @@ export default {
 			entityType: EntityType.UtxoTransaction,
 			fieldName: '$$outputs',
 			resolve: async (entityId) => {
-				const row: BlockchairBitcoinLikeTransactionDashboard = await getTransactionDashboard(entityId)
+				const row = await getTransactionDashboard(entityId)
 				return row.outputs.map((output, outputIndex) => (
-					outputEntityFromBlockchairOutput(
-						entityId,
-						output,
-						outputIndex,
-					)
+					{
+						[EntityMetaKey.Id]: {
+							$transaction: entityId,
+							outputIndex,
+						},
+						...(output.value != null && {
+							valueSats: BigInt(output.value),
+						}),
+						...(output.script_hex != null && {
+							scriptPubKeyHex: output.script_hex,
+						}),
+						...(output.type != null && {
+							scriptPubKeyType: output.type,
+						}),
+						...(output.recipient != null && {
+							address: output.recipient,
+						}),
+						isSpent: output.spending_transaction_hash != null,
+					}
 				))
 			},
 		}),

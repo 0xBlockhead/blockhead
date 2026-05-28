@@ -66,9 +66,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _open })}
-		<EntityDetails
-			entityType={EntityType.Vault}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

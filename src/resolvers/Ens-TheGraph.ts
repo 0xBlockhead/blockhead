@@ -126,7 +126,7 @@ export default {
 					}),
 					...(matchingEnsDomain.labelhash != null
 						&& matchingEnsDomain.labelhash !== '' && {
-						labelhash: matchingEnsDomain.labelhash,
+						labelhash: String(matchingEnsDomain.labelhash),
 					}),
 					...(parentEnsNameEntity != null && { $parent: parentEnsNameEntity }),
 					...(subdomainEnsNameEntities.length > 0 && { $$subdomains: subdomainEnsNameEntities }),

@@ -38,7 +38,7 @@ const lensEvmAddressFromWire = (a: string): `0x${string}` => {
 }
 
 const lensAuthorRefFromWire = (
-	address: string | null | undefined,
+	address: unknown,
 ) => {
 	if (address == null) throw new Error('Lens_HeyGraphql: post author address missing')
 	return {
@@ -67,7 +67,7 @@ const lensAnyPostSlugFromWire = (
 	item:
 		| {
 			__typename: string
-			slug?: string | null
+			slug?: unknown
 		}
 		| null
 		| undefined,
@@ -129,7 +129,7 @@ export default {
 					}
 				}
 
-				if (p.__typename !== 'Post') throw new Error(`Lens_HeyGraphql: unsupported post type ${p.__typename}`)
+				if (p.__typename !== 'Post') throw new Error('Lens_HeyGraphql: unsupported post type')
 
 				return {
 					text: lensMetadataTextFromWire(p.metadata),

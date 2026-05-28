@@ -176,10 +176,6 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.Currency}
-			{entityId}
-		/>
 		<section data-scroll-marker-label="Catalog snapshot">
 			<Currency_TimestampView
 				entityId={{
@@ -192,11 +188,7 @@
 			/>
 		</section>
 
-		<div
-			class="currency-view-carousel-groups entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${idPrefix}:carousel-markets`}
 				sectionIdPrefix={idPrefix}
 				sections={[
@@ -204,10 +196,7 @@
 					{ id: 'markets-as-quote', label: 'Quote' },
 				]}
 				class="currency-view-collapsible-markets"
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -241,8 +230,8 @@
 						</p>
 					{:else}
 						<MarketsView
+							CollapsibleProps={{ canToggle: false }}
 							href={resolve('/markets')}
-							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.Currency,
 								entityId,
@@ -256,8 +245,8 @@
 
 				{#snippet SectionMarketsAsQuote({ id, label })}
 					<MarketsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/markets')}
-						collapsible={false}
 						entityFieldReference={{
 							entityType: EntityType.Currency,
 							entityId,
@@ -267,8 +256,7 @@
 						title="Quote"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

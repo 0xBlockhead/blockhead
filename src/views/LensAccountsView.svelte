@@ -30,6 +30,7 @@
 			ComponentProps<typeof EntitiesList>,
 			| 'id',
 			| 'href'
+			| 'CollapsibleProps'
 		>
 	> = $props()
 

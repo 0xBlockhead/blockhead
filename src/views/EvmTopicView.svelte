@@ -165,9 +165,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.EvmTopic}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

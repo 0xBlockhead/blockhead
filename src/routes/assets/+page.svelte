@@ -32,68 +32,68 @@
 		{#snippet children({ open: hubOpen,
 		})}
 			<CollapsibleTabs
-				id={`${hubKey}:hub`}
-				sectionIdPrefix={hubKey}
-				sections={[
-					{ id: 'coins', label: 'Coins' },
-					{ id: 'currencies', label: 'Currencies' },
-					{ id: 'pools', label: 'Pools' },
-				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-					style: '--carousel-basis: 40ch',
-				}}
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Assets
-						</HeadingComponent>
-					</header>
-				{/snippet}
+					id={`${hubKey}:hub`}
+					sectionIdPrefix={hubKey}
+					sections={[
+						{ id: 'coins', label: 'Coins' },
+						{ id: 'currencies', label: 'Currencies' },
+						{ id: 'pools', label: 'Pools' },
+					]}
+					data-card
+					scrollContainerProps={{
+						'data-row': 'start align-start',
+						style: '--carousel-basis: 40ch',
+					}}
+				>
+					{#snippet Summary({ open: _summaryOpen })}
+						<header
+							data-row-item="flexible"
+							data-row="wrap gap-4"
+						>
+							<HeadingComponent>
+								Assets
+							</HeadingComponent>
+						</header>
+					{/snippet}
 
-				{#snippet SectionCoins({ id, label })}
-					<CoinsView
-						href={resolve('/coins')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							entityId: {},
-							fieldName: '$$coins',
-						}}
-						id="coins"
-						limit={120}
-						open={hubOpen}
-					/>
-				{/snippet}
+					{#snippet SectionCoins({ id, label })}
+						<CoinsView
+							href={resolve('/coins')}
+							entityFieldReference={{
+								entityType: EntityType._Global,
+								entityId: {},
+								fieldName: '$$coins',
+							}}
+							id="coins"
+							limit={120}
+							open={hubOpen}
+						/>
+					{/snippet}
 
-				{#snippet SectionCurrencies({ id, label })}
-					<CurrenciesView
-						href={resolve('/currencies')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							entityId: {},
-							fieldName: '$$currencies',
-						}}
-						open={hubOpen}
-					/>
-				{/snippet}
+					{#snippet SectionCurrencies({ id, label })}
+						<CurrenciesView
+							href={resolve('/currencies')}
+							entityFieldReference={{
+								entityType: EntityType._Global,
+								entityId: {},
+								fieldName: '$$currencies',
+							}}
+							open={hubOpen}
+						/>
+					{/snippet}
 
-				{#snippet SectionPools({ id, label })}
-					<LiquidityPoolsView
-						href={resolve('/pools')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							entityId: {},
-							fieldName: '$$liquidityPools',
-						}}
-						id="pools"
-						open={hubOpen}
-					/>
-				{/snippet}
+					{#snippet SectionPools({ id, label })}
+						<LiquidityPoolsView
+							href={resolve('/pools')}
+							entityFieldReference={{
+								entityType: EntityType._Global,
+								entityId: {},
+								fieldName: '$$liquidityPools',
+							}}
+							id="pools"
+							open={hubOpen}
+						/>
+					{/snippet}
 			</CollapsibleTabs>
 		{/snippet}
 	</GlobalView>

@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -22,10 +23,12 @@
 		open = $bindable(true),
 		limit = 120,
 		collapsible = true,
+		CollapsibleProps = {},
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.FarcasterFeed>
 		id?: string
 		title?: string
+		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 		open?: boolean
 		limit?: number
 		collapsible?: boolean
@@ -58,6 +61,7 @@
 
 
 <EntitiesList
+	{CollapsibleProps}
 	entityType={EntityType.FarcasterFeed}
 	{id}
 	{title}

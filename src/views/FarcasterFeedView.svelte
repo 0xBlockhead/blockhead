@@ -193,21 +193,14 @@
 		open: _open,
 	})}
 		{@const feedDetailKey = stringify(entityId)}
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${feedDetailKey}:carousel-feed`}
 				sectionIdPrefix={feedDetailKey}
 				sections={[
 					{ id: 'feed-record', label: 'Record' },
 					{ id: 'feed-entries', label: 'Casts' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -223,14 +216,11 @@
 				{/snippet}
 
 				{#snippet SectionFeedRecord({ id, label })}
-					<EntityDetails
-						entityType={EntityType.FarcasterFeed}
-						{entityId}
-					/>
 				{/snippet}
 
 				{#snippet SectionFeedEntries({ id, label })}
 					<FarcasterCastsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/farcaster/feed')}
 						entityFieldReference={{
 							entityType: EntityType.FarcasterFeed,
@@ -242,7 +232,6 @@
 						title="Feed"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

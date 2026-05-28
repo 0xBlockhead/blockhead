@@ -93,11 +93,11 @@ export default {
 					:
 						EvmAddress(ethAddresses[0])
 				)
-				const verifiedPart = (
-					!(ethVerifiedParsed instanceof arktype.errors) && {
-						primaryEvmAddress: ethVerifiedParsed,
-					}
-				)
+					const verifiedPart = (
+						!(ethVerifiedParsed instanceof arktype.errors) && {
+							primaryEvmAddress: EvmAddress.assert(ethAddresses[0]),
+						}
+					)
 				return {
 					username: optionalTrimmedString(user.username),
 					displayName: optionalTrimmedString(user.display_name),
@@ -120,28 +120,28 @@ export default {
 					...verifiedPart,
 					$$verifiedAddresses: [
 						...ethAddresses.map((address) => ({
-							[EntityMetaKey.Id]: {
-								fid: entityId.fid,
-								protocol: 'ethereum',
-								address,
-							},
+								[EntityMetaKey.Id]: {
+									fid: entityId.fid,
+									protocol: 'ethereum' as const,
+									address,
+								},
 							$user: {
 								[EntityMetaKey.Id]: entityId,
 							},
-							protocol: 'ethereum',
-							address,
+								protocol: 'ethereum' as const,
+								address,
 						})),
 						...solAddresses.map((address) => ({
-							[EntityMetaKey.Id]: {
-								fid: entityId.fid,
-								protocol: 'solana',
-								address,
-							},
+								[EntityMetaKey.Id]: {
+									fid: entityId.fid,
+									protocol: 'solana' as const,
+									address,
+								},
 							$user: {
 								[EntityMetaKey.Id]: entityId,
 							},
-							protocol: 'solana',
-							address,
+								protocol: 'solana' as const,
+								address,
 						})),
 					],
 				}
@@ -498,12 +498,3 @@ export default {
 
 	],
 }
-
-
-
-
-
-
-
-
-

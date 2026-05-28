@@ -477,10 +477,7 @@
 		open: _open,
 	})}
 		{@const castDetailKey = stringify(entityId)}
-		<div
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${castDetailKey}:carousel-cast`}
 				sectionIdPrefix={castDetailKey}
 				sections={[
@@ -494,10 +491,7 @@
 						]
 					),
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -513,10 +507,6 @@
 				{/snippet}
 
 				{#snippet SectionCastRecord({ id, label })}
-					<EntityDetails
-						entityType={EntityType.FarcasterCast}
-						{entityId}
-					/>
 				{/snippet}
 
 				{#snippet SectionCastMore({ id, label })}
@@ -796,7 +786,6 @@
 						</ResourceBoundary>
 					{/if}
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

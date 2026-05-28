@@ -3,7 +3,6 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { TronTokenStandard } from '$/schema/TronToken.ts'
@@ -17,9 +16,11 @@ import type {
 
 const tronGridMainnetRestUrl = 'https://api.trongrid.io'
 
-const assertTronMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Tron || network.reference !== '0x2b6653dc') {
-		throw new Error(`TronGrid_Rest: unsupported network ${network.namespace}:${network.reference}`)
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+
+const assertTronMainnet = (network: NetworkId) => {
+	if (!('networkSlug' in network) || network.networkSlug !== 'tron') {
+		throw new Error('TronGrid_Rest: unsupported network')
 	}
 }
 
@@ -34,10 +35,7 @@ const firstContractValue = (transaction: TronNodeTransaction): TronNodeContractV
 )
 
 const blockFields = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: NetworkId,
 	block: TronNodeBlock,
 ) => {
 	const rawBlock = block.block_header?.raw_data
@@ -85,10 +83,7 @@ const blockFields = (
 }
 
 const transactionFields = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: NetworkId,
 	transaction: TronNodeTransaction,
 	info?: TronNodeTransactionInfo,
 ) => {

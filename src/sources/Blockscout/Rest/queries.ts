@@ -12,7 +12,7 @@ import {
 	blockscoutV2ItemsCountMax,
 	restPath,
 } from '$/sources/Blockscout/Rest/constants.ts'
-import { type as arktype } from 'arktype'
+import { type Type, type as arktype } from 'arktype'
 
 import type {
 	BlockscoutErc4337RegistryEntry,
@@ -47,7 +47,7 @@ const blockscoutStatsWireSchema = arktype({
 	'total_blocks?': 'string',
 	'total_transactions?': 'string',
 	'transactions_today?': 'string',
-}) satisfies arktype.Type<BlockscoutStats>
+}) satisfies Type<BlockscoutStats>
 import type {
 	RpcBlockHeader,
 	RpcLog,

@@ -1,15 +1,16 @@
 import {
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const hyperliquidMainnetRestUrl = 'https://api.hyperliquid.xyz'
 
-const assertHyperliquidMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Hyperliquid || network.reference !== 'mainnet') {
-		throw new Error(`Hyperliquid_Rest: unsupported network ${network.namespace}:${network.reference}`)
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+
+const assertHyperliquidMainnet = (network: NetworkId) => {
+	if (!('networkSlug' in network) || network.networkSlug !== 'hyperliquid') {
+		throw new Error('Hyperliquid_Rest: unsupported network')
 	}
 }
 

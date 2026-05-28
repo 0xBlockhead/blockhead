@@ -143,6 +143,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import EntityIdComponent from './EntityId.svelte'
+	import EntityDetails from './EntityDetails.svelte'
 </script>
 
 
@@ -263,6 +264,8 @@
 
 {:else}
 	<article
+		data-column-item="flexible"
+		data-column
 		{...articleProps}
 		id={stringify(entityId)}
 		style:view-transition-name={`EntityView-${stringify(entityId)}`}
@@ -289,6 +292,7 @@
 				if (!isInsidePage)
 					onNestedCollapsibleClose?.(stringify(entityId))
 			}}
+			data-column-item="flexible"
 			{...{
 				'data-card': '',
 				...CollapsibleProps,
@@ -304,7 +308,10 @@
 
 			{#snippet children({ open })}
 				{#if Details && open}
-					<div data-column>
+					<EntityDetails
+						{entityType}
+						{entityId}
+					>
 						{#if Content && open}
 							{@render Content({
 								title,
@@ -316,7 +323,7 @@
 						{@render Details({
 							open,
 						})}
-					</div>
+					</EntityDetails>
 				{/if}
 			{/snippet}
 		</Collapsible>

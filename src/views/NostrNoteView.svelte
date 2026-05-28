@@ -268,15 +268,7 @@
 		open: _open,
 	})}
 		{@const idKey = stringify(entityId)}
-		<EntityDetails
-			entityType={EntityType.NostrNote}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${idKey}:carousel-note`}
 				sectionIdPrefix={idKey}
 				sections={[
@@ -284,10 +276,7 @@
 					{ id: 'replies', label: 'Reply thread' },
 					{ id: 'reactions', label: 'Reactions' },
 				] as const}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
@@ -332,11 +321,11 @@
 
 				{#snippet SectionReplies()}
 					<NostrNotesView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve(
 			'/(social)/(nostr)/nostr/note/[eventId]/(note)/replies',
 			{ eventId: entityId.eventId },
 		)}
-						collapsible={false}
 						entityFieldReference={{
 							entityType: EntityType.NostrNote,
 							entityId,
@@ -350,8 +339,8 @@
 
 				{#snippet SectionReactions()}
 					<NostrReactionsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/nostr/reactions')}
-						collapsible={false}
 						entityFieldReference={{
 							entityType: EntityType.NostrNote,
 							entityId,
@@ -361,7 +350,6 @@
 						open={true}
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

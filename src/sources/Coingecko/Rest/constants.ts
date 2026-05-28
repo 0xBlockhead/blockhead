@@ -2066,21 +2066,21 @@ export const coingeckoCatalogCoinIds: readonly CoinId[] = catalog.flatMap((entry
 
 
 /** CoinGecko derivatives exchange id per catalog venue (`binance` spot vs `binance_futures`). */
-export const coingeckoDerivativesExchangeIdByMarketVenueId = {
+export const coingeckoDerivativesExchangeIdByMarketVenueId: Partial<Record<MarketVenueId, string>> = {
 	[MarketVenueId.Binance]: 'binance_futures',
 	[MarketVenueId.Coinbase]: 'coinbase_international_derivatives',
 	[MarketVenueId.Deribit]: 'deribit',
 	[MarketVenueId.Kraken]: 'kraken_futures',
 	[MarketVenueId.Kucoin]: 'kucoin_futures',
 	[MarketVenueId.Okx]: 'okex_swap',
-} as const satisfies Partial<Record<MarketVenueId, string>>
+}
 
 
 /**
  * CoinGecko asset platform id (`/coins/{platform}/contract/…`) keyed by EVM chain id.
  * Avoids downloading the full asset-platform catalog for contract lookups.
  */
-export const coingeckoAssetPlatformIdByChainId = {
+export const coingeckoAssetPlatformIdByChainId: Partial<Record<number, string>> = {
 	1: 'ethereum',
 	5: 'ethereum',
 	10: 'optimistic-ethereum',
@@ -2093,4 +2093,4 @@ export const coingeckoAssetPlatformIdByChainId = {
 	11155111: 'ethereum',
 	17000: 'ethereum',
 	84532: 'base',
-} as const satisfies Partial<Record<number, string>>
+}

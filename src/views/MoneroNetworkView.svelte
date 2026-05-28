@@ -113,37 +113,32 @@
 	{/snippet}
 
 	{#snippet Details()}
-		<EntityDetails entityType={EntityType.Network} {entityId} />
-
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-monero`}
-			sectionIdPrefix={networkIdKey}
-			sections={[
-				{ id: 'monero-network', label: 'Network' },
-			]}
-			{...{ 'data-card': '' }}
-			scrollContainerProps={{
-				'data-row': 'start align-start',
-			}}
-		>
-			{#snippet Summary()}
-				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Monero</HeadingComponent>
-				</header>
-			{/snippet}
+				id={`${networkIdKey}:carousel-monero`}
+				sectionIdPrefix={networkIdKey}
+				sections={[
+					{ id: 'monero-network', label: 'Network' },
+				]}
+				data-card
+			>
+				{#snippet Summary()}
+					<header data-row-item="flexible" data-row="wrap gap-4">
+						<HeadingComponent>Monero</HeadingComponent>
+					</header>
+				{/snippet}
 
-			{#snippet SectionMoneroNetwork()}
-				<ResourceBoundary resource={network}>
-					{#snippet children(network)}
-						<dl>
-							<div>
-								<dt>Environment</dt>
-								<dd>{network.environment}</dd>
-							</div>
-						</dl>
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
+				{#snippet SectionMoneroNetwork()}
+					<ResourceBoundary resource={network}>
+						{#snippet children(network)}
+							<dl>
+								<div>
+									<dt>Environment</dt>
+									<dd>{network.environment}</dd>
+								</div>
+							</dl>
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
 		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

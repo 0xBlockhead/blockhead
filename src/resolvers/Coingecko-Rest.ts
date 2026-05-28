@@ -9,14 +9,14 @@ import {
 import { Iso4217 } from '$/constants/Currency.ts'
 import {
 	catalogCoinUsdMarketIdByCoinId,
-	catalogMarketsWithCoinAsQuoteByQuoteCoinId,
-	catalogMarketsWithCurrencyAsBaseByIso4217,
+	catalogSpotMarketsWithCoinAsQuote,
+	catalogSpotMarketsWithCurrencyAsBase,
 	catalogMarketsWithCurrencyAsQuoteUsd,
 } from '$/constants/MarketCatalog.ts'
 import {
 	assertCoingeckoDayOhlcTimeInterval,
-	candleEntitiesFromOhlcWireRows,
-	candleEntityFromOhlcWireRow,
+	candlesFromOhlc,
+	candleFromOhlc,
 } from '$/lib/marketOhlcCandles.ts'
 import { stringify } from 'devalue'
 import { caip19Erc20, caip19Slip44, Slip44 } from '$/lib/caip19.ts'
@@ -105,7 +105,7 @@ export default {
 						await singleFlight(fetchRpcsJson)()
 					)
 						.find((candidateChain) => (
-							candidateChain.chainId === entityId.$network.chainId
+							candidateChain.chainId === Number(entityId.$network.caip2.reference)
 						))
 					if (chain == null) throw new Error('Coingecko_Rest: native coin chain not in chainlist')
 
@@ -123,17 +123,17 @@ export default {
 						...(nativeCurrencyName !== '' && { name: nativeCurrencyName }),
 						symbol: nativeCurrency.symbol,
 						decimals: nativeCurrency.decimals,
-						...(nativeCurrency.slip44 != null && { caip19: caip19Slip44(entityId.$network.chainId, nativeCurrency.slip44) }),
+						...(nativeCurrency.slip44 != null && { caip19: caip19Slip44(Number(entityId.$network.caip2.reference), nativeCurrency.slip44) }),
 					}
 				}
 
 				const caip19 = caip19Erc20(
-					entityId.$network.chainId,
+					Number(entityId.$network.caip2.reference),
 					entityId.$contract.address,
 				)
 				const assetPlatform = await findCoingeckoAssetPlatformByChainId(
 					publicEnv,
-					entityId.$network.chainId,
+					Number(entityId.$network.caip2.reference),
 				)
 				if (assetPlatform == null) {
 					throw new Error('Coingecko_Rest: no asset platform for chain')
@@ -188,6 +188,9 @@ export default {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Coingecko_Rest: Market_Timestamp is spot-only')
 				}
+				if (entityId.$market.$base.kind !== MarketAssetKind.Coin) {
+					throw new Error('Market source: market base must be catalog coin')
+				}
 				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {
 					throw new Error('Coingecko_Rest: Market_Timestamp is catalog coin USD market only')
 				}
@@ -219,9 +222,7 @@ export default {
 
 				return {
 					price: BigInt(Math.round(usd * 1e8)),
-					...('coingecko-coins-id-market-data-usd-1e8' && {
-						transport: 'coingecko-coins-id-market-data-usd-1e8',
-					}),
+					transport: 'coingecko-coins-id-market-data-usd-1e8',
 					...(coingeckoId !== undefined && { providerAssetId: coingeckoId }),
 					...(caip19 && { caip19 }),
 				}
@@ -233,6 +234,9 @@ export default {
 			resolve: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Coingecko_Rest: OHLC is spot-only')
+				}
+				if (entityId.$market.$base.kind !== MarketAssetKind.Coin) {
+					throw new Error('Market source: market base must be catalog coin')
 				}
 				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {
 					throw new Error('Coingecko_Rest: OHLC is catalog coin USD market only')
@@ -255,7 +259,7 @@ export default {
 				))
 				if (row == null) throw new Error('Coingecko_Rest: OHLC candle not found for timestamp')
 				return (
-					candleEntityFromOhlcWireRow(
+					candleFromOhlc(
 						entityId.$market,
 						entityId.timeInterval,
 						row,
@@ -377,7 +381,7 @@ export default {
 						days: previewTimeInterval.value,
 					})
 					candles.push(
-						...candleEntitiesFromOhlcWireRows(
+						...candlesFromOhlc(
 							$market,
 							previewTimeInterval,
 							rows,
@@ -469,7 +473,9 @@ export default {
 					return []
 				}
 				return (
-					(catalogMarketsWithCoinAsQuoteByQuoteCoinId[entityId.coinId] ?? [])
+					(catalogSpotMarketsWithCoinAsQuote
+						.filter((catalogMarket) => catalogMarket.quoteCoinId === entityId.coinId)
+						.map((catalogMarket) => catalogMarket.marketId))
 						.filter((marketId) => (
 							idByCoinId[marketId.$base.$coin.coinId] != null
 						))
@@ -504,9 +510,11 @@ export default {
 			entityType: EntityType.Currency,
 			fieldName: '$$marketsWithCurrencyAsBase',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
-				const markets = (catalogMarketsWithCurrencyAsBaseByIso4217[entityId.iso4217] ?? []).map((marketId) => ({
-						[EntityMetaKey.Id]: marketId,
-					}))
+				const markets = catalogSpotMarketsWithCurrencyAsBase
+						.filter((catalogMarket) => catalogMarket.iso4217 === entityId.iso4217)
+						.map((catalogMarket) => ({
+							[EntityMetaKey.Id]: catalogMarket.marketId,
+						}))
 				if (markets.length === 0) {
 					throw new Error(`Coingecko_Rest: no catalog markets with ${entityId.iso4217} as base`)
 				}
@@ -572,6 +580,9 @@ export default {
 				if (entityId.marketKind !== MarketKind.Spot) {
 					return []
 				}
+				if (entityId.$base.kind !== MarketAssetKind.Coin) {
+					return []
+				}
 				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$base.$coin.coinId]) !== stringify(entityId)) {
 					return []
 				}
@@ -597,7 +608,7 @@ export default {
 						days: value,
 					})
 					candles.push(
-						...candleEntitiesFromOhlcWireRows(
+						...candlesFromOhlc(
 							entityId,
 							timeInterval,
 							rows,
@@ -615,6 +626,9 @@ export default {
 			fieldName: '$$quotes',
 			resolve: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
+					return []
+				}
+				if (entityId.$market.$base.kind !== MarketAssetKind.Coin) {
 					return []
 				}
 				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {

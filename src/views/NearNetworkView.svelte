@@ -14,7 +14,7 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.Network>
+		entityId: EntityId<typeof schema, EntityType.NearNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
@@ -25,7 +25,7 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
-		EntityType.Network,
+		EntityType.NearNetwork,
 		entityId,
 		{
 			$: [
@@ -34,6 +34,7 @@
 			slug: {},
 			name: {},
 			environment: {},
+			rpcEndpoints: {},
 		},
 	)
 
@@ -52,7 +53,7 @@
 
 
 <EntityView
-	entityType={EntityType.Network}
+	entityType={EntityType.NearNetwork}
 	{entityId}
 	{href}
 	bind:open
@@ -61,7 +62,7 @@
 	{#snippet Heading()}
 		<ResourceBoundary resource={network}>
 			{#snippet Pending()}
-				{@render Title()}
+				<span>{entityId.networkSlug}</span>
 			{/snippet}
 
 			{#snippet children(network)}
@@ -71,28 +72,18 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<ResourceBoundary resource={network}>
-			{#snippet Pending()}
-				<span data-text="muted">Resolving network...</span>
-			{/snippet}
-
-			{#snippet children(network)}
-				<span>{network.slug}</span>
-			{/snippet}
-		</ResourceBoundary>
+		<span>{entityId.networkSlug}</span>
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<span>{entityId.networkSlug}</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>NEAR models Nightshade sharding, account IDs, access keys, receipts, chunks, and execution outcomes.</p>
 	{/snippet}
 
-	{#snippet Content({
-		open,
-	})}
+	{#snippet Content(context)}
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
@@ -101,10 +92,15 @@
 						<dd>{network.slug}</dd>
 					</div>
 
-					{#if open}
+					{#if context?.open}
 						<div>
 							<dt>Environment</dt>
 							<dd>{network.environment}</dd>
+						</div>
+
+						<div>
+							<dt>RPC endpoints</dt>
+							<dd>{network.rpcEndpoints.length}</dd>
 						</div>
 					{/if}
 				</dl>
@@ -113,7 +109,6 @@
 	{/snippet}
 
 	{#snippet Details()}
-		<EntityDetails entityType={EntityType.Network} {entityId} />
 
 		<CollapsibleTabs
 			id={`${networkIdKey}:carousel-near`}
@@ -121,7 +116,7 @@
 			sections={[
 				{ id: 'near-network', label: 'Network' },
 			]}
-			{...{ 'data-card': '' }}
+			data-card
 			scrollContainerProps={{
 				'data-row': 'start align-start',
 			}}
@@ -140,6 +135,13 @@
 								<dt>Environment</dt>
 								<dd>{network.environment}</dd>
 							</div>
+
+							{#each network.rpcEndpoints as endpoint}
+								<div>
+									<dt>{endpoint.transportType}</dt>
+									<dd>{endpoint.url}</dd>
+								</div>
+							{/each}
 						</dl>
 					{/snippet}
 				</ResourceBoundary>

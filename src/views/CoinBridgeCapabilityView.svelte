@@ -180,9 +180,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.CoinBridgeCapability}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

@@ -1,16 +1,16 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
-
-
-	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { evmInternalCallTypeByCallType } from '$/constants/Evm.ts'
+	import {
+		EvmInternalCallType,
+		evmInternalCallTypeByCallType,
+	} from '$/constants/Evm.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -64,7 +64,16 @@
 			...(open && {
 				callType: {},
 				success: {},
-				$createdContract: {},
+				$case: {
+					callType: {
+						[EvmInternalCallType.Create]: {
+							$createdContract: {},
+						},
+						[EvmInternalCallType.Create2]: {
+							$createdContract: {},
+						},
+					},
+				},
 			}),
 		},
 	)
@@ -114,7 +123,7 @@
 				resource={transfer}
 				placeholderText="Loading internal transfer…"
 			>
-							{#snippet children(transfer)}
+				{#snippet children(transfer)}
 
 					{#if showParentTransaction}
 						<div>
@@ -124,8 +133,8 @@
 									href={resolve(
 										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 										{
-										...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
-										transactionId: entityId.txHash,
+											...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+											transactionId: entityId.txHash,
 										},
 									)}
 								>
@@ -157,7 +166,13 @@
 						</div>
 					{/if}
 
-					{#if transfer.$createdContract}
+					{#if (
+						(
+							transfer.callType === EvmInternalCallType.Create
+							|| transfer.callType === EvmInternalCallType.Create2
+						)
+						&& transfer.$createdContract
+					)}
 						<div>
 							<dt>Created contract</dt>
 							<dd>
@@ -170,16 +185,11 @@
 							</dd>
 						</div>
 					{/if}
-
-			{/snippet}
+				{/snippet}
 			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.EvmInternalTransfer}
-			{entityId}
-		/>
+	{#snippet Details()}
 	{/snippet}
 </EntityView>

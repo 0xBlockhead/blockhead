@@ -1,14 +1,15 @@
 import {
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const assertQuilibriumMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Quilibrium || network.reference !== 'mainnet') {
-		throw new Error(`QuilibriumNodeRpc_Grpc: unsupported network ${network.namespace}:${network.reference}`)
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+
+const assertQuilibriumMainnet = (network: NetworkId) => {
+	if (!('networkSlug' in network) || network.networkSlug !== 'quilibrium') {
+		throw new Error('QuilibriumNodeRpc_Grpc: unsupported network')
 	}
 }
 

@@ -1,7 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -15,7 +14,7 @@
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
-		entityId: EntityId<typeof schema, EntityType.Network>
+		entityId: EntityId<typeof schema, EntityType.SolanaNetwork>
 		href?: string
 		layout?: EntityLayout
 		open?: boolean
@@ -26,18 +25,16 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const network = useEntity(
-		EntityType.Network,
+		EntityType.SolanaNetwork,
 		entityId,
 		{
 			$: [
 				Source.Constants_Internal,
 			],
+			slug: {},
 			name: {},
 			environment: {},
-			$networkStack: {},
-			$$nativeAssets: {},
-			$$executionEnvironments: {},
-			$$consensusMechanisms: {},
+			rpcEndpoints: {},
 		},
 	)
 
@@ -52,13 +49,11 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import NetworkStackView from '$/views/NetworkStackView.svelte'
-	import SolanaBlockView from '$/views/SolanaBlockView.svelte'
 </script>
 
 
 <EntityView
-	entityType={EntityType.Network}
+	entityType={EntityType.SolanaNetwork}
 	{entityId}
 	{href}
 	bind:open
@@ -67,7 +62,7 @@
 	{#snippet Heading()}
 		<ResourceBoundary resource={network}>
 			{#snippet Pending()}
-				{@render Title()}
+				<span>{entityId.caip2.namespace}:{entityId.caip2.reference}</span>
 			{/snippet}
 
 			{#snippet children(network)}
@@ -77,11 +72,11 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<span>{entityId.namespace}:{entityId.reference}</span>
+		<span>{entityId.caip2.namespace}:{entityId.caip2.reference}</span>
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<span>{entityId.caip2.namespace}:{entityId.caip2.reference}</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -90,9 +85,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({
-		open,
-	})}
+	{#snippet Content(context)}
 		<dl class="network-summary-head" data-column-item="center">
 			<div>
 				<dt>Slot</dt>
@@ -105,7 +98,7 @@
 				</dd>
 			</div>
 
-			{#if open}
+			{#if context?.open}
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
 						<div>
@@ -113,17 +106,10 @@
 							<dd>{network.environment}</dd>
 						</div>
 
-						{#if network.$networkStack != null}
-							<div>
-								<dt>Stack</dt>
-								<dd>
-									<NetworkStackView
-										entityId={network.$networkStack[EntityMetaKey.Id]}
-										layout={EntityLayout.Value}
-									/>
-								</dd>
-							</div>
-						{/if}
+						<div>
+							<dt>RPC endpoints</dt>
+							<dd>{network.rpcEndpoints.length}</dd>
+						</div>
 					{/snippet}
 				</ResourceBoundary>
 			{/if}
@@ -131,7 +117,6 @@
 	{/snippet}
 
 	{#snippet Details()}
-		<EntityDetails entityType={EntityType.Network} {entityId} />
 
 		<CollapsibleTabs
 			id={`${networkIdKey}:carousel-solana`}
@@ -141,7 +126,7 @@
 				{ id: 'solana-execution', label: 'Execution' },
 				{ id: 'solana-consensus', label: 'Consensus' },
 			]}
-			{...{ 'data-card': '' }}
+			data-card
 			scrollContainerProps={{
 				'data-row': 'start align-start',
 			}}
@@ -164,19 +149,19 @@
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
 						<dl>
-							{#if network.$$executionEnvironments.length > 0}
+							{#if network.rpcEndpoints.length > 0}
 								<div>
-									<dt>Execution</dt>
-									<dd>{network.$$executionEnvironments.map((environment) => environment.label).join(', ')}</dd>
+									<dt>RPC endpoints</dt>
+									<dd>{network.rpcEndpoints.length}</dd>
 								</div>
 							{/if}
 
-							{#if network.$$nativeAssets.length > 0}
+							{#each network.rpcEndpoints as endpoint}
 								<div>
-									<dt>Native asset</dt>
-									<dd>{network.$$nativeAssets.map((asset) => asset.symbol).join(', ')}</dd>
+									<dt>{endpoint.transportType}</dt>
+									<dd>{endpoint.url}</dd>
 								</div>
-							{/if}
+							{/each}
 						</dl>
 					{/snippet}
 				</ResourceBoundary>
@@ -186,12 +171,10 @@
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
 						<dl>
-							{#if network.$$consensusMechanisms.length > 0}
-								<div>
-									<dt>Consensus</dt>
-									<dd>{network.$$consensusMechanisms.map((mechanism) => mechanism.label).join(', ')}</dd>
-								</div>
-							{/if}
+							<div>
+								<dt>Consensus</dt>
+								<dd>Proof of History with Tower BFT</dd>
+							</div>
 						</dl>
 					{/snippet}
 				</ResourceBoundary>

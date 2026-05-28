@@ -219,9 +219,5 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.NostrRepost}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

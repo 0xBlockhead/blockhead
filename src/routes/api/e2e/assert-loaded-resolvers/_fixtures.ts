@@ -6,7 +6,6 @@ import { Iso4217 } from '$/constants/Currency.ts'
 import { ExecutionEnvironmentId } from '$/constants/ExecutionEnvironment.ts'
 import { MarketAssetKind, MarketKind, MarketTimeIntervalUnit } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { NetworkStackId } from '$/constants/NetworkStack.ts'
 import { ProposalCategory, SpecificationRealm } from '$/constants/SpecificationProposal.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -128,86 +127,107 @@ export const ethUsdCatalogMarket = {
 	marketKind: MarketKind.Spot,
 } as const
 
-const mainnet = { chainId: 1 }
+const mainnetChainId = 1
+
+const mainnet = {
+	caip2: {
+		namespace: 'eip155',
+		reference: '1',
+	},
+}
 
 const bitcoin = {
-	namespace: NetworkNamespace.Bip122,
-	reference: '000000000019d6689c085ae165831e93',
+	caip2: {
+		namespace: 'bip122',
+		reference: '000000000019d6689c085ae165831e93',
+	},
 }
 
 const lightning = {
-	namespace: NetworkNamespace.Lightning,
-	reference: 'bitcoin-mainnet',
+	networkSlug: 'lightning',
 }
 
 const zcash = {
-	namespace: NetworkNamespace.Zcash,
-	reference: '00040fe8ec8471911baa1db1266ea15',
+	caip2: {
+		namespace: 'bip122',
+		reference: '00040fe8ec8471911baa1db1266ea15',
+	},
 }
 
 const filecoin = {
-	namespace: NetworkNamespace.Filecoin,
-	reference: 'f',
+	caip2: {
+		namespace: 'fil',
+		reference: 'f',
+	},
 }
 
 const solana = {
-	namespace: NetworkNamespace.Solana,
-	reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+	caip2: {
+		namespace: 'solana',
+		reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+	},
 }
 
 const cosmos = {
-	namespace: NetworkNamespace.Cosmos,
-	reference: 'cosmoshub-4',
+	caip2: {
+		namespace: 'cosmos',
+		reference: 'cosmoshub-4',
+	},
 }
 
 const polkadot = {
-	namespace: NetworkNamespace.Polkadot,
-	reference: '91b171bb158e2d3848fa23a9f1c25182',
+	caip2: {
+		namespace: 'polkadot',
+		reference: '91b171bb158e2d3848fa23a9f1c25182',
+	},
 }
 
 const hyperliquid = {
-	namespace: NetworkNamespace.Hyperliquid,
-	reference: 'mainnet',
+	networkSlug: 'hyperliquid',
 }
 
 const logos = {
-	namespace: NetworkNamespace.Logos,
-	reference: 'stack',
+	networkSlug: 'logos-testnet',
 }
 
 const quilibrium = {
-	namespace: NetworkNamespace.Quilibrium,
-	reference: 'mainnet',
+	networkSlug: 'quilibrium',
 }
 
 const near = {
-	namespace: NetworkNamespace.Near,
-	reference: 'mainnet',
+	networkSlug: 'near',
 }
 
 const monero = {
-	namespace: NetworkNamespace.Monero,
-	reference: '418015bb9ae982a1975da7d79277c270',
+	caip2: {
+		namespace: 'monero',
+		reference: '418015bb9ae982a1975da7d79277c270',
+	},
 }
 
 const litecoin = {
-	namespace: NetworkNamespace.Litecoin,
-	reference: '12a765e31ffd4059bada1e25190f6e98',
+	caip2: {
+		namespace: 'bip122',
+		reference: '12a765e31ffd4059bada1e25190f6e98',
+	},
 }
 
 const dogecoin = {
-	namespace: NetworkNamespace.Dogecoin,
-	reference: '1a91e3dace36e2be3bf030a65679fe82',
+	caip2: {
+		namespace: 'bip122',
+		reference: '1a91e3dace36e2be3bf030a65679fe82',
+	},
 }
 
 const bitcoinCash = {
-	namespace: NetworkNamespace.BitcoinCash,
-	reference: '000000000000000000651ef99cb9fcbe',
+	caip2: {
+		namespace: 'bip122',
+		reference: '000000000000000000651ef99cb9fcbe',
+	},
 }
 
 const zeroG = {
-	namespace: NetworkNamespace.ZeroG,
-	reference: 'mainnet',
+	networkSlug: '0g',
 }
 
 const actorMainnetVitalik = {
@@ -1295,7 +1315,7 @@ export const resolveProbeEntityId = async (
 			blockscoutRestV2AtExplorerOrigin,
 		} = await import('$/sources/Blockscout/Rest/constants.ts')
 		const { getBlockscoutStats } = await import('$/sources/Blockscout/Rest/queries.ts')
-		const origin = blockscoutExplorerOriginForChain(mainnet.chainId)
+		const origin = blockscoutExplorerOriginForChain(mainnetChainId)
 		if (
 			origin == null
 			|| !blockscoutRestV2AtExplorerOrigin(origin)

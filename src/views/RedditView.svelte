@@ -181,25 +181,14 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.RedditNetwork}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				sectionIdPrefix={networkIdKey}
 				sections={[
 					{ id: 'subreddits', label: 'Subreddits' },
 					{ id: 'links', label: 'Popular submissions' },
 				]}
 				id={`${networkIdKey}:registry`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -216,6 +205,7 @@
 
 				{#snippet SectionSubreddits({ id, label })}
 					<RedditSubredditsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/reddit/subreddits')}
 						entityFieldReference={{
 							entityType: EntityType.RedditNetwork,
@@ -229,6 +219,7 @@
 
 				{#snippet SectionLinks({ id, label })}
 					<RedditLinksView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/reddit/links')}
 						entityFieldReference={{
 							entityType: EntityType.RedditNetwork,
@@ -240,7 +231,6 @@
 						title="Popular submissions"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

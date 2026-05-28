@@ -1,5 +1,5 @@
 import type { EvmTraceTree } from '$/schema/EvmTrace.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
+import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
 
 
 export type RawCallTraceWire = {
@@ -16,7 +16,7 @@ export type RawCallTraceWire = {
 }
 
 const narrowRawCallTraceWire = (raw: JsonValue): RawCallTraceWire | null => (
-	raw == null || typeof raw !== 'object' || Array.isArray(raw) ?
+	!isJsonObject(raw) ?
 		null
 	:	(() => {
 			const callsRaw = raw['calls']

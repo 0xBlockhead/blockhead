@@ -1,48 +1,15 @@
 import {
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import type { ZeroGStorageScanTransaction } from '$/sources/ZeroG/StorageScan/Rest/types.ts'
 
-const assertZeroGMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.ZeroG || network.reference !== 'mainnet') {
-		throw new Error(`ZeroGStorageScan_Rest: unsupported network ${network.namespace}:${network.reference}`)
+const assertZeroGMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
+	if (!('networkSlug' in network) || network.networkSlug !== '0g') {
+		throw new Error('ZeroGStorageScan_Rest: unsupported network')
 	}
 }
-
-const storageLogEntryIdFromTransaction = (
-	transaction: ZeroGStorageScanTransaction,
-) => transaction.txSeq.toString()
-
-const storageLogEntryFromTransaction = (
-	network: {
-		namespace: string
-		reference: string
-	},
-	transaction: ZeroGStorageScanTransaction,
-) => ({
-	[EntityMetaKey.Id]: {
-		$network: network,
-		logEntryId: storageLogEntryIdFromTransaction(transaction),
-	},
-	$dataBlob: {
-		[EntityMetaKey.Id]: {
-			$network: network,
-			dataRoot: transaction.rootHash,
-		},
-	},
-	$consensusNetwork: {
-		[EntityMetaKey.Id]: {
-			$network: network,
-			consensusNetworkId: network.reference,
-		},
-	},
-	sequenceNumber: BigInt(transaction.txSeq),
-	commitment: transaction.rootHash,
-})
 
 export default {
 	source: Source.ZeroGStorageScan_Rest,
@@ -63,14 +30,30 @@ export default {
 					$consensusNetwork: {
 						[EntityMetaKey.Id]: {
 							$network: entityId.$network,
-							consensusNetworkId: entityId.$network.reference,
+							consensusNetworkId: 'networkSlug' in entityId.$network ? entityId.$network.networkSlug : entityId.$network.caip2.reference,
 						},
 					},
 					sizeBytes: BigInt(transaction.dataSize),
-					$storageLogEntry: storageLogEntryFromTransaction(
-						entityId.$network,
-						transaction,
-					),
+					$storageLogEntry: {
+						[EntityMetaKey.Id]: {
+							$network: entityId.$network,
+							logEntryId: transaction.txSeq.toString(),
+						},
+						$dataBlob: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								dataRoot: transaction.rootHash,
+							},
+						},
+						$consensusNetwork: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								consensusNetworkId: 'networkSlug' in entityId.$network ? entityId.$network.networkSlug : entityId.$network.caip2.reference,
+							},
+						},
+						sequenceNumber: BigInt(transaction.txSeq),
+						commitment: transaction.rootHash,
+					},
 				}
 			},
 		}),
@@ -80,12 +63,29 @@ export default {
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId.$network)
 				const { getStorageTransaction } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
-				return storageLogEntryFromTransaction(
-					entityId.$network,
-					await getStorageTransaction({
-						txSeq: entityId.logEntryId,
-					}),
-				)
+				const transaction = await getStorageTransaction({
+					txSeq: entityId.logEntryId,
+				})
+				return {
+					[EntityMetaKey.Id]: {
+						$network: entityId.$network,
+						logEntryId: transaction.txSeq.toString(),
+					},
+					$dataBlob: {
+						[EntityMetaKey.Id]: {
+							$network: entityId.$network,
+							dataRoot: transaction.rootHash,
+						},
+					},
+					$consensusNetwork: {
+						[EntityMetaKey.Id]: {
+							$network: entityId.$network,
+							consensusNetworkId: 'networkSlug' in entityId.$network ? entityId.$network.networkSlug : entityId.$network.caip2.reference,
+						},
+					},
+					sequenceNumber: BigInt(transaction.txSeq),
+					commitment: transaction.rootHash,
+				}
 			},
 		}),
 	],

@@ -219,25 +219,14 @@
 		open: _open,
 	})}
 		{@const networkIdKey = stringify(entityId)}
-		<EntityDetails
-			entityType={EntityType.FarcasterNetwork}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-discovery`}
 				sectionIdPrefix={networkIdKey}
 				sections={[
 					{ id: 'feeds', label: 'Feeds' },
 					{ id: 'trending', label: 'Trending casts' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _open })}
 					<header
@@ -252,8 +241,8 @@
 
 				{#snippet SectionFeeds({ id, label })}
 					<FarcasterFeedsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/farcaster/feed')}
-						collapsible={false}
 						entityFieldReference={{
 							entityType: EntityType.FarcasterNetwork,
 							entityId: { scope: 'FarcasterNetwork' },
@@ -267,6 +256,7 @@
 
 				{#snippet SectionTrending({ id, label })}
 					<FarcasterCastsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/farcaster/feed/trending')}
 						entityFieldReference={{
 							entityType: EntityType.FarcasterFeed,
@@ -279,16 +269,16 @@
 						title="Trending casts"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
+		</CollapsibleTabs>
 
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-community`}
 				sectionIdPrefix={networkIdKey}
 				sections={[
 					{ id: 'channels', label: 'Channels' },
 					{ id: 'users', label: 'Users' },
 				]}
-				{...{ 'data-card': '' }}
+				data-card
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
 				{#snippet Summary({ open: _open })}
@@ -304,6 +294,7 @@
 
 				{#snippet SectionChannels({ id, label })}
 					<FarcasterChannelsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/farcaster/channels')}
 						entityFieldReference={{
 							entityType: EntityType.FarcasterNetwork,
@@ -317,6 +308,7 @@
 
 				{#snippet SectionUsers({ id, label })}
 					<FarcasterUsersView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/farcaster/users')}
 						entityFieldReference={{
 							entityType: EntityType.FarcasterNetwork,
@@ -327,15 +319,15 @@
 						open={_open}
 					/>
 				{/snippet}
-			</CollapsibleTabs>
+		</CollapsibleTabs>
 
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-accounts`}
 				sectionIdPrefix={networkIdKey}
 				sections={[
 					{ id: 'accounts', label: 'Connected accounts' },
 				]}
-				{...{ 'data-card': '' }}
+				data-card
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
 				{#snippet Summary({ open: _open })}
@@ -351,6 +343,7 @@
 
 				{#snippet SectionAccounts({ id, label })}
 					<BlockheadFarcasterAccountConnectionsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/farcaster/accounts')}
 						entityFieldReference={{
 							entityType: EntityType._Global,
@@ -361,8 +354,7 @@
 						open={_open}
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

@@ -30,54 +30,54 @@
 		{#snippet children({ open: hubOpen,
 		})}
 			<CollapsibleTabs
-				id={`${hubKey}:hub`}
-				sectionIdPrefix={hubKey}
-				sections={[
-					{ id: 'rooms', label: 'Rooms' },
-					{ id: 'contacts', label: 'Contacts' },
-				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-					style: '--carousel-basis: 40ch',
-				}}
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>
-							Multiplayer
-						</HeadingComponent>
-					</header>
-				{/snippet}
+					id={`${hubKey}:hub`}
+					sectionIdPrefix={hubKey}
+					sections={[
+						{ id: 'rooms', label: 'Rooms' },
+						{ id: 'contacts', label: 'Contacts' },
+					]}
+					data-card
+					scrollContainerProps={{
+						'data-row': 'start align-start',
+						style: '--carousel-basis: 40ch',
+					}}
+				>
+					{#snippet Summary({ open: _summaryOpen })}
+						<header
+							data-row-item="flexible"
+							data-row="wrap gap-4"
+						>
+							<HeadingComponent>
+								Multiplayer
+							</HeadingComponent>
+						</header>
+					{/snippet}
 
-				{#snippet SectionRooms({ id, label })}
-					<BlockheadRoomsView
-						href={resolve('/~/multiplayer/rooms')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							entityId: {},
-							fieldName: '$$blockheadRooms',
-						}}
-						id="rooms"
-						open={hubOpen}
-					/>
-				{/snippet}
+					{#snippet SectionRooms({ id, label })}
+						<BlockheadRoomsView
+							href={resolve('/~/multiplayer/rooms')}
+							entityFieldReference={{
+								entityType: EntityType._Global,
+								entityId: {},
+								fieldName: '$$blockheadRooms',
+							}}
+							id="rooms"
+							open={hubOpen}
+						/>
+					{/snippet}
 
-				{#snippet SectionContacts({ id, label })}
-					<BlockheadRoomPeersView
-						href={resolve('/~/multiplayer/contacts')}
-						entityFieldReference={{
-							entityType: EntityType._Global,
-							entityId: {},
-							fieldName: '$$blockheadRoomPeers',
-						}}
-						id="contacts"
-						open={hubOpen}
-					/>
-				{/snippet}
+					{#snippet SectionContacts({ id, label })}
+						<BlockheadRoomPeersView
+							href={resolve('/~/multiplayer/contacts')}
+							entityFieldReference={{
+								entityType: EntityType._Global,
+								entityId: {},
+								fieldName: '$$blockheadRoomPeers',
+							}}
+							id="contacts"
+							open={hubOpen}
+						/>
+					{/snippet}
 			</CollapsibleTabs>
 		{/snippet}
 	</GlobalView>

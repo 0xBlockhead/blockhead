@@ -102,6 +102,8 @@ import UtxoBlockSchema from '$/schema/UtxoBlock.ts'
 import UtxoTransactionSchema from '$/schema/UtxoTransaction.ts'
 import UtxoInputSchema from '$/schema/UtxoInput.ts'
 import UtxoOutputSchema from '$/schema/UtxoOutput.ts'
+import NearNetworkSchema from '$/schema/NearNetwork.ts'
+import SolanaNetworkSchema from '$/schema/SolanaNetwork.ts'
 import SolanaBlockSchema from '$/schema/SolanaBlock.ts'
 import SolanaTransactionSchema from '$/schema/SolanaTransaction.ts'
 import SolanaInstructionSchema from '$/schema/SolanaInstruction.ts'
@@ -347,6 +349,8 @@ export const schema = [
 	UtxoTransactionSchema,
 	UtxoInputSchema,
 	UtxoOutputSchema,
+	NearNetworkSchema,
+	SolanaNetworkSchema,
 	SolanaBlockSchema,
 	SolanaTransactionSchema,
 	SolanaInstructionSchema,

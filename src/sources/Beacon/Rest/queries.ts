@@ -182,6 +182,7 @@ export const getBeaconValidatorSummaryAtHead = async (
 const checkpointFromWire = (
 	checkpointWire: JsonValue | undefined,
 ): BeaconFinalityCheckpoints['finalized'] | undefined => {
+	if (checkpointWire == null) return undefined
 	if (!isJsonObject(checkpointWire)) return undefined
 	const epochRaw = checkpointWire.epoch
 	const rootRaw = checkpointWire.root

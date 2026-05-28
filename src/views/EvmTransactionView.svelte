@@ -1,10 +1,7 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
-
-
-	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -77,20 +74,31 @@
 			executionStatus: {},
 			gasUsed: {},
 			input: {},
-			...(open ?
-				{
-					nonce: {},
-					transactionIndex: {},
-					gas: {},
-					gasPrice: {},
-					maxFeePerGas: {},
-					maxPriorityFeePerGas: {},
-					effectiveGasPrice: {},
-					blobGasUsed: {},
-					maxFeePerBlobGas: {},
-				}
-			:
-				{}),
+			...(open && {
+				nonce: {},
+				transactionIndex: {},
+				gas: {},
+				gasPrice: {},
+				effectiveGasPrice: {},
+				$case: {
+					envelopeType: {
+						[EvmTransactionEnvelopeType.FeeMarket]: {
+							maxFeePerGas: {},
+							maxPriorityFeePerGas: {},
+						},
+						[EvmTransactionEnvelopeType.Blob]: {
+							maxFeePerGas: {},
+							maxPriorityFeePerGas: {},
+							blobGasUsed: {},
+							maxFeePerBlobGas: {},
+						},
+						[EvmTransactionEnvelopeType.SetCode]: {
+							maxFeePerGas: {},
+							maxPriorityFeePerGas: {},
+						},
+					},
+				},
+			}),
 		},
 	)
 
@@ -145,11 +153,11 @@
 			placeholderText="Loading transaction…"
 		>
 			{#snippet children(transaction)}
-					<dl data-column-item="center">
-						<div>
-							<dt>Kind</dt>
-							<dd>{evmTransactionKindByKind[transaction.kind]?.label ?? String(transaction.kind)}</dd>
-						</div>
+				<dl data-column-item="center">
+					<div>
+						<dt>Kind</dt>
+						<dd>{evmTransactionKindByKind[transaction.kind]?.label ?? String(transaction.kind)}</dd>
+					</div>
 
 					<div>
 						<dt>Value</dt>
@@ -162,11 +170,11 @@
 
 					<div>
 						<dt>Status</dt>
-							<dd>
-								{#if transaction.executionStatus !== undefined}
-									{evmTransactionExecutionStatusByExecutionStatus[transaction.executionStatus]?.label ?? String(transaction.executionStatus)}
-								{/if}
-							</dd>
+						<dd>
+							{#if transaction.executionStatus !== undefined}
+								{evmTransactionExecutionStatusByExecutionStatus[transaction.executionStatus]?.label ?? String(transaction.executionStatus)}
+							{/if}
+						</dd>
 					</div>
 
 					<div>
@@ -294,10 +302,14 @@
 
 					{#if contentOpen}
 						<div>
-							<dt>EIP-1559 max fee / priority (type 2)</dt>
+							<dt>EIP-1559 max fee / priority</dt>
 							<dd data-row="wrap align-center gap-2">
 								{#if (
-									transaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+									(
+										transaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+										|| transaction.envelopeType === EvmTransactionEnvelopeType.Blob
+										|| transaction.envelopeType === EvmTransactionEnvelopeType.SetCode
+									)
 									&& transaction.maxFeePerGas !== undefined
 								)}
 									<span>
@@ -306,7 +318,11 @@
 									</span>
 								{/if}
 								{#if (
-									transaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+									(
+										transaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+										|| transaction.envelopeType === EvmTransactionEnvelopeType.Blob
+										|| transaction.envelopeType === EvmTransactionEnvelopeType.SetCode
+									)
 									&& transaction.maxPriorityFeePerGas !== undefined
 								)}
 									<span>
@@ -315,7 +331,11 @@
 									</span>
 								{/if}
 								{#if (
-									transaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+									(
+										transaction.envelopeType === EvmTransactionEnvelopeType.FeeMarket
+										|| transaction.envelopeType === EvmTransactionEnvelopeType.Blob
+										|| transaction.envelopeType === EvmTransactionEnvelopeType.SetCode
+									)
 									&& transaction.maxFeePerGas === undefined
 									&& transaction.maxPriorityFeePerGas === undefined
 								)}
@@ -379,17 +399,8 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details(context)}
-		{@const _detailsOpen = context?.open ?? false}
-		<EntityDetails
-			entityType={EntityType.EvmTransaction}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+	{#snippet Details()}
+		<CollapsibleTabs
 				sectionIdPrefix={txIdKey}
 				sections={[
 					{ id: 'movements', label: 'Movements' },
@@ -400,13 +411,9 @@
 					{ id: 'user-operations', label: 'User operations' },
 				]}
 				id={`${txIdKey}:carousel-execution`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
-				{#snippet Summary(context)}
-					{@const _summaryOpen = context?.open ?? false}
+				{#snippet Summary()}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<Heading>Execution</Heading>
 					</header>
@@ -414,6 +421,7 @@
 
 				{#snippet SectionMovements({ id: _movementsId, label: _movementsLabel })}
 					<EvmAssetMovementsView
+						CollapsibleProps={{ canToggle: false }}
 						{entityId}
 						id={`${txIdKey}:movements`}
 						open={true}
@@ -440,13 +448,14 @@
 
 				{#snippet SectionEvents({ id: _eventsId, label: _eventsLabel })}
 					<EvmLogsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve(
 							'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 							{
-							...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
-							transactionId: entityId.txHash,
+								...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+								transactionId: entityId.txHash,
 							},
-	)}
+						)}
 						entityFieldReference={{
 							entityType: EntityType.EvmTransaction,
 							entityId,
@@ -502,17 +511,17 @@
 						{#snippet children(transaction)}
 							{#if transaction.envelopeType === EvmTransactionEnvelopeType.Blob}
 								<EvmBlobsView
+									CollapsibleProps={{ canToggle: false }}
 									entityFieldReference={{
 										entityType: EntityType.EvmTransaction,
 										entityId,
 										fieldName: '$$blobs',
 									}}
-									collapsible={false}
 									href={resolve(
 										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 										{
-										...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
-										transactionId: entityId.txHash,
+											...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+											transactionId: entityId.txHash,
 										},
 									)}
 									id={`${txIdKey}:blobs`}
@@ -527,19 +536,18 @@
 
 				{#snippet SectionUserOperations({ id: _userOpsId, label: _userOpsLabel })}
 					<EvmUserOperationsView
+						CollapsibleProps={{ canToggle: false }}
 						entityFieldReference={{
 							entityType: EntityType.EvmTransaction,
 							entityId,
 							fieldName: '$$userOperations',
 						}}
-						collapsible={false}
 						id={`${txIdKey}:user-operations`}
 						open={true}
 						showTypeAnnotation={false}
 						title="User operations"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

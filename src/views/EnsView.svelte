@@ -407,15 +407,7 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.EnsName}
-			{entityId}
-		/>
-		<div
-			class="ens-view-carousel-groups"
-			data-column="gap-3"
-		>
-			<ResourceBoundary resource={ens}>
+		<ResourceBoundary resource={ens}>
 			{#snippet children(ens)}
 				<CollapsibleTabs
 					id={`${ensNameIdKey}:carousel-profile`}
@@ -431,7 +423,7 @@
 						),
 						{ id: 'profile-records', label: 'Profile records' },
 					]}
-					{...{ 'data-card': '' }}
+					data-card
 					class="ens-view-collapsible-profile"
 					scrollContainerProps={entityViewDetailCarouselScrollProps}
 				>
@@ -460,6 +452,7 @@
 
 					{#snippet SectionProfileRecords({ id, label })}
 						<EnsNameTextRecordsView
+							CollapsibleProps={{ canToggle: false }}
 							entityId={entityId}
 							id={`${id}-list`}
 							recordKeys={[...ensProfileTextRecordKeys]}
@@ -477,7 +470,7 @@
 					{ id: 'registration-metadata', label: 'Metadata' },
 					...(ens.$registrantActor !== undefined || ens.$wrappedOwnerActor !== undefined ? [{ id: 'registration-accounts', label: 'Accounts' }] : []),
 				]}
-				{...{ 'data-card': '' }}
+				data-card
 				class="ens-view-collapsible-registration"
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
@@ -729,7 +722,7 @@
 					...(ens.coinAddresses !== undefined && Object.keys(ens.coinAddresses).length > 0 ? [{ id: 'records-coins', label: 'Coin addresses' }] : []),
 					...((ens.resolverTextKeys ?? []).length || (ens.resolverCoinTypes ?? []).length ? [{ id: 'records-indexer', label: 'Indexer' }] : []),
 				]}
-				{...{ 'data-card': '' }}
+				data-card
 				class="ens-view-collapsible-records"
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
@@ -741,6 +734,7 @@
 
 				{#snippet SectionRecordsText({ id, label })}
 					<EnsNameTextRecordsView
+						CollapsibleProps={{ canToggle: false }}
 						entityId={entityId}
 						excludeRecordKeys={[...ensProfileTextRecordKeys]}
 						id={`${id}-list`}
@@ -908,7 +902,7 @@
 					...(ens.$subgraphResolvedActor !== undefined ? [{ id: 'resolution-subgraph-addr', label: 'Subgraph addr' }] : []),
 					...(ens.$resolverContract !== undefined ? [{ id: 'resolution-resolver', label: 'Resolver' }] : []),
 				]}
-				{...{ 'data-card': '' }}
+				data-card
 				class="ens-view-collapsible-resolution"
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
@@ -952,8 +946,7 @@
 				{/snippet}
 			</CollapsibleTabs>
 		{/snippet}
-			</ResourceBoundary>
-		</div>
+		</ResourceBoundary>
 	{/snippet}
 </EntityView>
 

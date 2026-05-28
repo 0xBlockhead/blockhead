@@ -63,11 +63,11 @@ export const bskyGetAuthorFeed = async ({
 	bskyPublicXrpcGet<BskyAppViewGetAuthorFeedResponse>(
 		'/app.bsky.feed.getAuthorFeed',
 		{
-			actor,
-			limit,
-			includePins,
-			cursor: cursor == null || cursor === '' ? undefined : cursor,
-		},
+				actor,
+				limit,
+				includePins: includePins == null ? undefined : String(includePins),
+				cursor: cursor == null || cursor === '' ? undefined : cursor,
+			},
 	)
 )
 

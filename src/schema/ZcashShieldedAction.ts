@@ -3,6 +3,7 @@ import { type } from 'arktype'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
+	conditionalOn,
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
@@ -15,6 +16,15 @@ export enum ZcashShieldedActionKind {
 	Output = 'output',
 	Action = 'action',
 }
+
+const zcashShieldedActionDiscriminatorFields = [
+	{
+		name: 'actionKind',
+		type: EntityFieldType.Primitive,
+		primitiveType: type.valueOf(ZcashShieldedActionKind),
+		cardinality: EntityFieldCardinality.One,
+	},
+] as const satisfies readonly EntityFieldDefinition[]
 
 export default {
 	entityType: EntityType.ZcashShieldedAction,
@@ -36,23 +46,34 @@ export default {
 			entityType: EntityType.ZcashShieldedPool,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
-		{
-			name: 'actionKind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type.valueOf(ZcashShieldedActionKind),
-			cardinality: EntityFieldCardinality.One,
-		},
+		...zcashShieldedActionDiscriminatorFields,
 		{
 			name: 'nullifier',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				zcashShieldedActionDiscriminatorFields,
+				'actionKind',
+				[
+					ZcashShieldedActionKind.Spend,
+					ZcashShieldedActionKind.Action,
+				],
+			),
 		},
 		{
 			name: 'noteCommitment',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			when: conditionalOn(
+				zcashShieldedActionDiscriminatorFields,
+				'actionKind',
+				[
+					ZcashShieldedActionKind.Output,
+					ZcashShieldedActionKind.Action,
+				],
+			),
 		},
 		{
 			name: 'valueCommitment',

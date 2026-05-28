@@ -6,8 +6,6 @@ import {
 	extractFieldPath,
 	type Collection,
 	type OrderByCallback,
-	type OrderByDirection,
-	type OrderByOptions,
 	type Source,
 } from '@tanstack/svelte-db'
 
@@ -18,8 +16,16 @@ import {
 
 
 /** Same tuple shape TanStack’s fluent `.orderBy(callback, options?)` accepts — exported as steps for reuse on queries and arrays */
+type OrderByDirection = 'asc' | 'desc'
+type OrderByOptions = {
+	direction?: OrderByDirection
+	nulls?: 'first' | 'last'
+	stringSort?: 'locale' | 'binary'
+	locale?: string
+}
+
 export type OrderByStep<_Context> = readonly [
-	orderBy: OrderByCallback<_Context>,
+	orderBy: OrderByCallback<any>,
 	options?: OrderByDirection | OrderByOptions,
 ]
 
@@ -31,7 +37,7 @@ type BuilderWithInternalQuery = InstanceType<typeof BaseQueryBuilder> & {
 
 export const foldOrderBySteps = <
 	_Context,
-	QB extends BaseQueryBuilder<_Context>,
+	QB,
 >(
 	qb: QB,
 	steps: readonly OrderByStep<_Context>[],
@@ -41,10 +47,10 @@ export const foldOrderBySteps = <
 			step[1] === undefined ?
 				acc.orderBy(step[0])
 			:
-				acc.orderBy(step[0], step[1])
+				acc.orderBy(step[0], step[1] as any)
 		),
-		qb,
-	)
+		qb as any,
+	) as unknown as QB
 )
 
 /** Compile steps using the same builder IR TanStack uses internally (requires a real `from` source). */
@@ -52,7 +58,7 @@ export const orderByIrFromSteps = (
 	from: Source,
 	steps: DeclarativeOrderBy<any>,
 ): IR.OrderBy => {
-	let qb = new BaseQueryBuilder().from(from) as BuilderWithInternalQuery
+	let qb = new BaseQueryBuilder().from(from) as unknown as BuilderWithInternalQuery
 	qb = foldOrderBySteps(qb, steps)
 	return qb._getQuery().orderBy ?? []
 }
@@ -72,7 +78,7 @@ export const fingerprintOrderByIr = (
 					clause.compareOptions.direction,
 					clause.compareOptions.nulls,
 					clause.compareOptions.stringSort,
-					clause.compareOptions.locale,
+	'locale' in clause.compareOptions ? clause.compareOptions.locale : undefined,
 				]
 		)
 	})

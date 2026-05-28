@@ -9,7 +9,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import { networkFieldByName } from '$/schema/Network.ts'
+import { networkFields } from '$/schema/Network.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -33,10 +33,10 @@ export default {
 	}),
 
 	fields: [
-		networkFieldByName.slug,
-		networkFieldByName.name,
-		networkFieldByName.caip2,
-		networkFieldByName.namespace,
+		networkFields[0],
+		networkFields[1],
+		networkFields[2],
+		networkFields[3],
 		{
 			name: '$nativeCoin',
 			type: EntityFieldType.EntityReference,
@@ -92,12 +92,12 @@ export default {
 				Source.Lifi_Rest,
 			],
 		},
-		networkFieldByName.environment,
-		networkFieldByName.$parent,
-		networkFieldByName.layerNumber,
-		networkFieldByName.$mainnet,
-		networkFieldByName.$$testnets,
-		networkFieldByName.$$childLayers,
+		networkFields[4],
+		networkFields[5],
+		networkFields[6],
+		networkFields[7],
+		networkFields[8],
+		networkFields[9],
 		{
 			name: '$$siblingShardNetworks',
 			type: EntityFieldType.EntitiesReference,
@@ -158,7 +158,7 @@ export default {
 				Source.EthereumLists_Rest,
 			],
 		},
-		networkFieldByName.$icon,
+		networkFields[10],
 		{
 			name: '$$upgrades',
 			type: EntityFieldType.EntitiesReference,

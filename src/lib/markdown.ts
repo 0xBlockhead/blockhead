@@ -3,7 +3,7 @@
  * On parse error (e.g. unsupported token), normalize input and fall back to escaped plain text in <pre>.
  */
 
-import insane from 'insane'
+import insane, { type SanitizeOptions } from 'insane'
 import { starkdown } from 'starkdown'
 
 const escapeHtml = (s: string) => (
@@ -95,7 +95,7 @@ const syndicationHtmlSanitizerOptions = {
 			'alt',
 		],
 	},
-} as const
+} satisfies SanitizeOptions
 
 export const syndicationHtmlToSafeHtml = (
 	htmlText: string | null | undefined,

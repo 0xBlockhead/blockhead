@@ -56,6 +56,7 @@
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'href'
+			| 'CollapsibleProps'
 		>
 	> = $props()
 
@@ -117,12 +118,7 @@
 </script>
 
 
-<div
-	{id}
-	class="coins-view-carousel-groups entity-view-detail-carousels"
-	data-column="gap-3"
->
-				<EntitiesList
+<EntitiesList
 					{...EntitiesListProps}
 					bind:open
 					entityType={EntityType.Coin}
@@ -242,7 +238,7 @@
 			{ id: 'prices-spot', label: 'Spot quote index' },
 		]}
 		class="coins-view-collapsible-quotes"
-		{...{ 'data-card': '' }}
+		data-card
 		open={quotesOpen}
 		scrollContainerProps={{
 			'data-row': 'start align-start',
@@ -268,8 +264,8 @@
 				— point-in-time spot and index readings (not venue order books).
 			</p>
 			<MarketPricesView
+				CollapsibleProps={{ canToggle: false }}
 				href={resolve('/markets')}
-				collapsible={false}
 				entityFieldReference={{
 					entityType: EntityType._Global,
 					entityId: {},
@@ -289,7 +285,7 @@
 				{ id: 'ohlc-candles-preview', label: 'Candle index' },
 			]}
 			class="coins-view-collapsible-ohlc"
-			{...{ 'data-card': '' }}
+			data-card
 			open={ohlcOpen}
 			scrollContainerProps={{
 				'data-row': 'start align-start',
@@ -329,7 +325,7 @@
 					</Tooltip>
 				</div>
 				<Market_TimeInterval_TimestampsView
-					collapsible={false}
+					CollapsibleProps={{ canToggle: false }}
 					entityFieldReference={{
 						entityType: EntityType._Global,
 						entityId: {},
@@ -350,7 +346,7 @@
 				{ id: 'markets-index', label: 'Market index' },
 			]}
 			class="coins-view-collapsible-markets"
-			{...{ 'data-card': '' }}
+			data-card
 			open={marketsOpen}
 			scrollContainerProps={{
 				'data-row': 'start align-start',
@@ -399,8 +395,8 @@
 					</Tooltip>
 				</div>
 				<MarketsView
+					CollapsibleProps={{ canToggle: false }}
 					href={resolve('/markets')}
-					collapsible={false}
 					entityFieldReference={{
 						entityType: EntityType._Global,
 						entityId: {},
@@ -420,7 +416,7 @@
 			{ id: 'deployments-eth', label: 'Sample deployments' },
 		]}
 		class="coins-view-collapsible-deployments"
-		{...{ 'data-card': '' }}
+		data-card
 		open={deploymentsOpen}
 		scrollContainerProps={{
 			'data-row': 'start align-start',
@@ -448,8 +444,8 @@
 				<a href={resolve('/coin/ETH')}>ETH</a>:
 			</p>
 			<EvmCoinInstancesView
+				CollapsibleProps={{ canToggle: false }}
 				href={resolve('/coins')}
-				collapsible={false}
 				entityFieldReference={{
 					entityType: EntityType.Coin,
 					entityId: { coinId: CoinId.ETH },
@@ -461,7 +457,6 @@
 			/>
 		{/snippet}
 	</CollapsibleTabs>
-</div>
 
 
 <style>

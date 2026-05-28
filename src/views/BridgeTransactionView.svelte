@@ -139,9 +139,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _open })}
-		<EntityDetails
-			entityType={EntityType.BridgeTransaction}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

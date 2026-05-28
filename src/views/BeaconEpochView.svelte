@@ -166,24 +166,13 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.BeaconEpoch}
-			{entityId}
-		/>
-		<div
-			class="beacon-epoch-view-carousel-groups"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${epochIdKey}:carousel-slots`}
 				sectionIdPrefix={epochIdKey}
 				sections={[
 					{ id: 'beacon-slots', label: 'Slots' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _isOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
@@ -193,6 +182,7 @@
 
 				{#snippet SectionBeaconSlots()}
 					<BeaconSlotsView
+						CollapsibleProps={{ canToggle: false }}
 						entityFieldReference={{
 							entityType: EntityType.BeaconEpoch,
 							entityId,
@@ -201,8 +191,7 @@
 						title="Slots"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

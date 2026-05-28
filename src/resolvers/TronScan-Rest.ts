@@ -3,7 +3,6 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { TronTokenStandard } from '$/schema/TronToken.ts'
@@ -18,9 +17,11 @@ import type {
 
 const tronScanRestBaseUrl = 'https://apilist.tronscanapi.com'
 
-const assertTronMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Tron || network.reference !== '0x2b6653dc') {
-		throw new Error(`TronScan_Rest: unsupported network ${network.namespace}:${network.reference}`)
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+
+const assertTronMainnet = (network: NetworkId) => {
+	if (!('networkSlug' in network) || network.networkSlug !== 'tron') {
+		throw new Error('TronScan_Rest: unsupported network')
 	}
 }
 
@@ -47,10 +48,7 @@ const tokenStandardFromWire = (value: string | undefined): TronTokenStandard | u
 }
 
 const accountReference = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: NetworkId,
 	address: string,
 ) => ({
 	[EntityMetaKey.Id]: {
@@ -60,10 +58,7 @@ const accountReference = (
 })
 
 const blockFieldsFromTronScanBlock = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: NetworkId,
 	block: TronScanBlock,
 ) => ({
 	hash: block.hash,
@@ -85,10 +80,7 @@ const blockFieldsFromTronScanBlock = (
 })
 
 const transactionFieldsFromTronScanTransaction = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: NetworkId,
 	transaction: TronScanTransaction,
 ) => {
 	const blockHeight = transaction.block ?? transaction.blockNumber
@@ -136,10 +128,7 @@ const tokenIdFromTronScanToken = (token: TronScanToken): string | undefined => (
 )
 
 const tokenFieldsFromTronScanToken = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: NetworkId,
 	token: TronScanToken,
 ) => {
 	const tokenId = tokenIdFromTronScanToken(token)
@@ -170,10 +159,7 @@ const tokenFieldsFromTronScanToken = (
 }
 
 const contractFieldsFromTronScanContract = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: NetworkId,
 	contractAddress: string,
 	contract: TronScanContract,
 ) => ({
@@ -231,10 +217,7 @@ const contractFieldsFromTronScanContract = (
 })
 
 const tokenTransferFieldsFromTronScanTransfer = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: NetworkId,
 	transfer: TronScanTrc20Transfer,
 	transferIndex: number,
 ) => {

@@ -11,6 +11,46 @@ import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import { tradingViewMarketByCoinId } from '$/sources/TradingView/Rest/constants.ts'
 
 
+type CatalogCoinCurrencyMarketId = {
+	$base: {
+		kind: MarketAssetKind.Coin
+		$coin: { coinId: CoinId }
+	}
+	$quote: {
+		kind: MarketAssetKind.Currency
+		$currency: { iso4217: Iso4217 }
+	}
+	$marketVenue: { marketVenueId: MarketVenueId }
+	marketKind: MarketKind.Spot
+}
+
+type CatalogCoinCoinMarketId = {
+	$base: {
+		kind: MarketAssetKind.Coin
+		$coin: { coinId: CoinId }
+	}
+	$quote: {
+		kind: MarketAssetKind.Coin
+		$coin: { coinId: CoinId }
+	}
+	$marketVenue: { marketVenueId: MarketVenueId }
+	marketKind: MarketKind.Spot
+}
+
+type CatalogCurrencyCurrencyMarketId = {
+	$base: {
+		kind: MarketAssetKind.Currency
+		$currency: { iso4217: Iso4217 }
+	}
+	$quote: {
+		kind: MarketAssetKind.Currency
+		$currency: { iso4217: Iso4217 }
+	}
+	$marketVenue: { marketVenueId: MarketVenueId }
+	marketKind: MarketKind.Spot
+}
+
+
 /** Venue for catalog fiat-major / USD crosses (e.g. EUR/USD). */
 export const catalogFiatUsdCrossMarketVenueId = MarketVenueId.Coinbase
 
@@ -41,10 +81,10 @@ export const catalogCoinSpotUsdMarkets = coins.map((coin) => {
 		marketVenueId,
 		marketId,
 	}
-}) as const satisfies readonly {
-	coinId: string
+}) satisfies readonly {
+	coinId: CoinId
 	marketVenueId: MarketVenueId
-	marketId: MarketIdLabelInput
+	marketId: CatalogCoinCurrencyMarketId
 }[]
 
 export const catalogSpotMarketsWithCoinAsQuote = coins.flatMap((quoteCoin) => (
@@ -77,11 +117,11 @@ export const catalogSpotMarketsWithCoinAsQuote = coins.flatMap((quoteCoin) => (
 			} satisfies MarketIdLabelInput,
 		}]
 	))
-)) as const satisfies readonly {
-	quoteCoinId: string
-	baseCoinId: string
+)) satisfies readonly {
+	quoteCoinId: CoinId
+	baseCoinId: CoinId
 	marketVenueId: MarketVenueId
-	marketId: MarketIdLabelInput
+	marketId: CatalogCoinCoinMarketId
 }[]
 
 export const catalogSpotMarketsWithCurrencyAsQuote = coins.map((coin) => {
@@ -108,10 +148,10 @@ export const catalogSpotMarketsWithCurrencyAsQuote = coins.map((coin) => {
 			marketKind: MarketKind.Spot,
 		} satisfies MarketIdLabelInput,
 	}
-}) as const satisfies readonly {
-	baseCoinId: string
+}) satisfies readonly {
+	baseCoinId: CoinId
 	marketVenueId: MarketVenueId
-	marketId: MarketIdLabelInput
+	marketId: CatalogCoinCurrencyMarketId
 }[]
 
 export const catalogSpotMarketsWithCurrencyAsBase = iso4217WithCatalogUsdCrossAsBase.map((iso4217) => ({
@@ -130,9 +170,9 @@ export const catalogSpotMarketsWithCurrencyAsBase = iso4217WithCatalogUsdCrossAs
 		},
 		marketKind: MarketKind.Spot,
 	} satisfies MarketIdLabelInput,
-})) as const satisfies readonly {
+})) satisfies readonly {
 	iso4217: Iso4217
-	marketId: MarketIdLabelInput
+	marketId: CatalogCurrencyCurrencyMarketId
 }[]
 
 

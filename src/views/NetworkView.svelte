@@ -5,25 +5,13 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { caip2RouteParams } from '$/lib/caip.ts'
 	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityId,
-		href = (
-			'networkSlug' in entityId ?
-				resolve(
-					'/(explore)/network/[networkSlug]',
-					{ networkSlug: entityId.networkSlug },
-				)
-			:
-				resolve(
-					'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-					{ ...caip2RouteParams(entityId) },
-				)
-		),
+		href,
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(layout === EntityLayout.SummaryDetails),
 	}: {
@@ -45,6 +33,8 @@
 				Source.Constants_Internal,
 			],
 			name: {},
+			slug: {},
+			caip2: {},
 			namespace: {},
 			environment: {},
 		},
@@ -75,115 +65,127 @@
 	resource={network}
 >
 	{#snippet children(row)}
-		{#if row.namespace === NetworkNamespace.Evm && 'caip2' in entityId}
+		{@const networkHref = href ?? (
+			row.caip2 == null ?
+				resolve(`/network/${encodeURIComponent(row.slug)}`)
+			:
+				resolve(`/network/${encodeURIComponent(row.caip2.namespace)}:${encodeURIComponent(row.caip2.reference)}`)
+		)}
+		{@const networkEntityId = row.caip2 == null ? { networkSlug: row.slug } : { caip2: row.caip2 }}
+		{#if row.namespace === NetworkNamespace.Evm && row.caip2 != null}
 			<EvmNetworkView
 				entityId={{
 					caip2: {
 						namespace: 'eip155',
-						reference: entityId.caip2.reference,
+						reference: row.caip2.reference,
 					},
 				}}
-				{href}
+				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if row.namespace === NetworkNamespace.Bitcoin || row.namespace === NetworkNamespace.BitcoinCash || row.namespace === NetworkNamespace.Litecoin || row.namespace === NetworkNamespace.Dogecoin || row.namespace === NetworkNamespace.Zcash}
 			<UtxoNetworkView
-				{entityId}
-				{href}
+				entityId={networkEntityId}
+				href={networkHref}
 				bind:open
 				{layout}
 			/>
-		{:else if row.namespace === NetworkNamespace.Solana}
+		{:else if row.namespace === NetworkNamespace.Solana && row.caip2 != null}
 			<SolanaNetworkView
-				{entityId}
-				{href}
+				entityId={{
+					caip2: {
+						namespace: 'solana',
+						reference: row.caip2.reference,
+					},
+				}}
+				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if row.namespace === NetworkNamespace.Cosmos}
 			<CosmosNetworkView
-				{entityId}
-				{href}
+				entityId={networkEntityId}
+				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if row.namespace === NetworkNamespace.Filecoin}
 			<FilecoinNetworkView
-				{entityId}
-				{href}
+				entityId={networkEntityId}
+				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if row.namespace === NetworkNamespace.Polkadot}
 			<PolkadotNetworkView
-				{entityId}
-				{href}
+				entityId={networkEntityId}
+				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if row.namespace === NetworkNamespace.Monero}
 			<MoneroNetworkView
-				{entityId}
-				{href}
+				entityId={networkEntityId}
+				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if row.namespace === NetworkNamespace.Near}
 			<NearNetworkView
-				{entityId}
-				{href}
+				entityId={{ networkSlug: 'near' }}
+				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if row.namespace === NetworkNamespace.Tron}
 			<TronNetworkView
-				{entityId}
-				{href}
+				entityId={networkEntityId}
+				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if row.namespace === NetworkNamespace.Hyperliquid}
 			<HyperliquidNetworkView
-				{entityId}
-				{href}
+				entityId={networkEntityId}
+				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if row.namespace === NetworkNamespace.Lightning}
 			<LightningNetworkView
 				entityId={{
-					$network: entityId,
+					$network: networkEntityId,
 				}}
 				bind:open
 				{layout}
 			/>
 		{:else if row.namespace === NetworkNamespace.ZeroG}
 			<ZeroGNetworkView
-				{entityId}
-				{href}
+				entityId={networkEntityId}
+				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if row.namespace === NetworkNamespace.Logos}
 			<LogosNetworkView
-				{entityId}
-				{href}
+				entityId={networkEntityId}
+				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else if row.namespace === NetworkNamespace.Quilibrium}
 			<QuillibriumNetworkView
-				{entityId}
-				{href}
+				entityId={networkEntityId}
+				href={networkHref}
 				bind:open
 				{layout}
 			/>
 		{:else}
 			<EntityView
 				entityType={EntityType.Network}
-				{entityId}
-				{href}
+				entityId={networkEntityId}
+				href={networkHref}
 				bind:open
 				{layout}
 			>
@@ -202,11 +204,11 @@
 							<dd>{row.slug}</dd>
 						</div>
 
-						{#if 'caip2' in entityId}
+						{#if row.caip2 != null}
 							<div>
 								<dt>CAIP-2</dt>
 								<dd>
-									{entityId.caip2.namespace}:{entityId.caip2.reference}
+									{row.caip2.namespace}:{row.caip2.reference}
 								</dd>
 							</div>
 						{/if}

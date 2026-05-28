@@ -13,13 +13,13 @@ import {
 import { Iso4217 } from '$/constants/Currency.ts'
 import {
 	catalogCoinUsdMarketIdByCoinId,
-	catalogMarketsWithCoinAsQuoteByQuoteCoinId,
-	catalogMarketsWithCurrencyAsBaseByIso4217,
+	catalogSpotMarketsWithCoinAsQuote,
+	catalogSpotMarketsWithCurrencyAsBase,
 	catalogMarketsWithCurrencyAsQuoteUsd,
 } from '$/constants/MarketCatalog.ts'
 import {
-	candleEntitiesFromOhlcWireRows,
-	candleEntityFromOhlcWireRow,
+	candlesFromOhlc,
+	candleFromOhlc,
 } from '$/lib/marketOhlcCandles.ts'
 import { stringify } from 'devalue'
 import { mediaFromUrl } from '$/lib/media.ts'
@@ -54,8 +54,8 @@ export default {
 
 				const decimals = decimalsByCoinId[entityId.coinId]
 				const logoMedia = mediaFromUrl(coin.logo, MediaType.Image)
-				const coinName = coin.name.trim()
-				const coinSymbol = coin.symbol.trim()
+				const coinName = coin.name?.trim() ?? ''
+				const coinSymbol = coin.symbol?.trim() ?? ''
 
 				return {
 					...(coinName !== '' && { name: coinName }),
@@ -74,6 +74,9 @@ export default {
 			resolve: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Coinpaprika_OpenApi: Market_Timestamp is spot-only')
+				}
+				if (entityId.$market.$base.kind !== MarketAssetKind.Coin) {
+					throw new Error('Market source: market base must be catalog coin')
 				}
 				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {
 					throw new Error('Coinpaprika_OpenApi: Market_Timestamp is catalog coin USD market only')
@@ -105,7 +108,7 @@ export default {
 				}
 
 				return {
-					price: BigInt(Math.round(price * 1e8)),
+					price: BigInt(Math.round((price ?? 0) * 1e8)),
 					transport: 'coinpaprika-usd-1e8',
 					...(coinpaprikaId !== undefined && { providerAssetId: coinpaprikaId }),
 				}
@@ -117,6 +120,9 @@ export default {
 			resolve: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
 					throw new Error('Coinpaprika_OpenApi: OHLC is spot-only')
+				}
+				if (entityId.$market.$base.kind !== MarketAssetKind.Coin) {
+					throw new Error('Market source: market base must be catalog coin')
 				}
 				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {
 					throw new Error('Coinpaprika_OpenApi: OHLC is catalog coin USD market only')
@@ -156,7 +162,7 @@ export default {
 				))
 				if (row == null) throw new Error('Coinpaprika_OpenApi: OHLC candle not found for timestamp')
 				return (
-					candleEntityFromOhlcWireRow(
+					candleFromOhlc(
 						entityId.$market,
 						entityId.timeInterval,
 						row,
@@ -300,7 +306,9 @@ export default {
 				}
 				const lim = resolverLoadSubsetRowLimit(context)
 				return (
-					catalogMarketsWithCoinAsQuoteByQuoteCoinId[entityId.coinId] ?? []
+					catalogSpotMarketsWithCoinAsQuote
+						.filter((catalogMarket) => catalogMarket.quoteCoinId === entityId.coinId)
+						.map((catalogMarket) => catalogMarket.marketId)
 						.filter((marketId) => (
 							idByCoinId[marketId.$base.$coin.coinId] != null
 						))
@@ -338,9 +346,11 @@ export default {
 			entityType: EntityType.Currency,
 			fieldName: '$$marketsWithCurrencyAsBase',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Currency>) => {
-				const markets = (catalogMarketsWithCurrencyAsBaseByIso4217[entityId.iso4217] ?? []).map((marketId) => ({
-						[EntityMetaKey.Id]: marketId,
-					}))
+				const markets = catalogSpotMarketsWithCurrencyAsBase
+						.filter((catalogMarket) => catalogMarket.iso4217 === entityId.iso4217)
+						.map((catalogMarket) => ({
+							[EntityMetaKey.Id]: catalogMarket.marketId,
+						}))
 				if (markets.length === 0) {
 					throw new Error(`Coinpaprika_OpenApi: no catalog markets with ${entityId.iso4217} as base`)
 				}
@@ -353,6 +363,9 @@ export default {
 			fieldName: '$$marketTimeIntervalTimestamps',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>, context) => {
 				if (entityId.marketKind !== MarketKind.Spot) {
+					return []
+				}
+				if (entityId.$base.kind !== MarketAssetKind.Coin) {
 					return []
 				}
 				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$base.$coin.coinId]) !== stringify(entityId)) {
@@ -392,7 +405,7 @@ export default {
 							})
 					)
 					candles.push(
-						...candleEntitiesFromOhlcWireRows(
+						...candlesFromOhlc(
 							entityId,
 							timeInterval,
 							rows,
@@ -410,6 +423,9 @@ export default {
 			fieldName: '$$quotes',
 			resolve: async (entityId, context) => {
 				if (entityId.$market.marketKind !== MarketKind.Spot) {
+					return []
+				}
+				if (entityId.$market.$base.kind !== MarketAssetKind.Coin) {
 					return []
 				}
 				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {

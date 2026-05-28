@@ -203,9 +203,5 @@
 	{/snippet}
 
 	{#snippet Details()}
-		<EntityDetails
-			entityType={EntityType.EvmNetwork_GasEstimate_Timestamp}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

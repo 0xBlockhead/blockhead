@@ -5,6 +5,7 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 
 
 	// State
@@ -34,9 +35,21 @@
 		{
 			actionKind: {},
 			...open && {
-				nullifier: {},
-				noteCommitment: {},
 				valueCommitment: {},
+				$case: {
+					actionKind: {
+						[ZcashShieldedActionKind.Spend]: {
+							nullifier: {},
+						},
+						[ZcashShieldedActionKind.Output]: {
+							noteCommitment: {},
+						},
+						[ZcashShieldedActionKind.Action]: {
+							nullifier: {},
+							noteCommitment: {},
+						},
+					},
+				},
 			},
 		},
 	)
@@ -78,14 +91,28 @@
 						</div>
 					{/if}
 
-					{#if open && zcashShieldedAction.nullifier != null}
+					{#if (
+						open
+						&& (
+							zcashShieldedAction.actionKind === ZcashShieldedActionKind.Spend
+							|| zcashShieldedAction.actionKind === ZcashShieldedActionKind.Action
+						)
+						&& zcashShieldedAction.nullifier != null
+					)}
 						<div>
 							<dt>Nullifier</dt>
 							<dd>{zcashShieldedAction.nullifier}</dd>
 						</div>
 					{/if}
 
-					{#if open && zcashShieldedAction.noteCommitment != null}
+					{#if (
+						open
+						&& (
+							zcashShieldedAction.actionKind === ZcashShieldedActionKind.Output
+							|| zcashShieldedAction.actionKind === ZcashShieldedActionKind.Action
+						)
+						&& zcashShieldedAction.noteCommitment != null
+					)}
 						<div>
 							<dt>Note Commitment</dt>
 							<dd>

@@ -2,7 +2,6 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
@@ -11,18 +10,17 @@ import { Source } from '$/sources/$Source.ts'
 
 const zcashdRpcUrl = 'http://127.0.0.1:8232'
 
-const assertZcashMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Zcash || network.reference !== '00040fe8ec8471911baa1db1266ea15') {
-		throw new Error(`Zcashd_JsonRpc: unsupported network ${network.namespace}:${network.reference}`)
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+
+const assertZcashMainnet = (network: NetworkId) => {
+	if (!('caip2' in network) || network.caip2.namespace !== 'bip122' || network.caip2.reference !== '00040fe8ec8471911baa1db1266ea15') {
+		throw new Error('Zcashd_JsonRpc: unsupported network')
 	}
 }
 
 const zcashShieldedActionRows = (
 	entityId: {
-		$network: {
-			namespace: string
-			reference: string
-		}
+		$network: NetworkId
 		txId: string
 	},
 	transaction: Awaited<ReturnType<typeof import('$/sources/Zcashd/JsonRpc/queries.ts')['getRawTransaction']>>,
@@ -82,10 +80,7 @@ const zcashShieldedActionRows = (
 ]
 
 const getTransaction = async (entityId: {
-	$network: {
-		namespace: string
-		reference: string
-	}
+	$network: NetworkId
 	txId: string
 }) => {
 	assertZcashMainnet(entityId.$network)

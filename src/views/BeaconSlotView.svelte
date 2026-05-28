@@ -279,9 +279,5 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.BeaconSlot}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

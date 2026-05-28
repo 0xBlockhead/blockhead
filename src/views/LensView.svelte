@@ -188,16 +188,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.LensNetwork}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels lens-network-detail-carousels"
-			data-column="gap-3"
-			data-carousel-basis="40ch"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-registry`}
 				sectionIdPrefix={networkIdKey}
 				sections={[
@@ -205,10 +196,7 @@
 					{ id: 'registry-posts', label: 'Publications' },
 					{ id: 'examples-list', label: 'Examples' },
 				] as const}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
@@ -223,6 +211,7 @@
 
 				{#snippet SectionRegistryAccounts()}
 					<LensAccountsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/lens/accounts')}
 						entityFieldReference={{
 							entityType: EntityType.LensNetwork,
@@ -236,6 +225,7 @@
 
 				{#snippet SectionRegistryPosts()}
 					<LensPostsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/lens/posts')}
 						entityFieldReference={{
 							entityType: EntityType.LensNetwork,
@@ -264,7 +254,6 @@
 						</li>
 					</ul>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

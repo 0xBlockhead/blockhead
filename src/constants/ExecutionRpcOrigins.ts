@@ -35,4 +35,4 @@ export const executionHttpRpcOrigins = (
 				)),
 			}
 		))
-) as const satisfies readonly SourceOrigin[]
+	) satisfies readonly SourceOrigin[]

@@ -15,6 +15,7 @@
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
+		canToggle = true,
 		ontoggle,
 		onclose,
 
@@ -27,9 +28,9 @@
 	}: WithRest<
 		{
 			open?: boolean
+			canToggle?: boolean
 			ontoggle?: (e: Event) => void
 			onclose?: (id?: string) => void
-
 			Annotation?: Snippet<[{
 				open?: boolean,
 			}]>
@@ -60,10 +61,25 @@
 		}
 		ontoggle?.(e)
 	}}
+	data-can-toggle={canToggle ? undefined : 'false'}
 	data-scroll-container="block snap-block"
 	{...detailsProps}
 >
-	<summary data-sticky>
+	<summary
+		data-sticky
+		onclick={(e) => {
+			if (!canToggle) {
+				e.preventDefault()
+				e.stopPropagation()
+			}
+		}}
+		onkeydown={(e) => {
+			if (!canToggle && (e.key === 'Enter' || e.key === ' ')) {
+				e.preventDefault()
+				e.stopPropagation()
+			}
+		}}
+	>
 		<div
 			data-row-item="flexible"
 			data-row="align-center wrap wrap-first-last"
@@ -95,7 +111,7 @@
 	{#if children && open}
 		<div
 			data-column-item="flexible"
-			data-column
+			data-column="gap-3"
 			data-sticky-container
 		>
 			{@render children({
@@ -104,3 +120,20 @@
 		</div>
 	{/if}
 </details>
+
+
+<style>
+	details[data-can-toggle='false'] {
+		> summary {
+			cursor: default;
+
+			&::after {
+				display: none;
+			}
+
+			&::-webkit-details-marker {
+				display: none;
+			}
+		}
+	}
+</style>

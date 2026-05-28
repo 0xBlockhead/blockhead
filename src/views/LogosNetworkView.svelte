@@ -45,8 +45,7 @@
 	{#snippet TypeAnnotationTooltip()}<p>Logos is modeled as a stack of zones and protocols rather than a single deployed public chain.</p>{/snippet}
 	{#snippet Content()}<LogosZoneView entityId={{ $network: entityId, zoneId: 'logos-stack' }} layout={EntityLayout.Value} />{/snippet}
 	{#snippet Details()}
-		<EntityDetails entityType={EntityType.Network} {entityId} />
-		<CollapsibleTabs id={`${networkIdKey}:carousel-logos`} sectionIdPrefix={networkIdKey} sections={[{ id: 'logos-zones', label: 'Zones' }, { id: 'logos-execution', label: 'Execution' }, { id: 'logos-consensus', label: 'Consensus' }]} {...{ 'data-card': '' }} scrollContainerProps={{ 'data-row': 'start align-start' }}>
+		<CollapsibleTabs id={`${networkIdKey}:carousel-logos`} sectionIdPrefix={networkIdKey} sections={[{ id: 'logos-zones', label: 'Zones' }, { id: 'logos-execution', label: 'Execution' }, { id: 'logos-consensus', label: 'Consensus' }]} data-card scrollContainerProps={{ 'data-row': 'start align-start' }}>
 			{#snippet Summary()}<header data-row-item="flexible" data-row="wrap gap-4"><HeadingComponent>Topology</HeadingComponent></header>{/snippet}
 			{#snippet SectionLogosZones()}<LogosZoneView entityId={{ $network: entityId, zoneId: 'logos-stack' }} layout={EntityLayout.SummaryDetails} />{/snippet}
 			{#snippet SectionLogosExecution()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl>{#if network.$$executionEnvironments.length > 0}<div><dt>Execution</dt><dd>{network.$$executionEnvironments.map((environment) => environment.label).join(', ')}</dd></div>{/if}<div><dt>Environment</dt><dd>{network.environment}</dd></div></dl>{/snippet}</ResourceBoundary>{/snippet}

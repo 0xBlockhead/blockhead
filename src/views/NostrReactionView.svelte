@@ -210,9 +210,5 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.NostrReaction}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

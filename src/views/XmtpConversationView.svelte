@@ -196,9 +196,5 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.XmtpConversation}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

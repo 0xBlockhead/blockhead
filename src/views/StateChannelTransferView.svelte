@@ -224,10 +224,6 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.StateChannelTransfer}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>
 

@@ -229,9 +229,5 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.NostrRelay}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

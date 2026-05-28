@@ -250,21 +250,14 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<div
-			class="entity-view-detail-carousels atproto-actor-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${idKey}:carousel-profile`}
 				sectionIdPrefix={idKey}
 				sections={[
 					{ id: 'profile-details', label: 'Lexicon identity' },
 					{ id: 'activity-posts', label: 'Posts' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _profileSummaryOpen })}
 					<header
@@ -278,10 +271,6 @@
 				{/snippet}
 
 				{#snippet SectionProfileDetails({ id: _id, label: _label })}
-					<EntityDetails
-						entityType={EntityType.AtprotoActor}
-						{entityId}
-					/>
 					<ResourceBoundary
 						resource={actor}
 						placeholderText="Loading profile…"
@@ -316,6 +305,7 @@
 
 				{#snippet SectionActivityPosts({ id: _id, label: _label })}
 					<AtprotoPostsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve(
 							'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
 							{ did: encodeURIComponent(entityId.did) },
@@ -330,8 +320,6 @@
 						title="Posts"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>
-

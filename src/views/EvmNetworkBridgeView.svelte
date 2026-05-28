@@ -134,9 +134,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.EvmNetworkBridge}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

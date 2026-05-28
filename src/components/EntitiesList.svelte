@@ -78,7 +78,7 @@
 		Empty,
 		body,
 		TypeAnnotationTooltip,
-		collapsible = true,
+		collapsible: _collapsible = true,
 		layout = EntitiesListLayout.Default,
 		showSummary = true,
 		panelStyle,
@@ -142,7 +142,7 @@
 	const emptyItems = new SvelteSet<number>()
 	const emptyPlaceholderKeys = new SvelteSet<number>()
 
-	if (collapsible === false) {
+	if (showSummary) {
 		incrementHeadingLevel()
 	}
 
@@ -319,16 +319,16 @@
 
 	{#if !showSummary}
 		{@render listColumnBody()}
-	{:else if collapsible}
+	{:else}
 		<Collapsible
 			bind:open
-				{...CollapsibleProps}
-				onclose={(_closeId) => {
-					if (!isInsidePage)
-						onNestedCollapsibleClose?.(id)
-					CollapsibleProps.onclose?.(_closeId)
-				}}
-			{...{ 'data-card': '' }}
+			{...CollapsibleProps}
+			onclose={(_closeId) => {
+				if (!isInsidePage)
+					onNestedCollapsibleClose?.(id)
+				CollapsibleProps.onclose?.(_closeId)
+			}}
+			data-card
 		>
 			{#snippet Summary({ open: _summaryOpen })}
 				{@render SummaryHeader()}
@@ -340,32 +340,6 @@
 
 			{@render listColumnBody()}
 		</Collapsible>
-	{:else}
-		<div
-			{...{ 'data-card': '' }}
-			data-scroll-container="block snap-block"
-			style={panelStyle}
-		>
-			<div data-sticky>
-				<div
-					data-row-item="flexible"
-					data-row="align-center wrap"
-				>
-					{@render SummaryHeader()}
-
-					<div data-row="wrap">
-						{@render SummaryAnnotation()}
-					</div>
-				</div>
-			</div>
-
-			<div
-				data-column
-				data-sticky-container
-			>
-				{@render listColumnBody()}
-			</div>
-		</div>
 	{/if}
 </article>
 

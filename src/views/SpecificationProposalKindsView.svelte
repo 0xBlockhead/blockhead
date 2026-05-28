@@ -14,6 +14,7 @@
 	type ProposalKindsEntitiesListForward = Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'id'
+			| 'CollapsibleProps'
 		>
 
 
@@ -254,7 +255,7 @@
 							id: 'kinds',
 							label: entityDefinitionByType[EntityType.SpecificationProposalKind].labelPlural,
 						}]}
-						{...{ 'data-card': '' }}
+						data-card
 						scrollContainerProps={collapsibleTabsPaneProps}
 					>
 						{#snippet Annotation({
@@ -301,8 +302,8 @@
 								{@const kind = row.result}
 								<section id={kindPanelDomId(kind)}>
 									<ProposalsView
+										CollapsibleProps={{ canToggle: false }}
 										href={resolve('/proposals')}
-										collapsible={false}
 										entityFieldReference={{
 											entityType: EntityType.SpecificationProposalKind,
 											entityId: {
@@ -321,7 +322,7 @@
 					</CollapsibleTabs>
 				{:else}
 					<div
-						{...{ 'data-card': '' }}
+						data-card
 						data-scroll-container="block snap-block"
 					>
 						<div data-sticky>

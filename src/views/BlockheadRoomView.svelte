@@ -159,10 +159,6 @@
 	{#snippet Details({
 		open: detailsOpen,
 	})}
-		<EntityDetails
-			entityType={EntityType.BlockheadRoom}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>
 

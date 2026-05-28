@@ -280,26 +280,14 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.EvmCoinInstance}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-			data-carousel-basis="40ch"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${coinInstanceKey}:carousel-bridging`}
 				sectionIdPrefix={coinInstanceKey}
 				sections={[
 					...((coinInstance.$$outboundBridgeCapabilities ?? []).length ? [{ id: 'bridge-outbound', label: 'Outbound' }] : []),
 					...((coinInstance.$$inboundBridgeCapabilities ?? []).length ? [{ id: 'bridge-inbound', label: 'Inbound' }] : []),
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _isOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
@@ -312,8 +300,8 @@
 				{#snippet SectionBridgeOutbound({ id, label })}
 					{#if (coinInstance.$$outboundBridgeCapabilities ?? []).length}
 						<CoinBridgeCapabilitiesView
+							CollapsibleProps={{ canToggle: false }}
 							href={resolve('/bridge')}
-							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.EvmCoinInstance,
 								entityId,
@@ -328,8 +316,8 @@
 				{#snippet SectionBridgeInbound({ id, label })}
 					{#if (coinInstance.$$inboundBridgeCapabilities ?? []).length}
 						<CoinBridgeCapabilitiesView
+							CollapsibleProps={{ canToggle: false }}
 							href={resolve('/bridge')}
-							collapsible={false}
 							entityFieldReference={{
 								entityType: EntityType.EvmCoinInstance,
 								entityId,
@@ -340,11 +328,10 @@
 						/>
 					{/if}
 				{/snippet}
-			</CollapsibleTabs>
+		</CollapsibleTabs>
 
-			{#if RouteContent}
-				{@render RouteContent()}
-			{/if}
-		</div>
+		{#if RouteContent}
+			{@render RouteContent()}
+		{/if}
 	{/snippet}
 </EntityView>

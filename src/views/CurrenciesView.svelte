@@ -30,11 +30,13 @@
 	}: WithRest<
 		{
 			title?: string
-			open?: boolean			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Currency>
+			open?: boolean
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Currency>
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'href'
+			| 'CollapsibleProps'
 		>
 	> = $props()
 

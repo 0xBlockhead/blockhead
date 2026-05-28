@@ -12,8 +12,8 @@ type CoinInstanceEntityId = EntityId<typeof schema, EntityType.EvmCoinInstance>
 
 type CoinBridgeCapabilityEntityId = EntityId<typeof schema, EntityType.CoinBridgeCapability>
 
-const bridgeToolsCatalogKeys: Set<string> = new Set(
-	Object.keys(bridgeToolByKey),
+const bridgeToolsCatalogKeys = new Set<string>(
+	Object.keys(bridgeToolByKey).map((key) => String(key)),
 )
 
 export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
@@ -24,7 +24,7 @@ export const coinBridgeCapabilityEntityRowsFromInstancesAndTools = (
 
 	for (const row of instanceIds) {
 		const instanceId = row[EntityMetaKey.Id]
-		const chainId = instanceId.$network.chainId
+		const chainId = Number(instanceId.$network.caip2.reference)
 		const current = instanceByChainId[chainId]
 		instanceByChainId[chainId] = (
 			current == null

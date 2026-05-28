@@ -3,7 +3,7 @@ import { expect, type Locator, type Page } from '@playwright/test'
 import { TransportType } from '$/constants/TransportType.ts'
 import { gatewayUrls as ipfsGatewayUrls } from '$/sources/Ipfs/Rest/constants.ts'
 import { gatewayUrls as swarmGatewayUrls } from '$/sources/Swarm/Rest/constants.ts'
-import { jsonRpcUrlWithTransportForChain } from '$/resolvers/Voltaire-JsonRpc.ts'
+import { jsonRpcUrlWithTransportForChain } from '$/sources/Evm/JsonRpc/client.ts'
 
 export { e2eBrowserNewContextOptions } from '../playwright.env.ts'
 

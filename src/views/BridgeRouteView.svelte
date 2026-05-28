@@ -295,10 +295,6 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.BridgeRoute}
-			{entityId}
-		/>
 	{/snippet}
 
 	{@render children?.()}

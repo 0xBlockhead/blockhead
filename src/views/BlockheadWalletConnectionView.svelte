@@ -204,10 +204,6 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.BlockheadWalletConnection}
-			{entityId}
-		/>
 		{#if error}
 			<p
 				role="alert"
@@ -216,22 +212,14 @@
 			</p>
 		{/if}
 
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-			data-carousel-basis="40ch"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${walletConnectionKey}:carousel-wallet`}
 				sectionIdPrefix={walletConnectionKey}
 				sections={[
 					{ id: 'wallet-accounts', label: 'Accounts' },
 					{ id: 'wallet-actions', label: 'Actions' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _isOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
@@ -284,8 +272,7 @@
 						</button>
 					</div>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>
 

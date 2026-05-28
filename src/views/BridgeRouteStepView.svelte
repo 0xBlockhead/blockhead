@@ -317,9 +317,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.BridgeRouteStep}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

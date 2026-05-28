@@ -3,7 +3,6 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannel.ts'
@@ -19,21 +18,21 @@ import type {
 const lightningMempoolSpaceRestBaseUrl = 'https://mempool.space/api/v1/lightning'
 
 const lightningNetwork = {
-	namespace: NetworkNamespace.Lightning,
-	reference: 'bitcoin-mainnet',
+	networkSlug: 'lightning',
 } as const
 
 const bitcoinMainnet = {
-	namespace: NetworkNamespace.Bip122,
-	reference: '000000000019d6689c085ae165831e93',
+	caip2: {
+		namespace: 'bip122',
+		reference: '000000000019d6689c085ae165831e93',
+	},
 } as const
 
-const assertLightningNetwork = (network: { namespace: string; reference: string }) => {
-	if (
-		network.namespace !== lightningNetwork.namespace
-		|| network.reference !== lightningNetwork.reference
-	) {
-		throw new Error(`LightningMempoolSpace_Rest: unsupported Lightning network ${network.namespace}:${network.reference}`)
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+
+const assertLightningNetwork = (network: NetworkId) => {
+	if (!('networkSlug' in network) || network.networkSlug !== lightningNetwork.networkSlug) {
+		throw new Error('LightningMempoolSpace_Rest: unsupported Lightning network')
 	}
 }
 

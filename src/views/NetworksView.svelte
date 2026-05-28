@@ -31,6 +31,7 @@
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'collapsible'
+			| 'CollapsibleProps'
 			| 'id'
 			| 'href'
 		>

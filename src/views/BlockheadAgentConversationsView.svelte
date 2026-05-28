@@ -27,11 +27,13 @@
 				EntityType.BlockheadAgentConversation
 			>
 			title?: string
-			open?: boolean			id?: string
+			open?: boolean
+			id?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'href'
+			| 'CollapsibleProps'
 		>
 	> = $props()
 

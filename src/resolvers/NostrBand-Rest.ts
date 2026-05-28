@@ -436,7 +436,7 @@ const eventFromJsonObject = (wire: JsonObject | undefined): NostrEvent | undefin
 		wire.tags == null ?
 			undefined
 		:	(
-				wire.tags
+				(wire.tags as readonly (readonly string[])[])
 					.flatMap((tag) => (
 						Array.isArray(tag) ?
 							[
@@ -461,8 +461,8 @@ const eventFromJsonObject = (wire: JsonObject | undefined): NostrEvent | undefin
 		created_at: wire.created_at,
 		kind: wire.kind,
 		tags,
-		content: wire.content,
-		sig: wire.sig,
+		content: wire.content ?? undefined,
+		sig: wire.sig ?? undefined,
 	}
 }
 

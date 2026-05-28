@@ -2,20 +2,20 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkEnvironment, NetworkNamespace } from '$/constants/Network.ts'
+import { NetworkEnvironment } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { CosmosChainRegistryAssetList } from '$/sources/CosmosChainRegistry/Github/types.ts'
 
-const assertCosmosRegistryNetwork = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Cosmos || network.reference !== 'cosmoshub-4') {
-		throw new Error(`CosmosChainRegistry_Github: unsupported network ${network.namespace}:${network.reference}`)
+const assertCosmosRegistryNetwork = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
+	if (!('caip2' in network) || network.caip2.namespace !== 'cosmos' || network.caip2.reference !== 'cosmoshub-4') {
+		throw new Error('CosmosChainRegistry_Github: unsupported network')
 	}
 }
 
-const chainNameForNetwork = (network: { namespace: string; reference: string }) => {
+const chainNameForNetwork = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	assertCosmosRegistryNetwork(network)
 	return 'cosmoshub'
 }
@@ -31,10 +31,7 @@ const assetInstanceFields = (asset: CosmosChainRegistryAssetList['assets'][numbe
 })
 
 const assetInstanceRows = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
 	assetList: CosmosChainRegistryAssetList,
 ) => (
 	assetList.assets

@@ -63,8 +63,9 @@ import LogosDocsRestResolvers from '$/resolvers/LogosDocs-Rest.ts'
 import LotusJsonRpcResolvers from '$/resolvers/Lotus-JsonRpc.ts'
 import MempoolSpaceRestResolvers from '$/resolvers/MempoolSpace-Rest.ts'
 import MoneroDaemonRpcJsonRpcResolvers from '$/resolvers/MoneroDaemonRpc-JsonRpc.ts'
-import NearRpcJsonRpcResolvers from '$/resolvers/NearRpc-JsonRpc.ts'
+import NearBlocksRestResolvers from '$/resolvers/NearBlocks-Rest.ts'
 import NearNepsGithubResolvers from '$/resolvers/NearNeps-Github.ts'
+import NearRpcJsonRpcResolvers from '$/resolvers/NearRpc-JsonRpc.ts'
 import NeynarRestResolvers from '$/resolvers/Neynar-Rest.ts'
 import NostrBandRestResolvers from '$/resolvers/NostrBand-Rest.ts'
 import OpenchainRestResolvers from '$/resolvers/Openchain-Rest.ts'
@@ -170,8 +171,9 @@ const enabledResolverModulesAfterSourceGate = (
 		LotusJsonRpcResolvers,
 		MempoolSpaceRestResolvers,
 		MoneroDaemonRpcJsonRpcResolvers,
-		NearRpcJsonRpcResolvers,
+		NearBlocksRestResolvers,
 		NearNepsGithubResolvers,
+		NearRpcJsonRpcResolvers,
 		NeynarRestResolvers,
 		NostrBandRestResolvers,
 		OpenchainRestResolvers,

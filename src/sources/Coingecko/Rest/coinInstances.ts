@@ -57,7 +57,7 @@ const lifiCoinKeyForInstance = (
 	instanceId: CoinInstanceEntityId,
 	lookup: ReadonlyMap<string, string>,
 ) => {
-	const chainId = instanceId.$network.chainId
+	const chainId = Number(instanceId.$network.caip2.reference)
 	const address = (
 		instanceId.type === CoinInstanceType.NativeCurrency ?
 			NATIVE_TOKEN_ADDRESS
@@ -91,10 +91,10 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 		seenKeys.add(key)
 		const symbolTrimmed = (coin.symbol ?? '').trim()
 		const lifiCoinKeyTrimmed = lifiCoinKeyForInstance(instanceId, lifiCoinKeyByAddress)?.trim()
-		const isNativeChain = (
-			nativeChainId != null
-			&& instanceId.$network.chainId === nativeChainId
-		)
+			const isNativeChain = (
+				nativeChainId != null
+				&& Number(instanceId.$network.caip2.reference) === nativeChainId
+			)
 		const representation = (
 			coinId === CoinId.USDC
 			&& lifiCoinKeyTrimmed != null
@@ -134,7 +134,7 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 
 	if (nativeChainId != null) {
 		pushRow({
-			$network: { chainId: nativeChainId },
+			$network: { caip2: { namespace: 'eip155', reference: String(nativeChainId) } },
 			type: CoinInstanceType.NativeCurrency,
 		})
 	}
@@ -146,13 +146,13 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 		const chainId = chainIdByPlatformId.get(platformId)
 		if (chainId == null) continue
 
-		pushRow({
-			$network: { chainId },
-			type: CoinInstanceType.Erc20Token,
-			$contract: {
-				$network: { chainId },
-				address: EvmAddress.assert(address.toLowerCase()),
-			},
+			pushRow({
+				$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
+				type: CoinInstanceType.Erc20Token,
+				$contract: {
+					$network: { caip2: { namespace: 'eip155', reference: String(chainId) } },
+					address: EvmAddress.assert(address.toLowerCase()),
+				},
 		})
 	}
 
@@ -265,10 +265,10 @@ export const resolveCanonicalCoinInstanceEntityId = async (
 	if (self == null) return undefined
 
 	if (self.representation === CoinInstanceRepresentation.BridgeWrapped) {
-		const issuerNative = rows.find((row) => (
-			row.representation === CoinInstanceRepresentation.IssuerNative
-			&& row[EntityMetaKey.Id].$network.chainId === 1
-		))
+			const issuerNative = rows.find((row) => (
+				row.representation === CoinInstanceRepresentation.IssuerNative
+				&& row[EntityMetaKey.Id].$network.caip2.reference === '1'
+			))
 		return issuerNative?.[EntityMetaKey.Id]
 	}
 

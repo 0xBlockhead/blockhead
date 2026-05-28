@@ -318,34 +318,14 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.YouTubeVideo}
-			{entityId}
-		>
-			<ResourceBoundary
-				resource={video}
-				placeholderText="Loading video…"
-			>
-				{#snippet children()}
-				{/snippet}
-			</ResourceBoundary>
-		</EntityDetails>
-
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${idKey}:carousel-video`}
 				sectionIdPrefix={idKey}
 				sections={[
 					{ id: 'description', label: 'Description' },
 					{ id: 'comments', label: 'Comment thread' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -392,6 +372,7 @@
 
 				{#snippet SectionComments({ id, label })}
 					<YouTubeCommentsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve(
 			'/(social)/(youtube)/youtube/video/[videoId]/(video)/comments',
 			{ videoId: encodeURIComponent(entityId.videoId) },
@@ -405,7 +386,6 @@
 						open={_open}
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

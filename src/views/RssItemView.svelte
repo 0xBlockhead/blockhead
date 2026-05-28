@@ -270,25 +270,14 @@
 		open: _open,
 	})}
 		{@const idKey = stringify(entityId)}
-		<EntityDetails
-			entityType={EntityType.RssItem}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${idKey}:carousel-item`}
 				sectionIdPrefix={idKey}
 				sections={[
 					{ id: 'description', label: 'Description' },
 					{ id: 'content', label: 'Content' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
@@ -334,8 +323,7 @@
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>
 

@@ -1,13 +1,14 @@
 import {
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const assertBitcoinCashMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.BitcoinCash || network.reference !== '000000000000000000651ef99cb9fcbe') {
-		throw new Error(`BitcoinCashBcmr_Github: unsupported network ${network.namespace}:${network.reference}`)
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+
+const assertBitcoinCashMainnet = (network: NetworkId) => {
+	if (!('caip2' in network) || network.caip2.namespace !== 'bip122' || network.caip2.reference !== '000000000000000000651ef99cb9fcbe') {
+		throw new Error('BitcoinCashBcmr_Github: unsupported network')
 	}
 }
 

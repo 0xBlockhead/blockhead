@@ -26,12 +26,14 @@
 				EntityType.BlockheadRoom
 			>
 			title?: string
-			open?: boolean			id: string
+			open?: boolean
+			id: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'id',
 			| 'href'
+			| 'CollapsibleProps'
 		>
 	> = $props()
 

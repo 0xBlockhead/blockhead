@@ -1,18 +1,17 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
-
-
-	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { evmTokenStandardByStandard } from '$/constants/Evm.ts'
+	import {
+		EvmTokenStandard,
+		evmTokenStandardByStandard,
+	} from '$/constants/Evm.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 
 
 	// Context
@@ -63,13 +62,22 @@
 			amount: {},
 			tokenSymbol: {},
 			...(open && {
-				tokenId: {},
 				tokenDecimals: {},
 				tokenName: {},
 				$from: {},
 				$to: {},
 				$tokenContract: {},
 				$coinInstance: {},
+				$case: {
+					standard: {
+						[EvmTokenStandard.Erc721]: {
+							tokenId: {},
+						},
+						[EvmTokenStandard.Erc1155]: {
+							tokenId: {},
+						},
+					},
+				},
 			}),
 		},
 	)
@@ -129,8 +137,8 @@
 									href={resolve(
 										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 										{
-										...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
-										transactionId: entityId.txHash,
+											...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+											transactionId: entityId.txHash,
 										},
 									)}
 								>
@@ -154,6 +162,21 @@
 							<NumberValue value={transfer.amount} />
 						</dd>
 					</div>
+
+					{#if (
+						(
+							transfer.standard === EvmTokenStandard.Erc721
+							|| transfer.standard === EvmTokenStandard.Erc1155
+						)
+						&& transfer.tokenId !== undefined
+					)}
+						<div>
+							<dt>Token ID</dt>
+							<dd>
+								<NumberValue value={transfer.tokenId} />
+							</dd>
+						</div>
+					{/if}
 
 					{#if transfer.$from?.[EntityMetaKey.Id].address !== undefined}
 						<div>
@@ -217,10 +240,6 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.EvmTokenTransfer}
-			{entityId}
-		/>
+	{#snippet Details()}
 	{/snippet}
 </EntityView>

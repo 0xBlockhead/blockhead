@@ -184,10 +184,6 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.SpecificationProposalKind}
-			{entityId}
-		/>
 		<ResourceBoundary
 			resource={kind}
 			placeholderText="Loading proposals…"

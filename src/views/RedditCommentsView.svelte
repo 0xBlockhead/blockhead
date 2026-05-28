@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -17,6 +18,7 @@
 		open = $bindable(true),
 		sortMode = 'api',
 		title = 'Top-level comments',
+		CollapsibleProps = {},
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.RedditComment>
 			id: string
@@ -24,6 +26,7 @@
 		open?: boolean
 		sortMode?: 'api' | 'createdAtAsc' | 'createdAtDesc'
 		title?: string
+		CollapsibleProps?: ComponentProps<typeof EntitiesList>['CollapsibleProps']
 	} = $props()
 
 
@@ -82,6 +85,7 @@
 
 <div data-column="gap-2">
 	<EntitiesList
+	{CollapsibleProps}
 		entityType={EntityType.RedditComment}
 	{id}
 		{title}

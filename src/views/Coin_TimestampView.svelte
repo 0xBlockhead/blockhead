@@ -208,9 +208,5 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.Coin_Timestamp}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

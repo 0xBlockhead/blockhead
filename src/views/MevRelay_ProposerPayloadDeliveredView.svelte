@@ -180,25 +180,13 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.MevRelay_ProposerPayloadDelivered}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-			data-carousel-basis="40ch"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${payloadIdKey}:carousel-payload`}
 				sectionIdPrefix={payloadIdKey}
 				sections={[
 					{ id: 'mev-included-block', label: 'Block' },
 				] as const}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _isOpen,
@@ -261,8 +249,7 @@
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

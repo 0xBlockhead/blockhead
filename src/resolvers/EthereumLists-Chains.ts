@@ -12,10 +12,8 @@ import {
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import type { Entity } from '$/schema/$schema.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
-import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/$Source.ts'
 import type {
@@ -240,7 +238,7 @@ const blockExplorerLikeFromExplorersAndInfoUrl = ({
 
 const urlEntitiesFromBlockExplorerCatalog = (
 	blockExplorers: ReturnType<typeof blockExplorerLikeFromExplorersAndInfoUrl>,
-): Entity<typeof schema, EntityType.Url>[] =>
+) =>
 	blockExplorers.flatMap((explorer) => {
 		if (explorer.origin === '') return []
 		const url = canonicalPublicHttpUrlFromCatalogString(explorer.origin)
@@ -256,25 +254,25 @@ const urlEntitiesFromBlockExplorerCatalog = (
 			const iconParsed = UrlString(catalogIconResolved)
 			if (!(iconParsed instanceof type.errors)) catalogIconAsUrlString = iconParsed
 		}
-		return [({
-			[EntityMetaKey.Id]: { url: hrefAsUrlString },
-			...(explorer.name != null && explorer.name !== '' && { catalogName: explorer.name }),
-			...(explorer.standard != null && explorer.standard !== '' && { catalogStandard: explorer.standard }),
-			...(catalogIconAsUrlString != null && { catalogIcon: catalogIconAsUrlString }),
-		}) satisfies Entity<typeof schema, EntityType.Url>]
-	})
+			return [{
+				[EntityMetaKey.Id]: { url: hrefAsUrlString },
+				...(explorer.name != null && explorer.name !== '' && { catalogName: explorer.name }),
+				...(explorer.standard != null && explorer.standard !== '' && { catalogStandard: explorer.standard }),
+				...(catalogIconAsUrlString != null && { catalogIcon: catalogIconAsUrlString }),
+			}]
+		})
 
 const urlEntitiesFromFaucetUrlStrings = (
 	faucetUrls: string[],
-): Entity<typeof schema, EntityType.Url>[] =>
+) =>
 	faucetUrls.flatMap((raw) => {
 		const trimmed = raw.trim()
 		if (trimmed === '') return []
 		const url = canonicalPublicHttpUrlFromCatalogString(trimmed)
 		const hrefAsUrlString = UrlString(url)
 		if (hrefAsUrlString instanceof type.errors) return []
-		return [({ [EntityMetaKey.Id]: { url: hrefAsUrlString } }) satisfies Entity<typeof schema, EntityType.Url>]
-	})
+			return [{ [EntityMetaKey.Id]: { url: hrefAsUrlString } }]
+		})
 
 export default {
 	source: Source.EthereumLists_Rest,
@@ -323,12 +321,12 @@ export default {
 				if (rpcUrls.length === 0) throw new Error(`EthereumLists_Rest: no RPC URLs for chain ${chain.chainId}`)
 				const icon = resolveMediaUrlTransport(chain.icon)?.url
 				const nativeCoin = coinBySymbol[nativeSymbol.toUpperCase()]
-				const nativeCoinInstanceId = {
-					$network: {
-						chainId: chain.chainId,
-					},
-					type: CoinInstanceType.NativeCurrency,
-				} as const
+					const nativeCoinInstanceId = {
+						$network: {
+							caip2: { namespace: 'eip155' as const, reference: String(chain.chainId) },
+						},
+						type: CoinInstanceType.NativeCurrency,
+					} as const
 				return {
 					[EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } },
 					...((iconMedia) => iconMedia != null && { $icon: iconMedia })(mediaFromUrl(icon, MediaType.Image)),
@@ -364,7 +362,7 @@ export default {
 							parentMatch == null || chain.parent == null ?
 								undefined
 							:	{
-									[EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(Number(parentMatch[1])) } },
+										[EntityMetaKey.Id]: { caip2: { namespace: 'eip155' as const, reference: String(Number(parentMatch[1])) } },
 								}
 						))(chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim()))
 					),

@@ -48,12 +48,17 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 	for (const { category: cat, data } of byLedger) {
 		for (const entry of data) {
 			if (entry.type !== 'file' || !entry.name.endsWith('.md')) continue
-			const proposalNumberRaw = regex('^(?:eip|erc)-(?<proposalNumber>\\d+)\\.md$').exec(entry.name)?.groups?.proposalNumber
-			const proposalNumber = proposalNumberRaw != null ? parseInt(proposalNumberRaw, 10) : null
-			if (proposalNumber == null) continue
-			const id = { realm: SpecificationRealm.Ethereum, category: cat, number: proposalNumber }
-			rows.push({ [EntityMetaKey.Id]: id })
-		}
+				const proposalNumberRaw = regex('^(?:eip|erc)-(?<proposalNumber>\\d+)\\.md$').exec(entry.name)?.groups?.proposalNumber
+				const proposalNumber = proposalNumberRaw != null ? parseInt(proposalNumberRaw, 10) : null
+				if (proposalNumber == null) continue
+				rows.push({
+					[EntityMetaKey.Id]: {
+						realm: SpecificationRealm.Ethereum,
+						category: cat === ProposalCategory.Erc ? ProposalCategory.Erc : ProposalCategory.Eip,
+						number: proposalNumber,
+					},
+				})
+			}
 	}
 	return rows
 }

@@ -244,11 +244,11 @@ export const reduce = <_Value, _Accumulator>(
 			.then(() => current)
 	)
 
-	return {
-		// @ts-expect-error current
-		get current() {
-			return current
-		},
+		// @ts-expect-error derived readiness is tracked at runtime
+		return {
+			get current() {
+				return current
+			},
 
 		get loading() {
 			return loading

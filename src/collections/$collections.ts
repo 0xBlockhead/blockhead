@@ -1028,21 +1028,121 @@ const createEntityFieldCollection = <
 	_EntityType extends EntityType<_Schema>,
 	_FieldDefinition extends EntityDefinitionForEntityType<_Schema, _EntityType>['fields'][number],
 >({
+	allEntityFieldResolvers,
+	entityResolvers,
 	entityFieldResolvers,
 	entityType,
 	fieldDefinition,
 	persistence,
 	queryClient,
+	schema,
 	schemaVersion,
 }: {
+	allEntityFieldResolvers: {
+		[_ResolvedEntityType in EntityType<_Schema>]: EntityFieldResolver<
+			_Schema,
+			_ResolvedEntityType,
+			EntityFieldName<_Schema, _ResolvedEntityType>
+		>
+	}[EntityType<_Schema>][]
+	entityResolvers: EntityResolver<_Schema, _EntityType>[]
 	entityFieldResolvers: EntityFieldResolver<_Schema, _EntityType, _FieldDefinition['name']>[]
 	entityType: _EntityType
 	fieldDefinition: _FieldDefinition
 	persistence: PersistedCollectionPersistence
 	queryClient: QueryClient
+	schema: _Schema
 	schemaVersion: number
 }) => {
 	const entityFieldCollectionId = `EntityFieldCollection:${entityType}:${fieldDefinition.name}`
+	const fieldDefinitionByName = Object.fromEntries(
+		schema.map((entityDefinition) => [
+			entityDefinition.entityType,
+			Object.fromEntries(
+				entityDefinition.fields.map((field) => [
+					field.name,
+					field,
+				]),
+			),
+		]),
+	)
+	const resolveDiscriminatorValue = async (
+		parentEntityId: EntityId<_Schema, _EntityType>,
+		fieldName: string,
+		subsetBase: ReturnType<typeof parseLoadSubsetForQueryFn>,
+	): Promise<string | number> => {
+		const discriminatorField = fieldDefinitionByName[entityType][fieldName]
+		if (discriminatorField == null) {
+			throw new Error(`${String(entityType)}.${fieldDefinition.name}: discriminator field ${fieldName} is not defined`)
+		}
+		if ('when' in discriminatorField && discriminatorField.when != null) {
+			throw new Error(`${String(entityType)}.${fieldDefinition.name}: discriminator field ${fieldName} cannot be conditional`)
+		}
+		if (
+			parentEntityId != null
+			&& typeof parentEntityId === 'object'
+			&& fieldName in parentEntityId
+		) {
+			const discriminatorValue = parentEntityId[fieldName as keyof typeof parentEntityId]
+			if (
+				typeof discriminatorValue === 'string'
+				|| typeof discriminatorValue === 'number'
+			) {
+				return discriminatorValue
+			}
+		}
+
+		const entitySettled = await Promise.allSettled(
+			entityResolvers.map(async (entityResolver) => (
+				(await entityResolver.resolve(
+					parentEntityId,
+					{
+						filters: subsetBase.filters,
+						sorts: subsetBase.sorts,
+						limit: subsetBase.limit,
+						publicEnv: resolverPublicEnvBySource.get(entityResolver.source) ?? {},
+					},
+				))[fieldName]
+			)),
+		)
+		for (const result of entitySettled) {
+			if (
+				result.status === 'fulfilled'
+				&& (typeof result.value === 'string' || typeof result.value === 'number')
+			) {
+				return result.value
+			}
+		}
+
+		const fieldSettled = await Promise.allSettled(
+			allEntityFieldResolvers
+				.filter((entityFieldResolver) => (
+					entityFieldResolver.entityType === entityType
+					&& entityFieldResolver.fieldName === fieldName
+				))
+				.map(async (entityFieldResolver) => (
+					entityFieldResolver.resolve(
+						parentEntityId,
+						{
+							filters: subsetBase.filters,
+							sorts: subsetBase.sorts,
+							limit: subsetBase.limit,
+							publicEnv: resolverPublicEnvBySource.get(entityFieldResolver.source) ?? {},
+						},
+					)
+				)),
+		)
+		for (const result of fieldSettled) {
+			if (
+				result.status === 'fulfilled'
+				&& (typeof result.value === 'string' || typeof result.value === 'number')
+			) {
+				return result.value
+			}
+		}
+
+		throw new Error(`${String(entityType)}.${fieldDefinition.name}: discriminator field ${fieldName} could not be resolved`)
+	}
 	const collection = createCollection(
 		persistedCollectionOptions<
 			EntityFieldCollectionItem<_Schema, _EntityType, _FieldDefinition['name']>,
@@ -1157,6 +1257,20 @@ const createEntityFieldCollection = <
 						const resolvedFieldRows = await Promise.all(
 							parentsForResolvers
 								.map(async (parentEntityId) => {
+									if ('when' in fieldDefinition && fieldDefinition.when != null) {
+										const discriminatorValue = await resolveDiscriminatorValue(
+											parentEntityId,
+											fieldDefinition.when.fieldName,
+											subsetBase,
+										)
+										if (!fieldDefinition.when.values.includes(discriminatorValue)) {
+											return {
+												complete: true,
+												rows: [],
+											}
+										}
+									}
+
 									const resolvers = (
 										sources.size ?
 											entityFieldResolvers.filter((fieldResolver) => (
@@ -1337,6 +1451,10 @@ export const createCollectionsFromSchema = <
 			Object.defineProperty(fieldCollections, fieldName, {
 				get: () => (
 					cached ??= createEntityFieldCollection({
+						allEntityFieldResolvers: entityFieldResolvers,
+						entityResolvers: entityResolvers.filter((entityResolver) => (
+							entityResolver.entityType === entityType
+						)),
 						entityFieldResolvers: entityFieldResolvers.filter((
 							entityFieldResolver,
 						): entityFieldResolver is EntityFieldResolver<
@@ -1351,6 +1469,7 @@ export const createCollectionsFromSchema = <
 						fieldDefinition: field,
 						persistence,
 						queryClient,
+						schema,
 						schemaVersion,
 					})
 				),

@@ -2,7 +2,6 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -10,19 +9,18 @@ import type { PolkadotRpcBlock } from '$/sources/Polkadot/JsonRpc/types.ts'
 
 const polkadotRpcUrl = 'https://rpc.polkadot.io'
 
-const assertPolkadotMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Polkadot || network.reference !== '91b171bb158e2d3848fa23a9f1c25182') {
-		throw new Error(`Polkadot_JsonRpc: unsupported network ${network.namespace}:${network.reference}`)
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+
+const assertPolkadotMainnet = (network: NetworkId) => {
+	if (!('caip2' in network) || network.caip2.namespace !== 'polkadot' || network.caip2.reference !== '91b171bb158e2d3848fa23a9f1c25182') {
+		throw new Error('Polkadot_JsonRpc: unsupported network')
 	}
 }
 
 const blockNumberFromHeader = (header: { number: string }) => BigInt(header.number)
 
 const polkadotExtrinsicRows = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: NetworkId,
 	block: PolkadotRpcBlock,
 ) => (
 	block.block.extrinsics.map((_extrinsic, extrinsicIndex) => ({

@@ -164,9 +164,5 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.BlockheadRoomPeer}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

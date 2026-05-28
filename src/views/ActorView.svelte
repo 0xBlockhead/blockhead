@@ -372,30 +372,23 @@
 			entityType={EntityType.Actor}
 			{entityId}
 		/>
-		<div
-			class="actor-view-carousel-groups"
-			data-column="gap-3"
+		<CollapsibleTabs
+			id={`${idKey}:carousel-identity`}
+			sectionIdPrefix={idKey}
+			sections={[
+				{ id: 'actor-ens', label: 'Labels' },
+			]}
+			data-card
+			class="actor-view-collapsible-identity"
 		>
-			<CollapsibleTabs
-				id={`${idKey}:carousel-identity`}
-				sectionIdPrefix={idKey}
-				sections={[
-					{ id: 'actor-ens', label: 'Labels' },
-				]}
-				{...{ 'data-card': '' }}
-				class="actor-view-collapsible-identity"
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
-				{#snippet Summary({ open: _summaryOpen })}
-					<header
-						data-row-item="flexible"
-						data-row="wrap gap-4"
-					>
-						<HeadingComponent>Identity</HeadingComponent>
-					</header>
-				{/snippet}
+			{#snippet Summary({ open: _summaryOpen })}
+				<header
+					data-row-item="flexible"
+					data-row="wrap gap-4"
+				>
+					<HeadingComponent>Identity</HeadingComponent>
+				</header>
+			{/snippet}
 
 				{#snippet SectionActorEns({ id, label })}
 					{#if true}
@@ -438,20 +431,17 @@
 						/>
 					{/if}
 				{/snippet}
-			</CollapsibleTabs>
+		</CollapsibleTabs>
 
-			<CollapsibleTabs
-				id={`${idKey}:carousel-balances`}
-				sectionIdPrefix={idKey}
-				sections={[
-					{ id: 'balances', label: 'Balances' },
-				]}
-				{...{ 'data-card': '' }}
-				class="actor-view-collapsible-balances"
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
-			>
+		<CollapsibleTabs
+			id={`${idKey}:carousel-balances`}
+			sectionIdPrefix={idKey}
+			sections={[
+				{ id: 'balances', label: 'Balances' },
+			]}
+			data-card
+			class="actor-view-collapsible-balances"
+		>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
 						<HeadingComponent>Balances</HeadingComponent>
@@ -532,6 +522,7 @@
 							id={`${idKey}:balances-net-${balancesChainId}`}
 						>
 							<BalancesView
+								CollapsibleProps={{ canToggle: false }}
 								href={resolve(
 									'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 									{
@@ -556,19 +547,16 @@
 						</section>
 					{/each}
 				{/snippet}
-			</CollapsibleTabs>
+		</CollapsibleTabs>
 
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${idKey}:carousel-activity`}
 				sectionIdPrefix={idKey}
 				sections={[
 					{ id: 'activity', label: 'Activity' },
 				]}
-				{...{ 'data-card': '' }}
+				data-card
 				class="actor-view-collapsible-activity"
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
@@ -577,7 +565,7 @@
 				{/snippet}
 
 				{#snippet SectionActivity({ id, label })}
-						{#each blockscoutHostedNetworkChainIds as facetChainId (facetChainId)}
+					{#each blockscoutHostedNetworkChainIds as facetChainId (facetChainId)}
 						<section
 							data-scroll-marker-label={`${chainFacetLabel(facetChainId)} activity`}
 							id={`${idKey}:activity-net-${facetChainId}`}
@@ -593,6 +581,7 @@
 								open={false}
 							/>
 							<EvmTransactionsView
+								CollapsibleProps={{ canToggle: false }}
 								href={resolve(
 									'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 									{
@@ -619,6 +608,7 @@
 								id={`${idKey}:activity-net-${facetChainId}-transfers`}
 							>
 								<EvmTransactionsView
+									CollapsibleProps={{ canToggle: false }}
 									href={resolve(
 										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 										{
@@ -647,6 +637,7 @@
 								id={`${idKey}:activity-net-${facetChainId}-internal`}
 							>
 								<EvmTransactionsView
+									CollapsibleProps={{ canToggle: false }}
 									href={resolve(
 										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 										{
@@ -672,8 +663,7 @@
 						</section>
 					{/each}
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 		{#if children}
 			{@render children()}

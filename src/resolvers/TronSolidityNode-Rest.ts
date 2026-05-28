@@ -2,7 +2,6 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -15,9 +14,11 @@ import type {
 
 const tronSolidityNodeRestUrl = 'http://127.0.0.1:8091'
 
-const assertTronMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Tron || network.reference !== '0x2b6653dc') {
-		throw new Error(`TronSolidityNode_Rest: unsupported network ${network.namespace}:${network.reference}`)
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+
+const assertTronMainnet = (network: NetworkId) => {
+	if (!('networkSlug' in network) || network.networkSlug !== 'tron') {
+		throw new Error('TronSolidityNode_Rest: unsupported network')
 	}
 }
 
@@ -32,10 +33,7 @@ const firstContractValue = (transaction: TronNodeTransaction): TronNodeContractV
 )
 
 const transactionFields = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: NetworkId,
 	transaction: TronNodeTransaction,
 	info?: TronNodeTransactionInfo,
 ) => {
@@ -92,40 +90,8 @@ const transactionFields = (
 	}
 }
 
-const transactionEntityFromNodeTransaction = (
-	network: {
-		namespace: string
-		reference: string
-	},
-	transaction: TronNodeTransaction,
-	blockNumber?: number,
-	blockTimeStamp?: number,
-) => (
-	transaction.txID == null ?
-		undefined
-	:	{
-			[EntityMetaKey.Id]: {
-				$network: network,
-				transactionId: transaction.txID,
-			},
-			...transactionFields(
-				network,
-				transaction,
-				blockNumber == null && blockTimeStamp == null ?
-					undefined
-				:	{
-						blockNumber,
-						blockTimeStamp,
-					},
-			),
-		}
-)
-
 const blockFields = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: NetworkId,
 	block: TronNodeBlock,
 ) => {
 	const rawBlock = block.block_header?.raw_data
@@ -142,22 +108,32 @@ const blockFields = (
 					hash: rawBlock.parentHash,
 				},
 			},
-		}),
-		parentHash: rawBlock.parentHash,
-		timestampMs: rawBlock.timestamp,
+	}),
+	parentHash: rawBlock.parentHash,
+	timestampMs: rawBlock.timestamp,
 		witnessAddress: rawBlock.witness_address,
 		txTrieRoot: rawBlock.txTrieRoot,
 		version: rawBlock.version,
 		transactionCount: block.transactions?.length,
-		$$transactions: (block.transactions ?? []).flatMap((transaction) => (
-			transactionEntityFromNodeTransaction(
-				network,
-				transaction,
-				rawBlock.number,
-				rawBlock.timestamp,
-			) ?? []
-		)),
-	}
+	$$transactions: (block.transactions ?? []).flatMap((transaction) => (
+		transaction.txID == null ?
+			[]
+		:	[{
+				[EntityMetaKey.Id]: {
+					$network: network,
+					transactionId: transaction.txID,
+				},
+				...transactionFields(
+					network,
+					transaction,
+					{
+						blockNumber: rawBlock.number,
+						blockTimeStamp: rawBlock.timestamp,
+					},
+				),
+			}]
+	)),
+}
 }
 
 export default {

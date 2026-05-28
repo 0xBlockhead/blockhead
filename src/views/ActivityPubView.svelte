@@ -252,25 +252,14 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.ActivityPubNetwork}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels activitypub-network-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-public`}
 				sectionIdPrefix={networkIdKey}
 				sections={[
 					{ id: 'public-actors', label: 'Actors' },
 					{ id: 'public-notes', label: 'Public timeline' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
@@ -285,6 +274,7 @@
 
 				{#snippet SectionPublicActors({ id: _id, label: _label })}
 					<ActivityPubActorsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/activitypub/actors')}
 						entityFieldReference={{
 							entityType: EntityType.ActivityPubNetwork,
@@ -298,6 +288,7 @@
 
 				{#snippet SectionPublicNotes({ id: _id, label: _label })}
 					<ActivityPubNotesView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/activitypub/notes')}
 						entityFieldReference={{
 							entityType: EntityType.ActivityPubNetwork,
@@ -311,7 +302,6 @@
 						title="Public timeline"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

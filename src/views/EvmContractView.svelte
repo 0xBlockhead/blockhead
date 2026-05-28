@@ -268,10 +268,6 @@
 	{#snippet Details({
 		open: _detailsOpen,
 	})}
-		<EntityDetails
-			entityType={EntityType.EvmContract}
-			{entityId}
-		/>
 		{#if _children}
 			{@render _children()}
 		{/if}

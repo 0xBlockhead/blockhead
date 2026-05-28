@@ -177,10 +177,6 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.StateChannelDeposit}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>
 

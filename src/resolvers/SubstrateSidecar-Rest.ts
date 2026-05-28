@@ -2,7 +2,6 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -14,9 +13,11 @@ type SidecarBlockEvent = {
 
 const sidecarRestUrl = 'http://127.0.0.1:8080'
 
-const assertPolkadotMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Polkadot || network.reference !== '91b171bb158e2d3848fa23a9f1c25182') {
-		throw new Error(`SubstrateSidecar_Rest: unsupported network ${network.namespace}:${network.reference}`)
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+
+const assertPolkadotMainnet = (network: NetworkId) => {
+	if (!('caip2' in network) || network.caip2.namespace !== 'polkadot' || network.caip2.reference !== '91b171bb158e2d3848fa23a9f1c25182') {
+		throw new Error('SubstrateSidecar_Rest: unsupported network')
 	}
 }
 

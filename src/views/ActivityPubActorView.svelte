@@ -359,21 +359,14 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<div
-			class="activitypub-actor-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${idKey}:carousel-activity`}
 				sectionIdPrefix={idKey}
 				sections={[
 					{ id: 'mastodon-profile', label: 'Profile' },
 					{ id: 'activity-statuses', label: 'Outbox' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _activitySummaryOpen })}
 					<header
@@ -387,10 +380,6 @@
 				{/snippet}
 
 				{#snippet SectionMastodonProfile({ id: _id, label: _label })}
-					<EntityDetails
-						entityType={EntityType.ActivityPubActor}
-						{entityId}
-					/>
 					<ResourceBoundary
 						resource={actor}
 						placeholderText="Loading Mastodon profile…"
@@ -426,6 +415,7 @@
 
 				{#snippet SectionActivityStatuses({ id: _id, label: _label })}
 					<ActivityPubNotesView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/activitypub/notes')}
 						entityFieldReference={{
 							entityType: EntityType.ActivityPubActor,
@@ -439,7 +429,6 @@
 						title="Outbox"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

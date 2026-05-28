@@ -199,15 +199,7 @@
 		open: _open,
 	})}
 		{@const networkIdKey = stringify(entityId)}
-		<EntityDetails
-			entityType={EntityType.NostrNetwork}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-feed`}
 				sectionIdPrefix={networkIdKey}
 				sections={[
@@ -215,10 +207,7 @@
 					{ id: 'reposts', label: 'Reposts' },
 					{ id: 'articles', label: 'Articles' },
 				] as const}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
@@ -233,8 +222,8 @@
 
 				{#snippet SectionNotes()}
 					<NostrNotesView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/nostr/notes')}
-						collapsible={false}
 						entityFieldReference={{
 							entityType: EntityType.NostrNetwork,
 							entityId,
@@ -250,7 +239,7 @@
 
 				{#snippet SectionReposts()}
 					<NostrRepostsView
-						collapsible={false}
+						CollapsibleProps={{ canToggle: false }}
 						entityFieldReference={{
 							entityType: EntityType.NostrNetwork,
 							entityId,
@@ -266,7 +255,7 @@
 
 				{#snippet SectionArticles()}
 					<NostrArticlesView
-						collapsible={false}
+						CollapsibleProps={{ canToggle: false }}
 						entityFieldReference={{
 							entityType: EntityType.NostrNetwork,
 							entityId,
@@ -279,16 +268,16 @@
 						title="Recent articles"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
+		</CollapsibleTabs>
 
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-directory`}
 				sectionIdPrefix={networkIdKey}
 				sections={[
 					{ id: 'profiles', label: 'Profiles' },
 					{ id: 'relays', label: 'Relays' },
 				] as const}
-				{...{ 'data-card': '' }}
+				data-card
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
 				{#snippet Summary({ open: _summaryOpen })}
@@ -304,8 +293,8 @@
 
 				{#snippet SectionProfiles()}
 					<NostrProfilesView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/nostr/profiles')}
-						collapsible={false}
 						entityFieldReference={{
 							entityType: EntityType.NostrNetwork,
 							entityId,
@@ -318,8 +307,8 @@
 
 				{#snippet SectionRelays()}
 					<NostrRelaysView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/nostr/relays')}
-						collapsible={false}
 						entityFieldReference={{
 							entityType: EntityType.NostrNetwork,
 							entityId,
@@ -329,8 +318,7 @@
 						open={true}
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

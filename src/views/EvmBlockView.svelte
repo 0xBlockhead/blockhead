@@ -329,15 +329,7 @@
 	{#snippet Details({
 		open: detailsOpen,
 	})}
-		<EntityDetails
-			entityType={EntityType.EvmBlock}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				sectionIdPrefix={blockIdKey}
 				sections={[
 					{ id: 'chain', label: 'Chain' },
@@ -345,10 +337,7 @@
 					...(children ? [{ id: 'page-content', label: 'Content' }] : []),
 				]}
 				id={`${blockIdKey}:carousel-related`}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _isOpen })}
 					<header data-row-item="flexible" data-row="wrap gap-4">
@@ -388,6 +377,7 @@
 
 				{#snippet SectionTransactions({ id: _txId, label: _txLabel })}
 					<EvmTransactionsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve(
 						'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
 						{
@@ -411,7 +401,6 @@
 						{@render children()}
 					{/if}
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

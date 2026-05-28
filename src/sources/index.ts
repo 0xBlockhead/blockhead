@@ -70,8 +70,9 @@ import MetadataVision from '$/sources/MetadataVision/index.ts'
 import MevRelay from '$/sources/MevRelay/index.ts'
 import MempoolSpace from '$/sources/MempoolSpace/index.ts'
 import MoneroDaemonRpc from '$/sources/MoneroDaemonRpc/index.ts'
-import NearRpc from '$/sources/NearRpc/index.ts'
+import NearBlocks from '$/sources/NearBlocks/index.ts'
 import NearNeps from '$/sources/NearNeps/index.ts'
+import NearRpc from '$/sources/NearRpc/index.ts'
 import Neynar from '$/sources/Neynar/index.ts'
 import NostrBand from '$/sources/NostrBand/index.ts'
 import Openchain from '$/sources/Openchain/index.ts'
@@ -170,8 +171,9 @@ const sourceProviderDefinitions = [
 	MevRelay,
 	MempoolSpace,
 	MoneroDaemonRpc,
-	NearRpc,
+	NearBlocks,
 	NearNeps,
+	NearRpc,
 	Neynar,
 	NostrBand,
 	Openchain,

@@ -327,11 +327,7 @@
 		open: _open,
 	})}
 		{@const detailKey = stringify(entityId)}
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${detailKey}:carousel-ipfs-resource`}
 				sectionIdPrefix={detailKey}
 				sections={[
@@ -339,10 +335,7 @@
 					...(_open && entityId.namespace === 'ipfs' ? [{ id: 'ipfs-cid', label: 'Encodings' }] : []),
 					...(_open ? [{ id: 'ipfs-preview', label: 'Preview' }] : []),
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -372,10 +365,6 @@
 				{/snippet}
 
 				{#snippet SectionIpfsRecord()}
-					<EntityDetails
-						entityType={EntityType.IpfsResource}
-						{entityId}
-					/>
 				{/snippet}
 
 				{#snippet SectionIpfsCid()}
@@ -402,9 +391,7 @@
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>
-

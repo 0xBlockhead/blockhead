@@ -304,15 +304,7 @@
 		open: _open,
 	})}
 		{@const idKey = stringify(entityId)}
-		<EntityDetails
-			entityType={EntityType.NostrProfile}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${idKey}:carousel-profile-feed`}
 				sectionIdPrefix={idKey}
 				sections={[
@@ -320,10 +312,7 @@
 					{ id: 'articles', label: 'Articles' },
 					{ id: 'reposts', label: 'Reposts' },
 				] as const}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
@@ -338,11 +327,11 @@
 
 				{#snippet SectionNotes()}
 					<NostrNotesView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve(
 			'/(social)/(nostr)/nostr/profile/[pubkey]/(profile)/notes',
 			{ pubkey: entityId.pubkey },
 		)}
-						collapsible={false}
 						entityFieldReference={{
 							entityType: EntityType.NostrProfile,
 							entityId,
@@ -356,7 +345,7 @@
 
 				{#snippet SectionArticles()}
 					<NostrArticlesView
-						collapsible={false}
+						CollapsibleProps={{ canToggle: false }}
 						entityFieldReference={{
 							entityType: EntityType.NostrProfile,
 							entityId,
@@ -370,7 +359,7 @@
 
 				{#snippet SectionReposts()}
 					<NostrRepostsView
-						collapsible={false}
+						CollapsibleProps={{ canToggle: false }}
 						entityFieldReference={{
 							entityType: EntityType.NostrProfile,
 							entityId,
@@ -381,7 +370,6 @@
 						title="Reposts"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

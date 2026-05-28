@@ -4,23 +4,23 @@ import {
 	sourcePublicEnv,
 	type ResolverLoadSubset,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { HeliusEnhancedTransaction } from '$/sources/Helius/Rest/types.ts'
 
-const assertSolanaMainnet = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Solana || network.reference !== '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp') {
-		throw new Error(`Helius_Rest: unsupported network ${network.namespace}:${network.reference}`)
+const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
+	if (
+		!('caip2' in network)
+		|| network.caip2.namespace !== 'solana'
+		|| network.caip2.reference !== '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'
+	) {
+		throw new Error('Helius_Rest: unsupported network')
 	}
 }
 
 const heliusTransactionFields = (
-	network: {
-		namespace: string
-		reference: string
-	},
+	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
 	transaction: HeliusEnhancedTransaction,
 ) => ({
 	$block: {
@@ -46,10 +46,7 @@ const heliusTransactionFields = (
 
 const heliusInstructionRows = (
 	transactionId: {
-		$network: {
-			namespace: string
-			reference: string
-		}
+		$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 		signature: string
 	},
 	transaction: HeliusEnhancedTransaction,
@@ -77,10 +74,7 @@ const heliusInstructionRows = (
 
 const getTransaction = async (
 	entityId: {
-		$network: {
-			namespace: string
-			reference: string
-		}
+		$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 		signature: string
 	},
 	context: ResolverLoadSubset | undefined,

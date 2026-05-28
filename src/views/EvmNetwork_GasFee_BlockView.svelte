@@ -171,9 +171,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.EvmNetwork_GasFee_Block}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

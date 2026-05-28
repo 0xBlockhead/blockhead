@@ -124,9 +124,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.EvmCalldata}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

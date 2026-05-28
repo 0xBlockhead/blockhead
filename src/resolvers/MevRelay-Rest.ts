@@ -61,7 +61,6 @@ export default {
 				})
 				if (row == null) throw new Error('MevRelay_Rest: relay payload not found for id')
 				const builderPubkey = row.builder_pubkey ?? row.builderPubkey
-				const chainId = entityId.$network.chainId
 				const blockNumber = parsePayloadBlockNumber(row)
 				const valueWei = parsePayloadValueWei(row)
 				return {
@@ -72,7 +71,7 @@ export default {
 							blockNumber,
 							$executionBlock: {
 								[EntityMetaKey.Id]: {
-									$network: { chainId },
+									$network: entityId.$network,
 									blockNumber,
 								},
 								number: blockNumber,
@@ -90,12 +89,13 @@ export default {
 			resolve: async (entityId, context) => {
 				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
+				const chainId = Number(entityId.caip2.reference)
 				const hostsForChain = mevRelayHosts
-					.filter((row) => row.chainId === entityId.chainId)
+					.filter((row) => row.chainId === chainId)
 					.map((row) => row.host)
-				if (hostsForChain == null) {
+				if (hostsForChain.length === 0) {
 					throw new Error(
-						`MevRelay_Rest: no MEV-Boost relay mapping for chain ${String(entityId.chainId)}`,
+						`MevRelay_Rest: no MEV-Boost relay mapping for chain ${String(chainId)}`,
 					)
 				}
 				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
@@ -131,7 +131,7 @@ export default {
 				}
 				if (out.length === 0) {
 					throw new Error(
-						`MevRelay_Rest: no proposer_payload_delivered rows for chain ${String(entityId.chainId)}`,
+						`MevRelay_Rest: no proposer_payload_delivered rows for chain ${String(chainId)}`,
 					)
 				}
 				return out

@@ -119,7 +119,7 @@ export const blockscoutExplorerOrigins = (
 				corsEnabled: false,
 			}
 		))
-) as const satisfies readonly SourceOrigin[]
+	) satisfies readonly SourceOrigin[]
 
 
 // Lookups

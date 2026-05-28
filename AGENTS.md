@@ -3,11 +3,13 @@
 - Reply in a concise style; avoid repetition or filler
 - Be DRY and declarative
 - Inline derived intermediate variables, especially if used once (same in markup: no one-off `{@const}` / `const` / `$derived` when the value is only referenced once—inline it)
+- Prefer direct, explicit code over wrapper layers: keep the core data flow visible at the call site, and inline trivial wrapping / unwrapping / grouping / ungrouping helpers.
 - Assistant / handoff summaries: Do not respond with large JSON blobs, `devalue` / `stringify(entityId)` dumps, or other machine-oriented payloads into chat summaries; describe intent and point to paths or small code citations instead
 - Name variables, snippets, callback parameters, and arguments by what they are; never abbreviate identifiers.
-- Do not introduce new files or helper functions without proper justification, a detailed plan, and explicit permission
+- Do not introduce new files or helper functions without proper justification, a detailed plan, and explicit permission; helpers are acceptable only when you are at least 90% confident they remove real repeated complexity or encode meaningful domain / transport logic.
 - Composer 2.5: this is NOT a React / Motion project. do not use `</motion>` to close HTML tags.
 - Do not write codemod scripts to do HTML wrapping/unwrapping refactors. If you make a mistake, do not git revert when there are existing working changes
+- `modern-web-guidance` skill: invoke when editing CSS rules or `src/components`. Not strictly needed for other tasks like editing Svelte components.
 
 ### Editing
 
@@ -177,7 +179,7 @@
 
 ## Library helpers (`src/lib/**`)
 
-- DO NOT add to `src/lib` unless explicitly asked. Keep logic inlined and local where used without trivial helper functions.
+- DO NOT add to `src/lib` unless explicitly asked or you are at least 90% confident the helper is genuinely cross-domain, reusable, and simpler than inlining. Keep provider/source-specific logic under `src/sources/**`, and keep trivial wrappers inlined locally.
 
 
 ## Svelte (`*.svelte`, `*.svelte.ts`)
@@ -573,7 +575,9 @@ Resolvers are the bridge between `sources/` and the TanStack DB collections.
 - Resolver boundaries:
 	- `resolve(...)` returns schema-shaped field data, not raw wire payloads.
 	- Keep resolver modules shaped around resolver entries, not shared mapper layers. Put source-to-schema mapping inline in the relevant `resolve(...)` body unless a helper is clearly justified and explicitly approved.
+	- Prefer resolver bodies that visibly read as: validate supported scope, call the owning source query, return schema-shaped fields. Avoid wrapping / unwrapping / grouping / ungrouping indirection unless it is genuine domain normalization or shared transport behavior.
 - Do not add trivial id/entity constructor helpers (e.g. `fooEntityRef`, `barFromWireId`) that only wrap `{ [EntityMetaKey.Id]: { … } }` or a one-line null check. Inline those at the call site in `resolve` / field resolvers.
+	- Shared transport behavior belongs in `src/sources/**`; `src/lib/**` is only for cross-domain helpers that clear the 90% confidence bar.
 	- Do not use `typeof` / `Array.isArray` / similar runtime shape checks on provider wire data when generated or hand-written **wire types** already define the field (gql.tada fragments, OpenAPI components, `types.ts` aliases). Prefer null/empty checks, optional chaining, and domain validators (`hexLowerOfByteSize`, ArkType at boundaries). Same bar as **Linting and quality → Runtime shape guards**; `typeof` remains for environment probes (`window`, `document`, `globalThis`) and genuinely untyped scalars (e.g. GraphQL `BigInt` as `unknown` until normalized with `BigInt(String(value))`, not `typeof value === 'string'`).
 	- One resolver should make one primary upstream source request whenever feasible.
 	- Do not create resolver waterfalls. If a second request enriches only a specific field, move that work to a field resolver or the owning `sources/**/queries.ts` function.

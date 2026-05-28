@@ -4,6 +4,7 @@ import {
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -18,25 +19,25 @@ export default {
 			resolve: async (entityId) => {
 				const { fetchEip8004ScanAgentDetail } = await import(
 					'$/sources/Eip8004Scan/Rest/queries.ts'
-				)
-				const detail = await fetchEip8004ScanAgentDetail({
-					chainId: entityId.$network.chainId,
-					identityId: entityId.identityId,
-				})
-				if (detail == null) {
-					throw new Error(
-						`Eip8004Scan_Rest: agent ${entityId.$network.chainId}/${entityId.identityId} not found`,
 					)
-				}
+					const detail = await fetchEip8004ScanAgentDetail({
+						chainId: Number(entityId.$network.caip2.reference),
+						identityId: entityId.identityId,
+					})
+					if (detail == null) {
+						throw new Error(
+							`Eip8004Scan_Rest: agent ${entityId.$network.caip2.reference}/${entityId.identityId} not found`,
+						)
+					}
 				return {
 					$registry: {
-						[EntityMetaKey.Id]: {
-							$network: {
-								chainId: detail.chainId,
+							[EntityMetaKey.Id]: {
+								$network: {
+									caip2: { namespace: 'eip155' as const, reference: String(detail.chainId) },
+								},
+								address: EvmAddress.assert(detail.contractAddress),
 							},
-							address: detail.contractAddress,
 						},
-					},
 					registrationUri: detail.registrationUri,
 					fetchedAt: detail.fetchedAt,
 					...(detail.name != null && { name: detail.name }),
@@ -69,11 +70,11 @@ export default {
 				const rows = await fetchEip8004ScanAgentList({ limit })
 				return (
 					rows.map((row) => ({
-						[EntityMetaKey.Id]: {
-							$network: {
-								chainId: row.chainId,
-							},
-							identityId: row.identityId,
+							[EntityMetaKey.Id]: {
+								$network: {
+									caip2: { namespace: 'eip155' as const, reference: String(row.chainId) },
+								},
+								identityId: row.identityId,
 						},
 					}))
 				)

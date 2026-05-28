@@ -2,7 +2,6 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { NetworkNamespace } from '$/constants/Network.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -11,9 +10,11 @@ import type { JsonValue } from '$/typescript/JsonValue.ts'
 
 const cosmosHubRestUrl = 'https://cosmos-rest.publicnode.com'
 
-const assertCosmosHub = (network: { namespace: string; reference: string }) => {
-	if (network.namespace !== NetworkNamespace.Cosmos || network.reference !== 'cosmoshub-4') {
-		throw new Error(`CosmosSdk_Rest: unsupported network ${network.namespace}:${network.reference}`)
+type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
+
+const assertCosmosHub = (network: NetworkId) => {
+	if (!('caip2' in network) || network.caip2.namespace !== 'cosmos' || network.caip2.reference !== 'cosmoshub-4') {
+		throw new Error('CosmosSdk_Rest: unsupported network')
 	}
 }
 
@@ -37,10 +38,7 @@ const cosmosValidatorFields = (validator: {
 
 const cosmosMessageRows = (
 	entityId: {
-		$network: {
-			namespace: string
-			reference: string
-		}
+		$network: NetworkId
 		txHash: string
 	},
 	row: CosmosSdkTxResponse,

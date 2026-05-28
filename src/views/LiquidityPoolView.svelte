@@ -409,9 +409,5 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.LiquidityPool}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

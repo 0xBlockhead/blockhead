@@ -5,6 +5,7 @@
 
 import type { PrecompileEntry } from '$/constants/precompiles/types.ts'
 import { standardPrecompiles } from '$/constants/precompiles/standard.ts'
+import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 
 type ShemnonSchedule = {
 	name?: string
@@ -35,12 +36,10 @@ function parseAddress(raw: ShemnonPrecompile['address']): `0x${string}` {
 	if (!raw) return '0x0000000000000000000000000000000000000000'
 	const full = raw.full
 	if (full && full.length === 66) {
-		const address: `0x${string}` = full
-		return address
+		return ZeroExHex.assert(full)
 	}
 	const hex = (raw.hex ?? '').replace(/^0x/, '')
-	const address: `0x${string}` = `0x${hex.padStart(40, '0')}`
-	return address
+	return ZeroExHex.assert(`0x${hex.padStart(40, '0')}`)
 }
 
 const precompileDefs = new Map<string, PrecompileEntry>()

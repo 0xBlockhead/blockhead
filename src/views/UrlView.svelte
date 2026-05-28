@@ -207,9 +207,5 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.Url}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

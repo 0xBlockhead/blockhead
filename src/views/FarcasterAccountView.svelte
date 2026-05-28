@@ -219,9 +219,5 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.BlockheadFarcasterAccountConnection}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

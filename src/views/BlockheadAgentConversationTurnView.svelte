@@ -347,9 +347,5 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.BlockheadAgentConversationTurn}
-			{entityId}
-		/>
 	{/snippet}
 </EntityView>

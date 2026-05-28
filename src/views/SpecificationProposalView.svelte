@@ -345,10 +345,6 @@
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}
-		<EntityDetails
-			entityType={EntityType.SpecificationProposal}
-			{entityId}
-		/>
 		<section
 			id={`${proposalDomId}:document-body`}
 		>

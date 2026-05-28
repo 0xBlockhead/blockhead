@@ -159,9 +159,9 @@ const narrowVoltaireReceiptRpc = (raw: JsonValue): VoltaireReceiptRpc | null => 
 
 
 export const streamBlockToVoltaireBlockRpcWire = (
-	block: StreamBlock<'header'>,
+	block: StreamBlock<BlockInclude>,
 ): VoltaireBlockRpc => {
-	const transactions: VoltaireBlockRpc['transactions'] = [...block.body.transactions]
+	const transactions: VoltaireBlockRpc['transactions'] = block.body.transactions.map((transaction) => String(transaction))
 	return {
 		number: String(Hex.fromBigInt(block.header.number)),
 		hash: String(Hex.fromBytes(block.hash)),

@@ -239,21 +239,14 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${idKey}:carousel-activity`}
 				sectionIdPrefix={idKey}
 				sections={[
 					{ id: 'lens-account-record', label: 'Record' },
 					{ id: 'posts', label: 'Publications' },
 				] as const}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({
 					open: _summaryOpen,
@@ -269,14 +262,11 @@
 				{/snippet}
 
 				{#snippet SectionLensAccountRecord()}
-					<EntityDetails
-						entityType={EntityType.LensAccount}
-						{entityId}
-					/>
 				{/snippet}
 
 				{#snippet SectionPosts()}
 					<LensPostsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve(
 			'/(social)/(lens)/lens/account/[address]/(account)/posts',
 			{ address: entityId.address },
@@ -289,8 +279,7 @@
 						id={`${idKey}:posts-list`}
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 
 	{/snippet}
 </EntityView>

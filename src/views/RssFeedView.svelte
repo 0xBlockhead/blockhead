@@ -235,21 +235,14 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<div
-			class="entity-view-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${idKey}:carousel-feed`}
 				sectionIdPrefix={idKey}
 				sections={[
 					{ id: 'feed-record', label: 'Record' },
 					{ id: 'feed-items', label: 'Items' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
@@ -263,16 +256,12 @@
 				{/snippet}
 
 				{#snippet SectionFeedRecord({ id, label })}
-					<EntityDetails
-						entityType={EntityType.RssFeed}
-						{entityId}
-					/>
 				{/snippet}
 
 				{#snippet SectionFeedItems({ id, label })}
 					<RssItemsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/rss/items')}
-						collapsible={false}
 						entityFieldReference={{
 							entityType: EntityType.RssFeed,
 							entityId,
@@ -284,7 +273,6 @@
 						title="Items"
 					/>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

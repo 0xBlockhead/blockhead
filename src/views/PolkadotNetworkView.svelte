@@ -113,7 +113,6 @@
 	{/snippet}
 
 	{#snippet Details()}
-		<EntityDetails entityType={EntityType.Network} {entityId} />
 
 		<CollapsibleTabs
 			id={`${networkIdKey}:carousel-polkadot`}
@@ -121,7 +120,7 @@
 			sections={[
 				{ id: 'polkadot-network', label: 'Network' },
 			]}
-			{...{ 'data-card': '' }}
+			data-card
 			scrollContainerProps={{
 				'data-row': 'start align-start',
 			}}

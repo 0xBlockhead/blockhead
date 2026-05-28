@@ -6,13 +6,14 @@ import {
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
+	conditionalOn,
 	type EntityDefinition,
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-export const networkFields = [
+const networkBaseFields = [
 	{
 		name: 'slug',
 		type: EntityFieldType.Primitive,
@@ -61,11 +62,24 @@ export const networkFields = [
 			Source.Constants_Internal,
 		],
 	},
+] as const satisfies readonly EntityFieldDefinition[]
+
+const evmNetworkCondition = conditionalOn(
+	networkBaseFields,
+	'namespace',
+	[
+		NetworkNamespace.Evm,
+	],
+)
+
+export const networkFields = [
+	...networkBaseFields,
 	{
 		name: '$parent',
 		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		when: evmNetworkCondition,
 		defaultSources: [
 			Source.Chainlist_Rest,
 			Source.EthereumLists_Rest,
@@ -78,6 +92,7 @@ export const networkFields = [
 		type: EntityFieldType.Primitive,
 		primitiveType: type('number'),
 		cardinality: EntityFieldCardinality.One,
+		when: evmNetworkCondition,
 		defaultSources: [
 			Source.Chainlist_Rest,
 			Source.EthereumLists_Rest,
@@ -88,6 +103,7 @@ export const networkFields = [
 		type: EntityFieldType.EntityReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.ZeroOrOne,
+		when: evmNetworkCondition,
 		defaultSources: [
 			Source.Chainlist_Rest,
 			Source.Superchain_Github,
@@ -98,6 +114,7 @@ export const networkFields = [
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
+		when: evmNetworkCondition,
 		defaultSources: [
 			Source.Chainlist_Rest,
 			Source.Superchain_Github,
@@ -108,6 +125,7 @@ export const networkFields = [
 		type: EntityFieldType.EntitiesReference,
 		entityType: EntityType.Network,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
+		when: evmNetworkCondition,
 		defaultSources: [
 			Source.Chainlist_Rest,
 			Source.EthereumLists_Rest,

@@ -156,31 +156,18 @@
 		open: _open,
 	})}
 		{#if children}
-			<div
-				class="entity-view-detail-carousels"
-				data-column="gap-3"
-			>
-				{@render children({
-					open: _open,
-				})}
-			</div>
+			{@render children({
+				open: _open,
+			})}
 		{:else}
-			<EntityDetails
-				entityType={EntityType._Global}
-				{entityId}
-			/>
-			<div
-				class="entity-view-detail-carousels"
-				data-column="gap-3"
-			>
-				<CollapsibleTabs
+			<CollapsibleTabs
 					id={`global:${entityId.scope}:carousel-app`}
 					sectionIdPrefix={`global:${entityId.scope}`}
 					sections={[
 						{ id: 'nav', label: 'Nav' },
 						{ id: 'usage', label: 'Usage' },
 					]}
-					{...{ 'data-card': '' }}
+					data-card
 					scrollContainerProps={entityViewDetailCarouselScrollProps}
 				>
 					{#snippet Summary({
@@ -308,9 +295,7 @@
 							{/snippet}
 						</ResourceBoundary>
 					{/snippet}
-				</CollapsibleTabs>
-			</div>
+			</CollapsibleTabs>
 		{/if}
 	{/snippet}
 </EntityView>
-

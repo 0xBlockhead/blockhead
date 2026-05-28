@@ -201,15 +201,7 @@
 	{#snippet Details({
 		open: _open,
 	})}
-		<EntityDetails
-			entityType={EntityType.AtprotoNetwork}
-			{entityId}
-		/>
-		<div
-			class="entity-view-detail-carousels atproto-network-detail-carousels"
-			data-column="gap-3"
-		>
-			<CollapsibleTabs
+		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-registry`}
 				sectionIdPrefix={networkIdKey}
 				sections={[
@@ -217,10 +209,7 @@
 					{ id: 'registry-posts', label: 'Recent posts' },
 					{ id: 'examples-list', label: 'Example routes' },
 				]}
-				{...{ 'data-card': '' }}
-				scrollContainerProps={{
-					'data-row': 'start align-start',
-				}}
+				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}
 					<header
@@ -235,6 +224,7 @@
 
 				{#snippet SectionRegistryActors({ id: _id, label: _label })}
 					<AtprotoActorsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/atproto/actors')}
 						entityFieldReference={{
 							entityType: EntityType.AtprotoNetwork,
@@ -248,6 +238,7 @@
 
 				{#snippet SectionRegistryPosts({ id: _id, label: _label })}
 					<AtprotoPostsView
+						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/atproto/posts')}
 						entityFieldReference={{
 							entityType: EntityType.AtprotoNetwork,
@@ -279,7 +270,6 @@
 						</li>
 					</ul>
 				{/snippet}
-			</CollapsibleTabs>
-		</div>
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>
