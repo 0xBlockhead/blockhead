@@ -108,11 +108,12 @@
 		tabindex="-1"
 		data-scroll-item="pane-flexible"
 		data-sticky-container
-		data-column="layout-flex"
+		data-column
 	>
 		<div
 			class="layout-main"
-			data-column="layout-flex"
+			data-column-item="flexible"
+			data-column
 		>
 			{@render children()}
 		</div>

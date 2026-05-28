@@ -109,13 +109,13 @@
 			resource={post}
 			placeholderText="Loading X post…"
 		>
-			{#snippet children(loadedPost)}
-				{#if loadedPost.text}
+			{#snippet children(post)}
+				{#if post.text}
 					<TruncatedValue
 						endLength={8}
 						format={TruncatedValueFormat.Visual}
 						startLength={88}
-						value={loadedPost.text}
+						value={post.text}
 					/>
 				{:else}
 					{@render Title()}
@@ -128,11 +128,11 @@
 		<ResourceBoundary
 			resource={post}
 		>
-			{#snippet children(loadedPost)}
-				{#if loadedPost.createdAt != null}
+			{#snippet children(post)}
+				{#if post.createdAt != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={loadedPost.createdAt}
+							timestamp={post.createdAt}
 						/>
 					</span>
 				{/if}
@@ -158,10 +158,10 @@
 						resource={post}
 						placeholderText="Loading X post…"
 					>
-						{#snippet children(loadedPost)}
-							{#if loadedPost.$author}
+						{#snippet children(post)}
+							{#if post.$author}
 								<XUserView
-									entityId={loadedPost.$author[EntityMetaKey.Id]}
+									entityId={post.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -179,9 +179,9 @@
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(loadedPost)}
-								{#if loadedPost.text}
-									{loadedPost.text}
+							{#snippet children(post)}
+								{#if post.text}
+									{post.text}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -195,10 +195,10 @@
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(loadedPost)}
-								{#if loadedPost.likeCount != null}
+							{#snippet children(post)}
+								{#if post.likeCount != null}
 									<NumberValue
-										value={loadedPost.likeCount}
+										value={post.likeCount}
 									/>
 								{/if}
 							{/snippet}
@@ -213,10 +213,10 @@
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(loadedPost)}
-								{#if loadedPost.retweetCount != null}
+							{#snippet children(post)}
+								{#if post.retweetCount != null}
 									<NumberValue
-										value={loadedPost.retweetCount}
+										value={post.retweetCount}
 									/>
 								{/if}
 							{/snippet}
@@ -231,10 +231,10 @@
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(loadedPost)}
-								{#if loadedPost.replyCount != null}
+							{#snippet children(post)}
+								{#if post.replyCount != null}
 									<NumberValue
-										value={loadedPost.replyCount}
+										value={post.replyCount}
 									/>
 								{/if}
 							{/snippet}
@@ -249,10 +249,10 @@
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(loadedPost)}
-								{#if loadedPost.quoteCount != null}
+							{#snippet children(post)}
+								{#if post.quoteCount != null}
 									<NumberValue
-										value={loadedPost.quoteCount}
+										value={post.quoteCount}
 									/>
 								{/if}
 							{/snippet}
@@ -267,10 +267,10 @@
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(loadedPost)}
-								{#if loadedPost.$replyToPost}
+							{#snippet children(post)}
+								{#if post.$replyToPost}
 									<XPostView
-										entityId={loadedPost.$replyToPost[EntityMetaKey.Id]}
+										entityId={post.$replyToPost[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -287,10 +287,10 @@
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(loadedPost)}
-								{#if loadedPost.$quotedPost}
+							{#snippet children(post)}
+								{#if post.$quotedPost}
 									<XPostView
-										entityId={loadedPost.$quotedPost[EntityMetaKey.Id]}
+										entityId={post.$quotedPost[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -307,16 +307,16 @@
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(loadedPost)}
-								{#if loadedPost.postUrl}
+							{#snippet children(post)}
+								{#if post.postUrl}
 									<a
-										href={loadedPost.postUrl}
+										href={post.postUrl}
 										rel="noreferrer noopener"
 										target="_blank"
 									>
 										<TruncatedValue
 											format={TruncatedValueFormat.Visual}
-											value={loadedPost.postUrl}
+											value={post.postUrl}
 										/>
 									</a>
 								{/if}
@@ -372,10 +372,10 @@
 						resource={post}
 						placeholderText="Loading X post…"
 					>
-						{#snippet children(loadedPost)}
-							{#if loadedPost.$author}
+						{#snippet children(post)}
+							{#if post.$author}
 								<XUserView
-									entityId={loadedPost.$author[EntityMetaKey.Id]}
+									entityId={post.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Summary}
 								/>
 							{/if}
@@ -389,14 +389,14 @@
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(loadedPost)}
+							{#snippet children(post)}
 								<dl data-column-item="center">
-									{#if loadedPost.$replyToPost}
+									{#if post.$replyToPost}
 										<div>
 											<dt>Reply to</dt>
 											<dd>
 												<XPostView
-													entityId={loadedPost.$replyToPost[EntityMetaKey.Id]}
+													entityId={post.$replyToPost[EntityMetaKey.Id]}
 													layout={EntityLayout.Title}
 													open={false}
 												/>
@@ -404,12 +404,12 @@
 										</div>
 									{/if}
 
-									{#if loadedPost.$quotedPost}
+									{#if post.$quotedPost}
 										<div>
 											<dt>Quoted post</dt>
 											<dd>
 												<XPostView
-													entityId={loadedPost.$quotedPost[EntityMetaKey.Id]}
+													entityId={post.$quotedPost[EntityMetaKey.Id]}
 													layout={EntityLayout.Title}
 													open={false}
 												/>
@@ -422,7 +422,7 @@
 										&& post.$quotedPost == null
 									)}
 										<p data-text="muted">
-											No reply or quote references on this loadedPost.
+											No reply or quote references on this post.
 										</p>
 									{/if}
 								</dl>
@@ -437,10 +437,10 @@
 							resource={post}
 							placeholderText="Loading X post…"
 						>
-							{#snippet children(loadedPost)}
+							{#snippet children(post)}
 								{#if (post.$$media?.length ?? 0) > 0}
 									<div data-column="gap-3">
-										{#each loadedPost.$$media ?? [] as media (media[EntityMetaKey.Id].url)}
+										{#each post.$$media ?? [] as media (media[EntityMetaKey.Id].url)}
 											<Media
 												alt=""
 												media={{ url: media[EntityMetaKey.Id].url }}
@@ -449,7 +449,7 @@
 									</div>
 								{:else}
 									<p data-text="muted">
-										No media attachments on this loadedPost.
+										No media attachments on this post.
 									</p>
 								{/if}
 							{/snippet}

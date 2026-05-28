@@ -1,5 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+
+
+	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,9 +20,9 @@
 	let {
 		entityId,
 		href = resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]/compilation/[compilationId]',
+			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(contracts)/contract/[address]/compilation/[compilationId]',
 			{
-				networkId: String(entityId.$network.chainId),
+				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 				address: entityId.$contract.address,
 				compilationId: entityId.compilationId,
 			},
@@ -98,10 +102,10 @@
 			resource={compilation}
 			placeholderText="Loading compilation…"
 		>
-			{#snippet children(loadedCompilation)}
-				{loadedCompilation.fullyQualifiedName
-					?? loadedCompilation.name
-					?? loadedCompilation.language
+			{#snippet children(compilation)}
+				{compilation.fullyQualifiedName
+					?? compilation.name
+					?? compilation.language
 					?? 'Compilation'}
 			{/snippet}
 		</ResourceBoundary>
@@ -128,9 +132,9 @@
 							resource={compilation}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(loadedCompilation)}
-								{#if loadedCompilation.language}
-									{loadedCompilation.language}
+							{#snippet children(compilation)}
+								{#if compilation.language}
+									{compilation.language}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -143,9 +147,9 @@
 							resource={compilation}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(loadedCompilation)}
-								{#if loadedCompilation.compiler}
-									{loadedCompilation.compiler}
+							{#snippet children(compilation)}
+								{#if compilation.compiler}
+									{compilation.compiler}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -158,9 +162,9 @@
 							resource={compilation}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(loadedCompilation)}
-								{#if loadedCompilation.compilerVersion}
-									{loadedCompilation.compilerVersion}
+							{#snippet children(compilation)}
+								{#if compilation.compilerVersion}
+									{compilation.compilerVersion}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -173,9 +177,9 @@
 							resource={compilation}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(loadedCompilation)}
-								{#if loadedCompilation.fullyQualifiedName}
-									<code>{loadedCompilation.fullyQualifiedName}</code>
+							{#snippet children(compilation)}
+								{#if compilation.fullyQualifiedName}
+									<code>{compilation.fullyQualifiedName}</code>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -188,10 +192,10 @@
 							resource={compilation}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(loadedCompilation)}
-								{#if loadedCompilation.compilerSettingsJson}
+							{#snippet children(compilation)}
+								{#if compilation.compilerSettingsJson}
 									<TruncatedValue
-										value={loadedCompilation.compilerSettingsJson}
+										value={compilation.compilerSettingsJson}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -206,10 +210,10 @@
 							resource={compilation}
 							placeholderText="Loading compilation metadata…"
 						>
-							{#snippet children(loadedCompilation)}
-								{#if loadedCompilation.storageLayoutJson}
+							{#snippet children(compilation)}
+								{#if compilation.storageLayoutJson}
 									<TruncatedValue
-										value={loadedCompilation.storageLayoutJson}
+										value={compilation.storageLayoutJson}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}

@@ -99,19 +99,19 @@
 
 	{#snippet Title()}
 		<ResourceBoundary resource={channel}>
-			{#snippet children(loadedChannel)}
+			{#snippet children(channel)}
 				<span data-row="inline wrap align-center gap-2">
 					{#if (
 						channel.$icon !== undefined
 						&& channel.$icon[EntityMetaKey.Id].url !== undefined
 					)}
 						<IconComponent
-							src={loadedChannel.$icon[EntityMetaKey.Id].url}
+							src={channel.$icon[EntityMetaKey.Id].url}
 							alt=""
 						/>
 					{/if}
 					<span>
-						{loadedChannel.name ?? entityId.id}
+						{channel.name ?? entityId.id}
 					</span>
 				</span>
 			{/snippet}
@@ -144,8 +144,8 @@
 						resource={channel}
 						placeholderText="Loading Farcaster channel (channel id / slug)…"
 					>
-						{#snippet children(loadedChannel)}
-							{#if loadedChannel.followerCount !== undefined}
+						{#snippet children(channel)}
+							{#if channel.followerCount !== undefined}
 								{String(channel.followerCount)}
 							{/if}
 						{/snippet}
@@ -160,8 +160,8 @@
 						resource={channel}
 						placeholderText="Loading Farcaster channel (channel id / slug)…"
 					>
-						{#snippet children(loadedChannel)}
-							{#if loadedChannel.memberCount !== undefined}
+						{#snippet children(channel)}
+							{#if channel.memberCount !== undefined}
 								{String(channel.memberCount)}
 							{/if}
 						{/snippet}
@@ -176,9 +176,9 @@
 						resource={channel}
 						placeholderText="Loading Farcaster channel (channel id / slug)…"
 					>
-						{#snippet children(loadedChannel)}
-							{#if loadedChannel.publicCasting !== undefined}
-								{loadedChannel.publicCasting ? 'Yes' : 'No'}
+						{#snippet children(channel)}
+							{#if channel.publicCasting !== undefined}
+								{channel.publicCasting ? 'Yes' : 'No'}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -193,9 +193,9 @@
 							resource={channel}
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
-							{#snippet children(loadedChannel)}
-								{#if loadedChannel.name !== undefined}
-									{loadedChannel.name}
+							{#snippet children(channel)}
+								{#if channel.name !== undefined}
+									{channel.name}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -208,9 +208,9 @@
 							resource={channel}
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
-							{#snippet children(loadedChannel)}
-								{#if loadedChannel.url !== undefined}
-									<a href={loadedChannel.url}>{loadedChannel.url}</a>
+							{#snippet children(channel)}
+								{#if channel.url !== undefined}
+									<a href={channel.url}>{channel.url}</a>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -224,9 +224,9 @@
 							resource={channel}
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
-							{#snippet children(loadedChannel)}
-								{#if loadedChannel.description !== undefined}
-									{loadedChannel.description}
+							{#snippet children(channel)}
+								{#if channel.description !== undefined}
+									{channel.description}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -240,16 +240,16 @@
 							resource={channel}
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
-							{#snippet children(loadedChannel)}
+							{#snippet children(channel)}
 								{#if (
 									channel.$icon !== undefined
 									&& channel.$icon[EntityMetaKey.Id].url !== undefined
 								)}
 									<Media
-										media={{ url: loadedChannel.$icon[EntityMetaKey.Id].url }}
+										media={{ url: channel.$icon[EntityMetaKey.Id].url }}
 										alt=""
 									/>
-									<a href={loadedChannel.$icon[EntityMetaKey.Id].url}>{loadedChannel.$icon[EntityMetaKey.Id].url}</a>
+									<a href={channel.$icon[EntityMetaKey.Id].url}>{channel.$icon[EntityMetaKey.Id].url}</a>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -263,7 +263,7 @@
 							resource={channel}
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
-							{#snippet children(loadedChannel)}
+							{#snippet children(channel)}
 								{#if (
 									channel.$lead !== undefined
 									&& channel.$lead[EntityMetaKey.Id].fid !== undefined
@@ -286,7 +286,7 @@
 							resource={channel}
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
-							{#snippet children(loadedChannel)}
+							{#snippet children(channel)}
 								{#if (
 									channel.$moderator !== undefined
 									&& channel.$moderator[EntityMetaKey.Id].fid !== undefined
@@ -309,10 +309,10 @@
 							resource={channel}
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
-							{#snippet children(loadedChannel)}
-								{#if loadedChannel.$$moderators.length}
+							{#snippet children(channel)}
+								{#if channel.$$moderators.length}
 									<ul>
-										{#each loadedChannel.$$moderators as mod (String(mod[EntityMetaKey.Id].fid))}
+										{#each channel.$$moderators as mod (String(mod[EntityMetaKey.Id].fid))}
 											<li>
 												<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
 													userId: String(mod[EntityMetaKey.Id].fid),
@@ -335,10 +335,10 @@
 							resource={channel}
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
-							{#snippet children(loadedChannel)}
-								{#if loadedChannel.createdAt !== undefined}
+							{#snippet children(channel)}
+								{#if channel.createdAt !== undefined}
 									<Timestamp
-										timestamp={loadedChannel.createdAt}
+										timestamp={channel.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -353,11 +353,11 @@
 							resource={channel}
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
-							{#snippet children(loadedChannel)}
-								{#if loadedChannel.pinnedCastHash !== undefined}
+							{#snippet children(channel)}
+								{#if channel.pinnedCastHash !== undefined}
 									<span>
 										<TruncatedValue
-											value={loadedChannel.pinnedCastHash}
+											value={channel.pinnedCastHash}
 											startLength={10}
 											endLength={8}
 											format={TruncatedValueFormat.Visual}
@@ -376,10 +376,10 @@
 							resource={channel}
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
-							{#snippet children(loadedChannel)}
-								{#if loadedChannel.externalLinkUrl !== undefined}
-									<a href={loadedChannel.externalLinkUrl}>
-										{loadedChannel.externalLinkTitle ?? loadedChannel.externalLinkUrl}
+							{#snippet children(channel)}
+								{#if channel.externalLinkUrl !== undefined}
+									<a href={channel.externalLinkUrl}>
+										{channel.externalLinkTitle ?? channel.externalLinkUrl}
 									</a>
 								{/if}
 							{/snippet}
@@ -394,10 +394,10 @@
 							resource={channel}
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
-							{#snippet children(loadedChannel)}
-								{#if loadedChannel.followedAt !== undefined}
+							{#snippet children(channel)}
+								{#if channel.followedAt !== undefined}
 									<Timestamp
-										timestamp={loadedChannel.followedAt}
+										timestamp={channel.followedAt}
 									/>
 								{/if}
 							{/snippet}
@@ -414,9 +414,9 @@
 							resource={channel}
 							placeholderText="Loading Farcaster channel (channel id / slug)…"
 						>
-							{#snippet children(loadedChannel)}
-								{#if loadedChannel.description !== undefined}
-									{loadedChannel.description}
+							{#snippet children(channel)}
+								{#if channel.description !== undefined}
+									{channel.description}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -471,7 +471,7 @@
 						resource={channel}
 						placeholderText="Loading Farcaster channel banner…"
 					>
-						{#snippet children(loadedChannel)}
+						{#snippet children(channel)}
 							<section data-column>
 								<h3>Channel</h3>
 								{#if (
@@ -480,7 +480,7 @@
 								)}
 									<p>
 										<Media
-											media={{ url: loadedChannel.$headerImage[EntityMetaKey.Id].url }}
+											media={{ url: channel.$headerImage[EntityMetaKey.Id].url }}
 											fit="cover"
 										/>
 									</p>

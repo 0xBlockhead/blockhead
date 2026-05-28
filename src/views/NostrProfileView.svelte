@@ -121,9 +121,9 @@
 			resource={profile}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(loadedProfile)}
-				{#if loadedProfile.displayName}
-					{loadedProfile.displayName}
+			{#snippet children(profile)}
+				{#if profile.displayName}
+					{profile.displayName}
 				{:else}
 					<TruncatedValue
 						value={entityId.pubkey}
@@ -139,14 +139,14 @@
 			resource={profile}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(loadedProfile)}
+			{#snippet children(profile)}
 				{#if (
 					profile.$icon
 					&& profile.$icon[EntityMetaKey.Id].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={loadedProfile.$icon[EntityMetaKey.Id].url}
+						src={profile.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -173,8 +173,8 @@
 							resource={profile}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(loadedProfile)}
-								{loadedProfile.about}
+							{#snippet children(profile)}
+								{profile.about}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -189,8 +189,8 @@
 							resource={profile}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(loadedProfile)}
-								{loadedProfile.nip05}
+							{#snippet children(profile)}
+								{profile.nip05}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -208,9 +208,9 @@
 							resource={profile}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(loadedProfile)}
+							{#snippet children(profile)}
 								<img
-									src={loadedProfile.$banner[EntityMetaKey.Id].url}
+									src={profile.$banner[EntityMetaKey.Id].url}
 									alt=""
 								/>
 							{/snippet}
@@ -230,12 +230,12 @@
 							resource={profile}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(loadedProfile)}
+							{#snippet children(profile)}
 								<a
-									href={loadedProfile.website}
+									href={profile.website}
 									rel="noreferrer"
 									target="_blank"
-								>{loadedProfile.website}</a>
+								>{profile.website}</a>
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -252,8 +252,8 @@
 							resource={profile}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(loadedProfile)}
-								{loadedProfile.lud16}
+							{#snippet children(profile)}
+								{profile.lud16}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -270,8 +270,8 @@
 							resource={profile}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(loadedProfile)}
-								{loadedProfile.lud06}
+							{#snippet children(profile)}
+								{profile.lud06}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -288,9 +288,9 @@
 							resource={profile}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(loadedProfile)}
+							{#snippet children(profile)}
 								<Timestamp
-									timestamp={loadedProfile.metadataUpdatedAt}
+									timestamp={profile.metadataUpdatedAt}
 								/>
 							{/snippet}
 						</ResourceBoundary>

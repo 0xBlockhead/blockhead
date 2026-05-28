@@ -1,10 +1,8 @@
+import { caip2FromEvmChainId } from '$/lib/caip.ts'
+
 export const Slip44 = {
 	Ether: 60,
 } as const
-
-export const caip2FromEvmChainId = (chainId: number) => (
-	`eip155:${chainId}`
-)
 
 export const caip19Erc20 = (chainId: number, tokenAddress: `0x${string}`) => (
 	`${caip2FromEvmChainId(chainId)}/erc20:${tokenAddress.toLowerCase()}`

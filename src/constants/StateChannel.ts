@@ -68,7 +68,7 @@ export const stateChannelTransferStatusByStatus = Object.fromEntries(
 	]),
 )
 
-const stateChannelStateIntentRows = [
+const stateChannelStateIntents = [
 	{
 		intent: 0,
 		label: 'Operate',
@@ -90,8 +90,8 @@ const stateChannelStateIntentRows = [
 	label: string
 }[]
 
-export const stateChannelStateIntents = Object.fromEntries(
-	stateChannelStateIntentRows.map((row) => [
+export const stateChannelStateIntentByIntent = Object.fromEntries(
+	stateChannelStateIntents.map((row) => [
 		row.intent,
 		row,
 	]),

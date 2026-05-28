@@ -138,15 +138,15 @@
 			resource={note}
 			placeholderText="Loading note…"
 		>
-			{#snippet children(loadedNote)}
+			{#snippet children(note)}
 				{@const hasContentWarning = (
 					(note.spoilerText?.trim().length ?? 0) > 0
-					|| loadedNote.sensitive === true
+					|| note.sensitive === true
 				)}
 				{@const mastodonPlainBody = (
 					hasContentWarning && !contentWarningRevealed ?
 						(note.spoilerText?.trim() || 'Sensitive content')
-					: loadedNote.content == null ?
+					: note.content == null ?
 						''
 					:
 						htmlToPlainText(note.content)
@@ -174,11 +174,11 @@
 		<ResourceBoundary
 			resource={note}
 		>
-			{#snippet children(loadedNote)}
-				{#if loadedNote.createdAt}
+			{#snippet children(note)}
+				{#if note.createdAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={loadedNote.createdAt}
+							timestamp={note.createdAt}
 						/>
 					</span>
 				{/if}
@@ -198,13 +198,13 @@
 						resource={note}
 						placeholderText="Loading note…"
 					>
-						{#snippet children(loadedNote)}
-							{#if loadedNote.$author}
+						{#snippet children(note)}
+							{#if note.$author}
 								<div>
-									<dt>{loadedNote.$reblogOf ? 'Boosted by' : 'Author'}</dt>
+									<dt>{note.$reblogOf ? 'Boosted by' : 'Author'}</dt>
 									<dd>
 										<ActivityPubActorView
-											entityId={loadedNote.$author[EntityMetaKey.Id]}
+											entityId={note.$author[EntityMetaKey.Id]}
 											layout={EntityLayout.Title}
 											open={false}
 										/>
@@ -221,13 +221,13 @@
 					resource={note}
 					placeholderText="Loading note…"
 				>
-					{#snippet children(loadedNote)}
-						{#if loadedNote.$inReplyTo}
+					{#snippet children(note)}
+						{#if note.$inReplyTo}
 							<div>
 								<dt>In reply to</dt>
 								<dd>
 									<ActivityPubNoteView
-										entityId={loadedNote.$inReplyTo[EntityMetaKey.Id]}
+										entityId={note.$inReplyTo[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -243,16 +243,16 @@
 					resource={note}
 					placeholderText="Loading note…"
 				>
-					{#snippet children(loadedNote)}
-						{#if loadedNote.$reblogOf && (
+					{#snippet children(note)}
+						{#if note.$reblogOf && (
 							note.$reblogOf[EntityMetaKey.Id].instanceOrigin !== entityId.instanceOrigin
-							|| loadedNote.$reblogOf[EntityMetaKey.Id].localStatusId !== entityId.localStatusId
+							|| note.$reblogOf[EntityMetaKey.Id].localStatusId !== entityId.localStatusId
 						)}
 							<div>
 								<dt>Reblog of</dt>
 								<dd>
 									<ActivityPubNoteView
-										entityId={loadedNote.$reblogOf[EntityMetaKey.Id]}
+										entityId={note.$reblogOf[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -268,10 +268,10 @@
 					resource={note}
 					placeholderText="Loading note…"
 				>
-					{#snippet children(loadedNote)}
+					{#snippet children(note)}
 						{@const hasContentWarning = (
 							(note.spoilerText?.trim().length ?? 0) > 0
-							|| loadedNote.sensitive === true
+							|| note.sensitive === true
 						)}
 						{#if hasContentWarning && !contentWarningRevealed}
 							<div>
@@ -281,7 +281,7 @@
 										class="activitypub-content-warning"
 										data-column="gap-2"
 									>
-										<p>{loadedNote.spoilerText?.trim() || 'Sensitive content'}</p>
+										<p>{note.spoilerText?.trim() || 'Sensitive content'}</p>
 										<button
 											type="button"
 											onclick={() => {
@@ -293,8 +293,8 @@
 									</div>
 								</dd>
 							</div>
-						{:else if loadedNote.content != null || (note.$$media?.length ?? 0) > 0}
-							{#if loadedNote.content != null}
+						{:else if note.content != null || (note.$$media?.length ?? 0) > 0}
+							{#if note.content != null}
 								<div>
 									<dt>Status body</dt>
 									<dd>
@@ -310,7 +310,7 @@
 									<dt>Media</dt>
 									<dd>
 										<div data-column="gap-3">
-											{#each loadedNote.$$media ?? [] as media (media[EntityMetaKey.Id].url)}
+											{#each note.$$media ?? [] as media (media[EntityMetaKey.Id].url)}
 												<Media
 													alt=""
 													media={{ url: media[EntityMetaKey.Id].url }}
@@ -330,12 +330,12 @@
 					resource={note}
 					placeholderText="Loading note…"
 				>
-					{#snippet children(loadedNote)}
-						{#if loadedNote.visibility}
+					{#snippet children(note)}
+						{#if note.visibility}
 							<div>
 								<dt>Visibility</dt>
 								<dd>
-									{mastodonVisibilityLabels[loadedNote.visibility] ?? loadedNote.visibility}
+									{mastodonVisibilityLabels[note.visibility] ?? note.visibility}
 								</dd>
 							</div>
 						{/if}
@@ -348,43 +348,43 @@
 					resource={note}
 					placeholderText="Loading note…"
 				>
-					{#snippet children(loadedNote)}
-						{#if loadedNote.sensitive != null}
+					{#snippet children(note)}
+						{#if note.sensitive != null}
 							<div>
 								<dt>Sensitive</dt>
 								<dd>
-									{loadedNote.sensitive ? 'Yes' : 'No'}
+									{note.sensitive ? 'Yes' : 'No'}
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedNote.language}
+						{#if note.language}
 							<div>
 								<dt>Language</dt>
-								<dd>{loadedNote.language}</dd>
+								<dd>{note.language}</dd>
 							</div>
 						{/if}
 
-						{#if loadedNote.editedAt != null}
+						{#if note.editedAt != null}
 							<div>
 								<dt>Edited</dt>
 								<dd>
 									<Timestamp
-										timestamp={loadedNote.editedAt}
+										timestamp={note.editedAt}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedNote.activityStreamsUri}
+						{#if note.activityStreamsUri}
 							<div>
 								<dt>Activity Streams URI</dt>
 								<dd>
 									<a
-										href={loadedNote.activityStreamsUri}
+										href={note.activityStreamsUri}
 										rel="noreferrer"
 										target="_blank"
-									>{loadedNote.activityStreamsUri}</a>
+									>{note.activityStreamsUri}</a>
 								</dd>
 							</div>
 						{/if}
@@ -400,15 +400,15 @@
 							resource={note}
 							placeholderText="Loading note…"
 						>
-							{#snippet children(loadedNote)}
-								{#if loadedNote.favouriteCount != null}
-									{String(loadedNote.favouriteCount)} favourites
+							{#snippet children(note)}
+								{#if note.favouriteCount != null}
+									{String(note.favouriteCount)} favourites
 								{/if}
-								{#if loadedNote.reblogCount != null}
-									· {String(loadedNote.reblogCount)} reblogs
+								{#if note.reblogCount != null}
+									· {String(note.reblogCount)} reblogs
 								{/if}
-								{#if loadedNote.replyCount != null}
-									· {String(loadedNote.replyCount)} replies
+								{#if note.replyCount != null}
+									· {String(note.replyCount)} replies
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -424,13 +424,13 @@
 							resource={note}
 							placeholderText="Loading note…"
 						>
-							{#snippet children(loadedNote)}
-								{#if loadedNote.statusUrl}
+							{#snippet children(note)}
+								{#if note.statusUrl}
 									<a
-										href={loadedNote.statusUrl}
+										href={note.statusUrl}
 										rel="noreferrer"
 										target="_blank"
-									>{loadedNote.statusUrl}</a>
+									>{note.statusUrl}</a>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -490,7 +490,7 @@
 						resource={note}
 						placeholderText="Loading note…"
 					>
-						{#snippet children(loadedNote)}
+						{#snippet children(note)}
 							{@const mastodonThreadMetadataUnset = (
 								htmlToPlainText(note.content ?? '').trim() === ''
 								&& note.createdAt == null

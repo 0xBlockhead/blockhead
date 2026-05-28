@@ -69,6 +69,7 @@
 	{ontoggle}
 	onclose={(id) => onNestedCollapsibleClose?.(id ?? undefined)}
 	data-card
+	data-column-item="flexible"
 	{...CollapsibleProps}
 >
 	{#snippet Summary({ open: _open })}
@@ -90,7 +91,7 @@
 		{/if}
 	{/snippet}
 
-	{#snippet children({ open: _open })}
+	{#snippet children({ open })}
 		{#if _children}
 			{@render _children()}
 		{/if}

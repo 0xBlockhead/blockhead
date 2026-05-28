@@ -93,8 +93,8 @@
 			resource={user}
 			placeholderText="Loading X profile…"
 		>
-			{#snippet children(loadedUser)}
-				{loadedUser.name ?? loadedUser.username ?? entityId.id}
+			{#snippet children(user)}
+				{user.name ?? user.username ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -115,12 +115,12 @@
 			resource={user}
 			placeholderText="Loading X profile…"
 		>
-			{#snippet children(loadedUser)}
-				{#if loadedUser.$icon !== undefined}
+			{#snippet children(user)}
+				{#if user.$icon !== undefined}
 					<IconComponent
-						alt={loadedUser.name ?? loadedUser.username ?? ''}
+						alt={user.name ?? user.username ?? ''}
 						shape={IconShape.Circle}
-						src={loadedUser.$icon[EntityMetaKey.Id].url}
+						src={user.$icon[EntityMetaKey.Id].url}
 					/>
 				{/if}
 			{/snippet}
@@ -141,15 +141,15 @@
 			resource={user}
 			placeholderText="Loading X profile…"
 		>
-			{#snippet children(loadedUser)}
+			{#snippet children(user)}
 				{#if (
 					user.username !== undefined
 					&& user.username !== (
-						user.name ?? loadedUser.username ?? entityId.id
+						user.name ?? entityId.id
 					)
 				)}
 					<span data-text="muted">
-						@{loadedUser.username}
+						@{user.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -166,10 +166,10 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(loadedUser)}
-								{#if loadedUser.description}
+							{#snippet children(user)}
+								{#if user.description}
 									<p data-text="muted">
-										{loadedUser.description}
+										{user.description}
 									</p>
 								{/if}
 							{/snippet}
@@ -185,9 +185,9 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(loadedUser)}
-								{#if loadedUser.name}
-									{loadedUser.name}
+							{#snippet children(user)}
+								{#if user.name}
+									{user.name}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -203,9 +203,9 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(loadedUser)}
-								{#if loadedUser.username}
-									{loadedUser.username}
+							{#snippet children(user)}
+								{#if user.username}
+									{user.username}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -221,9 +221,9 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(loadedUser)}
-								{#if loadedUser.description}
-									{loadedUser.description}
+							{#snippet children(user)}
+								{#if user.description}
+									{user.description}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -239,10 +239,10 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(loadedUser)}
-								{#if loadedUser.followerCount != null}
+							{#snippet children(user)}
+								{#if user.followerCount != null}
 									<NumberValue
-										value={loadedUser.followerCount}
+										value={user.followerCount}
 									/>
 								{/if}
 							{/snippet}
@@ -259,10 +259,10 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(loadedUser)}
-								{#if loadedUser.followingCount != null}
+							{#snippet children(user)}
+								{#if user.followingCount != null}
 									<NumberValue
-										value={loadedUser.followingCount}
+										value={user.followingCount}
 									/>
 								{/if}
 							{/snippet}
@@ -279,10 +279,30 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(loadedUser)}
-								{#if loadedUser.tweetCount != null}
+							{#snippet children(user)}
+								{#if user.tweetCount != null}
 									<NumberValue
-										value={loadedUser.tweetCount}
+										value={user.tweetCount}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+			{/if}
+
+			{#if contentOpen}
+				<div>
+					<dt>Listed</dt>
+					<dd>
+						<ResourceBoundary
+							resource={user}
+							placeholderText="Loading X profile…"
+						>
+							{#snippet children(user)}
+								{#if user.listedCount != null}
+									<NumberValue
+										value={user.listedCount}
 									/>
 								{/if}
 							{/snippet}
@@ -299,9 +319,9 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(loadedUser)}
-								{#if loadedUser.verified != null}
-									{loadedUser.verified ? 'Yes' : 'No'}
+							{#snippet children(user)}
+								{#if user.verified != null}
+									{user.verified ? 'Yes' : 'No'}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -317,16 +337,16 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(loadedUser)}
-								{#if loadedUser.websiteUrl}
+							{#snippet children(user)}
+								{#if user.websiteUrl}
 									<a
-										href={loadedUser.websiteUrl}
+										href={user.websiteUrl}
 										rel="noreferrer noopener"
 										target="_blank"
 									>
 										<TruncatedValue
 											format={TruncatedValueFormat.Visual}
-											value={loadedUser.websiteUrl}
+											value={user.websiteUrl}
 										/>
 									</a>
 								{/if}
@@ -344,9 +364,9 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(loadedUser)}
-								{#if loadedUser.location}
-									{loadedUser.location}
+							{#snippet children(user)}
+								{#if user.location}
+									{user.location}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -362,10 +382,10 @@
 							resource={user}
 							placeholderText="Loading X profile…"
 						>
-							{#snippet children(loadedUser)}
-								{#if loadedUser.createdAt != null}
+							{#snippet children(user)}
+								{#if user.createdAt != null}
 									<Timestamp
-										timestamp={loadedUser.createdAt}
+										timestamp={user.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -418,22 +438,22 @@
 						resource={user}
 						placeholderText="Loading X profile…"
 					>
-						{#snippet children(loadedUser)}
+						{#snippet children(user)}
 							<dl data-column-item="center">
-								{#if loadedUser.description}
+								{#if user.description}
 									<div>
 										<dt>Description</dt>
-										<dd>{loadedUser.description}</dd>
+										<dd>{user.description}</dd>
 									</div>
 								{/if}
 
-								{#if loadedUser.$profileBanner?.[EntityMetaKey.Id].url != null}
+								{#if user.$profileBanner?.[EntityMetaKey.Id].url != null}
 									<div>
 										<dt>Banner</dt>
 										<dd>
 											<Media
 												alt=""
-												media={{ url: loadedUser.$profileBanner[EntityMetaKey.Id].url }}
+												media={{ url: user.$profileBanner[EntityMetaKey.Id].url }}
 											/>
 										</dd>
 									</div>
@@ -457,7 +477,7 @@
 
 				{#snippet SectionPosts({ id, label })}
 					<ResourceBoundary resource={user}>
-						{#snippet children(loadedUser)}
+						{#snippet children(user)}
 							{#if (user.$$posts?.length)}
 								<XPostsView
 									collapsible={false}

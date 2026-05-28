@@ -9,6 +9,10 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 
+const XId = type(
+	'/^\\d+$/' as type.cast<string>,
+)
+
 export default {
 	entityType: EntityType.XPost,
 
@@ -16,7 +20,7 @@ export default {
 	labelPlural: 'X posts',
 
 	id: type({
-		id: 'string',
+		id: XId,
 	}),
 
 	fields: [

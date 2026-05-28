@@ -117,11 +117,11 @@
 				resource={cast}
 				placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 			>
-				{#snippet children(loadedCast)}
-					{#if loadedCast.$author.$icon}
+				{#snippet children(cast)}
+					{#if cast.$author?.$icon}
 						<IconComponent
 							shape={IconShape.Circle}
-							src={loadedCast.$author.$icon[EntityMetaKey.Id].url}
+							src={cast.$author.$icon[EntityMetaKey.Id].url}
 							alt=""
 						/>
 					{/if}
@@ -135,16 +135,16 @@
 			resource={cast}
 			placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 		>
-			{#snippet children(loadedCast)}
-				<TruncatedValue
-					value={(
-						cast.text.replaceAll('\n', ' ')
-						=== ''
-					) ?
-						'Cast'
-					:
-						loadedCast.text.replaceAll('\n', ' ')
-					}
+			{#snippet children(cast)}
+					<TruncatedValue
+						value={(
+							(cast.text?.replaceAll('\n', ' ') ?? '')
+							=== ''
+						) ?
+							'Cast'
+						:
+							(cast.text?.replaceAll('\n', ' ') ?? '')
+						}
 					startLength={56}
 					endLength={24}
 					format={TruncatedValueFormat.Abbr}
@@ -177,10 +177,10 @@
 			resource={cast}
 			placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 		>
-			{#snippet children(loadedCast)}
-				{#if variant === 'feed' && loadedCast.$author.username !== undefined}
+			{#snippet children(cast)}
+				{#if variant === 'feed' && cast.$author?.username !== undefined}
 					<span data-text="muted">
-						@{loadedCast.$author.username}
+						@{cast.$author.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -197,8 +197,8 @@
 						resource={cast}
 						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 					>
-						{#snippet children(loadedCast)}
-							{@const flatText = loadedCast.text.replaceAll('\n', ' ')}
+						{#snippet children(cast)}
+							{@const flatText = cast.text?.replaceAll('\n', ' ') ?? ''}
 							{#if (
 								flatText !== ''
 								&& variant === 'feed'
@@ -213,7 +213,7 @@
 							</p>
 							{:else if flatText !== ''}
 								<p>
-								{loadedCast.text}
+								{cast.text ?? ''}
 								</p>
 							{/if}
 						{/snippet}
@@ -227,9 +227,9 @@
 						resource={cast}
 						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 					>
-						{#snippet children(loadedCast)}
+						{#snippet children(cast)}
 							<Timestamp
-								timestamp={loadedCast.timestamp}
+								timestamp={cast.timestamp}
 							/>
 						{/snippet}
 					</ResourceBoundary>
@@ -242,8 +242,8 @@
 						resource={cast}
 						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 					>
-						{#snippet children(loadedCast)}
-							{#if loadedCast.likeCount !== undefined}
+						{#snippet children(cast)}
+							{#if cast.likeCount !== undefined}
 								{String(cast.likeCount)}
 							{/if}
 						{/snippet}
@@ -258,8 +258,8 @@
 						resource={cast}
 						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 					>
-						{#snippet children(loadedCast)}
-							{#if loadedCast.recastCount !== undefined}
+						{#snippet children(cast)}
+							{#if cast.recastCount !== undefined}
 								{String(cast.recastCount)}
 							{/if}
 						{/snippet}
@@ -274,8 +274,8 @@
 						resource={cast}
 						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 					>
-						{#snippet children(loadedCast)}
-							{#if loadedCast.replyCount !== undefined}
+						{#snippet children(cast)}
+							{#if cast.replyCount !== undefined}
 								{String(cast.replyCount)}
 							{/if}
 						{/snippet}
@@ -290,12 +290,12 @@
 						resource={cast}
 						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 					>
-						{#snippet children(loadedCast)}
+						{#snippet children(cast)}
 							{@const channelId = (
 								cast.$channel === undefined ?
 									undefined
 								:
-									loadedCast.$channel[EntityMetaKey.Id].id
+									cast.$channel[EntityMetaKey.Id].id
 							)}
 							{@const channelPageHref = (
 								channelId === undefined ?
@@ -330,12 +330,12 @@
 							resource={cast}
 							placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 						>
-							{#snippet children(loadedCast)}
+							{#snippet children(cast)}
 								{@const parentCastIdOpen = (
 									cast.$parentCast === undefined ?
 										undefined
 									:
-										loadedCast.$parentCast[EntityMetaKey.Id]
+										cast.$parentCast[EntityMetaKey.Id]
 								)}
 								{@const parentCastHrefOpen = (
 									parentCastIdOpen === undefined ?
@@ -361,9 +361,9 @@
 							resource={cast}
 							placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 						>
-							{#snippet children(loadedCast)}
-								{#if loadedCast.parentUrl !== undefined}
-									<a href={loadedCast.parentUrl}>{loadedCast.parentUrl}</a>
+							{#snippet children(cast)}
+								{#if cast.parentUrl !== undefined}
+									<a href={cast.parentUrl}>{cast.parentUrl}</a>
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -377,13 +377,13 @@
 							resource={cast}
 							placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 						>
-							{#snippet children(loadedCast)}
+							{#snippet children(cast)}
 								{#if (
 									cast.mentions !== undefined
 									&& cast.mentions.length
 								)}
 									<ul data-cast="wrap gap-2">
-										{#each loadedCast.mentions as mention (String(mention))}
+										{#each cast.mentions as mention (String(mention))}
 											<li>
 												<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
 													userId: String(mention),
@@ -406,8 +406,8 @@
 							resource={cast}
 							placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 						>
-							{#snippet children(loadedCast)}
-								{@const authorUsernameOpen = loadedCast.$author.username}
+							{#snippet children(cast)}
+								{@const authorUsernameOpen = cast.$author?.username}
 								{@const farcasterWebCastHrefOpen = (
 									authorUsernameOpen === undefined ?
 										undefined
@@ -432,14 +432,14 @@
 							resource={cast}
 							placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 						>
-							{#snippet children(loadedCast)}
+							{#snippet children(cast)}
 								{@const threadNormOpen = (
 									(() => {
 										const th = (
 											cast.threadHash === undefined ?
 												''
 											:
-												loadedCast.threadHash.trim()
+												cast.threadHash.trim()
 										)
 										if (th === '') {
 											return undefined
@@ -531,39 +531,39 @@
 							resource={cast}
 								placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 						>
-							{#snippet children(loadedCast)}
-								{@const authorId = loadedCast.$author[EntityMetaKey.Id]}
-								{@const authorUsername = loadedCast.$author.username}
-								{@const authorDisplayName = loadedCast.$author.displayName}
+							{#snippet children(cast)}
+								{@const authorId = cast.$author?.[EntityMetaKey.Id]}
+								{@const authorUsername = cast.$author?.username}
+								{@const authorDisplayName = cast.$author?.displayName}
 								{@const authorAvatarUrl = (
-									cast.$author.$icon === undefined ?
+									cast.$author?.$icon === undefined ?
 										undefined
 									:
-										loadedCast.$author.$icon[EntityMetaKey.Id].url
+										cast.$author.$icon[EntityMetaKey.Id].url
 								)}
 								{@const postedViaAppId = (
 									cast.$postedViaApp === undefined ?
 										undefined
 									:
-										loadedCast.$postedViaApp[EntityMetaKey.Id]
+										cast.$postedViaApp[EntityMetaKey.Id]
 								)}
 								{@const postedViaUsername = (
 									cast.$postedViaApp === undefined ?
 										undefined
 									:
-										loadedCast.$postedViaApp.username
+										cast.$postedViaApp.username
 								)}
 								{@const postedViaDisplayName = (
 									cast.$postedViaApp === undefined ?
 										undefined
 									:
-										loadedCast.$postedViaApp.displayName
+										cast.$postedViaApp.displayName
 								)}
 								{@const channelId = (
 									cast.$channel === undefined ?
 										undefined
 									:
-										loadedCast.$channel[EntityMetaKey.Id].id
+										cast.$channel[EntityMetaKey.Id].id
 								)}
 								{@const channelPageHref = (
 									channelId === undefined ?
@@ -586,9 +586,17 @@
 											{/if}
 											<div data-column>
 												<strong>
-													{authorDisplayName ?? authorUsername ?? `FID ${String(authorId.fid)}`}
+													{authorDisplayName ?? authorUsername ?? (
+														authorId === undefined ?
+															`FID ${String(entityId.fid)}`
+														:
+															`FID ${String(authorId.fid)}`
+													)}
 												</strong>
-												{#if authorUsername !== undefined}
+												{#if (
+													authorId !== undefined
+													&& authorUsername !== undefined
+												)}
 													<span data-text="muted">
 														<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
 															userId: String(authorId.fid),
@@ -601,7 +609,7 @@
 										</div>
 										<p data-text="muted">
 											<Timestamp
-												timestamp={loadedCast.timestamp}
+												timestamp={cast.timestamp}
 											/>
 										</p>
 										{#if postedViaAppId !== undefined}
@@ -627,7 +635,7 @@
 									</header>
 
 									<p>
-										{loadedCast.text}
+										{cast.text ?? ''}
 									</p>
 								</section>
 							{/snippet}
@@ -641,13 +649,13 @@
 							resource={cast}
 							placeholderText="Loading cast mentions, channel ids & embeds…"
 						>
-							{#snippet children(loadedCast)}
+							{#snippet children(cast)}
 								<section data-column>
-									{#if loadedCast.mentionedProfileFids !== undefined && loadedCast.mentionedProfileFids.length}
+									{#if cast.mentionedProfileFids !== undefined && cast.mentionedProfileFids.length}
 										<section data-column>
 											<h3>Mentioned profiles (FID)</h3>
 											<ul data-row="wrap gap-2">
-												{#each loadedCast.mentionedProfileFids as mentionFid (String(mentionFid))}
+												{#each cast.mentionedProfileFids as mentionFid (String(mentionFid))}
 													<li>
 														<a href={resolve('/(social)/(farcaster)/farcaster/(users)/user/[userId]', {
 															userId: String(mentionFid),
@@ -660,11 +668,11 @@
 										</section>
 									{/if}
 
-									{#if loadedCast.mentionedChannelIds !== undefined && loadedCast.mentionedChannelIds.length}
+									{#if cast.mentionedChannelIds !== undefined && cast.mentionedChannelIds.length}
 										<section data-column>
 											<h3>Mentioned channels</h3>
 											<ul data-row="wrap gap-2">
-												{#each loadedCast.mentionedChannelIds as mentionChId (mentionChId)}
+												{#each cast.mentionedChannelIds as mentionChId (mentionChId)}
 													<li>
 														<a href={resolve('/(social)/(farcaster)/farcaster/(channels)/channel/[channelId]', {
 															channelId: mentionChId,
@@ -677,11 +685,11 @@
 										</section>
 									{/if}
 
-									{#if loadedCast.$$embeds.length}
+									{#if cast.$$embeds?.length}
 										<section data-column>
 											<h3>Embeds</h3>
 											<ul data-column>
-												{#each loadedCast.$$embeds as embed, embedIndex (String(embedIndex))}
+												{#each cast.$$embeds as embed, embedIndex (String(embedIndex))}
 													{@const og = (
 														embed.$icon === undefined ?
 															undefined
@@ -764,7 +772,7 @@
 									{#if (
 										!(cast.mentionedProfileFids?.length)
 										&& !(cast.mentionedChannelIds?.length)
-										&& !loadedCast.$$embeds.length
+										&& !cast.$$embeds?.length
 									)}
 										<div data-row="wrap align-center gap-2">
 											<p data-text="muted">
@@ -773,7 +781,7 @@
 											<Tooltip contentProps={{ side: 'top' }}>
 												{#snippet Content()}
 													<p>
-														Mentioned profiles, channels, and cast embeds appear when the provider returns them for this loadedCast.
+														Mentioned profiles, channels, and cast embeds appear when the provider returns them for this cast.
 													</p>
 												{/snippet}
 												<abbr
@@ -792,4 +800,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-

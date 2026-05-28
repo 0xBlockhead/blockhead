@@ -15,14 +15,13 @@
 
 	// State
 	let {
-		entityId,
-		href = resolve(
-			'/~/(multiplayer)/multiplayer/(rooms)/room/[roomId]/peer/[peerId]',
-			{
-				roomId: entityId.roomId,
-				peerId: entityId.peerId,
-			},
-		),
+			entityId,
+			href = resolve(
+				'/~/(multiplayer)/multiplayer/(contacts)/contact/[contactId]',
+				{
+					contactId: entityId.id,
+				},
+			),
 		title: titleProp,
 		open = $bindable(true),
 		collapsible = true,
@@ -93,8 +92,8 @@
 			resource={peer}
 			placeholderText="Loading peer…"
 		>
-			{#snippet children(loadedPeer)}
-				{titleProp ?? loadedPeer.displayName ?? loadedPeer.peerId ?? entityId.id}
+			{#snippet children(peer)}
+				{titleProp ?? peer.displayName ?? peer.peerId ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -114,8 +113,8 @@
 				<dt>Connected to you</dt>
 				<dd>
 					<ResourceBoundary resource={peer}>
-						{#snippet children(loadedPeer)}
-							{loadedPeer.isConnected ? 'Yes' : 'No'}
+						{#snippet children(peer)}
+							{peer.isConnected ? 'Yes' : 'No'}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -136,8 +135,8 @@
 					<dt>libp2p peer ID</dt>
 					<dd>
 						<ResourceBoundary resource={peer}>
-							{#snippet children(loadedPeer)}
-								{loadedPeer.peerId}
+							{#snippet children(peer)}
+								{peer.peerId}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -152,8 +151,8 @@
 					<dt>Room session</dt>
 					<dd>
 						<ResourceBoundary resource={peer}>
-							{#snippet children(loadedPeer)}
-								{loadedPeer.$room.id}
+							{#snippet children(peer)}
+								{peer.$room.id}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>

@@ -28,7 +28,7 @@ import {
 	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { MediaType } from '$/schema/Media.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
@@ -81,7 +81,7 @@ export default {
 		}),
 
 		defineEntityResolver({
-			entityType: EntityType.CoinInstance,
+			entityType: EntityType.EvmCoinInstance,
 			resolve: async (entityId, context) => {
 				const { CoinId } = await import('$/constants/Coin.ts')
 				const {
@@ -409,7 +409,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.CoinInstance,
+			entityType: EntityType.EvmCoinInstance,
 			fieldName: 'representation',
 			resolve: async (entityId, context) => {
 				const { resolveCoinInstanceRepresentation } = await import(
@@ -423,7 +423,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.CoinInstance,
+			entityType: EntityType.EvmCoinInstance,
 			fieldName: '$canonicalInstance',
 			resolve: async (entityId, context) => {
 				const { resolveCanonicalCoinInstanceEntityId } = await import(
@@ -515,7 +515,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.CoinInstance,
+			entityType: EntityType.EvmCoinInstance,
 			fieldName: '$$marketsWithInstanceAsBase',
 			resolve: async () => {
 				throw new Error('Coingecko_Rest: $$marketsWithInstanceAsBase is unsupported')
@@ -523,7 +523,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.CoinInstance,
+			entityType: EntityType.EvmCoinInstance,
 			fieldName: '$$marketsWithInstanceAsQuote',
 			resolve: async () => {
 				throw new Error('Coingecko_Rest: $$marketsWithInstanceAsQuote is unsupported')

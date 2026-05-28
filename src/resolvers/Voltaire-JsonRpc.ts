@@ -27,7 +27,7 @@ import {
 } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
-import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { ChainlistRpcsJsonChain } from '$/sources/Chainlist/Rest/types.ts'
@@ -514,7 +514,7 @@ const priorityRewardAt50thFromFeeHistoryAt = (
 )
 
 const networkGasFeeBlockRefsFromFeeHistory = (
-	networkEntityId: EntityId<typeof schema, EntityType.Network>,
+	networkEntityId: EntityId<typeof schema, EntityType.EvmNetwork>,
 	feeHistory: {
 		oldestBlock: string
 		gasUsedRatio: readonly unknown[]
@@ -813,7 +813,7 @@ export default {
 		}),
 
 		defineEntityResolver({
-			entityType: EntityType.Network_GasFee_Block,
+			entityType: EntityType.EvmNetwork_GasFee_Block,
 			resolve: async (entityId) => {
 				const {
 					ethBlockNumber,
@@ -823,7 +823,7 @@ export default {
 				} = await import('$/sources/Evm/JsonRpc/queries.ts')
 				const chainId = entityId.$network.chainId
 				const jsonRpcTransports = await jsonRpcTransportCandidatesForExecutionChain(chainId)
-				if (jsonRpcTransports.length === 0) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL for Network_GasFee_Block')
+				if (jsonRpcTransports.length === 0) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL for EvmNetwork_GasFee_Block')
 				const errors: string[] = []
 				for (const jsonRpcTransport of jsonRpcTransports) {
 					if (jsonRpcTransport.transportType !== TransportType.Http) continue
@@ -873,17 +873,17 @@ export default {
 						errors.push(`${jsonRpcTransport.rpcUrl} (${jsonRpcTransport.transportType}): ${errorMessage(error)}`)
 					}
 				}
-				throw allJsonRpcEndpointsFailedError(chainId, 'Network_GasFee_Block', errors)
+				throw allJsonRpcEndpointsFailedError(chainId, 'EvmNetwork_GasFee_Block', errors)
 			},
 		}),
 
 		defineEntityResolver({
-			entityType: EntityType.Network_Txpool_Timestamp,
+			entityType: EntityType.EvmNetwork_Txpool_Timestamp,
 			resolve: async (entityId) => {
 				const { txpoolStatus } = await import('$/sources/Evm/JsonRpc/queries.ts')
 				const chainId = entityId.$network.chainId
 				const jsonRpcTransports = await jsonRpcTransportCandidatesForExecutionChain(chainId)
-				if (jsonRpcTransports.length === 0) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL for Network_Txpool_Timestamp')
+				if (jsonRpcTransports.length === 0) throw new Error('Voltaire_JsonRpc: no JSON-RPC URL for EvmNetwork_Txpool_Timestamp')
 				const errors: string[] = []
 				for (const jsonRpcTransport of jsonRpcTransports) {
 					if (jsonRpcTransport.transportType !== TransportType.Http) continue
@@ -900,7 +900,7 @@ export default {
 						errors.push(`${jsonRpcTransport.rpcUrl} (${jsonRpcTransport.transportType}): ${errorMessage(error)}`)
 					}
 				}
-				throw allJsonRpcEndpointsFailedError(chainId, 'Network_Txpool_Timestamp', errors)
+				throw allJsonRpcEndpointsFailedError(chainId, 'EvmNetwork_Txpool_Timestamp', errors)
 			},
 		}),
 
@@ -1259,8 +1259,8 @@ export default {
 	],
 	entityLiveResolvers: [
 		defineEntityLiveResolver({
-			entityType: EntityType.Network,
-			resolveLive: (ctx: ResolveLiveContext<typeof schema, EntityType.Network>) => {
+			entityType: EntityType.EvmNetwork,
+			resolveLive: (ctx: ResolveLiveContext<typeof schema, EntityType.EvmNetwork>) => {
 				void (async () => {
 					const {
 						deleteEntityFieldRows,
@@ -1527,7 +1527,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: 'blockHeight',
 			resolve: async (entityId) => {
 				const { getChainHeadNumberForRpcUrl } = await import('$/sources/Voltaire/JsonRpc/queries.ts')
@@ -1549,7 +1549,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: 'gasPrice',
 			resolve: async (entityId) => {
 				const { ethGasPrice } = await import('$/sources/Evm/JsonRpc/queries.ts')
@@ -1578,7 +1578,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: 'baseFeePerGas',
 			resolve: async (entityId) => {
 				const {
@@ -1609,7 +1609,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: 'gasUsedRatio',
 			resolve: async (entityId) => {
 				const {
@@ -1640,7 +1640,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$gasFeeBlocks',
 			resolve: async (entityId, context) => {
 				const { ethFeeHistory } = await import('$/sources/Evm/JsonRpc/queries.ts')
@@ -1670,7 +1670,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$txpoolTimestamps',
 			resolve: async (entityId) => (
 				[
@@ -1685,7 +1685,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$blocks',
 			resolve: async (entityId, context) => {
 				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
@@ -1717,7 +1717,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$blobs',
 			resolve: async (entityId, context) => {
 				const subsetRowLimit = resolverLoadSubsetRowLimit(context)

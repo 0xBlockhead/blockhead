@@ -14,7 +14,7 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { Entity } from '$/schema/$schema.ts'
 import { UrlString } from '$/schema/$Url.ts'
-import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -258,12 +258,12 @@ const urlEntitiesFromBlockExplorerCatalog = (
 			const iconParsed = UrlString(catalogIconResolved)
 			if (!(iconParsed instanceof type.errors)) catalogIconAsUrlString = iconParsed
 		}
-		return [{
+		return [({
 			[EntityMetaKey.Id]: { url: hrefAsUrlString },
 			...(explorer.name != null && explorer.name !== '' && { catalogName: explorer.name }),
 			...(explorer.standard != null && explorer.standard !== '' && { catalogStandard: explorer.standard }),
 			...(catalogIconAsUrlString != null && { catalogIcon: catalogIconAsUrlString }),
-		} as Entity<typeof schema, EntityType.Url>]
+		}) satisfies Entity<typeof schema, EntityType.Url>]
 	})
 
 const urlEntitiesFromFaucetUrlStrings = (
@@ -275,7 +275,7 @@ const urlEntitiesFromFaucetUrlStrings = (
 		const url = canonicalPublicHttpUrlFromCatalogString(trimmed)
 		const hrefAsUrlString = UrlString(url)
 		if (hrefAsUrlString instanceof type.errors) return []
-		return [{ [EntityMetaKey.Id]: { url: hrefAsUrlString } } as Entity<typeof schema, EntityType.Url>]
+		return [({ [EntityMetaKey.Id]: { url: hrefAsUrlString } }) satisfies Entity<typeof schema, EntityType.Url>]
 	})
 
 export default {
@@ -283,11 +283,11 @@ export default {
 
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.NetworkBridge,
+			entityType: EntityType.EvmNetworkBridge,
 			resolve: async (entityId) => {
 				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 				const chain = (await singleFlight(fetchRpcsJson)()).find((row) => (
-					row.chainId === entityId.$toNetwork.chainId
+					row.chainId === Number(entityId.$toNetwork.caip2.reference)
 				))
 				if (chain == null) throw new Error('Chainlist_Rest: network bridge target chain not in rpcs.json')
 				const parentLayer = (
@@ -302,7 +302,7 @@ export default {
 				)
 				if (parentLayer == null) throw new Error('Chainlist_Rest: network bridge not in rpcs.json')
 				if (
-					parentLayer.chainId !== entityId.$fromNetwork.chainId
+					parentLayer.chainId !== Number(entityId.$fromNetwork.caip2.reference)
 					|| !(chain.parent?.bridges ?? []).some((bridge) => bridge.url === entityId.url)
 				) throw new Error('Chainlist_Rest: network bridge not in rpcs.json')
 				return {
@@ -320,11 +320,11 @@ export default {
 		}),
 
 		defineEntityResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			resolve: async (entityId) => {
 				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 				const chains = await singleFlight(fetchRpcsJson)()
-				const chain = chains.find((row) => row.chainId === entityId.chainId)
+				const chain = chains.find((row) => row.chainId === Number(entityId.caip2.reference))
 				if (chain == null) throw new Error('Chainlist_Rest: chain id not in rpcs.json')
 				const nativeSymbol = chain.nativeCurrency.symbol.trim()
 				const displayName = `${chain.title ?? chain.name ?? ''}`.trim()
@@ -377,12 +377,12 @@ export default {
 						:
 							NetworkEnvironment.Mainnet
 					),
-					$parentLayer: (
+					$parent: (
 						((parentMatch) => (
 							parentMatch == null || chain.parent == null ?
 								undefined
 							:	{
-									[EntityMetaKey.Id]: { chainId: Number(parentMatch[1]) },
+									[EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(Number(parentMatch[1])) } },
 								}
 						))(chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim()))
 					),
@@ -416,38 +416,39 @@ export default {
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$networks',
+			fieldName: '$$evmNetworks',
 			resolve: async (_entityId) => {
 				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 				return (await singleFlight(fetchRpcsJson)())
 					.flatMap((chain) => (
 						chain.chainId == null ?
 							[]
-						:	[{ [EntityMetaKey.Id]: { chainId: chain.chainId } }]
+						:	[{ [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } } }]
 					))
 			},
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$bridges',
 			resolve: async (entityId) => {
 				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
-				const chain = (await singleFlight(fetchRpcsJson)()).find((row) => row.chainId === entityId.chainId)
+				const chain = (await singleFlight(fetchRpcsJson)()).find((row) => row.chainId === Number(entityId.caip2.reference))
 				const parentMatch = chain?.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim())
-				if (chain == null || parentMatch == null) throw new Error('Chainlist_Rest: network not in rpcs.json for bridge list')
+				if (chain == null) throw new Error('Chainlist_Rest: network not in rpcs.json for bridge list')
+				if (parentMatch == null) return []
 				return (chain.parent?.bridges ?? [])
 					.map((bridge) => ({
 						[EntityMetaKey.Id]: {
-							$fromNetwork: { chainId: Number(parentMatch[1]) },
-							$toNetwork: { chainId: chain.chainId },
+							$fromNetwork: { caip2: { namespace: 'eip155', reference: String(Number(parentMatch[1])) } },
+							$toNetwork: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } },
 							url: bridge.url,
 						},
 						$fromNetwork: {
-							[EntityMetaKey.Id]: { chainId: Number(parentMatch[1]) },
+							[EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(Number(parentMatch[1])) } },
 						},
 						$toNetwork: {
-							[EntityMetaKey.Id]: { chainId: chain.chainId },
+							[EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } },
 						},
 						url: bridge.url,
 						relationshipType: String(chain.parent?.type ?? 'unknown'),
@@ -456,29 +457,29 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$childLayers',
 			resolve: async (entityId) => {
 				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 				const chains = await singleFlight(fetchRpcsJson)()
-				if (chains.find((chain) => chain.chainId === entityId.chainId) == null) {
+				if (chains.find((chain) => chain.chainId === Number(entityId.caip2.reference)) == null) {
 					throw new Error('Chainlist_Rest: network not in rpcs.json for child list')
 				}
 				return chains.flatMap((chain) => {
 					const parentMatch = chain.parent?.chain == null ? null : /^eip155[:-](\d+)$/i.exec(chain.parent.chain.trim())
-					return parentMatch == null || Number(parentMatch[1]) !== entityId.chainId || chain.chainId === entityId.chainId ?
+					return parentMatch == null || Number(parentMatch[1]) !== Number(entityId.caip2.reference) || chain.chainId === Number(entityId.caip2.reference) ?
 						[]
-					:	[{ [EntityMetaKey.Id]: { chainId: chain.chainId } }]
+					:	[{ [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(chain.chainId) } } }]
 				})
 			},
 		}),
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$testnets',
 			resolve: async (entityId) => {
 				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 				const chains = await singleFlight(fetchRpcsJson)()
-				const chain = chains.find((row) => row.chainId === entityId.chainId)
+				const chain = chains.find((row) => row.chainId === Number(entityId.caip2.reference))
 				if (chain == null) {
 					throw new Error('Chainlist_Rest: network not in rpcs.json for testnet list')
 				}
@@ -489,7 +490,7 @@ export default {
 				}
 				const sourceIsEthereumExecutionRoot = catalogChainIsEthereumExecutionRoot(chain)
 				return chains.flatMap((candidate) => (
-					candidate.chainId === entityId.chainId
+					candidate.chainId === Number(entityId.caip2.reference)
 						|| !chainlistRowImpliesTestnet(candidate)
 						|| pairingFamilyKey(candidate) !== sourceFamilyKey
 						|| (
@@ -498,17 +499,17 @@ export default {
 						)
 						|| !catalogEthereumExecutionRootAcceptsTestnetCandidate(chain, candidate) ?
 						[]
-					:	[{ [EntityMetaKey.Id]: { chainId: candidate.chainId } }]
+					:	[{ [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(candidate.chainId) } } }]
 				))
 			},
 		}),
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$mainnet',
 			resolve: async (entityId) => {
 				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 				const chains = await singleFlight(fetchRpcsJson)()
-				const chain = chains.find((row) => row.chainId === entityId.chainId)
+				const chain = chains.find((row) => row.chainId === Number(entityId.caip2.reference))
 				if (chain == null) {
 					throw new Error('Chainlist_Rest: network not in rpcs.json for mainnet')
 				}
@@ -522,7 +523,7 @@ export default {
 					testnetChainId: chain.chainId,
 					testnetShortName: chain.shortName,
 					mainnetCandidates: chains.filter((candidate) => (
-						candidate.chainId !== entityId.chainId
+						candidate.chainId !== Number(entityId.caip2.reference)
 						&& !chainlistRowImpliesTestnet(candidate)
 						&& pairingFamilyKey(candidate) === sourceFamilyKey
 						&& (
@@ -535,21 +536,19 @@ export default {
 					mainnet == null ?
 						undefined
 					:	{
-							[EntityMetaKey.Id]: {
-								chainId: mainnet.chainId,
-							},
+							[EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(mainnet.chainId) } },
 						}
 				)
 			},
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$siblingShardNetworks',
 			resolve: async (entityId) => {
 				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 				const chains = await singleFlight(fetchRpcsJson)()
-				const chain = chains.find((row) => row.chainId === entityId.chainId)
+				const chain = chains.find((row) => row.chainId === Number(entityId.caip2.reference))
 				if (chain == null) {
 					throw new Error('Chainlist_Rest: network not in rpcs.json for sibling shard list')
 				}
@@ -562,18 +561,18 @@ export default {
 							|| candidate.parent.chain?.trim() !== chain.parent?.chain?.trim()
 							|| String(candidate.parent.type ?? '').toLowerCase() !== 'shard' ?
 								[]
-							:	[{ [EntityMetaKey.Id]: { chainId: candidate.chainId } }]
+							:	[{ [EntityMetaKey.Id]: { caip2: { namespace: 'eip155', reference: String(candidate.chainId) } } }]
 						))
 				)
 			},
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$blockExplorerUrls',
 			resolve: async (entityId) => {
 				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
-				const chain = (await singleFlight(fetchRpcsJson)()).find((row) => row.chainId === entityId.chainId)
+				const chain = (await singleFlight(fetchRpcsJson)()).find((row) => row.chainId === Number(entityId.caip2.reference))
 				if (chain == null) throw new Error('Chainlist_Rest: network not in rpcs.json for block explorer URLs')
 				return urlEntitiesFromBlockExplorerCatalog(
 					blockExplorerLikeFromExplorersAndInfoUrl({
@@ -585,11 +584,11 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$faucetUrls',
 			resolve: async (entityId) => {
 				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
-				const chain = (await singleFlight(fetchRpcsJson)()).find((row) => row.chainId === entityId.chainId)
+				const chain = (await singleFlight(fetchRpcsJson)()).find((row) => row.chainId === Number(entityId.caip2.reference))
 				if (chain == null) throw new Error('Chainlist_Rest: network not in rpcs.json for faucet URLs')
 				return urlEntitiesFromFaucetUrlStrings(
 					(chain.faucets ?? []).filter((url) => url.length > 0),

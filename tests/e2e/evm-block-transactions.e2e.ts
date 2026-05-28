@@ -13,7 +13,7 @@ test.describe('Evm block + transactions', () => {
 		await installChainlistRpcsJsonStub(page)
 		const issues = collectIssues(page)
 		// Mainnet block 18_000_000: non-empty; RPC + new Voltaire field resolver populate the field collection.
-		await page.goto('/network/1/block/18000000', { waitUntil: 'load' })
+		await page.goto('/network/eip155:1/block/18000000', { waitUntil: 'load' })
 		await expect(page.locator('#main')).toBeVisible()
 		await assertMainSettled(page)
 		await expect(page.locator('#transactions')).toBeVisible()

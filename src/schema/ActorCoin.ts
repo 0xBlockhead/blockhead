@@ -1,6 +1,6 @@
 import { type } from 'arktype'
 import Actor from '$/schema/Actor.ts'
-import CoinInstance from '$/schema/CoinInstance.ts'
+import CoinInstance from '$/schema/EvmCoinInstance.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,

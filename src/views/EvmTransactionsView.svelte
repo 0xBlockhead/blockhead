@@ -7,6 +7,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
@@ -148,15 +149,13 @@
 						<EvmTransactionView
 							entityId={t}
 							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId]',
+								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId]',
 								{
-								networkId: String(
-								entityFieldReference.entityId.$network.chainId,
-								),
-								blockNumber: String(
-								entityFieldReference.entityId.blockNumber,
-								),
-								transactionId: t.txHash,
+										...caip2RouteParamsFromEvmChainId(entityFieldReference.entityId.$network.chainId),
+										blockNumber: String(
+											entityFieldReference.entityId.blockNumber,
+										),
+										transactionId: t.txHash,
 								},
 							)}
 							layout={EntityLayout.Summary}
@@ -165,7 +164,7 @@
 							showTypeAnnotation={false}
 							showListInputSelector
 						/>
-					{:else if entityFieldReference.entityType === EntityType.Network || entityFieldReference.entityType === EntityType.ActorNetwork}
+					{:else if entityFieldReference.entityType === EntityType.EvmNetwork || entityFieldReference.entityType === EntityType.ActorNetwork}
 						<EvmTransactionView
 							entityId={t}
 							layout={EntityLayout.Summary}

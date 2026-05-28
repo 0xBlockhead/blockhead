@@ -113,13 +113,13 @@
 			resource={note}
 			placeholderText="Loading note…"
 		>
-			{#snippet children(loadedNote)}
-				{#if loadedNote.content}
+			{#snippet children(note)}
+				{#if note.content}
 					<TruncatedValue
 						endLength={8}
 						format={TruncatedValueFormat.Visual}
 						startLength={88}
-						value={loadedNote.content}
+						value={note.content}
 					/>
 				{:else}
 					<TruncatedValue
@@ -144,11 +144,11 @@
 		<ResourceBoundary
 			resource={note}
 		>
-			{#snippet children(loadedNote)}
-				{#if loadedNote.createdAt}
+			{#snippet children(note)}
+				{#if note.createdAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={loadedNote.createdAt}
+							timestamp={note.createdAt}
 						/>
 					</span>
 				{/if}
@@ -169,9 +169,9 @@
 							resource={note}
 							placeholderText="Loading note…"
 						>
-							{#snippet children(loadedNote)}
+							{#snippet children(note)}
 								<NostrProfileView
-									entityId={loadedNote.$author[EntityMetaKey.Id]}
+									entityId={note.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -192,9 +192,9 @@
 							resource={note}
 							placeholderText="Loading note…"
 						>
-							{#snippet children(loadedNote)}
+							{#snippet children(note)}
 								<NostrNoteView
-									entityId={loadedNote.$replyToNote[EntityMetaKey.Id]}
+									entityId={note.$replyToNote[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -210,18 +210,18 @@
 							resource={note}
 							placeholderText="Loading note…"
 						>
-							{#snippet children(loadedNote)}
+							{#snippet children(note)}
 								<a
 									data-link
 									href={resolve('/nostr/note/[eventId]', {
-										eventId: loadedNote.replyToEventId,
+										eventId: note.replyToEventId,
 									})}
 								>
 									<TruncatedValue
 										endLength={12}
 										format={TruncatedValueFormat.Visual}
 										startLength={20}
-										value={loadedNote.replyToEventId}
+										value={note.replyToEventId}
 									/>
 								</a>
 							{/snippet}
@@ -242,18 +242,18 @@
 							resource={note}
 							placeholderText="Loading note…"
 						>
-							{#snippet children(loadedNote)}
+							{#snippet children(note)}
 								<a
 									data-link
 									href={resolve('/nostr/note/[eventId]', {
-										eventId: loadedNote.rootEventId,
+										eventId: note.rootEventId,
 									})}
 								>
 									<TruncatedValue
 										endLength={12}
 										format={TruncatedValueFormat.Visual}
 										startLength={20}
-										value={loadedNote.rootEventId}
+										value={note.rootEventId}
 									/>
 								</a>
 							{/snippet}
@@ -305,9 +305,9 @@
 						resource={note}
 						placeholderText="Loading note…"
 					>
-						{#snippet children(loadedNote)}
-							{#if loadedNote.content}
-								<p>{loadedNote.content}</p>
+						{#snippet children(note)}
+							{#if note.content}
+								<p>{note.content}</p>
 							{:else}
 								<div data-row="wrap align-center gap-2">
 									<p data-text="muted">

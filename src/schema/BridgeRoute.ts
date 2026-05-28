@@ -51,7 +51,7 @@ export default {
 		{
 			name: '$fromNetwork',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Constants_Internal,
@@ -61,7 +61,7 @@ export default {
 		{
 			name: '$toNetwork',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
 				Source.Constants_Internal,
@@ -99,7 +99,7 @@ export default {
 			],
 		},
 		{
-			name: 'gasCostUsd',
+			name: 'estimatedCostUsd',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.One,

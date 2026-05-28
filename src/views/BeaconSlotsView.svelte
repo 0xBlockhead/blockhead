@@ -64,7 +64,7 @@
 				entityFieldReference.entityType,
 				entityFieldReference.entityId,
 				(
-					entityFieldReference.entityType === EntityType.Network ?
+					entityFieldReference.entityType === EntityType.EvmNetwork ?
 						({
 							blockHeight: { $: [Source.Voltaire_JsonRpc] },
 							$$beaconSlots: { $: [Source.Beacon_Rest] },

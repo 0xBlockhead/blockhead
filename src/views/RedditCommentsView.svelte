@@ -120,7 +120,7 @@
 			item: comment,
 		})}
 			<RedditCommentView
-				entityId={{ fullname: comment.fullname }}
+				entityId={comment.comment[EntityMetaKey.Id]}
 				layout={EntityLayout.Summary}
 				open={false}
 			/>

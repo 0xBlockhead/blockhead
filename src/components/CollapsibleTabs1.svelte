@@ -56,56 +56,6 @@
 
 	// State
 	incrementHeadingLevel()
-
-
-	const collapsibleTabsPaneScrollContainer = $derived(
-		typeof scrollContainerProps['data-scroll-container'] === 'string' ?
-			scrollContainerProps['data-scroll-container']
-		:
-			'inline layout-carousel'
-	)
-
-	const collapsibleTabsPaneCarouselChrome = $derived(
-		collapsibleTabsPaneScrollContainer.includes('layout-carousel')
-	)
-
-	const collapsibleTabsPaneSpreadRest = $derived.by(() => {
-		const spread = { ...scrollContainerProps }
-		delete spread.class
-		delete spread.style
-		delete spread['data-scroll-container']
-		return spread
-	})
-
-	const collapsibleTabsPaneClassMerged = $derived(
-		[
-			...(collapsibleTabsPaneCarouselChrome ?
-				['carousel']
-			:
-				[]),
-			typeof scrollContainerProps.class === 'string' ?
-				scrollContainerProps.class
-			:
-				'',
-		]
-			.filter(Boolean)
-			.join(' ')
-	)
-
-	const collapsibleTabsPaneStyleMerged = $derived(
-		[
-			typeof scrollContainerProps.style === 'string' ?
-				scrollContainerProps.style
-			:
-				'',
-			...(collapsibleTabsPaneCarouselChrome ?
-				['scroll-marker-group: none']
-			:
-				[]),
-		]
-			.filter(Boolean)
-			.join('; ')
-	)
 </script>
 
 
@@ -120,6 +70,7 @@
 		}
 		ontoggle?.(e)
 	}}
+	data-column-item="flexible"
 	data-scroll-container="block snap-block"
 	{...detailsProps}
 >
@@ -136,6 +87,7 @@
 			{#if Markers}
 				<div
 					data-carousel-markers
+					data-scroll-container="layout-carousel"
 					data-row-item="flexible"
 				>
 					{@render Markers({
@@ -165,20 +117,26 @@
 	{#if body && open}
 		<div
 			data-column-item="flexible"
-			data-column="layout-flex"
-			data-sticky-container
+			data-collapsible-tabs-pane-host
+			data-scroll-container="layout-carousel"
+			data-row="align-start"
 		>
-			<div
-				data-collapsible-tabs-pane-host=""
-				{...collapsibleTabsPaneSpreadRest}
-				class={collapsibleTabsPaneClassMerged}
-				data-scroll-container={collapsibleTabsPaneScrollContainer}
-				style={collapsibleTabsPaneStyleMerged}
-			>
-				{@render body({
-					open,
-				})}
-			</div>
+			{@render body({
+				open,
+			})}
 		</div>
 	{/if}
 </details>
+
+
+
+<style>
+	[data-carousel-markers] {
+		&[data-scroll-container="layout-carousel"] {
+			height: 2rem;
+			--carousel-basis: 6rem;
+		}
+		/* --scrollContainer-sizeBlock: 100vh;
+		--scrollContainer-sizeInline: 100cqi; */
+	}
+</style>

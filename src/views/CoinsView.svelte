@@ -15,6 +15,14 @@
 	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
+	type CoinOrderFieldRow = {
+		[EntityMetaKey.Value]: {
+			[EntityMetaKey.IdKey]: string
+			marketCapRank?: number
+			marketCapUsd?: number
+		}
+	}
+
 
 	// Context
 	import { resolve } from '$app/paths'
@@ -56,8 +64,8 @@
 	const globalCoinsFieldOrderBy = (
 		[
 			[
-				({ field }) => (
-					(field[EntityMetaKey.Value] as { marketCapRank?: number }).marketCapRank
+				({ fieldRow }) => (
+					fieldRow[EntityMetaKey.Value].marketCapRank
 				),
 				{
 					direction: 'asc',
@@ -65,8 +73,8 @@
 				},
 			],
 			[
-				({ field }) => (
-					(field[EntityMetaKey.Value] as { marketCapUsd?: number }).marketCapUsd
+				({ fieldRow }) => (
+					fieldRow[EntityMetaKey.Value].marketCapUsd
 				),
 				{
 					direction: 'desc',
@@ -74,12 +82,12 @@
 				},
 			],
 			[
-				({ field }) => (
-					(field[EntityMetaKey.Value] as { [EntityMetaKey.IdKey]: string })[EntityMetaKey.IdKey]
+				({ fieldRow }) => (
+					fieldRow[EntityMetaKey.Value][EntityMetaKey.IdKey]
 				),
 				'asc',
 			],
-		] as const satisfies DeclarativeOrderBy<{ field: unknown }>
+		] as const satisfies DeclarativeOrderBy<CoinOrderFieldRow>
 	)
 
 	const catalogCoinSources = (
@@ -101,7 +109,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import UnorderedList from '$/components/UnorderedList.svelte'
-	import CoinInstancesView from '$/views/CoinInstancesView.svelte'
+	import EvmCoinInstancesView from '$/views/EvmCoinInstancesView.svelte'
 	import CoinView from '$/views/CoinView.svelte'
 	import MarketPricesView from '$/views/MarketPricesView.svelte'
 	import Market_TimeInterval_TimestampsView from '$/views/Market_TimeInterval_TimestampsView.svelte'
@@ -439,7 +447,7 @@
 				page. Preview for catalog
 				<a href={resolve('/coin/ETH')}>ETH</a>:
 			</p>
-			<CoinInstancesView
+			<EvmCoinInstancesView
 				href={resolve('/coins')}
 				collapsible={false}
 				entityFieldReference={{

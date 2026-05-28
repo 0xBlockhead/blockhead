@@ -82,7 +82,6 @@ export default {
 			entityType: EntityType.XPost,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
-				Source.Constants_Internal,
 				Source.X_Rest,
 				Source.X_FxEmbed_Rest,
 			],

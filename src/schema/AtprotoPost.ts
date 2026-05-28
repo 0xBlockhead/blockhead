@@ -6,7 +6,10 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import { UrlString } from '$/schema/$Url.ts'
+
+const AtUri = type(
+	'/^at:\\/\\/[^\\/]+\\/app\\.bsky\\.feed\\.post\\/[^\\/]+$/' as type.cast<string>,
+)
 
 export default {
 	entityType: EntityType.AtprotoPost,
@@ -15,7 +18,7 @@ export default {
 	labelPlural: 'AT Protocol posts',
 
 	id: type({
-		uri: UrlString,
+		uri: AtUri,
 	}),
 
 	fields: [

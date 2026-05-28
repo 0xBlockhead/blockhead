@@ -3,6 +3,7 @@
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { entityResolversByEntityType } from '$/resolvers/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -47,13 +48,13 @@
 				entityResolversByEntityType[EntityType.LiquidityPool]?.map((resolver) => resolver.source)
 				?? [Source.Dexscreener_OpenApi]
 			),
-			$token0: {},
-			$token1: {},
+			$baseToken: {},
+			$quoteToken: {},
 			$hooks: {},
-			token0Symbol: {},
-			token1Symbol: {},
-			token0Decimals: {},
-			token1Decimals: {},
+			baseTokenSymbol: {},
+			quoteTokenSymbol: {},
+			baseTokenDecimals: {},
+			quoteTokenDecimals: {},
 			fee: {},
 			tickSpacing: {},
 			v4PoolId: {},
@@ -62,6 +63,10 @@
 			tick: {},
 			volumeUSD: {},
 			totalValueLockedUSD: {},
+			marketCapUsd: {},
+			fdvUsd: {},
+			pairCreatedAtMs: {},
+			dexscreenerLabels: {},
 			dexId: {},
 			dexscreenerPairUrl: {},
 			baseTokenPriceUsd: {},
@@ -77,6 +82,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
@@ -101,8 +107,8 @@
 			resource={pool}
 			placeholderText="Loading pool…"
 		>
-			{#snippet children(loadedPool)}
-				{loadedPool.token0Symbol} / {loadedPool.token1Symbol}
+			{#snippet children(pool)}
+				{pool.baseTokenSymbol ?? 'Base'} / {pool.quoteTokenSymbol ?? 'Quote'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -127,7 +133,7 @@
 			resource={pool}
 			placeholderText="Loading pool…"
 		>
-			{#snippet children(loadedPool)}
+			{#snippet children(pool)}
 				<dl data-column-item="center">
 					{#if open}
 						<div>
@@ -149,55 +155,25 @@
 							</dd>
 						</div>
 					{/if}
-					<div>
-						<dt>Token 0</dt>
-						<dd>
-							<EvmContractView
-								entityId={loadedPool.$token0}
-								layout={EntityLayout.SummaryDetails}
-								open={false}
-								showTypeAnnotation={false}
-							/>
-						</dd>
-					</div>
-					<div>
-						<dt>Token 1</dt>
-						<dd>
-							<EvmContractView
-								entityId={loadedPool.$token1}
-								layout={EntityLayout.SummaryDetails}
-								open={false}
-								showTypeAnnotation={false}
-							/>
-						</dd>
-					</div>
-					{#if (
-						open
-						&& loadedPool.fee !== undefined
-					)}
+					{#if pool.$baseToken}
 						<div>
-							<dt>Fee tier (v3 swap fee parameter)</dt>
-							<dd>{String(loadedPool.fee)}</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& loadedPool.tickSpacing !== undefined
-					)}
-						<div>
-							<dt>Tick spacing (v3 grid step)</dt>
-							<dd>{String(loadedPool.tickSpacing)}</dd>
-						</div>
-					{/if}
-					{#if (
-						open
-						&& loadedPool.$hooks
-					)}
-						<div>
-							<dt>Hooks</dt>
+							<dt>Base token</dt>
 							<dd>
 								<EvmContractView
-									entityId={loadedPool.$hooks}
+									entityId={pool.$baseToken[EntityMetaKey.Id]}
+									layout={EntityLayout.SummaryDetails}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+					{#if pool.$quoteToken}
+						<div>
+							<dt>Quote token</dt>
+							<dd>
+								<EvmContractView
+									entityId={pool.$quoteToken[EntityMetaKey.Id]}
 									layout={EntityLayout.SummaryDetails}
 									open={false}
 									showTypeAnnotation={false}
@@ -207,13 +183,47 @@
 					{/if}
 					{#if (
 						open
-						&& loadedPool.v4PoolId !== undefined
+						&& pool.fee !== undefined
+					)}
+						<div>
+							<dt>Fee tier (v3 swap fee parameter)</dt>
+							<dd>{String(pool.fee)}</dd>
+						</div>
+					{/if}
+					{#if (
+						open
+						&& pool.tickSpacing !== undefined
+					)}
+						<div>
+							<dt>Tick spacing (v3 grid step)</dt>
+							<dd>{String(pool.tickSpacing)}</dd>
+						</div>
+					{/if}
+					{#if (
+						open
+						&& pool.$hooks
+					)}
+						<div>
+							<dt>Hooks</dt>
+							<dd>
+								<EvmContractView
+									entityId={pool.$hooks[EntityMetaKey.Id]}
+									layout={EntityLayout.SummaryDetails}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							</dd>
+						</div>
+					{/if}
+					{#if (
+						open
+						&& pool.v4PoolId !== undefined
 					)}
 						<div>
 							<dt>v4 pool id</dt>
 							<dd>
 								<TruncatedValue
-									value={String(loadedPool.v4PoolId)}
+									value={String(pool.v4PoolId)}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
@@ -221,134 +231,174 @@
 					{/if}
 					{#if (
 						open
-						&& loadedPool.sqrtPriceX96 !== undefined
+						&& pool.sqrtPriceX96 !== undefined
 					)}
 						<div>
 							<dt>Sqrt price X96</dt>
-							<dd>{String(loadedPool.sqrtPriceX96)}</dd>
+							<dd>{String(pool.sqrtPriceX96)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& loadedPool.liquidity !== undefined
+						&& pool.liquidity !== undefined
 					)}
 						<div>
 							<dt>Active liquidity</dt>
-							<dd>{String(loadedPool.liquidity)}</dd>
+							<dd>{String(pool.liquidity)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& loadedPool.tick !== undefined
+						&& pool.tick !== undefined
 					)}
 						<div>
 							<dt>Tick</dt>
-							<dd>{String(loadedPool.tick)}</dd>
+							<dd>{String(pool.tick)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& loadedPool.token0Decimals !== undefined
+						&& pool.baseTokenDecimals !== undefined
 					)}
 						<div>
-							<dt>Token 0 decimals</dt>
-							<dd>{String(loadedPool.token0Decimals)}</dd>
+							<dt>Base token decimals</dt>
+							<dd>{String(pool.baseTokenDecimals)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& loadedPool.token1Decimals !== undefined
+						&& pool.quoteTokenDecimals !== undefined
 					)}
 						<div>
-							<dt>Token 1 decimals</dt>
-							<dd>{String(loadedPool.token1Decimals)}</dd>
+							<dt>Quote token decimals</dt>
+							<dd>{String(pool.quoteTokenDecimals)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& loadedPool.volumeUSD !== undefined
+						&& pool.volumeUSD !== undefined
 					)}
 						<div>
 							<dt>Volume USD (24h)</dt>
-							<dd>{String(loadedPool.volumeUSD)}</dd>
+							<dd>{String(pool.volumeUSD)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& loadedPool.totalValueLockedUSD !== undefined
+						&& pool.totalValueLockedUSD !== undefined
 					)}
 						<div>
 							<dt>TVL USD</dt>
-							<dd>{String(loadedPool.totalValueLockedUSD)}</dd>
+							<dd>{String(pool.totalValueLockedUSD)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& loadedPool.dexId !== undefined
+						&& pool.marketCapUsd !== undefined
 					)}
 						<div>
-							<dt>DEX</dt>
-							<dd>{loadedPool.dexId}</dd>
+							<dt>Market cap (USD)</dt>
+							<dd>{String(pool.marketCapUsd)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& loadedPool.dexscreenerPairUrl !== undefined
+						&& pool.fdvUsd !== undefined
 					)}
 						<div>
-							<dt>Dexscreener</dt>
+							<dt>FDV (USD)</dt>
+							<dd>{String(pool.fdvUsd)}</dd>
+						</div>
+					{/if}
+					{#if (
+						open
+						&& pool.pairCreatedAtMs != null
+					)}
+						<div>
+							<dt>Pair created</dt>
 							<dd>
-								<a
-									href={loadedPool.dexscreenerPairUrl}
-									rel="noreferrer"
-									target="_blank"
-								>{loadedPool.dexscreenerPairUrl}</a>
+								<Timestamp
+									timestamp={pool.pairCreatedAtMs}
+								/>
 							</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& loadedPool.baseTokenPriceUsd !== undefined
+						&& (pool.dexscreenerLabels?.length ?? 0) > 0
+					)}
+						<div>
+							<dt>Labels</dt>
+							<dd>{pool.dexscreenerLabels?.join(', ')}</dd>
+						</div>
+					{/if}
+					{#if (
+						open
+						&& pool.dexId !== undefined
+					)}
+						<div>
+							<dt>DEX</dt>
+							<dd>{pool.dexId}</dd>
+						</div>
+					{/if}
+					{#if (
+						open
+						&& pool.dexscreenerPairUrl !== undefined
+					)}
+						<div>
+							<dt>Dexscreener</dt>
+							<dd>
+								<a
+									href={pool.dexscreenerPairUrl}
+									rel="noreferrer"
+									target="_blank"
+								>{pool.dexscreenerPairUrl}</a>
+							</dd>
+						</div>
+					{/if}
+					{#if (
+						open
+						&& pool.baseTokenPriceUsd !== undefined
 					)}
 						<div>
 							<dt>Base price (USD)</dt>
-							<dd>{loadedPool.baseTokenPriceUsd}</dd>
+							<dd>{pool.baseTokenPriceUsd}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& loadedPool.baseTokenPriceQuote !== undefined
+						&& pool.baseTokenPriceQuote !== undefined
 					)}
 						<div>
 							<dt>Base price (quote)</dt>
-							<dd>{loadedPool.baseTokenPriceQuote}</dd>
+							<dd>{pool.baseTokenPriceQuote}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& loadedPool.priceChangePercent24h !== undefined
+						&& pool.priceChangePercent24h !== undefined
 					)}
 						<div>
 							<dt>Price change (24h)</dt>
-							<dd>{String(loadedPool.priceChangePercent24h)}%</dd>
+							<dd>{String(pool.priceChangePercent24h)}%</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& loadedPool.transactionBuys24h !== undefined
+						&& pool.transactionBuys24h !== undefined
 					)}
 						<div>
 							<dt>Buys (24h)</dt>
-							<dd>{String(loadedPool.transactionBuys24h)}</dd>
+							<dd>{String(pool.transactionBuys24h)}</dd>
 						</div>
 					{/if}
 					{#if (
 						open
-						&& loadedPool.transactionSells24h !== undefined
+						&& pool.transactionSells24h !== undefined
 					)}
 						<div>
 							<dt>Sells (24h)</dt>
-							<dd>{String(loadedPool.transactionSells24h)}</dd>
+							<dd>{String(pool.transactionSells24h)}</dd>
 						</div>
 					{/if}
 				</dl>

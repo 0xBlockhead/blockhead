@@ -1,5 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+
+
+	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -16,9 +20,9 @@
 	let {
 		entityId,
 		href = resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]/source-bundle/[bundleId]',
+			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(contracts)/contract/[address]/source-bundle/[bundleId]',
 			{
-				networkId: String(entityId.$network.chainId),
+				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 				address: entityId.$contract.address,
 				bundleId: entityId.bundleId,
 			},
@@ -91,7 +95,7 @@
 			resource={sourceBundle}
 			placeholderText="Loading source bundle…"
 		>
-			{#snippet children(loadedSourceBundle)}
+			{#snippet children(sourceBundle)}
 				{Object.keys(sourceBundle.files ?? {}).length} file{(
 					Object.keys(sourceBundle.files ?? {}).length === 1 ?
 						''
@@ -123,7 +127,7 @@
 							resource={sourceBundle}
 							placeholderText="Loading source files…"
 						>
-							{#snippet children(loadedSourceBundle)}
+							{#snippet children(sourceBundle)}
 								{#if Object.keys(sourceBundle.files ?? {}).length > 0}
 									<div data-column="gap-2">
 										{#each Object.entries(sourceBundle.files ?? {}) as [path, content] (path)}

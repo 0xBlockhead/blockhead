@@ -3,16 +3,11 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
+	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-
-	import {
-		ethereumChainId,
-		l2BeatProjectChainIds,
-	} from '$/sources/L2Beat/Rest/constants.ts'
-
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify as stringifyId } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
@@ -24,12 +19,14 @@
 		title = 'Networks',
 		open = $bindable(true),
 		entityFieldReference,
+		networkIds,
 		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Network>
+			networkIds?: readonly EntityId<typeof schema, EntityType.Network>[]
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -44,24 +41,12 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const sortValueByChainId = new Map<number, number>([
-		[ethereumChainId, 0],
-		...l2BeatProjectChainIds.map(({ chainId }, index): [number, number] => (
-			[
-				chainId,
-				index + 1,
-			]
-		)),
-	])
-
 	const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
 			$: [
-				Source.L2Beat_Rest,
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
+				Source.Constants_Internal,
 			],
 			[entityFieldReference.fieldName]: {
 				$limit: 4096,
@@ -69,17 +54,23 @@
 		},
 	)
 
-	const networks = derive(
+	const filteredNetworks = derive(
 		parent,
 		(parent) => {
-			const chainIds = new SvelteSet<number>()
+			const keys = new SvelteSet<string>()
 			const rows: Entity<typeof schema, EntityType.Network>[] = parent[entityFieldReference.fieldName] ?? []
 			return (
 				rows
+					.filter((value) => (
+						networkIds == null
+						|| networkIds.some((networkId) => (
+							stringifyId(networkId) === stringifyId(value[EntityMetaKey.Id])
+						))
+					))
 					.flatMap((value) => {
-						const chainId = value[EntityMetaKey.Id].chainId
-						if (chainIds.has(chainId)) return []
-						chainIds.add(chainId)
+						const key = stringifyId(value[EntityMetaKey.Id])
+						if (keys.has(key)) return []
+						keys.add(key)
 						return [{ value }]
 					})
 			)
@@ -99,22 +90,16 @@
 	{title}
 	bind:open
 	getKey={(line) => stringifyId(line.value[EntityMetaKey.Id])}
-	getSortValue={(line) => (
-		sortValueByChainId.get(line.value[EntityMetaKey.Id].chainId)
-		?? Number.MAX_SAFE_INTEGER + line.value[EntityMetaKey.Id].chainId
-	)}
+	getSortValue={(line) => stringifyId(line.value[EntityMetaKey.Id])}
 	placeholderKeys={new SvelteSet<string | number>()}
 	placeholderText="Loading networks…"
-	resource={networks}
+	resource={filteredNetworks}
 	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Execution networks are identified by EIP-155 chain id; public registries publish RPC URLs, explorers, and native currency symbols.
-		</p>
-		<p>
-			Testnets, rollups, and app-chains reuse the same abstraction—only consensus parameters and fork schedules differ.
+			Networks are concrete public or stack-level systems identified by stack-native references, using CAIP-2-style namespace/reference pairs where that is accurate.
 		</p>
 	{/snippet}
 
@@ -125,9 +110,8 @@
 	{/snippet}
 
 	{#snippet Item({ item: line })}
-		{@const chainId = line.value[EntityMetaKey.Id].chainId}
 		<NetworkView
-			entityId={{ chainId }}
+			entityId={line.value[EntityMetaKey.Id]}
 			layout={EntityLayout.Summary}
 			open={false}
 		/>

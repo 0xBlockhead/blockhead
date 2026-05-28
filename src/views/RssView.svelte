@@ -30,6 +30,7 @@
 			entityId?: EntityId<typeof schema, EntityType.RssNetwork>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
@@ -120,61 +121,61 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-			resource={rssNetwork}
-			placeholderText="Loading RSS hub directory…"
+				resource={rssNetwork}
+				placeholderText="Loading RSS hub directory…"
 			>
-			{#snippet children(loadedRssNetwork)}
-				{#if loadedRssNetwork.registryLabel}
-					<div>
-						<dt>Registry</dt>
-						<dd>{loadedRssNetwork.registryLabel}</dd>
-					</div>
-					{:else if loadedRssNetwork.protocolName}
-					<div>
-						<dt>Protocol</dt>
-						<dd>{loadedRssNetwork.protocolName}</dd>
-					</div>
-				{/if}
-
-				{#if open}
-					<div>
-						<dt>Feeds</dt>
-						<dd>{String(rssNetwork.$rssFeeds.length)}</dd>
-					</div>
-					<div>
-						<dt>Items</dt>
-						<dd>{String(rssNetwork.$rssItems.length)}</dd>
-					</div>
-
-					{#if loadedRssNetwork.homeUrl}
+				{#snippet children(rssNetwork)}
+					{#if rssNetwork.registryLabel}
 						<div>
-							<dt>Home</dt>
-							<dd>
-							<a href={loadedRssNetwork.homeUrl}>{loadedRssNetwork.homeUrl}</a>
-							</dd>
+							<dt>Registry</dt>
+							<dd>{rssNetwork.registryLabel}</dd>
+						</div>
+					{:else if rssNetwork.protocolName}
+						<div>
+							<dt>Protocol</dt>
+							<dd>{rssNetwork.protocolName}</dd>
 						</div>
 					{/if}
 
-					{#if loadedRssNetwork.docsUrl}
+					{#if open}
 						<div>
-							<dt>Docs</dt>
-							<dd>
-							<a href={loadedRssNetwork.docsUrl}>{loadedRssNetwork.docsUrl}</a>
-							</dd>
+							<dt>Feeds</dt>
+							<dd>{String(rssNetwork.$$rssFeeds.length)}</dd>
 						</div>
-					{/if}
+						<div>
+							<dt>Items</dt>
+							<dd>{String(rssNetwork.$$rssItems.length)}</dd>
+						</div>
 
-					{#if loadedRssNetwork.topology}
-						<div>
-							<dt>Topology</dt>
-							<dd>{loadedRssNetwork.topology}</dd>
-						</div>
+						{#if rssNetwork.homeUrl}
+							<div>
+								<dt>Home</dt>
+								<dd>
+									<a href={rssNetwork.homeUrl}>{rssNetwork.homeUrl}</a>
+								</dd>
+							</div>
+						{/if}
+
+						{#if rssNetwork.docsUrl}
+							<div>
+								<dt>Docs</dt>
+								<dd>
+									<a href={rssNetwork.docsUrl}>{rssNetwork.docsUrl}</a>
+								</dd>
+							</div>
+						{/if}
+
+						{#if rssNetwork.topology}
+							<div>
+								<dt>Topology</dt>
+								<dd>{rssNetwork.topology}</dd>
+							</div>
+						{/if}
 					{/if}
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	</dl>
-{/snippet}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+	{/snippet}
 
 	{#snippet Details({
 		open: _open,

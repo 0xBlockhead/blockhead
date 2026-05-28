@@ -8,7 +8,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import Network from '$/schema/Network.ts'
+import Network from '$/schema/EvmNetwork.ts'
 
 export default {
 	entityType: EntityType.LiquidityPosition,

@@ -133,7 +133,7 @@ export const marketVenueCatalogFieldSources = [
 ] as const
 
 
-const marketKindRows = [
+const marketKinds = [
 	{
 		marketKind: MarketKind.Spot,
 		label: 'Spot',
@@ -154,8 +154,8 @@ const marketKindRows = [
 
 // Lookups
 
-export const marketKinds = Object.fromEntries(
-	marketKindRows.map((row) => [
+export const marketKindByMarketKind = Object.fromEntries(
+	marketKinds.map((row) => [
 		row.marketKind,
 		row,
 	]),

@@ -1,5 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+
+
+	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -17,9 +21,9 @@
 	let {
 		entityId,
 		href = resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/erc-4337/smart-account/[address]',
+			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/erc-4337/smart-account/[address]',
 			{
-				networkId: String(entityId.$network.chainId),
+				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 				address: entityId.address,
 			},
 		),
@@ -103,21 +107,21 @@
 			placeholderText="Loading smart account…"
 			resource={smartAccount}
 		>
-			{#snippet children(loadedSmartAccount)}
+			{#snippet children(smartAccount)}
 				<dl data-column-item="center">
-					{#if loadedSmartAccount.userOperationsCount !== undefined}
+					{#if smartAccount.userOperationsCount !== undefined}
 						<div>
 							<dt>User operations</dt>
 							<dd data-text="mono">{String(smartAccount.userOperationsCount)}</dd>
 						</div>
 					{/if}
 
-					{#if loadedSmartAccount.$factory != null}
+					{#if smartAccount.$factory != null}
 						<div>
 							<dt>Factory</dt>
 							<dd>
 								<Erc4337AccountFactoryView
-									entityId={loadedSmartAccount.$factory[EntityMetaKey.Id]}
+									entityId={smartAccount.$factory[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 									showTypeAnnotation={false}

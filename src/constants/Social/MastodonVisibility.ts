@@ -39,4 +39,3 @@ export const mastodonVisibilityLabels = Object.fromEntries(
 		row.label,
 	]),
 )
-

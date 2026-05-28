@@ -7,14 +7,14 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
-import Network from '$/schema/Network.ts'
+import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.BeaconSlot,
 
-	label: 'Beacon Slot',
-	labelPlural: 'Beacon Slots',
+	label: 'Beacon slot',
+	labelPlural: 'Beacon slots',
 
 	id: type({
 		$network: Network.id,

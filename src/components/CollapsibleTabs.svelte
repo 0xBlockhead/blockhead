@@ -195,13 +195,12 @@
 
 	{#snippet body({ open: _bodyOpen })}
 		{#each sections as section (section.id)}
-			{@const sectionContentProps = {
-				id: sectionAnchorId(section.id),
-				label: section.label,
-			}}
-			<section id={sectionContentProps.id}>
+			<section id={sectionAnchorId(section.id)}>
 				{@render sectionSnippetForSection(section)(
-					sectionContentProps,
+					{
+						id: sectionAnchorId(section.id),
+						label: section.label,
+					},
 				)}
 			</section>
 		{/each}

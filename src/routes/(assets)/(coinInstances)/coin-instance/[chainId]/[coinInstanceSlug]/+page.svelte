@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 
 
 	// Context
@@ -22,12 +22,12 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
+	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
 </script>
 
 
 <Page>
-	<CoinInstanceView
+	<EvmCoinInstanceView
 		entityId={data.entityId}
 	/>
 </Page>

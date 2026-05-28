@@ -84,9 +84,9 @@
 			resource={topic}
 			placeholderText="Loading log topic…"
 		>
-			{#snippet children(loadedTopic)}
-				{#if loadedTopic.signatures?.[0]}
-					{loadedTopic.signatures[0]}
+			{#snippet children(topic)}
+				{#if topic.signatures?.[0]}
+					{topic.signatures[0]}
 				{:else}
 					{@render Value()}
 				{/if}
@@ -99,8 +99,8 @@
 			resource={topic}
 			placeholderText="Loading log topic…"
 		>
-			{#snippet children(loadedTopic)}
-				{loadedTopic.signatures?.[0] ?? entityId.hex}
+			{#snippet children(topic)}
+				{topic.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -137,13 +137,13 @@
 					resource={topic}
 					placeholderText="Loading topic catalog signatures…"
 				>
-					{#snippet children(loadedTopic)}
-						{#if loadedTopic.signatures?.length}
+					{#snippet children(topic)}
+						{#if topic.signatures?.length}
 							<div>
 								<dt>Catalog signatures</dt>
 								<dd>
 									<ul>
-										{#each loadedTopic.signatures as sig (sig)}
+										{#each topic.signatures as sig (sig)}
 											<li><code>{sig}</code></li>
 										{/each}
 									</ul>

@@ -90,9 +90,9 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'tagLine',
+			name: 'tags',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
+			primitiveType: type('string[]'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

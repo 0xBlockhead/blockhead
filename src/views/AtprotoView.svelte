@@ -22,7 +22,7 @@
 			'/atproto',
 			entityId,
 		),
-					layout = EntityLayout.SummaryDetails,
+		layout = EntityLayout.SummaryDetails,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
@@ -34,6 +34,7 @@
 			href?: string
 			layout?: EntityLayout
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
@@ -113,8 +114,8 @@
 			resource={atprotoNetwork}
 			placeholderText="Loading AT Protocol directory…"
 		>
-			{#snippet children(loadedAtprotoNetwork)}
-				{loadedAtprotoNetwork.protocolName ?? 'AT Protocol'}
+			{#snippet children(atprotoNetwork)}
+				{atprotoNetwork.protocolName ?? 'AT Protocol'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -138,16 +139,16 @@
 				resource={atprotoNetwork}
 				placeholderText="Loading AT Protocol directory…"
 			>
-				{#snippet children(loadedAtprotoNetwork)}
-					{#if loadedAtprotoNetwork.registryLabel}
+				{#snippet children(atprotoNetwork)}
+					{#if atprotoNetwork.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{loadedAtprotoNetwork.registryLabel}</dd>
+							<dd>{atprotoNetwork.registryLabel}</dd>
 						</div>
-					{:else if loadedAtprotoNetwork.protocolName}
+					{:else if atprotoNetwork.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{loadedAtprotoNetwork.protocolName}</dd>
+							<dd>{atprotoNetwork.protocolName}</dd>
 						</div>
 					{/if}
 
@@ -165,28 +166,28 @@
 							)}</dd>
 						</div>
 
-						{#if loadedAtprotoNetwork.topology}
+						{#if atprotoNetwork.topology}
 							<div>
 								<dt>Topology</dt>
-								<dd>{loadedAtprotoNetwork.topology}</dd>
+								<dd>{atprotoNetwork.topology}</dd>
 							</div>
 						{/if}
 
-						{#if loadedAtprotoNetwork.homeUrl}
+						{#if atprotoNetwork.homeUrl}
 							<div>
 								<dt>Home</dt>
 								<dd>
-									<a href={loadedAtprotoNetwork.homeUrl}>{loadedAtprotoNetwork.homeUrl}</a>
+									<a href={atprotoNetwork.homeUrl}>{atprotoNetwork.homeUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedAtprotoNetwork.docsUrl != null && loadedAtprotoNetwork.docsUrl !== ''}
+						{#if atprotoNetwork.docsUrl != null && atprotoNetwork.docsUrl !== ''}
 							<div>
 								<dt>Documentation</dt>
 								<dd>
-									<a href={loadedAtprotoNetwork.docsUrl}>
-										{loadedAtprotoNetwork.docsUrl}
+									<a href={atprotoNetwork.docsUrl}>
+										{atprotoNetwork.docsUrl}
 									</a>
 								</dd>
 							</div>

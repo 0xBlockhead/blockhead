@@ -6,7 +6,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { blockheadFarcasterConnectionAuthMethods } from '$/constants/Blockhead.ts'
+	import { blockheadFarcasterConnectionAuthMethodByAuthMethod } from '$/constants/Blockhead.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
@@ -69,6 +69,7 @@
 	import Heading from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -84,11 +85,11 @@
 			resource={connection}
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
-			{#snippet children(loadedConnection)}
-				{#if loadedConnection.$icon?.[EntityMetaKey.Id].url}
+			{#snippet children(connection)}
+				{#if connection.$icon?.[EntityMetaKey.Id].url}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={loadedConnection.$icon[EntityMetaKey.Id].url}
+						src={connection.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -101,8 +102,8 @@
 			resource={connection}
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
-			{#snippet children(loadedConnection)}
-				{loadedConnection.displayName ?? loadedConnection.username ?? String(entityId.fid)}
+			{#snippet children(connection)}
+				{connection.displayName ?? connection.username ?? String(entityId.fid)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -112,15 +113,15 @@
 			resource={connection}
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
-			{#snippet children(loadedConnection)}
+			{#snippet children(connection)}
 				{#if (
 					connection.username !== undefined
 					&& connection.username !== (
-						connection.displayName ?? loadedConnection.username ?? String(entityId.fid)
+						connection.displayName ?? connection.username ?? String(entityId.fid)
 					)
 				)}
 					<span data-text="muted">
-						@{loadedConnection.username}
+						@{connection.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -151,7 +152,7 @@
 			resource={connection}
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
-			{#snippet children(loadedConnection)}
+			{#snippet children(connection)}
 				<dl data-column-item="center">
 					{#if (
 						open
@@ -159,14 +160,14 @@
 					)}
 						<div>
 							<dt>fname</dt>
-							<dd>@{loadedConnection.username}</dd>
+							<dd>@{connection.username}</dd>
 						</div>
 					{/if}
 
-					{#if loadedConnection.bio}
+					{#if connection.bio}
 						<div>
 							<dt>Bio</dt>
-							<dd>{loadedConnection.bio}</dd>
+							<dd>{connection.bio}</dd>
 						</div>
 					{/if}
 
@@ -177,7 +178,7 @@
 						<div>
 							<dt>Auth routing</dt>
 							<dd>
-								{blockheadFarcasterConnectionAuthMethods[loadedConnection.authMethod].label}
+								{blockheadFarcasterConnectionAuthMethodByAuthMethod[connection.authMethod].label}
 							</dd>
 						</div>
 					{/if}
@@ -188,7 +189,7 @@
 					)}
 						<div>
 							<dt>Farcaster custody address</dt>
-							<dd>{loadedConnection.custody}</dd>
+							<dd>{connection.custody}</dd>
 						</div>
 					{/if}
 
@@ -199,7 +200,7 @@
 					)}
 						<div>
 							<dt>Verified signer addresses</dt>
-							<dd>{loadedConnection.verifications.join(', ')}</dd>
+							<dd>{connection.verifications.join(', ')}</dd>
 						</div>
 					{/if}
 
@@ -209,7 +210,7 @@
 					)}
 						<div>
 							<dt>Signed at</dt>
-							<dd>{new Date(connection.signedAt).toISOString()}</dd>
+							<dd><Timestamp timestamp={connection.signedAt} /></dd>
 						</div>
 					{/if}
 				</dl>

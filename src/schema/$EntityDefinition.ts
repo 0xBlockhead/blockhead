@@ -22,7 +22,7 @@ export type EntityDefinition = {
 	readonly entityType: EntityType
 	readonly label: string
 	readonly labelPlural: string
-	readonly id: ArktypeType
+	readonly id: ArktypeType<unknown, any>
 	readonly fields: readonly EntityFieldDefinition[]
 }
 
@@ -38,7 +38,7 @@ export type EntityFieldDefinition = (
 	| {
 		name: string
 		type: EntityFieldType.Primitive
-		primitiveType: ArktypeType
+		primitiveType: ArktypeType<unknown, any>
 		cardinality: EntityFieldCardinality.One | EntityFieldCardinality.ZeroOrOne | EntityFieldCardinality.Many | EntityFieldCardinality.ZeroOrMany
 		defaultSources?: Source[]
 	}

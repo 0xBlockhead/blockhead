@@ -104,7 +104,7 @@
 				resource={network}
 				placeholderText="Loading X network…"
 			>
-				{#snippet children(loadedNetwork)}
+				{#snippet children(network)}
 					<div>
 						<dt>Profiles</dt>
 						<dd>{String(network['$$xUsers'].length)}</dd>
@@ -115,49 +115,39 @@
 					</div>
 					{#if contentOpen}
 						<div>
-							<dt>Protocol name</dt>
-							<dd>{loadedNetwork.protocolName}</dd>
+							<dt>Protocol</dt>
+							<dd>{network.protocolName}</dd>
 						</div>
-					{/if}
 
-					{#if contentOpen}
 						<div>
-							<dt>Registry label</dt>
-							<dd>{loadedNetwork.registryLabel}</dd>
+							<dt>Registry</dt>
+							<dd>{network.registryLabel}</dd>
 						</div>
-					{/if}
 
-					{#if contentOpen}
 						<div>
 							<dt>Topology</dt>
-							<dd>{loadedNetwork.topology}</dd>
+							<dd>{network.topology}</dd>
 						</div>
-					{/if}
 
-					{#if contentOpen}
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={loadedNetwork.homeUrl}>
-									{loadedNetwork.homeUrl}
+								<a href={network.homeUrl}>
+									{network.homeUrl}
 								</a>
 							</dd>
 						</div>
-					{/if}
 
-					{#if (
-						contentOpen
-						&& network.docsUrl != null
-						&& network.docsUrl !== ''
-					)}
-						<div>
-							<dt>Docs</dt>
-							<dd>
-								<a href={loadedNetwork.docsUrl}>
-									{loadedNetwork.docsUrl}
-								</a>
-							</dd>
-						</div>
+						{#if network.docsUrl != null && network.docsUrl !== ''}
+							<div>
+								<dt>Docs</dt>
+								<dd>
+									<a href={network.docsUrl}>
+										{network.docsUrl}
+									</a>
+								</dd>
+							</div>
+						{/if}
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
@@ -263,4 +253,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-

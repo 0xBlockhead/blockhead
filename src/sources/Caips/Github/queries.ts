@@ -46,7 +46,7 @@ export const getCaipHumanDocUrl = ({ number }: { number: number }) => (
 	`${caipOfficialHumanBaseUrl}${number}`
 )
 
-export const getCaipsGithubContents = (): Promise<CaipsGithubContents> => getJson({
+export const getCaipsGithubContents = (): Promise<CaipsGithubContents> => getJson<CaipsGithubContents>({
 	url: getCaipsGithubContentsUrl(),
 	origins: Caips.origins ?? [],
 })

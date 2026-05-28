@@ -113,14 +113,14 @@
 			placeholderText="Loading Lens publication…"
 			resource={lensPost}
 		>
-			{#snippet children(loadedLensPost)}
+			{#snippet children(lensPost)}
 				<TruncatedValue
 					format={TruncatedValueFormat.Visual}
 					startLength={42}
 					endLength={14}
 					value={(
 						lensPost.text
-							? loadedLensPost.text
+							? lensPost.text
 						:
 							entityId.id
 					)}
@@ -133,11 +133,11 @@
 		<ResourceBoundary
 			resource={lensPost}
 		>
-			{#snippet children(loadedLensPost)}
-				{#if loadedLensPost.timestamp != null}
+			{#snippet children(lensPost)}
+				{#if lensPost.timestamp != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={loadedLensPost.timestamp}
+							timestamp={lensPost.timestamp}
 						/>
 					</span>
 				{/if}
@@ -154,32 +154,32 @@
 			placeholderText="Loading Lens publication…"
 			resource={lensPost}
 		>
-			{#snippet children(loadedLensPost)}
+			{#snippet children(lensPost)}
 				<dl data-column-item="center">
-					{#if loadedLensPost.text != null && loadedLensPost.text !== ''}
+					{#if lensPost.text != null && lensPost.text !== ''}
 						<div>
 							<dt>Publication</dt>
-							<dd>{loadedLensPost.text}</dd>
+							<dd>{lensPost.text}</dd>
 						</div>
 					{/if}
 
-					{#if loadedLensPost.timestamp != null}
+					{#if lensPost.timestamp != null}
 						<div>
 							<dt>Published</dt>
 							<dd>
 								<Timestamp
-									timestamp={loadedLensPost.timestamp}
+									timestamp={lensPost.timestamp}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedLensPost.$author}
+					{#if contentOpen && lensPost.$author}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<LensAccountView
-									entityId={loadedLensPost.$author[EntityMetaKey.Id]}
+									entityId={lensPost.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -187,12 +187,12 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedLensPost.$repostOf}
+					{#if contentOpen && lensPost.$repostOf}
 						<div>
 							<dt>Repost of</dt>
 							<dd>
 								<LensPostView
-									entityId={loadedLensPost.$repostOf[EntityMetaKey.Id]}
+									entityId={lensPost.$repostOf[EntityMetaKey.Id]}
 									layout={EntityLayout.SummaryDetails}
 									open={true}
 									showTypeAnnotation={false}
@@ -201,12 +201,12 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedLensPost.$quoteOf}
+					{#if contentOpen && lensPost.$quoteOf}
 						<div>
 							<dt>Quote of</dt>
 							<dd>
 								<LensPostView
-									entityId={loadedLensPost.$quoteOf[EntityMetaKey.Id]}
+									entityId={lensPost.$quoteOf[EntityMetaKey.Id]}
 									layout={EntityLayout.SummaryDetails}
 									open={false}
 									showTypeAnnotation={false}
@@ -215,12 +215,12 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedLensPost.$commentOn}
+					{#if contentOpen && lensPost.$commentOn}
 						<div>
 							<dt>Comment on</dt>
 							<dd>
 								<LensPostView
-									entityId={loadedLensPost.$commentOn[EntityMetaKey.Id]}
+									entityId={lensPost.$commentOn[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -228,7 +228,7 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedLensPost.isEdited === true}
+					{#if contentOpen && lensPost.isEdited === true}
 						<div>
 							<dt>Edited</dt>
 							<dd>Yes</dd>
@@ -250,7 +250,7 @@
 							<dt>Comments</dt>
 							<dd>
 								<NumberValue
-									value={loadedLensPost.commentCount}
+									value={lensPost.commentCount}
 								/>
 							</dd>
 						</div>
@@ -263,7 +263,7 @@
 							<dt>Reposts</dt>
 							<dd>
 								<NumberValue
-									value={loadedLensPost.repostCount}
+									value={lensPost.repostCount}
 								/>
 							</dd>
 						</div>
@@ -276,7 +276,7 @@
 							<dt>Quotes</dt>
 							<dd>
 								<NumberValue
-									value={loadedLensPost.quoteCount}
+									value={lensPost.quoteCount}
 								/>
 							</dd>
 						</div>
@@ -289,7 +289,7 @@
 							<dt>Bookmarks</dt>
 							<dd>
 								<NumberValue
-									value={loadedLensPost.bookmarkCount}
+									value={lensPost.bookmarkCount}
 								/>
 							</dd>
 						</div>
@@ -302,7 +302,7 @@
 							<dt>Collects</dt>
 							<dd>
 								<NumberValue
-									value={loadedLensPost.collectCount}
+									value={lensPost.collectCount}
 								/>
 							</dd>
 						</div>
@@ -315,7 +315,7 @@
 							<dt>Reactions</dt>
 							<dd>
 								<NumberValue
-									value={loadedLensPost.reactionCount}
+									value={lensPost.reactionCount}
 								/>
 							</dd>
 						</div>
@@ -363,9 +363,9 @@
 						resource={lensPost}
 						placeholderText="Loading Lens publication…"
 					>
-						{#snippet children(loadedLensPost)}
-							{#if loadedLensPost.text}
-								<p>{loadedLensPost.text}</p>
+						{#snippet children(lensPost)}
+							{#if lensPost.text}
+								<p>{lensPost.text}</p>
 							{:else}
 								<p data-text="muted">
 									No text yet.

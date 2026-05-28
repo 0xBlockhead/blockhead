@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import BeaconEpochSchema from '$/schema/BeaconEpoch.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -16,9 +17,9 @@
 	let {
 		entityId,
 		href = resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/(beacon-epochs)/epoch/[epochNumber]',
+			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(beacon-epochs)/epoch/[epochNumber]',
 			{
-				networkId: String(entityId.$network.chainId),
+				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 				epochNumber: String(entityId.epoch),
 			},
 		),
@@ -126,14 +127,14 @@
 						resource={epoch}
 						placeholderText="Loading epoch…"
 					>
-						{#snippet children(loadedEpoch)}
+						{#snippet children(epoch)}
 							{#if (
-								loadedEpoch.startSlot !== undefined
-								&& loadedEpoch.endSlot !== undefined
+								epoch.startSlot !== undefined
+								&& epoch.endSlot !== undefined
 							)}
-								<NumberValue value={loadedEpoch.startSlot} />
+								<NumberValue value={epoch.startSlot} />
 								to
-								<NumberValue value={loadedEpoch.endSlot} />
+								<NumberValue value={epoch.endSlot} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -148,9 +149,9 @@
 							resource={epoch}
 							placeholderText="Loading epoch…"
 						>
-							{#snippet children(loadedEpoch)}
-								{#if loadedEpoch.slotCount !== undefined}
-									<NumberValue value={loadedEpoch.slotCount} />
+							{#snippet children(epoch)}
+								{#if epoch.slotCount !== undefined}
+									<NumberValue value={epoch.slotCount} />
 								{:else}
 									<span data-text="muted">Slot span unavailable from beacon API.</span>
 								{/if}

@@ -18,14 +18,14 @@ const thisDir = dirname(fileURLToPath(import.meta.url))
 const evmBlocksViewPath = join(thisDir, '../../src/views/EvmBlocksView.svelte')
 const blocksPagePath = join(
 	thisDir,
-	'../../src/routes/(explore)/(networks)/network/[networkId]/(network)/blocks/+page.svelte',
+	'../../src/routes/(explore)/network/[caip2Namespace=eip155Caip2Namespace]:[caip2Reference=eip155Caip2Reference]/(network)/blocks/+page.svelte',
 )
 
 const pageErrors = (issues: string[]) => (
 	issues.filter((i) => i.startsWith('pageerror:'))
 )
 
-test.describe('/network/1/blocks (EvmBlocksView + blockHeight-driven query)', () => {
+test.describe('/network/eip155:1/blocks (EvmBlocksView + blockHeight-driven query)', () => {
 	test('(contract) blocks page hosts EvmBlocksView; list query subscribes to head (blockHeight)', () => {
 		const pageSource = readFileSync(blocksPagePath, 'utf8')
 		expect(pageSource, blocksPagePath).toContain('EvmBlocksView')
@@ -63,7 +63,7 @@ test.describe('/network/1/blocks (EvmBlocksView + blockHeight-driven query)', ()
 		).toBe(true)
 
 		const issues = collectIssues(page)
-		await page.goto('/network/1/blocks', { waitUntil: 'load' })
+		await page.goto('/network/eip155:1/blocks', { waitUntil: 'load' })
 		await expect(page.locator('#main')).toBeVisible()
 		await assertMainSettled(page, 120_000)
 

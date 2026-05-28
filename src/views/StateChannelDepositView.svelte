@@ -85,12 +85,12 @@
 				resource={deposit}
 				placeholderText="…"
 			>
-				{#snippet children(loadedDeposit)}
-					{#if loadedDeposit.$account?.[EntityMetaKey.Id].address !== undefined}
+				{#snippet children(deposit)}
+					{#if deposit.$account?.[EntityMetaKey.Id].address !== undefined}
 						<ActorView
-							entityId={loadedDeposit.$account[EntityMetaKey.Id]}
+							entityId={deposit.$account[EntityMetaKey.Id]}
 							href={resolve('/account/[address]', {
-								address: loadedDeposit.$account[EntityMetaKey.Id].address,
+								address: deposit.$account[EntityMetaKey.Id].address,
 							})}
 							layout={EntityLayout.Value}
 							open={false}
@@ -115,25 +115,25 @@
 				resource={deposit}
 				placeholderText="Loading channel deposit…"
 			>
-				{#snippet children(loadedDeposit)}
-					{#if loadedDeposit.$account?.[EntityMetaKey.Id].address !== undefined}
+				{#snippet children(deposit)}
+					{#if deposit.$account?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>Account</dt>
 							<dd>
-								{#if loadedDeposit.$network?.[EntityMetaKey.Id].chainId !== undefined}
+								{#if deposit.$network?.[EntityMetaKey.Id].chainId !== undefined}
 									<ActorNetworkView
 										entityId={{
-											$network: loadedDeposit.$network[EntityMetaKey.Id],
-											$actor: loadedDeposit.$account[EntityMetaKey.Id],
+											$network: deposit.$network[EntityMetaKey.Id],
+											$actor: deposit.$account[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
 								{:else}
 									<ActorView
-										entityId={loadedDeposit.$account[EntityMetaKey.Id]}
+										entityId={deposit.$account[EntityMetaKey.Id]}
 										href={resolve('/account/[address]', {
-											address: loadedDeposit.$account[EntityMetaKey.Id].address,
+											address: deposit.$account[EntityMetaKey.Id].address,
 										})}
 										layout={EntityLayout.Title}
 										open={false}
@@ -143,30 +143,30 @@
 						</div>
 					{/if}
 
-					{#if loadedDeposit.availableBalance !== undefined}
+					{#if deposit.availableBalance !== undefined}
 						<div>
 							<dt>Available</dt>
 							<dd>
-								<NumberValue value={loadedDeposit.availableBalance} />
+								<NumberValue value={deposit.availableBalance} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedDeposit.lockedBalance !== undefined}
+					{#if deposit.lockedBalance !== undefined}
 						<div>
 							<dt>Locked</dt>
 							<dd>
-								<NumberValue value={loadedDeposit.lockedBalance} />
+								<NumberValue value={deposit.lockedBalance} />
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedDeposit.lastUpdated !== undefined}
+					{#if deposit.lastUpdated !== undefined}
 						<div>
 							<dt>Last updated</dt>
 							<dd>
 								<Timestamp
-									timestamp={loadedDeposit.lastUpdated}
+									timestamp={deposit.lastUpdated}
 								/>
 							</dd>
 						</div>

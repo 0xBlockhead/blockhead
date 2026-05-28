@@ -34,6 +34,9 @@ export const handle: Handle = async ({
 			method: event.request.method,
 			headers,
 			body: event.request.body,
+			...(event.request.body != null && {
+				duplex: 'half',
+			}),
 		})
 		const responseHeaders = new Headers(upstream.headers)
 		responseHeaders.delete('content-encoding')

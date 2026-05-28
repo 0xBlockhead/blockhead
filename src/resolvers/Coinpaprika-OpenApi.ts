@@ -81,7 +81,7 @@ export default {
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 				const { getCoinpaprikaTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
-				const coinId = entityId.$market.$base.$coin.coinId
+				const coinId: CoinId = entityId.$market.$base.$coin.coinId
 				const coinpaprikaId = idByCoinId[coinId]
 				if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: coin price not mapped')
 
@@ -106,7 +106,7 @@ export default {
 
 				return {
 					price: BigInt(Math.round(price * 1e8)),
-					...('coinpaprika-usd-1e8' && { transport: 'coinpaprika-usd-1e8' }),
+					transport: 'coinpaprika-usd-1e8',
 					...(coinpaprikaId !== undefined && { providerAssetId: coinpaprikaId }),
 				}
 			},
@@ -172,14 +172,14 @@ export default {
 			fieldName: '$$coins',
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => {
 				const { coinById } = await import('$/constants/Coin.ts')
-				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
+				const { coinpaprikaCatalogCoinIds } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 				return (
-					Object.entries(idByCoinId)
-						.filter(([coinId]) => coinId in coinById)
-						.map(([coinId]) => (
+					coinpaprikaCatalogCoinIds
+						.filter((coinId) => coinId in coinById)
+						.map((coinId) => (
 							{
 								[EntityMetaKey.Id]: {
-									coinId: coinId as CoinId,
+									coinId,
 								},
 							}
 						))

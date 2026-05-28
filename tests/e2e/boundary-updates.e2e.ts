@@ -7,7 +7,7 @@
  * pnpm run test:e2e:boundaries
  * E2E_PATH_LIMIT=20 pnpm run test:e2e:boundaries
  * E2E_PATH_PATTERN='^/(activitypub|atproto|farcaster|lens|nostr|reddit|rss|x|xmtp|youtube)(/|$)' pnpm exec playwright test tests/e2e/boundary-updates.e2e.ts
- * E2E_PROBE_PATH=/network/1 pnpm exec playwright test tests/e2e/boundary-updates.e2e.ts -g probe
+ * E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/boundary-updates.e2e.ts -g probe
  * E2E_BOUNDARY_REPORT_ONLY=1 pnpm run test:e2e:boundaries
  * ```
  */
@@ -47,6 +47,7 @@ const quietMs = (() => {
 
 const reportOnly = process.env.E2E_BOUNDARY_REPORT_ONLY === '1'
 const probePath = process.env.E2E_PROBE_PATH?.trim()
+const startPath = process.env.E2E_START_PATH?.trim()
 const pathPattern = (
 	((raw) => (
 		raw == null || raw === '' ?
@@ -61,10 +62,20 @@ const collectRouteBoundaryReport = async (
 	pathname: string,
 ) => {
 	await resetBoundaryProbe(page)
-	await page.goto(pathname, {
-		waitUntil: 'load',
-		timeout: gotoLoadTimeoutMs,
-	})
+	for (let attempt = 1; attempt <= 3; attempt++) {
+		try {
+			await page.goto(pathname, {
+				waitUntil: 'load',
+				timeout: gotoLoadTimeoutMs,
+			})
+			break
+		} catch (error) {
+			if (attempt === 3)
+				throw error
+
+			await page.waitForTimeout(1_000 * attempt)
+		}
+	}
 
 	const main = page.locator('#main')
 	await main.waitFor({
@@ -77,7 +88,7 @@ const collectRouteBoundaryReport = async (
 		timeoutMs: settleTimeoutMs,
 		quietMs,
 	})
-	const updates = await getBoundaryProbeEvents(page)
+	const updates = await getBoundaryProbeEvents(page).catch(() => [])
 
 	return summarizeRouteBoundaryReport(
 		pathname,
@@ -118,6 +129,25 @@ const assertBoundaryReports = (reports: RouteBoundaryReport[]) => {
 	).toEqual([])
 }
 
+const withRouteTimeout = async (
+	pathname: string,
+	index: number,
+	total: number,
+	collect: Promise<RouteBoundaryReport>,
+) => {
+	const timeoutMs = settleTimeoutMs + gotoLoadTimeoutMs + 60_000
+	return Promise.race([
+		collect,
+		new Promise<never>((_, reject) => {
+			setTimeout(() => {
+				reject(new Error(
+					`boundary route timeout after ${timeoutMs}ms at ${pathname} (${index + 1}/${total})`,
+				))
+			}, timeoutMs)
+		}),
+	])
+}
+
 test.describe('boundary updates (every +page route)', () => {
 	test.describe.configure({ mode: 'serial' })
 
@@ -146,22 +176,32 @@ test.describe('boundary updates (every +page route)', () => {
 		)
 		const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
 		const limit = Number(limitRaw)
-		const pageUrls = (
-			limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
-				all.slice(0, limit)
-			:	all
-		)
+			let pageUrls = (
+				limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
+					all.slice(0, limit)
+				:	all
+			)
+			if (startPath) {
+				const index = pageUrls.indexOf(startPath)
+				pageUrls = index === -1 ? pageUrls : pageUrls.slice(index)
+			}
 
 		const perRouteBudgetMs = settleTimeoutMs + gotoLoadTimeoutMs + 60_000
 		testInfo.setTimeout(pageUrls.length * perRouteBudgetMs + 60_000)
 
 		const reports: RouteBoundaryReport[] = []
 
-		for (const pathname of pageUrls) {
-			await test.step(pathname, async () => {
-				reports.push(await collectRouteBoundaryReport(page, pathname))
-			})
-		}
+			for (const [index, pathname] of pageUrls.entries()) {
+				await test.step(pathname, async () => {
+					console.log(`[boundary route] ${index + 1}/${pageUrls.length} ${pathname}`)
+					reports.push(await withRouteTimeout(
+						pathname,
+						index,
+						pageUrls.length,
+						collectRouteBoundaryReport(page, pathname),
+					))
+				})
+			}
 
 		await attachBoundaryArtifacts(testInfo, reports)
 		if (!reportOnly)

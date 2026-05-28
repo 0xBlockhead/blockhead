@@ -102,10 +102,10 @@
 			resource={actor}
 			placeholderText="Loading actor…"
 		>
-			{#snippet children(loadedActor)}
-				{loadedActor.displayName
-					?? loadedActor.acct
-					?? loadedActor.username
+			{#snippet children(actor)}
+				{actor.displayName
+					?? actor.acct
+					?? actor.username
 					?? entityId.localAccountId}
 			{/snippet}
 		</ResourceBoundary>
@@ -115,12 +115,12 @@
 		<ResourceBoundary
 			resource={actor}
 		>
-			{#snippet children(loadedActor)}
-				{#if loadedActor.$icon}
+			{#snippet children(actor)}
+				{#if actor.$icon}
 					<IconComponent
-						alt={loadedActor.displayName ?? loadedActor.acct ?? loadedActor.username ?? entityId.localAccountId}
+						alt={actor.displayName ?? actor.acct ?? actor.username ?? entityId.localAccountId}
 						shape={IconShape.Circle}
-						src={loadedActor.$icon[EntityMetaKey.Id].url}
+						src={actor.$icon[EntityMetaKey.Id].url}
 					/>
 				{/if}
 			{/snippet}
@@ -150,15 +150,15 @@
 		<ResourceBoundary
 			resource={actor}
 		>
-			{#snippet children(loadedActor)}
+			{#snippet children(actor)}
 				{@const activityPubSummaryHeadingLine =
-					loadedActor.displayName
-					?? loadedActor.acct
-					?? loadedActor.username
+					actor.displayName
+					?? actor.acct
+					?? actor.username
 					?? entityId.localAccountId}
-				{#if loadedActor.username && loadedActor.username !== activityPubSummaryHeadingLine}
+				{#if actor.username && actor.username !== activityPubSummaryHeadingLine}
 					<span data-text="muted">
-						@{loadedActor.username}
+						@{actor.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -179,8 +179,8 @@
 							resource={actor}
 							placeholderText="Loading actor…"
 						>
-							{#snippet children(loadedActor)}
-								{#if loadedActor.note}
+							{#snippet children(actor)}
+								{#if actor.note}
 									{htmlToPlainText(actor.note)}
 								{/if}
 							{/snippet}
@@ -194,24 +194,24 @@
 					resource={actor}
 					placeholderText="Loading actor…"
 				>
-					{#snippet children(loadedActor)}
+					{#snippet children(actor)}
 						{@const activityPubSummaryHeadingLine =
-							loadedActor.displayName
-							?? loadedActor.acct
-							?? loadedActor.username
+							actor.displayName
+							?? actor.acct
+							?? actor.username
 							?? entityId.localAccountId}
 
-						{#if loadedActor.acct && loadedActor.acct !== activityPubSummaryHeadingLine}
+						{#if actor.acct && actor.acct !== activityPubSummaryHeadingLine}
 							<div>
 								<dt>Federated handle (acct)</dt>
-								<dd>{loadedActor.acct}</dd>
+								<dd>{actor.acct}</dd>
 							</div>
 						{/if}
 
-						{#if loadedActor.displayName && loadedActor.displayName !== activityPubSummaryHeadingLine}
+						{#if actor.displayName && actor.displayName !== activityPubSummaryHeadingLine}
 							<div>
 								<dt>Display name</dt>
-								<dd>{loadedActor.displayName}</dd>
+								<dd>{actor.displayName}</dd>
 							</div>
 						{/if}
 					{/snippet}
@@ -226,8 +226,8 @@
 							resource={actor}
 							placeholderText="Loading actor…"
 						>
-							{#snippet children(loadedActor)}
-								{#if loadedActor.note}
+							{#snippet children(actor)}
+								{#if actor.note}
 									{htmlToPlainText(actor.note)}
 								{/if}
 							{/snippet}
@@ -241,102 +241,102 @@
 					resource={actor}
 					placeholderText="Loading actor…"
 				>
-					{#snippet children(loadedActor)}
-						{#if loadedActor.followersCount != null}
+					{#snippet children(actor)}
+						{#if actor.followersCount != null}
 							<div>
 								<dt>Followers</dt>
 								<dd>
 									<NumberValue
-										value={loadedActor.followersCount}
+										value={actor.followersCount}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedActor.followingCount != null}
+						{#if actor.followingCount != null}
 							<div>
 								<dt>Following</dt>
 								<dd>
 									<NumberValue
-										value={loadedActor.followingCount}
+										value={actor.followingCount}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedActor.statusesCount != null}
+						{#if actor.statusesCount != null}
 							<div>
 								<dt>Statuses</dt>
 								<dd>
 									<NumberValue
-										value={loadedActor.statusesCount}
+										value={actor.statusesCount}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedActor.createdAt != null}
+						{#if actor.createdAt != null}
 							<div>
 								<dt>Joined</dt>
 								<dd>
 									<Timestamp
-										timestamp={loadedActor.createdAt}
+										timestamp={actor.createdAt}
 									/>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedActor.profileUrl}
+						{#if actor.profileUrl}
 							<div>
 								<dt>Profile</dt>
 								<dd>
 									<a
-										href={loadedActor.profileUrl}
+										href={actor.profileUrl}
 										rel="noreferrer"
 										target="_blank"
-									>{loadedActor.profileUrl}</a>
+									>{actor.profileUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedActor.activityStreamsUri}
+						{#if actor.activityStreamsUri}
 							<div>
 								<dt>Activity Streams URI</dt>
 								<dd>
 									<a
-										href={loadedActor.activityStreamsUri}
+										href={actor.activityStreamsUri}
 										rel="noreferrer"
 										target="_blank"
-									>{loadedActor.activityStreamsUri}</a>
+									>{actor.activityStreamsUri}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedActor.website}
+						{#if actor.website}
 							<div>
 								<dt>Website</dt>
 								<dd>
 									<a
-										href={loadedActor.website}
+										href={actor.website}
 										rel="noreferrer"
 										target="_blank"
-									>{loadedActor.website}</a>
+									>{actor.website}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedActor.bot != null || loadedActor.locked != null}
+						{#if actor.bot != null || actor.locked != null}
 							<div>
 								<dt>Account flags</dt>
 								<dd>
-									{#if loadedActor.bot != null}
-										{loadedActor.bot ? 'Bot' : 'Not a bot'}
+									{#if actor.bot != null}
+										{actor.bot ? 'Bot' : 'Not a bot'}
 									{/if}
-									{#if loadedActor.bot != null && loadedActor.locked != null}
+									{#if actor.bot != null && actor.locked != null}
 										{' · '}
 									{/if}
-									{#if loadedActor.locked != null}
-										{loadedActor.locked ? 'Locked' : 'Unlocked'}
+									{#if actor.locked != null}
+										{actor.locked ? 'Locked' : 'Unlocked'}
 									{/if}
 								</dd>
 							</div>
@@ -395,7 +395,7 @@
 						resource={actor}
 						placeholderText="Loading Mastodon profile…"
 					>
-						{#snippet children(loadedActor)}
+						{#snippet children(actor)}
 							{@const mastodonProfileUnset = (
 								actor.acct == null
 								&& actor.displayName == null

@@ -296,7 +296,7 @@
 					<Heading>Result</Heading>
 				{/snippet}
 
-				{#snippet children({ open: _childrenOpen })}
+				{#snippet children({ open })}
 					<ul
 						data-column="gap-4"
 						class="calldata-result"

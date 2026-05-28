@@ -126,7 +126,7 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			{#if loadedMarketTimeIntervalTimestamp.close !== undefined}
+			{#if marketTimeIntervalTimestamp.close !== undefined}
 				<div>
 					<dt>Close</dt>
 					<dd>
@@ -134,11 +134,11 @@
 							resource={marketTimeIntervalTimestamp}
 							placeholderText="Loading OHLC candle…"
 						>
-							{#snippet children(loadedMarketTimeIntervalTimestamp)}
+							{#snippet children(marketTimeIntervalTimestamp)}
 								<CurrencyAmount
 									currency={quoteCurrency}
 									showDecimalPlaces={6}
-									value={loadedMarketTimeIntervalTimestamp.close}
+									value={marketTimeIntervalTimestamp.close}
 								/>
 							{/snippet}
 						</ResourceBoundary>
@@ -162,7 +162,7 @@
 						resource={marketTimeIntervalTimestamp}
 						placeholderText="Loading OHLC candle…"
 					>
-						{#snippet children(loadedMarketTimeIntervalTimestamp)}
+						{#snippet children(marketTimeIntervalTimestamp)}
 							<MarketView
 								entityId={entityId.$market}
 								layout={EntityLayout.Title}
@@ -184,11 +184,11 @@
 							resource={marketTimeIntervalTimestamp}
 							placeholderText="Loading OHLC candle…"
 						>
-							{#snippet children(loadedMarketTimeIntervalTimestamp)}
+							{#snippet children(marketTimeIntervalTimestamp)}
 								<CurrencyAmount
 									currency={quoteCurrency}
 									showDecimalPlaces={6}
-									value={loadedMarketTimeIntervalTimestamp.open}
+									value={marketTimeIntervalTimestamp.open}
 								/>
 							{/snippet}
 						</ResourceBoundary>
@@ -206,11 +206,11 @@
 							resource={marketTimeIntervalTimestamp}
 							placeholderText="Loading OHLC candle…"
 						>
-							{#snippet children(loadedMarketTimeIntervalTimestamp)}
+							{#snippet children(marketTimeIntervalTimestamp)}
 								<CurrencyAmount
 									currency={quoteCurrency}
 									showDecimalPlaces={6}
-									value={loadedMarketTimeIntervalTimestamp.high}
+									value={marketTimeIntervalTimestamp.high}
 								/>
 							{/snippet}
 						</ResourceBoundary>
@@ -228,11 +228,11 @@
 							resource={marketTimeIntervalTimestamp}
 							placeholderText="Loading OHLC candle…"
 						>
-							{#snippet children(loadedMarketTimeIntervalTimestamp)}
+							{#snippet children(marketTimeIntervalTimestamp)}
 								<CurrencyAmount
 									currency={quoteCurrency}
 									showDecimalPlaces={6}
-									value={loadedMarketTimeIntervalTimestamp.low}
+									value={marketTimeIntervalTimestamp.low}
 								/>
 							{/snippet}
 						</ResourceBoundary>

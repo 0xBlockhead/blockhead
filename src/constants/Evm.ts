@@ -49,7 +49,7 @@ export enum EvmTokenStandard {
 
 // Constants
 
-const evmTransactionEnvelopeTypeRows = [
+const evmTransactionEnvelopeTypes = [
 	{
 		envelopeType: EvmTransactionEnvelopeType.Legacy,
 		label: 'Legacy (type 0)',
@@ -79,7 +79,7 @@ const evmTransactionEnvelopeTypeRows = [
 	label: string
 }[]
 
-const evmTransactionExecutionStatusRows = [
+const evmTransactionExecutionStatuses = [
 	{
 		executionStatus: EvmTransactionExecutionStatus.Pending,
 		label: 'Pending',
@@ -97,7 +97,7 @@ const evmTransactionExecutionStatusRows = [
 	label: string
 }[]
 
-const evmTransactionKindRows = [
+const evmTransactionKinds = [
 	{
 		kind: EvmTransactionKind.NativeTransfer,
 		label: 'Native transfer',
@@ -119,7 +119,7 @@ const evmTransactionKindRows = [
 	label: string
 }[]
 
-const evmInternalCallTypeRows = [
+const evmInternalCallTypes = [
 	{
 		callType: EvmInternalCallType.Call,
 		label: 'CALL',
@@ -157,7 +157,7 @@ const evmInternalCallTypeRows = [
 	label: string
 }[]
 
-const evmLogInterpretationKindRows = [
+const evmLogInterpretationKinds = [
 	{
 		interpretationKind: EvmLogInterpretationKind.Transfer,
 		label: 'Transfer',
@@ -179,7 +179,7 @@ const evmLogInterpretationKindRows = [
 	label: string
 }[]
 
-const evmTokenStandardRows = [
+const evmTokenStandards = [
 	{
 		standard: EvmTokenStandard.Erc20,
 		label: 'ERC-20',
@@ -200,43 +200,43 @@ const evmTokenStandardRows = [
 
 // Lookups
 
-export const evmTransactionEnvelopeTypes = Object.fromEntries(
-	evmTransactionEnvelopeTypeRows.map((row) => [
+export const evmTransactionEnvelopeTypeByEnvelopeType = Object.fromEntries(
+	evmTransactionEnvelopeTypes.map((row) => [
 		row.envelopeType,
 		row,
 	]),
 )
 
-export const evmTransactionExecutionStatuses = Object.fromEntries(
-	evmTransactionExecutionStatusRows.map((row) => [
+export const evmTransactionExecutionStatusByExecutionStatus = Object.fromEntries(
+	evmTransactionExecutionStatuses.map((row) => [
 		row.executionStatus,
 		row,
 	]),
 )
 
-export const evmTransactionKinds = Object.fromEntries(
-	evmTransactionKindRows.map((row) => [
+export const evmTransactionKindByKind = Object.fromEntries(
+	evmTransactionKinds.map((row) => [
 		row.kind,
 		row,
 	]),
 )
 
-export const evmInternalCallTypes = Object.fromEntries(
-	evmInternalCallTypeRows.map((row) => [
+export const evmInternalCallTypeByCallType = Object.fromEntries(
+	evmInternalCallTypes.map((row) => [
 		row.callType,
 		row,
 	]),
 )
 
-export const evmLogInterpretationKinds = Object.fromEntries(
-	evmLogInterpretationKindRows.map((row) => [
+export const evmLogInterpretationKindByInterpretationKind = Object.fromEntries(
+	evmLogInterpretationKinds.map((row) => [
 		row.interpretationKind,
 		row,
 	]),
 )
 
-export const evmTokenStandards = Object.fromEntries(
-	evmTokenStandardRows.map((row) => [
+export const evmTokenStandardByStandard = Object.fromEntries(
+	evmTokenStandards.map((row) => [
 		row.standard,
 		row,
 	]),

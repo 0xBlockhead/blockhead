@@ -11,7 +11,7 @@
 	// Components
 	import Page from '$/components/Page.svelte'
 	import ActorCoinView from '$/views/ActorCoinView.svelte'
-	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 </script>
 
 

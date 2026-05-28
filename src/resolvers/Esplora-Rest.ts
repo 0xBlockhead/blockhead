@@ -1,0 +1,97 @@
+import {
+	defineEntityResolver,
+} from '$/resolvers/$resolvers.ts'
+import { NetworkNamespace } from '$/constants/Network.ts'
+import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
+
+const bitcoinMainnetEsploraUrl = 'https://blockstream.info/api'
+
+const assertBitcoinMainnet = (network: { namespace: string; reference: string }) => {
+	if (
+		network.namespace !== NetworkNamespace.Bip122
+		|| network.reference !== '000000000019d6689c085ae165831e93'
+	) {
+		throw new Error(`Esplora_Rest: unsupported UTXO network ${network.namespace}:${network.reference}`)
+	}
+}
+
+export default {
+	source: Source.Esplora_Rest,
+
+	entityResolvers: [
+		defineEntityResolver({
+			entityType: EntityType.UtxoBlock,
+			resolve: async (entityId) => {
+				assertBitcoinMainnet(entityId.$network)
+				const {
+					getBlock,
+					getBlockHashByHeight,
+				} = await import('$/sources/Esplora/Rest/queries.ts')
+				const block = await getBlock({
+					restBaseUrl: bitcoinMainnetEsploraUrl,
+					blockHash: entityId.hash ?? await getBlockHashByHeight({
+						restBaseUrl: bitcoinMainnetEsploraUrl,
+						height: entityId.height,
+					}),
+				})
+				return {
+					hash: block.id,
+					...(block.previousblockhash != null && {
+						$parent: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								height: BigInt(block.height - 1),
+								hash: block.previousblockhash,
+							},
+						},
+					}),
+					timestampMs: block.timestamp * 1000,
+					merkleRoot: block.merkle_root,
+					nonce: BigInt(block.nonce),
+					difficulty: block.difficulty,
+					sizeBytes: block.size,
+					weightUnits: block.weight,
+					transactionCount: block.tx_count,
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.UtxoTransaction,
+			resolve: async (entityId) => {
+				assertBitcoinMainnet(entityId.$network)
+				const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
+				const transaction = await getTransaction({
+					restBaseUrl: bitcoinMainnetEsploraUrl,
+					txId: entityId.txId,
+				})
+				return {
+					...(transaction.status.block_height != null && {
+						$block: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								height: BigInt(transaction.status.block_height),
+								...(transaction.status.block_hash != null && {
+									hash: transaction.status.block_hash,
+								}),
+							},
+						},
+					}),
+					version: transaction.version,
+					lockTime: transaction.locktime,
+					sizeBytes: transaction.size,
+					weightUnits: transaction.weight,
+					virtualSizeBytes: Math.ceil(transaction.weight / 4),
+					...(transaction.fee != null && {
+						feeSats: BigInt(transaction.fee),
+					}),
+					isCoinbase: transaction.vin.some((input) => input.is_coinbase),
+				}
+			},
+		}),
+	],
+
+	entityFieldResolvers: [],
+}

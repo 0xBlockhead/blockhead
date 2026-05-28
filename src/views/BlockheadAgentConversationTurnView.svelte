@@ -5,7 +5,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { blockheadAgentConversationTurnStatuses } from '$/constants/Blockhead.ts'
+	import { blockheadAgentConversationTurnStatusByStatus } from '$/constants/Blockhead.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
@@ -97,7 +97,7 @@
 		{#if true}
 			{#snippet TurnPromptHeading(turn)}
 				<TruncatedValue
-					value={loadedTurn.userPrompt}
+					value={turn.userPrompt}
 					format={TruncatedValueFormat.Visual}
 				/>
 			{/snippet}
@@ -114,11 +114,11 @@
 		<ResourceBoundary
 			resource={turn}
 		>
-			{#snippet children(loadedTurn)}
-				{#if loadedTurn.createdAt !== undefined}
+			{#snippet children(turn)}
+				{#if turn.createdAt !== undefined}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={loadedTurn.createdAt}
+							timestamp={turn.createdAt}
 						/>
 					</span>
 				{/if}
@@ -140,8 +140,8 @@
 					<dd>
 						{#if true}
 							{#snippet TurnPromptSummary(turn)}
-								{#if loadedTurn.userPrompt !== ''}
-									<p>{loadedTurn.userPrompt}</p>
+								{#if turn.userPrompt !== ''}
+									<p>{turn.userPrompt}</p>
 								{:else}
 									<span data-text="muted">Empty prompt.</span>
 								{/if}
@@ -162,7 +162,7 @@
 				<dd>
 					{#if true}
 						{#snippet TurnStatusRow(turn)}
-							{blockheadAgentConversationTurnStatuses[loadedTurn.status].label}
+							{blockheadAgentConversationTurnStatusByStatus[turn.status].label}
 						{/snippet}
 
 						<ResourceBoundary
@@ -180,8 +180,8 @@
 					<dd>
 						{#if true}
 							{#snippet TurnPromptRow(turn)}
-								{#if loadedTurn.userPrompt !== ''}
-									<p>{loadedTurn.userPrompt}</p>
+								{#if turn.userPrompt !== ''}
+									<p>{turn.userPrompt}</p>
 								{:else}
 									<span data-text="muted">Empty prompt.</span>
 								{/if}
@@ -201,9 +201,9 @@
 					<dd>
 						{#if true}
 							{#snippet TurnCreatedRow(turn)}
-								{#if loadedTurn.createdAt !== undefined}
+								{#if turn.createdAt !== undefined}
 									<Timestamp
-										timestamp={loadedTurn.createdAt}
+										timestamp={turn.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -222,9 +222,9 @@
 					<dd>
 						{#if true}
 							{#snippet TurnAssistantRow(turn)}
-								{#if loadedTurn.assistantText != null && loadedTurn.assistantText !== ''}
+								{#if turn.assistantText != null && turn.assistantText !== ''}
 									<p>
-										{loadedTurn.assistantText}
+										{turn.assistantText}
 									</p>
 								{:else}
 									<span data-text="muted">
@@ -247,9 +247,9 @@
 					<dd>
 						{#if true}
 							{#snippet TurnProviderRow(turn)}
-								{#if loadedTurn.providerId != null && loadedTurn.providerId !== ''}
+								{#if turn.providerId != null && turn.providerId !== ''}
 									<TruncatedValue
-										value={loadedTurn.providerId}
+										value={turn.providerId}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{:else}
@@ -273,8 +273,8 @@
 					<dd>
 						{#if true}
 							{#snippet TurnPromptVersionRow(turn)}
-								{#if loadedTurn.promptVersion !== ''}
-									{loadedTurn.promptVersion}
+								{#if turn.promptVersion !== ''}
+									{turn.promptVersion}
 								{:else}
 									<span data-text="muted">
 										Not recorded.
@@ -296,15 +296,15 @@
 					<dd>
 						{#if true}
 							{#snippet TurnParentRow(turn)}
-								{#if loadedTurn.parentId != null && loadedTurn.parentId !== ''}
+								{#if turn.parentId != null && turn.parentId !== ''}
 									<BlockheadAgentConversationTurnView
-										entityId={{ id: loadedTurn.parentId }}
+										entityId={{ id: turn.parentId }}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
 								{:else}
 									<span data-text="muted">
-										Root loadedTurn.
+										Root turn.
 									</span>
 								{/if}
 							{/snippet}
@@ -323,8 +323,8 @@
 					<dd>
 						{#if true}
 							{#snippet TurnErrorRow(turn)}
-								{#if loadedTurn.error != null && loadedTurn.error !== ''}
-									{loadedTurn.error}
+								{#if turn.error != null && turn.error !== ''}
+									{turn.error}
 								{:else}
 									<span data-text="muted">
 										None.
@@ -353,4 +353,3 @@
 		/>
 	{/snippet}
 </EntityView>
-

@@ -5,6 +5,7 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
 
 
 	// Context
@@ -13,10 +14,13 @@
 
 	// State
 	let {
-		entityId,
-		href = resolve('/~/accounts/transaction/[transactionId]', {
-			transactionId: entityId.transactionId,
-		}),
+			entityId,
+			href = resolve('/~/(accounts)/accounts/(transactions)/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]', {
+				chainId: String(entityId.$sourceTx.$network.chainId),
+				address: entityId.$account.address,
+				sourceTxHash: entityId.$sourceTx.txHash,
+				createdAt: String(entityId.createdAt),
+			}),
 		title = 'Bridge transaction',
 		open = $bindable(true),
 		...EntityViewProps
@@ -41,7 +45,7 @@
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 </script>
 
 
@@ -83,7 +87,7 @@
 				<div>
 					<dt>Origin chain</dt>
 					<dd>
-						<NetworkView
+						<EvmNetworkView
 							entityId={entityId.$sourceTx.$network}
 							layout={EntityLayout.Title}
 							open={false}
@@ -96,10 +100,10 @@
 						<EvmTransactionView
 							entityId={entityId.$sourceTx}
 							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 								{
-								networkId: String(entityId.$sourceTx.$network.chainId),
-								transactionId: entityId.$sourceTx.txHash,
+										...caip2RouteParamsFromEvmChainId(entityId.$sourceTx.$network.chainId),
+										transactionId: entityId.$sourceTx.txHash,
 								},
 							)}
 							layout={EntityLayout.Title}
@@ -141,4 +145,3 @@
 		/>
 	{/snippet}
 </EntityView>
-

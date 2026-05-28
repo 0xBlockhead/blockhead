@@ -5,7 +5,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { ComponentProps } from 'svelte'
 	import type { WithRest } from '$/typescript/WithRest.ts'

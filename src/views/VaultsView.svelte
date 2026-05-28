@@ -7,7 +7,6 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
@@ -63,22 +62,19 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Dexscreener “vault” rows are concentrated-liquidity trading pairs (token pair, volume, liquidity USD)—not ERC-4626 share vaults.
-		</p>
-		<p>
-			The global catalog slice uses a fixed Dexscreener search probe (<code>ETH/USDT</code>), not an exhaustive on-chain registry.
+			Vault rows are reserved for actual vault-like asset containers, not DEX trading pairs.
 		</p>
 	{/snippet}
 
 	{#snippet Empty()}
 		<div data-row="wrap align-center gap-2">
 			<p data-text="muted">
-				No Dexscreener pair rows in this slice yet.
+				No vault rows in this slice yet.
 			</p>
 			<Tooltip contentProps={{ side: 'top' }}>
 				{#snippet Content()}
 					<p>
-						Each row is a Dexscreener pair id on a supported network.
+						Liquidity pools are listed separately under pools.
 					</p>
 				{/snippet}
 				<abbr
@@ -96,9 +92,6 @@
 				entityFieldReference.entityId,
 				{
 					[entityFieldReference.fieldName]: {
-						$: [
-							Source.Dexscreener_OpenApi,
-						],
 						limit,
 					},
 				},
@@ -132,7 +125,7 @@
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No Dexscreener pair rows in this slice yet.
+						No vault rows in this slice yet.
 					</p>
 				{/snippet}
 

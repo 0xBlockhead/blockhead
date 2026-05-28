@@ -97,10 +97,10 @@
 			resource={connection}
 			placeholderText="Loading connection…"
 		>
-			{#snippet children(loadedConnection)}
+			{#snippet children(connection)}
 				{@const headline = (
 					connection.displayName
-					?? loadedConnection.username
+					?? connection.username
 					?? `FID ${String(entityId.fid)}`
 				)}
 				{headline}
@@ -132,14 +132,14 @@
 			resource={connection}
 			placeholderText="Loading icon…"
 		>
-			{#snippet children(loadedConnection)}
+			{#snippet children(connection)}
 				{#if (
 					connection.$icon
 					&& connection.$icon[EntityMetaKey.Id].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={loadedConnection.$icon[EntityMetaKey.Id].url}
+						src={connection.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -151,15 +151,15 @@
 		<ResourceBoundary
 			resource={connection}
 		>
-			{#snippet children(loadedConnection)}
+			{#snippet children(connection)}
 				{@const headline = (
 					connection.displayName
-					?? loadedConnection.username
+					?? connection.username
 					?? `FID ${String(entityId.fid)}`
 				)}
-				{#if loadedConnection.username !== undefined && loadedConnection.username !== headline}
+				{#if connection.username !== undefined && connection.username !== headline}
 					<span data-text="muted">
-						@{loadedConnection.username}
+						@{connection.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -183,9 +183,9 @@
 							placeholderText="Loading profile…"
 						>
 							{#snippet Pending()}{/snippet}
-							{#snippet children(loadedConnection)}
-								{#if loadedConnection.bio != null && loadedConnection.bio !== ''}
-									{loadedConnection.bio}
+							{#snippet children(connection)}
+								{#if connection.bio != null && connection.bio !== ''}
+									{connection.bio}
 								{:else}
 									<span data-text="muted">No profile bio is set.</span>
 								{/if}
@@ -207,9 +207,9 @@
 							placeholderText="Loading profile…"
 						>
 							{#snippet Pending()}{/snippet}
-							{#snippet children(loadedConnection)}
+							{#snippet children(connection)}
 								<TruncatedValue
-									value={loadedConnection.custody}
+									value={connection.custody}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -230,9 +230,9 @@
 							placeholderText="Loading profile…"
 						>
 							{#snippet Pending()}{/snippet}
-							{#snippet children(loadedConnection)}
+							{#snippet children(connection)}
 								<Timestamp
-									timestamp={loadedConnection.signedAt}
+									timestamp={connection.signedAt}
 								/>
 							{/snippet}
 						</ResourceBoundary>

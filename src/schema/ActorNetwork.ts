@@ -12,7 +12,7 @@ import {
 import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import Actor from '$/schema/Actor.ts'
-import Network from '$/schema/Network.ts'
+import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const contractPositionProtocol = type({

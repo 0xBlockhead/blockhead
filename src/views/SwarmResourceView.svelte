@@ -8,6 +8,7 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 	import {
+		swarmResourceHref,
 		swarmResourceCanonicalUri,
 	} from '$/sources/Swarm/Rest/queries.ts'
 
@@ -20,11 +21,8 @@
 
 	// State
 	let {
-		entityId,
-		href = resolve(
-			'/(explore)/(swarm)/swarm/resource/[resourceKey]',
-			{ resourceKey: entityId.resourceKey },
-		),
+			entityId,
+			href = resolve(swarmResourceHref(entityId)),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps

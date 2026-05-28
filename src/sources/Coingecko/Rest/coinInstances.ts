@@ -4,7 +4,7 @@
 
 import { CoinInstanceRepresentation } from '$/constants/Bridge.ts'
 import { CoinId } from '$/constants/Coin.ts'
-import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
@@ -23,7 +23,7 @@ import { stringify } from 'devalue'
 
 const NATIVE_TOKEN_ADDRESS = '0x0000000000000000000000000000000000000000'
 
-type CoinInstanceEntityId = EntityId<typeof schema, EntityType.CoinInstance>
+type CoinInstanceEntityId = EntityId<typeof schema, EntityType.EvmCoinInstance>
 
 export type CoinInstanceStub = {
 	[EntityMetaKey.Id]: CoinInstanceEntityId

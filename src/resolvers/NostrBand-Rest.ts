@@ -285,6 +285,7 @@ const repostFieldValuesFromEvent = (event: NostrEvent) => {
 	if (!isNostrRepostKind(kind)) throw new Error('Nostr: not a repost event')
 	const eventPubkey = normalizePubkey(event.pubkey)
 	if (eventPubkey == null) throw new Error('Nostr: invalid event pubkey')
+	const repostedArticle = articleRefFromAddressableCoordinate(tagValueFromTags(event.tags, 'a'))
 	return (
 		((repostedEventId) => ({
 			kind,
@@ -302,13 +303,38 @@ const repostFieldValuesFromEvent = (event: NostrEvent) => {
 		))(normalizePubkey(event.pubkey)),
 			...(repostedEventId != null && {
 				repostedEventId,
-				$repostedNote: {
-					[EntityMetaKey.Id]: { eventId: repostedEventId },
-				},
+				...(repostedArticle == null && {
+					$repostedNote: {
+						[EntityMetaKey.Id]: { eventId: repostedEventId },
+					},
+				}),
+			}),
+			...(repostedArticle != null && {
+				$repostedArticle: repostedArticle,
 			}),
 		}))(eventIdFromETags(event.tags))
 	)
 }
+
+const repostFieldValuesFromTargetEvent = (
+	repostValues: ReturnType<typeof repostFieldValuesFromEvent>,
+	targetEvent: NostrEvent | undefined,
+) => (
+	repostValues.$repostedArticle != null || targetEvent == null ?
+		repostValues
+	: targetEvent.kind === 30023 ?
+		((repostedArticle) => (
+			repostedArticle == null ?
+				repostValues
+			:	{
+					...repostValues,
+					$repostedArticle: repostedArticle,
+					$repostedNote: undefined,
+				}
+		))(articleRefFromEvent(targetEvent)[0])
+	:
+		repostValues
+)
 
 const reactionFieldValuesFromEvent = (event: NostrEvent) => {
 	const eventPubkey = normalizePubkey(event.pubkey)
@@ -593,22 +619,28 @@ export default {
 				if (eventId == null || eventId !== entityId.eventId) {
 					throw new Error('NostrBand_Rest: repost event id mismatch')
 				}
-				return repostFieldValuesFromEvent(event)
+				const values = repostFieldValuesFromEvent(event)
+				if (values.$repostedNote == null) return values
+				const targetEventId = values.$repostedNote[EntityMetaKey.Id].eventId
+				return repostFieldValuesFromTargetEvent(
+					values,
+					eventFromWire(await singleFlight(getEventById)(targetEventId)),
+				)
 			},
 		}),
 
-			defineEntityResolver({
-				entityType: EntityType.NostrReaction,
-				resolve: async (entityId, context) => {
-					const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
-					const event = eventFromWire(await singleFlight(getEventById)(entityId.eventId))
-					if (event == null || event.kind !== 7) {
-						throw new Error('NostrBand_Rest: reaction not found')
-					}
-					const eventId = normalizeEventId(String(event.id))
-					if (eventId == null || eventId !== entityId.eventId) {
-						throw new Error('NostrBand_Rest: reaction event id mismatch')
-					}
+		defineEntityResolver({
+			entityType: EntityType.NostrReaction,
+			resolve: async (entityId, context) => {
+				const { getEventById } = await import('$/sources/NostrBand/Rest/queries.ts')
+				const event = eventFromWire(await singleFlight(getEventById)(entityId.eventId))
+				if (event == null || event.kind !== 7) {
+					throw new Error('NostrBand_Rest: reaction not found')
+				}
+				const eventId = normalizeEventId(String(event.id))
+				if (eventId == null || eventId !== entityId.eventId) {
+					throw new Error('NostrBand_Rest: reaction event id mismatch')
+				}
 				const values = reactionFieldValuesFromEvent(event)
 				if (values.$targetNote == null) return values
 				const targetEventId = values.$targetNote[EntityMetaKey.Id].eventId

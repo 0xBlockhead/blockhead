@@ -37,7 +37,7 @@
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 </script>
 
 
@@ -45,11 +45,11 @@
 	placeholderText="Loading resolver…"
 	resource={ens}
 >
-	{#snippet children(loadedEns)}
-		{@const contractId = loadedEns.$resolverContract?.[EntityMetaKey.Id]}
+	{#snippet children(ens)}
+		{@const contractId = ens.$resolverContract?.[EntityMetaKey.Id]}
 		{#if contractId}
 			<section>
-				<NetworkView
+				<EvmNetworkView
 					entityId={{ chainId: ensEthereumChainId }}
 					layout={EntityLayout.Summary}
 					open={false}

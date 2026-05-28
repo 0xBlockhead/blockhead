@@ -85,12 +85,12 @@ export default {
 
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$mevProposerPayloadDelivered',
 			resolve: async (entityId, context) => {
-				const { mevRelayHostRows } = await import('$/constants/MevRelayHosts.ts')
+				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
-				const hostsForChain = mevRelayHostRows
+				const hostsForChain = mevRelayHosts
 					.filter((row) => row.chainId === entityId.chainId)
 					.map((row) => row.host)
 				if (hostsForChain == null) {
@@ -110,7 +110,7 @@ export default {
 				}[] = []
 				for (const relayHost of hosts) {
 					const rows = await getProposerPayloadDeliveredForRelayHost(relayHost, {
-						limit: subsetRowLimit,
+						limit: Math.min(subsetRowLimit, 200),
 					})
 					for (const row of rows) {
 						const slot = parsePayloadSlot(row)

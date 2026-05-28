@@ -15,14 +15,13 @@
 
 	// State
 	let {
-		entityId,
-		href = resolve(
-			'/~/(manage)/manage/(profiles)/profile/[profileId]/panel-tree/[panelTreeId]',
-			{
-				profileId: entityId.profileId,
-				panelTreeId: entityId.panelTreeId,
-			},
-		),
+			entityId,
+			href = resolve(
+				'/~/(dashboards)/dashboard/[dashboardId]',
+				{
+					dashboardId: entityId.id,
+				},
+			),
 		title = 'Panel tree',
 		open = $bindable(true),
 		...EntityViewProps
@@ -123,7 +122,7 @@
 				id={`${stringify(entityId)}:metadata`}
 			>
 				<ResourceBoundary resource={panelTree}>
-					{#snippet children(loadedPanelTree)}
+					{#snippet children(panelTree)}
 						<p data-text="muted">
 							No saved panel layout metadata yet.
 						</p>

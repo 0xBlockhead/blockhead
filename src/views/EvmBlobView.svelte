@@ -1,5 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+
+
+	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { ChainId } from '$/constants/ChainId.ts'
@@ -19,9 +23,9 @@
 		routeChildren,
 		entityId,
 		href = resolve(
-		'/(explore)/(networks)/network/[networkId]/(network)/(blobs)/blob/[transactionId]/[blobIndex]',
+		'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blobs)/blob/[transactionId]/[blobIndex]',
 		{
-			networkId: String(entityId.$network.chainId),
+			...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 			transactionId: entityId.txHash,
 			blobIndex: String(entityId.blobIndex),
 		},
@@ -115,10 +119,10 @@
 				resource={blob}
 				placeholderText="Loading blob…"
 			>
-				{#snippet children(loadedBlob)}
+				{#snippet children(blob)}
 					<small>
 						<TruncatedValue
-							value={loadedBlob.versionedHash}
+							value={blob.versionedHash}
 							format={TruncatedValueFormat.Abbr}
 						/>
 					</small>
@@ -155,10 +159,10 @@
 						resource={blob}
 						placeholderText="Loading blob…"
 					>
-						{#snippet children(loadedBlob)}
-							{#if loadedBlob.versionedHash !== undefined}
+						{#snippet children(blob)}
+							{#if blob.versionedHash !== undefined}
 								<TruncatedValue
-									value={loadedBlob.versionedHash}
+									value={blob.versionedHash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							{/if}
@@ -174,10 +178,10 @@
 							resource={blob}
 							placeholderText="Loading blob…"
 						>
-							{#snippet children(loadedBlob)}
-								{#if loadedBlob.versionedHash !== undefined}
+							{#snippet children(blob)}
+								{#if blob.versionedHash !== undefined}
 									<a
-										href={`https://blobscan.com/blob/${loadedBlob.versionedHash}`}
+										href={`https://blobscan.com/blob/${blob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
@@ -195,10 +199,10 @@
 							resource={blob}
 							placeholderText="Loading blob…"
 						>
-							{#snippet children(loadedBlob)}
-								{#if loadedBlob.versionedHash !== undefined}
+							{#snippet children(blob)}
+								{#if blob.versionedHash !== undefined}
 									<a
-										href={`https://sepolia.blobscan.com/blob/${loadedBlob.versionedHash}`}
+										href={`https://sepolia.blobscan.com/blob/${blob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
@@ -216,10 +220,10 @@
 							resource={blob}
 							placeholderText="Loading blob…"
 						>
-							{#snippet children(loadedBlob)}
-								{#if loadedBlob.versionedHash !== undefined}
+							{#snippet children(blob)}
+								{#if blob.versionedHash !== undefined}
 									<a
-										href={`https://gnosis.blobscan.com/blob/${loadedBlob.versionedHash}`}
+										href={`https://gnosis.blobscan.com/blob/${blob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
@@ -237,10 +241,10 @@
 							resource={blob}
 							placeholderText="Loading blob…"
 						>
-							{#snippet children(loadedBlob)}
-								{#if loadedBlob.versionedHash !== undefined}
+							{#snippet children(blob)}
+								{#if blob.versionedHash !== undefined}
 									<a
-										href={`https://hoodi.blobscan.com/blob/${loadedBlob.versionedHash}`}
+										href={`https://hoodi.blobscan.com/blob/${blob.versionedHash}`}
 										data-text="small"
 										target="_blank"
 										rel="noreferrer"
@@ -259,12 +263,12 @@
 						resource={blob}
 						placeholderText="Loading blob…"
 					>
-						{#snippet children(loadedBlob)}
-							{#if loadedBlob.blobscanBlobJson !== undefined}
+						{#snippet children(blob)}
+							{#if blob.blobscanBlobJson !== undefined}
 								<div data-row="wrap align-start gap-2">
 									<TruncatedValue
 										format={TruncatedValueFormat.Visual}
-										value={loadedBlob.blobscanBlobJson}
+										value={blob.blobscanBlobJson}
 									/>
 									{#if true}
 										<Tooltip
@@ -294,9 +298,9 @@
 					<dd>
 						<a
 							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 								{
-								networkId: String(entityId.$network.chainId),
+								...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 								transactionId: entityId.txHash,
 								},
 							)}

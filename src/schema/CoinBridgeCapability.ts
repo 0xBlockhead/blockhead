@@ -5,7 +5,7 @@ import {
 	BridgeSettlementModel,
 	BridgeVerificationModel,
 } from '$/constants/Bridge.ts'
-import CoinInstance from '$/schema/CoinInstance.ts'
+import CoinInstance from '$/schema/EvmCoinInstance.ts'
 import {
 	EntityFieldType,
 	EntityFieldCardinality,
@@ -31,13 +31,13 @@ export default {
 		{
 			name: '$fromInstance',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.CoinInstance,
+			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$toInstance',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.CoinInstance,
+			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

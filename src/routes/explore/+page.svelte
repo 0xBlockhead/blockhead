@@ -17,8 +17,8 @@
 	import Page from '$/components/Page.svelte'
 	import GlobalView from '$/views/GlobalView.svelte'
 	import NetworksView from '$/views/NetworksView.svelte'
-	import NetworkUpgradesView from '$/views/NetworkUpgradesView.svelte'
-	import ProposalRealmsView from '$/views/ProposalRealmsView.svelte'
+	import EthereumNetworkUpgradesView from '$/views/EthereumNetworkUpgradesView.svelte'
+	import SpecificationRealmsView from '$/views/SpecificationRealmsView.svelte'
 </script>
 
 
@@ -71,7 +71,7 @@
 				{/snippet}
 
 				{#snippet SectionUpgrades({ id, label })}
-					<NetworkUpgradesView
+					<EthereumNetworkUpgradesView
 						entityFieldReference={{
 							entityType: EntityType._Global,
 							entityId: {},
@@ -103,11 +103,11 @@
 				{/snippet}
 
 				{#snippet SectionProposals({ id, label })}
-					<ProposalRealmsView
+					<SpecificationRealmsView
 						entityFieldReference={{
 							entityType: EntityType._Global,
 							entityId: {},
-							fieldName: '$$proposalRealms',
+							fieldName: '$$specificationRealms',
 						}}
 						id="proposal-realms"
 						open={hubOpen}

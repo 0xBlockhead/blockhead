@@ -36,12 +36,13 @@ import CoinBridgeCapabilitySchema from '$/schema/CoinBridgeCapability.ts'
 import BridgeTransactionSchema from '$/schema/BridgeTransaction.ts'
 import CctpAllowanceSchema from '$/schema/CctpAllowance.ts'
 import CctpFeeSchema from '$/schema/CctpFee.ts'
-import NetworkConsensusUpgradeSchema from '$/schema/ConsensusUpgrade.ts'
+import NetworkConsensusUpgradeSchema from '$/schema/EthereumConsensusUpgrade.ts'
 import CoinSchema from '$/schema/Coin.ts'
-import CoinInstanceSchema from '$/schema/CoinInstance.ts'
+import CoinInstanceSchema from '$/schema/EvmCoinInstance.ts'
 import Coin_EvmBlockSchema from '$/schema/Coin_EvmBlock.ts'
 import Coin_TimestampSchema from '$/schema/Coin_Timestamp.ts'
-import NetworkExecutionUpgradeSchema from '$/schema/ExecutionUpgrade.ts'
+import CosmosGovernanceProposalSchema from '$/schema/CosmosGovernanceProposal.ts'
+import NetworkExecutionUpgradeSchema from '$/schema/EthereumExecutionUpgrade.ts'
 import MarketSchema from '$/schema/Market.ts'
 import MarketVenueSchema from '$/schema/MarketVenue.ts'
 import MarketPriceSchema from '$/schema/MarketPrice.ts'
@@ -92,11 +93,118 @@ import LiquidityPositionSchema from '$/schema/LiquidityPosition.ts'
 import MediaSchema from '$/schema/Media.ts'
 import MediaObjectSchema from '$/schema/MediaObject.ts'
 import NetworkSchema from '$/schema/Network.ts'
-import NetworkBridgeSchema from '$/schema/NetworkBridge.ts'
-import Network_BeaconFinality_TimestampSchema from '$/schema/Network_BeaconFinality_Timestamp.ts'
-import Network_GasFee_BlockSchema from '$/schema/Network_GasFee_Block.ts'
-import Network_GasEstimate_TimestampSchema from '$/schema/Network_GasEstimate_Timestamp.ts'
-import Network_Txpool_TimestampSchema from '$/schema/Network_Txpool_Timestamp.ts'
+import NetworkStackSchema from '$/schema/NetworkStack.ts'
+import ExecutionEnvironmentSchema from '$/schema/ExecutionEnvironment.ts'
+import ConsensusMechanismSchema from '$/schema/ConsensusMechanism.ts'
+import AssetInstanceSchema from '$/schema/AssetInstance.ts'
+import NetworkUpgradeSchema from '$/schema/NetworkUpgrade.ts'
+import UtxoBlockSchema from '$/schema/UtxoBlock.ts'
+import UtxoTransactionSchema from '$/schema/UtxoTransaction.ts'
+import UtxoInputSchema from '$/schema/UtxoInput.ts'
+import UtxoOutputSchema from '$/schema/UtxoOutput.ts'
+import SolanaBlockSchema from '$/schema/SolanaBlock.ts'
+import SolanaTransactionSchema from '$/schema/SolanaTransaction.ts'
+import SolanaInstructionSchema from '$/schema/SolanaInstruction.ts'
+import SolanaAccountSchema from '$/schema/SolanaAccount.ts'
+import SolanaProgramSchema from '$/schema/SolanaProgram.ts'
+import SolanaTokenMintSchema from '$/schema/SolanaTokenMint.ts'
+import SolanaValidatorSchema from '$/schema/SolanaValidator.ts'
+import CosmosBlockSchema from '$/schema/CosmosBlock.ts'
+import CosmosTransactionSchema from '$/schema/CosmosTransaction.ts'
+import CosmosMessageSchema from '$/schema/CosmosMessage.ts'
+import CosmosAccountSchema from '$/schema/CosmosAccount.ts'
+import CosmosValidatorSchema from '$/schema/CosmosValidator.ts'
+import CosmosContractSchema from '$/schema/CosmosContract.ts'
+import CosmosDenomSchema from '$/schema/CosmosDenom.ts'
+import CosmosModuleSchema from '$/schema/CosmosModule.ts'
+import FilecoinTipsetSchema from '$/schema/FilecoinTipset.ts'
+import FilecoinBlockSchema from '$/schema/FilecoinBlock.ts'
+import FilecoinMessageSchema from '$/schema/FilecoinMessage.ts'
+import FilecoinActorSchema from '$/schema/FilecoinActor.ts'
+import FilecoinMinerSchema from '$/schema/FilecoinMiner.ts'
+import FilecoinSectorSchema from '$/schema/FilecoinSector.ts'
+import PolkadotBlockSchema from '$/schema/PolkadotBlock.ts'
+import PolkadotExtrinsicSchema from '$/schema/PolkadotExtrinsic.ts'
+import PolkadotEventSchema from '$/schema/PolkadotEvent.ts'
+import PolkadotAccountSchema from '$/schema/PolkadotAccount.ts'
+import PolkadotValidatorSchema from '$/schema/PolkadotValidator.ts'
+import PolkadotPalletSchema from '$/schema/PolkadotPallet.ts'
+import HyperliquidBlockSchema from '$/schema/HyperliquidBlock.ts'
+import HyperliquidTransactionSchema from '$/schema/HyperliquidTransaction.ts'
+import HyperliquidAccountSchema from '$/schema/HyperliquidAccount.ts'
+import HyperliquidValidatorSchema from '$/schema/HyperliquidValidator.ts'
+import HyperliquidSpotAssetSchema from '$/schema/HyperliquidSpotAsset.ts'
+import HyperliquidPerpMarketSchema from '$/schema/HyperliquidPerpMarket.ts'
+import NearBlockSchema from '$/schema/NearBlock.ts'
+import NearChunkSchema from '$/schema/NearChunk.ts'
+import NearTransactionSchema from '$/schema/NearTransaction.ts'
+import NearReceiptSchema from '$/schema/NearReceipt.ts'
+import NearActionSchema from '$/schema/NearAction.ts'
+import NearExecutionOutcomeSchema from '$/schema/NearExecutionOutcome.ts'
+import NearAccountSchema from '$/schema/NearAccount.ts'
+import NearAccessKeySchema from '$/schema/NearAccessKey.ts'
+import NearContractSchema from '$/schema/NearContract.ts'
+import NearValidatorSchema from '$/schema/NearValidator.ts'
+import MoneroBlockSchema from '$/schema/MoneroBlock.ts'
+import MoneroTransactionSchema from '$/schema/MoneroTransaction.ts'
+import MoneroStealthOutputSchema from '$/schema/MoneroStealthOutput.ts'
+import MoneroKeyImageSchema from '$/schema/MoneroKeyImage.ts'
+import MoneroRingSchema from '$/schema/MoneroRing.ts'
+import MoneroRingMemberSchema from '$/schema/MoneroRingMember.ts'
+import LitecoinMwebBlockSchema from '$/schema/LitecoinMwebBlock.ts'
+import LitecoinMwebTransactionSchema from '$/schema/LitecoinMwebTransaction.ts'
+import LitecoinMwebPegInSchema from '$/schema/LitecoinMwebPegIn.ts'
+import LitecoinMwebPegOutSchema from '$/schema/LitecoinMwebPegOut.ts'
+import LitecoinMwebOutputSchema from '$/schema/LitecoinMwebOutput.ts'
+import LightningNetworkSchema from '$/schema/LightningNetwork.ts'
+import LightningNetwork_TimestampSchema from '$/schema/LightningNetwork_Timestamp.ts'
+import LightningNodeSchema from '$/schema/LightningNode.ts'
+import LightningChannelSchema from '$/schema/LightningChannel.ts'
+import LightningInvoiceSchema from '$/schema/LightningInvoice.ts'
+import LightningPaymentSchema from '$/schema/LightningPayment.ts'
+import LightningHtlcSchema from '$/schema/LightningHtlc.ts'
+import DogecoinBlockAuxPowSchema from '$/schema/DogecoinBlockAuxPow.ts'
+import DogecoinAuxPowParentBlockHeaderSchema from '$/schema/DogecoinAuxPowParentBlockHeader.ts'
+import DogecoinAuxPowMerkleBranchSchema from '$/schema/DogecoinAuxPowMerkleBranch.ts'
+import BitcoinCashCashTokenCategorySchema from '$/schema/BitcoinCashCashTokenCategory.ts'
+import BitcoinCashCashTokenFungibleAmountSchema from '$/schema/BitcoinCashCashTokenFungibleAmount.ts'
+import BitcoinCashCashTokenNftSchema from '$/schema/BitcoinCashCashTokenNft.ts'
+import BitcoinCashCashTokenCommitmentSchema from '$/schema/BitcoinCashCashTokenCommitment.ts'
+import BitcoinCashBcmrMetadataSchema from '$/schema/BitcoinCashBcmrMetadata.ts'
+import TronAccountSchema from '$/schema/TronAccount.ts'
+import TronBlockSchema from '$/schema/TronBlock.ts'
+import TronContractSchema from '$/schema/TronContract.ts'
+import TronTokenSchema from '$/schema/TronToken.ts'
+import TronTokenTransferSchema from '$/schema/TronTokenTransfer.ts'
+import TronTransactionSchema from '$/schema/TronTransaction.ts'
+import ZeroGConsensusNetworkSchema from '$/schema/ZeroGConsensusNetwork.ts'
+import ZeroGDaNodeSchema from '$/schema/ZeroGDaNode.ts'
+import ZeroGDaQuorumSchema from '$/schema/ZeroGDaQuorum.ts'
+import ZeroGDataBlobSchema from '$/schema/ZeroGDataBlob.ts'
+import ZeroGDataChunkSchema from '$/schema/ZeroGDataChunk.ts'
+import ZeroGKvEntrySchema from '$/schema/ZeroGKvEntry.ts'
+import ZeroGServiceProviderSchema from '$/schema/ZeroGServiceProvider.ts'
+import ZeroGServiceRequestSchema from '$/schema/ZeroGServiceRequest.ts'
+import ZeroGSettlementTraceSchema from '$/schema/ZeroGSettlementTrace.ts'
+import ZeroGStorageLogEntrySchema from '$/schema/ZeroGStorageLogEntry.ts'
+import ZeroGStorageNodeSchema from '$/schema/ZeroGStorageNode.ts'
+import ZeroGStorageProofSchema from '$/schema/ZeroGStorageProof.ts'
+import QuilibriumFrameSchema from '$/schema/QuilibriumFrame.ts'
+import QuilibriumShardSchema from '$/schema/QuilibriumShard.ts'
+import QuilibriumProverSchema from '$/schema/QuilibriumProver.ts'
+import QuilibriumAccountSchema from '$/schema/QuilibriumAccount.ts'
+import QuilibriumPendingTransactionSchema from '$/schema/QuilibriumPendingTransaction.ts'
+import ZcashShieldedPoolSchema from '$/schema/ZcashShieldedPool.ts'
+import ZcashShieldedActionSchema from '$/schema/ZcashShieldedAction.ts'
+import LogosZoneSchema from '$/schema/LogosZone.ts'
+import LogosAccountSchema from '$/schema/LogosAccount.ts'
+import LogosTransactionSchema from '$/schema/LogosTransaction.ts'
+import EvmNetworkSchema from '$/schema/EvmNetwork.ts'
+import EvmNetworkBridgeSchema from '$/schema/EvmNetworkBridge.ts'
+import EthereumBeaconFinality_TimestampSchema from '$/schema/EthereumBeaconFinality_Timestamp.ts'
+import EvmNetwork_GasFee_BlockSchema from '$/schema/EvmNetwork_GasFee_Block.ts'
+import EvmNetwork_GasEstimate_TimestampSchema from '$/schema/EvmNetwork_GasEstimate_Timestamp.ts'
+import EvmNetwork_Txpool_TimestampSchema from '$/schema/EvmNetwork_Txpool_Timestamp.ts'
 import NostrArticleSchema from '$/schema/NostrArticle.ts'
 import NostrNetworkSchema from '$/schema/NostrNetwork.ts'
 import NostrNoteSchema from '$/schema/NostrNote.ts'
@@ -104,9 +212,10 @@ import NostrProfileSchema from '$/schema/NostrProfile.ts'
 import NostrReactionSchema from '$/schema/NostrReaction.ts'
 import NostrRelaySchema from '$/schema/NostrRelay.ts'
 import NostrRepostSchema from '$/schema/NostrRepost.ts'
-import ProposalKindSchema from '$/schema/ProposalKind.ts'
-import ProposalRealmSchema from '$/schema/ProposalRealm.ts'
-import ProposalSchema from '$/schema/Proposal.ts'
+import PolkadotReferendumSchema from '$/schema/PolkadotReferendum.ts'
+import ProposalKindSchema from '$/schema/SpecificationProposalKind.ts'
+import SpecificationRealmSchema from '$/schema/SpecificationRealm.ts'
+import ProposalSchema from '$/schema/SpecificationProposal.ts'
 import RedditCommentSchema from '$/schema/RedditComment.ts'
 import RedditLinkSchema from '$/schema/RedditLink.ts'
 import RedditSubredditSchema from '$/schema/RedditSubreddit.ts'
@@ -133,7 +242,7 @@ import YouTubeCommentSchema from '$/schema/YouTubeComment.ts'
 import YouTubeNetworkSchema from '$/schema/YouTubeNetwork.ts'
 import YouTubePlaylistSchema from '$/schema/YouTubePlaylist.ts'
 import YouTubeVideoSchema from '$/schema/YouTubeVideo.ts'
-import NetworkUpgradeSchema from '$/schema/Upgrade.ts'
+import EthereumNetworkUpgradeSchema from '$/schema/EthereumNetworkUpgrade.ts'
 
 export const schema = [
 	_GlobalSchema,
@@ -177,6 +286,7 @@ export const schema = [
 	CoinInstanceSchema,
 	Coin_EvmBlockSchema,
 	Coin_TimestampSchema,
+	CosmosGovernanceProposalSchema,
 	NetworkExecutionUpgradeSchema,
 	MarketSchema,
 	MarketVenueSchema,
@@ -228,11 +338,118 @@ export const schema = [
 	MediaSchema,
 	MediaObjectSchema,
 	NetworkSchema,
-	NetworkBridgeSchema,
-	Network_BeaconFinality_TimestampSchema,
-	Network_GasFee_BlockSchema,
-	Network_GasEstimate_TimestampSchema,
-	Network_Txpool_TimestampSchema,
+	NetworkStackSchema,
+	ExecutionEnvironmentSchema,
+	ConsensusMechanismSchema,
+	AssetInstanceSchema,
+	NetworkUpgradeSchema,
+	UtxoBlockSchema,
+	UtxoTransactionSchema,
+	UtxoInputSchema,
+	UtxoOutputSchema,
+	SolanaBlockSchema,
+	SolanaTransactionSchema,
+	SolanaInstructionSchema,
+	SolanaAccountSchema,
+	SolanaProgramSchema,
+	SolanaTokenMintSchema,
+	SolanaValidatorSchema,
+	CosmosBlockSchema,
+	CosmosTransactionSchema,
+	CosmosMessageSchema,
+	CosmosAccountSchema,
+	CosmosValidatorSchema,
+	CosmosContractSchema,
+	CosmosDenomSchema,
+	CosmosModuleSchema,
+	FilecoinTipsetSchema,
+	FilecoinBlockSchema,
+	FilecoinMessageSchema,
+	FilecoinActorSchema,
+	FilecoinMinerSchema,
+	FilecoinSectorSchema,
+	PolkadotBlockSchema,
+	PolkadotExtrinsicSchema,
+	PolkadotEventSchema,
+	PolkadotAccountSchema,
+	PolkadotValidatorSchema,
+	PolkadotPalletSchema,
+	HyperliquidBlockSchema,
+	HyperliquidTransactionSchema,
+	HyperliquidAccountSchema,
+	HyperliquidValidatorSchema,
+	HyperliquidSpotAssetSchema,
+	HyperliquidPerpMarketSchema,
+	NearBlockSchema,
+	NearChunkSchema,
+	NearTransactionSchema,
+	NearReceiptSchema,
+	NearActionSchema,
+	NearExecutionOutcomeSchema,
+	NearAccountSchema,
+	NearAccessKeySchema,
+	NearContractSchema,
+	NearValidatorSchema,
+	MoneroBlockSchema,
+	MoneroTransactionSchema,
+	MoneroStealthOutputSchema,
+	MoneroKeyImageSchema,
+	MoneroRingSchema,
+	MoneroRingMemberSchema,
+	LitecoinMwebBlockSchema,
+	LitecoinMwebTransactionSchema,
+	LitecoinMwebPegInSchema,
+	LitecoinMwebPegOutSchema,
+	LitecoinMwebOutputSchema,
+	LightningNetworkSchema,
+	LightningNetwork_TimestampSchema,
+	LightningNodeSchema,
+	LightningChannelSchema,
+	LightningInvoiceSchema,
+	LightningPaymentSchema,
+	LightningHtlcSchema,
+	DogecoinBlockAuxPowSchema,
+	DogecoinAuxPowParentBlockHeaderSchema,
+	DogecoinAuxPowMerkleBranchSchema,
+	BitcoinCashCashTokenCategorySchema,
+	BitcoinCashCashTokenFungibleAmountSchema,
+	BitcoinCashCashTokenNftSchema,
+	BitcoinCashCashTokenCommitmentSchema,
+	BitcoinCashBcmrMetadataSchema,
+	TronAccountSchema,
+	TronBlockSchema,
+	TronContractSchema,
+	TronTokenSchema,
+	TronTokenTransferSchema,
+	TronTransactionSchema,
+	ZeroGConsensusNetworkSchema,
+	ZeroGDaNodeSchema,
+	ZeroGDaQuorumSchema,
+	ZeroGDataBlobSchema,
+	ZeroGDataChunkSchema,
+	ZeroGKvEntrySchema,
+	ZeroGServiceProviderSchema,
+	ZeroGServiceRequestSchema,
+	ZeroGSettlementTraceSchema,
+	ZeroGStorageLogEntrySchema,
+	ZeroGStorageNodeSchema,
+	ZeroGStorageProofSchema,
+	QuilibriumFrameSchema,
+	QuilibriumShardSchema,
+	QuilibriumProverSchema,
+	QuilibriumAccountSchema,
+	QuilibriumPendingTransactionSchema,
+	ZcashShieldedPoolSchema,
+	ZcashShieldedActionSchema,
+	LogosZoneSchema,
+	LogosAccountSchema,
+	LogosTransactionSchema,
+	EvmNetworkSchema,
+	EvmNetworkBridgeSchema,
+	EthereumBeaconFinality_TimestampSchema,
+	EvmNetwork_GasFee_BlockSchema,
+	EvmNetwork_GasEstimate_TimestampSchema,
+	EvmNetwork_Txpool_TimestampSchema,
 	NostrArticleSchema,
 	NostrNetworkSchema,
 	NostrNoteSchema,
@@ -240,8 +457,9 @@ export const schema = [
 	NostrReactionSchema,
 	NostrRelaySchema,
 	NostrRepostSchema,
+	PolkadotReferendumSchema,
 	ProposalKindSchema,
-	ProposalRealmSchema,
+	SpecificationRealmSchema,
 	ProposalSchema,
 	RedditCommentSchema,
 	RedditLinkSchema,
@@ -258,7 +476,7 @@ export const schema = [
 	SwarmResourceSchema,
 	SwapQuoteSchema,
 	UrlSchema,
-	NetworkUpgradeSchema,
+	EthereumNetworkUpgradeSchema,
 	VaultSchema,
 	XPostSchema,
 	XUserSchema,

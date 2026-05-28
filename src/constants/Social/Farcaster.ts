@@ -13,7 +13,7 @@ export const farcasterNetworkFieldValues = {
 	topology: 'live REST hub + indexer -> network -> feeds / channels / users -> casts',
 } as const
 
-const farcasterFeedKindRows = [
+const farcasterFeedKinds = [
 	{
 		variant: 'trending',
 		label: 'Trending',
@@ -38,8 +38,8 @@ const farcasterFeedKindRows = [
 
 // Lookups
 
-export const farcasterFeedKinds = Object.fromEntries(
-	farcasterFeedKindRows.map((row) => [
+export const farcasterFeedKindByVariant = Object.fromEntries(
+	farcasterFeedKinds.map((row) => [
 		row.variant,
 		row,
 	]),

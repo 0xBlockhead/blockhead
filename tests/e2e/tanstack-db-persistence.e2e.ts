@@ -21,7 +21,7 @@ import {
 const gotoLoadTimeoutMs = 120_000
 
 const pathnamesForRun = () => {
-	const includeRaw = process.env.E2E_REAL_PERSISTENCE_PATHS ?? '/networks,/network/1'
+	const includeRaw = process.env.E2E_REAL_PERSISTENCE_PATHS ?? '/networks,/network/eip155:1'
 	return includeRaw.split(',').map((path) => path.trim()).filter(Boolean)
 }
 

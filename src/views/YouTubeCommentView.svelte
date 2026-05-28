@@ -67,8 +67,11 @@
 			text: {},
 			authorDisplayName: {},
 			authorChannelId: {},
+			$author: {},
 			likeCount: {},
+			replyCount: {},
 			publishedAt: {},
+			publishedAtMs: {},
 			$video: {},
 			$parentComment: {},
 		},
@@ -82,6 +85,7 @@
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import YouTubeChannelView from '$/views/YouTubeChannelView.svelte'
 	import YouTubeVideoView from '$/views/YouTubeVideoView.svelte'
@@ -110,10 +114,10 @@
 			resource={comment}
 			placeholderText="Loading YouTube comment…"
 		>
-			{#snippet children(loadedComment)}
+			{#snippet children(comment)}
 				{(
 					comment.text ?
-						loadedComment.text
+						comment.text
 					:
 						entityId.commentId
 				)}
@@ -143,9 +147,9 @@
 						resource={comment}
 						placeholderText="Loading YouTube comment…"
 					>
-						{#snippet children(loadedComment)}
-							{#if loadedComment.text}
-								{loadedComment.text}
+						{#snippet children(comment)}
+							{#if comment.text}
+								{comment.text}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -159,9 +163,9 @@
 							resource={comment}
 							placeholderText="Loading YouTube comment…"
 						>
-							{#snippet children(loadedComment)}
-								{#if loadedComment.authorDisplayName}
-									{loadedComment.authorDisplayName}
+							{#snippet children(comment)}
+								{#if comment.authorDisplayName}
+									{comment.authorDisplayName}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -174,9 +178,24 @@
 							resource={comment}
 							placeholderText="Loading YouTube comment…"
 						>
-							{#snippet children(loadedComment)}
-								{#if loadedComment.likeCount != null}
+							{#snippet children(comment)}
+								{#if comment.likeCount != null}
 									{String(comment.likeCount)}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+				<div>
+					<dt>Replies</dt>
+					<dd>
+						<ResourceBoundary
+							resource={comment}
+							placeholderText="Loading YouTube comment…"
+						>
+							{#snippet children(comment)}
+								{#if comment.replyCount != null}
+									{String(comment.replyCount)}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -189,9 +208,11 @@
 							resource={comment}
 							placeholderText="Loading YouTube comment…"
 						>
-							{#snippet children(loadedComment)}
-								{#if loadedComment.publishedAt != null}
-									{loadedComment.publishedAt}
+							{#snippet children(comment)}
+								{#if comment.publishedAtMs != null}
+									<Timestamp timestamp={comment.publishedAtMs} />
+								{:else if comment.publishedAt != null}
+									{comment.publishedAt}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -204,10 +225,16 @@
 							resource={comment}
 							placeholderText="Loading YouTube comment…"
 						>
-							{#snippet children(loadedComment)}
-								{#if loadedComment.authorChannelId}
+							{#snippet children(comment)}
+								{#if comment.$author}
 									<YouTubeChannelView
-										entityId={{ channelId: loadedComment.authorChannelId }}
+										entityId={comment.$author[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+										open={false}
+									/>
+								{:else if comment.authorChannelId}
+									<YouTubeChannelView
+										entityId={{ channelId: comment.authorChannelId }}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -224,10 +251,10 @@
 							resource={comment}
 							placeholderText="Loading YouTube comment…"
 						>
-							{#snippet children(loadedComment)}
-								{#if loadedComment.$video !== undefined}
+							{#snippet children(comment)}
+								{#if comment.$video !== undefined}
 									<YouTubeVideoView
-										entityId={loadedComment.$video[EntityMetaKey.Id]}
+										entityId={comment.$video[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -244,10 +271,10 @@
 							resource={comment}
 							placeholderText="Loading YouTube comment…"
 						>
-							{#snippet children(loadedComment)}
-								{#if loadedComment.$parentComment !== undefined}
+							{#snippet children(comment)}
+								{#if comment.$parentComment !== undefined}
 									<YouTubeCommentView
-										entityId={loadedComment.$parentComment[EntityMetaKey.Id]}
+										entityId={comment.$parentComment[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -271,7 +298,7 @@
 				resource={comment}
 				placeholderText="Loading YouTube comment…"
 			>
-				{#snippet children(_readyData)}
+				{#snippet children()}
 				{/snippet}
 			</ResourceBoundary>
 		</EntityDetails>
@@ -321,7 +348,7 @@
 					placeholderText="Loading replies…"
 					getKey={(row) => stringify(row)}
 					getSortValue={(row) => (
-						`${String(-(Date.parse(row.publishedAt ?? '') || 0)).padStart(20, '0')}\0${row.commentId}`
+						`${String(-(row.publishedAtMs ?? 0)).padStart(20, '0')}\0${row.commentId}`
 					)}
 					placeholderKeys={new SvelteSet<string>()}
 				>
@@ -341,8 +368,8 @@
 				})}
 					<svelte:self
 						entityId={{
-							videoId: loadedComment.videoId,
-							commentId: loadedComment.commentId,
+							videoId: comment.videoId,
+							commentId: comment.commentId,
 						}}
 						href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
 							videoId: encodeURIComponent(comment.videoId),
@@ -358,4 +385,3 @@
 
 	{/snippet}
 </EntityView>
-

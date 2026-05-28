@@ -98,10 +98,10 @@
 			resource={comment}
 			placeholderText="Loading Reddit comment…"
 		>
-			{#snippet children(loadedComment)}
+			{#snippet children(comment)}
 				{(
 					comment.body ?
-						loadedComment.body
+						comment.body
 					:
 						entityId.fullname
 				)}
@@ -113,11 +113,11 @@
 		<ResourceBoundary
 			resource={comment}
 		>
-			{#snippet children(loadedComment)}
-				{#if loadedComment.createdAt != null}
+			{#snippet children(comment)}
+				{#if comment.createdAt != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={loadedComment.createdAt}
+							timestamp={comment.createdAt}
 						/>
 					</span>
 				{/if}
@@ -143,36 +143,36 @@
 			resource={comment}
 			placeholderText="Loading Reddit comment…"
 		>
-			{#snippet children(loadedComment)}
+			{#snippet children(comment)}
 				<dl data-column-item="center">
 					<div>
 						<dt>Body</dt>
 						<dd>
-							{#if !loadedComment.body}
+							{#if !comment.body}
 								<p data-text="muted">No comment text.</p>
 							{:else}
-								<Markdown content={loadedComment.body} />
+								<Markdown content={comment.body} />
 							{/if}
 						</dd>
 					</div>
 
-					{#if loadedComment.score != null}
+					{#if comment.score != null}
 						<div>
 							<dt>Score</dt>
 							<dd>
 								<NumberValue
-									value={loadedComment.score}
+									value={comment.score}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedComment.depth != null}
+					{#if comment.depth != null}
 						<div>
 							<dt>Depth</dt>
 							<dd>
 								<NumberValue
-									value={loadedComment.depth}
+									value={comment.depth}
 								/>
 							</dd>
 						</div>
@@ -181,8 +181,8 @@
 					<div>
 						<dt>Author</dt>
 						<dd>
-							{#if loadedComment.author}
-								u/{loadedComment.author}
+							{#if comment.author}
+								u/{comment.author}
 							{:else}
 								<span data-text="muted">[deleted]</span>
 							{/if}
@@ -192,9 +192,9 @@
 					<div>
 						<dt>Reply to</dt>
 						<dd>
-							{#if loadedComment.$parentComment}
+							{#if comment.$parentComment}
 								<RedditCommentView
-									entityId={loadedComment.$parentComment[EntityMetaKey.Id]}
+									entityId={comment.$parentComment[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -204,12 +204,12 @@
 						</dd>
 					</div>
 
-					{#if loadedComment.$link}
+					{#if comment.$link}
 						<div>
 							<dt>Submission</dt>
 							<dd>
 								<RedditLinkView
-									entityId={loadedComment.$link[EntityMetaKey.Id]}
+									entityId={comment.$link[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>

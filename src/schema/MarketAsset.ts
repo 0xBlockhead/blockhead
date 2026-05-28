@@ -4,7 +4,7 @@
 import { type } from 'arktype'
 import { MarketAssetKind } from '$/constants/Market.ts'
 import Coin from '$/schema/Coin.ts'
-import CoinInstance from '$/schema/CoinInstance.ts'
+import CoinInstance from '$/schema/EvmCoinInstance.ts'
 import Currency from '$/schema/Currency.ts'
 
 const id = type.or(

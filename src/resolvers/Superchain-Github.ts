@@ -13,17 +13,20 @@ export default {
 
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
-			fieldName: '$parentLayer',
+			entityType: EntityType.EvmNetwork,
+			fieldName: '$parent',
 			resolve: async (entityId) => {
 				const { fetchSuperchainNetworks } = await import('$/sources/Superchain/Github/queries.ts')
-				const network = (await singleFlight(fetchSuperchainNetworks)()).find((candidate) => candidate.chainId === entityId.chainId)
+				const network = (await singleFlight(fetchSuperchainNetworks)()).find((candidate) => candidate.chainId === Number(entityId.caip2.reference))
 				return (
 					network?.parentChainId == null ?
 						undefined
 					:	{
 							[EntityMetaKey.Id]: {
-								chainId: network.parentChainId,
+								caip2: {
+									namespace: 'eip155',
+									reference: String(network.parentChainId),
+								},
 							},
 						}
 				)
@@ -31,7 +34,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$childLayers',
 			resolve: async (entityId) => {
 				const {
@@ -41,15 +44,15 @@ export default {
 				const { fetchSuperchainNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 				const networks = await singleFlight(fetchSuperchainNetworks)()
 				const namespaceFilter = (
-					entityId.chainId === 1 ?
+					Number(entityId.caip2.reference) === 1 ?
 						superchainMainnetIdentifier
-					: entityId.chainId === 11155111 ?
+					: Number(entityId.caip2.reference) === 11155111 ?
 						superchainSepoliaIdentifier
 					:
 						undefined
 				)
 				return networks.flatMap((network) => (
-					network.parentChainId !== entityId.chainId
+					network.parentChainId !== Number(entityId.caip2.reference)
 					|| (
 						namespaceFilter != null
 						&& network.namespace !== namespaceFilter
@@ -57,7 +60,10 @@ export default {
 						[]
 					:	[{
 							[EntityMetaKey.Id]: {
-								chainId: network.chainId,
+								caip2: {
+									namespace: 'eip155',
+									reference: String(network.chainId),
+								},
 							},
 						}]
 				))
@@ -65,13 +71,13 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$testnets',
 			resolve: async (entityId) => {
 				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchSuperchainNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 				const networks = await singleFlight(fetchSuperchainNetworks)()
-				const network = networks.find((candidate) => candidate.chainId === entityId.chainId)
+				const network = networks.find((candidate) => candidate.chainId === Number(entityId.caip2.reference))
 				if (network == null || network.namespace !== superchainMainnetIdentifier) {
 					throw new Error('Superchain_Github: $$testnets only for Superchain mainnet networks')
 				}
@@ -81,7 +87,10 @@ export default {
 						[]
 					:	[{
 							[EntityMetaKey.Id]: {
-								chainId: candidate.chainId,
+								caip2: {
+									namespace: 'eip155',
+									reference: String(candidate.chainId),
+								},
 							},
 						}]
 				))
@@ -89,13 +98,13 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$mainnet',
 			resolve: async (entityId) => {
 				const { superchainMainnetIdentifier } = await import('$/sources/Superchain/Github/constants.ts')
 				const { fetchSuperchainNetworks } = await import('$/sources/Superchain/Github/queries.ts')
 				const networks = await singleFlight(fetchSuperchainNetworks)()
-				const network = networks.find((candidate) => candidate.chainId === entityId.chainId)
+				const network = networks.find((candidate) => candidate.chainId === Number(entityId.caip2.reference))
 				if (network == null || network.namespace === superchainMainnetIdentifier) return undefined
 				const mainnet = networks.find((candidate) => (
 					candidate.namespace === superchainMainnetIdentifier
@@ -106,7 +115,10 @@ export default {
 						undefined
 					:	{
 							[EntityMetaKey.Id]: {
-								chainId: mainnet.chainId,
+								caip2: {
+									namespace: 'eip155',
+									reference: String(mainnet.chainId),
+								},
 							},
 						}
 				)

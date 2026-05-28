@@ -1,0 +1,113 @@
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+
+	// State
+	let {
+		entityId,
+		open = $bindable(true),
+		...EntityViewProps
+	}: WithRest<
+		{
+			entityId: EntityId<typeof schema, EntityType.ZcashShieldedAction>
+			open?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
+
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const zcashShieldedAction = useEntity(
+		EntityType.ZcashShieldedAction,
+		entityId,
+		{
+			actionKind: {},
+			...open && {
+				nullifier: {},
+				noteCommitment: {},
+				valueCommitment: {},
+			},
+		},
+	)
+
+
+	// Components
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+</script>
+
+
+<EntityView
+	entityType={EntityType.ZcashShieldedAction}
+	{entityId}
+	title={`Zcash Shielded Action ${entityId.actionIndex.toString()}`}
+	bind:open
+	{...EntityViewProps}
+>
+	{#snippet Title()}
+		{entityId.actionIndex.toString()}
+	{/snippet}
+
+	{#snippet Heading()}
+		{entityId.actionIndex.toString()}
+	{/snippet}
+
+	{#snippet Content()}
+		<ResourceBoundary
+			resource={zcashShieldedAction}
+			placeholderText="Loading Zcash shielded action…"
+		>
+			{#snippet children(zcashShieldedAction)}
+				<dl data-column-item="center">
+					{#if zcashShieldedAction.actionKind != null}
+						<div>
+							<dt>Kind</dt>
+							<dd>{zcashShieldedAction.actionKind}</dd>
+						</div>
+					{/if}
+
+					{#if open && zcashShieldedAction.nullifier != null}
+						<div>
+							<dt>Nullifier</dt>
+							<dd>{zcashShieldedAction.nullifier}</dd>
+						</div>
+					{/if}
+
+					{#if open && zcashShieldedAction.noteCommitment != null}
+						<div>
+							<dt>Note Commitment</dt>
+							<dd>
+								<TruncatedValue
+									value={zcashShieldedAction.noteCommitment}
+									format={TruncatedValueFormat.Abbr}
+								/></dd>
+						</div>
+					{/if}
+
+					{#if open && zcashShieldedAction.valueCommitment != null}
+						<div>
+							<dt>Value Commitment</dt>
+							<dd>
+								<TruncatedValue
+									value={zcashShieldedAction.valueCommitment}
+									format={TruncatedValueFormat.Abbr}
+								/></dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+</EntityView>

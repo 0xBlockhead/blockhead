@@ -28,6 +28,7 @@
 			entityId: EntityId<typeof schema, EntityType.XmtpNetwork>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -81,6 +82,7 @@
 	{entityId}
 	href={href}
 	bind:open
+	{collapsible}
 	{...EntityViewProps}
 	title="XMTP"
 >
@@ -116,7 +118,7 @@
 				resource={registry}
 				placeholderText="Loading local inbox…"
 			>
-				{#snippet children(loadedRegistry)}
+				{#snippet children(registry)}
 					<div>
 						<dt>Demo accounts</dt>
 						<dd>{String(registry['$$actors'].length)}</dd>
@@ -132,36 +134,33 @@
 					resource={network}
 					placeholderText="Loading XMTP network…"
 				>
-					{#snippet children(loadedNetwork)}
+					{#snippet children(network)}
 						<div>
-							<dt>Protocol name</dt>
-							<dd>{loadedNetwork.protocolName}</dd>
+							<dt>Protocol</dt>
+							<dd>{network.protocolName}</dd>
 						</div>
 						<div>
-							<dt>Registry label</dt>
-							<dd>{loadedNetwork.registryLabel}</dd>
+							<dt>Registry</dt>
+							<dd>{network.registryLabel}</dd>
 						</div>
 						<div>
 							<dt>Topology</dt>
-							<dd>{loadedNetwork.topology}</dd>
+							<dd>{network.topology}</dd>
 						</div>
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={loadedNetwork.homeUrl}>
-									{loadedNetwork.homeUrl}
+								<a href={network.homeUrl}>
+									{network.homeUrl}
 								</a>
 							</dd>
 						</div>
-						{#if (
-							network.docsUrl != null
-							&& network.docsUrl !== ''
-						)}
+						{#if network.docsUrl != null && network.docsUrl !== ''}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={loadedNetwork.docsUrl}>
-										{loadedNetwork.docsUrl}
+									<a href={network.docsUrl}>
+										{network.docsUrl}
 									</a>
 								</dd>
 							</div>

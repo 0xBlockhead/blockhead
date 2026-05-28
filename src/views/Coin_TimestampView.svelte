@@ -106,14 +106,14 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Coin snapshot </span>
-			<Timestamp timestampMs={entityId.timestampMs} />
+			<Timestamp timestamp={entityId.timestampMs} />
 		</span>
 	{/snippet}
 
 	{#snippet Heading()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>{entityId.$coin.coinId} snapshot </span>
-			<Timestamp timestampMs={entityId.timestampMs} />
+			<Timestamp timestamp={entityId.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -131,25 +131,25 @@
 			resource={coinTimestamp}
 			placeholderText="Loading snapshot…"
 		>
-			{#snippet children(loadedCoinTimestamp)}
+			{#snippet children(coinTimestamp)}
 				<dl data-column-item="center">
-					{#if loadedCoinTimestamp.marketCap !== undefined}
+					{#if coinTimestamp.marketCap !== undefined}
 						<div>
 							<dt>Market cap</dt>
 							<dd>
 								<CurrencyAmount
 									currency="USD"
-									value={loadedCoinTimestamp.marketCap}
+									value={coinTimestamp.marketCap}
 								/>
 							</dd>
 						</div>
 					{/if}
-					{#if loadedCoinTimestamp.change24hPercent != null && Number.isFinite(coinTimestamp.change24hPercent)}
+					{#if coinTimestamp.change24hPercent != null && Number.isFinite(coinTimestamp.change24hPercent)}
 						<div>
 							<dt>24h change</dt>
 							<dd>
 								<NumberValue
-									value={loadedCoinTimestamp.change24hPercent}
+									value={coinTimestamp.change24hPercent}
 									options={{ maximumFractionDigits: 2, signDisplay: 'exceptZero' }}
 								/>%
 							</dd>
@@ -188,7 +188,7 @@
 					)}
 						<div>
 							<dt>Transport</dt>
-							<dd><code>{loadedCoinTimestamp.transport}</code></dd>
+							<dd><code>{coinTimestamp.transport}</code></dd>
 						</div>
 					{/if}
 					{#if (
@@ -197,7 +197,7 @@
 					)}
 						<div>
 							<dt>Provider asset id</dt>
-							<dd><code>{loadedCoinTimestamp.providerAssetId}</code></dd>
+							<dd><code>{coinTimestamp.providerAssetId}</code></dd>
 						</div>
 					{/if}
 				</dl>
@@ -214,4 +214,3 @@
 		/>
 	{/snippet}
 </EntityView>
-

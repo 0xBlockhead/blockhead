@@ -7,7 +7,7 @@
 
 	import {
 		ensTextRecordDisplayRank,
-		ensTextRecordLabels,
+		ensTextRecordLabelByKey,
 	} from '$/constants/Ens.ts'
 
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -92,7 +92,7 @@
 		},
 	)
 
-	const textRecords = derive(ens, (loadedEns) => (
+	const textRecords = derive(ens, (ens) => (
 		recordKeysProp !== undefined ?
 			[...recordKeysProp]
 				.filter((key) => (
@@ -103,12 +103,12 @@
 			[
 				...[...new Set([
 					...(
-						loadedEns.textRecords === undefined ?
+						ens.textRecords === undefined ?
 							[]
 						:
-							Object.keys(loadedEns.textRecords)
+							Object.keys(ens.textRecords)
 					),
-					...(loadedEns.resolverTextKeys ?? []),
+					...(ens.resolverTextKeys ?? []),
 				])].filter((key) => (
 					excludeRecordKeys == null
 					|| !excludeRecordKeys.has(key)
@@ -161,8 +161,8 @@
 
 		{#snippet Item({ item })}
 			{@const recordLabel = (
-				item in ensTextRecordLabels ?
-					ensTextRecordLabels[item].label
+				item in ensTextRecordLabelByKey ?
+					ensTextRecordLabelByKey[item].label
 				:
 					item
 			)}

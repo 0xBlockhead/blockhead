@@ -42,25 +42,25 @@ export default {
 		{
 			name: '$fromNetwork',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$toNetwork',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$fromToken',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.CoinInstance,
+			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: '$toToken',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.CoinInstance,
+			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

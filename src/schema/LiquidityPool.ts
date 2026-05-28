@@ -1,6 +1,6 @@
 import { type } from 'arktype'
 
-// Concentrated-liquidity AMM pool row. Dexscreener-backed slices expose pair tokens, volume, and TVL only; on-chain curve fields are optional until an execution RPC or pool indexer maps them. EntityType.Vault models the same Dexscreener-style rows under the route label Vault in places.
+// Concentrated-liquidity AMM pool row. Dexscreener-backed slices expose pair tokens, volume, and TVL only; on-chain curve fields are optional until an execution RPC or pool indexer maps them.
 import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import {
@@ -10,7 +10,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import Network from '$/schema/Network.ts'
+import Network from '$/schema/EvmNetwork.ts'
 
 export default {
 	entityType: EntityType.LiquidityPool,
@@ -25,16 +25,16 @@ export default {
 
 	fields: [
 		{
-			name: '$token0',
+			name: '$baseToken',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
-			cardinality: EntityFieldCardinality.One,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: '$token1',
+			name: '$quoteToken',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.EvmContract,
-			cardinality: EntityFieldCardinality.One,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'fee',
@@ -79,25 +79,25 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'token0Symbol',
+			name: 'baseTokenSymbol',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'token1Symbol',
+			name: 'quoteTokenSymbol',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'token0Decimals',
+			name: 'baseTokenDecimals',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
-			name: 'token1Decimals',
+			name: 'quoteTokenDecimals',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -113,6 +113,30 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string | number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'marketCapUsd',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'fdvUsd',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'pairCreatedAtMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
+			name: 'dexscreenerLabels',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 		{
 			name: 'dexId',

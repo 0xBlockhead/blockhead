@@ -45,7 +45,7 @@ export const youtubeNetworkSeedVideos = [
 	},
 ] as const satisfies readonly EntityId<typeof schema, EntityType.YouTubeVideo>[]
 
-const youTubeVideoLiveBroadcastPhaseRows = [
+const youTubeVideoLiveBroadcastPhases = [
 	{
 		liveBroadcastContent: YouTubeLiveBroadcastContent.None,
 		label: 'None',
@@ -63,7 +63,7 @@ const youTubeVideoLiveBroadcastPhaseRows = [
 	label: string
 }[]
 
-const youTubeVideoCategoryRows = [
+const youTubeVideoCategories = [
 	{ categoryId: '1', label: 'Film & Animation' },
 	{ categoryId: '2', label: 'Autos & Vehicles' },
 	{ categoryId: '10', label: 'Music' },
@@ -86,15 +86,15 @@ const youTubeVideoCategoryRows = [
 
 // Lookups
 
-export const youTubeVideoLiveBroadcastPhases = Object.fromEntries(
-	youTubeVideoLiveBroadcastPhaseRows.map((row) => [
+export const youTubeVideoLiveBroadcastPhaseByLiveBroadcastContent = Object.fromEntries(
+	youTubeVideoLiveBroadcastPhases.map((row) => [
 		row.liveBroadcastContent,
 		row,
 	]),
 )
 
-export const youTubeVideoCategories = Object.fromEntries(
-	youTubeVideoCategoryRows.map((row) => [
+export const youTubeVideoCategoryByCategoryId = Object.fromEntries(
+	youTubeVideoCategories.map((row) => [
 		row.categoryId,
 		row,
 	]),

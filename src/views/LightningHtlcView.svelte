@@ -1,0 +1,116 @@
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+	import { Source } from '$/sources/$Source.ts'
+
+
+	// State
+	let {
+		entityId,
+		open = $bindable(true),
+		...EntityViewProps
+	}: WithRest<
+		{
+			entityId: EntityId<typeof schema, EntityType.LightningHtlc>
+			open?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
+
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const htlc = useEntity(
+		EntityType.LightningHtlc,
+		entityId,
+		{
+			$: [
+				Source.LightningLnd_Rest,
+			],
+			direction: {},
+			amountMsat: {},
+			expiryHeight: {},
+			hashLock: {},
+			state: {},
+		},
+	)
+
+
+	// Components
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+</script>
+
+
+<EntityView
+	entityType={EntityType.LightningHtlc}
+	{entityId}
+	title={`HTLC ${entityId.htlcIndex}`}
+	bind:open
+	{...EntityViewProps}
+>
+	{#snippet Title()}
+		HTLC {entityId.htlcIndex}
+	{/snippet}
+
+	{#snippet Content()}
+		<ResourceBoundary
+			resource={htlc}
+			placeholderText="Loading HTLC…"
+		>
+			{#snippet children(row)}
+				<dl>
+					{#if row.direction != null}
+						<div>
+							<dt>Direction</dt>
+							<dd>{row.direction}</dd>
+						</div>
+					{/if}
+
+					{#if row.amountMsat != null}
+						<div>
+							<dt>Amount</dt>
+							<dd>{row.amountMsat.toString()} msat</dd>
+						</div>
+					{/if}
+
+					{#if row.expiryHeight != null}
+						<div>
+							<dt>Expiry height</dt>
+							<dd>{row.expiryHeight.toString()}</dd>
+						</div>
+					{/if}
+
+					{#if row.state != null}
+						<div>
+							<dt>State</dt>
+							<dd>{row.state}</dd>
+						</div>
+					{/if}
+
+					{#if row.hashLock != null}
+						<div>
+							<dt>Hash lock</dt>
+							<dd>
+								<TruncatedValue
+									value={row.hashLock}
+									format={TruncatedValueFormat.Abbr}
+								/>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+</EntityView>

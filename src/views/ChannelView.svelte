@@ -6,7 +6,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -80,8 +80,8 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import Address from '$/views/Address.svelte'
 	import BlockheadRoomView from '$/views/BlockheadRoomView.svelte'
-	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
+	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import StateChannelDepositsView from '$/views/StateChannelDepositsView.svelte'
 	import StateChannelStatesView from '$/views/StateChannelStatesView.svelte'
@@ -107,23 +107,23 @@
 			resource={stateChannel}
 			placeholderText="Loading state channel…"
 		>
-			{#snippet children(loadedStateChannel)}
-				{#if loadedStateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined || loadedStateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
+			{#snippet children(stateChannel)}
+				{#if stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined || stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
 					<span data-row="inline align-center gap-2 wrap">
-						{#if loadedStateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined}
+						{#if stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined}
 							<Address
-								actorId={loadedStateChannel.$participant0[EntityMetaKey.Id]}
-								network={loadedStateChannel.$network?.[EntityMetaKey.Id]}
+								actorId={stateChannel.$participant0[EntityMetaKey.Id]}
+								network={stateChannel.$network?.[EntityMetaKey.Id]}
 								isLinked={false}
 							/>
 						{/if}
-						{#if loadedStateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined && loadedStateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
+						{#if stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined && stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
 							<span aria-hidden="true">↔</span>
 						{/if}
-						{#if loadedStateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
+						{#if stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
 							<Address
-								actorId={loadedStateChannel.$participant1[EntityMetaKey.Id]}
-								network={loadedStateChannel.$network?.[EntityMetaKey.Id]}
+								actorId={stateChannel.$participant1[EntityMetaKey.Id]}
+								network={stateChannel.$network?.[EntityMetaKey.Id]}
 								isLinked={false}
 							/>
 						{/if}
@@ -157,9 +157,9 @@
 						resource={stateChannel}
 						placeholderText="Loading state channel…"
 					>
-						{#snippet children(loadedStateChannel)}
-							{#if loadedStateChannel.status !== undefined}
-								{stateChannelStatusByStatus[loadedStateChannel.status].label}
+						{#snippet children(stateChannel)}
+							{#if stateChannel.status !== undefined}
+								{stateChannelStatusByStatus[stateChannel.status].label}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -174,15 +174,15 @@
 							resource={stateChannel}
 							placeholderText="Loading state channel…"
 						>
-							{#snippet children(loadedStateChannel)}
-								{#if loadedStateChannel.updatedAt !== undefined}
+							{#snippet children(stateChannel)}
+								{#if stateChannel.updatedAt !== undefined}
 									<Timestamp
-										timestamp={loadedStateChannel.updatedAt}
+										timestamp={stateChannel.updatedAt}
 									/>
 								{:else}
-									{#if loadedStateChannel.createdAt !== undefined}
+									{#if stateChannel.createdAt !== undefined}
 										<Timestamp
-											timestamp={loadedStateChannel.createdAt}
+											timestamp={stateChannel.createdAt}
 										/>
 									{/if}
 								{/if}
@@ -200,9 +200,9 @@
 							resource={stateChannel}
 							placeholderText="Loading state channel…"
 						>
-							{#snippet children(loadedStateChannel)}
-								{#if loadedStateChannel.totalDeposited !== undefined}
-									<NumberValue value={loadedStateChannel.totalDeposited} />
+							{#snippet children(stateChannel)}
+								{#if stateChannel.totalDeposited !== undefined}
+									<NumberValue value={stateChannel.totalDeposited} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -216,9 +216,9 @@
 							resource={stateChannel}
 							placeholderText="Loading state channel…"
 						>
-							{#snippet children(loadedStateChannel)}
-								{#if loadedStateChannel.balance0 !== undefined}
-									<NumberValue value={loadedStateChannel.balance0} />
+							{#snippet children(stateChannel)}
+								{#if stateChannel.balance0 !== undefined}
+									<NumberValue value={stateChannel.balance0} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -232,9 +232,9 @@
 							resource={stateChannel}
 							placeholderText="Loading state channel…"
 						>
-							{#snippet children(loadedStateChannel)}
-								{#if loadedStateChannel.balance1 !== undefined}
-									<NumberValue value={loadedStateChannel.balance1} />
+							{#snippet children(stateChannel)}
+								{#if stateChannel.balance1 !== undefined}
+									<NumberValue value={stateChannel.balance1} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -248,8 +248,8 @@
 							resource={stateChannel}
 							placeholderText="Loading state channel…"
 						>
-							{#snippet children(loadedStateChannel)}
-								{#if loadedStateChannel.turnNum !== undefined}
+							{#snippet children(stateChannel)}
+								{#if stateChannel.turnNum !== undefined}
 									{String(stateChannel.turnNum)}
 								{/if}
 							{/snippet}
@@ -264,10 +264,10 @@
 							resource={stateChannel}
 							placeholderText="Loading state channel…"
 						>
-							{#snippet children(loadedStateChannel)}
-								{#if loadedStateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
-									<NetworkView
-										entityId={loadedStateChannel.$network[EntityMetaKey.Id]}
+							{#snippet children(stateChannel)}
+								{#if stateChannel.$network?.[EntityMetaKey.Id].chainId !== undefined}
+									<EvmNetworkView
+										entityId={stateChannel.$network[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -284,10 +284,10 @@
 							resource={stateChannel}
 							placeholderText="Loading state channel…"
 						>
-							{#snippet children(loadedStateChannel)}
-								{#if loadedStateChannel.$asset?.[EntityMetaKey.Id] !== undefined}
-									{@const assetId = loadedStateChannel.$asset[EntityMetaKey.Id]}
-									<CoinInstanceView
+							{#snippet children(stateChannel)}
+								{#if stateChannel.$asset?.[EntityMetaKey.Id] !== undefined}
+									{@const assetId = stateChannel.$asset[EntityMetaKey.Id]}
+									<EvmCoinInstanceView
 										entityId={assetId}
 										layout={EntityLayout.Title}
 										open={false}
@@ -305,10 +305,10 @@
 							resource={stateChannel}
 							placeholderText="Loading state channel…"
 						>
-							{#snippet children(loadedStateChannel)}
-								{#if loadedStateChannel.$room?.[EntityMetaKey.Id].id !== undefined}
+							{#snippet children(stateChannel)}
+								{#if stateChannel.$room?.[EntityMetaKey.Id].id !== undefined}
 									<BlockheadRoomView
-										entityId={loadedStateChannel.$room[EntityMetaKey.Id]}
+										entityId={stateChannel.$room[EntityMetaKey.Id]}
 										layout={EntityLayout.SummaryDetails}
 										open={false}
 										showTypeAnnotation={false}
@@ -326,10 +326,10 @@
 							resource={stateChannel}
 							placeholderText="Loading state channel…"
 						>
-							{#snippet children(loadedStateChannel)}
-								{#if loadedStateChannel.createdAt !== undefined}
+							{#snippet children(stateChannel)}
+								{#if stateChannel.createdAt !== undefined}
 									<Timestamp
-										timestamp={loadedStateChannel.createdAt}
+										timestamp={stateChannel.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -344,10 +344,10 @@
 							resource={stateChannel}
 							placeholderText="Loading state channel…"
 						>
-							{#snippet children(loadedStateChannel)}
-								{#if loadedStateChannel.updatedAt !== undefined}
+							{#snippet children(stateChannel)}
+								{#if stateChannel.updatedAt !== undefined}
 									<Timestamp
-										timestamp={loadedStateChannel.updatedAt}
+										timestamp={stateChannel.updatedAt}
 									/>
 								{/if}
 							{/snippet}

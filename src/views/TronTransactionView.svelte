@@ -1,0 +1,145 @@
+<script lang="ts">
+	// Types/constants
+	import type { ComponentProps } from 'svelte'
+	import type { EntityId } from '$/schema/$schema.ts'
+	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
+
+
+	// State
+	let {
+		entityId,
+		open = $bindable(true),
+		...EntityViewProps
+	}: WithRest<
+		{
+			entityId: EntityId<typeof schema, EntityType.TronTransaction>
+			open?: boolean
+		},
+		Pick<
+			ComponentProps<typeof EntityView>,
+			| 'layout'
+			| 'showTypeAnnotation'
+		>
+	> = $props()
+
+
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+
+	const transaction = useEntity(
+		EntityType.TronTransaction,
+		entityId,
+		{
+			blockHeight: {},
+			timestampMs: {},
+			contractType: {},
+			result: {},
+			feeSun: {},
+			amountSun: {},
+			assetName: {},
+			...open && {
+				expirationTimestampMs: {},
+				rawDataHex: {},
+				signatures: {},
+			},
+		},
+	)
+
+
+	// Components
+	import EntityView from '$/components/EntityView.svelte'
+	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
+</script>
+
+
+<EntityView
+	entityType={EntityType.TronTransaction}
+	{entityId}
+	title={entityId.transactionId}
+	bind:open
+	{...EntityViewProps}
+>
+	{#snippet Title()}
+		<TruncatedValue
+			value={entityId.transactionId}
+			format={TruncatedValueFormat.Abbr}
+		/>
+	{/snippet}
+
+	{#snippet Heading()}
+		<TruncatedValue
+			value={entityId.transactionId}
+			format={TruncatedValueFormat.Abbr}
+		/>
+	{/snippet}
+
+	{#snippet Content()}
+		<ResourceBoundary
+			resource={transaction}
+			placeholderText="Loading TRON transaction..."
+		>
+			{#snippet children(transaction)}
+				<dl data-column-item="center">
+					{#if transaction.result != null}
+						<div>
+							<dt>Result</dt>
+							<dd>{transaction.result}</dd>
+						</div>
+					{/if}
+
+					{#if transaction.contractType != null}
+						<div>
+							<dt>Contract type</dt>
+							<dd>{transaction.contractType}</dd>
+						</div>
+					{/if}
+
+					{#if transaction.blockHeight != null}
+						<div>
+							<dt>Block</dt>
+							<dd>{transaction.blockHeight.toString()}</dd>
+						</div>
+					{/if}
+
+					{#if transaction.amountSun != null}
+						<div>
+							<dt>Amount (SUN)</dt>
+							<dd><NumberValue value={transaction.amountSun} /></dd>
+						</div>
+					{/if}
+
+					{#if transaction.feeSun != null}
+						<div>
+							<dt>Fee (SUN)</dt>
+							<dd><NumberValue value={transaction.feeSun} /></dd>
+						</div>
+					{/if}
+
+					{#if transaction.timestampMs != null}
+						<div>
+							<dt>Timestamp</dt>
+							<dd><Timestamp timestamp={transaction.timestampMs} /></dd>
+						</div>
+					{/if}
+
+					{#if open && transaction.rawDataHex != null}
+						<div>
+							<dt>Raw data</dt>
+							<dd>
+								<TruncatedValue
+									value={transaction.rawDataHex}
+									format={TruncatedValueFormat.Abbr}
+								/>
+							</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+</EntityView>

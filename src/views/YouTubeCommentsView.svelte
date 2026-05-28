@@ -132,7 +132,7 @@
 				placeholderText="Loading comment thread…"
 				getKey={(row) => stringify(row)}
 				getSortValue={(row) => (
-					`${String(-(Date.parse(row.publishedAt ?? '') || 0)).padStart(20, '0')}\0${row.commentId}`
+					`${String(-(row.publishedAtMs ?? 0)).padStart(20, '0')}\0${row.commentId}`
 				)}
 				placeholderKeys={new SvelteSet<string>()}
 			>

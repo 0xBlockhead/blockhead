@@ -20,7 +20,10 @@
 </script>
 
 
-<main data-column>
+<main
+	data-column-item="flexible"
+	data-column
+>
 	{#if children}
 		{@render children()}
 	{/if}

@@ -1,12 +1,16 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+
+
+	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { evmTokenStandards } from '$/constants/Evm.ts'
+	import { evmTokenStandardByStandard } from '$/constants/Evm.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
 
@@ -19,9 +23,9 @@
 	let {
 		entityId,
 		href = resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]/token-transfer/[logIndex]',
+			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]/token-transfer/[logIndex]',
 			{
-				networkId: String(entityId.$network.chainId),
+				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 				transactionId: entityId.$transaction.txHash,
 				logIndex: String(entityId.logIndex),
 			},
@@ -77,7 +81,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
-	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
+	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
@@ -116,16 +120,16 @@
 				resource={transfer}
 				placeholderText="Loading token transfer…"
 			>
-				{#snippet children(loadedTransfer)}
+				{#snippet children(transfer)}
 					{#if showParentTransaction}
 						<div>
 							<dt>Transaction</dt>
 							<dd>
 								<a
 									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 										{
-										networkId: String(entityId.$network.chainId),
+										...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 										transactionId: entityId.txHash,
 										},
 									)}
@@ -141,24 +145,24 @@
 
 					<div>
 						<dt>Standard</dt>
-						<dd>{evmTokenStandards[loadedTransfer.standard].label}</dd>
+						<dd>{evmTokenStandardByStandard[transfer.standard].label}</dd>
 					</div>
 
 					<div>
 						<dt>Amount</dt>
 						<dd>
-							<NumberValue value={loadedTransfer.amount} />
+							<NumberValue value={transfer.amount} />
 						</dd>
 					</div>
 
-					{#if loadedTransfer.$from?.[EntityMetaKey.Id].address !== undefined}
+					{#if transfer.$from?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>From</dt>
 							<dd>
 								<ActorNetworkView
 									entityId={{
 										$network: entityId.$network,
-										$actor: loadedTransfer.$from[EntityMetaKey.Id],
+										$actor: transfer.$from[EntityMetaKey.Id],
 									}}
 									layout={EntityLayout.Title}
 									open={false}
@@ -167,14 +171,14 @@
 						</div>
 					{/if}
 
-					{#if loadedTransfer.$to?.[EntityMetaKey.Id].address !== undefined}
+					{#if transfer.$to?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>To</dt>
 							<dd>
 								<ActorNetworkView
 									entityId={{
 										$network: entityId.$network,
-										$actor: loadedTransfer.$to[EntityMetaKey.Id],
+										$actor: transfer.$to[EntityMetaKey.Id],
 									}}
 									layout={EntityLayout.Title}
 									open={false}
@@ -183,24 +187,24 @@
 						</div>
 					{/if}
 
-					{#if loadedTransfer.$coinInstance}
+					{#if transfer.$coinInstance}
 						<div>
 							<dt>Token</dt>
 							<dd>
-								<CoinInstanceView
-									entityId={loadedTransfer.$coinInstance[EntityMetaKey.Id]}
+								<EvmCoinInstanceView
+									entityId={transfer.$coinInstance[EntityMetaKey.Id]}
 									layout={EntityLayout.SummaryDetails}
 									open={false}
 									showTypeAnnotation={false}
 								/>
 							</dd>
 						</div>
-					{:else if loadedTransfer.$tokenContract}
+					{:else if transfer.$tokenContract}
 						<div>
 							<dt>Token contract</dt>
 							<dd>
 								<EvmContractView
-									entityId={loadedTransfer.$tokenContract[EntityMetaKey.Id]}
+									entityId={transfer.$tokenContract[EntityMetaKey.Id]}
 									layout={EntityLayout.SummaryDetails}
 									open={false}
 									showTypeAnnotation={false}
@@ -220,4 +224,3 @@
 		/>
 	{/snippet}
 </EntityView>
-

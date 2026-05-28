@@ -1,5 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+
+
+	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { schema } from '$/schema/index.ts'
@@ -20,9 +24,9 @@
 		pageContent,
 		entityId,
 		href = resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 			{
-				networkId: String(entityId.$network.chainId),
+				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 				address: entityId.$actor.address,
 			},
 		),
@@ -52,7 +56,7 @@
 	const actorNetworkDetailAnchorKey = stringify(entityId)
 
 	const network = useEntity(
-		EntityType.Network,
+		EntityType.EvmNetwork,
 		entityId.$network,
 		{
 			$: [
@@ -132,7 +136,7 @@
 	import BalancesView from '$/views/BalancesView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
@@ -159,8 +163,8 @@
 				/>
 			{/snippet}
 
-			{#snippet children(loadedActor)}
-				{@const avatarUrl = loadedActor.$icon?.[EntityMetaKey.Id].url}
+			{#snippet children(actor)}
+				{@const avatarUrl = actor.$icon?.[EntityMetaKey.Id].url}
 				<IconComponent
 					alt=""
 					shape={avatarUrl ? IconShape.Circle : IconShape.Square}
@@ -185,8 +189,8 @@
 		<ResourceBoundary
 			resource={actor}
 		>
-			{#snippet children(loadedActor)}
-				{loadedActor.$primaryName?.[EntityMetaKey.Id].name ?? entityId.$actor.address}
+			{#snippet children(actor)}
+				{actor.$primaryName?.[EntityMetaKey.Id].name ?? entityId.$actor.address}
 			{/snippet}
 		</ResourceBoundary>
 		<small data-text="muted">
@@ -195,8 +199,8 @@
 				resource={network}
 				placeholderText="···"
 			>
-				{#snippet children(loadedNetwork)}
-					{loadedNetwork.name ?? String(network[EntityMetaKey.Id].chainId)}
+				{#snippet children(network)}
+					{network.name ?? String(network[EntityMetaKey.Id].chainId)}
 				{/snippet}
 			</ResourceBoundary>
 		</small>
@@ -242,7 +246,7 @@
 				<div>
 					<dt>Network</dt>
 					<dd>
-						<NetworkView
+						<EvmNetworkView
 							entityId={entityId.$network}
 							layout={EntityLayout.Title}
 							open={false}
@@ -258,9 +262,9 @@
 							resource={actorNetwork}
 							placeholderText="Loading network activity…"
 						>
-							{#snippet children(loadedActorNetwork)}
-								{#if loadedActorNetwork.transactionsCount !== undefined}
-									<NumberValue value={loadedActorNetwork.transactionsCount} />
+							{#snippet children(actorNetwork)}
+								{#if actorNetwork.transactionsCount !== undefined}
+									<NumberValue value={actorNetwork.transactionsCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -272,8 +276,8 @@
 					resource={actorNetwork}
 					placeholderText="Loading network activity…"
 				>
-					{#snippet children(loadedActorNetwork)}
-						{#if loadedActorNetwork.isContract === true}
+					{#snippet children(actorNetwork)}
+						{#if actorNetwork.isContract === true}
 							<div>
 								<dt>Contract</dt>
 								<dd>
@@ -300,9 +304,9 @@
 							resource={actorNetwork}
 							placeholderText="Loading network activity…"
 						>
-							{#snippet children(loadedActorNetwork)}
-								{#if loadedActorNetwork.tokenTransferCount !== undefined}
-									<NumberValue value={loadedActorNetwork.tokenTransferCount} />
+							{#snippet children(actorNetwork)}
+								{#if actorNetwork.tokenTransferCount !== undefined}
+									<NumberValue value={actorNetwork.tokenTransferCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -317,9 +321,9 @@
 							resource={actorNetwork}
 							placeholderText="Loading network activity…"
 						>
-							{#snippet children(loadedActorNetwork)}
-								{#if loadedActorNetwork.nftCount !== undefined}
-									<NumberValue value={loadedActorNetwork.nftCount} />
+							{#snippet children(actorNetwork)}
+								{#if actorNetwork.nftCount !== undefined}
+									<NumberValue value={actorNetwork.nftCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -334,9 +338,9 @@
 							resource={actorNetwork}
 							placeholderText="Loading network activity…"
 						>
-							{#snippet children(loadedActorNetwork)}
-								{#if loadedActorNetwork.firstTransactionAt !== undefined}
-									<Timestamp timestamp={loadedActorNetwork.firstTransactionAt} />
+							{#snippet children(actorNetwork)}
+								{#if actorNetwork.firstTransactionAt !== undefined}
+									<Timestamp timestamp={actorNetwork.firstTransactionAt} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -351,9 +355,9 @@
 							resource={actorNetwork}
 							placeholderText="Loading network activity…"
 						>
-							{#snippet children(loadedActorNetwork)}
-								{#if loadedActorNetwork.lastTransactionAt !== undefined}
-									<Timestamp timestamp={loadedActorNetwork.lastTransactionAt} />
+							{#snippet children(actorNetwork)}
+								{#if actorNetwork.lastTransactionAt !== undefined}
+									<Timestamp timestamp={actorNetwork.lastTransactionAt} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -408,9 +412,9 @@
 					<section id={`${actorNetworkDetailAnchorKey}:actor-balances-tokens`}>
 						<BalancesView
 							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 								{
-								networkId: String(entityId.$network.chainId),
+								...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 								address: entityId.$actor.address,
 								},
 		)}
@@ -430,10 +434,10 @@
 							resource={actorNetwork}
 							placeholderText="Loading positions…"
 						>
-							{#snippet children(loadedActorNetwork)}
+							{#snippet children(actorNetwork)}
 								{#if (actorNetwork.contractPositions ?? []).length}
 									<ul data-list="unstyled">
-										{#each loadedActorNetwork.contractPositions ?? [] as row (`${row.protocol.key}:${row.name}`)}
+										{#each actorNetwork.contractPositions ?? [] as row (`${row.protocol.key}:${row.name}`)}
 											<li data-column="gap-1">
 												<div data-row="wrap align-baseline gap-2">
 													<strong>{row.name}</strong>
@@ -500,9 +504,9 @@
 					{#snippet SectionActivityTransactions({ id, label })}
 						<EvmTransactionsView
 							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 								{
-								networkId: String(entityId.$network.chainId),
+								...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 								address: entityId.$actor.address,
 								},
 	)}
@@ -519,9 +523,9 @@
 					{#snippet SectionActivityTokenTransfers({ id, label })}
 						<EvmTransactionsView
 							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 								{
-								networkId: String(entityId.$network.chainId),
+								...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 								address: entityId.$actor.address,
 								},
 	)}
@@ -539,9 +543,9 @@
 					{#snippet SectionActivityInternalTransactions({ id, label })}
 						<EvmTransactionsView
 							href={resolve(
-								'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 								{
-								networkId: String(entityId.$network.chainId),
+								...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 								address: entityId.$actor.address,
 								},
 	)}

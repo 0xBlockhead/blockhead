@@ -73,7 +73,7 @@
 				parentEntityType,
 				entityFieldReference.entityId,
 				{
-					...(parentEntityType === EntityType.Network && {
+					...(parentEntityType === EntityType.EvmNetwork && {
 						blockHeight: {
 							$: [
 								Source.Voltaire_JsonRpc,
@@ -84,7 +84,7 @@
 						$: [
 							Source.Voltaire_JsonRpc,
 						],
-						...(parentEntityType === EntityType.Network && {
+						...(parentEntityType === EntityType.EvmNetwork && {
 							$limit: 8,
 						}),
 					},
@@ -93,7 +93,7 @@
 			{@const blobs = derive(
 				parent,
 				(parent) => (
-					parentEntityType === EntityType.Network ?
+					parentEntityType === EntityType.EvmNetwork ?
 						(parent[entityFieldReference.fieldName] ?? []).slice(0, 8)
 					:
 						(parent[entityFieldReference.fieldName] ?? [])

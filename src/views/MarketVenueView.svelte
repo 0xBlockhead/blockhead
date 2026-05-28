@@ -75,8 +75,8 @@
 			resource={marketVenue}
 			placeholderText="Loading market venue…"
 		>
-			{#snippet children(loadedMarketVenue)}
-				{loadedMarketVenue.label ?? entityId.marketVenueId}
+			{#snippet children(marketVenue)}
+				{marketVenue.label ?? entityId.marketVenueId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

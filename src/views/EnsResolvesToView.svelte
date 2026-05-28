@@ -37,7 +37,7 @@
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import ActorView from '$/views/ActorView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 </script>
 
 
@@ -45,11 +45,11 @@
 	placeholderText="Loading forward resolution…"
 	resource={ens}
 >
-	{#snippet children(loadedEns)}
-		{@const resolvedActorId = loadedEns.$resolvedActor?.[EntityMetaKey.Id]}
+	{#snippet children(ens)}
+		{@const resolvedActorId = ens.$resolvedActor?.[EntityMetaKey.Id]}
 		{#if resolvedActorId}
 			<section>
-				<NetworkView
+				<EvmNetworkView
 					entityId={{ chainId: ensEthereumChainId }}
 					layout={EntityLayout.Summary}
 					open={false}

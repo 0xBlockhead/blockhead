@@ -1,0 +1,238 @@
+import {
+	EvmTransactionEnvelopeType,
+	EvmTransactionExecutionStatus,
+	EvmTransactionKind,
+} from '$/constants/Evm.ts'
+import {
+	defineEntityFieldResolver,
+	defineEntityResolver,
+} from '$/resolvers/$resolvers.ts'
+import { NetworkNamespace } from '$/constants/Network.ts'
+import { hexLowerOfByteSize, with0xHex } from '$/lib/hexLowerOfByteSize.ts'
+import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
+import { EntityType } from '$/schema/$EntityType.ts'
+import { Source } from '$/sources/$Source.ts'
+
+const zeroGMainnetChainId = 16661
+
+const assertZeroGMainnetChain = (network: { chainId: number }) => {
+	if (network.chainId !== zeroGMainnetChainId) {
+		throw new Error(`ZeroGChain_JsonRpc: unsupported chain ${network.chainId}`)
+	}
+}
+
+const assertZeroGMainnet = (network: { namespace: string; reference: string }) => {
+	if (network.namespace !== NetworkNamespace.ZeroG || network.reference !== 'mainnet') {
+		throw new Error(`ZeroGChain_JsonRpc: unsupported network ${network.namespace}:${network.reference}`)
+	}
+}
+
+const quantityToBigInt = (value: string | undefined): bigint | undefined => (
+	value == null ?
+		undefined
+	:	BigInt(value)
+)
+
+const quantityToNumber = (value: string | undefined): number | undefined => (
+	((number) => (
+		Number.isFinite(number) ? number : undefined
+	))(Number(quantityToBigInt(value)))
+)
+
+const transactionEnvelopeTypeFromRpcType = (value: string | undefined) => (
+	value == null ?
+		EvmTransactionEnvelopeType.Legacy
+	: Number.parseInt(value, 16) === 1 ?
+		EvmTransactionEnvelopeType.AccessList
+	: Number.parseInt(value, 16) === 2 ?
+		EvmTransactionEnvelopeType.FeeMarket
+	: Number.parseInt(value, 16) === 3 ?
+		EvmTransactionEnvelopeType.Blob
+	: Number.parseInt(value, 16) === 4 ?
+		EvmTransactionEnvelopeType.SetCode
+	: Number.parseInt(value, 16) === 0 ?
+		EvmTransactionEnvelopeType.Legacy
+	:
+		EvmTransactionEnvelopeType.Unknown
+)
+
+const transactionKind = ({
+	value,
+	to,
+	input,
+	contractAddress,
+}: {
+	value: bigint
+	to?: string | null
+	input?: string
+	contractAddress?: string | null
+}) => (
+	contractAddress != null || to == null ?
+		EvmTransactionKind.ContractCreation
+	: input != null && input !== '0x' && input.length > 2 ?
+		value > 0n ?
+			EvmTransactionKind.NativeTransferAndCall
+		:
+			EvmTransactionKind.ContractCall
+	: value > 0n ?
+		EvmTransactionKind.NativeTransfer
+	:
+		EvmTransactionKind.ContractCall
+)
+
+export default {
+	source: Source.ZeroGChain_JsonRpc,
+
+	entityResolvers: [
+		defineEntityResolver({
+			entityType: EntityType.EvmBlock,
+			resolve: async (entityId) => {
+				assertZeroGMainnetChain(entityId.$network)
+				const { getZeroGBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+				const block = await getZeroGBlockByNumber({
+					blockNumber: entityId.blockNumber,
+					txObjects: false,
+				})
+				if (block == null) throw new Error(`ZeroGChain_JsonRpc: block not found ${entityId.blockNumber.toString()}`)
+				const minerAddress = hexLowerOfByteSize(block.miner ?? '', 20)
+				const parentHash = hexLowerOfByteSize(block.parentHash ?? '', 32)
+				return {
+					number: quantityToBigInt(block.number) ?? entityId.blockNumber,
+					...(parentHash != null && {
+						$parent: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								blockNumber: entityId.blockNumber - 1n,
+								hash: parentHash,
+							},
+						},
+					}),
+						...((timestamp) => (
+							timestamp != null && { timestamp: timestamp * 1000 }
+						))(quantityToNumber(block.timestamp)),
+					...(minerAddress != null && {
+						$miner: {
+							[EntityMetaKey.Id]: {
+								address: minerAddress,
+							},
+						},
+					}),
+					...(quantityToBigInt(block.gasUsed) != null && { gasUsed: quantityToBigInt(block.gasUsed) }),
+					...(quantityToBigInt(block.gasLimit) != null && { gasLimit: quantityToBigInt(block.gasLimit) }),
+					...(quantityToBigInt(block.baseFeePerGas) != null && { baseFeePerGas: quantityToBigInt(block.baseFeePerGas) }),
+					...(quantityToBigInt(block.blobGasUsed) != null && { blobGasUsed: quantityToBigInt(block.blobGasUsed) }),
+					...(quantityToBigInt(block.excessBlobGas) != null && { excessBlobGas: quantityToBigInt(block.excessBlobGas) }),
+					...(block.transactions != null && { transactionCount: block.transactions.length }),
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.EvmTransaction,
+			resolve: async (entityId) => {
+				assertZeroGMainnetChain(entityId.$network)
+				const {
+					getZeroGTransactionByHash,
+					getZeroGTransactionReceipt,
+				} = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+				const transaction = await getZeroGTransactionByHash({ txHash: entityId.txHash })
+				if (transaction == null) throw new Error(`ZeroGChain_JsonRpc: transaction not found ${entityId.txHash}`)
+				const receipt = await getZeroGTransactionReceipt({ txHash: entityId.txHash })
+				const value = quantityToBigInt(transaction.value) ?? 0n
+				const fromAddress = hexLowerOfByteSize(transaction.from ?? '', 20)
+				const toAddress = hexLowerOfByteSize(transaction.to ?? '', 20)
+				const contractAddress = hexLowerOfByteSize(receipt?.contractAddress ?? '', 20)
+				const blockNumber = quantityToBigInt(transaction.blockNumber)
+				const blockHash = hexLowerOfByteSize(transaction.blockHash ?? '', 32)
+				if (fromAddress == null) throw new Error(`ZeroGChain_JsonRpc: transaction has invalid from address ${entityId.txHash}`)
+				return {
+					...(blockNumber != null && {
+						$block: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								blockNumber,
+								...(blockHash != null && { hash: blockHash }),
+							},
+						},
+					}),
+					$from: {
+						[EntityMetaKey.Id]: {
+							address: fromAddress,
+						},
+					},
+					...(toAddress != null && {
+						$to: {
+							[EntityMetaKey.Id]: {
+								address: toAddress,
+							},
+						},
+					}),
+					...(contractAddress != null && {
+						$contract: {
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								address: contractAddress,
+							},
+						},
+					}),
+					...(quantityToNumber(transaction.transactionIndex) != null && { transactionIndex: quantityToNumber(transaction.transactionIndex) }),
+					value,
+					...(quantityToNumber(transaction.nonce) != null && { nonce: quantityToNumber(transaction.nonce) }),
+					...(transaction.input != null && { input: with0xHex(transaction.input) }),
+					...(quantityToBigInt(transaction.gas) != null && { gas: quantityToBigInt(transaction.gas) }),
+					kind: transactionKind({
+						value,
+						to: transaction.to,
+						input: transaction.input,
+						contractAddress: receipt?.contractAddress,
+					}),
+					envelopeType: transactionEnvelopeTypeFromRpcType(transaction.type),
+					...(receipt?.status === '0x1' && { executionStatus: EvmTransactionExecutionStatus.Success }),
+					...(receipt?.status === '0x0' && { executionStatus: EvmTransactionExecutionStatus.Failed }),
+					...(quantityToBigInt(transaction.gasPrice) != null && { gasPrice: quantityToBigInt(transaction.gasPrice) }),
+					...(quantityToBigInt(receipt?.gasUsed) != null && { gasUsed: quantityToBigInt(receipt?.gasUsed) }),
+					...(quantityToBigInt(receipt?.cumulativeGasUsed) != null && { cumulativeGasUsed: quantityToBigInt(receipt?.cumulativeGasUsed) }),
+					...(quantityToBigInt(receipt?.effectiveGasPrice) != null && { effectiveGasPrice: quantityToBigInt(receipt?.effectiveGasPrice) }),
+					...(quantityToBigInt(transaction.maxFeePerGas) != null && { maxFeePerGas: quantityToBigInt(transaction.maxFeePerGas) }),
+					...(quantityToBigInt(transaction.maxPriorityFeePerGas) != null && { maxPriorityFeePerGas: quantityToBigInt(transaction.maxPriorityFeePerGas) }),
+					...(quantityToBigInt(receipt?.blobGasUsed) != null && { blobGasUsed: quantityToBigInt(receipt?.blobGasUsed) }),
+					...(quantityToBigInt(transaction.maxFeePerBlobGas) != null && { maxFeePerBlobGas: quantityToBigInt(transaction.maxFeePerBlobGas) }),
+				}
+			},
+		}),
+	],
+
+	entityFieldResolvers: [
+
+
+
+
+
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmBlock,
+			fieldName: '$$transactions',
+			resolve: async (entityId) => {
+				assertZeroGMainnetChain(entityId.$network)
+				const { getZeroGBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+				const block = await getZeroGBlockByNumber({
+					blockNumber: entityId.blockNumber,
+					txObjects: true,
+				})
+				if (block == null) throw new Error(`ZeroGChain_JsonRpc: block not found ${entityId.blockNumber.toString()}`)
+				return (block.transactions ?? []).flatMap((transaction) => {
+					if (typeof transaction === 'string') return []
+					const txHash = hexLowerOfByteSize(transaction.hash ?? '', 32)
+					return txHash == null ?
+						[]
+					:	[{
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								txHash,
+							},
+						}]
+				})
+			},
+		}),
+	],
+}

@@ -349,7 +349,7 @@ export const bridgeTools = [
 	},
 ] as const satisfies readonly BridgeToolRow[]
 
-const bridgeSettlementModelRows = [
+const bridgeSettlementModels = [
 	{
 		settlementModel: BridgeSettlementModel.AtomicSwap,
 		label: 'Atomic swap',
@@ -387,7 +387,7 @@ const bridgeSettlementModelRows = [
 	label: string
 }[]
 
-const bridgeVerificationModelRows = [
+const bridgeVerificationModels = [
 	{
 		verificationModel: BridgeVerificationModel.External,
 		label: 'External verifier',
@@ -413,7 +413,7 @@ const bridgeVerificationModelRows = [
 	label: string
 }[]
 
-const bridgeAssetOutcomeRows = [
+const bridgeAssetOutcomes = [
 	{
 		assetOutcome: BridgeAssetOutcome.LiquidityPoolNative,
 		label: 'Liquidity pool native asset',
@@ -439,7 +439,7 @@ const bridgeAssetOutcomeRows = [
 	label: string
 }[]
 
-const coinInstanceRepresentationRows = [
+const coinInstanceRepresentations = [
 	{
 		representation: CoinInstanceRepresentation.BridgeWrapped,
 		label: 'Bridge-wrapped token',
@@ -469,7 +469,7 @@ const coinInstanceRepresentationRows = [
 	label: string
 }[]
 
-const bridgeRouteStepTypeRows = [
+const bridgeRouteStepTypes = [
 	{
 		stepType: 'swap',
 		label: 'Swap',
@@ -491,7 +491,7 @@ const bridgeRouteStepTypeRows = [
 	label: string
 }[]
 
-const bridgeRouteTagRows = [
+const bridgeRouteTags = [
 	{
 		tag: BridgeRouteTag.Best,
 		label: 'Best overall',
@@ -636,43 +636,43 @@ export const bridgeRailById = Object.fromEntries(
 	]),
 )
 
-export const bridgeSettlementModels = Object.fromEntries(
-	bridgeSettlementModelRows.map((row) => [
+export const bridgeSettlementModelBySettlementModel = Object.fromEntries(
+	bridgeSettlementModels.map((row) => [
 		row.settlementModel,
 		row,
 	]),
 )
 
-export const bridgeVerificationModels = Object.fromEntries(
-	bridgeVerificationModelRows.map((row) => [
+export const bridgeVerificationModelByVerificationModel = Object.fromEntries(
+	bridgeVerificationModels.map((row) => [
 		row.verificationModel,
 		row,
 	]),
 )
 
-export const bridgeAssetOutcomes = Object.fromEntries(
-	bridgeAssetOutcomeRows.map((row) => [
+export const bridgeAssetOutcomeByAssetOutcome = Object.fromEntries(
+	bridgeAssetOutcomes.map((row) => [
 		row.assetOutcome,
 		row,
 	]),
 )
 
-export const coinInstanceRepresentations = Object.fromEntries(
-	coinInstanceRepresentationRows.map((row) => [
+export const coinInstanceRepresentationByRepresentation = Object.fromEntries(
+	coinInstanceRepresentations.map((row) => [
 		row.representation,
 		row,
 	]),
 )
 
 export const bridgeRouteStepTypeByWire = Object.fromEntries(
-	bridgeRouteStepTypeRows.map((row) => [
+	bridgeRouteStepTypes.map((row) => [
 		row.stepType,
 		row,
 	]),
 )
 
-export const bridgeRouteTags = Object.fromEntries(
-	bridgeRouteTagRows.map((row) => [
+export const bridgeRouteTagByTag = Object.fromEntries(
+	bridgeRouteTags.map((row) => [
 		row.tag,
 		row,
 	]),

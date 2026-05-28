@@ -20,33 +20,6 @@
 		ipfsResourceHref,
 	} from '$/lib/ipfs.ts'
 
-	const samples = [
-		sample({
-			label: 'Wikipedia article via CID path gateway example',
-			targetInput: 'ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/wiki/Vincent_van_Gogh.html',
-			sourceHref: 'https://docs.ipfs.tech/how-to/address-ipfs-on-web/',
-			sourceLabel: 'IPFS Docs',
-		}),
-		sample({
-			label: 'Wikipedia article via ipfs.io path gateway',
-			targetInput: 'https://ipfs.io/ipfs/bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/wiki/Vincent_van_Gogh.html',
-			sourceHref: 'https://docs.ipfs.tech/concepts/ipfs-gateway/',
-			sourceLabel: 'IPFS Docs',
-		}),
-		sample({
-			label: 'Wikipedia via DNSLink / IPNS homepage',
-			targetInput: 'https://ipfs.io/ipns/tr.wikipedia-on-ipfs.org/wiki/Anasayfa.html',
-			sourceHref: 'https://docs.ipfs.tech/concepts/ipfs-gateway/',
-			sourceLabel: 'IPFS Docs',
-		}),
-		sample({
-			label: 'Wikipedia via IPNS key example',
-			targetInput: 'ipns://k51qzi5uqu5dlvj2baxnqndepeb86cbk3ng7n3i46uzyxzyqj2xjonzllnv0v8',
-			sourceHref: 'https://docs.ipfs.tech/concepts/ipfs-gateway/',
-			sourceLabel: 'IPFS Docs',
-		}),
-	]
-
 	const onsubmit = async (event: SubmitEvent) => {
 		event.preventDefault()
 		if (!(event.currentTarget instanceof HTMLFormElement)) return
@@ -100,6 +73,33 @@
 	const openDocsSample = (href: string) => {
 		window.open(href, '_blank', 'noopener,noreferrer')
 	}
+
+	const samples = [
+		sample({
+			label: 'Wikipedia article via CID path gateway example',
+			targetInput: 'ipfs://bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/wiki/Vincent_van_Gogh.html',
+			sourceHref: 'https://docs.ipfs.tech/how-to/address-ipfs-on-web/',
+			sourceLabel: 'IPFS Docs',
+		}),
+		sample({
+			label: 'Wikipedia article via ipfs.io path gateway',
+			targetInput: 'https://ipfs.io/ipfs/bafybeiemxf5abjwjbikoz4mc3a3dla6ual3jsgpdr4cjr3oz3evfyavhwq/wiki/Vincent_van_Gogh.html',
+			sourceHref: 'https://docs.ipfs.tech/concepts/ipfs-gateway/',
+			sourceLabel: 'IPFS Docs',
+		}),
+		sample({
+			label: 'Wikipedia via DNSLink / IPNS homepage',
+			targetInput: 'https://ipfs.io/ipns/tr.wikipedia-on-ipfs.org/wiki/Anasayfa.html',
+			sourceHref: 'https://docs.ipfs.tech/concepts/ipfs-gateway/',
+			sourceLabel: 'IPFS Docs',
+		}),
+		sample({
+			label: 'Wikipedia via IPNS key example',
+			targetInput: 'ipns://k51qzi5uqu5dlvj2baxnqndepeb86cbk3ng7n3i46uzyxzyqj2xjonzllnv0v8',
+			sourceHref: 'https://docs.ipfs.tech/concepts/ipfs-gateway/',
+			sourceLabel: 'IPFS Docs',
+		}),
+	]
 
 
 	// Components

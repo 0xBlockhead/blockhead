@@ -3,25 +3,20 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 
 
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ProposalRealmsView from '$/views/ProposalRealmsView.svelte'
+	import SpecificationRealmsView from '$/views/SpecificationRealmsView.svelte'
 </script>
 
 
 <Page>
-		<ProposalRealmsView
+	<SpecificationRealmsView
 		entityFieldReference={{
 			entityType: EntityType._Global,
 			entityId: {},
-			fieldName: '$$proposalRealms',
+			fieldName: '$$specificationRealms',
 		}}
 		id="proposal-realms"
 		title="Proposals"
 	/>
 </Page>
-

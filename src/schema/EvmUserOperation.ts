@@ -8,7 +8,7 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { ZeroExHex } from '$/schema/$ZeroExHex.ts'
-import Network from '$/schema/Network.ts'
+import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
@@ -51,7 +51,7 @@ export default {
 			],
 		},
 		{
-			name: 'timestampSeconds',
+			name: 'timestampMs',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,

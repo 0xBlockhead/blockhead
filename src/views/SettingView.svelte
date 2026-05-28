@@ -107,15 +107,15 @@
 		{#if summaryOpen}
 		<dl data-column-item="center">
 			<ResourceBoundary resource={global}>
-				{#snippet children(loadedGlobal)}
-					{#if loadedGlobal.duneCreditsUsed !== undefined}
+				{#snippet children(global)}
+					{#if global.duneCreditsUsed !== undefined}
 						<div>
 							<dt>Dune credits used</dt>
 							<dd>{String(global.duneCreditsUsed)}</dd>
 						</div>
 					{/if}
 
-					{#if loadedGlobal.duneCreditsIncluded !== undefined}
+					{#if global.duneCreditsIncluded !== undefined}
 						<div>
 							<dt>Dune credits included</dt>
 							<dd>{String(global.duneCreditsIncluded)}</dd>
@@ -134,9 +134,9 @@
 			<div>
 				<CollapsibleTabs sections={[]}>
 					<ResourceBoundary resource={global}>
-						{#snippet children(loadedGlobal)}
+						{#snippet children(global)}
 							<dl>
-								{#if loadedGlobal.duneCreditsIncluded !== undefined}
+								{#if global.duneCreditsIncluded !== undefined}
 									<div>
 										<dt>Dune credits included</dt>
 										<dd>{String(global.duneCreditsIncluded)}</dd>

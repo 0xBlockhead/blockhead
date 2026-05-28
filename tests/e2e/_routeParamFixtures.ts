@@ -2,6 +2,12 @@ import { stringify } from 'devalue'
 
 import { atprotoProbeDid, atprotoProbePostUri } from '$/constants/Social/Atproto.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
+import { specificationRealms } from '$/constants/SpecificationProposal.ts'
+import {
+	caip2NetworkNamespaceByNamespace,
+	NetworkEnvironment,
+	networks,
+} from '$/constants/Network.ts'
 import { swarmDocsLandingReference } from '$/sources/Swarm/Rest/constants.ts'
 import {
 	CAST_HASH_32,
@@ -57,10 +63,61 @@ const MARKET_KEY_ETH_USD_BINANCE = stringify({
 	marketKind: 'Spot',
 })
 
+const PRIMARY_NETWORK_CAIP2_FIXTURES = networks
+	.filter((network) => network.environment === NetworkEnvironment.Mainnet)
+	.flatMap((network) => (
+		!('caip2' in network) || caip2NetworkNamespaceByNamespace[network.caip2.namespace] == null ?
+			[]
+		:
+			[`${network.caip2.namespace}:${network.caip2.reference}`]
+	))
+
+const PRIMARY_NETWORK_SLUG_FIXTURES = networks
+	.filter((network) => network.environment === NetworkEnvironment.Mainnet)
+	.map((network) => network.slug)
+
+const PROPOSAL_KIND_SLUG_BY_REALM_SLUG: Record<string, string> = {
+	bitcoin: 'bip',
+	'bitcoin-cash': 'chip',
+	'chain-agnostic': 'caip',
+	cosmos: 'adr',
+	dogecoin: 'dip',
+	ens: 'ensip',
+	ethereum: 'eip',
+	filecoin: 'fip',
+	hyperliquid: 'hip',
+	litecoin: 'lip',
+	near: 'nep',
+	polkadot: 'rfc',
+	quilibrium: 'protocol-document',
+	solana: 'simd',
+	zcash: 'zip',
+}
+
+const PROPOSAL_REF_BY_KIND_SLUG: Record<string, string> = {
+	adr: 'adr-001',
+	bip: 'bip-32',
+	caip: 'caip-2',
+	chip: 'chip-1',
+	dip: 'dip-0001',
+	eip: 'eip-1559',
+	ensip: 'ensip-1',
+	fip: 'fip-0001',
+	hip: 'hip-1',
+	lip: 'lip-0002',
+	nep: 'nep-0001',
+	'protocol-document': 'protocol-document-1',
+	rfc: 'rfc-1',
+	simd: 'simd-0001',
+	zip: 'zip-32',
+}
+
 
 /** Default param values for `discoverPathnamesFromRoutes()` — aligned with smoke + resolver probes. */
 export const e2eRouteParamFixtures: Record<string, string> = {
 	networkId: '1',
+	caip2Namespace: 'eip155',
+	caip2Reference: '1',
 	chainId: '1',
 	contractId: `1:${USDC_ADDRESS}`,
 	coinId: 'ETH',
@@ -80,7 +137,7 @@ export const e2eRouteParamFixtures: Record<string, string> = {
 	fname: 'vitalik',
 	hex: '0xa9059cbb',
 	recordId: 'com.twitter',
-	proposalRealmSlug: 'ethereum',
+	specificationRealmSlug: 'ethereum',
 	proposalKindSlug: 'eip',
 	proposalRef: 'eip-1559',
 	positionId: '354198',
@@ -176,11 +233,20 @@ export const e2eRouteParamFixtureForContext = (
 	if (paramKey === 'chainId' && path.includes('services/agent'))
 		return '56'
 
+	if (paramKey === 'caip2Namespace' && path === 'network')
+		return 'bip122'
+
+	if (paramKey === 'caip2Reference' && path === 'network')
+		return '000000000019d6689c085ae165831e93'
+
+	if (paramKey === 'networkSlug' && path === 'network')
+		return 'bitcoin'
+
 	if (paramKey === 'transactionId' && path.includes('/blob/'))
 		return SAMPLE_BLOB_TX_HASH
 
 	if (paramKey === 'address') {
-		if (path.includes('/contract/'))
+		if (path.split('/').includes('contract'))
 			return USDC_ADDRESS
 		if (path.includes('smart-account'))
 			return ERC4337_SMART_ACCOUNT_ADDRESS
@@ -211,4 +277,44 @@ export const e2eRouteParamFixtureForContext = (
 		return '12'
 
 	return e2eRouteParamFixtures[paramKey]
+}
+
+export const e2eRouteParamFixtureVariantsForContext = (
+	paramKey: string,
+	staticSegments: readonly string[],
+	selectedParams: Readonly<Record<string, string>>,
+) => {
+	const path = staticSegments.join('/')
+
+	if (paramKey === 'caip2Namespace' && path === 'network')
+		return [
+			...new Set(PRIMARY_NETWORK_CAIP2_FIXTURES.map((caip2) => caip2.slice(0, caip2.indexOf(':')))),
+		]
+
+	if (paramKey === 'caip2Reference' && path === 'network')
+		return PRIMARY_NETWORK_CAIP2_FIXTURES
+			.filter((caip2) => caip2.startsWith(`${selectedParams.caip2Namespace}:`))
+			.map((caip2) => caip2.slice(caip2.indexOf(':') + 1))
+
+	if (paramKey === 'networkSlug' && path === 'network')
+		return PRIMARY_NETWORK_SLUG_FIXTURES
+
+	if (paramKey === 'specificationRealmSlug')
+		return specificationRealms.map((realm) => realm.slug)
+
+	if (paramKey === 'proposalKindSlug' && selectedParams.specificationRealmSlug)
+		return [
+			PROPOSAL_KIND_SLUG_BY_REALM_SLUG[selectedParams.specificationRealmSlug]
+			?? e2eRouteParamFixtureForContext(paramKey, staticSegments),
+		]
+
+	if (paramKey === 'proposalRef' && selectedParams.proposalKindSlug)
+		return [
+			PROPOSAL_REF_BY_KIND_SLUG[selectedParams.proposalKindSlug]
+			?? e2eRouteParamFixtureForContext(paramKey, staticSegments),
+		]
+
+	return [
+		e2eRouteParamFixtureForContext(paramKey, staticSegments),
+	]
 }

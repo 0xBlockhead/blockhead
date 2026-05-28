@@ -14,7 +14,7 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { Entity, EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { Source } from '$/sources/$Source.ts'
 import type {
 	EtherscanErc1155TokenTransfer,
@@ -216,7 +216,7 @@ const evmTokenTransferEntityFromEtherscanWire = ({
 							address: tokenAddress,
 						},
 					},
-				} satisfies Entity<typeof schema, EntityType.CoinInstance>,
+				} satisfies Entity<typeof schema, EntityType.EvmCoinInstance>,
 			}),
 		}),
 	}
@@ -405,7 +405,7 @@ export default {
 
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.Network_GasEstimate_Timestamp,
+			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
 			resolve: async (entityId, context) => {
 				const { gastrackerGasOracle } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = entityId.$network.chainId
@@ -650,7 +650,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$gasEstimateTimestamps',
 			resolve: async (entityId) => {
 				await throwIfEtherscanRestUnsupportedChainId(entityId.chainId)

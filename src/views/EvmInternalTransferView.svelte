@@ -1,12 +1,16 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+
+
+	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { evmInternalCallTypes } from '$/constants/Evm.ts'
+	import { evmInternalCallTypeByCallType } from '$/constants/Evm.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 
@@ -18,9 +22,9 @@
 	let {
 		entityId,
 		href = resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]/internal/[internalIndex]',
+			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]/internal/[internalIndex]',
 			{
-				networkId: String(entityId.$network.chainId),
+				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 				transactionId: entityId.$transaction.txHash,
 				internalIndex: String(entityId.internalIndex),
 			},
@@ -110,7 +114,7 @@
 				resource={transfer}
 				placeholderText="Loading internal transfer…"
 			>
-							{#snippet children(loadedTransfer)}
+							{#snippet children(transfer)}
 
 					{#if showParentTransaction}
 						<div>
@@ -118,9 +122,9 @@
 							<dd>
 								<a
 									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 										{
-										networkId: String(entityId.$network.chainId),
+										...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 										transactionId: entityId.txHash,
 										},
 									)}
@@ -139,26 +143,26 @@
 						<dd>{String(entityId.internalIndex)}</dd>
 					</div>
 
-					{#if loadedTransfer.callType}
+					{#if transfer.callType}
 						<div>
 							<dt>Call type</dt>
-							<dd>{evmInternalCallTypes[loadedTransfer.callType].label}</dd>
+							<dd>{evmInternalCallTypeByCallType[transfer.callType].label}</dd>
 						</div>
 					{/if}
 
-					{#if loadedTransfer.success !== undefined}
+					{#if transfer.success !== undefined}
 						<div>
 							<dt>Success</dt>
-							<dd>{loadedTransfer.success ? 'Yes' : 'No'}</dd>
+							<dd>{transfer.success ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if loadedTransfer.$createdContract}
+					{#if transfer.$createdContract}
 						<div>
 							<dt>Created contract</dt>
 							<dd>
 								<EvmContractView
-									entityId={loadedTransfer.$createdContract[EntityMetaKey.Id]}
+									entityId={transfer.$createdContract[EntityMetaKey.Id]}
 									layout={EntityLayout.SummaryDetails}
 									open={true}
 									showTypeAnnotation={false}

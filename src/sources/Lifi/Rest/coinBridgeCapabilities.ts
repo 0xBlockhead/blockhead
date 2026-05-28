@@ -35,7 +35,7 @@ export const fetchCoinBridgeCapabilityRowsForCoin = async (
 
 export const filterCoinBridgeCapabilityRowsForInstance = (
 	rows: ReturnType<typeof coinBridgeCapabilityEntityRowsFromInstancesAndTools>,
-	instanceId: EntityId<typeof schema, EntityType.CoinInstance>,
+	instanceId: EntityId<typeof schema, EntityType.EvmCoinInstance>,
 	direction: 'inbound' | 'outbound',
 ) => {
 	const instanceKey = stringify(instanceId)

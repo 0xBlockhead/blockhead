@@ -84,9 +84,9 @@
 			resource={evmError}
 			placeholderText="Loading error…"
 		>
-			{#snippet children(loadedEvmError)}
-				{#if loadedEvmError.signatures?.[0]}
-					{loadedEvmError.signatures[0]}
+			{#snippet children(evmError)}
+				{#if evmError.signatures?.[0]}
+					{evmError.signatures[0]}
 				{:else}
 					{@render Value()}
 				{/if}
@@ -99,8 +99,8 @@
 			resource={evmError}
 			placeholderText="Loading error…"
 		>
-			{#snippet children(loadedEvmError)}
-				{loadedEvmError.signatures?.[0] ?? entityId.hex}
+			{#snippet children(evmError)}
+				{evmError.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -137,15 +137,15 @@
 						resource={evmError}
 						placeholderText="Loading catalog matches…"
 					>
-						{#snippet children(loadedEvmError)}
-							{#if loadedEvmError.signatures?.length}
+						{#snippet children(evmError)}
+							{#if evmError.signatures?.length}
 								<div>
 									<dt>
 										Decoded revert / custom error selectors
 									</dt>
 									<dd>
 										<ul>
-											{#each loadedEvmError.signatures as sig (sig)}
+											{#each evmError.signatures as sig (sig)}
 												<li><code>{sig}</code></li>
 											{/each}
 										</ul>

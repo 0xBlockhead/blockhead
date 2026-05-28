@@ -1,15 +1,22 @@
 import { stringify } from 'devalue'
 
 import { CoinId } from '$/constants/Coin.ts'
+import { ConsensusMechanismId } from '$/constants/ConsensusMechanism.ts'
 import { Iso4217 } from '$/constants/Currency.ts'
+import { ExecutionEnvironmentId } from '$/constants/ExecutionEnvironment.ts'
 import { MarketAssetKind, MarketKind, MarketTimeIntervalUnit } from '$/constants/Market.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
-import { ProposalCategory, ProposalRealm } from '$/constants/Proposal.ts'
+import { NetworkNamespace } from '$/constants/Network.ts'
+import { NetworkStackId } from '$/constants/NetworkStack.ts'
+import { ProposalCategory, SpecificationRealm } from '$/constants/SpecificationProposal.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
-import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
+import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
+import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 import { Source } from '$/sources/$Source.ts'
 
 
@@ -69,8 +76,8 @@ export const e2eEvmExplorerRoutePaths = {
 	selectors: '/evm/selectors',
 	topics: '/evm/topics',
 	errors: '/evm/errors',
-	networkTransaction: `/network/1/tx/${SAMPLE_TX_HASH}`,
-	networkTransactionLog: `/network/1/tx/${SAMPLE_TX_HASH}/log/0`,
+	networkTransaction: `/network/eip155:1/tx/${SAMPLE_TX_HASH}`,
+	networkTransactionLog: `/network/eip155:1/tx/${SAMPLE_TX_HASH}/log/0`,
 } as const satisfies Record<string, `/${string}`>
 
 /** Nostr / YouTube list routes for route-view smoke (see also `routeViewSmokePaths`). */
@@ -122,6 +129,86 @@ export const ethUsdCatalogMarket = {
 } as const
 
 const mainnet = { chainId: 1 }
+
+const bitcoin = {
+	namespace: NetworkNamespace.Bip122,
+	reference: '000000000019d6689c085ae165831e93',
+}
+
+const lightning = {
+	namespace: NetworkNamespace.Lightning,
+	reference: 'bitcoin-mainnet',
+}
+
+const zcash = {
+	namespace: NetworkNamespace.Zcash,
+	reference: '00040fe8ec8471911baa1db1266ea15',
+}
+
+const filecoin = {
+	namespace: NetworkNamespace.Filecoin,
+	reference: 'f',
+}
+
+const solana = {
+	namespace: NetworkNamespace.Solana,
+	reference: '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+}
+
+const cosmos = {
+	namespace: NetworkNamespace.Cosmos,
+	reference: 'cosmoshub-4',
+}
+
+const polkadot = {
+	namespace: NetworkNamespace.Polkadot,
+	reference: '91b171bb158e2d3848fa23a9f1c25182',
+}
+
+const hyperliquid = {
+	namespace: NetworkNamespace.Hyperliquid,
+	reference: 'mainnet',
+}
+
+const logos = {
+	namespace: NetworkNamespace.Logos,
+	reference: 'stack',
+}
+
+const quilibrium = {
+	namespace: NetworkNamespace.Quilibrium,
+	reference: 'mainnet',
+}
+
+const near = {
+	namespace: NetworkNamespace.Near,
+	reference: 'mainnet',
+}
+
+const monero = {
+	namespace: NetworkNamespace.Monero,
+	reference: '418015bb9ae982a1975da7d79277c270',
+}
+
+const litecoin = {
+	namespace: NetworkNamespace.Litecoin,
+	reference: '12a765e31ffd4059bada1e25190f6e98',
+}
+
+const dogecoin = {
+	namespace: NetworkNamespace.Dogecoin,
+	reference: '1a91e3dace36e2be3bf030a65679fe82',
+}
+
+const bitcoinCash = {
+	namespace: NetworkNamespace.BitcoinCash,
+	reference: '000000000000000000651ef99cb9fcbe',
+}
+
+const zeroG = {
+	namespace: NetworkNamespace.ZeroG,
+	reference: 'mainnet',
+}
 
 const actorMainnetVitalik = {
 	address: VITALIK_ADDRESS,
@@ -230,7 +317,7 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 	},
 
 	[EntityType.Coin]: { coinId: CoinId.ETH },
-	[EntityType.CoinInstance]: {
+	[EntityType.EvmCoinInstance]: {
 		$network: mainnet,
 		type: CoinInstanceType.NativeCurrency,
 	},
@@ -394,25 +481,29 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		timestampMs: 0,
 	},
 
-	[EntityType.Network]: mainnet,
-	[EntityType.NetworkBridge]: {
+	[EntityType.EvmNetwork]: mainnet,
+	[EntityType.EvmNetworkBridge]: {
 		$fromNetwork: mainnet,
 		$toNetwork: { chainId: 10 },
 		url: 'https://bridge.example',
 	},
-	[EntityType.NetworkUpgrade]: {
+	[EntityType.EthereumNetworkUpgrade]: {
 		$network: mainnet,
 		upgradeId: 'Homestead',
 	},
-	[EntityType.Network_GasFee_Block]: {
+	[EntityType.EvmNetwork_GasFee_Block]: {
 		$network: mainnet,
 		blockNumber: 18_000_000n,
 	},
-	[EntityType.Network_GasEstimate_Timestamp]: {
+	[EntityType.EvmNetwork_GasEstimate_Timestamp]: {
 		$network: mainnet,
 		timestampMs: 0,
 	},
-	[EntityType.Network_Txpool_Timestamp]: {
+	[EntityType.EvmNetwork_Txpool_Timestamp]: {
+		$network: mainnet,
+		timestampMs: 0,
+	},
+	[EntityType.EthereumBeaconFinality_Timestamp]: {
 		$network: mainnet,
 		timestampMs: 0,
 	},
@@ -422,13 +513,561 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		slot: 9_500_000,
 		blockHash: `0x${'0'.repeat(64)}`,
 	} as const,
-	[EntityType.NetworkExecutionUpgrade]: {
+	[EntityType.EthereumExecutionUpgrade]: {
 		$network: mainnet,
 		upgradeId: 'Homestead',
 	},
-	[EntityType.NetworkConsensusUpgrade]: {
+	[EntityType.EthereumConsensusUpgrade]: {
 		$network: mainnet,
 		upgradeId: 'Bellatrix',
+	},
+	[EntityType.NetworkStack]: {
+		networkStackId: NetworkStackId.Ethereum,
+	},
+	[EntityType.ConsensusMechanism]: {
+		consensusMechanismId: ConsensusMechanismId.EthereumBeaconProofOfStake,
+	},
+	[EntityType.ExecutionEnvironment]: {
+		executionEnvironmentId: ExecutionEnvironmentId.Evm,
+	},
+
+	[EntityType.Network]: bitcoin,
+	[EntityType.AssetInstance]: {
+		$network: cosmos,
+		kind: AssetInstanceKind.Denom,
+		assetKey: 'uatom',
+	},
+	[EntityType.NetworkUpgrade]: {
+		$network: bitcoin,
+		upgradeId: 'taproot',
+	},
+	[EntityType.UtxoBlock]: {
+		$network: bitcoin,
+		height: 840_000n,
+	},
+	[EntityType.UtxoTransaction]: {
+		$network: bitcoin,
+		txId: 'e2e-probe-utxo-transaction',
+	},
+	[EntityType.UtxoInput]: {
+		$transaction: {
+			$network: bitcoin,
+			txId: 'e2e-probe-utxo-transaction',
+		},
+		inputIndex: 0,
+	},
+	[EntityType.UtxoOutput]: {
+		$transaction: {
+			$network: bitcoin,
+			txId: 'e2e-probe-utxo-transaction',
+		},
+		outputIndex: 0,
+	},
+	[EntityType.ZcashShieldedPool]: {
+		$network: zcash,
+		pool: ZcashShieldedPoolKind.Orchard,
+	},
+	[EntityType.ZcashShieldedAction]: {
+		$transaction: {
+			$network: zcash,
+			txId: 'e2e-probe-zcash-transaction',
+		},
+		pool: ZcashShieldedPoolKind.Orchard,
+		actionKind: ZcashShieldedActionKind.Action,
+		actionIndex: 0,
+	},
+	[EntityType.FilecoinTipset]: {
+		$network: filecoin,
+		height: 4_000_000n,
+		tipsetKey: 'e2e-probe-tipset',
+	},
+	[EntityType.FilecoinBlock]: {
+		$network: filecoin,
+		cid: 'bafy2bzacee2e-probe-filecoin-block',
+	},
+	[EntityType.FilecoinMessage]: {
+		$network: filecoin,
+		cid: 'bafy2bzacee2e-probe-filecoin-message',
+	},
+	[EntityType.FilecoinActor]: {
+		$network: filecoin,
+		address: 'f01234',
+	},
+	[EntityType.FilecoinMiner]: {
+		$network: filecoin,
+		minerAddress: 'f01234',
+	},
+	[EntityType.FilecoinSector]: {
+		$miner: {
+			$network: filecoin,
+			minerAddress: 'f01234',
+		},
+		sectorNumber: 1n,
+	},
+	[EntityType.SolanaBlock]: {
+		$network: solana,
+		slot: 250_000_000n,
+	},
+	[EntityType.SolanaTransaction]: {
+		$network: solana,
+		signature: 'e2eProbeSolanaSignature1111111111111111111111111111111',
+	},
+	[EntityType.SolanaInstruction]: {
+		$transaction: {
+			$network: solana,
+			signature: 'e2eProbeSolanaSignature1111111111111111111111111111111',
+		},
+		instructionIndex: 0,
+	},
+	[EntityType.SolanaAccount]: {
+		$network: solana,
+		pubkey: '11111111111111111111111111111111',
+	},
+	[EntityType.SolanaProgram]: {
+		$network: solana,
+		programId: '11111111111111111111111111111111',
+	},
+	[EntityType.SolanaTokenMint]: {
+		$network: solana,
+		mintAddress: 'So11111111111111111111111111111111111111112',
+	},
+	[EntityType.SolanaValidator]: {
+		$network: solana,
+		votePubkey: 'Vote111111111111111111111111111111111111111',
+	},
+	[EntityType.CosmosBlock]: {
+		$network: cosmos,
+		height: 20_000_000n,
+	},
+	[EntityType.CosmosTransaction]: {
+		$network: cosmos,
+		txHash: 'E2EPROBECOSMOSTRANSACTION',
+	},
+	[EntityType.CosmosMessage]: {
+		$transaction: {
+			$network: cosmos,
+			txHash: 'E2EPROBECOSMOSTRANSACTION',
+		},
+		messageIndex: 0,
+	},
+	[EntityType.CosmosAccount]: {
+		$network: cosmos,
+		address: 'cosmos1e2eprobeaccount',
+	},
+	[EntityType.CosmosValidator]: {
+		$network: cosmos,
+		operatorAddress: 'cosmosvaloper1e2eprobevalidator',
+	},
+	[EntityType.CosmosContract]: {
+		$network: cosmos,
+		address: 'cosmos1e2eprobecontract',
+	},
+	[EntityType.CosmosDenom]: {
+		$network: cosmos,
+		denom: 'uatom',
+	},
+	[EntityType.CosmosModule]: {
+		$network: cosmos,
+		moduleName: 'bank',
+	},
+	[EntityType.CosmosGovernanceProposal]: {
+		$network: cosmos,
+		proposalId: '1',
+	},
+	[EntityType.PolkadotBlock]: {
+		$network: polkadot,
+		blockNumber: 20_000_000n,
+	},
+	[EntityType.PolkadotExtrinsic]: {
+		$block: {
+			$network: polkadot,
+			blockNumber: 20_000_000n,
+		},
+		extrinsicIndex: 0,
+	},
+	[EntityType.PolkadotEvent]: {
+		$block: {
+			$network: polkadot,
+			blockNumber: 20_000_000n,
+		},
+		eventIndex: 0,
+	},
+	[EntityType.PolkadotAccount]: {
+		$network: polkadot,
+		accountId: 'e2e-probe-polkadot-account',
+	},
+	[EntityType.PolkadotValidator]: {
+		$network: polkadot,
+		stashAccountId: 'e2e-probe-polkadot-validator',
+	},
+	[EntityType.PolkadotPallet]: {
+		$network: polkadot,
+		palletName: 'balances',
+	},
+	[EntityType.PolkadotReferendum]: {
+		$network: polkadot,
+		referendumId: '1',
+	},
+	[EntityType.HyperliquidBlock]: {
+		$network: hyperliquid,
+		height: 1n,
+	},
+	[EntityType.HyperliquidTransaction]: {
+		$network: hyperliquid,
+		txHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+	},
+	[EntityType.HyperliquidAccount]: {
+		$network: hyperliquid,
+		address: '0x0000000000000000000000000000000000000000',
+	},
+	[EntityType.HyperliquidValidator]: {
+		$network: hyperliquid,
+		validator: 'e2e-probe-validator',
+	},
+	[EntityType.HyperliquidSpotAsset]: {
+		$network: hyperliquid,
+		assetId: 0,
+	},
+	[EntityType.HyperliquidPerpMarket]: {
+		$network: hyperliquid,
+		coin: 'BTC',
+	},
+	[EntityType.LogosZone]: {
+		$network: logos,
+		zoneId: 'logos-chain',
+	},
+	[EntityType.LogosAccount]: {
+		$network: logos,
+		accountAddress: 'logos1e2eprobeaccount',
+	},
+	[EntityType.LogosTransaction]: {
+		$network: logos,
+		transactionHash: 'e2e-probe-logos-transaction',
+	},
+	[EntityType.QuilibriumFrame]: {
+		$network: quilibrium,
+		frameNumber: 1n,
+		shardKey: 'e2e-probe-shard',
+	},
+	[EntityType.QuilibriumShard]: {
+		$network: quilibrium,
+		shardKey: 'e2e-probe-shard',
+	},
+	[EntityType.QuilibriumProver]: {
+		$network: quilibrium,
+		proverPeerId: 'e2e-probe-prover',
+	},
+	[EntityType.QuilibriumAccount]: {
+		$network: quilibrium,
+		accountAddress: 'e2e-probe-account',
+	},
+	[EntityType.QuilibriumPendingTransaction]: {
+		$network: quilibrium,
+		transactionHash: 'e2e-probe-quilibrium-transaction',
+	},
+	[EntityType.NearBlock]: {
+		$network: near,
+		height: 100_000_000n,
+	},
+	[EntityType.NearChunk]: {
+		$network: near,
+		chunkHash: 'e2e-probe-near-chunk',
+	},
+	[EntityType.NearTransaction]: {
+		$network: near,
+		hash: 'e2e-probe-near-transaction',
+		signerAccountId: 'near',
+	},
+	[EntityType.NearReceipt]: {
+		$network: near,
+		receiptId: 'e2e-probe-near-receipt',
+	},
+	[EntityType.NearAction]: {
+		$transaction: {
+			$network: near,
+			hash: 'e2e-probe-near-transaction',
+			signerAccountId: 'near',
+		},
+		actionIndex: 0,
+	},
+	[EntityType.NearExecutionOutcome]: {
+		$transaction: {
+			$network: near,
+			hash: 'e2e-probe-near-transaction',
+			signerAccountId: 'near',
+		},
+		outcomeId: 'e2e-probe-near-outcome',
+	},
+	[EntityType.NearAccount]: {
+		$network: near,
+		accountId: 'near',
+	},
+	[EntityType.NearAccessKey]: {
+		$account: {
+			$network: near,
+			accountId: 'near',
+		},
+		publicKey: 'ed25519:e2e-probe-near-access-key',
+	},
+	[EntityType.NearContract]: {
+		$network: near,
+		accountId: 'near',
+	},
+	[EntityType.NearValidator]: {
+		$network: near,
+		accountId: 'e2e-probe-near-validator',
+	},
+	[EntityType.MoneroBlock]: {
+		$network: monero,
+		height: 3_000_000n,
+	},
+	[EntityType.MoneroTransaction]: {
+		$network: monero,
+		txHash: 'e2e-probe-monero-transaction',
+	},
+	[EntityType.MoneroStealthOutput]: {
+		$transaction: {
+			$network: monero,
+			txHash: 'e2e-probe-monero-transaction',
+		},
+		outputIndex: 0,
+	},
+	[EntityType.MoneroKeyImage]: {
+		$transaction: {
+			$network: monero,
+			txHash: 'e2e-probe-monero-transaction',
+		},
+		inputIndex: 0,
+		keyImage: 'e2e-probe-key-image',
+	},
+	[EntityType.MoneroRing]: {
+		$keyImage: {
+			$transaction: {
+				$network: monero,
+				txHash: 'e2e-probe-monero-transaction',
+			},
+			inputIndex: 0,
+			keyImage: 'e2e-probe-key-image',
+		},
+	},
+	[EntityType.MoneroRingMember]: {
+		$ring: {
+			$keyImage: {
+				$transaction: {
+					$network: monero,
+					txHash: 'e2e-probe-monero-transaction',
+				},
+				inputIndex: 0,
+				keyImage: 'e2e-probe-key-image',
+			},
+		},
+		memberIndex: 0,
+	},
+	[EntityType.LitecoinMwebBlock]: {
+		$block: {
+			$network: litecoin,
+			height: 2_500_000n,
+		},
+	},
+	[EntityType.LitecoinMwebTransaction]: {
+		$mwebBlock: {
+			$block: {
+				$network: litecoin,
+				height: 2_500_000n,
+			},
+		},
+		transactionIndex: 0,
+	},
+	[EntityType.LitecoinMwebPegIn]: {
+		$transaction: {
+			$mwebBlock: {
+				$block: {
+					$network: litecoin,
+					height: 2_500_000n,
+				},
+			},
+			transactionIndex: 0,
+		},
+		pegInIndex: 0,
+	},
+	[EntityType.LitecoinMwebPegOut]: {
+		$transaction: {
+			$mwebBlock: {
+				$block: {
+					$network: litecoin,
+					height: 2_500_000n,
+				},
+			},
+			transactionIndex: 0,
+		},
+		pegOutIndex: 0,
+	},
+	[EntityType.LitecoinMwebOutput]: {
+		$transaction: {
+			$mwebBlock: {
+				$block: {
+					$network: litecoin,
+					height: 2_500_000n,
+				},
+			},
+			transactionIndex: 0,
+		},
+		outputIndex: 0,
+	},
+	[EntityType.LightningNetwork]: {
+		$network: lightning,
+	},
+	[EntityType.LightningNetwork_Timestamp]: {
+		$lightningNetwork: {
+			$network: lightning,
+		},
+		timestampMs: 1_759_536_000_000,
+	},
+	[EntityType.LightningNode]: {
+		$network: lightning,
+		publicKey: '03864ef025fde8fb587d989186ce6a4a186895ee44a926bfc370e2c366597a3f8f',
+	},
+	[EntityType.LightningChannel]: {
+		$network: lightning,
+		channelId: '852861482917888001',
+	},
+	[EntityType.LightningInvoice]: {
+		$network: lightning,
+		paymentHash: 'e2e-probe-lightning-invoice',
+	},
+	[EntityType.LightningPayment]: {
+		$network: lightning,
+		paymentHash: 'e2e-probe-lightning-payment',
+	},
+	[EntityType.LightningHtlc]: {
+		$channel: {
+			$network: lightning,
+			channelId: 'e2e-probe-lightning-channel',
+		},
+		htlcIndex: 0,
+	},
+	[EntityType.DogecoinBlockAuxPow]: {
+		$block: {
+			$network: dogecoin,
+			height: 5_000_000n,
+		},
+	},
+	[EntityType.DogecoinAuxPowParentBlockHeader]: {
+		$auxPow: {
+			$block: {
+				$network: dogecoin,
+				height: 5_000_000n,
+			},
+		},
+	},
+	[EntityType.DogecoinAuxPowMerkleBranch]: {
+		$auxPow: {
+			$block: {
+				$network: dogecoin,
+				height: 5_000_000n,
+			},
+		},
+		branchKind: 'coinbase',
+	},
+	[EntityType.BitcoinCashCashTokenCategory]: {
+		$network: bitcoinCash,
+		categoryId: 'e2e-probe-cashtoken-category',
+	},
+	[EntityType.BitcoinCashCashTokenFungibleAmount]: {
+		$output: {
+			$transaction: {
+				$network: bitcoinCash,
+				txId: 'e2e-probe-bitcoin-cash-transaction',
+			},
+			outputIndex: 0,
+		},
+	},
+	[EntityType.BitcoinCashCashTokenNft]: {
+		$output: {
+			$transaction: {
+				$network: bitcoinCash,
+				txId: 'e2e-probe-bitcoin-cash-transaction',
+			},
+			outputIndex: 0,
+		},
+	},
+	[EntityType.BitcoinCashCashTokenCommitment]: {
+		$output: {
+			$transaction: {
+				$network: bitcoinCash,
+				txId: 'e2e-probe-bitcoin-cash-transaction',
+			},
+			outputIndex: 0,
+		},
+	},
+	[EntityType.BitcoinCashBcmrMetadata]: {
+		$network: bitcoinCash,
+		categoryId: 'e2e-probe-cashtoken-category',
+		registryUrl: 'https://example.com/bcmr.json',
+	},
+	[EntityType.ZeroGConsensusNetwork]: {
+		$network: zeroG,
+		consensusNetworkId: '0g-chain',
+	},
+	[EntityType.ZeroGDaNode]: {
+		$network: zeroG,
+		nodeId: 'e2e-probe-da-node',
+	},
+	[EntityType.ZeroGDaQuorum]: {
+		$network: zeroG,
+		quorumId: 'e2e-probe-da-quorum',
+	},
+	[EntityType.ZeroGDataBlob]: {
+		$network: zeroG,
+		dataRoot: 'e2e-probe-data-root',
+	},
+	[EntityType.ZeroGDataChunk]: {
+		$dataBlob: {
+			$network: zeroG,
+			dataRoot: 'e2e-probe-data-root',
+		},
+		chunkIndex: 0,
+	},
+	[EntityType.ZeroGKvEntry]: {
+		$network: zeroG,
+		namespace: 'e2e-probe-namespace',
+		key: 'e2e-probe-key',
+	},
+	[EntityType.ZeroGServiceProvider]: {
+		$network: zeroG,
+		providerId: 'e2e-probe-provider',
+	},
+	[EntityType.ZeroGServiceRequest]: {
+		$serviceProvider: {
+			$network: zeroG,
+			providerId: 'e2e-probe-provider',
+		},
+		requestId: 'e2e-probe-request',
+	},
+	[EntityType.ZeroGSettlementTrace]: {
+		$serviceRequest: {
+			$serviceProvider: {
+				$network: zeroG,
+				providerId: 'e2e-probe-provider',
+			},
+			requestId: 'e2e-probe-request',
+		},
+		traceId: 'e2e-probe-trace',
+	},
+	[EntityType.ZeroGStorageLogEntry]: {
+		$network: zeroG,
+		logEntryId: 'e2e-probe-storage-log-entry',
+	},
+	[EntityType.ZeroGStorageNode]: {
+		$network: zeroG,
+		nodeId: 'e2e-probe-storage-node',
+	},
+	[EntityType.ZeroGStorageProof]: {
+		$storageNode: {
+			$network: zeroG,
+			nodeId: 'e2e-probe-storage-node',
+		},
+		proofId: 'e2e-probe-storage-proof',
 	},
 
 	[EntityType.NostrNetwork]: { scope: 'NostrNetwork' },
@@ -452,16 +1091,16 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		eventId: NOSTR_PROBE_REPOST_EVENT_ID,
 	},
 
-	[EntityType.Proposal]: {
-		realm: ProposalRealm.Ethereum,
+	[EntityType.SpecificationProposal]: {
+		realm: SpecificationRealm.Ethereum,
 		category: ProposalCategory.Eip,
 		number: 1559,
 	},
-	[EntityType.ProposalKind]: {
-		realm: ProposalRealm.Ethereum,
+	[EntityType.SpecificationProposalKind]: {
+		realm: SpecificationRealm.Ethereum,
 		category: ProposalCategory.Eip,
 	},
-	[EntityType.ProposalRealm]: { realm: ProposalRealm.Ethereum },
+	[EntityType.SpecificationRealm]: { realm: SpecificationRealm.Ethereum },
 
 	[EntityType.RedditComment]: { fullname: 't1_carprdq' },
 	[EntityType.RedditLink]: { fullname: 't3_1h7t8a' },
@@ -547,6 +1186,7 @@ export const envGatedProbeSources = new Set<Source>([
 	Source.Fedi_Rest,
 	Source.Lens_Graphql,
 	Source.Lens_HeyGraphql,
+	Source.LightningLnd_Rest,
 	Source.Mastodon_Rest,
 	Source.Neynar_Rest,
 	Source.Piped_Rest,
@@ -576,9 +1216,9 @@ export const catalogProbeSources = new Set<Source>([
  * Matched before env/catalog/network defaults.
  */
 export const knownUpstreamGapProbeKeys = new Set<string>([
-	`field:${EntityType.Network}.$$erc4337Bundlers:${Source.Blockscout_Rest}`,
-	`field:${EntityType.Network}.$$erc4337Paymasters:${Source.Blockscout_Rest}`,
-	`field:${EntityType.Network}.$$erc4337AccountFactories:${Source.Blockscout_Rest}`,
+	`field:${EntityType.EvmNetwork}.$$erc4337Bundlers:${Source.Blockscout_Rest}`,
+	`field:${EntityType.EvmNetwork}.$$erc4337Paymasters:${Source.Blockscout_Rest}`,
+	`field:${EntityType.EvmNetwork}.$$erc4337AccountFactories:${Source.Blockscout_Rest}`,
 ])
 
 
@@ -690,10 +1330,12 @@ export const resolveProbeEntityId = async (
 
 export const parentEntityIdForFieldResolver = (
 	entityType: EntityType,
-): unknown => (
+) => (
 	entityType === EntityType._Global ?
 		{}
 	: entityType === EntityType.Network ?
+		bitcoin
+	: entityType === EntityType.EvmNetwork ?
 		mainnet
 	: entityType === EntityType.Actor ?
 		actorMainnetVitalik
@@ -762,6 +1404,12 @@ export const parentEntityIdForFieldResolver = (
 		}
 	: entityType === EntityType.FarcasterChannel ?
 		{ id: 'memes' }
+	: entityType === EntityType.LightningNetwork ?
+		{ $network: lightning }
+	: entityType === EntityType.LightningNode ?
+		probeEntityIdByType[EntityType.LightningNode]
+	: entityType === EntityType.LightningChannel ?
+		probeEntityIdByType[EntityType.LightningChannel]
 	:
 		probeEntityIdByType[entityType] ?? (
 			(() => {
@@ -775,14 +1423,18 @@ export const parentEntityIdForFieldResolver = (
 
 export const entityFieldValueForAssert = <_Value>(
 	value: _Value,
-): unknown => (
+): _Value | {
+	[EntityMetaKey.Id]: object
+	[EntityMetaKey.IdKey]: string
+} => (
 	value != null
-	&& typeof value === 'object'
-	&& EntityMetaKey.Id in (value as object) ?
-		({
-			[EntityMetaKey.Id]: (value as Record<string, unknown>)[EntityMetaKey.Id],
-			[EntityMetaKey.IdKey]: stringify((value as Record<string, unknown>)[EntityMetaKey.Id]),
-		})
+		&& typeof value === 'object'
+		&& EntityMetaKey.Id in value ?
+			({
+				// oxlint-disable-next-line typescript-eslint/consistent-type-assertions -- `in` narrows presence, but not the object-valued entity id shape this test fixture requires.
+				[EntityMetaKey.Id]: value[EntityMetaKey.Id] as object,
+				[EntityMetaKey.IdKey]: stringify(value[EntityMetaKey.Id]),
+			})
 	:
 		value
 )

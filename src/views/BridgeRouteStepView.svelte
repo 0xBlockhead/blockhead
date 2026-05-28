@@ -1,12 +1,12 @@
 <script lang="ts">
 	// Types/constants
 	import {
-		bridgeAssetOutcomes,
+		bridgeAssetOutcomeByAssetOutcome,
 		bridgeRailById,
 		bridgeRouteStepTypeByWire,
-		bridgeSettlementModels,
+		bridgeSettlementModelBySettlementModel,
 		bridgeToolByKey,
-		bridgeVerificationModels,
+		bridgeVerificationModelByVerificationModel,
 	} from '$/constants/Bridge.ts'
 
 	import type { ComponentProps } from 'svelte'
@@ -16,7 +16,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
-	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { stringify } from 'devalue'
 
 
@@ -81,8 +81,8 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
+	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 </script>
 
 
@@ -98,10 +98,10 @@
 			resource={step}
 			placeholderText="Loading…"
 		>
-			{#snippet children(loadedStep)}
+			{#snippet children(step)}
 				{(
-					step.tool != null && loadedStep.tool !== '' ?
-						(bridgeToolByKey[loadedStep.tool]?.label ?? loadedStep.tool)
+					step.tool != null && step.tool !== '' ?
+						(bridgeToolByKey[step.tool]?.label ?? step.tool)
 					:
 						`Step ${entityId.index + 1}`
 				)}
@@ -134,9 +134,9 @@
 						resource={step}
 						placeholderText="Loading step…"
 					>
-						{#snippet children(loadedStep)}
-							{#if loadedStep.stepType !== undefined}
-								{bridgeRouteStepTypeByWire[loadedStep.stepType]?.label ?? loadedStep.stepType}
+						{#snippet children(step)}
+							{#if step.stepType !== undefined}
+								{bridgeRouteStepTypeByWire[step.stepType]?.label ?? step.stepType}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -150,13 +150,13 @@
 						resource={step}
 						placeholderText="Loading step…"
 					>
-						{#snippet children(loadedStep)}
-							{#if loadedStep.tool !== undefined}
+						{#snippet children(step)}
+							{#if step.tool !== undefined}
 								{(
 									step.tool !== '' ?
-										(bridgeToolByKey[loadedStep.tool]?.label ?? loadedStep.tool)
+										(bridgeToolByKey[step.tool]?.label ?? step.tool)
 									:
-										loadedStep.tool
+										step.tool
 								)}
 							{/if}
 						{/snippet}
@@ -172,9 +172,9 @@
 							resource={step}
 							placeholderText="Loading step…"
 						>
-							{#snippet children(loadedStep)}
-								{#if loadedStep.railId !== undefined}
-									{bridgeRailById[loadedStep.railId]?.label ?? loadedStep.railId}
+							{#snippet children(step)}
+								{#if step.railId !== undefined}
+									{bridgeRailById[step.railId]?.label ?? step.railId}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -188,9 +188,9 @@
 							resource={step}
 							placeholderText="Loading step…"
 						>
-							{#snippet children(loadedStep)}
-								{#if loadedStep.settlementModel !== undefined}
-									{bridgeSettlementModels[loadedStep.settlementModel].label}
+							{#snippet children(step)}
+								{#if step.settlementModel !== undefined}
+									{bridgeSettlementModelBySettlementModel[step.settlementModel].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -204,9 +204,9 @@
 							resource={step}
 							placeholderText="Loading step…"
 						>
-							{#snippet children(loadedStep)}
-								{#if loadedStep.verificationModel !== undefined}
-									{bridgeVerificationModels[loadedStep.verificationModel].label}
+							{#snippet children(step)}
+								{#if step.verificationModel !== undefined}
+									{bridgeVerificationModelByVerificationModel[step.verificationModel].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -220,9 +220,9 @@
 							resource={step}
 							placeholderText="Loading step…"
 						>
-							{#snippet children(loadedStep)}
-								{#if loadedStep.assetOutcome !== undefined}
-									{bridgeAssetOutcomes[loadedStep.assetOutcome].label}
+							{#snippet children(step)}
+								{#if step.assetOutcome !== undefined}
+									{bridgeAssetOutcomeByAssetOutcome[step.assetOutcome].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -237,10 +237,10 @@
 						resource={step}
 						placeholderText="Loading step…"
 					>
-						{#snippet children(loadedStep)}
-							{#if loadedStep.$fromNetwork}
-								<NetworkView
-									entityId={loadedStep.$fromNetwork[EntityMetaKey.Id]}
+						{#snippet children(step)}
+							{#if step.$fromNetwork}
+								<EvmNetworkView
+									entityId={step.$fromNetwork[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -257,10 +257,10 @@
 						resource={step}
 						placeholderText="Loading step…"
 					>
-						{#snippet children(loadedStep)}
-							{#if loadedStep.$toNetwork}
-								<NetworkView
-									entityId={loadedStep.$toNetwork[EntityMetaKey.Id]}
+						{#snippet children(step)}
+							{#if step.$toNetwork}
+								<EvmNetworkView
+									entityId={step.$toNetwork[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -278,10 +278,10 @@
 							resource={step}
 							placeholderText="Loading step…"
 						>
-							{#snippet children(loadedStep)}
-								{#if loadedStep.$fromToken}
-									<CoinInstanceView
-										entityId={loadedStep.$fromToken[EntityMetaKey.Id]}
+							{#snippet children(step)}
+								{#if step.$fromToken}
+									<EvmCoinInstanceView
+										entityId={step.$fromToken[EntityMetaKey.Id]}
 										layout={EntityLayout.SummaryDetails}
 										open={false}
 										showTypeAnnotation={false}
@@ -299,10 +299,10 @@
 							resource={step}
 							placeholderText="Loading step…"
 						>
-							{#snippet children(loadedStep)}
-								{#if loadedStep.$toToken}
-									<CoinInstanceView
-										entityId={loadedStep.$toToken[EntityMetaKey.Id]}
+							{#snippet children(step)}
+								{#if step.$toToken}
+									<EvmCoinInstanceView
+										entityId={step.$toToken[EntityMetaKey.Id]}
 										layout={EntityLayout.SummaryDetails}
 										open={false}
 										showTypeAnnotation={false}

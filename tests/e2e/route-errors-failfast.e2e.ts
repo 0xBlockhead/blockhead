@@ -5,7 +5,7 @@
  * ```
  * pnpm run test:e2e:failfast
  * E2E_PATH_LIMIT=20 pnpm run test:e2e:failfast
- * E2E_PROBE_PATH=/network/1 pnpm exec playwright test tests/e2e/route-errors-failfast.e2e.ts -g probe
+ * E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/route-errors-failfast.e2e.ts -g probe
  * E2E_START_PATH=/coins pnpm run test:e2e:failfast
  * ```
  */
@@ -40,6 +40,25 @@ const selectPathnames = async () => {
 		pageUrls = index === -1 ? pageUrls : pageUrls.slice(index)
 	}
 	return pageUrls
+}
+
+const withRouteTimeout = async (
+	pathname: string,
+	index: number,
+	total: number,
+	visit: Promise<void>,
+) => {
+	const timeoutMs = routeViewSmokeTimeoutsMs.test + 30_000
+	await Promise.race([
+		visit,
+		new Promise<never>((_, reject) => {
+			setTimeout(() => {
+				reject(new Error(
+					`route smoke timeout after ${timeoutMs}ms at ${pathname} (${index + 1}/${total})`,
+				))
+			}, timeoutMs)
+		}),
+	])
 }
 
 const isTransientDevLoadFailure = (message: string) => (
@@ -108,10 +127,16 @@ test.describe('route errors fail-fast (every +page, stop on first)', () => {
 		page.setDefaultNavigationTimeout(routeViewSmokeTimeoutsMs.goto)
 		await installChainlistRpcsJsonStub(page)
 
-		for (const pathname of pageUrls) {
-			await test.step(pathname, async () => {
-				await visitRouteFailFast(page, testInfo, pathname)
-			})
-		}
+			for (const [index, pathname] of pageUrls.entries()) {
+				console.log(`[route-errors-failfast] ${index + 1}/${pageUrls.length} ${pathname}`)
+				await test.step(pathname, async () => {
+					await withRouteTimeout(
+						pathname,
+						index,
+						pageUrls.length,
+						visitRouteFailFast(page, testInfo, pathname),
+					)
+				})
+			}
 	})
 })

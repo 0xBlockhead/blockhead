@@ -302,20 +302,19 @@
 				})}
 			{/snippet}
 
-			{#snippet children({ open: _collapsibleOpen })}
-				{@const detailsOpen = _collapsibleOpen ?? false}
-				{#if Details && detailsOpen}
+			{#snippet children({ open })}
+				{#if Details && open}
 					<div data-column>
-						{#if Content && detailsOpen}
+						{#if Content && open}
 							{@render Content({
 								title,
 								href,
-								open: detailsOpen,
+								open,
 							})}
 						{/if}
 
 						{@render Details({
-							open: detailsOpen,
+							open,
 						})}
 					</div>
 				{/if}

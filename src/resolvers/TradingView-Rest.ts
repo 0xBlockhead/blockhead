@@ -210,33 +210,5 @@ export default {
 			},
 		}),
 
-		defineEntityFieldResolver({
-			entityType: EntityType.Market,
-			fieldName: '$$quotes',
-			resolve: async (entityId) => {
-				if (entityId.marketKind !== MarketKind.Spot) {
-					throw new Error('TradingView_Rest: Market $$quotes is spot-only')
-				}
-				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$base.$coin.coinId]) !== stringify(entityId)) {
-					throw new Error('TradingView_Rest: Market $$quotes is catalog coin USD market only')
-				}
-				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
-				const { getTradingViewCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
-				const coinId = entityId.$base.$coin.coinId
-				const market = tradingViewMarketByCoinId[coinId]
-				if (market == null) throw new Error('TradingView_Rest: coin market not mapped')
-				const quote = (await getTradingViewCryptoQuotes([market.ticker])).find((row) => row.ticker === market.ticker)
-				if (quote == null) throw new Error('TradingView_Rest: quote not returned')
-
-				return [
-					{
-						[EntityMetaKey.Id]: {
-							$market: entityId,
-							timestampMs: Date.now(),
-						},
-					},
-				]
-			},
-		}),
 	],
 }

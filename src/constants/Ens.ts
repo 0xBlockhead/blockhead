@@ -31,7 +31,7 @@ const evmEnsCoinTypeId = (chainId: number) => (
 	0x80000000 | chainId
 )
 
-const ensRegistrationStatusRows = [
+const ensRegistrationStatuses = [
 	{
 		status: EnsRegistrationStatus.Active,
 		label: 'Active registration',
@@ -49,7 +49,7 @@ const ensRegistrationStatusRows = [
 	label: string
 }[]
 
-const ensTextRecordLabelRows = [
+const ensTextRecordLabels = [
 	{
 		key: 'alias',
 		label: 'Alias',
@@ -234,7 +234,7 @@ export const ensTextRecordDisplayOrder = [
 	'primary-contact',
 ] as const
 
-const ensCoinTypeLabelRows = [
+const ensCoinTypeLabels = [
 	{
 		key: '0',
 		label: 'BTC',
@@ -329,7 +329,7 @@ export const ensProfileTextRecordKeys = [
 	'email',
 ] as const
 
-export const ensTextRecordLinkEntries = [
+export const ensTextRecordLinkRules = [
 	{ keys: ['url', 'website'], hrefMode: EnsTextRecordHrefMode.Value },
 	{ keys: ['email'], hrefMode: EnsTextRecordHrefMode.Mailto },
 	{
@@ -367,22 +367,22 @@ export const ensTextRecordLinkEntries = [
 
 // Lookups
 
-export const ensRegistrationStatuses = Object.fromEntries(
-	ensRegistrationStatusRows.map((row) => [
+export const ensRegistrationStatusByStatus = Object.fromEntries(
+	ensRegistrationStatuses.map((row) => [
 		row.status,
 		row,
 	]),
 )
 
-export const ensTextRecordLabels = Object.fromEntries(
-	ensTextRecordLabelRows.map((row) => [
+export const ensTextRecordLabelByKey = Object.fromEntries(
+	ensTextRecordLabels.map((row) => [
 		row.key,
 		row,
 	]),
 )
 
-export const ensCoinTypeLabels = Object.fromEntries(
-	ensCoinTypeLabelRows.map((row) => [
+export const ensCoinTypeLabelByKey = Object.fromEntries(
+	ensCoinTypeLabels.map((row) => [
 		row.key,
 		row,
 	]),

@@ -1,5 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+
+
+	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
@@ -133,8 +137,8 @@
 					<MevRelay_ProposerPayloadDeliveredView
 						entityId={row[EntityMetaKey.Id]}
 						href={resolve(
-							'/(explore)/(networks)/network/[networkId]',
-							{ networkId: String(row[EntityMetaKey.Id].$network.chainId) },
+							'/(explore)/network/[caip2Namespace]:[caip2Reference]',
+							{ ...caip2RouteParamsFromEvmChainId(row[EntityMetaKey.Id].$network.chainId) },
 						)}
 						id={stringify(row[EntityMetaKey.Id])}
 						layout={EntityLayout.Summary}

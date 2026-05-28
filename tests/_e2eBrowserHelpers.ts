@@ -8,7 +8,7 @@ import { jsonRpcUrlWithTransportForChain } from '$/resolvers/Voltaire-JsonRpc.ts
 export { e2eBrowserNewContextOptions } from '../playwright.env.ts'
 
 export const jsonStringifyForExpectMessage = (
-	value: unknown,
+	value: Parameters<typeof JSON.stringify>[0],
 ) => (
 	JSON.stringify(
 		value,
@@ -231,7 +231,7 @@ export const installBoundaryProbe = (page: Page) => (
 		}
 
 		const origConsoleError = console.error
-		console.error = (...args: unknown[]) => {
+		console.error = (...args: Parameters<typeof console.error>) => {
 			const text = args.map((arg) => String(arg)).join(' ')
 			if (text.includes('[blockhead:boundary:uncaught]')) {
 				const keyMatch = text.match(/\[blockhead:boundary:uncaught\]\s+(\S+)/)
@@ -336,11 +336,11 @@ export const installBoundaryProbe = (page: Page) => (
 export const resetBoundaryProbe = (page: Page) => (
 	page.url().startsWith('about:') ?
 		Promise.resolve()
-	:
-		page.evaluate(() => {
-			window.__blockheadBoundaryProbe = []
-		})
-)
+		:
+			page.evaluate(() => {
+				window.__blockheadBoundaryProbe = []
+			}).catch(() => {})
+	)
 
 export const clearBoundaryProbe = resetBoundaryProbe
 
@@ -598,7 +598,7 @@ export const waitForNetworksListRendered = async (page: Page) => {
 		0,
 		{ timeout: 120_000 },
 	)
-	await expect(page.locator('#networks').locator('a[href$="/network/1"]').first()).toBeVisible({
+	await expect(page.locator('#networks').locator('a[href$="/network/eip155:1"]').first()).toBeVisible({
 		timeout: 120_000,
 	})
 }
@@ -852,7 +852,7 @@ export const MOCK_CHAINLIST_RPCS_CHAIN_COUNT = 6
 
 /**
  * Minimal `chains.json` for ethereum-lists (same chain ids as {@link MOCK_CHAINLIST_RPCS_JSON_BODY}).
- * Includes L2 parent links so `/network/1` exercises the Chainlist / ethereum-lists child network subsets.
+ * Includes L2 parent links so `/network/eip155:1` exercises the Chainlist / ethereum-lists child network subsets.
  */
 export const MOCK_ETHEREUM_LISTS_CHAINS_JSON_BODY = JSON.stringify(
 	[

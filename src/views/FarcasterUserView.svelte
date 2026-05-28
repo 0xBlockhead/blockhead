@@ -68,7 +68,7 @@
 		},
 	)
 
-	const casts = derive(farcasterUser, (loadedFarcasterUser) => (
+	const casts = derive(farcasterUser, (farcasterUser) => (
 			[...(farcasterUser.$$casts ?? [])].map((result) => ({
 				result,
 			}))
@@ -102,9 +102,9 @@
 			resource={farcasterUser}
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
-			{#snippet children(loadedFarcasterUser)}
-				{loadedFarcasterUser.displayName
-					?? loadedFarcasterUser.username
+			{#snippet children(farcasterUser)}
+				{farcasterUser.displayName
+					?? farcasterUser.username
 					?? `FID ${String(entityId.fid)}`}
 			{/snippet}
 		</ResourceBoundary>
@@ -134,14 +134,14 @@
 			resource={farcasterUser}
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
-			{#snippet children(loadedFarcasterUser)}
+			{#snippet children(farcasterUser)}
 				{#if (
 					farcasterUser.$icon
 					&& farcasterUser.$icon[EntityMetaKey.Id].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={loadedFarcasterUser.$icon[EntityMetaKey.Id].url}
+						src={farcasterUser.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -154,17 +154,17 @@
 			resource={farcasterUser}
 			placeholderText="Loading Farcaster profile (FID)…"
 		>
-			{#snippet children(loadedFarcasterUser)}
+			{#snippet children(farcasterUser)}
 				{#if (
 					farcasterUser.username !== undefined
 					&& farcasterUser.username !== (
 						farcasterUser.displayName
-						?? loadedFarcasterUser.username
+						?? farcasterUser.username
 						?? `FID ${String(entityId.fid)}`
 					)
 				)}
 					<span data-text="muted">
-						@{loadedFarcasterUser.username}
+						@{farcasterUser.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -180,9 +180,9 @@
 						resource={farcasterUser}
 						placeholderText="Loading Farcaster profile (FID)…"
 					>
-						{#snippet children(loadedFarcasterUser)}
-							{#if loadedFarcasterUser.bio != null && loadedFarcasterUser.bio !== ''}
-								{loadedFarcasterUser.bio}
+						{#snippet children(farcasterUser)}
+							{#if farcasterUser.bio != null && farcasterUser.bio !== ''}
+								{farcasterUser.bio}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -203,12 +203,12 @@
 						resource={farcasterUser}
 						placeholderText="Loading Farcaster profile (FID)…"
 					>
-						{#snippet children(loadedFarcasterUser)}
-							{#if loadedFarcasterUser.url}
+						{#snippet children(farcasterUser)}
+							{#if farcasterUser.url}
 								<a
-									href={loadedFarcasterUser.url}
+									href={farcasterUser.url}
 									data-text="muted"
-								>{loadedFarcasterUser.url}</a>
+								>{farcasterUser.url}</a>
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -223,10 +223,10 @@
 							resource={farcasterUser}
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
-							{#snippet children(loadedFarcasterUser)}
-								{#if loadedFarcasterUser.$$verifiedAddresses.length}
+							{#snippet children(farcasterUser)}
+								{#if farcasterUser.$$verifiedAddresses.length}
 									<ul data-column="gap-2">
-										{#each loadedFarcasterUser.$$verifiedAddresses as verification (stringify(verification[EntityMetaKey.Id]))}
+										{#each farcasterUser.$$verifiedAddresses as verification (stringify(verification[EntityMetaKey.Id]))}
 											<li>
 												{#if verification[EntityMetaKey.Id].protocol === 'ethereum'}
 													<ActorView
@@ -262,9 +262,9 @@
 							resource={farcasterUser}
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
-							{#snippet children(loadedFarcasterUser)}
-								{#if loadedFarcasterUser.displayName}
-									{loadedFarcasterUser.displayName}
+							{#snippet children(farcasterUser)}
+								{#if farcasterUser.displayName}
+									{farcasterUser.displayName}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -280,9 +280,9 @@
 							resource={farcasterUser}
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
-							{#snippet children(loadedFarcasterUser)}
-								{#if loadedFarcasterUser.username}
-									@{loadedFarcasterUser.username}
+							{#snippet children(farcasterUser)}
+								{#if farcasterUser.username}
+									@{farcasterUser.username}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -298,14 +298,14 @@
 							resource={farcasterUser}
 							placeholderText="Loading Farcaster profile (FID)…"
 						>
-							{#snippet children(loadedFarcasterUser)}
+							{#snippet children(farcasterUser)}
 								{#if (
 									farcasterUser.$icon
 									&& farcasterUser.$icon[EntityMetaKey.Id].url
 								)}
 									<Media
-										media={{ url: loadedFarcasterUser.$icon[EntityMetaKey.Id].url }}
-										alt={(farcasterUser.displayName ?? loadedFarcasterUser.username) ?? ''}
+										media={{ url: farcasterUser.$icon[EntityMetaKey.Id].url }}
+										alt={(farcasterUser.displayName ?? farcasterUser.username) ?? ''}
 									/>
 								{/if}
 							{/snippet}
@@ -361,7 +361,7 @@
 						resource={farcasterUser}
 						placeholderText="Loading Farcaster profile (FID)…"
 					>
-						{#snippet children(loadedFarcasterUser)}
+						{#snippet children(farcasterUser)}
 							<section data-column>
 								<h3>Farcaster profile</h3>
 							</section>

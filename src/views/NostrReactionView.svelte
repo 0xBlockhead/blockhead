@@ -31,6 +31,7 @@
 			entityId: EntityId<typeof schema, EntityType.NostrReaction>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -76,6 +77,7 @@
 	{entityId}
 	href={href}
 	bind:open
+	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
@@ -90,8 +92,8 @@
 			resource={reaction}
 			placeholderText="Loading reaction…"
 		>
-			{#snippet children(loadedReaction)}
-				{loadedReaction.content ?? '+'}
+			{#snippet children(reaction)}
+				{reaction.content ?? '+'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -107,44 +109,41 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			{#if loadedReaction.content}
-				<div>
-					<dt>Content</dt>
-					<dd>
-						<ResourceBoundary
-							resource={reaction}
-							placeholderText="Loading reaction…"
-						>
-							{#snippet children(loadedReaction)}
-								{loadedReaction.content}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+			<ResourceBoundary
+				resource={reaction}
+				placeholderText="Loading reaction…"
+			>
+				{#snippet children(reaction)}
+					{#if reaction.content}
+						<div>
+							<dt>Content</dt>
+							<dd>
+								{reaction.content}
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
-			{#if loadedReaction.createdAt != null}
-				<div>
-					<dt>Created</dt>
-					<dd>
-						<ResourceBoundary
-							resource={reaction}
-							placeholderText="Loading reaction…"
-						>
-							{#snippet children(loadedReaction)}
+			<div>
+				<dt>Created</dt>
+				<dd>
+					<ResourceBoundary
+						resource={reaction}
+						placeholderText="Loading reaction…"
+					>
+						{#snippet children(reaction)}
+							{#if reaction.createdAt != null}
 								<Timestamp
-									timestamp={loadedReaction.createdAt}
+									timestamp={reaction.createdAt}
 								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			{#if (
-				open
-				&& reaction.$author
-			)}
+			{#if open}
 				<div>
 					<dt>Author</dt>
 					<dd>
@@ -152,22 +151,19 @@
 							resource={reaction}
 							placeholderText="Loading reaction…"
 						>
-							{#snippet children(loadedReaction)}
-								<NostrProfileView
-									entityId={loadedReaction.$author[EntityMetaKey.Id]}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
+							{#snippet children(reaction)}
+								{#if reaction.$author}
+									<NostrProfileView
+										entityId={reaction.$author[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+										open={false}
+									/>
+								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
 				</div>
-			{/if}
 
-			{#if (
-				open
-				&& reaction.$targetNote
-			)}
 				<div>
 					<dt>Target note</dt>
 					<dd>
@@ -175,22 +171,19 @@
 							resource={reaction}
 							placeholderText="Loading reaction…"
 						>
-							{#snippet children(loadedReaction)}
-								<NostrNoteView
-									entityId={loadedReaction.$targetNote[EntityMetaKey.Id]}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
+							{#snippet children(reaction)}
+								{#if reaction.$targetNote}
+									<NostrNoteView
+										entityId={reaction.$targetNote[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+										open={false}
+									/>
+								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
 				</div>
-			{/if}
 
-			{#if (
-				open
-				&& reaction.$targetArticle
-			)}
 				<div>
 					<dt>Target article</dt>
 					<dd>
@@ -198,12 +191,14 @@
 							resource={reaction}
 							placeholderText="Loading reaction…"
 						>
-							{#snippet children(loadedReaction)}
-								<NostrArticleView
-									entityId={loadedReaction.$targetArticle[EntityMetaKey.Id]}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
+							{#snippet children(reaction)}
+								{#if reaction.$targetArticle}
+									<NostrArticleView
+										entityId={reaction.$targetArticle[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+										open={false}
+									/>
+								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -221,4 +216,3 @@
 		/>
 	{/snippet}
 </EntityView>
-

@@ -2,8 +2,8 @@ import { error } from '@sveltejs/kit'
 
 import { type as arktype } from 'arktype'
 
-import CoinInstanceSchema, { CoinInstanceType } from '$/schema/CoinInstance.ts'
-import NetworkSchema from '$/schema/Network.ts'
+import CoinInstanceSchema, { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
+import NetworkSchema from '$/schema/EvmNetwork.ts'
 import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 
 import type { PageLoad } from './$types.ts'

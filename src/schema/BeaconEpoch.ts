@@ -6,14 +6,14 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import Network from '$/schema/Network.ts'
+import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.BeaconEpoch,
 
-	label: 'Beacon Epoch',
-	labelPlural: 'Beacon Epochs',
+	label: 'Beacon epoch',
+	labelPlural: 'Beacon epochs',
 
 	id: type({
 		$network: Network.id,
@@ -59,4 +59,3 @@ export default {
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition
-

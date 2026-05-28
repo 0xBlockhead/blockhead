@@ -102,8 +102,8 @@
 			resource={article}
 			placeholderText="Loading article…"
 		>
-			{#snippet children(loadedArticle)}
-				{loadedArticle.title ?? entityId.identifier}
+			{#snippet children(article)}
+				{article.title ?? entityId.identifier}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -121,11 +121,11 @@
 		<ResourceBoundary
 			resource={article}
 		>
-			{#snippet children(loadedArticle)}
-				{#if loadedArticle.publishedAt}
+			{#snippet children(article)}
+				{#if article.publishedAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={loadedArticle.publishedAt}
+							timestamp={article.publishedAt}
 						/>
 					</span>
 				{/if}
@@ -138,21 +138,21 @@
 			resource={article}
 			placeholderText="Loading article…"
 		>
-			{#snippet children(loadedArticle)}
+			{#snippet children(article)}
 				<dl data-column-item="center">
-					{#if loadedArticle.summary}
+					{#if article.summary}
 						<div>
 							<dt>Summary</dt>
-							<dd>{loadedArticle.summary}</dd>
+							<dd>{article.summary}</dd>
 						</div>
 					{/if}
 
-					{#if open && loadedArticle.$author}
+					{#if open && article.$author}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<NostrProfileView
-									entityId={loadedArticle.$author[EntityMetaKey.Id]}
+									entityId={article.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -160,15 +160,15 @@
 						</div>
 					{/if}
 
-					{#if open && loadedArticle.imageUrl}
+					{#if open && article.imageUrl}
 						<div>
 							<dt>Hero image</dt>
 							<dd>
 								<a
-									href={loadedArticle.imageUrl}
+									href={article.imageUrl}
 									rel="noreferrer"
 									target="_blank"
-								>{loadedArticle.imageUrl}</a>
+								>{article.imageUrl}</a>
 							</dd>
 						</div>
 					{/if}
@@ -220,9 +220,9 @@
 							resource={article}
 							placeholderText="Loading article…"
 						>
-							{#snippet children(loadedArticle)}
-								{#if loadedArticle.content}
-									<Markdown content={loadedArticle.content} />
+							{#snippet children(article)}
+								{#if article.content}
+									<Markdown content={article.content} />
 								{:else}
 									<p data-text="muted">
 										No article body yet.

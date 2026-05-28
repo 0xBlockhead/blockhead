@@ -86,7 +86,7 @@
 		<p>
 			<strong>Raw calldata</strong>
 			is ABI-encoded execution bytes (<code>0x</code>
-			prefix; four-byte selector then arguments). Match length and selector to the contract you target before any wallet prompt—human-readable strings are not loadedCalldata.
+			prefix; four-byte selector then arguments). Match length and selector to the contract you target before any wallet prompt—human-readable strings are not calldata.
 		</p>
 	{/snippet}
 
@@ -119,7 +119,7 @@
 					placeholderText="Loading calldata…"
 					resource={calldata}
 				>
-					{#snippet children(loadedCalldata)}
+					{#snippet children(calldata)}
 						<div>
 							<dt>Hex</dt>
 							<dd>

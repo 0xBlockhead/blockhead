@@ -3,8 +3,8 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 
 	import {
-		ensTextRecordLabels,
-		ensTextRecordLinkEntries as ensTextRecordLinks,
+		ensTextRecordLabelByKey,
+		ensTextRecordLinkRules as ensTextRecordLinks,
 		EnsTextRecordHrefMode,
 	} from '$/constants/Ens.ts'
 
@@ -46,7 +46,7 @@
 
 
 	const recordLabel = $derived(
-		ensTextRecordLabels[recordId]?.label ?? recordId,
+		ensTextRecordLabelByKey[recordId]?.label ?? recordId,
 	)
 
 
@@ -86,8 +86,8 @@
 			placeholderText="Loading text record…"
 			resource={ens}
 		>
-			{#snippet children(loadedEns)}
-				{@const recordValue = loadedEns.textRecords?.[recordId]}
+			{#snippet children(ens)}
+				{@const recordValue = ens.textRecords?.[recordId]}
 				{@const textRecordLinkEntry = ensTextRecordLinks.find((candidate) => (
 					candidate.keys.some((candidateKey) => candidateKey === recordId)
 				))}

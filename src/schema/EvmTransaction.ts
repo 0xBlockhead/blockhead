@@ -14,7 +14,7 @@ import {
 	EvmTransactionExecutionStatus,
 	EvmTransactionKind,
 } from '$/constants/Evm.ts'
-import Network from '$/schema/Network.ts'
+import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
 
 // Signed execution-layer transaction (RPC/indexer).

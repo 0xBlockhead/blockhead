@@ -95,7 +95,7 @@
 	{#if children && open}
 		<div
 			data-column-item="flexible"
-			data-column="layout-flex"
+			data-column
 			data-sticky-container
 		>
 			{@render children({

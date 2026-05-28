@@ -124,6 +124,7 @@
 	> = $props()
 
 	const onNestedCollapsibleClose = getOnNestedCollapsibleClose()
+	const isInsidePage = getIsInsidePage()
 
 
 	// Inner context
@@ -155,7 +156,7 @@
 
 
 
-	const loadedCount = $derived(
+	const count = $derived(
 		items !== undefined || resource !== undefined ?
 			listSummary.loaded
 		:
@@ -167,13 +168,13 @@
 	)
 
 	const showCounts = $derived(
-		loadedCount !== undefined || totalCount !== undefined,
+		count !== undefined || totalCount !== undefined,
 	)
 
 	const showTotalCount = $derived(
-		loadedCount !== undefined
+		count !== undefined
 		&& totalCount !== undefined
-		&& totalCount !== loadedCount,
+		&& totalCount !== count,
 	)
 
 	const listItems = $derived(
@@ -183,9 +184,9 @@
 			[],
 	)
 
-	const rowsFromQuery = (items: ItemsInput | undefined) => (
+	const rowsFromQuery = (items: ItemsInput | undefined): _Item[] => (
 		items === undefined ?
-			[] as _Item[]
+			[]
 		:
 			[...items]
 	)
@@ -229,14 +230,14 @@
 				<a {href}>{title}</a>
 				{#if showCounts}
 					<small>(
-						{#if loadedCount !== undefined}
-							<NumberValue value={loadedCount} />
+						{#if count !== undefined}
+							<NumberValue value={count} />
 						{/if}
 						{#if showTotalCount}
 							/
 							<NumberValue value={totalCount!} />
 						{/if}
-						{#if loadedCount === undefined && totalCount !== undefined}
+						{#if count === undefined && totalCount !== undefined}
 							<NumberValue value={totalCount} />
 						{/if}
 					)</small>
@@ -321,12 +322,12 @@
 	{:else if collapsible}
 		<Collapsible
 			bind:open
-			{...CollapsibleProps}
-			onclose={(_closeId) => {
-				if (!getIsInsidePage())
-					onNestedCollapsibleClose?.(id)
-				CollapsibleProps.onclose?.(_closeId)
-			}}
+				{...CollapsibleProps}
+				onclose={(_closeId) => {
+					if (!isInsidePage)
+						onNestedCollapsibleClose?.(id)
+					CollapsibleProps.onclose?.(_closeId)
+				}}
 			{...{ 'data-card': '' }}
 		>
 			{#snippet Summary({ open: _summaryOpen })}

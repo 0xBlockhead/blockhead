@@ -98,11 +98,11 @@
 		<ResourceBoundary
 			resource={actor}
 		>
-			{#snippet children(loadedActor)}
-				{@const atprotoBrandIconSrc = loadedActor.$icon?.[EntityMetaKey.Id].url}
+			{#snippet children(actor)}
+				{@const atprotoBrandIconSrc = actor.$icon?.[EntityMetaKey.Id].url}
 				{#if atprotoBrandIconSrc}
 					<IconComponent
-						alt={loadedActor.displayName ?? loadedActor.handle ?? ''}
+						alt={actor.displayName ?? actor.handle ?? ''}
 						shape={IconShape.Circle}
 						src={atprotoBrandIconSrc}
 					/>
@@ -116,9 +116,9 @@
 			resource={actor}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(loadedActor)}
-				{loadedActor.displayName
-					?? loadedActor.handle
+			{#snippet children(actor)}
+				{actor.displayName
+					?? actor.handle
 					?? entityId.did}
 			{/snippet}
 		</ResourceBoundary>
@@ -138,15 +138,15 @@
 		<ResourceBoundary
 			resource={actor}
 		>
-			{#snippet children(loadedActor)}
+			{#snippet children(actor)}
 				{@const atprotoSummaryHeadingLine = (
 					actor.displayName
-					?? loadedActor.handle
+					?? actor.handle
 					?? entityId.did
 				)}
-				{#if loadedActor.handle && loadedActor.handle !== atprotoSummaryHeadingLine}
+				{#if actor.handle && actor.handle !== atprotoSummaryHeadingLine}
 					<span data-text="muted">
-						@{loadedActor.handle}
+						@{actor.handle}
 					</span>
 				{/if}
 			{/snippet}
@@ -162,9 +162,9 @@
 						resource={actor}
 						placeholderText="Loading profile…"
 					>
-						{#snippet children(loadedActor)}
-							{#if loadedActor.description}
-								{loadedActor.description}
+						{#snippet children(actor)}
+							{#if actor.description}
+								{actor.description}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -179,9 +179,9 @@
 							resource={actor}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(loadedActor)}
-								{#if loadedActor.handle}
-									{loadedActor.handle}
+							{#snippet children(actor)}
+								{#if actor.handle}
+									{actor.handle}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -197,7 +197,7 @@
 					<dt>Followers</dt>
 					<dd>
 						<NumberValue
-							value={loadedActor.followersCount}
+							value={actor.followersCount}
 						/>
 					</dd>
 				</div>
@@ -211,7 +211,7 @@
 					<dt>Following</dt>
 					<dd>
 						<NumberValue
-							value={loadedActor.followsCount}
+							value={actor.followsCount}
 						/>
 					</dd>
 				</div>
@@ -225,7 +225,7 @@
 					<dt>Posts</dt>
 					<dd>
 						<NumberValue
-							value={loadedActor.postsCount}
+							value={actor.postsCount}
 						/>
 					</dd>
 				</div>
@@ -239,7 +239,7 @@
 					<dt>Indexed</dt>
 					<dd>
 						<Timestamp
-							timestamp={loadedActor.indexedAt}
+							timestamp={actor.indexedAt}
 						/>
 					</dd>
 				</div>
@@ -286,7 +286,7 @@
 						resource={actor}
 						placeholderText="Loading profile…"
 					>
-						{#snippet children(loadedActor)}
+						{#snippet children(actor)}
 							{@const atprotoProfileUnset = (
 								actor.handle == null
 								&& actor.displayName == null

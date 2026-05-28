@@ -25,14 +25,14 @@ export const githubHttp = ({
 	})
 )
 
-export const getJson = ({
+export const getJson = <_Json extends JsonValue = JsonValue>({
 	url,
 	origins = githubHttpAllowedOrigins,
 }: {
 	url: string
 	origins?: readonly SourceOrigin[]
-}): Promise<JsonValue> => (
-	fetchGetJson<JsonValue>(url, {
+}): Promise<_Json> => (
+	fetchGetJson<_Json>(url, {
 		origins: [...origins],
 		init: githubInit(url),
 	})

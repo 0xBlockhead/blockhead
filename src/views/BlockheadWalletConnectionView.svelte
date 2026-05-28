@@ -4,7 +4,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { blockheadWalletConnectionStatuses } from '$/constants/Blockhead.ts'
+	import { blockheadWalletConnectionStatusByStatus } from '$/constants/Blockhead.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
@@ -134,7 +134,7 @@
 
 				<div>
 					<dt>Status</dt>
-					<dd>{blockheadWalletConnectionStatuses[status].label}</dd>
+					<dd>{blockheadWalletConnectionStatusByStatus[status].label}</dd>
 				</div>
 
 				{#if accounts[0]}
@@ -180,17 +180,17 @@
 					resource={walletConnection}
 					placeholderText="Loading wallet connection…"
 				>
-					{#snippet children(loadedWalletConnection)}
+					{#snippet children(walletConnection)}
 						<div>
 							<dt>Selected</dt>
-							<dd>{loadedWalletConnection.selected ? 'Yes' : 'No'}</dd>
+							<dd>{walletConnection.selected ? 'Yes' : 'No'}</dd>
 						</div>
 
 						<div>
 							<dt>Connected at</dt>
 							<dd>
 								<Timestamp
-									timestamp={loadedWalletConnection.connectedAt}
+									timestamp={walletConnection.connectedAt}
 								/>
 							</dd>
 						</div>
@@ -293,4 +293,3 @@
 <style>
 
 </style>
-

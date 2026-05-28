@@ -56,6 +56,7 @@
 			videoCount: {},
 			viewCount: {},
 			publishedAt: {},
+			publishedAtMs: {},
 			customUrl: {},
 			$icon: {},
 			...(open ?
@@ -88,6 +89,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import YouTubePlaylistsView from '$/views/YouTubePlaylistsView.svelte'
 	import YouTubeVideosView from '$/views/YouTubeVideosView.svelte'
 </script>
@@ -112,8 +114,8 @@
 			resource={channel}
 			placeholderText="Loading channel…"
 		>
-			{#snippet children(loadedChannel)}
-				{loadedChannel.title ?? entityId.channelId}
+			{#snippet children(channel)}
+				{channel.title ?? entityId.channelId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -123,14 +125,14 @@
 			resource={channel}
 			placeholderText="Loading channel…"
 		>
-			{#snippet children(loadedChannel)}
+			{#snippet children(channel)}
 				{#if (
 					channel.$icon
 					&& channel.$icon[EntityMetaKey.Id].url
 				)}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={loadedChannel.$icon[EntityMetaKey.Id].url}
+						src={channel.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -156,9 +158,9 @@
 						resource={channel}
 						placeholderText="Loading channel…"
 					>
-						{#snippet children(loadedChannel)}
-							{#if loadedChannel.description}
-								{loadedChannel.description}
+						{#snippet children(channel)}
+							{#if channel.description}
+								{channel.description}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -172,8 +174,8 @@
 							resource={channel}
 							placeholderText="Loading channel…"
 						>
-							{#snippet children(loadedChannel)}
-								{#if loadedChannel.subscriberCount != null}
+							{#snippet children(channel)}
+								{#if channel.subscriberCount != null}
 									{String(channel.subscriberCount)}
 								{/if}
 							{/snippet}
@@ -187,8 +189,8 @@
 							resource={channel}
 							placeholderText="Loading channel…"
 						>
-							{#snippet children(loadedChannel)}
-								{#if loadedChannel.videoCount != null}
+							{#snippet children(channel)}
+								{#if channel.videoCount != null}
 									{String(channel.videoCount)}
 								{/if}
 							{/snippet}
@@ -202,8 +204,8 @@
 							resource={channel}
 							placeholderText="Loading channel…"
 						>
-							{#snippet children(loadedChannel)}
-								{#if loadedChannel.viewCount != null}
+							{#snippet children(channel)}
+								{#if channel.viewCount != null}
 									{String(channel.viewCount)}
 								{/if}
 							{/snippet}
@@ -217,9 +219,11 @@
 							resource={channel}
 							placeholderText="Loading channel…"
 						>
-							{#snippet children(loadedChannel)}
-								{#if loadedChannel.publishedAt != null}
-									{loadedChannel.publishedAt}
+							{#snippet children(channel)}
+								{#if channel.publishedAtMs != null}
+									<Timestamp timestamp={channel.publishedAtMs} />
+								{:else if channel.publishedAt != null}
+									{channel.publishedAt}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -232,9 +236,9 @@
 							resource={channel}
 							placeholderText="Loading channel…"
 						>
-							{#snippet children(loadedChannel)}
-								{#if loadedChannel.customUrl}
-									{loadedChannel.customUrl}
+							{#snippet children(channel)}
+								{#if channel.customUrl}
+									{channel.customUrl}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -309,4 +313,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-

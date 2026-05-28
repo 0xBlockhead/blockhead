@@ -8,6 +8,10 @@ import {
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
+const Did = type(
+	'/^did:(plc:[a-z2-7]+|web:[A-Za-z0-9._:%-]+)$/' as type.cast<string>,
+)
+
 export default {
 	entityType: EntityType.AtprotoActor,
 
@@ -15,7 +19,7 @@ export default {
 	labelPlural: 'AT Protocol actors',
 
 	id: type({
-		did: 'string',
+		did: Did,
 	}),
 
 	fields: [

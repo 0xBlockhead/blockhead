@@ -169,7 +169,7 @@ export default {
 						categoryId: optionalTrimmedString(d.snippet?.categoryId),
 					}),
 					...(d.snippet?.tags != null && d.snippet.tags.length > 0 && {
-						tagLine: d.snippet.tags.join(', '),
+						tags: d.snippet.tags,
 					}),
 					...(liveBroadcastContent != null && { liveBroadcastContent }),
 					...(durationSeconds != null && { durationSeconds }),
@@ -249,6 +249,11 @@ export default {
 						authorDisplayName: optionalTrimmedString(snippet?.authorDisplayName),
 					}),
 					...(authorChannelId != null && { authorChannelId }),
+					...(authorChannelId != null && {
+						$author: {
+							[EntityMetaKey.Id]: { channelId: authorChannelId },
+						},
+					}),
 					...(optionalFiniteNumber(snippet?.likeCount) != null && {
 						likeCount: optionalFiniteNumber(snippet?.likeCount),
 					}),
@@ -429,7 +434,12 @@ export default {
 							optionalTrimmedString(thread.snippet?.topLevelComment?.id),
 						)
 						if (commentRef == null) continue
-						refs.push(commentRef)
+						refs.push({
+							...commentRef,
+							...(optionalTimestampMs(thread.snippet?.topLevelComment?.snippet?.publishedAt) != null && {
+								publishedAtMs: optionalTimestampMs(thread.snippet?.topLevelComment?.snippet?.publishedAt),
+							}),
+						})
 						if (refs.length >= limit) break
 					}
 					pageToken = page.nextPageToken
@@ -467,7 +477,12 @@ export default {
 							optionalTrimmedString(item.id),
 						)
 						if (commentRef == null) continue
-						refs.push(commentRef)
+						refs.push({
+							...commentRef,
+							...(optionalTimestampMs(item.snippet?.publishedAt) != null && {
+								publishedAtMs: optionalTimestampMs(item.snippet?.publishedAt),
+							}),
+						})
 						if (refs.length >= limit) break
 					}
 					pageToken = page.nextPageToken

@@ -83,7 +83,6 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.NostrBand_Rest,
-				Source.Primal_Rest,
 			],
 		},
 		{
@@ -103,7 +102,6 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.NostrBand_Rest,
-				Source.Primal_Rest,
 			],
 		},
 		{
@@ -113,7 +111,6 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.NostrBand_Rest,
-				Source.Primal_Rest,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

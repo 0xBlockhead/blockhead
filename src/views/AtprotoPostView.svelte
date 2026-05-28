@@ -116,13 +116,13 @@
 			resource={post}
 			placeholderText="Loading post…"
 		>
-			{#snippet children(loadedPost)}
-				{#if loadedPost.text}
+			{#snippet children(post)}
+				{#if post.text}
 					<TruncatedValue
 						endLength={8}
 						format={TruncatedValueFormat.Visual}
 						startLength={88}
-						value={loadedPost.text}
+						value={post.text}
 					/>
 				{:else}
 					{@render Value()}
@@ -135,11 +135,11 @@
 		<ResourceBoundary
 			resource={post}
 		>
-			{#snippet children(loadedPost)}
-				{#if loadedPost.createdAt}
+			{#snippet children(post)}
+				{#if post.createdAt}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={loadedPost.createdAt}
+							timestamp={post.createdAt}
 						/>
 					</span>
 				{/if}
@@ -156,32 +156,32 @@
 			resource={post}
 			placeholderText="Loading post…"
 		>
-			{#snippet children(loadedPost)}
+			{#snippet children(post)}
 				<dl data-column-item="center">
-					{#if loadedPost.text}
+					{#if post.text}
 						<div>
 							<dt>Text</dt>
-							<dd>{loadedPost.text}</dd>
+							<dd>{post.text}</dd>
 						</div>
 					{/if}
 
-					{#if loadedPost.createdAt}
+					{#if post.createdAt}
 						<div>
 							<dt>Published</dt>
 							<dd>
 								<Timestamp
-									timestamp={loadedPost.createdAt}
+									timestamp={post.createdAt}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedPost.$author}
+					{#if contentOpen && post.$author}
 						<div>
 							<dt>Author</dt>
 							<dd>
 								<AtprotoActorView
-									entityId={loadedPost.$author[EntityMetaKey.Id]}
+									entityId={post.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -189,12 +189,12 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedPost.$parent}
+					{#if contentOpen && post.$parent}
 						<div>
 							<dt>Reply to</dt>
 							<dd>
 								<AtprotoPostView
-									entityId={loadedPost.$parent[EntityMetaKey.Id]}
+									entityId={post.$parent[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -202,12 +202,12 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedPost.$root && loadedPost.$root[EntityMetaKey.Id].uri !== loadedPost.$parent?.[EntityMetaKey.Id].uri}
+					{#if contentOpen && post.$root && post.$root[EntityMetaKey.Id].uri !== post.$parent?.[EntityMetaKey.Id].uri}
 						<div>
 							<dt>Thread root</dt>
 							<dd>
 								<AtprotoPostView
-									entityId={loadedPost.$root[EntityMetaKey.Id]}
+									entityId={post.$root[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -215,70 +215,70 @@
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedPost.replyCount != null}
+					{#if contentOpen && post.replyCount != null}
 						<div>
 							<dt>Replies</dt>
 							<dd>
 								<NumberValue
-									value={loadedPost.replyCount}
+									value={post.replyCount}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedPost.repostCount != null}
+					{#if contentOpen && post.repostCount != null}
 						<div>
 							<dt>Reposts</dt>
 							<dd>
 								<NumberValue
-									value={loadedPost.repostCount}
+									value={post.repostCount}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedPost.likeCount != null}
+					{#if contentOpen && post.likeCount != null}
 						<div>
 							<dt>Likes</dt>
 							<dd>
 								<NumberValue
-									value={loadedPost.likeCount}
+									value={post.likeCount}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedPost.quoteCount != null}
+					{#if contentOpen && post.quoteCount != null}
 						<div>
 							<dt>Quotes</dt>
 							<dd>
 								<NumberValue
-									value={loadedPost.quoteCount}
+									value={post.quoteCount}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedPost.langs?.length}
+					{#if contentOpen && post.langs?.length}
 						<div>
 							<dt>Languages</dt>
-							<dd>{loadedPost.langs.join(', ')}</dd>
+							<dd>{post.langs.join(', ')}</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedPost.selfLabelValues?.length}
+					{#if contentOpen && post.selfLabelValues?.length}
 						<div>
 							<dt>Self labels</dt>
-							<dd>{loadedPost.selfLabelValues.join(', ')}</dd>
+							<dd>{post.selfLabelValues.join(', ')}</dd>
 						</div>
 					{/if}
 
-					{#if contentOpen && loadedPost.indexedAt}
+					{#if contentOpen && post.indexedAt}
 						<div>
 							<dt>Indexed</dt>
 							<dd>
 								<Timestamp
-									timestamp={loadedPost.indexedAt}
+									timestamp={post.indexedAt}
 								/>
 							</dd>
 						</div>

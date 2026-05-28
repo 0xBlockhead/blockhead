@@ -1,5 +1,6 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
 	import type { Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -15,8 +16,8 @@
 	let {
 		entityId,
 		href = resolve(
-			'/(explore)/(networks)/network/[networkId]',
-			{ networkId: String(entityId.$network.chainId) },
+			'/(explore)/network/[caip2Namespace]:[caip2Reference]',
+			{ ...caip2RouteParamsFromEvmChainId(entityId.$network.chainId) },
 		),
 		title: titleProp,
 		open = $bindable(true),
@@ -98,48 +99,48 @@
 						placeholderText="Loading beacon validator…"
 						resource={validator}
 					>
-						{#snippet children(loadedValidator)}
-							{#if loadedValidator.balanceGwei !== undefined}
+						{#snippet children(validator)}
+							{#if validator.balanceGwei !== undefined}
 								<div>
 									<dt>Balance</dt>
 									<dd>
-										<NumberValue value={loadedValidator.balanceGwei} />
+										<NumberValue value={validator.balanceGwei} />
 										gwei
 									</dd>
 								</div>
 							{/if}
 
-							{#if loadedValidator.effectiveBalanceGwei !== undefined}
+							{#if validator.effectiveBalanceGwei !== undefined}
 								<div>
 									<dt>Effective balance</dt>
 									<dd>
-										<NumberValue value={loadedValidator.effectiveBalanceGwei} />
+										<NumberValue value={validator.effectiveBalanceGwei} />
 										gwei
 									</dd>
 								</div>
 							{/if}
 
-							{#if loadedValidator.status !== undefined}
+							{#if validator.status !== undefined}
 								<div>
 									<dt>Status</dt>
-									<dd>{loadedValidator.status}</dd>
+									<dd>{validator.status}</dd>
 								</div>
 							{/if}
 
-							{#if loadedValidator.slashed !== undefined}
+							{#if validator.slashed !== undefined}
 								<div>
 									<dt>Slashed</dt>
-									<dd>{loadedValidator.slashed ? 'Yes' : 'No'}</dd>
+									<dd>{validator.slashed ? 'Yes' : 'No'}</dd>
 								</div>
 							{/if}
 
-							{#if loadedValidator.pubkey !== undefined}
+							{#if validator.pubkey !== undefined}
 								<div>
 									<dt>Pubkey</dt>
 									<dd>
 										<TruncatedValue
 											format={TruncatedValueFormat.Visual}
-											value={loadedValidator.pubkey}
+											value={validator.pubkey}
 										/>
 									</dd>
 								</div>

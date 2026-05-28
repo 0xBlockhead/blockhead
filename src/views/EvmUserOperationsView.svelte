@@ -77,7 +77,7 @@
 				parentEntityType,
 				entityFieldReference.entityId,
 				{
-					...(parentEntityType === EntityType.Network && {
+					...(parentEntityType === EntityType.EvmNetwork && {
 						blockHeight: {
 							$: [
 								Source.Voltaire_JsonRpc,

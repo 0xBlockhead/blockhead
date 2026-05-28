@@ -31,7 +31,7 @@
 		isVertical: _isVertical = false,
 	}: {
 		actorId?: EntityId<typeof schema, EntityType.Actor> | null
-		network?: EntityId<typeof schema, EntityType.Network>
+		network?: EntityId<typeof schema, EntityType.EvmNetwork>
 		address?: `0x${string}`
 		ensName?: string
 		format?: AddressFormat
@@ -120,10 +120,10 @@
 				</span>
 			{/snippet}
 
-			{#snippet children(loadedActor)}
+			{#snippet children(actor)}
 				<span data-row="inline wrap gap-1 align-center">
 					{#if showAvatar}
-						{@const avatarHref = loadedActor.$icon?.[EntityMetaKey.Id].url}
+						{@const avatarHref = actor.$icon?.[EntityMetaKey.Id].url}
 						<Icon
 							shape={avatarHref ? IconShape.Circle : IconShape.Square}
 							src={avatarHref ?? blo(shownAddress)}
@@ -153,7 +153,7 @@
 							(<span data-text="font-monospace">{ensNameProp}</span>)
 						</small>
 					{:else}
-						{@const forwardResolution = loadedActor.$primaryName?.[EntityMetaKey.Id].name}
+						{@const forwardResolution = actor.$primaryName?.[EntityMetaKey.Id].name}
 						{#if forwardResolution}
 							<small>
 								(<span data-text="font-monospace">{forwardResolution}</span>)

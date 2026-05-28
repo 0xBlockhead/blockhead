@@ -5,10 +5,11 @@
 	import { catalogCoinIdentitySources } from '$/constants/Market.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { catalogCoinUsdMarketIdByCoinId } from '$/constants/MarketCatalog.ts'
+	import { blockscoutHostedNetworks } from '$/sources/Blockscout/Rest/constants.ts'
 
 	import {
 		MarketKind,
-		marketKinds,
+		marketKindByMarketKind,
 	} from '$/constants/Market.ts'
 
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -52,6 +53,10 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+	const blockscoutNativeCoinIds = new Set(
+		blockscoutHostedNetworks.map((network) => network.nativeCoinId),
+	)
+
 	const coin = useEntity(
 		EntityType.Coin,
 		entityId,
@@ -65,12 +70,14 @@
 			marketCapUsd: {
 				$: catalogCoinIdentitySources,
 			},
-			$$timestamps: {
-				$: [
-					Source.Blockscout_Rest,
-				],
-				$limit: 8,
-			},
+			...(open && blockscoutNativeCoinIds.has(entityId.coinId) && {
+				$$timestamps: {
+					$: [
+						Source.Blockscout_Rest,
+					],
+					$limit: 8,
+				},
+			}),
 			...(open && {
 				$$coinInstances: {
 					$: [
@@ -91,18 +98,18 @@
 
 	// Functions
 	const formatCoinHeadingLabel = (
-		loadedCoin: {
+		coin: {
 			name?: string
 			symbol?: string
 		},
 		coinId: EntityId<typeof schema, EntityType.Coin>['coinId'],
 	) => (
-		loadedCoin.name != null
-		&& loadedCoin.symbol != null
-		&& loadedCoin.name !== loadedCoin.symbol ?
-			`${loadedCoin.name} (${loadedCoin.symbol})`
+		coin.name != null
+		&& coin.symbol != null
+		&& coin.name !== coin.symbol ?
+			`${coin.name} (${coin.symbol})`
 		:
-			loadedCoin.symbol ?? loadedCoin.name ?? coinId
+			coin.symbol ?? coin.name ?? coinId
 	)
 
 
@@ -116,7 +123,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import CoinBridgeCapabilitiesView from '$/views/CoinBridgeCapabilitiesView.svelte'
-	import CoinInstancesView from '$/views/CoinInstancesView.svelte'
+	import EvmCoinInstancesView from '$/views/EvmCoinInstancesView.svelte'
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 	import MarketsView from '$/views/MarketsView.svelte'
 	import Coin_TimestampView from '$/views/Coin_TimestampView.svelte'
@@ -135,11 +142,11 @@
 		<ResourceBoundary
 			resource={coin}
 		>
-			{#snippet children(loadedCoin)}
-				{#if loadedCoin.$logo?.[EntityMetaKey.Id].url !== undefined}
+			{#snippet children(coin)}
+				{#if coin.$logo?.[EntityMetaKey.Id].url !== undefined}
 					<IconComponent
-						src={loadedCoin.$logo[EntityMetaKey.Id].url}
-						alt={loadedCoin.symbol ?? loadedCoin.name ?? entityId.coinId}
+						src={coin.$logo[EntityMetaKey.Id].url}
+						alt={coin.symbol ?? coin.name ?? entityId.coinId}
 					/>
 				{/if}
 			{/snippet}
@@ -151,8 +158,8 @@
 			resource={coin}
 			placeholderText="Loading…"
 		>
-			{#snippet children(loadedCoin)}
-				{formatCoinHeadingLabel(loadedCoin, entityId.coinId)}
+			{#snippet children(coin)}
+				{formatCoinHeadingLabel(coin, entityId.coinId)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -169,7 +176,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			A logical <strong>CAIP-19 coin</strong>
+			A logical <strong>CAIP-19 asset</strong>
 			id groups every on-chain deployment, time-stamped fundamentals snapshots, and market quote streams for the same asset so duplicate tickers from rival data vendors stay separable by catalog key and vendor attribution.
 		</p>
 		<p>
@@ -187,8 +194,8 @@
 				<dt>Market cap rank</dt>
 				<dd>
 					<ResourceBoundary resource={coin}>
-						{#snippet children(loadedCoin)}
-							{#if loadedCoin.marketCapRank != null && Number.isFinite(coin.marketCapRank)}
+						{#snippet children(coin)}
+							{#if coin.marketCapRank != null && Number.isFinite(coin.marketCapRank)}
 								{String(coin.marketCapRank)}
 							{/if}
 						{/snippet}
@@ -200,12 +207,12 @@
 				<dt>Market cap</dt>
 				<dd>
 					<ResourceBoundary resource={coin}>
-						{#snippet children(loadedCoin)}
-							{#if loadedCoin.marketCapUsd != null && Number.isFinite(coin.marketCapUsd)}
+						{#snippet children(coin)}
+							{#if coin.marketCapUsd != null && Number.isFinite(coin.marketCapUsd)}
 								<CurrencyAmount
 									currency="USD"
 									scale={1}
-									value={loadedCoin.marketCapUsd}
+									value={coin.marketCapUsd}
 								/>
 							{/if}
 						{/snippet}
@@ -217,7 +224,7 @@
 				<dt>Fundamentals</dt>
 				<dd>
 					<ResourceBoundary resource={coin}>
-						{#snippet children(loadedCoin)}
+						{#snippet children(coin)}
 							{@const headTimestampId = (
 								(coin.$$timestamps ?? [])
 									.toSorted((
@@ -250,8 +257,8 @@
 					<dt>Decimals</dt>
 					<dd>
 						<ResourceBoundary resource={coin}>
-							{#snippet children(loadedCoin)}
-								{#if loadedCoin.decimals !== undefined}
+							{#snippet children(coin)}
+								{#if coin.decimals !== undefined}
 									{String(coin.decimals)}
 								{/if}
 							{/snippet}
@@ -273,7 +280,7 @@
 			catalogUsdMarketId.marketKind === MarketKind.Spot ?
 				`${catalogUsdMarketId.$marketVenue.marketVenueId}:${catalogUsdMarketId.$base.$coin.coinId}-${catalogUsdMarketId.$quote.$currency.iso4217}`
 			:
-				`${catalogUsdMarketId.$marketVenue.marketVenueId}:${catalogUsdMarketId.$base.$coin.coinId}-${catalogUsdMarketId.$quote.$currency.iso4217} (${marketKinds[catalogUsdMarketId.marketKind].label})`
+				`${catalogUsdMarketId.$marketVenue.marketVenueId}:${catalogUsdMarketId.$base.$coin.coinId}-${catalogUsdMarketId.$quote.$currency.iso4217} (${marketKindByMarketKind[catalogUsdMarketId.marketKind].label})`
 		)}
 		{@const catalogUsdMarketHref = resolve(
 			'/(assets)/(markets)/market/[marketKey]',
@@ -319,7 +326,7 @@
 				{/snippet}
 
 				{#snippet SectionCoinInstances({ id, label })}
-					<CoinInstancesView
+					<EvmCoinInstancesView
 						href={resolve('/coins')}
 						collapsible={false}
 						entityFieldReference={{
@@ -336,7 +343,7 @@
 					{#if (coin.$$coinInstances ?? []).some((row) => (
 						row.representation === CoinInstanceRepresentation.BridgeWrapped
 					))}
-						<CoinInstancesView
+						<EvmCoinInstancesView
 							href={resolve('/coins')}
 							collapsible={false}
 							entityFieldReference={{
@@ -449,5 +456,3 @@
 
 	{/snippet}
 </EntityView>
-
-

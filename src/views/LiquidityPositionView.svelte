@@ -67,7 +67,7 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 </script>
 
 
@@ -89,9 +89,9 @@
 			resource={liquidityPosition}
 			placeholderText="Loading position…"
 		>
-			{#snippet children(loadedLiquidityPosition)}
-				{loadedLiquidityPosition.tokenId != null ?
-					`NFT #${String(loadedLiquidityPosition.tokenId)}`
+			{#snippet children(liquidityPosition)}
+				{liquidityPosition.tokenId != null ?
+					`NFT #${String(liquidityPosition.tokenId)}`
 				:
 					entityId.id
 				}
@@ -119,7 +119,7 @@
 			resource={liquidityPosition}
 			placeholderText="Loading position…"
 		>
-			{#snippet children(loadedLiquidityPosition)}
+			{#snippet children(liquidityPosition)}
 				<dl data-column-item="center">
 					{#if open}
 						<div>
@@ -129,97 +129,105 @@
 							</dd>
 						</div>
 					{/if}
-					<div>
-						<dt>Network</dt>
-						<dd>
-							<NetworkView
-								entityId={loadedLiquidityPosition.$pool.$network}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</dd>
-					</div>
-					<div>
-						<dt>AMM pool (Uniswap v3-style)</dt>
-						<dd>
-							<LiquidityPoolView
-								entityId={loadedLiquidityPosition.$pool[EntityMetaKey.Id]}
-								layout={EntityLayout.SummaryDetails}
-								open={true}
-								showTypeAnnotation={false}
-							/>
-						</dd>
-					</div>
-					{#if open}
 						<div>
-							<dt>Owner</dt>
+							<dt>Network</dt>
+							<dd>
+								{#if liquidityPosition.$pool !== undefined}
+									<EvmNetworkView
+										entityId={liquidityPosition.$pool[EntityMetaKey.Id].$network}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								{:else}
+									<span data-text="muted">No pool network loaded</span>
+								{/if}
+							</dd>
+						</div>
+						<div>
+							<dt>AMM pool (Uniswap v3-style)</dt>
+							<dd>
+								{#if liquidityPosition.$pool !== undefined}
+									<LiquidityPoolView
+										entityId={liquidityPosition.$pool[EntityMetaKey.Id]}
+										layout={EntityLayout.SummaryDetails}
+										open={true}
+										showTypeAnnotation={false}
+									/>
+								{:else}
+									<span data-text="muted">No pool loaded</span>
+								{/if}
+							</dd>
+						</div>
+						{#if open && liquidityPosition.$pool !== undefined && liquidityPosition.$owner !== undefined}
+							<div>
+								<dt>Owner</dt>
 							<dd>
 								<ActorNetworkView
 									entityId={{
-										$network: loadedLiquidityPosition.$pool.$network,
-										$actor: loadedLiquidityPosition.$owner[EntityMetaKey.Id],
+										$network: liquidityPosition.$pool[EntityMetaKey.Id].$network,
+										$actor: liquidityPosition.$owner[EntityMetaKey.Id],
 									}}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
 							</dd>
 						</div>
-						{#if loadedLiquidityPosition.tickLower !== undefined}
+						{#if liquidityPosition.tickLower !== undefined}
 							<div>
 								<dt>LP NFT range · tick lower</dt>
-								<dd>{String(loadedLiquidityPosition.tickLower)}</dd>
+								<dd>{String(liquidityPosition.tickLower)}</dd>
 							</div>
 						{/if}
 
-						{#if loadedLiquidityPosition.tickUpper !== undefined}
+						{#if liquidityPosition.tickUpper !== undefined}
 							<div>
 								<dt>LP NFT range · tick upper</dt>
-								<dd>{String(loadedLiquidityPosition.tickUpper)}</dd>
+								<dd>{String(liquidityPosition.tickUpper)}</dd>
 							</div>
 						{/if}
 
-						{#if loadedLiquidityPosition.liquidity !== undefined}
+						{#if liquidityPosition.liquidity !== undefined}
 							<div>
 								<dt>Position liquidity (NFT range)</dt>
-								<dd>{String(loadedLiquidityPosition.liquidity)}</dd>
+								<dd>{String(liquidityPosition.liquidity)}</dd>
 							</div>
 						{/if}
 
-						{#if loadedLiquidityPosition.token0Owed !== undefined}
+						{#if liquidityPosition.token0Owed !== undefined}
 							<div>
 								<dt>Token0 owed</dt>
-								<dd>{String(loadedLiquidityPosition.token0Owed)}</dd>
+								<dd>{String(liquidityPosition.token0Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if loadedLiquidityPosition.token1Owed !== undefined}
+						{#if liquidityPosition.token1Owed !== undefined}
 							<div>
 								<dt>Token1 owed</dt>
-								<dd>{String(loadedLiquidityPosition.token1Owed)}</dd>
+								<dd>{String(liquidityPosition.token1Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if loadedLiquidityPosition.tokenId !== undefined}
+						{#if liquidityPosition.tokenId !== undefined}
 							<div>
 								<dt>Position NFT token id</dt>
-								<dd>{String(loadedLiquidityPosition.tokenId)}</dd>
+								<dd>{String(liquidityPosition.tokenId)}</dd>
 							</div>
 						{/if}
 
-						{#if loadedLiquidityPosition.origin}
+						{#if liquidityPosition.origin}
 							<div>
 								<dt>Origin</dt>
-								<dd>{loadedLiquidityPosition.origin}</dd>
+								<dd>{liquidityPosition.origin}</dd>
 							</div>
 						{/if}
 					{/if}
 
-					{#if loadedLiquidityPosition.createdAtTimestamp !== undefined}
+					{#if liquidityPosition.createdAtTimestamp !== undefined}
 						<div>
 							<dt>Created at</dt>
 							<dd>
 								<Timestamp
-									timestamp={loadedLiquidityPosition.createdAtTimestamp}
+									timestamp={liquidityPosition.createdAtTimestamp}
 								/>
 							</dd>
 						</div>

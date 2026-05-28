@@ -25,7 +25,7 @@ const entityFieldsFromDexPair = ({
 }) => (
 	{
 		...(isEvmContractAddress(latestDexPair.baseToken?.address) && {
-				$token0: {
+				$baseToken: {
 					[EntityMetaKey.Id]: {
 						$network: {
 							chainId,
@@ -38,7 +38,7 @@ const entityFieldsFromDexPair = ({
 				},
 			}),
 		...(isEvmContractAddress(latestDexPair.quoteToken?.address) && {
-				$token1: {
+				$quoteToken: {
 					[EntityMetaKey.Id]: {
 						$network: {
 							chainId,
@@ -50,8 +50,8 @@ const entityFieldsFromDexPair = ({
 					},
 				},
 			}),
-		...(latestDexPair.baseToken?.symbol != null && { token0Symbol: latestDexPair.baseToken.symbol }),
-		...(latestDexPair.quoteToken?.symbol != null && { token1Symbol: latestDexPair.quoteToken.symbol }),
+		...(latestDexPair.baseToken?.symbol != null && { baseTokenSymbol: latestDexPair.baseToken.symbol }),
+		...(latestDexPair.quoteToken?.symbol != null && { quoteTokenSymbol: latestDexPair.quoteToken.symbol }),
 		...(latestDexPair.volume?.h24 != null && { volumeUSD: latestDexPair.volume.h24 }),
 		...(latestDexPair.liquidity?.usd != null && { totalValueLockedUSD: latestDexPair.liquidity.usd }),
 		...(latestDexPair.dexId != null && latestDexPair.dexId !== '' && { dexId: latestDexPair.dexId }),
@@ -158,50 +158,6 @@ export default {
 			},
 		}),
 
-		defineEntityResolver({
-			entityType: EntityType.Vault,
-			resolve: async (entityId) => {
-				const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
-				const { getDexscreenerLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
-
-				const chainId = entityId.$network.chainId
-				const apiChainId = apiChainIdByChainId[chainId]
-				if (apiChainId == null) {
-					throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
-				}
-				const pairId = hexLowerOfByteSize(entityId.id.trim(), 20)
-				if (pairId == null || !isEvmContractAddress(pairId)) {
-					throw new Error('Dexscreener_OpenApi: vault / pair not found for id')
-				}
-				const latestDexPair = (
-					(await getDexscreenerLatestPairs({
-						chainId: apiChainId,
-						pairId,
-					})).pairs?.[0]
-				)
-
-				if (
-					latestDexPair == null
-					|| !isEvmContractAddress(latestDexPair.baseToken?.address)
-					|| !isEvmContractAddress(latestDexPair.quoteToken?.address)
-				) {
-					throw new Error('Dexscreener_OpenApi: vault / pair not found for id')
-				}
-
-				return {
-					...entityFieldsFromDexPair({
-						chainId,
-						latestDexPair,
-					}),
-					...(latestDexPair.marketCap != null && { marketCapUsd: latestDexPair.marketCap }),
-					...(latestDexPair.fdv != null && { fdvUsd: latestDexPair.fdv }),
-					...(latestDexPair.pairCreatedAt != null && { pairCreatedAtMs: latestDexPair.pairCreatedAt }),
-					...(latestDexPair.labels != null && latestDexPair.labels.length > 0 && {
-						dexscreenerLabels: latestDexPair.labels,
-					}),
-				}
-			},
-		}),
 	],
 
 	entityFieldResolvers: [
@@ -214,23 +170,10 @@ export default {
 			) => (
 				globalPairSearchEntityRows({
 					context,
-					q: 'WETH/USDC',
+					q: 'WETH USDC uniswap',
 				})
 			),
 		}),
 
-		defineEntityFieldResolver({
-			entityType: EntityType._Global,
-			fieldName: '$$vaults',
-			resolve: async (
-				_scopedEntityId: EntityId<typeof schema, EntityType._Global>,
-				context?,
-			) => (
-				globalPairSearchEntityRows({
-					context,
-					q: 'ETH/USDT',
-				})
-			),
-		}),
 	],
 }

@@ -8,10 +8,10 @@
 		MarketAssetKind,
 		MarketKind,
 		marketDerivativeObservationSources,
-		marketKinds,
+		marketKindByMarketKind,
 	} from '$/constants/Market.ts'
 
-	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { stringify } from 'devalue'
@@ -92,7 +92,7 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
+	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
 	import CoinView from '$/views/CoinView.svelte'
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 	import CurrencyView from '$/views/CurrencyView.svelte'
@@ -112,14 +112,14 @@
 		entityId.marketKind === MarketKind.Spot ?
 			`${entityId.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$base)}-${marketAssetSymbol(entityId.$quote)}`
 		:
-			`${entityId.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$base)}-${marketAssetSymbol(entityId.$quote)} (${marketKinds[entityId.marketKind].label})`
+			`${entityId.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$base)}-${marketAssetSymbol(entityId.$quote)} (${marketKindByMarketKind[entityId.marketKind].label})`
 	)}
 >
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			<div>
 				<dt>Kind</dt>
-				<dd>{marketKinds[entityId.marketKind].label}</dd>
+				<dd>{marketKindByMarketKind[entityId.marketKind].label}</dd>
 			</div>
 			<div>
 				<dt>Venue</dt>
@@ -176,22 +176,22 @@
 					{#if entityId.$base.kind === MarketAssetKind.Coin}
 						<CoinView
 							entityId={entityId.$base.$coin}
-							layout={EntityLayout.SummaryDetails}
-							open={true}
+							layout={EntityLayout.Summary}
+							open={false}
 							showTypeAnnotation={false}
 						/>
 					{:else if entityId.$base.kind === MarketAssetKind.CoinInstance}
-						<CoinInstanceView
+						<EvmCoinInstanceView
 							entityId={entityId.$base.$coinInstance}
-							layout={EntityLayout.SummaryDetails}
-							open={true}
+							layout={EntityLayout.Summary}
+							open={false}
 							showTypeAnnotation={false}
 						/>
 					{:else}
 						<CurrencyView
 							entityId={entityId.$base.$currency}
-							layout={EntityLayout.SummaryDetails}
-							open={true}
+							layout={EntityLayout.Summary}
+							open={false}
 							showTypeAnnotation={false}
 						/>
 					{/if}
@@ -203,22 +203,22 @@
 					{#if entityId.$quote.kind === MarketAssetKind.Coin}
 						<CoinView
 							entityId={entityId.$quote.$coin}
-							layout={EntityLayout.SummaryDetails}
-							open={true}
+							layout={EntityLayout.Summary}
+							open={false}
 							showTypeAnnotation={false}
 						/>
 					{:else if entityId.$quote.kind === MarketAssetKind.CoinInstance}
-						<CoinInstanceView
+						<EvmCoinInstanceView
 							entityId={entityId.$quote.$coinInstance}
-							layout={EntityLayout.SummaryDetails}
-							open={true}
+							layout={EntityLayout.Summary}
+							open={false}
 							showTypeAnnotation={false}
 						/>
 					{:else}
 						<CurrencyView
 							entityId={entityId.$quote.$currency}
-							layout={EntityLayout.SummaryDetails}
-							open={true}
+							layout={EntityLayout.Summary}
+							open={false}
 							showTypeAnnotation={false}
 						/>
 					{/if}

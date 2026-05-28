@@ -84,9 +84,9 @@
 			resource={selector}
 			placeholderText="Loading decoded function selector…"
 		>
-			{#snippet children(loadedSelector)}
-				{#if loadedSelector.signatures?.[0]}
-					{loadedSelector.signatures[0]}
+			{#snippet children(selector)}
+				{#if selector.signatures?.[0]}
+					{selector.signatures[0]}
 				{:else}
 					{@render Value()}
 				{/if}
@@ -99,8 +99,8 @@
 			resource={selector}
 			placeholderText="Loading decoded function selector…"
 		>
-			{#snippet children(loadedSelector)}
-				{loadedSelector.signatures?.[0] ?? entityId.hex}
+			{#snippet children(selector)}
+				{selector.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -140,15 +140,15 @@
 								resource={selector}
 								placeholderText="Loading decoded calldata prefixes…"
 							>
-								{#snippet children(loadedSelector)}
-									{#if loadedSelector.signatures?.length}
+								{#snippet children(selector)}
+									{#if selector.signatures?.length}
 										<ul>
-											{#each loadedSelector.signatures as sig (sig)}
+											{#each selector.signatures as sig (sig)}
 												<li><code>{sig}</code></li>
 											{/each}
 										</ul>
 									{:else}
-										<p data-text="muted">No ABI signatures matched this function loadedSelector.</p>
+										<p data-text="muted">No ABI signatures matched this function selector.</p>
 									{/if}
 								{/snippet}
 							</ResourceBoundary>

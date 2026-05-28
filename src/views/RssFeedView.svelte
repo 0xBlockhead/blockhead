@@ -108,8 +108,8 @@
 			resource={feed}
 			placeholderText="Loading feed…"
 		>
-			{#snippet children(loadedFeed)}
-				{loadedFeed.title ?? entityId.feedUrl}
+			{#snippet children(feed)}
+				{feed.title ?? entityId.feedUrl}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -120,7 +120,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			An RSS 2.0 or Atom syndication document keyed by feedUrl; items are keyed by guid within that loadedFeed.
+			An RSS 2.0 or Atom syndication document keyed by feedUrl; items are keyed by guid within that feed.
 		</p>
 		<p>
 			Metadata resolves from Rss_Rest (direct XML fetch) or Rss2Json (rss2json API proxy) when enabled.
@@ -131,11 +131,11 @@
 		<ResourceBoundary
 			resource={feed}
 		>
-			{#snippet children(loadedFeed)}
-				{#if loadedFeed.lastBuildDate != null}
+			{#snippet children(feed)}
+				{#if feed.lastBuildDate != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={loadedFeed.lastBuildDate}
+							timestamp={feed.lastBuildDate}
 						/>
 					</span>
 				{/if}
@@ -150,78 +150,85 @@
 				<dd>{entityId.feedUrl}</dd>
 			</div>
 
-			{#if loadedFeed.description}
-				<div>
-					<dt>Description</dt>
-					<dd>{loadedFeed.description}</dd>
-				</div>
-			{/if}
+			<ResourceBoundary
+				resource={feed}
+				placeholderText="Loading feed…"
+			>
+				{#snippet children(feed)}
+					{#if feed.description}
+						<div>
+							<dt>Description</dt>
+							<dd>{feed.description}</dd>
+						</div>
+					{/if}
 
-			{#if loadedFeed.link}
-				<div>
-					<dt>Link</dt>
-					<dd>
-						<a
-							href={loadedFeed.link}
-							rel="noreferrer"
-							target="_blank"
-						>{loadedFeed.link}</a>
-					</dd>
-				</div>
-			{/if}
+					{#if feed.link}
+						<div>
+							<dt>Link</dt>
+							<dd>
+								<a
+									href={feed.link}
+									rel="noreferrer"
+									target="_blank"
+								>{feed.link}</a>
+							</dd>
+						</div>
+					{/if}
 
-			{#if (
-				open
-				&& feed.siteUrl
-			)}
-				<div>
-					<dt>Site</dt>
-					<dd>
-						<a
-							href={loadedFeed.siteUrl}
-							rel="noreferrer"
-							target="_blank"
-						>{loadedFeed.siteUrl}</a>
-					</dd>
-				</div>
-			{/if}
-			{#if (
-				open
-				&& feed.language
-			)}
-				<div>
-					<dt>Language</dt>
-					<dd>{loadedFeed.language}</dd>
-				</div>
-			{/if}
-			{#if (
-				open
-				&& feed.lastBuildDate != null
-			)}
-				<div>
-					<dt>Last build</dt>
-					<dd>
-						<Timestamp
-							timestamp={loadedFeed.lastBuildDate}
-						/>
-					</dd>
-				</div>
-			{/if}
-			{#if (
-				open
-				&& feed.imageUrl
-			)}
-				<div>
-					<dt>Image</dt>
-					<dd>
-						<a
-							href={loadedFeed.imageUrl}
-							rel="noreferrer"
-							target="_blank"
-						>{loadedFeed.imageUrl}</a>
-					</dd>
-				</div>
-			{/if}
+					{#if (
+						open
+						&& feed.siteUrl
+					)}
+						<div>
+							<dt>Site</dt>
+							<dd>
+								<a
+									href={feed.siteUrl}
+									rel="noreferrer"
+									target="_blank"
+								>{feed.siteUrl}</a>
+							</dd>
+						</div>
+					{/if}
+					{#if (
+						open
+						&& feed.language
+					)}
+						<div>
+							<dt>Language</dt>
+							<dd>{feed.language}</dd>
+						</div>
+					{/if}
+					{#if (
+						open
+						&& feed.lastBuildDate != null
+					)}
+						<div>
+							<dt>Last build</dt>
+							<dd>
+								<Timestamp
+									timestamp={feed.lastBuildDate}
+								/>
+							</dd>
+						</div>
+					{/if}
+					{#if (
+						open
+						&& feed.imageUrl
+					)}
+						<div>
+							<dt>Image</dt>
+							<dd>
+								<a
+									href={feed.imageUrl}
+									rel="noreferrer"
+									target="_blank"
+								>{feed.imageUrl}</a>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
@@ -273,7 +280,7 @@
 						}}
 						id={`${idKey}:feed-items-list`}
 						{limit}
-						open={_paneOpen}
+						open={_open}
 						title="Items"
 					/>
 				{/snippet}

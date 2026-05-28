@@ -5,7 +5,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { blockheadSessionStatuses } from '$/constants/Blockhead.ts'
+	import { blockheadSessionStatusByStatus } from '$/constants/Blockhead.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
@@ -90,8 +90,8 @@
 			resource={session}
 			placeholderText="Loading session…"
 		>
-			{#snippet children(loadedSession)}
-				{loadedSession.name ?? entityId.id}
+			{#snippet children(session)}
+				{session.name ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -120,13 +120,13 @@
 				<dd>
 					<ResourceBoundary
 						resource={session}
-						placeholderText="Loading session…"
-					>
-						{#snippet children(loadedSession)}
-							{blockheadSessionStatuses[loadedSession.status].label}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
+							placeholderText="Loading session…"
+						>
+							{#snippet children(session)}
+								{blockheadSessionStatusByStatus[session.status]?.label ?? String(session.status)}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
 			</div>
 
 			{#if !open}
@@ -137,15 +137,15 @@
 							resource={session}
 							placeholderText="Loading session…"
 						>
-							{#snippet children(loadedSession)}
-								{#if loadedSession.updatedAt !== undefined}
+							{#snippet children(session)}
+								{#if session.updatedAt !== undefined}
 									<Timestamp
-										timestamp={loadedSession.updatedAt}
+										timestamp={session.updatedAt}
 									/>
 								{:else}
-									{#if loadedSession.createdAt !== undefined}
+									{#if session.createdAt !== undefined}
 										<Timestamp
-											timestamp={loadedSession.createdAt}
+											timestamp={session.createdAt}
 										/>
 									{/if}
 								{/if}
@@ -163,10 +163,10 @@
 							resource={session}
 							placeholderText="Loading session…"
 						>
-							{#snippet children(loadedSession)}
-								{#if loadedSession.createdAt !== undefined}
+							{#snippet children(session)}
+								{#if session.createdAt !== undefined}
 									<Timestamp
-										timestamp={loadedSession.createdAt}
+										timestamp={session.createdAt}
 									/>
 								{/if}
 							{/snippet}
@@ -181,10 +181,10 @@
 							resource={session}
 							placeholderText="Loading session…"
 						>
-							{#snippet children(loadedSession)}
-								{#if loadedSession.updatedAt !== undefined}
+							{#snippet children(session)}
+								{#if session.updatedAt !== undefined}
 									<Timestamp
-										timestamp={loadedSession.updatedAt}
+										timestamp={session.updatedAt}
 									/>
 								{/if}
 							{/snippet}
@@ -199,8 +199,8 @@
 							resource={session}
 							placeholderText="Loading session…"
 						>
-							{#snippet children(loadedSession)}
-								{#if loadedSession.simulationCount !== undefined}
+							{#snippet children(session)}
+								{#if session.simulationCount !== undefined}
 									{String(session.simulationCount)}
 								{/if}
 							{/snippet}

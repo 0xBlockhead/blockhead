@@ -17,7 +17,7 @@ export default {
 
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: 'consensusSpecsConfigYaml',
 			resolve: async (entityId) => {
 				const preset = (
@@ -41,7 +41,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: 'goEthereumParamsConfigGo',
 			resolve: async (entityId) => {
 				if (!ethereumReferenceForkMetadataChainIds.has(entityId.chainId)) {
@@ -55,10 +55,10 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.NetworkExecutionUpgrade,
+			entityType: EntityType.EthereumExecutionUpgrade,
 			fieldName: 'executionSpecsMainnetUpgradeMarkdown',
 			resolve: async (entityId) => {
-				const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import('$/constants/NetworkUpgrades.ts')
+				const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
 				const row = networkExecutionUpgradeByChainIdAndUpgradeId[
 					`${entityId.$network.chainId}:${entityId.upgradeId}`
 				]

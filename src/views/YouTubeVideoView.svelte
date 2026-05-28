@@ -6,7 +6,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { youTubeVideoCategories, youTubeVideoLiveBroadcastPhases } from '$/constants/Social/YouTube.ts'
+	import { youTubeVideoCategoryByCategoryId, youTubeVideoLiveBroadcastPhaseByLiveBroadcastContent } from '$/constants/Social/YouTube.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -54,13 +54,14 @@
 			title: {},
 			description: {},
 			publishedAt: {},
+			publishedAtMs: {},
 			viewCount: {},
 			likeCount: {},
 			durationSeconds: {},
 			commentCount: {},
 			categoryId: {},
 			liveBroadcastContent: {},
-			tagLine: {},
+			tags: {},
 			thumbnailUrl: {},
 			$author: {},
 			...(open ?
@@ -86,6 +87,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import YouTubeChannelView from '$/views/YouTubeChannelView.svelte'
 	import YouTubeCommentsView from '$/views/YouTubeCommentsView.svelte'
@@ -111,8 +113,8 @@
 			resource={video}
 			placeholderText="Loading video…"
 		>
-			{#snippet children(loadedVideo)}
-				{loadedVideo.title ?? entityId.videoId}
+			{#snippet children(video)}
+				{video.title ?? entityId.videoId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -135,9 +137,9 @@
 						resource={video}
 						placeholderText="Loading video…"
 					>
-						{#snippet children(loadedVideo)}
-							{#if loadedVideo.description}
-								{loadedVideo.description}
+						{#snippet children(video)}
+							{#if video.description}
+								{video.description}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -151,8 +153,8 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(loadedVideo)}
-								{#if loadedVideo.viewCount != null}
+							{#snippet children(video)}
+								{#if video.viewCount != null}
 									{String(video.viewCount)}
 								{/if}
 							{/snippet}
@@ -166,8 +168,8 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(loadedVideo)}
-								{#if loadedVideo.likeCount != null}
+							{#snippet children(video)}
+								{#if video.likeCount != null}
 									{String(video.likeCount)}
 								{/if}
 							{/snippet}
@@ -181,8 +183,8 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(loadedVideo)}
-								{#if loadedVideo.commentCount != null}
+							{#snippet children(video)}
+								{#if video.commentCount != null}
 									{String(video.commentCount)}
 								{/if}
 							{/snippet}
@@ -196,9 +198,9 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(loadedVideo)}
-								{#if loadedVideo.categoryId}
-									{youTubeVideoCategories[loadedVideo.categoryId]?.label ?? loadedVideo.categoryId}
+							{#snippet children(video)}
+								{#if video.categoryId}
+									{youTubeVideoCategoryByCategoryId[video.categoryId]?.label ?? video.categoryId}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -211,9 +213,9 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(loadedVideo)}
-								{#if loadedVideo.liveBroadcastContent}
-									{youTubeVideoLiveBroadcastPhases[loadedVideo.liveBroadcastContent].label}
+							{#snippet children(video)}
+								{#if video.liveBroadcastContent}
+									{youTubeVideoLiveBroadcastPhaseByLiveBroadcastContent[video.liveBroadcastContent].label}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -226,9 +228,9 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(loadedVideo)}
-								{#if loadedVideo.tagLine}
-									{loadedVideo.tagLine}
+							{#snippet children(video)}
+								{#if video.tags}
+									{video.tags.join(', ')}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -241,8 +243,8 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(loadedVideo)}
-								{#if loadedVideo.durationSeconds != null}
+							{#snippet children(video)}
+								{#if video.durationSeconds != null}
 									{String(video.durationSeconds)}
 								{/if}
 							{/snippet}
@@ -256,9 +258,11 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(loadedVideo)}
-								{#if loadedVideo.publishedAt != null}
-									{loadedVideo.publishedAt}
+							{#snippet children(video)}
+								{#if video.publishedAtMs != null}
+									<Timestamp timestamp={video.publishedAtMs} />
+								{:else if video.publishedAt != null}
+									{video.publishedAt}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -271,10 +275,10 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(loadedVideo)}
-								{#if loadedVideo.$author}
+							{#snippet children(video)}
+								{#if video.$author}
 									<YouTubeChannelView
-										entityId={loadedVideo.$author[EntityMetaKey.Id]}
+										entityId={video.$author[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -290,16 +294,16 @@
 							resource={video}
 							placeholderText="Loading video…"
 						>
-							{#snippet children(loadedVideo)}
-								{#if loadedVideo.thumbnailUrl}
+							{#snippet children(video)}
+								{#if video.thumbnailUrl}
 									<a
-										href={loadedVideo.thumbnailUrl}
+										href={video.thumbnailUrl}
 										rel="noreferrer"
 										target="_blank"
 									>
 										<img
 											alt=""
-											src={loadedVideo.thumbnailUrl}
+											src={video.thumbnailUrl}
 										/>
 									</a>
 								{/if}
@@ -322,7 +326,7 @@
 				resource={video}
 				placeholderText="Loading video…"
 			>
-				{#snippet children(_readyData)}
+				{#snippet children()}
 				{/snippet}
 			</ResourceBoundary>
 		</EntityDetails>
@@ -361,9 +365,9 @@
 						resource={video}
 						placeholderText="Loading video…"
 					>
-						{#snippet children(loadedVideo)}
-							{#if loadedVideo.description}
-								<p>{loadedVideo.description}</p>
+						{#snippet children(video)}
+							{#if video.description}
+								<p>{video.description}</p>
 							{:else}
 								<div data-row="wrap align-center gap-2">
 									<p data-text="muted">
@@ -405,5 +409,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-
-

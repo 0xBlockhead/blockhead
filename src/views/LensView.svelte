@@ -28,6 +28,7 @@
 			entityId: EntityId<typeof schema, EntityType.LensNetwork>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
@@ -113,8 +114,8 @@
 			resource={lensNetwork}
 			placeholderText="Loading Lens…"
 		>
-			{#snippet children(loadedLensNetwork)}
-				{loadedLensNetwork.protocolName ?? 'Lens'}
+			{#snippet children(lensNetwork)}
+				{lensNetwork.protocolName ?? 'Lens'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -129,16 +130,16 @@
 				resource={lensNetwork}
 				placeholderText="Loading Lens…"
 			>
-				{#snippet children(loadedLensNetwork)}
-					{#if loadedLensNetwork.registryLabel}
+				{#snippet children(lensNetwork)}
+					{#if lensNetwork.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{loadedLensNetwork.registryLabel}</dd>
+							<dd>{lensNetwork.registryLabel}</dd>
 						</div>
-					{:else if loadedLensNetwork.protocolName}
+					{:else if lensNetwork.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{loadedLensNetwork.protocolName}</dd>
+							<dd>{lensNetwork.protocolName}</dd>
 						</div>
 					{/if}
 
@@ -152,28 +153,28 @@
 							<dd>{String(lensNetwork.$$lensPosts?.length ?? 0)}</dd>
 						</div>
 
-						{#if loadedLensNetwork.topology}
+						{#if lensNetwork.topology}
 							<div>
 								<dt>Topology</dt>
-								<dd>{loadedLensNetwork.topology}</dd>
+								<dd>{lensNetwork.topology}</dd>
 							</div>
 						{/if}
 
-						{#if loadedLensNetwork.homeUrl}
+						{#if lensNetwork.homeUrl}
 							<div>
 								<dt>Home</dt>
 								<dd>
-									<a href={loadedLensNetwork.homeUrl}>{loadedLensNetwork.homeUrl}</a>
+									<a href={lensNetwork.homeUrl}>{lensNetwork.homeUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedLensNetwork.docsUrl !== undefined}
+						{#if lensNetwork.docsUrl !== undefined}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={loadedLensNetwork.docsUrl}>
-										{loadedLensNetwork.docsUrl}
+									<a href={lensNetwork.docsUrl}>
+										{lensNetwork.docsUrl}
 									</a>
 								</dd>
 							</div>

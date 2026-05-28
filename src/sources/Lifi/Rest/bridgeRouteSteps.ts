@@ -3,7 +3,7 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
-import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import type { LifiQuoteStepLike, LifiQuoteStep, LifiToken } from '$/sources/Lifi/Rest/types.ts'
 

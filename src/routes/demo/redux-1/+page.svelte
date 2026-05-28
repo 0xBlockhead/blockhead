@@ -244,10 +244,11 @@
 
 	import type { QueryClient } from '@tanstack/query-core'
 	import { queryCollectionOptions } from '@tanstack/query-db-collection'
-	import {
-		BasicIndex,
-		createCollection,
-		eq,
+		import {
+			and,
+			BasicIndex,
+			createCollection,
+			eq,
 		parseLoadSubsetOptions,
 		toArray,
 	} from '@tanstack/svelte-db'
@@ -640,7 +641,7 @@
 		EthereumEips_Github = 'EthereumEips_Github',
 	}
 
-	export enum ProposalRealm {
+	export enum SpecificationRealm {
 		ChainAgnostic = 'ChainAgnostic',
 		Ethereum = 'Ethereum',
 		Ens = 'Ens',
@@ -664,7 +665,7 @@
 				{
 					name: '$$proposals',
 					type: EntityFieldType.EntitiesReference,
-					entityType: BlockheadEntityType.Proposal,
+					entityType: BlockheadEntityType.SpecificationProposal,
 					cardinality: EntityFieldCardinality.Many,
 					defaultSources: [
 						Source.EthereumEips_Github,
@@ -673,7 +674,7 @@
 				{
 					name: '$$networks',
 					type: EntityFieldType.EntitiesReference,
-					entityType: BlockheadEntityType.Network,
+					entityType: BlockheadEntityType.EvmNetwork,
 					cardinality: EntityFieldCardinality.Many,
 					defaultSources: [
 						Source.Chainlist_Rest,
@@ -683,11 +684,11 @@
 		},
 
 		{
-			entityType: BlockheadEntityType.Proposal,
+			entityType: BlockheadEntityType.SpecificationProposal,
 			label: 'Proposal',
 			labelPlural: 'Proposals',
 			id: type({
-				realm: type.valueOf(ProposalRealm),
+				realm: type.valueOf(SpecificationRealm),
 				category: type.valueOf(ProposalCategory),
 				proposalId: 'string',
 			}),
@@ -795,7 +796,7 @@
 		},
 
 		{
-			entityType: BlockheadEntityType.Network,
+			entityType: BlockheadEntityType.EvmNetwork,
 			label: 'Network',
 			labelPlural: 'Networks',
 			id: type({
@@ -948,7 +949,7 @@
 		}),
 
 		defineEntityResolver({
-			entityType: BlockheadEntityType.Network,
+			entityType: BlockheadEntityType.EvmNetwork,
 			source: Source.Voltaire_JsonRpc,
 			resolve: async (_entityId) => (
 				{
@@ -958,7 +959,7 @@
 		}),
 
 		defineEntityResolver({
-			entityType: BlockheadEntityType.Network,
+			entityType: BlockheadEntityType.EvmNetwork,
 			source: Source.Chainlist_Rest,
 			resolve: async (entityId) => {
 				const { fetchRpcsJson } = await import(
@@ -1061,7 +1062,7 @@
 		}),
 
 		defineEntityResolver({
-			entityType: BlockheadEntityType.Proposal,
+			entityType: BlockheadEntityType.SpecificationProposal,
 			source: Source.EthereumEips_Github,
 			resolve: async ($id) => {
 				const { getText } = await import('$/lib/http.ts')
@@ -1139,7 +1140,7 @@
 						.map(({ name, type, download_url }) => (
 							{
 								[EntityMetaKey.Id]: {
-									realm: ProposalRealm.Ethereum,
+									realm: SpecificationRealm.Ethereum,
 									category: ProposalCategory.Eip,
 									proposalId: regex('^(?<proposalId>.*).md$').exec(name)?.groups?.proposalId ?? name,
 								},
@@ -1169,7 +1170,7 @@
 		}),
 
 		defineEntityFieldResolver({
-			entityType: BlockheadEntityType.Network,
+			entityType: BlockheadEntityType.EvmNetwork,
 			fieldName: '$$blocks',
 			source: Source.Voltaire_JsonRpc,
 			resolve: async (entityId) => {
@@ -1344,7 +1345,7 @@
 		}),
 
 		defineEntityFieldResolver({
-			entityType: BlockheadEntityType.Proposal,
+			entityType: BlockheadEntityType.SpecificationProposal,
 			fieldName: 'documentBody',
 			source: Source.EthereumEips_Github,
 			resolve: async ($id) => {
@@ -1525,7 +1526,7 @@
 								)
 							))
 							.join(
-								{ proposal: entityCollectionByEntityType[BlockheadEntityType.Proposal] },
+								{ proposal: entityCollectionByEntityType[BlockheadEntityType.SpecificationProposal] },
 								({ $proposal, proposal }) => (
 									eq(
 										$proposal[EntityMetaKey.Value][EntityMetaKey.IdKey],
@@ -1549,40 +1550,8 @@
 								lastCallDeadline: proposal.lastCallDeadline,
 								license: proposal.license,
 								supersededBy: proposal.supersededBy,
-								documentTitle: toArray(
-									queryBuilder.from({ title: entityFieldCollections[BlockheadEntityType.Proposal]['documentTitle'] })
-										.where(({ title }) => (
-											eq(
-												title[EntityMetaKey.ParentIdKey],
-												proposal[EntityMetaKey.IdKey],
-											)
-										))
-										.where(({ title }) => (
-											eq(
-												title[EntityMetaKey.Source],
-												Source.EthereumEips_Github,
-											)
-										))
-										.select(({ title }) => ({ title: title[EntityMetaKey.Value] }))
-										.findOne()
-								),
-								documentBody: toArray(
-									queryBuilder.from({ body: entityFieldCollections[BlockheadEntityType.Proposal]['documentBody'] })
-										.where(({ body }) => (
-											eq(
-												body[EntityMetaKey.ParentIdKey],
-												proposal[EntityMetaKey.IdKey],
-											)
-										))
-										.where(({ body }) => (
-											eq(
-												body[EntityMetaKey.Source],
-												Source.EthereumEips_Github,
-											)
-										))
-										.select(({ body }) => ({ body: body[EntityMetaKey.Value] }))
-										.findOne()
-								),
+								documentTitle: [],
+								documentBody: [],
 							}))
 					),
 				}))
@@ -1612,89 +1581,11 @@
 		),
 	)
 
-	const proposalsJoinedQuery = useLiveQuery(
-		(queryBuilder) => (
-			queryBuilder
-				.from({ $proposal: entityFieldCollections[BlockheadEntityType._Global]['$$proposals'] })
-				.where(({ $proposal }) => (
-					eq(
-						$proposal[EntityMetaKey.ParentIdKey],
-						stringify({}),
-					)
-				))
-				.where(({ $proposal }) => (
-					eq(
-						$proposal[EntityMetaKey.Source],
-						Source.EthereumEips_Github,
-					)
-				))
-				.join(
-					{ proposal: entityCollectionByEntityType[BlockheadEntityType.Proposal] },
-					({ $proposal, proposal }) => (
-						eq(
-							$proposal[EntityMetaKey.Value][EntityMetaKey.IdKey],
-							proposal[EntityMetaKey.IdKey],
-						)
-					)
-				)
-				.leftJoin(
-					{
-						title: queryBuilder
-							.from({ title: entityFieldCollections[BlockheadEntityType.Proposal]['documentTitle'] })
-							.where(({ title }) => (
-								eq(
-									title[EntityMetaKey.Source],
-									Source.EthereumEips_Github,
-								)
-							)),
-					},
-					({ proposal, title }) => (
-						eq(
-							title[EntityMetaKey.ParentIdKey],
-							proposal[EntityMetaKey.IdKey],
-						)
-					),
-				)
-				.leftJoin(
-					{
-						body: queryBuilder
-							.from({ body: entityFieldCollections[BlockheadEntityType.Proposal]['documentBody'] })
-							.where(({ body }) => (
-								eq(
-									body[EntityMetaKey.Source],
-									Source.EthereumEips_Github,
-								)
-							)),
-					},
-					({ proposal, body }) => (
-						eq(
-							body[EntityMetaKey.ParentIdKey],
-							proposal[EntityMetaKey.IdKey],
-						)
-					),
-				)
-				.select(({ proposal, title, body }) => ({
-					[EntityMetaKey.Id]: proposal[EntityMetaKey.Id],
-					[EntityMetaKey.IdKey]: proposal[EntityMetaKey.IdKey],
-					eip: proposal.eip,
-					description: proposal.description,
-					author: proposal.author,
-					discussionsTo: proposal.discussionsTo,
-					status: proposal.status,
-					type: proposal.type,
-					documentCategory: proposal.documentCategory,
-					created: proposal.created,
-					requires: proposal.requires,
-					withdrawalReason: proposal.withdrawalReason,
-					reviewPeriodEnd: proposal.reviewPeriodEnd,
-					lastCallDeadline: proposal.lastCallDeadline,
-					license: proposal.license,
-					supersededBy: proposal.supersededBy,
-					documentTitle: title?.[EntityMetaKey.Value] ?? proposal.documentTitle,
-					documentBody: body?.[EntityMetaKey.Value],
-				}))
-		),
-	)
+	const proposalsJoinedQuery: OneOffLiveQueryShell = {
+		data: [],
+		isError: false,
+		isLoading: false,
+	}
 
 	const networkQuery = useLiveQuery(
 		(queryBuilder) => (
@@ -1713,7 +1604,7 @@
 					)
 				))
 				.join(
-					{ networkRow: entityCollectionByEntityType[BlockheadEntityType.Network] },
+					{ networkRow: entityCollectionByEntityType[BlockheadEntityType.EvmNetwork] },
 					({ $network, networkRow }) => (
 						eq(
 							$network[EntityMetaKey.Value][EntityMetaKey.IdKey],
@@ -1774,7 +1665,7 @@
 			.
 		</p>
 
-		{#each schema as entityDefinition (entityDefinition.entityType)}
+		{#each schema as entityDefinition}
 			{@const entityQuery = entityQueryByEntityType[entityDefinition.entityType]}
 
 			<details
@@ -1810,12 +1701,7 @@
 							<p>Error</p>
 						{:else if entityQuery.data.length}
 							<ul class="collection-entities">
-								{#each entityQuery.data as entityRow (
-									[
-										String(entityRow.entity[EntityMetaKey.Source] ?? ''),
-										String(entityRow.entity[EntityMetaKey.IdKey] ?? ''),
-									].join('\0')
-								)}
+									{#each entityQuery.data as entityRow}
 									<li>
 										<pre data-card>{JSON.stringify(
 											entityRow.entity,
@@ -1830,41 +1716,35 @@
 						{/if}
 					</details>
 
-					{#each entityDefinition.fields as field (field.name)}
-						{@const entityFieldQuery = entityFieldQueryByEntityType[entityDefinition.entityType][field.name]}
+						{#each entityDefinition.fields as field}
+							{@const entityFieldQuery = entityFieldQueryByEntityType[entityDefinition.entityType][field.name]}
 
-						<details
+							<details
 							data-card
 							class="collection-field"
 						>
 							<summary>
-								<h4>
-									<code>{field.name}</code>
-									{#if !entityFieldQuery.isLoading}
-										(<NumberValue
-											value={entityFieldQuery.data.length}
-											options={{ maximumFractionDigits: 0 }}
+									<h4>
+										<code>{field.name}</code>
+										{#if entityFieldQuery != null && !entityFieldQuery.isLoading}
+											(<NumberValue
+												value={entityFieldQuery.data.length}
+												options={{ maximumFractionDigits: 0 }}
 										/>)
 									{/if}
 								</h4>
 							</summary>
 
-							<div data-column>
-								{#if entityFieldQuery.isLoading}
-									<p>Loading…</p>
+								<div data-column>
+									{#if entityFieldQuery == null}
+										<p>No collection</p>
+									{:else if entityFieldQuery.isLoading}
+										<p>Loading…</p>
 								{:else if entityFieldQuery.isError}
 									<p>Error</p>
 								{:else if entityFieldQuery.data.length}
 									<ul class="collection-entity-fields">
-										{#each entityFieldQuery.data as fieldRow (
-											[
-												String(fieldRow.entityField[EntityMetaKey.Source] ?? ''),
-												String(fieldRow.entityField[EntityMetaKey.ParentIdKey] ?? ''),
-												String(
-													fieldRow.entityField[EntityMetaKey.Value]?.[EntityMetaKey.IdKey] ?? '',
-												),
-											].join('\0')
-										)}
+										{#each entityFieldQuery.data as fieldRow}
 											<li>
 												<pre data-card>{JSON.stringify(
 													fieldRow.entityField,
@@ -1891,7 +1771,7 @@
 			Same rendering for every row: loading / error / <code>liveQueryDataRows(data)</code> → <code>#each</code> → <code>JSON.stringify</code>.
 		</p>
 
-		{#each oneOffLiveQueries as row (row.id)}
+			{#each oneOffLiveQueries as row}
 			<details
 				data-card
 				class="collection-domain"
@@ -1919,12 +1799,7 @@
 						<p>No data</p>
 					{:else}
 						<ul class="collection-entity-fields">
-							{#each liveQueryDataRows(row.query.data) as item, index (
-								[
-									String(row.id),
-									String(index),
-								].join('\0')
-							)}
+							{#each liveQueryDataRows(row.query.data) as item}
 								<li>
 									<pre data-card>{stringify(item)}</pre>
 								</li>

@@ -17,14 +17,14 @@ const pageErrors = (issues: string[]) => (
 )
 
 const thisDir = dirname(fileURLToPath(import.meta.url))
-const networkLayoutPath = join(
+const networkPagePath = join(
 	thisDir,
-	'../../src/routes/(explore)/(networks)/network/[networkId]/+layout.svelte',
+	'../../src/routes/(explore)/network/[caip2Namespace=caip2Namespace]:[caip2Reference=caip2Reference]/+page.svelte',
 )
 
 test.describe('Network head resolveLive (Voltaire block stream)', () => {
-	test('(contract) (network) layout still mounts resolveLive for Network (resolveLive from registry)', () => {
-		const source = readFileSync(networkLayoutPath, 'utf8')
+	test('(contract) network leaf derives the CAIP-2 network and discriminates EVM routes', () => {
+		const source = readFileSync(networkPagePath, 'utf8')
 		const resolvers = readFileSync(
 			join(thisDir, '../../src/resolvers/index.ts'),
 			'utf8',
@@ -33,20 +33,21 @@ test.describe('Network head resolveLive (Voltaire block stream)', () => {
 			join(thisDir, '../../src/lib/db/resolveLive.svelte.ts'),
 			'utf8',
 		)
-		expect(source, networkLayoutPath).toContain('mountEntityResolveLive')
-		expect(source).toContain('EntityType.Network')
+		expect(source, networkPagePath).toContain('networkIdFromCaip2')
+		expect(source).toContain('EvmNetworkView')
+		expect(source).toContain('NetworkView')
 		expect(hook).toContain('$effect')
 		expect(hook).toContain('startEntityFieldResolveLiveForParent')
 		expect(resolvers).toContain('entityFieldNamesWithResolveLiveByEntityType')
 		expect(hook).toContain('entityFieldResolversByEntityTypeAndFieldName')
 	})
 
-	test('(browser) /network/1: main settled, [Voltaire] block stream watch start, no page errors', async ({ page }) => {
+	test('(browser) /network/eip155:1: main settled, [Voltaire] block stream watch start, no page errors', async ({ page }) => {
 		test.setTimeout(300_000)
 		await installChainlistRpcsJsonStub(page)
 		const issues = collectIssues(page)
 		const watchStart = voltaireBlockStreamWatchStartConsoleEvent(page, 90_000)
-		await page.goto('/network/1', { waitUntil: 'load' })
+		await page.goto('/network/eip155:1', { waitUntil: 'load' })
 		await expect(page.locator('#main')).toBeVisible()
 		await assertMainSettled(page)
 		await watchStart

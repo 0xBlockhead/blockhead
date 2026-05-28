@@ -5,7 +5,7 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
-	import { farcasterFeedKinds } from '$/constants/Social/Farcaster.ts'
+	import { farcasterFeedKindByVariant } from '$/constants/Social/Farcaster.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
 
@@ -99,7 +99,7 @@
 			</span>
 		{:else}
 			<span>
-				{farcasterFeedKinds[entityId.variant].label}
+				{farcasterFeedKindByVariant[entityId.variant].label}
 			</span>
 		{/if}
 	{/snippet}
@@ -122,18 +122,18 @@
 			resource={feed}
 			placeholderText="Loading Farcaster feed (variant, FID or channel id, cast stream)…"
 		>
-			{#snippet children(loadedFeed)}
+			{#snippet children(feed)}
 				{(
 					feed.label != null
 					&& feed.label !== ''
 				) ?
-					loadedFeed.label
+					feed.label
 				: entityId.variant === 'byUser' ?
 					`FID ${String(entityId.fid)}`
 				: entityId.variant === 'byChannel' ?
 					entityId.channelId
 				:
-					farcasterFeedKinds[entityId.variant].label
+					farcasterFeedKindByVariant[entityId.variant].label
 				}
 			{/snippet}
 		</ResourceBoundary>
@@ -143,7 +143,7 @@
 		<dl>
 			<div>
 				<dt>Variant</dt>
-				<dd>{farcasterFeedKinds[entityId.variant].label}</dd>
+				<dd>{farcasterFeedKindByVariant[entityId.variant].label}</dd>
 			</div>
 			{#if entityId.variant === 'following'}
 				<div>
@@ -178,9 +178,9 @@
 						resource={feed}
 						placeholderText="Loading Farcaster feed (variant, FID or channel id, cast stream)…"
 					>
-						{#snippet children(loadedFeed)}
-							{#if loadedFeed.label != null && loadedFeed.label !== ''}
-								{loadedFeed.label}
+						{#snippet children(feed)}
+							{#if feed.label != null && feed.label !== ''}
+								{feed.label}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -246,4 +246,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-

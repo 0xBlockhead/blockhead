@@ -108,8 +108,8 @@
 			resource={currency}
 			placeholderText="Loading currency…"
 		>
-			{#snippet children(loadedCurrency)}
-				{loadedCurrency.name ?? entityId.iso4217}
+			{#snippet children(currency)}
+				{currency.name ?? entityId.iso4217}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -129,11 +129,11 @@
 						resource={currency}
 						placeholderText="Loading currency…"
 					>
-						{#snippet children(loadedCurrency)}
-							{#if loadedCurrency.$$timestamps?.[0]?.marketCap !== undefined}
+						{#snippet children(currency)}
+							{#if currency.$$timestamps?.[0]?.marketCap !== undefined}
 								<CurrencyAmount
 									currency="USD"
-									value={loadedCurrency.$$timestamps[0].marketCap}
+									value={currency.$$timestamps[0].marketCap}
 								/>
 							{/if}
 						{/snippet}
@@ -147,9 +147,9 @@
 						resource={currency}
 						placeholderText="Loading currency…"
 					>
-						{#snippet children(loadedCurrency)}
-							{#if loadedCurrency.symbol != null && loadedCurrency.symbol !== ''}
-								{loadedCurrency.symbol}
+						{#snippet children(currency)}
+							{#if currency.symbol != null && currency.symbol !== ''}
+								{currency.symbol}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -163,8 +163,8 @@
 							resource={currency}
 							placeholderText="Loading currency…"
 						>
-							{#snippet children(loadedCurrency)}
-								{#if loadedCurrency.minorUnitExponent !== undefined}
+							{#snippet children(currency)}
+								{#if currency.minorUnitExponent !== undefined}
 									{String(currency.minorUnitExponent)}
 								{/if}
 							{/snippet}
@@ -239,18 +239,19 @@
 							<a href={resolve('/markets')}>All catalog markets</a>
 							— spot indices quote in USD.
 						</p>
+					{:else}
+						<MarketsView
+							href={resolve('/markets')}
+							collapsible={false}
+							entityFieldReference={{
+								entityType: EntityType.Currency,
+								entityId,
+								fieldName: '$$marketsWithCurrencyAsBase',
+							}}
+							{id}
+							title="Base"
+						/>
 					{/if}
-					<MarketsView
-						href={resolve('/markets')}
-						collapsible={false}
-						entityFieldReference={{
-							entityType: EntityType.Currency,
-							entityId,
-							fieldName: '$$marketsWithCurrencyAsBase',
-						}}
-						{id}
-						title="Base"
-					/>
 				{/snippet}
 
 				{#snippet SectionMarketsAsQuote({ id, label })}
@@ -271,4 +272,3 @@
 
 	{/snippet}
 </EntityView>
-

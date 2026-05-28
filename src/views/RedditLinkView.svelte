@@ -100,8 +100,8 @@
 			resource={link}
 			placeholderText="Loading Reddit submission…"
 		>
-			{#snippet children(loadedLink)}
-				{loadedLink.title ?? entityId.fullname}
+			{#snippet children(link)}
+				{link.title ?? entityId.fullname}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -110,11 +110,11 @@
 		<ResourceBoundary
 			resource={link}
 		>
-			{#snippet children(loadedLink)}
-				{#if loadedLink.createdAt != null}
+			{#snippet children(link)}
+				{#if link.createdAt != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={loadedLink.createdAt}
+							timestamp={link.createdAt}
 						/>
 					</span>
 				{/if}
@@ -136,54 +136,54 @@
 			resource={link}
 			placeholderText="Loading Reddit submission…"
 		>
-			{#snippet children(loadedLink)}
+			{#snippet children(link)}
 				<dl data-column-item="center">
 					<div>
 						<dt>Body</dt>
 						<dd>
-							{#if !loadedLink.selftext}
+							{#if !link.selftext}
 								<p data-text="muted">No submission text.</p>
 							{:else}
-								<Markdown content={loadedLink.selftext} />
+								<Markdown content={link.selftext} />
 							{/if}
 						</dd>
 					</div>
 
-					{#if loadedLink.score != null}
+					{#if link.score != null}
 						<div>
 							<dt>Score</dt>
 							<dd>
 								<NumberValue
-									value={loadedLink.score}
+									value={link.score}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedLink.commentCount != null}
+					{#if link.commentCount != null}
 						<div>
 							<dt>Comments</dt>
 							<dd>
 								<NumberValue
-									value={loadedLink.commentCount}
+									value={link.commentCount}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedLink.author}
+					{#if link.author}
 						<div>
 							<dt>Author</dt>
-							<dd>u/{loadedLink.author}</dd>
+							<dd>u/{link.author}</dd>
 						</div>
 					{/if}
 
-					{#if loadedLink.$subreddit}
+					{#if link.$subreddit}
 						<div>
 							<dt>Posted in</dt>
 							<dd>
 								<RedditSubredditView
-									entityId={loadedLink.$subreddit[EntityMetaKey.Id]}
+									entityId={link.$subreddit[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
@@ -191,28 +191,28 @@
 						</div>
 					{/if}
 
-					{#if loadedLink.url}
+					{#if link.url}
 						<div>
 							<dt>URL</dt>
 							<dd>
 								<a
-									href={loadedLink.url}
+									href={link.url}
 									rel="noreferrer"
 									target="_blank"
-								>{loadedLink.url}</a>
+								>{link.url}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedLink.permalink}
+					{#if link.permalink}
 						<div>
 							<dt>Permalink</dt>
 							<dd>
 								<a
-									href={`https://reddit.com${loadedLink.permalink}`}
+									href={`https://reddit.com${link.permalink}`}
 									rel="noreferrer"
 									target="_blank"
-								>reddit.com{loadedLink.permalink}</a>
+								>reddit.com{link.permalink}</a>
 							</dd>
 						</div>
 					{/if}

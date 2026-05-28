@@ -39,7 +39,7 @@ test.describe('sidebar navigation', () => {
 		)
 		await expect(page).toHaveURL((u) => u.pathname === '/networks')
 		await coldRpcs
-		const ethereumMainnetHref = page.locator('#networks').locator('a[href$="/network/1"]').first()
+		const ethereumMainnetHref = page.locator('#networks').locator('a[href$="/network/eip155:1"]').first()
 		const networksListPending = page.locator('#networks').getByText('Loading networks…')
 		await expect(
 			ethereumMainnetHref.or(networksListPending),

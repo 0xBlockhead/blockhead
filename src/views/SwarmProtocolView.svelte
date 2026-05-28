@@ -102,16 +102,16 @@
 				resource={protocol}
 				placeholderText="Loading Swarm protocol…"
 			>
-				{#snippet children(loadedProtocol)}
-					{#if loadedProtocol.registryLabel}
+				{#snippet children(protocol)}
+					{#if protocol.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{loadedProtocol.registryLabel}</dd>
+							<dd>{protocol.registryLabel}</dd>
 						</div>
-					{:else if loadedProtocol.protocolName}
+					{:else if protocol.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{loadedProtocol.protocolName}</dd>
+							<dd>{protocol.protocolName}</dd>
 						</div>
 					{/if}
 
@@ -122,7 +122,7 @@
 						<div>
 							<dt>Home</dt>
 							<dd>
-								<a href={loadedProtocol.homeUrl}>{loadedProtocol.homeUrl}</a>
+								<a href={protocol.homeUrl}>{protocol.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
@@ -133,7 +133,7 @@
 						<div>
 							<dt>Docs</dt>
 							<dd>
-								<a href={loadedProtocol.docsUrl}>{loadedProtocol.docsUrl}</a>
+								<a href={protocol.docsUrl}>{protocol.docsUrl}</a>
 							</dd>
 						</div>
 					{/if}
@@ -143,7 +143,7 @@
 					)}
 						<div>
 							<dt>Topology</dt>
-							<dd>{loadedProtocol.topology}</dd>
+							<dd>{protocol.topology}</dd>
 						</div>
 					{/if}
 				{/snippet}

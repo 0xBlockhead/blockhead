@@ -1,5 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+
+
+	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -19,9 +23,9 @@
 		children,
 		entityId,
 		href = resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]',
+			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]',
 			{
-				networkId: String(entityId.$network.chainId),
+				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 				blockNumber: String(entityId.blockNumber),
 			},
 		),
@@ -53,6 +57,7 @@
 			$: [
 				Source.Blockscout_Rest,
 				Source.Voltaire_JsonRpc,
+				Source.ZeroGChain_JsonRpc,
 			],
 			timestamp: {},
 			transactionCount: {},
@@ -136,10 +141,10 @@
 						resource={block}
 						placeholderText="Loading block…"
 					>
-						{#snippet children(loadedBlock)}
-							{#if entityId.hash || loadedBlock.hash}
+						{#snippet children(block)}
+							{#if entityId.hash || block.hash}
 								<TruncatedValue
-									value={entityId.hash || loadedBlock.hash}
+									value={entityId.hash || block.hash}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							{/if}
@@ -155,9 +160,9 @@
 						resource={block}
 						placeholderText="Loading block…"
 					>
-						{#snippet children(loadedBlock)}
-							{#if loadedBlock.transactionCount !== undefined}
-								<NumberValue value={loadedBlock.transactionCount} />
+						{#snippet children(block)}
+							{#if block.transactionCount !== undefined}
+								<NumberValue value={block.transactionCount} />
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -171,10 +176,10 @@
 						resource={block}
 						placeholderText="Loading block…"
 					>
-						{#snippet children(loadedBlock)}
-							{#if loadedBlock.timestamp !== undefined}
+						{#snippet children(block)}
+							{#if block.timestamp !== undefined}
 								<Timestamp
-									timestamp={loadedBlock.timestamp}
+									timestamp={block.timestamp}
 								/>
 							{/if}
 						{/snippet}
@@ -190,9 +195,9 @@
 							resource={block}
 							placeholderText="Loading block…"
 						>
-							{#snippet children(loadedBlock)}
-								{#if loadedBlock.gasUsed !== undefined}
-									<NumberValue value={loadedBlock.gasUsed} />
+							{#snippet children(block)}
+								{#if block.gasUsed !== undefined}
+									<NumberValue value={block.gasUsed} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -208,9 +213,9 @@
 							resource={block}
 							placeholderText="Loading block…"
 						>
-							{#snippet children(loadedBlock)}
-								{#if loadedBlock.gasLimit !== undefined}
-									<NumberValue value={loadedBlock.gasLimit} />
+							{#snippet children(block)}
+								{#if block.gasLimit !== undefined}
+									<NumberValue value={block.gasLimit} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -226,9 +231,9 @@
 							resource={block}
 							placeholderText="Loading block…"
 						>
-							{#snippet children(loadedBlock)}
-								{#if loadedBlock.baseFeePerGas !== undefined}
-									<NumberValue value={loadedBlock.baseFeePerGas} />
+							{#snippet children(block)}
+								{#if block.baseFeePerGas !== undefined}
+									<NumberValue value={block.baseFeePerGas} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -244,9 +249,9 @@
 							resource={block}
 							placeholderText="Loading block…"
 						>
-							{#snippet children(loadedBlock)}
-								{#if loadedBlock.blobGasUsed !== undefined}
-									<NumberValue value={loadedBlock.blobGasUsed} />
+							{#snippet children(block)}
+								{#if block.blobGasUsed !== undefined}
+									<NumberValue value={block.blobGasUsed} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -262,9 +267,9 @@
 							resource={block}
 							placeholderText="Loading block…"
 						>
-							{#snippet children(loadedBlock)}
-								{#if loadedBlock.excessBlobGas !== undefined}
-									<NumberValue value={loadedBlock.excessBlobGas} />
+							{#snippet children(block)}
+								{#if block.excessBlobGas !== undefined}
+									<NumberValue value={block.excessBlobGas} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -280,10 +285,10 @@
 							resource={block}
 							placeholderText="Loading block…"
 						>
-							{#snippet children(loadedBlock)}
-								{#if loadedBlock.$parent}
+							{#snippet children(block)}
+								{#if block.$parent}
 									<EvmBlockView
-										entityId={loadedBlock.$parent[EntityMetaKey.Id]}
+										entityId={block.$parent[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
@@ -302,12 +307,12 @@
 							resource={block}
 							placeholderText="Loading block…"
 						>
-							{#snippet children(loadedBlock)}
-								{#if loadedBlock.$miner}
+							{#snippet children(block)}
+								{#if block.$miner}
 									<ActorNetworkView
 										entityId={{
 											$network: entityId.$network,
-											$actor: loadedBlock.$miner[EntityMetaKey.Id],
+											$actor: block.$miner[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Title}
 										open={false}
@@ -370,10 +375,10 @@
 						resource={block}
 						placeholderText="Loading chain info…"
 					>
-						{#snippet children(loadedBlock)}
-							{#if loadedBlock.$parent}
+						{#snippet children(block)}
+							{#if block.$parent}
 								<EvmBlockView
-									entityId={loadedBlock.$parent[EntityMetaKey.Id]}
+									entityId={block.$parent[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 								/>
 							{/if}
@@ -384,9 +389,9 @@
 				{#snippet SectionTransactions({ id: _txId, label: _txLabel })}
 					<EvmTransactionsView
 						href={resolve(
-						'/(explore)/(networks)/network/[networkId]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
+						'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
 						{
-							networkId: String(entityId.$network.chainId),
+							...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 							blockNumber: String(entityId.blockNumber),
 						},
 					)}
@@ -410,4 +415,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-

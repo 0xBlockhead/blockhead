@@ -6,7 +6,7 @@
  * ```
  * pnpm run test:e2e:cors
  * E2E_PATH_LIMIT=20 pnpm run test:e2e:cors
- * E2E_PROBE_PATH=/network/1 pnpm exec playwright test tests/e2e/cors-policy.e2e.ts -g probe
+ * E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/cors-policy.e2e.ts -g probe
  * ```
  */
 import { expect, test, type Page, type TestInfo } from '@playwright/test'

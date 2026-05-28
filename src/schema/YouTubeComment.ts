@@ -42,6 +42,12 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$author',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.YouTubeChannel,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: 'likeCount',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),

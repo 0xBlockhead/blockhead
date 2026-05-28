@@ -1,5 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+
+
+	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -18,9 +22,9 @@
 	let {
 		entityId,
 		href = resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/(contracts)/contract/[address]/verification/[verificationId]',
+			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(contracts)/contract/[address]/verification/[verificationId]',
 			{
-				networkId: String(entityId.$network.chainId),
+				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 				address: entityId.$contract.address,
 				verificationId: entityId.verificationId,
 			},
@@ -61,7 +65,7 @@
 				match: {},
 				creationMatch: {},
 				runtimeMatch: {},
-				verifiedAt: {},
+				verifiedAtMs: {},
 				matchId: {},
 				$compilation: {},
 				$sourceBundle: {},
@@ -81,6 +85,7 @@
 	import EvmContractCompilationView from '$/views/EvmContractCompilationView.svelte'
 	import EvmContractSourceBundleView from '$/views/EvmContractSourceBundleView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 </script>
 
 
@@ -171,7 +176,7 @@
 						</dd>
 					</div>
 				{/if}
-				{#if verification.verifiedAt}
+				{#if verification.verifiedAtMs}
 					<div>
 						<dt>Verified at</dt>
 						<dd>
@@ -180,7 +185,7 @@
 								placeholderText="Loading verification record…"
 							>
 								{#snippet children(verification)}
-									{verification.verifiedAt}
+									<Timestamp timestamp={verification.verifiedAtMs} />
 								{/snippet}
 							</ResourceBoundary>
 						</dd>

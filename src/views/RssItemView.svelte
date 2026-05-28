@@ -105,8 +105,8 @@
 			resource={item}
 			placeholderText="Loading item…"
 		>
-			{#snippet children(loadedItem)}
-				{loadedItem.title ?? entityId.guid}
+			{#snippet children(item)}
+				{item.title ?? entityId.guid}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -128,11 +128,11 @@
 		<ResourceBoundary
 			resource={item}
 		>
-			{#snippet children(loadedItem)}
-				{#if loadedItem.publishedAt != null}
+			{#snippet children(item)}
+				{#if item.publishedAt != null}
 					<span data-text="muted">
 						<Timestamp
-							timestamp={loadedItem.publishedAt}
+							timestamp={item.publishedAt}
 						/>
 					</span>
 				{/if}
@@ -145,7 +145,7 @@
 			resource={item}
 			placeholderText="Loading item…"
 		>
-			{#snippet children(loadedItem)}
+			{#snippet children(item)}
 				<dl data-column-item="center">
 					<div>
 						<dt>GUID</dt>
@@ -159,12 +159,12 @@
 						</dd>
 					</div>
 
-					{#if loadedItem.$feed}
+					{#if item.$feed}
 						<div>
 							<dt>Feed</dt>
 							<dd>
 								<RssFeedView
-									entityId={loadedItem.$feed[EntityMetaKey.Id]}
+									entityId={item.$feed[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
@@ -172,35 +172,35 @@
 						</div>
 					{/if}
 
-					{#if loadedItem.author}
+					{#if item.author}
 						<div>
 							<dt>Author</dt>
-							<dd>{loadedItem.author}</dd>
+							<dd>{item.author}</dd>
 						</div>
 					{/if}
 
-					{#if loadedItem.link}
+					{#if item.link}
 						<div>
 							<dt>Link</dt>
 							<dd>
 								<a
-									href={loadedItem.link}
+									href={item.link}
 									rel="noreferrer"
 									target="_blank"
-								>{loadedItem.link}</a>
+								>{item.link}</a>
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& loadedItem.publishedAt != null
+						&& item.publishedAt != null
 					)}
 						<div>
 							<dt>Published</dt>
 							<dd>
 								<Timestamp
-									timestamp={loadedItem.publishedAt}
+									timestamp={item.publishedAt}
 								/>
 							</dd>
 						</div>
@@ -208,13 +208,13 @@
 
 					{#if (
 						open
-						&& loadedItem.updatedAt != null
+						&& item.updatedAt != null
 					)}
 						<div>
 							<dt>Updated</dt>
 							<dd>
 								<Timestamp
-									timestamp={loadedItem.updatedAt}
+									timestamp={item.updatedAt}
 								/>
 							</dd>
 						</div>
@@ -222,42 +222,42 @@
 
 					{#if (
 						open
-						&& loadedItem.categories
+						&& item.categories
 					)}
 						<div>
 							<dt>Categories</dt>
-							<dd>{loadedItem.categories.join(', ')}</dd>
+							<dd>{item.categories.join(', ')}</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& loadedItem.enclosureUrl
+						&& item.enclosureUrl
 					)}
 						<div>
 							<dt>Enclosure</dt>
 							<dd>
 								<a
-									href={loadedItem.enclosureUrl}
+									href={item.enclosureUrl}
 									rel="noreferrer"
 									target="_blank"
-								>{loadedItem.enclosureUrl}</a>
+								>{item.enclosureUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& loadedItem.commentsUrl
+						&& item.commentsUrl
 					)}
 						<div>
 							<dt>Comments</dt>
 							<dd>
 								<a
-									href={loadedItem.commentsUrl}
+									href={item.commentsUrl}
 									rel="noreferrer"
 									target="_blank"
-								>{loadedItem.commentsUrl}</a>
+								>{item.commentsUrl}</a>
 							</dd>
 						</div>
 					{/if}
@@ -306,10 +306,10 @@
 						resource={item}
 						placeholderText="Loading item…"
 					>
-						{#snippet children(loadedItem)}
-							{#if loadedItem.description}
+						{#snippet children(item)}
+							{#if item.description}
 								<div class="rss-html">
-									{@html syndicationHtmlToSafeHtml(loadedItem.description)}
+									{@html syndicationHtmlToSafeHtml(item.description)}
 								</div>
 							{:else}
 								<p data-text="muted">No description.</p>
@@ -323,10 +323,10 @@
 						resource={item}
 						placeholderText="Loading item…"
 					>
-						{#snippet children(loadedItem)}
-							{#if loadedItem.content}
+						{#snippet children(item)}
+							{#if item.content}
 								<div class="rss-html">
-									{@html syndicationHtmlToSafeHtml(loadedItem.content)}
+									{@html syndicationHtmlToSafeHtml(item.content)}
 								</div>
 							{:else}
 								<p data-text="muted">No full content.</p>

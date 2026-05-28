@@ -28,6 +28,7 @@
 			entityId: EntityId<typeof schema, EntityType.RedditNetwork>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
@@ -120,55 +121,55 @@
 				resource={redditNetwork}
 				placeholderText="Loading Reddit…"
 			>
-				{#snippet children(loadedRedditNetwork)}
-					{#if loadedRedditNetwork.registryLabel}
+				{#snippet children(redditNetwork)}
+					{#if redditNetwork.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{loadedRedditNetwork.registryLabel}</dd>
+							<dd>{redditNetwork.registryLabel}</dd>
 						</div>
-					{:else if loadedRedditNetwork.protocolName}
+					{:else if redditNetwork.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{loadedRedditNetwork.protocolName}</dd>
+							<dd>{redditNetwork.protocolName}</dd>
 						</div>
 					{/if}
 
-					{#if open}
-						<div>
-							<dt>Communities</dt>
-							<dd>{String(redditNetwork.$$redditSubreddits?.length ?? 0)}</dd>
-						</div>
-						<div>
-							<dt>Submissions</dt>
-							<dd>{String(redditNetwork.$$redditLinks?.length ?? 0)}</dd>
-						</div>
+						{#if open}
+							<div>
+								<dt>Communities</dt>
+								<dd>{String(redditNetwork.$$redditSubreddits?.length ?? 0)}</dd>
+							</div>
+							<div>
+								<dt>Submissions</dt>
+								<dd>{String(redditNetwork.$$redditLinks?.length ?? 0)}</dd>
+							</div>
 
-						{#if loadedRedditNetwork.homeUrl}
+						{#if redditNetwork.homeUrl}
 							<div>
 								<dt>Home</dt>
 								<dd>
-									<a href={loadedRedditNetwork.homeUrl}>
-										{loadedRedditNetwork.homeUrl}
+									<a href={redditNetwork.homeUrl}>
+										{redditNetwork.homeUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedRedditNetwork.docsUrl}
+						{#if redditNetwork.docsUrl}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={loadedRedditNetwork.docsUrl}>
-										{loadedRedditNetwork.docsUrl}
+									<a href={redditNetwork.docsUrl}>
+										{redditNetwork.docsUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedRedditNetwork.topology}
+						{#if redditNetwork.topology}
 							<div>
 								<dt>Topology</dt>
-								<dd>{loadedRedditNetwork.topology}</dd>
+								<dd>{redditNetwork.topology}</dd>
 							</div>
 						{/if}
 					{/if}
@@ -243,4 +244,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-

@@ -51,6 +51,7 @@
 			description: {},
 			itemCount: {},
 			publishedAt: {},
+			publishedAtMs: {},
 			$channel: {},
 			...(open ?
 				{
@@ -75,6 +76,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import YouTubeChannelView from '$/views/YouTubeChannelView.svelte'
 	import YouTubeVideosView from '$/views/YouTubeVideosView.svelte'
 </script>
@@ -99,8 +101,8 @@
 			resource={playlist}
 			placeholderText="Loading playlist…"
 		>
-			{#snippet children(loadedPlaylist)}
-				{loadedPlaylist.title ?? entityId.playlistId}
+			{#snippet children(playlist)}
+				{playlist.title ?? entityId.playlistId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -121,11 +123,11 @@
 					resource={playlist}
 					placeholderText="Loading playlist…"
 				>
-					{#snippet children(loadedPlaylist)}
-						{#if loadedPlaylist.description}
+					{#snippet children(playlist)}
+						{#if playlist.description}
 							<div>
 								<dt>Description</dt>
-								<dd>{loadedPlaylist.description}</dd>
+								<dd>{playlist.description}</dd>
 							</div>
 						{/if}
 					{/snippet}
@@ -136,27 +138,32 @@
 					resource={playlist}
 					placeholderText="Loading playlist…"
 				>
-					{#snippet children(loadedPlaylist)}
-						{#if loadedPlaylist.itemCount != null}
+					{#snippet children(playlist)}
+						{#if playlist.itemCount != null}
 							<div>
 								<dt>Items</dt>
 								<dd>{String(playlist.itemCount)}</dd>
 							</div>
 						{/if}
 
-						{#if loadedPlaylist.publishedAt != null}
+						{#if playlist.publishedAtMs != null}
 							<div>
 								<dt>Published</dt>
-								<dd>{loadedPlaylist.publishedAt}</dd>
+								<dd><Timestamp timestamp={playlist.publishedAtMs} /></dd>
+							</div>
+						{:else if playlist.publishedAt != null}
+							<div>
+								<dt>Published</dt>
+								<dd>{playlist.publishedAt}</dd>
 							</div>
 						{/if}
 
-						{#if loadedPlaylist.$channel}
+						{#if playlist.$channel}
 							<div>
 								<dt>Channel</dt>
 								<dd>
 									<YouTubeChannelView
-										entityId={loadedPlaylist.$channel[EntityMetaKey.Id]}
+										entityId={playlist.$channel[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
@@ -220,5 +227,3 @@
 		</div>
 	{/snippet}
 </EntityView>
-
-

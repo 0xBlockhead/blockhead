@@ -5,9 +5,10 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { Entity, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
-	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
 
 	import {
 		apiChainByChainId,
@@ -60,14 +61,16 @@
 				Number.isFinite(chainId)
 				&& apiChainByChainId[chainId] != null
 			))
-			.toSorted((a, b) => a - b)
+				.toSorted((a, b) => a - b)
 	) satisfies readonly number[]
 
+	const blockscoutHostedNetworkChainIds = blockscoutHostedNetworks.map((network) => network.chainId)
+
 	const actorNetworkSliceChainIds = (
-		[...new Set([
-			...alliumWalletBalanceChainIds,
-			...blockscoutHostedNetworks.map((network) => network.chainId),
-		])]
+	[...new Set([
+		...alliumWalletBalanceChainIds,
+		...blockscoutHostedNetworkChainIds,
+	])]
 			.toSorted((a, b) => a - b)
 	) satisfies readonly number[]
 
@@ -103,23 +106,28 @@
 								],
 							},
 						}
-					:
-						{}),
-					$: [
-						Source.Blockscout_Rest,
-					],
-					$$transactions: {},
-					$$tokenTransfers: {},
-					$$internalTransactions: {},
-					isContract: {},
-					transactionsCount: {},
-					tokenTransferCount: {},
-					firstTransactionAt: {},
-					lastTransactionAt: {},
-					nftCount: {},
-				}
-			:
-				{},
+						:
+							{}),
+						...(blockscoutHostedNetworkChainIds.includes(chainId) ?
+							{
+								$: [
+									Source.Blockscout_Rest,
+								],
+								$$transactions: {},
+								$$tokenTransfers: {},
+								$$internalTransactions: {},
+								isContract: {},
+								transactionsCount: {},
+								tokenTransferCount: {},
+								firstTransactionAt: {},
+								lastTransactionAt: {},
+								nftCount: {},
+							}
+						:
+							{}),
+					}
+				:
+					{},
 		)
 	))
 
@@ -525,9 +533,9 @@
 						>
 							<BalancesView
 								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+									'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 									{
-										networkId: String(balancesChainId),
+										...caip2RouteParamsFromEvmChainId(balancesChainId),
 										address: entityId.address,
 									},
 								)}
@@ -569,7 +577,7 @@
 				{/snippet}
 
 				{#snippet SectionActivity({ id, label })}
-					{#each actorNetworkSliceChainIds as facetChainId (facetChainId)}
+						{#each blockscoutHostedNetworkChainIds as facetChainId (facetChainId)}
 						<section
 							data-scroll-marker-label={`${chainFacetLabel(facetChainId)} activity`}
 							id={`${idKey}:activity-net-${facetChainId}`}
@@ -586,9 +594,9 @@
 							/>
 							<EvmTransactionsView
 								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+									'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 									{
-										networkId: String(facetChainId),
+										...caip2RouteParamsFromEvmChainId(facetChainId),
 										address: entityId.address,
 									},
 								)}
@@ -612,9 +620,9 @@
 							>
 								<EvmTransactionsView
 									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 										{
-											networkId: String(facetChainId),
+											...caip2RouteParamsFromEvmChainId(facetChainId),
 											address: entityId.address,
 										},
 									)}
@@ -640,9 +648,9 @@
 							>
 								<EvmTransactionsView
 									href={resolve(
-										'/(explore)/(networks)/network/[networkId]/(network)/(accounts)/account/[address]',
+										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 										{
-											networkId: String(facetChainId),
+											...caip2RouteParamsFromEvmChainId(facetChainId),
 											address: entityId.address,
 										},
 									)}
@@ -672,5 +680,3 @@
 		{/if}
 	{/snippet}
 </EntityView>
-
-

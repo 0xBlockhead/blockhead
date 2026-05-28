@@ -92,8 +92,8 @@
 			resource={url}
 			placeholderText="Loading URL entity…"
 		>
-			{#snippet children(loadedUrl)}
-				{loadedUrl.openGraphTitle ?? loadedUrl.catalogName ?? entityId.url}
+			{#snippet children(url)}
+				{url.openGraphTitle ?? url.catalogName ?? entityId.url}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -114,9 +114,9 @@
 					<dt>Description</dt>
 					<dd>
 						<ResourceBoundary resource={url}>
-							{#snippet children(loadedUrl)}
-								{#if loadedUrl.openGraphDescription != null}
-									{loadedUrl.openGraphDescription}
+							{#snippet children(url)}
+								{#if url.openGraphDescription != null}
+									{url.openGraphDescription}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -128,9 +128,9 @@
 				<dt>Publisher</dt>
 				<dd>
 					<ResourceBoundary resource={url}>
-						{#snippet children(loadedUrl)}
-							{#if loadedUrl.publisher != null}
-								{loadedUrl.publisher}
+						{#snippet children(url)}
+							{#if url.publisher != null}
+								{url.publisher}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -142,9 +142,9 @@
 					<dt>Explorer standard</dt>
 					<dd>
 						<ResourceBoundary resource={url}>
-							{#snippet children(loadedUrl)}
-								{#if loadedUrl.catalogStandard != null}
-									{loadedUrl.catalogStandard}
+							{#snippet children(url)}
+								{#if url.catalogStandard != null}
+									{url.catalogStandard}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -157,14 +157,14 @@
 					<dt>Preview</dt>
 					<dd>
 						<ResourceBoundary resource={url}>
-							{#snippet children(loadedUrl)}
+							{#snippet children(url)}
 								{#if (
 									url.$openGraphImage != null
 									&& url.$openGraphImage[EntityMetaKey.Id].url
 								)}
 									<Media
-										alt={loadedUrl.openGraphTitle ?? ''}
-										media={{ url: loadedUrl.$openGraphImage[EntityMetaKey.Id].url }}
+										alt={url.openGraphTitle ?? ''}
+										media={{ url: url.$openGraphImage[EntityMetaKey.Id].url }}
 									/>
 								{/if}
 							{/snippet}
@@ -177,8 +177,8 @@
 				<dt>Website</dt>
 				<dd>
 					<ResourceBoundary resource={url}>
-						{#snippet children(loadedUrl)}
-							{#if loadedUrl.openGraphTitle != null}
+						{#snippet children(url)}
+							{#if url.openGraphTitle != null}
 								<a
 									href={entityId.url}
 									rel="noreferrer"
@@ -187,7 +187,7 @@
 									{entityId.url}
 								</a>
 							{:else}
-								{#if loadedUrl.catalogName != null}
+								{#if url.catalogName != null}
 									<a
 										href={entityId.url}
 										rel="noreferrer"

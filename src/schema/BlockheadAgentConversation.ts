@@ -62,7 +62,7 @@ export default {
 		},
 		{
 			name: '$$turns',
-			type: EntityFieldType.EntityReference,
+			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BlockheadAgentConversationTurn,
 			cardinality: EntityFieldCardinality.Many,
 		},

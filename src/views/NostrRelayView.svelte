@@ -86,9 +86,9 @@
 			resource={relay}
 			placeholderText="Loading relay…"
 		>
-			{#snippet children(loadedRelay)}
-				{#if loadedRelay.name}
-					{loadedRelay.name}
+			{#snippet children(relay)}
+				{#if relay.name}
+					{relay.name}
 				{:else}
 					<TruncatedValue
 						value={entityId.relayUrl}
@@ -121,8 +121,8 @@
 							resource={relay}
 							placeholderText="Loading relay…"
 						>
-							{#snippet children(loadedRelay)}
-								{loadedRelay.description}
+							{#snippet children(relay)}
+								{relay.description}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -140,8 +140,8 @@
 							resource={relay}
 							placeholderText="Loading relay…"
 						>
-							{#snippet children(loadedRelay)}
-								{loadedRelay.software}
+							{#snippet children(relay)}
+								{relay.software}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -159,8 +159,8 @@
 							resource={relay}
 							placeholderText="Loading relay…"
 						>
-							{#snippet children(loadedRelay)}
-								{loadedRelay.version}
+							{#snippet children(relay)}
+								{relay.version}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -178,7 +178,7 @@
 							resource={relay}
 							placeholderText="Loading relay…"
 						>
-							{#snippet children(loadedRelay)}
+							{#snippet children(relay)}
 								{String(relay.supportedNipCount)}
 							{/snippet}
 						</ResourceBoundary>
@@ -197,8 +197,8 @@
 							resource={relay}
 							placeholderText="Loading relay…"
 						>
-							{#snippet children(loadedRelay)}
-								{loadedRelay.isPaid ? 'Yes' : 'No'}
+							{#snippet children(relay)}
+								{relay.isPaid ? 'Yes' : 'No'}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -216,7 +216,7 @@
 							resource={relay}
 							placeholderText="Loading relay…"
 						>
-							{#snippet children(loadedRelay)}
+							{#snippet children(relay)}
 								{String(relay.limit)}
 							{/snippet}
 						</ResourceBoundary>

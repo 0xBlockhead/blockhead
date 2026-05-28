@@ -4,7 +4,11 @@
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { MarketAssetKind, marketCatalogFieldSources } from '$/constants/Market.ts'
+	import {
+		MarketAssetKind,
+		marketCatalogFieldSources,
+		marketSpotPriceSources,
+	} from '$/constants/Market.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -58,16 +62,16 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Each row is one spot or index reading for a market pair (price, quote clock, provider ids).
+			Each row is one spot or index quote stream for a market pair, venue, provider, and optional feed key.
 		</p>
 		<p>
-			Open the row for the market page, timestamped quote history, and OHLC ranges. Interval candles live on the OHLC index.
+			Open the row for timestamped quote prints on <code>$$quotes</code>. Interval candles live on the market OHLC index.
 		</p>
 	{/snippet}
 
 	{#snippet Empty()}
 		<p data-text="muted">
-			No spot or index quotes in this context yet.
+			No spot or index quote streams in this context yet.
 		</p>
 	{/snippet}
 
@@ -81,6 +85,9 @@
 						...marketCatalogFieldSources,
 					],
 					[entityFieldReference.fieldName]: {
+						$: marketSpotPriceSources.filter((source) => (
+							source !== Source.Constants_Internal
+						)),
 						$limit: limit,
 					},
 				},

@@ -97,9 +97,9 @@
 				resource={sharedAddress}
 				placeholderText="Loading…"
 			>
-				{#snippet children(loadedSharedAddress)}
+				{#snippet children(sharedAddress)}
 					<span>
-						{loadedSharedAddress.peerId ?? entityId.id}
+						{sharedAddress.peerId ?? entityId.id}
 					</span>
 				{/snippet}
 			</ResourceBoundary>
@@ -125,7 +125,7 @@
 				resource={sharedAddress}
 				placeholderText="Loading contact…"
 			>
-				{#snippet children(loadedSharedAddress)}
+				{#snippet children(sharedAddress)}
 					<dl data-column-item="center">
 						<div>
 							<dt>Shown as</dt>
@@ -140,16 +140,16 @@
 						)}
 							<div>
 								<dt>Peer ID</dt>
-								<dd>{loadedSharedAddress.peerId}</dd>
+								<dd>{sharedAddress.peerId}</dd>
 							</div>
 						{/if}
 
-						{#if loadedSharedAddress.sharedAt !== undefined}
+						{#if sharedAddress.sharedAt !== undefined}
 							<div>
 								<dt>Shared at</dt>
 								<dd>
 									<Timestamp
-										timestamp={loadedSharedAddress.sharedAt}
+										timestamp={sharedAddress.sharedAt}
 									/>
 								</dd>
 							</div>
@@ -165,8 +165,8 @@
 								<dd>
 									<ActorNetworkView
 										entityId={{
-											$network: loadedSharedAddress.$network[EntityMetaKey.Id],
-											$actor: loadedSharedAddress.$account[EntityMetaKey.Id],
+											$network: sharedAddress.$network[EntityMetaKey.Id],
+											$actor: sharedAddress.$account[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Title}
 										open={false}
@@ -180,7 +180,7 @@
 						)}
 							<div>
 								<dt>Room</dt>
-								<dd>{loadedSharedAddress.$room.id}</dd>
+								<dd>{sharedAddress.$room.id}</dd>
 							</div>
 						{/if}
 						{#if (
@@ -243,10 +243,10 @@
 						resource={sharedAddress}
 						placeholderText="Loading contact…"
 					>
-						{#snippet children(loadedSharedAddress)}
+						{#snippet children(sharedAddress)}
 							{#if (
-								(sharedAddress.peerId === undefined || loadedSharedAddress.peerId === '')
-								&& !(sharedAddress.$account !== undefined && loadedSharedAddress.$network !== undefined)
+								(sharedAddress.peerId === undefined || sharedAddress.peerId === '')
+								&& !(sharedAddress.$account !== undefined && sharedAddress.$network !== undefined)
 								&& sharedAddress.$room === undefined
 								&& sharedAddress.$network === undefined
 								&& !(sharedAddress.targetPeerIds ?? []).length

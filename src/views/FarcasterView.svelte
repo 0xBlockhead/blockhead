@@ -28,6 +28,7 @@
 			entityId: EntityId<typeof schema, EntityType.FarcasterNetwork>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -110,6 +111,7 @@
 	{entityId}
 	href={href}
 	bind:open
+	{collapsible}
 	{...EntityViewProps}
 	title="Farcaster"
 >
@@ -127,8 +129,8 @@
 			resource={network}
 			placeholderText="Farcaster"
 		>
-			{#snippet children(loadedNetwork)}
-				{loadedNetwork.protocolName ?? 'Farcaster'}
+			{#snippet children(network)}
+				{network.protocolName ?? 'Farcaster'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -149,7 +151,7 @@
 					resource={network}
 					placeholderText="Loading Farcaster hub directory…"
 				>
-					{#snippet children(loadedNetwork)}
+					{#snippet children(network)}
 						<div>
 							<dt>Channels</dt>
 							<dd>{String(network.$$channels.length)}</dd>
@@ -158,42 +160,42 @@
 							<dt>Users (FID · fname on profile)</dt>
 							<dd>{String(network.$$users.length)}</dd>
 						</div>
-						{#if loadedNetwork.protocolName}
+						{#if network.protocolName}
 							<div>
 								<dt>Protocol</dt>
-								<dd>{loadedNetwork.protocolName}</dd>
+								<dd>{network.protocolName}</dd>
 							</div>
 						{/if}
 
-						{#if loadedNetwork.homeUrl}
+						{#if network.homeUrl}
 							<div>
 								<dt>Home</dt>
 								<dd>
-									<a href={loadedNetwork.homeUrl}>{loadedNetwork.homeUrl}</a>
+									<a href={network.homeUrl}>{network.homeUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedNetwork.docsUrl}
+						{#if network.docsUrl}
 							<div>
 								<dt>Docs</dt>
 								<dd>
-									<a href={loadedNetwork.docsUrl}>{loadedNetwork.docsUrl}</a>
+									<a href={network.docsUrl}>{network.docsUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedNetwork.registryLabel}
+						{#if network.registryLabel}
 							<div>
 								<dt>Registry</dt>
-								<dd>{loadedNetwork.registryLabel}</dd>
+								<dd>{network.registryLabel}</dd>
 							</div>
 						{/if}
 
-						{#if loadedNetwork.topology}
+						{#if network.topology}
 							<div>
 								<dt>Topology</dt>
-								<dd>{loadedNetwork.topology}</dd>
+								<dd>{network.topology}</dd>
 							</div>
 						{/if}
 					{/snippet}
@@ -202,7 +204,7 @@
 					resource={trending}
 					placeholderText="Loading trending feed (casts by FID + cast hash)…"
 				>
-					{#snippet children(loadedTrending)}
+					{#snippet children(trending)}
 						<div>
 							<dt>Trending casts (feed)</dt>
 							<dd>{String(trending.$$entries.length)}</dd>
@@ -364,4 +366,3 @@
 
 	{/snippet}
 </EntityView>
-

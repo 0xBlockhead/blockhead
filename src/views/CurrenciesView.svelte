@@ -9,6 +9,16 @@
 	import { Source } from '$/sources/$Source.ts'
 	import { SvelteSet } from 'svelte/reactivity'
 
+	type CurrencyOrderFieldRow = {
+		[EntityMetaKey.Value]: {
+			[EntityMetaKey.Id]: {
+				iso4217: string
+			}
+			$$timestamps?: { marketCap?: bigint }[]
+			marketCap?: bigint
+		}
+	}
+
 
 	// State
 	let {
@@ -33,12 +43,8 @@
 	const globalCurrenciesFieldOrderBy = (
 		[
 			[
-				({ field }) => (
-					(
-						field[EntityMetaKey.Value] as {
-							$$timestamps?: { marketCap?: bigint }[]
-						}
-					).$$timestamps?.[0]?.marketCap
+				({ fieldRow }) => (
+					fieldRow[EntityMetaKey.Value].$$timestamps?.[0]?.marketCap
 				),
 				{
 					direction: 'desc',
@@ -46,26 +52,26 @@
 				},
 			],
 			[
-				({ field }) => (
-					(field[EntityMetaKey.Value] as { [EntityMetaKey.Id]: { iso4217: string } })[EntityMetaKey.Id].iso4217
+				({ fieldRow }) => (
+					fieldRow[EntityMetaKey.Value][EntityMetaKey.Id].iso4217
 				),
 				'asc',
 			],
-		] as const satisfies DeclarativeOrderBy<{ field: unknown }>
+		] as const satisfies DeclarativeOrderBy<CurrencyOrderFieldRow>
 	)
 
 	const currencyTimestampsFieldOrderBy = (
 		[
 			[
-				({ field }) => (
-					(field[EntityMetaKey.Value] as { marketCap?: bigint }).marketCap
+				({ fieldRow }) => (
+					fieldRow[EntityMetaKey.Value].marketCap
 				),
 				{
 					direction: 'desc',
 					nulls: 'last',
 				},
 			],
-		] as const satisfies DeclarativeOrderBy<{ field: unknown }>
+		] as const satisfies DeclarativeOrderBy<CurrencyOrderFieldRow>
 	)
 
 

@@ -22,7 +22,7 @@ import {
 	EvmTransactionKind,
 } from '$/constants/Evm.ts'
 import { MarketAssetKind, MarketKind } from '$/constants/Market.ts'
-import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { catalogCoinUsdMarketIdByCoinId } from '$/constants/MarketCatalog.ts'
 import type {
 	BlockscoutInternalTransaction,
@@ -549,7 +549,7 @@ const evmTokenTransferEntityFromFields = ({
 						address: tokenAddress,
 					},
 				},
-			} satisfies Entity<typeof schema, EntityType.CoinInstance>,
+			} satisfies Entity<typeof schema, EntityType.EvmCoinInstance>,
 		}),
 	}),
 })
@@ -1545,9 +1545,9 @@ export default {
 						}
 					})()
 				)
-				const timestampSeconds = (
+				const timestampMs = (
 					wire.timestamp != null ? ((time) => (
-						Number.isFinite(time) && time >= 0 ? Math.floor(time / 1000) : undefined
+						Number.isFinite(time) && time >= 0 ? time : undefined
 					))(Date.parse(wire.timestamp)) : undefined
 				)
 				const feeTrimmed = wire.fee?.trim() || undefined
@@ -1624,7 +1624,7 @@ export default {
 							},
 						} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 					}),
-					...(timestampSeconds != undefined && { timestampSeconds }),
+					...(timestampMs != undefined && { timestampMs }),
 					...(wire.status === false || wire.status === true ? { successful: wire.status } : {}),
 					...(feeTrimmed != null && { fee: feeTrimmed }),
 					...(nonce != null && { nonce }),
@@ -1743,12 +1743,12 @@ export default {
 		}),
 
 		defineEntityResolver({
-			entityType: EntityType.Network_GasEstimate_Timestamp,
+			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
 			resolve: async (entityId) => {
 				const stats = await blockscoutStatsForChain(entityId.$network.chainId)
 				if (stats == null) {
 					throw new Error(
-						`Blockscout_Rest: Network_GasEstimate_Timestamp unsupported for chain ${String(entityId.$network.chainId)}`,
+						`Blockscout_Rest: EvmNetwork_GasEstimate_Timestamp unsupported for chain ${String(entityId.$network.chainId)}`,
 					)
 				}
 				const observation = gasEstimateObservationFromBlockscoutStats(stats)
@@ -1756,7 +1756,7 @@ export default {
 					throw new Error('Blockscout_Rest: stats missing gas_prices tiers')
 				}
 				if (entityId.timestampMs !== observation.timestampMs) {
-					throw new Error('Blockscout_Rest: Network_GasEstimate_Timestamp id does not match stats clock')
+					throw new Error('Blockscout_Rest: EvmNetwork_GasEstimate_Timestamp id does not match stats clock')
 				}
 				return {
 					...(observation.slowGwei != null && { slowGwei: observation.slowGwei }),
@@ -1814,7 +1814,7 @@ export default {
 
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$blocks',
 			resolve: async (entityId, context) => {
 				const {
@@ -1915,7 +1915,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$transactions',
 			resolve: async (entityId, context) => {
 				const {
@@ -2105,7 +2105,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$contracts',
 			resolve: async (entityId, context) => {
 				const {
@@ -2149,7 +2149,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$erc4337SmartAccounts',
 			resolve: async (entityId, context) => {
 				const {
@@ -2182,7 +2182,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$erc4337Bundlers',
 			resolve: async (entityId, context) => {
 				const {
@@ -2215,7 +2215,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$erc4337Paymasters',
 			resolve: async (entityId, context) => {
 				const {
@@ -2248,7 +2248,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$erc4337AccountFactories',
 			resolve: async (entityId, context) => {
 				const {
@@ -2281,7 +2281,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$userOperations',
 			resolve: async (entityId, context) => {
 				const {
@@ -2321,7 +2321,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$gasEstimateTimestamps',
 			resolve: async (entityId) => {
 				const stats = await blockscoutStatsForChain(entityId.chainId)

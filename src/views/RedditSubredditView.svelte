@@ -97,8 +97,8 @@
 			resource={subreddit}
 			placeholderText="Loading subreddit…"
 		>
-			{#snippet children(loadedSubreddit)}
-				{loadedSubreddit.title ?? `r/${entityId.name}`}
+			{#snippet children(subreddit)}
+				{subreddit.title ?? `r/${entityId.name}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -108,12 +108,12 @@
 			resource={subreddit}
 			placeholderText="Loading subreddit…"
 		>
-			{#snippet children(loadedSubreddit)}
-				{#if loadedSubreddit.$icon !== undefined}
+			{#snippet children(subreddit)}
+				{#if subreddit.$icon !== undefined}
 					<IconComponent
-						alt={loadedSubreddit.title ?? entityId.name}
+						alt={subreddit.title ?? entityId.name}
 						shape={IconShape.Circle}
-						src={loadedSubreddit.$icon[EntityMetaKey.Id].url}
+						src={subreddit.$icon[EntityMetaKey.Id].url}
 					/>
 				{/if}
 			{/snippet}
@@ -134,52 +134,52 @@
 			resource={subreddit}
 			placeholderText="Loading subreddit…"
 		>
-			{#snippet children(loadedSubreddit)}
+			{#snippet children(subreddit)}
 				<dl data-column-item="center">
-					{#if loadedSubreddit.publicDescription}
+					{#if subreddit.publicDescription}
 						<div>
 							<dt>Description</dt>
-							<dd>{loadedSubreddit.publicDescription}</dd>
+							<dd>{subreddit.publicDescription}</dd>
 						</div>
 					{/if}
 
-					{#if loadedSubreddit.subscriberCount != null}
+					{#if subreddit.subscriberCount != null}
 						<div>
 							<dt>Subscribers</dt>
 							<dd>
 								<NumberValue
-									value={loadedSubreddit.subscriberCount}
+									value={subreddit.subscriberCount}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedSubreddit.activeUserCount != null}
+					{#if subreddit.activeUserCount != null}
 						<div>
 							<dt>Active users</dt>
 							<dd>
 								<NumberValue
-									value={loadedSubreddit.activeUserCount}
+									value={subreddit.activeUserCount}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedSubreddit.createdAt != null}
+					{#if subreddit.createdAt != null}
 						<div>
 							<dt>Created</dt>
 							<dd>
 								<Timestamp
-									timestamp={loadedSubreddit.createdAt}
+									timestamp={subreddit.createdAt}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedSubreddit.over18 != null}
+					{#if subreddit.over18 != null}
 						<div>
 							<dt>NSFW</dt>
-							<dd>{loadedSubreddit.over18 ? 'Yes' : 'No'}</dd>
+							<dd>{subreddit.over18 ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 				</dl>

@@ -35,10 +35,10 @@ const beaconFinalityCheckpointsForChain = async (
 }
 
 const beaconForkScheduleEntryForNetworkConsensusUpgrade = async (
-	entityId: EntityId<typeof schema, EntityType.NetworkConsensusUpgrade>,
+	entityId: EntityId<typeof schema, EntityType.EthereumConsensusUpgrade>,
 ): Promise<BeaconForkScheduleEntry | undefined> => {
 	const { chainId } = entityId.$network
-	const { networkConsensusUpgradeByChainIdAndUpgradeId } = await import('$/constants/NetworkUpgrades.ts')
+	const { networkConsensusUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
 	const consensusUpgrade = networkConsensusUpgradeByChainIdAndUpgradeId[
 		`${chainId}:${entityId.upgradeId}`
 	]
@@ -111,7 +111,7 @@ export default {
 		}),
 
 		defineEntityResolver({
-			entityType: EntityType.Network_BeaconFinality_Timestamp,
+			entityType: EntityType.EthereumBeaconFinality_Timestamp,
 			resolve: async (entityId) => {
 				const checkpoints = await beaconFinalityCheckpointsForChain(entityId.$network.chainId)
 				if (checkpoints == null) {
@@ -154,7 +154,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$beaconEpochs',
 			resolve: async (entityId, context) => {
 				const { getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
@@ -188,7 +188,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$beaconSlots',
 			resolve: async (entityId, context) => {
 				const { getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
@@ -221,7 +221,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$beaconValidators',
 			resolve: async (entityId, context) => {
 				const { getBeaconRecentProposerValidatorIndices } = await import('$/sources/Beacon/Rest/queries.ts')
@@ -248,7 +248,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$beaconFinalityTimestamps',
 			resolve: async (entityId) => (
 				[
@@ -263,7 +263,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.NetworkConsensusUpgrade,
+			entityType: EntityType.EthereumConsensusUpgrade,
 			fieldName: 'previousForkVersion',
 			resolve: async (entityId) => {
 				const entry = await beaconForkScheduleEntryForNetworkConsensusUpgrade(entityId)
@@ -272,7 +272,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.NetworkConsensusUpgrade,
+			entityType: EntityType.EthereumConsensusUpgrade,
 			fieldName: 'currentForkVersion',
 			resolve: async (entityId) => {
 				const entry = await beaconForkScheduleEntryForNetworkConsensusUpgrade(entityId)

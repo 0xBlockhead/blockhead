@@ -72,7 +72,7 @@ export default {
 		{
 			name: '$$coinInstances',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.CoinInstance,
+			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [Source.Coingecko_Rest],
 		},

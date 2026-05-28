@@ -7,7 +7,7 @@
 	import {
 		MarketAssetKind,
 		MarketKind,
-		marketKinds,
+		marketKindByMarketKind,
 	} from '$/constants/Market.ts'
 
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -97,7 +97,7 @@
 		entityId.$market.marketKind === MarketKind.Spot ?
 			`${entityId.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$market.$base)}-${marketAssetSymbol(entityId.$market.$quote)}`
 		:
-			`${entityId.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$market.$base)}-${marketAssetSymbol(entityId.$market.$quote)} (${marketKinds[entityId.$market.marketKind].label})`
+			`${entityId.$market.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$market.$base)}-${marketAssetSymbol(entityId.$market.$quote)} (${marketKindByMarketKind[entityId.$market.marketKind].label})`
 	)
 
 
@@ -149,8 +149,8 @@
 						resource={marketPrice}
 						placeholderText="Loading quotes…"
 					>
-						{#snippet children(loadedMarketPrice)}
-							{@const headQuoteId = (
+							{#snippet children(marketPrice)}
+								{@const headQuoteId = (
 								(marketPrice.$$quotes ?? [])
 									.toSorted((
 										leftQuote,

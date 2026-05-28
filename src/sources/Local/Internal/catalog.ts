@@ -2,7 +2,7 @@ import type { EntityId } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { BlockheadAgentConversationTurnStatus } from '$/schema/BlockheadAgentConversationTurn.ts'
 import { BlockheadSessionStatus } from '$/schema/BlockheadSession.ts'
-import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { XmtpConversationConsentState } from '$/schema/XmtpConversation.ts'
 import { schema } from '$/schema/index.ts'
 
@@ -472,7 +472,7 @@ export const findNormalizedBridgeTransactionRow = (
 
 export const coinInstanceIdForNormalizedStateChannelRow = (
 	row: NormalizedStateChannel,
-): EntityId<typeof schema, EntityType.CoinInstance> => (
+): EntityId<typeof schema, EntityType.EvmCoinInstance> => (
 	row.asset.kind === 'native' ?
 		{
 			$network: { chainId: row.chainId },

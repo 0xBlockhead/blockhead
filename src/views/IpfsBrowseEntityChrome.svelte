@@ -86,19 +86,19 @@
 			resource={ipfs}
 			placeholderText="Loading IPFS resource (multibase CID, gateway URL)…"
 		>
-			{#snippet children(loadedIpfs)}
+			{#snippet children(ipfs)}
 				<dl>
-					{#if loadedIpfs.gatewayUrl !== undefined}
+					{#if ipfs.gatewayUrl !== undefined}
 						<div>
 							<dt>Gateway URL</dt>
 							<dd>
 								<a
-									href={loadedIpfs.gatewayUrl}
+									href={ipfs.gatewayUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue
-										value={loadedIpfs.gatewayUrl}
+										value={ipfs.gatewayUrl}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</a>
@@ -106,22 +106,22 @@
 						</div>
 					{/if}
 
-					{#if loadedIpfs.displayType !== undefined}
+					{#if ipfs.displayType !== undefined}
 						<div>
 							<dt>Display type</dt>
-							<dd>{loadedIpfs.displayType}</dd>
+							<dd>{ipfs.displayType}</dd>
 						</div>
 					{/if}
 
-					{#if loadedIpfs.contentType !== undefined}
+					{#if ipfs.contentType !== undefined}
 						<div>
 							<dt>Content type</dt>
 							<dd>
 								<TruncatedValue
-									value={loadedIpfs.contentType}
+									value={ipfs.contentType}
 									format={TruncatedValueFormat.Visual}
 								/>
-								{#if loadedIpfs.isContentTypeInferred}
+								{#if ipfs.isContentTypeInferred}
 									{' '}
 									<span data-text="muted">(inferred)</span>
 								{/if}
@@ -129,31 +129,31 @@
 						</div>
 					{/if}
 
-					{#if loadedIpfs.fileName !== undefined}
+					{#if ipfs.fileName !== undefined}
 						<div>
 							<dt>File name</dt>
 							<dd>
 								<TruncatedValue
-									value={loadedIpfs.fileName}
+									value={ipfs.fileName}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedIpfs.extension !== undefined}
+					{#if ipfs.extension !== undefined}
 						<div>
 							<dt>Extension</dt>
-							<dd>.{loadedIpfs.extension}</dd>
+							<dd>.{ipfs.extension}</dd>
 						</div>
 					{/if}
 
-					{#if loadedIpfs.contentLength !== undefined}
+					{#if ipfs.contentLength !== undefined}
 						<div>
 							<dt>Content length</dt>
 							<dd>
 								<NumberValue
-									value={loadedIpfs.contentLength}
+									value={ipfs.contentLength}
 									options={{ maximumFractionDigits: 0 }}
 								/>
 								{' '}
@@ -179,7 +179,7 @@
 							<dt>Multibase</dt>
 							<dd>
 								<TruncatedValue
-									value={loadedIpfs.cidMultibase}
+									value={ipfs.cidMultibase}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
@@ -211,7 +211,7 @@
 							<dt>Multihash digest</dt>
 							<dd>
 								<TruncatedValue
-									value={loadedIpfs.cidMultihashDigestHex}
+									value={ipfs.cidMultihashDigestHex}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
@@ -223,7 +223,7 @@
 					)}
 						<div>
 							<dt>Subdomain-safe</dt>
-							<dd>{loadedIpfs.isCidSubdomainSafe ? 'Yes' : 'No'}</dd>
+							<dd>{ipfs.isCidSubdomainSafe ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 					{#if (
@@ -234,7 +234,7 @@
 							<dt>Text</dt>
 							<dd>
 								<TruncatedValue
-									value={loadedIpfs.text}
+									value={ipfs.text}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
@@ -248,8 +248,8 @@
 							<dt>Media</dt>
 							<dd>
 								<Media
-									media={{ url: loadedIpfs.$media[EntityMetaKey.Id].url }}
-									alt={loadedIpfs.fileName ?? ''}
+									media={{ url: ipfs.$media[EntityMetaKey.Id].url }}
+									alt={ipfs.fileName ?? ''}
 								/>
 							</dd>
 						</div>
@@ -348,90 +348,90 @@
 							resource={ipfs}
 							placeholderText="Loading metadata…"
 						>
-							{#snippet children(loadedIpfs)}
+							{#snippet children(ipfs)}
 								<dl>
-									{#if loadedIpfs.canonicalUri !== undefined}
+									{#if ipfs.canonicalUri !== undefined}
 										<div>
 											<dt>Canonical URI</dt>
 											<dd>
 												<TruncatedValue
-													value={loadedIpfs.canonicalUri}
+													value={ipfs.canonicalUri}
 													format={TruncatedValueFormat.Visual}
 												/>
 											</dd>
 										</div>
 									{/if}
 
-									{#if loadedIpfs.gatewayOrigin !== undefined}
+									{#if ipfs.gatewayOrigin !== undefined}
 										<div>
 											<dt>Gateway origin</dt>
 											<dd>
 												<TruncatedValue
-													value={loadedIpfs.gatewayOrigin}
+													value={ipfs.gatewayOrigin}
 													format={TruncatedValueFormat.Visual}
 												/>
 											</dd>
 										</div>
 									{/if}
 
-									{#if loadedIpfs.cidVersion !== undefined}
+									{#if ipfs.cidVersion !== undefined}
 										<div>
 											<dt>CID version</dt>
 											<dd>{String(ipfs.cidVersion)}</dd>
 										</div>
 									{/if}
 
-									{#if loadedIpfs.cidMultibase !== undefined}
+									{#if ipfs.cidMultibase !== undefined}
 										<div>
 											<dt>Multibase</dt>
 											<dd>
 												<TruncatedValue
-													value={loadedIpfs.cidMultibase}
+													value={ipfs.cidMultibase}
 													format={TruncatedValueFormat.Visual}
 												/>
 											</dd>
 										</div>
 									{/if}
 
-									{#if loadedIpfs.cidMulticodecCode !== undefined}
+									{#if ipfs.cidMulticodecCode !== undefined}
 										<div>
 											<dt>Multicodec code</dt>
 											<dd>{String(ipfs.cidMulticodecCode)}</dd>
 										</div>
 									{/if}
 
-									{#if loadedIpfs.cidMultihashCode !== undefined}
+									{#if ipfs.cidMultihashCode !== undefined}
 										<div>
 											<dt>Multihash code</dt>
 											<dd>{String(ipfs.cidMultihashCode)}</dd>
 										</div>
 									{/if}
 
-									{#if loadedIpfs.cidMultihashDigestHex !== undefined}
+									{#if ipfs.cidMultihashDigestHex !== undefined}
 										<div>
 											<dt>Multihash digest</dt>
 											<dd>
 												<TruncatedValue
-													value={loadedIpfs.cidMultihashDigestHex}
+													value={ipfs.cidMultihashDigestHex}
 													format={TruncatedValueFormat.Visual}
 												/>
 											</dd>
 										</div>
 									{/if}
 
-									{#if loadedIpfs.isCidSubdomainSafe !== undefined}
+									{#if ipfs.isCidSubdomainSafe !== undefined}
 										<div>
 											<dt>Subdomain-safe</dt>
-											<dd>{loadedIpfs.isCidSubdomainSafe ? 'Yes' : 'No'}</dd>
+											<dd>{ipfs.isCidSubdomainSafe ? 'Yes' : 'No'}</dd>
 										</div>
 									{/if}
 
-									{#if loadedIpfs.contentLength !== undefined}
+									{#if ipfs.contentLength !== undefined}
 										<div>
 											<dt>Content length</dt>
 											<dd>
 												<NumberValue
-													value={loadedIpfs.contentLength}
+													value={ipfs.contentLength}
 													options={{ maximumFractionDigits: 0 }}
 												/>
 												{' '}
@@ -440,34 +440,34 @@
 										</div>
 									{/if}
 
-									{#if loadedIpfs.fileName !== undefined}
+									{#if ipfs.fileName !== undefined}
 										<div>
 											<dt>File name</dt>
 											<dd>
 												<TruncatedValue
-													value={loadedIpfs.fileName}
+													value={ipfs.fileName}
 													format={TruncatedValueFormat.Visual}
 												/>
 											</dd>
 										</div>
 									{/if}
 
-									{#if loadedIpfs.extension !== undefined}
+									{#if ipfs.extension !== undefined}
 										<div>
 											<dt>Extension</dt>
-											<dd>.{loadedIpfs.extension}</dd>
+											<dd>.{ipfs.extension}</dd>
 										</div>
 									{/if}
 
-									{#if loadedIpfs.contentType !== undefined}
+									{#if ipfs.contentType !== undefined}
 										<div>
 											<dt>Content type</dt>
 											<dd>
 												<TruncatedValue
-													value={loadedIpfs.contentType}
+													value={ipfs.contentType}
 													format={TruncatedValueFormat.Visual}
 												/>
-												{#if loadedIpfs.isContentTypeInferred}
+												{#if ipfs.isContentTypeInferred}
 													{' '}
 													<span data-text="muted">(inferred)</span>
 												{/if}
@@ -475,10 +475,10 @@
 										</div>
 									{/if}
 
-									{#if loadedIpfs.displayType !== undefined}
+									{#if ipfs.displayType !== undefined}
 										<div>
 											<dt>Display type</dt>
-											<dd>{loadedIpfs.displayType}</dd>
+											<dd>{ipfs.displayType}</dd>
 										</div>
 									{/if}
 								</dl>
@@ -500,9 +500,9 @@
 							resource={ipfs}
 							placeholderText="Loading content…"
 						>
-							{#snippet children(loadedIpfs)}
-								{#if loadedIpfs.text !== undefined}
-									<pre>{loadedIpfs.text}</pre>
+							{#snippet children(ipfs)}
+								{#if ipfs.text !== undefined}
+									<pre>{ipfs.text}</pre>
 								{:else}
 									<p data-text="muted">No text content available.</p>
 								{/if}

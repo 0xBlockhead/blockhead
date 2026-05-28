@@ -3,7 +3,7 @@ import type { SourceOrigin } from '$/sources/$SourceProvider.ts'
 
 
 // Constants
-export const mevRelayHostRows = [
+const mevRelayHosts = [
 	{
 		chainId: 1,
 		host: 'boost-relay.flashbots.net',
@@ -25,7 +25,7 @@ export const mevRelayHostRows = [
 // Lookups
 export const mevRelayHttpsOrigins = (
 	[...new Set(
-		mevRelayHostRows.map((row) => (
+		mevRelayHosts.map((row) => (
 			`https://${row.host}`
 		)),
 	)]

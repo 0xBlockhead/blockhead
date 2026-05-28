@@ -15,7 +15,7 @@ import {
 } from '../_e2eBrowserHelpers.ts'
 
 test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () => {
-	test('(browser) /network/1 collapsed: head block, epoch, slot attach and block advances', async ({ page }) => {
+	test('(browser) /network/eip155:1 collapsed: head block, epoch, slot attach and block advances', async ({ page }) => {
 		test.setTimeout(400_000)
 		const { step } = setupNetworkLiveFailFast(page)
 		await installChainlistRpcsJsonStub(page)
@@ -45,7 +45,7 @@ test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () =>
 
 		await step(page.goto('/', { waitUntil: 'domcontentloaded' }))
 		await step(clearOriginOpfs(page))
-		await step(page.goto('/network/1', { waitUntil: 'load' }))
+		await step(page.goto('/network/eip155:1', { waitUntil: 'load' }))
 		await step(expect(page.locator('#main')).toBeVisible())
 		await step(assertMainSettled(page, 120_000))
 

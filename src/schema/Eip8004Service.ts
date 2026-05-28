@@ -7,7 +7,7 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
-import Network from '$/schema/Network.ts'
+import Network from '$/schema/EvmNetwork.ts'
 
 export default {
 	entityType: EntityType.Eip8004Service,

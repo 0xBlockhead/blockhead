@@ -276,10 +276,20 @@ const fulfilledOrThrow = <T>(
 	))
 
 	if (settled.length > 0 && fulfilled.length === 0) {
-		const reasons = settled.filter((r): r is PromiseRejectedResult => r.status === 'rejected').map((r) => r.reason)
+		const reasons = settled
+			.filter((r): r is PromiseRejectedResult => r.status === 'rejected')
+			.map((r) => r.reason)
 		throw new AggregateError(
 			reasons,
-			`${allFailedMessage}: ${reasons.map((r) => (r instanceof Error ? r.message : String(r))).join(' | ')}`,
+			[
+				allFailedMessage,
+				...reasons.map((reason) => (
+					reason instanceof Error ?
+						reason.message
+					:
+						String(reason)
+				)),
+			].join(': '),
 		)
 	}
 

@@ -82,8 +82,8 @@
 			resource={room}
 			placeholderText="Loading room…"
 		>
-			{#snippet children(loadedRoom)}
-				{loadedRoom.name ?? entityId.id}
+			{#snippet children(room)}
+				{room.name ?? entityId.id}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -108,10 +108,10 @@
 						resource={room}
 						placeholderText="Loading room…"
 					>
-						{#snippet children(loadedRoom)}
-							{#if loadedRoom.createdAt !== undefined}
+						{#snippet children(room)}
+							{#if room.createdAt !== undefined}
 								<Timestamp
-									timestamp={loadedRoom.createdAt}
+									timestamp={room.createdAt}
 								/>
 							{/if}
 						{/snippet}
@@ -127,9 +127,9 @@
 							resource={room}
 							placeholderText="Loading room…"
 						>
-							{#snippet children(loadedRoom)}
-								{#if loadedRoom.name !== undefined && loadedRoom.name !== ''}
-									{loadedRoom.name}
+							{#snippet children(room)}
+								{#if room.name !== undefined && room.name !== ''}
+									{room.name}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -145,9 +145,9 @@
 							resource={room}
 							placeholderText="Loading room…"
 						>
-							{#snippet children(loadedRoom)}
-								{#if loadedRoom.createdBy !== undefined && loadedRoom.createdBy !== ''}
-									{loadedRoom.createdBy}
+							{#snippet children(room)}
+								{#if room.createdBy !== undefined && room.createdBy !== ''}
+									{room.createdBy}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

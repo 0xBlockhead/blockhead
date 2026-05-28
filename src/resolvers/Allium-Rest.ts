@@ -11,7 +11,7 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
-import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import { schema } from '$/schema/index.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -22,7 +22,7 @@ export default {
 
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.CoinInstance,
+			entityType: EntityType.EvmCoinInstance,
 			resolve: async (entityId, context) => {
 				const { CoinId, coinById, coinBySymbol } = await import('$/constants/Coin.ts')
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')

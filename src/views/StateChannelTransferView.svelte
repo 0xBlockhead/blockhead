@@ -92,8 +92,8 @@
 				resource={transfer}
 				placeholderText="…"
 			>
-				{#snippet children(loadedTransfer)}
-					{#if loadedTransfer.turnNum !== undefined}
+				{#snippet children(transfer)}
+					{#if transfer.turnNum !== undefined}
 						<span>turn {String(transfer.turnNum)}</span>
 					{:else}
 						{@render Value()}
@@ -115,17 +115,17 @@
 				resource={transfer}
 				placeholderText="Loading channel transfer…"
 			>
-				{#snippet children(loadedTransfer)}
-					{#if showParentChannel && loadedTransfer.$channel?.[EntityMetaKey.Id].id !== undefined}
+				{#snippet children(transfer)}
+					{#if showParentChannel && transfer.$channel?.[EntityMetaKey.Id].id !== undefined}
 						<div>
 							<dt>Channel</dt>
 							<dd>
 								<a
 									href={resolve('/(assets)/(channels)/channel/[channelId]', {
-										channelId: loadedTransfer.$channel[EntityMetaKey.Id].id,
+										channelId: transfer.$channel[EntityMetaKey.Id].id,
 									})}
 								>
-									{loadedTransfer.$channel[EntityMetaKey.Id].id}
+									{transfer.$channel[EntityMetaKey.Id].id}
 								</a>
 							</dd>
 						</div>
@@ -134,55 +134,55 @@
 					<div>
 						<dt>Amount</dt>
 						<dd>
-							{#if loadedTransfer.amount !== undefined}
-								<NumberValue value={loadedTransfer.amount} />
+							{#if transfer.amount !== undefined}
+								<NumberValue value={transfer.amount} />
 							{/if}
 						</dd>
 					</div>
 
-					{#if loadedTransfer.turnNum !== undefined}
+					{#if transfer.turnNum !== undefined}
 						<div>
 							<dt>Turn</dt>
 							<dd>{String(transfer.turnNum)}</dd>
 						</div>
 					{/if}
 
-					{#if loadedTransfer.status !== undefined}
+					{#if transfer.status !== undefined}
 						<div>
 							<dt>Status</dt>
-							<dd>{stateChannelTransferStatusByStatus[loadedTransfer.status].label}</dd>
+							<dd>{stateChannelTransferStatusByStatus[transfer.status].label}</dd>
 						</div>
 					{/if}
 
-					{#if loadedTransfer.timestamp !== undefined}
+					{#if transfer.timestamp !== undefined}
 						<div>
 							<dt>Recorded at</dt>
 							<dd>
 								<Timestamp
-									timestamp={loadedTransfer.timestamp}
+									timestamp={transfer.timestamp}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedTransfer.$from?.[EntityMetaKey.Id].address !== undefined}
+					{#if transfer.$from?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>From</dt>
 							<dd>
-								{#if loadedTransfer.$channel?.[EntityMetaKey.Id].id !== undefined && loadedTransfer.$channel.$network?.[EntityMetaKey.Id].chainId !== undefined}
+								{#if transfer.$channel?.[EntityMetaKey.Id].id !== undefined && transfer.$channel.$network?.[EntityMetaKey.Id].chainId !== undefined}
 									<ActorNetworkView
 										entityId={{
-											$network: loadedTransfer.$channel.$network[EntityMetaKey.Id],
-											$actor: loadedTransfer.$from[EntityMetaKey.Id],
+											$network: transfer.$channel.$network[EntityMetaKey.Id],
+											$actor: transfer.$from[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
 								{:else}
 									<ActorView
-										entityId={loadedTransfer.$from[EntityMetaKey.Id]}
+										entityId={transfer.$from[EntityMetaKey.Id]}
 										href={resolve('/account/[address]', {
-											address: loadedTransfer.$from[EntityMetaKey.Id].address,
+											address: transfer.$from[EntityMetaKey.Id].address,
 										})}
 										layout={EntityLayout.Title}
 										open={false}
@@ -192,24 +192,24 @@
 						</div>
 					{/if}
 
-					{#if loadedTransfer.$to?.[EntityMetaKey.Id].address !== undefined}
+					{#if transfer.$to?.[EntityMetaKey.Id].address !== undefined}
 						<div>
 							<dt>To</dt>
 							<dd>
-								{#if loadedTransfer.$channel?.[EntityMetaKey.Id].id !== undefined && transfer.$channel.$network?.[EntityMetaKey.Id].chainId !== undefined}
+								{#if transfer.$channel?.[EntityMetaKey.Id].id !== undefined && transfer.$channel.$network?.[EntityMetaKey.Id].chainId !== undefined}
 									<ActorNetworkView
 										entityId={{
-											$network: loadedTransfer.$channel.$network[EntityMetaKey.Id],
-											$actor: loadedTransfer.$to[EntityMetaKey.Id],
+											$network: transfer.$channel.$network[EntityMetaKey.Id],
+											$actor: transfer.$to[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Title}
 										open={false}
 									/>
 								{:else}
 									<ActorView
-										entityId={loadedTransfer.$to[EntityMetaKey.Id]}
+										entityId={transfer.$to[EntityMetaKey.Id]}
 										href={resolve('/account/[address]', {
-											address: loadedTransfer.$to[EntityMetaKey.Id].address,
+											address: transfer.$to[EntityMetaKey.Id].address,
 										})}
 										layout={EntityLayout.Title}
 										open={false}

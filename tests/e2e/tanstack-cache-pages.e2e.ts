@@ -64,7 +64,7 @@ test.describe('TanStack query lifecycle + cache', () => {
 			0,
 			{ timeout: 120_000 },
 		)
-		await expect(page.locator('#networks').locator('a[href$="/network/1"]').first()).toBeVisible()
+		await expect(page.locator('#networks').locator('a[href$="/network/eip155:1"]').first()).toBeVisible()
 
 		expect(networkListSources.get(), 'cold load should call network list resolvers').toBeGreaterThan(0)
 		const afterFirst = networkListSources.get()
@@ -79,7 +79,7 @@ test.describe('TanStack query lifecycle + cache', () => {
 		await page.reload({ waitUntil: 'load' })
 		await expect(page.locator('#main')).toBeVisible({ timeout: 120_000 })
 		await expect(page.locator('#networks')).toBeVisible({ timeout: 120_000 })
-		await expect(page.locator('#networks').locator('a[href$="/network/1"]').first()).toBeVisible({
+		await expect(page.locator('#networks').locator('a[href$="/network/eip155:1"]').first()).toBeVisible({
 			timeout: 120_000,
 		})
 		reloadNetworkListSources.detach()
@@ -114,7 +114,7 @@ test.describe('TanStack query lifecycle + cache', () => {
 			0,
 			{ timeout: 120_000 },
 		)
-		await expect(page2.locator('#networks').locator('a[href$="/network/1"]').first()).toBeVisible()
+		await expect(page2.locator('#networks').locator('a[href$="/network/eip155:1"]').first()).toBeVisible()
 		expect(
 			networkListSources2.get(),
 			'empty OPFS + fresh JS should call network list resolvers',

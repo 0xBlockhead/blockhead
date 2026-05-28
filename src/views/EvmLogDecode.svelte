@@ -126,7 +126,7 @@
 				resource={topic}
 				placeholderText="Loading log topic signatures…"
 			>
-				{#snippet children(_readyData)}
+				{#snippet children()}
 					{#if decodedLog}
 						<div data-column="gap-1">
 							<span data-text="annotation">

@@ -64,7 +64,7 @@
 	{#snippet body({ open: _bodyOpen })}
 		{#if open}
 			{@const network = useEntity(
-				EntityType.Network,
+				EntityType.EvmNetwork,
 				entityFieldReference.entityId,
 				{
 					blockHeight: { $: [Source.Voltaire_JsonRpc] },

@@ -1,6 +1,6 @@
 import type { ParamMatcher } from '@sveltejs/kit'
 
-import { proposalCategoryBySlug } from '$/constants/Proposal.ts'
+import { proposalCategoryBySlug } from '$/constants/SpecificationProposal.ts'
 
 
 export const match = ((param: string) => {

@@ -92,9 +92,9 @@
 			resource={lensAccount}
 			placeholderText="Loading Lens profile…"
 		>
-			{#snippet children(loadedLensAccount)}
-				{loadedLensAccount.displayName
-					?? loadedLensAccount.localName
+			{#snippet children(lensAccount)}
+				{lensAccount.displayName
+					?? lensAccount.localName
 					?? entityId.address}
 			{/snippet}
 		</ResourceBoundary>
@@ -115,11 +115,11 @@
 			resource={lensAccount}
 			placeholderText="Loading Lens profile…"
 		>
-			{#snippet children(loadedLensAccount)}
-				{#if loadedLensAccount.$icon?.[EntityMetaKey.Id].url}
+			{#snippet children(lensAccount)}
+				{#if lensAccount.$icon?.[EntityMetaKey.Id].url}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={loadedLensAccount.$icon[EntityMetaKey.Id].url}
+						src={lensAccount.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{:else}
@@ -137,18 +137,18 @@
 		<ResourceBoundary
 			resource={lensAccount}
 		>
-			{#snippet children(loadedLensAccount)}
+			{#snippet children(lensAccount)}
 				{#if (
 					lensAccount.localName != null
 					&& lensAccount.localName !== ''
 					&& lensAccount.localName !== (
 						lensAccount.displayName
-						?? loadedLensAccount.localName
+						?? lensAccount.localName
 						?? entityId.address
 					)
 				)}
 					<span data-text="muted">
-						@{loadedLensAccount.localName}
+						@{lensAccount.localName}
 					</span>
 				{/if}
 			{/snippet}
@@ -164,9 +164,9 @@
 						resource={lensAccount}
 						placeholderText="Loading Lens profile…"
 					>
-						{#snippet children(loadedLensAccount)}
-							{#if loadedLensAccount.bio != null && loadedLensAccount.bio !== ''}
-								{loadedLensAccount.bio}
+						{#snippet children(lensAccount)}
+							{#if lensAccount.bio != null && lensAccount.bio !== ''}
+								{lensAccount.bio}
 							{/if}
 						{/snippet}
 					</ResourceBoundary>
@@ -184,9 +184,9 @@
 							resource={lensAccount}
 							placeholderText="Loading Lens profile…"
 						>
-							{#snippet children(loadedLensAccount)}
+							{#snippet children(lensAccount)}
 								<NumberValue
-									value={loadedLensAccount.followerCount}
+									value={lensAccount.followerCount}
 								/>
 							{/snippet}
 						</ResourceBoundary>
@@ -204,9 +204,9 @@
 							resource={lensAccount}
 							placeholderText="Loading Lens profile…"
 						>
-							{#snippet children(loadedLensAccount)}
+							{#snippet children(lensAccount)}
 								<NumberValue
-									value={loadedLensAccount.followingCount}
+									value={lensAccount.followingCount}
 								/>
 							{/snippet}
 						</ResourceBoundary>
@@ -224,9 +224,9 @@
 							resource={lensAccount}
 							placeholderText="Loading Lens profile…"
 						>
-							{#snippet children(loadedLensAccount)}
+							{#snippet children(lensAccount)}
 								<Timestamp
-									timestamp={loadedLensAccount.createdAt}
+									timestamp={lensAccount.createdAt}
 								/>
 							{/snippet}
 						</ResourceBoundary>

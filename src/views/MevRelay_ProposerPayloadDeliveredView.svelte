@@ -1,5 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+
+
+	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -18,8 +22,8 @@
 	let {
 		entityId,
 		href = resolve(
-		'/(explore)/(networks)/network/[networkId]',
-		{ networkId: String(entityId.$network.chainId) },
+		'/(explore)/network/[caip2Namespace]:[caip2Reference]',
+		{ ...caip2RouteParamsFromEvmChainId(entityId.$network.chainId) },
 	),
 		layout,
 		open = $bindable(true),
@@ -114,7 +118,7 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			{#if loadedMevRelayProposerPayloadDelivered.value !== undefined}
+			{#if mevRelayProposerPayloadDelivered.value !== undefined}
 				<div>
 					<dt>Delivered bid value (wei)</dt>
 					<dd>
@@ -122,8 +126,8 @@
 							placeholderText="Loading builder bid…"
 							resource={mevRelayProposerPayloadDelivered}
 						>
-							{#snippet children(loadedMevRelayProposerPayloadDelivered)}
-								<NumberValue value={loadedMevRelayProposerPayloadDelivered.value} />
+							{#snippet children(mevRelayProposerPayloadDelivered)}
+								<NumberValue value={mevRelayProposerPayloadDelivered.value} />
 								wei
 							{/snippet}
 						</ResourceBoundary>
@@ -131,7 +135,7 @@
 				</div>
 			{/if}
 
-			{#if loadedMevRelayProposerPayloadDelivered.builderPubkey !== undefined}
+			{#if mevRelayProposerPayloadDelivered.builderPubkey !== undefined}
 				<div>
 					<dt>Builder pubkey</dt>
 					<dd>
@@ -139,12 +143,12 @@
 							placeholderText="Loading builder bid…"
 							resource={mevRelayProposerPayloadDelivered}
 						>
-							{#snippet children(loadedMevRelayProposerPayloadDelivered)}
+							{#snippet children(mevRelayProposerPayloadDelivered)}
 								<TruncatedValue
 									format={TruncatedValueFormat.Abbr}
 									startLength={10}
 									endLength={8}
-									value={loadedMevRelayProposerPayloadDelivered.builderPubkey}
+									value={mevRelayProposerPayloadDelivered.builderPubkey}
 								/>
 							{/snippet}
 						</ResourceBoundary>
@@ -163,7 +167,7 @@
 							placeholderText="Loading builder bid…"
 							resource={mevRelayProposerPayloadDelivered}
 						>
-							{#snippet children(_readyData)}
+							{#snippet children()}
 								<p data-text="muted">
 									No bid / builder pubkey fields yet.
 								</p>
@@ -228,13 +232,13 @@
 						resource={mevRelayProposerPayloadDelivered}
 						placeholderText="Loading block…"
 					>
-						{#snippet children(loadedMevRelayProposerPayloadDelivered)}
+						{#snippet children(mevRelayProposerPayloadDelivered)}
 							{#if (
 								open
 								&& mevRelayProposerPayloadDelivered.$executionBlock !== undefined
 							)}
 								<EvmBlockView
-								entityId={loadedMevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id]}
+								entityId={mevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id]}
 								id={`${String(entityId.$network.chainId)}:${String(mevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id].blockNumber)}:mev-exec-block`}
 								layout={EntityLayout.Summary}
 								/>
@@ -262,4 +266,3 @@
 
 	{/snippet}
 </EntityView>
-

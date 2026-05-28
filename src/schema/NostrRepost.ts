@@ -68,5 +68,11 @@ export default {
 			entityType: EntityType.NostrNote,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
+		{
+			name: '$repostedArticle',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.NostrArticle,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

@@ -7,14 +7,14 @@ import {
 	EntityFieldType,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import Network from '$/schema/Network.ts'
+import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.BeaconValidator,
 
-	label: 'Beacon Validator',
-	labelPlural: 'Beacon Validators',
+	label: 'Beacon validator',
+	labelPlural: 'Beacon validators',
 
 	id: type({
 		$network: Network.id,
@@ -69,4 +69,3 @@ export default {
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition
-

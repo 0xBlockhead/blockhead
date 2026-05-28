@@ -13,14 +13,14 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 	category,
 	getEthereumEipSpecGithubContents,
 }: {
-	category?: typeof import('$/constants/Proposal.ts').ProposalCategory.Eip
-	| typeof import('$/constants/Proposal.ts').ProposalCategory.Erc
+	category?: typeof import('$/constants/SpecificationProposal.ts').ProposalCategory.Eip
+	| typeof import('$/constants/SpecificationProposal.ts').ProposalCategory.Erc
 	getEthereumEipSpecGithubContents: (input: { ledger: 'eip' | 'erc' }) => Promise<{
 		type: string
 		name: string
 	}[]>
 }) => {
-	const { ProposalCategory } = await import('$/constants/Proposal.ts')
+	const { ProposalCategory } = await import('$/constants/SpecificationProposal.ts')
 	const ledgers = (
 		category === ProposalCategory.Erc ?
 			[{ ledger: 'erc' as const, category: ProposalCategory.Erc }]
@@ -31,7 +31,7 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 				{ ledger: 'erc' as const, category: ProposalCategory.Erc },
 			]
 	)
-	const { ProposalRealm } = await import('$/constants/Proposal.ts')
+	const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	const byLedger = await Promise.all(
 		ledgers.map(async ({ ledger, category: cat }) => ({
 			category: cat,
@@ -40,7 +40,7 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 	)
 	const rows: {
 		[EntityMetaKey.Id]: {
-			realm: typeof ProposalRealm.Ethereum
+			realm: typeof SpecificationRealm.Ethereum
 			category: typeof ProposalCategory.Eip | typeof ProposalCategory.Erc
 			number: number
 		}
@@ -51,7 +51,7 @@ const ethereumEipErcProposalRowsFromGithubSpecs = async ({
 			const proposalNumberRaw = regex('^(?:eip|erc)-(?<proposalNumber>\\d+)\\.md$').exec(entry.name)?.groups?.proposalNumber
 			const proposalNumber = proposalNumberRaw != null ? parseInt(proposalNumberRaw, 10) : null
 			if (proposalNumber == null) continue
-			const id = { realm: ProposalRealm.Ethereum, category: cat, number: proposalNumber }
+			const id = { realm: SpecificationRealm.Ethereum, category: cat, number: proposalNumber }
 			rows.push({ [EntityMetaKey.Id]: id })
 		}
 	}
@@ -63,15 +63,19 @@ export default {
 
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.Proposal,
+			entityType: EntityType.SpecificationProposal,
 			resolve: async (entityId) => {
-				const { ProposalCategory } = await import('$/constants/Proposal.ts')
+				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				const {
 					getEthereumEipSpecProposalMarkdownText,
 				} = await import('$/sources/EthereumEips/Github/queries.ts')
 
-				if (entityId.category === ProposalCategory.Ensip) throw new Error('Proposal body resolver not applicable')
-				if (entityId.category === ProposalCategory.Caip) throw new Error('EthereumEips_Github: unsupported proposal category')
+				if (
+					entityId.realm !== SpecificationRealm.Ethereum
+					|| (entityId.category !== ProposalCategory.Eip && entityId.category !== ProposalCategory.Erc)
+				) {
+					throw new Error('EthereumEips_Github: proposal resolver only supports Ethereum EIPs/ERCs')
+				}
 				const text = await singleFlight(getEthereumEipSpecProposalMarkdownText)({
 					ledger: entityId.category === ProposalCategory.Erc ? 'erc' : 'eip',
 					number: entityId.number,
@@ -114,12 +118,12 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.ProposalRealm,
+			entityType: EntityType.SpecificationRealm,
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
-				const { ProposalRealm } = await import('$/constants/Proposal.ts')
-				if (entityId.realm !== ProposalRealm.Ethereum) {
-					throw new Error('EthereumEips_Github: $$proposals only supports ProposalRealm.Ethereum')
+				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+				if (entityId.realm !== SpecificationRealm.Ethereum) {
+					throw new Error('EthereumEips_Github: $$proposals only supports SpecificationRealm.Ethereum')
 				}
 				const { getEthereumEipSpecGithubContents } = await import('$/sources/EthereumEips/Github/queries.ts')
 				return ethereumEipErcProposalRowsFromGithubSpecs({
@@ -129,12 +133,12 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.ProposalKind,
+			entityType: EntityType.SpecificationProposalKind,
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
-				const { ProposalCategory, ProposalRealm } = await import('$/constants/Proposal.ts')
+				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (
-					entityId.realm !== ProposalRealm.Ethereum
+					entityId.realm !== SpecificationRealm.Ethereum
 					|| (entityId.category !== ProposalCategory.Eip && entityId.category !== ProposalCategory.Erc)
 				) {
 					throw new Error('EthereumEips_Github: $$proposals only supports Ethereum EIP/ERC proposal kinds')

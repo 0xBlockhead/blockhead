@@ -2,7 +2,7 @@
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { CoinInstanceType } from '$/schema/CoinInstance.ts'
+	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -95,8 +95,8 @@
 			resource={actorCoin}
 			placeholderText="Loading balance…"
 		>
-			{#snippet children(loadedActorCoin)}
-				{loadedActorCoin.symbol ?? 'Balance'}
+			{#snippet children(actorCoin)}
+				{actorCoin.symbol ?? 'Balance'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -110,8 +110,8 @@
 			resource={actorCoin}
 			placeholderText="Loading holding…"
 		>
-			{#snippet children(loadedActorCoin)}
-				{loadedActorCoin.symbol ?? 'Balance'}
+			{#snippet children(actorCoin)}
+				{actorCoin.symbol ?? 'Balance'}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -157,8 +157,8 @@
 							resource={actorCoin}
 							placeholderText="Loading balance…"
 						>
-							{#snippet children(loadedActorCoin)}
-								{#if loadedActorCoin.balance !== undefined}
+							{#snippet children(actorCoin)}
+								{#if actorCoin.balance !== undefined}
 									{String(actorCoin.balance)}
 								{/if}
 							{/snippet}
@@ -175,8 +175,8 @@
 							resource={actorCoin}
 							placeholderText="Loading balance…"
 						>
-							{#snippet children(loadedActorCoin)}
-								{#if loadedActorCoin.usdValue !== undefined}
+							{#snippet children(actorCoin)}
+								{#if actorCoin.usdValue !== undefined}
 									{String(actorCoin.usdValue)}
 								{/if}
 							{/snippet}
@@ -193,8 +193,8 @@
 							resource={actorCoin}
 							placeholderText="Loading balance…"
 						>
-							{#snippet children(loadedActorCoin)}
-								{#if loadedActorCoin.decimals !== undefined}
+							{#snippet children(actorCoin)}
+								{#if actorCoin.decimals !== undefined}
 									{String(actorCoin.decimals)}
 								{/if}
 							{/snippet}
@@ -243,7 +243,7 @@
 						resource={actorCoin}
 						placeholderText="Loading holding…"
 					>
-						{#snippet children(loadedActorCoin)}
+						{#snippet children(actorCoin)}
 							{#if (
 								actorCoin.symbol == null
 								&& actorCoin.decimals == null

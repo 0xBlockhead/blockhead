@@ -11,7 +11,7 @@ export type MastodonInstanceKey = 'mastodon_social'
 
 // Constants
 
-const mastodonInstanceRows = [
+const mastodonInstances = [
 	{
 		key: 'mastodon_social',
 		origin: 'https://mastodon.social',
@@ -27,7 +27,7 @@ export const mastodonDefaultInstanceKey: MastodonInstanceKey = 'mastodon_social'
 // Lookups
 
 export const mastodonInstanceByKey = Object.fromEntries(
-	mastodonInstanceRows.map((row) => [
+	mastodonInstances.map((row) => [
 		row.key,
 		row,
 	]),

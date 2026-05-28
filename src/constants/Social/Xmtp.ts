@@ -10,7 +10,7 @@ export const xmtpNetworkFieldValues = {
 	topology: 'Constants metadata + session-local -> network -> conversations',
 } as const
 
-const xmtpConversationConsentStateRows = [
+const xmtpConversationConsentStates = [
 	{
 		consentState: XmtpConversationConsentState.Unknown,
 		label: 'Unknown',
@@ -31,8 +31,8 @@ const xmtpConversationConsentStateRows = [
 
 // Lookups
 
-export const xmtpConversationConsentStates = Object.fromEntries(
-	xmtpConversationConsentStateRows.map((row) => [
+export const xmtpConversationConsentStateByConsentState = Object.fromEntries(
+	xmtpConversationConsentStates.map((row) => [
 		row.consentState,
 		row,
 	]),

@@ -90,8 +90,8 @@
 				resource={state}
 				placeholderText="…"
 			>
-				{#snippet children(loadedState)}
-					{#if loadedState.version !== undefined}
+				{#snippet children(state)}
+					{#if state.version !== undefined}
 						<span>v{String(state.version)}</span>
 					{:else}
 						{@render Value()}
@@ -113,60 +113,60 @@
 				resource={state}
 				placeholderText="Loading channel state…"
 			>
-				{#snippet children(loadedState)}
-					{#if showParentChannel && loadedState.$channel?.[EntityMetaKey.Id].id !== undefined}
+				{#snippet children(state)}
+					{#if showParentChannel && state.$channel?.[EntityMetaKey.Id].id !== undefined}
 						<div>
 							<dt>Channel</dt>
 							<dd>
 								<a
 									href={resolve('/(assets)/(channels)/channel/[channelId]', {
-										channelId: loadedState.$channel[EntityMetaKey.Id].id,
+										channelId: state.$channel[EntityMetaKey.Id].id,
 									})}
 								>
-									{loadedState.$channel[EntityMetaKey.Id].id}
+									{state.$channel[EntityMetaKey.Id].id}
 								</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedState.version !== undefined}
+					{#if state.version !== undefined}
 						<div>
 							<dt>Version</dt>
 							<dd>{String(state.version)}</dd>
 						</div>
 					{/if}
 
-					{#if loadedState.intent !== undefined}
+					{#if state.intent !== undefined}
 						<div>
 							<dt>Intent</dt>
 							<dd>{String(state.intent)}</dd>
 						</div>
 					{/if}
 
-					{#if loadedState.isFinal !== undefined}
+					{#if state.isFinal !== undefined}
 						<div>
 							<dt>Final</dt>
-							<dd>{loadedState.isFinal ? 'Yes' : 'No'}</dd>
+							<dd>{state.isFinal ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if loadedState.timestamp !== undefined}
+					{#if state.timestamp !== undefined}
 						<div>
 							<dt>Recorded at</dt>
 							<dd>
 								<Timestamp
-									timestamp={loadedState.timestamp}
+									timestamp={state.timestamp}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedState.stateData !== undefined}
+					{#if state.stateData !== undefined}
 						<div>
 							<dt>State data</dt>
 							<dd>
 								<TruncatedValue
-									value={loadedState.stateData}
+									value={state.stateData}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

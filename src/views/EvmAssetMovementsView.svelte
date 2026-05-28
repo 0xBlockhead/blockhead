@@ -1,5 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+
+
+	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -73,28 +77,28 @@
 		resource={evmTransaction}
 		placeholderText="Loading asset movements…"
 	>
-		{#snippet children(loadedEvmTransaction)}
-			{#if loadedEvmTransaction.value !== undefined && loadedEvmTransaction.value > 0n}
+		{#snippet children(evmTransaction)}
+			{#if evmTransaction.value !== undefined && evmTransaction.value > 0n}
 				<div data-row="wrap gap-2 align-baseline">
 					<span data-text="annotation">Signed envelope</span>
-					{#if loadedEvmTransaction.$from?.[EntityMetaKey.Id].address !== undefined}
+					{#if evmTransaction.$from?.[EntityMetaKey.Id].address !== undefined}
 						<ActorNetworkView
 							entityId={{
 								$network: entityId.$network,
-								$actor: loadedEvmTransaction.$from[EntityMetaKey.Id],
+								$actor: evmTransaction.$from[EntityMetaKey.Id],
 							}}
 							layout={EntityLayout.Title}
 							open={false}
 						/>
 					{/if}
 					<span data-text="muted">sent</span>
-					<NumberValue value={loadedEvmTransaction.value} />
+					<NumberValue value={evmTransaction.value} />
 					<span data-text="muted">to</span>
-					{#if loadedEvmTransaction.$to?.[EntityMetaKey.Id].address !== undefined}
+					{#if evmTransaction.$to?.[EntityMetaKey.Id].address !== undefined}
 						<ActorNetworkView
 							entityId={{
 								$network: entityId.$network,
-								$actor: loadedEvmTransaction.$to[EntityMetaKey.Id],
+								$actor: evmTransaction.$to[EntityMetaKey.Id],
 							}}
 							layout={EntityLayout.Title}
 							open={false}
@@ -105,9 +109,9 @@
 
 			<EvmInternalTransfersView
 				href={resolve(
-					'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+					'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 					{
-					networkId: String(entityId.$network.chainId),
+					...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 					transactionId: entityId.txHash,
 					},
 		)}
@@ -122,9 +126,9 @@
 			/>
 			<EvmTokenTransfersView
 				href={resolve(
-					'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+					'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 					{
-					networkId: String(entityId.$network.chainId),
+					...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 					transactionId: entityId.txHash,
 					},
 		)}

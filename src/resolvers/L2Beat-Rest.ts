@@ -6,6 +6,8 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
+const eip155Caip2Namespace: 'eip155' = 'eip155'
+
 export default {
 	source: Source.L2Beat_Rest,
 
@@ -14,7 +16,7 @@ export default {
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
-			fieldName: '$$networks',
+			fieldName: '$$evmNetworks',
 			resolve: async () => {
 				const {
 					chainIdByL2BeatProjectId,
@@ -25,7 +27,12 @@ export default {
 				const summary = await singleFlight(fetchScalingSummary)()
 				return [
 					{
-						[EntityMetaKey.Id]: { chainId: ethereumChainId },
+						[EntityMetaKey.Id]: {
+							caip2: {
+								namespace: eip155Caip2Namespace,
+								reference: String(ethereumChainId),
+							},
+						},
 					},
 					...l2BeatProjectChainIds
 						.flatMap(({ projectId }) => {
@@ -35,7 +42,12 @@ export default {
 									[]
 								:	[
 									{
-										[EntityMetaKey.Id]: { chainId },
+										[EntityMetaKey.Id]: {
+											caip2: {
+												namespace: eip155Caip2Namespace,
+												reference: String(chainId),
+											},
+										},
 									},
 								]
 							)
@@ -45,37 +57,42 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
-			fieldName: '$parentLayer',
+			entityType: EntityType.EvmNetwork,
+			fieldName: '$parent',
 			resolve: async (entityId) => {
 				const {
 					l2beatHostChainToParentChainId,
 					l2BeatProjectIdByChainId,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-				const projectId = l2BeatProjectIdByChainId[String(entityId.chainId)]
+				const projectId = l2BeatProjectIdByChainId[entityId.caip2.reference]
 				if (projectId == null) {
 					throw new Error(
-						`L2Beat_Rest: no scaling project for chain ${String(entityId.chainId)}`,
+						`L2Beat_Rest: no scaling project for chain ${entityId.caip2.reference}`,
 					)
 				}
 				const summary = await singleFlight(fetchScalingSummary)()
 				const project = summary.projects[projectId]
 				if (project == null || project.isArchived === true) {
 					throw new Error(
-						`L2Beat_Rest: scaling project archived or missing for chain ${String(entityId.chainId)}`,
+						`L2Beat_Rest: scaling project archived or missing for chain ${entityId.caip2.reference}`,
 					)
 				}
 				const parentChainId = l2beatHostChainToParentChainId[project.hostChain]
-				if (parentChainId == null || parentChainId === entityId.chainId) return undefined
+				if (parentChainId == null || parentChainId === Number(entityId.caip2.reference)) return undefined
 				return {
-					[EntityMetaKey.Id]: { chainId: parentChainId },
+					[EntityMetaKey.Id]: {
+						caip2: {
+							namespace: eip155Caip2Namespace,
+							reference: String(parentChainId),
+						},
+					},
 				}
 			},
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			fieldName: '$$childLayers',
 			resolve: async (entityId) => {
 				const {
@@ -84,7 +101,7 @@ export default {
 					l2BeatProjectChainIds,
 				} = await import('$/sources/L2Beat/Rest/constants.ts')
 				const { fetchScalingSummary } = await import('$/sources/L2Beat/Rest/queries.ts')
-				const parentChainId = entityId.chainId
+				const parentChainId = Number(entityId.caip2.reference)
 				const hostLabels = (
 					Object.entries(l2beatHostChainToParentChainId)
 						.flatMap(([label, chainId]) => (
@@ -106,7 +123,12 @@ export default {
 					})
 				)
 				return chainIds.map((chainId) => ({
-					[EntityMetaKey.Id]: { chainId },
+					[EntityMetaKey.Id]: {
+						caip2: {
+							namespace: eip155Caip2Namespace,
+							reference: String(chainId),
+						},
+					},
 				}))
 			},
 		}),

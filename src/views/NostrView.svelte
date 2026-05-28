@@ -31,6 +31,7 @@
 			entityId: EntityId<typeof schema, EntityType.NostrNetwork>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
@@ -129,63 +130,63 @@
 			resource={network}
 			placeholderText="Loading Nostr hub directory…"
 			>
-			{#snippet children(loadedNetwork)}
-				{#if loadedNetwork.registryLabel}
+			{#snippet children(network)}
+				{#if network.registryLabel}
 					<div>
 						<dt>Registry</dt>
-						<dd>{loadedNetwork.registryLabel}</dd>
+						<dd>{network.registryLabel}</dd>
 					</div>
-					{:else if loadedNetwork.protocolName}
+					{:else if network.protocolName}
 					<div>
 						<dt>Protocol</dt>
-						<dd>{loadedNetwork.protocolName}</dd>
+						<dd>{network.protocolName}</dd>
 					</div>
 				{/if}
 
 				{#if open}
-					<div>
-						<dt>Profiles</dt>
-						<dd>{String(network.$$nostrProfiles.length)}</dd>
-					</div>
-					<div>
-						<dt>Notes</dt>
-						<dd>{String(network.$$nostrNotes.length)}</dd>
-					</div>
-					<div>
-						<dt>Relays</dt>
-						<dd>{String(network.$$nostrRelays.length)}</dd>
-					</div>
-					<div>
-						<dt>Reposts</dt>
-						<dd>{String(network.$$nostrReposts.length)}</dd>
-					</div>
-					<div>
-						<dt>Articles</dt>
-						<dd>{String(network.$$nostrArticles.length)}</dd>
-					</div>
+						<div>
+							<dt>Profiles</dt>
+							<dd>{String(network.$$nostrProfiles.length)}</dd>
+						</div>
+						<div>
+							<dt>Notes</dt>
+							<dd>{String(network.$$nostrNotes.length)}</dd>
+						</div>
+						<div>
+							<dt>Relays</dt>
+							<dd>{String(network.$$nostrRelays.length)}</dd>
+						</div>
+						<div>
+							<dt>Reposts</dt>
+							<dd>{String(network.$$nostrReposts.length)}</dd>
+						</div>
+						<div>
+							<dt>Articles</dt>
+							<dd>{String(network.$$nostrArticles.length)}</dd>
+						</div>
 
-					{#if loadedNetwork.homeUrl}
+					{#if network.homeUrl}
 						<div>
 							<dt>Home</dt>
 							<dd>
-							<a href={loadedNetwork.homeUrl}>{loadedNetwork.homeUrl}</a>
+							<a href={network.homeUrl}>{network.homeUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedNetwork.docsUrl}
+					{#if network.docsUrl}
 						<div>
 							<dt>Docs</dt>
 							<dd>
-							<a href={loadedNetwork.docsUrl}>{loadedNetwork.docsUrl}</a>
+							<a href={network.docsUrl}>{network.docsUrl}</a>
 							</dd>
 						</div>
 					{/if}
 
-					{#if loadedNetwork.topology}
+					{#if network.topology}
 						<div>
 							<dt>Topology</dt>
-							<dd>{loadedNetwork.topology}</dd>
+							<dd>{network.topology}</dd>
 						</div>
 					{/if}
 				{/if}
@@ -239,10 +240,10 @@
 							entityId,
 							fieldName: '$$nostrNotes',
 						}}
-						fieldOpen={true}
+						fieldOpen={_open}
 						id={`${networkIdKey}:notes`}
 						limit={25}
-						open={true}
+						open={_open}
 						title="Recent notes"
 					/>
 				{/snippet}
@@ -255,10 +256,10 @@
 							entityId,
 							fieldName: '$$nostrReposts',
 						}}
-						fieldOpen={true}
+						fieldOpen={_open}
 						id={`${networkIdKey}:reposts`}
 						limit={25}
-						open={true}
+						open={_open}
 						title="Recent reposts"
 					/>
 				{/snippet}
@@ -271,10 +272,10 @@
 							entityId,
 							fieldName: '$$nostrArticles',
 						}}
-						fieldOpen={true}
+						fieldOpen={_open}
 						id={`${networkIdKey}:articles`}
 						limit={25}
-						open={true}
+						open={_open}
 						title="Recent articles"
 					/>
 				{/snippet}
@@ -333,4 +334,3 @@
 
 	{/snippet}
 </EntityView>
-

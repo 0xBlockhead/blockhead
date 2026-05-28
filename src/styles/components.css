@@ -98,7 +98,9 @@ details {
 			transform
 		;
 
-		display: grid;
+		flex: 1;
+		display: flex;
+		flex-direction: column;
 		content-visibility: visible;
 		height: auto;
 		transform: perspective(100px);
@@ -191,6 +193,12 @@ details {
 		> summary + :last-child {
 			padding: var(--card-padding);
 			padding-top: 0;
+
+			&[data-scroll-container] {
+				--sticky-marginInlineStart: var(--card-padding);
+				--sticky-marginInlineEnd: var(--card-padding);
+				--sticky-marginBlockEnd: var(--card-padding);
+			}
 		}
 	}
 }
@@ -566,11 +574,6 @@ span svg {
 	}
 	&[data-column~='gap-8'] {
 		gap: 2em;
-	}
-
-	&[data-column~="layout-flex"] {
-		/* display: flex;
-		flex-direction: column; */
 	}
 
 	[data-column-item~='flexible'] {
@@ -1353,6 +1356,10 @@ details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers] {
 			[data-scroll-item]:not(:target) {
 				--scrollItem-internalAnimation: InitialScrollSnapDisableAnimation 0.1s both;
 			}
+
+			:target {
+				scroll-initial-target: always;
+			}
 		}
 	}
 	&[data-scroll-container~='snap-block'] {
@@ -1379,9 +1386,8 @@ details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers] {
 		--carousel-basis: 32ch;
 		--carousel-button-inline-padding: 0.25em;
 
+		anchor-name: --carousel;
 		position: relative;
-
-		padding-inline: var(--carousel-button-inline-padding);
 
 		&:not(:has(> [data-carousel-panes])),
 		&:has(> [data-carousel-panes]) > [data-carousel-panes] {
@@ -1392,22 +1398,6 @@ details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers] {
 
 			> * {
 				min-width: 0;
-			}
-
-			> :only-child {
-				scroll-snap-align: start center;
-			}
-
-			> :first-child:not(:only-child) {
-				scroll-snap-align: start start;
-			}
-
-			> :last-child:not(:only-child):not(:first-child) {
-				scroll-snap-align: start end;
-			}
-
-			> :not(:first-child):not(:last-child) {
-				scroll-snap-align: start center;
 			}
 		}
 
@@ -1425,37 +1415,39 @@ details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers] {
 
 		scroll-snap-type: x mandatory;
 
-		scroll-marker-group: after;
+		&[data-scroll-container~='carousel-marker-dots'] {
+			scroll-marker-group: after;
 
-		&::scroll-marker-group {
-			display: flex;
-			justify-content: center;
-			gap: 0.5em;
-		}
+			&::scroll-marker-group {
+				display: flex;
+				justify-content: center;
+				gap: 0.5em;
+			}
 
-		& > *:not([data-carousel-panes])::scroll-marker,
-		& > [data-carousel-panes] > *::scroll-marker {
-			content: "";
-			text-decoration: none;
-			color: inherit;
-			width: 0.6em;
-			aspect-ratio: 1;
-			border-radius: 50%;
-			border: 1.5px solid currentColor;
-			opacity: 0.4;
-		}
+			& > *:not([data-carousel-panes])::scroll-marker,
+			& > [data-carousel-panes] > *::scroll-marker {
+				content: "";
+				text-decoration: none;
+				color: inherit;
+				width: 0.6em;
+				aspect-ratio: 1;
+				border-radius: 50%;
+				border: 1.5px solid currentColor;
+				opacity: 0.4;
+			}
 
-		& > *:not([data-carousel-panes]),
-		& > [data-carousel-panes] > * {
-			&::scroll-marker {
-				&:target-current {
-					opacity: 1;
-					background-color: currentColor;
-				}
+			& > *:not([data-carousel-panes]),
+			& > [data-carousel-panes] > * {
+				&::scroll-marker {
+					&:target-current {
+						opacity: 1;
+						background-color: currentColor;
+					}
 
-				&:hover,
-				&:focus-visible {
-					opacity: 0.8;
+					&:hover,
+					&:focus-visible {
+						opacity: 0.8;
+					}
 				}
 			}
 		}
@@ -1553,8 +1545,8 @@ details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers] {
 			opacity: 0.6;
 
 			position: absolute;
-			inset-block: 0;
-			margin-block: auto;
+			position-anchor: --carousel;
+			align-self: anchor-center;
 			block-size: fit-content;
 			z-index: 1;
 
@@ -1571,12 +1563,14 @@ details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers] {
 
 		&::scroll-button(inline-start) {
 			content: "‹";
-			inset-inline-start: 0;
+			inset-inline-start: anchor(left);
+			padding-inline: var(--carousel-button-inline-padding);
 		}
 
 		&::scroll-button(inline-end) {
 			content: "›";
-			inset-inline-end: 0;
+			inset-inline-end: anchor(right);
+			padding-inline: var(--carousel-button-inline-padding);
 		}
 	}
 
@@ -1714,7 +1708,7 @@ details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers] {
 	/**
 	* Sticky Container
 	*/
-	&[data-sticky-container],
+	&,
 	[data-sticky-container] {
 		/* Inputs */
 		--sticky-marginBlockStart: 0px;
@@ -1734,6 +1728,11 @@ details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers] {
 
 		/* Rules */
 		isolation: isolate;
+
+		/* scroll-padding-block-start: var(--sticky-insetBlockStart);
+		scroll-padding-block-end: var(--sticky-insetBlockEnd);
+		scroll-padding-inline-start: var(--sticky-insetInlineStart);
+		scroll-padding-inline-end: var(--sticky-insetInlineEnd); */
 
 		/**
 		* Sticky Item
@@ -1817,14 +1816,25 @@ details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers] {
 		/**
 		* Scroll Item
 		*/
-		[data-scroll-item] {
+		[data-scroll-item],
+		&[data-scroll-container~="layout-carousel"] > * {
 			/* Inputs */
+			--scrollItem-scrollSnapAlignBlock: none;
+			--scrollItem-scrollSnapAlignInline: none;
+
 			--scrollItem-animation: none;
 			--scrollItem-animationTimeline: none;
 			--scrollItem-animationRange: normal;
 
 			/* Rules */
 			--scrollItem-internalAnimation: NoAnimation;
+
+			scroll-margin-block-start: var(--sticky-insetBlockStart);
+			scroll-margin-block-end: var(--sticky-insetBlockEnd);
+			scroll-margin-inline-start: var(--sticky-insetInlineStart);
+			scroll-margin-inline-end: var(--sticky-insetInlineEnd);
+
+			scroll-snap-align: var(--scrollItem-scrollSnapAlignBlock) var(--scrollItem-scrollSnapAlignInline);
 
 			animation: var(--scrollItem-internalAnimation), var(--scrollItem-animation);
 			animation-timeline: none, var(--scrollItem-animationTimeline);
@@ -1891,17 +1901,28 @@ details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers] {
 				}
 			}
 
-			&[data-scroll-item~='snap-block-start'] {
-				scroll-snap-align: start;
+			&[data-scroll-item~='snap-block-start'],
+			&:is([data-scroll-container~="layout-carousel"] > *) {
+				--scrollItem-scrollSnapAlignBlock: start;
+			}
+			&[data-scroll-item~='snap-block-center'] {
+				--scrollItem-scrollSnapAlignBlock: center;
 			}
 			&[data-scroll-item~='snap-block-end'] {
-				scroll-snap-align: end;
+				--scrollItem-scrollSnapAlignBlock: end;
 			}
-			&[data-scroll-item~='snap-inline-start'] {
-				scroll-snap-align: start;
+
+			&[data-scroll-item~='snap-inline-start'],
+			&:is([data-scroll-container~="layout-carousel"] > :first-child) {
+				--scrollItem-scrollSnapAlignInline: start;
 			}
-			&[data-scroll-item~='snap-inline-end'] {
-				scroll-snap-align: end;
+			&[data-scroll-item~='snap-inline-center'],
+			&:is([data-scroll-container~="layout-carousel"] > :not(:only-child, :first-child, :last-child)) {
+				--scrollItem-scrollSnapAlignInline: center;
+			}
+			&[data-scroll-item~='snap-inline-end'],
+			&:is([data-scroll-container~="layout-carousel"] > :last-child) {
+				--scrollItem-scrollSnapAlignInline: end;
 			}
 
 			&[data-scroll-item~='block-size-max'] {
@@ -2006,7 +2027,7 @@ details:has([data-collapsible-tabs-pane-host]) [data-carousel-markers] {
 	}
 
 	to {
-		scroll-snap-align: start;
+		scroll-snap-align: var(--scrollItem-scrollSnapAlignBlock) var(--scrollItem-scrollSnapAlignInline);
 	}
 }
 

@@ -7,14 +7,14 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import Market from '$/schema/Market.ts'
-import Network from '$/schema/Network.ts'
+import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
 	entityType: EntityType.MarketPrice,
 
-	label: 'Quote',
-	labelPlural: 'Quotes',
+	label: 'Quote stream',
+	labelPlural: 'Quote streams',
 
 	/**
 	 * Quote stream id: which market, optional per-feed key, optional on-chain context.

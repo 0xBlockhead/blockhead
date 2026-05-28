@@ -8,13 +8,13 @@
 
 
 	// Components
-	import NetworkUpgradesView from '$/views/NetworkUpgradesView.svelte'
+	import EthereumNetworkUpgradesView from '$/views/EthereumNetworkUpgradesView.svelte'
 	import Page from '$/components/Page.svelte'
 </script>
 
 
 <Page>
-	<NetworkUpgradesView
+	<EthereumNetworkUpgradesView
 		entityFieldReference={{
 			entityType: EntityType._Global,
 			entityId: {},

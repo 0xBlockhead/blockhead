@@ -9,7 +9,7 @@ import {
 	type EntityFieldDefinition,
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import Network from '$/schema/Network.ts'
+import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
@@ -52,7 +52,7 @@ export default {
 		{
 			name: '$coinInstance',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.CoinInstance,
+			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

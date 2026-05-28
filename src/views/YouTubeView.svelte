@@ -21,7 +21,7 @@
 			'/youtube',
 			entityId,
 		),
-					open = $bindable(
+		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
 		),
 		collapsible = true,
@@ -31,6 +31,7 @@
 			entityId: EntityId<typeof schema, EntityType.YouTubeNetwork>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -127,65 +128,65 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			<ResourceBoundary
-			resource={network}
-			placeholderText="Loading YouTube hub directory…"
+				resource={network}
+				placeholderText="Loading YouTube hub directory…"
 			>
-			{#snippet children(loadedNetwork)}
-				{#if loadedNetwork.registryLabel}
-					<div>
-						<dt>Registry</dt>
-						<dd>{loadedNetwork.registryLabel}</dd>
-					</div>
-					{:else if loadedNetwork.protocolName}
-					<div>
-						<dt>Protocol</dt>
-						<dd>{loadedNetwork.protocolName}</dd>
-					</div>
-				{/if}
-
-				{#if open}
-					<div>
-						<dt>Channels</dt>
-						<dd>{String(network.$youtubeChannels.length)}</dd>
-					</div>
-					<div>
-						<dt>Videos</dt>
-						<dd>{String(network.$youtubeVideos.length)}</dd>
-					</div>
-					<div>
-						<dt>Playlists</dt>
-						<dd>{String(network.$youtubePlaylists.length)}</dd>
-					</div>
-
-					{#if loadedNetwork.homeUrl}
+				{#snippet children(network)}
+					{#if network.registryLabel}
 						<div>
-							<dt>Home</dt>
-							<dd>
-							<a href={loadedNetwork.homeUrl}>{loadedNetwork.homeUrl}</a>
-							</dd>
+							<dt>Registry</dt>
+							<dd>{network.registryLabel}</dd>
+						</div>
+					{:else if network.protocolName}
+						<div>
+							<dt>Protocol</dt>
+							<dd>{network.protocolName}</dd>
 						</div>
 					{/if}
 
-					{#if loadedNetwork.docsUrl}
+					{#if open}
 						<div>
-							<dt>Docs</dt>
-							<dd>
-							<a href={loadedNetwork.docsUrl}>{loadedNetwork.docsUrl}</a>
-							</dd>
+							<dt>Channels</dt>
+							<dd>{String(network.$$youtubeChannels.length)}</dd>
 						</div>
-					{/if}
+						<div>
+							<dt>Videos</dt>
+							<dd>{String(network.$$youtubeVideos.length)}</dd>
+						</div>
+						<div>
+							<dt>Playlists</dt>
+							<dd>{String(network.$$youtubePlaylists.length)}</dd>
+						</div>
 
-					{#if loadedNetwork.topology}
-						<div>
-							<dt>Topology</dt>
-							<dd>{loadedNetwork.topology}</dd>
-						</div>
+						{#if network.homeUrl}
+							<div>
+								<dt>Home</dt>
+								<dd>
+									<a href={network.homeUrl}>{network.homeUrl}</a>
+								</dd>
+							</div>
+						{/if}
+
+						{#if network.docsUrl}
+							<div>
+								<dt>Docs</dt>
+								<dd>
+									<a href={network.docsUrl}>{network.docsUrl}</a>
+								</dd>
+							</div>
+						{/if}
+
+						{#if network.topology}
+							<div>
+								<dt>Topology</dt>
+								<dd>{network.topology}</dd>
+							</div>
+						{/if}
 					{/if}
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	</dl>
-{/snippet}
+				{/snippet}
+			</ResourceBoundary>
+		</dl>
+	{/snippet}
 
 	{#snippet Details({
 		open: _open,
@@ -267,4 +268,3 @@
 
 	{/snippet}
 </EntityView>
-

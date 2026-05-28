@@ -63,7 +63,7 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
 	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 </script>
 
 
@@ -85,9 +85,9 @@
 			resource={leverage}
 			placeholderText="Loading leverage row…"
 		>
-			{#snippet children(loadedLeverage)}
-				{loadedLeverage.tokenId != null ?
-					`NFT #${String(loadedLeverage.tokenId)}`
+			{#snippet children(leverage)}
+				{leverage.tokenId != null ?
+					`NFT #${String(leverage.tokenId)}`
 				:
 					entityId.id
 				}
@@ -115,7 +115,7 @@
 			resource={leverage}
 			placeholderText="Loading leverage row…"
 		>
-			{#snippet children(loadedLeverage)}
+			{#snippet children(leverage)}
 				<dl data-column-item="center">
 					{#if open}
 						<div>
@@ -125,97 +125,105 @@
 							</dd>
 						</div>
 					{/if}
-					<div>
-						<dt>Network</dt>
-						<dd>
-							<NetworkView
-								entityId={loadedLeverage.$pool.$network}
-								layout={EntityLayout.Title}
-								open={false}
-							/>
-						</dd>
-					</div>
-					<div>
-						<dt>AMM pool (Uniswap v3-style)</dt>
-						<dd>
-							<LiquidityPoolView
-								entityId={loadedLeverage.$pool[EntityMetaKey.Id]}
-								layout={EntityLayout.SummaryDetails}
-								open={true}
-								showTypeAnnotation={false}
-							/>
-						</dd>
-					</div>
-					{#if open}
 						<div>
-							<dt>Owner</dt>
+							<dt>Network</dt>
 							<dd>
+								{#if leverage.$pool !== undefined}
+									<EvmNetworkView
+										entityId={leverage.$pool[EntityMetaKey.Id].$network}
+										layout={EntityLayout.Title}
+										open={false}
+									/>
+								{:else}
+									<span data-text="muted">No pool network loaded</span>
+								{/if}
+							</dd>
+						</div>
+						<div>
+							<dt>AMM pool (Uniswap v3-style)</dt>
+							<dd>
+								{#if leverage.$pool !== undefined}
+									<LiquidityPoolView
+										entityId={leverage.$pool[EntityMetaKey.Id]}
+										layout={EntityLayout.SummaryDetails}
+										open={true}
+										showTypeAnnotation={false}
+									/>
+								{:else}
+									<span data-text="muted">No pool loaded</span>
+								{/if}
+							</dd>
+						</div>
+						{#if open && leverage.$pool !== undefined && leverage.$owner !== undefined}
+							<div>
+								<dt>Owner</dt>
+								<dd>
 								<ActorNetworkView
 									entityId={{
-										$network: loadedLeverage.$pool.$network,
-										$actor: loadedLeverage.$owner[EntityMetaKey.Id],
+										$network: leverage.$pool[EntityMetaKey.Id].$network,
+										$actor: leverage.$owner[EntityMetaKey.Id],
 									}}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
 							</dd>
 						</div>
-						{#if loadedLeverage.tickLower !== undefined}
+						{#if leverage.tickLower !== undefined}
 							<div>
 								<dt>LP NFT range · tick lower</dt>
-								<dd>{String(loadedLeverage.tickLower)}</dd>
+								<dd>{String(leverage.tickLower)}</dd>
 							</div>
 						{/if}
 
-						{#if loadedLeverage.tickUpper !== undefined}
+						{#if leverage.tickUpper !== undefined}
 							<div>
 								<dt>LP NFT range · tick upper</dt>
-								<dd>{String(loadedLeverage.tickUpper)}</dd>
+								<dd>{String(leverage.tickUpper)}</dd>
 							</div>
 						{/if}
 
-						{#if loadedLeverage.liquidity !== undefined}
+						{#if leverage.liquidity !== undefined}
 							<div>
 								<dt>Position liquidity (NFT range)</dt>
-								<dd>{String(loadedLeverage.liquidity)}</dd>
+								<dd>{String(leverage.liquidity)}</dd>
 							</div>
 						{/if}
 
-						{#if loadedLeverage.token0Owed !== undefined}
+						{#if leverage.token0Owed !== undefined}
 							<div>
 								<dt>Token0 owed</dt>
-								<dd>{String(loadedLeverage.token0Owed)}</dd>
+								<dd>{String(leverage.token0Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if loadedLeverage.token1Owed !== undefined}
+						{#if leverage.token1Owed !== undefined}
 							<div>
 								<dt>Token1 owed</dt>
-								<dd>{String(loadedLeverage.token1Owed)}</dd>
+								<dd>{String(leverage.token1Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if loadedLeverage.tokenId !== undefined}
+						{#if leverage.tokenId !== undefined}
 							<div>
 								<dt>Position NFT token id</dt>
-								<dd>{String(loadedLeverage.tokenId)}</dd>
+								<dd>{String(leverage.tokenId)}</dd>
 							</div>
 						{/if}
 
-						{#if loadedLeverage.origin}
+						{#if leverage.origin}
 							<div>
 								<dt>Origin</dt>
-								<dd>{loadedLeverage.origin}</dd>
+								<dd>{leverage.origin}</dd>
 							</div>
 						{/if}
 					{/if}
 
-					{#if loadedLeverage.createdAtTimestamp !== undefined}
+					{#if leverage.createdAtTimestamp !== undefined}
 						<div>
 							<dt>Created at</dt>
 							<dd>
 								<Timestamp
-									timestamp={loadedLeverage.createdAtTimestamp}
+									timestamp={leverage.createdAtTimestamp}
 								/>
 							</dd>
 						</div>

@@ -1,5 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+
+
+	// Types/constants
 	import type { ComponentProps } from 'svelte'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
@@ -16,9 +20,9 @@
 	let {
 		entityId,
 		href = resolve(
-			'/(explore)/(networks)/network/[networkId]/(network)/erc-4337/account-factory/[address]',
+			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/erc-4337/account-factory/[address]',
 			{
-				networkId: String(entityId.$network.chainId),
+				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 				address: entityId.address,
 			},
 		),
@@ -97,9 +101,9 @@
 			placeholderText="Loading account factory…"
 			resource={accountFactory}
 		>
-			{#snippet children(loadedAccountFactory)}
+			{#snippet children(accountFactory)}
 				<dl data-column-item="center">
-					{#if loadedAccountFactory.userOperationsCount !== undefined}
+					{#if accountFactory.userOperationsCount !== undefined}
 						<div>
 							<dt>User operations</dt>
 							<dd data-text="mono">{String(accountFactory.userOperationsCount)}</dd>

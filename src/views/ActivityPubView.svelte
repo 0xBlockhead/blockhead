@@ -30,6 +30,7 @@
 			entityId: EntityId<typeof schema, EntityType.ActivityPubNetwork>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		never
 	> = $props()
@@ -141,16 +142,16 @@
 				resource={activityPubNetwork}
 				placeholderText="Loading ActivityPub federation slice…"
 			>
-				{#snippet children(loadedActivityPubNetwork)}
-					{#if loadedActivityPubNetwork.registryLabel}
+				{#snippet children(activityPubNetwork)}
+					{#if activityPubNetwork.registryLabel}
 						<div>
 							<dt>Registry</dt>
-							<dd>{loadedActivityPubNetwork.registryLabel}</dd>
+							<dd>{activityPubNetwork.registryLabel}</dd>
 						</div>
-					{:else if loadedActivityPubNetwork.protocolName}
+					{:else if activityPubNetwork.protocolName}
 						<div>
 							<dt>Protocol</dt>
-							<dd>{loadedActivityPubNetwork.protocolName}</dd>
+							<dd>{activityPubNetwork.protocolName}</dd>
 						</div>
 					{/if}
 
@@ -164,72 +165,72 @@
 							<dd>{String(activityPubNetwork.$$activityPubNotes?.length ?? 0)}</dd>
 						</div>
 
-						{#if loadedActivityPubNetwork.topology}
+						{#if activityPubNetwork.topology}
 							<div>
 								<dt>Topology</dt>
-								<dd>{loadedActivityPubNetwork.topology}</dd>
+								<dd>{activityPubNetwork.topology}</dd>
 							</div>
 						{/if}
 
-						{#if loadedActivityPubNetwork.homeUrl}
+						{#if activityPubNetwork.homeUrl}
 							<div>
 								<dt>Project home</dt>
 								<dd>
-									<a href={loadedActivityPubNetwork.homeUrl}>{loadedActivityPubNetwork.homeUrl}</a>
+									<a href={activityPubNetwork.homeUrl}>{activityPubNetwork.homeUrl}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedActivityPubNetwork.docsUrl}
+						{#if activityPubNetwork.docsUrl}
 							<div>
 								<dt>Specification</dt>
 								<dd>
-									<a href={loadedActivityPubNetwork.docsUrl}>
-										{loadedActivityPubNetwork.docsUrl}
+									<a href={activityPubNetwork.docsUrl}>
+										{activityPubNetwork.docsUrl}
 									</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedActivityPubNetwork.instanceTitle}
+						{#if activityPubNetwork.instanceTitle}
 							<div>
 								<dt>Mastodon instance title</dt>
-								<dd>{loadedActivityPubNetwork.instanceTitle}</dd>
+								<dd>{activityPubNetwork.instanceTitle}</dd>
 							</div>
 						{/if}
 
-						{#if loadedActivityPubNetwork.instanceDescription}
+						{#if activityPubNetwork.instanceDescription}
 							<div>
 								<dt>Mastodon instance description</dt>
-								<dd>{loadedActivityPubNetwork.instanceDescription}</dd>
+								<dd>{activityPubNetwork.instanceDescription}</dd>
 							</div>
 						{/if}
 
-						{#if loadedActivityPubNetwork.instanceVersion}
+						{#if activityPubNetwork.instanceVersion}
 							<div>
 								<dt>Mastodon instance version</dt>
-								<dd data-text="mono muted">{loadedActivityPubNetwork.instanceVersion}</dd>
+								<dd data-text="mono muted">{activityPubNetwork.instanceVersion}</dd>
 							</div>
 						{/if}
 
-						{#if loadedActivityPubNetwork.fediInstanceTitle}
+						{#if activityPubNetwork.fediInstanceTitle}
 							<div>
 								<dt>Fedi instance title</dt>
-								<dd>{loadedActivityPubNetwork.fediInstanceTitle}</dd>
+								<dd>{activityPubNetwork.fediInstanceTitle}</dd>
 							</div>
 						{/if}
 
-						{#if loadedActivityPubNetwork.fediInstanceDescription}
+						{#if activityPubNetwork.fediInstanceDescription}
 							<div>
 								<dt>Fedi instance description</dt>
-								<dd>{loadedActivityPubNetwork.fediInstanceDescription}</dd>
+								<dd>{activityPubNetwork.fediInstanceDescription}</dd>
 							</div>
 						{/if}
 
-						{#if loadedActivityPubNetwork.fediInstanceVersion}
+						{#if activityPubNetwork.fediInstanceVersion}
 							<div>
 								<dt>Fedi instance version</dt>
-								<dd data-text="mono muted">{loadedActivityPubNetwork.fediInstanceVersion}</dd>
+								<dd data-text="mono muted">{activityPubNetwork.fediInstanceVersion}</dd>
 							</div>
 						{/if}
 

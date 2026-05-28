@@ -55,6 +55,9 @@ const pipedCommentEntityFields = (
 	...((authorChannelId) => (
 		authorChannelId != null && {
 			authorChannelId,
+			$author: {
+				[EntityMetaKey.Id]: { channelId: authorChannelId },
+			},
 		}
 	))(pipedChannelIdFromCommentorUrl(comment.commentorUrl)),
 	...(optionalFiniteNumber(comment.likeCount) != null && {

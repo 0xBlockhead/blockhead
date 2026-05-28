@@ -24,7 +24,7 @@ export default {
 		{
 			name: '$network',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
@@ -42,7 +42,7 @@ export default {
 		{
 			name: '$asset',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.CoinInstance,
+			entityType: EntityType.EvmCoinInstance,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

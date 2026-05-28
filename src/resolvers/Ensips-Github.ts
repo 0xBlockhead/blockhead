@@ -15,7 +15,7 @@ const githubEnsipProposalIndexRows = async (
 		name: string
 	}[],
 ) => {
-	const { ProposalCategory, ProposalRealm } = await import('$/constants/Proposal.ts')
+	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	const markdownFiles = data.filter((entry) => entry.type === 'file' && entry.name.endsWith('.md'))
 	const rows = []
 	for (const markdownFile of markdownFiles) {
@@ -24,7 +24,7 @@ const githubEnsipProposalIndexRows = async (
 		if (proposalNumber == null) continue
 		rows.push({
 			[EntityMetaKey.Id]: {
-				realm: ProposalRealm.Ens,
+				realm: SpecificationRealm.Ens,
 				category: ProposalCategory.Ensip,
 				number: proposalNumber,
 			},
@@ -38,15 +38,16 @@ export default {
 
 	entityResolvers: [
 		defineEntityResolver({
-			entityType: EntityType.Proposal,
+			entityType: EntityType.SpecificationProposal,
 			resolve: async (entityId) => {
-				const { ProposalCategory } = await import('$/constants/Proposal.ts')
+				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				const {
 					getEnsipProposalMarkdownText,
 				} = await import('$/sources/Ensips/Github/queries.ts')
 
-				if (entityId.category === ProposalCategory.Caip) throw new Error('Ensips_Github: unsupported proposal category')
-				if (entityId.category !== ProposalCategory.Ensip) throw new Error('Proposal body resolver not applicable')
+				if (entityId.realm !== SpecificationRealm.Ens || entityId.category !== ProposalCategory.Ensip) {
+					throw new Error('Ensips_Github: proposal resolver only supports ENSIPs')
+				}
 				const text = await singleFlight(getEnsipProposalMarkdownText)({ number: entityId.number })
 				const body = stripFrontmatter(text)
 				const fm = parseFrontmatter(text)
@@ -84,12 +85,12 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.ProposalRealm,
+			entityType: EntityType.SpecificationRealm,
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
-				const { ProposalRealm } = await import('$/constants/Proposal.ts')
-				if (entityId.realm !== ProposalRealm.Ens) {
-					throw new Error('Ensips_Github: $$proposals only supports ProposalRealm.Ens')
+				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+				if (entityId.realm !== SpecificationRealm.Ens) {
+					throw new Error('Ensips_Github: $$proposals only supports SpecificationRealm.Ens')
 				}
 				const { getEnsipsGithubContents } = await import('$/sources/Ensips/Github/queries.ts')
 				return githubEnsipProposalIndexRows(await getEnsipsGithubContents())
@@ -97,11 +98,11 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.ProposalKind,
+			entityType: EntityType.SpecificationProposalKind,
 			fieldName: '$$proposals',
 			resolve: async (entityId) => {
-				const { ProposalCategory, ProposalRealm } = await import('$/constants/Proposal.ts')
-				if (entityId.realm !== ProposalRealm.Ens || entityId.category !== ProposalCategory.Ensip) {
+				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+				if (entityId.realm !== SpecificationRealm.Ens || entityId.category !== ProposalCategory.Ensip) {
 					throw new Error('Ensips_Github: $$proposals only supports ENSIP proposal kind')
 				}
 				const { getEnsipsGithubContents } = await import('$/sources/Ensips/Github/queries.ts')

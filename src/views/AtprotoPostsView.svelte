@@ -28,6 +28,7 @@
 			id: string
 			limit?: number
 			open?: boolean
+			collapsible?: boolean
 			fieldOpen?: boolean
 			title?: string
 		},

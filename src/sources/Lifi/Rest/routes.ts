@@ -11,7 +11,11 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { throwIfHttpNotOk } from '$/lib/http.ts'
 import { bridgeRouteStepEntityFieldsFromLifiQuoteStep } from '$/sources/Lifi/Rest/bridgeRouteSteps.ts'
 import { lifiRestFetch } from '$/sources/Lifi/Rest/client.ts'
-import type { LifiQuoteRequest, LifiQuoteStep } from '$/sources/Lifi/Rest/types.ts'
+import type {
+	LifiQuoteRequest,
+	LifiQuoteStep,
+	LifiQuoteStepLike,
+} from '$/sources/Lifi/Rest/types.ts'
 type BridgeRouteQuoteId = EntityId<typeof schema, EntityType.BridgeRoute>
 
 type BridgeRouteStepFields = ReturnType<typeof bridgeRouteStepEntityFieldsFromLifiQuoteStep>
@@ -23,7 +27,7 @@ export type BridgeRouteResolverBundle = {
 		fromAmount: bigint
 		toAmount: bigint
 		toAmountMin: bigint
-		gasCostUsd: number
+		estimatedCostUsd: number
 		estimatedDurationSeconds: number
 		tags: BridgeRouteTag[]
 	}
@@ -65,10 +69,10 @@ export const fetchLifiQuoteStep = async (
 
 const parseLifiQuoteAmountBigInt = (
 	value: string | undefined,
-	fallback: string,
 	label: string,
+	fallback?: string,
 ) => {
-	const raw = (value ?? fallback).trim()
+	const raw = (value ?? fallback ?? '').trim()
 	if (!/^\d+$/.test(raw)) {
 		throw new Error(`Lifi_Rest: invalid ${label} amount ${JSON.stringify(raw)}`)
 	}
@@ -85,7 +89,7 @@ const usdSumFromCostRows = (
 		}, 0)
 )
 
-const gasCostUsdFromQuoteStep = (step: LifiQuoteStep) => (
+const estimatedCostUsdFromQuoteStep = (step: LifiQuoteStep) => (
 	usdSumFromCostRows(step.estimate?.gasCosts)
 	+ usdSumFromCostRows(step.estimate?.feeCosts)
 )
@@ -104,20 +108,18 @@ const bridgeRouteBundleFromQuoteStep = (
 ): BridgeRouteResolverBundle => {
 	const fromAmount = parseLifiQuoteAmountBigInt(
 		step.action.fromAmount,
-		quoteId.fromAmount,
 		'from',
+		quoteId.fromAmount,
 	)
 	const toAmount = parseLifiQuoteAmountBigInt(
 		step.estimate?.toAmount
 		?? step.action.toAmount,
-		quoteId.fromAmount,
 		'to',
 	)
 	const toAmountMin = parseLifiQuoteAmountBigInt(
 		step.estimate?.toAmountMin
 		?? step.estimate?.toAmount
 		?? step.action.toAmount,
-		quoteId.fromAmount,
 		'toAmountMin',
 	)
 
@@ -132,7 +134,7 @@ const bridgeRouteBundleFromQuoteStep = (
 			fromAmount,
 			toAmount,
 			toAmountMin,
-			gasCostUsd: gasCostUsdFromQuoteStep(step),
+			estimatedCostUsd: estimatedCostUsdFromQuoteStep(step),
 			estimatedDurationSeconds: step.estimate?.executionDuration ?? 0,
 			tags: [],
 		},

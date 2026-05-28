@@ -1,11 +1,11 @@
 <script lang="ts">
 	// Types/constants
 	import {
-		bridgeAssetOutcomes,
+		bridgeAssetOutcomeByAssetOutcome,
 		bridgeRailById,
-		bridgeSettlementModels,
+		bridgeSettlementModelBySettlementModel,
 		bridgeToolByKey,
-		bridgeVerificationModels,
+		bridgeVerificationModelByVerificationModel,
 	} from '$/constants/Bridge.ts'
 
 	import type { ComponentProps } from 'svelte'
@@ -61,7 +61,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import CoinInstanceView from '$/views/CoinInstanceView.svelte'
+	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
 </script>
 
 
@@ -77,7 +77,7 @@
 			resource={capability}
 			placeholderText="Loading…"
 		>
-			{#snippet children(loadedCapability)}
+			{#snippet children(capability)}
 				{bridgeToolByKey[entityId.toolKey]?.label ?? entityId.toolKey}
 			{/snippet}
 		</ResourceBoundary>
@@ -109,8 +109,8 @@
 						resource={capability}
 						placeholderText="Loading capability…"
 					>
-						{#snippet children(loadedCapability)}
-							{bridgeRailById[loadedCapability.railId]?.label ?? loadedCapability.railId}
+						{#snippet children(capability)}
+							{bridgeRailById[capability.railId]?.label ?? capability.railId}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -122,8 +122,8 @@
 						resource={capability}
 						placeholderText="Loading capability…"
 					>
-						{#snippet children(loadedCapability)}
-							{bridgeSettlementModels[loadedCapability.settlementModel].label}
+						{#snippet children(capability)}
+							{bridgeSettlementModelBySettlementModel[capability.settlementModel].label}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -135,8 +135,8 @@
 						resource={capability}
 						placeholderText="Loading capability…"
 					>
-						{#snippet children(loadedCapability)}
-							{bridgeVerificationModels[loadedCapability.verificationModel].label}
+						{#snippet children(capability)}
+							{bridgeVerificationModelByVerificationModel[capability.verificationModel].label}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -148,8 +148,8 @@
 						resource={capability}
 						placeholderText="Loading capability…"
 					>
-						{#snippet children(loadedCapability)}
-							{bridgeAssetOutcomes[loadedCapability.assetOutcome].label}
+						{#snippet children(capability)}
+							{bridgeAssetOutcomeByAssetOutcome[capability.assetOutcome].label}
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
@@ -157,7 +157,7 @@
 			<div>
 				<dt>From</dt>
 				<dd>
-					<CoinInstanceView
+					<EvmCoinInstanceView
 						entityId={entityId.$fromInstance}
 						layout={EntityLayout.SummaryDetails}
 						open={true}
@@ -168,7 +168,7 @@
 			<div>
 				<dt>To</dt>
 				<dd>
-					<CoinInstanceView
+					<EvmCoinInstanceView
 						entityId={entityId.$toInstance}
 						layout={EntityLayout.SummaryDetails}
 						open={true}

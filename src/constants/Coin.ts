@@ -71,6 +71,7 @@ export enum CoinId {
 	POL = 'POL',
 	U = 'U',
 	USTB = 'USTB',
+	QUIL = 'QUIL',
 	QNT = 'QNT',
 	ENA = 'ENA',
 	RENDER = 'RENDER',
@@ -772,6 +773,11 @@ export const coins: readonly {
 	{
 		id: CoinId.NEAR,
 		symbol: 'NEAR',
+		color: '#888888',
+	},
+	{
+		id: CoinId.QUIL,
+		symbol: 'QUIL',
 		color: '#888888',
 	},
 	{

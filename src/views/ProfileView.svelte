@@ -76,9 +76,9 @@
 			resource={farcasterUser}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(loadedFarcasterUser)}
-				{loadedFarcasterUser.displayName
-					?? loadedFarcasterUser.username
+			{#snippet children(farcasterUser)}
+				{farcasterUser.displayName
+					?? farcasterUser.username
 					?? String(farcasterUserId.fid)}
 			{/snippet}
 		</ResourceBoundary>
@@ -89,11 +89,11 @@
 			resource={farcasterUser}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(loadedFarcasterUser)}
-				{#if loadedFarcasterUser.$icon?.[EntityMetaKey.Id].url !== undefined}
+			{#snippet children(farcasterUser)}
+				{#if farcasterUser.$icon?.[EntityMetaKey.Id].url !== undefined}
 					<IconComponent
 						shape={IconShape.Circle}
-						src={loadedFarcasterUser.$icon[EntityMetaKey.Id].url}
+						src={farcasterUser.$icon[EntityMetaKey.Id].url}
 						alt=""
 					/>
 				{/if}
@@ -116,17 +116,17 @@
 			resource={farcasterUser}
 			placeholderText="Loading profile…"
 		>
-			{#snippet children(loadedFarcasterUser)}
+			{#snippet children(farcasterUser)}
 				{#if (
 					farcasterUser.username !== undefined
 					&& farcasterUser.username !== (
 						farcasterUser.displayName
-						?? loadedFarcasterUser.username
+						?? farcasterUser.username
 						?? String(farcasterUserId.fid)
 					)
 				)}
 					<span data-text="muted">
-						@{loadedFarcasterUser.username}
+						@{farcasterUser.username}
 					</span>
 				{/if}
 			{/snippet}
@@ -146,8 +146,8 @@
 							resource={farcasterUser}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(loadedFarcasterUser)}
-								{loadedFarcasterUser.bio}
+							{#snippet children(farcasterUser)}
+								{farcasterUser.bio}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -162,11 +162,11 @@
 							resource={farcasterUser}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(loadedFarcasterUser)}
+							{#snippet children(farcasterUser)}
 								<a
-									href={loadedFarcasterUser.url}
+									href={farcasterUser.url}
 									data-text="muted"
-								>{loadedFarcasterUser.url}</a>
+								>{farcasterUser.url}</a>
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -180,10 +180,10 @@
 						resource={farcasterUser}
 						placeholderText="Loading profile…"
 					>
-						{#snippet children(loadedFarcasterUser)}
-							{#if loadedFarcasterUser.$$verifiedAddresses.length}
+						{#snippet children(farcasterUser)}
+							{#if farcasterUser.$$verifiedAddresses.length}
 								<ul data-column="gap-2">
-									{#each loadedFarcasterUser.$$verifiedAddresses as verification (String(verification[EntityMetaKey.Id].protocol) + ':' + verification[EntityMetaKey.Id].address)}
+									{#each farcasterUser.$$verifiedAddresses as verification (String(verification[EntityMetaKey.Id].protocol) + ':' + verification[EntityMetaKey.Id].address)}
 										<li>
 											{#if verification[EntityMetaKey.Id].protocol === 'ethereum'}
 												<ActorView
@@ -221,8 +221,8 @@
 							resource={farcasterUser}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(loadedFarcasterUser)}
-								{loadedFarcasterUser.displayName}
+							{#snippet children(farcasterUser)}
+								{farcasterUser.displayName}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -240,8 +240,8 @@
 							resource={farcasterUser}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(loadedFarcasterUser)}
-								{loadedFarcasterUser.username}
+							{#snippet children(farcasterUser)}
+								{farcasterUser.username}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -259,10 +259,10 @@
 							resource={farcasterUser}
 							placeholderText="Loading profile…"
 						>
-							{#snippet children(loadedFarcasterUser)}
+							{#snippet children(farcasterUser)}
 								<Media
-									media={{ url: loadedFarcasterUser.$icon[EntityMetaKey.Id].url }}
-									alt={loadedFarcasterUser.displayName ?? loadedFarcasterUser.username ?? ''}
+									media={{ url: farcasterUser.$icon[EntityMetaKey.Id].url }}
+									alt={farcasterUser.displayName ?? farcasterUser.username ?? ''}
 								/>
 							{/snippet}
 						</ResourceBoundary>

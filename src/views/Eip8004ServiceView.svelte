@@ -15,11 +15,14 @@
 
 	// State
 	let {
-		entityId,
-		href = resolve(
-			'/(explore)/(services)/services/eip-8004/[serviceId]',
-			{ serviceId: entityId.serviceId },
-		),
+			entityId,
+			href = resolve(
+				'/(explore)/(services)/services/agent/[chainId]/[identityId]',
+				{
+					chainId: String(entityId.$network.chainId),
+					identityId: entityId.identityId,
+				},
+			),
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
@@ -87,8 +90,8 @@
 			resource={service}
 			placeholderText="Loading agent service…"
 		>
-			{#snippet children(loadedService)}
-				{loadedService.name ?? entityId.identityId}
+			{#snippet children(service)}
+				{service.name ?? entityId.identityId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -108,7 +111,7 @@
 			resource={service}
 			placeholderText="Loading agent service…"
 		>
-			{#snippet children(loadedService)}
+			{#snippet children(service)}
 				<dl data-column-item="center">
 					<div>
 						<dt>Network</dt>
@@ -118,9 +121,9 @@
 					<div>
 						<dt>Registry</dt>
 						<dd>
-							{#if loadedService.$registry}
+							{#if service.$registry}
 								<EvmContractView
-									entityId={loadedService.$registry[EntityMetaKey.Id]}
+									entityId={service.$registry[EntityMetaKey.Id]}
 									layout={EntityLayout.SummaryDetails}
 									open={true}
 									showTypeAnnotation={false}
@@ -134,72 +137,72 @@
 							<dt>Registration URI</dt>
 							<dd>
 								<a
-									href={loadedService.registrationUri}
+									href={service.registrationUri}
 									rel="noreferrer"
 									target="_blank"
-								>{loadedService.registrationUri}</a>
+								>{service.registrationUri}</a>
 							</dd>
 						</div>
 
-						{#if loadedService.contactEndpoint}
+						{#if service.contactEndpoint}
 							<div>
 								<dt>Contact endpoint</dt>
 								<dd>
 									<a
-										href={loadedService.contactEndpoint}
+										href={service.contactEndpoint}
 										rel="noreferrer"
 										target="_blank"
-									>{loadedService.contactEndpoint}</a>
+									>{service.contactEndpoint}</a>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedService.description}
+						{#if service.description}
 							<div>
 								<dt>Description</dt>
 								<dd>
-									<p>{loadedService.description}</p>
+									<p>{service.description}</p>
 								</dd>
 							</div>
 						{/if}
 
-						{#if loadedService.registrationTypeIri}
+						{#if service.registrationTypeIri}
 							<div>
 								<dt>Registration type</dt>
-								<dd>{loadedService.registrationTypeIri}</dd>
+								<dd>{service.registrationTypeIri}</dd>
 							</div>
 						{/if}
 
-						{#if loadedService.x402Support != null}
+						{#if service.x402Support != null}
 							<div>
 								<dt>x402 support</dt>
-								<dd>{loadedService.x402Support ? 'Yes' : 'No'}</dd>
+								<dd>{service.x402Support ? 'Yes' : 'No'}</dd>
 							</div>
 						{/if}
 
-						{#if loadedService.active != null}
+						{#if service.active != null}
 							<div>
 								<dt>Active</dt>
-								<dd>{loadedService.active ? 'Yes' : 'No'}</dd>
+								<dd>{service.active ? 'Yes' : 'No'}</dd>
 							</div>
 						{/if}
 
-						{#if loadedService.supportedTrust != null && service.supportedTrust.length > 0}
+						{#if service.supportedTrust != null && service.supportedTrust.length > 0}
 							<div>
 								<dt>Supported trust</dt>
-								<dd>{loadedService.supportedTrust.join(', ')}</dd>
+								<dd>{service.supportedTrust.join(', ')}</dd>
 							</div>
 						{/if}
 
-						{#if loadedService.image}
+						{#if service.image}
 							<div>
 								<dt>Image</dt>
 								<dd>
 									<a
-										href={loadedService.image}
+										href={service.image}
 										rel="noreferrer"
 										target="_blank"
-									>{loadedService.image}</a>
+									>{service.image}</a>
 								</dd>
 							</div>
 						{/if}
@@ -208,7 +211,7 @@
 							<dt>Fetched</dt>
 							<dd>
 								<Timestamp
-									timestamp={loadedService.fetchedAt}
+									timestamp={service.fetchedAt}
 								/>
 							</dd>
 						</div>

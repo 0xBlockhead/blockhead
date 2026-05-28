@@ -95,7 +95,7 @@
 				resource={selector}
 				placeholderText="Loading function signatures…"
 			>
-				{#snippet children(_readyData)}
+				{#snippet children()}
 					{#if decodedCall}
 						<div data-column="gap-1">
 							<code>{decodedCall.signature}</code>

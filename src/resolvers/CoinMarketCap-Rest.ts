@@ -120,7 +120,7 @@ export default {
 						? undefined
 					:	Object.values(infoResponse.data)[0]
 				)?.platform
-				const caip19 = (
+				const caip2 = (
 					(p?.slug === 'ethereum' || p?.name === 'Ethereum')
 					&& p?.token_address != null
 					&& /^0x[a-fA-F0-9]{40}$/i.test(p.token_address.trim()) ?
@@ -137,7 +137,7 @@ export default {
 					...(String(coinMarketCapId) !== undefined && {
 						providerAssetId: String(coinMarketCapId),
 					}),
-					...(caip19 && { caip19 }),
+					...(caip2 && { caip2 }),
 				}
 			},
 		}),

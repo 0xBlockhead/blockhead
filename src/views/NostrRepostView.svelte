@@ -31,6 +31,7 @@
 			entityId: EntityId<typeof schema, EntityType.NostrRepost>
 			href?: string
 			open?: boolean
+			collapsible?: boolean
 		},
 		Pick<
 			ComponentProps<typeof EntityView>,
@@ -53,6 +54,7 @@
 			createdAt: {},
 			repostedEventId: {},
 			$author: {},
+			$repostedArticle: {},
 			$repostedNote: {
 				content: {},
 			},
@@ -66,6 +68,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import NostrArticleView from '$/views/NostrArticleView.svelte'
 	import NostrNoteView from '$/views/NostrNoteView.svelte'
 	import NostrProfileView from '$/views/NostrProfileView.svelte'
 </script>
@@ -76,6 +79,7 @@
 	{entityId}
 	href={href}
 	bind:open
+	{collapsible}
 	{...EntityViewProps}
 >
 	{#snippet Value()}
@@ -90,17 +94,23 @@
 			resource={repost}
 			placeholderText="Loading repost…"
 		>
-			{#snippet children(loadedRepost)}
-				{#if loadedRepost.$repostedNote?.content}
+			{#snippet children(repost)}
+				{#if repost.$repostedNote?.content}
 					<TruncatedValue
 						endLength={16}
 						format={TruncatedValueFormat.Visual}
 						startLength={64}
-						value={loadedRepost.$repostedNote.content}
+						value={repost.$repostedNote.content}
 					/>
-				{:else if loadedRepost.repostedEventId}
+				{:else if repost.$repostedArticle}
+					<NostrArticleView
+						entityId={repost.$repostedArticle[EntityMetaKey.Id]}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{:else if repost.repostedEventId}
 					<TruncatedValue
-						value={loadedRepost.repostedEventId}
+						value={repost.repostedEventId}
 						format={TruncatedValueFormat.Visual}
 					/>
 				{:else}
@@ -124,28 +134,25 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
-			{#if loadedRepost.createdAt != null}
-				<div>
-					<dt>Created</dt>
-					<dd>
-						<ResourceBoundary
-							resource={repost}
-							placeholderText="Loading repost…"
-						>
-							{#snippet children(loadedRepost)}
+			<div>
+				<dt>Created</dt>
+				<dd>
+					<ResourceBoundary
+						resource={repost}
+						placeholderText="Loading repost…"
+					>
+						{#snippet children(repost)}
+							{#if repost.createdAt != null}
 								<Timestamp
-									timestamp={loadedRepost.createdAt}
+									timestamp={repost.createdAt}
 								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
 
-			{#if (
-				open
-				&& repost.$author
-			)}
+			{#if open}
 				<div>
 					<dt>Author</dt>
 					<dd>
@@ -153,22 +160,19 @@
 							resource={repost}
 							placeholderText="Loading repost…"
 						>
-							{#snippet children(loadedRepost)}
-								<NostrProfileView
-									entityId={loadedRepost.$author[EntityMetaKey.Id]}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
+							{#snippet children(repost)}
+								{#if repost.$author}
+									<NostrProfileView
+										entityId={repost.$author[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+										open={false}
+									/>
+								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
 				</div>
-			{/if}
 
-			{#if (
-				open
-				&& repost.$repostedNote
-			)}
 				<div>
 					<dt>Reposted note</dt>
 					<dd>
@@ -176,12 +180,34 @@
 							resource={repost}
 							placeholderText="Loading repost…"
 						>
-							{#snippet children(loadedRepost)}
-								<NostrNoteView
-									entityId={loadedRepost.$repostedNote[EntityMetaKey.Id]}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
+							{#snippet children(repost)}
+								{#if repost.$repostedNote}
+									<NostrNoteView
+										entityId={repost.$repostedNote[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+										open={false}
+									/>
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+
+				<div>
+					<dt>Reposted article</dt>
+					<dd>
+						<ResourceBoundary
+							resource={repost}
+							placeholderText="Loading repost…"
+						>
+							{#snippet children(repost)}
+								{#if repost.$repostedArticle}
+									<NostrArticleView
+										entityId={repost.$repostedArticle[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+										open={false}
+									/>
+								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -199,4 +225,3 @@
 		/>
 	{/snippet}
 </EntityView>
-

@@ -23,7 +23,7 @@ export default {
 		{
 			name: '$network',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Network,
+			entityType: EntityType.EvmNetwork,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

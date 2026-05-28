@@ -118,16 +118,16 @@
 					resource={global}
 					placeholderText="Loading usage…"
 				>
-					{#snippet children(loadedGlobal)}
+					{#snippet children(global)}
 						<dl data-column-item="center">
-							{#if loadedGlobal.duneCreditsUsed !== undefined}
+							{#if global.duneCreditsUsed !== undefined}
 								<div>
 									<dt>Query credits used</dt>
 									<dd>{String(global.duneCreditsUsed)}</dd>
 								</div>
 							{/if}
 
-							{#if loadedGlobal.duneCreditsIncluded !== undefined}
+							{#if global.duneCreditsIncluded !== undefined}
 								<div>
 									<dt>Query credits included</dt>
 									<dd>{String(global.duneCreditsIncluded)}</dd>
@@ -277,16 +277,16 @@
 							resource={global}
 							placeholderText="Loading usage…"
 						>
-							{#snippet children(loadedGlobal)}
+							{#snippet children(global)}
 								<dl data-column-item="center">
-									{#if loadedGlobal.duneCreditsUsed !== undefined}
+									{#if global.duneCreditsUsed !== undefined}
 										<div>
 											<dt>Query credits used</dt>
 											<dd>{String(global.duneCreditsUsed)}</dd>
 										</div>
 									{/if}
 
-									{#if loadedGlobal.duneCreditsIncluded !== undefined}
+									{#if global.duneCreditsIncluded !== undefined}
 										<div>
 											<dt>Query credits included</dt>
 											<dd>{String(global.duneCreditsIncluded)}</dd>

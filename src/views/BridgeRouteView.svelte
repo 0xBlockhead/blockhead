@@ -51,7 +51,7 @@
 				fromAmount: {},
 				toAmount: {},
 				toAmountMin: {},
-				gasCostUsd: {},
+				estimatedCostUsd: {},
 				estimatedDurationSeconds: {},
 				$$steps: {
 					$: [
@@ -72,7 +72,7 @@
 	import BridgeRouteStepsView from '$/views/BridgeRouteStepsView.svelte'
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 	import Address from '$/views/Address.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
+	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 </script>
 
 
@@ -88,7 +88,7 @@
 			resource={bridgeRoute}
 			placeholderText="Loading…"
 		>
-			{#snippet children(loadedBridgeRoute)}
+			{#snippet children(bridgeRoute)}
 				{entityId.fromChainId}
 				→
 				{entityId.toChainId}
@@ -121,10 +121,10 @@
 						resource={bridgeRoute}
 						placeholderText="Loading route…"
 					>
-						{#snippet children(loadedBridgeRoute)}
-							<NetworkView
+						{#snippet children(bridgeRoute)}
+							<EvmNetworkView
 								entityId={
-									loadedBridgeRoute.$fromNetwork?.[EntityMetaKey.Id]
+									bridgeRoute.$fromNetwork?.[EntityMetaKey.Id]
 									?? { chainId: entityId.fromChainId }
 								}
 								layout={EntityLayout.Title}
@@ -141,10 +141,10 @@
 						resource={bridgeRoute}
 						placeholderText="Loading route…"
 					>
-						{#snippet children(loadedBridgeRoute)}
-							<NetworkView
+						{#snippet children(bridgeRoute)}
+							<EvmNetworkView
 								entityId={
-									loadedBridgeRoute.$toNetwork?.[EntityMetaKey.Id]
+									bridgeRoute.$toNetwork?.[EntityMetaKey.Id]
 									?? { chainId: entityId.toChainId }
 								}
 								layout={EntityLayout.Title}
@@ -203,8 +203,8 @@
 							resource={bridgeRoute}
 							placeholderText="Loading route…"
 						>
-							{#snippet children(loadedBridgeRoute)}
-								{#if loadedBridgeRoute.fromAmount !== undefined}
+							{#snippet children(bridgeRoute)}
+								{#if bridgeRoute.fromAmount !== undefined}
 									{String(bridgeRoute.fromAmount)}
 								{/if}
 							{/snippet}
@@ -219,8 +219,8 @@
 							resource={bridgeRoute}
 							placeholderText="Loading route…"
 						>
-							{#snippet children(loadedBridgeRoute)}
-								{#if loadedBridgeRoute.toAmount !== undefined}
+							{#snippet children(bridgeRoute)}
+								{#if bridgeRoute.toAmount !== undefined}
 									{String(bridgeRoute.toAmount)}
 								{/if}
 							{/snippet}
@@ -235,8 +235,8 @@
 							resource={bridgeRoute}
 							placeholderText="Loading route…"
 						>
-							{#snippet children(loadedBridgeRoute)}
-								{#if loadedBridgeRoute.toAmountMin !== undefined}
+							{#snippet children(bridgeRoute)}
+								{#if bridgeRoute.toAmountMin !== undefined}
 									{String(bridgeRoute.toAmountMin)}
 								{/if}
 							{/snippet}
@@ -245,16 +245,16 @@
 				</div>
 
 				<div>
-					<dt>Est. fees (USD)</dt>
+					<dt>Estimated cost (USD)</dt>
 					<dd>
 						<ResourceBoundary
 							resource={bridgeRoute}
 							placeholderText="Loading route…"
 						>
-							{#snippet children(loadedBridgeRoute)}
-								{#if loadedBridgeRoute.gasCostUsd !== undefined}
+							{#snippet children(bridgeRoute)}
+								{#if bridgeRoute.estimatedCostUsd !== undefined}
 									<CurrencyAmount
-										value={loadedBridgeRoute.gasCostUsd}
+										value={bridgeRoute.estimatedCostUsd}
 										scale={1}
 									/>
 								{/if}
@@ -270,8 +270,8 @@
 							resource={bridgeRoute}
 							placeholderText="Loading route…"
 						>
-							{#snippet children(loadedBridgeRoute)}
-								{#if loadedBridgeRoute.estimatedDurationSeconds !== undefined}
+							{#snippet children(bridgeRoute)}
+								{#if bridgeRoute.estimatedDurationSeconds !== undefined}
 									{String(bridgeRoute.estimatedDurationSeconds)} s
 								{/if}
 							{/snippet}

@@ -1,5 +1,9 @@
 <script lang="ts">
 	// Types/constants
+	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+
+
+	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -7,7 +11,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { EvmLogInterpretationKind, evmLogInterpretationKinds } from '$/constants/Evm.ts'
+	import { EvmLogInterpretationKind, evmLogInterpretationKindByInterpretationKind } from '$/constants/Evm.ts'
 	import { stringify } from 'devalue'
 
 
@@ -19,9 +23,9 @@
 	let {
 		entityId,
 		href = resolve(
-		'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]/log/[logIndex]',
+		'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]/log/[logIndex]',
 		{
-			networkId: String(entityId.$network.chainId),
+			...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 			transactionId: entityId.txHash,
 			logIndex: String(entityId.logIndex),
 		},
@@ -111,12 +115,12 @@
 			resource={log}
 			placeholderText="Loading receipt log…"
 		>
-			{#snippet children(loadedLog)}
+			{#snippet children(log)}
 				<span data-row="wrap gap-2 align-baseline">
 					<span>
 						Receipt log #{entityId.logIndex}
 					</span>
-					{#if loadedLog.topics?.[0]?.startsWith('0x')}
+					{#if log.topics?.[0]?.startsWith('0x')}
 						{@const topic0Hex = normalizeEvmTopicHex(log.topics[0] as `0x${string}`)}
 						<EvmTopicView
 							entityId={{ hex: topic0Hex }}
@@ -152,9 +156,9 @@
 							<a
 								data-text="font-monospace"
 								href={resolve(
-									'/(explore)/(networks)/network/[networkId]/(network)/(transactions)/tx/[transactionId]',
+									'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 									{
-									networkId: String(entityId.$network.chainId),
+									...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
 									transactionId: entityId.txHash,
 									},
 								)}
@@ -172,33 +176,33 @@
 					resource={log}
 					placeholderText="Loading receipt log…"
 				>
-					{#snippet children(loadedLog)}
-					{#if loadedLog.interpretationKind != null && loadedLog.interpretationKind !== EvmLogInterpretationKind.Unknown}
+					{#snippet children(log)}
+					{#if log.interpretationKind != null && log.interpretationKind !== EvmLogInterpretationKind.Unknown}
 						<div>
 							<dt>Interpretation</dt>
-							<dd>{evmLogInterpretationKinds[loadedLog.interpretationKind].label}</dd>
+							<dd>{evmLogInterpretationKindByInterpretationKind[log.interpretationKind].label}</dd>
 						</div>
 					{/if}
-					{#if loadedLog.$emitter}
+					{#if log.$emitter}
 						<div>
 							<dt>Emitter contract</dt>
 							<dd>
 								<EvmContractView
-									entityId={loadedLog.$emitter[EntityMetaKey.Id]}
+									entityId={log.$emitter[EntityMetaKey.Id]}
 									layout={EntityLayout.SummaryDetails}
 									open={true}
 									showTypeAnnotation={false}
 								/>
 							</dd>
 						</div>
-					{:else if loadedLog.address}
+					{:else if log.address}
 						<div>
 							<dt>Emitter contract</dt>
 							<dd>
 								<EvmContractView
 									entityId={{
 										$network: entityId.$network,
-										address: loadedLog.address,
+										address: log.address,
 									}}
 									layout={EntityLayout.SummaryDetails}
 									open={true}
@@ -207,12 +211,12 @@
 							</dd>
 						</div>
 					{/if}
-					{#if loadedLog.topics?.length}
+					{#if log.topics?.length}
 						<div>
 							<dt>Topics</dt>
 							<dd>
 								<ul>
-									{#each loadedLog.topics as topic, topicIndex (`${topicIndex}:${topic ?? ''}`)}
+									{#each log.topics as topic, topicIndex (`${topicIndex}:${topic ?? ''}`)}
 										<li>
 											<span data-text="muted">topic {topicIndex}</span>
 											{#if topic?.startsWith('0x')}
@@ -242,25 +246,25 @@
 							</dd>
 						</div>
 					{/if}
-					{#if loadedLog.data}
+					{#if log.data}
 						<div>
 							<dt>Data</dt>
 							<dd>
 								<TruncatedValue
-									value={loadedLog.data}
+									value={log.data}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</dd>
 						</div>
 					{/if}
-					{#if loadedLog.topics?.length && loadedLog.data != null && contentOpen}
+					{#if log.topics?.length && log.data != null && contentOpen}
 						<div>
 							<dt>ABI decode</dt>
 							<dd>
 								<EvmLogDecode
-									topics={loadedLog.topics}
-									data={loadedLog.data}
-									emitterContractId={loadedLog.$emitter?.[EntityMetaKey.Id]}
+									topics={log.topics}
+									data={log.data}
+									emitterContractId={log.$emitter?.[EntityMetaKey.Id]}
 									open={contentOpen}
 								/>
 							</dd>
@@ -279,4 +283,3 @@
 		/>
 	{/snippet}
 </EntityView>
-

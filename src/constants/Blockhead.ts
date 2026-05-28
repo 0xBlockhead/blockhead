@@ -8,7 +8,7 @@ import { BlockheadConnectionStatus } from '$/schema/BlockheadWalletConnection.ts
 
 // Constants
 
-const blockheadAgentConversationTurnStatusRows = [
+const blockheadAgentConversationTurnStatuses = [
 	{
 		status: BlockheadAgentConversationTurnStatus.Pending,
 		label: 'Pending',
@@ -34,7 +34,7 @@ const blockheadAgentConversationTurnStatusRows = [
 	label: string
 }[]
 
-const blockheadSessionStatusRows = [
+const blockheadSessionStatuses = [
 	{
 		status: BlockheadSessionStatus.Draft,
 		label: 'Draft',
@@ -52,7 +52,7 @@ const blockheadSessionStatusRows = [
 	label: string
 }[]
 
-const blockheadWalletConnectionStatusRows = [
+const blockheadWalletConnectionStatuses = [
 	{
 		status: BlockheadConnectionStatus.Disconnected,
 		label: 'Disconnected',
@@ -74,7 +74,7 @@ const blockheadWalletConnectionStatusRows = [
 	label: string
 }[]
 
-const blockheadFarcasterConnectionAuthMethodRows = [
+const blockheadFarcasterConnectionAuthMethods = [
 	{
 		authMethod: BlockheadFarcasterConnectionAuthMethod.Custody,
 		label: 'Custody address',
@@ -91,29 +91,29 @@ const blockheadFarcasterConnectionAuthMethodRows = [
 
 // Lookups
 
-export const blockheadSessionStatuses = Object.fromEntries(
-	blockheadSessionStatusRows.map((row) => [
+export const blockheadSessionStatusByStatus = Object.fromEntries(
+	blockheadSessionStatuses.map((row) => [
 		row.status,
 		row,
 	]),
 )
 
-export const blockheadWalletConnectionStatuses = Object.fromEntries(
-	blockheadWalletConnectionStatusRows.map((row) => [
+export const blockheadWalletConnectionStatusByStatus = Object.fromEntries(
+	blockheadWalletConnectionStatuses.map((row) => [
 		row.status,
 		row,
 	]),
 )
 
-export const blockheadFarcasterConnectionAuthMethods = Object.fromEntries(
-	blockheadFarcasterConnectionAuthMethodRows.map((row) => [
+export const blockheadFarcasterConnectionAuthMethodByAuthMethod = Object.fromEntries(
+	blockheadFarcasterConnectionAuthMethods.map((row) => [
 		row.authMethod,
 		row,
 	]),
 )
 
-export const blockheadAgentConversationTurnStatuses = Object.fromEntries(
-	blockheadAgentConversationTurnStatusRows.map((row) => [
+export const blockheadAgentConversationTurnStatusByStatus = Object.fromEntries(
+	blockheadAgentConversationTurnStatuses.map((row) => [
 		row.status,
 		row,
 	]),

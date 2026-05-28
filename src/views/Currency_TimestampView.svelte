@@ -93,14 +93,14 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Currency snapshot </span>
-			<Timestamp timestampMs={entityId.timestampMs} />
+			<Timestamp timestamp={entityId.timestampMs} />
 		</span>
 	{/snippet}
 
 	{#snippet Heading()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>{entityId.$currency.iso4217} snapshot </span>
-			<Timestamp timestampMs={entityId.timestampMs} />
+			<Timestamp timestamp={entityId.timestampMs} />
 		</span>
 	{/snippet}
 
@@ -115,9 +115,9 @@
 			resource={currencyTimestamp}
 			placeholderText="Loading snapshot…"
 		>
-			{#snippet children(loadedCurrencyTimestamp)}
+			{#snippet children(currencyTimestamp)}
 				<dl data-column-item="center">
-					{#if loadedCurrencyTimestamp.marketCap !== undefined}
+					{#if currencyTimestamp.marketCap !== undefined}
 						<div>
 							<dt>
 								FX turnover weight (USD)
@@ -136,7 +136,7 @@
 							<dd>
 								<CurrencyAmount
 									currency="USD"
-									value={loadedCurrencyTimestamp.marketCap}
+									value={currencyTimestamp.marketCap}
 								/>
 							</dd>
 						</div>
@@ -148,8 +148,8 @@
 								resource={currency}
 								placeholderText="Loading currency…"
 							>
-								{#snippet children(loadedCurrency)}
-									{loadedCurrency.name ?? entityId.$currency.iso4217}
+								{#snippet children(currency)}
+									{currency.name ?? entityId.$currency.iso4217}
 								{/snippet}
 							</ResourceBoundary>
 						</dd>

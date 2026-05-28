@@ -111,13 +111,13 @@
 				<dt>Content type</dt>
 				<dd>
 					<ResourceBoundary resource={ipfs}>
-						{#snippet children(loadedIpfs)}
-							{#if loadedIpfs.contentType !== undefined}
+						{#snippet children(ipfs)}
+							{#if ipfs.contentType !== undefined}
 								<TruncatedValue
-									value={loadedIpfs.contentType}
+									value={ipfs.contentType}
 									format={TruncatedValueFormat.Visual}
 								/>
-								{#if loadedIpfs.isContentTypeInferred}
+								{#if ipfs.isContentTypeInferred}
 									{' '}<span data-text="muted">(inferred)</span>
 								{/if}
 							{:else if !open}
@@ -133,9 +133,9 @@
 					<dt>Canonical URI</dt>
 					<dd>
 						<ResourceBoundary resource={ipfs}>
-							{#snippet children(loadedIpfs)}
+							{#snippet children(ipfs)}
 								<TruncatedValue
-									value={loadedIpfs.canonicalUri}
+									value={ipfs.canonicalUri}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -147,9 +147,9 @@
 					<dt>Gateway</dt>
 					<dd>
 						<ResourceBoundary resource={ipfs}>
-							{#snippet children(loadedIpfs)}
+							{#snippet children(ipfs)}
 								<TruncatedValue
-									value={loadedIpfs.gatewayOrigin}
+									value={ipfs.gatewayOrigin}
 									format={TruncatedValueFormat.Visual}
 								/>
 							{/snippet}
@@ -161,14 +161,14 @@
 					<dt>Gateway URL</dt>
 					<dd>
 						<ResourceBoundary resource={ipfs}>
-							{#snippet children(loadedIpfs)}
+							{#snippet children(ipfs)}
 								<a
-									href={loadedIpfs.gatewayUrl}
+									href={ipfs.gatewayUrl}
 									target="_blank"
 									rel="noreferrer noopener"
 								>
 									<TruncatedValue
-										value={loadedIpfs.gatewayUrl}
+										value={ipfs.gatewayUrl}
 										format={TruncatedValueFormat.Visual}
 									/>
 								</a>
@@ -181,10 +181,10 @@
 					<dt>Content length</dt>
 					<dd>
 						<ResourceBoundary resource={ipfs}>
-							{#snippet children(loadedIpfs)}
-								{#if loadedIpfs.contentLength !== undefined}
+							{#snippet children(ipfs)}
+								{#if ipfs.contentLength !== undefined}
 									<NumberValue
-										value={loadedIpfs.contentLength}
+										value={ipfs.contentLength}
 										options={{ maximumFractionDigits: 0 }}
 									/>
 									{' '}
@@ -199,10 +199,10 @@
 					<dt>File name</dt>
 					<dd>
 						<ResourceBoundary resource={ipfs}>
-							{#snippet children(loadedIpfs)}
-								{#if loadedIpfs.fileName !== undefined}
+							{#snippet children(ipfs)}
+								{#if ipfs.fileName !== undefined}
 									<TruncatedValue
-										value={loadedIpfs.fileName}
+										value={ipfs.fileName}
 										format={TruncatedValueFormat.Visual}
 									/>
 								{/if}
@@ -215,9 +215,9 @@
 					<dt>Extension</dt>
 					<dd>
 						<ResourceBoundary resource={ipfs}>
-							{#snippet children(loadedIpfs)}
-								{#if loadedIpfs.extension !== undefined}
-									.{loadedIpfs.extension}
+							{#snippet children(ipfs)}
+								{#if ipfs.extension !== undefined}
+									.{ipfs.extension}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -228,8 +228,8 @@
 					<dt>Display type</dt>
 					<dd>
 						<ResourceBoundary resource={ipfs}>
-							{#snippet children(loadedIpfs)}
-								{loadedIpfs.displayType}
+							{#snippet children(ipfs)}
+								{ipfs.displayType}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>
@@ -240,8 +240,8 @@
 						<dt>Content identifier version</dt>
 						<dd>
 							<ResourceBoundary resource={ipfs}>
-								{#snippet children(loadedIpfs)}
-									{#if loadedIpfs.cidVersion !== undefined}
+								{#snippet children(ipfs)}
+									{#if ipfs.cidVersion !== undefined}
 										{String(ipfs.cidVersion)}
 									{/if}
 								{/snippet}
@@ -252,10 +252,10 @@
 						<dt>Multibase</dt>
 						<dd>
 							<ResourceBoundary resource={ipfs}>
-								{#snippet children(loadedIpfs)}
-									{#if loadedIpfs.cidMultibase !== undefined}
+								{#snippet children(ipfs)}
+									{#if ipfs.cidMultibase !== undefined}
 										<TruncatedValue
-											value={loadedIpfs.cidMultibase}
+											value={ipfs.cidMultibase}
 											format={TruncatedValueFormat.Visual}
 										/>
 									{/if}
@@ -268,8 +268,8 @@
 						<dt>Multicodec code</dt>
 						<dd>
 							<ResourceBoundary resource={ipfs}>
-								{#snippet children(loadedIpfs)}
-									{#if loadedIpfs.cidMulticodecCode !== undefined}
+								{#snippet children(ipfs)}
+									{#if ipfs.cidMulticodecCode !== undefined}
 										{String(ipfs.cidMulticodecCode)}
 									{/if}
 								{/snippet}
@@ -281,8 +281,8 @@
 						<dt>Multihash code</dt>
 						<dd>
 							<ResourceBoundary resource={ipfs}>
-								{#snippet children(loadedIpfs)}
-									{#if loadedIpfs.cidMultihashCode !== undefined}
+								{#snippet children(ipfs)}
+									{#if ipfs.cidMultihashCode !== undefined}
 										{String(ipfs.cidMultihashCode)}
 									{/if}
 								{/snippet}
@@ -294,10 +294,10 @@
 						<dt>Multihash digest</dt>
 						<dd>
 							<ResourceBoundary resource={ipfs}>
-								{#snippet children(loadedIpfs)}
-									{#if loadedIpfs.cidMultihashDigestHex !== undefined}
+								{#snippet children(ipfs)}
+									{#if ipfs.cidMultihashDigestHex !== undefined}
 										<TruncatedValue
-											value={loadedIpfs.cidMultihashDigestHex}
+											value={ipfs.cidMultihashDigestHex}
 											format={TruncatedValueFormat.Visual}
 										/>
 									{/if}
@@ -310,9 +310,9 @@
 						<dt>Subdomain-safe</dt>
 						<dd>
 							<ResourceBoundary resource={ipfs}>
-								{#snippet children(loadedIpfs)}
-									{#if loadedIpfs.isCidSubdomainSafe !== undefined}
-										{loadedIpfs.isCidSubdomainSafe ? 'Yes' : 'No'}
+								{#snippet children(ipfs)}
+									{#if ipfs.isCidSubdomainSafe !== undefined}
+										{ipfs.isCidSubdomainSafe ? 'Yes' : 'No'}
 									{/if}
 								{/snippet}
 							</ResourceBoundary>
@@ -389,15 +389,15 @@
 					<ResourceBoundary
 						resource={ipfs}
 					>
-						{#snippet children(loadedIpfs)}
+						{#snippet children(ipfs)}
 							<FileDetails
-								contentSize={loadedIpfs.contentLength}
-								contentType={loadedIpfs.contentType}
-								displayType={loadedIpfs.displayType}
-								extension={loadedIpfs.extension}
-								fileName={loadedIpfs.fileName}
-								src={loadedIpfs.gatewayUrl}
-								text={loadedIpfs.text}
+								contentSize={ipfs.contentLength}
+								contentType={ipfs.contentType}
+								displayType={ipfs.displayType}
+								extension={ipfs.extension}
+								fileName={ipfs.fileName}
+								src={ipfs.gatewayUrl}
+								text={ipfs.text}
 							/>
 						{/snippet}
 					</ResourceBoundary>

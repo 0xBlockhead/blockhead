@@ -124,16 +124,16 @@
 			placeholderText="Loading quote…"
 			resource={marketTimestamp}
 		>
-			{#snippet children(loadedMarketTimestamp)}
+			{#snippet children(marketTimestamp)}
 				<dl data-column-item="center">
-					{#if loadedMarketTimestamp.price !== undefined}
+					{#if marketTimestamp.price !== undefined}
 						<div>
-							<dt>Last (index, {quoteCurrency})</dt>
+							<dt>Last quote ({quoteCurrency})</dt>
 							<dd>
 								<CurrencyAmount
 									currency={quoteCurrency}
 									showDecimalPlaces={6}
-									value={loadedMarketTimestamp.price}
+									value={marketTimestamp.price}
 								/>
 							</dd>
 						</div>
@@ -161,14 +161,14 @@
 
 					{#if (
 						open
-						&& loadedMarketTimestamp.marketCap !== undefined
+						&& marketTimestamp.marketCap !== undefined
 					)}
 						<div>
 							<dt>Market cap</dt>
 							<dd>
 								<CurrencyAmount
 									currency={quoteCurrency}
-									value={loadedMarketTimestamp.marketCap}
+									value={marketTimestamp.marketCap}
 								/>
 							</dd>
 						</div>
@@ -176,14 +176,14 @@
 
 					{#if (
 						open
-						&& loadedMarketTimestamp.volume24h !== undefined
+						&& marketTimestamp.volume24h !== undefined
 					)}
 						<div>
 							<dt>24h volume</dt>
 							<dd>
 								<CurrencyAmount
 									currency={quoteCurrency}
-									value={loadedMarketTimestamp.volume24h}
+									value={marketTimestamp.volume24h}
 								/>
 							</dd>
 						</div>
@@ -191,36 +191,36 @@
 
 					{#if (
 						open
-						&& loadedMarketTimestamp.caip19 !== undefined
+						&& marketTimestamp.caip19 !== undefined
 					)}
 						<div>
 							<dt>CAIP-19</dt>
 							<dd>
-								<code>{loadedMarketTimestamp.caip19}</code>
+								<code>{marketTimestamp.caip19}</code>
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& loadedMarketTimestamp.transport !== undefined
+						&& marketTimestamp.transport !== undefined
 					)}
 						<div>
 							<dt>Transport</dt>
 							<dd>
-								{loadedMarketTimestamp.transport}
+								{marketTimestamp.transport}
 							</dd>
 						</div>
 					{/if}
 
 					{#if (
 						open
-						&& loadedMarketTimestamp.providerAssetId != null
+						&& marketTimestamp.providerAssetId != null
 					)}
 						<div>
 							<dt>Provider asset id</dt>
 							<dd>
-								{loadedMarketTimestamp.providerAssetId}
+								{marketTimestamp.providerAssetId}
 							</dd>
 						</div>
 					{/if}
