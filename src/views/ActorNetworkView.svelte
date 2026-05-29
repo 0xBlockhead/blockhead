@@ -1,6 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import {
+		caip2RouteParamsFromNetworkId,
+		evmChainIdFromNetworkId,
+	} from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -26,7 +29,7 @@
 		href = resolve(
 			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 			{
-				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+				...caip2RouteParamsFromNetworkId(entityId.$network),
 				address: entityId.$actor.address,
 			},
 		),
@@ -238,7 +241,7 @@
 				<div>
 					<dt>CAIP-2</dt>
 					<dd data-text="mono">
-						<code>eip155:{String(entityId.$network.chainId)}</code>
+						<code>eip155:{String(evmChainIdFromNetworkId(entityId.$network))}</code>
 					</dd>
 				</div>
 			{/if}
@@ -248,7 +251,7 @@
 					<dd>
 						<EvmNetworkView
 							entityId={entityId.$network}
-							layout={EntityLayout.Title}
+							layout={EntityLayout.Value}
 							open={false}
 						/>
 					</dd>
@@ -408,7 +411,7 @@
 							href={resolve(
 								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 								{
-								...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+								...caip2RouteParamsFromNetworkId(entityId.$network),
 								address: entityId.$actor.address,
 								},
 		)}
@@ -498,7 +501,7 @@
 					href={resolve(
 						'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 						{
-						...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+						...caip2RouteParamsFromNetworkId(entityId.$network),
 						address: entityId.$actor.address,
 						},
 					)}
@@ -518,7 +521,7 @@
 					href={resolve(
 						'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 						{
-						...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+						...caip2RouteParamsFromNetworkId(entityId.$network),
 						address: entityId.$actor.address,
 						},
 					)}
@@ -539,7 +542,7 @@
 						href={resolve(
 							'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 							{
-							...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+							...caip2RouteParamsFromNetworkId(entityId.$network),
 							address: entityId.$actor.address,
 							},
 						)}

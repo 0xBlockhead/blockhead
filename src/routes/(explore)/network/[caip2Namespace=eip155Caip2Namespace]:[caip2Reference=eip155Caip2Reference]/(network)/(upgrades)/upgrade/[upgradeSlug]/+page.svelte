@@ -1,6 +1,10 @@
 <script lang="ts">
 	// Types/constants
-	import { evmChainIdFromCaip2RouteParams } from '$/lib/caip.ts'
+	import {
+		evmChainIdFromCaip2RouteParams,
+		evmChainIdFromNetworkId,
+		networkIdFromCaip2RouteParams,
+	} from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -30,7 +34,7 @@
 			const segment = params.upgradeSlug
 			const direct = networkUpgrades.find((networkUpgrade) => {
 				const id = networkUpgrade[EntityMetaKey.Id]
-				if (id.$network.chainId !== chainId) return false
+				if (evmChainIdFromNetworkId(id.$network) !== chainId) return false
 				const slugRaw = networkUpgrade.slug
 				const slug = (
 					typeof slugRaw === 'string' && slugRaw.length > 0 ?
@@ -67,7 +71,7 @@
 				if (aliasRow != null) {
 					return (
 						networkUpgrades.find((networkUpgrade) => (
-							networkUpgrade[EntityMetaKey.Id].$network.chainId === chainId
+							evmChainIdFromNetworkId(networkUpgrade[EntityMetaKey.Id].$network) === chainId
 							&& networkUpgrade[EntityMetaKey.Id].upgradeId === aliasRow.umbrellaUpgradeId
 						))
 						?.[EntityMetaKey.Id].upgradeId
@@ -89,7 +93,7 @@
 <Page>
 	<NetworkUpgradeView
 		entityId={{
-			$network: { chainId },
+			$network: networkIdFromCaip2RouteParams(params),
 			upgradeId: resolvedUpgradeId,
 		}}
 	/>

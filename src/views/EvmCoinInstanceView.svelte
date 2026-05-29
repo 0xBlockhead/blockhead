@@ -9,6 +9,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { coinInstanceRepresentationByRepresentation } from '$/constants/Bridge.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { evmChainIdFromNetworkId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
 
 
@@ -76,6 +77,19 @@
 		},
 	)
 
+	const network = useEntity(
+		EntityType.EvmNetwork,
+		entityId.$network,
+		{
+			$: [
+				Source.Constants_Internal,
+				Source.Chainlist_Rest,
+				Source.EthereumLists_Rest,
+			],
+			name: {},
+		},
+	)
+
 
 	const coinInstanceKey = $derived(
 		stringify(entityId),
@@ -87,7 +101,7 @@
 				resolve(
 					'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
 					{
-						chainId: String(entityId.$network.chainId),
+						chainId: String(evmChainIdFromNetworkId(entityId.$network)),
 						coinInstanceSlug: 'native',
 					},
 				)
@@ -95,7 +109,7 @@
 				resolve(
 					'/(assets)/(coinInstances)/coin-instance/[chainId]/[coinInstanceSlug]',
 					{
-						chainId: String(entityId.$network.chainId),
+						chainId: String(evmChainIdFromNetworkId(entityId.$network)),
 						coinInstanceSlug: entityId.$contract.address,
 					},
 				)
@@ -146,9 +160,9 @@
 			{#snippet children(coinInstance)}
 				{coinInstance.symbol ?? coinInstance.name ?? (
 					entityId.type === CoinInstanceType.NativeCurrency ?
-						`Native (${entityId.$network.chainId})`
+						`Native (${evmChainIdFromNetworkId(entityId.$network)})`
 					:
-						`ERC-20 (${entityId.$network.chainId})`
+						`ERC-20 (${evmChainIdFromNetworkId(entityId.$network)})`
 				)}
 			{/snippet}
 		</ResourceBoundary>
@@ -167,7 +181,32 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Heading()}
+		<ResourceBoundary
+			resource={coinInstance}
+			placeholderText="Loading…"
+		>
+			{#snippet children(coinInstance)}
+				<span data-row="inline align-center gap-2 wrap">
+					<span>
+						{coinInstance.symbol ?? coinInstance.name ?? (
+							entityId.type === CoinInstanceType.NativeCurrency ?
+								'Native'
+							:
+								'ERC-20'
+						)}
+					</span>
+					<span data-text="muted">on</span>
+					<ResourceBoundary
+						resource={network}
+						placeholderText={`chain ${String(evmChainIdFromNetworkId(entityId.$network))}`}
+					>
+						{#snippet children(network)}
+							<span>{network.name ?? `chain ${String(evmChainIdFromNetworkId(entityId.$network))}`}</span>
+						{/snippet}
+					</ResourceBoundary>
+				</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -188,7 +227,7 @@
 				<dl data-column-item="center">
 					<div>
 						<dt>Chain</dt>
-						<dd>{String(entityId.$network.chainId)}</dd>
+						<dd>{String(evmChainIdFromNetworkId(entityId.$network))}</dd>
 					</div>
 					<div>
 						<dt>Kind</dt>

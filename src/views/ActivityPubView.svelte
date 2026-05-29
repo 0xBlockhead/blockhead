@@ -54,16 +54,10 @@
 					instanceTitle: {
 						$: [Source.Mastodon_Rest],
 					},
-					instanceDescription: {
-						$: [Source.Mastodon_Rest],
-					},
 					instanceVersion: {
 						$: [Source.Mastodon_Rest],
 					},
 					fediInstanceTitle: {
-						$: [Source.Fedi_Rest],
-					},
-					fediInstanceDescription: {
 						$: [Source.Fedi_Rest],
 					},
 					fediInstanceVersion: {
@@ -160,85 +154,78 @@
 							<dt>Actors</dt>
 							<dd>{String(activityPubNetwork.$$activityPubActors?.length ?? 0)}</dd>
 						</div>
+					{/if}
+
+					{#if open}
 						<div>
 							<dt>Statuses</dt>
 							<dd>{String(activityPubNetwork.$$activityPubNotes?.length ?? 0)}</dd>
 						</div>
+					{/if}
 
-						{#if activityPubNetwork.topology}
-							<div>
-								<dt>Topology</dt>
-								<dd>{activityPubNetwork.topology}</dd>
-							</div>
-						{/if}
+					{#if open && activityPubNetwork.topology}
+						<div>
+							<dt>Topology</dt>
+							<dd>{activityPubNetwork.topology}</dd>
+						</div>
+					{/if}
 
-						{#if activityPubNetwork.homeUrl}
-							<div>
-								<dt>Project home</dt>
-								<dd>
-									<a href={activityPubNetwork.homeUrl}>{activityPubNetwork.homeUrl}</a>
-								</dd>
-							</div>
-						{/if}
+					{#if open && activityPubNetwork.homeUrl}
+						<div>
+							<dt>Project home</dt>
+							<dd>
+								<a href={activityPubNetwork.homeUrl}>{activityPubNetwork.homeUrl}</a>
+							</dd>
+						</div>
+					{/if}
 
-						{#if activityPubNetwork.docsUrl}
-							<div>
-								<dt>Specification</dt>
-								<dd>
-									<a href={activityPubNetwork.docsUrl}>
-										{activityPubNetwork.docsUrl}
-									</a>
-								</dd>
-							</div>
-						{/if}
+					{#if open && activityPubNetwork.docsUrl}
+						<div>
+							<dt>Specification</dt>
+							<dd>
+								<a href={activityPubNetwork.docsUrl}>
+									{activityPubNetwork.docsUrl}
+								</a>
+							</dd>
+						</div>
+					{/if}
 
-						{#if activityPubNetwork.instanceTitle}
-							<div>
-								<dt>Mastodon instance title</dt>
-								<dd>{activityPubNetwork.instanceTitle}</dd>
-							</div>
-						{/if}
+					{#if open && activityPubNetwork.instanceTitle}
+						<div>
+							<dt>Mastodon instance title</dt>
+							<dd>{activityPubNetwork.instanceTitle}</dd>
+						</div>
+					{/if}
 
-						{#if activityPubNetwork.instanceDescription}
-							<div>
-								<dt>Mastodon instance description</dt>
-								<dd>{activityPubNetwork.instanceDescription}</dd>
-							</div>
-						{/if}
+					{#if open && activityPubNetwork.instanceVersion}
+						<div>
+							<dt>Mastodon instance version</dt>
+							<dd data-text="mono muted">{activityPubNetwork.instanceVersion}</dd>
+						</div>
+					{/if}
 
-						{#if activityPubNetwork.instanceVersion}
-							<div>
-								<dt>Mastodon instance version</dt>
-								<dd data-text="mono muted">{activityPubNetwork.instanceVersion}</dd>
-							</div>
-						{/if}
+					{#if open && activityPubNetwork.fediInstanceTitle}
+						<div>
+							<dt>Fedi instance title</dt>
+							<dd>{activityPubNetwork.fediInstanceTitle}</dd>
+						</div>
+					{/if}
 
-						{#if activityPubNetwork.fediInstanceTitle}
-							<div>
-								<dt>Fedi instance title</dt>
-								<dd>{activityPubNetwork.fediInstanceTitle}</dd>
-							</div>
-						{/if}
+					{#if open && activityPubNetwork.fediInstanceVersion}
+						<div>
+							<dt>Fedi instance version</dt>
+							<dd data-text="mono muted">{activityPubNetwork.fediInstanceVersion}</dd>
+						</div>
+					{/if}
 
-						{#if activityPubNetwork.fediInstanceDescription}
-							<div>
-								<dt>Fedi instance description</dt>
-								<dd>{activityPubNetwork.fediInstanceDescription}</dd>
-							</div>
-						{/if}
-
-						{#if activityPubNetwork.fediInstanceVersion}
-							<div>
-								<dt>Fedi instance version</dt>
-								<dd data-text="mono muted">{activityPubNetwork.fediInstanceVersion}</dd>
-							</div>
-						{/if}
-
+					{#if open}
 						<div>
 							<dt>Default Mastodon instance host</dt>
 							<dd data-text="mono muted">{mastodonDefaultInstanceOrigin}</dd>
 						</div>
+					{/if}
 
+					{#if open}
 						<div>
 							<dt>Default Fedi instance host</dt>
 							<dd data-text="mono muted">{fediDefaultInstanceOrigin}</dd>

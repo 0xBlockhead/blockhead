@@ -92,7 +92,7 @@
 
 					{#if account.balanceSun != null}
 						<div>
-							<dt>Balance (SUN)</dt>
+							<dt>Balance</dt>
 							<dd><NumberValue value={account.balanceSun} /></dd>
 						</div>
 					{/if}

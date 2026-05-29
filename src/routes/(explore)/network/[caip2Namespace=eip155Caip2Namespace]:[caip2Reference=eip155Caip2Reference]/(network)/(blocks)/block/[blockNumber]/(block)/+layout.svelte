@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { evmChainIdFromCaip2RouteParams } from '$/lib/caip.ts'
+	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -19,7 +19,7 @@
 
 	const blockEntityId = $derived(
 		{
-			$network: { chainId: evmChainIdFromCaip2RouteParams(params) },
+			$network: networkIdFromCaip2RouteParams(params),
 			blockNumber: BigInt(params.blockNumber),
 		},
 	)

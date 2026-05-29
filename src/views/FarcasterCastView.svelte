@@ -316,15 +316,18 @@
 						{/snippet}
 					</ResourceBoundary>
 				</dd>
-			</div>
-
-			{#if open}
-				<div>
-					<dt>FID</dt>
-					<dd>{String(entityId.fid)}</dd>
 				</div>
-				<div>
-					<dt>Parent cast</dt>
+
+				{#if open}
+					<div>
+						<dt>FID</dt>
+						<dd>{String(entityId.fid)}</dd>
+					</div>
+				{/if}
+
+				{#if open}
+					<div>
+						<dt>Parent cast</dt>
 					<dd>
 						<ResourceBoundary
 							resource={cast}
@@ -351,11 +354,13 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-					</dd>
-				</div>
+						</dd>
+					</div>
+				{/if}
 
-				<div>
-					<dt>Parent URL</dt>
+				{#if open}
+					<div>
+						<dt>Parent URL</dt>
 					<dd>
 						<ResourceBoundary
 							resource={cast}
@@ -367,11 +372,13 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-					</dd>
-				</div>
+						</dd>
+					</div>
+				{/if}
 
-				<div>
-					<dt>Mentions</dt>
+				{#if open}
+					<div>
+						<dt>Mentions</dt>
 					<dd>
 						<ResourceBoundary
 							resource={cast}
@@ -396,11 +403,13 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-					</dd>
-				</div>
+						</dd>
+					</div>
+				{/if}
 
-				<div>
-					<dt>On web</dt>
+				{#if open}
+					<div>
+						<dt>On web</dt>
 					<dd>
 						<ResourceBoundary
 							resource={cast}
@@ -422,11 +431,13 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-					</dd>
-				</div>
+						</dd>
+					</div>
+				{/if}
 
-				<div>
-					<dt>Thread</dt>
+				{#if open}
+					<div>
+						<dt>Thread</dt>
 					<dd>
 						<ResourceBoundary
 							resource={cast}
@@ -467,9 +478,9 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+						</dd>
+					</div>
+				{/if}
 		</dl>
 	{/snippet}
 

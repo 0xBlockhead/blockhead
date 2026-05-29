@@ -90,6 +90,7 @@
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import YouTubePlaylistsView from '$/views/YouTubePlaylistsView.svelte'
 	import YouTubeVideosView from '$/views/YouTubeVideosView.svelte'
 </script>
@@ -150,22 +151,23 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={channel}
+			placeholderText="Loading channel…"
+		>
+			{#snippet children(channel)}
+				{#if channel.description}
+					<p>
+						<TruncatedValue
+							value={channel.description}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+
 		<dl data-column-item="center">
-			<div>
-				<dt>Description</dt>
-				<dd>
-					<ResourceBoundary
-						resource={channel}
-						placeholderText="Loading channel…"
-					>
-						{#snippet children(channel)}
-							{#if channel.description}
-								{channel.description}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
 			{#if open}
 				<div>
 					<dt>Subscribers</dt>

@@ -90,23 +90,14 @@
 		<p>Filecoin models Expected Consensus tipsets, actors, miners, and storage-sector state.</p>
 	{/snippet}
 
-	{#snippet Content({
-		open,
-	})}
+	{#snippet Content()}
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
 					<div>
-						<dt>Network</dt>
-						<dd>{network.slug}</dd>
+						<dt>Environment</dt>
+						<dd>{network.environment}</dd>
 					</div>
-
-					{#if open}
-						<div>
-							<dt>Environment</dt>
-							<dd>{network.environment}</dd>
-						</div>
-					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -134,12 +125,7 @@
 			{#snippet SectionFilecoinChainNetwork()}
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
-						<dl>
-							<div>
-								<dt>Environment</dt>
-								<dd>{network.environment}</dd>
-							</div>
-						</dl>
+						<p><strong>Environment:</strong> {network.environment}</p>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}

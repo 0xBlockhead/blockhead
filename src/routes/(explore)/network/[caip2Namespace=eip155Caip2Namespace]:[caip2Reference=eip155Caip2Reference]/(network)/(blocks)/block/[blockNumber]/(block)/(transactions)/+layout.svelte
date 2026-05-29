@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { evmChainIdFromCaip2RouteParams } from '$/lib/caip.ts'
+	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -29,7 +29,7 @@
 		`/network//block/${params.blockNumber}/transactions`,
 	)}
 	id={stringify({
-		$network: { chainId: evmChainIdFromCaip2RouteParams(params) },
+		$network: networkIdFromCaip2RouteParams(params),
 		blockNumber: BigInt(params.blockNumber),
 		scope: 'transactions',
 	})}

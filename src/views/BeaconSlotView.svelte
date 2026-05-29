@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import BeaconSlotSchema from '$/schema/BeaconSlot.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -18,7 +18,7 @@
 		href = resolve(
 			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(beacon-slots)/slot/[slotNumber]',
 			{
-				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+				...caip2RouteParamsFromNetworkId(entityId.$network),
 				slotNumber: String(entityId.slot),
 			},
 		),
@@ -114,12 +114,7 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Slot </span>
-			<span
-				data-badge="small"
-				data-slot-number={String(entityId.slot)}
-			>
-				{String(entityId.slot)}
-			</span>
+			{@render Value()}
 		</span>
 	{/snippet}
 
@@ -153,7 +148,7 @@
 											$network: entityId.$network,
 											epoch: slot.epoch,
 										}}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								{/if}

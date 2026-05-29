@@ -7,6 +7,7 @@
  * pnpm run test:e2e:cors
  * E2E_PATH_LIMIT=20 pnpm run test:e2e:cors
  * E2E_PROBE_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/cors-policy.e2e.ts -g probe
+ * E2E_START_PATH=/network/eip155:1 pnpm exec playwright test tests/e2e/cors-policy.e2e.ts
  * ```
  */
 import { expect, test, type Page, type TestInfo } from '@playwright/test'
@@ -37,6 +38,7 @@ const corsQuietMs = (() => {
 })()
 
 const probePath = process.env.E2E_PROBE_PATH?.trim()
+const startPath = process.env.E2E_START_PATH?.trim()
 
 /** After `#main` + alerts settle, wait for in-flight resolver HTTP to finish (CORS logs often lag paint). */
 const waitForPageFetchSettle = async (
@@ -104,21 +106,27 @@ test.describe('cors policy (no blocked cross-origin fetches)', () => {
 
 	test('every +page URL', async ({ page }, testInfo) => {
 		test.skip(probePath != null && probePath !== '', 'E2E_PROBE_PATH skips full matrix')
-		testInfo.setTimeout(900_000)
 		page.setDefaultNavigationTimeout(gotoLoadTimeoutMs)
 		await installChainlistRpcsJsonStub(page)
 
 		const all = await discoverPathnamesFromRoutes()
 		const limitRaw = process.env.E2E_PATH_LIMIT ?? ''
 		const limit = Number(limitRaw)
-		const pageUrls = (
+		let pageUrls = (
 			limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
 				all.slice(0, limit)
 			:	all
 		)
+		if (startPath) {
+			const index = pageUrls.indexOf(startPath)
+			pageUrls = index === -1 ? pageUrls : pageUrls.slice(index)
+		}
+
+		testInfo.setTimeout(pageUrls.length * (settleTimeoutMs + gotoLoadTimeoutMs + corsQuietMs + 30_000) + 60_000)
 
 		for (const path of pageUrls) {
 			await test.step(path, async () => {
+				console.log(`[cors-policy] ${path}`)
 				const violations = collectBrowserCorsPolicyViolations(page)
 				await page.goto(path, {
 					waitUntil: 'load',

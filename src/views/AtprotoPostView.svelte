@@ -157,14 +157,16 @@
 			placeholderText="Loading post…"
 		>
 			{#snippet children(post)}
-				<dl data-column-item="center">
-					{#if post.text}
-						<div>
-							<dt>Text</dt>
-							<dd>{post.text}</dd>
-						</div>
-					{/if}
+				{#if post.text}
+					<p>
+						<TruncatedValue
+							value={post.text}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
 
+				<dl data-column-item="center">
 					{#if post.createdAt}
 						<div>
 							<dt>Published</dt>

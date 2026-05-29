@@ -1,6 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import {
+		caip2RouteParamsFromNetworkId,
+		evmChainIdFromNetworkId,
+	} from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -22,7 +25,7 @@
 		href = resolve(
 		'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]',
 		{
-			...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+			...caip2RouteParamsFromNetworkId(entityId.$network),
 			blockNumber: String(entityId.blockNumber),
 		},
 	),
@@ -78,16 +81,28 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>
-			block {String(entityId.blockNumber)}
-		</span>
+		<ResourceBoundary
+			placeholderText="Loading gas snapshot…"
+			resource={networkGasFeeBlock}
+		>
+			{#snippet children(networkGasFeeBlock)}
+				{#if networkGasFeeBlock.baseFeePerGas !== undefined}
+					<NumberValue value={networkGasFeeBlock.baseFeePerGas} />
+					wei
+				{:else if networkGasFeeBlock.legacyGasPrice !== undefined}
+					<NumberValue value={networkGasFeeBlock.legacyGasPrice} />
+					wei
+				{:else}
+					<span>
+						block {String(entityId.blockNumber)}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Heading()}
-
-		<span>
-			block {String(entityId.blockNumber)}
-		</span>
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -100,9 +115,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span>
-			chain {String(entityId.$network.chainId)}
-		</span>
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

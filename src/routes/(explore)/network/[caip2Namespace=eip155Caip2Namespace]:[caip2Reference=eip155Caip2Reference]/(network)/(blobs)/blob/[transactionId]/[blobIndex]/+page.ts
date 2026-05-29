@@ -1,4 +1,7 @@
-import { evmChainIdFromCaip2RouteParams } from '$/lib/caip.ts'
+import {
+	evmChainIdFromCaip2RouteParams,
+	networkIdFromCaip2RouteParams,
+} from '$/lib/caip.ts'
 
 import { error } from '@sveltejs/kit'
 
@@ -22,7 +25,7 @@ export const load: PageLoad = ({ params }) => {
 	}
 	return {
 		entityId: {
-			$network: { chainId },
+			$network: networkIdFromCaip2RouteParams(params),
 			txHash,
 			blobIndex,
 		},

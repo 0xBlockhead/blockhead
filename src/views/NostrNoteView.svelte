@@ -181,10 +181,7 @@
 				</div>
 			{/if}
 
-			{#if (
-				open
-				&& note.$replyToNote
-			)}
+			{#if open && (note.$replyToNote || note.replyToEventId)}
 				<div>
 					<dt>Reply to</dt>
 					<dd>
@@ -193,37 +190,27 @@
 							placeholderText="Loading note…"
 						>
 							{#snippet children(note)}
-								<NostrNoteView
-									entityId={note.$replyToNote[EntityMetaKey.Id]}
-									layout={EntityLayout.Value}
-									open={false}
-								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{:else if open && note.replyToEventId}
-				<div>
-					<dt>Reply to</dt>
-					<dd>
-						<ResourceBoundary
-							resource={note}
-							placeholderText="Loading note…"
-						>
-							{#snippet children(note)}
-								<a
-									data-link
-									href={resolve('/nostr/note/[eventId]', {
-										eventId: note.replyToEventId,
-									})}
-								>
-									<TruncatedValue
-										endLength={12}
-										format={TruncatedValueFormat.Visual}
-										startLength={20}
-										value={note.replyToEventId}
+								{#if note.$replyToNote}
+									<NostrNoteView
+										entityId={note.$replyToNote[EntityMetaKey.Id]}
+										layout={EntityLayout.Value}
+										open={false}
 									/>
-								</a>
+								{:else if note.replyToEventId}
+									<a
+										data-link
+										href={resolve('/nostr/note/[eventId]', {
+											eventId: note.replyToEventId,
+										})}
+									>
+										<TruncatedValue
+											endLength={12}
+											format={TruncatedValueFormat.Visual}
+											startLength={20}
+											value={note.replyToEventId}
+										/>
+									</a>
+								{/if}
 							{/snippet}
 						</ResourceBoundary>
 					</dd>

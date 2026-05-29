@@ -146,67 +146,74 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
-			{#if open}
-				<ResourceBoundary
-					resource={network}
-					placeholderText="Loading Farcaster hub directory…"
-				>
-					{#snippet children(network)}
+			<ResourceBoundary
+				resource={network}
+				placeholderText="Loading Farcaster hub directory…"
+			>
+				{#snippet children(network)}
+					{#if open}
 						<div>
 							<dt>Channels</dt>
 							<dd>{String(network.$$channels.length)}</dd>
 						</div>
+					{/if}
+
+					{#if open}
 						<div>
-							<dt>Users (FID · fname on profile)</dt>
+							<dt>Users</dt>
 							<dd>{String(network.$$users.length)}</dd>
 						</div>
-						{#if network.protocolName}
-							<div>
-								<dt>Protocol</dt>
-								<dd>{network.protocolName}</dd>
-							</div>
-						{/if}
+					{/if}
 
-						{#if network.homeUrl}
-							<div>
-								<dt>Home</dt>
-								<dd>
-									<a href={network.homeUrl}>{network.homeUrl}</a>
-								</dd>
-							</div>
-						{/if}
+					{#if open && network.protocolName}
+						<div>
+							<dt>Protocol</dt>
+							<dd>{network.protocolName}</dd>
+						</div>
+					{/if}
 
-						{#if network.docsUrl}
-							<div>
-								<dt>Docs</dt>
-								<dd>
-									<a href={network.docsUrl}>{network.docsUrl}</a>
-								</dd>
-							</div>
-						{/if}
+					{#if open && network.homeUrl}
+						<div>
+							<dt>Home</dt>
+							<dd>
+								<a href={network.homeUrl}>{network.homeUrl}</a>
+							</dd>
+						</div>
+					{/if}
 
-						{#if network.registryLabel}
-							<div>
-								<dt>Registry</dt>
-								<dd>{network.registryLabel}</dd>
-							</div>
-						{/if}
+					{#if open && network.docsUrl}
+						<div>
+							<dt>Docs</dt>
+							<dd>
+								<a href={network.docsUrl}>{network.docsUrl}</a>
+							</dd>
+						</div>
+					{/if}
 
-						{#if network.topology}
-							<div>
-								<dt>Topology</dt>
-								<dd>{network.topology}</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
+					{#if open && network.registryLabel}
+						<div>
+							<dt>Registry</dt>
+							<dd>{network.registryLabel}</dd>
+						</div>
+					{/if}
+
+					{#if open && network.topology}
+						<div>
+							<dt>Topology</dt>
+							<dd>{network.topology}</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+
+			{#if open}
 				<ResourceBoundary
 					resource={trending}
 					placeholderText="Loading trending feed (casts by FID + cast hash)…"
 				>
 					{#snippet children(trending)}
 						<div>
-							<dt>Trending casts (feed)</dt>
+							<dt>Trending feed entries</dt>
 							<dd>{String(trending.$$entries.length)}</dd>
 						</div>
 					{/snippet}

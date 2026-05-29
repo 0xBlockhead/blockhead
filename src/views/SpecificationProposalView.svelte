@@ -199,25 +199,29 @@
 	{...EntityViewProps}
 >
 	{#snippet Heading()}
-		<ResourceBoundary
-			resource={proposal}
-			placeholderText="Loading proposal…"
-		>
-			{#snippet children(proposal)}
-				<ResourceBoundary
-					resource={proposalKind}
-					placeholderText="Loading proposal kind…"
-				>
-					{#snippet children(proposalKind)}
-						{proposalHeadingTitle(
-							proposal,
-							entityId,
-							proposalKind.label ?? entityId.category,
-						)}
-					{/snippet}
-				</ResourceBoundary>
-			{/snippet}
-		</ResourceBoundary>
+		{#if layout === EntityLayout.SummaryInline}
+			{`${proposalCategoryById[entityId.category].label}-${entityId.number}`}
+		{:else}
+			<ResourceBoundary
+				resource={proposal}
+				placeholderText="Loading proposal…"
+			>
+				{#snippet children(proposal)}
+					<ResourceBoundary
+						resource={proposalKind}
+						placeholderText="Loading proposal kind…"
+					>
+						{#snippet children(proposalKind)}
+							{proposalHeadingTitle(
+								proposal,
+								entityId,
+								proposalKind.label ?? entityId.category,
+							)}
+						{/snippet}
+					</ResourceBoundary>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 	{/snippet}
 
 	{#snippet Value()}
@@ -249,99 +253,102 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl data-column-item="center">
-			<div>
-				<dt>Category</dt>
-				<dd>
-					<ResourceBoundary
-						resource={proposal}
-						placeholderText="Loading proposal…"
-					>
-						{#snippet children(proposal)}
-							{#if proposal.documentCategory}
-								{proposal.documentCategory}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-			<div>
-				<dt>Status</dt>
-				<dd>
-					<ResourceBoundary
-						resource={proposal}
-						placeholderText="Loading proposal…"
-					>
-						{#snippet children(proposal)}
-							{proposal.documentStatus}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-			{#if open}
+		{#if layout !== EntityLayout.SummaryInline}
+			<dl data-column-item="center">
 				<div>
-					<dt>Realm</dt>
+					<dt>Category</dt>
 					<dd>
 						<ResourceBoundary
-							resource={specificationRealm}
-							placeholderText="Loading specification realm…"
+							resource={proposal}
+							placeholderText="Loading proposal…"
 						>
-							{#snippet children(specificationRealm)}
-								{#if specificationRealm.slug != null}
-									<a href={resolve(`/proposals/${specificationRealm.slug}`)}>
+							{#snippet children(proposal)}
+								{#if proposal.documentCategory}
+									{proposal.documentCategory}
+								{/if}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+				<div>
+					<dt>Status</dt>
+					<dd>
+						<ResourceBoundary
+							resource={proposal}
+							placeholderText="Loading proposal…"
+						>
+							{#snippet children(proposal)}
+								{proposal.documentStatus}
+							{/snippet}
+						</ResourceBoundary>
+					</dd>
+				</div>
+				{#if open}
+					<div>
+						<dt>Realm</dt>
+						<dd>
+							<ResourceBoundary
+								resource={specificationRealm}
+								placeholderText="Loading specification realm…"
+							>
+								{#snippet children(specificationRealm)}
+									{#if specificationRealm.slug != null}
+										<a href={resolve(`/proposals/${specificationRealm.slug}`)}>
+											{specificationRealm.label ?? entityId.realm}
+										</a>
+									{:else}
 										{specificationRealm.label ?? entityId.realm}
-									</a>
-								{:else}
-									{specificationRealm.label ?? entityId.realm}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
 
-			{#if open}
-				<div>
-					<dt>Kind</dt>
-					<dd>
-						<ResourceBoundary
-							resource={proposalKind}
-							placeholderText="Loading proposal kind…"
-						>
-							{#snippet children(proposalKind)}
-								{#if specificationRealm.slug != null && proposalKind.slug != null}
-									<a href={resolve(`/proposals/${specificationRealm.slug}/${proposalKind.slug}`)}>
+				{#if open}
+					<div>
+						<dt>Kind</dt>
+						<dd>
+							<ResourceBoundary
+								resource={proposalKind}
+								placeholderText="Loading proposal kind…"
+							>
+								{#snippet children(proposalKind)}
+									{#if specificationRealm.slug != null && proposalKind.slug != null}
+										<a href={resolve(`/proposals/${specificationRealm.slug}/${proposalKind.slug}`)}>
+											{proposalKind.labelPlural ?? proposalKind.label ?? entityId.category}
+										</a>
+									{:else}
 										{proposalKind.labelPlural ?? proposalKind.label ?? entityId.category}
-									</a>
-								{:else}
-									{proposalKind.labelPlural ?? proposalKind.label ?? entityId.category}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+									{/if}
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
 
-			{#if open}
-				<div>
-					<dt>Governance votes</dt>
-					<dd data-row="wrap align-center gap-2">
-						<span>Not shown here.</span>
-						<Tooltip contentProps={{ side: 'top' }}>
-							{#snippet Content()}
-								<p>
-									Standards repositories document process and normative text; DAO vote totals and treasury spend need the chain, Snapshot, or each org’s own dashboards.
-								</p>
-							{/snippet}
-							<abbr
-								class="entity-heading-tip"
-								aria-label="Why tallies are absent"
-							>ⓘ</abbr>
-						</Tooltip>
-					</dd>
-				</div>
-			{/if}
-		</dl>
+				{#if open}
+					<div>
+						<dt>Governance votes</dt>
+						<dd data-row="wrap align-center gap-2">
+							<span>Not shown here.</span>
+							<Tooltip contentProps={{ side: 'top' }}>
+								{#snippet Content()}
+									<p>
+										Standards repositories document process and normative text; DAO vote totals and treasury spend need the chain, Snapshot, or each org’s own dashboards.
+									</p>
+								{/snippet}
+								<abbr
+									class="entity-heading-tip"
+									aria-label="Why tallies are absent"
+								>ⓘ</abbr>
+							</Tooltip>
+						</dd>
+					</div>
+				{/if}
+
+			</dl>
+		{/if}
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}

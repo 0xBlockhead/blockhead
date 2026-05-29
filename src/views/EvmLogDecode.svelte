@@ -5,6 +5,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
 
 
 	// Context
@@ -49,7 +50,7 @@
 	const emitterContract = useEntity(
 		EntityType.EvmContract,
 		emitterContractId ?? {
-			$network: { chainId: 0 },
+			$network: networkIdFromEvmChainId(0),
 			address: '0x0000000000000000000000000000000000000000',
 		},
 		{

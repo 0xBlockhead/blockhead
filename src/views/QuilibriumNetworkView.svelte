@@ -46,9 +46,9 @@
 	{#snippet Details()}
 		<CollapsibleTabs id={`${networkIdKey}:carousel-quilibrium`} sectionIdPrefix={networkIdKey} sections={[{ id: 'quilibrium-frames', label: 'Frames' }, { id: 'quilibrium-execution', label: 'Execution' }, { id: 'quilibrium-consensus', label: 'Consensus' }]} data-card scrollContainerProps={{ 'data-row': 'start align-start' }}>
 			{#snippet Summary()}<header data-row-item="flexible" data-row="wrap gap-4"><HeadingComponent>Execution</HeadingComponent></header>{/snippet}
-			{#snippet SectionQuilibriumFrames()}<dl><div><dt>Frames</dt><dd>Frames are keyed by shard and frame number; live frame enumeration requires a node transport with shard context.</dd></div></dl>{/snippet}
-			{#snippet SectionQuilibriumExecution()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl>{#if network.$$executionEnvironments.length > 0}<div><dt>Execution</dt><dd>{network.$$executionEnvironments.map((environment) => environment.label).join(', ')}</dd></div>{/if}{#if network.$$nativeAssets.length > 0}<div><dt>Native asset</dt><dd>{network.$$nativeAssets.map((asset) => asset.symbol).join(', ')}</dd></div>{/if}</dl>{/snippet}</ResourceBoundary>{/snippet}
-			{#snippet SectionQuilibriumConsensus()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl>{#if network.$$consensusMechanisms.length > 0}<div><dt>Consensus</dt><dd>{network.$$consensusMechanisms.map((mechanism) => mechanism.label).join(', ')}</dd></div>{/if}</dl>{/snippet}</ResourceBoundary>{/snippet}
+			{#snippet SectionQuilibriumFrames()}<p><strong>Frames:</strong> Frames are keyed by shard and frame number; live frame enumeration requires a node transport with shard context.</p>{/snippet}
+			{#snippet SectionQuilibriumExecution()}<ResourceBoundary resource={network}>{#snippet children(network)}<div>{#if network.$$executionEnvironments.length > 0}<p><strong>Execution:</strong> {network.$$executionEnvironments.map((environment) => environment.label).join(', ')}</p>{/if}{#if network.$$nativeAssets.length > 0}<p><strong>Native asset:</strong> {network.$$nativeAssets.map((asset) => asset.symbol).join(', ')}</p>{/if}</div>{/snippet}</ResourceBoundary>{/snippet}
+			{#snippet SectionQuilibriumConsensus()}<ResourceBoundary resource={network}>{#snippet children(network)}<div>{#if network.$$consensusMechanisms.length > 0}<p><strong>Consensus:</strong> {network.$$consensusMechanisms.map((mechanism) => mechanism.label).join(', ')}</p>{/if}</div>{/snippet}</ResourceBoundary>{/snippet}
 		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

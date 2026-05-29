@@ -86,6 +86,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
@@ -170,25 +171,23 @@
 		href: _href,
 		open: contentOpen,
 	})}
-		<dl data-column-item="center">
-			{#if !contentOpen}
-				<div>
-					<dt>Bio</dt>
-					<dd>
-						<ResourceBoundary
-							resource={actor}
-							placeholderText="Loading actor…"
-						>
-							{#snippet children(actor)}
-								{#if actor.note}
-									{htmlToPlainText(actor.note)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+		<ResourceBoundary
+			resource={actor}
+			placeholderText="Loading actor…"
+		>
+			{#snippet children(actor)}
+				{#if actor.note}
+					<p>
+						<TruncatedValue
+							value={htmlToPlainText(actor.note)}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 
+		<dl data-column-item="center">
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={actor}
@@ -203,7 +202,7 @@
 
 						{#if actor.acct && actor.acct !== activityPubSummaryHeadingLine}
 							<div>
-								<dt>Federated handle (acct)</dt>
+								<dt>acct</dt>
 								<dd>{actor.acct}</dd>
 							</div>
 						{/if}
@@ -216,24 +215,6 @@
 						{/if}
 					{/snippet}
 				</ResourceBoundary>
-			{/if}
-
-			{#if contentOpen}
-				<div>
-					<dt>Bio (plain text)</dt>
-					<dd>
-						<ResourceBoundary
-							resource={actor}
-							placeholderText="Loading actor…"
-						>
-							{#snippet children(actor)}
-								{#if actor.note}
-									{htmlToPlainText(actor.note)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
 			{/if}
 
 			{#if contentOpen}

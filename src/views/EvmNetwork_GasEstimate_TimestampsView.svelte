@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -124,7 +124,7 @@
 			entityId={row[EntityMetaKey.Id]}
 			href={resolve(
 				'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-				{ ...caip2RouteParamsFromEvmChainId(row[EntityMetaKey.Id].$network.chainId) },
+				{ ...caip2RouteParamsFromNetworkId(row[EntityMetaKey.Id].$network) },
 			)}
 			id={stringify(row[EntityMetaKey.Id])}
 			layout={EntityLayout.Summary}

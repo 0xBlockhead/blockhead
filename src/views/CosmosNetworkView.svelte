@@ -90,23 +90,14 @@
 		<p>Cosmos SDK models CometBFT consensus blocks, SDK module messages, validators, staking, governance, and IBC.</p>
 	{/snippet}
 
-	{#snippet Content({
-		open,
-	})}
+	{#snippet Content()}
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
 					<div>
-						<dt>Network</dt>
-						<dd>{network.slug}</dd>
+						<dt>Environment</dt>
+						<dd>{network.environment}</dd>
 					</div>
-
-					{#if open}
-						<div>
-							<dt>Environment</dt>
-							<dd>{network.environment}</dd>
-						</div>
-					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -130,12 +121,7 @@
 				{#snippet SectionCosmosNetwork()}
 					<ResourceBoundary resource={network}>
 						{#snippet children(network)}
-							<dl>
-								<div>
-									<dt>Environment</dt>
-									<dd>{network.environment}</dd>
-								</div>
-							</dl>
+							<p><strong>Environment:</strong> {network.environment}</p>
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}

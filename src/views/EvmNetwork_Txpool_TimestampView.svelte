@@ -1,6 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import {
+		caip2RouteParamsFromNetworkId,
+		evmChainIdFromNetworkId,
+	} from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -21,7 +24,7 @@
 		entityId,
 		href = resolve(
 		'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-		{ ...caip2RouteParamsFromEvmChainId(entityId.$network.chainId) },
+		{ ...caip2RouteParamsFromNetworkId(entityId.$network) },
 	),
 		layout,
 		open = $bindable(true),
@@ -74,15 +77,28 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>
-			chain {String(entityId.$network.chainId)}
-		</span>
+		<ResourceBoundary
+			resource={networkTxpoolTimestamp}
+			placeholderText="Loading mempool…"
+		>
+			{#snippet children(networkTxpoolTimestamp)}
+				{#if networkTxpoolTimestamp.pendingCount !== undefined}
+					<NumberValue value={networkTxpoolTimestamp.pendingCount} />
+					pending
+				{:else if networkTxpoolTimestamp.queuedCount !== undefined}
+					<NumberValue value={networkTxpoolTimestamp.queuedCount} />
+					queued
+				{:else}
+					<span>
+						chain {String(evmChainIdFromNetworkId(entityId.$network))}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Heading()}
-		<Timestamp
-			timestamp={entityId.timestampMs}
-		/>
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -95,9 +111,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span>
-			chain {String(entityId.$network.chainId)}
-		</span>
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -110,35 +124,38 @@
 						timestamp={entityId.timestampMs}
 					/>
 				</dd>
-			</div>
-			{#if open}
-				<div>
-					<dt>Pending (executable)</dt>
-					<dd>
-						<ResourceBoundary
-							placeholderText="Loading mempool snapshot…"
-							resource={networkTxpoolTimestamp}
-						>
-							{#snippet children(networkTxpoolTimestamp)}
-								<NumberValue value={networkTxpoolTimestamp.pendingCount} />
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
 				</div>
-				<div>
-					<dt>Queued (non-executable)</dt>
-					<dd>
-						<ResourceBoundary
-							placeholderText="Loading mempool snapshot…"
-							resource={networkTxpoolTimestamp}
-						>
-							{#snippet children(networkTxpoolTimestamp)}
-								<NumberValue value={networkTxpoolTimestamp.queuedCount} />
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+				{#if open}
+					<div>
+						<dt>Pending</dt>
+						<dd>
+							<ResourceBoundary
+								placeholderText="Loading mempool snapshot…"
+								resource={networkTxpoolTimestamp}
+							>
+								{#snippet children(networkTxpoolTimestamp)}
+									<NumberValue value={networkTxpoolTimestamp.pendingCount} />
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
+
+				{#if open}
+					<div>
+						<dt>Queued</dt>
+						<dd>
+							<ResourceBoundary
+								placeholderText="Loading mempool snapshot…"
+								resource={networkTxpoolTimestamp}
+							>
+								{#snippet children(networkTxpoolTimestamp)}
+									<NumberValue value={networkTxpoolTimestamp.queuedCount} />
+								{/snippet}
+							</ResourceBoundary>
+						</dd>
+					</div>
+				{/if}
 		</dl>
 	{/snippet}
 

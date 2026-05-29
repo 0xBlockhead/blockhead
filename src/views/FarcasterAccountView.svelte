@@ -70,6 +70,7 @@
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -153,6 +154,15 @@
 			placeholderText="Loading Farcaster account connection (FID)…"
 		>
 			{#snippet children(connection)}
+				{#if connection.bio}
+					<p>
+						<TruncatedValue
+							value={connection.bio}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+
 				<dl data-column-item="center">
 					{#if (
 						open
@@ -164,19 +174,12 @@
 						</div>
 					{/if}
 
-					{#if connection.bio}
-						<div>
-							<dt>Bio</dt>
-							<dd>{connection.bio}</dd>
-						</div>
-					{/if}
-
 					{#if (
 						open
 						&& connection.authMethod
-					)}
+						)}
 						<div>
-							<dt>Auth routing</dt>
+							<dt>Auth method</dt>
 							<dd>
 								{blockheadFarcasterConnectionAuthMethodByAuthMethod[connection.authMethod].label}
 							</dd>
@@ -186,9 +189,9 @@
 					{#if (
 						open
 						&& connection.custody
-					)}
+						)}
 						<div>
-							<dt>Farcaster custody address</dt>
+							<dt>Custody</dt>
 							<dd>{connection.custody}</dd>
 						</div>
 					{/if}
@@ -197,9 +200,9 @@
 						open
 						&& connection.verifications
 						&& connection.verifications.length
-					)}
+						)}
 						<div>
-							<dt>Verified signer addresses</dt>
+							<dt>Verifications</dt>
 							<dd>{connection.verifications.join(', ')}</dd>
 						</div>
 					{/if}

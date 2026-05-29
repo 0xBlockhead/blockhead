@@ -1,4 +1,4 @@
-import { evmChainIdFromCaip2RouteParams } from '$/lib/caip.ts'
+import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
 
 import { error } from '@sveltejs/kit'
 
@@ -13,9 +13,7 @@ import type { PageLoad } from './$types.ts'
 
 
 export const load: PageLoad = ({ params }) => {
-	const $network = NetworkSchema.id({
-		chainId: evmChainIdFromCaip2RouteParams(params),
-	})
+	const $network = NetworkSchema.id(networkIdFromCaip2RouteParams(params))
 	if ($network instanceof arktype.errors) error(404, 'Invalid network')
 
 	const raw = (

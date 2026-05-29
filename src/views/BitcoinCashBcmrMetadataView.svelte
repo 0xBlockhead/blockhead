@@ -69,22 +69,20 @@
 			placeholderText={`Loading Bitcoin Cash Metadata Registry Entry...`}
 		>
 			{#snippet children(bitcoinCashBcmrMetadata)}
+				{#if bitcoinCashBcmrMetadata.description != null}
+					<p>
+						<TruncatedValue
+							value={bitcoinCashBcmrMetadata.description}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+
 				<dl>
 					{#if bitcoinCashBcmrMetadata.name != null}
 						<div>
 							<dt>Name</dt>
 							<dd>{bitcoinCashBcmrMetadata.name}</dd>
-						</div>
-					{/if}
-
-					{#if bitcoinCashBcmrMetadata.description != null}
-						<div>
-							<dt>Description</dt>
-							<dd>
-								<TruncatedValue
-									value={bitcoinCashBcmrMetadata.description}
-									format={TruncatedValueFormat.Abbr}
-								/></dd>
 						</div>
 					{/if}
 

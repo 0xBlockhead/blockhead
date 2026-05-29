@@ -136,6 +136,22 @@
 
 
 	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={channel}
+			placeholderText="Loading Farcaster channel (channel id / slug)…"
+		>
+			{#snippet children(channel)}
+				{#if channel.description !== undefined}
+					<p>
+						<TruncatedValue
+							value={channel.description}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+
 		<dl>
 			<div>
 				<dt>Followers</dt>
@@ -187,21 +203,6 @@
 
 			{#if open}
 				<div>
-					<dt>Name</dt>
-					<dd>
-						<ResourceBoundary
-							resource={channel}
-							placeholderText="Loading Farcaster channel (channel id / slug)…"
-						>
-							{#snippet children(channel)}
-								{#if channel.name !== undefined}
-									{channel.name}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
 					<dt>URL</dt>
 					<dd>
 						<ResourceBoundary
@@ -211,22 +212,6 @@
 							{#snippet children(channel)}
 								{#if channel.url !== undefined}
 									<a href={channel.url}>{channel.url}</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
-				<div>
-					<dt>Description</dt>
-					<dd>
-						<ResourceBoundary
-							resource={channel}
-							placeholderText="Loading Farcaster channel (channel id / slug)…"
-						>
-							{#snippet children(channel)}
-								{#if channel.description !== undefined}
-									{channel.description}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -406,23 +391,6 @@
 				</div>
 			{/if}
 
-			{#if !open}
-				<div>
-					<dt>Description</dt>
-					<dd data-text="muted">
-						<ResourceBoundary
-							resource={channel}
-							placeholderText="Loading Farcaster channel (channel id / slug)…"
-						>
-							{#snippet children(channel)}
-								{#if channel.description !== undefined}
-									{channel.description}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
 		</dl>
 	{/snippet}
 

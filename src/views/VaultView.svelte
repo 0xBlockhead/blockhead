@@ -5,6 +5,7 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { evmChainIdFromNetworkId } from '$/lib/caip.ts'
 
 
 	// Context
@@ -17,7 +18,7 @@
 		href = resolve(
 			'/(assets)/(vaults)/vault/[chainId]/[vaultId]',
 			{
-				chainId: String(entityId.$network.chainId),
+				chainId: String(evmChainIdFromNetworkId(entityId.$network)),
 				vaultId: entityId.id,
 			},
 		),

@@ -85,6 +85,7 @@
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import ActorView from '$/views/ActorView.svelte'
 	import FarcasterCastView from '$/views/FarcasterCastView.svelte'
 </script>
@@ -172,22 +173,23 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={farcasterUser}
+			placeholderText="Loading Farcaster profile (FID)…"
+		>
+			{#snippet children(farcasterUser)}
+				{#if farcasterUser.bio != null && farcasterUser.bio !== ''}
+					<p>
+						<TruncatedValue
+							value={farcasterUser.bio}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+
 		<dl data-column-item="center">
-			<div>
-				<dt>Bio</dt>
-				<dd>
-					<ResourceBoundary
-						resource={farcasterUser}
-						placeholderText="Loading Farcaster profile (FID)…"
-					>
-						{#snippet children(farcasterUser)}
-							{#if farcasterUser.bio != null && farcasterUser.bio !== ''}
-								{farcasterUser.bio}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
 
 			<div>
 				<dt>FID</dt>
@@ -256,25 +258,7 @@
 
 			{#if open}
 				<div>
-					<dt>Name</dt>
-					<dd>
-						<ResourceBoundary
-							resource={farcasterUser}
-							placeholderText="Loading Farcaster profile (FID)…"
-						>
-							{#snippet children(farcasterUser)}
-								{#if farcasterUser.displayName}
-									{farcasterUser.displayName}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>fname (Farcaster username)</dt>
+					<dt>fname</dt>
 					<dd>
 						<ResourceBoundary
 							resource={farcasterUser}

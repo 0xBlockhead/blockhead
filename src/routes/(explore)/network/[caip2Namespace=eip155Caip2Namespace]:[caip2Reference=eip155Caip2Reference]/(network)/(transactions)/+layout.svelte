@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { evmChainIdFromCaip2RouteParams } from '$/lib/caip.ts'
+	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -22,7 +22,7 @@
 
 	const transactionEntityId = $derived(
 		{
-			$network: { chainId: evmChainIdFromCaip2RouteParams(params) },
+			$network: networkIdFromCaip2RouteParams(params),
 			txHash: params.transactionId,
 		},
 	)
@@ -56,7 +56,7 @@
 <ParentPageCollapsible
 	title={'Blocks'}
 	href={resolve('/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/blocks', params)}
-	id={stringify({ chainId: evmChainIdFromCaip2RouteParams(params), scope: 'blocks' })}
+	id={stringify({ ...networkIdFromCaip2RouteParams(params), scope: 'blocks' })}
 >
 	<ResourceBoundary
 		resource={transaction}
@@ -100,7 +100,7 @@
 				<ParentPageCollapsible
 					title={'Transactions'}
 					href={resolve('/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/transactions', params)}
-					id={stringify({ chainId: evmChainIdFromCaip2RouteParams(params), scope: 'transactions' })}
+					id={stringify({ ...networkIdFromCaip2RouteParams(params), scope: 'transactions' })}
 				>
 					{@render children()}
 				</ParentPageCollapsible>

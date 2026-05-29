@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { evmChainIdFromCaip2RouteParams } from '$/lib/caip.ts'
+	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -26,7 +26,7 @@
 <ParentPageCollapsible
 	title={'Contracts'}
 	href={resolve('/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/contracts', params)}
-	id={stringify({ chainId: evmChainIdFromCaip2RouteParams(params) })}
+	id={stringify(networkIdFromCaip2RouteParams(params))}
 >
 	{@render children()}
 </ParentPageCollapsible>

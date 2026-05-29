@@ -164,23 +164,23 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl data-column-item="center">
-			{#if profile.about}
-				<div>
-					<dt>Bio</dt>
-					<dd>
-						<ResourceBoundary
-							resource={profile}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(profile)}
-								{profile.about}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+		<ResourceBoundary
+			resource={profile}
+			placeholderText="Loading profile…"
+		>
+			{#snippet children(profile)}
+				{#if profile.about}
+					<p>
+						<TruncatedValue
+							value={profile.about}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 
+		<dl data-column-item="center">
 			{#if profile.nip05}
 				<div>
 					<dt>NIP-05</dt>

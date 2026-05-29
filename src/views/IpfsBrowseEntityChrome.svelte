@@ -87,6 +87,18 @@
 			placeholderText="Loading IPFS resource (multibase CID, gateway URL)…"
 		>
 			{#snippet children(ipfs)}
+				{#if (
+					open
+					&& ipfs.text !== undefined
+				)}
+					<p>
+						<TruncatedValue
+							value={ipfs.text}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+
 				<dl>
 					{#if ipfs.gatewayUrl !== undefined}
 						<div>
@@ -228,20 +240,6 @@
 					{/if}
 					{#if (
 						open
-						&& ipfs.text !== undefined
-					)}
-						<div>
-							<dt>Text</dt>
-							<dd>
-								<TruncatedValue
-									value={ipfs.text}
-									format={TruncatedValueFormat.Visual}
-								/>
-							</dd>
-						</div>
-					{/if}
-					{#if (
-						open
 						&& ipfs.$media?.[EntityMetaKey.Id].url !== undefined
 					)}
 						<div>
@@ -342,7 +340,7 @@
 							placeholderText="Loading metadata…"
 						>
 							{#snippet children(ipfs)}
-								<dl>
+								<div>
 									{#if ipfs.canonicalUri !== undefined}
 										<div>
 											<dt>Canonical URI</dt>
@@ -474,7 +472,7 @@
 											<dd>{ipfs.displayType}</dd>
 										</div>
 									{/if}
-								</dl>
+								</div>
 							{/snippet}
 						</ResourceBoundary>
 					</section>

@@ -1,6 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import {
+		caip2RouteParamsFromNetworkId,
+		evmChainIdFromNetworkId,
+	} from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -23,7 +26,7 @@
 		entityId,
 		href = resolve(
 		'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-		{ ...caip2RouteParamsFromEvmChainId(entityId.$network.chainId) },
+		{ ...caip2RouteParamsFromNetworkId(entityId.$network) },
 	),
 		layout,
 		open = $bindable(true),
@@ -120,7 +123,7 @@
 		<dl data-column-item="center">
 			{#if mevRelayProposerPayloadDelivered.value !== undefined}
 				<div>
-					<dt>Delivered bid value (wei)</dt>
+					<dt>Value</dt>
 					<dd>
 						<ResourceBoundary
 							placeholderText="Loading builder bid…"
@@ -227,7 +230,7 @@
 							)}
 								<EvmBlockView
 								entityId={mevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id]}
-								id={`${String(entityId.$network.chainId)}:${String(mevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id].blockNumber)}:mev-exec-block`}
+								id={`${String(evmChainIdFromNetworkId(entityId.$network))}:${String(mevRelayProposerPayloadDelivered.$executionBlock[EntityMetaKey.Id].blockNumber)}:mev-exec-block`}
 								layout={EntityLayout.Summary}
 								/>
 							{:else if open}

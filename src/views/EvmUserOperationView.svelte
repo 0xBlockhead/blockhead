@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -23,7 +23,7 @@
 		href = resolve(
 			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/user-operation/[userOperationHash]',
 			{
-				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+				...caip2RouteParamsFromNetworkId(entityId.$network),
 				userOperationHash: entityId.hash,
 			},
 		),
@@ -190,7 +190,7 @@
 							{#if operation.$block !== undefined}
 								<EvmBlockView
 									entityId={operation.$block[EntityMetaKey.Id]}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}
@@ -259,7 +259,7 @@
 								{#if operation.$entryPoint != null}
 									<EvmContractView
 										entityId={operation.$entryPoint[EntityMetaKey.Id]}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 										showTypeAnnotation={false}
 									/>
@@ -298,7 +298,7 @@
 							href={resolve(
 								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 								{
-									...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+									...caip2RouteParamsFromNetworkId(entityId.$network),
 									transactionId: operation.$bundledTransaction[EntityMetaKey.Id].txHash,
 								},
 							)}
@@ -342,7 +342,7 @@
 						/>
 					{/if}
 
-					<dl data-column-item="center">
+					<div data-column-item="center">
 						{#if operation.callGasLimit !== undefined}
 							<div>
 								<dt>Call gas limit</dt>
@@ -446,7 +446,7 @@
 								</dd>
 							</div>
 						{/if}
-					</dl>
+					</div>
 				</div>
 			{/snippet}
 		</ResourceBoundary>

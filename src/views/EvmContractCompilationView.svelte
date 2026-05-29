@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -22,7 +22,7 @@
 		href = resolve(
 			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(contracts)/contract/[address]/compilation/[compilationId]',
 			{
-				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+				...caip2RouteParamsFromNetworkId(entityId.$network),
 				address: entityId.$contract.address,
 				compilationId: entityId.compilationId,
 			},
@@ -90,7 +90,17 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		Compilation run
+		<ResourceBoundary
+			resource={compilation}
+			placeholderText="Loading compilation…"
+		>
+			{#snippet children(compilation)}
+				{compilation.fullyQualifiedName
+					?? compilation.name
+					?? compilation.language
+					?? 'Compilation'}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Title()}
@@ -186,7 +196,7 @@
 					</dd>
 				</div>
 				<div>
-					<dt>Compiler settings (JSON)</dt>
+					<dt>Compiler settings</dt>
 					<dd>
 						<ResourceBoundary
 							resource={compilation}
@@ -204,7 +214,7 @@
 					</dd>
 				</div>
 				<div>
-					<dt>Storage layout (JSON)</dt>
+					<dt>Storage layout</dt>
 					<dd>
 						<ResourceBoundary
 							resource={compilation}

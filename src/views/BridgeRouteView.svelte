@@ -154,50 +154,60 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-			{#if open}
-				<div>
-					<dt>From token</dt>
+				{#if open}
+					<div>
+						<dt>From token</dt>
 					<dd>
 						<TruncatedValue
 							value={entityId.fromToken}
 							format={TruncatedValueFormat.Visual}
 						/>
-					</dd>
-				</div>
+						</dd>
+					</div>
+				{/if}
 
-				<div>
-					<dt>To token</dt>
+				{#if open}
+					<div>
+						<dt>To token</dt>
 					<dd>
 						<TruncatedValue
 							value={entityId.toToken}
 							format={TruncatedValueFormat.Visual}
 						/>
-					</dd>
-				</div>
+						</dd>
+					</div>
+				{/if}
 
-				<div>
-					<dt>From address</dt>
+				{#if open}
+					<div>
+						<dt>From address</dt>
 					<dd>
 						<Address
 							address={entityId.fromAddress}
 						/>
-					</dd>
-				</div>
+						</dd>
+					</div>
+				{/if}
 
-				<div>
-					<dt>Slippage</dt>
-					<dd>{String(entityId.slippage)}</dd>
-				</div>
+				{#if open}
+					<div>
+						<dt>Slippage</dt>
+						<dd>{String(entityId.slippage)}</dd>
+					</div>
+				{/if}
 
-				<div>
-					<dt>Request amount</dt>
+				{#if open}
+					<div>
+						<dt>Request amount</dt>
 					<dd data-text="font-monospace">
 						{entityId.fromAmount}
-					</dd>
-				</div>
+						</dd>
+					</div>
+				{/if}
 
-				<div>
-					<dt>From amount (base units)</dt>
+				{#if open}
+					<div>
+						<dt>From amount</dt>
 					<dd data-text="font-monospace">
 						<ResourceBoundary
 							resource={bridgeRoute}
@@ -209,11 +219,13 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-					</dd>
-				</div>
+						</dd>
+					</div>
+				{/if}
 
-				<div>
-					<dt>To amount (base units)</dt>
+				{#if open}
+					<div>
+						<dt>To amount</dt>
 					<dd data-text="font-monospace">
 						<ResourceBoundary
 							resource={bridgeRoute}
@@ -225,11 +237,13 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-					</dd>
-				</div>
+						</dd>
+					</div>
+				{/if}
 
-				<div>
-					<dt>Min received (base units)</dt>
+				{#if open}
+					<div>
+						<dt>Min received</dt>
 					<dd data-text="font-monospace">
 						<ResourceBoundary
 							resource={bridgeRoute}
@@ -241,11 +255,13 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-					</dd>
-				</div>
+						</dd>
+					</div>
+				{/if}
 
-				<div>
-					<dt>Estimated cost (USD)</dt>
+				{#if open}
+					<div>
+						<dt>Estimated cost</dt>
 					<dd>
 						<ResourceBoundary
 							resource={bridgeRoute}
@@ -260,11 +276,13 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-					</dd>
-				</div>
+						</dd>
+					</div>
+				{/if}
 
-				<div>
-					<dt>ETA</dt>
+				{#if open}
+					<div>
+						<dt>ETA</dt>
 					<dd>
 						<ResourceBoundary
 							resource={bridgeRoute}
@@ -276,9 +294,9 @@
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+						</dd>
+					</div>
+				{/if}
 		</dl>
 
 		{#if open}

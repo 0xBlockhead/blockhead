@@ -1,6 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import {
+		caip2RouteParamsFromNetworkId,
+		evmChainIdFromNetworkId,
+	} from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -21,7 +24,7 @@
 		entityId,
 		href = resolve(
 			'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-			{ ...caip2RouteParamsFromEvmChainId(entityId.$network.chainId) },
+			{ ...caip2RouteParamsFromNetworkId(entityId.$network) },
 		),
 		layout,
 		open = $bindable(true),
@@ -78,9 +81,36 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>
-			chain {String(entityId.$network.chainId)}
-		</span>
+		<ResourceBoundary
+			resource={networkGasEstimateTimestamp}
+			placeholderText="Loading gas estimate…"
+		>
+			{#snippet children(networkGasEstimateTimestamp)}
+				{#if networkGasEstimateTimestamp.averageGwei != null}
+					<NumberValue
+						value={networkGasEstimateTimestamp.averageGwei}
+						options={{ maximumFractionDigits: 4 }}
+					/>
+					gwei
+				{:else if networkGasEstimateTimestamp.fastGwei != null}
+					<NumberValue
+						value={networkGasEstimateTimestamp.fastGwei}
+						options={{ maximumFractionDigits: 4 }}
+					/>
+					gwei fast
+				{:else if networkGasEstimateTimestamp.slowGwei != null}
+					<NumberValue
+						value={networkGasEstimateTimestamp.slowGwei}
+						options={{ maximumFractionDigits: 4 }}
+					/>
+					gwei slow
+				{:else}
+					<span>
+						chain {String(evmChainIdFromNetworkId(entityId.$network))}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Heading()}
@@ -96,9 +126,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span>
-			chain {String(entityId.$network.chainId)}
-		</span>
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content()}

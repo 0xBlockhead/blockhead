@@ -348,7 +348,12 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 			type: CoinInstanceType.NativeCurrency,
 		},
 		$toInstance: {
-			$network: { chainId: 10 },
+			$network: {
+				caip2: {
+					namespace: 'eip155',
+					reference: '10',
+				},
+			},
 			type: CoinInstanceType.NativeCurrency,
 		},
 		toolKey: 'across',

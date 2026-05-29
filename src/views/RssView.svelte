@@ -142,35 +142,38 @@
 							<dt>Feeds</dt>
 							<dd>{String(rssNetwork.$$rssFeeds.length)}</dd>
 						</div>
+					{/if}
+
+					{#if open}
 						<div>
 							<dt>Items</dt>
 							<dd>{String(rssNetwork.$$rssItems.length)}</dd>
 						</div>
+					{/if}
 
-						{#if rssNetwork.homeUrl}
-							<div>
-								<dt>Home</dt>
-								<dd>
-									<a href={rssNetwork.homeUrl}>{rssNetwork.homeUrl}</a>
-								</dd>
-							</div>
-						{/if}
+					{#if open && rssNetwork.homeUrl}
+						<div>
+							<dt>Home</dt>
+							<dd>
+								<a href={rssNetwork.homeUrl}>{rssNetwork.homeUrl}</a>
+							</dd>
+						</div>
+					{/if}
 
-						{#if rssNetwork.docsUrl}
-							<div>
-								<dt>Docs</dt>
-								<dd>
-									<a href={rssNetwork.docsUrl}>{rssNetwork.docsUrl}</a>
-								</dd>
-							</div>
-						{/if}
+					{#if open && rssNetwork.docsUrl}
+						<div>
+							<dt>Docs</dt>
+							<dd>
+								<a href={rssNetwork.docsUrl}>{rssNetwork.docsUrl}</a>
+							</dd>
+						</div>
+					{/if}
 
-						{#if rssNetwork.topology}
-							<div>
-								<dt>Topology</dt>
-								<dd>{rssNetwork.topology}</dd>
-							</div>
-						{/if}
+					{#if open && rssNetwork.topology}
+						<div>
+							<dt>Topology</dt>
+							<dd>{rssNetwork.topology}</dd>
+						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

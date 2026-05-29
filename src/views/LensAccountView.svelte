@@ -71,6 +71,7 @@
 	import LensPostsView from '$/views/LensPostsView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -156,23 +157,23 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl data-column-item="center">
-			<div>
-				<dt>Bio</dt>
-				<dd>
-					<ResourceBoundary
-						resource={lensAccount}
-						placeholderText="Loading Lens profile…"
-					>
-						{#snippet children(lensAccount)}
-							{#if lensAccount.bio != null && lensAccount.bio !== ''}
-								{lensAccount.bio}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+		<ResourceBoundary
+			resource={lensAccount}
+			placeholderText="Loading Lens profile…"
+		>
+			{#snippet children(lensAccount)}
+				{#if lensAccount.bio != null && lensAccount.bio !== ''}
+					<p>
+						<TruncatedValue
+							value={lensAccount.bio}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 
+		<dl data-column-item="center">
 			{#if (
 				open
 				&& lensAccount.followerCount != null

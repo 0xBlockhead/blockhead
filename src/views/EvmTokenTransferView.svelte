@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -24,7 +24,7 @@
 		href = resolve(
 			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]/token-transfer/[logIndex]',
 			{
-				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+				...caip2RouteParamsFromNetworkId(entityId.$network),
 				transactionId: entityId.$transaction.txHash,
 				logIndex: String(entityId.logIndex),
 			},
@@ -137,7 +137,7 @@
 									href={resolve(
 										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 										{
-											...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+											...caip2RouteParamsFromNetworkId(entityId.$network),
 											transactionId: entityId.txHash,
 										},
 									)}

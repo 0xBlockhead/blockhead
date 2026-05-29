@@ -108,6 +108,9 @@
 		<p>
 			Not CEX margin, borrow APR, or liquidation. Requires an on-chain resolver—Dexscreener pool rows do not supply position-scoped state.
 		</p>
+		<p>
+			No position indexer is wired in this app yet.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -117,21 +120,13 @@
 		>
 			{#snippet children(leverage)}
 				<dl data-column-item="center">
-					{#if open}
-						<div>
-							<dt>Note</dt>
-							<dd data-text="muted">
-								Here “leverage” names concentrated-liquidity position accounting—tick range, in-range liquidity, uncollected fees, ERC-721 token id—not perpetual margin, borrow APR, or liquidation state from a CEX. No position indexer is wired in this app yet.
-							</dd>
-						</div>
-					{/if}
 						<div>
 							<dt>Network</dt>
 							<dd>
 								{#if leverage.$pool !== undefined}
 									<EvmNetworkView
 										entityId={leverage.$pool[EntityMetaKey.Id].$network}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								{:else}
@@ -140,7 +135,7 @@
 							</dd>
 						</div>
 						<div>
-							<dt>AMM pool (Uniswap v3-style)</dt>
+							<dt>Pool</dt>
 							<dd>
 								{#if leverage.$pool !== undefined}
 									<LiquidityPoolView
@@ -158,65 +153,66 @@
 							<div>
 								<dt>Owner</dt>
 								<dd>
-								<ActorNetworkView
-									entityId={{
-										$network: leverage.$pool[EntityMetaKey.Id].$network,
-										$actor: leverage.$owner[EntityMetaKey.Id],
-									}}
-									layout={EntityLayout.Title}
-									open={false}
-								/>
-							</dd>
-						</div>
-						{#if leverage.tickLower !== undefined}
+									<ActorNetworkView
+										entityId={{
+											$network: leverage.$pool[EntityMetaKey.Id].$network,
+											$actor: leverage.$owner[EntityMetaKey.Id],
+										}}
+										layout={EntityLayout.Value}
+										open={false}
+									/>
+								</dd>
+							</div>
+						{/if}
+
+						{#if open && leverage.tickLower !== undefined}
 							<div>
-								<dt>LP NFT range · tick lower</dt>
+								<dt>Tick lower</dt>
 								<dd>{String(leverage.tickLower)}</dd>
 							</div>
 						{/if}
 
-						{#if leverage.tickUpper !== undefined}
+						{#if open && leverage.tickUpper !== undefined}
 							<div>
-								<dt>LP NFT range · tick upper</dt>
+								<dt>Tick upper</dt>
 								<dd>{String(leverage.tickUpper)}</dd>
 							</div>
 						{/if}
 
-						{#if leverage.liquidity !== undefined}
+						{#if open && leverage.liquidity !== undefined}
 							<div>
-								<dt>Position liquidity (NFT range)</dt>
+								<dt>Liquidity</dt>
 								<dd>{String(leverage.liquidity)}</dd>
 							</div>
 						{/if}
 
-						{#if leverage.token0Owed !== undefined}
+						{#if open && leverage.token0Owed !== undefined}
 							<div>
 								<dt>Token0 owed</dt>
 								<dd>{String(leverage.token0Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if leverage.token1Owed !== undefined}
+						{#if open && leverage.token1Owed !== undefined}
 							<div>
 								<dt>Token1 owed</dt>
 								<dd>{String(leverage.token1Owed)}</dd>
 							</div>
 						{/if}
 
-						{#if leverage.tokenId !== undefined}
+						{#if open && leverage.tokenId !== undefined}
 							<div>
-								<dt>Position NFT token id</dt>
+								<dt>Token id</dt>
 								<dd>{String(leverage.tokenId)}</dd>
 							</div>
 						{/if}
 
-						{#if leverage.origin}
+						{#if open && leverage.origin}
 							<div>
 								<dt>Origin</dt>
 								<dd>{leverage.origin}</dd>
 							</div>
 						{/if}
-					{/if}
 
 					{#if leverage.createdAtTimestamp !== undefined}
 						<div>

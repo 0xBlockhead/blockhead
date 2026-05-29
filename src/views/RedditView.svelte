@@ -139,12 +139,16 @@
 								<dt>Communities</dt>
 								<dd>{String(redditNetwork.$$redditSubreddits?.length ?? 0)}</dd>
 							</div>
+						{/if}
+
+						{#if open}
 							<div>
 								<dt>Submissions</dt>
 								<dd>{String(redditNetwork.$$redditLinks?.length ?? 0)}</dd>
 							</div>
+						{/if}
 
-						{#if redditNetwork.homeUrl}
+						{#if open && redditNetwork.homeUrl}
 							<div>
 								<dt>Home</dt>
 								<dd>
@@ -155,7 +159,7 @@
 							</div>
 						{/if}
 
-						{#if redditNetwork.docsUrl}
+						{#if open && redditNetwork.docsUrl}
 							<div>
 								<dt>Docs</dt>
 								<dd>
@@ -166,13 +170,12 @@
 							</div>
 						{/if}
 
-						{#if redditNetwork.topology}
+						{#if open && redditNetwork.topology}
 							<div>
 								<dt>Topology</dt>
 								<dd>{redditNetwork.topology}</dd>
 							</div>
 						{/if}
-					{/if}
 				{/snippet}
 			</ResourceBoundary>
 		</dl>

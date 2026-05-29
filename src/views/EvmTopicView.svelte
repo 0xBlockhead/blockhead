@@ -123,7 +123,7 @@
 			<dl data-column-item="center">
 				{#if !summaryUsesHeading}
 					<div>
-						<dt>Indexed log topic (topic N)</dt>
+							<dt>Topic</dt>
 						<dd>
 							<TruncatedValue
 								value={entityId.hex}
@@ -140,7 +140,7 @@
 					{#snippet children(topic)}
 						{#if topic.signatures?.length}
 							<div>
-								<dt>Catalog signatures</dt>
+								<dt>Signatures</dt>
 								<dd>
 									<ul>
 										{#each topic.signatures as sig (sig)}
@@ -151,7 +151,7 @@
 							</div>
 						{:else}
 							<div>
-								<dt>Catalog signatures</dt>
+								<dt>Signatures</dt>
 								<dd>
 									<p data-text="muted">No catalog signatures matched this log topic hash.</p>
 								</dd>

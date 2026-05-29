@@ -123,7 +123,7 @@
 			<dl data-column-item="center">
 				{#if !summaryUsesHeading}
 					<div>
-						<dt>Revert selector (4-byte)</dt>
+							<dt>Selector</dt>
 						<dd>
 							<TruncatedValue
 								value={entityId.hex}
@@ -140,9 +140,7 @@
 						{#snippet children(evmError)}
 							{#if evmError.signatures?.length}
 								<div>
-									<dt>
-										Decoded revert / custom error selectors
-									</dt>
+										<dt>Signatures</dt>
 									<dd>
 										<ul>
 											{#each evmError.signatures as sig (sig)}
@@ -153,9 +151,7 @@
 								</div>
 							{:else}
 								<div>
-									<dt>
-										Decoded revert / custom error selectors
-									</dt>
+										<dt>Signatures</dt>
 									<dd>
 										<p data-text="muted">No catalog matches for this revert/error selector.</p>
 									</dd>

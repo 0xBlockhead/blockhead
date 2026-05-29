@@ -5,7 +5,10 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import {
+		caip2RouteParamsFromNetworkId,
+		evmChainIdFromNetworkId,
+	} from '$/lib/caip.ts'
 
 
 	// Context
@@ -16,7 +19,7 @@
 	let {
 			entityId,
 			href = resolve('/~/(accounts)/accounts/(transactions)/transaction/[chainId]/[address]/[sourceTxHash]/[createdAt]', {
-				chainId: String(entityId.$sourceTx.$network.chainId),
+				chainId: String(evmChainIdFromNetworkId(entityId.$sourceTx.$network)),
 				address: entityId.$account.address,
 				sourceTxHash: entityId.$sourceTx.txHash,
 				createdAt: String(entityId.createdAt),
@@ -102,7 +105,7 @@
 							href={resolve(
 								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 								{
-										...caip2RouteParamsFromEvmChainId(entityId.$sourceTx.$network.chainId),
+										...caip2RouteParamsFromNetworkId(entityId.$sourceTx.$network),
 										transactionId: entityId.$sourceTx.txHash,
 								},
 							)}

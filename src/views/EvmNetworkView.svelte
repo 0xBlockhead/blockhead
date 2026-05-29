@@ -4,6 +4,7 @@
 	import {
 		consensusProtocolByProtocol,
 	} from '$/constants/EvmNetwork.ts'
+	import { catalogCoinUsdMarketIdByCoinId } from '$/constants/MarketCatalog.ts'
 	import {
 		NetworkEnvironment,
 		NetworkNamespace,
@@ -89,6 +90,13 @@
 				],
 				$limit: 16,
 			},
+			$$gasEstimateTimestamps: {
+				$: [
+					Source.Etherscan_Rest,
+				],
+				$limit: 1,
+			},
+			$$upgrades: {},
 			...(separateConsensusProtocol != null && {
 				$$beaconEpochs: {
 					$: [
@@ -228,25 +236,6 @@
 		},
 	)
 
-	const latestGasFeeBlockId = derive(
-		network,
-		(network) => (
-			network.$$gasFeeBlocks
-				?.toSorted((leftBlock, rightBlock) => (
-					rightBlock[EntityMetaKey.Id].blockNumber
-					=== leftBlock[EntityMetaKey.Id].blockNumber ?
-						0
-					: rightBlock[EntityMetaKey.Id].blockNumber
-						> leftBlock[EntityMetaKey.Id].blockNumber ?
-							1
-						:
-							-1
-				))[0]
-				?.[EntityMetaKey.Id]
-		),
-	)
-
-
 	const networkIdKey = $derived(
 		stringify(entityId),
 	)
@@ -279,7 +268,7 @@
 	import NetworkConsensusUpgradesView from '$/views/EthereumConsensusUpgradesView.svelte'
 	import NetworkExecutionUpgradesView from '$/views/EthereumExecutionUpgradesView.svelte'
 	import UrlsView from '$/views/UrlsView.svelte'
-	import EvmNetwork_GasFee_BlockView from '$/views/EvmNetwork_GasFee_BlockView.svelte'
+	import EvmNetwork_GasEstimate_TimestampView from '$/views/EvmNetwork_GasEstimate_TimestampView.svelte'
 	import EvmNetwork_GasEstimate_TimestampsView from '$/views/EvmNetwork_GasEstimate_TimestampsView.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 	import EvmNetwork_GasFee_BlocksView from '$/views/EvmNetwork_GasFee_BlocksView.svelte'
@@ -290,8 +279,10 @@
 	import Erc4337SmartAccountsView from '$/views/Erc4337SmartAccountsView.svelte'
 	import EthereumBeaconFinality_TimestampsView from '$/views/EthereumBeaconFinality_TimestampsView.svelte'
 	import NetworkBridgesView from '$/views/EvmNetworkBridgesView.svelte'
+	import EthereumNetworkUpgradeView from '$/views/EthereumNetworkUpgradeView.svelte'
 	import EthereumNetworkUpgradesView from '$/views/EthereumNetworkUpgradesView.svelte'
 	import NetworksView from '$/views/EvmNetworksView.svelte'
+	import MarketPriceView from '$/views/MarketPriceView.svelte'
 	import MevRelay_ProposerPayloadDeliveredRowsView from '$/views/MevRelay_ProposerPayloadDeliveredRowsView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
@@ -366,7 +357,56 @@
 			data-column-item="center"
 		>
 			<div>
-				<dt>Block</dt>
+				<dt>Latest upgrade</dt>
+				<dd>
+					<ResourceBoundary
+						resource={derive(
+							networkSummaryHead,
+							(network) => (
+								network.$$upgrades
+									?.filter((upgrade) => (
+										upgrade.activationBlock !== undefined
+										&& (
+											network.blockHeight === undefined
+											|| upgrade.activationBlock <= network.blockHeight
+										)
+									))
+									.toSorted((leftUpgrade, rightUpgrade) => (
+										(rightUpgrade.activationBlock ?? 0)
+											- (leftUpgrade.activationBlock ?? 0)
+									))[0]
+									?.[EntityMetaKey.Id]
+								?? network.$$upgrades
+									?.filter((upgrade) => (
+										upgrade.activationTimestampMs !== undefined
+										&& upgrade.activationTimestampMs <= Date.now()
+									))
+									.toSorted((leftUpgrade, rightUpgrade) => (
+										(rightUpgrade.activationTimestampMs ?? 0)
+											- (leftUpgrade.activationTimestampMs ?? 0)
+									))[0]
+									?.[EntityMetaKey.Id]
+							),
+						)}
+						placeholderText="Loading current upgrade…"
+					>
+						{#snippet children(upgradeId)}
+							{#if upgradeId !== undefined}
+								<EthereumNetworkUpgradeView
+									entityId={upgradeId}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<span data-text="muted">—</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Latest block</dt>
 				<dd
 					data-row="inline wrap"
 					id="network-summary-head-block"
@@ -414,7 +454,7 @@
 
 			{#if separateConsensusProtocol === ConsensusProtocol.EthereumBeacon}
 				<div>
-					<dt>Epoch</dt>
+					<dt>Latest epoch</dt>
 					<dd>
 						<ResourceBoundary
 							resource={derive(
@@ -466,7 +506,7 @@
 
 			{#if separateConsensusProtocol === ConsensusProtocol.EthereumBeacon}
 				<div>
-					<dt>Slot</dt>
+					<dt>Latest slot</dt>
 					<dd>
 						<ResourceBoundary
 							resource={derive(
@@ -500,9 +540,71 @@
 				</div>
 			{/if}
 
+			<div>
+				<dt>Gas fee estimate</dt>
+				<dd>
+					<ResourceBoundary
+						resource={derive(
+							networkSummaryHead,
+							(network) => (
+								network.$$gasEstimateTimestamps
+									?.toSorted((leftTimestamp, rightTimestamp) => (
+										rightTimestamp[EntityMetaKey.Id].timestampMs
+											- leftTimestamp[EntityMetaKey.Id].timestampMs
+									))[0]
+									?.[EntityMetaKey.Id]
+							),
+						)}
+						placeholderText="Loading gas estimate…"
+					>
+						{#snippet children(gasEstimateId)}
+							{#if gasEstimateId !== undefined}
+								<EvmNetwork_GasEstimate_TimestampView
+									entityId={gasEstimateId}
+									layout={EntityLayout.Value}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							{:else}
+								<span data-text="muted">—</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+
+			<div>
+				<dt>Native currency price</dt>
+				<dd>
+					<ResourceBoundary
+						resource={network}
+						placeholderText="Loading native currency…"
+					>
+						{#snippet children(network)}
+							{#if (
+								network.$nativeCoin
+								&& catalogCoinUsdMarketIdByCoinId[network.$nativeCoin[EntityMetaKey.Id].coinId] !== undefined
+							)}
+								<MarketPriceView
+									entityId={{
+										$market: catalogCoinUsdMarketIdByCoinId[network.$nativeCoin[EntityMetaKey.Id].coinId],
+									}}
+									layout={EntityLayout.Value}
+									open={false}
+									showTypeAnnotation={false}
+								/>
+							{:else}
+								<span data-text="muted">—</span>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dd>
+			</div>
+		</dl>
+
+		<dl data-column-item="center">
 			{#if (
-				open
-				&& network.environment !== undefined
+				network.environment !== undefined
 			)}
 				<div>
 					<dt>Environment</dt>
@@ -641,30 +743,10 @@
 				</div>
 			{/if}
 
-			{#if (
-				open
-				&& latestGasFeeBlockId.ready
-				&& latestGasFeeBlockId.current != null
-			)}
-				<div>
-					<dt>Gas</dt>
-					<dd>
-						<EvmNetwork_GasFee_BlockView
-							entityId={latestGasFeeBlockId.current}
-							layout={EntityLayout.Summary}
-							open={false}
-							showTypeAnnotation={false}
-						/>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
-					<dt>CAIP-2</dt>
-					<dd data-row="inline wrap"><code>eip155:{String(chainId)}</code></dd>
-				</div>
-			{/if}
+			<div>
+				<dt>CAIP-2</dt>
+				<dd data-row="inline wrap"><code>eip155:{String(chainId)}</code></dd>
+			</div>
 
 			{#if (
 				open

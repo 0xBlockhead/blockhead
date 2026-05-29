@@ -45,7 +45,6 @@
 
 	// State
 	import { htmlToPlainText } from '$/lib/html.ts'
-	import { syndicationHtmlToSafeHtml } from '$/lib/markdown.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const idKey = stringify(entityId)
@@ -191,6 +190,30 @@
 		href: _href,
 		open: contentOpen,
 	})}
+		{#if contentOpen}
+			<ResourceBoundary
+				resource={note}
+				placeholderText="Loading note…"
+			>
+				{#snippet children(note)}
+					{@const hasContentWarning = (
+						(note.spoilerText?.trim().length ?? 0) > 0
+						|| note.sensitive === true
+					)}
+					{#if !hasContentWarning || contentWarningRevealed}
+						{#if note.content != null}
+							<p>
+								<TruncatedValue
+									value={htmlToPlainText(note.content)}
+									format={TruncatedValueFormat.Visual}
+								/>
+							</p>
+						{/if}
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+
 		<dl data-column-item="center">
 			{#if contentOpen}
 				<div>
@@ -294,17 +317,6 @@
 								</dd>
 							</div>
 						{:else if note.content != null || (note.$$media?.length ?? 0) > 0}
-							{#if note.content != null}
-								<div>
-									<dt>Status body</dt>
-									<dd>
-										<div class="activitypub-html">
-											{@html syndicationHtmlToSafeHtml(note.content)}
-										</div>
-									</dd>
-								</div>
-							{/if}
-
 							{#if (note.$$media?.length ?? 0) > 0}
 								<div>
 									<dt>Media</dt>

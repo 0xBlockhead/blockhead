@@ -1,6 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import {
+		caip2RouteParamsFromNetworkId,
+		evmChainIdFromNetworkId,
+	} from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -73,6 +76,15 @@
 					Source.Constants_Internal,
 				],
 			},
+			$verification: {
+				$: [
+					Source.Sourcify_Rest,
+				],
+				$compilation: {
+					fullyQualifiedName: {},
+					name: {},
+				},
+			},
 			...(open && {
 				$deployer: {},
 				$creationTransaction: {},
@@ -85,14 +97,15 @@
 					$: [
 						Source.Sourcify_Rest,
 					],
-					...(open && {
-						match: {},
-						creationMatch: {},
-						runtimeMatch: {},
-						verifiedAtMs: {},
-						$compilation: {},
-						$sourceBundle: {},
-					}),
+					match: {},
+					creationMatch: {},
+					runtimeMatch: {},
+					verifiedAtMs: {},
+					$compilation: {
+						fullyQualifiedName: {},
+						name: {},
+					},
+					$sourceBundle: {},
 				},
 			}),
 		},
@@ -119,11 +132,39 @@
 	{...entityViewRest}
 	summaryUsesHeading={true}
 >
+	{#snippet Value()}
+		<Address
+			network={entityId.$network}
+			address={entityId.address}
+		/>
+	{/snippet}
+
+	{#snippet Title()}
+		<ResourceBoundary
+			placeholderText="Loading contract…"
+			resource={contract}
+		>
+			{#snippet children(contract)}
+				{#if contract.precompileName}
+					{contract.precompileName}
+				{:else if contract.$verification?.$compilation?.fullyQualifiedName}
+					<code>
+						{contract.$verification.$compilation.fullyQualifiedName
+							.split(':')[0]
+							.split('/')
+							.at(-1)}
+					</code>
+				{:else if contract.$verification?.$compilation?.name}
+					{contract.$verification.$compilation.name}
+				{:else}
+					{@render Value()}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Heading()}
-		{contract.ready && contract.current.precompileName ?
-			'Precompile'
-		:
-			title}
+		{@render Title()}
 	{/snippet}
 
 		{#snippet Content(context)}
@@ -131,7 +172,7 @@
 				<dl data-column-item="center">
 					<div>
 						<dt>Chain ID</dt>
-						<dd>{String(entityId.$network.chainId)}</dd>
+						<dd>{String(evmChainIdFromNetworkId(entityId.$network))}</dd>
 					</div>
 					{#if context?.open}
 					<ResourceBoundary
@@ -163,7 +204,7 @@
 											href={resolve(
 												'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
 												{
-													...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+													...caip2RouteParamsFromNetworkId(entityId.$network),
 													address: contract.$deployer[EntityMetaKey.Id].address,
 												},
 											)}
@@ -183,7 +224,7 @@
 											href={resolve(
 												'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 												{
-													...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+													...caip2RouteParamsFromNetworkId(entityId.$network),
 													transactionId: contract.$creationTransaction[EntityMetaKey.Id].txHash,
 												},
 											)}
@@ -196,13 +237,13 @@
 
 							{#if !contract.precompileName && contract.$implementation}
 									<div>
-										<dt>Implementation (proxy)</dt>
+										<dt>Implementation</dt>
 										<dd>
 											<a
 												href={resolve(
 													'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(contracts)/contract/[address]',
 													{
-														...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+														...caip2RouteParamsFromNetworkId(entityId.$network),
 														address: contract.$implementation[EntityMetaKey.Id].address,
 													},
 												)}
@@ -243,7 +284,7 @@
 							{#if !contract.precompileName}
 								{#if contract.abi !== undefined}
 									<div>
-										<dt>ABI (JSON)</dt>
+										<dt>ABI</dt>
 										<dd>
 											<TruncatedValue
 												value={contract.abi}
@@ -253,7 +294,7 @@
 									</div>
 								{:else}
 									<div>
-										<dt>ABI (JSON)</dt>
+										<dt>ABI</dt>
 										<dd>No ABI JSON yet.</dd>
 									</div>
 								{/if}

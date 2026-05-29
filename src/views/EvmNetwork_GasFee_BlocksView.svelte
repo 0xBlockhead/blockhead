@@ -8,7 +8,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
@@ -121,7 +121,7 @@
 			href={resolve(
 				'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]',
 				{
-						...caip2RouteParamsFromEvmChainId(id.$network.chainId),
+						...caip2RouteParamsFromNetworkId(id.$network),
 						blockNumber: String(id.blockNumber),
 				},
 			)}

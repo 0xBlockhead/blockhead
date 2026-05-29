@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 	import type { Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -17,7 +17,7 @@
 		entityId,
 		href = resolve(
 			'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-			{ ...caip2RouteParamsFromEvmChainId(entityId.$network.chainId) },
+			{ ...caip2RouteParamsFromNetworkId(entityId.$network) },
 		),
 		title: titleProp,
 		open = $bindable(true),

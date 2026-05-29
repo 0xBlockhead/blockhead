@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { PageProps } from './$types.ts'
-	import { caip2FromEvmChainId } from '$/lib/caip.ts'
+	import { caip2Key } from '$/lib/caip.ts'
 
 
 	// State
@@ -23,7 +23,7 @@
 		<dl data-column-item="center">
 			<div>
 				<dt>Network</dt>
-				<dd>{caip2FromEvmChainId(data.entityId.$network.chainId)}</dd>
+				<dd>{caip2Key(data.entityId.$network.caip2)}</dd>
 			</div>
 
 			<div>

@@ -221,7 +221,7 @@
 			</div>
 
 			<div>
-				<dt>Fundamentals</dt>
+				<dt>Latest snapshot</dt>
 				<dd>
 					<ResourceBoundary resource={coin}>
 						{#snippet children(coin)}

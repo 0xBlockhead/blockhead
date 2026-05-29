@@ -60,6 +60,7 @@
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -134,25 +135,23 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={farcasterUser}
+			placeholderText="Loading profile…"
+		>
+			{#snippet children(farcasterUser)}
+				{#if farcasterUser.bio != null && farcasterUser.bio !== ''}
+					<p>
+						<TruncatedValue
+							value={farcasterUser.bio}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+
 		<dl data-column-item="center">
-			{#if (
-				farcasterUser.bio != null
-				&& farcasterUser.bio !== ''
-			)}
-				<div>
-					<dt>Bio</dt>
-					<dd>
-						<ResourceBoundary
-							resource={farcasterUser}
-							placeholderText="Loading profile…"
-						>
-							{#snippet children(farcasterUser)}
-								{farcasterUser.bio}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
 
 			{#if farcasterUser.url != null}
 				<div>

@@ -144,51 +144,63 @@
 				{/if}
 
 				{#if open}
-						<div>
-							<dt>Profiles</dt>
-							<dd>{String(network.$$nostrProfiles.length)}</dd>
-						</div>
-						<div>
-							<dt>Notes</dt>
-							<dd>{String(network.$$nostrNotes.length)}</dd>
-						</div>
-						<div>
-							<dt>Relays</dt>
-							<dd>{String(network.$$nostrRelays.length)}</dd>
-						</div>
-						<div>
-							<dt>Reposts</dt>
-							<dd>{String(network.$$nostrReposts.length)}</dd>
-						</div>
-						<div>
-							<dt>Articles</dt>
-							<dd>{String(network.$$nostrArticles.length)}</dd>
-						</div>
+					<div>
+						<dt>Profiles</dt>
+						<dd>{String(network.$$nostrProfiles.length)}</dd>
+					</div>
+				{/if}
 
-					{#if network.homeUrl}
-						<div>
-							<dt>Home</dt>
-							<dd>
+				{#if open}
+					<div>
+						<dt>Notes</dt>
+						<dd>{String(network.$$nostrNotes.length)}</dd>
+					</div>
+				{/if}
+
+				{#if open}
+					<div>
+						<dt>Relays</dt>
+						<dd>{String(network.$$nostrRelays.length)}</dd>
+					</div>
+				{/if}
+
+				{#if open}
+					<div>
+						<dt>Reposts</dt>
+						<dd>{String(network.$$nostrReposts.length)}</dd>
+					</div>
+				{/if}
+
+				{#if open}
+					<div>
+						<dt>Articles</dt>
+						<dd>{String(network.$$nostrArticles.length)}</dd>
+					</div>
+				{/if}
+
+				{#if open && network.homeUrl}
+					<div>
+						<dt>Home</dt>
+						<dd>
 							<a href={network.homeUrl}>{network.homeUrl}</a>
-							</dd>
-						</div>
-					{/if}
+						</dd>
+					</div>
+				{/if}
 
-					{#if network.docsUrl}
-						<div>
-							<dt>Docs</dt>
-							<dd>
+				{#if open && network.docsUrl}
+					<div>
+						<dt>Docs</dt>
+						<dd>
 							<a href={network.docsUrl}>{network.docsUrl}</a>
-							</dd>
-						</div>
-					{/if}
+						</dd>
+					</div>
+				{/if}
 
-					{#if network.topology}
-						<div>
-							<dt>Topology</dt>
-							<dd>{network.topology}</dd>
-						</div>
-					{/if}
+				{#if open && network.topology}
+					<div>
+						<dt>Topology</dt>
+						<dd>{network.topology}</dd>
+					</div>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

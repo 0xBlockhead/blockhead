@@ -135,26 +135,20 @@
 				<CollapsibleTabs sections={[]}>
 					<ResourceBoundary resource={global}>
 						{#snippet children(global)}
-							<dl>
+							<div>
 								{#if global.duneCreditsIncluded !== undefined}
-									<div>
-										<dt>Dune credits included</dt>
-										<dd>{String(global.duneCreditsIncluded)}</dd>
-									</div>
+									<p><strong>Dune credits included:</strong> {String(global.duneCreditsIncluded)}</p>
 								{/if}
 
 								{#if (
 									global.duneCreditsUsed === undefined
 									&& global.duneCreditsIncluded === undefined
 								)}
-									<div>
-										<dt>Status</dt>
-										<dd data-text="muted">
-											No usage totals global yet.
-										</dd>
-									</div>
+									<p data-text="muted">
+										No usage totals global yet.
+									</p>
 								{/if}
-							</dl>
+							</div>
 						{/snippet}
 					</ResourceBoundary>
 				</CollapsibleTabs>
@@ -162,4 +156,3 @@
 		{/if}
 	{/snippet}
 </EntityView>
-

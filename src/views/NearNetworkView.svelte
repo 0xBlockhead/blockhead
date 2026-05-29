@@ -88,16 +88,11 @@
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
 					<div>
-						<dt>Network</dt>
-						<dd>{network.slug}</dd>
+						<dt>Environment</dt>
+						<dd>{network.environment}</dd>
 					</div>
 
 					{#if context?.open}
-						<div>
-							<dt>Environment</dt>
-							<dd>{network.environment}</dd>
-						</div>
-
 						<div>
 							<dt>RPC endpoints</dt>
 							<dd>{network.rpcEndpoints.length}</dd>
@@ -130,19 +125,13 @@
 			{#snippet SectionNearNetwork()}
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
-						<dl>
-							<div>
-								<dt>Environment</dt>
-								<dd>{network.environment}</dd>
-							</div>
+						<div>
+							<p><strong>Environment:</strong> {network.environment}</p>
 
 							{#each network.rpcEndpoints as endpoint}
-								<div>
-									<dt>{endpoint.transportType}</dt>
-									<dd>{endpoint.url}</dd>
-								</div>
+								<p><strong>{endpoint.transportType}:</strong> {endpoint.url}</p>
 							{/each}
-						</dl>
+						</div>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}

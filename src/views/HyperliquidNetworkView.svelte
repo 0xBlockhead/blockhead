@@ -72,7 +72,28 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-			{#if open}<ResourceBoundary resource={network}>{#snippet children(network)}<div><dt>Environment</dt><dd>{network.environment}</dd></div>{#if network.$networkStack != null}<div><dt>Stack</dt><dd><NetworkStackView entityId={network.$networkStack[EntityMetaKey.Id]} layout={EntityLayout.Value} /></dd></div>{/if}{/snippet}</ResourceBoundary>{/if}
+			<ResourceBoundary resource={network}>
+				{#snippet children(network)}
+					{#if open}
+						<div>
+							<dt>Environment</dt>
+							<dd>{network.environment}</dd>
+						</div>
+					{/if}
+
+					{#if open && network.$networkStack != null}
+						<div>
+							<dt>Stack</dt>
+							<dd>
+								<NetworkStackView
+									entityId={network.$networkStack[EntityMetaKey.Id]}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 	{#snippet Details()}
@@ -89,8 +110,8 @@
 			>
 				{#snippet Summary()}<header data-row-item="flexible" data-row="wrap gap-4"><HeadingComponent>Execution</HeadingComponent></header>{/snippet}
 				{#snippet SectionHyperliquidBlocks()}<ResourceBoundary resource={network} placeholderText="Loading head block…">{#snippet children(network)}<span data-text="muted">Latest head data is modeled by the dedicated block entity.</span>{/snippet}</ResourceBoundary>{/snippet}
-				{#snippet SectionHyperliquidExecution()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl>{#if network.$$executionEnvironments.length > 0}<div><dt>Execution</dt><dd>{network.$$executionEnvironments.map((environment) => environment.label).join(', ')}</dd></div>{/if}{#if network.$$nativeAssets.length > 0}<div><dt>Native asset</dt><dd>{network.$$nativeAssets.map((asset) => asset.symbol).join(', ')}</dd></div>{/if}</dl>{/snippet}</ResourceBoundary>{/snippet}
-				{#snippet SectionHyperliquidConsensus()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl>{#if network.$$consensusMechanisms.length > 0}<div><dt>Consensus</dt><dd>{network.$$consensusMechanisms.map((mechanism) => mechanism.label).join(', ')}</dd></div>{/if}</dl>{/snippet}</ResourceBoundary>{/snippet}
+				{#snippet SectionHyperliquidExecution()}<ResourceBoundary resource={network}>{#snippet children(network)}<div>{#if network.$$executionEnvironments.length > 0}<p><strong>Execution:</strong> {network.$$executionEnvironments.map((environment) => environment.label).join(', ')}</p>{/if}{#if network.$$nativeAssets.length > 0}<p><strong>Native asset:</strong> {network.$$nativeAssets.map((asset) => asset.symbol).join(', ')}</p>{/if}</div>{/snippet}</ResourceBoundary>{/snippet}
+				{#snippet SectionHyperliquidConsensus()}<ResourceBoundary resource={network}>{#snippet children(network)}<div>{#if network.$$consensusMechanisms.length > 0}<p><strong>Consensus:</strong> {network.$$consensusMechanisms.map((mechanism) => mechanism.label).join(', ')}</p>{/if}</div>{/snippet}</ResourceBoundary>{/snippet}
 		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

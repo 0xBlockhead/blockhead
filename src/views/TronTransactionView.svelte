@@ -108,14 +108,14 @@
 
 					{#if transaction.amountSun != null}
 						<div>
-							<dt>Amount (SUN)</dt>
+							<dt>Amount</dt>
 							<dd><NumberValue value={transaction.amountSun} /></dd>
 						</div>
 					{/if}
 
 					{#if transaction.feeSun != null}
 						<div>
-							<dt>Fee (SUN)</dt>
+							<dt>Fee</dt>
 							<dd><NumberValue value={transaction.feeSun} /></dd>
 						</div>
 					{/if}

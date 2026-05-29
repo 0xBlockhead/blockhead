@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -25,7 +25,7 @@
 		href = resolve(
 			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]',
 			{
-				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+				...caip2RouteParamsFromNetworkId(entityId.$network),
 				blockNumber: String(entityId.blockNumber),
 			},
 		),
@@ -225,7 +225,7 @@
 
 			{#if open}
 				<div>
-					<dt>Base fee (EIP‑1559)</dt>
+					<dt>Base fee</dt>
 					<dd>
 						<ResourceBoundary
 							resource={block}
@@ -243,7 +243,7 @@
 
 			{#if open}
 				<div>
-					<dt>Blob gas used (EIP‑4844)</dt>
+					<dt>Blob gas used</dt>
 					<dd>
 						<ResourceBoundary
 							resource={block}
@@ -289,7 +289,7 @@
 								{#if block.$parent}
 									<EvmBlockView
 										entityId={block.$parent[EntityMetaKey.Id]}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								{/if}
@@ -368,7 +368,7 @@
 							{#if block.$parent}
 								<EvmBlockView
 									entityId={block.$parent[EntityMetaKey.Id]}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 								/>
 							{/if}
 						{/snippet}
@@ -381,7 +381,7 @@
 						href={resolve(
 						'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/transactions',
 						{
-							...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+							...caip2RouteParamsFromNetworkId(entityId.$network),
 							blockNumber: String(entityId.blockNumber),
 						},
 					)}

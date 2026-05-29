@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { evmChainIdFromCaip2RouteParams } from '$/lib/caip.ts'
+	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -34,7 +34,7 @@
 		)}
 		entityFieldReference={{
 			entityType: EntityType.EvmNetwork,
-			entityId: { chainId: evmChainIdFromCaip2RouteParams(params) },
+			entityId: networkIdFromCaip2RouteParams(params),
 			fieldName: '$$transactions',
 		}}
 		id="transactions"

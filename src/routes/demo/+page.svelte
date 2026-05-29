@@ -1,7 +1,13 @@
 <script lang="ts">
 	// Context
-	import { resolve } from '$app/paths';
+	import { resolve } from '$app/paths'
 </script>
 
 
-<a href={resolve('/demo/playwright')}>playwright</a>
+<main data-column>
+	<section data-card>
+		<h1>Demo</h1>
+
+		<a href={resolve('/demo/playwright')}>Playwright</a>
+	</section>
+</main>

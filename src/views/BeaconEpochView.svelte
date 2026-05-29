@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 	import type { ComponentProps, Snippet } from 'svelte'
 	import BeaconEpochSchema from '$/schema/BeaconEpoch.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -19,7 +19,7 @@
 		href = resolve(
 			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(beacon-epochs)/epoch/[epochNumber]',
 			{
-				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+				...caip2RouteParamsFromNetworkId(entityId.$network),
 				epochNumber: String(entityId.epoch),
 			},
 		),
@@ -109,12 +109,7 @@
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
 			<span>Epoch </span>
-			<span
-				data-badge="small"
-				data-epoch-number={String(entityId.epoch)}
-			>
-				{String(entityId.epoch)}
-			</span>
+			{@render Value()}
 		</span>
 	{/snippet}
 

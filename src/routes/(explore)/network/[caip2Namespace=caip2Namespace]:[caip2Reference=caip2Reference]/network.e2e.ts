@@ -96,19 +96,35 @@ test.describe('/network/[caip2Namespace]:[caip2Reference]', () => {
 		await step(expect(page.locator('.network-view-collapsible-economics [data-scroll-marker-label="MEV-Boost"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-erc-4337')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-erc-4337 [data-scroll-marker-label="Smart accounts"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-erc-4337 [data-scroll-marker-label="Bundlers"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-erc-4337 [data-scroll-marker-label="Paymasters"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-erc-4337 [data-scroll-marker-label="User operations"]')).toBeAttached(scrollAttach))
+		await step(expect(page.locator('.network-view-collapsible-erc-4337 [data-scroll-marker-label="Factories"]')).toBeAttached(scrollAttach))
 
-		const smartAccountsSection = page.locator('[id$=":aa-smart-accounts-list"]')
-		const userOperationsSection = page.locator('[id$=":aa-user-operations-list"]')
+		const smartAccountsSection = page.locator('[id$=":erc-4337-smart-accounts-list"]')
+		const bundlersSection = page.locator('[id$=":erc-4337-bundlers-list"]')
+		const paymastersSection = page.locator('[id$=":erc-4337-paymasters-list"]')
+		const userOperationsSection = page.locator('[id$=":erc-4337-user-operations-list"]')
+		const factoriesSection = page.locator('[id$=":erc-4337-factories-list"]')
 		await step(expect(
 			smartAccountsSection.locator('a[href*="/erc-4337/smart-account/"]')
 				.or(smartAccountsSection.locator('p[data-text="muted"]'))
-				.or(smartAccountsSection.locator('[data-card] p')),
+		).toBeAttached({ timeout: 120_000 }))
+		await step(expect(
+			bundlersSection.locator('a[href*="/erc-4337/bundler/"]')
+				.or(bundlersSection.locator('p[data-text="muted"]'))
+		).toBeAttached({ timeout: 120_000 }))
+		await step(expect(
+			paymastersSection.locator('a[href*="/erc-4337/paymaster/"]')
+				.or(paymastersSection.locator('p[data-text="muted"]'))
 		).toBeAttached({ timeout: 120_000 }))
 		await step(expect(
 			userOperationsSection.locator('a[href*="/user-operation/"]')
 				.or(userOperationsSection.locator('p[data-text="muted"]'))
-				.or(userOperationsSection.locator('[data-card] p')),
+		).toBeAttached({ timeout: 120_000 }))
+		await step(expect(
+			factoriesSection.locator('a[href*="/erc-4337/account-factory/"]')
+				.or(factoriesSection.locator('p[data-text="muted"]'))
 		).toBeAttached({ timeout: 120_000 }))
 		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Upgrades"]')).toBeAttached(scrollAttach))
 		await step(expect(page.locator('.network-view-collapsible-consensus [data-scroll-marker-label="Finality"]')).toBeAttached(scrollAttach))

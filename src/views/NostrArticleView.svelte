@@ -76,6 +76,7 @@
 	import Markdown from '$/components/Markdown.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -90,6 +91,19 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Icon()}
+		<ResourceBoundary resource={article}>
+			{#snippet children(article)}
+				{#if article.imageUrl}
+					<IconComponent
+						src={article.imageUrl}
+						alt={article.title ?? entityId.identifier}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Value()}
 		<TruncatedValue
 			value={entityId.identifier}
@@ -139,14 +153,16 @@
 			placeholderText="Loading article…"
 		>
 			{#snippet children(article)}
-				<dl data-column-item="center">
-					{#if article.summary}
-						<div>
-							<dt>Summary</dt>
-							<dd>{article.summary}</dd>
-						</div>
-					{/if}
+				{#if article.summary}
+					<p>
+						<TruncatedValue
+							value={article.summary}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
 
+				<dl data-column-item="center">
 					{#if open && article.$author}
 						<div>
 							<dt>Author</dt>

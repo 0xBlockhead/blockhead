@@ -14,6 +14,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { evmChainIdFromNetworkId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
 
 
@@ -124,16 +125,43 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<span>
-			{(
-				entityId.feedKey != null && entityId.feedKey !== '' ?
-					entityId.feedKey
-				: entityId.$network != null ?
-					`Chain ${String(entityId.$network.chainId)}`
-				:
-					'Quote stream'
-			)}
-		</span>
+		<ResourceBoundary
+			resource={marketPrice}
+			placeholderText="Loading quotes…"
+		>
+			{#snippet children(marketPrice)}
+				{@const headQuoteId = (
+					(marketPrice.$$quotes ?? [])
+						.toSorted((
+							leftQuote,
+							rightQuote,
+						) => (
+							rightQuote[EntityMetaKey.Id].timestampMs
+								- leftQuote[EntityMetaKey.Id].timestampMs
+						))[0]
+						?.[EntityMetaKey.Id]
+				)}
+				{#if headQuoteId}
+					<Market_TimestampView
+						entityId={headQuoteId}
+						layout={EntityLayout.Value}
+						open={false}
+						showTypeAnnotation={false}
+					/>
+				{:else}
+					<span>
+						{(
+							entityId.feedKey != null && entityId.feedKey !== '' ?
+								entityId.feedKey
+							: entityId.$network != null ?
+								`Chain ${String(evmChainIdFromNetworkId(entityId.$network))}`
+							:
+								'Quote stream'
+						)}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Title()}
@@ -164,7 +192,7 @@
 							{#if headQuoteId}
 								<Market_TimestampView
 									entityId={headQuoteId}
-									layout={EntityLayout.Summary}
+									layout={EntityLayout.Value}
 									open={false}
 									showTypeAnnotation={false}
 								/>

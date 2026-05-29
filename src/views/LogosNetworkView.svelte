@@ -48,8 +48,8 @@
 		<CollapsibleTabs id={`${networkIdKey}:carousel-logos`} sectionIdPrefix={networkIdKey} sections={[{ id: 'logos-zones', label: 'Zones' }, { id: 'logos-execution', label: 'Execution' }, { id: 'logos-consensus', label: 'Consensus' }]} data-card scrollContainerProps={{ 'data-row': 'start align-start' }}>
 			{#snippet Summary()}<header data-row-item="flexible" data-row="wrap gap-4"><HeadingComponent>Topology</HeadingComponent></header>{/snippet}
 			{#snippet SectionLogosZones()}<LogosZoneView entityId={{ $network: entityId, zoneId: 'logos-stack' }} layout={EntityLayout.SummaryDetails} />{/snippet}
-			{#snippet SectionLogosExecution()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl>{#if network.$$executionEnvironments.length > 0}<div><dt>Execution</dt><dd>{network.$$executionEnvironments.map((environment) => environment.label).join(', ')}</dd></div>{/if}<div><dt>Environment</dt><dd>{network.environment}</dd></div></dl>{/snippet}</ResourceBoundary>{/snippet}
-			{#snippet SectionLogosConsensus()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl>{#if network.$$consensusMechanisms.length > 0}<div><dt>Consensus</dt><dd>{network.$$consensusMechanisms.map((mechanism) => mechanism.label).join(', ')}</dd></div>{/if}</dl>{/snippet}</ResourceBoundary>{/snippet}
+			{#snippet SectionLogosExecution()}<ResourceBoundary resource={network}>{#snippet children(network)}<div>{#if network.$$executionEnvironments.length > 0}<p><strong>Execution:</strong> {network.$$executionEnvironments.map((environment) => environment.label).join(', ')}</p>{/if}<p><strong>Environment:</strong> {network.environment}</p></div>{/snippet}</ResourceBoundary>{/snippet}
+			{#snippet SectionLogosConsensus()}<ResourceBoundary resource={network}>{#snippet children(network)}<div>{#if network.$$consensusMechanisms.length > 0}<p><strong>Consensus:</strong> {network.$$consensusMechanisms.map((mechanism) => mechanism.label).join(', ')}</p>{/if}</div>{/snippet}</ResourceBoundary>{/snippet}
 		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

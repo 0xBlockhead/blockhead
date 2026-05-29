@@ -1,4 +1,8 @@
 <script lang="ts">
+	// Types/constants
+	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
+
+
 	// State
 	let {
 		params,
@@ -17,11 +21,11 @@
 	<BridgeTransactionView
 		entityId={{
 			$account: {
-				$network: { chainId },
+				$network: networkIdFromEvmChainId(chainId),
 				address: params.address as `0x${string}`,
 			},
 			$sourceTx: {
-				$network: { chainId },
+				$network: networkIdFromEvmChainId(chainId),
 				txHash: params.sourceTxHash as `0x${string}`,
 			},
 			createdAt: Number(params.createdAt),

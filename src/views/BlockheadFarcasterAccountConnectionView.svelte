@@ -125,6 +125,9 @@
 		<p>
 			Profile fields hydrate from Neynar or Snapchain; they are not on-chain identity records.
 		</p>
+		<p>
+			Binds a Farcaster signer to a numeric FID so hub APIs can load custody, verifications, and casts for that identity. This is social-graph state, not wallet session keys, automated trading bots, or IPFS storage.
+		</p>
 	{/snippet}
 
 	{#snippet Icon()}
@@ -167,34 +170,28 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl data-column-item="center">
-			<div>
-				<dt>Link role</dt>
-				<dd data-text="muted">
-					Binds a Farcaster signer to a numeric FID so hub APIs can load custody, verifications, and casts for that identity. This is social-graph state—not wallet session keys, automated trading bots, or IPFS storage.
-				</dd>
-			</div>
-			{#if open}
-				<div>
-					<dt>Bio</dt>
-					<dd>
-						<ResourceBoundary
-							resource={connection}
-							placeholderText="Loading profile…"
-						>
-							{#snippet Pending()}{/snippet}
-							{#snippet children(connection)}
-								{#if connection.bio != null && connection.bio !== ''}
-									{connection.bio}
-								{:else}
-									<span data-text="muted">No profile bio is set.</span>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+		{#if open}
+			<ResourceBoundary
+				resource={connection}
+				placeholderText="Loading profile…"
+			>
+				{#snippet Pending()}{/snippet}
+				{#snippet children(connection)}
+					<p>
+						{#if connection.bio != null && connection.bio !== ''}
+							<TruncatedValue
+								value={connection.bio}
+								format={TruncatedValueFormat.Visual}
+							/>
+						{:else}
+							<span data-text="muted">No profile bio is set.</span>
+						{/if}
+					</p>
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 
+		<dl data-column-item="center">
 			{#if (
 				open
 				&& connection.custody
@@ -223,7 +220,7 @@
 				&& connection.signedAt !== undefined
 			)}
 				<div>
-					<dt>Signed in</dt>
+						<dt>Signed at</dt>
 					<dd>
 						<ResourceBoundary
 							resource={connection}

@@ -667,11 +667,7 @@ const getBlockscoutErc4337TopRegistryList = async ({
 		},
 	})
 	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
-	const items = raw.items ?? []
-	if (items.length === 0) {
-		throw new Error(`Blockscout GET ${relativePath}: empty registry page`)
-	}
-	return items
+	return raw.items ?? []
 }
 
 const getBlockscoutErc4337RegistryDetail = async ({
@@ -711,11 +707,7 @@ export const getBlockscoutUserOperationsPage = async ({
 		},
 	})
 	assertBlockscoutWireNoErrorPayload(raw, `Blockscout GET ${relativePath}`)
-	const items = raw.items ?? []
-	if (items.length === 0) {
-		throw new Error(`Blockscout GET ${relativePath}: empty user operations page`)
-	}
-	return items
+	return raw.items ?? []
 }
 
 export const getBlockscoutUserOperationsByTransaction = async ({

@@ -93,7 +93,7 @@
 		useEntity(
 			EntityType.ActorNetwork,
 			{
-				$network: { chainId },
+				$network: networkIdFromEvmChainId(chainId),
 				$actor: entityId,
 			},
 			open ?
@@ -352,7 +352,7 @@
 					<dd>
 						<EvmContractView
 							entityId={{
-								$network: { chainId: firstContractChainId },
+								$network: networkIdFromEvmChainId(firstContractChainId),
 								address: entityId.address,
 							}}
 							layout={EntityLayout.SummaryDetails}

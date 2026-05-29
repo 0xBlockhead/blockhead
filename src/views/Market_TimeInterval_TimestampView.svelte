@@ -111,9 +111,24 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>
-			interval start (candle boundary)
-		</span>
+		<ResourceBoundary
+			resource={marketTimeIntervalTimestamp}
+			placeholderText="Loading OHLC candle…"
+		>
+			{#snippet children(marketTimeIntervalTimestamp)}
+				{#if marketTimeIntervalTimestamp.close !== undefined}
+					<CurrencyAmount
+						currency={quoteCurrency}
+						showDecimalPlaces={6}
+						value={marketTimeIntervalTimestamp.close}
+					/>
+				{:else}
+					<Timestamp
+						timestamp={entityId.timestampMs}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Title()}
@@ -121,7 +136,7 @@
 	{/snippet}
 
 	{#snippet Heading()}
-		{`${timeIntervalLabel} OHLC`}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -245,4 +260,3 @@
 	{#snippet Details({ open: _detailsOpen })}
 	{/snippet}
 </EntityView>
-

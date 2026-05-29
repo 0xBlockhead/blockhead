@@ -7,6 +7,13 @@ export const caip2FromEvmChainId = (chainId: number) => (
 	`eip155:${chainId}`
 )
 
+export const networkIdFromEvmChainId = (chainId: number) => ({
+	caip2: {
+		namespace: 'eip155',
+		reference: String(chainId),
+	},
+})
+
 export const caip2RouteParams = (networkId: {
 	caip2: {
 		namespace: string
@@ -20,6 +27,16 @@ export const caip2RouteParams = (networkId: {
 export const caip2RouteParamsFromEvmChainId = (chainId: number) => ({
 	caip2Namespace: 'eip155',
 	caip2Reference: `${chainId}`,
+})
+
+export const caip2RouteParamsFromNetworkId = (networkId: {
+	caip2: {
+		namespace: string
+		reference: string
+	}
+}) => ({
+	caip2Namespace: networkId.caip2.namespace,
+	caip2Reference: networkId.caip2.reference,
 })
 
 export const caip2FromRouteParams = (params: {
@@ -73,3 +90,10 @@ export const evmChainIdFromCaip2RouteParams = (params: {
 	caip2Namespace: string
 	caip2Reference: string
 }) => evmChainIdFromCaip2(caip2FromRouteParams(params))
+
+export const evmChainIdFromNetworkId = (networkId: {
+	caip2: {
+		namespace: string
+		reference: string
+	}
+}) => evmChainIdFromCaip2(caip2Key(networkId.caip2))

@@ -69,6 +69,7 @@
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import RedditLinksView from '$/views/RedditLinksView.svelte'
 </script>
@@ -135,14 +136,16 @@
 			placeholderText="Loading subreddit…"
 		>
 			{#snippet children(subreddit)}
-				<dl data-column-item="center">
-					{#if subreddit.publicDescription}
-						<div>
-							<dt>Description</dt>
-							<dd>{subreddit.publicDescription}</dd>
-						</div>
-					{/if}
+				{#if subreddit.publicDescription}
+					<p>
+						<TruncatedValue
+							value={subreddit.publicDescription}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
 
+				<dl data-column-item="center">
 					{#if subreddit.subscriberCount != null}
 						<div>
 							<dt>Subscribers</dt>

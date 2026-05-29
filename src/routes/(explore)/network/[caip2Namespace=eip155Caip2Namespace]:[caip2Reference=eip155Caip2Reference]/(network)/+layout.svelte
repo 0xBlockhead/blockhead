@@ -16,6 +16,7 @@
 	import {
 		caip2FromRouteParams,
 		evmChainIdFromCaip2RouteParams,
+		networkIdFromCaip2RouteParams,
 	} from '$/lib/caip.ts'
 
 	const chainId = $derived(
@@ -33,7 +34,7 @@
 {#key caip2FromRouteParams(params)}
 	<ParentPageCollapsible
 		href={resolve('/(explore)/network/[caip2Namespace]:[caip2Reference]', params)}
-		id={stringify({ chainId })}
+		id={stringify(networkIdFromCaip2RouteParams(params))}
 	>
 		{#snippet Summary({ open: _open })}
 			<EvmNetworkView

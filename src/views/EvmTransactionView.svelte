@@ -1,7 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import {
+		caip2RouteParamsFromNetworkId,
+		evmChainIdFromNetworkId,
+	} from '$/lib/caip.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -29,7 +32,7 @@
 		href = resolve(
 			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 			{
-				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+				...caip2RouteParamsFromNetworkId(entityId.$network),
 				transactionId: entityId.txHash,
 			},
 		),
@@ -192,7 +195,7 @@
 							{#if transaction.$block?.[EntityMetaKey.Id].blockNumber !== undefined}
 								<EvmBlockView
 									entityId={transaction.$block[EntityMetaKey.Id]}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}
@@ -208,7 +211,7 @@
 										$network: entityId.$network,
 										$actor: transaction.$from[EntityMetaKey.Id],
 									}}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}
@@ -224,7 +227,7 @@
 										$network: entityId.$network,
 										$actor: transaction.$to[EntityMetaKey.Id],
 									}}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}
@@ -280,7 +283,7 @@
 
 					{#if contentOpen}
 						<div>
-							<dt>Gas price (legacy type 0/1)</dt>
+							<dt>Gas price</dt>
 							<dd>
 								{#if transaction.gasPrice !== undefined}
 									<NumberValue value={transaction.gasPrice} />
@@ -302,7 +305,7 @@
 
 					{#if contentOpen}
 						<div>
-							<dt>EIP-1559 max fee / priority</dt>
+							<dt>Max fee / priority fee</dt>
 							<dd data-row="wrap align-center gap-2">
 								{#if (
 									(
@@ -347,7 +350,7 @@
 
 					{#if contentOpen}
 						<div>
-							<dt>Effective gas price paid (base + tip after inclusion)</dt>
+							<dt>Effective gas price</dt>
 							<dd>
 								{#if transaction.effectiveGasPrice !== undefined}
 									<NumberValue value={transaction.effectiveGasPrice} />
@@ -452,7 +455,7 @@
 						href={resolve(
 							'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 							{
-								...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+								...caip2RouteParamsFromNetworkId(entityId.$network),
 								transactionId: entityId.txHash,
 							},
 						)}
@@ -490,7 +493,7 @@
 							{#if trace.traceRoot != null}
 								<EvmTraceTreeView
 									traceRoot={trace.traceRoot}
-									chainId={entityId.$network.chainId}
+									chainId={evmChainIdFromNetworkId(entityId.$network)}
 								/>
 							{:else if trace.traceUnavailable}
 								<p data-text="muted">
@@ -520,7 +523,7 @@
 									href={resolve(
 										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 										{
-											...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+											...caip2RouteParamsFromNetworkId(entityId.$network),
 											transactionId: entityId.txHash,
 										},
 									)}

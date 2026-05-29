@@ -109,27 +109,24 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
-		<dl data-column-item="center">
-			{#if (
-				open
-				&& relay.description
-			)}
-				<div>
-					<dt>Description</dt>
-					<dd>
-						<ResourceBoundary
-							resource={relay}
-							placeholderText="Loading relay…"
-						>
-							{#snippet children(relay)}
-								{relay.description}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+		<ResourceBoundary
+			resource={relay}
+			placeholderText="Loading relay…"
+		>
+			{#snippet children(relay)}
+				{#if open && relay.description}
+					<p>
+						<TruncatedValue
+							value={relay.description}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 
-			{#if (
+		<dl data-column-item="center">
+				{#if (
 				open
 				&& relay.software
 			)}

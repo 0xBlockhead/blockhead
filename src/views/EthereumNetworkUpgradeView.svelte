@@ -1,6 +1,9 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import {
+		caip2RouteParamsFromNetworkId,
+		evmChainIdFromNetworkId,
+	} from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -24,7 +27,7 @@
 		href = resolve(
 			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(upgrades)/upgrade/[upgradeSlug]',
 			{
-				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+				...caip2RouteParamsFromNetworkId(entityId.$network),
 				upgradeSlug: entityId.upgradeId,
 			},
 		),
@@ -137,7 +140,7 @@
 							<dd>
 								<EvmBlockView
 									entityId={{
-										$network: { chainId: entityId.$network.chainId },
+										$network: networkIdFromEvmChainId(evmChainIdFromNetworkId(entityId.$network)),
 										blockNumber: networkUpgrade.activationBlock,
 									}}
 									layout={EntityLayout.Value}

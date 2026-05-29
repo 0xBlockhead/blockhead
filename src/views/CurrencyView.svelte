@@ -123,7 +123,7 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			<div>
-				<dt>FX turnover weight (USD)</dt>
+				<dt>FX turnover weight</dt>
 				<dd>
 					<ResourceBoundary
 						resource={currency}

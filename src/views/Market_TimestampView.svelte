@@ -91,9 +91,27 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<Timestamp
-			timestamp={entityId.timestampMs}
-		/>
+		<ResourceBoundary
+			placeholderText="Loading quote…"
+			resource={marketTimestamp}
+		>
+			{#snippet children(marketTimestamp)}
+				{#if marketTimestamp.price !== undefined}
+					<CurrencyAmount
+						currency={entityId.$market.$quote.kind === MarketAssetKind.Currency ?
+							entityId.$market.$quote.$currency.iso4217
+						:
+							Iso4217.USD}
+						showDecimalPlaces={6}
+						value={marketTimestamp.price}
+					/>
+				{:else}
+					<Timestamp
+						timestamp={entityId.timestampMs}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Title()}
@@ -128,7 +146,7 @@
 				<dl data-column-item="center">
 					{#if marketTimestamp.price !== undefined}
 						<div>
-							<dt>Last quote ({quoteCurrency})</dt>
+							<dt>Price</dt>
 							<dd>
 								<CurrencyAmount
 									currency={quoteCurrency}

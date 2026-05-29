@@ -229,18 +229,7 @@
 			<Heading {...HeadingProps}>
 				<a {href}>{title}</a>
 				{#if showCounts}
-					<small>(
-						{#if count !== undefined}
-							<NumberValue value={count} />
-						{/if}
-						{#if showTotalCount}
-							/
-							<NumberValue value={totalCount!} />
-						{/if}
-						{#if count === undefined && totalCount !== undefined}
-							<NumberValue value={totalCount} />
-						{/if}
-					)</small>
+					<small>({#if count !== undefined}<NumberValue value={count} />{/if}{#if showTotalCount}/<NumberValue value={totalCount!} />{/if}{#if count === undefined && totalCount !== undefined}<NumberValue value={totalCount} />{/if})</small>
 				{/if}
 			</Heading>
 		</header>

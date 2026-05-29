@@ -1,4 +1,8 @@
 <script lang="ts">
+	// Types/constants
+	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
+
+
 	// State
 	let {
 		params,
@@ -13,7 +17,7 @@
 <Page>
 	<LeverageView
 		entityId={{
-			$network: { chainId: 1 },
+			$network: networkIdFromEvmChainId(1),
 			id: params.positionId,
 		}}
 	/>

@@ -7,6 +7,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { evmChainIdFromNetworkId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
 
 
@@ -20,7 +21,7 @@
 		href = resolve(
 			'/~/(accounts)/accounts/(balances)/balance/[chainId]/[owner]/[coin]',
 			{
-				chainId: String(entityId.$coinInstance.$network.chainId),
+				chainId: String(evmChainIdFromNetworkId(entityId.$coinInstance.$network)),
 				owner: entityId.$actor.address,
 				coin: (
 					entityId.$coinInstance.type === CoinInstanceType.Erc20Token ?
@@ -119,7 +120,7 @@
 	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
 		<dl data-column-item="center">
 			<div>
-				<dt>Wallet · chain</dt>
+				<dt>Account</dt>
 				<dd>
 					<ActorNetworkView
 						entityId={{
@@ -151,7 +152,7 @@
 
 			{#if contentOpen}
 				<div>
-					<dt>Balance (raw)</dt>
+					<dt>Balance</dt>
 					<dd>
 						<ResourceBoundary
 							resource={actorCoin}
@@ -169,7 +170,7 @@
 
 			{#if contentOpen}
 				<div>
-					<dt>USD (estimate)</dt>
+					<dt>USD value</dt>
 					<dd>
 						<ResourceBoundary
 							resource={actorCoin}

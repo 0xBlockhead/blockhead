@@ -7,6 +7,7 @@
 	import { blockheadWalletConnectionStatusByStatus } from '$/constants/Blockhead.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
 
 
@@ -144,7 +145,7 @@
 						{#if chainId !== null}
 							<ActorNetworkView
 								entityId={{
-									$network: { chainId },
+									$network: networkIdFromEvmChainId(chainId),
 									$actor: {
 										address: accounts[0],
 									},
@@ -175,29 +176,31 @@
 				</div>
 				{/if}
 
-				{#if open}
-				<ResourceBoundary
-					resource={walletConnection}
-					placeholderText="Loading wallet connection…"
-				>
-					{#snippet children(walletConnection)}
-						<div>
-							<dt>Selected</dt>
-							<dd>{walletConnection.selected ? 'Yes' : 'No'}</dd>
-						</div>
+					<ResourceBoundary
+						resource={walletConnection}
+						placeholderText="Loading wallet connection…"
+					>
+						{#snippet children(walletConnection)}
+							{#if open}
+								<div>
+									<dt>Selected</dt>
+									<dd>{walletConnection.selected ? 'Yes' : 'No'}</dd>
+								</div>
+							{/if}
 
-						<div>
-							<dt>Connected at</dt>
-							<dd>
-								<Timestamp
-									timestamp={walletConnection.connectedAt}
-								/>
-							</dd>
-						</div>
-					{/snippet}
-				</ResourceBoundary>
-				{/if}
-			</dl>
+							{#if open}
+								<div>
+									<dt>Connected at</dt>
+									<dd>
+										<Timestamp
+											timestamp={walletConnection.connectedAt}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dl>
 		</div>
 	{/snippet}
 
@@ -240,7 +243,7 @@
 									{#if chainId !== null}
 										<ActorNetworkView
 											entityId={{
-												$network: { chainId },
+												$network: networkIdFromEvmChainId(chainId),
 												$actor: { address },
 											}}
 										/>

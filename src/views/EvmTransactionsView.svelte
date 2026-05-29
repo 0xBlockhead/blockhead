@@ -7,7 +7,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
@@ -152,7 +152,7 @@
 							href={resolve(
 								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]/(block)/(transactions)/tx/[transactionId]',
 								{
-										...caip2RouteParamsFromEvmChainId(entityFieldReference.entityId.$network.chainId),
+										...caip2RouteParamsFromNetworkId(entityFieldReference.entityId.$network),
 										blockNumber: String(
 											entityFieldReference.entityId.blockNumber,
 										),

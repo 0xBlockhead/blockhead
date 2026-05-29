@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -22,7 +22,7 @@
 		href = resolve(
 			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/bridge/[bridgeId]',
 			{
-				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+				...caip2RouteParamsFromNetworkId(entityId.$network),
 				bridgeId: entityId.bridgeId,
 			},
 		),
@@ -94,19 +94,19 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			<div>
-				<dt>From (execution-layer chain)</dt>
+				<dt>From</dt>
 				<dd>
 					Chain {String(entityId.$fromNetwork.chainId)}
 				</dd>
 			</div>
 			<div>
-				<dt>To (execution-layer chain)</dt>
+				<dt>To</dt>
 				<dd>
 					Chain {String(entityId.$toNetwork.chainId)}
 				</dd>
 			</div>
 			<div>
-				<dt>Bridge endpoint (catalog URL)</dt>
+				<dt>URL</dt>
 				<dd>
 					<a
 						href={entityId.url}

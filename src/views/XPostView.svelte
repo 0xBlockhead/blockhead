@@ -150,6 +150,24 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
+		{#if contentOpen}
+			<ResourceBoundary
+				resource={post}
+				placeholderText="Loading X post…"
+			>
+				{#snippet children(post)}
+					{#if post.text}
+						<p>
+							<TruncatedValue
+								value={post.text}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</p>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+
 		<dl data-column-item="center">
 			<div>
 				<dt>Author</dt>
@@ -162,7 +180,7 @@
 							{#if post.$author}
 								<XUserView
 									entityId={post.$author[EntityMetaKey.Id]}
-									layout={EntityLayout.Title}
+									layout={EntityLayout.Value}
 									open={false}
 								/>
 							{/if}
@@ -172,22 +190,6 @@
 			</div>
 
 			{#if contentOpen}
-				<div>
-					<dt>Text</dt>
-					<dd>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading X post…"
-						>
-							{#snippet children(post)}
-								{#if post.text}
-									{post.text}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
 				<div>
 					<dt>Likes</dt>
 					<dd>
@@ -271,7 +273,7 @@
 								{#if post.$replyToPost}
 									<XPostView
 										entityId={post.$replyToPost[EntityMetaKey.Id]}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								{/if}
@@ -291,7 +293,7 @@
 								{#if post.$quotedPost}
 									<XPostView
 										entityId={post.$quotedPost[EntityMetaKey.Id]}
-										layout={EntityLayout.Title}
+										layout={EntityLayout.Value}
 										open={false}
 									/>
 								{/if}
@@ -379,30 +381,26 @@
 							placeholderText="Loading X post…"
 						>
 							{#snippet children(post)}
-								<dl data-column-item="center">
+								<div>
 									{#if post.$replyToPost}
 										<div>
-											<dt>Reply to</dt>
-											<dd>
-												<XPostView
-													entityId={post.$replyToPost[EntityMetaKey.Id]}
-													layout={EntityLayout.Title}
-													open={false}
-												/>
-											</dd>
+											<strong>Reply to:</strong>
+											<XPostView
+												entityId={post.$replyToPost[EntityMetaKey.Id]}
+												layout={EntityLayout.Value}
+												open={false}
+											/>
 										</div>
 									{/if}
 
 									{#if post.$quotedPost}
 										<div>
-											<dt>Quoted post</dt>
-											<dd>
-												<XPostView
-													entityId={post.$quotedPost[EntityMetaKey.Id]}
-													layout={EntityLayout.Title}
-													open={false}
-												/>
-											</dd>
+											<strong>Quoted post:</strong>
+											<XPostView
+												entityId={post.$quotedPost[EntityMetaKey.Id]}
+												layout={EntityLayout.Value}
+												open={false}
+											/>
 										</div>
 									{/if}
 
@@ -414,7 +412,7 @@
 											No reply or quote references on this post.
 										</p>
 									{/if}
-								</dl>
+								</div>
 							{/snippet}
 						</ResourceBoundary>
 					{/if}

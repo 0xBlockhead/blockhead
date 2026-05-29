@@ -155,14 +155,16 @@
 			resource={lensPost}
 		>
 			{#snippet children(lensPost)}
-				<dl data-column-item="center">
-					{#if lensPost.text != null && lensPost.text !== ''}
-						<div>
-							<dt>Publication</dt>
-							<dd>{lensPost.text}</dd>
-						</div>
-					{/if}
+				{#if lensPost.text != null && lensPost.text !== ''}
+					<p>
+						<TruncatedValue
+							value={lensPost.text}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
 
+				<dl data-column-item="center">
 					{#if lensPost.timestamp != null}
 						<div>
 							<dt>Published</dt>

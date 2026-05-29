@@ -86,9 +86,11 @@
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import YouTubeChannelView from '$/views/YouTubeChannelView.svelte'
 	import YouTubeCommentsView from '$/views/YouTubeCommentsView.svelte'
 </script>
@@ -102,6 +104,19 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Icon()}
+		<ResourceBoundary resource={video}>
+			{#snippet children(video)}
+				{#if video.thumbnailUrl}
+					<IconComponent
+						src={video.thumbnailUrl}
+						alt={video.title ?? entityId.videoId}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Value()}
 		<span>
 			{entityId.videoId}
@@ -129,22 +144,23 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
+		<ResourceBoundary
+			resource={video}
+			placeholderText="Loading video…"
+		>
+			{#snippet children(video)}
+				{#if video.description}
+					<p>
+						<TruncatedValue
+							value={video.description}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+
 		<dl data-column-item="center">
-			<div>
-				<dt>Description</dt>
-				<dd>
-					<ResourceBoundary
-						resource={video}
-						placeholderText="Loading video…"
-					>
-						{#snippet children(video)}
-							{#if video.description}
-								{video.description}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
 			{#if open}
 				<div>
 					<dt>Views</dt>

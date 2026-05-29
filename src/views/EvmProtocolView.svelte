@@ -128,39 +128,45 @@
 							<dt>Topics</dt>
 							<dd>{String(protocol.$$evmTopics?.length ?? 0)}</dd>
 						</div>
+					{/if}
+
+					{#if open}
 						<div>
 							<dt>Selectors</dt>
 							<dd>{String(protocol.$$evmSelectors?.length ?? 0)}</dd>
 						</div>
+					{/if}
+
+					{#if open}
 						<div>
 							<dt>Errors</dt>
 							<dd>{String(protocol.$$evmErrors?.length ?? 0)}</dd>
 						</div>
+					{/if}
 
-						{#if protocol.homeUrl}
-							<div>
-								<dt>Home</dt>
-								<dd>
-									<a href={protocol.homeUrl}>{protocol.homeUrl}</a>
-								</dd>
-							</div>
-						{/if}
+					{#if open && protocol.homeUrl}
+						<div>
+							<dt>Home</dt>
+							<dd>
+								<a href={protocol.homeUrl}>{protocol.homeUrl}</a>
+							</dd>
+						</div>
+					{/if}
 
-						{#if protocol.docsUrl}
-							<div>
-								<dt>Docs</dt>
-								<dd>
-									<a href={protocol.docsUrl}>{protocol.docsUrl}</a>
-								</dd>
-							</div>
-						{/if}
+					{#if open && protocol.docsUrl}
+						<div>
+							<dt>Docs</dt>
+							<dd>
+								<a href={protocol.docsUrl}>{protocol.docsUrl}</a>
+							</dd>
+						</div>
+					{/if}
 
-						{#if protocol.topology}
-							<div>
-								<dt>Topology</dt>
-								<dd>{protocol.topology}</dd>
-							</div>
-						{/if}
+					{#if open && protocol.topology}
+						<div>
+							<dt>Topology</dt>
+							<dd>{protocol.topology}</dd>
+						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

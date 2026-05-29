@@ -85,23 +85,31 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>
-			{entityId.$currency.iso4217}
-		</span>
+		<ResourceBoundary
+			resource={currencyTimestamp}
+			placeholderText="Loading snapshot…"
+		>
+			{#snippet children(currencyTimestamp)}
+				{#if currencyTimestamp.marketCap !== undefined}
+					<CurrencyAmount
+						currency="USD"
+						value={currencyTimestamp.marketCap}
+					/>
+				{:else}
+					<span>
+						{entityId.$currency.iso4217}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Currency snapshot </span>
-			<Timestamp timestamp={entityId.timestampMs} />
-		</span>
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Heading()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>{entityId.$currency.iso4217} snapshot </span>
-			<Timestamp timestamp={entityId.timestampMs} />
-		</span>
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

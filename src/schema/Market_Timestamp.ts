@@ -12,8 +12,8 @@ import { Source } from '$/sources/$Source.ts'
 export default {
 	entityType: EntityType.Market_Timestamp,
 
-	label: 'Quote print',
-	labelPlural: 'Quote prints',
+	label: 'Market quote',
+	labelPlural: 'Market quotes',
 
 	id: type({
 		$market: Market.id,

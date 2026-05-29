@@ -98,23 +98,36 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>
-			{entityId.$coin.coinId}
-		</span>
+		<ResourceBoundary
+			resource={coinTimestamp}
+			placeholderText="Loading snapshot…"
+		>
+			{#snippet children(coinTimestamp)}
+				{#if coinTimestamp.marketCap !== undefined}
+					<CurrencyAmount
+						currency="USD"
+						value={coinTimestamp.marketCap}
+					/>
+				{:else if coinTimestamp.change24hPercent != null && Number.isFinite(coinTimestamp.change24hPercent)}
+					<NumberValue
+						value={coinTimestamp.change24hPercent}
+						options={{ maximumFractionDigits: 2, signDisplay: 'exceptZero' }}
+					/>%
+				{:else}
+					<span>
+						{entityId.$coin.coinId}
+					</span>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Coin snapshot </span>
-			<Timestamp timestamp={entityId.timestampMs} />
-		</span>
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Heading()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>{entityId.$coin.coinId} snapshot </span>
-			<Timestamp timestamp={entityId.timestampMs} />
-		</span>
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

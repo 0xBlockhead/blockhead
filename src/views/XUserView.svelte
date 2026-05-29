@@ -157,80 +157,23 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
+		<ResourceBoundary
+			resource={user}
+			placeholderText="Loading X profile…"
+		>
+			{#snippet children(user)}
+				{#if user.description}
+					<p>
+						<TruncatedValue
+							value={user.description}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+
 		<dl data-column-item="center">
-			{#if !contentOpen}
-				<div>
-					<dt>Description</dt>
-					<dd>
-						<ResourceBoundary
-							resource={user}
-							placeholderText="Loading X profile…"
-						>
-							{#snippet children(user)}
-								{#if user.description}
-									<p data-text="muted">
-										{user.description}
-									</p>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-			{#if contentOpen}
-				<div>
-					<dt>Name</dt>
-					<dd>
-						<ResourceBoundary
-							resource={user}
-							placeholderText="Loading X profile…"
-						>
-							{#snippet children(user)}
-								{#if user.name}
-									{user.name}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if contentOpen}
-				<div>
-					<dt>Username</dt>
-					<dd>
-						<ResourceBoundary
-							resource={user}
-							placeholderText="Loading X profile…"
-						>
-							{#snippet children(user)}
-								{#if user.username}
-									{user.username}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if contentOpen}
-				<div>
-					<dt>Description</dt>
-					<dd>
-						<ResourceBoundary
-							resource={user}
-							placeholderText="Loading X profile…"
-						>
-							{#snippet children(user)}
-								{#if user.description}
-									{user.description}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
 			{#if contentOpen}
 				<div>
 					<dt>Followers</dt>
@@ -428,24 +371,18 @@
 						placeholderText="Loading X profile…"
 					>
 						{#snippet children(user)}
-							<dl data-column-item="center">
+							<div>
 								{#if user.description}
-									<div>
-										<dt>Description</dt>
-										<dd>{user.description}</dd>
-									</div>
+									<p><strong>Description:</strong> {user.description}</p>
 								{/if}
 
 								{#if user.$profileBanner?.[EntityMetaKey.Id].url != null}
-									<div>
-										<dt>Banner</dt>
-										<dd>
-											<Media
-												alt=""
-												media={{ url: user.$profileBanner[EntityMetaKey.Id].url }}
-											/>
-										</dd>
-									</div>
+									<figure>
+										<Media
+											alt=""
+											media={{ url: user.$profileBanner[EntityMetaKey.Id].url }}
+										/>
+									</figure>
 								{/if}
 
 								{#if (
@@ -459,7 +396,7 @@
 										User details are not available yet.
 									</p>
 								{/if}
-							</dl>
+							</div>
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}

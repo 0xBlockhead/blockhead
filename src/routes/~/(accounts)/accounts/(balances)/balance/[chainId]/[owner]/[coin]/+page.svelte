@@ -1,4 +1,8 @@
 <script lang="ts">
+	// Types/constants
+	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 
@@ -22,10 +26,10 @@
 				address: params.owner as `0x${string}`,
 			},
 			$coinInstance: {
-				$network: { chainId: Number(params.chainId) },
+				$network: networkIdFromEvmChainId(Number(params.chainId)),
 				type: CoinInstanceType.Erc20Token,
 				$contract: {
-					$network: { chainId: Number(params.chainId) },
+					$network: networkIdFromEvmChainId(Number(params.chainId)),
 					address: params.coin as `0x${string}`,
 				},
 			},

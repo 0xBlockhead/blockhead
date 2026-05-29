@@ -98,21 +98,21 @@
 				</dd>
 			</div>
 
-			{#if context?.open}
-				<ResourceBoundary resource={network}>
-					{#snippet children(network)}
-						<div>
-							<dt>Environment</dt>
-							<dd>{network.environment}</dd>
-						</div>
+			<ResourceBoundary resource={network}>
+				{#snippet children(network)}
+					<div>
+						<dt>Environment</dt>
+						<dd>{network.environment}</dd>
+					</div>
 
+					{#if context?.open}
 						<div>
 							<dt>RPC endpoints</dt>
 							<dd>{network.rpcEndpoints.length}</dd>
 						</div>
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 		</dl>
 	{/snippet}
 
@@ -148,21 +148,15 @@
 			{#snippet SectionSolanaExecution()}
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
-						<dl>
+						<div>
 							{#if network.rpcEndpoints.length > 0}
-								<div>
-									<dt>RPC endpoints</dt>
-									<dd>{network.rpcEndpoints.length}</dd>
-								</div>
+								<p><strong>RPC endpoints:</strong> {network.rpcEndpoints.length}</p>
 							{/if}
 
 							{#each network.rpcEndpoints as endpoint}
-								<div>
-									<dt>{endpoint.transportType}</dt>
-									<dd>{endpoint.url}</dd>
-								</div>
+								<p><strong>{endpoint.transportType}:</strong> {endpoint.url}</p>
 							{/each}
-						</dl>
+						</div>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
@@ -170,12 +164,7 @@
 			{#snippet SectionSolanaConsensus()}
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
-						<dl>
-							<div>
-								<dt>Consensus</dt>
-								<dd>Proof of History with Tower BFT</dd>
-							</div>
-						</dl>
+						<p><strong>Consensus:</strong> Proof of History with Tower BFT</p>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}

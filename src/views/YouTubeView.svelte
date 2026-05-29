@@ -149,39 +149,45 @@
 							<dt>Channels</dt>
 							<dd>{String(network.$$youtubeChannels.length)}</dd>
 						</div>
+					{/if}
+
+					{#if open}
 						<div>
 							<dt>Videos</dt>
 							<dd>{String(network.$$youtubeVideos.length)}</dd>
 						</div>
+					{/if}
+
+					{#if open}
 						<div>
 							<dt>Playlists</dt>
 							<dd>{String(network.$$youtubePlaylists.length)}</dd>
 						</div>
+					{/if}
 
-						{#if network.homeUrl}
-							<div>
-								<dt>Home</dt>
-								<dd>
-									<a href={network.homeUrl}>{network.homeUrl}</a>
-								</dd>
-							</div>
-						{/if}
+					{#if open && network.homeUrl}
+						<div>
+							<dt>Home</dt>
+							<dd>
+								<a href={network.homeUrl}>{network.homeUrl}</a>
+							</dd>
+						</div>
+					{/if}
 
-						{#if network.docsUrl}
-							<div>
-								<dt>Docs</dt>
-								<dd>
-									<a href={network.docsUrl}>{network.docsUrl}</a>
-								</dd>
-							</div>
-						{/if}
+					{#if open && network.docsUrl}
+						<div>
+							<dt>Docs</dt>
+							<dd>
+								<a href={network.docsUrl}>{network.docsUrl}</a>
+							</dd>
+						</div>
+					{/if}
 
-						{#if network.topology}
-							<div>
-								<dt>Topology</dt>
-								<dd>{network.topology}</dd>
-							</div>
-						{/if}
+					{#if open && network.topology}
+						<div>
+							<dt>Topology</dt>
+							<dd>{network.topology}</dd>
+						</div>
 					{/if}
 				{/snippet}
 			</ResourceBoundary>

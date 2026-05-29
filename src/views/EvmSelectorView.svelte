@@ -123,7 +123,7 @@
 			<dl data-column-item="center">
 				{#if !summaryUsesHeading}
 					<div>
-						<dt>Selector (hex)</dt>
+						<dt>Selector</dt>
 						<dd>
 							<TruncatedValue
 								value={entityId.hex}
@@ -134,7 +134,7 @@
 				{/if}
 				{#if contentOpen}
 					<div>
-						<dt>Decoded functions (catalog)</dt>
+						<dt>Signatures</dt>
 						<dd>
 							<ResourceBoundary
 								resource={selector}

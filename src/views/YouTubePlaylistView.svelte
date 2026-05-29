@@ -77,6 +77,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import YouTubeChannelView from '$/views/YouTubeChannelView.svelte'
 	import YouTubeVideosView from '$/views/YouTubeVideosView.svelte'
 </script>
@@ -117,22 +118,25 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
+		{#if open}
+			<ResourceBoundary
+				resource={playlist}
+				placeholderText="Loading playlist…"
+			>
+				{#snippet children(playlist)}
+					{#if playlist.description}
+						<p>
+							<TruncatedValue
+								value={playlist.description}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</p>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
+
 		<dl data-column-item="center">
-			{#if open}
-				<ResourceBoundary
-					resource={playlist}
-					placeholderText="Loading playlist…"
-				>
-					{#snippet children(playlist)}
-						{#if playlist.description}
-							<div>
-								<dt>Description</dt>
-								<dd>{playlist.description}</dd>
-							</div>
-						{/if}
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
 			{#if open}
 				<ResourceBoundary
 					resource={playlist}

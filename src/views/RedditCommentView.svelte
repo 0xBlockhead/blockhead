@@ -66,9 +66,9 @@
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import Markdown from '$/components/Markdown.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import RedditCommentsView from '$/views/RedditCommentsView.svelte'
 	import RedditLinkView from '$/views/RedditLinkView.svelte'
@@ -144,18 +144,18 @@
 			placeholderText="Loading Reddit comment…"
 		>
 			{#snippet children(comment)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Body</dt>
-						<dd>
-							{#if !comment.body}
-								<p data-text="muted">No comment text.</p>
-							{:else}
-								<Markdown content={comment.body} />
-							{/if}
-						</dd>
-					</div>
+				<p>
+					{#if !comment.body}
+						<span data-text="muted">No comment text.</span>
+					{:else}
+						<TruncatedValue
+							value={comment.body}
+							format={TruncatedValueFormat.Visual}
+						/>
+					{/if}
+				</p>
 
+				<dl data-column-item="center">
 					{#if comment.score != null}
 						<div>
 							<dt>Score</dt>

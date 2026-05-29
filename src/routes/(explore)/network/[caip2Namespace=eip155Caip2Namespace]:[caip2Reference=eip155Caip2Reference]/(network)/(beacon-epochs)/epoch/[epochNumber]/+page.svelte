@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { evmChainIdFromCaip2RouteParams } from '$/lib/caip.ts'
+	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
 
 
 	// State
@@ -16,7 +16,7 @@
 <Page>
 	<BeaconEpochView
 		entityId={{
-			$network: { chainId: evmChainIdFromCaip2RouteParams(params) },
+			$network: networkIdFromCaip2RouteParams(params),
 			epoch: Number(params.epochNumber),
 		}}
 	/>

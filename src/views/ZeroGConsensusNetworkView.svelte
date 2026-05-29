@@ -74,7 +74,7 @@
 				<dl>
 					{#if zeroGConsensusNetwork.sharedStakingStatusSource != null}
 						<div>
-							<dt>Shared Staking Status Source</dt>
+							<dt>Shared staking status source</dt>
 							<dd>{zeroGConsensusNetwork.sharedStakingStatusSource}</dd>
 						</div>
 					{/if}

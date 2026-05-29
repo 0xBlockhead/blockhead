@@ -210,7 +210,7 @@
 				</div>
 
 				<div>
-					<dt>Balance (participant 0)</dt>
+					<dt>Participant 0 balance</dt>
 					<dd>
 						<ResourceBoundary
 							resource={stateChannel}
@@ -226,7 +226,7 @@
 				</div>
 
 				<div>
-					<dt>Balance (participant 1)</dt>
+					<dt>Participant 1 balance</dt>
 					<dd>
 						<ResourceBoundary
 							resource={stateChannel}
@@ -362,4 +362,3 @@
 
 	{/snippet}
 </EntityView>
-

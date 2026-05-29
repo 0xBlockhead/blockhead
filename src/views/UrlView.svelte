@@ -67,6 +67,7 @@
 	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
 
 
@@ -108,22 +109,22 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
-		<dl data-column-item="center">
-			{#if contentOpen}
-				<div>
-					<dt>Description</dt>
-					<dd>
-						<ResourceBoundary resource={url}>
-							{#snippet children(url)}
-								{#if url.openGraphDescription != null}
-									{url.openGraphDescription}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
+		{#if contentOpen}
+			<ResourceBoundary resource={url}>
+				{#snippet children(url)}
+					{#if url.openGraphDescription != null}
+						<p>
+							<TruncatedValue
+								value={url.openGraphDescription}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</p>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
+		{/if}
 
+		<dl data-column-item="center">
 			<div>
 				<dt>Publisher</dt>
 				<dd>
@@ -139,7 +140,7 @@
 
 			{#if contentOpen}
 				<div>
-					<dt>Explorer standard</dt>
+					<dt>Catalog standard</dt>
 					<dd>
 						<ResourceBoundary resource={url}>
 							{#snippet children(url)}
@@ -154,7 +155,7 @@
 
 			{#if contentOpen}
 				<div>
-					<dt>Preview</dt>
+					<dt>Open Graph image</dt>
 					<dd>
 						<ResourceBoundary resource={url}>
 							{#snippet children(url)}
@@ -174,7 +175,7 @@
 			{/if}
 
 			<div>
-				<dt>Website</dt>
+				<dt>URL</dt>
 				<dd>
 					<ResourceBoundary resource={url}>
 						{#snippet children(url)}

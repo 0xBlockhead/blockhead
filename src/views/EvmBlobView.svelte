@@ -1,12 +1,11 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 
 
 	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { ChainId } from '$/constants/ChainId.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -25,7 +24,7 @@
 		href = resolve(
 		'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blobs)/blob/[transactionId]/[blobIndex]',
 		{
-			...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+			...caip2RouteParamsFromNetworkId(entityId.$network),
 			transactionId: entityId.txHash,
 			blobIndex: String(entityId.blobIndex),
 		},
@@ -153,7 +152,7 @@
 				</dd>
 			</div>
 			<div>
-				<dt>Versioned hash (EIP‑4844)</dt>
+				<dt>Versioned hash</dt>
 				<dd>
 					<ResourceBoundary
 						resource={blob}
@@ -170,94 +169,8 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-			{#if entityId.$network.chainId === ChainId.Ethereum}
-				<div>
-					<dt>Blobscan</dt>
-					<dd>
-						<ResourceBoundary
-							resource={blob}
-							placeholderText="Loading blob…"
-						>
-							{#snippet children(blob)}
-								{#if blob.versionedHash !== undefined}
-									<a
-										href={`https://blobscan.com/blob/${blob.versionedHash}`}
-										data-text="small"
-										target="_blank"
-										rel="noreferrer"
-									>Open explorer</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{:else if entityId.$network.chainId === ChainId.EthereumSepolia}
-				<div>
-					<dt>Blobscan</dt>
-					<dd>
-						<ResourceBoundary
-							resource={blob}
-							placeholderText="Loading blob…"
-						>
-							{#snippet children(blob)}
-								{#if blob.versionedHash !== undefined}
-									<a
-										href={`https://sepolia.blobscan.com/blob/${blob.versionedHash}`}
-										data-text="small"
-										target="_blank"
-										rel="noreferrer"
-									>Open explorer</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{:else if entityId.$network.chainId === ChainId.Gnosis}
-				<div>
-					<dt>Blobscan</dt>
-					<dd>
-						<ResourceBoundary
-							resource={blob}
-							placeholderText="Loading blob…"
-						>
-							{#snippet children(blob)}
-								{#if blob.versionedHash !== undefined}
-									<a
-										href={`https://gnosis.blobscan.com/blob/${blob.versionedHash}`}
-										data-text="small"
-										target="_blank"
-										rel="noreferrer"
-									>Open explorer</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{:else if entityId.$network.chainId === 560048}
-				<div>
-					<dt>Blobscan</dt>
-					<dd>
-						<ResourceBoundary
-							resource={blob}
-							placeholderText="Loading blob…"
-						>
-							{#snippet children(blob)}
-								{#if blob.versionedHash !== undefined}
-									<a
-										href={`https://hoodi.blobscan.com/blob/${blob.versionedHash}`}
-										data-text="small"
-										target="_blank"
-										rel="noreferrer"
-									>Open explorer</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
 			<div>
-				<dt>Blobscan indexer payload</dt>
+				<dt>Blobscan JSON</dt>
 				<dd data-column="gap-1">
 					<ResourceBoundary
 						resource={blob}
@@ -294,13 +207,13 @@
 
 			{#if contentOpen}
 				<div>
-					<dt>Type‑3 transaction hash</dt>
+					<dt>Transaction</dt>
 					<dd>
 						<a
 							href={resolve(
 								'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 								{
-								...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+								...caip2RouteParamsFromNetworkId(entityId.$network),
 								transactionId: entityId.txHash,
 								},
 							)}

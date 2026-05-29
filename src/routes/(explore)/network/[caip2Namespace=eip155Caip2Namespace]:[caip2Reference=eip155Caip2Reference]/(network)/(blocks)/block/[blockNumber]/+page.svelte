@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { evmChainIdFromCaip2RouteParams } from '$/lib/caip.ts'
+	import { networkIdFromCaip2RouteParams } from '$/lib/caip.ts'
 
 
 	// Context
@@ -20,7 +20,7 @@
 <Page>
 		<EvmBlockView
 		entityId={{
-			$network: { chainId: evmChainIdFromCaip2RouteParams(params) },
+			$network: networkIdFromCaip2RouteParams(params),
 			blockNumber: BigInt(params.blockNumber),
 		}}
 	/>

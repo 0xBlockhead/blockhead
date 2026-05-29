@@ -81,6 +81,7 @@
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
@@ -96,6 +97,19 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Icon()}
+		<ResourceBoundary resource={feed}>
+			{#snippet children(feed)}
+				{#if feed.imageUrl}
+					<IconComponent
+						src={feed.imageUrl}
+						alt={feed.title ?? entityId.feedUrl}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Value()}
 		<TruncatedValue
 			value={entityId.feedUrl}
@@ -156,10 +170,12 @@
 			>
 				{#snippet children(feed)}
 					{#if feed.description}
-						<div>
-							<dt>Description</dt>
-							<dd>{feed.description}</dd>
-						</div>
+						<p>
+							<TruncatedValue
+								value={feed.description}
+								format={TruncatedValueFormat.Visual}
+							/>
+						</p>
 					{/if}
 
 					{#if feed.link}

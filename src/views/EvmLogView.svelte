@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -25,7 +25,7 @@
 		href = resolve(
 		'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]/log/[logIndex]',
 		{
-			...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+			...caip2RouteParamsFromNetworkId(entityId.$network),
 			transactionId: entityId.txHash,
 			logIndex: String(entityId.logIndex),
 		},
@@ -158,7 +158,7 @@
 								href={resolve(
 									'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(transactions)/tx/[transactionId]',
 									{
-									...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+									...caip2RouteParamsFromNetworkId(entityId.$network),
 									transactionId: entityId.txHash,
 									},
 								)}

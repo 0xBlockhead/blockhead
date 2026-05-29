@@ -265,33 +265,24 @@
 							placeholderText="Loading usage…"
 						>
 							{#snippet children(global)}
-								<dl data-column-item="center">
+								<div>
 									{#if global.duneCreditsUsed !== undefined}
-										<div>
-											<dt>Query credits used</dt>
-											<dd>{String(global.duneCreditsUsed)}</dd>
-										</div>
+										<p><strong>Query credits used:</strong> {String(global.duneCreditsUsed)}</p>
 									{/if}
 
 									{#if global.duneCreditsIncluded !== undefined}
-										<div>
-											<dt>Query credits included</dt>
-											<dd>{String(global.duneCreditsIncluded)}</dd>
-										</div>
+										<p><strong>Query credits included:</strong> {String(global.duneCreditsIncluded)}</p>
 									{/if}
 
 									{#if (
 										global.duneCreditsUsed === undefined
 										&& global.duneCreditsIncluded === undefined
 									)}
-										<div>
-											<dt>Status</dt>
-											<dd data-text="muted">
-												No usage totals yet.
-											</dd>
-										</div>
+										<p data-text="muted">
+											No usage totals yet.
+										</p>
 									{/if}
-								</dl>
+								</div>
 							{/snippet}
 						</ResourceBoundary>
 					{/snippet}

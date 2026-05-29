@@ -197,13 +197,8 @@
 					{row.name}
 				{/snippet}
 
-				{#snippet Details()}
+				{#snippet Content()}
 					<dl>
-						<div>
-							<dt>Slug</dt>
-							<dd>{row.slug}</dd>
-						</div>
-
 						{#if row.caip2 != null}
 							<div>
 								<dt>CAIP-2</dt>

@@ -139,22 +139,23 @@
 		href: _href,
 		open: contentOpen,
 	})}
+		<ResourceBoundary
+			resource={comment}
+			placeholderText="Loading YouTube comment…"
+		>
+			{#snippet children(comment)}
+				{#if comment.text}
+					<p>
+						<TruncatedValue
+							value={comment.text}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+
 		<dl data-column-item="center">
-			<div>
-				<dt>Text</dt>
-				<dd>
-					<ResourceBoundary
-						resource={comment}
-						placeholderText="Loading YouTube comment…"
-					>
-						{#snippet children(comment)}
-							{#if comment.text}
-								{comment.text}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
 			{#if contentOpen}
 				<div>
 					<dt>Author</dt>

@@ -68,9 +68,9 @@
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import Markdown from '$/components/Markdown.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import RedditCommentsView from '$/views/RedditCommentsView.svelte'
 	import RedditSubredditView from '$/views/RedditSubredditView.svelte'
@@ -137,18 +137,18 @@
 			placeholderText="Loading Reddit submission…"
 		>
 			{#snippet children(link)}
-				<dl data-column-item="center">
-					<div>
-						<dt>Body</dt>
-						<dd>
-							{#if !link.selftext}
-								<p data-text="muted">No submission text.</p>
-							{:else}
-								<Markdown content={link.selftext} />
-							{/if}
-						</dd>
-					</div>
+				<p>
+					{#if !link.selftext}
+						<span data-text="muted">No submission text.</span>
+					{:else}
+						<TruncatedValue
+							value={link.selftext}
+							format={TruncatedValueFormat.Visual}
+						/>
+					{/if}
+				</p>
 
+				<dl data-column-item="center">
 					{#if link.score != null}
 						<div>
 							<dt>Score</dt>
@@ -260,4 +260,3 @@
 		</CollapsibleTabs>
 	{/snippet}
 </EntityView>
-

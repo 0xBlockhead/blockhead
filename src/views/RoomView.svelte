@@ -52,10 +52,8 @@
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 </script>
 
 
@@ -121,24 +119,6 @@
 
 			{#if open}
 				<div>
-					<dt>Name</dt>
-					<dd>
-						<ResourceBoundary
-							resource={room}
-							placeholderText="Loading room…"
-						>
-							{#snippet children(room)}
-								{#if room.name !== undefined && room.name !== ''}
-									{room.name}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if open}
-				<div>
 					<dt>Opened by</dt>
 					<dd>
 						<ResourceBoundary
@@ -157,12 +137,4 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
-
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
-	{/snippet}
 </EntityView>

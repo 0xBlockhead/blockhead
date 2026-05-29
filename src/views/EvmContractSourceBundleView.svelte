@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 
 
 	// Types/constants
@@ -22,7 +22,7 @@
 		href = resolve(
 			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(contracts)/contract/[address]/source-bundle/[bundleId]',
 			{
-				...caip2RouteParamsFromEvmChainId(entityId.$network.chainId),
+				...caip2RouteParamsFromNetworkId(entityId.$network),
 				address: entityId.$contract.address,
 				bundleId: entityId.bundleId,
 			},
@@ -83,7 +83,22 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		Verified source files
+		<ResourceBoundary
+			resource={sourceBundle}
+			placeholderText="Loading source bundle…"
+		>
+			{#snippet children(sourceBundle)}
+				{#if Object.keys(sourceBundle.files ?? {}).length > 0}
+					<code>
+						{Object.keys(sourceBundle.files ?? {})[0]
+							.split('/')
+							.at(-1)}
+					</code>
+				{:else}
+					Verified source files
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet Title()}

@@ -77,6 +77,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
+	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
@@ -154,23 +155,23 @@
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
-		<dl data-column-item="center">
-			<div>
-				<dt>Bio</dt>
-				<dd>
-					<ResourceBoundary
-						resource={actor}
-						placeholderText="Loading profile…"
-					>
-						{#snippet children(actor)}
-							{#if actor.description}
-								{actor.description}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+		<ResourceBoundary
+			resource={actor}
+			placeholderText="Loading profile…"
+		>
+			{#snippet children(actor)}
+				{#if actor.description}
+					<p>
+						<TruncatedValue
+							value={actor.description}
+							format={TruncatedValueFormat.Visual}
+						/>
+					</p>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
 
+		<dl data-column-item="center">
 			{#if contentOpen}
 				<div>
 					<dt>Handle</dt>

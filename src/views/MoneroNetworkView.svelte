@@ -90,23 +90,14 @@
 		<p>Monero models privacy-preserving proof-of-work state using ring signatures, stealth addresses, key images, and RandomX.</p>
 	{/snippet}
 
-	{#snippet Content({
-		open,
-	})}
+	{#snippet Content()}
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
 					<div>
-						<dt>Network</dt>
-						<dd>{network.slug}</dd>
+						<dt>Environment</dt>
+						<dd>{network.environment}</dd>
 					</div>
-
-					{#if open}
-						<div>
-							<dt>Environment</dt>
-							<dd>{network.environment}</dd>
-						</div>
-					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -130,12 +121,7 @@
 				{#snippet SectionMoneroNetwork()}
 					<ResourceBoundary resource={network}>
 						{#snippet children(network)}
-							<dl>
-								<div>
-									<dt>Environment</dt>
-									<dd>{network.environment}</dd>
-								</div>
-							</dl>
+							<p><strong>Environment:</strong> {network.environment}</p>
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}

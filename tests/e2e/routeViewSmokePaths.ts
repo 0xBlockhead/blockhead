@@ -28,6 +28,14 @@ const RSS_PROBE_FEED_URL = 'https://blog.svelte.dev/feed.xml' as const
 
 export const ADDR = '0xd8da6bf26964af9d7eed9e403e826090792bed6a' as const
 
+const ERC4337_SMART_ACCOUNT_ADDRESS = '0x0000000000001d8a2e7bf6bc369525a2654aa298' as const
+
+const ERC4337_BUNDLER_ADDRESS = '0xf0ac778fb2e56bab4edd7f25c2ed2f333d165b8d' as const
+
+const ERC4337_PAYMASTER_ADDRESS = '0x6599bba2a055f3c769cba1a2d462a75429bd7bf7' as const
+
+const ERC4337_ACCOUNT_FACTORY_ADDRESS = '0xcad776fce9c3b3db6724aeb4c7fa2f5f3c088253' as const
+
 /** Detail routes depending on live NostrBand / YouTube / Piped payloads (not in default smoke set). */
 export const routeViewSmokeOptionalDetailPathByLabel: Record<string, `/${string}`> = (
 	e2eNostrYouTubeOptionalDetailRoutePaths
@@ -51,6 +59,10 @@ export const routeViewSmokePathByLabel: Record<string, `/${string}`> = {
 	networkBlock: '/network/eip155:1/block/18000000',
 	networkTransaction: `/network/eip155:1/tx/${SAMPLE_TX_HASH}`,
 	networkTransactionLog: `/network/eip155:1/tx/${SAMPLE_TX_HASH}/log/0`,
+	networkErc4337SmartAccount: `/network/eip155:1/erc-4337/smart-account/${ERC4337_SMART_ACCOUNT_ADDRESS}`,
+	networkErc4337Bundler: `/network/eip155:1/erc-4337/bundler/${ERC4337_BUNDLER_ADDRESS}`,
+	networkErc4337Paymaster: `/network/eip155:1/erc-4337/paymaster/${ERC4337_PAYMASTER_ADDRESS}`,
+	networkErc4337AccountFactory: `/network/eip155:1/erc-4337/account-factory/${ERC4337_ACCOUNT_FACTORY_ADDRESS}`,
 	evmHub: '/evm',
 	evmCalldata: '/evm/calldata',
 	evmCalldataDecoder: '/evm/calldata-decoder',

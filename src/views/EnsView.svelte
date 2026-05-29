@@ -14,6 +14,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
+	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
@@ -367,7 +368,7 @@
 								{#if ens.$ownerActor !== undefined}
 									<ActorNetworkView
 										entityId={{
-											$network: { chainId: ensEthereumChainId },
+											$network: networkIdFromEvmChainId(ensEthereumChainId),
 											$actor: ens.$ownerActor[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Summary}
@@ -530,14 +531,14 @@
 				{/snippet}
 
 				{#snippet SectionRegistrationAccounts({ id, label })}
-					<dl data-column-item="center">
+					<div data-column-item="center">
 						{#if ens.$ownerActor !== undefined}
 							<div>
-								<dt>Registry owner (RPC)</dt>
+								<dt>Registry owner</dt>
 								<dd>
 									<ActorNetworkView
 										entityId={{
-											$network: { chainId: ensEthereumChainId },
+											$network: networkIdFromEvmChainId(ensEthereumChainId),
 											$actor: ens.$ownerActor[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Summary}
@@ -553,7 +554,7 @@
 								<dd>
 									<ActorNetworkView
 										entityId={{
-											$network: { chainId: ensEthereumChainId },
+											$network: networkIdFromEvmChainId(ensEthereumChainId),
 											$actor: ens.$subgraphOwnerActor[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Summary}
@@ -565,11 +566,11 @@
 
 						{#if ens.$registrantActor !== undefined}
 							<div>
-								<dt>Registrant (NFT)</dt>
+								<dt>Registrant</dt>
 								<dd>
 									<ActorNetworkView
 										entityId={{
-											$network: { chainId: ensEthereumChainId },
+											$network: networkIdFromEvmChainId(ensEthereumChainId),
 											$actor: ens.$registrantActor[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Summary}
@@ -585,7 +586,7 @@
 								<dd>
 									<ActorNetworkView
 										entityId={{
-											$network: { chainId: ensEthereumChainId },
+											$network: networkIdFromEvmChainId(ensEthereumChainId),
 											$actor: ens.$wrappedOwnerActor[EntityMetaKey.Id],
 										}}
 										layout={EntityLayout.Summary}
@@ -594,11 +595,11 @@
 								</dd>
 							</div>
 						{/if}
-					</dl>
+					</div>
 				{/snippet}
 
 				{#snippet SectionRegistrationMetadata({ id, label })}
-					<dl data-column-item="center">
+					<div data-column-item="center">
 						{#if ens.subgraphId != null && ens.subgraphId !== ''}
 							<div>
 								<dt>Subgraph node id</dt>
@@ -642,7 +643,7 @@
 							&& Number.isFinite(Number(ens.createdAt))
 						)}
 							<div>
-								<dt>Created (subgraph)</dt>
+								<dt>Created</dt>
 								<dd>
 									<Timestamp
 										timestamp={Number(ens.createdAt)}
@@ -681,7 +682,7 @@
 
 						{#if ens.registrationCost !== undefined}
 							<div>
-								<dt>Registration cost (wei)</dt>
+								<dt>Registration cost</dt>
 								<dd>
 									<NumberValue value={ens.registrationCost} />
 								</dd>
@@ -708,7 +709,7 @@
 								<dd>{String(ens.wrappedFuses)}</dd>
 							</div>
 						{/if}
-					</dl>
+					</div>
 				{/snippet}
 			</CollapsibleTabs>
 
@@ -756,20 +757,18 @@
 							title="Content hash"
 						>
 							{#snippet body({ open: _bodyOpen })}
-								<dl data-column-item="center">
+								<div data-column-item="center">
 									<div>
-										<dt>Encoded (EIP-1577)</dt>
+										<dt>Encoded</dt>
 										<dd>
 											<TruncatedValue
 												value={ens.contentHash}
 												format={TruncatedValueFormat.Visual}
 											/>
 										</dd>
-									</div>
-									{#if decodedContentHash != null}
-										<div>
-											<dt>Decoded</dt>
-											<dd>
+										</div>
+										{#if decodedContentHash != null}
+											<p>
 												{#if contentHashBrowseHref != null}
 													<a data-link href={contentHashBrowseHref}>
 														<TruncatedValue
@@ -783,10 +782,9 @@
 														format={TruncatedValueFormat.Visual}
 													/>
 												{/if}
-											</dd>
-										</div>
-									{/if}
-								</dl>
+											</p>
+										{/if}
+									</div>
 							{/snippet}
 						</EntitiesList>
 					{/if}
@@ -804,9 +802,9 @@
 							title="Resolver ABI"
 						>
 							{#snippet body({ open: _bodyOpen })}
-								<dl data-column-item="center">
+								<div data-column-item="center">
 									<div>
-										<dt>ABI (JSON)</dt>
+										<dt>ABI</dt>
 										<dd>
 											<TruncatedValue
 												value={ens.resolverAbiJson}
@@ -814,7 +812,7 @@
 											/>
 										</dd>
 									</div>
-								</dl>
+								</div>
 							{/snippet}
 						</EntitiesList>
 					{/if}
@@ -832,7 +830,7 @@
 							title="Coin addresses"
 						>
 							{#snippet body({ open: _bodyOpen })}
-								<dl data-column-item="center">
+								<div data-column-item="center">
 									{#each Object.entries(ens.coinAddresses) as [coinType, addr] (coinType)}
 										<div>
 											<dt>{(
@@ -849,7 +847,7 @@
 											</dd>
 										</div>
 									{/each}
-								</dl>
+								</div>
 							{/snippet}
 						</EntitiesList>
 					{/if}
@@ -867,16 +865,16 @@
 							title="Subgraph resolver index"
 						>
 							{#snippet body({ open: _bodyOpen })}
-								<dl data-column-item="center">
+								<div data-column-item="center">
 									{#if (ens.resolverTextKeys ?? []).length}
 										<div>
-											<dt>Text keys (indexer)</dt>
+											<dt>Text keys</dt>
 											<dd data-text="muted">{(ens.resolverTextKeys ?? []).join(', ')}</dd>
 										</div>
 									{/if}
 									{#if (ens.resolverCoinTypes ?? []).length}
 										<div>
-											<dt>Coin types (indexer)</dt>
+											<dt>Coin types</dt>
 											<dd data-text="muted">
 												{(ens.resolverCoinTypes ?? []).map((coinType) => (
 													coinType in ensCoinTypeLabelByKey ?
@@ -887,7 +885,7 @@
 											</dd>
 										</div>
 									{/if}
-								</dl>
+								</div>
 							{/snippet}
 						</EntitiesList>
 					{/if}

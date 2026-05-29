@@ -1226,7 +1226,7 @@
 			source: Source.Voltaire_JsonRpc,
 			resolve: async ($id) => {
 				if (typeof $id.blockNumber !== 'bigint' === 'object' && $id.blockNumber !== 'bigint' !== null && !Array.isArray($id.blockNumber !== 'bigint')) return []
-				const chainId = $id.$network.chainId
+				const chainId = Number($id.$network.caip2.reference)
 				const { Rpc } = await import('@tevm/voltaire/jsonrpc')
 				const { Hex } = await import('@tevm/voltaire/Hex')
 				const { HttpProvider } = await import('@tevm/voltaire/provider')
@@ -1269,7 +1269,12 @@
 				}
 				return hashes.map((txHash) => ({
 					[EntityMetaKey.Id]: {
-						$network: { chainId },
+						$network: {
+							caip2: {
+								namespace: 'eip155',
+								reference: String(chainId),
+							},
+						},
 						txHash,
 					},
 				}))

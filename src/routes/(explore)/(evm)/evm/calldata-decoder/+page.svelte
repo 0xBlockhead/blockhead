@@ -335,7 +335,7 @@
 										<span data-text="muted">Selector: {selector}</span>
 									{/snippet}
 
-									{#snippet Details()}
+									{#snippet Content()}
 										{#if functionSignatures.length > 0}
 											<dl data-definition-list="vertical">
 												<div>
@@ -361,14 +361,13 @@
 													<div>
 														<dt>Arguments</dt>
 														<dd>
-															<dl
-																data-definition-list="vertical"
+															<ol
 																class="calldata-result-args"
 															>
 																{#each decodedCall.params as param, index}
 																	<div class="calldata-result-arg">
-																		<dt>{index}</dt>
-																		<dd>
+																		<li>
+																			<span>{index}</span>
 																			{#if param.type === 'address' && typeof param.value === 'string'}
 																				<Address
 																					address={param.value as `0x${string}`}
@@ -387,10 +386,10 @@
 																					<span class="calldata-result-arg-value">{displayValue}</span>
 																				{/if}
 																			{/if}
-																		</dd>
+																		</li>
 																	</div>
 																{/each}
-															</dl>
+															</ol>
 														</dd>
 													</div>
 												{/if}
@@ -435,7 +434,7 @@
 										<span data-text="muted">Topic: {topic}</span>
 									{/snippet}
 
-									{#snippet Details()}
+									{#snippet Content()}
 										{#if eventSignatures.length > 0}
 											<dl data-definition-list="vertical">
 												<div>
@@ -461,14 +460,13 @@
 													<div>
 														<dt>Arguments</dt>
 														<dd>
-															<dl
-																data-definition-list="vertical"
+															<ol
 																class="calldata-result-args"
 															>
 																{#each decodedEvent.params as param, index}
 																	<div class="calldata-result-arg">
-																		<dt>{index}</dt>
-																		<dd>
+																		<li>
+																			<span>{index}</span>
 																			{#if param.type === 'address' && typeof param.value === 'string'}
 																				<Address
 																					address={param.value as `0x${string}`}
@@ -487,10 +485,10 @@
 																					<span class="calldata-result-arg-value">{displayValue}</span>
 																				{/if}
 																			{/if}
-																		</dd>
+																		</li>
 																	</div>
 																{/each}
-															</dl>
+															</ol>
 														</dd>
 													</div>
 												{/if}

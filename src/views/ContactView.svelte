@@ -7,6 +7,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { evmChainIdFromNetworkId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
 
 
@@ -189,7 +190,7 @@
 						)}
 							<div>
 								<dt>Execution chain ID</dt>
-								<dd>{String(sharedAddress.$network.chainId)}</dd>
+								<dd>{String(evmChainIdFromNetworkId(sharedAddress.$network))}</dd>
 							</div>
 						{/if}
 						{#if (

@@ -182,7 +182,7 @@
 						</header>
 
 						{#snippet SwarmChromeMetadataBody(swarm)}
-							<dl>
+							<div>
 								{#if swarm.canonicalUri !== undefined}
 									<div>
 										<dt>Canonical URI</dt>
@@ -280,7 +280,7 @@
 										<dd>{swarm.displayType}</dd>
 									</div>
 								{/if}
-							</dl>
+							</div>
 						{/snippet}
 
 						<ResourceBoundary

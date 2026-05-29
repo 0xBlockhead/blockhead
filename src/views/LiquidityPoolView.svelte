@@ -8,6 +8,7 @@
 	import { entityResolversByEntityType } from '$/resolvers/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { evmChainIdFromNetworkId } from '$/lib/caip.ts'
 
 
 	// Context
@@ -18,7 +19,7 @@
 	let {
 		entityId,
 		href = resolve('/pool/[chainId]/[poolId]', {
-			chainId: String(entityId.$network.chainId),
+			chainId: String(evmChainIdFromNetworkId(entityId.$network)),
 			poolId: entityId.id,
 		}),
 		open = $bindable(true),
@@ -83,7 +84,6 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
@@ -135,26 +135,6 @@
 		>
 			{#snippet children(pool)}
 				<dl data-column-item="center">
-					{#if open}
-						<div>
-							<dt>Note</dt>
-							<dd>
-								<div data-row="wrap align-center gap-2">
-									<span data-text="muted">Market stats from Dexscreener when available; on-chain curve fields appear only when another source maps them.</span>
-									<Tooltip contentProps={{ side: 'top' }}>
-										{#snippet Content()}
-											<p>Dexscreener supplies token addresses, symbols, 24h volume, and USD TVL on the pair API—not Uniswap v3 slot0 fee tier, tick, <code>sqrtPriceX96</code>, or concentrated-liquidity <code>L</code>.</p>
-											<p>User-specific tick ranges, owed fees, and ERC-721 position token ids live on liquidity position / leverage rows instead.</p>
-										{/snippet}
-										<abbr
-											class="entity-heading-tip"
-											aria-label="Pool vs position rows"
-										>ⓘ</abbr>
-									</Tooltip>
-								</div>
-							</dd>
-						</div>
-					{/if}
 					{#if pool.$baseToken}
 						<div>
 							<dt>Base token</dt>
@@ -186,7 +166,7 @@
 						&& pool.fee !== undefined
 					)}
 						<div>
-							<dt>Fee tier (v3 swap fee parameter)</dt>
+							<dt>Fee</dt>
 							<dd>{String(pool.fee)}</dd>
 						</div>
 					{/if}
@@ -195,7 +175,7 @@
 						&& pool.tickSpacing !== undefined
 					)}
 						<div>
-							<dt>Tick spacing (v3 grid step)</dt>
+							<dt>Tick spacing</dt>
 							<dd>{String(pool.tickSpacing)}</dd>
 						</div>
 					{/if}
@@ -279,7 +259,7 @@
 						&& pool.volumeUSD !== undefined
 					)}
 						<div>
-							<dt>Volume USD (24h)</dt>
+							<dt>Volume USD</dt>
 							<dd>{String(pool.volumeUSD)}</dd>
 						</div>
 					{/if}
@@ -297,7 +277,7 @@
 						&& pool.marketCapUsd !== undefined
 					)}
 						<div>
-							<dt>Market cap (USD)</dt>
+							<dt>Market cap USD</dt>
 							<dd>{String(pool.marketCapUsd)}</dd>
 						</div>
 					{/if}
@@ -306,7 +286,7 @@
 						&& pool.fdvUsd !== undefined
 					)}
 						<div>
-							<dt>FDV (USD)</dt>
+							<dt>FDV USD</dt>
 							<dd>{String(pool.fdvUsd)}</dd>
 						</div>
 					{/if}
@@ -361,7 +341,7 @@
 						&& pool.baseTokenPriceUsd !== undefined
 					)}
 						<div>
-							<dt>Base price (USD)</dt>
+							<dt>Base price USD</dt>
 							<dd>{pool.baseTokenPriceUsd}</dd>
 						</div>
 					{/if}
@@ -370,7 +350,7 @@
 						&& pool.baseTokenPriceQuote !== undefined
 					)}
 						<div>
-							<dt>Base price (quote)</dt>
+							<dt>Base price quote</dt>
 							<dd>{pool.baseTokenPriceQuote}</dd>
 						</div>
 					{/if}
@@ -379,7 +359,7 @@
 						&& pool.priceChangePercent24h !== undefined
 					)}
 						<div>
-							<dt>Price change (24h)</dt>
+							<dt>Price change 24h</dt>
 							<dd>{String(pool.priceChangePercent24h)}%</dd>
 						</div>
 					{/if}
@@ -388,7 +368,7 @@
 						&& pool.transactionBuys24h !== undefined
 					)}
 						<div>
-							<dt>Buys (24h)</dt>
+							<dt>Buys 24h</dt>
 							<dd>{String(pool.transactionBuys24h)}</dd>
 						</div>
 					{/if}
@@ -397,7 +377,7 @@
 						&& pool.transactionSells24h !== undefined
 					)}
 						<div>
-							<dt>Sells (24h)</dt>
+							<dt>Sells 24h</dt>
 							<dd>{String(pool.transactionSells24h)}</dd>
 						</div>
 					{/if}

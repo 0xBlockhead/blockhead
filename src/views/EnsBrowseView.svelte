@@ -5,6 +5,7 @@
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
+	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
 
 	import {
 		normalizeEnsName,
@@ -259,7 +260,7 @@
 					<dd>
 						<ActorNetworkView
 							entityId={{
-								$network: { chainId: ensEthereumChainId },
+								$network: networkIdFromEvmChainId(ensEthereumChainId),
 								$actor: { address: reverseResult.address },
 							}}
 							layout={EntityLayout.Title}
@@ -286,4 +287,3 @@
 		gap: 0.5rem;
 	}
 </style>
-

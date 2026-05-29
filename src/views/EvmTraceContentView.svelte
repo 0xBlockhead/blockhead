@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { EvmTraceTree } from '$/schema/EvmTrace.ts'
+	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
 
 
 	// Context
@@ -45,10 +46,10 @@
 			<dd>
 				<ActorNetworkView
 					entityId={{
-						$network: { chainId },
+						$network: networkIdFromEvmChainId(chainId),
 						$actor: { address: trace.from },
 					}}
-					layout={EntityLayout.Title}
+					layout={EntityLayout.Value}
 					open={false}
 				/>
 			</dd>
@@ -61,10 +62,10 @@
 			<dd>
 				<ActorNetworkView
 					entityId={{
-						$network: { chainId },
+						$network: networkIdFromEvmChainId(chainId),
 						$actor: { address: trace.to },
 					}}
-					layout={EntityLayout.Title}
+					layout={EntityLayout.Value}
 					open={false}
 				/>
 			</dd>
@@ -132,4 +133,3 @@
 		</div>
 	{/if}
 </dl>
-

@@ -207,6 +207,8 @@ export const e2eBoundaryLiveOptionalPathnames = new Set<string>([
 	...Object.values(e2eNostrYouTubeOptionalDetailRoutePaths),
 	`/youtube/comment/${encodeURIComponent(YOUTUBE_PROBE_VIDEO_ID)}/${encodeURIComponent(YOUTUBE_PROBE_COMMENT_ID)}`,
 	`/farcaster/cast/3/${CAST_HASH_32}`,
+	'/network/eip155:1',
+	'/network/ethereum',
 ])
 
 

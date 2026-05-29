@@ -1,7 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import {
+		caip2RouteParamsFromEvmChainId,
+		networkIdFromEvmChainId,
+	} from '$/lib/caip.ts'
 
 
 	// Context
@@ -24,7 +27,7 @@
 		)}
 		entityFieldReference={{
 			entityType: EntityType.EvmNetwork,
-			entityId: { chainId: 1 },
+			entityId: networkIdFromEvmChainId(1),
 			fieldName: '$$contracts',
 		}}
 		id="contracts"
