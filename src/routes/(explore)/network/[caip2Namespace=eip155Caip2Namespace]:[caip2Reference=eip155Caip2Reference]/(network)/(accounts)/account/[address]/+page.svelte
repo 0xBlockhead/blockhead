@@ -9,12 +9,12 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 </script>
 
 
 <Page>
-	<ActorNetworkView
+	<EvmNetworkAccountView
 		entityId={data.entityId}
 	/>
 </Page>

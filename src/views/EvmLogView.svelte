@@ -107,10 +107,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Heading()}
 		<ResourceBoundary
 			resource={log}
 			placeholderText="Loading receipt log…"

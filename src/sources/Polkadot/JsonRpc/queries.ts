@@ -1,53 +1,17 @@
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
-import { jsonRpcVersion } from '$/sources/Evm/JsonRpc/constants.ts'
 import Polkadot from '$/sources/Polkadot/index.ts'
-import type { JsonValue } from '$/typescript/JsonValue.ts'
-import type {
-	PolkadotRpcBlock,
-	PolkadotRpcHeader,
-} from '$/sources/Polkadot/JsonRpc/types.ts'
+import {
+	getBlock as getSubstrateBlock,
+	getBlockHash as getSubstrateBlockHash,
+	getFinalizedHead as getSubstrateFinalizedHead,
+	getHeader as getSubstrateHeader,
+	getRuntimeVersion as getSubstrateRuntimeVersion,
+	getSystemHealth as getSubstrateSystemHealth,
+} from '$/sources/Substrate/JsonRpc/queries.ts'
 
-type JsonRpcResponse<_Result> = {
-	jsonrpc: typeof jsonRpcVersion
-	id: number | string | null
-	result?: _Result
-	error?: {
-		code: number
-		message: string
-		data?: JsonValue
-	}
-}
-
-const polkadotJsonRpc = async <_Result>({
-	rpcUrl,
-	method,
-	params,
-}: {
-	rpcUrl: string
-	method: string
-	params: JsonValue[]
-}) => {
-	const response = await corsFetch(rpcUrl, {
-		origins: Polkadot.origins ?? [],
-		init: {
-			method: 'POST',
-			headers: {
-				'content-type': 'application/json',
-			},
-			body: JSON.stringify({
-				jsonrpc: jsonRpcVersion,
-				id: 1,
-				method,
-				params,
-			}),
-		},
-	})
-	if (!response.ok) await throwHttpError(`Polkadot ${method}`, response)
-	const json = await response.json<JsonRpcResponse<_Result>>()
-	if (json.error != null) throw new Error(`Polkadot ${method}: ${json.error.message}`)
-	if (json.result === undefined) throw new Error(`Polkadot ${method}: missing result`)
-	return json.result
-}
+const polkadotJsonRpc = {
+	origins: Polkadot.origins ?? [],
+	label: 'Polkadot',
+} as const
 
 export const getBlockHash = ({
 	rpcUrl,
@@ -56,12 +20,10 @@ export const getBlockHash = ({
 	rpcUrl: string
 	blockNumber: bigint
 }) => (
-	polkadotJsonRpc<string>({
+	getSubstrateBlockHash({
+		...polkadotJsonRpc,
 		rpcUrl,
-		method: 'chain_getBlockHash',
-		params: [
-			`0x${blockNumber.toString(16)}`,
-		],
+		blockNumber,
 	})
 )
 
@@ -70,10 +32,9 @@ export const getFinalizedHead = ({
 }: {
 	rpcUrl: string
 }) => (
-	polkadotJsonRpc<string>({
+	getSubstrateFinalizedHead({
+		...polkadotJsonRpc,
 		rpcUrl,
-		method: 'chain_getFinalizedHead',
-		params: [],
 	})
 )
 
@@ -84,10 +45,10 @@ export const getBlock = ({
 	rpcUrl: string
 	blockHash: string
 }) => (
-	polkadotJsonRpc<PolkadotRpcBlock>({
+	getSubstrateBlock({
+		...polkadotJsonRpc,
 		rpcUrl,
-		method: 'chain_getBlock',
-		params: [blockHash],
+		blockHash,
 	})
 )
 
@@ -96,11 +57,33 @@ export const getHeader = ({
 	blockHash,
 }: {
 	rpcUrl: string
-	blockHash: string
+	blockHash?: string
 }) => (
-	polkadotJsonRpc<PolkadotRpcHeader>({
+	getSubstrateHeader({
+		...polkadotJsonRpc,
 		rpcUrl,
-		method: 'chain_getHeader',
-		params: [blockHash],
+		blockHash,
+	})
+)
+
+export const getRuntimeVersion = ({
+	rpcUrl,
+}: {
+	rpcUrl: string
+}) => (
+	getSubstrateRuntimeVersion({
+		...polkadotJsonRpc,
+		rpcUrl,
+	})
+)
+
+export const getSystemHealth = ({
+	rpcUrl,
+}: {
+	rpcUrl: string
+}) => (
+	getSubstrateSystemHealth({
+		...polkadotJsonRpc,
+		rpcUrl,
 	})
 )

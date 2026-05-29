@@ -5,6 +5,7 @@ import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	MoneroRpcDecodedTransaction,
 	MoneroRpcBlock,
+	MoneroRpcInfo,
 	MoneroRpcTransaction,
 } from '$/sources/MoneroDaemonRpc/JsonRpc/types.ts'
 
@@ -104,7 +105,7 @@ export const getTransactions = ({
 }
 
 export const getInfo = ({ rpcUrl }: { rpcUrl: string }) => (
-	moneroJsonRpc<JsonValue>({
+	moneroJsonRpc<MoneroRpcInfo>({
 		rpcUrl,
 		method: 'get_info',
 		params: {},

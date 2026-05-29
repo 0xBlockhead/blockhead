@@ -5,9 +5,11 @@ import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	SolanaRpcAccountInfo,
 	SolanaRpcBlock,
+	SolanaRpcEpochInfo,
 	SolanaRpcParsedTokenMintAccountInfo,
 	SolanaRpcSignatureStatus,
 	SolanaRpcTransaction,
+	SolanaRpcVersion,
 	SolanaRpcVoteAccounts,
 } from '$/sources/Solana/JsonRpc/types.ts'
 
@@ -88,6 +90,68 @@ export const getSlot = ({
 				commitment: 'finalized',
 			},
 		],
+	})
+)
+
+export const getBlocks = ({
+	rpcUrl,
+	startSlot,
+	endSlot,
+}: {
+	rpcUrl: string
+	startSlot: bigint
+	endSlot: bigint
+}) => (
+	solanaJsonRpc<number[]>({
+		rpcUrl,
+		method: 'getBlocks',
+		params: [
+			Number(startSlot),
+			Number(endSlot),
+			{
+				commitment: 'finalized',
+			},
+		],
+	})
+)
+
+export const getEpochInfo = ({
+	rpcUrl,
+}: {
+	rpcUrl: string
+}) => (
+	solanaJsonRpc<SolanaRpcEpochInfo>({
+		rpcUrl,
+		method: 'getEpochInfo',
+		params: [
+			{
+				commitment: 'finalized',
+			},
+		],
+	})
+)
+
+export const getHealth = ({
+	rpcUrl,
+}: {
+	rpcUrl: string
+}) => (
+	solanaJsonRpc<string>({
+		rpcUrl,
+		method: 'getHealth',
+		params: [],
+	})
+)
+
+export const getVersion = ({
+	rpcUrl,
+}: {
+	rpcUrl: string
+}) => (
+	solanaJsonRpc<SolanaRpcVersion>({
+		rpcUrl,
+		method: 'getVersion',
+		params: [],
 	})
 )
 

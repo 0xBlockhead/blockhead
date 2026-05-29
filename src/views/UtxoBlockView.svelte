@@ -69,18 +69,15 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A UTXO block commits an ordered set of transactions and a parent header; account state is not a native primitive.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		Block #{entityId.height.toString()}
 	{/snippet}
 
-	{#snippet Heading()}
-		Block #{entityId.height.toString()}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A UTXO block commits an ordered set of transactions and a parent header; account state is not a native primitive.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

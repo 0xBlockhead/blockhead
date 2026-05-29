@@ -729,7 +729,7 @@ Flat `<section>` in `Details` (no carousel):
 `CollapsibleTabs` + `entity-view-detail-carousels`:
 
 - Three or more distinct sections, or two or more sections where each is a list / feed / chart column worth horizontal scroll markers (not a lone nested card).
-- Hub pages that group registry slices: `NetworkView`, `CoinView`, `FarcasterView`, `ActorNetworkView` (balances + activity), etc.
+- Hub pages that group registry slices: `NetworkView`, `CoinView`, `FarcasterView`, `EvmNetworkAccountView` (balances + activity), etc.
 - Each carousel section should earn its marker row; do not wrap a single child view or `{@render children()}` alone.
 
 Avoid:

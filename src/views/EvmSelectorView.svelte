@@ -85,21 +85,6 @@
 			placeholderText="Loading decoded function selector…"
 		>
 			{#snippet children(selector)}
-				{#if selector.signatures?.[0]}
-					{selector.signatures[0]}
-				{:else}
-					{@render Value()}
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Heading()}
-		<ResourceBoundary
-			resource={selector}
-			placeholderText="Loading decoded function selector…"
-		>
-			{#snippet children(selector)}
 				{selector.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>

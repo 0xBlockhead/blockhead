@@ -90,10 +90,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Heading()}
 		{#if true}
 			{#snippet TurnPromptHeading(turn)}
 				<TruncatedValue

@@ -143,7 +143,7 @@ export default {
 		{
 			name: '$$actors',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [Source.Local_Internal],
 		},

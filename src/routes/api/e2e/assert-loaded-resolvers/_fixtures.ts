@@ -235,7 +235,7 @@ const actorMainnetVitalik = {
 }
 
 /** Blockscout-hosted mainnet omits Vitalik address activity; USDC contract has token + internal rows. */
-const actorNetworkMainnetUsdc = {
+const evmNetworkAccountMainnetUsdc = {
 	$network: mainnet,
 	$actor: {
 		address: USDC_ADDRESS,
@@ -280,7 +280,7 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		localStatusId: '116539053870420123',
 	},
 
-	[EntityType.Actor]: actorMainnetVitalik,
+	[EntityType.EvmAccount]: actorMainnetVitalik,
 
 	[EntityType.ActorCoin]: {
 		$actor: actorMainnetVitalik,
@@ -297,7 +297,7 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 		},
 	},
 
-	[EntityType.ActorNetwork]: actorNetworkMainnetUsdc,
+	[EntityType.EvmNetworkAccount]: evmNetworkAccountMainnetUsdc,
 
 	[EntityType.AtprotoActor]: { did: 'did:plc:z72i7hdynmk6x22kvon7fdpk' },
 	[EntityType.AtprotoNetwork]: { scope: 'AtprotoNetwork' },
@@ -1362,10 +1362,10 @@ export const parentEntityIdForFieldResolver = (
 		bitcoin
 	: entityType === EntityType.EvmNetwork ?
 		mainnet
-	: entityType === EntityType.Actor ?
+	: entityType === EntityType.EvmAccount ?
 		actorMainnetVitalik
-	: entityType === EntityType.ActorNetwork ?
-		actorNetworkMainnetUsdc
+	: entityType === EntityType.EvmNetworkAccount ?
+		evmNetworkAccountMainnetUsdc
 	: entityType === EntityType.EvmBlock ?
 		({
 			$network: mainnet,

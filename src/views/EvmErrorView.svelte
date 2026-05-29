@@ -85,21 +85,6 @@
 			placeholderText="Loading error…"
 		>
 			{#snippet children(evmError)}
-				{#if evmError.signatures?.[0]}
-					{evmError.signatures[0]}
-				{:else}
-					{@render Value()}
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Heading()}
-		<ResourceBoundary
-			resource={evmError}
-			placeholderText="Loading error…"
-		>
-			{#snippet children(evmError)}
 				{evmError.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>

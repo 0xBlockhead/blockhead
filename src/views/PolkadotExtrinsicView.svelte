@@ -54,11 +54,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{entityId.extrinsicIndex.toString()}
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		{entityId.extrinsicIndex.toString()}
 	{/snippet}
 

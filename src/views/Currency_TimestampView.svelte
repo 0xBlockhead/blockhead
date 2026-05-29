@@ -108,10 +108,6 @@
 		{@render Value()}
 	{/snippet}
 
-	{#snippet Heading()}
-		{@render Value()}
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			Catalog snapshot for ordering and display: <strong>FX turnover weight</strong> in USD (BIS-style daily share), not crypto market capitalization.

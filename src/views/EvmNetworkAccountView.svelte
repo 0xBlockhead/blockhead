@@ -40,7 +40,7 @@
 	}: WithRest<
 		{
 			pageContent?: Snippet
-			entityId: EntityId<typeof schema, EntityType.ActorNetwork>
+			entityId: EntityId<typeof schema, EntityType.EvmNetworkAccount>
 			href?: string
 			title?: string
 			layout?: EntityLayout
@@ -56,7 +56,7 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const actorNetworkDetailAnchorKey = stringify(entityId)
+	const evmNetworkAccountDetailAnchorKey = stringify(entityId)
 
 	const network = useEntity(
 		EntityType.EvmNetwork,
@@ -85,7 +85,7 @@
 	)
 
 	const actor = useEntity(
-		EntityType.Actor,
+		EntityType.EvmAccount,
 		entityId.$actor,
 		{
 			$: [
@@ -96,8 +96,8 @@
 		},
 	)
 
-	const actorNetwork = useEntity(
-		EntityType.ActorNetwork,
+	const evmNetworkAccount = useEntity(
+		EntityType.EvmNetworkAccount,
 		entityId,
 		open ?
 			{
@@ -135,7 +135,6 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import Address from '$/views/Address.svelte'
 	import BalancesView from '$/views/BalancesView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
@@ -145,7 +144,7 @@
 
 
 <EntityView
-	entityType={EntityType.ActorNetwork}
+	entityType={EntityType.EvmNetworkAccount}
 	{entityId}
 	href={href}
 	{title}
@@ -162,7 +161,7 @@
 					alt=""
 					shape={IconShape.Square}
 					src={blo(entityId.$actor.address)}
-					size="1.5em"
+					size="1.25em"
 				/>
 			{/snippet}
 
@@ -172,10 +171,47 @@
 					alt=""
 					shape={avatarUrl ? IconShape.Circle : IconShape.Square}
 					src={avatarUrl ?? blo(entityId.$actor.address)}
-					size="1.5em"
+					size="1.25em"
 				/>
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={actor}
+		>
+			{#snippet children(actor)}
+				{#if actor.$primaryName?.[EntityMetaKey.Id].name}
+					{actor.$primaryName?.[EntityMetaKey.Id].name}
+				{:else}
+					<TruncatedValue
+						format={TruncatedValueFormat.Visual}
+						value={entityId.$actor.address}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
+
+		<small data-row="inline align-center wrap" data-text="muted">
+			{' '}on{' '}
+			<ResourceBoundary
+				resource={network}
+				placeholderText="···"
+			>
+				{#snippet children(network)}
+					<EvmNetworkView
+						entityId={entityId.$network}
+						layout={EntityLayout.Title}
+						open={false}
+					/>
+				{/snippet}
+			</ResourceBoundary>
+		</small>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -188,38 +224,6 @@
 		</p>
 	{/snippet}
 
-	{#snippet Heading()}
-		<ResourceBoundary
-			resource={actor}
-		>
-			{#snippet children(actor)}
-				{actor.$primaryName?.[EntityMetaKey.Id].name ?? entityId.$actor.address}
-			{/snippet}
-		</ResourceBoundary>
-		<small data-text="muted">
-			{' '}on{' '}
-			<ResourceBoundary
-				resource={network}
-				placeholderText="···"
-			>
-				{#snippet children(network)}
-					{network.name ?? String(network[EntityMetaKey.Id].chainId)}
-				{/snippet}
-			</ResourceBoundary>
-		</small>
-	{/snippet}
-
-	{#snippet Value()}
-		<Address
-			address={entityId.$actor.address}
-			network={entityId.$network}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
 	{#snippet Content({
 		title: _title,
 		href: _href,
@@ -230,9 +234,9 @@
 				<div>
 					<dt>Account</dt>
 					<dd>
-						<Address
-							address={entityId.$actor.address}
-							actorId={entityId.$actor}
+						<TruncatedValue
+							format={TruncatedValueFormat.Visual}
+							value={entityId.$actor.address}
 						/>
 					</dd>
 				</div>
@@ -262,12 +266,12 @@
 					<dt>Transactions</dt>
 					<dd>
 						<ResourceBoundary
-							resource={actorNetwork}
+							resource={evmNetworkAccount}
 							placeholderText="Loading network activity…"
 						>
-							{#snippet children(actorNetwork)}
-								{#if actorNetwork.transactionsCount !== undefined}
-									<NumberValue value={actorNetwork.transactionsCount} />
+							{#snippet children(evmNetworkAccount)}
+								{#if evmNetworkAccount.transactionsCount !== undefined}
+									<NumberValue value={evmNetworkAccount.transactionsCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -276,11 +280,11 @@
 			{/if}
 			{#if contentOpen}
 				<ResourceBoundary
-					resource={actorNetwork}
+					resource={evmNetworkAccount}
 					placeholderText="Loading network activity…"
 				>
-					{#snippet children(actorNetwork)}
-						{#if actorNetwork.isContract === true}
+					{#snippet children(evmNetworkAccount)}
+						{#if evmNetworkAccount.isContract === true}
 							<div>
 								<dt>Contract</dt>
 								<dd>
@@ -304,12 +308,12 @@
 					<dt>Token transfers</dt>
 					<dd>
 						<ResourceBoundary
-							resource={actorNetwork}
+							resource={evmNetworkAccount}
 							placeholderText="Loading network activity…"
 						>
-							{#snippet children(actorNetwork)}
-								{#if actorNetwork.tokenTransferCount !== undefined}
-									<NumberValue value={actorNetwork.tokenTransferCount} />
+							{#snippet children(evmNetworkAccount)}
+								{#if evmNetworkAccount.tokenTransferCount !== undefined}
+									<NumberValue value={evmNetworkAccount.tokenTransferCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -321,12 +325,12 @@
 					<dt>NFT items</dt>
 					<dd>
 						<ResourceBoundary
-							resource={actorNetwork}
+							resource={evmNetworkAccount}
 							placeholderText="Loading network activity…"
 						>
-							{#snippet children(actorNetwork)}
-								{#if actorNetwork.nftCount !== undefined}
-									<NumberValue value={actorNetwork.nftCount} />
+							{#snippet children(evmNetworkAccount)}
+								{#if evmNetworkAccount.nftCount !== undefined}
+									<NumberValue value={evmNetworkAccount.nftCount} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -338,12 +342,12 @@
 					<dt>First activity at</dt>
 					<dd>
 						<ResourceBoundary
-							resource={actorNetwork}
+							resource={evmNetworkAccount}
 							placeholderText="Loading network activity…"
 						>
-							{#snippet children(actorNetwork)}
-								{#if actorNetwork.firstTransactionAt !== undefined}
-									<Timestamp timestamp={actorNetwork.firstTransactionAt} />
+							{#snippet children(evmNetworkAccount)}
+								{#if evmNetworkAccount.firstTransactionAt !== undefined}
+									<Timestamp timestamp={evmNetworkAccount.firstTransactionAt} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -355,12 +359,12 @@
 					<dt>Last activity at</dt>
 					<dd>
 						<ResourceBoundary
-							resource={actorNetwork}
+							resource={evmNetworkAccount}
 							placeholderText="Loading network activity…"
 						>
-							{#snippet children(actorNetwork)}
-								{#if actorNetwork.lastTransactionAt !== undefined}
-									<Timestamp timestamp={actorNetwork.lastTransactionAt} />
+							{#snippet children(evmNetworkAccount)}
+								{#if evmNetworkAccount.lastTransactionAt !== undefined}
+									<Timestamp timestamp={evmNetworkAccount.lastTransactionAt} />
 								{/if}
 							{/snippet}
 						</ResourceBoundary>
@@ -374,11 +378,11 @@
 		open: detailsOpen,
 	})}
 		<EntityDetails
-			entityType={EntityType.ActorNetwork}
+			entityType={EntityType.EvmNetworkAccount}
 			{entityId}
 		/>
 		<CollapsibleTabs
-			id={`${actorNetworkDetailAnchorKey}:carousel-balances`}
+			id={`${evmNetworkAccountDetailAnchorKey}:carousel-balances`}
 			data-card
 			class="actor-network-view-collapsible-balances"
 		>
@@ -389,23 +393,23 @@
 				{/snippet}
 
 				{#snippet Markers({ open: _markersOpen })}
-					{#if !actorNetwork.ready || (actorNetwork.current.$$ownedCoins ?? []).length > 0}
+					{#if !evmNetworkAccount.ready || (evmNetworkAccount.current.$$ownedCoins ?? []).length > 0}
 						<a
 							data-scroll-marker-label="Tokens"
-							href={`#${actorNetworkDetailAnchorKey}:actor-balances-tokens`}
+							href={`#${evmNetworkAccountDetailAnchorKey}:actor-balances-tokens`}
 						>Tokens</a>
 					{/if}
 
-					{#if !actorNetwork.ready || (actorNetwork.current.contractPositions ?? []).length > 0}
+					{#if !evmNetworkAccount.ready || (evmNetworkAccount.current.contractPositions ?? []).length > 0}
 						<a
 							data-scroll-marker-label="Contract positions"
-							href={`#${actorNetworkDetailAnchorKey}:actor-contract-positions`}
+							href={`#${evmNetworkAccountDetailAnchorKey}:actor-contract-positions`}
 						>Positions</a>
 					{/if}
 				{/snippet}
 
 				{#snippet body({ open: _bodyOpen })}
-					<section id={`${actorNetworkDetailAnchorKey}:actor-balances-tokens`}>
+					<section id={`${evmNetworkAccountDetailAnchorKey}:actor-balances-tokens`}>
 						<BalancesView
 							CollapsibleProps={{ canToggle: false }}
 							href={resolve(
@@ -417,24 +421,24 @@
 		)}
 							collapsible={false}
 							entityFieldReference={{
-								entityType: EntityType.ActorNetwork,
+								entityType: EntityType.EvmNetworkAccount,
 								entityId,
 								fieldName: '$$ownedCoins',
 							}}
-							id={`${actorNetworkDetailAnchorKey}:actor-owned-coins`}
+							id={`${evmNetworkAccountDetailAnchorKey}:actor-owned-coins`}
 							title="Tokens"
 						/>
 					</section>
 
-					<section id={`${actorNetworkDetailAnchorKey}:actor-contract-positions`}>
+					<section id={`${evmNetworkAccountDetailAnchorKey}:actor-contract-positions`}>
 						<ResourceBoundary
-							resource={actorNetwork}
+							resource={evmNetworkAccount}
 							placeholderText="Loading positions…"
 						>
-							{#snippet children(actorNetwork)}
-								{#if (actorNetwork.contractPositions ?? []).length}
+							{#snippet children(evmNetworkAccount)}
+								{#if (evmNetworkAccount.contractPositions ?? []).length}
 									<ul data-list="unstyled">
-										{#each actorNetwork.contractPositions ?? [] as row (`${row.protocol.key}:${row.name}`)}
+										{#each evmNetworkAccount.contractPositions ?? [] as row (`${row.protocol.key}:${row.name}`)}
 											<li data-column="gap-1">
 												<div data-row="wrap align-baseline gap-2">
 													<strong>{row.name}</strong>
@@ -472,19 +476,19 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${actorNetworkDetailAnchorKey}:carousel-activity`}
-			sectionIdPrefix={actorNetworkDetailAnchorKey}
+			id={`${evmNetworkAccountDetailAnchorKey}:carousel-activity`}
+			sectionIdPrefix={evmNetworkAccountDetailAnchorKey}
 			sections={[
 				{ id: 'activity-transactions', label: 'Transactions' },
 				...(
-					!actorNetwork.ready
-					|| actorNetwork.current.tokenTransferCount !== undefined
-					|| (actorNetwork.current.$$tokenTransfers ?? []).length > 0
-				) ? [{ id: 'activity-token-transfers', label: 'Token transfers' }] : [],
+					!evmNetworkAccount.ready
+					|| evmNetworkAccount.current.tokenTransferCount !== undefined
+					|| (evmNetworkAccount.current.$$tokenTransfers ?? []).length > 0
+				) ? ([{ id: 'activity-token-transfers', label: 'Token transfers' }] as const) : [],
 				...(
-					!actorNetwork.ready
-					|| (actorNetwork.current.$$internalTransactions ?? []).length > 0
-				) ? [{ id: 'activity-internal-transactions', label: 'Internal transactions' }] : [],
+					!evmNetworkAccount.ready
+					|| (evmNetworkAccount.current.$$internalTransactions ?? []).length > 0
+				) ? ([{ id: 'activity-internal-transactions', label: 'Internal transactions' }] as const) : [],
 			]}
 			data-card
 			class="actor-network-view-collapsible-activity"
@@ -507,11 +511,11 @@
 					)}
 					collapsible={false}
 					entityFieldReference={{
-						entityType: EntityType.ActorNetwork,
+						entityType: EntityType.EvmNetworkAccount,
 						entityId,
 						fieldName: '$$transactions',
 					}}
-					id={`${actorNetworkDetailAnchorKey}:activity-tx`}
+					id={`${evmNetworkAccountDetailAnchorKey}:activity-tx`}
 				/>
 			{/snippet}
 
@@ -527,11 +531,11 @@
 					)}
 					collapsible={false}
 					entityFieldReference={{
-						entityType: EntityType.ActorNetwork,
+						entityType: EntityType.EvmNetworkAccount,
 						entityId,
 						fieldName: '$$tokenTransfers',
 					}}
-					id={`${actorNetworkDetailAnchorKey}:activity-token-tx-transfers`}
+					id={`${evmNetworkAccountDetailAnchorKey}:activity-token-tx-transfers`}
 					title="Token transfers"
 				/>
 			{/snippet}
@@ -548,11 +552,11 @@
 						)}
 						collapsible={false}
 						entityFieldReference={{
-							entityType: EntityType.ActorNetwork,
+							entityType: EntityType.EvmNetworkAccount,
 							entityId,
 							fieldName: '$$internalTransactions',
 						}}
-						id={`${actorNetworkDetailAnchorKey}:activity-internal-tx`}
+						id={`${evmNetworkAccountDetailAnchorKey}:activity-internal-tx`}
 						title="Internal transactions"
 					/>
 				{/snippet}

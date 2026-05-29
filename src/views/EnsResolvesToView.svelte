@@ -36,7 +36,7 @@
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import ActorView from '$/views/ActorView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 </script>
 
@@ -57,7 +57,7 @@
 			</section>
 
 			<!-- href override: card links to this resolves-to page, not /account/… -->
-			<ActorView
+			<EvmAccountView
 				entityId={resolvedActorId}
 				href={resolve(
 					'/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to',

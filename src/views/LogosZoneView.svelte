@@ -54,18 +54,15 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Logos zones model documented components of the Logos stack, including the Logos Chain, DVCI, Network Gatekeeper, and W3bI.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		{entityId.zoneId}
 	{/snippet}
 
-	{#snippet Heading()}
-		{entityId.zoneId}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Logos zones model documented components of the Logos stack, including the Logos Chain, DVCI, Network Gatekeeper, and W3bI.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

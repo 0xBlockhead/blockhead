@@ -53,11 +53,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{entityId.height.toString()}
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		{entityId.height.toString()}
 	{/snippet}
 

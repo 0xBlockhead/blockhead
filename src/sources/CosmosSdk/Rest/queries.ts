@@ -6,7 +6,11 @@ import type {
 	CosmosSdkContractInfoResponse,
 	CosmosSdkDenomMetadataResponse,
 	CosmosSdkModuleAccountResponse,
+	CosmosSdkNodeInfoResponse,
 	CosmosSdkProposalResponse,
+	CosmosSdkProposalsResponse,
+	CosmosSdkStakingPoolResponse,
+	CosmosSdkSyncingResponse,
 	CosmosSdkTxResponse,
 	CosmosSdkValidatorResponse,
 	CosmosSdkValidatorsResponse,
@@ -38,6 +42,20 @@ export const getLatestBlock = ({
 	)
 )
 
+export const getNodeInfo = ({ restBaseUrl }: { restBaseUrl: string }) => (
+	getJson<CosmosSdkNodeInfoResponse>(
+		`${base(restBaseUrl)}/cosmos/base/tendermint/v1beta1/node_info`,
+		{ origins: CosmosSdk.origins ?? [] },
+	)
+)
+
+export const getSyncing = ({ restBaseUrl }: { restBaseUrl: string }) => (
+	getJson<CosmosSdkSyncingResponse>(
+		`${base(restBaseUrl)}/cosmos/base/tendermint/v1beta1/syncing`,
+		{ origins: CosmosSdk.origins ?? [] },
+	)
+)
+
 export const getTx = ({
 	restBaseUrl,
 	txHash,
@@ -53,7 +71,14 @@ export const getTx = ({
 
 export const getValidators = ({ restBaseUrl }: { restBaseUrl: string }) => (
 	getJson<CosmosSdkValidatorsResponse>(
-		`${base(restBaseUrl)}/cosmos/staking/v1beta1/validators`,
+		`${base(restBaseUrl)}/cosmos/staking/v1beta1/validators?pagination.limit=24&pagination.count_total=true`,
+		{ origins: CosmosSdk.origins ?? [] },
+	)
+)
+
+export const getStakingPool = ({ restBaseUrl }: { restBaseUrl: string }) => (
+	getJson<CosmosSdkStakingPoolResponse>(
+		`${base(restBaseUrl)}/cosmos/staking/v1beta1/pool`,
 		{ origins: CosmosSdk.origins ?? [] },
 	)
 )
@@ -93,6 +118,13 @@ export const getProposal = ({
 }) => (
 	getJson<CosmosSdkProposalResponse>(
 		`${base(restBaseUrl)}/cosmos/gov/v1/proposals/${proposalId}`,
+		{ origins: CosmosSdk.origins ?? [] },
+	)
+)
+
+export const getProposals = ({ restBaseUrl }: { restBaseUrl: string }) => (
+	getJson<CosmosSdkProposalsResponse>(
+		`${base(restBaseUrl)}/cosmos/gov/v1/proposals?pagination.limit=12&pagination.count_total=true`,
 		{ origins: CosmosSdk.origins ?? [] },
 	)
 )

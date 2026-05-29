@@ -76,12 +76,6 @@
 		{@render Value()}
 	{/snippet}
 
-	{#snippet Heading()}
-		<span data-text="font-monospace">
-			{entityId.hex}
-		</span>
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			<strong>Raw calldata</strong>
@@ -141,4 +135,3 @@
 	})}
 	{/snippet}
 </EntityView>
-

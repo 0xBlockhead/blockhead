@@ -116,7 +116,7 @@
 		border-radius: inherit;
 
 		&.shape-square {
-			border-radius: 5%;
+			border-radius: 15%;
 		}
 		&.shape-circle {
 			border-radius: 50%;

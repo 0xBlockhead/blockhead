@@ -120,10 +120,6 @@
 	title={marketIdLabel}
 	{...EntityViewProps}
 >
-	{#snippet Heading()}
-		{marketIdLabel}
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary
 			resource={marketPrice}
@@ -165,7 +161,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		{marketIdLabel}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

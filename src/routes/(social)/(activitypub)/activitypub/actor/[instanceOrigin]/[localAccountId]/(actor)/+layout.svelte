@@ -19,7 +19,7 @@
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
+	import ActivityPubEvmAccountView from '$/views/ActivityPubEvmAccountView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 </script>
 
@@ -32,7 +32,7 @@
 	id={`${instanceOrigin}:${localAccountId}`}
 >
 	{#snippet Summary({ open: _open })}
-		<ActivityPubActorView
+		<ActivityPubEvmAccountView
 			entityId={{
 				instanceOrigin: decodeURIComponent(instanceOrigin),
 				localAccountId: decodeURIComponent(localAccountId),

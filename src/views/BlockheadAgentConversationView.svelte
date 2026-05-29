@@ -85,10 +85,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Heading()}
 		{#if true}
 			{#snippet ConversationHeading(conversation)}
 				{conversation.name ?? entityId.id}

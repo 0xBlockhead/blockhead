@@ -104,10 +104,6 @@
 		{title}
 	{/snippet}
 
-	{#snippet Heading()}
-		{@render Title()}
-	{/snippet}
-
 	{#snippet Content({ title: _title, href: _href })}
 		{#if !children}
 			<section

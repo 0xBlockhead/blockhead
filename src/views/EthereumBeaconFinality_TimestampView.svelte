@@ -116,7 +116,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		{@render Value()}
 	{/snippet}
 
@@ -124,10 +124,6 @@
 		<p>
 			Justified and finalized checkpoints from the beacon node’s head state—epoch numbers and block roots the chain treats as safe under Casper FFG rules.
 		</p>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

@@ -53,11 +53,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A 0G data blob is a committed payload represented by a data root, with DA and storage metadata attached separately.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		<TruncatedValue
@@ -66,11 +61,10 @@
 		/>
 	{/snippet}
 
-	{#snippet Heading()}
-		<TruncatedValue
-			value={entityId.dataRoot}
-			format={TruncatedValueFormat.Abbr}
-		/>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A 0G data blob is a committed payload represented by a data root, with DA and storage metadata attached separately.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

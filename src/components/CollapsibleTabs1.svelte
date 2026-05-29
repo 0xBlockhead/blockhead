@@ -48,7 +48,7 @@
 			body?: Snippet<[context?: {
 				open?: boolean,
 			}]>
-			scrollContainerProps?: Record<string, unknown>
+			scrollContainerProps?: SvelteHTMLElements['div']
 		},
 		SvelteHTMLElements['details']
 	> = $props()

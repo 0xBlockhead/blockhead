@@ -45,11 +45,8 @@
 	bind:open
 	{layout}
 >
-	{#snippet Title()}
-		{entityId.networkStackId}
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={networkStack}
 		>
@@ -57,5 +54,6 @@
 				{stack.label}
 			{/snippet}
 		</ResourceBoundary>
+
 	{/snippet}
 </EntityView>

@@ -43,6 +43,35 @@ export type TronNodeBlock = {
 	transactions?: TronNodeTransaction[]
 }
 
+export type TronNodeWitness = {
+	address: string
+	url?: string
+	voteCount?: number | string
+	totalProduced?: number | string
+	totalMissed?: number | string
+	latestBlockNum?: number | string
+	isJobs?: boolean
+}
+
+export type TronNodeWitnesses = {
+	witnesses: TronNodeWitness[]
+}
+
+export type TronNodeChainParameters = {
+	chainParameter: {
+		key: string
+		value?: number | string
+	}[]
+}
+
+export type TronNodeInfo = {
+	block?: string
+	solidityBlock?: string
+	currentConnectCount?: number
+	activeConnectCount?: number
+	passiveConnectCount?: number
+}
+
 export type TronNodeAccount = {
 	address?: string
 	account_name?: string

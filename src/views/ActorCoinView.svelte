@@ -79,7 +79,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
 
@@ -103,10 +103,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Heading()}
 		<ResourceBoundary
 			resource={actorCoin}
 			placeholderText="Loading holding…"
@@ -122,7 +118,7 @@
 			<div>
 				<dt>Account</dt>
 				<dd>
-					<ActorNetworkView
+					<EvmNetworkAccountView
 						entityId={{
 							$network: entityId.$coinInstance.$network,
 							$actor: entityId.$actor,

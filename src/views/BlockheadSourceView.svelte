@@ -81,10 +81,6 @@
 		{title}
 	{/snippet}
 
-	{#snippet Heading()}
-		{@render Title()}
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			Configured HTTP or GraphQL transport for chain or market APIs: base URL plus stable id for repeat requests.

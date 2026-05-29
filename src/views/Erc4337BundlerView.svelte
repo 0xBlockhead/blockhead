@@ -61,7 +61,7 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import ActorView from '$/views/ActorView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
 
 
@@ -85,11 +85,10 @@
 		{@render Value()}
 	{/snippet}
 
-	{#snippet Heading()}
-		<TruncatedValue
-			format={TruncatedValueFormat.Visual}
-			value={entityId.address}
-		/>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A bundler is infrastructure that submits ERC-4337 user-operation bundles on-chain; Blockscout tracks the operator address separately from smart accounts and paymasters.
+		</p>
 	{/snippet}
 
 	{#snippet Content({
@@ -112,7 +111,7 @@
 					<div>
 						<dt>Operator</dt>
 						<dd>
-							<ActorView
+							<EvmAccountView
 								entityId={{
 									address: entityId.address,
 								}}
@@ -129,11 +128,4 @@
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A bundler is infrastructure that submits ERC-4337 user-operation bundles on-chain; Blockscout tracks the operator address separately from smart accounts and paymasters.
-		</p>
-	{/snippet}
 </EntityView>
-

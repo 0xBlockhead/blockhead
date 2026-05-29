@@ -88,7 +88,7 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
@@ -182,7 +182,7 @@
 						<div>
 							<dt>From</dt>
 							<dd>
-								<ActorNetworkView
+								<EvmNetworkAccountView
 									entityId={{
 										$network: entityId.$network,
 										$actor: transfer.$from[EntityMetaKey.Id],
@@ -198,7 +198,7 @@
 						<div>
 							<dt>To</dt>
 							<dd>
-								<ActorNetworkView
+								<EvmNetworkAccountView
 									entityId={{
 										$network: entityId.$network,
 										$actor: transfer.$to[EntityMetaKey.Id],

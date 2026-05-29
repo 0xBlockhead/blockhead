@@ -1,4 +1,5 @@
 export enum NetworkNamespace {
+	Bittensor = 'Bittensor',
 	Bitcoin = 'Bitcoin',
 	BitcoinCash = 'BitcoinCash',
 	Cosmos = 'Cosmos',
@@ -45,6 +46,12 @@ export const networks = [
 		slug: '0g',
 		name: '0G',
 		namespace: NetworkNamespace.ZeroG,
+		environment: NetworkEnvironment.Mainnet,
+	},
+	{
+		slug: 'bittensor',
+		name: 'Bittensor',
+		namespace: NetworkNamespace.Bittensor,
 		environment: NetworkEnvironment.Mainnet,
 	},
 	{

@@ -1,6 +1,7 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
+	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -8,9 +9,10 @@ import { Source } from '$/sources/$Source.ts'
 import type {
 	SolanaRpcInstruction,
 	SolanaRpcTransactionWithMeta,
+	SolanaRpcVoteAccounts,
 } from '$/sources/Solana/JsonRpc/types.ts'
 
-const solanaMainnetRpcUrl = 'https://api.mainnet.solana.com'
+const solanaMainnetRpcUrl = 'https://api.mainnet-beta.solana.com'
 
 const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
@@ -127,6 +129,34 @@ const getTransaction = async (entityId: {
 	return transaction
 }
 
+const solanaValidatorRows = (
+	network: { caip2: { namespace: string; reference: string } } | { networkSlug: string },
+	voteAccounts: SolanaRpcVoteAccounts,
+) => (
+	[
+		...voteAccounts.current.map((voteAccount) => ({
+			[EntityMetaKey.Id]: {
+				$network: network,
+				votePubkey: voteAccount.votePubkey,
+			},
+			nodePubkey: voteAccount.nodePubkey,
+			activatedStakeLamports: BigInt(voteAccount.activatedStake),
+			commission: voteAccount.commission,
+			delinquent: false,
+		})),
+		...voteAccounts.delinquent.map((voteAccount) => ({
+			[EntityMetaKey.Id]: {
+				$network: network,
+				votePubkey: voteAccount.votePubkey,
+			},
+			nodePubkey: voteAccount.nodePubkey,
+			activatedStakeLamports: BigInt(voteAccount.activatedStake),
+			commission: voteAccount.commission,
+			delinquent: true,
+		})),
+	]
+)
+
 export default {
 	source: Source.Solana_JsonRpc,
 
@@ -175,6 +205,59 @@ export default {
 							},
 						]
 					)),
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.SolanaNetwork_Timestamp,
+			resolve: async (entityId) => {
+				assertSolanaMainnet(entityId.$network)
+				const {
+					getEpochInfo,
+					getHealth,
+					getVersion,
+					getVoteAccounts,
+				} = await import('$/sources/Solana/JsonRpc/queries.ts')
+				const [
+					epochInfo,
+					health,
+					version,
+					voteAccounts,
+				] = await Promise.all([
+					getEpochInfo({
+						rpcUrl: solanaMainnetRpcUrl,
+					}),
+					getHealth({
+						rpcUrl: solanaMainnetRpcUrl,
+					}).catch((error) => (
+						error instanceof Error ? error.message : 'unavailable'
+					)),
+					getVersion({
+						rpcUrl: solanaMainnetRpcUrl,
+					}),
+					getVoteAccounts({
+						rpcUrl: solanaMainnetRpcUrl,
+					}),
+				])
+				return {
+					absoluteSlot: BigInt(epochInfo.absoluteSlot),
+					blockHeight: BigInt(epochInfo.blockHeight),
+					epoch: epochInfo.epoch,
+					slotIndex: epochInfo.slotIndex,
+					slotsInEpoch: epochInfo.slotsInEpoch,
+					...(epochInfo.transactionCount != null && {
+						transactionCount: BigInt(epochInfo.transactionCount),
+					}),
+					currentValidatorCount: voteAccounts.current.length,
+					delinquentValidatorCount: voteAccounts.delinquent.length,
+					totalActivatedStakeLamports: voteAccounts.current
+						.reduce((total, voteAccount) => total + BigInt(voteAccount.activatedStake), 0n),
+					solanaCoreVersion: version['solana-core'],
+					...(version['feature-set'] != null && {
+						featureSet: version['feature-set'],
+					}),
+					health,
 				}
 			},
 		}),
@@ -320,6 +403,82 @@ export default {
 
 	entityFieldResolvers: [
 
+		defineEntityFieldResolver({
+			entityType: EntityType.SolanaNetwork,
+			fieldName: '$headBlock',
+			resolve: async (entityId) => {
+				assertSolanaMainnet(entityId)
+				const { getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
+				return {
+					[EntityMetaKey.Id]: {
+						$network: entityId,
+						slot: BigInt(await getSlot({
+							rpcUrl: solanaMainnetRpcUrl,
+						})),
+					},
+				}
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.SolanaNetwork,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => {
+				assertSolanaMainnet(entityId)
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							timestampMs: Date.now(),
+						},
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.SolanaNetwork,
+			fieldName: '$$blocks',
+			resolve: async (entityId, context) => {
+				assertSolanaMainnet(entityId)
+				const {
+					getBlocks,
+					getSlot,
+				} = await import('$/sources/Solana/JsonRpc/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				const endSlot = BigInt(await getSlot({
+					rpcUrl: solanaMainnetRpcUrl,
+				}))
+				return (await getBlocks({
+					rpcUrl: solanaMainnetRpcUrl,
+					startSlot: endSlot > BigInt(limit - 1) ? endSlot - BigInt(limit - 1) : 0n,
+					endSlot,
+				}))
+					.toReversed()
+					.slice(0, limit)
+					.map((slot) => ({
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							slot: BigInt(slot),
+						},
+					}))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.SolanaNetwork,
+			fieldName: '$$validators',
+			resolve: async (entityId) => {
+				assertSolanaMainnet(entityId)
+				const { getVoteAccounts } = await import('$/sources/Solana/JsonRpc/queries.ts')
+				return solanaValidatorRows(
+					entityId,
+					await getVoteAccounts({
+						rpcUrl: solanaMainnetRpcUrl,
+					}),
+				)
+			},
+		}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType.SolanaBlock,

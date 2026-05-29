@@ -1,14 +1,21 @@
-import type { JsonValue } from '$/typescript/JsonValue.ts'
-
 export type LotusTipset = {
 	Cids: { '/': string }[]
 	Blocks: LotusBlockHeader[]
 	Height: number
 }
 
+export type LotusVersion = {
+	Version: string
+	APIVersion: number
+	BlockDelay: number
+	Agent: string
+}
+
 export type LotusBlockHeader = {
 	Miner: string
-	Ticket?: JsonValue
+	Ticket?: {
+		VRFProof?: string
+	}
 	ElectionProof?: {
 		WinCount?: number
 		VRFProof?: string
@@ -45,4 +52,15 @@ export type LotusSectorOnChainInfo = {
 	SealedCID?: { '/': string }
 	Activation: number
 	Expiration: number
+}
+
+export type LotusPowerClaim = {
+	RawBytePower: string
+	QualityAdjPower: string
+}
+
+export type LotusMinerPower = {
+	MinerPower: LotusPowerClaim
+	TotalPower: LotusPowerClaim
+	HasMinPower: boolean
 }

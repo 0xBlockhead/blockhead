@@ -85,21 +85,6 @@
 			placeholderText="Loading log topic…"
 		>
 			{#snippet children(topic)}
-				{#if topic.signatures?.[0]}
-					{topic.signatures[0]}
-				{:else}
-					{@render Value()}
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Heading()}
-		<ResourceBoundary
-			resource={topic}
-			placeholderText="Loading log topic…"
-		>
-			{#snippet children(topic)}
 				{topic.signatures?.[0] ?? entityId.hex}
 			{/snippet}
 		</ResourceBoundary>

@@ -153,7 +153,13 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Value()}
+		<span>
+			{entityId.coinId}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={coin}
 			placeholderText="Loading…"
@@ -162,16 +168,6 @@
 				{formatCoinHeadingLabel(coin, entityId.coinId)}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<span>
-			{entityId.coinId}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

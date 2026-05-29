@@ -65,8 +65,8 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
-	import ActorView from '$/views/ActorView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
@@ -170,7 +170,7 @@
 							<dt>From</dt>
 							<dd>
 								{#if transfer.$channel?.[EntityMetaKey.Id].id !== undefined && transfer.$channel.$network?.[EntityMetaKey.Id].chainId !== undefined}
-									<ActorNetworkView
+									<EvmNetworkAccountView
 										entityId={{
 											$network: transfer.$channel.$network[EntityMetaKey.Id],
 											$actor: transfer.$from[EntityMetaKey.Id],
@@ -179,7 +179,7 @@
 										open={false}
 									/>
 								{:else}
-									<ActorView
+									<EvmAccountView
 										entityId={transfer.$from[EntityMetaKey.Id]}
 										href={resolve('/account/[address]', {
 											address: transfer.$from[EntityMetaKey.Id].address,
@@ -197,7 +197,7 @@
 							<dt>To</dt>
 							<dd>
 								{#if transfer.$channel?.[EntityMetaKey.Id].id !== undefined && transfer.$channel.$network?.[EntityMetaKey.Id].chainId !== undefined}
-									<ActorNetworkView
+									<EvmNetworkAccountView
 										entityId={{
 											$network: transfer.$channel.$network[EntityMetaKey.Id],
 											$actor: transfer.$to[EntityMetaKey.Id],
@@ -206,7 +206,7 @@
 										open={false}
 									/>
 								{:else}
-									<ActorView
+									<EvmAccountView
 										entityId={transfer.$to[EntityMetaKey.Id]}
 										href={resolve('/account/[address]', {
 											address: transfer.$to[EntityMetaKey.Id].address,
@@ -226,4 +226,3 @@
 	{#snippet Details({ open: _detailsOpen })}
 	{/snippet}
 </EntityView>
-

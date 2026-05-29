@@ -98,7 +98,13 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Value()}
+		<span>
+			FID {String(entityId.fid)}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={connection}
 			placeholderText="Loading Farcaster account connection (FID)…"
@@ -127,16 +133,6 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<span>
-			FID {String(entityId.fid)}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

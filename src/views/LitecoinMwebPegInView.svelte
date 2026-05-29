@@ -51,11 +51,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{entityId.pegInIndex.toString()}
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		{entityId.pegInIndex.toString()}
 	{/snippet}
 

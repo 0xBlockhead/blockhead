@@ -70,17 +70,17 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A Lightning channel is a payment-channel relationship anchored by funding output metadata; Lightning payments through it are not base-layer transactions.
-		</p>
-	{/snippet}
-
 	{#snippet Title()}
 		<TruncatedValue
 			value={entityId.channelId}
 			format={TruncatedValueFormat.Abbr}
 		/>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A Lightning channel is a payment-channel relationship anchored by funding output metadata; Lightning payments through it are not base-layer transactions.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

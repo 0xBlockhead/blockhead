@@ -92,24 +92,11 @@
 	{...EntityViewProps}
 	title="Lens"
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Lens v3 separates publisher profiles (addresses and account metadata) from publications surfaced here as posts and reposts.
-		</p>
-		<p>
-			Counts here reflect the Graph-backed slice wired for this app; they index protocol activity the resolver exposes, not an exhaustive offline mirror of Lens.
-		</p>
-	{/snippet}
-
 	{#snippet Value()}
 		{entityId.scope}
 	{/snippet}
 
 	{#snippet Title()}
-		Lens
-	{/snippet}
-
-	{#snippet Heading()}
 		<ResourceBoundary
 			resource={lensNetwork}
 			placeholderText="Loading Lens…"
@@ -118,6 +105,15 @@
 				{lensNetwork.protocolName ?? 'Lens'}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Lens v3 separates publisher profiles (addresses and account metadata) from publications surfaced here as posts and reposts.
+		</p>
+		<p>
+			Counts here reflect the Graph-backed slice wired for this app; they index protocol activity the resolver exposes, not an exhaustive offline mirror of Lens.
+		</p>
 	{/snippet}
 
 	{#snippet Content({

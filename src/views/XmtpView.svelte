@@ -72,7 +72,7 @@
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import ActorsView from '$/views/ActorsView.svelte'
+	import EvmAccountsView from '$/views/EvmAccountsView.svelte'
 	import XmtpConversationsView from '$/views/XmtpConversationsView.svelte'
 </script>
 
@@ -93,10 +93,6 @@
 
 	{#snippet Title()}
 		XMTP
-	{/snippet}
-
-	{#snippet Heading()}
-		{@render Title()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -195,7 +191,7 @@
 				{/snippet}
 
 				{#snippet SectionDemoAccounts({ id: _id, label: _label })}
-					<ActorsView
+					<EvmAccountsView
 						CollapsibleProps={{ canToggle: false }}
 						href={resolve('/~/accounts')}
 						entityFieldReference={{

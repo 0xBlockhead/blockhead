@@ -51,11 +51,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		{entityId.eventIndex.toString()}
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		{entityId.eventIndex.toString()}
 	{/snippet}
 

@@ -59,24 +59,20 @@
 	bind:open
 	{layout}
 >
-	{#snippet Heading()}
+	{#snippet Value()}
+		<span>{entityId.networkSlug}</span>
+	{/snippet}
+
+	{#snippet Title()}
 		<ResourceBoundary resource={network}>
 			{#snippet Pending()}
-				<span>{entityId.networkSlug}</span>
+				{@render Value()}
 			{/snippet}
 
 			{#snippet children(network)}
 				{network.name}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<span>{entityId.networkSlug}</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span>{entityId.networkSlug}</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

@@ -102,10 +102,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Heading()}
 		<ResourceBoundary
 			resource={sourceBundle}
 			placeholderText="Loading source bundle…"

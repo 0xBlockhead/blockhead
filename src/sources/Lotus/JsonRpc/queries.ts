@@ -4,9 +4,11 @@ import Lotus from '$/sources/Lotus/index.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 import type {
 	LotusActor,
+	LotusMinerPower,
 	LotusMessage,
 	LotusSectorOnChainInfo,
 	LotusTipset,
+	LotusVersion,
 } from '$/sources/Lotus/JsonRpc/types.ts'
 
 type JsonRpcResponse<_Result> = {
@@ -62,6 +64,65 @@ export const chainGetTipSetByHeight = ({
 		params: [
 			Number(height),
 			null,
+		],
+	})
+)
+
+export const chainHead = ({
+	rpcUrl,
+}: {
+	rpcUrl: string
+}) => (
+	lotusJsonRpc<LotusTipset>({
+		rpcUrl,
+		method: 'Filecoin.ChainHead',
+		params: [],
+	})
+)
+
+export const version = ({
+	rpcUrl,
+}: {
+	rpcUrl: string
+}) => (
+	lotusJsonRpc<LotusVersion>({
+		rpcUrl,
+		method: 'Filecoin.Version',
+		params: [],
+	})
+)
+
+export const stateNetworkVersion = ({
+	rpcUrl,
+	tipsetKey,
+}: {
+	rpcUrl: string
+	tipsetKey: { '/': string }[]
+}) => (
+	lotusJsonRpc<number>({
+		rpcUrl,
+		method: 'Filecoin.StateNetworkVersion',
+		params: [
+			tipsetKey,
+		],
+	})
+)
+
+export const stateMinerPower = ({
+	rpcUrl,
+	minerAddress,
+	tipsetKey,
+}: {
+	rpcUrl: string
+	minerAddress: string
+	tipsetKey: { '/': string }[]
+}) => (
+	lotusJsonRpc<LotusMinerPower>({
+		rpcUrl,
+		method: 'Filecoin.StateMinerPower',
+		params: [
+			minerAddress,
+			tipsetKey,
 		],
 	})
 )

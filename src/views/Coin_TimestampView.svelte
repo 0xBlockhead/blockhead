@@ -126,10 +126,6 @@
 		{@render Value()}
 	{/snippet}
 
-	{#snippet Heading()}
-		{@render Value()}
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			<strong>Timestamped</strong>

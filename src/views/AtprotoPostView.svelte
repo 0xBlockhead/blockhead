@@ -72,7 +72,7 @@
 
 
 	// Components
-	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
+	import AtprotoEvmAccountView from '$/views/AtprotoEvmAccountView.svelte'
 	import AtprotoPostThreadView from '$/views/AtprotoPostThreadView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
@@ -92,12 +92,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Bluesky posts are AT Protocol repository records keyed by at-URI; text, reply parent/root, and engagement counts come from the public App View API.
-		</p>
-	{/snippet}
-
 	{#snippet Value()}
 		<TruncatedValue
 			endLength={12}
@@ -108,10 +102,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Heading()}
 		<ResourceBoundary
 			resource={post}
 			placeholderText="Loading post…"
@@ -145,6 +135,12 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Bluesky posts are AT Protocol repository records keyed by at-URI; text, reply parent/root, and engagement counts come from the public App View API.
+		</p>
 	{/snippet}
 
 	{#snippet Content({
@@ -182,7 +178,7 @@
 						<div>
 							<dt>Author</dt>
 							<dd>
-								<AtprotoActorView
+								<AtprotoEvmAccountView
 									entityId={post.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}

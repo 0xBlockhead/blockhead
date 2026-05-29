@@ -339,12 +339,12 @@ const evmInternalTransferEntityFromWire = ({
 		...(fromAddress != null && {
 			$from: {
 				[EntityMetaKey.Id]: { address: fromAddress },
-			} satisfies Entity<typeof schema, EntityType.Actor>,
+			} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 		}),
 		...(toAddress != null && {
 			$to: {
 				[EntityMetaKey.Id]: { address: toAddress },
-			} satisfies Entity<typeof schema, EntityType.Actor>,
+			} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 		}),
 		...(createdAddress != null && (
 			callType === EvmInternalCallType.Create
@@ -489,12 +489,12 @@ const evmTokenTransferEntityFromFields = ({
 	...(fromAddress != null && {
 		$from: {
 			[EntityMetaKey.Id]: { address: fromAddress },
-		} satisfies Entity<typeof schema, EntityType.Actor>,
+		} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 	}),
 	...(toAddress != null && {
 		$to: {
 			[EntityMetaKey.Id]: { address: toAddress },
-		} satisfies Entity<typeof schema, EntityType.Actor>,
+		} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 	}),
 	...(tokenAddress != null && {
 		$tokenContract: {
@@ -1036,14 +1036,14 @@ export default {
 								[EntityMetaKey.Id]: {
 									address: from,
 								},
-							} satisfies Entity<typeof schema, EntityType.Actor>,
+							} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 						}),
 					...(to != null && {
 							$to: {
 								[EntityMetaKey.Id]: {
 									address: to,
 								},
-							} satisfies Entity<typeof schema, EntityType.Actor>,
+							} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 						}),
 					transactionIndex: (
 						jsonRpcTransaction.transactionIndex != null ? ((parsed) => (
@@ -1617,7 +1617,7 @@ export default {
 		}),
 
 		defineEntityResolver({
-			entityType: EntityType.ActorNetwork,
+			entityType: EntityType.EvmNetworkAccount,
 			resolve: async (entityId) => {
 				const {
 					blockscoutExplorerOriginForChain,
@@ -1637,7 +1637,7 @@ export default {
 				}
 				const address = hexLowerOfByteSize(entityId.$actor.address, 20)
 				if (address == null) {
-					throw new Error('Blockscout_Rest: ActorNetwork wallet address not normalized')
+					throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
 				}
 				const details = await getBlockscoutAddressDetails({ explorerOrigin: origin, address })
 				const counters = await getBlockscoutAddressCounters({ explorerOrigin: origin, address })
@@ -1918,7 +1918,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.ActorNetwork,
+			entityType: EntityType.EvmNetworkAccount,
 			fieldName: '$$transactions',
 			resolve: async (entityId, context) => {
 				const {
@@ -1941,7 +1941,7 @@ export default {
 				}
 				const address = hexLowerOfByteSize(entityId.$actor.address, 20)
 				if (address == null) {
-					throw new Error('Blockscout_Rest: ActorNetwork wallet address not normalized')
+					throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
 				}
 				const wires = await getBlockscoutAddressTransactions({
 					explorerOrigin: origin,
@@ -1966,7 +1966,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.ActorNetwork,
+			entityType: EntityType.EvmNetworkAccount,
 			fieldName: '$$tokenTransfers',
 			resolve: async (entityId, context) => {
 				const {
@@ -1991,7 +1991,7 @@ export default {
 				}
 				const address = hexLowerOfByteSize(entityId.$actor.address, 20)
 				if (address == null) {
-					throw new Error('Blockscout_Rest: ActorNetwork wallet address not normalized')
+					throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
 				}
 				const wires = await getBlockscoutAddressTokenTransfers({
 					explorerOrigin: origin,
@@ -2012,7 +2012,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.ActorNetwork,
+			entityType: EntityType.EvmNetworkAccount,
 			fieldName: '$$internalTransactions',
 			resolve: async (entityId, context) => {
 				const {
@@ -2037,7 +2037,7 @@ export default {
 				}
 				const address = hexLowerOfByteSize(entityId.$actor.address, 20)
 				if (address == null) {
-					throw new Error('Blockscout_Rest: ActorNetwork wallet address not normalized')
+					throw new Error('Blockscout_Rest: EvmNetworkAccount wallet address not normalized')
 				}
 				const wires = await getBlockscoutAddressInternalTransactions({
 					explorerOrigin: origin,
@@ -2058,7 +2058,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.ActorNetwork,
+			entityType: EntityType.EvmNetworkAccount,
 			fieldName: '$$erc20TokenAllowances',
 			resolve: async (entityId) => {
 				throw new Error(

@@ -97,11 +97,8 @@
 		</span>
 	{/snippet}
 
-	{#snippet Heading()}
-
-		<span>
-			{entityId.slot}
-		</span>
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -111,12 +108,6 @@
 		<p>
 			Relay schemas vary: some include the accepted EL block hash or height with the bid, others list only bid value and builder pubkey until cross-linked elsewhere.
 		</p>
-	{/snippet}
-
-	{#snippet Title()}
-		<span>
-			{entityId.relayHost}
-		</span>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

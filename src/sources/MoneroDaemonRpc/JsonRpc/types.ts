@@ -25,7 +25,51 @@ export type MoneroRpcBlock = {
 	block_header: MoneroRpcBlockHeader
 	json?: string
 	miner_tx_hash: string
-	tx_hashes: string[]
+	tx_hashes?: string[]
+}
+
+export type MoneroRpcInfo = {
+	adjusted_time?: number
+	alt_blocks_count: number
+	block_size_limit?: number
+	block_size_median?: number
+	block_weight_limit?: number
+	block_weight_median?: number
+	bootstrap_daemon_address?: string
+	busy_syncing?: boolean
+	credits?: number
+	cumulative_difficulty: number
+	cumulative_difficulty_top64?: number
+	database_size?: number
+	difficulty: number
+	difficulty_top64?: number
+	free_space?: number
+	grey_peerlist_size: number
+	height: number
+	height_without_bootstrap?: number
+	incoming_connections_count: number
+	mainnet: boolean
+	nettype: string
+	offline: boolean
+	outgoing_connections_count: number
+	rpc_connections_count?: number
+	stagenet: boolean
+	start_time?: number
+	status: string
+	synchronized: boolean
+	target: number
+	target_height: number
+	testnet: boolean
+	top_block_hash: string
+	tx_count: number
+	tx_pool_size: number
+	untrusted: boolean
+	update_available?: boolean
+	version: string
+	was_bootstrap_ever_used: boolean
+	white_peerlist_size: number
+	wide_cumulative_difficulty?: string
+	wide_difficulty?: string
 }
 
 export type MoneroRpcTransaction = {

@@ -68,7 +68,9 @@
 		},
 	)
 
-	const casts = derive(farcasterUser, (farcasterUser) => (
+	const casts = derive(
+		farcasterUser,
+		(farcasterUser) => (
 			[...(farcasterUser.$$casts ?? [])].map((result) => ({
 				result,
 			}))
@@ -86,7 +88,7 @@
 	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import ActorView from '$/views/ActorView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import FarcasterCastView from '$/views/FarcasterCastView.svelte'
 </script>
 
@@ -98,38 +100,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Heading()}
-		<ResourceBoundary
-			resource={farcasterUser}
-			placeholderText="Loading Farcaster profile (FID)…"
-		>
-			{#snippet children(farcasterUser)}
-				{farcasterUser.displayName
-					?? farcasterUser.username
-					?? `FID ${String(entityId.fid)}`}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<span>
-			FID {String(entityId.fid)}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Farcaster profile keyed by FID: fname, display name, bio, and verified addresses from Neynar, Snapchain, or Farcaster client APIs.
-		</p>
-		<p>
-			Casts on the profile are hub snapshots—not a complete archival export of every client.
-		</p>
-	{/snippet}
-
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={farcasterUser}
@@ -146,6 +116,25 @@
 						alt=""
 					/>
 				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<span>
+			FID {String(entityId.fid)}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		<ResourceBoundary
+			resource={farcasterUser}
+			placeholderText="Loading Farcaster profile (FID)…"
+		>
+			{#snippet children(farcasterUser)}
+				{farcasterUser.displayName
+					?? farcasterUser.username
+					?? `FID ${String(entityId.fid)}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -170,6 +159,15 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Farcaster profile keyed by FID: fname, display name, bio, and verified addresses from Neynar, Snapchain, or Farcaster client APIs.
+		</p>
+		<p>
+			Casts on the profile are hub snapshots—not a complete archival export of every client.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -231,7 +229,7 @@
 										{#each farcasterUser.$$verifiedAddresses as verification (stringify(verification[EntityMetaKey.Id]))}
 											<li>
 												{#if verification[EntityMetaKey.Id].protocol === 'ethereum'}
-													<ActorView
+													<EvmAccountView
 														entityId={{
 															address: verification[EntityMetaKey.Id].address,
 														}}

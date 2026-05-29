@@ -40,7 +40,7 @@ const normalizedEnsSearchQuery = (query: string): string => {
 
 const actorEntityFromSubgraphAccount = (
 	account: { id: string } | null | undefined,
-): Entity<typeof schema, EntityType.Actor> | null => {
+): Entity<typeof schema, EntityType.EvmAccount> | null => {
 	const address = (
 		account?.id == null ?
 			undefined
@@ -180,7 +180,7 @@ export default {
 
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			fieldName: '$$ensNamesOwned',
 			resolve: async (entityId, context) => {
 				const { getEnsDomainsByOwner } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')

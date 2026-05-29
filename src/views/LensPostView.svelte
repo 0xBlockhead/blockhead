@@ -98,17 +98,7 @@
 		/>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Lens v3 publications are on-chain posts keyed by slug; author profiles, comment threads, and engagement counts resolve from Lens GraphQL indexers.
-		</p>
-	{/snippet}
-
 	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Heading()}
 		<ResourceBoundary
 			placeholderText="Loading Lens publication…"
 			resource={lensPost}
@@ -143,6 +133,12 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Lens v3 publications are on-chain posts keyed by slug; author profiles, comment threads, and engagement counts resolve from Lens GraphQL indexers.
+		</p>
 	{/snippet}
 
 	{#snippet Content({

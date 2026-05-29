@@ -78,9 +78,10 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import Address from '$/views/Address.svelte'
 	import BlockheadRoomView from '$/views/BlockheadRoomView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import EvmCoinInstanceView from '$/views/EvmCoinInstanceView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import StateChannelDepositsView from '$/views/StateChannelDepositsView.svelte'
@@ -111,21 +112,41 @@
 				{#if stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined || stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
 					<span data-row="inline align-center gap-2 wrap">
 						{#if stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined}
-							<Address
-								actorId={stateChannel.$participant0[EntityMetaKey.Id]}
-								network={stateChannel.$network?.[EntityMetaKey.Id]}
-								isLinked={false}
-							/>
+							{#if stateChannel.$network?.[EntityMetaKey.Id] !== undefined}
+								<EvmNetworkAccountView
+									entityId={{
+										$network: stateChannel.$network[EntityMetaKey.Id],
+										$actor: stateChannel.$participant0[EntityMetaKey.Id],
+									}}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<EvmAccountView
+									entityId={stateChannel.$participant0[EntityMetaKey.Id]}
+									layout={EntityLayout.Value}
+								/>
+							{/if}
 						{/if}
 						{#if stateChannel.$participant0?.[EntityMetaKey.Id].address !== undefined && stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
 							<span aria-hidden="true">↔</span>
 						{/if}
 						{#if stateChannel.$participant1?.[EntityMetaKey.Id].address !== undefined}
-							<Address
-								actorId={stateChannel.$participant1[EntityMetaKey.Id]}
-								network={stateChannel.$network?.[EntityMetaKey.Id]}
-								isLinked={false}
-							/>
+							{#if stateChannel.$network?.[EntityMetaKey.Id] !== undefined}
+								<EvmNetworkAccountView
+									entityId={{
+										$network: stateChannel.$network[EntityMetaKey.Id],
+										$actor: stateChannel.$participant1[EntityMetaKey.Id],
+									}}
+									layout={EntityLayout.Value}
+									open={false}
+								/>
+							{:else}
+								<EvmAccountView
+									entityId={stateChannel.$participant1[EntityMetaKey.Id]}
+									layout={EntityLayout.Value}
+								/>
+							{/if}
 						{/if}
 					</span>
 				{:else}
@@ -133,10 +154,6 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Heading()}
-		{@render Title()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

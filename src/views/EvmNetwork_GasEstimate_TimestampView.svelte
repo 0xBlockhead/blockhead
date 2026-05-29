@@ -113,7 +113,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		<Timestamp
 			timestamp={entityId.timestampMs}
 		/>
@@ -123,10 +123,6 @@
 		<p>
 			Timestamped explorer-oracle gas suggestions: slow, average, and fast tiers in gwei.
 		</p>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
 	{/snippet}
 
 	{#snippet Content()}

@@ -198,7 +198,20 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Heading()}
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={proposalKind}
+			placeholderText="Loading proposal kind…"
+		>
+			{#snippet children(proposalKind)}
+				<span>
+					{`${proposalKind.label ?? entityId.category}-${entityId.number}`}
+				</span>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Title()}
 		{#if layout === EntityLayout.SummaryInline}
 			{`${proposalCategoryById[entityId.category].label}-${entityId.number}`}
 		{:else}
@@ -223,25 +236,6 @@
 			</ResourceBoundary>
 		{/if}
 	{/snippet}
-
-	{#snippet Value()}
-		<ResourceBoundary
-			resource={proposalKind}
-			placeholderText="Loading proposal kind…"
-		>
-			{#snippet children(proposalKind)}
-				<span>
-					{`${proposalKind.label ?? entityId.category}-${entityId.number}`}
-				</span>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>

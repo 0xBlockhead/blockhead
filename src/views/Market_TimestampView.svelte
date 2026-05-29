@@ -118,10 +118,6 @@
 		{@render Value()}
 	{/snippet}
 
-	{#snippet Heading()}
-		{@render Value()}
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			A timestamped spot or index observation for the quoted base/against pair.

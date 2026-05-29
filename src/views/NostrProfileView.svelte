@@ -109,6 +109,26 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Icon()}
+		<ResourceBoundary
+			resource={profile}
+			placeholderText="Loading profile…"
+		>
+			{#snippet children(profile)}
+				{#if (
+					profile.$icon
+					&& profile.$icon[EntityMetaKey.Id].url
+				)}
+					<IconComponent
+						shape={IconShape.Circle}
+						src={profile.$icon[EntityMetaKey.Id].url}
+						alt=""
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Value()}
 		<TruncatedValue
 			value={entityId.pubkey}
@@ -125,30 +145,7 @@
 				{#if profile.displayName}
 					{profile.displayName}
 				{:else}
-					<TruncatedValue
-						value={entityId.pubkey}
-						format={TruncatedValueFormat.Visual}
-					/>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Icon()}
-		<ResourceBoundary
-			resource={profile}
-			placeholderText="Loading profile…"
-		>
-			{#snippet children(profile)}
-				{#if (
-					profile.$icon
-					&& profile.$icon[EntityMetaKey.Id].url
-				)}
-					<IconComponent
-						shape={IconShape.Circle}
-						src={profile.$icon[EntityMetaKey.Id].url}
-						alt=""
-					/>
+					{@render Value()}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

@@ -101,7 +101,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		{@render Value()}
 	{/snippet}
 
@@ -112,10 +112,6 @@
 		<p>
 			EIP-1559 sets base fee from parent fullness; priority fee percentiles describe inclusion bids around this height.
 		</p>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

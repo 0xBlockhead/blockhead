@@ -100,7 +100,7 @@
 		/>
 	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={item}
 			placeholderText="Loading item…"
@@ -109,19 +109,6 @@
 				{item.title ?? entityId.guid}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A syndicated RSS / Atom entry keyed by feedUrl + guid within its source feed.
-		</p>
-		<p>
-			description is the summary; content is the full encoded body when the feed provides it. publishedAt is the syndication date.
-		</p>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -138,6 +125,15 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A syndicated RSS / Atom entry keyed by feedUrl + guid within its source feed.
+		</p>
+		<p>
+			description is the summary; content is the full encoded body when the feed provides it. publishedAt is the syndication date.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

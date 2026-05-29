@@ -91,11 +91,10 @@
 		{@render Value()}
 	{/snippet}
 
-	{#snippet Heading()}
-		<TruncatedValue
-			format={TruncatedValueFormat.Visual}
-			value={entityId.address}
-		/>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			An ERC-4337 smart account is a contract wallet that signs user operations; it is not a generic linked actor or an explorer “verified contract” catalog row by itself.
+		</p>
 	{/snippet}
 
 	{#snippet Content({
@@ -147,11 +146,5 @@
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			An ERC-4337 smart account is a contract wallet that signs user operations; it is not a generic linked actor or an explorer “verified contract” catalog row by itself.
-		</p>
 	{/snippet}
 </EntityView>

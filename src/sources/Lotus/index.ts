@@ -9,6 +9,10 @@ export default {
 			origin: 'http://127.0.0.1:1234',
 			corsEnabled: false,
 		},
+		{
+			origin: 'https://api.node.glif.io',
+			corsEnabled: true,
+		},
 	],
 	sources: [
 		LotusJsonRpc,

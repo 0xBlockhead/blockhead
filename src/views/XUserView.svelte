@@ -88,28 +88,6 @@
 	{open}
 	{...EntityViewProps}
 >
-	{#snippet Heading()}
-		<ResourceBoundary
-			resource={user}
-			placeholderText="Loading X profile…"
-		>
-			{#snippet children(user)}
-				{user.name ?? user.username ?? entityId.id}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<TruncatedValue
-			value={entityId.id}
-			format={TruncatedValueFormat.Visual}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={user}
@@ -127,13 +105,22 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			X profiles here mirror public handle metadata such as bios and avatars.
-		</p>
-		<p>
-			Handle metadata is public social surface area: it does not, by itself, prove custody of on-chain assets, Farcaster FIDs, or content on other networks.
-		</p>
+	{#snippet Value()}
+		<TruncatedValue
+			value={entityId.id}
+			format={TruncatedValueFormat.Visual}
+		/>
+	{/snippet}
+
+	{#snippet Title()}
+		<ResourceBoundary
+			resource={user}
+			placeholderText="Loading X profile…"
+		>
+			{#snippet children(user)}
+				{user.name ?? user.username ?? entityId.id}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -154,6 +141,15 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			X profiles here mirror public handle metadata such as bios and avatars.
+		</p>
+		<p>
+			Handle metadata is public social surface area: it does not, by itself, prove custody of on-chain assets, Farcaster FIDs, or content on other networks.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open: contentOpen })}

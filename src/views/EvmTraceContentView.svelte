@@ -21,7 +21,7 @@
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmTraceSelectorSignatures from '$/views/EvmTraceSelectorSignatures.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
@@ -44,7 +44,7 @@
 		<div>
 			<dt>From</dt>
 			<dd>
-				<ActorNetworkView
+				<EvmNetworkAccountView
 					entityId={{
 						$network: networkIdFromEvmChainId(chainId),
 						$actor: { address: trace.from },
@@ -60,7 +60,7 @@
 		<div>
 			<dt>To</dt>
 			<dd>
-				<ActorNetworkView
+				<EvmNetworkAccountView
 					entityId={{
 						$network: networkIdFromEvmChainId(chainId),
 						$actor: { address: trace.to },

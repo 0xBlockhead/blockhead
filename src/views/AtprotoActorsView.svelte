@@ -63,7 +63,7 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
+	import AtprotoEvmAccountView from '$/views/AtprotoEvmAccountView.svelte'
 </script>
 
 
@@ -130,7 +130,7 @@
 
 					{#snippet Item({ item })}
 						{@const actorId = item[EntityMetaKey.Id]}
-						<AtprotoActorView
+						<AtprotoEvmAccountView
 							entityId={{ did: actorId.did }}
 							layout={EntityLayout.Summary}
 							open={false}

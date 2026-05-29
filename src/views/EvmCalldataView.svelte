@@ -78,13 +78,6 @@
 		{@render Value()}
 	{/snippet}
 
-	{#snippet Heading()}
-
-		<span data-text="font-monospace">
-			{entityId.hex}
-		</span>
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			Calldata is the opaque byte blob included with a call: its opening bytes pick the function schema, followed by ABI-packed arguments.

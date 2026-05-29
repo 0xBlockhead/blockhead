@@ -93,15 +93,6 @@
 	title={entityId.upgradeId}
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Marketing or catalog label for a coordinated network fork: always links an execution-layer upgrade and, when both layers shipped together, a consensus-layer upgrade.
-		</p>
-		<p>
-			Activation timing and EIP/ERC specification proposals are taken from the linked execution-layer fork when that row lists them; otherwise from the consensus fork row.
-		</p>
-	{/snippet}
-
 	{#snippet Value()}
 		<span>
 			{entityId.upgradeId}
@@ -109,18 +100,21 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span>
-			{entityId.upgradeId}
-		</span>
-	{/snippet}
-
-	{#snippet Heading()}
 		{(
 			networkUpgrade.ready ?
 				(networkUpgrade.current.name ?? entityId.upgradeId)
 			:
 				entityId.upgradeId
 		)}
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Marketing or catalog label for a coordinated network fork: always links an execution-layer upgrade and, when both layers shipped together, a consensus-layer upgrade.
+		</p>
+		<p>
+			Activation timing and EIP/ERC specification proposals are taken from the linked execution-layer fork when that row lists them; otherwise from the consensus fork row.
+		</p>
 	{/snippet}
 
 	{#snippet Content({

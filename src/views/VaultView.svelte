@@ -62,10 +62,6 @@
 		{@render Value()}
 	{/snippet}
 
-	{#snippet Heading()}
-		{@render Value()}
-	{/snippet}
-
 	{#snippet Details({ open: _open })}
 	{/snippet}
 </EntityView>

@@ -90,18 +90,6 @@
 	idDragPlainText={String(entityId.slot)}
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Beacon consensus slot: one timestep for the proposer duty and attestations; slot length is defined by the chain’s consensus spec.
-		</p>
-	{/snippet}
-
-	{#snippet Heading()}
-		<span>
-			{entityId.slot}
-		</span>
-	{/snippet}
-
 	{#snippet Value()}
 		<span
 			data-badge="small"
@@ -112,10 +100,15 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Slot </span>
-			{@render Value()}
+		<span>
+			{entityId.slot}
 		</span>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Beacon consensus slot: one timestep for the proposer duty and attestations; slot length is defined by the chain’s consensus spec.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

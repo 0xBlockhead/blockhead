@@ -39,11 +39,15 @@
 
 
 <EntityView entityType={EntityType.Network} {entityId} {href} bind:open {layout}>
-	{#snippet Heading()}<ResourceBoundary resource={network}>{#snippet Pending()}{@render Title()}{/snippet}{#snippet children(network)}{network.name}{/snippet}</ResourceBoundary>{/snippet}
 	{#snippet Value()}<span>{entityId.namespace}:{entityId.reference}</span>{/snippet}
-	{#snippet Title()}{@render Value()}{/snippet}
+
+	{#snippet Title()}<ResourceBoundary resource={network}>{#snippet Pending()}{@render Value()}{/snippet}{#snippet children(network)}{network.name}{/snippet}</ResourceBoundary>
+	{/snippet}
+
 	{#snippet TypeAnnotationTooltip()}<p>Logos is modeled as a stack of zones and protocols rather than a single deployed public chain.</p>{/snippet}
+
 	{#snippet Content()}<LogosZoneView entityId={{ $network: entityId, zoneId: 'logos-stack' }} layout={EntityLayout.Value} />{/snippet}
+
 	{#snippet Details()}
 		<CollapsibleTabs id={`${networkIdKey}:carousel-logos`} sectionIdPrefix={networkIdKey} sections={[{ id: 'logos-zones', label: 'Zones' }, { id: 'logos-execution', label: 'Execution' }, { id: 'logos-consensus', label: 'Consensus' }]} data-card scrollContainerProps={{ 'data-row': 'start align-start' }}>
 			{#snippet Summary()}<header data-row-item="flexible" data-row="wrap gap-4"><HeadingComponent>Topology</HeadingComponent></header>{/snippet}

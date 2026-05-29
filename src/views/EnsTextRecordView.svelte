@@ -71,10 +71,6 @@
 		{@render Value()}
 	{/snippet}
 
-	{#snippet Heading()}
-		<span>{recordLabel}</span>
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			ENS text records are resolver-stored profile fields keyed by the name’s on-chain node hash.

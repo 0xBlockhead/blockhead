@@ -53,8 +53,8 @@
 	import SearchableText from '$/components/SearchableText.svelte'
 	import Tree from '$/components/Tree.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
-	import ActorView from '$/views/ActorView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
 
 
@@ -157,7 +157,7 @@
 							{@render LabelSnippet({ node })}
 						{:else}
 							{#if node.address?.network}
-								<ActorNetworkView
+								<EvmNetworkAccountView
 									entityId={{
 										$network: node.address.network,
 										$actor: { address: node.address.address },
@@ -166,7 +166,7 @@
 									open={false}
 								/>
 							{:else if node.address}
-								<ActorView
+								<EvmAccountView
 									entityId={{ address: node.address.address }}
 									href={resolve('/account/[address]', {
 										address: node.address.address,
@@ -228,7 +228,7 @@
 							{@render LabelSnippet({ node })}
 						{:else}
 							{#if node.address?.network}
-								<ActorNetworkView
+								<EvmNetworkAccountView
 									entityId={{
 										$network: node.address.network,
 										$actor: { address: node.address.address },
@@ -237,7 +237,7 @@
 									open={false}
 								/>
 							{:else if node.address}
-								<ActorView
+								<EvmAccountView
 									entityId={{ address: node.address.address }}
 									href={resolve('/account/[address]', {
 										address: node.address.address,

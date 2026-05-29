@@ -30,13 +30,13 @@ export default {
 		{
 			name: '$participant0',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$participant1',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

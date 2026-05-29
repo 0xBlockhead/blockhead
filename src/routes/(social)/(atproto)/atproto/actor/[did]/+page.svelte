@@ -12,12 +12,12 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
+	import AtprotoEvmAccountView from '$/views/AtprotoEvmAccountView.svelte'
 </script>
 
 
 <Page>
-	<AtprotoActorView
+	<AtprotoEvmAccountView
 		{entityId}
 	/>
 </Page>

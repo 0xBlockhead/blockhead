@@ -90,17 +90,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			The Lightning Network is a Bitcoin payment-channel network and protocol; it is not a base-layer chain.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
-		Lightning Network
-	{/snippet}
-
-	{#snippet Heading()}
 		<ResourceBoundary
 			resource={lightningNetwork}
 		>
@@ -108,6 +99,12 @@
 				{row.name}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			The Lightning Network is a Bitcoin payment-channel network and protocol; it is not a base-layer chain.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

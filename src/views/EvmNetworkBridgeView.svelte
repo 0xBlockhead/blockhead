@@ -87,10 +87,6 @@
 		</span>
 	{/snippet}
 
-	{#snippet Heading()}
-		{@render Title()}
-	{/snippet}
-
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			<div>

@@ -61,14 +61,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		<TruncatedValue
-			value={entityId.tokenId}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		<ResourceBoundary resource={token}>
 			{#snippet children(token)}
 				{token.symbol ?? token.name ?? entityId.tokenId}

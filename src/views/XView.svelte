@@ -81,10 +81,6 @@
 		X
 	{/snippet}
 
-	{#snippet Heading()}
-		{@render Title()}
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			X (Twitter) profiles and posts: public text and media surfaced by the network hub.

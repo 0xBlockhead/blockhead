@@ -82,10 +82,9 @@
 		),
 		ontoggle,
 
-		Title,
-		Value,
-		Heading,
 		Icon,
+		Value,
+		Title,
 		HeadingAfter,
 		TypeAnnotationTooltip,
 		Content,
@@ -105,12 +104,10 @@
 			open?: boolean
 			ontoggle?: (e: Event) => void
 
-			Title?: Snippet
+			Icon?: Snippet
 			/** Value-only identity; used when `layout` is `EntityLayout.Value`. */
 			Value?: Snippet
-			/** Loaded summary label when richer than `Title`; card header prefers this over `Title`. */
-			Heading?: Snippet
-			Icon?: Snippet
+			Title?: Snippet
 			HeadingAfter?: Snippet
 			/** Tooltip body (e.g. `<p>` paragraphs) shown when hovering the entity type label; omitted when `showTypeAnnotation` is false. */
 			TypeAnnotationTooltip?: Snippet
@@ -173,9 +170,7 @@
 						{Icon}
 					>
 						{#snippet children()}
-							{#if Heading}
-								{@render Heading()}
-							{:else if Title}
+							{#if Title}
 								{@render Title()}
 							{:else if Value}
 								{@render Value()}
@@ -204,9 +199,9 @@
 
 
 {#if layout === EntityLayout.Title || layout === EntityLayout.Value}
-	<div
+	<span
 		data-row-item="flexible"
-		data-row="align-center wrap"
+		data-row="inline align-center wrap"
 	>
 		<EntityIdComponent
 			{entityId}
@@ -232,7 +227,7 @@
 				{/if}
 			{/snippet}
 		</EntityIdComponent>
-	</div>
+	</span>
 
 {:else if layout === EntityLayout.SummaryInline}
 	<div

@@ -54,11 +54,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Transfer {entityId.transferIndex.toString()}
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		Transfer {entityId.transferIndex.toString()}
 	{/snippet}
 

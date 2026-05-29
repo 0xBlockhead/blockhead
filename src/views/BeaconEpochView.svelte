@@ -91,12 +91,6 @@
 	idDragPlainText={String(entityId.epoch)}
 	{...EntityViewProps}
 >
-	{#snippet Heading()}
-		<span>
-			{entityId.epoch}
-		</span>
-	{/snippet}
-
 	{#snippet Value()}
 		<span
 			data-badge="small"
@@ -107,9 +101,8 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<span data-row="inline align-center gap-2 wrap">
-			<span>Epoch </span>
-			{@render Value()}
+		<span>
+			{entityId.epoch}
 		</span>
 	{/snippet}
 

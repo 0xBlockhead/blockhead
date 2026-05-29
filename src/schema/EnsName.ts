@@ -40,7 +40,7 @@ export default {
 		{
 			name: '$resolvedActor',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
@@ -58,7 +58,7 @@ export default {
 		{
 			name: '$ownerActor',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
@@ -194,7 +194,7 @@ export default {
 		{
 			name: '$subgraphResolvedActor',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.TheGraph_Graphql,
@@ -203,7 +203,7 @@ export default {
 		{
 			name: '$subgraphOwnerActor',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.TheGraph_Graphql,
@@ -212,7 +212,7 @@ export default {
 		{
 			name: '$registrantActor',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.TheGraph_Graphql,
@@ -221,7 +221,7 @@ export default {
 		{
 			name: '$wrappedOwnerActor',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.TheGraph_Graphql,

@@ -54,11 +54,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Dogecoin AuxPoW Parent Header
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		Dogecoin AuxPoW Parent Header
 	{/snippet}
 

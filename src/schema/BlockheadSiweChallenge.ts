@@ -47,7 +47,7 @@ export default {
 		{
 			name: '$signer',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

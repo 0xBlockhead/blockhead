@@ -64,18 +64,15 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Solana blocks are slot-indexed ledger entries produced under the SVM runtime; block height is a separate value.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		Slot {entityId.slot.toString()}
 	{/snippet}
 
-	{#snippet Heading()}
-		Slot {entityId.slot.toString()}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Solana blocks are slot-indexed ledger entries produced under the SVM runtime; block height is a separate value.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

@@ -38,17 +38,12 @@
 	bind:open
 	{...EntityViewProps}
 >
+
 	{#snippet Title()}
 		<TruncatedValue
 			value={entityId.keyImage}
 			format={TruncatedValueFormat.Abbr}
 		/>
-	{/snippet}
 
-	{#snippet Heading()}
-		<TruncatedValue
-			value={entityId.keyImage}
-			format={TruncatedValueFormat.Abbr}
-		/>
 	{/snippet}
 </EntityView>

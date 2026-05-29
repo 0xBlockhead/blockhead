@@ -3,6 +3,7 @@
 	import type { CalldataExample } from '$/constants/calldata-examples.ts'
 	import { calldataExamples } from '$/constants/calldata-examples.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { EvmAddress, ZeroExHex } from '$/schema/$ZeroExHex.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { untrack } from 'svelte'
 
@@ -50,9 +51,9 @@
 	// State
 	const EMPTY_SIGNATURES: readonly string[] = []
 
-	const IDLE_SELECTOR_HEX = '0xffffffff' as `0x${string}`
+	const IDLE_SELECTOR_HEX: `0x${string}` = '0xffffffff'
 
-	const IDLE_TOPIC_HEX = `0x${'f'.repeat(64)}` as `0x${string}`
+	const IDLE_TOPIC_HEX = ZeroExHex.assert(`0x${'f'.repeat(64)}`)
 
 	const TRUNCATE_PARAM_LENGTH = 28
 
@@ -110,14 +111,14 @@
 
 	const selector = $derived(
 		hexNormalized.length >= 8 ?
-			(`0x${hexNormalized.slice(0, 8).toLowerCase()}` as `0x${string}`)
+			ZeroExHex.assert(`0x${hexNormalized.slice(0, 8).toLowerCase()}`)
 		:
 			null,
 	)
 
 	const topic = $derived(
 		hexNormalized.length >= 64 ?
-			(`0x${hexNormalized.slice(0, 64).toLowerCase()}` as `0x${string}`)
+			ZeroExHex.assert(`0x${hexNormalized.slice(0, 64).toLowerCase()}`)
 		:
 			null,
 	)
@@ -199,7 +200,7 @@
 		hexWithPrefix && selector && signatureForDecode
 			? decodeCalldataWithSignature(
 					signatureForDecode,
-					hexWithPrefix as `0x${string}`,
+					ZeroExHex.assert(hexWithPrefix),
 				)
 			: null,
 	)
@@ -218,7 +219,7 @@
 			&& eventSignatureForDecode
 			? decodeEventDataWithSignature(
 					eventSignatureForDecode,
-					hexWithPrefix as `0x${string}`,
+					ZeroExHex.assert(hexWithPrefix),
 				)
 			: null,
 	)
@@ -226,14 +227,14 @@
 
 	// Components
 	import Collapsible from '$/components/Collapsible.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import Heading from '$/components/Heading.svelte'
 	import Icon from '$/components/Icon.svelte'
 	import Page from '$/components/Page.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Select from '$/components/Select.svelte'
 	import TruncatedValue from '$/components/TruncatedValue.svelte'
-	import Address, { AddressFormat } from '$/views/Address.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
 
 
@@ -369,9 +370,9 @@
 																		<li>
 																			<span>{index}</span>
 																			{#if param.type === 'address' && typeof param.value === 'string'}
-																				<Address
-																					address={param.value as `0x${string}`}
-																					format={AddressFormat.Full}
+																				<EvmAccountView
+																					entityId={{ address: EvmAddress.assert(param.value) }}
+																					layout={EntityLayout.Value}
 																				/>
 																			{:else}
 																				{@const displayValue = formatDecodedParamValue(param.type, param.value)}
@@ -468,9 +469,9 @@
 																		<li>
 																			<span>{index}</span>
 																			{#if param.type === 'address' && typeof param.value === 'string'}
-																				<Address
-																					address={param.value as `0x${string}`}
-																					format={AddressFormat.Full}
+																				<EvmAccountView
+																					entityId={{ address: EvmAddress.assert(param.value) }}
+																					layout={EntityLayout.Value}
 																				/>
 																			{:else}
 																				{@const displayValue = formatDecodedParamValue(param.type, param.value)}

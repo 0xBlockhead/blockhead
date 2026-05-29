@@ -123,7 +123,14 @@
 	{title}
 	{...entityViewProps}
 >
-	{#snippet Heading()}
+	{#snippet Value()}
+		<TruncatedValue
+			format={TruncatedValueFormat.Abbr}
+			value={entityId.hash}
+		/>
+	{/snippet}
+
+	{#snippet Title()}
 		{#if HeadingSnippet}
 			{@render HeadingSnippet()}
 		{:else}
@@ -134,15 +141,10 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Value()}
-		<TruncatedValue
-			format={TruncatedValueFormat.Abbr}
-			value={entityId.hash}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			User operations carry calldata and gas limits for ERC-4337 accounts; bundlers submit them on-chain as a single transaction through the EntryPoint contract.
+		</p>
 	{/snippet}
 
 	{#snippet Content({
@@ -450,11 +452,5 @@
 				</div>
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			User operations carry calldata and gas limits for ERC-4337 accounts; bundlers submit them on-chain as a single transaction through the EntryPoint contract.
-		</p>
 	{/snippet}
 </EntityView>

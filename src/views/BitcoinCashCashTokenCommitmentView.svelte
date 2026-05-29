@@ -51,11 +51,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Bitcoin Cash CashToken Commitment
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		Bitcoin Cash CashToken Commitment
 	{/snippet}
 

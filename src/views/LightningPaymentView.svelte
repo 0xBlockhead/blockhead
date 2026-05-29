@@ -59,17 +59,17 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A Lightning payment is an off-chain payment attempt identified by payment hash; it is not a Bitcoin transaction.
-		</p>
-	{/snippet}
-
 	{#snippet Title()}
 		<TruncatedValue
 			value={entityId.paymentHash}
 			format={TruncatedValueFormat.Abbr}
 		/>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A Lightning payment is an off-chain payment attempt identified by payment hash; it is not a Bitcoin transaction.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

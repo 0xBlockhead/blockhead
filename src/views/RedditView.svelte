@@ -102,10 +102,6 @@
 		Reddit
 	{/snippet}
 
-	{#snippet Heading()}
-		{@render Title()}
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			Reddit’s HTTP APIs return communities, ranked submissions, and linked comment threads under a common JSON model.

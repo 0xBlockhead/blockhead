@@ -1,4 +1,5 @@
 import {
+	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -63,5 +64,21 @@ export default {
 		}),
 	],
 
-	entityFieldResolvers: [],
+	entityFieldResolvers: [
+		defineEntityFieldResolver({
+			entityType: EntityType.QuilibriumNetwork,
+			fieldName: '$masterShard',
+			resolve: async (entityId) => {
+				assertQuilibriumMainnet(entityId)
+				return {
+					[EntityMetaKey.Id]: {
+						$network: {
+							networkSlug: entityId.networkSlug,
+						},
+						shardKey: 'master',
+					},
+				}
+			},
+		}),
+	],
 }

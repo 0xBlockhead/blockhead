@@ -85,11 +85,10 @@
 		{@render Value()}
 	{/snippet}
 
-	{#snippet Heading()}
-		<TruncatedValue
-			format={TruncatedValueFormat.Visual}
-			value={entityId.address}
-		/>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			An account factory deploys ERC-4337 smart-account implementations; it is indexed separately from individual smart accounts and paymasters.
+		</p>
 	{/snippet}
 
 	{#snippet Content({
@@ -126,11 +125,5 @@
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			An account factory deploys ERC-4337 smart-account implementations; it is indexed separately from individual smart accounts and paymasters.
-		</p>
 	{/snippet}
 </EntityView>

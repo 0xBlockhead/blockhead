@@ -634,7 +634,7 @@ export default {
 								[EntityMetaKey.Id]: {
 									address: miner,
 								},
-							} satisfies Entity<typeof schema, EntityType.Actor>,
+							} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 						}),
 				}
 			},
@@ -805,14 +805,14 @@ export default {
 								[EntityMetaKey.Id]: {
 									address: resolution.address,
 								},
-							} satisfies Entity<typeof schema, EntityType.Actor>,
+							} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 						}),
 					...(resolution.owner != null && {
 							$ownerActor: {
 								[EntityMetaKey.Id]: {
 									address: resolution.owner,
 								},
-							} satisfies Entity<typeof schema, EntityType.Actor>,
+							} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 						}),
 					...(resolution.resolver != null && {
 							$resolverContract: {
@@ -941,14 +941,14 @@ export default {
 								[EntityMetaKey.Id]: {
 									address: from,
 								},
-							} satisfies Entity<typeof schema, EntityType.Actor>,
+							} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 						}),
 					...(to != null && {
 							$to: {
 								[EntityMetaKey.Id]: {
 									address: to,
 								},
-							} satisfies Entity<typeof schema, EntityType.Actor>,
+							} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 						}),
 					transactionIndex: (
 						jsonRpcTransaction.transactionIndex != null ? ((parsed) => (
@@ -1381,7 +1381,7 @@ export default {
 	],
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			fieldName: '$primaryName',
 			resolve: async (entityId) => {
 				const {
@@ -1709,7 +1709,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			fieldName: '$icon',
 			resolve: async (entityId) => {
 				const {

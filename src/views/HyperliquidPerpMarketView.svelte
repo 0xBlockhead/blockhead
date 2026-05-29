@@ -56,18 +56,15 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Hyperliquid perp markets are exchange-layer markets, distinct from HyperEVM contracts.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		{entityId.coin}
 	{/snippet}
 
-	{#snippet Heading()}
-		{entityId.coin}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Hyperliquid perp markets are exchange-layer markets, distinct from HyperEVM contracts.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

@@ -51,11 +51,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Bitcoin Cash CashToken Fungible Amount
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		Bitcoin Cash CashToken Fungible Amount
 	{/snippet}
 

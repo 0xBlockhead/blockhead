@@ -40,7 +40,7 @@
 	}: WithRest<
 		{
 			children?: Snippet
-			entityId: EntityId<typeof schema, EntityType.Actor>
+			entityId: EntityId<typeof schema, EntityType.EvmAccount>
 			title?: string
 			href?: string
 			open?: boolean
@@ -66,7 +66,7 @@
 
 	const blockscoutHostedNetworkChainIds = blockscoutHostedNetworks.map((network) => network.chainId)
 
-	const actorNetworkSliceChainIds = (
+	const evmNetworkAccountSliceChainIds = (
 	[...new Set([
 		...alliumWalletBalanceChainIds,
 		...blockscoutHostedNetworkChainIds,
@@ -81,17 +81,17 @@
 	)
 
 	const portfolioSliceAtChain = (chainId: number) => {
-		const index = actorNetworkSliceChainIds.indexOf(chainId)
-		return index === -1 ? undefined : actorNetworkPortfolioSlices[index]
+		const index = evmNetworkAccountSliceChainIds.indexOf(chainId)
+		return index === -1 ? undefined : evmNetworkAccountPortfolioSlices[index]
 	}
 
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const actorNetworkPortfolioSlices = actorNetworkSliceChainIds.map((chainId) => (
+	const evmNetworkAccountPortfolioSlices = evmNetworkAccountSliceChainIds.map((chainId) => (
 		useEntity(
-			EntityType.ActorNetwork,
+			EntityType.EvmNetworkAccount,
 			{
 				$network: networkIdFromEvmChainId(chainId),
 				$actor: entityId,
@@ -134,7 +134,7 @@
 	const idKey = stringify(entityId)
 
 	const actor = useEntity(
-		EntityType.Actor,
+		EntityType.EvmAccount,
 		entityId,
 		{
 			$: [
@@ -172,8 +172,8 @@
 
 
 	const firstContractChainId = $derived.by(() => {
-		for (let index = 0; index < actorNetworkSliceChainIds.length; index += 1) {
-			const chainId = actorNetworkSliceChainIds[index]
+		for (let index = 0; index < evmNetworkAccountSliceChainIds.length; index += 1) {
+			const chainId = evmNetworkAccountSliceChainIds[index]
 			if (portfolioSliceAtChain(chainId)?.current.isContract === true) {
 				return chainId
 			}
@@ -187,15 +187,15 @@
 		}[] = []
 
 		const pushSlice = (_index: number) => {
-			const slice = actorNetworkPortfolioSlices[_index]
-			const chainFacetId = actorNetworkSliceChainIds[_index]
+			const slice = evmNetworkAccountPortfolioSlices[_index]
+			const chainFacetId = evmNetworkAccountSliceChainIds[_index]
 			if (slice.ready !== true || apiChainByChainId[chainFacetId] == null) return
 			for (const value of slice.current.$$ownedCoins ?? []) merged.push({
 				value,
 			})
 		}
 
-		for (let index = 0; index < actorNetworkPortfolioSlices.length; index += 1) pushSlice(index)
+		for (let index = 0; index < evmNetworkAccountPortfolioSlices.length; index += 1) pushSlice(index)
 
 		return merged
 	})
@@ -233,14 +233,14 @@
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import BalancesView from '$/views/BalancesView.svelte'
 	import ActorCoinView from '$/views/ActorCoinView.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
 </script>
 
 
 <EntityView
-	entityType={EntityType.Actor}
+	entityType={EntityType.EvmAccount}
 	{entityId}
 	href={href}
 	{title}
@@ -278,7 +278,14 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Value()}
+		<TruncatedValue
+			format={TruncatedValueFormat.Visual}
+			value={entityId.address}
+		/>
+	{/snippet}
+
+	{#snippet Title()}
 		{#if true}
 			{#snippet ActorHeadingBody(actor)}
 				{actor.$primaryName?.[EntityMetaKey.Id].name ?? entityId.address}
@@ -290,17 +297,6 @@
 				resource={actor}
 			/>
 		{/if}
-	{/snippet}
-
-	{#snippet Value()}
-		<TruncatedValue
-			format={TruncatedValueFormat.Visual}
-			value={entityId.address}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -369,7 +365,7 @@
 		open: detailsOpen,
 	})}
 		<EntityDetails
-			entityType={EntityType.Actor}
+			entityType={EntityType.EvmAccount}
 			{entityId}
 		/>
 		<CollapsibleTabs
@@ -532,7 +528,7 @@
 								)}
 								collapsible={false}
 								entityFieldReference={{
-									entityType: EntityType.ActorNetwork,
+									entityType: EntityType.EvmNetworkAccount,
 									entityId: {
 										$network: {
 											chainId: balancesChainId,
@@ -570,7 +566,7 @@
 							data-scroll-marker-label={`${chainFacetLabel(facetChainId)} activity`}
 							id={`${idKey}:activity-net-${facetChainId}`}
 						>
-							<ActorNetworkView
+							<EvmNetworkAccountView
 								entityId={{
 									$network: {
 										chainId: facetChainId,
@@ -591,7 +587,7 @@
 								)}
 								collapsible={false}
 								entityFieldReference={{
-									entityType: EntityType.ActorNetwork,
+									entityType: EntityType.EvmNetworkAccount,
 									entityId: {
 										$network: {
 											chainId: facetChainId,
@@ -618,7 +614,7 @@
 									)}
 									collapsible={false}
 									entityFieldReference={{
-										entityType: EntityType.ActorNetwork,
+										entityType: EntityType.EvmNetworkAccount,
 										entityId: {
 											$network: {
 												chainId: facetChainId,
@@ -647,7 +643,7 @@
 									)}
 									collapsible={false}
 									entityFieldReference={{
-										entityType: EntityType.ActorNetwork,
+										entityType: EntityType.EvmNetworkAccount,
 										entityId: {
 											$network: {
 												chainId: facetChainId,

@@ -107,20 +107,6 @@
 		{@render Value()}
 	{/snippet}
 
-	{#snippet Heading()}
-		<ResourceBoundary
-			resource={compilation}
-			placeholderText="Loading compilation…"
-		>
-			{#snippet children(compilation)}
-				{compilation.fullyQualifiedName
-					?? compilation.name
-					?? compilation.language
-					?? 'Compilation'}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			One compiler invocation that produced bytecode matching on-chain creation or runtime code.

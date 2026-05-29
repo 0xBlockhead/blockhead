@@ -1,6 +1,7 @@
 // Types
 
 export enum ExecutionEnvironmentId {
+	BittensorSubtensorRuntime = 'BittensorSubtensorRuntime',
 	Evm = 'Evm',
 	LightningProtocol = 'LightningProtocol',
 	SolanaSvm = 'SolanaSvm',
@@ -22,6 +23,10 @@ export enum ExecutionEnvironmentId {
 // Constants
 
 const executionEnvironments = [
+	{
+		executionEnvironmentId: ExecutionEnvironmentId.BittensorSubtensorRuntime,
+		label: 'Subtensor runtime',
+	},
 	{
 		executionEnvironmentId: ExecutionEnvironmentId.Evm,
 		label: 'EVM',

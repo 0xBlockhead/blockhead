@@ -82,35 +82,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Lens v3 profiles are on-chain accounts keyed by EVM address; usernames and avatars resolve from Lens GraphQL metadata, not legacy v2 profile ids.
-		</p>
-	{/snippet}
-
-	{#snippet Heading()}
-		<ResourceBoundary
-			resource={lensAccount}
-			placeholderText="Loading Lens profile…"
-		>
-			{#snippet children(lensAccount)}
-				{lensAccount.displayName
-					?? lensAccount.localName
-					?? entityId.address}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<span data-text="font-monospace">
-			{entityId.address}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={lensAccount}
@@ -130,6 +101,25 @@
 						label="Lens"
 					/>
 				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<span data-text="font-monospace">
+			{entityId.address}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		<ResourceBoundary
+			resource={lensAccount}
+			placeholderText="Loading Lens profile…"
+		>
+			{#snippet children(lensAccount)}
+				{lensAccount.displayName
+					?? lensAccount.localName
+					?? entityId.address}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -154,6 +144,12 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Lens v3 profiles are on-chain accounts keyed by EVM address; usernames and avatars resolve from Lens GraphQL metadata, not legacy v2 profile ids.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

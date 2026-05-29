@@ -26,7 +26,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Actor>
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmAccount>
 			id: string
 			title?: string
 			open?: boolean
@@ -48,12 +48,12 @@
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
-	import ActorView from '$/views/ActorView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.Actor}
+	entityType={EntityType.EvmAccount}
 	{id}
 	bind:open
 	{collapsible}
@@ -91,7 +91,7 @@
 			{@const actors = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.Actor>[] = (
+					const rows: Entity<typeof schema, EntityType.EvmAccount>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
@@ -104,7 +104,7 @@
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
-				entityType={EntityType.Actor}
+				entityType={EntityType.EvmAccount}
 				id={`${id}-items`}
 				{title}
 				open={true}
@@ -122,7 +122,7 @@
 
 				{#snippet Item({ item })}
 					{@const aid = item.value[EntityMetaKey.Id]}
-					<ActorView
+					<EvmAccountView
 						entityId={aid}
 						href={resolve('/account/[address]', {
 							address: aid.address,

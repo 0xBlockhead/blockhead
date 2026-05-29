@@ -13,7 +13,7 @@
 
 	// Components
 	import ActorCoinsView from '$/views/ActorCoinsView.svelte'
-	import ActorsView from '$/views/ActorsView.svelte'
+	import EvmAccountsView from '$/views/EvmAccountsView.svelte'
 	import BlockheadWalletConnectionsView from '$/views/BlockheadWalletConnectionsView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -63,7 +63,7 @@
 					{/snippet}
 
 					{#snippet SectionWallets({ id, label })}
-						<ActorsView
+						<EvmAccountsView
 							href={resolve('/~/accounts')}
 							entityFieldReference={{
 								entityType: EntityType._Global,

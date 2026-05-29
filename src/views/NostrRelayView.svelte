@@ -90,10 +90,7 @@
 				{#if relay.name}
 					{relay.name}
 				{:else}
-					<TruncatedValue
-						value={entityId.relayUrl}
-						format={TruncatedValueFormat.Visual}
-					/>
+					{@render Value()}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

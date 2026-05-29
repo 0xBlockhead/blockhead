@@ -11,7 +11,7 @@ import {
 } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
-import Actor from '$/schema/Actor.ts'
+import EvmAccount from '$/schema/EvmAccount.ts'
 import Network from '$/schema/EvmNetwork.ts'
 import { Source } from '$/sources/$Source.ts'
 
@@ -36,14 +36,14 @@ const contractPositionChain = type({
 })
 
 export default {
-	entityType: EntityType.ActorNetwork,
+	entityType: EntityType.EvmNetworkAccount,
 
-	label: 'Network Actor',
-	labelPlural: 'Network Actors',
+	label: 'EVM network account',
+	labelPlural: 'EVM network accounts',
 
 	id: type({
 		$network: Network.id,
-		$actor: Actor.id,
+		$actor: EvmAccount.id,
 	}),
 
 	fields: [

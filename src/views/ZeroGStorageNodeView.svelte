@@ -52,11 +52,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A 0G storage node stores chunks and participates in storage proof and reward flows.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		<TruncatedValue
@@ -65,11 +60,10 @@
 		/>
 	{/snippet}
 
-	{#snippet Heading()}
-		<TruncatedValue
-			value={entityId.nodeId}
-			format={TruncatedValueFormat.Abbr}
-		/>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A 0G storage node stores chunks and participates in storage proof and reward flows.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

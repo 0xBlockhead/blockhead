@@ -101,19 +101,8 @@
 
 	{#snippet Title()}
 		<span data-row="inline align-center gap-2 wrap">
-			<span>Blob </span>
 			{@render Value()}
-		</span>
-	{/snippet}
 
-	{#snippet Heading()}
-
-		<span data-row="inline align-center gap-2 wrap">
-			<span
-				data-badge="small"
-			>
-				#{String(entityId.blobIndex)}
-			</span>
 			<ResourceBoundary
 				resource={blob}
 				placeholderText="Loading blob…"

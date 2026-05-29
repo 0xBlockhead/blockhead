@@ -113,8 +113,7 @@
 
 
 	// Components
-	import Address from '$/views/Address.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
@@ -133,9 +132,13 @@
 	summaryUsesHeading={true}
 >
 	{#snippet Value()}
-		<Address
-			network={entityId.$network}
-			address={entityId.address}
+		<EvmNetworkAccountView
+			entityId={{
+				$network: entityId.$network,
+				$actor: { address: entityId.address },
+			}}
+			layout={EntityLayout.Value}
+			open={false}
 		/>
 	{/snippet}
 
@@ -163,11 +166,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Heading()}
-		{@render Title()}
-	{/snippet}
-
-		{#snippet Content(context)}
+	{#snippet Content(context)}
 			<div data-column="gap-1">
 				<dl data-column-item="center">
 					<div>
@@ -184,9 +183,13 @@
 								<div>
 									<dt>Address</dt>
 									<dd>
-										<Address
-											network={entityId.$network}
-											address={entityId.address}
+										<EvmNetworkAccountView
+											entityId={{
+												$network: entityId.$network,
+												$actor: { address: entityId.address },
+											}}
+											layout={EntityLayout.Value}
+											open={false}
 										/>
 									</dd>
 								</div>
@@ -196,7 +199,7 @@
 								<div>
 									<dt>Deployer</dt>
 									<dd>
-										<ActorNetworkView
+										<EvmNetworkAccountView
 											entityId={{
 												$network: entityId.$network,
 												$actor: contract.$deployer[EntityMetaKey.Id],
@@ -248,9 +251,13 @@
 													},
 												)}
 											>
-												<Address
-													network={contract.$implementation[EntityMetaKey.Id].$network}
-													address={contract.$implementation[EntityMetaKey.Id].address}
+												<EvmNetworkAccountView
+													entityId={{
+														$network: contract.$implementation[EntityMetaKey.Id].$network,
+														$actor: { address: contract.$implementation[EntityMetaKey.Id].address },
+													}}
+													layout={EntityLayout.Value}
+													open={false}
 												/>
 											</a>
 										</dd>

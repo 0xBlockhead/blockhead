@@ -52,14 +52,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		<TruncatedValue
-			value={entityId.shardKey}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		<TruncatedValue
 			value={entityId.shardKey}
 			format={TruncatedValueFormat.Abbr}

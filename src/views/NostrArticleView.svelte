@@ -122,15 +122,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			NIP-23 kind-30023 articles bundle title, summary, hero image, and markdown body in a parameterized replaceable event.
-		</p>
-		<p>
-			Stable ids combine the author pubkey (64 lowercase hex) with the replaceable <code>d</code>-tag—not a kind-1 note event hash.
-		</p>
-	{/snippet}
-
 	{#snippet HeadingAfter()}
 		<ResourceBoundary
 			resource={article}
@@ -145,6 +136,15 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			NIP-23 kind-30023 articles bundle title, summary, hero image, and markdown body in a parameterized replaceable event.
+		</p>
+		<p>
+			Stable ids combine the author pubkey (64 lowercase hex) with the replaceable <code>d</code>-tag—not a kind-1 note event hash.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

@@ -98,31 +98,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary resource={channel}>
-			{#snippet children(channel)}
-				<span data-row="inline wrap align-center gap-2">
-					{#if (
-						channel.$icon !== undefined
-						&& channel.$icon[EntityMetaKey.Id].url !== undefined
-					)}
-						<IconComponent
-							src={channel.$icon[EntityMetaKey.Id].url}
-							alt=""
-						/>
-					{/if}
-					<span>
-						{channel.name ?? entityId.id}
-					</span>
-				</span>
-			{/snippet}
-
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Heading()}
-		<span>
-			/{entityId.id}
-		</span>
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -133,7 +109,6 @@
 			Channel feeds in this app load via a FarcasterFeed byChannel variant—not on-chain event logs.
 		</p>
 	{/snippet}
-
 
 	{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary

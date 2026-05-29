@@ -93,10 +93,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Heading()}
 		<ResourceBoundary
 			resource={networkExecutionUpgrade}
 			placeholderText="Loading execution upgrade…"

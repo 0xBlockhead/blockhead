@@ -9,8 +9,9 @@
 
 
 	// Components
+	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Page from '$/components/Page.svelte'
-	import Address from '$/views/Address.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 </script>
 
 
@@ -29,9 +30,13 @@
 			<div>
 				<dt>Address</dt>
 				<dd>
-					<Address
-						network={data.entityId.$network}
-						address={data.entityId.address}
+					<EvmNetworkAccountView
+						entityId={{
+							$network: data.entityId.$network,
+							$actor: { address: data.entityId.address },
+						}}
+						layout={EntityLayout.Value}
+						open={false}
 					/>
 				</dd>
 			</div>

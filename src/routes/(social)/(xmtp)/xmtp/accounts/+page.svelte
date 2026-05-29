@@ -9,12 +9,12 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ActorsView from '$/views/ActorsView.svelte'
+	import EvmAccountsView from '$/views/EvmAccountsView.svelte'
 </script>
 
 
 <Page>
-	<ActorsView
+	<EvmAccountsView
 		href={resolve('/~/accounts')}
 		entityFieldReference={{
 			entityType: EntityType._Global,

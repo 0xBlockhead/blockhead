@@ -205,12 +205,12 @@ const evmTokenTransferEntityFromEtherscanWire = ({
 		...(fromAddress != null && {
 			$from: {
 				[EntityMetaKey.Id]: { address: fromAddress },
-			} satisfies Entity<typeof schema, EntityType.Actor>,
+			} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 		}),
 		...(toAddress != null && {
 			$to: {
 				[EntityMetaKey.Id]: { address: toAddress },
-			} satisfies Entity<typeof schema, EntityType.Actor>,
+			} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 		}),
 		...(tokenAddress != null && {
 			$tokenContract: {
@@ -321,12 +321,12 @@ const evmInternalTransferEntityFromEtherscanWire = ({
 		...(fromAddress != null && {
 			$from: {
 				[EntityMetaKey.Id]: { address: fromAddress },
-			} satisfies Entity<typeof schema, EntityType.Actor>,
+			} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 		}),
 		...(toAddress != null && {
 			$to: {
 				[EntityMetaKey.Id]: { address: toAddress },
-			} satisfies Entity<typeof schema, EntityType.Actor>,
+			} satisfies Entity<typeof schema, EntityType.EvmAccount>,
 		}),
 		...(createdAddress != null && (
 			callType === EvmInternalCallType.Create
@@ -681,7 +681,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.ActorNetwork,
+			entityType: EntityType.EvmNetworkAccount,
 			fieldName: '$$tokenTransfers',
 			resolve: async (entityId, context) => {
 				const {
@@ -692,7 +692,7 @@ export default {
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
 				const address = hexLowerOfByteSize(entityId.$actor.address, 20)
 				if (address == null) {
-					throw new Error('Etherscan_Rest: ActorNetwork wallet address not normalized')
+					throw new Error('Etherscan_Rest: EvmNetworkAccount wallet address not normalized')
 				}
 				const limit = Math.min(
 					resolverLoadSubsetRowLimit(context),
@@ -720,7 +720,7 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
-			entityType: EntityType.ActorNetwork,
+			entityType: EntityType.EvmNetworkAccount,
 			fieldName: '$$internalTransactions',
 			resolve: async (entityId, context) => {
 				const {
@@ -731,7 +731,7 @@ export default {
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
 				const address = hexLowerOfByteSize(entityId.$actor.address, 20)
 				if (address == null) {
-					throw new Error('Etherscan_Rest: ActorNetwork wallet address not normalized')
+					throw new Error('Etherscan_Rest: EvmNetworkAccount wallet address not normalized')
 				}
 				const limit = Math.min(
 					resolverLoadSubsetRowLimit(context),

@@ -54,7 +54,7 @@
 
 
 	// Components
-	import ActorView from '$/views/ActorView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
@@ -72,19 +72,6 @@
 	title="Profile"
 	{...EntityViewProps}
 >
-	{#snippet Heading()}
-		<ResourceBoundary
-			resource={farcasterUser}
-			placeholderText="Loading profile…"
-		>
-			{#snippet children(farcasterUser)}
-				{farcasterUser.displayName
-					?? farcasterUser.username
-					?? String(farcasterUserId.fid)}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={farcasterUser}
@@ -109,7 +96,16 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<ResourceBoundary
+			resource={farcasterUser}
+			placeholderText="Loading profile…"
+		>
+			{#snippet children(farcasterUser)}
+				{farcasterUser.displayName
+					?? farcasterUser.username
+					?? String(farcasterUserId.fid)}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -185,7 +181,7 @@
 									{#each farcasterUser.$$verifiedAddresses as verification (String(verification[EntityMetaKey.Id].protocol) + ':' + verification[EntityMetaKey.Id].address)}
 										<li>
 											{#if verification[EntityMetaKey.Id].protocol === 'ethereum'}
-												<ActorView
+												<EvmAccountView
 													entityId={{
 														address: verification[EntityMetaKey.Id].address,
 													}}

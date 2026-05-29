@@ -6,6 +6,14 @@ export default {
 	label: 'Monero daemon RPC',
 	origins: [
 		{
+			origin: 'https://xmr-node.cakewallet.com:18081',
+			corsEnabled: false,
+		},
+		{
+			origin: 'http://nodes.hashvault.pro:18081',
+			corsEnabled: false,
+		},
+		{
 			origin: 'http://127.0.0.1:18081',
 			corsEnabled: false,
 		},

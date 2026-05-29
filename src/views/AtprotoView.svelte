@@ -106,10 +106,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		AT Protocol
-	{/snippet}
-
-	{#snippet Heading()}
 		<ResourceBoundary
 			resource={atprotoNetwork}
 			placeholderText="Loading AT Protocol directory…"

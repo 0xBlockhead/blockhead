@@ -1,13 +1,6 @@
-export type PolkadotRpcBlock = {
-	block: {
-		header: PolkadotRpcHeader
-		extrinsics: string[]
-	}
-}
-
-export type PolkadotRpcHeader = {
-	parentHash: string
-	number: string
-	stateRoot: string
-	extrinsicsRoot: string
-}
+export type {
+	SubstrateRpcBlock as PolkadotRpcBlock,
+	SubstrateRpcHeader as PolkadotRpcHeader,
+	SubstrateRuntimeVersion as PolkadotRuntimeVersion,
+	SubstrateSystemHealth as PolkadotSystemHealth,
+} from '$/sources/Substrate/JsonRpc/types.ts'

@@ -61,18 +61,15 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			TRON blocks are DPoS-produced ledger blocks; TVM execution is modeled separately as the network execution environment.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		Block {entityId.height.toString()}
 	{/snippet}
 
-	{#snippet Heading()}
-		Block {entityId.height.toString()}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			TRON blocks are DPoS-produced ledger blocks; TVM execution is modeled separately as the network execution environment.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

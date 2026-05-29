@@ -70,7 +70,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Heading()}
+
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={marketVenue}
 			placeholderText="Loading market venue…"

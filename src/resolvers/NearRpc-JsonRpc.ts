@@ -1,6 +1,7 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
+	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -8,8 +9,13 @@ import { Source } from '$/sources/$Source.ts'
 import type {
 	NearRpcAccessKey,
 	NearRpcAction,
+	NearRpcBlock,
 	NearRpcExecutionOutcome,
+	NearRpcGasPrice,
+	NearRpcStatus,
 	NearRpcTransactionStatus,
+	NearRpcValidator,
+	NearRpcValidators,
 } from '$/sources/NearRpc/JsonRpc/types.ts'
 
 const nearMainnetRpcUrl = 'https://rpc.mainnet.near.org'
@@ -67,6 +73,51 @@ const nearExecutionOutcomeFields = (
 			receiptId,
 		},
 	})),
+})
+
+const nearNetworkTimestampFields = ({
+	block,
+	gasPrice,
+	status,
+	validators,
+}: {
+	block: NearRpcBlock
+	gasPrice: NearRpcGasPrice
+	status: NearRpcStatus
+	validators: NearRpcValidators
+}) => ({
+	headHeight: BigInt(block.header.height),
+	headHash: block.header.hash,
+	epochId: block.header.epoch_id,
+	epochHeight: BigInt(validators.epoch_height),
+	epochStartHeight: BigInt(validators.epoch_start_height),
+	chunkCount: block.chunks.length,
+	gasPriceYoctoNear: BigInt(gasPrice.gas_price),
+	currentValidatorCount: validators.current_validators.length,
+	nextValidatorCount: validators.next_validators.length,
+	currentProposalCount: validators.current_proposals.length,
+	protocolVersion: status.protocol_version,
+	latestProtocolVersion: status.latest_protocol_version,
+	nodeVersion: status.version.version,
+	syncing: status.sync_info.syncing,
+})
+
+const nearValidatorFields = (validator: NearRpcValidator) => ({
+	publicKey: validator.public_key,
+	stakeYoctoNear: BigInt(validator.stake),
+	isSlashed: validator.is_slashed,
+	...(validator.num_expected_blocks != null && {
+		expectedBlocks: validator.num_expected_blocks,
+	}),
+	...(validator.num_produced_blocks != null && {
+		producedBlocks: validator.num_produced_blocks,
+	}),
+	...(validator.num_expected_chunks != null && {
+		expectedChunks: validator.num_expected_chunks,
+	}),
+	...(validator.num_produced_chunks != null && {
+		producedChunks: validator.num_produced_chunks,
+	}),
 })
 
 const nearTransactionFields = (
@@ -137,6 +188,110 @@ export default {
 	source: Source.NearRpc_JsonRpc,
 
 	entityResolvers: [
+		defineEntityResolver({
+			entityType: EntityType.NearNetwork,
+			resolve: async (entityId) => {
+				assertNearMainnet(entityId)
+				const {
+					block,
+					gasPrice,
+					status,
+					validators,
+				} = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				const [
+					headBlock,
+					currentGasPrice,
+					nodeStatus,
+					validatorSet,
+				] = await Promise.all([
+					block({
+						rpcUrl: nearMainnetRpcUrl,
+						blockId: 'final',
+					}),
+					gasPrice({
+						rpcUrl: nearMainnetRpcUrl,
+					}),
+					status({
+						rpcUrl: nearMainnetRpcUrl,
+					}),
+					validators({
+						rpcUrl: nearMainnetRpcUrl,
+					}),
+				])
+				return {
+					$headBlock: {
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							height: BigInt(headBlock.header.height),
+							hash: headBlock.header.hash,
+						},
+					},
+					$$timestamps: [
+						{
+							[EntityMetaKey.Id]: {
+								$network: entityId,
+								timestampMs: Number(BigInt(headBlock.header.timestamp_nanosec) / 1_000_000n),
+							},
+							...nearNetworkTimestampFields({
+								block: headBlock,
+								gasPrice: currentGasPrice,
+								status: nodeStatus,
+								validators: validatorSet,
+							}),
+						},
+					],
+					$$blocks: [
+						{
+							[EntityMetaKey.Id]: {
+								$network: entityId,
+								height: BigInt(headBlock.header.height),
+								hash: headBlock.header.hash,
+							},
+						},
+					],
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.NearNetwork_Timestamp,
+			resolve: async (entityId) => {
+				assertNearMainnet(entityId.$network)
+				const {
+					block,
+					gasPrice,
+					status,
+					validators,
+				} = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				const [
+					headBlock,
+					currentGasPrice,
+					nodeStatus,
+					validatorSet,
+				] = await Promise.all([
+					block({
+						rpcUrl: nearMainnetRpcUrl,
+						blockId: 'final',
+					}),
+					gasPrice({
+						rpcUrl: nearMainnetRpcUrl,
+					}),
+					status({
+						rpcUrl: nearMainnetRpcUrl,
+					}),
+					validators({
+						rpcUrl: nearMainnetRpcUrl,
+					}),
+				])
+				return nearNetworkTimestampFields({
+					block: headBlock,
+					gasPrice: currentGasPrice,
+					status: nodeStatus,
+					validators: validatorSet,
+				})
+			},
+		}),
+
 		defineEntityResolver({
 			entityType: EntityType.NearBlock,
 			resolve: async (entityId) => {
@@ -319,14 +474,137 @@ export default {
 				}))
 			},
 		}),
+
+		defineEntityResolver({
+			entityType: EntityType.NearValidator,
+			resolve: async (entityId) => {
+				assertNearMainnet(entityId.$network)
+				const { validators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				const validator = (await validators({
+					rpcUrl: nearMainnetRpcUrl,
+				})).current_validators.find((row) => row.account_id === entityId.accountId)
+				if (validator == null) throw new Error(`NearRpc_JsonRpc: validator ${entityId.accountId} not found`)
+				return nearValidatorFields(validator)
+			},
+		}),
 	],
 
 	entityFieldResolvers: [
+		defineEntityFieldResolver({
+			entityType: EntityType.NearNetwork,
+			fieldName: '$headBlock',
+			resolve: async (entityId) => {
+				assertNearMainnet(entityId)
+				const { block } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				const headBlock = await block({
+					rpcUrl: nearMainnetRpcUrl,
+					blockId: 'final',
+				})
+				return {
+					[EntityMetaKey.Id]: {
+						$network: entityId,
+						height: BigInt(headBlock.header.height),
+						hash: headBlock.header.hash,
+					},
+				}
+			},
+		}),
 
+		defineEntityFieldResolver({
+			entityType: EntityType.NearNetwork,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => {
+				assertNearMainnet(entityId)
+				const {
+					block,
+					gasPrice,
+					status,
+					validators,
+				} = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				const [
+					headBlock,
+					currentGasPrice,
+					nodeStatus,
+					validatorSet,
+				] = await Promise.all([
+					block({
+						rpcUrl: nearMainnetRpcUrl,
+						blockId: 'final',
+					}),
+					gasPrice({
+						rpcUrl: nearMainnetRpcUrl,
+					}),
+					status({
+						rpcUrl: nearMainnetRpcUrl,
+					}),
+					validators({
+						rpcUrl: nearMainnetRpcUrl,
+					}),
+				])
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							timestampMs: Number(BigInt(headBlock.header.timestamp_nanosec) / 1_000_000n),
+						},
+						...nearNetworkTimestampFields({
+							block: headBlock,
+							gasPrice: currentGasPrice,
+							status: nodeStatus,
+							validators: validatorSet,
+						}),
+					},
+				]
+			},
+		}),
 
+		defineEntityFieldResolver({
+			entityType: EntityType.NearNetwork,
+			fieldName: '$$blocks',
+			resolve: async (entityId, context) => {
+				assertNearMainnet(entityId)
+				const { block } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				const headBlock = await block({
+					rpcUrl: nearMainnetRpcUrl,
+					blockId: 'final',
+				})
+				const headBlockHeight = BigInt(headBlock.header.height)
+				return Array.from({
+					length: Math.min(
+						Number(headBlockHeight + 1n),
+						resolverLoadSubsetRowLimit(context),
+					),
+				}, (_value, blockOffset) => ({
+					[EntityMetaKey.Id]: {
+						$network: entityId,
+						height: headBlockHeight - BigInt(blockOffset),
+						...(blockOffset === 0 && {
+							hash: headBlock.header.hash,
+						}),
+					},
+				}))
+			},
+		}),
 
-
-
+		defineEntityFieldResolver({
+			entityType: EntityType.NearNetwork,
+			fieldName: '$$validators',
+			resolve: async (entityId, context) => {
+				assertNearMainnet(entityId)
+				const { validators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				return (await validators({
+					rpcUrl: nearMainnetRpcUrl,
+				})).current_validators
+					.slice(0, resolverLoadSubsetRowLimit(context))
+					.map((validator) => ({
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							accountId: validator.account_id,
+						},
+						...nearValidatorFields(validator),
+					}))
+			},
+		}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType.NearAccount,

@@ -12,6 +12,56 @@ export type NearRpcBlock = {
 	chunks: NearRpcChunkHeader[]
 }
 
+export type NearRpcStatus = {
+	chain_id: string
+	genesis_hash: string
+	latest_protocol_version: number
+	protocol_version: number
+	sync_info: {
+		epoch_id: string
+		epoch_start_height: number
+		latest_block_hash: string
+		latest_block_height: number
+		latest_block_time: string
+		syncing: boolean
+	}
+	version: {
+		version: string
+		build?: string
+		commit?: string
+		rustc_version?: string
+	}
+}
+
+export type NearRpcGasPrice = {
+	gas_price: string
+}
+
+export type NearRpcValidators = {
+	current_fishermen: NearRpcValidator[]
+	current_proposals: NearRpcValidator[]
+	current_validators: NearRpcValidator[]
+	epoch_height: number
+	epoch_start_height: number
+	next_fishermen: NearRpcValidator[]
+	next_validators: NearRpcValidator[]
+	prev_epoch_kickout: {
+		account_id: string
+		reason: JsonValue
+	}[]
+}
+
+export type NearRpcValidator = {
+	account_id: string
+	public_key: string
+	stake: string
+	is_slashed: boolean
+	num_expected_blocks?: number
+	num_produced_blocks?: number
+	num_expected_chunks?: number
+	num_produced_chunks?: number
+}
+
 export type NearRpcChunkHeader = {
 	chunk_hash: string
 	shard_id: number

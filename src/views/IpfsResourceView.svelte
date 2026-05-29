@@ -83,10 +83,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Heading()}
 		{#if href}
 			<a
 				{href}
@@ -103,7 +99,6 @@
 			/>
 		{/if}
 	{/snippet}
-
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">

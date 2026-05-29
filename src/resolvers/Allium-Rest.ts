@@ -174,7 +174,7 @@ export default {
 
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
-			entityType: EntityType.ActorNetwork,
+			entityType: EntityType.EvmNetworkAccount,
 			fieldName: '$$ownedCoins',
 			resolve: async (entityId, context) => {
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')

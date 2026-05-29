@@ -189,15 +189,12 @@
 				bind:open
 				{layout}
 			>
-				{#snippet Title()}
-					{row.slug}
-				{/snippet}
 
-				{#snippet Heading()}
+	{#snippet Title()}
 					{row.name}
-				{/snippet}
+	{/snippet}
 
-				{#snippet Content()}
+	{#snippet Content()}
 					<dl>
 						{#if row.caip2 != null}
 							<div>

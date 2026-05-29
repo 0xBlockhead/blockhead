@@ -121,10 +121,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		Farcaster
-	{/snippet}
-
-	{#snippet Heading()}
 		<ResourceBoundary
 			resource={network}
 			placeholderText="Farcaster"

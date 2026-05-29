@@ -24,11 +24,21 @@ import { NetworkExecutionUpgradeLayer } from '$/schema/NetworkUpgradeProtocols.t
 import {
 	networkByCaip2,
 	networkBySlug,
+	NetworkNamespace,
 	networks,
 } from '$/constants/Network.ts'
-import { networkStackByNetworkStackId } from '$/constants/NetworkStack.ts'
-import { executionEnvironmentByExecutionEnvironmentId } from '$/constants/ExecutionEnvironment.ts'
-import { consensusMechanismById } from '$/constants/ConsensusMechanism.ts'
+import {
+	NetworkStackId,
+	networkStackByNetworkStackId,
+} from '$/constants/NetworkStack.ts'
+import {
+	ExecutionEnvironmentId,
+	executionEnvironmentByExecutionEnvironmentId,
+} from '$/constants/ExecutionEnvironment.ts'
+import {
+	ConsensusMechanismId,
+	consensusMechanismById,
+} from '$/constants/ConsensusMechanism.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
 import { MarketVenueId } from '$/constants/MarketVenue.ts'
 import {
@@ -50,6 +60,12 @@ import { redditNetworkFieldValues, redditNetworkSeedSubreddits } from '$/constan
 import { rssNetworkFieldValues, rssNetworkSeedFeeds } from '$/constants/Social/Rss.ts'
 import { solanaMainnetRpcEndpoints } from '$/constants/SolanaNetwork.ts'
 import { swarmProtocolFieldValues } from '$/constants/SwarmProtocol.ts'
+import {
+	zeroGChainId,
+	zeroGMainnetExplorerEndpoints,
+	zeroGMainnetRpcEndpoints,
+	zeroGMainnetStorageEndpoints,
+} from '$/constants/ZeroGNetwork.ts'
 import {
 	youtubeNetworkFieldValues,
 	youtubeNetworkSeedChannels,
@@ -150,7 +166,175 @@ const networkUpgradeDenormalizedFields = (
 const BEACON_SLOTS_PER_EPOCH = 32
 const BEACON_SECONDS_PER_SLOT = 12
 
+const networkStackIdByNamespace = {
+	[NetworkNamespace.Bittensor]: NetworkStackId.Bittensor,
+	[NetworkNamespace.Bitcoin]: NetworkStackId.Bitcoin,
+	[NetworkNamespace.BitcoinCash]: NetworkStackId.BitcoinCash,
+	[NetworkNamespace.Cosmos]: NetworkStackId.CosmosSdkCometBft,
+	[NetworkNamespace.Dogecoin]: NetworkStackId.Dogecoin,
+	[NetworkNamespace.Evm]: NetworkStackId.Ethereum,
+	[NetworkNamespace.Filecoin]: NetworkStackId.Filecoin,
+	[NetworkNamespace.Hyperliquid]: NetworkStackId.Hyperliquid,
+	[NetworkNamespace.Lightning]: NetworkStackId.Lightning,
+	[NetworkNamespace.Litecoin]: NetworkStackId.Litecoin,
+	[NetworkNamespace.Logos]: NetworkStackId.Logos,
+	[NetworkNamespace.Monero]: NetworkStackId.Monero,
+	[NetworkNamespace.Near]: NetworkStackId.Near,
+	[NetworkNamespace.Polkadot]: NetworkStackId.PolkadotSdk,
+	[NetworkNamespace.Quilibrium]: NetworkStackId.Quilibrium,
+	[NetworkNamespace.Solana]: NetworkStackId.Solana,
+	[NetworkNamespace.Tron]: NetworkStackId.Tron,
+	[NetworkNamespace.Zcash]: NetworkStackId.Zcash,
+	[NetworkNamespace.ZeroG]: NetworkStackId.ZeroG,
+} as const satisfies Record<NetworkNamespace, NetworkStackId>
+
+const executionEnvironmentIdsByNamespace = {
+	[NetworkNamespace.Bittensor]: [
+		ExecutionEnvironmentId.BittensorSubtensorRuntime,
+	],
+	[NetworkNamespace.Bitcoin]: [
+		ExecutionEnvironmentId.BitcoinScript,
+	],
+	[NetworkNamespace.BitcoinCash]: [
+		ExecutionEnvironmentId.BitcoinCashScript,
+	],
+	[NetworkNamespace.Cosmos]: [
+		ExecutionEnvironmentId.CosmWasm,
+	],
+	[NetworkNamespace.Dogecoin]: [
+		ExecutionEnvironmentId.BitcoinScript,
+	],
+	[NetworkNamespace.Evm]: [
+		ExecutionEnvironmentId.Evm,
+	],
+	[NetworkNamespace.Filecoin]: [
+		ExecutionEnvironmentId.FilecoinVm,
+	],
+	[NetworkNamespace.Hyperliquid]: [
+		ExecutionEnvironmentId.HyperEvm,
+	],
+	[NetworkNamespace.Lightning]: [
+		ExecutionEnvironmentId.LightningProtocol,
+	],
+	[NetworkNamespace.Litecoin]: [
+		ExecutionEnvironmentId.BitcoinScript,
+	],
+	[NetworkNamespace.Logos]: [
+		ExecutionEnvironmentId.LogosBlockchainRuntime,
+	],
+	[NetworkNamespace.Monero]: [],
+	[NetworkNamespace.Near]: [
+		ExecutionEnvironmentId.NearRuntime,
+	],
+	[NetworkNamespace.Polkadot]: [
+		ExecutionEnvironmentId.SubstrateRuntime,
+	],
+	[NetworkNamespace.Quilibrium]: [
+		ExecutionEnvironmentId.QuilibriumQcl,
+	],
+	[NetworkNamespace.Solana]: [
+		ExecutionEnvironmentId.SolanaSvm,
+	],
+	[NetworkNamespace.Tron]: [
+		ExecutionEnvironmentId.TronTvm,
+	],
+	[NetworkNamespace.Zcash]: [
+		ExecutionEnvironmentId.BitcoinScript,
+	],
+	[NetworkNamespace.ZeroG]: [
+		ExecutionEnvironmentId.ZeroGChainEvm,
+		ExecutionEnvironmentId.ZeroGServingFramework,
+	],
+} as const satisfies Record<NetworkNamespace, readonly ExecutionEnvironmentId[]>
+
+const consensusMechanismIdsByNamespace = {
+	[NetworkNamespace.Bittensor]: [
+		ConsensusMechanismId.BittensorYumaConsensus,
+	],
+	[NetworkNamespace.Bitcoin]: [
+		ConsensusMechanismId.NakamotoProofOfWork,
+	],
+	[NetworkNamespace.BitcoinCash]: [
+		ConsensusMechanismId.NakamotoProofOfWork,
+	],
+	[NetworkNamespace.Cosmos]: [
+		ConsensusMechanismId.CometBft,
+	],
+	[NetworkNamespace.Dogecoin]: [
+		ConsensusMechanismId.DogecoinAuxProofOfWork,
+	],
+	[NetworkNamespace.Evm]: [
+		ConsensusMechanismId.EthereumBeaconProofOfStake,
+	],
+	[NetworkNamespace.Filecoin]: [
+		ConsensusMechanismId.FilecoinExpectedConsensus,
+	],
+	[NetworkNamespace.Hyperliquid]: [
+		ConsensusMechanismId.HyperBft,
+	],
+	[NetworkNamespace.Lightning]: [],
+	[NetworkNamespace.Litecoin]: [
+		ConsensusMechanismId.NakamotoProofOfWork,
+	],
+	[NetworkNamespace.Logos]: [
+		ConsensusMechanismId.LogosBedrock,
+	],
+	[NetworkNamespace.Monero]: [
+		ConsensusMechanismId.MoneroRandomXProofOfWork,
+	],
+	[NetworkNamespace.Near]: [
+		ConsensusMechanismId.NearNightshade,
+	],
+	[NetworkNamespace.Polkadot]: [
+		ConsensusMechanismId.PolkadotNposBabeGrandpa,
+	],
+	[NetworkNamespace.Quilibrium]: [
+		ConsensusMechanismId.QuilibriumProofOfMeaningfulWork,
+	],
+	[NetworkNamespace.Solana]: [
+		ConsensusMechanismId.SolanaProofOfHistoryTowerBft,
+	],
+	[NetworkNamespace.Tron]: [
+		ConsensusMechanismId.TronDpos,
+	],
+	[NetworkNamespace.Zcash]: [
+		ConsensusMechanismId.ZcashProofOfWork,
+	],
+	[NetworkNamespace.ZeroG]: [
+		ConsensusMechanismId.ZeroGProofOfStake,
+	],
+} as const satisfies Record<NetworkNamespace, readonly ConsensusMechanismId[]>
+
+const nativeAssetCoinIdByNamespace = {
+	[NetworkNamespace.Bittensor]: CoinId.TAO,
+	[NetworkNamespace.Bitcoin]: CoinId.BTC,
+	[NetworkNamespace.BitcoinCash]: CoinId.BCH,
+	[NetworkNamespace.Cosmos]: CoinId.ATOM,
+	[NetworkNamespace.Dogecoin]: CoinId.DOGE,
+	[NetworkNamespace.Evm]: CoinId.ETH,
+	[NetworkNamespace.Filecoin]: CoinId.FIL,
+	[NetworkNamespace.Hyperliquid]: CoinId.HYPE,
+	[NetworkNamespace.Lightning]: undefined,
+	[NetworkNamespace.Litecoin]: CoinId.LTC,
+	[NetworkNamespace.Logos]: undefined,
+	[NetworkNamespace.Monero]: CoinId.XMR,
+	[NetworkNamespace.Near]: CoinId.NEAR,
+	[NetworkNamespace.Polkadot]: CoinId.DOT,
+	[NetworkNamespace.Quilibrium]: CoinId.QUIL,
+	[NetworkNamespace.Solana]: CoinId.SOL,
+	[NetworkNamespace.Tron]: CoinId.TRX,
+	[NetworkNamespace.Zcash]: CoinId.ZEC,
+	[NetworkNamespace.ZeroG]: CoinId._0G,
+} as const satisfies Record<NetworkNamespace, CoinId | undefined>
+
 const executionBlockActivationTimestampMsByKey = new Map<string, number | undefined>()
+
+const zeroGEvmNetworkId = {
+	caip2: {
+		namespace: 'eip155',
+		reference: String(zeroGChainId),
+	},
+} as const
 
 const activationTimestampMsFromSecondsOrMs = (
 	timestamp: number,
@@ -630,6 +814,53 @@ export default {
 		}),
 
 		defineEntityResolver({
+			entityType: EntityType.ZeroGNetwork,
+			resolve: async (entityId) => {
+				const row = networkBySlug[entityId.networkSlug]
+				if (row == null) throw new Error('Constants_Internal: ZeroGNetwork not found')
+				return {
+					slug: row.slug,
+					name: row.name,
+					...('caip2' in row && {
+						caip2: row.caip2,
+					}),
+					namespace: row.namespace,
+					environment: row.environment,
+					chainId: zeroGChainId,
+					rpcEndpoints: [
+						...zeroGMainnetRpcEndpoints,
+					],
+					explorerEndpoints: [
+						...zeroGMainnetExplorerEndpoints,
+					],
+					storageEndpoints: [
+						...zeroGMainnetStorageEndpoints,
+					],
+					$executionNetwork: {
+						[EntityMetaKey.Id]: zeroGEvmNetworkId,
+					},
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.QuilibriumNetwork,
+			resolve: async (entityId) => {
+				const row = networkBySlug[entityId.networkSlug]
+				if (row == null) throw new Error('Constants_Internal: QuilibriumNetwork not found')
+				return {
+					slug: row.slug,
+					name: row.name,
+					...('caip2' in row && {
+						caip2: row.caip2,
+					}),
+					namespace: row.namespace,
+					environment: row.environment,
+				}
+			},
+		}),
+
+		defineEntityResolver({
 			entityType: EntityType.SolanaNetwork,
 			resolve: async (entityId) => {
 				const row = networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
@@ -676,6 +907,13 @@ export default {
 					name: entityId.assetKey,
 					symbol: entityId.assetKey,
 				}),
+			}),
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.BittensorSubnet,
+			resolve: async (entityId) => ({
+				name: entityId.netuid === 0 ? 'Root' : `Subnet ${entityId.netuid}`,
 			}),
 		}),
 
@@ -884,6 +1122,180 @@ export default {
 					)
 				},
 			}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$networkStack',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
+				const row = (
+					'networkSlug' in entityId ?
+						networkBySlug[entityId.networkSlug]
+					:	networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+				)
+				if (row == null) return undefined
+				const namespace: NetworkNamespace = row.namespace
+				return {
+					[EntityMetaKey.Id]: {
+						networkStackId: networkStackIdByNamespace[namespace],
+					},
+				}
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.ZeroGNetwork,
+			fieldName: '$networkStack',
+			resolve: async (entityId) => {
+				const row = networkBySlug[entityId.networkSlug]
+				if (row == null) return undefined
+				const namespace: NetworkNamespace = row.namespace
+				return {
+					[EntityMetaKey.Id]: {
+						networkStackId: networkStackIdByNamespace[namespace],
+					},
+				}
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.QuilibriumNetwork,
+			fieldName: '$networkStack',
+			resolve: async (entityId) => {
+				const row = networkBySlug[entityId.networkSlug]
+				if (row == null) return undefined
+				const namespace: NetworkNamespace = row.namespace
+				return {
+					[EntityMetaKey.Id]: {
+						networkStackId: networkStackIdByNamespace[namespace],
+					},
+				}
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$executionEnvironments',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
+				const row = (
+					'networkSlug' in entityId ?
+						networkBySlug[entityId.networkSlug]
+					:	networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+				)
+				if (row == null) return []
+				const namespace: NetworkNamespace = row.namespace
+				return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
+					[EntityMetaKey.Id]: {
+						executionEnvironmentId,
+					},
+				}))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.ZeroGNetwork,
+			fieldName: '$$executionEnvironments',
+			resolve: async (entityId) => {
+				const row = networkBySlug[entityId.networkSlug]
+				if (row == null) return []
+				const namespace: NetworkNamespace = row.namespace
+				return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
+					[EntityMetaKey.Id]: {
+						executionEnvironmentId,
+					},
+				}))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.QuilibriumNetwork,
+			fieldName: '$$executionEnvironments',
+			resolve: async (entityId) => {
+				const row = networkBySlug[entityId.networkSlug]
+				if (row == null) return []
+				const namespace: NetworkNamespace = row.namespace
+				return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
+					[EntityMetaKey.Id]: {
+						executionEnvironmentId,
+					},
+				}))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$consensusMechanisms',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
+				const row = (
+					'networkSlug' in entityId ?
+						networkBySlug[entityId.networkSlug]
+					:	networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+				)
+				if (row == null) return []
+				const namespace: NetworkNamespace = row.namespace
+				return [...consensusMechanismIdsByNamespace[namespace]].map((consensusMechanismId) => ({
+					[EntityMetaKey.Id]: {
+						consensusMechanismId,
+					},
+				}))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.ZeroGNetwork,
+			fieldName: '$$consensusMechanisms',
+			resolve: async (entityId) => {
+				const row = networkBySlug[entityId.networkSlug]
+				if (row == null) return []
+				const namespace: NetworkNamespace = row.namespace
+				return [...consensusMechanismIdsByNamespace[namespace]].map((consensusMechanismId) => ({
+					[EntityMetaKey.Id]: {
+						consensusMechanismId,
+					},
+				}))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.QuilibriumNetwork,
+			fieldName: '$$consensusMechanisms',
+			resolve: async (entityId) => {
+				const row = networkBySlug[entityId.networkSlug]
+				if (row == null) return []
+				const namespace: NetworkNamespace = row.namespace
+				return [...consensusMechanismIdsByNamespace[namespace]].map((consensusMechanismId) => ({
+					[EntityMetaKey.Id]: {
+						consensusMechanismId,
+					},
+				}))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$nativeAssets',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
+				const row = (
+					'networkSlug' in entityId ?
+						networkBySlug[entityId.networkSlug]
+					:	networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+				)
+				if (row == null) return []
+				const namespace: NetworkNamespace = row.namespace
+				const coinId = nativeAssetCoinIdByNamespace[namespace]
+				if (coinId == null) return []
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							kind: AssetInstanceKind.Native,
+							assetKey: coinId,
+						},
+						coinId,
+						symbol: coinId,
+					},
+				]
+			},
+		}),
 
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
@@ -1637,6 +2049,55 @@ export default {
 							},
 						}]
 					})
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.ZeroGNetwork,
+			fieldName: '$$nativeAssets',
+			resolve: async (entityId) => {
+				const row = networkBySlug[entityId.networkSlug]
+				if (row == null) return []
+				const namespace: NetworkNamespace = row.namespace
+				const coinId = nativeAssetCoinIdByNamespace[namespace]
+				if (coinId == null) return []
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$network: {
+								networkSlug: entityId.networkSlug,
+							},
+							kind: AssetInstanceKind.Native,
+							assetKey: coinId,
+						},
+						coinId,
+						symbol: coinId,
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.QuilibriumNetwork,
+			fieldName: '$$nativeAssets',
+			resolve: async (entityId) => {
+				const row = networkBySlug[entityId.networkSlug]
+				if (row == null) return []
+				const namespace: NetworkNamespace = row.namespace
+				const coinId = nativeAssetCoinIdByNamespace[namespace]
+				if (coinId == null) return []
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$network: {
+								networkSlug: entityId.networkSlug,
+							},
+							kind: AssetInstanceKind.Native,
+							assetKey: coinId,
+						},
+						coinId,
+					},
+				]
 			},
 		}),
 	],

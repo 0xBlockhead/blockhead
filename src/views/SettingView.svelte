@@ -90,10 +90,6 @@
 		{title}
 	{/snippet}
 
-	{#snippet Heading()}
-		{@render Title()}
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			Browser storage can keep UI preferences and optional third-party API usage counters tied to one profile.

@@ -11,10 +11,10 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 export default {
-	entityType: EntityType.Actor,
+	entityType: EntityType.EvmAccount,
 
-	label: 'Actor',
-	labelPlural: 'Actors',
+	label: 'EVM account',
+	labelPlural: 'EVM accounts',
 
 	id: type({
 		address: EvmAddress,
@@ -51,4 +51,3 @@ export default {
 		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition
-

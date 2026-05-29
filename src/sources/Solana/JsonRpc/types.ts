@@ -95,3 +95,17 @@ export type SolanaRpcVoteAccount = {
 	rootSlot: number
 	votePubkey: string
 }
+
+export type SolanaRpcEpochInfo = {
+	absoluteSlot: number
+	blockHeight: number
+	epoch: number
+	slotIndex: number
+	slotsInEpoch: number
+	transactionCount?: number
+}
+
+export type SolanaRpcVersion = {
+	'solana-core': string
+	'feature-set'?: number
+}

@@ -6,8 +6,11 @@ import type {
 	TronGridTrc20Transfers,
 	TronNodeAccount,
 	TronNodeBlock,
+	TronNodeChainParameters,
+	TronNodeInfo,
 	TronNodeTransaction,
 	TronNodeTransactionInfo,
+	TronNodeWitnesses,
 } from '$/sources/TronGrid/Rest/types.ts'
 
 const base = (restBaseUrl: string) => restBaseUrl.replace(/\/$/, '')
@@ -129,6 +132,44 @@ export const getAccountTransactions = ({
 		`${base(restBaseUrl)}/v1/accounts/${address}/transactions?limit=${limit.toString()}`,
 		{ origins: TronGrid.origins ?? [] },
 	)
+)
+
+export const listWitnesses = ({
+	restBaseUrl,
+}: {
+	restBaseUrl: string
+}) => (
+	tronGridPost<TronNodeWitnesses>({
+		restBaseUrl,
+		path: 'wallet/listwitnesses',
+		body: {
+			visible: true,
+		},
+	})
+)
+
+export const getChainParameters = ({
+	restBaseUrl,
+}: {
+	restBaseUrl: string
+}) => (
+	tronGridPost<TronNodeChainParameters>({
+		restBaseUrl,
+		path: 'wallet/getchainparameters',
+		body: {},
+	})
+)
+
+export const getNodeInfo = ({
+	restBaseUrl,
+}: {
+	restBaseUrl: string
+}) => (
+	tronGridPost<TronNodeInfo>({
+		restBaseUrl,
+		path: 'wallet/getnodeinfo',
+		body: {},
+	})
 )
 
 export const getAccountTrc20Transfers = ({

@@ -50,11 +50,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Bitcoin Cash CashToken NFT
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		Bitcoin Cash CashToken NFT
 	{/snippet}
 

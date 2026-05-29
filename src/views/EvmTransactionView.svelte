@@ -119,7 +119,7 @@
 	import Heading from '$/components/Heading.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmAssetMovementsView from '$/views/EvmAssetMovementsView.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import EvmBlobsView from '$/views/EvmBlobsView.svelte'
@@ -206,7 +206,7 @@
 						<dt>From</dt>
 						<dd>
 							{#if transaction.$from?.[EntityMetaKey.Id].address !== undefined}
-								<ActorNetworkView
+								<EvmNetworkAccountView
 									entityId={{
 										$network: entityId.$network,
 										$actor: transaction.$from[EntityMetaKey.Id],
@@ -222,7 +222,7 @@
 						<dt>To</dt>
 						<dd>
 							{#if transaction.$to?.[EntityMetaKey.Id].address !== undefined}
-								<ActorNetworkView
+								<EvmNetworkAccountView
 									entityId={{
 										$network: entityId.$network,
 										$actor: transaction.$to[EntityMetaKey.Id],

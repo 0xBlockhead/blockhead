@@ -64,18 +64,15 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Polkadot blocks contain Substrate extrinsics and emitted events under the relay-chain runtime.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		Block #{entityId.blockNumber.toString()}
 	{/snippet}
 
-	{#snippet Heading()}
-		Block #{entityId.blockNumber.toString()}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Polkadot blocks contain Substrate extrinsics and emitted events under the relay-chain runtime.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

@@ -61,18 +61,15 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Cosmos SDK blocks are CometBFT consensus blocks carrying SDK transactions and module messages.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		Block #{entityId.height.toString()}
 	{/snippet}
 
-	{#snippet Heading()}
-		Block #{entityId.height.toString()}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Cosmos SDK blocks are CometBFT consensus blocks carrying SDK transactions and module messages.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

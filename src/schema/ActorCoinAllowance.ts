@@ -1,5 +1,5 @@
 import { type } from 'arktype'
-import Actor from '$/schema/Actor.ts'
+import Actor from '$/schema/EvmAccount.ts'
 import ActorCoin from '$/schema/ActorCoin.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import {

@@ -89,12 +89,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			AT Protocol profiles are DIDs with Bluesky App View metadata (handle, avatar, counts); the repo record lives behind the DID, not a legacy numeric profile id.
-		</p>
-	{/snippet}
-
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={actor}
@@ -112,7 +106,13 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Value()}
+		<span data-text="font-monospace">
+			{entityId.did}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={actor}
 			placeholderText="Loading profile…"
@@ -123,16 +123,6 @@
 					?? entityId.did}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<span data-text="font-monospace">
-			{entityId.did}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -152,6 +142,12 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			AT Protocol profiles are DIDs with Bluesky App View metadata (handle, avatar, counts); the repo record lives behind the DID, not a legacy numeric profile id.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href, open: contentOpen })}

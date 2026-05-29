@@ -97,7 +97,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		{@render Value()}
 	{/snippet}
 
@@ -108,10 +108,6 @@
 		<p>
 			Pending transactions are executable under current chain rules; queued ones wait on nonces, balances, or gas bounds before they can enter a block.
 		</p>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

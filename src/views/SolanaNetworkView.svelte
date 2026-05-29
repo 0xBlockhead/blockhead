@@ -59,24 +59,20 @@
 	bind:open
 	{layout}
 >
-	{#snippet Heading()}
+	{#snippet Value()}
+		<span>{entityId.caip2.namespace}:{entityId.caip2.reference}</span>
+	{/snippet}
+
+	{#snippet Title()}
 		<ResourceBoundary resource={network}>
 			{#snippet Pending()}
-				<span>{entityId.caip2.namespace}:{entityId.caip2.reference}</span>
+				{@render Value()}
 			{/snippet}
 
 			{#snippet children(network)}
 				{network.name}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<span>{entityId.caip2.namespace}:{entityId.caip2.reference}</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<span>{entityId.caip2.namespace}:{entityId.caip2.reference}</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

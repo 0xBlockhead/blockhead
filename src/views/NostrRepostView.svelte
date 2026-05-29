@@ -114,10 +114,7 @@
 						format={TruncatedValueFormat.Visual}
 					/>
 				{:else}
-					<TruncatedValue
-						value={entityId.eventId}
-						format={TruncatedValueFormat.Visual}
-					/>
+					{@render Value()}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

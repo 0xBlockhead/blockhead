@@ -66,7 +66,7 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import LiquidityPoolView from '$/views/LiquidityPoolView.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 </script>
@@ -86,21 +86,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={liquidityPosition}
-			placeholderText="Loading position…"
-		>
-			{#snippet children(liquidityPosition)}
-				{liquidityPosition.tokenId != null ?
-					`NFT #${String(liquidityPosition.tokenId)}`
-				:
-					entityId.id
-				}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Heading()}
 		<span data-text="muted">
 			{@render Value()}
 		</span>
@@ -158,7 +143,7 @@
 							<div>
 								<dt>Owner</dt>
 								<dd>
-									<ActorNetworkView
+									<EvmNetworkAccountView
 										entityId={{
 											$network: liquidityPosition.$pool[EntityMetaKey.Id].$network,
 											$actor: liquidityPosition.$owner[EntityMetaKey.Id],

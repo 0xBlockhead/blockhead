@@ -103,17 +103,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		<ResourceBoundary
-			resource={pool}
-			placeholderText="Loading pool…"
-		>
-			{#snippet children(pool)}
-				{pool.baseTokenSymbol ?? 'Base'} / {pool.quoteTokenSymbol ?? 'Quote'}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Heading()}
 		<span data-text="muted">
 			{@render Value()}
 		</span>

@@ -113,10 +113,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Heading()}
-		{@render Title()}
-	{/snippet}
-
 	{#snippet TypeAnnotationTooltip()}
 		<p>
 			On-chain agent identity: registry contract, token id, and registration metadata URI resolved via 8004scan.

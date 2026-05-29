@@ -104,23 +104,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Value()}
-		<span>
-			{entityId.channelId}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={channel}
-			placeholderText="Loading channel…"
-		>
-			{#snippet children(channel)}
-				{channel.title ?? entityId.channelId}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={channel}
@@ -137,6 +120,23 @@
 						alt=""
 					/>
 				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<span>
+			{entityId.channelId}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		<ResourceBoundary
+			resource={channel}
+			placeholderText="Loading channel…"
+		>
+			{#snippet children(channel)}
+				{channel.title ?? entityId.channelId}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

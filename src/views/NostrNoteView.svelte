@@ -122,22 +122,10 @@
 						value={note.content}
 					/>
 				{:else}
-					<TruncatedValue
-						value={entityId.eventId}
-						format={TruncatedValueFormat.Visual}
-					/>
+					{@render Value()}
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Kind-1 text notes carry a content field and optional NIP-10 <code>e</code>-tag reply markers; <code>$replyToNote</code> links the direct parent.
-		</p>
-		<p>
-			Event ids are 64-character lowercase hex hashes; author pubkeys (64 hex) link to kind-0 profile metadata. Replies and reactions load on <code>$$replies</code> and <code>$$reactions</code> via NostrBand and Primal indexers.
-		</p>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -154,6 +142,15 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Kind-1 text notes carry a content field and optional NIP-10 <code>e</code>-tag reply markers; <code>$replyToNote</code> links the direct parent.
+		</p>
+		<p>
+			Event ids are 64-character lowercase hex hashes; author pubkeys (64 hex) link to kind-0 profile metadata. Replies and reactions load on <code>$$replies</code> and <code>$$reactions</code> via NostrBand and Primal indexers.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

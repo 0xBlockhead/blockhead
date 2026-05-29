@@ -37,11 +37,9 @@
 	bind:open
 	{...EntityViewProps}
 >
+
 	{#snippet Title()}
 		Dogecoin AuxPoW
-	{/snippet}
 
-	{#snippet Heading()}
-		Dogecoin AuxPoW
 	{/snippet}
 </EntityView>

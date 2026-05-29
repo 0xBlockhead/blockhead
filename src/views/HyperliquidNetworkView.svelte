@@ -54,10 +54,13 @@
 
 
 <EntityView entityType={EntityType.Network} {entityId} {href} bind:open {layout}>
-	{#snippet Heading()}<ResourceBoundary resource={network}>{#snippet Pending()}{@render Title()}{/snippet}{#snippet children(network)}{network.name}{/snippet}</ResourceBoundary>{/snippet}
 	{#snippet Value()}<span>{entityId.namespace}:{entityId.reference}</span>{/snippet}
-	{#snippet Title()}{@render Value()}{/snippet}
+
+	{#snippet Title()}<ResourceBoundary resource={network}>{#snippet Pending()}{@render Value()}{/snippet}{#snippet children(network)}{network.name}{/snippet}</ResourceBoundary>
+	{/snippet}
+
 	{#snippet TypeAnnotationTooltip()}<p>Hyperliquid combines HyperBFT consensus, HyperCore exchange state, and HyperEVM execution.</p>{/snippet}
+
 	{#snippet Content({
 		open,
 	})}
@@ -96,6 +99,7 @@
 			</ResourceBoundary>
 		</dl>
 	{/snippet}
+
 	{#snippet Details()}
 		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-hyperliquid`}

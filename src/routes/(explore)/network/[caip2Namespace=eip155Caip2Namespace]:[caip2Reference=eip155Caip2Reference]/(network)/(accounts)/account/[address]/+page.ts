@@ -4,8 +4,8 @@ import { error } from '@sveltejs/kit'
 
 import { type as arktype } from 'arktype'
 
-import ActorNetworkSchema from '$/schema/ActorNetwork.ts'
-import ActorSchema from '$/schema/Actor.ts'
+import EvmNetworkAccountSchema from '$/schema/EvmNetworkAccount.ts'
+import EvmAccountSchema from '$/schema/EvmAccount.ts'
 import NetworkSchema from '$/schema/EvmNetwork.ts'
 import { EvmAddress } from '$/schema/$ZeroExHex.ts'
 
@@ -25,10 +25,10 @@ export const load: PageLoad = ({ params }) => {
 	const address = EvmAddress(raw)
 	if (address instanceof arktype.errors) error(404, 'Invalid account address')
 
-	const $actor = ActorSchema.id({ address })
+	const $actor = EvmAccountSchema.id({ address })
 	if ($actor instanceof arktype.errors) error(404, 'Invalid account address')
 
-	const entityId = ActorNetworkSchema.id({
+	const entityId = EvmNetworkAccountSchema.id({
 		$network,
 		$actor,
 	})

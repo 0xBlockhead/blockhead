@@ -98,20 +98,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Heading()}
-		<ResourceBoundary
-			resource={actor}
-			placeholderText="Loading actor…"
-		>
-			{#snippet children(actor)}
-				{actor.displayName
-					?? actor.acct
-					?? actor.username
-					?? entityId.localAccountId}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={actor}
@@ -135,16 +121,17 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A federated ActivityPub Actor (Mastodon account) keyed by instance origin + local account id (acct or REST id).
-		</p>
-		<p>
-			Profile fields and outbox statuses resolve from the configured instance REST API—not a live crawl of every federated server.
-		</p>
+		<ResourceBoundary
+			resource={actor}
+			placeholderText="Loading actor…"
+		>
+			{#snippet children(actor)}
+				{actor.displayName
+					?? actor.acct
+					?? actor.username
+					?? entityId.localAccountId}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -164,6 +151,15 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A federated ActivityPub Actor (Mastodon account) keyed by instance origin + local account id (acct or REST id).
+		</p>
+		<p>
+			Profile fields and outbox statuses resolve from the configured instance REST API—not a live crawl of every federated server.
+		</p>
 	{/snippet}
 
 	{#snippet Content({

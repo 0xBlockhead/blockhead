@@ -50,18 +50,15 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A 0G DA quorum is a selected group of DA nodes responsible for availability attestations for data blobs.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		{entityId.quorumId}
 	{/snippet}
 
-	{#snippet Heading()}
-		{entityId.quorumId}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A 0G DA quorum is a selected group of DA nodes responsible for availability attestations for data blobs.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

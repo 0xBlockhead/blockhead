@@ -63,18 +63,15 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Monero blocks reveal public transaction structure, but not transparent sender, recipient, or account balances.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		Block #{entityId.height.toString()}
 	{/snippet}
 
-	{#snippet Heading()}
-		Block #{entityId.height.toString()}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Monero blocks reveal public transaction structure, but not transparent sender, recipient, or account balances.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

@@ -88,7 +88,7 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
@@ -103,15 +103,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			An execution block commits its parent, fee market fields, and an ordered list of transactions with receipts and logs.
-		</p>
-		<p>
-			Blob transactions carry large payloads beside the block body without bloating long-term execution state.
-		</p>
-	{/snippet}
-
 	{#snippet Value()}
 		<span
 			data-badge="small"
@@ -126,6 +117,15 @@
 			<span>Block </span>
 			{@render Value()}
 		</span>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			An execution block commits its parent, fee market fields, and an ordered list of transactions with receipts and logs.
+		</p>
+		<p>
+			Blob transactions carry large payloads beside the block body without bloating long-term execution state.
+		</p>
 	{/snippet}
 
 	{#snippet Content({
@@ -309,7 +309,7 @@
 						>
 							{#snippet children(block)}
 								{#if block.$miner}
-									<ActorNetworkView
+									<EvmNetworkAccountView
 										entityId={{
 											$network: entityId.$network,
 											$actor: block.$miner[EntityMetaKey.Id],

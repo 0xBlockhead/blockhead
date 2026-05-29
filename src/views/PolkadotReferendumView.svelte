@@ -52,14 +52,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		<TruncatedValue
-			value={entityId.referendumId}
-			format={TruncatedValueFormat.Abbr}
-		/>
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		<TruncatedValue
 			value={entityId.referendumId}
 			format={TruncatedValueFormat.Abbr}

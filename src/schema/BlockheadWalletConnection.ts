@@ -35,7 +35,7 @@ export default {
 		{
 			name: '$$connectedActors',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.Many,
 		},
 		{
@@ -47,7 +47,7 @@ export default {
 		{
 			name: '$activeActor',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{

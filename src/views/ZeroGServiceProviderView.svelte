@@ -53,11 +53,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A 0G service provider offers serving, inference, or related AI service capacity with verifiable settlement metadata.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		<TruncatedValue
@@ -66,11 +61,10 @@
 		/>
 	{/snippet}
 
-	{#snippet Heading()}
-		<TruncatedValue
-			value={entityId.providerId}
-			format={TruncatedValueFormat.Abbr}
-		/>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A 0G service provider offers serving, inference, or related AI service capacity with verifiable settlement metadata.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

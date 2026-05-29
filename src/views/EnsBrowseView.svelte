@@ -131,7 +131,7 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EnsView from '$/views/EnsView.svelte'
 </script>
 
@@ -258,7 +258,7 @@
 				<div>
 					<dt>Address</dt>
 					<dd>
-						<ActorNetworkView
+						<EvmNetworkAccountView
 							entityId={{
 								$network: networkIdFromEvmChainId(ensEthereumChainId),
 								$actor: { address: reverseResult.address },

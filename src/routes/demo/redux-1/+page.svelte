@@ -567,7 +567,7 @@
 		Actor = 'Actor',
 		ActorCoin = 'ActorCoin',
 		ActorCoinAllowance = 'ActorCoinAllowance',
-		ActorNetwork = 'ActorNetwork',
+		EvmNetworkAccount = 'EvmNetworkAccount',
 		BeaconAction = 'BeaconAction',
 		BeaconEpoch = 'BeaconEpoch',
 		BeaconQueue = 'BeaconQueue',

@@ -1,0 +1,161 @@
+import { type } from 'arktype'
+
+import {
+	EntityFieldType,
+	EntityFieldCardinality,
+	type EntityDefinition,
+	type EntityFieldDefinition,
+} from '$/schema/$EntityDefinition.ts'
+import { EntityType } from '$/schema/$EntityType.ts'
+import Network from '$/schema/Network.ts'
+import { Source } from '$/sources/$Source.ts'
+
+export default {
+	entityType: EntityType.CosmosNetwork_Timestamp,
+
+	label: 'Cosmos network snapshot',
+	labelPlural: 'Cosmos network snapshots',
+
+	id: type({
+		$network: Network.id,
+		timestampMs: 'number',
+	}),
+
+	fields: [
+		{
+			name: 'latestBlockHeight',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+		{
+			name: 'latestBlockHash',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+		{
+			name: 'latestBlockTimeMs',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+		{
+			name: 'latestBlockTransactionCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+		{
+			name: 'chainId',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+		{
+			name: 'nodeNetwork',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+		{
+			name: 'applicationName',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+		{
+			name: 'applicationVersion',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+		{
+			name: 'cosmosSdkVersion',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+		{
+			name: 'isSyncing',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+		{
+			name: 'validatorCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+		{
+			name: 'bondedValidatorCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+		{
+			name: 'bondedTokens',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+		{
+			name: 'notBondedTokens',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('bigint'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+		{
+			name: 'governanceProposalCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.CosmosSdk_Rest,
+			],
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
+} as const satisfies EntityDefinition

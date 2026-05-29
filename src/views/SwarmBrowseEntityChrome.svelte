@@ -76,6 +76,15 @@
 	title={swarmResourceCanonicalUri(entityId)}
 	bind:open
 >
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Swarm content is addressed by <code>bzz</code> root hashes and optional manifest paths—not IPFS CIDs.
+		</p>
+		<p>
+			Gateways translate those references into HTTPS fetches for browsing.
+		</p>
+	{/snippet}
+
 	{#snippet Content()}
 		{#if true}
 			{#snippet SwarmChromeContentTypeRow(swarm)}
@@ -97,15 +106,6 @@
 				resource={swarm}
 			/>
 		{/if}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Swarm content is addressed by <code>bzz</code> root hashes and optional manifest paths—not IPFS CIDs.
-		</p>
-		<p>
-			Gateways translate those references into HTTPS fetches for browsing.
-		</p>
 	{/snippet}
 
 	{#snippet Details({ open: _detailsOpen })}

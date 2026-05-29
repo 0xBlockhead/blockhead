@@ -136,7 +136,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={kind}
 			placeholderText="Loading proposal kind…"
@@ -145,17 +145,6 @@
 				<span>
 					{kind.labelPlural ?? kind.label ?? entityId.category}
 				</span>
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={kind}
-			placeholderText="Loading proposal kind…"
-		>
-			{#snippet children(kind)}
-				{kind.labelPlural ?? kind.label ?? entityId.category}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

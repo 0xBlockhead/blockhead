@@ -117,7 +117,7 @@
 		/>
 	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={feed}
 			placeholderText="Loading feed…"
@@ -126,19 +126,6 @@
 				{feed.title ?? entityId.feedUrl}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			An RSS 2.0 or Atom syndication document keyed by feedUrl; items are keyed by guid within that feed.
-		</p>
-		<p>
-			Metadata resolves from Rss_Rest (direct XML fetch) or Rss2Json (rss2json API proxy) when enabled.
-		</p>
 	{/snippet}
 
 	{#snippet HeadingAfter()}
@@ -155,6 +142,15 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			An RSS 2.0 or Atom syndication document keyed by feedUrl; items are keyed by guid within that feed.
+		</p>
+		<p>
+			Metadata resolves from Rss_Rest (direct XML fetch) or Rss2Json (rss2json API proxy) when enabled.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

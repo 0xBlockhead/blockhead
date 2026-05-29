@@ -22,6 +22,7 @@ export enum SourceProvider {
 	AtprotoBsky = 'AtprotoBsky',
 	AtprotoBskySocial = 'AtprotoBskySocial',
 	Beacon = 'Beacon',
+	Bittensor = 'Bittensor',
 	Blobscan = 'Blobscan',
 	BitcoinBips = 'BitcoinBips',
 	BitcoinCashBcmr = 'BitcoinCashBcmr',

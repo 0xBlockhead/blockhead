@@ -6,6 +6,10 @@ export default {
 	label: 'Quilibrium docs',
 	origins: [
 		{
+			origin: 'https://docs.quilibrium.com',
+			corsEnabled: true,
+		},
+		{
 			origin: 'https://quilibrium.com',
 			corsEnabled: true,
 		},

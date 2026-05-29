@@ -1,6 +1,7 @@
 // Types
 
 export enum ConsensusMechanismId {
+	BittensorYumaConsensus = 'BittensorYumaConsensus',
 	EthereumBeaconProofOfStake = 'EthereumBeaconProofOfStake',
 	NakamotoProofOfWork = 'NakamotoProofOfWork',
 	ZcashProofOfWork = 'ZcashProofOfWork',
@@ -22,6 +23,10 @@ export enum ConsensusMechanismId {
 // Constants
 
 const consensusMechanisms = [
+	{
+		consensusMechanismId: ConsensusMechanismId.BittensorYumaConsensus,
+		label: 'Yuma Consensus',
+	},
 	{
 		consensusMechanismId: ConsensusMechanismId.EthereumBeaconProofOfStake,
 		label: 'Ethereum beacon proof of stake',

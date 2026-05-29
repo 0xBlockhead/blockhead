@@ -83,27 +83,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Value()}
-		<span>
-			{entityId.name}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Heading()}
-		<ResourceBoundary
-			resource={subreddit}
-			placeholderText="Loading subreddit…"
-		>
-			{#snippet children(subreddit)}
-				{subreddit.title ?? `r/${entityId.name}`}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={subreddit}
@@ -117,6 +96,23 @@
 						src={subreddit.$icon[EntityMetaKey.Id].url}
 					/>
 				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<span>
+			{entityId.name}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		<ResourceBoundary
+			resource={subreddit}
+			placeholderText="Loading subreddit…"
+		>
+			{#snippet children(subreddit)}
+				{subreddit.title ?? `r/${entityId.name}`}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

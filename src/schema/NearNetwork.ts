@@ -52,5 +52,41 @@ export default {
 				Source.Constants_Internal,
 			],
 		},
+		{
+			name: '$headBlock',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.NearBlock,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.NearRpc_JsonRpc,
+			],
+		},
+		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.NearNetwork_Timestamp,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.NearRpc_JsonRpc,
+			],
+		},
+		{
+			name: '$$blocks',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.NearBlock,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.NearRpc_JsonRpc,
+			],
+		},
+		{
+			name: '$$validators',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.NearValidator,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.NearRpc_JsonRpc,
+			],
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

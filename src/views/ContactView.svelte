@@ -74,7 +74,7 @@
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 </script>
 
@@ -91,24 +91,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{#if title !== undefined}
-			<span>{title}</span>
-		{:else}
-			<ResourceBoundary
-				resource={sharedAddress}
-				placeholderText="Loading…"
-			>
-				{#snippet children(sharedAddress)}
-					<span>
-						{sharedAddress.peerId ?? entityId.id}
-					</span>
-				{/snippet}
-			</ResourceBoundary>
-		{/if}
-	{/snippet}
-
-	{#snippet Heading()}
-		<span>{entityId.id}</span>
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -164,7 +147,7 @@
 							<div>
 								<dt>Account</dt>
 								<dd>
-									<ActorNetworkView
+									<EvmNetworkAccountView
 										entityId={{
 											$network: sharedAddress.$network[EntityMetaKey.Id],
 											$actor: sharedAddress.$account[EntityMetaKey.Id],

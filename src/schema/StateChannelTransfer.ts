@@ -29,13 +29,13 @@ export default {
 		{
 			name: '$from',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{
 			name: '$to',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.One,
 		},
 		{

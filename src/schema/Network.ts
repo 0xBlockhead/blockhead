@@ -177,6 +177,7 @@ export const networkFields = [
 		entityType: EntityType.AssetInstance,
 		cardinality: EntityFieldCardinality.ZeroOrMany,
 		defaultSources: [
+			Source.Constants_Internal,
 			Source.CosmosChainRegistry_Github,
 		],
 	},

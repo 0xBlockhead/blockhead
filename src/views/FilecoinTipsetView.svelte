@@ -62,18 +62,15 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A Filecoin tipset is a set of blocks at one height under Expected Consensus, not a single canonical block.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		Tipset #{entityId.height.toString()}
 	{/snippet}
 
-	{#snippet Heading()}
-		Tipset #{entityId.height.toString()}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A Filecoin tipset is a set of blocks at one height under Expected Consensus, not a single canonical block.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

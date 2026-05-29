@@ -15,13 +15,13 @@
 
 	// State
 	let {
-			entityId,
-			href = resolve(
-				'/~/(dashboards)/dashboard/[dashboardId]',
-				{
-					dashboardId: entityId.id,
-				},
-			),
+		entityId,
+		href = resolve(
+			'/~/(dashboards)/dashboard/[dashboardId]',
+			{
+				dashboardId: entityId.id,
+			},
+		),
 		title = 'Panel tree',
 		open = $bindable(true),
 		...EntityViewProps
@@ -76,13 +76,6 @@
 
 	{#snippet Title()}
 		{@render Value()}
-	{/snippet}
-
-	{#snippet Heading()}
-
-		<span>
-			{entityId.id}
-		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

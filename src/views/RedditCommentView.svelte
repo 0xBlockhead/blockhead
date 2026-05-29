@@ -90,10 +90,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Heading()}
 		<ResourceBoundary
 			resource={comment}
 			placeholderText="Loading Reddit comment…"

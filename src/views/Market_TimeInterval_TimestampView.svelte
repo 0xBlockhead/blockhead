@@ -135,10 +135,6 @@
 		{@render Value()}
 	{/snippet}
 
-	{#snippet Heading()}
-		{@render Value()}
-	{/snippet}
-
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			{#if marketTimeIntervalTimestamp.close !== undefined}

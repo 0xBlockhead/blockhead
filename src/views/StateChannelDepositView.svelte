@@ -58,8 +58,8 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
-	import ActorView from '$/views/ActorView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
@@ -87,7 +87,7 @@
 			>
 				{#snippet children(deposit)}
 					{#if deposit.$account?.[EntityMetaKey.Id].address !== undefined}
-						<ActorView
+						<EvmAccountView
 							entityId={deposit.$account[EntityMetaKey.Id]}
 							href={resolve('/account/[address]', {
 								address: deposit.$account[EntityMetaKey.Id].address,
@@ -121,7 +121,7 @@
 							<dt>Account</dt>
 							<dd>
 								{#if deposit.$network?.[EntityMetaKey.Id].chainId !== undefined}
-									<ActorNetworkView
+									<EvmNetworkAccountView
 										entityId={{
 											$network: deposit.$network[EntityMetaKey.Id],
 											$actor: deposit.$account[EntityMetaKey.Id],
@@ -130,7 +130,7 @@
 										open={false}
 									/>
 								{:else}
-									<ActorView
+									<EvmAccountView
 										entityId={deposit.$account[EntityMetaKey.Id]}
 										href={resolve('/account/[address]', {
 											address: deposit.$account[EntityMetaKey.Id].address,
@@ -179,4 +179,3 @@
 	{#snippet Details({ open: _detailsOpen })}
 	{/snippet}
 </EntityView>
-

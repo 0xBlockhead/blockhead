@@ -92,44 +92,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Heading()}
-		<ResourceBoundary
-			resource={connection}
-			placeholderText="Loading connection…"
-		>
-			{#snippet children(connection)}
-				{@const headline = (
-					connection.displayName
-					?? connection.username
-					?? `FID ${String(entityId.fid)}`
-				)}
-				{headline}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<span>
-			FID {String(entityId.fid)}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Persisted Blockhead link between this app and a Farcaster FID (custody or auth-address proof).
-		</p>
-		<p>
-			Profile fields hydrate from Neynar or Snapchain; they are not on-chain identity records.
-		</p>
-		<p>
-			Binds a Farcaster signer to a numeric FID so hub APIs can load custody, verifications, and casts for that identity. This is social-graph state, not wallet session keys, automated trading bots, or IPFS storage.
-		</p>
-	{/snippet}
-
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={connection}
@@ -146,6 +108,28 @@
 						alt=""
 					/>
 				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Value()}
+		<span>
+			FID {String(entityId.fid)}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		<ResourceBoundary
+			resource={connection}
+			placeholderText="Loading connection…"
+		>
+			{#snippet children(connection)}
+				{@const headline = (
+					connection.displayName
+					?? connection.username
+					?? `FID ${String(entityId.fid)}`
+				)}
+				{headline}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -167,6 +151,18 @@
 				{/if}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Persisted Blockhead link between this app and a Farcaster FID (custody or auth-address proof).
+		</p>
+		<p>
+			Profile fields hydrate from Neynar or Snapchain; they are not on-chain identity records.
+		</p>
+		<p>
+			Binds a Farcaster signer to a numeric FID so hub APIs can load custody, verifications, and casts for that identity. This is social-graph state, not wallet session keys, automated trading bots, or IPFS storage.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

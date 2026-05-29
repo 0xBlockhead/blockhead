@@ -130,7 +130,13 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Value()}
+		<span data-text="font-monospace">
+			{entityId.hash}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={cast}
 			placeholderText="Loading Farcaster cast (author FID + cast hash)…"
@@ -153,25 +159,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Value()}
-		<span data-text="font-monospace">
-			{entityId.hash}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Immutable cast keyed by author FID and cast hash; thread, channel, and embed fields come from hub indexers.
-		</p>
-		<p>
-			Engagement counts are off-chain snapshots—not consensus tallies or DEX quotes.
-		</p>
-	{/snippet}
-
 	{#snippet HeadingAfter()}
 		<ResourceBoundary
 			resource={cast}
@@ -187,6 +174,14 @@
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Immutable cast keyed by author FID and cast hash; thread, channel, and embed fields come from hub indexers.
+		</p>
+		<p>
+			Engagement counts are off-chain snapshots—not consensus tallies or DEX quotes.
+		</p>
+	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>

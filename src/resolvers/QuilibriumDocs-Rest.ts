@@ -1,4 +1,10 @@
 import {
+	quilibriumDocsEndpoints,
+	quilibriumNodeInterfaces,
+	quilibriumProtocolFacts,
+	quilibriumServiceLayers,
+} from '$/constants/QuilibriumNetwork.ts'
+import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
@@ -28,6 +34,35 @@ export default {
 
 	entityResolvers: [
 		defineEntityResolver({
+			entityType: EntityType.QuilibriumNetwork,
+			resolve: async (entityId) => {
+				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+				if (entityId.networkSlug !== 'quilibrium') throw new Error('QuilibriumDocs_Rest: unsupported network')
+				return {
+					docsEndpoints: [
+						...quilibriumDocsEndpoints,
+					],
+					nodeInterfaces: [
+						...quilibriumNodeInterfaces,
+					],
+					protocolFacts: [
+						...quilibriumProtocolFacts,
+					],
+					serviceLayers: [
+						...quilibriumServiceLayers,
+					],
+					$protocolDocument: {
+						[EntityMetaKey.Id]: {
+							realm: SpecificationRealm.Quilibrium,
+							category: ProposalCategory.ProtocolDocument,
+							number: 1,
+						},
+					},
+				}
+			},
+		}),
+
+		defineEntityResolver({
 			entityType: EntityType.SpecificationProposal,
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
@@ -42,6 +77,22 @@ export default {
 	],
 
 	entityFieldResolvers: [
+		defineEntityFieldResolver({
+			entityType: EntityType.QuilibriumNetwork,
+			fieldName: '$protocolDocument',
+			resolve: async (entityId) => {
+				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
+				if (entityId.networkSlug !== 'quilibrium') throw new Error('QuilibriumDocs_Rest: unsupported network')
+				return {
+					[EntityMetaKey.Id]: {
+						realm: SpecificationRealm.Quilibrium,
+						category: ProposalCategory.ProtocolDocument,
+						number: 1,
+					},
+				}
+			},
+		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$proposals',

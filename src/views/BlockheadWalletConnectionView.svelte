@@ -83,8 +83,8 @@
 	import IconComponent from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
-	import ActorView from '$/views/ActorView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 </script>
 
 
@@ -105,10 +105,6 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Heading()}
-		{title}
-	{/snippet}
-
 	{#snippet Value()}
 		<span>
 			{entityId.id}
@@ -116,7 +112,7 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		{title}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -143,7 +139,7 @@
 					<dt>Primary account</dt>
 					<dd>
 						{#if chainId !== null}
-							<ActorNetworkView
+							<EvmNetworkAccountView
 								entityId={{
 									$network: networkIdFromEvmChainId(chainId),
 									$actor: {
@@ -154,7 +150,7 @@
 								open={false}
 							/>
 						{:else}
-							<ActorView
+							<EvmAccountView
 								entityId={{
 									address: accounts[0],
 								}}
@@ -241,14 +237,14 @@
 							{#each accounts as address (address)}
 								<li>
 									{#if chainId !== null}
-										<ActorNetworkView
+										<EvmNetworkAccountView
 											entityId={{
 												$network: networkIdFromEvmChainId(chainId),
 												$actor: { address },
 											}}
 										/>
 									{:else}
-										<ActorView
+										<EvmAccountView
 											entityId={{ address }}
 											href={resolve('/account/[address]', {
 												address: address,

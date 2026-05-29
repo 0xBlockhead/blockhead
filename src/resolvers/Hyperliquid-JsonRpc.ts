@@ -1,12 +1,22 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
+	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
+import { TransportType } from '$/constants/TransportType.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
 const hyperliquidEvmRpcUrl = 'https://rpc.hyperliquid.xyz/evm'
+
+const hyperliquidRpcEndpoints = [
+	{
+		url: hyperliquidEvmRpcUrl,
+		transportType: TransportType.Http,
+		providerName: 'Hyperliquid HyperEVM JSON-RPC',
+	},
+]
 
 const assertHyperliquidMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (!('networkSlug' in network) || network.networkSlug !== 'hyperliquid') {
@@ -20,6 +30,37 @@ export default {
 	source: Source.Hyperliquid_JsonRpc,
 
 	entityResolvers: [
+		defineEntityResolver({
+			entityType: EntityType.HyperliquidNetwork,
+			resolve: async (entityId) => {
+				assertHyperliquidMainnet(entityId)
+				const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+				const headBlockHeight = hexToBigInt(await getBlockNumber({
+					rpcUrl: hyperliquidEvmRpcUrl,
+				}))
+				return {
+					$network: {
+						[EntityMetaKey.Id]: entityId,
+					},
+					rpcEndpoints: hyperliquidRpcEndpoints,
+					$headBlock: {
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							height: headBlockHeight,
+						},
+					},
+					$$blocks: [
+						{
+							[EntityMetaKey.Id]: {
+								$network: entityId,
+								height: headBlockHeight,
+							},
+						},
+					],
+				}
+			},
+		}),
+
 		defineEntityResolver({
 			entityType: EntityType.HyperliquidBlock,
 			resolve: async (entityId) => {
@@ -105,6 +146,46 @@ export default {
 	],
 
 	entityFieldResolvers: [
+		defineEntityFieldResolver({
+			entityType: EntityType.HyperliquidNetwork,
+			fieldName: '$headBlock',
+			resolve: async (entityId) => {
+				assertHyperliquidMainnet(entityId)
+				const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+				return {
+					[EntityMetaKey.Id]: {
+						$network: entityId,
+						height: hexToBigInt(await getBlockNumber({
+							rpcUrl: hyperliquidEvmRpcUrl,
+						})),
+					},
+				}
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.HyperliquidNetwork,
+			fieldName: '$$blocks',
+			resolve: async (entityId, context) => {
+				assertHyperliquidMainnet(entityId)
+				const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+				const headBlockHeight = hexToBigInt(await getBlockNumber({
+					rpcUrl: hyperliquidEvmRpcUrl,
+				}))
+				return Array.from({
+					length: Math.min(
+						Number(headBlockHeight + 1n),
+						resolverLoadSubsetRowLimit(context),
+					),
+				}, (_value, blockOffset) => ({
+					[EntityMetaKey.Id]: {
+						$network: entityId,
+						height: headBlockHeight - BigInt(blockOffset),
+					},
+				}))
+			},
+		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.HyperliquidBlock,
 			fieldName: '$$transactions',

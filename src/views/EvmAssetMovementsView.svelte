@@ -68,7 +68,7 @@
 	// Components
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmInternalTransfersView from '$/views/EvmInternalTransfersView.svelte'
 	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
@@ -85,7 +85,7 @@
 				<div data-row="wrap gap-2 align-baseline">
 					<span data-text="annotation">Signed envelope</span>
 					{#if evmTransaction.$from?.[EntityMetaKey.Id].address !== undefined}
-						<ActorNetworkView
+						<EvmNetworkAccountView
 							entityId={{
 								$network: entityId.$network,
 								$actor: evmTransaction.$from[EntityMetaKey.Id],
@@ -98,7 +98,7 @@
 					<NumberValue value={evmTransaction.value} />
 					<span data-text="muted">to</span>
 					{#if evmTransaction.$to?.[EntityMetaKey.Id].address !== undefined}
-						<ActorNetworkView
+						<EvmNetworkAccountView
 							entityId={{
 								$network: entityId.$network,
 								$actor: evmTransaction.$to[EntityMetaKey.Id],

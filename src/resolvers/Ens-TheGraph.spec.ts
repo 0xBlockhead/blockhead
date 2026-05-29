@@ -31,7 +31,7 @@ const ensNameResolver = ensTheGraphResolvers.entityResolvers.find((
 const ensNamesOwnedResolver = ensTheGraphResolvers.entityFieldResolvers.find((
 	resolver,
 ) => (
-	resolver.entityType === EntityType.Actor
+	resolver.entityType === EntityType.EvmAccount
 	&& resolver.fieldName === '$$ensNamesOwned'
 ))
 

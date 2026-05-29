@@ -120,8 +120,8 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
-	import ActorView from '$/views/ActorView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
+	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EnsNameTextRecordsView from '$/views/EnsNameTextRecordsView.svelte'
 </script>
@@ -137,47 +137,6 @@
 	title={entityId.name}
 	{...EntityViewProps}
 >
-	{#snippet Value()}
-		<span data-text="font-monospace">
-			{entityId.name}
-		</span>
-	{/snippet}
-
-	{#snippet Heading()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Title()}
-		<ResourceBoundary
-			resource={ens}
-		>
-			{#snippet children(ens)}
-				{@const aliasTrimmed = ens.textRecords?.alias?.trim()}
-				{@const legacyNameTrimmed = ens.textRecords?.name?.trim()}
-				{@const alias = (
-					aliasTrimmed != null && aliasTrimmed !== '' ?
-						aliasTrimmed
-					: legacyNameTrimmed != null && legacyNameTrimmed !== '' ?
-						legacyNameTrimmed
-					:
-						undefined
-				)}
-				{#if alias != null && alias !== entityId.name}
-					<span data-text="muted">{alias}</span>
-				{/if}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			ENS names map human-readable labels to resolver contracts on Ethereum mainnet; forward <code>addr</code> and <code>text</code> records live on the active resolver.
-		</p>
-		<p>
-			Voltaire JSON-RPC rows reflect live registry reads; The Graph rows add registration, wrapper, and indexer metadata that may lag or differ from chain head.
-		</p>
-	{/snippet}
-
 	{#snippet Icon()}
 		<ResourceBoundary
 			resource={ens}
@@ -200,6 +159,25 @@
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet Value()}
+		<span data-text="font-monospace">
+			{entityId.name}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			ENS names map human-readable labels to resolver contracts on Ethereum mainnet; forward <code>addr</code> and <code>text</code> records live on the active resolver.
+		</p>
+		<p>
+			Voltaire JSON-RPC rows reflect live registry reads; The Graph rows add registration, wrapper, and indexer metadata that may lag or differ from chain head.
+		</p>
+	{/snippet}
+
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			<div>
@@ -211,7 +189,7 @@
 					>
 						{#snippet children(ens)}
 							{#if ens.$resolvedActor !== undefined}
-								<ActorView
+								<EvmAccountView
 									entityId={ens.$resolvedActor[EntityMetaKey.Id]}
 									href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
 										ensName: entityId.name,
@@ -366,7 +344,7 @@
 						>
 							{#snippet children(ens)}
 								{#if ens.$ownerActor !== undefined}
-									<ActorNetworkView
+									<EvmNetworkAccountView
 										entityId={{
 											$network: networkIdFromEvmChainId(ensEthereumChainId),
 											$actor: ens.$ownerActor[EntityMetaKey.Id],
@@ -536,7 +514,7 @@
 							<div>
 								<dt>Registry owner</dt>
 								<dd>
-									<ActorNetworkView
+									<EvmNetworkAccountView
 										entityId={{
 											$network: networkIdFromEvmChainId(ensEthereumChainId),
 											$actor: ens.$ownerActor[EntityMetaKey.Id],
@@ -552,7 +530,7 @@
 							<div>
 								<dt>Subgraph owner</dt>
 								<dd>
-									<ActorNetworkView
+									<EvmNetworkAccountView
 										entityId={{
 											$network: networkIdFromEvmChainId(ensEthereumChainId),
 											$actor: ens.$subgraphOwnerActor[EntityMetaKey.Id],
@@ -568,7 +546,7 @@
 							<div>
 								<dt>Registrant</dt>
 								<dd>
-									<ActorNetworkView
+									<EvmNetworkAccountView
 										entityId={{
 											$network: networkIdFromEvmChainId(ensEthereumChainId),
 											$actor: ens.$registrantActor[EntityMetaKey.Id],
@@ -584,7 +562,7 @@
 							<div>
 								<dt>Name wrapper owner</dt>
 								<dd>
-									<ActorNetworkView
+									<EvmNetworkAccountView
 										entityId={{
 											$network: networkIdFromEvmChainId(ensEthereumChainId),
 											$actor: ens.$wrappedOwnerActor[EntityMetaKey.Id],
@@ -912,7 +890,7 @@
 
 				{#snippet SectionResolutionAddr({ id, label })}
 					{#if ens.$resolvedActor !== undefined}
-						<ActorView
+						<EvmAccountView
 							entityId={ens.$resolvedActor[EntityMetaKey.Id]}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
 								ensName: entityId.name,
@@ -924,7 +902,7 @@
 
 				{#snippet SectionResolutionSubgraphAddr({ id, label })}
 					{#if ens.$subgraphResolvedActor !== undefined}
-						<ActorView
+						<EvmAccountView
 							entityId={ens.$subgraphResolvedActor[EntityMetaKey.Id]}
 							href={resolve('/(explore)/(ens)/ens/name/[ensName]/(ensName)/resolves-to', {
 								ensName: entityId.name,

@@ -8,7 +8,10 @@ import type {
 	NearRpcAccessKeyList,
 	NearRpcBlock,
 	NearRpcChunk,
+	NearRpcGasPrice,
+	NearRpcStatus,
 	NearRpcTransactionStatus,
+	NearRpcValidators,
 } from '$/sources/NearRpc/JsonRpc/types.ts'
 
 type JsonRpcResponse<_Result> = {
@@ -190,9 +193,25 @@ export const viewAccessKey = ({
 )
 
 export const validators = ({ rpcUrl }: { rpcUrl: string }) => (
-	nearJsonRpc<JsonValue>({
+	nearJsonRpc<NearRpcValidators>({
 		rpcUrl,
 		method: 'validators',
 		params: [null],
+	})
+)
+
+export const gasPrice = ({ rpcUrl }: { rpcUrl: string }) => (
+	nearJsonRpc<NearRpcGasPrice>({
+		rpcUrl,
+		method: 'gas_price',
+		params: [null],
+	})
+)
+
+export const status = ({ rpcUrl }: { rpcUrl: string }) => (
+	nearJsonRpc<NearRpcStatus>({
+		rpcUrl,
+		method: 'status',
+		params: [],
 	})
 )

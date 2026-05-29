@@ -52,11 +52,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Litecoin MWEB Block
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		Litecoin MWEB Block
 	{/snippet}
 

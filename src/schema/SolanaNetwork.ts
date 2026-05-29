@@ -55,5 +55,41 @@ export default {
 				Source.Constants_Internal,
 			],
 		},
+		{
+			name: '$headBlock',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.SolanaBlock,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Solana_JsonRpc,
+			],
+		},
+		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.SolanaNetwork_Timestamp,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Solana_JsonRpc,
+			],
+		},
+		{
+			name: '$$blocks',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.SolanaBlock,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Solana_JsonRpc,
+			],
+		},
+		{
+			name: '$$validators',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.SolanaValidator,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Solana_JsonRpc,
+			],
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

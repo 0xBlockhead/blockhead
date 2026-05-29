@@ -46,7 +46,7 @@
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import ActorNetworkView from '$/views/ActorNetworkView.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmTransactionView from '$/views/EvmTransactionView.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 </script>
@@ -60,7 +60,14 @@
 	{title}
 	{...EntityViewProps}
 >
-	{#snippet Heading()}
+	{#snippet Value()}
+		<TruncatedValue
+			value={entityId.$sourceTx.txHash}
+			format={TruncatedValueFormat.Visual}
+		/>
+	{/snippet}
+
+	{#snippet Title()}
 		{title}
 	{/snippet}
 
@@ -71,17 +78,6 @@
 		<p>
 			Final delivery, relayer proofs, and refunds settle on the destination ledger and in the bridge’s own lifecycle rules—always verify both chains and the protocol’s status pages.
 		</p>
-	{/snippet}
-
-	{#snippet Value()}
-		<TruncatedValue
-			value={entityId.$sourceTx.txHash}
-			format={TruncatedValueFormat.Visual}
-		/>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -126,7 +122,7 @@
 					<div>
 						<dt>Initiator</dt>
 						<dd>
-							<ActorNetworkView
+							<EvmNetworkAccountView
 								entityId={{
 									$network: entityId.$sourceTx.$network,
 									$actor: entityId.$account,

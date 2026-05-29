@@ -1,6 +1,7 @@
 // Types
 
 export enum NetworkStackId {
+	Bittensor = 'Bittensor',
 	Ethereum = 'Ethereum',
 	Bitcoin = 'Bitcoin',
 	Lightning = 'Lightning',
@@ -25,6 +26,10 @@ export enum NetworkStackId {
 // Constants
 
 const networkStacks = [
+	{
+		networkStackId: NetworkStackId.Bittensor,
+		label: 'Bittensor',
+	},
 	{
 		networkStackId: NetworkStackId.Ethereum,
 		label: 'Ethereum',

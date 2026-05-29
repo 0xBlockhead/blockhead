@@ -152,22 +152,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Heading()}
-		<ResourceBoundary
-			resource={coinInstance}
-			placeholderText="Loading…"
-		>
-			{#snippet children(coinInstance)}
-				{coinInstance.symbol ?? coinInstance.name ?? (
-					entityId.type === CoinInstanceType.NativeCurrency ?
-						`Native (${evmChainIdFromNetworkId(entityId.$network)})`
-					:
-						`ERC-20 (${evmChainIdFromNetworkId(entityId.$network)})`
-				)}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary
 			resource={coinInstance}
@@ -186,25 +170,12 @@
 			placeholderText="Loading…"
 		>
 			{#snippet children(coinInstance)}
-				<span data-row="inline align-center gap-2 wrap">
-					<span>
-						{coinInstance.symbol ?? coinInstance.name ?? (
-							entityId.type === CoinInstanceType.NativeCurrency ?
-								'Native'
-							:
-								'ERC-20'
-						)}
-					</span>
-					<span data-text="muted">on</span>
-					<ResourceBoundary
-						resource={network}
-						placeholderText={`chain ${String(evmChainIdFromNetworkId(entityId.$network))}`}
-					>
-						{#snippet children(network)}
-							<span>{network.name ?? `chain ${String(evmChainIdFromNetworkId(entityId.$network))}`}</span>
-						{/snippet}
-					</ResourceBoundary>
-				</span>
+				{coinInstance.symbol ?? coinInstance.name ?? (
+					entityId.type === CoinInstanceType.NativeCurrency ?
+						`Native (${evmChainIdFromNetworkId(entityId.$network)})`
+					:
+						`ERC-20 (${evmChainIdFromNetworkId(entityId.$network)})`
+				)}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}

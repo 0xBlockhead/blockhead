@@ -1,5 +1,7 @@
 import {
+	defineEntityFieldResolver,
 	defineEntityResolver,
+	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -11,10 +13,132 @@ const assertZeroGMainnet = (network: { caip2: { namespace: string; reference: st
 	}
 }
 
+const zeroGStorageTimestampFields = async () => {
+	const {
+		getStorageSummary,
+		listStorageMiners,
+		listStorageTransactions,
+	} = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+	const [
+		summary,
+		miners,
+		transactions,
+	] = await Promise.all([
+		getStorageSummary(),
+		listStorageMiners({
+			limit: 1,
+		}),
+		listStorageTransactions({
+			limit: 1,
+		}),
+	])
+	return {
+		storageLogSyncHeight: summary.logSync.logSyncHeight,
+		storageLayer1LogSyncHeight: summary.logSync['layer1-logSyncHeight'],
+		storageTransactionCount: transactions.total,
+		...(transactions.list[0] != null && {
+			latestDataRoot: transactions.list[0].rootHash,
+			latestDataSizeBytes: BigInt(transactions.list[0].dataSize),
+			latestStorageTxHash: transactions.list[0].txHash,
+		}),
+		storageMinerCount: miners.total,
+		...(miners.list[0] != null && {
+			latestStorageMiner: miners.list[0].miner,
+		}),
+		storageFeeTotal: summary.storageFee.storageFeeTotal,
+		storageRewardTotal: summary.minerReward.totalReward,
+		storageTotalWinCount: summary.minerReward.totalWinCount,
+		expiredFileCount: summary.storageFile.totalExpiredFiles,
+		prunedFileCount: summary.storageFile.totalPrunedFiles,
+	}
+}
+
 export default {
 	source: Source.ZeroGStorageScan_Rest,
 
 	entityResolvers: [
+		defineEntityResolver({
+			entityType: EntityType.ZeroGNetwork,
+			resolve: async (entityId) => {
+				assertZeroGMainnet(entityId)
+				const {
+					listStorageMiners,
+					listStorageTransactions,
+				} = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+				const [
+					timestampFields,
+					miners,
+					transactions,
+				] = await Promise.all([
+					zeroGStorageTimestampFields(),
+					listStorageMiners({
+						limit: 6,
+					}),
+					listStorageTransactions({
+						limit: 6,
+					}),
+				])
+				return {
+					$$timestamps: [
+						{
+							[EntityMetaKey.Id]: {
+								$network: entityId,
+								timestampMs: Date.now(),
+							},
+							...timestampFields,
+						},
+					],
+					$$storageNodes: miners.list.map((miner) => ({
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							nodeId: miner.miner,
+						},
+						operatorAddress: miner.miner,
+						totalReward: miner.totalReward,
+						winCount: miner.winCount,
+						miningAttempts: miner.miningAttempts,
+					})),
+					$$dataBlobs: transactions.list.map((transaction) => ({
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							dataRoot: transaction.rootHash,
+						},
+						sizeBytes: BigInt(transaction.dataSize),
+						$storageLogEntry: {
+							[EntityMetaKey.Id]: {
+								$network: entityId,
+								logEntryId: transaction.txSeq.toString(),
+							},
+						},
+					})),
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.ZeroGNetwork_Timestamp,
+			resolve: async (entityId) => {
+				assertZeroGMainnet(entityId.$network)
+				return zeroGStorageTimestampFields()
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.ZeroGStorageNode,
+			resolve: async (entityId) => {
+				assertZeroGMainnet(entityId.$network)
+				const { getStorageMiner } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+				const miner = await getStorageMiner({
+					address: entityId.nodeId,
+				})
+				return {
+					operatorAddress: entityId.nodeId,
+					balance: miner.balance,
+					totalReward: miner.totalReward,
+				}
+			},
+		}),
+
 		defineEntityResolver({
 			entityType: EntityType.ZeroGDataBlob,
 			resolve: async (entityId) => {
@@ -90,5 +214,67 @@ export default {
 		}),
 	],
 
-	entityFieldResolvers: [],
+	entityFieldResolvers: [
+		defineEntityFieldResolver({
+			entityType: EntityType.ZeroGNetwork,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => {
+				assertZeroGMainnet(entityId)
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							timestampMs: Date.now(),
+						},
+						...(await zeroGStorageTimestampFields()),
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.ZeroGNetwork,
+			fieldName: '$$storageNodes',
+			resolve: async (entityId, context) => {
+				assertZeroGMainnet(entityId)
+				const { listStorageMiners } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+				return (await listStorageMiners({
+					limit: resolverLoadSubsetRowLimit(context),
+				})).list.map((miner) => ({
+					[EntityMetaKey.Id]: {
+						$network: entityId,
+						nodeId: miner.miner,
+					},
+					operatorAddress: miner.miner,
+					totalReward: miner.totalReward,
+					winCount: miner.winCount,
+					miningAttempts: miner.miningAttempts,
+				}))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.ZeroGNetwork,
+			fieldName: '$$dataBlobs',
+			resolve: async (entityId, context) => {
+				assertZeroGMainnet(entityId)
+				const { listStorageTransactions } = await import('$/sources/ZeroG/StorageScan/Rest/queries.ts')
+				return (await listStorageTransactions({
+					limit: resolverLoadSubsetRowLimit(context),
+				})).list.map((transaction) => ({
+					[EntityMetaKey.Id]: {
+						$network: entityId,
+						dataRoot: transaction.rootHash,
+					},
+					sizeBytes: BigInt(transaction.dataSize),
+					$storageLogEntry: {
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							logEntryId: transaction.txSeq.toString(),
+						},
+					},
+				}))
+			},
+		}),
+	],
 }

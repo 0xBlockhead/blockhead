@@ -93,7 +93,13 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Heading()}
+	{#snippet Value()}
+		<span>
+			#{entityId.index}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={step}
 			placeholderText="Loading…"
@@ -107,16 +113,6 @@
 				)}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<span>
-			#{entityId.index}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

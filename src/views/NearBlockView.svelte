@@ -62,18 +62,15 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			NEAR blocks contain shard chunks; transactions and receipts are separate execution objects.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		Block #{entityId.height.toString()}
 	{/snippet}
 
-	{#snippet Heading()}
-		Block #{entityId.height.toString()}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			NEAR blocks contain shard chunks; transactions and receipts are separate execution objects.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

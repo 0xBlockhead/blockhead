@@ -40,7 +40,7 @@ export default {
 		{
 			name: '$deployer',
 			type: EntityFieldType.EntityReference,
-			entityType: EntityType.Actor,
+			entityType: EntityType.EvmAccount,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Sourcify_Rest,

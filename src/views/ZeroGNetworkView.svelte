@@ -40,11 +40,15 @@
 
 
 <EntityView entityType={EntityType.Network} {entityId} {href} bind:open {layout}>
-	{#snippet Heading()}<ResourceBoundary resource={network}>{#snippet Pending()}{@render Title()}{/snippet}{#snippet children(network)}{network.name}{/snippet}</ResourceBoundary>{/snippet}
 	{#snippet Value()}<span>{entityId.namespace}:{entityId.reference}</span>{/snippet}
-	{#snippet Title()}{@render Value()}{/snippet}
+
+	{#snippet Title()}<ResourceBoundary resource={network}>{#snippet Pending()}{@render Value()}{/snippet}{#snippet children(network)}{network.name}{/snippet}</ResourceBoundary>
+	{/snippet}
+
 	{#snippet TypeAnnotationTooltip()}<p>0G combines an EVM-compatible chain with DA, storage, key-value, and serving layers.</p>{/snippet}
+
 	{#snippet Content()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl><div><dt>Block</dt><dd><span data-text="muted">—</span></dd></div></dl>{/snippet}</ResourceBoundary>{/snippet}
+
 	{#snippet Details()}
 		<CollapsibleTabs id={`${networkIdKey}:carousel-0g`} sectionIdPrefix={networkIdKey} sections={[{ id: '0g-consensus', label: 'Consensus' }, { id: '0g-services', label: 'Services' }]} data-card scrollContainerProps={{ 'data-row': 'start align-start' }}>
 				{#snippet Summary()}<header data-row-item="flexible" data-row="wrap gap-4"><HeadingComponent>0G</HeadingComponent></header>{/snippet}

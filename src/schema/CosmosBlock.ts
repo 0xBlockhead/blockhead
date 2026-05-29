@@ -40,6 +40,12 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: 'transactionCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+		},
+		{
 			name: '$$transactions',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.CosmosTransaction,

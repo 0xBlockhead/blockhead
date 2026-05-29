@@ -105,19 +105,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Feed variants scope cast streams: trending hub, one FID, one channel id, or a viewer’s following graph.
-		</p>
-		<p>
-			Empty streams usually mean the indexer returned no hashes for that filter—not that Farcaster halted.
-		</p>
-	{/snippet}
-
-	{#snippet Heading()}
 		<ResourceBoundary
 			resource={feed}
 			placeholderText="Loading Farcaster feed (variant, FID or channel id, cast stream)…"
@@ -137,6 +124,15 @@
 				}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Feed variants scope cast streams: trending hub, one FID, one channel id, or a viewer’s following graph.
+		</p>
+		<p>
+			Empty streams usually mean the indexer returned no hashes for that filter—not that Farcaster halted.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}

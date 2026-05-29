@@ -68,11 +68,6 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A UTXO transaction spends previous outputs and creates new outputs; token or shielded extensions remain chain-specific annotations.
-		</p>
-	{/snippet}
 
 	{#snippet Title()}
 		<TruncatedValue
@@ -81,11 +76,10 @@
 		/>
 	{/snippet}
 
-	{#snippet Heading()}
-		<TruncatedValue
-			value={entityId.txId}
-			format={TruncatedValueFormat.Abbr}
-		/>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A UTXO transaction spends previous outputs and creates new outputs; token or shielded extensions remain chain-specific annotations.
+		</p>
 	{/snippet}
 
 	{#snippet Content()}

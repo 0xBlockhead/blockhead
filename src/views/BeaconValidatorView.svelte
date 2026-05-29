@@ -77,10 +77,6 @@
 	bind:open
 	{title}
 >
-	{#snippet Heading()}
-		{title}
-	{/snippet}
-
 	{#snippet Value()}
 		<span>
 			<NumberValue value={entityId.validatorIndex} />
@@ -88,7 +84,13 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		{title}
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Each validator can propose or attest; this row comes from deduped recent beacon proposer duties near the chain head—not the full validator set.
+		</p>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
@@ -150,11 +152,5 @@
 				{/if}
 			</dl>
 		</div>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Each validator can propose or attest; this row comes from deduped recent beacon proposer duties near the chain head—not the full validator set.
-		</p>
 	{/snippet}
 </EntityView>

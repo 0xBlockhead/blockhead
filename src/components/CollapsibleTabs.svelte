@@ -23,6 +23,15 @@
 		Sections extends readonly CollapsibleTabsSectionRow[],
 	> = Sections[number]['id']
 
+	export type CollapsibleTabsLiteralSections<
+		Sections extends readonly CollapsibleTabsSectionRow[],
+	> = (
+		string extends CollapsibleTabsSectionIds<Sections> ?
+			never
+		:
+			Sections
+	)
+
 
 	type KebabToPascalCase<Segment extends string> = (
 		Segment extends `${infer Head}-${infer Tail}` ?
@@ -47,7 +56,7 @@
 		Sections extends readonly CollapsibleTabsSectionRow[],
 	> = {
 		sectionIdPrefix: string
-		sections: Sections
+		sections: CollapsibleTabsLiteralSections<Sections>
 
 		Summary?: Snippet<[context?: {
 			open?: boolean,
@@ -93,7 +102,18 @@
 >
 	// Types/constants
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { ComponentProps } from 'svelte'
+	import type { SvelteHTMLElements } from 'svelte/elements'
+
+
+	type CollapsibleTabsForwardedProps = WithRest<
+		{
+			open?: boolean
+			ontoggle?: (e: Event) => void
+			onclose?: (id?: string) => void
+			scrollContainerProps?: SvelteHTMLElements['div']
+		},
+		SvelteHTMLElements['details']
+	>
 
 
 	// State
@@ -108,10 +128,7 @@
 		...collapsibleTabsAndSectionSnippets
 	}: WithRest<
 		CollapsibleTabsOwnProps<Sections>,
-		Omit<
-			ComponentProps<typeof CollapsibleTabs1>,
-			'Markers' | 'body' | 'Summary' | 'Toolbar' | 'Annotation'
-		>
+		CollapsibleTabsForwardedProps
 	> = $props()
 
 
@@ -184,7 +201,7 @@
 	{Toolbar}
 	{Annotation}
 >
-	{#snippet Markers({ open: _markersOpen })}
+	{#snippet Markers(_markersContext)}
 		{#each sections as section (section.id)}
 			<a
 				data-scroll-marker-label={section.label}
@@ -193,7 +210,7 @@
 		{/each}
 	{/snippet}
 
-	{#snippet body({ open: _bodyOpen })}
+	{#snippet body(_bodyContext)}
 		{#each sections as section (section.id)}
 			<section id={sectionAnchorId(section.id)}>
 				{@render sectionSnippetForSection(section)(

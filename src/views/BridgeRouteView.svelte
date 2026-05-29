@@ -71,7 +71,7 @@
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import BridgeRouteStepsView from '$/views/BridgeRouteStepsView.svelte'
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
-	import Address from '$/views/Address.svelte'
+	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 </script>
 
@@ -83,7 +83,13 @@
 	href={href}
 	{...EntityViewProps}
 >
-	{#snippet Heading()}
+	{#snippet Value()}
+		<span>
+			LI.FI quote
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={bridgeRoute}
 			placeholderText="Loading…"
@@ -94,16 +100,6 @@
 				{entityId.toChainId}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<span>
-			LI.FI quote
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -182,8 +178,13 @@
 					<div>
 						<dt>From address</dt>
 					<dd>
-						<Address
-							address={entityId.fromAddress}
+						<EvmNetworkAccountView
+							entityId={{
+								$network: { chainId: entityId.fromChainId },
+								$actor: { address: entityId.fromAddress },
+							}}
+							layout={EntityLayout.Value}
+							open={false}
 						/>
 						</dd>
 					</div>

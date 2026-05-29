@@ -16,6 +16,24 @@ export type CosmosSdkBlockResponse = {
 	}
 }
 
+export type CosmosSdkNodeInfoResponse = {
+	default_node_info: {
+		network: string
+		version?: string
+		moniker?: string
+	}
+	application_version?: {
+		name?: string
+		app_name?: string
+		version?: string
+		cosmos_sdk_version?: string
+	}
+}
+
+export type CosmosSdkSyncingResponse = {
+	syncing: boolean
+}
+
 export type CosmosSdkTxResponse = {
 	tx?: {
 		body?: {
@@ -100,8 +118,25 @@ export type CosmosSdkValidatorsResponse = {
 			moniker?: string
 		}
 	}[]
+	pagination?: {
+		total?: string
+	}
 }
 
 export type CosmosSdkValidatorResponse = {
 	validator: CosmosSdkValidatorsResponse['validators'][number]
+}
+
+export type CosmosSdkStakingPoolResponse = {
+	pool: {
+		bonded_tokens: string
+		not_bonded_tokens: string
+	}
+}
+
+export type CosmosSdkProposalsResponse = {
+	proposals: CosmosSdkProposalResponse['proposal'][]
+	pagination?: {
+		total?: string
+	}
 }

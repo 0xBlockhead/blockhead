@@ -58,18 +58,6 @@
 	bind:open
 	{layout}
 >
-	{#snippet Heading()}
-		<ResourceBoundary resource={network}>
-			{#snippet Pending()}
-				{@render Title()}
-			{/snippet}
-
-			{#snippet children(network)}
-				{network.name}
-			{/snippet}
-		</ResourceBoundary>
-	{/snippet}
-
 	{#snippet Value()}
 		<ResourceBoundary resource={network}>
 			{#snippet Pending()}
@@ -83,7 +71,15 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<ResourceBoundary resource={network}>
+			{#snippet Pending()}
+				{@render Value()}
+			{/snippet}
+
+			{#snippet children(network)}
+				{network.name}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

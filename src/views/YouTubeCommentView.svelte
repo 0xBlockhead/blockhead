@@ -40,7 +40,6 @@
 		Pick<
 			ComponentProps<typeof EntityView>,
 			| 'CollapsibleProps'
-			| 'Heading'
 			| 'HeadingAfter'
 			| 'idDragPlainText'
 			| 'ontoggle'

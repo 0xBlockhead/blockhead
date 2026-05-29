@@ -85,11 +85,10 @@
 		{@render Value()}
 	{/snippet}
 
-	{#snippet Heading()}
-		<TruncatedValue
-			format={TruncatedValueFormat.Visual}
-			value={entityId.address}
-		/>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A paymaster is an ERC-4337 contract that sponsors or refunds gas for user operations; it is not a smart-account wallet or a bundler operator.
+		</p>
 	{/snippet}
 
 	{#snippet Content({
@@ -126,11 +125,5 @@
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A paymaster is an ERC-4337 contract that sponsors or refunds gas for user operations; it is not a smart-account wallet or a bundler operator.
-		</p>
 	{/snippet}
 </EntityView>

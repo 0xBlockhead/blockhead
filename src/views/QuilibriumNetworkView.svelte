@@ -38,11 +38,15 @@
 
 
 <EntityView entityType={EntityType.Network} {entityId} {href} bind:open {layout}>
-	{#snippet Heading()}<ResourceBoundary resource={network}>{#snippet Pending()}{@render Title()}{/snippet}{#snippet children(network)}{network.name}{/snippet}</ResourceBoundary>{/snippet}
 	{#snippet Value()}<span>{entityId.namespace}:{entityId.reference}</span>{/snippet}
-	{#snippet Title()}{@render Value()}{/snippet}
+
+	{#snippet Title()}<ResourceBoundary resource={network}>{#snippet Pending()}{@render Value()}{/snippet}{#snippet children(network)}{network.name}{/snippet}</ResourceBoundary>
+	{/snippet}
+
 	{#snippet TypeAnnotationTooltip()}<p>Quilibrium is modeled around frames, shards, provers, accounts, and pending transactions.</p>{/snippet}
+
 	{#snippet Content()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl><div><dt>Environment</dt><dd>{network.environment}</dd></div></dl>{/snippet}</ResourceBoundary>{/snippet}
+
 	{#snippet Details()}
 		<CollapsibleTabs id={`${networkIdKey}:carousel-quilibrium`} sectionIdPrefix={networkIdKey} sections={[{ id: 'quilibrium-frames', label: 'Frames' }, { id: 'quilibrium-execution', label: 'Execution' }, { id: 'quilibrium-consensus', label: 'Consensus' }]} data-card scrollContainerProps={{ 'data-row': 'start align-start' }}>
 			{#snippet Summary()}<header data-row-item="flexible" data-row="wrap gap-4"><HeadingComponent>Execution</HeadingComponent></header>{/snippet}

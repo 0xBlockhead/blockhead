@@ -60,11 +60,8 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Title()}
-		Monero Ring
-	{/snippet}
 
-	{#snippet Heading()}
+	{#snippet Title()}
 		Monero Ring
 	{/snippet}
 

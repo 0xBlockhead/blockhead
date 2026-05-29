@@ -82,10 +82,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet Heading()}
 		<ResourceBoundary
 			resource={room}
 			placeholderText="Loading room…"
@@ -161,4 +157,3 @@
 	})}
 	{/snippet}
 </EntityView>
-

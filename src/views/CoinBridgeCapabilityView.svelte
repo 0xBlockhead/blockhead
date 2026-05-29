@@ -72,7 +72,13 @@
 	bind:open
 	{...EntityViewProps}
 >
-	{#snippet Heading()}
+	{#snippet Value()}
+		<span>
+			{bridgeToolByKey[entityId.toolKey]?.label ?? entityId.toolKey}
+		</span>
+	{/snippet}
+
+	{#snippet Title()}
 		<ResourceBoundary
 			resource={capability}
 			placeholderText="Loading…"
@@ -81,16 +87,6 @@
 				{bridgeToolByKey[entityId.toolKey]?.label ?? entityId.toolKey}
 			{/snippet}
 		</ResourceBoundary>
-	{/snippet}
-
-	{#snippet Value()}
-		<span>
-			{bridgeToolByKey[entityId.toolKey]?.label ?? entityId.toolKey}
-		</span>
-	{/snippet}
-
-	{#snippet Title()}
-		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

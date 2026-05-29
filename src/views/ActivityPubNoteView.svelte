@@ -90,7 +90,7 @@
 
 
 	// Components
-	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
+	import ActivityPubEvmAccountView from '$/views/ActivityPubEvmAccountView.svelte'
 	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
@@ -120,19 +120,6 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
-	{/snippet}
-
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			A federated ActivityPub Note (Mastodon Status) keyed by instance origin + local status id—not the Activity Streams object URI.
-		</p>
-		<p>
-			Body HTML, counts, and thread context resolve from the configured instance REST API; boosts unwrap the reblogged status for display.
-		</p>
-	{/snippet}
-
-	{#snippet Heading()}
 		<ResourceBoundary
 			resource={note}
 			placeholderText="Loading note…"
@@ -185,6 +172,15 @@
 		</ResourceBoundary>
 	{/snippet}
 
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			A federated ActivityPub Note (Mastodon Status) keyed by instance origin + local status id—not the Activity Streams object URI.
+		</p>
+		<p>
+			Body HTML, counts, and thread context resolve from the configured instance REST API; boosts unwrap the reblogged status for display.
+		</p>
+	{/snippet}
+
 	{#snippet Content({
 		title: _title,
 		href: _href,
@@ -226,7 +222,7 @@
 								<div>
 									<dt>{note.$reblogOf ? 'Boosted by' : 'Author'}</dt>
 									<dd>
-										<ActivityPubActorView
+										<ActivityPubEvmAccountView
 											entityId={note.$author[EntityMetaKey.Id]}
 											layout={EntityLayout.Title}
 											open={false}
