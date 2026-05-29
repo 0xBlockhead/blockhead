@@ -184,6 +184,22 @@ export const toQueryResource = <Data>(
 	getQuery: () => QueryLike<Data>,
 ) => {
 	const resource = new QueryResource<Data>()
+	const query = getQuery()
+
+	resource.applySync({
+		data: query.data,
+		error: (
+			query.isError ?
+				normalizeBoundaryError(query.error ?? new Error(String(query.status ?? 'Query failed')))
+			: undefined
+		),
+		pending: (
+			!query.isError && (
+				query.isLoading
+				|| query.isReady === false
+			)
+		),
+	})
 
 	$effect(() => {
 		const query = getQuery()
@@ -212,19 +228,29 @@ export const toQueryResourceFromRemote = <Data>(
 	getRemote: () => RemoteResource<Data>,
 ) => {
 	const resource = new QueryResource<Data>()
+	const remoteResource = getRemote()
+	const error = remoteResource.error
+
+	resource.applySync({
+		data: remoteResource.current as Data,
+		error: error === undefined ? undefined : error,
+		pending: (
+			error === undefined
+			&& !remoteResource.ready
+		),
+	})
 
 	$effect(() => {
-		const r = getRemote()
-		const error = r.error
-		const pending = (
-			error === undefined
-			&& !r.ready
-		)
+		const remoteResource = getRemote()
+		const error = remoteResource.error
 
 		resource.applySync({
-			data: r.current as Data,
+			data: remoteResource.current as Data,
 			error: error === undefined ? undefined : error,
-			pending,
+			pending: (
+				error === undefined
+				&& !remoteResource.ready
+			),
 		})
 	})
 
