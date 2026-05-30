@@ -94,5 +94,42 @@ export default {
 				Source.Beacon_Rest,
 			],
 		},
+		// Intrinsic: committees and block body rows belong to this slot.
+		{
+			name: '$$beaconCommittees',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BeaconCommittee,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		{
+			name: '$$beaconAttestations',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BeaconAttestation,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		{
+			name: '$$beaconWithdrawals',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BeaconWithdrawal,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		{
+			name: '$$beaconSlashings',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BeaconSlashing,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

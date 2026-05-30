@@ -23,12 +23,77 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 	sourcePublicEnv,
+	type ResolverLoadSubset,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
+
+const coingeckoOpenApiDerivativeTickerForMarket = async (
+	entityId: EntityId<typeof schema, EntityType.Market>,
+	context: ResolverLoadSubset | undefined,
+) => {
+	const { coingeckoDerivativesExchangeIdByMarketVenueId } = await import(
+		'$/sources/Coingecko/Rest/constants.ts'
+	)
+	const { derivativeTickerMatchesMarket } = await import('$/sources/Coingecko/marketKind.ts')
+	const exchangeId = (
+		coingeckoDerivativesExchangeIdByMarketVenueId[
+			entityId.$marketVenue.marketVenueId
+		]
+	)
+	if (exchangeId == null) {
+		throw new Error(
+			`Coingecko_OpenApi: derivatives exchange not mapped for venue ${entityId.$marketVenue.marketVenueId}`,
+		)
+	}
+	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
+	const { catalogCoinIdByCoingeckoId } = await import('$/sources/Coingecko/marketKind.ts')
+	const catalogCoinIdByCoingeckoIdMap = catalogCoinIdByCoingeckoId(idByCoinId)
+	const { getCoingeckoOpenApiDerivativesExchangeById } = await import(
+		'$/sources/Coingecko/OpenApi/queries.ts'
+	)
+	const publicEnv = sourcePublicEnv(context, Source.Coingecko_OpenApi)
+	const exchange = await getCoingeckoOpenApiDerivativesExchangeById({
+		publicEnv,
+		exchangeId,
+	})
+	const ticker = exchange?.tickers?.find((row) => (
+		derivativeTickerMatchesMarket(
+			entityId,
+			row,
+			catalogCoinIdByCoingeckoIdMap,
+		)
+	))
+	if (ticker == null) {
+		throw new Error(
+			`Coingecko_OpenApi: no derivative ticker for ${entityId.$marketVenue.marketVenueId} market`,
+		)
+	}
+	return ticker
+}
+
+const derivativeTimestampFieldsFromTicker = (
+	ticker: Awaited<ReturnType<typeof coingeckoOpenApiDerivativeTickerForMarket>>,
+) => ({
+	...(ticker.funding_rate != null && { fundingRate: ticker.funding_rate }),
+	...(ticker.open_interest_usd != null && {
+		openInterestUsd: BigInt(Math.round(ticker.open_interest_usd)),
+	}),
+	...(ticker.index_basis_percentage != null && {
+		indexBasisPercent: ticker.index_basis_percentage,
+	}),
+	...(ticker.expired_at != null && ticker.expired_at !== '' && {
+		expiredAtMs: Date.parse(ticker.expired_at),
+	}),
+	...(ticker.last_traded != null && {
+		lastTradedAtMs: ticker.last_traded * 1000,
+	}),
+	providerAssetId: ticker.symbol ?? null,
+	transport: 'Coingecko OpenAPI',
+})
 
 /** Spot + OHLC via checked-in `coingecko-demo.json` (`GET /coins/{id}`, `/coins/{id}/ohlc`). */
 export default {
@@ -41,43 +106,7 @@ export default {
 				if (entityId.marketKind === MarketKind.Spot) {
 					return {}
 				}
-				const { coingeckoDerivativesExchangeIdByMarketVenueId } = await import(
-					'$/sources/Coingecko/Rest/constants.ts'
-				)
-				const { derivativeTickerMatchesMarket } = await import('$/sources/Coingecko/marketKind.ts')
-				const exchangeId = (
-					coingeckoDerivativesExchangeIdByMarketVenueId[
-						entityId.$marketVenue.marketVenueId
-					]
-				)
-				if (exchangeId == null) {
-					throw new Error(
-						`Coingecko_OpenApi: derivatives exchange not mapped for venue ${entityId.$marketVenue.marketVenueId}`,
-					)
-				}
-				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-				const { catalogCoinIdByCoingeckoId } = await import('$/sources/Coingecko/marketKind.ts')
-				const catalogCoinIdByCoingeckoIdMap = catalogCoinIdByCoingeckoId(idByCoinId)
-				const { getCoingeckoOpenApiDerivativesExchangeById } = await import(
-					'$/sources/Coingecko/OpenApi/queries.ts'
-				)
-				const publicEnv = sourcePublicEnv(context, Source.Coingecko_OpenApi)
-				const exchange = await getCoingeckoOpenApiDerivativesExchangeById({
-					publicEnv,
-					exchangeId,
-				})
-				const ticker = exchange?.tickers?.find((row) => (
-					derivativeTickerMatchesMarket(
-						entityId,
-						row,
-						catalogCoinIdByCoingeckoIdMap,
-					)
-				))
-				if (ticker == null) {
-					throw new Error(
-						`Coingecko_OpenApi: no derivative ticker for ${entityId.$marketVenue.marketVenueId} market`,
-					)
-				}
+				const ticker = await coingeckoOpenApiDerivativeTickerForMarket(entityId, context)
 				return {
 					...(ticker.funding_rate != null && { fundingRate: ticker.funding_rate }),
 					...(ticker.open_interest_usd != null && {
@@ -93,6 +122,18 @@ export default {
 						derivativeLastTradedAtMs: ticker.last_traded * 1000,
 					}),
 				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.Market_Derivative_Timestamp,
+			resolve: async (entityId, context) => {
+				if (entityId.$market.marketKind === MarketKind.Spot) {
+					throw new Error('Coingecko_OpenApi: Market_Derivative_Timestamp is derivative-only')
+				}
+				return derivativeTimestampFieldsFromTicker(
+					await coingeckoOpenApiDerivativeTickerForMarket(entityId.$market, context),
+				)
 			},
 		}),
 
@@ -181,6 +222,37 @@ export default {
 			resolve: async () => {
 				throw new Error('Coingecko_OpenApi: $$marketTimeIntervalTimestamps is not implemented')
 			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Market,
+			fieldName: '$$derivativeTimestamps',
+			resolve: async (entityId, context) => {
+				if (entityId.marketKind === MarketKind.Spot) return []
+				const ticker = await coingeckoOpenApiDerivativeTickerForMarket(entityId, context)
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$market: entityId,
+							timestampMs: (
+								ticker.last_traded != null ?
+									ticker.last_traded * 1000
+								:
+									Date.now()
+							),
+							feedKey: `coingecko:${ticker.symbol ?? entityId.$marketVenue.marketVenueId}`,
+						},
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Market_Derivative_Timestamp,
+			fieldName: '$$parentMarket',
+			resolve: async (entityId) => ({
+				[EntityMetaKey.Id]: entityId.$market,
+			}),
 		}),
 
 		defineEntityFieldResolver({

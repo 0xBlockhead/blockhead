@@ -187,6 +187,63 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
+			entityType: EntityType.HyperliquidNetwork,
+			fieldName: '$$transactions',
+			resolve: async (entityId, context) => {
+				assertHyperliquidMainnet(entityId)
+				const {
+					getBlockByNumber,
+					getBlockNumber,
+				} = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
+				const headBlockHeight = hexToBigInt(await getBlockNumber({
+					rpcUrl: hyperliquidEvmRpcUrl,
+				}))
+				return (
+					await Promise.all(
+						Array.from({
+							length: Math.min(
+								Number(headBlockHeight + 1n),
+								16,
+							),
+						}, async (_value, blockOffset) => (
+							await getBlockByNumber({
+								rpcUrl: hyperliquidEvmRpcUrl,
+								height: headBlockHeight - BigInt(blockOffset),
+								includeTransactions: true,
+							})
+						)),
+					)
+				)
+					.flatMap((block) => (
+						block?.transactions.map((transaction) => ({
+							[EntityMetaKey.Id]: {
+								$network: entityId,
+								txHash: transaction.hash,
+							},
+							actionType: 'evm',
+							...(transaction.blockNumber != null && {
+								$block: {
+									[EntityMetaKey.Id]: {
+										$network: entityId,
+										height: hexToBigInt(transaction.blockNumber),
+									},
+								},
+							}),
+							...(transaction.from != null && {
+								$account: {
+									[EntityMetaKey.Id]: {
+										$network: entityId,
+										address: transaction.from,
+									},
+								},
+							}),
+						})) ?? []
+					))
+					.slice(0, resolverLoadSubsetRowLimit(context))
+			},
+		}),
+
+		defineEntityFieldResolver({
 			entityType: EntityType.HyperliquidBlock,
 			fieldName: '$$transactions',
 			resolve: async (entityId) => {

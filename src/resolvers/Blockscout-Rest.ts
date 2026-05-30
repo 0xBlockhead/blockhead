@@ -10,7 +10,7 @@ import {
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { schema } from '$/schema/index.ts'
-import type { Entity } from '$/schema/$schema.ts'
+import type { Entity, EntityId } from '$/schema/$schema.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 import {
@@ -768,6 +768,20 @@ const erc4337RegistryFieldsFromBlockscoutWire = (
 	return { userOperationsCount }
 }
 
+const erc4337ContractField = (
+	entityId:
+		| EntityId<typeof schema, EntityType.Erc4337SmartAccount>
+		| EntityId<typeof schema, EntityType.Erc4337Paymaster>
+		| EntityId<typeof schema, EntityType.Erc4337AccountFactory>,
+) => ({
+	$contract: {
+		[EntityMetaKey.Id]: {
+			$network: entityId.$network,
+			address: entityId.address,
+		},
+	} satisfies Entity<typeof schema, EntityType.EvmContract>,
+})
+
 const erc4337RegistryEntitiesFromBlockscoutWires = <
 	_Type extends
 		| EntityType.Erc4337SmartAccount
@@ -1332,6 +1346,7 @@ export default {
 						EntityType.Erc4337SmartAccount,
 						wire,
 					),
+					...erc4337ContractField(entityId),
 					...(factoryAddress != null && {
 						$factory: {
 							[EntityMetaKey.Id]: {
@@ -1391,10 +1406,13 @@ export default {
 					explorerOrigin: origin,
 					address: entityId.address,
 				})
-				return erc4337RegistryFieldsFromBlockscoutWire(
-					EntityType.Erc4337Paymaster,
-					wire,
-				)
+				return {
+					...erc4337RegistryFieldsFromBlockscoutWire(
+						EntityType.Erc4337Paymaster,
+						wire,
+					),
+					...erc4337ContractField(entityId),
+				}
 			},
 		}),
 
@@ -1418,10 +1436,13 @@ export default {
 					explorerOrigin: origin,
 					address: entityId.address,
 				})
-				return erc4337RegistryFieldsFromBlockscoutWire(
-					EntityType.Erc4337AccountFactory,
-					wire,
-				)
+				return {
+					...erc4337RegistryFieldsFromBlockscoutWire(
+						EntityType.Erc4337AccountFactory,
+						wire,
+					),
+					...erc4337ContractField(entityId),
+				}
 			},
 		}),
 
@@ -2064,6 +2085,105 @@ export default {
 				throw new Error(
 					`Blockscout_Rest: $$erc20TokenAllowances unsupported for ${entityId.$actor.address} on chain ${chainIdFromEvmNetworkId(entityId.$network)}; Blockscout token-transfers omit ERC-20 Approval events`,
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmNetwork,
+			fieldName: '$$erc20TokenTransfers',
+			resolve: async (entityId, context) => {
+				const {
+					blockscoutExplorerOriginForChain,
+					blockscoutRestV2AtExplorerOrigin,
+					blockscoutV2ItemsCountMax,
+				} = await import('$/sources/Blockscout/Rest/constants.ts')
+				const {
+					getBlockscoutTransactionTokenTransfers,
+					getBlockscoutTransactions,
+				} = await import('$/sources/Blockscout/Rest/queries.ts')
+				const chainId = chainIdFromEvmNetworkId(entityId)
+				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
+					chainId,
+					blockscoutExplorerOriginForChain,
+					blockscoutRestV2AtExplorerOrigin,
+				})
+				if (origin == null) {
+					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
+				}
+				const limit = Math.min(
+					resolverLoadSubsetRowLimit(context),
+					blockscoutV2ItemsCountMax,
+				)
+				const rows: Entity<typeof schema, EntityType.EvmTokenTransfer>[] = []
+				for (const transaction of await getBlockscoutTransactions({ explorerOrigin: origin, limit })) {
+					const txHash = hexLowerOfByteSize(transaction.hash ?? '', 32)
+					if (txHash == null) continue
+					rows.push(
+						...evmTokenTransferEntityIdsFromBlockscoutWires({
+							$network: entityId,
+							txHash,
+							wires: await singleFlight(getBlockscoutTransactionTokenTransfers)({
+								explorerOrigin: origin,
+								txHash,
+								limit: blockscoutV2ItemsCountMax,
+							}),
+						})
+							.filter((row) => row.standard === EvmTokenStandard.Erc20),
+					)
+					if (rows.length >= limit) return rows.slice(0, limit)
+				}
+				return rows
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmNetwork,
+			fieldName: '$$nftTokenTransfers',
+			resolve: async (entityId, context) => {
+				const {
+					blockscoutExplorerOriginForChain,
+					blockscoutRestV2AtExplorerOrigin,
+					blockscoutV2ItemsCountMax,
+				} = await import('$/sources/Blockscout/Rest/constants.ts')
+				const {
+					getBlockscoutTransactionTokenTransfers,
+					getBlockscoutTransactions,
+				} = await import('$/sources/Blockscout/Rest/queries.ts')
+				const chainId = chainIdFromEvmNetworkId(entityId)
+				const origin = blockscoutV2ExplorerOriginWhenRestSupported({
+					chainId,
+					blockscoutExplorerOriginForChain,
+					blockscoutRestV2AtExplorerOrigin,
+				})
+				if (origin == null) {
+					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainId}`)
+				}
+				const limit = Math.min(
+					resolverLoadSubsetRowLimit(context),
+					blockscoutV2ItemsCountMax,
+				)
+				const rows: Entity<typeof schema, EntityType.EvmTokenTransfer>[] = []
+				for (const transaction of await getBlockscoutTransactions({ explorerOrigin: origin, limit })) {
+					const txHash = hexLowerOfByteSize(transaction.hash ?? '', 32)
+					if (txHash == null) continue
+					rows.push(
+						...evmTokenTransferEntityIdsFromBlockscoutWires({
+							$network: entityId,
+							txHash,
+							wires: await singleFlight(getBlockscoutTransactionTokenTransfers)({
+								explorerOrigin: origin,
+								txHash,
+								limit: blockscoutV2ItemsCountMax,
+							}),
+						})
+							.filter((row) => (
+								row.standard === EvmTokenStandard.Erc721
+								|| row.standard === EvmTokenStandard.Erc1155
+							)),
+					)
+					if (rows.length >= limit) return rows.slice(0, limit)
+				}
+				return rows
 			},
 		}),
 

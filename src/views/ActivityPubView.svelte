@@ -3,8 +3,6 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { mastodonDefaultInstanceOrigin } from '$/constants/Mastodon.ts'
-	import { fediDefaultInstanceOrigin } from '$/constants/Fedi.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -110,7 +108,7 @@
 	title="ActivityPub / Mastodon"
 >
 	{#snippet Value()}
-		{entityId.scope}
+		ActivityPub
 	{/snippet}
 
 	{#snippet Title()}
@@ -168,7 +166,7 @@
 
 					{#if open && activityPubNetwork.homeUrl}
 						<div>
-							<dt>Project home</dt>
+							<dt>Home</dt>
 							<dd>
 								<a href={activityPubNetwork.homeUrl}>{activityPubNetwork.homeUrl}</a>
 							</dd>
@@ -177,7 +175,7 @@
 
 					{#if open && activityPubNetwork.docsUrl}
 						<div>
-							<dt>Specification</dt>
+							<dt>Docs</dt>
 							<dd>
 								<a href={activityPubNetwork.docsUrl}>
 									{activityPubNetwork.docsUrl}
@@ -214,19 +212,6 @@
 						</div>
 					{/if}
 
-					{#if open}
-						<div>
-							<dt>Default Mastodon instance host</dt>
-							<dd data-text="mono muted">{mastodonDefaultInstanceOrigin}</dd>
-						</div>
-					{/if}
-
-					{#if open}
-						<div>
-							<dt>Default Fedi instance host</dt>
-							<dd data-text="mono muted">{fediDefaultInstanceOrigin}</dd>
-						</div>
-					{/if}
 				{/snippet}
 			</ResourceBoundary>
 		</dl>

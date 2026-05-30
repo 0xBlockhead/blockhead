@@ -1,7 +1,6 @@
 <script lang="ts">
-	// Context
-	import { resolve } from '$app/paths'
-
+	// Types/constants
+	import { networkIdFromEvmChainId } from '$/lib/caip.ts'
 
 	// State
 	let {
@@ -18,9 +17,7 @@
 <Page>
 	<Eip8004ServiceView
 		entityId={{
-			$network: {
-				chainId: Number(params.chainId),
-			},
+			$network: networkIdFromEvmChainId(Number(params.chainId)),
 			identityId: decodeURIComponent(params.identityId),
 		}}
 	/>

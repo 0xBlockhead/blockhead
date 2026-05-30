@@ -57,8 +57,25 @@
 	bind:open
 	{layout}
 >
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={snapshot}
+			placeholderText="Loading Filecoin network snapshot..."
+		>
+			{#snippet children(snapshot)}
+				{#if snapshot.headHeight !== undefined}
+					<NumberValue value={snapshot.headHeight} />
+				{:else if snapshot.networkVersion !== undefined}
+					<NumberValue value={snapshot.networkVersion} />
+				{:else}
+					<Timestamp timestamp={entityId.timestampMs} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content()}

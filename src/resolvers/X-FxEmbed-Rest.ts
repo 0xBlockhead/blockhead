@@ -13,6 +13,7 @@ import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
 import type {
 	FxEmbedTwitterStatus,
+	FxEmbedUser,
 } from '$/sources/FxEmbed/Rest/types.ts'
 
 const optionalTrimmedString = (value: string | undefined) => (
@@ -25,6 +26,23 @@ const optionalUrlString = (value: string | undefined) => {
 	const parsed = UrlString(trimmed)
 	return parsed instanceof type.errors ? undefined : parsed
 }
+
+const xUserTimestampFieldsFromUser = (
+	user: FxEmbedUser,
+) => ({
+	followerCount: user.followers,
+	followingCount: user.following,
+	tweetCount: user.statuses,
+})
+
+const xPostTimestampFieldsFromStatus = (
+	status: FxEmbedTwitterStatus,
+) => ({
+	likeCount: status.likes,
+	retweetCount: status.reposts,
+	replyCount: status.replies,
+	quoteCount: status.quotes,
+})
 
 export default {
 	source: Source.X_FxEmbed_Rest,
@@ -49,9 +67,7 @@ export default {
 					}),
 					...(Number.isFinite(createdAt) && { createdAt }),
 					...(websiteUrl != null && { websiteUrl }),
-					...(user.followers != null && { followerCount: user.followers }),
-					...(user.following != null && { followingCount: user.following }),
-					...(user.statuses != null && { tweetCount: user.statuses }),
+					...xUserTimestampFieldsFromUser(user),
 					...((
 						iconMedia,
 					) => (
@@ -86,10 +102,7 @@ export default {
 					...(postId != null && {
 						postUrl: `https://x.com/i/web/status/${postId}`,
 					}),
-					...(status.likes != null && { likeCount: status.likes }),
-					...(status.reposts != null && { retweetCount: status.reposts }),
-					...(status.replies != null && { replyCount: status.replies }),
-					...(status.quotes != null && { quoteCount: status.quotes }),
+					...xPostTimestampFieldsFromStatus(status),
 					...(replyToId != null && {
 						$replyToPost: {
 							[EntityMetaKey.Id]: { id: replyToId },
@@ -108,6 +121,28 @@ export default {
 							}
 					),
 				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.XUser_Timestamp,
+			resolve: async (entityId) => {
+				const { fxEmbedGetUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const user = (await singleFlight(fxEmbedGetUser)(entityId.$user.id)).user
+				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
+				return xUserTimestampFieldsFromUser(user)
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.XPost_Timestamp,
+			resolve: async (entityId) => {
+				const { fxEmbedGetStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const status = (await singleFlight(fxEmbedGetStatus)(entityId.$post.id)).status
+				if (status?.type !== 'status' || status.id == null) {
+					throw new Error('X_FxEmbed_Rest: post not found')
+				}
+				return xPostTimestampFieldsFromStatus(status)
 			},
 		}),
 	],
@@ -149,6 +184,46 @@ export default {
 							:	[]
 						))
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.XPost,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => {
+				const { fxEmbedGetStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const status = (await singleFlight(fxEmbedGetStatus)(entityId.id)).status
+				if (status?.type !== 'status' || status.id == null) {
+					throw new Error('X_FxEmbed_Rest: post not found')
+				}
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$post: entityId,
+							timestampMs: Date.now(),
+						},
+						...xPostTimestampFieldsFromStatus(status),
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.XUser,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => {
+				const { fxEmbedGetUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const user = (await singleFlight(fxEmbedGetUser)(entityId.id)).user
+				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$user: entityId,
+							timestampMs: Date.now(),
+						},
+						...xUserTimestampFieldsFromUser(user),
+					},
+				]
 			},
 		}),
 

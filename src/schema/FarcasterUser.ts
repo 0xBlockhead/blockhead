@@ -89,6 +89,16 @@ export default {
 			],
 		},
 		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.FarcasterUser_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Neynar_Rest,
+				Source.Snapchain_Rest,
+			],
+		},
+		{
 			name: '$$casts',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.FarcasterCast,

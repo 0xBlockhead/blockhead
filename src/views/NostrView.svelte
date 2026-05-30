@@ -81,11 +81,11 @@
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
-	} as const
+	}
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -108,7 +108,7 @@
 	title="Nostr"
 >
 	{#snippet Value()}
-		{entityId.scope}
+		Nostr
 	{/snippet}
 
 	{#snippet Title()}
@@ -214,11 +214,11 @@
 		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-feed`}
 				sectionIdPrefix={networkIdKey}
-				sections={[
+				sections={collapsibleTabsSections([
 					{ id: 'notes', label: 'Recent notes' },
 					{ id: 'reposts', label: 'Reposts' },
 					{ id: 'articles', label: 'Articles' },
-				] as const}
+				])}
 				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}
@@ -285,10 +285,10 @@
 		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-directory`}
 				sectionIdPrefix={networkIdKey}
-				sections={[
+				sections={collapsibleTabsSections([
 					{ id: 'profiles', label: 'Profiles' },
 					{ id: 'relays', label: 'Relays' },
-				] as const}
+				])}
 				data-card
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>

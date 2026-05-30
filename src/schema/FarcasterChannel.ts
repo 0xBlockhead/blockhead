@@ -93,6 +93,15 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.FarcasterChannel_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Farcaster_Rest,
+			],
+		},
+		{
 			name: 'pinnedCastHash',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),

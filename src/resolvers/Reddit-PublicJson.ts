@@ -11,6 +11,7 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import type {
 	RedditPublicApiListing,
+	RedditPublicApiSubredditAbout,
 	RedditPublicApiThing,
 } from '$/sources/RedditPublic/Rest/types.ts'
 
@@ -41,6 +42,26 @@ const redditSubredditIconUrl = (
 	const icon = optionalTrimmedString(iconImg?.replaceAll('&amp;', '&'))
 	return community ?? icon
 }
+
+const redditSubredditTimestampFieldsFromData = (
+	data: RedditPublicApiSubredditAbout['data'],
+) => ({
+	subscriberCount: optionalFiniteNumber(data.subscribers),
+	activeUserCount: optionalFiniteNumber(data.active_user_count),
+})
+
+const redditLinkTimestampFieldsFromThing = (
+	thing: RedditPublicApiThing,
+) => ({
+	score: optionalFiniteNumber(thing.data.score),
+	commentCount: optionalFiniteNumber(thing.data.num_comments),
+})
+
+const redditCommentTimestampFieldsFromThing = (
+	thing: RedditPublicApiThing,
+) => ({
+	score: optionalFiniteNumber(thing.data.score),
+})
 
 const redditLinkArticleIdFromFullname = (fullname: string) => {
 	if (!fullname.startsWith('t3_')) {
@@ -106,12 +127,7 @@ export default {
 				return {
 					title: optionalTrimmedString(d.title),
 					publicDescription: optionalTrimmedString(d.public_description),
-					...(optionalFiniteNumber(d.subscribers) != null && {
-						subscriberCount: optionalFiniteNumber(d.subscribers),
-					}),
-					...(optionalFiniteNumber(d.active_user_count) != null && {
-						activeUserCount: optionalFiniteNumber(d.active_user_count),
-					}),
+					...redditSubredditTimestampFieldsFromData(d),
 					...(redditCreatedAtMs(d.created_utc) != null && {
 						createdAt: redditCreatedAtMs(d.created_utc),
 					}),
@@ -142,12 +158,7 @@ export default {
 					selftext: optionalTrimmedString(t.data.selftext),
 					url: optionalTrimmedString(t.data.url),
 					author: optionalTrimmedString(t.data.author),
-					...(optionalFiniteNumber(t.data.score) != null && {
-						score: optionalFiniteNumber(t.data.score),
-					}),
-					...(optionalFiniteNumber(t.data.num_comments) != null && {
-						commentCount: optionalFiniteNumber(t.data.num_comments),
-					}),
+					...redditLinkTimestampFieldsFromThing(t),
 					...(redditCreatedAtMs(t.data.created_utc) != null && {
 						createdAt: redditCreatedAtMs(t.data.created_utc),
 					}),
@@ -176,9 +187,7 @@ export default {
 				return {
 					body: optionalTrimmedString(t.data.body),
 					author: optionalTrimmedString(t.data.author),
-					...(optionalFiniteNumber(t.data.score) != null && {
-						score: optionalFiniteNumber(t.data.score),
-					}),
+					...redditCommentTimestampFieldsFromThing(t),
 					...(redditCreatedAtMs(t.data.created_utc) != null && {
 						createdAt: redditCreatedAtMs(t.data.created_utc),
 					}),
@@ -196,6 +205,40 @@ export default {
 						$parentComment: { [EntityMetaKey.Id]: { fullname: parentId } },
 					}),
 				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.RedditSubreddit_Timestamp,
+			resolve: async (entityId) => {
+				const { redditJsonGetSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
+				const data = (await singleFlight(redditJsonGetSubredditAbout)(entityId.$subreddit.name)).data
+				if (data == null) throw new Error('Reddit_PublicJson: subreddit not found')
+				return redditSubredditTimestampFieldsFromData(data)
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.RedditLink_Timestamp,
+			resolve: async (entityId) => {
+				const { redditJsonGetInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+				const thing = (await singleFlight(redditJsonGetInfo)(entityId.$link.fullname))
+					.data
+					.children[0]
+				if (thing == null || thing.kind !== 't3') throw new Error('Reddit_PublicJson: link not found')
+				return redditLinkTimestampFieldsFromThing(thing)
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.RedditComment_Timestamp,
+			resolve: async (entityId) => {
+				const { redditJsonGetInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+				const thing = (await singleFlight(redditJsonGetInfo)(entityId.$comment.fullname))
+					.data
+					.children[0]
+				if (thing == null || thing.kind !== 't1') throw new Error('Reddit_PublicJson: comment not found')
+				return redditCommentTimestampFieldsFromThing(thing)
 			},
 		}),
 	],
@@ -244,6 +287,25 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.RedditSubreddit,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => {
+				const { redditJsonGetSubredditAbout } = await import('$/sources/RedditPublic/Rest/queries.ts')
+				const data = (await singleFlight(redditJsonGetSubredditAbout)(entityId.name)).data
+				if (data == null) throw new Error('Reddit_PublicJson: subreddit not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$subreddit: entityId,
+							timestampMs: Date.now(),
+						},
+						...redditSubredditTimestampFieldsFromData(data),
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.RedditSubreddit,
 			fieldName: '$$links',
 			resolve: async (entityId, context) => {
 				const { redditJsonListSubredditHot } = await import('$/sources/RedditPublic/Rest/queries.ts')
@@ -265,6 +327,27 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.RedditLink,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => {
+				const { redditJsonGetInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+				const thing = (await singleFlight(redditJsonGetInfo)(entityId.fullname))
+					.data
+					.children[0]
+				if (thing == null || thing.kind !== 't3') throw new Error('Reddit_PublicJson: link not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$link: entityId,
+							timestampMs: Date.now(),
+						},
+						...redditLinkTimestampFieldsFromThing(thing),
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.RedditLink,
 			fieldName: '$$comments',
 			resolve: async (entityId, context) => {
 				const { redditJsonGetCommentsByArticleId } = await import('$/sources/RedditPublic/Rest/queries.ts')
@@ -279,6 +362,27 @@ export default {
 								[]
 						))
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.RedditComment,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => {
+				const { redditJsonGetInfo } = await import('$/sources/RedditPublic/Rest/queries.ts')
+				const thing = (await singleFlight(redditJsonGetInfo)(entityId.fullname))
+					.data
+					.children[0]
+				if (thing == null || thing.kind !== 't1') throw new Error('Reddit_PublicJson: comment not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$comment: entityId,
+							timestampMs: Date.now(),
+						},
+						...redditCommentTimestampFieldsFromThing(thing),
+					},
+				]
 			},
 		}),
 

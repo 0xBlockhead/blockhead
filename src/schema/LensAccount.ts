@@ -58,6 +58,16 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.LensAccount_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Lens_Graphql,
+				Source.Lens_HeyGraphql,
+			],
+		},
+		{
 			name: '$icon',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Media,

@@ -13,11 +13,13 @@
 	// State
 	let {
 		entityId,
+		href,
 		open = $bindable(true),
 		...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.LightningNetwork>
+			href?: string
 			open?: boolean
 		},
 		Pick<
@@ -44,26 +46,19 @@
 			$$timestamps: {
 				$limit: 1,
 			},
-			...open && {
-				$$nodes: {
-					$limit: 5,
-				},
-				$$channels: {
-					$limit: 5,
-				},
-				$$invoices: {
-					$limit: 5,
-					$: [
-						Source.LightningLnd_Rest,
-					],
-				},
-				$$payments: {
-					$limit: 5,
-					$: [
-						Source.LightningLnd_Rest,
-					],
-				},
-			},
+		},
+	)
+
+	const settlementNetwork = useEntity(
+		EntityType.Network,
+		entityId.$network,
+		{
+			$: [
+				Source.Constants_Internal,
+			],
+			$$nativeAssets: {},
+			$$blockExplorerUrls: {},
+			$$faucetUrls: {},
 		},
 	)
 
@@ -71,21 +66,22 @@
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import LightningChannelView from '$/views/LightningChannelView.svelte'
-	import LightningInvoiceView from '$/views/LightningInvoiceView.svelte'
+	import LightningChannelsView from '$/views/LightningChannelsView.svelte'
+	import LightningInvoicesView from '$/views/LightningInvoicesView.svelte'
 	import LightningNetwork_TimestampView from '$/views/LightningNetwork_TimestampView.svelte'
-	import LightningNodeView from '$/views/LightningNodeView.svelte'
-	import LightningPaymentView from '$/views/LightningPaymentView.svelte'
+	import LightningNodesView from '$/views/LightningNodesView.svelte'
+	import LightningPaymentsView from '$/views/LightningPaymentsView.svelte'
 	import NetworkView from '$/views/NetworkView.svelte'
+	import UrlsView from '$/views/UrlsView.svelte'
 </script>
 
 
 <EntityView
 	entityType={EntityType.LightningNetwork}
 	{entityId}
+	{href}
 	title="Lightning Network"
 	bind:open
 	{...EntityViewProps}
@@ -139,73 +135,6 @@
 					{/each}
 				</dl>
 
-				{#if open && row.$$nodes.length > 0}
-					<section>
-						<h3>Nodes</h3>
-
-						<ul>
-							{#each row.$$nodes as node (stringify(node[EntityMetaKey.Id]))}
-								<li>
-									<LightningNodeView
-										entityId={node[EntityMetaKey.Id]}
-										layout={EntityLayout.SummaryInline}
-									/>
-								</li>
-							{/each}
-						</ul>
-					</section>
-				{/if}
-
-				{#if open && row.$$channels.length > 0}
-					<section>
-						<h3>Channels</h3>
-
-						<ul>
-							{#each row.$$channels as channel (stringify(channel[EntityMetaKey.Id]))}
-								<li>
-									<LightningChannelView
-										entityId={channel[EntityMetaKey.Id]}
-										layout={EntityLayout.SummaryInline}
-									/>
-								</li>
-							{/each}
-						</ul>
-					</section>
-				{/if}
-
-				{#if open && row.$$invoices.length > 0}
-					<section>
-						<h3>Invoices</h3>
-
-						<ul>
-							{#each row.$$invoices as invoice (stringify(invoice[EntityMetaKey.Id]))}
-								<li>
-									<LightningInvoiceView
-										entityId={invoice[EntityMetaKey.Id]}
-										layout={EntityLayout.SummaryInline}
-									/>
-								</li>
-							{/each}
-						</ul>
-					</section>
-				{/if}
-
-				{#if open && row.$$payments.length > 0}
-					<section>
-						<h3>Payments</h3>
-
-						<ul>
-							{#each row.$$payments as payment (stringify(payment[EntityMetaKey.Id]))}
-								<li>
-									<LightningPaymentView
-										entityId={payment[EntityMetaKey.Id]}
-										layout={EntityLayout.SummaryInline}
-									/>
-								</li>
-							{/each}
-						</ul>
-					</section>
-				{/if}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -232,67 +161,144 @@
 			{/snippet}
 
 			{#snippet SectionLightningGraphNodes()}
-				<ResourceBoundary resource={lightningNetwork}>
-					{#snippet children(row)}
-						<ul>
-							{#each row.$$nodes as node (stringify(node[EntityMetaKey.Id]))}
-								<li>
-									<LightningNodeView
-										entityId={node[EntityMetaKey.Id]}
-										layout={EntityLayout.SummaryInline}
-									/>
-								</li>
-							{/each}
-						</ul>
-					{/snippet}
-				</ResourceBoundary>
+				<LightningNodesView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.LightningNetwork,
+						entityId,
+						fieldName: '$$nodes',
+					}}
+					href={href == null ? '' : `${href}/nodes`}
+					id={`${stringify(entityId)}:lightning-nodes-list`}
+				/>
 			{/snippet}
 
 			{#snippet SectionLightningGraphChannels()}
-				<ResourceBoundary resource={lightningNetwork}>
-					{#snippet children(row)}
-						<ul>
-							{#each row.$$channels as channel (stringify(channel[EntityMetaKey.Id]))}
-								<li>
-									<LightningChannelView
-										entityId={channel[EntityMetaKey.Id]}
-										layout={EntityLayout.SummaryInline}
-									/>
-								</li>
-							{/each}
-						</ul>
-					{/snippet}
-				</ResourceBoundary>
+				<LightningChannelsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.LightningNetwork,
+						entityId,
+						fieldName: '$$channels',
+					}}
+					href={href == null ? '' : `${href}/channels`}
+					id={`${stringify(entityId)}:lightning-channels-list`}
+				/>
 			{/snippet}
 
 			{#snippet SectionLightningLocalPayments()}
-				<ResourceBoundary resource={lightningNetwork}>
-					{#snippet children(row)}
-						<div data-column="gap-3">
-							<ul>
-								{#each row.$$invoices as invoice (stringify(invoice[EntityMetaKey.Id]))}
-									<li>
-										<LightningInvoiceView
-											entityId={invoice[EntityMetaKey.Id]}
-											layout={EntityLayout.SummaryInline}
-										/>
-									</li>
-								{/each}
-							</ul>
+				<div data-column="gap-3">
+					<LightningInvoicesView
+						CollapsibleProps={{ canToggle: false }}
+						entityFieldReference={{
+							entityType: EntityType.LightningNetwork,
+							entityId,
+							fieldName: '$$invoices',
+						}}
+						href={href == null ? '' : `${href}/invoices`}
+						id={`${stringify(entityId)}:lightning-invoices-list`}
+					/>
 
-							<ul>
-								{#each row.$$payments as payment (stringify(payment[EntityMetaKey.Id]))}
-									<li>
-										<LightningPaymentView
-											entityId={payment[EntityMetaKey.Id]}
-											layout={EntityLayout.SummaryInline}
-										/>
-									</li>
-								{/each}
-							</ul>
-						</div>
+					<LightningPaymentsView
+						CollapsibleProps={{ canToggle: false }}
+						entityFieldReference={{
+							entityType: EntityType.LightningNetwork,
+							entityId,
+							fieldName: '$$payments',
+						}}
+						href={href == null ? '' : `${href}/payments`}
+						id={`${stringify(entityId)}:lightning-payments-list`}
+					/>
+				</div>
+			{/snippet}
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={`${stringify(entityId)}:carousel-lightning-assets`}
+			sectionIdPrefix={stringify(entityId)}
+			sections={[
+				{ id: 'lightning-assets-settlement', label: 'Settlement asset' },
+			]}
+			data-card
+			class="network-view-collapsible-assets"
+			scrollContainerProps={{
+				'data-row': 'start align-start',
+			}}
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Assets</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionLightningAssetsSettlement()}
+				<ResourceBoundary resource={settlementNetwork}>
+					{#snippet children(settlementNetwork)}
+						{#if settlementNetwork.$$nativeAssets.length > 0}
+							<p><strong>Settlement asset:</strong> {settlementNetwork.$$nativeAssets.length}</p>
+						{:else}
+							<p data-text="muted">No settlement asset mapped for this network yet.</p>
+						{/if}
 					{/snippet}
 				</ResourceBoundary>
+			{/snippet}
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={`${stringify(entityId)}:carousel-lightning-resources`}
+			sectionIdPrefix={stringify(entityId)}
+			sections={[
+				{ id: 'lightning-resources-faucets', label: 'Faucets' },
+				{ id: 'lightning-resources-block-explorers', label: 'Block explorers' },
+			]}
+			data-card
+			class="network-view-collapsible-resources"
+			scrollContainerProps={{
+				'data-row': 'start align-start',
+			}}
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Resources</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionLightningResourcesFaucets({ id, label }: { id: string, label: string })}
+				<UrlsView
+					CollapsibleProps={{ canToggle: false }}
+					emptyText="No faucets listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId: entityId.$network,
+						fieldName: '$$faucetUrls',
+					}}
+					fieldSources={[
+						Source.Constants_Internal,
+					]}
+					href=""
+					limit={undefined}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionLightningResourcesBlockExplorers({ id, label }: { id: string, label: string })}
+				<UrlsView
+					CollapsibleProps={{ canToggle: false }}
+					emptyText="No block explorers listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId: entityId.$network,
+						fieldName: '$$blockExplorerUrls',
+					}}
+					fieldSources={[
+						Source.Constants_Internal,
+					]}
+					href=""
+					limit={undefined}
+					id={`${id}-list`}
+					title={label}
+				/>
 			{/snippet}
 		</CollapsibleTabs>
 	{/snippet}

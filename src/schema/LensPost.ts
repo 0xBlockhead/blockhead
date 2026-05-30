@@ -85,6 +85,12 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.LensPost_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
 			name: '$commentOn',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.LensPost,

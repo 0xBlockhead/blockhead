@@ -15,8 +15,9 @@
 	import { EntitiesListLayout } from '$/components/EntitiesListLayout.ts'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
-	import type { QueryLike } from '$/lib/db/queryResource.svelte.ts'
-	import type { RemoteResource } from '@sveltejs/kit'
+		import type { QueryLike } from '$/lib/db/queryResource.svelte.ts'
+		import type { Match } from '$/lib/string.ts'
+		import type { RemoteResource } from '@sveltejs/kit'
 
 	type ListItemProps = {
 		key: _Key
@@ -109,8 +110,8 @@
 			HeadingProps?: HeadingForwardProps
 			href: string
 			id: string
-			Item?: Snippet<[context?: ListItemProps]>
-			ItemPlaceholder?: Snippet<[context?: PlaceholderListItemProps]>
+			Item?: Snippet<[context: ListItemProps]>
+			ItemPlaceholder?: Snippet<[context: PlaceholderListItemProps]>
 			/** Ignored when `resource` is set; list rows come from the boundary resolution. */
 			items?: ItemsInput
 			open?: boolean

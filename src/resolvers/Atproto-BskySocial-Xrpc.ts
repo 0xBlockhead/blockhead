@@ -10,7 +10,10 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
-import type { BskyAppViewPostView } from '$/sources/AtprotoBsky/Rest/types.ts'
+import type {
+	BskyAppViewPostView,
+	BskyAppViewProfile,
+} from '$/sources/AtprotoBsky/Rest/types.ts'
 
 const optionalTrimmedString = (value: string | undefined) => (
 	value?.trim() || undefined
@@ -25,6 +28,19 @@ const optionalTimestampMs = (value: string | undefined) => (
 		Number.isFinite(parsed) ? parsed : undefined
 	))(Date.parse(value ?? ''))
 )
+
+const mapBskyProfileTimestampFields = (profile: BskyAppViewProfile) => ({
+	followersCount: optionalFiniteNumber(profile.followersCount),
+	followsCount: optionalFiniteNumber(profile.followsCount),
+	postsCount: optionalFiniteNumber(profile.postsCount),
+})
+
+const mapBskyPostTimestampFields = (p: BskyAppViewPostView) => ({
+	likeCount: optionalFiniteNumber(p.likeCount),
+	repostCount: optionalFiniteNumber(p.repostCount),
+	replyCount: optionalFiniteNumber(p.replyCount),
+	quoteCount: optionalFiniteNumber(p.quoteCount),
+})
 
 const mapBskyPostView = (p: BskyAppViewPostView) => {
 	const rec = p.record
@@ -45,10 +61,7 @@ const mapBskyPostView = (p: BskyAppViewPostView) => {
 		...(optionalTimestampMs(p.indexedAt) != null && {
 			indexedAt: optionalTimestampMs(p.indexedAt),
 		}),
-		likeCount: optionalFiniteNumber(p.likeCount),
-		repostCount: optionalFiniteNumber(p.repostCount),
-		replyCount: optionalFiniteNumber(p.replyCount),
-		quoteCount: optionalFiniteNumber(p.quoteCount),
+		...mapBskyPostTimestampFields(p),
 		...(rec?.langs != null && rec.langs.length > 0 && { langs: rec.langs }),
 		...(selfLabelValues != null && selfLabelValues.length > 0 && { selfLabelValues }),
 		...(parentUri != null && { $parent: { [EntityMetaKey.Id]: { uri: parentUri } } }),
@@ -83,9 +96,7 @@ export default {
 							$banner: bannerMedia,
 						}
 					))(mediaFromUrl(profile.banner, MediaType.Image)),
-					followersCount: optionalFiniteNumber(profile.followersCount),
-					followsCount: optionalFiniteNumber(profile.followsCount),
-					postsCount: optionalFiniteNumber(profile.postsCount),
+					...mapBskyProfileTimestampFields(profile),
 					...(optionalTimestampMs(profile.indexedAt) != null && {
 						indexedAt: optionalTimestampMs(profile.indexedAt),
 					}),
@@ -101,6 +112,26 @@ export default {
 				const p = (await singleFlight(bskySocialGetPosts)([entityId.uri])).posts?.[0]
 				if (p == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
 				return mapBskyPostView(p)
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.AtprotoActor_Timestamp,
+			resolve: async (entityId) => {
+				const { bskySocialGetProfile } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
+				const profile = await singleFlight(bskySocialGetProfile)(entityId.$actor.did)
+				if (profile == null) throw new Error('Atproto_BskySocial_Xrpc: profile missing')
+				return mapBskyProfileTimestampFields(profile)
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.AtprotoPost_Timestamp,
+			resolve: async (entityId) => {
+				const { bskySocialGetPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
+				const p = (await singleFlight(bskySocialGetPosts)([entityId.$post.uri])).posts?.[0]
+				if (p == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
+				return mapBskyPostTimestampFields(p)
 			},
 		}),
 	],
@@ -141,6 +172,25 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.AtprotoActor,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => {
+				const { bskySocialGetProfile } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
+				const profile = await singleFlight(bskySocialGetProfile)(entityId.did)
+				if (profile == null) throw new Error('Atproto_BskySocial_Xrpc: profile missing')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$actor: entityId,
+							timestampMs: Date.now(),
+						},
+						...mapBskyProfileTimestampFields(profile),
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.AtprotoActor,
 			fieldName: '$$posts',
 			resolve: async (entityId, context) => {
 				const { bskySocialGetAuthorFeed } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
@@ -160,6 +210,25 @@ export default {
 							return [{ [EntityMetaKey.Id]: { uri } }]
 						})
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.AtprotoPost,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => {
+				const { bskySocialGetPosts } = await import('$/sources/AtprotoBskySocial/Rest/queries.ts')
+				const p = (await singleFlight(bskySocialGetPosts)([entityId.uri])).posts?.[0]
+				if (p == null) throw new Error('Atproto_BskySocial_Xrpc: post not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$post: entityId,
+							timestampMs: Date.now(),
+						},
+						...mapBskyPostTimestampFields(p),
+					},
+				]
 			},
 		}),
 

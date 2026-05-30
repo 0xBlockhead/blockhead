@@ -8,7 +8,7 @@
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { caip2RouteParamsFromEvmChainId } from '$/lib/caip.ts'
+	import { caip2RouteParamsFromEvmChainId, networkIdFromEvmChainId } from '$/lib/caip.ts'
 
 	import {
 		apiChainByChainId,
@@ -462,15 +462,14 @@
 								<p data-text="muted">
 									No balances for this catalog yet.
 								</p>
-							{/snippet}
-							{#snippet Item(props)}
-								{#if props.item}
-									{@const balanceEntityId = props.item.value[EntityMetaKey.Id]}
-									<ActorCoinView
-										entityId={balanceEntityId}
-										layout={EntityLayout.Summary}
-									/>
-								{/if}
+								{/snippet}
+								{#snippet Item(props)}
+									{#if props.item}
+										<ActorCoinView
+											entityId={props.item.value[EntityMetaKey.Id]}
+											layout={EntityLayout.Summary}
+										/>
+									{/if}
 							{/snippet}
 						</EntitiesList>
 					</section>
@@ -500,9 +499,8 @@
 									{/snippet}
 									{#snippet Item(props)}
 										{#if props.item}
-											{@const balanceEntityId = props.item.value[EntityMetaKey.Id]}
 											<ActorCoinView
-												entityId={balanceEntityId}
+												entityId={props.item.value[EntityMetaKey.Id]}
 												layout={EntityLayout.Summary}
 											/>
 										{/if}
@@ -530,9 +528,7 @@
 								entityFieldReference={{
 									entityType: EntityType.EvmNetworkAccount,
 									entityId: {
-										$network: {
-											chainId: balancesChainId,
-										},
+										$network: networkIdFromEvmChainId(balancesChainId),
 										$actor: entityId,
 									},
 									fieldName: '$$ownedCoins',
@@ -543,9 +539,9 @@
 						</section>
 					{/each}
 				{/snippet}
-		</CollapsibleTabs>
+			</CollapsibleTabs>
 
-		<CollapsibleTabs
+			<CollapsibleTabs
 				id={`${idKey}:carousel-activity`}
 				sectionIdPrefix={idKey}
 				sections={[
@@ -568,9 +564,7 @@
 						>
 							<EvmNetworkAccountView
 								entityId={{
-									$network: {
-										chainId: facetChainId,
-									},
+									$network: networkIdFromEvmChainId(facetChainId),
 									$actor: entityId,
 								}}
 								layout={EntityLayout.Title}
@@ -589,9 +583,7 @@
 								entityFieldReference={{
 									entityType: EntityType.EvmNetworkAccount,
 									entityId: {
-										$network: {
-											chainId: facetChainId,
-										},
+										$network: networkIdFromEvmChainId(facetChainId),
 										$actor: entityId,
 									},
 									fieldName: '$$transactions',
@@ -616,9 +608,7 @@
 									entityFieldReference={{
 										entityType: EntityType.EvmNetworkAccount,
 										entityId: {
-											$network: {
-												chainId: facetChainId,
-											},
+											$network: networkIdFromEvmChainId(facetChainId),
 											$actor: entityId,
 										},
 										fieldName: '$$tokenTransfers',
@@ -645,9 +635,7 @@
 									entityFieldReference={{
 										entityType: EntityType.EvmNetworkAccount,
 										entityId: {
-											$network: {
-												chainId: facetChainId,
-											},
+											$network: networkIdFromEvmChainId(facetChainId),
 											$actor: entityId,
 										},
 										fieldName: '$$internalTransactions',
@@ -659,7 +647,7 @@
 						</section>
 					{/each}
 				{/snippet}
-		</CollapsibleTabs>
+			</CollapsibleTabs>
 
 		{#if children}
 			{@render children()}

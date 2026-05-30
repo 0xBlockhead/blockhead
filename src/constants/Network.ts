@@ -25,6 +25,11 @@ export enum NetworkEnvironment {
 	Testnet = 'Testnet',
 }
 
+export enum NetworkResourceKind {
+	BlockExplorer = 'BlockExplorer',
+	Faucet = 'Faucet',
+}
+
 // Constants
 
 const networkEnvironments = [
@@ -211,6 +216,88 @@ export const networks = [
 	environment: NetworkEnvironment
 }[]
 
+export const networkResourceUrls = [
+	{
+		networkSlug: 'bitcoin',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://mempool.space/',
+	},
+	{
+		networkSlug: 'bitcoin-cash',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://explorer.bitcoinunlimited.info/',
+	},
+	{
+		networkSlug: 'cosmos',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://www.mintscan.io/cosmos',
+	},
+	{
+		networkSlug: 'dogecoin',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://dogechain.info/',
+	},
+	{
+		networkSlug: 'filecoin',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://filfox.info/',
+	},
+	{
+		networkSlug: 'hyperliquid',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://app.hyperliquid.xyz/explorer',
+	},
+	{
+		networkSlug: 'lightning',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://mempool.space/lightning',
+	},
+	{
+		networkSlug: 'litecoin',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://litecoinspace.org/',
+	},
+	{
+		networkSlug: 'monero',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://xmrchain.net/',
+	},
+	{
+		networkSlug: 'near',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://nearblocks.io/',
+	},
+	{
+		networkSlug: 'polkadot',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://polkadot.subscan.io/',
+	},
+	{
+		networkSlug: 'solana',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://explorer.solana.com/',
+	},
+	{
+		networkSlug: 'tron',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://tronscan.org/',
+	},
+	{
+		networkSlug: 'zcash',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://zcashblockexplorer.com/',
+	},
+	{
+		networkSlug: '0g',
+		kind: NetworkResourceKind.BlockExplorer,
+		url: 'https://chainscan-galileo.0g.ai/',
+	},
+] as const satisfies readonly {
+	networkSlug: string
+	kind: NetworkResourceKind
+	url: string
+}[]
+
 // Lookups
 
 export const networkEnvironmentByEnvironment = Object.fromEntries(
@@ -247,4 +334,9 @@ export const caip2NetworkNamespaceByNamespace = Object.fromEntries(
 				row.caip2.namespace,
 			]]
 	)),
+)
+
+export const networkResourceUrlsByNetworkSlug = Object.groupBy(
+	networkResourceUrls,
+	(row) => row.networkSlug,
 )

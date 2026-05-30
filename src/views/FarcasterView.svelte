@@ -38,11 +38,9 @@
 
 
 	// Functions
-	const trendingFeed = (
-		{
-			variant: 'trending' as const,
-		} satisfies EntityId<typeof schema, EntityType.FarcasterFeed>
-	)
+	const trendingFeed: EntityId<typeof schema, EntityType.FarcasterFeed> = {
+		variant: 'trending',
+	}
 
 
 	// State
@@ -68,32 +66,13 @@
 		},
 	)
 
-	const trending = useEntity(
-		EntityType.FarcasterFeed,
-		trendingFeed,
-		{
-			$: [
-				import.meta.env.PUBLIC_NEYNAR_API_KEY?.trim() ?
-					Source.Neynar_Rest
-				:
-					Source.Snapchain_Rest,
-			],
-			...(open ?
-				{
-					$$entries: {},
-				}
-			:
-				{}),
-		},
-	)
-
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
-	} as const
+	}
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -116,8 +95,7 @@
 	title="Farcaster"
 >
 	{#snippet Value()}
-		{entityId.scope}
-
+		Farcaster
 	{/snippet}
 
 	{#snippet Title()}
@@ -201,20 +179,6 @@
 					{/if}
 				{/snippet}
 			</ResourceBoundary>
-
-			{#if open}
-				<ResourceBoundary
-					resource={trending}
-					placeholderText="Loading trending feed (casts by FID + cast hash)…"
-				>
-					{#snippet children(trending)}
-						<div>
-							<dt>Trending feed entries</dt>
-							<dd>{String(trending.$$entries.length)}</dd>
-						</div>
-					{/snippet}
-				</ResourceBoundary>
-			{/if}
 		</dl>
 	{/snippet}
 
@@ -225,10 +189,10 @@
 		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-discovery`}
 				sectionIdPrefix={networkIdKey}
-				sections={[
+				sections={collapsibleTabsSections([
 					{ id: 'feeds', label: 'Feeds' },
 					{ id: 'trending', label: 'Trending casts' },
-				]}
+				])}
 				data-card
 			>
 				{#snippet Summary({ open: _open })}
@@ -277,10 +241,10 @@
 		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-community`}
 				sectionIdPrefix={networkIdKey}
-				sections={[
+				sections={collapsibleTabsSections([
 					{ id: 'channels', label: 'Channels' },
 					{ id: 'users', label: 'Users' },
-				]}
+				])}
 				data-card
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>
@@ -327,9 +291,9 @@
 		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-accounts`}
 				sectionIdPrefix={networkIdKey}
-				sections={[
+				sections={collapsibleTabsSections([
 					{ id: 'accounts', label: 'Connected accounts' },
-				]}
+				])}
 				data-card
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>

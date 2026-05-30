@@ -55,6 +55,13 @@
 			author: {},
 			score: {},
 			commentCount: {},
+			$$timestamps: {
+				$: [
+					Source.Reddit_Rest,
+					Source.Reddit_PublicJson,
+				],
+				$limit: 1,
+			},
 			createdAt: {},
 			$subreddit: {},
 		},
@@ -65,15 +72,16 @@
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
 	import RedditCommentsView from '$/views/RedditCommentsView.svelte'
+	import RedditLink_TimestampsView from '$/views/RedditLink_TimestampsView.svelte'
 	import RedditSubredditView from '$/views/RedditSubredditView.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 </script>
 
 
@@ -145,27 +153,18 @@
 				</p>
 
 				<dl data-column-item="center">
-					{#if link.score != null}
-						<div>
-							<dt>Score</dt>
-							<dd>
-								<NumberValue
-									value={link.score}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if link.commentCount != null}
-						<div>
-							<dt>Comments</dt>
-							<dd>
-								<NumberValue
-									value={link.commentCount}
-								/>
-							</dd>
-						</div>
-					{/if}
+					<SocialMetricSnapshotRows
+						metrics={[
+							{
+								label: 'Score',
+								value: link.$$timestamps[0]?.score ?? link.score,
+							},
+							{
+								label: 'Comments',
+								value: link.$$timestamps[0]?.commentCount ?? link.commentCount,
+							},
+						]}
+					/>
 
 					{#if link.author}
 						<div>
@@ -222,9 +221,10 @@
 	})}
 		<CollapsibleTabs
 				sectionIdPrefix={idKey}
-				sections={[
-					{ id: 'comments', label: 'Top-level comments' },
-				]}
+					sections={collapsibleTabsSections([
+						{ id: 'comments', label: 'Top-level comments' },
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])}
 				id={`${idKey}:carousel-comments`}
 				data-card
 			>
@@ -241,18 +241,30 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionComments({ id, label })}
-					<RedditCommentsView
+					{#snippet SectionComments()}
+						<RedditCommentsView
 						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/reddit/comments')}
 						entityFieldReference={{
 							entityType: EntityType.RedditLink,
 							entityId,
 							fieldName: '$$comments',
 						}}
 						id={`${idKey}:reddit-comments`}
-					/>
-				{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+						/>
+					{/snippet}
+
+					{#snippet SectionMetricSnapshots()}
+						<RedditLink_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.RedditLink,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`${idKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>

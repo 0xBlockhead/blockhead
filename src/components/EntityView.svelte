@@ -45,23 +45,10 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import type { SvelteHTMLElements } from 'svelte/elements'
 
-	type EntityViewLayoutProps =
-		| {
-			layout?: EntityLayout.SummaryDetails
-			showTypeAnnotation?: boolean
-		}
-		| {
-			layout: EntityLayout.Summary
-			showTypeAnnotation?: boolean
-		}
-		| {
-			layout: EntityLayout.SummaryInline
-			showTypeAnnotation?: boolean
-		}
-		| {
-			layout: EntityLayout.Title | EntityLayout.Value
-			showTypeAnnotation?: never
-		}
+	type EntityViewLayoutProps = {
+		layout?: EntityLayout
+		showTypeAnnotation?: boolean
+	}
 
 	let {
 		entityType,
@@ -111,13 +98,13 @@
 			HeadingAfter?: Snippet
 			/** Tooltip body (e.g. `<p>` paragraphs) shown when hovering the entity type label; omitted when `showTypeAnnotation` is false. */
 			TypeAnnotationTooltip?: Snippet
-			Content?: Snippet<[context?: {
+			Content?: Snippet<[context: {
 				title?: string
 				href?: string
 				open?: boolean
 			}]>
 			CollapsibleProps?: ComponentProps<typeof Collapsible>
-			Details?: Snippet<[context?: {
+			Details?: Snippet<[context: {
 				open?: boolean
 			}]>
 		} & EntityViewLayoutProps,
@@ -265,7 +252,7 @@
 		id={stringify(entityId)}
 		style:view-transition-name={`EntityView-${stringify(entityId)}`}
 	>
-		{#snippet Annotation({ open: _annotationOpen })}
+		{#snippet Annotation()}
 			{#if TypeAnnotationTooltip}
 				<Tooltip
 					contentProps={{ side: 'top' }}
@@ -280,20 +267,18 @@
 			{/if}
 		{/snippet}
 
-		<Collapsible
-			bind:open
-			{ontoggle}
-			onclose={() => {
-				if (!isInsidePage)
-					onNestedCollapsibleClose?.(stringify(entityId))
-			}}
-			data-column-item="flexible"
-			{...{
-				'data-card': '',
-				...CollapsibleProps,
-			}}
-			Annotation={showTypeAnnotation ? Annotation : undefined}
-		>
+			<Collapsible
+				bind:open
+				{ontoggle}
+				onclose={() => {
+					if (!isInsidePage)
+						onNestedCollapsibleClose?.(stringify(entityId))
+				}}
+				data-column-item="flexible"
+				data-card
+				{...CollapsibleProps}
+				Annotation={showTypeAnnotation ? Annotation : undefined}
+			>
 			{#snippet Summary({ open: _summaryOpen })}
 				{@render CardSummaryHeader({
 					summaryOpen: _summaryOpen ?? false,

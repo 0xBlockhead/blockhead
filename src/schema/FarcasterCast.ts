@@ -85,6 +85,12 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.FarcasterCast_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
 			name: 'threadHash',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,

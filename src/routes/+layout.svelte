@@ -33,7 +33,7 @@
 		entityResolvers,
 		entityFieldResolvers,
 		persistence,
-		schemaVersion: 1,
+		schemaVersion: 2,
 	})
 
 	export {

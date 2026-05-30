@@ -88,7 +88,7 @@
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -304,11 +304,11 @@
 		<CollapsibleTabs
 				id={`${idKey}:carousel-profile-feed`}
 				sectionIdPrefix={idKey}
-				sections={[
+				sections={collapsibleTabsSections([
 					{ id: 'notes', label: 'Notes' },
 					{ id: 'articles', label: 'Articles' },
 					{ id: 'reposts', label: 'Reposts' },
-				] as const}
+				])}
 				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}

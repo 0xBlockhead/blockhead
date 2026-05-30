@@ -139,6 +139,26 @@ const denormalizedOhlcPrimitiveKeys = [
 	'high',
 	'low',
 	'close',
+	'volume',
+	'quoteVolume',
+	'vwap',
+] as const
+
+const denormalizedNumberObservationKeys = [
+	'tradeCount',
+	'liquidityUsd',
+	'volumeUsd24h',
+	'priceChangePercent24h',
+	'transactionBuys24h',
+	'transactionSells24h',
+	'marketCapUsd',
+	'fdvUsd',
+	'fundingRate',
+	'indexBasisPercent',
+] as const
+
+const denormalizedBigintObservationKeys = [
+	'openInterestUsd',
 ] as const
 
 const entityFieldCollectionValue = <_Value>(
@@ -171,6 +191,24 @@ const entityFieldCollectionValue = <_Value>(
 						)
 					}),
 					...denormalizedOhlcPrimitiveKeys.flatMap((fieldName) => {
+						const raw = (value as Record<string, unknown>)[fieldName]
+						return (
+							typeof raw === 'bigint' ?
+								[[fieldName, raw] as const]
+							:
+								[]
+						)
+					}),
+					...denormalizedNumberObservationKeys.flatMap((fieldName) => {
+						const raw = (value as Record<string, unknown>)[fieldName]
+						return (
+							typeof raw === 'number' && Number.isFinite(raw) ?
+								[[fieldName, raw] as const]
+							:
+								[]
+						)
+					}),
+					...denormalizedBigintObservationKeys.flatMap((fieldName) => {
 						const raw = (value as Record<string, unknown>)[fieldName]
 						return (
 							typeof raw === 'bigint' ?

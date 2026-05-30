@@ -174,6 +174,26 @@
 						</div>
 					{/if}
 
+					{#if networkGasFeeBlock.baseFeePerBlobGas !== undefined}
+						<div>
+							<dt>Blob base fee</dt>
+							<dd>
+								<NumberValue value={networkGasFeeBlock.baseFeePerBlobGas} />
+								wei
+							</dd>
+						</div>
+					{/if}
+
+					{#if (
+						open
+						&& networkGasFeeBlock.blobGasUsedRatio !== undefined
+					)}
+						<div>
+							<dt>Blob gas used ratio</dt>
+							<dd>{String(networkGasFeeBlock.blobGasUsedRatio)}</dd>
+						</div>
+					{/if}
+
 				</dl>
 			{/snippet}
 		</ResourceBoundary>

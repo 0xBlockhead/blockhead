@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -34,6 +35,23 @@
 			slug: {},
 			name: {},
 			environment: {},
+			$$nativeAssets: {},
+		},
+	)
+
+	const filecoinNetwork = useEntity(
+		EntityType.FilecoinNetwork,
+		entityId,
+		{
+			$: [
+				Source.Lotus_JsonRpc,
+				Source.Filfox_Rest,
+			],
+			$headTipset: {},
+			$$timestamps: {
+				$limit: 1,
+			},
+			rpcEndpoints: {},
 		},
 	)
 
@@ -44,10 +62,14 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import FilecoinMinersView from '$/views/FilecoinMinersView.svelte'
+	import FilecoinNetwork_TimestampsView from '$/views/FilecoinNetwork_TimestampsView.svelte'
+	import FilecoinTipsetView from '$/views/FilecoinTipsetView.svelte'
+	import FilecoinTipsetsView from '$/views/FilecoinTipsetsView.svelte'
+	import UrlsView from '$/views/UrlsView.svelte'
 </script>
 
 
@@ -73,7 +95,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={network}>
 			{#snippet Pending()}
-				{@render Value()}
+				<span data-text="muted">Resolving network...</span>
 			{/snippet}
 
 			{#snippet children(network)}
@@ -90,10 +112,33 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
+					<ResourceBoundary resource={filecoinNetwork}>
+						{#snippet children(filecoinNetwork)}
+							{#if filecoinNetwork.$headTipset != null}
+								<div>
+									<dt>Head tipset</dt>
+									<dd id="network-summary-head-block">
+										<FilecoinTipsetView
+											entityId={filecoinNetwork.$headTipset[EntityMetaKey.Id]}
+											layout={EntityLayout.Value}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
 					<div>
 						<dt>Environment</dt>
 						<dd>{network.environment}</dd>
 					</div>
+
+					{#if network.$$nativeAssets.length > 0}
+						<div>
+							<dt>Native assets</dt>
+							<dd>{network.$$nativeAssets.length}</dd>
+						</div>
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -105,25 +150,174 @@
 			id={`${networkIdKey}:carousel-filecoin-chain`}
 			sectionIdPrefix={networkIdKey}
 			sections={[
-				{ id: 'filecoin-chain-network', label: 'Network' },
+				{ id: 'filecoin-tipsets', label: 'Tipsets' },
+				{ id: 'filecoin-network-snapshots', label: 'Network snapshots' },
+				{ id: 'filecoin-endpoints', label: 'Endpoints' },
 			]}
 			data-card
+			class="network-view-collapsible-execution"
 			scrollContainerProps={{
 				'data-row': 'start align-start',
 			}}
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Filecoin</HeadingComponent>
+					<HeadingComponent>Execution</HeadingComponent>
 				</header>
 			{/snippet}
 
-			{#snippet SectionFilecoinChainNetwork()}
-				<ResourceBoundary resource={network}>
-					{#snippet children(network)}
-						<p><strong>Environment:</strong> {network.environment}</p>
+			{#snippet SectionFilecoinTipsets({ id, label }: { id: string, label: string })}
+				<FilecoinTipsetsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.FilecoinNetwork,
+						entityId,
+						fieldName: '$$tipsets',
+					}}
+					href={href == null ? '' : `${href}/blocks`}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionFilecoinNetworkSnapshots({ id, label }: { id: string, label: string })}
+				<FilecoinNetwork_TimestampsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.FilecoinNetwork,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionFilecoinEndpoints()}
+				<ResourceBoundary resource={filecoinNetwork}>
+					{#snippet children(filecoinNetwork)}
+						{#if filecoinNetwork.rpcEndpoints.length > 0}
+							<p><strong>RPC endpoints:</strong> {filecoinNetwork.rpcEndpoints.length}</p>
+						{:else}
+							<p data-text="muted">No RPC endpoints listed for this network yet.</p>
+						{/if}
 					{/snippet}
 				</ResourceBoundary>
+			{/snippet}
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={`${networkIdKey}:carousel-consensus`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'filecoin-miners', label: 'Miners' },
+			]}
+			data-card
+			class="network-view-collapsible-consensus"
+			scrollContainerProps={{
+				'data-row': 'start align-start',
+			}}
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Consensus &amp; Storage Power</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionFilecoinMiners({ id, label }: { id: string, label: string })}
+				<FilecoinMinersView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.FilecoinNetwork,
+						entityId,
+						fieldName: '$$headMiners',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={`${networkIdKey}:carousel-assets`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'filecoin-assets-native', label: 'Native coin' },
+			]}
+			data-card
+			class="network-view-collapsible-assets"
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Assets</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionFilecoinAssetsNative()}
+				<ResourceBoundary resource={network}>
+					{#snippet children(network)}
+						{#if network.$$nativeAssets.length > 0}
+							<p><strong>Native assets:</strong> {network.$$nativeAssets.length}</p>
+						{:else}
+							<p data-text="muted">No native asset mapped for this network yet.</p>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={`${networkIdKey}:carousel-resources`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'filecoin-resources-faucets', label: 'Faucets' },
+				{ id: 'filecoin-resources-block-explorers', label: 'Block explorers' },
+			]}
+			data-card
+			class="network-view-collapsible-resources"
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Resources</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionFilecoinResourcesFaucets({ id, label }: { id: string, label: string })}
+				<UrlsView
+					CollapsibleProps={{ canToggle: false }}
+					emptyText="No faucets listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$faucetUrls',
+					}}
+					fieldSources={[
+						Source.Constants_Internal,
+					]}
+					href={href ?? ''}
+					limit={undefined}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionFilecoinResourcesBlockExplorers({ id, label }: { id: string, label: string })}
+				<UrlsView
+					CollapsibleProps={{ canToggle: false }}
+					emptyText="No block explorers listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$blockExplorerUrls',
+					}}
+					fieldSources={[
+						Source.Constants_Internal,
+					]}
+					href={href ?? ''}
+					limit={undefined}
+					id={`${id}-list`}
+					title={label}
+				/>
 			{/snippet}
 		</CollapsibleTabs>
 	{/snippet}

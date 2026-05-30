@@ -1,4 +1,9 @@
 <script lang="ts">
+	// Types/constants
+	import { type as arktype } from 'arktype'
+	import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+
+
 	// Context
 	import { resolve } from '$app/paths'
 	import { page } from '$app/state'
@@ -10,6 +15,14 @@
 
 	const address = $derived(
 		page.params.address ?? '',
+	)
+	const entityId = $derived(
+		((parsedAddress) => (
+			parsedAddress instanceof arktype.errors ?
+				undefined
+			:
+				{ address: parsedAddress }
+		))(EvmAddress(address)),
 	)
 
 
@@ -27,10 +40,12 @@
 	id={address}
 >
 	{#snippet Summary({ open: _open })}
-		<LensAccountView
-			entityId={{ address: address as `0x${string}` }}
-			layout={EntityLayout.SummaryInline}
-		/>
+		{#if entityId}
+			<LensAccountView
+				{entityId}
+				layout={EntityLayout.SummaryInline}
+			/>
+		{/if}
 	{/snippet}
 
 	{@render children()}

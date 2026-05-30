@@ -2,19 +2,28 @@ import type { Schema } from '$/schema/$schema.ts'
 
 import _GlobalSchema from '$/schema/_Global.ts'
 import ActivityPubActorSchema from '$/schema/ActivityPubActor.ts'
+import ActivityPubActor_TimestampSchema from '$/schema/ActivityPubActor_Timestamp.ts'
 import ActivityPubNetworkSchema from '$/schema/ActivityPubNetwork.ts'
 import ActivityPubNoteSchema from '$/schema/ActivityPubNote.ts'
+import ActivityPubNote_TimestampSchema from '$/schema/ActivityPubNote_Timestamp.ts'
 import EvmAccountSchema from '$/schema/EvmAccount.ts'
 import Actor_Coin_EvmBlockSchema from '$/schema/Actor_Coin_EvmBlock.ts'
 import AtprotoActorSchema from '$/schema/AtprotoActor.ts'
+import AtprotoActor_TimestampSchema from '$/schema/AtprotoActor_Timestamp.ts'
 import AtprotoPostSchema from '$/schema/AtprotoPost.ts'
+import AtprotoPost_TimestampSchema from '$/schema/AtprotoPost_Timestamp.ts'
 import AtprotoNetworkSchema from '$/schema/AtprotoNetwork.ts'
 import ActorCoinSchema from '$/schema/ActorCoin.ts'
 import ActorCoinAllowanceSchema from '$/schema/ActorCoinAllowance.ts'
 import EvmNetworkAccountSchema from '$/schema/EvmNetworkAccount.ts'
 import BeaconEpochSchema from '$/schema/BeaconEpoch.ts'
 import BeaconSlotSchema from '$/schema/BeaconSlot.ts'
+import BeaconAttestationSchema from '$/schema/BeaconAttestation.ts'
+import BeaconCommitteeSchema from '$/schema/BeaconCommittee.ts'
+import BeaconSlashingSchema from '$/schema/BeaconSlashing.ts'
+import BeaconSyncCommitteeSchema from '$/schema/BeaconSyncCommittee.ts'
 import BeaconValidatorSchema from '$/schema/BeaconValidator.ts'
+import BeaconWithdrawalSchema from '$/schema/BeaconWithdrawal.ts'
 import BittensorBlockSchema from '$/schema/BittensorBlock.ts'
 import BittensorMetagraph_TimestampSchema from '$/schema/BittensorMetagraph_Timestamp.ts'
 import BittensorNetworkSchema from '$/schema/BittensorNetwork.ts'
@@ -52,8 +61,11 @@ import NetworkExecutionUpgradeSchema from '$/schema/EthereumExecutionUpgrade.ts'
 import MarketSchema from '$/schema/Market.ts'
 import MarketVenueSchema from '$/schema/MarketVenue.ts'
 import MarketPriceSchema from '$/schema/MarketPrice.ts'
+import Market_Derivative_TimestampSchema from '$/schema/Market_Derivative_Timestamp.ts'
 import Market_TimeInterval_TimestampSchema from '$/schema/Market_TimeInterval_Timestamp.ts'
 import Market_TimestampSchema from '$/schema/Market_Timestamp.ts'
+import MevBuilderSchema from '$/schema/MevBuilder.ts'
+import MevRelaySchema from '$/schema/MevRelay.ts'
 import MevRelay_ProposerPayloadDeliveredSchema from '$/schema/MevRelay_ProposerPayloadDelivered.ts'
 import Eip8004ServiceSchema from '$/schema/Eip8004Service.ts'
 import EnsNameSchema from '$/schema/EnsName.ts'
@@ -81,20 +93,27 @@ import EvmTransactionSchema from '$/schema/EvmTransaction.ts'
 import EvmUserOperationSchema from '$/schema/EvmUserOperation.ts'
 import FarcasterCastSchema from '$/schema/FarcasterCast.ts'
 import FarcasterCastEmbedSchema from '$/schema/FarcasterCastEmbed.ts'
+import FarcasterCast_TimestampSchema from '$/schema/FarcasterCast_Timestamp.ts'
 import FarcasterChannelSchema from '$/schema/FarcasterChannel.ts'
+import FarcasterChannel_TimestampSchema from '$/schema/FarcasterChannel_Timestamp.ts'
 import FarcasterFeedSchema from '$/schema/FarcasterFeed.ts'
 import FarcasterNetworkSchema from '$/schema/FarcasterNetwork.ts'
 import FarcasterUserSchema from '$/schema/FarcasterUser.ts'
+import FarcasterUser_TimestampSchema from '$/schema/FarcasterUser_Timestamp.ts'
 import FarcasterVerifiedAddressSchema from '$/schema/FarcasterVerifiedAddress.ts'
 import CurrencySchema from '$/schema/Currency.ts'
 import Currency_TimestampSchema from '$/schema/Currency_Timestamp.ts'
 import IpfsProtocolSchema from '$/schema/IpfsProtocol.ts'
 import IpfsResourceSchema from '$/schema/IpfsResource.ts'
 import LensAccountSchema from '$/schema/LensAccount.ts'
+import LensAccount_TimestampSchema from '$/schema/LensAccount_Timestamp.ts'
 import LensPostSchema from '$/schema/LensPost.ts'
+import LensPost_TimestampSchema from '$/schema/LensPost_Timestamp.ts'
 import LensNetworkSchema from '$/schema/LensNetwork.ts'
 import LeverageSchema from '$/schema/Leverage.ts'
 import LiquidityPoolSchema from '$/schema/LiquidityPool.ts'
+import LiquidityPool_BlockSchema from '$/schema/LiquidityPool_Block.ts'
+import LiquidityPool_TimestampSchema from '$/schema/LiquidityPool_Timestamp.ts'
 import LiquidityPositionSchema from '$/schema/LiquidityPosition.ts'
 import MediaSchema from '$/schema/Media.ts'
 import MediaObjectSchema from '$/schema/MediaObject.ts'
@@ -229,6 +248,9 @@ import LogosAccountSchema from '$/schema/LogosAccount.ts'
 import LogosTransactionSchema from '$/schema/LogosTransaction.ts'
 import EvmNetworkSchema from '$/schema/EvmNetwork.ts'
 import EvmNetworkBridgeSchema from '$/schema/EvmNetworkBridge.ts'
+import EvmRollupSchema from '$/schema/EvmRollup.ts'
+import OracleFeedSchema from '$/schema/OracleFeed.ts'
+import OracleFeed_RoundSchema from '$/schema/OracleFeed_Round.ts'
 import EthereumBeaconFinality_TimestampSchema from '$/schema/EthereumBeaconFinality_Timestamp.ts'
 import EvmNetwork_GasFee_BlockSchema from '$/schema/EvmNetwork_GasFee_Block.ts'
 import EvmNetwork_GasEstimate_TimestampSchema from '$/schema/EvmNetwork_GasEstimate_Timestamp.ts'
@@ -245,8 +267,11 @@ import ProposalKindSchema from '$/schema/SpecificationProposalKind.ts'
 import SpecificationRealmSchema from '$/schema/SpecificationRealm.ts'
 import ProposalSchema from '$/schema/SpecificationProposal.ts'
 import RedditCommentSchema from '$/schema/RedditComment.ts'
+import RedditComment_TimestampSchema from '$/schema/RedditComment_Timestamp.ts'
 import RedditLinkSchema from '$/schema/RedditLink.ts'
+import RedditLink_TimestampSchema from '$/schema/RedditLink_Timestamp.ts'
 import RedditSubredditSchema from '$/schema/RedditSubreddit.ts'
+import RedditSubreddit_TimestampSchema from '$/schema/RedditSubreddit_Timestamp.ts'
 import RedditNetworkSchema from '$/schema/RedditNetwork.ts'
 import RssFeedSchema from '$/schema/RssFeed.ts'
 import RssItemSchema from '$/schema/RssItem.ts'
@@ -261,33 +286,48 @@ import SwapQuoteSchema from '$/schema/SwapQuote.ts'
 import UrlSchema from '$/schema/Url.ts'
 import VaultSchema from '$/schema/Vault.ts'
 import XPostSchema from '$/schema/XPost.ts'
+import XPost_TimestampSchema from '$/schema/XPost_Timestamp.ts'
 import XUserSchema from '$/schema/XUser.ts'
+import XUser_TimestampSchema from '$/schema/XUser_Timestamp.ts'
 import XNetworkSchema from '$/schema/XNetwork.ts'
 import XmtpConversationSchema from '$/schema/XmtpConversation.ts'
 import XmtpNetworkSchema from '$/schema/XmtpNetwork.ts'
 import YouTubeChannelSchema from '$/schema/YouTubeChannel.ts'
+import YouTubeChannel_TimestampSchema from '$/schema/YouTubeChannel_Timestamp.ts'
 import YouTubeCommentSchema from '$/schema/YouTubeComment.ts'
+import YouTubeComment_TimestampSchema from '$/schema/YouTubeComment_Timestamp.ts'
 import YouTubeNetworkSchema from '$/schema/YouTubeNetwork.ts'
 import YouTubePlaylistSchema from '$/schema/YouTubePlaylist.ts'
+import YouTubePlaylist_TimestampSchema from '$/schema/YouTubePlaylist_Timestamp.ts'
 import YouTubeVideoSchema from '$/schema/YouTubeVideo.ts'
+import YouTubeVideo_TimestampSchema from '$/schema/YouTubeVideo_Timestamp.ts'
 import EthereumNetworkUpgradeSchema from '$/schema/EthereumNetworkUpgrade.ts'
 
 export const schema = [
 	_GlobalSchema,
 	ActivityPubActorSchema,
+	ActivityPubActor_TimestampSchema,
 	ActivityPubNetworkSchema,
 	ActivityPubNoteSchema,
+	ActivityPubNote_TimestampSchema,
 	EvmAccountSchema,
 	Actor_Coin_EvmBlockSchema,
 	AtprotoActorSchema,
+	AtprotoActor_TimestampSchema,
 	AtprotoPostSchema,
+	AtprotoPost_TimestampSchema,
 	AtprotoNetworkSchema,
 	ActorCoinSchema,
 	ActorCoinAllowanceSchema,
 	EvmNetworkAccountSchema,
 	BeaconEpochSchema,
 	BeaconSlotSchema,
+	BeaconAttestationSchema,
+	BeaconCommitteeSchema,
+	BeaconSlashingSchema,
+	BeaconSyncCommitteeSchema,
 	BeaconValidatorSchema,
+	BeaconWithdrawalSchema,
 	BittensorBlockSchema,
 	BittensorMetagraph_TimestampSchema,
 	BittensorNetworkSchema,
@@ -325,8 +365,11 @@ export const schema = [
 	MarketSchema,
 	MarketVenueSchema,
 	MarketPriceSchema,
+	Market_Derivative_TimestampSchema,
 	Market_TimeInterval_TimestampSchema,
 	Market_TimestampSchema,
+	MevBuilderSchema,
+	MevRelaySchema,
 	MevRelay_ProposerPayloadDeliveredSchema,
 	Eip8004ServiceSchema,
 	EnsNameSchema,
@@ -354,20 +397,27 @@ export const schema = [
 	EvmUserOperationSchema,
 	FarcasterCastSchema,
 	FarcasterCastEmbedSchema,
+	FarcasterCast_TimestampSchema,
 	FarcasterChannelSchema,
+	FarcasterChannel_TimestampSchema,
 	FarcasterFeedSchema,
 	FarcasterNetworkSchema,
 	FarcasterUserSchema,
+	FarcasterUser_TimestampSchema,
 	FarcasterVerifiedAddressSchema,
 	CurrencySchema,
 	Currency_TimestampSchema,
 	IpfsProtocolSchema,
 	IpfsResourceSchema,
 	LensAccountSchema,
+	LensAccount_TimestampSchema,
 	LensPostSchema,
+	LensPost_TimestampSchema,
 	LensNetworkSchema,
 	LeverageSchema,
 	LiquidityPoolSchema,
+	LiquidityPool_BlockSchema,
+	LiquidityPool_TimestampSchema,
 	LiquidityPositionSchema,
 	MediaSchema,
 	MediaObjectSchema,
@@ -502,6 +552,9 @@ export const schema = [
 	LogosTransactionSchema,
 	EvmNetworkSchema,
 	EvmNetworkBridgeSchema,
+	EvmRollupSchema,
+	OracleFeedSchema,
+	OracleFeed_RoundSchema,
 	EthereumBeaconFinality_TimestampSchema,
 	EvmNetwork_GasFee_BlockSchema,
 	EvmNetwork_GasEstimate_TimestampSchema,
@@ -518,8 +571,11 @@ export const schema = [
 	SpecificationRealmSchema,
 	ProposalSchema,
 	RedditCommentSchema,
+	RedditComment_TimestampSchema,
 	RedditLinkSchema,
+	RedditLink_TimestampSchema,
 	RedditSubredditSchema,
+	RedditSubreddit_TimestampSchema,
 	RedditNetworkSchema,
 	RssFeedSchema,
 	RssItemSchema,
@@ -535,15 +591,21 @@ export const schema = [
 	EthereumNetworkUpgradeSchema,
 	VaultSchema,
 	XPostSchema,
+	XPost_TimestampSchema,
 	XUserSchema,
+	XUser_TimestampSchema,
 	XNetworkSchema,
 	XmtpConversationSchema,
 	XmtpNetworkSchema,
 	YouTubeChannelSchema,
+	YouTubeChannel_TimestampSchema,
 	YouTubeCommentSchema,
+	YouTubeComment_TimestampSchema,
 	YouTubeNetworkSchema,
 	YouTubePlaylistSchema,
+	YouTubePlaylist_TimestampSchema,
 	YouTubeVideoSchema,
+	YouTubeVideo_TimestampSchema,
 ] as const satisfies Schema
 
 export type RegisteredEntityType = (typeof schema)[number]['entityType']

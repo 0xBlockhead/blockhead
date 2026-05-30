@@ -6,9 +6,9 @@
 
 
 	// Functions
-	const entityId = ({
-		variant: 'trending' as const,
-	}) satisfies EntityId<typeof schema, EntityType.FarcasterFeed>
+	const entityId: EntityId<typeof schema, EntityType.FarcasterFeed> = {
+		variant: 'trending',
+	}
 
 
 	// Components

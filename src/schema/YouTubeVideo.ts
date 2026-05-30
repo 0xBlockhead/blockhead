@@ -78,6 +78,12 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.YouTubeVideo_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
 			name: 'categoryId',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),

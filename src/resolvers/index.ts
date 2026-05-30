@@ -8,6 +8,7 @@ import AlliumRestResolvers from '$/resolvers/Allium-Rest.ts'
 import AtprotoXrpcResolvers from '$/resolvers/Atproto-Xrpc.ts'
 import AtprotoBskySocialXrpcResolvers from '$/resolvers/Atproto-BskySocial-Xrpc.ts'
 import BeaconRestResolvers from '$/resolvers/Beacon-Rest.ts'
+import BeaconchaInRestResolvers from '$/resolvers/BeaconchaIn-Rest.ts'
 import BittensorJsonRpcResolvers from '$/resolvers/Bittensor-JsonRpc.ts'
 import BitcoinBipsGithubResolvers from '$/resolvers/BitcoinBips-Github.ts'
 import BitcoinCashBcmrGithubResolvers from '$/resolvers/BitcoinCashBcmr-Github.ts'
@@ -117,6 +118,7 @@ const enabledResolverModulesAfterSourceGate = (
 		AtprotoXrpcResolvers,
 		AtprotoBskySocialXrpcResolvers,
 		BeaconRestResolvers,
+		BeaconchaInRestResolvers,
 		BittensorJsonRpcResolvers,
 		BitcoinBipsGithubResolvers,
 		BitcoinCashBcmrGithubResolvers,

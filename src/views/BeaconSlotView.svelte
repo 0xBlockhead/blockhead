@@ -71,11 +71,16 @@
 
 
 	// Components
+	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import BeaconAttestationsView from '$/views/BeaconAttestationsView.svelte'
+	import BeaconCommitteesView from '$/views/BeaconCommitteesView.svelte'
 	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
+	import BeaconSlashingsView from '$/views/BeaconSlashingsView.svelte'
+	import BeaconWithdrawalsView from '$/views/BeaconWithdrawalsView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 </script>
 
@@ -267,5 +272,74 @@
 	{#snippet Details({
 		open: _open,
 	})}
+		<CollapsibleTabs
+			id={`beacon-slot:${String(entityId.slot)}:contents`}
+			sectionIdPrefix={`beacon-slot:${String(entityId.slot)}`}
+			sections={[
+				{ id: 'slot-committees', label: 'Committees' },
+				{ id: 'slot-attestations', label: 'Attestations' },
+				{ id: 'slot-withdrawals', label: 'Withdrawals' },
+				{ id: 'slot-slashings', label: 'Slashings' },
+			]}
+			data-card
+		>
+			{#snippet Summary({})}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<h3>Slot contents</h3>
+				</header>
+			{/snippet}
+
+			{#snippet SectionSlotCommittees({ id, label })}
+				<BeaconCommitteesView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.BeaconSlot,
+						entityId,
+						fieldName: '$$beaconCommittees',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionSlotAttestations({ id, label })}
+				<BeaconAttestationsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.BeaconSlot,
+						entityId,
+						fieldName: '$$beaconAttestations',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionSlotWithdrawals({ id, label })}
+				<BeaconWithdrawalsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.BeaconSlot,
+						entityId,
+						fieldName: '$$beaconWithdrawals',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionSlotSlashings({ id, label })}
+				<BeaconSlashingsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.BeaconSlot,
+						entityId,
+						fieldName: '$$beaconSlashings',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

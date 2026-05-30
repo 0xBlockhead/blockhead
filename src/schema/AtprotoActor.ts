@@ -74,6 +74,16 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.AtprotoActor_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Atproto_Xrpc,
+				Source.Atproto_BskySocial_Xrpc,
+			],
+		},
+		{
 			name: 'indexedAt',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),

@@ -67,6 +67,16 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.XPost_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.X_Rest,
+				Source.X_FxEmbed_Rest,
+			],
+		},
+		{
 			name: 'conversationId',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),

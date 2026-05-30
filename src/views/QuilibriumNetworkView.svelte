@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -24,35 +25,251 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const network = useEntity(EntityType.Network, entityId, { $: [Source.Constants_Internal], name: {}, environment: {}, $$executionEnvironments: {}, $$consensusMechanisms: {}, $$nativeAssets: {} })
-	const networkIdKey = $derived(stringify(entityId))
+	const network = useEntity(
+		EntityType.Network,
+		entityId,
+		{
+			$: [
+				Source.Constants_Internal,
+			],
+			name: {},
+			environment: {},
+			$$executionEnvironments: {},
+			$$consensusMechanisms: {},
+			$$nativeAssets: {},
+		},
+	)
+
+	const quilibriumNetwork = useEntity(
+		EntityType.QuilibriumNetwork,
+		{
+			networkSlug: 'quilibrium',
+		},
+		{
+			$: [
+				Source.QuilibriumDocs_Rest,
+				Source.QuilibriumNodeRpc_Grpc,
+			],
+			docsEndpoints: {},
+			nodeInterfaces: {},
+			protocolFacts: {},
+			serviceLayers: {},
+			$protocolDocument: {},
+			$masterShard: {},
+		},
+	)
+
+	const networkIdKey = $derived(
+		stringify(entityId),
+	)
 
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import QuilibriumShardView from '$/views/QuilibriumShardView.svelte'
+	import UrlsView from '$/views/UrlsView.svelte'
 </script>
 
 
-<EntityView entityType={EntityType.Network} {entityId} {href} bind:open {layout}>
-	{#snippet Value()}<span>{entityId.namespace}:{entityId.reference}</span>{/snippet}
+<EntityView
+	entityType={EntityType.Network}
+	{entityId}
+	{href}
+	bind:open
+	{layout}
+>
+	{#snippet Value()}
+		<ResourceBoundary resource={network}>
+			{#snippet Pending()}
+				<span data-text="muted">Resolving network...</span>
+			{/snippet}
 
-	{#snippet Title()}<ResourceBoundary resource={network}>{#snippet Pending()}{@render Value()}{/snippet}{#snippet children(network)}{network.name}{/snippet}</ResourceBoundary>
+			{#snippet children(network)}
+				<span>{network.name}</span>
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet TypeAnnotationTooltip()}<p>Quilibrium is modeled around frames, shards, provers, accounts, and pending transactions.</p>{/snippet}
+	{#snippet Title()}
+		<ResourceBoundary resource={network}>
+			{#snippet Pending()}
+				<span data-text="muted">Resolving network...</span>
+			{/snippet}
 
-	{#snippet Content()}<ResourceBoundary resource={network}>{#snippet children(network)}<dl><div><dt>Environment</dt><dd>{network.environment}</dd></div></dl>{/snippet}</ResourceBoundary>{/snippet}
+			{#snippet children(network)}
+				{network.name}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet TypeAnnotationTooltip()}
+		<p>Quilibrium is modeled around frames, shards, provers, accounts, pending transactions, and its protocol document.</p>
+	{/snippet}
+
+	{#snippet Content()}
+		<ResourceBoundary resource={network}>
+			{#snippet children(network)}
+				<dl class="network-summary-head" data-column-item="center">
+					<div>
+						<dt>Environment</dt>
+						<dd>{network.environment}</dd>
+					</div>
+
+					<ResourceBoundary resource={quilibriumNetwork}>
+						{#snippet children(quilibriumNetwork)}
+							{#if quilibriumNetwork.$masterShard != null}
+								<div>
+									<dt>Master shard</dt>
+									<dd>
+										<QuilibriumShardView
+											entityId={quilibriumNetwork.$masterShard[EntityMetaKey.Id]}
+											layout={EntityLayout.Value}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
 
 	{#snippet Details()}
-		<CollapsibleTabs id={`${networkIdKey}:carousel-quilibrium`} sectionIdPrefix={networkIdKey} sections={[{ id: 'quilibrium-frames', label: 'Frames' }, { id: 'quilibrium-execution', label: 'Execution' }, { id: 'quilibrium-consensus', label: 'Consensus' }]} data-card scrollContainerProps={{ 'data-row': 'start align-start' }}>
-			{#snippet Summary()}<header data-row-item="flexible" data-row="wrap gap-4"><HeadingComponent>Execution</HeadingComponent></header>{/snippet}
-			{#snippet SectionQuilibriumFrames()}<p><strong>Frames:</strong> Frames are keyed by shard and frame number; live frame enumeration requires a node transport with shard context.</p>{/snippet}
-			{#snippet SectionQuilibriumExecution()}<ResourceBoundary resource={network}>{#snippet children(network)}<div>{#if network.$$executionEnvironments.length > 0}<p><strong>Execution:</strong> {network.$$executionEnvironments.map((environment) => environment.label).join(', ')}</p>{/if}{#if network.$$nativeAssets.length > 0}<p><strong>Native asset:</strong> {network.$$nativeAssets.map((asset) => asset.symbol).join(', ')}</p>{/if}</div>{/snippet}</ResourceBoundary>{/snippet}
-			{#snippet SectionQuilibriumConsensus()}<ResourceBoundary resource={network}>{#snippet children(network)}<div>{#if network.$$consensusMechanisms.length > 0}<p><strong>Consensus:</strong> {network.$$consensusMechanisms.map((mechanism) => mechanism.label).join(', ')}</p>{/if}</div>{/snippet}</ResourceBoundary>{/snippet}
+		<CollapsibleTabs
+			id={`${networkIdKey}:carousel-quilibrium`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'quilibrium-protocol', label: 'Protocol' },
+				{ id: 'quilibrium-services', label: 'Services' },
+				{ id: 'quilibrium-interfaces', label: 'Node interfaces' },
+				{ id: 'quilibrium-consensus', label: 'Consensus' },
+			]}
+			data-card
+			scrollContainerProps={{
+				'data-row': 'start align-start',
+			}}
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Protocol</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionQuilibriumProtocol()}
+				<ResourceBoundary resource={quilibriumNetwork}>
+					{#snippet children(quilibriumNetwork)}
+						{#if quilibriumNetwork.$protocolDocument != null}
+							<p>
+								<strong>Protocol document:</strong>
+								{quilibriumNetwork.$protocolDocument[EntityMetaKey.Id].category}
+								{quilibriumNetwork.$protocolDocument[EntityMetaKey.Id].number}
+							</p>
+						{/if}
+
+						{#each quilibriumNetwork.protocolFacts as fact}
+							<p><strong>{fact.label}:</strong> {fact.value}</p>
+						{/each}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionQuilibriumServices()}
+				<ResourceBoundary resource={quilibriumNetwork}>
+					{#snippet children(quilibriumNetwork)}
+						{#each quilibriumNetwork.serviceLayers as serviceLayer}
+							<p><strong>{serviceLayer.label}:</strong> {serviceLayer.description}</p>
+						{:else}
+							<p data-text="muted">No service layers listed for this network yet.</p>
+						{/each}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionQuilibriumInterfaces()}
+				<ResourceBoundary resource={quilibriumNetwork}>
+					{#snippet children(quilibriumNetwork)}
+						{#each quilibriumNetwork.nodeInterfaces as nodeInterface}
+							<p><strong>{nodeInterface.label}:</strong> {nodeInterface.transportType} on port {nodeInterface.port}</p>
+						{:else}
+							<p data-text="muted">No node interfaces listed for this network yet.</p>
+						{/each}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+
+			{#snippet SectionQuilibriumConsensus()}
+				<ResourceBoundary resource={network}>
+					{#snippet children(network)}
+						{#if network.$$consensusMechanisms.length > 0}
+							<p><strong>Consensus mechanisms:</strong> {network.$$consensusMechanisms.length}</p>
+						{:else}
+							<p data-text="muted">No consensus mechanisms mapped for this network yet.</p>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={`${networkIdKey}:carousel-quilibrium-resources`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'quilibrium-resources-faucets', label: 'Faucets' },
+				{ id: 'quilibrium-resources-block-explorers', label: 'Block explorers' },
+			]}
+			data-card
+			class="network-view-collapsible-resources"
+			scrollContainerProps={{
+				'data-row': 'start align-start',
+			}}
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Resources</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionQuilibriumResourcesFaucets({ id, label }: { id: string, label: string })}
+				<UrlsView
+					CollapsibleProps={{ canToggle: false }}
+					emptyText="No faucets listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$faucetUrls',
+					}}
+					fieldSources={[
+						Source.Constants_Internal,
+					]}
+					href={href ?? ''}
+					limit={undefined}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionQuilibriumResourcesBlockExplorers({ id, label }: { id: string, label: string })}
+				<UrlsView
+					CollapsibleProps={{ canToggle: false }}
+					emptyText="No block explorers listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$blockExplorerUrls',
+					}}
+					fieldSources={[
+						Source.Constants_Internal,
+					]}
+					href={href ?? ''}
+					limit={undefined}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
 		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

@@ -19,6 +19,11 @@ const executionEndpointField = type({
 	transportType: type.valueOf(TransportType),
 })
 
+const consensusEndpointField = type({
+	restBaseUrl: UrlString,
+	consensusProtocol: type.valueOf(ConsensusProtocol),
+})
+
 export default {
 	entityType: EntityType.EvmNetwork,
 
@@ -78,6 +83,15 @@ export default {
 				Source.Chainlist_Rest,
 				Source.EthereumLists_Rest,
 				Source.Lifi_Rest,
+			],
+		},
+		{
+			name: 'consensusEndpoints',
+			type: EntityFieldType.Primitive,
+			primitiveType: consensusEndpointField,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Constants_Internal,
 			],
 		},
 		{
@@ -233,6 +247,24 @@ export default {
 			],
 		},
 		{
+			name: '$rollup',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmRollup,
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.L2Beat_Rest,
+			],
+		},
+		{
+			name: '$$settledRollups',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmRollup,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.L2Beat_Rest,
+			],
+		},
+		{
 			name: 'gasPrice',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),
@@ -266,6 +298,24 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Voltaire_JsonRpc,
+			],
+		},
+		{
+			name: '$$erc20TokenTransfers',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmTokenTransfer,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
+		},
+		{
+			name: '$$nftTokenTransfers',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.EvmTokenTransfer,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Blockscout_Rest,
 			],
 		},
 		{
@@ -328,6 +378,24 @@ export default {
 			name: '$$mevProposerPayloadDelivered',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.MevRelay_ProposerPayloadDelivered,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.MevRelay_Rest,
+			],
+		},
+		{
+			name: '$$mevRelays',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.MevRelay,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Constants_Internal,
+			],
+		},
+		{
+			name: '$$mevBuilders',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.MevBuilder,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.MevRelay_Rest,
@@ -405,6 +473,7 @@ export default {
 				Source.Beacon_Rest,
 			],
 		},
+		// Hoisted: recent epochs across this network; intrinsic parent is the network.
 		{
 			name: '$$beaconEpochs',
 			type: EntityFieldType.EntitiesReference,
@@ -414,10 +483,61 @@ export default {
 				Source.Beacon_Rest,
 			],
 		},
+		// Hoisted: recent slots across this network; slots are intrinsically contained by epochs.
 		{
 			name: '$$beaconSlots',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.BeaconSlot,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		// Hoisted: current/recent slot committees; intrinsic parent is BeaconSlot.
+		{
+			name: '$$beaconCommittees',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BeaconCommittee,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		// Hoisted: current sync committee periods across this network.
+		{
+			name: '$$beaconSyncCommittees',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BeaconSyncCommittee,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		// Hoisted: current/recent slot attestations; intrinsic parent is BeaconSlot.
+		{
+			name: '$$beaconAttestations',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BeaconAttestation,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		// Hoisted: current/recent slot withdrawals; intrinsic parent is BeaconSlot.
+		{
+			name: '$$beaconWithdrawals',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BeaconWithdrawal,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Beacon_Rest,
+			],
+		},
+		// Hoisted: current/recent slot slashings; intrinsic parent is BeaconSlot.
+		{
+			name: '$$beaconSlashings',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.BeaconSlashing,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Beacon_Rest,

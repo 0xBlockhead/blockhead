@@ -380,6 +380,27 @@ const baseFeeAtFromFeeHistory = (
 	nonNegativeBigIntFromHex(feeHistory.baseFeePerGas.at(index))
 )
 
+const baseFeePerBlobGasAtFromFeeHistory = (
+	feeHistory: { baseFeePerBlobGas?: readonly string[] },
+	index: number,
+) => (
+	nonNegativeBigIntFromHex(feeHistory.baseFeePerBlobGas?.at(index))
+)
+
+const blobGasUsedRatioAtFromFeeHistory = (
+	feeHistory: { blobGasUsedRatio?: readonly (number | string)[] },
+	index: number,
+) => {
+	const raw = feeHistory.blobGasUsedRatio?.at(index)
+	if (raw == null) return undefined
+	if (typeof raw === 'number') return raw
+	if (typeof raw === 'string') {
+		const parsed = Number.parseFloat(raw)
+		return Number.isFinite(parsed) ? parsed : undefined
+	}
+	return undefined
+}
+
 const priorityRewardAt50thFromFeeHistoryAt = (
 	feeHistory: { reward?: string[][] },
 	index: number,
@@ -742,6 +763,8 @@ export default {
 							maxPriorityFeePerGas,
 							gasUsedRatio: gasUsedRatioAtFromFeeHistory(feeHistory, 0),
 							priorityFeeRewardAt50thPercentile: priorityRewardAt50thFromFeeHistoryAt(feeHistory, 0),
+							baseFeePerBlobGas: baseFeePerBlobGasAtFromFeeHistory(feeHistory, 0),
+							blobGasUsedRatio: blobGasUsedRatioAtFromFeeHistory(feeHistory, 0),
 						}
 					} catch (error) {
 						errors.push(`${jsonRpcTransport.rpcUrl} (${jsonRpcTransport.transportType}): ${errorMessage(error)}`)

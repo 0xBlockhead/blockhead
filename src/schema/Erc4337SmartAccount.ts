@@ -33,6 +33,15 @@ export default {
 			],
 		},
 		{
+			name: '$contract',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
+		},
+		{
 			name: '$factory',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Erc4337AccountFactory,

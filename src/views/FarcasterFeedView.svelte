@@ -86,16 +86,16 @@
 	{#snippet Value()}
 		{#if entityId.variant === 'byUser'}
 			<span>
-				{String(entityId.fid)}
+				FID {String(entityId.fid)}
 			</span>
 		{:else if entityId.variant === 'byChannel'}
 			<TruncatedValue
-				value={entityId.channelId}
+				value={`/${entityId.channelId}`}
 				format={TruncatedValueFormat.Visual}
 			/>
 		{:else if entityId.variant === 'following'}
 			<span>
-				{String(entityId.viewerFid)}
+				FID {String(entityId.viewerFid)}
 			</span>
 		{:else}
 			<span>
@@ -137,36 +137,6 @@
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl>
-			<div>
-				<dt>Variant</dt>
-				<dd>{farcasterFeedKindByVariant[entityId.variant].label}</dd>
-			</div>
-			{#if entityId.variant === 'following'}
-				<div>
-					<dt>Viewer FID</dt>
-					<dd>{String(entityId.viewerFid)}</dd>
-				</div>
-			{/if}
-
-			{#if entityId.variant === 'byUser'}
-				<div>
-					<dt>Author FID</dt>
-					<dd>{String(entityId.fid)}</dd>
-				</div>
-			{/if}
-
-			{#if entityId.variant === 'byChannel'}
-				<div>
-					<dt>Channel id</dt>
-					<dd>
-						<TruncatedValue
-							value={entityId.channelId}
-							format={TruncatedValueFormat.Visual}
-						/>
-					</dd>
-				</div>
-			{/if}
-
 			<div>
 				<dt>Label</dt>
 				<dd>

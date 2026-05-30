@@ -52,6 +52,13 @@
 			publicDescription: {},
 			subscriberCount: {},
 			activeUserCount: {},
+			$$timestamps: {
+				$: [
+					Source.Reddit_Rest,
+					Source.Reddit_PublicJson,
+				],
+				$limit: 1,
+			},
 			createdAt: {},
 			over18: {},
 			$icon: {},
@@ -63,15 +70,16 @@
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
 	import RedditLinksView from '$/views/RedditLinksView.svelte'
+	import RedditSubreddit_TimestampsView from '$/views/RedditSubreddit_TimestampsView.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 </script>
 
 
@@ -142,27 +150,18 @@
 				{/if}
 
 				<dl data-column-item="center">
-					{#if subreddit.subscriberCount != null}
-						<div>
-							<dt>Subscribers</dt>
-							<dd>
-								<NumberValue
-									value={subreddit.subscriberCount}
-								/>
-							</dd>
-						</div>
-					{/if}
-
-					{#if subreddit.activeUserCount != null}
-						<div>
-							<dt>Active users</dt>
-							<dd>
-								<NumberValue
-									value={subreddit.activeUserCount}
-								/>
-							</dd>
-						</div>
-					{/if}
+					<SocialMetricSnapshotRows
+						metrics={[
+							{
+								label: 'Subscribers',
+								value: subreddit.$$timestamps[0]?.subscriberCount ?? subreddit.subscriberCount,
+							},
+							{
+								label: 'Active users',
+								value: subreddit.$$timestamps[0]?.activeUserCount ?? subreddit.activeUserCount,
+							},
+						]}
+					/>
 
 					{#if subreddit.createdAt != null}
 						<div>
@@ -191,9 +190,10 @@
 	})}
 		<CollapsibleTabs
 				sectionIdPrefix={idKey}
-				sections={[
-					{ id: 'links', label: 'Submissions' },
-				]}
+					sections={collapsibleTabsSections([
+						{ id: 'links', label: 'Submissions' },
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])}
 				id={`${idKey}:carousel-posts`}
 				data-card
 			>
@@ -210,18 +210,30 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionLinks({ id, label })}
-					<RedditLinksView
+					{#snippet SectionLinks()}
+						<RedditLinksView
 						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/reddit/links')}
 						entityFieldReference={{
 							entityType: EntityType.RedditSubreddit,
 							entityId,
 							fieldName: '$$links',
 						}}
 						id={`${idKey}:reddit-links`}
-					/>
-				{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+						/>
+					{/snippet}
+
+					{#snippet SectionMetricSnapshots()}
+						<RedditSubreddit_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.RedditSubreddit,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`${idKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>

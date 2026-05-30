@@ -55,6 +55,13 @@
 			subscriberCount: {},
 			videoCount: {},
 			viewCount: {},
+			$$timestamps: {
+				$: [
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+				],
+				$limit: 1,
+			},
 			publishedAt: {},
 			publishedAtMs: {},
 			customUrl: {},
@@ -84,13 +91,15 @@
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
+	import YouTubeChannel_TimestampsView from '$/views/YouTubeChannel_TimestampsView.svelte'
 	import YouTubePlaylistsView from '$/views/YouTubePlaylistsView.svelte'
 	import YouTubeVideosView from '$/views/YouTubeVideosView.svelte'
 </script>
@@ -169,51 +178,29 @@
 
 		<dl data-column-item="center">
 			{#if open}
-				<div>
-					<dt>Subscribers</dt>
-					<dd>
-						<ResourceBoundary
-							resource={channel}
-							placeholderText="Loading channel…"
-						>
-							{#snippet children(channel)}
-								{#if channel.subscriberCount != null}
-									{String(channel.subscriberCount)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Videos</dt>
-					<dd>
-						<ResourceBoundary
-							resource={channel}
-							placeholderText="Loading channel…"
-						>
-							{#snippet children(channel)}
-								{#if channel.videoCount != null}
-									{String(channel.videoCount)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Views</dt>
-					<dd>
-						<ResourceBoundary
-							resource={channel}
-							placeholderText="Loading channel…"
-						>
-							{#snippet children(channel)}
-								{#if channel.viewCount != null}
-									{String(channel.viewCount)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+				<ResourceBoundary
+					resource={channel}
+					placeholderText="Loading channel…"
+				>
+					{#snippet children(channel)}
+						<SocialMetricSnapshotRows
+							metrics={[
+								{
+									label: 'Subscribers',
+									value: channel.$$timestamps[0]?.subscriberCount ?? channel.subscriberCount,
+								},
+								{
+									label: 'Videos',
+									value: channel.$$timestamps[0]?.videoCount ?? channel.videoCount,
+								},
+								{
+									label: 'Views',
+									value: channel.$$timestamps[0]?.viewCount ?? channel.viewCount,
+								},
+							]}
+						/>
+					{/snippet}
+				</ResourceBoundary>
 				<div>
 					<dt>Published</dt>
 					<dd>
@@ -256,10 +243,11 @@
 		<CollapsibleTabs
 				id={`${idKey}:carousel-channel`}
 				sectionIdPrefix={idKey}
-				sections={[
-					{ id: 'videos', label: 'Videos' },
-					{ id: 'playlists', label: 'Playlists' },
-				]}
+					sections={collapsibleTabsSections([
+						{ id: 'videos', label: 'Videos' },
+						{ id: 'playlists', label: 'Playlists' },
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])}
 				data-card
 			>
 				{#snippet Summary({
@@ -275,10 +263,9 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionVideos({ id, label })}
+				{#snippet SectionVideos()}
 					<YouTubeVideosView
 						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/youtube/videos')}
 						entityFieldReference={{
 							entityType: EntityType.YouTubeChannel,
 							entityId,
@@ -289,10 +276,9 @@
 					/>
 				{/snippet}
 
-				{#snippet SectionPlaylists({ id, label })}
-					<YouTubePlaylistsView
+					{#snippet SectionPlaylists()}
+						<YouTubePlaylistsView
 						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/youtube/playlists')}
 						entityFieldReference={{
 							entityType: EntityType.YouTubeChannel,
 							entityId,
@@ -300,8 +286,21 @@
 						}}
 						id={`${idKey}:youtube-playlists`}
 						open={_open}
-					/>
-				{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+						/>
+					{/snippet}
+
+					{#snippet SectionMetricSnapshots()}
+						<YouTubeChannel_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.YouTubeChannel,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`${idKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>

@@ -12,7 +12,11 @@ import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { UrlString } from '$/schema/$Url.ts'
 import { Source } from '$/sources/$Source.ts'
-import type { XApiV2Media } from '$/sources/X/Rest/types.ts'
+import type {
+	XApiV2Media,
+	XApiV2Tweet,
+	XApiV2User,
+} from '$/sources/X/Rest/types.ts'
 
 const optionalTrimmedString = (value: string | undefined) => (
 	value?.trim() || undefined
@@ -28,6 +32,24 @@ const optionalUrlString = (value: string | undefined) => {
 const xPostUrl = (postId: string) => (
 	optionalUrlString(`https://x.com/i/web/status/${postId.trim()}`)
 )
+
+const xUserTimestampFieldsFromUser = (
+	user: XApiV2User,
+) => ({
+	followerCount: user.public_metrics?.followers_count,
+	followingCount: user.public_metrics?.following_count,
+	tweetCount: user.public_metrics?.tweet_count,
+	listedCount: user.public_metrics?.listed_count,
+})
+
+const xPostTimestampFieldsFromTweet = (
+	tweet: XApiV2Tweet,
+) => ({
+	likeCount: tweet.public_metrics?.like_count,
+	retweetCount: tweet.public_metrics?.retweet_count,
+	replyCount: tweet.public_metrics?.reply_count,
+	quoteCount: tweet.public_metrics?.quote_count,
+})
 
 const mediaTypeFromWire = (wireType: string | undefined) => (
 	wireType === 'video' ?
@@ -83,18 +105,7 @@ export default {
 					...(d.verified != null && { verified: d.verified }),
 					...(Number.isFinite(createdAt) && { createdAt }),
 					...(websiteUrl != null && { websiteUrl }),
-					...(d.public_metrics?.followers_count != null && {
-						followerCount: d.public_metrics.followers_count,
-					}),
-					...(d.public_metrics?.following_count != null && {
-						followingCount: d.public_metrics.following_count,
-					}),
-					...(d.public_metrics?.tweet_count != null && {
-						tweetCount: d.public_metrics.tweet_count,
-					}),
-					...(d.public_metrics?.listed_count != null && {
-						listedCount: d.public_metrics.listed_count,
-					}),
+					...xUserTimestampFieldsFromUser(d),
 					...((
 						iconMedia,
 					) => (
@@ -134,18 +145,7 @@ export default {
 					text: optionalTrimmedString(t.text),
 					...(Number.isFinite(createdAt) && { createdAt }),
 					...(conversationId != null && { conversationId }),
-					...(t.public_metrics?.like_count != null && {
-						likeCount: t.public_metrics.like_count,
-					}),
-					...(t.public_metrics?.retweet_count != null && {
-						retweetCount: t.public_metrics.retweet_count,
-					}),
-					...(t.public_metrics?.reply_count != null && {
-						replyCount: t.public_metrics.reply_count,
-					}),
-					...(t.public_metrics?.quote_count != null && {
-						quoteCount: t.public_metrics.quote_count,
-					}),
+					...xPostTimestampFieldsFromTweet(t),
 					...(replyToId != null && {
 						$replyToPost: { [EntityMetaKey.Id]: { id: replyToId } },
 					}),
@@ -162,6 +162,26 @@ export default {
 							}
 					),
 				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.XUser_Timestamp,
+			resolve: async (entityId, context) => {
+				const { xGetUser } = await import('$/sources/X/Rest/queries.ts')
+				const user = (await singleFlight(xGetUser)(sourcePublicEnv(context, Source.X_Rest), entityId.$user.id)).data
+				if (user == null) throw new Error('X_Rest: user not found')
+				return xUserTimestampFieldsFromUser(user)
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.XPost_Timestamp,
+			resolve: async (entityId, context) => {
+				const { xGetTweet } = await import('$/sources/X/Rest/queries.ts')
+				const tweet = (await singleFlight(xGetTweet)(sourcePublicEnv(context, Source.X_Rest), entityId.$post.id)).data
+				if (tweet == null) throw new Error('X_Rest: post not found')
+				return xPostTimestampFieldsFromTweet(tweet)
 			},
 		}),
 	],
@@ -213,6 +233,44 @@ export default {
 								}]
 						))
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.XPost,
+			fieldName: '$$timestamps',
+			resolve: async (entityId, context) => {
+				const { xGetTweet } = await import('$/sources/X/Rest/queries.ts')
+				const tweet = (await singleFlight(xGetTweet)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
+				if (tweet == null) throw new Error('X_Rest: post not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$post: entityId,
+							timestampMs: Date.now(),
+						},
+						...xPostTimestampFieldsFromTweet(tweet),
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.XUser,
+			fieldName: '$$timestamps',
+			resolve: async (entityId, context) => {
+				const { xGetUser } = await import('$/sources/X/Rest/queries.ts')
+				const user = (await singleFlight(xGetUser)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
+				if (user == null) throw new Error('X_Rest: user not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$user: entityId,
+							timestampMs: Date.now(),
+						},
+						...xUserTimestampFieldsFromUser(user),
+					},
+				]
 			},
 		}),
 

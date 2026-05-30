@@ -4,7 +4,6 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { CastHash } from '$/schema/FarcasterCast.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -25,8 +24,7 @@
 		}),
 		variant = 'hub',
 		open = $bindable(true),
-		collapsible = true,
-		...EntityViewProps
+			...EntityViewProps
 	}: WithRest<
 		{
 			children?: Snippet
@@ -60,6 +58,13 @@
 			likeCount: {},
 			recastCount: {},
 			replyCount: {},
+			$$timestamps: {
+				$: [
+					Source.Neynar_Rest,
+					Source.Snapchain_Rest,
+				],
+				$limit: 1,
+			},
 			threadHash: {},
 			$author: {
 				username: {},
@@ -92,15 +97,17 @@
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import FarcasterCast_TimestampsView from '$/views/FarcasterCast_TimestampsView.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 </script>
 
 
@@ -131,9 +138,12 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<span data-text="font-monospace">
-			{entityId.hash}
-		</span>
+		<TruncatedValue
+			value={`FID ${String(entityId.fid)} / ${entityId.hash}`}
+			startLength={18}
+			endLength={10}
+			format={TruncatedValueFormat.Visual}
+		/>
 	{/snippet}
 
 	{#snippet Title()}
@@ -142,15 +152,14 @@
 			placeholderText="Loading Farcaster cast (author FID + cast hash)…"
 		>
 			{#snippet children(cast)}
-					<TruncatedValue
-						value={(
-							(cast.text?.replaceAll('\n', ' ') ?? '')
-							=== ''
-						) ?
+				{@const castText = cast.text?.replaceAll('\n', ' ') ?? ''}
+				<TruncatedValue
+					value={(
+						castText === '' ?
 							'Cast'
 						:
-							(cast.text?.replaceAll('\n', ' ') ?? '')
-						}
+							castText
+					)}
 					startLength={56}
 					endLength={24}
 					format={TruncatedValueFormat.Abbr}
@@ -183,10 +192,10 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+		{#snippet Content({ title: _title, href: _href })}
 		<dl>
 			<div>
-				<dt>Cast</dt>
+				<dt>Text</dt>
 				<dd>
 					<ResourceBoundary
 						resource={cast}
@@ -230,53 +239,29 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
-			<div>
-				<dt>Likes</dt>
-				<dd>
-					<ResourceBoundary
-						resource={cast}
-						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
-					>
-						{#snippet children(cast)}
-							{#if cast.likeCount !== undefined}
-								{String(cast.likeCount)}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Recasts</dt>
-				<dd>
-					<ResourceBoundary
-						resource={cast}
-						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
-					>
-						{#snippet children(cast)}
-							{#if cast.recastCount !== undefined}
-								{String(cast.recastCount)}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Replies</dt>
-				<dd>
-					<ResourceBoundary
-						resource={cast}
-						placeholderText="Loading Farcaster cast (author FID + cast hash)…"
-					>
-						{#snippet children(cast)}
-							{#if cast.replyCount !== undefined}
-								{String(cast.replyCount)}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={cast}
+				placeholderText="Loading Farcaster cast (author FID + cast hash)…"
+			>
+				{#snippet children(cast)}
+					<SocialMetricSnapshotRows
+						metrics={[
+							{
+								label: 'Likes',
+								value: cast.$$timestamps[0]?.likeCount ?? cast.likeCount,
+							},
+							{
+								label: 'Recasts',
+								value: cast.$$timestamps[0]?.recastCount ?? cast.recastCount,
+							},
+							{
+								label: 'Replies',
+								value: cast.$$timestamps[0]?.replyCount ?? cast.replyCount,
+							},
+						]}
+					/>
+				{/snippet}
+			</ResourceBoundary>
 
 			<div>
 				<dt>Channel</dt>
@@ -312,13 +297,6 @@
 					</ResourceBoundary>
 				</dd>
 				</div>
-
-				{#if open}
-					<div>
-						<dt>FID</dt>
-						<dd>{String(entityId.fid)}</dd>
-					</div>
-				{/if}
 
 				{#if open}
 					<div>
@@ -404,35 +382,7 @@
 
 				{#if open}
 					<div>
-						<dt>On web</dt>
-					<dd>
-						<ResourceBoundary
-							resource={cast}
-							placeholderText="Loading Farcaster cast (author FID + cast hash)…"
-						>
-							{#snippet children(cast)}
-								{@const authorUsernameOpen = cast.$author?.username}
-								{@const farcasterWebCastHrefOpen = (
-									authorUsernameOpen === undefined ?
-										undefined
-									:
-										`https://farcaster.xyz/${authorUsernameOpen}/${entityId.hash}`
-								)}
-								{#if farcasterWebCastHrefOpen !== undefined}
-									<a
-										href={farcasterWebCastHrefOpen}
-										rel="noreferrer"
-									>Open on Farcaster</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-						</dd>
-					</div>
-				{/if}
-
-				{#if open}
-					<div>
-						<dt>Thread</dt>
+						<dt>Thread hash</dt>
 					<dd>
 						<ResourceBoundary
 							resource={cast}
@@ -456,7 +406,7 @@
 											:
 												th
 										)
-										return `0x${hex.toLowerCase()}` satisfies CastHash
+										return `0x${hex.toLowerCase()}`
 									})()
 								)}
 								{@const warpcastThreadHrefOpen = (
@@ -479,26 +429,30 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
-		{@const castDetailKey = stringify(entityId)}
-		<CollapsibleTabs
-				id={`${castDetailKey}:carousel-cast`}
-				sectionIdPrefix={castDetailKey}
-				sections={[
-					{ id: 'cast-record', label: 'Record' },
-					...(children ?
-						[{ id: 'cast-more', label: 'More' }]
-					:
-						[
-							{ id: 'cast-thread', label: 'Thread' },
-							...(open ? [{ id: 'cast-media', label: 'Embeds' }] : []),
-						]
-					),
-				]}
-				data-card
-			>
+		{#snippet Details({
+			open: _open,
+		})}
+			{@const castDetailKey = stringify(entityId)}
+			<CollapsibleTabs
+					id={`${castDetailKey}:carousel-cast`}
+					sectionIdPrefix={castDetailKey}
+					sections={(
+						children ?
+							collapsibleTabsSections([
+									{ id: 'cast-record', label: 'Record' },
+									{ id: 'cast-more', label: 'More' },
+									{ id: 'metric-snapshots', label: 'Metrics' },
+								])
+							:
+								collapsibleTabsSections([
+									{ id: 'cast-record', label: 'Record' },
+									{ id: 'cast-thread', label: 'Thread' },
+									{ id: 'cast-media', label: 'Embeds' },
+									{ id: 'metric-snapshots', label: 'Metrics' },
+								])
+						)}
+					data-card
+				>
 				{#snippet Summary({
 					open: _summaryOpen,
 				})}
@@ -512,16 +466,16 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionCastRecord({ id, label })}
+				{#snippet SectionCastRecord()}
 				{/snippet}
 
-				{#snippet SectionCastMore({ id, label })}
+				{#snippet SectionCastMore()}
 					{#if children}
 						{@render children()}
 					{/if}
 				{/snippet}
 
-				{#snippet SectionCastThread({ id, label })}
+				{#snippet SectionCastThread()}
 					{#if !children}
 						<ResourceBoundary
 							resource={cast}
@@ -639,8 +593,8 @@
 					{/if}
 				{/snippet}
 
-				{#snippet SectionCastMedia({ id, label })}
-					{#if !children && open}
+					{#snippet SectionCastMedia()}
+						{#if !children && open}
 						<ResourceBoundary
 							resource={cast}
 							placeholderText="Loading cast mentions, channel ids & embeds…"
@@ -789,9 +743,22 @@
 									{/if}
 								</section>
 							{/snippet}
-						</ResourceBoundary>
-					{/if}
-				{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+							</ResourceBoundary>
+						{/if}
+					{/snippet}
+
+					{#snippet SectionMetricSnapshots()}
+						<FarcasterCast_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.FarcasterCast,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`${castDetailKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>

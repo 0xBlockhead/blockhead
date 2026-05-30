@@ -17,8 +17,7 @@
 		entityFieldReference,
 		title = 'Epochs',
 		open = $bindable(true),
-		collapsible = true,
-				...EntitiesListProps
+		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BeaconEpoch>
@@ -27,7 +26,7 @@
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
+			| 'id'
 			| 'href'
 			| 'CollapsibleProps'
 		>
@@ -38,12 +37,26 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
+	const parent = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			blockHeight: { $: [Source.Voltaire_JsonRpc] },
+			[entityFieldReference.fieldName]: { $: [Source.Beacon_Rest] },
+		},
+	)
+
+	const epochs = derive(
+		parent,
+		(parent): Entity<typeof schema, EntityType.BeaconEpoch>[] => (
+			(parent[entityFieldReference.fieldName] ?? []).slice(0, 16)
+		),
+	)
+
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import OrderedList from '$/components/OrderedList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 </script>
 
@@ -51,7 +64,12 @@
 <EntitiesList
 	entityType={EntityType.BeaconEpoch}
 	{title}
-	bind:open	{...EntitiesListProps}
+	bind:open
+	getKey={(epoch) => stringify(epoch[EntityMetaKey.Id])}
+	getSortValue={(epoch) => -Number(epoch[EntityMetaKey.Id].epoch)}
+	resource={epochs}
+	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -59,56 +77,17 @@
 		</p>
 	{/snippet}
 
-	{#snippet body({ open: _bodyOpen })}
-		{#if open}
-			{@const network = useEntity(
-				EntityType.EvmNetwork,
-				entityFieldReference.entityId,
-				{
-					blockHeight: { $: [Source.Voltaire_JsonRpc] },
-					$$beaconEpochs: { $: [Source.Beacon_Rest] },
-				},
-			)}
-			{@const epochs = derive(
-				network,
-				(network): Entity<typeof schema, EntityType.BeaconEpoch>[] => (
-					(network.$$beaconEpochs ?? []).slice(0, 16)
-				),
-			)}
-			{#key stringify(entityFieldReference.entityId)}
-				<ResourceBoundary
-					resource={epochs}
-					placeholderText="Loading epochs…"
-				>
-					{#snippet children(epochs)}
-						<OrderedList
-							items={epochs}
-							getKey={(epoch) => (
-								epoch[EntityMetaKey.Id].epoch
-							)}
-							getSortKey={(epoch) => (
-								-Number(epoch[EntityMetaKey.Id].epoch)
-							)}
-							placeholderRanges={[]}
-							orientation={ListOrientation.Column}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">
-									No epochs yet.
-								</p>
-							{/snippet}
+	{#snippet Empty()}
+		<p data-text="muted">
+			No epochs yet.
+		</p>
+	{/snippet}
 
-							{#snippet Item({ item: epoch })}
-								<BeaconEpochView
-									entityId={epoch[EntityMetaKey.Id]}
-									layout={EntityLayout.Summary}
-									open={false}
-								/>
-							{/snippet}
-						</OrderedList>
-					{/snippet}
-				</ResourceBoundary>
-			{/key}
-		{/if}
+	{#snippet Item({ item: epoch })}
+		<BeaconEpochView
+			entityId={epoch[EntityMetaKey.Id]}
+			layout={EntityLayout.Summary}
+			open={false}
+		/>
 	{/snippet}
 </EntitiesList>

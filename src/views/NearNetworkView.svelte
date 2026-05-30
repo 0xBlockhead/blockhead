@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -35,6 +36,21 @@
 			name: {},
 			environment: {},
 			rpcEndpoints: {},
+			$headBlock: {},
+			$$timestamps: {
+				$limit: 1,
+			},
+		},
+	)
+
+	const baseNetwork = useEntity(
+		EntityType.Network,
+		entityId,
+		{
+			$: [
+				Source.Constants_Internal,
+			],
+			$$nativeAssets: {},
 		},
 	)
 
@@ -45,10 +61,14 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import NearBlockView from '$/views/NearBlockView.svelte'
+	import NearBlocksView from '$/views/NearBlocksView.svelte'
+	import NearNetwork_TimestampsView from '$/views/NearNetwork_TimestampsView.svelte'
+	import NearValidatorsView from '$/views/NearValidatorsView.svelte'
+	import UrlsView from '$/views/UrlsView.svelte'
 </script>
 
 
@@ -66,7 +86,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={network}>
 			{#snippet Pending()}
-				{@render Value()}
+				<span data-text="muted">Resolving network...</span>
 			{/snippet}
 
 			{#snippet children(network)}
@@ -83,6 +103,18 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
+					{#if network.$headBlock != null}
+						<div>
+							<dt>Head block</dt>
+							<dd id="network-summary-head-block">
+								<NearBlockView
+									entityId={network.$headBlock[EntityMetaKey.Id]}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+
 					<div>
 						<dt>Environment</dt>
 						<dd>{network.environment}</dd>
@@ -94,6 +126,17 @@
 							<dd>{network.rpcEndpoints.length}</dd>
 						</div>
 					{/if}
+
+					<ResourceBoundary resource={baseNetwork}>
+						{#snippet children(baseNetwork)}
+							{#if baseNetwork.$$nativeAssets.length > 0}
+								<div>
+									<dt>Native asset</dt>
+									<dd>{baseNetwork.$$nativeAssets.length}</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -105,7 +148,10 @@
 			id={`${networkIdKey}:carousel-near`}
 			sectionIdPrefix={networkIdKey}
 			sections={[
-				{ id: 'near-network', label: 'Network' },
+				{ id: 'near-blocks', label: 'Blocks' },
+				{ id: 'near-snapshots', label: 'Network snapshots' },
+				{ id: 'near-validators', label: 'Validators' },
+				{ id: 'near-endpoints', label: 'Endpoints' },
 			]}
 			data-card
 			scrollContainerProps={{
@@ -118,18 +164,145 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionNearNetwork()}
+			{#snippet SectionNearBlocks({ id, label }: { id: string, label: string })}
+				<NearBlocksView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.NearNetwork,
+						entityId,
+						fieldName: '$$blocks',
+					}}
+					href={href == null ? '' : `${href}/blocks`}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionNearSnapshots({ id, label }: { id: string, label: string })}
+				<NearNetwork_TimestampsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.NearNetwork,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionNearValidators({ id, label }: { id: string, label: string })}
+				<NearValidatorsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.NearNetwork,
+						entityId,
+						fieldName: '$$validators',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionNearEndpoints()}
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
-						<div>
-							<p><strong>Environment:</strong> {network.environment}</p>
-
-							{#each network.rpcEndpoints as endpoint}
-								<p><strong>{endpoint.transportType}:</strong> {endpoint.url}</p>
-							{/each}
-						</div>
+						{#each network.rpcEndpoints as endpoint}
+							<p><strong>{endpoint.transportType}:</strong> {endpoint.url}</p>
+						{:else}
+							<p data-text="muted">No RPC endpoints listed for this network yet.</p>
+						{/each}
 					{/snippet}
 				</ResourceBoundary>
+			{/snippet}
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={`${networkIdKey}:carousel-near-assets`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'near-assets-native', label: 'Native coin' },
+			]}
+			data-card
+			class="network-view-collapsible-assets"
+			scrollContainerProps={{
+				'data-row': 'start align-start',
+			}}
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Assets</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionNearAssetsNative()}
+				<ResourceBoundary resource={baseNetwork}>
+					{#snippet children(baseNetwork)}
+						{#if baseNetwork.$$nativeAssets.length > 0}
+							<p><strong>Native asset:</strong> {baseNetwork.$$nativeAssets.length}</p>
+						{:else}
+							<p data-text="muted">No native asset mapped for this network yet.</p>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={`${networkIdKey}:carousel-near-resources`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'near-resources-faucets', label: 'Faucets' },
+				{ id: 'near-resources-block-explorers', label: 'Block explorers' },
+			]}
+			data-card
+			class="network-view-collapsible-resources"
+			scrollContainerProps={{
+				'data-row': 'start align-start',
+			}}
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Resources</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionNearResourcesFaucets({ id, label }: { id: string, label: string })}
+				<UrlsView
+					CollapsibleProps={{ canToggle: false }}
+					emptyText="No faucets listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$faucetUrls',
+					}}
+					fieldSources={[
+						Source.Constants_Internal,
+					]}
+					href={href ?? ''}
+					limit={undefined}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionNearResourcesBlockExplorers({ id, label }: { id: string, label: string })}
+				<UrlsView
+					CollapsibleProps={{ canToggle: false }}
+					emptyText="No block explorers listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$blockExplorerUrls',
+					}}
+					fieldSources={[
+						Source.Constants_Internal,
+					]}
+					href={href ?? ''}
+					limit={undefined}
+					id={`${id}-list`}
+					title={label}
+				/>
 			{/snippet}
 		</CollapsibleTabs>
 	{/snippet}

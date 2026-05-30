@@ -16,6 +16,11 @@ export type { introspection }
 
 export const graphql = initGraphQLTada<{
 	introspection: introspection
+	scalars: {
+		DateTime: string
+		EvmAddress: `0x${string}`
+		PostId: string
+	}
 }>()
 
 type LensGqlResponse<_Result> = {

@@ -64,6 +64,25 @@ export default {
 			],
 		},
 		{
+			name: '$$derivativeTimestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.Market_Derivative_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Coingecko_OpenApi,
+			],
+		},
+		{
+			name: '$$oracleFeeds',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.OracleFeed,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Constants_Internal,
+				Source.Voltaire_JsonRpc,
+			],
+		},
+		{
 			name: 'fundingRate',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),

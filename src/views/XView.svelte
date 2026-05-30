@@ -1,6 +1,8 @@
 <script lang="ts">
 	// Types/constants
+	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
+	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 
 
@@ -19,12 +21,12 @@
 
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const entityId = {
-		scope: 'XNetwork' as const,
+	const entityId: EntityId<typeof schema, EntityType.XNetwork> = {
+		scope: 'XNetwork',
 	}
 
-	const exampleUserId = '783214' as const
-	const examplePostId = '1955274825074221427' as const
+	const exampleUserId = '783214'
+	const examplePostId = '1955274825074221427'
 
 	const networkIdKey = stringify(entityId)
 
@@ -54,7 +56,7 @@
 	)
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -73,8 +75,7 @@
 	title="X"
 >
 	{#snippet Value()}
-		{entityId.scope}
-
+		X
 	{/snippet}
 
 	{#snippet Title()}
@@ -155,11 +156,11 @@
 	})}
 		<CollapsibleTabs
 				sectionIdPrefix={networkIdKey}
-				sections={[
+				sections={collapsibleTabsSections([
 					{ id: 'profiles', label: 'Profiles' },
 					{ id: 'recent-posts', label: 'Recent posts' },
 					{ id: 'examples-list', label: 'Examples' },
-				]}
+				])}
 				id={`${networkIdKey}:carousel-registry`}
 				data-card
 			>

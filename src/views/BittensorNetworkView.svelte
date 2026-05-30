@@ -6,7 +6,6 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// State
@@ -67,15 +66,16 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BittensorBlockView from '$/views/BittensorBlockView.svelte'
-	import BittensorNetwork_TimestampView from '$/views/BittensorNetwork_TimestampView.svelte'
-	import BittensorSubnetView from '$/views/BittensorSubnetView.svelte'
+	import BittensorBlocksView from '$/views/BittensorBlocksView.svelte'
+	import BittensorNetwork_TimestampsView from '$/views/BittensorNetwork_TimestampsView.svelte'
+	import BittensorSubnetsView from '$/views/BittensorSubnetsView.svelte'
 	import NetworkStackView from '$/views/NetworkStackView.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
+	import UrlsView from '$/views/UrlsView.svelte'
 </script>
 
 
@@ -93,7 +93,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={network}>
 			{#snippet Pending()}
-				{@render Value()}
+				<span data-text="muted">Resolving network...</span>
 			{/snippet}
 
 			{#snippet children(network)}
@@ -106,9 +106,7 @@
 		<p>Bittensor is modeled around Subtensor, subnets, neurons, Dynamic TAO assets, and Yuma Consensus.</p>
 	{/snippet}
 
-	{#snippet Content({
-		open,
-	})}
+	{#snippet Content(context)}
 		<dl class="network-summary-head" data-column-item="center">
 			<ResourceBoundary resource={bittensorNetwork}>
 				{#snippet children(bittensorNetwork)}
@@ -140,7 +138,7 @@
 						<dd>{network.environment}</dd>
 					</div>
 
-					{#if open && network.$networkStack != null}
+					{#if context?.open && network.$networkStack != null}
 						<div>
 							<dt>Stack</dt>
 							<dd>
@@ -152,10 +150,10 @@
 						</div>
 					{/if}
 
-					{#if open && network.$$nativeAssets.length > 0}
+					{#if context?.open && network.$$nativeAssets.length > 0}
 						<div>
 							<dt>Native asset</dt>
-							<dd>{network.$$nativeAssets.map((asset) => asset.symbol).join(', ')}</dd>
+							<dd>{network.$$nativeAssets.length}</dd>
 						</div>
 					{/if}
 				{/snippet}
@@ -171,6 +169,10 @@
 				{
 					id: 'bittensor-subtensor',
 					label: 'Subtensor',
+				},
+				{
+					id: 'bittensor-blocks',
+					label: 'Blocks',
 				},
 				{
 					id: 'bittensor-subnets',
@@ -200,62 +202,35 @@
 									layout={EntityLayout.SummaryDetails}
 								/>
 							{/if}
-
-							{#each bittensorNetwork.$$timestamps as timestamp (stringify(timestamp[EntityMetaKey.Id]))}
-								<BittensorNetwork_TimestampView
-									entityId={timestamp[EntityMetaKey.Id]}
-									layout={EntityLayout.SummaryDetails}
-								/>
-							{/each}
-
-							<EntitiesList
-								collapsible={false}
-								entityType={EntityType.BittensorBlock}
-								getKey={(blockLine) => stringify(blockLine.value[EntityMetaKey.Id])}
-								id={`${networkIdKey}:bittensor-blocks`}
-								items={(bittensorNetwork.$$blocks ?? []).map((value) => ({ value }))}
-								open={true}
-								showSummary={false}
-								title="Recent blocks"
-								UnorderedListProps={{ orientation: ListOrientation.Column }}
-							>
-								{#snippet Item({ item: blockLine })}
-									<BittensorBlockView
-										entityId={blockLine.value[EntityMetaKey.Id]}
-										layout={EntityLayout.Summary}
-										open={false}
-									/>
-								{/snippet}
-							</EntitiesList>
 						</div>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
 
+			{#snippet SectionBittensorBlocks()}
+				<BittensorBlocksView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.BittensorNetwork,
+						entityId,
+						fieldName: '$$blocks',
+					}}
+					href={href == null ? '' : `${href}/blocks`}
+					id={`${networkIdKey}:bittensor-blocks-list`}
+					title="Blocks"
+				/>
+			{/snippet}
+
 			{#snippet SectionBittensorSubnets()}
-				<ResourceBoundary resource={bittensorNetwork}>
-					{#snippet children(bittensorNetwork)}
-						<EntitiesList
-							collapsible={false}
-							entityType={EntityType.BittensorSubnet}
-							getKey={(subnetLine) => stringify(subnetLine.value[EntityMetaKey.Id])}
-							id={`${networkIdKey}:bittensor-subnets`}
-							items={bittensorNetwork.$$subnets.map((value) => ({ value }))}
-							open={true}
-							showSummary={false}
-							title="Subnets"
-							UnorderedListProps={{ orientation: ListOrientation.Column }}
-						>
-							{#snippet Item({ item: subnetLine })}
-								<BittensorSubnetView
-									entityId={subnetLine.value[EntityMetaKey.Id]}
-									layout={EntityLayout.Summary}
-									open={false}
-								/>
-							{/snippet}
-						</EntitiesList>
-					{/snippet}
-				</ResourceBoundary>
+				<BittensorSubnetsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.BittensorNetwork,
+						entityId,
+						fieldName: '$$subnets',
+					}}
+					id={`${networkIdKey}:bittensor-subnets-list`}
+				/>
 			{/snippet}
 		</CollapsibleTabs>
 
@@ -283,28 +258,16 @@
 			{/snippet}
 
 			{#snippet SectionBittensorNeurons()}
-				<ResourceBoundary resource={bittensorNetwork}>
-					{#snippet children(bittensorNetwork)}
-						<EntitiesList
-							collapsible={false}
-							entityType={EntityType.BittensorSubnet}
-							getKey={(subnetLine) => stringify(subnetLine.value[EntityMetaKey.Id])}
-							id={`${networkIdKey}:bittensor-neuron-subnets`}
-							items={bittensorNetwork.$$subnets.slice(0, 8).map((value) => ({ value }))}
-							open={true}
-							showSummary={false}
-							title="Neuron subnets"
-							UnorderedListProps={{ orientation: ListOrientation.Column }}
-						>
-							{#snippet Item({ item: subnetLine })}
-								<BittensorSubnetView
-									entityId={subnetLine.value[EntityMetaKey.Id]}
-									layout={EntityLayout.SummaryDetails}
-								/>
-							{/snippet}
-						</EntitiesList>
-					{/snippet}
-				</ResourceBoundary>
+				<BittensorSubnetsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.BittensorNetwork,
+						entityId,
+						fieldName: '$$subnets',
+					}}
+					id={`${networkIdKey}:bittensor-neuron-subnets-list`}
+					title="Neuron subnets"
+				/>
 			{/snippet}
 
 			{#snippet SectionBittensorConsensus()}
@@ -312,19 +275,19 @@
 					{#snippet children(network)}
 						<div>
 							{#if network.$$consensusMechanisms.length > 0}
-								<p><strong>Consensus:</strong> {network.$$consensusMechanisms.map((mechanism) => mechanism.label).join(', ')}</p>
+								<p><strong>Consensus:</strong> {network.$$consensusMechanisms.length}</p>
 							{/if}
 
-							<ResourceBoundary resource={bittensorNetwork}>
-								{#snippet children(bittensorNetwork)}
-									{#each bittensorNetwork.$$timestamps as timestamp (stringify(timestamp[EntityMetaKey.Id]))}
-										<BittensorNetwork_TimestampView
-											entityId={timestamp[EntityMetaKey.Id]}
-											layout={EntityLayout.SummaryInline}
-										/>
-									{/each}
-								{/snippet}
-							</ResourceBoundary>
+							<BittensorNetwork_TimestampsView
+								CollapsibleProps={{ canToggle: false }}
+								entityFieldReference={{
+									entityType: EntityType.BittensorNetwork,
+									entityId,
+									fieldName: '$$timestamps',
+								}}
+								id={`${networkIdKey}:bittensor-consensus-snapshots`}
+								title="Network snapshots"
+							/>
 						</div>
 					{/snippet}
 				</ResourceBoundary>
@@ -355,7 +318,7 @@
 					{#snippet children(network)}
 						<div>
 							{#if network.$$nativeAssets.length > 0}
-								<p><strong>Native asset:</strong> {network.$$nativeAssets.map((asset) => asset.symbol).join(', ')}</p>
+								<p><strong>Native asset:</strong> {network.$$nativeAssets.length}</p>
 							{/if}
 
 							<ResourceBoundary resource={bittensorNetwork}>
@@ -370,39 +333,64 @@
 		</CollapsibleTabs>
 
 		<CollapsibleTabs
-			id={`${networkIdKey}:carousel-infrastructure`}
+			id={`${networkIdKey}:carousel-resources`}
 			sectionIdPrefix={networkIdKey}
 			sections={[
 				{
-					id: 'bittensor-infrastructure',
-					label: 'Infrastructure',
+					id: 'bittensor-resources-faucets',
+					label: 'Faucets',
+				},
+				{
+					id: 'bittensor-resources-block-explorers',
+					label: 'Block explorers',
 				},
 			]}
 			data-card
-			class="network-view-collapsible-infrastructure"
+			class="network-view-collapsible-resources"
 			scrollContainerProps={{ 'data-row': 'start align-start' }}
 		>
 			{#snippet Summary()}
 				<header data-row-item="flexible" data-row="wrap gap-4">
-					<HeadingComponent>Infrastructure</HeadingComponent>
+					<HeadingComponent>Resources</HeadingComponent>
 				</header>
 			{/snippet}
 
-			{#snippet SectionBittensorInfrastructure()}
-				<ResourceBoundary resource={bittensorNetwork}>
-					{#snippet children(bittensorNetwork)}
-						<div>
-							<p><strong>JSON-RPC:</strong> https://entrypoint-finney.opentensor.ai</p>
+			{#snippet SectionBittensorResourcesFaucets()}
+				<UrlsView
+					CollapsibleProps={{ canToggle: false }}
+					emptyText="No faucets listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$faucetUrls',
+					}}
+					fieldSources={[
+						Source.Constants_Internal,
+					]}
+					href={href ?? ''}
+					limit={undefined}
+					id={`${networkIdKey}:bittensor-resources-faucets-list`}
+					title="Faucets"
+				/>
+			{/snippet}
 
-							{#each bittensorNetwork.$$timestamps as timestamp (stringify(timestamp[EntityMetaKey.Id]))}
-								<BittensorNetwork_TimestampView
-									entityId={timestamp[EntityMetaKey.Id]}
-									layout={EntityLayout.SummaryInline}
-								/>
-							{/each}
-						</div>
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionBittensorResourcesBlockExplorers()}
+				<UrlsView
+					CollapsibleProps={{ canToggle: false }}
+					emptyText="No block explorers listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$blockExplorerUrls',
+					}}
+					fieldSources={[
+						Source.Constants_Internal,
+					]}
+					href={href ?? ''}
+					limit={undefined}
+					id={`${networkIdKey}:bittensor-resources-block-explorers-list`}
+					title="Block explorers"
+				/>
 			{/snippet}
 		</CollapsibleTabs>
 	{/snippet}

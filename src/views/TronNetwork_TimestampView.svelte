@@ -59,8 +59,26 @@
 	bind:open
 	{layout}
 >
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={snapshot}
+			placeholderText="Loading TRON network snapshot..."
+		>
+			{#snippet children(snapshot)}
+				{#if snapshot.latestBlockHeight !== undefined}
+					<NumberValue value={snapshot.latestBlockHeight} />
+				{:else if snapshot.activeWitnessCount !== undefined}
+					<NumberValue value={snapshot.activeWitnessCount} />
+					witnesses
+				{:else}
+					<Timestamp timestamp={entityId.timestampMs} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content()}

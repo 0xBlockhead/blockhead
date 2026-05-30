@@ -59,8 +59,27 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={snapshot}
+			placeholderText="Loading snapshot…"
+		>
+			{#snippet children(row)}
+				{#if row.nodeCount != null}
+					<NumberValue value={row.nodeCount} />
+					nodes
+				{:else if row.channelCount != null}
+					<NumberValue value={row.channelCount} />
+					channels
+				{:else}
+					Snapshot
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
-		Snapshot
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content()}

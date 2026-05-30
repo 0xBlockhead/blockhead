@@ -44,13 +44,9 @@
 		`Section${KebabToPascalCase<SectionId>}`
 	)
 
-	export type CollapsibleTabsSectionSnippets<
-		SectionId extends string,
-	> = {
-		[SectionKey in SectionId as SectionSnippetName<SectionKey>]: Snippet<[
-			CollapsibleTabsSectionContentProps,
-		]>
-	}
+		export type CollapsibleTabsSectionSnippets = {
+			[SectionSnippetKey in `Section${string}`]?: CollapsibleTabsSectionSnippet
+		}
 
 	export type CollapsibleTabsOwnProps<
 		Sections extends readonly CollapsibleTabsSectionRow[],
@@ -58,16 +54,16 @@
 		sectionIdPrefix: string
 		sections: CollapsibleTabsLiteralSections<Sections>
 
-		Summary?: Snippet<[context?: {
+		Summary?: Snippet<[context: {
 			open?: boolean,
 		}]>
-		Toolbar?: Snippet<[context?: {
+		Toolbar?: Snippet<[context: {
 			open?: boolean,
 		}]>
-		Annotation?: Snippet<[context?: {
+		Annotation?: Snippet<[context: {
 			open?: boolean,
 		}]>
-	} & CollapsibleTabsSectionSnippets<CollapsibleTabsSectionIds<Sections>>
+		} & CollapsibleTabsSectionSnippets
 
 
 	export const collapsibleTabsSections = <
@@ -86,10 +82,10 @@
 			.join('')
 	)
 
-	export const sectionSnippetName = <SectionId extends string>(
-		sectionId: SectionId,
-	): SectionSnippetName<SectionId> => (
-		`Section${kebabToPascalCase(sectionId)}` as SectionSnippetName<SectionId>
+	export const sectionSnippetName = (
+		sectionId: string,
+	): `Section${string}` => (
+		`Section${kebabToPascalCase(sectionId)}`
 	)
 
 
@@ -101,8 +97,8 @@
 	generics="const Sections extends readonly CollapsibleTabsSectionRow[]"
 >
 	// Types/constants
-	import type { WithRest } from '$/typescript/WithRest.ts'
-	import type { SvelteHTMLElements } from 'svelte/elements'
+		import type { WithRest } from '$/typescript/WithRest.ts'
+		import type { SvelteHTMLElements } from 'svelte/elements'
 
 
 	type CollapsibleTabsForwardedProps = WithRest<
@@ -141,34 +137,15 @@
 		propKey.startsWith(sectionSnippetPropPrefix)
 	)
 
-	const sectionSnippets = (
-		Object
-			.entries(collapsibleTabsAndSectionSnippets)
-			.reduce(
-				(accumulator, [propKey, snippet]) => (
-					isSectionSnippetProp(propKey) ?
-						{
-							...accumulator,
-							[propKey]: snippet,
-						}
-					:
-						accumulator
-				),
-			{} as CollapsibleTabsSectionSnippets<
-				CollapsibleTabsSectionIds<Sections>
-			>,
+		const collapsibleTabsProps = (
+			Object.fromEntries(
+				Object
+					.entries(collapsibleTabsAndSectionSnippets)
+					.filter((entry) => (
+						!isSectionSnippetProp(String(entry[0]))
+					)),
 			)
-	)
-
-	const collapsibleTabsProps = (
-		Object.fromEntries(
-			Object
-				.entries(collapsibleTabsAndSectionSnippets)
-				.filter(([propKey]) => (
-					!isSectionSnippetProp(propKey)
-				)),
 		)
-	)
 
 
 	const sectionAnchorId = (
@@ -177,17 +154,11 @@
 		`${sectionIdPrefix}:${sectionId}`
 	)
 
-	const sectionSnippetForSection = (
-		section: Sections[number],
-	): CollapsibleTabsSectionSnippet => (
-		sectionSnippets[
-			sectionSnippetName(
-				section.id as CollapsibleTabsSectionIds<Sections>,
-			) as keyof CollapsibleTabsSectionSnippets<
-				CollapsibleTabsSectionIds<Sections>
-			>
-		] as CollapsibleTabsSectionSnippet
-	)
+		const sectionSnippetForSection = (
+			section: Sections[number],
+		): CollapsibleTabsSectionSnippet | undefined => (
+			collapsibleTabsAndSectionSnippets[sectionSnippetName(section.id)]
+		)
 
 
 	// Components
@@ -212,13 +183,16 @@
 
 	{#snippet body(_bodyContext)}
 		{#each sections as section (section.id)}
+			{@const Section = sectionSnippetForSection(section)}
 			<section id={sectionAnchorId(section.id)}>
-				{@render sectionSnippetForSection(section)(
-					{
-						id: sectionAnchorId(section.id),
-						label: section.label,
-					},
-				)}
+				{#if Section}
+					{@render Section(
+						{
+							id: sectionAnchorId(section.id),
+							label: section.label,
+						},
+					)}
+				{/if}
 			</section>
 		{/each}
 	{/snippet}

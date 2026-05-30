@@ -102,6 +102,16 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.ActivityPubActor_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Mastodon_Rest,
+				Source.Fedi_Rest,
+			],
+		},
+		{
 			name: 'bot',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('boolean'),

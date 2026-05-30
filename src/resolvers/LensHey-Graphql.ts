@@ -27,6 +27,43 @@ const lensTimestampMsFromWire = (timestamp: string | null | undefined) => (
 	))(timestamp != null ? Date.parse(String(timestamp)) : NaN)
 )
 
+const lensAccountTimestampFieldsFromWire = (
+	wire: {
+		accountStats?: {
+			graphFollowStats?: {
+				followers?: number
+				following?: number
+			} | null
+		} | null
+	},
+) => ({
+	followerCount: optionalFiniteNumber(wire.accountStats?.graphFollowStats?.followers),
+	followingCount: optionalFiniteNumber(wire.accountStats?.graphFollowStats?.following),
+})
+
+const lensPostTimestampFieldsFromWire = (
+	post: {
+		__typename: string
+		stats?: {
+			comments?: number
+			reposts?: number
+			quotes?: number
+			bookmarks?: number
+			collects?: number
+			reactions?: number
+		} | null
+	},
+) => ({
+	...(post.__typename === 'Post' && {
+		commentCount: optionalFiniteNumber(post.stats?.comments),
+		repostCount: optionalFiniteNumber(post.stats?.reposts),
+		quoteCount: optionalFiniteNumber(post.stats?.quotes),
+		bookmarkCount: optionalFiniteNumber(post.stats?.bookmarks),
+		collectCount: optionalFiniteNumber(post.stats?.collects),
+		reactionCount: optionalFiniteNumber(post.stats?.reactions),
+	}),
+})
+
 
 /** Lens / subgraph wire — may omit `0x` or use mixed case. */
 const lensEvmAddressFromWire = (a: string): `0x${string}` => {
@@ -38,12 +75,12 @@ const lensEvmAddressFromWire = (a: string): `0x${string}` => {
 }
 
 const lensAuthorRefFromWire = (
-	address: unknown,
+	address: string | null | undefined,
 ) => {
 	if (address == null) throw new Error('Lens_HeyGraphql: post author address missing')
 	return {
 		[EntityMetaKey.Id]: {
-			address: lensEvmAddressFromWire(String(address)),
+			address: lensEvmAddressFromWire(address),
 		},
 	}
 }
@@ -67,13 +104,13 @@ const lensAnyPostSlugFromWire = (
 	item:
 		| {
 			__typename: string
-			slug?: unknown
+			slug?: string | null
 		}
 		| null
 		| undefined,
 ) => (
 	item?.__typename === 'Post' || item?.__typename === 'Repost' ?
-		optionalTrimmedString(item.slug != null ? String(item.slug) : null)
+		optionalTrimmedString(item.slug)
 	:
 		undefined
 )
@@ -95,8 +132,7 @@ export default {
 					displayName: optionalTrimmedString(a.metadata?.name),
 					bio: optionalTrimmedString(a.metadata?.bio),
 					createdAt: lensTimestampMsFromWire(a.createdAt != null ? String(a.createdAt) : null),
-					followerCount: optionalFiniteNumber(wire.accountStats?.graphFollowStats?.followers),
-					followingCount: optionalFiniteNumber(wire.accountStats?.graphFollowStats?.following),
+					...lensAccountTimestampFieldsFromWire(wire),
 					...((
 						iconMedia,
 					) => (
@@ -136,12 +172,7 @@ export default {
 					timestamp: lensTimestampMsFromWire(p.timestamp != null ? String(p.timestamp) : null),
 					isEdited: p.isEdited,
 					isDeleted: p.isDeleted,
-					commentCount: optionalFiniteNumber(p.stats?.comments),
-					repostCount: optionalFiniteNumber(p.stats?.reposts),
-					quoteCount: optionalFiniteNumber(p.stats?.quotes),
-					bookmarkCount: optionalFiniteNumber(p.stats?.bookmarks),
-					collectCount: optionalFiniteNumber(p.stats?.collects),
-					reactionCount: optionalFiniteNumber(p.stats?.reactions),
+					...lensPostTimestampFieldsFromWire(p),
 					...((postSlug) => (
 						postSlug != null && {
 							$commentOn: { [EntityMetaKey.Id]: { id: postSlug } },
@@ -161,6 +192,28 @@ export default {
 				}
 			},
 		}),
+
+		defineEntityResolver({
+			entityType: EntityType.LensAccount_Timestamp,
+			resolve: async (entityId, context) => {
+				const { lensHeyQueryAccount } = await import('$/sources/LensHey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
+				const wire = await singleFlight(lensHeyQueryAccount)(publicEnv, zeroExLowerCase(entityId.$account.address))
+				if (wire.account == null) throw new Error('Lens_HeyGraphql: account not found')
+				return lensAccountTimestampFieldsFromWire(wire)
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.LensPost_Timestamp,
+			resolve: async (entityId, context) => {
+				const { lensHeyQueryPost } = await import('$/sources/LensHey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
+				const p = (await singleFlight(lensHeyQueryPost)(publicEnv, entityId.$post.id)).post
+				if (p == null) throw new Error('Lens_HeyGraphql: post not found')
+				return lensPostTimestampFieldsFromWire(p)
+			},
+		}),
 	],
 
 	entityFieldResolvers: [
@@ -177,7 +230,7 @@ export default {
 						.flatMap((item) => {
 							const address = item.author?.address
 							if (address == null || !/^0x[a-fA-F0-9]{40}$/.test(String(address))) return []
-							const normalizedAddress = lensEvmAddressFromWire(String(address))
+							const normalizedAddress = lensEvmAddressFromWire(address)
 							return [{
 								[EntityMetaKey.Id]: { address: normalizedAddress },
 							}]
@@ -214,6 +267,26 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.LensPost,
+			fieldName: '$$timestamps',
+			resolve: async (entityId, context) => {
+				const { lensHeyQueryPost } = await import('$/sources/LensHey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
+				const p = (await singleFlight(lensHeyQueryPost)(publicEnv, entityId.id)).post
+				if (p == null) throw new Error('Lens_HeyGraphql: post not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$post: entityId,
+							timestampMs: Date.now(),
+						},
+						...lensPostTimestampFieldsFromWire(p),
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.LensPost,
 			fieldName: '$$comments',
 			resolve: async (entityId, context) => {
 				const { lensHeyQueryPostComments } = await import('$/sources/LensHey/Graphql/queries.ts')
@@ -235,6 +308,26 @@ export default {
 							))(lensAnyPostSlugFromWire(item))
 						))
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.LensAccount,
+			fieldName: '$$timestamps',
+			resolve: async (entityId, context) => {
+				const { lensHeyQueryAccount } = await import('$/sources/LensHey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
+				const wire = await singleFlight(lensHeyQueryAccount)(publicEnv, zeroExLowerCase(entityId.address))
+				if (wire.account == null) throw new Error('Lens_HeyGraphql: account not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$account: entityId,
+							timestampMs: Date.now(),
+						},
+						...lensAccountTimestampFieldsFromWire(wire),
+					},
+				]
 			},
 		}),
 

@@ -94,8 +94,7 @@
 	title="Reddit"
 >
 	{#snippet Value()}
-		{entityId.scope}
-
+		Reddit
 	{/snippet}
 
 	{#snippet Title()}

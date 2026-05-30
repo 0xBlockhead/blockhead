@@ -82,10 +82,17 @@
 				entityFieldReference.entityId,
 				{
 					[entityFieldReference.fieldName]: {
-						$: [
-							Source.Blockscout_Rest,
-							Source.Voltaire_JsonRpc,
-						],
+						$: (
+							entityFieldReference.entityType === EntityType.EvmNetwork ?
+								[
+									Source.Blockscout_Rest,
+								]
+							:
+								[
+									Source.Blockscout_Rest,
+									Source.Voltaire_JsonRpc,
+								]
+						),
 					},
 				},
 			)}

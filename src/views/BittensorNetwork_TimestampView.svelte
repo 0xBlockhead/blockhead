@@ -59,8 +59,26 @@
 	bind:open
 	{layout}
 >
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={snapshot}
+			placeholderText="Loading Bittensor network snapshot…"
+		>
+			{#snippet children(snapshot)}
+				{#if snapshot.finalizedBlockNumber !== undefined}
+					<NumberValue value={snapshot.finalizedBlockNumber} />
+				{:else if snapshot.subnetCount !== undefined}
+					<NumberValue value={snapshot.subnetCount} />
+					subnets
+				{:else}
+					<Timestamp timestamp={entityId.timestampMs} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content()}

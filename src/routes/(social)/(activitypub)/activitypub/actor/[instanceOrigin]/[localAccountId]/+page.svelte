@@ -13,13 +13,13 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ActivityPubEvmAccountView from '$/views/ActivityPubEvmAccountView.svelte'
+	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
 </script>
 
 
 <Page>
-	<ActivityPubEvmAccountView
+	<ActivityPubActorView
 		{entityId}
 	>
-	</ActivityPubEvmAccountView>
+	</ActivityPubActorView>
 </Page>

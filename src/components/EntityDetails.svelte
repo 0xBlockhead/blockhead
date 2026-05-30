@@ -1,10 +1,5 @@
-<script
-	lang="ts"
-	generics="_EntityType extends EntityType"
->
+<script lang="ts">
 	// Types/constants
-	import type { EntityId } from '$/schema/$schema.ts'
-	import { schema } from '$/schema/index.ts'
 	import type { EntityType } from '$/schema/$EntityType.ts'
 
 
@@ -12,12 +7,12 @@
 	import type { Snippet } from 'svelte'
 
 	let {
-		entityType,
+		entityType: _entityType,
 		entityId,
 		children,
 	}: {
-		entityType: _EntityType
-		entityId: EntityId<typeof schema, _EntityType>
+		entityType: EntityType
+		entityId: object
 		children?: Snippet
 	} = $props()
 

@@ -1,8 +1,21 @@
 <script lang="ts">
+	// Types/constants
+	import { type as arktype } from 'arktype'
+	import { EvmAddress } from '$/schema/$ZeroExHex.ts'
+
+
 	// State
 	let {
 		params,
 	} = $props()
+	const entityId = $derived(
+		((address) => (
+			address instanceof arktype.errors ?
+				undefined
+			:
+				{ address }
+		))(EvmAddress(params.accountId)),
+	)
 
 	// Components
 	import Page from '$/components/Page.svelte'
@@ -11,9 +24,9 @@
 
 
 <Page>
-	<EvmAccountView
-		entityId={{
-			address: params.accountId as `0x${string}`,
-		}}
-	/>
+	{#if entityId}
+		<EvmAccountView
+			{entityId}
+		/>
+	{/if}
 </Page>

@@ -82,6 +82,15 @@ export default {
 			],
 		},
 		{
+			name: '$$transactions',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.HyperliquidTransaction,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.Hyperliquid_JsonRpc,
+			],
+		},
+		{
 			name: '$$validators',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.HyperliquidValidator,

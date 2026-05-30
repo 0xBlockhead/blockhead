@@ -46,17 +46,17 @@
 </script>
 
 
-<EntityView
-	entityType={EntityType.HyperliquidSpotAsset}
-	{entityId}
-	title={entityId.assetId}
+	<EntityView
+		entityType={EntityType.HyperliquidSpotAsset}
+		{entityId}
+		title={String(entityId.assetId)}
 	bind:open
 	{...EntityViewProps}
 >
 
 	{#snippet Title()}
 		<TruncatedValue
-			value={entityId.assetId}
+			value={String(entityId.assetId)}
 			format={TruncatedValueFormat.Abbr}
 		/>
 	{/snippet}

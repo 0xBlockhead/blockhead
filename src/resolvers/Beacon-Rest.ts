@@ -112,6 +112,71 @@ export default {
 		}),
 
 		defineEntityResolver({
+			entityType: EntityType.BeaconCommittee,
+			resolve: async (entityId) => {
+				const { getBeaconCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
+				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
+				const committees = await singleFlight(getBeaconCommittees)(base, String(entityId.slot))
+				const committee = committees.find((row) => row.index === entityId.index)
+				if (committee == null) throw new Error('Beacon_Rest: committee not found')
+				return {
+					validatorIndices: committee.validatorIndices,
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.BeaconSyncCommittee,
+			resolve: async (entityId) => {
+				const { getBeaconSyncCommittee } = await import('$/sources/Beacon/Rest/queries.ts')
+				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
+				const committee = await singleFlight(getBeaconSyncCommittee)(base, 'head')
+				if (committee == null) throw new Error('Beacon_Rest: sync committee not found')
+				return {
+					validatorIndices: committee.validatorIndices,
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.BeaconAttestation,
+			resolve: async (entityId) => {
+				const { getBeaconBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
+				const summary = await singleFlight(getBeaconBlockDutySummary)(base, entityId.slot)
+				const attestation = summary.attestations.find((row) => row.index === entityId.index)
+				if (attestation == null) throw new Error('Beacon_Rest: attestation not found')
+				return {
+					...(attestation.committeeIndex != null && { committeeIndex: attestation.committeeIndex }),
+					...(attestation.aggregationBits != null && { aggregationBits: attestation.aggregationBits }),
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.BeaconWithdrawal,
+			resolve: async (entityId) => {
+				const { getBeaconBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
+				const summary = await singleFlight(getBeaconBlockDutySummary)(base, entityId.slot)
+				const withdrawal = summary.withdrawals.find((row) => row.index === entityId.index)
+				if (withdrawal == null) throw new Error('Beacon_Rest: withdrawal not found')
+				return {
+					...(withdrawal.validatorIndex != null && { validatorIndex: withdrawal.validatorIndex }),
+					...(withdrawal.address != null && { address: with0xHex(withdrawal.address) }),
+					...(withdrawal.amountGwei != null && { amountGwei: withdrawal.amountGwei }),
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.BeaconSlashing,
+			resolve: async (entityId) => ({
+				kind: entityId.kind,
+			}),
+		}),
+
+		defineEntityResolver({
 			entityType: EntityType.EthereumBeaconFinality_Timestamp,
 			resolve: async (entityId) => {
 				const chainId = Number(entityId.$network.caip2.reference)
@@ -246,6 +311,199 @@ export default {
 						},
 					}))
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.BeaconSlot,
+			fieldName: '$$beaconCommittees',
+			resolve: async (entityId, context) => {
+				const { getBeaconCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
+				return (
+					(await singleFlight(getBeaconCommittees)(base, String(entityId.slot)))
+						.slice(0, limit)
+						.map((committee) => ({
+							[EntityMetaKey.Id]: {
+								$network: entityId.$network,
+								slot: entityId.slot,
+								index: committee.index,
+							},
+						}))
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.BeaconSlot,
+			fieldName: '$$beaconAttestations',
+			resolve: async (entityId, context) => {
+				const { getBeaconBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
+				const summary = await singleFlight(getBeaconBlockDutySummary)(base, entityId.slot)
+				return summary.attestations.slice(0, limit).map((attestation) => ({
+					[EntityMetaKey.Id]: {
+						$network: entityId.$network,
+						slot: entityId.slot,
+						index: attestation.index,
+					},
+				}))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.BeaconSlot,
+			fieldName: '$$beaconWithdrawals',
+			resolve: async (entityId, context) => {
+				const { getBeaconBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
+				const summary = await singleFlight(getBeaconBlockDutySummary)(base, entityId.slot)
+				return summary.withdrawals.slice(0, limit).map((withdrawal) => ({
+					[EntityMetaKey.Id]: {
+						$network: entityId.$network,
+						slot: entityId.slot,
+						index: withdrawal.index,
+					},
+				}))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.BeaconSlot,
+			fieldName: '$$beaconSlashings',
+			resolve: async (entityId, context) => {
+				const { getBeaconBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
+				const summary = await singleFlight(getBeaconBlockDutySummary)(base, entityId.slot)
+				return summary.slashings.slice(0, limit).map((slashing) => ({
+					[EntityMetaKey.Id]: {
+						$network: entityId.$network,
+						slot: entityId.slot,
+						kind: slashing.kind,
+						index: slashing.index,
+					},
+				}))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmNetwork,
+			fieldName: '$$beaconCommittees',
+			resolve: async (entityId, context) => {
+				const { getBeaconCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				const chainId = Number(entityId.caip2.reference)
+				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
+				if (base == null) {
+					throw new Error(`Beacon_Rest: $$beaconCommittees unsupported for chain ${String(chainId)}`)
+				}
+				return (
+					(await singleFlight(getBeaconCommittees)(base))
+						.slice(0, limit)
+						.map((committee) => ({
+							[EntityMetaKey.Id]: {
+								$network: entityId,
+								slot: committee.slot,
+								index: committee.index,
+							},
+						}))
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmNetwork,
+			fieldName: '$$beaconSyncCommittees',
+			resolve: async (entityId) => {
+				const { getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+				const chainId = Number(entityId.caip2.reference)
+				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
+				if (base == null) {
+					throw new Error(`Beacon_Rest: $$beaconSyncCommittees unsupported for chain ${String(chainId)}`)
+				}
+				const slot = await singleFlight(getBeaconHeadSlot)(base)
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							period: Math.floor(Math.floor(slot / slotsPerEpoch) / 256),
+						},
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmNetwork,
+			fieldName: '$$beaconAttestations',
+			resolve: async (entityId, context) => {
+				const { getBeaconBlockDutySummary, getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				const chainId = Number(entityId.caip2.reference)
+				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
+				if (base == null) {
+					throw new Error(`Beacon_Rest: $$beaconAttestations unsupported for chain ${String(chainId)}`)
+				}
+				const slot = await singleFlight(getBeaconHeadSlot)(base)
+				const summary = await singleFlight(getBeaconBlockDutySummary)(base, slot)
+				return summary.attestations.slice(0, limit).map((attestation) => ({
+					[EntityMetaKey.Id]: {
+						$network: entityId,
+						slot,
+						index: attestation.index,
+					},
+				}))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmNetwork,
+			fieldName: '$$beaconWithdrawals',
+			resolve: async (entityId, context) => {
+				const { getBeaconBlockDutySummary, getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				const chainId = Number(entityId.caip2.reference)
+				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
+				if (base == null) {
+					throw new Error(`Beacon_Rest: $$beaconWithdrawals unsupported for chain ${String(chainId)}`)
+				}
+				const slot = await singleFlight(getBeaconHeadSlot)(base)
+				const summary = await singleFlight(getBeaconBlockDutySummary)(base, slot)
+				return summary.withdrawals.slice(0, limit).map((withdrawal) => ({
+					[EntityMetaKey.Id]: {
+						$network: entityId,
+						slot,
+						index: withdrawal.index,
+					},
+				}))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmNetwork,
+			fieldName: '$$beaconSlashings',
+			resolve: async (entityId, context) => {
+				const { getBeaconBlockDutySummary, getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				const chainId = Number(entityId.caip2.reference)
+				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
+				if (base == null) {
+					throw new Error(`Beacon_Rest: $$beaconSlashings unsupported for chain ${String(chainId)}`)
+				}
+				const slot = await singleFlight(getBeaconHeadSlot)(base)
+				const summary = await singleFlight(getBeaconBlockDutySummary)(base, slot)
+				return summary.slashings.slice(0, limit).map((slashing) => ({
+					[EntityMetaKey.Id]: {
+						$network: entityId,
+						slot,
+						kind: slashing.kind,
+						index: slashing.index,
+					},
+				}))
 			},
 		}),
 

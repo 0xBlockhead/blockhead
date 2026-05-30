@@ -1,0 +1,55 @@
+import { type } from 'arktype'
+import {
+	EntityFieldType,
+	EntityFieldCardinality,
+	type EntityDefinition,
+	type EntityFieldDefinition,
+} from '$/schema/$EntityDefinition.ts'
+import { EntityType } from '$/schema/$EntityType.ts'
+import AtprotoActor from '$/schema/AtprotoActor.ts'
+import { Source } from '$/sources/$Source.ts'
+
+export default {
+	entityType: EntityType.AtprotoActor_Timestamp,
+
+	label: 'AT Protocol actor snapshot',
+	labelPlural: 'AT Protocol actor snapshots',
+
+	id: type({
+		$actor: AtprotoActor.id,
+		timestampMs: 'number',
+	}),
+
+	fields: [
+		{
+			name: 'followersCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Atproto_Xrpc,
+				Source.Atproto_BskySocial_Xrpc,
+			],
+		},
+		{
+			name: 'followsCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Atproto_Xrpc,
+				Source.Atproto_BskySocial_Xrpc,
+			],
+		},
+		{
+			name: 'postsCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.Atproto_Xrpc,
+				Source.Atproto_BskySocial_Xrpc,
+			],
+		},
+	] as const satisfies readonly EntityFieldDefinition[],
+} as const satisfies EntityDefinition

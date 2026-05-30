@@ -65,6 +65,25 @@ const entityFieldsFromDexPair = ({
 	}
 )
 
+const timestampEntityFieldsFromDexPair = ({
+	latestDexPair,
+}: {
+	latestDexPair: DexscreenerPair
+}) => (
+	{
+		...(latestDexPair.priceUsd != null && { priceUsd: latestDexPair.priceUsd }),
+		...(latestDexPair.priceNative != null && { priceNative: latestDexPair.priceNative }),
+		...(latestDexPair.liquidity?.usd != null && { liquidityUsd: latestDexPair.liquidity.usd }),
+		...(latestDexPair.volume?.h24 != null && { volumeUsd24h: latestDexPair.volume.h24 }),
+		...(latestDexPair.priceChange?.h24 != null && { priceChangePercent24h: latestDexPair.priceChange.h24 }),
+		...(latestDexPair.txns?.h24?.buys != null && { transactionBuys24h: latestDexPair.txns.h24.buys }),
+		...(latestDexPair.txns?.h24?.sells != null && { transactionSells24h: latestDexPair.txns.h24.sells }),
+		...(latestDexPair.marketCap != null && { marketCapUsd: latestDexPair.marketCap }),
+		...(latestDexPair.fdv != null && { fdvUsd: latestDexPair.fdv }),
+		transport: 'Dexscreener OpenAPI',
+	}
+)
+
 const globalPairSearchEntityRows = async ({
 	context,
 	q,
@@ -159,6 +178,32 @@ export default {
 			},
 		}),
 
+		defineEntityResolver({
+			entityType: EntityType.LiquidityPool_Timestamp,
+			resolve: async (entityId) => {
+				const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
+				const { getDexscreenerLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
+
+				const chainId = Number(entityId.$liquidityPool.$network.caip2.reference)
+				const apiChainId = apiChainIdByChainId[chainId]
+				if (apiChainId == null) {
+					throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
+				}
+				const latestDexPair = (
+					(await getDexscreenerLatestPairs({
+						chainId: apiChainId,
+						pairId: entityId.$liquidityPool.id,
+					})).pairs?.[0]
+				)
+
+				if (latestDexPair == null) {
+					throw new Error('Dexscreener_OpenApi: liquidity pool / pair not found for timestamp id')
+				}
+
+				return timestampEntityFieldsFromDexPair({ latestDexPair })
+			},
+		}),
+
 	],
 
 	entityFieldResolvers: [
@@ -174,6 +219,28 @@ export default {
 					q: 'WETH USDC uniswap',
 				})
 			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.LiquidityPool,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => [
+				{
+					[EntityMetaKey.Id]: {
+						$liquidityPool: entityId,
+						timestampMs: Date.now(),
+						feedKey: 'dexscreener',
+					},
+				},
+			],
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.LiquidityPool_Timestamp,
+			fieldName: '$$parentLiquidityPool',
+			resolve: async (entityId) => ({
+				[EntityMetaKey.Id]: entityId.$liquidityPool,
+			}),
 		}),
 
 	],

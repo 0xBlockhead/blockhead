@@ -15,7 +15,12 @@ import { UrlString } from '$/schema/$Url.ts'
 import { youtubeNetworkSeedChannels } from '$/constants/Social/YouTube.ts'
 import { Source } from '$/sources/$Source.ts'
 import type {
+	YoutubeApiChannel,
+	YoutubeApiComment,
+	YoutubeApiCommentThread,
+	YoutubeApiPlaylist,
 	YoutubeApiSnippet,
+	YoutubeApiVideo,
 } from '$/sources/Youtube/Rest/types.ts'
 
 const optionalTrimmedString = (value: string | undefined) => (
@@ -54,6 +59,36 @@ const youtubeThumbnailUrl = (thumbnails: YoutubeApiSnippet['thumbnails']) => (
 	)
 )
 
+const youtubeChannelTimestampFieldsFromChannel = (
+	channel: YoutubeApiChannel,
+) => ({
+	subscriberCount: optionalCountString(channel.statistics?.subscriberCount),
+	videoCount: optionalCountString(channel.statistics?.videoCount),
+	viewCount: optionalCountString(channel.statistics?.viewCount),
+})
+
+const youtubeVideoTimestampFieldsFromVideo = (
+	video: YoutubeApiVideo,
+) => ({
+	viewCount: optionalCountString(video.statistics?.viewCount),
+	likeCount: optionalCountString(video.statistics?.likeCount),
+	commentCount: optionalCountString(video.statistics?.commentCount),
+})
+
+const youtubePlaylistTimestampFieldsFromPlaylist = (
+	playlist: YoutubeApiPlaylist,
+) => ({
+	itemCount: optionalFiniteNumber(playlist.contentDetails?.itemCount),
+})
+
+const youtubeCommentTimestampFieldsFromComment = (
+	comment: YoutubeApiComment,
+	thread: YoutubeApiCommentThread | undefined,
+) => ({
+	likeCount: optionalFiniteNumber(comment.snippet?.likeCount),
+	replyCount: optionalFiniteNumber(thread?.snippet?.totalReplyCount),
+})
+
 export default {
 	source: Source.Youtube_Rest,
 
@@ -71,15 +106,7 @@ export default {
 					...(optionalTrimmedString(d.snippet?.customUrl) != null && {
 						customUrl: optionalTrimmedString(d.snippet?.customUrl),
 					}),
-					...(optionalCountString(d.statistics?.subscriberCount) != null && {
-						subscriberCount: optionalCountString(d.statistics?.subscriberCount),
-					}),
-					...(optionalCountString(d.statistics?.videoCount) != null && {
-						videoCount: optionalCountString(d.statistics?.videoCount),
-					}),
-					...(optionalCountString(d.statistics?.viewCount) != null && {
-						viewCount: optionalCountString(d.statistics?.viewCount),
-					}),
+					...youtubeChannelTimestampFieldsFromChannel(d),
 					...(optionalTrimmedString(d.snippet?.publishedAt) != null && {
 						publishedAt: optionalTrimmedString(d.snippet?.publishedAt),
 					}),
@@ -142,15 +169,7 @@ export default {
 					...(optionalTimestampMs(d.snippet?.publishedAt) != null && {
 						publishedAtMs: optionalTimestampMs(d.snippet?.publishedAt),
 					}),
-					...(optionalCountString(d.statistics?.viewCount) != null && {
-						viewCount: optionalCountString(d.statistics?.viewCount),
-					}),
-					...(optionalCountString(d.statistics?.likeCount) != null && {
-						likeCount: optionalCountString(d.statistics?.likeCount),
-					}),
-					...(optionalCountString(d.statistics?.commentCount) != null && {
-						commentCount: optionalCountString(d.statistics?.commentCount),
-					}),
+					...youtubeVideoTimestampFieldsFromVideo(d),
 					...(optionalTrimmedString(d.snippet?.categoryId) != null && {
 						categoryId: optionalTrimmedString(d.snippet?.categoryId),
 					}),
@@ -182,9 +201,7 @@ export default {
 				return {
 					title: optionalTrimmedString(d.snippet?.title),
 					description: optionalTrimmedString(d.snippet?.description),
-					...(optionalFiniteNumber(d.contentDetails?.itemCount) != null && {
-						itemCount: optionalFiniteNumber(d.contentDetails?.itemCount),
-					}),
+					...youtubePlaylistTimestampFieldsFromPlaylist(d),
 					...(optionalTrimmedString(d.snippet?.publishedAt) != null && {
 						publishedAt: optionalTrimmedString(d.snippet?.publishedAt),
 					}),
@@ -228,7 +245,6 @@ export default {
 					:
 						undefined
 				)
-				const replyCount = optionalFiniteNumber(thread?.snippet?.totalReplyCount)
 				return {
 					text: optionalTrimmedString(snippet?.textDisplay) ?? optionalTrimmedString(snippet?.textOriginal),
 					...(optionalTrimmedString(snippet?.authorDisplayName) != null && {
@@ -240,10 +256,7 @@ export default {
 							[EntityMetaKey.Id]: { channelId: authorChannelId },
 						},
 					}),
-					...(optionalFiniteNumber(snippet?.likeCount) != null && {
-						likeCount: optionalFiniteNumber(snippet?.likeCount),
-					}),
-					...(replyCount != null && { replyCount }),
+					...youtubeCommentTimestampFieldsFromComment(d, thread),
 					...(optionalTrimmedString(snippet?.publishedAt) != null && {
 						publishedAt: optionalTrimmedString(snippet?.publishedAt),
 					}),
@@ -264,6 +277,61 @@ export default {
 							}
 					),
 				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.YouTubeChannel_Timestamp,
+			resolve: async (entityId, context) => {
+				const { youtubeGetChannel } = await import('$/sources/Youtube/Rest/queries.ts')
+				const channel = (await singleFlight(youtubeGetChannel)(sourcePublicEnv(context, Source.Youtube_Rest), entityId.$channel.channelId))
+					.items?.[0]
+				if (channel == null) throw new Error('Youtube_Rest: channel not found')
+				return youtubeChannelTimestampFieldsFromChannel(channel)
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.YouTubeVideo_Timestamp,
+			resolve: async (entityId, context) => {
+				const { youtubeGetVideo } = await import('$/sources/Youtube/Rest/queries.ts')
+				const video = (await singleFlight(youtubeGetVideo)(sourcePublicEnv(context, Source.Youtube_Rest), entityId.$video.videoId))
+					.items?.[0]
+				if (video == null) throw new Error('Youtube_Rest: video not found')
+				return youtubeVideoTimestampFieldsFromVideo(video)
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.YouTubeComment_Timestamp,
+			resolve: async (entityId, context) => {
+				const {
+					youtubeGetComment,
+					youtubeGetCommentThread,
+				} = await import('$/sources/Youtube/Rest/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Youtube_Rest)
+				const comment = (await singleFlight(youtubeGetComment)(publicEnv, entityId.$comment.commentId))
+					.items?.[0]
+				if (comment == null) throw new Error('Youtube_Rest: comment not found')
+				return youtubeCommentTimestampFieldsFromComment(
+					comment,
+					optionalTrimmedString(comment.snippet?.parentId) == null ?
+						(await singleFlight(youtubeGetCommentThread)(publicEnv, entityId.$comment.commentId))
+							.items?.[0]
+					:
+						undefined,
+				)
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.YouTubePlaylist_Timestamp,
+			resolve: async (entityId, context) => {
+				const { youtubeGetPlaylist } = await import('$/sources/Youtube/Rest/queries.ts')
+				const playlist = (await singleFlight(youtubeGetPlaylist)(sourcePublicEnv(context, Source.Youtube_Rest), entityId.$playlist.playlistId))
+					.items?.[0]
+				if (playlist == null) throw new Error('Youtube_Rest: playlist not found')
+				return youtubePlaylistTimestampFieldsFromPlaylist(playlist)
 			},
 		}),
 	],
@@ -344,6 +412,26 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.YouTubeChannel,
+			fieldName: '$$timestamps',
+			resolve: async (entityId, context) => {
+				const { youtubeGetChannel } = await import('$/sources/Youtube/Rest/queries.ts')
+				const channel = (await singleFlight(youtubeGetChannel)(sourcePublicEnv(context, Source.Youtube_Rest), entityId.channelId))
+					.items?.[0]
+				if (channel == null) throw new Error('Youtube_Rest: channel not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$channel: entityId,
+							timestampMs: Date.now(),
+						},
+						...youtubeChannelTimestampFieldsFromChannel(channel),
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.YouTubeChannel,
 			fieldName: '$$videos',
 			resolve: async (entityId, context) => {
 				const { youtubeSearchChannelVideos } = await import('$/sources/Youtube/Rest/queries.ts')
@@ -384,6 +472,26 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.YouTubePlaylist,
+			fieldName: '$$timestamps',
+			resolve: async (entityId, context) => {
+				const { youtubeGetPlaylist } = await import('$/sources/Youtube/Rest/queries.ts')
+				const playlist = (await singleFlight(youtubeGetPlaylist)(sourcePublicEnv(context, Source.Youtube_Rest), entityId.playlistId))
+					.items?.[0]
+				if (playlist == null) throw new Error('Youtube_Rest: playlist not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$playlist: entityId,
+							timestampMs: Date.now(),
+						},
+						...youtubePlaylistTimestampFieldsFromPlaylist(playlist),
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.YouTubePlaylist,
 			fieldName: '$$videos',
 			resolve: async (entityId, context) => {
 				const { youtubeListPlaylistItems } = await import('$/sources/Youtube/Rest/queries.ts')
@@ -404,6 +512,26 @@ export default {
 							)
 						))
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.YouTubeVideo,
+			fieldName: '$$timestamps',
+			resolve: async (entityId, context) => {
+				const { youtubeGetVideo } = await import('$/sources/Youtube/Rest/queries.ts')
+				const video = (await singleFlight(youtubeGetVideo)(sourcePublicEnv(context, Source.Youtube_Rest), entityId.videoId))
+					.items?.[0]
+				if (video == null) throw new Error('Youtube_Rest: video not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$video: entityId,
+							timestampMs: Date.now(),
+						},
+						...youtubeVideoTimestampFieldsFromVideo(video),
+					},
+				]
 			},
 		}),
 
@@ -447,6 +575,37 @@ export default {
 					if (pageToken == null) break
 				}
 				return refs.slice(0, limit)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.YouTubeComment,
+			fieldName: '$$timestamps',
+			resolve: async (entityId, context) => {
+				const {
+					youtubeGetComment,
+					youtubeGetCommentThread,
+				} = await import('$/sources/Youtube/Rest/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Youtube_Rest)
+				const comment = (await singleFlight(youtubeGetComment)(publicEnv, entityId.commentId))
+					.items?.[0]
+				if (comment == null) throw new Error('Youtube_Rest: comment not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$comment: entityId,
+							timestampMs: Date.now(),
+						},
+						...youtubeCommentTimestampFieldsFromComment(
+							comment,
+							optionalTrimmedString(comment.snippet?.parentId) == null ?
+								(await singleFlight(youtubeGetCommentThread)(publicEnv, entityId.commentId))
+									.items?.[0]
+							:
+								undefined,
+						),
+					},
+				]
 			},
 		}),
 

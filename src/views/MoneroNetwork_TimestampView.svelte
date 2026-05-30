@@ -76,8 +76,26 @@
 	bind:open
 	{layout}
 >
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={snapshot}
+			placeholderText="Loading Monero network snapshot..."
+		>
+			{#snippet children(snapshot)}
+				{#if snapshot.height !== undefined}
+					<NumberValue value={snapshot.height} />
+				{:else if snapshot.txPoolSize !== undefined}
+					<NumberValue value={snapshot.txPoolSize} />
+					in pool
+				{:else}
+					<Timestamp timestamp={entityId.timestampMs} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content()}

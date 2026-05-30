@@ -61,8 +61,26 @@
 	bind:open
 	{layout}
 >
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={snapshot}
+			placeholderText="Loading UTXO network snapshot…"
+		>
+			{#snippet children(snapshot)}
+				{#if snapshot.bestBlockHeight !== undefined}
+					<NumberValue value={snapshot.bestBlockHeight} />
+				{:else if snapshot.mempoolTransactionCount !== undefined}
+					<NumberValue value={snapshot.mempoolTransactionCount} />
+					in mempool
+				{:else}
+					<Timestamp timestamp={entityId.timestampMs} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content()}

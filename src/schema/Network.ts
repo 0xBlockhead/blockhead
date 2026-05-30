@@ -181,6 +181,25 @@ export const networkFields = [
 			Source.CosmosChainRegistry_Github,
 		],
 	},
+	{
+		name: '$$faucetUrls',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.Url,
+		cardinality: EntityFieldCardinality.ZeroOrMany,
+		defaultSources: [
+			Source.Constants_Internal,
+		],
+	},
+	{
+		name: '$$blockExplorerUrls',
+		type: EntityFieldType.EntitiesReference,
+		entityType: EntityType.Url,
+		cardinality: EntityFieldCardinality.ZeroOrMany,
+		defaultSources: [
+			Source.Constants_Internal,
+			Source.CosmosChainRegistry_Github,
+		],
+	},
 ] as const satisfies readonly EntityFieldDefinition[]
 
 export const networkFieldByName = Object.fromEntries(

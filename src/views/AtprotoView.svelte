@@ -61,12 +61,6 @@
 							Source.Atproto_Xrpc,
 							Source.Atproto_BskySocial_Xrpc,
 						],
-						$$posts: {
-							$: [
-								Source.Atproto_Xrpc,
-								Source.Atproto_BskySocial_Xrpc,
-							],
-						},
 					},
 				}
 			:
@@ -102,7 +96,7 @@
 	title="AT Protocol"
 >
 	{#snippet Value()}
-		{entityId.scope}
+		AT Protocol
 	{/snippet}
 
 	{#snippet Title()}
@@ -121,7 +115,7 @@
 			The AT Protocol anchors accounts in DIDs served by personal data stores; lexicon schemas define posts, follows, and profile blobs replicated through relays as signed CAR commits.
 		</p>
 		<p>
-			Actor and post counts in a hub snapshot cover only the handles and records that instance has synced—not every Bluesky-compatible identity on the network.
+			Actor rows in this hub cover only the handles that configured App View sources can resolve—not every Bluesky-compatible identity on the network.
 		</p>
 	{/snippet}
 
@@ -152,14 +146,6 @@
 						<div>
 							<dt>Accounts</dt>
 							<dd>{String(atprotoNetwork.$$atprotoActors?.length ?? 0)}</dd>
-						</div>
-						<div>
-							<dt>Posts</dt>
-							<dd>{String(
-								(atprotoNetwork.$$atprotoActors ?? [])
-									.flatMap((actor) => actor.$$posts ?? [])
-									.length
-							)}</dd>
 						</div>
 
 						{#if atprotoNetwork.topology}

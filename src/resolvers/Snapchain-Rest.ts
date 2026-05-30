@@ -150,6 +150,28 @@ export default {
 		}),
 
 		defineEntityResolver({
+			entityType: EntityType.FarcasterUser_Timestamp,
+			resolve: async (entityId) => {
+				const { countLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+				const [followerCount, followingCount] = await Promise.all([
+					singleFlight(countLinksByFid)({
+						fid: entityId.$user.fid,
+						linkType: 'follow',
+						reverse: true,
+					}),
+					singleFlight(countLinksByFid)({
+						fid: entityId.$user.fid,
+						linkType: 'follow',
+					}),
+				])
+				return {
+					followerCount,
+					followingCount,
+				}
+			},
+		}),
+
+		defineEntityResolver({
 			entityType: EntityType.FarcasterCast,
 			resolve: async (entityId) => {
 				type CastEntity = import('$/schema/$schema.ts').Entity<typeof schema, EntityType.FarcasterCast>
@@ -234,6 +256,28 @@ export default {
 					recastCount,
 					replyCount,
 				} satisfies Partial<CastFieldValues>
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.FarcasterCast_Timestamp,
+			resolve: async (entityId) => {
+				const {
+					getCastById,
+					getCastEngagementCountsForCast,
+				} = await import('$/sources/Snapchain/Rest/queries.ts')
+				if (await singleFlight(getCastById)({
+					fid: entityId.$cast.fid,
+					hash: entityId.$cast.hash,
+				}) == null) {
+					throw new Error('Snapchain_Rest: cast not found')
+				}
+				return getCastEngagementCountsForCast({
+					targetFid: entityId.$cast.fid,
+					targetHash: entityId.$cast.hash,
+					likeReactionType: SnapchainReactionType.Like,
+					recastReactionType: SnapchainReactionType.Recast,
+				})
 			},
 		}),
 
@@ -351,6 +395,35 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.FarcasterUser,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => {
+				const { countLinksByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+				const [followerCount, followingCount] = await Promise.all([
+					singleFlight(countLinksByFid)({
+						fid: entityId.fid,
+						linkType: 'follow',
+						reverse: true,
+					}),
+					singleFlight(countLinksByFid)({
+						fid: entityId.fid,
+						linkType: 'follow',
+					}),
+				])
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$user: entityId,
+							timestampMs: Date.now(),
+						},
+						followerCount,
+						followingCount,
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.FarcasterUser,
 			fieldName: '$$casts',
 			resolve: async (entityId, context) => {
 				const { snapchainMaxPageSize } = await import('$/sources/Snapchain/Rest/constants.ts')
@@ -385,6 +458,37 @@ export default {
 							},
 						}) satisfies CastEntity))
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.FarcasterCast,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => {
+				const {
+					getCastById,
+					getCastEngagementCountsForCast,
+				} = await import('$/sources/Snapchain/Rest/queries.ts')
+				if (await singleFlight(getCastById)({
+					fid: entityId.fid,
+					hash: entityId.hash,
+				}) == null) {
+					throw new Error('Snapchain_Rest: cast not found')
+				}
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$cast: entityId,
+							timestampMs: Date.now(),
+						},
+						...(await getCastEngagementCountsForCast({
+							targetFid: entityId.fid,
+							targetHash: entityId.hash,
+							likeReactionType: SnapchainReactionType.Like,
+							recastReactionType: SnapchainReactionType.Recast,
+						})),
+					},
+				]
 			},
 		}),
 

@@ -18,7 +18,7 @@
 	let {
 		routeChildren,
 		entityId,
-		href = resolve('/(social)/lens/post/[postId]', {
+		href = resolve('/(social)/(lens)/lens/post/[postId]', {
 			postId: entityId.id,
 		}),
 		open = $bindable(true),
@@ -59,6 +59,13 @@
 			bookmarkCount: {},
 			collectCount: {},
 			reactionCount: {},
+			$$timestamps: {
+				$: [
+					Source.Lens_Graphql,
+					Source.Lens_HeyGraphql,
+				],
+				$limit: 1,
+			},
 			$author: {},
 			$commentOn: {},
 			$quoteOf: {},
@@ -69,16 +76,17 @@
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
 	import LensAccountView from '$/views/LensAccountView.svelte'
 	import LensCommentsView from '$/views/LensCommentsView.svelte'
+	import LensPost_TimestampsView from '$/views/LensPost_TimestampsView.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 </script>
 
 
@@ -189,7 +197,7 @@
 						<div>
 							<dt>Repost of</dt>
 							<dd>
-								<LensPostView
+							<svelte:self
 									entityId={lensPost.$repostOf[EntityMetaKey.Id]}
 									layout={EntityLayout.SummaryDetails}
 									open={true}
@@ -203,7 +211,7 @@
 						<div>
 							<dt>Quote of</dt>
 							<dd>
-								<LensPostView
+							<svelte:self
 									entityId={lensPost.$quoteOf[EntityMetaKey.Id]}
 									layout={EntityLayout.SummaryDetails}
 									open={false}
@@ -217,7 +225,7 @@
 						<div>
 							<dt>Comment on</dt>
 							<dd>
-								<LensPostView
+							<svelte:self
 									entityId={lensPost.$commentOn[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
@@ -240,83 +248,35 @@
 						</div>
 					{/if}
 
-					{#if (
-						contentOpen
-						&& lensPost.commentCount != null
-					)}
-						<div>
-							<dt>Comments</dt>
-							<dd>
-								<NumberValue
-									value={lensPost.commentCount}
-								/>
-							</dd>
-						</div>
-					{/if}
-					{#if (
-						contentOpen
-						&& lensPost.repostCount != null
-					)}
-						<div>
-							<dt>Reposts</dt>
-							<dd>
-								<NumberValue
-									value={lensPost.repostCount}
-								/>
-							</dd>
-						</div>
-					{/if}
-					{#if (
-						contentOpen
-						&& lensPost.quoteCount != null
-					)}
-						<div>
-							<dt>Quotes</dt>
-							<dd>
-								<NumberValue
-									value={lensPost.quoteCount}
-								/>
-							</dd>
-						</div>
-					{/if}
-					{#if (
-						contentOpen
-						&& lensPost.bookmarkCount != null
-					)}
-						<div>
-							<dt>Bookmarks</dt>
-							<dd>
-								<NumberValue
-									value={lensPost.bookmarkCount}
-								/>
-							</dd>
-						</div>
-					{/if}
-					{#if (
-						contentOpen
-						&& lensPost.collectCount != null
-					)}
-						<div>
-							<dt>Collects</dt>
-							<dd>
-								<NumberValue
-									value={lensPost.collectCount}
-								/>
-							</dd>
-						</div>
-					{/if}
-					{#if (
-						contentOpen
-						&& lensPost.reactionCount != null
-					)}
-						<div>
-							<dt>Reactions</dt>
-							<dd>
-								<NumberValue
-									value={lensPost.reactionCount}
-								/>
-							</dd>
-						</div>
+					{#if contentOpen}
+						<SocialMetricSnapshotRows
+							metrics={[
+								{
+									label: 'Comments',
+									value: lensPost.$$timestamps[0]?.commentCount ?? lensPost.commentCount,
+								},
+								{
+									label: 'Reposts',
+									value: lensPost.$$timestamps[0]?.repostCount ?? lensPost.repostCount,
+								},
+								{
+									label: 'Quotes',
+									value: lensPost.$$timestamps[0]?.quoteCount ?? lensPost.quoteCount,
+								},
+								{
+									label: 'Bookmarks',
+									value: lensPost.$$timestamps[0]?.bookmarkCount ?? lensPost.bookmarkCount,
+								},
+								{
+									label: 'Collects',
+									value: lensPost.$$timestamps[0]?.collectCount ?? lensPost.collectCount,
+								},
+								{
+									label: 'Reactions',
+									value: lensPost.$$timestamps[0]?.reactionCount ?? lensPost.reactionCount,
+								},
+							]}
+						/>
 					{/if}
 				</dl>
 			{/snippet}
@@ -330,12 +290,23 @@
 		<CollapsibleTabs
 				id={`${postDetailKey}:carousel-lens-post`}
 				sectionIdPrefix={postDetailKey}
-				sections={[
-					{ id: 'lens-post-text', label: 'Text' },
-					{ id: 'lens-post-comments', label: 'Comments' },
-					{ id: 'lens-post-record', label: 'Record' },
-					...(routeChildren ? [{ id: 'lens-post-more', label: 'More' }] : []),
-				] as const}
+				sections={(
+					routeChildren ?
+							collapsibleTabsSections([
+								{ id: 'lens-post-text', label: 'Text' },
+								{ id: 'lens-post-comments', label: 'Comments' },
+								{ id: 'lens-post-record', label: 'Record' },
+								{ id: 'metric-snapshots', label: 'Metrics' },
+								{ id: 'lens-post-more', label: 'More' },
+							])
+					:
+							collapsibleTabsSections([
+								{ id: 'lens-post-text', label: 'Text' },
+								{ id: 'lens-post-comments', label: 'Comments' },
+								{ id: 'lens-post-record', label: 'Record' },
+								{ id: 'metric-snapshots', label: 'Metrics' },
+							])
+					)}
 				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}
@@ -381,14 +352,27 @@
 					/>
 				{/snippet}
 
-				{#snippet SectionLensPostRecord()}
-				{/snippet}
-
-				{#if routeChildren}
-					{#snippet SectionLensPostMore()}
-						{@render routeChildren()}
+					{#snippet SectionLensPostRecord()}
 					{/snippet}
-				{/if}
+
+					{#snippet SectionMetricSnapshots()}
+						<LensPost_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.LensPost,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`${postDetailKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+
+					{#snippet SectionLensPostMore()}
+						{#if routeChildren}
+						{@render routeChildren()}
+					{/if}
+				{/snippet}
 		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

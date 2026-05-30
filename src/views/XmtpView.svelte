@@ -49,21 +49,14 @@
 			$: [Source.Constants_Internal],
 			protocolName: {},
 			homeUrl: {},
-			docsUrl: {},
-			registryLabel: {},
-			topology: {},
-		},
-	)
-
-	const registry = useEntity(
-		EntityType._Global,
-		{},
-		{
-			$: [Source.Local_Internal],
-			$$actors: {},
-			$$xmtpConversations: {},
-		},
-	)
+				docsUrl: {},
+				registryLabel: {},
+				topology: {},
+				$$xmtpConversations: {
+					$: [Source.Local_Internal],
+				},
+			},
+		)
 
 
 	// Components
@@ -87,8 +80,7 @@
 	title="XMTP"
 >
 	{#snippet Value()}
-		{entityId.scope}
-
+		XMTP
 	{/snippet}
 
 	{#snippet Title()}
@@ -110,27 +102,17 @@
 		open: contentOpen,
 	})}
 		<dl data-column-item="center">
-			<ResourceBoundary
-				resource={registry}
-				placeholderText="Loading local inbox…"
-			>
-				{#snippet children(registry)}
-					<div>
-						<dt>Demo accounts</dt>
-						<dd>{String(registry['$$actors'].length)}</dd>
-					</div>
-					<div>
-						<dt>Conversations</dt>
-						<dd>{String(registry['$$xmtpConversations'].length)}</dd>
-					</div>
-				{/snippet}
-			</ResourceBoundary>
 			{#if contentOpen}
 				<ResourceBoundary
 					resource={network}
 					placeholderText="Loading XMTP network…"
 				>
 					{#snippet children(network)}
+						<div>
+							<dt>Conversations</dt>
+							<dd>{String(network.$$xmtpConversations.length)}</dd>
+						</div>
+
 						<div>
 							<dt>Protocol</dt>
 							<dd>{network.protocolName}</dd>

@@ -10,6 +10,7 @@ export enum Source {
 	Atproto_Xrpc = 'Atproto_Xrpc',
 	Atproto_BskySocial_Xrpc = 'Atproto_BskySocial_Xrpc',
 	Beacon_Rest = 'Beacon_Rest',
+	BeaconchaIn_Rest = 'BeaconchaIn_Rest',
 	Bittensor_JsonRpc = 'Bittensor_JsonRpc',
 	BitcoinBips_Github = 'BitcoinBips_Github',
 	BitcoinCashBcmr_Github = 'BitcoinCashBcmr_Github',

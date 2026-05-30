@@ -24,6 +24,8 @@ import { NetworkExecutionUpgradeLayer } from '$/schema/NetworkUpgradeProtocols.t
 import {
 	networkByCaip2,
 	networkBySlug,
+	NetworkResourceKind,
+	networkResourceUrlsByNetworkSlug,
 	NetworkNamespace,
 	networks,
 } from '$/constants/Network.ts'
@@ -412,11 +414,12 @@ const enrichNetworkExecutionUpgradeActivationTimestamp = async (
 			:	{
 					...row,
 					activationTimestampMs,
-				}
-		)
 	}
-	if (row.activationEpoch != null) {
-		const activationTimestampMs = await consensusEpochActivationTimestampMs(
+)
+
+		}
+		if (row.activationEpoch != null) {
+			const activationTimestampMs = await consensusEpochActivationTimestampMs(
 			Number(row[EntityMetaKey.Id].$network.caip2.reference),
 			row.activationEpoch,
 		)
@@ -428,9 +431,23 @@ const enrichNetworkExecutionUpgradeActivationTimestamp = async (
 					activationTimestampMs,
 				}
 		)
+		}
+		return row
 	}
-	return row
-}
+
+const networkResourceUrlEntityIds = (
+	networkSlug: string,
+	kind: NetworkResourceKind,
+) => (
+	networkResourceUrlsByNetworkSlug[networkSlug]
+		?.filter((resource) => resource.kind === kind)
+		.map((resource) => ({
+			[EntityMetaKey.Id]: {
+				url: resource.url,
+			},
+		}))
+	?? []
+)
 
 const enrichNetworkConsensusUpgradeActivationTimestamp = async (
 	row: Entity<typeof schema, EntityType.EthereumConsensusUpgrade>,
@@ -753,11 +770,13 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.EvmNetwork,
 			resolve: async (entityId) => {
+				const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
 				const { executionEndpointsByChainId } = await import('$/constants/ExecutionEndpoints.ts')
 				const row = networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
 				if (row == null) {
 					throw new Error(`Constants_Internal: EvmNetwork not found`)
 				}
+				const beaconRestBase = beaconRestBaseByExecutionChainId[Number(entityId.caip2.reference)]
 				const list = executionEndpointsByChainId[Number(entityId.caip2.reference)] ?? []
 				return {
 					slug: row.slug,
@@ -766,8 +785,26 @@ export default {
 					namespace: row.namespace,
 					environment: row.environment,
 					executionEndpoints: [...list],
+					consensusEndpoints: (
+						beaconRestBase == null ?
+							[]
+						:
+							[
+								{
+									restBaseUrl: beaconRestBase.restBaseUrl,
+									consensusProtocol: beaconRestBase.consensusProtocol,
+								},
+							]
+					),
 				}
 			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.MevRelay,
+			resolve: async (entityId) => ({
+				url: `https://${entityId.host}`,
+			}),
 		}),
 
 		defineEntityResolver({
@@ -1298,6 +1335,40 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$faucetUrls',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
+				const row = (
+					'networkSlug' in entityId ?
+						networkBySlug[entityId.networkSlug]
+					:	networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+				)
+				if (row == null) return []
+				return networkResourceUrlEntityIds(
+					row.slug,
+					NetworkResourceKind.Faucet,
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.Network,
+			fieldName: '$$blockExplorerUrls',
+			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
+				const row = (
+					'networkSlug' in entityId ?
+						networkBySlug[entityId.networkSlug]
+					:	networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+				)
+				if (row == null) return []
+				return networkResourceUrlEntityIds(
+					row.slug,
+					NetworkResourceKind.BlockExplorer,
+				)
+			},
+		}),
+
+		defineEntityFieldResolver({
 			entityType: EntityType._Global,
 			fieldName: '$$specificationRealms',
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
@@ -1650,6 +1721,26 @@ export default {
 			resolve: async (entityId) => {
 				const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
 				return beaconRestBaseByExecutionChainId[Number(entityId.caip2.reference)]?.consensusProtocol
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmNetwork,
+			fieldName: '$$mevRelays',
+			resolve: async (entityId) => {
+				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
+				const chainId = Number(entityId.caip2.reference)
+				return (
+					mevRelayHosts
+						.filter((row) => row.chainId === chainId)
+						.map((row) => ({
+							[EntityMetaKey.Id]: {
+								$network: entityId,
+								host: row.host,
+							},
+							url: `https://${row.host}`,
+						}))
+				)
 			},
 		}),
 

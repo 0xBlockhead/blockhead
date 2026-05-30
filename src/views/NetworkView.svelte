@@ -43,6 +43,7 @@
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
+	import BittensorNetworkView from '$/views/BittensorNetworkView.svelte'
 	import CosmosNetworkView from '$/views/CosmosNetworkView.svelte'
 	import EvmNetworkView from '$/views/EvmNetworkView.svelte'
 	import FilecoinNetworkView from '$/views/FilecoinNetworkView.svelte'
@@ -152,11 +153,19 @@
 				bind:open
 				{layout}
 			/>
+		{:else if row.namespace === NetworkNamespace.Bittensor}
+			<BittensorNetworkView
+				entityId={networkEntityId}
+				href={networkHref}
+				bind:open
+				{layout}
+			/>
 		{:else if row.namespace === NetworkNamespace.Lightning}
 			<LightningNetworkView
 				entityId={{
 					$network: networkEntityId,
 				}}
+				href={networkHref}
 				bind:open
 				{layout}
 			/>

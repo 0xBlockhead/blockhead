@@ -41,6 +41,12 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.RedditComment_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
 			name: 'createdAt',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),

@@ -17,7 +17,7 @@
 	// State
 	let {
 		entityId,
-		href = resolve('/(social)/x/post/[postId]', {
+		href = resolve('/(social)/(x)/x/post/[postId]', {
 			postId: entityId.id,
 		}),
 		open = $bindable(true),
@@ -59,6 +59,13 @@
 					retweetCount: {},
 					replyCount: {},
 					quoteCount: {},
+					$$timestamps: {
+						$: (
+							entityResolversByEntityType[EntityType.XPost_Timestamp]?.map((r) => r.source)
+							?? [Source.Local_Internal]
+						),
+						$limit: 1,
+					},
 					conversationId: {},
 					$replyToPost: {},
 					$quotedPost: {},
@@ -72,7 +79,7 @@
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -80,8 +87,8 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
-	import XPostView from '$/views/XPostView.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
+	import XPost_TimestampsView from '$/views/XPost_TimestampsView.svelte'
 	import XUserView from '$/views/XUserView.svelte'
 </script>
 
@@ -113,10 +120,13 @@
 						startLength={88}
 						value={post.text}
 					/>
-				{:else}
-					{@render Title()}
-				{/if}
-			{/snippet}
+					{:else}
+						<TruncatedValue
+							value={entityId.id}
+							format={TruncatedValueFormat.Visual}
+						/>
+					{/if}
+				{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
@@ -165,148 +175,104 @@
 		{/if}
 
 		<dl data-column-item="center">
-			<div>
-				<dt>Author</dt>
-				<dd>
-					<ResourceBoundary
-						resource={post}
-						placeholderText="Loading X post…"
-					>
-						{#snippet children(post)}
-							{#if post.$author}
+			<ResourceBoundary
+				resource={post}
+				placeholderText="Loading X post…"
+			>
+				{#snippet children(post)}
+					{#if post.$author}
+						<div>
+							<dt>Author</dt>
+							<dd>
 								<XUserView
 									entityId={post.$author[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 									open={false}
 								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+							</dd>
+						</div>
+					{/if}
+				{/snippet}
+			</ResourceBoundary>
 
 			{#if contentOpen}
-				<div>
-					<dt>Likes</dt>
-					<dd>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading X post…"
-						>
-							{#snippet children(post)}
-								{#if post.likeCount != null}
-									<NumberValue
-										value={post.likeCount}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+				<ResourceBoundary
+					resource={post}
+					placeholderText="Loading X post…"
+				>
+					{#snippet children(post)}
+						<SocialMetricSnapshotRows
+							metrics={[
+								{
+									label: 'Likes',
+									value: post.$$timestamps[0]?.likeCount ?? post.likeCount,
+								},
+								{
+									label: 'Reposts',
+									value: post.$$timestamps[0]?.retweetCount ?? post.retweetCount,
+								},
+								{
+									label: 'Replies',
+									value: post.$$timestamps[0]?.replyCount ?? post.replyCount,
+								},
+								{
+									label: 'Quotes',
+									value: post.$$timestamps[0]?.quoteCount ?? post.quoteCount,
+								},
+							]}
+						/>
+					{/snippet}
+				</ResourceBoundary>
 
-				<div>
-					<dt>Reposts</dt>
-					<dd>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading X post…"
-						>
-							{#snippet children(post)}
-								{#if post.retweetCount != null}
-									<NumberValue
-										value={post.retweetCount}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
-				<div>
-					<dt>Replies</dt>
-					<dd>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading X post…"
-						>
-							{#snippet children(post)}
-								{#if post.replyCount != null}
-									<NumberValue
-										value={post.replyCount}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
-				<div>
-					<dt>Quotes</dt>
-					<dd>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading X post…"
-						>
-							{#snippet children(post)}
-								{#if post.quoteCount != null}
-									<NumberValue
-										value={post.quoteCount}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-
-				<div>
-					<dt>Reply to</dt>
-					<dd>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading X post…"
-						>
-							{#snippet children(post)}
-								{#if post.$replyToPost}
-									<XPostView
+				<ResourceBoundary
+					resource={post}
+					placeholderText="Loading X post…"
+				>
+					{#snippet children(post)}
+						{#if post.$replyToPost}
+							<div>
+								<dt>Reply to</dt>
+								<dd>
+									<svelte:self
 										entityId={post.$replyToPost[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-				<div>
-					<dt>Quoted post</dt>
-					<dd>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading X post…"
-						>
-							{#snippet children(post)}
-								{#if post.$quotedPost}
-									<XPostView
+				<ResourceBoundary
+					resource={post}
+					placeholderText="Loading X post…"
+				>
+					{#snippet children(post)}
+						{#if post.$quotedPost}
+							<div>
+								<dt>Quoted post</dt>
+								<dd>
+									<svelte:self
 										entityId={post.$quotedPost[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-				<div>
-					<dt>Post URL</dt>
-					<dd>
-						<ResourceBoundary
-							resource={post}
-							placeholderText="Loading X post…"
-						>
-							{#snippet children(post)}
-								{#if post.postUrl}
+				<ResourceBoundary
+					resource={post}
+					placeholderText="Loading X post…"
+				>
+					{#snippet children(post)}
+						{#if post.postUrl}
+							<div>
+								<dt>Post URL</dt>
+								<dd>
 									<a
 										href={post.postUrl}
 										rel="noreferrer noopener"
@@ -317,11 +283,11 @@
 											value={post.postUrl}
 										/>
 									</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 		</dl>
 	{/snippet}
@@ -331,13 +297,12 @@
 	})}
 		<CollapsibleTabs
 				sectionIdPrefix={`x-post:${entityId.id}`}
-				sections={[
-					{ id: 'author', label: 'Author' },
-					...(_open ? [
+					sections={collapsibleTabsSections([
+						{ id: 'author', label: 'Author' },
 						{ id: 'thread', label: 'Thread' },
 						{ id: 'media', label: 'Media' },
-					] : []),
-				]}
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])}
 				id={`x-post:${entityId.id}:carousel`}
 				data-card
 			>
@@ -354,7 +319,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionAuthor({ id, label })}
+				{#snippet SectionAuthor()}
 					<ResourceBoundary
 						resource={post}
 						placeholderText="Loading X post…"
@@ -370,7 +335,7 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet SectionThread({ id, label })}
+				{#snippet SectionThread()}
 					{#if _open}
 						<ResourceBoundary
 							resource={post}
@@ -381,7 +346,7 @@
 									{#if post.$replyToPost}
 										<div>
 											<strong>Reply to:</strong>
-											<XPostView
+											<svelte:self
 												entityId={post.$replyToPost[EntityMetaKey.Id]}
 												layout={EntityLayout.Value}
 												open={false}
@@ -392,7 +357,7 @@
 									{#if post.$quotedPost}
 										<div>
 											<strong>Quoted post:</strong>
-											<XPostView
+											<svelte:self
 												entityId={post.$quotedPost[EntityMetaKey.Id]}
 												layout={EntityLayout.Value}
 												open={false}
@@ -414,8 +379,8 @@
 					{/if}
 				{/snippet}
 
-				{#snippet SectionMedia({ id, label })}
-					{#if _open}
+					{#snippet SectionMedia()}
+						{#if _open}
 						<ResourceBoundary
 							resource={post}
 							placeholderText="Loading X post…"
@@ -436,9 +401,22 @@
 									</p>
 								{/if}
 							{/snippet}
-						</ResourceBoundary>
-					{/if}
-				{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+							</ResourceBoundary>
+						{/if}
+					{/snippet}
+
+					{#snippet SectionMetricSnapshots()}
+						<XPost_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.XPost,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`x-post:${entityId.id}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>

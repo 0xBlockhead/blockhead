@@ -80,7 +80,7 @@
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -255,11 +255,11 @@
 		<CollapsibleTabs
 				id={`${idKey}:carousel-note`}
 				sectionIdPrefix={idKey}
-				sections={[
+				sections={collapsibleTabsSections([
 					{ id: 'content', label: 'Note text' },
 					{ id: 'replies', label: 'Reply thread' },
 					{ id: 'reactions', label: 'Reactions' },
-				] as const}
+				])}
 				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}

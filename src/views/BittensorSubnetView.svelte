@@ -1,12 +1,10 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
-	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// State
@@ -37,25 +35,16 @@
 			subnetInfoByteLength: {},
 			dynamicInfoByteLength: {},
 			hyperparamsByteLength: {},
-			$$metagraphTimestamps: {
-				$limit: 1,
-			},
-			...open && {
-				$$neurons: {
-					$limit: 8,
-				},
-			},
 		},
 	)
 
 
 	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
-	import BittensorMetagraph_TimestampView from '$/views/BittensorMetagraph_TimestampView.svelte'
-	import BittensorNeuronView from '$/views/BittensorNeuronView.svelte'
+	import BittensorMetagraph_TimestampsView from '$/views/BittensorMetagraph_TimestampsView.svelte'
+	import BittensorNeuronsView from '$/views/BittensorNeuronsView.svelte'
 </script>
 
 
@@ -111,42 +100,28 @@
 					{/if}
 				</dl>
 
-				{#if open && subnet.$$metagraphTimestamps.length > 0}
-					<section>
-						<h3>Metagraph</h3>
-
-						<ul>
-							{#each subnet.$$metagraphTimestamps as metagraph (stringify(metagraph[EntityMetaKey.Id]))}
-								<li>
-									<BittensorMetagraph_TimestampView
-										entityId={metagraph[EntityMetaKey.Id]}
-										layout={EntityLayout.SummaryInline}
-									/>
-								</li>
-							{/each}
-						</ul>
-					</section>
+				{#if open}
+					<BittensorMetagraph_TimestampsView
+						CollapsibleProps={{ canToggle: false }}
+						entityFieldReference={{
+							entityType: EntityType.BittensorSubnet,
+							entityId,
+							fieldName: '$$metagraphTimestamps',
+						}}
+						id={`${stringify(entityId)}:bittensor-metagraph-snapshots`}
+					/>
 				{/if}
 
-				{#if open && subnet.$$neurons?.length > 0}
-					<EntitiesList
-						collapsible={false}
-						entityType={EntityType.BittensorNeuron}
-						getKey={(neuronLine) => stringify(neuronLine.value[EntityMetaKey.Id])}
+				{#if open}
+					<BittensorNeuronsView
+						CollapsibleProps={{ canToggle: false }}
+						entityFieldReference={{
+							entityType: EntityType.BittensorSubnet,
+							entityId,
+							fieldName: '$$neurons',
+						}}
 						id={`${stringify(entityId)}:bittensor-neurons`}
-						items={subnet.$$neurons.map((value) => ({ value }))}
-						open={true}
-						showSummary={false}
-						title="Neurons"
-						UnorderedListProps={{ orientation: ListOrientation.Column }}
-					>
-						{#snippet Item({ item: neuronLine })}
-							<BittensorNeuronView
-								entityId={neuronLine.value[EntityMetaKey.Id]}
-								layout={EntityLayout.SummaryInline}
-							/>
-						{/snippet}
-					</EntitiesList>
+					/>
 				{/if}
 			{/snippet}
 		</ResourceBoundary>

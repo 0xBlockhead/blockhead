@@ -81,11 +81,11 @@
 		groupKey?: _GroupKey,
 	}
 
-	type ItemSnippetContext = {
-		key?: _Key,
-		item: _Item,
-		searchQuery?: string,
-		matches?: SvelteSet<Match>,
+		type ItemSnippetContext = {
+			key: _Key,
+			item: _Item,
+			searchQuery?: string,
+			matches?: SvelteSet<Match>,
 	}
 
 	type ItemPlaceholderSnippetContext = {
@@ -143,9 +143,9 @@
 		searchQuery?: string
 		matchesForItem?: SvelteMap<_Item, SvelteSet<Match>>
 		virtual?: VirtualRowMeasurement<ListRow>
-		GroupHeader?: Snippet<[context?: GroupHeaderSnippetContext]>
-		Item: Snippet<[context?: ItemSnippetContext]>
-		ItemPlaceholder?: Snippet<[context?: ItemPlaceholderSnippetContext]>
+			GroupHeader?: Snippet<[context?: GroupHeaderSnippetContext]>
+			Item: Snippet<[context: ItemSnippetContext]>
+			ItemPlaceholder?: Snippet<[context: ItemPlaceholderSnippetContext]>
 		Empty?: Snippet<[]>
 	} = $props()
 

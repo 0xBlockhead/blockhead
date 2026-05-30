@@ -17,7 +17,7 @@
 	// State
 	let {
 		entityId = {
-			scope: 'RssNetwork' as const,
+			scope: 'RssNetwork',
 		},
 		href = resolve('/rss'),
 		open = $bindable(
@@ -74,11 +74,11 @@
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
-	} as const
+	}
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -186,10 +186,10 @@
 		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-registry`}
 				sectionIdPrefix={networkIdKey}
-				sections={[
+				sections={collapsibleTabsSections([
 					{ id: 'feeds', label: 'Feeds' },
 					{ id: 'items', label: 'Recent items' },
-				]}
+				])}
 				data-card
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>

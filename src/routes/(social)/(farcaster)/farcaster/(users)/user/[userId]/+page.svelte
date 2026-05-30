@@ -13,11 +13,11 @@
 	let { params } = $props()
 
 
-	const userFeedId = $derived(
-		({
-			variant: 'byUser' as const,
+	const userFeedId: EntityId<typeof schema, EntityType.FarcasterFeed> = $derived(
+		{
+			variant: 'byUser',
 			fid: Number(params.userId),
-		}) satisfies EntityId<typeof schema, EntityType.FarcasterFeed>,
+		},
 	)
 
 

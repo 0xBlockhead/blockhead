@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -34,6 +35,22 @@
 			slug: {},
 			name: {},
 			environment: {},
+			$$nativeAssets: {},
+		},
+	)
+
+	const moneroNetwork = useEntity(
+		EntityType.MoneroNetwork,
+		entityId,
+		{
+			$: [
+				Source.MoneroDaemonRpc_JsonRpc,
+			],
+			rpcEndpoints: {},
+			$headBlock: {},
+			$$timestamps: {
+				$limit: 1,
+			},
 		},
 	)
 
@@ -44,10 +61,13 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import MoneroBlockView from '$/views/MoneroBlockView.svelte'
+	import MoneroBlocksView from '$/views/MoneroBlocksView.svelte'
+	import MoneroNetwork_TimestampsView from '$/views/MoneroNetwork_TimestampsView.svelte'
+	import UrlsView from '$/views/UrlsView.svelte'
 </script>
 
 
@@ -73,7 +93,7 @@
 	{#snippet Title()}
 		<ResourceBoundary resource={network}>
 			{#snippet Pending()}
-				{@render Value()}
+				<span data-text="muted">Resolving network...</span>
 			{/snippet}
 
 			{#snippet children(network)}
@@ -90,10 +110,33 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
+					<ResourceBoundary resource={moneroNetwork}>
+						{#snippet children(moneroNetwork)}
+							{#if moneroNetwork.$headBlock != null}
+								<div>
+									<dt>Head block</dt>
+									<dd id="network-summary-head-block">
+										<MoneroBlockView
+											entityId={moneroNetwork.$headBlock[EntityMetaKey.Id]}
+											layout={EntityLayout.Value}
+										/>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
+
 					<div>
 						<dt>Environment</dt>
 						<dd>{network.environment}</dd>
 					</div>
+
+					{#if network.$$nativeAssets.length > 0}
+						<div>
+							<dt>Native asset</dt>
+							<dd>{network.$$nativeAssets.length}</dd>
+						</div>
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>
@@ -101,26 +144,120 @@
 
 	{#snippet Details()}
 		<CollapsibleTabs
-				id={`${networkIdKey}:carousel-monero`}
-				sectionIdPrefix={networkIdKey}
-				sections={[
-					{ id: 'monero-network', label: 'Network' },
-				]}
-				data-card
-			>
-				{#snippet Summary()}
-					<header data-row-item="flexible" data-row="wrap gap-4">
-						<HeadingComponent>Monero</HeadingComponent>
-					</header>
-				{/snippet}
+			id={`${networkIdKey}:carousel-monero`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'monero-blocks', label: 'Blocks' },
+				{ id: 'monero-snapshots', label: 'Network snapshots' },
+				{ id: 'monero-endpoints', label: 'Endpoints' },
+			]}
+			data-card
+			scrollContainerProps={{
+				'data-row': 'start align-start',
+			}}
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Monero</HeadingComponent>
+				</header>
+			{/snippet}
 
-				{#snippet SectionMoneroNetwork()}
-					<ResourceBoundary resource={network}>
-						{#snippet children(network)}
-							<p><strong>Environment:</strong> {network.environment}</p>
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
+			{#snippet SectionMoneroBlocks({ id, label }: { id: string, label: string })}
+				<MoneroBlocksView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.MoneroNetwork,
+						entityId,
+						fieldName: '$$blocks',
+					}}
+					href={href == null ? '' : `${href}/blocks`}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionMoneroSnapshots({ id, label }: { id: string, label: string })}
+				<MoneroNetwork_TimestampsView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.MoneroNetwork,
+						entityId,
+						fieldName: '$$timestamps',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionMoneroEndpoints()}
+				<ResourceBoundary resource={moneroNetwork}>
+					{#snippet children(moneroNetwork)}
+						{#each moneroNetwork.rpcEndpoints as endpoint}
+							<p><strong>{endpoint.transportType}:</strong> {endpoint.url}</p>
+						{:else}
+							<p data-text="muted">No RPC endpoints listed for this network yet.</p>
+						{/each}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={`${networkIdKey}:carousel-monero-resources`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'monero-resources-faucets', label: 'Faucets' },
+				{ id: 'monero-resources-block-explorers', label: 'Block explorers' },
+			]}
+			data-card
+			class="network-view-collapsible-resources"
+			scrollContainerProps={{
+				'data-row': 'start align-start',
+			}}
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Resources</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionMoneroResourcesFaucets({ id, label }: { id: string, label: string })}
+				<UrlsView
+					CollapsibleProps={{ canToggle: false }}
+					emptyText="No faucets listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$faucetUrls',
+					}}
+					fieldSources={[
+						Source.Constants_Internal,
+					]}
+					href={href ?? ''}
+					limit={undefined}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
+
+			{#snippet SectionMoneroResourcesBlockExplorers({ id, label }: { id: string, label: string })}
+				<UrlsView
+					CollapsibleProps={{ canToggle: false }}
+					emptyText="No block explorers listed for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$blockExplorerUrls',
+					}}
+					fieldSources={[
+						Source.Constants_Internal,
+					]}
+					href={href ?? ''}
+					limit={undefined}
+					id={`${id}-list`}
+					title={label}
+				/>
+			{/snippet}
 		</CollapsibleTabs>
 	{/snippet}
 </EntityView>

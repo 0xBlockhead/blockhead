@@ -57,6 +57,7 @@
 				Source.Blockscout_Rest,
 			],
 			userOperationsCount: {},
+			$contract: {},
 			$factory: {},
 		},
 	)
@@ -129,20 +130,19 @@
 						</div>
 					{/if}
 
-					<div>
-						<dt>Account contract</dt>
-						<dd>
-							<EvmContractView
-								entityId={{
-									$network: entityId.$network,
-									address: entityId.address,
-								}}
-								layout={EntityLayout.SummaryDetails}
-								open={true}
-								showTypeAnnotation={false}
-							/>
-						</dd>
-					</div>
+					{#if smartAccount.$contract != null}
+						<div>
+							<dt>Account contract</dt>
+							<dd>
+								<EvmContractView
+									entityId={smartAccount.$contract[EntityMetaKey.Id]}
+									layout={EntityLayout.SummaryDetails}
+									open={true}
+									showTypeAnnotation={false}
+								/>
+							</dd>
+						</div>
+					{/if}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>

@@ -22,8 +22,7 @@
 			localAccountId: entityId.localAccountId,
 		}),
 		open = $bindable(true),
-		collapsible = true,
-		...EntityViewProps
+			...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.ActivityPubActor>
@@ -65,6 +64,13 @@
 					followersCount: {},
 					followingCount: {},
 					statusesCount: {},
+					$$timestamps: {
+						$: [
+							Source.Mastodon_Rest,
+							Source.Fedi_Rest,
+						],
+						$limit: 1,
+					},
 					createdAt: {},
 					bot: {},
 					locked: {},
@@ -77,17 +83,18 @@
 
 
 	// Components
+	import ActivityPubActor_TimestampsView from '$/views/ActivityPubActor_TimestampsView.svelte'
 	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 </script>
 
 
@@ -115,9 +122,10 @@
 	{/snippet}
 
 	{#snippet Value()}
-		<span>
-			{entityId.localAccountId}
-		</span>
+		<TruncatedValue
+			value={`@${entityId.localAccountId}@${entityId.instanceOrigin}`}
+			format={TruncatedValueFormat.Visual}
+		/>
 	{/snippet}
 
 	{#snippet Title()}
@@ -219,38 +227,22 @@
 					placeholderText="Loading actor…"
 				>
 					{#snippet children(actor)}
-						{#if actor.followersCount != null}
-							<div>
-								<dt>Followers</dt>
-								<dd>
-									<NumberValue
-										value={actor.followersCount}
-									/>
-								</dd>
-							</div>
-						{/if}
-
-						{#if actor.followingCount != null}
-							<div>
-								<dt>Following</dt>
-								<dd>
-									<NumberValue
-										value={actor.followingCount}
-									/>
-								</dd>
-							</div>
-						{/if}
-
-						{#if actor.statusesCount != null}
-							<div>
-								<dt>Statuses</dt>
-								<dd>
-									<NumberValue
-										value={actor.statusesCount}
-									/>
-								</dd>
-							</div>
-						{/if}
+						<SocialMetricSnapshotRows
+							metrics={[
+								{
+									label: 'Followers',
+									value: actor.$$timestamps[0]?.followersCount ?? actor.followersCount,
+								},
+								{
+									label: 'Following',
+									value: actor.$$timestamps[0]?.followingCount ?? actor.followingCount,
+								},
+								{
+									label: 'Statuses',
+									value: actor.$$timestamps[0]?.statusesCount ?? actor.statusesCount,
+								},
+							]}
+						/>
 
 						{#if actor.createdAt != null}
 							<div>
@@ -302,33 +294,21 @@
 							</div>
 						{/if}
 
-						{#if actor.bot != null || actor.locked != null}
+						{#if actor.bot != null}
 							<div>
-								<dt>Account flags</dt>
-								<dd>
-									{#if actor.bot != null}
-										{actor.bot ? 'Bot' : 'Not a bot'}
-									{/if}
-									{#if actor.bot != null && actor.locked != null}
-										{' · '}
-									{/if}
-									{#if actor.locked != null}
-										{actor.locked ? 'Locked' : 'Unlocked'}
-									{/if}
-								</dd>
+								<dt>Bot</dt>
+								<dd>{actor.bot ? 'Yes' : 'No'}</dd>
+							</div>
+						{/if}
+
+						{#if actor.locked != null}
+							<div>
+								<dt>Locked</dt>
+								<dd>{actor.locked ? 'Yes' : 'No'}</dd>
 							</div>
 						{/if}
 					{/snippet}
 				</ResourceBoundary>
-			{/if}
-
-			{#if contentOpen}
-				<div>
-					<dt>Local account id</dt>
-					<dd data-text="mono">
-						{entityId.localAccountId}
-					</dd>
-				</div>
 			{/if}
 		</dl>
 	{/snippet}
@@ -339,13 +319,14 @@
 		<CollapsibleTabs
 				id={`${idKey}:carousel-activity`}
 				sectionIdPrefix={idKey}
-				sections={[
-					{ id: 'mastodon-profile', label: 'Profile' },
-					{ id: 'activity-statuses', label: 'Outbox' },
-				]}
+					sections={collapsibleTabsSections([
+						{ id: 'mastodon-profile', label: 'Profile' },
+						{ id: 'activity-statuses', label: 'Outbox' },
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])}
 				data-card
 			>
-				{#snippet Summary({ open: _activitySummaryOpen })}
+					{#snippet Summary({ open: _activitySummaryOpen })}
 					<header
 						data-row-item="flexible"
 						data-row="wrap gap-4"
@@ -356,7 +337,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionMastodonProfile({ id: _id, label: _label })}
+				{#snippet SectionMastodonProfile()}
 					<ResourceBoundary
 						resource={actor}
 						placeholderText="Loading Mastodon profile…"
@@ -390,10 +371,9 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet SectionActivityStatuses({ id: _id, label: _label })}
-					<ActivityPubNotesView
+					{#snippet SectionActivityStatuses()}
+						<ActivityPubNotesView
 						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/activitypub/notes')}
 						entityFieldReference={{
 							entityType: EntityType.ActivityPubActor,
 							entityId,
@@ -404,8 +384,21 @@
 						orderByCreatedAt="desc"
 						placeholderText="Loading Mastodon outbox statuses…"
 						title="Outbox"
-					/>
-				{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+						/>
+					{/snippet}
+
+					{#snippet SectionMetricSnapshots()}
+						<ActivityPubActor_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.ActivityPubActor,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`${idKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>

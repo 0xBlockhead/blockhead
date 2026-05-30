@@ -62,8 +62,26 @@
 	bind:open
 	{layout}
 >
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={snapshot}
+			placeholderText="Loading Cosmos network snapshot…"
+		>
+			{#snippet children(snapshot)}
+				{#if snapshot.latestBlockHeight !== undefined}
+					<NumberValue value={snapshot.latestBlockHeight} />
+				{:else if snapshot.validatorCount !== undefined}
+					<NumberValue value={snapshot.validatorCount} />
+					validators
+				{:else}
+					<Timestamp timestamp={entityId.timestampMs} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content()}

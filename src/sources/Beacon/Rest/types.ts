@@ -85,3 +85,31 @@ export type BeaconForkScheduleEntry = {
 	previousVersion: `0x${string}`
 	currentVersion: `0x${string}`
 }
+
+export type BeaconCommittee = {
+	slot: number
+	index: number
+	validatorIndices: number[]
+}
+
+export type BeaconSyncCommittee = {
+	validatorIndices: number[]
+}
+
+export type BeaconBlockDutySummary = {
+	attestations: {
+		index: number
+		committeeIndex: number | undefined
+		aggregationBits: string | undefined
+	}[]
+	withdrawals: {
+		index: number
+		validatorIndex: number | undefined
+		address: string | undefined
+		amountGwei: bigint | undefined
+	}[]
+	slashings: {
+		index: number
+		kind: 'attester' | 'proposer'
+	}[]
+}

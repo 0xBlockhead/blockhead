@@ -18,7 +18,7 @@
 	// State
 	let {
 		entityId,
-		href = resolve('/(social)/x/user/[userId]', {
+		href = resolve('/(social)/(x)/x/user/[userId]', {
 			userId: entityId.id,
 		}),
 		open = $bindable(true),
@@ -59,6 +59,13 @@
 			followingCount: {},
 			tweetCount: {},
 			listedCount: {},
+			$$timestamps: {
+				$: (
+					entityResolversByEntityType[EntityType.XUser_Timestamp]?.map((r) => r.source)
+					?? [Source.Local_Internal]
+				),
+				$limit: 1,
+			},
 			$icon: {},
 			$profileBanner: {},
 			$$posts: {},
@@ -67,16 +74,17 @@
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import Media from '$/components/Media.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
+	import XUser_TimestampsView from '$/views/XUser_TimestampsView.svelte'
 	import XPostsView from '$/views/XPostsView.svelte'
 </script>
 
@@ -171,83 +179,33 @@
 
 		<dl data-column-item="center">
 			{#if contentOpen}
-				<div>
-					<dt>Followers</dt>
-					<dd>
-						<ResourceBoundary
-							resource={user}
-							placeholderText="Loading X profile…"
-						>
-							{#snippet children(user)}
-								{#if user.followerCount != null}
-									<NumberValue
-										value={user.followerCount}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if contentOpen}
-				<div>
-					<dt>Following</dt>
-					<dd>
-						<ResourceBoundary
-							resource={user}
-							placeholderText="Loading X profile…"
-						>
-							{#snippet children(user)}
-								{#if user.followingCount != null}
-									<NumberValue
-										value={user.followingCount}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if contentOpen}
-				<div>
-					<dt>Posts</dt>
-					<dd>
-						<ResourceBoundary
-							resource={user}
-							placeholderText="Loading X profile…"
-						>
-							{#snippet children(user)}
-								{#if user.tweetCount != null}
-									<NumberValue
-										value={user.tweetCount}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if contentOpen}
-				<div>
-					<dt>Listed</dt>
-					<dd>
-						<ResourceBoundary
-							resource={user}
-							placeholderText="Loading X profile…"
-						>
-							{#snippet children(user)}
-								{#if user.listedCount != null}
-									<NumberValue
-										value={user.listedCount}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+				<ResourceBoundary
+					resource={user}
+					placeholderText="Loading X profile…"
+				>
+					{#snippet children(user)}
+						<SocialMetricSnapshotRows
+							metrics={[
+								{
+									label: 'Followers',
+									value: user.$$timestamps[0]?.followerCount ?? user.followerCount,
+								},
+								{
+									label: 'Following',
+									value: user.$$timestamps[0]?.followingCount ?? user.followingCount,
+								},
+								{
+									label: 'Posts',
+									value: user.$$timestamps[0]?.tweetCount ?? user.tweetCount,
+								},
+								{
+									label: 'Listed',
+									value: user.$$timestamps[0]?.listedCount ?? user.listedCount,
+								},
+							]}
+						/>
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 
 			{#if contentOpen}
@@ -341,12 +299,11 @@
 		{@const userIdKey = stringify(entityId)}
 		<CollapsibleTabs
 				sectionIdPrefix={userIdKey}
-				sections={[
-					{ id: 'profile', label: 'Profile' },
-					...(user.$$posts?.length ? [
+					sections={collapsibleTabsSections([
+						{ id: 'profile', label: 'Profile' },
 						{ id: 'posts', label: 'Posts' },
-					] : []),
-				]}
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])}
 				id={`${userIdKey}:carousel-profile`}
 				data-card
 			>
@@ -361,7 +318,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionProfile({ id, label })}
+				{#snippet SectionProfile()}
 					<ResourceBoundary
 						resource={user}
 						placeholderText="Loading X profile…"
@@ -397,14 +354,14 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet SectionPosts({ id, label })}
-					<ResourceBoundary resource={user}>
+					{#snippet SectionPosts()}
+						<ResourceBoundary resource={user}>
 						{#snippet children(user)}
 							{#if (user.$$posts?.length)}
 								<XPostsView
 									CollapsibleProps={{ canToggle: false }}
 									href={resolve(
-										'/(social)/x/user/[userId]',
+										'/(social)/(x)/x/user/[userId]',
 										{ userId: entityId.id },
 									)}
 									entityFieldReference={{
@@ -416,9 +373,22 @@
 									title="Posts"
 								/>
 							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+							{/snippet}
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionMetricSnapshots()}
+						<XUser_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.XUser,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`${userIdKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>

@@ -59,6 +59,13 @@
 			likeCount: {},
 			durationSeconds: {},
 			commentCount: {},
+			$$timestamps: {
+				$: [
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+				],
+				$limit: 1,
+			},
 			categoryId: {},
 			liveBroadcastContent: {},
 			tags: {},
@@ -83,7 +90,7 @@
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
@@ -91,8 +98,10 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 	import YouTubeChannelView from '$/views/YouTubeChannelView.svelte'
 	import YouTubeCommentsView from '$/views/YouTubeCommentsView.svelte'
+	import YouTubeVideo_TimestampsView from '$/views/YouTubeVideo_TimestampsView.svelte'
 </script>
 
 
@@ -162,51 +171,29 @@
 
 		<dl data-column-item="center">
 			{#if open}
-				<div>
-					<dt>Views</dt>
-					<dd>
-						<ResourceBoundary
-							resource={video}
-							placeholderText="Loading video…"
-						>
-							{#snippet children(video)}
-								{#if video.viewCount != null}
-									{String(video.viewCount)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Likes</dt>
-					<dd>
-						<ResourceBoundary
-							resource={video}
-							placeholderText="Loading video…"
-						>
-							{#snippet children(video)}
-								{#if video.likeCount != null}
-									{String(video.likeCount)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Comments</dt>
-					<dd>
-						<ResourceBoundary
-							resource={video}
-							placeholderText="Loading video…"
-						>
-							{#snippet children(video)}
-								{#if video.commentCount != null}
-									{String(video.commentCount)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+				<ResourceBoundary
+					resource={video}
+					placeholderText="Loading video…"
+				>
+					{#snippet children(video)}
+						<SocialMetricSnapshotRows
+							metrics={[
+								{
+									label: 'Views',
+									value: video.$$timestamps[0]?.viewCount ?? video.viewCount,
+								},
+								{
+									label: 'Likes',
+									value: video.$$timestamps[0]?.likeCount ?? video.likeCount,
+								},
+								{
+									label: 'Comments',
+									value: video.$$timestamps[0]?.commentCount ?? video.commentCount,
+								},
+							]}
+						/>
+					{/snippet}
+				</ResourceBoundary>
 				<div>
 					<dt>Category</dt>
 					<dd>
@@ -337,10 +324,11 @@
 		<CollapsibleTabs
 				id={`${idKey}:carousel-video`}
 				sectionIdPrefix={idKey}
-				sections={[
-					{ id: 'description', label: 'Description' },
-					{ id: 'comments', label: 'Comment thread' },
-				]}
+					sections={collapsibleTabsSections([
+						{ id: 'description', label: 'Description' },
+						{ id: 'comments', label: 'Comment thread' },
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])}
 				data-card
 			>
 				{#snippet Summary({
@@ -356,7 +344,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionDescription({ id, label })}
+				{#snippet SectionDescription()}
 					<ResourceBoundary
 						resource={video}
 						placeholderText="Loading video…"
@@ -386,8 +374,8 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet SectionComments({ id, label })}
-					<YouTubeCommentsView
+					{#snippet SectionComments()}
+						<YouTubeCommentsView
 						CollapsibleProps={{ canToggle: false }}
 						href={resolve(
 			'/(social)/(youtube)/youtube/video/[videoId]/(video)/comments',
@@ -400,8 +388,21 @@
 						}}
 						id={`${idKey}:youtube-comments`}
 						open={_open}
-					/>
-				{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+						/>
+					{/snippet}
+
+					{#snippet SectionMetricSnapshots()}
+						<YouTubeVideo_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.YouTubeVideo,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`${idKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>

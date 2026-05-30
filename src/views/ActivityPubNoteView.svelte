@@ -27,8 +27,7 @@
 	),
 		layout = EntityLayout.SummaryDetails,
 		open = $bindable(true),
-		collapsible = true,
-		...EntityViewProps
+			...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.ActivityPubNote>
@@ -76,6 +75,13 @@
 					favouriteCount: {},
 					reblogCount: {},
 					replyCount: {},
+					$$timestamps: {
+						$: [
+							Source.Mastodon_Rest,
+							Source.Fedi_Rest,
+						],
+						$limit: 1,
+					},
 					visibility: {},
 					language: {},
 					statusUrl: {},
@@ -90,9 +96,10 @@
 
 
 	// Components
-	import ActivityPubEvmAccountView from '$/views/ActivityPubEvmAccountView.svelte'
+	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
+	import ActivityPubNote_TimestampsView from '$/views/ActivityPubNote_TimestampsView.svelte'
 	import ActivityPubNotesView from '$/views/ActivityPubNotesView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -101,6 +108,7 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 </script>
 
 
@@ -222,7 +230,7 @@
 								<div>
 									<dt>{note.$reblogOf ? 'Boosted by' : 'Author'}</dt>
 									<dd>
-										<ActivityPubEvmAccountView
+										<ActivityPubActorView
 											entityId={note.$author[EntityMetaKey.Id]}
 											layout={EntityLayout.Title}
 											open={false}
@@ -245,7 +253,7 @@
 							<div>
 								<dt>In reply to</dt>
 								<dd>
-									<ActivityPubNoteView
+									<svelte:self
 										entityId={note.$inReplyTo[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
@@ -270,7 +278,7 @@
 							<div>
 								<dt>Reblog of</dt>
 								<dd>
-									<ActivityPubNoteView
+									<svelte:self
 										entityId={note.$reblogOf[EntityMetaKey.Id]}
 										layout={EntityLayout.Title}
 										open={false}
@@ -401,59 +409,51 @@
 			{/if}
 
 			{#if contentOpen}
-				<div>
-					<dt>Engagement</dt>
-					<dd>
-						<ResourceBoundary
-							resource={note}
-							placeholderText="Loading note…"
-						>
-							{#snippet children(note)}
-								{#if note.favouriteCount != null}
-									{String(note.favouriteCount)} favourites
-								{/if}
-								{#if note.reblogCount != null}
-									· {String(note.reblogCount)} reblogs
-								{/if}
-								{#if note.replyCount != null}
-									· {String(note.replyCount)} replies
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+				<ResourceBoundary
+					resource={note}
+					placeholderText="Loading note…"
+				>
+					{#snippet children(note)}
+						<SocialMetricSnapshotRows
+							metrics={[
+								{
+									label: 'Favourites',
+									value: note.$$timestamps[0]?.favouriteCount ?? note.favouriteCount,
+								},
+								{
+									label: 'Reblogs',
+									value: note.$$timestamps[0]?.reblogCount ?? note.reblogCount,
+								},
+								{
+									label: 'Replies',
+									value: note.$$timestamps[0]?.replyCount ?? note.replyCount,
+								},
+							]}
+						/>
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 
 			{#if contentOpen}
-				<div>
-					<dt>Web status</dt>
-					<dd>
-						<ResourceBoundary
-							resource={note}
-							placeholderText="Loading note…"
-						>
-							{#snippet children(note)}
-								{#if note.statusUrl}
+				<ResourceBoundary
+					resource={note}
+					placeholderText="Loading note…"
+				>
+					{#snippet children(note)}
+						{#if note.statusUrl}
+							<div>
+								<dt>Status URL</dt>
+								<dd>
 									<a
 										href={note.statusUrl}
 										rel="noreferrer"
 										target="_blank"
 									>{note.statusUrl}</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-
-			{#if (
-				contentOpen
-				&& entityId.instanceOrigin
-			)}
-				<div>
-					<dt>Origin instance</dt>
-					<dd data-text="mono muted">{entityId.instanceOrigin}</dd>
-				</div>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 
 		</dl>
@@ -465,10 +465,11 @@
 		<CollapsibleTabs
 				id={`${idKey}:carousel-note`}
 				sectionIdPrefix={idKey}
-				sections={[
-					{ id: 'note-details', label: 'Metadata' },
-					{ id: 'note-thread', label: 'Thread' },
-				]}
+					sections={collapsibleTabsSections([
+						{ id: 'note-details', label: 'Metadata' },
+						{ id: 'note-thread', label: 'Thread' },
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])}
 				data-card
 			>
 				{#snippet Summary({ open: _conversationSummaryOpen })}
@@ -482,7 +483,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionNoteDetails({ id: _id, label: _label })}
+				{#snippet SectionNoteDetails()}
 					<ResourceBoundary
 						resource={note}
 						placeholderText="Loading note…"
@@ -514,10 +515,9 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet SectionNoteThread({ id: _id, label: _label })}
-					<ActivityPubNotesView
+					{#snippet SectionNoteThread()}
+						<ActivityPubNotesView
 						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/activitypub/notes')}
 						entityFieldReference={{
 							entityType: EntityType.ActivityPubNote,
 							entityId,
@@ -528,11 +528,24 @@
 						orderByCreatedAt="asc"
 						placeholderText="Loading conversation…"
 						title="Thread"
-					/>
-				{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+						/>
+					{/snippet}
+
+					{#snippet SectionMetricSnapshots()}
+						<ActivityPubNote_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.ActivityPubNote,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`${idKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>
 
 
 <style>

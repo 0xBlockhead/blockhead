@@ -83,11 +83,11 @@
 
 	const entityViewDetailCarouselScrollProps = {
 		'data-row': 'start align-start',
-	} as const
+	}
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
@@ -108,8 +108,7 @@
 	title="YouTube"
 >
 	{#snippet Value()}
-		{entityId.scope}
-
+		YouTube
 	{/snippet}
 
 	{#snippet Title()}
@@ -201,11 +200,11 @@
 		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-registry`}
 				sectionIdPrefix={networkIdKey}
-				sections={[
+				sections={collapsibleTabsSections([
 					{ id: 'channels', label: 'Channels' },
 					{ id: 'videos', label: 'Popular videos' },
 					{ id: 'playlists', label: 'Playlists' },
-				]}
+				])}
 				data-card
 				scrollContainerProps={entityViewDetailCarouselScrollProps}
 			>

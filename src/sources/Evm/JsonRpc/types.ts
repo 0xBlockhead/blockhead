@@ -57,6 +57,8 @@ export type RpcReceipt = {
 export type RpcFeeHistory = {
 	oldestBlock: string
 	baseFeePerGas: string[]
+	baseFeePerBlobGas?: string[]
+	blobGasUsedRatio?: number[]
 	gasUsedRatio: number[]
 	reward?: string[][]
 }

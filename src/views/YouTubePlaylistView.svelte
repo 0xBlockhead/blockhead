@@ -50,6 +50,13 @@
 			title: {},
 			description: {},
 			itemCount: {},
+			$$timestamps: {
+				$: [
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+				],
+				$limit: 1,
+			},
 			publishedAt: {},
 			publishedAtMs: {},
 			$channel: {},
@@ -72,13 +79,15 @@
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 	import YouTubeChannelView from '$/views/YouTubeChannelView.svelte'
+	import YouTubePlaylist_TimestampsView from '$/views/YouTubePlaylist_TimestampsView.svelte'
 	import YouTubeVideosView from '$/views/YouTubeVideosView.svelte'
 </script>
 
@@ -143,12 +152,14 @@
 					placeholderText="Loading playlist…"
 				>
 					{#snippet children(playlist)}
-						{#if playlist.itemCount != null}
-							<div>
-								<dt>Items</dt>
-								<dd>{String(playlist.itemCount)}</dd>
-							</div>
-						{/if}
+						<SocialMetricSnapshotRows
+							metrics={[
+								{
+									label: 'Items',
+									value: playlist.$$timestamps[0]?.itemCount ?? playlist.itemCount,
+								},
+							]}
+						/>
 
 						{#if playlist.publishedAtMs != null}
 							<div>
@@ -186,9 +197,10 @@
 		<CollapsibleTabs
 				id={`${idKey}:carousel-videos`}
 				sectionIdPrefix={idKey}
-				sections={[
-					{ id: 'videos', label: 'Videos' },
-				]}
+					sections={collapsibleTabsSections([
+						{ id: 'videos', label: 'Videos' },
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])}
 				data-card
 			>
 				{#snippet Summary({
@@ -204,10 +216,9 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionVideos({ id, label })}
-					<YouTubeVideosView
+					{#snippet SectionVideos()}
+						<YouTubeVideosView
 						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/youtube/videos')}
 						entityFieldReference={{
 							entityType: EntityType.YouTubePlaylist,
 							entityId,
@@ -215,8 +226,21 @@
 						}}
 						id={`${idKey}:youtube-videos`}
 						open={_open}
-					/>
-				{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+						/>
+					{/snippet}
+
+					{#snippet SectionMetricSnapshots()}
+						<YouTubePlaylist_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.YouTubePlaylist,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`${idKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>

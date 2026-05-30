@@ -5,6 +5,7 @@
 
 	// Types/constants
 	import type { ComponentProps } from 'svelte'
+	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -53,6 +54,7 @@
 				Source.Blockscout_Rest,
 			],
 			userOperationsCount: {},
+			$contract: {},
 		},
 	)
 
@@ -112,10 +114,7 @@
 						<dt>Factory contract</dt>
 						<dd>
 							<EvmContractView
-								entityId={{
-									$network: entityId.$network,
-									address: entityId.address,
-								}}
+								entityId={accountFactory.$contract[EntityMetaKey.Id]}
 								layout={EntityLayout.SummaryDetails}
 								open={true}
 								showTypeAnnotation={false}

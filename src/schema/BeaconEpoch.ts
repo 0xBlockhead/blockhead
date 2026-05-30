@@ -48,6 +48,7 @@ export default {
 				Source.Beacon_Rest,
 			],
 		},
+		// Intrinsic: slots are contained by exactly one epoch.
 		{
 			name: '$$beaconSlots',
 			type: EntityFieldType.EntitiesReference,
@@ -55,6 +56,69 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Beacon_Rest,
+			],
+		},
+		{
+			name: 'finalized',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('boolean'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.BeaconchaIn_Rest,
+			],
+		},
+		{
+			name: 'globalParticipationRate',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.BeaconchaIn_Rest,
+			],
+		},
+		{
+			name: 'validatorsCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.BeaconchaIn_Rest,
+			],
+		},
+		{
+			name: 'attestationsCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.BeaconchaIn_Rest,
+			],
+		},
+		{
+			name: 'attesterSlashingsCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.BeaconchaIn_Rest,
+			],
+		},
+		{
+			name: 'proposerSlashingsCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.BeaconchaIn_Rest,
+			],
+		},
+		{
+			name: 'withdrawalsCount',
+			type: EntityFieldType.Primitive,
+			primitiveType: type('number'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.BeaconchaIn_Rest,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

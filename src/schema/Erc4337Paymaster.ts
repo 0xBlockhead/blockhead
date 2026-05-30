@@ -32,5 +32,14 @@ export default {
 				Source.Blockscout_Rest,
 			],
 		},
+		{
+			name: '$contract',
+			type: EntityFieldType.EntityReference,
+			entityType: EntityType.EvmContract,
+			cardinality: EntityFieldCardinality.One,
+			defaultSources: [
+				Source.Blockscout_Rest,
+			],
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

@@ -61,6 +61,18 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.LiquidityPool_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
+			name: '$$blocks',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.LiquidityPool_Block,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
 			name: 'sqrtPriceX96',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('bigint'),

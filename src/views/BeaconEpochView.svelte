@@ -51,11 +51,19 @@
 		{
 			$: [
 				Source.Beacon_Rest,
+				Source.BeaconchaIn_Rest,
 			],
 			startSlot: {},
 			endSlot: {},
 			...(open && {
 				slotCount: {},
+				finalized: {},
+				globalParticipationRate: {},
+				validatorsCount: {},
+				attestationsCount: {},
+				attesterSlashingsCount: {},
+				proposerSlashingsCount: {},
+				withdrawalsCount: {},
 			}),
 		},
 	)
@@ -147,6 +155,58 @@
 						</ResourceBoundary>
 					</dd>
 				</div>
+
+				{#if epoch.finalized !== undefined}
+					<div>
+						<dt>Finalized</dt>
+						<dd>{epoch.finalized ? 'Yes' : 'No'}</dd>
+					</div>
+				{/if}
+
+				{#if epoch.globalParticipationRate !== undefined}
+					<div>
+						<dt>Participation</dt>
+						<dd>{(epoch.globalParticipationRate * 100).toFixed(2)}%</dd>
+					</div>
+				{/if}
+
+				{#if epoch.validatorsCount !== undefined}
+					<div>
+						<dt>Validators</dt>
+						<dd><NumberValue value={epoch.validatorsCount} /></dd>
+					</div>
+				{/if}
+
+				{#if epoch.attestationsCount !== undefined}
+					<div>
+						<dt>Attestations</dt>
+						<dd><NumberValue value={epoch.attestationsCount} /></dd>
+					</div>
+				{/if}
+
+				{#if epoch.withdrawalsCount !== undefined}
+					<div>
+						<dt>Withdrawals</dt>
+						<dd><NumberValue value={epoch.withdrawalsCount} /></dd>
+					</div>
+				{/if}
+
+				{#if (
+					epoch.attesterSlashingsCount !== undefined
+					|| epoch.proposerSlashingsCount !== undefined
+				)}
+					<div>
+						<dt>Slashings</dt>
+						<dd>
+							{#if epoch.attesterSlashingsCount !== undefined}
+								<NumberValue value={epoch.attesterSlashingsCount} /> attester
+							{/if}
+							{#if epoch.proposerSlashingsCount !== undefined}
+								<NumberValue value={epoch.proposerSlashingsCount} /> proposer
+							{/if}
+						</dd>
+					</div>
+				{/if}
 			{/if}
 		</dl>
 	{/snippet}

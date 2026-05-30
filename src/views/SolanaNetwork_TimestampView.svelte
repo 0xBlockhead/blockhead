@@ -58,8 +58,26 @@
 	bind:open
 	{layout}
 >
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={snapshot}
+			placeholderText="Loading Solana network snapshot…"
+		>
+			{#snippet children(snapshot)}
+				{#if snapshot.absoluteSlot !== undefined}
+					<NumberValue value={snapshot.absoluteSlot} />
+				{:else if snapshot.epoch !== undefined}
+					<NumberValue value={snapshot.epoch} />
+					epoch
+				{:else}
+					<Timestamp timestamp={entityId.timestampMs} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content()}

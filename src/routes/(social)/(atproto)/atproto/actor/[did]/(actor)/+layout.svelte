@@ -15,7 +15,7 @@
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import AtprotoEvmAccountView from '$/views/AtprotoEvmAccountView.svelte'
+	import AtprotoActorView from '$/views/AtprotoActorView.svelte'
 	import ParentPageCollapsible from '$/components/ParentPageCollapsible.svelte'
 </script>
 
@@ -27,7 +27,7 @@
 	id={did}
 >
 	{#snippet Summary({ open: _open })}
-		<AtprotoEvmAccountView
+		<AtprotoActorView
 			entityId={{ did: decodeURIComponent(did) }}
 			layout={EntityLayout.SummaryInline}
 		/>

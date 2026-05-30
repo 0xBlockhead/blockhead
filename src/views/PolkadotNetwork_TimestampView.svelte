@@ -57,8 +57,26 @@
 	bind:open
 	{layout}
 >
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={snapshot}
+			placeholderText="Loading Polkadot network snapshot…"
+		>
+			{#snippet children(snapshot)}
+				{#if snapshot.finalizedBlockNumber !== undefined}
+					<NumberValue value={snapshot.finalizedBlockNumber} />
+				{:else if snapshot.peerCount !== undefined}
+					<NumberValue value={snapshot.peerCount} />
+					peers
+				{:else}
+					<Timestamp timestamp={entityId.timestampMs} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
-		<Timestamp timestamp={entityId.timestampMs} />
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content()}

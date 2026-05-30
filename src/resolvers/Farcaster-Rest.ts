@@ -177,6 +177,28 @@ export default {
 		}),
 
 		defineEntityResolver({
+			entityType: EntityType.FarcasterChannel_Timestamp,
+			resolve: async (entityId) => {
+				const {
+					getChannelFollowersCount,
+					getChannelMembersCount,
+				} = await import('$/sources/Farcaster/Rest/queries.ts')
+				const [followerCount, memberCount] = await Promise.all([
+					getChannelFollowersCount({
+						channelId: entityId.$channel.id,
+					}),
+					getChannelMembersCount({
+						channelId: entityId.$channel.id,
+					}),
+				])
+				return {
+					followerCount,
+					memberCount,
+				}
+			},
+		}),
+
+		defineEntityResolver({
 			entityType: EntityType.FarcasterNetwork,
 			resolve: async () => (
 				farcasterNetworkFieldValues
@@ -199,6 +221,35 @@ export default {
 	],
 
 	entityFieldResolvers: [
+		defineEntityFieldResolver({
+			entityType: EntityType.FarcasterChannel,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => {
+				const {
+					getChannelFollowersCount,
+					getChannelMembersCount,
+				} = await import('$/sources/Farcaster/Rest/queries.ts')
+				const [followerCount, memberCount] = await Promise.all([
+					getChannelFollowersCount({
+						channelId: entityId.id,
+					}),
+					getChannelMembersCount({
+						channelId: entityId.id,
+					}),
+				])
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$channel: entityId,
+							timestampMs: Date.now(),
+						},
+						followerCount,
+						memberCount,
+					},
+				]
+			},
+		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.FarcasterChannel,
 			fieldName: 'followerCount',

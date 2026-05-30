@@ -59,6 +59,12 @@
 			fee: {},
 			tickSpacing: {},
 			v4PoolId: {},
+			$$timestamps: {
+				$: [
+					Source.Dexscreener_OpenApi,
+				],
+				$limit: 64,
+			},
 			sqrtPriceX96: {},
 			liquidity: {},
 			tick: {},
@@ -86,6 +92,7 @@
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
+	import LiquidityPool_TimestampsView from '$/views/LiquidityPool_TimestampsView.svelte'
 </script>
 
 
@@ -378,5 +385,13 @@
 	{#snippet Details({
 		open: _open,
 	})}
+		<LiquidityPool_TimestampsView
+			entityFieldReference={{
+				entityType: EntityType.LiquidityPool,
+				entityId,
+				fieldName: '$$timestamps',
+			}}
+			open={true}
+		/>
 	{/snippet}
 </EntityView>

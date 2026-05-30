@@ -46,7 +46,7 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActivityPubEvmAccountView from '$/views/ActivityPubEvmAccountView.svelte'
+	import ActivityPubActorView from '$/views/ActivityPubActorView.svelte'
 </script>
 
 
@@ -116,7 +116,7 @@
 
 					{#snippet Item({ item })}
 						{@const actorId = item[EntityMetaKey.Id]}
-						<ActivityPubEvmAccountView
+						<ActivityPubActorView
 							entityId={{
 								instanceOrigin: actorId.instanceOrigin,
 								localAccountId: actorId.localAccountId,

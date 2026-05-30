@@ -99,18 +99,18 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		Source verification
-	{/snippet}
-
-	{#snippet Title()}
 		<ResourceBoundary
 			resource={verification}
 			placeholderText="Loading verification…"
 		>
 			{#snippet children(verification)}
-				{verification.match ?? 'Verified'}
+				{verification.match ?? 'Verified source'}
 			{/snippet}
 		</ResourceBoundary>
+	{/snippet}
+
+	{#snippet Title()}
+		{@render Value()}
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

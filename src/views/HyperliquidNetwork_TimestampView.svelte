@@ -53,6 +53,25 @@
 	bind:open
 	{layout}
 >
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={snapshot}
+			placeholderText="Loading Hyperliquid network snapshot..."
+		>
+			{#snippet children(snapshot)}
+				{#if snapshot.perpMarketCount !== undefined}
+					<NumberValue value={snapshot.perpMarketCount} />
+					perps
+				{:else if snapshot.validatorCount !== undefined}
+					<NumberValue value={snapshot.validatorCount} />
+					validators
+				{:else}
+					<Timestamp timestamp={entityId.timestampMs} />
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
 		<Timestamp timestamp={entityId.timestampMs} />
 	{/snippet}

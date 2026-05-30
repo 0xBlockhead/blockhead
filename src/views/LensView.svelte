@@ -73,7 +73,7 @@
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -93,7 +93,7 @@
 	title="Lens"
 >
 	{#snippet Value()}
-		{entityId.scope}
+		Lens
 	{/snippet}
 
 	{#snippet Title()}
@@ -187,11 +187,11 @@
 		<CollapsibleTabs
 				id={`${networkIdKey}:carousel-registry`}
 				sectionIdPrefix={networkIdKey}
-				sections={[
+				sections={collapsibleTabsSections([
 					{ id: 'registry-accounts', label: 'Profiles' },
 					{ id: 'registry-posts', label: 'Publications' },
 					{ id: 'examples-list', label: 'Examples' },
-				] as const}
+				])}
 				data-card
 			>
 				{#snippet Summary({ open: _summaryOpen })}

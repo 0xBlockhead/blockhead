@@ -21,8 +21,7 @@
 			did: entityId.did,
 		}),
 		open = $bindable(true),
-		collapsible = true,
-		...EntityViewProps
+			...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.AtprotoActor>
@@ -59,6 +58,13 @@
 					followersCount: {},
 					followsCount: {},
 					postsCount: {},
+					$$timestamps: {
+						$: [
+							Source.Atproto_Xrpc,
+							Source.Atproto_BskySocial_Xrpc,
+						],
+						$limit: 1,
+					},
 					indexedAt: {},
 				}
 			:
@@ -68,17 +74,18 @@
 
 
 	// Components
+	import AtprotoActor_TimestampsView from '$/views/AtprotoActor_TimestampsView.svelte'
 	import AtprotoPostsView from '$/views/AtprotoPostsView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 </script>
 
 
@@ -186,60 +193,50 @@
 				</div>
 			{/if}
 
-			{#if (
-				contentOpen
-				&& actor.followersCount != null
-			)}
-				<div>
-					<dt>Followers</dt>
-					<dd>
-						<NumberValue
-							value={actor.followersCount}
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={actor}
+					placeholderText="Loading profile…"
+				>
+					{#snippet children(actor)}
+						<SocialMetricSnapshotRows
+							metrics={[
+								{
+									label: 'Followers',
+									value: actor.$$timestamps[0]?.followersCount ?? actor.followersCount,
+								},
+								{
+									label: 'Following',
+									value: actor.$$timestamps[0]?.followsCount ?? actor.followsCount,
+								},
+								{
+									label: 'Posts',
+									value: actor.$$timestamps[0]?.postsCount ?? actor.postsCount,
+								},
+							]}
 						/>
-					</dd>
-				</div>
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 
-			{#if (
-				contentOpen
-				&& actor.followsCount != null
-			)}
-				<div>
-					<dt>Following</dt>
-					<dd>
-						<NumberValue
-							value={actor.followsCount}
-						/>
-					</dd>
-				</div>
-			{/if}
-
-			{#if (
-				contentOpen
-				&& actor.postsCount != null
-			)}
-				<div>
-					<dt>Posts</dt>
-					<dd>
-						<NumberValue
-							value={actor.postsCount}
-						/>
-					</dd>
-				</div>
-			{/if}
-
-			{#if (
-				contentOpen
-				&& actor.indexedAt != null
-			)}
-				<div>
-					<dt>Indexed</dt>
-					<dd>
-						<Timestamp
-							timestamp={actor.indexedAt}
-						/>
-					</dd>
-				</div>
+			{#if contentOpen}
+				<ResourceBoundary
+					resource={actor}
+					placeholderText="Loading profile…"
+				>
+					{#snippet children(actor)}
+						{#if actor.indexedAt != null}
+							<div>
+								<dt>Indexed</dt>
+								<dd>
+									<Timestamp
+										timestamp={actor.indexedAt}
+									/>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 		</dl>
 	{/snippet}
@@ -250,10 +247,11 @@
 		<CollapsibleTabs
 				id={`${idKey}:carousel-profile`}
 				sectionIdPrefix={idKey}
-				sections={[
-					{ id: 'profile-details', label: 'Lexicon identity' },
-					{ id: 'activity-posts', label: 'Posts' },
-				]}
+					sections={collapsibleTabsSections([
+						{ id: 'profile-details', label: 'Lexicon identity' },
+						{ id: 'activity-posts', label: 'Posts' },
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])}
 				data-card
 			>
 				{#snippet Summary({ open: _profileSummaryOpen })}
@@ -267,7 +265,7 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionProfileDetails({ id: _id, label: _label })}
+				{#snippet SectionProfileDetails()}
 					<ResourceBoundary
 						resource={actor}
 						placeholderText="Loading profile…"
@@ -300,8 +298,8 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet SectionActivityPosts({ id: _id, label: _label })}
-					<AtprotoPostsView
+					{#snippet SectionActivityPosts()}
+						<AtprotoPostsView
 						CollapsibleProps={{ canToggle: false }}
 						href={resolve(
 							'/(social)/(atproto)/atproto/actor/[did]/(actor)/posts',
@@ -315,8 +313,21 @@
 						id={`${idKey}:posts`}
 						fieldOpen={_open}
 						title="Posts"
-					/>
-				{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+						/>
+					{/snippet}
+
+					{#snippet SectionMetricSnapshots()}
+						<AtprotoActor_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.AtprotoActor,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`${idKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>

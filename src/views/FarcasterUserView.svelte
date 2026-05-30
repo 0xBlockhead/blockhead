@@ -22,8 +22,7 @@
 			userId: String(entityId.fid),
 		}),
 		open = $bindable(true),
-		collapsible = true,
-		...EntityViewProps
+			...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.FarcasterUser>
@@ -62,8 +61,17 @@
 			bio: {},
 			url: {},
 			primaryEvmAddress: {},
+			followerCount: {},
+			followingCount: {},
 			$icon: {},
 			$$verifiedAddresses: {},
+			$$timestamps: {
+				$: [
+					Source.Neynar_Rest,
+					Source.Snapchain_Rest,
+				],
+				$limit: 1,
+			},
 			$$casts: {},
 		},
 	)
@@ -79,7 +87,7 @@
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
@@ -87,9 +95,12 @@
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EvmAccountView from '$/views/EvmAccountView.svelte'
 	import FarcasterCastView from '$/views/FarcasterCastView.svelte'
+	import FarcasterUser_TimestampsView from '$/views/FarcasterUser_TimestampsView.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 </script>
 
 
@@ -188,16 +199,8 @@
 		</ResourceBoundary>
 
 		<dl data-column-item="center">
-
 			<div>
-				<dt>FID</dt>
-				<dd>
-					{entityId.fid}
-				</dd>
-			</div>
-
-			<div>
-				<dt>Link</dt>
+				<dt>URL</dt>
 				<dd>
 					<ResourceBoundary
 						resource={farcasterUser}
@@ -214,6 +217,26 @@
 					</ResourceBoundary>
 				</dd>
 			</div>
+
+			<ResourceBoundary
+				resource={farcasterUser}
+				placeholderText="Loading Farcaster profile (FID)…"
+			>
+				{#snippet children(farcasterUser)}
+					<SocialMetricSnapshotRows
+						metrics={[
+							{
+								label: 'Followers',
+								value: farcasterUser.$$timestamps[0]?.followerCount ?? farcasterUser.followerCount,
+							},
+							{
+								label: 'Following',
+								value: farcasterUser.$$timestamps[0]?.followingCount ?? farcasterUser.followingCount,
+							},
+						]}
+					/>
+				{/snippet}
+			</ResourceBoundary>
 
 			{#if open}
 				<div>
@@ -256,7 +279,7 @@
 
 			{#if open}
 				<div>
-					<dt>fname</dt>
+					<dt>Username</dt>
 					<dd>
 						<ResourceBoundary
 							resource={farcasterUser}
@@ -274,7 +297,7 @@
 
 			{#if open}
 				<div>
-					<dt>Avatar</dt>
+					<dt>Icon</dt>
 					<dd>
 						<ResourceBoundary
 							resource={farcasterUser}
@@ -298,19 +321,20 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
-		<CollapsibleTabs
-				id={`farcaster-user:${String(entityId.fid)}:carousel`}
-				sectionIdPrefix={`farcaster-user:${String(entityId.fid)}`}
-				sections={[
-					{ id: 'record', label: 'Record' },
-					{ id: 'overview', label: 'Profile' },
-					{ id: 'casts', label: 'Casts' },
-				]}
-				data-card
-			>
+		{#snippet Details({
+			open: _open,
+		})}
+			<CollapsibleTabs
+					id={`farcaster-user:${String(entityId.fid)}:carousel`}
+					sectionIdPrefix={`farcaster-user:${String(entityId.fid)}`}
+					sections={collapsibleTabsSections([
+							{ id: 'record', label: 'Record' },
+							{ id: 'overview', label: 'Profile' },
+							{ id: 'casts', label: 'Casts' },
+							{ id: 'metric-snapshots', label: 'Metrics' },
+						])}
+					data-card
+				>
 				{#snippet Summary({
 					open: _summaryOpen,
 				})}
@@ -324,10 +348,10 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionRecord({ id, label })}
+				{#snippet SectionRecord()}
 				{/snippet}
 
-				{#snippet SectionOverview({ id, label })}
+				{#snippet SectionOverview()}
 					<ResourceBoundary
 						resource={farcasterUser}
 						placeholderText="Loading Farcaster profile (FID)…"
@@ -340,11 +364,11 @@
 					</ResourceBoundary>
 				{/snippet}
 
-				{#snippet SectionCasts({ id, label })}
-					<EntitiesList
+					{#snippet SectionCasts()}
+						<EntitiesList
 						entityType={EntityType.FarcasterCast}
 						href={resolve('/farcaster/feed')}
-						id={`${id}-list`}
+						id={`farcaster-user:${String(entityId.fid)}:casts-list`}
 						placeholderText="Loading casts (Farcaster FID + cast hash)…"
 						resource={casts}
 						title="Casts"
@@ -372,8 +396,21 @@
 								variant="feed"
 							/>
 						{/snippet}
-					</EntitiesList>
-				{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+						</EntitiesList>
+					{/snippet}
+
+					{#snippet SectionMetricSnapshots()}
+						<FarcasterUser_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.FarcasterUser,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`farcaster-user:${String(entityId.fid)}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>

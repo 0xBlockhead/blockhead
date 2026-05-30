@@ -165,7 +165,7 @@
 						&& connection.username
 					)}
 						<div>
-							<dt>fname</dt>
+							<dt>Username</dt>
 							<dd>@{connection.username}</dd>
 						</div>
 					{/if}

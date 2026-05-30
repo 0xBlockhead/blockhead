@@ -481,6 +481,60 @@ export default {
 		}),
 
 		defineEntityFieldResolver({
+			entityType: EntityType.SolanaNetwork,
+			fieldName: '$$transactions',
+			resolve: async (entityId, context) => {
+				assertSolanaMainnet(entityId)
+				const {
+					getBlock,
+					getBlocks,
+					getSlot,
+				} = await import('$/sources/Solana/JsonRpc/queries.ts')
+				const limit = resolverLoadSubsetRowLimit(context)
+				const endSlot = BigInt(await getSlot({
+					rpcUrl: solanaMainnetRpcUrl,
+				}))
+				return (
+					await Promise.all(
+						(await getBlocks({
+							rpcUrl: solanaMainnetRpcUrl,
+							startSlot: endSlot > 31n ? endSlot - 31n : 0n,
+							endSlot,
+						}))
+							.toReversed()
+							.map(async (slot) => ({
+								slot: BigInt(slot),
+								block: await getBlock({
+									rpcUrl: solanaMainnetRpcUrl,
+									slot: BigInt(slot),
+								}),
+							})),
+					)
+				)
+					.flatMap(({ block, slot }) => (
+						block?.transactions.flatMap((transaction) => (
+							transaction.transaction.signatures[0] == null ?
+								[]
+							:	[
+								{
+									[EntityMetaKey.Id]: {
+										$network: entityId,
+										signature: transaction.transaction.signatures[0],
+									},
+									...solanaTransactionFields(
+										entityId,
+										transaction,
+										slot,
+									),
+								},
+							]
+						)) ?? []
+					))
+					.slice(0, limit)
+			},
+		}),
+
+		defineEntityFieldResolver({
 			entityType: EntityType.SolanaBlock,
 			fieldName: '$$transactions',
 			resolve: async (entityId) => {

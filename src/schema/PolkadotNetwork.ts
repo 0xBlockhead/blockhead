@@ -72,5 +72,14 @@ export default {
 				Source.Polkadot_JsonRpc,
 			],
 		},
+		{
+			name: '$$validators',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.PolkadotValidator,
+			cardinality: EntityFieldCardinality.ZeroOrMany,
+			defaultSources: [
+				Source.SubstrateSidecar_Rest,
+			],
+		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

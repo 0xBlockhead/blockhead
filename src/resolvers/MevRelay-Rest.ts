@@ -50,7 +50,7 @@ export default {
 				if (wantHash == null) throw new Error('MevRelay_Rest: invalid block hash in entity id')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 				const rows = await getProposerPayloadDeliveredForRelayHost(entityId.relayHost, {
-					limit: 1_000,
+					limit: 200,
 				})
 				const row = rows.find((entry) => {
 					const slot = parsePayloadSlot(entry)
@@ -77,6 +77,26 @@ export default {
 								number: blockNumber,
 							} satisfies Entity<typeof schema, EntityType.EvmBlock>,
 						}),
+				}
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.MevBuilder,
+			resolve: async (entityId) => {
+				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
+				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
+				const chainId = Number(entityId.$network.caip2.reference)
+				let deliveredPayloadCount = 0
+				for (const { host } of mevRelayHosts.filter((row) => row.chainId === chainId)) {
+					deliveredPayloadCount += (
+						(await getProposerPayloadDeliveredForRelayHost(host, { limit: 200 }))
+							.filter((row) => (row.builder_pubkey ?? row.builderPubkey) === entityId.builderPubkey)
+							.length
+					)
+				}
+				return {
+					deliveredPayloadCount,
 				}
 			},
 		}),
@@ -135,6 +155,44 @@ export default {
 					)
 				}
 				return out
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmNetwork,
+			fieldName: '$$mevBuilders',
+			resolve: async (entityId, context) => {
+				const { mevRelayHosts } = await import('$/constants/MevRelayHosts.ts')
+				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
+				const chainId = Number(entityId.caip2.reference)
+				const hostsForChain = mevRelayHosts
+					.filter((row) => row.chainId === chainId)
+					.map((row) => row.host)
+				if (hostsForChain.length === 0) {
+					throw new Error(
+						`MevRelay_Rest: no MEV-Boost relay mapping for chain ${String(chainId)}`,
+					)
+				}
+				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
+				const seen = new Set<string>()
+				for (const relayHost of hostsForChain) {
+					const rows = await getProposerPayloadDeliveredForRelayHost(relayHost, {
+						limit: Math.min(subsetRowLimit * 8, 200),
+					})
+					for (const row of rows) {
+						const builderPubkey = row.builder_pubkey ?? row.builderPubkey
+						if (builderPubkey == null || builderPubkey === '') continue
+						seen.add(builderPubkey)
+						if (seen.size >= subsetRowLimit) break
+					}
+					if (seen.size >= subsetRowLimit) break
+				}
+				return [...seen].map((builderPubkey) => ({
+					[EntityMetaKey.Id]: {
+						$network: entityId,
+						builderPubkey,
+					},
+				}))
 			},
 		}),
 	],

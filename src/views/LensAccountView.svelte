@@ -17,12 +17,11 @@
 	// State
 	let {
 		entityId,
-		href = resolve('/(social)/lens/account/[address]', {
+		href = resolve('/(social)/(lens)/lens/account/[address]', {
 			address: entityId.address,
 		}),
 		open = $bindable(true),
-		collapsible = true,
-		...EntityViewProps
+			...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.LensAccount>
@@ -56,20 +55,28 @@
 			createdAt: {},
 			followerCount: {},
 			followingCount: {},
+			$$timestamps: {
+				$: [
+					Source.Lens_Graphql,
+					Source.Lens_HeyGraphql,
+				],
+				$limit: 1,
+			},
 			$icon: {},
 		},
 	)
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent, { IconShape } from '$/components/Icon.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import LensAccount_TimestampsView from '$/views/LensAccount_TimestampsView.svelte'
 	import LensPostsView from '$/views/LensPostsView.svelte'
-	import NumberValue from '$/views/NumberValue.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 </script>
@@ -170,65 +177,45 @@
 		</ResourceBoundary>
 
 		<dl data-column-item="center">
-			{#if (
-				open
-				&& lensAccount.followerCount != null
-			)}
-				<div>
-					<dt>Followers</dt>
-					<dd>
-						<ResourceBoundary
-							resource={lensAccount}
-							placeholderText="Loading Lens profile…"
-						>
-							{#snippet children(lensAccount)}
-								<NumberValue
-									value={lensAccount.followerCount}
-								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+			{#if open}
+				<ResourceBoundary
+					resource={lensAccount}
+					placeholderText="Loading Lens profile…"
+				>
+					{#snippet children(lensAccount)}
+						<SocialMetricSnapshotRows
+							metrics={[
+								{
+									label: 'Followers',
+									value: lensAccount.$$timestamps[0]?.followerCount ?? lensAccount.followerCount,
+								},
+								{
+									label: 'Following',
+									value: lensAccount.$$timestamps[0]?.followingCount ?? lensAccount.followingCount,
+								},
+							]}
+						/>
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
-			{#if (
-				open
-				&& lensAccount.followingCount != null
-			)}
-				<div>
-					<dt>Following</dt>
-					<dd>
-						<ResourceBoundary
-							resource={lensAccount}
-							placeholderText="Loading Lens profile…"
-						>
-							{#snippet children(lensAccount)}
-								<NumberValue
-									value={lensAccount.followingCount}
-								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-			{/if}
-			{#if (
-				open
-				&& lensAccount.createdAt != null
-			)}
-				<div>
-					<dt>Account created</dt>
-					<dd>
-						<ResourceBoundary
-							resource={lensAccount}
-							placeholderText="Loading Lens profile…"
-						>
-							{#snippet children(lensAccount)}
-								<Timestamp
-									timestamp={lensAccount.createdAt}
-								/>
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+			{#if open}
+				<ResourceBoundary
+					resource={lensAccount}
+					placeholderText="Loading Lens profile…"
+				>
+					{#snippet children(lensAccount)}
+						{#if lensAccount.createdAt != null}
+							<div>
+								<dt>Account created</dt>
+								<dd>
+									<Timestamp
+										timestamp={lensAccount.createdAt}
+									/>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 		</dl>
 	{/snippet}
@@ -239,10 +226,11 @@
 		<CollapsibleTabs
 				id={`${idKey}:carousel-activity`}
 				sectionIdPrefix={idKey}
-				sections={[
-					{ id: 'lens-account-record', label: 'Record' },
-					{ id: 'posts', label: 'Publications' },
-				] as const}
+					sections={collapsibleTabsSections([
+						{ id: 'lens-account-record', label: 'Record' },
+						{ id: 'posts', label: 'Publications' },
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])}
 				data-card
 			>
 				{#snippet Summary({
@@ -261,22 +249,35 @@
 				{#snippet SectionLensAccountRecord()}
 				{/snippet}
 
-				{#snippet SectionPosts()}
-					<LensPostsView
+					{#snippet SectionPosts()}
+						<LensPostsView
 						CollapsibleProps={{ canToggle: false }}
-						href={resolve(
-			'/(social)/(lens)/lens/account/[address]/(account)/posts',
-			{ address: entityId.address },
-		)}
+							href={resolve(
+								'/(social)/(lens)/lens/account/[address]/(account)/posts',
+								{ address: entityId.address },
+							)}
 						entityFieldReference={{
 							entityType: EntityType.LensAccount,
 							entityId,
 							fieldName: '$$posts',
 						}}
 						id={`${idKey}:posts-list`}
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+						/>
+					{/snippet}
 
-	{/snippet}
-</EntityView>
+					{#snippet SectionMetricSnapshots()}
+						<LensAccount_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.LensAccount,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`${idKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+
+		{/snippet}
+	</EntityView>

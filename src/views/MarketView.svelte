@@ -64,6 +64,12 @@
 					[...marketDerivativeObservationSources]
 			),
 			...(open && entityId.marketKind !== MarketKind.Spot && {
+				$$derivativeTimestamps: {
+					$: [
+						...marketDerivativeObservationSources,
+					],
+					$limit: 64,
+				},
 				fundingRate: {},
 				openInterestUsd: {},
 				indexBasisPercent: {},
@@ -97,6 +103,7 @@
 	import CurrencyAmount from '$/views/CurrencyAmount.svelte'
 	import CurrencyView from '$/views/CurrencyView.svelte'
 	import MarketOhlcHub from '$/views/MarketOhlcHub.svelte'
+	import Market_Derivative_TimestampsView from '$/views/Market_Derivative_TimestampsView.svelte'
 	import MarketPricesView from '$/views/MarketPricesView.svelte'
 	import MarketVenueView from '$/views/MarketVenueView.svelte'
 </script>
@@ -251,6 +258,18 @@
 					candlesListTitle="Candles"
 					id={`${marketIdKey}:market-ohlc`}
 					market={entityId}
+				/>
+			</section>
+		{:else}
+			<section data-scroll-marker-label="Derivative observations">
+				<Market_Derivative_TimestampsView
+					entityFieldReference={{
+						entityType: EntityType.Market,
+						entityId,
+						fieldName: '$$derivativeTimestamps',
+					}}
+					id={`${marketIdKey}:market-derivative-timestamps`}
+					open={true}
 				/>
 			</section>
 		{/if}

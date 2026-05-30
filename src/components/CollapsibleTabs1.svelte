@@ -33,19 +33,19 @@
 			ontoggle?: (e: Event) => void
 			onclose?: (id?: string) => void
 
-			Annotation?: Snippet<[context?: {
+			Annotation?: Snippet<[context: {
 				open?: boolean,
 			}]>
-			Toolbar?: Snippet<[context?: {
+			Toolbar?: Snippet<[context: {
 				open?: boolean,
 			}]>
-			Summary?: Snippet<[context?: {
+			Summary?: Snippet<[context: {
 				open?: boolean,
 			}]>
-			Markers?: Snippet<[context?: {
+			Markers?: Snippet<[context: {
 				open?: boolean,
 			}]>
-			body?: Snippet<[context?: {
+			body?: Snippet<[context: {
 				open?: boolean,
 			}]>
 			scrollContainerProps?: SvelteHTMLElements['div']

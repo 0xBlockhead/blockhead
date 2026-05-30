@@ -8,9 +8,12 @@ import Beacon from '$/sources/Beacon/index.ts'
 import type {
 	BeaconFinalityCheckpoints,
 	BeaconForkScheduleEntry,
+	BeaconBlockDutySummary,
+	BeaconCommittee,
 	BeaconHeader,
 	BeaconHeaderHeadResponse,
 	BeaconHeaderResponse,
+	BeaconSyncCommittee,
 	BeaconValidatorResponse,
 	BeaconValidatorSummary,
 } from '$/sources/Beacon/Rest/types.ts'
@@ -302,4 +305,173 @@ export const getBeaconGenesisTimeSeconds = async (
 		:
 			undefined
 	)
+}
+
+export const beaconCommitteesFromWire = (wire: JsonValue): BeaconCommittee[] => {
+	if (!isJsonObject(wire)) return []
+	const data = wire.data
+	if (!Array.isArray(data)) return []
+	return (
+		data.flatMap((committeeWire) => {
+			if (!isJsonObject(committeeWire)) return []
+			const slot = Number.parseInt(String(committeeWire.slot), 10)
+			const index = Number.parseInt(String(committeeWire.index), 10)
+			const validators = committeeWire.validators
+			if (
+				!Number.isFinite(slot)
+				|| !Number.isFinite(index)
+				|| !Array.isArray(validators)
+			) return []
+			return [
+				{
+					slot,
+					index,
+					validatorIndices: validators.flatMap((validator) => {
+						const validatorIndex = Number.parseInt(String(validator), 10)
+						return Number.isFinite(validatorIndex) ? [validatorIndex] : []
+					}),
+				},
+			]
+		})
+	)
+}
+
+export const getBeaconCommittees = async (
+	beaconRestBaseUrl: string,
+	stateId = 'head',
+): Promise<BeaconCommittee[]> => {
+	const base = beaconRestBaseUrl.replace(/\/$/, '')
+	const res = await beaconFetch(`${base}/eth/v1/beacon/states/${stateId}/committees`, {
+		headers: { accept: 'application/json' },
+	})
+	if (!res.ok) await throwHttpError('Beacon GET committees', res)
+	return beaconCommitteesFromWire(await res.json<JsonValue>())
+}
+
+export const beaconSyncCommitteeFromWire = (wire: JsonValue): BeaconSyncCommittee | undefined => {
+	if (!isJsonObject(wire)) return undefined
+	const data = wire.data
+	if (!isJsonObject(data)) return undefined
+	const validators = data.validators
+	if (!Array.isArray(validators)) return undefined
+	return {
+		validatorIndices: validators.flatMap((validator) => {
+			const validatorIndex = Number.parseInt(String(validator), 10)
+			return Number.isFinite(validatorIndex) ? [validatorIndex] : []
+		}),
+	}
+}
+
+export const getBeaconSyncCommittee = async (
+	beaconRestBaseUrl: string,
+	stateId = 'head',
+): Promise<BeaconSyncCommittee | undefined> => {
+	const base = beaconRestBaseUrl.replace(/\/$/, '')
+	const res = await beaconFetch(`${base}/eth/v1/beacon/states/${stateId}/sync_committees`, {
+		headers: { accept: 'application/json' },
+	})
+	if (!res.ok) await throwHttpError('Beacon GET sync_committees', res)
+	return beaconSyncCommitteeFromWire(await res.json<JsonValue>())
+}
+
+export const beaconBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySummary => {
+	const empty = {
+		attestations: [],
+		withdrawals: [],
+		slashings: [],
+	} satisfies BeaconBlockDutySummary
+	if (!isJsonObject(wire)) return empty
+	const data = wire.data
+	if (!isJsonObject(data)) return empty
+	const message = data.message
+	if (!isJsonObject(message)) return empty
+	const body = message.body
+	if (!isJsonObject(body)) return empty
+	const attestations = (
+		Array.isArray(body.attestations) ?
+			body.attestations.flatMap((attestationWire, index) => {
+				if (!isJsonObject(attestationWire)) return []
+				const attestationData = attestationWire.data
+				const committeeIndex = (
+					isJsonObject(attestationData) ?
+						Number.parseInt(String(attestationData.index), 10)
+					:
+						Number.NaN
+				)
+				return [
+					{
+						index,
+						committeeIndex: Number.isFinite(committeeIndex) ? committeeIndex : undefined,
+						aggregationBits: (
+							attestationWire.aggregation_bits == null ?
+								undefined
+							:
+								String(attestationWire.aggregation_bits)
+						),
+					},
+				]
+			})
+		:
+			[]
+	)
+	const executionPayload = body.execution_payload
+	const withdrawals = (
+		isJsonObject(executionPayload) && Array.isArray(executionPayload.withdrawals) ?
+			executionPayload.withdrawals.flatMap((withdrawalWire) => {
+				if (!isJsonObject(withdrawalWire)) return []
+				const index = Number.parseInt(String(withdrawalWire.index), 10)
+				const validatorIndex = Number.parseInt(String(withdrawalWire.validator_index), 10)
+				if (!Number.isFinite(index)) return []
+				return [
+					{
+						index,
+						validatorIndex: Number.isFinite(validatorIndex) ? validatorIndex : undefined,
+						address: withdrawalWire.address == null ? undefined : String(withdrawalWire.address),
+						amountGwei: nonNegativeDecimalBigIntFromWire(
+							withdrawalWire.amount == null ? undefined : String(withdrawalWire.amount),
+						),
+					},
+				]
+			})
+		:
+			[]
+	)
+	const proposerSlashings = (
+		Array.isArray(body.proposer_slashings) ?
+			body.proposer_slashings.map((_slashing, index) => ({
+				index,
+				kind: 'proposer' as const,
+			}))
+		:
+			[]
+	)
+	const attesterSlashings = (
+		Array.isArray(body.attester_slashings) ?
+			body.attester_slashings.map((_slashing, index) => ({
+				index,
+				kind: 'attester' as const,
+			}))
+		:
+			[]
+	)
+	return {
+		attestations,
+		withdrawals,
+		slashings: [
+			...proposerSlashings,
+			...attesterSlashings,
+		],
+	}
+}
+
+export const getBeaconBlockDutySummary = async (
+	beaconRestBaseUrl: string,
+	blockId: string | number,
+): Promise<BeaconBlockDutySummary> => {
+	const base = beaconRestBaseUrl.replace(/\/$/, '')
+	const res = await beaconFetch(`${base}/eth/v2/beacon/blocks/${blockId}`, {
+		headers: { accept: 'application/json' },
+	})
+	if (!res.ok) await throwHttpError('Beacon GET block', res)
+	return beaconBlockDutySummaryFromWire(await res.json<JsonValue>())
 }

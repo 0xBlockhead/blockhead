@@ -109,6 +109,16 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.XUser_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.X_Rest,
+				Source.X_FxEmbed_Rest,
+			],
+		},
+		{
 			name: '$$posts',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.XPost,

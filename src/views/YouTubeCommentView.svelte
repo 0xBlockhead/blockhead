@@ -1,7 +1,7 @@
 <script lang="ts">
 	// Types/constants
-	import type { ComponentProps, Snippet } from 'svelte'
-	import type { EntityId } from '$/schema/$schema.ts'
+		import type { ComponentProps, Snippet } from 'svelte'
+		import type { Entity, EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
@@ -51,9 +51,9 @@
 	> = $props()
 
 
-	// State
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
+		// State
+		import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
+		import { useEntity } from '$/collections/$queries.svelte.ts'
 
 	const comment = useEntity(
 		EntityType.YouTubeComment,
@@ -69,6 +69,13 @@
 			$author: {},
 			likeCount: {},
 			replyCount: {},
+			$$timestamps: {
+				$: [
+					Source.Youtube_Rest,
+					Source.Piped_Rest,
+				],
+				$limit: 1,
+			},
 			publishedAt: {},
 			publishedAtMs: {},
 			$video: {},
@@ -86,7 +93,9 @@
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 	import YouTubeChannelView from '$/views/YouTubeChannelView.svelte'
+	import YouTubeComment_TimestampsView from '$/views/YouTubeComment_TimestampsView.svelte'
 	import YouTubeVideoView from '$/views/YouTubeVideoView.svelte'
 </script>
 
@@ -114,12 +123,17 @@
 			placeholderText="Loading YouTube comment…"
 		>
 			{#snippet children(comment)}
-				{(
-					comment.text ?
-						comment.text
-					:
-						entityId.commentId
-				)}
+				<TruncatedValue
+					value={(
+						comment.text ?
+							comment.text.replaceAll('\n', ' ')
+						:
+							entityId.commentId
+					)}
+					startLength={64}
+					endLength={16}
+					format={TruncatedValueFormat.Visual}
+				/>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -156,133 +170,126 @@
 
 		<dl data-column-item="center">
 			{#if contentOpen}
-				<div>
-					<dt>Author</dt>
-					<dd>
-						<ResourceBoundary
-							resource={comment}
-							placeholderText="Loading YouTube comment…"
-						>
-							{#snippet children(comment)}
-								{#if comment.authorDisplayName}
+				<ResourceBoundary
+					resource={comment}
+					placeholderText="Loading YouTube comment…"
+				>
+					{#snippet children(comment)}
+						{#if comment.authorDisplayName}
+							<div>
+								<dt>Author</dt>
+								<dd>
 									{comment.authorDisplayName}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Likes</dt>
-					<dd>
-						<ResourceBoundary
-							resource={comment}
-							placeholderText="Loading YouTube comment…"
-						>
-							{#snippet children(comment)}
-								{#if comment.likeCount != null}
-									{String(comment.likeCount)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Replies</dt>
-					<dd>
-						<ResourceBoundary
-							resource={comment}
-							placeholderText="Loading YouTube comment…"
-						>
-							{#snippet children(comment)}
-								{#if comment.replyCount != null}
-									{String(comment.replyCount)}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Published</dt>
-					<dd>
-						<ResourceBoundary
-							resource={comment}
-							placeholderText="Loading YouTube comment…"
-						>
-							{#snippet children(comment)}
-								{#if comment.publishedAtMs != null}
-									<Timestamp timestamp={comment.publishedAtMs} />
-								{:else if comment.publishedAt != null}
-									{comment.publishedAt}
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
-				<div>
-					<dt>Channel</dt>
-					<dd>
-						<ResourceBoundary
-							resource={comment}
-							placeholderText="Loading YouTube comment…"
-						>
-							{#snippet children(comment)}
-								{#if comment.$author}
-									<YouTubeChannelView
-										entityId={comment.$author[EntityMetaKey.Id]}
-										layout={EntityLayout.Value}
-										open={false}
-									/>
-								{:else if comment.authorChannelId}
-									<YouTubeChannelView
-										entityId={{ channelId: comment.authorChannelId }}
-										layout={EntityLayout.Value}
-										open={false}
-									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				<ResourceBoundary
+					resource={comment}
+					placeholderText="Loading YouTube comment…"
+				>
+					{#snippet children(comment)}
+						<SocialMetricSnapshotRows
+							metrics={[
+								{
+									label: 'Likes',
+									value: comment.$$timestamps[0]?.likeCount ?? comment.likeCount,
+								},
+								{
+									label: 'Replies',
+									value: comment.$$timestamps[0]?.replyCount ?? comment.replyCount,
+								},
+							]}
+						/>
+					{/snippet}
+				</ResourceBoundary>
+				<ResourceBoundary
+					resource={comment}
+					placeholderText="Loading YouTube comment…"
+				>
+					{#snippet children(comment)}
+						{#if comment.publishedAtMs != null || comment.publishedAt != null}
+							<div>
+								<dt>Published</dt>
+								<dd>
+									{#if comment.publishedAtMs != null}
+										<Timestamp timestamp={comment.publishedAtMs} />
+									{:else if comment.publishedAt != null}
+										{comment.publishedAt}
+									{/if}
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
+				<ResourceBoundary
+					resource={comment}
+					placeholderText="Loading YouTube comment…"
+				>
+					{#snippet children(comment)}
+						{#if comment.$author || comment.authorChannelId}
+							<div>
+								<dt>Channel</dt>
+								<dd>
+									{#if comment.$author}
+										<YouTubeChannelView
+											entityId={comment.$author[EntityMetaKey.Id]}
+											layout={EntityLayout.Value}
+											open={false}
+										/>
+									{:else if comment.authorChannelId}
+										<YouTubeChannelView
+											entityId={{ channelId: comment.authorChannelId }}
+											layout={EntityLayout.Value}
+											open={false}
+										/>
+									{/if}
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-				<div>
-					<dt>Video</dt>
-					<dd>
-						<ResourceBoundary
-							resource={comment}
-							placeholderText="Loading YouTube comment…"
-						>
-							{#snippet children(comment)}
-								{#if comment.$video !== undefined}
+				<ResourceBoundary
+					resource={comment}
+					placeholderText="Loading YouTube comment…"
+				>
+					{#snippet children(comment)}
+						{#if comment.$video !== undefined}
+							<div>
+								<dt>Video</dt>
+								<dd>
 									<YouTubeVideoView
 										entityId={comment.$video[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 
-				<div>
-					<dt>Parent comment</dt>
-					<dd>
-						<ResourceBoundary
-							resource={comment}
-							placeholderText="Loading YouTube comment…"
-						>
-							{#snippet children(comment)}
-								{#if comment.$parentComment !== undefined}
-									<YouTubeCommentView
+				<ResourceBoundary
+					resource={comment}
+					placeholderText="Loading YouTube comment…"
+				>
+					{#snippet children(comment)}
+						{#if comment.$parentComment !== undefined}
+							<div>
+								<dt>Parent comment</dt>
+								<dd>
+									<svelte:self
 										entityId={comment.$parentComment[EntityMetaKey.Id]}
 										layout={EntityLayout.Value}
 										open={false}
 									/>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+								</dd>
+							</div>
+						{/if}
+					{/snippet}
+				</ResourceBoundary>
 			{/if}
 		</dl>
 	{/snippet}
@@ -307,68 +314,85 @@
 						$: [
 							Source.Youtube_Rest,
 						],
-						limit: 50,
+							$limit: 50,
 					},
 				},
-			)}
-			{#if repliesParent.$parentComment === undefined}
+				)}
 				{@const replies = derive(
 					repliesParent,
-					(repliesParent) => (
-						(repliesParent.$$replies ?? []).map((reply) => reply[EntityMetaKey.Id])
-					),
+					(repliesParent) => {
+						const rows: Entity<typeof schema, EntityType.YouTubeComment>[] = repliesParent.$$replies ?? []
+						return rows.map((reply) => reply[EntityMetaKey.Id])
+					},
 				)}
-				<EntitiesList
-					entityType={EntityType.YouTubeComment}
-					href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
-						videoId: encodeURIComponent(entityId.videoId),
-						commentId: encodeURIComponent(entityId.commentId),
-					})}
-					id={`${idKey}:replies`}
-					title={(
-						repliesParent.replyCount != null ?
-							`Replies (${String(repliesParent.replyCount)})`
-						:
-							'Replies'
-					)}
-					resource={replies}
-					placeholderText="Loading replies…"
-					getKey={(row) => stringify(row)}
-					getSortValue={(row) => (
-						`${String(-(row.publishedAtMs ?? 0)).padStart(20, '0')}\0${row.commentId}`
-					)}
-					placeholderKeys={new SvelteSet<string>()}
+					<ResourceBoundary
+						resource={repliesParent}
+						placeholderText="Loading replies…"
 				>
-					{#snippet Empty()}
-						<p data-text="muted">
-							{(
-								repliesParent.replyCount === 0 ?
-									'No replies yet.'
-								:
-									'Replies could not be loaded.'
-							)}
-						</p>
-					{/snippet}
+					{#snippet children(repliesParent)}
+						{#if repliesParent.$parentComment === undefined}
+							<EntitiesList
+								entityType={EntityType.YouTubeComment}
+								href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
+									videoId: encodeURIComponent(entityId.videoId),
+									commentId: encodeURIComponent(entityId.commentId),
+								})}
+								id={`${idKey}:replies`}
+								title={(
+									repliesParent.replyCount != null ?
+										`Replies (${String(repliesParent.replyCount)})`
+									:
+										'Replies'
+									)}
+									resource={replies}
+								placeholderText="Loading replies…"
+								getKey={(row) => stringify(row)}
+								getSortValue={(row) => row.commentId}
+								placeholderKeys={new SvelteSet<string>()}
+							>
+								{#snippet Empty()}
+									<p data-text="muted">
+										{(
+											repliesParent.replyCount === 0 ?
+												'No replies yet.'
+											:
+												'Replies could not be loaded.'
+										)}
+									</p>
+								{/snippet}
 
-				{#snippet Item({
-					item: comment,
-				})}
-					<svelte:self
-						entityId={{
-							videoId: comment.videoId,
-							commentId: comment.commentId,
+								{#snippet Item({
+									item: comment,
+								})}
+									<svelte:self
+										entityId={{
+											videoId: comment.videoId,
+											commentId: comment.commentId,
+										}}
+										href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
+											videoId: encodeURIComponent(comment.videoId),
+											commentId: encodeURIComponent(comment.commentId),
+										})}
+										layout={EntityLayout.SummaryDetails}
+										open={false}
+									/>
+								{/snippet}
+							</EntitiesList>
+						{/if}
+						{/snippet}
+					</ResourceBoundary>
+
+					<YouTubeComment_TimestampsView
+						entityFieldReference={{
+							entityType: EntityType.YouTubeComment,
+							entityId,
+							fieldName: '$$timestamps',
 						}}
-						href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
-							videoId: encodeURIComponent(comment.videoId),
-							commentId: encodeURIComponent(comment.commentId),
-						})}
-						layout={EntityLayout.SummaryDetails}
-						open={false}
+						href={href}
+						id={`${idKey}:metric-snapshots`}
+						title="Metric snapshots"
 					/>
-				{/snippet}
-				</EntitiesList>
 			{/if}
-		{/if}
 
-	{/snippet}
+		{/snippet}
 </EntityView>

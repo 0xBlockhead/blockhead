@@ -15,6 +15,7 @@ import Allium from '$/sources/Allium/index.ts'
 import AtprotoBsky from '$/sources/AtprotoBsky/index.ts'
 import AtprotoBskySocial from '$/sources/AtprotoBskySocial/index.ts'
 import Beacon from '$/sources/Beacon/index.ts'
+import BeaconchaIn from '$/sources/BeaconchaIn/index.ts'
 import Bittensor from '$/sources/Bittensor/index.ts'
 import BitcoinBips from '$/sources/BitcoinBips/index.ts'
 import BitcoinCashBcmr from '$/sources/BitcoinCashBcmr/index.ts'
@@ -117,6 +118,7 @@ const sourceProviderDefinitions = [
 	AtprotoBsky,
 	AtprotoBskySocial,
 	Beacon,
+	BeaconchaIn,
 	Bittensor,
 	BitcoinBips,
 	BitcoinCashBcmr,

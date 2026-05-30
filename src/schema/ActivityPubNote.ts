@@ -75,6 +75,16 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.ActivityPubNote_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+			defaultSources: [
+				Source.Mastodon_Rest,
+				Source.Fedi_Rest,
+			],
+		},
+		{
 			name: 'visibility',
 			type: EntityFieldType.Primitive,
 			primitiveType: mastodonVisibilityPrimitive,

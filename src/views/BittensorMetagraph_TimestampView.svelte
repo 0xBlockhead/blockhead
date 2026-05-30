@@ -48,8 +48,27 @@
 	bind:open
 	{layout}
 >
+	{#snippet Value()}
+		<ResourceBoundary
+			resource={metagraph}
+			placeholderText="Loading Bittensor metagraph…"
+		>
+			{#snippet children(metagraph)}
+				{#if metagraph.neuronCount !== undefined}
+					<NumberValue value={metagraph.neuronCount} />
+					neurons
+				{:else if metagraph.metagraphByteLength !== undefined}
+					<NumberValue value={metagraph.metagraphByteLength} />
+					bytes
+				{:else}
+					Subnet {entityId.$subnet.netuid}
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Title()}
-		Subnet {entityId.$subnet.netuid} metagraph
+		{@render Value()}
 	{/snippet}
 
 	{#snippet Content()}

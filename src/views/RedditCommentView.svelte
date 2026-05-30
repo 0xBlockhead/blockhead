@@ -51,6 +51,13 @@
 			body: {},
 			author: {},
 			score: {},
+			$$timestamps: {
+				$: [
+					Source.Reddit_Rest,
+					Source.Reddit_PublicJson,
+				],
+				$limit: 1,
+			},
 			createdAt: {},
 			depth: {},
 			$link: {},
@@ -63,7 +70,7 @@
 
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
@@ -71,7 +78,9 @@
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import NumberValue from '$/views/NumberValue.svelte'
 	import RedditCommentsView from '$/views/RedditCommentsView.svelte'
+	import RedditComment_TimestampsView from '$/views/RedditComment_TimestampsView.svelte'
 	import RedditLinkView from '$/views/RedditLinkView.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 </script>
 
 
@@ -95,12 +104,17 @@
 			placeholderText="Loading Reddit comment…"
 		>
 			{#snippet children(comment)}
-				{(
-					comment.body ?
-						comment.body
-					:
-						entityId.fullname
-				)}
+				<TruncatedValue
+					value={(
+						comment.body ?
+							comment.body.replaceAll('\n', ' ')
+						:
+							entityId.fullname
+					)}
+					startLength={64}
+					endLength={16}
+					format={TruncatedValueFormat.Visual}
+				/>
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -152,16 +166,14 @@
 				</p>
 
 				<dl data-column-item="center">
-					{#if comment.score != null}
-						<div>
-							<dt>Score</dt>
-							<dd>
-								<NumberValue
-									value={comment.score}
-								/>
-							</dd>
-						</div>
-					{/if}
+					<SocialMetricSnapshotRows
+						metrics={[
+							{
+								label: 'Score',
+								value: comment.$$timestamps[0]?.score ?? comment.score,
+							},
+						]}
+					/>
 
 					{#if comment.depth != null}
 						<div>
@@ -185,20 +197,18 @@
 						</dd>
 					</div>
 
-					<div>
-						<dt>Reply to</dt>
-						<dd>
-							{#if comment.$parentComment}
-								<RedditCommentView
+					{#if comment.$parentComment}
+						<div>
+							<dt>Reply to</dt>
+							<dd>
+								<svelte:self
 									entityId={comment.$parentComment[EntityMetaKey.Id]}
 									layout={EntityLayout.Title}
 									open={false}
 								/>
-							{:else}
-								<span data-text="muted">Top-level reply to submission</span>
-							{/if}
-						</dd>
-					</div>
+							</dd>
+						</div>
+					{/if}
 
 					{#if comment.$link}
 						<div>
@@ -222,10 +232,11 @@
 	})}
 		<CollapsibleTabs
 				sectionIdPrefix={idKey}
-				sections={[
-					{ id: 'comment-details', label: 'Metadata' },
-					{ id: 'comment-replies', label: 'Replies' },
-				]}
+					sections={collapsibleTabsSections([
+						{ id: 'comment-details', label: 'Metadata' },
+						{ id: 'comment-replies', label: 'Replies' },
+						{ id: 'metric-snapshots', label: 'Metrics' },
+					])}
 				id={`${idKey}:carousel-comment`}
 				data-card
 			>
@@ -242,13 +253,12 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionCommentDetails({ id, label })}
+				{#snippet SectionCommentDetails()}
 				{/snippet}
 
-				{#snippet SectionCommentReplies({ id, label })}
-					<RedditCommentsView
+					{#snippet SectionCommentReplies()}
+						<RedditCommentsView
 						CollapsibleProps={{ canToggle: false }}
-						href={resolve('/reddit/comments')}
 						entityFieldReference={{
 							entityType: EntityType.RedditComment,
 							entityId,
@@ -257,9 +267,22 @@
 						id={`${idKey}:reddit-replies`}
 						sortMode="createdAtAsc"
 						title="Replies"
-					/>
-				{/snippet}
-		</CollapsibleTabs>
+						/>
+					{/snippet}
 
-	{/snippet}
-</EntityView>
+					{#snippet SectionMetricSnapshots()}
+						<RedditComment_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.RedditComment,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`${idKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+
+		{/snippet}
+	</EntityView>

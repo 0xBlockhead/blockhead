@@ -60,6 +60,12 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
+			name: '$$timestamps',
+			type: EntityFieldType.EntitiesReference,
+			entityType: EntityType.YouTubeComment_Timestamp,
+			cardinality: EntityFieldCardinality.Many,
+		},
+		{
 			name: 'publishedAt',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),

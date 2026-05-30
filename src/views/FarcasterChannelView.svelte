@@ -21,8 +21,7 @@
 			channelId: entityId.id,
 		}),
 		open = $bindable(true),
-		collapsible = true,
-		...EntityViewProps
+			...EntityViewProps
 	}: WithRest<
 		{
 			entityId: EntityId<typeof schema, EntityType.FarcasterChannel>
@@ -53,6 +52,12 @@
 			createdAt: {},
 			followerCount: {},
 			memberCount: {},
+			$$timestamps: {
+				$: [
+					Source.Farcaster_Rest,
+				],
+				$limit: 1,
+			},
 			pinnedCastHash: {},
 			publicCasting: {},
 			externalLinkTitle: {},
@@ -72,15 +77,17 @@
 
 
 	// Components
-	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import CollapsibleTabs, { collapsibleTabsSections } from '$/components/CollapsibleTabs.svelte'
 	import EntityDetails from '$/components/EntityDetails.svelte'
-	import EntityView from '$/components/EntityView.svelte'
+	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
 	import IconComponent from '$/components/Icon.svelte'
 	import Media from '$/components/Media.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import Timestamp from '$/components/Timestamp.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
+	import FarcasterChannel_TimestampsView from '$/views/FarcasterChannel_TimestampsView.svelte'
+	import SocialMetricSnapshotRows from '$/views/SocialMetricSnapshotRows.svelte'
 </script>
 
 
@@ -91,6 +98,22 @@
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Icon()}
+		<ResourceBoundary
+			resource={channel}
+			placeholderText="Loading Farcaster channel (channel id / slug)…"
+		>
+			{#snippet children(channel)}
+				{#if channel.$icon?.[EntityMetaKey.Id].url}
+					<IconComponent
+						src={channel.$icon[EntityMetaKey.Id].url}
+						alt={channel.name ?? entityId.id}
+					/>
+				{/if}
+			{/snippet}
+		</ResourceBoundary>
+	{/snippet}
+
 	{#snippet Value()}
 		<span>
 			/{entityId.id}
@@ -98,7 +121,14 @@
 	{/snippet}
 
 	{#snippet Title()}
-		{@render Value()}
+		<ResourceBoundary
+			resource={channel}
+			placeholderText="Loading Farcaster channel (channel id / slug)…"
+		>
+			{#snippet children(channel)}
+				{channel.name ?? `/${entityId.id}`}
+			{/snippet}
+		</ResourceBoundary>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}
@@ -110,7 +140,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+		{#snippet Content({ title: _title, href: _href })}
 		<ResourceBoundary
 			resource={channel}
 			placeholderText="Loading Farcaster channel (channel id / slug)…"
@@ -128,37 +158,25 @@
 		</ResourceBoundary>
 
 		<dl>
-			<div>
-				<dt>Followers</dt>
-				<dd>
-					<ResourceBoundary
-						resource={channel}
-						placeholderText="Loading Farcaster channel (channel id / slug)…"
-					>
-						{#snippet children(channel)}
-							{#if channel.followerCount !== undefined}
-								{String(channel.followerCount)}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
-
-			<div>
-				<dt>Members</dt>
-				<dd>
-					<ResourceBoundary
-						resource={channel}
-						placeholderText="Loading Farcaster channel (channel id / slug)…"
-					>
-						{#snippet children(channel)}
-							{#if channel.memberCount !== undefined}
-								{String(channel.memberCount)}
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-				</dd>
-			</div>
+			<ResourceBoundary
+				resource={channel}
+				placeholderText="Loading Farcaster channel (channel id / slug)…"
+			>
+				{#snippet children(channel)}
+					<SocialMetricSnapshotRows
+						metrics={[
+							{
+								label: 'Followers',
+								value: channel.$$timestamps[0]?.followerCount ?? channel.followerCount,
+							},
+							{
+								label: 'Members',
+								value: channel.$$timestamps[0]?.memberCount ?? channel.memberCount,
+							},
+						]}
+					/>
+				{/snippet}
+			</ResourceBoundary>
 
 			<div>
 				<dt>Public casting</dt>
@@ -194,7 +212,7 @@
 				</div>
 
 				<div>
-					<dt>Logo</dt>
+					<dt>Icon</dt>
 					<dd data-column>
 						<ResourceBoundary
 							resource={channel}
@@ -329,23 +347,30 @@
 					</dd>
 				</div>
 
-				<div>
-					<dt>External link</dt>
-					<dd>
-						<ResourceBoundary
-							resource={channel}
-							placeholderText="Loading Farcaster channel (channel id / slug)…"
-						>
-							{#snippet children(channel)}
-								{#if channel.externalLinkUrl !== undefined}
-									<a href={channel.externalLinkUrl}>
-										{channel.externalLinkTitle ?? channel.externalLinkUrl}
-									</a>
-								{/if}
-							{/snippet}
-						</ResourceBoundary>
-					</dd>
-				</div>
+					<ResourceBoundary
+						resource={channel}
+						placeholderText="Loading Farcaster channel (channel id / slug)…"
+					>
+						{#snippet children(channel)}
+							{#if channel.externalLinkTitle !== undefined}
+								<div>
+									<dt>External link title</dt>
+									<dd>{channel.externalLinkTitle}</dd>
+								</div>
+							{/if}
+
+							{#if channel.externalLinkUrl !== undefined}
+								<div>
+									<dt>External link URL</dt>
+									<dd>
+										<a href={channel.externalLinkUrl}>
+											{channel.externalLinkUrl}
+										</a>
+									</dd>
+								</div>
+							{/if}
+						{/snippet}
+					</ResourceBoundary>
 
 				<div>
 					<dt>Followed at</dt>
@@ -369,19 +394,20 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details({
-		open: _open,
-	})}
-		{@const channelDetailKey = stringify(entityId)}
-		<CollapsibleTabs
-				id={`${channelDetailKey}:carousel-channel`}
-				sectionIdPrefix={channelDetailKey}
-				sections={[
-					{ id: 'channel-record', label: 'Record' },
-					{ id: 'channel-banner', label: 'Banner' },
-				]}
-				data-card
-			>
+		{#snippet Details({
+			open: _open,
+		})}
+			{@const channelDetailKey = stringify(entityId)}
+			<CollapsibleTabs
+					id={`${channelDetailKey}:carousel-channel`}
+					sectionIdPrefix={channelDetailKey}
+					sections={collapsibleTabsSections([
+							{ id: 'channel-record', label: 'Record' },
+							{ id: 'channel-banner', label: 'Banner' },
+							{ id: 'metric-snapshots', label: 'Metrics' },
+						])}
+					data-card
+				>
 				{#snippet Summary({
 					open: _summaryOpen,
 				})}
@@ -395,11 +421,11 @@
 					</header>
 				{/snippet}
 
-				{#snippet SectionChannelRecord({ id, label })}
+				{#snippet SectionChannelRecord()}
 				{/snippet}
 
-				{#snippet SectionChannelBanner({ id, label })}
-					<ResourceBoundary
+					{#snippet SectionChannelBanner()}
+						<ResourceBoundary
 						resource={channel}
 						placeholderText="Loading Farcaster channel banner…"
 					>
@@ -419,8 +445,21 @@
 								{/if}
 							</section>
 						{/snippet}
-					</ResourceBoundary>
-				{/snippet}
-		</CollapsibleTabs>
-	{/snippet}
-</EntityView>
+						</ResourceBoundary>
+					{/snippet}
+
+					{#snippet SectionMetricSnapshots()}
+						<FarcasterChannel_TimestampsView
+							entityFieldReference={{
+								entityType: EntityType.FarcasterChannel,
+								entityId,
+								fieldName: '$$timestamps',
+							}}
+							href={href}
+							id={`${channelDetailKey}:metric-snapshots`}
+							title="Metric snapshots"
+						/>
+					{/snippet}
+			</CollapsibleTabs>
+		{/snippet}
+	</EntityView>

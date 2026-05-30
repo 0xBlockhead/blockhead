@@ -81,6 +81,14 @@ const mediaEntitiesFromMastodonAttachments = (
 	})
 )
 
+const activityPubNoteTimestampFieldsFromMastodonStatus = (
+	status: MastodonApiV1Status,
+) => ({
+	favouriteCount: optionalFiniteNumber(status.favourites_count),
+	reblogCount: optionalFiniteNumber(status.reblogs_count),
+	replyCount: optionalFiniteNumber(status.replies_count),
+})
+
 const activityPubNoteFieldsFromMastodonStatus = (
 	status: MastodonApiV1Status,
 	instanceOrigin: string,
@@ -93,9 +101,7 @@ const activityPubNoteFieldsFromMastodonStatus = (
 		content: optionalTrimmedString(status.content),
 		...(Number.isFinite(createdAt) && { createdAt }),
 		...(editedAt != null && { editedAt }),
-		favouriteCount: optionalFiniteNumber(status.favourites_count),
-		reblogCount: optionalFiniteNumber(status.reblogs_count),
-		replyCount: optionalFiniteNumber(status.replies_count),
+		...activityPubNoteTimestampFieldsFromMastodonStatus(status),
 		visibility: (
 				status.visibility === 'public' ?
 					'public' as const
@@ -156,6 +162,14 @@ const activityPubNoteFieldsFromMastodonStatus = (
 	}
 }
 
+const activityPubActorTimestampFieldsFromMastodonAccount = (
+	account: MastodonApiV1Account,
+) => ({
+	followersCount: optionalFiniteNumber(account.followers_count),
+	followingCount: optionalFiniteNumber(account.following_count),
+	statusesCount: optionalFiniteNumber(account.statuses_count),
+})
+
 const activityPubActorFieldsFromMastodonAccount = (
 	account: MastodonApiV1Account,
 	instanceOrigin: string,
@@ -191,9 +205,7 @@ const activityPubActorFieldsFromMastodonAccount = (
 	...(optionalTrimmedString(account.website ?? undefined) != null && {
 		website: optionalTrimmedString(account.website ?? undefined),
 	}),
-	followersCount: optionalFiniteNumber(account.followers_count),
-	followingCount: optionalFiniteNumber(account.following_count),
-	statusesCount: optionalFiniteNumber(account.statuses_count),
+	...activityPubActorTimestampFieldsFromMastodonAccount(account),
 	...(account.bot != null && { bot: account.bot }),
 	...(account.locked != null && { locked: account.locked }),
 	...(optionalTimestampMs(account.created_at) != null && {
@@ -248,6 +260,33 @@ export default {
 				const s = await singleFlight(mastodonGetStatus)(publicEnv, entityId.localStatusId)
 				if (s == null) throw new Error('Mastodon_Rest: status not found')
 				return activityPubNoteFieldsFromMastodonStatus(s, entityId.instanceOrigin)
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.ActivityPubActor_Timestamp,
+			resolve: async (entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const { assertInstanceMatches, mastodonGetAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
+				assertInstanceMatches(entityId.$actor.instanceOrigin)
+				const account = await singleFlight(mastodonGetAccount)(publicEnv, entityId.$actor.localAccountId)
+				if (account == null) throw new Error('Mastodon_Rest: account not found')
+				return activityPubActorTimestampFieldsFromMastodonAccount(account)
+			},
+		}),
+
+		defineEntityResolver({
+			entityType: EntityType.ActivityPubNote_Timestamp,
+			resolve: async (entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const {
+					assertInstanceMatches,
+					mastodonGetStatus,
+				} = await import('$/sources/Mastodon/Rest/queries.ts')
+				assertInstanceMatches(entityId.$note.instanceOrigin)
+				const status = await singleFlight(mastodonGetStatus)(publicEnv, entityId.$note.localStatusId)
+				if (status == null) throw new Error('Mastodon_Rest: status not found')
+				return activityPubNoteTimestampFieldsFromMastodonStatus(status)
 			},
 		}),
 	],
@@ -344,6 +383,27 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.ActivityPubActor,
+			fieldName: '$$timestamps',
+			resolve: async (entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const { assertInstanceMatches, mastodonGetAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
+				assertInstanceMatches(entityId.instanceOrigin)
+				const account = await singleFlight(mastodonGetAccount)(publicEnv, entityId.localAccountId)
+				if (account == null) throw new Error('Mastodon_Rest: account not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$actor: entityId,
+							timestampMs: Date.now(),
+						},
+						...activityPubActorTimestampFieldsFromMastodonAccount(account),
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.ActivityPubActor,
 			fieldName: '$$notes',
 			resolve: async (entityId, context) => {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
@@ -365,6 +425,30 @@ export default {
 							]
 						))
 				)
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.ActivityPubNote,
+			fieldName: '$$timestamps',
+			resolve: async (entityId, context) => {
+				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
+				const {
+					assertInstanceMatches,
+					mastodonGetStatus,
+				} = await import('$/sources/Mastodon/Rest/queries.ts')
+				assertInstanceMatches(entityId.instanceOrigin)
+				const status = await singleFlight(mastodonGetStatus)(publicEnv, entityId.localStatusId)
+				if (status == null) throw new Error('Mastodon_Rest: status not found')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$note: entityId,
+							timestampMs: Date.now(),
+						},
+						...activityPubNoteTimestampFieldsFromMastodonStatus(status),
+					},
+				]
 			},
 		}),
 

@@ -284,6 +284,45 @@ export default {
 
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
+			entityType: EntityType.PolkadotNetwork,
+			fieldName: '$$validators',
+			resolve: async (entityId) => {
+				assertPolkadotMainnet(entityId)
+				const { getStakingValidators } = await import('$/sources/SubstrateSidecar/Rest/queries.ts')
+				return ((await getStakingValidators({ restBaseUrl: sidecarRestUrl })).validators ?? [])
+					.slice(0, 64)
+					.flatMap((validator) => {
+						const stashAccountId = validator.accountId ?? validator.address ?? validator.stashId
+						return stashAccountId == null ?
+							[]
+						:
+							[
+								{
+									[EntityMetaKey.Id]: {
+										$network: entityId,
+										stashAccountId,
+									},
+									...(validator.controllerId != null && {
+										$controller: {
+											[EntityMetaKey.Id]: {
+												$network: entityId,
+												accountId: validator.controllerId,
+											},
+										},
+									}),
+									...(validator.commission != null && {
+										commissionPerBillion: Number(validator.commission),
+									}),
+									...(validator.totalStake != null && {
+										totalStakePlancks: BigInt(validator.totalStake),
+									}),
+								},
+							]
+					})
+			},
+		}),
+
+		defineEntityFieldResolver({
 			entityType: EntityType.PolkadotBlock,
 			fieldName: '$parent',
 			resolve: async (entityId) => {
