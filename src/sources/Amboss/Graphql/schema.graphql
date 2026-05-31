@@ -1,0 +1,67 @@
+type Query {
+  getNode(pubkey: String!): NodeType!
+  getEdge(id: String!): EdgeInfo!
+  getPopularNodes: [String!]!
+}
+
+type NodeType {
+  graph_info: GraphInfo!
+}
+
+type GraphInfo {
+  node: BaseNode
+  channels: ChannelInfo
+}
+
+type BaseNode {
+  pub_key: String!
+  alias: String!
+  color: String!
+  last_update: Float!
+  addresses: [NodeAddress!]!
+}
+
+type ChannelInfo {
+  num_channels: Float!
+  total_capacity: String!
+}
+
+type NodeAddress {
+  addr: String!
+  ip_info: IpInfo
+}
+
+type IpInfo {
+  city: String!
+  country: String!
+  country_code: String!
+}
+
+type EdgeInfo {
+  long_channel_id: String!
+  short_channel_id: String!
+  graph: EdgeGraph
+}
+
+type EdgeGraph {
+  info: LnEdge!
+}
+
+type LnEdge {
+  capacity: String!
+  is_closed: Boolean!
+  last_update: String!
+  node1_pub: String!
+  node2_pub: String!
+  node1_policy: EdgePolicy
+  node2_policy: EdgePolicy
+}
+
+type EdgePolicy {
+  fee_rate_milli_msat: String!
+  fee_base_msat: String!
+  min_htlc: String!
+  max_htlc_msat: String!
+  time_lock_delta: Float!
+  disabled: Boolean!
+}

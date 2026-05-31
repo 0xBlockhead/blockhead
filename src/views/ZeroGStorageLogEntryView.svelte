@@ -50,15 +50,23 @@
 	entityType={EntityType.ZeroGStorageLogEntry}
 	{entityId}
 	title={entityId.logEntryId}
+	idDragPlainText={entityId.logEntryId}
 	bind:open
 	{...EntityViewProps}
 >
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<TruncatedValue
 			value={entityId.logEntryId}
 			format={TruncatedValueFormat.Abbr}
 		/>
+	{/snippet}
+
+	{#snippet Title()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Log entry </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

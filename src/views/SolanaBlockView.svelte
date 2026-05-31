@@ -60,13 +60,24 @@
 <EntityView
 	entityType={EntityType.SolanaBlock}
 	{entityId}
-	title={`Slot ${entityId.slot.toString()}`}
+	href={`/network/${entityId.$network.networkSlug}/blocks/${entityId.slot.toString()}`}
+	title={`Slot #${entityId.slot.toString()}`}
+	idDragPlainText={entityId.slot.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.slot.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		Slot {entityId.slot.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Slot </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

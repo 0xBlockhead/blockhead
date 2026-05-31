@@ -28,7 +28,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Lens_Graphql,
-				Source.Lens_HeyGraphql,
+				Source.Hey_Graphql,
 			],
 		},
 		{
@@ -38,7 +38,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Lens_Graphql,
-				Source.Lens_HeyGraphql,
+				Source.Hey_Graphql,
 			],
 		},
 		{
@@ -48,7 +48,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Lens_Graphql,
-				Source.Lens_HeyGraphql,
+				Source.Hey_Graphql,
 			],
 		},
 		{
@@ -58,7 +58,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Lens_Graphql,
-				Source.Lens_HeyGraphql,
+				Source.Hey_Graphql,
 			],
 		},
 		{
@@ -68,7 +68,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Lens_Graphql,
-				Source.Lens_HeyGraphql,
+				Source.Hey_Graphql,
 			],
 		},
 		{
@@ -78,7 +78,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.Lens_Graphql,
-				Source.Lens_HeyGraphql,
+				Source.Hey_Graphql,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

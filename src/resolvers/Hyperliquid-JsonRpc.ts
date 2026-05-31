@@ -34,29 +34,11 @@ export default {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId)
-				const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-				const headBlockHeight = hexToBigInt(await getBlockNumber({
-					rpcUrl: hyperliquidEvmRpcUrl,
-				}))
 				return {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
 					},
 					rpcEndpoints: hyperliquidRpcEndpoints,
-					$headBlock: {
-						[EntityMetaKey.Id]: {
-							$network: entityId,
-							height: headBlockHeight,
-						},
-					},
-					$$blocks: [
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId,
-								height: headBlockHeight,
-							},
-						},
-					],
 				}
 			},
 		}),

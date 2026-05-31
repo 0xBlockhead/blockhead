@@ -23,6 +23,7 @@ export default {
 			entityType: EntityType.Network,
 			cardinality: EntityFieldCardinality.One,
 			defaultSources: [
+				Source.MempoolSpace_Rest,
 				Source.Blockchair_Rest,
 			],
 		},
@@ -32,6 +33,7 @@ export default {
 			entityType: EntityType.UtxoBlock,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
+				Source.MempoolSpace_Rest,
 				Source.Blockchair_Rest,
 			],
 		},
@@ -41,6 +43,7 @@ export default {
 			entityType: EntityType.UtxoNetwork_Timestamp,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
+				Source.MempoolSpace_Rest,
 				Source.Blockchair_Rest,
 			],
 		},
@@ -50,6 +53,7 @@ export default {
 			entityType: EntityType.UtxoBlock,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
+				Source.MempoolSpace_Rest,
 				Source.Blockchair_Rest,
 			],
 		},
@@ -59,6 +63,7 @@ export default {
 			entityType: EntityType.UtxoTransaction,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
+				Source.MempoolSpace_Rest,
 				Source.Blockchair_Rest,
 			],
 		},

@@ -99,7 +99,7 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>
+		<span data-badge="small">
 			#{entityId.internalIndex}
 		</span>
 	{/snippet}

@@ -43,11 +43,22 @@
 <EntityView
 	entityType={EntityType.BittensorNeuron}
 	{entityId}
+	title={`Neuron #${entityId.uid}`}
+	idDragPlainText={String(entityId.uid)}
 	bind:open
 	{layout}
 >
+	{#snippet Value()}
+		<span data-badge="small">
+			#{String(entityId.uid)}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		Neuron {entityId.uid}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Neuron </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

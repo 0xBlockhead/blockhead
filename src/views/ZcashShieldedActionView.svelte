@@ -65,13 +65,23 @@
 <EntityView
 	entityType={EntityType.ZcashShieldedAction}
 	{entityId}
-	title={`Zcash Shielded Action ${entityId.actionIndex.toString()}`}
+	title={`Shielded action #${entityId.actionIndex.toString()}`}
+	idDragPlainText={entityId.actionIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.actionIndex.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		{entityId.actionIndex.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Shielded action </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

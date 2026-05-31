@@ -60,6 +60,7 @@
 <EntityView
 	entityType={EntityType.LightningNode}
 	{entityId}
+	href={`/network/${entityId.$network.networkSlug}/nodes/${entityId.publicKey}`}
 	title={entityId.publicKey}
 	bind:open
 	{...EntityViewProps}
@@ -120,12 +121,12 @@
 						</div>
 					{/if}
 
-					{#if open && row.networkAddresses.length > 0}
+					{#each open ? row.networkAddresses : [] as address}
 						<div>
-							<dt>Addresses</dt>
-							<dd>{row.networkAddresses.join(', ')}</dd>
+							<dt>Address</dt>
+							<dd><code>{address}</code></dd>
 						</div>
-					{/if}
+					{/each}
 				</dl>
 			{/snippet}
 		</ResourceBoundary>

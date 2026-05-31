@@ -55,12 +55,22 @@
 <EntityView
 	entityType={EntityType.LightningHtlc}
 	{entityId}
-	title={`HTLC ${entityId.htlcIndex}`}
+	title={`HTLC #${entityId.htlcIndex}`}
+	idDragPlainText={String(entityId.htlcIndex)}
 	bind:open
 	{...EntityViewProps}
 >
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.htlcIndex}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		HTLC {entityId.htlcIndex}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>HTLC </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

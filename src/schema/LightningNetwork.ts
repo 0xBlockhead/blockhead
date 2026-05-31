@@ -57,6 +57,7 @@ export default {
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
 				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
 				Source.LightningLnd_Rest,
 			],
 		},

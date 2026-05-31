@@ -29,6 +29,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
 				Source.LightningLnd_Rest,
 			],
 		},
@@ -38,6 +39,7 @@ export default {
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
+				Source.Amboss_Graphql,
 				Source.LightningLnd_Rest,
 			],
 		},
@@ -48,6 +50,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
 			],
 		},
 		{
@@ -57,6 +60,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
 				Source.LightningLnd_Rest,
 			],
 		},
@@ -65,24 +69,40 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
+			],
 		},
 		{
 			name: 'updatedAtMs',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
+			],
 		},
 		{
 			name: 'countryCode',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
+			],
 		},
 		{
 			name: 'city',
 			type: EntityFieldType.Primitive,
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
+			],
 		},
 		{
 			name: 'networkAddresses',
@@ -90,6 +110,8 @@ export default {
 			primitiveType: type('string'),
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [
+				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
 				Source.LightningLnd_Rest,
 			],
 		},

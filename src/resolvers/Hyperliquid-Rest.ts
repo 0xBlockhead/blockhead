@@ -34,76 +34,11 @@ export default {
 			entityType: EntityType.HyperliquidNetwork,
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId)
-				const {
-					meta,
-					spotMeta,
-					validatorSummaries,
-				} = await import('$/sources/Hyperliquid/Rest/queries.ts')
-				const [
-					perpMeta,
-					spotAssets,
-					validators,
-				] = await Promise.all([
-					meta({ restBaseUrl: hyperliquidMainnetRestUrl }),
-					spotMeta({ restBaseUrl: hyperliquidMainnetRestUrl }),
-					validatorSummaries({ restBaseUrl: hyperliquidMainnetRestUrl }),
-				])
 				return {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
 					},
 					restEndpoints: hyperliquidRestEndpoints,
-					$$timestamps: [
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId,
-								timestampMs: Date.now(),
-							},
-							perpMarketCount: perpMeta.universe.length,
-							spotAssetCount: spotAssets.tokens.length,
-							spotPairCount: spotAssets.universe.length,
-							validatorCount: validators.length,
-							activeValidatorCount: validators.filter((validator) => validator.isActive).length,
-							jailedValidatorCount: validators.filter((validator) => validator.isJailed).length,
-							totalStake: validators.reduce(
-								(totalStake, validator) => totalStake + BigInt(validator.stake),
-								0n,
-							),
-						},
-					],
-				}
-			},
-		}),
-
-		defineEntityResolver({
-			entityType: EntityType.HyperliquidNetwork_Timestamp,
-			resolve: async (entityId) => {
-				assertHyperliquidMainnet(entityId.$network)
-				const {
-					meta,
-					spotMeta,
-					validatorSummaries,
-				} = await import('$/sources/Hyperliquid/Rest/queries.ts')
-				const [
-					perpMeta,
-					spotAssets,
-					validators,
-				] = await Promise.all([
-					meta({ restBaseUrl: hyperliquidMainnetRestUrl }),
-					spotMeta({ restBaseUrl: hyperliquidMainnetRestUrl }),
-					validatorSummaries({ restBaseUrl: hyperliquidMainnetRestUrl }),
-				])
-				return {
-					perpMarketCount: perpMeta.universe.length,
-					spotAssetCount: spotAssets.tokens.length,
-					spotPairCount: spotAssets.universe.length,
-					validatorCount: validators.length,
-					activeValidatorCount: validators.filter((validator) => validator.isActive).length,
-					jailedValidatorCount: validators.filter((validator) => validator.isJailed).length,
-					totalStake: validators.reduce(
-						(totalStake, validator) => totalStake + BigInt(validator.stake),
-						0n,
-					),
 				}
 			},
 		}),

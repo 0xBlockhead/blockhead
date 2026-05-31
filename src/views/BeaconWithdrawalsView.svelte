@@ -8,6 +8,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
@@ -16,18 +17,18 @@
 		entityFieldReference,
 		title = 'Withdrawals',
 		open = $bindable(true),
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BeaconWithdrawal>
 			title?: string
 			open?: boolean
+			id: string
+			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'id'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
@@ -35,30 +36,11 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Beacon_Rest,
-				],
-				$limit: 16,
-			},
-		},
-	)
-
-	const withdrawals = derive(
-		parent,
-		(parent): Entity<typeof schema, EntityType.BeaconWithdrawal>[] => (
-			parent[entityFieldReference.fieldName]
-			?? []
-		),
-	)
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import BeaconWithdrawalView from '$/views/BeaconWithdrawalView.svelte'
 </script>
 
 
@@ -66,28 +48,61 @@
 	entityType={EntityType.BeaconWithdrawal}
 	{title}
 	bind:open
-	getKey={(withdrawal) => `${String(withdrawal[EntityMetaKey.Id].slot)}:${String(withdrawal[EntityMetaKey.Id].index)}`}
-	resource={withdrawals}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{id}
+	href={href}
 	{...EntitiesListProps}
 >
-	{#snippet Empty()}
-		<p data-text="muted">No withdrawals loaded yet.</p>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Withdrawals move staked ETH from the beacon chain to execution-layer addresses in a slot’s block body.
+		</p>
 	{/snippet}
 
-	{#snippet Item({ item: withdrawal })}
-		<div class="entity-details">
-			<dl data-column-item="center">
-				<div>
-					<dt>Slot</dt>
-					<dd>{String(withdrawal[EntityMetaKey.Id].slot)}</dd>
-				</div>
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Beacon_Rest,
+						],
+						$limit: 16,
+					},
+				},
+			)}
+			{@const withdrawals = derive(
+				parent,
+				(parent): Entity<typeof schema, EntityType.BeaconWithdrawal>[] => (
+					parent[entityFieldReference.fieldName]
+					?? []
+				),
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.BeaconWithdrawal}
+				id={`${id}-items`}
+				href={href}
+				getKey={(withdrawal) => stringify(withdrawal[EntityMetaKey.Id])}
+				open={true}
+				resource={withdrawals}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">No withdrawals loaded yet.</p>
+				{/snippet}
 
-				<div>
-					<dt>Withdrawal index</dt>
-					<dd>{String(withdrawal[EntityMetaKey.Id].index)}</dd>
-				</div>
-			</dl>
-		</div>
+				{#snippet Item({ item: withdrawal })}
+					<BeaconWithdrawalView
+						entityId={withdrawal[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

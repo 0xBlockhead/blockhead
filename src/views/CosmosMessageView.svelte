@@ -47,13 +47,23 @@
 <EntityView
 	entityType={EntityType.CosmosMessage}
 	{entityId}
-	title={`Cosmos Message ${entityId.messageIndex.toString()}`}
+	title={`Message #${entityId.messageIndex.toString()}`}
+	idDragPlainText={entityId.messageIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.messageIndex.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		{entityId.messageIndex.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Message </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

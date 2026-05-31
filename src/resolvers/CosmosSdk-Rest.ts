@@ -120,8 +120,6 @@ export default {
 			entityType: EntityType.CosmosNetwork,
 			resolve: async (entityId) => {
 				assertCosmosHub(entityId)
-				const { getLatestBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
-				const latestBlock = await getLatestBlock({ restBaseUrl: cosmosHubRestUrl })
 				return {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
@@ -131,24 +129,6 @@ export default {
 							url: cosmosHubRestUrl,
 							transportType: TransportType.Http,
 							providerName: 'PublicNode',
-						},
-					],
-					$headBlock: {
-						[EntityMetaKey.Id]: {
-							$network: entityId,
-							height: BigInt(latestBlock.block.header.height),
-						},
-						hash: latestBlock.block_id.hash,
-						proposerConsensusAddress: latestBlock.block.header.proposer_address,
-						timestampMs: Date.parse(latestBlock.block.header.time),
-						transactionCount: latestBlock.block.data.txs?.length ?? 0,
-					},
-					$$timestamps: [
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId,
-								timestampMs: Date.now(),
-							},
 						},
 					],
 				}

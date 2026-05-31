@@ -55,13 +55,13 @@
 						$: [
 							Source.Constants_Internal,
 							Source.Lens_Graphql,
-							Source.Lens_HeyGraphql,
+							Source.Hey_Graphql,
 						],
 					},
 					$$lensPosts: {
 						$: [
 							Source.Lens_Graphql,
-							Source.Lens_HeyGraphql,
+							Source.Hey_Graphql,
 						],
 					},
 				}

@@ -50,15 +50,23 @@
 	entityType={EntityType.NearChunk}
 	{entityId}
 	title={entityId.chunkHash}
+	idDragPlainText={entityId.chunkHash}
 	bind:open
 	{...EntityViewProps}
 >
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<TruncatedValue
 			value={entityId.chunkHash}
 			format={TruncatedValueFormat.Abbr}
 		/>
+	{/snippet}
+
+	{#snippet Title()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Chunk </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

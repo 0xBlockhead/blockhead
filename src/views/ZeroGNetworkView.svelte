@@ -69,9 +69,12 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 	import EvmBlockView from '$/views/EvmBlockView.svelte'
 	import UrlsView from '$/views/UrlsView.svelte'
 	import ZeroGBlocksView from '$/views/ZeroGBlocksView.svelte'
@@ -281,6 +284,46 @@
 					id={`${id}-list`}
 					title={label}
 				/>
+			{/snippet}
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={`${networkIdKey}:carousel-0g-assets`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: '0g-assets-native', label: 'Native coin' },
+			]}
+			data-card
+			class="network-view-collapsible-assets"
+			scrollContainerProps={{ 'data-row': 'start align-start' }}
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Assets</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet Section0gAssetsNative({ id, label }: { id: string, label: string })}
+				<ResourceBoundary resource={network}>
+					{#snippet children(network)}
+						<EntitiesList
+							collapsible={false}
+							entityType={EntityType.AssetInstance}
+							getKey={(asset) => `${asset[EntityMetaKey.Id].kind}:${asset[EntityMetaKey.Id].assetKey}`}
+							id={`${id}-list`}
+							items={network.$$nativeAssets}
+							title={label}
+							UnorderedListProps={{ orientation: ListOrientation.Column }}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">No native assets mapped for this network yet.</p>
+							{/snippet}
+							{#snippet Item(context)}
+								<AssetInstanceView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+							{/snippet}
+						</EntitiesList>
+					{/snippet}
+				</ResourceBoundary>
 			{/snippet}
 		</CollapsibleTabs>
 

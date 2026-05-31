@@ -59,12 +59,22 @@
 	entityType={EntityType.FilecoinTipset}
 	{entityId}
 	title={`Tipset #${entityId.height.toString()}`}
+	idDragPlainText={entityId.height.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.height.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		Tipset #{entityId.height.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Tipset </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

@@ -41,6 +41,13 @@
 			totalCapacitySats: {},
 			averageFeeRatePpm: {},
 			medianFeeRatePpm: {},
+			...open && {
+				torNodeCount: {},
+				clearnetNodeCount: {},
+				unannouncedNodeCount: {},
+				averageCapacitySats: {},
+				medianCapacitySats: {},
+			},
 		},
 	)
 
@@ -121,6 +128,41 @@
 						<div>
 							<dt>Median fee rate</dt>
 							<dd><NumberValue value={row.medianFeeRatePpm} /> ppm</dd>
+						</div>
+					{/if}
+
+					{#if open && row.torNodeCount != null}
+						<div>
+							<dt>Tor nodes</dt>
+							<dd><NumberValue value={row.torNodeCount} /></dd>
+						</div>
+					{/if}
+
+					{#if open && row.clearnetNodeCount != null}
+						<div>
+							<dt>Clearnet nodes</dt>
+							<dd><NumberValue value={row.clearnetNodeCount} /></dd>
+						</div>
+					{/if}
+
+					{#if open && row.unannouncedNodeCount != null}
+						<div>
+							<dt>Unannounced nodes</dt>
+							<dd><NumberValue value={row.unannouncedNodeCount} /></dd>
+						</div>
+					{/if}
+
+					{#if open && row.averageCapacitySats != null}
+						<div>
+							<dt>Average capacity</dt>
+							<dd>{row.averageCapacitySats.toString()} sats</dd>
+						</div>
+					{/if}
+
+					{#if open && row.medianCapacitySats != null}
+						<div>
+							<dt>Median capacity</dt>
+							<dd>{row.medianCapacitySats.toString()} sats</dd>
 						</div>
 					{/if}
 				</dl>

@@ -223,54 +223,12 @@ export default {
 			entityType: EntityType.MoneroNetwork,
 			resolve: async (entityId) => {
 				assertMoneroMainnet(entityId)
-				const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
-				const info = await getInfo({
-					rpcUrl: moneroDaemonRpcUrl,
-				})
 				return {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
 					},
 					rpcEndpoints: moneroRpcEndpoints,
-					$headBlock: {
-						[EntityMetaKey.Id]: {
-							$network: entityId,
-							height: BigInt(info.height - 1),
-							hash: info.top_block_hash,
-						},
-					},
-					$$timestamps: [
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId,
-								timestampMs: Date.now(),
-							},
-							...moneroNetworkTimestampFields(info),
-						},
-					],
-					$$blocks: [
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId,
-								height: BigInt(info.height - 1),
-								hash: info.top_block_hash,
-							},
-						},
-					],
 				}
-			},
-		}),
-
-		defineEntityResolver({
-			entityType: EntityType.MoneroNetwork_Timestamp,
-			resolve: async (entityId) => {
-				assertMoneroMainnet(entityId.$network)
-				const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
-				return moneroNetworkTimestampFields(
-					await getInfo({
-						rpcUrl: moneroDaemonRpcUrl,
-					}),
-				)
 			},
 		}),
 

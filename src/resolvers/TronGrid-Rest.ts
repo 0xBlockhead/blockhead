@@ -196,8 +196,6 @@ export default {
 			entityType: EntityType.TronNetwork,
 			resolve: async (entityId) => {
 				assertTronMainnet(entityId)
-				const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
-				const block = await getNowBlock({ restBaseUrl: tronGridMainnetRestUrl })
 				return {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
@@ -207,38 +205,6 @@ export default {
 							url: tronGridMainnetRestUrl,
 							transportType: TransportType.Http,
 							providerName: 'TronGrid',
-						},
-					],
-					$headBlock: {
-						[EntityMetaKey.Id]: {
-							$network: entityId,
-							height: BigInt(block.block_header?.raw_data?.number ?? 0),
-							hash: block.blockID,
-						},
-						...blockFields(
-							entityId,
-							block,
-						),
-					},
-					$$timestamps: [
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId,
-								timestampMs: Date.now(),
-							},
-						},
-					],
-					$$blocks: [
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId,
-								height: BigInt(block.block_header?.raw_data?.number ?? 0),
-								hash: block.blockID,
-							},
-							...blockFields(
-								entityId,
-								block,
-							),
 						},
 					],
 				}

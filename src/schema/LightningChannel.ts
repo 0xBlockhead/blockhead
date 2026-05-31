@@ -38,6 +38,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
 			],
 		},
 		{
@@ -47,6 +48,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
 				Source.LightningLnd_Rest,
 			],
 		},
@@ -55,12 +57,20 @@ export default {
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.LightningNode,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
+			],
 		},
 		{
 			name: '$node1',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.LightningNode,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
+			],
 		},
 		{
 			name: 'capacitySats',
@@ -69,6 +79,7 @@ export default {
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 			defaultSources: [
 				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
 				Source.LightningLnd_Rest,
 			],
 		},
@@ -149,6 +160,10 @@ export default {
 			type: EntityFieldType.Primitive,
 			primitiveType: type('number'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
+			defaultSources: [
+				Source.LightningMempoolSpace_Rest,
+				Source.Amboss_Graphql,
+			],
 		},
 		{
 			name: 'active',

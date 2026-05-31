@@ -47,7 +47,7 @@
 		{
 			$: [
 				Source.Lens_Graphql,
-				Source.Lens_HeyGraphql,
+				Source.Hey_Graphql,
 			],
 			localName: {},
 			displayName: {},
@@ -58,7 +58,7 @@
 			$$timestamps: {
 				$: [
 					Source.Lens_Graphql,
-					Source.Lens_HeyGraphql,
+					Source.Hey_Graphql,
 				],
 				$limit: 1,
 			},

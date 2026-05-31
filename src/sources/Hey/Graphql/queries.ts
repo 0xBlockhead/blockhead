@@ -1,31 +1,22 @@
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { graphql } from '$/sources/Lens/Graphql/client.ts'
-import { queryLensHey } from '$/sources/LensHey/Graphql/client.ts'
+import { queryHey } from '$/sources/Hey/Graphql/client.ts'
 
-const LensHeyPostSlug = graphql(`
-	fragment LensHeyPostSlug on Post @_unmask {
+const HeyPostSlug = graphql(`
+	fragment HeyPostSlug on Post @_unmask {
 		slug
 	}
 `)
 
-const LensHeyRepostSlug = graphql(`
-	fragment LensHeyRepostSlug on Repost @_unmask {
+const HeyRepostSlug = graphql(`
+	fragment HeyRepostSlug on Repost @_unmask {
 		slug
 	}
 `)
 
-const LensHeyPostWithAuthor = graphql(`
-	fragment LensHeyPostWithAuthor on Post @_unmask {
-		slug
-		author {
-			address
-		}
-	}
-`)
-
-const LensHeyRepostWithAuthor = graphql(`
-	fragment LensHeyRepostWithAuthor on Repost @_unmask {
+const HeyPostWithAuthor = graphql(`
+	fragment HeyPostWithAuthor on Post @_unmask {
 		slug
 		author {
 			address
@@ -33,8 +24,17 @@ const LensHeyRepostWithAuthor = graphql(`
 	}
 `)
 
-const LensHeyPostDetail = graphql(`
-	fragment LensHeyPostDetail on Post @_unmask {
+const HeyRepostWithAuthor = graphql(`
+	fragment HeyRepostWithAuthor on Repost @_unmask {
+		slug
+		author {
+			address
+		}
+	}
+`)
+
+const HeyPostDetail = graphql(`
+	fragment HeyPostDetail on Post @_unmask {
 		slug
 		timestamp
 		isEdited
@@ -110,8 +110,8 @@ const LensHeyPostDetail = graphql(`
 	}
 `)
 
-const LensHeyRepostDetail = graphql(`
-	fragment LensHeyRepostDetail on Repost @_unmask {
+const HeyRepostDetail = graphql(`
+	fragment HeyRepostDetail on Repost @_unmask {
 		slug
 		timestamp
 		isDeleted
@@ -124,8 +124,8 @@ const LensHeyRepostDetail = graphql(`
 	}
 `)
 
-const LensHeyAccountDocument = graphql(`
-	query LensHeyAccount(
+const HeyAccountDocument = graphql(`
+	query HeyAccount(
 		$address: EvmAddress!
 	) {
 		account(
@@ -157,8 +157,8 @@ const LensHeyAccountDocument = graphql(`
 	}
 `)
 
-const LensHeyPostDocument = graphql(`
-	query LensHeyPost(
+const HeyPostDocument = graphql(`
+	query HeyPost(
 		$post: PostId!
 	) {
 		post(
@@ -168,20 +168,20 @@ const LensHeyPostDocument = graphql(`
 		) {
 			__typename
 			... on Post {
-				...LensHeyPostDetail
+				...HeyPostDetail
 			}
 			... on Repost {
-				...LensHeyRepostDetail
+				...HeyRepostDetail
 			}
 		}
 	}
 `, [
-	LensHeyPostDetail,
-	LensHeyRepostDetail,
+	HeyPostDetail,
+	HeyRepostDetail,
 ])
 
-const LensHeyPostsByAuthorDocument = graphql(`
-	query LensHeyPostsByAuthor(
+const HeyPostsByAuthorDocument = graphql(`
+	query HeyPostsByAuthor(
 		$address: EvmAddress!
 		$pageSize: PageSize!
 	) {
@@ -196,21 +196,21 @@ const LensHeyPostsByAuthorDocument = graphql(`
 			items {
 				__typename
 				... on Post {
-					...LensHeyPostSlug
+					...HeyPostSlug
 				}
 				... on Repost {
-					...LensHeyRepostSlug
+					...HeyRepostSlug
 				}
 			}
 		}
 	}
 `, [
-	LensHeyPostSlug,
-	LensHeyRepostSlug,
+	HeyPostSlug,
+	HeyRepostSlug,
 ])
 
-const LensHeyPostCommentsDocument = graphql(`
-	query LensHeyPostComments(
+const HeyPostCommentsDocument = graphql(`
+	query HeyPostComments(
 		$post: PostId!
 		$pageSize: PageSize!
 	) {
@@ -226,21 +226,21 @@ const LensHeyPostCommentsDocument = graphql(`
 			items {
 				__typename
 				... on Post {
-					...LensHeyPostSlug
+					...HeyPostSlug
 				}
 				... on Repost {
-					...LensHeyRepostSlug
+					...HeyRepostSlug
 				}
 			}
 		}
 	}
 `, [
-	LensHeyPostSlug,
-	LensHeyRepostSlug,
+	HeyPostSlug,
+	HeyRepostSlug,
 ])
 
-const LensHeyLatestPostsDocument = graphql(`
-	query LensHeyLatestPosts(
+const HeyLatestPostsDocument = graphql(`
+	query HeyLatestPosts(
 		$pageSize: PageSize!
 	) {
 		posts(
@@ -251,53 +251,53 @@ const LensHeyLatestPostsDocument = graphql(`
 			items {
 				__typename
 				... on Post {
-					...LensHeyPostWithAuthor
+					...HeyPostWithAuthor
 				}
 				... on Repost {
-					...LensHeyRepostWithAuthor
+					...HeyRepostWithAuthor
 				}
 			}
 		}
 	}
 `, [
-	LensHeyPostWithAuthor,
-	LensHeyRepostWithAuthor,
+	HeyPostWithAuthor,
+	HeyRepostWithAuthor,
 ])
 
-export const lensHeyQueryAccount = async (
-	publicEnv: SourcePublicEnvFor<Source.Lens_HeyGraphql>,
+export const heyQueryAccount = async (
+	publicEnv: SourcePublicEnvFor<Source.Hey_Graphql>,
 	address: `0x${string}`,
 ) => (
-	queryLensHey(
+	queryHey(
 		publicEnv,
-		LensHeyAccountDocument,
+		HeyAccountDocument,
 		{
 			address,
 		},
 	)
 )
 
-export const lensHeyQueryPost = async (
-	publicEnv: SourcePublicEnvFor<Source.Lens_HeyGraphql>,
+export const heyQueryPost = async (
+	publicEnv: SourcePublicEnvFor<Source.Hey_Graphql>,
 	postId: string,
 ) => (
-	queryLensHey(
+	queryHey(
 		publicEnv,
-		LensHeyPostDocument,
+		HeyPostDocument,
 		{
 			post: postId,
 		},
 	)
 )
 
-export const lensHeyQueryPostsByAuthor = async (
-	publicEnv: SourcePublicEnvFor<Source.Lens_HeyGraphql>,
+export const heyQueryPostsByAuthor = async (
+	publicEnv: SourcePublicEnvFor<Source.Hey_Graphql>,
 	address: `0x${string}`,
 	pageSize: 'TEN' | 'FIFTY' = 'TEN',
 ) => (
-	queryLensHey(
+	queryHey(
 		publicEnv,
-		LensHeyPostsByAuthorDocument,
+		HeyPostsByAuthorDocument,
 		{
 			address,
 			pageSize,
@@ -305,27 +305,27 @@ export const lensHeyQueryPostsByAuthor = async (
 	)
 )
 
-export const lensHeyQueryLatestPosts = async (
-	publicEnv: SourcePublicEnvFor<Source.Lens_HeyGraphql>,
+export const heyQueryLatestPosts = async (
+	publicEnv: SourcePublicEnvFor<Source.Hey_Graphql>,
 	pageSize: 'TEN' | 'FIFTY' = 'TEN',
 ) => (
-	queryLensHey(
+	queryHey(
 		publicEnv,
-		LensHeyLatestPostsDocument,
+		HeyLatestPostsDocument,
 		{
 			pageSize,
 		},
 	)
 )
 
-export const lensHeyQueryPostComments = async (
-	publicEnv: SourcePublicEnvFor<Source.Lens_HeyGraphql>,
+export const heyQueryPostComments = async (
+	publicEnv: SourcePublicEnvFor<Source.Hey_Graphql>,
 	postId: string,
 	pageSize: 'TEN' | 'FIFTY' = 'TEN',
 ) => (
-	queryLensHey(
+	queryHey(
 		publicEnv,
-		LensHeyPostCommentsDocument,
+		HeyPostCommentsDocument,
 		{
 			post: postId,
 			pageSize,

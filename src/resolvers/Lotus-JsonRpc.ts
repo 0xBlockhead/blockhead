@@ -92,8 +92,6 @@ export default {
 			entityType: EntityType.FilecoinNetwork,
 			resolve: async (entityId) => {
 				assertFilecoinMainnet(entityId)
-				const { chainHead } = await import('$/sources/Lotus/JsonRpc/queries.ts')
-				const head = await chainHead({ rpcUrl: lotusRpcUrl })
 				return {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
@@ -105,44 +103,6 @@ export default {
 							providerName: 'GLIF',
 						},
 					],
-					$headTipset: {
-						[EntityMetaKey.Id]: {
-							$network: entityId,
-							height: BigInt(head.Height),
-							tipsetKey: tipsetKey(head.Cids),
-						},
-						timestampMs: head.Blocks[0]?.Timestamp == null ? undefined : head.Blocks[0].Timestamp * 1000,
-						$$blocks: blockRows(
-							entityId,
-							head,
-						),
-					},
-					$$timestamps: [
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId,
-								timestampMs: Date.now(),
-							},
-						},
-					],
-					$$tipsets: [
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId,
-								height: BigInt(head.Height),
-								tipsetKey: tipsetKey(head.Cids),
-							},
-							timestampMs: head.Blocks[0]?.Timestamp == null ? undefined : head.Blocks[0].Timestamp * 1000,
-							$$blocks: blockRows(
-								entityId,
-								head,
-							),
-						},
-					],
-					$$headMiners: minerRows(
-						entityId,
-						head,
-					),
 				}
 			},
 		}),

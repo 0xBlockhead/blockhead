@@ -47,13 +47,23 @@
 <EntityView
 	entityType={EntityType.LitecoinMwebPegOut}
 	{entityId}
-	title={`Litecoin MWEB Peg-out ${entityId.pegOutIndex.toString()}`}
+	title={`MWEB Peg-out #${entityId.pegOutIndex.toString()}`}
+	idDragPlainText={entityId.pegOutIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.pegOutIndex.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		{entityId.pegOutIndex.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>MWEB Peg-out </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

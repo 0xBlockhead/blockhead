@@ -50,13 +50,23 @@
 <EntityView
 	entityType={EntityType.FilecoinSector}
 	{entityId}
-	title={`Filecoin Sector ${entityId.sectorNumber.toString()}`}
+	title={`Sector #${entityId.sectorNumber.toString()}`}
+	idDragPlainText={entityId.sectorNumber.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.sectorNumber.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		{entityId.sectorNumber.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Sector </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

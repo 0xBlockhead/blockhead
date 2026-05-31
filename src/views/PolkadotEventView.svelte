@@ -47,13 +47,23 @@
 <EntityView
 	entityType={EntityType.PolkadotEvent}
 	{entityId}
-	title={`Polkadot Event ${entityId.eventIndex.toString()}`}
+	title={`Event #${entityId.eventIndex.toString()}`}
+	idDragPlainText={entityId.eventIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.eventIndex.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		{entityId.eventIndex.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Event </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

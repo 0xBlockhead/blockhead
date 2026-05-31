@@ -107,54 +107,7 @@ export default {
 			entityType: EntityType.ZeroGNetwork,
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId)
-				const { getZeroGBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-				const block = await getZeroGBlockByNumber({
-					blockNumber: 'latest',
-					txObjects: false,
-				})
-				if (block == null) throw new Error('ZeroGChain_JsonRpc: latest block not found')
-				if (block.number == null) throw new Error('ZeroGChain_JsonRpc: latest block missing number')
-				return {
-					$headBlock: {
-						[EntityMetaKey.Id]: {
-							$network: zeroGEvmNetworkId,
-							blockNumber: BigInt(block.number),
-							...(hexLowerOfByteSize(block.hash ?? '', 32) != null && { hash: hexLowerOfByteSize(block.hash ?? '', 32) }),
-						},
-					},
-					$$timestamps: [
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId,
-								timestampMs: ((timestamp) => timestamp == null ? Date.now() : timestamp * 1000)(quantityToNumber(block.timestamp)),
-							},
-							...zeroGNetworkTimestampFields(block),
-						},
-					],
-					$$blocks: [
-						{
-							[EntityMetaKey.Id]: {
-								$network: zeroGEvmNetworkId,
-								blockNumber: BigInt(block.number),
-								...(hexLowerOfByteSize(block.hash ?? '', 32) != null && { hash: hexLowerOfByteSize(block.hash ?? '', 32) }),
-							},
-						},
-					],
-				}
-			},
-		}),
-
-		defineEntityResolver({
-			entityType: EntityType.ZeroGNetwork_Timestamp,
-			resolve: async (entityId) => {
-				assertZeroGMainnet(entityId.$network)
-				const { getZeroGBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-				const block = await getZeroGBlockByNumber({
-					blockNumber: 'latest',
-					txObjects: false,
-				})
-				if (block == null) throw new Error('ZeroGChain_JsonRpc: latest block not found')
-				return zeroGNetworkTimestampFields(block)
+				return {}
 			},
 		}),
 

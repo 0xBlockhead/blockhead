@@ -48,15 +48,23 @@
 	entityType={EntityType.QuilibriumFrame}
 	{entityId}
 	title={entityId.shardKey}
+	idDragPlainText={entityId.shardKey}
 	bind:open
 	{...EntityViewProps}
 >
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<TruncatedValue
 			value={entityId.shardKey}
 			format={TruncatedValueFormat.Abbr}
 		/>
+	{/snippet}
+
+	{#snippet Title()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Frame </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

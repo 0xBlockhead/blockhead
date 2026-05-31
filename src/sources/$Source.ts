@@ -7,6 +7,7 @@ export type SourcePublicEnv = Record<string, string>
 
 export enum Source {
 	Allium_Rest = 'Allium_Rest',
+	Amboss_Graphql = 'Amboss_Graphql',
 	Atproto_Xrpc = 'Atproto_Xrpc',
 	Atproto_BskySocial_Xrpc = 'Atproto_BskySocial_Xrpc',
 	Beacon_Rest = 'Beacon_Rest',
@@ -56,7 +57,7 @@ export enum Source {
 	Ipfs_Rest = 'Ipfs_Rest',
 	L2Beat_Rest = 'L2Beat_Rest',
 	Lens_Graphql = 'Lens_Graphql',
-	Lens_HeyGraphql = 'Lens_HeyGraphql',
+	Hey_Graphql = 'Hey_Graphql',
 	Lifi_Rest = 'Lifi_Rest',
 	LitecoinCore_JsonRpc = 'LitecoinCore_JsonRpc',
 	LitecoinLips_Github = 'LitecoinLips_Github',

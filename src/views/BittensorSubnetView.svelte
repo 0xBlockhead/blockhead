@@ -51,13 +51,24 @@
 <EntityView
 	entityType={EntityType.BittensorSubnet}
 	{entityId}
+	title={`Subnet #${entityId.netuid}`}
+	idDragPlainText={String(entityId.netuid)}
 	bind:open
 	{layout}
 >
+	{#snippet Value()}
+		<span data-badge="small">
+			#{String(entityId.netuid)}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
 		<ResourceBoundary resource={subnet}>
 			{#snippet Pending()}
-				Subnet {entityId.netuid}
+				<span data-row="inline align-center gap-2 wrap">
+					<span>Subnet </span>
+					{@render Value()}
+				</span>
 			{/snippet}
 
 			{#snippet children(subnet)}

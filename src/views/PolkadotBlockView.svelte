@@ -60,13 +60,24 @@
 <EntityView
 	entityType={EntityType.PolkadotBlock}
 	{entityId}
+	href={`/network/${entityId.$network.networkSlug}/blocks/${entityId.blockNumber.toString()}`}
 	title={`Block #${entityId.blockNumber.toString()}`}
+	idDragPlainText={entityId.blockNumber.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.blockNumber.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		Block #{entityId.blockNumber.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Block </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

@@ -104,11 +104,8 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span
-			data-badge="small"
-			data-block-number={String(entityId.blockNumber)}
-		>
-			{String(entityId.blockNumber)}
+		<span data-badge="small">
+			#{String(entityId.blockNumber)}
 		</span>
 	{/snippet}
 

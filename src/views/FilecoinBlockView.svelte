@@ -50,15 +50,23 @@
 	entityType={EntityType.FilecoinBlock}
 	{entityId}
 	title={entityId.cid}
+	idDragPlainText={entityId.cid}
 	bind:open
 	{...EntityViewProps}
 >
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<TruncatedValue
 			value={entityId.cid}
 			format={TruncatedValueFormat.Abbr}
 		/>
+	{/snippet}
+
+	{#snippet Title()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Block </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

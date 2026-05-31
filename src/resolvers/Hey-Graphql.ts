@@ -68,16 +68,16 @@ const lensPostTimestampFieldsFromWire = (
 /** Lens / subgraph wire — may omit `0x` or use mixed case. */
 const lensEvmAddressFromWire = (a: string): `0x${string}` => {
 	const t = optionalTrimmedString(a)
-	if (t == null) throw new Error('Lens_HeyGraphql: invalid EVM address')
+	if (t == null) throw new Error('Hey_Graphql: invalid EVM address')
 	const n = with0xHex(t)
-	if (!/^0x[0-9a-f]{40}$/.test(n)) throw new Error('Lens_HeyGraphql: invalid EVM address')
+	if (!/^0x[0-9a-f]{40}$/.test(n)) throw new Error('Hey_Graphql: invalid EVM address')
 	return n
 }
 
 const lensAuthorRefFromWire = (
 	address: string | null | undefined,
 ) => {
-	if (address == null) throw new Error('Lens_HeyGraphql: post author address missing')
+	if (address == null) throw new Error('Hey_Graphql: post author address missing')
 	return {
 		[EntityMetaKey.Id]: {
 			address: lensEvmAddressFromWire(address),
@@ -116,17 +116,17 @@ const lensAnyPostSlugFromWire = (
 )
 
 export default {
-	source: Source.Lens_HeyGraphql,
+	source: Source.Hey_Graphql,
 
 	entityResolvers: [
 		defineEntityResolver({
 			entityType: EntityType.LensAccount,
 			resolve: async (entityId, context) => {
-				const { lensHeyQueryAccount } = await import('$/sources/LensHey/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
-				const wire = await singleFlight(lensHeyQueryAccount)(publicEnv, zeroExLowerCase(entityId.address))
+				const { heyQueryAccount } = await import('$/sources/Hey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Hey_Graphql)
+				const wire = await singleFlight(heyQueryAccount)(publicEnv, zeroExLowerCase(entityId.address))
 				const a = wire.account
-				if (a == null) throw new Error('Lens_HeyGraphql: account not found')
+				if (a == null) throw new Error('Hey_Graphql: account not found')
 				return {
 					localName: optionalTrimmedString(a.username?.localName),
 					displayName: optionalTrimmedString(a.metadata?.name),
@@ -147,10 +147,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.LensPost,
 			resolve: async (entityId, context) => {
-				const { lensHeyQueryPost } = await import('$/sources/LensHey/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
-				const p = (await singleFlight(lensHeyQueryPost)(publicEnv, entityId.id)).post
-				if (p == null) throw new Error('Lens_HeyGraphql: post not found')
+				const { heyQueryPost } = await import('$/sources/Hey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Hey_Graphql)
+				const p = (await singleFlight(heyQueryPost)(publicEnv, entityId.id)).post
+				if (p == null) throw new Error('Hey_Graphql: post not found')
 
 				if (p.__typename === 'Repost') {
 					return {
@@ -165,7 +165,7 @@ export default {
 					}
 				}
 
-				if (p.__typename !== 'Post') throw new Error('Lens_HeyGraphql: unsupported post type')
+				if (p.__typename !== 'Post') throw new Error('Hey_Graphql: unsupported post type')
 
 				return {
 					text: lensMetadataTextFromWire(p.metadata),
@@ -196,10 +196,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.LensAccount_Timestamp,
 			resolve: async (entityId, context) => {
-				const { lensHeyQueryAccount } = await import('$/sources/LensHey/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
-				const wire = await singleFlight(lensHeyQueryAccount)(publicEnv, zeroExLowerCase(entityId.$account.address))
-				if (wire.account == null) throw new Error('Lens_HeyGraphql: account not found')
+				const { heyQueryAccount } = await import('$/sources/Hey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Hey_Graphql)
+				const wire = await singleFlight(heyQueryAccount)(publicEnv, zeroExLowerCase(entityId.$account.address))
+				if (wire.account == null) throw new Error('Hey_Graphql: account not found')
 				return lensAccountTimestampFieldsFromWire(wire)
 			},
 		}),
@@ -207,10 +207,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.LensPost_Timestamp,
 			resolve: async (entityId, context) => {
-				const { lensHeyQueryPost } = await import('$/sources/LensHey/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
-				const p = (await singleFlight(lensHeyQueryPost)(publicEnv, entityId.$post.id)).post
-				if (p == null) throw new Error('Lens_HeyGraphql: post not found')
+				const { heyQueryPost } = await import('$/sources/Hey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Hey_Graphql)
+				const p = (await singleFlight(heyQueryPost)(publicEnv, entityId.$post.id)).post
+				if (p == null) throw new Error('Hey_Graphql: post not found')
 				return lensPostTimestampFieldsFromWire(p)
 			},
 		}),
@@ -221,12 +221,12 @@ export default {
 			entityType: EntityType.LensNetwork,
 			fieldName: '$$lensAccounts',
 			resolve: async (_entityId, context) => {
-				const { lensHeyQueryLatestPosts } = await import('$/sources/LensHey/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
+				const { heyQueryLatestPosts } = await import('$/sources/Hey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Hey_Graphql)
 				const limit = resolverLoadSubsetRowLimit(context)
 				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
 				return (
-					((await singleFlight(lensHeyQueryLatestPosts)(publicEnv, pageSize)).posts?.items ?? [])
+					((await singleFlight(heyQueryLatestPosts)(publicEnv, pageSize)).posts?.items ?? [])
 						.flatMap((item) => {
 							const address = item.author?.address
 							if (address == null || !/^0x[a-fA-F0-9]{40}$/.test(String(address))) return []
@@ -243,12 +243,12 @@ export default {
 			entityType: EntityType.LensNetwork,
 			fieldName: '$$lensPosts',
 			resolve: async (_entityId, context) => {
-				const { lensHeyQueryLatestPosts } = await import('$/sources/LensHey/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
+				const { heyQueryLatestPosts } = await import('$/sources/Hey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Hey_Graphql)
 				const limit = resolverLoadSubsetRowLimit(context)
 				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
 				return (
-					((await singleFlight(lensHeyQueryLatestPosts)(publicEnv, pageSize)).posts?.items ?? [])
+					((await singleFlight(heyQueryLatestPosts)(publicEnv, pageSize)).posts?.items ?? [])
 						.flatMap((item) => (
 							((postSlug) => (
 								postSlug != null ?
@@ -269,10 +269,10 @@ export default {
 			entityType: EntityType.LensPost,
 			fieldName: '$$timestamps',
 			resolve: async (entityId, context) => {
-				const { lensHeyQueryPost } = await import('$/sources/LensHey/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
-				const p = (await singleFlight(lensHeyQueryPost)(publicEnv, entityId.id)).post
-				if (p == null) throw new Error('Lens_HeyGraphql: post not found')
+				const { heyQueryPost } = await import('$/sources/Hey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Hey_Graphql)
+				const p = (await singleFlight(heyQueryPost)(publicEnv, entityId.id)).post
+				if (p == null) throw new Error('Hey_Graphql: post not found')
 				return [
 					{
 						[EntityMetaKey.Id]: {
@@ -289,12 +289,12 @@ export default {
 			entityType: EntityType.LensPost,
 			fieldName: '$$comments',
 			resolve: async (entityId, context) => {
-				const { lensHeyQueryPostComments } = await import('$/sources/LensHey/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
+				const { heyQueryPostComments } = await import('$/sources/Hey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Hey_Graphql)
 				const limit = resolverLoadSubsetRowLimit(context)
 				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
 				return (
-					((await singleFlight(lensHeyQueryPostComments)(publicEnv, entityId.id, pageSize)).postReferences?.items ?? [])
+					((await singleFlight(heyQueryPostComments)(publicEnv, entityId.id, pageSize)).postReferences?.items ?? [])
 						.flatMap((item) => (
 							((postSlug) => (
 								postSlug != null ?
@@ -315,10 +315,10 @@ export default {
 			entityType: EntityType.LensAccount,
 			fieldName: '$$timestamps',
 			resolve: async (entityId, context) => {
-				const { lensHeyQueryAccount } = await import('$/sources/LensHey/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
-				const wire = await singleFlight(lensHeyQueryAccount)(publicEnv, zeroExLowerCase(entityId.address))
-				if (wire.account == null) throw new Error('Lens_HeyGraphql: account not found')
+				const { heyQueryAccount } = await import('$/sources/Hey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Hey_Graphql)
+				const wire = await singleFlight(heyQueryAccount)(publicEnv, zeroExLowerCase(entityId.address))
+				if (wire.account == null) throw new Error('Hey_Graphql: account not found')
 				return [
 					{
 						[EntityMetaKey.Id]: {
@@ -335,12 +335,12 @@ export default {
 			entityType: EntityType.LensAccount,
 			fieldName: '$$posts',
 			resolve: async (entityId, context) => {
-				const { lensHeyQueryPostsByAuthor } = await import('$/sources/LensHey/Graphql/queries.ts')
-				const publicEnv = sourcePublicEnv(context, Source.Lens_HeyGraphql)
+				const { heyQueryPostsByAuthor } = await import('$/sources/Hey/Graphql/queries.ts')
+				const publicEnv = sourcePublicEnv(context, Source.Hey_Graphql)
 				const limit = resolverLoadSubsetRowLimit(context)
 				const pageSize: 'TEN' | 'FIFTY' = limit > 10 ? 'FIFTY' : 'TEN'
 				return (
-					((await singleFlight(lensHeyQueryPostsByAuthor)(publicEnv, zeroExLowerCase(entityId.address), pageSize)).posts?.items ?? [])
+					((await singleFlight(heyQueryPostsByAuthor)(publicEnv, zeroExLowerCase(entityId.address), pageSize)).posts?.items ?? [])
 						.flatMap((item) => (
 							((postSlug) => (
 								postSlug != null ?

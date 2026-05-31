@@ -50,13 +50,23 @@
 <EntityView
 	entityType={EntityType.PolkadotExtrinsic}
 	{entityId}
-	title={`Polkadot Extrinsic ${entityId.extrinsicIndex.toString()}`}
+	title={`Extrinsic #${entityId.extrinsicIndex.toString()}`}
+	idDragPlainText={entityId.extrinsicIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.extrinsicIndex.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		{entityId.extrinsicIndex.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Extrinsic </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

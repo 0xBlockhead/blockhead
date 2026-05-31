@@ -19,6 +19,7 @@ export type SourceProviderDefinition = {
 export enum SourceProvider {
 	_Constants = '_Constants',
 	Allium = 'Allium',
+	Amboss = 'Amboss',
 	AtprotoBsky = 'AtprotoBsky',
 	AtprotoBskySocial = 'AtprotoBskySocial',
 	Beacon = 'Beacon',
@@ -64,7 +65,7 @@ export enum SourceProvider {
 	Ipfs = 'Ipfs',
 	L2Beat = 'L2Beat',
 	Lens = 'Lens',
-	LensHey = 'LensHey',
+	Hey = 'Hey',
 	Lifi = 'Lifi',
 	LitecoinCore = 'LitecoinCore',
 	LitecoinLips = 'LitecoinLips',

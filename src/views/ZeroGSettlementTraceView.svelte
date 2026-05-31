@@ -51,15 +51,23 @@
 	entityType={EntityType.ZeroGSettlementTrace}
 	{entityId}
 	title={entityId.traceId}
+	idDragPlainText={entityId.traceId}
 	bind:open
 	{...EntityViewProps}
 >
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<TruncatedValue
 			value={entityId.traceId}
 			format={TruncatedValueFormat.Abbr}
 		/>
+	{/snippet}
+
+	{#snippet Title()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Settlement trace </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

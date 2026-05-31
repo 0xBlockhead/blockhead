@@ -49,13 +49,23 @@
 <EntityView
 	entityType={EntityType.MoneroStealthOutput}
 	{entityId}
-	title={`Monero Stealth Output ${entityId.outputIndex.toString()}`}
+	title={`Stealth output #${entityId.outputIndex.toString()}`}
+	idDragPlainText={entityId.outputIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.outputIndex.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		{entityId.outputIndex.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Stealth output </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

@@ -2,6 +2,8 @@ import { getJson } from '$/lib/http.ts'
 import MempoolSpace from '$/sources/MempoolSpace/index.ts'
 import type {
 	MempoolSpaceBlock,
+	MempoolSpaceMempoolStats,
+	MempoolSpaceRecommendedFees,
 	MempoolSpaceTransaction,
 } from '$/sources/MempoolSpace/Rest/types.ts'
 
@@ -55,6 +57,54 @@ export const getTransaction = ({
 }) => (
 	getJson<MempoolSpaceTransaction>(
 		`${base(restBaseUrl)}/tx/${txId}`,
+		{ origins: MempoolSpace.origins ?? [] },
+	)
+)
+
+export const getBlocks = ({
+	restBaseUrl,
+	startHeight,
+}: {
+	restBaseUrl: string
+	startHeight?: bigint
+}) => (
+	getJson<MempoolSpaceBlock[]>(
+		startHeight != null
+			? `${base(restBaseUrl)}/v1/blocks/${startHeight.toString()}`
+			: `${base(restBaseUrl)}/v1/blocks`,
+		{ origins: MempoolSpace.origins ?? [] },
+	)
+)
+
+export const getMempoolStats = ({
+	restBaseUrl,
+}: {
+	restBaseUrl: string
+}) => (
+	getJson<MempoolSpaceMempoolStats>(
+		`${base(restBaseUrl)}/mempool`,
+		{ origins: MempoolSpace.origins ?? [] },
+	)
+)
+
+export const getMempoolTxids = ({
+	restBaseUrl,
+}: {
+	restBaseUrl: string
+}) => (
+	getJson<string[]>(
+		`${base(restBaseUrl)}/mempool/txids`,
+		{ origins: MempoolSpace.origins ?? [] },
+	)
+)
+
+export const getRecommendedFees = ({
+	restBaseUrl,
+}: {
+	restBaseUrl: string
+}) => (
+	getJson<MempoolSpaceRecommendedFees>(
+		`${base(restBaseUrl)}/v1/fees/recommended`,
 		{ origins: MempoolSpace.origins ?? [] },
 	)
 )

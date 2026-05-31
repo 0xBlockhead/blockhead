@@ -79,7 +79,7 @@
 							$$lensPosts: {
 								$: [
 									Source.Lens_Graphql,
-									Source.Lens_HeyGraphql,
+									Source.Hey_Graphql,
 								],
 							},
 						}
@@ -88,7 +88,7 @@
 							$$posts: {
 								$: [
 									Source.Lens_Graphql,
-									Source.Lens_HeyGraphql,
+									Source.Hey_Graphql,
 								],
 							},
 						}

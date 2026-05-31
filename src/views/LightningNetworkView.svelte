@@ -66,8 +66,11 @@
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 	import LightningChannelsView from '$/views/LightningChannelsView.svelte'
 	import LightningInvoicesView from '$/views/LightningInvoicesView.svelte'
 	import LightningNetwork_TimestampView from '$/views/LightningNetwork_TimestampView.svelte'
@@ -122,17 +125,17 @@
 						</div>
 					{/if}
 
-					{#each row.$$timestamps as timestamp (stringify(timestamp[EntityMetaKey.Id]))}
+					{#if row.$$timestamps.at(0) != null}
 						<div>
 							<dt>Latest snapshot</dt>
 							<dd>
 								<LightningNetwork_TimestampView
-									entityId={timestamp[EntityMetaKey.Id]}
+									entityId={row.$$timestamps.at(0)[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
 						</div>
-					{/each}
+					{/if}
 				</dl>
 
 			{/snippet}
@@ -231,14 +234,25 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionLightningAssetsSettlement()}
+			{#snippet SectionLightningAssetsSettlement({ id, label }: { id: string, label: string })}
 				<ResourceBoundary resource={settlementNetwork}>
 					{#snippet children(settlementNetwork)}
-						{#if settlementNetwork.$$nativeAssets.length > 0}
-							<p><strong>Settlement asset:</strong> {settlementNetwork.$$nativeAssets.length}</p>
-						{:else}
-							<p data-text="muted">No settlement asset mapped for this network yet.</p>
-						{/if}
+						<EntitiesList
+							collapsible={false}
+							entityType={EntityType.AssetInstance}
+							getKey={(asset) => `${asset[EntityMetaKey.Id].kind}:${asset[EntityMetaKey.Id].assetKey}`}
+							id={`${id}-list`}
+							items={settlementNetwork.$$nativeAssets}
+							title={label}
+							UnorderedListProps={{ orientation: ListOrientation.Column }}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">No settlement asset mapped for this network yet.</p>
+							{/snippet}
+							{#snippet Item(context)}
+								<AssetInstanceView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+							{/snippet}
+						</EntitiesList>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
@@ -275,7 +289,7 @@
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
-					href=""
+					href={href ?? ''}
 					limit={undefined}
 					id={`${id}-list`}
 					title={label}
@@ -294,7 +308,7 @@
 					fieldSources={[
 						Source.Constants_Internal,
 					]}
-					href=""
+					href={href ?? ''}
 					limit={undefined}
 					id={`${id}-list`}
 					title={label}

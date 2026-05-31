@@ -3,6 +3,7 @@
 	import type { ComponentProps } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { LightningPaymentStatus } from '$/schema/LightningPayment.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -82,7 +83,7 @@
 					{#if row.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{row.status}</dd>
+							<dd>{row.status === LightningPaymentStatus.InFlight ? 'In Flight' : row.status}</dd>
 						</div>
 					{/if}
 

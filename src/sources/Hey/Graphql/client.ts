@@ -1,25 +1,35 @@
 import { print } from 'graphql'
-import type { TadaDocumentNode } from 'gql.tada'
+import {
+	initGraphQLTada,
+	type TadaDocumentNode,
+} from 'gql.tada'
 
 import { getJson } from '$/lib/http.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
-import { graphql } from '$/sources/Lens/Graphql/client.ts'
+import type { introspection } from './graphql-env.d.ts'
 import {
-	lensHeyGraphqlUrls,
-} from '$/sources/LensHey/Graphql/constants.ts'
-import LensHey from '$/sources/LensHey/index.ts'
+	heyGraphqlUrls,
+} from '$/sources/Hey/Graphql/constants.ts'
+import Hey from '$/sources/Hey/index.ts'
 
-export { graphql }
+export const graphql = initGraphQLTada<{
+	introspection: introspection
+	scalars: {
+		DateTime: string
+		EvmAddress: `0x${string}`
+		PostId: string
+	}
+}>()
 
-type LensHeyGqlResponse<_Result> = {
+type HeyGqlResponse<_Result> = {
 	data: _Result
 	errors?: readonly {
 		message?: string
 	}[]
 }
 
-export const queryLensHey = async <
+export const queryHey = async <
 	_Result extends {
 		[key: string]: any
 	},
@@ -27,7 +37,7 @@ export const queryLensHey = async <
 		[key: string]: any
 	},
 >(
-	publicEnv: SourcePublicEnvFor<Source.Lens_HeyGraphql>,
+	publicEnv: SourcePublicEnvFor<Source.Hey_Graphql>,
 	document: TadaDocumentNode<_Result, _Variables>,
 	variables?: _Variables,
 ): Promise<_Result> => {
@@ -46,14 +56,14 @@ export const queryLensHey = async <
 		}),
 	}
 	let lastError: Error | undefined
-	for (const url of lensHeyGraphqlUrls) {
+	for (const url of heyGraphqlUrls) {
 		try {
-			const out = await getJson<LensHeyGqlResponse<_Result>>(url, {
-				origins: LensHey.origins ?? [],
+			const out = await getJson<HeyGqlResponse<_Result>>(url, {
+				origins: Hey.origins ?? [],
 				init,
 			})
 			if (out.errors?.[0]?.message != null) {
-				throw new Error(`Lens_HeyGraphql: ${out.errors[0].message}`)
+				throw new Error(`Hey_Graphql: ${out.errors[0].message}`)
 			}
 			return out.data
 		}
@@ -65,5 +75,5 @@ export const queryLensHey = async <
 			)
 		}
 	}
-	throw lastError ?? new Error('Lens_HeyGraphql: all endpoints failed')
+	throw lastError ?? new Error('Hey_Graphql: all endpoints failed')
 }

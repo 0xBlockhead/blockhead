@@ -115,6 +115,14 @@ export const getCoingeckoCoinByAssetPlatformContract = async ({
 	return res.json<CoingeckoCoin>()
 }
 
+export const getCoingeckoAssetPlatformById = async (
+	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
+	platformId: string,
+): Promise<CoingeckoAssetPlatform | undefined> => {
+	const platforms = await fetchCoingeckoAssetPlatforms(publicEnv)
+	return platforms.find((p) => p.id === platformId)
+}
+
 export const fetchCoingeckoAssetPlatforms = async (
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
 ): Promise<CoingeckoAssetPlatform[]> => {

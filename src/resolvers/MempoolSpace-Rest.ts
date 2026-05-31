@@ -1,6 +1,7 @@
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
+	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -18,6 +19,13 @@ const assertBitcoinMainnet = (network: { caip2: { namespace: string; reference: 
 	}
 }
 
+const bitcoinMainnet = {
+	caip2: {
+		namespace: 'bip122',
+		reference: '000000000019d6689c085ae165831e93',
+	},
+} as const
+
 const getTransaction = async (entityId: {
 	$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 	txId: string
@@ -34,6 +42,18 @@ export default {
 	source: Source.MempoolSpace_Rest,
 
 	entityResolvers: [
+		defineEntityResolver({
+			entityType: EntityType.UtxoNetwork,
+			resolve: async (entityId) => {
+				assertBitcoinMainnet(entityId)
+				return {
+					$network: {
+						[EntityMetaKey.Id]: entityId,
+					},
+				}
+			},
+		}),
+
 		defineEntityResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: async (entityId) => {
@@ -162,6 +182,118 @@ export default {
 	],
 
 	entityFieldResolvers: [
+		defineEntityFieldResolver({
+			entityType: EntityType.UtxoNetwork,
+			fieldName: '$network',
+			resolve: async (entityId) => {
+				assertBitcoinMainnet(entityId)
+				return {
+					[EntityMetaKey.Id]: entityId,
+				}
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.UtxoNetwork,
+			fieldName: '$headBlock',
+			resolve: async (entityId) => {
+				assertBitcoinMainnet(entityId)
+				const { getBlocks } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+				const blocks = await getBlocks({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl })
+				const block = blocks[0]
+				if (block == null) throw new Error('MempoolSpace_Rest: no blocks returned')
+				return {
+					[EntityMetaKey.Id]: {
+						$network: entityId,
+						height: BigInt(block.height),
+						hash: block.id,
+					},
+					hash: block.id,
+					timestampMs: block.timestamp * 1000,
+					merkleRoot: block.merkle_root,
+					nonce: BigInt(block.nonce),
+					difficulty: block.difficulty,
+					sizeBytes: block.size,
+					weightUnits: block.weight,
+					transactionCount: block.tx_count,
+				}
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.UtxoNetwork,
+			fieldName: '$$timestamps',
+			resolve: async (entityId) => {
+				assertBitcoinMainnet(entityId)
+				const {
+					getBlocks,
+					getMempoolStats,
+					getRecommendedFees,
+				} = await import('$/sources/MempoolSpace/Rest/queries.ts')
+				const [blocks, mempoolStats, fees] = await Promise.all([
+					getBlocks({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl }),
+					getMempoolStats({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl }),
+					getRecommendedFees({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl }),
+				])
+				const block = blocks[0]
+				if (block == null) throw new Error('MempoolSpace_Rest: no blocks returned')
+				return [
+					{
+						[EntityMetaKey.Id]: {
+							$network: entityId,
+							timestampMs: Date.now(),
+						},
+						bestBlockHeight: BigInt(block.height),
+						bestBlockHash: block.id,
+						mempoolTransactionCount: mempoolStats.count,
+						mempoolSizeBytes: BigInt(Math.ceil(mempoolStats.vsize)),
+						suggestedTransactionFeePerByteSats: fees.hourFee,
+					},
+				]
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.UtxoNetwork,
+			fieldName: '$$blocks',
+			resolve: async (entityId, context) => {
+				assertBitcoinMainnet(entityId)
+				const { getBlocks } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+				const blocks = await getBlocks({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl })
+				return blocks.slice(0, resolverLoadSubsetRowLimit(context)).map((block) => ({
+					[EntityMetaKey.Id]: {
+						$network: entityId,
+						height: BigInt(block.height),
+						hash: block.id,
+					},
+					hash: block.id,
+					timestampMs: block.timestamp * 1000,
+					merkleRoot: block.merkle_root,
+					nonce: BigInt(block.nonce),
+					difficulty: block.difficulty,
+					sizeBytes: block.size,
+					weightUnits: block.weight,
+					transactionCount: block.tx_count,
+				}))
+			},
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.UtxoNetwork,
+			fieldName: '$$transactions',
+			resolve: async (entityId, context) => {
+				assertBitcoinMainnet(entityId)
+				const { getMempoolTxids } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+				const txids = await getMempoolTxids({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl })
+				return txids.slice(0, resolverLoadSubsetRowLimit(context)).map((txId) => ({
+					[EntityMetaKey.Id]: {
+						$network: entityId,
+						txId,
+					},
+				}))
+			},
+		}),
+
 		defineEntityFieldResolver({
 			entityType: EntityType.UtxoBlock,
 			fieldName: '$$transactions',

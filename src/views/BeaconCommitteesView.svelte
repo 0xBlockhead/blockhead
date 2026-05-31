@@ -8,6 +8,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
@@ -16,18 +17,18 @@
 		entityFieldReference,
 		title = 'Committees',
 		open = $bindable(true),
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BeaconCommittee>
 			title?: string
 			open?: boolean
+			id: string
+			href?: string
 		},
-		Pick<
-			ComponentProps<typeof EntitiesList>,
-			| 'id'
-			| 'CollapsibleProps'
-		>
+		Pick<ComponentProps<typeof EntitiesList>, 'CollapsibleProps'>
 	> = $props()
 
 
@@ -35,30 +36,11 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Beacon_Rest,
-				],
-				$limit: 16,
-			},
-		},
-	)
-
-	const committees = derive(
-		parent,
-		(parent): Entity<typeof schema, EntityType.BeaconCommittee>[] => (
-			parent[entityFieldReference.fieldName]
-			?? []
-		),
-	)
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import BeaconCommitteeView from '$/views/BeaconCommitteeView.svelte'
 </script>
 
 
@@ -66,28 +48,61 @@
 	entityType={EntityType.BeaconCommittee}
 	{title}
 	bind:open
-	getKey={(committee) => `${String(committee[EntityMetaKey.Id].slot)}:${String(committee[EntityMetaKey.Id].index)}`}
-	resource={committees}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{id}
+	href={href}
 	{...EntitiesListProps}
 >
-	{#snippet Empty()}
-		<p data-text="muted">No committees loaded yet.</p>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Beacon committees group validators for attestation duties in a consensus slot.
+		</p>
 	{/snippet}
 
-	{#snippet Item({ item: committee })}
-		<div class="entity-details">
-			<dl data-column-item="center">
-				<div>
-					<dt>Slot</dt>
-					<dd>{String(committee[EntityMetaKey.Id].slot)}</dd>
-				</div>
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Beacon_Rest,
+						],
+						$limit: 16,
+					},
+				},
+			)}
+			{@const committees = derive(
+				parent,
+				(parent): Entity<typeof schema, EntityType.BeaconCommittee>[] => (
+					parent[entityFieldReference.fieldName]
+					?? []
+				),
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.BeaconCommittee}
+				id={`${id}-items`}
+				href={href}
+				getKey={(committee) => stringify(committee[EntityMetaKey.Id])}
+				open={true}
+				resource={committees}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">No committees loaded yet.</p>
+				{/snippet}
 
-				<div>
-					<dt>Committee index</dt>
-					<dd>{String(committee[EntityMetaKey.Id].index)}</dd>
-				</div>
-			</dl>
-		</div>
+				{#snippet Item({ item: committee })}
+					<BeaconCommitteeView
+						entityId={committee[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

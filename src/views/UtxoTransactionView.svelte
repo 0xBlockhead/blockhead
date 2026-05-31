@@ -64,6 +64,7 @@
 <EntityView
 	entityType={EntityType.UtxoTransaction}
 	{entityId}
+	href={`/network/${entityId.$network.networkSlug}/transactions/${entityId.txId}`}
 	title={entityId.txId}
 	bind:open
 	{...EntityViewProps}

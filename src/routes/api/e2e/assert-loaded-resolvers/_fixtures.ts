@@ -1210,7 +1210,7 @@ export const envGatedProbeSources = new Set<Source>([
 	Source.Etherscan_Rest,
 	Source.Fedi_Rest,
 	Source.Lens_Graphql,
-	Source.Lens_HeyGraphql,
+	Source.Hey_Graphql,
 	Source.LightningLnd_Rest,
 	Source.Mastodon_Rest,
 	Source.Neynar_Rest,

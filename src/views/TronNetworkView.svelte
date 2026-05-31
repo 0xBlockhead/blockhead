@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -61,9 +62,12 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 	import TronBlockView from '$/views/TronBlockView.svelte'
 	import TronBlocksView from '$/views/TronBlocksView.svelte'
 	import TronNetwork_TimestampsView from '$/views/TronNetwork_TimestampsView.svelte'
@@ -129,7 +133,7 @@
 
 					<div>
 						<dt>Environment</dt>
-						<dd>{network.environment}</dd>
+						<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 					</div>
 
 					{#if network.$$nativeAssets.length > 0}
@@ -213,6 +217,46 @@
 						{:else}
 							<p data-text="muted">No REST endpoints listed for this network yet.</p>
 						{/each}
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
+		</CollapsibleTabs>
+
+		<CollapsibleTabs
+			id={`${networkIdKey}:carousel-tron-assets`}
+			sectionIdPrefix={networkIdKey}
+			sections={[
+				{ id: 'tron-assets-native', label: 'Native coin' },
+			]}
+			data-card
+			class="network-view-collapsible-assets"
+			scrollContainerProps={{ 'data-row': 'start align-start' }}
+		>
+			{#snippet Summary()}
+				<header data-row-item="flexible" data-row="wrap gap-4">
+					<HeadingComponent>Assets</HeadingComponent>
+				</header>
+			{/snippet}
+
+			{#snippet SectionTronAssetsNative({ id, label }: { id: string, label: string })}
+				<ResourceBoundary resource={network}>
+					{#snippet children(network)}
+						<EntitiesList
+							collapsible={false}
+							entityType={EntityType.AssetInstance}
+							getKey={(asset) => `${asset[EntityMetaKey.Id].kind}:${asset[EntityMetaKey.Id].assetKey}`}
+							id={`${id}-list`}
+							items={network.$$nativeAssets}
+							title={label}
+							UnorderedListProps={{ orientation: ListOrientation.Column }}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">No native assets mapped for this network yet.</p>
+							{/snippet}
+							{#snippet Item(context)}
+								<AssetInstanceView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+							{/snippet}
+						</EntitiesList>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}

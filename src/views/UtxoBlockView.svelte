@@ -65,13 +65,24 @@
 <EntityView
 	entityType={EntityType.UtxoBlock}
 	{entityId}
+	href={`/network/${entityId.$network.networkSlug}/blocks/${entityId.height.toString()}`}
 	title={`Block #${entityId.height.toString()}`}
+	idDragPlainText={entityId.height.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.height.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		Block #{entityId.height.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Block </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

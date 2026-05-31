@@ -46,21 +46,6 @@ export default {
 			entityType: EntityType.PolkadotNetwork,
 			resolve: async (entityId) => {
 				assertPolkadotMainnet(entityId)
-				const {
-					getBlock,
-					getFinalizedHead,
-					getHeader,
-				} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
-				const finalizedBlockHash = await getFinalizedHead({ rpcUrl: polkadotRpcUrl })
-				const header = await getHeader({
-					rpcUrl: polkadotRpcUrl,
-					blockHash: finalizedBlockHash,
-				})
-				const finalizedBlockNumber = blockNumberFromHeader(header)
-				const block = await getBlock({
-					rpcUrl: polkadotRpcUrl,
-					blockHash: finalizedBlockHash,
-				})
 				return {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
@@ -70,44 +55,6 @@ export default {
 							url: polkadotRpcUrl,
 							transportType: TransportType.Http,
 							providerName: 'Parity',
-						},
-					],
-					$headBlock: {
-						[EntityMetaKey.Id]: {
-							$network: entityId,
-							blockNumber: finalizedBlockNumber,
-							hash: finalizedBlockHash,
-						},
-						hash: finalizedBlockHash,
-						stateRoot: header.stateRoot,
-						extrinsicsRoot: header.extrinsicsRoot,
-						$$extrinsics: polkadotExtrinsicRows(
-							entityId,
-							block,
-						),
-					},
-					$$timestamps: [
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId,
-								timestampMs: Date.now(),
-							},
-						},
-					],
-					$$blocks: [
-						{
-							[EntityMetaKey.Id]: {
-								$network: entityId,
-								blockNumber: finalizedBlockNumber,
-								hash: finalizedBlockHash,
-							},
-							hash: finalizedBlockHash,
-							stateRoot: header.stateRoot,
-							extrinsicsRoot: header.extrinsicsRoot,
-							$$extrinsics: polkadotExtrinsicRows(
-								entityId,
-								block,
-							),
 						},
 					],
 				}

@@ -5,6 +5,7 @@ import MevRelayRestResolvers from '$/resolvers/MevRelay-Rest.ts'
 import MastodonRestResolvers from '$/resolvers/Mastodon-Rest.ts'
 import MetadataVisionRestResolvers from '$/resolvers/MetadataVision-Rest.ts'
 import AlliumRestResolvers from '$/resolvers/Allium-Rest.ts'
+import AmbossGraphqlResolvers from '$/resolvers/Amboss-Graphql.ts'
 import AtprotoXrpcResolvers from '$/resolvers/Atproto-Xrpc.ts'
 import AtprotoBskySocialXrpcResolvers from '$/resolvers/Atproto-BskySocial-Xrpc.ts'
 import BeaconRestResolvers from '$/resolvers/Beacon-Rest.ts'
@@ -55,7 +56,7 @@ import IpfsRestResolvers from '$/resolvers/Ipfs-Rest.ts'
 import L2BeatRestResolvers from '$/resolvers/L2Beat-Rest.ts'
 import LifiRestResolvers from '$/resolvers/Lifi-Rest.ts'
 import LensGraphqlResolvers from '$/resolvers/Lens-Graphql.ts'
-import LensHeyGraphqlResolvers from '$/resolvers/LensHey-Graphql.ts'
+import HeyGraphqlResolvers from '$/resolvers/Hey-Graphql.ts'
 import LitecoinCoreJsonRpcResolvers from '$/resolvers/LitecoinCore-JsonRpc.ts'
 import LitecoinLipsGithubResolvers from '$/resolvers/LitecoinLips-Github.ts'
 import LightningLndRestResolvers from '$/resolvers/LightningLnd-Rest.ts'
@@ -115,6 +116,7 @@ const enabledResolverModulesAfterSourceGate = (
 		MetadataVisionRestResolvers,
 		MevRelayRestResolvers,
 		AlliumRestResolvers,
+		AmbossGraphqlResolvers,
 		AtprotoXrpcResolvers,
 		AtprotoBskySocialXrpcResolvers,
 		BeaconRestResolvers,
@@ -165,7 +167,7 @@ const enabledResolverModulesAfterSourceGate = (
 		IpfsRestResolvers,
 		LifiRestResolvers,
 		LensGraphqlResolvers,
-		LensHeyGraphqlResolvers,
+		HeyGraphqlResolvers,
 		LitecoinCoreJsonRpcResolvers,
 		LitecoinLipsGithubResolvers,
 		LightningLndRestResolvers,

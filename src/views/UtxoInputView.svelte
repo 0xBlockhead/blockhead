@@ -51,13 +51,23 @@
 <EntityView
 	entityType={EntityType.UtxoInput}
 	{entityId}
-	title={`UTXO Input ${entityId.inputIndex.toString()}`}
+	title={`Input #${entityId.inputIndex.toString()}`}
+	idDragPlainText={entityId.inputIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.inputIndex.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		{entityId.inputIndex.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Input </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

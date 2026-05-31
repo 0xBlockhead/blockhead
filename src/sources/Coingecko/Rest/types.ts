@@ -34,4 +34,5 @@ export type CoingeckoAssetPlatform = {
 	shortname?: string
 	chain_identifier?: number | null
 	native_coin_id?: string | null
+	image?: CoingeckoCoinImage
 }

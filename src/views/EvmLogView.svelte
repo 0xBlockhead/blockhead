@@ -101,8 +101,8 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span>
-			log #{entityId.logIndex}
+		<span data-badge="small">
+			#{entityId.logIndex}
 		</span>
 	{/snippet}
 
@@ -113,8 +113,9 @@
 		>
 			{#snippet children(log)}
 				<span data-row="wrap gap-2 align-baseline">
-					<span>
-						Receipt log #{entityId.logIndex}
+					<span data-row="inline align-center gap-2 wrap">
+						<span>Receipt log </span>
+						{@render Value()}
 					</span>
 					{#if log.topics?.[0]?.startsWith('0x')}
 						{@const topic0Hex = normalizeEvmTopicHex(log.topics[0] as `0x${string}`)}

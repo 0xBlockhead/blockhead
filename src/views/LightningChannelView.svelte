@@ -66,6 +66,7 @@
 <EntityView
 	entityType={EntityType.LightningChannel}
 	{entityId}
+	href={`/network/${entityId.$network.networkSlug}/channels/${entityId.channelId}`}
 	title={entityId.channelId}
 	bind:open
 	{...EntityViewProps}

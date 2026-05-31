@@ -49,15 +49,23 @@
 	entityType={EntityType.CosmosGovernanceProposal}
 	{entityId}
 	title={entityId.proposalId}
+	idDragPlainText={entityId.proposalId}
 	bind:open
 	{...EntityViewProps}
 >
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<TruncatedValue
 			value={entityId.proposalId}
 			format={TruncatedValueFormat.Abbr}
 		/>
+	{/snippet}
+
+	{#snippet Title()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Proposal </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

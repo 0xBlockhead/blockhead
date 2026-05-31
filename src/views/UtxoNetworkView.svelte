@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -56,6 +57,7 @@
 			$headBlock: {},
 			$$timestamps: {
 				$limit: 1,
+				suggestedTransactionFeePerByteSats: {},
 			},
 		},
 	)
@@ -67,9 +69,13 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
+	import NumberValue from '$/views/NumberValue.svelte'
 	import UtxoBlockView from '$/views/UtxoBlockView.svelte'
 	import UtxoBlocksView from '$/views/UtxoBlocksView.svelte'
 	import UtxoNetwork_TimestampsView from '$/views/UtxoNetwork_TimestampsView.svelte'
@@ -114,28 +120,37 @@
 	{/snippet}
 
 	{#snippet Content()}
+		<ResourceBoundary resource={utxoNetwork}>
+			{#snippet children(utxoNetwork)}
+				<dl class="network-summary-head" data-column-item="center">
+					{#if utxoNetwork.$headBlock != null}
+						<div>
+							<dt>Head block</dt>
+							<dd id="network-summary-head-block">
+								<UtxoBlockView
+									entityId={utxoNetwork.$headBlock[EntityMetaKey.Id]}
+									layout={EntityLayout.Value}
+								/>
+							</dd>
+						</div>
+					{/if}
+
+					{#if utxoNetwork.$$timestamps.at(0)?.suggestedTransactionFeePerByteSats != null}
+						<div>
+							<dt>Suggested fee</dt>
+							<dd><NumberValue value={utxoNetwork.$$timestamps.at(0).suggestedTransactionFeePerByteSats} /> sat/vB</dd>
+						</div>
+					{/if}
+				</dl>
+			{/snippet}
+		</ResourceBoundary>
+
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
-				<dl class="network-summary-head" data-column-item="center">
-					<ResourceBoundary resource={utxoNetwork}>
-						{#snippet children(utxoNetwork)}
-							{#if utxoNetwork.$headBlock != null}
-								<div>
-									<dt>Head block</dt>
-									<dd id="network-summary-head-block">
-										<UtxoBlockView
-											entityId={utxoNetwork.$headBlock[EntityMetaKey.Id]}
-											layout={EntityLayout.Value}
-										/>
-									</dd>
-								</div>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
-
+				<dl data-column-item="center">
 					<div>
 						<dt>Environment</dt>
-						<dd>{network.environment}</dd>
+						<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 					</div>
 
 					{#if network.$$nativeAssets.length > 0}
@@ -229,14 +244,25 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionUtxoAssetsNative()}
+			{#snippet SectionUtxoAssetsNative({ id, label }: { id: string, label: string })}
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
-						{#if network.$$nativeAssets.length > 0}
-							<p><strong>Native asset:</strong> {network.$$nativeAssets.length}</p>
-						{:else}
-							<p data-text="muted">No native asset mapped for this network yet.</p>
-						{/if}
+						<EntitiesList
+							collapsible={false}
+							entityType={EntityType.AssetInstance}
+							getKey={(asset) => `${asset[EntityMetaKey.Id].kind}:${asset[EntityMetaKey.Id].assetKey}`}
+							id={`${id}-list`}
+							items={network.$$nativeAssets}
+							title={label}
+							UnorderedListProps={{ orientation: ListOrientation.Column }}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">No native assets mapped for this network yet.</p>
+							{/snippet}
+							{#snippet Item(context)}
+								<AssetInstanceView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+							{/snippet}
+						</EntitiesList>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}

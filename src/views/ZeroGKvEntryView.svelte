@@ -49,15 +49,23 @@
 	entityType={EntityType.ZeroGKvEntry}
 	{entityId}
 	title={entityId.key}
+	idDragPlainText={entityId.key}
 	bind:open
 	{...EntityViewProps}
 >
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<TruncatedValue
 			value={entityId.key}
 			format={TruncatedValueFormat.Abbr}
 		/>
+	{/snippet}
+
+	{#snippet Title()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>KV entry </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

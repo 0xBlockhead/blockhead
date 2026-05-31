@@ -78,13 +78,16 @@
 	{title}
 >
 	{#snippet Value()}
-		<span>
-			<NumberValue value={entityId.validatorIndex} />
+		<span data-badge="small">
+			#{String(entityId.validatorIndex)}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
-		{title}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Validator </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

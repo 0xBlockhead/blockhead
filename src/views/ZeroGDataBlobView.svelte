@@ -50,15 +50,23 @@
 	entityType={EntityType.ZeroGDataBlob}
 	{entityId}
 	title={entityId.dataRoot}
+	idDragPlainText={entityId.dataRoot}
 	bind:open
 	{...EntityViewProps}
 >
 
-	{#snippet Title()}
+	{#snippet Value()}
 		<TruncatedValue
 			value={entityId.dataRoot}
 			format={TruncatedValueFormat.Abbr}
 		/>
+	{/snippet}
+
+	{#snippet Title()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Data blob </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet TypeAnnotationTooltip()}

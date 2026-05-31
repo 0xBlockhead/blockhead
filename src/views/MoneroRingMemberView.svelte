@@ -47,13 +47,23 @@
 <EntityView
 	entityType={EntityType.MoneroRingMember}
 	{entityId}
-	title={`Monero Ring Member ${entityId.memberIndex.toString()}`}
+	title={`Ring member #${entityId.memberIndex.toString()}`}
+	idDragPlainText={entityId.memberIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.memberIndex.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		{entityId.memberIndex.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Ring member </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

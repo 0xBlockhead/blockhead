@@ -70,7 +70,7 @@
 
 
 	const title = $derived(
-		titleProp ?? `Epoch ${entityId.epoch.toLocaleString()}`,
+		titleProp ?? `Epoch #${entityId.epoch.toLocaleString()}`,
 	)
 
 	const epochIdKey = $derived(
@@ -100,24 +100,22 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span
-			data-badge="small"
-			data-epoch-number={String(entityId.epoch)}
-		>
-			{String(entityId.epoch)}
+		<span data-badge="small">
+			#{String(entityId.epoch)}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
-		<span>
-			{entityId.epoch}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Epoch </span>
+			{@render Value()}
 		</span>
 	{/snippet}
 
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			<div>
-				<dt>Consensus slot range</dt>
+				<dt>Slot range</dt>
 				<dd>
 					<ResourceBoundary
 						resource={epoch}
@@ -139,7 +137,7 @@
 
 			{#if open}
 				<div>
-					<dt>Slots in this epoch</dt>
+					<dt>Slot count</dt>
 					<dd>
 						<ResourceBoundary
 							resource={epoch}

@@ -48,13 +48,23 @@
 <EntityView
 	entityType={EntityType.LitecoinMwebBlock}
 	{entityId}
-	title={'Litecoin MWEB Block'}
+	title={`MWEB Block #${entityId.$block.height.toString()}`}
+	idDragPlainText={entityId.$block.height.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.$block.height.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		Litecoin MWEB Block
+		<span data-row="inline align-center gap-2 wrap">
+			<span>MWEB Block </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

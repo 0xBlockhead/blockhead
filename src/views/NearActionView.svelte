@@ -49,13 +49,23 @@
 <EntityView
 	entityType={EntityType.NearAction}
 	{entityId}
-	title={`NEAR Action ${entityId.actionIndex.toString()}`}
+	title={`Action #${entityId.actionIndex.toString()}`}
+	idDragPlainText={entityId.actionIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.actionIndex.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		{entityId.actionIndex.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Action </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

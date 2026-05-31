@@ -47,13 +47,23 @@
 <EntityView
 	entityType={EntityType.LitecoinMwebTransaction}
 	{entityId}
-	title={`Litecoin MWEB Transaction ${entityId.transactionIndex.toString()}`}
+	title={`MWEB Transaction #${entityId.transactionIndex.toString()}`}
+	idDragPlainText={entityId.transactionIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.transactionIndex.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		{entityId.transactionIndex.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>MWEB Transaction </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -66,9 +67,12 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 	import BittensorBlockView from '$/views/BittensorBlockView.svelte'
 	import BittensorBlocksView from '$/views/BittensorBlocksView.svelte'
 	import BittensorNetwork_TimestampsView from '$/views/BittensorNetwork_TimestampsView.svelte'
@@ -135,7 +139,7 @@
 				{#snippet children(network)}
 					<div>
 						<dt>Environment</dt>
-						<dd>{network.environment}</dd>
+						<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 					</div>
 
 					{#if context?.open && network.$networkStack != null}
@@ -298,10 +302,8 @@
 			id={`${networkIdKey}:carousel-economics`}
 			sectionIdPrefix={networkIdKey}
 			sections={[
-				{
-					id: 'bittensor-assets',
-					label: 'Assets',
-				},
+				{ id: 'bittensor-assets-native', label: 'Native coin' },
+				{ id: 'bittensor-assets-subnets', label: 'Subnets' },
 			]}
 			data-card
 			class="network-view-collapsible-economics"
@@ -313,20 +315,33 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionBittensorAssets()}
+			{#snippet SectionBittensorAssetsNative({ id, label }: { id: string, label: string })}
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
-						<div>
-							{#if network.$$nativeAssets.length > 0}
-								<p><strong>Native asset:</strong> {network.$$nativeAssets.length}</p>
-							{/if}
+						<EntitiesList
+							collapsible={false}
+							entityType={EntityType.AssetInstance}
+							getKey={(asset) => `${asset[EntityMetaKey.Id].kind}:${asset[EntityMetaKey.Id].assetKey}`}
+							id={`${id}-list`}
+							items={network.$$nativeAssets}
+							title={label}
+							UnorderedListProps={{ orientation: ListOrientation.Column }}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">No native assets mapped for this network yet.</p>
+							{/snippet}
+							{#snippet Item(context)}
+								<AssetInstanceView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+							{/snippet}
+						</EntitiesList>
+					{/snippet}
+				</ResourceBoundary>
+			{/snippet}
 
-							<ResourceBoundary resource={bittensorNetwork}>
-								{#snippet children(bittensorNetwork)}
-									<p><strong>Subnet assets:</strong> {bittensorNetwork.$$subnets.length} alpha-token markets are represented by subnet identities and DynamicInfo wire snapshots.</p>
-								{/snippet}
-							</ResourceBoundary>
-						</div>
+			{#snippet SectionBittensorAssetsSubnets()}
+				<ResourceBoundary resource={bittensorNetwork}>
+					{#snippet children(bittensorNetwork)}
+						<p><strong>Subnet assets:</strong> {bittensorNetwork.$$subnets.length} alpha-token markets are represented by subnet identities and DynamicInfo wire snapshots.</p>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}

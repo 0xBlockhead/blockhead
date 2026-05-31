@@ -66,7 +66,7 @@
 
 
 	const title = $derived(
-		titleProp ?? `Slot ${entityId.slot.toLocaleString()}`,
+		titleProp ?? `Slot #${entityId.slot.toLocaleString()}`,
 	)
 
 
@@ -96,17 +96,15 @@
 	{...EntityViewProps}
 >
 	{#snippet Value()}
-		<span
-			data-badge="small"
-			data-slot-number={String(entityId.slot)}
-		>
-			{String(entityId.slot)}
+		<span data-badge="small">
+			#{String(entityId.slot)}
 		</span>
 	{/snippet}
 
 	{#snippet Title()}
-		<span>
-			{entityId.slot}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Slot </span>
+			{@render Value()}
 		</span>
 	{/snippet}
 
@@ -119,7 +117,7 @@
 	{#snippet Content({ title: _title, href: _href })}
 		<dl data-column-item="center">
 			<div>
-				<dt>Consensus proposer index</dt>
+				<dt>Proposer index</dt>
 				<dd>
 					<ResourceBoundary
 						resource={slot}

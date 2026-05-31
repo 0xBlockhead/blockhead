@@ -3,7 +3,7 @@ import type {
 	TadaDocumentNode,
 } from 'gql.tada'
 
-import { corsFetch, throwHttpError } from '$/lib/http.ts'
+import { getJson } from '$/lib/http.ts'
 import {
 	optionalPublicEnvString,
 } from '$/lib/sources.ts'
@@ -38,7 +38,14 @@ export const queryTheGraph = async <
 		throw new Error('PUBLIC_THEGRAPH_API_KEY is required for The Graph gateway queries')
 	}
 
-	const response = await corsFetch(endpointUrl, {
+	type TheGraphPayloadWire = {
+		data?: _Result
+		errors?: {
+			message?: string
+		}[]
+	}
+
+	const payload = await getJson<TheGraphPayloadWire>(endpointUrl, {
 		origins: TheGraph.origins ?? [],
 		init: {
 			method: 'POST',
@@ -53,16 +60,6 @@ export const queryTheGraph = async <
 			}),
 		},
 	})
-
-	if (!response.ok) await throwHttpError('The Graph API', response)
-
-	type TheGraphPayloadWire = {
-		data?: _Result
-		errors?: {
-			message?: string
-		}[]
-	}
-	const payload = await response.json<TheGraphPayloadWire>()
 
 	if ((payload.errors?.length ?? 0) > 0) {
 		const errors = payload.errors ?? []

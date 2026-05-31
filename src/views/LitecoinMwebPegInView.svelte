@@ -47,13 +47,23 @@
 <EntityView
 	entityType={EntityType.LitecoinMwebPegIn}
 	{entityId}
-	title={`Litecoin MWEB Peg-in ${entityId.pegInIndex.toString()}`}
+	title={`MWEB Peg-in #${entityId.pegInIndex.toString()}`}
+	idDragPlainText={entityId.pegInIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.pegInIndex.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		{entityId.pegInIndex.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>MWEB Peg-in </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

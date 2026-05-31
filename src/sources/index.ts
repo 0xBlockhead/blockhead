@@ -12,6 +12,7 @@ import {
 } from '$/sources/$SourceProvider.ts'
 
 import Allium from '$/sources/Allium/index.ts'
+import Amboss from '$/sources/Amboss/index.ts'
 import AtprotoBsky from '$/sources/AtprotoBsky/index.ts'
 import AtprotoBskySocial from '$/sources/AtprotoBskySocial/index.ts'
 import Beacon from '$/sources/Beacon/index.ts'
@@ -59,7 +60,7 @@ import Ipfs from '$/sources/Ipfs/index.ts'
 import L2Beat from '$/sources/L2Beat/index.ts'
 import Lifi from '$/sources/Lifi/index.ts'
 import Lens from '$/sources/Lens/index.ts'
-import LensHey from '$/sources/LensHey/index.ts'
+import Hey from '$/sources/Hey/index.ts'
 import Local from '$/sources/Local/index.ts'
 import LitecoinCore from '$/sources/LitecoinCore/index.ts'
 import LitecoinLips from '$/sources/LitecoinLips/index.ts'
@@ -115,6 +116,7 @@ export { Source }
 
 const sourceProviderDefinitions = [
 	Allium,
+	Amboss,
 	AtprotoBsky,
 	AtprotoBskySocial,
 	Beacon,
@@ -161,7 +163,7 @@ const sourceProviderDefinitions = [
 	Ipfs,
 	L2Beat,
 	Lens,
-	LensHey,
+	Hey,
 	Lifi,
 	LitecoinCore,
 	LitecoinLips,
@@ -224,53 +226,13 @@ type SchemaEnv<_EnvSchema> = (
 		{}
 )
 
-/**
- * Public env object shape for a `Source` (from that source’s `env` arktype schema in
- * `src/sources/**`). Sources not listed here use `{}` for typing.
- */
+type SourceToProviderEnvMap = {
+	[_Provider in (typeof sourceProviderDefinitions)[number] as _Provider['sources'][number]['source']]: _Provider['env']
+}
+
+/** Public env object shape for a `Source`, derived from its provider's `env` arktype schema. */
 export type SourcePublicEnvFor<_Source extends Source> = (
-	_Source extends Source.Allium_Rest ?
-		SchemaEnv<typeof Allium.env>
-	: _Source extends Source.CoinMarketCap_Rest ?
-		SchemaEnv<typeof CoinMarketCap.env>
-	: _Source extends Source.Coingecko_OpenApi | Source.Coingecko_Rest ?
-		SchemaEnv<typeof Coingecko.env>
-	: _Source extends Source.Defillama_Rest ?
-		SchemaEnv<typeof Defillama.env>
-	: _Source extends Source.Coinpaprika_OpenApi ?
-		SchemaEnv<typeof Coinpaprika.env>
-	: _Source extends Source.Dune_Rest ?
-		SchemaEnv<typeof Dune.env>
-	: _Source extends Source.Fedi_Rest ?
-		SchemaEnv<typeof Fedi.env>
-	: _Source extends Source.Helius_Rest ?
-		SchemaEnv<typeof Helius.env>
-	: _Source extends Source.Mastodon_Rest ?
-		SchemaEnv<typeof Mastodon.env>
-	: _Source extends Source.Lens_Graphql ?
-		SchemaEnv<typeof Lens.env>
-	: _Source extends Source.Lens_HeyGraphql ?
-		SchemaEnv<typeof LensHey.env>
-	: _Source extends Source.LightningLnd_Rest ?
-		SchemaEnv<typeof LightningLnd.env>
-	: _Source extends Source.Reddit_Rest ?
-		SchemaEnv<typeof Reddit.env>
-	: _Source extends Source.Etherscan_Rest ?
-		SchemaEnv<typeof Etherscan.env>
-	: _Source extends Source.Neynar_Rest ?
-		SchemaEnv<typeof Neynar.env>
-	: _Source extends Source.TheGraph_Graphql ?
-		SchemaEnv<typeof TheGraph.env>
-	: _Source extends Source.Piped_Rest ?
-		SchemaEnv<typeof Piped.env>
-	: _Source extends Source.Subscan_Rest ?
-		SchemaEnv<typeof Subscan.env>
-	: _Source extends Source.X_Rest ?
-		SchemaEnv<typeof X.env>
-	: _Source extends Source.Youtube_Rest ?
-		SchemaEnv<typeof Youtube.env>
-	:
-		{}
+	SchemaEnv<_Source extends keyof SourceToProviderEnvMap ? SourceToProviderEnvMap[_Source] : undefined>
 )
 
 /** Flattened `$env/dynamic/public` for gating and resolver `context.publicEnv`. */

@@ -51,13 +51,23 @@
 <EntityView
 	entityType={EntityType.SolanaInstruction}
 	{entityId}
-	title={`Solana Instruction ${entityId.instructionIndex.toString()}`}
+	title={`Instruction #${entityId.instructionIndex.toString()}`}
+	idDragPlainText={entityId.instructionIndex.toString()}
 	bind:open
 	{...EntityViewProps}
 >
 
+	{#snippet Value()}
+		<span data-badge="small">
+			#{entityId.instructionIndex.toString()}
+		</span>
+	{/snippet}
+
 	{#snippet Title()}
-		{entityId.instructionIndex.toString()}
+		<span data-row="inline align-center gap-2 wrap">
+			<span>Instruction </span>
+			{@render Value()}
+		</span>
 	{/snippet}
 
 	{#snippet Content()}

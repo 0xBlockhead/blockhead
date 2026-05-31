@@ -88,12 +88,12 @@
 				{
 					$: [
 						Source.Lens_Graphql,
-						Source.Lens_HeyGraphql,
+						Source.Hey_Graphql,
 					],
 					[entityFieldReference.fieldName]: {
 						$: [
 							Source.Lens_Graphql,
-							Source.Lens_HeyGraphql,
+							Source.Hey_Graphql,
 						],
 						limit,
 					},

@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -62,9 +63,12 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
+	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
+	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
 	import CosmosBlockView from '$/views/CosmosBlockView.svelte'
 	import CosmosBlocksView from '$/views/CosmosBlocksView.svelte'
 	import CosmosGovernanceProposalsView from '$/views/CosmosGovernanceProposalsView.svelte'
@@ -131,7 +135,7 @@
 
 					<div>
 						<dt>Environment</dt>
-						<dd>{network.environment}</dd>
+						<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 					</div>
 
 					{#if network.$$nativeAssets.length > 0}
@@ -190,14 +194,45 @@
 					/>
 				{/snippet}
 
-				{#snippet SectionCosmosEndpoints()}
+				{#snippet SectionCosmosEndpoints({ id, label }: { id: string, label: string })}
 					<ResourceBoundary resource={cosmosNetwork}>
 						{#snippet children(cosmosNetwork)}
-							{#if cosmosNetwork.restEndpoints.length > 0}
-								<p><strong>REST endpoints:</strong> {cosmosNetwork.restEndpoints.length}</p>
-							{:else}
-								<p data-text="muted">No REST endpoints listed for this network yet.</p>
-							{/if}
+							<EntitiesList
+								collapsible={false}
+								entityType={EntityType.Network}
+								getKey={(endpoint) => endpoint.url}
+								id={`${id}-list`}
+								items={cosmosNetwork.restEndpoints}
+								title={label}
+								UnorderedListProps={{ orientation: ListOrientation.Column }}
+							>
+								{#snippet Empty()}
+									<p data-text="muted">No REST endpoints listed for this network yet.</p>
+								{/snippet}
+
+								{#snippet Item({ item: endpoint })}
+									<div class="entity-details">
+										<dl data-column-item="center">
+											<div>
+												<dt>URL</dt>
+												<dd><code>{endpoint.url}</code></dd>
+											</div>
+
+											<div>
+												<dt>Transport</dt>
+												<dd>{endpoint.transportType}</dd>
+											</div>
+
+											{#if endpoint.providerName}
+												<div>
+													<dt>Provider</dt>
+													<dd>{endpoint.providerName}</dd>
+												</div>
+											{/if}
+										</dl>
+									</div>
+								{/snippet}
+							</EntitiesList>
 						{/snippet}
 					</ResourceBoundary>
 				{/snippet}
@@ -262,14 +297,25 @@
 				</header>
 			{/snippet}
 
-			{#snippet SectionCosmosAssetsNative()}
+			{#snippet SectionCosmosAssetsNative({ id, label }: { id: string, label: string })}
 				<ResourceBoundary resource={network}>
 					{#snippet children(network)}
-						{#if network.$$nativeAssets.length > 0}
-							<p><strong>Native asset:</strong> {network.$$nativeAssets.length}</p>
-						{:else}
-							<p data-text="muted">No native asset mapped for this network yet.</p>
-						{/if}
+						<EntitiesList
+							collapsible={false}
+							entityType={EntityType.AssetInstance}
+							getKey={(asset) => `${asset[EntityMetaKey.Id].kind}:${asset[EntityMetaKey.Id].assetKey}`}
+							id={`${id}-list`}
+							items={network.$$nativeAssets}
+							title={label}
+							UnorderedListProps={{ orientation: ListOrientation.Column }}
+						>
+							{#snippet Empty()}
+								<p data-text="muted">No native assets mapped for this network yet.</p>
+							{/snippet}
+							{#snippet Item(context)}
+								<AssetInstanceView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
+							{/snippet}
+						</EntitiesList>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}
