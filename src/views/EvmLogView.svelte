@@ -118,7 +118,7 @@
 						{@render Value()}
 					</span>
 					{#if log.topics?.[0]?.startsWith('0x')}
-						{@const topic0Hex = normalizeEvmTopicHex(log.topics[0] as `0x${string}`)}
+						{@const topic0Hex = normalizeEvmTopicHex(log.topics[0])}
 						<EvmTopicView
 							entityId={{ hex: topic0Hex }}
 							layout={EntityLayout.Title}
@@ -217,7 +217,7 @@
 										<li>
 											<span data-text="muted">topic {topicIndex}</span>
 											{#if topic?.startsWith('0x')}
-												{@const topicHex = normalizeEvmTopicHex(topic as `0x${string}`)}
+												{@const topicHex = normalizeEvmTopicHex(topic)}
 												{#if topicIndex === 0 && summaryUsesHeading}
 													<TruncatedValue
 														value={topic}
@@ -273,6 +273,6 @@
 		</div>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 	{/snippet}
 </EntityView>

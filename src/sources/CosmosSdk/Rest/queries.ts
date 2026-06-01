@@ -2,6 +2,7 @@ import { getJson } from '$/lib/http.ts'
 import CosmosSdk from '$/sources/CosmosSdk/index.ts'
 import type {
 	CosmosSdkAccountResponse,
+	CosmosSdkBalancesResponse,
 	CosmosSdkBlockResponse,
 	CosmosSdkContractInfoResponse,
 	CosmosSdkDenomMetadataResponse,
@@ -151,6 +152,19 @@ export const getModuleAccount = ({
 }) => (
 	getJson<CosmosSdkModuleAccountResponse>(
 		`${base(restBaseUrl)}/cosmos/auth/v1beta1/module_accounts/${moduleName}`,
+		{ origins: CosmosSdk.origins ?? [] },
+	)
+)
+
+export const getBalances = ({
+	restBaseUrl,
+	address,
+}: {
+	restBaseUrl: string
+	address: string
+}) => (
+	getJson<CosmosSdkBalancesResponse>(
+		`${base(restBaseUrl)}/cosmos/bank/v1beta1/balances/${address}`,
 		{ origins: CosmosSdk.origins ?? [] },
 	)
 )

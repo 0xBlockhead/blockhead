@@ -20,15 +20,17 @@ const githubBipProposalIndexRows = async (
 ) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	return data
-		.flatMap((entry) => {
+		.flatMap((githubContent) => {
 			const proposalNumberRaw = (
-				entry.type === 'file' ?
-					regex('^bip-(?<proposalNumber>\\d{4})\\.mediawiki$').exec(entry.name)?.groups?.proposalNumber
-				:	null
+				githubContent.type === 'file' ?
+					regex('^bip-(?<proposalNumber>\\d{4})\\.mediawiki$').exec(githubContent.name)?.groups?.proposalNumber
+				:
+					null
 			)
 			return proposalNumberRaw == null ?
 				[]
-			:	[
+			:
+				[
 					{
 						[EntityMetaKey.Id]: {
 							realm: SpecificationRealm.Bitcoin,
@@ -48,11 +50,11 @@ export default {
 			entityType: EntityType.SpecificationProposal,
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				const { getBitcoinBipProposalMediaWikiText } = await import('$/sources/BitcoinBips/Github/queries.ts')
+				const { getProposalMediaWikiText } = await import('$/sources/BitcoinBips/Github/queries.ts')
 				if (entityId.realm !== SpecificationRealm.Bitcoin || entityId.category !== ProposalCategory.Bip) {
 					throw new Error('BitcoinBips_Github: proposal resolver only supports Bitcoin BIPs')
 				}
-				const text = await singleFlight(getBitcoinBipProposalMediaWikiText)({ number: entityId.number })
+				const text = await singleFlight(getProposalMediaWikiText)({ number: entityId.number })
 				if (text.trim() === '') throw new Error('BitcoinBips_Github: empty proposal text')
 				return {
 					documentCategory: bipMetadataValue(text, 'Type'),
@@ -69,8 +71,8 @@ export default {
 			entityType: EntityType._Global,
 			fieldName: '$$proposals',
 			resolve: async () => {
-				const { getBitcoinBipsGithubContents } = await import('$/sources/BitcoinBips/Github/queries.ts')
-				return githubBipProposalIndexRows(await getBitcoinBipsGithubContents())
+				const { getContents } = await import('$/sources/BitcoinBips/Github/queries.ts')
+				return githubBipProposalIndexRows(await getContents())
 			},
 		}),
 
@@ -82,8 +84,8 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Bitcoin) {
 					throw new Error('BitcoinBips_Github: $$proposals only supports SpecificationRealm.Bitcoin')
 				}
-				const { getBitcoinBipsGithubContents } = await import('$/sources/BitcoinBips/Github/queries.ts')
-				return githubBipProposalIndexRows(await getBitcoinBipsGithubContents())
+				const { getContents } = await import('$/sources/BitcoinBips/Github/queries.ts')
+				return githubBipProposalIndexRows(await getContents())
 			},
 		}),
 
@@ -95,8 +97,8 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Bitcoin || entityId.category !== ProposalCategory.Bip) {
 					throw new Error('BitcoinBips_Github: $$proposals only supports Bitcoin BIP proposal kind')
 				}
-				const { getBitcoinBipsGithubContents } = await import('$/sources/BitcoinBips/Github/queries.ts')
-				return githubBipProposalIndexRows(await getBitcoinBipsGithubContents())
+				const { getContents } = await import('$/sources/BitcoinBips/Github/queries.ts')
+				return githubBipProposalIndexRows(await getContents())
 			},
 		}),
 	],

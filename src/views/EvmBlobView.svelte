@@ -219,7 +219,7 @@
 	{/snippet}
 
 	{#snippet Details({
-		open: _detailsOpen,
+		open,
 	})}
 		<CollapsibleTabs
 				sectionIdPrefix={blobIdKey}

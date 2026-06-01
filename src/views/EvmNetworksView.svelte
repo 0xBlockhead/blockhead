@@ -24,19 +24,21 @@
 		title = 'EVM networks',
 		open = $bindable(true),
 		entityFieldReference,
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmNetwork>
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'collapsible'
 			| 'CollapsibleProps'
-			| 'id'
-			| 'href'
 		>
 	> = $props()
 
@@ -55,38 +57,6 @@
 		)),
 	])
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [
-				Source.L2Beat_Rest,
-				Source.Chainlist_Rest,
-				Source.EthereumLists_Rest,
-			],
-			[entityFieldReference.fieldName]: {
-				$limit: 4096,
-			},
-		},
-	)
-
-	const networks = derive(
-		parent,
-		(parent) => {
-			const chainIds = new SvelteSet<number>()
-			const rows: Entity<typeof schema, EntityType.EvmNetwork>[] = parent[entityFieldReference.fieldName] ?? []
-			return (
-				rows
-					.flatMap((value) => {
-						const chainId = Number(value[EntityMetaKey.Id].caip2.reference)
-						if (chainIds.has(chainId)) return []
-						chainIds.add(chainId)
-						return [{ value }]
-					})
-			)
-		},
-	)
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
@@ -99,15 +69,8 @@
 	entityType={EntityType.EvmNetwork}
 	{title}
 	bind:open
-	getKey={(line) => stringifyId(line.value[EntityMetaKey.Id])}
-	getSortValue={(line) => (
-		sortValueByChainId.get(Number(line.value[EntityMetaKey.Id].caip2.reference))
-		?? Number.MAX_SAFE_INTEGER + Number(line.value[EntityMetaKey.Id].caip2.reference)
-	)}
-	placeholderKeys={new SvelteSet<string | number>()}
-	placeholderText="Loading EVM networks…"
-	resource={networks}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{id}
+	href={href}
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -119,17 +82,70 @@
 		</p>
 	{/snippet}
 
-	{#snippet Empty()}
-		<p data-text="muted">
-			No networks match this list yet.
-		</p>
-	{/snippet}
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [
+						Source.L2Beat_Rest,
+						Source.Chainlist_Rest,
+						Source.EthereumLists_Rest,
+					],
+					[entityFieldReference.fieldName]: {
+						$limit: 4096,
+					},
+				},
+			)}
+			{@const networks = derive(
+				parent,
+				(parent) => {
+					const chainIds = new SvelteSet<number>()
+					const rows: Entity<typeof schema, EntityType.EvmNetwork>[] = parent[entityFieldReference.fieldName] ?? []
+					return (
+						rows
+							.flatMap((value) => {
+								const chainId = Number(value[EntityMetaKey.Id].caip2.reference)
+								if (chainIds.has(chainId)) return []
+								chainIds.add(chainId)
+								return [{ value }]
+							})
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.EvmNetwork}
+				id={`${id}-items`}
+				href={href}
+				getKey={(line) => stringifyId(line.value[EntityMetaKey.Id])}
+				getSortValue={(line) => (
+					sortValueByChainId.get(Number(line.value[EntityMetaKey.Id].caip2.reference))
+					?? Number.MAX_SAFE_INTEGER + Number(line.value[EntityMetaKey.Id].caip2.reference)
+				)}
+				placeholderKeys={new SvelteSet<string | number>()}
+				placeholderText="Loading EVM networks…"
+				resource={networks}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No networks match this list yet.
+					</p>
+				{/snippet}
 
-	{#snippet Item({ item: line })}
-		<EvmNetworkView
-			entityId={line.value[EntityMetaKey.Id]}
-			layout={EntityLayout.Summary}
-			open={false}
-		/>
+				{#snippet Item({ item: line })}
+					<EvmNetworkView
+						entityId={line.value[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

@@ -1,17 +1,19 @@
 import {
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import {
+	bitcoinMainnetCaip2,
+	bitcoinMainnetEsploraRestBaseUrl,
+} from '$/constants/BitcoinNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const bitcoinMainnetEsploraUrl = 'https://blockstream.info/api'
-
 const assertBitcoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
 		!('caip2' in network)
-		|| network.caip2.namespace !== 'bip122'
-		|| network.caip2.reference !== '000000000019d6689c085ae165831e93'
+		|| network.caip2.namespace !== bitcoinMainnetCaip2.namespace
+		|| network.caip2.reference !== bitcoinMainnetCaip2.reference
 	) {
 		throw new Error('Esplora_Rest: unsupported UTXO network')
 	}
@@ -30,9 +32,9 @@ export default {
 					getBlockHashByHeight,
 				} = await import('$/sources/Esplora/Rest/queries.ts')
 				const block = await getBlock({
-					restBaseUrl: bitcoinMainnetEsploraUrl,
+					restBaseUrl: bitcoinMainnetEsploraRestBaseUrl,
 					blockHash: entityId.hash ?? await getBlockHashByHeight({
-						restBaseUrl: bitcoinMainnetEsploraUrl,
+						restBaseUrl: bitcoinMainnetEsploraRestBaseUrl,
 						height: entityId.height,
 					}),
 				})
@@ -64,7 +66,7 @@ export default {
 				assertBitcoinMainnet(entityId.$network)
 				const { getTransaction } = await import('$/sources/Esplora/Rest/queries.ts')
 				const transaction = await getTransaction({
-					restBaseUrl: bitcoinMainnetEsploraUrl,
+					restBaseUrl: bitcoinMainnetEsploraRestBaseUrl,
 					txId: entityId.txId,
 				})
 				return {

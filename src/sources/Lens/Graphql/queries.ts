@@ -263,7 +263,7 @@ const LensLatestPostsDocument = graphql(`
 	LensRepostWithAuthor,
 ])
 
-export const lensQueryAccount = async (
+export const queryAccount = async (
 	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
 	address: `0x${string}`,
 ) => (
@@ -276,7 +276,7 @@ export const lensQueryAccount = async (
 	)
 )
 
-export const lensQueryPost = async (
+export const queryPost = async (
 	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
 	postId: string,
 ) => (
@@ -289,7 +289,7 @@ export const lensQueryPost = async (
 	)
 )
 
-export const lensQueryPostsByAuthor = async (
+export const queryPostsByAuthor = async (
 	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
 	address: `0x${string}`,
 	pageSize: 'TEN' | 'FIFTY' = 'TEN',
@@ -304,7 +304,7 @@ export const lensQueryPostsByAuthor = async (
 	)
 )
 
-export const lensQueryLatestPosts = async (
+export const queryLatestPosts = async (
 	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
 	pageSize: 'TEN' | 'FIFTY' = 'TEN',
 ) => (
@@ -317,7 +317,7 @@ export const lensQueryLatestPosts = async (
 	)
 )
 
-export const lensQueryPostComments = async (
+export const queryPostComments = async (
 	publicEnv: SourcePublicEnvFor<Source.Lens_Graphql>,
 	postId: string,
 	pageSize: 'TEN' | 'FIFTY' = 'TEN',

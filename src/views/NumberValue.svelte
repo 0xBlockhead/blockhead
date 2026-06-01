@@ -31,7 +31,8 @@
 		return [
 			...(decimalIndex === -1
 				? parts
-			: parts.slice(0, decimalIndex))
+			:
+				parts.slice(0, decimalIndex))
 				.toReversed()
 				.map((part) => (
 					{
@@ -43,7 +44,8 @@
 
 			...(decimalIndex === -1
 				? []
-			: parts.slice(decimalIndex))
+			:
+				parts.slice(decimalIndex))
 				.map((part) => (
 					{
 						key: `R${(k++).toString(36)}`,
@@ -66,21 +68,28 @@
 		easing: quintOut,
 		interpolate: (from, to) => (step) => {
 			const dec = dPad
-			const logFrom = (from != 0 ? Math.log10(from) : -dec - 1)
+			const logFrom = (from != 0 ? Math.log10(from)
+			:
+				-dec - 1)
 			const interpolated = (
 				10
 				** (
 					logFrom
 					+ step * (
-						(to != 0 ? Math.log10(to) : -dec - 1)
+						(to != 0 ? Math.log10(to)
+						:
+							-dec - 1)
 						- logFrom
 					)
 				)
 			)
 			return (
 				to >= 100 && step < 0.9994
-					? (from < to ? Math.floor(interpolated) : Math.ceil(interpolated))
-				: interpolated
+					? (from < to ? Math.floor(interpolated)
+					:
+						Math.ceil(interpolated))
+				:
+					interpolated
 			)
 		},
 	})
@@ -113,10 +122,12 @@
 			{
 				duration: (instant
 					? 0
-					: tweenDuration),
+					:
+						tweenDuration),
 				delay: (instant
 					? 0
-					: 1),
+					:
+						1),
 			},
 		)
 		isFirstTweenSet = false
@@ -135,7 +146,8 @@
 				displayNumber,
 				{ ...formatValueOptions, toParts: true },
 			))
-		: (new Intl.NumberFormat(
+		:
+			(new Intl.NumberFormat(
 				locales,
 				options,
 			)

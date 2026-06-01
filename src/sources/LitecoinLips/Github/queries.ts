@@ -1,8 +1,8 @@
 import { getText, githubHttp } from '$/sources/Github/Rest/client.ts'
 import { throwHttpError } from '$/lib/http.ts'
 import {
-	getGithubRawUserContentUrl,
-	getGithubRestRepoContentsUrl,
+	getRawUserContentUrl,
+	getRestRepoContentsUrl,
 } from '$/sources/Github/Rest/queries.ts'
 import LitecoinLips from '$/sources/LitecoinLips/index.ts'
 import type { LitecoinLipsGithubContents } from '$/sources/LitecoinLips/Github/types.ts'
@@ -14,9 +14,9 @@ const litecoinLipsGithubRepo = {
 	ref: 'master',
 } as const
 
-export const getLitecoinLipsGithubContents = async (): Promise<LitecoinLipsGithubContents> => {
+export const getContents = async (): Promise<LitecoinLipsGithubContents> => {
 	const response = await githubHttp({
-		url: getGithubRestRepoContentsUrl({
+		url: getRestRepoContentsUrl({
 			owner: litecoinLipsGithubRepo.owner,
 			repo: litecoinLipsGithubRepo.repo,
 			pathInRepo: litecoinLipsGithubRepo.path,
@@ -28,9 +28,9 @@ export const getLitecoinLipsGithubContents = async (): Promise<LitecoinLipsGithu
 	return response.json<LitecoinLipsGithubContents>()
 }
 
-export const getLitecoinLipMediaWikiText = ({ number }: { number: number }) => (
+export const getMediaWikiText = ({ number }: { number: number }) => (
 	getText({
-		url: getGithubRawUserContentUrl({
+		url: getRawUserContentUrl({
 			owner: litecoinLipsGithubRepo.owner,
 			repo: litecoinLipsGithubRepo.repo,
 			ref: litecoinLipsGithubRepo.ref,

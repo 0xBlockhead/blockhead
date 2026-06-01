@@ -140,3 +140,13 @@ export type CosmosSdkProposalsResponse = {
 		total?: string
 	}
 }
+
+export type CosmosSdkBalancesResponse = {
+	balances: {
+		denom: string
+		amount: string
+	}[]
+	pagination?: {
+		total?: string
+	}
+}

@@ -8,6 +8,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
@@ -16,16 +17,19 @@
 		entityFieldReference,
 		title = 'Rollups',
 		open = $bindable(true),
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmRollup>
 			title?: string
 			open?: boolean
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
@@ -39,8 +43,6 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import OrderedList from '$/components/OrderedList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmRollupView from '$/views/EvmRollupView.svelte'
 </script>
 
@@ -49,9 +51,17 @@
 	entityType={EntityType.EvmRollup}
 	{title}
 	bind:open
+	{id}
+	href={href}
 	{...EntitiesListProps}
 >
-	{#snippet body({})}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			L2Beat rollup projects linked to this execution network when chain metadata matches.
+		</p>
+	{/snippet}
+
+	{#snippet body()}
 		{#if open}
 			{@const network = useEntity(
 				EntityType.EvmNetwork,
@@ -72,33 +82,33 @@
 					?? []
 				),
 			)}
-			<ResourceBoundary
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.EvmRollup}
+				id={`${id}-items`}
+				href={href}
+				getKey={(rollup) => rollup[EntityMetaKey.Id].projectId}
 				placeholderText="Loading rollups…"
 				resource={rollups}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
 			>
-				{#snippet children(rollups)}
-					<OrderedList
-						getKey={(row) => row[EntityMetaKey.Id].projectId}
-						items={rollups}
-						orientation={ListOrientation.Column}
-						placeholderRanges={[]}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No rollups mapped here yet.
-							</p>
-						{/snippet}
-
-						{#snippet Item({ item })}
-							<EvmRollupView
-								entityId={item[EntityMetaKey.Id]}
-								layout={EntityLayout.Summary}
-								open={false}
-							/>
-						{/snippet}
-					</OrderedList>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No rollups mapped here yet.
+					</p>
 				{/snippet}
-			</ResourceBoundary>
+
+				{#snippet Item({ item: rollup })}
+					<EvmRollupView
+						entityId={rollup[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

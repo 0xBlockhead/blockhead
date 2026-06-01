@@ -8,8 +8,8 @@
 	import { Source } from '$/sources/$Source.ts'
 
 	import {
-		swarmResourceCanonicalUri,
-		swarmResourceHref,
+		getResourceCanonicalUri,
+		getResourceHref,
 	} from '$/sources/Swarm/Rest/queries.ts'
 
 	import { stringify } from 'devalue'
@@ -73,7 +73,7 @@
 	layout={EntityLayout.Details}
 	entityType={EntityType.SwarmResource}
 	{entityId}
-	title={swarmResourceCanonicalUri(entityId)}
+	title={getResourceCanonicalUri(entityId)}
 	bind:open
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -108,7 +108,7 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 		<CollapsibleTabs
 				id={`${swarmChromeKey}:carousel-browser`}
 				sectionIdPrefix={swarmChromeKey}
@@ -164,7 +164,7 @@
 						<p>
 							<code>
 								<TruncatedValue
-									value={swarmResourceCanonicalUri(entityId)}
+									value={getResourceCanonicalUri(entityId)}
 									format={TruncatedValueFormat.Visual}
 								/>
 							</code>

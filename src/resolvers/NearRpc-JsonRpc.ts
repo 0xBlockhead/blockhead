@@ -3,6 +3,8 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
+import { nearMainnetRpcEndpoints } from '$/constants/NearNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -18,10 +20,10 @@ import type {
 	NearRpcValidators,
 } from '$/sources/NearRpc/JsonRpc/types.ts'
 
-const nearMainnetRpcUrl = 'https://rpc.mainnet.near.org'
+const nearMainnetRpcUrl = nearMainnetRpcEndpoints[0].url
 
 const assertNearMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
-	if (!('networkSlug' in network) || network.networkSlug !== 'near') {
+	if (!('networkSlug' in network) || network.networkSlug !== networkBySlug.near.slug) {
 		throw new Error('NearRpc_JsonRpc: unsupported network')
 	}
 }
@@ -29,15 +31,24 @@ const assertNearMainnet = (network: { caip2: { namespace: string; reference: str
 const nearActionFields = (action: NearRpcAction) => ({
 	actionKind: (
 		action.CreateAccount != null ? 'CreateAccount'
-		: action.DeployContract != null ? 'DeployContract'
-		: action.FunctionCall != null ? 'FunctionCall'
-		: action.Transfer != null ? 'Transfer'
-		: action.Stake != null ? 'Stake'
-		: action.AddKey != null ? 'AddKey'
-		: action.DeleteKey != null ? 'DeleteKey'
-		: action.DeleteAccount != null ? 'DeleteAccount'
-		: action.Delegate != null ? 'Delegate'
-		: 'Unknown'
+		:
+			action.DeployContract != null ? 'DeployContract'
+		:
+			action.FunctionCall != null ? 'FunctionCall'
+		:
+			action.Transfer != null ? 'Transfer'
+		:
+			action.Stake != null ? 'Stake'
+		:
+			action.AddKey != null ? 'AddKey'
+		:
+			action.DeleteKey != null ? 'DeleteKey'
+		:
+			action.DeleteAccount != null ? 'DeleteAccount'
+		:
+			action.Delegate != null ? 'Delegate'
+		:
+			'Unknown'
 	),
 	...(action.FunctionCall != null && {
 		methodName: action.FunctionCall.method_name,
@@ -62,9 +73,12 @@ const nearExecutionOutcomeFields = (
 ) => ({
 	status: (
 		executionOutcome.outcome.status.SuccessValue != null ? 'SuccessValue'
-		: executionOutcome.outcome.status.SuccessReceiptId != null ? 'SuccessReceiptId'
-		: executionOutcome.outcome.status.Failure != null ? 'Failure'
-		: 'Unknown'
+		:
+			executionOutcome.outcome.status.SuccessReceiptId != null ? 'SuccessReceiptId'
+		:
+			executionOutcome.outcome.status.Failure != null ? 'Failure'
+		:
+			'Unknown'
 	),
 	gasBurnt: BigInt(executionOutcome.outcome.gas_burnt),
 	$$receipts: executionOutcome.outcome.receipt_ids.map((receiptId) => ({
@@ -176,8 +190,8 @@ const getNearTransactionStatus = async (entityId: {
 	if (entityId.signerAccountId == null) {
 		throw new Error(`NearRpc_JsonRpc: transaction ${entityId.hash} requires signerAccountId`)
 	}
-	const { txStatus } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-	return txStatus({
+	const { getTxStatus } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+	return getTxStatus({
 		rpcUrl: nearMainnetRpcUrl,
 		txHash: entityId.hash,
 		senderAccountId: entityId.signerAccountId,
@@ -200,25 +214,25 @@ export default {
 			entityType: EntityType.NearBlock,
 			resolve: async (entityId) => {
 				assertNearMainnet(entityId.$network)
-				const { block } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-				const row = await block({
+				const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				const wireBlock = await getBlock({
 					rpcUrl: nearMainnetRpcUrl,
 					blockId: entityId.hash ?? entityId.height,
 				})
 				return {
-					hash: row.header.hash,
-					...(row.header.height > 0 && {
+					hash: wireBlock.header.hash,
+					...(wireBlock.header.height > 0 && {
 						$parent: {
 							[EntityMetaKey.Id]: {
 								$network: entityId.$network,
-								height: BigInt(row.header.height - 1),
-								hash: row.header.prev_hash,
+								height: BigInt(wireBlock.header.height - 1),
+								hash: wireBlock.header.prev_hash,
 							},
 						},
 					}),
-					epochId: row.header.epoch_id,
-					timestampMs: Number(BigInt(row.header.timestamp_nanosec) / 1_000_000n),
-					$$chunks: row.chunks.map((chunk) => ({
+					epochId: wireBlock.header.epoch_id,
+					timestampMs: Number(BigInt(wireBlock.header.timestamp_nanosec) / 1_000_000n),
+					$$chunks: wireBlock.chunks.map((chunk) => ({
 						[EntityMetaKey.Id]: {
 							$network: entityId.$network,
 							chunkHash: chunk.chunk_hash,
@@ -226,8 +240,8 @@ export default {
 						$block: {
 							[EntityMetaKey.Id]: {
 								$network: entityId.$network,
-								height: BigInt(row.header.height),
-								hash: row.header.hash,
+								height: BigInt(wireBlock.header.height),
+								hash: wireBlock.header.hash,
 							},
 						},
 						shardId: BigInt(chunk.shard_id),
@@ -241,15 +255,15 @@ export default {
 			entityType: EntityType.NearChunk,
 			resolve: async (entityId) => {
 				assertNearMainnet(entityId.$network)
-				const { chunk } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-				const row = await chunk({
+				const { getChunk } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				const wireChunk = await getChunk({
 					rpcUrl: nearMainnetRpcUrl,
 					chunkHash: entityId.chunkHash,
 				})
 				return {
-					shardId: BigInt(row.header.shard_id),
-					gasUsed: BigInt(row.header.gas_used),
-					$$transactions: row.transactions.map((transaction) => ({
+					shardId: BigInt(wireBlock.header.shard_id),
+					gasUsed: BigInt(wireBlock.header.gas_used),
+					$$transactions: wireChunk.transactions.map((transaction) => ({
 						[EntityMetaKey.Id]: {
 							$network: entityId.$network,
 							hash: transaction.hash,
@@ -383,10 +397,10 @@ export default {
 			entityType: EntityType.NearValidator,
 			resolve: async (entityId) => {
 				assertNearMainnet(entityId.$network)
-				const { validators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-				const validator = (await validators({
+				const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				const validator = (await getValidators({
 					rpcUrl: nearMainnetRpcUrl,
-				})).current_validators.find((row) => row.account_id === entityId.accountId)
+				})).current_validators.find((nearValidator) => nearValidator.account_id === entityId.accountId)
 				if (validator == null) throw new Error(`NearRpc_JsonRpc: validator ${entityId.accountId} not found`)
 				return nearValidatorFields(validator)
 			},
@@ -399,8 +413,8 @@ export default {
 			fieldName: '$headBlock',
 			resolve: async (entityId) => {
 				assertNearMainnet(entityId)
-				const { block } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-				const headBlock = await block({
+				const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				const headBlock = await getBlock({
 					rpcUrl: nearMainnetRpcUrl,
 					blockId: 'final',
 				})
@@ -420,28 +434,28 @@ export default {
 			resolve: async (entityId) => {
 				assertNearMainnet(entityId)
 				const {
-					block,
-					gasPrice,
-					status,
-					validators,
-				} = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				getBlock,
+				getGasPrice,
+				getStatus,
+				getValidators,
+			} = await import('$/sources/NearRpc/JsonRpc/queries.ts')
 				const [
 					headBlock,
 					currentGasPrice,
 					nodeStatus,
 					validatorSet,
 				] = await Promise.all([
-					block({
+					getBlock({
 						rpcUrl: nearMainnetRpcUrl,
 						blockId: 'final',
 					}),
-					gasPrice({
+					getGasPrice({
 						rpcUrl: nearMainnetRpcUrl,
 					}),
-					status({
+					getStatus({
 						rpcUrl: nearMainnetRpcUrl,
 					}),
-					validators({
+					getValidators({
 						rpcUrl: nearMainnetRpcUrl,
 					}),
 				])
@@ -467,8 +481,8 @@ export default {
 			fieldName: '$$blocks',
 			resolve: async (entityId, context) => {
 				assertNearMainnet(entityId)
-				const { block } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-				const headBlock = await block({
+				const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				const headBlock = await getBlock({
 					rpcUrl: nearMainnetRpcUrl,
 					blockId: 'final',
 				})
@@ -495,8 +509,8 @@ export default {
 			fieldName: '$$validators',
 			resolve: async (entityId, context) => {
 				assertNearMainnet(entityId)
-				const { validators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-				return (await validators({
+				const { getValidators } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
+				return (await getValidators({
 					rpcUrl: nearMainnetRpcUrl,
 				})).current_validators
 					.slice(0, resolverLoadSubsetRowLimit(context))

@@ -280,6 +280,7 @@
 	import Tooltip from '$/components/Tooltip.svelte'
 	import BeaconAttestationsView from '$/views/BeaconAttestationsView.svelte'
 	import BeaconCommitteesView from '$/views/BeaconCommitteesView.svelte'
+	import EvmNetworkConsensusEndpointsView from '$/views/EvmNetworkConsensusEndpointsView.svelte'
 	import BeaconEpochView from '$/views/BeaconEpochView.svelte'
 	import BeaconEpochsView from '$/views/BeaconEpochsView.svelte'
 	import BeaconSlashingsView from '$/views/BeaconSlashingsView.svelte'
@@ -456,7 +457,8 @@
 										rightBlock[EntityMetaKey.Id].blockNumber
 										=== leftBlock[EntityMetaKey.Id].blockNumber ?
 											0
-										: rightBlock[EntityMetaKey.Id].blockNumber
+										:
+											rightBlock[EntityMetaKey.Id].blockNumber
 											> leftBlock[EntityMetaKey.Id].blockNumber ?
 												1
 											:
@@ -1171,37 +1173,12 @@
 							{/snippet}
 
 							{#snippet SectionConsensusEndpoints({ id, label })}
-								<EntitiesList
-									collapsible={false}
-									entityType={EntityType.Url}
-									getKey={(endpoint) => endpoint.restBaseUrl}
+								<EvmNetworkConsensusEndpointsView
+									CollapsibleProps={{ canToggle: false }}
+									{entityId}
 									id={`${id}-list`}
-									items={network.consensusEndpoints ?? []}
 									title={label}
-									UnorderedListProps={{ orientation: ListOrientation.Column }}
-								>
-									{#snippet Empty()}
-										<p data-text="muted">
-											No consensus endpoints listed for this network yet.
-										</p>
-									{/snippet}
-
-									{#snippet Item({ item: endpoint })}
-										<div class="entity-details">
-											<dl data-column-item="center">
-												<div>
-													<dt>REST base</dt>
-													<dd><code>{endpoint.restBaseUrl}</code></dd>
-												</div>
-
-												<div>
-													<dt>Protocol</dt>
-													<dd>{consensusProtocolByProtocol[endpoint.consensusProtocol].label}</dd>
-												</div>
-											</dl>
-										</div>
-									{/snippet}
-								</EntitiesList>
+								/>
 							{/snippet}
 						</CollapsibleTabs>
 					{/snippet}

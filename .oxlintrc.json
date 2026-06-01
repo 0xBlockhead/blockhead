@@ -65,37 +65,77 @@
 			"files": [
 				"src/collections/$collections.ts",
 				"src/collections/$queries.svelte.ts",
-				"src/collections/entityQuerySynthesis.ts"
+				"src/collections/entityQuerySynthesis.ts",
+				"src/collections/assertLoadedCollectionRows.ts"
 			],
 			"rules": {
 				"typescript/consistent-type-assertions": "off",
 				"typescript/no-restricted-types": "off"
-			}
-		},
-		{
-			"files": ["src/lib/svelte/RemoteResource.svelte.ts"],
-			"rules": {
-				"typescript/consistent-type-assertions": "off",
-				"typescript/no-restricted-types": "off",
-				"no-restricted-globals": "off"
 			}
 		},
 		{
 			"files": [
-				"src/lib/eip1193.ts",
-				"src/lib/eip6963.ts",
-				"src/lib/errors.ts",
-				"src/lib/db/queryResource.svelte.ts"
+				"src/sources/**/*.ts",
+				"src/resolvers/**/*.ts"
 			],
 			"rules": {
+				"typescript/consistent-type-assertions": "off",
 				"typescript/no-restricted-types": "off"
+			}
+		},
+		{
+			"files": [
+				"src/lib/**/*.ts"
+			],
+			"rules": {
+				"typescript/no-restricted-types": "off",
+				"typescript/consistent-type-assertions": "off"
+			}
+		},
+		{
+			"files": [
+				"src/lib/svelte/RemoteResource.svelte.ts"
+			],
+			"rules": {
+				"typescript/consistent-type-assertions": "off",
+				"no-restricted-globals": "off"
 			}
 		},
 		{
 			"files": [
 				"src/components/Boundary.svelte",
 				"src/components/QueryBoundary.svelte",
-				"src/components/ResourceBoundary.svelte"
+				"src/components/ResourceBoundary.svelte",
+				"src/components/Tooltip.svelte"
+			],
+			"rules": {
+				"typescript/no-restricted-types": "off",
+				"typescript/consistent-type-assertions": "off"
+			}
+		},
+		{
+			"files": [
+				"src/params/**/*.ts",
+				"src/typescript/DecodedCalldata.ts",
+				"src/views/*.svelte"
+			],
+			"rules": {
+				"typescript/consistent-type-assertions": "off",
+				"typescript/no-restricted-types": "off"
+			}
+		},
+		{
+			"files": [
+				"src/routes/api/e2e/**/*.ts"
+			],
+			"rules": {
+				"typescript/consistent-type-assertions": "off",
+				"typescript/no-restricted-types": "off"
+			}
+		},
+		{
+			"files": [
+				"src/constants/**/*.ts"
 			],
 			"rules": {
 				"typescript/no-restricted-types": "off"

@@ -46,7 +46,8 @@ const snapchainCastTimestampMs = (farcasterTimestamp: number | undefined) => (
 			:
 				(farcasterTimestamp + 1609459200) * 1000
 		)
-	:	undefined
+	:
+		undefined
 )
 
 const snapchainUserDataPfpHttpUrl = (value: string | null | undefined) => {
@@ -65,11 +66,11 @@ export default {
 				type UserFields = import('$/schema/$schema.ts').EntityFieldValues<typeof schema, EntityType.FarcasterUser>
 				type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerification
 				const {
-					getSnapchainUserBundleByFid,
+					getUserBundleByFid,
 					countLinksByFid,
 				} = await import('$/sources/Snapchain/Rest/queries.ts')
 				const [{ userData, usernameProofs, verifications }, followerCount, followingCount] = await Promise.all([
-					getSnapchainUserBundleByFid({
+					getUserBundleByFid({
 						fid: entityId.fid,
 					}),
 					singleFlight(countLinksByFid)({
@@ -97,7 +98,8 @@ export default {
 							)
 							return protocol == null || address == null ?
 								[]
-							:	[{
+							:
+								[{
 									[EntityMetaKey.Id]: {
 										fid: entityId.fid,
 										protocol,
@@ -217,14 +219,16 @@ export default {
 								hash: lowerHex0xCastHash(castAddBody.parentCastId.hash),
 							},
 						} satisfies CastEntity
-					:	undefined,
+					:
+						undefined,
 					parentUrl,
 					timestamp,
 					mentions: castAddBody?.mentions,
 					$channel: (
 						channelId == null ?
 							undefined
-						:	{
+						:
+							{
 								[EntityMetaKey.Id]: {
 									id: channelId,
 								},
@@ -248,7 +252,8 @@ export default {
 											hash: lowerHex0xCastHash(embed.castId.hash),
 										},
 									} satisfies CastEntity
-								:	undefined,
+								:
+									undefined,
 							}) satisfies CastEmbedEntity),
 						]
 					)),
@@ -291,9 +296,9 @@ export default {
 				type SnapVerify = import('$/sources/Snapchain/Rest/types.ts').SnapchainVerification
 				const {
 					getOnChainIdRegisterEventsByFid,
-					getSnapchainUserBundleByFid,
+					getUserBundleByFid,
 				} = await import('$/sources/Snapchain/Rest/queries.ts')
-				const { userData, usernameProofs, verifications } = await singleFlight(getSnapchainUserBundleByFid)({ fid: entityId.fid })
+				const { userData, usernameProofs, verifications } = await singleFlight(getUserBundleByFid)({ fid: entityId.fid })
 				const idRegisterPage = await singleFlight(getOnChainIdRegisterEventsByFid)({ fid: entityId.fid, reverse: true })
 				const ethList = (
 					(verifications.messages ?? [])
@@ -341,8 +346,8 @@ export default {
 			entityType: EntityType.BlockheadFarcasterAccountConnection,
 			fieldName: '$icon',
 			resolve: async (entityId) => {
-				const { getSnapchainUserBundleByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
-				const { userData } = await singleFlight(getSnapchainUserBundleByFid)({
+				const { getUserBundleByFid } = await import('$/sources/Snapchain/Rest/queries.ts')
+				const { userData } = await singleFlight(getUserBundleByFid)({
 					fid: entityId.fid,
 				})
 				for (const message of (userData.messages ?? [])) {
@@ -527,7 +532,8 @@ export default {
 							const authorFid = cast.data?.fid
 							return authorFid == null ?
 								undefined
-							:	(({
+							:
+								(({
 									[EntityMetaKey.Id]: {
 										fid: authorFid,
 										hash: lowerHex0xCastHash(cast.hash),
@@ -660,7 +666,8 @@ export default {
 								const authorFid = cast.data?.fid
 								return authorFid == null ?
 										undefined
-									:	(({
+									:
+										(({
 											[EntityMetaKey.Id]: {
 												fid: authorFid,
 												hash: lowerHex0xCastHash(cast.hash),
@@ -713,7 +720,8 @@ export default {
 							const authorFid = cast.data?.fid
 							return authorFid == null ?
 								undefined
-							:	(({
+							:
+								(({
 									[EntityMetaKey.Id]: {
 										fid: authorFid,
 										hash: lowerHex0xCastHash(cast.hash),

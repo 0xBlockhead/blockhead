@@ -82,7 +82,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 		<MarketsView
 			href={resolve('/markets')}
 			entityFieldReference={{

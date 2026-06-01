@@ -69,7 +69,7 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Quilibrium || entityId.category !== ProposalCategory.ProtocolDocument) {
 					throw new Error('QuilibriumDocs_Rest: proposal resolver only supports Quilibrium protocol documents')
 				}
-				const document = (await quilibriumDocumentRows()).find((row) => row[EntityMetaKey.Id].number === entityId.number)
+				const document = (await quilibriumDocumentRows()).find((quilibriumDocument) => quilibriumDocument[EntityMetaKey.Id].number === entityId.number)
 				if (document == null) throw new Error(`QuilibriumDocs_Rest: document not found ${entityId.number.toString()}`)
 				return document
 			},

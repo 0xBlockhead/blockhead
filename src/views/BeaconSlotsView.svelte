@@ -17,17 +17,19 @@
 		entityFieldReference,
 		title = 'Slots',
 		open = $bindable(true),
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BeaconSlot>
 			title?: string
 			open?: boolean
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id'
-			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
@@ -36,29 +38,6 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		(
-			entityFieldReference.entityType === EntityType.EvmNetwork ?
-				{
-					blockHeight: { $: [Source.Voltaire_JsonRpc] },
-					[entityFieldReference.fieldName]: { $: [Source.Beacon_Rest] },
-				}
-			:
-				{
-					[entityFieldReference.fieldName]: { $: [Source.Beacon_Rest] },
-				}
-		),
-	)
-
-	const slots = derive(
-		parent,
-		(parent): Entity<typeof schema, EntityType.BeaconSlot>[] => (
-			(parent[entityFieldReference.fieldName] ?? []).slice(0, 32)
-		),
-	)
 
 
 	// Components
@@ -72,10 +51,8 @@
 	entityType={EntityType.BeaconSlot}
 	{title}
 	bind:open
-	getKey={(slot) => stringify(slot[EntityMetaKey.Id])}
-	getSortValue={(slot) => -slot[EntityMetaKey.Id].slot}
-	resource={slots}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{id}
+	href={href}
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -84,17 +61,56 @@
 		</p>
 	{/snippet}
 
-	{#snippet Empty()}
-		<p data-text="muted">
-			No slots yet.
-		</p>
-	{/snippet}
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				(
+					entityFieldReference.entityType === EntityType.EvmNetwork ?
+						{
+							blockHeight: { $: [Source.Voltaire_JsonRpc] },
+							[entityFieldReference.fieldName]: { $: [Source.Beacon_Rest] },
+						}
+					:
+						{
+							[entityFieldReference.fieldName]: { $: [Source.Beacon_Rest] },
+						}
+				),
+			)}
+			{@const slots = derive(
+				parent,
+				(parent): Entity<typeof schema, EntityType.BeaconSlot>[] => (
+					(parent[entityFieldReference.fieldName] ?? []).slice(0, 32)
+				),
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.BeaconSlot}
+				id={`${id}-items`}
+				href={href}
+				getKey={(slot) => stringify(slot[EntityMetaKey.Id])}
+				getSortValue={(slot) => -slot[EntityMetaKey.Id].slot}
+				resource={slots}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No slots yet.
+					</p>
+				{/snippet}
 
-	{#snippet Item({ item: slot })}
-		<BeaconSlotView
-			entityId={slot[EntityMetaKey.Id]}
-			layout={EntityLayout.Summary}
-			open={false}
-		/>
+				{#snippet Item({ item: slot })}
+					<BeaconSlotView
+						entityId={slot[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

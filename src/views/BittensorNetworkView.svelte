@@ -67,12 +67,10 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
+	import AssetInstancesView from '$/views/AssetInstancesView.svelte'
 	import BittensorBlockView from '$/views/BittensorBlockView.svelte'
 	import BittensorBlocksView from '$/views/BittensorBlocksView.svelte'
 	import BittensorNetwork_TimestampsView from '$/views/BittensorNetwork_TimestampsView.svelte'
@@ -110,7 +108,7 @@
 		<p>Bittensor is modeled around Subtensor, subnets, neurons, Dynamic TAO assets, and Yuma Consensus.</p>
 	{/snippet}
 
-	{#snippet Content(context)}
+	{#snippet Content({ open })}
 		<dl class="network-summary-head" data-column-item="center">
 			<ResourceBoundary resource={bittensorNetwork}>
 				{#snippet children(bittensorNetwork)}
@@ -142,7 +140,7 @@
 						<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 					</div>
 
-					{#if context?.open && network.$networkStack != null}
+					{#if open && network.$networkStack != null}
 						<div>
 							<dt>Stack</dt>
 							<dd>
@@ -154,7 +152,7 @@
 						</div>
 					{/if}
 
-					{#if context?.open && network.$$nativeAssets.length > 0}
+					{#if open && network.$$nativeAssets.length > 0}
 						<div>
 							<dt>Native asset</dt>
 							<dd>{network.$$nativeAssets.length}</dd>
@@ -316,26 +314,16 @@
 			{/snippet}
 
 			{#snippet SectionBittensorAssetsNative({ id, label }: { id: string, label: string })}
-				<ResourceBoundary resource={network}>
-					{#snippet children(network)}
-						<EntitiesList
-							collapsible={false}
-							entityType={EntityType.AssetInstance}
-							getKey={(asset) => `${asset[EntityMetaKey.Id].kind}:${asset[EntityMetaKey.Id].assetKey}`}
-							id={`${id}-list`}
-							items={network.$$nativeAssets}
-							title={label}
-							UnorderedListProps={{ orientation: ListOrientation.Column }}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">No native assets mapped for this network yet.</p>
-							{/snippet}
-							{#snippet Item(context)}
-								<AssetInstanceView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
-							{/snippet}
-						</EntitiesList>
-					{/snippet}
-				</ResourceBoundary>
+				<AssetInstancesView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$nativeAssets',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
 			{/snippet}
 
 			{#snippet SectionBittensorAssetsSubnets()}

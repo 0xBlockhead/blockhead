@@ -10,7 +10,7 @@ import type {
 	DexscreenerTokenPairsResponse,
 } from '$/sources/Dexscreener/OpenApi/types.ts'
 
-export const getDexscreenerLatestPairs = async ({
+export const getLatestPairs = async ({
 	chainId,
 	pairId,
 }: {
@@ -22,7 +22,7 @@ export const getDexscreenerLatestPairs = async ({
 	)
 )
 
-export const getDexscreenerTokenPairs = async ({
+export const getTokenPairs = async ({
 	chainId,
 	tokenAddress,
 }: {
@@ -34,7 +34,7 @@ export const getDexscreenerTokenPairs = async ({
 	)
 )
 
-export const getDexscreenerPairSearch = async ({
+export const getPairSearch = async ({
 	q,
 }: {
 	q: string

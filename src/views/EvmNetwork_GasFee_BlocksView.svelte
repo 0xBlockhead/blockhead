@@ -10,8 +10,6 @@
 	import { Source } from '$/sources/$Source.ts'
 	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
@@ -23,19 +21,21 @@
 		title = 'Gas',
 		open = $bindable(true),
 		entityFieldReference,
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmNetwork_GasFee_Block>
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'collapsible'
 			| 'CollapsibleProps'
-			| 'id',
-			| 'href'
 		>
 	> = $props()
 
@@ -43,38 +43,6 @@
 	// State
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [
-				Source.Constants_Internal,
-				Source.Voltaire_JsonRpc,
-			],
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Voltaire_JsonRpc,
-				],
-				$limit: 64,
-			},
-		},
-	)
-
-	const rows = derive(
-		parent,
-		(parent) => {
-			const list: Entity<typeof schema, EntityType.EvmNetwork_GasFee_Block>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return (
-				list
-					.map((value) => ({
-						value,
-					}))
-			)
-		},
-	)
 
 
 	// Components
@@ -85,18 +53,12 @@
 
 
 <EntitiesList
-	{...EntitiesListProps}
-	bind:open
 	entityType={EntityType.EvmNetwork_GasFee_Block}
-	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-	getSortValue={(row) => (
-		-Number(row.value[EntityMetaKey.Id].blockNumber)
-	)}
-	placeholderKeys={new SvelteSet<string>()}
-	placeholderText="Loading gas snapshots…"
-	resource={rows}
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	bind:open
+	{id}
+	href={href}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -107,27 +69,64 @@
 		</p>
 	{/snippet}
 
-	{#snippet Empty()}
-		<p data-text="muted">
-			No gas snapshots yet.
-		</p>
-	{/snippet}
-
-	{#snippet Item({ item })}
-		{@const row = item.value}
-		{@const id = row[EntityMetaKey.Id]}
-		<EvmNetwork_GasFee_BlockView
-			entityId={id}
-			href={resolve(
-				'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]',
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
 				{
-						...caip2RouteParamsFromNetworkId(id.$network),
-						blockNumber: String(id.blockNumber),
+					$: [
+						Source.Constants_Internal,
+						Source.Voltaire_JsonRpc,
+					],
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Voltaire_JsonRpc,
+						],
+						$limit: 64,
+					},
 				},
 			)}
-			id={stringify(id)}
-			layout={EntityLayout.Summary}
-			open={false}
-		/>
+			{@const rows = derive(
+				parent,
+				(parent) => {
+					const list: Entity<typeof schema, EntityType.EvmNetwork_GasFee_Block>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						list
+							.map((value) => ({
+								value,
+							}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.EvmNetwork_GasFee_Block}
+				id={`${id}-items`}
+				href={href}
+				open={true}
+			>
+				{#snippet Item({ item })}
+					{@const row = item.value}
+					{@const rowId = row[EntityMetaKey.Id]}
+					<EvmNetwork_GasFee_BlockView
+						entityId={rowId}
+						href={resolve(
+							'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(blocks)/block/[blockNumber]',
+							{
+								...caip2RouteParamsFromNetworkId(rowId.$network),
+								blockNumber: String(rowId.blockNumber),
+							},
+						)}
+						id={stringify(rowId)}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

@@ -18,12 +18,16 @@
 		entityFieldReference,
 		open = $bindable(true),
 		title = 'Conversations',
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.XmtpConversation>
 			open?: boolean
 			title?: string
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -56,31 +60,6 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [Source.Local_Internal],
-			[entityFieldReference.fieldName]: {},
-		},
-	)
-
-	const conversations = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.XmtpConversation>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return (
-				rows
-					.map((value) => ({
-						value,
-					}))
-			)
-		},
-	)
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -93,39 +72,76 @@
 	{...EntitiesListProps}
 	bind:open
 	entityType={EntityType.XmtpConversation}
-	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-	getSortValue={(row) => row.value[EntityMetaKey.Id].id}
-	resource={conversations}
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
-	{#snippet Empty()}
-		<div data-row="wrap align-center gap-2">
-			<p data-text="muted">
-				No XMTP inbox threads synced yet.
-			</p>
-			<Tooltip contentProps={{ side: 'top' }}>
-				{#snippet Content()}
-					<p>
-						Threads sync after an XMTP-capable client merges your local inbox.
-					</p>
-					<p>
-						They are not public timelines or on-chain market tables.
-					</p>
-				{/snippet}
-				<abbr
-					class="entity-heading-tip"
-					aria-label="How XMTP rows appear"
-				>ⓘ</abbr>
-			</Tooltip>
-		</div>
-	{/snippet}
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			$: [Source.Local_Internal],
+			[entityFieldReference.fieldName]: {},
+		},
+	)}
+			{@const conversations = derive(
+		parent,
+		(parent) => {
+			const rows: Entity<typeof schema, EntityType.XmtpConversation>[] = (
+				parent[entityFieldReference.fieldName] ?? []
+			)
+			return (
+				rows
+					.map((value) => ({
+						value,
+					}))
+			)
+		},
+	)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.XmtpConversation}
+				id={`${id}-items`}
+				href={href}
+				{title}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getSortValue={(row) => row.value[EntityMetaKey.Id].id}
+				resource={conversations}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+						<div data-row="wrap align-center gap-2">
+							<p data-text="muted">
+								No XMTP inbox threads synced yet.
+							</p>
+							<Tooltip contentProps={{ side: 'top' }}>
+								{#snippet Content()}
+									<p>
+										Threads sync after an XMTP-capable client merges your local inbox.
+									</p>
+									<p>
+										They are not public timelines or on-chain market tables.
+									</p>
+								{/snippet}
+								<abbr
+									class="entity-heading-tip"
+									aria-label="How XMTP rows appear"
+								>ⓘ</abbr>
+							</Tooltip>
+						</div>
+					{/snippet}
 
-	{#snippet Item({ item })}
-		<XmtpConversationView
-			entityId={item.value[EntityMetaKey.Id]}
-			layout={EntityLayout.Summary}
-			open={false}
-		/>
+				{#snippet Item({ item })}
+						<XmtpConversationView
+							entityId={item.value[EntityMetaKey.Id]}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/snippet}
+
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

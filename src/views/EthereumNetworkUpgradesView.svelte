@@ -8,7 +8,6 @@
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
@@ -17,19 +16,21 @@
 		entityFieldReference,
 		title = 'Upgrades',
 		open = $bindable(true),
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EthereumNetworkUpgrade>
 			title?: string
 			open?: boolean
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'collapsible'
 			| 'CollapsibleProps'
-			| 'id',
-			| 'href'
 		>
 	> = $props()
 
@@ -38,37 +39,10 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [
-				Source.Constants_Internal,
-			],
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Constants_Internal,
-				],
-				$limit: 512,
-			},
-		},
-	)
-
-	const upgrades = derive(
-		parent,
-		(parent) => (
-			(parent[entityFieldReference.fieldName] ?? [])
-				.map((value) => ({
-					value,
-				}))
-		),
-	)
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import NetworkUpgradeView from '$/views/EthereumNetworkUpgradeView.svelte'
 </script>
 
@@ -77,9 +51,8 @@
 	entityType={EntityType.EthereumNetworkUpgrade}
 	{title}
 	bind:open
-	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	resource={upgrades}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{id}
+	href={href}
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -91,18 +64,58 @@
 		</p>
 	{/snippet}
 
-	{#snippet Empty()}
-		<p data-text="muted">
-			No upgrades yet.
-		</p>
-	{/snippet}
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [
+						Source.Constants_Internal,
+					],
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Constants_Internal,
+						],
+						$limit: 512,
+					},
+				},
+			)}
+			{@const upgrades = derive(
+				parent,
+				(parent) => (
+					(parent[entityFieldReference.fieldName] ?? [])
+						.map((value) => ({
+							value,
+						}))
+				),
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.EthereumNetworkUpgrade}
+				id={`${id}-items`}
+				href={href}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				resource={upgrades}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No upgrades yet.
+					</p>
+				{/snippet}
 
-	{#snippet Item({ item: envelope })}
-		{@const slug = envelope.value.slug ?? envelope.value[EntityMetaKey.Id].upgradeId}
-		<NetworkUpgradeView
-			entityId={envelope.value[EntityMetaKey.Id]}
-			layout={EntityLayout.Summary}
-			open={false}
-		/>
+				{#snippet Item({ item: envelope })}
+					<NetworkUpgradeView
+						entityId={envelope.value[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

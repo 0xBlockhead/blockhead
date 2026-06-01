@@ -98,7 +98,7 @@ import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import { jsonRpcUrlWithTransportForChain } from '$/sources/Evm/JsonRpc/client.ts'
 
 const networkUpgradeDenormalizedFields = (
-	row: Entity<typeof schema, EntityType.EthereumNetworkUpgrade>,
+	networkUpgrade: Entity<typeof schema, EntityType.EthereumNetworkUpgrade>,
 	networkExecutionUpgradeByChainIdAndUpgradeId: Record<
 		string,
 		Entity<typeof schema, EntityType.EthereumExecutionUpgrade>
@@ -116,40 +116,43 @@ const networkUpgradeDenormalizedFields = (
 		| '$$proposals'
 	>
 > => {
-	const execRef = row.$networkExecutionUpgrade?.[EntityMetaKey.Id]
-	const executionRow = (
+	const execRef = networkUpgrade.$networkExecutionUpgrade?.[EntityMetaKey.Id]
+	const linkedNetworkExecutionUpgrade = (
 		execRef == null ?
 			null
-		:	networkExecutionUpgradeByChainIdAndUpgradeId[
+		:
+			networkExecutionUpgradeByChainIdAndUpgradeId[
 				`${execRef.$network.caip2.reference}:${execRef.upgradeId}`
 			]
 	)
-	const consRef = row.$networkConsensusUpgrade
-	const consensusRow = (
+	const consRef = networkUpgrade.$networkConsensusUpgrade
+	const linkedNetworkConsensusUpgrade = (
 		consRef == null ?
 			null
-		:	networkConsensusUpgradeByChainIdAndUpgradeId[
+		:
+			networkConsensusUpgradeByChainIdAndUpgradeId[
 				`${consRef[EntityMetaKey.Id].$network.caip2.reference}:${consRef[EntityMetaKey.Id].upgradeId}`
 			]
 	)
 
-	const activationBlock = executionRow?.activationBlock ?? consensusRow?.activationBlock
+	const activationBlock = linkedNetworkExecutionUpgrade?.activationBlock ?? linkedNetworkConsensusUpgrade?.activationBlock
 	const activationTimestampsMs = [
-		executionRow?.activationTimestampMs,
-		consensusRow?.activationTimestampMs,
+		linkedNetworkExecutionUpgrade?.activationTimestampMs,
+		linkedNetworkConsensusUpgrade?.activationTimestampMs,
 	].filter((timestamp): timestamp is number => timestamp != null)
 	const activationTimestampMs = (
 		activationTimestampsMs.length > 0 ?
 			Math.max(...activationTimestampsMs)
-		:	undefined
+		:
+			undefined
 	)
-	const activationEpoch = consensusRow?.activationEpoch ?? executionRow?.activationEpoch
+	const activationEpoch = linkedNetworkConsensusUpgrade?.activationEpoch ?? linkedNetworkExecutionUpgrade?.activationEpoch
 
 	const seen = new Set<string>()
 	const linkedProposals: Entity<typeof schema, EntityType.SpecificationProposal>[] = []
 	for (const proposal of [
-		...(executionRow?.$$proposals ?? []),
-		...(consensusRow?.$$proposals ?? []),
+		...(linkedNetworkExecutionUpgrade?.$$proposals ?? []),
+		...(linkedNetworkConsensusUpgrade?.$$proposals ?? []),
 	]) {
 		const key = stringify(proposal[EntityMetaKey.Id])
 		if (seen.has(key)) continue
@@ -355,8 +358,8 @@ const consensusEpochActivationTimestampMs = async (
 	if (beaconRestBaseUrl == null) {
 		return undefined
 	}
-	const { getBeaconGenesisTimeSeconds } = await import('$/sources/Beacon/Rest/queries.ts')
-	const genesisTimeSeconds = await singleFlight(getBeaconGenesisTimeSeconds)(beaconRestBaseUrl)
+	const { getGenesisTimeSeconds } = await import('$/sources/Beacon/Rest/queries.ts')
+	const genesisTimeSeconds = await singleFlight(getGenesisTimeSeconds)(beaconRestBaseUrl)
 		.catch(() => undefined)
 	if (genesisTimeSeconds == null) {
 		return undefined
@@ -388,52 +391,54 @@ const executionBlockActivationTimestampMs = async (
 	const activationTimestampMs = (
 		block?.timestamp == null ?
 			undefined
-		:	activationTimestampMsFromSecondsOrMs(Number(block.timestamp))
+		:
+			activationTimestampMsFromSecondsOrMs(Number(block.timestamp))
 	)
 	executionBlockActivationTimestampMsByKey.set(cacheKey, activationTimestampMs)
 	return activationTimestampMs
 }
 
 const enrichNetworkExecutionUpgradeActivationTimestamp = async (
-	row: Entity<typeof schema, EntityType.EthereumExecutionUpgrade>,
+	networkExecutionUpgrade: Entity<typeof schema, EntityType.EthereumExecutionUpgrade>,
 ): Promise<Entity<typeof schema, EntityType.EthereumExecutionUpgrade>> => {
-	if (row.activationTimestampMs != null) {
+	if (networkExecutionUpgrade.activationTimestampMs != null) {
 		return {
-			...row,
-			activationTimestampMs: activationTimestampMsFromSecondsOrMs(row.activationTimestampMs),
+			...networkExecutionUpgrade,
+			activationTimestampMs: activationTimestampMsFromSecondsOrMs(networkExecutionUpgrade.activationTimestampMs),
 		}
 	}
-	if (row.activationBlock != null) {
+	if (networkExecutionUpgrade.activationBlock != null) {
 		const activationTimestampMs = await executionBlockActivationTimestampMs(
-			Number(row[EntityMetaKey.Id].$network.caip2.reference),
-			row.activationBlock,
+			Number(networkExecutionUpgrade[EntityMetaKey.Id].$network.caip2.reference),
+			networkExecutionUpgrade.activationBlock,
 		)
 		return (
 			activationTimestampMs == null ?
-				row
-			:	{
-					...row,
-					activationTimestampMs,
-	}
-)
-
-		}
-		if (row.activationEpoch != null) {
-			const activationTimestampMs = await consensusEpochActivationTimestampMs(
-			Number(row[EntityMetaKey.Id].$network.caip2.reference),
-			row.activationEpoch,
-		)
-		return (
-			activationTimestampMs == null ?
-				row
-			:	{
-					...row,
+				networkExecutionUpgrade
+			:
+				{
+					...networkExecutionUpgrade,
 					activationTimestampMs,
 				}
 		)
-		}
-		return row
 	}
+	if (networkExecutionUpgrade.activationEpoch != null) {
+		const activationTimestampMs = await consensusEpochActivationTimestampMs(
+			Number(networkExecutionUpgrade[EntityMetaKey.Id].$network.caip2.reference),
+			networkExecutionUpgrade.activationEpoch,
+		)
+		return (
+			activationTimestampMs == null ?
+				networkExecutionUpgrade
+			:
+				{
+					...networkExecutionUpgrade,
+					activationTimestampMs,
+				}
+		)
+	}
+	return networkExecutionUpgrade
+}
 
 const networkResourceUrlEntityIds = (
 	networkSlug: string,
@@ -450,79 +455,85 @@ const networkResourceUrlEntityIds = (
 )
 
 const enrichNetworkConsensusUpgradeActivationTimestamp = async (
-	row: Entity<typeof schema, EntityType.EthereumConsensusUpgrade>,
+	networkConsensusUpgrade: Entity<typeof schema, EntityType.EthereumConsensusUpgrade>,
 ): Promise<Entity<typeof schema, EntityType.EthereumConsensusUpgrade>> => {
-	if (row.activationTimestampMs != null) {
+	if (networkConsensusUpgrade.activationTimestampMs != null) {
 		return {
-			...row,
-			activationTimestampMs: activationTimestampMsFromSecondsOrMs(row.activationTimestampMs),
+			...networkConsensusUpgrade,
+			activationTimestampMs: activationTimestampMsFromSecondsOrMs(networkConsensusUpgrade.activationTimestampMs),
 		}
 	}
-	if (row.activationEpoch != null) {
+	if (networkConsensusUpgrade.activationEpoch != null) {
 		const activationTimestampMs = await consensusEpochActivationTimestampMs(
-			Number(row[EntityMetaKey.Id].$network.caip2.reference),
-			row.activationEpoch,
+			Number(networkConsensusUpgrade[EntityMetaKey.Id].$network.caip2.reference),
+			networkConsensusUpgrade.activationEpoch,
 		)
 		return (
 			activationTimestampMs == null ?
-				row
-			:	{
-					...row,
+				networkConsensusUpgrade
+			:
+				{
+					...networkConsensusUpgrade,
 					activationTimestampMs,
 				}
 		)
 	}
-	if (row.activationBlock != null) {
+	if (networkConsensusUpgrade.activationBlock != null) {
 		const activationTimestampMs = await executionBlockActivationTimestampMs(
-			Number(row[EntityMetaKey.Id].$network.caip2.reference),
-			row.activationBlock,
+			Number(networkConsensusUpgrade[EntityMetaKey.Id].$network.caip2.reference),
+			networkConsensusUpgrade.activationBlock,
 		)
 		return (
 			activationTimestampMs == null ?
-				row
-			:	{
-					...row,
+				networkConsensusUpgrade
+			:
+				{
+					...networkConsensusUpgrade,
 					activationTimestampMs,
 				}
 		)
 	}
-	return row
+	return networkConsensusUpgrade
 }
 
 const enrichNetworkUpgradeActivationTimestamp = async (
-	row: Entity<typeof schema, EntityType.EthereumNetworkUpgrade>,
+	networkUpgrade: Entity<typeof schema, EntityType.EthereumNetworkUpgrade>,
 ): Promise<Entity<typeof schema, EntityType.EthereumNetworkUpgrade>> => {
 	const {
 		networkExecutionUpgradeByChainIdAndUpgradeId,
 		networkConsensusUpgradeByChainIdAndUpgradeId,
 	} = await import('$/constants/EthereumNetworkUpgrades.ts')
-	const executionRow = (
-		row.$networkExecutionUpgrade == null ?
+	const linkedNetworkExecutionUpgrade = (
+		networkUpgrade.$networkExecutionUpgrade == null ?
 			null
-		:	networkExecutionUpgradeByChainIdAndUpgradeId[
-			`${row.$networkExecutionUpgrade[EntityMetaKey.Id].$network.caip2.reference}:${row.$networkExecutionUpgrade[EntityMetaKey.Id].upgradeId}`
+		:
+			networkExecutionUpgradeByChainIdAndUpgradeId[
+			`${networkUpgrade.$networkExecutionUpgrade[EntityMetaKey.Id].$network.caip2.reference}:${networkUpgrade.$networkExecutionUpgrade[EntityMetaKey.Id].upgradeId}`
 		]
 	)
-	const consensusRow = (
-		row.$networkConsensusUpgrade == null ?
+	const linkedNetworkConsensusUpgrade = (
+		networkUpgrade.$networkConsensusUpgrade == null ?
 			null
-		:	networkConsensusUpgradeByChainIdAndUpgradeId[
-			`${row.$networkConsensusUpgrade[EntityMetaKey.Id].$network.caip2.reference}:${row.$networkConsensusUpgrade[EntityMetaKey.Id].upgradeId}`
+		:
+			networkConsensusUpgradeByChainIdAndUpgradeId[
+			`${networkUpgrade.$networkConsensusUpgrade[EntityMetaKey.Id].$network.caip2.reference}:${networkUpgrade.$networkConsensusUpgrade[EntityMetaKey.Id].upgradeId}`
 		]
 	)
 	const executionTimestamp = (
-		executionRow == null ?
+		linkedNetworkExecutionUpgrade == null ?
 			undefined
-		:	(await enrichNetworkExecutionUpgradeActivationTimestamp(executionRow)).activationTimestampMs
+		:
+			(await enrichNetworkExecutionUpgradeActivationTimestamp(linkedNetworkExecutionUpgrade)).activationTimestampMs
 	)
 	const consensusTimestamp = (
-		consensusRow == null ?
+		linkedNetworkConsensusUpgrade == null ?
 			undefined
-		:	(await enrichNetworkConsensusUpgradeActivationTimestamp(consensusRow)).activationTimestampMs
+		:
+			(await enrichNetworkConsensusUpgradeActivationTimestamp(linkedNetworkConsensusUpgrade)).activationTimestampMs
 	)
 	const activationTimestampMs = (
 		[
-			row.activationTimestampMs,
+			networkUpgrade.activationTimestampMs,
 			executionTimestamp,
 			consensusTimestamp,
 		]
@@ -540,35 +551,35 @@ const enrichNetworkUpgradeActivationTimestamp = async (
 	return (
 		activationTimestampMs > -Infinity ?
 			{
-				...row,
+				...networkUpgrade,
 				activationTimestampMs,
 			}
 		:
-			row
+			networkUpgrade
 	)
 }
 
 const enrichNetworkUpgradeRowsActivationTimestamp = async (
-	rows: Entity<typeof schema, EntityType.EthereumNetworkUpgrade>[],
+	networkUpgrades: Entity<typeof schema, EntityType.EthereumNetworkUpgrade>[],
 ): Promise<Entity<typeof schema, EntityType.EthereumNetworkUpgrade>[]> => (
 	Promise.all(
-		rows.map((row) => enrichNetworkUpgradeActivationTimestamp(row)),
+		networkUpgrades.map((networkUpgrade) => enrichNetworkUpgradeActivationTimestamp(networkUpgrade)),
 	)
 )
 
 const enrichNetworkExecutionUpgradeRowsActivationTimestamp = async (
-	rows: Entity<typeof schema, EntityType.EthereumExecutionUpgrade>[],
+	networkExecutionUpgrades: Entity<typeof schema, EntityType.EthereumExecutionUpgrade>[],
 ): Promise<Entity<typeof schema, EntityType.EthereumExecutionUpgrade>[]> => (
 	Promise.all(
-		rows.map((row) => enrichNetworkExecutionUpgradeActivationTimestamp(row)),
+		networkExecutionUpgrades.map((networkExecutionUpgrade) => enrichNetworkExecutionUpgradeActivationTimestamp(networkExecutionUpgrade)),
 	)
 )
 
 const enrichNetworkConsensusUpgradeRowsActivationTimestamp = async (
-	rows: Entity<typeof schema, EntityType.EthereumConsensusUpgrade>[],
+	networkConsensusUpgrades: Entity<typeof schema, EntityType.EthereumConsensusUpgrade>[],
 ): Promise<Entity<typeof schema, EntityType.EthereumConsensusUpgrade>[]> => (
 	Promise.all(
-		rows.map((row) => enrichNetworkConsensusUpgradeActivationTimestamp(row)),
+		networkConsensusUpgrades.map((networkConsensusUpgrade) => enrichNetworkConsensusUpgradeActivationTimestamp(networkConsensusUpgrade)),
 	)
 )
 
@@ -741,7 +752,7 @@ export default {
 			resolve: async (entityId) => {
 				const coinBridgeCapabilityFields = bridgeToolByKey[entityId.toolKey]
 				if (coinBridgeCapabilityFields == null) {
-					throw new Error(`Bridge: unknown LI.FI tool key ${entityId.toolKey}`)
+					throw new Error(`Constants_Internal: unknown LI.FI tool key ${entityId.toolKey}`)
 				}
 				return {
 					toolKey: entityId.toolKey,
@@ -772,18 +783,18 @@ export default {
 			resolve: async (entityId) => {
 				const { beaconRestBaseByExecutionChainId } = await import('$/constants/BeaconConsensus.ts')
 				const { executionEndpointsByChainId } = await import('$/constants/ExecutionEndpoints.ts')
-				const row = networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
-				if (row == null) {
+				const network = networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+				if (network == null) {
 					throw new Error(`Constants_Internal: EvmNetwork not found`)
 				}
 				const beaconRestBase = beaconRestBaseByExecutionChainId[Number(entityId.caip2.reference)]
 				const list = executionEndpointsByChainId[Number(entityId.caip2.reference)] ?? []
 				return {
-					slug: row.slug,
-					name: row.name,
-					caip2: row.caip2,
-					namespace: row.namespace,
-					environment: row.environment,
+					slug: network.slug,
+					name: network.name,
+					caip2: network.caip2,
+					namespace: network.namespace,
+					environment: network.environment,
 					executionEndpoints: [...list],
 					consensusEndpoints: (
 						beaconRestBase == null ?
@@ -810,22 +821,23 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.Network,
 			resolve: async (entityId) => {
-				const row = (
+				const network = (
 					'networkSlug' in entityId ?
 						networkBySlug[entityId.networkSlug]
-					:	networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+					:
+						networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
 				)
-				if (row == null) {
+				if (network == null) {
 					throw new Error(`Constants_Internal: Network not found`)
 				}
 				return {
-					slug: row.slug,
-					name: row.name,
-					...('caip2' in row && {
-						caip2: row.caip2,
+					slug: network.slug,
+					name: network.name,
+					...('caip2' in network && {
+						caip2: network.caip2,
 					}),
-					namespace: row.namespace,
-					environment: row.environment,
+					namespace: network.namespace,
+					environment: network.environment,
 				}
 			},
 		}),
@@ -833,16 +845,16 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.NearNetwork,
 			resolve: async (entityId) => {
-				const row = networkBySlug[entityId.networkSlug]
-				if (row == null) throw new Error('Constants_Internal: NearNetwork not found')
+				const network = networkBySlug[entityId.networkSlug]
+				if (network == null) throw new Error('Constants_Internal: NearNetwork not found')
 				return {
-					slug: row.slug,
-					name: row.name,
-					...('caip2' in row && {
-						caip2: row.caip2,
+					slug: network.slug,
+					name: network.name,
+					...('caip2' in network && {
+						caip2: network.caip2,
 					}),
-					namespace: row.namespace,
-					environment: row.environment,
+					namespace: network.namespace,
+					environment: network.environment,
 					rpcEndpoints: [
 						...nearMainnetRpcEndpoints,
 					],
@@ -853,16 +865,16 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.ZeroGNetwork,
 			resolve: async (entityId) => {
-				const row = networkBySlug[entityId.networkSlug]
-				if (row == null) throw new Error('Constants_Internal: ZeroGNetwork not found')
+				const network = networkBySlug[entityId.networkSlug]
+				if (network == null) throw new Error('Constants_Internal: ZeroGNetwork not found')
 				return {
-					slug: row.slug,
-					name: row.name,
-					...('caip2' in row && {
-						caip2: row.caip2,
+					slug: network.slug,
+					name: network.name,
+					...('caip2' in network && {
+						caip2: network.caip2,
 					}),
-					namespace: row.namespace,
-					environment: row.environment,
+					namespace: network.namespace,
+					environment: network.environment,
 					chainId: zeroGChainId,
 					rpcEndpoints: [
 						...zeroGMainnetRpcEndpoints,
@@ -883,16 +895,16 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.QuilibriumNetwork,
 			resolve: async (entityId) => {
-				const row = networkBySlug[entityId.networkSlug]
-				if (row == null) throw new Error('Constants_Internal: QuilibriumNetwork not found')
+				const network = networkBySlug[entityId.networkSlug]
+				if (network == null) throw new Error('Constants_Internal: QuilibriumNetwork not found')
 				return {
-					slug: row.slug,
-					name: row.name,
-					...('caip2' in row && {
-						caip2: row.caip2,
+					slug: network.slug,
+					name: network.name,
+					...('caip2' in network && {
+						caip2: network.caip2,
 					}),
-					namespace: row.namespace,
-					environment: row.environment,
+					namespace: network.namespace,
+					environment: network.environment,
 				}
 			},
 		}),
@@ -900,15 +912,15 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.SolanaNetwork,
 			resolve: async (entityId) => {
-				const row = networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
-				if (row == null) throw new Error('Constants_Internal: SolanaNetwork not found')
-				if (!('caip2' in row)) throw new Error('Constants_Internal: SolanaNetwork missing CAIP-2')
+				const network = networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+				if (network == null) throw new Error('Constants_Internal: SolanaNetwork not found')
+				if (!('caip2' in network)) throw new Error('Constants_Internal: SolanaNetwork missing CAIP-2')
 				return {
-					slug: row.slug,
-					name: row.name,
-					caip2: row.caip2,
-					namespace: row.namespace,
-					environment: row.environment,
+					slug: network.slug,
+					name: network.name,
+					caip2: network.caip2,
+					namespace: network.namespace,
+					environment: network.environment,
 					rpcEndpoints: [
 						...solanaMainnetRpcEndpoints,
 					],
@@ -995,7 +1007,7 @@ export default {
 			entityType: EntityType.ActivityPubNetwork,
 			resolve: async (entityId) => {
 				if (entityId.scope !== 'ActivityPubNetwork') {
-					throw new Error('Constants: unexpected ActivityPubNetwork id')
+					throw new Error('Constants_Internal: unexpected ActivityPubNetwork id')
 				}
 				return activityPubNetworkFieldValues
 			},
@@ -1005,7 +1017,7 @@ export default {
 			entityType: EntityType.AtprotoNetwork,
 			resolve: async (entityId) => {
 				if (entityId.scope !== 'AtprotoNetwork') {
-					throw new Error('Constants: unexpected AtprotoNetwork id')
+					throw new Error('Constants_Internal: unexpected AtprotoNetwork id')
 				}
 				return atprotoNetworkFieldValues
 			},
@@ -1015,7 +1027,7 @@ export default {
 			entityType: EntityType.EnsProtocol,
 			resolve: async (entityId) => {
 				if (entityId.scope !== 'EnsProtocol') {
-					throw new Error('Constants: unexpected EnsProtocol id')
+					throw new Error('Constants_Internal: unexpected EnsProtocol id')
 				}
 				return ensProtocolFieldValues
 			},
@@ -1025,7 +1037,7 @@ export default {
 			entityType: EntityType.EvmProtocol,
 			resolve: async (entityId) => {
 				if (entityId.scope !== 'EvmProtocol') {
-					throw new Error('Constants: unexpected EvmProtocol id')
+					throw new Error('Constants_Internal: unexpected EvmProtocol id')
 				}
 				return evmProtocolFieldValues
 			},
@@ -1035,7 +1047,7 @@ export default {
 			entityType: EntityType.IpfsProtocol,
 			resolve: async (entityId) => {
 				if (entityId.scope !== 'IpfsProtocol') {
-					throw new Error('Constants: unexpected IpfsProtocol id')
+					throw new Error('Constants_Internal: unexpected IpfsProtocol id')
 				}
 				return ipfsProtocolFieldValues
 			},
@@ -1045,7 +1057,7 @@ export default {
 			entityType: EntityType.SwarmProtocol,
 			resolve: async (entityId) => {
 				if (entityId.scope !== 'SwarmProtocol') {
-					throw new Error('Constants: unexpected SwarmProtocol id')
+					throw new Error('Constants_Internal: unexpected SwarmProtocol id')
 				}
 				return swarmProtocolFieldValues
 			},
@@ -1055,7 +1067,7 @@ export default {
 			entityType: EntityType.LensNetwork,
 			resolve: async (entityId) => {
 				if (entityId.scope !== 'LensNetwork') {
-					throw new Error('Constants: unexpected LensNetwork id')
+					throw new Error('Constants_Internal: unexpected LensNetwork id')
 				}
 				return lensNetworkFieldValues
 			},
@@ -1065,7 +1077,7 @@ export default {
 			entityType: EntityType.NostrNetwork,
 			resolve: async (entityId) => {
 				if (entityId.scope !== 'NostrNetwork') {
-					throw new Error('Constants: unexpected NostrNetwork id')
+					throw new Error('Constants_Internal: unexpected NostrNetwork id')
 				}
 				return nostrNetworkFieldValues
 			},
@@ -1075,7 +1087,7 @@ export default {
 			entityType: EntityType.RedditNetwork,
 			resolve: async (entityId) => {
 				if (entityId.scope !== 'RedditNetwork') {
-					throw new Error('Constants: unexpected RedditNetwork id')
+					throw new Error('Constants_Internal: unexpected RedditNetwork id')
 				}
 				return redditNetworkFieldValues
 			},
@@ -1085,7 +1097,7 @@ export default {
 			entityType: EntityType.RssNetwork,
 			resolve: async (entityId) => {
 				if (entityId.scope !== 'RssNetwork') {
-					throw new Error('Constants: unexpected RssNetwork id')
+					throw new Error('Constants_Internal: unexpected RssNetwork id')
 				}
 				return rssNetworkFieldValues
 			},
@@ -1095,7 +1107,7 @@ export default {
 			entityType: EntityType.XNetwork,
 			resolve: async (entityId) => {
 				if (entityId.scope !== 'XNetwork') {
-					throw new Error('Constants: unexpected XNetwork id')
+					throw new Error('Constants_Internal: unexpected XNetwork id')
 				}
 				return xNetworkFieldValues
 			},
@@ -1105,7 +1117,7 @@ export default {
 			entityType: EntityType.XmtpNetwork,
 			resolve: async (entityId) => {
 				if (entityId.scope !== 'XmtpNetwork') {
-					throw new Error('Constants: unexpected XmtpNetwork id')
+					throw new Error('Constants_Internal: unexpected XmtpNetwork id')
 				}
 				return xmtpNetworkFieldValues
 			},
@@ -1115,7 +1127,7 @@ export default {
 			entityType: EntityType.YouTubeNetwork,
 			resolve: async (entityId) => {
 				if (entityId.scope !== 'YouTubeNetwork') {
-					throw new Error('Constants: unexpected YouTubeNetwork id')
+					throw new Error('Constants_Internal: unexpected YouTubeNetwork id')
 				}
 				return youtubeNetworkFieldValues
 			},
@@ -1164,16 +1176,17 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$networkStack',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
-				const row = (
+				const network = (
 					'networkSlug' in entityId ?
 						networkBySlug[entityId.networkSlug]
-					:	networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+					:
+						networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
 				)
-				if (row == null) return undefined
-				const namespace: NetworkNamespace = row.namespace
+				if (network == null) return undefined
+				const namespace: NetworkNamespace = network.namespace
 				return {
 					[EntityMetaKey.Id]: {
-						networkStackId: networkStackIdByNamespace[namespace],
+						networkStackId: networkStackIdByNamespace[networkNamespace],
 					},
 				}
 			},
@@ -1183,12 +1196,12 @@ export default {
 			entityType: EntityType.ZeroGNetwork,
 			fieldName: '$networkStack',
 			resolve: async (entityId) => {
-				const row = networkBySlug[entityId.networkSlug]
-				if (row == null) return undefined
-				const namespace: NetworkNamespace = row.namespace
+				const network = networkBySlug[entityId.networkSlug]
+				if (network == null) return undefined
+				const namespace: NetworkNamespace = network.namespace
 				return {
 					[EntityMetaKey.Id]: {
-						networkStackId: networkStackIdByNamespace[namespace],
+						networkStackId: networkStackIdByNamespace[networkNamespace],
 					},
 				}
 			},
@@ -1198,12 +1211,12 @@ export default {
 			entityType: EntityType.QuilibriumNetwork,
 			fieldName: '$networkStack',
 			resolve: async (entityId) => {
-				const row = networkBySlug[entityId.networkSlug]
-				if (row == null) return undefined
-				const namespace: NetworkNamespace = row.namespace
+				const network = networkBySlug[entityId.networkSlug]
+				if (network == null) return undefined
+				const namespace: NetworkNamespace = network.namespace
 				return {
 					[EntityMetaKey.Id]: {
-						networkStackId: networkStackIdByNamespace[namespace],
+						networkStackId: networkStackIdByNamespace[networkNamespace],
 					},
 				}
 			},
@@ -1213,14 +1226,15 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$$executionEnvironments',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
-				const row = (
+				const network = (
 					'networkSlug' in entityId ?
 						networkBySlug[entityId.networkSlug]
-					:	networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+					:
+						networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
 				)
-				if (row == null) return []
-				const namespace: NetworkNamespace = row.namespace
-				return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
+				if (network == null) return []
+				const namespace: NetworkNamespace = network.namespace
+				return [...executionEnvironmentIdsByNamespace[networkNamespace]].map((executionEnvironmentId) => ({
 					[EntityMetaKey.Id]: {
 						executionEnvironmentId,
 					},
@@ -1232,10 +1246,10 @@ export default {
 			entityType: EntityType.ZeroGNetwork,
 			fieldName: '$$executionEnvironments',
 			resolve: async (entityId) => {
-				const row = networkBySlug[entityId.networkSlug]
-				if (row == null) return []
-				const namespace: NetworkNamespace = row.namespace
-				return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
+				const network = networkBySlug[entityId.networkSlug]
+				if (network == null) return []
+				const namespace: NetworkNamespace = network.namespace
+				return [...executionEnvironmentIdsByNamespace[networkNamespace]].map((executionEnvironmentId) => ({
 					[EntityMetaKey.Id]: {
 						executionEnvironmentId,
 					},
@@ -1247,10 +1261,10 @@ export default {
 			entityType: EntityType.QuilibriumNetwork,
 			fieldName: '$$executionEnvironments',
 			resolve: async (entityId) => {
-				const row = networkBySlug[entityId.networkSlug]
-				if (row == null) return []
-				const namespace: NetworkNamespace = row.namespace
-				return [...executionEnvironmentIdsByNamespace[namespace]].map((executionEnvironmentId) => ({
+				const network = networkBySlug[entityId.networkSlug]
+				if (network == null) return []
+				const namespace: NetworkNamespace = network.namespace
+				return [...executionEnvironmentIdsByNamespace[networkNamespace]].map((executionEnvironmentId) => ({
 					[EntityMetaKey.Id]: {
 						executionEnvironmentId,
 					},
@@ -1262,14 +1276,15 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$$consensusMechanisms',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
-				const row = (
+				const network = (
 					'networkSlug' in entityId ?
 						networkBySlug[entityId.networkSlug]
-					:	networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+					:
+						networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
 				)
-				if (row == null) return []
-				const namespace: NetworkNamespace = row.namespace
-				return [...consensusMechanismIdsByNamespace[namespace]].map((consensusMechanismId) => ({
+				if (network == null) return []
+				const namespace: NetworkNamespace = network.namespace
+				return [...consensusMechanismIdsByNamespace[networkNamespace]].map((consensusMechanismId) => ({
 					[EntityMetaKey.Id]: {
 						consensusMechanismId,
 					},
@@ -1281,10 +1296,10 @@ export default {
 			entityType: EntityType.ZeroGNetwork,
 			fieldName: '$$consensusMechanisms',
 			resolve: async (entityId) => {
-				const row = networkBySlug[entityId.networkSlug]
-				if (row == null) return []
-				const namespace: NetworkNamespace = row.namespace
-				return [...consensusMechanismIdsByNamespace[namespace]].map((consensusMechanismId) => ({
+				const network = networkBySlug[entityId.networkSlug]
+				if (network == null) return []
+				const namespace: NetworkNamespace = network.namespace
+				return [...consensusMechanismIdsByNamespace[networkNamespace]].map((consensusMechanismId) => ({
 					[EntityMetaKey.Id]: {
 						consensusMechanismId,
 					},
@@ -1296,10 +1311,10 @@ export default {
 			entityType: EntityType.QuilibriumNetwork,
 			fieldName: '$$consensusMechanisms',
 			resolve: async (entityId) => {
-				const row = networkBySlug[entityId.networkSlug]
-				if (row == null) return []
-				const namespace: NetworkNamespace = row.namespace
-				return [...consensusMechanismIdsByNamespace[namespace]].map((consensusMechanismId) => ({
+				const network = networkBySlug[entityId.networkSlug]
+				if (network == null) return []
+				const namespace: NetworkNamespace = network.namespace
+				return [...consensusMechanismIdsByNamespace[networkNamespace]].map((consensusMechanismId) => ({
 					[EntityMetaKey.Id]: {
 						consensusMechanismId,
 					},
@@ -1311,14 +1326,15 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$$nativeAssets',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
-				const row = (
+				const network = (
 					'networkSlug' in entityId ?
 						networkBySlug[entityId.networkSlug]
-					:	networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+					:
+						networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
 				)
-				if (row == null) return []
-				const namespace: NetworkNamespace = row.namespace
-				const coinId = nativeAssetCoinIdByNamespace[namespace]
+				if (network == null) return []
+				const namespace: NetworkNamespace = network.namespace
+				const coinId = nativeAssetCoinIdByNamespace[networkNamespace]
 				if (coinId == null) return []
 				return [
 					{
@@ -1338,14 +1354,15 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$$faucetUrls',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
-				const row = (
+				const network = (
 					'networkSlug' in entityId ?
 						networkBySlug[entityId.networkSlug]
-					:	networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+					:
+						networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
 				)
-				if (row == null) return []
+				if (network == null) return []
 				return networkResourceUrlEntityIds(
-					row.slug,
+					network.slug,
 					NetworkResourceKind.Faucet,
 				)
 			},
@@ -1355,14 +1372,15 @@ export default {
 			entityType: EntityType.Network,
 			fieldName: '$$blockExplorerUrls',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Network>) => {
-				const row = (
+				const network = (
 					'networkSlug' in entityId ?
 						networkBySlug[entityId.networkSlug]
-					:	networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
+					:
+						networkByCaip2[`${entityId.caip2.namespace}:${entityId.caip2.reference}`]
 				)
-				if (row == null) return []
+				if (network == null) return []
 				return networkResourceUrlEntityIds(
-					row.slug,
+					network.slug,
 					NetworkResourceKind.BlockExplorer,
 				)
 			},
@@ -1374,7 +1392,8 @@ export default {
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>) => (
 				specificationRealmById == null ?
 					[]
-				:	Object.values(specificationRealmById).map((realmRow) => ({
+				:
+					Object.values(specificationRealmById).map((realmRow) => ({
 						[EntityMetaKey.Id]: {
 							realm: realmRow.id,
 						},
@@ -1625,7 +1644,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Market,
-			fieldName: '$$baseCoin',
+			fieldName: '$baseCoin',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market>) => (
 				entityId.$base.kind === MarketAssetKind.Coin ?
 					{
@@ -1633,7 +1652,8 @@ export default {
 							coinId: entityId.$base.$coin.coinId,
 						},
 					}
-				:	undefined
+				:
+					undefined
 			),
 		}),
 
@@ -1667,7 +1687,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.MarketPrice,
-			fieldName: '$$parentMarket',
+			fieldName: '$parentMarket',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.MarketPrice>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
@@ -1677,7 +1697,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.Market_TimeInterval_Timestamp,
-			fieldName: '$$parentMarket',
+			fieldName: '$parentMarket',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Market_TimeInterval_Timestamp>) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,
@@ -1732,13 +1752,13 @@ export default {
 				const chainId = Number(entityId.caip2.reference)
 				return (
 					mevRelayHosts
-						.filter((row) => row.chainId === chainId)
-						.map((row) => ({
+						.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
+						.map((mevRelayHost) => ({
 							[EntityMetaKey.Id]: {
 								$network: entityId,
-								host: row.host,
+								host: mevRelayHost.host,
 							},
-							url: `https://${row.host}`,
+							url: `https://${mevRelayHost.host}`,
 						}))
 				)
 			},
@@ -1826,7 +1846,8 @@ export default {
 				return (
 					upgradeRow?.$networkConsensusUpgrade == null ?
 						undefined
-					:	{ ...upgradeRow.$networkConsensusUpgrade }
+					:
+						{ ...upgradeRow.$networkConsensusUpgrade }
 				)
 			},
 		}),
@@ -2133,7 +2154,8 @@ export default {
 						const address = hexLowerOfByteSize(precompile.address, 20)
 						return address == null ?
 							[]
-						:	[{
+						:
+							[{
 							[EntityMetaKey.Id]: {
 								$network: { caip2: entityId.caip2 },
 								address,
@@ -2147,10 +2169,10 @@ export default {
 			entityType: EntityType.ZeroGNetwork,
 			fieldName: '$$nativeAssets',
 			resolve: async (entityId) => {
-				const row = networkBySlug[entityId.networkSlug]
-				if (row == null) return []
-				const namespace: NetworkNamespace = row.namespace
-				const coinId = nativeAssetCoinIdByNamespace[namespace]
+				const network = networkBySlug[entityId.networkSlug]
+				if (network == null) return []
+				const namespace: NetworkNamespace = network.namespace
+				const coinId = nativeAssetCoinIdByNamespace[networkNamespace]
 				if (coinId == null) return []
 				return [
 					{
@@ -2172,10 +2194,10 @@ export default {
 			entityType: EntityType.QuilibriumNetwork,
 			fieldName: '$$nativeAssets',
 			resolve: async (entityId) => {
-				const row = networkBySlug[entityId.networkSlug]
-				if (row == null) return []
-				const namespace: NetworkNamespace = row.namespace
-				const coinId = nativeAssetCoinIdByNamespace[namespace]
+				const network = networkBySlug[entityId.networkSlug]
+				if (network == null) return []
+				const namespace: NetworkNamespace = network.namespace
+				const coinId = nativeAssetCoinIdByNamespace[networkNamespace]
 				if (coinId == null) return []
 				return [
 					{

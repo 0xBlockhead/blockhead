@@ -19,6 +19,8 @@
 		title = 'URLs',
 		emptyText = 'No URLs in this list yet.',
 		open = $bindable(true),
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
@@ -27,6 +29,8 @@
 			title?: string
 			emptyText?: string
 			open?: boolean
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -59,7 +63,32 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const parent = useEntity(
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import Tooltip from '$/components/Tooltip.svelte'
+	import UrlView from '$/views/UrlView.svelte'
+</script>
+
+
+<EntitiesList
+	entityType={EntityType.Url}
+	{title}
+	bind:open
+	{...EntitiesListProps}
+>
+	{#snippet TypeAnnotationTooltip()}
+			<p>
+				Each row is a normal HTTPS (or similar) link, usually enriched from page metadata when available.
+			</p>
+			<p>
+				This is separate from Swarm <code>bzz</code> addresses, on-chain topics, pool contracts, or chat threads.
+			</p>
+		{/snippet}
+
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -67,9 +96,8 @@
 				$: fieldSources,
 			},
 		},
-	)
-
-	const urls = derive(
+	)}
+			{@const urls = derive(
 		parent,
 		(parent) => {
 			const rows: Entity<typeof schema, EntityType.Url>[] = (
@@ -86,47 +114,35 @@
 					.map((value) => ({ value }))
 			)
 		},
-	)
+	)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.Url}
+				id={`${id}-items`}
+				href={href}
+				{title}
+				getKey={(envelope) => envelope.value[EntityMetaKey.Id].url}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].url}
+				resource={urls}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+							<p data-text="muted">
+								{emptyText}
+							</p>
+						{/snippet}
 
+				{#snippet Item({ item: envelope })}
+							<UrlView
+								entityId={envelope.value[EntityMetaKey.Id]}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/snippet}
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
-	import UrlView from '$/views/UrlView.svelte'
-</script>
-
-
-<EntitiesList
-	entityType={EntityType.Url}
-	{title}
-	bind:open
-	getKey={(envelope) => envelope.value[EntityMetaKey.Id].url}
-	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].url}
-	resource={urls}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...EntitiesListProps}
->
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Each row is a normal HTTPS (or similar) link, usually enriched from page metadata when available.
-		</p>
-		<p>
-			This is separate from Swarm <code>bzz</code> addresses, on-chain topics, pool contracts, or chat threads.
-		</p>
+			</EntitiesList>
+		{/if}
 	{/snippet}
-
-	{#snippet Empty()}
-			<p data-text="muted">
-				{emptyText}
-			</p>
-		{/snippet}
-
-		{#snippet Item({ item: envelope })}
-			<UrlView
-				entityId={envelope.value[EntityMetaKey.Id]}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/snippet}
 </EntitiesList>

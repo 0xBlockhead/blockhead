@@ -1,7 +1,7 @@
 import { getJson, getText } from '$/lib/http.ts'
 import {
-	getGithubRawUserContentUrl,
-	getGithubRestRepoContentsUrl,
+	getRawUserContentUrl,
+	getRestRepoContentsUrl,
 } from '$/sources/Github/Rest/queries.ts'
 import SolanaSimds from '$/sources/SolanaSimds/index.ts'
 import type { SolanaSimdContentEntry } from '$/sources/SolanaSimds/Github/types.ts'
@@ -10,9 +10,9 @@ const owner = 'solana-foundation'
 const repo = 'solana-improvement-documents'
 const ref = 'main'
 
-export const getSimdProposalContents = () => (
+export const getProposalContents = () => (
 	getJson<SolanaSimdContentEntry[]>(
-		getGithubRestRepoContentsUrl({
+		getRestRepoContentsUrl({
 			owner,
 			repo,
 			pathInRepo: 'proposals',
@@ -22,9 +22,9 @@ export const getSimdProposalContents = () => (
 	)
 )
 
-export const getSimdProposalMarkdownText = ({ number }: { number: number }) => (
+export const getProposalMarkdownText = ({ number }: { number: number }) => (
 	getText(
-		getGithubRawUserContentUrl({
+		getRawUserContentUrl({
 			owner,
 			repo,
 			ref,
@@ -32,7 +32,7 @@ export const getSimdProposalMarkdownText = ({ number }: { number: number }) => (
 		}),
 		{ origins: SolanaSimds.origins ?? [] },
 	).catch(() => (
-		getSimdProposalContents()
+		getProposalContents()
 			.then((entries) => {
 				const entry = entries.find((contentEntry) => (
 					contentEntry.type === 'file'

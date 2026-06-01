@@ -46,7 +46,7 @@
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import Tooltip from '$/components/Tooltip.svelte'
-	import ChannelView from '$/views/ChannelView.svelte'
+	import StateChannelView from '$/views/StateChannelView.svelte'
 </script>
 
 
@@ -153,7 +153,7 @@
 				{/snippet}
 
 				{#snippet Item({ item })}
-					<ChannelView
+					<StateChannelView
 						entityId={item.value[EntityMetaKey.Id]}
 						layout={EntityLayout.Summary}
 						open={false}

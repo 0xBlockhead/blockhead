@@ -8,9 +8,7 @@
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
+
 
 
 	// State
@@ -18,19 +16,21 @@
 		title = 'Finality',
 		open = $bindable(true),
 		entityFieldReference,
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EthereumBeaconFinality_Timestamp>
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'collapsible'
 			| 'CollapsibleProps'
-			| 'id'
-			| 'href'
 		>
 	> = $props()
 
@@ -38,34 +38,6 @@
 	// State
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
-
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Beacon_Rest,
-				],
-				$limit: 8,
-			},
-		},
-	)
-
-	const rows = derive(
-		parent,
-		(parent) => {
-			const list: Entity<typeof schema, EntityType.EthereumBeaconFinality_Timestamp>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return (
-				list
-					.map((value) => ({
-						value,
-					}))
-			)
-		},
-	)
 
 
 	// Components
@@ -76,18 +48,12 @@
 
 
 <EntitiesList
-	{...EntitiesListProps}
-	bind:open
 	entityType={EntityType.EthereumBeaconFinality_Timestamp}
-	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-	getSortValue={(row) => (
-		-Number(row.value[EntityMetaKey.Id].timestampMs)
-	)}
-	placeholderKeys={new SvelteSet<string>()}
-	placeholderText="Loading finality…"
-	resource={rows}
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	bind:open
+	{id}
+	href={href}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -95,19 +61,52 @@
 		</p>
 	{/snippet}
 
-	{#snippet Empty()}
-		<p data-text="muted">
-			No finality checkpoints yet.
-		</p>
-	{/snippet}
-
-	{#snippet Item({ item })}
-		{@const row = item.value}
-		<EthereumBeaconFinality_TimestampView
-			entityId={row[EntityMetaKey.Id]}
-			layout={EntityLayout.SummaryDetails}
-			open={true}
-			showTypeAnnotation={false}
-		/>
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Beacon_Rest,
+						],
+						$limit: 8,
+					},
+				},
+			)}
+			{@const rows = derive(
+				parent,
+				(parent) => {
+					const list: Entity<typeof schema, EntityType.EthereumBeaconFinality_Timestamp>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						list
+							.map((value) => ({
+								value,
+							}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.EthereumBeaconFinality_Timestamp}
+				id={`${id}-items`}
+				href={href}
+				open={true}
+			>
+				{#snippet Item({ item })}
+					{@const row = item.value}
+					<EthereumBeaconFinality_TimestampView
+						entityId={row[EntityMetaKey.Id]}
+						layout={EntityLayout.SummaryDetails}
+						open={true}
+						showTypeAnnotation={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

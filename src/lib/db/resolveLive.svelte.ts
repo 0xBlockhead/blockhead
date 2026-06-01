@@ -71,7 +71,9 @@ const deleteEntityFieldRowsForContext = <_EntityType extends SchemaEntityType<ty
 	const parentIdKeys = new Set(
 		parentEntityIds.map((id) => stringify(id)),
 	)
-	const sourceKeys = sources != null ? new Set(sources.map(String)) : null
+	const sourceKeys = sources != null ? new Set(sources.map(String))
+	:
+		null
 
 	const keysToDelete: (string | number)[] = []
 	for (const [rowKey, row] of fieldCollection.entries()) {

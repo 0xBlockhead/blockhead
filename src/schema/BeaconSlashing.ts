@@ -22,15 +22,5 @@ export default {
 		index: 'number',
 	}),
 
-	fields: [
-		{
-			name: 'kind',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('"attester" | "proposer"'),
-			cardinality: EntityFieldCardinality.One,
-			defaultSources: [
-				Source.Beacon_Rest,
-			],
-		},
-	] as const satisfies readonly EntityFieldDefinition[],
+	fields: [] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

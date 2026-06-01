@@ -48,7 +48,8 @@ const normalizeRelayUrl = (value: string | undefined) => {
 		const url = new URL(
 			trimmed.includes('://') ?
 				trimmed
-			:	`wss://${trimmed}`,
+			:
+				`wss://${trimmed}`,
 		)
 		if (url.protocol !== 'wss:' && url.protocol !== 'ws:') return undefined
 		const pathname = url.pathname.replace(/\/$/, '')
@@ -91,7 +92,8 @@ const tagValueFromTags = (
 		&& tag[1] != null
 		&& tag[1].trim() !== '' ?
 			[tag[1].trim()]
-		:		[]
+		:
+			[]
 	))[0]
 )
 
@@ -116,12 +118,14 @@ const eventIdFromETags = (tags: NostrEvent['tags']) => (
 	tags?.flatMap((tag) => (
 		tag[0] === 'e' && tag[1] != null ?
 			[normalizeEventId(tag[1])]
-		:		[]
+		:
+			[]
 	))
 		.flatMap((eventId) => (
 			eventId == null ?
 				[]
-			:		[eventId]
+			:
+				[eventId]
 		))[0]
 )
 
@@ -140,7 +144,8 @@ const replyToEventIdFromTags = (tags: NostrEvent['tags']) => {
 		&& tag[1] != null
 		&& tag[3] === 'reply' ?
 			[normalizeEventId(tag[1])]
-		:	[]
+		:
+			[]
 	))[0]
 	if (markedReply != null) {
 		return markedReply
@@ -165,7 +170,8 @@ const rootEventIdFromTags = (tags: NostrEvent['tags']) => (
 		&& tag[1] != null
 		&& tag[3] === 'root' ?
 			[normalizeEventId(tag[1])]
-		:		[]
+		:
+			[]
 	))[0])
 )
 
@@ -177,11 +183,13 @@ const articleRefFromAddressableCoordinate = (coordinate: string | undefined) => 
 	((parts) => (
 		parts == null || parts[0] !== '30023' ?
 			undefined
-		:		(
+		:
+			(
 				(pubkey, identifier) => (
 					pubkey == null || identifier == null || identifier === '' ?
 						undefined
-					:		{
+					:
+						{
 								[EntityMetaKey.Id]: {
 									pubkey,
 									identifier,
@@ -198,11 +206,13 @@ const articleRefFromAddressableCoordinate = (coordinate: string | undefined) => 
 const articleRefFromEvent = (event: NostrEvent) => (
 	event.kind !== 30023 ?
 		[]
-	:		(
+	:
+		(
 			(pubkey, identifier) => (
 				pubkey == null || identifier == null ?
 					[]
-				:		[
+				:
+					[
 							{
 								[EntityMetaKey.Id]: {
 									pubkey,
@@ -248,7 +258,7 @@ const profileFieldValuesFromMetadata = (
 
 const noteFieldValuesFromEvent = (event: NostrEvent) => {
 	const eventPubkey = normalizePubkey(event.pubkey)
-	if (eventPubkey == null) throw new Error('Nostr: invalid event pubkey')
+	if (eventPubkey == null) throw new Error('NostrBand_Rest: invalid event pubkey')
 	return (
 		((replyToEventId, rootEventId) => ({
 			kind: 1,
@@ -261,7 +271,8 @@ const noteFieldValuesFromEvent = (event: NostrEvent) => {
 			$author: ((normalizedPubkey) => (
 			normalizedPubkey == null ?
 				undefined
-			:				{
+			:
+				{
 						[EntityMetaKey.Id]: { pubkey: normalizedPubkey },
 					}
 		))(normalizePubkey(event.pubkey)),
@@ -282,9 +293,9 @@ const noteFieldValuesFromEvent = (event: NostrEvent) => {
 
 const repostFieldValuesFromEvent = (event: NostrEvent) => {
 	const kind = event.kind
-	if (!isNostrRepostKind(kind)) throw new Error('Nostr: not a repost event')
+	if (!isNostrRepostKind(kind)) throw new Error('NostrBand_Rest: not a repost event')
 	const eventPubkey = normalizePubkey(event.pubkey)
-	if (eventPubkey == null) throw new Error('Nostr: invalid event pubkey')
+	if (eventPubkey == null) throw new Error('NostrBand_Rest: invalid event pubkey')
 	const repostedArticle = articleRefFromAddressableCoordinate(tagValueFromTags(event.tags, 'a'))
 	return (
 		((repostedEventId) => ({
@@ -297,7 +308,8 @@ const repostFieldValuesFromEvent = (event: NostrEvent) => {
 			$author: ((normalizedPubkey) => (
 			normalizedPubkey == null ?
 				undefined
-			:				{
+			:
+				{
 						[EntityMetaKey.Id]: { pubkey: normalizedPubkey },
 					}
 		))(normalizePubkey(event.pubkey)),
@@ -326,7 +338,8 @@ const repostFieldValuesFromTargetEvent = (
 		((repostedArticle) => (
 			repostedArticle == null ?
 				repostValues
-			:	{
+			:
+				{
 					...repostValues,
 					$repostedArticle: repostedArticle,
 					$repostedNote: undefined,
@@ -338,7 +351,7 @@ const repostFieldValuesFromTargetEvent = (
 
 const reactionFieldValuesFromEvent = (event: NostrEvent) => {
 	const eventPubkey = normalizePubkey(event.pubkey)
-	if (eventPubkey == null) throw new Error('Nostr: invalid event pubkey')
+	if (eventPubkey == null) throw new Error('NostrBand_Rest: invalid event pubkey')
 	const targetArticle = articleRefFromAddressableCoordinate(tagValueFromTags(event.tags, 'a'))
 	const targetEventId = reactionTargetEventIdFromTags(event.tags)
 	return {
@@ -351,7 +364,8 @@ const reactionFieldValuesFromEvent = (event: NostrEvent) => {
 		$author: ((normalizedPubkey) => (
 			normalizedPubkey == null ?
 				undefined
-			:				{
+			:
+				{
 						[EntityMetaKey.Id]: { pubkey: normalizedPubkey },
 					}
 		))(normalizePubkey(event.pubkey)),
@@ -377,7 +391,8 @@ const reactionFieldValuesFromTargetEvent = (
 		((targetArticle) => (
 			targetArticle == null ?
 				reactionValues
-			:		{
+			:
+				{
 						...reactionValues,
 						$targetArticle: targetArticle,
 						$targetNote: undefined,
@@ -391,17 +406,19 @@ const articlePublishedAtMs = (event: NostrEvent) => (
 	((publishedAtTag) => (
 		publishedAtTag == null ?
 			nostrCreatedAtMs(event.created_at)
-		:		(
+		:
+			(
 				Number.isFinite(Number(publishedAtTag)) ?
 					Number(publishedAtTag) * 1000
-				:			optionalTimestampMs(publishedAtTag)
+				:
+					optionalTimestampMs(publishedAtTag)
 			)
 	))(tagValueFromTags(event.tags, 'published_at'))
 )
 
 const articleFieldValuesFromEvent = (event: NostrEvent) => {
 	const eventPubkey = normalizePubkey(event.pubkey)
-	if (eventPubkey == null) throw new Error('Nostr: invalid event pubkey')
+	if (eventPubkey == null) throw new Error('NostrBand_Rest: invalid event pubkey')
 	return (
 		((publishedAt) => ({
 			kind: 30023,
@@ -415,7 +432,8 @@ const articleFieldValuesFromEvent = (event: NostrEvent) => {
 			$author: ((normalizedPubkey) => (
 				normalizedPubkey == null ?
 					undefined
-				:					{
+				:
+					{
 							[EntityMetaKey.Id]: { pubkey: normalizedPubkey },
 						}
 			))(normalizePubkey(event.pubkey)),
@@ -435,7 +453,8 @@ const eventFromJsonObject = (wire: JsonObject | undefined): NostrEvent | undefin
 	const tags = (
 		wire.tags == null ?
 			undefined
-		:	(
+		:
+			(
 				(wire.tags as readonly (readonly string[])[])
 					.flatMap((tag) => (
 						Array.isArray(tag) ?
@@ -486,7 +505,8 @@ const relayUrlFromWire = (relay: NostrBandRelayStats) => (
 		?? (
 			relay.domain == null ?
 				undefined
-			:		`wss://${relay.domain}`
+			:
+				`wss://${relay.domain}`
 		),
 	)
 )
@@ -498,7 +518,8 @@ const profileMetadataFromProfileWire = (wire: {
 	((metadata) => (
 		metadata == null ?
 			undefined
-		:		{
+		:
+			{
 				name: typeof metadata.name === 'string' ? metadata.name : undefined,
 				display_name: typeof metadata.display_name === 'string' ? metadata.display_name : undefined,
 				about: typeof metadata.about === 'string' ? metadata.about : undefined,
@@ -513,10 +534,12 @@ const profileMetadataFromProfileWire = (wire: {
 	?? (
 		wire?.profile?.kind != null && wire.profile.kind !== 0 ?
 			undefined
-		:	profileMetadataFromContent(
+		:
+			profileMetadataFromContent(
 				typeof wire?.profile?.content === 'string' ?
 					wire.profile.content
-				:		undefined,
+				:
+					undefined,
 			)
 	)
 )
@@ -529,17 +552,20 @@ const relayFieldValuesFromWire = (relay: NostrBandRelayStats) => ({
 	...(
 		relay.nips?.length != null && Number.isFinite(relay.nips.length) ?
 			{ supportedNipCount: relay.nips.length }
-		:		{}
+		:
+			{}
 	),
 	...(relay.is_paid === true || relay.paid === true ?
 		{ isPaid: true }
 	:		relay.is_paid === false || relay.paid === false ?
 			{ isPaid: false }
-		:		{}),
+		:
+			{}),
 	...(
 		relay.limit != null && Number.isFinite(relay.limit) ?
 			{ limit: relay.limit }
-		:		{}
+		:
+			{}
 	),
 })
 
@@ -589,7 +615,7 @@ export default {
 				}
 				const relay = (
 					((await singleFlight(listTopRelays)(100)).relays ?? [])
-						.find((row) => relayUrlFromWire(row) === relayUrl)
+						.find((relay) => relayUrlFromWire(relay) === relayUrl)
 				)
 				if (relay != null) {
 					return relayFieldValuesFromWire(relay)
@@ -663,13 +689,13 @@ export default {
 				const limit = resolverLoadSubsetRowLimit(context)
 				const event = (
 					((await singleFlight(listAuthorArticles)(pubkey, limit)).events ?? [])
-						.find((row) => (
-							row.kind === 30023
-							&& normalizePubkey(row.pubkey) === pubkey
+						.find((noteEvent) => (
+							noteEvent.kind === 30023
+							&& normalizePubkey(noteEvent.pubkey) === pubkey
                             && (
                                 (
-                                    Array.isArray(row.tags)
-                                    && row.tags.find((tag) => (
+                                    Array.isArray(noteEvent.tags)
+                                    && noteEvent.tags.find((tag) => (
                                         Array.isArray(tag)
                                         && tag[0] === 'd'
                                         && tag[1] === identifier
@@ -696,11 +722,12 @@ export default {
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
 					((await singleFlight(listTopProfiles)(limit)).profiles ?? [])
-						.flatMap((row) => {
-							const pubkey = normalizePubkey(row.pubkey ?? (
-								typeof row.profile?.pubkey === 'string' ?
-									row.profile.pubkey
-								:			undefined
+						.flatMap((topProfile) => {
+							const pubkey = normalizePubkey(topProfile.pubkey ?? (
+								typeof topProfile.profile?.pubkey === 'string' ?
+									topProfile.profile.pubkey
+								:
+									undefined
 							))
 							if (pubkey == null) return []
 							return [{
@@ -722,7 +749,8 @@ export default {
 						.flatMap((event) => (
 							event.kind !== 1 || normalizeEventId(event.id) == null ?
 								[]
-							:						[
+							:
+								[
 														{
 															[EntityMetaKey.Id]: { eventId: normalizeEventId(event.id)! },
 														},
@@ -740,11 +768,11 @@ export default {
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
 					((await singleFlight(listTopRelays)(limit)).relays ?? [])
-						.flatMap((row) => {
-							const rowRelayUrl = relayUrlFromWire(row)
-							if (rowRelayUrl == null) return []
+						.flatMap((relay) => {
+							const relayUrl = relayUrlFromWire(relay)
+							if (relayUrl == null) return []
 							return [{
-								[EntityMetaKey.Id]: { relayUrl: rowRelayUrl },
+								[EntityMetaKey.Id]: { relayUrl: relayUrl },
 							}]
 						})
 				)
@@ -762,7 +790,8 @@ export default {
 						.flatMap((event) => (
 							!isNostrRepostKind(event.kind) || normalizeEventId(event.id) == null ?
 								[]
-							:						[
+							:
+								[
 														{
 															[EntityMetaKey.Id]: { eventId: normalizeEventId(event.id)! },
 														},
@@ -796,7 +825,8 @@ export default {
 						.flatMap((event) => (
 							event.kind !== 1 || normalizeEventId(event.id) == null ?
 								[]
-							:						[
+							:
+								[
 														{
 															[EntityMetaKey.Id]: { eventId: normalizeEventId(event.id)! },
 														},
@@ -830,7 +860,8 @@ export default {
 						.flatMap((event) => (
 							!isNostrRepostKind(event.kind) || normalizeEventId(event.id) == null ?
 								[]
-							:						[
+							:
+								[
 														{
 															[EntityMetaKey.Id]: { eventId: normalizeEventId(event.id)! },
 														},
@@ -882,7 +913,8 @@ export default {
 						.flatMap((event) => (
 							event.kind !== 1 || normalizeEventId(event.id) == null ?
 								[]
-							:						[
+							:
+								[
 														{
 															[EntityMetaKey.Id]: { eventId: normalizeEventId(event.id)! },
 														},
@@ -903,7 +935,8 @@ export default {
 						.flatMap((event) => (
 							event.kind !== 7 || normalizeEventId(event.id) == null ?
 								[]
-							:		[
+							:
+								[
 										{
 											[EntityMetaKey.Id]: { eventId: normalizeEventId(event.id)! },
 										},
@@ -926,7 +959,8 @@ export default {
 				return (
 					normalizedReplyTo == null ?
 						undefined
-					:			{
+					:
+						{
 								[EntityMetaKey.Id]: { eventId: normalizedReplyTo },
 							}
 				)

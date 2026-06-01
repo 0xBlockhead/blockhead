@@ -6,6 +6,7 @@ import {
 } from '$/sources/$SourceProvider.ts'
 import {
 	coinsOrigin,
+	iconsOrigin,
 	proOrigin,
 } from '$/sources/Defillama/Rest/constants.ts'
 import DefillamaOpenApiSource from '$/sources/Defillama/OpenApi/index.ts'
@@ -20,6 +21,10 @@ export default {
 	origins: [
 		{
 			origin: coinsOrigin,
+			corsEnabled: false,
+		},
+		{
+			origin: iconsOrigin,
 			corsEnabled: false,
 		},
 		{

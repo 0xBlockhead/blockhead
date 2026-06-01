@@ -12,28 +12,25 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// State
 	let {
 		entityFieldReference,
 		title = 'Validators',
 		open = $bindable(true),
-		collapsible = true,
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BeaconValidator>
 			title?: string
 			open?: boolean
-			collapsible?: boolean
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id',
-			| 'href'
+			| 'collapsible'
 			| 'CollapsibleProps'
 		>
 	> = $props()
@@ -47,8 +44,6 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import OrderedList from '$/components/OrderedList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import BeaconValidatorView from '$/views/BeaconValidatorView.svelte'
 </script>
 
@@ -57,11 +52,13 @@
 	entityType={EntityType.BeaconValidator}
 	{title}
 	bind:open
+	{id}
+	href={href}
 	{...EntitiesListProps}
 >
-	{#snippet body({ open: _bodyOpen })}
+	{#snippet body()}
 		{#if open}
-			{@const network = useEntity(
+			{@const parent = useEntity(
 				EntityType.EvmNetwork,
 				entityFieldReference.entityId,
 				{
@@ -74,42 +71,40 @@
 				},
 			)}
 			{@const validators = derive(
-				network,
-				(network): Entity<typeof schema, EntityType.BeaconValidator>[] => (
-					network[entityFieldReference.fieldName]
+				parent,
+				(parent): Entity<typeof schema, EntityType.BeaconValidator>[] => (
+					parent[entityFieldReference.fieldName]
 					?? []
 				),
 			)}
 			{#key stringify(entityFieldReference.entityId)}
-				<ResourceBoundary
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.BeaconValidator}
+					id={`${id}-items`}
+					href={href}
+					getKey={(validator) => String(validator[EntityMetaKey.Id].validatorIndex)}
 					placeholderText="Loading validators…"
 					resource={validators}
+					{title}
+					UnorderedListProps={{ orientation: ListOrientation.Column }}
+					open={true}
 				>
-					{#snippet children(validators)}
-						<OrderedList
-							getKey={(row) => (
-								String(row[EntityMetaKey.Id].validatorIndex)
-							)}
-							items={validators}
-							orientation={ListOrientation.Column}
-							placeholderRanges={[]}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">
-									No validators yet.
-								</p>
-							{/snippet}
-
-							{#snippet Item({ item })}
-								<BeaconValidatorView
-									entityId={item[EntityMetaKey.Id]}
-									layout={EntityLayout.Summary}
-									open={false}
-								/>
-							{/snippet}
-						</OrderedList>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No validators yet.
+						</p>
 					{/snippet}
-				</ResourceBoundary>
+
+					{#snippet Item({ item: validator })}
+						<BeaconValidatorView
+							entityId={validator[EntityMetaKey.Id]}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/key}
 		{/if}
 	{/snippet}

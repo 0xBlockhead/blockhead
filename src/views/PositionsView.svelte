@@ -17,12 +17,16 @@
 		entityFieldReference,
 		open = $bindable(true),
 		title = 'Positions',
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.LiquidityPosition>
 			open?: boolean
 			title?: string
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -55,29 +59,6 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {},
-		},
-	)
-
-	const liquidityPositions = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.LiquidityPosition>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return (
-				rows.map((value) => ({
-					value,
-				}))
-			)
-		},
-	)
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -93,33 +74,68 @@
 	data-entity-field-parent={stringify(entityFieldReference.entityId)}
 	data-entity-field-type={entityFieldReference.entityType}
 	entityType={EntityType.LiquidityPosition}
-	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
-	placeholderText="Loading positions…"
-	resource={liquidityPositions}
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Concentrated-liquidity positions: tick range, in-range liquidity, uncollected fees, and optional ERC-721 token id on a pool row.
-		</p>
-		<p>
-			Not standalone pool contracts or generic wallet token balances.
-		</p>
-	{/snippet}
+			<p>
+				Concentrated-liquidity positions: tick range, in-range liquidity, uncollected fees, and optional ERC-721 token id on a pool row.
+			</p>
+			<p>
+				Not standalone pool contracts or generic wallet token balances.
+			</p>
+		{/snippet}
 
-	{#snippet Empty()}
-		<p data-text="muted">
-			No LP positions indexed yet.
-		</p>
-	{/snippet}
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			[entityFieldReference.fieldName]: {},
+		},
+	)}
+			{@const liquidityPositions = derive(
+		parent,
+		(parent) => {
+			const rows: Entity<typeof schema, EntityType.LiquidityPosition>[] = (
+				parent[entityFieldReference.fieldName] ?? []
+			)
+			return (
+				rows.map((value) => ({
+					value,
+				}))
+			)
+		},
+	)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.LiquidityPosition}
+				id={`${id}-items`}
+				href={href}
+				{title}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
+				placeholderText="Loading positions…"
+				resource={liquidityPositions}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+						<p data-text="muted">
+							No LP positions indexed yet.
+						</p>
+					{/snippet}
 
-	{#snippet Item({ item })}
-		<LiquidityPositionView
-			entityId={item.value[EntityMetaKey.Id]}
-			layout={EntityLayout.Summary}
-			open={false}
-		/>
+				{#snippet Item({ item })}
+						<LiquidityPositionView
+							entityId={item.value[EntityMetaKey.Id]}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/snippet}
+
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

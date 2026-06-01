@@ -9,30 +9,31 @@ import type {
 	MastodonApiV1Status,
 } from '$/sources/Mastodon/Rest/types.ts'
 
-export const mastodonGetAccount = async (
+export const getAccount = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 	localAccountId: string,
 ) => (
 	localAccountId.includes('@') ?
 		mastodonGet<MastodonApiV1Account>(publicEnv, '/accounts/lookup', { acct: localAccountId })
-	:	mastodonGet<MastodonApiV1Account>(publicEnv, `/accounts/${encodeURIComponent(localAccountId)}`)
+	:
+		mastodonGet<MastodonApiV1Account>(publicEnv, `/accounts/${encodeURIComponent(localAccountId)}`)
 )
 
-export const mastodonGetStatus = async (
+export const getStatus = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 	localStatusId: string,
 ) => (
 	mastodonGet<MastodonApiV1Status>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}`)
 )
 
-export const mastodonGetStatusContext = async (
+export const getStatusContext = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 	localStatusId: string,
 ) => (
 	mastodonGet<MastodonApiV1Context>(publicEnv, `/statuses/${encodeURIComponent(localStatusId)}/context`)
 )
 
-export const mastodonListAccountStatuses = async (
+export const listAccountStatuses = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 	localAccountId: string,
 	limit: number,
@@ -53,13 +54,13 @@ export const mastodonListAccountStatuses = async (
 	)
 }
 
-export const mastodonGetInstance = async (
+export const getInstance = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 ) => (
 	mastodonGet<MastodonApiV1Instance>(publicEnv, '/instance')
 )
 
-export const mastodonListPublicTimeline = async (
+export const listPublicTimeline = async (
 	publicEnv: SourcePublicEnvFor<Source.Mastodon_Rest>,
 	limit: number,
 ) => (

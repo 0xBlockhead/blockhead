@@ -71,7 +71,7 @@ const registrationUriFromDetail = (
 	return undefined
 }
 
-export const fetchEip8004ScanAgentList = async ({
+export const fetchAgentList = async ({
 	limit = 100,
 	page = 1,
 }: {
@@ -88,7 +88,7 @@ export const fetchEip8004ScanAgentList = async ({
 	)
 }
 
-export const fetchEip8004ScanAgentDetail = async ({
+export const fetchAgentDetail = async ({
 	chainId,
 	identityId,
 }: {

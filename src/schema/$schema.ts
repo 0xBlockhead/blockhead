@@ -118,7 +118,8 @@ export type EntityFieldValueFromDefinition<
 			[EntityFieldCardinality.ZeroOrMany]: _PrimitiveType['infer'][] | undefined
 		}[_EntityFieldDefinition['cardinality']]
 
-	: _EntityFieldDefinition extends {
+	:
+		_EntityFieldDefinition extends {
 		type: EntityFieldType.EntityReference
 		entityType: infer _RefEntityType extends EntityType<_Schema>
 	} ?
@@ -128,7 +129,8 @@ export type EntityFieldValueFromDefinition<
 			[EntityFieldCardinality.One]: Entity<_Schema, _RefEntityType>
 		}[_EntityFieldDefinition['cardinality']]
 
-	: _EntityFieldDefinition extends {
+	:
+		_EntityFieldDefinition extends {
 		type: EntityFieldType.EntitiesReference
 		entityType: infer _RefEntityType extends EntityType<_Schema>
 	} ?

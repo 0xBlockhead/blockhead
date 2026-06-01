@@ -91,19 +91,19 @@ const globalPairSearchEntityRows = async ({
 	context?: ResolverLoadSubset
 	q: string
 }) => {
-	const { getDexscreenerPairSearch } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
+	const { getPairSearch } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
 	const { numericChainIdByDexscreenerApiChainLabel } = await import(
 		'$/sources/Dexscreener/OpenApi/constants.ts',
 	)
 
-		const rows: {
+		const liquidityPools: {
 			[EntityMetaKey.Id]: {
 				$network: { caip2: { namespace: 'eip155', reference: string } }
 				id: string
 			}
 		}[] = []
 
-	const { pairs } = await getDexscreenerPairSearch({ q })
+	const { pairs } = await getPairSearch({ q })
 
 	for (const pair of pairs ?? []) {
 		const chainKey = pair.chainId?.trim()
@@ -120,13 +120,13 @@ const globalPairSearchEntityRows = async ({
 
 		if (!isEvmContractAddress(pairIdCandidate)) continue
 
-			const already = rows.some((row) => (
-				row[EntityMetaKey.Id].id === pairIdCandidate
-				&& row[EntityMetaKey.Id].$network.caip2.reference === String(chainIdNum)
+			const already = liquidityPools.some((liquidityPool) => (
+				liquidityPool[EntityMetaKey.Id].id === pairIdCandidate
+				&& liquidityPool[EntityMetaKey.Id].$network.caip2.reference === String(chainIdNum)
 			))
 		if (already) continue
 
-		rows.push({
+		liquidityPools.push({
 			[EntityMetaKey.Id]: {
 					$network: {
 						caip2: { namespace: 'eip155' as const, reference: String(chainIdNum) },
@@ -138,7 +138,7 @@ const globalPairSearchEntityRows = async ({
 
 	const lim = resolverLoadSubsetRowLimit(context)
 
-	const sliced = rows.slice(0, lim)
+	const sliced = liquidityPools.slice(0, lim)
 	if (sliced.length === 0) {
 		throw new Error(`Dexscreener_OpenApi: pair search ${JSON.stringify(q)} returned no liquidity pools`)
 	}
@@ -153,7 +153,7 @@ export default {
 			entityType: EntityType.LiquidityPool,
 			resolve: async (entityId) => {
 				const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
-				const { getDexscreenerLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
+				const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
 
 					const chainId = Number(entityId.$network.caip2.reference)
 				const apiChainId = apiChainIdByChainId[chainId]
@@ -161,7 +161,7 @@ export default {
 					throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
 				}
 				const latestDexPair = (
-					(await getDexscreenerLatestPairs({
+					(await getLatestPairs({
 						chainId: apiChainId,
 						pairId: entityId.id,
 					})).pairs?.[0]
@@ -182,7 +182,7 @@ export default {
 			entityType: EntityType.LiquidityPool_Timestamp,
 			resolve: async (entityId) => {
 				const { apiChainIdByChainId } = await import('$/sources/Dexscreener/OpenApi/constants.ts')
-				const { getDexscreenerLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
+				const { getLatestPairs } = await import('$/sources/Dexscreener/OpenApi/queries.ts')
 
 				const chainId = Number(entityId.$liquidityPool.$network.caip2.reference)
 				const apiChainId = apiChainIdByChainId[chainId]
@@ -190,7 +190,7 @@ export default {
 					throw new Error(`Dexscreener_OpenApi: unsupported chain ${String(chainId)}`)
 				}
 				const latestDexPair = (
-					(await getDexscreenerLatestPairs({
+					(await getLatestPairs({
 						chainId: apiChainId,
 						pairId: entityId.$liquidityPool.id,
 					})).pairs?.[0]
@@ -237,7 +237,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.LiquidityPool_Timestamp,
-			fieldName: '$$parentLiquidityPool',
+			fieldName: '$parentLiquidityPool',
 			resolve: async (entityId) => ({
 				[EntityMetaKey.Id]: entityId.$liquidityPool,
 			}),

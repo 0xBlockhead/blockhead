@@ -3,6 +3,8 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
+import { bitcoinMainnetCaip2 } from '$/constants/BitcoinNetwork.ts'
+import { lightningMempoolSpaceRestBaseUrl, lightningNetworkId } from '$/constants/LightningNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannel.ts'
@@ -15,23 +17,14 @@ import type {
 	MempoolSpaceLightningStatistics,
 } from '$/sources/LightningMempoolSpace/Rest/types.ts'
 
-const lightningMempoolSpaceRestBaseUrl = 'https://mempool.space/api/v1/lightning'
-
-const lightningNetwork = {
-	networkSlug: 'lightning',
-} as const
-
 const bitcoinMainnet = {
-	caip2: {
-		namespace: 'bip122',
-		reference: '000000000019d6689c085ae165831e93',
-	},
+	caip2: bitcoinMainnetCaip2,
 } as const
 
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
 const assertLightningNetwork = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== lightningNetwork.networkSlug) {
+	if (!('networkSlug' in network) || network.networkSlug !== lightningNetworkId.networkSlug) {
 		throw new Error('LightningMempoolSpace_Rest: unsupported Lightning network')
 	}
 }
@@ -39,19 +32,22 @@ const assertLightningNetwork = (network: NetworkId) => {
 const bigintFromWire = (value: number | string | null | undefined): bigint | undefined => (
 	value == null ?
 		undefined
-	:	BigInt(value)
+	:
+		BigInt(value)
 )
 
 const timestampMsFromSeconds = (seconds: number | null | undefined): number | undefined => (
 	seconds == null ?
 		undefined
-	:	seconds * 1000
+	:
+		seconds * 1000
 )
 
 const timestampMsFromIso = (iso: string | null | undefined): number | undefined => (
 	iso == null ?
 		undefined
-	:	Date.parse(iso)
+	:
+		Date.parse(iso)
 )
 
 const statusFromMempoolSpace = (status: number | null | undefined): LightningChannelStatus => (
@@ -59,7 +55,8 @@ const statusFromMempoolSpace = (status: number | null | undefined): LightningCha
 		LightningChannelStatus.Open
 	: status === 0 ?
 		LightningChannelStatus.Closed
-	:	LightningChannelStatus.Unknown
+	:
+		LightningChannelStatus.Unknown
 )
 
 const nodeReferenceFromPublicKey = (publicKey: string) => ({
@@ -83,7 +80,8 @@ const nodeFieldsFromMempoolSpaceNode = (
 	networkAddresses: (
 		node.sockets == null || node.sockets === '' ?
 			[]
-		:	node.sockets.split(',')
+		:
+			node.sockets.split(',')
 	),
 })
 

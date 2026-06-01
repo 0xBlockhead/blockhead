@@ -1,4 +1,4 @@
-// Types/constants
+// Types
 import type { CoinId } from '$/constants/Coin.ts'
 import { coins } from '$/constants/Coin.ts'
 import { Iso4217, iso4217WithCatalogUsdCrossAsBase } from '$/constants/Currency.ts'
@@ -58,7 +58,7 @@ export const catalogFiatUsdCrossMarketVenueId = MarketVenueId.Coinbase
 // Constants
 export const catalogCoinSpotUsdMarkets = coins.map((coin) => {
 	const marketVenueId = (
-		tradingViewMarketByCoinId[coin.id as CoinId]?.marketVenueId
+		tradingViewMarketByCoinId[coin.id]?.marketVenueId
 		?? MarketVenueId.Binance
 	)
 	const marketId = {
@@ -91,11 +91,12 @@ export const catalogSpotMarketsWithCoinAsQuote = coins.flatMap((quoteCoin) => (
 	coins.flatMap((coin) => (
 		coin.id === quoteCoin.id ?
 			[]
-		:	[{
+		:
+			[{
 			quoteCoinId: quoteCoin.id,
 			baseCoinId: coin.id,
 			marketVenueId: (
-				tradingViewMarketByCoinId[coin.id as CoinId]?.marketVenueId
+				tradingViewMarketByCoinId[coin.id]?.marketVenueId
 				?? MarketVenueId.Binance
 			),
 			marketId: {
@@ -109,7 +110,7 @@ export const catalogSpotMarketsWithCoinAsQuote = coins.flatMap((quoteCoin) => (
 				},
 				$marketVenue: {
 					marketVenueId: (
-						tradingViewMarketByCoinId[coin.id as CoinId]?.marketVenueId
+						tradingViewMarketByCoinId[coin.id]?.marketVenueId
 						?? MarketVenueId.Binance
 					),
 				},
@@ -126,7 +127,7 @@ export const catalogSpotMarketsWithCoinAsQuote = coins.flatMap((quoteCoin) => (
 
 export const catalogSpotMarketsWithCurrencyAsQuote = coins.map((coin) => {
 	const marketVenueId = (
-		tradingViewMarketByCoinId[coin.id as CoinId]?.marketVenueId
+		tradingViewMarketByCoinId[coin.id]?.marketVenueId
 		?? MarketVenueId.Binance
 	)
 

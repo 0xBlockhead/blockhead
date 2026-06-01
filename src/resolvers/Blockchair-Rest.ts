@@ -30,10 +30,10 @@ const blockchairChain = (
 	throw new Error(`Blockchair_Rest: unsupported UTXO network ${network.caip2.namespace}:${network.caip2.reference}`)
 }
 
-const firstDashboardRow = <_Row>(rows: Record<string, _Row>, subject: string) => {
-	const row = Object.values(rows)[0]
-	if (row == null) throw new Error(`Blockchair_Rest: no dashboard row for ${subject}`)
-	return row
+const firstDashboardRow = <_Row>(dashboardRows: Record<string, _Row>, subject: string) => {
+	const dashboardRow = Object.values(dashboardRows)[0]
+	if (dashboardRow == null) throw new Error(`Blockchair_Rest: no dashboard for ${subject}`)
+	return dashboardRow
 }
 
 const timestampMsFromBlockchairTime = (time: string | undefined) => (
@@ -111,10 +111,10 @@ const getTransactionDashboard = async (entityId: {
 	$network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 	txId: string
 }) => {
-	const { getBlockchairBitcoinLikeTransactionDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
+	const { getBitcoinLikeTransactionDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
 	return firstDashboardRow(
 		(
-			await getBlockchairBitcoinLikeTransactionDashboard({
+			await getBitcoinLikeTransactionDashboard({
 				chain: blockchairChain(entityId.$network),
 				transactionHash: entityId.txId,
 			})
@@ -142,10 +142,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: async (entityId) => {
-				const { getBlockchairBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
-				const row = firstDashboardRow(
+				const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
+				const dashboard = firstDashboardRow(
 					(
-						await getBlockchairBitcoinLikeBlockDashboard({
+						await getBitcoinLikeBlockDashboard({
 							chain: blockchairChain(entityId.$network),
 							block: entityId.hash ?? entityId.height,
 						})
@@ -153,16 +153,16 @@ export default {
 					entityId.hash ?? entityId.height.toString(),
 				)
 				return {
-					hash: row.block.hash,
-					timestampMs: row.block.time == null ? undefined : Date.parse(row.block.time),
-					merkleRoot: row.block.merkle_root,
-					...(row.block.nonce != null && {
-						nonce: BigInt(row.block.nonce),
+					hash: dashboard.block.hash,
+					timestampMs: dashboard.block.time == null ? undefined : Date.parse(dashboard.block.time),
+					merkleRoot: dashboard.block.merkle_root,
+					...(dashboard.block.nonce != null && {
+						nonce: BigInt(dashboard.block.nonce),
 					}),
-					difficulty: row.block.difficulty,
-					sizeBytes: row.block.size,
-					weightUnits: row.block.weight,
-					transactionCount: row.block.transaction_count,
+					difficulty: dashboard.block.difficulty,
+					sizeBytes: dashboard.block.size,
+					weightUnits: dashboard.block.weight,
+					transactionCount: dashboard.block.transaction_count,
 				}
 			},
 		}),
@@ -170,25 +170,25 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.UtxoTransaction,
 			resolve: async (entityId) => {
-				const row = await getTransactionDashboard(entityId)
+				const transactionDashboard = await getTransactionDashboard(entityId)
 				return {
-					...(row.transaction.block_id != null && {
+					...(transactionDashboard.transaction.block_id != null && {
 						$block: {
 							[EntityMetaKey.Id]: {
 								$network: entityId.$network,
-								height: BigInt(row.transaction.block_id),
+								height: BigInt(transactionDashboard.transaction.block_id),
 							},
 						},
 					}),
-					version: row.transaction.version,
-					lockTime: row.transaction.lock_time,
-					sizeBytes: row.transaction.size,
-					virtualSizeBytes: row.transaction.size,
-					weightUnits: row.transaction.weight,
-					...(row.transaction.fee != null && {
-						feeSats: BigInt(row.transaction.fee),
+					version: transactionDashboard.transaction.version,
+					lockTime: transactionDashboard.transaction.lock_time,
+					sizeBytes: transactionDashboard.transaction.size,
+					virtualSizeBytes: transactionDashboard.transaction.size,
+					weightUnits: transactionDashboard.transaction.weight,
+					...(transactionDashboard.transaction.fee != null && {
+						feeSats: BigInt(transactionDashboard.transaction.fee),
 					}),
-					isCoinbase: row.transaction.is_coinbase,
+					isCoinbase: transactionDashboard.transaction.is_coinbase,
 				}
 			},
 		}),
@@ -271,8 +271,8 @@ export default {
 			entityType: EntityType.UtxoNetwork,
 			fieldName: '$headBlock',
 			resolve: async (entityId) => {
-				const { getBlockchairBlocks } = await import('$/sources/Blockchair/Rest/queries.ts')
-				const blocks = (await getBlockchairBlocks<BlockchairBitcoinLikeBlock>({
+				const { getBlocks } = await import('$/sources/Blockchair/Rest/queries.ts')
+				const blocks = (await getBlocks<BlockchairBitcoinLikeBlock>({
 					chain: blockchairChain(entityId),
 					params: { sort: 'id(desc)', limit: 1 },
 				})).data
@@ -285,8 +285,8 @@ export default {
 			entityType: EntityType.UtxoNetwork,
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
-				const { getBlockchairBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
-				const stats = (await getBlockchairBitcoinLikeStats({
+				const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')
+				const stats = (await getBitcoinLikeStats({
 					chain: blockchairChain(entityId),
 				})).data
 				return [
@@ -305,8 +305,8 @@ export default {
 			entityType: EntityType.UtxoNetwork,
 			fieldName: '$$blocks',
 			resolve: async (entityId, context) => {
-				const { getBlockchairBlocks } = await import('$/sources/Blockchair/Rest/queries.ts')
-				return (await getBlockchairBlocks<BlockchairBitcoinLikeBlock>({
+				const { getBlocks } = await import('$/sources/Blockchair/Rest/queries.ts')
+				return (await getBlocks<BlockchairBitcoinLikeBlock>({
 					chain: blockchairChain(entityId),
 					params: {
 						sort: 'id(desc)',
@@ -323,8 +323,8 @@ export default {
 			entityType: EntityType.UtxoNetwork,
 			fieldName: '$$transactions',
 			resolve: async (entityId, context) => {
-				const { getBlockchairTransactions } = await import('$/sources/Blockchair/Rest/queries.ts')
-				return (await getBlockchairTransactions<BlockchairBitcoinLikeTransaction>({
+				const { getTransactions } = await import('$/sources/Blockchair/Rest/queries.ts')
+				return (await getTransactions<BlockchairBitcoinLikeTransaction>({
 					chain: blockchairChain(entityId),
 					params: {
 						sort: 'id(desc)',
@@ -341,17 +341,17 @@ export default {
 			entityType: EntityType.UtxoBlock,
 			fieldName: '$$transactions',
 			resolve: async (entityId) => {
-				const { getBlockchairBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
-				const row = firstDashboardRow(
+				const { getBitcoinLikeBlockDashboard } = await import('$/sources/Blockchair/Rest/queries.ts')
+				const dashboard = firstDashboardRow(
 					(
-						await getBlockchairBitcoinLikeBlockDashboard({
+						await getBitcoinLikeBlockDashboard({
 							chain: blockchairChain(entityId.$network),
 							block: entityId.hash ?? entityId.height,
 						})
 					).data,
 					entityId.hash ?? entityId.height.toString(),
 				)
-				return row.transactions.map((transaction) => ({
+				return dashboard.transactions.map((transaction) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId.$network,
 						txId: transaction.hash,
@@ -373,8 +373,8 @@ export default {
 			entityType: EntityType.UtxoTransaction,
 			fieldName: '$$inputs',
 			resolve: async (entityId) => {
-				const row = await getTransactionDashboard(entityId)
-				return row.inputs.map((input, inputIndex) => (
+				const transactionDashboard = await getTransactionDashboard(entityId)
+				return transactionDashboard.inputs.map((input, inputIndex) => (
 					{
 						[EntityMetaKey.Id]: {
 							$transaction: entityId,
@@ -411,8 +411,8 @@ export default {
 			entityType: EntityType.UtxoTransaction,
 			fieldName: '$$outputs',
 			resolve: async (entityId) => {
-				const row = await getTransactionDashboard(entityId)
-				return row.outputs.map((output, outputIndex) => (
+				const transactionDashboard = await getTransactionDashboard(entityId)
+				return transactionDashboard.outputs.map((output, outputIndex) => (
 					{
 						[EntityMetaKey.Id]: {
 							$transaction: entityId,

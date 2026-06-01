@@ -139,6 +139,13 @@
 - Conditional spread in object literals: Prefer `...(condition && { … })` over `...(condition ? { … } : {})` when the alternate branch would be `{}`. (Array literals still need `(condition ? […] : [])` or similar: spreading a falsy value into an array is not valid.)
 - Prefer single expressions and inline logic
 - Declare intermediate variables and functions ONLY if referenced more than once, otherwise inline
+- Single-statement `if` blocks: no braces; statement on the next line, indented with a tab. If another statement follows at the same indent level, separate with a blank line.
+	```ts
+	if (condition)
+		statement
+
+	nextExpression
+	```
 - Declare functions with `const` UNLESS overloading signatures
 - Bare minimum type annotations. Remove if inferrable
 - Prefer `as const satisfies` for constants, NEVER `: Type`
@@ -469,6 +476,8 @@ Source definition shape:
 `$/resolvers/index.ts` imports `enabledSources` and keeps only resolver modules whose exported `source` is in that set; it then attaches `source` onto each resolver entry when flattening `entityResolvers` / `entityFieldResolvers`.
 
 Transport folders continue to hold network code (`queries.ts`, optional `client.ts`, `constants.ts`, `types.ts`, generated schema files). In resolvers, load `queries.ts` / `constants.ts` via inline `await import(...)` inside each `resolve(...)` instead of top-level imports. Stable wire shapes or resolver-facing types live in `types.ts` (not `queries.ts`). Import `sourcePublicEnv` from `$/resolvers/$resolvers.ts` at module top (do not dynamically import `$resolvers` inside `resolve`).
+
+- **`queries.ts` export naming:** Exports must start with a verb (usually `get`, `fetch`, `list`, `search`, `query`, `collect`, `stream`, `normalize`, `parse`, `iterate`, `lookup`, `count`, `narrow`, `debug`, `subscribe`). Do **not** include the source or transport name as a namespace-style prefix — the import path already provides that context (e.g. write `getProfile`, not `bskyGetProfile`; write `getCoin`, not `getCoingeckoCoin`; write `getBlockByNumber`, not `getBlockByNumberBlockscout` or `ethGetBlockByNumber`).
 
 ### OpenAPI schema codegen (`scripts/openapi-source.ts`)
 

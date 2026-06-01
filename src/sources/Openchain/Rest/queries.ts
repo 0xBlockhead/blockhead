@@ -10,12 +10,16 @@ import {
 } from '$/sources/Openchain/Rest/types.ts'
 
 const normalizeHex4 = (hex: `0x${string}`): `0x${string}` => {
-	const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase() : hex.toLowerCase()
+	const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase()
+	:
+		hex.toLowerCase()
 	return `0x${digits.padStart(8, '0').slice(-8)}`
 }
 
 const normalizeHex32 = (hex: `0x${string}`): `0x${string}` => {
-	const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase() : hex.toLowerCase()
+	const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase()
+	:
+		hex.toLowerCase()
 	return `0x${digits.padStart(64, '0').slice(-64)}`
 }
 
@@ -65,7 +69,7 @@ const assertOpenchainOk = (json: OpenchainLookupResponse) => {
  * Function or custom-error selector (4-byte) → signature entries from Sourcify’s OpenChain-compatible API,
  * then 4byte.directory when Sourcify has no rows (first page only).
  */
-export const getOpenchainFunctionEntries = async ({
+export const getFunctionEntries = async ({
 	hex,
 	filter,
 }: {
@@ -84,7 +88,7 @@ export const getOpenchainFunctionEntries = async ({
 /**
  * Event topic hash (32-byte) → signature entries, with 4byte.directory fallback (first page only).
  */
-export const getOpenchainEventEntries = async ({
+export const getEventEntries = async ({
 	hex,
 	filter,
 }: {
@@ -101,15 +105,15 @@ export const getOpenchainEventEntries = async ({
 }
 
 /**
- * Same lookup as {@link getOpenchainFunctionEntries}; keeps names that look like Solidity custom errors.
+ * Same lookup as {@link getFunctionEntries}; keeps names that look like Solidity custom errors.
  */
-export const getOpenchainErrorEntries = async ({
+export const getErrorEntries = async ({
 	hex,
 	filter,
 }: {
 	hex: `0x${string}`
 	filter?: boolean
 }): Promise<OpenchainSignatureEntry[]> => {
-	const all = await getOpenchainFunctionEntries({ hex, filter })
+	const all = await getFunctionEntries({ hex, filter })
 	return all.filter((e) => looksLikeSolidityErrorName(e.name))
 }

@@ -96,7 +96,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<div data-column="gap-1">
 			<dl data-column-item="center">
 				{#if open}

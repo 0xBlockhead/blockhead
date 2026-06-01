@@ -12,7 +12,7 @@
 
 
 	// Components
-	import ActorCoinsView from '$/views/ActorCoinsView.svelte'
+	import EvmNetworkActorCoinBalancesView from '$/views/EvmNetworkActorCoinBalancesView.svelte'
 	import EvmAccountsView from '$/views/EvmAccountsView.svelte'
 	import BlockheadWalletConnectionsView from '$/views/BlockheadWalletConnectionsView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
@@ -76,7 +76,7 @@
 					{/snippet}
 
 					{#snippet SectionBalances({ id, label })}
-						<ActorCoinsView
+						<EvmNetworkActorCoinBalancesView
 							href={resolve('/~/(accounts)/accounts/balances')}
 							entityFieldReference={{
 								entityType: EntityType._Global,

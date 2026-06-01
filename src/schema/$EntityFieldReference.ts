@@ -29,6 +29,7 @@ export type EntityFieldReference<
 				entityId: EntityId<_Schema, _Parent>
 				fieldName: _Field
 			}
-			: never
+			:
+				never
 	}[EntityFieldName<_Schema, _Parent>]
 }[EntityType<_Schema>]

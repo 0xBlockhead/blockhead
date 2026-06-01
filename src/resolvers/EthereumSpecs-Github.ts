@@ -1,14 +1,9 @@
 import { singleFlight } from '$/lib/singleFlight.ts'
+import { ethereumReferenceForkMetadataChainIds } from '$/constants/EthereumSpecs.ts'
 import { defineEntityFieldResolver } from '$/resolvers/$resolvers.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-
-const ethereumReferenceForkMetadataChainIds = new Set([
-	1,
-	11_155_111,
-	17_000,
-])
 
 export default {
 	source: Source.EthereumSpecs_Github,
@@ -44,13 +39,13 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			fieldName: 'goEthereumParamsConfigGo',
 			resolve: async (entityId) => {
-				if (!ethereumReferenceForkMetadataChainIds.has(Number(entityId.caip2.reference))) {
+				if (!ethereumReferenceForkMetadataChainIds.some((chainId) => chainId === Number(entityId.caip2.reference))) {
 					throw new Error(
 						`EthereumSpecs_Github: go-ethereum params unsupported for chain ${String(Number(entityId.caip2.reference))}`,
 					)
 				}
-				const { fetchGoEthereumParamsConfigGo } = await import('$/sources/EthereumSpecs/Github/queries.ts')
-				return singleFlight(fetchGoEthereumParamsConfigGo)()
+				const { fetchParamsConfigGo } = await import('$/sources/EthereumSpecs/Github/queries.ts')
+				return singleFlight(fetchParamsConfigGo)()
 			},
 		}),
 
@@ -59,10 +54,10 @@ export default {
 			fieldName: 'executionSpecsMainnetUpgradeMarkdown',
 			resolve: async (entityId) => {
 				const { networkExecutionUpgradeByChainIdAndUpgradeId } = await import('$/constants/EthereumNetworkUpgrades.ts')
-				const row = networkExecutionUpgradeByChainIdAndUpgradeId[
+				const networkUpgrade = networkExecutionUpgradeByChainIdAndUpgradeId[
 					`${Number(entityId.$network.caip2.reference)}:${entityId.upgradeId}`
 				]
-				const filename = row?.executionSpecsPinnedMarkdownFilename
+				const filename = networkUpgrade?.executionSpecsPinnedMarkdownFilename
 				if (filename == null) return undefined
 				const { fetchExecutionSpecsMainnetUpgradeMarkdown } = await import('$/sources/EthereumSpecs/Github/queries.ts')
 				return singleFlight(fetchExecutionSpecsMainnetUpgradeMarkdown)({ filename })

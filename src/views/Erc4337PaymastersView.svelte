@@ -17,20 +17,19 @@
 		entityFieldReference,
 		title = 'ERC-4337 paymasters',
 		open = $bindable(true),
-		collapsible = true,
 		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Erc4337Paymaster>
 			title?: string
 			open?: boolean
-			collapsible?: boolean
 			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
@@ -44,18 +43,16 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary, { Layout as ResourceBoundaryLayout } from '$/components/ResourceBoundary.svelte'
-	import UnorderedList from '$/components/UnorderedList.svelte'
 	import Erc4337PaymasterView from '$/views/Erc4337PaymasterView.svelte'
 </script>
 
 
 <EntitiesList
 	entityType={EntityType.Erc4337Paymaster}
-
 	{id}
 	{title}
 	bind:open
+	href={href}
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -64,7 +61,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body({ open: _bodyOpen })}
+	{#snippet body()}
 		{#if open}
 			{@const network = useEntity(
 				EntityType.EvmNetwork,
@@ -86,38 +83,35 @@
 			{@const paymasters = derive(
 				network,
 				(network): Entity<typeof schema, EntityType.Erc4337Paymaster>[] => (
-					network.$$erc4337Paymasters ?? []
+					(network.$$erc4337Paymasters ?? []).slice(0, 16)
 				),
 			)}
-			<div data-column="gap-3">
-				<ResourceBoundary
-					layout={ResourceBoundaryLayout.Block}
-					placeholderText="Loading paymasters…"
-					resource={paymasters}
-				>
-					{#snippet children(paymasters)}
-						<UnorderedList
-							getKey={(row) => stringify(row[EntityMetaKey.Id])}
-							getSortValue={(row) => BigInt(row[EntityMetaKey.Id].address)}
-							items={paymasters.slice(0, 16)}
-							orientation={ListOrientation.Column}
-							placeholderRanges={[]}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">No indexed paymasters yet.</p>
-							{/snippet}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.Erc4337Paymaster}
+				id={`${id}-items`}
+				href={href}
+				getKey={(paymaster) => stringify(paymaster[EntityMetaKey.Id])}
+				getSortValue={(paymaster) => BigInt(paymaster[EntityMetaKey.Id].address)}
+				placeholderText="Loading paymasters…"
+				resource={paymasters}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">No indexed paymasters yet.</p>
+				{/snippet}
 
-							{#snippet Item({ item })}
-								<Erc4337PaymasterView
-									entityId={item[EntityMetaKey.Id]}
-									layout={EntityLayout.Summary}
-									open={false}
-								/>
-							{/snippet}
-						</UnorderedList>
-					{/snippet}
-				</ResourceBoundary>
-			</div>
+				{#snippet Item({ item: paymaster })}
+					<Erc4337PaymasterView
+						entityId={paymaster[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -4,7 +4,7 @@
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
-	import { mastodonVisibilityLabels } from '$/constants/Social/MastodonVisibility.ts'
+	import { mastodonVisibilityByVisibility } from '$/constants/Social/MastodonVisibility.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
@@ -351,7 +351,7 @@
 							<div>
 								<dt>Visibility</dt>
 								<dd>
-									{mastodonVisibilityLabels[note.visibility] ?? note.visibility}
+									{mastodonVisibilityByVisibility[note.visibility]?.label ?? note.visibility}
 								</dd>
 							</div>
 						{/if}

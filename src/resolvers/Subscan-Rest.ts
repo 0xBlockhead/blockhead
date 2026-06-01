@@ -2,16 +2,22 @@ import {
 	defineEntityResolver,
 	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
+import {
+	polkadotMainnetCaip2,
+	subscanPolkadotRestBaseUrl,
+} from '$/constants/PolkadotNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const subscanPolkadotRestUrl = 'https://polkadot.api.subscan.io'
-
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
 const assertPolkadotMainnet = (network: NetworkId) => {
-	if (!('caip2' in network) || network.caip2.namespace !== 'polkadot' || network.caip2.reference !== '91b171bb158e2d3848fa23a9f1c25182') {
+	if (
+		!('caip2' in network)
+		|| network.caip2.namespace !== polkadotMainnetCaip2.namespace
+		|| network.caip2.reference !== polkadotMainnetCaip2.reference
+	) {
 		throw new Error('Subscan_Rest: unsupported network')
 	}
 }
@@ -26,7 +32,7 @@ export default {
 				assertPolkadotMainnet(entityId.$network)
 				const { getBlock } = await import('$/sources/Subscan/Rest/queries.ts')
 				const block = (await getBlock({
-					restBaseUrl: subscanPolkadotRestUrl,
+					restBaseUrl: subscanPolkadotRestBaseUrl,
 					height: entityId.blockNumber,
 					publicEnv: sourcePublicEnv(context, Source.Subscan_Rest),
 				})).data
@@ -53,7 +59,7 @@ export default {
 				assertPolkadotMainnet(entityId.$block.$network)
 				const { getExtrinsic } = await import('$/sources/Subscan/Rest/queries.ts')
 				const extrinsic = (await getExtrinsic({
-					restBaseUrl: subscanPolkadotRestUrl,
+					restBaseUrl: subscanPolkadotRestBaseUrl,
 					extrinsicIndex: `${entityId.$block.blockNumber.toString()}-${entityId.extrinsicIndex}`,
 					publicEnv: sourcePublicEnv(context, Source.Subscan_Rest),
 				})).data

@@ -34,7 +34,7 @@ export default {
 			resolve: async (entityId, context) => {
 				const { CoinId, coinById, coinBySymbol } = await import('$/constants/Coin.ts')
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
-				const { getAlliumTokensByChainAddress } = await import('$/sources/Allium/Rest/queries.ts')
+				const { getTokensByChainAddress } = await import('$/sources/Allium/Rest/queries.ts')
 
 				const publicEnv = sourcePublicEnv(context, Source.Allium_Rest)
 				if (entityId.type === CoinInstanceType.NativeCurrency) {
@@ -66,7 +66,7 @@ export default {
 				if (apiChain == null) throw new Error('Allium_Rest: chain not supported by Allium API')
 
 				const token = (
-					await getAlliumTokensByChainAddress({
+					await getTokensByChainAddress({
 						publicEnv,
 						apiChain,
 						tokenAddress: entityId.$contract.address,
@@ -114,14 +114,14 @@ export default {
 			entityType: EntityType.ActorCoin,
 			resolve: async (entityId, context) => {
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
-				const { getAlliumLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
+				const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
 
 				const publicEnv = sourcePublicEnv(context, Source.Allium_Rest)
 				const apiChain = apiChainByChainId[Number(entityId.$coinInstance.$network.caip2.reference)]
 				if (apiChain == null) throw new Error('Allium_Rest: chain not supported for wallet balances')
 
-				const row = (
-					(await getAlliumLatestWalletBalances({
+				const walletTokenBalance = (
+					(await getLatestWalletBalances({
 						publicEnv,
 						address: entityId.$actor.address,
 						apiChain,
@@ -141,18 +141,18 @@ export default {
 							)
 						))
 				)
-				const token = row?.token
+				const token = walletTokenBalance?.token
 				if (
-					row == null
+					walletTokenBalance == null
 					|| token == null
-					|| row.raw_balance == null && row.raw_balance_str == null
+					|| walletTokenBalance.raw_balance == null && walletTokenBalance.raw_balance_str == null
 					|| token.info == null
 					|| token.info.symbol == null
 					|| token.info.symbol.trim() === ''
 					|| token.decimals == null
-				) throw new Error('Allium_Rest: wallet token row incomplete')
+				) throw new Error('Allium_Rest: wallet token balance incomplete')
 
-				const balance = BigInt(row.raw_balance_str ?? String(row.raw_balance ?? 0))
+				const balance = BigInt(walletTokenBalance.raw_balance_str ?? String(walletTokenBalance.raw_balance ?? 0))
 
 				return {
 					symbol: token.info.symbol.trim().toUpperCase(),
@@ -178,7 +178,7 @@ export default {
 			fieldName: '$$ownedCoins',
 			resolve: async (entityId, context) => {
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
-				const { getAlliumLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
+				const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
 				type ActorCoinEntityId = import('$/schema/$schema.ts').EntityId<
 					typeof import('$/schema/index.ts').schema,
 					EntityType.ActorCoin
@@ -191,7 +191,7 @@ export default {
 				}
 
 				return (
-					(await getAlliumLatestWalletBalances({
+					(await getLatestWalletBalances({
 						publicEnv,
 						address: entityId.$actor.address,
 						apiChain,
@@ -209,13 +209,15 @@ export default {
 										},
 									},
 								} satisfies { [EntityMetaKey.Id]: ActorCoinEntityId }]
-							: balanceRow.token?.type === 'evm_erc20'
+							:
+								balanceRow.token?.type === 'evm_erc20'
 								&& Hex.isHex(balanceRow.token.address)
 								&& Hex.size(balanceRow.token.address) === 20 ?
 								((address) => (
 									address == null ?
 										[]
-									:	[{
+									:
+										[{
 											[EntityMetaKey.Id]: {
 												$actor: entityId.$actor,
 												$coinInstance: {
@@ -242,7 +244,7 @@ export default {
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
 				const { readNormalizedLocalInternal } = await import('$/sources/Local/Internal/catalog.ts')
 				const { apiChainByChainId } = await import('$/sources/Allium/Rest/constants.ts')
-				const { getAlliumLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
+				const { getLatestWalletBalances } = await import('$/sources/Allium/Rest/queries.ts')
 				type ActorCoinEntityId = EntityId<typeof schema, EntityType.ActorCoin>
 
 				const publicEnv = sourcePublicEnv(context, Source.Allium_Rest)
@@ -258,7 +260,7 @@ export default {
 						const networkId = evmNetworkIdFromChainId(chainId)
 						if (apiChain == null) continue
 						actorCoinRows.push(
-							...(await getAlliumLatestWalletBalances({
+							...(await getLatestWalletBalances({
 								publicEnv,
 								address: actor.address,
 								apiChain,
@@ -276,13 +278,15 @@ export default {
 												},
 											},
 										} satisfies { [EntityMetaKey.Id]: ActorCoinEntityId }]
-									: balanceRow.token?.type === 'evm_erc20'
+									:
+										balanceRow.token?.type === 'evm_erc20'
 										&& Hex.isHex(balanceRow.token.address)
 										&& Hex.size(balanceRow.token.address) === 20 ?
 										((address) => (
 											address == null ?
 												[]
-											:	[{
+											:
+												[{
 													[EntityMetaKey.Id]: {
 														$actor: { address: actor.address as `0x${string}` },
 														$coinInstance: {

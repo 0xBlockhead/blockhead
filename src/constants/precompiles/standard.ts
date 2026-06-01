@@ -5,7 +5,7 @@
 
 import type { PrecompileEntry } from '$/constants/precompiles/types.ts'
 
-export const standardPrecompiles: readonly PrecompileEntry[] = [
+export const standardPrecompiles = [
 	{ address: '0x0000000000000000000000000000000000000001', name: 'ecrecover' },
 	{ address: '0x0000000000000000000000000000000000000002', name: 'sha256' },
 	{ address: '0x0000000000000000000000000000000000000003', name: 'ripemd160' },
@@ -16,4 +16,4 @@ export const standardPrecompiles: readonly PrecompileEntry[] = [
 	{ address: '0x0000000000000000000000000000000000000008', name: 'ecPairing' },
 	{ address: '0x0000000000000000000000000000000000000009', name: 'blake2f' },
 	{ address: '0x000000000000000000000000000000000000000a', name: 'pointEvaluation' },
-]
+] as const satisfies readonly PrecompileEntry[]

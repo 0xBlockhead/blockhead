@@ -24,6 +24,12 @@ export const useNavigationItems = () => {
 					icon: '🪙',
 				},
 				{
+					id: 'local-allowances',
+					title: 'Allowances',
+					href: '/~/accounts/allowances',
+					icon: '🔓',
+				},
+				{
 					id: 'local-positions',
 					title: 'Positions',
 					href: '/~/accounts/positions',

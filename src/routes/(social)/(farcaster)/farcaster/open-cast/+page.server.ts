@@ -14,7 +14,9 @@ export const load: PageServerLoad = async ({ url }) => {
 	}
 
 	const raw = url.searchParams.get('u') ?? url.searchParams.get('url')
-	const clientUrl = typeof raw === 'string' ? raw.trim() : ''
+	const clientUrl = typeof raw === 'string' ? raw.trim()
+	:
+		''
 
 	if (clientUrl === '' || !clientUrl.startsWith('http')) {
 		redirect(303, resolve('/farcaster/feed'))

@@ -8,8 +8,8 @@
 	import type { WithRest } from '$/typescript/WithRest.ts'
 
 	import {
-		swarmResourceHref,
-		swarmResourceCanonicalUri,
+		getResourceHref,
+		getResourceCanonicalUri,
 	} from '$/sources/Swarm/Rest/queries.ts'
 
 	import { stringify } from 'devalue'
@@ -22,7 +22,7 @@
 	// State
 	let {
 			entityId,
-			href = resolve(swarmResourceHref(entityId)),
+			href = resolve(getResourceHref(entityId)),
 		open = $bindable(true),
 		collapsible = true,
 		...EntityViewProps
@@ -90,15 +90,15 @@
 	{#snippet Title()}
 		{#if href}
 			<a
-			>
+				{href}>
 				<TruncatedValue
-					value={swarmResourceCanonicalUri(entityId)}
+					value={getResourceCanonicalUri(entityId)}
 					format={TruncatedValueFormat.Visual}
 				/>
 			</a>
 		{:else}
 			<TruncatedValue
-				value={swarmResourceCanonicalUri(entityId)}
+				value={getResourceCanonicalUri(entityId)}
 				format={TruncatedValueFormat.Visual}
 			/>
 		{/if}
@@ -113,7 +113,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
+	{#snippet Content({})}
 		<dl data-column-item="center">
 			<div>
 				<dt>Content type</dt>

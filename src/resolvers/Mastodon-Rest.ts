@@ -132,7 +132,8 @@ const activityPubNoteFieldsFromMastodonStatus = (
 				return (
 					localAccountId == null ?
 						undefined
-					:	{
+					:
+						{
 							[EntityMetaKey.Id]: {
 								instanceOrigin,
 								localAccountId,
@@ -144,7 +145,8 @@ const activityPubNoteFieldsFromMastodonStatus = (
 		$inReplyTo: (
 			status.in_reply_to_id == null || status.in_reply_to_id === '' ?
 				undefined
-			:	{
+			:
+				{
 					[EntityMetaKey.Id]: {
 						instanceOrigin,
 						localStatusId: String(status.in_reply_to_id),
@@ -236,9 +238,9 @@ export default {
 			entityType: EntityType.ActivityPubActor,
 			resolve: async (entityId, context) => {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
-				const { assertInstanceMatches, mastodonGetAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
+				const { assertInstanceMatches, getAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
-				const a = await singleFlight(mastodonGetAccount)(publicEnv, entityId.localAccountId)
+				const a = await singleFlight(getAccount)(publicEnv, entityId.localAccountId)
 				if (a == null) throw new Error('Mastodon_Rest: account not found')
 				return activityPubActorFieldsFromMastodonAccount(
 					a,
@@ -254,10 +256,10 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const {
 					assertInstanceMatches,
-					mastodonGetStatus,
+					getStatus,
 				} = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
-				const s = await singleFlight(mastodonGetStatus)(publicEnv, entityId.localStatusId)
+				const s = await singleFlight(getStatus)(publicEnv, entityId.localStatusId)
 				if (s == null) throw new Error('Mastodon_Rest: status not found')
 				return activityPubNoteFieldsFromMastodonStatus(s, entityId.instanceOrigin)
 			},
@@ -267,9 +269,9 @@ export default {
 			entityType: EntityType.ActivityPubActor_Timestamp,
 			resolve: async (entityId, context) => {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
-				const { assertInstanceMatches, mastodonGetAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
+				const { assertInstanceMatches, getAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.$actor.instanceOrigin)
-				const account = await singleFlight(mastodonGetAccount)(publicEnv, entityId.$actor.localAccountId)
+				const account = await singleFlight(getAccount)(publicEnv, entityId.$actor.localAccountId)
 				if (account == null) throw new Error('Mastodon_Rest: account not found')
 				return activityPubActorTimestampFieldsFromMastodonAccount(account)
 			},
@@ -281,10 +283,10 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const {
 					assertInstanceMatches,
-					mastodonGetStatus,
+					getStatus,
 				} = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.$note.instanceOrigin)
-				const status = await singleFlight(mastodonGetStatus)(publicEnv, entityId.$note.localStatusId)
+				const status = await singleFlight(getStatus)(publicEnv, entityId.$note.localStatusId)
 				if (status == null) throw new Error('Mastodon_Rest: status not found')
 				return activityPubNoteTimestampFieldsFromMastodonStatus(status)
 			},
@@ -297,8 +299,8 @@ export default {
 			fieldName: 'instanceTitle',
 			resolve: async (_entityId, context) => {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
-				const { mastodonGetInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
-				const instance = await singleFlight(mastodonGetInstance)(publicEnv)
+				const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
+				const instance = await singleFlight(getInstance)(publicEnv)
 				if (instance == null) throw new Error('Mastodon_Rest: instance not found')
 				return optionalTrimmedString(instance.title)
 			},
@@ -309,8 +311,8 @@ export default {
 			fieldName: 'instanceDescription',
 			resolve: async (_entityId, context) => {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
-				const { mastodonGetInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
-				const instance = await singleFlight(mastodonGetInstance)(publicEnv)
+				const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
+				const instance = await singleFlight(getInstance)(publicEnv)
 				if (instance == null) throw new Error('Mastodon_Rest: instance not found')
 				return (
 					optionalTrimmedString(instance.description)
@@ -324,8 +326,8 @@ export default {
 			fieldName: 'instanceVersion',
 			resolve: async (_entityId, context) => {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
-				const { mastodonGetInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
-				const instance = await singleFlight(mastodonGetInstance)(publicEnv)
+				const { getInstance } = await import('$/sources/Mastodon/Rest/queries.ts')
+				const instance = await singleFlight(getInstance)(publicEnv)
 				if (instance == null) throw new Error('Mastodon_Rest: instance not found')
 				return optionalTrimmedString(instance.version)
 			},
@@ -337,10 +339,10 @@ export default {
 			resolve: async (_entityId, context) => {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const { mastodonInstanceOrigin } = await import('$/sources/Mastodon/Rest/constants.ts')
-				const { mastodonListPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
+				const { listPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
-					(await singleFlight(mastodonListPublicTimeline)(publicEnv, limit))
+					(await singleFlight(listPublicTimeline)(publicEnv, limit))
 						.flatMap((status) => {
 							const localAccountId = mastodonLocalAccountId(status.account)
 							if (localAccountId == null) return []
@@ -361,14 +363,15 @@ export default {
 			resolve: async (_entityId, context) => {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const { mastodonInstanceOrigin } = await import('$/sources/Mastodon/Rest/constants.ts')
-				const { mastodonListPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
+				const { listPublicTimeline } = await import('$/sources/Mastodon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
-					(await singleFlight(mastodonListPublicTimeline)(publicEnv, limit))
+					(await singleFlight(listPublicTimeline)(publicEnv, limit))
 						.flatMap((status) => (
 							status.id == null ?
 								[]
-							:	[
+							:
+								[
 								{
 									[EntityMetaKey.Id]: {
 										instanceOrigin: mastodonInstanceOrigin,
@@ -386,9 +389,9 @@ export default {
 			fieldName: '$$timestamps',
 			resolve: async (entityId, context) => {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
-				const { assertInstanceMatches, mastodonGetAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
+				const { assertInstanceMatches, getAccount } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
-				const account = await singleFlight(mastodonGetAccount)(publicEnv, entityId.localAccountId)
+				const account = await singleFlight(getAccount)(publicEnv, entityId.localAccountId)
 				if (account == null) throw new Error('Mastodon_Rest: account not found')
 				return [
 					{
@@ -407,15 +410,16 @@ export default {
 			fieldName: '$$notes',
 			resolve: async (entityId, context) => {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
-				const { assertInstanceMatches, mastodonListAccountStatuses } = await import('$/sources/Mastodon/Rest/queries.ts')
+				const { assertInstanceMatches, listAccountStatuses } = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
-					(await singleFlight(mastodonListAccountStatuses)(publicEnv, entityId.localAccountId, limit))
+					(await singleFlight(listAccountStatuses)(publicEnv, entityId.localAccountId, limit))
 						.flatMap((s) => (
 							s.id == null ?
 								[]
-							:	[
+							:
+								[
 								{
 									[EntityMetaKey.Id]: {
 										instanceOrigin: entityId.instanceOrigin,
@@ -435,10 +439,10 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const {
 					assertInstanceMatches,
-					mastodonGetStatus,
+					getStatus,
 				} = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
-				const status = await singleFlight(mastodonGetStatus)(publicEnv, entityId.localStatusId)
+				const status = await singleFlight(getStatus)(publicEnv, entityId.localStatusId)
 				if (status == null) throw new Error('Mastodon_Rest: status not found')
 				return [
 					{
@@ -459,16 +463,17 @@ export default {
 				const publicEnv = sourcePublicEnv(context, Source.Mastodon_Rest)
 				const {
 					assertInstanceMatches,
-					mastodonGetStatusContext,
+					getStatusContext,
 				} = await import('$/sources/Mastodon/Rest/queries.ts')
 				assertInstanceMatches(entityId.instanceOrigin)
-				const { ancestors = [], descendants = [] } = await singleFlight(mastodonGetStatusContext)(publicEnv, entityId.localStatusId)
+				const { ancestors = [], descendants = [] } = await singleFlight(getStatusContext)(publicEnv, entityId.localStatusId)
 				return (
 					[...ancestors, ...descendants]
 						.flatMap((s) => (
 							s.id == null || String(s.id) === entityId.localStatusId ?
 								[]
-							:	[
+							:
+								[
 								{
 									[EntityMetaKey.Id]: {
 										instanceOrigin: entityId.instanceOrigin,

@@ -149,8 +149,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content(context)}
-		{@const contentOpen = context?.open ?? false}
+	{#snippet Content({ open })}
 		<ResourceBoundary
 			resource={evmTransaction}
 			placeholderText="Loading transaction…"
@@ -248,7 +247,7 @@
 						</dd>
 					</div>
 
-					{#if contentOpen}
+					{#if open}
 						<div>
 							<dt>Nonce</dt>
 							<dd>
@@ -259,7 +258,7 @@
 						</div>
 					{/if}
 
-					{#if contentOpen}
+					{#if open}
 						<div>
 							<dt>Position in block</dt>
 							<dd>
@@ -270,7 +269,7 @@
 						</div>
 					{/if}
 
-					{#if contentOpen}
+					{#if open}
 						<div>
 							<dt>Gas limit</dt>
 							<dd>
@@ -281,7 +280,7 @@
 						</div>
 					{/if}
 
-					{#if contentOpen}
+					{#if open}
 						<div>
 							<dt>Gas price</dt>
 							<dd>
@@ -292,7 +291,7 @@
 						</div>
 					{/if}
 
-					{#if contentOpen}
+					{#if open}
 						<div>
 							<dt>Transaction envelope type</dt>
 							<dd>
@@ -303,7 +302,7 @@
 						</div>
 					{/if}
 
-					{#if contentOpen}
+					{#if open}
 						<div>
 							<dt>Max fee / priority fee</dt>
 							<dd data-row="wrap align-center gap-2">
@@ -348,7 +347,7 @@
 						</div>
 					{/if}
 
-					{#if contentOpen}
+					{#if open}
 						<div>
 							<dt>Effective gas price</dt>
 							<dd>
@@ -359,7 +358,7 @@
 						</div>
 					{/if}
 
-					{#if contentOpen}
+					{#if open}
 						<div>
 							<dt>Input data</dt>
 							<dd>
@@ -373,7 +372,7 @@
 						</div>
 					{/if}
 
-					{#if contentOpen}
+					{#if open}
 						{#if (
 							transaction.envelopeType === EvmTransactionEnvelopeType.Blob
 							&& transaction.blobGasUsed !== undefined

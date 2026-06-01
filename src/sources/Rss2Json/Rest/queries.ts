@@ -7,7 +7,7 @@ const clampRss2JsonCount = (limit: number) => (
 	Math.min(50, Math.max(1, limit))
 )
 
-export const rss2JsonGetFeed = async (
+export const getFeed = async (
 	feedUrl: string,
 	limit: number,
 	_publicEnv: SourcePublicEnvFor<Source.Rss2Json_Rest>,

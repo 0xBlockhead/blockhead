@@ -13,8 +13,12 @@ export const load: PageServerLoad = async ({ params }) => {
 		PUBLIC_NEYNAR_API_KEY: env.PUBLIC_NEYNAR_API_KEY ?? '',
 	}
 
-	const fname = typeof params.fname === 'string' ? params.fname.trim() : ''
-	const hashSlug = typeof params.hash === 'string' ? params.hash.trim() : ''
+	const fname = typeof params.fname === 'string' ? params.fname.trim()
+	:
+		''
+	const hashSlug = typeof params.hash === 'string' ? params.hash.trim()
+	:
+		''
 
 	if (fname === '' || hashSlug === '') {
 		redirect(303, resolve('/farcaster/feed'))

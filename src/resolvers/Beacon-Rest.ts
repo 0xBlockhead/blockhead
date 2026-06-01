@@ -31,8 +31,8 @@ const beaconFinalityCheckpointsForChain = async (
 	chainId: number,
 ): Promise<BeaconFinalityCheckpoints | undefined> => {
 	const base = requireBeaconRestBaseUrl(chainId)
-	const { getBeaconFinalityCheckpoints } = await import('$/sources/Beacon/Rest/queries.ts')
-	return singleFlight(getBeaconFinalityCheckpoints)(base)
+	const { getFinalityCheckpoints } = await import('$/sources/Beacon/Rest/queries.ts')
+	return singleFlight(getFinalityCheckpoints)(base)
 }
 
 const beaconForkScheduleEntryForNetworkConsensusUpgrade = async (
@@ -48,9 +48,9 @@ const beaconForkScheduleEntryForNetworkConsensusUpgrade = async (
 		return undefined
 	}
 	const base = requireBeaconRestBaseUrl(chainId)
-	const { getBeaconForkSchedule } = await import('$/sources/Beacon/Rest/queries.ts')
-	const schedule = await singleFlight(getBeaconForkSchedule)(base)
-	return schedule.find((entry) => entry.epoch === activationEpoch)
+	const { getForkSchedule } = await import('$/sources/Beacon/Rest/queries.ts')
+	const schedule = await singleFlight(getForkSchedule)(base)
+	return schedule.find((forkScheduleEntry) => forkScheduleEntry.epoch === activationEpoch)
 }
 
 export default {
@@ -72,10 +72,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BeaconSlot,
 			resolve: async (entityId) => {
-				const { getBeaconHeader } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getHeader } = await import('$/sources/Beacon/Rest/queries.ts')
 				const { $network, slot } = entityId
 				const base = requireBeaconRestBaseUrl(Number($network.caip2.reference))
-				const header = await singleFlight(getBeaconHeader)(base, slot)
+				const header = await singleFlight(getHeader)(base, slot)
 				return {
 					bodyRoot: with0xHex(header.bodyRoot),
 					...(header.canonical != null && { canonical: header.canonical }),
@@ -92,10 +92,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BeaconValidator,
 			resolve: async (entityId) => {
-				const { getBeaconValidatorSummaryAtHead } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getValidatorSummaryAtHead } = await import('$/sources/Beacon/Rest/queries.ts')
 				const { $network, validatorIndex } = entityId
 				const base = requireBeaconRestBaseUrl(Number($network.caip2.reference))
-				const summary = await singleFlight(getBeaconValidatorSummaryAtHead)(base, validatorIndex)
+				const summary = await singleFlight(getValidatorSummaryAtHead)(base, validatorIndex)
 				if (summary == null) {
 					throw new Error(
 						`Beacon_Rest: validator summary not returned for index ${String(validatorIndex)}`,
@@ -114,10 +114,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BeaconCommittee,
 			resolve: async (entityId) => {
-				const { getBeaconCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
 				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
-				const committees = await singleFlight(getBeaconCommittees)(base, String(entityId.slot))
-				const committee = committees.find((row) => row.index === entityId.index)
+				const committees = await singleFlight(getCommittees)(base, String(entityId.slot))
+				const committee = committees.find((committee) => committee.index === entityId.index)
 				if (committee == null) throw new Error('Beacon_Rest: committee not found')
 				return {
 					validatorIndices: committee.validatorIndices,
@@ -128,9 +128,9 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BeaconSyncCommittee,
 			resolve: async (entityId) => {
-				const { getBeaconSyncCommittee } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getSyncCommittee } = await import('$/sources/Beacon/Rest/queries.ts')
 				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
-				const committee = await singleFlight(getBeaconSyncCommittee)(base, 'head')
+				const committee = await singleFlight(getSyncCommittee)(base, 'head')
 				if (committee == null) throw new Error('Beacon_Rest: sync committee not found')
 				return {
 					validatorIndices: committee.validatorIndices,
@@ -141,10 +141,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BeaconAttestation,
 			resolve: async (entityId) => {
-				const { getBeaconBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
-				const summary = await singleFlight(getBeaconBlockDutySummary)(base, entityId.slot)
-				const attestation = summary.attestations.find((row) => row.index === entityId.index)
+				const summary = await singleFlight(getBlockDutySummary)(base, entityId.slot)
+				const attestation = summary.attestations.find((committee) => committee.index === entityId.index)
 				if (attestation == null) throw new Error('Beacon_Rest: attestation not found')
 				return {
 					...(attestation.committeeIndex != null && { committeeIndex: attestation.committeeIndex }),
@@ -156,10 +156,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.BeaconWithdrawal,
 			resolve: async (entityId) => {
-				const { getBeaconBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
-				const summary = await singleFlight(getBeaconBlockDutySummary)(base, entityId.slot)
-				const withdrawal = summary.withdrawals.find((row) => row.index === entityId.index)
+				const summary = await singleFlight(getBlockDutySummary)(base, entityId.slot)
+				const withdrawal = summary.withdrawals.find((committee) => committee.index === entityId.index)
 				if (withdrawal == null) throw new Error('Beacon_Rest: withdrawal not found')
 				return {
 					...(withdrawal.validatorIndex != null && { validatorIndex: withdrawal.validatorIndex }),
@@ -224,14 +224,14 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			fieldName: '$$beaconEpochs',
 			resolve: async (entityId, context) => {
-				const { getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const chainId = Number(entityId.caip2.reference)
 				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
 				if (base == null) {
 					throw new Error(`Beacon_Rest: $$beaconEpochs unsupported for chain ${String(chainId)}`)
 				}
-				const headSlot = await singleFlight(getBeaconHeadSlot)(base)
+				const headSlot = await singleFlight(getHeadSlot)(base)
 				const headEpoch = Math.floor(headSlot / slotsPerEpoch)
 				return (
 					Array.from(
@@ -241,7 +241,8 @@ export default {
 						.flatMap((epoch) => (
 							epoch < 0 ?
 								[]
-							:	[
+							:
+								[
 								{
 									[EntityMetaKey.Id]: {
 										$network: entityId,
@@ -258,14 +259,14 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			fieldName: '$$beaconSlots',
 			resolve: async (entityId, context) => {
-				const { getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const chainId = Number(entityId.caip2.reference)
 				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
 				if (base == null) {
 					throw new Error(`Beacon_Rest: $$beaconSlots unsupported for chain ${String(chainId)}`)
 				}
-				const headSlot = await singleFlight(getBeaconHeadSlot)(base)
+				const headSlot = await singleFlight(getHeadSlot)(base)
 				return (
 					Array.from(
 						{ length: limit },
@@ -274,7 +275,8 @@ export default {
 						.flatMap((slot) => (
 							slot < 0 ?
 								[]
-							:	[
+							:
+								[
 								{
 									[EntityMetaKey.Id]: {
 										$network: entityId,
@@ -291,14 +293,14 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			fieldName: '$$beaconValidators',
 			resolve: async (entityId, context) => {
-				const { getBeaconRecentProposerValidatorIndices } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getRecentProposerValidatorIndices } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const chainId = Number(entityId.caip2.reference)
 				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
 				if (base == null) {
 					throw new Error(`Beacon_Rest: $$beaconValidators unsupported for chain ${String(chainId)}`)
 				}
-				const validatorIndices = await getBeaconRecentProposerValidatorIndices({
+				const validatorIndices = await getRecentProposerValidatorIndices({
 					beaconRestBaseUrl: base,
 					limit,
 					slotLookbackCap: Math.min(384, Math.max(limit * 8, slotsPerEpoch)),
@@ -318,11 +320,11 @@ export default {
 			entityType: EntityType.BeaconSlot,
 			fieldName: '$$beaconCommittees',
 			resolve: async (entityId, context) => {
-				const { getBeaconCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
 				return (
-					(await singleFlight(getBeaconCommittees)(base, String(entityId.slot)))
+					(await singleFlight(getCommittees)(base, String(entityId.slot)))
 						.slice(0, limit)
 						.map((committee) => ({
 							[EntityMetaKey.Id]: {
@@ -339,10 +341,10 @@ export default {
 			entityType: EntityType.BeaconSlot,
 			fieldName: '$$beaconAttestations',
 			resolve: async (entityId, context) => {
-				const { getBeaconBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
-				const summary = await singleFlight(getBeaconBlockDutySummary)(base, entityId.slot)
+				const summary = await singleFlight(getBlockDutySummary)(base, entityId.slot)
 				return summary.attestations.slice(0, limit).map((attestation) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId.$network,
@@ -357,10 +359,10 @@ export default {
 			entityType: EntityType.BeaconSlot,
 			fieldName: '$$beaconWithdrawals',
 			resolve: async (entityId, context) => {
-				const { getBeaconBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
-				const summary = await singleFlight(getBeaconBlockDutySummary)(base, entityId.slot)
+				const summary = await singleFlight(getBlockDutySummary)(base, entityId.slot)
 				return summary.withdrawals.slice(0, limit).map((withdrawal) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId.$network,
@@ -375,10 +377,10 @@ export default {
 			entityType: EntityType.BeaconSlot,
 			fieldName: '$$beaconSlashings',
 			resolve: async (entityId, context) => {
-				const { getBeaconBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getBlockDutySummary } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const base = requireBeaconRestBaseUrl(Number(entityId.$network.caip2.reference))
-				const summary = await singleFlight(getBeaconBlockDutySummary)(base, entityId.slot)
+				const summary = await singleFlight(getBlockDutySummary)(base, entityId.slot)
 				return summary.slashings.slice(0, limit).map((slashing) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId.$network,
@@ -394,7 +396,7 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			fieldName: '$$beaconCommittees',
 			resolve: async (entityId, context) => {
-				const { getBeaconCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getCommittees } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const chainId = Number(entityId.caip2.reference)
 				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
@@ -402,7 +404,7 @@ export default {
 					throw new Error(`Beacon_Rest: $$beaconCommittees unsupported for chain ${String(chainId)}`)
 				}
 				return (
-					(await singleFlight(getBeaconCommittees)(base))
+					(await singleFlight(getCommittees)(base))
 						.slice(0, limit)
 						.map((committee) => ({
 							[EntityMetaKey.Id]: {
@@ -419,13 +421,13 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			fieldName: '$$beaconSyncCommittees',
 			resolve: async (entityId) => {
-				const { getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 				const chainId = Number(entityId.caip2.reference)
 				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
 				if (base == null) {
 					throw new Error(`Beacon_Rest: $$beaconSyncCommittees unsupported for chain ${String(chainId)}`)
 				}
-				const slot = await singleFlight(getBeaconHeadSlot)(base)
+				const slot = await singleFlight(getHeadSlot)(base)
 				return [
 					{
 						[EntityMetaKey.Id]: {
@@ -441,15 +443,15 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			fieldName: '$$beaconAttestations',
 			resolve: async (entityId, context) => {
-				const { getBeaconBlockDutySummary, getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const chainId = Number(entityId.caip2.reference)
 				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
 				if (base == null) {
 					throw new Error(`Beacon_Rest: $$beaconAttestations unsupported for chain ${String(chainId)}`)
 				}
-				const slot = await singleFlight(getBeaconHeadSlot)(base)
-				const summary = await singleFlight(getBeaconBlockDutySummary)(base, slot)
+				const slot = await singleFlight(getHeadSlot)(base)
+				const summary = await singleFlight(getBlockDutySummary)(base, slot)
 				return summary.attestations.slice(0, limit).map((attestation) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId,
@@ -464,15 +466,15 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			fieldName: '$$beaconWithdrawals',
 			resolve: async (entityId, context) => {
-				const { getBeaconBlockDutySummary, getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const chainId = Number(entityId.caip2.reference)
 				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
 				if (base == null) {
 					throw new Error(`Beacon_Rest: $$beaconWithdrawals unsupported for chain ${String(chainId)}`)
 				}
-				const slot = await singleFlight(getBeaconHeadSlot)(base)
-				const summary = await singleFlight(getBeaconBlockDutySummary)(base, slot)
+				const slot = await singleFlight(getHeadSlot)(base)
+				const summary = await singleFlight(getBlockDutySummary)(base, slot)
 				return summary.withdrawals.slice(0, limit).map((withdrawal) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId,
@@ -487,15 +489,15 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			fieldName: '$$beaconSlashings',
 			resolve: async (entityId, context) => {
-				const { getBeaconBlockDutySummary, getBeaconHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
+				const { getBlockDutySummary, getHeadSlot } = await import('$/sources/Beacon/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const chainId = Number(entityId.caip2.reference)
 				const base = beaconRestBaseByExecutionChainId[chainId]?.restBaseUrl
 				if (base == null) {
 					throw new Error(`Beacon_Rest: $$beaconSlashings unsupported for chain ${String(chainId)}`)
 				}
-				const slot = await singleFlight(getBeaconHeadSlot)(base)
-				const summary = await singleFlight(getBeaconBlockDutySummary)(base, slot)
+				const slot = await singleFlight(getHeadSlot)(base)
+				const summary = await singleFlight(getBlockDutySummary)(base, slot)
 				return summary.slashings.slice(0, limit).map((slashing) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId,
@@ -526,8 +528,8 @@ export default {
 			entityType: EntityType.EthereumConsensusUpgrade,
 			fieldName: 'previousForkVersion',
 			resolve: async (entityId) => {
-				const entry = await beaconForkScheduleEntryForNetworkConsensusUpgrade(entityId)
-				return entry?.previousVersion
+				const forkScheduleEntry = await beaconForkScheduleEntryForNetworkConsensusUpgrade(entityId)
+				return forkScheduleEntry?.previousVersion
 			},
 		}),
 
@@ -535,8 +537,8 @@ export default {
 			entityType: EntityType.EthereumConsensusUpgrade,
 			fieldName: 'currentForkVersion',
 			resolve: async (entityId) => {
-				const entry = await beaconForkScheduleEntryForNetworkConsensusUpgrade(entityId)
-				return entry?.currentVersion
+				const forkScheduleEntry = await beaconForkScheduleEntryForNetworkConsensusUpgrade(entityId)
+				return forkScheduleEntry?.currentVersion
 			},
 		}),
 	],

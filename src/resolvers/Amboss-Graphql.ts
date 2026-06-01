@@ -3,19 +3,16 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
+import { lightningNetworkId } from '$/constants/LightningNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannel.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const lightningNetwork = {
-	networkSlug: 'lightning',
-} as const
-
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
 const assertLightningNetwork = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== lightningNetwork.networkSlug) {
+	if (!('networkSlug' in network) || network.networkSlug !== lightningNetworkId.networkSlug) {
 		throw new Error('Amboss_Graphql: unsupported Lightning network')
 	}
 }
@@ -28,8 +25,8 @@ export default {
 			entityType: EntityType.LightningNode,
 			resolve: async (entityId) => {
 				assertLightningNetwork(entityId.$network)
-				const { getAmbossNode } = await import('$/sources/Amboss/Graphql/queries.ts')
-				const node = await getAmbossNode({ publicKey: entityId.publicKey })
+				const { getNode } = await import('$/sources/Amboss/Graphql/queries.ts')
+				const node = await getNode({ publicKey: entityId.publicKey })
 				const graphNode = node.graph_info.node
 				const channels = node.graph_info.channels
 				const primaryAddress = graphNode?.addresses?.[0]
@@ -40,17 +37,20 @@ export default {
 					capacitySats: (
 						channels?.total_capacity != null
 							? BigInt(channels.total_capacity)
-							: undefined
+							:
+								undefined
 					),
 					channelCount: (
 						channels?.num_channels != null
 							? Math.round(channels.num_channels)
-							: undefined
+							:
+								undefined
 					),
 					updatedAtMs: (
 						graphNode?.last_update != null
 							? Math.round(graphNode.last_update) * 1000
-							: undefined
+							:
+								undefined
 					),
 					countryCode: primaryAddress?.ip_info?.country_code ?? undefined,
 					city: primaryAddress?.ip_info?.city ?? undefined,
@@ -65,8 +65,8 @@ export default {
 			entityType: EntityType.LightningChannel,
 			resolve: async (entityId) => {
 				assertLightningNetwork(entityId.$network)
-				const { getAmbossEdge } = await import('$/sources/Amboss/Graphql/queries.ts')
-				const edge = await getAmbossEdge({ channelId: entityId.channelId })
+				const { getEdge } = await import('$/sources/Amboss/Graphql/queries.ts')
+				const edge = await getEdge({ channelId: entityId.channelId })
 				const edgeInfo = edge.graph?.info
 
 				return {
@@ -78,14 +78,17 @@ export default {
 					status: (
 						edgeInfo?.is_closed === true
 							? LightningChannelStatus.Closed
-							: edgeInfo?.is_closed === false
+							:
+								edgeInfo?.is_closed === false
 								? LightningChannelStatus.Open
-								: LightningChannelStatus.Unknown
+								:
+									LightningChannelStatus.Unknown
 					),
 					capacitySats: (
 						edgeInfo?.capacity != null
 							? BigInt(edgeInfo.capacity)
-							: undefined
+							:
+								undefined
 					),
 					...(edgeInfo?.node1_pub != null && {
 						$node0: {
@@ -117,8 +120,8 @@ export default {
 			fieldName: '$$nodes',
 			resolve: async (entityId, context) => {
 				assertLightningNetwork(entityId.$network)
-				const { getAmbossPopularNodePubkeys } = await import('$/sources/Amboss/Graphql/queries.ts')
-				const pubkeys = await getAmbossPopularNodePubkeys()
+				const { getPopularNodePubkeys } = await import('$/sources/Amboss/Graphql/queries.ts')
+				const pubkeys = await getPopularNodePubkeys()
 				return pubkeys
 					.slice(0, resolverLoadSubsetRowLimit(context))
 					.map((publicKey) => ({

@@ -1,8 +1,8 @@
 import { getText, githubHttp } from '$/sources/Github/Rest/client.ts'
 import { throwHttpError } from '$/lib/http.ts'
 import {
-	getGithubRawUserContentUrl,
-	getGithubRestRepoContentsUrl,
+	getRawUserContentUrl,
+	getRestRepoContentsUrl,
 } from '$/sources/Github/Rest/queries.ts'
 import NearNeps from '$/sources/NearNeps/index.ts'
 import type { NearNepsGithubContents } from '$/sources/NearNeps/Github/types.ts'
@@ -14,9 +14,9 @@ const nearNepsGithubRepo = {
 	ref: 'master',
 } as const
 
-export const getNearNepsGithubContents = async (): Promise<NearNepsGithubContents> => {
+export const getContents = async (): Promise<NearNepsGithubContents> => {
 	const response = await githubHttp({
-		url: getGithubRestRepoContentsUrl({
+		url: getRestRepoContentsUrl({
 			owner: nearNepsGithubRepo.owner,
 			repo: nearNepsGithubRepo.repo,
 			pathInRepo: nearNepsGithubRepo.path,
@@ -28,9 +28,9 @@ export const getNearNepsGithubContents = async (): Promise<NearNepsGithubContent
 	return response.json<NearNepsGithubContents>()
 }
 
-export const getNearNepMarkdownText = ({ number }: { number: number }) => (
+export const getMarkdownText = ({ number }: { number: number }) => (
 	getText({
-		url: getGithubRawUserContentUrl({
+		url: getRawUserContentUrl({
 			owner: nearNepsGithubRepo.owner,
 			repo: nearNepsGithubRepo.repo,
 			ref: nearNepsGithubRepo.ref,

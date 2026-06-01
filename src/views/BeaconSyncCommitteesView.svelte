@@ -8,6 +8,7 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
+	import { stringify } from 'devalue'
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
@@ -16,16 +17,19 @@
 		entityFieldReference,
 		title = 'Sync committees',
 		open = $bindable(true),
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BeaconSyncCommittee>
 			title?: string
 			open?: boolean
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
@@ -35,30 +39,11 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Beacon_Rest,
-				],
-				$limit: 4,
-			},
-		},
-	)
-
-	const committees = derive(
-		parent,
-		(parent): Entity<typeof schema, EntityType.BeaconSyncCommittee>[] => (
-			parent[entityFieldReference.fieldName]
-			?? []
-		),
-	)
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import BeaconSyncCommitteeView from '$/views/BeaconSyncCommitteeView.svelte'
 </script>
 
 
@@ -66,23 +51,61 @@
 	entityType={EntityType.BeaconSyncCommittee}
 	{title}
 	bind:open
-	getKey={(committee) => String(committee[EntityMetaKey.Id].period)}
-	resource={committees}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{id}
+	href={href}
 	{...EntitiesListProps}
 >
-	{#snippet Empty()}
-		<p data-text="muted">No sync committee loaded yet.</p>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			The sync committee attests to light-client updates for the current sync period near chain head.
+		</p>
 	{/snippet}
 
-	{#snippet Item({ item: committee })}
-		<div class="entity-details">
-			<dl data-column-item="center">
-				<div>
-					<dt>Period</dt>
-					<dd>{String(committee[EntityMetaKey.Id].period)}</dd>
-				</div>
-			</dl>
-		</div>
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Beacon_Rest,
+						],
+						$limit: 4,
+					},
+				},
+			)}
+			{@const committees = derive(
+				parent,
+				(parent): Entity<typeof schema, EntityType.BeaconSyncCommittee>[] => (
+					parent[entityFieldReference.fieldName]
+					?? []
+				),
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.BeaconSyncCommittee}
+				id={`${id}-items`}
+				href={href}
+				getKey={(committee) => stringify(committee[EntityMetaKey.Id])}
+				resource={committees}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">No sync committee loaded yet.</p>
+				{/snippet}
+
+				{#snippet Item({ item: committee })}
+					<BeaconSyncCommitteeView
+						entityId={committee[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

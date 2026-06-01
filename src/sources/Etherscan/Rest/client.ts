@@ -31,7 +31,8 @@ export const etherscanV2UnwrapProxyResult = <T>(wire: EtherscanProxyJsonRpc<T> |
 	|| wire.error != null
 	|| wire.status === '0'
 		? null
-	:	(wire.result ?? null)
+	:
+		(wire.result ?? null)
 )
 
 const etherscanAccountEmptyMessages = new Set([

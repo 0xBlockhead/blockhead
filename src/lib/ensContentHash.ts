@@ -5,8 +5,8 @@ import {
 
 import { ipfsResourceAddressFromInput, ipfsResourceHref } from '$/lib/ipfs.ts'
 import {
-	swarmResourceAddressFromInput,
-	swarmResourceHref,
+	getResourceAddressFromInput,
+	getResourceHref,
 } from '$/sources/Swarm/Rest/queries.ts'
 
 
@@ -63,8 +63,8 @@ export const ensContentHashBrowseHrefFromCanonicalUri = (canonicalUri: string) =
 		trimmed.startsWith('bzz://')
 		|| trimmed.startsWith('swarm://')
 	) {
-		const address = swarmResourceAddressFromInput({ targetInput: trimmed })
-		return address == null ? undefined : swarmResourceHref(address)
+		const address = getResourceAddressFromInput({ targetInput: trimmed })
+		return address == null ? undefined : getResourceHref(address)
 	}
 
 	return undefined

@@ -33,7 +33,8 @@ const selectPathnames = async () => {
 	let pageUrls = (
 		limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
 			all.slice(0, limit)
-		:	all
+		:
+			all
 	)
 	if (startPath) {
 		const index = pageUrls.indexOf(startPath)

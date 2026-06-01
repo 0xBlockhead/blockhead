@@ -70,7 +70,7 @@
 				<dl>
 					{#if nearAccount.amountYoctoNear != null}
 						<div>
-							<dt>Amount Yocto Near</dt>
+							<dt>Balance</dt>
 							<dd><NumberValue value={nearAccount.amountYoctoNear} /> yoctoNEAR</dd>
 						</div>
 					{/if}

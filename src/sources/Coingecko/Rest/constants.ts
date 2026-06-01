@@ -2036,7 +2036,8 @@ export const idByCoinId: Partial<Record<CoinId, string>> = Object.fromEntries(
 		.flatMap((entry) => (
 			entry.wireId == null ?
 				[]
-			:	[[entry.coinId, entry.wireId] as const]
+			:
+				[[entry.coinId, entry.wireId] as const]
 		)),
 )
 
@@ -2045,7 +2046,8 @@ export const coinIdByWireId: Partial<Record<string, CoinId>> = Object.fromEntrie
 		.flatMap((entry) => (
 			entry.wireId == null ?
 				[]
-			:	[[entry.wireId, entry.coinId] as const]
+			:
+				[[entry.wireId, entry.coinId] as const]
 		)),
 )
 
@@ -2054,7 +2056,8 @@ export const decimalsByCoinId: Partial<Record<CoinId, number>> = Object.fromEntr
 		.flatMap((entry) => (
 			entry.decimals == null ?
 				[]
-			:	[[entry.coinId, entry.decimals] as const]
+			:
+				[[entry.coinId, entry.decimals] as const]
 		)),
 )
 

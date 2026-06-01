@@ -19,8 +19,8 @@ export default {
 				if (entityId.namespace !== 'ipfs' && entityId.namespace !== 'ipns') {
 					throw new Error(`Ipfs_Rest: unsupported namespace ${entityId.namespace}`)
 				}
-				const { fetchIpfsBrowseResult } = await import('$/sources/Ipfs/Rest/queries.ts')
-				const browseResult = await fetchIpfsBrowseResult({
+				const { fetchBrowseResult } = await import('$/sources/Ipfs/Rest/queries.ts')
+				const browseResult = await fetchBrowseResult({
 					namespace: entityId.namespace,
 					target: entityId.target,
 					contentPath: entityId.contentPath,
@@ -40,7 +40,8 @@ export default {
 						((media) => (
 							media == null ?
 								undefined
-							:	{
+							:
+								{
 									...media,
 									$original: {
 										[EntityMetaKey.Id]: {

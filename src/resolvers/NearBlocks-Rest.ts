@@ -1,14 +1,14 @@
 import {
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import { nearBlocksMainnetRestBaseUrl } from '$/constants/NearNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const nearBlocksMainnetRestUrl = 'https://api.nearblocks.io'
-
 const assertNearMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
-	if (!('networkSlug' in network) || network.networkSlug !== 'near') {
+	if (!('networkSlug' in network) || network.networkSlug !== networkBySlug.near.slug) {
 		throw new Error('NearBlocks_Rest: unsupported network')
 	}
 }
@@ -23,7 +23,7 @@ export default {
 				assertNearMainnet(entityId.$network)
 				const { getAccount } = await import('$/sources/NearBlocks/Rest/queries.ts')
 				const account = (await getAccount({
-					restBaseUrl: nearBlocksMainnetRestUrl,
+					restBaseUrl: nearBlocksMainnetRestBaseUrl,
 					accountId: entityId.accountId,
 				})).account?.[0]
 				if (account == null) throw new Error(`NearBlocks_Rest: account ${entityId.accountId} not found`)
@@ -44,7 +44,7 @@ export default {
 				assertNearMainnet(entityId.$network)
 				const { getBlock } = await import('$/sources/NearBlocks/Rest/queries.ts')
 				const block = (await getBlock({
-					restBaseUrl: nearBlocksMainnetRestUrl,
+					restBaseUrl: nearBlocksMainnetRestBaseUrl,
 					block: entityId.hash ?? entityId.height,
 				})).blocks?.[0]
 				if (block == null) throw new Error(`NearBlocks_Rest: block ${entityId.hash ?? entityId.height.toString()} not found`)
@@ -73,7 +73,7 @@ export default {
 				assertNearMainnet(entityId.$network)
 				const { getTransaction } = await import('$/sources/NearBlocks/Rest/queries.ts')
 				const transaction = (await getTransaction({
-					restBaseUrl: nearBlocksMainnetRestUrl,
+					restBaseUrl: nearBlocksMainnetRestBaseUrl,
 					transactionHash: entityId.hash,
 				})).txns?.[0]
 				if (transaction == null) throw new Error(`NearBlocks_Rest: transaction ${entityId.hash} not found`)

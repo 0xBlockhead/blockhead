@@ -62,10 +62,11 @@ const mediaByKeyFromIncludes = (includes?: {
 	media?: XApiV2Media[]
 }) => (
 	new Map(
-		(includes?.media ?? []).flatMap((row) => (
-			row.media_key == null ?
+		(includes?.media ?? []).flatMap((wireMedia) => (
+			wireMedia.media_key == null ?
 				[]
-			:	[[row.media_key, row] as const]
+			:
+				[[wireMedia.media_key, wireMedia] as const]
 		)),
 	)
 )
@@ -92,8 +93,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.XUser,
 			resolve: async (entityId, context) => {
-				const { xGetUser } = await import('$/sources/X/Rest/queries.ts')
-				const d = (await singleFlight(xGetUser)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
+				const { getUser } = await import('$/sources/X/Rest/queries.ts')
+				const d = (await singleFlight(getUser)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
 				if (d == null) throw new Error('X_Rest: user not found')
 				const createdAt = Date.parse(d.created_at ?? '')
 				const websiteUrl = optionalUrlString(d.url)
@@ -127,8 +128,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.XPost,
 			resolve: async (entityId, context) => {
-				const { xGetTweet } = await import('$/sources/X/Rest/queries.ts')
-				const response = await singleFlight(xGetTweet)(sourcePublicEnv(context, Source.X_Rest), entityId.id)
+				const { getTweet } = await import('$/sources/X/Rest/queries.ts')
+				const response = await singleFlight(getTweet)(sourcePublicEnv(context, Source.X_Rest), entityId.id)
 				const t = response.data
 				if (t == null) throw new Error('X_Rest: post not found')
 				const mediaByKey = mediaByKeyFromIncludes(response.includes)
@@ -157,7 +158,8 @@ export default {
 					$author: (
 						t.author_id == null ?
 							undefined
-						:	{
+						:
+							{
 								[EntityMetaKey.Id]: { id: t.author_id },
 							}
 					),
@@ -168,8 +170,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.XUser_Timestamp,
 			resolve: async (entityId, context) => {
-				const { xGetUser } = await import('$/sources/X/Rest/queries.ts')
-				const user = (await singleFlight(xGetUser)(sourcePublicEnv(context, Source.X_Rest), entityId.$user.id)).data
+				const { getUser } = await import('$/sources/X/Rest/queries.ts')
+				const user = (await singleFlight(getUser)(sourcePublicEnv(context, Source.X_Rest), entityId.$user.id)).data
 				if (user == null) throw new Error('X_Rest: user not found')
 				return xUserTimestampFieldsFromUser(user)
 			},
@@ -178,8 +180,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.XPost_Timestamp,
 			resolve: async (entityId, context) => {
-				const { xGetTweet } = await import('$/sources/X/Rest/queries.ts')
-				const tweet = (await singleFlight(xGetTweet)(sourcePublicEnv(context, Source.X_Rest), entityId.$post.id)).data
+				const { getTweet } = await import('$/sources/X/Rest/queries.ts')
+				const tweet = (await singleFlight(getTweet)(sourcePublicEnv(context, Source.X_Rest), entityId.$post.id)).data
 				if (tweet == null) throw new Error('X_Rest: post not found')
 				return xPostTimestampFieldsFromTweet(tweet)
 			},
@@ -191,10 +193,10 @@ export default {
 			entityType: EntityType.XNetwork,
 			fieldName: '$$xUsers',
 			resolve: async (_entityId, context) => {
-				const { xSearchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
+				const { searchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.X_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
-				const result = await singleFlight(xSearchRecentTweets)(publicEnv, limit)
+				const result = await singleFlight(searchRecentTweets)(publicEnv, limit)
 				return [
 					...(result.includes?.users ?? [])
 						.flatMap((user) => {
@@ -220,16 +222,17 @@ export default {
 			entityType: EntityType.XNetwork,
 			fieldName: '$$xPosts',
 			resolve: async (_entityId, context) => {
-				const { xSearchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
+				const { searchRecentTweets } = await import('$/sources/X/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.X_Rest)
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
-					((await singleFlight(xSearchRecentTweets)(publicEnv, limit)).data ?? [])
-						.flatMap((row) => (
-							row.id == null ?
+					((await singleFlight(searchRecentTweets)(publicEnv, limit)).data ?? [])
+						.flatMap((wirePost) => (
+							wirePost.id == null ?
 								[]
-							:	[{
-									[EntityMetaKey.Id]: { id: row.id },
+							:
+								[{
+									[EntityMetaKey.Id]: { id: wirePost.id },
 								}]
 						))
 				)
@@ -240,8 +243,8 @@ export default {
 			entityType: EntityType.XPost,
 			fieldName: '$$timestamps',
 			resolve: async (entityId, context) => {
-				const { xGetTweet } = await import('$/sources/X/Rest/queries.ts')
-				const tweet = (await singleFlight(xGetTweet)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
+				const { getTweet } = await import('$/sources/X/Rest/queries.ts')
+				const tweet = (await singleFlight(getTweet)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
 				if (tweet == null) throw new Error('X_Rest: post not found')
 				return [
 					{
@@ -259,8 +262,8 @@ export default {
 			entityType: EntityType.XUser,
 			fieldName: '$$timestamps',
 			resolve: async (entityId, context) => {
-				const { xGetUser } = await import('$/sources/X/Rest/queries.ts')
-				const user = (await singleFlight(xGetUser)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
+				const { getUser } = await import('$/sources/X/Rest/queries.ts')
+				const user = (await singleFlight(getUser)(sourcePublicEnv(context, Source.X_Rest), entityId.id)).data
 				if (user == null) throw new Error('X_Rest: user not found')
 				return [
 					{
@@ -278,16 +281,17 @@ export default {
 			entityType: EntityType.XUser,
 			fieldName: '$$posts',
 			resolve: async (entityId, context) => {
-				const { xListUserTweets } = await import('$/sources/X/Rest/queries.ts')
+				const { listUserTweets } = await import('$/sources/X/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				const { data = [] } = await singleFlight(xListUserTweets)(sourcePublicEnv(context, Source.X_Rest), entityId.id, limit)
+				const { data = [] } = await singleFlight(listUserTweets)(sourcePublicEnv(context, Source.X_Rest), entityId.id, limit)
 				return (
 					data
-						.flatMap((row) => (
-							row.id == null ?
+						.flatMap((wirePost) => (
+							wirePost.id == null ?
 								[]
-							:	[{
-									[EntityMetaKey.Id]: { id: row.id },
+							:
+								[{
+									[EntityMetaKey.Id]: { id: wirePost.id },
 								}]
 						))
 				)

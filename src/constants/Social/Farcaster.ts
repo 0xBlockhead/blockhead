@@ -13,6 +13,21 @@ export const farcasterNetworkFieldValues = {
 	topology: 'live REST hub + indexer -> network -> feeds / channels / users -> casts',
 } as const
 
+export const farcasterPlaceholderIconUrlFragments = [
+	'/missing.',
+	'missing.png',
+	'missing.jpg',
+	'missing.jpeg',
+	'default-avatar',
+	'default_avatar',
+	'default_profile',
+	'profile_images/default',
+	'avatar-default',
+	'anonymous.',
+	'grey_silhouette',
+	'person_blue_generic',
+] as const
+
 const farcasterFeedKinds = [
 	{
 		variant: 'trending',

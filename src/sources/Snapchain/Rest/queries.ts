@@ -374,7 +374,7 @@ export const getOnChainIdRegisterEventsByFid = ({
 	})
 )
 
-export const getSnapchainUserBundleByFid = async ({ fid }: { fid: number }) => {
+export const getUserBundleByFid = async ({ fid }: { fid: number }) => {
 	const [userData, usernameProofs, verifications] = await Promise.all([
 		getUserDataByFid({ fid }),
 		getUsernameProofsByFid({ fid }),

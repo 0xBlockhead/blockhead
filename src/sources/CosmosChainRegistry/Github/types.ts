@@ -1,8 +1,15 @@
+export type CosmosChainRegistryLogoUris = {
+	png?: string
+	svg?: string
+}
+
 export type CosmosChainRegistryChain = {
 	chain_name: string
 	chain_id: string
 	pretty_name?: string
 	status?: string
+	logo_URIs?: CosmosChainRegistryLogoUris
+	images?: CosmosChainRegistryLogoUris[]
 }
 
 export type CosmosChainRegistryAssetList = {

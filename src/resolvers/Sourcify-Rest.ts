@@ -80,7 +80,8 @@ const sourcifyCompilationFieldsFromLookup = (
 	const compilerSettingsJson = (
 		wire.compilation?.compilerSettings != null ?
 			JSON.stringify(wire.compilation.compilerSettings)
-		:	undefined
+		:
+			undefined
 	)
 	const storageLayoutJson = sourcifyStorageLayoutJsonFromLookup(wire)
 	return {
@@ -129,8 +130,8 @@ const getSourcifyContractLookupForEntityId = async (entityId: {
 	$network: { caip2: { namespace: 'eip155', reference: string } }
 	address: `0x${string}`
 }) => {
-	const { getSourcifyContractLookup } = await import('$/sources/Sourcify/Rest/queries.ts')
-	return singleFlight(getSourcifyContractLookup)({
+	const { getContractLookup } = await import('$/sources/Sourcify/Rest/queries.ts')
+	return singleFlight(getContractLookup)({
 		chainId: Number(entityId.$network.caip2.reference),
 		address: entityId.address,
 	})
@@ -180,7 +181,8 @@ export default {
 				return (
 					Array.isArray(contractLookup.abi) ?
 						JSON.stringify(contractLookup.abi)
-					:	undefined
+					:
+						undefined
 				)
 			},
 		}),

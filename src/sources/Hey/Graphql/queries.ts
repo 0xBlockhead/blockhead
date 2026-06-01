@@ -264,7 +264,7 @@ const HeyLatestPostsDocument = graphql(`
 	HeyRepostWithAuthor,
 ])
 
-export const heyQueryAccount = async (
+export const queryAccount = async (
 	publicEnv: SourcePublicEnvFor<Source.Hey_Graphql>,
 	address: `0x${string}`,
 ) => (
@@ -277,7 +277,7 @@ export const heyQueryAccount = async (
 	)
 )
 
-export const heyQueryPost = async (
+export const queryPost = async (
 	publicEnv: SourcePublicEnvFor<Source.Hey_Graphql>,
 	postId: string,
 ) => (
@@ -290,7 +290,7 @@ export const heyQueryPost = async (
 	)
 )
 
-export const heyQueryPostsByAuthor = async (
+export const queryPostsByAuthor = async (
 	publicEnv: SourcePublicEnvFor<Source.Hey_Graphql>,
 	address: `0x${string}`,
 	pageSize: 'TEN' | 'FIFTY' = 'TEN',
@@ -305,7 +305,7 @@ export const heyQueryPostsByAuthor = async (
 	)
 )
 
-export const heyQueryLatestPosts = async (
+export const queryLatestPosts = async (
 	publicEnv: SourcePublicEnvFor<Source.Hey_Graphql>,
 	pageSize: 'TEN' | 'FIFTY' = 'TEN',
 ) => (
@@ -318,7 +318,7 @@ export const heyQueryLatestPosts = async (
 	)
 )
 
-export const heyQueryPostComments = async (
+export const queryPostComments = async (
 	publicEnv: SourcePublicEnvFor<Source.Hey_Graphql>,
 	postId: string,
 	pageSize: 'TEN' | 'FIFTY' = 'TEN',

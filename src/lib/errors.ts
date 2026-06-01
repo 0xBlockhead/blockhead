@@ -13,7 +13,8 @@ export const serializeError = (error: unknown) => (
 const boundaryFailureLine = (error: unknown): string => (
 	error instanceof Error ?
 		error.message
-	: (
+	:
+		(
 		error != null
 		&& typeof error === 'object'
 		&& 'message' in error
@@ -29,5 +30,6 @@ const boundaryFailureLine = (error: unknown): string => (
 export const normalizeBoundaryError = (cause: unknown): Error => (
 	cause instanceof Error ?
 		cause
-	: new Error(boundaryFailureLine(cause), { cause })
+	:
+		new Error(boundaryFailureLine(cause), { cause })
 )

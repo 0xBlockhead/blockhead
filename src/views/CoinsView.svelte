@@ -166,7 +166,8 @@
 									typeof row.marketCapRank === 'number'
 									&& Number.isFinite(row.marketCapRank)
 								))
-							:	rows
+							:
+								rows
 						)
 						const seenCoinIds = new SvelteSet<string>()
 						const deduped = (
@@ -192,13 +193,15 @@
 								const rankN = (
 									typeof rank === 'number' && Number.isFinite(rank) ?
 										rank
-									:	Number.POSITIVE_INFINITY
+									:
+										Number.POSITIVE_INFINITY
 								)
 								const cap = row.marketCapUsd
 								const capN = (
 									typeof cap === 'number' && Number.isFinite(cap) ?
 										cap
-									:	-Number.POSITIVE_INFINITY
+									:
+										-Number.POSITIVE_INFINITY
 								)
 								return (
 									`${String(rankN).padStart(12, '0')}\0${String(-capN).padStart(24, '0')}\0${row[EntityMetaKey.Id].coinId}`

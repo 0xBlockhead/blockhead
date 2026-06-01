@@ -44,11 +44,11 @@ export default {
 			resolve: async (entityId, context) => {
 				const { CoinId, coinById } = await import('$/constants/Coin.ts')
 				const { decimalsByCoinId, idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-				const { getCoingeckoCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
+				const { getCoin } = await import('$/sources/Coingecko/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_Rest)
 				const coingeckoId = idByCoinId[entityId.coinId]
 				if (coingeckoId == null) throw new Error('Coingecko_Rest: coin not mapped')
-				const coin = await getCoingeckoCoin(publicEnv, coingeckoId)
+				const coin = await getCoin(publicEnv, coingeckoId)
 				if (coin == null) throw new Error('Coingecko_Rest: coin not returned by API')
 
 				const decimals = (
@@ -89,8 +89,8 @@ export default {
 					coinIdByWireId,
 				} = await import('$/sources/Coingecko/Rest/constants.ts')
 				const {
-					findCoingeckoAssetPlatformByChainId,
-					getCoingeckoCoinByAssetPlatformContract,
+					findAssetPlatformByChainId,
+					getCoinByAssetPlatformContract,
 				} = await import('$/sources/Coingecko/Rest/queries.ts')
 				const { fetchRpcsJson } = await import('$/sources/Chainlist/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_Rest)
@@ -131,7 +131,7 @@ export default {
 					Number(entityId.$network.caip2.reference),
 					entityId.$contract.address,
 				)
-				const assetPlatform = await findCoingeckoAssetPlatformByChainId(
+				const assetPlatform = await findAssetPlatformByChainId(
 					publicEnv,
 					Number(entityId.$network.caip2.reference),
 				)
@@ -139,7 +139,7 @@ export default {
 					throw new Error('Coingecko_Rest: no asset platform for chain')
 				}
 
-				const coin = await getCoingeckoCoinByAssetPlatformContract({
+				const coin = await getCoinByAssetPlatformContract({
 					publicEnv,
 					assetPlatformId: assetPlatform.id,
 					contractAddress: entityId.$contract.address,
@@ -195,13 +195,13 @@ export default {
 					throw new Error('Coingecko_Rest: Market_Timestamp is catalog coin USD market only')
 				}
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-				const { getCoingeckoCoinMarketSpot } = await import('$/sources/Coingecko/Rest/queries.ts')
+				const { getCoinMarketSpot } = await import('$/sources/Coingecko/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_Rest)
 				const coinId = entityId.$market.$base.$coin.coinId
 				const coingeckoId = idByCoinId[coinId]
 				if (coingeckoId == null) throw new Error('Coingecko_Rest: coin price not mapped')
 
-				const spot = await getCoingeckoCoinMarketSpot(
+				const spot = await getCoinMarketSpot(
 					publicEnv,
 					coingeckoId,
 				)
@@ -217,7 +217,8 @@ export default {
 						caip19Erc20(1, eth.toLowerCase() as `0x${string}`)
 					: coin.id === 'ethereum' ?
 						caip19Slip44(1, Slip44.Ether)
-					:	undefined
+					:
+						undefined
 				)
 
 				return {
@@ -242,27 +243,27 @@ export default {
 					throw new Error('Coingecko_Rest: OHLC is catalog coin USD market only')
 				}
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-				const { getCoingeckoCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
+				const { getCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_Rest)
 				assertCoingeckoDayOhlcTimeInterval(entityId.timeInterval, 'Coingecko_Rest')
 				const coinId = entityId.$market.$base.$coin.coinId
 				const coingeckoId = idByCoinId[coinId]
 				if (coingeckoId == null) throw new Error('Coingecko_Rest: OHLC coin not mapped')
-				const rows = await getCoingeckoCoinOhlc({
+				const ohlcCandles = await getCoinOhlc({
 					publicEnv,
 					coingeckoId,
 					vs: 'usd',
 					days: entityId.timeInterval.value,
 				})
-				const row = rows.find(([timestampMs]) => (
+				const ohlcCandle = ohlcCandles.find(([timestampMs]) => (
 					Math.floor(timestampMs) === entityId.timestampMs
 				))
-				if (row == null) throw new Error('Coingecko_Rest: OHLC candle not found for timestamp')
+				if (ohlcCandle == null) throw new Error('Coingecko_Rest: OHLC candle not found for timestamp')
 				return (
 					candleFromOhlc(
 						entityId.$market,
 						entityId.timeInterval,
-						row,
+					ohlcCandle,
 					)
 				)
 			},
@@ -276,10 +277,10 @@ export default {
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { coinIdByWireId } = await import('$/sources/Coingecko/Rest/constants.ts')
-				const { getCoingeckoCoinsMarketsPage } = await import('$/sources/Coingecko/Rest/queries.ts')
+				const { getCoinsMarketsPage } = await import('$/sources/Coingecko/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_Rest)
 				const lim = Math.min(resolverLoadSubsetRowLimit(context), 250)
-				const markets = await getCoingeckoCoinsMarketsPage({
+				const markets = await getCoinsMarketsPage({
 					publicEnv,
 					vsCurrency: 'usd',
 					order: 'market_cap_desc',
@@ -288,11 +289,11 @@ export default {
 				})
 				return (
 					markets
-						.flatMap((row) => {
-							const coinId = coinIdByWireId[row.id]
+						.flatMap((coinMarket) => {
+							const coinId = coinIdByWireId[coinMarket.id]
 							if (coinId == null || coinById[coinId] == null) return []
-							const rank = row.market_cap_rank
-							const cap = row.market_cap
+							const rank = coinMarket.market_cap_rank
+							const cap = coinMarket.market_cap
 							return [
 								{
 									[EntityMetaKey.Id]: {
@@ -351,7 +352,7 @@ export default {
 			resolve: async (_globalScopeEntityId: EntityId<typeof schema, EntityType._Global>, context) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-				const { getCoingeckoCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
+				const { getCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_Rest)
 				const lim = resolverLoadSubsetRowLimit(context)
 				const catalogCoinIds = (
@@ -374,7 +375,7 @@ export default {
 					const $market = catalogCoinUsdMarketIdByCoinId[coinId]
 					const coingeckoId = idByCoinId[coinId]
 					if (coingeckoId == null) continue
-					const rows = await getCoingeckoCoinOhlc({
+					const ohlcCandles = await getCoinOhlc({
 						publicEnv,
 						coingeckoId,
 						vs: 'usd',
@@ -384,7 +385,7 @@ export default {
 						...candlesFromOhlc(
 							$market,
 							previewTimeInterval,
-							rows,
+							ohlcCandles,
 						),
 					)
 				}
@@ -440,7 +441,8 @@ export default {
 				return (
 					canonicalId == null ?
 						undefined
-					:	{ [EntityMetaKey.Id]: canonicalId }
+					:
+						{ [EntityMetaKey.Id]: canonicalId }
 				)
 			},
 		}),
@@ -548,7 +550,8 @@ export default {
 							coinId: entityId.$base.$coin.coinId,
 						},
 					}
-				:	undefined
+				:
+					undefined
 			),
 		}),
 
@@ -587,7 +590,7 @@ export default {
 					return []
 				}
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-				const { getCoingeckoCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
+				const { getCoinOhlc } = await import('$/sources/Coingecko/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_Rest)
 				const coinId = entityId.$base.$coin.coinId
 				const coingeckoId = idByCoinId[coinId]
@@ -601,7 +604,7 @@ export default {
 							value,
 						}
 					)
-					const rows = await getCoingeckoCoinOhlc({
+					const ohlcCandles = await getCoinOhlc({
 						publicEnv,
 						coingeckoId,
 						vs: 'usd',
@@ -611,7 +614,7 @@ export default {
 						...candlesFromOhlc(
 							entityId,
 							timeInterval,
-							rows,
+							ohlcCandles,
 						),
 					)
 				}
@@ -635,12 +638,12 @@ export default {
 					return []
 				}
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-				const { getCoingeckoCoinMarketSpot } = await import('$/sources/Coingecko/Rest/queries.ts')
+				const { getCoinMarketSpot } = await import('$/sources/Coingecko/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_Rest)
 				const coinId = entityId.$market.$base.$coin.coinId
 				const coingeckoId = idByCoinId[coinId]
 				if (coingeckoId == null) throw new Error('Coingecko_Rest: coin price not mapped')
-				const spot = await getCoingeckoCoinMarketSpot(publicEnv, coingeckoId)
+				const spot = await getCoinMarketSpot(publicEnv, coingeckoId)
 				if (spot == null) throw new Error('Coingecko_Rest: coin market spot not returned')
 				return [
 					{

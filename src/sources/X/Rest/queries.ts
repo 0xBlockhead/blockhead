@@ -23,7 +23,7 @@ const tweetListQuery = (extra: Record<string, string> = {}) => (
 	}).toString()
 )
 
-export const xGetUser = async (publicEnv: SourcePublicEnvFor<Source.X_Rest>, id: string) => (
+export const getUser = async (publicEnv: SourcePublicEnvFor<Source.X_Rest>, id: string) => (
 	xApiV2Get<XApiV2UserResponse>(
 		publicEnv,
 		`/users/${encodeURIComponent(id)}?${(
@@ -32,14 +32,14 @@ export const xGetUser = async (publicEnv: SourcePublicEnvFor<Source.X_Rest>, id:
 	)
 )
 
-export const xGetTweet = async (publicEnv: SourcePublicEnvFor<Source.X_Rest>, id: string) => (
+export const getTweet = async (publicEnv: SourcePublicEnvFor<Source.X_Rest>, id: string) => (
 	xApiV2Get<XApiV2TweetResponse>(
 		publicEnv,
 		`/tweets/${encodeURIComponent(id)}?${tweetListQuery()}` as const,
 	)
 )
 
-export const xListUserTweets = async (
+export const listUserTweets = async (
 	publicEnv: SourcePublicEnvFor<Source.X_Rest>,
 	userId: string,
 	maxResults: number,
@@ -52,7 +52,7 @@ export const xListUserTweets = async (
 	)
 )
 
-export const xSearchRecentTweets = async (
+export const searchRecentTweets = async (
 	publicEnv: SourcePublicEnvFor<Source.X_Rest>,
 	maxResults: number,
 ) => (

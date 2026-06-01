@@ -22,6 +22,8 @@
 		entityFieldReference,
 		filterCategory,
 		filterRealm,
+		id,
+		href = '',
 
 		...EntitiesListProps
 	}: WithRest<
@@ -31,6 +33,8 @@
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.SpecificationProposal>
 			filterCategory?: ProposalCategory
 			filterRealm?: SpecificationRealm
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -110,7 +114,8 @@
 			[Source.DogecoinDips_Github]
 		: effectiveFilterRealm === SpecificationRealm.Ens && effectiveFilterCategory === ProposalCategory.Ensip ?
 			[Source.Ensips_Github]
-		: effectiveFilterRealm === SpecificationRealm.Ethereum
+		:
+			effectiveFilterRealm === SpecificationRealm.Ethereum
 			&& (
 				effectiveFilterCategory === ProposalCategory.Eip
 				|| effectiveFilterCategory === ProposalCategory.Erc
@@ -136,7 +141,34 @@
 			specificationProposalSources,
 	)
 
-	const parent = useEntity(
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import ProposalView from '$/views/SpecificationProposalView.svelte'
+</script>
+
+
+<EntitiesList
+	{...EntitiesListProps}
+	entityType={EntityType.SpecificationProposal}
+	{title}
+	bind:open
+	{id}
+	href={href}
+	layout={EntitiesListLayout.Default}
+>
+	{#snippet TypeAnnotationTooltip()}
+			<p>
+				These proposal cards come from public standards repositories for Bitcoin BIPs, Zcash ZIPs, Filecoin FIPs, Solana SIMDs, CAIPs, ENSIPs, and Ethereum EIPs/ERCs.
+			</p>
+			<p>
+				They document design specs—not live on-chain vote tallies for a particular DAO.
+			</p>
+		{/snippet}
+
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -149,9 +181,8 @@
 				$limit: 2048,
 			},
 		},
-	)
-
-	const proposals = derive(
+	)}
+			{@const proposals = derive(
 		parent,
 		(parent) => {
 			const rows: Entity<typeof schema, EntityType.SpecificationProposal>[] = parent[entityFieldReference.fieldName] ?? []
@@ -166,48 +197,36 @@
 					}))
 			)
 		},
-	)
+	)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.SpecificationProposal}
+				id={`${id}-items`}
+				href={href}
+				{title}
+				getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
+				getSortValue={(row) => row.result[EntityMetaKey.Id].number}
+				placeholderKeys={new SvelteSet<string | number>()}
+				resource={proposals}
+				open={true}
+			>
+				{#snippet Empty()}
+						<p data-text="muted">
+							No proposals in this slice yet.
+						</p>
+					{/snippet}
 
+				{#snippet Item({ item })}
+						{@const proposalEntityId = item.result[EntityMetaKey.Id]}
+						<ProposalView
+							entityId={proposalEntityId}
+							layout={EntityLayout.SummaryInline}
+							open={false}
+						/>
+					{/snippet}
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ProposalView from '$/views/SpecificationProposalView.svelte'
-</script>
-
-
-<EntitiesList
-	{...EntitiesListProps}
-	entityType={EntityType.SpecificationProposal}
-	{title}
-	bind:open
-	getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
-	getSortValue={(row) => row.result[EntityMetaKey.Id].number}
-	layout={EntitiesListLayout.Default}
-	placeholderKeys={new SvelteSet<string | number>()}
-	resource={proposals}
->
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			These proposal cards come from public standards repositories for Bitcoin BIPs, Zcash ZIPs, Filecoin FIPs, Solana SIMDs, CAIPs, ENSIPs, and Ethereum EIPs/ERCs.
-		</p>
-		<p>
-			They document design specs—not live on-chain vote tallies for a particular DAO.
-		</p>
-	{/snippet}
-
-	{#snippet Empty()}
-		<p data-text="muted">
-			No proposals in this slice yet.
-		</p>
-	{/snippet}
-
-	{#snippet Item({ item })}
-		{@const proposalEntityId = item.result[EntityMetaKey.Id]}
-		<ProposalView
-			entityId={proposalEntityId}
-			layout={EntityLayout.SummaryInline}
-			open={false}
-		/>
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

@@ -290,7 +290,7 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 		<ResourceBoundary resource={operation}>
 			{#snippet children(operation)}
 				<div class="entity-details" data-column="gap-2">

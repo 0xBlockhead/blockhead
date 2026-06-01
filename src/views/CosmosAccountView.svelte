@@ -34,6 +34,7 @@
 		{
 			accountNumber: {},
 			sequence: {},
+			balanceUatom: {},
 		},
 	)
 
@@ -68,6 +69,13 @@
 		>
 			{#snippet children(cosmosAccount)}
 				<dl>
+					{#if cosmosAccount.balanceUatom != null}
+						<div>
+							<dt>Balance</dt>
+							<dd><NumberValue value={cosmosAccount.balanceUatom} /> uatom</dd>
+						</div>
+					{/if}
+
 					{#if cosmosAccount.accountNumber != null}
 						<div>
 							<dt>Account Number</dt>

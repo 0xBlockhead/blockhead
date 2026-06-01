@@ -8,7 +8,9 @@
 
 	// Functions
 	const bigintSafeReplacer = (_key: string, value: JsonValue) => (
-		typeof value === 'bigint' ? value.toString() : value
+		typeof value === 'bigint' ? value.toString()
+		:
+			value
 	)
 
 

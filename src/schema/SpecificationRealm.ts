@@ -29,8 +29,8 @@ export default {
 		{
 			name: 'labelPlural',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('string | null'),
-			cardinality: EntityFieldCardinality.One,
+			primitiveType: type('string'),
+			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
 			name: 'slug',

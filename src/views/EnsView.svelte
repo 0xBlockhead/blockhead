@@ -98,7 +98,9 @@
 				registrationDate: {},
 				registrationCost: {},
 				registrationExpiryDate: {},
-			} : {}),
+			}
+		:
+			{}),
 		},
 	)
 
@@ -178,7 +180,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<dl data-column-item="center">
 			<div>
 				<dt>Resolved address</dt>
@@ -385,7 +387,7 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 		<ResourceBoundary resource={ens}>
 			{#snippet children(ens)}
 				<CollapsibleTabs

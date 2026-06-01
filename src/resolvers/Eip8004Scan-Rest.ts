@@ -17,10 +17,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.Eip8004Service,
 			resolve: async (entityId) => {
-				const { fetchEip8004ScanAgentDetail } = await import(
+				const { fetchAgentDetail } = await import(
 					'$/sources/Eip8004Scan/Rest/queries.ts'
 					)
-					const detail = await fetchEip8004ScanAgentDetail({
+					const detail = await fetchAgentDetail({
 						chainId: Number(entityId.$network.caip2.reference),
 						identityId: entityId.identityId,
 					})
@@ -63,18 +63,18 @@ export default {
 				_scopedEntityId: EntityId<typeof schema, EntityType._Global>,
 				context,
 			) => {
-				const { fetchEip8004ScanAgentList } = await import(
+				const { fetchAgentList } = await import(
 					'$/sources/Eip8004Scan/Rest/queries.ts'
 				)
 				const limit = resolverLoadSubsetRowLimit(context)
-				const rows = await fetchEip8004ScanAgentList({ limit })
+				const agents = await fetchAgentList({ limit })
 				return (
-					rows.map((row) => ({
+					agents.map((agent) => ({
 							[EntityMetaKey.Id]: {
 								$network: {
-									caip2: { namespace: 'eip155' as const, reference: String(row.chainId) },
+									caip2: { namespace: 'eip155' as const, reference: String(agent.chainId) },
 								},
-								identityId: row.identityId,
+								identityId: agent.identityId,
 						},
 					}))
 				)

@@ -26,7 +26,13 @@
 		children: _children,
 		entityId,
 		title = 'Contract',
-		href,
+		href = resolve(
+			'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(contracts)/contract/[address]',
+			{
+				...caip2RouteParamsFromNetworkId(entityId.$network),
+				address: entityId.address,
+			},
+		),
 		open = $bindable(true),
 		collapsible = true,
 		...entityViewRest
@@ -35,7 +41,7 @@
 			RouteContent?: Snippet
 			entityId: EntityId<typeof schema, EntityType.EvmContract>
 			title?: string
-			href: string
+			href?: string
 			open?: boolean
 		},
 		Omit<
@@ -89,7 +95,7 @@
 				$deployer: {},
 				$creationTransaction: {},
 				$implementation: {},
-				bytecodeHash: {},
+				codeHash: {},
 				code: {},
 				abi: {},
 				storageSlotReads: {},
@@ -166,14 +172,14 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content(context)}
+	{#snippet Content({ open })}
 			<div data-column="gap-1">
 				<dl data-column-item="center">
 					<div>
 						<dt>Chain ID</dt>
 						<dd>{String(evmChainIdFromNetworkId(entityId.$network))}</dd>
 					</div>
-					{#if context?.open}
+					{#if open}
 					<ResourceBoundary
 						placeholderText="Loading contract details…"
 						resource={contract}
@@ -264,12 +270,12 @@
 									</div>
 								{/if}
 
-							{#if contract.bytecodeHash}
+							{#if contract.codeHash}
 								<div>
 									<dt>Bytecode hash</dt>
 									<dd>
 										<TruncatedValue
-											value={contract.bytecodeHash}
+											value={contract.codeHash}
 											format={TruncatedValueFormat.Visual}
 										/>
 									</dd>
@@ -314,7 +320,7 @@
 	{/snippet}
 
 	{#snippet Details({
-		open: _detailsOpen,
+		open,
 	})}
 		{#if _children}
 			{@render _children()}

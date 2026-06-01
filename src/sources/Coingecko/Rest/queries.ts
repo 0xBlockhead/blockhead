@@ -27,7 +27,7 @@ const coingeckoCoinMarketSpotQuery = (
 	+ '&sparkline=false'
 )
 
-export const getCoingeckoCoin = async (
+export const getCoin = async (
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
 	coingeckoId: string,
 ): Promise<CoingeckoCoin | undefined> => {
@@ -49,7 +49,7 @@ export const getCoingeckoCoin = async (
  * when platforms / CAIP-19 for the same coin are needed).
  * @see https://docs.coingecko.com/reference/coins-id
  */
-export const getCoingeckoCoinMarketSpot = async (
+export const getCoinMarketSpot = async (
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
 	coingeckoId: string,
 ): Promise<{
@@ -89,7 +89,7 @@ export const getCoingeckoCoinMarketSpot = async (
 	}
 }
 
-export const getCoingeckoCoinByAssetPlatformContract = async ({
+export const getCoinByAssetPlatformContract = async ({
 	publicEnv,
 	assetPlatformId,
 	contractAddress,
@@ -115,15 +115,15 @@ export const getCoingeckoCoinByAssetPlatformContract = async ({
 	return res.json<CoingeckoCoin>()
 }
 
-export const getCoingeckoAssetPlatformById = async (
+export const getAssetPlatformById = async (
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
 	platformId: string,
 ): Promise<CoingeckoAssetPlatform | undefined> => {
-	const platforms = await fetchCoingeckoAssetPlatforms(publicEnv)
+	const platforms = await fetchAssetPlatforms(publicEnv)
 	return platforms.find((p) => p.id === platformId)
 }
 
-export const fetchCoingeckoAssetPlatforms = async (
+export const fetchAssetPlatforms = async (
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
 ): Promise<CoingeckoAssetPlatform[]> => {
 	const res = await coingeckoRestFetch(publicEnv, '/asset_platforms')
@@ -134,7 +134,7 @@ export const fetchCoingeckoAssetPlatforms = async (
 }
 
 
-export const getCoingeckoCoinWithAssetPlatforms = async (
+export const getCoinWithAssetPlatforms = async (
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
 	coingeckoId: string,
 ): Promise<{
@@ -142,13 +142,13 @@ export const getCoingeckoCoinWithAssetPlatforms = async (
 	assetPlatforms: CoingeckoAssetPlatform[]
 }> => {
 	const [coin, assetPlatforms] = await Promise.all([
-		getCoingeckoCoin(publicEnv, coingeckoId),
-		fetchCoingeckoAssetPlatforms(publicEnv),
+		getCoin(publicEnv, coingeckoId),
+		fetchAssetPlatforms(publicEnv),
 	])
 	return { coin, assetPlatforms }
 }
 
-export const findCoingeckoAssetPlatformByChainId = async (
+export const findAssetPlatformByChainId = async (
 	_publicEnv: SourcePublicEnvFor<Source.Coingecko_Rest>,
 	chainId: number,
 ): Promise<CoingeckoAssetPlatform | undefined> => {
@@ -164,7 +164,7 @@ export const findCoingeckoAssetPlatformByChainId = async (
 	}
 }
 
-export const getCoingeckoSimplePriceUsd = async ({
+export const getSimplePriceUsd = async ({
 	publicEnv,
 	coingeckoId,
 }: {
@@ -198,7 +198,7 @@ export type CoingeckoCoinsMarket = {
 	market_cap_rank?: number | null
 }
 
-export const getCoingeckoCoinsMarketsPage = async ({
+export const getCoinsMarketsPage = async ({
 	publicEnv,
 	vsCurrency,
 	order,
@@ -228,7 +228,7 @@ export const getCoingeckoCoinsMarketsPage = async ({
 	return res.json<CoingeckoCoinsMarket[]>()
 }
 
-export const getCoingeckoCoinOhlc = async ({
+export const getCoinOhlc = async ({
 	publicEnv,
 	coingeckoId,
 	vs,

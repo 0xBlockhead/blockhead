@@ -36,7 +36,8 @@ export default {
 				const coinId = (
 					entityId.$market.$base.kind === MarketAssetKind.Coin ?
 						entityId.$market.$base.$coin.coinId
-					:	undefined
+					:
+						undefined
 				)
 				const llamaId = (
 					entityId.feedKey?.trim()
@@ -54,7 +55,7 @@ export default {
 						coins: [llamaId],
 					})
 				).coins[llamaId]
-				if (priceRow == null) throw new Error('Defillama_Rest: price row missing')
+				if (priceRow == null) throw new Error('Defillama_Rest: price missing')
 				const timestampMs = priceRow.timestamp * 1000
 				if (entityId.timestampMs !== timestampMs) {
 					throw new Error('Defillama_Rest: Market_Timestamp id does not match price clock')
@@ -86,7 +87,8 @@ export default {
 				const coinId = (
 					entityId.$market.$base.kind === MarketAssetKind.Coin ?
 							entityId.$market.$base.$coin.coinId
-						:	undefined
+						:
+							undefined
 					)
 					if (entityId.$market.$base.kind !== MarketAssetKind.Coin) {
 						return []
@@ -114,7 +116,7 @@ export default {
 						coins: [llamaId],
 					})
 				).coins[llamaId]
-				if (priceRow == null) throw new Error('Defillama_Rest: price row missing')
+				if (priceRow == null) throw new Error('Defillama_Rest: price missing')
 				return [
 					{
 						[EntityMetaKey.Id]: {
@@ -129,7 +131,7 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.MarketPrice,
-			fieldName: '$$parentMarket',
+			fieldName: '$parentMarket',
 			resolve: async (entityId) => (
 				{
 					[EntityMetaKey.Id]: entityId.$market,

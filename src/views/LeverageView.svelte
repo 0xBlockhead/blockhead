@@ -98,7 +98,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<ResourceBoundary
 			resource={leverage}
 			placeholderText="Loading leverage row…"

@@ -23,7 +23,7 @@
 		...EntitiesListProps
 	}: WithRest<
 		{
-			entityFieldReference: EntityFieldReference<typeof schema, EntityType.ActorCoin>
+			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmNetworkActorCoinBalance>
 			title?: string
 			open?: boolean
 		},
@@ -46,12 +46,12 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ActorCoinView from '$/views/ActorCoinView.svelte'
+	import EvmNetworkActorCoinBalanceView from '$/views/EvmNetworkActorCoinBalanceView.svelte'
 </script>
 
 
 <EntitiesList
-	entityType={EntityType.ActorCoin}
+	entityType={EntityType.EvmNetworkActorCoinBalance}
 	{title}
 	bind:open
 	{collapsible}
@@ -91,7 +91,7 @@
 			{@const tokenBalances = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.ActorCoin>[] = (
+					const rows: Entity<typeof schema, EntityType.EvmNetworkActorCoinBalance>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
@@ -104,7 +104,7 @@
 			<EntitiesList
 				collapsible={false}
 				showSummary={false}
-				entityType={EntityType.ActorCoin}
+				entityType={EntityType.EvmNetworkActorCoinBalance}
 				{title}
 				open={true}
 				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
@@ -122,7 +122,7 @@
 
 				{#snippet Item({ item })}
 					{@const id = item.value[EntityMetaKey.Id]}
-					<ActorCoinView
+					<EvmNetworkActorCoinBalanceView
 						entityId={id}
 						layout={EntityLayout.Summary}
 						open={false}

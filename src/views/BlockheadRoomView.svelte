@@ -101,7 +101,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<dl>
 
 			<div>
@@ -153,7 +153,7 @@
 	{/snippet}
 
 	{#snippet Details({
-		open: detailsOpen,
+		open,
 	})}
 	{/snippet}
 </EntityView>

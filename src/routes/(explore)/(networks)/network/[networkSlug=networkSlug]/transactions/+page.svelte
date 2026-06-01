@@ -42,7 +42,9 @@
 <Page>
 	<ResourceBoundary resource={network}>
 		{#snippet children(network)}
-			{@const entityId = network.caip2 == null ? { networkSlug: network.slug } : { caip2: network.caip2 }}
+			{@const entityId = network.caip2 == null ? { networkSlug: network.slug }
+			:
+				{ caip2: network.caip2 }}
 			{@const href = `/network/${params.networkSlug}/transactions`}
 			{#if network.namespace === NetworkNamespace.Bitcoin || network.namespace === NetworkNamespace.BitcoinCash || network.namespace === NetworkNamespace.Litecoin || network.namespace === NetworkNamespace.Dogecoin || network.namespace === NetworkNamespace.Zcash}
 				<UtxoTransactionsView

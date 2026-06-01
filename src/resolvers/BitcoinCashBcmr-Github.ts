@@ -20,8 +20,8 @@ export default {
 			entityType: EntityType.BitcoinCashBcmrMetadata,
 			resolve: async (entityId) => {
 				assertBitcoinCashMainnet(entityId.$network)
-				const { getBcmrRegistry } = await import('$/sources/BitcoinCashBcmr/Github/queries.ts')
-				const registry = await getBcmrRegistry({ url: entityId.registryUrl })
+				const { getRegistry } = await import('$/sources/BitcoinCashBcmr/Github/queries.ts')
+				const registry = await getRegistry({ url: entityId.registryUrl })
 				const identity = registry.identities?.[entityId.categoryId]
 				if (identity == null) throw new Error(`BitcoinCashBcmr_Github: category not found ${entityId.categoryId}`)
 				const latestRevision = (

@@ -51,7 +51,7 @@ const lotusJsonRpc = async <_Result>({
 	return json.result
 }
 
-export const chainGetTipSetByHeight = ({
+export const getTipSetByHeight = ({
 	rpcUrl,
 	height,
 }: {
@@ -68,7 +68,7 @@ export const chainGetTipSetByHeight = ({
 	})
 )
 
-export const chainHead = ({
+export const getHead = ({
 	rpcUrl,
 }: {
 	rpcUrl: string
@@ -80,7 +80,7 @@ export const chainHead = ({
 	})
 )
 
-export const version = ({
+export const getVersion = ({
 	rpcUrl,
 }: {
 	rpcUrl: string
@@ -92,7 +92,7 @@ export const version = ({
 	})
 )
 
-export const stateNetworkVersion = ({
+export const getNetworkVersion = ({
 	rpcUrl,
 	tipsetKey,
 }: {
@@ -108,7 +108,7 @@ export const stateNetworkVersion = ({
 	})
 )
 
-export const stateMinerPower = ({
+export const getMinerPower = ({
 	rpcUrl,
 	minerAddress,
 	tipsetKey,
@@ -127,7 +127,7 @@ export const stateMinerPower = ({
 	})
 )
 
-export const chainGetMessage = ({
+export const getMessage = ({
 	rpcUrl,
 	messageCid,
 }: {
@@ -143,7 +143,7 @@ export const chainGetMessage = ({
 	})
 )
 
-export const stateGetActor = ({
+export const getActor = ({
 	rpcUrl,
 	address,
 }: {
@@ -160,7 +160,7 @@ export const stateGetActor = ({
 	})
 )
 
-export const stateMinerSectors = ({
+export const getMinerSectors = ({
 	rpcUrl,
 	minerAddress,
 }: {

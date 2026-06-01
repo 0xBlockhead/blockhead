@@ -87,7 +87,9 @@
 			item,
 			id: getItemId(item),
 			label: getItemLabel(item),
-			disabled: getItemDisabled ? getItemDisabled(item) : false,
+			disabled: getItemDisabled ? getItemDisabled(item)
+			:
+				false,
 		})),
 	)
 	const normalizedGroups = $derived(
@@ -107,14 +109,18 @@
 					item,
 					id: getItemId(item),
 					label: getItemLabel(item),
-					disabled: getItemDisabled ? getItemDisabled(item) : false,
+					disabled: getItemDisabled ? getItemDisabled(item)
+					:
+						false,
 				})),
 			}))
 		:
 			[],
 	)
 	const valueStr = $derived(
-		value !== undefined ? String(getItemId(value)) : '',
+		value !== undefined ? String(getItemId(value))
+		:
+			'',
 	)
 
 

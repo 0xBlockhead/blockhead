@@ -75,7 +75,8 @@ const tagValueFromTags = (
 		&& tag[1] != null
 		&& tag[1].trim() !== '' ?
 			[tag[1].trim()]
-		:		[]
+		:
+			[]
 	))[0]
 )
 
@@ -100,12 +101,14 @@ const eventIdFromETags = (tags: PrimalNostrEvent['tags']) => (
 	tags?.flatMap((tag) => (
 		tag[0] === 'e' && tag[1] != null ?
 			[normalizeEventId(tag[1])]
-		:		[]
+		:
+			[]
 	))
 		.flatMap((eventId) => (
 			eventId == null ?
 				[]
-			:		[eventId]
+			:
+				[eventId]
 		))[0]
 )
 
@@ -124,7 +127,8 @@ const replyToEventIdFromTags = (tags: PrimalNostrEvent['tags']) => {
 		&& tag[1] != null
 		&& tag[3] === 'reply' ?
 			[normalizeEventId(tag[1])]
-		:	[]
+		:
+			[]
 	))[0]
 	if (markedReply != null) {
 		return markedReply
@@ -149,7 +153,8 @@ const rootEventIdFromTags = (tags: PrimalNostrEvent['tags']) => (
 		&& tag[1] != null
 		&& tag[3] === 'root' ?
 			[normalizeEventId(tag[1])]
-		:		[]
+		:
+			[]
 	))[0])
 )
 
@@ -161,11 +166,13 @@ const articleRefFromAddressableCoordinate = (coordinate: string | undefined) => 
 	((parts) => (
 		parts == null || parts[0] !== '30023' ?
 			undefined
-		:		(
+		:
+			(
 				(pubkey, identifier) => (
 					pubkey == null || identifier == null || identifier === '' ?
 						undefined
-					:		{
+					:
+						{
 								[EntityMetaKey.Id]: {
 									pubkey,
 									identifier,
@@ -182,11 +189,13 @@ const articleRefFromAddressableCoordinate = (coordinate: string | undefined) => 
 const articleRefFromEvent = (event: PrimalNostrEvent) => (
 	event.kind !== 30023 ?
 		[]
-	:		(
+	:
+		(
 			(pubkey, identifier) => (
 				pubkey == null || identifier == null ?
 					[]
-				:		[
+				:
+					[
 							{
 								[EntityMetaKey.Id]: {
 									pubkey,
@@ -232,7 +241,7 @@ const profileFieldValuesFromMetadata = (
 
 const noteFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 	const eventPubkey = normalizePubkey(event.pubkey)
-	if (eventPubkey == null) throw new Error('Nostr: invalid event pubkey')
+	if (eventPubkey == null) throw new Error('Primal_Rest: invalid event pubkey')
 	return (
 		((replyToEventId, rootEventId) => ({
 			kind: 1,
@@ -245,7 +254,8 @@ const noteFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 			$author: ((normalizedPubkey) => (
 			normalizedPubkey == null ?
 				undefined
-			:				{
+			:
+				{
 						[EntityMetaKey.Id]: { pubkey: normalizedPubkey },
 					}
 		))(normalizePubkey(event.pubkey)),
@@ -266,9 +276,9 @@ const noteFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 
 const repostFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 	const kind = event.kind
-	if (!isNostrRepostKind(kind)) throw new Error('Nostr: not a repost event')
+	if (!isNostrRepostKind(kind)) throw new Error('Primal_Rest: not a repost event')
 	const eventPubkey = normalizePubkey(event.pubkey)
-	if (eventPubkey == null) throw new Error('Nostr: invalid event pubkey')
+	if (eventPubkey == null) throw new Error('Primal_Rest: invalid event pubkey')
 	const repostedArticle = articleRefFromAddressableCoordinate(tagValueFromTags(event.tags, 'a'))
 	return (
 		((repostedEventId) => ({
@@ -281,7 +291,8 @@ const repostFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 			$author: ((normalizedPubkey) => (
 			normalizedPubkey == null ?
 				undefined
-			:				{
+			:
+				{
 						[EntityMetaKey.Id]: { pubkey: normalizedPubkey },
 					}
 		))(normalizePubkey(event.pubkey)),
@@ -310,7 +321,8 @@ const repostFieldValuesFromTargetEvent = (
 		((repostedArticle) => (
 			repostedArticle == null ?
 				repostValues
-			:	{
+			:
+				{
 					...repostValues,
 					$repostedArticle: repostedArticle,
 					$repostedNote: undefined,
@@ -322,7 +334,7 @@ const repostFieldValuesFromTargetEvent = (
 
 const reactionFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 	const eventPubkey = normalizePubkey(event.pubkey)
-	if (eventPubkey == null) throw new Error('Nostr: invalid event pubkey')
+	if (eventPubkey == null) throw new Error('Primal_Rest: invalid event pubkey')
 	const targetArticle = articleRefFromAddressableCoordinate(tagValueFromTags(event.tags, 'a'))
 	const targetEventId = reactionTargetEventIdFromTags(event.tags)
 	return {
@@ -335,7 +347,8 @@ const reactionFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 		$author: ((normalizedPubkey) => (
 			normalizedPubkey == null ?
 				undefined
-			:				{
+			:
+				{
 						[EntityMetaKey.Id]: { pubkey: normalizedPubkey },
 					}
 		))(normalizePubkey(event.pubkey)),
@@ -361,7 +374,8 @@ const reactionFieldValuesFromTargetEvent = (
 		((targetArticle) => (
 			targetArticle == null ?
 				reactionValues
-			:		{
+			:
+				{
 						...reactionValues,
 						$targetArticle: targetArticle,
 						$targetNote: undefined,
@@ -375,17 +389,19 @@ const articlePublishedAtMs = (event: PrimalNostrEvent) => (
 	((publishedAtTag) => (
 		publishedAtTag == null ?
 			nostrCreatedAtMs(event.created_at)
-		:		(
+		:
+			(
 				Number.isFinite(Number(publishedAtTag)) ?
 					Number(publishedAtTag) * 1000
-				:			optionalTimestampMs(publishedAtTag)
+				:
+					optionalTimestampMs(publishedAtTag)
 			)
 	))(tagValueFromTags(event.tags, 'published_at'))
 )
 
 const articleFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 	const eventPubkey = normalizePubkey(event.pubkey)
-	if (eventPubkey == null) throw new Error('Nostr: invalid event pubkey')
+	if (eventPubkey == null) throw new Error('Primal_Rest: invalid event pubkey')
 	return (
 		((publishedAt) => ({
 			kind: 30023,
@@ -399,7 +415,8 @@ const articleFieldValuesFromEvent = (event: PrimalNostrEvent) => {
 			$author: ((normalizedPubkey) => (
 				normalizedPubkey == null ?
 					undefined
-				:					{
+				:
+					{
 							[EntityMetaKey.Id]: { pubkey: normalizedPubkey },
 						}
 			))(normalizePubkey(event.pubkey)),
@@ -418,37 +435,44 @@ const parseKind0Metadata = (content: string | undefined) => {
 					parsed.display_name
 				:					typeof parsed.name === 'string' ?
 						parsed.name
-						:						undefined,
+						:
+							undefined,
 			),
 			about: optionalTrimmedString(
 				typeof parsed.about === 'string' ?
 					parsed.about
-				:				undefined,
+				:
+					undefined,
 			),
 			picture: optionalTrimmedString(
 				typeof parsed.picture === 'string' ?
 					parsed.picture
-				:				undefined,
+				:
+					undefined,
 			),
 			banner: optionalTrimmedString(
 				typeof parsed.banner === 'string' ?
 					parsed.banner
-				:				undefined,
+				:
+					undefined,
 			),
 			website: optionalTrimmedString(
 				typeof parsed.website === 'string' ?
 					parsed.website
-				:				undefined,
+				:
+					undefined,
 			),
 			nip05: optionalTrimmedString(
 				typeof parsed.nip05 === 'string' ?
 					parsed.nip05
-				:				undefined,
+				:
+					undefined,
 			),
 			lud16: optionalTrimmedString(
 				typeof parsed.lud16 === 'string' ?
 					parsed.lud16
-				:				undefined,
+				:
+					undefined,
 			),
 		}
 	} catch {
@@ -469,8 +493,12 @@ const profileEventFromWire = (wire: JsonValue | undefined): PrimalNostrEvent | u
 			content: typeof wire.content === 'string' ? wire.content : undefined,
 			created_at: typeof wire.created_at === 'number' ? wire.created_at : undefined,
 			tags: Array.isArray(wire.tags) ? wire.tags.map((tag) => (
-				Array.isArray(tag) ? tag.map((t) => String(t)) : []
-			)) : undefined,
+				Array.isArray(tag) ? tag.map((t) => String(t))
+				:
+					[]
+			))
+			:
+				undefined,
 			sig: typeof wire.sig === 'string' ? wire.sig : undefined,
 		}
 		return event
@@ -493,8 +521,12 @@ const noteEventFromWire = (wire: JsonValue | undefined): PrimalNostrEvent | unde
 		content: typeof wire.content === 'string' ? wire.content : undefined,
 		created_at: typeof wire.created_at === 'number' ? wire.created_at : undefined,
 		tags: Array.isArray(wire.tags) ? wire.tags.map((tag) => (
-			Array.isArray(tag) ? tag.map((t) => String(t)) : []
-		)) : undefined,
+			Array.isArray(tag) ? tag.map((t) => String(t))
+			:
+				[]
+		))
+		:
+			undefined,
 		sig: typeof wire.sig === 'string' ? wire.sig : undefined,
 	}
 	return event
@@ -504,18 +536,20 @@ const eventFromWire = (wire: JsonValue | undefined) => (
 	((record) => (
 		record == null ?
 			undefined
-		:				noteEventFromWire(isJsonObject(record) ? record.event ?? record : undefined)
+		:
+			noteEventFromWire(isJsonObject(record) ? record.event ?? record : undefined)
 	))(wire)
 )
 
 const eventsFromTimelineResponse = (response: JsonValue | undefined): PrimalNostrEvent[] => {
 	if (Array.isArray(response)) {
-		return response.flatMap((item) => (
+		return response.flatMap((noteEvent) => (
 			((event) => (
 				event == null ?
 					[]
-				:				[event]
-			))(noteEventFromWire(item))
+				:
+					[event]
+			))(noteEventFromWire(noteEvent))
 		))
 	}
 	if (response == null || !isJsonObject(response)) return []
@@ -528,14 +562,15 @@ const eventsFromTimelineResponse = (response: JsonValue | undefined): PrimalNost
 		'articles',
 		'actions',
 	] as const) {
-		const rows = response[key]
-		if (!Array.isArray(rows)) continue
-		return rows.flatMap((item) => (
+		const noteEvents = response[key]
+		if (!Array.isArray(noteEvents)) continue
+		return noteEvents.flatMap((noteEvent) => (
 			((event) => (
 				event == null ?
 					[]
-				:				[event]
-			))(noteEventFromWire(item))
+				:
+					[event]
+			))(noteEventFromWire(noteEvent))
 		))
 	}
 	return []
@@ -654,10 +689,10 @@ export default {
 					eventsFromTimelineResponse(
 						await singleFlight(getProfileArticles)(publicEnv, pubkey, limit),
 					)
-						.find((row) => (
-							row.kind === 30023
-							&& normalizePubkey(row.pubkey) === pubkey
-							&& tagValueFromTags(row.tags, 'd') === identifier
+						.find((noteEvent) => (
+							noteEvent.kind === 30023
+							&& normalizePubkey(noteEvent.pubkey) === pubkey
+							&& tagValueFromTags(noteEvent.tags, 'd') === identifier
 						))
 				)
 				if (event == null) {
@@ -717,7 +752,8 @@ export default {
 						.flatMap((event) => (
 							event.kind !== 1 || normalizeEventId(event.id) == null ?
 								[]
-							:						[
+							:
+								[
 														{
 															[EntityMetaKey.Id]: { eventId: normalizeEventId(event.id)! },
 														},
@@ -741,7 +777,8 @@ export default {
 						.flatMap((event) => (
 							!isNostrRepostKind(event.kind) || normalizeEventId(event.id) == null ?
 								[]
-							:						[
+							:
+								[
 														{
 															[EntityMetaKey.Id]: { eventId: normalizeEventId(event.id)! },
 														},
@@ -781,7 +818,8 @@ export default {
 						.flatMap((event) => (
 							event.kind !== 1 || normalizeEventId(event.id) == null ?
 								[]
-							:						[
+							:
+								[
 														{
 															[EntityMetaKey.Id]: { eventId: normalizeEventId(event.id)! },
 														},
@@ -805,7 +843,8 @@ export default {
 						.flatMap((event) => (
 							event.kind !== 7 || normalizeEventId(event.id) == null ?
 								[]
-							:		[
+							:
+								[
 										{
 											[EntityMetaKey.Id]: { eventId: normalizeEventId(event.id)! },
 										},
@@ -829,7 +868,8 @@ export default {
 				return (
 					normalizedReplyTo == null ?
 						undefined
-					:					{
+					:
+						{
 							[EntityMetaKey.Id]: { eventId: normalizedReplyTo },
 						}
 				)

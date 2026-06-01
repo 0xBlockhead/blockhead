@@ -11,11 +11,12 @@ import { Source } from '$/sources/$Source.ts'
 
 const nearNepRows = async (entries: { type: string, name: string }[]) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-	return entries.flatMap((entry) => {
-		const proposalNumberRaw = regex('^nep-(?<proposalNumber>\\d{4})\\.md$').exec(entry.name)?.groups?.proposalNumber
-		return entry.type !== 'file' || proposalNumberRaw == null ?
+	return entries.flatMap((githubContent) => {
+		const proposalNumberRaw = regex('^nep-(?<proposalNumber>\\d{4})\\.md$').exec(githubContent.name)?.groups?.proposalNumber
+		return githubContent.type !== 'file' || proposalNumberRaw == null ?
 			[]
-		:	[{
+		:
+			[{
 				[EntityMetaKey.Id]: {
 					realm: SpecificationRealm.Near,
 					category: ProposalCategory.Nep,
@@ -36,8 +37,8 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Near || entityId.category !== ProposalCategory.Nep) {
 					throw new Error('NearNeps_Github: proposal resolver only supports NEAR NEPs')
 				}
-				const { getNearNepMarkdownText } = await import('$/sources/NearNeps/Github/queries.ts')
-				const text = await singleFlight(getNearNepMarkdownText)({ number: entityId.number })
+				const { getMarkdownText } = await import('$/sources/NearNeps/Github/queries.ts')
+				const text = await singleFlight(getMarkdownText)({ number: entityId.number })
 				const frontmatter = parseFrontmatter(text)
 				const body = stripFrontmatter(text)
 				return {
@@ -55,8 +56,8 @@ export default {
 			entityType: EntityType._Global,
 			fieldName: '$$proposals',
 			resolve: async () => {
-				const { getNearNepsGithubContents } = await import('$/sources/NearNeps/Github/queries.ts')
-				return nearNepRows(await getNearNepsGithubContents())
+				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
+				return nearNepRows(await getContents())
 			},
 		}),
 
@@ -66,8 +67,8 @@ export default {
 			resolve: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Near) throw new Error('NearNeps_Github: $$proposals only supports NEAR')
-				const { getNearNepsGithubContents } = await import('$/sources/NearNeps/Github/queries.ts')
-				return nearNepRows(await getNearNepsGithubContents())
+				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
+				return nearNepRows(await getContents())
 			},
 		}),
 
@@ -77,8 +78,8 @@ export default {
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Near || entityId.category !== ProposalCategory.Nep) throw new Error('NearNeps_Github: $$proposals only supports NEAR NEPs')
-				const { getNearNepsGithubContents } = await import('$/sources/NearNeps/Github/queries.ts')
-				return nearNepRows(await getNearNepsGithubContents())
+				const { getContents } = await import('$/sources/NearNeps/Github/queries.ts')
+				return nearNepRows(await getContents())
 			},
 		}),
 	],

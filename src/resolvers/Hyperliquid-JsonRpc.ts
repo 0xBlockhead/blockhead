@@ -3,23 +3,16 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { TransportType } from '$/constants/TransportType.ts'
+import { hyperliquidMainnetRpcEndpoints } from '$/constants/HyperliquidNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const hyperliquidEvmRpcUrl = 'https://rpc.hyperliquid.xyz/evm'
-
-const hyperliquidRpcEndpoints = [
-	{
-		url: hyperliquidEvmRpcUrl,
-		transportType: TransportType.Http,
-		providerName: 'Hyperliquid HyperEVM JSON-RPC',
-	},
-]
+const hyperliquidEvmRpcUrl = hyperliquidMainnetRpcEndpoints[0].url
 
 const assertHyperliquidMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
-	if (!('networkSlug' in network) || network.networkSlug !== 'hyperliquid') {
+	if (!('networkSlug' in network) || network.networkSlug !== networkBySlug.hyperliquid.slug) {
 		throw new Error('Hyperliquid_JsonRpc: unsupported network')
 	}
 }
@@ -38,7 +31,7 @@ export default {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
 					},
-					rpcEndpoints: hyperliquidRpcEndpoints,
+					rpcEndpoints: hyperliquidMainnetRpcEndpoints,
 				}
 			},
 		}),

@@ -7,14 +7,14 @@ import ActivityPubNetworkSchema from '$/schema/ActivityPubNetwork.ts'
 import ActivityPubNoteSchema from '$/schema/ActivityPubNote.ts'
 import ActivityPubNote_TimestampSchema from '$/schema/ActivityPubNote_Timestamp.ts'
 import EvmAccountSchema from '$/schema/EvmAccount.ts'
-import Actor_Coin_EvmBlockSchema from '$/schema/Actor_Coin_EvmBlock.ts'
+import EvmNetworkActorCoinBalance_EvmBlockSchema from '$/schema/EvmNetworkActorCoinBalance_EvmBlock.ts'
 import AtprotoActorSchema from '$/schema/AtprotoActor.ts'
 import AtprotoActor_TimestampSchema from '$/schema/AtprotoActor_Timestamp.ts'
 import AtprotoPostSchema from '$/schema/AtprotoPost.ts'
 import AtprotoPost_TimestampSchema from '$/schema/AtprotoPost_Timestamp.ts'
 import AtprotoNetworkSchema from '$/schema/AtprotoNetwork.ts'
-import ActorCoinSchema from '$/schema/ActorCoin.ts'
-import ActorCoinAllowanceSchema from '$/schema/ActorCoinAllowance.ts'
+import EvmNetworkActorCoinBalanceSchema from '$/schema/EvmNetworkActorCoinBalance.ts'
+import EvmActorCoinAllowanceSchema from '$/schema/EvmActorCoinAllowance.ts'
 import EvmNetworkAccountSchema from '$/schema/EvmNetworkAccount.ts'
 import BeaconEpochSchema from '$/schema/BeaconEpoch.ts'
 import BeaconSlotSchema from '$/schema/BeaconSlot.ts'
@@ -123,6 +123,7 @@ import ExecutionEnvironmentSchema from '$/schema/ExecutionEnvironment.ts'
 import ConsensusMechanismSchema from '$/schema/ConsensusMechanism.ts'
 import AssetInstanceSchema from '$/schema/AssetInstance.ts'
 import NetworkUpgradeSchema from '$/schema/NetworkUpgrade.ts'
+import UtxoAddressSchema from '$/schema/UtxoAddress.ts'
 import UtxoNetworkSchema from '$/schema/UtxoNetwork.ts'
 import UtxoNetwork_TimestampSchema from '$/schema/UtxoNetwork_Timestamp.ts'
 import UtxoBlockSchema from '$/schema/UtxoBlock.ts'
@@ -311,14 +312,14 @@ export const schema = [
 	ActivityPubNoteSchema,
 	ActivityPubNote_TimestampSchema,
 	EvmAccountSchema,
-	Actor_Coin_EvmBlockSchema,
+	EvmNetworkActorCoinBalance_EvmBlockSchema,
 	AtprotoActorSchema,
 	AtprotoActor_TimestampSchema,
 	AtprotoPostSchema,
 	AtprotoPost_TimestampSchema,
 	AtprotoNetworkSchema,
-	ActorCoinSchema,
-	ActorCoinAllowanceSchema,
+	EvmNetworkActorCoinBalanceSchema,
+	EvmActorCoinAllowanceSchema,
 	EvmNetworkAccountSchema,
 	BeaconEpochSchema,
 	BeaconSlotSchema,
@@ -427,6 +428,7 @@ export const schema = [
 	ConsensusMechanismSchema,
 	AssetInstanceSchema,
 	NetworkUpgradeSchema,
+	UtxoAddressSchema,
 	UtxoNetworkSchema,
 	UtxoNetwork_TimestampSchema,
 	UtxoBlockSchema,

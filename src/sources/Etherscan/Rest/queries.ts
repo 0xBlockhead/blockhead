@@ -32,7 +32,7 @@ import {
 } from '$/sources/Etherscan/Rest/client.ts'
 
 /** Etherscan account list endpoints cap at 10_000 rows per request. */
-export const etherscanAccountListMaxOffset = 10_000
+export const accountListMaxOffset = 10_000
 
 const etherscanAccountListQuery = ({
 	address,
@@ -46,7 +46,7 @@ const etherscanAccountListQuery = ({
 	startblock: '0',
 	endblock: '99999999',
 	page: '1',
-	offset: String(Math.min(Math.max(1, offset), etherscanAccountListMaxOffset)),
+	offset: String(Math.min(Math.max(1, offset), accountListMaxOffset)),
 	sort: 'asc',
 })
 
@@ -79,7 +79,7 @@ const etherscanAccountListRows = async <T>({
  * ```
  * @see https://docs.etherscan.io/api-reference/endpoint/ethgettransactionbyhash
  */
-export const proxyEthGetTransactionByHash = async ({
+export const getTransactionByHash = async ({
 	publicEnv,
 	chainId,
 	txHash,
@@ -108,7 +108,7 @@ export const proxyEthGetTransactionByHash = async ({
  * **`module=proxy`**, **`action=eth_getTransactionReceipt`**, **`txhash`**.
  * @see https://docs.etherscan.io/api-reference/endpoint/ethgettransactionreceipt
  */
-export const proxyEthGetTransactionReceipt = async ({
+export const getTransactionReceipt = async ({
 	publicEnv,
 	chainId,
 	txHash,
@@ -137,7 +137,7 @@ export const proxyEthGetTransactionReceipt = async ({
  * **`module=proxy`**, **`action=eth_blockNumber`**.
  * @see https://docs.etherscan.io/api-reference/endpoint/ethblocknumber
  */
-export const proxyEthBlockNumber = async ({
+export const getBlockNumber = async ({
 	publicEnv,
 	chainId,
 	options,
@@ -164,7 +164,7 @@ export const proxyEthBlockNumber = async ({
  * **`module=proxy`**, **`action=eth_getBlockByNumber`**, **`tag`** (hex block number or **`latest`**), **`boolean`**.
  * @see https://docs.etherscan.io/api-reference/endpoint/ethgetblockbynumber
  */
-export const proxyEthGetBlockByNumber = async ({
+export const getBlockByNumber = async ({
 	publicEnv,
 	chainId,
 	tag,
@@ -296,7 +296,7 @@ export const getContractCreation = async ({
 }
 
 /** **`module=proxy`**, **`action=eth_getCode`**. */
-export const proxyEthGetCode = async ({
+export const getCode = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -323,7 +323,7 @@ export const proxyEthGetCode = async ({
 )
 
 /** **`module=proxy`**, **`action=eth_getStorageAt`**. */
-export const proxyEthGetStorageAt = async ({
+export const getStorageAt = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -356,7 +356,7 @@ export const proxyEthGetStorageAt = async ({
  * **`module=gastracker`**, **`action=gasoracle`** — slow / average / fast tiers in gwei.
  * @see https://docs.etherscan.io/api-reference/endpoint/gasoracle
  */
-export const gastrackerGasOracle = async ({
+export const getGasOracle = async ({
 	publicEnv,
 	chainId,
 	options,
@@ -382,7 +382,7 @@ export const gastrackerGasOracle = async ({
  * **`module=account`**, **`action=tokentx`** — ERC-20 token transfers by address.
  * @see https://docs.etherscan.io/api-reference/endpoint/tokentx
  */
-export const accountErc20TokenTransfersByAddress = async ({
+export const getErc20TokenTransfersByAddress = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -413,7 +413,7 @@ export const accountErc20TokenTransfersByAddress = async ({
  * **`module=account`**, **`action=tokennfttx`** — ERC-721 token transfers by address.
  * @see https://docs.etherscan.io/api-reference/endpoint/tokennfttx
  */
-export const accountErc721TokenTransfersByAddress = async ({
+export const getErc721TokenTransfersByAddress = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -444,7 +444,7 @@ export const accountErc721TokenTransfersByAddress = async ({
  * **`module=account`**, **`action=token1155tx`** — ERC-1155 token transfers by address.
  * @see https://docs.etherscan.io/api-reference/endpoint/token1155tx
  */
-export const accountErc1155TokenTransfersByAddress = async ({
+export const getErc1155TokenTransfersByAddress = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -474,7 +474,7 @@ export const accountErc1155TokenTransfersByAddress = async ({
 /**
  * ERC-20 / ERC-721 / ERC-1155 token transfers for an address (merged, deduped).
  */
-export const accountTokenTransfersByAddress = async ({
+export const getTokenTransfersByAddress = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -505,21 +505,21 @@ export const accountTokenTransfersByAddress = async ({
 		erc721Rows,
 		erc1155Rows,
 	] = await Promise.all([
-		accountErc20TokenTransfersByAddress({
+		getErc20TokenTransfersByAddress({
 			publicEnv,
 			chainId,
 			address,
 			offset,
 			options,
 		}),
-		accountErc721TokenTransfersByAddress({
+		getErc721TokenTransfersByAddress({
 			publicEnv,
 			chainId,
 			address,
 			offset,
 			options,
 		}),
-		accountErc1155TokenTransfersByAddress({
+		getErc1155TokenTransfersByAddress({
 			publicEnv,
 			chainId,
 			address,
@@ -567,7 +567,7 @@ export const accountTokenTransfersByAddress = async ({
  * Token transfers within one transaction — Etherscan has no `tokentx` by tx hash; loads
  * **`from`** / **`to`** participant address lists and filters by **`hash`**.
  */
-export const accountTokenTransfersByTransaction = async ({
+export const getTokenTransfersByTransaction = async ({
 	publicEnv,
 	chainId,
 	txHash,
@@ -593,7 +593,7 @@ export const accountTokenTransfersByTransaction = async ({
 		row: EtherscanErc1155TokenTransfer
 	}
 )[] | null> => {
-	const tx = await proxyEthGetTransactionByHash({
+	const tx = await getTransactionByHash({
 		publicEnv,
 		chainId,
 		txHash,
@@ -614,7 +614,7 @@ export const accountTokenTransfersByTransaction = async ({
 	if (participantAddresses.length === 0) return []
 	const participantRows = await Promise.all(
 		participantAddresses.map((address) => (
-			accountTokenTransfersByAddress({
+			getTokenTransfersByAddress({
 				publicEnv,
 				chainId,
 				address,
@@ -652,7 +652,7 @@ export const accountTokenTransfersByTransaction = async ({
  * **`module=account`**, **`action=txlistinternal`** — internal transactions by address.
  * @see https://docs.etherscan.io/api-reference/endpoint/txlistinternal
  */
-export const accountInternalTransactionsByAddress = async ({
+export const getInternalTransactionsByAddress = async ({
 	publicEnv,
 	chainId,
 	address,
@@ -683,7 +683,7 @@ export const accountInternalTransactionsByAddress = async ({
  * **`module=account`**, **`action=txlistinternal`**, **`txhash`** — internal transactions in one tx.
  * @see https://docs.etherscan.io/api-reference/endpoint/txlistinternal-txhash
  */
-export const accountInternalTransactionsByTxHash = async ({
+export const getInternalTransactionsByTxHash = async ({
 	publicEnv,
 	chainId,
 	txHash,

@@ -11,3 +11,5 @@ export const nearMainnetRpcEndpoints = [
 	transportType: TransportType
 	providerName: string
 }[]
+
+export const nearBlocksMainnetRestBaseUrl = 'https://api.nearblocks.io'

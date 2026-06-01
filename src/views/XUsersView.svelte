@@ -17,6 +17,7 @@
 	let {
 		entityFieldReference,
 		id,
+		href = '',
 		open = $bindable(true),
 		title = 'X profiles',
 		...EntitiesListProps
@@ -24,6 +25,7 @@
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.XUser>
 			id: string
+			href?: string
 			open?: boolean
 			title?: string
 		},
@@ -58,7 +60,32 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const parent = useEntity(
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import XUserView from '$/views/XUserView.svelte'
+</script>
+
+
+<EntitiesList
+	{...EntitiesListProps}
+	bind:open
+	entityType={EntityType.XUser}
+	{id}
+	{title}
+>
+	{#snippet TypeAnnotationTooltip()}
+			<p>
+				Public X (Twitter) profile records.
+			</p>
+			<p>
+				Not markets, storage, Reddit, chat apps, or chain receipts. Live lookup depends on OAuth or bearer credentials and X developer API availability.
+			</p>
+		{/snippet}
+
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -70,9 +97,8 @@
 				],
 			},
 		},
-	)
-
-	const users = derive(
+	)}
+			{@const users = derive(
 		parent,
 		(parent) => {
 			const rows: Entity<typeof schema, EntityType.XUser>[] = (
@@ -85,47 +111,35 @@
 					}))
 			)
 		},
-	)
+	)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.XUser}
+				id={`${id}-items`}
+				href={href}
+				{title}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getSortValue={(row) => row.value[EntityMetaKey.Id].id}
+				resource={users}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+						<p data-text="muted">
+							No X profiles in this list yet.
+						</p>
+					{/snippet}
 
+				{#snippet Item({ item })}
+						<XUserView
+							entityId={{ id: item.value[EntityMetaKey.Id].id }}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/snippet}
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import XUserView from '$/views/XUserView.svelte'
-</script>
-
-
-<EntitiesList
-	{...EntitiesListProps}
-	bind:open
-	entityType={EntityType.XUser}
-	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-	getSortValue={(row) => row.value[EntityMetaKey.Id].id}
-	{id}
-	resource={users}
-	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
->
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Public X (Twitter) profile records.
-		</p>
-		<p>
-			Not markets, storage, Reddit, chat apps, or chain receipts. Live lookup depends on OAuth or bearer credentials and X developer API availability.
-		</p>
-	{/snippet}
-
-	{#snippet Empty()}
-		<p data-text="muted">
-			No X profiles in this list yet.
-		</p>
-	{/snippet}
-
-	{#snippet Item({ item })}
-		<XUserView
-			entityId={{ id: item.value[EntityMetaKey.Id].id }}
-			layout={EntityLayout.Summary}
-			open={false}
-		/>
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

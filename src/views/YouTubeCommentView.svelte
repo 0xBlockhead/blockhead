@@ -325,30 +325,44 @@
 						return rows.map((reply) => reply[EntityMetaKey.Id])
 					},
 				)}
-					<ResourceBoundary
-						resource={repliesParent}
-						placeholderText="Loading replies…"
-				>
-					{#snippet children(repliesParent)}
-						{#if repliesParent.$parentComment === undefined}
+				{#if repliesParent.$parentComment === undefined}
+					<EntitiesList
+						entityType={EntityType.YouTubeComment}
+						href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
+							videoId: encodeURIComponent(entityId.videoId),
+							commentId: encodeURIComponent(entityId.commentId),
+						})}
+						id={`${idKey}:replies`}
+						title={(
+							repliesParent.replyCount != null ?
+								`Replies (${String(repliesParent.replyCount)})`
+							:
+								'Replies'
+						)}
+						collapsible={false}
+					>
+						{#snippet body()}
 							<EntitiesList
+								collapsible={false}
+								showSummary={false}
 								entityType={EntityType.YouTubeComment}
 								href={resolve('/(social)/(youtube)/youtube/comment/[videoId]/[commentId]', {
 									videoId: encodeURIComponent(entityId.videoId),
 									commentId: encodeURIComponent(entityId.commentId),
 								})}
-								id={`${idKey}:replies`}
+								id={`${idKey}:replies-items`}
 								title={(
 									repliesParent.replyCount != null ?
 										`Replies (${String(repliesParent.replyCount)})`
 									:
 										'Replies'
-									)}
-									resource={replies}
+								)}
+								resource={replies}
 								placeholderText="Loading replies…"
 								getKey={(row) => stringify(row)}
 								getSortValue={(row) => row.commentId}
 								placeholderKeys={new SvelteSet<string>()}
+								open={true}
 							>
 								{#snippet Empty()}
 									<p data-text="muted">
@@ -378,11 +392,11 @@
 									/>
 								{/snippet}
 							</EntitiesList>
-						{/if}
 						{/snippet}
-					</ResourceBoundary>
+					</EntitiesList>
+				{/if}
 
-					<YouTubeComment_TimestampsView
+				<YouTubeComment_TimestampsView
 						entityFieldReference={{
 							entityType: EntityType.YouTubeComment,
 							entityId,

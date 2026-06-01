@@ -165,7 +165,7 @@
 							showTypeAnnotation={false}
 							showListInputSelector
 						/>
-					{:else if entityFieldReference.entityType === EntityType.EvmNetwork || entityFieldReference.entityType === EntityType.ActorNetwork}
+					{:else if entityFieldReference.entityType === EntityType.EvmNetwork || entityFieldReference.entityType === EntityType.ActorNetwork || entityFieldReference.entityType === EntityType.EvmNetworkAccount}
 						<EvmTransactionView
 							entityId={t}
 							layout={EntityLayout.Summary}

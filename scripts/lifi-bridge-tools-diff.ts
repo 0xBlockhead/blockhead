@@ -5,7 +5,7 @@
 
 import { readFileSync } from 'node:fs'
 
-import { fetchLifiTools } from '../src/sources/Lifi/Rest/queries.ts'
+import { fetchTools } from '../src/sources/Lifi/Rest/queries.ts'
 
 
 const bridgeToolsSource = readFileSync(
@@ -17,7 +17,7 @@ const catalogKeys = new Set(
 	[...bridgeToolsSource.matchAll(/^\s*key: '([^']+)'/gm)].map((match) => match[1]),
 )
 
-const { bridges } = await fetchLifiTools()
+const { bridges } = await fetchTools()
 const apiKeys = bridges.map((bridge) => bridge.key)
 const missingFromCatalog = apiKeys.filter((key) => !catalogKeys.has(key))
 const staleInCatalog = [...catalogKeys].filter((key) => !apiKeys.includes(key))

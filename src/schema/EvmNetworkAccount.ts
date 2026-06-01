@@ -48,15 +48,9 @@ export default {
 
 	fields: [
 		{
-			name: 'transactionsCount',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-		},
-		{
 			name: 'transactionCount',
 			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
+			primitiveType: type('bigint'),
 			cardinality: EntityFieldCardinality.ZeroOrOne,
 		},
 		{
@@ -109,7 +103,7 @@ export default {
 			],
 		},
 		{
-			name: '$$internalTransactions',
+			name: '$$internalTransfers',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.EvmInternalTransfer,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
@@ -121,7 +115,7 @@ export default {
 		{
 			name: '$$ownedCoins',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ActorCoin,
+			entityType: EntityType.EvmNetworkActorCoinBalance,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 			defaultSources: [
 				Source.Allium_Rest,
@@ -131,7 +125,7 @@ export default {
 		{
 			name: '$$erc20TokenAllowances',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ActorCoinAllowance,
+			entityType: EntityType.EvmActorCoinAllowance,
 			cardinality: EntityFieldCardinality.ZeroOrMany,
 		},
 		{

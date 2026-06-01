@@ -29,17 +29,5 @@ export default {
 			entityType: EntityType.FarcasterUser,
 			cardinality: EntityFieldCardinality.One,
 		},
-		{
-			name: 'protocol',
-			type: EntityFieldType.Primitive,
-			primitiveType: farcasterVerifiedAddressProtocol,
-			cardinality: EntityFieldCardinality.One,
-		},
-		{
-			name: 'address',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('string'),
-			cardinality: EntityFieldCardinality.One,
-		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

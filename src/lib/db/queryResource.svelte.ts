@@ -191,7 +191,8 @@ export const toQueryResource = <Data>(
 		error: (
 			query.isError ?
 				normalizeBoundaryError(query.error ?? new Error(String(query.status ?? 'Query failed')))
-			: undefined
+			:
+				undefined
 		),
 		pending: (
 			!query.isError && (
@@ -209,7 +210,8 @@ export const toQueryResource = <Data>(
 			error: (
 				query.isError ?
 					normalizeBoundaryError(query.error ?? new Error(String(query.status ?? 'Query failed')))
-				: undefined
+				:
+					undefined
 			),
 			pending: (
 				!query.isError && (

@@ -7,7 +7,7 @@ import type {
 
 const logosDocsBaseUrl = 'https://docs.logoslabs.io'
 
-export const logosDocsPages = [
+export const getPages = [
 	{
 		url: `${logosDocsBaseUrl}/learn/logos/aboutLogosNetwork`,
 		title: 'About Logos network',
@@ -22,7 +22,7 @@ export const logosDocsPages = [
 	},
 ] as const satisfies readonly LogosDocsPage[]
 
-export const logosDocsNetworkSummary = {
+export const getNetworkSummary = {
 	chainFramework: 'Substrate',
 	networkRole: 'sub0layer',
 	primaryComponents: [
@@ -33,7 +33,7 @@ export const logosDocsNetworkSummary = {
 	],
 } as const satisfies LogosDocsNetworkSummary
 
-export const getLogosDocsPage = ({ url }: { url: string }) => (
+export const getPage = ({ url }: { url: string }) => (
 	getText(url, {
 		origins: LogosDocs.origins ?? [],
 	})

@@ -82,7 +82,9 @@ export const decodeEventDataWithSignature = (
 ): DecodedCalldata | null => {
 	const parsed = parseEventSignature(signature)
 	if (!parsed) return null
-	const raw = topicAndDataHex.startsWith('0x') ? topicAndDataHex.slice(2) : topicAndDataHex
+	const raw = topicAndDataHex.startsWith('0x') ? topicAndDataHex.slice(2)
+	:
+		topicAndDataHex
 	const dataStart = 64 + parsed.indexedTypes.length * 64
 	const minDataLen = parsed.nonIndexedTypes.length * 64
 	if (raw.length < dataStart + minDataLen) return null
@@ -195,7 +197,9 @@ export const decodeCalldataWithSignature = (
 ): DecodedCalldata | null => {
 	const parsed = parseFunctionSignature(signature)
 	if (!parsed) return null
-	const raw = calldataHex.startsWith('0x') ? calldataHex.slice(2) : calldataHex
+	const raw = calldataHex.startsWith('0x') ? calldataHex.slice(2)
+	:
+		calldataHex
 	if (raw.length < 8) return null
 	const expectedSelector = functionSelectorFromSignature(signature)
 	if (
@@ -257,7 +261,9 @@ export const formatDecodedParamValue = (type: string, value: unknown): string =>
 
 /** Split hex calldata into display lines: selector (8 hex chars) then 32-byte (64 hex) chunks. */
 export const formatHexCalldataLines = (hex: string): string[] => {
-	const raw = hex.startsWith('0x') ? hex.slice(2) : hex
+	const raw = hex.startsWith('0x') ? hex.slice(2)
+	:
+		hex
 	if (raw.length === 0) return ['0x']
 	const lines: string[] = []
 	if (raw.length <= 8)

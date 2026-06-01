@@ -2,17 +2,19 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import {
+	litecoinCoreDefaultLocalRpcUrl,
+	litecoinMainnetCaip2,
+} from '$/constants/BitcoinNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const litecoinCoreRpcUrl = 'http://127.0.0.1:9332'
-
 const assertLitecoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
 		!('caip2' in network)
-		|| network.caip2.namespace !== 'bip122'
-		|| network.caip2.reference !== '12a765e31ffd4059bada1e25190f6e98'
+		|| network.caip2.namespace !== litecoinMainnetCaip2.namespace
+		|| network.caip2.reference !== litecoinMainnetCaip2.reference
 	) {
 		throw new Error('LitecoinCore_JsonRpc: unsupported Litecoin network')
 	}
@@ -31,9 +33,9 @@ export default {
 					getBlockHash,
 				} = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
 				const block = await getBlock({
-					rpcUrl: litecoinCoreRpcUrl,
+					rpcUrl: litecoinCoreDefaultLocalRpcUrl,
 					blockHash: entityId.hash ?? await getBlockHash({
-						rpcUrl: litecoinCoreRpcUrl,
+						rpcUrl: litecoinCoreDefaultLocalRpcUrl,
 						height: entityId.height,
 					}),
 				})
@@ -72,7 +74,7 @@ export default {
 				assertLitecoinMainnet(entityId.$network)
 				const { getRawTransaction } = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
 				const transaction = await getRawTransaction({
-					rpcUrl: litecoinCoreRpcUrl,
+					rpcUrl: litecoinCoreDefaultLocalRpcUrl,
 					txId: entityId.txId,
 				})
 				if (typeof transaction === 'string') {
@@ -105,9 +107,9 @@ export default {
 					getBlockHash,
 				} = await import('$/sources/LitecoinCore/JsonRpc/queries.ts')
 				const block = await getBlock({
-					rpcUrl: litecoinCoreRpcUrl,
+					rpcUrl: litecoinCoreDefaultLocalRpcUrl,
 					blockHash: entityId.hash ?? await getBlockHash({
-						rpcUrl: litecoinCoreRpcUrl,
+						rpcUrl: litecoinCoreDefaultLocalRpcUrl,
 						height: entityId.height,
 					}),
 				})

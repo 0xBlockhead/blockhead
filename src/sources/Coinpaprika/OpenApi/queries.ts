@@ -30,7 +30,7 @@ import type {
 } from '$/sources/Coinpaprika/OpenApi/types.ts'
 
 
-export const marketKindFromCoinpaprikaMarketCategory = (
+export const getMarketKindFromMarketCategory = (
 	category: string | undefined,
 ): MarketKind => (
 	category === 'Futures' ?
@@ -42,7 +42,7 @@ export const marketKindFromCoinpaprikaMarketCategory = (
 )
 
 
-export const marketVenueIdFromCoinpaprikaMarketUrl = (
+export const getMarketVenueIdFromMarketUrl = (
 	marketUrl: string | undefined,
 ): MarketVenueId | null => {
 	if (marketUrl == null || marketUrl === '') {
@@ -62,7 +62,7 @@ export const marketVenueIdFromCoinpaprikaMarketUrl = (
 }
 
 
-export const marketEntityIdFromCoinpaprikaMarket = (
+export const getMarketEntityIdFromMarket = (
 	market: CoinpaprikaMarket,
 	scope?: {
 		baseCoinId?: CoinId
@@ -86,13 +86,13 @@ export const marketEntityIdFromCoinpaprikaMarket = (
 	}
 	const marketVenueId = (
 		scope?.marketVenueId
-		?? marketVenueIdFromCoinpaprikaMarketUrl(market.market_url)
+		?? getMarketVenueIdFromMarketUrl(market.market_url)
 	)
 	if (marketVenueId == null) {
 		return null
 	}
 	const quoteCoinId = coinIdByWireId[quoteWireId]
-	const marketKind = marketKindFromCoinpaprikaMarketCategory(market.category)
+	const marketKind = getMarketKindFromMarketCategory(market.category)
 	if (
 		(
 			coinpaprikaUsdQuoteWireIds as readonly string[]
@@ -129,7 +129,7 @@ export const marketEntityIdFromCoinpaprikaMarket = (
 }
 
 
-export const collectCoinpaprikaMarketEntityIdsForCoin = async ({
+export const collectMarketEntityIdsForCoin = async ({
 	publicEnv,
 	catalogCoinId,
 	coinpaprikaId,
@@ -138,14 +138,14 @@ export const collectCoinpaprikaMarketEntityIdsForCoin = async ({
 	catalogCoinId: CoinId
 	coinpaprikaId: string
 }): Promise<EntityId<typeof schema, EntityType.Market>[]> => {
-	const markets = await getCoinpaprikaCoinMarkets({
+	const markets = await getCoinMarkets({
 		publicEnv,
 		coinpaprikaId,
 	})
 	const seen = new Set<string>()
 	return (
 		markets.flatMap((market) => {
-			const marketId = marketEntityIdFromCoinpaprikaMarket(market, {
+			const marketId = getMarketEntityIdFromMarket(market, {
 				baseCoinId: catalogCoinId,
 			})
 			if (marketId == null) {
@@ -162,7 +162,7 @@ export const collectCoinpaprikaMarketEntityIdsForCoin = async ({
 }
 
 
-export const collectCoinpaprikaMarketEntityIdsForExchange = async ({
+export const collectMarketEntityIdsForExchange = async ({
 	publicEnv,
 	marketVenueId,
 }: {
@@ -176,14 +176,14 @@ export const collectCoinpaprikaMarketEntityIdsForExchange = async ({
 	if (exchangeId == null) {
 		return []
 	}
-	const markets = await getCoinpaprikaExchangeMarkets({
+	const markets = await getExchangeMarkets({
 		publicEnv,
 		exchangeId,
 	})
 	const seen = new Set<string>()
 	return (
 		markets.flatMap((market) => {
-			const marketId = marketEntityIdFromCoinpaprikaMarket(market, {
+			const marketId = getMarketEntityIdFromMarket(market, {
 				marketVenueId,
 			})
 			if (marketId == null) {
@@ -203,7 +203,7 @@ export const collectCoinpaprikaMarketEntityIdsForExchange = async ({
  * OHLC range windows registered for Coinpaprika: multi-day historical needs pro API key
  * (`Authorization` on api-pro); free plan only supports today / 24h historical per OpenAPI plan table.
  */
-export const coinpaprikaOhlcDayWindowValues = (
+export const getOhlcDayWindowValues = (
 	publicEnv: SourcePublicEnvFor<Source.Coinpaprika_OpenApi>,
 ) => (
 	optionalPublicEnvString(publicEnv, 'PUBLIC_COINPAPRIKA_API_KEY') != null ?
@@ -212,7 +212,7 @@ export const coinpaprikaOhlcDayWindowValues = (
 		[1]
 )
 
-export const getCoinpaprikaCoinById = async ({
+export const getCoinById = async ({
 	publicEnv,
 	coinpaprikaId,
 }: {
@@ -229,7 +229,7 @@ export const getCoinpaprikaCoinById = async ({
  * `GET /coins/{coin_id}/markets`
  * @see https://docs.coinpaprika.com/api-reference/coins/get-markets-for-a-coin.md
  */
-export const getCoinpaprikaCoinMarkets = async ({
+export const getCoinMarkets = async ({
 	publicEnv,
 	coinpaprikaId,
 }: {
@@ -248,7 +248,7 @@ export const getCoinpaprikaCoinMarkets = async ({
  * `GET /exchanges/{exchange_id}/markets`
  * @see https://docs.coinpaprika.com/api-reference/exchanges/get-markets-by-exchange-id.md
  */
-export const getCoinpaprikaExchangeMarkets = async ({
+export const getExchangeMarkets = async ({
 	publicEnv,
 	exchangeId,
 }: {
@@ -263,7 +263,7 @@ export const getCoinpaprikaExchangeMarkets = async ({
 )
 
 
-export const getCoinpaprikaTickerById = async ({
+export const getTickerById = async ({
 	publicEnv,
 	coinpaprikaId,
 }: {
@@ -279,7 +279,7 @@ export const getCoinpaprikaTickerById = async ({
 /**
  * CoinGecko `/coins/{id}/ohlc`-style rows `[timestampMs, open, high, low, close]`.
  */
-export const coinpaprikaOhlcvRowsToCoingeckoOhlcRows = (
+export const normalizeOhlcvRowsToOhlcRows = (
 	rows: CoinpaprikaOhlcv[],
 ): number[][] => (
 	rows.flatMap((row) => (
@@ -289,7 +289,8 @@ export const coinpaprikaOhlcvRowsToCoingeckoOhlcRows = (
 		|| row.low == null
 		|| row.close == null ?
 			[]
-		:	[[Date.parse(row.time_open), row.open, row.high, row.low, row.close]]
+		:
+			[[Date.parse(row.time_open), row.open, row.high, row.low, row.close]]
 	))
 )
 
@@ -297,7 +298,7 @@ export const coinpaprikaOhlcvRowsToCoingeckoOhlcRows = (
  * `GET /coins/{coin_id}/ohlcv/today`
  * @see https://docs.coinpaprika.com/api-reference/coins/get-today-ohlc.md
  */
-export const getCoinpaprikaOhlcvTodayCoingeckoShape = async ({
+export const getOhlcvTodayRows = async ({
 	publicEnv,
 	coinpaprikaId,
 }: {
@@ -308,14 +309,14 @@ export const getCoinpaprikaOhlcvTodayCoingeckoShape = async ({
 		publicEnv,
 		`/coins/${coinpaprikaId}/ohlcv/today`,
 	)
-	return coinpaprikaOhlcvRowsToCoingeckoOhlcRows(rows ?? [])
+	return normalizeOhlcvRowsToOhlcRows(rows ?? [])
 }
 
 /**
  * `GET /coins/{coin_id}/ohlcv/historical` — `interval=24h`; free plan: last 24 hours.
  * @see https://docs.coinpaprika.com/api-reference/coins/get-historical-ohlc.md
  */
-export const getCoinpaprikaOhlcvHistoricalCoingeckoShape = async ({
+export const getOhlcvHistoricalRows = async ({
 	publicEnv,
 	coinpaprikaId,
 	days,
@@ -333,5 +334,5 @@ export const getCoinpaprikaOhlcvHistoricalCoingeckoShape = async ({
 		publicEnv,
 		`/coins/${coinpaprikaId}/ohlcv/historical?start=${startDate}&end=${endDate}&limit=${days}&interval=24h&quote=usd`,
 	)
-	return coinpaprikaOhlcvRowsToCoingeckoOhlcRows(rows ?? [])
+	return normalizeOhlcvRowsToOhlcRows(rows ?? [])
 }

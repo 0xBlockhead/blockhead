@@ -217,7 +217,9 @@
 			const useSearchVisuals = useVisualFilters && hasSearch && hasSearchData
 			const hasNoSearchMatches = useSearchVisuals && (matches?.size ?? 0) === 0
 			const hidden = (
-				(useVisualFilters && getIsHidden ? getIsHidden(row.item) : false)
+				(useVisualFilters && getIsHidden ? getIsHidden(row.item)
+				:
+					false)
 				|| hasNoSearchMatches
 			)
 
@@ -446,7 +448,8 @@
 	const sortedItems = $derived(
 		getSortValue === undefined ?
 			[...items]
-		:	[...items].sort((itemA, itemB) => {
+		:
+			[...items].sort((itemA, itemB) => {
 				const sortValueA = getSortValue(itemA)
 				const sortValueB = getSortValue(itemB)
 				return sortValueA < sortValueB ?
@@ -531,7 +534,9 @@
 		:
 			sortedItems
 		return baseItems.filter((item) => (
-			getIsHidden ? !getIsHidden(item) : true
+			getIsHidden ? !getIsHidden(item)
+			:
+				true
 		))
 	})
 	const virtualItemKeys = $derived(

@@ -5,8 +5,8 @@ import { EntityType } from '$/schema/$EntityType.ts'
 import type { EnsSubgraphDomain } from '$/sources/TheGraph/Graphql/Ens/types.ts'
 
 
-const getEnsName = vi.fn()
-const getEnsDomainsByOwner = vi.fn()
+const getName = vi.fn()
+const getDomainsByOwner = vi.fn()
 
 vi.mock('@tevm/voltaire/Ens', () => ({
 	normalize: (name: string) => name,
@@ -14,8 +14,8 @@ vi.mock('@tevm/voltaire/Ens', () => ({
 }))
 
 vi.mock('$/sources/TheGraph/Graphql/Ens/queries.ts', () => ({
-	getEnsName,
-	getEnsDomainsByOwner,
+	getName,
+	getDomainsByOwner,
 }))
 
 vi.mock('$/lib/singleFlight.ts', () => ({
@@ -84,7 +84,7 @@ const vitalikDomainWire = {
 describe('Ens-TheGraph entity resolver', () => {
 	it('maps gql EnsDomain wire into schema fields without runtime typeof guards', async () => {
 		expect(ensNameResolver).toBeDefined()
-		getEnsName.mockResolvedValueOnce([vitalikDomainWire])
+		getName.mockResolvedValueOnce([vitalikDomainWire])
 
 		const result = await ensNameResolver!.resolve(
 			{ name: 'vitalik.eth' },
@@ -128,7 +128,7 @@ describe('Ens-TheGraph entity resolver', () => {
 	})
 
 	it('omits invalid subgraph account ids', async () => {
-		getEnsName.mockResolvedValueOnce([{
+		getName.mockResolvedValueOnce([{
 			...vitalikDomainWire,
 			resolvedAddress: {
 				id: 'not-an-address',
@@ -149,7 +149,7 @@ describe('Ens-TheGraph entity resolver', () => {
 describe('Ens-TheGraph $$ensNamesOwned field resolver', () => {
 	it('returns ens name entity refs for owned domains', async () => {
 		expect(ensNamesOwnedResolver).toBeDefined()
-		getEnsDomainsByOwner.mockResolvedValueOnce([
+		getDomainsByOwner.mockResolvedValueOnce([
 			{
 				...vitalikDomainWire,
 				name: 'owned.eth',

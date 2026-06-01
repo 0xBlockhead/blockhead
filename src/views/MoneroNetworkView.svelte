@@ -62,12 +62,11 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
+	import AssetInstancesView from '$/views/AssetInstancesView.svelte'
+	import NetworkTransportEndpointsView from '$/views/NetworkTransportEndpointsView.svelte'
 	import MoneroBlockView from '$/views/MoneroBlockView.svelte'
 	import MoneroBlocksView from '$/views/MoneroBlocksView.svelte'
 	import MoneroNetwork_TimestampsView from '$/views/MoneroNetwork_TimestampsView.svelte'
@@ -193,16 +192,20 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionMoneroEndpoints()}
-				<ResourceBoundary resource={moneroNetwork}>
-					{#snippet children(moneroNetwork)}
-						{#each moneroNetwork.rpcEndpoints as endpoint}
-							<p><strong>{endpoint.transportType}:</strong> {endpoint.url}</p>
-						{:else}
-							<p data-text="muted">No RPC endpoints listed for this network yet.</p>
-						{/each}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionMoneroEndpoints({ id, label }: { id: string, label: string })}
+				<NetworkTransportEndpointsView
+					CollapsibleProps={{ canToggle: false }}
+					endpointFieldNames={['rpcEndpoints']}
+					emptyText="No RPC endpoints listed for this network yet."
+					fieldSources={[
+						Source.MoneroDaemonRpc_JsonRpc,
+					]}
+					id={`${id}-list`}
+					listEntityType={EntityType.MoneroNetwork}
+					parentEntityId={entityId}
+					parentEntityType={EntityType.MoneroNetwork}
+					title={label}
+				/>
 			{/snippet}
 		</CollapsibleTabs>
 
@@ -223,26 +226,16 @@
 			{/snippet}
 
 			{#snippet SectionMoneroAssetsNative({ id, label }: { id: string, label: string })}
-				<ResourceBoundary resource={network}>
-					{#snippet children(network)}
-						<EntitiesList
-							collapsible={false}
-							entityType={EntityType.AssetInstance}
-							getKey={(asset) => `${asset[EntityMetaKey.Id].kind}:${asset[EntityMetaKey.Id].assetKey}`}
-							id={`${id}-list`}
-							items={network.$$nativeAssets}
-							title={label}
-							UnorderedListProps={{ orientation: ListOrientation.Column }}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">No native assets mapped for this network yet.</p>
-							{/snippet}
-							{#snippet Item(context)}
-								<AssetInstanceView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
-							{/snippet}
-						</EntitiesList>
-					{/snippet}
-				</ResourceBoundary>
+				<AssetInstancesView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$nativeAssets',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
 			{/snippet}
 		</CollapsibleTabs>
 

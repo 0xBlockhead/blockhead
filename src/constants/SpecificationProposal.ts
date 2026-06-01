@@ -1,6 +1,4 @@
 // Types
-import { isJsonObject, type JsonValue } from '$/typescript/JsonValue.ts'
-
 export enum SpecificationRealm {
 	Bitcoin = 'Bitcoin',
 	BitcoinCash = 'BitcoinCash',
@@ -247,10 +245,6 @@ export const proposalCategories = [
 	slug: string
 }[]
 
-type SpecificationRealmRow = (typeof specificationRealms)[number]
-
-type ProposalCategoryRow = (typeof proposalCategories)[number]
-
 
 // Lookups
 export const specificationRealmById = Object.fromEntries(
@@ -283,14 +277,6 @@ export const proposalCategoryBySlug = Object.fromEntries(
 			row.slug,
 			row,
 		]),
-)
-
-const isSpecificationRealm = (value: string): value is SpecificationRealm => (
-	value in specificationRealmById
-)
-
-const isProposalCategory = (value: string): value is ProposalCategory => (
-	value in proposalCategoryById
 )
 
 export const proposalKindIds = specificationRealms
@@ -376,23 +362,3 @@ export const proposalKindAllowedInRealmByKey = Object.fromEntries(
 		proposalKindId,
 	]),
 )
-
-const proposalWireParts = (wire: JsonValue): {
-	realm: SpecificationRealm
-	category: ProposalCategory
-	number: number
-} | null => {
-	if (!isJsonObject(wire)) return null
-	const { realm, category, number } = wire
-	if (
-		typeof realm !== 'string' || !isSpecificationRealm(realm)
-		|| typeof category !== 'string' || !isProposalCategory(category)
-		|| typeof number !== 'number' || !Number.isFinite(number)
-	) return null
-	if (proposalKindAllowedInRealmByKey[`${realm}:${category}`] == null) return null
-	return {
-		realm,
-		category,
-		number,
-	}
-}

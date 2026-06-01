@@ -114,7 +114,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<ResourceBoundary
 			placeholderText="Loading gas snapshot…"
 			resource={networkGasFeeBlock}
@@ -199,6 +199,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 	{/snippet}
 </EntityView>

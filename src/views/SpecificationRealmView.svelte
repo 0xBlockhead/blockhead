@@ -110,7 +110,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 		<ProposalKindsView
 			{href}
 			entityFieldReference={{

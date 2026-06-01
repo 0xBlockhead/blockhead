@@ -25,7 +25,8 @@ test.describe('site data lifecycle', () => {
 		const pathnames = (
 			limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
 				pathnamesAll.slice(0, limit)
-			:	pathnamesAll
+			:
+				pathnamesAll
 		)
 
 		for (const pathname of pathnames) {

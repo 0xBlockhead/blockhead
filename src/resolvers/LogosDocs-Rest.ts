@@ -20,9 +20,9 @@ export default {
 			entityType: EntityType.LogosZone,
 			resolve: async (entityId) => {
 				assertLogosStack(entityId.$network)
-				const { logosDocsNetworkSummary } = await import('$/sources/LogosDocs/Rest/queries.ts')
+				const { getNetworkSummary } = await import('$/sources/LogosDocs/Rest/queries.ts')
 				return {
-					...(logosDocsNetworkSummary.primaryComponents.some((component) => component === entityId.zoneId) && {
+					...(getNetworkSummary.primaryComponents.some((component) => component === entityId.zoneId) && {
 						zoneKind: (
 							entityId.zoneId === 'Logos Chain' ?
 								'blockchain'

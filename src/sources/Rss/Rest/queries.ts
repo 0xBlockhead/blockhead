@@ -1,12 +1,12 @@
 import { rssFetchFeed } from '$/sources/Rss/Rest/client.ts'
 
-export const rssGetFeed = async (
+export const getFeed = async (
 	feedUrl: string,
 ) => (
 	rssFetchFeed(feedUrl)
 )
 
-export const rssListFeedItems = async (
+export const listFeedItems = async (
 	feedUrl: string,
 	limit: number,
 ) => (

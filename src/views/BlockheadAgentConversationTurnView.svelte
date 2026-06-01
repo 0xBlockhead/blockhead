@@ -128,7 +128,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<dl data-column-item="center">
 			{#if !open}
 				<div>

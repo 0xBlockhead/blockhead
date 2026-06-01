@@ -42,7 +42,9 @@ export const queryHey = async <
 	variables?: _Variables,
 ): Promise<_Result> => {
 	const apiKey = publicEnv.PUBLIC_LENS_HEY_API_KEY
-	const trimmedApiKey = typeof apiKey === 'string' ? apiKey.trim() : ''
+	const trimmedApiKey = typeof apiKey === 'string' ? apiKey.trim()
+	:
+		''
 	const init = {
 		method: 'POST',
 		headers: {
@@ -71,7 +73,8 @@ export const queryHey = async <
 			lastError = (
 				error instanceof Error ?
 					error
-				:	new Error(String(error))
+				:
+					new Error(String(error))
 			)
 		}
 	}

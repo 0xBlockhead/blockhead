@@ -54,7 +54,7 @@ const coingeckoOpenApiCoinMarketSpotQuery = (
 	+ '&sparkline=false'
 )
 
-export const getCoingeckoOpenApiCoinById = async ({
+export const getCoinById = async ({
 	publicEnv,
 	coingeckoId,
 }: {
@@ -74,7 +74,7 @@ export const getCoingeckoOpenApiCoinById = async ({
 	return response.json<CoingeckoOpenApiCoinById>()
 }
 
-export const getCoingeckoOpenApiCoinMarketSpot = async ({
+export const getCoinMarketSpot = async ({
 	publicEnv,
 	coingeckoId,
 }: {
@@ -85,7 +85,7 @@ export const getCoingeckoOpenApiCoinMarketSpot = async ({
 	usd: number
 	lastUpdatedAtSec: number
 } | undefined> => {
-	const coin = await getCoingeckoOpenApiCoinById({
+	const coin = await getCoinById({
 		publicEnv,
 		coingeckoId,
 	})
@@ -104,7 +104,7 @@ export const getCoingeckoOpenApiCoinMarketSpot = async ({
 	}
 }
 
-export const getCoingeckoOpenApiCoinOhlc = async ({
+export const getCoinOhlc = async ({
 	publicEnv,
 	coingeckoId,
 	vsCurrency,
@@ -139,7 +139,7 @@ export const getCoingeckoOpenApiCoinOhlc = async ({
 
 
 /** `GET /coins/{id}/tickers` — venue spot books. @see https://docs.coingecko.com/reference/coins-id-tickers */
-export const getCoingeckoOpenApiCoinTickers = async ({
+export const getCoinTickers = async ({
 	publicEnv,
 	coingeckoId,
 }: {
@@ -171,7 +171,7 @@ export const getCoingeckoOpenApiCoinTickers = async ({
 
 
 /** Spot venue markets for one catalog coin from exchange tickers. */
-export const collectCoingeckoOpenApiSpotMarketEntityIdsForCoin = async ({
+export const collectSpotMarketEntityIdsForCoin = async ({
 	publicEnv,
 	catalogCoinId,
 	coingeckoId,
@@ -182,7 +182,7 @@ export const collectCoingeckoOpenApiSpotMarketEntityIdsForCoin = async ({
 }): Promise<EntityId<typeof schema, EntityType.Market>[]> => {
 	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 	const catalogCoinIdByCoingeckoIdMap = catalogCoinIdByCoingeckoId(idByCoinId)
-	const tickers = await getCoingeckoOpenApiCoinTickers({
+	const tickers = await getCoinTickers({
 		publicEnv,
 		coingeckoId,
 	})
@@ -209,7 +209,7 @@ export const collectCoingeckoOpenApiSpotMarketEntityIdsForCoin = async ({
 
 
 /** All derivative tickers (perpetual + dated futures). @see https://docs.coingecko.com/reference/derivatives-tickers */
-export const getCoingeckoOpenApiDerivativesTickers = async ({
+export const getDerivativesTickers = async ({
 	publicEnv,
 }: {
 	publicEnv: SourcePublicEnvFor<Source.Coingecko_OpenApi>
@@ -223,7 +223,7 @@ export const getCoingeckoOpenApiDerivativesTickers = async ({
 
 
 /** One derivatives exchange with optional embedded tickers. @see https://docs.coingecko.com/reference/derivatives-exchanges-id */
-export const getCoingeckoOpenApiDerivativesExchangeById = async ({
+export const getDerivativesExchangeById = async ({
 	publicEnv,
 	exchangeId,
 	includeTickers = 'unexpired',
@@ -252,7 +252,7 @@ export const getCoingeckoOpenApiDerivativesExchangeById = async ({
 
 
 /** @see https://docs.coingecko.com/reference/derivatives-exchanges-id */
-export const collectCoingeckoOpenApiDerivativeMarketEntityIds = async ({
+export const collectDerivativeMarketEntityIds = async ({
 	publicEnv,
 	catalogCoinId,
 	marketVenueId,
@@ -280,7 +280,7 @@ export const collectCoingeckoOpenApiDerivativeMarketEntityIds = async ({
 					))
 					.map(
 						async ([venueId, exchangeId]) => {
-							const exchange = await getCoingeckoOpenApiDerivativesExchangeById({
+							const exchange = await getDerivativesExchangeById({
 								publicEnv,
 								exchangeId,
 							})

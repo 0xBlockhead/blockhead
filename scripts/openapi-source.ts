@@ -175,7 +175,8 @@ const args = process.argv.slice(2)
 const [actionArg, provider] = (
 	args[0] === '--' ?
 		args.slice(1)
-	:	args
+	:
+		args
 )
 
 if (

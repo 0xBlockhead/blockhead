@@ -110,7 +110,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<dl data-column-item="center">
 			{#if mevRelayProposerPayloadDelivered.value !== undefined}
 				<div>
@@ -173,7 +173,7 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 		<CollapsibleTabs
 				id={`${payloadIdKey}:carousel-payload`}
 				sectionIdPrefix={payloadIdKey}

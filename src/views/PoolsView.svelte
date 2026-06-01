@@ -18,12 +18,16 @@
 		entityFieldReference,
 		open = $bindable(true),
 		title = 'Pools',
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.LiquidityPool>
 			open?: boolean
 			title?: string
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
@@ -56,33 +60,6 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Constants_Internal,
-				],
-			},
-		},
-	)
-
-	const pools = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.LiquidityPool>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return (
-				rows.map((value) => ({
-					value,
-				}))
-			)
-		},
-	)
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -95,33 +72,72 @@
 	{...EntitiesListProps}
 	bind:open
 	entityType={EntityType.LiquidityPool}
-	getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
-	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
-	placeholderText="Loading liquidity pools…"
-	resource={pools}
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Liquidity pools are on-chain markets where liquidity providers deposit paired assets and earn fees.
-		</p>
-		<p>
-			Positions in a pool are tracked separately from the pool itself.
-		</p>
-	{/snippet}
+			<p>
+				Liquidity pools are on-chain markets where liquidity providers deposit paired assets and earn fees.
+			</p>
+			<p>
+				Positions in a pool are tracked separately from the pool itself.
+			</p>
+		{/snippet}
 
-	{#snippet Empty()}
-		<p data-text="muted">
-			No pools in this list yet.
-		</p>
-	{/snippet}
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			[entityFieldReference.fieldName]: {
+				$: [
+					Source.Constants_Internal,
+				],
+			},
+		},
+	)}
+			{@const pools = derive(
+		parent,
+		(parent) => {
+			const rows: Entity<typeof schema, EntityType.LiquidityPool>[] = (
+				parent[entityFieldReference.fieldName] ?? []
+			)
+			return (
+				rows.map((value) => ({
+					value,
+				}))
+			)
+		},
+	)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.LiquidityPool}
+				id={`${id}-items`}
+				href={href}
+				{title}
+				getKey={(envelope) => stringify(envelope.value[EntityMetaKey.Id])}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].id}
+				placeholderText="Loading liquidity pools…"
+				resource={pools}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+						<p data-text="muted">
+							No pools in this list yet.
+						</p>
+					{/snippet}
 
-	{#snippet Item({ item })}
-		<LiquidityPoolView
-			entityId={item.value[EntityMetaKey.Id]}
-			layout={EntityLayout.Summary}
-			open={false}
-		/>
+				{#snippet Item({ item })}
+						<LiquidityPoolView
+							entityId={item.value[EntityMetaKey.Id]}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/snippet}
+
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

@@ -3,6 +3,7 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
+import { tronScanRestBaseUrl } from '$/constants/TronNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { TronTokenStandard } from '$/schema/TronToken.ts'
@@ -15,8 +16,6 @@ import type {
 	TronScanTrc20Transfer,
 } from '$/sources/TronScan/Rest/types.ts'
 
-const tronScanRestBaseUrl = 'https://apilist.tronscanapi.com'
-
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
 const assertTronMainnet = (network: NetworkId) => {
@@ -28,7 +27,8 @@ const assertTronMainnet = (network: NetworkId) => {
 const bigintFromWire = (value: number | string | null | undefined): bigint | undefined => (
 	value == null || value === '' ?
 		undefined
-	:	BigInt(value)
+	:
+		BigInt(value)
 )
 
 const tokenStandardFromWire = (value: string | undefined): TronTokenStandard | undefined => {
@@ -43,7 +43,8 @@ const tokenStandardFromWire = (value: string | undefined): TronTokenStandard | u
 			TronTokenStandard.Trc721
 		: tokenStandard === 'trc1155' ?
 			TronTokenStandard.Trc1155
-		:	undefined
+		:
+			undefined
 	)
 }
 
@@ -203,7 +204,8 @@ const contractFieldsFromTronScanContract = (
 		return (
 			tokenId == null ?
 				[]
-			:	[
+			:
+				[
 				{
 					[EntityMetaKey.Id]: {
 						$network: network,
@@ -407,7 +409,8 @@ export default {
 					return (
 						tokenId == null ?
 							[]
-						:	[
+						:
+							[
 								{
 									[EntityMetaKey.Id]: {
 										$network: entityId.$network,

@@ -1,8 +1,8 @@
 import { getText, githubHttp } from '$/sources/Github/Rest/client.ts'
 import { throwHttpError } from '$/lib/http.ts'
 import {
-	getGithubRawUserContentUrl,
-	getGithubRestRepoContentsUrl,
+	getRawUserContentUrl,
+	getRestRepoContentsUrl,
 } from '$/sources/Github/Rest/queries.ts'
 import PolkadotRfcs from '$/sources/PolkadotRfcs/index.ts'
 import type { PolkadotRfcsGithubContents } from '$/sources/PolkadotRfcs/Github/types.ts'
@@ -14,9 +14,9 @@ const polkadotRfcsGithubRepo = {
 	ref: 'main',
 } as const
 
-export const getPolkadotRfcsGithubContents = async (): Promise<PolkadotRfcsGithubContents> => {
+export const getContents = async (): Promise<PolkadotRfcsGithubContents> => {
 	const response = await githubHttp({
-		url: getGithubRestRepoContentsUrl({
+		url: getRestRepoContentsUrl({
 			owner: polkadotRfcsGithubRepo.owner,
 			repo: polkadotRfcsGithubRepo.repo,
 			pathInRepo: polkadotRfcsGithubRepo.path,
@@ -28,9 +28,9 @@ export const getPolkadotRfcsGithubContents = async (): Promise<PolkadotRfcsGithu
 	return response.json<PolkadotRfcsGithubContents>()
 }
 
-export const getPolkadotRfcMarkdownText = ({ number }: { number: number }) => (
+export const getMarkdownText = ({ number }: { number: number }) => (
 	getText({
-		url: getGithubRawUserContentUrl({
+		url: getRawUserContentUrl({
 			owner: polkadotRfcsGithubRepo.owner,
 			repo: polkadotRfcsGithubRepo.repo,
 			ref: polkadotRfcsGithubRepo.ref,

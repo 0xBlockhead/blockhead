@@ -12,38 +12,24 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
-	// Context
-	import { resolve } from '$app/paths'
-
-
 	// State
 	let {
 		entityFieldReference,
-
 		open = $bindable(true),
-
-		collapsible = true,
-
 		title = 'User operations',
-
 		id,
-
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmUserOperation>
-
 			open?: boolean
-
-			collapsible?: boolean
-
 			title?: string
-
 			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
@@ -57,8 +43,6 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import UnorderedList from '$/components/UnorderedList.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import EvmUserOperationView from '$/views/EvmUserOperationView.svelte'
 </script>
@@ -69,9 +53,16 @@
 	{id}
 	{title}
 	bind:open
+	href={href}
 	{...EntitiesListProps}
 >
-	{#snippet body({ open: _bodyOpen })}
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			ERC-4337 user operations are intent objects bundlers include in transactions to the entry point.
+		</p>
+	{/snippet}
+
+	{#snippet body()}
 		{#if open}
 			{@const parentEntityType = entityFieldReference.entityType}
 			{@const parent = useEntity(
@@ -100,40 +91,38 @@
 					?? []
 				),
 			)}
-			<div data-column="gap-3">
-				<ResourceBoundary
-					placeholderText="Loading user operations…"
-					resource={userOperations}
-				>
-					{#snippet children(userOperations)}
-						<UnorderedList
-							getKey={(row) => stringify(row[EntityMetaKey.Id])}
-							items={userOperations}
-							orientation={ListOrientation.Column}
-							placeholderRanges={[]}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">No user operations.</p>
-							{/snippet}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.EvmUserOperation}
+				id={`${id}-items`}
+				href={href}
+				getKey={(userOperation) => stringify(userOperation[EntityMetaKey.Id])}
+				placeholderText="Loading user operations…"
+				resource={userOperations}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">No user operations.</p>
+				{/snippet}
 
-							{#snippet Item({ item })}
-								<EvmUserOperationView
-									entityId={item[EntityMetaKey.Id]}
-									layout={EntityLayout.Summary}
-									open={false}
-								>
-									{#snippet HeadingSnippet()}
-										<TruncatedValue
-											format={TruncatedValueFormat.Visual}
-											value={item[EntityMetaKey.Id].hash}
-										/>
-									{/snippet}
-								</EvmUserOperationView>
-							{/snippet}
-						</UnorderedList>
-					{/snippet}
-				</ResourceBoundary>
-			</div>
+				{#snippet Item({ item: userOperation })}
+					<EvmUserOperationView
+						entityId={userOperation[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					>
+						{#snippet HeadingSnippet()}
+							<TruncatedValue
+								format={TruncatedValueFormat.Visual}
+								value={userOperation[EntityMetaKey.Id].hash}
+							/>
+						{/snippet}
+					</EvmUserOperationView>
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

@@ -16,11 +16,12 @@ const githubFilecoinFipProposalRows = async (
 	}[],
 ) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-	return data.flatMap((entry) => {
-		const proposalNumberRaw = regex('^fip-(?<proposalNumber>\\d+)\\.md$').exec(entry.name)?.groups?.proposalNumber
-		return entry.type !== 'file' || proposalNumberRaw == null ?
+	return data.flatMap((githubContent) => {
+		const proposalNumberRaw = regex('^fip-(?<proposalNumber>\\d+)\\.md$').exec(githubContent.name)?.groups?.proposalNumber
+		return githubContent.type !== 'file' || proposalNumberRaw == null ?
 			[]
-		:	[{
+		:
+			[{
 				[EntityMetaKey.Id]: {
 					realm: SpecificationRealm.Filecoin,
 					category: ProposalCategory.Fip,
@@ -41,8 +42,8 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Filecoin || entityId.category !== ProposalCategory.Fip) {
 					throw new Error('FilecoinFips_Github: unsupported proposal id')
 				}
-				const { getFilecoinFipMarkdownText } = await import('$/sources/FilecoinFips/Github/queries.ts')
-				const text = await singleFlight(getFilecoinFipMarkdownText)({ number: entityId.number })
+				const { getMarkdownText } = await import('$/sources/FilecoinFips/Github/queries.ts')
+				const text = await singleFlight(getMarkdownText)({ number: entityId.number })
 				const body = stripFrontmatter(text)
 				const frontmatter = parseFrontmatter(text)
 				return {
@@ -60,8 +61,8 @@ export default {
 			entityType: EntityType._Global,
 			fieldName: '$$proposals',
 			resolve: async () => {
-				const { getFilecoinFipsGithubContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
-				return githubFilecoinFipProposalRows(await singleFlight(getFilecoinFipsGithubContents)())
+				const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
+				return githubFilecoinFipProposalRows(await singleFlight(getContents)())
 			},
 		}),
 
@@ -73,8 +74,8 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Filecoin) {
 					throw new Error('FilecoinFips_Github: $$proposals only supports SpecificationRealm.Filecoin')
 				}
-				const { getFilecoinFipsGithubContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
-				return githubFilecoinFipProposalRows(await singleFlight(getFilecoinFipsGithubContents)())
+				const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
+				return githubFilecoinFipProposalRows(await singleFlight(getContents)())
 			},
 		}),
 
@@ -86,8 +87,8 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Filecoin || entityId.category !== ProposalCategory.Fip) {
 					throw new Error('FilecoinFips_Github: $$proposals only supports Filecoin FIP proposal kind')
 				}
-				const { getFilecoinFipsGithubContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
-				return githubFilecoinFipProposalRows(await singleFlight(getFilecoinFipsGithubContents)())
+				const { getContents } = await import('$/sources/FilecoinFips/Github/queries.ts')
+				return githubFilecoinFipProposalRows(await singleFlight(getContents)())
 			},
 		}),
 	],

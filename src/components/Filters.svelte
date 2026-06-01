@@ -91,7 +91,8 @@
 		activeFilters = (
 			value === undefined
 				? activeFilters.difference(groupFilters)
-				: activeFilters.difference(groupFilters).union(new Set([value]))
+				:
+					activeFilters.difference(groupFilters).union(new Set([value]))
 		)
 	}
 	const filterItems = (filters: Set<Filter<_Item, _FilterId>>) => {
@@ -105,7 +106,9 @@
 			const groupFilters = filtersByGroup.get(group.id)
 			filtersByGroup.set(
 				group.id,
-				groupFilters ? groupFilters.union(new Set([filter])) : new Set([filter]),
+				groupFilters ? groupFilters.union(new Set([filter]))
+				:
+					new Set([filter]),
 			)
 		}
 

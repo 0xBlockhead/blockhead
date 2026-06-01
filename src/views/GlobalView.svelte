@@ -104,7 +104,7 @@
 		{title}
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		{#if !children}
 			<section
 				data-scroll-marker-label="Usage"

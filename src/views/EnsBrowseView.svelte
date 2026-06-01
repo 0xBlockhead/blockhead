@@ -100,7 +100,8 @@
 	const ensSearch = $derived(
 		searchTerm == null ?
 			undefined
-		:	useEntity(
+		:
+			useEntity(
 				EntityType.EnsSearch,
 				{
 					query: searchTerm,
@@ -119,7 +120,8 @@
 	const ensSearchMatches = $derived(
 		ensSearch == null ?
 			undefined
-		:	derive(
+		:
+			derive(
 				ensSearch,
 				(ensSearch) => (
 					ensSearch.$$ensNames ?? []
@@ -184,27 +186,39 @@
 		<EntitiesList
 			collapsible={false}
 			entityType={EntityType.EnsName}
-			getKey={(ensName) => ensName[EntityMetaKey.Id].name}
-			getSortValue={(ensName) => ensName[EntityMetaKey.Id].name}
 			href={resolve('/ens')}
 			id="ens-substring-search-results"
-			resource={ensSearchMatches}
 			showSummary={true}
 			title={`Substring matches for "${searchTerm}"`}
 		>
-			{#snippet Empty()}
-				<p data-text="muted">
-					No ENS names contain "{searchTerm}".
-				</p>
-			{/snippet}
+			{#snippet body()}
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.EnsName}
+					getKey={(ensName) => ensName[EntityMetaKey.Id].name}
+					getSortValue={(ensName) => ensName[EntityMetaKey.Id].name}
+					href={resolve('/ens')}
+					id="ens-substring-search-results-items"
+					open={true}
+					resource={ensSearchMatches}
+					title={`Substring matches for "${searchTerm}"`}
+				>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No ENS names contain "{searchTerm}".
+						</p>
+					{/snippet}
 
-			{#snippet Item({ item })}
-				<EnsView
-					entityId={item[EntityMetaKey.Id]}
-					layout={EntityLayout.Summary}
-					open={false}
-					showTypeAnnotation={false}
-				/>
+					{#snippet Item({ item })}
+						<EnsView
+							entityId={item[EntityMetaKey.Id]}
+							layout={EntityLayout.Summary}
+							open={false}
+							showTypeAnnotation={false}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/snippet}
 		</EntitiesList>
 	{/if}

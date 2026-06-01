@@ -9,7 +9,8 @@ type LastInUnion<_U> = (
 type UnionMemberCount<_U, _Acc extends 0[] = []> = (
 	[_U] extends [never]
 		? _Acc['length']
-		: UnionMemberCount<
+		:
+			UnionMemberCount<
 			Exclude<_U, LastInUnion<_U>>,
 			[..._Acc, 0]
 		>
@@ -18,13 +19,15 @@ type UnionMemberCount<_U, _Acc extends 0[] = []> = (
 type StringValueOfEachUnionMember<_U> = (
 	_U extends _U
 		? `${_U & string}`
-		: never
+		:
+			never
 )
 
 type TupleSourceUnion<_Union extends PropertyKey> = (
 	[Extract<_Union, string>] extends [never]
 		? _Union
-		: StringValueOfEachUnionMember<Extract<_Union, string>>
+		:
+			StringValueOfEachUnionMember<Extract<_Union, string>>
 )
 
 type PermutationTuple<
@@ -33,9 +36,11 @@ type PermutationTuple<
 > = (
 	[_Union] extends [never]
 		? readonly []
-		: _First extends _First
+		:
+			_First extends _First
 			? readonly [_First, ...PermutationTuple<Exclude<_Union, _First>>]
-			: never
+			:
+				never
 )
 
 type TupleOfIdRecords<
@@ -45,8 +50,10 @@ type TupleOfIdRecords<
 	_Tuple extends readonly [infer _Head, ...infer _Rest]
 		? _Head extends PropertyKey
 			? readonly [Record<_Key, _Head>, ...TupleOfIdRecords<_Rest, _Key>]
-			: never
-		: readonly []
+			:
+				never
+		:
+			readonly []
 )
 
 export type ArrayOfUniqueThings<
@@ -55,5 +62,6 @@ export type ArrayOfUniqueThings<
 > = (
 	UnionMemberCount<_Union> extends 1 | 2 | 3 | 4
 		? TupleOfIdRecords<PermutationTuple<TupleSourceUnion<_Union>>, _Key>
-		: never
+		:
+			never
 )

@@ -30,7 +30,8 @@ test.describe('TanStack query lifecycle + cache', () => {
 		pageUrls = (
 			limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
 				all.slice(0, limit)
-			:	all
+			:
+				all
 		)
 	})
 

@@ -130,7 +130,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<ResourceBoundary
 			resource={farcasterUser}
 			placeholderText="Loading profile…"

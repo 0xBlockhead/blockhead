@@ -68,7 +68,9 @@
 			item,
 			id: getItemId(item),
 			label: getItemLabel(item) ?? '',
-			disabled: getItemDisabled ? getItemDisabled(item) : false,
+			disabled: getItemDisabled ? getItemDisabled(item)
+			:
+				false,
 		}))
 	)
 	const normalizedGroups = $derived(
@@ -89,10 +91,13 @@
 							item,
 							id: getItemId(item),
 							label: getItemLabel(item) ?? '',
-							disabled: getItemDisabled ? getItemDisabled(item) : false,
+							disabled: getItemDisabled ? getItemDisabled(item)
+							:
+								false,
 						})),
 					}))
-			: []
+			:
+				[]
 	)
 
 
@@ -107,7 +112,8 @@
 	const filteredItems = $derived(
 		inputValue === ''
 			? normalizedItems
-			: normalizedItems.filter((item) => (
+			:
+				normalizedItems.filter((item) => (
 					item.label.toLowerCase().includes(inputValue.toLowerCase())
 					),
 				)
@@ -123,7 +129,8 @@
 						),
 					}))
 					.filter((group) => group.items.length > 0)
-			: []
+			:
+				[]
 	)
 	const rootItems = $derived(
 		normalizedItems.map((item) => ({

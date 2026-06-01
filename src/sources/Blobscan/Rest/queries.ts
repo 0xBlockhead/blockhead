@@ -9,7 +9,7 @@ import type {
 } from '$/sources/Blobscan/Rest/types.ts'
 
 
-export const getBlobscanBlobJsonString = async ({
+export const getBlobJsonString = async ({
 	chainId,
 	txHash,
 	blobIndex,

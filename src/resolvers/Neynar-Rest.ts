@@ -227,7 +227,8 @@ export default {
 					$postedViaApp: (
 						cast.app?.fid == null ?
 							undefined
-						:	({
+						:
+							({
 								[EntityMetaKey.Id]: { fid: cast.app.fid },
 							} satisfies Entity<typeof schema, EntityType.FarcasterUser>)
 					),
@@ -237,7 +238,8 @@ export default {
 						|| cast.parent_hash == null
 						|| String(cast.parent_hash).trim() === '' ?
 							undefined
-						:	{
+						:
+							{
 								[EntityMetaKey.Id]: {
 									fid: cast.parent_author.fid,
 									hash: zeroXLowerHexCastHash(String(cast.parent_hash)),
@@ -273,7 +275,8 @@ export default {
 											hash: zeroXLowerHexCastHash(String(embed.cast_id.hash)),
 										},
 									} satisfies Entity<typeof schema, EntityType.FarcasterCast>
-								:	undefined
+								:
+									undefined
 							),
 							title: optionalTrimmedString(embed.metadata?.html?.ogTitle),
 							description: optionalTrimmedString(embed.metadata?.html?.ogDescription),
@@ -333,7 +336,8 @@ export default {
 								|| cast.hash == null
 								|| String(cast.hash).trim() === '' ?
 									[]
-								:	[{
+								:
+									[{
 										[EntityMetaKey.Id]: {
 											fid: cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(cast.hash)),
@@ -360,7 +364,8 @@ export default {
 								|| cast.hash == null
 								|| String(cast.hash).trim() === '' ?
 									[]
-								:	[{
+								:
+									[{
 										[EntityMetaKey.Id]: {
 											fid: cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(cast.hash)),
@@ -387,7 +392,8 @@ export default {
 								|| cast.hash == null
 								|| String(cast.hash).trim() === '' ?
 									[]
-								:	[{
+								:
+									[{
 										[EntityMetaKey.Id]: {
 											fid: cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(cast.hash)),
@@ -413,7 +419,8 @@ export default {
 								|| cast.hash == null
 								|| String(cast.hash).trim() === '' ?
 									[]
-								:	[{
+								:
+									[{
 										[EntityMetaKey.Id]: {
 											fid: cast.author.fid,
 											hash: zeroXLowerHexCastHash(String(cast.hash)),
@@ -450,7 +457,8 @@ export default {
 							|| cast.hash == null
 							|| String(cast.hash).trim() === '' ?
 								[]
-							:	[{
+							:
+								[{
 									[EntityMetaKey.Id]: {
 										fid: cast.author.fid,
 										hash: zeroXLowerHexCastHash(String(cast.hash)),
@@ -485,7 +493,8 @@ export default {
 							|| cast.hash == null
 							|| String(cast.hash).trim() === '' ?
 								[]
-							:	[{
+							:
+								[{
 									[EntityMetaKey.Id]: {
 										fid: cast.author.fid,
 										hash: zeroXLowerHexCastHash(String(cast.hash)),

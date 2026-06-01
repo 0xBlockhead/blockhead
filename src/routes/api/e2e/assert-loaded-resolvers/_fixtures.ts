@@ -282,12 +282,12 @@ export const probeEntityIdByType: Partial<Record<EntityType, EntityId<typeof sch
 
 	[EntityType.EvmAccount]: actorMainnetVitalik,
 
-	[EntityType.ActorCoin]: {
+	[EntityType.EvmNetworkActorCoinBalance]: {
 		$actor: actorMainnetVitalik,
 		$coinInstance: coinInstanceUsdcMainnet,
 	},
 
-	[EntityType.ActorCoinAllowance]: {
+	[EntityType.EvmActorCoinAllowance]: {
 		$actorCoin: {
 			$actor: actorMainnetVitalik,
 			$coinInstance: coinInstanceUsdcMainnet,
@@ -1319,7 +1319,7 @@ export const resolveProbeEntityId = async (
 			blockscoutExplorerOriginForChain,
 			blockscoutRestV2AtExplorerOrigin,
 		} = await import('$/sources/Blockscout/Rest/constants.ts')
-		const { getBlockscoutStats } = await import('$/sources/Blockscout/Rest/queries.ts')
+		const { getStats } = await import('$/sources/Blockscout/Rest/queries.ts')
 		const origin = blockscoutExplorerOriginForChain(mainnetChainId)
 		if (
 			origin == null
@@ -1327,14 +1327,15 @@ export const resolveProbeEntityId = async (
 		) {
 			throw new Error('assert-loaded-resolvers: mainnet Blockscout stats unavailable for Coin_Timestamp probe')
 		}
-		const stats = await getBlockscoutStats({ explorerOrigin: origin })
+		const stats = await getStats({ explorerOrigin: origin })
 		if (stats == null) {
 			throw new Error('assert-loaded-resolvers: Blockscout stats unavailable for Coin_Timestamp probe')
 		}
 		const updatedAtMs = (
 			stats.gas_price_updated_at != null ?
 				Date.parse(stats.gas_price_updated_at)
-			: NaN
+			:
+				NaN
 		)
 		if (!Number.isFinite(updatedAtMs)) {
 			throw new Error('assert-loaded-resolvers: Blockscout stats clock missing for Coin_Timestamp probe')

@@ -112,7 +112,8 @@
 		title={
 			chartTitlePrefix != null ?
 				`${chartTitlePrefix} · ${timeIntervalLabel} · USD`
-			:	`${
+			:
+				`${
 					market.$base.kind === MarketAssetKind.Coin ?
 						market.$base.$coin.coinId
 					:

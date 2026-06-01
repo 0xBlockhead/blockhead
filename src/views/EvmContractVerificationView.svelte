@@ -206,7 +206,7 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 		<ResourceBoundary resource={verification}>
 			{#snippet children(verification)}
 				{#if verification.$compilation}

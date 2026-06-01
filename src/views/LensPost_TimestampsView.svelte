@@ -2,15 +2,10 @@
 	// Types/constants
 	import type { EntityFieldReference } from '$/schema/$EntityFieldReference.ts'
 	import type { Entity } from '$/schema/$schema.ts'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
-	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-
-
 	// State
 	let {
 		entityFieldReference,
@@ -31,36 +26,6 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [
-				Source.Lens_Graphql,
-				Source.Hey_Graphql,
-			],
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Lens_Graphql,
-					Source.Hey_Graphql,
-				],
-				$limit: 64,
-			},
-		},
-	)
-
-	const rows = derive(
-		parent,
-		(parent) => {
-			const list: Entity<typeof schema, EntityType.LensPost_Timestamp>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return list.map((value) => ({
-				value,
-			}))
-		},
-	)
-
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -74,13 +39,7 @@
 	{href}
 	{id}
 	bind:open
-	resource={rows}
-	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-	getSortValue={(row) => -row.value[EntityMetaKey.Id].timestampMs}
-	placeholderKeys={new SvelteSet<string>()}
-	placeholderText="Loading metric snapshots..."
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -88,19 +47,54 @@
 		</p>
 	{/snippet}
 
-	{#snippet Empty()}
-		<p data-text="muted">
-			No snapshots yet.
-		</p>
-	{/snippet}
-
-	{#snippet Item({ item })}
-		<LensPost_TimestampView
-			entityId={item.value[EntityMetaKey.Id]}
-			{href}
-			layout={EntityLayout.Summary}
-			open={false}
-			showTypeAnnotation={false}
-		/>
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [
+						Source.Lens_Graphql,
+						Source.Hey_Graphql,
+					],
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Lens_Graphql,
+							Source.Hey_Graphql,
+						],
+						$limit: 64,
+					},
+				},
+			)}
+			{@const rows = derive(
+				parent,
+				(parent) => {
+					const list: Entity<typeof schema, EntityType.LensPost_Timestamp>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return list.map((value) => ({
+						value,
+					}))
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.LensPost_Timestamp}
+				id={`${id}-items`}
+				href={href}
+				open={true}
+			>
+				{#snippet Item({ item })}
+					<LensPost_TimestampView
+						entityId={item.value[EntityMetaKey.Id]}
+						{href}
+						layout={EntityLayout.Summary}
+						open={false}
+						showTypeAnnotation={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

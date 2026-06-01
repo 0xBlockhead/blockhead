@@ -104,7 +104,8 @@
 						(
 							timeInterval == null ?
 								dedupeCandleEntitiesById(rows)
-							:	dedupeCandleEntitiesById(rows).filter((row) => (
+							:
+								dedupeCandleEntitiesById(rows).filter((row) => (
 								marketTimeIntervalsEqual(
 									row[EntityMetaKey.Id].timeInterval,
 									timeInterval,

@@ -33,9 +33,9 @@ const mastodonVisibilityRows = [
 
 
 // Lookups
-export const mastodonVisibilityLabels = Object.fromEntries(
+export const mastodonVisibilityByVisibility = Object.fromEntries(
 	mastodonVisibilityRows.map((row) => [
 		row.visibility,
-		row.label,
+		row,
 	]),
 )

@@ -99,7 +99,8 @@ const lifiQuoteStepsForRoute = (
 ): LifiQuoteStepLike[] => (
 	step.includedSteps != null && step.includedSteps.length > 0 ?
 		step.includedSteps
-	:	[step]
+	:
+		[step]
 )
 
 const bridgeRouteBundleFromQuoteStep = (

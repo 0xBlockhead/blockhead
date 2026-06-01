@@ -28,7 +28,8 @@ export const pipedApiOriginsForPublicEnv = (
 	return (
 		defaultOrigin != null && origin === defaultOrigin ?
 			baseOrigins
-		:	[{
+		:
+			[{
 				origin,
 				corsEnabled: false,
 			}]

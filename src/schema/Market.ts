@@ -34,7 +34,7 @@ export default {
 
 	fields: [
 		{
-			name: '$$baseCoin',
+			name: '$baseCoin',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Coin,
 			cardinality: EntityFieldCardinality.ZeroOrOne,
@@ -80,51 +80,6 @@ export default {
 			defaultSources: [
 				Source.Constants_Internal,
 				Source.Voltaire_JsonRpc,
-			],
-		},
-		{
-			name: 'fundingRate',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Coingecko_OpenApi,
-			],
-		},
-		{
-			name: 'openInterestUsd',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('bigint'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Coingecko_OpenApi,
-			],
-		},
-		{
-			name: 'indexBasisPercent',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Coingecko_OpenApi,
-			],
-		},
-		{
-			name: 'expiredAtMs',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Coingecko_OpenApi,
-			],
-		},
-		{
-			name: 'derivativeLastTradedAtMs',
-			type: EntityFieldType.Primitive,
-			primitiveType: type('number'),
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Coingecko_OpenApi,
 			],
 		},
 	] as const satisfies readonly EntityFieldDefinition[],

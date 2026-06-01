@@ -1,3 +1,5 @@
+import { networkBySlug } from '$/constants/Network.ts'
+import { zeroGStorageNodeDefaultLocalRpcUrl } from '$/constants/ZeroGNetwork.ts'
 import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
@@ -6,19 +8,17 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const zeroGStorageNodeRpcUrl = 'http://127.0.0.1:5678'
-
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
 const assertZeroGMainnet = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== '0g') {
+	if (!('networkSlug' in network) || network.networkSlug !== networkBySlug['0g'].slug) {
 		throw new Error('ZeroGStorageNode_JsonRpc: unsupported network')
 	}
 }
 
 const localStorageNodeId = async () => {
-	const { zgsGetStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
-	return (await zgsGetStatus({ rpcUrl: zeroGStorageNodeRpcUrl })).networkIdentity.flowAddress
+	const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+	return (await getStatus({ rpcUrl: zeroGStorageNodeDefaultLocalRpcUrl })).networkIdentity.flowAddress
 }
 
 const fileInfoForDataBlob = async (entityId: {
@@ -26,9 +26,9 @@ const fileInfoForDataBlob = async (entityId: {
 	dataRoot: string
 }) => {
 	assertZeroGMainnet(entityId.$network)
-	const { zgsGetFileInfo } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
-	const fileInfo = await zgsGetFileInfo({
-		rpcUrl: zeroGStorageNodeRpcUrl,
+	const { getFileInfo } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+	const fileInfo = await getFileInfo({
+		rpcUrl: zeroGStorageNodeDefaultLocalRpcUrl,
 		root: entityId.dataRoot,
 		needAvailable: true,
 	})
@@ -44,14 +44,14 @@ export default {
 			entityType: EntityType.ZeroGStorageNode,
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId.$network)
-				const { zgsGetStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
-				const status = await zgsGetStatus({ rpcUrl: zeroGStorageNodeRpcUrl })
+				const { getStatus } = await import('$/sources/ZeroG/StorageNode/JsonRpc/queries.ts')
+				const status = await getStatus({ rpcUrl: zeroGStorageNodeDefaultLocalRpcUrl })
 				if (status.networkIdentity.flowAddress !== entityId.nodeId) {
 					throw new Error(`ZeroGStorageNode_JsonRpc: local node ${status.networkIdentity.flowAddress} does not match ${entityId.nodeId}`)
 				}
 				return {
 					operatorAddress: status.networkIdentity.flowAddress,
-					endpoint: zeroGStorageNodeRpcUrl,
+					endpoint: zeroGStorageNodeDefaultLocalRpcUrl,
 				}
 			},
 		}),

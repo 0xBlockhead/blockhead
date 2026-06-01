@@ -1,6 +1,6 @@
 <script lang="ts">
 	// Types/constants
-	import { NetworkNamespace } from '$/constants/Network.ts'
+	import { NetworkNamespace, networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -53,7 +53,7 @@
 	import MoneroNetworkView from '$/views/MoneroNetworkView.svelte'
 	import NearNetworkView from '$/views/NearNetworkView.svelte'
 	import PolkadotNetworkView from '$/views/PolkadotNetworkView.svelte'
-	import QuillibriumNetworkView from '$/views/QuilibriumNetworkView.svelte'
+	import QuilibriumNetworkView from '$/views/QuilibriumNetworkView.svelte'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import SolanaNetworkView from '$/views/SolanaNetworkView.svelte'
 	import TronNetworkView from '$/views/TronNetworkView.svelte'
@@ -72,7 +72,9 @@
 			:
 				resolve(`/network/${encodeURIComponent(row.caip2.namespace)}:${encodeURIComponent(row.caip2.reference)}`)
 		)}
-		{@const networkEntityId = row.caip2 == null ? { networkSlug: row.slug } : { caip2: row.caip2 }}
+		{@const networkEntityId = row.caip2 == null ? { networkSlug: row.slug }
+		:
+			{ caip2: row.caip2 }}
 		{#if row.namespace === NetworkNamespace.Evm && row.caip2 != null}
 			<EvmNetworkView
 				entityId={{
@@ -184,7 +186,7 @@
 				{layout}
 			/>
 		{:else if row.namespace === NetworkNamespace.Quilibrium}
-			<QuillibriumNetworkView
+			<QuilibriumNetworkView
 				entityId={networkEntityId}
 				href={networkHref}
 				bind:open
@@ -216,7 +218,7 @@
 
 						<div>
 							<dt>Environment</dt>
-							<dd>{row.environment}</dd>
+							<dd>{networkEnvironmentByEnvironment[row.environment].label}</dd>
 						</div>
 					</dl>
 				{/snippet}

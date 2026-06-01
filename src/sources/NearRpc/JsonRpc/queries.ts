@@ -56,7 +56,7 @@ const nearJsonRpc = async <_Result>({
 	return json.result
 }
 
-export const block = ({
+export const getBlock = ({
 	rpcUrl,
 	blockId,
 }: {
@@ -73,13 +73,15 @@ export const block = ({
 				}
 			:
 				{
-					block_id: typeof blockId === 'bigint' ? Number(blockId) : blockId,
+					block_id: typeof blockId === 'bigint' ? Number(blockId)
+					:
+						blockId,
 				}
 		),
 	})
 )
 
-export const tx = ({
+export const getTx = ({
 	rpcUrl,
 	txHash,
 	senderAccountId,
@@ -99,7 +101,7 @@ export const tx = ({
 	})
 )
 
-export const txStatus = ({
+export const getTxStatus = ({
 	rpcUrl,
 	txHash,
 	senderAccountId,
@@ -119,7 +121,7 @@ export const txStatus = ({
 	})
 )
 
-export const chunk = ({
+export const getChunk = ({
 	rpcUrl,
 	chunkHash,
 }: {
@@ -192,7 +194,7 @@ export const viewAccessKey = ({
 	})
 )
 
-export const validators = ({ rpcUrl }: { rpcUrl: string }) => (
+export const getValidators = ({ rpcUrl }: { rpcUrl: string }) => (
 	nearJsonRpc<NearRpcValidators>({
 		rpcUrl,
 		method: 'validators',
@@ -200,7 +202,7 @@ export const validators = ({ rpcUrl }: { rpcUrl: string }) => (
 	})
 )
 
-export const gasPrice = ({ rpcUrl }: { rpcUrl: string }) => (
+export const getGasPrice = ({ rpcUrl }: { rpcUrl: string }) => (
 	nearJsonRpc<NearRpcGasPrice>({
 		rpcUrl,
 		method: 'gas_price',
@@ -208,7 +210,7 @@ export const gasPrice = ({ rpcUrl }: { rpcUrl: string }) => (
 	})
 )
 
-export const status = ({ rpcUrl }: { rpcUrl: string }) => (
+export const getStatus = ({ rpcUrl }: { rpcUrl: string }) => (
 	nearJsonRpc<NearRpcStatus>({
 		rpcUrl,
 		method: 'status',

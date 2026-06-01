@@ -66,12 +66,11 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
+	import AssetInstancesView from '$/views/AssetInstancesView.svelte'
+	import NetworkTransportEndpointsView from '$/views/NetworkTransportEndpointsView.svelte'
 	import HyperliquidBlockView from '$/views/HyperliquidBlockView.svelte'
 	import HyperliquidBlocksView from '$/views/HyperliquidBlocksView.svelte'
 	import HyperliquidNetwork_TimestampsView from '$/views/HyperliquidNetwork_TimestampsView.svelte'
@@ -240,18 +239,23 @@
 				/>
 			{/snippet}
 
-			{#snippet SectionHyperliquidEndpoints()}
-				<ResourceBoundary resource={hyperliquidNetwork}>
-					{#snippet children(hyperliquidNetwork)}
-						{#each hyperliquidNetwork.rpcEndpoints as endpoint}
-							<p><strong>{endpoint.transportType}:</strong> {endpoint.url}</p>
-						{/each}
-
-						{#each hyperliquidNetwork.restEndpoints as endpoint}
-							<p><strong>{endpoint.transportType}:</strong> {endpoint.url}</p>
-						{/each}
-					{/snippet}
-				</ResourceBoundary>
+			{#snippet SectionHyperliquidEndpoints({ id, label }: { id: string, label: string })}
+				<NetworkTransportEndpointsView
+					CollapsibleProps={{ canToggle: false }}
+					endpointFieldNames={[
+						'rpcEndpoints',
+						'restEndpoints',
+					]}
+					fieldSources={[
+						Source.Hyperliquid_JsonRpc,
+						Source.Hyperliquid_Rest,
+					]}
+					id={`${id}-list`}
+					listEntityType={EntityType.HyperliquidNetwork}
+					parentEntityId={entityId}
+					parentEntityType={EntityType.HyperliquidNetwork}
+					title={label}
+				/>
 			{/snippet}
 		</CollapsibleTabs>
 
@@ -276,26 +280,16 @@
 			{/snippet}
 
 			{#snippet SectionHyperliquidAssetsNative({ id, label }: { id: string, label: string })}
-				<ResourceBoundary resource={network}>
-					{#snippet children(network)}
-						<EntitiesList
-							collapsible={false}
-							entityType={EntityType.AssetInstance}
-							getKey={(asset) => `${asset[EntityMetaKey.Id].kind}:${asset[EntityMetaKey.Id].assetKey}`}
-							id={`${id}-list`}
-							items={network.$$nativeAssets}
-							title={label}
-							UnorderedListProps={{ orientation: ListOrientation.Column }}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">No native assets mapped for this network yet.</p>
-							{/snippet}
-							{#snippet Item(context)}
-								<AssetInstanceView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
-							{/snippet}
-						</EntitiesList>
-					{/snippet}
-				</ResourceBoundary>
+				<AssetInstancesView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$nativeAssets',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
 			{/snippet}
 
 			{#snippet SectionHyperliquidAssetsPerps({ id, label }: { id: string, label: string })}

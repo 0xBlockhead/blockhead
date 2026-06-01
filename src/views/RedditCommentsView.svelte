@@ -14,6 +14,7 @@
 	let {
 		entityFieldReference,
 		id,
+		href = '',
 		limit = 50,
 		open = $bindable(true),
 		sortMode = 'api',
@@ -21,7 +22,8 @@
 		CollapsibleProps = {},
 	}: {
 		entityFieldReference: EntityFieldReference<typeof schema, EntityType.RedditComment>
-			id: string
+		id: string
+		href?: string
 		limit?: number
 		open?: boolean
 		sortMode?: 'api' | 'createdAtAsc' | 'createdAtDesc'
@@ -34,7 +36,38 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const parent = useEntity(
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import RedditCommentView from '$/views/RedditCommentView.svelte'
+</script>
+
+
+<div data-column="gap-2">
+	<EntitiesList
+	{CollapsibleProps}
+		entityType={EntityType.RedditComment}
+	{id}
+		{title}
+		bind:open
+>
+	{#snippet TypeAnnotationTooltip()}
+				<p>
+					{(
+						entityFieldReference.fieldName === '$$replies' ?
+							'Direct replies nested under this comment in Reddit’s threaded model.'
+						:
+							'Top-level comments are direct replies to a Reddit submission.'
+					)}
+				</p>
+				<p>
+					They are specific to Reddit’s data model—not Farcaster feeds or in-app multiplayer chat.
+				</p>
+			{/snippet}
+
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -53,9 +86,8 @@
 				}),
 			},
 		},
-	)
-
-	const comments = derive(
+	)}
+			{@const comments = derive(
 		parent,
 		(parent) => {
 			const rows: Entity<typeof schema, EntityType.RedditComment>[] = parent[entityFieldReference.fieldName] ?? []
@@ -73,61 +105,44 @@
 				}))
 			)
 		},
-	)
+	)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.RedditComment}
+				id={`${id}-items`}
+				href={href}
+				{title}
+				resource={comments}
+				placeholderText="Loading comment thread…"
+				getKey={(row) => row.comment[EntityMetaKey.Id].fullname}
+				getSortValue={(row) => row.sortKey}
+				placeholderKeys={new SvelteSet<string>()}
+				open={true}
+			>
+				{#snippet Empty()}
+							<p data-text="muted">
+								{(
+									entityFieldReference.fieldName === '$$replies' ?
+										'No replies yet.'
+									:
+										'No comments yet.'
+								)}
+							</p>
+						{/snippet}
 
+				{#snippet Item({
+							item: comment,
+						})}
+							<RedditCommentView
+								entityId={comment.comment[EntityMetaKey.Id]}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/snippet}
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import RedditCommentView from '$/views/RedditCommentView.svelte'
-</script>
-
-
-<div data-column="gap-2">
-	<EntitiesList
-	{CollapsibleProps}
-		entityType={EntityType.RedditComment}
-	{id}
-		{title}
-		bind:open
-		resource={comments}
-		placeholderText="Loading comment thread…"
-		getKey={(row) => row.comment[EntityMetaKey.Id].fullname}
-		getSortValue={(row) => row.sortKey}
-		placeholderKeys={new SvelteSet<string>()}
-	>
-		{#snippet TypeAnnotationTooltip()}
-			<p>
-				{(
-					entityFieldReference.fieldName === '$$replies' ?
-						'Direct replies nested under this comment in Reddit’s threaded model.'
-					:
-						'Top-level comments are direct replies to a Reddit submission.'
-				)}
-			</p>
-			<p>
-				They are specific to Reddit’s data model—not Farcaster feeds or in-app multiplayer chat.
-			</p>
-		{/snippet}
-		{#snippet Empty()}
-			<p data-text="muted">
-				{(
-					entityFieldReference.fieldName === '$$replies' ?
-						'No replies yet.'
-					:
-						'No comments yet.'
-				)}
-			</p>
-		{/snippet}
-
-		{#snippet Item({
-			item: comment,
-		})}
-			<RedditCommentView
-				entityId={comment.comment[EntityMetaKey.Id]}
-				layout={EntityLayout.Summary}
-				open={false}
-			/>
-		{/snippet}
-	</EntitiesList>
+			</EntitiesList>
+		{/if}
+	{/snippet}
+</EntitiesList>
 </div>

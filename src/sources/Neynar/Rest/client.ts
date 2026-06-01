@@ -17,7 +17,8 @@ export const neynarRequestHeaders = (
 	const apiKey = optionalPublicEnvString(publicEnv, 'PUBLIC_NEYNAR_API_KEY')
 	return apiKey == null ?
 			undefined
-		:	{
+		:
+			{
 				Accept: 'application/json',
 				'Content-Type': 'application/json',
 				'x-api-key': apiKey,

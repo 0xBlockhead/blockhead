@@ -17,10 +17,10 @@ const chipRowsByNumber = async (tree: BitcoinCashChipsGitlabTree) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 	return Object.fromEntries(
 		tree
-			.filter((entry) => entry.type === 'blob' && entry.name.endsWith('.md') && entry.name.startsWith('CHIP-'))
+			.filter((gitlabTreeEntry) => gitlabTreeEntry.type === 'blob' && gitlabTreeEntry.name.endsWith('.md') && gitlabTreeEntry.name.startsWith('CHIP-'))
 			.sort((firstEntry, secondEntry) => firstEntry.name.localeCompare(secondEntry.name))
-			.map((entry, index) => {
-				const dateParts = regex('^CHIP-(?<year>\\d{4})-(?<month>\\d{2})-').exec(entry.name)?.groups
+			.map((gitlabTreeEntry, index) => {
+				const dateParts = regex('^CHIP-(?<year>\\d{4})-(?<month>\\d{2})-').exec(gitlabTreeEntry.name)?.groups
 				const number = (
 					dateParts == null ?
 						index + 1
@@ -39,7 +39,7 @@ const chipRowsByNumber = async (tree: BitcoinCashChipsGitlabTree) => {
 							category: ProposalCategory.Chip,
 							number,
 						},
-						path: entry.path,
+						path: gitlabTreeEntry.path,
 					},
 				]
 			}),
@@ -47,7 +47,7 @@ const chipRowsByNumber = async (tree: BitcoinCashChipsGitlabTree) => {
 }
 
 const chipProposalIndexRows = async (tree: BitcoinCashChipsGitlabTree) => (
-	Object.values(await chipRowsByNumber(tree)).map(({ path: _path, ...row }) => row)
+	Object.values(await chipRowsByNumber(tree)).map(({ path: _path, ...chip }) => chip)
 )
 
 export default {
@@ -62,12 +62,12 @@ export default {
 					throw new Error('BitcoinCashChips_Gitlab: proposal resolver only supports Bitcoin Cash CHIPs')
 				}
 				const {
-					getBitcoinCashChipMarkdownText,
-					getBitcoinCashChipsGitlabTree,
+					getChipMarkdownText,
+					getTree,
 				} = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
-				const row = (await chipRowsByNumber(await singleFlight(getBitcoinCashChipsGitlabTree)()))[entityId.number]
-				if (row == null) throw new Error(`BitcoinCashChips_Gitlab: CHIP not found ${String(entityId.number)}`)
-				const text = await singleFlight(getBitcoinCashChipMarkdownText)({ path: row.path })
+				const chip = (await chipRowsByNumber(await singleFlight(getTree)()))[entityId.number]
+				if (chip == null) throw new Error(`BitcoinCashChips_Gitlab: CHIP not found ${String(entityId.number)}`)
+				const text = await singleFlight(getChipMarkdownText)({ path: chip.path })
 				if (text.trim() === '') throw new Error('BitcoinCashChips_Gitlab: empty proposal text')
 				return {
 					documentCategory: chipMetadataValue(text, 'Type'),
@@ -84,8 +84,8 @@ export default {
 			entityType: EntityType._Global,
 			fieldName: '$$proposals',
 			resolve: async () => {
-				const { getBitcoinCashChipsGitlabTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
-				return chipProposalIndexRows(await singleFlight(getBitcoinCashChipsGitlabTree)())
+				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
+				return chipProposalIndexRows(await singleFlight(getTree)())
 			},
 		}),
 
@@ -97,8 +97,8 @@ export default {
 				if (entityId.realm !== SpecificationRealm.BitcoinCash) {
 					throw new Error('BitcoinCashChips_Gitlab: $$proposals only supports Bitcoin Cash')
 				}
-				const { getBitcoinCashChipsGitlabTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
-				return chipProposalIndexRows(await singleFlight(getBitcoinCashChipsGitlabTree)())
+				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
+				return chipProposalIndexRows(await singleFlight(getTree)())
 			},
 		}),
 
@@ -110,8 +110,8 @@ export default {
 				if (entityId.realm !== SpecificationRealm.BitcoinCash || entityId.category !== ProposalCategory.Chip) {
 					throw new Error('BitcoinCashChips_Gitlab: $$proposals only supports Bitcoin Cash CHIPs')
 				}
-				const { getBitcoinCashChipsGitlabTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
-				return chipProposalIndexRows(await singleFlight(getBitcoinCashChipsGitlabTree)())
+				const { getTree } = await import('$/sources/BitcoinCashChips/Gitlab/queries.ts')
+				return chipProposalIndexRows(await singleFlight(getTree)())
 			},
 		}),
 	],

@@ -18,14 +18,16 @@ export type RawCallTraceWire = {
 const narrowRawCallTraceWire = (raw: JsonValue): RawCallTraceWire | null => (
 	!isJsonObject(raw) ?
 		null
-	:	(() => {
+	:
+		(() => {
 			const callsRaw = raw['calls']
 			const calls = (
 				Array.isArray(callsRaw) ?
 					callsRaw
 						.map((entry) => narrowRawCallTraceWire(entry))
 						.filter((entry): entry is RawCallTraceWire => entry != null)
-				:	undefined
+				:
+					undefined
 			)
 			return {
 				...(typeof raw['type'] === 'string' && { type: raw['type'] }),
@@ -49,7 +51,8 @@ export const parseRawCallTrace = (raw: JsonValue): RawCallTraceWire | null => (
 const hexToBigInt = (value: string) => (
 	value.startsWith('0x') ?
 		BigInt(value)
-	:	BigInt(value)
+	:
+		BigInt(value)
 )
 
 const rawCallToTrace = (call: RawCallTraceWire, index: number): EvmTraceTree => ({

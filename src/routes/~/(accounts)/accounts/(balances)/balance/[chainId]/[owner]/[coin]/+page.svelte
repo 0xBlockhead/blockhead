@@ -14,13 +14,13 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ActorCoinView from '$/views/ActorCoinView.svelte'
+	import EvmNetworkActorCoinBalanceView from '$/views/EvmNetworkActorCoinBalanceView.svelte'
 	import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 </script>
 
 
 <Page>
-	<ActorCoinView
+	<EvmNetworkActorCoinBalanceView
 		entityId={{
 			$actor: {
 				address: params.owner as `0x${string}`,

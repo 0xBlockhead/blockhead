@@ -11,17 +11,18 @@ import type {
 	BskyAppViewSearchPostsResponse,
 } from '$/sources/AtprotoBsky/Rest/types.ts'
 
-export const bskyGetProfile = async (actor: string) => (
+export const getProfile = async (actor: string) => (
 	bskyPublicXrpcGet<BskyAppViewProfile>(
 		'/app.bsky.actor.getProfile',
 		{ actor },
 	)
 )
 
-export const bskyGetPosts = async (uris: string[]) => (
+export const getPosts = async (uris: string[]) => (
 	uris.length === 0 ?
 		{ posts: [] } satisfies BskyAppViewGetPostsResponse
-	:	getJson<BskyAppViewGetPostsResponse>(
+	:
+		getJson<BskyAppViewGetPostsResponse>(
 		`${publicAppViewXrpcBase}/app.bsky.feed.getPosts?${(
 			new URLSearchParams(uris.map((u) => ['uris', u])).toString()
 		)}`,
@@ -29,7 +30,7 @@ export const bskyGetPosts = async (uris: string[]) => (
 	)
 )
 
-export const bskyGetPostThread = async (
+export const getPostThread = async (
 	uri: string,
 	{
 		depth = 6,
@@ -49,7 +50,7 @@ export const bskyGetPostThread = async (
 	)
 )
 
-export const bskyGetAuthorFeed = async ({
+export const getAuthorFeed = async ({
 	actor,
 	limit = 30,
 	cursor,
@@ -71,7 +72,7 @@ export const bskyGetAuthorFeed = async ({
 	)
 )
 
-export const bskySearchActorsTypeahead = async ({
+export const searchActorsTypeahead = async ({
 	limit = 25,
 	q,
 }: {
@@ -87,7 +88,7 @@ export const bskySearchActorsTypeahead = async ({
 	)
 )
 
-export const bskySearchPosts = async ({
+export const searchPosts = async ({
 	limit = 25,
 	q,
 }: {

@@ -18,11 +18,12 @@ const markdownStatus = (text: string) => (
 
 const cosmosAdrRows = async (entries: { type: string, name: string }[]) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-	return entries.flatMap((entry) => {
-		const proposalNumberRaw = regex('^adr-(?<proposalNumber>\\d{3})\\.md$').exec(entry.name)?.groups?.proposalNumber
-		return entry.type !== 'file' || proposalNumberRaw == null ?
+	return entries.flatMap((githubContent) => {
+		const proposalNumberRaw = regex('^adr-(?<proposalNumber>\\d{3})\\.md$').exec(githubContent.name)?.groups?.proposalNumber
+		return githubContent.type !== 'file' || proposalNumberRaw == null ?
 			[]
-		:	[{
+		:
+			[{
 				[EntityMetaKey.Id]: {
 					realm: SpecificationRealm.Cosmos,
 					category: ProposalCategory.Adr,
@@ -43,8 +44,8 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Cosmos || entityId.category !== ProposalCategory.Adr) {
 					throw new Error('CosmosAdrs_Github: proposal resolver only supports Cosmos SDK ADRs')
 				}
-				const { getCosmosAdrMarkdownText } = await import('$/sources/CosmosAdrs/Github/queries.ts')
-				const text = await singleFlight(getCosmosAdrMarkdownText)({ number: entityId.number })
+				const { getMarkdownText } = await import('$/sources/CosmosAdrs/Github/queries.ts')
+				const text = await singleFlight(getMarkdownText)({ number: entityId.number })
 				return {
 					documentCategory: 'ADR',
 					documentTitle: markdownTitle(text),
@@ -60,8 +61,8 @@ export default {
 			entityType: EntityType._Global,
 			fieldName: '$$proposals',
 			resolve: async () => {
-				const { getCosmosAdrsGithubContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
-				return cosmosAdrRows(await getCosmosAdrsGithubContents())
+				const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
+				return cosmosAdrRows(await getContents())
 			},
 		}),
 
@@ -71,8 +72,8 @@ export default {
 			resolve: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Cosmos) throw new Error('CosmosAdrs_Github: $$proposals only supports Cosmos')
-				const { getCosmosAdrsGithubContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
-				return cosmosAdrRows(await getCosmosAdrsGithubContents())
+				const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
+				return cosmosAdrRows(await getContents())
 			},
 		}),
 
@@ -82,8 +83,8 @@ export default {
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Cosmos || entityId.category !== ProposalCategory.Adr) throw new Error('CosmosAdrs_Github: $$proposals only supports Cosmos ADRs')
-				const { getCosmosAdrsGithubContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
-				return cosmosAdrRows(await getCosmosAdrsGithubContents())
+				const { getContents } = await import('$/sources/CosmosAdrs/Github/queries.ts')
+				return cosmosAdrRows(await getContents())
 			},
 		}),
 	],

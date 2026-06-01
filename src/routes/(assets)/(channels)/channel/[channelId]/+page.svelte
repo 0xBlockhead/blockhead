@@ -6,12 +6,12 @@
 
 	// Components
 	import Page from '$/components/Page.svelte'
-	import ChannelView from '$/views/ChannelView.svelte'
+	import StateChannelView from '$/views/StateChannelView.svelte'
 </script>
 
 
 <Page>
-	<ChannelView
+	<StateChannelView
 		entityId={{ id: params.channelId }}
 	/>
 </Page>

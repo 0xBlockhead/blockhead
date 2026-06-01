@@ -15,7 +15,9 @@ export const derive = <_Value, _Result>(
 	transform: (value: _Value) => Awaited<_Result>
 ): RemoteResource<_Result> => {
 	const current = $derived(
-		resource.ready ? transform(resource.current) : undefined
+		resource.ready ? transform(resource.current)
+		:
+			undefined
 	)
 
 	const promise = $derived(

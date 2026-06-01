@@ -16,16 +16,19 @@
 		entityFieldReference,
 		title = 'Relays',
 		open = $bindable(true),
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.MevRelay>
 			title?: string
 			open?: boolean
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
@@ -38,8 +41,8 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import OrderedList from '$/components/OrderedList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import MevRelayView from '$/views/MevRelayView.svelte'
 </script>
 
 
@@ -47,11 +50,13 @@
 	entityType={EntityType.MevRelay}
 	{title}
 	bind:open
+	{id}
+	href={href}
 	{...EntitiesListProps}
 >
-	{#snippet body({})}
+	{#snippet body()}
 		{#if open}
-			{@const network = useEntity(
+			{@const parent = useEntity(
 				EntityType.EvmNetwork,
 				entityFieldReference.entityId,
 				{
@@ -64,40 +69,37 @@
 				},
 			)}
 			{@const relays = derive(
-				network,
-				(network): Entity<typeof schema, EntityType.MevRelay>[] => (
-					network[entityFieldReference.fieldName]
+				parent,
+				(parent): Entity<typeof schema, EntityType.MevRelay>[] => (
+					parent[entityFieldReference.fieldName]
 					?? []
 				),
 			)}
-			<ResourceBoundary
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.MevRelay}
+				id={`${id}-items`}
+				href={href}
+				getKey={(relay) => relay[EntityMetaKey.Id].host}
 				placeholderText="Loading relays…"
 				resource={relays}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
 			>
-				{#snippet children(relays)}
-					<OrderedList
-						getKey={(row) => row[EntityMetaKey.Id].host}
-						items={relays}
-						orientation={ListOrientation.Column}
-						placeholderRanges={[]}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">No MEV relays mapped for this network.</p>
-						{/snippet}
-
-						{#snippet Item({ item: relay })}
-							<div class="entity-details">
-								<dl data-column-item="center">
-									<div>
-										<dt>Host</dt>
-										<dd><code>{relay[EntityMetaKey.Id].host}</code></dd>
-									</div>
-								</dl>
-							</div>
-						{/snippet}
-					</OrderedList>
+				{#snippet Empty()}
+					<p data-text="muted">No MEV relays mapped for this network.</p>
 				{/snippet}
-			</ResourceBoundary>
+
+				{#snippet Item({ item: relay })}
+					<MevRelayView
+						entityId={relay[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

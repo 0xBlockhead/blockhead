@@ -23,11 +23,11 @@ export default {
 						`Blobscan_Rest: unsupported chain ${String(chainId)}`,
 					)
 				}
-				const { getBlobscanBlobJsonString } = await import(
+				const { getBlobJsonString } = await import(
 					'$/sources/Blobscan/Rest/queries.ts'
 				)
 
-				return singleFlight(getBlobscanBlobJsonString)({
+				return singleFlight(getBlobJsonString)({
 					blobIndex: entityId.blobIndex,
 					chainId,
 					txHash: entityId.txHash,

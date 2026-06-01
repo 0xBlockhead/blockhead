@@ -40,9 +40,9 @@ export default {
 					if (entityId.consensusNetworkId !== '0g-chain' && entityId.consensusNetworkId !== ('networkSlug' in entityId.$network ? entityId.$network.networkSlug : entityId.$network.caip2.reference)) {
 						throw new Error(`ZeroGChainScan_Rest: unsupported consensus network ${entityId.consensusNetworkId}`)
 					}
-				const { zeroGChainScanInfo } = await import('$/sources/ZeroG/ChainScan/Rest/queries.ts')
+				const { info } = await import('$/sources/ZeroG/ChainScan/Rest/queries.ts')
 				return {
-					sharedStakingStatusSource: zeroGChainScanInfo.url,
+					sharedStakingStatusSource: info.url,
 				}
 			},
 		}),

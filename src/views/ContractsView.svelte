@@ -17,17 +17,20 @@
 		entityFieldReference,
 		title = 'Contracts',
 		open = $bindable(true),
-		collapsible = true,
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmContract>
 			title?: string
 			open?: boolean
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'href'
+			| 'collapsible'
 			| 'CollapsibleProps'
 		>
 	> = $props()
@@ -41,8 +44,6 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import OrderedList from '$/components/OrderedList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 </script>
 
@@ -51,6 +52,8 @@
 	entityType={EntityType.EvmContract}
 	{title}
 	bind:open
+	{id}
+	href={href}
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -62,7 +65,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet body({ open: _bodyOpen })}
+	{#snippet body()}
 		{#if open}
 			{@const network = useEntity(
 				EntityType.EvmNetwork,
@@ -79,38 +82,34 @@
 				),
 			)}
 			{#key stringify(entityFieldReference.entityId)}
-				<ResourceBoundary
+				<EntitiesList
+					collapsible={false}
+					showSummary={false}
+					entityType={EntityType.EvmContract}
+					id={`${id}-items`}
+					href={href}
+					getKey={(contract) => stringify(contract[EntityMetaKey.Id])}
+					getSortValue={(contract) => BigInt(contract[EntityMetaKey.Id].address)}
 					placeholderText="Loading contracts…"
 					resource={contracts}
+					{title}
+					UnorderedListProps={{ orientation: ListOrientation.Column }}
+					open={true}
 				>
-					{#snippet children(contracts)}
-						<OrderedList
-							items={contracts}
-							getKey={(row) => stringify(row[EntityMetaKey.Id])}
-							getSortKey={(row) => (
-								BigInt(
-									row[EntityMetaKey.Id].address,
-								)
-							)}
-							placeholderRanges={[]}
-							orientation={ListOrientation.Column}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">
-									No verified contracts yet.
-								</p>
-							{/snippet}
-
-							{#snippet Item({ item: contract })}
-								<EvmContractView
-									entityId={contract[EntityMetaKey.Id]}
-									layout={EntityLayout.Summary}
-									open={false}
-								/>
-							{/snippet}
-						</OrderedList>
+					{#snippet Empty()}
+						<p data-text="muted">
+							No verified contracts yet.
+						</p>
 					{/snippet}
-				</ResourceBoundary>
+
+					{#snippet Item({ item: contract })}
+						<EvmContractView
+							entityId={contract[EntityMetaKey.Id]}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/snippet}
+				</EntitiesList>
 			{/key}
 		{/if}
 	{/snippet}

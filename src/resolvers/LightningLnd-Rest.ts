@@ -4,6 +4,7 @@ import {
 	resolverLoadSubsetRowLimit,
 	sourcePublicEnv,
 } from '$/resolvers/$resolvers.ts'
+import { lightningNetworkId } from '$/constants/LightningNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { LightningChannelStatus } from '$/schema/LightningChannel.ts'
@@ -18,14 +19,10 @@ import type {
 	LndPayment,
 } from '$/sources/LightningLnd/Rest/types.ts'
 
-const lightningNetwork = {
-	networkSlug: 'lightning',
-} as const
-
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
 const assertLightningNetwork = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== lightningNetwork.networkSlug) {
+	if (!('networkSlug' in network) || network.networkSlug !== lightningNetworkId.networkSlug) {
 		throw new Error('LightningLnd_Rest: unsupported Lightning network')
 	}
 }
@@ -33,19 +30,22 @@ const assertLightningNetwork = (network: NetworkId) => {
 const bigintFromWire = (value: string | null | undefined): bigint | undefined => (
 	value == null || value === '' ?
 		undefined
-	:	BigInt(value)
+	:
+		BigInt(value)
 )
 
 const timestampMsFromSeconds = (seconds: string | null | undefined): number | undefined => (
 	seconds == null || seconds === '' ?
 		undefined
-	:	Number(seconds) * 1000
+	:
+		Number(seconds) * 1000
 )
 
 const timestampMsFromNanoseconds = (nanoseconds: string | null | undefined): number | undefined => (
 	nanoseconds == null || nanoseconds === '' ?
 		undefined
-	:	Math.floor(Number(nanoseconds) / 1_000_000)
+	:
+		Math.floor(Number(nanoseconds) / 1_000_000)
 )
 
 const channelPointParts = (channelPoint: string) => {
@@ -61,7 +61,8 @@ const channelStatusFromLndChannel = (channel: LndChannel): LightningChannelStatu
 		LightningChannelStatus.Active
 	: channel.active === false ?
 		LightningChannelStatus.Inactive
-	:	LightningChannelStatus.Unknown
+	:
+		LightningChannelStatus.Unknown
 )
 
 const invoiceStateFromLnd = (state: string | null | undefined): LightningInvoiceState => (
@@ -73,7 +74,8 @@ const invoiceStateFromLnd = (state: string | null | undefined): LightningInvoice
 		LightningInvoiceState.Canceled
 	: state === 'ACCEPTED' ?
 		LightningInvoiceState.Accepted
-	:	LightningInvoiceState.Unknown
+	:
+		LightningInvoiceState.Unknown
 )
 
 const paymentStatusFromLnd = (status: string | null | undefined): LightningPaymentStatus => (
@@ -83,7 +85,8 @@ const paymentStatusFromLnd = (status: string | null | undefined): LightningPayme
 		LightningPaymentStatus.Succeeded
 	: status === 'FAILED' ?
 		LightningPaymentStatus.Failed
-	:	LightningPaymentStatus.Unknown
+	:
+		LightningPaymentStatus.Unknown
 )
 
 const lndEnv = (context: Parameters<typeof sourcePublicEnv>[0]) => (
@@ -183,7 +186,8 @@ const htlcFieldsFromLndHtlc = (
 	direction: (
 		htlc.incoming === true ?
 			LightningHtlcDirection.Incoming
-		:	LightningHtlcDirection.Outgoing
+		:
+			LightningHtlcDirection.Outgoing
 	),
 	amountMsat: bigintFromWire(htlc.amount),
 	expiryHeight: htlc.expiration_height == null ? undefined : BigInt(htlc.expiration_height),
@@ -354,7 +358,8 @@ export default {
 				).flatMap((invoice) => (
 					invoicePaymentHash(invoice) == null ?
 						[]
-					:	[invoiceFieldsFromLndInvoice(invoice)]
+					:
+						[invoiceFieldsFromLndInvoice(invoice)]
 				))
 			},
 		}),

@@ -2,17 +2,19 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import {
+	bitcoinCoreDefaultLocalRpcUrl,
+	bitcoinMainnetCaip2,
+} from '$/constants/BitcoinNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const bitcoinCoreRpcUrl = 'http://127.0.0.1:8332'
-
 const assertBitcoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
 		!('caip2' in network)
-		|| network.caip2.namespace !== 'bip122'
-		|| network.caip2.reference !== '000000000019d6689c085ae165831e93'
+		|| network.caip2.namespace !== bitcoinMainnetCaip2.namespace
+		|| network.caip2.reference !== bitcoinMainnetCaip2.reference
 	) {
 		throw new Error('BitcoinCore_JsonRpc: unsupported Bitcoin network')
 	}
@@ -31,9 +33,9 @@ export default {
 					getBlockHash,
 				} = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
 				const block = await getBlock({
-					rpcUrl: bitcoinCoreRpcUrl,
+					rpcUrl: bitcoinCoreDefaultLocalRpcUrl,
 					blockHash: entityId.hash ?? await getBlockHash({
-						rpcUrl: bitcoinCoreRpcUrl,
+						rpcUrl: bitcoinCoreDefaultLocalRpcUrl,
 						height: entityId.height,
 					}),
 				})
@@ -72,7 +74,7 @@ export default {
 				assertBitcoinMainnet(entityId.$network)
 				const { getRawTransaction } = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
 				const transaction = await getRawTransaction({
-					rpcUrl: bitcoinCoreRpcUrl,
+					rpcUrl: bitcoinCoreDefaultLocalRpcUrl,
 					txId: entityId.txId,
 				})
 				if (typeof transaction === 'string') {
@@ -105,9 +107,9 @@ export default {
 					getBlockHash,
 				} = await import('$/sources/BitcoinCore/JsonRpc/queries.ts')
 				const block = await getBlock({
-					rpcUrl: bitcoinCoreRpcUrl,
+					rpcUrl: bitcoinCoreDefaultLocalRpcUrl,
 					blockHash: entityId.hash ?? await getBlockHash({
-						rpcUrl: bitcoinCoreRpcUrl,
+						rpcUrl: bitcoinCoreDefaultLocalRpcUrl,
 						height: entityId.height,
 					}),
 				})

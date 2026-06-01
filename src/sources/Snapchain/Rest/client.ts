@@ -33,7 +33,8 @@ export async function snapchainGet<T>(
 			lastError = (
 				error instanceof Error ?
 					new Error(`Snapchain ${endpoint.id}: ${error.message}`)
-				:	new Error(`Snapchain ${endpoint.id}: ${String(error)}`)
+				:
+					new Error(`Snapchain ${endpoint.id}: ${String(error)}`)
 			)
 		}
 	}

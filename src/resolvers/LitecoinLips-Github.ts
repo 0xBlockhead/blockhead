@@ -14,11 +14,12 @@ const metadataValue = (text: string, key: string) => (
 
 const litecoinLipRows = async (entries: { type: string, name: string }[]) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-	return entries.flatMap((entry) => {
-		const proposalNumberRaw = regex('^lip-(?<proposalNumber>\\d{4})\\.mediawiki$').exec(entry.name)?.groups?.proposalNumber
-		return entry.type !== 'file' || proposalNumberRaw == null ?
+	return entries.flatMap((githubContent) => {
+		const proposalNumberRaw = regex('^lip-(?<proposalNumber>\\d{4})\\.mediawiki$').exec(githubContent.name)?.groups?.proposalNumber
+		return githubContent.type !== 'file' || proposalNumberRaw == null ?
 			[]
-		:	[{
+		:
+			[{
 				[EntityMetaKey.Id]: {
 					realm: SpecificationRealm.Litecoin,
 					category: ProposalCategory.Lip,
@@ -39,8 +40,8 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Litecoin || entityId.category !== ProposalCategory.Lip) {
 					throw new Error('LitecoinLips_Github: proposal resolver only supports Litecoin LIPs')
 				}
-				const { getLitecoinLipMediaWikiText } = await import('$/sources/LitecoinLips/Github/queries.ts')
-				const text = await singleFlight(getLitecoinLipMediaWikiText)({ number: entityId.number })
+				const { getMediaWikiText } = await import('$/sources/LitecoinLips/Github/queries.ts')
+				const text = await singleFlight(getMediaWikiText)({ number: entityId.number })
 				return {
 					documentCategory: metadataValue(text, 'Type') ?? 'LIP',
 					documentTitle: metadataValue(text, 'Title'),
@@ -56,8 +57,8 @@ export default {
 			entityType: EntityType._Global,
 			fieldName: '$$proposals',
 			resolve: async () => {
-				const { getLitecoinLipsGithubContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
-				return litecoinLipRows(await getLitecoinLipsGithubContents())
+				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
+				return litecoinLipRows(await getContents())
 			},
 		}),
 
@@ -67,8 +68,8 @@ export default {
 			resolve: async (entityId) => {
 				const { SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Litecoin) throw new Error('LitecoinLips_Github: $$proposals only supports Litecoin')
-				const { getLitecoinLipsGithubContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
-				return litecoinLipRows(await getLitecoinLipsGithubContents())
+				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
+				return litecoinLipRows(await getContents())
 			},
 		}),
 
@@ -78,8 +79,8 @@ export default {
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
 				if (entityId.realm !== SpecificationRealm.Litecoin || entityId.category !== ProposalCategory.Lip) throw new Error('LitecoinLips_Github: $$proposals only supports Litecoin LIPs')
-				const { getLitecoinLipsGithubContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
-				return litecoinLipRows(await getLitecoinLipsGithubContents())
+				const { getContents } = await import('$/sources/LitecoinLips/Github/queries.ts')
+				return litecoinLipRows(await getContents())
 			},
 		}),
 	],

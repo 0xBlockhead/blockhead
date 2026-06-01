@@ -1,6 +1,6 @@
 import { graphql, queryAmboss } from '$/sources/Amboss/Graphql/client.ts'
 
-export const getAmbossNode = ({
+export const getNode = ({
 	publicKey,
 }: {
 	publicKey: string
@@ -35,7 +35,7 @@ export const getAmbossNode = ({
 	).then((data) => data.getNode)
 )
 
-export const getAmbossEdge = ({
+export const getEdge = ({
 	channelId,
 }: {
 	channelId: string
@@ -69,7 +69,7 @@ export const getAmbossEdge = ({
 	).then((data) => data.getEdge)
 )
 
-export const getAmbossPopularNodePubkeys = () => (
+export const getPopularNodePubkeys = () => (
 	queryAmboss(
 		graphql(`
 			query GetAmbossPopularNodes {

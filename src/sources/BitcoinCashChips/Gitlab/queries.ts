@@ -11,14 +11,14 @@ const gitlabProjectUrl = (path: string) => (
 	`https://gitlab.com/api/v4/projects/${bitcoinCashChipsGitlabRepo.projectId}${path}`
 )
 
-export const getBitcoinCashChipsGitlabTree = () => (
+export const getTree = () => (
 	getJson<BitcoinCashChipsGitlabTree>(
 		gitlabProjectUrl(`/repository/tree?ref=${bitcoinCashChipsGitlabRepo.ref}&per_page=100`),
 		{ origins: BitcoinCashChips.origins ?? [] },
 	)
 )
 
-export const getBitcoinCashChipMarkdownText = ({ path }: { path: string }) => (
+export const getChipMarkdownText = ({ path }: { path: string }) => (
 	getText(
 		gitlabProjectUrl(`/repository/files/${encodeURIComponent(path)}/raw?ref=${bitcoinCashChipsGitlabRepo.ref}`),
 		{ origins: BitcoinCashChips.origins ?? [] },

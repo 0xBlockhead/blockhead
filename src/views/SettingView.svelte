@@ -99,7 +99,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href, open: summaryOpen })}
+	{#snippet Content({})}
 		{#if summaryOpen}
 		<dl data-column-item="center">
 			<ResourceBoundary resource={global}>

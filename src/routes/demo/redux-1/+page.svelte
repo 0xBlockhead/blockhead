@@ -105,7 +105,8 @@
 				[EntityFieldCardinality.ZeroOrMany]: _PrimitiveType['infer'][] | undefined
 			}[_EntityFieldDefinition['cardinality']]
 
-		: _EntityFieldDefinition extends {
+		:
+			_EntityFieldDefinition extends {
 			type: EntityFieldType.EntityReference
 			entityType: infer _EntityType extends EntityType<_Schema>
 		} ?
@@ -115,7 +116,8 @@
 				[EntityFieldCardinality.One]: Entity<_Schema, _EntityType>
 			}[_EntityFieldDefinition['cardinality']]
 
-		: _EntityFieldDefinition extends {
+		:
+			_EntityFieldDefinition extends {
 			type: EntityFieldType.EntitiesReference
 			entityType: infer _EntityType extends EntityType<_Schema>
 		} ?
@@ -565,8 +567,8 @@
 	enum BlockheadEntityType {
 		_Global = '_Global',
 		Actor = 'Actor',
-		ActorCoin = 'ActorCoin',
-		ActorCoinAllowance = 'ActorCoinAllowance',
+		EvmNetworkActorCoinBalance = 'EvmNetworkActorCoinBalance',
+		EvmActorCoinAllowance = 'EvmActorCoinAllowance',
 		EvmNetworkAccount = 'EvmNetworkAccount',
 		BeaconAction = 'BeaconAction',
 		BeaconEpoch = 'BeaconEpoch',
@@ -938,7 +940,8 @@
 			String(import.meta.env.PUBLIC_ETH_RPC_URL).length > 0
 		) ?
 			String(import.meta.env.PUBLIC_ETH_RPC_URL)
-		:	'https://ethereum.publicnode.com'
+		:
+			'https://ethereum.publicnode.com'
 	)
 
 	const entityResolvers = [
@@ -1045,18 +1048,22 @@
 						null
 					: (typeof transactionJsonRaw === 'object' && transactionJsonRaw !== null && !Array.isArray(transactionJsonRaw)) ?
 						transactionJsonRaw
-					: null
+					:
+						null
 				)
 				return {
 					value: typeof transactionJson?.value === 'string' ?
 						BigInt(transactionJson.value)
-					:	0n,
+					:
+						0n,
 					gas: typeof transactionJson?.gas === 'string' ?
 						BigInt(transactionJson.gas)
-					:	undefined,
+					:
+						undefined,
 					nonce: typeof transactionJson?.nonce === 'string' ?
 						Number.parseInt(transactionJson.nonce, 16)
-					:	undefined,
+					:
+						undefined,
 				}
 			},
 		}),
@@ -1185,7 +1192,8 @@
 				const chainHead = BigInt(
 					typeof chainHeadWire === 'string' ?
 						chainHeadWire
-					:	String(chainHeadWire),
+					:
+						String(chainHeadWire),
 				)
 				const headBlockJsonRaw = await rpcProvider.request(
 					Rpc.Eth.GetBlockByNumberRequest(
@@ -1198,7 +1206,8 @@
 						null
 					: (typeof headBlockJsonRaw === 'object' && headBlockJsonRaw !== null && !Array.isArray(headBlockJsonRaw)) ?
 						headBlockJsonRaw
-					: null
+					:
+						null
 				)
 				return [
 					{
@@ -1241,13 +1250,15 @@
 						null
 					: (typeof blockRecord === 'object' && blockRecord !== null && !Array.isArray(blockRecord)) ?
 						blockRecord
-					: null
+					:
+						null
 				)
 				const transactions: JsonValue[] = (
 					blockWire !== undefined &&
 					Array.isArray(blockWire.transactions) ?
 						blockWire.transactions
-					:	[]
+					:
+						[]
 				)
 				const hashes: string[] = []
 				const cap = 8
@@ -1304,7 +1315,8 @@
 						null
 					: (typeof receipt === 'object' && receipt !== null && !Array.isArray(receipt)) ?
 						receipt
-					: null
+					:
+						null
 				)
 				return (
 					typeof receiptWire?.status === 'string' ?
@@ -1338,7 +1350,8 @@
 						null
 					: (typeof receipt === 'object' && receipt !== null && !Array.isArray(receipt)) ?
 						receipt
-					: null
+					:
+						null
 				)
 				return (
 					typeof receiptWire?.gasUsed === 'string' ?
@@ -1710,7 +1723,9 @@
 									<li>
 										<pre data-card>{JSON.stringify(
 											entityRow.entity,
-											(_key, inner) => (typeof inner === 'bigint' ? inner.toString() : inner),
+											(_key, inner) => (typeof inner === 'bigint' ? inner.toString()
+											:
+												inner),
 											2,
 										)}</pre>
 									</li>
@@ -1753,7 +1768,9 @@
 											<li>
 												<pre data-card>{JSON.stringify(
 													fieldRow.entityField,
-													(_key, inner) => (typeof inner === 'bigint' ? inner.toString() : inner),
+													(_key, inner) => (typeof inner === 'bigint' ? inner.toString()
+													:
+														inner),
 													2,
 												)}</pre>
 											</li>

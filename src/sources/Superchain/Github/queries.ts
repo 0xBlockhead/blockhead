@@ -65,7 +65,7 @@ const toSuperchainNetwork = (
 	}
 }
 
-export const fetchSuperchainNetworks = async (): Promise<SuperchainNetwork[]> => {
+export const fetchNetworks = async (): Promise<SuperchainNetwork[]> => {
 	const chainList = await fetchSuperchainChainList()
 	const chainByIdentifier = new Map(
 		chainList.map((chain) => [

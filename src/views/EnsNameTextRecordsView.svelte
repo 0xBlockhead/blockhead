@@ -88,7 +88,9 @@
 			textRecords: {},
 			...(open ? {
 				resolverTextKeys: {},
-			} : {}),
+			}
+		:
+			{}),
 		},
 	)
 

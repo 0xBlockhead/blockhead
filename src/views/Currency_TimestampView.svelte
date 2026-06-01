@@ -114,7 +114,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<ResourceBoundary
 			resource={currencyTimestamp}
 			placeholderText="Loading snapshot…"
@@ -171,7 +171,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 		<section data-scroll-marker-label="Currency">
 			<CurrencyView
 				entityId={entityId.$currency}

@@ -16,16 +16,19 @@
 		entityFieldReference,
 		title = 'Builders',
 		open = $bindable(true),
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.MevBuilder>
 			title?: string
 			open?: boolean
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
@@ -38,8 +41,8 @@
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import OrderedList from '$/components/OrderedList.svelte'
-	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import MevBuilderView from '$/views/MevBuilderView.svelte'
 </script>
 
 
@@ -47,11 +50,13 @@
 	entityType={EntityType.MevBuilder}
 	{title}
 	bind:open
+	{id}
+	href={href}
 	{...EntitiesListProps}
 >
-	{#snippet body({})}
+	{#snippet body()}
 		{#if open}
-			{@const network = useEntity(
+			{@const parent = useEntity(
 				EntityType.EvmNetwork,
 				entityFieldReference.entityId,
 				{
@@ -64,40 +69,37 @@
 				},
 			)}
 			{@const builders = derive(
-				network,
-				(network): Entity<typeof schema, EntityType.MevBuilder>[] => (
-					network[entityFieldReference.fieldName]
+				parent,
+				(parent): Entity<typeof schema, EntityType.MevBuilder>[] => (
+					parent[entityFieldReference.fieldName]
 					?? []
 				),
 			)}
-			<ResourceBoundary
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.MevBuilder}
+				id={`${id}-items`}
+				href={href}
+				getKey={(builder) => builder[EntityMetaKey.Id].builderPubkey}
 				placeholderText="Loading builders…"
 				resource={builders}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
 			>
-				{#snippet children(builders)}
-					<OrderedList
-						getKey={(row) => row[EntityMetaKey.Id].builderPubkey}
-						items={builders}
-						orientation={ListOrientation.Column}
-						placeholderRanges={[]}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">No MEV builders loaded yet.</p>
-						{/snippet}
-
-						{#snippet Item({ item: builder })}
-							<div class="entity-details">
-								<dl data-column-item="center">
-									<div>
-										<dt>Builder pubkey</dt>
-										<dd><code>{builder[EntityMetaKey.Id].builderPubkey}</code></dd>
-									</div>
-								</dl>
-							</div>
-						{/snippet}
-					</OrderedList>
+				{#snippet Empty()}
+					<p data-text="muted">No MEV builders loaded yet.</p>
 				{/snippet}
-			</ResourceBoundary>
+
+				{#snippet Item({ item: builder })}
+					<MevBuilderView
+						entityId={builder[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

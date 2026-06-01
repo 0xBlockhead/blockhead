@@ -122,7 +122,7 @@
 			`${entityId.$marketVenue.marketVenueId}:${marketAssetSymbol(entityId.$base)}-${marketAssetSymbol(entityId.$quote)} (${marketKindByMarketKind[entityId.marketKind].label})`
 	)}
 >
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<dl data-column-item="center">
 			<div>
 				<dt>Kind</dt>

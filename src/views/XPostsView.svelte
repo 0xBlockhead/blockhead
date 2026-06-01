@@ -17,6 +17,7 @@
 	let {
 		entityFieldReference,
 		id,
+		href = '',
 		open = $bindable(true),
 		title = 'X posts',
 		...EntitiesListProps
@@ -24,6 +25,7 @@
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.XPost>
 			id: string
+			href?: string
 			open?: boolean
 			title?: string
 		},
@@ -49,7 +51,32 @@
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
-	const parent = useEntity(
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import XPostView from '$/views/XPostView.svelte'
+</script>
+
+
+<EntitiesList
+	{...EntitiesListProps}
+	bind:open
+	entityType={EntityType.XPost}
+	{id}
+	{title}
+>
+	{#snippet TypeAnnotationTooltip()}
+			<p>
+				Public posts on X (Twitter).
+			</p>
+			<p>
+				Not Reddit threads, blob storage, pools, candle data, chats, or logs. Live lookup depends on OAuth or bearer credentials and X developer API availability.
+			</p>
+		{/snippet}
+
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -61,9 +88,8 @@
 				],
 			},
 		},
-	)
-
-	const posts = derive(
+	)}
+			{@const posts = derive(
 		parent,
 		(parent) => {
 			const rows: Entity<typeof schema, EntityType.XPost>[] = (
@@ -76,47 +102,35 @@
 					}))
 			)
 		},
-	)
+	)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.XPost}
+				id={`${id}-items`}
+				href={href}
+				{title}
+				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getSortValue={(row) => row.value[EntityMetaKey.Id].id}
+				resource={posts}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+						<p data-text="muted">
+							No X posts in this list yet.
+						</p>
+					{/snippet}
 
+				{#snippet Item({ item })}
+						<XPostView
+							entityId={{ id: item.value[EntityMetaKey.Id].id }}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/snippet}
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import XPostView from '$/views/XPostView.svelte'
-</script>
-
-
-<EntitiesList
-	{...EntitiesListProps}
-	bind:open
-	entityType={EntityType.XPost}
-	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-	getSortValue={(row) => row.value[EntityMetaKey.Id].id}
-	{id}
-	resource={posts}
-	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
->
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Public posts on X (Twitter).
-		</p>
-		<p>
-			Not Reddit threads, blob storage, pools, candle data, chats, or logs. Live lookup depends on OAuth or bearer credentials and X developer API availability.
-		</p>
-	{/snippet}
-
-	{#snippet Empty()}
-		<p data-text="muted">
-			No X posts in this list yet.
-		</p>
-	{/snippet}
-
-	{#snippet Item({ item })}
-		<XPostView
-			entityId={{ id: item.value[EntityMetaKey.Id].id }}
-			layout={EntityLayout.Summary}
-			open={false}
-		/>
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

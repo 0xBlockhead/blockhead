@@ -62,12 +62,11 @@
 
 	// Components
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
+	import AssetInstancesView from '$/views/AssetInstancesView.svelte'
+	import NetworkTransportEndpointsView from '$/views/NetworkTransportEndpointsView.svelte'
 	import SolanaBlockView from '$/views/SolanaBlockView.svelte'
 	import SolanaBlocksView from '$/views/SolanaBlocksView.svelte'
 	import SolanaNetwork_TimestampsView from '$/views/SolanaNetwork_TimestampsView.svelte'
@@ -106,7 +105,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content(context)}
+	{#snippet Content({ open })}
 		<dl class="network-summary-head" data-column-item="center">
 			<div>
 				<dt>Slot</dt>
@@ -133,7 +132,7 @@
 						<dd>{networkEnvironmentByEnvironment[network.environment].label}</dd>
 					</div>
 
-					{#if context?.open}
+					{#if open}
 						<div>
 							<dt>RPC endpoints</dt>
 							<dd>{network.rpcEndpoints.length}</dd>
@@ -220,46 +219,19 @@
 			{/snippet}
 
 			{#snippet SectionSolanaEndpoints({ id, label }: { id: string, label: string })}
-				<ResourceBoundary resource={network}>
-					{#snippet children(network)}
-						<EntitiesList
-							collapsible={false}
-							entityType={EntityType.SolanaNetwork}
-							getKey={(endpoint) => endpoint.url}
-							id={`${id}-list`}
-							items={network.rpcEndpoints}
-							title={label}
-							UnorderedListProps={{ orientation: ListOrientation.Column }}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">No RPC endpoints listed for this network yet.</p>
-							{/snippet}
-
-							{#snippet Item({ item: endpoint })}
-								<div class="entity-details">
-									<dl data-column-item="center">
-										<div>
-											<dt>URL</dt>
-											<dd><code>{endpoint.url}</code></dd>
-										</div>
-
-										<div>
-											<dt>Transport</dt>
-											<dd>{endpoint.transportType}</dd>
-										</div>
-
-										{#if endpoint.providerName}
-											<div>
-												<dt>Provider</dt>
-												<dd>{endpoint.providerName}</dd>
-											</div>
-										{/if}
-									</dl>
-								</div>
-							{/snippet}
-						</EntitiesList>
-					{/snippet}
-				</ResourceBoundary>
+				<NetworkTransportEndpointsView
+					CollapsibleProps={{ canToggle: false }}
+					endpointFieldNames={['rpcEndpoints']}
+					emptyText="No RPC endpoints listed for this network yet."
+					fieldSources={[
+						Source.Constants_Internal,
+					]}
+					id={`${id}-list`}
+					listEntityType={EntityType.SolanaNetwork}
+					parentEntityId={entityId}
+					parentEntityType={EntityType.SolanaNetwork}
+					title={label}
+				/>
 			{/snippet}
 		</CollapsibleTabs>
 
@@ -314,26 +286,16 @@
 			{/snippet}
 
 			{#snippet SectionSolanaAssetsNative({ id, label }: { id: string, label: string })}
-				<ResourceBoundary resource={baseNetwork}>
-					{#snippet children(baseNetwork)}
-						<EntitiesList
-							collapsible={false}
-							entityType={EntityType.AssetInstance}
-							getKey={(asset) => `${asset[EntityMetaKey.Id].kind}:${asset[EntityMetaKey.Id].assetKey}`}
-							id={`${id}-list`}
-							items={baseNetwork.$$nativeAssets}
-							title={label}
-							UnorderedListProps={{ orientation: ListOrientation.Column }}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">No native assets mapped for this network yet.</p>
-							{/snippet}
-							{#snippet Item(context)}
-								<AssetInstanceView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
-							{/snippet}
-						</EntitiesList>
-					{/snippet}
-				</ResourceBoundary>
+				<AssetInstancesView
+					CollapsibleProps={{ canToggle: false }}
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId,
+						fieldName: '$$nativeAssets',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
 			{/snippet}
 		</CollapsibleTabs>
 

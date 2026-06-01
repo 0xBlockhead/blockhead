@@ -2,18 +2,24 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import {
+	zcashMainnetCaip2,
+	zcashdDefaultLocalRpcUrl,
+} from '$/constants/BitcoinNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { ZcashShieldedActionKind } from '$/schema/ZcashShieldedAction.ts'
 import { ZcashShieldedPoolKind } from '$/schema/ZcashShieldedPool.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const zcashdRpcUrl = 'http://127.0.0.1:8232'
-
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
 const assertZcashMainnet = (network: NetworkId) => {
-	if (!('caip2' in network) || network.caip2.namespace !== 'bip122' || network.caip2.reference !== '00040fe8ec8471911baa1db1266ea15') {
+	if (
+		!('caip2' in network)
+		|| network.caip2.namespace !== zcashMainnetCaip2.namespace
+		|| network.caip2.reference !== zcashMainnetCaip2.reference
+	) {
 		throw new Error('Zcashd_JsonRpc: unsupported network')
 	}
 }
@@ -86,7 +92,7 @@ const getTransaction = async (entityId: {
 	assertZcashMainnet(entityId.$network)
 	const { getRawTransaction } = await import('$/sources/Zcashd/JsonRpc/queries.ts')
 	return getRawTransaction({
-		rpcUrl: zcashdRpcUrl,
+		rpcUrl: zcashdDefaultLocalRpcUrl,
 		txId: entityId.txId,
 	})
 }
@@ -133,7 +139,7 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.ZcashShieldedAction,
 			resolve: async (entityId) => {
-				const row = zcashShieldedActionRows(
+				const shieldedAction = zcashShieldedActionRows(
 					entityId.$transaction,
 					await getTransaction(entityId.$transaction),
 				).find((action) => (
@@ -141,8 +147,8 @@ export default {
 					&& action[EntityMetaKey.Id].actionKind === entityId.actionKind
 					&& action[EntityMetaKey.Id].actionIndex === entityId.actionIndex
 				))
-				if (row == null) throw new Error(`Zcashd_JsonRpc: shielded action not found for ${entityId.$transaction.txId}`)
-				return row
+				if (shieldedAction == null) throw new Error(`Zcashd_JsonRpc: shielded action not found for ${entityId.$transaction.txId}`)
+				return shieldedAction
 			},
 		}),
 	],

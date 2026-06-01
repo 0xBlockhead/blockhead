@@ -1274,7 +1274,8 @@ const createEntityFieldCollection = <
 							(
 								parentEntityIds.length > 0 ?
 									parentEntityIds
-								: entityType === '_Global' && (
+								:
+									entityType === '_Global' && (
 									fieldDefinition.cardinality === EntityFieldCardinality.Many
 									|| fieldDefinition.cardinality === EntityFieldCardinality.ZeroOrMany
 								) ?

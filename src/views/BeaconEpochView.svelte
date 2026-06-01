@@ -112,7 +112,7 @@
 		</span>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<dl data-column-item="center">
 			<div>
 				<dt>Slot range</dt>

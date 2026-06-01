@@ -24,12 +24,16 @@
 	import { getEvmSelectorPath, getEvmTopicPath } from '$/lib/signature-paths.ts'
 
 	const normalizeHex4 = (hex: `0x${string}`): `0x${string}` => {
-		const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase() : hex.toLowerCase()
+		const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase()
+		:
+			hex.toLowerCase()
 		return `0x${digits.padStart(8, '0').slice(-8)}`
 	}
 
 	const normalizeHex32 = (hex: `0x${string}`): `0x${string}` => {
-		const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase() : hex.toLowerCase()
+		const digits = hex.toLowerCase().startsWith('0x') ? hex.slice(2).toLowerCase()
+		:
+			hex.toLowerCase()
 		return `0x${digits.padStart(64, '0').slice(-64)}`
 	}
 
@@ -83,7 +87,8 @@
 		const pathname = untrack(() => page.url.pathname)
 		const url = hex
 			? `${pathname}?data=${encodeURIComponent(hex)}`
-			: pathname
+			:
+				pathname
 		void goto(url, { replaceState: true })
 	})
 
@@ -124,11 +129,15 @@
 	)
 
 	const normalizedSelector = $derived(
-		selector ? normalizeHex4(selector) : null,
+		selector ? normalizeHex4(selector)
+		:
+			null,
 	)
 
 	const normalizedTopic = $derived(
-		topic ? normalizeHex32(topic) : null,
+		topic ? normalizeHex32(topic)
+		:
+			null,
 	)
 
 	const selectorEntityId = $derived(
@@ -171,7 +180,9 @@
 
 
 	const byteCount = $derived(
-		hexNormalized ? Math.floor(hexNormalized.length / 2) : 0,
+		hexNormalized ? Math.floor(hexNormalized.length / 2)
+		:
+			0,
 	)
 
 	const functionSignatures = $derived(
@@ -193,7 +204,8 @@
 			? functionSignatures[
 					Math.min(selectedSigIndex, functionSignatures.length - 1)
 				]
-			: null,
+			:
+				null,
 	)
 
 	const decodedCall = $derived(
@@ -202,7 +214,8 @@
 					signatureForDecode,
 					ZeroExHex.assert(hexWithPrefix),
 				)
-			: null,
+			:
+				null,
 	)
 
 	const eventSignatureForDecode = $derived(
@@ -210,7 +223,8 @@
 			? eventSignatures[
 					Math.min(selectedEventSigIndex, eventSignatures.length - 1)
 				]
-			: null,
+			:
+				null,
 	)
 
 	const decodedEvent = $derived(
@@ -221,7 +235,8 @@
 					eventSignatureForDecode,
 					ZeroExHex.assert(hexWithPrefix),
 				)
-			: null,
+			:
+				null,
 	)
 
 

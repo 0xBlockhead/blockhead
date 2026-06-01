@@ -44,7 +44,9 @@
 
 	const sortItems = (sortId: _SortId | '') => {
 		const sort = sortId && sortById.get(sortId)
-		return sort ? [...items].sort(sort.compare) : items
+		return sort ? [...items].sort(sort.compare)
+		:
+			items
 	}
 
 	const _setSortById = (sortId: _SortId | '') => {

@@ -119,7 +119,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<ResourceBoundary
 			resource={service}
 			placeholderText="Loading agent service…"
@@ -242,6 +242,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 	{/snippet}
 </EntityView>

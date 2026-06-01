@@ -179,7 +179,8 @@ test.describe('boundary updates (every +page route)', () => {
 			let pageUrls = (
 				limitRaw !== '' && Number.isFinite(limit) && limit > 0 ?
 					all.slice(0, limit)
-				:	all
+				:
+					all
 			)
 			if (startPath) {
 				const index = pageUrls.indexOf(startPath)

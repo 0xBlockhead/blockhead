@@ -29,7 +29,7 @@ const beaconFetch = (
 	})
 )
 
-export const getBeaconHeadSlot = async (beaconRestBaseUrl: string): Promise<number> => {
+export const getHeadSlot = async (beaconRestBaseUrl: string): Promise<number> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
 	const res = await beaconFetch(`${base}/eth/v1/beacon/headers/head`, {
 		headers: { accept: 'application/json' },
@@ -49,7 +49,7 @@ export const getBeaconHeadSlot = async (beaconRestBaseUrl: string): Promise<numb
 	return n
 }
 
-export const getBeaconHeader = async (
+export const getHeader = async (
 	beaconRestBaseUrl: string,
 	blockId: string | number,
 ): Promise<BeaconHeader> => {
@@ -99,7 +99,7 @@ export const getBeaconHeader = async (
  * Consensus proposer validator indices from the latest beacon slots (deduped, bounded).
  * Keeps `Network` validator discovery inside a small, constant-time window instead of paging the full validator set.
  */
-export const getBeaconRecentProposerValidatorIndices = async ({
+export const getRecentProposerValidatorIndices = async ({
 	beaconRestBaseUrl,
 	limit,
 	slotLookbackCap,
@@ -108,7 +108,7 @@ export const getBeaconRecentProposerValidatorIndices = async ({
 	limit: number
 	slotLookbackCap: number
 }): Promise<number[]> => {
-	const head = await getBeaconHeadSlot(beaconRestBaseUrl)
+	const head = await getHeadSlot(beaconRestBaseUrl)
 	const seen = new Map<number, true>()
 	const ordered: number[] = []
 	for (let slotOffset = 0;
@@ -117,7 +117,7 @@ export const getBeaconRecentProposerValidatorIndices = async ({
 	) {
 		const slot = head - slotOffset
 		if (slot < 0) break
-		const header = await getBeaconHeader(beaconRestBaseUrl, slot)
+		const header = await getHeader(beaconRestBaseUrl, slot)
 		const index = header.proposerIndex
 		if (seen.has(index)) continue
 		seen.set(index, true)
@@ -133,7 +133,7 @@ const nonNegativeDecimalBigIntFromWire = (raw: string | undefined): bigint | und
 		undefined
 )
 
-export const getBeaconValidatorSummaryAtHead = async (
+export const getValidatorSummaryAtHead = async (
 	beaconRestBaseUrl: string,
 	validatorIndex: number,
 ): Promise<BeaconValidatorSummary | null> => {
@@ -200,7 +200,7 @@ const checkpointFromWire = (
 	}
 }
 
-export const beaconFinalityCheckpointsFromWire = (
+export const getFinalityCheckpointsFromWire = (
 	wire: JsonValue,
 ): BeaconFinalityCheckpoints | undefined => {
 	if (!isJsonObject(wire)) return undefined
@@ -221,7 +221,7 @@ export const beaconFinalityCheckpointsFromWire = (
 	}
 }
 
-export const getBeaconFinalityCheckpoints = async (
+export const getFinalityCheckpoints = async (
 	beaconRestBaseUrl: string,
 ): Promise<BeaconFinalityCheckpoints | undefined> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
@@ -230,10 +230,10 @@ export const getBeaconFinalityCheckpoints = async (
 	})
 	if (!res.ok) await throwHttpError('Beacon GET finality_checkpoints', res)
 	const wire = await res.json<JsonValue>()
-	return beaconFinalityCheckpointsFromWire(wire)
+	return getFinalityCheckpointsFromWire(wire)
 }
 
-export const beaconForkScheduleFromWire = (
+export const getForkScheduleFromWire = (
 	wire: JsonValue,
 ): BeaconForkScheduleEntry[] => {
 	if (!isJsonObject(wire)) return []
@@ -275,7 +275,7 @@ export const beaconForkScheduleFromWire = (
 	)
 }
 
-export const getBeaconForkSchedule = async (
+export const getForkSchedule = async (
 	beaconRestBaseUrl: string,
 ): Promise<BeaconForkScheduleEntry[]> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
@@ -284,10 +284,10 @@ export const getBeaconForkSchedule = async (
 	})
 	if (!res.ok) await throwHttpError('Beacon GET fork_schedule', res)
 	const wire = await res.json<JsonValue>()
-	return beaconForkScheduleFromWire(wire)
+	return getForkScheduleFromWire(wire)
 }
 
-export const getBeaconGenesisTimeSeconds = async (
+export const getGenesisTimeSeconds = async (
 	beaconRestBaseUrl: string,
 ): Promise<number | undefined> => {
 	const base = beaconRestBaseUrl.replace(/\/$/, '')
@@ -307,7 +307,7 @@ export const getBeaconGenesisTimeSeconds = async (
 	)
 }
 
-export const beaconCommitteesFromWire = (wire: JsonValue): BeaconCommittee[] => {
+export const getCommitteesFromWire = (wire: JsonValue): BeaconCommittee[] => {
 	if (!isJsonObject(wire)) return []
 	const data = wire.data
 	if (!Array.isArray(data)) return []
@@ -336,7 +336,7 @@ export const beaconCommitteesFromWire = (wire: JsonValue): BeaconCommittee[] => 
 	)
 }
 
-export const getBeaconCommittees = async (
+export const getCommittees = async (
 	beaconRestBaseUrl: string,
 	stateId = 'head',
 ): Promise<BeaconCommittee[]> => {
@@ -345,10 +345,10 @@ export const getBeaconCommittees = async (
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET committees', res)
-	return beaconCommitteesFromWire(await res.json<JsonValue>())
+	return getCommitteesFromWire(await res.json<JsonValue>())
 }
 
-export const beaconSyncCommitteeFromWire = (wire: JsonValue): BeaconSyncCommittee | undefined => {
+export const getSyncCommitteeFromWire = (wire: JsonValue): BeaconSyncCommittee | undefined => {
 	if (!isJsonObject(wire)) return undefined
 	const data = wire.data
 	if (!isJsonObject(data)) return undefined
@@ -362,7 +362,7 @@ export const beaconSyncCommitteeFromWire = (wire: JsonValue): BeaconSyncCommitte
 	}
 }
 
-export const getBeaconSyncCommittee = async (
+export const getSyncCommittee = async (
 	beaconRestBaseUrl: string,
 	stateId = 'head',
 ): Promise<BeaconSyncCommittee | undefined> => {
@@ -371,10 +371,10 @@ export const getBeaconSyncCommittee = async (
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET sync_committees', res)
-	return beaconSyncCommitteeFromWire(await res.json<JsonValue>())
+	return getSyncCommitteeFromWire(await res.json<JsonValue>())
 }
 
-export const beaconBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySummary => {
+export const getBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDutySummary => {
 	const empty = {
 		attestations: [],
 		withdrawals: [],
@@ -464,7 +464,7 @@ export const beaconBlockDutySummaryFromWire = (wire: JsonValue): BeaconBlockDuty
 	}
 }
 
-export const getBeaconBlockDutySummary = async (
+export const getBlockDutySummary = async (
 	beaconRestBaseUrl: string,
 	blockId: string | number,
 ): Promise<BeaconBlockDutySummary> => {
@@ -473,5 +473,5 @@ export const getBeaconBlockDutySummary = async (
 		headers: { accept: 'application/json' },
 	})
 	if (!res.ok) await throwHttpError('Beacon GET block', res)
-	return beaconBlockDutySummaryFromWire(await res.json<JsonValue>())
+	return getBlockDutySummaryFromWire(await res.json<JsonValue>())
 }

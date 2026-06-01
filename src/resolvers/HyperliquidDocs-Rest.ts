@@ -25,16 +25,16 @@ const hyperliquidHipRows = async () => {
 			number: 4,
 			title: 'Outcome contracts',
 		},
-	].map((row) => ({
+	].map((hyperliquidHip) => ({
 		[EntityMetaKey.Id]: {
 			realm: SpecificationRealm.Hyperliquid,
 			category: ProposalCategory.Hip,
-			number: row.number,
+			number: hyperliquidHip.number,
 		},
 		documentCategory: 'HIP',
-		documentTitle: row.title,
+		documentTitle: hyperliquidHip.title,
 		documentStatus: 'Documented',
-		documentBody: `HIP-${row.number.toString()}: ${row.title}`,
+		documentBody: `HIP-${hyperliquidHip.number.toString()}: ${hyperliquidHip.title}`,
 	}))
 }
 
@@ -49,7 +49,7 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Hyperliquid || entityId.category !== ProposalCategory.Hip) {
 					throw new Error('HyperliquidDocs_Rest: proposal resolver only supports Hyperliquid HIPs')
 				}
-				const proposal = (await hyperliquidHipRows()).find((row) => row[EntityMetaKey.Id].number === entityId.number)
+				const proposal = (await hyperliquidHipRows()).find((hyperliquidHip) => hyperliquidHip[EntityMetaKey.Id].number === entityId.number)
 				if (proposal == null) throw new Error(`HyperliquidDocs_Rest: HIP not found ${entityId.number.toString()}`)
 				return proposal
 			},

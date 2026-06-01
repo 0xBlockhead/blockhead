@@ -36,7 +36,7 @@
 		...EntityViewProps
 	}: WithRest<
 		{
-			entityId: EntityId<typeof schema, EntityType.ActorCoin>
+			entityId: EntityId<typeof schema, EntityType.EvmNetworkActorCoinBalance>
 			href?: string
 			open?: boolean
 		},
@@ -49,13 +49,14 @@
 
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { formatValue } from '$/lib/number.ts'
 
 	const pathNativeCoin = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' as const
 
 	const actorCoinDetailAnchorKey = stringify(entityId)
 
 	const actorCoin = useEntity(
-		EntityType.ActorCoin,
+		EntityType.EvmNetworkActorCoinBalance,
 		entityId,
 		{
 			$: [Source.Allium_Rest],
@@ -69,6 +70,29 @@
 			:
 				{}),
 		},
+	)
+
+	const formattedBalance = $derived(
+		actorCoin.balance != null
+			? (
+				actorCoin.decimals != null && actorCoin.decimals > 0 ?
+					(() => {
+						const divisor = 10n ** BigInt(actorCoin.decimals)
+						const intPart = actorCoin.balance / divisor
+						const fracPart = actorCoin.balance % divisor
+						const fracStr = String(fracPart).padStart(actorCoin.decimals, '0').replace(/0+$/, '')
+						return (
+							fracStr ?
+								`${formatValue(Number(intPart))}.${fracStr}`
+							:
+								formatValue(Number(intPart))
+						)
+					})()
+				:
+					formatValue(Number(actorCoin.balance))
+			)
+			:
+				undefined
 	)
 
 
@@ -85,7 +109,7 @@
 
 
 <EntityView
-	entityType={EntityType.ActorCoin}
+	entityType={EntityType.EvmNetworkActorCoinBalance}
 	{entityId}
 	href={href}
 	bind:open
@@ -97,7 +121,8 @@
 			placeholderText="Loading balance…"
 		>
 			{#snippet children(actorCoin)}
-				{actorCoin.symbol ?? 'Balance'}
+				{formattedBalance ?? '—'}
+				{actorCoin.symbol ?? ''}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -108,12 +133,13 @@
 			placeholderText="Loading holding…"
 		>
 			{#snippet children(actorCoin)}
-				{actorCoin.symbol ?? 'Balance'}
+				{formattedBalance ?? '—'}
+				{actorCoin.symbol ?? ''}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
+	{#snippet Content({})}
 		<dl data-column-item="center">
 			<div>
 				<dt>Account</dt>
@@ -156,7 +182,8 @@
 						>
 							{#snippet children(actorCoin)}
 								{#if actorCoin.balance !== undefined}
-									{String(actorCoin.balance)}
+									{formattedBalance}
+									{actorCoin.symbol ?? ''}
 								{/if}
 							{/snippet}
 						</ResourceBoundary>

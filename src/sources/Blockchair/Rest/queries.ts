@@ -101,7 +101,7 @@ const ethereumTransactionSearchParams = (params?: BlockchairEthereumTransactionD
 /**
  * `GET /stats` — aggregate stats for all Blockchair chains and second-layer summaries.
  */
-export const getBlockchairStats = ({
+export const getStats = ({
 	chain,
 	options,
 }: {
@@ -124,7 +124,7 @@ export const getBlockchairStats = ({
  * `GET /{chain}/stats` — chain stats. Bitcoin-like and Ethereum-like callers can
  * use the narrower exported wrappers below.
  */
-export const getBlockchairChainStats = <_Stats extends BlockchairChainStats = BlockchairChainStats>({
+export const getChainStats = <_Stats extends BlockchairChainStats = BlockchairChainStats>({
 	chain,
 	options,
 }: {
@@ -137,27 +137,27 @@ export const getBlockchairChainStats = <_Stats extends BlockchairChainStats = Bl
 	})
 )
 
-export const getBlockchairBitcoinLikeStats = ({
+export const getBitcoinLikeStats = ({
 	chain,
 	options,
 }: {
 	chain: BlockchairBitcoinLikeChain
 	options?: BlockchairRequestOptions
 }) => (
-	getBlockchairChainStats<BlockchairBitcoinLikeStats>({
+	getChainStats<BlockchairBitcoinLikeStats>({
 		chain,
 		options,
 	})
 )
 
-export const getBlockchairEthereumLikeStats = ({
+export const getEthereumLikeStats = ({
 	chain,
 	options,
 }: {
 	chain: BlockchairEthereumLikeChain
 	options?: BlockchairRequestOptions
 }) => (
-	getBlockchairChainStats<BlockchairEthereumLikeStats>({
+	getChainStats<BlockchairEthereumLikeStats>({
 		chain,
 		options,
 	})
@@ -166,7 +166,7 @@ export const getBlockchairEthereumLikeStats = ({
 /**
  * `GET /{btc_chain}/dashboards/block/{height|hash}`.
  */
-export const getBlockchairBitcoinLikeBlockDashboard = ({
+export const getBitcoinLikeBlockDashboard = ({
 	chain,
 	block,
 	options,
@@ -184,7 +184,7 @@ export const getBlockchairBitcoinLikeBlockDashboard = ({
 /**
  * Compatibility wrapper for dashboard block reads on Bitcoin-like or Ethereum-like chains.
  */
-export const getBlockchairBlock = ({
+export const getBlock = ({
 	chain,
 	blockId,
 	options,
@@ -205,7 +205,7 @@ export const getBlockchairBlock = ({
 /**
  * `GET /{btc_chain}/dashboards/transaction/{hash}`.
  */
-export const getBlockchairBitcoinLikeTransactionDashboard = ({
+export const getBitcoinLikeTransactionDashboard = ({
 	chain,
 	transactionHash,
 	options,
@@ -223,7 +223,7 @@ export const getBlockchairBitcoinLikeTransactionDashboard = ({
 /**
  * Compatibility wrapper for dashboard transaction reads on Bitcoin-like or Ethereum-like chains.
  */
-export const getBlockchairTransaction = ({
+export const getTransaction = ({
 	chain,
 	transactionId,
 	options,
@@ -246,7 +246,7 @@ export const getBlockchairTransaction = ({
 /**
  * `GET /{btc_chain}/dashboards/address/{address}`.
  */
-export const getBlockchairBitcoinLikeAddressDashboard = ({
+export const getBitcoinLikeAddressDashboard = ({
 	chain,
 	address,
 	params,
@@ -267,7 +267,7 @@ export const getBlockchairBitcoinLikeAddressDashboard = ({
 /**
  * Compatibility wrapper for dashboard address reads on Bitcoin-like or Ethereum-like chains.
  */
-export const getBlockchairAddress = ({
+export const getAddress = ({
 	chain,
 	address,
 	options,
@@ -288,7 +288,7 @@ export const getBlockchairAddress = ({
 /**
  * `GET /{btc_chain}/dashboards/addresses/{address0},{address1}`.
  */
-export const getBlockchairBitcoinLikeAddressesDashboard = ({
+export const getBitcoinLikeAddressesDashboard = ({
 	chain,
 	addresses,
 	params,
@@ -309,7 +309,7 @@ export const getBlockchairBitcoinLikeAddressesDashboard = ({
 /**
  * `GET /{eth_chain}/dashboards/block/{height|hash}`.
  */
-export const getBlockchairEthereumLikeBlockDashboard = ({
+export const getEthereumLikeBlockDashboard = ({
 	chain,
 	block,
 	options,
@@ -327,7 +327,7 @@ export const getBlockchairEthereumLikeBlockDashboard = ({
 /**
  * `GET /{eth_chain}/dashboards/transaction/{hash}`.
  */
-export const getBlockchairEthereumLikeTransactionDashboard = ({
+export const getEthereumLikeTransactionDashboard = ({
 	chain,
 	transactionHash,
 	params,
@@ -348,7 +348,7 @@ export const getBlockchairEthereumLikeTransactionDashboard = ({
 /**
  * `GET /{eth_chain}/dashboards/address/{address}`.
  */
-export const getBlockchairEthereumLikeAddressDashboard = ({
+export const getEthereumLikeAddressDashboard = ({
 	chain,
 	address,
 	params,
@@ -369,7 +369,7 @@ export const getBlockchairEthereumLikeAddressDashboard = ({
 /**
  * `GET /{chain}/raw/block/{height|hash}` — native node payload where Blockchair exposes block raw data.
  */
-export const getBlockchairRawBlock = <_RawBlock extends JsonValue = JsonValue>({
+export const getRawBlock = <_RawBlock extends JsonValue = JsonValue>({
 	chain,
 	block,
 	options,
@@ -387,7 +387,7 @@ export const getBlockchairRawBlock = <_RawBlock extends JsonValue = JsonValue>({
 /**
  * `GET /{chain}/raw/transaction/{hash}` — native node payload where Blockchair exposes transaction raw data.
  */
-export const getBlockchairRawTransaction = <
+export const getRawTransaction = <
 	_RawTransaction extends JsonValue = JsonValue,
 >({
 	chain,
@@ -408,7 +408,7 @@ export const getBlockchairRawTransaction = <
  * `GET /{chain}/blocks` — Blockchair infinitable table; supports `q`, `s`, `a`,
  * `limit`, and `offset` through `params`.
  */
-export const getBlockchairBlocks = <_Block = BlockchairBitcoinLikeBlock | BlockchairEthereumLikeBlock>({
+export const getBlocks = <_Block = BlockchairBitcoinLikeBlock | BlockchairEthereumLikeBlock>({
 	chain,
 	params,
 	options,
@@ -428,7 +428,7 @@ export const getBlockchairBlocks = <_Block = BlockchairBitcoinLikeBlock | Blockc
  * `GET /{chain}/transactions` — Blockchair infinitable table; supports `q`, `s`,
  * `a`, `limit`, and `offset` through `params`.
  */
-export const getBlockchairTransactions = <
+export const getTransactions = <
 	_Transaction = BlockchairBitcoinLikeTransaction | BlockchairEthereumLikeTransaction,
 >({
 	chain,
@@ -450,7 +450,7 @@ export const getBlockchairTransactions = <
  * `GET /{chain}/addresses` — Blockchair infinitable address view; supports `q`,
  * `s`, `a`, `limit`, and `offset` through `params`.
  */
-export const getBlockchairAddresses = <
+export const getAddresses = <
 	_Address = BlockchairBitcoinLikeAddress | BlockchairEthereumLikeAddress,
 >({
 	chain,

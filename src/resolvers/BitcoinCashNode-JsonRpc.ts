@@ -1,16 +1,22 @@
 import {
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import {
+	bitcoinCashMainnetCaip2,
+	bitcoinCashNodeDefaultLocalRpcUrl,
+} from '$/constants/BitcoinNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const bitcoinCashNodeRpcUrl = 'http://127.0.0.1:8332'
-
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
 const assertBitcoinCashMainnet = (network: NetworkId) => {
-	if (!('caip2' in network) || network.caip2.namespace !== 'bip122' || network.caip2.reference !== '000000000000000000651ef99cb9fcbe') {
+	if (
+		!('caip2' in network)
+		|| network.caip2.namespace !== bitcoinCashMainnetCaip2.namespace
+		|| network.caip2.reference !== bitcoinCashMainnetCaip2.reference
+	) {
 		throw new Error('BitcoinCashNode_JsonRpc: unsupported network')
 	}
 }
@@ -25,7 +31,7 @@ const getOutput = async (entityId: {
 	assertBitcoinCashMainnet(entityId.$transaction.$network)
 	const { getRawTransaction } = await import('$/sources/BitcoinCashNode/JsonRpc/queries.ts')
 	const transaction = await getRawTransaction({
-		rpcUrl: bitcoinCashNodeRpcUrl,
+		rpcUrl: bitcoinCashNodeDefaultLocalRpcUrl,
 		txId: entityId.$transaction.txId,
 	})
 	const output = transaction.vout[entityId.outputIndex]

@@ -26,7 +26,7 @@ import type {
  * `GET /` — ecosystem, blockchain, or module stats.
  * Include `library=blockchains,modules,rates(usd)` for metadata and market rates.
  */
-export const fetchThreeXplChainStats = async ({
+export const fetchChainStats = async ({
 	from,
 	mode,
 	library,
@@ -50,7 +50,7 @@ export const fetchThreeXplChainStats = async ({
 /**
  * `GET /search` — search blocks, transactions, and addresses.
  */
-export const searchThreeXpl = async ({
+export const search = async ({
 	query,
 	from,
 	in: entity,
@@ -83,7 +83,7 @@ export const searchThreeXpl = async ({
 /**
  * `GET /{blockchain}/blocks` — recent or paged block summaries.
  */
-export const fetchThreeXplBlocks = async ({
+export const fetchBlocks = async ({
 	blockchain,
 	from,
 	limit,
@@ -118,7 +118,7 @@ export const fetchThreeXplBlocks = async ({
  * `GET /{blockchain}/block/{block}` — block summary and module events.
  * Use `library=currencies` to include token/asset metadata for event currencies.
  */
-export const fetchThreeXplBlock = async ({
+export const fetchBlock = async ({
 	blockchain,
 	block,
 	data = 'block,events',
@@ -161,7 +161,7 @@ export const fetchThreeXplBlock = async ({
  * `GET /{blockchain}/transaction/{transaction}` — transaction summary and module events.
  * Use `library=currencies` to include token/asset metadata for event currencies.
  */
-export const fetchThreeXplTransaction = async ({
+export const fetchTransaction = async ({
 	blockchain,
 	transaction,
 	data = 'transaction,events',
@@ -205,7 +205,7 @@ export const fetchThreeXplTransaction = async ({
  * historical events, and mempool events. Balances and event currencies are the
  * documented token/asset surface; request `library=currencies` for metadata.
  */
-export const fetchThreeXplAddress = async ({
+export const fetchAddress = async ({
 	blockchain,
 	address,
 	data = 'address,balances,events,mempool',
@@ -251,7 +251,7 @@ export const fetchThreeXplAddress = async ({
  * `GET /{blockchain}/address/{address}/monetary` — calculated monetary account
  * details where 3xpl supports them.
  */
-export const fetchThreeXplAddressMonetary = async ({
+export const fetchAddressMonetary = async ({
 	blockchain,
 	address,
 	currency,

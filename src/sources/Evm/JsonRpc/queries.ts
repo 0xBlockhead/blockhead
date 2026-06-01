@@ -11,10 +11,11 @@ import type {
 const blockParam = (blockNumber: bigint | 'latest') => (
 	blockNumber === 'latest' ?
 		'latest'
-	:	`0x${blockNumber.toString(16)}`
+	:
+		`0x${blockNumber.toString(16)}`
 )
 
-export const ethBlockNumber = ({ rpcUrl }: { rpcUrl: string }) => (
+export const getBlockNumber = ({ rpcUrl }: { rpcUrl: string }) => (
 	jsonRpc<string>({
 		rpcUrl,
 		method: 'eth_blockNumber',
@@ -27,7 +28,7 @@ export const ethBlockNumber = ({ rpcUrl }: { rpcUrl: string }) => (
  * @see https://ethereum.org/en/developers/docs/apis/json-rpc/#eth_gasprice
  * @see https://github.com/ethereum/execution-apis
  */
-export const ethGasPrice = ({ rpcUrl }: { rpcUrl: string }) => (
+export const getGasPrice = ({ rpcUrl }: { rpcUrl: string }) => (
 	jsonRpc<string>({
 		rpcUrl,
 		method: 'eth_gasPrice',
@@ -35,7 +36,7 @@ export const ethGasPrice = ({ rpcUrl }: { rpcUrl: string }) => (
 	})
 )
 
-export const ethGetBlockByNumber = ({
+export const getBlockByNumber = ({
 	rpcUrl,
 	blockNumber,
 	txObjects,
@@ -51,7 +52,7 @@ export const ethGetBlockByNumber = ({
 	})
 )
 
-export const ethGetTransactionByHash = ({
+export const getTransactionByHash = ({
 	rpcUrl,
 	txHash,
 }: {
@@ -65,7 +66,7 @@ export const ethGetTransactionByHash = ({
 	})
 )
 
-export const ethGetTransactionReceipt = ({
+export const getTransactionReceipt = ({
 	rpcUrl,
 	txHash,
 }: {
@@ -87,7 +88,7 @@ const quantityHex = (value: bigint) => (
  * Historical base fee and priority fee rewards — EIP-1559 fee market.
  * @see https://github.com/ethereum/execution-apis/blob/main/src/eth/fee_market.yaml
  */
-export const ethFeeHistory = ({
+export const getFeeHistory = ({
 	rpcUrl,
 	blockCount,
 	newestBlock,
@@ -112,7 +113,7 @@ export const ethFeeHistory = ({
 /**
  * `@see https://github.com/ethereum/execution-apis/blob/main/src/eth/fee_market.yaml` — not supported on all networks.
  */
-export const ethMaxPriorityFeePerGas = ({ rpcUrl }: { rpcUrl: string }) => (
+export const getMaxPriorityFeePerGas = ({ rpcUrl }: { rpcUrl: string }) => (
 	jsonRpc<string>({
 		rpcUrl,
 		method: 'eth_maxPriorityFeePerGas',
@@ -121,7 +122,7 @@ export const ethMaxPriorityFeePerGas = ({ rpcUrl }: { rpcUrl: string }) => (
 )
 
 /** `eth_getStorageAt` — execution storage slot at `address` for `quantityHex` slot index. */
-export const ethGetStorageAt = ({
+export const getStorageAt = ({
 	rpcUrl,
 	address,
 	slotQuantityHex,
@@ -144,7 +145,7 @@ export const ethGetStorageAt = ({
 )
 
 /** `eth_getCode` — runtime bytecode at `address` for `blockTag`. */
-export const ethGetCode = ({
+export const getCode = ({
 	rpcUrl,
 	address,
 	blockTag = 'latest',
@@ -163,7 +164,7 @@ export const ethGetCode = ({
 	})
 )
 
-export const ethCall = ({
+export const call = ({
 	rpcUrl,
 	to,
 	data,
@@ -188,7 +189,7 @@ export const ethCall = ({
 )
 
 /** Geth-compatible txpool inspection — often disabled on public RPCs. */
-export const txpoolStatus = ({ rpcUrl }: { rpcUrl: string }) => (
+export const getTxpoolStatus = ({ rpcUrl }: { rpcUrl: string }) => (
 	jsonRpc<RpcTxpoolStatus>({
 		rpcUrl,
 		method: 'txpool_status',

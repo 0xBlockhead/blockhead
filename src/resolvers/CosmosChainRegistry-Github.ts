@@ -3,11 +3,16 @@ import {
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
 import { NetworkEnvironment } from '$/constants/Network.ts'
+import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { MediaType } from '$/schema/Media.ts'
 import { AssetInstanceKind } from '$/schema/AssetInstance.ts'
 import { Source } from '$/sources/$Source.ts'
-import type { CosmosChainRegistryAssetList } from '$/sources/CosmosChainRegistry/Github/types.ts'
+import type {
+	CosmosChainRegistryAssetList,
+	CosmosChainRegistryChain,
+} from '$/sources/CosmosChainRegistry/Github/types.ts'
 
 const assertCosmosRegistryNetwork = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (!('caip2' in network) || network.caip2.namespace !== 'cosmos' || network.caip2.reference !== 'cosmoshub-4') {
@@ -18,6 +23,11 @@ const assertCosmosRegistryNetwork = (network: { caip2: { namespace: string; refe
 const chainNameForNetwork = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	assertCosmosRegistryNetwork(network)
 	return 'cosmoshub'
+}
+
+const iconMediaFromChain = (chain: CosmosChainRegistryChain) => {
+	const url = chain.logo_URIs?.svg ?? chain.logo_URIs?.png ?? chain.images?.[0]?.svg ?? chain.images?.[0]?.png
+	return url != null ? mediaFromUrl(url, MediaType.Image) : undefined
 }
 
 const assetInstanceFields = (asset: CosmosChainRegistryAssetList['assets'][number]) => ({
@@ -58,9 +68,11 @@ export default {
 				const chain = await getChain({
 					chainName: chainNameForNetwork(entityId),
 				})
+				const iconMedia = iconMediaFromChain(chain)
 				return {
 					name: chain.pretty_name ?? chain.chain_name,
 					environment: NetworkEnvironment.Mainnet,
+					...(iconMedia != null && { $icon: iconMedia }),
 				}
 			},
 		}),

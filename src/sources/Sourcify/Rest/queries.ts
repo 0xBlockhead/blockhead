@@ -4,7 +4,7 @@ import type { SourcifyContractLookup } from '$/sources/Sourcify/Rest/types.ts'
 
 const sourcifyContractLookupFields = 'abi,compilation,deployment,metadata,sources,storageLayout,proxyResolution'
 
-export const sourcifyContractLookupPath = ({
+export const getContractLookupPath = ({
 	chainId,
 	address,
 }: {
@@ -14,7 +14,7 @@ export const sourcifyContractLookupPath = ({
 	`/contract/${chainId}/${address}?${new URLSearchParams({ fields: sourcifyContractLookupFields })}`
 )
 
-export const getSourcifyContractLookup = async ({
+export const getContractLookup = async ({
 	chainId,
 	address,
 }: {
@@ -22,7 +22,7 @@ export const getSourcifyContractLookup = async ({
 	address: `0x${string}`
 }): Promise<SourcifyContractLookup | null> => {
 	const json = await sourcifyGetJsonOrNull<SourcifyContractLookup>({
-		path: sourcifyContractLookupPath({
+		path: getContractLookupPath({
 			chainId,
 			address: zeroExLowerCase(address),
 		}),

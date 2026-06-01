@@ -160,7 +160,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
+	{#snippet Content({})}
 		<ResourceBoundary
 			resource={user}
 			placeholderText="Loading X profile…"

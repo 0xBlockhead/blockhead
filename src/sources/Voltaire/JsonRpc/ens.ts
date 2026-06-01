@@ -10,7 +10,7 @@ import { TransportType } from '$/constants/TransportType.ts'
 import { hexLowerOfByteSize } from '$/lib/hexLowerOfByteSize.ts'
 import type { JsonValue } from '$/typescript/JsonValue.ts'
 
-import { getVoltaireProviderForExecutionUrl } from './queries.ts'
+import { getProviderForExecutionUrl } from './queries.ts'
 
 const ENS_REGISTRY_MAINNET = '0x00000000000C2E074eC69A0dFb2997BA6C7d2e1e' as const
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000'
@@ -125,7 +125,8 @@ const bytes32FromNamehash = (nodeBytes: Uint8Array): `0x${string}` => {
 	const normalized = (
 		hex.length === 66 ?
 			hex
-		:	`0x${Array.from(nodeBytes)
+		:
+			`0x${Array.from(nodeBytes)
 				.map((byte) => byte.toString(16).padStart(2, '0'))
 				.join('')}`
 	)
@@ -143,7 +144,8 @@ const decodedBytesAsHex = (value: JsonValue | Uint8Array) => (
 		value
 	: value instanceof Uint8Array ?
 		hexFromBytes(value)
-	: null
+	:
+		null
 )
 
 const getRegistryAddress = async ({
@@ -157,7 +159,7 @@ const getRegistryAddress = async ({
 	node: `0x${string}`
 	method: 'owner' | 'resolver'
 }) => {
-	const provider = getVoltaireProviderForExecutionUrl({
+	const provider = getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})
@@ -175,7 +177,8 @@ const getRegistryAddress = async ({
 	const [address] = decodeParameters(ADDRESS_OUTPUT, toBytes(response))
 	const hex = typeof address === 'string' && address !== ZERO_ADDRESS ?
 			hexLowerOfByteSize(address, 20)
-		: null
+		:
+			null
 	return hex ?? null
 }
 
@@ -190,7 +193,7 @@ const resolveAddr = async ({
 	resolverAddress: `0x${string}`
 	node: `0x${string}`
 }) => {
-	const provider = getVoltaireProviderForExecutionUrl({
+	const provider = getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})
@@ -208,7 +211,8 @@ const resolveAddr = async ({
 	const [address] = decodeParameters(ADDRESS_OUTPUT, toBytes(response))
 	const hex = typeof address === 'string' && address !== ZERO_ADDRESS ?
 			hexLowerOfByteSize(address, 20)
-		: null
+		:
+			null
 	return hex ?? null
 }
 
@@ -225,7 +229,7 @@ const resolveText = async ({
 	node: `0x${string}`
 	key: string
 }) => {
-	const provider = getVoltaireProviderForExecutionUrl({
+	const provider = getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})
@@ -256,7 +260,7 @@ const resolveContentHash = async ({
 	resolverAddress: `0x${string}`
 	node: `0x${string}`
 }) => {
-	const provider = getVoltaireProviderForExecutionUrl({
+	const provider = getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})
@@ -275,7 +279,8 @@ const resolveContentHash = async ({
 	const contentHash = decodedBytesAsHex(value)
 	return contentHash == null || isZeroHex(contentHash) ?
 			null
-		: contentHash
+		:
+			contentHash
 }
 
 const resolverAbiJsonFromWire = (
@@ -304,7 +309,7 @@ const resolveResolverAbiJson = async ({
 	resolverAddress: `0x${string}`
 	node: `0x${string}`
 }) => {
-	const provider = getVoltaireProviderForExecutionUrl({
+	const provider = getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})
@@ -328,14 +333,16 @@ const resolveResolverAbiJson = async ({
 			contentType
 		: typeof contentType === 'number' ?
 			BigInt(contentType)
-		:	null
+		:
+			null
 	)
 	const dataBytes = (
 		data instanceof Uint8Array ?
 			data
 		: typeof data === 'string' ?
 			toBytes(data)
-		:	null
+		:
+			null
 	)
 	if (contentTypeBigInt == null || dataBytes == null) return null
 	return resolverAbiJsonFromWire(contentTypeBigInt, dataBytes)
@@ -354,7 +361,7 @@ const resolveMulticoinAddr = async ({
 	node: `0x${string}`
 	coinType: number
 }) => {
-	const provider = getVoltaireProviderForExecutionUrl({
+	const provider = getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})
@@ -373,7 +380,8 @@ const resolveMulticoinAddr = async ({
 	const coinAddress = decodedBytesAsHex(value)
 	return coinAddress == null || isZeroHex(coinAddress) ?
 			null
-		: coinAddress
+		:
+			coinAddress
 }
 
 const reverseNode = (address: `0x${string}`) => (
@@ -393,7 +401,7 @@ const resolveReverseName = async ({
 	resolverAddress: `0x${string}`
 	node: `0x${string}`
 }) => {
-	const provider = getVoltaireProviderForExecutionUrl({
+	const provider = getProviderForExecutionUrl({
 		url: rpcUrl,
 		transportType,
 	})
@@ -542,7 +550,8 @@ export const resolveEnsReverseForRpcUrl = async ({
 	})
 	return resolverAddress == null ?
 			null
-		: resolveReverseName({
+		:
+			resolveReverseName({
 			rpcUrl,
 			transportType,
 			resolverAddress,

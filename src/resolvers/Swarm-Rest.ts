@@ -16,18 +16,18 @@ export default {
 			resolve: async (entityId) => {
 				const { swarmOnlyReferencePattern } = await import('$/sources/Swarm/Rest/constants.ts')
 				const normalizedReference = (
-					(await import('$/sources/Swarm/Rest/queries.ts')).normalizeSwarmReference(entityId.reference)
+					(await import('$/sources/Swarm/Rest/queries.ts')).normalizeReference(entityId.reference)
 				)
 				if (!swarmOnlyReferencePattern.test(normalizedReference)) {
 					throw new Error(`Swarm_Rest: invalid reference ${entityId.reference}`)
 				}
 				const {
-					fetchSwarmBrowseResult,
-					swarmResourceCanonicalUri,
+					fetchBrowseResult,
+					getResourceCanonicalUri,
 				} = await import('$/sources/Swarm/Rest/queries.ts')
 				let browseResult
 				try {
-					browseResult = await fetchSwarmBrowseResult({
+					browseResult = await fetchBrowseResult({
 						reference: entityId.reference,
 						contentPath: entityId.contentPath,
 					})
@@ -46,7 +46,8 @@ export default {
 						((media) => (
 							media == null ?
 								undefined
-							:	{
+							:
+								{
 									...media,
 									$original: {
 										[EntityMetaKey.Id]: {
@@ -69,7 +70,7 @@ export default {
 				)
 
 				return {
-					canonicalUri: swarmResourceCanonicalUri({
+					canonicalUri: getResourceCanonicalUri({
 						reference: browseResult.reference,
 						contentPath: browseResult.contentPath,
 					}),

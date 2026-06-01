@@ -31,7 +31,8 @@ const canonicalPublicHttpUrlFromCatalogString = (raw: string): string => {
 			trimmed
 		: trimmed.startsWith('//') ?
 			`https:${trimmed}`
-		:	`https://${trimmed}`
+		:
+			`https://${trimmed}`
 	)
 	return new URL(absolute).toString()
 }
@@ -79,7 +80,8 @@ const urlEntitiesFromBlockExplorerCatalog = (
 		const catalogIconResolved = (
 			explorer.icon == null || explorer.icon === '' ?
 				undefined
-			:	resolveMediaUrlTransport(explorer.icon)?.url
+			:
+				resolveMediaUrlTransport(explorer.icon)?.url
 		)
 		let catalogIconAsUrlString: typeof hrefAsUrlString | undefined
 		if (catalogIconResolved != null) {
@@ -145,8 +147,8 @@ const globalNetworkEntitiesFieldResolver = defineEntityFieldResolver({
 	entityType: EntityType._Global,
 	fieldName: '$$evmNetworks',
 	resolve: async () => {
-		const { fetchLifiChains } = await import('$/sources/Lifi/Rest/queries.ts')
-		return (await singleFlight(fetchLifiChains)()).chains.map(networkEntityFieldsFromLifiChain)
+		const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
+		return (await singleFlight(fetchChains)()).chains.map(networkEntityFieldsFromLifiChain)
 	},
 })
 
@@ -154,14 +156,14 @@ const coinBridgeCapabilityRowsForCoin = async (
 	entityId: EntityId<typeof schema, EntityType.Coin>,
 	context: Parameters<typeof sourcePublicEnv>[0],
 ) => {
-	const { fetchLifiTools } = await import('$/sources/Lifi/Rest/queries.ts')
+	const { fetchTools } = await import('$/sources/Lifi/Rest/queries.ts')
 	const { fetchCoinBridgeCapabilityRowsForCoin } = await import(
 		'$/sources/Lifi/Rest/coinBridgeCapabilities.ts'
 	)
 	return fetchCoinBridgeCapabilityRowsForCoin(
 		entityId.coinId,
 		sourcePublicEnv(context, Source.Coingecko_Rest),
-		await singleFlight(fetchLifiTools)(),
+		await singleFlight(fetchTools)(),
 	)
 }
 
@@ -172,8 +174,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.EvmNetwork,
 			resolve: async (entityId, context) => {
-				const { fetchLifiChains } = await import('$/sources/Lifi/Rest/queries.ts')
-					const lifiChain = (await singleFlight(fetchLifiChains)()).chains.find((row) => row.id === Number(entityId.caip2.reference))
+				const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
+					const lifiChain = (await singleFlight(fetchChains)()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(entityId.caip2.reference))
 				if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog')
 				return networkEntityFieldsFromLifiChain(lifiChain)
 			},
@@ -184,7 +186,7 @@ export default {
 			resolve: async (entityId) => {
 				const coinBridgeCapabilityFields = bridgeToolByKey[entityId.toolKey]
 				if (coinBridgeCapabilityFields == null) {
-					throw new Error(`Bridge: unknown LI.FI tool key ${entityId.toolKey}`)
+					throw new Error(`Lifi_Rest: unknown LI.FI tool key ${entityId.toolKey}`)
 				}
 				return {
 					toolKey: entityId.toolKey,
@@ -230,11 +232,11 @@ export default {
 			entityType: EntityType.Coin,
 			fieldName: '$$bridgeCapabilities',
 			resolve: async (entityId, context) => {
-				const rows = await coinBridgeCapabilityRowsForCoin(entityId, context)
-				if (rows.length === 0) {
+				const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin(entityId, context)
+				if (bridgeCapabilities.length === 0) {
 					throw new Error(`Lifi_Rest: no bridge capabilities for coin ${entityId.coinId}`)
 				}
-				return rows
+				return bridgeCapabilities
 			},
 		}),
 
@@ -255,8 +257,8 @@ export default {
 				if (coinId == null) {
 					throw new Error('Lifi_Rest: coin instance not mapped to catalog coin')
 				}
-				const rows = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
-				return filterCoinBridgeCapabilityRowsForInstance(rows, entityId, 'outbound')
+				const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
+				return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entityId, 'outbound')
 			},
 		}),
 
@@ -277,8 +279,8 @@ export default {
 				if (coinId == null) {
 					throw new Error('Lifi_Rest: coin instance not mapped to catalog coin')
 				}
-				const rows = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
-				return filterCoinBridgeCapabilityRowsForInstance(rows, entityId, 'inbound')
+				const bridgeCapabilities = await coinBridgeCapabilityRowsForCoin({ coinId }, context)
+				return filterCoinBridgeCapabilityRowsForInstance(bridgeCapabilities, entityId, 'inbound')
 			},
 		}),
 
@@ -297,8 +299,8 @@ export default {
 			entityType: EntityType.EvmNetwork,
 			fieldName: '$$blockExplorerUrls',
 			resolve: async (entityId, _context) => {
-				const { fetchLifiChains } = await import('$/sources/Lifi/Rest/queries.ts')
-					const lifiChain = (await singleFlight(fetchLifiChains)()).chains.find((row) => row.id === Number(entityId.caip2.reference))
+				const { fetchChains } = await import('$/sources/Lifi/Rest/queries.ts')
+					const lifiChain = (await singleFlight(fetchChains)()).chains.find((lifiChainEntry) => lifiChainEntry.id === Number(entityId.caip2.reference))
 				if (lifiChain == null) throw new Error('Lifi_Rest: chain not in LiFi catalog for block explorer URLs')
 				return urlEntitiesFromBlockExplorerCatalog(
 					blockExplorerLikeFromExplorersAndInfoUrl({

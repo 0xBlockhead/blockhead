@@ -2,17 +2,19 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import {
+	dogecoinCoreDefaultLocalRpcUrl,
+	dogecoinMainnetCaip2,
+} from '$/constants/BitcoinNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const dogecoinCoreRpcUrl = 'http://127.0.0.1:22555'
-
 const assertDogecoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
 		!('caip2' in network)
-		|| network.caip2.namespace !== 'bip122'
-		|| network.caip2.reference !== '1a91e3dace36e2be3bf030a65679fe82'
+		|| network.caip2.namespace !== dogecoinMainnetCaip2.namespace
+		|| network.caip2.reference !== dogecoinMainnetCaip2.reference
 	) {
 		throw new Error('DogecoinCore_JsonRpc: unsupported Dogecoin network')
 	}
@@ -31,9 +33,9 @@ export default {
 					getBlockHash,
 				} = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 				const block = await getBlock({
-					rpcUrl: dogecoinCoreRpcUrl,
+					rpcUrl: dogecoinCoreDefaultLocalRpcUrl,
 					blockHash: entityId.hash ?? await getBlockHash({
-						rpcUrl: dogecoinCoreRpcUrl,
+						rpcUrl: dogecoinCoreDefaultLocalRpcUrl,
 						height: entityId.height,
 					}),
 				})
@@ -72,7 +74,7 @@ export default {
 				assertDogecoinMainnet(entityId.$network)
 				const { getRawTransaction } = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 				const transaction = await getRawTransaction({
-					rpcUrl: dogecoinCoreRpcUrl,
+					rpcUrl: dogecoinCoreDefaultLocalRpcUrl,
 					txId: entityId.txId,
 				})
 				if (typeof transaction === 'string') {
@@ -105,9 +107,9 @@ export default {
 					getBlockHash,
 				} = await import('$/sources/DogecoinCore/JsonRpc/queries.ts')
 				const block = await getBlock({
-					rpcUrl: dogecoinCoreRpcUrl,
+					rpcUrl: dogecoinCoreDefaultLocalRpcUrl,
 					blockHash: entityId.hash ?? await getBlockHash({
-						rpcUrl: dogecoinCoreRpcUrl,
+						rpcUrl: dogecoinCoreDefaultLocalRpcUrl,
 						height: entityId.height,
 					}),
 				})

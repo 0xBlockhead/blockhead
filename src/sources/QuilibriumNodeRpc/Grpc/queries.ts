@@ -8,7 +8,7 @@ import type {
 
 const accountService = 'quilibrium.node.node.pb.AccountService'
 
-export const getQuilibriumAccountBalance = ({
+export const getAccountBalance = ({
 	callUnary,
 	request,
 }: {
@@ -25,7 +25,7 @@ export const getQuilibriumAccountBalance = ({
 	})
 )
 
-export const listQuilibriumPendingTransactions = ({
+export const listPendingTransactions = ({
 	callUnary,
 	request,
 }: {

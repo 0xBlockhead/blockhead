@@ -30,11 +30,11 @@ export default {
 			entityType: EntityType.SpecificationProposal,
 			resolve: async (entityId) => {
 				const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-				const { getDogecoinDipMediaWikiText } = await import('$/sources/DogecoinDips/Github/queries.ts')
+				const { getMediaWikiText } = await import('$/sources/DogecoinDips/Github/queries.ts')
 				if (entityId.realm !== SpecificationRealm.Dogecoin || entityId.category !== ProposalCategory.Dip) {
 					throw new Error('DogecoinDips_Github: proposal resolver only supports Dogecoin DIPs')
 				}
-				const text = await singleFlight(getDogecoinDipMediaWikiText)({ number: entityId.number })
+				const text = await singleFlight(getMediaWikiText)({ number: entityId.number })
 				if (text.trim() === '') throw new Error('DogecoinDips_Github: empty proposal text')
 				return {
 					documentCategory: dipMetadataValue(text, 'Type'),

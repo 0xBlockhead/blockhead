@@ -50,11 +50,11 @@ const evmContractBytecodeHashFromGetCodeHex = (
 	codeHex: `0x${string}`,
 ): `0x${string}` | undefined => {
 	const runtimeCode = evmContractRuntimeCodeFromGetCodeHex(codeHex)
-	const bytecodeHash = runtimeCode == null ?
+	const codeHash = runtimeCode == null ?
 		undefined
 	:
 		toHex(keccak256(toBytes(runtimeCode)))
-	return bytecodeHash
+	return codeHash
 }
 
 const evmContractStorageSlotReadsFromEthGetStorageAt = async ({
@@ -65,16 +65,16 @@ const evmContractStorageSlotReadsFromEthGetStorageAt = async ({
 	depth: number
 	getStorageAt: (slotQuantityHex: `0x${string}`) => Promise<`0x${string}`>
 }) => {
-	const rows: { slot: `0x${string}`; value: `0x${string}` }[] = []
+	const storageSlots: { slot: `0x${string}`; value: `0x${string}` }[] = []
 	for (let slotIndex = 0; slotIndex < depth; slotIndex += 1) {
 		const slotQuantityHex: `0x${string}` = `0x${BigInt(slotIndex).toString(16).padStart(64, '0')}`
 		const valueHex = await getStorageAt(slotQuantityHex)
 		const slotNormalized = hexLowerOfByteSize(slotQuantityHex, 32)
 		const value = hexLowerOfByteSize(valueHex, 32)
 		if (slotNormalized == null || value == null) continue
-		rows.push({ slot: slotNormalized, value })
+		storageSlots.push({ slot: slotNormalized, value })
 	}
-	return rows
+	return storageSlots
 }
 
 const evmInternalCallTypeFromWire = (
@@ -82,7 +82,8 @@ const evmInternalCallTypeFromWire = (
 ): EvmInternalCallType | undefined => (
 	raw == null || raw === '' ?
 		undefined
-	: ((normalized) => (
+	:
+		((normalized) => (
 		normalized === 'call' ?
 			EvmInternalCallType.Call
 		: normalized === 'callcode' ?
@@ -107,7 +108,8 @@ const etherscanQuantityToBigInt = (
 ): bigint | undefined => (
 	raw == null || raw === '' ?
 		undefined
-	:	((value) => (
+	:
+		((value) => (
 			value < 0n ?
 				undefined
 			:
@@ -128,10 +130,12 @@ const etherscanLogIndexFromWire = (
 ): number | undefined => (
 	raw == null || raw === '' ?
 		undefined
-	:	((parsed) => (
+	:
+		((parsed) => (
 			Number.isFinite(parsed) && Number.isInteger(parsed) && parsed >= 0 ?
 				parsed
-			:	undefined
+			:
+				undefined
 		))(
 			raw.startsWith('0x') || raw.startsWith('0X') ?
 				Number.parseInt(raw, 16)
@@ -164,10 +168,10 @@ const evmTokenTransferEntityFromEtherscanWire = ({
 	const logIndex = etherscanLogIndexFromWire(wire.row.logIndex)
 	if (normalizedTxHash == null || logIndex == null) return undefined
 	const standard = evmTokenStandardFromEtherscanTaggedWire(wire)
-	const row = wire.row
-	const fromAddress = hexLowerOfByteSize(row.from ?? '', 20)
-	const toAddress = hexLowerOfByteSize(row.to ?? '', 20)
-	const tokenAddress = hexLowerOfByteSize(row.contractAddress ?? '', 20)
+	const tokenTransferWire = wire.row
+	const fromAddress = hexLowerOfByteSize(tokenTransferWire.from ?? '', 20)
+	const toAddress = hexLowerOfByteSize(tokenTransferWire.to ?? '', 20)
+	const tokenAddress = hexLowerOfByteSize(tokenTransferWire.contractAddress ?? '', 20)
 	const tokenId = (
 		wire.standard === 'erc721' || wire.standard === 'erc1155' ?
 			etherscanQuantityToBigInt(wire.row.tokenID)
@@ -183,8 +187,8 @@ const evmTokenTransferEntityFromEtherscanWire = ({
 			etherscanQuantityToBigInt(wire.row.value) ?? 0n
 	)
 	const tokenDecimals = (
-		row.tokenDecimal != null && row.tokenDecimal !== '' ?
-			Number(row.tokenDecimal)
+		tokenTransferWire.tokenDecimal != null && tokenTransferWire.tokenDecimal !== '' ?
+			Number(tokenTransferWire.tokenDecimal)
 		:
 			undefined
 	)
@@ -197,8 +201,8 @@ const evmTokenTransferEntityFromEtherscanWire = ({
 		standard,
 		amount,
 		...(tokenId != null && { tokenId }),
-		...(row.tokenSymbol != null && { tokenSymbol: row.tokenSymbol }),
-		...(row.tokenName != null && { tokenName: row.tokenName }),
+		...(tokenTransferWire.tokenSymbol != null && { tokenSymbol: tokenTransferWire.tokenSymbol }),
+		...(tokenTransferWire.tokenName != null && { tokenName: tokenTransferWire.tokenName }),
 		...(tokenDecimals != null && Number.isFinite(tokenDecimals) && {
 			tokenDecimals,
 		}),
@@ -404,7 +408,8 @@ const gweiFromDecimalString = (
 	const value = Number(raw)
 	return Number.isFinite(value) && value >= 0 ?
 			value
-		:	undefined
+		:
+			undefined
 }
 
 const throwIfEtherscanRestUnsupportedChainId = async (chainId: number) => {
@@ -422,10 +427,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.EvmNetwork_GasEstimate_Timestamp,
 			resolve: async (entityId, context) => {
-				const { gastrackerGasOracle } = await import('$/sources/Etherscan/Rest/queries.ts')
+				const { getGasOracle } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
-				const oracle = await singleFlight(gastrackerGasOracle)({
+				const oracle = await singleFlight(getGasOracle)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
 				})
@@ -451,16 +456,16 @@ export default {
 			entityType: EntityType.EvmTokenTransfer,
 			resolve: async (entityId, context) => {
 				const {
-					accountTokenTransfersByTransaction,
-					etherscanAccountListMaxOffset,
+					getTokenTransfersByTransaction,
+					accountListMaxOffset,
 				} = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
-				const wires = await singleFlight(accountTokenTransfersByTransaction)({
+				const wires = await singleFlight(getTokenTransfersByTransaction)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
 					txHash: entityId.txHash,
-					offset: etherscanAccountListMaxOffset,
+					offset: accountListMaxOffset,
 				})
 				if (wires == null) {
 					throw new Error('Etherscan_Rest: token transfers by transaction returned no result')
@@ -484,10 +489,10 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.EvmInternalTransfer,
 			resolve: async (entityId, context) => {
-				const { accountInternalTransactionsByTxHash } = await import('$/sources/Etherscan/Rest/queries.ts')
+				const { getInternalTransactionsByTxHash } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
-				const wires = await singleFlight(accountInternalTransactionsByTxHash)({
+				const wires = await singleFlight(getInternalTransactionsByTxHash)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
 					txHash: entityId.txHash,
@@ -537,12 +542,12 @@ export default {
 				const { getContractCreation } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
-				const row = await singleFlight(getContractCreation)({
+				const contractCreation = await singleFlight(getContractCreation)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
 					address: entityId.address,
 				})
-				const creator = row?.contractCreator
+				const creator = contractCreation?.contractCreator
 				if (creator == null) return undefined
 				const creatorAddress = hexLowerOfByteSize(creator, 20)
 				if (creatorAddress == null) return undefined
@@ -561,12 +566,12 @@ export default {
 				const { getContractCreation } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
-				const row = await singleFlight(getContractCreation)({
+				const contractCreation = await singleFlight(getContractCreation)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
 					address: entityId.address,
 				})
-				const txHash = row?.txHash
+				const txHash = contractCreation?.txHash
 				if (txHash == null) return undefined
 				const normalized = hexLowerOfByteSize(txHash, 32)
 				if (normalized == null) return undefined
@@ -586,12 +591,12 @@ export default {
 				const { getContractSourceCode } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
-				const row = await singleFlight(getContractSourceCode)({
+				const contractSourceCode = await singleFlight(getContractSourceCode)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
 					address: entityId.address,
 				})
-				const implementation = row?.Implementation
+				const implementation = contractSourceCode?.Implementation
 				if (implementation == null || implementation.trim() === '') return undefined
 				const normalized = hexLowerOfByteSize(implementation, 20)
 				if (normalized == null) return undefined
@@ -608,10 +613,10 @@ export default {
 			entityType: EntityType.EvmContract,
 			fieldName: 'code',
 			resolve: async (entityId, context) => {
-				const { proxyEthGetCode } = await import('$/sources/Etherscan/Rest/queries.ts')
+				const { getCode } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
-				const codeHex = await singleFlight(proxyEthGetCode)({
+				const codeHex = await singleFlight(getCode)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
 					address: entityId.address,
@@ -623,12 +628,12 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.EvmContract,
-			fieldName: 'bytecodeHash',
+			fieldName: 'codeHash',
 			resolve: async (entityId, context) => {
-				const { proxyEthGetCode } = await import('$/sources/Etherscan/Rest/queries.ts')
+				const { getCode } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
-				const codeHex = await singleFlight(proxyEthGetCode)({
+				const codeHex = await singleFlight(getCode)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
 					address: entityId.address,
@@ -642,7 +647,7 @@ export default {
 			entityType: EntityType.EvmContract,
 			fieldName: 'storageSlotReads',
 			resolve: async (entityId, context) => {
-				const { proxyEthGetStorageAt } = await import('$/sources/Etherscan/Rest/queries.ts')
+				const { getStorageAt } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
 				const depth = Math.min(32, Math.max(1, resolverLoadSubsetRowLimit(context)))
@@ -650,7 +655,7 @@ export default {
 					address: entityId.address,
 					depth,
 					getStorageAt: (slotQuantityHex) => (
-						singleFlight(proxyEthGetStorageAt)({
+						singleFlight(getStorageAt)({
 							publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 							chainId,
 							address: entityId.address,
@@ -685,8 +690,8 @@ export default {
 			fieldName: '$$tokenTransfers',
 			resolve: async (entityId, context) => {
 				const {
-					accountTokenTransfersByAddress,
-					etherscanAccountListMaxOffset,
+					getTokenTransfersByAddress,
+					accountListMaxOffset,
 				} = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -696,9 +701,9 @@ export default {
 				}
 				const limit = Math.min(
 					resolverLoadSubsetRowLimit(context),
-					etherscanAccountListMaxOffset,
+					accountListMaxOffset,
 				)
-				const wires = await accountTokenTransfersByAddress({
+				const wires = await getTokenTransfersByAddress({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
 					address,
@@ -721,11 +726,11 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.EvmNetworkAccount,
-			fieldName: '$$internalTransactions',
+			fieldName: '$internalTransfers',
 			resolve: async (entityId, context) => {
 				const {
-					accountInternalTransactionsByAddress,
-					etherscanAccountListMaxOffset,
+					getInternalTransactionsByAddress,
+					accountListMaxOffset,
 				} = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -735,9 +740,9 @@ export default {
 				}
 				const limit = Math.min(
 					resolverLoadSubsetRowLimit(context),
-					etherscanAccountListMaxOffset,
+					accountListMaxOffset,
 				)
-				const wires = await accountInternalTransactionsByAddress({
+				const wires = await getInternalTransactionsByAddress({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
 					address,
@@ -763,16 +768,16 @@ export default {
 			fieldName: '$$tokenTransfers',
 			resolve: async (entityId, context) => {
 				const {
-					accountTokenTransfersByTransaction,
-					etherscanAccountListMaxOffset,
+					getTokenTransfersByTransaction,
+					accountListMaxOffset,
 				} = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
 				const limit = Math.min(
 					resolverLoadSubsetRowLimit(context),
-					etherscanAccountListMaxOffset,
+					accountListMaxOffset,
 				)
-				const wires = await singleFlight(accountTokenTransfersByTransaction)({
+				const wires = await singleFlight(getTokenTransfersByTransaction)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
 					txHash: entityId.txHash,
@@ -798,10 +803,10 @@ export default {
 			entityType: EntityType.EvmTransaction,
 			fieldName: '$$internalTransfers',
 			resolve: async (entityId, context) => {
-				const { accountInternalTransactionsByTxHash } = await import('$/sources/Etherscan/Rest/queries.ts')
+				const { getInternalTransactionsByTxHash } = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
-				const wires = await singleFlight(accountInternalTransactionsByTxHash)({
+				const wires = await singleFlight(getInternalTransactionsByTxHash)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
 					txHash: entityId.txHash,

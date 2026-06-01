@@ -21,7 +21,8 @@ const isRouteGroup = (segment: string) => (
 const encodeUrlSegment = (segment: string) => (
 	segment === '~' ?
 		'~'
-	:	encodeURIComponent(segment).replaceAll('%3A', ':')
+	:
+		encodeURIComponent(segment).replaceAll('%3A', ':')
 )
 
 const bracketSegmentToParamKey = (segment: string) => (
@@ -34,15 +35,19 @@ const bracketSegmentToParamKey = (segment: string) => (
 				return eq === -1 ? inner : inner.slice(0, eq)
 			})()
 		))(segment.slice(1, -1))
-	:	segment
+	:
+		segment
 )
 
 const bracketSegmentToMatcherKey = (segment: string) => (
 	segment.startsWith('[') && segment.endsWith(']') ?
 		((inner) => (
-			inner.includes('=') ? inner.slice(inner.indexOf('=') + 1) : undefined
+			inner.includes('=') ? inner.slice(inner.indexOf('=') + 1)
+			:
+				undefined
 		))(segment.slice(1, -1))
-	:	undefined
+	:
+		undefined
 )
 
 const bracketExpressionToParamKey = (expression: string) => (
@@ -50,11 +55,14 @@ const bracketExpressionToParamKey = (expression: string) => (
 		`...${expression.slice(3)}`
 	:	expression.includes('=') ?
 		expression.slice(0, expression.indexOf('='))
-	:	expression
+	:
+		expression
 )
 
 const bracketExpressionToMatcherKey = (expression: string) => (
-	expression.includes('=') ? expression.slice(expression.indexOf('=') + 1) : undefined
+	expression.includes('=') ? expression.slice(expression.indexOf('=') + 1)
+	:
+		undefined
 )
 
 const dynamicFixture = (
@@ -100,7 +108,8 @@ const expandMixedSegment = (
 					['eip155']
 				:	matcherKey === 'eip155Caip2Reference' ?
 					['1']
-				:	e2eRouteParamFixtureVariantsForContext(
+				:
+					e2eRouteParamFixtureVariantsForContext(
 					paramKey,
 					expandedContext.context.staticSegments,
 					expandedContext.context.params,
@@ -221,7 +230,8 @@ const pageFileToPathname = (absPath: string) => {
 	return contexts.map((context) => (
 		context.urlSegments.length === 0 ?
 			'/'
-		:	`/${context.urlSegments.join('/')}`
+		:
+			`/${context.urlSegments.join('/')}`
 	))
 }
 

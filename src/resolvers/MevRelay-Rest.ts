@@ -11,15 +11,15 @@ import { schema } from '$/schema/index.ts'
 import type { ProposerPayloadDelivered } from '$/sources/MevRelay/Rest/types.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const parsePayloadSlot = (row: ProposerPayloadDelivered): number | undefined => {
-	const raw = row.slot
+const parsePayloadSlot = (payload: ProposerPayloadDelivered): number | undefined => {
+	const raw = payload.slot
 	if (raw == null) return undefined
 	const slot = Number(raw)
 	return Number.isFinite(slot) ? slot : undefined
 }
 
-const parsePayloadValueWei = (row: ProposerPayloadDelivered): bigint | undefined => {
-	const raw = row.value
+const parsePayloadValueWei = (payload: ProposerPayloadDelivered): bigint | undefined => {
+	const raw = payload.value
 	if (raw == null) return undefined
 	try {
 		return BigInt(String(raw).trim())
@@ -28,8 +28,8 @@ const parsePayloadValueWei = (row: ProposerPayloadDelivered): bigint | undefined
 	}
 }
 
-const parsePayloadBlockNumber = (row: ProposerPayloadDelivered): bigint | undefined => {
-	const raw = row.block_number ?? row.blockNumber
+const parsePayloadBlockNumber = (payload: ProposerPayloadDelivered): bigint | undefined => {
+	const raw = payload.block_number ?? payload.blockNumber
 	if (raw == null) return undefined
 	try {
 		const trimmed = String(raw).trim()
@@ -49,20 +49,20 @@ export default {
 				const wantHash = hexLowerOfByteSize(entityId.blockHash, 32)
 				if (wantHash == null) throw new Error('MevRelay_Rest: invalid block hash in entity id')
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
-				const rows = await getProposerPayloadDeliveredForRelayHost(entityId.relayHost, {
+				const deliveredPayloads = await getProposerPayloadDeliveredForRelayHost(entityId.relayHost, {
 					limit: 200,
 				})
-				const row = rows.find((entry) => {
-					const slot = parsePayloadSlot(entry)
-					const bh = entry.block_hash ?? entry.blockHash
+				const payload = deliveredPayloads.find((deliveredPayload) => {
+					const slot = parsePayloadSlot(deliveredPayload)
+					const bh = payload.block_hash ?? payload.blockHash
 					if (slot !== entityId.slot || bh == null) return false
 					const normalized = hexLowerOfByteSize(bh, 32)
 					return normalized === wantHash
 				})
-				if (row == null) throw new Error('MevRelay_Rest: relay payload not found for id')
-				const builderPubkey = row.builder_pubkey ?? row.builderPubkey
-				const blockNumber = parsePayloadBlockNumber(row)
-				const valueWei = parsePayloadValueWei(row)
+				if (payload == null) throw new Error('MevRelay_Rest: relay payload not found for id')
+				const builderPubkey = payload.builder_pubkey ?? payload.builderPubkey
+				const blockNumber = parsePayloadBlockNumber(payload)
+				const valueWei = parsePayloadValueWei(payload)
 				return {
 					[EntityMetaKey.Id]: entityId,
 					...(builderPubkey != null && builderPubkey !== '' && { builderPubkey }),
@@ -88,10 +88,10 @@ export default {
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 				const chainId = Number(entityId.$network.caip2.reference)
 				let deliveredPayloadCount = 0
-				for (const { host } of mevRelayHosts.filter((row) => row.chainId === chainId)) {
+				for (const { host } of mevRelayHosts.filter((mevRelayHost) => mevRelayHost.chainId === chainId)) {
 					deliveredPayloadCount += (
 						(await getProposerPayloadDeliveredForRelayHost(host, { limit: 200 }))
-							.filter((row) => (row.builder_pubkey ?? row.builderPubkey) === entityId.builderPubkey)
+							.filter((payload) => (payload.builder_pubkey ?? payload.builderPubkey) === entityId.builderPubkey)
 							.length
 					)
 				}
@@ -111,8 +111,8 @@ export default {
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 				const chainId = Number(entityId.caip2.reference)
 				const hostsForChain = mevRelayHosts
-					.filter((row) => row.chainId === chainId)
-					.map((row) => row.host)
+					.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
+					.map((mevRelayHost) => mevRelayHost.host)
 				if (hostsForChain.length === 0) {
 					throw new Error(
 						`MevRelay_Rest: no MEV-Boost relay mapping for chain ${String(chainId)}`,
@@ -129,12 +129,12 @@ export default {
 					}
 				}[] = []
 				for (const relayHost of hosts) {
-					const rows = await getProposerPayloadDeliveredForRelayHost(relayHost, {
+					const deliveredPayloads = await getProposerPayloadDeliveredForRelayHost(relayHost, {
 						limit: Math.min(subsetRowLimit, 200),
 					})
-					for (const row of rows) {
-						const slot = parsePayloadSlot(row)
-						const bhRaw = row.block_hash ?? row.blockHash
+					for (const payload of deliveredPayloads) {
+						const slot = parsePayloadSlot(payload)
+						const bhRaw = payload.block_hash ?? payload.blockHash
 						if (slot == null || bhRaw == null) continue
 						const blockHash = hexLowerOfByteSize(bhRaw, 32)
 						if (blockHash == null) continue
@@ -151,7 +151,7 @@ export default {
 				}
 				if (out.length === 0) {
 					throw new Error(
-						`MevRelay_Rest: no proposer_payload_delivered rows for chain ${String(chainId)}`,
+						`MevRelay_Rest: no proposer_payload_delivered payloads for chain ${String(chainId)}`,
 					)
 				}
 				return out
@@ -166,8 +166,8 @@ export default {
 				const { getProposerPayloadDeliveredForRelayHost } = await import('$/sources/MevRelay/Rest/queries.ts')
 				const chainId = Number(entityId.caip2.reference)
 				const hostsForChain = mevRelayHosts
-					.filter((row) => row.chainId === chainId)
-					.map((row) => row.host)
+					.filter((mevRelayHost) => mevRelayHost.chainId === chainId)
+					.map((mevRelayHost) => mevRelayHost.host)
 				if (hostsForChain.length === 0) {
 					throw new Error(
 						`MevRelay_Rest: no MEV-Boost relay mapping for chain ${String(chainId)}`,
@@ -176,11 +176,11 @@ export default {
 				const subsetRowLimit = resolverLoadSubsetRowLimit(context)
 				const seen = new Set<string>()
 				for (const relayHost of hostsForChain) {
-					const rows = await getProposerPayloadDeliveredForRelayHost(relayHost, {
+					const deliveredPayloads = await getProposerPayloadDeliveredForRelayHost(relayHost, {
 						limit: Math.min(subsetRowLimit * 8, 200),
 					})
-					for (const row of rows) {
-						const builderPubkey = row.builder_pubkey ?? row.builderPubkey
+					for (const payload of deliveredPayloads) {
+						const builderPubkey = payload.builder_pubkey ?? payload.builderPubkey
 						if (builderPubkey == null || builderPubkey === '') continue
 						seen.add(builderPubkey)
 						if (seen.size >= subsetRowLimit) break

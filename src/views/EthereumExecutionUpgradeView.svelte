@@ -184,7 +184,7 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 		<ProposalsView
 			href={resolve('/proposals')}
 			entityFieldReference={{

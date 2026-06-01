@@ -2,28 +2,28 @@ import { describe, expect, it } from 'vitest'
 
 import { swarmDocsLandingReference } from '$/sources/Swarm/Rest/constants.ts'
 import {
-	parseSwarmBrowseInput,
-	swarmResourceHref,
+	parseBrowseInput,
+	getResourceHref,
 } from '$/sources/Swarm/Rest/queries.ts'
 
 
-describe('parseSwarmBrowseInput', () => {
+describe('parseBrowseInput', () => {
 	it('parses swarm:// URIs like bzz://', () => {
-		expect(parseSwarmBrowseInput(`swarm://${swarmDocsLandingReference}`)).toEqual({
+		expect(parseBrowseInput(`swarm://${swarmDocsLandingReference}`)).toEqual({
 			reference: swarmDocsLandingReference,
 			contentPath: '',
 		})
 	})
 
 	it('parses manifest paths on bzz:// URIs', () => {
-		expect(parseSwarmBrowseInput(`bzz://${swarmDocsLandingReference}/index.html`)).toEqual({
+		expect(parseBrowseInput(`bzz://${swarmDocsLandingReference}/index.html`)).toEqual({
 			reference: swarmDocsLandingReference,
 			contentPath: 'index.html',
 		})
 	})
 
 	it('strips 0x prefix from hex references', () => {
-		expect(parseSwarmBrowseInput(`0x${swarmDocsLandingReference}`)).toEqual({
+		expect(parseBrowseInput(`0x${swarmDocsLandingReference}`)).toEqual({
 			reference: swarmDocsLandingReference,
 			contentPath: '',
 		})
@@ -31,7 +31,7 @@ describe('parseSwarmBrowseInput', () => {
 
 	it('builds hrefs for manifest paths', () => {
 		expect(
-			swarmResourceHref({
+			getResourceHref({
 				reference: swarmDocsLandingReference,
 				contentPath: 'index.html',
 			}),

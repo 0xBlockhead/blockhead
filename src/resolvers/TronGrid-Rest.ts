@@ -3,6 +3,8 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
+import { networkBySlug } from '$/constants/Network.ts'
+import { tronGridMainnetRestBaseUrl } from '$/constants/TronNetwork.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
@@ -16,12 +18,10 @@ import type {
 	TronNodeWitness,
 } from '$/sources/TronGrid/Rest/types.ts'
 
-const tronGridMainnetRestUrl = 'https://api.trongrid.io'
-
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
 const assertTronMainnet = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== 'tron') {
+	if (!('networkSlug' in network) || network.networkSlug !== networkBySlug.tron.slug) {
 		throw new Error('TronGrid_Rest: unsupported network')
 	}
 }
@@ -29,13 +29,15 @@ const assertTronMainnet = (network: NetworkId) => {
 const bigintFromNumberOrString = (value: number | string | undefined): bigint | undefined => (
 	value == null ?
 		undefined
-	:	BigInt(value)
+	:
+		BigInt(value)
 )
 
 const heightFromNodeInfoBlock = (block: string | undefined): bigint | undefined => (
 	block == null ?
 		undefined
-	:	BigInt(block.match(/Num:(\d+)/)?.[1] ?? 0)
+	:
+		BigInt(block.match(/Num:(\d+)/)?.[1] ?? 0)
 )
 
 const firstContractValue = (transaction: TronNodeTransaction): TronNodeContractValue | undefined => (
@@ -70,7 +72,8 @@ const blockFields = (
 		$$transactions: (block.transactions ?? []).flatMap((transaction) => (
 			transaction.txID == null ?
 				[]
-			:	[
+			:
+				[
 					{
 						[EntityMetaKey.Id]: {
 							$network: network,
@@ -202,7 +205,7 @@ export default {
 					},
 					restEndpoints: [
 						{
-							url: tronGridMainnetRestUrl,
+							url: tronGridMainnetRestBaseUrl,
 							transportType: TransportType.Http,
 							providerName: 'TronGrid',
 						},
@@ -221,10 +224,10 @@ export default {
 					getNowBlock,
 					listWitnesses,
 				} = await import('$/sources/TronGrid/Rest/queries.ts')
-				const block = await getNowBlock({ restBaseUrl: tronGridMainnetRestUrl })
-				const witnesses = await listWitnesses({ restBaseUrl: tronGridMainnetRestUrl })
-				const chainParameters = await getChainParameters({ restBaseUrl: tronGridMainnetRestUrl }).catch(() => undefined)
-				const nodeInfo = await getNodeInfo({ restBaseUrl: tronGridMainnetRestUrl }).catch(() => undefined)
+				const block = await getNowBlock({ restBaseUrl: tronGridMainnetRestBaseUrl })
+				const witnesses = await listWitnesses({ restBaseUrl: tronGridMainnetRestBaseUrl })
+				const chainParameters = await getChainParameters({ restBaseUrl: tronGridMainnetRestBaseUrl }).catch(() => undefined)
+				const nodeInfo = await getNodeInfo({ restBaseUrl: tronGridMainnetRestBaseUrl }).catch(() => undefined)
 				return {
 					latestBlockHeight: BigInt(block.block_header?.raw_data?.number ?? 0),
 					latestBlockHash: block.blockID,
@@ -250,7 +253,7 @@ export default {
 				return blockFields(
 					entityId.$network,
 					await getBlockByNumber({
-						restBaseUrl: tronGridMainnetRestUrl,
+						restBaseUrl: tronGridMainnetRestBaseUrl,
 						height: entityId.height,
 					}),
 				)
@@ -266,7 +269,7 @@ export default {
 					getTransactionInfoById,
 				} = await import('$/sources/TronGrid/Rest/queries.ts')
 				const transaction = await getTransactionById({
-					restBaseUrl: tronGridMainnetRestUrl,
+					restBaseUrl: tronGridMainnetRestBaseUrl,
 					transactionId: entityId.transactionId,
 				})
 				if (transaction.txID == null) throw new Error(`TronGrid_Rest: transaction not found for ${entityId.transactionId}`)
@@ -274,7 +277,7 @@ export default {
 					entityId.$network,
 					transaction,
 					await getTransactionInfoById({
-						restBaseUrl: tronGridMainnetRestUrl,
+						restBaseUrl: tronGridMainnetRestBaseUrl,
 						transactionId: entityId.transactionId,
 					}),
 				)
@@ -287,7 +290,7 @@ export default {
 				assertTronMainnet(entityId.$network)
 				const { getAccount } = await import('$/sources/TronGrid/Rest/queries.ts')
 				const account = await getAccount({
-					restBaseUrl: tronGridMainnetRestUrl,
+					restBaseUrl: tronGridMainnetRestBaseUrl,
 					address: entityId.address,
 				})
 				return {
@@ -306,8 +309,8 @@ export default {
 			resolve: async (entityId) => {
 				assertTronMainnet(entityId.$network)
 				const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
-				const witness = (await listWitnesses({ restBaseUrl: tronGridMainnetRestUrl })).witnesses
-					.find((row) => row.address === entityId.address)
+				const witness = (await listWitnesses({ restBaseUrl: tronGridMainnetRestBaseUrl })).witnesses
+					.find((tronAccount) => tronAccount.address === entityId.address)
 				if (witness == null) throw new Error(`TronGrid_Rest: witness not found for ${entityId.address}`)
 				return witnessFields(witness)
 			},
@@ -322,7 +325,7 @@ export default {
 				assertTronMainnet(entityId)
 				return [
 					{
-						url: tronGridMainnetRestUrl,
+						url: tronGridMainnetRestBaseUrl,
 						transportType: TransportType.Http,
 						providerName: 'TronGrid',
 					},
@@ -336,7 +339,7 @@ export default {
 			resolve: async (entityId) => {
 				assertTronMainnet(entityId)
 				const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
-				const block = await getNowBlock({ restBaseUrl: tronGridMainnetRestUrl })
+				const block = await getNowBlock({ restBaseUrl: tronGridMainnetRestBaseUrl })
 				return {
 					[EntityMetaKey.Id]: {
 						$network: entityId,
@@ -375,7 +378,7 @@ export default {
 				const { listWitnesses } = await import('$/sources/TronGrid/Rest/queries.ts')
 				return witnessRows(
 					entityId,
-					(await listWitnesses({ restBaseUrl: tronGridMainnetRestUrl })).witnesses,
+					(await listWitnesses({ restBaseUrl: tronGridMainnetRestBaseUrl })).witnesses,
 				)
 			},
 		}),
@@ -386,7 +389,7 @@ export default {
 			resolve: async (entityId, context) => {
 				assertTronMainnet(entityId)
 				const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
-				const block = await getNowBlock({ restBaseUrl: tronGridMainnetRestUrl })
+				const block = await getNowBlock({ restBaseUrl: tronGridMainnetRestBaseUrl })
 				const headBlockHeight = BigInt(block.block_header?.raw_data?.number ?? 0)
 				return Array.from({
 					length: Math.min(
@@ -423,7 +426,7 @@ export default {
 				return blockFields(
 					entityId.$network,
 					await getBlockByNumber({
-						restBaseUrl: tronGridMainnetRestUrl,
+						restBaseUrl: tronGridMainnetRestBaseUrl,
 						height: entityId.height,
 					}),
 				).$$transactions
@@ -437,13 +440,14 @@ export default {
 				assertTronMainnet(entityId.$network)
 				const { getAccountTransactions } = await import('$/sources/TronGrid/Rest/queries.ts')
 				return (await getAccountTransactions({
-					restBaseUrl: tronGridMainnetRestUrl,
+					restBaseUrl: tronGridMainnetRestBaseUrl,
 					address: entityId.address,
 					limit: resolverLoadSubsetRowLimit(context),
 				})).data.flatMap((transaction) => (
 					transaction.txID == null ?
 						[]
-					:	[
+					:
+						[
 							{
 								[EntityMetaKey.Id]: {
 									$network: entityId.$network,
@@ -466,13 +470,14 @@ export default {
 				assertTronMainnet(entityId.$network)
 				const { getAccountTrc20Transfers } = await import('$/sources/TronGrid/Rest/queries.ts')
 				return (await getAccountTrc20Transfers({
-					restBaseUrl: tronGridMainnetRestUrl,
+					restBaseUrl: tronGridMainnetRestBaseUrl,
 					address: entityId.address,
 					limit: resolverLoadSubsetRowLimit(context),
 				})).data.flatMap((transfer) => (
 					transfer.token_info?.address == null ?
 						[]
-					:	[
+					:
+						[
 							{
 								[EntityMetaKey.Id]: {
 									$network: entityId.$network,

@@ -285,7 +285,8 @@ const enabledSourceEntries = sourceProviders.flatMap((sourceProvider) => {
 			(
 				Object.keys(merged).length === 0 ?
 					resolverPublicEnv
-				:	merged
+				:
+					merged
 			),
 		] as const]
 	})

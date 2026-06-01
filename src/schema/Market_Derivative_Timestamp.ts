@@ -23,7 +23,7 @@ export default {
 
 	fields: [
 		{
-			name: '$$parentMarket',
+			name: '$parentMarket',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Market,
 			cardinality: EntityFieldCardinality.One,

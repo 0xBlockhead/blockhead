@@ -20,7 +20,7 @@
 	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 	type FlattenedBalanceLine = {
-		value: Entity<typeof schema, EntityType.ActorCoin>
+		value: Entity<typeof schema, EntityType.EvmNetworkActorCoinBalance>
 	}
 
 
@@ -115,7 +115,7 @@
 								],
 								$$transactions: {},
 								$$tokenTransfers: {},
-								$$internalTransactions: {},
+								$internalTransfers: {},
 								isContract: {},
 								transactionsCount: {},
 								tokenTransferCount: {},
@@ -183,7 +183,7 @@
 
 	const flattenedCoinItems = $derived.by(() => {
 		const merged: {
-			value: Entity<typeof schema, EntityType.ActorCoin>
+			value: Entity<typeof schema, EntityType.EvmNetworkActorCoinBalance>
 		}[] = []
 
 		const pushSlice = (_index: number) => {
@@ -232,10 +232,12 @@
 	import Tooltip from '$/components/Tooltip.svelte'
 	import TruncatedValue, { TruncatedValueFormat } from '$/components/TruncatedValue.svelte'
 	import BalancesView from '$/views/BalancesView.svelte'
-	import ActorCoinView from '$/views/ActorCoinView.svelte'
+	import EvmNetworkActorCoinBalanceView from '$/views/EvmNetworkActorCoinBalanceView.svelte'
 	import EvmNetworkAccountView from '$/views/EvmNetworkAccountView.svelte'
 	import EvmContractView from '$/views/EvmContractView.svelte'
 	import EvmTransactionsView from '$/views/EvmTransactionsView.svelte'
+	import EvmTokenTransfersView from '$/views/EvmTokenTransfersView.svelte'
+	import EvmInternalTransfersView from '$/views/EvmInternalTransfersView.svelte'
 </script>
 
 
@@ -362,7 +364,7 @@
 	{/snippet}
 
 	{#snippet Details({
-		open: detailsOpen,
+		open,
 	})}
 		<EntityDetails
 			entityType={EntityType.EvmAccount}
@@ -448,7 +450,7 @@
 					<section id={`${idKey}:balances-by-asset`}>
 						<EntitiesList
 							collapsible={false}
-							entityType={EntityType.ActorCoin}
+							entityType={EntityType.EvmNetworkActorCoinBalance}
 							title="By deployment (all indexed networks)"
 							id={`${idKey}:balances-flat-list`}
 							getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
@@ -465,7 +467,7 @@
 								{/snippet}
 								{#snippet Item(props)}
 									{#if props.item}
-										<ActorCoinView
+										<EvmNetworkActorCoinBalanceView
 											entityId={props.item.value[EntityMetaKey.Id]}
 											layout={EntityLayout.Summary}
 										/>
@@ -482,7 +484,7 @@
 							>
 								<EntitiesList
 									collapsible={false}
-									entityType={EntityType.ActorCoin}
+									entityType={EntityType.EvmNetworkActorCoinBalance}
 									title={`${assetKey} · by network`}
 									id={`${idKey}:balances-coin-list-${String(coinGroupIndex)}`}
 									getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
@@ -499,7 +501,7 @@
 									{/snippet}
 									{#snippet Item(props)}
 										{#if props.item}
-											<ActorCoinView
+							<EvmNetworkActorCoinBalanceView
 												entityId={props.item.value[EntityMetaKey.Id]}
 												layout={EntityLayout.Summary}
 											/>
@@ -595,54 +597,54 @@
 								data-scroll-marker-label={`${chainFacetLabel(facetChainId)} · Token transfers`}
 								id={`${idKey}:activity-net-${facetChainId}-transfers`}
 							>
-								<EvmTransactionsView
-									CollapsibleProps={{ canToggle: false }}
-									href={resolve(
-										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
-										{
-											...caip2RouteParamsFromEvmChainId(facetChainId),
-											address: entityId.address,
-										},
-									)}
-									collapsible={false}
-									entityFieldReference={{
-										entityType: EntityType.EvmNetworkAccount,
-										entityId: {
-											$network: networkIdFromEvmChainId(facetChainId),
-											$actor: entityId,
-										},
-										fieldName: '$$tokenTransfers',
-									}}
-									id={`${idKey}:activity-token-transfers-${facetChainId}`}
-									title={`${chainFacetLabel(facetChainId)} · Token transfers`}
-								/>
+							<EvmTokenTransfersView
+								CollapsibleProps={{ canToggle: false }}
+								href={resolve(
+									'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
+									{
+										...caip2RouteParamsFromEvmChainId(facetChainId),
+										address: entityId.address,
+									},
+								)}
+								collapsible={false}
+								entityFieldReference={{
+									entityType: EntityType.EvmNetworkAccount,
+									entityId: {
+										$network: networkIdFromEvmChainId(facetChainId),
+										$actor: entityId,
+									},
+									fieldName: '$$tokenTransfers',
+								}}
+								id={`${idKey}:activity-token-transfers-${facetChainId}`}
+								title={`${chainFacetLabel(facetChainId)} · Token transfers`}
+							/>
 							</section>
 
 							<section
 								data-scroll-marker-label={`${chainFacetLabel(facetChainId)} · Internal transactions`}
 								id={`${idKey}:activity-net-${facetChainId}-internal`}
 							>
-								<EvmTransactionsView
-									CollapsibleProps={{ canToggle: false }}
-									href={resolve(
-										'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
-										{
-											...caip2RouteParamsFromEvmChainId(facetChainId),
-											address: entityId.address,
-										},
-									)}
-									collapsible={false}
-									entityFieldReference={{
-										entityType: EntityType.EvmNetworkAccount,
-										entityId: {
-											$network: networkIdFromEvmChainId(facetChainId),
-											$actor: entityId,
-										},
-										fieldName: '$$internalTransactions',
-									}}
-									id={`${idKey}:activity-internal-tx-${facetChainId}`}
-									title={`${chainFacetLabel(facetChainId)} · Internal transactions`}
-								/>
+							<EvmInternalTransfersView
+								CollapsibleProps={{ canToggle: false }}
+								href={resolve(
+									'/(explore)/network/[caip2Namespace]:[caip2Reference]/(network)/(accounts)/account/[address]',
+									{
+										...caip2RouteParamsFromEvmChainId(facetChainId),
+										address: entityId.address,
+									},
+								)}
+								collapsible={false}
+								entityFieldReference={{
+									entityType: EntityType.EvmNetworkAccount,
+									entityId: {
+										$network: networkIdFromEvmChainId(facetChainId),
+										$actor: entityId,
+									},
+									fieldName: '$$internalTransfers',
+								}}
+								id={`${idKey}:activity-internal-tx-${facetChainId}`}
+								title={`${chainFacetLabel(facetChainId)} · Internal transactions`}
+							/>
 							</section>
 						</section>
 					{/each}

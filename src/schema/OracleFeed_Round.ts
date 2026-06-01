@@ -23,7 +23,7 @@ export default {
 
 	fields: [
 		{
-			name: '$$parentOracleFeed',
+			name: '$parentOracleFeed',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.OracleFeed,
 			cardinality: EntityFieldCardinality.One,

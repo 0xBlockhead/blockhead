@@ -484,11 +484,15 @@
 					!evmNetworkAccount.ready
 					|| evmNetworkAccount.current.tokenTransferCount !== undefined
 					|| (evmNetworkAccount.current.$$tokenTransfers ?? []).length > 0
-				) ? ([{ id: 'activity-token-transfers', label: 'Token transfers' }] as const) : [],
+				) ? ([{ id: 'activity-token-transfers', label: 'Token transfers' }] as const)
+				:
+					[],
 				...(
 					!evmNetworkAccount.ready
 					|| (evmNetworkAccount.current.$$internalTransactions ?? []).length > 0
-				) ? ([{ id: 'activity-internal-transactions', label: 'Internal transactions' }] as const) : [],
+				) ? ([{ id: 'activity-internal-transactions', label: 'Internal transactions' }] as const)
+				:
+					[],
 			]}
 			data-card
 			class="actor-network-view-collapsible-activity"

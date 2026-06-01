@@ -52,9 +52,11 @@ export const runNetworkViewLiveE2E = async (page: Page, chain: NetworkViewLiveE2
 		preflight.ok,
 		preflight.ok
 			? 'ok'
-			: 'detail' in preflight && preflight.detail != null
+			:
+				'detail' in preflight && preflight.detail != null
 				? jsonStringifyForExpectMessage(preflight.detail)
-				: jsonStringifyForExpectMessage(preflight),
+				:
+					jsonStringifyForExpectMessage(preflight),
 	).toBe(true)
 
 	const blockscoutToBasescanV2: string[] = []

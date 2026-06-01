@@ -13,17 +13,18 @@ import type {
 	BskySocialSearchPostsResponse,
 } from '$/sources/AtprotoBskySocial/Rest/types.ts'
 
-export const bskySocialGetProfile = async (actor: string) => (
+export const getProfile = async (actor: string) => (
 	bskySocialXrpcGet<BskyAppViewProfile>(
 		'/app.bsky.actor.getProfile',
 		{ actor },
 	)
 )
 
-export const bskySocialGetPosts = async (uris: string[]) => (
+export const getPosts = async (uris: string[]) => (
 	uris.length === 0 ?
 		{ posts: [] } satisfies BskyAppViewGetPostsResponse
-	:	getJson<BskyAppViewGetPostsResponse>(
+	:
+		getJson<BskyAppViewGetPostsResponse>(
 		`${bskySocialXrpcBase}/app.bsky.feed.getPosts?${(
 			new URLSearchParams(uris.map((u) => ['uris', u])).toString()
 		)}`,
@@ -31,7 +32,7 @@ export const bskySocialGetPosts = async (uris: string[]) => (
 	)
 )
 
-export const bskySocialGetPostThread = async (
+export const getPostThread = async (
 	uri: string,
 	{
 		depth = 6,
@@ -51,7 +52,7 @@ export const bskySocialGetPostThread = async (
 	)
 )
 
-export const bskySocialGetAuthorFeed = async ({
+export const getAuthorFeed = async ({
 	actor,
 	limit = 30,
 	cursor,
@@ -73,7 +74,7 @@ export const bskySocialGetAuthorFeed = async ({
 	)
 )
 
-export const bskySocialSearchActorsTypeahead = async ({
+export const searchActorsTypeahead = async ({
 	limit = 25,
 	q,
 }: {
@@ -89,7 +90,7 @@ export const bskySocialSearchActorsTypeahead = async ({
 	)
 )
 
-export const bskySocialSearchPosts = async ({
+export const searchPosts = async ({
 	limit = 25,
 	q,
 }: {

@@ -58,7 +58,8 @@ import type {
 const quantityHex = (value: string | number | bigint | undefined) => (
 	value != null && `${value}` !== '' ?
 		`0x${BigInt(value).toString(16)}`
-	:	undefined
+	:
+		undefined
 )
 
 const timestampHex = (timestamp: string | undefined) => {
@@ -79,7 +80,8 @@ const addressHash = (
 ) => (
 	typeof wire === 'string' ?
 		wire
-	:	wire?.hash
+	:
+		wire?.hash
 )
 
 const blockscoutBlockWireAsRpcBlockHeader = (
@@ -139,7 +141,7 @@ const blockscoutTransactionLogWiresAsRpcReceiptLogs = (
  *
  * @see https://docs.blockscout.com/devs/apis/rest/stats-api
  */
-export const getBlockscoutStats = async ({
+export const getStats = async ({
 	explorerOrigin,
 }: {
 	explorerOrigin: string
@@ -155,13 +157,14 @@ export const getBlockscoutStats = async ({
 		const validated = blockscoutStatsWireSchema(await res.json())
 		return validated instanceof arktype.errors ?
 				null
-			:	validated
+			:
+				validated
 	} catch {
 		return null
 	}
 }
 
-export const getBlockByNumberBlockscout = async ({
+export const getBlockByNumber = async ({
 	explorerOrigin,
 	blockNumber,
 }: {
@@ -175,10 +178,12 @@ export const getBlockByNumberBlockscout = async ({
 		explorerOrigin,
 		path: `/blocks/${blockNumber}`,
 	})
-	return wire != null ? blockscoutBlockWireAsRpcBlockHeader(wire) : null
+	return wire != null ? blockscoutBlockWireAsRpcBlockHeader(wire)
+	:
+		null
 }
 
-export const getBlockscoutBlocks = async ({
+export const getBlocks = async ({
 	explorerOrigin,
 	limit,
 }: {
@@ -196,7 +201,7 @@ export const getBlockscoutBlocks = async ({
 	return wire.items.map(blockscoutBlockWireAsRpcBlockHeader)
 }
 
-export const getBlockTransactionsBlockscout = async ({
+export const getBlockTransactions = async ({
 	explorerOrigin,
 	blockNumber,
 	limit,
@@ -219,7 +224,7 @@ export const getBlockTransactionsBlockscout = async ({
 	return wire.items.map(blockscoutTransactionWireAsRpcTransaction)
 }
 
-export const getTransactionByHashBlockscout = async ({
+export const getTransactionByHash = async ({
 	explorerOrigin,
 	txHash,
 }: {
@@ -230,10 +235,12 @@ export const getTransactionByHashBlockscout = async ({
 		explorerOrigin,
 		path: `/transactions/${txHash}`,
 	})
-	return wire != null ? blockscoutTransactionWireAsRpcTransaction(wire) : null
+	return wire != null ? blockscoutTransactionWireAsRpcTransaction(wire)
+	:
+		null
 }
 
-export const getBlockscoutTransactions = async ({
+export const getTransactions = async ({
 	explorerOrigin,
 	limit,
 }: {
@@ -252,7 +259,7 @@ export const getBlockscoutTransactions = async ({
 }
 
 /** REST v2: transactions where this wallet participates on the configured explorer (`0x`-prefixed **`address`** normalized to 20-byte lower-case hex). */
-export const getBlockscoutAddressTransactions = async ({
+export const getAddressTransactions = async ({
 	explorerOrigin,
 	address,
 	limit,
@@ -275,7 +282,7 @@ export const getBlockscoutAddressTransactions = async ({
 }
 
 /** Unique normalized tx hashes (`32`-byte lower-case `0x` hex) from transfer/internal wires. */
-export const uniqueBlockscoutTransactionHashesFromWires = (
+export const uniqueTransactionHashesFromWires = (
 	items: readonly { transaction_hash?: string | undefined }[],
 ): `0x${string}`[] => {
 	const seen = new Set<string>()
@@ -293,7 +300,7 @@ export const uniqueBlockscoutTransactionHashesFromWires = (
 }
 
 /** REST v2 **`GET /addresses/{address}`** — normalized **`address`** (`hexLowerOfByteSize`, 20 bytes). */
-export const getBlockscoutAddressDetails = async ({
+export const getAddressDetails = async ({
 	explorerOrigin,
 	address,
 }: {
@@ -311,7 +318,7 @@ export const getBlockscoutAddressDetails = async ({
 }
 
 /** REST v2 **`GET /addresses/{address}/counters`**. */
-export const getBlockscoutAddressCounters = async ({
+export const getAddressCounters = async ({
 	explorerOrigin,
 	address,
 }: {
@@ -329,7 +336,7 @@ export const getBlockscoutAddressCounters = async ({
 }
 
 /** REST v2 **`GET /addresses/{address}/token-transfers`** — paginated **`items`**. */
-export const getBlockscoutAddressTokenTransfers = async ({
+export const getAddressTokenTransfers = async ({
 	explorerOrigin,
 	address,
 	limit,
@@ -355,7 +362,7 @@ export const getBlockscoutAddressTokenTransfers = async ({
 }
 
 /** REST v2 **`GET /transactions/{txHash}/token-transfers`** — paginated **`items`**. */
-export const getBlockscoutTransactionTokenTransfers = async ({
+export const getTransactionTokenTransfers = async ({
 	explorerOrigin,
 	txHash,
 	limit,
@@ -378,7 +385,7 @@ export const getBlockscoutTransactionTokenTransfers = async ({
 }
 
 /** REST v2 **`GET /transactions/{txHash}/internal-transactions`** — paginated **`items`**. */
-export const getBlockscoutTransactionInternalTransactions = async ({
+export const getTransactionInternalTransactions = async ({
 	explorerOrigin,
 	txHash,
 	limit,
@@ -401,7 +408,7 @@ export const getBlockscoutTransactionInternalTransactions = async ({
 }
 
 /** REST v2 **`GET /addresses/{address}/internal-transactions`** — paginated **`items`**. */
-export const getBlockscoutAddressInternalTransactions = async ({
+export const getAddressInternalTransactions = async ({
 	explorerOrigin,
 	address,
 	limit,
@@ -426,7 +433,7 @@ export const getBlockscoutAddressInternalTransactions = async ({
 	return wire.items ?? []
 }
 
-export const getTransactionLogsBlockscout = async ({
+export const getTransactionLogs = async ({
 	explorerOrigin,
 	txHash,
 }: {
@@ -447,7 +454,7 @@ export const getTransactionLogsBlockscout = async ({
 	return logs
 }
 
-export const getTransactionReceiptBlockscout = async ({
+export const getTransactionReceipt = async ({
 	explorerOrigin,
 	txHash,
 }: {
@@ -459,7 +466,7 @@ export const getTransactionReceiptBlockscout = async ({
 		path: `/transactions/${txHash}`,
 	})
 	if (tx == null) return null
-	const logs = await getTransactionLogsBlockscout({
+	const logs = await getTransactionLogs({
 		explorerOrigin,
 		txHash,
 	})
@@ -472,7 +479,7 @@ export const getTransactionReceiptBlockscout = async ({
 	}
 }
 
-export const evmAddressFromBlockscoutContractListWire = (
+export const normalizeAddressFromContractListWire = (
 	w: BlockscoutSmartContractForList,
 ): `0x${string}` | null => {
 	const h = addressHash(w.address ?? w.address_hash)
@@ -481,7 +488,7 @@ export const evmAddressFromBlockscoutContractListWire = (
 	return hexLowerOfByteSize(normalized, 20) ?? null
 }
 
-export const getBlockscoutSmartContracts = async ({
+export const getSmartContracts = async ({
 	explorerOrigin,
 	limit,
 }: {
@@ -512,7 +519,7 @@ const blockscoutLegacyAbiFromWire = (
 }
 
 /** Legacy `module=contract` **`getabi`**, fallback **`getsourcecode`**. */
-export const getBlockscoutContractAbiJsonString = async ({
+export const getContractAbiJsonString = async ({
 	explorerOrigin,
 	address,
 }: {
@@ -544,7 +551,7 @@ export const getBlockscoutContractAbiJsonString = async ({
 }
 
 /** Legacy **`getsourcecode`** row (proxy **`Implementation`**, etc.). */
-export const getBlockscoutContractSourceCodeRow = async ({
+export const getContractSourceCodeRow = async ({
 	explorerOrigin,
 	address,
 }: {
@@ -566,7 +573,7 @@ export const getBlockscoutContractSourceCodeRow = async ({
 	return wire.result[0] ?? null
 }
 
-export const blockscoutEthGetCode = async ({
+export const getCode = async ({
 	explorerOrigin,
 	address,
 }: {
@@ -587,7 +594,7 @@ export const blockscoutEthGetCode = async ({
 	return result ?? null
 }
 
-export const blockscoutEthGetStorageAt = async ({
+export const getStorageAt = async ({
 	explorerOrigin,
 	address,
 	slotQuantityHex,
@@ -689,7 +696,7 @@ const getBlockscoutErc4337RegistryDetail = async ({
 	return raw
 }
 
-export const getBlockscoutUserOperationsPage = async ({
+export const getUserOperationsPage = async ({
 	explorerOrigin,
 	limit,
 }: {
@@ -710,7 +717,7 @@ export const getBlockscoutUserOperationsPage = async ({
 	return raw.items ?? []
 }
 
-export const getBlockscoutUserOperationsByTransaction = async ({
+export const getUserOperationsByTransaction = async ({
 	explorerOrigin,
 	txHash,
 	limit,
@@ -739,7 +746,7 @@ export const getBlockscoutUserOperationsByTransaction = async ({
 	return items
 }
 
-export const getBlockscoutUserOperationDetail = async ({
+export const getUserOperationDetail = async ({
 	explorerOrigin,
 	hash,
 }: {
@@ -758,7 +765,7 @@ export const getBlockscoutUserOperationDetail = async ({
 	return raw
 }
 
-export const getBlockscoutErc4337SmartAccountList = async (args: {
+export const getErc4337SmartAccountList = async (args: {
 	explorerOrigin: string
 	limit: number
 }) => (
@@ -768,7 +775,7 @@ export const getBlockscoutErc4337SmartAccountList = async (args: {
 	})
 )
 
-export const getBlockscoutErc4337BundlerList = async (args: {
+export const getErc4337BundlerList = async (args: {
 	explorerOrigin: string
 	limit: number
 }) => (
@@ -778,7 +785,7 @@ export const getBlockscoutErc4337BundlerList = async (args: {
 	})
 )
 
-export const getBlockscoutErc4337PaymasterList = async (args: {
+export const getErc4337PaymasterList = async (args: {
 	explorerOrigin: string
 	limit: number
 }) => (
@@ -788,7 +795,7 @@ export const getBlockscoutErc4337PaymasterList = async (args: {
 	})
 )
 
-export const getBlockscoutErc4337AccountFactoryList = async (args: {
+export const getErc4337AccountFactoryList = async (args: {
 	explorerOrigin: string
 	limit: number
 }) => (
@@ -798,7 +805,7 @@ export const getBlockscoutErc4337AccountFactoryList = async (args: {
 	})
 )
 
-export const getBlockscoutErc4337SmartAccountDetail = async (args: {
+export const getErc4337SmartAccountDetail = async (args: {
 	explorerOrigin: string
 	address: `0x${string}`
 }) => (
@@ -808,7 +815,7 @@ export const getBlockscoutErc4337SmartAccountDetail = async (args: {
 	})
 )
 
-export const getBlockscoutErc4337BundlerDetail = async (args: {
+export const getErc4337BundlerDetail = async (args: {
 	explorerOrigin: string
 	address: `0x${string}`
 }) => (
@@ -818,7 +825,7 @@ export const getBlockscoutErc4337BundlerDetail = async (args: {
 	})
 )
 
-export const getBlockscoutErc4337PaymasterDetail = async (args: {
+export const getErc4337PaymasterDetail = async (args: {
 	explorerOrigin: string
 	address: `0x${string}`
 }) => (
@@ -828,7 +835,7 @@ export const getBlockscoutErc4337PaymasterDetail = async (args: {
 	})
 )
 
-export const getBlockscoutErc4337AccountFactoryDetail = async (args: {
+export const getErc4337AccountFactoryDetail = async (args: {
 	explorerOrigin: string
 	address: `0x${string}`
 }) => (

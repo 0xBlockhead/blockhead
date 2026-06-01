@@ -23,10 +23,12 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
+import { mediaFromUrl } from '$/lib/media.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
+import { MediaType } from '$/schema/Media.ts'
 import { Source } from '$/sources/$Source.ts'
 
 /** Coin prices use `$/sources/Defillama/OpenApi` + checked-in `openapi.d.ts` (`GET /prices/current/{coins}`). */
@@ -55,7 +57,7 @@ export default {
 				)
 				if (llamaId == null) throw new Error('Defillama_OpenApi: no price id')
 				const priceRow = (await getCurrentPrices([llamaId])).coins[llamaId]
-				if (priceRow == null) throw new Error('Defillama_OpenApi: price row missing')
+				if (priceRow == null) throw new Error('Defillama_OpenApi: price missing')
 				const timestampMs = priceRow.timestamp * 1000
 				if (entityId.timestampMs !== timestampMs) {
 					throw new Error('Defillama_OpenApi: Market_Timestamp id does not match price clock')
@@ -81,24 +83,24 @@ export default {
 					throw new Error('Defillama_OpenApi: OHLC is catalog coin USD market only')
 				}
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
-				const { getDefillamaChartOhlcRowsCoingeckoShape } = await import('$/sources/Defillama/OpenApi/queries.ts')
+				const { getChartOhlcRows } = await import('$/sources/Defillama/OpenApi/queries.ts')
 				assertCoingeckoDayOhlcTimeInterval(entityId.timeInterval, 'Defillama_OpenApi')
 				const coinId = entityId.$market.$base.$coin.coinId
 				const llamaId = defillamaCurrentPriceIdByCoinId[coinId]
 				if (llamaId == null) throw new Error('Defillama_OpenApi: OHLC coin not mapped')
-				const rows = await getDefillamaChartOhlcRowsCoingeckoShape({
+				const ohlcCandles = await getChartOhlcRows({
 					llamaCoinId: llamaId,
 					days: entityId.timeInterval.value,
 				})
-				const row = rows.find(([timestampMs]) => (
+				const ohlcCandle = ohlcCandles.find(([timestampMs]) => (
 					Math.floor(timestampMs) === entityId.timestampMs
 				))
-				if (row == null) throw new Error('Defillama_OpenApi: OHLC candle not found for timestamp')
+				if (ohlcCandle == null) throw new Error('Defillama_OpenApi: OHLC candle not found for timestamp')
 				return (
 					candleFromOhlc(
 						entityId.$market,
 						entityId.timeInterval,
-						row,
+					ohlcCandle,
 					)
 				)
 			},
@@ -250,7 +252,7 @@ export default {
 					return []
 				}
 				const { defillamaCurrentPriceIdByCoinId } = await import('$/sources/Defillama/Rest/constants.ts')
-				const { getDefillamaChartOhlcRowsCoingeckoShape } = await import('$/sources/Defillama/OpenApi/queries.ts')
+				const { getChartOhlcRows } = await import('$/sources/Defillama/OpenApi/queries.ts')
 				const coinId = entityId.$base.$coin.coinId
 				if (defillamaCurrentPriceIdByCoinId[coinId] == null) {
 					throw new Error('Defillama_OpenApi: OHLC coin not mapped')
@@ -266,7 +268,7 @@ export default {
 							value,
 						}
 					)
-					const rows = await getDefillamaChartOhlcRowsCoingeckoShape({
+					const ohlcCandles = await getChartOhlcRows({
 						llamaCoinId: llamaId,
 						days: value,
 					})
@@ -274,7 +276,7 @@ export default {
 						...candlesFromOhlc(
 							entityId,
 							timeInterval,
-							rows,
+							ohlcCandles,
 						),
 					)
 				}
@@ -310,12 +312,13 @@ export default {
 								:
 									undefined
 							)
-						: defillamaCurrentPriceIdByCoinId[coinId]
+						:
+							defillamaCurrentPriceIdByCoinId[coinId]
 					)
 				)
 				if (llamaId == null) throw new Error('Defillama_OpenApi: no price id')
 				const priceRow = (await getCurrentPrices([llamaId])).coins[llamaId]
-				if (priceRow == null) throw new Error('Defillama_OpenApi: price row missing')
+				if (priceRow == null) throw new Error('Defillama_OpenApi: price missing')
 				return [
 					{
 						[EntityMetaKey.Id]: {
@@ -346,6 +349,19 @@ export default {
 					[EntityMetaKey.Id]: entityId.$market,
 				}
 			),
+		}),
+
+		defineEntityFieldResolver({
+			entityType: EntityType.EvmNetwork,
+			fieldName: '$icon',
+			resolve: async (entityId) => {
+				const { getChainSlugByChainId, getChainIconUrl } = await import('$/sources/Defillama/OpenApi/queries.ts')
+				const slug = getChainSlugByChainId[Number(entityId.caip2.reference)]
+				if (slug == null) throw new Error(`Defillama_OpenApi: no chain icon slug for chain ${entityId.caip2.reference}`)
+				const iconMedia = mediaFromUrl(getChainIconUrl(slug), MediaType.Image)
+				if (iconMedia == null) throw new Error(`Defillama_OpenApi: invalid icon URL for chain ${entityId.caip2.reference}`)
+				return iconMedia
+			},
 		}),
 	],
 }

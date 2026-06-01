@@ -6,7 +6,7 @@ export const swarmDocsLandingReference = (
 	'8b6ca499eb6f3f7e5ee242f08f1de2e7e6bb1728d7f4ee5ec22091b048f34ff1'
 ) as const
 
-/** Public gateways tried in order by {@link import('./queries.ts').fetchSwarmBrowseResult}. */
+/** Public gateways tried in order by {@link import('./queries.ts').fetchBrowseResult}. */
 export const gatewayUrls = [
 	'https://gateway.ethswarm.org',
 	'https://bzz.link',

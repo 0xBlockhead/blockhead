@@ -3,6 +3,8 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
+import { caip2ByNetworkSlug } from '$/constants/Network.ts'
+import { solanaMainnetRpcEndpoints } from '$/constants/SolanaNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -12,13 +14,14 @@ import type {
 	SolanaRpcVoteAccounts,
 } from '$/sources/Solana/JsonRpc/types.ts'
 
-const solanaMainnetRpcUrl = 'https://api.mainnet-beta.solana.com'
+const solanaMainnetRpcUrl = solanaMainnetRpcEndpoints[0].url
+const solanaMainnetCaip2 = caip2ByNetworkSlug.solana
 
 const assertSolanaMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
 		!('caip2' in network)
-		|| network.caip2.namespace !== 'solana'
-		|| network.caip2.reference !== '5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'
+		|| network.caip2.namespace !== solanaMainnetCaip2.namespace
+		|| network.caip2.reference !== solanaMainnetCaip2.reference
 	) {
 		throw new Error('Solana_JsonRpc: unsupported network')
 	}
@@ -41,7 +44,8 @@ const solanaTransactionFields = (
 	...((feePayer) => (
 		feePayer == null ?
 			{}
-		:	{
+		:
+			{
 			$feePayer: {
 				[EntityMetaKey.Id]: {
 					$network: network,
@@ -191,7 +195,8 @@ export default {
 					$$transactions: block.transactions.flatMap((transaction) => (
 						transaction.transaction.signatures[0] == null ?
 							[]
-						:	[
+						:
+							[
 							{
 								[EntityMetaKey.Id]: {
 									$network: entityId.$network,
@@ -451,7 +456,9 @@ export default {
 				}))
 				return (await getBlocks({
 					rpcUrl: solanaMainnetRpcUrl,
-					startSlot: endSlot > BigInt(limit - 1) ? endSlot - BigInt(limit - 1) : 0n,
+					startSlot: endSlot > BigInt(limit - 1) ? endSlot - BigInt(limit - 1)
+					:
+						0n,
 					endSlot,
 				}))
 					.toReversed()
@@ -515,7 +522,8 @@ export default {
 						block?.transactions.flatMap((transaction) => (
 							transaction.transaction.signatures[0] == null ?
 								[]
-							:	[
+							:
+								[
 								{
 									[EntityMetaKey.Id]: {
 										$network: entityId,
@@ -548,7 +556,8 @@ export default {
 				return block.transactions.flatMap((transaction) => (
 					transaction.transaction.signatures[0] == null ?
 						[]
-					:	[
+					:
+						[
 						{
 							[EntityMetaKey.Id]: {
 								$network: entityId.$network,

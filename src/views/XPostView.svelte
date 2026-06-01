@@ -155,7 +155,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href, open: contentOpen })}
+	{#snippet Content({})}
 		{#if contentOpen}
 			<ResourceBoundary
 				resource={post}

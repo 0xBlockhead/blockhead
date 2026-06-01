@@ -66,11 +66,9 @@
 	// Components
 	import EntityView, { EntityLayout } from '$/components/EntityView.svelte'
 	import CollapsibleTabs from '$/components/CollapsibleTabs.svelte'
-	import EntitiesList from '$/components/EntitiesList.svelte'
 	import HeadingComponent from '$/components/Heading.svelte'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 	import ResourceBoundary from '$/components/ResourceBoundary.svelte'
-	import AssetInstanceView from '$/views/AssetInstanceView.svelte'
+	import AssetInstancesView from '$/views/AssetInstancesView.svelte'
 	import LightningChannelsView from '$/views/LightningChannelsView.svelte'
 	import LightningInvoicesView from '$/views/LightningInvoicesView.svelte'
 	import LightningNetwork_TimestampView from '$/views/LightningNetwork_TimestampView.svelte'
@@ -235,26 +233,17 @@
 			{/snippet}
 
 			{#snippet SectionLightningAssetsSettlement({ id, label }: { id: string, label: string })}
-				<ResourceBoundary resource={settlementNetwork}>
-					{#snippet children(settlementNetwork)}
-						<EntitiesList
-							collapsible={false}
-							entityType={EntityType.AssetInstance}
-							getKey={(asset) => `${asset[EntityMetaKey.Id].kind}:${asset[EntityMetaKey.Id].assetKey}`}
-							id={`${id}-list`}
-							items={settlementNetwork.$$nativeAssets}
-							title={label}
-							UnorderedListProps={{ orientation: ListOrientation.Column }}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">No settlement asset mapped for this network yet.</p>
-							{/snippet}
-							{#snippet Item(context)}
-								<AssetInstanceView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />
-							{/snippet}
-						</EntitiesList>
-					{/snippet}
-				</ResourceBoundary>
+				<AssetInstancesView
+					CollapsibleProps={{ canToggle: false }}
+					emptyText="No settlement asset mapped for this network yet."
+					entityFieldReference={{
+						entityType: EntityType.Network,
+						entityId: entityId.$network,
+						fieldName: '$$nativeAssets',
+					}}
+					id={`${id}-list`}
+					title={label}
+				/>
 			{/snippet}
 		</CollapsibleTabs>
 

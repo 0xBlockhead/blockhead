@@ -1,9 +1,6 @@
 <script lang="ts">
 	// Types/constants
 	import { caip2RouteParamsFromNetworkId } from '$/lib/caip.ts'
-
-
-	// Types/constants
 	import type { ComponentProps, Snippet } from 'svelte'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import { schema } from '$/schema/index.ts'
@@ -134,19 +131,12 @@
 			<div>
 				<dt>Hash</dt>
 				<dd>
-					<ResourceBoundary
-						resource={block}
-						placeholderText="Loading block…"
-					>
-						{#snippet children(block)}
-							{#if entityId.hash || block.hash}
-								<TruncatedValue
-									value={entityId.hash || block.hash}
-									format={TruncatedValueFormat.Abbr}
-								/>
-							{/if}
-						{/snippet}
-					</ResourceBoundary>
+					{#if entityId.hash}
+						<TruncatedValue
+							value={entityId.hash}
+							format={TruncatedValueFormat.Abbr}
+						/>
+					{/if}
 				</dd>
 			</div>
 
@@ -324,7 +314,7 @@
 	{/snippet}
 
 	{#snippet Details({
-		open: detailsOpen,
+		open,
 	})}
 		<CollapsibleTabs
 				sectionIdPrefix={blockIdKey}

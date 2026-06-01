@@ -42,7 +42,8 @@ const usernameAndCastHashPrefixFromUrl = (clientUrl: string) => {
 				username,
 				castHashPrefix,
 			}
-		:	undefined
+		:
+			undefined
 	)
 }
 
@@ -69,11 +70,13 @@ const castRefFromWire = (value: JsonValue) => {
 	const fid = (
 		isJsonObject(author) && typeof author.fid === 'number' ?
 			author.fid
-		:	undefined
+		:
+			undefined
 	)
 	return hash != null && fid != null ?
 		{ hash, fid }
-	:	undefined
+	:
+		undefined
 }
 
 const castRefFromHaatzCastEndpoint = async (clientUrl: string) => {

@@ -207,7 +207,7 @@ const entityFieldDefinitionFor = <
 	entityType: _EntityType,
 	fieldName: EntityFieldName<typeof schema, _EntityType>,
 ) => {
-	const fieldDefinition = (entityFieldDefinitionsByEntityType as any)[entityType][fieldName]
+	const fieldDefinition = entityFieldDefinitionsByEntityType[entityType][fieldName]
 	if (fieldDefinition === undefined) {
 		throw new Error(
 			`useEntity: ${entityType} has no field ${fieldName}`,
@@ -376,7 +376,7 @@ export const useEntity3 = <
 					fieldName,
 					useLiveQueryResource(
 						(queryBuilder) => {
-							const fieldDefinition = (entityFieldDefinitionsByEntityType as any)[entityType][fieldName]
+							const fieldDefinition = entityFieldDefinitionsByEntityType[entityType][fieldName]
 							if (fieldDefinition === undefined) {
 								throw new Error(
 									`useEntity: ${entityType} has no field ${fieldName}`,
@@ -475,7 +475,7 @@ export const useEntity3 = <
 			...Object.fromEntries(
 				selectedFieldEntries
 					.map(([fieldName]) => {
-						const cardinality = (entityFieldDefinitionsByEntityType as any)[entityType][fieldName].cardinality
+						const cardinality = entityFieldDefinitionsByEntityType[entityType][fieldName].cardinality
 						return [
 							fieldName,
 							cardinality === EntityFieldCardinality.Many

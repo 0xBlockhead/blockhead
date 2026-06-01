@@ -6,7 +6,7 @@ import type { TradingViewQuote } from '$/sources/TradingView/Rest/types.ts'
  *
  * @see https://www.tradingview.com/widget-docs/widgets/screeners/screener/demos/crypto-pairs/
  */
-export const getTradingViewCryptoQuotes = async (
+export const getCryptoQuotes = async (
 	tickers: readonly string[],
 ) => (
 	(await tradingViewScannerFetch({

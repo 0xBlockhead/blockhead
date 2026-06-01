@@ -143,7 +143,8 @@ const fieldResolvePayloadEmptyForProbe = (
 		|| raw.length === 0
 	) ?
 		'field resolve returned empty array'
-	:	undefined
+	:
+		undefined
 }
 
 
@@ -305,10 +306,12 @@ export const runAssertLoadedResolverProbes = async (): Promise<AssertLoadedResol
 				|| fieldDef.cardinality === EntityFieldCardinality.Many ?
 					Array.isArray(raw) ?
 						raw
-					:	[]
+					:
+						[]
 				: raw == null ?
 					[]
-				:	[raw]
+				:
+					[raw]
 			)
 
 			let assertThrew = false

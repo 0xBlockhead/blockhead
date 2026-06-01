@@ -2,16 +2,19 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import { cosmosHubCaip2, cosmosHubRpcUrl } from '$/constants/CosmosNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const cosmosHubRpcUrl = 'https://cosmos-rpc.publicnode.com'
-
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
 const assertCosmosHub = (network: NetworkId) => {
-	if (!('caip2' in network) || network.caip2.namespace !== 'cosmos' || network.caip2.reference !== 'cosmoshub-4') {
+	if (
+		!('caip2' in network)
+		|| network.caip2.namespace !== cosmosHubCaip2.namespace
+		|| network.caip2.reference !== cosmosHubCaip2.reference
+	) {
 		throw new Error('CometBft_Rest: unsupported network')
 	}
 }
@@ -25,14 +28,14 @@ export default {
 			resolve: async (entityId) => {
 				assertCosmosHub(entityId.$network)
 				const { getBlock } = await import('$/sources/CometBft/Rest/queries.ts')
-				const row = await getBlock({
+				const wireBlock = await getBlock({
 					restBaseUrl: cosmosHubRpcUrl,
 					height: entityId.height,
 				})
 				return {
-					hash: row.result.block_id.hash,
-					proposerConsensusAddress: row.result.block.header.proposer_address,
-					timestampMs: Date.parse(row.result.block.header.time),
+					hash: wireBlock.result.block_id.hash,
+					proposerConsensusAddress: wireBlock.result.block.header.proposer_address,
+					timestampMs: Date.parse(wireBlock.result.block.header.time),
 				}
 			},
 		}),
@@ -42,7 +45,7 @@ export default {
 			resolve: async (entityId) => {
 				assertCosmosHub(entityId.$network)
 				const { getTx } = await import('$/sources/CometBft/Rest/queries.ts')
-				const row = await getTx({
+				const wireTransaction = await getTx({
 					restBaseUrl: cosmosHubRpcUrl,
 					txHash: entityId.txHash,
 				})
@@ -50,12 +53,12 @@ export default {
 					$block: {
 						[EntityMetaKey.Id]: {
 							$network: entityId.$network,
-							height: BigInt(row.result.height),
+							height: BigInt(wireTransaction.result.height),
 						},
 					},
-					code: row.result.tx_result.code,
-					gasWanted: BigInt(row.result.tx_result.gas_wanted),
-					gasUsed: BigInt(row.result.tx_result.gas_used),
+					code: wireTransaction.result.tx_result.code,
+					gasWanted: BigInt(wireTransaction.result.tx_result.gas_wanted),
+					gasUsed: BigInt(wireTransaction.result.tx_result.gas_used),
 				}
 			},
 		}),

@@ -61,16 +61,22 @@
 		isFullMedia(media)
 			? size === 'original'
 				? media.original
-				: size === 'high'
+				:
+					size === 'high'
 					? media.high
-					: size === 'medium'
+					:
+						size === 'medium'
 						? media.medium
-						: size === 'low'
+						:
+							size === 'low'
 							? media.low
-							: size === 'thumbnail'
+							:
+								size === 'thumbnail'
 								? media.thumbnail
-								: media.original
-			: undefined
+								:
+									media.original
+			:
+				undefined
 	)
 
 	const url = $derived(
@@ -81,14 +87,16 @@
 			&& 'url' in media
 			&& typeof media.url === 'string'
 				? media.url
-				: undefined
+				:
+					undefined
 		)
 	)
 
 	const mediaType = $derived(
 		isFullMedia(media)
 			? media.type
-			: inferTypeFromUrl(url)
+			:
+				inferTypeFromUrl(url)
 	)
 </script>
 
@@ -120,7 +128,8 @@
 				controls
 				preload={loading === 'eager'
 					? 'auto'
-					: 'metadata'}
+					:
+						'metadata'}
 			>
 				{alt}
 			</video>
@@ -132,7 +141,8 @@
 				controls
 				preload={loading === 'eager'
 					? 'auto'
-					: 'metadata'}
+					:
+						'metadata'}
 			>
 				{alt}
 			</audio>

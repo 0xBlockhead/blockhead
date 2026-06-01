@@ -16,16 +16,19 @@
 		entityFieldReference,
 		title = 'Slashings',
 		open = $bindable(true),
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.BeaconSlashing>
 			title?: string
 			open?: boolean
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'id'
 			| 'CollapsibleProps'
 		>
 	> = $props()
@@ -35,30 +38,11 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Beacon_Rest,
-				],
-				$limit: 16,
-			},
-		},
-	)
-
-	const slashings = derive(
-		parent,
-		(parent): Entity<typeof schema, EntityType.BeaconSlashing>[] => (
-			parent[entityFieldReference.fieldName]
-			?? []
-		),
-	)
-
 
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import BeaconSlashingView from '$/views/BeaconSlashingView.svelte'
 </script>
 
 
@@ -66,28 +50,61 @@
 	entityType={EntityType.BeaconSlashing}
 	{title}
 	bind:open
-	getKey={(slashing) => `${String(slashing[EntityMetaKey.Id].slot)}:${slashing[EntityMetaKey.Id].kind}:${String(slashing[EntityMetaKey.Id].index)}`}
-	resource={slashings}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	{id}
+	href={href}
 	{...EntitiesListProps}
 >
-	{#snippet Empty()}
-		<p data-text="muted">No slashings in the loaded slot.</p>
+	{#snippet TypeAnnotationTooltip()}
+		<p>
+			Slashings penalize validators for attester or proposer faults in the loaded beacon scope.
+		</p>
 	{/snippet}
 
-	{#snippet Item({ item: slashing })}
-		<div class="entity-details">
-			<dl data-column-item="center">
-				<div>
-					<dt>Kind</dt>
-					<dd>{slashing[EntityMetaKey.Id].kind}</dd>
-				</div>
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Beacon_Rest,
+						],
+						$limit: 16,
+					},
+				},
+			)}
+			{@const slashings = derive(
+				parent,
+				(parent): Entity<typeof schema, EntityType.BeaconSlashing>[] => (
+					parent[entityFieldReference.fieldName]
+					?? []
+				),
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.BeaconSlashing}
+				id={`${id}-items`}
+				href={href}
+				getKey={(slashing) => `${String(slashing[EntityMetaKey.Id].slot)}:${slashing[EntityMetaKey.Id].kind}:${String(slashing[EntityMetaKey.Id].index)}`}
+				resource={slashings}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">No slashings in the loaded slot.</p>
+				{/snippet}
 
-				<div>
-					<dt>Slot</dt>
-					<dd>{String(slashing[EntityMetaKey.Id].slot)}</dd>
-				</div>
-			</dl>
-		</div>
+				{#snippet Item({ item: slashing })}
+					<BeaconSlashingView
+						entityId={slashing[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

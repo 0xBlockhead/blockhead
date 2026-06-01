@@ -87,7 +87,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<dl>
 			<div>
 				<dt>Layout kind</dt>

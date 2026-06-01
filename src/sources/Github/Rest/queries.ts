@@ -7,7 +7,7 @@ const encodePathSegments = (pathInRepo: string) => (
 		.join('/')
 )
 
-export const getGithubRestRepoContentsUrl = ({
+export const getRestRepoContentsUrl = ({
 	owner,
 	repo,
 	pathInRepo,
@@ -21,7 +21,7 @@ export const getGithubRestRepoContentsUrl = ({
 	`${restOrigin}/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodePathSegments(pathInRepo)}?ref=${encodeURIComponent(ref)}`
 )
 
-export const getGithubRawUserContentUrl = ({
+export const getRawUserContentUrl = ({
 	owner,
 	repo,
 	ref,

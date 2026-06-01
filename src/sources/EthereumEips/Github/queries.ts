@@ -1,7 +1,7 @@
 import { getJson, getText } from '$/sources/Github/Rest/client.ts'
 import {
-	getGithubRawUserContentUrl,
-	getGithubRestRepoContentsUrl,
+	getRawUserContentUrl,
+	getRestRepoContentsUrl,
 } from '$/sources/Github/Rest/queries.ts'
 import EthereumEips from '$/sources/EthereumEips/index.ts'
 
@@ -11,9 +11,9 @@ import {
 } from './constants.ts'
 import type { EthereumEipSpecLedger } from './types.ts'
 
-export const getEthereumEipSpecGithubContentsUrl = ({ ledger }: { ledger: EthereumEipSpecLedger }) => {
+export const getContentsUrl = ({ ledger }: { ledger: EthereumEipSpecLedger }) => {
 	const repository = ethereumEipSpecGithubRepoByLedger[ledger]
-	return getGithubRestRepoContentsUrl({
+	return getRestRepoContentsUrl({
 		owner: repository.owner,
 		repo: repository.repo,
 		pathInRepo: repository.path,
@@ -21,7 +21,7 @@ export const getEthereumEipSpecGithubContentsUrl = ({ ledger }: { ledger: Ethere
 	})
 }
 
-export const getEthereumEipSpecRawMarkdownUrl = ({
+export const getRawMarkdownUrl = ({
 	ledger,
 	fileName,
 	downloadUrl,
@@ -33,7 +33,7 @@ export const getEthereumEipSpecRawMarkdownUrl = ({
 	const repository = ethereumEipSpecGithubRepoByLedger[ledger]
 	return (
 		downloadUrl ??
-		getGithubRawUserContentUrl({
+		getRawUserContentUrl({
 			owner: repository.owner,
 			repo: repository.repo,
 			ref: repository.ref,
@@ -42,7 +42,7 @@ export const getEthereumEipSpecRawMarkdownUrl = ({
 	)
 }
 
-export const getEthereumEipSpecProposalMarkdownUrl = ({
+export const getProposalMarkdownUrl = ({
 	ledger,
 	number,
 }: {
@@ -50,7 +50,7 @@ export const getEthereumEipSpecProposalMarkdownUrl = ({
 	number: number
 }) => {
 	const repository = ethereumEipSpecGithubRepoByLedger[ledger]
-	return getGithubRawUserContentUrl({
+	return getRawUserContentUrl({
 		owner: repository.owner,
 		repo: repository.repo,
 		ref: repository.ref,
@@ -60,17 +60,17 @@ export const getEthereumEipSpecProposalMarkdownUrl = ({
 	})
 }
 
-export const getEthereumEipSpecGithubContents = ({ ledger }: { ledger: EthereumEipSpecLedger }) => (
+export const getContents = ({ ledger }: { ledger: EthereumEipSpecLedger }) => (
 	getJson<{
 		type: string
 		name: string
 	}[]>({
-		url: getEthereumEipSpecGithubContentsUrl({ ledger }),
+		url: getContentsUrl({ ledger }),
 		origins: EthereumEips.origins ?? [],
 	})
 )
 
-export const getEthereumEipSpecRawMarkdownText = ({
+export const getRawMarkdownText = ({
 	ledger,
 	fileName,
 	downloadUrl,
@@ -79,17 +79,17 @@ export const getEthereumEipSpecRawMarkdownText = ({
 	fileName: string
 	downloadUrl: string | null | undefined
 }) => getText({
-	url: getEthereumEipSpecRawMarkdownUrl({ ledger, fileName, downloadUrl }),
+	url: getRawMarkdownUrl({ ledger, fileName, downloadUrl }),
 	origins: EthereumEips.origins ?? [],
 })
 
-export const getEthereumEipSpecProposalMarkdownText = ({
+export const getProposalMarkdownText = ({
 	ledger,
 	number,
 }: {
 	ledger: EthereumEipSpecLedger
 	number: number
 }) => getText({
-	url: getEthereumEipSpecProposalMarkdownUrl({ ledger, number }),
+	url: getProposalMarkdownUrl({ ledger, number }),
 	origins: EthereumEips.origins ?? [],
 })

@@ -4,8 +4,6 @@
 	import type { Entity } from '$/schema/$schema.ts'
 	import type { EntityId } from '$/schema/$schema.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { useEntity } from '$/collections/$queries.svelte.ts'
-	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
@@ -29,20 +27,10 @@
 		>
 	> = $props()
 
-	const moneroRing = useEntity(
-		EntityType.MoneroRing,
-		entityId,
-		{
-			$$members: {},
-		},
-	)
 
-	const moneroRingMembers = derive(
-		moneroRing,
-		(moneroRing): Entity<typeof schema, EntityType.MoneroRingMember>[] => (
-			moneroRing.$$members ?? []
-		),
-	)
+	// State
+	import { useEntity } from '$/collections/$queries.svelte.ts'
+	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 
 
 	// Components
@@ -71,17 +59,45 @@
 			href={`#${encodeURIComponent(`${stringify(entityId)}:members`)}`}
 			id={`${stringify(entityId)}:members`}
 			title="Ring members"
-			resource={moneroRingMembers}
-			placeholderText="Loading Monero ring members..."
-			getKey={(row) => stringify(row[EntityMetaKey.Id])}
-			open={open}
+			bind:open
+			collapsible={false}
 		>
-			{#snippet Item({ item: member })}
-				<MoneroRingMemberView
-					entityId={member[EntityMetaKey.Id]}
-					layout={EntityLayout.Summary}
-					open={false}
-				/>
+			{#snippet body()}
+				{#if open}
+					{@const moneroRing = useEntity(
+						EntityType.MoneroRing,
+						entityId,
+						{
+							$$members: {},
+						},
+					)}
+					{@const moneroRingMembers = derive(
+						moneroRing,
+						(moneroRing): Entity<typeof schema, EntityType.MoneroRingMember>[] => (
+							moneroRing.$$members ?? []
+						),
+					)}
+					<EntitiesList
+						collapsible={false}
+						showSummary={false}
+						entityType={EntityType.MoneroRingMember}
+						href={`#${encodeURIComponent(`${stringify(entityId)}:members`)}`}
+						id={`${stringify(entityId)}:members-items`}
+						title="Ring members"
+						open={true}
+						resource={moneroRingMembers}
+						placeholderText="Loading Monero ring members..."
+						getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					>
+						{#snippet Item({ item: member })}
+							<MoneroRingMemberView
+								entityId={member[EntityMetaKey.Id]}
+								layout={EntityLayout.Summary}
+								open={false}
+							/>
+						{/snippet}
+					</EntitiesList>
+				{/if}
 			{/snippet}
 		</EntitiesList>
 	{/snippet}

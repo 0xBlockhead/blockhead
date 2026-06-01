@@ -22,7 +22,9 @@
 	const proposalNumber = $derived(
 		(() => {
 			const raw = params.proposalRef.slice(params.proposalRef.lastIndexOf('-') + 1)
-			return /^\d+$/.test(raw) ? Number(raw) : undefined
+			return /^\d+$/.test(raw) ? Number(raw)
+			:
+				undefined
 		})(),
 	)
 

@@ -108,7 +108,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: routeHref })}
+	{#snippet Content({})}
 		<dl data-column-item="center">
 			<div>
 				<dt>From chain</dt>
@@ -313,7 +313,7 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 	{/snippet}
 
 	{@render children?.()}

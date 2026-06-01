@@ -1,8 +1,8 @@
 import { getText, githubHttp } from '$/sources/Github/Rest/client.ts'
 import { throwHttpError } from '$/lib/http.ts'
 import {
-	getGithubRawUserContentUrl,
-	getGithubRestRepoContentsUrl,
+	getRawUserContentUrl,
+	getRestRepoContentsUrl,
 } from '$/sources/Github/Rest/queries.ts'
 import DogecoinDips from '$/sources/DogecoinDips/index.ts'
 import type { DogecoinDipsGithubContents } from '$/sources/DogecoinDips/Github/types.ts'
@@ -14,9 +14,9 @@ const dogecoinDipsGithubRepo = {
 	ref: 'master',
 } as const
 
-export const getDogecoinDipsGithubContents = async (): Promise<DogecoinDipsGithubContents> => {
+export const getContents = async (): Promise<DogecoinDipsGithubContents> => {
 	const response = await githubHttp({
-		url: getGithubRestRepoContentsUrl({
+		url: getRestRepoContentsUrl({
 			owner: dogecoinDipsGithubRepo.owner,
 			repo: dogecoinDipsGithubRepo.repo,
 			pathInRepo: dogecoinDipsGithubRepo.path,
@@ -28,9 +28,9 @@ export const getDogecoinDipsGithubContents = async (): Promise<DogecoinDipsGithu
 	return response.json<DogecoinDipsGithubContents>()
 }
 
-export const getDogecoinDipMediaWikiText = ({ number }: { number: number }) => (
+export const getMediaWikiText = ({ number }: { number: number }) => (
 	getText({
-		url: getGithubRawUserContentUrl({
+		url: getRawUserContentUrl({
 			owner: dogecoinDipsGithubRepo.owner,
 			repo: dogecoinDipsGithubRepo.repo,
 			ref: dogecoinDipsGithubRepo.ref,

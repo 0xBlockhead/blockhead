@@ -20,6 +20,8 @@
 		open = $bindable(true),
 		entityFieldReference,
 		networkIds,
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
@@ -27,13 +29,13 @@
 			open?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Network>
 			networkIds?: readonly EntityId<typeof schema, EntityType.Network>[]
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'collapsible'
 			| 'CollapsibleProps'
-			| 'id'
-			| 'href'
 		>
 	> = $props()
 
@@ -42,7 +44,30 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const parent = useEntity(
+	// Components
+	import EntitiesList from '$/components/EntitiesList.svelte'
+	import { EntityLayout } from '$/components/EntityView.svelte'
+	import NetworkView from '$/views/NetworkView.svelte'
+</script>
+
+
+<EntitiesList
+	entityType={EntityType.Network}
+	{title}
+	bind:open
+	{id}
+	href={href}
+	{...EntitiesListProps}
+>
+	{#snippet TypeAnnotationTooltip()}
+			<p>
+				Networks are concrete public or stack-level systems identified by stack-native references, using CAIP-2-style namespace/reference pairs where that is accurate.
+			</p>
+		{/snippet}
+
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
 		entityFieldReference.entityType,
 		entityFieldReference.entityId,
 		{
@@ -53,9 +78,8 @@
 				$limit: 4096,
 			},
 		},
-	)
-
-	const filteredNetworks = derive(
+	)}
+			{@const filteredNetworks = derive(
 		parent,
 		(parent) => {
 			const keys = new SvelteSet<string>()
@@ -76,45 +100,37 @@
 					})
 			)
 		},
-	)
+	)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.Network}
+				id={`${id}-items`}
+				href={href}
+				{title}
+				getKey={(line) => stringifyId(line.value[EntityMetaKey.Id])}
+				getSortValue={(line) => stringifyId(line.value[EntityMetaKey.Id])}
+				placeholderKeys={new SvelteSet<string | number>()}
+				placeholderText="Loading networks…"
+				resource={filteredNetworks}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+						<p data-text="muted">
+							No networks match this list yet.
+						</p>
+					{/snippet}
 
+				{#snippet Item({ item: line })}
+						<NetworkView
+							entityId={line.value[EntityMetaKey.Id]}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/snippet}
 
-	// Components
-	import EntitiesList from '$/components/EntitiesList.svelte'
-	import { EntityLayout } from '$/components/EntityView.svelte'
-	import NetworkView from '$/views/NetworkView.svelte'
-</script>
-
-
-<EntitiesList
-	entityType={EntityType.Network}
-	{title}
-	bind:open
-	getKey={(line) => stringifyId(line.value[EntityMetaKey.Id])}
-	getSortValue={(line) => stringifyId(line.value[EntityMetaKey.Id])}
-	placeholderKeys={new SvelteSet<string | number>()}
-	placeholderText="Loading networks…"
-	resource={filteredNetworks}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
-	{...EntitiesListProps}
->
-	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Networks are concrete public or stack-level systems identified by stack-native references, using CAIP-2-style namespace/reference pairs where that is accurate.
-		</p>
-	{/snippet}
-
-	{#snippet Empty()}
-		<p data-text="muted">
-			No networks match this list yet.
-		</p>
-	{/snippet}
-
-	{#snippet Item({ item: line })}
-		<NetworkView
-			entityId={line.value[EntityMetaKey.Id]}
-			layout={EntityLayout.Summary}
-			open={false}
-		/>
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

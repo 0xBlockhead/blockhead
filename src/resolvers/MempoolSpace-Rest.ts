@@ -3,27 +3,26 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
+import {
+	bitcoinMainnetCaip2,
+	mempoolSpaceBitcoinMainnetRestBaseUrl,
+} from '$/constants/BitcoinNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const mempoolSpaceBitcoinMainnetRestBaseUrl = 'https://mempool.space/api'
-
 const assertBitcoinMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
 		!('caip2' in network)
-		|| network.caip2.namespace !== 'bip122'
-		|| network.caip2.reference !== '000000000019d6689c085ae165831e93'
+		|| network.caip2.namespace !== bitcoinMainnetCaip2.namespace
+		|| network.caip2.reference !== bitcoinMainnetCaip2.reference
 	) {
 		throw new Error('MempoolSpace_Rest: unsupported Bitcoin network')
 	}
 }
 
 const bitcoinMainnet = {
-	caip2: {
-		namespace: 'bip122',
-		reference: '000000000019d6689c085ae165831e93',
-	},
+	caip2: bitcoinMainnetCaip2,
 } as const
 
 const getTransaction = async (entityId: {
@@ -159,6 +158,26 @@ export default {
 		}),
 
 		defineEntityResolver({
+			entityType: EntityType.UtxoAddress,
+			resolve: async (entityId) => {
+				assertBitcoinMainnet(entityId.$network)
+				const { getAddress } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+				const address = await getAddress({
+					restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl,
+					address: entityId.address,
+				})
+				const chainStats = address.chain_stats
+				return {
+					balanceSats: BigInt(chainStats.funded_txo_sum - chainStats.spent_txo_sum),
+					transactionCount: chainStats.tx_count,
+					unspentOutputCount: chainStats.funded_txo_count - chainStats.spent_txo_count,
+					totalReceivedSats: BigInt(chainStats.funded_txo_sum),
+					totalSpentSats: BigInt(chainStats.spent_txo_sum),
+				}
+			},
+		}),
+
+		defineEntityResolver({
 			entityType: EntityType.UtxoOutput,
 			resolve: async (entityId) => {
 				const output = (await getTransaction(entityId.$transaction)).vout[entityId.outputIndex]
@@ -227,12 +246,12 @@ export default {
 				assertBitcoinMainnet(entityId)
 				const {
 					getBlocks,
-					getMempoolStats,
+					getStats,
 					getRecommendedFees,
 				} = await import('$/sources/MempoolSpace/Rest/queries.ts')
 				const [blocks, mempoolStats, fees] = await Promise.all([
 					getBlocks({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl }),
-					getMempoolStats({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl }),
+					getStats({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl }),
 					getRecommendedFees({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl }),
 				])
 				const block = blocks[0]
@@ -283,8 +302,8 @@ export default {
 			fieldName: '$$transactions',
 			resolve: async (entityId, context) => {
 				assertBitcoinMainnet(entityId)
-				const { getMempoolTxids } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-				const txids = await getMempoolTxids({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl })
+				const { getTxids } = await import('$/sources/MempoolSpace/Rest/queries.ts')
+				const txids = await getTxids({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl })
 				return txids.slice(0, resolverLoadSubsetRowLimit(context)).map((txId) => ({
 					[EntityMetaKey.Id]: {
 						$network: entityId,

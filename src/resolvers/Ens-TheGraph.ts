@@ -16,7 +16,8 @@ import { Source } from '$/sources/$Source.ts'
 const bigintFromSubgraphScalar = (value: unknown) => (
 	value == null ?
 		null
-	:	BigInt(String(value))
+	:
+		BigInt(String(value))
 )
 
 const epochMsFromSubgraphScalar = (value: unknown) => {
@@ -24,7 +25,8 @@ const epochMsFromSubgraphScalar = (value: unknown) => {
 	return (
 		epochSeconds == null ?
 			null
-		:	epochSeconds * 1000n
+		:
+			epochSeconds * 1000n
 	)
 }
 
@@ -44,11 +46,13 @@ const actorEntityFromSubgraphAccount = (
 	const address = (
 		account?.id == null ?
 			undefined
-		:	hexLowerOfByteSize(account.id, 20)
+		:
+			hexLowerOfByteSize(account.id, 20)
 	)
 	return address == null ?
 			null
-		:	{
+		:
+			{
 				[EntityMetaKey.Id]: {
 					address,
 				},
@@ -62,11 +66,11 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.EnsName,
 			resolve: async (entityId, context) => {
-				const { getEnsName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+				const { getName } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.TheGraph_Graphql)
 				const normalizedName = ensToString(ensNormalizeNode(entityId.name.trim()))
 				const matchingEnsDomain = (
-					await singleFlight(getEnsName)({
+					await singleFlight(getName)({
 						publicEnv,
 						name: normalizedName,
 					})
@@ -81,7 +85,8 @@ export default {
 								name: parentName,
 							},
 						}
-					:	null
+					:
+						null
 				)
 				const subdomainEnsNameEntities = (
 					matchingEnsDomain.subdomains.flatMap((subdomain) => (
@@ -91,7 +96,8 @@ export default {
 									name: subdomain.name,
 								},
 							}]
-						:	[]
+						:
+							[]
 					))
 				)
 				const ttlBigInt = bigintFromSubgraphScalar(matchingEnsDomain.ttl)
@@ -183,10 +189,10 @@ export default {
 			entityType: EntityType.EvmAccount,
 			fieldName: '$$ensNamesOwned',
 			resolve: async (entityId, context) => {
-				const { getEnsDomainsByOwner } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+				const { getDomainsByOwner } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.TheGraph_Graphql)
 				return (
-					(await singleFlight(getEnsDomainsByOwner)({
+					(await singleFlight(getDomainsByOwner)({
 						publicEnv,
 						owner: zeroExLowerCase(entityId.address),
 					}))
@@ -197,7 +203,8 @@ export default {
 										name: domain.name,
 									},
 								}]
-							:	[]
+							:
+								[]
 						))
 				)
 			},
@@ -206,12 +213,12 @@ export default {
 			entityType: EntityType.EnsSearch,
 			fieldName: '$$ensNames',
 			resolve: async (entityId, context) => {
-				const { getEnsDomainsContaining } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
+				const { getDomainsContaining } = await import('$/sources/TheGraph/Graphql/Ens/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.TheGraph_Graphql)
 				const limit = resolverLoadSubsetRowLimit(context)
 				const query = normalizedEnsSearchQuery(entityId.query)
 				return (
-					(await singleFlight(getEnsDomainsContaining)({
+					(await singleFlight(getDomainsContaining)({
 						publicEnv,
 						query,
 						limit,
@@ -223,7 +230,8 @@ export default {
 										name: domain.name,
 									},
 								}]
-							:	[]
+							:
+								[]
 						))
 				)
 			},

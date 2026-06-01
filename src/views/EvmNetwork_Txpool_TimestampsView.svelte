@@ -13,8 +13,6 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
@@ -26,19 +24,21 @@
 		title = 'Mempool',
 		open = $bindable(true),
 		entityFieldReference,
+		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			title?: string
 			open?: boolean
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.EvmNetwork_Txpool_Timestamp>
+			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
 			| 'collapsible'
 			| 'CollapsibleProps'
-			| 'id',
-			| 'href'
 		>
 	> = $props()
 
@@ -47,60 +47,21 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [
-				Source.Constants_Internal,
-				Source.Voltaire_JsonRpc,
-			],
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Voltaire_JsonRpc,
-				],
-				$limit: 64,
-			},
-		},
-	)
-
-	const rows = derive(
-		parent,
-		(parent) => {
-			const list: Entity<typeof schema, EntityType.EvmNetwork_Txpool_Timestamp>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return (
-				list
-					.map((value) => ({
-						value,
-					}))
-			)
-		},
-	)
-
 
 	// Components
 	import { EntityLayout } from '$/components/EntityView.svelte'
 	import EntitiesList from '$/components/EntitiesList.svelte'
-	import Tooltip from '$/components/Tooltip.svelte'
 	import EvmNetwork_Txpool_TimestampView from '$/views/EvmNetwork_Txpool_TimestampView.svelte'
 </script>
 
 
 <EntitiesList
-	{...EntitiesListProps}
-	bind:open
 	entityType={EntityType.EvmNetwork_Txpool_Timestamp}
-	getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-	getSortValue={(row) => (
-		-Number(row.value[EntityMetaKey.Id].timestampMs)
-	)}
-	placeholderKeys={new SvelteSet<string>()}
-	placeholderText="Loading mempool samples…"
-	resource={rows}
 	{title}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
+	bind:open
+	{id}
+	href={href}
+	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
@@ -111,23 +72,60 @@
 		</p>
 	{/snippet}
 
-	{#snippet Empty()}
-		<p data-text="muted">
-			No mempool snapshots yet.
-		</p>
-	{/snippet}
-
-	{#snippet Item({ item })}
-		{@const row = item.value}
-		<EvmNetwork_Txpool_TimestampView
-			entityId={row[EntityMetaKey.Id]}
-			href={resolve(
-				'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-				{ ...caip2RouteParamsFromNetworkId(row[EntityMetaKey.Id].$network) },
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [
+						Source.Constants_Internal,
+						Source.Voltaire_JsonRpc,
+					],
+					[entityFieldReference.fieldName]: {
+						$: [
+							Source.Voltaire_JsonRpc,
+						],
+						$limit: 64,
+					},
+				},
 			)}
-			id={stringify(row[EntityMetaKey.Id])}
-			layout={EntityLayout.Summary}
-			open={false}
-		/>
+			{@const rows = derive(
+				parent,
+				(parent) => {
+					const list: Entity<typeof schema, EntityType.EvmNetwork_Txpool_Timestamp>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						list
+							.map((value) => ({
+								value,
+							}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.EvmNetwork_Txpool_Timestamp}
+				id={`${id}-items`}
+				href={href}
+				open={true}
+			>
+				{#snippet Item({ item })}
+					{@const row = item.value}
+					<EvmNetwork_Txpool_TimestampView
+						entityId={row[EntityMetaKey.Id]}
+						href={resolve(
+							'/(explore)/network/[caip2Namespace]:[caip2Reference]',
+							{ ...caip2RouteParamsFromNetworkId(row[EntityMetaKey.Id].$network) },
+						)}
+						id={stringify(row[EntityMetaKey.Id])}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

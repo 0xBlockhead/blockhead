@@ -30,7 +30,7 @@ const info = async <_Result>({
 	return response.json<_Result>()
 }
 
-export const meta = ({ restBaseUrl }: { restBaseUrl: string }) => (
+export const getMeta = ({ restBaseUrl }: { restBaseUrl: string }) => (
 	info<HyperliquidMeta>({
 		restBaseUrl,
 		body: {
@@ -39,7 +39,7 @@ export const meta = ({ restBaseUrl }: { restBaseUrl: string }) => (
 	})
 )
 
-export const spotMeta = ({ restBaseUrl }: { restBaseUrl: string }) => (
+export const getSpotMeta = ({ restBaseUrl }: { restBaseUrl: string }) => (
 	info<HyperliquidSpotMeta>({
 		restBaseUrl,
 		body: {
@@ -48,7 +48,7 @@ export const spotMeta = ({ restBaseUrl }: { restBaseUrl: string }) => (
 	})
 )
 
-export const clearinghouseState = ({
+export const getClearinghouseState = ({
 	restBaseUrl,
 	user,
 }: {
@@ -64,7 +64,7 @@ export const clearinghouseState = ({
 	})
 )
 
-export const userRole = ({
+export const getUserRole = ({
 	restBaseUrl,
 	user,
 }: {
@@ -80,7 +80,7 @@ export const userRole = ({
 	})
 )
 
-export const validatorSummaries = ({ restBaseUrl }: { restBaseUrl: string }) => (
+export const getValidatorSummaries = ({ restBaseUrl }: { restBaseUrl: string }) => (
 	info<HyperliquidValidatorSummary[]>({
 		restBaseUrl,
 		body: {

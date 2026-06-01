@@ -21,7 +21,8 @@ export default defineConfig({
 	},
 	...(skipWebServer ?
 		{}
-	: {
+	:
+		{
 		webServer: {
 			command: 'pnpm run dev',
 			url: baseURL,

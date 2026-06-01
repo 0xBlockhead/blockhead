@@ -1,6 +1,6 @@
 import { type } from 'arktype'
 import Actor from '$/schema/EvmAccount.ts'
-import ActorCoin from '$/schema/ActorCoin.ts'
+import EvmNetworkActorCoinBalance from '$/schema/EvmNetworkActorCoinBalance.ts'
 import { CoinInstanceType } from '$/schema/EvmCoinInstance.ts'
 import {
 	EntityFieldType,
@@ -16,13 +16,13 @@ import { Source } from '$/sources/$Source.ts'
 // On-chain ERC-20 allowance (owner × token contract × spender). Voltaire reads allowance via eth_call when the composite id is known; discovery/list fields are not indexed yet.
 
 export default {
-	entityType: EntityType.ActorCoinAllowance,
+	entityType: EntityType.EvmActorCoinAllowance,
 
 	label: 'Coin Allowance',
 	labelPlural: 'Coin Allowances',
 
 	id: type({
-		$actorCoin: ActorCoin.id,
+		$actorCoin: EvmNetworkActorCoinBalance.id,
 		$spender: Actor.id,
 		'interopAddress?': 'string',
 	}),
@@ -55,12 +55,12 @@ export default {
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition
 
-export const toActorCoinAllowanceEntityId = (
+export const toEvmActorCoinAllowanceEntityId = (
 	chainId: number,
 	address: `0x${string}`,
 	tokenContract: `0x${string}`,
 	spenderAddress: `0x${string}`,
-): EntityId<typeof schema, EntityType.ActorCoinAllowance> => ({
+): EntityId<typeof schema, EntityType.EvmActorCoinAllowance> => ({
 	$actorCoin: {
 			$actor: { address },
 			$coinInstance: {

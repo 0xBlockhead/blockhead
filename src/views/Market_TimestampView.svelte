@@ -127,7 +127,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		{@const quoteCurrency = (
 			entityId.$market.$quote.kind === MarketAssetKind.Currency ?
 				entityId.$market.$quote.$currency.iso4217
@@ -243,6 +243,6 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 	{/snippet}
 </EntityView>

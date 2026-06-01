@@ -1,6 +1,7 @@
 import { getJson } from '$/lib/http.ts'
 import MempoolSpace from '$/sources/MempoolSpace/index.ts'
 import type {
+	MempoolSpaceAddress,
 	MempoolSpaceBlock,
 	MempoolSpaceMempoolStats,
 	MempoolSpaceRecommendedFees,
@@ -71,7 +72,8 @@ export const getBlocks = ({
 	getJson<MempoolSpaceBlock[]>(
 		startHeight != null
 			? `${base(restBaseUrl)}/v1/blocks/${startHeight.toString()}`
-			: `${base(restBaseUrl)}/v1/blocks`,
+			:
+				`${base(restBaseUrl)}/v1/blocks`,
 		{ origins: MempoolSpace.origins ?? [] },
 	)
 )
@@ -94,6 +96,19 @@ export const getMempoolTxids = ({
 }) => (
 	getJson<string[]>(
 		`${base(restBaseUrl)}/mempool/txids`,
+		{ origins: MempoolSpace.origins ?? [] },
+	)
+)
+
+export const getAddress = ({
+	restBaseUrl,
+	address,
+}: {
+	restBaseUrl: string
+	address: string
+}) => (
+	getJson<MempoolSpaceAddress>(
+		`${base(restBaseUrl)}/address/${address}`,
 		{ origins: MempoolSpace.origins ?? [] },
 	)
 )

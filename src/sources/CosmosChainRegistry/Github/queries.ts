@@ -1,6 +1,6 @@
 import { getJson } from '$/lib/http.ts'
 import CosmosChainRegistry from '$/sources/CosmosChainRegistry/index.ts'
-import { getGithubRawUserContentUrl } from '$/sources/Github/Rest/queries.ts'
+import { getRawUserContentUrl } from '$/sources/Github/Rest/queries.ts'
 import type {
 	CosmosChainRegistryAssetList,
 	CosmosChainRegistryChain,
@@ -12,7 +12,7 @@ const ref = 'master'
 
 export const getChain = ({ chainName }: { chainName: string }) => (
 	getJson<CosmosChainRegistryChain>(
-		getGithubRawUserContentUrl({
+		getRawUserContentUrl({
 			owner,
 			repo,
 			ref,
@@ -24,7 +24,7 @@ export const getChain = ({ chainName }: { chainName: string }) => (
 
 export const getAssetList = ({ chainName }: { chainName: string }) => (
 	getJson<CosmosChainRegistryAssetList>(
-		getGithubRawUserContentUrl({
+		getRawUserContentUrl({
 			owner,
 			repo,
 			ref,

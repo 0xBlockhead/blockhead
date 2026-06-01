@@ -13,8 +13,6 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import { stringify } from 'devalue'
-	import { SvelteSet } from 'svelte/reactivity'
-	import { ListOrientation } from '$/components/ListOrientation.ts'
 
 
 	// Context
@@ -75,13 +73,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Empty()}
-		<p data-text="muted">
-			No MEV-Boost deliveries yet.
-		</p>
-	{/snippet}
-
-	{#snippet body({ open: _bodyOpen })}
+	{#snippet body()}
 		{#if open}
 			{@const parent = useEntity(
 				entityFieldReference.entityType,
@@ -117,22 +109,9 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.MevRelay_ProposerPayloadDelivered}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => (
-					-row.value[EntityMetaKey.Id].slot
-				)}
-				placeholderKeys={new SvelteSet<string>()}
-				resource={rows}
 				{title}
 				open={true}
-				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>
-				{#snippet Empty()}
-					<p data-text="muted">
-						No MEV-Boost deliveries yet.
-					</p>
-				{/snippet}
-
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<MevRelay_ProposerPayloadDeliveredView

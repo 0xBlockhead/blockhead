@@ -8,19 +8,18 @@
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
 	import type { WithRest } from '$/typescript/WithRest.ts'
-	import { stringify } from 'devalue'
 	import { SvelteSet } from 'svelte/reactivity'
 
 
 	// Context
 	import { getIsInsideEntityList } from '$/context/isInsideEntityList.ts'
-	import { resolve } from '$app/paths'
 
 
 	// State
 	let {
 		entityFieldReference,
 		id,
+		href = '',
 		limit = 50,
 		open = $bindable(
 			!(getIsInsideEntityList() ?? false),
@@ -32,31 +31,14 @@
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.AtprotoPost>
 			id: string
+			href?: string
 			limit?: number
 			open?: boolean
 			title?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'body'
-			| 'collapsible'
 			| 'CollapsibleProps'
-			| 'Empty'
-			| 'getKey'
-			| 'getSortValue'
-			| 'HeadingProps'
-			| 'Item'
-			| 'ItemPlaceholder'
-			| 'items'
-			| 'layout'
-			| 'panelStyle'
-			| 'placeholderKeys'
-			| 'placeholderText'
-			| 'resource'
-			| 'showSummary'
-			| 'TypeAnnotationTooltip'
-			| 'UnorderedListProps',
-			| 'href'
 		>
 	> = $props()
 
@@ -64,43 +46,6 @@
 	// State
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
-
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			$: [
-				Source.Atproto_Xrpc,
-				Source.Atproto_BskySocial_Xrpc,
-			],
-			...(open ?
-				{
-					[entityFieldReference.fieldName]: {
-						$: [
-							Source.Atproto_Xrpc,
-							Source.Atproto_BskySocial_Xrpc,
-						],
-					},
-				}
-			:
-				{}),
-		},
-	)
-
-	const threadPosts = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.AtprotoPost>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return (
-				rows
-					.map((value) => ({
-						value,
-					}))
-			)
-		},
-	)
 
 
 	// Components
@@ -113,16 +58,10 @@
 <EntitiesList
 	entityType={EntityType.AtprotoPost}
 	{id}
+	href={href}
 	bind:open
 	{collapsible}
-	getKey={(row) => row.value[EntityMetaKey.Id].uri}
-	getSortValue={(row) => (
-		`${String(row.value.createdAt ?? 0).padStart(20, '0')}\0${row.value[EntityMetaKey.Id].uri}`
-	)}
-	placeholderText={`Loading ${title.toLowerCase()}…`}
-	resource={threadPosts}
 	{title}
-	UnorderedListProps={{ limit }}
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
@@ -134,17 +73,73 @@
 		</p>
 	{/snippet}
 
-	{#snippet Empty()}
-		<p data-text="muted">
-			No thread posts yet.
-		</p>
-	{/snippet}
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+				entityFieldReference.entityType,
+				entityFieldReference.entityId,
+				{
+					$: [
+						Source.Atproto_Xrpc,
+						Source.Atproto_BskySocial_Xrpc,
+					],
+					...(open ?
+						{
+							[entityFieldReference.fieldName]: {
+								$: [
+									Source.Atproto_Xrpc,
+									Source.Atproto_BskySocial_Xrpc,
+								],
+							},
+						}
+					:
+						{}),
+				},
+			)}
+			{@const threadPosts = derive(
+				parent,
+				(parent) => {
+					const rows: Entity<typeof schema, EntityType.AtprotoPost>[] = (
+						parent[entityFieldReference.fieldName] ?? []
+					)
+					return (
+						rows
+							.map((value) => ({
+								value,
+							}))
+					)
+				},
+			)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.AtprotoPost}
+				id={`${id}-items`}
+				href={href}
+				getKey={(row) => row.value[EntityMetaKey.Id].uri}
+				getSortValue={(row) => (
+					`${String(row.value.createdAt ?? 0).padStart(20, '0')}\0${row.value[EntityMetaKey.Id].uri}`
+				)}
+				placeholderText={`Loading ${title.toLowerCase()}…`}
+				resource={threadPosts}
+				{title}
+				UnorderedListProps={{ limit }}
+				open={true}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">
+						No thread posts yet.
+					</p>
+				{/snippet}
 
-	{#snippet Item({ item })}
-		<AtprotoPostView
-			entityId={{ uri: item.value[EntityMetaKey.Id].uri }}
+				{#snippet Item({ item })}
+					<AtprotoPostView
+						entityId={{ uri: item.value[EntityMetaKey.Id].uri }}
 						layout={EntityLayout.Summary}
 						open={false}
-		/>
+					/>
+				{/snippet}
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

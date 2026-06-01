@@ -48,7 +48,7 @@ const storageNodeJsonRpc = async <_Result>({
 	return json.result
 }
 
-export const zgsGetStatus = ({ rpcUrl }: { rpcUrl: string }) => (
+export const getStatus = ({ rpcUrl }: { rpcUrl: string }) => (
 	storageNodeJsonRpc<ZeroGStorageNodeStatus>({
 		rpcUrl,
 		method: 'zgs_getStatus',
@@ -56,7 +56,7 @@ export const zgsGetStatus = ({ rpcUrl }: { rpcUrl: string }) => (
 	})
 )
 
-export const zgsGetFileInfo = ({
+export const getFileInfo = ({
 	rpcUrl,
 	root,
 	needAvailable,
@@ -75,7 +75,7 @@ export const zgsGetFileInfo = ({
 	})
 )
 
-export const zgsGetFileInfoByTxSeq = ({
+export const getFileInfoByTxSeq = ({
 	rpcUrl,
 	txSeq,
 }: {
@@ -91,7 +91,7 @@ export const zgsGetFileInfoByTxSeq = ({
 	})
 )
 
-export const zgsGetSectorProof = ({
+export const getSectorProof = ({
 	rpcUrl,
 	sectorIndex,
 	root,

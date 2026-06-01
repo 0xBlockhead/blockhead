@@ -52,18 +52,18 @@ const coingeckoOpenApiDerivativeTickerForMarket = async (
 	const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
 	const { catalogCoinIdByCoingeckoId } = await import('$/sources/Coingecko/marketKind.ts')
 	const catalogCoinIdByCoingeckoIdMap = catalogCoinIdByCoingeckoId(idByCoinId)
-	const { getCoingeckoOpenApiDerivativesExchangeById } = await import(
+	const { getDerivativesExchangeById } = await import(
 		'$/sources/Coingecko/OpenApi/queries.ts'
 	)
 	const publicEnv = sourcePublicEnv(context, Source.Coingecko_OpenApi)
-	const exchange = await getCoingeckoOpenApiDerivativesExchangeById({
+	const exchange = await getDerivativesExchangeById({
 		publicEnv,
 		exchangeId,
 	})
-	const ticker = exchange?.tickers?.find((row) => (
+	const ticker = exchange?.tickers?.find((exchangeTicker) => (
 		derivativeTickerMatchesMarket(
 			entityId,
-			row,
+			exchangeTicker,
 			catalogCoinIdByCoingeckoIdMap,
 		)
 	))
@@ -150,13 +150,13 @@ export default {
 					throw new Error('Coingecko_OpenApi: Market_Timestamp is catalog coin USD market only')
 				}
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-				const { getCoingeckoOpenApiCoinMarketSpot } = await import('$/sources/Coingecko/OpenApi/queries.ts')
+				const { getCoinMarketSpot } = await import('$/sources/Coingecko/OpenApi/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_OpenApi)
 				const coinId = entityId.$market.$base.$coin.coinId
 				const coingeckoId = idByCoinId[coinId]
 				if (coingeckoId == null) throw new Error('Coingecko_OpenApi: coin price not mapped')
 
-				const spot = await getCoingeckoOpenApiCoinMarketSpot({
+				const spot = await getCoinMarketSpot({
 					publicEnv,
 					coingeckoId,
 				})
@@ -187,28 +187,28 @@ export default {
 					throw new Error('Coingecko_OpenApi: OHLC is catalog coin USD market only')
 				}
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-				const { getCoingeckoOpenApiCoinOhlc } = await import('$/sources/Coingecko/OpenApi/queries.ts')
+				const { getCoinOhlc } = await import('$/sources/Coingecko/OpenApi/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_OpenApi)
 				assertCoingeckoDayOhlcTimeInterval(entityId.timeInterval, 'Coingecko_OpenApi')
 				const coinId = entityId.$market.$base.$coin.coinId
 				const coingeckoId = idByCoinId[coinId]
 				if (coingeckoId == null) throw new Error('Coingecko_OpenApi: OHLC coin not mapped')
 
-				const rows = await getCoingeckoOpenApiCoinOhlc({
+				const ohlcCandles = await getCoinOhlc({
 					publicEnv,
 					coingeckoId,
 					vsCurrency: 'usd',
 					days: entityId.timeInterval.value,
 				})
-				const row = rows.find(([timestampMs]) => (
+				const ohlcCandle = ohlcCandles.find(([timestampMs]) => (
 					Math.floor(timestampMs) === entityId.timestampMs
 				))
-				if (row == null) throw new Error('Coingecko_OpenApi: OHLC candle not found for timestamp')
+				if (ohlcCandle == null) throw new Error('Coingecko_OpenApi: OHLC candle not found for timestamp')
 				return (
 					candleFromOhlc(
 						entityId.$market,
 						entityId.timeInterval,
-						row,
+						ohlcCandle,
 					)
 				)
 			},
@@ -259,12 +259,12 @@ export default {
 			entityType: EntityType._Global,
 			fieldName: '$$markets',
 			resolve: async (_globalScopeEntityId, context) => {
-				const { collectCoingeckoOpenApiDerivativeMarketEntityIds } = await import(
+				const { collectDerivativeMarketEntityIds } = await import(
 					'$/sources/Coingecko/OpenApi/queries.ts'
 				)
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_OpenApi)
 				const lim = resolverLoadSubsetRowLimit(context)
-				const marketIds = await collectCoingeckoOpenApiDerivativeMarketEntityIds({
+				const marketIds = await collectDerivativeMarketEntityIds({
 					publicEnv,
 				})
 				return (
@@ -283,12 +283,12 @@ export default {
 			entityType: EntityType.MarketVenue,
 			fieldName: '$$markets',
 			resolve: async (entityId, context) => {
-				const { collectCoingeckoOpenApiDerivativeMarketEntityIds } = await import(
+				const { collectDerivativeMarketEntityIds } = await import(
 					'$/sources/Coingecko/OpenApi/queries.ts'
 				)
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_OpenApi)
 				const lim = resolverLoadSubsetRowLimit(context)
-				const marketIds = await collectCoingeckoOpenApiDerivativeMarketEntityIds({
+				const marketIds = await collectDerivativeMarketEntityIds({
 					publicEnv,
 					marketVenueId: entityId.marketVenueId,
 				})
@@ -319,17 +319,17 @@ export default {
 					]
 				}
 				const {
-					collectCoingeckoOpenApiDerivativeMarketEntityIds,
-					collectCoingeckoOpenApiSpotMarketEntityIdsForCoin,
+					collectDerivativeMarketEntityIds,
+					collectSpotMarketEntityIdsForCoin,
 				} = await import('$/sources/Coingecko/OpenApi/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_OpenApi)
 				const lim = resolverLoadSubsetRowLimit(context)
-				const spotVenueMarketIds = await collectCoingeckoOpenApiSpotMarketEntityIdsForCoin({
+				const spotVenueMarketIds = await collectSpotMarketEntityIdsForCoin({
 					publicEnv,
 					catalogCoinId: entityId.coinId,
 					coingeckoId,
 				})
-				const derivativeMarketIds = await collectCoingeckoOpenApiDerivativeMarketEntityIds({
+				const derivativeMarketIds = await collectDerivativeMarketEntityIds({
 					publicEnv,
 					catalogCoinId: entityId.coinId,
 				})
@@ -407,7 +407,7 @@ export default {
 					return []
 				}
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-				const { getCoingeckoOpenApiCoinOhlc } = await import('$/sources/Coingecko/OpenApi/queries.ts')
+				const { getCoinOhlc } = await import('$/sources/Coingecko/OpenApi/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_OpenApi)
 				const coinId = entityId.$base.$coin.coinId
 				if (idByCoinId[coinId] == null) throw new Error('Coingecko_OpenApi: OHLC coin not mapped')
@@ -422,7 +422,7 @@ export default {
 							value,
 						}
 					)
-					const rows = await getCoingeckoOpenApiCoinOhlc({
+					const ohlcCandles = await getCoinOhlc({
 						publicEnv,
 						coingeckoId,
 						vsCurrency: 'usd',
@@ -432,7 +432,7 @@ export default {
 						...candlesFromOhlc(
 							entityId,
 							timeInterval,
-							rows,
+							ohlcCandles,
 						),
 					)
 				}
@@ -492,12 +492,12 @@ export default {
 					return []
 				}
 				const { idByCoinId } = await import('$/sources/Coingecko/Rest/constants.ts')
-				const { getCoingeckoOpenApiCoinMarketSpot } = await import('$/sources/Coingecko/OpenApi/queries.ts')
+				const { getCoinMarketSpot } = await import('$/sources/Coingecko/OpenApi/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coingecko_OpenApi)
 				const coinId = entityId.$market.$base.$coin.coinId
 				const coingeckoId = idByCoinId[coinId]
 				if (coingeckoId == null) throw new Error('Coingecko_OpenApi: coin price not mapped')
-				const spot = await getCoingeckoOpenApiCoinMarketSpot({ publicEnv, coingeckoId })
+				const spot = await getCoinMarketSpot({ publicEnv, coingeckoId })
 				if (spot == null) throw new Error('Coingecko_OpenApi: coin market spot not returned')
 				return [
 					{

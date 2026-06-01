@@ -21,16 +21,16 @@ const clampPipedLimit = (limit: number) => (
 	Math.min(100, Math.max(1, limit))
 )
 
-export const pipedChannelIdFromUploaderUrl = (uploaderUrl: string | undefined) => (
+export const getChannelIdFromUploaderUrl = (uploaderUrl: string | undefined) => (
 	uploaderUrl?.match(/\/channel\/([^/?]+)/)?.[1]
 )
 
-export const pipedVideoIdFromUrl = (url: string | undefined) => (
+export const getVideoIdFromUrl = (url: string | undefined) => (
 	url?.match(/[?&]v=([^&]+)/)?.[1]
 	?? url?.match(/\/shorts\/([^/?]+)/)?.[1]
 )
 
-export const pipedPlaylistIdFromUrl = (url: string | undefined) => (
+export const getPlaylistIdFromUrl = (url: string | undefined) => (
 	url?.match(/[?&]list=([^&]+)/)?.[1]
 )
 
@@ -67,11 +67,11 @@ const pipedPlaylistSummariesFromTabContent = (
 	(content ?? [])
 		.filter((item) => (
 			item.type === 'playlist'
-			|| pipedPlaylistIdFromUrl(item.url) != null
+			|| getPlaylistIdFromUrl(item.url) != null
 		))
 )
 
-export const pipedGetStream = async (
+export const getStream = async (
 	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
 	videoId: string,
 ) => (
@@ -81,7 +81,7 @@ export const pipedGetStream = async (
 	)
 )
 
-export const pipedGetChannel = async (
+export const getChannel = async (
 	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
 	channelId: string,
 ) => (
@@ -91,7 +91,7 @@ export const pipedGetChannel = async (
 	)
 )
 
-export const pipedListTrending = async (
+export const listTrending = async (
 	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
 	limit: number,
 	region = 'US',
@@ -106,7 +106,7 @@ export const pipedListTrending = async (
 	)
 )
 
-export const pipedGetPlaylist = async (
+export const getPlaylist = async (
 	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
 	playlistId: string,
 ) => (
@@ -116,7 +116,7 @@ export const pipedGetPlaylist = async (
 	)
 )
 
-export const pipedListPlaylistVideos = async (
+export const listPlaylistVideos = async (
 	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
 	playlistId: string,
 	limit: number,
@@ -140,15 +140,16 @@ export const pipedListPlaylistVideos = async (
 			`/nextpage/playlists/${encodeURIComponent(playlistId)}`,
 			{ nextpage: options.nextpage },
 		))
-	: (
+	:
+		(
 		(playlist) => ({
 			items: sliceStreamItems(playlist.relatedStreams ?? [], limit),
 			nextpage: playlist.nextpage,
 		})
-	)(await pipedGetPlaylist(publicEnv, playlistId))
+	)(await getPlaylist(publicEnv, playlistId))
 )
 
-export const pipedGetChannelTab = async (
+export const getChannelTab = async (
 	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
 	data: string,
 	nextpage?: string,
@@ -163,7 +164,7 @@ export const pipedGetChannelTab = async (
 	)
 )
 
-export const pipedGetComments = async (
+export const getComments = async (
 	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
 	videoId: string,
 ) => (
@@ -173,7 +174,7 @@ export const pipedGetComments = async (
 	)
 )
 
-export const pipedListComments = async (
+export const listComments = async (
 	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
 	videoId: string,
 	limit: number,
@@ -193,16 +194,17 @@ export const pipedListComments = async (
 			`/nextpage/comments/${encodeURIComponent(videoId)}`,
 			{ nextpage: options.nextpage },
 		))
-	: (
+	:
+		(
 		(page) => ({
 			comments: sliceComments(page.comments ?? [], limit),
 			disabled: page.disabled,
 			nextpage: page.nextpage,
 		})
-	)(await pipedGetComments(publicEnv, videoId))
+	)(await getComments(publicEnv, videoId))
 )
 
-export const pipedListChannelPlaylists = async (
+export const listChannelPlaylists = async (
 	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
 	channelId: string,
 	limit: number,
@@ -216,13 +218,13 @@ export const pipedListChannelPlaylists = async (
 		options?.tabData
 		?? pipedPlaylistsTabDataFromChannel(
 			options?.channel
-			?? await pipedGetChannel(publicEnv, channelId)
+			?? await getChannel(publicEnv, channelId)
 		)
 	)
 	if (tabData == null) {
 		return { items: [] }
 	}
-	const page = await pipedGetChannelTab(publicEnv, tabData, options?.nextpage)
+	const page = await getChannelTab(publicEnv, tabData, options?.nextpage)
 	return {
 		items: slicePlaylistSummaries(
 			pipedPlaylistSummariesFromTabContent(page.content),
@@ -232,7 +234,7 @@ export const pipedListChannelPlaylists = async (
 	}
 }
 
-export const pipedListChannelVideos = async (
+export const listChannelVideos = async (
 	publicEnv: SourcePublicEnvFor<Source.Piped_Rest>,
 	channelId: string,
 	limit: number,
@@ -246,7 +248,7 @@ export const pipedListChannelVideos = async (
 			items: sliceStreamItems(
 				(options.stream.relatedStreams ?? [])
 					.filter((item) => (
-						pipedChannelIdFromUploaderUrl(item.uploaderUrl) === channelId
+						getChannelIdFromUploaderUrl(item.uploaderUrl) === channelId
 					)),
 				limit,
 			),
@@ -262,10 +264,11 @@ export const pipedListChannelVideos = async (
 			`/nextpage/channel/${encodeURIComponent(channelId)}`,
 			{ nextpage: options.nextpage },
 		))
-	: (
+	:
+		(
 		(channel) => ({
 			items: sliceStreamItems(channel.relatedStreams ?? [], limit),
 			nextpage: channel.nextpage,
 		})
-	)(await pipedGetChannel(publicEnv, channelId))
+	)(await getChannel(publicEnv, channelId))
 )

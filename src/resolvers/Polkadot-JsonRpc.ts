@@ -3,6 +3,10 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
+import {
+	polkadotMainnetCaip2,
+	polkadotMainnetRpcUrl,
+} from '$/constants/PolkadotNetwork.ts'
 import { TransportType } from '$/constants/TransportType.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
@@ -11,12 +15,14 @@ import { schema } from '$/schema/index.ts'
 import { Source } from '$/sources/$Source.ts'
 import type { PolkadotRpcBlock } from '$/sources/Polkadot/JsonRpc/types.ts'
 
-const polkadotRpcUrl = 'https://rpc.polkadot.io'
-
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
 const assertPolkadotMainnet = (network: NetworkId) => {
-	if (!('caip2' in network) || network.caip2.namespace !== 'polkadot' || network.caip2.reference !== '91b171bb158e2d3848fa23a9f1c25182') {
+	if (
+		!('caip2' in network)
+		|| network.caip2.namespace !== polkadotMainnetCaip2.namespace
+		|| network.caip2.reference !== polkadotMainnetCaip2.reference
+	) {
 		throw new Error('Polkadot_JsonRpc: unsupported network')
 	}
 }
@@ -52,7 +58,7 @@ export default {
 					},
 					rpcEndpoints: [
 						{
-							url: polkadotRpcUrl,
+							url: polkadotMainnetRpcUrl,
 							transportType: TransportType.Http,
 							providerName: 'Parity',
 						},
@@ -72,7 +78,7 @@ export default {
 					getRuntimeVersion,
 					getSystemHealth,
 				} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
-				const finalizedBlockHash = await getFinalizedHead({ rpcUrl: polkadotRpcUrl })
+				const finalizedBlockHash = await getFinalizedHead({ rpcUrl: polkadotMainnetRpcUrl })
 				const [
 					header,
 					block,
@@ -80,15 +86,15 @@ export default {
 					systemHealth,
 				] = await Promise.all([
 					getHeader({
-						rpcUrl: polkadotRpcUrl,
+						rpcUrl: polkadotMainnetRpcUrl,
 						blockHash: finalizedBlockHash,
 					}),
 					getBlock({
-						rpcUrl: polkadotRpcUrl,
+						rpcUrl: polkadotMainnetRpcUrl,
 						blockHash: finalizedBlockHash,
 					}),
-					getRuntimeVersion({ rpcUrl: polkadotRpcUrl }),
-					getSystemHealth({ rpcUrl: polkadotRpcUrl }),
+					getRuntimeVersion({ rpcUrl: polkadotMainnetRpcUrl }),
+					getSystemHealth({ rpcUrl: polkadotMainnetRpcUrl }),
 				])
 				return {
 					finalizedBlockNumber: blockNumberFromHeader(header),
@@ -114,11 +120,11 @@ export default {
 					getBlockHash,
 				} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
 				const hash = entityId.hash ?? await getBlockHash({
-					rpcUrl: polkadotRpcUrl,
+					rpcUrl: polkadotMainnetRpcUrl,
 					blockNumber: entityId.blockNumber,
 				})
 				const block = await getBlock({
-					rpcUrl: polkadotRpcUrl,
+					rpcUrl: polkadotMainnetRpcUrl,
 					blockHash: hash,
 				})
 				return {
@@ -151,9 +157,9 @@ export default {
 					getBlockHash,
 				} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
 				const block = await getBlock({
-					rpcUrl: polkadotRpcUrl,
+					rpcUrl: polkadotMainnetRpcUrl,
 					blockHash: entityId.$block.hash ?? await getBlockHash({
-						rpcUrl: polkadotRpcUrl,
+						rpcUrl: polkadotMainnetRpcUrl,
 						blockNumber: entityId.$block.blockNumber,
 					}),
 				})
@@ -173,7 +179,7 @@ export default {
 				assertPolkadotMainnet(entityId)
 				return [
 					{
-						url: polkadotRpcUrl,
+						url: polkadotMainnetRpcUrl,
 						transportType: TransportType.Http,
 						providerName: 'Parity',
 					},
@@ -190,12 +196,12 @@ export default {
 					getFinalizedHead,
 					getHeader,
 				} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
-				const finalizedBlockHash = await getFinalizedHead({ rpcUrl: polkadotRpcUrl })
+				const finalizedBlockHash = await getFinalizedHead({ rpcUrl: polkadotMainnetRpcUrl })
 				return {
 					[EntityMetaKey.Id]: {
 						$network: entityId,
 						blockNumber: blockNumberFromHeader(await getHeader({
-							rpcUrl: polkadotRpcUrl,
+							rpcUrl: polkadotMainnetRpcUrl,
 							blockHash: finalizedBlockHash,
 						})),
 						hash: finalizedBlockHash,
@@ -229,9 +235,9 @@ export default {
 					getFinalizedHead,
 					getHeader,
 				} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
-				const finalizedBlockHash = await getFinalizedHead({ rpcUrl: polkadotRpcUrl })
+				const finalizedBlockHash = await getFinalizedHead({ rpcUrl: polkadotMainnetRpcUrl })
 				const finalizedBlockNumber = blockNumberFromHeader(await getHeader({
-					rpcUrl: polkadotRpcUrl,
+					rpcUrl: polkadotMainnetRpcUrl,
 					blockHash: finalizedBlockHash,
 				}))
 				return Array.from({
@@ -262,9 +268,9 @@ export default {
 					getBlockHash,
 				} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
 				const block = await getBlock({
-					rpcUrl: polkadotRpcUrl,
+					rpcUrl: polkadotMainnetRpcUrl,
 					blockHash: entityId.hash ?? await getBlockHash({
-						rpcUrl: polkadotRpcUrl,
+						rpcUrl: polkadotMainnetRpcUrl,
 						blockNumber: entityId.blockNumber,
 					}),
 				})
@@ -290,9 +296,9 @@ export default {
 				return polkadotExtrinsicRows(
 					entityId.$network,
 					await getBlock({
-						rpcUrl: polkadotRpcUrl,
+						rpcUrl: polkadotMainnetRpcUrl,
 						blockHash: entityId.hash ?? await getBlockHash({
-							rpcUrl: polkadotRpcUrl,
+							rpcUrl: polkadotMainnetRpcUrl,
 							blockNumber: entityId.blockNumber,
 						}),
 					}),

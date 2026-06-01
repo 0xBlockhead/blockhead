@@ -30,17 +30,17 @@ export default {
 					throw new Error('TradingView_Rest: Market_Timestamp is spot-only')
 				}
 				if (entityId.$market.$base.kind !== MarketAssetKind.Coin) {
-					throw new Error('Market source: market base must be catalog coin')
+					throw new Error('TradingView_Rest: market base must be catalog coin')
 				}
 				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {
 					throw new Error('TradingView_Rest: Market_Timestamp is catalog coin USD market only')
 				}
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
-				const { getTradingViewCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
+				const { getCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
 				const coinId = entityId.$market.$base.$coin.coinId
 				const market = tradingViewMarketByCoinId[coinId]
 				if (market == null) throw new Error('TradingView_Rest: coin market not mapped')
-				const quote = (await getTradingViewCryptoQuotes([market.ticker])).find((row) => row.ticker === market.ticker)
+				const quote = (await getCryptoQuotes([market.ticker])).find((cryptoQuote) => cryptoQuote.ticker === market.ticker)
 				if (quote == null) throw new Error('TradingView_Rest: quote not returned')
 
 				return {
@@ -194,17 +194,17 @@ export default {
 					throw new Error('TradingView_Rest: MarketPrice $$quotes is spot-only')
 				}
 				if (entityId.$market.$base.kind !== MarketAssetKind.Coin) {
-					throw new Error('Market source: market base must be catalog coin')
+					throw new Error('TradingView_Rest: market base must be catalog coin')
 				}
 				if (stringify(catalogCoinUsdMarketIdByCoinId[entityId.$market.$base.$coin.coinId]) !== stringify(entityId.$market)) {
 					throw new Error('TradingView_Rest: MarketPrice $$quotes is catalog coin USD market only')
 				}
 				const { tradingViewMarketByCoinId } = await import('$/sources/TradingView/Rest/constants.ts')
-				const { getTradingViewCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
+				const { getCryptoQuotes } = await import('$/sources/TradingView/Rest/queries.ts')
 				const coinId = entityId.$market.$base.$coin.coinId
 				const market = tradingViewMarketByCoinId[coinId]
 				if (market == null) throw new Error('TradingView_Rest: coin market not mapped')
-				const quote = (await getTradingViewCryptoQuotes([market.ticker])).find((row) => row.ticker === market.ticker)
+				const quote = (await getCryptoQuotes([market.ticker])).find((cryptoQuote) => cryptoQuote.ticker === market.ticker)
 				if (quote == null) throw new Error('TradingView_Rest: quote not returned')
 
 				return [

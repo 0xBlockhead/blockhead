@@ -104,7 +104,9 @@
 									<li>
 										<pre data-card>{JSON.stringify(
 											item.entity,
-											(_key, inner) => (typeof inner === 'bigint' ? inner.toString() : inner),
+											(_key, inner) => (typeof inner === 'bigint' ? inner.toString()
+											:
+												inner),
 											2,
 										)}</pre>
 									</li>
@@ -153,7 +155,9 @@
 											<li>
 												<pre data-card>{JSON.stringify(
 													item.entityField,
-													(_key, inner) => (typeof inner === 'bigint' ? inner.toString() : inner),
+													(_key, inner) => (typeof inner === 'bigint' ? inner.toString()
+													:
+														inner),
 													2,
 												)}</pre>
 											</li>

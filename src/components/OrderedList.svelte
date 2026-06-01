@@ -173,8 +173,10 @@
 			const cb = tb[1]
 			return (
 				ca < cb ? -1
-				: ca > cb ? 1
-				: 0
+				:
+					ca > cb ? 1
+				:
+					0
 			)
 		}
 		return 0
@@ -189,17 +191,21 @@
 	)
 	const keyForGapNumeric = (k: OrderedListKey): number | undefined => (
 		typeof k === 'number' ?
-			(Number.isFinite(k) ? Math.trunc(k) : undefined)
+			(Number.isFinite(k) ? Math.trunc(k)
+			:
+				undefined)
 		: typeof k === 'bigint' ?
 			(() => {
 				const n = Number(k)
 				return (
 					Number.isSafeInteger(n) && BigInt(n) === k ?
 						n
-					: undefined
+					:
+						undefined
 				)
 			})()
-		: ((t) => (
+		:
+			((t) => (
 			t.length === 0 || !/^-?\d+$/.test(t) ?
 				undefined
 			:

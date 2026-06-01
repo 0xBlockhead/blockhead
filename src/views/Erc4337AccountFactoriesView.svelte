@@ -17,20 +17,19 @@
 		entityFieldReference,
 		title = 'ERC-4337 account factories',
 		open = $bindable(true),
-		collapsible = true,
 		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Erc4337AccountFactory>
 			title?: string
 			open?: boolean
-			collapsible?: boolean
 			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
@@ -44,27 +43,25 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary, { Layout as ResourceBoundaryLayout } from '$/components/ResourceBoundary.svelte'
-	import UnorderedList from '$/components/UnorderedList.svelte'
 	import Erc4337AccountFactoryView from '$/views/Erc4337AccountFactoryView.svelte'
 </script>
 
 
 <EntitiesList
 	entityType={EntityType.Erc4337AccountFactory}
-
 	{id}
 	{title}
 	bind:open
+	href={href}
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Account factories deploy smart-account implementations; they are not paymasters or bundlers.
+			Account factories deploy ERC-4337 smart account implementations indexed by the explorer.
 		</p>
 	{/snippet}
 
-	{#snippet body({ open: _bodyOpen })}
+	{#snippet body()}
 		{#if open}
 			{@const network = useEntity(
 				EntityType.EvmNetwork,
@@ -86,38 +83,35 @@
 			{@const accountFactories = derive(
 				network,
 				(network): Entity<typeof schema, EntityType.Erc4337AccountFactory>[] => (
-					network.$$erc4337AccountFactories ?? []
+					(network.$$erc4337AccountFactories ?? []).slice(0, 16)
 				),
 			)}
-			<div data-column="gap-3">
-				<ResourceBoundary
-					layout={ResourceBoundaryLayout.Block}
-					placeholderText="Loading account factories…"
-					resource={accountFactories}
-				>
-					{#snippet children(accountFactories)}
-						<UnorderedList
-							getKey={(row) => stringify(row[EntityMetaKey.Id])}
-							getSortValue={(row) => BigInt(row[EntityMetaKey.Id].address)}
-							items={accountFactories.slice(0, 16)}
-							orientation={ListOrientation.Column}
-							placeholderRanges={[]}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">No indexed account factories yet.</p>
-							{/snippet}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.Erc4337AccountFactory}
+				id={`${id}-items`}
+				href={href}
+				getKey={(accountFactory) => stringify(accountFactory[EntityMetaKey.Id])}
+				getSortValue={(accountFactory) => BigInt(accountFactory[EntityMetaKey.Id].address)}
+				placeholderText="Loading account factories…"
+				resource={accountFactories}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">No indexed account factories yet.</p>
+				{/snippet}
 
-							{#snippet Item({ item })}
-								<Erc4337AccountFactoryView
-									entityId={item[EntityMetaKey.Id]}
-									layout={EntityLayout.Summary}
-									open={false}
-								/>
-							{/snippet}
-						</UnorderedList>
-					{/snippet}
-				</ResourceBoundary>
-			</div>
+				{#snippet Item({ item: accountFactory })}
+					<Erc4337AccountFactoryView
+						entityId={accountFactory[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

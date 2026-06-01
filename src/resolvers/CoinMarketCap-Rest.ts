@@ -42,19 +42,20 @@ export default {
 			resolve: async (entityId, context) => {
 				const { coinById } = await import('$/constants/Coin.ts')
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
-				const { getCoinMarketCapInfo } = await import('$/sources/CoinMarketCap/Rest/queries.ts')
+				const { getInfo } = await import('$/sources/CoinMarketCap/Rest/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.CoinMarketCap_Rest)
 				const coinMarketCapId = idByCoinId[entityId.coinId]
 				if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: coin not mapped')
 
-				const infoResponse = await getCoinMarketCapInfo({
+				const infoResponse = await getInfo({
 					publicEnv,
 					id: coinMarketCapId,
 				})
 				const info = (
 					infoResponse.data == null ?
 						undefined
-					:	Object.values(infoResponse.data)[0]
+					:
+						Object.values(infoResponse.data)[0]
 				)
 				if (info == null) throw new Error('CoinMarketCap_Rest: coin info not returned')
 
@@ -92,21 +93,22 @@ export default {
 				const coinMarketCapId = idByCoinId[coinId]
 				if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: coin price not mapped')
 
-				const { getCoinMarketCapInfo, getCoinMarketCapQuotesLatest } = await import(
+				const { getInfo, getQuotesLatest } = await import(
 					'$/sources/CoinMarketCap/Rest/queries.ts',
 				)
-				const quoteResponse = await getCoinMarketCapQuotesLatest({
+				const quoteResponse = await getQuotesLatest({
 					publicEnv,
 					id: coinMarketCapId,
 				})
-				const infoResponse = await getCoinMarketCapInfo({
+				const infoResponse = await getInfo({
 					publicEnv,
 					id: coinMarketCapId,
 				})
 				const quote = (
 					quoteResponse.data == null ?
 						undefined
-					:	Object.values(quoteResponse.data)[0]
+					:
+						Object.values(quoteResponse.data)[0]
 				)
 				const price = quote?.quote?.USD?.price
 				const lastUpdated = quote?.quote?.USD?.last_updated
@@ -121,7 +123,8 @@ export default {
 				const p = (
 					infoResponse.data == null
 						? undefined
-					:	Object.values(infoResponse.data)[0]
+					:
+						Object.values(infoResponse.data)[0]
 				)?.platform
 				const caip2 = (
 					(p?.slug === 'ethereum' || p?.name === 'Ethereum')
@@ -156,7 +159,7 @@ export default {
 					throw new Error('CoinMarketCap_Rest: OHLC is catalog coin USD market only')
 				}
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
-				const { getCoinMarketCapOhlcvHistoricalCoingeckoShape } = await import(
+				const { getOhlcvHistoricalRows } = await import(
 					'$/sources/CoinMarketCap/Rest/queries.ts',
 				)
 				const publicEnv = sourcePublicEnv(context, Source.CoinMarketCap_Rest)
@@ -165,20 +168,20 @@ export default {
 				const coinMarketCapId = idByCoinId[coinId]
 				if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: OHLC coin not mapped')
 
-				const rows = await getCoinMarketCapOhlcvHistoricalCoingeckoShape({
+				const ohlcCandles = await getOhlcvHistoricalRows({
 					publicEnv,
 					id: coinMarketCapId,
 					days: entityId.timeInterval.value,
 				})
-				const row = rows.find(([timestampMs]) => (
+				const ohlcCandle = ohlcCandles.find(([timestampMs]) => (
 					Math.floor(timestampMs) === entityId.timestampMs
 				))
-				if (row == null) throw new Error('CoinMarketCap_Rest: OHLC candle not found for timestamp')
+				if (ohlcCandle == null) throw new Error('CoinMarketCap_Rest: OHLC candle not found for timestamp')
 				return (
 					candleFromOhlc(
 						entityId.$market,
 						entityId.timeInterval,
-						row,
+					ohlcCandle,
 					)
 				)
 			},
@@ -344,7 +347,7 @@ export default {
 					return []
 				}
 				const { idByCoinId } = await import('$/sources/CoinMarketCap/Rest/constants.ts')
-				const { getCoinMarketCapOhlcvHistoricalCoingeckoShape } = await import(
+				const { getOhlcvHistoricalRows } = await import(
 					'$/sources/CoinMarketCap/Rest/queries.ts',
 				)
 				const coinId = entityId.$base.$coin.coinId
@@ -361,7 +364,7 @@ export default {
 							value,
 						}
 					)
-					const rows = await getCoinMarketCapOhlcvHistoricalCoingeckoShape({
+					const ohlcCandles = await getOhlcvHistoricalRows({
 						publicEnv,
 						id: coinMarketCapId,
 						days: value,
@@ -370,7 +373,7 @@ export default {
 						...candlesFromOhlc(
 							entityId,
 							timeInterval,
-							rows,
+							ohlcCandles,
 						),
 					)
 				}
@@ -398,17 +401,18 @@ export default {
 				const coinId = entityId.$market.$base.$coin.coinId
 				const coinMarketCapId = idByCoinId[coinId]
 				if (coinMarketCapId == null) throw new Error('CoinMarketCap_Rest: coin price not mapped')
-				const { getCoinMarketCapQuotesLatest } = await import(
+				const { getQuotesLatest } = await import(
 					'$/sources/CoinMarketCap/Rest/queries.ts',
 				)
-				const quoteResponse = await getCoinMarketCapQuotesLatest({
+				const quoteResponse = await getQuotesLatest({
 					publicEnv,
 					id: coinMarketCapId,
 				})
 				const quote = (
 					quoteResponse.data == null ?
 						undefined
-					:	Object.values(quoteResponse.data)[0]
+					:
+						Object.values(quoteResponse.data)[0]
 				)
 				const lastUpdated = quote?.quote?.USD?.last_updated
 				const updatedAt = Date.parse(lastUpdated ?? '')

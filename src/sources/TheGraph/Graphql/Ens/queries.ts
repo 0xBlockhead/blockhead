@@ -3,7 +3,7 @@ import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { graphql, queryEns } from '$/sources/TheGraph/Graphql/Ens/client.ts'
 import { EnsDomainFragment } from '$/sources/TheGraph/Graphql/Ens/types.ts'
 
-export const getEnsName = async ({
+export const getName = async ({
 	publicEnv,
 	name,
 }: {
@@ -35,7 +35,7 @@ export const getEnsName = async ({
 	).domains
 )
 
-export const getEnsDomainsContaining = async ({
+export const getDomainsContaining = async ({
 	publicEnv,
 	query,
 	limit,
@@ -74,7 +74,7 @@ export const getEnsDomainsContaining = async ({
 	).domains
 )
 
-export const getEnsDomainsByOwner = async ({
+export const getDomainsByOwner = async ({
 	publicEnv,
 	owner,
 }: {

@@ -1,16 +1,16 @@
 import { getText, githubHttp } from '$/sources/Github/Rest/client.ts'
 import { throwHttpError } from '$/lib/http.ts'
 import {
-	getGithubRawUserContentUrl,
-	getGithubRestRepoContentsUrl,
+	getRawUserContentUrl,
+	getRestRepoContentsUrl,
 } from '$/sources/Github/Rest/queries.ts'
 import ZcashZips from '$/sources/ZcashZips/index.ts'
 
 import { zcashZipsGithubRepo } from './constants.ts'
 import type { ZcashZipsGithubContents } from './types.ts'
 
-export const getZcashZipsGithubContentsUrl = () => (
-	getGithubRestRepoContentsUrl({
+export const getContentsUrl = () => (
+	getRestRepoContentsUrl({
 		owner: zcashZipsGithubRepo.owner,
 		repo: zcashZipsGithubRepo.repo,
 		pathInRepo: zcashZipsGithubRepo.path,
@@ -18,8 +18,8 @@ export const getZcashZipsGithubContentsUrl = () => (
 	})
 )
 
-export const getZcashZipProposalRstUrl = ({ number }: { number: number }) => (
-	getGithubRawUserContentUrl({
+export const getProposalRstUrl = ({ number }: { number: number }) => (
+	getRawUserContentUrl({
 		owner: zcashZipsGithubRepo.owner,
 		repo: zcashZipsGithubRepo.repo,
 		ref: zcashZipsGithubRepo.ref,
@@ -27,18 +27,18 @@ export const getZcashZipProposalRstUrl = ({ number }: { number: number }) => (
 	})
 )
 
-export const getZcashZipsGithubContents = async (): Promise<ZcashZipsGithubContents> => {
+export const getContents = async (): Promise<ZcashZipsGithubContents> => {
 	const response = await githubHttp({
-		url: getZcashZipsGithubContentsUrl(),
+		url: getContentsUrl(),
 		origins: ZcashZips.origins ?? [],
 	})
 	if (!response.ok) await throwHttpError('ZcashZips GitHub contents', response)
 	return response.json<ZcashZipsGithubContents>()
 }
 
-export const getZcashZipProposalRstText = ({ number }: { number: number }) => (
+export const getProposalRstText = ({ number }: { number: number }) => (
 	getText({
-		url: getZcashZipProposalRstUrl({ number }),
+		url: getProposalRstUrl({ number }),
 		origins: ZcashZips.origins ?? [],
 	})
 )

@@ -1,8 +1,8 @@
 <script lang="ts">
 	// Types/constants
 	import {
-		swarmResourceAddressFromRouteParams,
-		swarmResourceHref,
+		getResourceAddressFromRouteParams,
+		getResourceHref,
 	} from '$/sources/Swarm/Rest/queries.ts'
 
 
@@ -14,7 +14,7 @@
 
 
 	const entityId = $derived(
-		swarmResourceAddressFromRouteParams({
+		getResourceAddressFromRouteParams({
 			reference: params.reference,
 			contentPath: params.contentPath,
 		}),

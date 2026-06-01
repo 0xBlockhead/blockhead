@@ -12,7 +12,7 @@ import type {
 	AlliumToken,
 } from '$/sources/Allium/Rest/types.ts'
 
-export const getAlliumLatestWalletBalances = async ({
+export const getLatestWalletBalances = async ({
 	publicEnv,
 	address,
 	apiChain,
@@ -38,7 +38,7 @@ export const getAlliumLatestWalletBalances = async ({
 	)
 )
 
-export const getAlliumTokensByChainAddress = async ({
+export const getTokensByChainAddress = async ({
 	publicEnv,
 	apiChain,
 	tokenAddress,

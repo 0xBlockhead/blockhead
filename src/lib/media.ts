@@ -24,7 +24,9 @@ const pathWithSuffix = (path: string, suffix: string | undefined) => (
 )
 
 export const resolveMediaUrlTransport = (value: string | null | undefined) => {
-	const raw = typeof value === 'string' ? value.trim() : ''
+	const raw = typeof value === 'string' ? value.trim()
+	:
+		''
 	if (raw.length === 0) return undefined
 
 	const withProtocol = raw.startsWith('//') ? `https:${raw}` : raw
@@ -95,7 +97,8 @@ export const mediaFromUrl = <_MediaType extends MediaType>(
 	((resolved) => (
 		resolved == null ?
 			undefined
-		:	{
+		:
+			{
 				[EntityMetaKey.Id]: { url: resolved.url },
 				type,
 				transport: resolved.transport,

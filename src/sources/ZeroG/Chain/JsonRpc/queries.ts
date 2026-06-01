@@ -19,12 +19,13 @@ type ZeroGJsonRpcResponse<_Result> = {
 	}
 }
 
-export const zeroGMainnetRpcUrl = 'https://evmrpc.0g.ai'
+export const mainnetRpcUrl = 'https://evmrpc.0g.ai'
 
 const quantityHex = (blockNumber: bigint | 'latest') => (
 	blockNumber === 'latest' ?
 		'latest'
-	:	`0x${blockNumber.toString(16)}`
+	:
+		`0x${blockNumber.toString(16)}`
 )
 
 const zeroGJsonRpc = async <_Result>({
@@ -34,7 +35,7 @@ const zeroGJsonRpc = async <_Result>({
 	method: string
 	params: JsonValue[]
 }) => {
-	const response = await corsFetch(zeroGMainnetRpcUrl, {
+	const response = await corsFetch(mainnetRpcUrl, {
 		origins: ZeroG.origins ?? [],
 		init: {
 			method: 'POST',
@@ -56,14 +57,14 @@ const zeroGJsonRpc = async <_Result>({
 	return json.result
 }
 
-export const getZeroGBlockNumber = () => (
+export const getBlockNumber = () => (
 	zeroGJsonRpc<string>({
 		method: 'eth_blockNumber',
 		params: [],
 	})
 )
 
-export const getZeroGBlockByNumber = ({
+export const getBlockByNumber = ({
 	blockNumber,
 	txObjects,
 }: {
@@ -79,7 +80,7 @@ export const getZeroGBlockByNumber = ({
 	})
 )
 
-export const getZeroGTransactionByHash = ({
+export const getTransactionByHash = ({
 	txHash,
 }: {
 	txHash: `0x${string}`
@@ -90,7 +91,7 @@ export const getZeroGTransactionByHash = ({
 	})
 )
 
-export const getZeroGTransactionReceipt = ({
+export const getTransactionReceipt = ({
 	txHash,
 }: {
 	txHash: `0x${string}`

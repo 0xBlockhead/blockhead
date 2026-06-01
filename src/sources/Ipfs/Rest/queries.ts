@@ -23,7 +23,7 @@ const namespaceFromString = (value: string | undefined): IpfsNamespace | undefin
 		undefined
 )
 
-export const parseIpfsBrowseInput = (value: string): ParsedIpfsBrowseInput => {
+export const parseBrowseInput = (value: string): ParsedIpfsBrowseInput => {
 	const trimmedValue = value.trim()
 	const uriMatch = ipfsBrowseUriPattern.exec(trimmedValue)
 	if (uriMatch?.groups?.target != null) {
@@ -49,7 +49,7 @@ export const parseIpfsBrowseInput = (value: string): ParsedIpfsBrowseInput => {
 	}
 }
 
-export const ipfsNamespaceForTarget = (target: string): IpfsNamespace => (
+export const getNamespaceForTarget = (target: string): IpfsNamespace => (
 	/^(Qm[1-9A-HJ-NP-Za-km-z]{44}|bafy[a-z2-7]+|bafk[a-z2-7]+)$/i.test(target.trim()) ?
 		'ipfs'
 	:
@@ -63,10 +63,10 @@ const resolvedIpfsNamespace = ({
 	target: string
 	namespace?: IpfsNamespace
 }): IpfsNamespace => (
-	namespace ?? ipfsNamespaceForTarget(target)
+	namespace ?? getNamespaceForTarget(target)
 )
 
-export const ipfsGatewayUrl = ({
+export const getGatewayUrl = ({
 	namespace,
 	target,
 	contentPath,
@@ -85,7 +85,7 @@ export const ipfsGatewayUrl = ({
 	})}/${trimmedTarget}${trimmedPath ? `/${trimmedPath}` : ''}`
 }
 
-export const fetchIpfsBrowseResult = async ({
+export const fetchBrowseResult = async ({
 	namespace,
 	target,
 	contentPath,
@@ -105,7 +105,7 @@ export const fetchIpfsBrowseResult = async ({
 	const failures: string[] = []
 
 	for (const gatewayOrigin of gatewayUrls) {
-		const gatewayUrl = ipfsGatewayUrl({
+		const gatewayUrl = getGatewayUrl({
 			namespace: resolvedNamespace,
 			target: trimmedTarget,
 			contentPath: trimmedPath,

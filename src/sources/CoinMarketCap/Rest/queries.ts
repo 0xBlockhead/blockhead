@@ -9,38 +9,13 @@ import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import type {
 	CoinMarketCapInfoLatestResponse,
 	CoinMarketCapOhlcvHistoricalResponse,
-	CoinMarketCapOhlcvQuote,
 	CoinMarketCapQuotesLatestResponse,
 } from '$/sources/CoinMarketCap/Rest/types.ts'
 
 /**
- * CoinGecko `/coins/{id}/ohlc`-style rows `[timestampMs, open, high, low, close]`.
- */
-export const coinMarketCapOhlcvQuotesToCoingeckoOhlcRows = (
-	quotes: CoinMarketCapOhlcvQuote[],
-): number[][] => (
-	quotes.flatMap((row) => {
-		const usd = row.quote?.USD
-		const timeOpen = row.time_open
-		if (
-			usd?.open == null
-			|| usd.high == null
-			|| usd.low == null
-			|| usd.close == null
-			|| timeOpen == null
-		) {
-			return []
-		}
-		const timestampMs = Date.parse(timeOpen)
-		if (!Number.isFinite(timestampMs)) return []
-		return [[timestampMs, usd.open, usd.high, usd.low, usd.close]]
-	})
-)
-
-/**
  * `GET /v3/cryptocurrency/quotes/latest`
  */
-export const getCoinMarketCapQuotesLatest = async ({
+export const getQuotesLatest = async ({
 	publicEnv,
 	id,
 }: {
@@ -56,7 +31,7 @@ export const getCoinMarketCapQuotesLatest = async ({
 /**
  * `GET /v2/cryptocurrency/info`
  */
-export const getCoinMarketCapInfo = async ({
+export const getInfo = async ({
 	publicEnv,
 	id,
 }: {
@@ -73,7 +48,7 @@ export const getCoinMarketCapInfo = async ({
  * `GET /v2/cryptocurrency/ohlcv/historical` — daily OHLCV candles.
  * @see https://coinmarketcap.com/api/documentation/v1/#operation/getV2CryptocurrencyOhlcvHistorical
  */
-export const getCoinMarketCapOhlcvHistoricalCoingeckoShape = async ({
+export const getOhlcvHistoricalRows = async ({
 	publicEnv,
 	id,
 	days,
@@ -89,7 +64,25 @@ export const getCoinMarketCapOhlcvHistoricalCoingeckoShape = async ({
 	const coin = (
 		response.data == null ?
 			undefined
-		:	Object.values(response.data)[0]
+		:
+			Object.values(response.data)[0]
 	)
-	return coinMarketCapOhlcvQuotesToCoingeckoOhlcRows(coin?.quotes ?? [])
+	return (
+		(coin?.quotes ?? []).flatMap((row) => {
+			const usd = row.quote?.USD
+			const timeOpen = row.time_open
+			if (
+				usd?.open == null
+				|| usd.high == null
+				|| usd.low == null
+				|| usd.close == null
+				|| timeOpen == null
+			) {
+				return []
+			}
+			const timestampMs = Date.parse(timeOpen)
+			if (!Number.isFinite(timestampMs)) return []
+			return [[timestampMs, usd.open, usd.high, usd.low, usd.close]]
+		})
+	)
 }

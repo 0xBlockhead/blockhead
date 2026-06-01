@@ -3,16 +3,22 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
+import {
+	filecoinMainnetCaip2,
+	filfoxMainnetRestBaseUrl,
+} from '$/constants/FilecoinNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const filfoxMainnetRestUrl = 'https://filfox.info/api/v1'
-
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
 const assertFilecoinMainnet = (network: NetworkId) => {
-	if (!('caip2' in network) || network.caip2.namespace !== 'fil' || network.caip2.reference !== 'f') {
+	if (
+		!('caip2' in network)
+		|| network.caip2.namespace !== filecoinMainnetCaip2.namespace
+		|| network.caip2.reference !== filecoinMainnetCaip2.reference
+	) {
 		throw new Error('Filfox_Rest: unsupported network')
 	}
 }
@@ -30,7 +36,7 @@ export default {
 					getTipset,
 				} = await import('$/sources/Filfox/Rest/queries.ts')
 				const tipset = await getTipset({
-					restBaseUrl: filfoxMainnetRestUrl,
+					restBaseUrl: filfoxMainnetRestBaseUrl,
 					height: entityId.height,
 				})
 				const firstBlock = tipset.blocks[0]
@@ -39,7 +45,7 @@ export default {
 						undefined
 					:
 						await getBlock({
-							restBaseUrl: filfoxMainnetRestUrl,
+							restBaseUrl: filfoxMainnetRestBaseUrl,
 							blockCid: firstBlock.cid,
 						})
 				)
@@ -86,11 +92,11 @@ export default {
 					getTipset,
 				} = await import('$/sources/Filfox/Rest/queries.ts')
 				const block = await getBlock({
-					restBaseUrl: filfoxMainnetRestUrl,
+					restBaseUrl: filfoxMainnetRestBaseUrl,
 					blockCid: entityId.cid,
 				})
 				const tipset = await getTipset({
-					restBaseUrl: filfoxMainnetRestUrl,
+					restBaseUrl: filfoxMainnetRestBaseUrl,
 					height: BigInt(block.height),
 				})
 				return {
@@ -120,7 +126,7 @@ export default {
 				assertFilecoinMainnet(entityId.$network)
 				const { getMessage } = await import('$/sources/Filfox/Rest/queries.ts')
 				const message = await getMessage({
-					restBaseUrl: filfoxMainnetRestUrl,
+					restBaseUrl: filfoxMainnetRestBaseUrl,
 					messageCid: entityId.cid,
 				})
 				return {
@@ -154,7 +160,7 @@ export default {
 				assertFilecoinMainnet(entityId.$network)
 				const { getAddress } = await import('$/sources/Filfox/Rest/queries.ts')
 				const address = await getAddress({
-					restBaseUrl: filfoxMainnetRestUrl,
+					restBaseUrl: filfoxMainnetRestBaseUrl,
 					address: entityId.address,
 				})
 				return {
@@ -169,7 +175,7 @@ export default {
 				assertFilecoinMainnet(entityId.$network)
 				const { getAddress } = await import('$/sources/Filfox/Rest/queries.ts')
 				const address = await getAddress({
-					restBaseUrl: filfoxMainnetRestUrl,
+					restBaseUrl: filfoxMainnetRestBaseUrl,
 					address: entityId.minerAddress,
 				})
 				if (address.miner == null) throw new Error(`Filfox_Rest: address ${entityId.minerAddress} is not a miner`)
@@ -211,7 +217,7 @@ export default {
 				assertFilecoinMainnet(entityId.$network)
 				const { getBlockMessages } = await import('$/sources/Filfox/Rest/queries.ts')
 				return (await getBlockMessages({
-					restBaseUrl: filfoxMainnetRestUrl,
+					restBaseUrl: filfoxMainnetRestBaseUrl,
 					blockCid: entityId.cid,
 					pageSize: resolverLoadSubsetRowLimit(context),
 				})).messages.map((message) => ({

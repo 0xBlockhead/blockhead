@@ -24,7 +24,7 @@ export default {
 
 	fields: [
 		{
-			name: '$$market',
+			name: '$market',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.Market,
 			cardinality: EntityFieldCardinality.ZeroOrOne,

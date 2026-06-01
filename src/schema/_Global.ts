@@ -14,7 +14,9 @@ export default {
 	label: 'Global',
 	labelPlural: 'Globals',
 
-	id: type({}),
+	id: type({
+		scope: 'string',
+	}),
 
 	fields: [
 		{
@@ -253,7 +255,7 @@ export default {
 		{
 			name: '$$actorCoins',
 			type: EntityFieldType.EntitiesReference,
-			entityType: EntityType.ActorCoin,
+			entityType: EntityType.EvmNetworkActorCoinBalance,
 			cardinality: EntityFieldCardinality.Many,
 			defaultSources: [Source.Allium_Rest],
 		},

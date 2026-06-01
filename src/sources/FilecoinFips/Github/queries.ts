@@ -1,7 +1,7 @@
 import { getText, githubHttp } from '$/sources/Github/Rest/client.ts'
 import {
-	getGithubRawUserContentUrl,
-	getGithubRestRepoContentsUrl,
+	getRawUserContentUrl,
+	getRestRepoContentsUrl,
 } from '$/sources/Github/Rest/queries.ts'
 import { throwHttpError } from '$/lib/http.ts'
 import FilecoinFips from '$/sources/FilecoinFips/index.ts'
@@ -14,8 +14,8 @@ const filecoinFipsGithubRepo = {
 	ref: 'master',
 } as const
 
-export const getFilecoinFipsGithubContentsUrl = () => (
-	getGithubRestRepoContentsUrl({
+export const getContentsUrl = () => (
+	getRestRepoContentsUrl({
 		owner: filecoinFipsGithubRepo.owner,
 		repo: filecoinFipsGithubRepo.repo,
 		pathInRepo: filecoinFipsGithubRepo.path,
@@ -23,8 +23,8 @@ export const getFilecoinFipsGithubContentsUrl = () => (
 	})
 )
 
-export const getFilecoinFipMarkdownUrl = ({ number }: { number: number }) => (
-	getGithubRawUserContentUrl({
+export const getMarkdownUrl = ({ number }: { number: number }) => (
+	getRawUserContentUrl({
 		owner: filecoinFipsGithubRepo.owner,
 		repo: filecoinFipsGithubRepo.repo,
 		ref: filecoinFipsGithubRepo.ref,
@@ -32,18 +32,18 @@ export const getFilecoinFipMarkdownUrl = ({ number }: { number: number }) => (
 	})
 )
 
-export const getFilecoinFipsGithubContents = async (): Promise<FilecoinFipsGithubContents> => {
+export const getContents = async (): Promise<FilecoinFipsGithubContents> => {
 	const response = await githubHttp({
-		url: getFilecoinFipsGithubContentsUrl(),
+		url: getContentsUrl(),
 		origins: FilecoinFips.origins ?? [],
 	})
 	if (!response.ok) await throwHttpError('FilecoinFips GitHub contents', response)
 	return response.json<FilecoinFipsGithubContents>()
 }
 
-export const getFilecoinFipMarkdownText = ({ number }: { number: number }) => (
+export const getMarkdownText = ({ number }: { number: number }) => (
 	getText({
-		url: getFilecoinFipMarkdownUrl({ number }),
+		url: getMarkdownUrl({ number }),
 		origins: FilecoinFips.origins ?? [],
 	})
 )

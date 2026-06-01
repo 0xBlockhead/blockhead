@@ -5,9 +5,9 @@
 	import { schema } from '$/schema/index.ts'
 
 	import {
-		swarmResourceAddressFromInput,
-		swarmResourceCanonicalUri,
-		swarmResourceHref,
+		getResourceAddressFromInput,
+		getResourceCanonicalUri,
+		getResourceHref,
 	} from '$/sources/Swarm/Rest/queries.ts'
 
 	import { swarmDocsLandingReference } from '$/sources/Swarm/Rest/constants.ts'
@@ -35,7 +35,7 @@
 		sourceHref: string
 		sourceLabel: string
 	}) => {
-		const address = swarmResourceAddressFromInput({
+		const address = getResourceAddressFromInput({
 			targetInput,
 			contentPathInput,
 		})
@@ -45,8 +45,8 @@
 			label,
 			sourceHref,
 			sourceLabel,
-			href: swarmResourceHref(address),
-			uri: swarmResourceCanonicalUri(address),
+			href: getResourceHref(address),
+			uri: getResourceCanonicalUri(address),
 		}
 	}
 
@@ -56,13 +56,13 @@
 		if (!(form instanceof HTMLFormElement)) return
 
 		const formData = new FormData(form)
-		const next = swarmResourceAddressFromInput({
+		const next = getResourceAddressFromInput({
 			targetInput: String(formData.get('target') ?? ''),
 			contentPathInput: String(formData.get('path') ?? ''),
 		})
 		if (next === undefined) return
 
-		window.location.assign(swarmResourceHref(next))
+		window.location.assign(getResourceHref(next))
 	}
 
 	const openSample = (href: string) => {

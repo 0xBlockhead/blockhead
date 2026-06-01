@@ -17,13 +17,13 @@ const beaconchaInEpochForBeaconEpoch = async (
 		beaconchaInApiBaseByExecutionChainId,
 	} = await import('$/sources/BeaconchaIn/Rest/constants.ts')
 	const {
-		getBeaconchaInEpoch,
+		getEpoch,
 	} = await import('$/sources/BeaconchaIn/Rest/queries.ts')
 	const apiBase = beaconchaInApiBaseByExecutionChainId[Number(entityId.$network.caip2.reference)]
 	if (apiBase == null) {
 		throw new Error(`BeaconchaIn_Rest: no API base for chain ${entityId.$network.caip2.reference}`)
 	}
-	const epoch = await singleFlight(getBeaconchaInEpoch)({
+	const epoch = await singleFlight(getEpoch)({
 		apiBase,
 		epoch: entityId.epoch,
 	})

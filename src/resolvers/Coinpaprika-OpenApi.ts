@@ -42,12 +42,12 @@ export default {
 					idByCoinId,
 					decimalsByCoinId,
 				} = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-				const { getCoinpaprikaCoinById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
+				const { getCoinById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
 				const coinpaprikaId = idByCoinId[entityId.coinId]
 				if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: coin not mapped')
 
-				const coin = await getCoinpaprikaCoinById({
+				const coin = await getCoinById({
 					publicEnv,
 					coinpaprikaId,
 				})
@@ -82,13 +82,13 @@ export default {
 					throw new Error('Coinpaprika_OpenApi: Market_Timestamp is catalog coin USD market only')
 				}
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-				const { getCoinpaprikaTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
+				const { getTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
 				const coinId: CoinId = entityId.$market.$base.$coin.coinId
 				const coinpaprikaId = idByCoinId[coinId]
 				if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: coin price not mapped')
 
-				const ticker = await getCoinpaprikaTickerById({
+				const ticker = await getTickerById({
 					publicEnv,
 					coinpaprikaId,
 				})
@@ -96,7 +96,8 @@ export default {
 				const updatedAtMs = (
 					ticker.last_updated == null || ticker.last_updated === '' ?
 						NaN
-					:	Date.parse(ticker.last_updated)
+					:
+						Date.parse(ticker.last_updated)
 				)
 
 				if (price == null || !Number.isFinite(price) || !Number.isFinite(updatedAtMs)) {
@@ -129,15 +130,15 @@ export default {
 				}
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 				const {
-					coinpaprikaOhlcDayWindowValues,
-					getCoinpaprikaOhlcvHistoricalCoingeckoShape,
-					getCoinpaprikaOhlcvTodayCoingeckoShape,
+					getOhlcDayWindowValues,
+					getOhlcvHistoricalRows,
+					getOhlcvTodayRows,
 				} = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
 				if (entityId.timeInterval.unit !== MarketTimeIntervalUnit.Day) {
 					throw new Error('Coinpaprika_OpenApi: OHLC timeInterval must be day-based')
 				}
-				const ohlcDayWindows = coinpaprikaOhlcDayWindowValues(publicEnv)
+				const ohlcDayWindows = getOhlcDayWindowValues(publicEnv)
 				if (!ohlcDayWindows.includes(entityId.timeInterval.value)) {
 					throw new Error('Coinpaprika_OpenApi: OHLC day window not supported for current API plan')
 				}
@@ -145,27 +146,28 @@ export default {
 				const coinpaprikaId = idByCoinId[coinId]
 				if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: OHLC coin not mapped')
 
-				const rows = (
+				const ohlcCandles = (
 					entityId.timeInterval.value === 1 ?
-						await getCoinpaprikaOhlcvTodayCoingeckoShape({
+						await getOhlcvTodayRows({
 							publicEnv,
 							coinpaprikaId,
 						})
-					:	await getCoinpaprikaOhlcvHistoricalCoingeckoShape({
+					:
+						await getOhlcvHistoricalRows({
 							publicEnv,
 							coinpaprikaId,
 							days: entityId.timeInterval.value,
 						})
 				)
-				const row = rows.find(([timestampMs]) => (
+				const ohlcCandle = ohlcCandles.find(([timestampMs]) => (
 					Math.floor(timestampMs) === entityId.timestampMs
 				))
-				if (row == null) throw new Error('Coinpaprika_OpenApi: OHLC candle not found for timestamp')
+				if (ohlcCandle == null) throw new Error('Coinpaprika_OpenApi: OHLC candle not found for timestamp')
 				return (
 					candleFromOhlc(
 						entityId.$market,
 						entityId.timeInterval,
-						row,
+					ohlcCandle,
 					)
 				)
 			},
@@ -243,12 +245,12 @@ export default {
 			entityType: EntityType.MarketVenue,
 			fieldName: '$$markets',
 			resolve: async (entityId, context) => {
-				const { collectCoinpaprikaMarketEntityIdsForExchange } = await import(
+				const { collectMarketEntityIdsForExchange } = await import(
 					'$/sources/Coinpaprika/OpenApi/queries.ts'
 				)
 				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
 				const lim = resolverLoadSubsetRowLimit(context)
-				const marketIds = await collectCoinpaprikaMarketEntityIdsForExchange({
+				const marketIds = await collectMarketEntityIdsForExchange({
 					publicEnv,
 					marketVenueId: entityId.marketVenueId,
 				})
@@ -269,7 +271,7 @@ export default {
 			fieldName: '$$marketsWithCoinAsBase',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.Coin>, context) => {
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-				const { collectCoinpaprikaMarketEntityIdsForCoin } = await import(
+				const { collectMarketEntityIdsForCoin } = await import(
 					'$/sources/Coinpaprika/OpenApi/queries.ts'
 				)
 				const coinpaprikaId = idByCoinId[entityId.coinId]
@@ -278,7 +280,7 @@ export default {
 				}
 				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
 				const lim = resolverLoadSubsetRowLimit(context)
-				const venueMarketIds = await collectCoinpaprikaMarketEntityIdsForCoin({
+				const venueMarketIds = await collectMarketEntityIdsForCoin({
 					publicEnv,
 					catalogCoinId: entityId.coinId,
 					coinpaprikaId,
@@ -373,14 +375,14 @@ export default {
 				}
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
 				const {
-					coinpaprikaOhlcDayWindowValues,
-					getCoinpaprikaOhlcvHistoricalCoingeckoShape,
-					getCoinpaprikaOhlcvTodayCoingeckoShape,
+					getOhlcDayWindowValues,
+					getOhlcvHistoricalRows,
+					getOhlcvTodayRows,
 				} = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
 				const coinId = entityId.$base.$coin.coinId
 				if (idByCoinId[coinId] == null) throw new Error('Coinpaprika_OpenApi: OHLC coin not mapped')
 				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
-				const ohlcDayWindows = coinpaprikaOhlcDayWindowValues(publicEnv)
+				const ohlcDayWindows = getOhlcDayWindowValues(publicEnv)
 				const coinpaprikaId = idByCoinId[coinId]
 				if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: OHLC coin not mapped')
 				const lim = resolverLoadSubsetRowLimit(context)
@@ -392,13 +394,14 @@ export default {
 							value,
 						}
 					)
-					const rows = (
+					const ohlcCandles = (
 						value === 1 ?
-							await getCoinpaprikaOhlcvTodayCoingeckoShape({
+							await getOhlcvTodayRows({
 								publicEnv,
 								coinpaprikaId,
 							})
-						:	await getCoinpaprikaOhlcvHistoricalCoingeckoShape({
+						:
+							await getOhlcvHistoricalRows({
 								publicEnv,
 								coinpaprikaId,
 								days: value,
@@ -408,7 +411,7 @@ export default {
 						...candlesFromOhlc(
 							entityId,
 							timeInterval,
-							rows,
+							ohlcCandles,
 						),
 					)
 				}
@@ -432,16 +435,17 @@ export default {
 					return []
 				}
 				const { idByCoinId } = await import('$/sources/Coinpaprika/OpenApi/constants.ts')
-				const { getCoinpaprikaTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
+				const { getTickerById } = await import('$/sources/Coinpaprika/OpenApi/queries.ts')
 				const publicEnv = sourcePublicEnv(context, Source.Coinpaprika_OpenApi)
 				const coinId = entityId.$market.$base.$coin.coinId
 				const coinpaprikaId = idByCoinId[coinId]
 				if (coinpaprikaId == null) throw new Error('Coinpaprika_OpenApi: coin price not mapped')
-				const ticker = await getCoinpaprikaTickerById({ publicEnv, coinpaprikaId })
+				const ticker = await getTickerById({ publicEnv, coinpaprikaId })
 				const updatedAtMs = (
 					ticker.last_updated == null || ticker.last_updated === '' ?
 						NaN
-					:	Date.parse(ticker.last_updated)
+					:
+						Date.parse(ticker.last_updated)
 				)
 				if (!Number.isFinite(updatedAtMs)) {
 					throw new Error('Coinpaprika_OpenApi: ticker invalid')

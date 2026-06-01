@@ -318,9 +318,22 @@ export const networkByCaip2 = Object.fromEntries(
 	networks.flatMap((row) => (
 		!('caip2' in row) ?
 			[]
-	:	[[
+	:
+		[[
 				`${row.caip2.namespace}:${row.caip2.reference}`,
 				row,
+			]]
+	)),
+)
+
+export const caip2ByNetworkSlug = Object.fromEntries(
+	networks.flatMap((row) => (
+		!('caip2' in row) ?
+			[]
+	:
+		[[
+				row.slug,
+				row.caip2,
 			]]
 	)),
 )
@@ -329,7 +342,8 @@ export const caip2NetworkNamespaceByNamespace = Object.fromEntries(
 	networks.flatMap((row) => (
 		!('caip2' in row) ?
 			[]
-	:	[[
+	:
+		[[
 				row.caip2.namespace,
 				row.caip2.namespace,
 			]]

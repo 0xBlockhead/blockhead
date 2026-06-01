@@ -51,7 +51,7 @@ const mapBskyPostView = (p: BskyAppViewPostView) => {
 	const rootUri = optionalTrimmedString(rec?.reply?.root?.uri)
 	const selfLabelValues = (
 		rec?.labels?.values
-			?.map((row) => optionalTrimmedString(row.val))
+			?.map((labelValue) => optionalTrimmedString(labelValue.val))
 			.filter((value): value is string => value != null)
 	)
 	return {
@@ -76,8 +76,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.AtprotoActor,
 			resolve: async (entityId) => {
-				const { bskyGetProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-				const profile = await singleFlight(bskyGetProfile)(entityId.did)
+				const { getProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+				const profile = await singleFlight(getProfile)(entityId.did)
 				if (profile == null) throw new Error('Atproto_Xrpc: profile missing')
 				return {
 					displayName: optionalTrimmedString(profile.displayName),
@@ -108,8 +108,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.AtprotoPost,
 			resolve: async (entityId) => {
-				const { bskyGetPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-				const p = (await singleFlight(bskyGetPosts)([entityId.uri])).posts?.[0]
+				const { getPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+				const p = (await singleFlight(getPosts)([entityId.uri])).posts?.[0]
 				if (p == null) throw new Error('Atproto_Xrpc: post not found')
 				return mapBskyPostView(p)
 			},
@@ -118,8 +118,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.AtprotoActor_Timestamp,
 			resolve: async (entityId) => {
-				const { bskyGetProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-				const profile = await singleFlight(bskyGetProfile)(entityId.$actor.did)
+				const { getProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+				const profile = await singleFlight(getProfile)(entityId.$actor.did)
 				if (profile == null) throw new Error('Atproto_Xrpc: profile missing')
 				return mapBskyProfileTimestampFields(profile)
 			},
@@ -128,8 +128,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.AtprotoPost_Timestamp,
 			resolve: async (entityId) => {
-				const { bskyGetPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-				const p = (await singleFlight(bskyGetPosts)([entityId.$post.uri])).posts?.[0]
+				const { getPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+				const p = (await singleFlight(getPosts)([entityId.$post.uri])).posts?.[0]
 				if (p == null) throw new Error('Atproto_Xrpc: post not found')
 				return mapBskyPostTimestampFields(p)
 			},
@@ -141,13 +141,13 @@ export default {
 			entityType: EntityType.AtprotoNetwork,
 			fieldName: '$$atprotoActors',
 			resolve: async (_entityId, context) => {
-				const { bskySearchActorsTypeahead } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+				const { searchActorsTypeahead } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				const refs: { [EntityMetaKey.Id]: { did: string } }[] = [
 					...atprotoNetworkSeedActors.map((seed) => ({
 						[EntityMetaKey.Id]: { did: seed.did },
 					})),
-					...((await singleFlight(bskySearchActorsTypeahead)({
+					...((await singleFlight(searchActorsTypeahead)({
 						limit,
 						q: 'bsky',
 					})).actors ?? [])
@@ -155,7 +155,8 @@ export default {
 							const did = optionalTrimmedString(actor.did)
 							return did == null ?
 								[]
-							:	[{ [EntityMetaKey.Id]: { did } }]
+							:
+								[{ [EntityMetaKey.Id]: { did } }]
 						}),
 				]
 				return refs.slice(0, limit)
@@ -174,8 +175,8 @@ export default {
 			entityType: EntityType.AtprotoActor,
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
-				const { bskyGetProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-				const profile = await singleFlight(bskyGetProfile)(entityId.did)
+				const { getProfile } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+				const profile = await singleFlight(getProfile)(entityId.did)
 				if (profile == null) throw new Error('Atproto_Xrpc: profile missing')
 				return [
 					{
@@ -193,19 +194,19 @@ export default {
 			entityType: EntityType.AtprotoActor,
 			fieldName: '$$posts',
 			resolve: async (entityId, context) => {
-				const { bskyGetAuthorFeed } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+				const { getAuthorFeed } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				const { feed = [] } = await singleFlight(bskyGetAuthorFeed)({
+				const { feed = [] } = await singleFlight(getAuthorFeed)({
 					actor: entityId.did,
 					limit,
 					includePins: true,
 				})
 				return (
 					feed
-						.flatMap((item) => {
-							const authorDid = optionalTrimmedString(item.post?.author?.did)
+						.flatMap((feedItem) => {
+							const authorDid = optionalTrimmedString(feedItem.post?.author?.did)
 							if (authorDid !== entityId.did) return []
-							const uri = optionalTrimmedString(item.post?.uri)
+							const uri = optionalTrimmedString(feedItem.post?.uri)
 							if (uri == null) return []
 							return [{ [EntityMetaKey.Id]: { uri } }]
 						})
@@ -217,8 +218,8 @@ export default {
 			entityType: EntityType.AtprotoPost,
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
-				const { bskyGetPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
-				const p = (await singleFlight(bskyGetPosts)([entityId.uri])).posts?.[0]
+				const { getPosts } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+				const p = (await singleFlight(getPosts)([entityId.uri])).posts?.[0]
 				if (p == null) throw new Error('Atproto_Xrpc: post not found')
 				return [
 					{
@@ -236,9 +237,9 @@ export default {
 			entityType: EntityType.AtprotoPost,
 			fieldName: '$$thread',
 			resolve: async (entityId, context) => {
-				const { bskyGetPostThread } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
+				const { getPostThread } = await import('$/sources/AtprotoBsky/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				const { thread } = await singleFlight(bskyGetPostThread)(entityId.uri)
+				const { thread } = await singleFlight(getPostThread)(entityId.uri)
 				if (thread == null || optionalTrimmedString(thread.post?.uri) == null) {
 					throw new Error(`Atproto_Xrpc: post thread not found for ${entityId.uri}`)
 				}

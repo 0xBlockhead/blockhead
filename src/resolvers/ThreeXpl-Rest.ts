@@ -50,13 +50,13 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.MoneroBlock,
 			resolve: async (entityId) => {
-				const { fetchThreeXplBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-				const row = await fetchThreeXplBlock({
+				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				const wireBlock = await fetchBlock({
 					blockchain: threeXplBlockchain(entityId.$network),
 					block: entityId.hash ?? entityId.height.toString(),
 				})
 				return {
-					hash: row.data.block?.hash,
+					hash: wireBlock.data.block?.hash,
 					...(entityId.height > 0n && {
 						$parent: {
 							[EntityMetaKey.Id]: {
@@ -65,8 +65,8 @@ export default {
 							},
 						},
 					}),
-					...(row.data.block?.time != null && {
-						timestampMs: Date.parse(row.data.block.time),
+					...(wireBlock.data.block?.time != null && {
+						timestampMs: Date.parse(wireBlock.data.block.time),
 					}),
 				}
 			},
@@ -75,17 +75,17 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.MoneroTransaction,
 			resolve: async (entityId) => {
-				const { fetchThreeXplTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-				const row = await fetchThreeXplTransaction({
+				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				const wireTransaction = await fetchTransaction({
 					blockchain: threeXplBlockchain(entityId.$network),
 					transaction: entityId.txHash,
 				})
 				return {
-					...(row.data.transaction?.block != null && {
+					...(wireTransaction.data.transaction?.block != null && {
 						$block: {
 							[EntityMetaKey.Id]: {
 								$network: entityId.$network,
-								height: BigInt(row.data.transaction.block),
+								height: BigInt(wireTransaction.data.transaction.block),
 							},
 						},
 					}),
@@ -96,13 +96,13 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.NearBlock,
 			resolve: async (entityId) => {
-				const { fetchThreeXplBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-				const row = await fetchThreeXplBlock({
+				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				const wireBlock = await fetchBlock({
 					blockchain: threeXplBlockchain(entityId.$network),
 					block: entityId.hash ?? entityId.height.toString(),
 				})
 				return {
-					hash: row.data.block?.hash,
+					hash: wireBlock.data.block?.hash,
 					...(entityId.height > 0n && {
 						$parent: {
 							[EntityMetaKey.Id]: {
@@ -111,8 +111,8 @@ export default {
 							},
 						},
 					}),
-					...(row.data.block?.time != null && {
-						timestampMs: Date.parse(row.data.block.time),
+					...(wireBlock.data.block?.time != null && {
+						timestampMs: Date.parse(wireBlock.data.block.time),
 					}),
 				}
 			},
@@ -121,8 +121,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.NearTransaction,
 			resolve: async (entityId) => {
-				const { fetchThreeXplTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-				await fetchThreeXplTransaction({
+				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				await fetchTransaction({
 					blockchain: threeXplBlockchain(entityId.$network),
 					transaction: entityId.hash,
 				})
@@ -133,13 +133,13 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.PolkadotBlock,
 			resolve: async (entityId) => {
-				const { fetchThreeXplBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-				const row = await fetchThreeXplBlock({
+				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				const wireBlock = await fetchBlock({
 					blockchain: threeXplBlockchain(entityId.$network),
 					block: entityId.hash ?? entityId.blockNumber.toString(),
 				})
 				return {
-					hash: row.data.block?.hash,
+					hash: wireBlock.data.block?.hash,
 					...(entityId.blockNumber > 0n && {
 						$parent: {
 							[EntityMetaKey.Id]: {
@@ -155,17 +155,17 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.SolanaBlock,
 			resolve: async (entityId) => {
-				const { fetchThreeXplBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-				const row = await fetchThreeXplBlock({
+				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				const wireBlock = await fetchBlock({
 					blockchain: threeXplBlockchain(entityId.$network),
 					block: entityId.slot.toString(),
 				})
 				return {
-					blockHash: row.data.block?.hash,
-					...(row.data.block?.time != null && {
-						timestampMs: Date.parse(row.data.block.time),
+					blockHash: wireBlock.data.block?.hash,
+					...(wireBlock.data.block?.time != null && {
+						timestampMs: Date.parse(wireBlock.data.block.time),
 					}),
-					transactionCount: row.data.block?.events?.transactions,
+					transactionCount: wireBlock.data.block?.events?.transactions,
 				}
 			},
 		}),
@@ -173,20 +173,20 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.SolanaTransaction,
 			resolve: async (entityId) => {
-				const { fetchThreeXplTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-				const row = await fetchThreeXplTransaction({
+				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				const wireTransaction = await fetchTransaction({
 					blockchain: threeXplBlockchain(entityId.$network),
 					transaction: entityId.signature,
 				})
 				return {
-					...(row.data.transaction?.block != null && {
+					...(wireTransaction.data.transaction?.block != null && {
 						$block: {
 							[EntityMetaKey.Id]: {
 								$network: entityId.$network,
-								slot: BigInt(row.data.transaction.block),
+								slot: BigInt(wireTransaction.data.transaction.block),
 							},
 						},
-						slot: BigInt(row.data.transaction.block),
+						slot: BigInt(wireTransaction.data.transaction.block),
 					}),
 				}
 			},
@@ -195,13 +195,13 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.TronBlock,
 			resolve: async (entityId) => {
-				const { fetchThreeXplBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-				const row = await fetchThreeXplBlock({
+				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				const wireBlock = await fetchBlock({
 					blockchain: threeXplBlockchain(entityId.$network),
 					block: entityId.hash ?? entityId.height.toString(),
 				})
 				return {
-					hash: row.data.block?.hash,
+					hash: wireBlock.data.block?.hash,
 					...(entityId.height > 0n && {
 						$parent: {
 							[EntityMetaKey.Id]: {
@@ -210,10 +210,10 @@ export default {
 							},
 						},
 					}),
-					...(row.data.block?.time != null && {
-						timestampMs: Date.parse(row.data.block.time),
+					...(wireBlock.data.block?.time != null && {
+						timestampMs: Date.parse(wireBlock.data.block.time),
 					}),
-					transactionCount: row.data.block?.events?.transactions,
+					transactionCount: wireBlock.data.block?.events?.transactions,
 				}
 			},
 		}),
@@ -221,23 +221,23 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.TronTransaction,
 			resolve: async (entityId) => {
-				const { fetchThreeXplTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-				const row = await fetchThreeXplTransaction({
+				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				const wireTransaction = await fetchTransaction({
 					blockchain: threeXplBlockchain(entityId.$network),
 					transaction: entityId.transactionId,
 				})
 				return {
-					...(row.data.transaction?.block != null && {
+					...(wireTransaction.data.transaction?.block != null && {
 						$block: {
 							[EntityMetaKey.Id]: {
 								$network: entityId.$network,
-								height: BigInt(row.data.transaction.block),
+								height: BigInt(wireTransaction.data.transaction.block),
 							},
 						},
-						blockHeight: BigInt(row.data.transaction.block),
+						blockHeight: BigInt(wireTransaction.data.transaction.block),
 					}),
-					...(row.data.transaction?.time != null && {
-						timestampMs: Date.parse(row.data.transaction.time),
+					...(wireTransaction.data.transaction?.time != null && {
+						timestampMs: Date.parse(wireTransaction.data.transaction.time),
 					}),
 				}
 			},
@@ -246,17 +246,17 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.UtxoBlock,
 			resolve: async (entityId) => {
-				const { fetchThreeXplBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-				const row = await fetchThreeXplBlock({
+				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				const wireBlock = await fetchBlock({
 					blockchain: threeXplBlockchain(entityId.$network),
 					block: entityId.hash ?? entityId.height.toString(),
 				})
 				return {
-					hash: row.data.block?.hash,
-					...(row.data.block?.time != null && {
-						timestampMs: Date.parse(row.data.block.time),
+					hash: wireBlock.data.block?.hash,
+					...(wireBlock.data.block?.time != null && {
+						timestampMs: Date.parse(wireBlock.data.block.time),
 					}),
-					transactionCount: row.data.block?.events?.transactions,
+					transactionCount: wireBlock.data.block?.events?.transactions,
 				}
 			},
 		}),
@@ -264,17 +264,17 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.UtxoTransaction,
 			resolve: async (entityId) => {
-				const { fetchThreeXplTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
-				const row = await fetchThreeXplTransaction({
+				const { fetchTransaction } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				const wireTransaction = await fetchTransaction({
 					blockchain: threeXplBlockchain(entityId.$network),
 					transaction: entityId.txId,
 				})
 				return {
-					...(row.data.transaction?.block != null && {
+					...(wireTransaction.data.transaction?.block != null && {
 						$block: {
 							[EntityMetaKey.Id]: {
 								$network: entityId.$network,
-								height: BigInt(row.data.transaction.block),
+								height: BigInt(wireTransaction.data.transaction.block),
 							},
 						},
 					}),
@@ -288,10 +288,10 @@ export default {
 			entityType: EntityType.MoneroBlock,
 			fieldName: '$$transactions',
 			resolve: async (entityId) => {
-				const { fetchThreeXplBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				return eventTransactions(
 					(
-						await fetchThreeXplBlock({
+						await fetchBlock({
 							blockchain: threeXplBlockchain(entityId.$network),
 							block: entityId.hash ?? entityId.height.toString(),
 						})
@@ -312,10 +312,10 @@ export default {
 			entityType: EntityType.SolanaBlock,
 			fieldName: '$$transactions',
 			resolve: async (entityId) => {
-				const { fetchThreeXplBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				return eventTransactions(
 					(
-						await fetchThreeXplBlock({
+						await fetchBlock({
 							blockchain: threeXplBlockchain(entityId.$network),
 							block: entityId.slot.toString(),
 						})
@@ -337,10 +337,10 @@ export default {
 			entityType: EntityType.TronBlock,
 			fieldName: '$$transactions',
 			resolve: async (entityId) => {
-				const { fetchThreeXplBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				return eventTransactions(
 					(
-						await fetchThreeXplBlock({
+						await fetchBlock({
 							blockchain: threeXplBlockchain(entityId.$network),
 							block: entityId.hash ?? entityId.height.toString(),
 						})
@@ -362,10 +362,10 @@ export default {
 			entityType: EntityType.UtxoBlock,
 			fieldName: '$$transactions',
 			resolve: async (entityId) => {
-				const { fetchThreeXplBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
+				const { fetchBlock } = await import('$/sources/ThreeXpl/Rest/queries.ts')
 				return eventTransactions(
 					(
-						await fetchThreeXplBlock({
+						await fetchBlock({
 							blockchain: threeXplBlockchain(entityId.$network),
 							block: entityId.hash ?? entityId.height.toString(),
 						})

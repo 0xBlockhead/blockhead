@@ -29,9 +29,21 @@
 	import { getEvmSelectorPath } from '$/lib/signature-paths.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+	const selectorHex = $derived(
+		input.startsWith('0x') && input.length >= 10 ?
+			`0x${input.slice(2, 10).toLowerCase()}`
+		:
+			null,
+	)
+
 	const selector = useEntity(
 		EntityType.EvmSelector,
-		selectorEntityId,
+		(
+			selectorHex != null ?
+				{ hex: selectorHex }
+			:
+				{ hex: '0x00000000' }
+		) satisfies EntityId<typeof schema, EntityType.EvmSelector>,
 		{
 			$: [
 				Source.Openchain_Rest,
@@ -40,22 +52,6 @@
 		},
 	)
 
-
-	const selectorHex = $derived(
-		input.startsWith('0x') && input.length >= 10 ?
-			`0x${input.slice(2, 10).toLowerCase()}`
-		:
-			null,
-	)
-
-	const selectorEntityId = $derived(
-		(
-			selectorHex != null ?
-				{ hex: selectorHex }
-			:
-				{ hex: '0x00000000' }
-		) satisfies EntityId<typeof schema, EntityType.EvmSelector>,
-	)
 
 	const decodedCall = $derived.by(() => {
 		if (!open) return null

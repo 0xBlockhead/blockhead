@@ -69,7 +69,8 @@ export const catalogCoinIdByCoingeckoId = (
 		).flatMap(([catalogCoinId, coingeckoId]) => (
 			coingeckoId == null ?
 				[]
-			:	[[coingeckoId, catalogCoinId]]
+			:
+				[[coingeckoId, catalogCoinId]]
 		)),
 	)
 )

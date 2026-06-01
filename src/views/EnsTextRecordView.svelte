@@ -97,7 +97,9 @@
 							: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.Prefix ?
 								`${textRecordLinkEntry.urlPrefix ?? ''}${recordValue}`
 							: textRecordLinkEntry.hrefMode === EnsTextRecordHrefMode.PrefixStripAt ?
-								`${textRecordLinkEntry.urlPrefix ?? ''}${recordValue.startsWith('@') ? recordValue.slice(1) : recordValue}`
+								`${textRecordLinkEntry.urlPrefix ?? ''}${recordValue.startsWith('@') ? recordValue.slice(1)
+								:
+									recordValue}`
 							:
 								null
 						)

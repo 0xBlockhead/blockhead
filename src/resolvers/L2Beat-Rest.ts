@@ -7,7 +7,7 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const eip155Caip2Namespace: 'eip155' = 'eip155'
+const eip155Caip2Namespace = 'eip155'
 
 export default {
 	source: Source.L2Beat_Rest,
@@ -79,7 +79,8 @@ export default {
 							return (
 								chainId == null || summary.projects[projectId] == null ?
 									[]
-								:	[
+								:
+									[
 									{
 										[EntityMetaKey.Id]: {
 											caip2: {

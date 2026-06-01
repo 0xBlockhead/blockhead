@@ -257,7 +257,7 @@
 		</ResourceBoundary>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 		<CollapsibleTabs
 				id={`${ipfsChromeKey}:carousel-browser`}
 				sectionIdPrefix={ipfsChromeKey}

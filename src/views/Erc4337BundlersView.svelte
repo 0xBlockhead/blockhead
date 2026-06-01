@@ -17,20 +17,19 @@
 		entityFieldReference,
 		title = 'ERC-4337 bundlers',
 		open = $bindable(true),
-		collapsible = true,
 		id,
+		href = '',
 		...EntitiesListProps
 	}: WithRest<
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.Erc4337Bundler>
 			title?: string
 			open?: boolean
-			collapsible?: boolean
 			id: string
+			href?: string
 		},
 		Pick<
 			ComponentProps<typeof EntitiesList>,
-			| 'href'
 			| 'CollapsibleProps'
 		>
 	> = $props()
@@ -44,27 +43,25 @@
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
-	import ResourceBoundary, { Layout as ResourceBoundaryLayout } from '$/components/ResourceBoundary.svelte'
-	import UnorderedList from '$/components/UnorderedList.svelte'
 	import Erc4337BundlerView from '$/views/Erc4337BundlerView.svelte'
 </script>
 
 
 <EntitiesList
 	entityType={EntityType.Erc4337Bundler}
-
 	{id}
 	{title}
 	bind:open
+	href={href}
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Bundlers submit user-operation bundles; they are not smart-account wallets or paymaster contracts.
+			Bundlers batch ERC-4337 user operations and submit them to the entry point on this network.
 		</p>
 	{/snippet}
 
-	{#snippet body({ open: _bodyOpen })}
+	{#snippet body()}
 		{#if open}
 			{@const network = useEntity(
 				EntityType.EvmNetwork,
@@ -86,38 +83,35 @@
 			{@const bundlers = derive(
 				network,
 				(network): Entity<typeof schema, EntityType.Erc4337Bundler>[] => (
-					network.$$erc4337Bundlers ?? []
+					(network.$$erc4337Bundlers ?? []).slice(0, 16)
 				),
 			)}
-			<div data-column="gap-3">
-				<ResourceBoundary
-					layout={ResourceBoundaryLayout.Block}
-					placeholderText="Loading bundlers…"
-					resource={bundlers}
-				>
-					{#snippet children(bundlers)}
-						<UnorderedList
-							getKey={(row) => stringify(row[EntityMetaKey.Id])}
-							getSortValue={(row) => BigInt(row[EntityMetaKey.Id].address)}
-							items={bundlers.slice(0, 16)}
-							orientation={ListOrientation.Column}
-							placeholderRanges={[]}
-						>
-							{#snippet Empty()}
-								<p data-text="muted">No indexed bundlers yet.</p>
-							{/snippet}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.Erc4337Bundler}
+				id={`${id}-items`}
+				href={href}
+				getKey={(bundler) => stringify(bundler[EntityMetaKey.Id])}
+				getSortValue={(bundler) => BigInt(bundler[EntityMetaKey.Id].address)}
+				placeholderText="Loading bundlers…"
+				resource={bundlers}
+				{title}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+					<p data-text="muted">No indexed bundlers yet.</p>
+				{/snippet}
 
-							{#snippet Item({ item })}
-								<Erc4337BundlerView
-									entityId={item[EntityMetaKey.Id]}
-									layout={EntityLayout.Summary}
-									open={false}
-								/>
-							{/snippet}
-						</UnorderedList>
-					{/snippet}
-				</ResourceBoundary>
-			</div>
+				{#snippet Item({ item: bundler })}
+					<Erc4337BundlerView
+						entityId={bundler[EntityMetaKey.Id]}
+						layout={EntityLayout.Summary}
+						open={false}
+					/>
+				{/snippet}
+			</EntitiesList>
 		{/if}
 	{/snippet}
 </EntitiesList>

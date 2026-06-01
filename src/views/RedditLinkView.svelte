@@ -135,7 +135,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<ResourceBoundary
 			resource={link}
 			placeholderText="Loading Reddit submission…"

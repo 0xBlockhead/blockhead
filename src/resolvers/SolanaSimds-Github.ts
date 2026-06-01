@@ -16,12 +16,15 @@ const solanaSimdProposalRows = async (
 	}[],
 ) => {
 	const { ProposalCategory, SpecificationRealm } = await import('$/constants/SpecificationProposal.ts')
-	return entries.flatMap((entry) => {
-		const proposalNumberRaw = regex('^(?<proposalNumber>\\d+)-.+\\.md$').exec(entry.name)?.groups?.proposalNumber
-		const proposalNumber = proposalNumberRaw != null ? parseInt(proposalNumberRaw, 10) : null
-		return entry.type !== 'file' || proposalNumber == null ?
+	return entries.flatMap((githubContent) => {
+		const proposalNumberRaw = regex('^(?<proposalNumber>\\d+)-.+\\.md$').exec(githubContent.name)?.groups?.proposalNumber
+		const proposalNumber = proposalNumberRaw != null ? parseInt(proposalNumberRaw, 10)
+		:
+			null
+		return githubContent.type !== 'file' || proposalNumber == null ?
 			[]
-		:	[{
+		:
+			[{
 				[EntityMetaKey.Id]: {
 					realm: SpecificationRealm.Solana,
 					category: ProposalCategory.Simd,
@@ -42,8 +45,8 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Solana || entityId.category !== ProposalCategory.Simd) {
 					throw new Error('SolanaSimds_Github: unsupported proposal id')
 				}
-				const { getSimdProposalMarkdownText } = await import('$/sources/SolanaSimds/Github/queries.ts')
-				const text = await singleFlight(getSimdProposalMarkdownText)({ number: entityId.number })
+				const { getProposalMarkdownText } = await import('$/sources/SolanaSimds/Github/queries.ts')
+				const text = await singleFlight(getProposalMarkdownText)({ number: entityId.number })
 				const body = stripFrontmatter(text)
 				const frontmatter = parseFrontmatter(text)
 				return {
@@ -65,8 +68,8 @@ export default {
 			entityType: EntityType._Global,
 			fieldName: '$$proposals',
 			resolve: async () => {
-				const { getSimdProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
-				return solanaSimdProposalRows(await singleFlight(getSimdProposalContents)())
+				const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
+				return solanaSimdProposalRows(await singleFlight(getProposalContents)())
 			},
 		}),
 
@@ -78,8 +81,8 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Solana) {
 					throw new Error('SolanaSimds_Github: $$proposals only supports SpecificationRealm.Solana')
 				}
-				const { getSimdProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
-				return solanaSimdProposalRows(await singleFlight(getSimdProposalContents)())
+				const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
+				return solanaSimdProposalRows(await singleFlight(getProposalContents)())
 			},
 		}),
 
@@ -91,8 +94,8 @@ export default {
 				if (entityId.realm !== SpecificationRealm.Solana || entityId.category !== ProposalCategory.Simd) {
 					throw new Error('SolanaSimds_Github: $$proposals only supports Solana SIMD proposal kind')
 				}
-				const { getSimdProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
-				return solanaSimdProposalRows(await singleFlight(getSimdProposalContents)())
+				const { getProposalContents } = await import('$/sources/SolanaSimds/Github/queries.ts')
+				return solanaSimdProposalRows(await singleFlight(getProposalContents)())
 			},
 		}),
 	],

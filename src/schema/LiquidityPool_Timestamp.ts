@@ -23,7 +23,7 @@ export default {
 
 	fields: [
 		{
-			name: '$$parentLiquidityPool',
+			name: '$parentLiquidityPool',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.LiquidityPool,
 			cardinality: EntityFieldCardinality.One,

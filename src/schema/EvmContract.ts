@@ -71,7 +71,7 @@ export default {
 			],
 		},
 		{
-			name: 'bytecodeHash',
+			name: 'codeHash',
 			type: EntityFieldType.Primitive,
 			primitiveType: ZeroExHex,
 			cardinality: EntityFieldCardinality.ZeroOrOne,

@@ -3,25 +3,19 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { TransportType } from '$/constants/TransportType.ts'
+import {
+	hyperliquidMainnetRestBaseUrl,
+	hyperliquidMainnetRestEndpoints,
+} from '$/constants/HyperliquidNetwork.ts'
+import { networkBySlug } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const hyperliquidMainnetRestUrl = 'https://api.hyperliquid.xyz'
-
-const hyperliquidRestEndpoints = [
-	{
-		url: `${hyperliquidMainnetRestUrl}/info`,
-		transportType: TransportType.Http,
-		providerName: 'Hyperliquid info API',
-	},
-]
-
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
 const assertHyperliquidMainnet = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== 'hyperliquid') {
+	if (!('networkSlug' in network) || network.networkSlug !== networkBySlug.hyperliquid.slug) {
 		throw new Error('Hyperliquid_Rest: unsupported network')
 	}
 }
@@ -38,7 +32,7 @@ export default {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
 					},
-					restEndpoints: hyperliquidRestEndpoints,
+					restEndpoints: hyperliquidMainnetRestEndpoints,
 				}
 			},
 		}),
@@ -47,14 +41,15 @@ export default {
 			entityType: EntityType.HyperliquidPerpMarket,
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId.$network)
-				const { meta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-				const row = (await meta({ restBaseUrl: hyperliquidMainnetRestUrl })).universe
+				const { getMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+				const perpMarket = (await getMeta({ restBaseUrl: hyperliquidMainnetRestBaseUrl })).universe
 					.find((market) => market.name === entityId.coin)
-				if (row == null) throw new Error(`Hyperliquid_Rest: perp market not found for ${entityId.coin}`)
+				if (perpMarket == null)
+					throw new Error(`Hyperliquid_Rest: perp market not found for ${entityId.coin}`)
 				return {
-					maxLeverage: row.maxLeverage,
-					...(row.onlyIsolated != null && {
-						onlyIsolated: row.onlyIsolated,
+					maxLeverage: perpMarket.maxLeverage,
+					...(perpMarket.onlyIsolated != null && {
+						onlyIsolated: perpMarket.onlyIsolated,
 					}),
 				}
 			},
@@ -64,16 +59,17 @@ export default {
 			entityType: EntityType.HyperliquidSpotAsset,
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId.$network)
-				const { spotMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-				const row = (await spotMeta({ restBaseUrl: hyperliquidMainnetRestUrl })).tokens
+				const { getSpotMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+				const spotToken = (await getSpotMeta({ restBaseUrl: hyperliquidMainnetRestBaseUrl })).tokens
 					.find((token) => token.index === entityId.assetId)
-				if (row == null) throw new Error(`Hyperliquid_Rest: spot asset not found for ${String(entityId.assetId)}`)
+				if (spotToken == null)
+					throw new Error(`Hyperliquid_Rest: spot asset not found for ${String(entityId.assetId)}`)
 				return {
-					name: row.name,
-					szDecimals: row.szDecimals,
-					weiDecimals: row.weiDecimals,
-					...(row.tokenId != null && {
-						tokenId: row.tokenId,
+					name: spotToken.name,
+					szDecimals: spotToken.szDecimals,
+					weiDecimals: spotToken.weiDecimals,
+					...(spotToken.tokenId != null && {
+						tokenId: spotToken.tokenId,
 					}),
 				}
 			},
@@ -83,18 +79,18 @@ export default {
 			entityType: EntityType.HyperliquidAccount,
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId.$network)
-				const { userRole } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-				const row = await userRole({
-					restBaseUrl: hyperliquidMainnetRestUrl,
+				const { getUserRole } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+				const userRoleWire = await getUserRole({
+					restBaseUrl: hyperliquidMainnetRestBaseUrl,
 					user: entityId.address,
 				})
 				return {
-					accountRole: row.role,
-					...(row.role === 'agent' && {
-						masterAddress: row.data.user,
+					accountRole: userRoleWire.role,
+					...(userRoleWire.role === 'agent' && {
+						masterAddress: userRoleWire.data.user,
 					}),
-					...(row.role === 'subAccount' && {
-						masterAddress: row.data.master,
+					...(userRoleWire.role === 'subAccount' && {
+						masterAddress: userRoleWire.data.master,
 					}),
 				}
 			},
@@ -104,8 +100,8 @@ export default {
 			entityType: EntityType.HyperliquidValidator,
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId.$network)
-				const { validatorSummaries } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-				const validator = (await validatorSummaries({ restBaseUrl: hyperliquidMainnetRestUrl }))
+				const { getValidatorSummaries } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+				const validator = (await getValidatorSummaries({ restBaseUrl: hyperliquidMainnetRestBaseUrl }))
 					.find((summary) => summary.validator.toLowerCase() === entityId.validator.toLowerCase())
 				if (validator == null) throw new Error(`Hyperliquid_Rest: validator not found for ${entityId.validator}`)
 				return {
@@ -128,18 +124,18 @@ export default {
 			resolve: async (entityId) => {
 				assertHyperliquidMainnet(entityId)
 				const {
-					meta,
-					spotMeta,
-					validatorSummaries,
+					getMeta,
+					getSpotMeta,
+					getValidatorSummaries,
 				} = await import('$/sources/Hyperliquid/Rest/queries.ts')
 				const [
 					perpMeta,
 					spotAssets,
 					validators,
 				] = await Promise.all([
-					meta({ restBaseUrl: hyperliquidMainnetRestUrl }),
-					spotMeta({ restBaseUrl: hyperliquidMainnetRestUrl }),
-					validatorSummaries({ restBaseUrl: hyperliquidMainnetRestUrl }),
+					getMeta({ restBaseUrl: hyperliquidMainnetRestBaseUrl }),
+					getSpotMeta({ restBaseUrl: hyperliquidMainnetRestBaseUrl }),
+					getValidatorSummaries({ restBaseUrl: hyperliquidMainnetRestBaseUrl }),
 				])
 				return [
 					{
@@ -167,8 +163,8 @@ export default {
 			fieldName: '$$validators',
 			resolve: async (entityId, context) => {
 				assertHyperliquidMainnet(entityId)
-				const { validatorSummaries } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-				return (await validatorSummaries({ restBaseUrl: hyperliquidMainnetRestUrl }))
+				const { getValidatorSummaries } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+				return (await getValidatorSummaries({ restBaseUrl: hyperliquidMainnetRestBaseUrl }))
 					.slice(0, resolverLoadSubsetRowLimit(context))
 					.map((validator) => ({
 						[EntityMetaKey.Id]: {
@@ -191,8 +187,8 @@ export default {
 			fieldName: '$$perpMarkets',
 			resolve: async (entityId, context) => {
 				assertHyperliquidMainnet(entityId)
-				const { meta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-				return (await meta({ restBaseUrl: hyperliquidMainnetRestUrl })).universe
+				const { getMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+				return (await getMeta({ restBaseUrl: hyperliquidMainnetRestBaseUrl })).universe
 					.slice(0, resolverLoadSubsetRowLimit(context))
 					.map((market) => ({
 						[EntityMetaKey.Id]: {
@@ -212,8 +208,8 @@ export default {
 			fieldName: '$$spotAssets',
 			resolve: async (entityId, context) => {
 				assertHyperliquidMainnet(entityId)
-				const { spotMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
-				return (await spotMeta({ restBaseUrl: hyperliquidMainnetRestUrl })).tokens
+				const { getSpotMeta } = await import('$/sources/Hyperliquid/Rest/queries.ts')
+				return (await getSpotMeta({ restBaseUrl: hyperliquidMainnetRestBaseUrl })).tokens
 					.slice(0, resolverLoadSubsetRowLimit(context))
 					.map((token) => ({
 						[EntityMetaKey.Id]: {

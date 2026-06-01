@@ -3,7 +3,11 @@ import {
 	defineEntityResolver,
 	resolverLoadSubsetRowLimit,
 } from '$/resolvers/$resolvers.ts'
-import { TransportType } from '$/constants/TransportType.ts'
+import {
+	moneroDaemonDefaultRpcUrl,
+	moneroMainnetRpcEndpoints,
+} from '$/constants/MoneroNetwork.ts'
+import { caip2ByNetworkSlug } from '$/constants/Network.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -14,30 +18,16 @@ import type {
 	MoneroRpcTransactionOutput,
 } from '$/sources/MoneroDaemonRpc/JsonRpc/types.ts'
 
-const moneroDaemonRpcUrl = 'https://xmr-node.cakewallet.com:18081/json_rpc'
-
-const moneroRpcEndpoints = [
-	{
-		url: 'https://xmr-node.cakewallet.com:18081/json_rpc',
-		transportType: TransportType.Http,
-		providerName: 'Cake Wallet public Monero node',
-	},
-	{
-		url: 'http://nodes.hashvault.pro:18081/json_rpc',
-		transportType: TransportType.Http,
-		providerName: 'Hashvault public Monero node',
-	},
-	{
-		url: 'http://127.0.0.1:18081/json_rpc',
-		transportType: TransportType.Http,
-		providerName: 'Local monerod',
-	},
-]
-
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
+const moneroMainnetCaip2 = caip2ByNetworkSlug.monero
+
 const assertMoneroMainnet = (network: NetworkId) => {
-	if (!('caip2' in network) || network.caip2.namespace !== 'monero' || network.caip2.reference !== '418015bb9ae982a1975da7d79277c270') {
+	if (
+		!('caip2' in network)
+		|| network.caip2.namespace !== moneroMainnetCaip2.namespace
+		|| network.caip2.reference !== moneroMainnetCaip2.reference
+	) {
 		throw new Error('MoneroDaemonRpc_JsonRpc: unsupported network')
 	}
 }
@@ -85,7 +75,8 @@ const moneroRingMemberFields = (
 ) => (
 	input.key?.key_offsets[memberIndex] == null ?
 		{}
-	:	{
+	:
+		{
 			globalOutputIndex: BigInt(input.key.key_offsets[memberIndex]),
 		}
 )
@@ -111,7 +102,8 @@ const moneroTransactionFields = (
 		$$keyImages: transaction.decoded_json.vin.flatMap((input, inputIndex) => (
 			input.key == null ?
 				[]
-			:	[
+			:
+				[
 				{
 					[EntityMetaKey.Id]: {
 						$transaction: {
@@ -206,7 +198,7 @@ const getMoneroTransaction = async (entityId: {
 	assertMoneroMainnet(entityId.$network)
 	const { getTransactions } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 	const transaction = (await getTransactions({
-		rpcUrl: moneroDaemonRpcUrl,
+		rpcUrl: moneroDaemonDefaultRpcUrl,
 		txHashes: [entityId.txHash],
 	})).txs[0]
 	if (transaction == null) {
@@ -227,7 +219,7 @@ export default {
 					$network: {
 						[EntityMetaKey.Id]: entityId,
 					},
-					rpcEndpoints: moneroRpcEndpoints,
+					rpcEndpoints: moneroMainnetRpcEndpoints,
 				}
 			},
 		}),
@@ -238,7 +230,7 @@ export default {
 				assertMoneroMainnet(entityId.$network)
 				const { getBlock } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 				const block = await getBlock({
-					rpcUrl: moneroDaemonRpcUrl,
+					rpcUrl: moneroDaemonDefaultRpcUrl,
 					height: entityId.height,
 				})
 				return {
@@ -360,7 +352,7 @@ export default {
 				assertMoneroMainnet(entityId)
 				const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 				const info = await getInfo({
-					rpcUrl: moneroDaemonRpcUrl,
+					rpcUrl: moneroDaemonDefaultRpcUrl,
 				})
 				return {
 					[EntityMetaKey.Id]: {
@@ -379,7 +371,7 @@ export default {
 				assertMoneroMainnet(entityId)
 				const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 				const info = await getInfo({
-					rpcUrl: moneroDaemonRpcUrl,
+					rpcUrl: moneroDaemonDefaultRpcUrl,
 				})
 				return [
 					{
@@ -400,7 +392,7 @@ export default {
 				assertMoneroMainnet(entityId)
 				const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
 				const info = await getInfo({
-					rpcUrl: moneroDaemonRpcUrl,
+					rpcUrl: moneroDaemonDefaultRpcUrl,
 				})
 				const headBlockHeight = BigInt(info.height - 1)
 				return Array.from({

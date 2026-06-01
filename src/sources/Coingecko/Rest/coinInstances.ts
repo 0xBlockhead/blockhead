@@ -10,7 +10,7 @@ import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import type { EntityId } from '$/schema/$schema.ts'
 import type { schema } from '$/schema/index.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
-import { getCoingeckoCoinWithAssetPlatforms } from '$/sources/Coingecko/Rest/queries.ts'
+import { getCoinWithAssetPlatforms } from '$/sources/Coingecko/Rest/queries.ts'
 import type { CoingeckoCoin } from '$/sources/Coingecko/Rest/types.ts'
 import type {
 	LifiToken,
@@ -105,13 +105,15 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 						CoinInstanceRepresentation.BridgeWrapped
 					: lifiCoinKeyTrimmed.toUpperCase() === 'USDC' ?
 						CoinInstanceRepresentation.IssuerNative
-					:	CoinInstanceRepresentation.Unknown
+					:
+						CoinInstanceRepresentation.Unknown
 				)
 			: coinId === CoinId.USDC && /\.e$/i.test(symbolTrimmed) ?
 				CoinInstanceRepresentation.BridgeWrapped
 			: coinId === CoinId.USDC ?
 				CoinInstanceRepresentation.IssuerNative
-			: (
+			:
+				(
 				coinId === CoinId.ETH
 				&& instanceId.type === CoinInstanceType.Erc20Token
 				&& isNativeChain === false
@@ -119,12 +121,14 @@ const coinInstanceStubRowsFromCoingeckoCoin = (
 				CoinInstanceRepresentation.CanonicalL2Native
 			: coinId === CoinId.ETH && symbolTrimmed.toUpperCase().startsWith('W') ?
 				CoinInstanceRepresentation.CanonicalL2Native
-			: (
+			:
+				(
 				coinId === CoinId.ETH
 				&& instanceId.type === CoinInstanceType.NativeCurrency
 			) ?
 				CoinInstanceRepresentation.IssuerNative
-			:	CoinInstanceRepresentation.Unknown
+			:
+				CoinInstanceRepresentation.Unknown
 		)
 		rows.push({
 			[EntityMetaKey.Id]: instanceId,
@@ -167,7 +171,7 @@ export const fetchCoinInstanceStubsForCoin = async (
 	const coingeckoId = idByCoinId[coinId]
 	if (coingeckoId == null) return []
 
-	const { coin, assetPlatforms } = await getCoingeckoCoinWithAssetPlatforms(publicEnv, coingeckoId)
+	const { coin, assetPlatforms } = await getCoinWithAssetPlatforms(publicEnv, coingeckoId)
 	if (coin == null) return []
 
 	const chainIdByPlatformId = new Map(
@@ -184,8 +188,8 @@ export const fetchCoinInstanceStubsForCoin = async (
 	let lifiCoinKeyByAddress = new Map<string, string>()
 
 	try {
-		const { fetchLifiTokens } = await import('$/sources/Lifi/Rest/queries.ts')
-		const { tokens } = await fetchLifiTokens({ chainTypes: 'EVM' })
+		const { fetchTokens } = await import('$/sources/Lifi/Rest/queries.ts')
+		const { tokens } = await fetchTokens({ chainTypes: 'EVM' })
 		lifiCoinKeyByAddress = lifiCoinKeyByChainIdAndAddress(tokens)
 	}
 	catch {

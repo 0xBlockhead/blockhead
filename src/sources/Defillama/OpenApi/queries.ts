@@ -5,6 +5,7 @@
  * @see https://docs.llama.fi/coin-prices-api
  */
 
+import { iconsOrigin } from '$/sources/Defillama/Rest/constants.ts'
 import { getChartJson, getCurrentPricesJson } from '$/sources/Defillama/OpenApi/client.ts'
 import type {
 	DefillamaChartPricePoint,
@@ -17,7 +18,7 @@ import type {
 } from '$/sources/Defillama/Rest/types.ts'
 
 /** Match `coins` map key to the id we requested (`coingecko:ethereum`, etc.). */
-export const defillamaCoinEntryFromResponse = <_Bucket>(
+export const getCoinEntryFromResponse = <_Bucket>(
 	coins: Record<string, _Bucket> | undefined,
 	requestedCoinId: string,
 ): _Bucket | undefined => {
@@ -45,7 +46,8 @@ const normalizeCurrentPriceData = (
 			timestamp: value.timestamp,
 			...(value.confidence != null && { confidence: value.confidence }),
 		}
-	:	undefined
+	:
+		undefined
 )
 
 /**
@@ -66,7 +68,7 @@ export const getCurrentPrices = async (
 	return {
 		coins: Object.fromEntries(
 			coins.flatMap((requestedCoinId) => {
-				const wire = defillamaCoinEntryFromResponse(response.coins, requestedCoinId)
+				const wire = getCoinEntryFromResponse(response.coins, requestedCoinId)
 				const normalized = normalizeCurrentPriceData(wire)
 				return normalized == null ? [] : [[requestedCoinId, normalized] as const]
 			}),
@@ -79,34 +81,10 @@ export const getCurrentPrices = async (
  * `[timestampMs, open, high, low, close]` — Coingecko-shaped OHLC rows for candle entities.
  * Opens link prior close; high/low are min/max of that step (line-to-synthetic-OHLC).
  */
-export const defillamaChartPricesToCoingeckoOhlcRows = (
-	prices: DefillamaChartPricePoint[],
-): number[][] => (
-	prices.flatMap((point, i) => (
-		point.price == null || point.timestamp == null ?
-			[]
-		:	(() => {
-				const tRaw = point.timestamp
-				const tMs = tRaw < 1e12 ? tRaw * 1000 : tRaw
-				const close = point.price
-				const prev = i === 0 ? undefined : prices[i - 1]
-				const open = (
-					i === 0 || prev?.price == null ?
-						close
-					:
-						prev.price
-				)
-				const high = Math.max(open, close)
-				const low = Math.min(open, close)
-				return [[tMs, open, high, low, close]]
-			})()
-	))
-)
-
 /**
  * Daily chart points for `days` buckets (`period=1D`, `span=days`).
  */
-export const getDefillamaChartOhlcRowsCoingeckoShape = async ({
+export const getChartOhlcRows = async ({
 	llamaCoinId,
 	days,
 	searchWidth,
@@ -122,7 +100,62 @@ export const getDefillamaChartOhlcRowsCoingeckoShape = async ({
 		searchWidth,
 	})
 	const prices = (
-		defillamaCoinEntryFromResponse(response.coins, llamaCoinId)?.prices ?? []
+		getCoinEntryFromResponse(response.coins, llamaCoinId)?.prices ?? []
 	)
-	return defillamaChartPricesToCoingeckoOhlcRows(prices)
+	return (
+		prices.flatMap((point, i) => (
+			point.price == null || point.timestamp == null ?
+				[]
+			:
+				(() => {
+					const tRaw = point.timestamp
+					const tMs = tRaw < 1e12 ? tRaw * 1000 : tRaw
+					const close = point.price
+					const prev = i === 0 ? undefined : prices[i - 1]
+					const open = (
+						i === 0 || prev?.price == null ?
+							close
+						:
+							prev.price
+					)
+					const high = Math.max(open, close)
+					const low = Math.min(open, close)
+					return [[tMs, open, high, low, close]]
+				})()
+		))
+	)
+}
+
+/** `https://icons.llama.fi/{slug}.png` — chain icon CDN. Slug is the DeFiLlama chain name lowercased. */
+export const getChainIconUrl = (slug: string): string => (
+	`${iconsOrigin}/${encodeURIComponent(slug)}.png`
+)
+
+/**
+ * DeFiLlama chain slug keyed by EVM chain id.
+ * Slugs match the lowercase `name` field from `/v2/chains`, which also routes `icons.llama.fi`.
+ */
+export const getChainSlugByChainId: Partial<Record<number, string>> = {
+	1: 'ethereum',
+	10: 'optimism',
+	56: 'bsc',
+	100: 'xdai',
+	137: 'polygon',
+	250: 'fantom',
+	8453: 'base',
+	42161: 'arbitrum',
+	43114: 'avax',
+	59144: 'linea',
+	534352: 'scroll',
+	1101: 'polygon_zkevm',
+	324: 'era',
+	5000: 'mantle',
+	81457: 'blast',
+	34443: 'mode',
+	1868: 'soneium',
+	480: 'worldchain',
+	7777777: 'zora',
+	57073: 'ink',
+	1135: 'lisk',
+	60808: 'bob',
 }

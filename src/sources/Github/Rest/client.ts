@@ -9,7 +9,8 @@ const isGithubRestApiUrl = (url: string) => url.startsWith(restOrigin)
 const githubInit = (url: string): RequestInit | undefined => (
 	isGithubRestApiUrl(url) ?
 		{ headers: restHeaders }
-	:	undefined
+	:
+		undefined
 )
 
 export const githubHttp = ({

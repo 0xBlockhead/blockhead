@@ -35,7 +35,8 @@ export const jsonRpc = async <_Result>({
 	const response = await corsFetch(rpcUrl, {
 		...(knownExecutionRpc ?
 			{ origins: executionRpcOrigins }
-		:	{ corsEnabled: true }),
+		:
+			{ corsEnabled: true }),
 		init: {
 			method: 'POST',
 			headers: jsonRpcHeaders,
@@ -94,7 +95,8 @@ export const jsonRpcUrlWithTransportForChain = async (
 			.map((entry) => (
 				typeof entry === 'string' ?
 					entry.trim()
-				:	entry.url?.trim()
+				:
+					entry.url?.trim()
 			))
 			.filter((url): url is string => Boolean(url))
 			.find((url) => (

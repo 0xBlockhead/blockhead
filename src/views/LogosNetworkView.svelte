@@ -1,6 +1,7 @@
 <script lang="ts">
 	// Types/constants
 	import type { EntityId } from '$/schema/$schema.ts'
+	import { networkEnvironmentByEnvironment } from '$/constants/Network.ts'
 	import { EntityType } from '$/schema/$EntityType.ts'
 	import { schema } from '$/schema/index.ts'
 	import { Source } from '$/sources/$Source.ts'
@@ -135,7 +136,7 @@
 							<p><strong>Execution environments:</strong> {network.$$executionEnvironments.length}</p>
 						{/if}
 
-						<p><strong>Environment:</strong> {network.environment}</p>
+						<p><strong>Environment:</strong> {networkEnvironmentByEnvironment[network.environment].label}</p>
 					{/snippet}
 				</ResourceBoundary>
 			{/snippet}

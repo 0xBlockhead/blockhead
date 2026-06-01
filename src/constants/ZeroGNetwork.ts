@@ -40,3 +40,5 @@ export const zeroGMainnetStorageEndpoints = [
 	transportType: TransportType
 	providerName: string
 }[]
+
+export const zeroGStorageNodeDefaultLocalRpcUrl = 'http://127.0.0.1:5678'

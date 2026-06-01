@@ -63,7 +63,9 @@
 			item,
 			id: getItemId(item),
 			label: getItemLabel(item) ?? '',
-			disabled: getItemDisabled ? getItemDisabled(item) : false,
+			disabled: getItemDisabled ? getItemDisabled(item)
+			:
+				false,
 		})),
 	)
 	const normalizedGroups = $derived(
@@ -83,7 +85,9 @@
 					item,
 					id: getItemId(item),
 					label: getItemLabel(item) ?? '',
-					disabled: getItemDisabled ? getItemDisabled(item) : false,
+					disabled: getItemDisabled ? getItemDisabled(item)
+					:
+						false,
 				})),
 			}))
 		:
@@ -104,7 +108,9 @@
 		const singleValue = value ?? undefined
 		const nextValue = (
 			normalizedItems.find((item) => item.id === (singleValue ? getItemId(singleValue) : ''))?.label ??
-			(singleValue ? getItemLabel(singleValue) : '')
+			(singleValue ? getItemLabel(singleValue)
+			:
+				'')
 		)
 		if (inputValue !== nextValue) inputValue = nextValue
 	})
@@ -166,7 +172,9 @@
 	bind:value={
 		() => {
 			const singleValue = value ?? undefined
-			return singleValue ? getItemId(singleValue) : ''
+			return singleValue ? getItemId(singleValue)
+			:
+				''
 		},
 		(_value) => setValue(_value)
 	}

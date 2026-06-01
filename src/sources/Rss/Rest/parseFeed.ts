@@ -102,7 +102,8 @@ const updatedAtFromBlock = (block: string) => {
 	return (
 		value != null && Number.isFinite(Date.parse(value)) ?
 			Date.parse(value)
-		:	undefined
+		:
+			undefined
 	)
 }
 

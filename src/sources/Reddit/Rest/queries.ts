@@ -7,7 +7,7 @@ import type {
 import type { SourcePublicEnvFor } from '$/sources/index.ts'
 import { Source } from '$/sources/$Source.ts'
 
-export const redditGetInfo = async (publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>, id: string) => (
+export const getInfo = async (publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>, id: string) => (
 	oauthGetJson<RedditApiInfoResponse>(
 		publicEnv,
 		`/api/info?${(
@@ -16,11 +16,11 @@ export const redditGetInfo = async (publicEnv: SourcePublicEnvFor<Source.Reddit_
 	)
 )
 
-export const redditGetSubredditAbout = async (publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>, name: string) => (
+export const getSubredditAbout = async (publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>, name: string) => (
 	oauthGetJson<RedditApiSubredditAbout>(publicEnv, `/r/${encodeURIComponent(name)}/about?raw_json=1` as const)
 )
 
-export const redditListSubredditLinks = async (
+export const listSubredditLinks = async (
 	publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>,
 	name: string,
 	limit: number,
@@ -36,7 +36,7 @@ export const redditListSubredditLinks = async (
 	)
 )
 
-export const redditListPopularLinks = async (
+export const listPopularLinks = async (
 	publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>,
 	limit: number,
 ) => (
@@ -51,7 +51,7 @@ export const redditListPopularLinks = async (
 	)
 )
 
-export const redditGetLinkComments = async (
+export const getLinkComments = async (
 	publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>,
 	permalink: string,
 	limit: number,
@@ -67,7 +67,7 @@ export const redditGetLinkComments = async (
 	)
 )
 
-export const redditGetLinkCommentsByArticleId = async (
+export const getLinkCommentsByArticleId = async (
 	publicEnv: SourcePublicEnvFor<Source.Reddit_Rest>,
 	articleId: string,
 	limit: number,

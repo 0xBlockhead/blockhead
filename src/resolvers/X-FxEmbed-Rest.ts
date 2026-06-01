@@ -51,8 +51,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.XUser,
 			resolve: async (entityId) => {
-				const { fxEmbedGetUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const response = await singleFlight(fxEmbedGetUser)(entityId.id)
+				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const response = await singleFlight(getUser)(entityId.id)
 				const user = response.user
 				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
 				const createdAt = Date.parse(user.joined ?? '')
@@ -82,8 +82,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.XPost,
 			resolve: async (entityId) => {
-				const { fxEmbedGetStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const response = await singleFlight(fxEmbedGetStatus)(entityId.id)
+				const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const response = await singleFlight(getStatus)(entityId.id)
 				const status = response.status
 				if (status?.type !== 'status' || status.id == null) {
 					throw new Error('X_FxEmbed_Rest: post not found')
@@ -91,7 +91,8 @@ export default {
 				const createdAt = (
 					status.created_timestamp != null ?
 						status.created_timestamp * 1000
-					: Date.parse(status.created_at ?? '')
+					:
+						Date.parse(status.created_at ?? '')
 				)
 				const replyToId = optionalTrimmedString(status.replying_to?.status)
 				const quotedId = optionalTrimmedString(status.quote?.id)
@@ -116,7 +117,8 @@ export default {
 					$author: (
 						status.author?.id == null ?
 							undefined
-						:	{
+						:
+							{
 								[EntityMetaKey.Id]: { id: status.author.id },
 							}
 					),
@@ -127,8 +129,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.XUser_Timestamp,
 			resolve: async (entityId) => {
-				const { fxEmbedGetUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const user = (await singleFlight(fxEmbedGetUser)(entityId.$user.id)).user
+				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const user = (await singleFlight(getUser)(entityId.$user.id)).user
 				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
 				return xUserTimestampFieldsFromUser(user)
 			},
@@ -137,8 +139,8 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.XPost_Timestamp,
 			resolve: async (entityId) => {
-				const { fxEmbedGetStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const status = (await singleFlight(fxEmbedGetStatus)(entityId.$post.id)).status
+				const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const status = (await singleFlight(getStatus)(entityId.$post.id)).status
 				if (status?.type !== 'status' || status.id == null) {
 					throw new Error('X_FxEmbed_Rest: post not found')
 				}
@@ -152,9 +154,9 @@ export default {
 			entityType: EntityType.XNetwork,
 			fieldName: '$$xUsers',
 			resolve: async (_entityId, context) => {
-				const { fxEmbedSearchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
-				const result = await singleFlight(fxEmbedSearchStatuses)(limit)
+				const result = await singleFlight(searchStatuses)(limit)
 				return (
 					(result.results ?? [])
 						.flatMap((status) => {
@@ -172,16 +174,17 @@ export default {
 			entityType: EntityType.XNetwork,
 			fieldName: '$$xPosts',
 			resolve: async (_entityId, context) => {
-				const { fxEmbedSearchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const { searchStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
-					((await singleFlight(fxEmbedSearchStatuses)(limit)).results ?? [])
-						.flatMap((row) => (
-							row.type === 'status' && row.id != null ?
+					((await singleFlight(searchStatuses)(limit)).results ?? [])
+						.flatMap((wirePost) => (
+							wirePost.type === 'status' && wirePost.id != null ?
 								[{
-									[EntityMetaKey.Id]: { id: row.id },
+									[EntityMetaKey.Id]: { id: wirePost.id },
 								}]
-							:	[]
+							:
+								[]
 						))
 				)
 			},
@@ -191,8 +194,8 @@ export default {
 			entityType: EntityType.XPost,
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
-				const { fxEmbedGetStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const status = (await singleFlight(fxEmbedGetStatus)(entityId.id)).status
+				const { getStatus } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const status = (await singleFlight(getStatus)(entityId.id)).status
 				if (status?.type !== 'status' || status.id == null) {
 					throw new Error('X_FxEmbed_Rest: post not found')
 				}
@@ -212,8 +215,8 @@ export default {
 			entityType: EntityType.XUser,
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
-				const { fxEmbedGetUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
-				const user = (await singleFlight(fxEmbedGetUser)(entityId.id)).user
+				const { getUser } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const user = (await singleFlight(getUser)(entityId.id)).user
 				if (user?.id == null) throw new Error('X_FxEmbed_Rest: user not found')
 				return [
 					{
@@ -231,16 +234,17 @@ export default {
 			entityType: EntityType.XUser,
 			fieldName: '$$posts',
 			resolve: async (entityId, context) => {
-				const { fxEmbedGetUserStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
+				const { getUserStatuses } = await import('$/sources/FxEmbed/Rest/queries.ts')
 				const limit = resolverLoadSubsetRowLimit(context)
 				return (
-					((await singleFlight(fxEmbedGetUserStatuses)(entityId.id, limit)).results ?? [])
-						.flatMap((row) => (
-							row.type === 'status' && row.id != null ?
+					((await singleFlight(getUserStatuses)(entityId.id, limit)).results ?? [])
+						.flatMap((wirePost) => (
+							wirePost.type === 'status' && wirePost.id != null ?
 								[{
-									[EntityMetaKey.Id]: { id: row.id },
+									[EntityMetaKey.Id]: { id: wirePost.id },
 								}]
-							:	[]
+							:
+								[]
 						))
 				)
 			},

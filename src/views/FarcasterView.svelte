@@ -118,7 +118,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<dl>
 			<ResourceBoundary
 				resource={network}

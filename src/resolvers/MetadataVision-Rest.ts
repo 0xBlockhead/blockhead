@@ -29,12 +29,14 @@ export default {
 					const imageMedia = (
 						imageUrl == null ?
 							undefined
-						:	mediaFromUrl(imageUrl, MediaType.Image)
+						:
+							mediaFromUrl(imageUrl, MediaType.Image)
 					)
 					const siteIconMedia = (
 						logoUrl == null ?
 							undefined
-						:	mediaFromUrl(logoUrl, MediaType.Image)
+						:
+							mediaFromUrl(logoUrl, MediaType.Image)
 					)
 					const out: Partial<EntityFieldValues<typeof schema, EntityType.Url>> = {}
 					if (title != null) out.openGraphTitle = title

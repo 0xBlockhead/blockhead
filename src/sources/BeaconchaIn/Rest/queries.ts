@@ -5,7 +5,7 @@ import type {
 	BeaconchaInResponse,
 } from '$/sources/BeaconchaIn/Rest/types.ts'
 
-export const getBeaconchaInEpoch = async ({
+export const getEpoch = async ({
 	apiBase,
 	epoch,
 }: {

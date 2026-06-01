@@ -144,7 +144,8 @@ const activationFieldsFromActivation = (
 ) => (
 	activation == null ?
 		{}
-	:	{
+	:
+		{
 			...(activation.block != null && { activationBlock: activation.block }),
 			...(activation.timestamp != null && { activationTimestampMs: activation.timestamp }),
 			...(activation.epoch != null && { activationEpoch: activation.epoch }),

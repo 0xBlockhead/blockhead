@@ -45,13 +45,15 @@ export const proxyFetch: typeof fetch = async (input, init) => {
 			input.href
 		:	'url' in input && typeof input.url === 'string' ?
 			input.url
-		:	''
+		:
+			''
 	)
 	if (!href.startsWith('http://') && !href.startsWith('https://')) return fetch(input, init)
 	return (
 		typeof window !== 'undefined' ?
 			fetch(`/api-proxy/${href}`, init)
-		:	fetch(input, init)
+		:
+			fetch(input, init)
 	)
 }
 
@@ -72,7 +74,8 @@ export type CorsAwareFetchOptions =
 const resolveCorsEnabled = (url: string, options: CorsAwareFetchOptions): boolean => (
 	'corsEnabled' in options ?
 		options.corsEnabled
-	:	(
+	:
+		(
 			options.origins.find((entry) => entry.origin === new URL(url).origin)?.corsEnabled ??
 			false
 		)
@@ -88,7 +91,8 @@ const doFetch = async (
 		fetch(url, options.init)
 	: !resolveCorsEnabled(url, options) ?
 		proxyFetch(url, options.init)
-	:	fetch(url, options.init)
+	:
+		fetch(url, options.init)
 )
 
 export const corsFetch = async (

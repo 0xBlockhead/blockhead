@@ -22,7 +22,7 @@ const clampYoutubeMaxResults = (limit: number) => (
 	Math.min(50, Math.max(1, limit))
 )
 
-export const youtubeGetChannel = async (
+export const getChannel = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	channelId: string,
 ) => (
@@ -36,7 +36,7 @@ export const youtubeGetChannel = async (
 	)
 )
 
-export const youtubeGetVideo = async (
+export const getVideo = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	videoId: string,
 ) => (
@@ -50,7 +50,7 @@ export const youtubeGetVideo = async (
 	)
 )
 
-export const youtubeGetComment = async (
+export const getComment = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	commentId: string,
 ) => (
@@ -64,7 +64,7 @@ export const youtubeGetComment = async (
 	)
 )
 
-export const youtubeGetCommentThread = async (
+export const getCommentThread = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	commentThreadId: string,
 ) => (
@@ -78,7 +78,7 @@ export const youtubeGetCommentThread = async (
 	)
 )
 
-export const youtubeGetPlaylist = async (
+export const getPlaylist = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	playlistId: string,
 ) => (
@@ -92,7 +92,7 @@ export const youtubeGetPlaylist = async (
 	)
 )
 
-export const youtubeListChannelPlaylists = async (
+export const listChannelPlaylists = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	channelId: string,
 	limit: number,
@@ -108,7 +108,7 @@ export const youtubeListChannelPlaylists = async (
 	)
 )
 
-export const youtubeListPlaylistItems = async (
+export const listPlaylistItems = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	playlistId: string,
 	limit: number,
@@ -124,7 +124,7 @@ export const youtubeListPlaylistItems = async (
 	)
 )
 
-export const youtubeListCommentThreads = async (
+export const listCommentThreads = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	videoId: string,
 	limit: number,
@@ -142,7 +142,7 @@ export const youtubeListCommentThreads = async (
 	)
 )
 
-export const youtubeListCommentReplies = async (
+export const listCommentReplies = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	parentId: string,
 	limit: number,
@@ -160,7 +160,7 @@ export const youtubeListCommentReplies = async (
 	)
 )
 
-export const youtubeListPopularVideos = async (
+export const listPopularVideos = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	limit: number,
 ) => (
@@ -175,7 +175,7 @@ export const youtubeListPopularVideos = async (
 	)
 )
 
-export const youtubeSearchChannels = async (
+export const searchChannels = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	query: string,
 	limit: number,
@@ -192,7 +192,7 @@ export const youtubeSearchChannels = async (
 	)
 )
 
-export const youtubeSearchChannelVideos = async (
+export const searchChannelVideos = async (
 	publicEnv: SourcePublicEnvFor<Source.Youtube_Rest>,
 	channelId: string,
 	limit: number,

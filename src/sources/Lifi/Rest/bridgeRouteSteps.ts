@@ -17,7 +17,8 @@ export const coinInstanceRefFromLifiToken = (
 ) => (
 	token == null ?
 		undefined
-	:	((address) => (
+	:
+		((address) => (
 			NATIVE_LIFI_TOKEN_ADDRESSES.has(address) ?
 				{
 					[EntityMetaKey.Id]: {
@@ -25,10 +26,12 @@ export const coinInstanceRefFromLifiToken = (
 						type: CoinInstanceType.NativeCurrency,
 					},
 				}
-			:	((contractAddress) => (
+			:
+				((contractAddress) => (
 					contractAddress == null ?
 						undefined
-					:	{
+					:
+						{
 							[EntityMetaKey.Id]: {
 								$network: { chainId: token.chainId },
 								type: CoinInstanceType.Erc20Token,

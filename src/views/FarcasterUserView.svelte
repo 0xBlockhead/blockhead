@@ -72,17 +72,7 @@
 				],
 				$limit: 1,
 			},
-			$$casts: {},
 		},
-	)
-
-	const casts = derive(
-		farcasterUser,
-		(farcasterUser) => (
-			[...(farcasterUser.$$casts ?? [])].map((result) => ({
-				result,
-			}))
-		),
 	)
 
 
@@ -181,7 +171,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<ResourceBoundary
 			resource={farcasterUser}
 			placeholderText="Loading Farcaster profile (FID)…"
@@ -366,36 +356,67 @@
 
 					{#snippet SectionCasts()}
 						<EntitiesList
-						entityType={EntityType.FarcasterCast}
-						href={resolve('/farcaster/feed')}
-						id={`farcaster-user:${String(entityId.fid)}:casts-list`}
-						placeholderText="Loading casts (Farcaster FID + cast hash)…"
-						resource={casts}
-						title="Casts"
-						getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
-						getSortValue={(row) => (
-							[...stringify(row.result[EntityMetaKey.Id])].map((character) => (
-								String.fromCharCode(0xffff - character.charCodeAt(0))
-							)).join('')
-						)}
-					>
-						{#snippet Empty()}
-							<p data-text="muted">
-								No casts yet.
-							</p>
-						{/snippet}
+							entityType={EntityType.FarcasterCast}
+							href={resolve('/farcaster/feed')}
+							id={`farcaster-user:${String(entityId.fid)}:casts-list`}
+							title="Casts"
+							bind:open
+							collapsible={false}
+						>
+							{#snippet body()}
+								{#if open}
+									{@const farcasterUserCasts = useEntity(
+										EntityType.FarcasterUser,
+										entityId,
+										{
+											$$casts: {},
+										},
+									)}
+									{@const casts = derive(
+										farcasterUserCasts,
+										(farcasterUserCasts) => (
+											[...(farcasterUserCasts.$$casts ?? [])].map((result) => ({
+												result,
+											}))
+										),
+									)}
+									<EntitiesList
+										collapsible={false}
+										showSummary={false}
+										entityType={EntityType.FarcasterCast}
+										href={resolve('/farcaster/feed')}
+										id={`farcaster-user:${String(entityId.fid)}:casts-list-items`}
+										placeholderText="Loading casts (Farcaster FID + cast hash)…"
+										resource={casts}
+										title="Casts"
+										getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
+										getSortValue={(row) => (
+											[...stringify(row.result[EntityMetaKey.Id])].map((character) => (
+												String.fromCharCode(0xffff - character.charCodeAt(0))
+											)).join('')
+										)}
+										open={true}
+									>
+										{#snippet Empty()}
+											<p data-text="muted">
+												No casts yet.
+											</p>
+										{/snippet}
 
-						{#snippet Item({ item })}
-							{@const castId = item.result[EntityMetaKey.Id]}
-							<FarcasterCastView
-								entityId={{
-									fid: castId.fid,
-									hash: castId.hash,
-								}}
-								layout={EntityLayout.Summary}
-								variant="feed"
-							/>
-						{/snippet}
+										{#snippet Item({ item })}
+											{@const castId = item.result[EntityMetaKey.Id]}
+											<FarcasterCastView
+												entityId={{
+													fid: castId.fid,
+													hash: castId.hash,
+												}}
+												layout={EntityLayout.Summary}
+												variant="feed"
+											/>
+										{/snippet}
+									</EntitiesList>
+								{/if}
+							{/snippet}
 						</EntitiesList>
 					{/snippet}
 

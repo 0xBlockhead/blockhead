@@ -71,7 +71,8 @@
 		return (
 			headingExtract === '' ?
 				identifier
-			:	new RegExp(
+			:
+				new RegExp(
 					`^${identifier.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*:`,
 					'i',
 				).test(headingExtract) ?
@@ -102,7 +103,8 @@
 					Source.DogecoinDips_Github
 				: entityId.realm === SpecificationRealm.Ens && entityId.category === ProposalCategory.Ensip ?
 					Source.Ensips_Github
-				: entityId.realm === SpecificationRealm.Ethereum
+				:
+					entityId.realm === SpecificationRealm.Ethereum
 					&& (
 						entityId.category === ProposalCategory.Eip
 						|| entityId.category === ProposalCategory.Erc
@@ -246,7 +248,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		{#if layout !== EntityLayout.SummaryInline}
 			<dl data-column-item="center">
 				<div>
@@ -345,7 +347,7 @@
 		{/if}
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 		<section
 			id={`${proposalDomId}:document-body`}
 		>

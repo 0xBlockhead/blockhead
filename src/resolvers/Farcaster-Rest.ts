@@ -4,7 +4,7 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
-import { farcasterNetworkFieldValues } from '$/constants/Social/Farcaster.ts'
+import { farcasterNetworkFieldValues, farcasterPlaceholderIconUrlFragments } from '$/constants/Social/Farcaster.ts'
 import { mediaFromUrl, resolveMediaUrlTransport } from '$/lib/media.ts'
 import { singleFlight } from '$/lib/singleFlight.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
@@ -13,21 +13,6 @@ import { MediaType } from '$/schema/Media.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const placeholderIconFragments = [
-	'/missing.',
-	'missing.png',
-	'missing.jpg',
-	'missing.jpeg',
-	'default-avatar',
-	'default_avatar',
-	'default_profile',
-	'profile_images/default',
-	'avatar-default',
-	'anonymous.',
-	'grey_silhouette',
-	'person_blue_generic',
-] as const
-
 const optionalTrimmedString = (value: string | undefined | null) => (
 	value?.trim() || undefined
 )
@@ -35,7 +20,7 @@ const optionalTrimmedString = (value: string | undefined | null) => (
 const normalizeMediaUrl = (value: string | null | undefined): string | undefined => {
 	const raw = value?.trim() ?? ''
 	if (raw.length === 0) return undefined
-	if (placeholderIconFragments.some((fragment) => raw.toLowerCase().includes(fragment))) return undefined
+	if (farcasterPlaceholderIconUrlFragments.some((fragment) => raw.toLowerCase().includes(fragment))) return undefined
 	return resolveMediaUrlTransport(raw)?.url
 }
 
@@ -63,7 +48,8 @@ export default {
 				const verifiedAddresses = [
 					...(ethTrimmed == null ?
 						[]
-					:	[{
+					:
+						[{
 								[EntityMetaKey.Id]: {
 									fid: entityId.fid,
 									protocol: 'ethereum' as const,
@@ -77,7 +63,8 @@ export default {
 							}]),
 					...(solTrimmed == null ?
 						[]
-					:	[{
+					:
+						[{
 								[EntityMetaKey.Id]: {
 									fid: entityId.fid,
 									protocol: 'solana' as const,
@@ -94,7 +81,9 @@ export default {
 					throw new Error('Farcaster_Rest: verified address not found')
 				}
 				return {
-						...(ethParsed instanceof arktype.errors ? {} : { primaryEvmAddress: EvmAddress.assert(ethTrimmed) }),
+						...(ethParsed instanceof arktype.errors ? {}
+						:
+							{ primaryEvmAddress: EvmAddress.assert(ethTrimmed) }),
 					$$verifiedAddresses: verifiedAddresses,
 				}
 			},
@@ -130,21 +119,24 @@ export default {
 					$lead: (
 						channel.leadFid == null ?
 							undefined
-						:	{
+						:
+							{
 								[EntityMetaKey.Id]: { fid: channel.leadFid },
 							}
 					),
 					$moderator: (
 						channel.moderatorFids?.[0] == null ?
 							undefined
-						:	{
+						:
+							{
 								[EntityMetaKey.Id]: { fid: channel.moderatorFids[0] },
 							}
 					),
 					$$moderators: (channel.moderatorFids ?? []).flatMap((moderatorFid) => (
 						moderatorFid == null ?
 							[]
-						:	[{
+						:
+							[{
 								[EntityMetaKey.Id]: { fid: moderatorFid },
 							}]
 					)),

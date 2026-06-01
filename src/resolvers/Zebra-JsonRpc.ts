@@ -2,17 +2,19 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import {
+	zebraDefaultLocalRpcUrl,
+	zcashMainnetCaip2,
+} from '$/constants/BitcoinNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
 
-const zebraRpcUrl = 'http://127.0.0.1:8232'
-
 const assertZcashMainnet = (network: { caip2: { namespace: string; reference: string } } | { networkSlug: string }) => {
 	if (
 		!('caip2' in network)
-		|| network.caip2.namespace !== 'bip122'
-		|| network.caip2.reference !== '00040fe8ec8471911baa1db1266ea15'
+		|| network.caip2.namespace !== zcashMainnetCaip2.namespace
+		|| network.caip2.reference !== zcashMainnetCaip2.reference
 	) {
 		throw new Error('Zebra_JsonRpc: unsupported Zcash network')
 	}
@@ -27,7 +29,7 @@ const getTransaction = async (entityId: {
 	assertZcashMainnet(entityId.$network)
 	const { getRawTransaction } = await import('$/sources/Zebra/JsonRpc/queries.ts')
 	return getRawTransaction({
-		rpcUrl: zebraRpcUrl,
+		rpcUrl: zebraDefaultLocalRpcUrl,
 		txId: entityId.txId,
 	})
 }
@@ -45,9 +47,9 @@ export default {
 					getBlockHash,
 				} = await import('$/sources/Zebra/JsonRpc/queries.ts')
 				const block = await getBlock({
-					rpcUrl: zebraRpcUrl,
+					rpcUrl: zebraDefaultLocalRpcUrl,
 					blockHash: entityId.hash ?? await getBlockHash({
-						rpcUrl: zebraRpcUrl,
+						rpcUrl: zebraDefaultLocalRpcUrl,
 						height: entityId.height,
 					}),
 				})
@@ -163,9 +165,9 @@ export default {
 				} = await import('$/sources/Zebra/JsonRpc/queries.ts')
 				return (
 					await getBlock({
-						rpcUrl: zebraRpcUrl,
+						rpcUrl: zebraDefaultLocalRpcUrl,
 						blockHash: entityId.hash ?? await getBlockHash({
-							rpcUrl: zebraRpcUrl,
+							rpcUrl: zebraDefaultLocalRpcUrl,
 							height: entityId.height,
 						}),
 					})

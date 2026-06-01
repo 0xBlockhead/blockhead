@@ -38,9 +38,11 @@ test.describe('Network summary dl (collapsed): Block / Epoch / Slot live', () =>
 			preflight.ok,
 			preflight.ok
 				? 'ok'
-				: 'detail' in preflight && preflight.detail != null
+				:
+					'detail' in preflight && preflight.detail != null
 					? jsonStringifyForExpectMessage(preflight.detail)
-					: jsonStringifyForExpectMessage(preflight),
+					:
+						jsonStringifyForExpectMessage(preflight),
 		).toBe(true)
 
 		await step(page.goto('/', { waitUntil: 'domcontentloaded' }))

@@ -116,7 +116,7 @@
 		</p>
 	{/snippet}
 
-	{#snippet Content({ title: _title, href: _href })}
+	{#snippet Content({})}
 		<dl data-column-item="center">
 			<div>
 				<dt>FX turnover weight</dt>
@@ -171,7 +171,7 @@
 		</dl>
 	{/snippet}
 
-	{#snippet Details({ open: _detailsOpen })}
+	{#snippet Details({ open })}
 		<section data-scroll-marker-label="Catalog snapshot">
 			<Currency_TimestampView
 				entityId={{

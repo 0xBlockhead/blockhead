@@ -1,7 +1,7 @@
 import type { IpfsNamespace } from '$/sources/Ipfs/Rest/types.ts'
 import {
-	ipfsNamespaceForTarget,
-	parseIpfsBrowseInput,
+	getNamespaceForTarget,
+	parseBrowseInput,
 } from '$/sources/Ipfs/Rest/queries.ts'
 
 export type IpfsResourceAddress = {
@@ -44,7 +44,7 @@ export const ipfsResourceAddressFromInput = ({
 	targetInput: string
 	contentPathInput?: string
 }): IpfsResourceAddress | null => {
-	const parsedTarget = parseIpfsBrowseInput(targetInput)
+	const parsedTarget = parseBrowseInput(targetInput)
 	const target = trimSlashes(parsedTarget.target)
 	if (target === '') return null
 
@@ -56,7 +56,7 @@ export const ipfsResourceAddressFromInput = ({
 	)
 
 	return {
-		namespace: parsedTarget.namespace ?? ipfsNamespaceForTarget(target),
+		namespace: parsedTarget.namespace ?? getNamespaceForTarget(target),
 		target,
 		contentPath,
 	}

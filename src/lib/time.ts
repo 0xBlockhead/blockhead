@@ -28,7 +28,8 @@ export const formatRelativeTime = (ms: number) => {
 	const dedupe = (s: string) => (
 		ms < 0 ?
 			s.replace(/\s+in\s+/g, ' ')
-		:	s.replace(/\s+ago\s+/g, ' ')
+		:
+			s.replace(/\s+ago\s+/g, ' ')
 	)
 
 	if (years > 0) {

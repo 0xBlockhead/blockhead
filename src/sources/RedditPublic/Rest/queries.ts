@@ -5,7 +5,7 @@ import type {
 	RedditPublicApiSubredditAbout,
 } from '$/sources/RedditPublic/Rest/types.ts'
 
-export const redditJsonGetInfo = async (id: string) => (
+export const getInfo = async (id: string) => (
 	redditJsonGet<RedditPublicApiInfoResponse>(
 		`/api/info.json?${(
 			new URLSearchParams({ id, raw_json: '1' }).toString()
@@ -13,13 +13,13 @@ export const redditJsonGetInfo = async (id: string) => (
 	)
 )
 
-export const redditJsonGetSubredditAbout = async (name: string) => (
+export const getSubredditAbout = async (name: string) => (
 	redditJsonGet<RedditPublicApiSubredditAbout>(
 		`/r/${encodeURIComponent(name)}/about.json?raw_json=1` as const,
 	)
 )
 
-export const redditJsonListSubredditHot = async (
+export const listSubredditHot = async (
 	name: string,
 	limit: number,
 ) => (
@@ -33,7 +33,7 @@ export const redditJsonListSubredditHot = async (
 	)
 )
 
-export const redditJsonGetComments = async (
+export const getComments = async (
 	permalink: string,
 	limit: number,
 ) => (
@@ -47,7 +47,7 @@ export const redditJsonGetComments = async (
 	)
 )
 
-export const redditJsonGetCommentsByArticleId = async (
+export const getCommentsByArticleId = async (
 	articleId: string,
 	limit: number,
 ) => (

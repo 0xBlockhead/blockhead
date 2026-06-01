@@ -36,9 +36,21 @@
 	import { getEvmTopicPath, normalizeEvmTopicHex } from '$/lib/signature-paths.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
+	const topic0Hex = $derived(
+		topics[0]?.startsWith('0x') ?
+			normalizeEvmTopicHex(topics[0] as `0x${string}`)
+		:
+			null,
+	)
+
 	const topic = useEntity(
 		EntityType.EvmTopic,
-		topicEntityId,
+		(
+			topic0Hex != null ?
+				{ hex: topic0Hex }
+			:
+				{ hex: `0x${'0'.repeat(64)}` }
+		) satisfies EntityId<typeof schema, EntityType.EvmTopic>,
 		{
 			$: [
 				Source.Openchain_Rest,
@@ -69,22 +81,6 @@
 		},
 	)
 
-
-	const topic0Hex = $derived(
-		topics[0]?.startsWith('0x') ?
-			normalizeEvmTopicHex(topics[0] as `0x${string}`)
-		:
-			null,
-	)
-
-	const topicEntityId = $derived(
-		(
-			topic0Hex != null ?
-				{ hex: topic0Hex }
-			:
-				{ hex: `0x${'0'.repeat(64)}` }
-		) satisfies EntityId<typeof schema, EntityType.EvmTopic>,
-	)
 
 	const decodedLog = $derived.by(() => {
 		if (!open || topic0Hex == null || data == null) return null

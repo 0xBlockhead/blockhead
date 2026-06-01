@@ -48,15 +48,18 @@
 	data-row="center"
 	style={`--icon-size: ${typeof size === 'number' ?
 		`${size}px`
-		: size}`}
+		:
+			size}`}
 	aria-label={a11yLabel || undefined}
 	aria-hidden={a11yLabel ?
 		undefined
-		: true}
+		:
+			true}
 	title={title ?? (alt || undefined)}
 	role={a11yLabel ?
 		'img'
-		: undefined}
+		:
+			undefined}
 >
 	<span
 		data-row

@@ -103,6 +103,8 @@ export const defillamaCurrentPriceIdByCoinId = Object.fromEntries(
  */
 export const coinsOrigin = 'https://coins.llama.fi' as const
 
+export const iconsOrigin = 'https://icons.llama.fi' as const
+
 export const coinsBaseUrl = coinsOrigin
 
 /**

@@ -212,7 +212,8 @@ export const installBoundaryProbe = (page: Page) => (
 				'dom-failed' as const
 			: element.matches('.loading, [aria-busy="true"]') ?
 				'dom-loading' as const
-			: null
+			:
+				null
 		)
 
 		window.__blockheadBoundaryProbe = []
@@ -611,7 +612,8 @@ const forwardBrowserConsoleLine = (
 	const locStr = (
 		location.url ?
 			` ${location.url}:${location.lineNumber}:${location.columnNumber}`
-		:	''
+		:
+			''
 	)
 	const line = `[browser:${type}]${locStr} ${text}`
 	;(
@@ -655,7 +657,8 @@ export const collectIssues = (page: Page) => {
 		const locStr = (
 			loc.url ?
 				` ${loc.url}:${loc.lineNumber}:${loc.columnNumber}`
-			:	''
+			:
+				''
 		)
 		issues.push(`error:${locStr} ${text}`)
 	})
@@ -788,7 +791,8 @@ export const installViewTransitionStartSpy = (page: Page) => (
 			const update: ViewTransitionUpdateCallback = (
 				typeof callbackOptions === 'function'
 					? callbackOptions
-					: () => {}
+					:
+						() => {}
 			)
 			const vt = orig(async () => {
 				window.__e2eViewTransitionUpdates = (window.__e2eViewTransitionUpdates ?? 0) + 1
@@ -1394,7 +1398,8 @@ export const collectBrowserCorsPolicyViolations = (page: Page) => {
 		const locStr = (
 			loc.url ?
 				` ${loc.url}:${loc.lineNumber}:${loc.columnNumber}`
-			:	''
+			:
+				''
 		)
 		violations.push(`${text}${locStr}`)
 		forwardBrowserConsoleLine(message.type(), text, loc)

@@ -2,6 +2,8 @@ import {
 	defineEntityFieldResolver,
 	defineEntityResolver,
 } from '$/resolvers/$resolvers.ts'
+import { networkBySlug } from '$/constants/Network.ts'
+import { tronFullNodeDefaultLocalRestUrl } from '$/constants/TronNetwork.ts'
 import { EntityMetaKey } from '$/schema/$EntityDefinition.ts'
 import { EntityType } from '$/schema/$EntityType.ts'
 import { Source } from '$/sources/$Source.ts'
@@ -12,12 +14,10 @@ import type {
 	TronNodeTransactionInfo,
 } from '$/sources/TronGrid/Rest/types.ts'
 
-const tronFullNodeRestUrl = 'http://127.0.0.1:8090'
-
 type NetworkId = { caip2: { namespace: string; reference: string } } | { networkSlug: string }
 
 const assertTronMainnet = (network: NetworkId) => {
-	if (!('networkSlug' in network) || network.networkSlug !== 'tron') {
+	if (!('networkSlug' in network) || network.networkSlug !== networkBySlug.tron.slug) {
 		throw new Error('TronFullNode_Rest: unsupported network')
 	}
 }
@@ -25,7 +25,8 @@ const assertTronMainnet = (network: NetworkId) => {
 const bigintFromNumberOrString = (value: number | string | undefined): bigint | undefined => (
 	value == null ?
 		undefined
-	:	BigInt(value)
+	:
+		BigInt(value)
 )
 
 const firstContractValue = (transaction: TronNodeTransaction): TronNodeContractValue | undefined => (
@@ -118,7 +119,8 @@ const blockFields = (
 	$$transactions: (block.transactions ?? []).flatMap((transaction) => (
 		transaction.txID == null ?
 			[]
-		:	[{
+		:
+			[{
 				[EntityMetaKey.Id]: {
 					$network: network,
 					transactionId: transaction.txID,
@@ -148,7 +150,7 @@ export default {
 				return blockFields(
 					entityId.$network,
 					await getBlockByNumber({
-						restBaseUrl: tronFullNodeRestUrl,
+						restBaseUrl: tronFullNodeDefaultLocalRestUrl,
 						height: entityId.height,
 					}),
 				)
@@ -164,7 +166,7 @@ export default {
 					getTransactionInfoById,
 				} = await import('$/sources/TronFullNode/Rest/queries.ts')
 				const transaction = await getTransactionById({
-					restBaseUrl: tronFullNodeRestUrl,
+					restBaseUrl: tronFullNodeDefaultLocalRestUrl,
 					transactionId: entityId.transactionId,
 				})
 				if (transaction.txID == null) throw new Error(`TronFullNode_Rest: transaction not found for ${entityId.transactionId}`)
@@ -172,7 +174,7 @@ export default {
 					entityId.$network,
 					transaction,
 					await getTransactionInfoById({
-						restBaseUrl: tronFullNodeRestUrl,
+						restBaseUrl: tronFullNodeDefaultLocalRestUrl,
 						transactionId: entityId.transactionId,
 					}),
 				)
@@ -185,7 +187,7 @@ export default {
 				assertTronMainnet(entityId.$network)
 				const { getAccount } = await import('$/sources/TronFullNode/Rest/queries.ts')
 				const account = await getAccount({
-					restBaseUrl: tronFullNodeRestUrl,
+					restBaseUrl: tronFullNodeDefaultLocalRestUrl,
 					address: entityId.address,
 				})
 				return {
@@ -210,7 +212,7 @@ export default {
 				return blockFields(
 					entityId.$network,
 					await getBlockByNumber({
-						restBaseUrl: tronFullNodeRestUrl,
+						restBaseUrl: tronFullNodeDefaultLocalRestUrl,
 						height: entityId.height,
 					}),
 				).$$transactions

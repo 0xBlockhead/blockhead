@@ -16,6 +16,7 @@
 	let {
 		entityFieldReference,
 		id = 'profiles',
+		href = '',
 		title = 'Farcaster profiles',
 		open = $bindable(true),
 		...EntitiesListProps
@@ -23,6 +24,7 @@
 		{
 			entityFieldReference: EntityFieldReference<typeof schema, EntityType.FarcasterUser>
 			id?: string
+			href?: string
 			title?: string
 			open?: boolean
 		},
@@ -56,33 +58,6 @@
 	import { derive } from '$/lib/svelte/RemoteResource.svelte.ts'
 	import { useEntity } from '$/collections/$queries.svelte.ts'
 
-	const parent = useEntity(
-		entityFieldReference.entityType,
-		entityFieldReference.entityId,
-		{
-			[entityFieldReference.fieldName]: {
-				$: [
-					Source.Snapchain_Rest,
-				],
-			},
-		},
-	)
-
-	const users = derive(
-		parent,
-		(parent) => {
-			const rows: Entity<typeof schema, EntityType.FarcasterUser>[] = (
-				parent[entityFieldReference.fieldName] ?? []
-			)
-			return (
-				rows.map((value) => ({
-					value,
-				}))
-			)
-		},
-	)
-
-
 	// Components
 	import EntitiesList from '$/components/EntitiesList.svelte'
 	import { EntityLayout } from '$/components/EntityView.svelte'
@@ -95,35 +70,74 @@
 	{id}
 	{title}
 	bind:open
-	getKey={(envelope) => envelope.value[EntityMetaKey.Id].fid}
-	getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].fid}
-	placeholderKeys={new SvelteSet<number>()}
-	placeholderText="Loading profiles…"
-	resource={users}
-	UnorderedListProps={{ orientation: ListOrientation.Column }}
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-		<p>
-			Farcaster profiles are on-chain-anchored identities keyed by numeric FID, with off-chain social graph data on hubs.
-		</p>
-		<p>
-			A single directory response is always a bounded subset (e.g. one hub’s registry snapshot)—never the entire protocol user set in one page.
-		</p>
-	{/snippet}
+			<p>
+				Farcaster profiles are on-chain-anchored identities keyed by numeric FID, with off-chain social graph data on hubs.
+			</p>
+			<p>
+				A single directory response is always a bounded subset (e.g. one hub’s registry snapshot)—never the entire protocol user set in one page.
+			</p>
+		{/snippet}
 
-	{#snippet Empty()}
-		<p data-text="muted">
-			No profiles in this slice yet.
-		</p>
-	{/snippet}
+	{#snippet body()}
+		{#if open}
+			{@const parent = useEntity(
+		entityFieldReference.entityType,
+		entityFieldReference.entityId,
+		{
+			[entityFieldReference.fieldName]: {
+				$: [
+					Source.Snapchain_Rest,
+				],
+			},
+		},
+	)}
+			{@const users = derive(
+		parent,
+		(parent) => {
+			const rows: Entity<typeof schema, EntityType.FarcasterUser>[] = (
+				parent[entityFieldReference.fieldName] ?? []
+			)
+			return (
+				rows.map((value) => ({
+					value,
+				}))
+			)
+		},
+	)}
+			<EntitiesList
+				collapsible={false}
+				showSummary={false}
+				entityType={EntityType.FarcasterUser}
+				id={`${id}-items`}
+				href={href}
+				{title}
+				getKey={(envelope) => envelope.value[EntityMetaKey.Id].fid}
+				getSortValue={(envelope) => envelope.value[EntityMetaKey.Id].fid}
+				placeholderKeys={new SvelteSet<number>()}
+				placeholderText="Loading profiles…"
+				resource={users}
+				UnorderedListProps={{ orientation: ListOrientation.Column }}
+				open={true}
+			>
+				{#snippet Empty()}
+						<p data-text="muted">
+							No profiles in this slice yet.
+						</p>
+					{/snippet}
 
-	{#snippet Item({ item })}
-		{@const userId = item.value[EntityMetaKey.Id]}
-		<FarcasterUserView
-			entityId={{ fid: userId.fid }}
-			layout={EntityLayout.Summary}
-			open={false}
-		/>
+				{#snippet Item({ item })}
+						{@const userId = item.value[EntityMetaKey.Id]}
+						<FarcasterUserView
+							entityId={{ fid: userId.fid }}
+							layout={EntityLayout.Summary}
+							open={false}
+						/>
+					{/snippet}
+
+			</EntitiesList>
+		{/if}
 	{/snippet}
 </EntitiesList>

@@ -37,7 +37,8 @@ const zeroGEvmNetworkId = {
 const quantityToBigInt = (value: string | undefined): bigint | undefined => (
 	value == null ?
 		undefined
-	:	BigInt(value)
+	:
+		BigInt(value)
 )
 
 const quantityToNumber = (value: string | undefined): number | undefined => (
@@ -115,8 +116,8 @@ export default {
 			entityType: EntityType.EvmBlock,
 			resolve: async (entityId) => {
 				assertZeroGMainnetChain(entityId.$network)
-				const { getZeroGBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-				const block = await getZeroGBlockByNumber({
+				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+				const block = await getBlockByNumber({
 					blockNumber: entityId.blockNumber,
 					txObjects: false,
 				})
@@ -159,12 +160,12 @@ export default {
 			resolve: async (entityId) => {
 				assertZeroGMainnetChain(entityId.$network)
 				const {
-					getZeroGTransactionByHash,
-					getZeroGTransactionReceipt,
+					getTransactionByHash,
+					getTransactionReceipt,
 				} = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-				const transaction = await getZeroGTransactionByHash({ txHash: entityId.txHash })
+				const transaction = await getTransactionByHash({ txHash: entityId.txHash })
 				if (transaction == null) throw new Error(`ZeroGChain_JsonRpc: transaction not found ${entityId.txHash}`)
-				const receipt = await getZeroGTransactionReceipt({ txHash: entityId.txHash })
+				const receipt = await getTransactionReceipt({ txHash: entityId.txHash })
 				const value = quantityToBigInt(transaction.value) ?? 0n
 				const fromAddress = hexLowerOfByteSize(transaction.from ?? '', 20)
 				const toAddress = hexLowerOfByteSize(transaction.to ?? '', 20)
@@ -246,8 +247,8 @@ export default {
 			fieldName: '$headBlock',
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId)
-				const { getZeroGBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-				const block = await getZeroGBlockByNumber({
+				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+				const block = await getBlockByNumber({
 					blockNumber: 'latest',
 					txObjects: false,
 				})
@@ -268,8 +269,8 @@ export default {
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId)
-				const { getZeroGBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-				const block = await getZeroGBlockByNumber({
+				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+				const block = await getBlockByNumber({
 					blockNumber: 'latest',
 					txObjects: false,
 				})
@@ -278,7 +279,9 @@ export default {
 					{
 						[EntityMetaKey.Id]: {
 							$network: entityId,
-							timestampMs: ((timestamp) => timestamp == null ? Date.now() : timestamp * 1000)(quantityToNumber(block.timestamp)),
+							timestampMs: ((timestamp) => timestamp == null ? Date.now()
+							:
+								timestamp * 1000)(quantityToNumber(block.timestamp)),
 						},
 						...zeroGNetworkTimestampFields(block),
 					},
@@ -291,8 +294,8 @@ export default {
 			fieldName: '$$blocks',
 			resolve: async (entityId, context) => {
 				assertZeroGMainnet(entityId)
-				const { getZeroGBlockNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-				const headBlockNumber = BigInt(await getZeroGBlockNumber())
+				const { getBlockNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+				const headBlockNumber = BigInt(await getBlockNumber())
 				return Array.from({
 					length: Math.min(
 						Number(headBlockNumber + 1n),
@@ -312,8 +315,8 @@ export default {
 			fieldName: '$$transactions',
 			resolve: async (entityId) => {
 				assertZeroGMainnetChain(entityId.$network)
-				const { getZeroGBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-				const block = await getZeroGBlockByNumber({
+				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
+				const block = await getBlockByNumber({
 					blockNumber: entityId.blockNumber,
 					txObjects: true,
 				})
@@ -323,7 +326,8 @@ export default {
 					const txHash = hexLowerOfByteSize(transaction.hash ?? '', 32)
 					return txHash == null ?
 						[]
-					:	[{
+					:
+						[{
 							[EntityMetaKey.Id]: {
 								$network: entityId.$network,
 								txHash,
