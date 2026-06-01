@@ -62,7 +62,7 @@
 			ActivityPub actors federate across instances; each id pairs an origin host with a local account id (Mastodon-style).
 		</p>
 		<p>
-			Actor rows are discovery records—handles, inbox/outbox, and public keys live behind WebFinger and collection endpoints on the home instance.
+			Actor activityPubActors are discovery records—handles, inbox/outbox, and public keys live behind WebFinger and collection endpoints on the home instance.
 		</p>
 		<p>
 			Rows merge catalog seeds with authors discovered from public timelines on configured instances; sorted by origin then local account id.
@@ -100,9 +100,9 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getKey={(row) => stringify(activityPubActor[EntityMetaKey.Id])}
 					getSortValue={(row) => {
-						const actorId = row[EntityMetaKey.Id]
+						const actorId = activityPubActor[EntityMetaKey.Id]
 						return `${actorId.instanceOrigin}\0${actorId.localAccountId}`
 					}}
 					placeholderText="Loading Mastodon actor directory…"

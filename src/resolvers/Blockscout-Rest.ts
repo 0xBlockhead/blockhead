@@ -2278,9 +2278,9 @@ export default {
 				if (origin == null) {
 					throw new Error(`Blockscout_Rest: no Blockscout v2 explorer for chain ${chainIdFromEvmNetworkId(entityId)}`)
 				}
-				const items = await getSmartContracts({ explorerOrigin: origin, limit })
+				const smartContracts = await getSmartContracts({ explorerOrigin: origin, limit })
 				const entities = (
-					items
+					smartContracts
 						.flatMap((w) => {
 							const address = normalizeAddressFromContractListWire(w)
 							return address == null ?

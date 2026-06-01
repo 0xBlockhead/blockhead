@@ -127,10 +127,10 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Subreddits are Reddit’s named communities—their moderators and description power the posts list surfaced here.
+			Subreddits are Reddit’s named communities—their moderators and description power the posts redditSubreddits surfaced here.
 		</p>
 		<p>
-			Profiles on other networks or realtime rooms tracked locally are unrelated rows.
+			Profiles on other networks or realtime rooms tracked locally are unrelated redditSubreddits.
 		</p>
 	{/snippet}
 

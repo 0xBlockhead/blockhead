@@ -99,11 +99,11 @@
 			{@const profiles = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.NostrProfile>[] = (
+					const nostrProfiles: Entity<typeof schema, EntityType.NostrProfile>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						nostrProfiles.map((value) => ({
 							entityId: value[EntityMetaKey.Id],
 						}))
 					)
@@ -117,8 +117,8 @@
 				{title}
 				resource={profiles}
 				placeholderText="Loading profiles…"
-				getKey={(row) => stringify(row.entityId)}
-				getSortValue={(row) => row.entityId.pubkey}
+				getKey={(row) => stringify(nostrProfile.entityId)}
+				getSortValue={(row) => nostrProfile.entityId.pubkey}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}

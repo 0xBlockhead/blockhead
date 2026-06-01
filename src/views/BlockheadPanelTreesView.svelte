@@ -89,8 +89,8 @@
 				entityType={EntityType.BlockheadPanelTree}
 				{title}
 				open={true}
-				getKey={(row) => stringify(row[EntityMetaKey.Id])}
-				getSortValue={(row) => row[EntityMetaKey.Id].id}
+				getKey={(row) => stringify(blockheadPanelTree[EntityMetaKey.Id])}
+				getSortValue={(row) => blockheadPanelTree[EntityMetaKey.Id].id}
 				resource={panelTrees}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 			>

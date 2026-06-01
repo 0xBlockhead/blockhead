@@ -96,7 +96,7 @@
 		</header>
 
 		<div
-			class="ipfs-cid-encoding-rows"
+			class="ipfs-cid-encoding-ipfsCidAlternateEncodingses"
 			data-column
 		>
 			{#each filteredEncodings(target, cid, showEncodings) as encoding (`${encoding.version}-${encoding.baseName}`)}
@@ -156,7 +156,7 @@
 		padding: 1rem;
 	}
 
-	.ipfs-cid-encoding-rows {
+	.ipfs-cid-encoding-ipfsCidAlternateEncodingses {
 		gap: 1rem;
 	}
 

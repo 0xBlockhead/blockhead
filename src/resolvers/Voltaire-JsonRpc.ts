@@ -872,7 +872,7 @@ export default {
 		defineEntityResolver({
 			entityType: EntityType.EvmActorCoinAllowance,
 			resolve: async (entityId) => {
-				const { call } = await import('$/sources/Evm/JsonRpc/queries.ts')
+				const { getCall } = await import('$/sources/Evm/JsonRpc/queries.ts')
 				if (entityId.$actorCoin.$coinInstance.type !== CoinInstanceType.Erc20Token) {
 					throw new Error('Voltaire_JsonRpc: EvmActorCoinAllowance only supports ERC-20 coin instances')
 				}
@@ -888,7 +888,7 @@ export default {
 				const allowanceCallData: `0x${string}` = (
 					`0xdd62ed3e${`${'0'.repeat(24)}${owner.slice(2).toLowerCase()}`}${`${'0'.repeat(24)}${spender.slice(2).toLowerCase()}`}`
 				)
-				const raw = await call({
+				const raw = await getCall({
 					rpcUrl: jsonRpcTransport.rpcUrl,
 					to: tokenContract,
 					data: allowanceCallData,

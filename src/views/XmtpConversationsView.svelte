@@ -87,11 +87,11 @@
 			{@const conversations = derive(
 		parent,
 		(parent) => {
-			const rows: Entity<typeof schema, EntityType.XmtpConversation>[] = (
+			const xmtpConversations: Entity<typeof schema, EntityType.XmtpConversation>[] = (
 				parent[entityFieldReference.fieldName] ?? []
 			)
 			return (
-				rows
+				xmtpConversations
 					.map((value) => ({
 						value,
 					}))
@@ -105,8 +105,8 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => row.value[EntityMetaKey.Id].id}
+				getKey={(row) => stringify(xmtpConversation.value[EntityMetaKey.Id])}
+				getSortValue={(row) => xmtpConversation.value[EntityMetaKey.Id].id}
 				resource={conversations}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
@@ -127,7 +127,7 @@
 								{/snippet}
 								<abbr
 									class="entity-heading-tip"
-									aria-label="How XMTP rows appear"
+									aria-label="How XMTP xmtpConversations appear"
 								>ⓘ</abbr>
 							</Tooltip>
 						</div>

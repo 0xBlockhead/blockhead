@@ -26,7 +26,7 @@
 		{#if open}
 			{@const parent = useEntity(entityFieldReference.entityType, entityFieldReference.entityId, { [entityFieldReference.fieldName]: { $: [Source.LightningLnd_Rest], $limit: 32 } })}
 			{@const invoices = derive(parent, (parent): Entity<typeof schema, EntityType.LightningInvoice>[] => (parent[entityFieldReference.fieldName] ?? []).slice(0, 32))}
-			<EntitiesList collapsible={false} showSummary={false} entityType={EntityType.LightningInvoice} id={`${id}-items`} href={href} getKey={(invoice) => stringify(invoice[EntityMetaKey.Id])} getSortValue={(invoice) => stringify(invoice[EntityMetaKey.Id])} open={true} resource={invoices} {title} UnorderedListProps={{ orientation: ListOrientation.Column }}>
+			<EntitiesList collapsible={false} showSummary={false} entityType={EntityType.LightningInvoice} id={`${id}-lightning-invoices`} href={href} getKey={(invoice) => stringify(invoice[EntityMetaKey.Id])} getSortValue={(invoice) => stringify(invoice[EntityMetaKey.Id])} open={true} resource={invoices} {title} UnorderedListProps={{ orientation: ListOrientation.Column }}>
 				{#snippet Empty()}<p data-text="muted">No invoices listed yet.</p>{/snippet}
 				{#snippet Item(context)}
 					<LightningInvoiceView entityId={context!.item[EntityMetaKey.Id]} layout={EntityLayout.Summary} open={false} />

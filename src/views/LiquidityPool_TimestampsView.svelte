@@ -80,8 +80,8 @@
 			{@const timestamps = derive(
 				pool,
 				(pool) => {
-					const rows: Entity<typeof schema, EntityType.LiquidityPool_Timestamp>[] = pool[entityFieldReference.fieldName] ?? []
-					return rows.map((value) => ({
+					const liquidityPoolTimestamps: Entity<typeof schema, EntityType.LiquidityPool_Timestamp>[] = pool[entityFieldReference.fieldName] ?? []
+					return liquidityPoolTimestamps.map((value) => ({
 						value,
 					}))
 				},
@@ -91,8 +91,8 @@
 				showSummary={false}
 				{...EntitiesListProps}
 				entityType={EntityType.LiquidityPool_Timestamp}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => String(row.value[EntityMetaKey.Id].timestampMs)}
+				getKey={(row) => stringify(liquidityPoolTimestamp.value[EntityMetaKey.Id])}
+				getSortValue={(row) => String(liquidityPoolTimestamp.value[EntityMetaKey.Id].timestampMs)}
 				placeholderKeys={new SvelteSet<string>()}
 				resource={timestamps}
 				{title}
@@ -108,8 +108,8 @@
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<LiquidityPool_TimestampView
-						entityId={row[EntityMetaKey.Id]}
-						id={stringify(row[EntityMetaKey.Id])}
+						entityId={liquidityPoolTimestamp[EntityMetaKey.Id]}
+						id={stringify(liquidityPoolTimestamp[EntityMetaKey.Id])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

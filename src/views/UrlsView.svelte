@@ -17,7 +17,7 @@
 		entityFieldReference,
 		fieldSources,
 		title = 'URLs',
-		emptyText = 'No URLs in this list yet.',
+		emptyText = 'No URLs in this urls yet.',
 		open = $bindable(true),
 		id,
 		href = '',
@@ -100,12 +100,12 @@
 			{@const urls = derive(
 		parent,
 		(parent) => {
-			const rows: Entity<typeof schema, EntityType.Url>[] = (
+			const urls: Entity<typeof schema, EntityType.Url>[] = (
 				parent[entityFieldReference.fieldName] ?? []
 			)
 			const byUrl = new Map<string, Entity<typeof schema, EntityType.Url>>()
-			for (const row of rows) {
-				const key = row[EntityMetaKey.Id].url
+			for (const url of urls) {
+				const key = url[EntityMetaKey.Id].url
 				if (byUrl.has(key)) continue
 				byUrl.set(key, row)
 			}

@@ -2,7 +2,7 @@ import { getText } from '$/lib/http.ts'
 import ZeroG from '$/sources/ZeroG/index.ts'
 import type { ZeroGChainScanInfo } from '$/sources/ZeroG/ChainScan/Rest/types.ts'
 
-export const info = {
+export const getInfo = () => ({
 	url: 'https://chainscan.0g.ai',
 	chainId: 16661,
 	features: [
@@ -12,7 +12,7 @@ export const info = {
 		'validators',
 		'contracts',
 	],
-} as const satisfies ZeroGChainScanInfo
+}) as const satisfies ZeroGChainScanInfo
 
 export const getLlmInfo = () => (
 	getText('https://chainscan.0g.ai/llms.txt', {

@@ -321,8 +321,8 @@
 				{@const replies = derive(
 					repliesParent,
 					(repliesParent) => {
-						const rows: Entity<typeof schema, EntityType.YouTubeComment>[] = repliesParent.$$replies ?? []
-						return rows.map((reply) => reply[EntityMetaKey.Id])
+						const youTubeComments: Entity<typeof schema, EntityType.YouTubeComment>[] = repliesParent.$$replies ?? []
+						return youTubeComments.map((reply) => reply[EntityMetaKey.Id])
 					},
 				)}
 				{#if repliesParent.$parentComment === undefined}
@@ -360,7 +360,7 @@
 								resource={replies}
 								placeholderText="Loading replies…"
 								getKey={(row) => stringify(row)}
-								getSortValue={(row) => row.commentId}
+								getSortValue={(row) => youTubeComment.commentId}
 								placeholderKeys={new SvelteSet<string>()}
 								open={true}
 							>

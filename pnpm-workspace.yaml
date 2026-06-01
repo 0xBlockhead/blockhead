@@ -1,6 +1,10 @@
+packages:
+  - .
+
+overrides:
+  cookie: 0.7.2
+
 allowBuilds:
-  '@journeyapps/wa-sqlite': set this to true or false
-  es5-ext: set this to true or false
-  esbuild: set this to true or false
-onlyBuiltDependencies:
-  - esbuild
+  '@journeyapps/wa-sqlite': true
+  es5-ext: false
+  esbuild: true

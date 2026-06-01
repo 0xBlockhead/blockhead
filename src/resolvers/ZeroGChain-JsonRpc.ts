@@ -244,28 +244,6 @@ export default {
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
 			entityType: EntityType.ZeroGNetwork,
-			fieldName: '$headBlock',
-			resolve: async (entityId) => {
-				assertZeroGMainnet(entityId)
-				const { getBlockByNumber } = await import('$/sources/ZeroG/Chain/JsonRpc/queries.ts')
-				const block = await getBlockByNumber({
-					blockNumber: 'latest',
-					txObjects: false,
-				})
-				if (block == null) throw new Error('ZeroGChain_JsonRpc: latest block not found')
-				if (block.number == null) throw new Error('ZeroGChain_JsonRpc: latest block missing number')
-				return {
-					[EntityMetaKey.Id]: {
-						$network: zeroGEvmNetworkId,
-						blockNumber: BigInt(block.number),
-						...(hexLowerOfByteSize(block.hash ?? '', 32) != null && { hash: hexLowerOfByteSize(block.hash ?? '', 32) }),
-					},
-				}
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.ZeroGNetwork,
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
 				assertZeroGMainnet(entityId)

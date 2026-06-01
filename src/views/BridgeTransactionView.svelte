@@ -73,7 +73,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Origin-chain bridge records usually list the depositor, source network, and the transaction that locked or burned funds on that side.
+			Origin-chain bridge records usually bridgeTransactions the depositor, source network, and the transaction that locked or burned funds on that side.
 		</p>
 		<p>
 			Final delivery, relayer proofs, and refunds settle on the destination ledger and in the bridge’s own lifecycle rules—always verify both chains and the protocol’s status pages.

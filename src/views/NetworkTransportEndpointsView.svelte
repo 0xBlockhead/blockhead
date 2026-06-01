@@ -92,9 +92,9 @@
 				parent,
 				(parent): NetworkTransportEndpoint[] => (
 					endpointFieldNames.flatMap((fieldName) => {
-						const rows = parent[fieldName]
+						const tses = parent[fieldName]
 						return (
-							rows as NetworkTransportEndpoint[] | undefined
+							tses as NetworkTransportEndpoint[] | undefined
 						) ?? []
 					})
 				),

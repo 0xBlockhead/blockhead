@@ -380,7 +380,7 @@
 							fieldName: '$$notes',
 						}}
 						fieldOpen={_open}
-						id={`${idKey}:activity-notes-list`}
+						id={`${idKey}:activity-notes-activityPubActors`}
 						orderByCreatedAt="desc"
 						placeholderText="Loading Mastodon outbox statuses…"
 						title="Outbox"

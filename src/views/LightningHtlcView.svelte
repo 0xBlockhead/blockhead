@@ -80,40 +80,40 @@
 		>
 			{#snippet children(row)}
 				<dl>
-					{#if row.direction != null}
+					{#if lightningHtlc.direction != null}
 						<div>
 							<dt>Direction</dt>
-							<dd>{row.direction}</dd>
+							<dd>{lightningHtlc.direction}</dd>
 						</div>
 					{/if}
 
-					{#if row.amountMsat != null}
+					{#if lightningHtlc.amountMsat != null}
 						<div>
 							<dt>Amount</dt>
-							<dd>{row.amountMsat.toString()} msat</dd>
+							<dd>{lightningHtlc.amountMsat.toString()} msat</dd>
 						</div>
 					{/if}
 
-					{#if row.expiryHeight != null}
+					{#if lightningHtlc.expiryHeight != null}
 						<div>
 							<dt>Expiry height</dt>
-							<dd>{row.expiryHeight.toString()}</dd>
+							<dd>{lightningHtlc.expiryHeight.toString()}</dd>
 						</div>
 					{/if}
 
-					{#if row.state != null}
+					{#if lightningHtlc.state != null}
 						<div>
 							<dt>State</dt>
-							<dd>{row.state}</dd>
+							<dd>{lightningHtlc.state}</dd>
 						</div>
 					{/if}
 
-					{#if row.hashLock != null}
+					{#if lightningHtlc.hashLock != null}
 						<div>
 							<dt>Hash lock</dt>
 							<dd>
 								<TruncatedValue
-									value={row.hashLock}
+									value={lightningHtlc.hashLock}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

@@ -290,7 +290,7 @@
 				sections={[
 					{ id: 'coin-instances', label: 'Instances' },
 					...((coin.$$coinInstances ?? []).some((row) => (
-						row.representation === CoinInstanceRepresentation.BridgeWrapped
+						coin.representation === CoinInstanceRepresentation.BridgeWrapped
 					)) ? [{ id: 'coin-wrapped', label: 'Wrapped' }] : []),
 					...((coin.$$bridgeCapabilities ?? []).length ? [{ id: 'coin-bridge-capabilities', label: 'Bridge capabilities' }] : []),
 				]}
@@ -326,7 +326,7 @@
 
 				{#snippet SectionCoinWrapped({ id, label })}
 					{#if (coin.$$coinInstances ?? []).some((row) => (
-						row.representation === CoinInstanceRepresentation.BridgeWrapped
+						coin.representation === CoinInstanceRepresentation.BridgeWrapped
 					))}
 						<EvmCoinInstancesView
 							CollapsibleProps={{ canToggle: false }}

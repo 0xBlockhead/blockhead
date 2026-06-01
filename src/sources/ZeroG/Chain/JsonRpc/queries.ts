@@ -19,7 +19,7 @@ type ZeroGJsonRpcResponse<_Result> = {
 	}
 }
 
-export const mainnetRpcUrl = 'https://evmrpc.0g.ai'
+export const getMainnetRpcUrl = 'https://evmrpc.0g.ai'
 
 const quantityHex = (blockNumber: bigint | 'latest') => (
 	blockNumber === 'latest' ?
@@ -35,7 +35,7 @@ const zeroGJsonRpc = async <_Result>({
 	method: string
 	params: JsonValue[]
 }) => {
-	const response = await corsFetch(mainnetRpcUrl, {
+	const response = await corsFetch(getMainnetRpcUrl, {
 		origins: ZeroG.origins ?? [],
 		init: {
 			method: 'POST',

@@ -140,7 +140,7 @@
 			{@const notes = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.NostrNote>[] = (
+					const nostrNotes: Entity<typeof schema, EntityType.NostrNote>[] = (
 						entityFieldReference.entityType === EntityType.NostrNetwork ?
 							[
 								...(parent.$$nostrNotes ?? []),
@@ -150,7 +150,7 @@
 						:
 							(parent[entityFieldReference.fieldName] ?? [])
 					)
-					return rows.slice(0, limit)
+					return nostrNotes.slice(0, limit)
 				},
 			)}
 			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}`}
@@ -160,9 +160,9 @@
 					entityType={EntityType.NostrNote}
 					id={`${id}-items`}
 					{title}
-					getKey={(row) => row[EntityMetaKey.Id].eventId}
+					getKey={(row) => nostrNote[EntityMetaKey.Id].eventId}
 					getSortValue={(row) => (
-						`${String(-(row.createdAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Id].eventId}`
+						`${String(-(nostrNote.createdAt ?? 0)).padStart(20, '0')}\0${nostrNote[EntityMetaKey.Id].eventId}`
 					)}
 					placeholderText={`Loading ${title.toLowerCase()}…`}
 					resource={notes}

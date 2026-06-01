@@ -1,9 +1,9 @@
 /**
- * Markdown -> safe HTML via starkdown + insane. No raw HTML pass-through; links limited to http/https/mailto.
+ * Markdown -> safe HTML via starkdown + sanitize-html. No raw HTML pass-through; links limited to http/https/mailto.
  * On parse error (e.g. unsupported token), normalize input and fall back to escaped plain text in <pre>.
  */
 
-import insane, { type SanitizeOptions } from 'insane'
+import sanitizeHtml, { type IOptions } from 'sanitize-html'
 import { starkdown } from 'starkdown'
 
 const escapeHtml = (s: string) => (
@@ -95,14 +95,14 @@ const syndicationHtmlSanitizerOptions = {
 			'alt',
 		],
 	},
-} satisfies SanitizeOptions
+} satisfies IOptions
 
 export const syndicationHtmlToSafeHtml = (
 	htmlText: string | null | undefined,
 ): string => {
 	const html = htmlText?.trim() ?? ''
 	if (html === '') return ''
-	return insane(html, syndicationHtmlSanitizerOptions)
+	return sanitizeHtml(html, syndicationHtmlSanitizerOptions)
 }
 
 export const markdownToHtml = (
@@ -110,7 +110,7 @@ export const markdownToHtml = (
 ): string => {
 	const markdown = markdownText === undefined || markdownText === null ? '' : markdownText
 	try {
-		return insane(starkdown(normalizeForStarkdown(markdown)), syndicationHtmlSanitizerOptions)
+		return sanitizeHtml(starkdown(normalizeForStarkdown(markdown)), syndicationHtmlSanitizerOptions)
 	} catch {
 		return `<pre>${escapeHtml(markdown)}</pre>`
 	}

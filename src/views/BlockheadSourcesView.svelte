@@ -65,7 +65,7 @@
 				Persistent records of data-source transports: base URLs and metadata used for repeated API access (RPC, REST, GraphQL).
 			</p>
 			<p>
-				Browser wallets use EIP-1193 injection instead—address and chain selection there is session state, not an HTTP transport row.
+				Browser wallets use EIP-1193 injection instead—address and chain selection there is session state, not an HTTP transport blockheadSource.
 			</p>
 		{/snippet}
 
@@ -85,11 +85,11 @@
 				{@const sources = derive(
 					parent,
 					(parent) => {
-						const rows: Entity<typeof schema, EntityType.BlockheadSource>[] = (
+						const blockheadSources: Entity<typeof schema, EntityType.BlockheadSource>[] = (
 							parent[entityFieldReference.fieldName] ?? []
 						)
 						return (
-							rows.map((value) => ({
+							blockheadSources.map((value) => ({
 								value,
 							}))
 						)

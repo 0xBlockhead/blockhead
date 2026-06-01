@@ -200,13 +200,13 @@
 									<Tooltip contentProps={{ side: 'top' }}>
 										{#snippet Content()}
 											<p>
-												Quotes are timestamped rows on <code>Market_Timestamp</code>
+												Quotes are timestamped marketPrices on <code>Market_Timestamp</code>
 												(<code>$$quotes</code>), not fields on this stream header.
 											</p>
 										{/snippet}
 										<abbr
 											class="entity-heading-tip"
-											aria-label="Quote stream vs timestamp rows"
+											aria-label="Quote stream vs timestamp marketPrices"
 										>ⓘ</abbr>
 									</Tooltip>
 								</div>

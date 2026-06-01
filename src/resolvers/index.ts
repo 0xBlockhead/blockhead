@@ -96,6 +96,7 @@ import TronFullNodeRestResolvers from '$/resolvers/TronFullNode-Rest.ts'
 import TronGridRestResolvers from '$/resolvers/TronGrid-Rest.ts'
 import TronScanRestResolvers from '$/resolvers/TronScan-Rest.ts'
 import TronSolidityNodeRestResolvers from '$/resolvers/TronSolidityNode-Rest.ts'
+import TrustWalletAssetsGithubResolvers from '$/resolvers/TrustWalletAssets-Github.ts'
 import VoltaireJsonRpcResolvers from '$/resolvers/Voltaire-JsonRpc.ts'
 import XFxEmbedRestResolvers from '$/resolvers/X-FxEmbed-Rest.ts'
 import XRestResolvers from '$/resolvers/X-Rest.ts'
@@ -207,6 +208,7 @@ const enabledResolverModulesAfterSourceGate = (
 		TronGridRestResolvers,
 		TronScanRestResolvers,
 		TronSolidityNodeRestResolvers,
+		TrustWalletAssetsGithubResolvers,
 		VoltaireJsonRpcResolvers,
 		XFxEmbedRestResolvers,
 		XRestResolvers,

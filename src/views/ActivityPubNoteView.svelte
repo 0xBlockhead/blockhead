@@ -523,7 +523,7 @@
 							entityId,
 							fieldName: '$$thread',
 						}}
-						id={`${idKey}:note-thread-list`}
+						id={`${idKey}:note-thread-activityPubNotes`}
 						fieldOpen={_open}
 						orderByCreatedAt="asc"
 						placeholderText="Loading conversation…"

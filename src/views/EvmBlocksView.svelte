@@ -100,9 +100,9 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => row[EntityMetaKey.Id].blockNumber}
+					getKey={(row) => evmBlock[EntityMetaKey.Id].blockNumber}
 					getSortValue={(row) => (
-						-Number(row[EntityMetaKey.Id].blockNumber)
+						-Number(evmBlock[EntityMetaKey.Id].blockNumber)
 					)}
 					placeholderText="Loading execution blocks…"
 					resource={blocks}

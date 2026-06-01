@@ -75,14 +75,14 @@
 					},
 				},
 			)}
-			{@const rows = derive(
+			{@const beaconFinalityTimestamps = derive(
 				parent,
 				(parent) => {
-					const list: Entity<typeof schema, EntityType.EthereumBeaconFinality_Timestamp>[] = (
+					const beaconFinalityTimestamps: Entity<typeof schema, EntityType.EthereumBeaconFinality_Timestamp>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						list
+						beaconFinalityTimestamps
 							.map((value) => ({
 								value,
 							}))
@@ -100,7 +100,7 @@
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<EthereumBeaconFinality_TimestampView
-						entityId={row[EntityMetaKey.Id]}
+						entityId={beaconFinalityTimestamp[EntityMetaKey.Id]}
 						layout={EntityLayout.SummaryDetails}
 						open={true}
 						showTypeAnnotation={false}

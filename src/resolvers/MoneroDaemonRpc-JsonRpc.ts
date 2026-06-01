@@ -347,25 +347,6 @@ export default {
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
 			entityType: EntityType.MoneroNetwork,
-			fieldName: '$headBlock',
-			resolve: async (entityId) => {
-				assertMoneroMainnet(entityId)
-				const { getInfo } = await import('$/sources/MoneroDaemonRpc/JsonRpc/queries.ts')
-				const info = await getInfo({
-					rpcUrl: moneroDaemonDefaultRpcUrl,
-				})
-				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId,
-						height: BigInt(info.height - 1),
-						hash: info.top_block_hash,
-					},
-				}
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.MoneroNetwork,
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
 				assertMoneroMainnet(entityId)

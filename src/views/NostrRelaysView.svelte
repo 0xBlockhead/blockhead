@@ -97,11 +97,11 @@
 			{@const relays = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.NostrRelay>[] = (
+					const nostrRelays: Entity<typeof schema, EntityType.NostrRelay>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((relay) => ({
+						nostrRelays.map((relay) => ({
 							entityId: relay[EntityMetaKey.Id],
 						}))
 					)
@@ -115,8 +115,8 @@
 				{title}
 				resource={relays}
 				placeholderText="Loading relays…"
-				getKey={(row) => stringify(row.entityId)}
-				getSortValue={(row) => row.entityId.relayUrl}
+				getKey={(row) => stringify(nostrRelay.entityId)}
+				getSortValue={(row) => nostrRelay.entityId.relayUrl}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}

@@ -264,7 +264,7 @@
 							},
 							fieldName: '$$entries',
 						}}
-						id={`${connectionIdKey}:feed-list`}
+						id={`${connectionIdKey}:feed-blockheadFarcasterAccountConnections`}
 						title="Farcaster feed"
 					/>
 				{/snippet}

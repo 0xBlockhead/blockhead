@@ -131,7 +131,7 @@
 			<strong>Timestamped</strong>
 			catalog snapshot for the owning coin: fundamental fields frozen at wall-clock <strong>quote time</strong>
 			— the entity id keeps <strong>epoch milliseconds</strong>
-			for stable ordering; pair with spot or OHLC market rows when auditing supply or market-cap moves, not with mempool calldata.
+			for stable ordering; pair with spot or OHLC market coinTimestamps when auditing supply or market-cap moves, not with mempool calldata.
 		</p>
 	{/snippet}
 

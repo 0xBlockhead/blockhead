@@ -92,11 +92,11 @@
 			{@const posts = derive(
 		parent,
 		(parent) => {
-			const rows: Entity<typeof schema, EntityType.XPost>[] = (
+			const xPosts: Entity<typeof schema, EntityType.XPost>[] = (
 				parent[entityFieldReference.fieldName] ?? []
 			)
 			return (
-				rows
+				xPosts
 					.map((value) => ({
 						value,
 					}))
@@ -110,15 +110,15 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => row.value[EntityMetaKey.Id].id}
+				getKey={(row) => stringify(xPost.value[EntityMetaKey.Id])}
+				getSortValue={(row) => xPost.value[EntityMetaKey.Id].id}
 				resource={posts}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
 			>
 				{#snippet Empty()}
 						<p data-text="muted">
-							No X posts in this list yet.
+							No X posts in this xPosts yet.
 						</p>
 					{/snippet}
 

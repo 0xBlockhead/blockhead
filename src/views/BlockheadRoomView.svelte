@@ -97,7 +97,7 @@
 			Realtime room records identify a shared session: display name, host metadata, and stable room id for presence sync.
 		</p>
 		<p>
-			Membership and permissions are carried on companion peer rows; rooms themselves are not XMPP MUC transcripts or IPFS DAGs.
+			Membership and permissions are carried on companion peer blockheadRooms; rooms themselves are not XMPP MUC transcripts or IPFS DAGs.
 		</p>
 	{/snippet}
 

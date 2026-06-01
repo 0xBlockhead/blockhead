@@ -457,7 +457,7 @@ export default {
 			resolve: async (entityId, context) => {
 				const {
 					getTokenTransfersByTransaction,
-					accountListMaxOffset,
+					getAccountListMaxOffset,
 				} = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -465,7 +465,7 @@ export default {
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
 					chainId,
 					txHash: entityId.txHash,
-					offset: accountListMaxOffset,
+					offset: getAccountListMaxOffset,
 				})
 				if (wires == null) {
 					throw new Error('Etherscan_Rest: token transfers by transaction returned no result')
@@ -691,7 +691,7 @@ export default {
 			resolve: async (entityId, context) => {
 				const {
 					getTokenTransfersByAddress,
-					accountListMaxOffset,
+					getAccountListMaxOffset,
 				} = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -701,7 +701,7 @@ export default {
 				}
 				const limit = Math.min(
 					resolverLoadSubsetRowLimit(context),
-					accountListMaxOffset,
+					getAccountListMaxOffset,
 				)
 				const wires = await getTokenTransfersByAddress({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
@@ -730,7 +730,7 @@ export default {
 			resolve: async (entityId, context) => {
 				const {
 					getInternalTransactionsByAddress,
-					accountListMaxOffset,
+					getAccountListMaxOffset,
 				} = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
@@ -740,7 +740,7 @@ export default {
 				}
 				const limit = Math.min(
 					resolverLoadSubsetRowLimit(context),
-					accountListMaxOffset,
+					getAccountListMaxOffset,
 				)
 				const wires = await getInternalTransactionsByAddress({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),
@@ -769,13 +769,13 @@ export default {
 			resolve: async (entityId, context) => {
 				const {
 					getTokenTransfersByTransaction,
-					accountListMaxOffset,
+					getAccountListMaxOffset,
 				} = await import('$/sources/Etherscan/Rest/queries.ts')
 				const chainId = chainIdFromEvmNetworkId(entityId.$network)
 				await throwIfEtherscanRestUnsupportedChainId(chainId)
 				const limit = Math.min(
 					resolverLoadSubsetRowLimit(context),
-					accountListMaxOffset,
+					getAccountListMaxOffset,
 				)
 				const wires = await singleFlight(getTokenTransfersByTransaction)({
 					publicEnv: sourcePublicEnv(context, Source.Etherscan_Rest),

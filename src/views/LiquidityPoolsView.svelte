@@ -61,7 +61,7 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Dexscreener-backed concentrated-liquidity pair rows: token pair, volume, and TVL—not an exhaustive on-chain pool registry.
+			Dexscreener-backed concentrated-liquidity pair liquidityPools: token pair, volume, and TVL—not an exhaustive on-chain pool registry.
 		</p>
 		<p>
 			The global catalog slice uses a fixed Dexscreener search probe (<code>WETH/USDC</code>); on-chain curve fields require another source.
@@ -71,7 +71,7 @@
 	{#snippet Empty()}
 		<div data-row="wrap align-center gap-2">
 			<p data-text="muted">
-				No Dexscreener pair rows in this slice yet.
+				No Dexscreener pair liquidityPools in this slice yet.
 			</p>
 			<Tooltip contentProps={{ side: 'top' }}>
 				{#snippet Content()}
@@ -84,7 +84,7 @@
 				{/snippet}
 				<abbr
 					class="entity-heading-tip"
-					aria-label="About pool rows"
+					aria-label="About pool liquidityPools"
 				>ⓘ</abbr>
 			</Tooltip>
 		</div>
@@ -107,11 +107,11 @@
 			{@const liquidityPools = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.LiquidityPool>[] = (
+					const liquidityPools: Entity<typeof schema, EntityType.LiquidityPool>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						liquidityPools.map((value) => ({
 							value,
 						}))
 					)
@@ -134,7 +134,7 @@
 				{#snippet Empty()}
 					<div data-row="wrap align-center gap-2">
 						<p data-text="muted">
-							No Dexscreener pair rows in this slice yet.
+							No Dexscreener pair liquidityPools in this slice yet.
 						</p>
 						<Tooltip contentProps={{ side: 'top' }}>
 							{#snippet Content()}
@@ -147,7 +147,7 @@
 							{/snippet}
 							<abbr
 								class="entity-heading-tip"
-								aria-label="About pool rows"
+								aria-label="About pool liquidityPools"
 							>ⓘ</abbr>
 						</Tooltip>
 					</div>

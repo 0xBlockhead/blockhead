@@ -214,33 +214,6 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.UtxoNetwork,
-			fieldName: '$headBlock',
-			resolve: async (entityId) => {
-				assertBitcoinMainnet(entityId)
-				const { getBlocks } = await import('$/sources/MempoolSpace/Rest/queries.ts')
-				const blocks = await getBlocks({ restBaseUrl: mempoolSpaceBitcoinMainnetRestBaseUrl })
-				const block = blocks[0]
-				if (block == null) throw new Error('MempoolSpace_Rest: no blocks returned')
-				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId,
-						height: BigInt(block.height),
-						hash: block.id,
-					},
-					hash: block.id,
-					timestampMs: block.timestamp * 1000,
-					merkleRoot: block.merkle_root,
-					nonce: BigInt(block.nonce),
-					difficulty: block.difficulty,
-					sizeBytes: block.size,
-					weightUnits: block.weight,
-					transactionCount: block.tx_count,
-				}
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.UtxoNetwork,
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
 				assertBitcoinMainnet(entityId)

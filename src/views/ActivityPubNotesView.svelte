@@ -86,10 +86,10 @@
 			{@const notes = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.ActivityPubNote>[] = (
+					const activityPubNotes: Entity<typeof schema, EntityType.ActivityPubNote>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
-					return rows
+					return activityPubNotes
 				},
 			)}
 			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}-${orderByCreatedAt}`}
@@ -100,12 +100,12 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getKey={(row) => stringify(activityPubNote[EntityMetaKey.Id])}
 					getSortValue={(row) => (
 						orderByCreatedAt === 'asc' ?
-							Number(row[EntityMetaKey.Id].localStatusId) || 0
+							Number(activityPubNote[EntityMetaKey.Id].localStatusId) || 0
 						:
-							-(Number(row[EntityMetaKey.Id].localStatusId) || 0)
+							-(Number(activityPubNote[EntityMetaKey.Id].localStatusId) || 0)
 					)}
 					placeholderText={(
 						fieldOpen ?

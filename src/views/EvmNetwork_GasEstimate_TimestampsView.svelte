@@ -92,14 +92,14 @@
 					},
 				},
 			)}
-			{@const rows = derive(
+			{@const gasEstimateTimestamps = derive(
 				parent,
 				(parent) => {
-					const list: Entity<typeof schema, EntityType.EvmNetwork_GasEstimate_Timestamp>[] = (
+					const gasEstimateTimestamps: Entity<typeof schema, EntityType.EvmNetwork_GasEstimate_Timestamp>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						list
+						gasEstimateTimestamps
 							.map((value) => ({
 								value,
 							}))
@@ -117,12 +117,12 @@
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<EvmNetwork_GasEstimate_TimestampView
-						entityId={row[EntityMetaKey.Id]}
+						entityId={gasEstimateTimestamp[EntityMetaKey.Id]}
 						href={resolve(
 							'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-							{ ...caip2RouteParamsFromNetworkId(row[EntityMetaKey.Id].$network) },
+							{ ...caip2RouteParamsFromNetworkId(gasEstimateTimestamp[EntityMetaKey.Id].$network) },
 						)}
-						id={stringify(row[EntityMetaKey.Id])}
+						id={stringify(gasEstimateTimestamp[EntityMetaKey.Id])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

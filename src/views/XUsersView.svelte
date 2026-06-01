@@ -101,11 +101,11 @@
 			{@const users = derive(
 		parent,
 		(parent) => {
-			const rows: Entity<typeof schema, EntityType.XUser>[] = (
+			const xUsers: Entity<typeof schema, EntityType.XUser>[] = (
 				parent[entityFieldReference.fieldName] ?? []
 			)
 			return (
-				rows
+				xUsers
 					.map((value) => ({
 						value,
 					}))
@@ -119,15 +119,15 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => row.value[EntityMetaKey.Id].id}
+				getKey={(row) => stringify(xUser.value[EntityMetaKey.Id])}
+				getSortValue={(row) => xUser.value[EntityMetaKey.Id].id}
 				resource={users}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}
 				open={true}
 			>
 				{#snippet Empty()}
 						<p data-text="muted">
-							No X profiles in this list yet.
+							No X profiles in this xUsers yet.
 						</p>
 					{/snippet}
 

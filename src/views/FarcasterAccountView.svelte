@@ -140,7 +140,7 @@
 			Blockhead-linked Farcaster account: custody or auth-address connection stored for this browser session.
 		</p>
 		<p>
-			Verification rows are wallet proofs—not the same as a public hub profile cache alone.
+			Verification blockheadFarcasterAccountConnections are wallet proofs—not the same as a public hub profile cache alone.
 		</p>
 	{/snippet}
 

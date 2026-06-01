@@ -89,11 +89,11 @@
 			{@const bridges = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.EvmNetworkBridge>[] = (
+					const evmNetworkBridges: Entity<typeof schema, EntityType.EvmNetworkBridge>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						evmNetworkBridges.map((value) => ({
 							value,
 						}))
 					)

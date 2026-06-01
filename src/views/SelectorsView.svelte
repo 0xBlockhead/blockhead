@@ -83,11 +83,11 @@
 			{@const selectors = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.EvmSelector>[] = (
+					const evmSelectors: Entity<typeof schema, EntityType.EvmSelector>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						evmSelectors.map((value) => ({
 							value,
 						}))
 					)

@@ -300,7 +300,7 @@
 		:global {
 			menu {
 				gap: 2px;
-				list-style: none;
+				navigationItems-style: none;
 				font-size: 0.975em;
 
 				li {

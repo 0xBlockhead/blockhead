@@ -96,13 +96,13 @@
 			{@const prices = derive(
 				market,
 				(market) => {
-					const rows: Entity<typeof schema, EntityType.MarketPrice>[] = (
+					const marketPrices: Entity<typeof schema, EntityType.MarketPrice>[] = (
 						market[entityFieldReference.fieldName] ?? []
 					)
 					return (
 						Object.values(
 							Object.groupBy(
-								rows,
+								marketPrices,
 								(price) => price[EntityMetaKey.IdKey],
 							),
 						)
@@ -123,11 +123,11 @@
 				showSummary={false}
 				entityType={EntityType.MarketPrice}
 				getKey={(row) => stringify(
-					row.value[EntityMetaKey.Id],
+					marketPrice.value[EntityMetaKey.Id],
 				)}
 				getSortValue={(row) => (
-					row.value[EntityMetaKey.Id].$market.$base.kind === MarketAssetKind.Coin ?
-						row.value[EntityMetaKey.Id].$market.$base.$coin.coinId
+					marketPrice.value[EntityMetaKey.Id].$market.$base.kind === MarketAssetKind.Coin ?
+						marketPrice.value[EntityMetaKey.Id].$market.$base.$coin.coinId
 					:
 						''
 				)}

@@ -107,8 +107,8 @@
 					href={EntitiesListProps.href}
 					{title}
 					open={true}
-					getKey={(row) => stringify(row[EntityMetaKey.Id])}
-					getSortValue={(row) => BigInt(row[EntityMetaKey.Id].address)}
+					getKey={(row) => stringify(evmContract[EntityMetaKey.Id])}
+					getSortValue={(row) => BigInt(evmContract[EntityMetaKey.Id].address)}
 					placeholderText="Loading verified contracts…"
 					resource={contracts}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}

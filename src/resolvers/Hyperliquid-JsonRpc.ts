@@ -123,23 +123,6 @@ export default {
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
 			entityType: EntityType.HyperliquidNetwork,
-			fieldName: '$headBlock',
-			resolve: async (entityId) => {
-				assertHyperliquidMainnet(entityId)
-				const { getBlockNumber } = await import('$/sources/Hyperliquid/JsonRpc/queries.ts')
-				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId,
-						height: hexToBigInt(await getBlockNumber({
-							rpcUrl: hyperliquidEvmRpcUrl,
-						})),
-					},
-				}
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.HyperliquidNetwork,
 			fieldName: '$$blocks',
 			resolve: async (entityId, context) => {
 				assertHyperliquidMainnet(entityId)

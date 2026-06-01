@@ -87,11 +87,11 @@
 			{@const links = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.RedditLink>[] = (
+					const redditLinks: Entity<typeof schema, EntityType.RedditLink>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((link, index) => ({
+						redditLinks.map((link, index) => ({
 							...link[EntityMetaKey.Id],
 							sortKey: index,
 						}))
@@ -107,8 +107,8 @@
 				open={true}
 				resource={links}
 				placeholderText="Loading submissions…"
-				getKey={(row) => row.fullname}
-				getSortValue={(row) => row.sortKey}
+				getKey={(row) => redditLink.fullname}
+				getSortValue={(row) => redditLink.sortKey}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}

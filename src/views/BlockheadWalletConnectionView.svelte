@@ -232,7 +232,7 @@
 					{#if accounts.length}
 						<ul
 							data-column="gap-1"
-							data-list="unstyled"
+							data-blockheadWalletConnections="unstyled"
 						>
 							{#each accounts as address (address)}
 								<li>

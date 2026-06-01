@@ -269,20 +269,6 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.UtxoNetwork,
-			fieldName: '$headBlock',
-			resolve: async (entityId) => {
-				const { getBlocks } = await import('$/sources/Blockchair/Rest/queries.ts')
-				const blocks = (await getBlocks<BlockchairBitcoinLikeBlock>({
-					chain: blockchairChain(entityId),
-					params: { sort: 'id(desc)', limit: 1 },
-				})).data
-				const block = blocks[0]
-				return block == null ? undefined : utxoBlockRow(entityId, block)
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.UtxoNetwork,
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
 				const { getBitcoinLikeStats } = await import('$/sources/Blockchair/Rest/queries.ts')

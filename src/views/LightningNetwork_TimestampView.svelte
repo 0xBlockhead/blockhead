@@ -72,11 +72,11 @@
 			placeholderText="Loading snapshot…"
 		>
 			{#snippet children(row)}
-				{#if row.nodeCount != null}
-					<NumberValue value={row.nodeCount} />
+				{#if lightningNetworkTimestamp.nodeCount != null}
+					<NumberValue value={lightningNetworkTimestamp.nodeCount} />
 					nodes
-				{:else if row.channelCount != null}
-					<NumberValue value={row.channelCount} />
+				{:else if lightningNetworkTimestamp.channelCount != null}
+					<NumberValue value={lightningNetworkTimestamp.channelCount} />
 					channels
 				{:else}
 					Snapshot
@@ -96,73 +96,73 @@
 		>
 			{#snippet children(row)}
 				<dl>
-					{#if row.nodeCount != null}
+					{#if lightningNetworkTimestamp.nodeCount != null}
 						<div>
 							<dt>Nodes</dt>
-							<dd><NumberValue value={row.nodeCount} /></dd>
+							<dd><NumberValue value={lightningNetworkTimestamp.nodeCount} /></dd>
 						</div>
 					{/if}
 
-					{#if row.channelCount != null}
+					{#if lightningNetworkTimestamp.channelCount != null}
 						<div>
 							<dt>Channels</dt>
-							<dd><NumberValue value={row.channelCount} /></dd>
+							<dd><NumberValue value={lightningNetworkTimestamp.channelCount} /></dd>
 						</div>
 					{/if}
 
-					{#if row.totalCapacitySats != null}
+					{#if lightningNetworkTimestamp.totalCapacitySats != null}
 						<div>
 							<dt>Capacity</dt>
-							<dd>{row.totalCapacitySats.toString()} sats</dd>
+							<dd>{lightningNetworkTimestamp.totalCapacitySats.toString()} sats</dd>
 						</div>
 					{/if}
 
-					{#if row.averageFeeRatePpm != null}
+					{#if lightningNetworkTimestamp.averageFeeRatePpm != null}
 						<div>
 							<dt>Average fee rate</dt>
-							<dd><NumberValue value={row.averageFeeRatePpm} /> ppm</dd>
+							<dd><NumberValue value={lightningNetworkTimestamp.averageFeeRatePpm} /> ppm</dd>
 						</div>
 					{/if}
 
-					{#if row.medianFeeRatePpm != null}
+					{#if lightningNetworkTimestamp.medianFeeRatePpm != null}
 						<div>
 							<dt>Median fee rate</dt>
-							<dd><NumberValue value={row.medianFeeRatePpm} /> ppm</dd>
+							<dd><NumberValue value={lightningNetworkTimestamp.medianFeeRatePpm} /> ppm</dd>
 						</div>
 					{/if}
 
-					{#if open && row.torNodeCount != null}
+					{#if open && lightningNetworkTimestamp.torNodeCount != null}
 						<div>
 							<dt>Tor nodes</dt>
-							<dd><NumberValue value={row.torNodeCount} /></dd>
+							<dd><NumberValue value={lightningNetworkTimestamp.torNodeCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && row.clearnetNodeCount != null}
+					{#if open && lightningNetworkTimestamp.clearnetNodeCount != null}
 						<div>
 							<dt>Clearnet nodes</dt>
-							<dd><NumberValue value={row.clearnetNodeCount} /></dd>
+							<dd><NumberValue value={lightningNetworkTimestamp.clearnetNodeCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && row.unannouncedNodeCount != null}
+					{#if open && lightningNetworkTimestamp.unannouncedNodeCount != null}
 						<div>
 							<dt>Unannounced nodes</dt>
-							<dd><NumberValue value={row.unannouncedNodeCount} /></dd>
+							<dd><NumberValue value={lightningNetworkTimestamp.unannouncedNodeCount} /></dd>
 						</div>
 					{/if}
 
-					{#if open && row.averageCapacitySats != null}
+					{#if open && lightningNetworkTimestamp.averageCapacitySats != null}
 						<div>
 							<dt>Average capacity</dt>
-							<dd>{row.averageCapacitySats.toString()} sats</dd>
+							<dd>{lightningNetworkTimestamp.averageCapacitySats.toString()} sats</dd>
 						</div>
 					{/if}
 
-					{#if open && row.medianCapacitySats != null}
+					{#if open && lightningNetworkTimestamp.medianCapacitySats != null}
 						<div>
 							<dt>Median capacity</dt>
-							<dd>{row.medianCapacitySats.toString()} sats</dd>
+							<dd>{lightningNetworkTimestamp.medianCapacitySats.toString()} sats</dd>
 						</div>
 					{/if}
 				</dl>

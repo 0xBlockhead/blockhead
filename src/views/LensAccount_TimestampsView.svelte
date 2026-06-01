@@ -66,13 +66,13 @@
 					},
 				},
 			)}
-			{@const rows = derive(
+			{@const lensAccountTimestamps = derive(
 				parent,
 				(parent) => {
-					const list: Entity<typeof schema, EntityType.LensAccount_Timestamp>[] = (
+					const lensAccountTimestamps: Entity<typeof schema, EntityType.LensAccount_Timestamp>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
-					return list.map((value) => ({
+					return lensAccountTimestamps.map((value) => ({
 						value,
 					}))
 				},

@@ -120,11 +120,11 @@
 				{@const videos = derive(
 					parent,
 					(parent) => {
-						const rows: Entity<typeof schema, EntityType.YouTubeVideo>[] = (
+						const youTubeVideos: Entity<typeof schema, EntityType.YouTubeVideo>[] = (
 							parent[entityFieldReference.fieldName] ?? []
 						)
 						return (
-							rows.map((video) => ({
+							youTubeVideos.map((video) => ({
 								...video[EntityMetaKey.Id],
 								sortKey: video[EntityMetaKey.IdKey],
 							}))
@@ -139,8 +139,8 @@
 					{title}
 					resource={videos}
 					placeholderText="Loading videos…"
-					getKey={(row) => row.videoId}
-					getSortValue={(row) => row.sortKey}
+					getKey={(row) => youTubeVideo.videoId}
+					getSortValue={(row) => youTubeVideo.sortKey}
 					placeholderKeys={new SvelteSet<string>()}
 				>
 					{#snippet Empty()}

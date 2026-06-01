@@ -115,7 +115,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			An execution block commits its parent, fee market fields, and an ordered list of transactions with receipts and logs.
+			An execution block commits its parent, fee market fields, and an ordered evmBlocks of transactions with receipts and logs.
 		</p>
 		<p>
 			Blob transactions carry large payloads beside the block body without bloating long-term execution state.

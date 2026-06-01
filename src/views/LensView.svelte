@@ -190,7 +190,7 @@
 				sections={collapsibleTabsSections([
 					{ id: 'registry-accounts', label: 'Profiles' },
 					{ id: 'registry-posts', label: 'Publications' },
-					{ id: 'examples-list', label: 'Examples' },
+					{ id: 'examples-lensNetworks', label: 'Examples' },
 				])}
 				data-card
 			>

@@ -93,15 +93,6 @@ export default {
 			],
 		},
 		{
-			name: '$headBlock',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.EvmBlock,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.ZeroGChain_JsonRpc,
-			],
-		},
-		{
 			name: '$consensusNetwork',
 			type: EntityFieldType.EntityReference,
 			entityType: EntityType.ZeroGConsensusNetwork,

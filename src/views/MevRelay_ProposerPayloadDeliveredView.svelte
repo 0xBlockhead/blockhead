@@ -106,7 +106,7 @@
 			MEV-Boost-style relays intermediate auctions between block builders and proposing validators; published traces record which builder execution payload won a given consensus slot.
 		</p>
 		<p>
-			Relay schemas vary: some include the accepted EL block hash or height with the bid, others list only bid value and builder pubkey until cross-linked elsewhere.
+			Relay schemas vary: some include the accepted EL block hash or height with the bid, others deliveredPayloads only bid value and builder pubkey until cross-linked elsewhere.
 		</p>
 	{/snippet}
 

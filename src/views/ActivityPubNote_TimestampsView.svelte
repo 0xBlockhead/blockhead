@@ -68,13 +68,13 @@
 					},
 				},
 			)}
-			{@const rows = derive(
+			{@const activityPubNoteTimestamps = derive(
 				parent,
 				(parent) => {
-					const list: Entity<typeof schema, EntityType.ActivityPubNote_Timestamp>[] = (
+					const activityPubNoteTimestamps: Entity<typeof schema, EntityType.ActivityPubNote_Timestamp>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
-					return list.map((value) => ({
+					return activityPubNoteTimestamps.map((value) => ({
 						value,
 					}))
 				},

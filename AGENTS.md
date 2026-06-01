@@ -488,35 +488,34 @@ Tooling: `openapi-typescript` emits a TypeScript AST from the schema object; the
 CLI (via `package.json`):
 
 ```txt
-pnpm run sources:openapi -- <download|generate|sync> <Provider>
+pnpm run sources:openapi
+pnpm run sources:openapi -- <Provider>
 ```
 
-`<Provider>` is the single path segment under `src/sources/` that contains `OpenApi/schema-source.ts` (e.g. `Defillama`, `Coinpaprika`, `Dexscreener`). `download` fetches `schemaUrl` into `schemaFile`. `generate` reads `schemaFile` and writes `typesFile`. `sync` runs download then generate.
+With no argument, the runner discovers every `src/sources/*/OpenApi/schema-source.ts` manifest and syncs all providers. `<Provider>` is the single path segment under `src/sources/` to sync one provider (e.g. `Defillama`, `Coinpaprika`, `Dexscreener`). Sync downloads `schemaUrl` into `schemaFile`, then generates `typesFile`.
 
 Manifest: add `src/sources/<Provider>/OpenApi/schema-source.ts` and export a `schemaSource` object:
 
 ```ts
 export const schemaSource = {
-	provider: string
 	schemaUrl: string
 	schemaFile: string
 	typesFile: string
 } as const
 ```
 
-- `provider`: conventionally the same name as the `<Provider>` folder (used in log messages).
 - `schemaUrl`: canonical upstream OpenAPI 3 or Swagger 2 document URL.
 - `schemaFile`: path relative to the manifest directory for the checked-in downloaded spec (e.g. `./openapi.yml`, `./openapi.json`).
 - `typesFile`: path relative to the manifest directory for generated types (convention: `./openapi.d.ts`).
 
 Hand-written transport code: after generation, keep HTTP in `client.ts`, put wire shapes beside the manifest in `OpenApi/types.ts` (aliases from `openapi.d.ts` plus any hand-maintained payloads), and use `queries.ts` for operations — `Coinpaprika`, `Dexscreener`, and `Defillama` follow this layout. Resolvers import wire types from `types.ts`, not `client.ts` / `queries.ts`.
 
-Convenience scripts: for each new OpenAPI provider, add three `package.json` scripts that forward to the same runner, mirroring existing `sources:openapi:download:<name>`, `sources:openapi:generate:<name>`, and `sources:openapi:sync:<name>` entries.
+Package scripts: keep one generic `sources:openapi` script; do not add per-provider download/generate/sync aliases.
 
 Replication checklist:
 
 1. Add `src/sources/<Provider>/OpenApi/schema-source.ts` with `schemaSource` as above.
-2. Run `pnpm run sources:openapi -- sync <Provider>` (or `download` / `generate` separately) so `schemaFile` and `typesFile` exist and stay reproducible from `schemaUrl`.
+2. Run `pnpm run sources:openapi -- <Provider>` so `schemaFile` and `typesFile` exist and stay reproducible from `schemaUrl`.
 3. Wire `client.ts` / `queries.ts` / `index.ts` and register the source like any other transport (see Adding new Sources / Providers).
 
 ### GraphQL schema codegen (`scripts/graphql-source.ts`)
@@ -528,16 +527,16 @@ Tooling: `@gql.tada/cli-utils` `generateOutput`. The script builds a temporary d
 CLI (via `package.json`):
 
 ```txt
-pnpm run sources:graphql -- <download|generate|sync> <SourceModule>
+pnpm run sources:graphql
+pnpm run sources:graphql -- <SourceModule>
 ```
 
-`<SourceModule>` is the path under `src/sources/` to the folder that contains `schema-source.ts` (no filename), e.g. `TheGraph/Graphql/Ens`. Actions match OpenAPI: `download`, `generate`, `sync`.
+With no argument, the runner discovers every `src/sources/*/Graphql/**/schema-source.ts` manifest and syncs all GraphQL modules. `<SourceModule>` is the path under `src/sources/` to sync one folder that contains `schema-source.ts` (no filename), e.g. `TheGraph/Graphql/Ens`.
 
 Manifest: add `src/sources/<SourceModule>/schema-source.ts` and export `schemaSource`:
 
 ```ts
 export const schemaSource = {
-	sourceModule: string
 	schemaUrl: string
 	schemaFile: string
 	outputFile: string
@@ -545,7 +544,6 @@ export const schemaSource = {
 } as const
 ```
 
-- `sourceModule`: should match the `<SourceModule>` path segment string you pass to the CLI (used for logs and copy-paste sanity).
 - `schemaUrl`: canonical SDL or schema document URL.
 - `schemaFile`: relative path for the checked-in schema (convention: `./schema.graphql`).
 - `outputFile`: relative path for generated introspection types (convention: `./graphql-env.d.ts`). gql.tada / GraphQLSP consume this file; the header comment in generated files states it is produced by GraphQLSP / gql.tada.
@@ -557,12 +555,12 @@ Runtime client pattern: import `initGraphQLTada` from `gql.tada` and `import typ
 
 Colocated files: beside the manifest, keep `schema.graphql` (downloaded or regenerated), `graphql-env.d.ts` (generated; do not hand-edit except when fixing generator output intentionally), `client.ts`, and `queries.ts` as needed for that module.
 
-Convenience scripts: add `sources:graphql:download:…`, `sources:graphql:generate:…`, and `sources:graphql:sync:…` entries in `package.json` that call `pnpm run sources:graphql -- <action> <SourceModule>` with a stable, grep-friendly script name.
+Package scripts: keep one generic `sources:graphql` script; do not add per-module download/generate/sync aliases.
 
 Replication checklist:
 
-1. Add `schema-source.ts` (with optional `patchFile`), `client.ts`, and `queries.ts` under `src/sources/<SourceModule>/`; run `generate` or `sync` once so `schema.graphql` and `graphql-env.d.ts` exist (or commit an initial `schema.graphql` and only run `generate` if the schema is maintained by hand).
-2. Export `schemaSource` as above; run `pnpm run sources:graphql -- sync <SourceModule>`.
+1. Add `schema-source.ts` (with optional `patchFile`), `client.ts`, and `queries.ts` under `src/sources/<SourceModule>/`; run the sync once so `schema.graphql` and `graphql-env.d.ts` exist.
+2. Export `schemaSource` as above; run `pnpm run sources:graphql -- <SourceModule>`.
 3. Point gql.tada / editor tooling at the generated `graphql-env.d.ts` for that folder; register the transport in `$/sources` / resolvers like any other source.
 
 

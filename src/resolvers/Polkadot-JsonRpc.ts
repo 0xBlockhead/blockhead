@@ -189,29 +189,6 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.PolkadotNetwork,
-			fieldName: '$headBlock',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.PolkadotNetwork>) => {
-				assertPolkadotMainnet(entityId)
-				const {
-					getFinalizedHead,
-					getHeader,
-				} = await import('$/sources/Polkadot/JsonRpc/queries.ts')
-				const finalizedBlockHash = await getFinalizedHead({ rpcUrl: polkadotMainnetRpcUrl })
-				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId,
-						blockNumber: blockNumberFromHeader(await getHeader({
-							rpcUrl: polkadotMainnetRpcUrl,
-							blockHash: finalizedBlockHash,
-						})),
-						hash: finalizedBlockHash,
-					},
-				}
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.PolkadotNetwork,
 			fieldName: '$$timestamps',
 			resolve: async (entityId: EntityId<typeof schema, EntityType.PolkadotNetwork>) => {
 				assertPolkadotMainnet(entityId)

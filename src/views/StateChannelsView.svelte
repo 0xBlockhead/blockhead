@@ -106,11 +106,11 @@
 			{@const stateChannels = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.StateChannel>[] = (
+					const stateChannels: Entity<typeof schema, EntityType.StateChannel>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						stateChannels.map((value) => ({
 							value,
 						}))
 					)

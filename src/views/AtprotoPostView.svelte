@@ -317,7 +317,7 @@
 							entityId,
 							fieldName: '$$thread',
 						}}
-						id={`${idKey}:thread-list`}
+						id={`${idKey}:thread-atprotoPosts`}
 						open={true}
 						title="Thread"
 					/>

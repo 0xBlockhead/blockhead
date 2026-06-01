@@ -92,11 +92,11 @@
 			{@const services = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.Eip8004Service>[] = (
+					const eip8004Services: Entity<typeof schema, EntityType.Eip8004Service>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						eip8004Services.map((value) => ({
 							value,
 						}))
 					)

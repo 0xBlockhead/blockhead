@@ -87,14 +87,14 @@
 					},
 				},
 			)}
-			{@const rows = derive(
+			{@const gasFeeBlocks = derive(
 				parent,
 				(parent) => {
-					const list: Entity<typeof schema, EntityType.EvmNetwork_GasFee_Block>[] = (
+					const gasFeeBlocks: Entity<typeof schema, EntityType.EvmNetwork_GasFee_Block>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						list
+						gasFeeBlocks
 							.map((value) => ({
 								value,
 							}))
@@ -111,7 +111,7 @@
 			>
 				{#snippet Item({ item })}
 					{@const row = item.value}
-					{@const rowId = row[EntityMetaKey.Id]}
+					{@const rowId = gasFeeBlock[EntityMetaKey.Id]}
 					<EvmNetwork_GasFee_BlockView
 						entityId={rowId}
 						href={resolve(

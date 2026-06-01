@@ -115,8 +115,8 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(row) => row.result[EntityMetaKey.Id].fid}
-				getSortValue={(row) => row.result[EntityMetaKey.Id].fid}
+				getKey={(row) => blockheadFarcasterAccountConnection.result[EntityMetaKey.Id].fid}
+				getSortValue={(row) => blockheadFarcasterAccountConnection.result[EntityMetaKey.Id].fid}
 				placeholderText="Loading connected Farcaster accounts…"
 				resource={connections}
 			>

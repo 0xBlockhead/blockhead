@@ -90,14 +90,14 @@
 					},
 				},
 			)}
-			{@const rows = derive(
+			{@const txpoolTimestamps = derive(
 				parent,
 				(parent) => {
-					const list: Entity<typeof schema, EntityType.EvmNetwork_Txpool_Timestamp>[] = (
+					const txpoolTimestamps: Entity<typeof schema, EntityType.EvmNetwork_Txpool_Timestamp>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						list
+						txpoolTimestamps
 							.map((value) => ({
 								value,
 							}))
@@ -115,12 +115,12 @@
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<EvmNetwork_Txpool_TimestampView
-						entityId={row[EntityMetaKey.Id]}
+						entityId={txpoolTimestamp[EntityMetaKey.Id]}
 						href={resolve(
 							'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-							{ ...caip2RouteParamsFromNetworkId(row[EntityMetaKey.Id].$network) },
+							{ ...caip2RouteParamsFromNetworkId(txpoolTimestamp[EntityMetaKey.Id].$network) },
 						)}
-						id={stringify(row[EntityMetaKey.Id])}
+						id={stringify(txpoolTimestamp[EntityMetaKey.Id])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

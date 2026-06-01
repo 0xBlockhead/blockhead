@@ -106,7 +106,7 @@
 		<ul
 			class="chart-canvas"
 			data-scroll-item="inline-attached overflow-end"
-			data-list="unstyled"
+			data-marketTimeIntervalTimestamps="unstyled"
 		>
 			{#each points as point (point[EntityMetaKey.IdKey])}
 				{@const open = Number(point.open ?? 0n) / (10 ** priceDecimals)}

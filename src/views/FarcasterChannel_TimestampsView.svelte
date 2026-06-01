@@ -66,13 +66,13 @@
 					},
 				},
 			)}
-			{@const rows = derive(
+			{@const farcasterChannelTimestamps = derive(
 				parent,
 				(parent) => {
-					const list: Entity<typeof schema, EntityType.FarcasterChannel_Timestamp>[] = (
+					const farcasterChannelTimestamps: Entity<typeof schema, EntityType.FarcasterChannel_Timestamp>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
-					return list.map((value) => ({
+					return farcasterChannelTimestamps.map((value) => ({
 						value,
 					}))
 				},

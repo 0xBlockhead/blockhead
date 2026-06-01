@@ -71,7 +71,7 @@
 			resource={node}
 		>
 			{#snippet children(row)}
-				{row.alias ?? entityId.publicKey}
+				{lightningNode.alias ?? entityId.publicKey}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -93,35 +93,35 @@
 						</dd>
 					</div>
 
-					{#if row.channelCount != null}
+					{#if lightningNode.channelCount != null}
 						<div>
 							<dt>Channels</dt>
-							<dd><NumberValue value={row.channelCount} /></dd>
+							<dd><NumberValue value={lightningNode.channelCount} /></dd>
 						</div>
 					{/if}
 
-					{#if row.capacitySats != null}
+					{#if lightningNode.capacitySats != null}
 						<div>
 							<dt>Capacity</dt>
-							<dd>{row.capacitySats.toString()} sats</dd>
+							<dd>{lightningNode.capacitySats.toString()} sats</dd>
 						</div>
 					{/if}
 
-					{#if row.countryCode != null}
+					{#if lightningNode.countryCode != null}
 						<div>
 							<dt>Country</dt>
-							<dd>{row.countryCode}</dd>
+							<dd>{lightningNode.countryCode}</dd>
 						</div>
 					{/if}
 
-					{#if row.city != null}
+					{#if lightningNode.city != null}
 						<div>
 							<dt>City</dt>
-							<dd>{row.city}</dd>
+							<dd>{lightningNode.city}</dd>
 						</div>
 					{/if}
 
-					{#each open ? row.networkAddresses : [] as address}
+					{#each open ? lightningNode.networkAddresses : [] as address}
 						<div>
 							<dt>Address</dt>
 							<dd><code>{address}</code></dd>

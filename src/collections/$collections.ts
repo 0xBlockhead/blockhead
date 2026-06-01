@@ -122,45 +122,6 @@ export const entityFieldCollectionItemKey = <_Value>(entityFieldItem: {
 		.join('\x1E')
 )
 
-/** Optional sort facets merged onto compact `Coin` refs for `$$coins` (see Coingecko `$$coins` resolver). */
-const denormalizedCoinListSortKeys = [
-	'marketCapRank',
-	'marketCapUsd',
-] as const
-
-/** Latest catalog snapshot refs on compact `Currency` rows for `$$currencies` list sort. */
-const denormalizedCurrencyListSnapshotKeys = [
-	'$$timestamps',
-] as const
-
-/** OHLC bigints kept on compact `Market_TimeInterval_Timestamp` refs for charts and list rows. */
-const denormalizedOhlcPrimitiveKeys = [
-	'open',
-	'high',
-	'low',
-	'close',
-	'volume',
-	'quoteVolume',
-	'vwap',
-] as const
-
-const denormalizedNumberObservationKeys = [
-	'tradeCount',
-	'liquidityUsd',
-	'volumeUsd24h',
-	'priceChangePercent24h',
-	'transactionBuys24h',
-	'transactionSells24h',
-	'marketCapUsd',
-	'fdvUsd',
-	'fundingRate',
-	'indexBasisPercent',
-] as const
-
-const denormalizedBigintObservationKeys = [
-	'openInterestUsd',
-] as const
-
 const entityFieldCollectionValue = <_Value>(
 	value: _Value,
 ): EntityFieldCollectionValue<_Value> => (
@@ -170,55 +131,6 @@ const entityFieldCollectionValue = <_Value>(
 		({
 			[EntityMetaKey.Id]: value[EntityMetaKey.Id],
 			[EntityMetaKey.IdKey]: stringify(value[EntityMetaKey.Id]),
-			...Object.fromEntries(
-				[
-					...denormalizedCoinListSortKeys.flatMap((sortKey) => {
-						const raw = (value as Record<string, unknown>)[sortKey]
-						return (
-							typeof raw === 'number' && Number.isFinite(raw) ?
-								[[sortKey, raw] as const]
-							:
-								[]
-						)
-					}),
-					...denormalizedCurrencyListSnapshotKeys.flatMap((fieldName) => {
-						const raw = (value as Record<string, unknown>)[fieldName]
-						return (
-							Array.isArray(raw) ?
-								[[fieldName, raw] as const]
-							:
-								[]
-						)
-					}),
-					...denormalizedOhlcPrimitiveKeys.flatMap((fieldName) => {
-						const raw = (value as Record<string, unknown>)[fieldName]
-						return (
-							typeof raw === 'bigint' ?
-								[[fieldName, raw] as const]
-							:
-								[]
-						)
-					}),
-					...denormalizedNumberObservationKeys.flatMap((fieldName) => {
-						const raw = (value as Record<string, unknown>)[fieldName]
-						return (
-							typeof raw === 'number' && Number.isFinite(raw) ?
-								[[fieldName, raw] as const]
-							:
-								[]
-						)
-					}),
-					...denormalizedBigintObservationKeys.flatMap((fieldName) => {
-						const raw = (value as Record<string, unknown>)[fieldName]
-						return (
-							typeof raw === 'bigint' ?
-								[[fieldName, raw] as const]
-							:
-								[]
-						)
-					}),
-				],
-			),
 		} as EntityFieldCollectionValue<_Value>)
 	:
 		value as EntityFieldCollectionValue<_Value>

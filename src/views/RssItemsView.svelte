@@ -99,14 +99,14 @@
 					},
 				},
 			)}
-			{@const items = derive(
+			{@const rssItems = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.RssItem>[] = (
+					const rssItems: Entity<typeof schema, EntityType.RssItem>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows
+						rssItems
 							.slice(0, limit)
 							.map((value, index) => ({
 								entityId: value[EntityMetaKey.Id],
@@ -121,10 +121,10 @@
 				entityType={EntityType.RssItem}
 				id={`${id}-items`}
 				{title}
-				resource={items}
+				resource={rssItems}
 				placeholderText="Loading items…"
-				getKey={(row) => stringify(row.entityId)}
-				getSortValue={(row) => row.sortKey}
+				getKey={(row) => stringify(rssItem.entityId)}
+				getSortValue={(row) => rssItem.sortKey}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}

@@ -142,6 +142,7 @@ export const networkFields = [
 			Source.Chainlist_Rest,
 			Source.EthereumLists_Rest,
 			Source.Lifi_Rest,
+			Source.TrustWalletAssets_Github,
 		],
 	},
 	{

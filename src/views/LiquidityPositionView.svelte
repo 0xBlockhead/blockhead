@@ -96,7 +96,7 @@
 			Concentrated-liquidity LP position on a Uniswap v3-style pool: owner, tick range, in-range liquidity, uncollected fees, and optional ERC-721 token id.
 		</p>
 		<p>
-			Requires an on-chain resolver; Dexscreener pool rows do not supply position-scoped state.
+			Requires an on-chain resolver; Dexscreener pool liquidityPositions do not supply position-scoped state.
 		</p>
 		<p>
 			No position indexer is wired in this app yet.

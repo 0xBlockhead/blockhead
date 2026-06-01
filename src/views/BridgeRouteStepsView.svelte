@@ -90,11 +90,11 @@
 			{@const steps = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.BridgeRouteStep>[] = (
+					const bridgeRouteSteps: Entity<typeof schema, EntityType.BridgeRouteStep>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						bridgeRouteSteps.map((value) => ({
 							value,
 						}))
 					)

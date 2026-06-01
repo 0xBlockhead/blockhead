@@ -97,7 +97,7 @@
 			{@const posts = derive(
 				lensNetworkOrAccount,
 				(lensNetworkOrAccount) => {
-					const rows: Entity<typeof schema, EntityType.LensPost>[] = (
+					const lensPosts: Entity<typeof schema, EntityType.LensPost>[] = (
 						(
 							entityFieldReference.entityType === EntityType.LensNetwork ?
 								lensNetworkOrAccount.$$lensPosts
@@ -106,7 +106,7 @@
 						)
 						?? []
 					)
-					return rows.slice(0, limit)
+					return lensPosts.slice(0, limit)
 				},
 			)}
 			{#key `${stringify(entityFieldReference.entityId)}-${limit}`}
@@ -117,9 +117,9 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => row[EntityMetaKey.Id].id}
+					getKey={(row) => lensPost[EntityMetaKey.Id].id}
 					getSortValue={(row) => (
-						-(row.timestamp ?? 0)
+						-(lensPost.timestamp ?? 0)
 					)}
 					resource={posts}
 				>

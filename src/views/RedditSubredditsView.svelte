@@ -57,7 +57,7 @@
 			Not chat inboxes, storage roots, or profile graphs from other networks.
 		</p>
 		<p>
-			Each list row is a Reddit community namespace—compare to profiles on X or blobs on content-addressed storage.
+			Each redditSubreddits row is a Reddit community namespace—compare to profiles on X or blobs on content-addressed storage.
 		</p>
 	{/snippet}
 
@@ -88,11 +88,11 @@
 			{@const subreddits = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.RedditSubreddit>[] = (
+					const redditSubreddits: Entity<typeof schema, EntityType.RedditSubreddit>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						redditSubreddits.map((value) => ({
 							entityId: value[EntityMetaKey.Id],
 						}))
 					)
@@ -107,8 +107,8 @@
 				open={true}
 				resource={subreddits}
 				placeholderText="Loading subreddits…"
-				getKey={(row) => stringify(row.entityId)}
-				getSortValue={(row) => row.entityId.name}
+				getKey={(row) => stringify(redditSubreddit.entityId)}
+				getSortValue={(row) => redditSubreddit.entityId.name}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}

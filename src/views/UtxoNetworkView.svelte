@@ -54,7 +54,9 @@
 				Source.BitcoinCashNode_JsonRpc,
 				Source.Zcashd_JsonRpc,
 			],
-			$headBlock: {},
+			$$blocks: {
+				$limit: 1,
+			},
 			$$timestamps: {
 				$limit: 1,
 				suggestedTransactionFeePerByteSats: {},
@@ -121,12 +123,12 @@
 		<ResourceBoundary resource={utxoNetwork}>
 			{#snippet children(utxoNetwork)}
 				<dl class="network-summary-head" data-column-item="center">
-					{#if utxoNetwork.$headBlock != null}
+					{#if utxoNetwork.$$blocks.at(0) != null}
 						<div>
 							<dt>Head block</dt>
 							<dd id="network-summary-head-block">
 								<UtxoBlockView
-									entityId={utxoNetwork.$headBlock[EntityMetaKey.Id]}
+									entityId={utxoNetwork.$$blocks.at(0)[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

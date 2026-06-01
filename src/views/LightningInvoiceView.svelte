@@ -73,40 +73,40 @@
 		>
 			{#snippet children(row)}
 				<dl>
-					{#if row.memo != null}
+					{#if lightningInvoice.memo != null}
 						<div>
 							<dt>Memo</dt>
-							<dd>{row.memo}</dd>
+							<dd>{lightningInvoice.memo}</dd>
 						</div>
 					{/if}
 
-					{#if row.state != null}
+					{#if lightningInvoice.state != null}
 						<div>
 							<dt>State</dt>
-							<dd>{row.state}</dd>
+							<dd>{lightningInvoice.state}</dd>
 						</div>
 					{/if}
 
-					{#if row.valueMsat != null}
+					{#if lightningInvoice.valueMsat != null}
 						<div>
 							<dt>Amount</dt>
-							<dd>{row.valueMsat.toString()} msat</dd>
+							<dd>{lightningInvoice.valueMsat.toString()} msat</dd>
 						</div>
 					{/if}
 
-					{#if row.amountPaidMsat != null}
+					{#if lightningInvoice.amountPaidMsat != null}
 						<div>
 							<dt>Paid</dt>
-							<dd>{row.amountPaidMsat.toString()} msat</dd>
+							<dd>{lightningInvoice.amountPaidMsat.toString()} msat</dd>
 						</div>
 					{/if}
 
-					{#if row.paymentRequest != null}
+					{#if lightningInvoice.paymentRequest != null}
 						<div>
 							<dt>Payment request</dt>
 							<dd>
 								<TruncatedValue
-									value={row.paymentRequest}
+									value={lightningInvoice.paymentRequest}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

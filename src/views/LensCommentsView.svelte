@@ -70,7 +70,7 @@
 			Comments are child publications linked through <code>$$comments</code> on the parent post; each row is a <code>LensPost</code> with <code>$commentOn</code> pointing at the parent id.
 		</p>
 		<p>
-			The thread list resolves via Lens Protocol (GraphQL) and Hey (Lens GraphQL)—not Reddit, Farcaster, or XMTP message models.
+			The thread lensPosts resolves via Lens Protocol (GraphQL) and Hey (Lens GraphQL)—not Reddit, Farcaster, or XMTP message models.
 		</p>
 	{/snippet}
 
@@ -102,12 +102,12 @@
 			{@const comments = derive(
 				parentPost,
 				(parentPost) => {
-					const rows: Entity<typeof schema, EntityType.LensPost>[] = (
+					const lensPosts: Entity<typeof schema, EntityType.LensPost>[] = (
 						parentPost[entityFieldReference.fieldName]
 						?? []
 					)
 					return (
-						rows
+						lensPosts
 							.map((comment, feedIndex) => ({
 								feedIndex,
 								result: comment,
@@ -121,9 +121,9 @@
 				entityType={EntityType.LensPost}
 				id={`${id}-items`}
 				{title}
-				getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
+				getKey={(row) => stringify(lensPost.result[EntityMetaKey.Id])}
 				getSortValue={(row) => (
-					String(row.feedIndex).padStart(6, '0')
+					String(lensPost.feedIndex).padStart(6, '0')
 				)}
 				placeholderText="Loading Lens comments…"
 				resource={comments}

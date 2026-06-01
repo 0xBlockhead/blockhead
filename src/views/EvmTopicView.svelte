@@ -92,7 +92,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Receipt logs publish a small ordered list of 32-byte <strong>topics</strong>; topic 0 often fingerprints an ABI log declaration when one exists.
+			Receipt logs publish a small ordered evmTopics of 32-byte <strong>topics</strong>; topic 0 often fingerprints an ABI log declaration when one exists.
 		</p>
 		<p>
 			Additional topics carry indexed arguments, while remaining fields encode in the log’s data. This differs from four-byte prefixes used on calldata or revert payloads.

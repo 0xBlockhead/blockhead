@@ -46,15 +46,6 @@ export default {
 			],
 		},
 		{
-			name: '$headBlock',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.MoneroBlock,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.MoneroDaemonRpc_JsonRpc,
-			],
-		},
-		{
 			name: '$$timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.MoneroNetwork_Timestamp,

@@ -375,26 +375,6 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.CosmosNetwork,
-			fieldName: '$headBlock',
-			resolve: async (entityId) => {
-				assertCosmosHub(entityId)
-				const { getLatestBlock } = await import('$/sources/CosmosSdk/Rest/queries.ts')
-				const latestBlock = await getLatestBlock({ restBaseUrl: cosmosHubRestBaseUrl })
-				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId,
-						height: BigInt(latestBlock.block.header.height),
-					},
-					hash: latestBlock.block_id.hash,
-					proposerConsensusAddress: latestBlock.block.header.proposer_address,
-					timestampMs: Date.parse(latestBlock.block.header.time),
-					transactionCount: latestBlock.block.data.txs?.length ?? 0,
-				}
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.CosmosNetwork,
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
 				assertCosmosHub(entityId)

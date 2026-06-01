@@ -48,7 +48,9 @@
 				Source.CosmosSdk_Rest,
 				Source.CometBft_Rest,
 			],
-			$headBlock: {},
+			$$blocks: {
+				$limit: 1,
+			},
 			$$timestamps: {
 				$limit: 1,
 			},
@@ -118,12 +120,12 @@
 				<dl class="network-summary-head" data-column-item="center">
 					<ResourceBoundary resource={cosmosNetwork}>
 						{#snippet children(cosmosNetwork)}
-							{#if cosmosNetwork.$headBlock != null}
+							{#if cosmosNetwork.$$blocks.at(0) != null}
 								<div>
 									<dt>Head block</dt>
 									<dd id="network-summary-head-block">
 										<CosmosBlockView
-											entityId={cosmosNetwork.$headBlock[EntityMetaKey.Id]}
+											entityId={cosmosNetwork.$$blocks.at(0)[EntityMetaKey.Id]}
 											layout={EntityLayout.Value}
 										/>
 									</dd>

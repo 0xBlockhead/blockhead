@@ -159,7 +159,7 @@
 				sections={collapsibleTabsSections([
 					{ id: 'profiles', label: 'Profiles' },
 					{ id: 'recent-posts', label: 'Recent posts' },
-					{ id: 'examples-list', label: 'Examples' },
+					{ id: 'examples-xNetworks', label: 'Examples' },
 				])}
 				id={`${networkIdKey}:carousel-registry`}
 				data-card

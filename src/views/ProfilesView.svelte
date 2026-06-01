@@ -97,11 +97,11 @@
 			{@const users = derive(
 		parent,
 		(parent) => {
-			const rows: Entity<typeof schema, EntityType.FarcasterUser>[] = (
+			const farcasterUsers: Entity<typeof schema, EntityType.FarcasterUser>[] = (
 				parent[entityFieldReference.fieldName] ?? []
 			)
 			return (
-				rows.map((value) => ({
+				farcasterUsers.map((value) => ({
 					value,
 				}))
 			)

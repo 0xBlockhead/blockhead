@@ -91,8 +91,8 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.BlockheadFarcasterAccountConnection}
-				getKey={(row) => String(row[EntityMetaKey.Id].fid)}
-				getSortValue={(row) => row[EntityMetaKey.Id].fid}
+				getKey={(row) => String(blockheadFarcasterAccountConnection[EntityMetaKey.Id].fid)}
+				getSortValue={(row) => blockheadFarcasterAccountConnection[EntityMetaKey.Id].fid}
 				{title}
 				open={true}
 				resource={connections}

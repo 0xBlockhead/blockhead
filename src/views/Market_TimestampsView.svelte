@@ -101,9 +101,9 @@
 			{@const quotes = derive(
 				market,
 				(market) => {
-					const rows: Entity<typeof schema, EntityType.Market_Timestamp>[] = market[entityFieldReference.fieldName] ?? []
+					const marketTimestamps: Entity<typeof schema, EntityType.Market_Timestamp>[] = market[entityFieldReference.fieldName] ?? []
 					return (
-						rows
+						marketTimestamps
 							.map((value) => ({
 								value,
 							}))
@@ -115,8 +115,8 @@
 				showSummary={false}
 				{...EntitiesListProps}
 				entityType={EntityType.Market_Timestamp}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => String(row.value[EntityMetaKey.Id].timestampMs)}
+				getKey={(row) => stringify(marketTimestamp.value[EntityMetaKey.Id])}
+				getSortValue={(row) => String(marketTimestamp.value[EntityMetaKey.Id].timestampMs)}
 				placeholderKeys={new SvelteSet<string>()}
 				resource={quotes}
 				{title}
@@ -132,8 +132,8 @@
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<Market_TimestampView
-						entityId={row[EntityMetaKey.Id]}
-						id={stringify(row[EntityMetaKey.Id])}
+						entityId={marketTimestamp[EntityMetaKey.Id]}
+						id={stringify(marketTimestamp[EntityMetaKey.Id])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

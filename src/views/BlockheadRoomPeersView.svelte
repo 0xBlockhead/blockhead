@@ -94,11 +94,11 @@
 			{@const peers = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.BlockheadRoomPeer>[] = (
+					const blockheadRoomPeers: Entity<typeof schema, EntityType.BlockheadRoomPeer>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						blockheadRoomPeers.map((value) => ({
 							value,
 						}))
 					)

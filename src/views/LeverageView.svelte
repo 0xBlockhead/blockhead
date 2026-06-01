@@ -91,7 +91,7 @@
 			Concentrated-liquidity LP position accounting: owner, tick range, in-range liquidity, uncollected fees, optional ERC-721 token id.
 		</p>
 		<p>
-			Not CEX margin, borrow APR, or liquidation. Requires an on-chain resolver—Dexscreener pool rows do not supply position-scoped state.
+			Not CEX margin, borrow APR, or liquidation. Requires an on-chain resolver—Dexscreener pool leverages do not supply position-scoped state.
 		</p>
 		<p>
 			No position indexer is wired in this app yet.

@@ -176,7 +176,7 @@
 			ENS names map human-readable labels to resolver contracts on Ethereum mainnet; forward <code>addr</code> and <code>text</code> records live on the active resolver.
 		</p>
 		<p>
-			Voltaire JSON-RPC rows reflect live registry reads; The Graph rows add registration, wrapper, and indexer metadata that may lag or differ from chain head.
+			Voltaire JSON-RPC ensNames reflect live registry reads; The Graph ensNames add registration, wrapper, and indexer metadata that may lag or differ from chain head.
 		</p>
 	{/snippet}
 

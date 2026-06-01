@@ -46,7 +46,7 @@
 
 <EntitiesList entityType={EntityType.TronNetwork_Timestamp} {title} bind:open {id} href={href} {...EntitiesListProps}>
 	{#snippet TypeAnnotationTooltip()}
-		<p>Timestamp rows hold observed TRON chain and resource-economics status.</p>
+		<p>Timestamp tronNetworkTimestamps hold observed TRON chain and resource-economics status.</p>
 	{/snippet}
 
 	{#snippet body()}

@@ -119,12 +119,12 @@
 
 
 <EntitiesList
-					{...EntitiesListProps}
-					bind:open
-					entityType={EntityType.Coin}
+	{...EntitiesListProps}
+	bind:open
+	entityType={EntityType.Coin}
 	id={`${id}-catalog`}
-					{title}
-				>
+	{title}
+>
 		{#snippet TypeAnnotationTooltip()}
 			<p>
 				A logical asset id groups tickers, branding, and metadata that may span many chains.
@@ -150,32 +150,32 @@
 				{@const coins = derive(
 					parent,
 					(parent): Entity<typeof schema, EntityType.Coin>[] => {
-						const list = parent[entityFieldReference.fieldName]
-						const rows = (
-							list == null ?
+						const sourceCoins = parent[entityFieldReference.fieldName]
+						const orderedCoins = (
+							sourceCoins == null ?
 								[]
 							:
-								[...list]
+								[...sourceCoins]
 						)
 						const filtered = (
-							rows.some((row) => (
-								typeof row.marketCapRank === 'number'
-								&& Number.isFinite(row.marketCapRank)
+							orderedCoins.some((coin) => (
+								typeof coin.marketCapRank === 'number'
+								&& Number.isFinite(coin.marketCapRank)
 							)) ?
-								rows.filter((row) => (
-									typeof row.marketCapRank === 'number'
-									&& Number.isFinite(row.marketCapRank)
+								orderedCoins.filter((coin) => (
+									typeof coin.marketCapRank === 'number'
+									&& Number.isFinite(coin.marketCapRank)
 								))
 							:
-								rows
+								orderedCoins
 						)
 						const seenCoinIds = new SvelteSet<string>()
 						const deduped = (
-							filtered.flatMap((row) => {
-								const coinId = row[EntityMetaKey.Id].coinId
+							filtered.flatMap((coin) => {
+								const coinId = coin[EntityMetaKey.Id].coinId
 								if (seenCoinIds.has(coinId)) return []
 								seenCoinIds.add(coinId)
-								return [row]
+								return [coin]
 							})
 						)
 						return deduped.slice(0, limit)
@@ -187,16 +187,16 @@
 					{#snippet children(coins)}
 						<UnorderedList
 							items={coins}
-							getKey={(row) => stringify(row[EntityMetaKey.Id])}
-							getSortValue={(row) => {
-								const rank = row.marketCapRank
+							getKey={(coin) => stringify(coin[EntityMetaKey.Id])}
+							getSortValue={(coin) => {
+								const rank = coin.marketCapRank
 								const rankN = (
 									typeof rank === 'number' && Number.isFinite(rank) ?
 										rank
 									:
 										Number.POSITIVE_INFINITY
 								)
-								const cap = row.marketCapUsd
+								const cap = coin.marketCapUsd
 								const capN = (
 									typeof cap === 'number' && Number.isFinite(cap) ?
 										cap
@@ -204,7 +204,7 @@
 										-Number.POSITIVE_INFINITY
 								)
 								return (
-									`${String(rankN).padStart(12, '0')}\0${String(-capN).padStart(24, '0')}\0${row[EntityMetaKey.Id].coinId}`
+									`${String(rankN).padStart(12, '0')}\0${String(-capN).padStart(24, '0')}\0${coin[EntityMetaKey.Id].coinId}`
 								)
 							}}
 							placeholderKeys={new SvelteSet<string | number>()}

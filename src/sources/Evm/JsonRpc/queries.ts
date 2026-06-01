@@ -164,7 +164,7 @@ export const getCode = ({
 	})
 )
 
-export const call = ({
+export const getCall = ({
 	rpcUrl,
 	to,
 	data,

@@ -90,11 +90,11 @@
 			{@const rooms = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.BlockheadRoom>[] = (
+					const blockheadRooms: Entity<typeof schema, EntityType.BlockheadRoom>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						blockheadRooms.map((value) => ({
 							value,
 						}))
 					)

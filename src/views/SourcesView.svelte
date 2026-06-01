@@ -93,11 +93,11 @@
 			{@const sources = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.BlockheadSource>[] = (
+					const blockheadSources: Entity<typeof schema, EntityType.BlockheadSource>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						blockheadSources.map((value) => ({
 							value,
 						}))
 					)

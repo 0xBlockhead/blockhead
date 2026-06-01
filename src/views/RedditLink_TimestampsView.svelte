@@ -65,13 +65,13 @@
 			},
 		},
 	)}
-			{@const rows = derive(
+			{@const redditLinkTimestamps = derive(
 		parent,
 		(parent) => {
-			const list: Entity<typeof schema, EntityType.RedditLink_Timestamp>[] = (
+			const redditLinkTimestamps: Entity<typeof schema, EntityType.RedditLink_Timestamp>[] = (
 				parent[entityFieldReference.fieldName] ?? []
 			)
-			return list.map((value) => ({
+			return redditLinkTimestamps.map((value) => ({
 				value,
 			}))
 		},

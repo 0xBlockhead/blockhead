@@ -92,8 +92,8 @@ const redditDirectReplyRefsByParentFromCommentForest = (
 	const visit = (thing: RedditApiThing) => {
 		if (thing.kind !== 't1' || thing.data.name == null) return
 		const ref = { [EntityMetaKey.Id]: { fullname: thing.data.name } }
-		const listing = redditRepliesListingFromThing(thing.data.replies)
-		const directReplies = (listing?.data.children ?? []).flatMap((child) => (
+		const redditReplyListing = redditRepliesListingFromThing(thing.data.replies)
+		const directReplies = (redditReplyListing?.data.children ?? []).flatMap((child) => (
 			child.kind === 't1' && child.data.name != null ?
 				[{ [EntityMetaKey.Id]: { fullname: child.data.name } }]
 			:
@@ -102,7 +102,7 @@ const redditDirectReplyRefsByParentFromCommentForest = (
 		if (directReplies.length > 0) {
 			byParent.set(ref[EntityMetaKey.Id].fullname, directReplies)
 		}
-		for (const child of listing?.data.children ?? []) {
+		for (const child of redditReplyListing?.data.children ?? []) {
 			visit(child)
 		}
 	}

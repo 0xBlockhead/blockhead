@@ -48,7 +48,9 @@
 				Source.MoneroDaemonRpc_JsonRpc,
 			],
 			rpcEndpoints: {},
-			$headBlock: {},
+			$$blocks: {
+				$limit: 1,
+			},
 			$$timestamps: {
 				$limit: 1,
 			},
@@ -115,12 +117,12 @@
 				<dl class="network-summary-head" data-column-item="center">
 					<ResourceBoundary resource={moneroNetwork}>
 						{#snippet children(moneroNetwork)}
-							{#if moneroNetwork.$headBlock != null}
+							{#if moneroNetwork.$$blocks.at(0) != null}
 								<div>
 									<dt>Head block</dt>
 									<dd id="network-summary-head-block">
 										<MoneroBlockView
-											entityId={moneroNetwork.$headBlock[EntityMetaKey.Id]}
+											entityId={moneroNetwork.$$blocks.at(0)[EntityMetaKey.Id]}
 											layout={EntityLayout.Value}
 										/>
 									</dd>

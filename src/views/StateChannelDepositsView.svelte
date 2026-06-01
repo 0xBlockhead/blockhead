@@ -65,13 +65,13 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Per-participant collateral rows tracked for this channel’s funding ledger.
+			Per-participant collateral stateChannelDeposits tracked for this channel’s funding ledger.
 		</p>
 	{/snippet}
 
 	{#snippet Empty()}
 		<p data-text="muted">
-			No deposit rows on this channel yet.
+			No deposit stateChannelDeposits on this channel yet.
 		</p>
 	{/snippet}
 
@@ -112,7 +112,7 @@
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No deposit rows on this channel yet.
+						No deposit stateChannelDeposits on this channel yet.
 					</p>
 				{/snippet}
 

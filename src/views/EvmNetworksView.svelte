@@ -102,9 +102,9 @@
 				parent,
 				(parent) => {
 					const chainIds = new SvelteSet<number>()
-					const rows: Entity<typeof schema, EntityType.EvmNetwork>[] = parent[entityFieldReference.fieldName] ?? []
+					const evmNetworks: Entity<typeof schema, EntityType.EvmNetwork>[] = parent[entityFieldReference.fieldName] ?? []
 					return (
-						rows
+						evmNetworks
 							.flatMap((value) => {
 								const chainId = Number(value[EntityMetaKey.Id].caip2.reference)
 								if (chainIds.has(chainId)) return []
@@ -134,7 +134,7 @@
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No networks match this list yet.
+						No networks match this evmNetworks yet.
 					</p>
 				{/snippet}
 

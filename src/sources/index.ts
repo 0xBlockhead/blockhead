@@ -104,6 +104,7 @@ import TronFullNode from '$/sources/TronFullNode/index.ts'
 import TronGrid from '$/sources/TronGrid/index.ts'
 import TronScan from '$/sources/TronScan/index.ts'
 import TronSolidityNode from '$/sources/TronSolidityNode/index.ts'
+import TrustWalletAssets from '$/sources/TrustWalletAssets/index.ts'
 import Voltaire from '$/sources/Voltaire/index.ts'
 import X from '$/sources/X/index.ts'
 import Youtube from '$/sources/Youtube/index.ts'
@@ -208,6 +209,7 @@ const sourceProviderDefinitions = [
 	TronGrid,
 	TronScan,
 	TronSolidityNode,
+	TrustWalletAssets,
 	Voltaire,
 	X,
 	Youtube,
@@ -227,7 +229,12 @@ type SchemaEnv<_EnvSchema> = (
 )
 
 type SourceToProviderEnvMap = {
-	[_Provider in (typeof sourceProviderDefinitions)[number] as _Provider['sources'][number]['source']]: _Provider['env']
+	[_Provider in (typeof sourceProviderDefinitions)[number] as _Provider['sources'][number]['source']]: (
+		_Provider extends { env: infer _Env } ?
+			_Env
+		:
+			undefined
+	)
 }
 
 /** Public env object shape for a `Source`, derived from its provider's `env` arktype schema. */

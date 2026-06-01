@@ -46,15 +46,6 @@ export default {
 			],
 		},
 		{
-			name: '$headBlock',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.PolkadotBlock,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Polkadot_JsonRpc,
-			],
-		},
-		{
 			name: '$$timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.PolkadotNetwork_Timestamp,

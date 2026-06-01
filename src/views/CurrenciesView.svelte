@@ -146,9 +146,9 @@
 				showSummary={false}
 				{...EntitiesListProps}
 				entityType={EntityType.Currency}
-				getKey={(row) => row[EntityMetaKey.Id].iso4217}
+				getKey={(row) => currency[EntityMetaKey.Id].iso4217}
 				getSortValue={(row) => (
-					-Number(row.$$timestamps?.[0]?.marketCap ?? 0)
+					-Number(currency.$$timestamps?.[0]?.marketCap ?? 0)
 				)}
 				resource={currencies}
 				{title}

@@ -335,27 +335,6 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.TronNetwork,
-			fieldName: '$headBlock',
-			resolve: async (entityId) => {
-				assertTronMainnet(entityId)
-				const { getNowBlock } = await import('$/sources/TronGrid/Rest/queries.ts')
-				const block = await getNowBlock({ restBaseUrl: tronGridMainnetRestBaseUrl })
-				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId,
-						height: BigInt(block.block_header?.raw_data?.number ?? 0),
-						hash: block.blockID,
-					},
-					...blockFields(
-						entityId,
-						block,
-					),
-				}
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.TronNetwork,
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
 				assertTronMainnet(entityId)

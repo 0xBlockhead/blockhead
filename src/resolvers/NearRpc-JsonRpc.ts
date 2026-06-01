@@ -410,26 +410,6 @@ export default {
 	entityFieldResolvers: [
 		defineEntityFieldResolver({
 			entityType: EntityType.NearNetwork,
-			fieldName: '$headBlock',
-			resolve: async (entityId) => {
-				assertNearMainnet(entityId)
-				const { getBlock } = await import('$/sources/NearRpc/JsonRpc/queries.ts')
-				const headBlock = await getBlock({
-					rpcUrl: nearMainnetRpcUrl,
-					blockId: 'final',
-				})
-				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId,
-						height: BigInt(headBlock.header.height),
-						hash: headBlock.header.hash,
-					},
-				}
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.NearNetwork,
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
 				assertNearMainnet(entityId)

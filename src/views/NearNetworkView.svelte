@@ -37,7 +37,9 @@
 			name: {},
 			environment: {},
 			rpcEndpoints: {},
-			$headBlock: {},
+			$$blocks: {
+				$limit: 1,
+			},
 			$$timestamps: {
 				$limit: 1,
 			},
@@ -106,12 +108,12 @@
 		<ResourceBoundary resource={network}>
 			{#snippet children(network)}
 				<dl class="network-summary-head" data-column-item="center">
-					{#if network.$headBlock != null}
+					{#if network.$$blocks.at(0) != null}
 						<div>
 							<dt>Head block</dt>
 							<dd id="network-summary-head-block">
 								<NearBlockView
-									entityId={network.$headBlock[EntityMetaKey.Id]}
+									entityId={network.$$blocks.at(0)[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>

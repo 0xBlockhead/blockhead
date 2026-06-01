@@ -63,14 +63,14 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Vault rows are reserved for actual vault-like asset containers, not DEX trading pairs.
+			Vault vaults are reserved for actual vault-like asset containers, not DEX trading pairs.
 		</p>
 	{/snippet}
 
 	{#snippet Empty()}
 		<div data-row="wrap align-center gap-2">
 			<p data-text="muted">
-				No vault rows in this slice yet.
+				No vault vaults in this slice yet.
 			</p>
 			<Tooltip contentProps={{ side: 'top' }}>
 				{#snippet Content()}
@@ -80,7 +80,7 @@
 				{/snippet}
 				<abbr
 					class="entity-heading-tip"
-					aria-label="About vault rows"
+					aria-label="About vault vaults"
 				>ⓘ</abbr>
 			</Tooltip>
 		</div>
@@ -100,11 +100,11 @@
 			{@const vaults = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.Vault>[] = (
+					const vaults: Entity<typeof schema, EntityType.Vault>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						vaults.map((value) => ({
 							value,
 						}))
 					)
@@ -126,7 +126,7 @@
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No vault rows in this slice yet.
+						No vault vaults in this slice yet.
 					</p>
 				{/snippet}
 

@@ -32,7 +32,7 @@ import {
 } from '$/sources/Etherscan/Rest/client.ts'
 
 /** Etherscan account list endpoints cap at 10_000 rows per request. */
-export const accountListMaxOffset = 10_000
+export const getAccountListMaxOffset = 10_000
 
 const etherscanAccountListQuery = ({
 	address,
@@ -46,7 +46,7 @@ const etherscanAccountListQuery = ({
 	startblock: '0',
 	endblock: '99999999',
 	page: '1',
-	offset: String(Math.min(Math.max(1, offset), accountListMaxOffset)),
+	offset: String(Math.min(Math.max(1, offset), getAccountListMaxOffset)),
 	sort: 'asc',
 })
 

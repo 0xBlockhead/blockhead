@@ -87,7 +87,7 @@
 						open={true}
 						resource={moneroRingMembers}
 						placeholderText="Loading Monero ring members..."
-						getKey={(row) => stringify(row[EntityMetaKey.Id])}
+						getKey={(row) => stringify(moneroRing[EntityMetaKey.Id])}
 					>
 						{#snippet Item({ item: member })}
 							<MoneroRingMemberView

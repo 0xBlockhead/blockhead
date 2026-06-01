@@ -9,7 +9,7 @@ import {
 	getSystemHealth as getSubstrateSystemHealth,
 } from '$/sources/Substrate/JsonRpc/queries.ts'
 
-export const mainnetRpcUrl = 'https://entrypoint-finney.opentensor.ai'
+export const getMainnetRpcUrl = 'https://entrypoint-finney.opentensor.ai'
 
 const bittensorJsonRpc = {
 	origins: Bittensor.origins ?? [],

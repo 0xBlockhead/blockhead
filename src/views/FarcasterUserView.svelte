@@ -358,7 +358,7 @@
 						<EntitiesList
 							entityType={EntityType.FarcasterCast}
 							href={resolve('/farcaster/feed')}
-							id={`farcaster-user:${String(entityId.fid)}:casts-list`}
+							id={`farcaster-user:${String(entityId.fid)}:casts-farcasterUsers`}
 							title="Casts"
 							bind:open
 							collapsible={false}
@@ -385,13 +385,13 @@
 										showSummary={false}
 										entityType={EntityType.FarcasterCast}
 										href={resolve('/farcaster/feed')}
-										id={`farcaster-user:${String(entityId.fid)}:casts-list-items`}
+										id={`farcaster-user:${String(entityId.fid)}:casts-farcasterUsers-items`}
 										placeholderText="Loading casts (Farcaster FID + cast hash)…"
 										resource={casts}
 										title="Casts"
-										getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
+										getKey={(row) => stringify(farcasterUser.result[EntityMetaKey.Id])}
 										getSortValue={(row) => (
-											[...stringify(row.result[EntityMetaKey.Id])].map((character) => (
+											[...stringify(farcasterUser.result[EntityMetaKey.Id])].map((character) => (
 												String.fromCharCode(0xffff - character.charCodeAt(0))
 											)).join('')
 										)}

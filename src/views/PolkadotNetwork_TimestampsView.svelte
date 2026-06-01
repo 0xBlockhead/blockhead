@@ -53,7 +53,7 @@
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-		<p>Timestamp rows hold observed relay-chain status such as finality and runtime state.</p>
+		<p>Timestamp polkadotNetworkTimestamps hold observed relay-chain status such as finality and runtime state.</p>
 	{/snippet}
 
 	{#snippet body()}

@@ -91,92 +91,92 @@
 		>
 			{#snippet children(row)}
 				<dl>
-					{#if row.shortChannelId != null}
+					{#if lightningChannel.shortChannelId != null}
 						<div>
 							<dt>Short channel id</dt>
-							<dd>{row.shortChannelId}</dd>
+							<dd>{lightningChannel.shortChannelId}</dd>
 						</div>
 					{/if}
 
-					{#if row.status != null}
+					{#if lightningChannel.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{row.status}</dd>
+							<dd>{lightningChannel.status}</dd>
 						</div>
 					{/if}
 
-					{#if row.capacitySats != null}
+					{#if lightningChannel.capacitySats != null}
 						<div>
 							<dt>Capacity</dt>
-							<dd>{row.capacitySats.toString()} sats</dd>
+							<dd>{lightningChannel.capacitySats.toString()} sats</dd>
 						</div>
 					{/if}
 
-					{#if row.localBalanceSats != null}
+					{#if lightningChannel.localBalanceSats != null}
 						<div>
 							<dt>Local balance</dt>
-							<dd>{row.localBalanceSats.toString()} sats</dd>
+							<dd>{lightningChannel.localBalanceSats.toString()} sats</dd>
 						</div>
 					{/if}
 
-					{#if row.remoteBalanceSats != null}
+					{#if lightningChannel.remoteBalanceSats != null}
 						<div>
 							<dt>Remote balance</dt>
-							<dd>{row.remoteBalanceSats.toString()} sats</dd>
+							<dd>{lightningChannel.remoteBalanceSats.toString()} sats</dd>
 						</div>
 					{/if}
 
-					{#if row.feeRatePpm != null}
+					{#if lightningChannel.feeRatePpm != null}
 						<div>
 							<dt>Fee rate</dt>
-							<dd><NumberValue value={row.feeRatePpm} /> ppm</dd>
+							<dd><NumberValue value={lightningChannel.feeRatePpm} /> ppm</dd>
 						</div>
 					{/if}
 
-					{#if row.active != null}
+					{#if lightningChannel.active != null}
 						<div>
 							<dt>Active</dt>
-							<dd>{row.active ? 'Yes' : 'No'}</dd>
+							<dd>{lightningChannel.active ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if row.private != null}
+					{#if lightningChannel.private != null}
 						<div>
 							<dt>Private</dt>
-							<dd>{row.private ? 'Yes' : 'No'}</dd>
+							<dd>{lightningChannel.private ? 'Yes' : 'No'}</dd>
 						</div>
 					{/if}
 
-					{#if row.$node0 != null}
+					{#if lightningChannel.$node0 != null}
 						<div>
 							<dt>Node 0</dt>
 							<dd>
 								<LightningNodeView
-									entityId={row.$node0[EntityMetaKey.Id]}
+									entityId={lightningChannel.$node0[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if row.$node1 != null}
+					{#if lightningChannel.$node1 != null}
 						<div>
 							<dt>Node 1</dt>
 							<dd>
 								<LightningNodeView
-									entityId={row.$node1[EntityMetaKey.Id]}
+									entityId={lightningChannel.$node1[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if row.fundingTransactionId != null}
+					{#if lightningChannel.fundingTransactionId != null}
 						<div>
 							<dt>Funding outpoint</dt>
 							<dd>
 								<TruncatedValue
-									value={`${row.fundingTransactionId}:${row.fundingOutputIndex ?? 0}`}
+									value={`${lightningChannel.fundingTransactionId}:${lightningChannel.fundingOutputIndex ?? 0}`}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

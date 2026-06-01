@@ -282,7 +282,7 @@ export const getAddressTransactions = async ({
 }
 
 /** Unique normalized tx hashes (`32`-byte lower-case `0x` hex) from transfer/internal wires. */
-export const uniqueTransactionHashesFromWires = (
+export const getUniqueTransactionHashesFromWires = (
 	items: readonly { transaction_hash?: string | undefined }[],
 ): `0x${string}`[] => {
 	const seen = new Set<string>()

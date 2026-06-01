@@ -1,5 +1,5 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises'
-import { dirname, resolve } from 'node:path'
+import { glob, mkdir, readFile, writeFile } from 'node:fs/promises'
+import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import openapiTS, { astToString } from 'openapi-typescript'
@@ -7,17 +7,14 @@ import swagger2openapi from 'swagger2openapi'
 import YAML from 'yaml'
 
 /**
- * Generic runner for provider-local `src/sources/<Provider>/OpenApi/schema-source.ts` manifests.
+ * Syncs provider-local `src/sources/<Provider>/OpenApi/schema-source.ts` manifests.
  *
  * Replication contract:
  * 1. Add `src/sources/<Provider>/OpenApi/schema-source.ts`
- * 2. Export `schemaSource` with `provider`, `schemaUrl`, `schemaFile`, `typesFile`
- * 3. Add package scripts that call this runner with `download`, `generate`, or `sync`
+ * 2. Export `schemaSource` with `schemaUrl`, `schemaFile`, `typesFile`
+ * 3. Run `pnpm run sources:openapi` to sync all, or `-- <Provider>` to sync one
  */
-type OpenApiAction = 'download' | 'generate' | 'sync'
-
 type OpenApiSchemaSource = {
-	provider: string
 	schemaUrl: string
 	schemaFile: string
 	typesFile: string
@@ -27,20 +24,17 @@ const rootDir = resolve(
 	dirname(fileURLToPath(import.meta.url)),
 	'..',
 )
+const sourcesDir = join(rootDir, 'src/sources')
 
-const usage = `
-Usage:
-  pnpm run sources:openapi -- <download|generate|sync> <Provider>
-
-Example:
-  pnpm run sources:openapi -- sync Defillama
-`.trim()
-
-const isOpenApiAction = (value: string): value is OpenApiAction => (
-	value === 'download'
-	|| value === 'generate'
-	|| value === 'sync'
-)
+const discoverProviders = async (filter?: string): Promise<string[]> => {
+	const providers: string[] = []
+	for await (const manifestPath of glob('*/OpenApi/schema-source.ts', { cwd: sourcesDir })) {
+		const provider = manifestPath.split('/')[0]
+		if (filter == null || provider === filter) providers.push(provider)
+	}
+	if (filter != null && providers.length === 0) throw new Error(`No OpenAPI source found matching: ${filter}`)
+	return providers
+}
 
 const loadSchemaSource = async (provider: string): Promise<{
 	manifest: OpenApiSchemaSource
@@ -49,8 +43,9 @@ const loadSchemaSource = async (provider: string): Promise<{
 	typesFile: string
 }> => {
 	const manifestFile = resolve(
-		rootDir,
-		`src/sources/${provider}/OpenApi/schema-source.ts`,
+		sourcesDir,
+		provider,
+		'OpenApi/schema-source.ts',
 	)
 	const module = await import(pathToFileURL(manifestFile).href)
 	const manifest = module.schemaSource as OpenApiSchemaSource | undefined
@@ -137,9 +132,7 @@ const downloadSchema = async ({
 	const response = await fetch(manifest.schemaUrl)
 
 	if (!response.ok) {
-		throw new Error(
-			`Failed to download ${manifest.provider} schema: ${response.status} ${response.statusText}`,
-		)
+		throw new Error(`Failed to download schema: ${response.status} ${response.statusText}`)
 	}
 
 	await mkdir(dirname(schemaFile), { recursive: true })
@@ -148,15 +141,13 @@ const downloadSchema = async ({
 		await response.text(),
 	)
 
-	console.log(`Downloaded ${manifest.provider} schema to ${schemaFile}`)
+	console.log(`Downloaded schema to ${schemaFile}`)
 }
 
 const generateTypes = async ({
-	manifest,
 	schemaFile,
 	typesFile,
 }: {
-	manifest: OpenApiSchemaSource
 	schemaFile: string
 	typesFile: string
 }) => {
@@ -168,39 +159,21 @@ const generateTypes = async ({
 
 	await writeFile(typesFile, astToString(output))
 
-	console.log(`Generated ${manifest.provider} types at ${typesFile}`)
+	console.log(`Generated types at ${typesFile}`)
 }
 
-const args = process.argv.slice(2)
-const [actionArg, provider] = (
-	args[0] === '--' ?
-		args.slice(1)
-	:
-		args
-)
-
-if (
-	actionArg == null
-	|| provider == null
-	|| !isOpenApiAction(actionArg)
-) {
-	console.error(usage)
-	process.exit(1)
-}
-
-const { manifest, schemaFile, typesFile } = await loadSchemaSource(provider)
-
-if (actionArg === 'download' || actionArg === 'sync') {
+const syncProvider = async (provider: string) => {
+	const { manifest, schemaFile, typesFile } = await loadSchemaSource(provider)
+	console.log(`Syncing ${provider}`)
 	await downloadSchema({
 		manifest,
 		schemaFile,
 	})
-}
-
-if (actionArg === 'generate' || actionArg === 'sync') {
 	await generateTypes({
-		manifest,
 		schemaFile,
 		typesFile,
 	})
 }
+
+const [filterArg] = process.argv.slice(2).filter((arg) => arg !== '--')
+for (const provider of await discoverProviders(filterArg)) await syncProvider(provider)

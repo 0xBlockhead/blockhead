@@ -95,7 +95,7 @@
 			Browser storage can keep UI preferences and optional third-party API usage counters tied to one profile.
 		</p>
 		<p>
-			RPC or indexer base URLs and API keys belong in transport configuration rows, not in generic preference blobs.
+			RPC or indexer base URLs and API keys belong in transport configuration globals, not in generic preference blobs.
 		</p>
 	{/snippet}
 

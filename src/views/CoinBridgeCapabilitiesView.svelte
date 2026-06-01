@@ -105,11 +105,11 @@
 			{@const capabilities = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.CoinBridgeCapability>[] = (
+					const coinBridgeCapabilities: Entity<typeof schema, EntityType.CoinBridgeCapability>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows
+						coinBridgeCapabilities
 							.map((value) => ({
 								value,
 							}))

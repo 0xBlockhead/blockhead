@@ -65,13 +65,13 @@
 			},
 		},
 	)}
-			{@const rows = derive(
+			{@const youTubeVideoTimestamps = derive(
 		parent,
 		(parent) => {
-			const list: Entity<typeof schema, EntityType.YouTubeVideo_Timestamp>[] = (
+			const youTubeVideoTimestamps: Entity<typeof schema, EntityType.YouTubeVideo_Timestamp>[] = (
 				parent[entityFieldReference.fieldName] ?? []
 			)
-			return list.map((value) => ({
+			return youTubeVideoTimestamps.map((value) => ({
 				value,
 			}))
 		},

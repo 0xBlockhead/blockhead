@@ -99,11 +99,11 @@
 			{@const pools = derive(
 		parent,
 		(parent) => {
-			const rows: Entity<typeof schema, EntityType.LiquidityPool>[] = (
+			const liquidityPools: Entity<typeof schema, EntityType.LiquidityPool>[] = (
 				parent[entityFieldReference.fieldName] ?? []
 			)
 			return (
-				rows.map((value) => ({
+				liquidityPools.map((value) => ({
 					value,
 				}))
 			)
@@ -125,7 +125,7 @@
 			>
 				{#snippet Empty()}
 						<p data-text="muted">
-							No pools in this list yet.
+							No pools in this liquidityPools yet.
 						</p>
 					{/snippet}
 

@@ -108,8 +108,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => stringify(row[EntityMetaKey.Id])}
-					getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
+					getKey={(row) => stringify(evmBlob[EntityMetaKey.Id])}
+					getSortValue={(row) => stringify(evmBlob[EntityMetaKey.Id])}
 					placeholderText="Loading blobs…"
 					resource={blobs}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}

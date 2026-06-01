@@ -37,7 +37,9 @@
 			name: {},
 			environment: {},
 			rpcEndpoints: {},
-			$headBlock: {},
+			$$blocks: {
+				$limit: 1,
+			},
 			$$timestamps: {
 				$limit: 1,
 			},
@@ -112,9 +114,9 @@
 				<dd id="network-summary-head-block">
 					<ResourceBoundary resource={network} placeholderText="Loading head slot…">
 						{#snippet children(network)}
-							{#if network.$headBlock != null}
+							{#if network.$$blocks.at(0) != null}
 								<SolanaBlockView
-									entityId={network.$headBlock[EntityMetaKey.Id]}
+									entityId={network.$$blocks.at(0)[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							{:else}

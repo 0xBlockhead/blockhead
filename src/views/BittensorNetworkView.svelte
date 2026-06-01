@@ -48,15 +48,12 @@
 			$: [
 				Source.Bittensor_JsonRpc,
 			],
-			$headBlock: {},
 			$$timestamps: {
 				$limit: 1,
 			},
-			...(open && {
-				$$blocks: {
-					$limit: 12,
-				},
-			}),
+			$$blocks: {
+				$limit: open ? 12 : 1,
+			},
 			$$subnets: {
 				$limit: 24,
 			},
@@ -112,12 +109,12 @@
 		<dl class="network-summary-head" data-column-item="center">
 			<ResourceBoundary resource={bittensorNetwork}>
 				{#snippet children(bittensorNetwork)}
-					{#if bittensorNetwork.$headBlock != null}
+					{#if bittensorNetwork.$$blocks.at(0) != null}
 						<div>
 							<dt>Finalized block</dt>
 							<dd id="network-summary-head-block">
 								<BittensorBlockView
-									entityId={bittensorNetwork.$headBlock[EntityMetaKey.Id]}
+									entityId={bittensorNetwork.$$blocks.at(0)[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -198,9 +195,9 @@
 				<ResourceBoundary resource={bittensorNetwork}>
 					{#snippet children(bittensorNetwork)}
 						<div>
-							{#if bittensorNetwork.$headBlock != null}
+							{#if bittensorNetwork.$$blocks.at(0) != null}
 								<BittensorBlockView
-									entityId={bittensorNetwork.$headBlock[EntityMetaKey.Id]}
+									entityId={bittensorNetwork.$$blocks.at(0)[EntityMetaKey.Id]}
 									layout={EntityLayout.SummaryDetails}
 								/>
 							{/if}
@@ -218,7 +215,7 @@
 						fieldName: '$$blocks',
 					}}
 					href={href == null ? '' : `${href}/blocks`}
-					id={`${networkIdKey}:bittensor-blocks-list`}
+					id={`${networkIdKey}:bittensor-blocks-bittensorNetworks`}
 					title="Blocks"
 				/>
 			{/snippet}
@@ -231,7 +228,7 @@
 						entityId,
 						fieldName: '$$subnets',
 					}}
-					id={`${networkIdKey}:bittensor-subnets-list`}
+					id={`${networkIdKey}:bittensor-subnets-bittensorNetworks`}
 				/>
 			{/snippet}
 		</CollapsibleTabs>
@@ -267,7 +264,7 @@
 						entityId,
 						fieldName: '$$subnets',
 					}}
-					id={`${networkIdKey}:bittensor-neuron-subnets-list`}
+					id={`${networkIdKey}:bittensor-neuron-subnets-bittensorNetworks`}
 					title="Neuron subnets"
 				/>
 			{/snippet}
@@ -372,7 +369,7 @@
 					]}
 					href={href ?? ''}
 					limit={undefined}
-					id={`${networkIdKey}:bittensor-resources-faucets-list`}
+					id={`${networkIdKey}:bittensor-resources-faucets-bittensorNetworks`}
 					title="Faucets"
 				/>
 			{/snippet}
@@ -391,7 +388,7 @@
 					]}
 					href={href ?? ''}
 					limit={undefined}
-					id={`${networkIdKey}:bittensor-resources-block-explorers-list`}
+					id={`${networkIdKey}:bittensor-resources-block-explorers-bittensorNetworks`}
 					title="Block explorers"
 				/>
 			{/snippet}

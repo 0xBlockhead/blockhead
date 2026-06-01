@@ -127,7 +127,7 @@
 			{@const articles = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.NostrArticle>[] = (
+					const nostrArticles: Entity<typeof schema, EntityType.NostrArticle>[] = (
 						entityFieldReference.entityType === EntityType.NostrNetwork ?
 							[
 								...(parent.$$nostrArticles ?? []),
@@ -137,7 +137,7 @@
 						:
 							(parent[entityFieldReference.fieldName] ?? [])
 					)
-					return rows.slice(0, limit)
+					return nostrArticles.slice(0, limit)
 				},
 			)}
 			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}`}
@@ -147,9 +147,9 @@
 					entityType={EntityType.NostrArticle}
 					id={`${id}-items`}
 					{title}
-					getKey={(row) => stringify(row[EntityMetaKey.Id])}
+					getKey={(row) => stringify(nostrArticle[EntityMetaKey.Id])}
 					getSortValue={(row) => (
-						`${String(-(row.publishedAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Id].identifier}`
+						`${String(-(nostrArticle.publishedAt ?? 0)).padStart(20, '0')}\0${nostrArticle[EntityMetaKey.Id].identifier}`
 					)}
 					placeholderText={`Loading ${title.toLowerCase()}…`}
 					resource={articles}

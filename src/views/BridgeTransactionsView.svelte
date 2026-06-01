@@ -89,11 +89,11 @@
 			{@const bridgeTransactions = derive(
 				parent,
 				(parent): BridgeTxRow[] => {
-					const rows: Entity<typeof schema, EntityType.BridgeTransaction>[] = (
+					const bridgeTransactions: Entity<typeof schema, EntityType.BridgeTransaction>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						bridgeTransactions.map((value) => ({
 							value,
 						}))
 					)
@@ -107,9 +107,9 @@
 				open={true}
 				resource={bridgeTransactions}
 				placeholderText="Loading bridge transactions…"
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getKey={(row) => stringify(bridgeTransaction.value[EntityMetaKey.Id])}
 				getSortValue={(row) => (
-					`${String(row.value[EntityMetaKey.Id].createdAt)}\0${stringify(row.value[EntityMetaKey.Id])}`
+					`${String(bridgeTransaction.value[EntityMetaKey.Id].createdAt)}\0${stringify(bridgeTransaction.value[EntityMetaKey.Id])}`
 				)}
 				placeholderKeys={new SvelteSet<string | number>()}
 				UnorderedListProps={{ orientation: ListOrientation.Column }}

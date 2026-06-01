@@ -83,7 +83,7 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Top-level comments list here; reply rows link to a parent comment on the same video id + comment id pair.
+			Top-level comments youTubeComments here; reply youTubeComments link to a parent comment on the same video id + comment id pair.
 		</p>
 		<p>
 			Youtube_Rest returns ISO publishedAt; Piped uses its own time strings—not Reddit fullnames or Nostr event ids.
@@ -118,8 +118,8 @@
 			{@const comments = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.YouTubeComment>[] = parent[entityFieldReference.fieldName] ?? []
-					return rows.map((comment) => comment[EntityMetaKey.Id])
+					const youTubeComments: Entity<typeof schema, EntityType.YouTubeComment>[] = parent[entityFieldReference.fieldName] ?? []
+					return youTubeComments.map((comment) => comment[EntityMetaKey.Id])
 				},
 			)}
 			<EntitiesList
@@ -132,7 +132,7 @@
 				placeholderText="Loading comment thread…"
 				getKey={(row) => stringify(row)}
 				getSortValue={(row) => (
-					`${String(-(row.publishedAtMs ?? 0)).padStart(20, '0')}\0${row.commentId}`
+					`${String(-(youTubeComment.publishedAtMs ?? 0)).padStart(20, '0')}\0${youTubeComment.commentId}`
 				)}
 				placeholderKeys={new SvelteSet<string>()}
 			>

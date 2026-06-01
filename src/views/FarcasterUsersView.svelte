@@ -58,7 +58,7 @@
 
 	{#snippet Empty()}
 		<p data-text="muted">
-			No Farcaster users in this list yet.
+			No Farcaster users in this farcasterUsers yet.
 		</p>
 	{/snippet}
 
@@ -89,14 +89,14 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => row.value[EntityMetaKey.Id].fid}
+				getKey={(row) => stringify(farcasterUser.value[EntityMetaKey.Id])}
+				getSortValue={(row) => farcasterUser.value[EntityMetaKey.Id].fid}
 				placeholderText="Loading Farcaster users…"
 				resource={users}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No Farcaster users in this list yet.
+						No Farcaster users in this farcasterUsers yet.
 					</p>
 				{/snippet}
 

@@ -115,7 +115,7 @@
 			The AT Protocol anchors accounts in DIDs served by personal data stores; lexicon schemas define posts, follows, and profile blobs replicated through relays as signed CAR commits.
 		</p>
 		<p>
-			Actor rows in this hub cover only the handles that configured App View sources can resolve—not every Bluesky-compatible identity on the network.
+			Actor atprotoNetworks in this hub cover only the handles that configured App View sources can resolve—not every Bluesky-compatible identity on the network.
 		</p>
 	{/snippet}
 
@@ -189,7 +189,7 @@
 				sections={[
 					{ id: 'registry-actors', label: 'Accounts' },
 					{ id: 'registry-posts', label: 'Recent posts' },
-					{ id: 'examples-list', label: 'Example routes' },
+					{ id: 'examples-atprotoNetworks', label: 'Example routes' },
 				]}
 				data-card
 			>

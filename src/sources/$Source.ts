@@ -102,6 +102,7 @@ export enum Source {
 	TronGrid_Rest = 'TronGrid_Rest',
 	TronScan_Rest = 'TronScan_Rest',
 	TronSolidityNode_Rest = 'TronSolidityNode_Rest',
+	TrustWalletAssets_Github = 'TrustWalletAssets_Github',
 	Voltaire_JsonRpc = 'Voltaire_JsonRpc',
 	X_FxEmbed_Rest = 'X_FxEmbed_Rest',
 	X_Rest = 'X_Rest',

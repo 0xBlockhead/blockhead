@@ -90,9 +90,9 @@
 			{@const comments = derive(
 		parent,
 		(parent) => {
-			const rows: Entity<typeof schema, EntityType.RedditComment>[] = parent[entityFieldReference.fieldName] ?? []
+			const redditComments: Entity<typeof schema, EntityType.RedditComment>[] = parent[entityFieldReference.fieldName] ?? []
 			return (
-				rows.map((comment, index) => ({
+				redditComments.map((comment, index) => ({
 					comment,
 					sortKey: (
 						sortMode === 'api' ?
@@ -115,8 +115,8 @@
 				{title}
 				resource={comments}
 				placeholderText="Loading comment thread…"
-				getKey={(row) => row.comment[EntityMetaKey.Id].fullname}
-				getSortValue={(row) => row.sortKey}
+				getKey={(row) => redditComment.comment[EntityMetaKey.Id].fullname}
+				getSortValue={(row) => redditComment.sortKey}
 				placeholderKeys={new SvelteSet<string>()}
 				open={true}
 			>

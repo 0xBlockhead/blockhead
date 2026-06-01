@@ -210,7 +210,7 @@
 							entityId,
 							fieldName: '$$redditSubreddits',
 						}}
-						id={`${networkIdKey}:subreddits-list`}
+						id={`${networkIdKey}:subreddits-redditNetworks`}
 						open={_open}
 					/>
 				{/snippet}
@@ -224,7 +224,7 @@
 							entityId,
 							fieldName: '$$redditLinks',
 						}}
-						id={`${networkIdKey}:links-list`}
+						id={`${networkIdKey}:links-redditNetworks`}
 						open={_open}
 						title="Popular submissions"
 					/>

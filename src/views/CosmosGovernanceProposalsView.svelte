@@ -54,7 +54,7 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Cosmos governance proposals are SDK governance rows, separate from ADR design documents.
+			Cosmos governance proposals are SDK governance cosmosGovernanceProposals, separate from ADR design documents.
 		</p>
 	{/snippet}
 

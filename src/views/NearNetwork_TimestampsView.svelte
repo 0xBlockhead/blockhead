@@ -53,7 +53,7 @@
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-		<p>Timestamp rows hold observed NEAR protocol, epoch, and sync-state metrics.</p>
+		<p>Timestamp nearNetworkTimestamps hold observed NEAR protocol, epoch, and sync-state metrics.</p>
 	{/snippet}
 
 	{#snippet body()}

@@ -53,15 +53,6 @@ export default {
 			],
 		},
 		{
-			name: '$headBlock',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.NearBlock,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.NearRpc_JsonRpc,
-			],
-		},
-		{
 			name: '$$timestamps',
 			type: EntityFieldType.EntitiesReference,
 			entityType: EntityType.NearNetwork_Timestamp,

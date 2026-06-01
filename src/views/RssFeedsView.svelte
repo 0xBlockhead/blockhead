@@ -65,7 +65,7 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			RSS / Atom feed entities keyed by feedUrl; this list is seeded from Constants.
+			RSS / Atom feed entities keyed by feedUrl; this rssFeeds is seeded from Constants.
 		</p>
 		<p>
 			Live metadata and $$items resolve via Rss_Rest (direct XML fetch) or Rss2Json (rss2json API proxy) when that source is enabled.
@@ -97,11 +97,11 @@
 			{@const feeds = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.RssFeed>[] = (
+					const rssFeeds: Entity<typeof schema, EntityType.RssFeed>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						rssFeeds.map((value) => ({
 							entityId: value[EntityMetaKey.Id],
 						}))
 					)
@@ -115,8 +115,8 @@
 				{title}
 				resource={feeds}
 				placeholderText="Loading feeds…"
-				getKey={(row) => stringify(row.entityId)}
-				getSortValue={(row) => row.entityId.feedUrl}
+				getKey={(row) => stringify(rssFeed.entityId)}
+				getSortValue={(row) => rssFeed.entityId.feedUrl}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}

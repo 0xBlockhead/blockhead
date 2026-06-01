@@ -83,9 +83,9 @@
 		parent,
 		(parent) => {
 			const keys = new SvelteSet<string>()
-			const rows: Entity<typeof schema, EntityType.Network>[] = parent[entityFieldReference.fieldName] ?? []
+			const networks: Entity<typeof schema, EntityType.Network>[] = parent[entityFieldReference.fieldName] ?? []
 			return (
-				rows
+				networks
 					.filter((value) => (
 						networkIds == null
 						|| networkIds.some((networkId) => (
@@ -118,7 +118,7 @@
 			>
 				{#snippet Empty()}
 						<p data-text="muted">
-							No networks match this list yet.
+							No networks match this networks yet.
 						</p>
 					{/snippet}
 

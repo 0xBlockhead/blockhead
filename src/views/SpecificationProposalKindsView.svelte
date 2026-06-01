@@ -96,11 +96,11 @@
 
 
 	// Functions
-	const proposalKindKey = (row: { result: Entity<typeof schema, EntityType.SpecificationProposalKind> }) => (
-		stringify(row.result[EntityMetaKey.Id])
+	const proposalKindKey = (specificationProposalKind: { result: Entity<typeof schema, EntityType.SpecificationProposalKind> }) => (
+		stringify(kind.result[EntityMetaKey.Id])
 	)
 
-	const rowsFromProposalKinds = (
+	const specificationProposalKindResultsFromProposalKinds = (
 		proposalKinds: { result: Entity<typeof schema, EntityType.SpecificationProposalKind> }[] | undefined,
 	): { result: Entity<typeof schema, EntityType.SpecificationProposalKind> }[] => (
 		proposalKinds === undefined ?
@@ -136,9 +136,9 @@
 	const proposalKinds = derive(
 		parent,
 		(parent) => {
-			const rows: Entity<typeof schema, EntityType.SpecificationProposalKind>[] = parent[entityFieldReference.fieldName] ?? []
+			const specificationProposalKinds: Entity<typeof schema, EntityType.SpecificationProposalKind>[] = parent[entityFieldReference.fieldName] ?? []
 			return (
-				rows
+				specificationProposalKinds
 					.toSorted((first, second) => (
 						(first.labelPlural ?? first.label ?? stringify(first[EntityMetaKey.Id])).localeCompare(
 							second.labelPlural ?? second.label ?? stringify(second[EntityMetaKey.Id]),
@@ -214,14 +214,14 @@
 	>
 		{#snippet children(proposalKinds)}
 			{#key proposalKinds}
-				{@const rows = rowsFromProposalKinds(proposalKinds)}
+				{@const specificationProposalKinds = specificationProposalKindResultsFromProposalKinds(proposalKinds)}
 
-				{#if rows.length === 0}
+				{#if specificationProposalKinds.length === 0}
 					{@render EmptyFallback()}
 				{:else if !showSummary}
 					<div {...standaloneKindPanelsProps}>
-						{#each rows as row (proposalKindKey(row))}
-							{@const kind = row.result}
+						{#each specificationProposalKinds as specificationProposalKind (proposalKindKey(specificationProposalKind))}
+							{@const kind = kind.result}
 							<section data-scroll-marker-label={kind.labelPlural ?? kind.label ?? String(kind[EntityMetaKey.Id].category)}>
 								<ProposalsView
 									href={resolve('/proposals')}
@@ -298,8 +298,8 @@
 						{/snippet}
 
 						{#snippet SectionKinds({ id: _sectionId, label: _sectionLabel })}
-							{#each rows as row (proposalKindKey(row))}
-								{@const kind = row.result}
+							{#each specificationProposalKinds as specificationProposalKind (proposalKindKey(specificationProposalKind))}
+								{@const kind = kind.result}
 								<section id={kindPanelDomId(kind)}>
 									<ProposalsView
 										CollapsibleProps={{ canToggle: false }}
@@ -360,8 +360,8 @@
 									data-carousel-markers
 									data-row-item="flexible"
 								>
-									{#each rows as row (proposalKindKey(row))}
-										{@const kind = row.result}
+									{#each specificationProposalKinds as specificationProposalKind (proposalKindKey(specificationProposalKind))}
+										{@const kind = kind.result}
 										<a
 											data-scroll-marker-label={kind.labelPlural ?? kind.label ?? String(kind[EntityMetaKey.Id].category)}
 											href={`#${kindPanelDomId(kind)}`}
@@ -381,8 +381,8 @@
 							data-sticky-container
 						>
 							<div {...standaloneKindPanelsProps}>
-								{#each rows as row (proposalKindKey(row))}
-									{@const kind = row.result}
+								{#each specificationProposalKinds as specificationProposalKind (proposalKindKey(specificationProposalKind))}
+									{@const kind = kind.result}
 									<section data-scroll-marker-label={kind.labelPlural ?? kind.label ?? String(kind[EntityMetaKey.Id].category)}>
 										<ProposalsView
 											href={resolve('/proposals')}

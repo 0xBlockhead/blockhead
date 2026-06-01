@@ -69,7 +69,7 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			Candle rows sit on interval boundaries: open, high, low, close for each bucket start.
+			Candle marketTimeIntervalTimestamps sit on interval boundaries: open, high, low, close for each bucket start.
 		</p>
 		<p>
 			Candles load from every configured OHLC provider on the parent market row (Coingecko, Defillama, Coinpaprika, CoinMarketCap, …).
@@ -97,17 +97,17 @@
 			{@const points = derive(
 				market,
 				(market) => {
-					const rows: Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[] = (
+					const marketTimeIntervalTimestamps: Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[] = (
 						market[entityFieldReference.fieldName] ?? []
 					)
 					return (
 						(
 							timeInterval == null ?
-								dedupeCandleEntitiesById(rows)
+								dedupeCandleEntitiesById(marketTimeIntervalTimestamps)
 							:
-								dedupeCandleEntitiesById(rows).filter((row) => (
+								dedupeCandleEntitiesById(marketTimeIntervalTimestamps).filter((marketTimeIntervalTimestamp) => (
 								marketTimeIntervalsEqual(
-									row[EntityMetaKey.Id].timeInterval,
+									marketTimeIntervalTimestamp[EntityMetaKey.Id].timeInterval,
 									timeInterval,
 								)
 							))
@@ -122,8 +122,8 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.Market_TimeInterval_Timestamp}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => -row.value[EntityMetaKey.Id].timestampMs}
+				getKey={(marketTimeIntervalTimestamp) => stringify(marketTimeIntervalTimestamp.value[EntityMetaKey.Id])}
+				getSortValue={(marketTimeIntervalTimestamp) => -marketTimeIntervalTimestamp.value[EntityMetaKey.Id].timestampMs}
 				placeholderKeys={new SvelteSet<string>()}
 				open={true}
 				resource={points}
@@ -139,8 +139,8 @@
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<Market_TimeInterval_TimestampView
-						entityId={row[EntityMetaKey.Id]}
-						id={stringify(row[EntityMetaKey.Id])}
+						entityId={marketTimeIntervalTimestamp[EntityMetaKey.Id]}
+						id={stringify(marketTimeIntervalTimestamp[EntityMetaKey.Id])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

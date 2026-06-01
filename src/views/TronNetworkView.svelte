@@ -48,7 +48,9 @@
 				Source.TronGrid_Rest,
 			],
 			restEndpoints: {},
-			$headBlock: {},
+			$$blocks: {
+				$limit: 1,
+			},
 			$$timestamps: {
 				$limit: 1,
 			},
@@ -116,12 +118,12 @@
 				<dl class="network-summary-head" data-column-item="center">
 					<ResourceBoundary resource={tronNetwork}>
 						{#snippet children(tronNetwork)}
-							{#if tronNetwork.$headBlock != null}
+							{#if tronNetwork.$$blocks.at(0) != null}
 								<div>
 									<dt>Head block</dt>
 									<dd id="network-summary-head-block">
 										<TronBlockView
-											entityId={tronNetwork.$headBlock[EntityMetaKey.Id]}
+											entityId={tronNetwork.$$blocks.at(0)[EntityMetaKey.Id]}
 											layout={EntityLayout.Value}
 										/>
 									</dd>

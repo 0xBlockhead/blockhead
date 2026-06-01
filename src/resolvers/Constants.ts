@@ -788,14 +788,14 @@ export default {
 					throw new Error(`Constants_Internal: EvmNetwork not found`)
 				}
 				const beaconRestBase = beaconRestBaseByExecutionChainId[Number(entityId.caip2.reference)]
-				const list = executionEndpointsByChainId[Number(entityId.caip2.reference)] ?? []
+				const executionEndpoints = executionEndpointsByChainId[Number(entityId.caip2.reference)] ?? []
 				return {
 					slug: network.slug,
 					name: network.name,
 					caip2: network.caip2,
 					namespace: network.namespace,
 					environment: network.environment,
-					executionEndpoints: [...list],
+					executionEndpoints: [...executionEndpoints],
 					consensusEndpoints: (
 						beaconRestBase == null ?
 							[]

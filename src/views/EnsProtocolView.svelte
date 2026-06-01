@@ -92,7 +92,7 @@
 			Ethereum Name Service maps human-readable names to resolver records on Ethereum mainnet.
 		</p>
 		<p>
-			Browse resolves names to EnsName detail pages; this hub does not list every registered name.
+			Browse resolves names to EnsName detail pages; this hub does not ensProtocols every registered name.
 		</p>
 	{/snippet}
 

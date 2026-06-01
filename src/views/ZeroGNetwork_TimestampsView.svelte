@@ -53,7 +53,7 @@
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-		<p>Timestamp rows hold observed 0G execution, storage, and data-layer totals.</p>
+		<p>Timestamp zeroGNetworkTimestamps hold observed 0G execution, storage, and data-layer totals.</p>
 	{/snippet}
 
 	{#snippet body()}

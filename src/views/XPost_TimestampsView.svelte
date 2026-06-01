@@ -67,13 +67,13 @@
 			},
 		},
 	)}
-			{@const rows = derive(
+			{@const xPostTimestamps = derive(
 		parent,
 		(parent) => {
-			const list: Entity<typeof schema, EntityType.XPost_Timestamp>[] = (
+			const xPostTimestamps: Entity<typeof schema, EntityType.XPost_Timestamp>[] = (
 				parent[entityFieldReference.fieldName] ?? []
 			)
-			return list.map((value) => ({
+			return xPostTimestamps.map((value) => ({
 				value,
 			}))
 		},
@@ -85,7 +85,7 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				resource={rows}
+				resource={xPostTimestamps}
 				open={true}
 			>
 				{#snippet Item({ item })}

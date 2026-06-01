@@ -82,11 +82,11 @@
 			{@const allowances = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.EvmActorCoinAllowance>[] = (
+					const evmActorCoinAllowances: Entity<typeof schema, EntityType.EvmActorCoinAllowance>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						evmActorCoinAllowances.map((value) => ({
 							value,
 						}))
 					)

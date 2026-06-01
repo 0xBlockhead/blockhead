@@ -91,11 +91,11 @@
 			{@const tokenBalances = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.EvmNetworkActorCoinBalance>[] = (
+					const evmNetworkActorCoinBalances: Entity<typeof schema, EntityType.EvmNetworkActorCoinBalance>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						evmNetworkActorCoinBalances.map((value) => ({
 							value,
 						}))
 					)

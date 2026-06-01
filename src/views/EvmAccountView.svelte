@@ -205,10 +205,10 @@
 		for (const line of flattenedCoinItems) {
 			const row = line.value
 			const assetKey = (
-				row.symbol !== '' ?
-					row.symbol
+				evmAccount.symbol !== '' ?
+					evmAccount.symbol
 				:
-					stringify(row[EntityMetaKey.Id])
+					stringify(evmAccount[EntityMetaKey.Id])
 			)
 			const bucket = groups.get(assetKey)
 			if (bucket != null) bucket.push(line)
@@ -392,7 +392,7 @@
 					{#if true}
 						{#snippet ActorEnsNamesBody(actor)}
 							{#if (actor.$$ensNamesOwned ?? []).length}
-								<ul data-list="unstyled">
+								<ul data-evmAccounts="unstyled">
 									{#each actor.$$ensNamesOwned ?? [] as nameRef (`${nameRef[EntityMetaKey.Id].name}`)}
 										<li>
 											<a
@@ -452,7 +452,7 @@
 							collapsible={false}
 							entityType={EntityType.EvmNetworkActorCoinBalance}
 							title="By deployment (all indexed networks)"
-							id={`${idKey}:balances-flat-list`}
+							id={`${idKey}:balances-flat-evmAccounts`}
 							getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
 							getSortValue={(line) => stringify(line.value[EntityMetaKey.Id])}
 							items={flattenedCoinItems}
@@ -486,7 +486,7 @@
 									collapsible={false}
 									entityType={EntityType.EvmNetworkActorCoinBalance}
 									title={`${assetKey} · by network`}
-									id={`${idKey}:balances-coin-list-${String(coinGroupIndex)}`}
+									id={`${idKey}:balances-coin-evmAccounts-${String(coinGroupIndex)}`}
 									getKey={(line) => stringify(line.value[EntityMetaKey.Id])}
 									getSortValue={(line) => stringify(line.value[EntityMetaKey.Id])}
 									items={assetLines}
@@ -496,7 +496,7 @@
 								>
 									{#snippet Empty()}
 										<p data-text="muted">
-											No rows for this symbol.
+											No evmAccounts for this symbol.
 										</p>
 									{/snippet}
 									{#snippet Item(props)}

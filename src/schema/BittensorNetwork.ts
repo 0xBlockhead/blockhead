@@ -53,14 +53,5 @@ export default {
 				Source.Bittensor_JsonRpc,
 			],
 		},
-		{
-			name: '$headBlock',
-			type: EntityFieldType.EntityReference,
-			entityType: EntityType.BittensorBlock,
-			cardinality: EntityFieldCardinality.ZeroOrOne,
-			defaultSources: [
-				Source.Bittensor_JsonRpc,
-			],
-		},
 	] as const satisfies readonly EntityFieldDefinition[],
 } as const satisfies EntityDefinition

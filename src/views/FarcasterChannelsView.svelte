@@ -97,8 +97,8 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
-				getSortValue={(row) => row.result[EntityMetaKey.Id].id}
+				getKey={(row) => stringify(farcasterChannel.result[EntityMetaKey.Id])}
+				getSortValue={(row) => farcasterChannel.result[EntityMetaKey.Id].id}
 				placeholderText="Loading Farcaster channels (channel id / slug)…"
 				resource={channels}
 			>

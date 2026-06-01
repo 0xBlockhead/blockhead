@@ -80,8 +80,8 @@
 			{@const timestamps = derive(
 				market,
 				(market) => {
-					const rows: Entity<typeof schema, EntityType.Market_Derivative_Timestamp>[] = market[entityFieldReference.fieldName] ?? []
-					return rows.map((value) => ({
+					const marketDerivativeTimestamps: Entity<typeof schema, EntityType.Market_Derivative_Timestamp>[] = market[entityFieldReference.fieldName] ?? []
+					return marketDerivativeTimestamps.map((value) => ({
 						value,
 					}))
 				},
@@ -91,8 +91,8 @@
 				showSummary={false}
 				{...EntitiesListProps}
 				entityType={EntityType.Market_Derivative_Timestamp}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => String(row.value[EntityMetaKey.Id].timestampMs)}
+				getKey={(row) => stringify(marketDerivativeTimestamp.value[EntityMetaKey.Id])}
+				getSortValue={(row) => String(marketDerivativeTimestamp.value[EntityMetaKey.Id].timestampMs)}
 				placeholderKeys={new SvelteSet<string>()}
 				resource={timestamps}
 				{title}
@@ -108,8 +108,8 @@
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<Market_Derivative_TimestampView
-						entityId={row[EntityMetaKey.Id]}
-						id={stringify(row[EntityMetaKey.Id])}
+						entityId={marketDerivativeTimestamp[EntityMetaKey.Id]}
+						id={stringify(marketDerivativeTimestamp[EntityMetaKey.Id])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

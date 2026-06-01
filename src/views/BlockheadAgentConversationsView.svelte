@@ -69,7 +69,7 @@
 			Persisted large-language-model chat transcripts: each row is one conversation with ordered user/assistant messages.
 		</p>
 		<p>
-			Those logs are ordinary files or local DB rows—not consensus state, Farcaster casts, or multiplayer CRDT rooms.
+			Those logs are ordinary files or local DB blockheadAgentConversations—not consensus state, Farcaster casts, or multiplayer CRDT rooms.
 		</p>
 	{/snippet}
 

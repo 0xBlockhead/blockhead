@@ -89,11 +89,11 @@
 			{@const upgrades = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.EthereumExecutionUpgrade>[] = (
+					const ethereumExecutionUpgrades: Entity<typeof schema, EntityType.EthereumExecutionUpgrade>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows
+						ethereumExecutionUpgrades
 							.map((value) => ({
 								value,
 							}))

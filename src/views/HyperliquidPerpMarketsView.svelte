@@ -46,7 +46,7 @@
 
 <EntitiesList entityType={EntityType.HyperliquidPerpMarket} {title} bind:open {id} href={href} {...EntitiesListProps}>
 	{#snippet TypeAnnotationTooltip()}
-		<p>Perp market rows describe HyperCore perpetual listings and leverage constraints.</p>
+		<p>Perp market hyperliquidPerpMarkets describe HyperCore perpetual listings and leverage constraints.</p>
 	{/snippet}
 
 	{#snippet body()}

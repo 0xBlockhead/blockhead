@@ -83,11 +83,11 @@
 			{@const topics = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.EvmTopic>[] = (
+					const evmTopics: Entity<typeof schema, EntityType.EvmTopic>[] = (
 						parent[entityFieldReference.fieldName]
 						?? []
 					)
-					return rows
+					return evmTopics
 				},
 			)}
 			<EntitiesList

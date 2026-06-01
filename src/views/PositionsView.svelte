@@ -78,7 +78,7 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 			<p>
-				Concentrated-liquidity positions: tick range, in-range liquidity, uncollected fees, and optional ERC-721 token id on a pool row.
+				Concentrated-liquidity positions: tick range, in-range liquidity, uncollected fees, and optional ERC-721 token id on a pool liquidityPosition.
 			</p>
 			<p>
 				Not standalone pool contracts or generic wallet token balances.
@@ -97,11 +97,11 @@
 			{@const liquidityPositions = derive(
 		parent,
 		(parent) => {
-			const rows: Entity<typeof schema, EntityType.LiquidityPosition>[] = (
+			const liquidityPositions: Entity<typeof schema, EntityType.LiquidityPosition>[] = (
 				parent[entityFieldReference.fieldName] ?? []
 			)
 			return (
-				rows.map((value) => ({
+				liquidityPositions.map((value) => ({
 					value,
 				}))
 			)

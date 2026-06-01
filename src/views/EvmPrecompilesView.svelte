@@ -104,8 +104,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => stringify(row[EntityMetaKey.Id])}
-					getSortValue={(row) => BigInt(row[EntityMetaKey.Id].address)}
+					getKey={(row) => stringify(evmContract[EntityMetaKey.Id])}
+					getSortValue={(row) => BigInt(evmContract[EntityMetaKey.Id].address)}
 					placeholderText="Loading precompiles…"
 					resource={precompiles}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}

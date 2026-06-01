@@ -110,6 +110,7 @@ export enum SourceProvider {
 	TronGrid = 'TronGrid',
 	TronScan = 'TronScan',
 	TronSolidityNode = 'TronSolidityNode',
+	TrustWalletAssets = 'TrustWalletAssets',
 	Voltaire = 'Voltaire',
 	X = 'X',
 	Youtube = 'Youtube',

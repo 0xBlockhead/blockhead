@@ -93,11 +93,11 @@
 			{@const sessions = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.BlockheadSession>[] = (
+					const blockheadSessions: Entity<typeof schema, EntityType.BlockheadSession>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						blockheadSessions.map((value) => ({
 							value,
 						}))
 					)

@@ -69,7 +69,7 @@
 			Each row is a venue book with a kind: spot (CEX/DEX cash markets), perpetual (funding + open interest), or dated futures.
 		</p>
 		<p>
-			Spot rows expose quote streams and OHLC where wired; perpetual and futures rows may include funding and open interest when a provider supplies them.
+			Spot markets expose quote streams and OHLC where wired; perpetual and futures markets may include funding and open interest when a provider supplies them.
 		</p>
 	{/snippet}
 
@@ -96,11 +96,11 @@
 			{@const markets = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.Market>[] = parent[entityFieldReference.fieldName] ?? []
+					const markets: Entity<typeof schema, EntityType.Market>[] = parent[entityFieldReference.fieldName] ?? []
 					return (
 						Object.values(
 							Object.groupBy(
-								rows,
+								markets,
 								(market) => stringify(market[EntityMetaKey.Id]),
 							),
 						)
@@ -127,8 +127,8 @@
 				collapsible={false}
 				showSummary={false}
 				entityType={EntityType.Market}
-				getKey={(row) => stringify(row[EntityMetaKey.Id])}
-				getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
+				getKey={(row) => stringify(market[EntityMetaKey.Id])}
+				getSortValue={(row) => stringify(market[EntityMetaKey.Id])}
 				open={true}
 				resource={markets}
 				{title}

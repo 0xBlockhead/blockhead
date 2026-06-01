@@ -71,7 +71,7 @@
 
 	{#snippet Empty()}
 		<p data-text="muted">
-			No linked wallets in this list yet.
+			No linked wallets in this evmAccounts yet.
 		</p>
 	{/snippet}
 
@@ -91,11 +91,11 @@
 			{@const actors = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.EvmAccount>[] = (
+					const evmAccounts: Entity<typeof schema, EntityType.EvmAccount>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						evmAccounts.map((value) => ({
 							value,
 						}))
 					)
@@ -108,15 +108,15 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => row.value[EntityMetaKey.Id].address.toLowerCase()}
+				getKey={(row) => stringify(evmAccount.value[EntityMetaKey.Id])}
+				getSortValue={(row) => evmAccount.value[EntityMetaKey.Id].address.toLowerCase()}
 				placeholderKeys={new SvelteSet<string>()}
 				placeholderText="Loading linked wallets…"
 				resource={actors}
 			>
 				{#snippet Empty()}
 					<p data-text="muted">
-						No linked wallets in this list yet.
+						No linked wallets in this evmAccounts yet.
 					</p>
 				{/snippet}
 

@@ -95,8 +95,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => row[EntityMetaKey.Id].hex}
-					getSortValue={(row) => row[EntityMetaKey.Id].hex}
+					getKey={(row) => evmSelector[EntityMetaKey.Id].hex}
+					getSortValue={(row) => evmSelector[EntityMetaKey.Id].hex}
 					placeholderText="Loading 4-byte selectors…"
 					resource={selectors}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}

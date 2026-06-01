@@ -66,10 +66,10 @@
 			ATProto app.bsky.feed.post records addressed by at-URI inside a given DID’s repo.
 		</p>
 		<p>
-			Collection scope follows the repo or list you navigated from; URIs are stable handles for the same bytes across relays.
+			Collection scope follows the repo or atprotoPosts you navigated from; URIs are stable handles for the same bytes across relays.
 		</p>
 		<p>
-			The list keeps a capped newest-first slice; navigating a post resolves text, reply parent/root links, and engagement counts from the AppView API.
+			The atprotoPosts keeps a capped newest-first slice; navigating a post resolves text, reply parent/root links, and engagement counts from the AppView API.
 		</p>
 	{/snippet}
 
@@ -124,14 +124,14 @@
 			{@const posts = derive(
 				atprotoNetworkOrAccount,
 				(atprotoNetworkOrAccount) => {
-					const rows: Entity<typeof schema, EntityType.AtprotoPost>[] = (
+					const atprotoPosts: Entity<typeof schema, EntityType.AtprotoPost>[] = (
 						entityFieldReference.entityType === EntityType.AtprotoNetwork ?
 							(atprotoNetworkOrAccount.$$atprotoActors ?? [])
 								.flatMap((actor) => actor.$$posts ?? [])
 						:
 							(atprotoNetworkOrAccount.$$posts ?? [])
 					)
-					return rows.slice(0, limit)
+					return atprotoPosts.slice(0, limit)
 				},
 			)}
 			{#key `${stringify(entityFieldReference.entityId)}-${limit}-${fieldOpen}`}
@@ -142,9 +142,9 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => row[EntityMetaKey.Id].uri}
+					getKey={(row) => atprotoPost[EntityMetaKey.Id].uri}
 					getSortValue={(row) => (
-						`${String(-(row.createdAt ?? 0)).padStart(20, '0')}\0${row[EntityMetaKey.Id].uri}`
+						`${String(-(atprotoPost.createdAt ?? 0)).padStart(20, '0')}\0${atprotoPost[EntityMetaKey.Id].uri}`
 					)}
 					placeholderText={`Loading ${title.toLowerCase()}…`}
 					resource={posts}

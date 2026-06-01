@@ -237,8 +237,8 @@
 									),
 								])
 							}
-							getKey={(row) => row.key}
-							getSortValue={(row) => row.key}
+							getKey={(row) => global.key}
+							getSortValue={(row) => global.key}
 							orientation={ListOrientation.Column}
 						>
 							{#snippet Item({ item })}

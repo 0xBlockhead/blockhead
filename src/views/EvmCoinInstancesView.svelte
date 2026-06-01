@@ -110,14 +110,14 @@
 				{@const coinInstances = derive(
 					parent,
 					(parent) => {
-						const rows: Entity<typeof schema, EntityType.EvmCoinInstance>[] = (
+						const evmCoinInstances: Entity<typeof schema, EntityType.EvmCoinInstance>[] = (
 							parent[entityFieldReference.fieldName] ?? []
 						)
 						return (
-							rows
-								.filter((row) => (
+							evmCoinInstances
+								.filter((evmCoinInstance) => (
 									representationFilter == null
-									|| row.representation === representationFilter
+									|| evmCoinInstance.representation === representationFilter
 								))
 								.map((value) => ({
 									value,

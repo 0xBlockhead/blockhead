@@ -80,40 +80,40 @@
 		>
 			{#snippet children(row)}
 				<dl>
-					{#if row.status != null}
+					{#if lightningPayment.status != null}
 						<div>
 							<dt>Status</dt>
-							<dd>{row.status === LightningPaymentStatus.InFlight ? 'In Flight' : row.status}</dd>
+							<dd>{lightningPayment.status === LightningPaymentStatus.InFlight ? 'In Flight' : lightningPayment.status}</dd>
 						</div>
 					{/if}
 
-					{#if row.valueMsat != null}
+					{#if lightningPayment.valueMsat != null}
 						<div>
 							<dt>Amount</dt>
-							<dd>{row.valueMsat.toString()} msat</dd>
+							<dd>{lightningPayment.valueMsat.toString()} msat</dd>
 						</div>
 					{/if}
 
-					{#if row.feeMsat != null}
+					{#if lightningPayment.feeMsat != null}
 						<div>
 							<dt>Fee</dt>
-							<dd>{row.feeMsat.toString()} msat</dd>
+							<dd>{lightningPayment.feeMsat.toString()} msat</dd>
 						</div>
 					{/if}
 
-					{#if row.failureReason != null}
+					{#if lightningPayment.failureReason != null}
 						<div>
 							<dt>Failure</dt>
-							<dd>{row.failureReason}</dd>
+							<dd>{lightningPayment.failureReason}</dd>
 						</div>
 					{/if}
 
-					{#if row.paymentRequest != null}
+					{#if lightningPayment.paymentRequest != null}
 						<div>
 							<dt>Payment request</dt>
 							<dd>
 								<TruncatedValue
-									value={row.paymentRequest}
+									value={lightningPayment.paymentRequest}
 									format={TruncatedValueFormat.Abbr}
 								/>
 							</dd>

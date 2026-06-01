@@ -60,14 +60,14 @@
 	const marketTimeIntervalTimestamps = derive(
 		market,
 		(market) => {
-			const rows: Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[] = (
+			const marketTimeIntervalTimestamps: Entity<typeof schema, EntityType.Market_TimeInterval_Timestamp>[] = (
 				market[entityFieldReference.fieldName] ?? []
 			)
 			return (
-				dedupeCandleEntitiesById(rows)
-					.filter((row) => (
+				dedupeCandleEntitiesById(marketTimeIntervalTimestamps)
+					.filter((marketTimeIntervalTimestamp) => (
 						marketTimeIntervalsEqual(
-							row[EntityMetaKey.Id].timeInterval,
+							marketTimeIntervalTimestamp[EntityMetaKey.Id].timeInterval,
 							timeInterval,
 						)
 					))

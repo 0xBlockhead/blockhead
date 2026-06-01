@@ -59,7 +59,7 @@ export default {
 			resolve: async (entityId) => {
 				assertBittensorMainnet(entityId.$network)
 				const {
-					mainnetRpcUrl,
+					getMainnetRpcUrl,
 					getAllDynamicInfo,
 					getAllMetagraphs,
 					getFinalizedHead,
@@ -76,17 +76,17 @@ export default {
 					dynamicInfo,
 					metagraphs,
 				] = await Promise.all([
-					getFinalizedHead({ rpcUrl: mainnetRpcUrl }),
-					getRuntimeVersion({ rpcUrl: mainnetRpcUrl }),
-					getSystemHealth({ rpcUrl: mainnetRpcUrl }),
-					getSubnetsInfo({ rpcUrl: mainnetRpcUrl }),
-					getAllDynamicInfo({ rpcUrl: mainnetRpcUrl }),
-					getAllMetagraphs({ rpcUrl: mainnetRpcUrl }),
+					getFinalizedHead({ rpcUrl: getMainnetRpcUrl }),
+					getRuntimeVersion({ rpcUrl: getMainnetRpcUrl }),
+					getSystemHealth({ rpcUrl: getMainnetRpcUrl }),
+					getSubnetsInfo({ rpcUrl: getMainnetRpcUrl }),
+					getAllDynamicInfo({ rpcUrl: getMainnetRpcUrl }),
+					getAllMetagraphs({ rpcUrl: getMainnetRpcUrl }),
 				])
 				return {
 					finalizedBlockHash,
 					finalizedBlockNumber: blockNumberFromHeader(await getHeader({
-						rpcUrl: mainnetRpcUrl,
+						rpcUrl: getMainnetRpcUrl,
 						blockHash: finalizedBlockHash,
 					})),
 					runtimeSpecName: runtimeVersion.specName,
@@ -108,16 +108,16 @@ export default {
 			resolve: async (entityId) => {
 				assertBittensorMainnet(entityId.$network)
 				const {
-					mainnetRpcUrl,
+					getMainnetRpcUrl,
 					getBlock,
 					getBlockHash,
 				} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
 				const hash = entityId.hash ?? await getBlockHash({
-					rpcUrl: mainnetRpcUrl,
+					rpcUrl: getMainnetRpcUrl,
 					blockNumber: entityId.blockNumber,
 				})
 				const block = await getBlock({
-					rpcUrl: mainnetRpcUrl,
+					rpcUrl: getMainnetRpcUrl,
 					blockHash: hash,
 				})
 				return {
@@ -143,7 +143,7 @@ export default {
 			resolve: async (entityId) => {
 				assertBittensorMainnet(entityId.$network)
 				const {
-					mainnetRpcUrl,
+					getMainnetRpcUrl,
 					getDynamicInfo,
 					getSubnetHyperparams,
 					getSubnetInfo,
@@ -154,15 +154,15 @@ export default {
 					hyperparams,
 				] = await Promise.all([
 					getSubnetInfo({
-						rpcUrl: mainnetRpcUrl,
+						rpcUrl: getMainnetRpcUrl,
 						netuid: entityId.netuid,
 					}),
 					getDynamicInfo({
-						rpcUrl: mainnetRpcUrl,
+						rpcUrl: getMainnetRpcUrl,
 						netuid: entityId.netuid,
 					}),
 					getSubnetHyperparams({
-						rpcUrl: mainnetRpcUrl,
+						rpcUrl: getMainnetRpcUrl,
 						netuid: entityId.netuid,
 					}),
 				])
@@ -180,12 +180,12 @@ export default {
 			resolve: async (entityId) => {
 				assertBittensorMainnet(entityId.$subnet.$network)
 				const {
-					mainnetRpcUrl,
+					getMainnetRpcUrl,
 					getMetagraph,
 				} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
 				return {
 					metagraphByteLength: (await getMetagraph({
-						rpcUrl: mainnetRpcUrl,
+						rpcUrl: getMainnetRpcUrl,
 						netuid: entityId.$subnet.netuid,
 					})).length,
 				}
@@ -204,32 +204,6 @@ export default {
 	],
 
 	entityFieldResolvers: [
-		defineEntityFieldResolver({
-			entityType: EntityType.BittensorNetwork,
-			fieldName: '$headBlock',
-			resolve: async (entityId: EntityId<typeof schema, EntityType.BittensorNetwork>) => {
-				assertBittensorMainnet(entityId)
-				const {
-					mainnetRpcUrl,
-					getFinalizedHead,
-					getHeader,
-				} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
-				const finalizedBlockHash = await getFinalizedHead({
-					rpcUrl: mainnetRpcUrl,
-				})
-				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId,
-						blockNumber: blockNumberFromHeader(await getHeader({
-							rpcUrl: mainnetRpcUrl,
-							blockHash: finalizedBlockHash,
-						})),
-						hash: finalizedBlockHash,
-					},
-				}
-			},
-		}),
-
 		defineEntityFieldResolver({
 			entityType: EntityType.BittensorNetwork,
 			fieldName: '$$timestamps',
@@ -252,15 +226,15 @@ export default {
 			resolve: async (entityId: EntityId<typeof schema, EntityType.BittensorNetwork>, context) => {
 				assertBittensorMainnet(entityId)
 				const {
-					mainnetRpcUrl,
+					getMainnetRpcUrl,
 					getFinalizedHead,
 					getHeader,
 				} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
 				const finalizedBlockHash = await getFinalizedHead({
-					rpcUrl: mainnetRpcUrl,
+					rpcUrl: getMainnetRpcUrl,
 				})
 				const finalizedBlockNumber = blockNumberFromHeader(await getHeader({
-					rpcUrl: mainnetRpcUrl,
+					rpcUrl: getMainnetRpcUrl,
 					blockHash: finalizedBlockHash,
 				}))
 				return Array.from({
@@ -286,12 +260,12 @@ export default {
 			resolve: async (entityId: EntityId<typeof schema, EntityType.BittensorNetwork>) => {
 				assertBittensorMainnet(entityId)
 				const {
-					mainnetRpcUrl,
+					getMainnetRpcUrl,
 					getAllDynamicInfo,
 				} = await import('$/sources/Bittensor/JsonRpc/queries.ts')
 				return Array.from({
 					length: compactLengthFromScaleBytes(await getAllDynamicInfo({
-						rpcUrl: mainnetRpcUrl,
+						rpcUrl: getMainnetRpcUrl,
 					})) ?? 0,
 				}, (_value, netuid) => ({
 					[EntityMetaKey.Id]: {

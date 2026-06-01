@@ -46,7 +46,7 @@
 
 <EntitiesList entityType={EntityType.MoneroNetwork_Timestamp} {title} bind:open {id} href={href} {...EntitiesListProps}>
 	{#snippet TypeAnnotationTooltip()}
-		<p>Timestamp rows hold observed Monero daemon and txpool state.</p>
+		<p>Timestamp moneroNetworkTimestamps hold observed Monero daemon and txpool state.</p>
 	{/snippet}
 
 	{#snippet body()}

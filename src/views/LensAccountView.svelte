@@ -261,7 +261,7 @@
 							entityId,
 							fieldName: '$$posts',
 						}}
-						id={`${idKey}:posts-list`}
+						id={`${idKey}:posts-lensAccounts`}
 						/>
 					{/snippet}
 

@@ -410,23 +410,6 @@ export default {
 
 		defineEntityFieldResolver({
 			entityType: EntityType.SolanaNetwork,
-			fieldName: '$headBlock',
-			resolve: async (entityId) => {
-				assertSolanaMainnet(entityId)
-				const { getSlot } = await import('$/sources/Solana/JsonRpc/queries.ts')
-				return {
-					[EntityMetaKey.Id]: {
-						$network: entityId,
-						slot: BigInt(await getSlot({
-							rpcUrl: solanaMainnetRpcUrl,
-						})),
-					},
-				}
-			},
-		}),
-
-		defineEntityFieldResolver({
-			entityType: EntityType.SolanaNetwork,
 			fieldName: '$$timestamps',
 			resolve: async (entityId) => {
 				assertSolanaMainnet(entityId)

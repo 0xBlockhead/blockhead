@@ -216,7 +216,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			A wallet on one execution network: token balances (Allium where supported), Blockscout activity, and DeFi positions on the same chain id as the parent network row.
+			A wallet on one execution network: token balances (Allium where supported), Blockscout activity, and DeFi positions on the same chain id as the parent network evmNetworkAccount.
 		</p>
 		<p>
 			<strong>ERC-20 token approvals</strong>
@@ -437,36 +437,36 @@
 						>
 							{#snippet children(evmNetworkAccount)}
 								{#if (evmNetworkAccount.contractPositions ?? []).length}
-									<ul data-list="unstyled">
-										{#each evmNetworkAccount.contractPositions ?? [] as row (`${row.protocol.key}:${row.name}`)}
+									<ul data-evmNetworkAccounts="unstyled">
+										{#each evmNetworkAccount.contractPositions ?? [] as row (`${evmNetworkAccount.protocol.key}:${evmNetworkAccount.name}`)}
 											<li data-column="gap-1">
 												<div data-row="wrap align-baseline gap-2">
-													<strong>{row.name}</strong>
-													<span data-text="muted">{row.protocol.name}</span>
+													<strong>{evmNetworkAccount.name}</strong>
+													<span data-text="muted">{evmNetworkAccount.protocol.name}</span>
 												</div>
-												{#if row.pool != null}
+												{#if evmNetworkAccount.pool != null}
 													<div data-row="wrap align-center gap-2">
 														<EvmContractView
 															entityId={{
 																$network: entityId.$network,
-																address: row.pool.address,
+																address: evmNetworkAccount.pool.address,
 															}}
 															layout={EntityLayout.Title}
 														/>
-														{#if row.pool.name != null}
-															<span data-text="muted">{row.pool.name}</span>
+														{#if evmNetworkAccount.pool.name != null}
+															<span data-text="muted">{evmNetworkAccount.pool.name}</span>
 														{/if}
 													</div>
 												{/if}
 												<div data-text="annotation">
-													Value {String(row.value)}
+													Value {String(evmNetworkAccount.value)}
 												</div>
 											</li>
 										{/each}
 									</ul>
 								{:else}
 									<p data-text="muted">
-										No contract positions on this row.
+										No contract positions on this evmNetworkAccount.
 									</p>
 								{/if}
 							{/snippet}

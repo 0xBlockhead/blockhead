@@ -109,8 +109,8 @@
 				{id}
 				{title}
 				open={true}
-				getKey={(row) => stringify(row.value[EntityMetaKey.Id])}
-				getSortValue={(row) => stringify(row.value[EntityMetaKey.Id])}
+				getKey={(row) => stringify(farcasterFeed.value[EntityMetaKey.Id])}
+				getSortValue={(row) => stringify(farcasterFeed.value[EntityMetaKey.Id])}
 				placeholderText="Loading Farcaster feeds (trending, FID, channel)…"
 				resource={feeds}
 			>

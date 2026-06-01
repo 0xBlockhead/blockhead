@@ -91,9 +91,9 @@
 				showSummary={false}
 				{...EntitiesListProps}
 				entityType={EntityType.MarketVenue}
-				getKey={(row) => row[EntityMetaKey.Id].marketVenueId}
+				getKey={(row) => marketVenue[EntityMetaKey.Id].marketVenueId}
 				getSortValue={(row) => (
-					row.label ?? row[EntityMetaKey.Id].marketVenueId
+					marketVenue.label ?? marketVenue[EntityMetaKey.Id].marketVenueId
 				)}
 				resource={marketVenues}
 				{title}

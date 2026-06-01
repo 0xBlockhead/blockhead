@@ -66,7 +66,7 @@
 >
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			MEV-Boost relay <code>proposer_payload_delivered</code> rows: winning builder bids per slot (not swap bridges or Relay.link quotes).
+			MEV-Boost relay <code>proposer_payload_delivered</code> deliveredPayloads: winning builder bids per slot (not swap bridges or Relay.link quotes).
 		</p>
 		<p>
 			Use them to audit payload/value flow—not live consensus votes.
@@ -91,14 +91,14 @@
 					},
 				},
 			)}
-			{@const rows = derive(
+			{@const deliveredPayloads = derive(
 				parent,
 				(parent) => {
-					const list: Entity<typeof schema, EntityType.MevRelay_ProposerPayloadDelivered>[] = (
+					const deliveredPayloads: Entity<typeof schema, EntityType.MevRelay_ProposerPayloadDelivered>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						list
+						deliveredPayloads
 							.map((value) => ({
 								value,
 							}))
@@ -115,12 +115,12 @@
 				{#snippet Item({ item })}
 					{@const row = item.value}
 					<MevRelay_ProposerPayloadDeliveredView
-						entityId={row[EntityMetaKey.Id]}
+						entityId={deliveredPayload[EntityMetaKey.Id]}
 						href={resolve(
 							'/(explore)/network/[caip2Namespace]:[caip2Reference]',
-							{ ...caip2RouteParamsFromNetworkId(row[EntityMetaKey.Id].$network) },
+							{ ...caip2RouteParamsFromNetworkId(deliveredPayload[EntityMetaKey.Id].$network) },
 						)}
-						id={stringify(row[EntityMetaKey.Id])}
+						id={stringify(deliveredPayload[EntityMetaKey.Id])}
 						layout={EntityLayout.Summary}
 						open={false}
 					/>

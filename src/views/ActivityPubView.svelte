@@ -120,7 +120,7 @@
 			ActivityPub is the W3C federation protocol; this hub loads Mastodon-compatible REST v1 data from configured instance hosts (public timelines and account lookups)—not direct inbox/outbox/WebFinger fetches.
 		</p>
 		<p>
-			Actor and status rows come from Constants seeds plus live REST against those hosts; they are not a synchronized copy of every federated server.
+			Actor and status activityPubNetworks come from Constants seeds plus live REST against those hosts; they are not a synchronized copy of every federated server.
 		</p>
 	{/snippet}
 

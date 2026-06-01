@@ -112,11 +112,11 @@
 			{@const playlists = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.YouTubePlaylist>[] = (
+					const youTubePlaylists: Entity<typeof schema, EntityType.YouTubePlaylist>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((playlist) => ({
+						youTubePlaylists.map((playlist) => ({
 							entityId: playlist[EntityMetaKey.Id],
 							sortKey: playlist[EntityMetaKey.IdKey],
 						}))
@@ -131,8 +131,8 @@
 				{title}
 				resource={playlists}
 				placeholderText="Loading playlists…"
-				getKey={(row) => stringify(row.entityId)}
-				getSortValue={(row) => row.sortKey}
+				getKey={(row) => stringify(youTubePlaylist.entityId)}
+				getSortValue={(row) => youTubePlaylist.sortKey}
 				placeholderKeys={new SvelteSet<string>()}
 			>
 				{#snippet Empty()}

@@ -68,13 +68,13 @@
 					},
 				},
 			)}
-			{@const rows = derive(
+			{@const atprotoPostTimestamps = derive(
 				parent,
 				(parent) => {
-					const list: Entity<typeof schema, EntityType.AtprotoPost_Timestamp>[] = (
+					const atprotoPostTimestamps: Entity<typeof schema, EntityType.AtprotoPost_Timestamp>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
-					return list.map((value) => ({
+					return atprotoPostTimestamps.map((value) => ({
 						value,
 					}))
 				},

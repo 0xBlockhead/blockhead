@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { generateOutput } from '@gql.tada/cli-utils'
 
 /**
- * Syncs GraphQL sources by scanning for `src/sources/*/Graphql/** /schema-source.ts` manifests.
+ * Syncs GraphQL sources by scanning provider-local schema manifests.
  *
  * Replication contract:
  * 1. Add `schema-source.ts`, `schema.graphql`, `graphql-env.d.ts`, `client.ts`, and `queries.ts`

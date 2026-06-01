@@ -91,8 +91,8 @@
 				id={`${id}-items`}
 				{title}
 				open={true}
-				getKey={(row) => stringify(row[EntityMetaKey.Id])}
-				getSortValue={(row) => stringify(row[EntityMetaKey.Id])}
+				getKey={(row) => stringify(blockheadRoom[EntityMetaKey.Id])}
+				getSortValue={(row) => stringify(blockheadRoom[EntityMetaKey.Id])}
 				resource={
 					derive(
 						global,

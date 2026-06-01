@@ -279,7 +279,7 @@
 							entityId,
 							fieldName: '$$items',
 						}}
-						id={`${idKey}:feed-items-list`}
+						id={`${idKey}:feed-items-rssFeeds`}
 						{limit}
 						open={_open}
 						title="Items"

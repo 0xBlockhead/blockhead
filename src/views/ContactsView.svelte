@@ -86,11 +86,11 @@
 			{@const contacts = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.BlockheadSharedAddress>[] = (
+					const blockheadSharedAddresses: Entity<typeof schema, EntityType.BlockheadSharedAddress>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						blockheadSharedAddresses.map((value) => ({
 							value,
 						}))
 					)

@@ -77,7 +77,7 @@
 						Positions require an execution RPC or subgraph that reads NonfungiblePositionManager NFTs for connected accounts.
 					</p>
 					<p>
-						Pool pair rows from Dexscreener live under liquidity pools, not here.
+						Pool pair liquidityPositions from Dexscreener live under liquidity pools, not here.
 					</p>
 				{/snippet}
 				<abbr
@@ -100,11 +100,11 @@
 			{@const liquidityPositions = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.LiquidityPosition>[] = (
+					const liquidityPositions: Entity<typeof schema, EntityType.LiquidityPosition>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((value) => ({
+						liquidityPositions.map((value) => ({
 							value,
 						}))
 					)
@@ -135,7 +135,7 @@
 									Positions require an execution RPC or subgraph that reads NonfungiblePositionManager NFTs for connected accounts.
 								</p>
 								<p>
-									Pool pair rows from Dexscreener live under liquidity pools, not here.
+									Pool pair liquidityPositions from Dexscreener live under liquidity pools, not here.
 								</p>
 							{/snippet}
 							<abbr

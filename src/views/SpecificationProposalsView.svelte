@@ -185,9 +185,9 @@
 			{@const proposals = derive(
 		parent,
 		(parent) => {
-			const rows: Entity<typeof schema, EntityType.SpecificationProposal>[] = parent[entityFieldReference.fieldName] ?? []
+			const specificationProposals: Entity<typeof schema, EntityType.SpecificationProposal>[] = parent[entityFieldReference.fieldName] ?? []
 			return (
-				rows
+				specificationProposals
 					.filter((proposal) => (
 						(effectiveFilterRealm == null || proposal[EntityMetaKey.Id].realm === effectiveFilterRealm)
 						&& (effectiveFilterCategory == null || proposal[EntityMetaKey.Id].category === effectiveFilterCategory)
@@ -205,8 +205,8 @@
 				id={`${id}-items`}
 				href={href}
 				{title}
-				getKey={(row) => stringify(row.result[EntityMetaKey.Id])}
-				getSortValue={(row) => row.result[EntityMetaKey.Id].number}
+				getKey={(row) => stringify(specificationProposal.result[EntityMetaKey.Id])}
+				getSortValue={(row) => specificationProposal.result[EntityMetaKey.Id].number}
 				placeholderKeys={new SvelteSet<string | number>()}
 				resource={proposals}
 				open={true}

@@ -62,7 +62,7 @@
 			Catalogs map those prefixes to signatures so tooling can decode the trailing words similarly to call arguments.
 		</p>
 		<p>
-			This list is a subset of error selectors for the parent contract or address under inspection.
+			This evmErrors is a subset of error selectors for the parent contract or address under inspection.
 		</p>
 	{/snippet}
 
@@ -82,11 +82,11 @@
 			{@const errors = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.EvmError>[] = (
+					const evmErrors: Entity<typeof schema, EntityType.EvmError>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows.map((evmEntity) => ({
+						evmErrors.map((evmEntity) => ({
 							evmEntity,
 						}))
 					)

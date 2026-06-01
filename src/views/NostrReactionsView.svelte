@@ -117,11 +117,11 @@
 			{@const reactions = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.NostrReaction>[] = (
+					const nostrReactions: Entity<typeof schema, EntityType.NostrReaction>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows
+						nostrReactions
 							.map((reaction) => ({
 								entityId: reaction[EntityMetaKey.Id],
 								sortKey: (
@@ -139,8 +139,8 @@
 				{title}
 				resource={reactions}
 				placeholderText="Loading reactions…"
-				getKey={(row) => row.entityId.eventId}
-				getSortValue={(row) => row.sortKey}
+				getKey={(row) => nostrReaction.entityId.eventId}
+				getSortValue={(row) => nostrReaction.sortKey}
 				placeholderKeys={new SvelteSet<string>()}
 				UnorderedListProps={{ limit }}
 			>

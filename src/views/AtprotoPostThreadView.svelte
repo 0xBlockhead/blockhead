@@ -99,11 +99,11 @@
 			{@const threadPosts = derive(
 				parent,
 				(parent) => {
-					const rows: Entity<typeof schema, EntityType.AtprotoPost>[] = (
+					const atprotoPosts: Entity<typeof schema, EntityType.AtprotoPost>[] = (
 						parent[entityFieldReference.fieldName] ?? []
 					)
 					return (
-						rows
+						atprotoPosts
 							.map((value) => ({
 								value,
 							}))
@@ -116,9 +116,9 @@
 				entityType={EntityType.AtprotoPost}
 				id={`${id}-items`}
 				href={href}
-				getKey={(row) => row.value[EntityMetaKey.Id].uri}
+				getKey={(row) => atprotoPost.value[EntityMetaKey.Id].uri}
 				getSortValue={(row) => (
-					`${String(row.value.createdAt ?? 0).padStart(20, '0')}\0${row.value[EntityMetaKey.Id].uri}`
+					`${String(atprotoPost.value.createdAt ?? 0).padStart(20, '0')}\0${atprotoPost.value[EntityMetaKey.Id].uri}`
 				)}
 				placeholderText={`Loading ${title.toLowerCase()}…`}
 				resource={threadPosts}

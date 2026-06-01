@@ -93,7 +93,7 @@
 			resource={lightningNetwork}
 		>
 			{#snippet children(row)}
-				{row.name}
+				{lightningNetwork.name}
 			{/snippet}
 		</ResourceBoundary>
 	{/snippet}
@@ -111,24 +111,24 @@
 		>
 			{#snippet children(row)}
 				<dl>
-					{#if row.$settlementNetwork != null}
+					{#if lightningNetwork.$settlementNetwork != null}
 						<div>
 							<dt>Settlement network</dt>
 							<dd>
 								<NetworkView
-									entityId={row.$settlementNetwork[EntityMetaKey.Id]}
+									entityId={lightningNetwork.$settlementNetwork[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
 						</div>
 					{/if}
 
-					{#if row.$$timestamps.at(0) != null}
+					{#if lightningNetwork.$$timestamps.at(0) != null}
 						<div>
 							<dt>Latest snapshot</dt>
 							<dd>
 								<LightningNetwork_TimestampView
-									entityId={row.$$timestamps.at(0)[EntityMetaKey.Id]}
+									entityId={lightningNetwork.$$timestamps.at(0)[EntityMetaKey.Id]}
 									layout={EntityLayout.Value}
 								/>
 							</dd>
@@ -170,7 +170,7 @@
 						fieldName: '$$nodes',
 					}}
 					href={href == null ? '' : `${href}/nodes`}
-					id={`${stringify(entityId)}:lightning-nodes-list`}
+					id={`${stringify(entityId)}:lightning-nodes-lightningNetworks`}
 				/>
 			{/snippet}
 
@@ -183,7 +183,7 @@
 						fieldName: '$$channels',
 					}}
 					href={href == null ? '' : `${href}/channels`}
-					id={`${stringify(entityId)}:lightning-channels-list`}
+					id={`${stringify(entityId)}:lightning-channels-lightningNetworks`}
 				/>
 			{/snippet}
 
@@ -197,7 +197,7 @@
 							fieldName: '$$invoices',
 						}}
 						href={href == null ? '' : `${href}/invoices`}
-						id={`${stringify(entityId)}:lightning-invoices-list`}
+						id={`${stringify(entityId)}:lightning-invoices-lightningNetworks`}
 					/>
 
 					<LightningPaymentsView
@@ -208,7 +208,7 @@
 							fieldName: '$$payments',
 						}}
 						href={href == null ? '' : `${href}/payments`}
-						id={`${stringify(entityId)}:lightning-payments-list`}
+						id={`${stringify(entityId)}:lightning-payments-lightningNetworks`}
 					/>
 				</div>
 			{/snippet}

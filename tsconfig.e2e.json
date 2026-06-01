@@ -18,27 +18,19 @@
 		".svelte-kit/ambient.d.ts",
 		".svelte-kit/non-ambient.d.ts",
 		".svelte-kit/types/**/$types.d.ts",
-		"vite.config.ts",
-		"src/**/*.js",
-		"src/**/*.ts",
-		"src/**/*.svelte"
+		"playwright.config.ts",
+		"playwright.env.ts",
+		"src/**/*.e2e.js",
+		"src/**/*.e2e.ts",
+		"src/routes/api/e2e/**/*.ts",
+		"tests/**/*.js",
+		"tests/**/*.ts"
 	],
 	"exclude": [
 		"node_modules/**",
-		".svelte-kit/types/src/routes/api/e2e/**",
-		"src/routes/api/e2e/**",
-		"src/service-worker.js",
-		"src/service-worker/**/*.js",
-		"src/service-worker.ts",
-		"src/service-worker/**/*.ts",
-		"src/service-worker.d.ts",
-		"src/service-worker/**/*.d.ts",
 		"src/**/*.test.js",
 		"src/**/*.test.ts",
 		"src/**/*.spec.js",
-		"src/**/*.spec.ts",
-		"src/**/*.e2e.js",
-		"src/**/*.e2e.ts",
-		"tests/**"
+		"src/**/*.spec.ts"
 	]
 }

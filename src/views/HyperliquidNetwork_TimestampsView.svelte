@@ -53,7 +53,7 @@
 	{...EntitiesListProps}
 >
 	{#snippet TypeAnnotationTooltip()}
-		<p>Timestamp rows hold observed market, spot asset, validator, and staking totals.</p>
+		<p>Timestamp hyperliquidNetworkTimestamps hold observed market, spot asset, validator, and staking totals.</p>
 	{/snippet}
 
 	{#snippet body()}

@@ -55,7 +55,9 @@
 			],
 			rpcEndpoints: {},
 			storageEndpoints: {},
-			$headBlock: {},
+			$$blocks: {
+				$limit: 1,
+			},
 			$consensusNetwork: {},
 			$$timestamps: {
 				$limit: 1,
@@ -126,12 +128,12 @@
 				<dl class="network-summary-head" data-column-item="center">
 					<ResourceBoundary resource={zeroGNetwork}>
 						{#snippet children(zeroGNetwork)}
-							{#if zeroGNetwork.$headBlock != null}
+							{#if zeroGNetwork.$$blocks.at(0) != null}
 								<div>
 									<dt>Head block</dt>
 									<dd id="network-summary-head-block">
 										<EvmBlockView
-											entityId={zeroGNetwork.$headBlock[EntityMetaKey.Id]}
+											entityId={zeroGNetwork.$$blocks.at(0)[EntityMetaKey.Id]}
 											layout={EntityLayout.Value}
 										/>
 									</dd>

@@ -94,8 +94,8 @@
 					id={`${id}-items`}
 					{title}
 					open={true}
-					getKey={(row) => row[EntityMetaKey.Id].hex}
-					getSortValue={(row) => row[EntityMetaKey.Id].hex}
+					getKey={(row) => evmError[EntityMetaKey.Id].hex}
+					getSortValue={(row) => evmError[EntityMetaKey.Id].hex}
 					placeholderText="Loading revert/error selectors…"
 					resource={errors}
 					UnorderedListProps={{ orientation: ListOrientation.Column }}

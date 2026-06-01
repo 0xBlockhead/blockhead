@@ -89,7 +89,7 @@
 
 	{#snippet TypeAnnotationTooltip()}
 		<p>
-			XMTP transports encrypted payloads between inbox identities; conversation rows here are local catalog stubs until a live XMTP client is wired.
+			XMTP transports encrypted payloads between inbox identities; conversation xmtpNetworks here are local catalog stubs until a live XMTP client is wired.
 		</p>
 		<p>
 			“Demo accounts” are generic EVM actors from the local catalog—not XMTP inbox IDs or installations.
